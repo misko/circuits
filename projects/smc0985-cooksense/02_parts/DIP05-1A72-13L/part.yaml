@@ -41,23 +41,29 @@ pins:                       # pin-out code 13, DS p.3 "Pin-Out (Top View)" sub-f
   14: CONTACT_A               # east column, pin-1 end
 limits: {coil: "5V nom / 7.5V max, 500R +-10%, pull-in <=3.5V, drop-out >=0.75V (DS p.2)", contact: "model 72: 10W, 200V, 0.5A switch / 1.0A carry (DS p.1)", dielectric_coil_contact: "1.5 kVDC min EN60255-27 (DS p.3) -- THE PART's internal rating; see the ISOLATION-GEOMETRY gotcha, the PCB geometry it was paired with was wrong", t_op: "-20..+70C"}
 gotchas:
-  - "ISOLATION GEOMETRY — THE BOARD-LEVEL CONSEQUENCE, and it is bigger than the
-     short. This part's coil and contact INTERLEAVE ALONG THE PACKAGE, they are
-     NOT split between the two rows: CONTACT_A at position 1, COIL_A at position
-     2, COIL_B at position 6, CONTACT_B at position 7. So the coil-to-contact
-     separation on the LAND is 2.54 mm between ADJACENT PINS at each end of the
-     package -- NOT the 7.62 mm row separation. ADR-0002 and this file's own
-     `layout:` block both asserted 'the isolation boundary runs BETWEEN the rows'
-     and every pour-relief and routing rule downstream was built on that. Those
-     rules are UNSUPPORTED and must be re-derived. This is why the fix is not a
-     footprint swap: the v1.1 isolation-comb repack, which is the shape of the
-     whole board, was designed around a 7.62 mm boundary that does not exist."
-  - "The 4-lead variant IS real, but it is sub-figure 13 (leads at 14/8/2/6), a
-     DIFFERENT pin-out code. If a 4-lead part is wanted, order the -13 code and
-     re-derive; do not re-map this one."
-
-  - "pin-out 12 = coil on pins 1/7 row, contact on pins 8/14 row: the isolation boundary runs BETWEEN the rows (ADR-0002)"
-  - "coil is non-polar on -12L; keep pin 1 = +RELAY_5V so the -12D alternate (internal diode, cathode at pin 1 side per DS p.4 D(Q) figure) drops in"
+  - "ISOLATION GEOMETRY under code 13 — the claim ADR-0002 makes is TRUE, and it
+     is true only because the part changed. COIL_A=DIP2 and COIL_B=DIP6 are both
+     on the WEST column; CONTACT_A=DIP14 and CONTACT_B=DIP8 are both on the EAST
+     column. Coil-to-contact separation on the land is therefore the 7.62 mm
+     COLUMN spacing (6.12 mm pad-edge, track-aware measured), which is exactly
+     what ADR-0002, the v1.1 isolation comb, and every downstream pour-relief and
+     routing rule already assume. HISTORICAL, and kept because it is the reason
+     this part number exists: under the previously-specified code 12 the part has
+     EIGHT leads whose coil and contact INTERLEAVE ALONG THE PACKAGE (CONTACT at
+     positions 1 and 14 tied, 7 and 8 tied, coil on the inner pins), giving a
+     2.54 mm adjacent-pin boundary and NOT a 7.62 mm row boundary — so on the
+     4-pad land it shorted 5V_KEY_RELAY to U_SEL_BUS and every ULN2803 output to
+     its keypad line, and left the coil with no holes at all. The board's shape
+     was designed for code 13 all along; code 12 was the typo."
+  - "DO NOT re-map a code-12 part onto this land. -12L and -12D are a DIFFERENT
+     pin-out code, not a diode option on this one; the leads are in different
+     places. If an internal-diode variant is wanted, the -13-code diode option
+     must be read off DS p.4 and confirmed before it is ordered — see
+     `sourcing.alternates`, which is WITHDRAWN for exactly this reason."
+  - "coil is non-polar on the -13L (a bare reed coil, no internal diode), so
+     COIL_A/COIL_B are interchangeable electrically; pin 1 of the LAND
+     (= DIP lead 2) is held at +RELAY_5V by convention so that a future polarised
+     diode option has a defined orientation to be checked against."
   - "adjacent-relay magnetic coupling: DS p.3 handling note; 15.24mm super-column pitch + one-at-a-time firmware default"
   - "ROW-PITCH GEOMETRY (measured, cooksense v1.1 D7 2026-07-23): the 15.24mm coupling pitch is a rot0/VERTICAL-orientation figure (6.5mm body / 9.93mm bbox across the pitch axis). In a rot90 HORIZONTAL row (contacts N / coils S) the 19.3mm body / 19.90mm courtyard lies ALONG the row: minimum mechanical pitch ~20mm, and 15.24mm overlaps courtyards by 4.66mm — impossible. Do not commission a rot90 row below 20mm pitch."
   - "rot0 ISOLATION COMB (cooksense v1.1): with vertical relays the coil/contact isolation boundary runs N-S BETWEEN the pin columns (7.62mm c-c / 6.12mm pad-edge). Alternate rot180/rot0 in PAIRS so contact columns of adjacent relays face each other: the isolated domain pockets between pairs (and at row ends) while coil-coil gaps carry logic — no logic net ever crosses a pocket; the DS p.3 alternate-orientation note doubles as the coupling mitigation for the anti-parallel adjacent coils."
@@ -73,7 +79,7 @@ asserts:
 verified: "pin map read from DS p.3 Pin-Out sub-figure 13, re-rendered at 300 dpi 2026-07-28 (code 13) + p.4 option figures; coil/contact data p.1-2; dielectric p.3 Relay Data table - 2026-07-19"
 layout:                          # P-LAYOUT: reed relay (mains-switching stage, DO-NOT-SUBSTITUTE)
   source: "Standex DIP-series datasheet (Version 03, 01 Aug 2025) p.3 'Handling &
-    Assembly Instructions' + p.3 Pin-Out (Top View, code 12) + p.4 Options figures.
+    Assembly Instructions' + p.3 Pin-Out (Top View, code 13) + p.4 Options figures.
     Real rules: (a) external magnetic fields and ADJACENT relays in high-density
     matrices influence the relay's electrical characteristics and must be taken into
     consideration; (b) switching inductive/capacitive loads makes V/I peaks that
@@ -88,14 +94,33 @@ layout:                          # P-LAYOUT: reed relay (mains-switching stage, 
         This board already fixes the 15.24mm super-column pitch + one-at-a-time
         firmware default (gotcha); a magnetic-shield option (-12M/Q/R/S, p.4) exists
         if a tighter matrix is ever forced. Keep coils clear of other magnetics.
-    (2) Isolation boundary runs BETWEEN the rows: coil pins 1/7 vs contact pins 8/14,
-        1.5kVDC coil/contact (EN60255-27, ADR-0002) - hold creepage/clearance across
-        that gap, route NO net through it, pour reliefs respect the boundary.
+    (2) Isolation boundary runs BETWEEN the COLUMNS: coil at DIP leads 2/6 (west)
+        vs contact at DIP leads 8/14 (east) under pin-out code 13, 7.62mm c-c /
+        6.12mm pad-edge, 1.5kVDC coil/contact (EN60255-27, ADR-0002) - hold
+        creepage/clearance across that gap, route NO net through it, pour reliefs
+        respect the boundary. (This line said "coil pins 1/7 vs contact pins 8/14"
+        while the board specified the -12L code; that was the code-12 map and it
+        was wrong in both directions. Corrected 2026-07-28 with the part change.)
     (3) Fly-back: the coil is an inductive load - the ULN2803 COM clamp on RELAY_5V is
         the protective circuit the datasheet demands; keep the coil->driver loop tight.
     (4) Process: THT low-profile DIP on the DIP-14 corner grid; wave/hand-solder within
         the 260C/5s limit, wash-and-dry compatible.
 sourcing:
   lcsc: ""
-  alternates: [DIP05-1A72-12D]   # internal-diode variant, SAME pinout (approved, ADR-0006); global-source / hand-solder like the base part
-  note: "DO-NOT-SUBSTITUTE (spec 15.4). JLC catalog C1561362 stock 0 -> HAND-SOLDER line, global sourcing (DigiKey DIP05-1A72-13L (SOURCING RE-CHECK OWED 2026-07-28: the ~$4.36/1 figure and the C1561362 stock-0 reading were both taken against the -12L code; the -13L code needs its own catalog/distributor read before order), active). Approved alternate: DIP05-1A72-12D (same pinout, internal diode). Order 16 + 4 spares."
+  alternates: []                 # WITHDRAWN 2026-07-28 — see note. -12D is pin-out CODE 12, a different lead arrangement, NOT a diode option on code 13.
+  note: >-
+    DO-NOT-SUBSTITUTE (spec 15.4). CATALOG, FRESH 2026-07-28 against the -13L
+    code (not inherited from the -12L read): jlcpcb selectSmtComponentList
+    keyword 'DIP05-1A72-13L' -> 1 hit C1524853 STANDEXMEDER DIP05-1A72-13L,
+    stockCount 0, library 'expand'; keyword 'DIP05-1A72' -> 5 hits, stock 0 on
+    every one; controls the same minute C5620 = 5414 and C25741 = 465129, so
+    the zeros are real. JLC cannot source it -> HAND-SOLDER line, self-supplied.
+    DISTRIBUTOR SOURCING IS OWED: every recorded quote in this tree
+    (Mouser 876-DIP05-1A72-12L stock 132, DigiKey DIP05-1A72-12L-ND stock 56,
+    ~$3.45/10, read 2026-07-27) is keyed to the -12L code and does NOT transfer
+    to -13L. No -13L distributor stock figure has been read. ALTERNATE
+    WITHDRAWN: DIP05-1A72-12D was approved under ADR-0006 as "same pinout,
+    internal diode" — true of -12L, FALSE of -13L, because 12 and 13 are
+    different pin-out codes. Any internal-diode alternate for this board must
+    be a code-13 variant, read off DS p.4 and confirmed before order.
+    Order 16 (12 + 4 spares).

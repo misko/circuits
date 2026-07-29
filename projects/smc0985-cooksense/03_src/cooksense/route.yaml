@@ -796,9 +796,71 @@ stitch:
       # MAX31856's 0.400 mm-wide pad with 0.05 mm each side. Copying the 5V_RPP
       # waiver onto a net that does not need it would have been an inherited
       # defect (canon M4).
+      # RE-DERIVED 2026-07-28 (v1.7 relay/-13L + TOPO/PIN rebuild), and the
+      # REASON is the lesson: this coordinate was measured against the PREVIOUS
+      # race's copper, and the race is STOCHASTIC. The v1.7 reroute put other
+      # copper at (66.162,78.900), `seed_stubs` REFUSED the via, and the stitch
+      # `gate` pass reported it rather than shipping a pad the pour never
+      # reached — which is the pass working. A pinned stub coordinate is only
+      # valid against the chain it was measured on, so this one is re-measured
+      # AND the winning chain is promoted to route/final_chain.kicad_pcb in the
+      # same change (canon M3): from here the pair is frozen together.
+      # MEASURED on the post-stitch v1.7 board with the pass's own primitive
+      # (pcb_toolkit.via_site_ok, via 0.25/0.15, hole-to-copper 0.13), scanned
+      # over a 141x91 grid at 0.025 mm out to 1.6 mm: **537 legal OFF-PAD sites**
+      # with a clear 0.30 mm stub path. This one is the NEAREST of them at
+      # 0.8750 mm, is COLLINEAR with the pad centre (a straight westward
+      # segment along the pad's own centreline, no diagonal), and survives a
+      # via-growth sweep to 0.60 mm — 0.35 mm of slack beyond the 0.25 design.
+      # It stays a STUB rather than the via-in-pad the fresh scan now also
+      # offers (753 on-pad sites exist on THIS route where the previous route
+      # had zero): the MAX31856 pad is 0.400 mm wide against a 0.25 via, and a
+      # 0.075 mm annulus each side is not a margin worth taking on a solder
+      # pad when 0.875 mm away buys a fully off-pad bond.
+      # STUB CLEARANCE, real-shape not circular-approximation: at the 0.30 mm
+      # design width the bare copper-to-copper gap to the nearest foreign item
+      # is **0.3000 mm** against a 0.130 mm DRU floor (2.3x). The stub could
+      # widen to 0.64 mm before violating the rule and to 0.90 mm before
+      # TOUCHING anything; the two blockers at that limit are the U_TC.9
+      # (TC_CS_N) pad and a TEMP_OK track. (A first cut of this measurement
+      # used max(pad.w,pad.h)/2 as a circular radius and reported U_TC.9 at
+      # -0.0875 mm — an ARTEFACT of approximating a 1.475 x 0.400 TSSOP pad as
+      # a disc. Recorded because the wrong number looked like a short.)
       - {net: 3V3, pin: U_TC.8,
-         segments: [{layer: F.Cu, width: 0.30, pts: [[65.8625, 78.950], [66.162, 78.900]]}],
-         vias: [[66.162, 78.900]]}
+         segments: [{layer: F.Cu, width: 0.30, pts: [[65.8625, 78.950], [64.9875, 78.950]]}],
+         vias: [[64.9875, 78.950]]}
+      # ===== v1.7 RE-ROUTE — the SAFETY-AND-GATE cluster's plane bonds ======
+      # SEVEN pads that the pour could not reach on the c0/r9 chain, surfacing
+      # at the FULL DRC gate as **6 unconnected items** while the race itself
+      # reported 0/0 on all three candidates. That is not a contradiction: the
+      # race grades ROUTED NETS, and these are the TRAPPED-PLANE-PAD class —
+      # copper the router considered served because the plane "owns" it, then
+      # fenced off by the fill. The remedy is the one route.yaml already uses
+      # twenty-odd times above: a DETERMINISTIC via-in-pad, at a site measured
+      # with the pass's own primitive rather than guessed.
+      # ALL SEVEN SITES MEASURED 2026-07-28 on the post-stitch board with
+      # pcb_toolkit.via_site_ok (via 0.25/0.15, hole-to-copper 0.13), scanned
+      # over the pad's own extent (pad.HitTest, so every point is genuinely on
+      # copper). "growth" = how far the via could GROW and stay legal, i.e. the
+      # slack beyond the 0.25 design — quoted because a site that is legal by
+      # 0.00 mm is a site that the next reroute takes away (which is exactly
+      # how the U_TC.8 stub above went stale).
+      # Note C_AND1.1<->U_AND1.5 and C_AND2.1<->U_AND2.5 were unconnected to
+      # EACH OTHER, not merely to the plane: both members of each pair are
+      # separately fenced, so both get a bond. One via would leave the other
+      # floating and the DRC count would drop without the defect going away.
+      - {net: GND, pin: R_AND1PD.2,   vias: [[157.8000, 70.6600]]}   # 335 legal on-pad sites, PAD CENTRE, growth 0.65
+      - {net: GND, pin: C_AND3.2,     vias: [[183.9800, 70.6000]]}   # 362 legal, PAD CENTRE, growth 0.80
+      - {net: 3V3, pin: C_OSV.1,      vias: [[154.7200, 63.9000]]}   # 369 legal, PAD CENTRE, growth 0.80
+      - {net: 3V3, pin: C_AND1.1,     vias: [[159.0200, 70.6000]]}   # 280 legal, PAD CENTRE, growth 0.50
+      - {net: 3V3, pin: C_AND2.1,     vias: [[171.0200, 70.6000]]}   # 360 legal, PAD CENTRE, growth 0.75
+      # The two SOIC-14 pin-5 pads (1.325 x 0.600) have NO legal site at the pad
+      # centre — the centre is where their own escape track lands — so each takes
+      # the best-MARGIN on-pad site instead of the nearest, and the difference is
+      # measured: U_AND1.5's nearest legal site has growth 0.40 while the one
+      # chosen has 1.00, for 0.400 mm of offset that costs nothing.
+      - {net: 3V3, pin: U_AND1.5,     vias: [[158.7375, 68.0000]]}   # 155 legal, 0.400 off centre, growth 1.00 (nearest-site growth was 0.40)
+      - {net: 3V3, pin: U_AND2.5,     vias: [[171.4575, 67.8600]]}   # 465 legal, 0.349 off centre, growth 0.75 (nearest-site growth was 0.25)
       - {net: 3V3, pin: U_LATCHB.5,   vias: [[182.838, 73.350]]}
       - {net: GND, pin: R_RAENRHEPD.2, vias: [[128.365, 91.605]]}   # RE-DERIVED on the promoted race-3 chain (task#21, 2026-07-25): the old y91.350 site was blocked. MEASURED over the whole pad on a 0.02mm grid with the pass's own primitive (pcb_toolkit.via_site_ok, via 0.25/0.15, clearance 0.13): 225 of 300 on-pad points legal, and this one survives a via-growth sweep to 0.69mm — 0.22mm of margin beyond the clearance floor, the best on the pad. No blocking copper within 0.45mm on either layer.
       # C_OENAND.1 (3V3) stub RE-DERIVED + RESTORED (task#21 adjudication, 2026-07-24).

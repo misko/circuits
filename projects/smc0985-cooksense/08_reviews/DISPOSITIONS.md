@@ -209,3 +209,90 @@ finding: `06_build/tmp/cooksense-v1.7-BLOCKED-2026-07-28/verification/dispositio
 | V17-19 | render-review (S5, S6) | schematic **design-math FAIL** (zero text items, zero text boxes — no threshold or divider annotated anywhere) and **readability FAIL** (one 900×450 pt page, 235 parts, 0 sheets, 601 global labels / 0 local) | P1 | reviewer counted `(text` = 0, `(text_box` = 0 | **RECORDED as the graded human items.** S5 is also the ROOT CAUSE of V17-1: had the OVLO divider's arithmetic ever been written down, this release would not have needed a P0 to find it |
 | V17-20 | render-review (S7) | decoupling **PASS** — every IC with a named supply pin has a dedicated local bypass; **zero unbypassed power pins** | — | reviewer enumerated 17 logic ICs + U_LDO + U_EFUSE + both ULN COM rails | **PASS** |
 | V17-P | pin-review process finding | `pin_audit.py:130` joins `parts / mpn / "part.yaml"` literally and falls through silently — **16 of 54 dossiers on this board have `(not in yaml)` on every pin, including `U_EXP`, the one IC this revision re-targeted** | P1 | **CONFIRMED by the lead**; `MCP23017-E-SS/part.yaml` even carries `note_dirname:` for this exact case and nothing reads it | **REPORTED to skills/**, not applied (this agent may not edit `skills/`) |
+
+---
+
+# v1.7b — SECOND review battery (2026-07-28/29). **SEAL BLOCKED: 2 P0s.**
+
+The v1.7 battery of 2026-07-28 (dispositions in `DISPOSITIONS_v1.7.md`, which
+this file supersedes as the living ledger — the 08_reviews contract permits
+exactly one `DISPOSITIONS.md`) returned four blocking verdicts. Three were fixed
+in source and the fourth (silk) was fixed this session, the board was rebuilt to
+**DRC 0/0/0** with the full fab battery green, and a FRESH battery of four
+zero-context lenses was run against the rebuilt board with input CURATED
+(`journal/`, `learnings/`, `STATUS*.md` and `08_reviews/` withheld from all four).
+
+| lens | verdict |
+|---|---|
+| pin review (FRESH LENS) | **FAIL** — 1 blocking, 8 questions |
+| render | **DO-NOT-ORDER** — 1 P0, 4 P1s |
+| topology / protection / ratings | **ORDER-OK-WITH-NOTES** — 0 P0, 2 P1s |
+| layout / thermal / PI / DFM | **ORDER-OK-WITH-NOTES** — 0 P0, 4 P1s |
+
+**v1.7 IS NOT SEALED. `07_releases/` remains untouched. cooksense-v1.6-2026-07-27
+and every release back to v1.0 remain DO-NOT-ORDER (they carry the pin-out-12
+relay land).**
+
+## What the battery CONFIRMED — the two headline v1.7 claims both survived
+
+- **The relay land is CORRECT.** Two lenses independently rendered DS p.3 at
+  400 dpi and counted the leads on sub-figure **13**: FOUR leads, contact
+  14<->8 on one row, coil 2<->6 on the other, row spacing 3 grid units =
+  7.62 mm. The land's pads map exactly (pad1=lead 2, pad2=lead 6, pad3=lead 8,
+  pad4=lead 14). All 12 instances net correctly and **the coil node set and the
+  contact node set are DISJOINT** — `5V_KEY_RELAY` appears on no contact pad and
+  `U_SEL_BUS` on no coil pad. The pinout-12 short is GONE. Minimum coil-to-contact
+  pad distance over all 48 pads: **8.032 mm**. The render lens adds that the land
+  is **CHIRAL** (holes at DIP 2/6/8/14 map to 13/9/7/1 under 180 degrees), so a
+  relay physically cannot be inserted backwards.
+- **The >=6.0 mm keypad<->SELV isolation claim HOLDS, and the new land IMPROVED
+  it.** The layout lens measured it with KiCad's own geometry kernel, zones
+  FILLED IN MEMORY (`audit_board.py:154` deliberately excludes pours, so this is
+  a genuinely independent method, canon M1), per-layer over 10 322 copper shapes:
+  minimum **6.2200 mm** vs the 6.000 floor, on F.Cu, `K_D1.4` (`D_SEL_BUS`) to the
+  `COIL_D1_N` track — with a closed-form re-derivation agreeing to 0.0000 mm. The
+  intra-package coil<->contact barrier went **6.1200 -> 6.3494 mm** because
+  staggering the coil column puts the gap on a diagonal.
+
+## BLOCKING
+
+| id | finding | disposition |
+|---|---|---|
+| **PIN-P0-1** *(and TOPO P1-1 — THE SAME DEFECT, FOUND BY TWO LENSES WITH NO SHARED METHOD)* | **The v1.7 `U_EXP` pad-1 divider is sized as if the node were a stiff 5 V source, and it is not.** `EFUSE_FLT_N` has exactly four nodes — `U_EFUSE.6` (OPEN-DRAIN), `TP_PGOOD.1`, `R_PG.1`, `R_FLTDIVT.1` — so its ONLY source is `R_PG` = **100 kOhm**. The real chain is 100k + 10k over 22k, ratio **22/132, not 22/32**: the tap sits at **0.833 V** nominal (0.792-0.875 V over the sanctioned 4.754-5.25 V rail). MCP23017 DS20001952C D031/D041 at VDD 3.3 V: V_IL(max) **0.660 V**, V_IH(min) **2.640 V**. The power-good state is 173 mV ABOVE V_IL(max) and 1.807 V BELOW V_IH(min) — the indeterminate band, never a guaranteed HIGH, and on a Schmitt input it reads LOW, i.e. **identical to the fault state. The readback is degenerate: the pin is protected and dead.** Enabling the internal GPPU does not save it (1.216 V / 0.212 V). Second-order: `TP_PGOOD`, deliberately left on the raw node "so the instrument sees the real node", now rests at **1.212 V**, so that rationale is false as built. | **ACCEPTED — FIX REQUIRED, AND IT IS A DESIGN CHOICE, NOT A VALUE TWEAK.** With `R_PG` at 100k there is **no R_top > 0 solution**. Two quantified options: (a) move `R_PG`'s top end from `5V_PROTECTED` to **`3V3`** and DELETE both divider resistors — the TPS259573 `/FLT` is open-drain and indifferent to the pull-up rail, the node then rests at 3.3 V which needs no divider at all, and `TP_PGOOD` reads the real node again; or (b) keep 5 V and delete `R_FLTDIVT`, setting `R_FLTDIVB` ~ 150 kOhm (tap 3.000 V; admissible window 112-257 kOhm), or make `R_PG` <= 9.67 kOhm. **(a) is the recommendation** — it removes two parts instead of adding a constraint. **AND THE ASSERT MUST GROW A LEVEL TERM:** `electrical_invariants.yaml` `part_value`/`pin_on_net` asserts all go GREEN on the broken board, because they check that the divider EXISTS, not that the level WORKS. E-INV was RED-verified 21/21 and still missed this — topology asserts cannot catch an arithmetic error. |
+| **RENDER-P0-1** | **`J_ISOLOOP` — the NOT-SELV 30 V contactor terminal — has NO ARTWORK AT THE TERMINAL.** Silk body x[191.82..198.97] y[87.92..102.08]; text printed inside it: **none**; pole legend: **none** (0 of 4). Its own refdes at (189.30, 101.00) measures **4.900 mm** to J_ISOLOOP and **1.300 mm** to `J_RH_EXHAUST` — lead **-3.600 mm**, printed under a different connector, on the same y=101.00 baseline and at h=0.45 against J_RH_EXHAUST's h=0.60, i.e. it is also the less prominent of the two. The only "ISOLATED 30V ... NOT SELV" caption is **155.3 mm away** on a 188x92 board. | **ACCEPTED — FIX REQUIRED, and the previous refusal is WITHDRAWN.** `fix_silk_placement.py` and this session's journal both record that J_ISOLOOP cannot be fixed because "the SE corner is saturated; the nearest site is 33.6/41.9 mm away". **THAT JUSTIFICATION DOES NOT REPRODUCE.** The render lens rebuilt the sweep under the stated constraint set (pads +0.16, silk +0.08, filled courtyards, 0.25 mm edge clearance, 0.1 mm grid, summed-area table) and found `ISO 30V` fits at **(189.05, 93.35) = 6.46 mm** from the block and `30V` at **5.08 mm**, visually confirming ~6x3 mm of blank silk immediately west of it. This is the inherited-defect pattern in its purest form: a measured "impossible" was carried forward across sessions without being re-measured, and it was wrong. Add the caption AND the 1/2/3/4 pole legend at the terminal. |
+
+## Recorded, not blocking — but two of these are OURS
+
+| id | finding | disposition |
+|---|---|---|
+| **LAYOUT P1-1 / RENDER P1-1 — FOUND BY BOTH LENSES** | **Six safety-connector designators ship at 0.130 mm silk stroke, below the 0.150 mm floor** — `J_ESTOP`, `J_DOOR`, `J_MODE`, `D_DOOR`, `R_DOORPD`, `D_COILEN`, all h=0.450 / stroke 0.130, against 0.150 on the other 243 texts. Gerber confirms sub-floor apertures (`%ADD11C,0.1125`, `%ADD12C,0.120`). | **ACCEPTED — OURS, AND EMBARRASSING.** Cause is `fix_silk_placement.py`'s own `max(0.13, sz*0.2)` at sz=0.45. **The six are EXACTLY the refs passes B and C exist to fix** — the pass that repairs the safety labels is the pass that makes them the thinnest on the board. It also contradicts the tier's `min_silk_stroke: 0.15`, the board's `min_text_thickness: 0.15`, this project's own `SILK-TEXT-THICKNESS` waiver ("thinner would not print"), and the `P-SILK-FN` waiver written THIS SESSION, which calls 0.13-0.15 "at or above the floor" — it is not. One-line fix: floor the stroke at 0.15. Uncaught because `text_thickness` is one of the four DRC classes this project sets to `ignore`. |
+| **LAYOUT P1-2 / RENDER P1-4 / V17-16 — THIRD SIGHTING** | 12 fully-internal milled slots at **0.600 mm** against JLC's published 1.0 mm minimum routed slot. No slot-width floor is declared in `fab_tiers.yaml`, `design-policies.md` or any project rule, and **no gate measures one**. | **OPEN, and now escalated.** The slots ARE the isolation comb, so a fab that widens or omits them changes the >=6 mm claim printed on the board. Layout lens verified widening to 1.000 mm is geometrically FREE (stays inside the `iso_gapN`/`iso_pktS` keepouts, nearest copper > 2.4 mm). Escalates to P0 if the capability page confirms 1.0 mm. |
+| **TOPO P1-2 (NEW)** | **The reed coil's pull-in margin is computed nowhere and fails the board's own temperature envelope.** DS p.2 Coil Data (pin-outs 10-13): pull-in max **3.5 V**, plus a footnote nothing in this tree carries — "Pull-In, Drop-Out Voltage and Coil Resistance will change at rate of 0.4 %/K". So V_PI = 3.920 V at 50 C (BRIEF's own enclosure level) and **4.200 V at 70 C** (the relay's own max). Available = `5V_KEY_RELAY` vout_min **4.740 V** minus the ULN2803 V_CE(sat) — and `02_parts/ULN2803ADWR/part.yaml` records **no saturation voltage at all and commits no datasheet**; SLRS049's lowest specified point is 100 mA against this board's ~8-10 mA. At the Darlington floor (0.60-0.90 V) the margin is **+220 mV to -80 mV at 50 C and -60 mV to -360 mV at 70 C**. | **OPEN — the most consequential non-P0 in this battery.** It is P1 only because the failure direction is a relay that does not close (restrictive). Owed: commit the ULN2803 datasheet, get a V_CE(sat) at 10 mA, and either re-derive the margin or move the coil rail. Note `K_STOP` is NOT exposed — it is MOSFET-driven off the ungated 5V_STOP rail, +450 mV at 70 C (self-refutation recorded by the lens). |
+| **LAYOUT P1-3** | The AMS1117 dissipation PASS is cited against a mounting the board does not have. `power_tree.yaml` claims the tab "is flooded with 3V3 copper ... 55-65 C/W". MEASURED: tab-layer (F.Cu) 3V3 copper within 10 mm = **13.96 mm2**; In1/B.Cu 3V3 = **0.00 mm2**; the 8386 mm2 3V3 plane is on In2 and reached by **2 vias**. 55-65 C/W corresponds to ~645 mm2 of tab-layer copper. | **OPEN.** Same class as the v1.7 battery's P1-c (~104 K/W), now with the copper area measured. Failure direction SAFE (thermal shutdown collapses 3V3, every pull-down asserts). E-TOPO's 51 % PD PASS does not depend on this number, but the rationale in `power_tree.yaml` does. |
+| **LAYOUT P1-4** | H4's SELV creepage leg fell from ~3.37 mm to **0.607 mm** because v1.7 placed `D_COILEN` in the corridor ADR-0015 declares load-bearing. Total still passes (~7.21 mm) and the lens's disc model reproduces ADR-0015's own 4.0286 mm keypad leg exactly. | **OPEN.** The total passes; the FASTENER-OD derivation in ADR-0015 and the ORDER_README is now stale and must be re-derived before it is quoted again. |
+| **RENDER P1-2** | `J_ESTOP`'s designator leads its rival by only **0.608 mm** (2.300 own / 2.908 to J_DOOR), against +7.94 mm and h=0.60 for the two non-safety RH connectors — the mitigation is weakest exactly where the hazard is greatest. | **RECORDED.** The lens SELF-REFUTED this as a P0: it read all four GH housings' pin nets and every cross-plug permutation fails SAFE under ADR-0019's restrictive pull-downs, so the designator is not the sole mitigation. Fold into the same silk pass as RENDER-P0-1. |
+| **RENDER P1-3** | `J_PI` (C35165) and `J_LOADCELL` (C157991) carry LCSC codes in `bom_jlc.csv` but appear on **no CPL row** — JLC is told to buy two parts it is never told to place. The other 14 BOM-not-CPL refs correctly carry a blank LCSC. | **OPEN.** Inverse of canon A-POP (which catches a CPL row with a blank BOM LCSC). A-POP passed here because it only tests that direction. |
+| **PIN Q-1** | Every document and invariant in the v1.7 P0-b work calls `U_EXP` pad 1 **"GPA0"**. Pad 1 is **GPB0**; GPA0 is pad 21, which on this board is `RAIL_EN_A`, an OUTPUT. | **ACCEPTED — copper is right, the paperwork is wrong.** Fix in `electrical_invariants.yaml`, the tsx comment and the beacon before anyone writes firmware from it. |
+| **PIN Q-2..Q-8** | `EXP_INTB` is a single-node net (B-port carries all six safety readbacks, only INTA reaches the Pi — needs IOCON.MIRROR); GPB6/`TC_FAULT_N` is the only expander input with no series R and no pull-up; `/RESET` on `WD_OK` means every watchdog event wipes IODIR/GPPU/IOCON with no documented re-init; no board I2C pull-ups; **18 of 46 dossiers have no committed datasheet, 7 of them pin-map-load-bearing** (MAX31856, ULN2803, HC595, HC14, LVC1G00, LTV-817S, AMS1117); `SN74HC14DR` part.yaml names pin 12 `6A_Y`; `J_LOADCELL.1` = 5V_PROTECTED sits beside `LC_DAT`/`LC_CLK` which run through 33 Ohm straight to Pi GPIO with only a 5.0 V-standoff PESD — the same defect class v1.7 just fixed, moved to a connector. | **OPEN**, next-revision work order. Q-6 and Q-8 are the two worth doing first. |
+| **PIN Q-7b / TOPO P2** | `DIP05-1A72-13L/part.yaml` keys `pins:` by PHYSICAL DIP lead (2/6/8/14) while the footprint and netlist use renumbered pads 1-4 — and the two keyings **COLLIDE**: yaml key `2` = COIL_A, pad `2` = COIL_B. | **ACCEPTED, harmless TODAY only because the coil is non-polar.** Re-key the dossier to the land's pads with the DIP lead as a comment, exactly as the footprint `descr` already does. |
+
+## Self-refutations recorded (canon: record, do not delete)
+The layout lens's first copper-to-edge reading of 0.2500 mm was **its own bug** —
+off by exactly the 0.05 mm Edge.Cuts half-stroke; the true figure is 0.3000 mm,
+at the floor. Topology self-refuted the /SR latch's 7 ms forbidden-state window
+(the same term that set it gates U_AND1/U_AND2/U_CAND1 directly, so nothing can
+arm), K_STOP's exposure to the coil-margin finding, and a 5 V injection path via
+J_LOADCELL (cook-loadcell runs the HX711 DVDD from 3V3). Render self-refuted
+J_ESTOP's ownership gap as a P0, and confirmed the relay land is chiral, that
+U_EFUSE's EP does get paste (65 % via two unnamed sub-pads), and that `J_MODE` is
+genuinely off the GH family in v1.7 (ZH, 1.50 mm, 4-pos) — so the brief's "five
+inter-mateable housings" is now **four**.
+
+Also verified clean and worth carrying forward: **all 9 v1.7 stubs present at
+their declared coordinates, in-pad, correct net, hole-to-copper 0.2505 /
+hole-to-hole >= 0.5011 / annulus 0.0500; 0 unconnected (nothing trapped); 0
+courtyard overlaps; both inner planes single unbroken polygons; 0 text-on-text
+collisions across 248 texts; 0 texts within 0.20 mm of the outline, the 12 slots
+or the east notch (the v1.7 notch regression IS fixed — 0 of 239 refdes overlap
+any of the 13 milled voids); board-vs-netlist pad parity 0 mismatches over 827
+pads; and the revision silk reads `cooksense SMC0985KS sidecar v1.7`, correct.**

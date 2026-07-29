@@ -1,7 +1,7 @@
 # cooksense floorplan — input for skills/kicad-pcb/scripts/generate_board_generic.py
 #
 # v1.1 SHRINK (D7, 2026-07-23): 252x92 -> 188x92mm. The v1.0 single-row rot90
-# relay row (contacts N / coils S) was pitch-bound at 20mm: the DIP05-1A72-12L
+# relay row (contacts N / coils S) was pitch-bound at 20mm: the DIP05-1A72 relay
 # long axis (body 19.3mm / courtyard 19.90mm) lay ALONG the row, leaving 0.10mm
 # courtyard gap — ZERO pitch shrink existed in that orientation (measured,
 # BRIEF D7). USER DECISION: rot0 vertical-relay redesign. Relays stand with the

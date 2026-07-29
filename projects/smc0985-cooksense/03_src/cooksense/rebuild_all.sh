@@ -89,8 +89,13 @@ $PY "$S/route_and_stitch_generic.py" import "$RT" --root "$PROJ"
 echo "== 5a/8 tie U_EFUSE EP unnamed sub-pads -> GND (P1-A EP thermal path) =="
 $PY "$PROJ/03_src/cooksense/tie_efuse_ep.py" "$PROJ"
 
-echo "== 5b/8 unfill stale generate_board zone fills (pre-`fill` passes incl."
-echo "        seed_stubs must start from UNFILLED zones; `fill` refills at the end) =="
+# NOTE the SINGLE quotes: these two lines used double quotes with backticks
+# around `fill`, so bash command-substituted them and every run printed
+# "line 92: fill: command not found" twice. Harmless here only by luck — a
+# backtick in an echo is an EXECUTION, and the next one might not be a typo
+# for a nonexistent command. Fixed 2026-07-28.
+echo '== 5b/8 unfill stale generate_board zone fills (pre-`fill` passes incl.'
+echo '        seed_stubs must start from UNFILLED zones; `fill` refills at the end) =='
 $PY - "$PROJ/04_kicad/cooksense.kicad_pcb" <<'PYUNFILL'
 import sys, pcbnew
 b = pcbnew.LoadBoard(sys.argv[1])

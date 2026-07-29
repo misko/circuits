@@ -90,5 +90,21 @@ for b in bad:
     print("   FAIL " + b)
 sys.exit(1 if bad else 0)
 PYCHK
+# ############################ CANON M3 GAP, FIXED #########################
+# This script produced `03_tscircuit/kicad/cooksense.kicad_sch` and the netlist
+# and STOPPED. `04_kicad/cooksense.kicad_sch` — the sheet `kicad-cli pcb drc
+# --schematic-parity` actually compares the board against — was never written
+# by any script; it had been copied by hand in some earlier session and then
+# went STALE. MEASURED 2026-07-28: after the -12L -> -13L part change the board
+# was correct and the 04_kicad sheet still said
+# `cooksense:Relay_StandexDIP_1A_pinout12`, so parity read **37 issues** — 24 of
+# them the twelve relays disagreeing about their own footprint and value, and
+# every one of them an artefact of a stale COPY rather than a real disagreement.
+# A hand-copied file in `04_kicad/` is exactly the thing canon M3 forbids: the
+# directory must be fully regenerable from `03_src/` + `03_tscircuit/`.
+echo "== 5/5 publish the sheet to 04_kicad (canon M3 — parity grades THIS file) =="
+cp "$T/kicad/cooksense.kicad_sch" "$PROJ/04_kicad/cooksense.kicad_sch"
+echo "   $PROJ/04_kicad/cooksense.kicad_sch <- $T/kicad/cooksense.kicad_sch"
+
 echo "== DONE: $PROJ/06_build/netlists/cooksense.net =="
 echo "   next: bash 03_src/cooksense/rebuild_all.sh --reroute"

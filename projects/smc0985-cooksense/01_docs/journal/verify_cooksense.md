@@ -689,3 +689,388 @@ mrepro_method_trap: a `.kicad_pcb` copied to a scratch dir WITHOUT its `.kicad_p
     plane pad. seed_stubs 65 -> 66.
 - next: seventh reroute. If it lands 0/0/0 the chain is promoted and the battery
   runs.
+
+## 2026-07-28 — start (v1.7 continuation: -13L sweep, silk, rebuild, fresh review battery)
+
+- state at pickup: source is CLEAN and COMMITTED through `3e48d34`; `04_kicad/`
+  is STALE (its `cooksense.kicad_sch` still carries
+  `cooksense:Relay_StandexDIP_1A_pinout12`, the footprint that no longer
+  exists). `07_releases/` untouched; v1.6 still live and DO-NOT-ORDER.
+- owed: (A) finish the -12L -> -13L reference sweep, (B) the silk blocker
+  (RENDER P0-A / LAYOUT P1-b) plus the newly-un-muzzled P-SILK-FN, (C) rebuild
+  + reroute + full battery, (D) a FRESH four-lens review round, (E) seal.
+- **-13L sourcing, RE-READ TODAY rather than relabelled.** `assembly.yaml`'s
+  `not_assembled` evidence was a DATED 2026-07-25 query keyed on the *-12L*
+  code; that evidence does not transfer to a different orderable part. Fresh
+  query, same endpoint `jlc_stock_check.py` uses
+  (`selectSmtComponentList`), 2026-07-28:
+  * keyword `DIP05-1A72-13L` -> **1 hit, C1524853 STANDEXMEDER DIP05-1A72-13L,
+    stockCount 0, library `expand`**
+  * keyword `C1524853` -> the same single hit, stock 0
+  * keyword `DIP05-1A72` -> 5 hits (C1524803 -11D, C1524847 -11L, **C1524853
+    -13L**, C1561362 -12L, C1561371 -12D), stockCount **0 on every one**
+  * CONTROLS the same minute: `C5620` -> 5414, `C25741` -> 465129. The zeros
+    are the library's answer, not a dead field.
+  So the `not_in_catalog` disposition SURVIVES the part change on its own
+  fresh evidence. The DISTRIBUTOR read is a separate question and is still
+  OWED: `manual_quotes.yaml` and `shopping-list-2026-07-27.md` carry Mouser
+  876-DIP05-1A72-12L (132) and DigiKey DIP05-1A72-12L-ND (56) — both keyed to
+  the *-12L* code, both now inapplicable. Recorded as OWED, not renamed.
+
+## 2026-07-28 — iterate 9 (the -13L sweep landed; E-INV grew 115 -> 136, all RED-verified)
+
+- **A. -12L reference sweep, DONE and it was not a rename.** Config/prose hits
+  updated: `floorplan.yaml` (the D7 pitch comment now names the family, not a
+  dead code), `policy_waivers.yaml` SILK-OVER-COPPER, `02_parts/README.md` x3,
+  `S4B-ZR-SM4A-TF` (the -20..+70 C binding-envelope cross-ref),
+  `AQY212GS` (ADR-0006 selector-alternate cross-ref), `03_src/lib/contracts.md`.
+  Four things needed JUDGEMENT rather than sed, and all four are recorded:
+  * `03_tscircuit/parity_padmap.txt` — the block was a REAL remap
+    (tsx 1,2,3,4 -> land 1,7,8,14) written against a land that no longer
+    exists. The pinout13 `.kicad_mod` bakes the renumber in, so the map is now
+    the IDENTITY. Rewritten as identity WITH the DIP-lead provenance on each
+    line, and the change is stated in the block header rather than the old
+    lines being quietly relabelled. (The relay lines were always
+    tsx_preflight-only tokens, never parity tokens — confirmed against
+    `parse_padmap`, which keys on `ref:pin=pad` — so nothing downstream moved.)
+  * `02_parts/DIP05-1A72-13L/part.yaml` — its `gotchas:` and `layout.notes`
+    STILL CARRIED THE CODE-12 MAP ("coil pins 1/7 vs contact pins 8/14",
+    "coil and contact INTERLEAVE ALONG THE PACKAGE", `layout.source` citing
+    "code 12"). The `pins:` block had been corrected and the prose around it
+    had not — a part dossier that contradicts itself. Rewritten to code 13,
+    with the code-12 interleave kept explicitly as HISTORY (it is why the part
+    number changed) instead of as a live claim.
+  * **The `DIP05-1A72-12D` alternate is WITHDRAWN, and this is a new finding.**
+    ADR-0006 approved it as "same pinout, internal diode". That was true of
+    -12L and is FALSE of -13L: 12 and 13 are different PIN-OUT CODES, not diode
+    options on one code. Fitting a -12D to the v1.7 land would reproduce the
+    exact short v1.7 exists to fix. `sourcing.alternates` is now `[]`,
+    `assembly.yaml`'s disposition says so, and ADR-0006 carries an amendment.
+  * `03_src/lib/contracts.md` also said cooksense "owns exactly TWO" footprints
+    while the `.pretty` holds FIVE (the ZIF and the two KF350 terminals were
+    vendored later and the contract never caught up). Corrected and all five
+    listed; a validate rule was added that grades the relay land by its PAD
+    COORDINATES (pads 1/2 at x -3.810, 3/4 at x +3.810), so "is this a code-12
+    land" is now answerable from the file instead of from its name.
+- ADR-0006 gets an AMENDMENT (not an edit): decision unchanged, pin-out code
+  corrected, -12D withdrawn, sourcing consequence stated. ADR-0018/0021 and
+  ARCHITECTURE.md had DANGLING PATH citations to `02_parts/DIP05-1A72-12L/`;
+  repointed. Every electrical number they rest on (7.5 V max coil, 500 R,
+  -20..+70 C, 1.5 kVDC) is a DIP05-1A72 FAMILY fact and is unaffected — checked
+  against the datasheet rather than assumed.
+- **Schematic stage rebuilt**: 243 components (243 with FPID), 820 pins,
+  **199 nets** (was 193 — the five `*_EXP` isolation nets plus `EFUSE_FLT_DIV`),
+  converter ERC **0 errors / 663 warnings**, safety-chain spot-check **11/11**.
+- **E-INV 115 -> 136** and every one of the 21 new invariants is RED-VERIFIED,
+  each mutation being the defect the assert exists to catch:
+  * 5 x `part_value <R_*SER> = 10k` mutated to 0R ("it is only a readback") -> RED
+  * 5 x `pin_on_net U_EXP.<2..6> = <TERM>_EXP` mutated back onto the RAW
+    permission (the delete-the-resistor simplification) -> RED
+  * 5 x `pin_on_net R_*SER.1 = <TERM>` mutated to the _EXP side, i.e. the
+    resistor becomes a STUB with both other asserts still green -> RED
+  * `R_FLTDIVT` 10k -> 100k, `R_FLTDIVB` 22k -> 100k -> RED
+  * `R_FLTDIVT.1` off `EFUSE_FLT_N`, `R_FLTDIVB.2` off `GND` -> RED
+  * `U_EXP.1` re-wired back to the 5 V `EFUSE_FLT_N` — THE P0-b defect, with
+    both resistors still present and still correct -> RED
+  * `TP_PGOOD.1` moved onto the DIVIDED tap (the instrument must see the real
+    node) -> RED
+  21/21. Source netlist md5 `20707e29ab0bdf848f6e8e34603b1424` before and after
+  — every mutation ran against a scratch copy.
+- **B (silk), PASS C added.** The ownership pass (v1.7) made J_DOOR/J_ESTOP/
+  J_MODE own their labels and it structurally could not see the other half of
+  RENDER P0-A: the confusing text at the E-STOP housing was never J_DOOR's
+  designator, it was **`D_DOOR`** — the flyback diode's — 0.353 mm from J_ESTOP,
+  6.411 mm from the diode it names, at h=0.60 against the connectors' 0.45. Pass
+  B graded `J_`-prefixed labels against `J_`-prefixed rivals. Pass C is the
+  converse and is quantified over EVERY footprint: no refdes of any kind may sit
+  nearer a SAFETY connector (J_ESTOP/J_DOOR/J_MODE/J_ISOLOOP) than it sits to the
+  part it names, 1.5 mm margin, re-derived over the whole board after all moves.
+- next: DRC on the rebuilt board, then the fab/assembly battery, then P-SILK-FN.
+
+## 2026-07-28 — iterate 10 (the race was clean; the STITCH GATE caught a stale pinned coordinate)
+
+- **Reroute race: 3 candidates, `c0/r9`, `c1`, `c2` — ALL THREE 0 unconnected /
+  0 violations (CLEAN).** No lottery this time; the per-wave `analog` clearance
+  0.16 from iterate 8 held with the six new nets in the netlist.
+- **The stitch `gate` pass FAILED, and it failed correctly:**
+  `seed_stub 3V3 U_TC.8: REFUSED — via (66.162,78.9) collides foreign copper`.
+  The coordinate was measured on the PREVIOUS race's copper (iterate 8) and the
+  race is STOCHASTIC — a pinned stub coordinate is only valid against the chain
+  it was measured on. `seed_stubs` refused, and the gate REPORTED rather than
+  shipping a plane pad the pour never reaches. That is the pass doing its job;
+  the defect was mine for not re-freezing the pair.
+- **Fix = re-measure AND freeze together.** The winning chain `c0/r9` is
+  promoted to `03_src/cooksense/route/final_chain.kicad_pcb`
+  (md5 `864a5e8400e0d97ea334817fe27dca09`, carries 12 `pinout13` footprints),
+  and the stub is re-derived against THAT board:
+  * scan: 141x91 grid at 0.025 mm out to 1.6 mm with the pass's own primitive
+    (`pcb_toolkit.via_site_ok`, via 0.25/0.15, hole-to-copper 0.13)
+  * **537 legal OFF-PAD sites** with a clear 0.30 mm stub path; chosen
+    `(64.9875, 78.950)` — the NEAREST at **0.8750 mm**, COLLINEAR with the pad
+    centre (straight west along the pad's own centreline), via-growth margin
+    **0.60 mm** i.e. 0.35 mm of slack beyond the 0.25 design
+  * it stays a STUB although this route now offers **753 legal ON-PAD sites**
+    where the previous route had ZERO: the MAX31856 pad is 0.400 mm wide and a
+    0.25 via leaves a 0.075 mm annulus each side — not a margin worth taking on
+    a solder pad when 0.875 mm away buys a fully off-pad bond
+  * stub clearance at the 0.30 mm design width, REAL-SHAPE: bare
+    copper-to-copper **0.3000 mm** against a 0.130 mm DRU floor (2.3x); it
+    could widen to 0.64 mm before violating and 0.90 mm before touching. The
+    two blockers at that limit are the `U_TC.9` (TC_CS_N) pad and a `TEMP_OK`
+    track.
+  * **A wrong number is recorded rather than deleted:** the first cut of that
+    clearance measurement approximated pads as discs of radius max(w,h)/2 and
+    reported `U_TC.9` at **-0.0875 mm** — which reads as a SHORT. It is an
+    artefact of treating a 1.475 x 0.400 TSSOP pad as a circle; the real-shape
+    collide (which `via_site_ok` had already used to approve the path) says
+    0.3000 mm. Circular pad approximations do not belong in a clearance claim.
+- Also fixed: `rebuild_all.sh` printed `line 92: fill: command not found` twice
+  every run — two `echo "..."` lines contained backticks around `fill`, so bash
+  COMMAND-SUBSTITUTED them. Harmless only by luck; a backtick in an echo is an
+  execution. Single-quoted.
+- next: deterministic rebuild from the promoted chain, then DRC.
+
+## 2026-07-28 — iterate 11 (the silk rule was WRONG TWICE, and the pass said so both times)
+
+RENDER P0-A / LAYOUT P1-b. The fix is a new PASS C in
+`03_src/cooksense/fix_silk_placement.py`. It took three statements of the rule
+and the two rejected ones are recorded IN THE FILE, because each was caught by
+the pass failing loudly rather than by anyone reading it.
+
+- **Cut 1 — "no refdes may sit nearer a SAFETY connector than the part it
+  names."** Broad, closed the class, and FAILED THE BUILD:
+  `FATAL: no clear silk position for ['R_COILENPD']`. The failure was correct
+  and the RULE was wrong. MEASURED: R_COILENPD's own PART sits **4.791 mm** from
+  J_MODE because it IS J_MODE's pin pull-down; `C_LATCHB` likewise. Neither
+  label is confusable with a harness, so demanding they retreat was tidiness
+  enforced at the price of a build, not a safety property.
+- **Cut 2 — the TOKEN rule:** a label carrying a safety connector's identity
+  token (ESTOP / DOOR / MODE / ISOLOOP) must be NEAREST that connector. Correct
+  in kind, and it failed the build again on SIX refs — because it had no
+  proximity gate. It reported `R_DOOROKSER` as cross-named at **90.150 mm** from
+  J_MODE versus 93.807 mm from J_DOOR. Arithmetically true, meaningless: nobody
+  reads a label 9 cm away as belonging to the housing in their hand.
+- **Cut 3 — token rule + an 8.0 mm housing radius**, and the number is NOT
+  invented for this file: it is `silk_fn_radius_mm`, the radius P-SILK-FN itself
+  uses to decide whether a silk text belongs to a part. With it the rule reports
+  EXACTLY the two labels the render lens found and nothing else:
+  * `D_DOOR`   — 6.227 mm from J_ESTOP vs 9.675 mm from J_DOOR -> moved
+    (191.500,73.800) -> (190.250,79.300)
+  * `R_DOORPD` — 5.200 mm from J_ESTOP vs 12.041 mm from J_DOOR -> moved
+    (191.800,70.900) -> (190.800,77.150)
+  `D_ESTOP` was reported by cut 2 and is correctly SILENT under cut 3: it is
+  7.048 mm from its own J_ESTOP and 8.016 mm from J_MODE — already nearest the
+  right housing, and the foreign one is outside the radius.
+- Pass B (ownership) result unchanged and re-verified from the final board:
+  J_DOOR 5.483 own vs 7.836 J_ESTOP; J_ESTOP 6.562 vs 8.304; J_MODE 8.097 vs
+  18.881 — all OWN THEIR LABEL. Total 6 refdes relocated, 247 verified on-board.
+- **RESIDUAL, printed and NOT blocking** (the class stays visible instead of
+  being narrowed out of existence): `C_LATCHB` (11.314 mm own vs 6.292 mm
+  J_DOOR) and `R_COILENPD` (8.485 mm own vs 6.817 mm J_MODE). Neither carries a
+  connector name.
+- **`J_ISOLOOP` is still NOT fixed and the omission is still MEASURED**, not an
+  oversight — the earlier full sweep found 31 legal positions whose BEST
+  achievable lead over J_RH_EXHAUST is **-2.955 mm**. There is nowhere on this
+  board where that label wins. It is also not the same hazard class (a KF350
+  4-pole screw terminal and a 5-pin GH cannot be cross-plugged). Carried as a
+  residual P2 and stated in the CHANGELOG rather than "fixed" by moving a label
+  5 mm.
+- Reminder for the CHANGELOG: the user chose to leave `silk_edge_clearance`
+  OFF, so this whole class remains GATE-LESS at DRC — this deterministic source
+  pass is the only thing standing between the generator and a silkscreen that
+  points at the wrong connector.
+
+## 2026-07-28 — iterate 12 (DRC found a STALE HAND-COPIED SHEET and 7 trapped plane pads)
+
+First full DRC on the rebuilt board: **0 violations / 6 unconnected / 37
+schematic parity**. Both non-zero numbers were real and neither was a routing
+failure.
+
+- **37 parity issues = a canon M3 violation that had been sitting in the tree.**
+  24 of the 37 were the twelve relays: `cooksense:Relay_StandexDIP_1A_pinout13`
+  on the board vs `...pinout12` in the sheet, plus a Value mismatch each.
+  ROOT CAUSE: `04_kicad/cooksense.kicad_sch` — the file
+  `kicad-cli pcb drc --schematic-parity` actually grades the board against — was
+  **never written by any script**. `rebuild_schematic.sh` produced
+  `03_tscircuit/kicad/cooksense.kicad_sch` and the netlist and stopped; the
+  04_kicad copy had been made BY HAND in some earlier session and then went
+  stale the moment the part changed. A hand-copied file in `04_kicad/` is
+  precisely what canon M3 forbids. `rebuild_schematic.sh` now publishes the
+  sheet as its step 5/5, so the directory is regenerable again.
+  **Parity after: 0 issues.** No board change was needed — the board was right
+  and the paperwork was stale, which is the failure mode that makes parity worth
+  running at all.
+- **6 unconnected = 7 TRAPPED PLANE PADS**, and the race is not wrong about
+  them: all three candidates reported 0 unconnected because the race grades
+  ROUTED NETS, while these are pads the fill fenced off from a plane that
+  "already owns" them. Two of the six were pad-to-pad within a pair
+  (`C_AND1.1`<->`U_AND1.5`, `C_AND2.1`<->`U_AND2.5`), i.e. BOTH members
+  separately fenced — one via each, because bonding one would drop the DRC count
+  without the defect going away.
+  Remedy = the deterministic via-in-pad this file already uses twenty-odd times,
+  every site MEASURED with `pcb_toolkit.via_site_ok` (0.25/0.15, hole-to-copper
+  0.13) over the pad's own extent via `pad.HitTest`:
+  | pad | net | legal on-pad sites | chosen | via-growth margin |
+  |---|---|---|---|---|
+  | `R_AND1PD.2` | GND | 335 | PAD CENTRE | 0.65 mm |
+  | `C_AND3.2`   | GND | 362 | PAD CENTRE | 0.80 mm |
+  | `C_OSV.1`    | 3V3 | 369 | PAD CENTRE | 0.80 mm |
+  | `C_AND1.1`   | 3V3 | 280 | PAD CENTRE | 0.50 mm |
+  | `C_AND2.1`   | 3V3 | 360 | PAD CENTRE | 0.75 mm |
+  | `U_AND1.5`   | 3V3 | 155 | 0.400 mm off centre | **1.00 mm** |
+  | `U_AND2.5`   | 3V3 | 465 | 0.349 mm off centre | 0.75 mm |
+  The two SOIC-14 pin-5 pads take the best-MARGIN site rather than the NEAREST,
+  and the difference is measured: U_AND1.5's nearest legal site has 0.40 mm of
+  growth and the chosen one has 1.00 mm, bought with 0.400 mm of offset that
+  costs nothing. The growth margin is quoted on every row on purpose — a site
+  legal by 0.00 mm is a site the next reroute takes away, which is exactly how
+  the U_TC.8 stub went stale two iterations ago.
+- seed_stubs 66 -> 73.
+
+## 2026-07-28 — iterate 13 (DRC 0/0/0 and the full battery; ONE red, and it is honest)
+
+- **DRC `--severity-all --refill-zones --schematic-parity`: 0 violations /
+  0 unconnected / 0 schematic parity.** seed_stubs 73 pins served, 0 refused.
+- Fab / assembly battery, every number measured against the STAGED archive at
+  `06_build/staging/cooksense-v1.7/` (never under 07_releases — an unsealed
+  archive there makes itself the live release and reddens t1_fleet_regrade
+  fleet-wide):
+  | gate | result |
+  |---|---|
+  | export_jlc_package | **exit 0** — gerbers 11 layers + drills, zip 13 files, BOM 59 lines (3 uncoded), CPL **210** parts |
+  | A-ROT | **OK, all 210 CPL rotations sourced** (measured per-LCSC row or 180-symmetric footprint) |
+  | F-LEGIBLE | **59/59** BOM lines carry a resolved MPN + human-readable Comment; bom_legibility **OK, 58 checks** |
+  | bom_source_check (staged BOM) | **PASS** — every BOM LCSC == source; coverage leg C 27/27 |
+  | jlc_stock_check | **VERDICT: PASS**, 56/56 coded lines at stock >= 5x qty; 3/59 uncoded and not graded |
+  | jlc_twin | **211 OK / 475 rows**, rotation-fitted 211, **bodies mounted 210/210** |
+  | twin_overlay (A-RENDER) | **OK** — see the resolution note below |
+  | part_facts_check (P-FACT) | **OK**, 5 asserts graded, 1 DEFERRED (LTV-817 keepout, needs geometry the checker lacks) |
+  | audit_board | **PASS** — 18 polarity, 28 proximity, 13 edge; **I-ISO 6.22 mm** (>= 6.0), I-OUT 0.35 mm, 0 strip intruders |
+  | placement_gates | **PASS** 0 fails / 0 warns; P-OUT 0.30 mm, P-CAP ratio 0.29 (fail > 0.5) |
+  | count_parity --board cooksense | **S-COUNT PASS 4/4** over **243** refdes (board / circuit.json / kicad_sch / netlist all == manifest) |
+  | E-INV | **136/136** (was 115), all 21 new RED-VERIFIED |
+  | E-ADR | **9/9** |
+  | E-TOPO | **PASS** — 3V3 LINEAR headroom 1355 mV vs dropout 1300; PD 615 mW vs 1200 (51%) |
+  | policy_audit --board cooksense | **FAIL=1, WAIVED=5, PASS=25, HUMAN=6, N-A=4** |
+- **A-RENDER needed the KNOWN gate defect worked around, and the workaround was
+  RE-VERIFIED not assumed.** At `jlc_twin`'s hard-coded 1600x1000 the overlay
+  reported `OVERLAY FAIL: 1 unfaithful (U_LDO, centre 1.25 mm)` +
+  `1 resolvable-but-unmeasured (Q_SWDRVRHA)` — the same two refs, the same way,
+  as the last revision: `MIN_BODY_PX = 20` is an ABSOLUTE pixel floor while the
+  tolerance is in mm. Re-rendered at **3200x2000**: **OVERLAY OK, all 53
+  measurable bodies within 1.00 mm, 0 unfaithful, 0 unmeasured**, coverage
+  53/212 measured, 159 unresolvable, 247 courtyards drawn. Still owed to
+  `skills/` (this agent may not edit it): the pixel floor should scale with the
+  render, or jlc_twin should not hard-code its render size.
+- **P-SILK-FN: FAIL -> WAIVED, with a measurement, and the waiver is scoped to
+  23 named refs.** The gate's default pattern was widened from `^(J|F|TP)[0-9]`
+  to `^(J|F|TP)([0-9]|_)` upstream, taking this board from 1 graded ref to 31 —
+  and it then failed on 23. It was measured before it was waived: **23 of 23
+  carry a VISIBLE refdes ON SILK at >= 0.45 mm** (13 at 0.60, 3 at 0.45,
+  strokes 0.13-0.15, at or above the fab legibility floor); **NONE** is
+  illegible; **11 of 23 literally name a net the part touches**
+  (TP_WDOK->WD_OK, TP_TEMPOK->TEMP_OK, TP_TCDRDY->TC_DRDY_N, J_DOOR->DOOR_RAW,
+  J_TC->TC_NEG_IN, ...) and the other 12 name a FUNCTION, which is the correct
+  thing for a connector to be called. The check only inspects board-level
+  PCB_TEXT and structurally CANNOT SEE footprint reference text, so its premise
+  — opaque `J1`/`TP7` designators needing a separate caption — is inverted on
+  this board. It is not a blanket pass on connector silk: the hazard it exists
+  to catch is graded here by `fix_silk_placement.py` passes B and C, which DID
+  fail this revision and DO fail the build.
+- **The ONE remaining FAIL is M-BOM, and it is the gate being right.**
+  `policy_audit` grades M-BOM against the LATEST SEALED RELEASE, which is still
+  v1.6. PROVEN by reading both files rather than asserting it:
+  | ref | v1.6 SEALED BOM | v1.7 STAGED BOM |
+  |---|---|---|
+  | `R_COILENPD` | merged into 100k `C25741` | **680R `C137948`** (the ADR-0018 series element) |
+  | `R_OVT` | merged into 100k `C25741` | **100k `C270658`** (the +-0.5% code-pinned setpoint) |
+  | `R_OVB` | 15k `C25756` | **26.1k `C407739`** (the ADR-0021 OV setpoint) |
+  | `J_MODE` | GH `C189896` | **ZH `C485354`** (the cross-plug fix) |
+  Every one of those four IS a v1.7 change, and `bom_source_check` against the
+  STAGED v1.7 BOM returns PASS. M-BOM is reporting "the live release no longer
+  matches source" — true, and the reason to seal. It must re-read clean against
+  the sealed v1.7; that is a post-seal check, not a waiver.
+- next: four FRESH review lenses (curated input), then the 2-commit seal.
+
+## 2026-07-29 — finish (SEAL BLOCKED: the fresh battery found TWO new P0s, neither of them the relay)
+
+Four zero-context lenses, launched concurrently against the rebuilt board, input
+CURATED (`journal/`, `learnings/`, `STATUS*.md`, `08_reviews/` withheld from all
+four). Full dispositions in `08_reviews/DISPOSITIONS.md` under "v1.7b".
+
+| lens | verdict |
+|---|---|
+| pin review (FRESH LENS) | **FAIL** — 1 blocking, 8 questions |
+| render | **DO-NOT-ORDER** — 1 P0, 4 P1s |
+| topology / protection / ratings | **ORDER-OK-WITH-NOTES** — 0 P0, 2 P1s |
+| layout / thermal / PI / DFM | **ORDER-OK-WITH-NOTES** — 0 P0, 4 P1s |
+
+**BOTH HEADLINE v1.7 CLAIMS SURVIVED, and that is the good news.** The relay
+land is CORRECT — two lenses independently rendered DS p.3 at 400 dpi, counted
+FOUR leads on sub-figure 13, and confirmed from the netlist that the coil and
+contact node sets are DISJOINT (min coil-to-contact pad distance 8.032 mm over
+48 pads); the render lens added that the land is CHIRAL, so a relay cannot even
+be inserted backwards. The >=6.0 mm isolation claim MEASURES **6.2200 mm** by an
+independent method (pours FILLED, which `audit_board.py:154` deliberately
+excludes — canon M1 satisfied), and the intra-package coil<->contact gap
+IMPROVED 6.1200 -> 6.3494 mm because staggering the coil column puts the gap on
+a diagonal. ADR-0002's isolation claim went from FALSE to TRUE.
+
+**AND THEN THE BATTERY DID ITS JOB ON MY OWN WORK.** Both P0s are v1.7 changes,
+and one of them is a fix I wrote this session:
+
+1. **PIN-P0-1 / TOPO P1-1 — the divider I added is arithmetically wrong, and
+   TWO lenses found it by different routes.** `EFUSE_FLT_N` is an open-drain
+   node whose ONLY driver-high is `R_PG` = 100k. The chain is therefore
+   100k + 10k over 22k — ratio **22/132, not 22/32** — and the tap sits at
+   **0.833 V** against MCP23017 V_IH(min) 2.640 V / V_IL(max) 0.660 V: the
+   indeterminate band. **The readback is degenerate — the pin is protected and
+   dead**, and `TP_PGOOD`, which I deliberately left on the raw node "so the
+   instrument sees the real node", now rests at 1.212 V, making that rationale
+   false as built. THE ARITHMETIC WAS IN MY OWN `why:` TEXT: I wrote
+   "22k/(10k+22k) x 5.25 = 3.609 V ... still marginal" and treated a node behind
+   100k as a stiff 5 V source. I even flagged it as marginal and did not follow
+   the thought. **And E-INV, 136/136 with 21 fresh RED-verified mutations, went
+   green on it** — because every assert checks that the divider EXISTS, not that
+   the level WORKS. That is the lesson worth keeping: a topology invariant
+   cannot catch an arithmetic error, and RED-verifying 21 of them does not make
+   the 22nd exist.
+2. **RENDER-P0-1 — `J_ISOLOOP` has no artwork at the terminal, and the reason I
+   didn't fix it was WRONG.** No text inside its silk body, no pole legend
+   (0 of 4), its own designator 1.300 mm from `J_RH_EXHAUST` against 4.900 mm
+   from itself. `fix_silk_placement.py` and iterate 11 of this journal both
+   record that it CANNOT be fixed — "31 candidates, best lead -2.955 mm", "the
+   SE corner is saturated, nearest site 33.6/41.9 mm away". **That did not
+   reproduce.** The lens rebuilt the sweep under the same stated constraint set
+   and found `ISO 30V` fits at (189.05, 93.35), **6.46 mm** from the block, with
+   ~6x3 mm of blank silk immediately west of it. I carried a measured
+   "impossible" across sessions and repeated it in a journal entry instead of
+   re-measuring it. That is the inherited-defect pattern this repo exists to
+   stop, and I reproduced it in the same session in which I wrote a commit
+   message about not reproducing it.
+
+**AND THE SILK PASS ITSELF SHIPPED A DEFECT.** Both red-team lenses independently
+measured that six designators — `J_ESTOP`, `J_DOOR`, `J_MODE`, `D_DOOR`,
+`R_DOORPD`, `D_COILEN` — carry a **0.130 mm stroke** against 0.150 on the other
+243 texts, below the tier floor, the board's own `min_text_thickness`, and this
+project's own `SILK-TEXT-THICKNESS` waiver. Cause: `fix_silk_placement.py`'s
+`max(0.13, sz*0.2)` at sz=0.45. **Those six are EXACTLY the refs passes B and C
+exist to fix** — the pass that repairs the safety labels made them the thinnest
+silk on the board. Worse, the `P-SILK-FN` waiver I wrote THIS SESSION asserts
+that 0.13-0.15 is "at or above the floor". It is not; that sentence is wrong and
+is recorded as wrong rather than quietly edited.
+
+DECISION: **NOT SEALED.** `07_releases/` is untouched; v1.6 and every release
+back to v1.0 remain DO-NOT-ORDER (they carry the pinout-12 land) and carry NO
+`SUPERSEDED.md`, because nothing supersedes them yet. The staged archive stays
+at `06_build/staging/cooksense-v1.7/` where it cannot make itself the live
+release. PIN-P0-1 is not the agent's to close: with `R_PG` at 100k there is no
+R_top > 0 solution, so it is a design choice between moving the pull-up to 3V3
+(and deleting both resistors) and re-sizing the network — recorded with both
+options quantified rather than picked.
+
+What IS committed is sound and self-consistent: the -13L sweep, the corrected
+part dossier and ADR-0006 amendment, the identity padmap, the contract fixes,
+the silk ownership + cross-name passes, the 7 plane bonds, the re-derived U_TC.8
+stub, E-INV 136/136, and a board that measures **DRC 0/0/0** with the full fab
+battery green. `04_kicad/` was built FROM this source; nothing is stale.

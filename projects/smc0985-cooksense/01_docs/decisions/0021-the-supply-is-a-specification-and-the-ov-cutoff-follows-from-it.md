@@ -25,7 +25,7 @@ the two things that guessed guessed differently:
 - **`R_OVT` 100 k / `R_OVB` 15 k guessed nothing at all.** Ratio 0.130435
   against SLVSE57C's `V_OVLO(R)` 1.13/1.20/1.27 V puts the eFuse's OV cutoff at
   **9.200 V nominal, 8.492–9.933 V worst case**, on a rail feeding thirteen
-  DIP05-1A72-12L reed coils rated **7.5 V max** and a `D_TVS` SMBJ5.0A whose
+  DIP05-1A72-13L reed coils rated **7.5 V max** and a `D_TVS` SMBJ5.0A whose
   `V_BR` **starts at 6.40 V**. At the 9.996 V top corner the TVS passes ≈6.6 A
   and dissipates ≈66 W: a 600 W *transient* part asked to be a DC regulator.
   Both v1.7 red-team lenses found this independently. It is a P0.
@@ -102,7 +102,7 @@ across the 20.698 kΩ source impedance (±2.07 mV):
 | EARLIEST possible trip `(1.13 − 2.07 mV)/k_max` | **5.3682 V** | spec ceiling 5.250 V — must NOT nuisance-trip | **+118 mV** |
 | LATEST guaranteed trip `(1.27 + 2.07 mV)/k_min` | **6.2394 V** | SMBJ5.0A `V_BR` min **6.40 V** @ 25 °C | **+161 mV** |
 | same, against the TVS's own temperature coefficient | **6.2394 V** | `V_BR` min at −20 °C = 6.40 × (1 − 0.041 %/°C × 45) = **6.2819 V** | **+43 mV** |
-| same | **6.2394 V** | DIP05-1A72-12L coil **7.5 V max** ×13 | **+1261 mV** |
+| same | **6.2394 V** | DIP05-1A72-13L coil **7.5 V max** ×13 | **+1261 mV** |
 
 and the *energy* form of the TVS bound, which is the one that actually says
 whether the part is sacrificial. Littelfuse publishes two points for SMBJ5.0A —

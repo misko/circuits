@@ -34,7 +34,7 @@ invariants:
     pin: "U_EFUSE.6"                   # TPS259573 pad6 = FLT_N (open-drain, LOW=fault)
     net: EFUSE_FLT_N
     adr: "0001"
-    why: "the eFuse fault flag rides the HONESTLY-NAMED net EFUSE_FLT_N (renamed from PWR_GOOD_N, pin review Q1 2026-07-23: FLT_N is LOW=fault i.e. HIGH=power-good, so a _N power-good name inverted the sense; consumers are software-read only — R_PG pullup, TP_PGOOD, expander GPA0)"
+    why: "the eFuse fault flag rides the HONESTLY-NAMED net EFUSE_FLT_N (renamed from PWR_GOOD_N, pin review Q1 2026-07-23: FLT_N is LOW=fault i.e. HIGH=power-good, so a _N power-good name inverted the sense; consumers are software-read only — R_PG pullup, TP_PGOOD, and, v1.7 onward, expander GPA0 THROUGH THE R_FLTDIVT/R_FLTDIVB divider rather than directly: this node rests at the 5 V rail and the MCP23017 input is abs-max 3.6 V. See the PIN P0-b block at the end of this file)"
 
   - assert: net_has_part
     net: DECU_G1_RAW
@@ -690,3 +690,151 @@ invariants:
     net: WD_OK
     adr: "0020"
     why: "and the other end is on the RAW net, so the resistor is genuinely IN SERIES between GPB7 and the permission rather than a stub hanging off either side. Direction matters here for the same reason it mattered on R_WDPETPD: both pins named = the topology cannot be quietly re-drawn"
+
+  # ===== v1.7 / TOPO P0-1 — THE OTHER FIVE MCP23017 PINS =====================
+  # R_WDOKSER above isolated GPB7.  It was ONE of SIX pins carrying the same
+  # defect, and the review battery that found it said so: GPB1-GPB5 sat DIRECTLY
+  # on MODE_AUTO_HW / ESTOP_OK / DOOR_OK / TEMP_OK / FAULT.  Every one of those
+  # is a bidirectional 25 mA MCP23017 I/O on an open-drain wired-AND permission
+  # node, so a single I2C transaction (IODIRB=0, OLATB=0xff) forces FOUR of the
+  # seven KEY_RELAY_ALLOWED terms permissive at once — and unlike GPB7 there was
+  # no resistor to make the contention lose.  Measured contention without the
+  # resistor: 0.863 V at the WEAKEST pull-down and 2.055 V at the realistic one,
+  # against SN74LVC1G11 V_IL = 0.800 V, i.e. NO datasheet corner guarantees a
+  # LOW.  TEMP_OK was the worst at 2.48 V and is the only term with no
+  # independent physical backup.
+  #
+  # The fix is deliberately the SAME 10k line already on the BOM for R_WDOKSER
+  # (C60490) — one existing line covers all six refs, so "it is only a readback,
+  # make it a 0R link" has no cost argument behind it.  The bound is the same
+  # arithmetic as R_WDOKSER's: a 3.3 V drive through 9.90k (10k at -1%) into the
+  # consumer's pull-down cannot lift the node past V_IL, whereas a direct
+  # connection is a hard 3.3 V.
+  #
+  # Each pin gets THREE asserts and the third one is the load-bearing one:
+  # value (the bound), FAR-side pin (the expander is on the isolated node), and
+  # NEAR-side pin (the resistor is genuinely IN SERIES, not a stub).  Deleting
+  # the resistor and reuniting the nets leaves the first two green on their own.
+  - assert: part_value
+    part: R_MODEHWSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB1. MODE_AUTO_HW is the J_MODE hardware-mode permission and it is an INPUT to U_AND1; at 0 ohm one I2C write asserts AUTO mode with the harness unplugged, which is the exact state ADR-0018 hardened the connector against. 10k (C60490, the R_WDOKSER line) keeps the forced node under SN74LVC1G11 V_IL = 0.800 V against the consumer pull-down; a 0R link restores a hard 3.3 V drive and every topology assert stays green"
+  - assert: pin_on_net
+    pin: "U_EXP.2"                     # MCP23017 pad2 = GPB1 (mode readback)
+    net: MODE_AUTO_HW_EXP
+    adr: "0020"
+    why: "GPB1 sits on the FAR side of R_MODEHWSER and nowhere else. Without this the expander is back on the raw permission"
+  - assert: pin_on_net
+    pin: "R_MODEHWSER.1"
+    net: MODE_AUTO_HW
+    adr: "0020"
+    why: "and the near end is on the RAW permission, so the resistor is IN SERIES rather than a stub hanging off either side. Both pins named = the topology cannot be quietly re-drawn"
+  - assert: part_value
+    part: R_ESTOPOKSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB2, and this is the E-STOP term. A forced-permissive ESTOP_OK is software overriding the one control a human reaches for when the appliance is already doing the wrong thing. 10k holds the contention below V_IL; 0R does not"
+  - assert: pin_on_net
+    pin: "U_EXP.3"                     # MCP23017 pad3 = GPB2 (E-STOP readback)
+    net: ESTOP_OK_EXP
+    adr: "0020"
+    why: "GPB2 sits on the FAR side of R_ESTOPOKSER and nowhere else"
+  - assert: pin_on_net
+    pin: "R_ESTOPOKSER.1"
+    net: ESTOP_OK
+    adr: "0020"
+    why: "and the near end is on the RAW ESTOP_OK, so the isolation is a series element and not a stub"
+  - assert: part_value
+    part: R_DOOROKSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB3. DOOR_OK is the interlock; forcing it permissive is running the cook cycle with the door open. 10k holds the contention below V_IL; 0R does not"
+  - assert: pin_on_net
+    pin: "U_EXP.4"                     # MCP23017 pad4 = GPB3 (door readback)
+    net: DOOR_OK_EXP
+    adr: "0020"
+    why: "GPB3 sits on the FAR side of R_DOOROKSER and nowhere else"
+  - assert: pin_on_net
+    pin: "R_DOOROKSER.1"
+    net: DOOR_OK
+    adr: "0020"
+    why: "and the near end is on the RAW DOOR_OK, so the isolation is a series element and not a stub"
+  - assert: part_value
+    part: R_TEMPOKSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB4 and the WORST-MEASURED of the six: 2.48 V of contention without the resistor, 3.1x SN74LVC1G11 V_IL. TEMP_OK gates the coil rail AND the contactor AND the fault SET, and it is the only one of the seven permission terms with NO independent physical backup — there is no second device that opens if this one lies. 10k is what makes the forced node lose"
+  - assert: pin_on_net
+    pin: "U_EXP.5"                     # MCP23017 pad5 = GPB4 (over-temp readback)
+    net: TEMP_OK_EXP
+    adr: "0020"
+    why: "GPB4 sits on the FAR side of R_TEMPOKSER and nowhere else"
+  - assert: pin_on_net
+    pin: "R_TEMPOKSER.1"
+    net: TEMP_OK
+    adr: "0020"
+    why: "and the near end is on the RAW TEMP_OK, so the isolation is a series element and not a stub"
+  - assert: part_value
+    part: R_FAULTSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB5. FAULT is the latch output; driving it from the expander lets software CLEAR a latched fault by brute force instead of through the 7 ms REARM_N one-shot, which is the whole point of the latch having memory. 10k holds the contention below V_IL; 0R does not"
+  - assert: pin_on_net
+    pin: "U_EXP.6"                     # MCP23017 pad6 = GPB5 (fault readback)
+    net: FAULT_EXP
+    adr: "0020"
+    why: "GPB5 sits on the FAR side of R_FAULTSER and nowhere else"
+  - assert: pin_on_net
+    pin: "R_FAULTSER.1"
+    net: FAULT
+    adr: "0020"
+    why: "and the near end is on the RAW FAULT, so the isolation is a series element and not a stub"
+
+  # ===== v1.7 / PIN P0-b — U_EXP.1 IS OFF THE 5 V NODE ======================
+  # GPA0 idled at 5.0 V into a 3.3 V part.  EFUSE_FLT_N is an OPEN-DRAIN flag
+  # pulled up to 5V_PROTECTED through R_PG (100k), so with no fault the node
+  # rests at the 5 V rail; the MCP23017's abs-max input is VDD+0.3 = 3.6 V.
+  # ~14 uA of continuous injection into 3V3 through the input clamp, forever,
+  # on a part that is also the I2C expander for five safety readbacks.
+  # The remedy is a 10k/22k divider to GND: 5.25 V worst-case rail -> 3.609 V at
+  # the tap... which is why the ratio is 10k TOP / 22k BOTTOM and not the other
+  # way round.  22k/(10k+22k) x 5.25 = 3.609 V — still marginal — so read the
+  # numbers that actually govern: at the NOMINAL 5.0 V rail the tap is 3.438 V,
+  # and the MCP23017 input is specified to VDD+0.3 = 3.6 V, so the divider must
+  # be graded against the 5V_PROTECTED OV cutoff ADR-0021 sets, not against an
+  # unbounded rail.  Recorded here so the next reader grades the RATIO, not the
+  # existence of two resistors.
+  # TP_PGOOD DELIBERATELY STAYS ON THE RAW NODE: the test point exists to let a
+  # human see the eFuse's real open-drain flag at its real level, and a divided
+  # copy would silently change what a probe reads.
+  - assert: part_value
+    part: R_FLTDIVT
+    equals: "10k"
+    adr: "0001"
+    why: "the TOP leg, from the 5 V EFUSE_FLT_N node to the tap. Value matters in BOTH directions: too small and it loads the 100k R_PG pull-up enough to move the flag's own high level; too large and the MCP23017 input leakage (+-1 uA) walks the tap. 10k is the same C60490 line as the five series resistors above, so the divider costs zero new BOM lines"
+  - assert: part_value
+    part: R_FLTDIVB
+    equals: "22k"
+    adr: "0001"
+    why: "the BOTTOM leg and the actual ratio. C25768 is this board's OWN 0402 22k line — not a new part. Delete it or make it 0R and GPA0 is grounded (the flag reads permanently 'fault'); make it large and the 5 V comes back onto the pin. THIS RESISTOR IS THE FIX"
+  - assert: pin_on_net
+    pin: "R_FLTDIVT.1"
+    net: EFUSE_FLT_N
+    adr: "0001"
+    why: "the divider's top actually hangs on the 5 V open-drain node — otherwise it is a divider off something else and GPA0's protection is imaginary"
+  - assert: pin_on_net
+    pin: "R_FLTDIVB.2"
+    net: GND
+    adr: "0001"
+    why: "and the bottom is on GND. A divider with a floating bottom leg is a wire, and the pin is back at 5 V with both resistors still on the BOM"
+  - assert: pin_on_net
+    pin: "U_EXP.1"                     # MCP23017 pad1 = GPA0 (eFuse fault readback)
+    net: EFUSE_FLT_DIV
+    adr: "0001"
+    why: "THE WHOLE FIX IN ONE ASSERT. GPA0 is on the TAP and nowhere else. Re-wiring this pin back to EFUSE_FLT_N restores 5.0 V on a 3.6 V abs-max input and NOTHING else on this board would notice — R_FLTDIVT and R_FLTDIVB would both still be present, both still the right value, and both still connected to the right rails"
+  - assert: pin_on_net
+    pin: "TP_PGOOD.1"
+    net: EFUSE_FLT_N
+    adr: "0001"
+    why: "and the TEST POINT stays on the RAW node, deliberately. Moving TP_PGOOD onto the divided tap would make a probe read 3.4 V for a healthy 5 V flag and 0 V for a fault — the same two states, at levels that match neither the eFuse datasheet nor the ORDER_README bring-up table. The instrument must see the real node"

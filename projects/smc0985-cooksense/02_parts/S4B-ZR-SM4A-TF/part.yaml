@@ -44,7 +44,7 @@ gotchas:
     AND-chain. Cost is availability, not safety. ORDER_README section 10.5 requires a
     cable-tie strain relief at this housing."
   - "TEMPERATURE IS NARROWER THAN GH (-25..+85C vs -40..+105C) AND IS NOT THIS BOARD'S
-    BINDING LIMIT: DIP05-1A72-12L (the twelve reed relays) is -20..+70C, tighter at both
+    BINDING LIMIT: DIP05-1A72-13L (the twelve reed relays) is -20..+70C, tighter at both
     ends. The board's operating envelope does not move — verified across 02_parts 2026-07-28."
   - "SM4A = SIDE entry = KiCad Horizontal (right-angle) SMD, matching the GH siblings'
     side-entry convention on the same east edge. The TOP-entry sibling is B4B-ZR-SM4-TF =

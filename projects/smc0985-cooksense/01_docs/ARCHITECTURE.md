@@ -70,7 +70,8 @@ controller already survives. Every ADR-0010/0011 claim is an executable
 E-INV assertion graded at the schematic gate.
 
 ## Proven reuse
-cook-hub v1.0: DIP05-1A72-12L relay cell + driver pattern, MAX31856,
+cook-hub v1.0: DIP05-1A72 relay cell + driver pattern (cooksense specifies
+the -13L pin-out code; see ADR-0006 amendment 2026-07-28), MAX31856,
 protection parts. cook-loadcell v1.0: reused unmodified (Board D).
 crow-recorder archetype: band separation (keypad zone / analog spine /
 digital+Pi band) guides the floorplan.

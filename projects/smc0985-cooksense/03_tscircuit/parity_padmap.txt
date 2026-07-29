@@ -14,16 +14,27 @@ SM08B-GHS-TB MP GND
 SM10B-GHS-TB MP GND_ISO
 43650-0224 MP GND
 #
-# ---- DIP05-1A72-12L reed relay: contiguous 'dip4' pads -> real DIP pads --------
-# The relay is authored on the 'dip4' token (pads 1,2,3,4 — tscircuit rejects the
-# non-contiguous 1,7,8,14 via a <footprint> child, creating phantom ports). The
-# real footprint cookhub:Relay_StandexDIP_1A_pinout12 uses pads 1,7,8,14. The net
-# topology is preserved (pin functions carried via pinLabels); only the pad LABELS
-# remap at the board stage:
-DIP05-1A72-12L 1 1    # COIL_A (+coil, gated 5V_KEY_RELAY)
-DIP05-1A72-12L 2 7    # COIL_B (-coil, ULN2803 sink)
-DIP05-1A72-12L 3 8    # CONTACT_B (isolated keypad side)
-DIP05-1A72-12L 4 14   # CONTACT_A (isolated keypad side)
+# ---- DIP05-1A72-13L reed relay: 'dip4' pads == real land pads (IDENTITY) -------
+# PART CHANGED -12L -> -13L, 2026-07-28. This block used to carry a real remap
+# (tsx 1,2,3,4 -> land pads 1,7,8,14) because the vendored pinout12 land kept the
+# physical DIP-14 lead numbers. It no longer does, and the change is recorded
+# rather than deleted, because a stale remap here is exactly the kind of silent
+# mismatch canon TSX-PRE exists to catch.
+#
+# The relay is authored on the 'dip4' token (pads 1,2,3,4 — tscircuit rejects a
+# non-contiguous pad set via a <footprint> child, creating phantom ports). The
+# real footprint `cooksense:Relay_StandexDIP_1A_pinout13` ALSO carries pads
+# 1,2,3,4: the renumbering from the physical DIP-14 lead positions (COIL_A=DIP2,
+# COIL_B=DIP6, CONTACT_B=DIP8, CONTACT_A=DIP14, per DS p.3 sub-figure 13) is
+# baked into the .kicad_mod itself and documented in its `descr` and in
+# 02_parts/DIP05-1A72-13L/part.yaml `pins:`. So the tsx->land map is the
+# IDENTITY and there is NOTHING for this file to remap. Listed anyway, with the
+# identity stated explicitly, so a reader diffing against the -12L revision sees
+# the map was re-derived and not merely renamed:
+DIP05-1A72-13L 1 1    # COIL_A     (+coil, gated 5V_KEY_RELAY)  -- land pad 1 = DIP lead 2  (WEST)
+DIP05-1A72-13L 2 2    # COIL_B     (-coil, ULN2803 sink)        -- land pad 2 = DIP lead 6  (WEST)
+DIP05-1A72-13L 3 3    # CONTACT_B  (isolated keypad side)       -- land pad 3 = DIP lead 8  (EAST)
+DIP05-1A72-13L 4 4    # CONTACT_A  (isolated keypad side)       -- land pad 4 = DIP lead 14 (EAST)
 #
 # ---- TPS259573 eFuse exposed pad ----------------------------------------------
 # Authored on 'dfn8' (pads 1..8). The real WSON-8 footprint also has EP (pad 9) =

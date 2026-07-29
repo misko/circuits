@@ -62,6 +62,56 @@ OWNERSHIP_FIX = ("J_DOOR", "J_ESTOP", "J_MODE")
 # the designator is not a mitigation for anything there.  Recorded as a residual
 # P2 rather than "fixed" by moving a label 5 mm and calling it better.
 
+# ---------------------------------------------------------------------------
+# PASS C — CROSS-NAMED LABELS.  Added 2026-07-28 after the RENDER lens' P0-A,
+# and it is the half of that finding the OWNERSHIP pass structurally cannot see.
+#
+# Making J_DOOR own its own label does NOT make the E-STOP connector
+# unambiguous, because the confusing text next to J_ESTOP was never J_DOOR's
+# designator — it was `D_DOOR`, the flyback diode's, printed 0.353 mm from the
+# E-STOP connector and 6.411 mm from the diode it actually names, at h=0.60
+# (33% TALLER than the 0.45 connector labels, so it is the MORE prominent of
+# the two).  A human looking for "which one is the door connector" reads a
+# token containing the word DOOR at the E-STOP housing.  Pass B graded
+# J_-prefixed labels against J_-prefixed rivals and never looked at it.
+SAFETY_CONNECTORS = ("J_ESTOP", "J_DOOR", "J_MODE", "J_ISOLOOP")
+# The identity TOKEN of each — the word a human reads off the board and matches
+# against the harness in their hand.
+SAFETY_TOKENS = {"ESTOP": "J_ESTOP", "DOOR": "J_DOOR",
+                 "MODE": "J_MODE", "ISOLOOP": "J_ISOLOOP"}
+# THE RULE, and it took two cuts to state it correctly.
+#
+#   Any silk label whose TEXT carries the identity token of a safety connector
+#   must be NEAREST that connector, by MARGIN, among all safety connectors.
+#
+# The first cut was broader — "no refdes of any kind may sit nearer a safety
+# connector than the part it names" — and it FAILED LOUDLY on `R_COILENPD`,
+# which is exactly what a fail-loud pass is for.  The failure was correct and
+# the RULE was wrong.  MEASURED: R_COILENPD's own part sits 4.791 mm from
+# J_MODE because it IS J_MODE's pin pull-down, and its label carries no other
+# connector's name; `C_LATCHB` likewise.  Neither is confusable with a harness,
+# so demanding they retreat was not a safety property, it was a tidiness
+# property being enforced at the price of a build.  Under the token rule those
+# two are correctly silent and `D_DOOR` / `R_DOORPD` — both bearing DOOR, both
+# printed at J_ESTOP — are correctly caught.
+#
+# Everything the broad rule would have flagged is still REPORTED, with numbers,
+# as a non-blocking residual: the class stays visible instead of being narrowed
+# out of existence.
+CROSSNAME_MARGIN_MM = 1.5
+# ...and it only bites where a human could actually make the mistake.  The
+# SECOND wrong cut of this rule had no proximity gate and reported
+# `R_DOOROKSER` as cross-named at **90.150 mm** from J_MODE versus 93.807 mm
+# from J_DOOR — arithmetically true and meaningless: nobody plugging a harness
+# reads a label 9 cm away as belonging to the housing in their hand.  Six of
+# the nine hits were that class and the pass FAILED trying to relocate them.
+# The gate is 8.0 mm, and the number is NOT invented for this file: it is
+# `silk_fn_radius_mm`, the radius P-SILK-FN itself uses to decide whether a
+# silk text belongs to a part.  With it the rule reports exactly the two labels
+# the RENDER lens found — `D_DOOR` and `R_DOORPD`, both bearing DOOR, both
+# printed at the E-STOP housing (6.227 mm and 5.200 mm) — and nothing else.
+CROSSNAME_RADIUS_MM = 8.0
+
 EDGE_CLEAR_MM = 0.25          # silk-to-board-edge clearance the notch fix enforces
 PAD_CLEAR_MM = 0.16           # matches floorplan silk.refdes.clearance
 SAMPLE_MM = 0.15              # void test sampling pitch
@@ -179,9 +229,41 @@ def main(argv):
             return False, own, worst[0], worst[1]
         return True, own, worst[0], worst[1]
 
+    def named_connector(ref):
+        """which safety connector's identity token does this refdes carry?
+        `D_DOOR` -> J_DOOR, `R_DOORPD` -> J_DOOR, `J_ESTOP` -> J_ESTOP,
+        `R_COILENPD` -> None.  Longest token wins so a hypothetical
+        `X_DOORMODE` is not silently classified by whichever key hashed
+        first."""
+        up = ref.upper()
+        hits = [(len(tok), conn) for tok, conn in SAFETY_TOKENS.items() if tok in up]
+        return max(hits)[1] if hits else None
+
+    def crossname_ok(ref, tb):
+        """a label bearing connector C's identity token, PRINTED WITHIN
+        CROSSNAME_RADIUS_MM of a DIFFERENT safety connector, must still be
+        nearest C by CROSSNAME_MARGIN_MM.  Outside that radius the label is not
+        at anybody's housing and the rule is silent."""
+        c = named_connector(ref)
+        if c is None or c not in fp_ctr:
+            return True, None, None, None
+        mine = ctr_dist(tb, fp_ctr[c])
+        worst = (None, 1e9)
+        for r2 in SAFETY_CONNECTORS:
+            if r2 == c or r2 not in fp_ctr:
+                continue
+            g = ctr_dist(tb, fp_ctr[r2])
+            if g < worst[1]:
+                worst = (r2, g)
+        if worst[0] is None or worst[1] > CROSSNAME_RADIUS_MM:
+            return True, mine, worst[0], worst[1]
+        if worst[1] < mine + CROSSNAME_MARGIN_MM:
+            return False, mine, worst[0], worst[1]
+        return True, mine, worst[0], worst[1]
+
     moves, failures = [], []
 
-    def place(ref, need_owner):
+    def place(ref, need_owner, need_crossname=False):
         f = fps[ref]
         t = f.Reference()
         before = box(t.GetBoundingBox())
@@ -216,6 +298,17 @@ def main(argv):
                 own = box_gap(cand, fp_boxes[ref])
                 if own > MAX_ANCHOR_MM:
                     continue
+                if need_crossname:
+                    # a CROSS-NAMED label wants the NEAREST slot that stops
+                    # naming the wrong housing — it is not competing for
+                    # prominence, it is getting out of somebody else's
+                    # connector and back onto its own part.
+                    if not crossname_ok(ref, cand)[0]:
+                        continue
+                    if need_owner and not owner_ok(ref, cand)[0]:
+                        continue
+                    best = (rot, sz, fx + dx, fy + dy, cand, own)
+                    break
                 if need_owner:
                     ok, oc, rival, rd = owner_ok(ref, cand)
                     if not ok:
@@ -276,6 +369,28 @@ def main(argv):
               f"lead) -> relocating")
         place(ref, True)
 
+    # ---- PASS C: a label naming connector C must be nearest C --------------
+    # Quantified over every visible refdes, not a hand-list, so the class is
+    # closed rather than the one instance the render lens happened to name.
+    crossnamed = []
+    for ref in sorted(fps):
+        t = fps[ref].Reference()
+        if not (t.IsVisible() and t.IsOnLayer(pcbnew.F_SilkS)):
+            continue
+        ok, mine, rival, rd = crossname_ok(ref, box(t.GetBoundingBox()))
+        if ok:
+            continue
+        crossnamed.append((ref, mine, rival, rd))
+    for ref, mine, rival, rd in crossnamed:
+        print(f"  CROSS-NAME {ref:14s} carries {named_connector(ref)}'s identity token "
+              f"but its label centre is {rd:.3f} mm from {rival} and only "
+              f"{mine:.3f} mm from {named_connector(ref)} "
+              f"(needs a {CROSSNAME_MARGIN_MM} mm lead) -> relocating")
+        place(ref, ref in OWNERSHIP_FIX, need_crossname=True)
+    if not crossnamed:
+        print("  CROSS-NAME none: every label bearing a safety connector's name "
+              "is already nearest that connector")
+
     if not moves:
         print("fix_silk_placement: 0 moves (silk already clean)")
     for ref, bp, ap, bb, ab, sz, rot, own in moves:
@@ -312,6 +427,56 @@ def main(argv):
               f"{'OWNS ITS LABEL' if ok else 'STILL AMBIGUOUS'}")
         if not ok:
             bad.append(f"{ref} label is nearer {rival}")
+    # ...and re-derive PASS C over the WHOLE board from the final state, so a
+    # move made for one refdes cannot have created a cross-name somewhere else.
+    still, graded = [], 0
+    for ref in sorted(fps):
+        t = fps[ref].Reference()
+        if not (t.IsVisible() and t.IsOnLayer(pcbnew.F_SilkS)):
+            continue
+        if named_connector(ref) is None:
+            continue
+        ok, mine, rival, rd = crossname_ok(ref, box(t.GetBoundingBox()))
+        if rd is not None and rd > CROSSNAME_RADIUS_MM:
+            continue                      # not at anybody's housing
+        graded += 1
+        print(f"  VERIFY {ref:14s} bears {named_connector(ref):9s} — "
+              f"{mine:.3f} mm from it vs {rd:.3f} mm from {rival} "
+              f"(within the {CROSSNAME_RADIUS_MM} mm housing radius)  -> "
+              f"{'NAMES THE RIGHT HOUSING' if ok else 'STILL CROSS-NAMED'}")
+        if not ok:
+            still.append(f"{ref} ({mine:.3f} mm {named_connector(ref)} "
+                         f"vs {rd:.3f} mm {rival})")
+    print(f"  VERIFY CROSS-NAMES: {graded} connector-named label(s) sit within "
+          f"{CROSSNAME_RADIUS_MM} mm of a FOREIGN safety connector and were "
+          f"re-measured -> "
+          f"{'0 cross-named' if not still else str(len(still)) + ' STILL CROSS-NAMED'}")
+    if still:
+        bad.append("labels naming the wrong housing: " + "; ".join(still))
+
+    # ---- RESIDUAL, reported and NOT blocking -------------------------------
+    # Every label that is nearer a safety connector than the part it names but
+    # carries no connector identity token. The broad rule would have failed the
+    # build on these; the token rule does not, so they are PRINTED with numbers
+    # rather than narrowed out of existence.
+    resid = []
+    for ref in sorted(fps):
+        if ref in SAFETY_CONNECTORS or named_connector(ref):
+            continue
+        t = fps[ref].Reference()
+        if not (t.IsVisible() and t.IsOnLayer(pcbnew.F_SilkS)):
+            continue
+        tb = box(t.GetBoundingBox())
+        own = ctr_dist(tb, fp_ctr[ref])
+        for s in SAFETY_CONNECTORS:
+            if s not in fp_ctr:
+                continue
+            d = ctr_dist(tb, fp_ctr[s])
+            if d <= CROSSNAME_RADIUS_MM and d < own:
+                resid.append(f"{ref} ({own:.3f} mm own vs {d:.3f} mm {s})")
+                break
+    print(f"  RESIDUAL (non-blocking): {len(resid)} label(s) nearer a safety connector "
+          f"than their own part but bearing no connector name: {resid if resid else 'none'}")
     if bad:
         print("FATAL: " + "; ".join(bad), file=sys.stderr)
         return 1

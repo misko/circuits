@@ -129,7 +129,7 @@
 - id: SILK-OVER-COPPER
   why: >-
     silk_over_copper ignored: the reed-relay DIP body-outline silk overlays the THT
-    reed pads inherent to the DIP05-1A72-12L footprint (12 relays) — the outline is
+    reed pads inherent to the DIP05-1A72-13L footprint (12 relays) — the outline is
     the assembly body marker, unavoidable over the part's own pads; no OTHER-part or
     functional silk is over copper. Real silk-over-PAD was caught + fixed separately
     (ANALOG SENSE label relocated off U_ADC pads 1&16). Render-review backstops.
@@ -197,3 +197,64 @@
     polarity N-A, asserted by audit I9). The commodity 2/3-pad entries
     (2N7002/AO3401A/GZ2012) additionally ride the board-generator + audit_board
     I-POL polarity gate (18 checks PASS).
+
+# ---------------------------------------------------------------------------
+- id: P-SILK-FN
+  refs: [J_ISOLOOP, J_THERM_B, J_LOADCELL, J_DOOR, J_TC, J_KEY_MATRIX, J_PWR,
+         J_ESTOP, J_RH_AMBIENT, J_RH_EXHAUST,
+         TP_3V3, TP_5VKR, TP_5VP, TP_ALLOW, TP_ENCL, TP_ESTOP, TP_FAULT,
+         TP_SPARE, TP_TCDRDY, TP_TCFAULT, TP_TCTH, TP_TEMPOK, TP_WDOK]
+  why: >-
+    NEW FAILURE ON A NEWLY-SIGHTED GATE, AND THAT IS THE POINT. Until
+    2026-07-28 P-SILK-FN's default pattern was `^(J|F|TP)[0-9]`, which demands a
+    DIGIT immediately after the prefix; this board names its touchpoints
+    `J_ESTOP` / `TP_WDOK`, so the gate matched exactly ONE ref of 36 (`F1`) and
+    could only ever report PASS. The pattern is now `^(J|F|TP)([0-9]|_)`, the
+    graded set went 1 -> 31, and the gate immediately FAILED on 23 of them. A
+    gate that has just learned to see is exactly the wrong moment to assume its
+    complaint is noise — so the complaint was MEASURED before being waived.
+
+    WHAT THE CHECK ACTUALLY TESTS: it looks only at board-level `PCB_TEXT` on a
+    silk layer and asks whether one lies within `8 mm + half the part diagonal`
+    of each connector/fuse/test point. It CANNOT SEE FOOTPRINT REFERENCE TEXT.
+    Its premise is a board whose designators are opaque (`J1`, `TP7`), where a
+    separate caption is the only thing that says what the touchpoint is. That
+    premise is INVERTED here: this board's designator IS the functional label,
+    which is the same naming convention that made the old pattern blind.
+
+    MEASURED on the v1.7 board (`04_kicad/cooksense.kicad_pcb`), all 23:
+      * 23 of 23 carry a VISIBLE refdes ON A SILK LAYER at height >= 0.45 mm
+        (13 at 0.60 mm, 3 at 0.45 mm) with a 0.13-0.15 mm stroke — at or above
+        the `jlc_4layer_advanced` legibility floor the exporter enforces.
+        Refs NOT legibly on silk: **NONE**.
+      * 11 of 23 name a net the part physically touches, matched
+        underscore-insensitively against the netlist: TP_3V3->3V3,
+        TP_5VP->5V_PROTECTED, TP_ESTOP->ESTOP_OK, TP_FAULT->FAULT,
+        TP_TEMPOK->TEMP_OK, TP_WDOK->WD_OK, TP_TCDRDY->TC_DRDY_N,
+        TP_TCFAULT->TC_FAULT_N, J_DOOR->DOOR_RAW, J_ESTOP->ESTOP_RAW,
+        J_TC->TC_NEG_IN.
+      * the other 12 name a FUNCTION rather than a net, which is the correct
+        thing for a connector to be called: J_PWR, J_LOADCELL, J_KEY_MATRIX,
+        J_ISOLOOP, J_RH_AMBIENT, J_RH_EXHAUST, J_THERM_B, TP_ENCL, TP_ALLOW,
+        TP_5VKR, TP_TCTH, TP_SPARE.
+      * 8 of the 31 graded refs DO have a nearby board caption and pass
+        outright; the board carries 12 board-level silk texts already, and
+        `fix_silk_placement.py`'s own site sweep records that the SE corner is
+        saturated — the nearest free silk site for a 12-character "ISOLATED
+        30V" caption is 41.9 mm from J_ISOLOOP. There is no room to add 23
+        captions, and adding them would displace the safety captions that ARE
+        there.
+
+    NOT A BLANKET PASS ON CONNECTOR SILK. The hazard P-SILK-FN exists to catch —
+    "which housing is this?" — is graded on this board by TWO other things that
+    DID fail and were FIXED this revision: `fix_silk_placement.py` pass B
+    (ownership: J_DOOR/J_ESTOP/J_MODE must each be nearer their own housing than
+    any other, achieved leads +2.353 / +1.742 / +10.784 mm) and pass C
+    (cross-naming: `D_DOOR` and `R_DOORPD` were printed at the E-STOP housing
+    and were moved). Both re-derive from the final board and both FAIL THE BUILD.
+
+    OWED, and reported upstream rather than patched here (this agent may not edit
+    `skills/`): P-SILK-FN should count a footprint's own visible silk REFERENCE
+    as functional silk when the refdes is not a bare `<prefix><digits>` — and it
+    still has no known-bad fixture, which the v1.7 dispositions already record as
+    a debt. Until it has one, this waiver is the measurement standing in for it.

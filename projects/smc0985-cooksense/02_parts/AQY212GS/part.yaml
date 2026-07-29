@@ -51,4 +51,4 @@ layout:                     # P-LAYOUT: multi-pin active (SSR). Real rule = isol
 sourcing:
   lcsc: C719745            # AQY212GS (tube); JLCPCB BASIC part, "SOP-4-2.54mm"
   alternates: [C415471, C129283]   # AQY212GSX (reel, picked 1/2-pin side); AQY212GSZ (reel, picked 3/4-pin side)
-  note: "SELECTOR-RELAY ALTERNATE (ADR-0006): default selector = DIP05-1A72-12L reed; PRESS & STOP stay reed regardless. AQY212GS is a Panasonic JLC BASIC part (C719745). For JLC SMT reel feed prefer the tape&reel AQY212GSX(C415471)/AQY212GSZ(C129283) over the tube AQY212GS. In stock 2026-07-22 (~$0.73 GS / ~$0.88 GSX; do NOT commit stock). Order-day stock check per ADR-0006."
+  note: "SELECTOR-RELAY ALTERNATE (ADR-0006): default selector = DIP05-1A72-13L reed; PRESS & STOP stay reed regardless. AQY212GS is a Panasonic JLC BASIC part (C719745). For JLC SMT reel feed prefer the tape&reel AQY212GSX(C415471)/AQY212GSZ(C129283) over the tube AQY212GS. In stock 2026-07-22 (~$0.73 GS / ~$0.88 GSX; do NOT commit stock). Order-day stock check per ADR-0006."

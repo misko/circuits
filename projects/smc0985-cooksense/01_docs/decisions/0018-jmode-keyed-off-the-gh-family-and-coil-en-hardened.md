@@ -149,8 +149,8 @@ Cross-plug matrix effect, against v1.6 ORDER_README §10.4's twenty cells:
 **RATINGS — checked, and NOT a regression.** ZH is 1.0 A / 50 V (eZH p.1),
 identical to GH's 1.0 A / 50 V (eGH p.1). Temperature range is ZH **−25 to
 +85 °C** against GH's −40 to +105 °C, which is narrower *for the connector* —
-but the board's own binding envelope is **`DIP05-1A72-12L` at −20 to +70 °C**
-(`02_parts/DIP05-1A72-12L/part.yaml`, the twelve reed relays), tighter than the
+but the board's own binding envelope is **`DIP05-1A72-13L` at −20 to +70 °C**
+(`02_parts/DIP05-1A72-13L/part.yaml`, the twelve reed relays), tighter than the
 ZH connector at both ends. **The board's operating envelope does not move.**
 
 **RETENTION — a real loss, and it fails in the safe direction.** GH's selling

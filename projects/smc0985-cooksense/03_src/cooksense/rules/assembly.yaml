@@ -38,25 +38,40 @@ not_assembled:
   - refs: [K_U1, K_U2, K_U3, K_U4, K_U5, K_U6,
            K_D1, K_D2, K_D3, K_D4, K_PRESS, K_STOP]
     reason: not_in_catalog
-    evidence: "JLCPCB parts-library query 2026-07-25 (jlcpcb.com
+    evidence: "PART CHANGED -12L -> -13L on 2026-07-28, so the evidence was
+               RE-READ against the new code rather than relabelled. FRESH
+               JLCPCB parts-library query 2026-07-28 (jlcpcb.com
                selectSmtComponentList, the same endpoint jlc_stock_check.py
-               uses): keyword 'DIP05-1A72-12L' -> 1 hit, C1561362
-               STANDEXMEDER DIP05-1A72-12L, stockCount 0. Keyword
-               'DIP05-1A72' -> 5 hits (C1524803 -11D, C1524847 -11L,
+               uses): keyword 'DIP05-1A72-13L' -> 1 hit, C1524853
+               STANDEXMEDER DIP05-1A72-13L, stockCount 0, library type
+               'expand'. Keyword 'C1524853' -> the same single hit, stock 0.
+               Keyword 'DIP05-1A72' -> 5 hits (C1524803 -11D, C1524847 -11L,
                C1524853 -13L, C1561362 -12L, C1561371 -12D), stockCount 0 on
                EVERY ONE. Control queries the same minute returned live stock
-               (C5620 = 5602, C25741 = 288617), so the zeros are the library's
+               (C5620 = 5414, C25741 = 465129), so the zeros are the library's
                answer, not a dead field. JLC cannot source this part for this
                order. Independently, the package is THT (Relay_StandexDIP_1A_
-               pinout12, 0.9 mm PTH) and standard SMT assembly does not place
-               through-hole."
+               pinout13, 0.8 mm drill PTH) and standard SMT assembly does not
+               place through-hole.
+               SUPERSEDED READ, kept for the record: the 2026-07-25 query that
+               this line used to carry was keyed on 'DIP05-1A72-12L' ->
+               C1561362, stock 0, controls C5620 = 5602 / C25741 = 288617.
+               That read was correct for the part the board then specified and
+               is NOT the evidence for -13L."
     disposition: "hand-soldered at integration. DO-NOT-SUBSTITUTE: the reed
                   contact rating and the coil/contact column pinout ARE the
                   safety argument (ADR-0006, brief section 7) and the
                   isolation-comb creepage (6.12 mm track-aware, measured) is
                   designed around this exact body. Approved alternate:
-                  DIP05-1A72-12D (identical pinout, internal coil diode).
-                  Order 16 (12 + 4 spares). ORDER_README section 2."
+                  DIP05-1A72-12D (same COLUMN split, internal coil diode) —
+                  and note the -12D/-12L pin-out CODE 12 is exactly what this
+                  board just moved OFF, so that alternate is now RE-OPENED,
+                  not carried: it needs its own sub-figure read before anyone
+                  fits it. Order 16 (12 + 4 spares). ORDER_README section 2.
+                  DISTRIBUTOR sourcing for the -13L code is OWED: every
+                  recorded quote (Mouser 876-DIP05-1A72-12L, DigiKey
+                  DIP05-1A72-12L-ND) is keyed to the -12L code and does not
+                  transfer."
 
   - refs: [J_TC]
     reason: not_in_catalog

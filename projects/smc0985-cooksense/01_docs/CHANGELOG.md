@@ -14,6 +14,45 @@ unaffected and `interposer-v1.1-2026-07-27` remains ORDERABLE.**
 the reed-relay land pattern is re-derived.** This is not a paperwork verdict; the
 key-matrix relay array as drawn cannot work.
 
+> ## STATUS UPDATE 2026-07-29 — the relay land IS FIXED IN SOURCE, and v1.7 IS STILL NOT SEALED
+>
+> **v1.0 through v1.6 remain DO-NOT-ORDER and that does not change.** Every one
+> of them carries the pin-out-**12** land described below. There is no sealed
+> release of this board that can be built.
+>
+> **The relay defect itself is fixed in source, and the fix is verified.** The
+> part is now `DIP05-1A72-`**`13L`** (pin-out CODE 13, LCSC C1524853) on a new
+> land `03_src/lib/cooksense.pretty/Relay_StandexDIP_1A_pinout13.kicad_mod`; the
+> pinout12 file is DELETED. **v1.7 will be the first release with a correct relay
+> land.** Two independent zero-context reviewers re-rendered datasheet p.3 at
+> 400 dpi, counted the leads on sub-figure 13 (FOUR: contact 14↔8 on one row,
+> coil 2↔6 on the other, rows 7.62 mm apart) and confirmed from the netlist that
+> **the coil node set and the contact node set are now DISJOINT** — `5V_KEY_RELAY`
+> appears on no contact pad, `U_SEL_BUS` on no coil pad, minimum coil-to-contact
+> pad distance 8.032 mm over all 48 pads. A third measured the ≥6.0 mm
+> keypad↔SELV barrier independently, with pours filled, at **6.2200 mm**, and the
+> intra-package coil↔contact gap **improved** from 6.1200 to 6.3494 mm. ADR-0002's
+> isolation claim is TRUE under code 13, where under code 12 it was false.
+>
+> **But v1.7 is NOT sealed, because a SECOND review battery found two new P0s**
+> (see `08_reviews/DISPOSITIONS.md`, "v1.7b"). Neither is the relay:
+>
+> 1. **The `U_EXP` pad-1 protection divider added by v1.7 is sized without the
+>    100 kΩ pull-up that is the node's only source.** `EFUSE_FLT_N` is an
+>    open-drain flag whose sole driver-high is `R_PG` = 100 kΩ, so the real
+>    ratio is 22/132, not 22/32: the tap sits at **0.833 V** against the
+>    MCP23017's V_IH(min) of **2.640 V**. The eFuse fault readback can never
+>    report power-good — the pin is protected and dead. Found by TWO lenses with
+>    no shared method.
+> 2. **`J_ISOLOOP`, the NOT-SELV 30 V contactor terminal, has no artwork at the
+>    terminal at all** — no text inside its silk body, no pole legend, and its
+>    own designator printed 1.300 mm from `J_RH_EXHAUST` against 4.900 mm from
+>    itself. The recorded justification that there was no room **did not
+>    reproduce**: a re-run of the sweep found a site 6.46 mm from the block.
+>
+> Both are fixable and neither touches the relay or the isolation geometry. Until
+> they are fixed and a fresh battery clears, **there is still nothing to order.**
+
 ## The defect
 `03_src/lib/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod` carries
 **4 pads** at DIP positions 1/7/8/14. Standex DIP-series datasheet (Version 03,
