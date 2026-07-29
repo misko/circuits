@@ -202,3 +202,23 @@
   wave (route.yaml says so). Owed INTO stage 6: stitching closes 2
   starved_thermal + 1 isolated_copper + U_MCU.57's exposed pad; the 30
   solder_mask_bridge findings are a stage-7 fab deviation, not a routing task.
+
+## 2026-07-29 — PROCESS DEFECT IN MY OWN COMMIT, recorded because hiding it is worse
+- did: committed stage 5 as 85e4d28. I staged correctly — `git add --
+  projects/pluto-cal-switch/` — and then ran `git commit` WITHOUT a pathspec.
+- result: **a pathspec-scoped ADD followed by an unscoped COMMIT commits the whole
+  INDEX, not just what I added.** Three other agents are working in this tree, and
+  between my `git status` and my `git commit` the cooksense agent staged a deletion
+  of `projects/smc0985-cooksense/02_parts/ULN2803ADWR/{part.yaml,SLRS049G.pdf}`.
+  Those two deletions are now recorded inside MY commit, under MY message.
+- what I did about it, and why NOT the obvious thing: I did NOT restore the files.
+  The cooksense agent is live and mid-refactor (12+ modified files including
+  02_parts/README.md and journal/02_parts.md, exactly the shape of a deliberate
+  part removal). Un-deleting files an active agent has just staged for deletion
+  would silently revert their work at a moment they have no reason to re-check.
+  The content is intact in history either way; the only damage is
+  MIS-ATTRIBUTION, which this note and the handoff report fix.
+- THE RULE, stated so the next session does not repeat it: with concurrent agents
+  in one worktree, `git add -- <path>` is NOT sufficient. The commit itself must
+  carry the pathspec — `git commit -- projects/<board>/` — or the index is shared
+  ground and whatever anyone else staged rides along.
