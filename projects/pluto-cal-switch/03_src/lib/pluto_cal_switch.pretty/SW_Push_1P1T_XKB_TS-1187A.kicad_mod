@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
-	(descr "SPST-NO momentary tact switch, XKB TS-1187A-B-A-B (C318884), SMD-4P gull-wing, 5.1 x 5.1 x 1.5 mm. DECLARED-PARTIAL LAND: XKB publishes no datasheet PDF and no recommended land for this SKU (LCSC C318884 re-read 2026-07-28), so the pads are deliberately oversized to 1.60 x 1.20 at (+/-2.80, +/-1.75) to tolerate +/-0.4 mm of lead-position error; jlc_twin PAD-GEOM at stage 7 is the gate that closes it. Pads 1-2 are one contact, 3-4 the other (standard 4-pad tact arrangement, asserted not quoted) - benign here because 1/2 carry USB_BOOT and 3/4 carry GND, so any wrong pairing fails LOUDLY at first power-up.")
+	(descr "SILK OUTLINE CORRECTED 2026-07-29: the four side verticals were drawn from each corner inward to y=+/-1.05 at x=+/-2.55, which runs them straight THROUGH the pads (pad x 2.00..3.60, pad y 1.15..2.35) — kicad-cli DRC silk_over_copper x4. The break was cut on the wrong axis. They now exist only in the pad-free band |y| <= 1.05. SPST-NO momentary tact switch, XKB TS-1187A-B-A-B (C318884), SMD-4P gull-wing, 5.1 x 5.1 x 1.5 mm. DECLARED-PARTIAL LAND: XKB publishes no datasheet PDF and no recommended land for this SKU (LCSC C318884 re-read 2026-07-28), so the pads are deliberately oversized to 1.60 x 1.20 at (+/-2.80, +/-1.75) to tolerate +/-0.4 mm of lead-position error; jlc_twin PAD-GEOM at stage 7 is the gate that closes it. Pads 1-2 are one contact, 3-4 the other (standard 4-pad tact arrangement, asserted not quoted) - benign here because 1/2 carry USB_BOOT and 3/4 carry GND, so any wrong pairing fails LOUDLY at first power-up.")
 	(tags "tact switch SPST momentary SMD-4P XKB TS-1187A C318884 bootsel")
 	(attr smd)
 	(property "Reference" "REF**"
@@ -81,6 +81,26 @@
 		(uuid "")
 	)
 	(fp_line
+		(start -2.55 -1.05)
+		(end -2.55 1.05)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start 2.55 -1.05)
+		(end 2.55 1.05)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
 		(start -2.55 -2.55)
 		(end 2.55 -2.55)
 		(stroke
@@ -129,46 +149,6 @@
 		)
 		(fill none)
 		(layer "F.Fab")
-		(uuid "")
-	)
-	(fp_line
-		(start -2.55 -2.55)
-		(end -2.55 -1.05)
-		(stroke
-			(width 0.12)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "")
-	)
-	(fp_line
-		(start -2.55 2.55)
-		(end -2.55 1.05)
-		(stroke
-			(width 0.12)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "")
-	)
-	(fp_line
-		(start 2.55 -2.55)
-		(end 2.55 -1.05)
-		(stroke
-			(width 0.12)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "")
-	)
-	(fp_line
-		(start 2.55 2.55)
-		(end 2.55 1.05)
-		(stroke
-			(width 0.12)
-			(type solid)
-		)
-		(layer "F.SilkS")
 		(uuid "")
 	)
 	(fp_line

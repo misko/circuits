@@ -109,6 +109,26 @@ layout:
        else on D+/D-, and route the pair THROUGH it with zero stubs."
     - "Emit the two PCB LEG features as PLATED OVAL SLOTS. This is a different
        fab feature from a round hole and must be verified in the drill report."
+    - "HOLE-TO-COPPER 0.225 mm AT THE LOCATING BOSSES, MEASURED 2026-07-29 AND
+       CARRIED OPEN RATHER THAN SILENTLY PASSED. kicad-cli DRC reports 2
+       hole_clearance violations: the D0.55 boss NPTH at x = +/-2.00 comes within
+       0.225 mm of pad 1 (VBUS) and pad 5 (GND) at x = +/-1.30, against the
+       board's 0.250 mm hole-clearance floor. BOTH GEOMETRIES ARE VENDOR-FIXED —
+       the bosses locate the connector and the 0.65 mm signal pitch is the USB
+       Micro-B standard — so this is NOT movable by placement or routing.
+       THREE THINGS ARE UNRESOLVED AND ARE NAMED, NOT GUESSED: (a) the boss
+       DIAMETER and POSITION in this footprint are the one part of it that
+       verified: does not cover numerically ('2 locating-boss holes', no
+       dimensions), and the drawing PDF has no extractable text layer, so
+       D0.55 at +/-2.00 is the weakest-provenance number in the land; (b) the
+       0.250 floor may itself be mis-derived — it comes from the tier's
+       min_hole_to_hole, which is a HOLE-TO-HOLE capability, and JLC's
+       hole-to-copper number is not the same specification (tier_preflight
+       already flags two other places where 0.205-vs-0.25 hole_to_copper
+       confusion bites); (c) whether JLC actually rejects 0.225. All three
+       resolve at the same gate: the fresh-context pin/land review against JLC's
+       own fetched footprint for C319160, which this part already owes for the
+       signal names."
 layout_refs:
   - "XKB drawing U254-05XX-4BH83-XXS Rev A0 sheet 1/1, 'RECOMMENDED P.C.B.
      LAYOUT / TOP VIEW'"

@@ -85,9 +85,27 @@ layout:
     0.30 mm 45 deg chamfer as the pin-1 index), tolerance +/-0.05 mm."
   reviewed: "2026-07-27"
   keep_short:
-    - {net: LOOP_IN, max_span_mm: 6, why: "GCPW launch into RF-IN; the published
-       flatness is a CPW-launch number and does not survive a long microstrip
-       approach at 6 GHz"}
+    # `LOOP_IN` USED TO HEAD THIS LIST AND IT NAMED A NET THAT NO LONGER EXISTS
+    # (removed 2026-07-29). Stage 4 found LOOP_IN and LOOP_SPLIT were two names
+    # for ONE node and merged them, so the LOOP_IN budget was reporting NOT
+    # EVALUATED — i.e. a launch constraint that could not fail. Its content is
+    # not lost: the LOOP_SPLIT entry below is the same claim about the same node.
+    #
+    # LOOP_ARM1/LOOP_ARM2 ARE NEW HERE AND THEY ARE THE SUBSTANTIVE FIX. The same
+    # stage-4 re-spec that merged LOOP_IN also split each arm pad into TWO chips,
+    # and the chip that actually launches off LOOP_ARMn is this one (U_PAD_A2A1 /
+    # U_PAD_A2B1, YAT-10A+), not the YAT-2A+ downstream of it — yet the 6 mm
+    # budget was still declared over in YAT-2A+, on a net no YAT-2A+ instance has
+    # a pad on. A-PROX therefore fell back to measuring the net's FULL SPAN, which
+    # includes R_DELTA3's stub and read 6.99 mm: a FAIL on the wrong metric on the
+    # wrong part. Declared here, the budget is measured the way it is meant —
+    # "is there something on this net within 6 mm of MY launch pin" — and the
+    # answer is 5.92 mm. THAT 0.08 mm OF MARGIN IS ALSO WHAT SETS THE ARM
+    # SEPARATION: see 03_src/audit_board.py ARM1_Y.
+    - {net: LOOP_ARM1, max_span_mm: 6, why: "GCPW launch into RF-IN on arm 1; the
+       published flatness is a CPW-launch number and does not survive a long
+       microstrip approach at 6 GHz"}
+    - {net: LOOP_ARM2, max_span_mm: 6, why: "the mirror of the above"}
     - {net: LOOP_SPLIT, max_span_mm: 6, why: "same, on the RF-OUT side"}
   notes:
     - "Continuous ground plane (L2) directly under the part and its launches —

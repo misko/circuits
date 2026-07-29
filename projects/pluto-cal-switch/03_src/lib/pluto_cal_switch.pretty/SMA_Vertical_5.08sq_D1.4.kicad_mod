@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
-	(descr "SMA jack, vertical THT square flange, 5-D1.4 mm holes on a 5.08x5.08 mm square (Kinghelm KH-SMA-KE-Z / C504007, drawing sheet 2-2 'PCB layout'; depth reserve BWSMA-KE-Z001 / C496549 on the identical pattern). Drills are D1.4 NOT the KiCad Wurth pattern's 1.5/1.7 - ADR-0007: a 0.9 mm square post has a 1.273 mm diagonal, so D1.3 leaves 0.014 mm and D1.4 leaves 0.064 mm. Pad 1 carries a 0.75 mm local clearance = the >=D3.5 mm bottom-plane antipad (ADR-0007 RULE 1, ~9 dB of return loss at 6 GHz over the D2.6 minimum-DRC opening); pads 2-5 carry none so the top pour stays continuous to the ground posts (RULE 4).")
+	(descr "SMA jack, vertical THT square flange, 5-D1.4 mm holes on a 5.08x5.08 mm square (Kinghelm KH-SMA-KE-Z / C504007, drawing sheet 2-2 'PCB layout'; depth reserve BWSMA-KE-Z001 / C496549 on the identical pattern). Drills are D1.4 NOT the KiCad Wurth pattern's 1.5/1.7 - ADR-0007: a 0.9 mm square post has a 1.273 mm diagonal, so D1.3 leaves 0.014 mm and D1.4 leaves 0.064 mm. Pad 1 carries a 0.75 mm local clearance = the >=D3.5 mm bottom-plane antipad (ADR-0007 RULE 1, 5.6 dB of return loss at 6 GHz over the D2.6 minimum-DRC opening: RL 14.5 vs 8.9. The ~9 dB this line carried until 2026-07-29 was a first-pass estimate nothing had re-derived); pads 2-5 carry none so the top pour stays continuous to the ground posts (RULE 4).")
 	(tags "SMA jack RF coaxial THT 5.08 KH-SMA-KE-Z C504007")
 	(attr through_hole)
 	(property "Reference" "REF**"

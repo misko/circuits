@@ -60,10 +60,28 @@ layout:
     of 5: 0.65 mm pitch, 0.30 x 0.80 mm lands, EP 1.20 x 0.60 mm, +/-0.05 mm."
   reviewed: "2026-07-27"
   keep_short:
-    - {net: LOOP_ARM1, max_span_mm: 6, why: "GCPW launch; and this pad is IN the
-       length-matched pair, so its approach geometry must be identical on both
-       arms or the D4 delta is manufactured rather than measured"}
-    - {net: LOOP_ARM2, max_span_mm: 6, why: "the mirror of the above"}
+    # THESE TWO NAMED LOOP_ARM1/LOOP_ARM2 UNTIL 2026-07-29 AND THAT WAS WRONG
+    # AFTER THE STAGE-4 RE-SPEC. When the arm pad was ONE chip, that chip sat on
+    # LOOP_ARMn. A9 made each arm pad TWO chips, and this part is the DOWNSTREAM
+    # one: no YAT-2A+ instance has a pad on LOOP_ARMn at all — the upstream
+    # YAT-10A+ does, and the budget has moved there. What this part launches into
+    # is LOOP_ARMn_SW, the run from its RF-OUT to the switch's RF2, and that is
+    # what is budgeted here now. The physical claim is unchanged; only the net it
+    # is attached to is corrected, so that the gate measures the launch this chip
+    # actually has instead of the full span of a net it does not touch (which
+    # read 6.99 mm and FAILED for reasons that had nothing to do with this part).
+    #
+    # AND THE CORRECTION COST 2.10 mm OF BOARD: the first placement draft ran this
+    # launch 8.00 mm, per DETAIL_DESIGN sec.2's segment plan. 8.00 > 6, so the
+    # switches moved +2.10 mm in x (both channels together, congruence intact) to
+    # bring it to 5.90 mm. sec.2 and this budget were in direct conflict and this
+    # one wins: sec.2's lengths feed a loss budget ADR-0016 credits at ZERO,
+    # while a blown launch degrades the return loss the arm pad's 30 dB rests on.
+    - {net: LOOP_ARM1_SW, max_span_mm: 6, why: "GCPW launch off RF-OUT into the
+       switch; and this pad is IN the length-matched pair, so its approach
+       geometry must be identical on both arms or the D4 delta is manufactured
+       rather than measured"}
+    - {net: LOOP_ARM2_SW, max_span_mm: 6, why: "the mirror of the above"}
   notes:
     - "THE TWO INSTANCES MUST BE GEOMETRIC MIRRORS AT IDENTICAL ROTATION. The
        splitter has zero intrinsic phase shift, so 100% of arm-to-arm phase

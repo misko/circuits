@@ -151,7 +151,7 @@
         "min_resolved_spokes": 2,
         "min_silk_clearance": 0.0,
         "min_text_height": 0.45,
-        "min_text_thickness": 0.15,
+        "min_text_thickness": 0.1125,
         "min_through_hole_diameter": 0.15,
         "min_track_width": 0.127,
         "min_via_annular_width": 0.05,
@@ -271,7 +271,7 @@
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.2,
+        "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -287,6 +287,108 @@
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "name": "RF50",
+        "clearance": 0.15,
+        "track_width": 0.35,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.35,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "RF_LOOP_MATCH",
+        "clearance": 0.15,
+        "track_width": 0.35,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.35,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "USB_DP",
+        "clearance": 0.15,
+        "track_width": 0.33,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.33,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "CTRL",
+        "clearance": 0.15,
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "QSPI",
+        "clearance": 0.15,
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "PWR",
+        "clearance": 0.15,
+        "track_width": 0.4,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.4,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
       }
     ],
     "meta": {
@@ -294,7 +396,172 @@
     },
     "net_colors": null,
     "netclass_assignments": null,
-    "netclass_patterns": []
+    "netclass_patterns": [
+      {
+        "netclass": "RF50",
+        "pattern": "RX_ANT1"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "RX_ANT2"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "RX_PLUTO1"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "RX_PLUTO2"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "TX_PLUTO"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "SW1_ANT"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "SW2_ANT"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "LOOP_SPLIT"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "PAD_A1_1"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "PAD_A1_2"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "PAD_A1_3"
+      },
+      {
+        "netclass": "RF50",
+        "pattern": "PAD_A1_4"
+      },
+      {
+        "netclass": "RF_LOOP_MATCH",
+        "pattern": "LOOP_ARM1"
+      },
+      {
+        "netclass": "RF_LOOP_MATCH",
+        "pattern": "LOOP_ARM2"
+      },
+      {
+        "netclass": "RF_LOOP_MATCH",
+        "pattern": "PAD_A2A_1"
+      },
+      {
+        "netclass": "RF_LOOP_MATCH",
+        "pattern": "PAD_A2B_1"
+      },
+      {
+        "netclass": "RF_LOOP_MATCH",
+        "pattern": "LOOP_ARM1_SW"
+      },
+      {
+        "netclass": "RF_LOOP_MATCH",
+        "pattern": "LOOP_ARM2_SW"
+      },
+      {
+        "netclass": "USB_DP",
+        "pattern": "USB_DP"
+      },
+      {
+        "netclass": "USB_DP",
+        "pattern": "USB_DM"
+      },
+      {
+        "netclass": "USB_DP",
+        "pattern": "USB_DP_MCU"
+      },
+      {
+        "netclass": "USB_DP",
+        "pattern": "USB_DM_MCU"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "RF_CTRL"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "RF_CTRL_SW1"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "RF_CTRL_SW2"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "HDR_CTRL_IN"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "HDR_CTRL_ADC"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "HDR_STATE_OUT"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "HDR_STATE_GPIO"
+      },
+      {
+        "netclass": "QSPI",
+        "pattern": "QSPI_SCLK"
+      },
+      {
+        "netclass": "QSPI",
+        "pattern": "QSPI_CSN"
+      },
+      {
+        "netclass": "QSPI",
+        "pattern": "QSPI_SD0"
+      },
+      {
+        "netclass": "QSPI",
+        "pattern": "QSPI_SD1"
+      },
+      {
+        "netclass": "QSPI",
+        "pattern": "QSPI_SD2"
+      },
+      {
+        "netclass": "QSPI",
+        "pattern": "QSPI_SD3"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "VBUS"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "VBUS_PF"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "VBUS_F"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "3V3"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "3V3_SW"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "VREG_VOUT"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {

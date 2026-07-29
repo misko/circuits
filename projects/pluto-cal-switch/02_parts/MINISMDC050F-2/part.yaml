@@ -28,6 +28,36 @@ limits:
   time_to_trip: "0.15 s at trip current"
   t_op: "-40..+85C"
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY, AND HERE IS THE COMPARISON
+     (2026-07-29 — this was the ONE stock adoption on this board with no
+     comparison recorded, so it is written out in full rather than assumed from
+     the '1812' in the name). Littelfuse spec 2410121433 publishes a PACKAGE
+     OUTLINE ONLY and NO recommended land: TABLE I gives A (length) 4.37-4.73,
+     C (width) 3.07-3.41 and D (terminal length along A) 0.25-0.95, and there is
+     no pad drawing anywhere in the sheet. KiCad Fuse:Fuse_1812_4532Metric lands
+     two 1.125 x 3.400 pads at x = +/-2.1375 — inner edges +/-1.575, outer edges
+     +/-2.700. Against the NOMINAL outline (A 4.55, C 3.24, D 0.60, so the
+     terminal band runs +/-1.675 to +/-2.275): TOE +0.425, HEEL +0.100 (the pad
+     reaches 0.100 mm under the body, past the terminal's inner edge) and SIDE
+     fillet +0.080 per side on a 3.24 mm body. Every terminal surface is covered,
+     with fillet room on three sides. THE COMPARISON IS OUTLINE-vs-IPC BECAUSE
+     LITTELFUSE PUBLISHES NO LAND — stated, not papered over, exactly as for the
+     Abracon crystal, the Micro One LDO and the TI TVS on this board. Closing
+     gate: jlc_twin PAD-GEOM at stage 7 against JLC's own model for C2649901."
+  - "THE 0.100 mm OF PAD UNDER THE BODY IS SAFE HERE AND WOULD NOT BE ON EVERY
+     1812. A PPTC's terminals ARE the ends of the polymer/metal sandwich, so
+     there is no plastic standoff for the land to bridge. Related, and easy to
+     miss: TABLE II's ratings footnote says they were determined on \"PCB's with
+     0.030 in x 1.5 ounce copper traces\", so the VBUS trace into this pad wants
+     to be >= 0.76 mm wide or the published hold/trip currents are being read off
+     a different thermal environment than the board provides. MEASURED, NOT LEFT
+     OPEN: rules/nets.yaml PWR declares min_width 0.4 mm, so this board runs at
+     roughly HALF the datasheet's thermal reference. The direction of the error is
+     benign and that is why 0.4 mm stands: less copper means less heatsinking,
+     which makes the PPTC trip EARLIER (lower effective hold current), and the
+     design envelope is 0.10 A against a 0.50 A hold — 5x of margin. If this
+     board's load ever approached 0.3 A the trace, not the fuse, would become the
+     thing to re-derive."
   - "IT PROTECTS THE HOST, NOT THIS BOARD (ADR-0009). A shorted rail here must
      not kill the laptop's USB port — that is the failure that actually costs
      money. It is therefore FIRST in the chain, at the connector, upstream of

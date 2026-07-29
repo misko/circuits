@@ -61,6 +61,19 @@ route:
                                     # this tier's published floors when omitted;
                                     # an explicit sub-floor value is a hard
                                     # error that names the tier (R-PREFLIGHT)
+    clearance: 0.15                 # DECLARED 2026-07-29, ABOVE the tier floor.
+                                    # Omitted, this defaulted to the tier's
+                                    # 0.09 mm min_space while every netclass DRC
+                                    # floor sat at 0.20 — the router would have
+                                    # routed 0.11 mm under the rule it is graded
+                                    # by (tier_preflight PF-RULES-CLR; crow-rv2
+                                    # 2026-07-23, 500 phantom findings). 0.15,
+                                    # not 0.09 and not 0.20: see nets.yaml
+                                    # default_clearance — 0.15 is the BGS12WN6's
+                                    # own land-to-land gap, the tightest
+                                    # datasheet-mandated number on the board, and
+                                    # 0.20 produced 16 unfixable DRC clearance
+                                    # violations inside two footprints.
     no_stub_layer_swap: true
     keepout: true
     keepout_layer: User.2
@@ -72,6 +85,11 @@ route:
   #                                    # routing gets replayed by accident.
 
 stitch:
+  # 0.15 = the DRC clearance, exactly (nets.yaml default_clearance). This started
+  # the day at 0.15 while DRC was 0.20 — a screen looser than the gate it feeds
+  # (tier_preflight PF-STITCH-CLR) — was briefly raised to 0.20, and came back to
+  # 0.15 when the DRC floor itself came down to the BGS12WN6 land gap. The
+  # invariant that matters is that these two numbers are THE SAME number.
   clearance: 0.15
   # spacing 0.85 center-to-center = 0.55mm drill-edge gap > the 0.5mm
   # hole-to-hole floor (0.62 gave 0.32mm and a stochastic route tripped it)
@@ -80,7 +98,15 @@ stitch:
   # The same floors gate normalize_vias, hole_to_hole.shrink_to and the
   # astar_fallback via pin (whose 0.45/0.2 toolkit default was below a
   # 2-layer standard board's floors — crow-array-pod incident).
-  via: {size: 0.6, drill: 0.3, spacing: 0.85, pth_margin: 0.3}
+  # `tiers` DECLARED 2026-07-29 for ONE reason: hole_to_copper. via_site_ok's
+  # default is 0.205 mm, which assumes a 0.20 mm hole-clearance floor. THIS
+  # board's floor is 0.25 (jlc_4layer_advanced, and it is in the generated
+  # .kicad_pro), so the default lets the stitch screen ACCEPT sites that DRC then
+  # rejects on hole_clearance — a screen looser than its gate (tier_preflight
+  # PF-HTC). size/drill are restated at the same 0.6/0.3 as the parent so the
+  # tier list changes the CLEARANCE TEST and nothing else.
+  via: {size: 0.6, drill: 0.3, spacing: 0.85, pth_margin: 0.3,
+        tiers: [{size: 0.6, drill: 0.3, hole_to_copper: 0.255}]}
   keepin: {inset: 0.8}
   # seed_stubs runs FIRST (before fill so the pour flows around the stub
   # copper); unify_zone_priorities runs after the last fill, before
@@ -116,7 +142,14 @@ stitch:
   # shorting_items — never a mechanical bump). `min_bbox` skips slivers.
   unify_zone_priorities: {min_bbox: 0.8}
   dedupe_vias: {radius: 0.5, metric: box}
-  normalize_vias: {below_width: 0.449, size: 0.6, drill: 0.3}
+  # RE-AIMED 2026-07-29 TO THE TIER FLOOR. At below_width 0.449 this pass would
+  # have caught EVERY via on a track narrower than 0.449 mm — which on this board
+  # is every tier via that is already correct at 0.25/0.15 — and inflated it to
+  # 0.6/0.3 without a collision check. That is not a hypothetical: crow-rv2
+  # (2026-07-23) inflated 323/323 vias this way and produced 902 DRC findings.
+  # The pass now only touches vias BELOW the tier floor, which is what
+  # "normalize" was ever supposed to mean (tier_preflight PF-NORM).
+  normalize_vias: {below_width: 0.24, size: 0.25, drill: 0.15}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   # KRT overshoot tails (one wave left a 0.7mm S_MINUS stub -> track_dangling)
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}

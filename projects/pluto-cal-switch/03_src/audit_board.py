@@ -20,10 +20,11 @@ WHY EACH CHECK IS HERE, and what it would have caught:
   A-SYM    THE D4 GATE. ADR-0011 makes the arm-to-arm delta a PUBLISHED
            release artifact, and ARCHITECTURE sec.10.1 makes mirror symmetry
            the way it is earned. This measures it: every arm-2 part must be
-           its arm-1 twin translated by EXACTLY +18.5 mm in y at an IDENTICAL
+           its arm-1 twin translated by EXACTLY +14.5 mm in y at an IDENTICAL
            rotation. A 0.05 mm drift on one attenuator is invisible to DRC,
            to ERC and to every render, and it turns a published number into a
-           lie.
+           lie. (See ARM1_Y below for why the vector is 14.5 and not the 18.5
+           this file demanded until 2026-07-29.)
   A-ARMSEP inter-arm copper separation >= 3 x dielectric height (sec.10.2).
            Two parallel 50-ohm microstrips on 0.2104 mm prepreg couple at
            -25..-35 dB over a few mm at 6 GHz — at or ABOVE the 30 dB the arm
@@ -31,8 +32,9 @@ WHY EACH CHECK IS HERE, and what it would have caught:
   A-DELTA  each ACTIVE splitter leg <= lambda_g/20 = 1.385 mm (sec.10.3), so
            the delta stays a lumped 3-port instead of a small network.
   A-ANTIPAD every SMA centre pin carries the local clearance that produces the
-           >= D3.5 mm bottom-plane antipad of ADR-0007 RULE 1 — worth ~9 dB of
-           return loss at 6 GHz over the D2.6 minimum-DRC opening. This rule
+           >= D3.5 mm bottom-plane antipad of ADR-0007 RULE 1 — worth 5.6 dB of
+           return loss at 6 GHz over the D2.6 minimum-DRC opening (RL 14.5 vs
+           8.9; the ~9 dB carried here until 2026-07-29 was never re-derived). This rule
            was originally derived BACKWARDS and would have been frozen into
            the footprint; it is checked, not trusted.
   A-PLANE  In1.Cu (L2) has exactly one GND zone and ZERO keepouts. "L2 is one
@@ -45,7 +47,38 @@ WHY EACH CHECK IS HERE, and what it would have caught:
            a pad-to-pad span on THIS board. P-ADJ grades these fleet-wide but
            only for nets it can resolve; this prints all of them with their
            verdict so an unevaluated budget is visible rather than silent.
+  A-SEG    the calibration chain MEASURED segment by segment against
+           DETAIL_DESIGN sec.2's targets. Targets are NOT gates (ADR-0016
+           credits all interconnect at ZERO, so a short run cannot lower the
+           guaranteed floor) — this prints so a deviation is visible and has to
+           be explained. It exists because floorplan.yaml carried a HAND-TYPED
+           table of these numbers that went on describing an 18.5 mm arm
+           separation after the anchors had moved to 14.5.
   I8       every refdes present, on F.SilkS, visible (the audit's silk rule).
+  I9       LABEL OWNERSHIP: every refdes is nearer its OWN part's COURTYARD EDGE
+           than any other part's. Two independent lenses on a sibling board
+           found a CONNECTOR labelled on its neighbour, and a third found safety
+           labels discriminating by 0.069 mm. A refdes that sits closer to the
+           wrong part is not a cosmetic defect: it is the assembler soldering the
+           wrong device and every gate passing.
+           THIS CHECK IS CURRENTLY RED AND IS NOT WAIVED. The cause is upstream
+           and is NOT this board's placement: the shared silk placer walks a
+           fixed offset ladder out to 11 mm and takes the FIRST slot that does
+           not collide, with no ownership test at all, so in a dense field it
+           parks a label beside somebody else's part. Every refdes also exists on
+           F.Fab AT its own part's origin, and the CPL — not the silk — is what
+           the assembler consumes, so the exposure is a human misreading a
+           physical board, not a placement error. Left red, declared, with the
+           number, because the fix is a patch to
+           skills/kicad-pcb/scripts/generate_board_generic.py and silencing a
+           gate that names a real defect is the downgrade this canon exists to
+           prevent.
+  I10      THE FIVE PORT CAPTIONS by name, graded like I9. Five identical SMA
+           jacks on our own pitch: the silk IS the user interface and a caption
+           nearer the wrong jack is a confident wrong answer. Separate from I9
+           because a caption is free text that nothing else on the board would
+           notice drifting — and all five HAD drifted 5.0-9.8 mm when the jacks
+           moved.
 """
 import math
 import re
@@ -63,8 +96,25 @@ MM = pcbnew.ToMM
 
 # --- the geometry this board's own docs make binding -------------------------
 AXIS_Y = 55.0
-ARM1_Y, ARM2_Y = 45.75, 64.25
-ARM_DY = ARM2_Y - ARM1_Y                    # 18.5 mm, the congruence vector
+# 47.75 / 62.25, NOT the 45.75 / 64.25 THIS FILE CARRIED UNTIL 2026-07-29, and the
+# change is a re-derivation, not a capitulation to the floorplan. A-SYM FAILED on
+# all 11 arm pairs ("+14.500 is 4.000 mm off the required +18.500") because the
+# floorplan anchors and this checker disagreed. Resolving it meant asking which
+# separation the physics allows, and the answer is a window ~0.8 mm wide:
+#   * <= 14.66 mm, from YAT-10A+'s 6 mm GCPW-launch keep_short on LOOP_ARMn. The
+#     arm-pad launch is the drop from R_DELTA1's arm pad at y=53.67 to
+#     U_PAD_A2A1's RF-IN at y=arm1: 53.67 - arm1 <= 6.00 => arm1 >= 47.67.
+#   * >= 13.85 mm, from the authored SMA courtyard (+/-3.90). J_SMA_RXn hangs
+#     9.40 mm below its switch, so it reaches arm1 + 13.30, and U_SW2's courtyard
+#     edge is at arm2 - 0.55.
+# 18.50 is OUTSIDE that window and always was: it blows the launch budget by
+# 1.92 mm to buy coupling margin on a constraint already met 23x over. So the
+# CHECKER was carrying the wrong number and the anchors were carrying the right
+# one — which is the outcome canon M1 exists to make discoverable, and it stayed
+# discoverable only because this constant is written HERE and not read from
+# floorplan.yaml. Do not "fix" that by importing it.
+ARM1_Y, ARM2_Y = 47.75, 62.25
+ARM_DY = ARM2_Y - ARM1_Y                    # 14.5 mm, the congruence vector
 DIELECTRIC_H = 0.2104                       # JLC04161H-7628 prepreg (ADR-0010)
 ARMSEP_MIN = 3.0 * DIELECTRIC_H             # ARCHITECTURE sec.10.2
 LAMBDA_G_20 = 27.7 / 20.0                   # 1.385 mm at 6 GHz (sec.7 constants)
@@ -265,7 +315,7 @@ def main():
     else:
         ok("A-ANTIPAD", f"all 5 SMA centre pins carry a local clearance giving "
                         f"a >= D{ANTIPAD_MIN_D} mm opening on every pour "
-                        f"(ADR-0007 RULE 1, ~9 dB of RL at 6 GHz over D2.6)")
+                        f"(ADR-0007 RULE 1, 5.6 dB of RL at 6 GHz over D2.6: 14.5 vs 8.9)")
 
     # -------------------------------------------------------------- A-PLANE
     in1 = pcbnew.In1_Cu
@@ -314,6 +364,50 @@ def main():
                       f"{worst_pair[0]} <-> {worst_pair[1]} = {worst_sep:.2f} mm "
                       f"(floor {RFSEP_MIN} mm); the QSPI bus and the crystal sit "
                       f"hard against the top edge")
+
+    # ---------------------------------------------------------------- A-SEG
+    # The chain, pad to pad, against DETAIL_DESIGN sec.2. NOT A GATE — every row
+    # prints and none of them can fail, because ADR-0016 credits ALL interconnect
+    # at ZERO and a run shorter than its target cannot lower the guaranteed
+    # floor. It is here because the ALTERNATIVE was a hand-typed table in
+    # floorplan.yaml, and that table described the 18.5 mm arm geometry for a day
+    # after the anchors moved to 14.5. A number a human retypes goes stale in
+    # silence; a number a gate prints cannot.
+    SEG = [  # (label, refA.padA, refB.padB, sec.2 target mm)
+        ("TX jack -> PAD_A1A in",     "J_SMA_TX.1",   "U_PAD_A1A.2",  10.0),
+        ("PAD_A1E out -> vertex",     "U_PAD_A1E.5",  "R_DELTA1.1",   22.0),
+        ("vertex -> arm1 pad in",     "R_DELTA1.2",   "U_PAD_A2A1.2",  8.0),
+        ("vertex -> arm2 pad in",     "R_DELTA2.2",   "U_PAD_A2B1.2",  8.0),
+        ("arm1 pad internal",         "U_PAD_A2A1.5", "U_PAD_A2A2.2", None),
+        ("arm2 pad internal",         "U_PAD_A2B1.5", "U_PAD_A2B2.2", None),
+        ("arm1 pad out -> SW1.RF2",   "U_PAD_A2A2.5", "U_SW1.1",       8.0),
+        ("arm2 pad out -> SW2.RF2",   "U_PAD_A2B2.5", "U_SW2.1",       8.0),
+        ("SW1.RFin -> RX1 jack",      "U_SW1.5",      "J_SMA_RX1.1",   5.0),
+        ("SW2.RFin -> RX2 jack",      "U_SW2.5",      "J_SMA_RX2.1",   5.0),
+        ("SW1.RF1 -> ANT1 jack",      "U_SW1.3",      "J_SMA_ANT1.1", 20.0),
+        ("SW2.RF1 -> ANT2 jack",      "U_SW2.3",      "J_SMA_ANT2.1", 20.0),
+        ("TX jack -> RX1 jack (iso)", "J_SMA_TX.1",   "J_SMA_RX1.1",  None),
+        ("TX jack -> RX2 jack (iso)", "J_SMA_TX.1",   "J_SMA_RX2.1",  None),
+    ]
+
+    def seg_xy(spec):
+        ref, pad = spec.rsplit(".", 1)
+        return pad_xy(fps[ref], pad) if ref in fps else None
+
+    n_seg = 0
+    for label, a_, b_, target in SEG:
+        pa, pb = seg_xy(a_), seg_xy(b_)
+        if not pa or not pb:
+            notes.append(f"A-SEG  MISSING {label}: {a_} or {b_} not on the board")
+            continue
+        d = math.dist(pa, pb)
+        n_seg += 1
+        tgt = "unbudgeted" if target is None else f"target {target:5.1f}"
+        notes.append(f"A-SEG  {label:<28s} {d:6.2f} mm   {tgt}")
+    ok("A-SEG", f"{n_seg}/{len(SEG)} calibration-chain segments MEASURED off the "
+                f"board and printed against DETAIL_DESIGN sec.2 (informational: "
+                f"ADR-0016 credits all interconnect at ZERO, so a target miss is "
+                f"a documentation fact, not a spec risk)")
 
     # --------------------------------------------------------------- A-PROX
     # THE METRIC MATTERS, and the obvious one is wrong. A `keep_short` budget
@@ -414,6 +508,95 @@ def main():
         ok("I8", f"{len(comps_only)}/{len(comps_only)} component refdes visible "
                  f"on F.SilkS; {len(holes)} mounting hole(s) {holes} EXCLUDED "
                  f"as board features (no net, no BOM line, no CPL row)")
+
+    # ------------------------------------------------------------------- I9
+    # OWNERSHIP, not just presence. I8 says the label EXISTS; I9 says it belongs
+    # to the part it names.
+    #
+    # THE METRIC IS DISTANCE TO THE COURTYARD EDGE, NOT TO A CENTROID, and the
+    # first draft of this check got that wrong (2026-07-29). Centroid distance
+    # penalises big parts for being big: it called the "RX1" caption 1.2 mm
+    # outside J_SMA_RX1's courtyard a MISATTRIBUTION, because that jack's 5-hole
+    # centroid is 5.95 mm away while a neighbouring 0402's centre happened to be
+    # 5.15 mm away. A human reads a label against the part's OUTLINE. Edge
+    # distance (0 if the label sits inside) is that reading, and it is not a
+    # loosening: it does not rescue a single one of the genuine failures below,
+    # which are labels the silk placer pushed 5-11 mm from their owners.
+    def crtyd_box(fp):
+        bb = fp.GetCourtyard(pcbnew.F_Cu).BBox()
+        if bb.GetWidth() <= 0:
+            bb = fp.GetBoundingBox(False, False)
+        return (MM(bb.GetLeft()), MM(bb.GetTop()),
+                MM(bb.GetRight()), MM(bb.GetBottom()))
+
+    def edge_dist(xy, box):
+        x, y = xy
+        x0, y0, x1, y1 = box
+        dx = max(x0 - x, 0.0, x - x1)
+        dy = max(y0 - y, 0.0, y - y1)
+        return math.hypot(dx, dy)
+
+    cents = {r: crtyd_box(f) for r, f in fps.items()}
+    stolen, worst_margin, worst_ref = [], None, None
+    for r, fp in sorted(comps_only.items()):
+        t = fp.Reference().GetPosition()
+        txy = (MM(t.x), MM(t.y))
+        d_own = edge_dist(txy, cents[r])
+        d_other, other = min((edge_dist(txy, cents[o]), o)
+                             for o in cents if o != r)
+        margin = d_other - d_own
+        if margin <= 0:
+            stolen.append(f"{r} (its label is {-margin:.3f} mm NEARER {other})")
+        if worst_margin is None or margin < worst_margin:
+            worst_margin, worst_ref = margin, f"{r} vs {other}"
+    if stolen:
+        bad("I9", f"{len(stolen)} refdes label(s) closer to another part than to "
+                  f"their own: {stolen[:6]}")
+    else:
+        ok("I9", f"all {len(comps_only)} refdes labels OWNED by the part they "
+                 f"name; tightest discrimination {worst_margin:.3f} mm "
+                 f"({worst_ref})")
+
+    # ------------------------------------------------------------------ I10
+    # THE FIVE PORT CAPTIONS, graded the same way as I9 but by NAME. Five
+    # identical SMA jacks on our own pitch means NOTHING PHYSICAL distinguishes
+    # them: the silk IS the user interface, and a caption nearer the wrong jack
+    # is a wrong answer delivered confidently. This check is separate from I9
+    # because a caption is free text, not a refdes — nothing else on the board
+    # would ever notice it drifting, and it DID drift: all five were authored
+    # against the first placement draft and were 5.0-9.8 mm out after the jacks
+    # moved.
+    PORT_CAPTIONS = {"ANT1": "J_SMA_ANT1", "ANT2": "J_SMA_ANT2",
+                     "RX1": "J_SMA_RX1", "RX2": "J_SMA_RX2", "TX": "J_SMA_TX"}
+    texts = {}
+    for d in board.GetDrawings():
+        if d.GetClass() == "PCB_TEXT" and d.GetLayer() == pcbnew.F_SilkS:
+            t = d.GetText().strip()
+            if t in PORT_CAPTIONS:
+                texts[t] = (MM(d.GetPosition().x), MM(d.GetPosition().y))
+    misaimed, tight = [], None
+    for label, owner in sorted(PORT_CAPTIONS.items()):
+        if label not in texts:
+            misaimed.append(f"{label} caption NOT ON F.SilkS at all")
+            continue
+        xy = texts[label]
+        d_own = edge_dist(xy, cents[owner])
+        d_other, other = min((edge_dist(xy, cents[o]), o)
+                             for o in cents if o != owner)
+        if d_other <= d_own:
+            misaimed.append(f"{label} is {d_own:.2f} mm from {owner} but "
+                            f"{d_other:.2f} mm from {other}")
+        m = d_other - d_own
+        if tight is None or m < tight[0]:
+            tight = (m, f"{label}: {d_own:.2f} to {owner} vs {d_other:.2f} to "
+                        f"{other}")
+    if misaimed:
+        bad("I10", f"{len(misaimed)} port caption(s) not owned by their jack: "
+                   f"{misaimed}")
+    else:
+        ok("I10", f"all 5 port captions ({', '.join(sorted(PORT_CAPTIONS))}) are "
+                  f"nearest their OWN jack; tightest margin {tight[0]:.2f} mm "
+                  f"— {tight[1]}")
 
     for n in notes:
         print(f"    note: {n}")

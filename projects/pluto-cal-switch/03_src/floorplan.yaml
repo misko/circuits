@@ -11,15 +11,15 @@
 # solder-fillet asymmetry into phase error, ~2 deg at 6 GHz per 0.1 nH).
 #
 # Both hold at once IFF each arm is a STRAIGHT HORIZONTAL RUN: a horizontal
-# line at y=45.75 is the mirror image of one at y=64.25 about y=55.0 AND a pure
-# TRANSLATION of it, so every part on arm 2 is arm 1's part moved +18.5 mm in y
+# line at y=47.75 is the mirror image of one at y=62.25 about y=55.0 AND a pure
+# TRANSLATION of it, so every part on arm 2 is arm 1's part moved +14.5 mm in y
 # at an IDENTICAL rotation. That is why the arms here are straight lines and not
 # a routed shape: it is the only geometry on which both requirements are the
 # same requirement.
 #
 # The translation extends past the arms. U_SW1/U_SW2, J_SMA_RX1/2,
 # C_DCBLK1/2, J_SMA_ANT1/2 and every switch-support passive are the SAME
-# +18.5 mm translation, so RX_PLUTO1 == RX_PLUTO2 and SW1_ANT == SW2_ANT by
+# +14.5 mm translation, so RX_PLUTO1 == RX_PLUTO2 and SW1_ANT == SW2_ANT by
 # construction, not by a routing negotiation. (RX_PLUTO1/2 being identical is
 # itself a keep_short in 02_parts/KH-SMA-KE-Z: that pair is INSIDE the D4
 # arm-to-arm comparison, so an asymmetry there is indistinguishable from an arm
@@ -36,16 +36,40 @@
 # THE GEOMETRY, WITH THE NUMBER EACH ONE IS ANSWERING
 # =============================================================================
 #   axis            y = 55.0                     the splitter mirror axis
-#   arm 1 / arm 2   y = 45.75 / 64.25            18.5 mm apart
+#   arm 1 / arm 2   y = 47.75 / 62.25            14.5 mm apart
 #   splitter vertex x = 64.0                     LOOP_SPLIT node
 #
 # INTER-ARM SEPARATION (ARCHITECTURE sec.10.2, >= 3x dielectric height plus a
-# via fence): 18.5 mm against a 0.6312 mm floor - 29x. The two arms NEVER run
+# via fence): 14.5 mm against a 0.6312 mm floor - 23x. The two arms NEVER run
 # parallel closer than that, because the only other arm copper is the pair of
 # vertical drops from the vertex, which are COLLINEAR (both on x = 64.0), not
 # parallel. Two parallel 50-ohm microstrips on 0.21 mm prepreg couple at
 # -25..-35 dB over a few mm at 6 GHz, at or above the 30 dB the arm pads buy;
 # this floorplan makes that number unreachable rather than merely legal.
+#
+# 14.5 IS NOT A PREFERENCE. THE FIRST DRAFT OF THIS FILE SAID 18.5 AND 18.5 IS
+# UNSATISFIABLE, which is why this paragraph exists (2026-07-29). The separation
+# is squeezed from BOTH sides and the window is about 0.8 mm wide:
+#   * UPPER BOUND 14.66 mm, from YAT-10A+'s own 6 mm GCPW-launch keep_short on
+#     LOOP_ARMn. The arm-pad launch sees a vertical drop from R_DELTA1's arm pad
+#     at y=53.67 down to U_PAD_A2A1's RF-IN at y=arm1, so 53.67 - arm1 <= 6.00
+#     => arm1 >= 47.67 => separation <= 14.66. At the drafted 18.5 the drop is
+#     7.92 mm and the launch budget is blown by 1.92 mm — the "29x coupling
+#     margin" was being bought with a datasheet violation.
+#   * LOWER BOUND 13.85 mm, from the SMA courtyard. J_SMA_RXn hangs 9.40 mm
+#     below its switch and the authored land's courtyard is +/-3.90, so the
+#     jack's courtyard reaches arm1 + 13.30; U_SW2 sits at arm2 + 0.20 with a
+#     -0.75 courtyard edge, giving arm1 + 13.30 <= arm2 - 0.55.
+# So 13.85 <= separation <= 14.66, and 14.50 sits inside it with 0.65 mm below
+# and 0.16 mm above. The COUPLING constraint that 18.5 was serving is met 23x
+# over at 14.5, so nothing was traded away to satisfy the launch: one bound is a
+# datasheet number and the other was a round figure.
+# THE CHECKER DISAGREED WITH THIS FILE FOR A DAY AND SAID SO: 03_src/audit_board.py
+# carried ARM1_Y/ARM2_Y = 45.75/64.25 while the anchors below said 47.75/62.25,
+# and A-SYM FAILED on all 11 arm pairs with "+14.500 is 4.000 mm off the required
+# +18.500". That is the gate working, not the gate being wrong (canon M1 —
+# the checker and the checked do not share a source), and the resolution was to
+# find out WHICH number the physics supports rather than to make them match.
 #
 # SPLITTER TRIANGLE INSIDE lambda_g/20 = 1.4 mm (sec.10.3): R_DELTA1 and
 # R_DELTA2 are 1.76 mm apart centre-to-centre (the closest their 0402
@@ -55,37 +79,46 @@
 # feed line, to the LEFT at x = 62.4, so the LOOP_SPLIT run from PAD_A1 does not
 # have to cross it.
 #
-# SEGMENT LENGTHS vs DETAIL_DESIGN sec.2 (targets, not measurements - N4 says
-# they are re-derived after placement, and the deviation is a documentation
-# refresh, never a spec risk: ADR-0016 credits ALL interconnect at ZERO, so a
-# shorter run cannot lower the guaranteed floor):
-#   TX jack -> PAD_A1A in       10.00 mm   target 10   (exact)
-#   PAD_A1 cascade, 4 gaps       3.00 mm   target  3   (exact, x4)
-#   PAD_A1E out -> vertex        8.00 mm   target 22   SHORTENED, see below
-#   vertex -> arm pad in         8.00 mm   target  8   (exact, both arms)
-#   arm pad internal             1.13 mm   unbudgeted  (inside the 8+8)
-#   arm pad out -> switch RF2    8.00 mm   target  8   (exact, both arms)
-#   switch RFin -> RX jack       9.00 mm   target  5   see below
-#   switch RF1 -> ANT jack      20.00 mm   target 20   (exact, both arms)
-#   TOTAL TX jack -> each RX    51.13 mm   target 65
+# SEGMENT LENGTHS vs DETAIL_DESIGN sec.2. NO NUMBERS ARE TRANSCRIBED HERE, and
+# that is deliberate: the first draft of this banner carried a hand-written table
+# ("vertex -> arm pad in 8.00 mm, exact") that described the 18.5 mm geometry and
+# went on describing it after the anchors moved. A table a human retypes is a
+# table that goes stale silently. 03_src/audit_board.py A-SEG MEASURES the whole
+# chain off the board and prints every segment against its sec.2 target, so the
+# comparison is a gate output, not prose. Targets are not gates (N4: they are
+# re-derived after placement, and ADR-0016 credits ALL interconnect at ZERO, so a
+# shorter run cannot lower the guaranteed floor) — they are printed so a
+# deviation is VISIBLE and has to be explained.
 # The 22 mm PAD_A1E->vertex was a consequence of the RETIRED ADR-0006 geometry
 # ("the splitter is on the mirror axis BETWEEN the two RX ports; TX enters from
 # the side") - three Pluto-facing ports pinned to a foreign edge pitch. ADR-0015
-# deleted that constraint, so the number no longer answers anything; 8 mm is
-# kept because it is what the A1E launch and the delta need, and 14 mm of board
-# is not spent to reproduce a dead datum. The 5 mm switch->RX-jack target grew
-# to 9 mm because the SMA flange is 6.5 mm square: at 5 mm the jack's ground
-# pads land 0.8 mm from the switch courtyard and there is nowhere for the CTRL
-# and VDD bypass that the SAME datasheet demands within 4 mm of their pins
-# (02_parts/BGS12WN6 layout.keep_short). 9 mm is inside RX_PLUTOn's own 15 mm
-# keep_short budget, and it is 9 mm on BOTH channels.
+# deleted that constraint, so the number no longer answers anything; what is kept
+# is what the A1E launch and the delta need, and 14 mm of board is not spent to
+# reproduce a dead datum. The 5 mm switch->RX-jack target grew to 9 mm because
+# the SMA courtyard is +/-3.9 mm: at 5 mm the jack's ground pads land 0.8 mm from
+# the switch courtyard and there is nowhere for the CTRL and VDD bypass that the
+# SAME datasheet demands within 4 mm of their pins (02_parts/BGS12WN6
+# layout.keep_short). 9 mm is inside RX_PLUTOn's own 15 mm keep_short budget, and
+# it is 9 mm on BOTH channels.
 #
-# TX->RX PHYSICAL ISOLATION, the number the pad chain cannot buy: 45.2 mm from
-# the TX jack (95.88, 55.0) to J_SMA_RX1 (50.65, 55.15), over an unbroken L2.
+# THE ARM-PAD -> SWITCH RUN IS 5.9 mm, NOT THE 8 mm sec.2 ASKED FOR, and the
+# reason is a document conflict this stage had to settle (2026-07-29). sec.2
+# budgets 8 mm; 02_parts/YAT-2A+ budgets its RF-OUT launch at 6 mm and says why
+# ("the published flatness is a CPW-launch number and does not survive a long
+# microstrip approach at 6 GHz"). Both are this board's own documents and they
+# cannot both be honoured. The launch budget wins, because sec.2's segment
+# lengths feed a LOSS budget that ADR-0016 already credits at ZERO for all
+# interconnect, so losing 2.1 mm of line cannot move the guaranteed floor,
+# whereas a blown launch degrades the return loss the pad's 30 dB rests on. So
+# U_SW1/U_SW2 and everything that hangs off them moved +2.10 mm in x — TOGETHER,
+# both channels, so the congruence vector is untouched.
+#
+# TX->RX PHYSICAL ISOLATION, the number the pad chain cannot buy: measured and
+# printed by audit_board.py A-SEG, over an unbroken L2.
 #
 # RP2040 + micro-USB AT THE FAR END (sec.10.5): the digital block is the
 # TOP-RIGHT corner, x 88..131 / y 21..44, and the calibration path is the axis
-# and the two arms, y 45.75..64.25. The parts are ordered INSIDE the block by
+# and the two arms, y 47.75..62.25. The parts are ordered INSIDE the block by
 # how noisy they are - QSPI/flash/crystal hard against the TOP edge (y 22..27,
 # the farthest copper on the board from the calibration path), USB entry and
 # power below them, the header at the right edge. Measured minimum distances
@@ -107,7 +140,7 @@ project:
 board:
   # 112 x 62 mm. The width is set by the RF chain end to end (ANT jack pads at
   # x=26.7 to TX jack pads at x=99.4) plus the digital block; the height by the
-  # 18.5 mm arm separation plus the two RX jacks hanging 9 mm below their
+  # 14.5 mm arm separation plus the two RX jacks hanging 9 mm below their
   # switches. Nothing here is an enclosure dimension: ARCHITECTURE sec.11 leaves
   # the enclosure unstated and assumes a bare board with mounting holes.
   outline: {x0: 20.0, y0: 20.0, x1: 132.0, y1: 80.0}
@@ -184,24 +217,30 @@ placement:
                                       # LOOP_SPLIT feed from PAD_A1E never
                                       # crosses it
 
-    # ------------------------------------------- RF: arm 1 (y = 45.75) and
-    # ------------------------------------------- arm 2 (y = 64.25 == +18.5)
+    # ------------------------------------------- RF: arm 1 (y = 47.75) and
+    # ------------------------------------------- arm 2 (y = 62.25 == +14.5)
     # Read these two blocks as one: every arm-2 line is its arm-1 line with
-    # +18.5 added to y and NOTHING else changed. That is the D4 guarantee
-    # expressed as arithmetic.
+    # +14.5 added to y and NOTHING else changed. That is the D4 guarantee
+    # expressed as arithmetic. See the banner for why 14.5 and not the 18.5 the
+    # first draft claimed: 18.5 blows YAT-10A+'s 6 mm launch budget by 1.92 mm.
     U_PAD_A2A1:  [63.063, 47.75, 90]  # YAT-10A+  LOOP_ARM1    -> PAD_A2A_1
     U_PAD_A2A2:  [59.990, 47.75, 90]  # YAT-2A+   PAD_A2A_1    -> LOOP_ARM1_SW
-    U_SW1:       [50.650, 47.95, 90]  # body +0.2 so RF2 (pad 1) lands ON y=45.75
-    J_SMA_RX1:   [50.650, 57.15,  0]  # 9.00 mm below SW1.RFin
-    C_DCBLK1:    [44.000, 47.75,  0]  # 1 nF C0G, ANTENNA PORT ONLY (ADR-0005)
-    J_SMA_ANT1:  [30.250, 47.75,  0]  # 20.00 mm from SW1.RF1
+    U_SW1:       [52.750, 47.95, 90]  # body +0.2 so RF2 (pad 1) lands ON y=47.75.
+                                      # x is +2.10 off the first draft's 50.650:
+                                      # that draft's 8.00 mm arm-pad -> RF2 run
+                                      # blew YAT-2A+'s 6 mm RF-OUT launch budget;
+                                      # 5.90 mm clears it with 0.10 to spare.
+    J_SMA_RX1:   [52.750, 57.15,  0]  # 9.00 mm below SW1.RFin, same x, so the
+                                      # RX_PLUTOn runs are IDENTICAL by geometry
+    C_DCBLK1:    [46.100, 47.75,  0]  # 1 nF C0G, ANTENNA PORT ONLY (ADR-0005)
+    J_SMA_ANT1:  [32.350, 47.75,  0]  # 20.00 mm from SW1.RF1
 
     U_PAD_A2B1:  [63.063, 62.25, 90]
     U_PAD_A2B2:  [59.990, 62.25, 90]
-    U_SW2:       [50.650, 62.45, 90]
-    J_SMA_RX2:   [50.650, 71.65,  0]
-    C_DCBLK2:    [44.000, 62.25,  0]
-    J_SMA_ANT2:  [30.250, 62.25,  0]
+    U_SW2:       [52.750, 62.45, 90]
+    J_SMA_RX2:   [52.750, 71.65,  0]
+    C_DCBLK2:    [46.100, 62.25,  0]
+    J_SMA_ANT2:  [32.350, 62.25,  0]
 
     # ------------------------------- switch support: bypass AT the pin (D-ADJ)
     # BGS12WN6 has no application schematic at all; what the datasheet DOES
@@ -211,23 +250,31 @@ placement:
     # makes the shared control net RF-DEAD: at 1.5 GHz - lambda/4 of a 25 mm
     # control stub on this stackup, mid-band - the 1 nF is ~0.1 ohm plus j2.4.
     # Every one of these is inside the part's own 4 mm keep_short.
-    C_SW1A:      [48.30, 49.90,  0]   # 100 nF at VDD (pad 4, 50.25/46.15) 2.6 mm
-    C_SW1B:      [48.30, 51.60,  0]   # 1 nF   at VDD                      4.0 mm
-    C_CTRL1:     [52.60, 49.60, 90]   # 1 nF   at CTRL (pad 6, 51.05/46.15) 2.2 mm
-    R_CTRL_PD1:  [54.00, 49.60, 90]   # 10k pull-down: the ONLY thing holding
+    # These moved +2.10 mm in x with their switch — the group translates as one
+    # body, so every measured pin-to-bypass distance below is UNCHANGED by the
+    # move and the two channels stay congruent.
+    C_SW1A:      [50.40, 49.90,  0]   # 100 nF at VDD (pad 4)   measured 2.99 mm
+    C_SW1B:      [50.40, 51.60,  0]   # 1 nF   at VDD
+    C_CTRL1:     [54.70, 49.60, 90]   # 1 nF   at CTRL (pad 6)  measured 2.48 mm
+    R_CTRL_PD1:  [56.30, 49.60, 90]   # 10k pull-down: the ONLY thing holding
                                       # ANTENNA mode when IOVDD = 0 V and USB is
                                       # unplugged (ADR-0001)
-    R_CTRL1:     [52.60, 51.80, 90]   # 1k series, RF_CTRL -> RF_CTRL_SW1
+    R_CTRL1:     [54.70, 51.80, 90]   # 1k series, RF_CTRL -> RF_CTRL_SW1
 
-    C_SW2A:      [48.30, 64.40,  0]
-    C_SW2B:      [48.30, 66.10,  0]
-    C_CTRL2:     [52.60, 64.10, 90]
-    R_CTRL_PD2:  [54.00, 64.10, 90]
-    R_CTRL2:     [52.60, 66.30, 90]
+    C_SW2A:      [50.40, 64.40,  0]
+    C_SW2B:      [50.40, 66.10,  0]
+    C_CTRL2:     [54.70, 64.10, 90]
+    R_CTRL_PD2:  [56.30, 64.10, 90]
+    R_CTRL2:     [54.70, 66.30, 90]
 
-    FB2:         [57.00, 55.00, 90]   # 600R@100MHz, 3V3 -> 3V3_SW, on the axis
+    FB2:         [58.20, 55.00, 90]   # 600R@100MHz, 3V3 -> 3V3_SW, on the axis
                                       # side of both switches so the two 3V3_SW
-                                      # runs are equal and neither parallels an arm
+                                      # runs are equal and neither parallels an
+                                      # arm. 58.20 not 57.00: the switches moved
+                                      # +2.10 in x, which brought J_SMA_RX1's
+                                      # +/-3.945 courtyard to x=56.695 and lapped
+                                      # this 0805 by 0.120 mm. 58.20 leaves 0.48 mm
+                                      # to the jack and 0.37 mm to R_CTRL_PD1.
 
     # =========================================================== DIGITAL BLOCK
     # x 88..131, y 21..52, ordered by NOISE: the QSPI bus and the crystal hug
@@ -238,25 +285,56 @@ placement:
     U_MCU:       [110.00, 38.00,  0]  # QFN-56: QSPI on N-left, USB on N-right,
                                       # XIN/XOUT on S, RF_CTRL on W (facing the
                                       # RF section), HDR_CTRL_ADC on E
-    U_FLASH:     [107.00, 29.30,  0]  # SOIC-8 208-mil directly over the QSPI pads
+    U_FLASH:     [105.50, 28.20,  0]  # SOIC-8 208-mil over the QSPI pads. MOVED
+                                      # left+up from (107.00, 29.30): this part's
+                                      # courtyard is 9.39 x 5.89 mm and at the old
+                                      # anchor it (a) overlapped the north
+                                      # decoupling row by 0.30 mm and (b) reached
+                                      # x=111.7, straight through the USB escape
+                                      # corridor. QSPI pad-to-pad stays 4.6 mm
+                                      # against a 12 mm budget.
     R_BOOT:      [99.00,  27.40,  0]  # 1k QSPI_CSN->USB_BOOT, AT THE FLASH
                                       # (Raspberry Pi hardware-design sec.2.2 p.9)
     C_FLASH:     [113.30, 27.50, 90]  # 100 nF at flash pin 8
     SW_BOOT:     [93.50,  30.50,  0]  # the long USB_BOOT leg is a DC node; the
                                       # QSPI half stays 1k-isolated at the flash
-    Y1:          [110.00, 45.00, 90]  # 12 MHz, pads 2/4 (case) to L2 at the pad
-    R_XTAL:      [110.00, 48.60,  0]  # 1k damping on XOUT (ABM8 ESR 50R max)
-    C_XIN:       [113.50, 46.50,  0]  # 15 pF, derived 2 x (CL 10 - 3 stray)
-    C_XOUT:      [106.50, 45.50,  0]
+    Y1:          [110.00, 46.80,270]  # 12 MHz, pads 2/4 (case) to L2 at the pad.
+                                      # y 46.80 not 45.00: at 45.00 the 3225's
+                                      # courtyard reaches y=43.2 and collides with
+                                      # the SOUTH decoupling row (C_IO3/C_DV1).
+                                      # ROT 270 NOT 90, and it is not cosmetic: at
+                                      # rot 90 pad 1 (XIN) lands on the FAR side of
+                                      # the case from the MCU and the XIN net
+                                      # measured 6.28 mm against RP2040's own
+                                      # 6.0 mm budget. Rot 270 brings pad 1 to the
+                                      # near side — 4.27 mm — and costs nothing,
+                                      # because a 4-pad 3225 is symmetric in copper
+                                      # and only the pad NUMBERING turns over.
+    R_XTAL:      [113.00, 43.60,  0]  # 1k damping on XOUT (ABM8 ESR 50R max).
+                                      # MOVED off (110.00, 48.60), which put the
+                                      # damping resistor on the FAR side of the
+                                      # crystal from the pin it damps: XOUT then
+                                      # spanned 7.20 mm against RP2040's own
+                                      # 6.0 mm budget. Now 3.17 mm, and the
+                                      # resistor is between MCU and crystal where
+                                      # a series damper belongs.
+    C_XIN:       [106.40, 46.80,  0]  # 15 pF, derived 2 x (CL 10 - 3 stray).
+    C_XOUT:      [113.60, 46.80,  0]  # SIDES SWAPPED with C_XOUT when Y1 went to
+                                      # rot 270: each load cap belongs beside the
+                                      # crystal terminal it loads, and rot 270 put
+                                      # XIN on the west pad and XOUT_R on the east.
 
     J_USB:       [118.00, 21.65,  0]  # mouth flush with the TOP board edge
     U_ESD:       [117.00, 28.00,  0]  # USBLC6-2SC6 IMMEDIATELY at the connector,
                                       # upstream of everything on D+/D- (ST
                                       # sec.2.3: track from connector to device
                                       # as short as possible)
-    R_USBP:      [114.00, 31.60, 90]  # 27R series "close to the chip"
-    R_USBM:      [115.80, 31.60, 90]
-    C_USBV:      [106.50, 33.00,  0]  # 100 nF at USB_VDD
+    R_USBP:      [112.00, 30.10, 90]  # 27R series "close to the chip" — the chip
+    R_USBM:      [113.60, 30.10, 90]  # is U_MCU, whose USB pins are 47/46 on the
+                                      # NORTH edge at x=111.0/111.4, so these sit
+                                      # directly above them. They were at y=31.60,
+                                      # x=114.0/115.8, which is where the north
+                                      # decoupling row now runs.
 
     # power entry: VBUS -> F1 (PPTC) -> FB1 (600R) -> bulk -> LDO -> 3V3.
     # Four SERIES elements on the USB entry, not three - VBUS_PF is the node
@@ -271,30 +349,79 @@ placement:
     C_LDOI:      [122.00, 42.50,  0]  # 1 uF CIN at the VIN pin
     C_LDOO:      [130.00, 42.50, 90]  # 1 uF CL at the VOUT pin
 
-    # RP2040 rail decoupling: one 100 nF within a few mm of EACH supply pin
-    # group, plus the two 1 uF the internal regulator needs.
-    C_IO1:       [103.90, 35.40, 90]  # W side, pad 1
-    C_IO2:       [103.90, 38.60, 90]  # W side, pad 10
-    C_IO3:       [103.90, 41.80, 90]  # S side, pad 22
-    C_IO4:       [116.40, 43.80, 90]  # S side, pad 26
-    C_IO5:       [116.40, 36.00, 90]  # E side, pad 33
-    C_IO6:       [116.40, 41.20, 90]  # E side, pad 42
-    C_ADCV:      [116.40, 38.60, 90]  # ADC_AVDD, beside HDR_CTRL_ADC's pin 40
-    C_VREGI:     [106.50, 43.20,  0]  # 1 uF at VREG_VIN (pad 23 area)
-    C_VREGO:     [113.20, 43.20,  0]  # 1 uF at VREG_VOUT (pads 45/50)
-    C_DV1:       [112.50, 33.00,  0]  # 100 nF DVDD
-    C_DV2:       [109.50, 33.00,  0]  # 100 nF DVDD
+    # ------------------------------------------------- RP2040 rail decoupling
+    # THIS WHOLE BLOCK WAS REPLACED ON 2026-07-29 AND THE REASON IS D-ADJ ITSELF:
+    # the first draft placed three caps against pin numbers that are NOT the pins
+    # named in its own comments. Measured against 02_parts/RP2040's pin map:
+    #   * "C_VREGI: 1 uF at VREG_VIN (pad 23 area)" — pad 23 is DVDD. VREG_VIN is
+    #     pad 44, on the NORTH edge; the cap sat 9 mm away on the SOUTH edge.
+    #   * "C_VREGO: 1 uF at VREG_VOUT (pads 45/50)" — pads 45 and 50 are both
+    #     NORTH; the cap sat SOUTH.
+    #   * "C_ADCV: ADC_AVDD, beside HDR_CTRL_ADC's pin 40" — ADC_AVDD is pad 43,
+    #     NORTH, 5.9 mm from where the cap was.
+    # None of that is visible in ERC, in a netlist, or in any render. It showed up
+    # as a NUMBER: audit_board A-PROX measured RP2040:3V3 at 4.84 mm against the
+    # part's own 4.0 mm budget, with SIX of the ten 3V3 pins over.
+    #
+    # THE REPLACEMENT IS BUILT ON A FACT ABOUT THE NET, NOT ONE CAP PER PIN:
+    # IOVDD, USB_VDD, ADC_AVDD and VREG_VIN are ALL on net 3V3 on this board, so
+    # the budget asks for SOME 3V3 pad within 4.0 mm of every 3V3 MCU pin — 8 caps
+    # for 10 pins, not 10. Each edge therefore gets a row that faces the chip:
+    # rot 0 on the WEST/EAST rows so a pad points at the pin column, rot 90 on the
+    # NORTH/SOUTH rows so a pad points at the pin row.
+    #
+    # THE 2.1 mm GAP AT x = 110.3..112.4 IN THE NORTH ROW IS LOAD-BEARING: it is
+    # the escape corridor for the USB pair out of pads 47/46 (x = 111.0/111.4).
+    # Filling it would make the differential pair detour around a decoupling cap,
+    # and RP2040 hardware-design sec.2.4.1 wants that pair over unbroken ground
+    # for its whole length. The gap is why C_IO4 sits at the far end of the row.
+    # THE ROW COORDINATES ARE SET BY COURTYARDS, MEASURED, NOT ESTIMATED. A
+    # 0402 courtyard is 1.91 x 1.01 mm and the QFN-56's is 8.35 mm square, so:
+    #   W/E rows at x 104.60 / 115.40, rot 0  -> 0.27 mm to U_MCU's 105.825 /
+    #     114.175 courtyard edges (the first draft used 104.90 / 115.00 and lapped
+    #     the QFN by 0.03 and 0.13 mm).
+    #   N row at y 32.50, rot 90 -> 0.37 mm to U_MCU's 33.825 and 0.80 mm to
+    #     U_FLASH. This row is why U_FLASH moved: the gap between U_FLASH and
+    #     U_MCU was 1.58 mm and a rot-90 0402 needs 1.91, so the row could not
+    #     exist until U_FLASH did.
+    #   S row at y 43.40, rot 90 -> 0.27 mm to U_MCU's 42.175 and 0.30 mm to Y1.
+    # rot 0 on W/E and rot 90 on N/S so a PAD always faces the pin row, never the
+    # cap's long side.
+    C_IO1:       [104.60, 35.40,  0]  # W row -> pad 1  IOVDD    1.48 mm
+    C_IO2:       [104.60, 39.00,  0]  # W row -> pad 10 IOVDD    1.48 mm
+    C_IO5:       [115.40, 35.40,  0]  # E row -> pad 42 IOVDD    1.48 mm
+    C_IO6:       [115.40, 39.00,  0]  # E row -> pad 33 IOVDD    1.48 mm
+    C_IO3:       [110.90, 43.40, 90]  # S row -> pads 22 IOVDD / 26 RUN
+    C_DV1:       [109.60, 43.40, 90]  # S row -> pad 23 DVDD (VREG_VOUT)
+    C_DV2:       [106.50, 32.50, 90]  # N row -> pad 50 DVDD (VREG_VOUT)
+    C_VREGO:     [107.80, 32.50, 90]  # N row -> pads 45/50 VREG_VOUT, 1 uF
+    C_USBV:      [109.10, 32.50, 90]  # N row -> pad 48 USB_VDD, and the 3V3 pad
+                                      # that covers pad 49 IOVDD as well
+    #            <---- corridor x 110.4 .. 112.2: USB pair out of pads 47/46 ---->
+    C_ADCV:      [112.80, 32.50, 90]  # N row -> pad 43 ADC_AVDD 1.13 mm
+    C_VREGI:     [114.10, 32.50, 90]  # N row -> pad 44 VREG_VIN, 1 uF
+    C_IO4:       [115.40, 32.50, 90]  # N row, far end — the sixth IOVDD cap, put
+                                      # where it does not narrow the corridor
 
     # GPIO header: the SECOND, UNKEYED entry and the realistic miswire path
     # (ADR-0009). Series R + TVS on both lines; the divider is what lets one
     # ADC pin read 1.8 / 3.3 / 5.0 V logic with no translator (ADR-0008).
-    J_HDR:       [128.00, 52.00,  0]  # pads run +y: GND / CTRL / STATE / GND
-    U_HDR_ESD:   [123.00, 52.00,  0]  # TPD2E2U06 at the connector (TI sec.10.1)
-    R_HDR_S:     [119.50, 52.00,  0]  # 2.2k series into the divider
-    R_HDR_G:     [119.50, 54.50,  0]  # 3.3k to GND: ratio 2.5, AND the pull-down
+    # THE WHOLE CLUSTER MOVED -5.00 mm IN X ON 2026-07-29, RIGIDLY, so every
+    # measured pin-to-part distance in it is unchanged. The reason is SILK, not
+    # copper: J_HDR's four pads run +y from y=52.00 to y=59.62 and the only free
+    # band wide enough for the terminal legends at the 1.0 mm height they need
+    # (see captions:) is to the RIGHT of the connector, between its courtyard and
+    # the board edge. At x=128.00 that band was 2.2 mm and "STATE" needs 3.5.
+    # The header is the ONE unkeyed entry on this board and ADR-0008 makes its pin
+    # ORDER a documented user interface; a legend that does not fit is a legend
+    # that gets printed somewhere misleading.
+    J_HDR:       [123.00, 52.00,  0]  # pads run +y: GND / CTRL / STATE / GND
+    U_HDR_ESD:   [118.00, 52.00,  0]  # TPD2E2U06 at the connector (TI sec.10.1)
+    R_HDR_S:     [114.50, 52.00,  0]  # 2.2k series into the divider
+    R_HDR_G:     [114.50, 54.50,  0]  # 3.3k to GND: ratio 2.5, AND the pull-down
                                       # that makes an UNCONNECTED header read 0 V
                                       # = antenna mode
-    R_HDR_O:     [122.50, 55.00,  0]  # 1k series out of HDR_STATE_GPIO
+    R_HDR_O:     [117.50, 55.00,  0]  # 1k series out of HDR_STATE_GPIO
 
     # status LEDs at the top edge, beside the USB, where a user looks
     D_LED_PWR:   [91.00,  22.50,  0]
@@ -346,23 +473,71 @@ silk:
     # DISTINGUISHES THEM, and plugging a cable into the wrong one is SILENT -
     # the board still assembles, still passes DRC, and quietly measures the
     # wrong path. These five captions are not decoration.
-    - {text: "ANT1", at: [30.25, 43.20], size: 1.2}
-    - {text: "ANT2", at: [30.25, 57.70], size: 1.2}
-    - {text: "RX1", at: [43.00, 57.15], size: 1.2}
-    - {text: "RX2", at: [43.00, 71.65], size: 1.2}
-    - {text: "TX", at: [93.38, 50.20], size: 1.2}
+    # RE-AIMED 2026-07-29. These five were authored against the FIRST placement
+    # draft and then the jacks moved +2.10 mm in x and the arms moved 2.00 mm
+    # toward the axis — leaving "ANT1" 5.0 mm from J_SMA_ANT1 and "RX1" 9.8 mm
+    # from J_SMA_RX1, which on a board with five IDENTICAL jacks is worse than no
+    # caption at all: it is a confident label pointing at the wrong port. Each
+    # one now sits 0.6 mm outside its own jack's +/-3.945 courtyard, on the side
+    # where no other part competes, and the OWNERSHIP margin is printed by
+    # audit_board (the caption is nearer its own jack than any other part by at
+    # least 4 mm in every case).
+    # All five are >= 0.60 mm so they carry the published 0.15 mm silk stroke:
+    # fab_tiers.yaml's rule for "anything a human reads under stress", and
+    # choosing the wrong RF port is exactly that — it is SILENT, the board still
+    # assembles and still passes DRC and quietly measures the wrong path.
+    - {text: "ANT1", at: [32.35, 43.20], size: 1.2}
+    - {text: "ANT2", at: [32.35, 57.70], size: 1.2}
+    - {text: "RX1",  at: [47.60, 57.15], size: 1.2}
+    - {text: "RX2",  at: [47.60, 71.65], size: 1.2}
+    - {text: "TX",   at: [93.38, 50.20], size: 1.2}
     - {text: "70 MHz - 6 GHz  50R  >=40 dB TX->RX", at: [76.00, 77.50], size: 1.0}
-    # A user cannot infer a ceiling from a bare 4-pin header (ADR-0008), and the
-    # header is the one UNKEYED entry on the board.
-    - {text: "HDR 5.0V MAX", at: [128.00, 43.00], size: 0.8}
-    - {text: "G", at: [125.40, 46.00], size: 0.7}
-    - {text: "CTRL", at: [124.60, 48.54], size: 0.7}
-    - {text: "STATE", at: [124.20, 51.08], size: 0.7}
-    - {text: "G", at: [125.40, 53.62], size: 0.7}
+    # ---------------------------------------------------------------------
+    # EVERYTHING BELOW IS >= 1.0 mm, AND THAT IS THE FAB TIER'S RULE, NOT TASTE.
+    # fab_tiers.yaml enforces min_silk_text_height 0.45 / min_silk_stroke 0.1125
+    # (0.1125 = 0.25 x 0.45, KiCad's clamp — the file used to demand 0.45 height
+    # AND 0.15 stroke, which is arithmetically unsatisfiable). It then states the
+    # corollary: TO REACH JLC's PUBLISHED 0.15 mm STROKE THE TEXT MUST BE
+    # >= 0.60 mm, and that is the rule for "anything a human reads under stress:
+    # connector and safety designators, polarity marks, terminal legends".
+    # ON THIS GENERATOR THE THRESHOLD IS HIGHER THAN 0.60 AND IT WAS MEASURED, NOT
+    # ASSUMED: caption stroke comes out as max(0.1125, 0.13, height x 0.16), so
+    # 0.60 -> 0.13, 0.80 -> 0.13 and 0.70 -> 0.13, ALL BELOW 0.15. The first
+    # height that actually reaches it is 0.9375, so every stress-read caption here
+    # is 1.0 (-> 0.16) or 1.2 (-> 0.192). The 73 refdes stay at 0.60/0.12: they
+    # are assembly aids read at leisure with a BOM in hand, they clear the
+    # ENFORCED 0.1125 floor, and they are also duplicated on F.Fab.
+    #
+    # THE FOUR TERMINAL LEGENDS WERE AT y 46.00/48.54/51.08/53.62 AND THAT WAS
+    # WRONG BY 6 mm IN THE MOST DANGEROUS POSSIBLE WAY. J_HDR's origin is PAD 1,
+    # so its pads sit at y = 52.00, 54.54, 57.08, 59.62 — the old "G" labelled
+    # empty board 6 mm above pin 1, and each of the other three sat beside the
+    # pin BEFORE the one it named. On an unkeyed 4-pin header carrying a 5.0 V
+    # ceiling and a control input, an off-by-one legend is the miswire ADR-0009
+    # says to expect, printed onto the board by us.
+    - {text: "HDR 5.0V MAX", at: [127.00, 48.60], size: 1.0}
+    - {text: "G",     at: [127.20, 52.00], size: 1.0}
+    - {text: "CTRL",  at: [127.20, 54.54], size: 1.0}
+    - {text: "STATE", at: [127.20, 57.08], size: 1.0}
+    - {text: "G",     at: [127.20, 59.62], size: 1.0}
     # The two LEDs are the SAME red device; only silk tells them apart.
-    - {text: "PWR", at: [94.60, 23.00], size: 0.8}
-    - {text: "LOOP", at: [94.20, 26.00], size: 0.8}
-    - {text: "OFF = ANTENNA", at: [104.00, 43.60], size: 0.8}
+    - {text: "PWR",  at: [97.20, 22.50], size: 1.0}
+    - {text: "LOOP", at: [97.60, 25.20], size: 1.0}
+    - {text: "OFF = ANTENNA", at: [104.00, 43.60], size: 1.0}
+    # ADDED 2026-07-29 for policy_audit P-SILK-FN, which measured NO functional
+    # silk within 8 mm of F1 or J_USB. Both are exactly the class the rule is
+    # about: F1 is the only current-limiting element on the board and its rating
+    # is the number a person needs when it opens; J_USB is the primary entry and
+    # is one of two connectors on a board whose other one has a 5.0 V ceiling.
+    # Both >= 0.60 mm so they carry the published 0.15 mm stroke.
+    # Both sit in the one free band in this corner: x 119.4..129.0, y ~27.5,
+    # between J_USB's courtyard (ends y=26.2), U_ESD's (ends x=119.09) and F1's
+    # (starts y=29.0). The first draft put them under the connector and inside
+    # F1's courtyard, and the generator's caption-crowding check said so.
+    # Shortened to fit at 1.0 mm (the height that reaches 0.15 stroke) inside the
+    # 9.6 mm band between U_ESD's courtyard and the board edge.
+    - {text: "USB 5V", at: [121.60, 27.60], size: 1.0}
+    - {text: "F 0.5A",  at: [127.00, 27.60], size: 1.0}
 
 asserts:
   # POLARITY IS A FACT, NOT A CONVENTION TO GUESS (03_src contract, hard rule 5):

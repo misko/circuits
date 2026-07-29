@@ -88,7 +88,16 @@ recommended hole size.
   the launch's dominant terms are the ~1.4 mm barrel crossing the board
   (modelled as a low-Z coax section, +0.425 pF) and the bottom pad sitting
   inside the antipad (annular-gap model, 0.192 pF) — **2–5× the top-pad term**.
-  Opening Ø2.6 → Ø3.5 buys **~9 dB of return loss at 6 GHz for free.**
+  Opening Ø2.6 → Ø3.5 buys **5.6 dB of return loss at 6 GHz for free** — RL
+  goes 8.9 dB → 14.5 dB. **THIS NUMBER WAS ~9 dB UNTIL 2026-07-29 AND ~9 dB WAS
+  TOO GENEROUS.** The rule is right; the size of the prize was a first-pass
+  estimate that nothing had re-derived. A sibling board in this fleet re-ran the
+  same annular-gap model on the same Ø2.6-vs-Ø3.5 question and got 14.5 vs 8.9,
+  i.e. 5.6 dB. The rule is UNCHANGED because 5.6 dB of free return loss on a
+  launch whose absolute RL is only ~11–15 dB (RULE 2) is still the single
+  cheapest improvement available; what changed is that the claim now matches
+  the arithmetic behind it. Carrying 9 dB would have overstated the launch by
+  3.4 dB in the one place a reader would trust it — the footprint's own `descr`.
 - **RULE 2 — per-port launch return loss at 6 GHz is ~11–15 dB, not 22.3 dB.**
   Two independent lumped models agree. Carry the pessimistic figure or measure
   it; do not carry 22.3 dB.

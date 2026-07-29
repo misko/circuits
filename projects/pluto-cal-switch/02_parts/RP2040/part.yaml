@@ -180,7 +180,17 @@ layout:
        'could have the effect of limiting the maximum speed'"}
     - {net: VREG_VOUT, max_span_mm: 5, why: "1 uF at the regulator output, and
        the OFF-CHIP link to both DVDD pins (sec 2.9.7.1)"}
-    - {net: VREG_VIN, max_span_mm: 5, why: "1 uF at the regulator input"}
+    # WAS `net: VREG_VIN`, WHICH IS A PIN NAME AND NOT A NET NAME ON THIS BOARD
+    # (2026-07-29). A-PROX reported it NOT EVALUATED — "no net on this board is
+    # named 'VREG_VIN'" — and an unevaluated budget is a budget that cannot fail.
+    # Pin 44 (VREG_VIN) is fed straight from the main rail here, so the net is
+    # 3V3. The budget is kept at 5 mm rather than folded into the 4 mm 3V3 entry
+    # above: they are different claims (that entry is about the IOVDD/DVDD
+    # decoupling ring, this one is about C_VREGI specifically) and A-PROX dedupes
+    # on (mpn, net, budget), so both are measured and the tighter one binds.
+    - {net: "3V3", max_span_mm: 5, why: "1 uF at the regulator INPUT pin 44.
+       Named 3V3 because that is the net pin 44 carries on this board; the pin
+       is VREG_VIN"}
     - {net: QSPI_SCLK, max_span_mm: 12, why: "'short connections to maintain
        signal integrity and reduce crosstalk in surrounding circuits' — and on
        THIS board the surrounding circuit is a 70 MHz-6 GHz calibration path"}

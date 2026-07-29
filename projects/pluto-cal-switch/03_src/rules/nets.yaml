@@ -39,6 +39,33 @@ fab_tier: jlc_4layer_advanced
 #    at the land + RP2040 QFN-56 0.40 mm escape). 4-layer JLC04161H-7628,
 #    IMPEDANCE CONTROL REQUESTED."
 
+# DECLARED 2026-07-29 BECAUSE THE HARDCODE ITSELF WAS THE DEFECT. Until now no
+# class here declared a `clearance:` at all, so all seven rode
+# generate_rules_generic's HARDCODED 0.2 mm while the router derived its own
+# clearance from the tier's 0.09 mm min_space. tier_preflight PF-RULES-CLR failed
+# on exactly that gap and names the precedent: crow-rv2 (2026-07-23) produced 500
+# phantom clearance findings from a router that routed tighter than the DRC floor
+# nobody had written down.
+#
+# THE NUMBER IS 0.15 mm, AND IT IS SET BY A DATASHEET LAND, NOT BY TASTE OR BY
+# THE FAB FLOOR. tier_preflight's suggested fix is 0.09 (the tier's min_space);
+# that is the wrong direction on an RF board, where gap is free isolation and
+# nothing needs 0.09 to fit. But 0.20 — the value this file carried for the first
+# hour of the fix — is UNBUILDABLE HERE, and DRC said so: 16 clearance violations,
+# every single one INSIDE a footprint and every single one at exactly 0.150 mm.
+#   * 14 of them are the two BGS12WN6 lands. Infineon's Figure 5 'Footprint
+#     recommendation' puts six 0.25 mm lands on a 0.40 mm grid — a 0.150 mm
+#     land-to-land gap. We do not get to choose it; it is the part.
+#   * 2 are the TPD2E2U06's SOT-553 land, same story.
+# A DRC floor stricter than a land the board is REQUIRED to use is a floor that
+# can never pass, and no amount of routing or placement fixes it. 0.15 is
+# therefore the tightest DATASHEET-MANDATED gap on the board, still 1.67x the
+# tier's 0.09 etch floor, and route.yaml's route.common.clearance matches it so
+# the router is held to the number DRC will check. What this does NOT do is let
+# the router route at 0.15 by preference: a class clearance is a floor, and the
+# board has open area everywhere outside the two switch lands.
+default_clearance: 0.15mm
+
 classes:
   RF50:
     intent: >
@@ -57,6 +84,11 @@ classes:
            PAD_A1_1, PAD_A1_2, PAD_A1_3, PAD_A1_4]
     current: signal
     min_width: 0.35mm
+    # EXPLICIT, not inherited: generate_rules' unexamined 0.2 mm hardcode is
+    # itself the defect tier_preflight PF-RULES-CLR names, and 0.2 is
+    # unbuildable against the BGS12WN6 / SOT-553 land gaps. See
+    # default_clearance at the top of this file for the derivation.
+    clearance: 0.15mm
     routing: KRT, L1 only, no vias
     verify: DRC floor + P-ADJ spans + the measured VNA sweep at bring-up
     # CORRECTED AT STAGE 4 (2026-07-28), three changes, all forced by authoring
@@ -99,6 +131,7 @@ classes:
            LOOP_ARM1_SW, LOOP_ARM2_SW]
     current: signal
     min_width: 0.35mm
+    clearance: 0.15mm
     routing: KRT, L1 only, mirrored pair, no vias
     verify: DRC floor + the PUBLISHED per-arm length and delta (ADR-0011)
     # CORRECTED AT STAGE 4 (2026-07-28). THE MATCHED PAIR IS THE WHOLE RUN FROM
@@ -127,6 +160,7 @@ classes:
     nets: [USB_DP, USB_DM, USB_DP_MCU, USB_DM_MCU]
     current: signal
     min_width: 0.33mm
+    clearance: 0.15mm
     routing: KRT, L1, matched pair, 27 ohm series at the MCU
     verify: DRC floor + no plane split under the pair (R-PLANE)
     # STAGE 4 (2026-07-28): the pair is FOUR nets, not two, because the 27 ohm
@@ -160,6 +194,7 @@ classes:
     # halves must be distinct nets or it is not in the path.
     current: signal
     min_width: 0.2mm
+    clearance: 0.15mm
     routing: KRT, inner layer under ground across the RF region
     verify: DRC floor + I-AN separation from RF_LOOP_MATCH
 
@@ -172,6 +207,7 @@ classes:
     nets: [QSPI_SCLK, QSPI_CSN, QSPI_SD0, QSPI_SD1, QSPI_SD2, QSPI_SD3]
     current: signal
     min_width: 0.2mm
+    clearance: 0.15mm
     routing: KRT, kept inside the digital corner
     verify: DRC floor + P-ADJ span budget from the RP2040 layout block
 
@@ -188,6 +224,7 @@ classes:
     nets: [VBUS, VBUS_PF, VBUS_F, 3V3, 3V3_SW, VREG_VOUT]
     current: 0.10 A
     min_width: 0.4mm
+    clearance: 0.15mm
     routing: KRT
     verify: DRC floor + A-AMP
     # STAGE 4 (2026-07-28), two nets added because the ARCHITECTURE section 5

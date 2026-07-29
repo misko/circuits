@@ -100,9 +100,19 @@ layout:
     pin map, and is labelled as such."
   reviewed: "2026-07-27"
   keep_short:
-    - {net: RF_CTRL_SW, max_span_mm: 4, why: "series 1k + 1nF shunt must sit AT
+    # SPLIT INTO PER-INSTANCE NETS 2026-07-29. `RF_CTRL_SW` was one entry naming a
+    # net that does not exist: this part is placed TWICE and the board names the
+    # control nets RF_CTRL_SW1 / RF_CTRL_SW2. policy_audit P-ADJ-UNREACHED caught
+    # it — "0 pad(s) on this board" — which means the tightest RF constraint on
+    # the part was being graded by NOTHING while looking like a declared rule.
+    # (audit_board's A-PROX resolved it by unique prefix and did measure it, at
+    # 2.48 mm; two checkers, and only one of them was fooled. That is the point
+    # of having two.)
+    - {net: RF_CTRL_SW1, max_span_mm: 4, why: "series 1k + 1nF shunt must sit AT
        the CTRL pin. A control trace entering the RF section is a resonator —
        25 mm of this stackup's microstrip is lambda/4 at ~1.5 GHz, mid-band"}
+    - {net: RF_CTRL_SW2, max_span_mm: 4, why: "the mirror of the above, on the
+       arm-2 switch"}
     - {net: "3V3_SW", max_span_mm: 4, why: "100 nF + 1 nF at the VDD pad. Table 6
        footnote 2 records that Infineon's own measurement board carried 1 nF from
        VDD to GND and 1 nF from VCTRL to GND — that is the configuration the

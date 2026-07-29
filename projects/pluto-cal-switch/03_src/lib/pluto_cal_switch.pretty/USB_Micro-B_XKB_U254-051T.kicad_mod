@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
-	(descr "USB Micro-B receptacle, XKB U254-051T-4BH83-S1S (C319160): 5 SMT signal pads + 4 SMT shell pads + 2 PLATED OVAL PCB-LEG slots + 2 locating-boss NPTH. Geometry from XKB drawing U254-05XX-4BH83-XXS Rev A0 'RECOMMENDED P.C.B. LAYOUT / TOP VIEW (+/-0.05)'. THE ANCHORS ARE OVAL PLATED SLOTS (1.00x1.70 pad / 0.70x1.20 hole), NOT round drills and NOT NPTH - if they degrade to round or unplated the whole mechanical-retention reason for choosing this part evaporates; check the drill/slot report before release. DEVIATION: the outer shell pads are 1.60 wide (vendor 2.10), inner edge |x|=2.55 (vendor 2.05), because the vendor's own D0.40 boss at |x|=2.00 overlaps its own pad; the 8.30 mm outer span is unchanged. MOUTH FACES -Y (derived, not printed - the drawing has no PCB-EDGE datum). Shell and legs are ALL pad 6 and tie DIRECTLY to GND, no R/C isolation.")
+	(descr "SILK AT THE MOUTH REMOVED 2026-07-29: the front line ran across y=-1.6, and this part is placed with its mouth FLUSH to the board edge (anchor y 21.65, outline y0 20.0), putting that line 0.05 mm inside Edge.Cuts — kicad-cli DRC silk_edge_clearance x3. Silk on the mating face is unprintable there and describes nothing a person can see; the two side lines now start at y=-1.2. USB Micro-B receptacle, XKB U254-051T-4BH83-S1S (C319160): 5 SMT signal pads + 4 SMT shell pads + 2 PLATED OVAL PCB-LEG slots + 2 locating-boss NPTH. Geometry from XKB drawing U254-05XX-4BH83-XXS Rev A0 'RECOMMENDED P.C.B. LAYOUT / TOP VIEW (+/-0.05)'. THE ANCHORS ARE OVAL PLATED SLOTS (1.00x1.70 pad / 0.70x1.20 hole), NOT round drills and NOT NPTH - if they degrade to round or unplated the whole mechanical-retention reason for choosing this part evaporates; check the drill/slot report before release. DEVIATION: the outer shell pads are 1.60 wide (vendor 2.10), inner edge |x|=2.55 (vendor 2.05), because the vendor's own D0.40 boss at |x|=2.00 overlaps its own pad; the 8.30 mm outer span is unchanged. MOUTH FACES -Y (derived, not printed - the drawing has no PCB-EDGE datum). Shell and legs are ALL pad 6 and tie DIRECTLY to GND, no R/C isolation.")
 	(tags "USB micro-B receptacle XKB U254-051T C319160 oval slot plated")
 	(attr through_hole)
 	(property "Reference" "REF**"
@@ -137,57 +137,7 @@
 		(uuid "")
 	)
 	(fp_line
-		(start -3.98 -1.6)
-		(end 3.98 -1.6)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.Fab")
-		(uuid "")
-	)
-	(fp_line
-		(start 3.98 -1.6)
-		(end 3.98 3.9)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.Fab")
-		(uuid "")
-	)
-	(fp_line
-		(start 3.98 3.9)
-		(end -3.98 3.9)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.Fab")
-		(uuid "")
-	)
-	(fp_line
-		(start -3.98 3.9)
-		(end -3.98 -1.6)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.Fab")
-		(uuid "")
-	)
-	(fp_line
-		(start -3.98 -1.6)
-		(end 3.98 -1.6)
-		(stroke
-			(width 0.15)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "")
-	)
-	(fp_line
-		(start -4.2 -1.6)
+		(start -4.2 -1.2)
 		(end -4.2 -0.3)
 		(stroke
 			(width 0.12)
@@ -197,7 +147,7 @@
 		(uuid "")
 	)
 	(fp_line
-		(start 4.2 -1.6)
+		(start 4.2 -1.2)
 		(end 4.2 -0.3)
 		(stroke
 			(width 0.12)
