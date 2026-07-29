@@ -359,14 +359,18 @@ layout:
        copper tracks which could affect the signal' (Hardware Design section 2.2,
        PDF p10). 15 mm is 12 mm plus the resistor pair, not a relaxation of the
        bus budget"}
-    - {net: DVDD, max_span_mm: 10, why: "pin 45 -> pins 23 and 50 is an off-chip
-       1.1 V link the chip cannot boot without (section 2.9.2, PDF p152), and it
-       carries the 1 uF regulator output capacitor that section 2.10.1 (PDF p157)
-       makes mandatory. WARNING, recorded rather than discovered: this net does
-       NOT EXIST in 03_src/rules/nets.yaml today, so P-ADJ will find fewer than
-       two pads and SKIP this budget SILENTLY — the same gate gap ADR-0005 records
-       for SW_LS. The budget is written here so that it starts being graded the
-       moment the net is declared"}
+    - {net: DVDD_1V1, max_span_mm: 10, why: "pin 45 -> pins 23 and 50 is an
+       off-chip 1.1 V link the chip cannot boot without (section 2.9.2, PDF
+       p152), and it carries the 1 uF regulator output capacitor that section
+       2.10.1 (PDF p157) makes mandatory. NET NAME CORRECTED 2026-07-28 at the
+       PLACEMENT gate, from `DVDD` to this board's actual net `DVDD_1V1`. The
+       original entry warned that P-ADJ would find fewer than two pads and skip
+       the budget silently; that warning came true and P-ADJ-UNREACHED named it.
+       It is a pure RENAME — the same five pads, the same 10 mm, the same
+       datasheet sentence — and it turns dead text into a live gate: MEASURED
+       8.84 mm on the placed board (U_MCU.23 to C_MCU8.1). It is fixed rather
+       than waived precisely BECAUSE it is the one of the four UNREACHED
+       budgets that names a real two-pad net under a different spelling"}
   notes:
     - "DERIVED, and it is the one layout fact that is about THIS board rather than
        about the RP2040: the QSPI bus is the only continuously switching structure

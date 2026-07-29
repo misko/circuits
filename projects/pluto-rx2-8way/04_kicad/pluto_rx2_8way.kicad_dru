@@ -1,0 +1,19 @@
+(version 1)
+(rule "RF50_width"
+  (condition "A.NetClass == 'RF50'")
+  (constraint track_width (min 0.36mm)))
+(rule "CTRL_width"
+  (condition "A.NetClass == 'CTRL'")
+  (constraint track_width (min 0.2mm)))
+(rule "USB_D_width"
+  (condition "A.NetClass == 'USB_D'")
+  (constraint track_width (min 0.28mm)))
+(rule "PWR_width"
+  (condition "A.NetClass == 'PWR'")
+  (constraint track_width (min 0.4mm)))
+(rule "QSPI_width"
+  (condition "A.NetClass == 'QSPI'")
+  (constraint track_width (min 0.2mm)))
+(rule "DVDD_1V1_width"
+  (condition "A.NetClass == 'DVDD_1V1'")
+  (constraint track_width (min 0.4mm)))

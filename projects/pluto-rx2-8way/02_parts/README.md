@@ -250,6 +250,94 @@ is reachable from a CDN link embedded in that page's own markup
    Comment carry the MPN), not fifteen per-dossier ones, so the two new dossiers
    deliberately followed the house convention rather than diverging quietly.
 
+   **RE-MEASURED AT THE PLACEMENT GATE, 2026-07-29, because the fallback landed.**
+   `part_facts_check.py` was fixed on 2026-07-28 to grade non-numeric `equals:`,
+   so the prediction above should have fired. IT DID NOT, and the reason is
+   worth more than the prediction: the checker resolves refs through
+   `07_releases/.../fab/bom.csv` + `cpl.csv`, which do not exist until stage 7.
+   Measured output: **`P-FACT OK`, exit 0, 16 assertions graded, and SIXTEEN
+   `P-FACT-UNREACHED`** — i.e. it reached **zero** board refs and still printed
+   OK. So the fifteen asserts are still inert, for a NEW reason, and the
+   prediction is untested rather than refuted; it fires at the first BOM export.
+   The gate reporting OK on a zero denominator is the `jlc_twin`-exited-0
+   class named in the repo CLAUDE.md and is carried up as a proposed skill
+   change (P-FACT should grade N-A, not OK, when no BOM exists — or resolve refs
+   from the netlist, which is available from stage 3 onward).
+
+10. **THE ELEVEN STANDARD KiCad LANDS WERE MEASURED AGAINST THEIR VENDOR
+    DRAWINGS — and the tally the floorplan claimed was wrong in three ways.**
+    `03_src/floorplan.yaml` asserted at stage 5 that this had been done ("2
+    exact MATCH, 3 MATCH-WITH-IPC-EXPANSION, 3 with no vendor land published at
+    all, and ONE mismatch ... the numbers are in `02_parts/README.md`"). **The
+    record did not exist.** It was therefore done independently on 2026-07-29 —
+    every stock `.kicad_mod` parsed out of `/usr/share/kicad/footprints`
+    (kicad-footprints 10.0.4~ubuntu24.04.1) and compared against the RECOMMENDED
+    LAND figure in the committed PDF, page by page. Pad SIZE, PITCH and row SPAN
+    are all reported even where they match, because a wrong pad size is
+    cosmetic and a wrong pitch or span is a dead board.
+
+    | part | footprint | vendor land (PDF page) | vendor | KiCad | verdict |
+    |---|---|---|---|---|---|
+    | 0402WGF2200TCE | `Resistor_SMD:R_0402_1005Metric` | UNIOHM 1CHIP V3 **p5** §8 | pad 0.45x0.50, gap 0.50, pitch 0.95, span 1.40 | pad 0.54x0.64, gap 0.48, pitch 1.02, span 1.56 | IPC-EXPANSION |
+    | 0402WGF4700TCE | `Resistor_SMD:R_0402_1005Metric` | no PDF in dir; cites the sibling series sheet | as above | as above | IPC-EXPANSION |
+    | 1206L050/24WR | `Fuse:Fuse_1206_3216Metric` | LITTELFUSE 1206L **p4** | pad 1.00x1.80, gap 1.80, **pitch 2.80**, span 3.80 | pad 1.25x1.75, gap 1.55, **pitch 2.80**, span 4.05 | IPC-EXPANSION (pitch delta 0.000) |
+    | ABM8-272-T3 | `Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm` | **p2 of the committed 3 pages** = terminal metallization, NOT a land | terminals 0.9x0.70, pitch 2.10 x 1.50 | pad 1.40x1.20, pitch 2.20 x 1.70 | **NO-VENDOR-LAND** |
+    | BLM21SP601SN1D | `Inductor_SMD:L_0805_2012Metric` | all 3 pp read — appearance + specs only | body 2.0x1.25, electrode band 0.5 | pad 0.875x1.20, pitch 2.125, span 3.00 | **NO-VENDOR-LAND** |
+    | KT-0603R | `LED_SMD:LED_0603_1608Metric` | KENTO RevA.0 **p2** §2 | pad 0.70 long (width undimensioned), gap 0.70, pitch 1.40 | pad 0.875x0.95, **gap 0.70**, pitch 1.575 | IPC-EXPANSION (gap delta 0.000) |
+    | MCP1755S-3302E/DB | `Package_TO_SOT_SMD:SOT-223` | DS20005160B **p28**, drawing **C04-2032A** | E 2.30, E1 4.60, C 6.10, X1 0.95 max, X2 3.25 max, Y 1.90 max | E 2.30, E1 4.60, **C 6.30**, X1 1.50, X2 3.80, Y 2.00 | **MISMATCH** |
+    | RP2040 | `Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm` | datasheet §5.1.2 **Fig 167**, PDF p609 | pitch 0.40, pad 0.20x0.875, span 7.75, EP 3.20x3.20 | identical | **MATCH (0.000 on all 8)** |
+    | SMBJ6.0A | `Diode_SMD:D_SMB` | LITTELFUSE SMBJ v4 **p5** | I>=2.260, J>=2.160, L>=2.160, K<=2.740 — one-sided limits only | pad 2.50x2.30, pitch 4.30, span 6.80, gap 1.80 | IPC-EXPANSION, all limits met |
+    | TS-1187A-B-A-B | `Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A` | XKB RevA0 **p1** P.C.B LAYOUT | span 7.00 x 4.50, gap 5.00 x 3.00 | identical | **MATCH (0.000 on all 4)** |
+    | W25Q128JVSIQ | `Package_SO:SOIC-8_5.3x5.3mm_P1.27mm` | §10.1 **p68** = package outline only; no land in 79 pp | e 1.27 BSC, H 7.70/7.90/8.10 | pad 1.625x0.65, **pitch 1.27**, span 8.80 | **NO-VENDOR-LAND** (pitch = e BSC exactly) |
+    | USBLC6-2SC6 | `Package_TO_SOT_SMD:SOT-23-6` | DocID11265 Rev5 **p12 Fig 22** | pad 0.60x1.20, **pitch 0.95**, gap 1.10, span 3.50 | pad 0.60x1.325, **pitch 0.95**, gap 0.95, span 3.60 | IPC-EXPANSION |
+
+    **TALLY: 2 exact MATCH · 5 MATCH-WITH-IPC-EXPANSION · 3 NO-VENDOR-LAND · 1
+    MISMATCH, over 11 distinct footprints across 12 parts.** The floorplan's
+    claim was right about which parts fall where — the same two exact, the same
+    three landless, the same one mismatch — and wrong about the arithmetic: it
+    said **NINE** lands and summed 2+3+3+1, undercounting IPC-EXPANSION by two.
+
+    **THE MISMATCH, in full, because it is the only one that moves copper.**
+    `Package_TO_SOT_SMD:SOT-223` against Microchip C04-2032A gets **pitch
+    exactly right** (E 2.30, E1 4.60, zero delta — the dangerous class is
+    clean) and then exceeds three published MAXIMA: **X1 1.50 vs 0.95 max
+    (+0.55)**, **X2 3.80 vs 3.25 max (+0.55)**, **Y 2.00 vs 1.90 max (+0.10)**.
+    Consequence of X1: the gap between adjacent lead pads falls from the
+    vendor's **1.35 mm to 0.80 mm** — a 0.55 mm REDUCTION, not the "stays
+    0.80 mm" the floorplan claimed. And a fourth delta the floorplan omitted
+    entirely: **C (row centre-to-centre) 6.30 vs 6.10, +0.20**, so each pad row
+    is displaced 0.10 mm outward — the vendor's land runs radius 2.10..4.00 and
+    KiCad's runs 2.15..4.15, meaning **0.05 mm of the vendor's specified heel
+    land is left UNCOVERED**. So the floorplan's "every delta adds copper" is
+    FALSE. That `C` is a row-centre dimension and not an outer span was
+    established two independent ways: arithmetically from the sibling 5-lead
+    drawing C04-2137A on p30 (where C=6.00, G=4.00, Y=2.00 and only C = G + Y
+    closes), and by pixel measurement of the p28 figure at a scale that
+    independently reproduces Y, X1, X2 and E to within 0.04 mm.
+    **ACCEPTED, with the position deviation recorded:** 0.80 mm pad-to-pad on a
+    3-lead SOT-223 is manufacturable, the heel shortfall is 0.05 mm on a 1.90 mm
+    land, and the placed instance in `04_kicad/pluto_rx2_8way.kicad_pcb` was
+    confirmed pad-for-pad identical to the library file, so the library
+    measurement IS the board measurement.
+
+    **THREE HONEST LIMITS on the above, stated rather than smoothed:**
+    - **`ABM8-272-T3`'s committed PDF is only pages 2, 4 and 6 of Abracon's
+      nine.** None of the three carries a land pattern, so NO-VENDOR-LAND is
+      what can be said — but a suggested land on one of the six ABSENT pages
+      cannot be ruled out. That is a **provenance defect in the committed
+      evidence**, not a resolved verdict, and it is now an OWED item below.
+    - `KT-0603R`'s cross-axis pad WIDTH is not dimensioned; the 0.70 compared
+      against is read off the drawing. Length, gap, pitch and span are callouts.
+    - `SMBJ6.0A` publishes one-sided limits only, so "MATCH within 0.05 mm" is
+      not a meaningful test for it; what is stated is that KiCad satisfies all
+      three published limits.
+
+    **AND A COVERAGE GAP NOBODY HAD CLAIMED EITHER WAY:** the board also carries
+    **21 `Capacitor_SMD` lands (15x 0402, 3x 0603, 3x 0805)** with no dossier
+    and therefore no vendor-land verification at all. They are outside the
+    floorplan's denominator and outside this table; the denominator is 11 of 32
+    distinct footprints, and saying so is the point.
+
 ## OWED measurements — named, not buried
 
 | owed | why it matters |
@@ -263,6 +351,8 @@ is reachable from a CDN link embedded in that page's own markup
 | `KT-0603R` moisture level | §11.4.2 states a **7-day floor life** at ≤30 °C/60 % RH and a bake to recover, and **never states a JEDEC MSL level**. 168 h is MSL 3's floor life, but the number is not the level and this dossier will not infer one. Not live while JLC supplies the reel; live the moment the part is hand-supplied — get it off the reel label |
 | `TS-1187A-B-A-B` contact bounce | **Not specified anywhere in the one-page drawing** — no time, no envelope, no method. Irrelevant for `BOOTSEL_N` (sampled once across a held press); **real for `RUN_N`**, which is the RP2040 reset. `DETAIL_DESIGN.md` §5 and §8 list **no capacitor on RUN**. Either one is added or the omission is dispositioned |
 | `TS-1187A-B-A-B` minimum switching current | The 50 mA/12 V rating is a **maximum**; the sheet gives no dry-circuit minimum and no gold-plating claim (its item table says fine-silver contacts, silver-plated terminals — LCSC's parametric says "Gold", and the drawing wins). The board runs the contact at ~0.3 mA, so reliable wetting is DERIVED from the switch class, not CITED |
+| **`ABM8-272-T3`'s datasheet is committed only in PART — pages 2, 4 and 6 of Abracon's nine** | deviation 10 returns NO-VENDOR-LAND for the crystal, and that verdict is only as good as the pages present. None of the three carries a recommended land; **six pages were never committed**, so a land pattern on one of them would silently invalidate the verdict. This is the one place in the register where the missing evidence changes an answer rather than merely leaving one owed. **To close: commit the full nine-page Abracon sheet and re-run the land comparison** (the crystal's KiCad pad is 1.40x1.20 on a 2.20 x 1.70 pitch against terminals of 0.9x0.70 on 2.10 x 1.50 — a land, if one exists, is what decides whether that expansion is the vendor's or IPC's) |
+| **21 `Capacitor_SMD` lands have no dossier and no vendor-land check** | 15x 0402, 3x 0603, 3x 0805. Deviation 10's denominator is 11 of the board's 32 distinct footprints; the caps are the bulk of the remainder. Low risk (generic chip lands, and the two 0603 regulator caps are the only ones whose position is load-bearing) but it is a coverage hole with a number, not an absence |
 | `TS-1187A-B-A-B` actuator height vs the enclosure | H = 1.5 mm leaves the plunger **0.3 mm proud** of the cover — a fingernail/tool button, not a fingertip one. Fine for a bench instrument, wrong behind a panel. The fix is a height code on the identical land (C318889 1.7 mm, C318887 2.5 mm, …), but **every taller code is `extended` tier** — the 1.5 mm part is the only `base` one |
 
 ## Rejected candidates — no PDF committed, reason recorded

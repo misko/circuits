@@ -27,7 +27,7 @@
 			)
 		)
 	)
-	(property "Datasheet" "KH-SMA-KE-Z sheet 2/2 (2021.08.10)"
+	(property "Datasheet" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
@@ -39,7 +39,7 @@
 			)
 		)
 	)
-	(property "Description" "Vertical SMA jack, 4x SQ0.9 posts on 5.08mm square, DC-6 GHz"
+	(property "Description" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)

@@ -35,8 +35,20 @@ package: >-
   0.35-0.50, lead foot L 0.10-0.60, e = 0.95 pitch. 16.7 mg. Marking "UL26"
   (Table 5 PDF p13 + Figure 23 PDF p12) — the marking is NOT the MPN, and it is
   the only thing on the part.
-footprint: Package_TO_SOT_SMD:SOT-23-6      # STANDARD KiCad part, and it MATCHES
-                                   # — numbers in gotchas. Not the
+footprint: Package_TO_SOT_SMD:SOT-23-6      # STANDARD KiCad part. RE-MEASURED
+                                   # 2026-07-29 against ST DocID11265 Rev5
+                                   # Fig 22 (p12) and this line's earlier claim
+                                   # of "it MATCHES" is CORRECTED to
+                                   # MATCH-WITH-IPC-EXPANSION: pad WIDTH 0.60
+                                   # and PITCH 0.95 are exact (delta 0.000) and
+                                   # the row centre is within 0.025, but pad
+                                   # LENGTH is 1.325 vs 1.20 (+0.125) and span
+                                   # 3.60 vs 3.50 (+0.10), i.e. outside the
+                                   # 0.05 mm a "match" claims. Every delta adds
+                                   # copper at the toe; the inter-row gap
+                                   # narrows 1.10 -> 0.95. Full table in
+                                   # 02_parts/README.md deviation 10.
+                                   # Not the
                                    # _Handsoldering variant: this is a reflow
                                    # part on an SMT board and the handsolder
                                    # land is 0.10 wider and 0.43 longer for no

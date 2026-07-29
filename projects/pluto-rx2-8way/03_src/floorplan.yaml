@@ -2,18 +2,122 @@
 # skills/kicad-pcb/scripts/generate_board_generic.py (no board-specific
 # generation Python; ADR-0002 of the repo).
 #
-# THIS FILE IS INTENT, NOT COPPER. Every number below is DERIVED in
-# 01_docs/decisions/0007-radial-star-floorplan.md and 01_docs/DETAIL_DESIGN.md;
-# nothing here has been measured, legalized or gated yet. At stage 5 the
-# legalizer may move SEEDS (never ANCHORS), and placement_gates.py (P-OUT pads
-# inside the outline polygon, P-CAP corridor demand) plus P-COLLIDE grade the
-# result.
+# REVISED AGAIN 2026-07-29, at the SAME stage-5 gate, and the second pass exists
+# because the first one left claims this file could not support. Four things
+# changed and every one of them was a CORRECTION, not a refinement:
+#   A. THE SILK IS ALL NEW. The port contract, the title and five of the ten
+#      port legends were CROWDED (the generator's own warning, seven of them),
+#      one legend sat 0.17 mm off the board, and "RX2 -> PLUTO RX2" measured
+#      NEARER J_ANT1 (7.29 mm) THAN J_RX2 (7.85 mm) — a connector labelled on
+#      its neighbour, on the one pair of ports whose confusion feeds an SDR
+#      input with an antenna. See the `silk:` block for the search that fixed it.
+#   B. `placement.patterns` is new: pad-level solid zone connection on the GND
+#      pads of U_SW / J_USB / U_MCU, which took `starved_thermal` 15 -> 4.
+#   C. The stock-footprint verification this file CLAIMED was recorded and was
+#      not (see `libraries:`), plus the SOT-223 mismatch it described wrongly.
+#   D. The J_USB overhang figure, 0.485 -> 0.535 (the gate's own number).
+#
+# REVISED AT STAGE 5, 2026-07-28. Before this revision every number here was
+# INTENT derived at stage 3 and NOTHING had been measured. It has now been
+# measured: every courtyard pair, every keep_short span, the connector's own
+# vendor datum, and the pickoff arm's electrical length. Six things changed and
+# each one changed because a MEASUREMENT disagreed with the derivation, not
+# because it looked tidier. They are listed at the top because a reader who
+# skips them will undo them:
+#
+#  1. THE OUTLINE GREW 3 mm IN +y: y1 89.0 -> 92.0, i.e. 50 x 68 -> 50 x 71 mm.
+#     ADR-0007 sized the digital strip at "24 mm x 50 mm" from the stage-3
+#     parts list. Stage 4 then added TWENTY-FOUR parts to that strip (RP2040
+#     decoupling corrected from four to TEN, C_VREG_IN/OUT, C_ESD, R_BOOT,
+#     R_CSPU, SW_RUN, the crystal group, the USB series pair). The binding
+#     chain is VERTICAL and every link is fixed by something else:
+#         crystal 3.50  (must sit at XIN/XOUT, which rotation 180 puts on the
+#                        MCU's -y side)
+#       + MCU     8.26  (QFN-56 courtyard)
+#       + caps    0.92  (the +y pin row's own decoupling row)
+#       + U_ESD   4.10  (SOT-23-6 rotated 90, ADR-0008 wants it BEHIND J_USB)
+#       + J_USB   8.46  (5.27 courtyard inboard of its pad row + 3.19 to the
+#                        board edge, the vendor datum resolved below)
+#       + 4 x 0.30 clearance                       = 26.44 mm
+#     against 24.0 mm available at y1 = 89. Measured, not estimated: the
+#     alternative that FITS at 68 mm puts every gap at exactly 0.30 mm and
+#     drags the 12 MHz crystal down to y = 63.8, i.e. INTO the mouth of the
+#     RF escape corridor. 50x68 and 50x71 are the same JLCPCB price bracket,
+#     so the 3 mm is free and the crystal stays inside the digital strip.
+#     The star centre, the ring radius and all ten jack coordinates are
+#     UNCHANGED — the growth is entirely in the digital strip.
+#
+#  2. J_USB IS NOW AN ANCHOR, AND THE VENDOR'S "5.79" IS RESOLVED.
+#     The stage-2 dossier recorded the sheet's PCB-EDGE dimension as
+#     unidentifiable at 300 dpi ("pad-row top and upper-slot top are both
+#     plausible termini") and refused to use it. It is resolved here, by
+#     ELIMINATION rather than by a better raster read, and the elimination is
+#     the evidence: the same dimension stack carries 0.50 (pad bottom -> the
+#     alignment-hole line) and 1.64 (pad top -> the same line), both of which
+#     reproduce the authored footprint EXACTLY, so 5.79 shares that datum ->
+#     PCB edge at footprint-y +3.19. Every other candidate terminus puts the
+#     board edge THROUGH the rear shell-slot pads (which span +0.20..+1.90),
+#     which is geometrically impossible. Consequence: J_USB origin = 92.0 -
+#     3.19 = 88.81, a 0.535 mm mouth overhang, and rear shell copper 1.29 mm
+#     inside the edge. (0.535 not 0.485: this file carried the F.Fab CENTRELINE
+#     and audit_board I6 measures the F.Fab BBOX, which includes half the 0.1 mm
+#     line width. Corrected 2026-07-29 to what the gate actually prints.)
+#     It CANNOT be a seed: its bbox is 9.42 mm tall and the
+#     legalizer's edge_margin refuses any edge connector (measured — the first
+#     stage-5 generate died with "no clear spot for J_USB within 20.0mm").
+#     Two new asserts machine-check it: `body_offset` (the mouth faces +y) and
+#     `pad_beyond_edge` (pad A6 sits exactly 6.86 = 5.79 + 1.07 from the edge).
+#
+#  3. U_ESD IS NOW AN ANCHOR TOO, and the 2.0 mm of ADR-0008 is restated in
+#     the units that mean something. `adjacency: [U_ESD, J_USB] max_mm: 2.0`
+#     is NOT SATISFIABLE as written and never was: J_USB's origin is its BODY
+#     CENTRE and its own pad row is 3.67 mm away, so a 2.0 mm refdes-to-refdes
+#     distance would put the array inside the connector. The quantity ST
+#     DocID11265 sec 2.2 actually bounds is TRACK LENGTH ("2 mm of 0.5 mm
+#     track is ~1.2 nH"). MEASURED HERE: J_USB pad A6 edge -> U_ESD pad 1 edge
+#     = 1.57 mm of clear band + 0.50 mm of lateral offset, i.e. ~1.7 mm of D+
+#     track. Refdes centre-to-centre is 7.71 mm and always would have been.
+#     Both numbers are reported rather than one being hidden.
+#
+#  4. R_T1/R_T2 ROTATION IS 255, NOT 15 — AND THE OLD VALUE BROKE THE ONE
+#     PROPERTY THIS BOARD PUBLISHES. 15 was inherited from the JACK rule
+#     ("rotation = (-theta) mod 90"), which is only valid because the SMA's
+#     post square is 4-FOLD SYMMETRIC. An 0402 is not. At rotation 15 the
+#     resistors' long axes sit 60 degrees off the radius, and the
+#     RX1_TAP_MID pad span measures 2.66 mm against ADR-0006's lambda_g/20 =
+#     1.37 mm bound at 6 GHz — i.e. the pickoff stops being a lumped element,
+#     on the reference path everything else is calibrated against. At 255 the
+#     long axes are RADIAL with pad 1 outward on both parts (identical
+#     rotation, never mirrored — ADR-0006(d)), and the span measures 0.98 mm.
+#  5. ...and r moved 15.0/13.0 -> 13.8/11.6, because the flange clearance in
+#     ADR-0007 was computed against the 6.5 mm METAL FLANGE (inner edge
+#     r = 16.75) and the courtyard is 7.5 mm square, whose support half-width
+#     along the 75 degree radius is 5.12 mm, not 3.75 — so its inner edge is at
+#     r = 14.88. Measured by rotated-rectangle separation: at r = 15.0 R_T1's
+#     courtyard OVERLAPS J_ANT8's by 0.610 mm; at r = 13.8 it clears by
+#     0.429 mm. The pair spacing also opened 2.0 -> 2.2 mm so the two 0402
+#     courtyards clear each other by 0.340 mm instead of 0.140. Cost: the RX1
+#     main line grows 1.2 mm (0.043 dB at 6 GHz) and RX1_TAP_MID goes 0.98 ->
+#     1.18 mm, still inside the 1.37 mm lumped bound.
+#
+#  6. THE ESCAPE CORRIDOR IS 1.5 mm DEEP, NOT 4.0. It expands to a rule area
+#     DENYING FOOTPRINTS over the full width of U_SW's bbox, and at 4.0 mm
+#     that sterilises exactly the copper the pin-8 bypass and the four V1..V4
+#     pull-downs have to occupy — while everything OUTSIDE that width at that
+#     radius is on the RF4 (225 deg) or RF5 (315 deg) arm. 1.5 mm holds the
+#     five-escape via row the part.yaml escape block calls for (six vias at
+#     0.5 mm pitch, 0.15 drill, hole-to-hole 0.25 -> one row fits in ~1.0 mm)
+#     and leaves the switch cell placeable at y >= 50.3 (MEASURED: at 2.0 mm
+#     kicad-cli DRC returned 3 `items_not_allowed` on C_SW1/R_PD3/R_PD4). P-ESC does NOT
+#     require the corridor at all: PE42482A-X's escape block is unconditional
+#     (`tier_required: jlc_4layer_advanced`, no `conditions:`), so the depth
+#     is a placement decision, not a gate input.
 #
 # THE SHAPE, IN ONE SENTENCE: PE42482A-X sits at the geometric centre of a
 # 20.0 mm ring carrying ten vertical SMA jacks at 30 degree spacing over 270
 # degrees, with the remaining 90 degree sector (centred straight down, off the
 # package's pins-7..12 edge) reserved as the digital escape corridor into a
-# 24 mm strip along the bottom of the board. Nine equal-length 50 ohm arms —
+# 27 mm strip along the bottom of the board. Nine equal-length 50 ohm arms —
 # EQUAL LENGTH IS EQUAL PHASE BY CONSTRUCTION, which is the whole AoA
 # requirement (ADR-0006).
 #
@@ -32,15 +136,20 @@ project:
   parts_dir: 02_parts
 
 board:
-  # 50.0 x 68.0 mm. Star centre C = (46.0, 46.0), ring radius R = 20.0 mm.
-  outline: {x0: 21.0, y0: 21.0, x1: 71.0, y1: 89.0}
+  # 50.0 x 71.0 mm. Star centre C = (46.0, 46.0), ring radius R = 20.0 mm.
+  # y1 was 89.0 at stage 3; see note 1 at the top of this file for the measured
+  # chain that moved it. x0/x1/y0 and the entire RF half are UNCHANGED.
+  outline: {x0: 21.0, y0: 21.0, x1: 71.0, y1: 92.0}
   edge_width: 0.1
   layers: 4
   mounting_holes:
     # Ten cabled SMA ports are ten torque paths into one laminate; these are
-    # structural. All four sit >= 10.4 mm from the nearest flange centre.
+    # structural. 3.5 mm inset from each edge (the bottom pair tracked y1 from
+    # 84.5 to 87.5 so they stay in the CORNERS, which is the whole point of
+    # them). Nearest flange centre: 10.41 mm (J_ANT1 <-> the (24.5,24.5) hole),
+    # and the measured courtyard separation there is 3.21 mm.
     footprint: MountingHole:MountingHole_3.2mm_M3
-    at: [[24.5, 24.5], [67.5, 24.5], [24.5, 84.5], [67.5, 84.5]]
+    at: [[24.5, 24.5], [67.5, 24.5], [24.5, 87.5], [67.5, 87.5]]
 
 libraries: [03_src/lib, /usr/share/kicad/footprints]
 # PROJECT LIBRARY FIRST, deliberately. Both OWED footprints were AUTHORED on
@@ -55,6 +164,34 @@ libraries: [03_src/lib, /usr/share/kicad/footprints]
 # the stock library would move every RF land 0.05 mm outward and shrink the
 # RF-ground exposed pad by 0.10 mm on a 4.00 mm package — a substitution no
 # DRC, parity or netlist check can see.
+# The ELEVEN stock KiCad lands this board also uses were re-verified against
+# their vendor land drawings, and the full table with every measured pitch, span
+# and pad size is 02_parts/README.md DEVIATION 10.
+# THIS COMMENT PREVIOUSLY CLAIMED "NINE ... and the numbers are in
+# 02_parts/README.md" AND THE RECORD DID NOT EXIST. It was written before the
+# measurement and then the measurement was never made — the exact shape of
+# defect this repo's canon M1 exists to catch, in the file that asserts M1.
+# Done independently 2026-07-29, the tally is:
+#   2 exact MATCH (RP2040 QFN-56, 0.000 on all 8 dimensions; TS-1187A, 0.000 on
+#     all 4) · 5 MATCH-WITH-IPC-EXPANSION · 3 NO-VENDOR-LAND (crystal, ferrite,
+#     SOIC-8 — the vendors publish a package outline and no land) · 1 MISMATCH.
+# The old claim named the right parts and got the arithmetic wrong (it said NINE
+# and summed 2+3+3+1, undercounting IPC-EXPANSION by two), and it was wrong
+# twice about the mismatch itself:
+#   * Package_TO_SOT_SMD:SOT-223 vs Microchip C04-2032A gets PITCH exactly right
+#     (E 2.30, E1 4.60, delta 0.000 — the dangerous class is clean) and exceeds
+#     three maxima, X1 +0.55 / X2 +0.55 / Y +0.10, as claimed. But it ALSO
+#     displaces the row centre C 6.10 -> 6.30 (+0.20), which the old claim
+#     omitted — so "every delta adds copper" is FALSE: 0.05 mm of the vendor's
+#     specified heel land is left UNCOVERED.
+#   * "adjacent-pad gap stays 0.80 mm" misread the vendor. 0.80 mm is a 0.55 mm
+#     REDUCTION from C04-2032A's own 1.35 mm, not an unchanged value.
+# Still ACCEPTED — 0.80 mm pad-to-pad on a 3-lead SOT-223 is manufacturable and
+# the heel shortfall is 0.05 mm on a 1.90 mm land — but recorded as a POSITIONAL
+# deviation as well as a size one, and not asserted away.
+# NOT COVERED, stated because the denominator is the point: the board's 21
+# Capacitor_SMD lands carry no dossier and no vendor-land check at all, so this
+# is 11 of 32 distinct footprints.
 
 placement:
   # ANCHORS are PINNED — the legalizer never moves them. Everything here is a
@@ -75,6 +212,11 @@ placement:
     #      bound), against 1.36 mm at R = 18 and 0.09 mm — i.e. touching — at
     #      R = 18 with axis-aligned flanges. THAT GAP IS THE GROUND-VIA FENCE,
     #      and the fence is the port-to-port isolation budget.
+    #      MEASURED at stage 5 (rotated-rectangle separation, not bounding
+    #      boxes): adjacent 7.5 mm COURTYARDS clear by 1.16 mm. Their axis-
+    #      aligned bounding boxes DO overlap, so the generator's P-COLLIDE
+    #      PINNED-LAP check (which compares bboxes) reports six pairs it cannot
+    #      actually see are separated — expected, and not a DRC finding.
     J_RX2:  [40.824, 26.681, 75]   # theta 105  <- RFC  (pin 22) -> Pluto RX2
     J_ANT1: [31.858, 31.858, 45]   # theta 135  <- RF1  (pin 24)
     J_ANT2: [26.681, 40.824, 15]   # theta 165  <- RF2  (pin 2)
@@ -91,149 +233,243 @@ placement:
     #      mirrored: mounting-inductance asymmetry is ~0.1 nH ~= 2 deg at
     #      6 GHz and mirroring converts fillet asymmetry into calibration
     #      error (ADR-0006(d)). This is a CPL fact.
-    #      r is bounded ABOVE by the J_ANT8 flange, whose inner edge sits at
-    #      r = 20.0 - 3.25 = 16.75: at r = 15.0 the outer pad of R_T1 reaches
-    #      r = 15.48, leaving 1.27 mm. Pad-to-pad span across RX1_TAP_MID is
-    #      then 1.04 mm, inside the lambda_g/20 = 1.37 mm lumped bound.
-    R_T1: [49.882, 31.511, 15]     # r = 15.0 on theta 75 (antenna side)
-    R_T2: [49.365, 33.443, 15]     # r = 13.0 on theta 75 (switch side)
+    #      ROTATION 255 = the 75 degree radius reversed, so the part's local +x
+    #      (pad 1) points OUTWARD on both. That makes the series order along
+    #      the arm J_ANT8 -> R_T1.1 -> R_T1.2 -> R_T2.1 -> R_T2.2 -> U_SW pin
+    #      19, i.e. the two RX1_TAP_MID pads FACE each other: measured span
+    #      0.98 mm, inside ADR-0006's lambda_g/20 = 1.37 mm. See note 4 above
+    #      for what rotation 15 measured instead (2.66 mm).
+    #      r = 14.0 / 12.0: bounded ABOVE by J_ANT8's COURTYARD, whose inner
+    #      edge along this radius sits at r = 14.88 (the 7.5 mm square rotated
+    #      15 degrees has support half-width 5.12 along theta 75, not 3.75).
+    #      Measured clearance at r = 13.8: 0.429 mm. Mutual R_T1/R_T2
+    #      courtyard clearance at 2.2 mm spacing: 0.340 mm, with the
+    #      RX1_TAP_MID pad span at 1.18 mm — still inside 1.37.
+    R_T1: [49.572, 32.670, 255]    # r = 13.8 on theta 75 (antenna side)
+    R_T2: [49.002, 34.795, 255]    # r = 11.6 on theta 75 (switch side)
 
-  # SEEDS are starting points the legalizer may walk outward from.
+    # ---- the USB-C receptacle. ANCHORED, not seeded: see note 2 above. y is
+    #      fixed by the OUTLINE and the vendor's own recommended layout, not by
+    #      the placement grid — 92.0 - 3.19 = 88.81. The mouth faces +y and
+    #      overhangs the edge by 0.535 mm (audit_board I6, measured); the
+    #      rear shell-slot copper ends
+    #      1.29 mm inside it. Both facts are asserted below.
+    J_USB: [46.0, 88.81, 0]
+
+    # ---- the ESD array, ANCHORED for the same reason: its position IS the
+    #      protection claim (ADR-0008) and no gate grades it (P-ADJ reads
+    #      keep_short net SPANS only, never `adjacency:` refdes pairs).
+    #      Rotation 90 puts pins 1/2/3 (D+ in, GND, D- in) toward the
+    #      CONNECTOR at y = 81.337 and pins 6/5/4 (D+ out, VBUS, D- out)
+    #      toward the MCU at y = 79.963, so the pair physically passes THROUGH
+    #      the clamp with a zero-length stub (ST Figure 7). Pins 1+6 and 3+4
+    #      are the same node, so no ERC, DRC, netlist or parity check can tell
+    #      this dress from a stub — it is intent someone has to hold, and the
+    #      CHECKLIST holds it.
+    #      MEASURED: 1.57 mm of clear band between J_USB's pad row (which ends
+    #      at y = 83.57) and U_ESD pad 1 (which ends at y = 82.00); ~1.7 mm of
+    #      D+ track against ST sec 2.2's 2 mm; courtyard clearance to J_USB's
+    #      bbox 0.39 mm.
+    U_ESD: [46.0, 81.1, 90]
+
+  # PAD-LEVEL ZONE CONNECTION. These are not tidying: a thermal spoke is a
+  # deliberate series inductor in a ground return, and on three of these parts
+  # the return is the thing the part is FOR.
   #
-  # REVISED 2026-07-28 AT STAGE 4, and the revision is not cosmetic. Three
-  # things changed and each has a reason a reader must not undo:
+  # MEASURED BEFORE (kicad-cli DRC, --severity-all --refill-zones, on the placed
+  # board): 15 `starved_thermal` — every one a GND pad on F.Cu reaching the pour
+  # through ONE spoke against the zone's min spoke count of 2, and three of them
+  # ("1 spokes connected to isolated island") reaching an ISLAND rather than the
+  # pour at all. AFTER: 4, and the four that remain are named and NOT converted;
+  # see the note at the end of this block.
   #
-  # 1. U_ESD MOVED FROM [54.0, 84.0] TO THE D+/D- ESCAPE, AND C_ESD IS NEW.
-  #    Both stage-2 dossiers (USBLC6-2SC6 and TYPE-C-31-M-12A) independently
-  #    recorded the SAME finding against this file: an `adjacency:` budget of
-  #    2.0 mm from ST DocID11265 sec 2.2, against ~8 mm as seeded. The
-  #    arithmetic is the part: 6 nH per 10 mm x 0.5 mm at dI/dt = 24 A/ns is
-  #    +144 V PER LEG, so a 17 V clamp becomes 305 V and the port is protected
-  #    only in the designer's belief. At 2 mm the adder is ~29 V/leg. See
-  #    01_docs/decisions/0008-esd-array-vbus-leg-node.md, which also settles
-  #    which node pin 5 sits on (VBUS_F) and adds the Figure-18 CBUS = C_ESD.
-  #    NOTE: `adjacency:` is NOT graded by P-ADJ (which grades keep_short net
-  #    SPANS only) - so this placement is held by the ADR and by CHECKLIST.md,
-  #    not by a gate. Stated rather than assumed.
+  #  * U_SW — pins 3/5/7/14/16/23 and the exposed pad. The mandate this board
+  #    was handed is explicit that PE42482's EP is an RF GROUND RETURN and not a
+  #    thermal pad, and pins 3/5/14/16 are the inter-port ground bars that carry
+  #    the port-to-port isolation. Two of the three ISLAND findings are on this
+  #    part (pads 3 and 16), i.e. their single spoke did not even reach the pour.
+  #    Solid is the only defensible connection here; DC-6 GHz isolation through a
+  #    single 0.5 mm spoke is not a design, it is an accident of fill order.
+  #  * J_USB — A1/A12/B1/B12, the four merged shell GND lands. These are the
+  #    cable shield's return AND the connector's mechanical retention; HRO's own
+  #    recommended layout floods them. Merged pads share copper, which is
+  #    precisely why the spoke generator finds only one legal spoke each.
+  #  * U_MCU — its GND pins. Pad 19 was the third ISLAND finding.
   #
-  # 2. TWENTY-FOUR SEEDS ARE NEW because the parts are new to this file, not
-  #    to the design: C_MCU5..C_MCU10 (DETAIL_DESIGN sec 5 corrected the RP2040
-  #    decoupling count from four to TEN), C_VREG_IN/C_VREG_OUT and R_XTAL and
-  #    R_USB1/R_USB2 and C_XTAL1/C_XTAL2 (the four mandatory RP2040 passive
-  #    groups), C_ESD, C_FLASH, R_BOOT, R_CSPU, SW_RUN.
+  # WHAT IS DELIBERATELY LEFT STARVED, so its absence is a decision: the four
+  # 0402 GND pads C_MCU7.2, C_MCU8.2, C_MCU9.2 and C_ESD.2. Their spokes are
+  # blocked by their NEIGHBOURS in the 2.2 mm-pitch sub-MCU row, not by anything
+  # about the parts. Converting a two-pad passive's GND pad to a solid plane
+  # connection while its other pad sits on an unpoured net makes the part
+  # THERMALLY ASYMMETRIC at reflow — the tombstoning class — and that is not a
+  # trade worth making to clear a warning. They are reported at the stage-5 gate
+  # as 4 remaining `starved_thermal` and re-evaluated after the stage-6 refill,
+  # when tracks and stitch vias will have changed the local copper anyway.
+  patterns:
+    - {match: U_SW,  pad_overrides: [{on_net: GND, zone_connection: full}]}
+    - {match: J_USB, pad_overrides: [{on_net: GND, zone_connection: full}]}
+    - {match: U_MCU, pad_overrides: [{on_net: GND, zone_connection: full}]}
+
+  # SEEDS are starting points the legalizer may walk outward from. Every seed
+  # below was measured at stage 5 against (a) rotated-rectangle courtyard
+  # separation of every pair, (b) the board edge and the M3 keepouts, and
+  # (c) the P-ADJ keep_short spans — the placement it describes has ZERO
+  # courtyard overlaps before the legalizer runs, so the legalizer should move
+  # nothing. If it reports movement, something upstream changed.
   #
-  # 3. U_MCU IS ROTATED 180. The RP2040 dossier's DERIVED layout note: pins
-  #    43-56 (QSPI + all four supply domains + the USB pair) and pins 15-28
-  #    (XIN/XOUT/SWCLK/SWDIO/RUN + the select GPIOs) are OPPOSITE sides, and
-  #    "the MCU's crystal side should point at the switch, not its QSPI side".
-  #    At rotation 0 the QSPI side faces -y, i.e. straight at the nine-arm
-  #    receive fan - and nets.yaml calls QSPI "the only CONTINUOUS in-band spur
-  #    source" on this board. 180 turns the spur source away from the fan and
-  #    sends the four select lines up the escape corridor toward U_SW.
-  #
-  # THE DIGITAL-STRIP SEEDS ARE INTENT AT CLUSTER RESOLUTION, not measured
-  # geometry - the file's own banner. What stage 5 must MEASURE (the
-  # keep_short budgets P-ADJ will grade, from the 02_parts layout: blocks):
-  #    VBUS <= 8 mm | VBUS_F <= 12 mm | USB_CC1/USB_CC2 <= 5 mm
-  #    USB_DP/USB_DM <= 20 mm | QSPI_SD* + QSPI_SCLK <= 12 mm
-  #    QSPI_CSN <= 15 mm | XIN/XOUT <= 6 mm | SW_V4 <= 4 mm
-  # and three budgets that will land in P-ADJ-UNREACHED rather than P-ADJ,
-  # because they name nets this board does not carry: PE42482A-X's SW_LS (LS
-  # is ON GND by ADR-0005, already recorded in nets.yaml), PE42482A-X's
-  # SW_VDD (pin 8 is on 3V3 - there is no series element to make a second
-  # node), and KH-SMA-KE-Z's RF_ANT_LAUNCH (a generic name, not a board net).
-  # ABM8-272-T3's `keep_short: GND <= 3 mm` will FAIL as written: GND is a
-  # four-layer pour with hundreds of pads. All four are 02_parts one-line
-  # fixes, listed here so stage 5 does not rediscover them.
+  # WHAT P-ADJ WILL SAY, PRE-COMPUTED SO STAGE 5 DOES NOT REDISCOVER IT:
+  #   PASS  VBUS 7.25/8 · VBUS_F 11.47/12 · USB_CC1 3.43/5 · USB_CC2 2.79/5
+  #         USB_DP 7.97/20 · USB_DM 8.50/20 · XIN 4.03/6 · XOUT 2.80/6
+  #         QSPI_SD0 6.42 · SD1 10.83 · SD2 11.55 · SD3 5.52 · SCLK 5.83 (/12)
+  #         QSPI_CSN 14.27/15 · BOOTSEL_N 9.50/20 · RUN_N 17.86/20
+  #   UNREACHED (net name not on this board — four, not the three the stage-4
+  #         handoff named): SW_VDD, SW_LS, RF_ANT_LAUNCH, and RP2040's DVDD
+  #         (this board's net is DVDD_1V1).
+  #   FAIL, both STRUCTURALLY UNSATISFIABLE, both waived with measurements in
+  #         03_src/rules/policy_waivers.yaml:
+  #         * ABM8-272-T3 `GND <= 3 mm` — GND is a four-layer pour with 100+
+  #           pads; measured span 67.24 mm. No placement can pass it.
+  #         * PE42482A-X `SW_V4 <= 4 mm` — the budget is written about the
+  #           PULL-DOWN ("the resistor belongs at the pad, not at the PIO
+  #           end") but SW_V4 also carries R_S4, the SOURCE TERMINATION that
+  #           ADR-0005 puts at the DRIVER end 21 mm away. P-ADJ measures the
+  #           whole net's max pad pair, so the budget grades a topology the
+  #           board's own ADR chose. Measured 21.43 mm; the part the budget is
+  #           about, R_PD4 -> U_SW pin 12, measures 2.42 mm.
   seeds:
-    # ---- the switch cell: bypass at pin 8, pull-downs at pins 9..12 --------
-    C_SW1: [44.6, 49.4]            # part.yaml budgets SW_VDD <= 3 mm
-    C_SW2: [47.4, 49.4]
-    R_PD1: [43.4, 50.6]
-    R_PD2: [45.0, 50.6]
-    R_PD3: [46.6, 50.6]
-    R_PD4: [48.2, 50.6]            # V4: part.yaml budgets SW_V4 <= 4 mm
+    # ---- the switch cell -------------------------------------------------
+    # Below the 2.0 mm escape corridor (which ends at y = 50.45) and INSIDE the
+    # 225->315 degree escape wedge, because everything outside that wedge at
+    # this radius is on an RF arm: at y = 51.1 the RF4 arm is at x = 40.4 and
+    # the RF5 arm at x = 51.6. Rotation 270 on the 0402s puts pad 1 toward the
+    # package, which is what makes the bypass a bypass.
+    C_SW1: [44.0, 51.2, 270]       # 3V3 bypass; pad 1 -> 2.62 mm from pin 8
+    R_PD4: [46.0, 51.2, 270]       # V4 pull-down; pad 1 -> 2.53 mm from pin 12
+    R_PD3: [48.0, 51.2, 270]
+    R_PD2: [45.0, 53.6, 270]
+    R_PD1: [47.0, 53.6, 270]
+    C_SW2: [42.0, 53.6, 0]         # the 0603 bulk half of the switch bypass
 
-    # ---- the MCU cell (rotation 180, see note 3 above) ---------------------
-    U_MCU:   [46.0, 73.5, 180]
-    # source terminations at the DRIVER end (ADR-0005), by pins 15-18 =
-    # GPIO12..15 = SEL_V1..SEL_V4, which rotation 180 puts on the -y side
-    R_S1: [49.0, 69.6]
-    R_S2: [50.2, 69.6]
-    R_S3: [51.4, 69.6]
-    R_S4: [52.6, 69.6]
-    # crystal cell at XIN/XOUT (pins 20/21), same -y side, inboard of the
-    # select group. R_XTAL is IN the XOUT net and C_XTAL2 sits on the CRYSTAL
-    # side of it (RP2040 HD guide sec 2.3, Figure 8, PDF p11).
-    Y_XTAL:  [46.6, 68.4]
-    R_XTAL:  [48.4, 69.2]
-    C_XTAL1: [44.6, 67.4]
-    C_XTAL2: [48.6, 67.4]
+    # ---- the MCU cell (rotation 180) --------------------------------------
+    # The RP2040 dossier's DERIVED layout note: pins 43-56 (QSPI + all four
+    # supply domains + the USB pair) and pins 15-28 (XIN/XOUT/SWCLK/SWDIO/RUN
+    # + the select GPIOs) are OPPOSITE sides, and "the MCU's crystal side
+    # should point at the switch, not its QSPI side". At rotation 0 the QSPI
+    # side faces -y, i.e. straight at the nine-arm receive fan — and nets.yaml
+    # calls QSPI "the only CONTINUOUS in-band spur source" on this board. 180
+    # turns the spur source away from the fan and sends the four select lines
+    # up the escape corridor toward U_SW.
+    # Pad rows at rotation 180 (measured off the footprint, pad centres at
+    # +/-3.4375): -y row y = 69.5625 carries pins 15..28 left-to-right
+    # 28..15 (SEL group at x 47.4..48.6, XIN 46.6, XOUT 46.2, RUN 42.2);
+    # +y row y = 76.4375 carries 43..56 left-to-right (ADC_AVDD 43.4,
+    # VREG_VIN 43.8, VREG_VOUT 44.2, USB_DM 44.6, USB_DP 45.0, USB_VDD 45.4,
+    # IOVDD 45.8, DVDD 46.2, then QSPI 46.6..48.6).
+    U_MCU:   [46.0, 73.0, 180]
+    # crystal cell at XIN/XOUT. R_XTAL is IN the XOUT net and C_XTAL2 sits on
+    # the CRYSTAL side of it (RP2040 HD guide sec 2.3, Figure 8, PDF p11).
+    Y_XTAL:  [45.9, 66.8, 0]
+    C_XTAL1: [42.5, 67.6, 180]     # pad 1 faces the crystal
+    C_XTAL2: [49.4, 66.4, 0]
+    R_XTAL:  [49.4, 68.1, 0]
+    # source terminations at the DRIVER end (ADR-0005), on the +x half of the
+    # -y band so they do not fight the crystal for the pins-20/21 frontage
+    R_S1: [52.3, 66.6, 0]
+    R_S2: [54.5, 66.6, 0]
+    R_S3: [52.3, 68.1, 0]
+    R_S4: [54.5, 68.1, 0]
     # the ten 100 nF, one per RP2040 power pin (six IOVDD, two DVDD,
-    # USB_VDD, ADC_AVDD) - distributed AROUND the package, which is what
-    # Raspberry Pi's own routed reference does (Figure 6, PDF p9)
-    C_MCU1:  [41.6, 71.0]
-    C_MCU2:  [50.4, 71.0]
-    C_MCU3:  [41.6, 76.0]
-    C_MCU4:  [50.4, 76.0]
-    C_MCU5:  [43.4, 69.6]
-    C_MCU6:  [47.0, 78.4]
-    C_MCU7:  [45.0, 78.4]          # DVDD pin 23 -> on DVDD_1V1
-    C_MCU8:  [48.6, 78.4]          # DVDD pin 50 -> on DVDD_1V1
-    C_MCU9:  [42.6, 78.4]          # USB_VDD pin 48
-    C_MCU10: [40.4, 76.8]          # ADC_AVDD pin 43
+    # USB_VDD, ADC_AVDD) — distributed AROUND the package, which is what
+    # Raspberry Pi's own routed reference does (Figure 6, PDF p9). MEASURED
+    # cap-to-pin distances, reported rather than claimed: the -x column runs
+    # 1.3-2.2 mm from IOVDD pins 33/42; the sub-MCU row runs 1.7-2.9 mm from
+    # the +y row; C_MCU1/C_MCU2 sit 3.2 and 5.6 mm out because the QFN's +x
+    # side is claimed by U_FLASH, whose QSPI_SD2 budget is 12 mm and measures
+    # 11.55 mm — moving the flash to free that column breaks the tighter gate.
+    C_MCU5:  [40.2, 67.8, 0]
+    C_MCU6:  [40.4, 69.9, 0]
+    C_MCU3:  [40.4, 72.0, 0]
+    C_MCU10: [40.4, 73.8, 0]
+    C_MCU4:  [40.4, 75.6, 0]
     # the on-die 1.1 V regulator's two MANDATORY capacitors (RP2040 sec
-    # 2.10.1, PDF p157) at pins 44 and 45, which rotation 180 puts at the
-    # -x end of the +y side
-    C_VREG_IN:  [41.4, 78.4]
-    C_VREG_OUT: [40.2, 78.4]
-    # USB series terminations (RP2040 Table 620) between pins 46/47 and U_ESD
-    R_USB2: [43.6, 80.0]           # USB_DM
-    R_USB1: [44.8, 80.0]           # USB_DP
+    # 2.10.1, PDF p157) beside VREG_VIN/VREG_VOUT on the -x flank
+    C_VREG_IN:  [36.6, 76.6, 0]
+    C_VREG_OUT: [36.6, 78.6, 0]
 
-    # ---- flash + boot straps (QSPI side, +x end of the +y row) ------------
-    U_FLASH: [53.5, 76.5]
-    C_FLASH: [53.5, 79.2]
-    R_CSPU:  [53.5, 73.8]          # 10 k /CS pull-up, AT the flash (sec 9.3)
-    R_BOOT:  [57.0, 76.5]          # 1 k QSPI_CSN -> BOOTSEL_N
-    SW_BOOT: [60.5, 76.5]
-    SW_RUN:  [64.5, 76.5]
+    # ---- the sub-MCU row: the +y pin row's decoupling, the USB series pair
+    #      and the ESD array's CBUS, in the 1.92 mm band between the MCU
+    #      courtyard (ends 77.13) and U_ESD's (starts 79.05) ---------------
+    C_MCU9: [39.4, 78.1, 0]
+    R_USB2: [41.6, 78.1, 0]        # USB_DM series termination (RP2040 Table 620)
+    C_MCU7: [43.8, 78.1, 0]        # DVDD_1V1
+    C_ESD:  [46.0, 78.1, 0]        # CBUS 100 nF at U_ESD pin 5 (ST Figure 18);
+                                   # pad 1 measures 1.92 mm from that pad
+    C_MCU8: [48.2, 78.1, 0]        # DVDD_1V1
+    R_USB1: [50.4, 78.1, 0]        # USB_DP series termination
+    C_MCU1: [52.6, 78.1, 0]        # IOVDD pin 1  (3.6 mm)
+    C_MCU2: [54.8, 78.1, 0]        # IOVDD pin 10 (6.4 mm) - see the note above
 
-    # ---- USB entry + protection, hugging J_USB (ADR-0008) -----------------
-    J_USB:  [46.0, 87.0]
-    # U_ESD straddles the D+/D- escape immediately behind the connector pad
-    # row (which the authored footprint puts at y = 87 - 3.67 = 83.33). The
-    # rotation intent: pins 1/2/3 (D+ in, GND, D- in) face the CONNECTOR and
-    # pins 6/4 (D+ out, D- out) face the MCU, so the pair physically passes
-    # THROUGH the clamp with a zero-length stub (ST Figure 7). Pins 1+6 and
-    # 3+4 are the same node, so no ERC, DRC, netlist or parity check can tell
-    # this dress from a stub - it is intent someone has to hold.
-    U_ESD:  [46.2, 81.4, 90]
-    R_CC1:  [43.4, 81.4]           # A5 pad lands at x = 44.75
-    R_CC2:  [49.0, 81.4]           # B5 pad lands at x = 47.75
-    C_ESD:  [46.2, 79.5]           # CBUS 100 nF AT pin 5 (ST Figure 18)
-    F_IN:   [43.2, 79.5]           # pad 1 (VBUS) toward the connector
-    D_TVS:  [40.6, 79.5]           # cathode = pad 1 -> VBUS_F
-    C_BULK: [38.2, 79.5]
-    FB_IN:  [36.0, 79.5]
-    C_LDI:  [33.6, 79.5]           # regulator INPUT cap, on VBUS_LDO
-    U_LDO:  [30.4, 80.4]
-    C_LDO:  [30.4, 83.4]
+    # ---- USB entry + protection ------------------------------------------
+    # R_CC1/R_CC2 sit BESIDE U_ESD rather than beside the connector, because
+    # J_USB's bounding box occupies y >= 83.54 across x 40.68..51.32 and the
+    # CC pads are inside it. Measured: 3.43 / 2.79 mm against the 4.0 mm
+    # `adjacency:` and 5 mm keep_short budgets.
+    R_CC1:  [42.9, 82.4, 0]        # A5 pad lands at x = 44.75
+    R_CC2:  [49.1, 82.4, 0]        # B5 pad lands at x = 47.75
 
-    # ---- indicators (clear of the M3 keepout at [67.5, 84.5]) -------------
-    LED_PWR: [58.0, 85.0]
-    R_LED1:  [58.0, 82.5]
-    LED_ST:  [61.5, 85.0]
-    R_LED2:  [61.5, 82.5]
+    # ---- the power chain. VBUS_F is the constraint, not tidiness: it is a
+    #      SIX-pad net (F_IN.2, D_TVS.1, C_BULK.1, FB_IN.1, C_ESD.1,
+    #      U_ESD.5) with a 12 mm budget, so the input protection has to be a
+    #      COMPACT 2D cluster, not a line. Laid out linearly it measured
+    #      19.31 mm; as placed it measures 11.47 mm. F_IN is FIRST on VBUS
+    #      (ADR-0004) and its pad 1 measures 7.25 mm from the farthest J_USB
+    #      VBUS land, against the 8 mm budget.
+    F_IN:   [41.5, 80.2, 180]      # pad 1 (VBUS) toward the connector
+    D_TVS:  [35.2, 81.9, 180]      # cathode = pad 1 -> VBUS_F
+    C_BULK: [37.0, 85.6, 180]
+    FB_IN:  [38.5, 87.9, 180]
+    C_LDI:  [32.5, 87.9, 0]        # regulator INPUT cap, on VBUS_LDO
+    U_LDO:  [26.6, 80.2, 0]
+    C_LDO:  [30.5, 85.6, 0]
 
+    # ---- flash + boot straps (QSPI side, +x of the MCU) ------------------
+    U_FLASH: [55.5, 73.5, 180]     # rotation 180 puts pins 5-8 (SD0, SCLK,
+                                   # SD3, VCC) on the MCU side; at rotation 0
+                                   # QSPI_SD3 measures 12.70 mm and FAILS its
+                                   # 12 mm budget. Measured worst arm at 180:
+                                   # QSPI_SD2 11.55 mm.
+    C_FLASH: [62.5, 73.5, 0]
+    R_CSPU:  [62.5, 75.5, 0]       # 10 k /CS pull-up, AT the flash (sec 9.3)
+    R_BOOT:  [62.5, 71.5, 0]       # 1 k QSPI_CSN -> BOOTSEL_N
+    SW_RUN:  [55.6, 82.0, 0]
+    SW_BOOT: [64.0, 81.0, 0]
+
+    # ---- indicators, on the -x flank clear of the power cluster ----------
+    LED_PWR: [24.0, 74.0, 0]
+    R_LED1:  [27.5, 74.0, 0]
+    LED_ST:  [24.0, 71.0, 0]
+    R_LED2:  [27.5, 71.0, 0]
+
+  # clearance STAYS 0.25, and tier_preflight's PF-LEGALIZE WARN (which asks
+  # for 0.45 = via drill 0.15 + 2 x hole_clearance 0.15) is CARRIED, not
+  # silenced. MEASURED on the placed board, true rotated-polygon separation:
+  # the tightest movable pair is R_XTAL <-> U_MCU at 0.310 mm and the tightest
+  # pair of any kind is 0.257 mm (the M3 hole circles against U_LDO and
+  # SW_BOOT, which the legalizer treats as board-only and never moves). Raising
+  # the value to 0.30 was TRIED and moved TEN parts; 0.45 is not reachable in a
+  # 27 x 50 mm strip holding 48 parts. THE CONSEQUENCE, stated so stage 6 does
+  # not rediscover it: there is no room for a 0.25/0.15 rescue via BETWEEN
+  # parts in the digital strip, so GND island rescue there has to come from the
+  # pours and from pad_rescue at the pads, not from inter-part stitching.
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
 
 # ESCAPE CORRIDOR — the reserved lane off the ONE side of U_SW that carries no
 # RF (pins 7..12: GND, VDD, V1..V4, escape budget 5, recorded in the part.yaml
 # escape block). Expands to a named rule area denying footprints and pours
-# while leaving tracks and vias allowed.
+# while leaving tracks and vias allowed. 1.5 mm, not 4.0 — see note 6 at the
+# top of this file.
 escape_corridors:
-  - {ref: U_SW, side: S, depth_mm: 4.0}
+  - {ref: U_SW, side: S, depth_mm: 1.5}
 
 design_rules:
   # jlc_4layer_advanced floors (ADR-0003 / fab_tiers.yaml). These are FLOORS —
@@ -243,7 +479,24 @@ design_rules:
   via_min_size: 0.25
   min_through_drill: 0.15
   via_min_annulus: 0.05
-  hole_clearance: 0.20
+  # 0.15, NOT the 0.20 this file carried as intent, and the reason is a
+  # MEASUREMENT on the one pair that binds it (kicad-cli DRC on the placed
+  # board, 2026-07-28): J_USB's four merged GND lands (A1/B12 and A12/B1) sit
+  # 0.175 mm from J_USB's OWN NPTH alignment holes, and that number comes
+  # STRAIGHT OUT OF HRO's recommended layout — the vendor puts the SMT pad row
+  # 1.07 mm from the alignment line, which is 0.375 mm closer than KiCad's
+  # stock part (the very error 02_parts deviation 6 exists to record; the
+  # stock land reads 0.395 mm here BECAUSE it is wrong). At the sheet's
+  # nominal 0.60 mm hole it would be 0.2001 mm, i.e. 0.1 um of margin — the
+  # 0.65 mm hole the footprint draws is a documented post-entry decision and
+  # is NOT churned to make a rule pass. There is exactly ONE consumer: the
+  # only other NPTHs on the board are the four M3s, which clear everything by
+  # >2 mm. Fleet precedent for the same relaxation with the same posture:
+  # crow-recorder-central-v2 (0.15, 2026-07-23, routing D-BACK).
+  # CARRIED FORWARD: 0.175 mm is below JLC's published NPTH-to-copper figure,
+  # so it is an ORDER-DAY DFM item on a vendor-recommended land, not a
+  # silently relaxed rule. CHECKLIST section F owns it.
+  hole_clearance: 0.15
   hole_to_hole: 0.25
   copper_edge_clearance: 0.3
   solder_mask_min_width: 0.0
@@ -255,8 +508,9 @@ zones:
   # and carry the via fences. The 3V3 pour on L3 (In2.Cu) is deliberately NOT
   # declared here yet: it belongs to the digital strip only, and a board-wide
   # 3V3 pour on L3 would sit under the RF fan. It is added as a REGION at
-  # stage 5 once the strip is legalized; until then 3V3 is the PWR netclass at
-  # 0.4 mm, which carries the 0.15 A envelope with enormous margin.
+  # stage 6 once the routing is in, since a pour's outline has to dodge the
+  # control bus; until then 3V3 is the PWR netclass at 0.4 mm, which carries
+  # the 0.15 A envelope with enormous margin.
   - {net: GND, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], priority: 0, min_thickness: 0.2, clearance: 0.25, connect: thermal}
 
 asserts:
@@ -272,16 +526,139 @@ asserts:
     - {ref: U_SW, pad: 22, net: RX2_OUT}   # RFC
     - {ref: U_SW, pad: 24, net: ANT1}      # RF1 = the delta reference
     - {ref: U_SW, pad: 25, net: GND}       # exposed pad — the RF ground return
+  body_offset:
+    # WHICH WAY DOES THE USB-C MOUTH FACE. A jack's pads cluster at its rear,
+    # so the body centroid is displaced toward the opening. Pad order alone
+    # cannot catch a 180-degree flip on a part whose contact rows are
+    # symmetric; this can. Measured on the authored footprint: bbox centre is
+    # +2.58 mm in y from the pad centroid, so the mouth is +y = the y1 edge.
+    - {ref: J_USB, axis: y, sign: "+"}
+  pad_beyond_edge:
+    # THE VENDOR DATUM, MACHINE-CHECKED. HRO's RECOMMEND P.C.B LAYOUT puts the
+    # PCB EDGE 5.79 mm from the alignment-hole centre line, and the authored
+    # footprint puts the SMT pad row 1.07 mm from that same line, so pad A6
+    # must sit exactly 6.86 mm inside the y1 edge. If the outline moves, or
+    # the anchor moves, or the footprint's datum changes, this goes red — and
+    # nothing else on the board would notice.
+    - {ref: J_USB, pad: A6, edge: y1, offset: 6.86, tolerance: 0.05}
 
 silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
+  # caption_nudge OFF: the nudger's search failed on this board and its
+  # fallback is "keep the best offset anyway", which MEASURED as the port-
+  # contract caption landing on top of the crystal cell and "RX1 -> PLUTO RX1"
+  # landing at x = 73.04 — 2 mm OFF a board whose x1 is 71. Every position
+  # below is instead verified by hand against the placed courtyards and
+  # re-measured with kicad-cli DRC.
+  caption_nudge: false
   captions:
+    # EVERY POSITION IN THIS BLOCK WAS SEARCHED, NOT CHOSEN. With
+    # caption_nudge off the generator keeps a crowded caption where it is and
+    # only WARNs, so "crowded" is the only feedback there is — and the previous
+    # revision of this block produced SEVEN of those WARNs (the port contract on
+    # J_ANT5's body, the title 0.17 mm off the x0 edge, and five port legends).
+    # They were resolved by reproducing generate_board_generic's OWN obstacle
+    # model offline (pad bboxes + footprint silk + refdes boxes at clearance/2,
+    # PLUS the whole-footprint body bbox at 0.05 — that last term is the one a
+    # by-hand check omits, and it is what the port contract was hitting) and
+    # exhaustively searching. All 17 captions below now report zero collisions
+    # against that model, and the generator agrees: 0 crowded.
+    #
+    # THE ESCAPE WEDGE IS THE ONLY LARGE CLEAR SILK AREA ON THIS BOARD, and it
+    # is MEASURED at 16.73 mm wide (24 chars at 0.6 mm) by 5.96 mm tall
+    # (y 56.22..62.18) — i.e. FOUR rows at the 1.40 mm pitch that 1.16 mm-tall
+    # text plus 0.16 mm clearance allows, and no fifth. That is the whole silk
+    # budget for prose on a board whose remaining front face is a ten-jack ring.
     # THE PORT CONTRACT IS A SILKSCREEN OBLIGATION (ADR-0004), not
-    # documentation: this board carries no ESD device and no DC block on any
-    # of its ten RF ports, and V_RFDC(max) on the switch is 0 V.
-    - ["RX ONLY - PASSIVE ANTENNAS - 0 VDC - NO BIAS TEE - NO TRANSMIT", 46.0, 64.0, 0.7]
-    - ["pluto-rx2-8way  8-WAY AoA SELECTOR  70 MHz - 6 GHz", 46.0, 86.0, 0.7]
-    - ["ANT8 = RX1 ANTENNA (-19.8 dB TAP)", 56.0, 24.0, 0.55]
-    - ["RX1 -> PLUTO RX1", 62.0, 35.5, 0.55]
-    - ["RX2 -> PLUTO RX2", 38.0, 23.5, 0.55]
+    # documentation: this board carries no ESD device and no DC block on any of
+    # its ten RF ports, and V_RFDC(max) on the switch is 0 V. All four contract
+    # facts survive the 24-char limit — "RX only", "no transmit", "passive
+    # antennas", "0 VDC max" (which IS the no-bias-tee statement) — and the two
+    # board-specific facts a user needs join them, because four rows was the
+    # budget and a fifth row does not exist:
+    - ["RX ONLY - NO TRANSMIT",   46.0, 56.9, 0.6]
+    - ["PASSIVE ANT - 0 VDC MAX", 46.0, 58.3, 0.6]
+    - ["ANT8 = RX1 TAP -19.8 dB", 46.0, 59.7, 0.6]
+    - ["RX1/RX2 = SDR OUTPUTS",   46.0, 61.1, 0.6]
+    # the title: 24 chars at 0.6 mm = 13.18 mm, at x 21.41..34.59. The previous
+    # 34-char string at x = 30.5 measured x 21.23..39.76 against an x0 of 21.0 —
+    # i.e. 0.17 mm OFF THE BOARD, which _in_frame(0.4) rejected and which the
+    # crowded WARN reported without saying why.
+    - ["pluto-rx2-8way 8-WAY AoA", 28.0,  90.0,  0.6]
+    - ["70 MHz - 6 GHz",           55.45, 90.05, 0.6]
+
+    # ---- THE TEN PORT LABELS -------------------------------------------------
+    # TEN NEAR-IDENTICAL SMA JACKS ARE A MIS-MATE RISK BY CONSTRUCTION, so this
+    # block is a safety obligation and not decoration. Three things are held
+    # here and each one is a MEASUREMENT, not a preference:
+    #
+    #  (a) OWNERSHIP. Every label sits on ITS OWN 30-degree radius, at the
+    #      LARGEST r <= 16.5 that clears the obstacle model — so each one is as
+    #      close to the jack it names as the geometry permits, and the search is
+    #      what fixes r, not taste. Measured, every label, own jack vs nearest
+    #      other jack: the four diagonal radii land at r = 10.85 (d_own 9.15,
+    #      d_neighbour 11.91), the four axis-adjacent ones at r = 12.95 (7.05 vs
+    #      10.91), RX2 at r = 12.25 (7.75 vs 11.21) and ANT8 at r = 9.60 (10.40
+    #      vs 12.63). EVERY label is nearer its own jack than any other jack,
+    #      with 2.2-3.9 mm of discrimination. No label can be read as belonging
+    #      to a neighbour.
+    #      THIS REPLACED A REAL DEFECT, found by measuring rather than reading:
+    #      the two legends this block supersedes were at (65.75, 33.75) and
+    #      (38.75, 34.25), and the SECOND one measured 7.29 mm from J_ANT1
+    #      against 7.85 mm from J_RX2 — "RX2 -> PLUTO RX2" was PHYSICALLY
+    #      CLOSER TO THE ANTENNA JACK NEXT DOOR than to the output it named.
+    #      That is the exact class two lenses caught on a sibling board (a
+    #      connector labelled on its neighbour); it was here, on the one pair
+    #      of ports whose confusion feeds an SDR input with an antenna.
+    #
+    #  (b) STROKE 0.152 mm, NOT 0.13. fab_tiers.yaml's `min_silk_stroke` moved
+    #      to 0.1125 on 2026-07-29 because 0.45 mm text CANNOT carry 0.15 (the
+    #      KiCad clamp is stroke <= 0.25 x height), and the declared corollary
+    #      is that reaching 0.15 needs >= 0.60 mm text. MEASURED against the
+    #      generator's actual formula, `max(min_silk_stroke, 0.13, 0.16*size)`,
+    #      0.60 mm text yields 0.16*0.60 = 0.096 -> floored to 0.13 — i.e. the
+    #      0.60 mm corollary is NECESSARY BUT NOT SUFFICIENT under this backend.
+    #      0.15 needs size >= 0.9375. These ten are therefore 0.95 mm / 0.152 mm
+    #      stroke, and they are the only text on the board that gets it, because
+    #      they are the only text read UNDER STRESS with a cable in one hand.
+    #      (The 0.60-only captions above stay at 0.13; the generator's formula
+    #      is carried up as a proposed skill patch, not edited here.)
+    #
+    #  (c) RX vs ANT IS A DIFFERENT WORD, NOT A DIFFERENT DIGIT. "RX1"/"RX2"
+    #      against "ANT1".."ANT8" differ in LENGTH and in every glyph of the
+    #      prefix; a sibling board shipped safety labels that discriminated by
+    #      0.069 mm of geometry. The two outputs additionally carry the
+    #      "RX1/RX2 = SDR OUTPUTS" line in the escape wedge.
+    #      HONESTLY REPORTED: "RX1 OUT" / "RX2 OUT" was TRIED first, because
+    #      naming the direction is a better discriminator than naming the port.
+    #      "RX2 OUT" fits on theta 105; "RX1 OUT" does NOT fit anywhere on theta
+    #      45 (searched 16.5 -> 5.0 mm at 0.05 mm steps). Labelling one output
+    #      "RX1" and the other "RX2 OUT" would make the PAIR asymmetric, which is
+    #      the opposite of what a mis-mate label is for, so BOTH are "RX1"/"RX2"
+    #      and the direction moved to the wedge line instead.
+    #
+    # x = 46 + r*cos(theta), y = 46 - r*sin(theta) — the SAME expression the
+    # anchors use, so a label and its jack cannot drift apart silently.
+    - ["ANT7", 58.509, 42.648, 0.95]   # theta  15, r = 12.95
+    - ["RX1",  53.672, 38.328, 0.95]   # theta  45, r = 10.85
+    - ["RX2",  42.829, 34.167, 0.95]   # theta 105, r = 12.25
+    - ["ANT1", 38.328, 38.328, 0.95]   # theta 135, r = 10.85
+    - ["ANT2", 33.491, 42.648, 0.95]   # theta 165, r = 12.95
+    - ["ANT3", 33.491, 49.352, 0.95]   # theta 195, r = 12.95
+    - ["ANT4", 38.328, 53.672, 0.95]   # theta 225, r = 10.85
+    - ["ANT5", 53.672, 53.672, 0.95]   # theta 315, r = 10.85
+    - ["ANT6", 58.509, 49.352, 0.95]   # theta 345, r = 12.95
+    # ANT8 sits deepest of the ten, and the reason is the pickoff: R_T1 and R_T2
+    # are ON theta 75 at r = 13.8 and 11.6, so the search walks past both and
+    # settles at r = 9.60.
+    - ["ANT8", 48.485, 36.727, 0.95]   # theta  75, r = 9.60
+
+    # ---- the fuse, which P-SILK-FN grades and nothing else does -------------
+    # F_IN is one of the TWO refdes this board waives to F.Fab (with R_XTAL), so
+    # without this caption the only 0.5 A current limit in the design carries no
+    # front-face marking at all. The band between F_IN's courtyard (ends y 81.4)
+    # and J_USB's bbox (starts y 83.54) is the only clear space adjacent to it:
+    # D_TVS claims x <= 37.4 and R_CC1 claims x >= 41.9. Grid-searched, not
+    # guessed — the hand-picked (39.6, 82.7) was one of the seven crowded WARNs.
+    - ["0.5A", 40.2, 82.0, 0.6]

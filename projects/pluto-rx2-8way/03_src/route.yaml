@@ -87,8 +87,22 @@ route:
     # comparable at all. L4 (B.Cu) is a GND pour and is likewise not a
     # routing layer here.
     layers: [F.Cu, In2.Cu]
-    # via_size / via_drill / clearance OMITTED -> they default to the
+    # via_size / via_drill OMITTED -> they default to the
     # jlc_4layer_advanced floors published in fab_tiers.yaml (ADR-0003).
+    #
+    # clearance IS declared, and it is declared UP, not down. tier_preflight
+    # PF-RULES-CLR (2026-07-28) caught the mismatch this key exists to close:
+    # generate_rules emits a HARDCODED 0.2 mm clearance for the Default class
+    # and for every class in nets.yaml that does not override it, while an
+    # omitted route clearance derives from the TIER floor 0.09 — so KRT would
+    # have routed at 0.09 under a DRC floor of 0.2 that nobody declared
+    # (crow-rv2 paid 500 phantom clearance findings for exactly this).
+    # THE FIX LINE THE GATE PRINTS GOES THE OTHER WAY (drop the DRC floor to
+    # 0.09) and is REJECTED here: on this board clearance is ISOLATION, not a
+    # routability tax — 0.2 mm is what keeps the nine arms, the via fences and
+    # the QSPI bus apart, and lowering it to quiet a gate would be an
+    # electrical relaxation bought with a warning. 0.2 is 2.2x the tier floor.
+    clearance: 0.2
     fab_tier: jlc_4layer_advanced
     no_stub_layer_swap: true
     keepout: true
@@ -111,11 +125,22 @@ route:
   # final: 03_src/route/rN.kicad_pcb
 
 stitch:
-  clearance: 0.15
+  # 0.2, raised from 0.15 on 2026-07-28: tier_preflight PF-STITCH-CLR — rescue
+  # and tap copper must be VERIFIED at the clearance the DRC gate will JUDGE
+  # it at, and route.common.clearance is 0.2 on this board.
+  clearance: 0.2
   # via size/drill OMITTED -> tier floors (jlc_4layer_advanced). `spacing` is
   # centre-to-centre and must leave more than the tier's hole_to_hole (0.25)
   # of drill-edge gap.
-  via: {spacing: 0.85, pth_margin: 0.3}
+  # `tiers` IS declared: tier_preflight PF-HTC (2026-07-28) measured that the
+  # unset default hole-to-copper of 0.205 is 0.055 mm STRICTER than this
+  # board's own hole_clearance floor (0.15, set in floorplan.yaml for the
+  # J_USB vendor land), which makes try_via refuse sites that are DRC-legal —
+  # a FALSE placement wall that cost crow-rv2 a misdiagnosed D-BACK.
+  via:
+    spacing: 0.85
+    pth_margin: 0.3
+    tiers: [{size: 0.25, drill: 0.15, hole_to_copper: 0.155}]
   keepin: {inset: 0.8}
   passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
            split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
@@ -153,6 +178,10 @@ stitch:
     net: GND
     x: [24, 68, 4]
     y: [24, 88, 4]
-  island_rescue: {min_bbox: 0.8, layers: [F.Cu, In2.Cu, B.Cu], require: all}
+  # In1.Cu ADDED 2026-07-28: tier_preflight PF-LAYER measured that the
+  # declared plane layer was NOT in the rescue scan, i.e. an island on the one
+  # SOLID reference plane this board's whole phase argument depends on would
+  # have been invisible (crow-rv2: 200 shorting + 501 clearance findings).
+  island_rescue: {min_bbox: 0.8, layers: [B.Cu, F.Cu, In1.Cu, In2.Cu], require: all}
   heal_islands: {min_bbox: 0.8}
   prune_stitch_dangling: {tol: 0.05, min_layers: 2}

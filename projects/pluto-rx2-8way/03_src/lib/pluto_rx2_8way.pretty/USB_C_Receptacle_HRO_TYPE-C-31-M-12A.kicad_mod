@@ -27,7 +27,7 @@
 			)
 		)
 	)
-	(property "Datasheet" "HRO TYPE-C-31-M-12A REV A (2022.10.26)"
+	(property "Datasheet" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
@@ -39,7 +39,7 @@
 			)
 		)
 	)
-	(property "Description" "USB-C 2.0 receptacle 16P, 12 SMT lands + 4 PTH shell legs"
+	(property "Description" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
@@ -104,7 +104,7 @@
 	)
 	(fp_line
 		(start -4.7 2.13)
-		(end -4.7 3.9)
+		(end -4.7 2.95)
 		(stroke
 			(width 0.15)
 			(type solid)
@@ -124,23 +124,13 @@
 	)
 	(fp_line
 		(start 4.7 2.13)
-		(end 4.7 3.9)
+		(end 4.7 2.95)
 		(stroke
 			(width 0.15)
 			(type solid)
 		)
 		(layer "F.SilkS")
 		(uuid "65c96bfb-7987-4d3e-8e07-5b7a2c8aff0c")
-	)
-	(fp_line
-		(start -4.7 3.9)
-		(end 4.7 3.9)
-		(stroke
-			(width 0.15)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "647b948c-13cd-43ee-8d28-fa9bc4dad3c4")
 	)
 	(fp_line
 		(start -5.32 -5.27)

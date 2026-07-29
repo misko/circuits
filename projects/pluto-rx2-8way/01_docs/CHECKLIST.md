@@ -171,6 +171,40 @@ a checklist line. Run from the project root unless stated.
       worse for the launch than the spoke would have been
 - [ ] Ground-via fence between every pair of adjacent SMA barrels, pitch
       ≤ 1.37 mm
+- [x] **Every one of the ten SMA ports carries its own silk label, and each
+      label is NEARER ITS OWN JACK than any other jack.** Ten near-identical
+      barrels is a mis-mate risk by construction, so ownership is measured, not
+      eyeballed. **MEASURED 2026-07-29**, own-jack vs nearest-other-jack:
+      diagonals r = 10.85 (9.15 / 11.91), axis-adjacent r = 12.95 (7.05 /
+      10.91), `RX2` r = 12.25 (7.75 / 11.21), `ANT8` r = 9.60 (10.40 / 12.63) —
+      2.2–3.9 mm of discrimination on every port. The predecessor legend
+      "RX2 → PLUTO RX2" measured **7.29 mm from `J_ANT1` against 7.85 mm from
+      `J_RX2`**, i.e. it named the wrong connector, and nothing graded it
+- [x] **The ten port labels are 0.95 mm text / 0.152 mm stroke, not 0.60/0.13.**
+      `fab_tiers.yaml`'s corollary "reaching 0.15 mm of stroke requires ≥ 0.60 mm
+      text" is NECESSARY BUT NOT SUFFICIENT under the generic backend, whose
+      stroke is `max(min_silk_stroke, 0.13, 0.16 × size)` — 0.60 mm text yields
+      0.13. **0.15 needs size ≥ 0.9375** (measured, not read). These ten are the
+      only text on the board read under stress with a cable in one hand
+- [ ] **`Y_XTAL` pads 2 and 4 each take their OWN via to the L2 plane AT the
+      pad.** The crystal's `GND ≤ 3 mm` budget is P-ADJ-waived as structurally
+      unsatisfiable (GND is a four-layer pour, measured span 67.24 mm), so this
+      per-pad via IS the obligation that budget was standing in for — and it is
+      graded by nothing but this line
+- [ ] **`DVDD_1V1` from `U_MCU` pin 45 to `C_VREG_OUT` is a direct wide trace,
+      not a daisy chain through the decoupling row.** The mandatory 1 µF
+      (RP2040 §2.10.1) sits **8.65 mm** from `VREG_VOUT` because the sub-MCU row
+      is eight parts at 2.2 mm pitch in a 1.92 mm band and cannot host a 0603
+      (measured: best legal alternative 6.22 mm, which does not clear the budget
+      either). The 100 nF are at 1.11 and 3.90 mm, so the HF return is short and
+      this is the reservoir path only — route it as such
+- [ ] **Re-check the four deliberately-starved thermals after the stage-6
+      refill**: `C_MCU7.2`, `C_MCU8.2`, `C_MCU9.2`, `C_ESD.2`, all GND on F.Cu,
+      all blocked by their neighbours in the 2.2 mm row rather than by anything
+      about the parts. They were NOT converted to solid because a two-pad
+      passive with one solid plane pad and one unpoured pad is thermally
+      asymmetric at reflow (the tombstoning class). Tracks and stitch vias will
+      change the local copper, so the set is re-measured, not assumed
 
 ## E. Routing gate
 
