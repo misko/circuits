@@ -192,3 +192,70 @@
   testpoints (no part entries).
 - next: 03_tscircuit/src/interposer.tsx (10 floating nets, 3 connectors,
   20 TPs) + schematic gate battery.
+
+## 2026-07-29 12:05 — start
+- did: opened the D-SPEC SOURCING SPIKE for the two open blockers — (a) a
+  DMOS/MOSFET array pin-compatible with `U_ULNA`/`U_ULNB` (ULN2803ADWR,
+  SOIC-18W) to recover the Darlington saturation the reed-coil pull-in margin
+  is short of, and (b) an alternate for `U_EXP` (`C506653` MCP23017-E/SS)
+  which read LCSC stockCount 0 last session.
+- result: `skills/kicad-pcb/references/proven-parts.yaml` has NO entry for
+  either function (grepped ULN2803 / MCP23017 / C506653 — zero hits), so the
+  ledger has no fit and a TIMEBOXED live part-universe search is required.
+  LIVE catalog reads (same unofficial JLC endpoint `jlc_stock_check.py` uses,
+  2026-07-29): TBD62083A family in stock at four packages incl.
+  **C165895 TBD62083AFWG,EL SOIC-18-300mil stock 2334** and **C108880
+  TBD62083AFWG(Z,EHZ) SOP-18-300mil stock 6851**; MCP23017 in stock at six
+  orderable codes incl. **C558584 MCP23017T-E/SS SSOP-28 stock 7490** —
+  and **C506653 MCP23017-E/SS CONFIRMED stock 0** on an independent read.
+- next: pull the Toshiba TBD62083A datasheet and read the pin table, the
+  package drawing and the on-state drop FIGURE at ~7 mA before proposing any
+  swap. No LCSC code in this journal was guessed; every one is a live read.
+
+## 2026-07-29 15:45 — finish (D-SPEC sourcing spike + the part swap)
+- did: closed the spike with DATASHEET-CITED answers for both blockers, then
+  swapped both parts at SOURCE (`03_tscircuit/src/cooksense.tsx`, `02_parts/`).
+  (a) `U_ULNA`/`U_ULNB` ULN2803ADWR (C9683) -> **TBD62083AFWG (C165895)**, a
+  PIN-IDENTICAL 8ch DMOS sink array. New dossier
+  `02_parts/TBD62083AFWG/part.yaml` + committed PDF (sha256
+  c9f5c47a…a8fb3). `02_parts/ULN2803ADWR/` DELETED per the 02_parts contract
+  ("rejected candidates never get a committed PDF — the binary is worthless,
+  the reason is not"); the reason, and the 900-dpi Fig.1 digitization it rested
+  on, live in ADR-0023 and in git history.
+  (b) `U_EXP` C506653 -> **C558584 (MCP23017T-E/SS)**.
+- result: THREE FACTS READ, NOT ASSUMED, because each one decided whether this
+  was a drop-in or a redesign.
+  * PIN MAP from the datasheet's own p.2 "Pin explanations" **TABLE** (not a
+    figure): 1-8 = I1-I8, 9 = GND, 10 = COMMON, 11-18 = O8-O1. Identical to the
+    ULN2803A DW, including the reverse-order outputs.
+  * LAND from the p.9 `P-SOP18-0812-1.27-001` drawing at 300 dpi: body
+    11.35-11.68 x 7.37-7.62 mm, lead span 10.01-10.64 mm, pitch 1.27,
+    lead width 0.36-0.51, foot 0.85+-0.15, h 2.85 MAX. TI SLRS049G p.1 gives DW
+    as 11.50 x 7.50 mm — DEAD CENTRE of the Toshiba band. Both JEDEC 300-mil
+    18L SOIC; LCSC gives C165895 and the outgoing C9683 the SAME package string
+    'SOIC-18-300mil'. `Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm` UNCHANGED.
+  * FREEWHEEL from the p.2 equivalent-circuit FIGURE: a clamp diode with anode
+    at OUTPUT and cathode at COMMON, VF <= 2.0 V at 350 mA (p.5). The twelve
+    coils have NO external flyback diode, so losing this would have made the
+    swap a TOPOLOGY change. It survives. The same figure shows an internal
+    input-node-to-GND resistor, which is why U_ULNB's spare IN5-IN8 are safe.
+  ON-STATE DROP IS A TABLE ROW, NOT A DIGITIZATION — the point of the whole
+  exercise. p.5 EC gives V_DS(R_ON) at 100/200/350 mA and all three resolve to
+  **one resistance: 2.0 ohm typ, 3.25 ohm MAX** (Test Circuit 2 defines
+  R_ON = V_DS/I_OUT). 7.0 mA x 6.50 ohm (2x, hot bound) = **46 mV** against the
+  Darlington's 670-880 mV. INPUT: V_IN(ON) MAX 2.5 V vs this board's 3V3 '238
+  decoders = +0.8 V (TBD62084A needs 7.0 V — recorded DO-NOT-ORDER).
+  LIVE STOCK, all read 2026-07-29 off the same endpoint jlc_stock_check uses,
+  NO code guessed: C165895 TBD62083AFWG,EL SOIC-18-300mil **2334** $1.2252;
+  alternate C108880 TBD62083AFWG(Z,EHZ) **6851** $0.8931; C558584
+  MCP23017T-E/SS SSOP-28 **7490** $1.7105; and **C506653 = 0, confirmed**.
+  Both are D-SPEC class (a): sourceable at the declared cost tier, no D-TIER
+  decision owed. Both are CHEAPER than the parts they replace.
+  PROVENANCE DEVIATION REGISTERED in `02_parts/README.md`: every Toshiba URL
+  403s and Mouser/LCSC serve JS/HTML, so the PDF came from rlocman.ru — Toshiba
+  metadata (Author "TOSHIBA", Acrobat PDFMaker, 2016-05-11, the same date
+  Mouser's own undownloadable filename carries), cross-checked
+  CHARACTER-IDENTICAL over all 11 pages against a second host (datasheet4u,
+  PDFium-rewrapped so its metadata is stripped).
+- next: ADR-0023, the `node_level` coil-margin assert, rebuild + battery. The
+  netlist must differ from v1.7's in NOTHING but three component values.

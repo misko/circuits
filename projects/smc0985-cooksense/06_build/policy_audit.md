@@ -9,7 +9,7 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | S-ERC | PASS | 0 errors (417 warnings) |
 | S-NC | PASS | all floats no_connect-flagged |
 | S-NET | PASS | 168 routed nets, all named |
-| S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'SN74HC14DR', 'SN74HC595DR', 'ULN2803ADWR'] (9/36) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
+| S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'SN74HC14DR', 'SN74HC595DR', 'X9555WV-2x16-6TV01'] (8/36) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
 | P-ESC | PASS | 44 parts: escape blocks agree with escape_check |
 | P-TIER | PASS | all parts escape at declared fab_tier 'jlc_4layer_advanced' |
 | P-LAYOUT | PASS | 33 in-scope parts carry a datasheet layout: block |
@@ -32,14 +32,14 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | R-RULES | PASS | r0.kicad_pro: classes=['Default', 'PWR_IN', 'COIL_RAIL', 'STOP_RAIL', 'PWR_3V3', 'PWR_SW', 'ISO_CONTACTOR', 'KEYPAD_ISO', 'ANALOG_SENSE'] |
 | R4 | HUMAN | escape-first routing order — design review (feasibility itself is machine-checked: P-ESC/P-TIER) |
 | R-LEN | PASS | length-spread audit present in 03_src |
-| E-INV | PASS | E-INV OK: 136/136 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
+| E-INV | PASS | E-INV OK: 140/140 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
 | E-ADR | PASS | E-ADR OK: 9/9 protection/topology ADR(s) cited by an invariant (graded against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/03_src/rules/electrical_invariants.yaml) |
 | E-TOPO | PASS | E-TOPO OK: 1/1 rail(s) topology-correct, covering 1/1 converter part(s) in 02_parts   rail '3V3' (Vin 4.754-5.25 V, Vout 3.201-3.399 V): required=BUCK, declared=LINEAR (AMS1117-3.3) -> step-down requi |
 | E-MARGIN | N-A | E-MARGIN N-A: no rail declares load_uv_threshold - no regulated rail feeds a known fixed-brownout load |
 | E-OFF | N-A | E-OFF N-A: no self-contained energy source detected (source_type: 'external_5v_selv' (externally powered)) - de-energization is by unplugging the input |
 | M-REPRO | PASS | all rebuild inputs git-tracked |
 | M-REL | PASS | cooksense-v1.6-2026-07-27: provenance + hashes verify (board 'cooksense': 6 of 8 release dir(s) in 07_releases) |
-| M-BOM | FAIL | 4 BOM-vs-source defect(s): MERGED row '100kΩ' (LCSC C25741): its designators have DIFFERENT source codes and must be SEPARATE rows — R_COILENPD->C137948, R_CTRREQPD->C25741, R_DECDPD->C25741, R_DECUPD->C25741, R_HOSTAUTHPD->C25741, R_HSG->C25741, R_KRSTPD->C25741, R_MCUENPD->C25741, R_MR->C25741, R_OPENB->C25741, R_OVT->C270658, R_PG->C25741, R_RAENAPD->C25741, R_RAENBPD->C25741, R_RAENRHAPD->C25741, R_RAENRHEPD->C25741, R_REARMPU->C25741, R_STOPPD->C25741, R_SWPUA->C25741, R_SWPUB->C25741, R_SWPURHA->C25741, R_SWPURHE->C25741 \|\| SUBSTITUTED code on row '15kΩ': BOM has C25756 but source says C407739 for ['R_OVB'] \|\| MERGED row 'SM05B-GHS-TB' (LCSC C189896): its designators have DIFFERENT source codes and must be SEPARATE rows — J_DOOR->C189896, J_ESTOP->C189896, J_MODE->C485354, J_RH_AMBIENT->C189896, J_RH_EXHAUST->C189896 |
+| M-BOM | FAIL | 8 BOM-vs-source defect(s): MERGED row '100kΩ' (LCSC C25741): its designators have DIFFERENT source codes and must be SEPARATE rows — R_COILENPD->C137948, R_CTRREQPD->C25741, R_DECDPD->C25741, R_DECUPD->C25741, R_HOSTAUTHPD->C25741, R_HSG->C25741, R_KRSTPD->C25741, R_MCUENPD->C25741, R_MR->C25741, R_OPENB->C25741, R_OVT->C270658, R_PG->C25741, R_RAENAPD->C25741, R_RAENBPD->C25741, R_RAENRHAPD->C25741, R_RAENRHEPD->C25741, R_REARMPU->C25741, R_STOPPD->C25741, R_SWPUA->C25741, R_SWPUB->C25741, R_SWPURHA->C25741, R_SWPURHE->C25741 \|\| SUBSTITUTED code on row '15kΩ': BOM has C25756 but source says C407739 for ['R_OVB'] \|\| SUBSTITUTED code on row 'MCP23017-E/SS': BOM has C506653 but source says C558584 for ['U_EXP'] |
 | A-POP | PASS | cooksense-v1.6-2026-07-27: A-POP: PASS (every unpopulated part is declared with evidence) |
 | A-BODY | PASS | cooksense-v1.6-2026-07-27: bodies mounted 189/189 (generated) |
 | M-JRNL | PASS | 10 stage journals, 10 with entries |

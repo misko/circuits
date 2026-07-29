@@ -876,3 +876,54 @@ invariants:
       that this replaces gave 0.833 V and passed six mechanism asserts while
       doing it.
 
+
+  # ===== ADR-0023 — the reed-coil driver is a DMOS array, not a Darlington ====
+  #
+  # WHY THIS BLOCK EXISTS.  The ULN2803A's saturation drop (0.67 V TYP / ~0.88 V
+  # worst case at the ~7 mA coil) WAS the entire reed pull-in deficit:
+  #     margin(T) = 4.740 - V_driver - 3.500 x (1 + 0.004 x (T - 20))
+  # crossed zero at 60.7 C typical and 45.7 C worst case — the latter BELOW the
+  # brief's own <=50 C NORMAL enclosure band.  TBD62083AFWG (C165895) is a
+  # pin-identical DMOS array whose EC table guarantees R_ON <= 3.25 ohm at all
+  # three published current points, so 7 mA x 6.50 ohm (2x, hot bound) = 46 mV
+  # and the margin is +0.774 V at +50 C / +0.424 V at +75 C.
+  #
+  # WHAT THESE ASSERTS ARE FOR, AND WHAT THEY ARE NOT.  Three of the four facts
+  # the swap turns on are gradeable from the netlist and are graded here.  The
+  # FOURTH — the arithmetic margin itself — is a `node_level` assert and is NOT
+  # in this file, because `_load_part_electrical()` joins a dossier to a
+  # component through an LCSC CODE and the thirteen reed relays are
+  # SELF-SUPPLIED: JLC stocks none of them, so their netlist `value` is the MPN
+  # `DIP05-1A72-13L` and no LCSC code identifies them.  The assert therefore
+  # returns UNREACHED, which would turn E-INV red on a checker limitation rather
+  # than a defect.  The exact YAML, the measured RED/GREEN proof against a
+  # locally patched checker, and the three-line patch it waits on are in ADR-0023
+  # and `01_docs/journal/verify_cooksense.md`.  Forcing the join by writing the
+  # MPN into `sourcing.alternates:` was considered and REJECTED: that field means
+  # "pin-compatible substitute", this relay is DO-NOT-SUBSTITUTE (spec 15.4), and
+  # its own note already records an alternate WITHDRAWN for being a different
+  # pin-out code.  Making a gate green by writing something false into a dossier
+  # is the failure mode this repo keeps paying for.
+  #
+  # The COM assert below is the one whose loss would have made ADR-0023 a
+  # TOPOLOGY change instead of a part swap, so it is the one worth pinning.
+  - assert: pin_on_net
+    pin: "U_ULNA.10"                   # TBD62083AFWG pad10 = COMMON
+    net: 5V_KEY_RELAY
+    adr: "0023"
+    why: "THE FREEWHEEL PATH, ASSERTED. The twelve DIP05-1A72-13L coils have NO external flyback diode — the driver's internal OUTPUT->COMMON clamp (datasheet p.2 equivalent circuit, anode at OUTPUT, cathode at COMMON, VF <= 2.0 V at 350 mA p.5) is their ONLY clamp. It was verified from the FIGURE, not inferred from the pin name, because a DMOS array WITHOUT it would have made this a topology change and not a drop-in. COMMON must sit on the SWITCHED coil rail, not on 5V_PROTECTED, so a gated-off rail still clamps coil kick: put this pin on the ungated rail and every energised coil's kick returns through a diode into a rail the safety chain has just deliberately killed"
+  - assert: pin_on_net
+    pin: "U_ULNB.10"
+    net: 5V_KEY_RELAY
+    adr: "0023"
+    why: "the second driver's COMMON, same claim. Two parts, two asserts — a single-instance assert on a two-instance fact is the M-WIDTH defect ADR-0020 shipped (it fixed one of six pins)"
+  - assert: pin_on_net
+    pin: "U_ULNA.9"                    # pad9 = GND, the common SOURCE return
+    net: GND
+    adr: "0023"
+    why: "the common-source return for all 8 channels. Toshiba p.7 'Precautions for Using' names improper grounding of the GND line as a DESTRUCTION mode verbatim, alongside the output and COMMON lines. The aggregate here is small (8 x 7 mA) but the rule is the part's, and a driver array whose GND lands on a local net rather than the plane is a classic silent failure"
+  - assert: pin_on_net
+    pin: "U_ULNB.9"
+    net: GND
+    adr: "0023"
+    why: "the second driver's source return, same claim"

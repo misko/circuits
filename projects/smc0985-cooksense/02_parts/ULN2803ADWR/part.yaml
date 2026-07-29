@@ -1,0 +1,162 @@
+# ##########################################################################
+# *** SUPERSEDED ON THE LIVE BOARD BY TBD62083AFWG (ADR-0023, 2026-07-29) ---
+# AND RETAINED ON PURPOSE. DO NOT DELETE THIS DIRECTORY. ***
+#
+# This part is NO LONGER on the cooksense source: its Darlington saturation
+# (0.67 V TYP / ~0.88 V worst case at the ~7 mA reed coil) WAS the entire reed
+# pull-in deficit, and the margin crossed zero at 45.7 C worst case — below the
+# brief's own <=50 C NORMAL enclosure band. See ADR-0023 and the
+# DIP05-1A72-13L pull-in gotcha.
+#
+# IT IS RETAINED BECAUSE `02_parts/` IS THE MPN AUTHORITY FOR EVERY RELEASE,
+# INCLUDING SEALED ONES. C9683 appears in the BOM of SIX sealed releases
+# (cooksense v1.0-v1.6). This directory was deleted on 2026-07-29 under the
+# contract's "rejected candidates never get a committed PDF" line — and
+# `t1_fleet_regrade.py` went RED within the hour:
+#     F-MPN row 56 (U_ULNA,U_ULNB): LCSC C9683 resolves NO MPN from any
+#     authority ... A coded row with no MPN is a FAIL, never a blank
+# on cooksense-v1.6-2026-07-27, the LIVE release. The contract line is about
+# candidates that were NEVER USED; a part that SHIPPED is a different class,
+# and deleting its dossier retroactively makes a sealed release ILLEGIBLE.
+# Recorded here rather than only in the ADR because this file is where the next
+# person tempted to tidy it away will be standing.
+# ##########################################################################
+mpn: ULN2803ADWR
+manufacturer: Texas Instruments
+type: darlington_array_8ch
+superseded_by: TBD62083AFWG      # ADR-0023. Retained as the MPN authority for
+                                 # C9683 in cooksense v1.0-v1.6 (sealed).
+on_live_board: false
+datasheet:
+  doc_id: SLRS049
+  revision: SLRS049G                # FEBRUARY 1997 - REVISED JANUARY 2015
+  url: https://www.ti.com/lit/ds/symlink/uln2803a.pdf
+  sha256: 84ec37810a5cef7c352a320852a6b21bdbe709d2fb60b4d6e7ad6d93ec324a4d
+  fetched: 2026-07-29             # (pinout first read 2026-07-19; PDF only obtained 2026-07-29)
+  local: SLRS049G.pdf
+  provenance: >-
+    HONEST PROVENANCE — THIS PDF DID NOT COME FROM ti.com. Every TI literature
+    URL for this part 404s as of 2026-07-29 (tested: /lit/ds/symlink/uln2803a.pdf,
+    /lit/pdf/slrs049, /lit/ds/slrs049g/slrs049g.pdf, /lit/gpn/uln2803a,
+    /product/ULN2803A — all HTTP 404, while /lit/ds/symlink/tps2595.pdf from a
+    sibling dossier returned 200 the same minute, so the failure is
+    part-specific, not a network block). The committed copy was fetched from
+    https://download.mikroe.com/documents/datasheets/ULN2803A_datasheet.pdf
+    (200, 951715 bytes) and is a TI-ORIGIN artifact, not a re-typeset mirror:
+    PDF metadata Title "ULN2803A Darlington Transistory Array (Rev. G)",
+    Author "Texas Instruments, Incorporated [SLRS049,G]", Keywords
+    "SLRS049,SLRS049G", CreationDate 2015-05-29, Creator TopLeaf 8.0.001
+    (TI's own datasheet compositor). Page-1 banner reads "SLRS049G - FEBRUARY
+    1997 - REVISED JANUARY 2015". CROSS-CHECKED against a second,
+    independently-hosted copy (content.instructables.com/FMW/5W5U/IK7C5QT5/
+    FMW5W5UIK7C5QT5.pdf, 1032234 bytes, same TI metadata): `pdftotext -layout`
+    output of the two differs ONLY in the auto-generated PACKAGE OPTION
+    ADDENDUM date stamp (29-May-2015 here vs 15-Oct-2015 there) and that
+    addendum's row set. The DATASHEET BODY — including every
+    Electrical-Characteristics row quoted in `electrical:` below — is
+    character-for-character identical in both. That two-source agreement is
+    what stands in for a ti.com fetch (canon M1: checker and checked must not
+    share a method). If a ti.com URL ever resolves again, RE-FETCH and re-hash.
+package: SOIC-18 wide (DW)
+footprint: Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
+pins:
+  1: IN1
+  2: IN2
+  3: IN3
+  4: IN4
+  5: IN5
+  6: IN6
+  7: IN7
+  8: IN8
+  9: GND
+  10: COM    # flyback common -> RELAY_5V
+  11: OUT8
+  12: OUT7
+  13: OUT6
+  14: OUT5
+  15: OUT4
+  16: OUT3
+  17: OUT2
+  18: OUT1
+limits: {vout: "50V", iout: "500mA/ch", vin: "30V"}
+
+# ##########################################################################
+# ELECTRICAL FACTS (ADR-0007 item 2). Added 2026-07-29 to close red-team
+# finding TOPO P1-2. Until this block existed the ONE number that decides
+# whether twelve reed relays pull in — this part's V_CE(sat) at the coil
+# current — was recorded NOWHERE in the tree, so the pull-in margin could not
+# be computed by anyone, and it is NEGATIVE. See the V_CE(sat) gotcha.
+# ##########################################################################
+electrical:
+  vdd: 5.0                       # coil rail 5V_KEY_RELAY (COM), not a logic VDD
+  defaults: {drive: open_collector_darlington_sink}
+  # LOW-SIDE SATURATION. There is no single datasheet number at 10 mA — the EC
+  # table's lowest specified point is 100 mA — so three figures are carried,
+  # each labelled with what it actually is. All at TA = 25 C.
+  v_ce_sat_typ_at_10mA: 0.67     # Fig.1 (p.5) digitized, see gotcha; TYPICAL
+  v_ce_sat_max_at_10mA: 0.88     # DERIVED (Fig.1 typ x the EC table's own worst
+                                 # max/typ ratio 1.30); NOT a datasheet guarantee
+  v_ce_sat_max_guaranteed: 1.10  # EC table p.5, II=250uA / IC=100 mA, MAX. A hard
+                                 # bound at 10 mA only because V_CE(sat) rises
+                                 # monotonically with IC (Fig.1)
+  i_coil_design_mA: 7.0          # one DIP05-1A72-13L 5 V coil, 500R nom, at 25 C
+  tc_note: "TI specifies V_CE(sat) at TA=25 C ONLY; no tempco is given, so the
+    25 C figure is carried unchanged at every corner (no thermal credit taken)."
+  source: "SLRS049G p.5 Sec.7.5 Electrical Characteristics + Sec.7.7 Fig.1
+    'Collector-Emitter Saturation Voltage vs Collector Current (One Darlington)';
+    Sec.10.2.2.1 Eq.1 ICOIL = (VSUP - VCE(SAT)) / RCOIL is TI's own coil-current
+    equation and names VOL == VCE(SAT)."
+
+gotchas:
+  - "*** V_CE(sat) AT THE COIL CURRENT — THE NUMBER THAT MAKES THE REED PULL-IN
+     MARGIN GO NEGATIVE (TOPO P1-2, 2026-07-29). *** SLRS049G Sec.7.5 specifies
+     V_CE(sat) at IC = 100 / 200 / 350 mA ONLY (0.9/1.1, 1.0/1.3, 1.3/1.6 typ/max,
+     at II = 250/350/500 uA). The DIP05 coil draws ~7 mA, two orders below the
+     lowest table row, so the number must come from Fig.1 (p.5, TA = 25 C, three
+     II curves). Fig.1 DIGITIZED at 900 dpi against its own gridlines (x: 0 mA at
+     the axis, 288 px per 100 mA; y: 0 V at the axis, 230.28 px per 0.25 V): at
+     IC = 10 mA the three-curve band spans 0.629-0.674 V, i.e. TYP ~= 0.67 V at
+     the band's upper edge. Fig.1 IS A TYPICAL CURVE — it carries no max. The
+     honest max is either (a) the EC table's own worst max/typ ratio, 1.3/1.0 at
+     200 mA = 1.30, applied to 0.674 -> 0.88 V, or (b) the hard monotonic bound
+     1.10 V (the 100 mA MAX). BOTH are carried in `electrical:` because the
+     verdict differs between them: at the 0.67 V TYPICAL the reed margin is
+     already -130 mV at 70 C, and at 0.88 V it is negative from 50 C up.
+     DO NOT quote '1.1 V' as if it were the 10 mA max — it is a bound four times
+     the real drop — and DO NOT quote 0.67 V as if it were a worst case."
+  - "V_CE(sat) HAS NO TEMPCO IN THIS DATASHEET. Sec.7.5 is headed 'at TA = 25 C
+     free-air temperature' and there is no V_CE(sat)-vs-temperature figure
+     anywhere in SLRS049G. A Darlington's two V_BE drops fall ~-4 mV/K while its
+     series resistance rises, and TI declines to net them, so NO thermal credit
+     is taken: the 25 C figure is used at -20 C and at +70 C alike. That is the
+     conservative direction for the pull-in margin (any real fall in V_CE(sat)
+     helps), so the negative verdict does not depend on it."
+  - "OUTn pairs with INn on the OPPOSITE corner (1<->18): straight-across netting is a classic bug - audit asserts IN1/OUT1 pairing"
+  - "internal flyback diodes to COM; COM MUST tie to RELAY_5V (switched rail), not 5VP, so a gated-off rail still clamps coil kick"
+verified: "TI SLRS049 DW pin table (IN1-8 = 1-8, GND=9, COM=10, OUT8-1 = 11-18); pin review re-checks - 2026-07-19"
+layout:                          # P-LAYOUT: 8ch Darlington relay-coil driver (ADR-0003 safety chain)
+  source: "TI ULN2803A datasheet SLRS049G sec.11 Power Supply Recommendations (COM is
+    tied to the coil supply; the OUTn voltage must NOT heavily exceed COM or the
+    internal fly-back diodes forward-bias and dump large current into COM, damaging
+    on-chip metal / over-heating the part) + sec.12.1 Layout Guidelines (SEPARATE the
+    input channels as much as possible to kill cross-talk; thin input traces OK, THICK
+    output traces for the coil current; the common-emitter GND(9) return carries ALL
+    channel currents so make that trace VERY WIDE, some apps up to 2.5A) + sec.10.2.2.3
+    Power Dissipation (PD = SUM VOLi*ILi must keep TJ < 125C; theta_JA(DW) = 66.4 C/W)"
+  reviewed: "2026-07-22"
+  notes: |
+    The ULN Layout section is about TRACE WIDTH + CHANNEL SEPARATION, not keep-short
+    spans, so no keep_short budget (the honest form):
+    (1) COM(10) ties to RELAY_5V (the SWITCHED coil rail, per gotcha) - keep COM and
+        each OUTn->coil fly-back loop area SMALL so the internal clamp diode sees low
+        loop inductance; never let OUTn exceed COM (sec.11).
+    (2) GND(9) common-emitter return sinks all 8 channels (~2.5A aggregate worst case)
+        - give it a WIDE pour/trace straight to the plane at the pin (sec.12.1).
+    (3) Keep IN1-8 (from the 595 outputs) separated and short to limit cross-talk;
+        the OUTn to the relay coils get thick copper.
+    (4) Thermal: 8 coils energised together is the PD(MAX) case - honour sec.10.2.2.3
+        (TJ < 125C) with copper around the DW package. SOIC-18W 1.27mm - no escape wall.
+sourcing:
+  lcsc: C9683
+  note: "genuine TI DW reel, 2500 stock 2026-07-19, $6.22 - coil-driver stage kept genuine (ADR-0003); Mixic C181731 rejected for the safety chain."

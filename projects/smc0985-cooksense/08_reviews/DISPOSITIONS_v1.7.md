@@ -64,7 +64,7 @@ findings, with the measurement that closed each one.
 | **RENDER-P0-1** — J_ISOLOOP no artwork | **CLOSED for the caption, PARTIAL for the legend** | `ISO 30V` at **0.085 mm** from the block body, `NOT SELV` at 7.892 mm, both h0.600/0.150. Pole legend does NOT fit at the terminal and rides the north-stack caption |
 | **RENDER P1-1 / P0-A** — six designators at 0.130 mm, label ownership | **CLOSED** | 250 texts re-measured: 0 below the 0.1125 mm tier floor, 0 storing an unachievable stroke, 11/11 safety texts at h0.600/0.150. Ownership leads J_DOOR +3.087, J_ESTOP +0.659, J_MODE +10.685 mm |
 | **RENDER P0-B** — P-SILK-FN could not fail | **already FIXED upstream**; the project's own waiver text is now corrected too |
-| **TOPO P1-2** — coil pull-in margin | **ESCALATED TO P0 — BLOCKS** | Computed for the first time. **−0.130 V at +70 °C** on the typical driver drop, −0.060 V at +50 °C on worst case. Datasheet committed |
+| **TOPO P1-2** — coil pull-in margin | **CLOSED 2026-07-29 (was ESCALATED TO P0)** | ADR-0023: `U_ULNA`/`U_ULNB` ULN2803ADWR (C9683) → **TBD62083AFWG (C165895)**, a pin-identical DMOS array — pin map from the p.2 pin TABLE, land from the p.9 drawing at 300 dpi (TI's DW 11.50×7.50 sits dead centre of Toshiba's 11.35–11.68 × 7.37–7.62 band), COM clamp diode confirmed from the p.2 equivalent-circuit FIGURE because the coils have no external flyback. R_ON is a GUARANTEED EC-table max, 3.25 Ω, identical at all three published current points, so 7 mA × 6.50 Ω (2×, hot bound) = **46 mV** against the Darlington's 670–880 mV. Margin **+0.774 V at +50 °C and +0.424 V at +75 °C**, positive at every corner; ampere-turn cross-check **7.815 mA vs 7.00 mA required at +70 °C, +11.6 %** (was 6.81 mA, −2.7 %). DRC 0/0/0, E-INV 140/140, zero geometric change. The `node_level` assert that pins it measures **0.056 V vs a 0.540 V budget = PASS with the DMOS, 0.895 V = FAIL with the Darlington** — PROVEN, but NOT LANDED: `node_level` joins dossiers by LCSC code and the self-supplied relays carry an MPN, so it needs a 4-line checker patch (verify journal) |
 | **PIN Q-1** — pad 1 called GPA0 | **CLOSED** | It is GPB0; GPA0 is pad 21 (`RAIL_EN_A`, an output). Copper was always right |
 
 ## Findings this session made, that no lens reported
@@ -79,14 +79,22 @@ findings, with the measurement that closed each one.
 | 6 | The **1.5 mm ownership margin is not affordable at 0.60 mm text** — it was measured at 0.45 mm and a 0.60 mm box needs 78% more area. `J_ESTOP` has ZERO qualifying slots and landed at a degraded 0.5 mm demand, measured lead +0.659 mm |
 | 7 | `route.yaml` had **predicted its own next failure** ("a site legal by 0.00 mm is a site the next reroute takes away") and not reserved against it. The `U_TC.8` stub refused on the first race after the netlist changed |
 | 8 | Deterministic plane-bond sites were being chosen by **proximity**; the nearest legal site for `Q_SWDRVB.2` and `U_TC.5` both scored **growth 0.00** — legal by nothing. Sites are now chosen by **max growth**. Slack survives a re-route; distance to the pad centre does not |
-| 9 | **`C506653` (MCP23017-E/SS, `U_EXP`) is at ZERO LCSC stock**, where the same gate read 56/56 PASS last session |
+| 9 | **`C506653` (MCP23017-E/SS, `U_EXP`) is at ZERO LCSC stock**, where the same gate read 56/56 PASS last session. **CLOSED 2026-07-29** → `C558584` MCP23017T-E/SS, stock 7490: not an alternate but the SAME device, DS20001952C's PRODUCT IDENTIFICATION SYSTEM listing (f) `-E/SS` and (g) `T-E/SS` with the `T` as the tape-and-reel identifier only. jlc_stock_check **PASS 56/56** |
+| 10 | **`02_parts/` IS THE MPN AUTHORITY FOR EVERY RELEASE, THE ALREADY-SHIPPED ONES INCLUDED — and this session broke that and got caught by the test suite, not by a review.** Deleting the superseded `ULN2803ADWR` dossier and moving the MCP dossier's `sourcing.lcsc` off `C506653` made the **LIVE sealed release v1.6 ILLEGIBLE**: `t1_fleet_regrade.py` went RED with "LCSC C9683 resolves NO MPN from any authority". The contract's "rejected candidates never get a committed PDF" is about candidates that were NEVER USED; a part that SHIPPED is a different class. Both restored, both recorded in the dossiers |
+| 11 | **One field, two incompatible readings.** `bom_legibility_check.py` reads `sourcing.alternates` as `{lcsc:, mpn:}` MAPPINGS and SILENTLY SKIPS bare code strings; `electrical_invariants.py::_load_part_electrical` reads the same field as BARE STRINGS. The 02_parts contract's own example shows the bare form — i.e. the contract documents the form F-LEGIBLE cannot read. `C47023` had been latently unresolvable here for the life of the file |
+| 12 | `status_beacon_check.py`'s `_SEALED_RE = re.compile(r"sealed", re.I)` is a SUBSTRING match, so a beacon reading `stage: NOT-SEALED-REVIEW-OWED` / "IS NOT SEALED" was graded as CLAIMING a completed seal and FAILED M-BEACON-REL. A beacon that explicitly disclaims a seal must not be read as claiming one |
 
 ## Verdict
 
-**SEAL BLOCKED. v1.7 is NOT sealed. `07_releases/` is untouched and
-v1.0–v1.6 remain DO-NOT-ORDER.** The blocker is the coil pull-in margin, whose
-remedy is a topology decision (coil rail, driver technology, or declared
-envelope) and is deliberately not made here.
+**SEAL STILL BLOCKED, BUT NO LONGER ON A DESIGN DEFECT. `07_releases/` is
+untouched and v1.0–v1.6 remain DO-NOT-ORDER.** As of 2026-07-29 every carried
+P0 is CLOSED: the coil pull-in margin by ADR-0023 (driver technology — option
+(b) of the three, with (a) the coil rail refuted arithmetically and (c) a
+narrower envelope refused because the 45.7 °C crossover is BELOW the brief's own
+≤50 °C normal band), and the `C506653` stock-zero by `C558584`. What remains is
+process, not engineering: the fresh four-lens battery, two measured rotation
+ledger rows that live outside this project's pathspec, the 4-line `node_level`
+join patch, one manifest `not_assembled:` line, and the seal.
 
 **A fresh four-lens battery is OWED, not skipped.** It was not run because a
 confirmed P0 already blocks and closing it will change the power tree or the

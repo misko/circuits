@@ -484,9 +484,20 @@ export default () => (
     <capacitor name="C_DECUEN" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <capacitor name="C_DECDEN" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
 
-    {/* ---- 2x ULN2803A coil drivers (16 ch, 12 used, 4 spare). COM -> gated 5V_KEY_RELAY (flyback clamp). ---- */}
-    {/* ULN pins: 1-8 IN1-8, 9 GND, 10 COM, 11-18 OUT8-OUT1 (OUTn opposite corner from INn). */}
-    <chip name="U_ULNA" footprint="soic18w" supplierPartNumbers={{ jlcpcb: ["C9683"] }}
+    {/* ---- 2x TBD62083AFWG DMOS coil drivers (16 ch, 12 used, 4 spare). COM -> gated 5V_KEY_RELAY (clamp). ----
+        v1.8 (ADR-0023): WAS ULN2803ADWR (C9683). A Darlington drops 0.67 V TYP / ~0.88 V worst case at the
+        ~7 mA reed coil, and that drop IS the entire pull-in deficit: margin(T) = 4.740 - V_driver -
+        3.500x(1+0.004(T-20)) went NEGATIVE at 60.7 C typical and 45.7 C WORST CASE, i.e. BELOW the brief's
+        own <=50 C NORMAL enclosure band. Twelve relays not guaranteed to close on a cooking appliance, and
+        -20 C is comfortable (+1.13 V) so a bench test at room temperature never finds it.
+        TBD62083AFWG is a PIN-IDENTICAL DMOS array (p.2 pin TABLE: 1-8 in, 9 GND, 10 COMMON, 11-18 O8-O1) in
+        the SAME 300-mil 18L SOIC land, with the SAME internal OUTPUT->COMMON clamp diode (p.2 equivalent
+        circuit) that the coils' only freewheel path depends on. R_ON max 3.25 ohm at all three EC current
+        points -> 7 mA x 6.50 ohm (2x, hot bound) = 46 mV, so the margin is +0.774 V at 50 C and +0.424 V at
+        75 C. Inputs come from the 3V3 '238 decoders and V_IN(ON) MAX is 2.5 V, so 3.3 V clears by 0.8 V.
+        DO NOT ORDER TBD62084A -- same land, same pins, needs 7.0 V of input drive. ---- */}
+    {/* pins: 1-8 IN1-8, 9 GND, 10 COM, 11-18 OUT8-OUT1 (OUTn opposite corner from INn). */}
+    <chip name="U_ULNA" footprint="soic18w" supplierPartNumbers={{ jlcpcb: ["C165895"] }}
       pinLabels={{ pin1: "IN1", pin2: "IN2", pin3: "IN3", pin4: "IN4", pin5: "IN5", pin6: "IN6", pin7: "IN7", pin8: "IN8", pin9: "GND", pin10: "COM", pin11: "OUT8", pin12: "OUT7", pin13: "OUT6", pin14: "OUT5", pin15: "OUT4", pin16: "OUT3", pin17: "OUT2", pin18: "OUT1" }}
       connections={{
         pin1: "net.SEL_U1", pin18: "net.COIL_U1_N", pin2: "net.SEL_U2", pin17: "net.COIL_U2_N",
@@ -495,7 +506,7 @@ export default () => (
         pin7: "net.SEL_D1", pin12: "net.COIL_D1_N", pin8: "net.SEL_D2", pin11: "net.COIL_D2_N",
         pin9: "net.GND", pin10: "net.N5V_KEY_RELAY",
       }} />
-    <chip name="U_ULNB" footprint="soic18w" supplierPartNumbers={{ jlcpcb: ["C9683"] }}
+    <chip name="U_ULNB" footprint="soic18w" supplierPartNumbers={{ jlcpcb: ["C165895"] }}
       pinLabels={{ pin1: "IN1", pin2: "IN2", pin3: "IN3", pin4: "IN4", pin5: "IN5", pin6: "IN6", pin7: "IN7", pin8: "IN8", pin9: "GND", pin10: "COM", pin11: "OUT8", pin12: "OUT7", pin13: "OUT6", pin14: "OUT5", pin15: "OUT4", pin16: "OUT3", pin17: "OUT2", pin18: "OUT1" }}
       connections={{
         pin1: "net.SEL_D3", pin18: "net.COIL_D3_N", pin2: "net.SEL_D4", pin17: "net.COIL_D4_N",
@@ -905,7 +916,14 @@ export default () => (
     {/* ================= BLOCK 6 — MCP23017 EXPANDER (ADR-0003) ============ */}
     {/* Slow signals: 4 rail enables, contactor req, re-arm, BOARD_ID straps; readbacks on GPB0-7. */}
     {/* flag 3: pin12 = SCL (I2C), NOT SCK; pins 11 & 14 = NC (do NOT wire). */}
-    <chip name="U_EXP" footprint="ssop28" supplierPartNumbers={{ jlcpcb: ["C506653"] }}
+    {/* v1.8 (ADR-0023 consequences): code WAS C506653 (MCP23017-E/SS), which read LCSC stockCount 0
+        on 2026-07-28 and again on 2026-07-29 after reading 56/56 the session before -- a live catalog
+        change, not an inherited number. C558584 = MCP23017T-E/SS, stock 7490, the SAME DIE IN THE SAME
+        SSOP-28: DS20001952C's PRODUCT IDENTIFICATION SYSTEM lists (f) MCP23017-E/SS and (g)
+        MCP23017T-E/SS as the same device, the T being the tape-and-reel identifier only. Pin- and
+        register-identical by construction, and cheaper ($1.7105 vs $1.8749). NOT drop-ins: -E/SO and
+        -E/ML are different packages, and MCP23S17 is SPI. */}
+    <chip name="U_EXP" footprint="ssop28" supplierPartNumbers={{ jlcpcb: ["C558584"] }}
       pinLabels={{ pin1: "GPB0", pin2: "GPB1", pin3: "GPB2", pin4: "GPB3", pin5: "GPB4", pin6: "GPB5", pin7: "GPB6", pin8: "GPB7", pin9: "VDD", pin10: "VSS", pin11: "NC", pin12: "SCL", pin13: "SDA", pin14: "NC", pin15: "A0", pin16: "A1", pin17: "A2", pin18: "RESET_N", pin19: "INTB", pin20: "INTA", pin21: "GPA0", pin22: "GPA1", pin23: "GPA2", pin24: "GPA3", pin25: "GPA4", pin26: "GPA5", pin27: "GPA6", pin28: "GPA7" }}
       connections={{
         pin1: "net.EFUSE_FLT_N", pin2: "net.MODE_AUTO_HW_EXP", pin3: "net.ESTOP_OK_EXP", pin4: "net.DOOR_OK_EXP",

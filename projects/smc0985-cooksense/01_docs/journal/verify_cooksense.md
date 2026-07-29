@@ -1394,3 +1394,200 @@ The board file's md5 differs between the two builds (`e5565da5…` vs
 `17cfca47…`) and that is expected and NOT a determinism failure: KiCad mints
 fresh UUIDs and timestamps on every save. Per `tests/README.md` the assertion is
 on PROPERTIES, never on bytes — and every graded property reproduced exactly.
+
+## 2026-07-29 16:20 — iterate (v1.8: ADR-0023 part swap, full battery, NOT SEALED)
+- did: rebuilt from source after the ADR-0023 coil-driver swap and the C558584
+  sourcing fix, then ran the fab/assembly battery. `rebuild_schematic.sh` then
+  `rebuild_all.sh` — **the DEFAULT deterministic path, NOT `--reroute`**, and
+  that is a deliberate deviation with a measurement behind it: `git diff` on
+  `03_tscircuit/verification/converter_netlist.net` is 245 insertions / 245
+  deletions of which exactly **THREE are semantic** —
+  `(value "C9683")`x2 -> `C165895` and `(value "C506653")` -> `C558584`. Every
+  other changed line is a tstamp/uuid. The NET SET, the pin membership and both
+  footprints are byte-identical, and `rebuild_all.sh`'s own header says
+  `--reroute` is for "when placement/nets change". Neither did. Rerouting a
+  frozen net set would have discarded the promoted authoritative chain
+  (`03_src/cooksense/route/final_chain.kicad_pcb`, canon M3) and replaced it
+  with a fresh stochastic draw for no gain. The promoted chain is therefore
+  UNCHANGED and needs no re-promotion.
+- result: **DRC 0 violations / 0 unconnected / 0 schematic parity**
+  (`--severity-all --refill-zones --schematic-parity`, exit 0,
+  `06_build/proof/drc_v18.rpt`). E-INV **140/140** (was 136/136 — four new
+  ADR-0023 asserts). E-ADR 9/9. E-TOPO PASS (headroom 1355 mV vs dropout
+  1300 mV; PD 615 mW / 1200 mW, 51%). audit_board PASS (18 polarity /
+  28 proximity / 13 edge / 245 silk, I-ISO 6.22 mm, I-OUT 0.35 mm, 4 hw holes).
+  placement_gates PASS 0 fails 0 warns (P-OUT 0.30 mm, P-CAP 0.29).
+  count_parity **S-COUNT PASS 4/4 over 241 refdes**. contracts_audit 0
+  violations in its graded scope, and the two NEW paths
+  (`02_parts/TBD62083AFWG/`, `01_docs/decisions/0023-*`) draw ZERO findings even
+  under `--projects`. M-BEACON PASS 2/2.
+  FAB: export_jlc_package **exit 0, A-ROT OK all 208 CPL rotations sourced,
+  F-LEGIBLE OK 59/59**; bom_legibility 58 checks OK (F-MPN row 57
+  `C165895 = TBD62083AFWG` resolves out of the new dossier); bom_source_check
+  **PASS** (leg C 27/27, 210 coded refdes); jlc_twin **209 OK / 471 rows,
+  bodies mounted 208/208**; ERC 0 errors / 658 warnings on the grid sheet;
+  A-POS 208 rows on the pad-array centre, worst **0.00000 mm**.
+  *** THE BLOCKER-2 GATE IS NOW GREEN: jlc_stock_check **PASS, verdict line
+  parsed, 56/56 coded BOM lines >= 5x qty**, 3/59 uncoded and not graded
+  (`06_build/proof/stock_v18.json` `"verdict": "PASS"`). C165895 stock 2334,
+  C558584 stock 7490. *** THINNEST line is C2653844 TPS259573DSGR at **103**
+  (qty 1) — clears the floor 20x over but it is the one to re-read before an
+  order.
+  TWO GATES NOT GREEN, BOTH UNCHANGED PRE-SEAL STATES, NEITHER A v1.8 DEFECT:
+  policy_audit FAIL=1 / WAIVED=5 / PASS=25 / HUMAN=6 / N-A=4 — the FAIL is
+  M-BOM, and it is grading `07_releases/cooksense-v1.6-2026-07-27/fab/bom.csv`,
+  which still contains **C9683**; measured directly, the fresh v1.8 BOM has
+  ZERO occurrences of C9683 and bom_source_check on it PASSES. Resolves at the
+  seal. assembly_coverage A-POP FAIL=1, `MANIFEST-UNDECLARED` — the release
+  MANIFEST carries no `not_assembled:` line; a release-paperwork item, the same
+  "expected pre-seal" finding recorded on 2026-07-28.
+  ROTATIONS, MEASURED NOT INHERITED (canon A-ROT): the export BLOCKED on the two
+  NEW codes, correctly. `jlc_rotation_measure.py` against the JLC cached models
+  with the pcbnew-verified operator:
+    C165895 SOIC-18W: offset **270**, pad-number rms **0.1500 mm** vs 8.1344
+      next best (0/180 both 8.1344, 90 11.5027) = **54x**;
+    C558584 SSOP-28: offset **270**, rms **0.0403 mm** vs 6.1624 = **153x**.
+  Both are byte-identical to the rows their predecessors (C9683, C506653) carry
+  — which they MUST be, same board footprint and same JLC model file — and the
+  point of measuring rather than copying is that the identity is a RESULT.
+  Both DECLARED `single-channel` (dual-row packages are their own 180
+  reflection, pad cloud degenerate at 90/270, no size-class channel, pin-1
+  marking not admissible) so both oblige the JLC order-preview human gate, as
+  their predecessors do. The two paste-ready rows are in
+  `06_build/proof/rotation_rows_v18.csv`. **THEY ARE NOT LANDED**: the ledger
+  is `skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv` and this agent may not
+  edit `skills/`, so the clean export was proven through the resolver's OWN
+  `JLC_LCSC_ROTATIONS` env override pointing at a copy. This is the ONE item
+  outside the `projects/smc0985-cooksense/` pathspec, and A-ROT will block again
+  until it lands.
+- next: the fresh four-lens review battery (deliberately NOT run — a separate
+  scoped job), the manifest `not_assembled:` line, the two rotation rows, and
+  the seal. See the node_level entry below before anyone calls the margin done.
+
+## 2026-07-29 16:35 — iterate (the coil-margin node_level: RED/GREEN PROVEN, NOT LANDED)
+- did: authored the ADR-0007 `node_level` assert that turns the reed pull-in
+  margin from a table in an ADR into a machine check, and RED-verified it.
+  The form (also in ADR-0023):
+
+      - assert: node_level
+        net: COIL_U1_N
+        receiver: K_U1.2            # DIP05 pad2 = COIL_B, the driven end
+        driver_state: contended
+        aggressor: K_U1.1           # the coil, pulling UP to 5V_KEY_RELAY
+        defender: U_ULNA.18         # the DMOS channel, pulling DOWN
+        must_be: logic_low
+        adr: "0023"
+
+  `v_il_max: 0.540` on the DIP05 dossier's pad 2 is **THE PULL-IN BUDGET, not a
+  logic threshold**: node <= 0.540 V  <=>  coil sees >= 4.740 - 0.540 = 4.200 V
+  = V_PI(+70 C). The equivalence is exact. Aggressor r_on = 540 ohm (the coil's
+  MINIMUM hot resistance, 450 x 1.20 — minimum is the worst case for the
+  driver's share); defender r_on = 6.50 ohm (2x the 25 C EC max).
+- result: MEASURED, against `06_build/netlists/cooksense.net`:
+  | driver dossier fact | node at K_U1.2 | vs 0.540 V budget | verdict |
+  |---|---|---|---|
+  | TBD62083AFWG, r_on 6.50 ohm hot bound | **0.056 V** | -0.484 V | **PASS** |
+  | ULN2803A worst case, 0.88 V / 7 mA = 125.7 ohm chord | **0.895 V** | +0.355 V | **FAIL** |
+  | ULN2803A TYPICAL, 0.67 V / 7 mA = 95.7 ohm chord | **0.714 V** | +0.174 V | **FAIL** |
+  So the assert reproduces the whole finding from the netlist plus two dossiers,
+  and it fails on the TYPICAL Darlington drop as well as the worst case. (The
+  Darlington is modelled as a CHORD resistance at the operating current — exact
+  for the DMOS, a linearization for the Darlington, and stated as such: it is
+  the REJECTED part, and the check's job is to grade the chosen one.)
+  *** IT IS NOT IN `electrical_invariants.yaml`, AND THE REASON IS A CHECKER
+  GAP, NOT A DESIGN DOUBT. *** `_load_part_electrical()` joins a dossier to a
+  netlist component through `sourcing.lcsc` + `sourcing.alternates` — i.e.
+  through an LCSC CODE. The thirteen reed relays are SELF-SUPPLIED: JLC stocks
+  none of them, so K_U1's netlist `value` is the MPN `DIP05-1A72-13L` and NO
+  LCSC code identifies it. Run against the shipped checker the same assert
+  returns, verbatim:
+      UNREACHED node_level (ADR 0023): receiver K_U1.2 (code 'DIP05-1A72-13L')
+      declares no input thresholds — add an `electrical:` block to its 02_parts
+      dossier. Reported UNREACHED, not passed (canon M-COVER)
+  — and note the message BLAMES THE DOSSIER, which does have that block with
+  those thresholds. Committing it would take E-INV from 140/140 to a red gate on
+  a limitation rather than a defect.
+  REJECTED WORKAROUND, recorded so nobody re-proposes it: writing
+  `DIP05-1A72-13L` into the relay's `sourcing.alternates:` forces the join in
+  one line. That field means "pin-compatible substitute"; this relay is
+  DO-NOT-SUBSTITUTE (spec 15.4) and its own note already records an alternate
+  WITHDRAWN for being a different pin-out code. Making a gate green by writing
+  something false into a dossier is the failure mode this repo keeps paying for.
+  PROPOSED SKILLS PATCH (4 lines, `skills/kicad-pcb/scripts/`
+  `electrical_invariants.py`, in `_load_part_electrical`, before the `lcsc`
+  append) — this is what the GREEN column above was measured with:
+      if d.get("mpn"):                   # a SELF-SUPPLIED part has no LCSC code,
+          codes.append(str(d["mpn"]))    # so the netlist `value` that identifies
+                                         # it is its MPN.
+  It is not a cooksense workaround: ADR-0007's own worked example is "reed coil
+  pull-in margin at 70 C", so the kind was DESIGNED for this case and the join
+  is what cannot reach it. Class width: every self-supplied / hand-solder part
+  in the fleet is outside `node_level`'s reach today.
+  THE OTHER KNOWN PATCH LANDED WHILE THIS SESSION RAN, upstream and wider than
+  proposed: commit fa22228 hardened `encoding="utf-8-sig"` at **all 124 read
+  sites across 29 files in three skills**, not just the `bom_source_check.py`
+  line that crashed — and in the same commit made `supplies:` reject a rail
+  DECLARED but absent from the netlist. Re-verified against it here: E-INV still
+  **140/140** (this board's `supplies: {5V_PROTECTED, 3V3}` both resolve).
+  So the owed patch list is the MPN join above, plus the two schema/regex
+  findings recorded in the next entry.
+- next: land the 4-line join patch, then move the assert out of ADR-0023 into
+  `03_src/cooksense/rules/electrical_invariants.yaml` and re-run the RED verify
+  in place. Until then the margin is proven but not gated, and that distinction
+  belongs in the seal paperwork.
+
+## 2026-07-29 16:55 — iterate (I BROKE THE LIVE RELEASE BY TIDYING UP, and the test suite caught it)
+- did: ran `tests/run_tests.sh` as the backstop after the swap. **755 passed,
+  1 FAILED** — `t1_fleet_regrade.py :: regrade_confirms_the_clean_boards_are_clean`:
+      smc0985-cooksense cooksense-v1.6-2026-07-27 is the LIVE release and
+      F-LEGIBLE fails it.
+  Reproduced directly against the sealed BOM:
+      FAIL F-MPN row 56 (U_ULNA,U_ULNB): LCSC C9683 resolves NO MPN from any
+        authority (41 code(s) from 02_parts + 151 from the ledger)
+      FAIL F-MPN row 39 (U_EXP): LCSC C506653 resolves NO MPN from any authority
+  **BOTH WERE MINE, AND BOTH FROM THE SAME MISTAKE: `02_parts/` IS THE MPN
+  AUTHORITY FOR EVERY RELEASE, INCLUDING SEALED ONES.** I deleted
+  `02_parts/ULN2803ADWR/` citing the contract's "rejected candidates never get a
+  committed PDF", and I moved `MCP23017-E-SS`'s `sourcing.lcsc` from C506653 to
+  C558584. C9683 and C506653 are in the BOM of SIX SEALED RELEASES. The contract
+  line is about candidates that were NEVER USED; a part that SHIPPED is a
+  different class, and deleting its dossier makes a sealed release ILLEGIBLE
+  RETROACTIVELY. Nothing about the current board was wrong — this is a
+  history-legibility defect, and it is exactly the shape of the thing the
+  release-freshness gates exist to catch.
+- result: FIXED, and both fixes are recorded where the next person will stand.
+  (1) `02_parts/ULN2803ADWR/` RESTORED, with a header block, `superseded_by:
+  TBD62083AFWG` and `on_live_board: false`, and a README register row that says
+  DO NOT DELETE and why. (2) The MCP dossier's `alternates:` moved from the BARE
+  LIST form `[C506653, C47023]` to the MAPPING form
+  `[{lcsc: C506653, mpn: MCP23017-E/SS}, ...]` — **the form is load-bearing, not
+  style**: `bom_legibility_check.py` reads alternates as `{lcsc:, mpn:}` and
+  SILENTLY SKIPS bare strings, so the bare form this file had always carried
+  resolved NOTHING (C47023 was latently unresolvable too; it just was not in any
+  BOM). RE-MEASURED: sealed v1.6 BOM **F-LEGIBLE OK 56/56**, fresh v1.8 BOM
+  **F-LEGIBLE OK 58 checks**, `t1_fleet_regrade.py` **5 passed / 0 failed**,
+  E-INV still 140/140, bom_source_check still PASS, part_facts P-FACT OK,
+  contracts_audit 0 violations in its graded scope.
+  SCHEMA DIVERGENCE FOUND ON THE WAY, and it is a third proposed patch:
+  `bom_legibility_check.py` reads `sourcing.alternates` as MAPPINGS while
+  `electrical_invariants.py::_load_part_electrical` reads the SAME field as BARE
+  STRINGS. One field, two incompatible readings, and each one silently ignores
+  the other's form. The 02_parts contract's example shows the bare form
+  (`alternates: [C2650259, C3188678]`), i.e. the contract documents the form
+  that F-LEGIBLE cannot read.
+  FOURTH PROPOSED PATCH, found while re-greening the beacon:
+  `status_beacon_check.py`'s `_SEALED_RE = re.compile(r"sealed", re.I)` matches
+  the substring, so `stage: NOT-SEALED-REVIEW-OWED` + a `step:` reading "IS NOT
+  SEALED" was graded as CLAIMING a completed seal of v1.8 and FAILED
+  M-BEACON-REL. A beacon that explicitly disclaims a seal must not be read as
+  claiming one; the pattern needs a negation guard (or to key off `stage:`
+  tokens rather than a substring). Worked around here by rewording to
+  `PRE-SEAL-REVIEW-OWED`, which is a WORKAROUND and should not stand as the fix.
+  CROSS-AGENT HAZARD, RECORDED BECAUSE IT COST ME THE RESTORE: my `git rm` of
+  the ULN dossier sat STAGED while another agent committed, and commit 85e4d28
+  (pluto-cal-switch) swept it in — the very defect d917ca7's own message
+  records ("`git add -- <path>` does not scope `git commit`"). The restore had to
+  come from `git checkout 95e6c01 -- <path>`, not from the index. **Do not leave
+  anything staged in a shared tree.**
+- next: unchanged — four-lens battery, two rotation rows, the node_level join
+  patch, manifest line, seal.

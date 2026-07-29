@@ -1,4 +1,4 @@
-ERC report (2026-07-29T08:09:27, Encoding UTF8)
+ERC report (2026-07-29T15:50:20, Encoding UTF8)
 Report includes: Errors, Warnings, Exclusions
 
 ***** Sheet /
@@ -115,10 +115,10 @@ Report includes: Errors, Warnings, Exclusions
     @(53.34 mm, 295.91 mm): Symbol #PWR111 [GND]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(54.61 mm, 26.67 mm): Symbol #PWR01 [GND]
+    @(54.61 mm, 26.67 mm): Symbol #FLG01 [PWR_FLAG]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(54.61 mm, 26.67 mm): Symbol #FLG01 [PWR_FLAG]
+    @(54.61 mm, 26.67 mm): Symbol #PWR01 [GND]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
     @(54.61 mm, 81.28 mm): Symbol #PWR35 [GND]

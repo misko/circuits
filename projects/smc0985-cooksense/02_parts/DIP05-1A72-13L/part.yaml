@@ -58,16 +58,62 @@ electrical:
   t_op: [-20, 70]
   source: "Standex DIP-series datasheet Version 03 (01 Aug 2025), p.2 Coil Data
     table + its 0.4%/K footnote; operating temperature p.3 Relay Data."
+  # ---- DERIVED, for the ADR-0023 coil-margin node_level assert ---------------
+  # These are NOT new datasheet reads; they are the numbers above expressed in
+  # the form the checker grades. `v_il_max` on pad 2 is THE PULL-IN BUDGET, not
+  # a logic threshold: the driven end of the coil must sit at or below
+  #   4.740 (5V_KEY_RELAY vout_min) - V_PI(+70 C) = 4.740 - 4.200 = 0.540 V
+  # for the coil to see its worst-case must-operate voltage at the top of the
+  # declared envelope. The equivalence is exact, which is what lets the margin
+  # be one assertion instead of a table in an ADR.
+  v_pullin_max_70C: 4.200        # 3.500 x (1 + 0.004 x (70 - 20))
+  v_pullin_max_75C: 4.270        # the hard limit, for reference only
+  coil_r_min_ohm_70C: 540        # 450 (-10%) x 1.20 — the LOWEST coil R, which
+                                 # is the worst case for the driver's share
+  coil_r_typ_ohm_70C: 600        # 500 x 1.20
+  defaults: {vdd: 4.740}         # 5V_KEY_RELAY vout_min (power_tree.yaml)
+  pins:
+    "1": {r_on_ohm_max: 540}     # the coil, as the pull-UP leg to the rail
+    "2": {kind: coil_driven_end, v_il_max: 0.540, v_ih_min: 4.740}
 
 gotchas:
-  - "*** PULL-IN MARGIN GOES NEGATIVE INSIDE THE DECLARED -20..+70 C ENVELOPE.
-     (red-team TOPO P1-2, computed 2026-07-29 — before that date this margin was
-     computed NOWHERE in the tree.) ***
+  - "*** PULL-IN MARGIN IS NOW POSITIVE AT EVERY CORNER, AND IT TOOK A PART
+     CHANGE (ADR-0023, 2026-07-29). READ THIS ENTRY BEFORE TOUCHING THE COIL
+     RAIL OR THE DRIVER. ***
+     Driver is a **TBD62083AFWG DMOS array** (was ULN2803A). Its R_ON is a
+     GUARANTEED EC-table maximum, 3.25 ohm, identical at all three published
+     current points, so it extrapolates down to the coil current legitimately:
+     7.0 mA x 6.50 ohm (2x the 25 C max, a deliberately pessimistic hot bound —
+     Toshiba publishes no tempco) = 0.046 V.
+       margin(T) = 4.740 - 0.046 - 3.500 x (1 + 0.004 x (T - 20))
+         T      V_PI      margin
+        -20 C   2.940 V   +1.754 V
+        +25 C   3.570 V   +1.124 V
+        +50 C   3.920 V   +0.774 V   <- the BRIEF's normal enclosure band
+        +70 C   4.200 V   +0.494 V   <- top of the declared envelope
+        +75 C   4.270 V   +0.424 V   <- hard limit
+     Ampere-turn cross-check at +70 C: 4.740/(600+6.5) = 7.815 mA delivered
+     against I_PI = 3.5/500 = 7.00 mA required, +11.6%. Insensitive to the one
+     unpublished number: even 10x the table max (32.5 ohm) drops 0.228 V against
+     a 0.540 V budget. HOT IS STILL THE WORST CORNER (coil R up, so V_PI up AND
+     current down) and -20 C is still the most comfortable, so a room-temperature
+     bench test still proves nothing about the top of the envelope.
+     HISTORY, KEPT BECAUSE IT IS WHY THE PART CHANGED — under the ULN2803A the
+     margin went NEGATIVE INSIDE THE DECLARED ENVELOPE, and worse, below the
+     brief's own NORMAL band:
+       (red-team TOPO P1-2, computed 2026-07-29 — before that date this margin was
+       computed NOWHERE in the tree.)
      The DS footnote is not decoration: V_PI(T) = 3.500 x (1 + 0.004 x (T - 20)),
-     referenced to 20 C, NOT 25 C. Driver is a ULN2803A low-side Darlington whose
-     V_CE(sat) at the ~7 mA coil current is 0.67 V TYP / ~0.88 V worst case
-     (02_parts/ULN2803ADWR, SLRS049G Fig.1 digitized — see that dossier's
-     gotcha). Rail floor is 5V_KEY_RELAY vout_min = 4.740 V (power_tree.yaml).
+     referenced to 20 C, NOT 25 C. The old driver was a ULN2803A low-side
+     Darlington whose V_CE(sat) at the ~7 mA coil current is 0.67 V TYP /
+     ~0.88 V worst case — a figure that had to be DIGITIZED off SLRS049G Fig.1
+     at 900 dpi because that EC table specified V_CE(sat) only at 100/200/350 mA,
+     two orders above the coil. Its dossier `02_parts/ULN2803ADWR/` is RETAINED
+     (`on_live_board: false`, `superseded_by: TBD62083AFWG`) because 02_parts is
+     the MPN authority for six SEALED releases that ship C9683 — deleting it made
+     the live release illegible and t1_fleet_regrade caught it. Read it, and
+     ADR-0023, before proposing a Darlington here again.
+     Rail floor is 5V_KEY_RELAY vout_min = 4.740 V (power_tree.yaml).
        margin(T) = 4.740 - V_CE(sat) - V_PI(T)
          T      V_PI     margin @0.67 TYP   @0.88 w-c   @1.10 hard bound
         -20 C   2.940 V      +1.130 V        +0.920 V      +0.700 V
@@ -96,9 +142,17 @@ gotchas:
      cited maximum. It is not load-bearing here — even at an absurdly pessimistic
      0.50 V of V_DS the +70 C margin is still +0.054 V — but the number should be
      cited before anyone leans on it.
-     NOT A FIX, JUST THE ARITHMETIC — this gotcha records the finding; the
-     remedy (raise the coil rail, drop the driver saturation, or narrow the
-     temperature envelope) is a topology decision and is NOT made here."
+     THE REMEDY CHOSEN, AND THE TWO THAT WERE REFUTED (ADR-0023): drop the
+     DRIVER saturation. (a) Raising the coil rail is refuted arithmetically — the
+     margin needed +0.130 V typ / +0.340 V worst at +70 C, i.e. vout_min >=
+     5.080 V, and the ADR-0021 supply plus Q_COIL's 11 mV caps vout_min at
+     4.839 V, worth +0.099 V; going higher needs a boost and collides with
+     ADR-0021's OV divider, which has 118/161 mV of slack between the 5.25 V
+     ceiling and the SMBJ5.0A's 6.40 V V_BR. (b) Narrowing the envelope is not
+     admissible: the worst-case crossover 45.7 C is BELOW the brief's own <=50 C
+     NORMAL band, so it would redefine 'normal' on a cooking appliance.
+     DO NOT PUT A DARLINGTON BACK HERE. If a future BOM substitution is ever
+     proposed for U_ULNA/U_ULNB, this margin is the acceptance test."
   - "ISOLATION GEOMETRY under code 13 — the claim ADR-0002 makes is TRUE, and it
      is true only because the part changed. COIL_A=DIP2 and COIL_B=DIP6 are both
      on the WEST column; CONTACT_A=DIP14 and CONTACT_B=DIP8 are both on the EAST

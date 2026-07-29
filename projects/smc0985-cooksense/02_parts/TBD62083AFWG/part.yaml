@@ -1,0 +1,219 @@
+mpn: TBD62083AFWG
+manufacturer: Toshiba
+type: dmos_transistor_array_8ch_sink
+datasheet:
+  doc_id: TBD62083A-series
+  revision: "2016-05-11"          # the datasheet carries a DATE, not a letter rev
+  url: https://toshiba.semicon-storage.com/info/TBD62083AFWG_datasheet_en_20160511.pdf
+  sha256: c9f5c47a19454272dca71dddbee1c81b1a350b479d4a24b6466a7c89a60a8fb3
+  fetched: 2026-07-29
+  local: TBD62083A_20160511.pdf
+  provenance: >-
+    HONEST PROVENANCE — THIS PDF DID NOT COME FROM toshiba.semicon-storage.com.
+    Every Toshiba host URL tried on 2026-07-29 returned HTTP 403 with an HTML
+    body (tested: /info/TBD62083A_datasheet_en_20220328.pdf?did=14009,
+    /info/docget.jsp?did=14009&prodName=TBD62083AFWG,
+    /info/TBD62083AFWG_datasheet_en_20160511.pdf?did=14009), and so did
+    mouser.com (JS challenge, 13895 bytes of JavaScript) and
+    lcsc.com/datasheet.lcsc.com (HTML, 45874 bytes). The committed copy was
+    fetched from https://www.rlocman.ru/i/File/2017/12/04/TBD62083AFG.pdf.pdf
+    (HTTP 200, 627273 bytes, Content-Type application/pdf) and is a
+    TOSHIBA-ORIGIN artifact, not a re-typeset mirror: PDF metadata Title
+    "TBD62083A series, TBD62084A series", Author "TOSHIBA", Creator "Acrobat
+    PDFMaker 11 for Word", Producer "Adobe PDF Library 11.0", CreationDate
+    2016-05-11 — the same date Mouser's own filename carries
+    (TBD62083AFWG_datasheet_en_20160511-769679.pdf), which is independent
+    corroboration of the revision even though the file itself would not
+    download. CROSS-CHECKED against a second, independently-hosted copy
+    (datasheet4u.com/pdf/1297146/TBD62083AFWG.pdf, 465612 bytes, re-wrapped
+    through PDFium so its metadata is stripped): `pdftotext -layout` output of
+    the two is CHARACTER-FOR-CHARACTER IDENTICAL across all 11 pages,
+    whitespace-normalised — including every Electrical-Characteristics row and
+    the pin table quoted below. That two-source agreement is what stands in for
+    a toshiba.semicon-storage.com fetch (canon M1: checker and checked must not
+    share a method). If a Toshiba URL ever resolves, RE-FETCH and re-hash.
+package: SOP-18 wide / P-SOP18-0812-1.27-001 (FWG)
+footprint: Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
+
+# ##########################################################################
+# PIN MAP — read from the datasheet's own PIN TABLE (p.2 "Pin explanations"),
+# a TABLE, not a figure. IDENTICAL, pin for pin, to the ULN2803A DW this part
+# replaces (ADR-0023): 1-8 inputs in order, 9 GND, 10 COMMON, 11-18 outputs in
+# REVERSE order, so OUTn faces INn across the package. That identity is the
+# entire reason the swap costs no footprint, no placement and no route.
+# ##########################################################################
+pins:
+  1: IN1
+  2: IN2
+  3: IN3
+  4: IN4
+  5: IN5
+  6: IN6
+  7: IN7
+  8: IN8
+  9: GND
+  10: COM    # datasheet name "COMMON" — clamp-diode common -> 5V_KEY_RELAY
+  11: OUT8
+  12: OUT7
+  13: OUT6
+  14: OUT5
+  15: OUT4
+  16: OUT3
+  17: OUT2
+  18: OUT1
+limits: {vout: "50V", iout: "500mA/ch (abs max); 400mA/ch 1-circuit operating", vin: "-0.5 to 30V", vcom: "-0.5 to 50V", topr: "-40..+85C", pd_fwg: "1.31W on 75x114x1.6mm 20%Cu, derate 10.48mW/C above 25C"}
+
+# ##########################################################################
+# ELECTRICAL FACTS (ADR-0007 item 2). THE ON-STATE DROP IS A GUARANTEED MAX IN
+# AN EC TABLE, expressed as a RESISTANCE — which is why this part closes the
+# reed pull-in margin the ULN2803A could not (ADR-0023). Contrast: the
+# ULN2803A's EC table specified V_CE(sat) only at 100/200/350 mA, two orders
+# above the ~7 mA coil, so its 10 mA drop had to be DIGITIZED off a typical
+# curve and its worst case DERIVED. Here the same three current points all
+# yield ONE resistance, and a resistance extrapolates DOWN in current
+# legitimately where a Darlington's two V_BE drops do not.
+# ##########################################################################
+electrical:
+  vdd: 4.740                     # coil rail 5V_KEY_RELAY vout_min (power_tree.yaml),
+                                 # NOT a logic VDD — COM(10) sits on that rail
+  defaults:
+    drive: open_drain_dmos_sink
+    r_on_ohm_max: 3.25           # EC TABLE p.5 (see r_on_source), Ta = 25 C
+  pins:
+    "18": {r_on_ohm_max: 6.50}   # THE HOT-CORNER FIGURE the coil-margin assert uses.
+                                 # 2x the 25 C table max, see the tempco gotcha.
+  r_on_typ_ohm: 2.00             # EC table p.5, all three current points
+  r_on_max_ohm: 3.25             # EC table p.5, all three current points, Ta=25 C
+  r_on_max_ohm_hot: 6.50         # DERIVED, deliberately pessimistic — see gotcha
+  v_in_on_max: 2.5               # EC table p.5 VIN(ON) MAX, TBD62083A series
+  v_in_off_max: 0.6              # Operating Ranges p.4 VIN(OFF) MAX
+  i_in_on_max_mA: 0.1            # EC table p.5, VIN = 2.5 V
+  i_coil_design_mA: 7.0          # one DIP05-1A72-13L 5 V coil, 500R nom, at 20 C
+  v_ds_at_7mA_max_25C: 0.0228    # 7.0 mA x 3.25 ohm
+  v_ds_at_7mA_max_hot: 0.0455    # 7.0 mA x 6.50 ohm
+  clamp_diode_to_com: true       # p.2 equivalent circuit + p.5 VF row — the
+                                 # ULN2803A's COM freewheel path, PRESERVED
+  source: "Toshiba TBD62083A/TBD62084A series datasheet 2016-05-11: p.5
+    Electrical Characteristics, row 'Output voltage (Output ON-resistance)
+    VDS (RON)', TBD62083A series, VIN = 5.0 V — IOUT = 100 mA: 0.2 typ /
+    0.325 max V, (2.0) typ / (3.25) max ohm; IOUT = 200 mA: 0.4 / 0.65 V,
+    (2.0) / (3.25) ohm; IOUT = 350 mA: 0.7 / 1.14 V, (2.0) / (3.25) ohm.
+    Test Circuit 2 (p.6) defines RON = VDS / IOUT explicitly. Input thresholds:
+    p.4 Operating Ranges VIN(ON) 2.5 V MIN / VIN(OFF) 0.6 V MAX and p.5 EC
+    VIN(ON) 2.5 V MAX at IOUT = 100 mA, VOUT = 2 V. Clamp diode: p.2
+    'Equivalent circuit (each driver)' + p.5 VF 2.0 V MAX at IF = 350 mA."
+
+gotchas:
+  - "*** R_ON IS CONSTANT ACROSS THE TABLE, AND THAT IS THE WHOLE POINT
+     (ADR-0023). *** The p.5 EC table gives THREE current points — 100, 200 and
+     350 mA — and all three resolve to the SAME resistance: 2.0 ohm typ,
+     3.25 ohm MAX. That is what a DMOS channel is, and it is why the drop may
+     be extrapolated DOWN to the ~7 mA reed coil: 7.0 mA x 3.25 ohm = 22.8 mV
+     GUARANTEED MAX at 25 C. The ULN2803A it replaces could not be treated this
+     way — a Darlington's drop is two V_BE plus a resistance, it does NOT scale
+     with current, its EC table stopped at 100 mA (14x the coil current) and its
+     10 mA figure had to be digitized off Fig.1 with the max DERIVED from a
+     max/typ ratio. The swap does not just win 0.65 V of margin; it replaces an
+     ESTIMATE with a table row."
+  - "*** NO R_ON TEMPCO IS PUBLISHED, so a deliberately pessimistic bound is
+     carried and the verdict is checked against it. *** The EC table is headed
+     'Ta = 25 C unless otherwise noted' and there is no R_ON-vs-temperature
+     figure anywhere in the 11 pages. A DMOS channel's R_on RISES with
+     temperature (unlike a Darlington's V_BE, which falls), so this is the one
+     direction where this part is worse than the one it replaces and it must not
+     be waved through. `r_on_max_ohm_hot: 6.50` is 2x the 25 C maximum — far
+     beyond the ~+0.7%/K a 60 V-class DMOS typically shows (which would give
+     4.3 ohm at +70 C) — and the margin is checked against THAT. The conclusion
+     is insensitive: at the coil's 7 mA even 10x the table max (32.5 ohm) drops
+     only 0.228 V against a +70 C budget of 0.540 V. The pull-in verdict cannot
+     be overturned by an unpublished tempco, which is why it was safe to accept
+     one."
+  - "INPUT IS 3.3 V-COMPATIBLE AND THAT IS A SPEC, NOT AN INFERENCE. On this
+     board IN1-8 are driven by SN74HC238 decoders whose VCC(pin16) is 3V3, NOT
+     5 V. VIN(ON) MAX is 2.5 V (p.4 Operating Ranges AND p.5 EC, TBD62083A
+     series) so a 3.3 V high clears it by 0.8 V. The '84 series in the same
+     datasheet needs 7.0 V MIN — DO NOT ORDER TBD62084A, it will not turn on
+     from 3.3 V logic (or from 5 V). Input current also FALLS by 10x versus the
+     ULN2803A's 2.7k base resistor (0.1 mA MAX at 2.5 V vs ~1 mA), which
+     unloads the '238 outputs; that is a side benefit, not a requirement."
+  - "OUTn pairs with INn on the OPPOSITE corner (1<->18), same as the ULN2803A:
+     straight-across netting is a classic bug - audit asserts IN1/OUT1 pairing"
+  - "internal clamp diodes to COM (p.2 equivalent circuit: anode at OUTPUT,
+     cathode at COMMON; VF 2.0 V MAX at 350 mA, p.5). COM MUST tie to
+     5V_KEY_RELAY (the SWITCHED coil rail), not 5V_PROTECTED, so a gated-off
+     rail still clamps coil kick. THIS IS THE FUNCTIONAL EQUIVALENT OF THE
+     ULN2803A's COM PIN, verified from the figure rather than assumed from the
+     pin name — a DMOS array WITHOUT it would have been a topology change, not
+     a drop-in, because the twelve reed coils have no external flyback diode."
+  - "FLOATING INPUTS ARE HELD OFF INTERNALLY. p.2 'Equivalent circuit (each
+     driver)' shows the input path as series R -> node -> series R -> gate with
+     a RESISTOR FROM THAT NODE TO GND (plus a clamp block and a clamp diode).
+     That matters because U_ULNB's IN5-IN8 (pads 5-8) are spare and
+     unconnected: on a bare MOS gate they would be indeterminate. They are
+     harmless here twice over — the internal pull-down, and OUT5-OUT8 (pads
+     11-14) are unconnected too, so a spurious channel drives nothing."
+  - "SOP-18-300mil / P-SOP18-0812-1.27-001 IS THE SAME LAND AS THE TI DW. p.9
+     package drawing, read at 300 dpi: body 11.35-11.68 x 7.37-7.62 mm, lead
+     span 10.01-10.64 mm, pitch 1.27, lead width 0.36-0.51 mm, foot 0.85+-0.15,
+     height 2.85 MAX. TI SLRS049G p.1 gives the DW body as 11.50 x 7.50 mm —
+     dead centre of the Toshiba band — and both are JEDEC 300-mil 18L SOIC. LCSC
+     independently classifies C165895's package with the SAME string as the
+     outgoing C9683: 'SOIC-18-300mil'. The KiCad footprint
+     Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm is unchanged."
+verified: "pin map read from the datasheet's own p.2 'Pin explanations' TABLE (I1-I8 = 1-8, GND = 9, COMMON = 10, O8-O1 = 11-18) and cross-read against the p.1 pin-connection figure; package dimensions from the p.9 P-SOP18-0812-1.27-001 drawing rendered at 300 dpi; clamp-diode topology from the p.2 equivalent-circuit figure - 2026-07-29"
+layout:                          # P-LAYOUT: 8ch DMOS relay-coil driver (ADR-0003 safety chain, ADR-0023 part change)
+  source: "Toshiba TBD62083A/TBD62084A datasheet 2016-05-11 p.7 'Precautions for
+    Using' (the IC has NO built-in over-current or over-voltage protection; and
+    verbatim: 'Utmost care is necessary in the design of the output line, COMMON
+    and GND line since IC may be destroyed due to short-circuit between outputs,
+    air contamination fault, or fault by improper grounding') + p.3 Absolute
+    Maximum Ratings Note 4 (FWG PD 1.31 W is quoted ON a 75 x 114 x 1.6 mm,
+    20% Cu, single-side glass-epoxy board — the rating is a BOARD rating, not a
+    package rating, and derates 10.48 mW/C above Ta = 25 C) + p.4 Operating
+    Ranges (8 circuits ON, Ta = 85 C, Tj = 120 C caps IOUT at 160 mA/ch for FWG)"
+  reviewed: "2026-07-29"
+  notes: |
+    Toshiba's layout guidance is about the OUTPUT / COMMON / GND lines and about
+    the fact that PD is specified on a board, not in free air. No keep-short
+    spans (the honest form - the datasheet names none):
+    (1) COM(10) ties to 5V_KEY_RELAY (the SWITCHED coil rail, per gotcha) - keep
+        COM and each OUTn->coil freewheel loop area SMALL so the internal clamp
+        diode sees low loop inductance. p.7 names the COMMON line explicitly as
+        one of the three whose design can destroy the part.
+    (2) GND(9) is the common source return for all 8 channels - give it a WIDE
+        pour/trace straight to the plane at the pin. p.7: 'fault by improper
+        grounding' is listed as a DESTRUCTION mode, not a noise mode. The
+        aggregate here is small (8 x 7 mA = 56 mA) but the rule is the part's.
+    (3) Keep IN1-8 (from the '238 decoders) separated and short; input current is
+        10x LOWER than the ULN2803A's so crosstalk susceptibility is lower, but
+        the inputs are also HIGHER impedance, which cuts the other way.
+    (4) THERMAL IS NO LONGER THE BINDING CASE, and this is a real improvement
+        over the part replaced: 8 coils energised together dissipate
+        8 x 7.0 mA x 45.5 mV = 2.5 mW worst case (hot R_on bound), against
+        8 x 7.0 mA x 880 mV = 49 mW for the ULN2803A. The p.3 Note-4 board
+        rating (1.31 W, 75 x 114 x 1.6 mm 20% Cu) is 500x the demand. Copper
+        around the package is still good practice; it is no longer load-bearing.
+    (5) SOP-18 1.27 mm pitch - no escape wall, unchanged from the DW land.
+sourcing:
+  lcsc: C165895
+  alternates: [C108880]
+  note: >-
+    LIVE CATALOG READ 2026-07-29 (jlcpcb selectSmtComponentList, the same
+    endpoint jlc_stock_check.py uses; NO code here was guessed). C165895 =
+    TOSHIBA 'TBD62083AFWG,EL', encapsulation 'SOIC-18-300mil' — the SAME
+    package string LCSC gives the outgoing C9683 ULN2803ADWR — stockCount
+    2334, library 'expand', $1.2252. Two per board, so the 5x-per-board
+    A-STOCK floor (10) is cleared 233x over. ALTERNATE C108880 =
+    'TBD62083AFWG(Z,EHZ)', stockCount 6851, $0.8931, encapsulation string
+    'SOP-18-300mil' (same land; LCSC also mis-files it under 'Darlington
+    Transistor Arrays' and mis-states R_ON as 325 mOhm — both are LCSC
+    attribute errors, the MPN and the datasheet are the authority). Deeper
+    stock and cheaper, kept as the alternate only because C165895's package
+    string matches the outgoing part's exactly, which is what JLC matches on.
+    OTHER PACKAGES OF THE SAME DIE, all live the same minute, none used: C163229
+    / C4153827 SSOP-18-225mil (3459 / 1160), C4153828 / C108880 SOP-18-300mil,
+    C114143 DIP-18 (567). REJECTED: TBD62084A (C146353 etc., stock 1071) is the
+    7.0 V-input variant and will NOT switch from this board's 3V3 logic.
+    Cheaper than the part it replaces (C9683 was noted at $6.22, 2026-07-19).
+    Order 2 (+2 spares).

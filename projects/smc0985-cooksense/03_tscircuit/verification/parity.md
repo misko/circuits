@@ -4,7 +4,7 @@ Compares the tscircuit render's netlist against the KiCad fab-of-record.
 Canon S-DSL: KiCad stays authoritative; this quantifies tscircuit fidelity.
 
 KiCad board: `/home/mouse9911/gits/circuits/projects/smc0985-cooksense/04_kicad/cooksense.kicad_pcb`
-- KiCad: 247 footprints, 170 named nets
+- KiCad: 245 footprints, 169 named nets
 - tscircuit: ~353 components, ~169 nets
 
 NOTE: refdes/net-name conventions differ between the two front-ends; a

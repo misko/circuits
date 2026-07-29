@@ -77,12 +77,38 @@ layout_refs:
   - "DS20001952C sec.1.0 Electrical Characteristics + typical connection (Microchip datasheet)"
   - "Adafruit/SparkFun MCP23017 breakout reference layouts (I2C address straps + single 0.1uF VDD bypass) — JLC-fabbed, copper viewable"
 sourcing:
-  lcsc: C506653
-  alternates: [C47023]
-  note: "MCP23017-E/SS SSOP-28, Microchip — JLC Economic/Standard assembly. Alternate
-    C47023 = MCP23017-E/SO (SOIC-28W, 1.27mm pitch): same die and pinout but needs a
-    SOIC-28W footprint swap (and eases the 0.65mm escape wall). The SPI MCP23S17 is
-    NOT a substitute — pins 11-14 (CS/SCK/SI/SO) differ from the I2C part."
+  lcsc: C558584                     # MCP23017T-E/SS — see the STOCK note below
+  # THE MAPPING FORM IS LOAD-BEARING, NOT STYLE. `bom_legibility_check.py`
+  # reads alternates as `{lcsc:, mpn:}` MAPPINGS; a bare list of code strings is
+  # silently skipped, so it resolves NOTHING. Measured 2026-07-29: with
+  # `alternates: [C506653, C47023]` (the bare form this file carried), F-LEGIBLE
+  # went RED on the SEALED cooksense-v1.6 BOM — "LCSC C506653 resolves NO MPN
+  # from any authority" — because moving `lcsc:` to C558584 orphaned the code
+  # six sealed releases ship. The old code MUST stay resolvable here forever.
+  # (Note the schema divergence, reported upstream: `electrical_invariants.py`
+  # `_load_part_electrical` reads the SAME field as bare strings.)
+  alternates:
+    - {lcsc: C506653, mpn: MCP23017-E/SS}   # the code v1.0-v1.7 shipped; stock 0
+    - {lcsc: C47023,  mpn: MCP23017-E/SO}   # SOIC-28W — needs a footprint swap
+  note: >-
+    *** THE ORDERED CODE CHANGED 2026-07-29 BECAUSE THE OLD ONE WENT TO ZERO. ***
+    C506653 (MCP23017-E/SS) read LCSC stockCount 56 on 2026-07-27, **0** on
+    2026-07-28, and **0** again on an independent live read 2026-07-29 — a real
+    catalog change, not an inherited number (controls the same minute: C5620 =
+    5414, C25741 = 465129). The board now specifies **C558584 =
+    MCP23017T-E/SS, SSOP-28, stockCount 7490, $1.7105** (live 2026-07-29).
+    IT IS THE SAME DEVICE, NOT AN ALTERNATE: DS20001952C's "PRODUCT
+    IDENTIFICATION SYSTEM" page lists (f) `MCP23017-E/SS` = Extended
+    temperature, 28LD SSOP and (g) `MCP23017T-E/SS` = the same, Tape and Reel,
+    and its Note 1 states the tape-and-reel identifier appears only in the
+    catalog part-number description. Same die, same SSOP-28 land, same pinout,
+    same register map — and tape-and-reel is what a JLC assembly order wants
+    anyway. `mpn:` above is deliberately left as the DEVICE name.
+    NOT substitutes: C47023 = MCP23017-E/SO is SOIC-28W and needs a footprint
+    swap (it does ease the 0.65 mm escape wall, so it stays as the fallback if
+    SSOP dries up); C629439/C639770 -E/ML are QFN-28; the SPI MCP23S17 differs
+    on pins 11-14 (CS/SCK/SI/SO). Other live SSOP/SOIC codes the same minute:
+    C629440 -E/SO 581, C647352 -E/SP 107 (SPDIP).
 
 # ADR-0007 — executable electrical facts. Prose in a dossier cannot be graded;
 # these are the numbers `node_level` resolves a logic level against.
