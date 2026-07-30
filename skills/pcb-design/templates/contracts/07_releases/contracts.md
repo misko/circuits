@@ -84,7 +84,13 @@ the only thing that says which board a sealed archive belongs to.
     │                                   cooksense-v1.4-2026-07-26
     ├── MANIFEST.txt                REQUIRED — sha256 of EVERY file below
     ├── ORDER_README.md             REQUIRED — order options, hand-solder list,
-    │                               first-power ritual
+    │                               first-power ritual. It is the BUYER's document,
+    │                               so it carries the ORDER-side facts on its FIRST
+    │                               SCREEN (40 lines): the `SOURCING:` gate line when
+    │                               the release is not orderable as sealed (canon
+    │                               A-BUY) and the lenses' `order_verdict` (canon
+    │                               M-REV). A warning 900 lines down is a warning for
+    │                               the reader who already knew
     ├── fab/                        REQUIRED — the JLCPCB order set, exactly as uploaded
     │   ├── <board>_gerbers.zip     the PCB order page
     │   ├── <board>.drl (+ NPTH)    drill files (also inside the zip; kept loose
@@ -195,11 +201,23 @@ the only thing that says which board a sealed archive belongs to.
         ├── pin_review.md            fresh-context pin review verdicts (pin-review-protocol)
         ├── render_review.md         fresh-eyes render review verdicts
         ├── redteam_topology.md      RED-TEAM release review, topology/protection/
-        │                            ratings lens — ORDER verdict; verbatim copy of
-        │                            the 08_reviews/ archive (a P0 blocks the release)
+        │                            ratings lens; verbatim copy of the 08_reviews/
+        │                            archive (a P0 blocks the release). THESE TWO
+        │                            EXACT NAMES are what canon M-REV grades —
+        │                            deliberately not a redteam*.md glob, because
+        │                            archived reviews of EARLIER versions sit beside
+        │                            them and grading a v1.0 review against a v1.12
+        │                            release is the adjacent-property error
         ├── redteam_layout.md        RED-TEAM release review, layout/thermal/
-        │                            power-integrity lens — ORDER verdict; verbatim
-        │                            copy of the 08_reviews/ archive
+        │                            power-integrity lens; verbatim copy of the
+        │                            08_reviews/ archive. Both files carry the TWO
+        │                            header keys `design_verdict: SOUND|DEFECTIVE`
+        │                            and `order_verdict: ORDER|DO-NOT-ORDER|
+        │                            BLOCKED-SOURCING` (08_reviews contract). The
+        │                            SEAL reads design_verdict; the ORDER_README
+        │                            reads order_verdict. A legacy single `verdict:`
+        │                            retrofits to both. A missing or out-of-
+        │                            vocabulary verdict is a FAIL, never a skip
         ├── policy_audit.md          zero FAIL, waivers evidence-backed
         └── parity.md                node-for-node netlist parity vs the source
 ```
@@ -233,7 +251,11 @@ fab:          JLCPCB, 4 layer, advanced small-via option (0.25/0.15 vias)
 quantity:     5
 gates:        DRC 0/0/0 · netlist parity 0 · audit PASS · ERC 0 err ·
               twin PASS · pin_review PASS · policy_audit 0 FAIL ·
-              redteam ORDER/ORDER, 0 open P0 · stock 55/55 verified
+              redteam SOUND/SOUND, 0 open P0 · stock 55/55 verified
+DESIGN:       PASS                       # is the artifact CORRECT (seal-time)
+SOURCING:     CLEAR                      # can it be BOUGHT (order-time)
+                                         # ... or PLANNED-<n>, or
+                                         # BLOCKED-1 (C265111; measured 2026-07-30)
 3d:           step present, gltf absent (no exporter for this board)
 sha256:       # EVERY file in the release, not just the fab set
   fab/power_board_v1_gerbers.zip   f5d56393...
@@ -255,6 +277,43 @@ consigned:    U1 C6938291 (XU316) — MSL 3, 168h floor life (ds v2.0.0 s.15.2)
 msl:          U1 MSL-3 (bake if floor life exceeded); no other exposed-pad part
 not_assembled: J4,J5,J13 (THT USB-A, not_in_catalog) · F1 element (user_supplied)
 ```
+
+### `DESIGN:` and `SOURCING:` — a seal makes TWO claims (canon A-BUY)
+
+`DESIGN: PASS|FAIL` and `SOURCING: CLEAR|PLANNED-<n>|BLOCKED-<n>` are both
+printed by `release_freshness_check.py` and both stamped here. They are
+separate because they are answered by different authorities at different
+times: the design gates at SEAL time, the CATALOG at ORDER time. Every other
+gate in this repo grades an artifact WE CONTROL, so a red means "there exists
+an edit to this design that turns it green"; **A-STOCK grades the WORLD**, and
+no edit to the design changes a vendor's `stockCount`.
+
+- **A release may seal with `DESIGN: PASS` + `SOURCING: PLANNED-<n>` or
+  `BLOCKED-<n>`. It may NEVER seal with `DESIGN: FAIL`.**
+- `PLANNED` means the plan makes the catalog irrelevant for that line
+  (consignment, self-supply); `BLOCKED` means it cannot be bought as sealed.
+  The classification is `order_status:` on the `03_src/rules/assembly.yaml`
+  `sourcing_plan:` entry, and it is REQUIRED whenever the entry's own
+  `measured_stock` does not cover `qty x build_quantity`. **An unclassified
+  shortfall is a FAIL** — before this it cleared the line SILENTLY whatever
+  its own number said, so a release could seal unbuyable with nothing
+  anywhere saying so.
+- **A BLOCKED release seals only OUT LOUD.** Both this MANIFEST and the FIRST
+  SCREEN (40 lines) of `ORDER_README.md` must carry the gate line
+
+      SOURCING: BLOCKED-<n> (<lcsc codes>; measured <YYYY-MM-DD>)
+
+  and its status, count, LCSC set and date are compared against the
+  measurement **in BOTH directions** — a release may neither hide a blocked
+  line nor invent one. The date is the newest blocking `measured_on` and may
+  not predate the release by more than 7 days: a stock reading is perishable,
+  and an undated one is not evidence.
+- **Order-time re-grade.** A sealed archive is immutable, so the sourcing
+  question is re-asked from OUTSIDE it:
+  `release_freshness_check.py <release_dir> --claim sourcing --stock-evidence
+  FRESH.json`. A measurement POSTDATING the seal is reported, never failed —
+  an archive cannot declare a fact discovered after it was written, and
+  demanding it would be the retro-fill this contract forbids.
 
 ### `not_assembled:` is a REQUIRED, GENERATED block
 
@@ -334,6 +393,14 @@ lands; **immutability begins the moment the seal commit exists.**
    same finding after the seal costs a supersede** (3 of one family's 4
    seals died to post-ceremony reviews, mean seal lifetime 5.6h,
    2026-07-23). Do not proceed with any open P0 or FAIL.
+   **"FAIL" HERE MEANS `DESIGN: FAIL`, NOT `SOURCING: BLOCKED`** (canon
+   A-BUY). A release whose only red is that a vendor is out of stock is
+   SEALABLE — declare it per the `DESIGN:`/`SOURCING:` section above and
+   proceed. Nine successive agents declined to seal a board at DRC 0/0/0
+   and `policy_audit` FAIL=0 because the gate had one verdict for two
+   questions, and each of them spent a full pass rediscovering why. Grade
+   the claims separately when you need to:
+   `release_freshness_check.py <staging_dir> --claim design`.
 1. **Source commit S.** Commit every INPUT: the board's own subtree and
    any `skills/` changes. `release_git_dirty.py <board>` must report
    clean apart from the staged release dir itself (the release dir is
@@ -600,6 +667,21 @@ checked shared a method.
   this fleet shipped a `FAIL:` last line, one with the board's own CPU at
   stock 0. Fix the sourcing or record the `sourcing_plan:` entry with the
   measured number and its date.
+- **Sealing a NON-ORDERABLE release QUIETLY** (canon A-BUY). Sealing one is
+  PERMITTED — `DESIGN: PASS` + `SOURCING: BLOCKED-<n>` is a consistent state,
+  and refusing it is what cost smc0985-cooksense v1.7 nine seals on a board
+  with zero design defects. What is forbidden is a `sourcing_plan:` shortfall
+  with no `order_status:` classification, and a BLOCKED measurement that does
+  not appear — with its count, its LCSC codes and its date — in BOTH the
+  MANIFEST and the first screen of `ORDER_README.md`. Equally forbidden in
+  the other direction: DECLARING a blocked line the evidence does not
+  measure. A release may neither hide one nor invent one.
+- **Sealing with `design_verdict: DEFECTIVE`** on either red-team lens
+  (canon M-REV). The verdict split adds a dimension; it adds no way past a
+  design-side red. `order_verdict: DO-NOT-ORDER` blocks the ORDER, not the
+  seal — but only once it has been re-graded honestly: if the reason is
+  SOURCING and the design is sound, the lens has the vocabulary to say so
+  (`design_verdict: SOUND` + `order_verdict: BLOCKED-SOURCING`).
 - **A release that outsources its own contents to git.** No `source/` means
   no release — "it's at that SHA" is not an archive. Likewise no symlinks
   into `04_kicad/` or `03_tscircuit/`; those folders keep moving.
@@ -638,6 +720,17 @@ checked shared a method.
     the shipped stock evidence carries a PARSEABLE PASS verdict and every
     coded, placed line clears `qty x build_quantity` or names a
     `sourcing_plan:` entry with its measured stock and date
+  - **and check (f) (canon A-BUY): every `sourcing_plan:` shortfall carries
+    `order_status: PLANNED|BLOCKED`, and a release measured `BLOCKED-<n>`
+    declares it — count, LCSC set and date all MATCHING the measurement — in
+    the MANIFEST and in the first 40 lines of `ORDER_README.md`.** The gate
+    prints `DESIGN:` and `SOURCING:` separately and `--claim design|sourcing`
+    exit-codes them independently, so a sourcing red can no longer veto the
+    design claim
+  - **and check (g) (canon M-REV): both contract-named red-team lens files
+    carry `design_verdict: SOUND`, and their `order_verdict` does not
+    contradict the measured `SOURCING:` state in either direction.** A
+    missing, prose-only or out-of-vocabulary verdict is a FAIL, never a skip
   - `bom_legibility_check.py <release_dir>` exits 0 (canon F-LEGIBLE) — every
     coded row carries an MPN that AGREES with its dossier, every Comment is a
     human-readable value, and the file decodes identically under UTF-8 and
@@ -664,9 +757,11 @@ checked shared a method.
   FINDING to adjudicate BEFORE paying, never after. There is deliberately no
   JLCPCB API integration (ADR-0006): it would require handing over
   credentials, the same line already drawn on the Mouser/Nexar APIs
-- red-team review present in `verification/`, both lenses'
-  (topology/protection + layout/thermal) verdicts = ORDER, zero unresolved
-  P0 (a P0 blocks the release); archived verbatim in `08_reviews/`
+- red-team review present in `verification/` under the two contract-named
+  files, both lenses' (topology/protection + layout/thermal)
+  `design_verdict: SOUND`, zero unresolved P0 (a P0 blocks the release);
+  archived verbatim in `08_reviews/`. `order_verdict` is graded too, against
+  the SOURCING measurement rather than against the seal (canon M-REV)
 - the bare/modeled render pair for both sides (`render_{top,bottom}_bare.png`
   beside the twin renders) and `missing_models.txt` are present in
   `verification/`; `missing_models.txt` carries the `GENERATED by jlc_twin`

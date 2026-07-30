@@ -959,15 +959,38 @@ wall-clock for no independence gain.
   pcbnew (hot-loop spans in mm, switch-node zone areas + layer adjacency
   vs the stackup, gate-drive routing, thermal vias vs computed
   dissipation).
-  Each returns P0/P1/P2 findings with cited evidence and an
-  ORDER / DO-NOT-ORDER verdict. Reviews are archived VERBATIM in
+  Each returns P0/P1/P2 findings with cited evidence and **TWO verdicts,
+  because a seal makes two claims** (canon M-REV, the review-side twin of
+  A-BUY):
+
+      design_verdict: SOUND | DEFECTIVE            # is the artifact CORRECT?
+      order_verdict:  ORDER | DO-NOT-ORDER | BLOCKED-SOURCING
+
+  **The SEAL gate reads `design_verdict`; the ORDER_README reads
+  `order_verdict`.** `BLOCKED-SOURCING` exists precisely so a lens can say
+  *this board is right and you cannot buy it today* without either half
+  contaminating the other — and `order_verdict` is cross-checked against the
+  release's own measured `SOURCING:` state in both directions, so it is a
+  measurement-backed field and not a second opinion. A legacy single
+  `verdict:` retrofits to both keys, conservatively (`DO-NOT-ORDER`/`FAIL`
+  -> DEFECTIVE, so no sealed review is retroactively converted into an
+  acceptance); vocabularies, the full retrofit table and the reasoning live
+  in the `08_reviews/` contract. Verdicts are parsed as DATA, never scraped
+  from prose: cooksense v1.5 shipped `VERDICT AT RUN TIME: **DO NOT
+  ORDER.**` and it states no verdict at all. Reviews are archived VERBATIM in
   `08_reviews/` (see its contract: provenance header, DISPOSITIONS.md
   ledger; external reviews received are archived there too) and copied
-  into the release `verification/`. The release report MUST include the
+  into the release `verification/` under the two contract-named filenames
+  `redteam_topology.md` / `redteam_layout.md` — those exact names are what
+  M-REV grades. The release report MUST include the
   **findings table** (finding | severity | evidence | disposition) and
   both verdicts. **A P0 finding blocks the release** — fix and re-gate, or
   supersede; P1s land in ORDER_README + the next-rev work order; P2s are
-  recorded. Rationale: internal gates prove artifacts agree WITH EACH
+  recorded. **WHY THE ONE-FIELD FORM WAS RETIRED**: smc0985-cooksense v1.7's
+  topology re-gate wrote *"I would accept the seal ... but sealing is not the
+  question this verdict field asks"*, and eight successive sealing passes
+  declined a board at DRC 0/0/0 with `policy_audit` FAIL=0. The lens and the
+  gate never disagreed about anything physical. Rationale: internal gates prove artifacts agree WITH EACH
   OTHER; the D1 reverse-polarity TVS defect (usb-hub-3s v1.0, found by an
   external review 2026-07-21) passed ERC, DRC, parity, twin, and pin
   review because every artifact was consistently wrong together — only an

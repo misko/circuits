@@ -67,10 +67,110 @@ Fifth check — A-STOCK, always on (2026-07-25, the PCBA-default posture):
       OFFLINE — it grades EVIDENCE; live re-query stays in the opt-in --net
       tier, because a gate that needs the network is a gate that gets skipped.
 
+A SEAL MAKES TWO CLAIMS AND THIS GATE USED TO HAVE ONE FIELD FOR BOTH
+(2026-07-30, checks (f) A-BUY and (g) M-REV):
+
+    | claim                        | who can answer it            |
+    |------------------------------|------------------------------|
+    | *this design is correct*     | the design gates, at SEAL time |
+    | *this design is orderable*   | the CATALOG, at ORDER time     |
+
+  Every other check here grades an artifact WE CONTROL, so a red means *there
+  exists an edit to this design that turns it green* and blocking the seal is
+  right. **A-STOCK grades the WORLD.** It reads a vendor's live `stockCount` —
+  0 on 2026-07-29, 5 on 2026-07-30, on the same unchanged board — and NO EDIT
+  TO THE DESIGN CHANGES IT. Measured cost of merging the two claims into one
+  verdict: smc0985-cooksense v1.7 reached DRC 0/0/0, `policy_audit` FAIL=0,
+  ERC 0, E-INV 167/167, both red-team lenses graded — and NINE successive
+  agents declined to seal it, every one of them on one BOM line whose
+  `minPurchaseNum` (21) exceeds its entire `stockCount` (5). Nine refusals,
+  zero design defects. The last red-team lens wrote, verbatim: *"I would accept
+  the seal ... but sealing is not the question this verdict field asks."*
+
+  So the gate now grades and prints TWO verdicts, and `--claim` grades either
+  one alone:
+
+      DESIGN:   PASS | FAIL (n finding(s))
+      SOURCING: CLEAR | PLANNED-<n> | BLOCKED-<n> [ + FAIL (n finding(s)) ]
+
+  THIS IS NOT AN ESCAPE HATCH, AND IT IS A NET TIGHTENING. Before it, a
+  `sourcing_plan:` entry SILENTLY CLEARED its line whatever its own measured
+  number said — `if code in plan: continue` — so a release could seal
+  unbuyable with nothing anywhere saying so. Now:
+
+  (f) A-BUY — THE SOURCING CLAIM IS CLASSIFIED, AND A NON-ORDERABLE RELEASE
+      MUST SAY SO WHERE THE BUYER LOOKS.
+
+      **THE ID IS `A-BUY` AND NOT `A-ORDER`, AND THAT IS NOT A STYLE CHOICE.**
+      This check was drafted as `A-ORDER`, which has meant something ELSE since
+      2026-07-17 (`ae93b4b`): `rules_audit.py`'s A-ORDER asserts that
+      `generate_rules.py` is the LAST step to touch the project before the DRC
+      gate, because a pcbnew save clobbers netclasses. It is load-bearing and
+      cited by name in `tests/README.md`, `t4_regressions.py`,
+      `t1_rules_bom.py` and `t1_assembly_gates.py`. Two unrelated checks under
+      one ID is the M-WIDTH failure inverted — one NAME, two policies — and it
+      is worse than a missing ID: a canon row would have had to describe both,
+      a waiver written for either would read as covering the other, and a
+      fleet-wide `grep A-ORDER` would answer neither question. `A-BUY` reads
+      alongside `A-STOCK` (can we buy it / is it in stock) and collides with
+      nothing: MEASURED 2026-07-30, zero occurrences anywhere in the repo
+      before this change.
+
+      A `sourcing_plan:` entry whose own
+      `measured_stock` does not cover `qty x build_quantity` MUST declare
+      `order_status: PLANNED|BLOCKED` — PLANNED means the plan makes the
+      catalog irrelevant for that line (consignment, self-supply), BLOCKED
+      means it cannot be bought as sealed. An unclassified shortfall is a FAIL
+      (it used to be a silent pass). A release measured BLOCKED-<n> may seal,
+      and ONLY if BOTH `MANIFEST.txt` and the FIRST SCREEN of `ORDER_README.md`
+      carry the gate line
+
+          SOURCING: BLOCKED-<n> (C265111; measured 2026-07-30)
+
+      whose status, count, LCSC set and date all MATCH the measurement, in both
+      directions — a release may neither hide a blocked line nor invent one.
+      The date must be the newest `measured_on` of the blocking entries and may
+      not predate the release by more than 7 days: a stock reading is
+      perishable, and an undated one is not evidence.
+
+  (g) M-REV — THE REVIEW VERDICTS, WHICH NOTHING HAS EVER PARSED. The
+      07_releases contract has required "both lenses' verdicts = ORDER" since
+      it was written and no gate read the field. MEASURED 2026-07-30, quoted
+      against its population denominator (canon M-COVER): of 33 sealed
+      release dirs, 21 ship both contract-named lens files, and 9 OF THOSE 21
+      carry an ungradeable verdict on at least one lens — 5 with no verdict
+      KEY at all, 8 with a value outside every stated vocabulary, overlap 4.
+      Only 12 of 21 are parseable. The commonest shape is `verdict: DO NOT
+      ORDER` written as prose after the colon (first token `DO`); cooksense
+      v1.5's shipped `redteam_layout.md` does not use the key at all — line 5
+      reads `VERDICT AT RUN TIME: **DO NOT ORDER.**` — a sealed release
+      carrying a DO-NOT-ORDER review nobody read. The review
+      header is therefore graded as a CLOSED VOCABULARY, never scraped from
+      prose (that is the R-LEN word-credit defect):
+
+          design_verdict: SOUND | DEFECTIVE          -> the DESIGN claim
+          order_verdict:  ORDER | DO-NOT-ORDER | BLOCKED-SOURCING
+
+      A legacy single `verdict:` maps CONSERVATIVELY — `DO-NOT-ORDER`/`FAIL`
+      become DEFECTIVE, so no existing review is retroactively converted into
+      an acceptance; the split gives the NEXT reviewer the vocabulary, it does
+      not rewrite the last one's judgement. A missing or out-of-vocabulary
+      verdict is a FAIL, never a skip (the A-STOCK clause, applied to reviews).
+      `order_verdict` is cross-checked against (f)'s MEASUREMENT: a lens may
+      not say ORDER on a release measured BLOCKED, nor BLOCKED-SOURCING on one
+      measured CLEAR.
+
+  ORDER-TIME RE-GRADE. A sealed release is immutable, so the sourcing question
+  is re-asked from OUTSIDE it: `--claim sourcing --stock-evidence FRESH.json`
+  grades ONLY the sourcing claim, against today's catalog reading, without
+  touching the archive. That is where the question is answerable.
+
 Usage:
     release_freshness_check.py <release_dir> [--releases-root DIR]
                                [--assembly 03_src/rules/assembly.yaml]
                                [--allow-identical RELPATH ]...
+    release_freshness_check.py <release_dir> [--claim design|sourcing|both]
+                               [--stock-evidence FRESH.json]
     release_freshness_check.py <release_dir> --docs-only-supersede PRIOR_DIR
     release_freshness_check.py <release_dir> --legible-bom-supersede PRIOR_DIR
     release_freshness_check.py <release_dir> --sourcing-supersede PRIOR_DIR
@@ -1660,14 +1760,33 @@ def _parse_stock_evidence(path):
     return (m.group(1) if m else None), lines
 
 
-def check_stock(release_dir, assembly):
-    """(e) grade the SHIPPED stock evidence for every coded, placed BOM line."""
+#: `sourcing_plan[].order_status` — the CLOSED vocabulary a plan must use when
+#: its OWN measured number does not cover `qty x build_quantity`. An unknown
+#: value is a FAIL, never a coercion to the permissive one.
+_ORDER_STATUS_VOCAB = ("PLANNED", "BLOCKED")
+
+
+def _ungraded_sourcing(reason):
+    """The sourcing verdict for a release whose lines could not be measured.
+    UNGRADED is never CLEAR: checks (f)/(g) compare against a MEASUREMENT and
+    must not compare against an absence (canon M-COVER)."""
+    return {"graded": False, "status": "UNGRADED", "why": reason,
+            "planned": [], "blocked": [], "measured_on": None,
+            "n_lines": 0, "n_graded": 0}
+
+
+def check_stock(release_dir, assembly, evidence_override=None):
+    """(e) grade the SHIPPED stock evidence for every coded, placed BOM line.
+
+    Returns `(fails, notes, sourcing)`. `sourcing` is the MEASURED order-
+    readiness of this release — the input checks (f) and (g) grade the
+    release's own DECLARATIONS against."""
     fails, notes = [], []
     want = _placed_coded_lines(release_dir)
     if want is None:
         notes.append("  note: A-STOCK: this release ships no fab/bom.csv + "
                      "fab/cpl.csv pair — no coded, placed line to grade")
-        return fails, notes
+        return fails, notes, _ungraded_sourcing("no fab/bom.csv + fab/cpl.csv")
     qty_mult = int(assembly.get("build_quantity") or 5)
     if not assembly.get("build_quantity"):
         notes.append("  note: A-STOCK: no assembly.yaml build_quantity — "
@@ -1683,16 +1802,37 @@ def check_stock(release_dir, assembly):
                 f"  STOCK-PLAN-INCOMPLETE: sourcing_plan entry for {code} is "
                 f"missing measured_stock and/or measured_on — a plan without "
                 f"the measured number and its date is a hope, not evidence")
+        st = str(e.get("order_status") or "").strip().upper()
+        if code and st and st not in _ORDER_STATUS_VOCAB:
+            fails.append(
+                f"  STOCK-PLAN-BAD-STATUS: sourcing_plan entry for {code} "
+                f"declares order_status {st!r}, which is outside the closed "
+                f"vocabulary {'|'.join(_ORDER_STATUS_VOCAB)} — an unreadable "
+                f"classification is a FAIL, never a fallback to the "
+                f"permissive one")
 
     ver = release_dir / "verification"
-    ev = next((ver / n for n in _STOCK_EVIDENCE if (ver / n).is_file()), None)
+    if evidence_override is not None:
+        ev = Path(evidence_override)
+        if not ev.is_file():
+            fails.append(
+                f"  STOCK-NO-EVIDENCE: --stock-evidence {ev} does not exist — "
+                f"an order-time re-grade against a file that is not there "
+                f"grades nothing")
+            return fails, notes, _ungraded_sourcing("--stock-evidence absent")
+        notes.append(f"  note: A-STOCK: ORDER-TIME re-grade — grading {ev} "
+                     f"INSTEAD of the sealed verification/ evidence (the "
+                     f"archive is immutable and is not touched)")
+    else:
+        ev = next((ver / n for n in _STOCK_EVIDENCE if (ver / n).is_file()),
+                  None)
     if ev is None:
         fails.append(
             f"  STOCK-NO-EVIDENCE: {len(want)} coded line(s) are on the CPL "
             f"but verification/ ships no stock evidence "
             f"({'/'.join(_STOCK_EVIDENCE)}) — a release with unverified "
             f"sourcing is not orderable")
-        return fails, notes
+        return fails, notes, _ungraded_sourcing("no stock evidence shipped")
     verdict, lines = _parse_stock_evidence(ev)
     notes.append(f"  note: A-STOCK: grading verification/{ev.name} "
                  f"({len(lines)} graded line(s), verdict={verdict}) against "
@@ -1727,8 +1867,43 @@ def check_stock(release_dir, assembly):
                 f"  STOCK-VERDICT-FAIL: verification/{ev.name} ends in a FAIL "
                 f"verdict and no line-level status could be parsed from it — "
                 f"the release cannot show WHICH line failed")
+    planned, blocked, plan_dates, unclassified = [], [], [], []
     for code, qty in sorted(want.items()):
-        if code in plan:
+        need = qty * qty_mult
+        e = plan.get(code)
+        if e is not None:
+            try:
+                measured = int(e.get("measured_stock"))
+            except (TypeError, ValueError):
+                measured = None
+            st = str(e.get("order_status") or "").strip().upper()
+            if measured is not None and measured >= need:
+                # The plan's own number COVERS the build: the line is cleared
+                # by evidence, and may not simultaneously claim otherwise.
+                if st in _ORDER_STATUS_VOCAB:
+                    fails.append(
+                        f"  ORDER-PLAN-OVERCLAIM: sourcing_plan entry for "
+                        f"{code} declares order_status {st} while its own "
+                        f"measured_stock {measured} covers {qty} x {qty_mult} "
+                        f"= {need} — a release may not invent a blocked line "
+                        f"any more than it may hide one")
+                continue
+            # THE SHORTFALL CASE. Until 2026-07-30 this fell through
+            # `if code in plan: continue` and CLEARED SILENTLY, whatever the
+            # plan's own number said. It must now classify itself.
+            if st not in _ORDER_STATUS_VOCAB:
+                fails.append(
+                    f"  ORDER-PLAN-UNCLASSIFIED: sourcing_plan entry for "
+                    f"{code} measures stock {measured} against {qty} x "
+                    f"{qty_mult} = {need} and states no `order_status:` "
+                    f"({'|'.join(_ORDER_STATUS_VOCAB)}) — a plan whose OWN "
+                    f"number does not cover the build used to clear the line "
+                    f"silently, which is how a release could seal unbuyable "
+                    f"with nothing anywhere saying so")
+                unclassified.append(code)
+                continue
+            (blocked if st == "BLOCKED" else planned).append(code)
+            plan_dates.append(str(e.get("measured_on") or "").strip())
             continue
         if code not in lines:
             fails.append(
@@ -1737,7 +1912,6 @@ def check_stock(release_dir, assembly):
                 f"evidence was never sourced, only assumed")
             continue
         st, stock = lines[code]
-        need = qty * qty_mult
         if stock is not None and stock < need:
             fails.append(
                 f"  STOCK-INSUFFICIENT: {code} stock={stock} < {qty} x "
@@ -1748,7 +1922,360 @@ def check_stock(release_dir, assembly):
             fails.append(
                 f"  STOCK-INSUFFICIENT: {code} graded {st} with no readable "
                 f"stock number and no sourcing_plan entry")
+    if unclassified:
+        # M-COVER: a line whose state could not be read leaves the RELEASE's
+        # state unread. UNGRADED is not CLEAR, and (f)/(g) grade nothing
+        # against it — the finding above is the whole report.
+        return fails, notes, _ungraded_sourcing(
+            f"{len(unclassified)} unclassified sourcing_plan line(s): "
+            f"{', '.join(sorted(unclassified))}")
+    status = "BLOCKED" if blocked else "PLANNED" if planned else "CLEAR"
+    sourcing = {
+        "graded": True, "status": status, "why": "",
+        "planned": sorted(planned), "blocked": sorted(blocked),
+        "measured_on": max((d for d in plan_dates if d), default=None),
+        "n_lines": len(want), "n_graded": len(lines),
+    }
+    return fails, notes, sourcing
+
+
+# --------------------------------------------------------------- check (f)
+# A-BUY — a release that is NOT ORDERABLE may seal, and only out loud.
+#
+# The permission and the obligation are one clause: `SOURCING: BLOCKED-<n>`
+# stops vetoing the DESIGN claim, and in exchange the release must carry the
+# fact where a BUYER meets it — the MANIFEST's own gate summary and the FIRST
+# SCREEN of ORDER_README.md — with the COUNT, every blocked LCSC, and the DATE
+# the stock was measured. All three are cross-checked against the measurement,
+# in BOTH directions, so the declaration cannot drift from the fact and cannot
+# be satisfied by an adjective. (That two-way form is deliberate: R-LEN passed
+# a board on the word "lengthens" in a comment about creepage, so a gate that
+# credits prose is a gate that credits nothing.)
+
+#: The ORDER_README's first screen. A buyer scrolls; a buyer in a hurry does
+#: not. cooksense v1.7's hand-written non-orderable banner lands at line 14.
+_README_BANNER_LINES = 40
+
+#: A stock reading is perishable. A `measured_on` this much older than the
+#: release date is not evidence ABOUT this release.
+_STOCK_MEASUREMENT_MAX_AGE_DAYS = 7
+
+#: The gate line, in MANIFEST.txt and in ORDER_README.md:
+#:     SOURCING: BLOCKED-1 (C265111; measured 2026-07-30)
+#: Leading markdown decoration is tolerated; the VALUE never is — status,
+#: count, codes and date are all compared as data.
+_SOURCING_DECL_RE = re.compile(
+    r"SOURCING:\s*(CLEAR|PLANNED-\d+|BLOCKED-\d+)\b[^\n(]*(?:\(([^)]*)\))?",
+    re.I)
+_ISO_DATE_RE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
+_LCSC_RE = re.compile(r"\bC\d{3,}\b")
+
+
+def _parse_sourcing_declaration(text):
+    """(status, count, {codes}, date) for the FIRST `SOURCING:` gate line in
+    `text`, or None when it states none. `count`/`date` may be None — an
+    incomplete declaration is reported by the caller, never repaired here."""
+    m = _SOURCING_DECL_RE.search(text or "")
+    if not m:
+        return None
+    raw = m.group(1).upper()
+    status = raw.split("-")[0]
+    count = int(raw.split("-")[1]) if "-" in raw else None
+    detail = m.group(2) or ""
+    d = _ISO_DATE_RE.search(detail)
+    return status, count, set(_LCSC_RE.findall(detail)), (d.group(1) if d
+                                                          else None)
+
+
+def _release_date(release_dir):
+    """The YYYY-MM-DD trailing the release directory name, or None."""
+    m = re.search(r"(\d{4}-\d{2}-\d{2})$", release_dir.name)
+    return m.group(1) if m else None
+
+
+def _days_between(later, earlier):
+    """`later - earlier` in days, or None if either is unparseable."""
+    from datetime import date
+    try:
+        a = date(*(int(x) for x in later.split("-")))
+        b = date(*(int(x) for x in earlier.split("-")))
+    except (AttributeError, TypeError, ValueError):
+        return None
+    return (a - b).days
+
+
+def _grade_declaration(where, decl, status, codes, date):
+    """The declaration in `where` must MATCH the measurement, as data."""
+    fails = []
+    d_status, d_count, d_codes, d_date = decl
+    if d_status != status:
+        fails.append(
+            f"  ORDER-DECL-MISMATCH: {where} declares SOURCING: {d_status} "
+            f"but the shipped evidence measures {status} — the release's own "
+            f"gate line contradicts the evidence it bundles")
+    if d_count is not None and d_count != len(codes):
+        fails.append(
+            f"  ORDER-DECL-MISMATCH: {where} declares {d_status}-{d_count} "
+            f"but {len(codes)} line(s) measure {status} "
+            f"({', '.join(sorted(codes))}) — the count is the claim")
+    missing = sorted(set(codes) - d_codes)
+    extra = sorted(d_codes - set(codes))
+    if missing:
+        fails.append(
+            f"  ORDER-DECL-MISMATCH: {where}'s SOURCING line does not name "
+            f"{', '.join(missing)} — a buyer told 'one line is blocked' and "
+            f"not told WHICH has been told nothing actionable")
+    if extra:
+        fails.append(
+            f"  ORDER-DECL-MISMATCH: {where}'s SOURCING line names "
+            f"{', '.join(extra)}, which the evidence does not measure as "
+            f"{status} — a stale declaration is a false statement about the "
+            f"catalog, not a harmless surplus")
+    if d_date is None:
+        fails.append(
+            f"  ORDER-DECL-UNDATED: {where}'s SOURCING line carries no "
+            f"YYYY-MM-DD — stock changes hourly (this line read 0 on "
+            f"2026-07-29 and 5 on 2026-07-30), so an undated reading is not "
+            f"evidence about any particular day")
+    elif date and d_date != date:
+        fails.append(
+            f"  ORDER-DECL-UNDATED: {where}'s SOURCING line is dated "
+            f"{d_date} but the newest blocking `measured_on` is {date} — the "
+            f"declaration must carry the date of the measurement it reports")
+    return fails
+
+
+def check_order_declaration(release_dir, sourcing):
+    """(f) A-BUY: the ORDER-READINESS claim is true, complete and LOUD."""
+    fails, notes = [], []
+    manifest = release_dir / "MANIFEST.txt"
+    readme = _find_readme(release_dir)
+    mtext = (manifest.read_text(encoding="utf-8-sig", errors="replace")
+             if manifest.is_file() else "")
+    rtext = (readme.read_text(encoding="utf-8-sig", errors="replace")
+             if readme is not None else "")
+    mdecl = _parse_sourcing_declaration(mtext)
+    if not sourcing["graded"]:
+        notes.append(f"  note: A-BUY: sourcing UNGRADED ({sourcing['why']}) "
+                     f"— 0 line(s) measured, so no declaration is graded "
+                     f"either way")
+        return fails, notes
+    status = sourcing["status"]
+    codes = sourcing["blocked"] if status == "BLOCKED" else sourcing["planned"]
+    notes.append(
+        f"  note: A-BUY: measured SOURCING: {status}"
+        f"{'-%d' % len(codes) if codes else ''}"
+        f"{' (' + ', '.join(codes) + ')' if codes else ''} over "
+        f"{sourcing['n_lines']} coded+placed line(s)")
+    if status != "BLOCKED":
+        # No declaration is REQUIRED here — but one that is present must be
+        # true. A release may not scare a buyer off a line it can supply.
+        if mdecl is not None and mdecl[0] != status:
+            fails.append(
+                f"  ORDER-DECL-FALSE: MANIFEST.txt declares SOURCING: "
+                f"{mdecl[0]} while the shipped evidence measures {status} — "
+                f"the declaration and the measurement have one authority "
+                f"between them, and it is the measurement")
+        return fails, notes
+
+    date = sourcing["measured_on"]
+    rel_date = _release_date(release_dir)
+    age = _days_between(rel_date, date) if (rel_date and date) else None
+    if age is not None and age < 0:
+        # THE MEASUREMENT POSTDATES THE SEAL. `sourcing_plan:` lives in
+        # `03_src/`, which keeps moving, so every sealed release of a board is
+        # re-graded against TODAY'S catalog reading — and 07_releases is
+        # IMMUTABLE, so an archive can never be made to declare a fact
+        # discovered after it was written. Reporting the status is right (that
+        # is what an order-time re-grade is for); FAILING the archive for not
+        # having declared it is the retro-fill the release contract forbids.
+        notes.append(
+            f"  note: A-BUY: the blocking measurement is dated {date}, "
+            f"{-age} day(s) AFTER this release ({rel_date}) — the archive is "
+            f"immutable and could not have declared it. Status reported, "
+            f"declaration NOT required; re-grade at order time with "
+            f"--claim sourcing --stock-evidence")
+        return fails, notes
+    if age is not None and age > _STOCK_MEASUREMENT_MAX_AGE_DAYS:
+        fails.append(
+            f"  ORDER-DECL-STALE: the blocking measurement is dated {date}, "
+            f"{age} days before this release ({rel_date}) and past the "
+            f"{_STOCK_MEASUREMENT_MAX_AGE_DAYS}-day bound — a release may "
+            f"seal NOT-ORDERABLE only on a reading taken about ITSELF")
+    if mdecl is None:
+        fails.append(
+            f"  ORDER-UNDECLARED: {len(codes)} BOM line(s) "
+            f"({', '.join(codes)}) are declared BLOCKED in assembly.yaml and "
+            f"MANIFEST.txt states no `SOURCING: BLOCKED-{len(codes)} "
+            f"(<codes>; measured <date>)` gate line — sealing a "
+            f"non-orderable release is permitted; sealing one QUIETLY is not")
+    else:
+        fails += _grade_declaration("MANIFEST.txt", mdecl, status, codes, date)
+    if readme is None:
+        fails.append(
+            f"  ORDER-README-SILENT: no ORDER_README.md/README.md to carry "
+            f"the non-orderable status to the buyer")
+        return fails, notes
+    head = "\n".join(rtext.splitlines()[:_README_BANNER_LINES])
+    rdecl = _parse_sourcing_declaration(head)
+    if rdecl is None:
+        fails.append(
+            f"  ORDER-README-SILENT: {readme.name} states no `SOURCING: "
+            f"BLOCKED-{len(codes)}` gate line in its first "
+            f"{_README_BANNER_LINES} lines — the buyer's first screen is the "
+            f"one place this fact has to be, and a warning 900 lines down is "
+            f"a warning for the reader who already knew")
+    else:
+        fails += _grade_declaration(readme.name, rdecl, status, codes, date)
+    silent = [c for c in codes if c not in rtext]
+    if silent:
+        fails.append(
+            f"  ORDER-README-SILENT: {readme.name} never mentions "
+            f"{', '.join(silent)} anywhere — the buyer cannot act on a code "
+            f"the order document does not carry")
     return fails, notes
+
+
+# --------------------------------------------------------------- check (g)
+# M-REV — the red-team verdicts, graded as a CLOSED VOCABULARY.
+
+#: The two files the 07_releases contract REQUIRES by name. Deliberately not a
+#: `redteam*.md` glob: releases archive dated reviews of EARLIER versions
+#: beside these, and grading a v1.0 review's verdict against a v1.12 release
+#: is the adjacent-property error. Presence is A-EVID's job (it walks the
+#: contract's REQUIRED list); this check grades the verdicts of what is here.
+_REVIEW_LENS_FILES = ("redteam_topology.md", "redteam_layout.md")
+_REVIEW_HEADER_LINES = 40
+_DESIGN_VERDICT_VOCAB = ("SOUND", "DEFECTIVE")
+_ORDER_VERDICT_VOCAB = ("ORDER", "DO-NOT-ORDER", "BLOCKED-SOURCING")
+
+#: A single legacy `verdict:` maps CONSERVATIVELY. A refusal stays a refusal:
+#: the split gives the NEXT reviewer a vocabulary, it does not re-adjudicate
+#: the last one. `None` = this shape states no order verdict at all.
+_LEGACY_VERDICT_MAP = {
+    "ORDER": ("SOUND", "ORDER"),
+    "PASS": ("SOUND", None),
+    "PASS-WITH-NOTES": ("SOUND", None),
+    "DO-NOT-ORDER": ("DEFECTIVE", "DO-NOT-ORDER"),
+    "FAIL": ("DEFECTIVE", "DO-NOT-ORDER"),
+}
+_REVIEW_KEY_RE = re.compile(
+    r"^[>\s*#`]*(design_verdict|order_verdict|verdict)\s*:\s*(.+)$", re.I)
+
+
+def _verdict_token(raw):
+    """The first whitespace-delimited token of a verdict value, stripped of
+    markdown and trailing punctuation, upper-cased. Deliberately NOT a prose
+    parse: `VERDICT AT RUN TIME: **DO NOT ORDER.**` yields no key match at
+    all and is reported as stating no verdict, which is the truth about it."""
+    tok = raw.strip().lstrip("*`_ ").split()
+    if not tok:
+        return ""
+    return tok[0].strip("*`_.,;:()[]").upper()
+
+
+def _read_review_header(path):
+    """{key: token} from the first `_REVIEW_HEADER_LINES` lines."""
+    out = {}
+    try:
+        lines = path.read_text(encoding="utf-8-sig",
+                               errors="replace").splitlines()
+    except OSError:
+        return out
+    for line in lines[:_REVIEW_HEADER_LINES]:
+        m = _REVIEW_KEY_RE.match(line)
+        if m:
+            out.setdefault(m.group(1).lower(), _verdict_token(m.group(2)))
+    return out
+
+
+def check_reviews(release_dir, sourcing):
+    """(g) M-REV: grade both claims out of the shipped red-team lens files.
+
+    Returns `(design_fails, sourcing_fails, notes)` — the two claims are
+    separated at the point they are read, which is the whole change."""
+    dfails, sfails, notes = [], [], []
+    ver = release_dir / "verification"
+    present = sorted(p.name for p in ver.glob("*.md")
+                     if "redteam" in p.name.lower()) if ver.is_dir() else []
+    graded = [n for n in _REVIEW_LENS_FILES if (ver / n).is_file()]
+    notes.append(
+        f"  note: M-REV: {len(graded)} graded / {len(present)} redteam*.md "
+        f"present in verification/ (graded = the contract-named "
+        f"{', '.join(_REVIEW_LENS_FILES)}; others are archived reviews of "
+        f"other versions and are not this release's verdict)")
+    if not graded:
+        return dfails, sfails, notes
+    for name in graded:
+        hdr = _read_review_header(ver / name)
+        design = hdr.get("design_verdict")
+        order = hdr.get("order_verdict")
+        legacy = hdr.get("verdict")
+        if design is None and order is None:
+            if legacy is None:
+                dfails.append(
+                    f"  REVIEW-NO-VERDICT: verification/{name} states no "
+                    f"`design_verdict:`/`order_verdict:` (or legacy "
+                    f"`verdict:`) in its first {_REVIEW_HEADER_LINES} lines — "
+                    f"the contract has required a lens verdict since it was "
+                    f"written and nothing ever parsed the field. A missing "
+                    f"verdict is a FAIL, never a skip")
+                continue
+            if legacy not in _LEGACY_VERDICT_MAP:
+                dfails.append(
+                    f"  REVIEW-VERDICT-UNPARSEABLE: verification/{name} "
+                    f"states `verdict: {legacy}`, outside the vocabulary "
+                    f"{'|'.join(sorted(_LEGACY_VERDICT_MAP))} — a verdict is "
+                    f"graded as DATA and never scraped out of prose, so a "
+                    f"lens that says two things in one field says none")
+                continue
+            design, order = _LEGACY_VERDICT_MAP[legacy]
+            notes.append(f"  note: M-REV: verification/{name} carries the "
+                         f"legacy single `verdict: {legacy}` -> "
+                         f"design_verdict {design}, order_verdict "
+                         f"{order or 'UNSTATED'}")
+        if design is not None and design not in _DESIGN_VERDICT_VOCAB:
+            dfails.append(
+                f"  REVIEW-VERDICT-UNPARSEABLE: verification/{name} states "
+                f"`design_verdict: {design}`, outside "
+                f"{'|'.join(_DESIGN_VERDICT_VOCAB)}")
+            design = None
+        if order is not None and order not in _ORDER_VERDICT_VOCAB:
+            sfails.append(
+                f"  REVIEW-VERDICT-UNPARSEABLE: verification/{name} states "
+                f"`order_verdict: {order}`, outside "
+                f"{'|'.join(_ORDER_VERDICT_VOCAB)}")
+            order = None
+        if design == "DEFECTIVE":
+            dfails.append(
+                f"  REVIEW-DESIGN-DEFECTIVE: verification/{name} grades this "
+                f"release's DESIGN defective — a design-side red blocks the "
+                f"seal exactly as it always has. The split adds a dimension; "
+                f"it adds no way past this line")
+        if order == "DO-NOT-ORDER":
+            sfails.append(
+                f"  REVIEW-DO-NOT-ORDER: verification/{name} grades this "
+                f"release DO-NOT-ORDER. If the reason is SOURCING and the "
+                f"design is sound, the lens has the vocabulary to say so — "
+                f"`design_verdict: SOUND` + `order_verdict: BLOCKED-SOURCING` "
+                f"— and re-graded that way the seal is permitted")
+        if not sourcing["graded"] or order is None:
+            continue
+        if order == "ORDER" and sourcing["status"] == "BLOCKED":
+            sfails.append(
+                f"  REVIEW-ORDER-CONTRADICTS-EVIDENCE: verification/{name} "
+                f"grades this release ORDER while its own shipped stock "
+                f"evidence measures BLOCKED-{len(sourcing['blocked'])} "
+                f"({', '.join(sourcing['blocked'])}) — a lens may not certify "
+                f"an order the archive it graded cannot place")
+        if order == "BLOCKED-SOURCING" and sourcing["status"] == "CLEAR":
+            sfails.append(
+                f"  REVIEW-ORDER-CONTRADICTS-EVIDENCE: verification/{name} "
+                f"grades this release BLOCKED-SOURCING while every coded, "
+                f"placed line clears its build quantity — BLOCKED-SOURCING is "
+                f"a MEASUREMENT, not a mood, and an unfounded one costs the "
+                f"buyer a real order")
+    return dfails, sfails, notes
 
 
 def _load_assembly(release_dir, override):
@@ -1868,6 +2395,26 @@ def main(argv=None):
     ap.add_argument("--_disable-readme", action="store_true")
     ap.add_argument("--_disable-manifest-consistency", action="store_true")
     ap.add_argument("--_disable-stock", action="store_true")
+    ap.add_argument("--_disable-order", action="store_true")
+    ap.add_argument("--_disable-reviews", action="store_true")
+    ap.add_argument("--claim", choices=("design", "sourcing", "both"),
+                    default="both",
+                    help="which of the seal's TWO claims to grade. `design` = "
+                         "is the artifact correct (every gate that grades "
+                         "something we control); `sourcing` = can it be "
+                         "bought (A-STOCK + A-BUY + the lens order "
+                         "verdicts). They are graded and exit-coded "
+                         "independently because they are answered by "
+                         "different authorities at different times — the "
+                         "design gates at SEAL time, the catalog at ORDER "
+                         "time")
+    ap.add_argument("--stock-evidence", default=None, metavar="FRESH.json",
+                    help="ORDER-TIME re-grade: read the stock evidence from "
+                         "HERE instead of the release's sealed "
+                         "verification/. A sealed archive is immutable, so "
+                         "the only honest way to re-ask the sourcing question "
+                         "later is from outside it. Pair with "
+                         "--claim sourcing")
     ap.add_argument("--assembly", default="",
                     help="03_src/rules/assembly.yaml (auto-discovered from "
                          "the release path) — supplies build_quantity and the "
@@ -1931,8 +2478,11 @@ def main(argv=None):
 
     print(f"== release-freshness: {release_dir.name} =="
           + (f" [{_mode} supersede of "
-             f"{prior_dir.name}]" if prior_dir else ""))
-    fails, notes = [], []
+             f"{prior_dir.name}]" if prior_dir else "")
+          + (f" [claim: {args.claim}]" if args.claim != "both" else ""))
+    # `fails` is the DESIGN claim; `sfails` the SOURCING claim. Everything
+    # above check (e) grades an artifact we control, so it is design-side.
+    fails, sfails, notes = [], [], []
 
     if bad_exceptions:
         fails += [f"  BAD EXCEPTION: freshness_exceptions.txt lists {rel!r} "
@@ -1981,19 +2531,51 @@ def main(argv=None):
         fails += check_draft_readme(release_dir)
     if not args._disable_manifest_consistency:
         fails += check_manifest_consistency(release_dir, releases_root)
+    # ---- the SOURCING claim: (e) A-STOCK, (f) A-BUY, and (g)'s order half.
+    # `srcstate` is the MEASUREMENT; (f) and (g) grade the release's own
+    # DECLARATIONS against it. Neutering (e) leaves it UNGRADED, never CLEAR.
+    srcstate = _ungraded_sourcing("check (e) disabled")
     if not args._disable_stock:
-        sf, sn = check_stock(release_dir, _load_assembly(release_dir,
-                                                         args.assembly))
-        fails += sf
-        notes += sn
+        kf, kn, srcstate = check_stock(
+            release_dir, _load_assembly(release_dir, args.assembly),
+            evidence_override=args.stock_evidence)
+        sfails += kf
+        notes += kn
+    if not args._disable_order:
+        of, on = check_order_declaration(release_dir, srcstate)
+        sfails += of
+        notes += on
+    if not args._disable_reviews:
+        rdf, rsf, rn = check_reviews(release_dir, srcstate)
+        fails += rdf
+        sfails += rsf
+        notes += rn
 
+    want_design = args.claim in ("design", "both")
+    want_sourcing = args.claim in ("sourcing", "both")
     for n in notes:
         print(n)
-    for f in fails:
-        print(f)
+    if want_design:
+        for f in fails:
+            print(f)
+    if want_sourcing:
+        for f in sfails:
+            print(f)
 
-    if fails:
-        print(f"FRESHNESS: FAIL ({len(fails)} finding(s))")
+    # TWO CLAIMS, TWO LINES. A release may be DESIGN: PASS and
+    # SOURCING: BLOCKED-1 at the same time — that is the whole point, and it
+    # is the state nine successive agents had no way to record.
+    status = srcstate["status"]
+    n_state = len(srcstate["blocked"] or srcstate["planned"])
+    label = f"{status}-{n_state}" if n_state else status
+    if want_design:
+        print(f"DESIGN: {'FAIL (%d finding(s))' % len(fails) if fails else 'PASS'}")
+    if want_sourcing:
+        print(f"SOURCING: {label}"
+              + (f" + FAIL ({len(sfails)} finding(s))" if sfails else ""))
+    hard = (fails if want_design else []) + (sfails if want_sourcing else [])
+    if hard:
+        print(f"FRESHNESS: FAIL ({len(hard)} finding(s))")
         return 1
     print("FRESHNESS: PASS")
     return 0

@@ -1808,5 +1808,500 @@ def t_mc_sibling_reference_ok():
     not_contains(r.out, "PATH MISMATCH", "no finding for a real sibling")
 
 
+# ================ (f) A-BUY + (g) M-REV — THE TWO-CLAIM SPLIT ================
+#
+# A seal makes TWO claims and this gate used to have ONE field for both:
+#
+#     | claim                      | who can answer it              |
+#     | *this design is correct*   | the design gates, at SEAL time |
+#     | *this design is orderable* | the CATALOG, at ORDER time     |
+#
+# Every check above grades an artifact WE CONTROL, so a red means "there exists
+# an edit to this design that turns it green" and blocking the seal is right.
+# A-STOCK grades the WORLD — it reads a vendor's live stockCount (0 on
+# 2026-07-29, 5 on 2026-07-30, same unchanged board) and no edit to the design
+# changes it. Measured cost of merging the two: smc0985-cooksense v1.7 reached
+# DRC 0/0/0, policy_audit FAIL=0, ERC 0 and both red-team lenses graded, and
+# NINE successive agents declined to seal it, every one on one BOM line. Nine
+# refusals, zero design defects.
+#
+# RED-VERIFIED (git-swap against 7b6d0aa1, 2026-07-30 — the commit immediately
+# before checks (f)/(g) existed). MEASURED, both directions:
+#   - pre-change file swapped in:  0 passed, 22 FAILED. 16 of the 17 known-bad
+#     fixtures SEAL CLEAN under the old gate — their primary assertion reports
+#     "SHOULD HAVE FAILED but exited 0". The undeclared-BLOCKED release, the
+#     plan whose own measured number does not cover the build, the lens file
+#     with no verdict and the lens grading a BLOCKED release ORDER all pass,
+#     because nothing read any of those fields. The 17th
+#     (`t_kb_review_design_defective_blocks_design_claim`) could not even be
+#     EXPRESSED: `--claim design` comes back "unrecognized arguments", which
+#     is itself the proof that the pre-change gate had no second claim to
+#     grade.
+#   - restored:                    22 passed, 0 failed (17 known-bad).
+#
+# Each known-bad ALSO carries the inline red-verify this file uses throughout:
+# the same fixture re-run with exactly one check neutered (`--_disable-order` /
+# `--_disable-reviews`) must PASS, proving the finding comes from the check
+# under test and nothing else.
+#
+# NAMING: the check is `A-BUY`, not `A-ORDER`. `rules_audit.py`'s A-ORDER has
+# meant "generate_rules must run LAST" since 2026-07-17 (ae93b4b) and is cited
+# by name in tests/README.md, t4_regressions.py, t1_rules_bom.py and
+# t1_assembly_gates.py. Two policies under one ID is worse than a missing ID.
+#
+# ...AND THIS SECTION REPRODUCED THAT EXACT DEFECT IN ITS FIRST DRAFT. Its
+# fixture constants were first written as `_BOM`/`_CPL`, and `_CPL` was already
+# a module-level constant 1400 lines up that the cpl-only-supersede tests read
+# AT CALL TIME. Python rebinds silently, so the later definition won, and three
+# PRE-EXISTING tests started grading the wrong fixture — passing 93/3 where the
+# baseline was 74/0. The names here are `_CLAIM_BOM`/`_CLAIM_CPL`. **Prefix new
+# module-level fixture constants in this file with their section**, and if you
+# are unsure, the check is four lines of `ast` over `tree.body` counting
+# top-level `Assign`/`FunctionDef` targets — it reports NONE on this file today.
+
+_LENS_SOUND_ORDER = """subject: demo v1.0
+date: 2026-07-30
+reviewer: redteam-agent (opus, {lens} lens)
+context-given: release-archive-only
+design_verdict: SOUND
+order_verdict: ORDER
+
+## Findings
+
+None above P2.
+"""
+
+_LENS_SOUND_BLOCKED = """subject: demo v1.0
+date: 2026-07-30
+reviewer: redteam-agent (opus, {lens} lens)
+context-given: release-archive-only
+design_verdict: SOUND
+order_verdict: BLOCKED-SOURCING
+
+## Findings
+
+The board is right and cannot be bought today. That is two facts, not one.
+"""
+
+_LENS_LEGACY_ORDER = """subject: demo v1.0
+date: 2026-07-30
+reviewer: redteam-agent (opus, {lens} lens)
+context-given: release-archive-only
+verdict: ORDER
+
+## Findings
+
+Written before the split existed. It must not retro-break.
+"""
+
+_CLAIM_MANIFEST = """# MANIFEST — demo v1.0
+
+board:        demo_board
+version:      v1.0
+git_dirty:    false
+{sourcing}gates (MEASURED this release):
+  policy_audit:              0 FAIL (PASS=27, WAIVED=2)
+"""
+
+_CLAIM_README = """# ORDER README — demo v1.0
+
+{sourcing}Final order document. Board 100 x 80 mm, 4 layer.
+First-power ritual: bench 12 V, confirm 5.0 V rails.
+"""
+
+_CLAIM_BOM = ('Comment,Designator,Footprint,MPN,LCSC\n'
+        'XU316,"U9,U10",QFN-64,XU316-1024,C265111\n'
+        '10k,"R1,R2",R_0402,RC0402FR-0710KL,C25744\n')
+_CLAIM_CPL = ("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+        "U9,XU316,QFN-64,10.0,10.0,top,0\n"
+        "U10,XU316,QFN-64,20.0,10.0,top,0\n"
+        "R1,10k,R_0402,30.0,10.0,top,0\n"
+        "R2,10k,R_0402,40.0,10.0,top,0\n")
+
+
+def claims_release(*, plan=None, stock_c265111=5, verdict="FAIL",
+                   manifest_sourcing="", readme_sourcing="",
+                   lenses=None, build_quantity=5, name="v1.0-2026-07-30",
+                   readme_body_extra=""):
+    """A self-contained release whose SOURCING state is whatever the caller
+    wants, so (f) and (g) can each be isolated to one axis.
+
+    Two coded lines, each placed TWICE, against `build_quantity` boards: the
+    XU316 (C265111) is the line cooksense v1.7 could not buy, the 10k is the
+    control that always clears. `plan` is the `sourcing_plan:` YAML body.
+    """
+    root = tmpdir("relclaim_")
+    proj = root
+    rels = proj / "07_releases"
+    d = rels / name
+    (d / "fab").mkdir(parents=True)
+    (d / "verification").mkdir()
+    (d / "pdf").mkdir()
+    (d / "fab" / "bom.csv").write_text(_CLAIM_BOM)
+    (d / "fab" / "cpl.csv").write_text(_CLAIM_CPL)
+    (d / "fab" / "demo_gerbers.zip").write_bytes(_blob("gerber-claims"))
+    (d / "pdf" / "pcb_layers.pdf").write_bytes(_blob("layers-claims"))
+    (d / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    (d / "verification" / "stock_check.json").write_text(json.dumps({
+        "verdict": verdict,
+        "lines": [
+            {"lcsc": "C265111", "status":
+                "OK" if stock_c265111 >= 2 * build_quantity else "LOW_STOCK",
+             "stock": stock_c265111},
+            {"lcsc": "C25744", "status": "OK", "stock": 90000},
+        ]}))
+    (d / "MANIFEST.txt").write_text(
+        _CLAIM_MANIFEST.format(sourcing=manifest_sourcing))
+    (d / "ORDER_README.md").write_text(
+        _CLAIM_README.format(sourcing=readme_sourcing) + readme_body_extra)
+    for lens, body in (lenses or {}).items():
+        (d / "verification" / f"redteam_{lens}.md").write_text(
+            body.format(lens=lens))
+    asm = (proj / "03_src" / "rules")
+    asm.mkdir(parents=True)
+    (asm / "assembly.yaml").write_text(
+        f"build_quantity: {build_quantity}\n" + (plan or ""))
+    return d
+
+
+BOTH_SOUND = {"topology": _LENS_SOUND_ORDER, "layout": _LENS_SOUND_ORDER}
+BOTH_BLOCKED = {"topology": _LENS_SOUND_BLOCKED, "layout": _LENS_SOUND_BLOCKED}
+
+_BLOCKED_PLAN = """sourcing_plan:
+  - lcsc: C265111
+    measured_stock: 5
+    measured_on: 2026-07-30
+    order_status: BLOCKED
+    plan: "minPurchaseNum 21 exceeds the entire stockCount; re-ask at order time"
+"""
+
+_DECL = "SOURCING: BLOCKED-1 (C265111; measured 2026-07-30)\n"
+
+
+@test("A-BUY/M-REV: a CLEAR, ORDER-graded release prints BOTH verdicts and "
+      "seals — the split does not disturb the ordinary case")
+def t_claims_clear_release_seals():
+    d = claims_release(stock_c265111=90000, verdict="PASS", lenses=BOTH_SOUND)
+    r = must_pass(gate(d), "a clean release still seals under the split")
+    contains(r.out, "DESIGN: PASS", "the design claim is printed")
+    contains(r.out, "SOURCING: CLEAR", "the sourcing claim is printed")
+    contains(r.out, "2 graded /", "M-REV states its coverage denominator")
+
+
+@test("A-BUY: a release measured BLOCKED-1 SEALS when both MANIFEST and the "
+      "README's FIRST SCREEN carry the gate line — the state nine successive "
+      "agents had no way to record")
+def t_claims_blocked_but_declared_seals():
+    """THE HEADLINE CASE. `DESIGN: PASS` + `SOURCING: BLOCKED-1` is a
+    consistent, sealable state: the design gates answered their question and
+    the catalog answered a different one. Its teeth are the known-bads below —
+    every way of NOT saying it out loud is a FAIL."""
+    d = claims_release(plan=_BLOCKED_PLAN, manifest_sourcing=_DECL,
+                       readme_sourcing="> " + _DECL, lenses=BOTH_BLOCKED)
+    r = must_pass(gate(d), "a declared-BLOCKED release may seal")
+    contains(r.out, "DESIGN: PASS", "the design claim is unaffected by stock")
+    contains(r.out, "SOURCING: BLOCKED-1", "the sourcing claim is stated")
+    not_contains(r.out, "ORDER-", "a complete declaration raises no finding")
+
+
+@test("A-BUY: --claim exit-codes the two claims INDEPENDENTLY — `design` "
+      "exits 0 on the same release `sourcing` exits 1 on")
+def t_claims_split_exit_codes():
+    """P1's actual deliverable. Without this, a sourcing red vetoes the design
+    claim, which is the mechanism that cost cooksense v1.7 nine seals."""
+    d = claims_release(plan=_BLOCKED_PLAN, lenses=BOTH_BLOCKED)  # undeclared
+    must_pass(gate(d, "--claim", "design"),
+              "the DESIGN claim is answerable while sourcing is red")
+    must_fail(gate(d, "--claim", "sourcing"),
+              "the SOURCING claim is still graded strictly",
+              expect="ORDER-UNDECLARED")
+    must_fail(gate(d), "the default grades BOTH claims")
+
+
+@test("M-REV: a legacy single `verdict: ORDER` maps to BOTH keys, so the "
+      "sealed archives written before the split do not retro-break")
+def t_review_legacy_verdict_retrofit():
+    """P10's retrofit rule. 33 sealed releases were written under a contract
+    with ONE verdict field; a split that invalidated them would be a
+    retro-fill of immutable archives by another name."""
+    d = claims_release(stock_c265111=90000, verdict="PASS",
+                       lenses={"topology": _LENS_LEGACY_ORDER,
+                               "layout": _LENS_LEGACY_ORDER})
+    r = must_pass(gate(d), "a legacy verdict still grades")
+    contains(r.out, "legacy single `verdict: ORDER`",
+             "the retrofit is announced, not silent")
+    contains(r.out, "design_verdict SOUND", "it maps to the design key")
+    contains(r.out, "order_verdict ORDER", "and to the order key")
+
+
+@test("M-REV FAILS a legacy `verdict: DO-NOT-ORDER` — the retrofit is "
+      "CONSERVATIVE and never converts a refusal into an acceptance",
+      kind="known_bad")
+def t_kb_review_legacy_refusal_stays_refused():
+    """The split gives the NEXT reviewer a vocabulary; it does not
+    re-adjudicate the last one. cooksense v1.5 shipped a DO-NOT-ORDER review
+    nobody read — mapping it to SOUND/ORDER would have ratified it."""
+    lens = _LENS_LEGACY_ORDER.replace("verdict: ORDER",
+                                      "verdict: DO-NOT-ORDER")
+    d = claims_release(stock_c265111=90000, verdict="PASS",
+                       lenses={"topology": lens, "layout": lens})
+    must_fail(gate(d), "a legacy refusal must still block",
+              expect="REVIEW-DO-NOT-ORDER")
+    must_pass(gate(d, "--_disable-reviews"),
+              "RED-VERIFY: the finding is check (g)'s and nothing else's")
+
+
+# ------------------------------------------------- (f) A-BUY known-bads
+@test("A-BUY FAILS a sourcing_plan entry whose OWN measured number does not "
+      "cover the build and states no `order_status:` — the silent clear",
+      kind="known_bad")
+def t_order_plan_unclassified():
+    """THE NET TIGHTENING. Until 2026-07-30 this fell through
+    `if code in plan: continue` and cleared SILENTLY whatever the plan's own
+    number said, so a release could seal unbuyable with nothing anywhere
+    saying so. The line must now classify itself PLANNED (the catalog is
+    irrelevant here — consignment, self-supply) or BLOCKED (it cannot be
+    bought as sealed).
+
+    It also leaves the whole release's sourcing UNGRADED rather than CLEAR
+    (canon M-COVER): checks (f) and (g) compare against a MEASUREMENT, and an
+    unreadable line means there is no measurement to compare against."""
+    plan = _BLOCKED_PLAN.replace("    order_status: BLOCKED\n", "")
+    d = claims_release(plan=plan, lenses=BOTH_SOUND)
+    r = must_fail(gate(d), "an unclassified shortfall must not clear silently",
+                  expect="ORDER-PLAN-UNCLASSIFIED")
+    contains(r.out, "SOURCING: UNGRADED", "UNGRADED is never CLEAR")
+    not_contains(r.out, "ORDER-DECL", "nothing is graded against an absence")
+    must_pass(gate(d, "--_disable-stock"),
+              "RED-VERIFY: the finding is check (e)/(f)'s classification and "
+              "nothing else's")
+
+
+@test("A-BUY FAILS a release measured BLOCKED whose MANIFEST states no "
+      "SOURCING gate line — sealing non-orderable is permitted, sealing it "
+      "QUIETLY is not", kind="known_bad")
+def t_kb_order_undeclared():
+    d = claims_release(plan=_BLOCKED_PLAN, lenses=BOTH_BLOCKED)
+    r = must_fail(gate(d), "a blocked release may not seal quietly",
+                  expect="ORDER-UNDECLARED")
+    contains(r.out, "C265111", "the finding names the line")
+    must_pass(gate(d, "--_disable-order"),
+              "RED-VERIFY: the finding is check (f)'s and nothing else's")
+
+
+@test("A-BUY FAILS when the README carries the SOURCING line only BELOW the "
+      "first screen — a warning 900 lines down is a warning for the reader "
+      "who already knew", kind="known_bad")
+def t_kb_order_readme_below_the_fold():
+    """cooksense v1.7's hand-written non-orderable banner lands at line 14;
+    the bound is 40 lines, so this fixture buries it under 60."""
+    d = claims_release(plan=_BLOCKED_PLAN, manifest_sourcing=_DECL,
+                       lenses=BOTH_BLOCKED,
+                       readme_body_extra=("\nfiller\n" * 60) + "> " + _DECL)
+    must_fail(gate(d), "a buried banner is not a declaration",
+              expect="ORDER-README-SILENT")
+    must_pass(gate(d, "--_disable-order"),
+              "RED-VERIFY: the finding is check (f)'s and nothing else's")
+
+
+@test("A-BUY FAILS a SOURCING line whose COUNT disagrees with the "
+      "measurement — the count is the claim", kind="known_bad")
+def t_kb_order_decl_count_wrong():
+    bad = "SOURCING: BLOCKED-2 (C265111; measured 2026-07-30)\n"
+    d = claims_release(plan=_BLOCKED_PLAN, manifest_sourcing=bad,
+                       readme_sourcing="> " + bad, lenses=BOTH_BLOCKED)
+    must_fail(gate(d), "an inflated count is a false statement",
+              expect="ORDER-DECL-MISMATCH")
+    must_pass(gate(d, "--_disable-order"),
+              "RED-VERIFY: the finding is check (f)'s and nothing else's")
+
+
+@test("A-BUY FAILS a SOURCING line naming the WRONG LCSC — in BOTH "
+      "directions: the blocked code missing, and a code that is not blocked "
+      "named", kind="known_bad")
+def t_kb_order_decl_wrong_code():
+    """A buyer told 'one line is blocked' and not told WHICH has been told
+    nothing actionable; a buyer told the WRONG one has been actively
+    misdirected."""
+    bad = "SOURCING: BLOCKED-1 (C25744; measured 2026-07-30)\n"
+    d = claims_release(plan=_BLOCKED_PLAN, manifest_sourcing=bad,
+                       readme_sourcing="> " + bad, lenses=BOTH_BLOCKED)
+    r = must_fail(gate(d), "the declared code set is compared as DATA",
+                  expect="ORDER-DECL-MISMATCH")
+    contains(r.out, "does not name C265111", "the missing direction")
+    contains(r.out, "names C25744", "the surplus direction")
+    must_pass(gate(d, "--_disable-order"),
+              "RED-VERIFY: the finding is check (f)'s and nothing else's")
+
+
+@test("A-BUY FAILS an UNDATED SOURCING line — this very line read stock 0 on "
+      "2026-07-29 and 5 on 2026-07-30", kind="known_bad")
+def t_kb_order_decl_undated():
+    bad = "SOURCING: BLOCKED-1 (C265111)\n"
+    d = claims_release(plan=_BLOCKED_PLAN, manifest_sourcing=bad,
+                       readme_sourcing="> " + bad, lenses=BOTH_BLOCKED)
+    must_fail(gate(d), "an undated stock reading is not evidence",
+              expect="ORDER-DECL-UNDATED")
+    must_pass(gate(d, "--_disable-order"),
+              "RED-VERIFY: the finding is check (f)'s and nothing else's")
+
+
+@test("A-BUY FAILS a blocking measurement taken well BEFORE the release — a "
+      "release may seal NOT-ORDERABLE only on a reading taken about ITSELF",
+      kind="known_bad")
+def t_kb_order_decl_stale():
+    plan = _BLOCKED_PLAN.replace("2026-07-30", "2026-06-01")
+    decl = "SOURCING: BLOCKED-1 (C265111; measured 2026-06-01)\n"
+    d = claims_release(plan=plan, manifest_sourcing=decl,
+                       readme_sourcing="> " + decl, lenses=BOTH_BLOCKED)
+    must_fail(gate(d), "a 59-day-old stock reading is not about this release",
+              expect="ORDER-DECL-STALE")
+    must_pass(gate(d, "--_disable-order"),
+              "RED-VERIFY: the finding is check (f)'s and nothing else's")
+
+
+@test("A-BUY FAILS a release that INVENTS a blocked line — the declaration "
+      "and the measurement have one authority between them", kind="known_bad")
+def t_kb_order_decl_false():
+    """Both directions matter. A release may not hide a blocked line, and it
+    may not scare a buyer off a line it can actually supply."""
+    d = claims_release(stock_c265111=90000, verdict="PASS",
+                       manifest_sourcing=_DECL, lenses=BOTH_SOUND)
+    must_fail(gate(d), "an invented blocked line is a false statement",
+              expect="ORDER-DECL-FALSE")
+    must_pass(gate(d, "--_disable-order"),
+              "RED-VERIFY: the finding is check (f)'s and nothing else's")
+
+
+@test("A-BUY FAILS a sourcing_plan entry that declares BLOCKED while its OWN "
+      "measured_stock covers the build", kind="known_bad")
+def t_kb_order_plan_overclaim():
+    plan = _BLOCKED_PLAN.replace("measured_stock: 5", "measured_stock: 900")
+    d = claims_release(plan=plan, stock_c265111=900, verdict="PASS",
+                       lenses=BOTH_SOUND)
+    must_fail(gate(d), "a plan may not contradict its own number",
+              expect="ORDER-PLAN-OVERCLAIM")
+    must_pass(gate(d, "--_disable-stock"),
+              "RED-VERIFY: the finding is check (e)/(f)'s and nothing else's")
+
+
+@test("A-BUY FAILS an `order_status:` outside the closed vocabulary — an "
+      "unreadable classification is never a fallback to the permissive one",
+      kind="known_bad")
+def t_kb_order_plan_bad_status():
+    plan = _BLOCKED_PLAN.replace("order_status: BLOCKED", "order_status: MAYBE")
+    d = claims_release(plan=plan, lenses=BOTH_SOUND)
+    must_fail(gate(d), "PLANNED|BLOCKED is a closed vocabulary",
+              expect="STOCK-PLAN-BAD-STATUS")
+    must_pass(gate(d, "--_disable-stock"),
+              "RED-VERIFY: the finding is check (e)'s and nothing else's")
+
+
+# ------------------------------------------------- (g) M-REV known-bads
+@test("M-REV FAILS a contract-named lens file that states NO verdict at all — "
+      "a missing verdict is a FAIL, never a skip", kind="known_bad")
+def t_kb_review_no_verdict():
+    """MEASURED across the fleet 2026-07-30: of the sealed releases shipping
+    both contract-named lens files, SIX carry no verdict in any stated
+    vocabulary. The contract has demanded one since it was written."""
+    lens = _LENS_SOUND_ORDER.replace("design_verdict: SOUND\n", "").replace(
+        "order_verdict: ORDER\n", "")
+    d = claims_release(stock_c265111=90000, verdict="PASS",
+                       lenses={"topology": lens, "layout": _LENS_SOUND_ORDER})
+    must_fail(gate(d), "an unverdicted lens must not pass",
+              expect="REVIEW-NO-VERDICT")
+    must_pass(gate(d, "--_disable-reviews"),
+              "RED-VERIFY: the finding is check (g)'s and nothing else's")
+
+
+@test("M-REV does NOT credit a PROSE verdict: cooksense v1.5's shipped "
+      "`VERDICT AT RUN TIME: **DO NOT ORDER.**` states no verdict at all",
+      kind="known_bad")
+def t_kb_review_prose_verdict_is_no_verdict():
+    """The R-LEN word-credit defect, not reproduced. A gate that credits prose
+    credits nothing — and the prose here says the OPPOSITE of a pass, so
+    scraping it would be wrong in both directions."""
+    lens = _LENS_SOUND_ORDER.replace(
+        "design_verdict: SOUND\norder_verdict: ORDER\n",
+        "VERDICT AT RUN TIME: **DO NOT ORDER.**\n")
+    d = claims_release(stock_c265111=90000, verdict="PASS",
+                       lenses={"topology": lens, "layout": _LENS_SOUND_ORDER})
+    must_fail(gate(d), "prose is not a verdict", expect="REVIEW-NO-VERDICT")
+    must_pass(gate(d, "--_disable-reviews"),
+              "RED-VERIFY: the finding is check (g)'s and nothing else's")
+
+
+@test("M-REV FAILS a verdict outside the closed vocabulary rather than "
+      "coercing it to the permissive value", kind="known_bad")
+def t_kb_review_out_of_vocabulary():
+    lens = _LENS_SOUND_ORDER.replace("design_verdict: SOUND",
+                                     "design_verdict: PROBABLY-FINE")
+    d = claims_release(stock_c265111=90000, verdict="PASS",
+                       lenses={"topology": lens, "layout": _LENS_SOUND_ORDER})
+    must_fail(gate(d), "SOUND|DEFECTIVE is a closed vocabulary",
+              expect="REVIEW-VERDICT-UNPARSEABLE")
+    must_pass(gate(d, "--_disable-reviews"),
+              "RED-VERIFY: the finding is check (g)'s and nothing else's")
+
+
+@test("M-REV: `design_verdict: DEFECTIVE` blocks the DESIGN claim — the split "
+      "adds a dimension, it adds no way past a design-side red",
+      kind="known_bad")
+def t_kb_review_design_defective_blocks_design_claim():
+    """The one thing this change must NOT do is weaken the gate. A defective
+    design fails even `--claim design`, which is the claim a sourcing red is
+    now allowed to leave alone."""
+    lens = _LENS_SOUND_ORDER.replace("design_verdict: SOUND",
+                                     "design_verdict: DEFECTIVE")
+    d = claims_release(stock_c265111=90000, verdict="PASS",
+                       lenses={"topology": lens, "layout": _LENS_SOUND_ORDER})
+    must_fail(gate(d, "--claim", "design"),
+              "a DEFECTIVE design blocks the seal exactly as it always has",
+              expect="REVIEW-DESIGN-DEFECTIVE")
+    must_pass(gate(d, "--claim", "design", "--_disable-reviews"),
+              "RED-VERIFY: the finding is check (g)'s and nothing else's")
+
+
+@test("M-REV FAILS a lens grading ORDER while the release's OWN shipped stock "
+      "evidence measures BLOCKED", kind="known_bad")
+def t_kb_review_order_contradicts_blocked():
+    """A lens may not certify an order the archive it graded cannot place.
+    This is the cross-check that makes `order_verdict` a MEASUREMENT-backed
+    field rather than a second opinion."""
+    d = claims_release(plan=_BLOCKED_PLAN, manifest_sourcing=_DECL,
+                       readme_sourcing="> " + _DECL, lenses=BOTH_SOUND)
+    must_fail(gate(d), "ORDER on a BLOCKED release is a contradiction",
+              expect="REVIEW-ORDER-CONTRADICTS-EVIDENCE")
+    must_pass(gate(d, "--_disable-reviews"),
+              "RED-VERIFY: the finding is check (g)'s and nothing else's")
+
+
+@test("M-REV FAILS an UNFOUNDED BLOCKED-SOURCING — it is a measurement, not "
+      "a mood, and an unfounded one costs the buyer a real order",
+      kind="known_bad")
+def t_kb_review_blocked_sourcing_unfounded():
+    d = claims_release(stock_c265111=90000, verdict="PASS",
+                       lenses=BOTH_BLOCKED)
+    must_fail(gate(d), "BLOCKED-SOURCING must be backed by the evidence",
+              expect="REVIEW-ORDER-CONTRADICTS-EVIDENCE")
+    must_pass(gate(d, "--_disable-reviews"),
+              "RED-VERIFY: the finding is check (g)'s and nothing else's")
+
+
+@test("M-REV grades only the CONTRACT-NAMED lens files: an archived review of "
+      "an EARLIER version sitting beside them is not this release's verdict")
+def t_review_archived_sibling_not_graded():
+    """Deliberately not a `redteam*.md` glob. Grading a v1.0 review's verdict
+    against a v1.12 release is the adjacent-property error, and the coverage
+    line prints both numbers so the scope cannot go quiet."""
+    d = claims_release(stock_c265111=90000, verdict="PASS", lenses=BOTH_SOUND)
+    (d / "verification" / "redteam_topology_v0.9.md").write_text(
+        "subject: demo v0.9\nverdict: DO-NOT-ORDER\n")
+    r = must_pass(gate(d), "an older archived review is not this verdict")
+    contains(r.out, "2 graded / 3 redteam*.md present",
+             "the denominator names what was NOT graded")
+
+
 if __name__ == "__main__":
     sys.exit(main())
