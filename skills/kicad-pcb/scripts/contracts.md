@@ -42,6 +42,43 @@ BACKEND GAP to report, not a bespoke script to write here.
   clean is decoration and should be deleted rather than trusted.
   `SKIP_BASENAMES` lists generators/libraries that produce rather than grade;
   adding a name there is a coverage decision and must be justified.
+- **VACUITY (canon G-VACUOUS), the fourth obligation.** G-RED asks *can this
+  gate fail at all* — 31/31 answer yes. G-VACUOUS asks *can it fail ON THE CASE
+  IT EXISTS FOR*, and six gates were measured GREEN on 2026-07-28/29 with their
+  subject false: `R-LEN` PASSes cooksense on the word `lengthens` in a comment
+  about creepage; `keypad_isolation_6mm`'s `B.NetName != ''` exempts the shell
+  tab it was written for (**1.0672 mm against a 6.000 mm constraint**, 106
+  pairs); A-RENDER's verdict rests on **2 of 203** parts; `waiver_provenance`
+  passed a waiver typed `2.62 mm` that measures **3.085 mm**, over the 3 mm it
+  claimed; E-OFF is N-A on an undeclared cell; P-FACT prints `OK — 0/0` on a
+  malformed assertion.
+  **THE DECLARATION IS A FIXTURE, NOT PROSE** — a declared blind spot with no
+  fixture is worse than an undeclared one, being the `keep_short` defect (39 of
+  181 budgets naming a datasheet pin function) one level up. So: the gate's
+  MODULE DOCSTRING carries a `VACUITY:` block AND `tests/` carries
+  `@test(..., kind="vacuity", gate="<basename>.py")` constructing that input and
+  asserting the gate PASSES. Both homes or neither — prose alone FAILS, an
+  orphan fixture FAILS, a fixture whose FIRST assertion is `must_fail` is a
+  FALSE declaration and FAILS (a `must_fail` CONTRAST after the subject is
+  wanted), a fixture asserting nothing FAILS, and a fixture naming a gate
+  outside the inventory FAILS so a rename cannot silently un-declare.
+  The block is read from `ast.get_docstring` ONLY: a `VACUITY:` in a comment,
+  nested docstring or code string does not count, because crediting text
+  anywhere in a file is exactly R-LEN's defect.
+  **DRU predicates count.** `--dru BOARD.kicad_dru` grades rule-file conditions
+  against the board's own inventory (`dru_inventory`, geometry-free): a
+  condition NO object can satisfy — a netclass, net or `insideArea` the board
+  lacks — and a `NetName != ''` conjunct on a clearance-family constraint. A
+  predicate that excludes its subject is worse than a silent Python gate,
+  because it makes DRC itself report zero.
+  **THE RATCHET:** coverage is reported for all 31 and every OWED gate is
+  printed BY NAME; only a false declaration, a declaration without a fixture,
+  and a drop below the committed `VACUITY_FLOOR` FAIL. Adoption is **5/31** as
+  of 2026-07-29. Raise `VACUITY_FLOOR` in the SAME commit that adds a
+  declaration; `t1_gate_contract.py t_vacuity_floor_is_pinned_to_the_measured
+  _count` pins it to the tree from outside and refuses a lowering — that pin is
+  what breaks the circularity, since G-VACUOUS itself passes a repo where
+  nothing is declared and declares that blind spot in its own docstring.
 - **NET REFERENCES (canon E-NETREF).** `net_reference_audit.py PROJECT_DIR`
   (`--root REPO` for the fleet, `--kinds` to print the denominator) grades
   ELEVEN enumerated kinds of net-name reference in hand-authored source —

@@ -35,6 +35,7 @@ the tests need is vendored under `fixtures/twin_overlay/` — see its
 PROVENANCE.md, including the one deliberate byte-level edit.
 """
 import math
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -534,6 +535,86 @@ def t_bottom_mirror_has_teeth():
     check(abs(box[0] - unmirrored_l) > 50,
           f"the bottom courtyard was drawn UN-MIRRORED at px x {box[0]} "
           f"(un-mirrored expectation {unmirrored_l:.1f}) — the mirror is gone")
+
+
+# ------------------------------------------------- G-VACUOUS (declared blind spot)
+
+@test("G-VACUOUS A-RENDER: the verdict rests on 2 of 203 parts — a body under "
+      "the resolvability floor is EXCLUDED, not graded",
+      kind="vacuity", gate="twin_overlay.py")
+def t_vacuity_a_body_under_the_resolvability_floor_is_excluded_not_graded():
+    """THE DECLARED BLIND SPOT (canon G-VACUOUS; the executable half of the
+    `VACUITY:` block in twin_overlay.py's docstring).
+
+    This fixture asserts the gate PASSES while the fact it grades — "every
+    placed part is where the board says it is" — is FALSE. It is not a
+    known_bad; it PINS a defect so it cannot be forgotten, and closing the
+    defect is expected to break it (then it becomes a known_bad).
+
+    THE MECHANISM. `fails` is built over `graded` only, and two exclusions run
+    first, neither able to fail: `unresolvable` (expected body under
+    `MIN_BODY_MM = 2.0` in either dimension) and `no_model`. So a 0402 at
+    1.0 x 0.5 mm is outside the verdict BY CONSTRUCTION.
+
+    MEASURED on the sealed v1.5 release this suite fixtures against:
+
+        COVERAGE: 2 measured / 23 with an expected body; 21 unresolvable,
+        0 resolvable-but-unmeasured, 162 no-model, 203 courtyards drawn
+
+    Two assertions, and the second is the load-bearing one:
+
+      1. the gate passes a faithful render while reporting that denominator —
+         so 201 of 203 parts are ungraded and the exit code does not say so;
+      2. a part on the unresolvable list is ungraded EVEN WHEN THE BOARD MOVES
+         IT. J1's body is 14.4 x 9.3 mm so it IS graded; the fixture instead
+         picks a ref the gate itself listed as unresolvable and displaces it
+         3 mm, which is 3x the 1.00 mm tolerance. `t_displaced_body_fails` does
+         exactly this to J1 and the gate FAILS. Here it exits 0.
+
+    That contrast is the whole content of the declaration: the same 3 mm
+    displacement is caught on a 14 mm part and invisible on a 2 mm one."""
+    d = tmpdir("ovl_vac_")
+    png = d / "twin_top.png"
+    synth_render(png, bodies=[(16.000, 96.050, 30.400, 105.350),
+                              (83.755, 119.408, 92.695, 126.963)])
+    r, _ = gate(png=png, out=d)
+    must_pass(r, "A-RENDER on a faithful render")
+    m = re.search(r"COVERAGE: (\d+) measured / (\d+) with an expected body; "
+                  r"(\d+) unresolvable, (\d+) resolvable-but-unmeasured, "
+                  r"(\d+) no-model, (\d+) courtyards", r.out)
+    check(m is not None, f"the coverage line changed shape:\n{r.out[-800:]}")
+    meas, exp, unres, unmeas, nomodel, drawn = (int(g) for g in m.groups())
+    # The blind spot, stated as arithmetic rather than as prose.
+    check(meas < drawn / 10,
+          f"A-RENDER graded {meas} of {drawn} courtyards — if this ratio has "
+          f"risen the blind spot is CLOSING and this vacuity fixture should "
+          f"become a known_bad with a coverage floor")
+    check(unres > 0 and unmeas == 0,
+          f"the excluded-by-construction set must be non-empty and the "
+          f"fail-able set empty for this to be a blind spot: "
+          f"{unres} unresolvable, {unmeas} resolvable-but-unmeasured")
+
+    # (2) displace an UNRESOLVABLE ref by 3 mm — 3x the 1.00 mm tolerance —
+    #     and the verdict does not move.
+    rep = (d / "r.md").read_text()
+    sec = rep.split("## Not measurable by construction", 1)
+    check(len(sec) == 2, "no unresolvable section in the report")
+    tiny = re.findall(r"^[-*|]\s*`([A-Za-z_]+\w*)`", sec[1], re.M)
+    check(tiny, f"no unresolvable ref named in the report:\n{sec[1][:600]}")
+    ref = tiny[0]
+    b = d / "moved.kicad_pcb"
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "fp=b.FindFootprintByReference(sys.argv[3])\n"
+            "p=fp.GetPosition(); p.x += 3000000; fp.SetPosition(p)\n"
+            "b.Save(sys.argv[2])\n")
+    must_pass(run([KPY, "-c", code, BOARD, b, ref]), f"displace {ref}")
+    r2, _ = gate(png=png, board=b, out=tmpdir("ovl_vac2_"))
+    must_pass(r2, f"A-RENDER with the sub-2mm part {ref} displaced 3 mm — THE "
+                  f"BLIND SPOT. If this now FAILS, A-RENDER has learned to see "
+                  f"small parts: convert this fixture to kind=\"known_bad\"")
+    not_contains(r2.out, f"unfaithful ref(s): {ref}",
+                 f"{ref} is excluded from the verdict, not graded")
 
 
 if __name__ == "__main__":

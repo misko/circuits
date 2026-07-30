@@ -450,6 +450,60 @@ def t_off_incident_via_nets():
     contains(r.out, "VBAT", "names the battery net that triggered detection")
 
 
+@test("G-VACUOUS E-OFF: a REAL battery board that declares nothing is N-A, "
+      "exit 0 — and declaring nothing is the default",
+      kind="vacuity", gate="power_topology.py")
+def t_vacuity_E_OFF_is_N_A_on_a_battery_board_that_declares_nothing():
+    """THE DECLARED BLIND SPOT (canon G-VACUOUS; the executable half of the
+    `VACUITY:` block in power_topology.py's docstring).
+
+    This fixture asserts the gate PASSES while the fact it grades — "a
+    self-contained energy source has an off_control and a declared quiescent
+    draw" — is FALSE. It PINS the defect; closing it should break this test,
+    and the fix is then to convert it to a `known_bad`.
+
+    `detect_energy_source` finds a battery three ways: `source_type:`, a net
+    matching VBAT/BATT/PACK, or a battery word in the FILENAME plus FIRST 400
+    CHARACTERS of a `01_docs/decisions/*.md`. All three are DECLARATIONS. Miss
+    all three and it returns `("unknown", ...)` -> E-OFF N-A, exit 0.
+
+    The fixture is the same 3S-LiPo incident as `t_off_incident`, which FAILS,
+    with exactly one thing changed: the `source_type:` line is deleted and the
+    rail is named PI5 rather than anything battery-ish. That one deletion turns
+    a hard FAIL into a pass — so the gate is stricter on a board that is honest
+    about carrying a cell than on one that says nothing, and saying nothing is
+    the least-effort path.
+
+    A `01_docs/decisions/` ADR is also written here that mentions the pack, to
+    show the 400-character window: the mention sits past it and is not seen."""
+    adr = ("# ADR-0003: power source\n\n"
+           "## Context\n\n" + ("Filler prose about mechanical fit. " * 12) +
+           "\n\n## Decision\n\nThe board is powered from a 3S LiPo pack.\n")
+    d = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB")),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    (d / "01_docs" / "decisions").mkdir(parents=True)
+    (d / "01_docs" / "decisions" / "0003-power-source.md").write_text(adr)
+    check(len(adr.split("3S LiPo")[0]) > 400,
+          "the fixture must place the battery mention PAST the 400-char window "
+          "the scan reads, or it proves nothing about the window")
+
+    r = must_pass(offctl(d),
+                  "E-OFF on a battery board that declares nothing — THE BLIND "
+                  "SPOT. If this now FAILS, E-OFF has learned to find an "
+                  "undeclared cell: convert this to kind=\"known_bad\"")
+    contains(r.out, "N-A", "the verdict is N-A, not a FAIL")
+    not_contains(r.out, "no off_control",
+                 "the de-energization contract is never reached")
+
+    # THE CONTRAST that makes this a blind spot and not a preference: add back
+    # the one declaration and the identical board becomes a hard FAIL.
+    d2 = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB"),
+                       top="source_type: 3S-LiPo pack\n"),
+                 parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    must_fail(offctl(d2), "the SAME board that admits to a battery",
+              "no off_control")
+
+
 @test("E-OFF FAILS an always-on off_control with no ADR reference",
       kind="known_bad")
 def t_off_alwayson_no_adr():

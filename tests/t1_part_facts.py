@@ -384,6 +384,75 @@ def t_zero_denominator_is_a_fail():
     contains(r2.out, "1/1 assertion(s) REACHED", "and it says so")
 
 
+@test("G-VACUOUS P-FACT: a MALFORMED assertion prints `OK — 0/0` and exits 0 — "
+      "the zero denominator survived where UNREACHED was closed",
+      kind="vacuity", gate="part_facts_check.py")
+def t_vacuity_all_deferred_or_all_config_prints_OK_over_a_zero_denominator():
+    """THE DECLARED BLIND SPOT (canon G-VACUOUS; the executable half of the
+    `VACUITY:` block in part_facts_check.py's docstring).
+
+    This fixture asserts the gate PASSES while the fact it grades — "the board
+    and release agree with every part's own declared facts" — is FALSE. It PINS
+    the defect; closing it should break this test, which then becomes a
+    `known_bad` beside `t_zero_denominator_is_a_fail`.
+
+    WHAT WAS FIXED AND WHAT WAS NOT. The 2026-07-29 fix closed `graded == 0 and
+    unreached > 0` — measured then as `16 assertion(s) graded`, all 16
+    UNREACHED, `P-FACT OK`, exit 0, and now `P-FACT GRADED NOTHING`, exit 1.
+    A find lands in exactly one of three buckets, and only ONE of the three is
+    counted by that guard:
+
+      graded     -> compared. Good.
+      unreached  -> the artifact was missing. Now a hard fail in aggregate.
+      CONFIG     -> the ASSERTION ITSELF is malformed. Still neither.
+
+    So a part whose ONLY assertion is malformed reaches `P-FACT OK — 0/0
+    assertions graded`, exit 0. MEASURED: `polarity: minus` (instead of
+    `negative`) yields `P-FACT-CONFIG ... got 'minus'` and then OK. A typo in a
+    polarity claim therefore reads as a pass — and a REVERSED electrolytic
+    (CE1, in this repo's own history, shipped in v1.0 and v1.1) is what that
+    class costs. `P-FACT-DEFERRED` is the same shape and is deliberate, argued
+    for in the code; the CONFIG path is not.
+
+    Both block under `--strict`, so the blind spot is precisely: DEFAULT flags,
+    and every declared assertion malformed. The fixture also asserts the
+    CONTRAST — the identical part.yaml with `negative` spelled correctly reaches
+    a comparison and FAILS on the netlist — because that is what makes this a
+    blind spot and not a limitation."""
+    bad = XT60_OK.replace("polarity: negative", "polarity: minus")
+    d = release({"XT60PW-M": bad},
+                [("XT60PW-M", "J1", "XT60", "XT60PW-M", "C98732")],
+                netlist=netlist_of({"VBAT": ["J1"]}))
+    r = must_pass(pfact(d),
+                  "P-FACT over a release whose only assertion is MALFORMED — "
+                  "THE BLIND SPOT. If this now FAILS, the CONFIG bucket has "
+                  "been folded into the denominator guard: convert this fixture "
+                  "to kind=\"known_bad\"")
+    contains(r.out, "P-FACT-CONFIG", "the malformed assertion IS reported")
+    contains(r.out, "0/0", "and the denominator IS printed as zero")
+    contains(r.out, "P-FACT OK", "yet the verdict is OK")
+    not_contains(r.out, "GRADED NOTHING",
+                 "the zero-denominator guard does not fire, because it is "
+                 "conditioned on unreached > 0 and a CONFIG find is neither "
+                 "graded nor unreached")
+
+    # THE CONTRAST. One character back and the same assertion reaches a real
+    # comparison — proving the fixture is a good input broken in ONE way, and
+    # that the gate genuinely can grade this fact when it parses.
+    good = release({"XT60PW-M": XT60_OK},
+                   [("XT60PW-M", "J1", "XT60", "XT60PW-M", "C98732")],
+                   netlist=netlist_of({"VBAT": ["J1"]}))
+    g = must_fail(pfact(good), "the SAME assertion, spelled correctly",
+                  "1/1 assertion(s) REACHED A COMPARISON")
+    contains(g.out, "P-FACT FAIL", "the correctly-spelled assertion is graded "
+                                   "and violated, so the fact IS gradeable")
+
+    # And --strict does block the malformed case, which is where the blind spot
+    # ends: the default flags are the whole of it.
+    must_fail(pfact(d, "--strict"), "the malformed assertion under --strict",
+              "P-FACT-CONFIG")
+
+
 @test("P-FACT resolves refdes BEFORE stage 7 — the netlist-graded polarity "
       "assert stops being UNREACHED at the placement gate", kind="known_bad")
 def t_entry_refmap_reaches_polarity():

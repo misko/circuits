@@ -82,6 +82,29 @@ Two things changed:
     On pluto-rx2-8way that turns the two polarity assertions (KT-0603R LED
     and the SMBJ6.0A TVS — the XT60 class) from UNREACHED into graded at the
     placement gate instead of at the order gate.
+
+VACUITY: (canon G-VACUOUS — the input class on which this gate PASSES while the
+fact it grades is FALSE, fixtured by `t1_part_facts.py`
+`t_vacuity_all_deferred_or_all_config_prints_OK_over_a_zero_denominator`.)
+
+The 2026-07-29 fix closed the case `graded == 0 and unreached > 0`, which now
+exits 1 at the `P-FACT GRADED NOTHING` line. It did NOT close the other two ways
+to reach a zero denominator, and both still print `P-FACT OK — 0/0 assertions
+graded` and exit 0 under default flags:
+
+  * every declared assertion is of a kind this checker cannot yet grade, so each
+    lands as `P-FACT-DEFERRED` — neither graded nor unreached. This one is
+    deliberate and argued for in the code.
+  * every declared assertion is MALFORMED, so each lands as `P-FACT-CONFIG`.
+    Measured: a part whose only assertion is `pad1_net_polarity` with
+    `polarity: minus` (instead of `negative`) yields
+    `P-FACT-CONFIG ... got 'minus'` and then `P-FACT OK — 0/0`, exit 0. A typo
+    in a safety-relevant polarity claim therefore reads as a pass, and the
+    reversed CE1 electrolytic in this repo's history is what that class costs.
+
+Both block under `--strict`, so the blind spot is exactly: DEFAULT flags, and a
+part whose assertions are ALL deferred or ALL malformed. The fixture reproduces
+the second case, which is the undocumented one.
 """
 import argparse
 import csv

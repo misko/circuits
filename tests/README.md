@@ -33,6 +33,42 @@ So **every checker gets two kinds of test**:
 |---|---|
 | `clean` | the checker PASSES a good input |
 | `known_bad` | the checker **FAILS** a deliberately broken input |
+| `vacuity` | the checker **PASSES** input whose graded fact is FALSE — a *declared blind spot* (canon G-VACUOUS) |
+
+### The third kind: `vacuity` — a blind spot, pinned on purpose
+
+`known_bad` proves a gate *can* fail. It does not prove the gate can fail **on
+the case it exists for**, and six gates were measured green on 2026-07-28/29
+with their subject false — `R-LEN` passing cooksense on the word `lengthens` in
+a comment about creepage, a `.kicad_dru` barrier rule exempting the very
+connector tab it was written for (1.0672 mm against a 6.000 mm constraint),
+A-RENDER's verdict resting on 2 of 203 parts, a waiver typed `2.62 mm` that
+measures 3.085 mm. See the `G-VACUOUS` row in `design-policies.md`.
+
+So a gate declares its blind spot in **two bound homes**: a `VACUITY:` block in
+its module docstring, and
+
+    @test("...", kind="vacuity", gate="<basename>.py")
+
+in `tests/`, which constructs that input and asserts the gate **passes** on it.
+`gate_contract_audit.py` fails prose with no fixture, a fixture with no prose,
+and a fixture whose *first* assertion is `must_fail` (that would disprove the
+blind spot it claims). A declaration without a fixture is worse than none: it
+reads as diligence and grades nothing.
+
+Two conventions, both load-bearing:
+
+- **Subject first, then the CONTRAST.** Assert `must_pass` on the blind-spot
+  input, *then* `must_fail` on the same input changed in exactly one way. The
+  contrast is what distinguishes a blind spot from a fact the gate cannot
+  represent at all — every one of the fixtures seeded on 2026-07-29 has one.
+- **Closing the blind spot is expected to BREAK the fixture.** That breakage is
+  the ratchet, not a regression: convert it to `known_bad`. The runner prints
+  these separately, and the count is not a success metric — it is an inventory
+  of places a gate is *known* to pass while the fact is false:
+
+      1 DECLARED BLIND SPOT(S) reproduced: a gate passing on input whose
+      graded fact is FALSE (G-VACUOUS)
 
 The runner reports them separately and **refuses to report success if zero
 known-bad fixtures ran**:

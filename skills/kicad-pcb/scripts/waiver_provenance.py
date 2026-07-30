@@ -44,6 +44,42 @@ CHECKS
              talks about the board it was written for.
 
 Exit 0 when clean, 1 on any finding.
+
+VACUITY: (canon G-VACUOUS — the input class on which this gate PASSES while the
+fact it grades is FALSE, fixtured by `t1_audit.py`
+`t_vacuity_a_waiver_whose_typed_measurement_is_arithmetically_false_passes`.)
+
+W-COPY and W-FOREIGN are both TEXT-SIMILARITY checks between one piece of prose
+and another. Neither re-derives a number from copper, and `normalize()` folds
+unit spacing precisely so that a number survives a reword — correct for
+copy-detection, and it means digits are only ever compared to other digits
+SOMEONE TYPED. The only other gate on waiver evidence is
+`policy_audit.py:165`, `len(str(w.get("why", ""))) < 40` — a LENGTH test.
+
+So a waiver carrying an ORIGINAL, board-specific, 40+ character `why` containing
+an INVENTED measurement passes every gate in this repo.
+
+MEASURED on pluto-rx2-8way at commit c07aaf2, waiver `P-ADJ-UNREACHED`: "MEASURED
+by hand instead: C_SW1 pad 1 to U_SW pin 8 = 2.62 mm, inside the 3 mm the
+datasheet sentence means." Re-measured against the board that revision governed:
+**3.085 mm** pad-centre to pad-centre — which is the measure `policy_audit.py:412`
+itself defines for P-ADJ — i.e. 0.085 mm OVER the 3 mm the waiver asserted it was
+inside. The waiver's CONCLUSION FLIPS. `2.62` reproduces under no definition:
+edge-to-edge is 2.375 mm (rect) / 2.438 mm (roundrect polygon), so it is neither
+a typo nor a mis-defined metric but a free-hand estimate. A second entry reads
+"2.53 mm" where R_PD4.1 -> U_SW.12 measures 3.057 mm; that one stays inside its
+4 mm budget, so it was wrong without being load-bearing. Both passed for a full
+revision cycle.
+
+FLEET DENOMINATOR: 22 waiver entries across 5 boards; **16 carry a hand-typed
+number in prose**, 2 carry a re-runnable command, 10 name a script without an
+invocation, 3 carry neither. The single densest entry carries 39 separate typed
+mm figures, none re-derived by any gate.
+
+THE STRUCTURAL FIX, not applied here: a waiver's evidence should be a COMMAND AND
+ITS OUTPUT, not a number — then re-running it is the check, and this gate's
+vacuity condition closes instead of being documented. Until an `evidence:` schema
+carries `command:` + `output:`, this fixture stands.
 """
 import argparse
 import difflib

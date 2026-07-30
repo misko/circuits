@@ -30,8 +30,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent /
                        'skills' / 'kicad-pcb' / 'scripts'))   # G-SELFCON
-from harness import (KPY, ROOT, check, contains, eq, main, must_fail,  # noqa: E402
-                     must_pass, run, test, tmpdir)
+from harness import (KPY, ROOT, Failed, check, contains, eq, main,  # noqa: E402
+                     must_fail, must_pass, run, test, tmpdir)
 
 TOOL = ROOT / "skills/kicad-pcb/scripts/gate_contract_audit.py"
 
@@ -436,6 +436,534 @@ def t_selfcon_repo_clean():
     check(n >= 5, f"graded every tier, got {n}")
     eq(len(fails), 0, f"repo fab_tiers is self-consistent:\n{fails}")
 
+
+
+# ------------------------------------------------- G-VACUOUS (2026-07-29)
+# G-RED asks "can this gate fail at all?" and 31/31 answer yes. G-VACUOUS asks
+# the sharper question: can it fail ON THE CASE IT EXISTS FOR? Six gates were
+# measured GREEN on 2026-07-28/29 while the fact each grades was false. See the
+# G-VACUOUS block in gate_contract_audit.py for all six with their numbers.
+#
+# The contract: a gate's module DOCSTRING carries a `VACUITY:` block and tests/
+# carries `@test(..., kind="vacuity", gate="<basename>.py")` that constructs that
+# input and asserts the gate PASSES. Bidirectional — prose alone fails, a
+# fixture alone fails, and a "vacuity" fixture asserting must_fail is a FALSE
+# declaration and fails.
+
+#: a gate that satisfies G-INPUT/G-COVER/G-RED, so the only thing under test
+#: below is the vacuity binding.
+COMPLIANT_TESTS = {"t1_loud.py": 'TOOL = SCRIPTS / "loud.py"\nmust_fail(1)\n'}
+
+
+def _vac_root(docstring, test_body=None, tests=None):
+    """A miniature repo with ONE compliant gate whose docstring is `docstring`,
+    plus optional extra test files."""
+    body = (f'"""{docstring}"""\n' if docstring else "") + COVERED
+    t = dict(COMPLIANT_TESTS)
+    if test_body is not None:
+        t["t2_vac.py"] = test_body
+    t.update(tests or {})
+    return _root({"loud.py": body}, t)
+
+
+def _vac(docstring, test_body=None, tests=None, floor=None):
+    """(gca, root, fails, stats) for a miniature repo — the whole G-VACUOUS
+    check run in-process against one synthetic gate."""
+    import gate_contract_audit as gca                       # noqa: E402
+    root = _vac_root(docstring, test_body, tests)
+    rows = gca.audit(root)["gates"]
+    check(len(rows) == 1, f"the miniature repo must hold exactly one gate, "
+                          f"got {[r['script'] for r in rows]}")
+    keep = gca.VACUITY_FLOOR
+    if floor is not None:
+        gca.VACUITY_FLOOR = floor
+    try:
+        fails, stats = gca.check_vacuity(root, rows)
+    finally:
+        gca.VACUITY_FLOOR = keep
+    return gca, root, fails, stats
+
+
+@test("G-VACUOUS FAILS a gate that DECLARES a vacuity condition and ships no "
+      "fixture for it", kind="known_bad")
+def t_vacuity_prose_without_a_fixture_fails():
+    """THE POINT OF THE WHOLE CHECK. A declared blind spot with no fixture is
+    strictly WORSE than an undeclared one: it reads as diligence and grades
+    nothing. That is the `keep_short` defect one level up — 39 of 181 budgets
+    named the DATASHEET's reference-design pin function (`VCC`, `VDD`, `VREF`,
+    `D+`) instead of a net any board has, so none of cooksense's logic
+    decoupling was budget-graded while 181 budgets sat in source looking like
+    coverage. If G-VACUOUS accepted prose it would become exactly the paperwork
+    it was built to prevent.
+
+    RED-VERIFIED against the real tree, which is the strongest available form:
+    with the five `VACUITY:` blocks written and no fixtures yet, the auditor
+    reported (2026-07-29, measured, quoted verbatim):
+
+        G-VACUOUS: 0/31 gate(s) declare a vacuity condition WITH a fixture
+        that exercises it (floor 5); 26 OWED
+        FAIL G-VACUOUS .../part_facts_check.py: its docstring declares a
+        VACUITY: condition and NO tests/ fixture exercises it
+        ... x5, plus the floor ...
+        G-CONTRACT FAIL: 6 obligation(s) unmet
+
+    i.e. the five prose-only declarations each failed and the floor failed with
+    them. The synthetic fixture below is what pins it, so the test does not go
+    green merely because those five have since been fixtured."""
+    _, _, fails, stats = _vac(
+        "a gate\n\nVACUITY: passes when the input list is empty.\n", floor=0)
+    check(any("NO tests/ fixture exercises it" in f for f in fails),
+          f"a prose-only declaration must FAIL:\n{fails}")
+    eq(stats["bound"], [], "nothing is bound")
+
+
+@test("G-VACUOUS FAILS a vacuity fixture whose gate declares nothing",
+      kind="known_bad")
+def t_vacuity_fixture_without_prose_fails():
+    """The other direction of the binding. A fixture that pins a blind spot
+    while the gate's own docstring says nothing puts the finding somewhere no
+    reader of the gate will look — and then a docstring rewrite cannot
+    contradict a fixture nobody reads. Both homes or neither."""
+    _, _, fails, stats = _vac(
+        "a gate with no declaration",
+        '@test("x", kind="vacuity", gate="loud.py")\n'
+        'def t_x():\n    must_pass(0, "x")\n', floor=0)
+    check(any("no VACUITY: block" in f for f in fails),
+          f"an orphan fixture must FAIL:\n{fails}")
+
+
+@test("G-VACUOUS FAILS a `vacuity` fixture whose FIRST assertion is must_fail "
+      "— it has DISPROVED the blind spot it claims", kind="known_bad")
+def t_vacuity_fixture_asserting_must_fail_is_a_false_declaration():
+    """A FALSE DECLARATION, caught statically. A vacuity fixture asserts the
+    gate PASSES on input whose graded fact is false. One asserting `must_fail`
+    on that input proves the gate BITES there, so the docstring's claim is
+    false — and a falsely-declared blind spot is worse than an undeclared one
+    for the same reason prose is: it reads as an honest limitation and is not
+    one. The right move when a blind spot closes is to convert the fixture to
+    `kind="known_bad"`, which is what the message says.
+
+    WHY IT IS THE **FIRST** ASSERTION AND NOT ANY. This check shipped, for about
+    ten minutes, as "any `must_fail` in the body is a false declaration" — and
+    it immediately flagged two of the four real fixtures seeded the same day
+    (measured: `t_vacuity_all_deferred_or_all_config_prints_OK_over_a_zero_
+    denominator` and `t_vacuity_E_OFF_is_N_A_on_a_battery_board_that_declares_
+    nothing`). Both were correct. Each asserts the blind spot AND THEN a
+    CONTRAST — the same input changed in exactly one way, which the gate DOES
+    catch — and the contrast is what distinguishes a blind spot from a fact the
+    gate simply cannot represent. Rejecting the best fixtures in the set is the
+    adjacent-property error this repo keeps paying for (canon M-WIDTH), so the
+    rule now grades the SUBJECT assertion: first pass/fail call must be a
+    must_pass. `t_vacuity_a_must_fail_CONTRAST_after_the_subject_is_allowed`
+    holds the other side."""
+    _, _, fails, _s = _vac(
+        "a gate\n\nVACUITY: passes on an empty list.\n",
+        '@test("x", kind="vacuity", gate="loud.py")\n'
+        'def t_x():\n    must_fail(1, "x")\n', floor=0)
+    check(any("declaration is FALSE" in f for f in fails),
+          f"a must_fail vacuity fixture must FAIL:\n{fails}")
+
+
+@test("G-VACUOUS ALLOWS a must_fail CONTRAST after the must_pass on the "
+      "vacuity input — the best fixtures all have one")
+def t_vacuity_a_must_fail_CONTRAST_after_the_subject_is_allowed():
+    """The other side of the ordering rule, and the reason it is an ordering
+    rule at all. A fixture that asserts the gate passes on the blind-spot input
+    and THEN that it fails on the one-field-changed contrast is the strongest
+    form available: it proves the gate can grade the fact, and that this
+    particular input escapes it. All four gates seeded on 2026-07-29 are written
+    this way, and the first version of the check rejected two of them."""
+    _, _, fails, stats = _vac(
+        "a gate\n\nVACUITY: passes on an empty list.\n",
+        '@test("x", kind="vacuity", gate="loud.py")\n'
+        'def t_x():\n'
+        '    must_pass(0, "the empty list — THE BLIND SPOT")\n'
+        '    must_fail(1, "the CONTRAST: one row present, and it is graded")\n',
+        floor=1)
+    eq(fails, [], f"a subject-then-contrast fixture must be accepted:\n{fails}")
+    eq(stats["bound"], ["loud.py"], "and counted as bound")
+
+
+@test("G-VACUOUS FAILS a `vacuity` fixture that asserts NOTHING",
+      kind="known_bad")
+def t_vacuity_fixture_with_no_assertion_fails():
+    """Prose in a .py file is still prose. A fixture with no
+    must_pass/check/eq in its body has moved the paperwork, not replaced it."""
+    _, _, fails, _s = _vac(
+        "a gate\n\nVACUITY: passes on an empty list.\n",
+        '@test("x", kind="vacuity", gate="loud.py")\n'
+        'def t_x():\n    pass\n', floor=0)
+    check(any("asserts NOTHING" in f for f in fails),
+          f"an inert vacuity fixture must FAIL:\n{fails}")
+
+
+@test("G-VACUOUS FAILS a vacuity fixture naming a gate that is not in the "
+      "inventory — a rename must not silently un-declare", kind="known_bad")
+def t_vacuity_fixture_naming_an_unknown_gate_fails():
+    """The binding is by NAME, so the binding can rot. If `loud.py` is renamed
+    and its fixture keeps the old name, the gate silently loses its declaration
+    and the fixture silently grades nothing — the `has_red_fixture` prose hole
+    in a new costume."""
+    _, _, fails, _s = _vac(
+        "a gate\n\nVACUITY: passes on an empty list.\n",
+        '@test("x", kind="vacuity", gate="loud.py")\n'
+        'def t_x():\n    must_pass(0, "x")\n'
+        '@test("y", kind="vacuity", gate="renamed_away.py")\n'
+        'def t_y():\n    must_pass(0, "y")\n', floor=0)
+    check(any("not in the verdict-printing inventory" in f for f in fails),
+          f"a fixture naming an unknown gate must FAIL:\n{fails}")
+
+
+@test("G-VACUOUS PASSES a gate declared in BOTH homes, with a fixture that "
+      "asserts the gate passes")
+def t_vacuity_declared_and_fixtured_passes():
+    """THE OTHER HALF OF DISCRIMINATION. A check that only ever fails ranks
+    nothing. A correctly-declared, correctly-fixtured gate must produce ZERO
+    G-VACUOUS findings, or the whole family is just failing everything."""
+    _, _, fails, stats = _vac(
+        "a gate\n\nVACUITY: it passes when the input list is empty, because\n"
+        "an empty list has no row that can disagree.\n",
+        '@test("x", kind="vacuity", gate="loud.py")\n'
+        'def t_x():\n    must_pass(0, "the empty list")\n', floor=1)
+    eq(fails, [], "a fully compliant declaration must produce no findings")
+    eq(stats["bound"], ["loud.py"], "and it is counted as bound")
+    eq(stats["owed"], [], "with nothing owed")
+
+
+@test("G-VACUOUS PASSES a repo where NO gate declares anything — its OWN "
+      "declared blind spot", kind="vacuity", gate="gate_contract_audit.py")
+def t_vacuity_G_VACUOUS_passes_a_repo_where_no_gate_declares_anything():
+    """G-VACUOUS'S OWN VACUITY CONDITION (the executable half of the `VACUITY:`
+    block in gate_contract_audit.py's docstring).
+
+    G-VACUOUS grades "every gate's blind spot is known". It PASSES on a repo
+    where NOTHING is declared, because absence is OWED rather than a violation.
+    That is deliberate — a day-one mandate over 31 gates lands as 31 red rows
+    and is disabled within the week — and it means the exit code is compatible
+    with the graded fact being false for the whole fleet.
+
+    THE CIRCLE, AND HOW IT IS BROKEN. Asking a coverage gate to police its own
+    adoption only regresses: whatever it accepts, it accepts. So the vacuity is
+    not eliminated, it is made BOUNDED (the blind spot is exactly `owed`),
+    ENUMERATED (every owed gate is printed by name on every run — which is what
+    separates this from all six instances, each of which passed with nothing
+    said) and MONOTONE (`VACUITY_FLOOR` is a committed integer and a drop below
+    it is a hard FAIL, pinned from outside by
+    `t_vacuity_floor_is_pinned_to_the_measured_count`).
+
+    Both halves are asserted here:
+      1. SYNTHETIC — a repo of compliant gates declaring nothing, floor 0:
+         zero findings, everything owed. Absence is free.
+      2. REAL TREE — the auditor exits 0 today while N gates are owed, and
+         names every one of them. That is the live measurement of the blind
+         spot, and it is why the owed list is printed rather than counted."""
+    _, _, fails, stats = _vac("a gate with no vacuity declaration", floor=0)
+    eq(fails, [], "NOTHING is declared and G-VACUOUS has no finding — this is "
+                  "the blind spot, stated as an assertion")
+    eq(stats["owed"], ["loud.py"], "the whole inventory is owed")
+
+    # (2) the real tree: passes, with the remainder named rather than counted.
+    r = must_pass(run([KPY, TOOL, "--root", ROOT]),
+                  "G-VACUOUS exits 0 on the real tree while gates are still "
+                  "OWED — THE BLIND SPOT. If this now FAILS because adoption "
+                  "reached the whole fleet, convert this fixture to a "
+                  "known_bad with the floor raised to the inventory size")
+    m = re.search(r"G-VACUOUS: (\d+)/(\d+) gate\(s\) declare a vacuity "
+                  r"condition WITH a fixture that exercises it "
+                  r"\(floor (\d+)\); (\d+) OWED", r.out)
+    check(m is not None, f"the G-VACUOUS coverage line changed shape:\n{r.out}")
+    bound, total, floor, owed = (int(g) for g in m.groups())
+    check(owed > 0, "if nothing is owed the blind spot has closed — see above")
+    eq(bound + owed, total, "every gate is either bound or owed; a gate in "
+                            "neither bucket would be a silent third state")
+    named = len(re.findall(r"^  OWED G-VACUOUS ", r.out, re.M))
+    eq(named, owed, "EVERY owed gate is named. A remainder reported as a bare "
+                    "count is how a partial rollout becomes permanent")
+
+
+@test("G-VACUOUS's floor is PINNED to what the tree achieves — it cannot be "
+      "lowered to buy a green run, nor lag adoption silently")
+def t_vacuity_floor_is_pinned_to_the_measured_count():
+    """THE OUTSIDE OF THE CIRCLE. `VACUITY_FLOOR` is the one thing that makes
+    G-VACUOUS's own vacuity monotone, so it cannot be graded by G-VACUOUS —
+    that is the circularity. It is graded HERE instead, by measuring the tree
+    and comparing:
+
+      * floor <= achieved, or the gate fails for a reason nobody can fix by
+        writing a declaration (a floor above the tree is a broken build, not a
+        ratchet);
+      * floor == achieved, so the floor cannot silently lag adoption either. A
+        floor of 5 on a tree with 20 bound would let 15 declarations be deleted
+        for free.
+
+    Together: the floor may only be edited UP, in the same commit that raises
+    the achieved count. That is a human editing a committed integer in a file a
+    reviewer reads, checked by a measurement — none of it reachable from inside
+    the audit."""
+    import gate_contract_audit as gca                       # noqa: E402
+    rows = gca.audit(ROOT)["gates"]
+    _, stats = gca.check_vacuity(ROOT, rows)
+    n = len(stats["bound"])
+    eq(gca.VACUITY_FLOOR, n,
+       f"VACUITY_FLOOR is {gca.VACUITY_FLOOR} and {n} gate(s) actually carry a "
+       f"fixtured vacuity condition. Raise the floor in the SAME commit that "
+       f"adds a declaration; never lower it to make a run green")
+    check(n >= 5, f"only {n} gate(s) have a fixtured vacuity condition — the "
+                  f"five seeded on 2026-07-29 (part_facts_check, twin_overlay, "
+                  f"power_topology, waiver_provenance, gate_contract_audit) are "
+                  f"the floor of the rollout, not a target")
+
+
+@test("G-VACUOUS does NOT accept a `VACUITY:` outside the module docstring — "
+      "the R-LEN defect, not reproduced", kind="known_bad")
+def t_vacuity_prose_outside_the_module_docstring_is_not_a_declaration():
+    """THE DEFECT THIS WHOLE FAMILY EXISTS FOR, APPLIED TO ITSELF.
+
+    `R-LEN` is `bool(re.search(r"length|spread", audit_src, re.I))` over the raw
+    text of a board's `audit_board.py`. MEASURED 2026-07-29: 3 of 6 boards get
+    PASS, and smc0985-cooksense gets it on ZERO code matches — its only two hits
+    are `slot-lengthened` and `lengthens`, both in COMMENTS about high-voltage
+    creepage, neither about timing. Meanwhile pluto-cal-switch, which carries an
+    ADR titled "length match is a published artifact", grades N-A "no
+    timing-critical nets declared".
+
+    A gate-on-gates that accepted a `VACUITY:` anywhere in a file would commit
+    that exact error in the act of policing it. So `vacuity_declaration` reads
+    `ast.get_docstring` and nothing else. Three placements are tested, and all
+    three must be REJECTED — a comment, a nested function's docstring, and a
+    string literal in code. Each is followed by a real fixture, so the ONLY
+    reason the auditor can fail here is that it declined to see the prose."""
+    fixture = ('@test("x", kind="vacuity", gate="loud.py")\n'
+               'def t_x():\n    must_pass(0, "x")\n')
+    for where, body in (
+            ("a comment",
+             "# VACUITY: passes on an empty list.\n" + COVERED),
+            ("a nested docstring",
+             COVERED + '\n\ndef helper():\n'
+             '    """VACUITY: passes on an empty list."""\n    return 1\n'),
+            ("a code string",
+             COVERED + '\nBANNER = "VACUITY: passes on an empty list."\n')):
+        d = _root({"loud.py": body},
+                  {"t1_loud.py": 'TOOL = SCRIPTS / "loud.py"\nmust_fail(1)\n',
+                   "t2_vac.py": fixture})
+        import gate_contract_audit as gca                   # noqa: E402
+        rows = gca.audit(d)["gates"]
+        keep, gca.VACUITY_FLOOR = gca.VACUITY_FLOOR, 0
+        try:
+            fails, stats = gca.check_vacuity(d, rows)
+        finally:
+            gca.VACUITY_FLOOR = keep
+        eq(stats["declared"], [],
+           f"a VACUITY: in {where} must NOT count as a declaration — that is "
+           f"R-LEN's defect, which credits the word 'lengthens' in a comment "
+           f"about creepage")
+        check(any("no VACUITY: block" in f for f in fails),
+              f"with {where} the gate is UNDECLARED and its fixture is an "
+              f"orphan, which must fail:\n{fails}")
+
+
+# --------------------------------------------- G-VACUOUS, the DRU predicate class
+# The worst instance on the 2026-07-29 list is not a Python gate: cooksense's
+# `keypad_isolation_6mm` .kicad_dru rule ends `&& B.NetName != ''`, so unnetted
+# copper is exempt BY CONSTRUCTION and DRC ITSELF reported zero. A rule-file
+# predicate that cannot fire on the geometry it names is the same defect.
+
+#: what a board HAS. check_dru_vacuity is inventory-driven and geometry-free, so
+#: the same function grades a synthetic fixture and a real board.
+INV = {"netclasses": {"KEYPAD_ISO", "DEFAULT"}, "nets": {"KP_U1", "GND"},
+       "areas": {"pad_rescue_stubs"}, "unnetted": 8}
+
+
+def _dru(cond, constraint="clearance", name="iso_6mm"):
+    return (f'(version 1)\n(rule "{name}"\n'
+            f'  # a comment\n'
+            f'  (condition "{cond}")\n'
+            f'  (constraint {constraint} (min 6.0mm)))\n')
+
+
+@test("G-VACUOUS-DRU FAILS a clearance rule that exempts UNNETTED copper — "
+      "the instance that made DRC itself report zero", kind="known_bad")
+def t_dru_netname_nonempty_exemption_fails():
+    """THE INCIDENT, MEASURED. `projects/smc0985-cooksense/04_kicad/
+    cooksense.kicad_dru:31`:
+
+        (rule "keypad_isolation_6mm"
+          (condition "A.NetClass == 'KEYPAD_ISO' && B.NetClass != 'KEYPAD_ISO'
+                      && B.NetName != ''")
+          (constraint clearance (min 6.0mm)))
+
+    Re-measured 2026-07-29 with pcbnew: 14 nets are in KEYPAD_ISO (412 copper
+    items); the board carries 8 unnetted copper pads, among them
+    `J_KEY_MATRIX.MP` — the keypad connector's own SM10B-GHS-TB shell tabs, which
+    is the tab the rule was written for. Minimum distance from any KEYPAD_ISO
+    copper to any unnetted copper: **1.0672 mm against a 6.000 mm constraint, a
+    5.6x violation, on 106 pairs**, every one silenced by the third conjunct.
+    The project's own `apply_drc_policy.py:31-39` independently records "without
+    it the keypad rule reports 71 violations", corroborating the direction.
+
+    So "0 DRC violations / 0 unconnected / 0 parity" — this repo's headline
+    gate — was never evidence about the one connector tab the rule existed for.
+    A barrier rule's whole purpose is copper that may be unnetted: a shell tab,
+    a mounting pad, a fill island."""
+    import gate_contract_audit as gca                       # noqa: E402
+    fails, n = gca.check_dru_vacuity(gca.parse_dru(_dru(
+        "A.NetClass == 'KEYPAD_ISO' && B.NetClass != 'KEYPAD_ISO' "
+        "&& B.NetName != ''")), INV)
+    eq(n, 1, "one predicate graded (the denominator, canon M-COVER)")
+    eq(len(fails), 1, f"the exemption must be the one finding:\n{fails}")
+    contains(fails[0], "EXEMPT BY", "names the defect")
+    contains(fails[0], "8 unnetted copper item(s)",
+             "quotes the inventory, so the finding is about THIS board")
+    # THE REAL NUMBER WAS RECONCILED, NOT ACCEPTED. A first forensic pass
+    # reported 8 unnetted pads on cooksense; `dru_inventory` measures 2, because
+    # 6 of the 8 are NPTH (H1-H4 and J_TC's two) and sit on NO copper layer, so
+    # they cannot violate a copper clearance rule. The honest count is 2 — and
+    # BOTH are `J_KEY_MATRIX.MP`, the shell tabs the rule exists for, which makes
+    # the finding sharper. `INV` here carries a synthetic 8 only to prove the
+    # message quotes whatever inventory it is given; the board's own number is
+    # asserted in t_dru_flags_the_real_cooksense_rule_file.
+
+
+@test("G-VACUOUS-DRU FAILS a rule naming a netclass no net belongs to — it can "
+      "never fire", kind="known_bad")
+def t_dru_dead_netclass_fails():
+    """The class-general form, and the reason this is not a one-pattern check.
+    A rule whose required conjunct names a netclass, net or rule area the board
+    does not have fires NEVER, and DRC reports zero for it by construction —
+    identical in effect to the exemption above and invisible in the same way.
+    This is the shape a netclass rename produces: the rule survives, its subject
+    does not."""
+    import gate_contract_audit as gca                       # noqa: E402
+    fails, n = gca.check_dru_vacuity(gca.parse_dru(_dru(
+        "A.NetClass == 'KEYPAD_ISOLATION' && B.NetClass != 'KEYPAD_ISO'")), INV)
+    eq(n, 1, "one predicate graded")
+    eq(len(fails), 1, f"the dead netclass must be the one finding:\n{fails}")
+    contains(fails[0], "can NEVER be true", "names the defect")
+    contains(fails[0], "KEYPAD_ISOLATION", "names the value that does not exist")
+
+
+@test("G-VACUOUS-DRU FAILS a rule whose insideArea names no rule area",
+      kind="known_bad")
+def t_dru_dead_area_fails():
+    """Same class, third member (canon M-WIDTH: name the category and enumerate
+    it). `insideArea` is how every scoped-floor rule in this repo is written, so
+    a renamed keepout silently disarms one."""
+    import gate_contract_audit as gca                       # noqa: E402
+    fails, n = gca.check_dru_vacuity(gca.parse_dru(_dru(
+        "A.insideArea('efuse_padentry') && (A.NetName == 'GND')")), INV)
+    eq(n, 1, "one predicate graded")
+    check(any("efuse_padentry" in f and "can NEVER be true" in f
+              for f in fails), f"the dead area must fail:\n{fails}")
+
+
+@test("G-VACUOUS-DRU PASSES a live rule, and does not flag a NetName != '' "
+      "outside a clearance constraint")
+def t_dru_live_rule_passes():
+    """DISCRIMINATION, both edges. A check that flags every rule ranks nothing,
+    and the two edges are where a proxy goes wrong:
+
+      1. a rule whose netclasses all exist and which does not exempt unnetted
+         copper must PASS;
+      2. `NetName != ''` is only a defect on a CLEARANCE-family constraint,
+         where unnetted copper is the subject. On a `track_width` it is a
+         legitimate scope — the generator's own line 303 writes net-name
+         conditions for exactly that, and flagging it would false-fail the
+         shared backend."""
+    import gate_contract_audit as gca                       # noqa: E402
+    fails, n = gca.check_dru_vacuity(gca.parse_dru(_dru(
+        "A.NetClass == 'KEYPAD_ISO' && B.NetClass != 'KEYPAD_ISO'")), INV)
+    eq(n, 1, "one predicate graded")
+    eq(fails, [], f"a live barrier rule must PASS:\n{fails}")
+
+    fails2, _ = gca.check_dru_vacuity(gca.parse_dru(_dru(
+        "A.NetName != '' && A.NetClass == 'KEYPAD_ISO'",
+        constraint="track_width")), INV)
+    eq(fails2, [], f"a net-scoped track_width rule is not a barrier and must "
+                   f"PASS:\n{fails2}")
+
+
+@test("G-VACUOUS-DRU does not flag a DISJUNCTION with one live branch")
+def t_dru_disjunction_with_a_live_branch_passes():
+    """The adjacent-property trap. `(A.NetName == 'X' || A.NetName == 'Y')` with
+    only X on the board still fires, so flagging it would be a false positive of
+    the exact kind that gets a gate switched off. A rule is dead only when EVERY
+    alternative carries a dead conjunct — which is asserted from both sides
+    here."""
+    import gate_contract_audit as gca                       # noqa: E402
+    fails, _ = gca.check_dru_vacuity(gca.parse_dru(_dru(
+        "A.NetName == 'GND' || A.NetName == 'NO_SUCH_NET'")), INV)
+    eq(fails, [], f"one live branch is enough to fire:\n{fails}")
+
+    dead, _ = gca.check_dru_vacuity(gca.parse_dru(_dru(
+        "A.NetName == 'NO_SUCH_NET' || A.NetName == 'ALSO_ABSENT'")), INV)
+    check(any("can NEVER be true" in f for f in dead),
+          f"ALL branches dead must still FAIL, or the disjunction handling has "
+          f"become an escape hatch:\n{dead}")
+
+
+@test("G-VACUOUS-DRU flags the REAL cooksense rule file, read from the tree",
+      kind="known_bad")
+def t_dru_flags_the_real_cooksense_rule_file():
+    """THE ACCEPTANCE TEST. A synthetic fixture proves the checker discriminates;
+    it does not prove the checker sees the incident. This reads the actual
+    sealed-adjacent `04_kicad/cooksense.kicad_dru` — READ-ONLY, no project file
+    is written — and requires BOTH barrier rules to be flagged by name.
+
+    Skipped-with-a-loud-note if the board is absent rather than passing quietly,
+    because "the file moved" and "the defect is fixed" must not look the same
+    (canon M-COVER: input it cannot read is never a silent skip).
+
+    RED-VERIFIED, and the measurement is the whole argument for this arm. At the
+    pre-fix commit (2026-07-29, this suite's own HEAD before the change):
+
+        $ /usr/bin/python3 skills/kicad-pcb/scripts/gate_contract_audit.py --root .
+          coverage: 31/31 verdict-printing scripts audited ...
+        G-CONTRACT OK: 31 verdict-printing script(s) meet G-INPUT/G-COVER/G-RED
+        PRE-FIX EXIT=0
+
+    Thirty-one gates satisfying three obligations each, all green, while two
+    barrier rules on a live board exempted the exact copper they existed to hold
+    off. After, with `--dru` pointed at the board:
+
+        G-VACUOUS-DRU: 11 predicate(s) graded in cooksense.kicad_dru against
+        cooksense.kicad_pcb
+        FAIL G-VACUOUS-DRU cooksense.kicad_dru:29 rule "keypad_isolation_6mm" ...
+        FAIL G-VACUOUS-DRU cooksense.kicad_dru:33 rule "opto_isolation_2mm" ...
+
+    2 of 11 predicates flagged — so the other 9, including every `insideArea`
+    scoped-floor rule on that board, are graded and PASS. A checker that flagged
+    all 11 would be useless."""
+    import gate_contract_audit as gca                       # noqa: E402
+    dru = ROOT / "projects/smc0985-cooksense/04_kicad/cooksense.kicad_dru"
+    if not dru.exists():
+        raise Failed(f"{dru} is gone — this acceptance test cannot go quiet; "
+                     f"repoint it at the board that carries the barrier rules "
+                     f"or retire it deliberately")
+    rules = gca.parse_dru(dru.read_text(encoding="utf-8-sig"))
+    check(len(rules) >= 4, f"only {len(rules)} rules parsed out of the real "
+                           f"file — the s-expression scan has regressed")
+    inv = gca.dru_inventory(dru.with_suffix(".kicad_pcb"))
+    eq(inv["unnetted"], 2,
+       "the board carries exactly 2 unnetted COPPER items, and both are "
+       "J_KEY_MATRIX.MP — the keypad connector's SM10B-GHS-TB shell tabs, which "
+       "is the tab keypad_isolation_6mm was written for. (A first forensic pass "
+       "reported 8; the other 6 are NPTH holes on no copper layer and cannot "
+       "violate a copper clearance rule. Reconciled 2026-07-29 — the corrected "
+       "number is the sharper one.)")
+    check("KEYPAD_ISO" in inv["netclasses"],
+          f"the netclass the rule names IS live on the board, so the rule is "
+          f"flagged for the EXEMPTION and not for a dead conjunct — the two arms "
+          f"must not be confusable: {sorted(inv['netclasses'])[:8]}")
+    fails, n = gca.check_dru_vacuity(rules, inv, source=dru.name)
+    eq(n, len(rules), f"every rule with a condition is graded: {n}/{len(rules)}")
+    exempt = [f for f in fails if "EXEMPT BY" in f]
+    eq(len(exempt), 2, f"both barrier rules must be flagged — measured "
+                       f"2026-07-29 as keypad_isolation_6mm and "
+                       f"opto_isolation_2mm:\n{fails}")
+    check(any("keypad_isolation_6mm" in f for f in exempt),
+          f"the 6 mm keypad barrier is named:\n{exempt}")
+    check(any("opto_isolation_2mm" in f for f in exempt),
+          f"the 2 mm opto barrier carries the same conjunct:\n{exempt}")
 
 
 if __name__ == "__main__":
