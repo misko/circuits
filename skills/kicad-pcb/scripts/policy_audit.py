@@ -72,11 +72,13 @@ GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A")
 # MALFORMED or UNCLOSED record. The test is the ratchet. Said here rather than
 # left to be discovered, because a constant no code reads is the exact defect
 # class this repo keeps finding (canon G-ORPHAN).
-PREC_GRADED_FLOOR = 0    # in-scope parts carrying a TIER-GRADED precedent
-                         # record. ZERO TODAY and that is the honest number:
-                         # no dossier in the fleet uses the mapping form yet,
-                         # so the floor is INERT and says so. It stops being
-                         # inert on the first graded dossier.
+PREC_GRADED_FLOOR = 1    # in-scope parts carrying a TIER-GRADED precedent
+                         # record. RAISED 0 -> 1 on 2026-07-30: the fleet's
+                         # first mapping-form dossier is
+                         # pluto-rx2-8way-v2/02_parts/RP2040-Zero. The floor
+                         # was declared INERT at zero and this is it stopping
+                         # being inert, exactly as advertised — a numerator
+                         # advance against a floor that may only RISE.
 PREC_OWED_CEILING = 89   # in-scope parts with NO tier-graded record: 89 of 89.
                          # 45 of them DO carry a bare-string `layout_refs:`
                          # list — a real precedent search recorded as prose no
