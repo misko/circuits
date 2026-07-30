@@ -824,6 +824,19 @@ def t_vacuity_a_waiver_whose_typed_measurement_is_arithmetically_false_passes():
     waiver's evidence is about THIS board" — is FALSE. It PINS the defect;
     closing it should break this test, which then becomes a `known_bad`.
 
+    NARROWED, NOT RETIRED (2026-07-29, the `evidence:` schema). The gate now
+    REGENERATES AND DIFFS any number an entry declares in an `evidence:` block,
+    with W-FLIP reporting a reversed conclusion by name. This fixture still
+    stands, and deliberately so: the entry below declares NO `evidence:` block,
+    which is 22 of 22 fleet entries on the day the schema landed, so a number
+    typed in `why:` prose is still read by nothing. That is the surviving half
+    of the blind spot and `waiver_provenance.py`'s `VACUITY:` block now says
+    exactly that. The CONTRAST — the same waiver with the same false number
+    moved into an `evidence:` block, caught with the reversal named — is
+    `t1_waiver_evidence.py`
+    `t_incident_the_c_sw1_waiver_promoted_to_the_evidence_schema_is_caught`,
+    and the OWED ceiling is what stops the prose form from spreading.
+
     THE INCIDENT (measured 2026-07-29, pluto-rx2-8way at commit c07aaf2). The
     waiver `P-ADJ-UNREACHED` read:
 
@@ -870,7 +883,16 @@ def t_vacuity_a_waiver_whose_typed_measurement_is_arithmetically_false_passes():
                       f"BLIND SPOT. If the 'false' or 'impossible' case now "
                       f"FAILS, the gate has learned to re-derive a number: "
                       f"convert this fixture to kind=\"known_bad\"")
-        outs[label] = r.out.replace(str(root), "<root>")
+        # NORMALISE THE LOCATORS, NOT THE VERDICT. Each arm runs in its own
+        # tmpdir, and the gate now echoes the tree it read AND the cwd it would
+        # run evidence commands from (2026-07-29, the `evidence:` schema), so a
+        # raw byte-compare would differ on the PATH rather than on the finding.
+        # Every path is replaced by a constant and nothing else is touched: the
+        # assertion below still compares the full report, verdict included.
+        outs[label] = (r.out.replace(str(root), "<root>")
+                            .replace(str(root.parent), "<tree>")
+                            .replace(str(root.resolve()), "<root>")
+                            .replace(str(root.resolve().parent), "<tree>"))
 
     eq(outs["false"], outs["true"],
        "the verdict must be shown INVARIANT under a measurement that is over "

@@ -19,7 +19,7 @@ belongs here.
 | `stackup.yaml` | layer count, what each layer is for, fab tier (optional) |
 | `twin_adjudications.yaml` | reviewed jlc_twin findings accepted WITH evidence (see jlcpcb-fab skill) |
 | `passives_lcsc.yaml` | passives BOM-comment -> LCSC seed map (bom_seed input; usb-hub-3s) |
-| `policy_waivers.yaml` | policy_audit waivers accepted WITH measurement evidence (canon M4/M-WAIV): a YAML list, each entry naming the WAIVED S-/P-/R-/M-/E- policy ID + `why:` + the measurement that justifies it; P-ADJ net-span over-budget dispositions land here with the measured span + why. An entry without evidence is itself a FAIL |
+| `policy_waivers.yaml` | policy_audit waivers accepted WITH measurement evidence (canon M4/M-WAIV): a YAML list, each entry naming the WAIVED S-/P-/R-/M-/E- policy ID + `why:` + the measurement that justifies it; P-ADJ net-span over-budget dispositions land here with the measured span + why. An entry without evidence is itself a FAIL. **A LOAD-BEARING NUMBER CARRIES A COMMAND, NOT A DIGIT** — see "Structure: `policy_waivers.yaml` — the `evidence:` block" below |
 | `policy_audit.json` | OPTIONAL `policy_audit.py` config (`--config 03_src/rules/policy_audit.json`, its default path): thresholds + HUMAN-item verdict pointers (S5/S6/S7) |
 | `contracts.md` | this file |
 
@@ -203,6 +203,88 @@ files carry no such concept — the only mechanism is a per-WAVE
 `layers: [F.Cu]`, which is not per-net and is re-checked by nothing. One via on
 one arm is a pure DIFFERENTIAL error on a published delta.
 
+## Structure: `policy_waivers.yaml` — the `evidence:` block
+
+**A LOAD-BEARING NUMBER IS A COMMAND AND ITS OUTPUT, NOT A DIGIT.** Canon M4
+asks a waiver to carry the measurement that justifies it, and for this file's
+whole history "carry" meant *type it into `why:`*. Measured 2026-07-29 by
+`waiver_provenance.py` over the fleet: **22 entries across 5 boards, 22 with a
+hand-typed measurement and 0 with a re-runnable command.** The failure mode is
+not "slightly off" — pluto-rx2-8way's `P-ADJ-UNREACHED` typed *"C_SW1 pad 1 to
+U_SW pin 8 = 2.62 mm, inside the 3 mm the datasheet sentence means"* where the
+pair measured **3.085 mm** centre-to-centre, the measure `policy_audit.py:412`
+itself defines. **The waiver's own conclusion reverses,** and it survived a full
+revision cycle past `policy_audit`'s length test on `why` and past
+`waiver_provenance`'s prose-similarity checks.
+
+So an entry MAY (and at the next revision of any waiver, SHOULD) carry:
+
+```yaml
+- id: P-ADJ-UNREACHED
+  refs: [PE42482A-X]
+  why: >-
+    Pin 8 sits on the global 3V3 net, so no keep_short budget can address it;
+    measured against the datasheet's 3 mm by hand instead.
+  evidence:
+    - claim: C_SW1.1 -> U_SW.8, pad centre to pad centre (P-ADJ's own measure)
+      command: |-                      # `|-` — a plain scalar containing ": "
+        /usr/bin/python3 -c "import pcbnew, math; ..."
+      output: "2.873"                  # EXACTLY ONE number, or it is prose
+      budget: "<= 3.0"                 # the CONCLUSION the number carries
+      requires: [pcbnew, projects/<board>/04_kicad/<board>.kicad_pcb]
+      tolerance: 0.02                  # optional, units of `output`
+      tolerance_why: >-                # MANDATORY whenever tolerance is present
+        Pad centres move only when the legalizer moves a part, so the only
+        legitimate drift is the nanometre-quantised import rounding.
+```
+
+Graded by `waiver_provenance.py PROJECTS_ROOT`, which RE-RUNS `command` from the
+repo root and DIFFS its last stdout line against `output`:
+
+- **W-SCHEMA** `evidence:` is a non-empty list of mappings; keys are drawn from
+  `claim command output budget tolerance tolerance_why grade requires
+  why_not_rerunnable note` — an unknown key (a misspelled `commmand:`) is a FAIL,
+  because the alternative is the schema silently rotting back into prose. `output`
+  carries EXACTLY ONE number; two numbers is prose again.
+- **W-GRADE** `grade:` is `CITED` or `ESTIMATED`. CITED requires
+  `command`+`output` — a citation claim with nothing cited is a FAIL. ESTIMATED
+  requires `why_not_rerunnable:`.
+- **W-CMD** the command must be READ-ONLY. The gate EXECUTES what this file says.
+- **W-REGEN** the regenerated number disagrees with `output` beyond `tolerance`.
+- **W-FLIP** the regenerated number does not satisfy the declared `budget` that
+  the typed one did. **THE CONCLUSION REVERSED** — reported separately and never
+  excused by a tolerance.
+- **W-ARITH** the TYPED `output` fails its own declared `budget`. Costs nothing:
+  pure arithmetic on two numbers the author wrote side by side.
+- **W-TOL** `tolerance` without `tolerance_why`, or a tolerance `>=` the margin
+  `|budget - output|`. **A tolerance that cannot distinguish pass from fail is
+  not a tolerance — it is the next typed number**, and this is the check that
+  stops the fix from recreating the defect.
+- **W-REFS** a `refs:` entry shaped like a repo path must resolve, and a
+  `path:LO-HI` span must be inside the file. A line range is a typed number too:
+  crow-mic-pod-v2's R-RULES cites `04_kicad/….kicad_dru:8-10`.
+
+THE LADDER, for a number that cannot be regenerated here and now (canon
+M-IMPORT — **ESTIMATED, not CITED**, reported with its denominator):
+`CITED` (ran, agreed) → `UNVERIFIED` (a declared `requires:` is absent, or the
+command timed out or exited non-zero: named on every run, credited to nobody,
+and deliberately NOT a fail — a gate whose verdict depends on whether a sibling
+agent is mid-rebuild is a gate that gets disabled) → `ESTIMATED` (no command is
+possible, and `why_not_rerunnable:` says why) → `OWED` (no `evidence:` block).
+OWED entries are printed BY NAME on every run and held under a committed
+ceiling, so the existing debt is a list and the NEXT typed number is a hard fail.
+
+## `04_kicad/refdes_waiver.json` is NOT a substitute for an entry here
+
+`generate_board_generic.py` writes that file for ITSELF when its silk placer
+finds no slot for a refdes, and `policy_audit.py:793` then reads it and SKIPS
+every refdes in it while grading P-SILK-REF. Checker and checked share a method
+(canon M1) and the machine is its own witness. **W-MACHINE** requires every
+refdes in it to be named in some `refs:` in this file. Measured 2026-07-29:
+**2 of 11 fleet-wide** (pluto-rx2-8way's `C_MCU7` + `R_CC1`, under a P-SILK-REF
+entry that asked for this check in writing); the other 9 are named debt under a
+committed ceiling, and `--strict-machine` fails them.
+
 ## Validate
 
 - every net in `nets.yaml` exists in the netlist (else the class is a no-op) —
@@ -214,6 +296,11 @@ one arm is a pure DIFFERENTIAL error on a published delta.
 - every `exemptions[].area` names a rule area that exists on the board
 - every `policy_waivers.yaml` entry parses, names a real policy ID, and carries
   `why:` + measurement evidence (canon M-WAIV)
+- `waiver_provenance.py <repo>/projects` reports every OWED entry BY NAME, no
+  W-REGEN / W-FLIP / W-ARITH / W-TOL / W-SCHEMA / W-GRADE / W-CMD / W-REFS
+  finding, and no rise in the OWED or machine-waiver ceilings. Every `evidence:`
+  `command:` must be re-runnable BY A FRESH SHELL FROM THE REPO ROOT — a command
+  that only works in the author's terminal is not a citation
 - if `nets.yaml` declares `length_match:`: `copper_length_audit.py <project>
   --strict` exits 0, every member net RESOLVES (E-NETREF K12), and the coverage
   line's `N/M` group and member denominators are non-zero. On an UNROUTED board
