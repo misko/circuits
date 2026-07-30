@@ -274,3 +274,51 @@ precedent and SH-3 is not); the 2.126 mm ISO moat re-derivation (both top
 candidates SHRINK the column so it should only get easier, but ADR-0018 records
 the moat is 2-D and it was not re-solved). Every stock figure is LCSC catalog
 `stockCount`, not JLC assembly-warehouse allocation.
+
+---
+
+# UPDATE 2026-07-29 (later) — THE CONNECTOR SPIKE IS NO LONGER AN ACTION, AND THE
+# `J_ISOLOOP` BLOCKER MAY CLOSE FOR FREE. Read this before acting on anything above.
+
+**USER DECISION, 2026-07-29: neither `J_DOOR` nor `J_ESTOP` is installed in this
+build** (no access to those signals). Worked in **ADR-0025** (`proposed`, awaiting
+a user decision); ADR-0024 carries an addendum. What that does to THIS file:
+
+1. **DO NOT pursue the keyed-connector change.** The ZH-3 (`C72591`, 38 697) /
+   SH-3 (`C160403`, 52 328) sourcing table and the GH-3 fail-permissive
+   disqualification above are all still CORRECT and are retained as a measured
+   spike — but the transposition hazard they were sized to fix is **closed by
+   scope**: with no housings fitted there is nothing to cross-mate. Spending a
+   part change on it now would be paying for a hazard that no longer exists.
+2. **`J_ESTOP`/`J_DOOR` are 2 of the 3 mis-owned designators, and they leave with
+   the parts** if the footprints are removed (ADR-0025 option O5).
+3. **THE ONE THAT MATTERS: removing `J_DOOR` makes `J_ISOLOOP`'s designator
+   OWNABLE.** The four-direction table above proves the only candidate pocket is
+   `x[191.555, 193.755] y[82.795, 87.155]` and that `J_DOOR` wins it. Re-measured
+   at that pocket's centre (192.655, 84.975), nearest `J*`/`F*`/`TP*` courtyard:
+
+   | present | nearest | 2nd | margin |
+   |---|---|---|---|
+   | all (today) | `J_DOOR` **1.100 mm** | `J_ISOLOOP` 2.680 mm | J_ISOLOOP loses |
+   | `J_DOOR` gone | `J_ISOLOOP` **2.680 mm** | `J_ESTOP` 8.769 mm | **+6.089 mm** |
+   | both gone | `J_ISOLOOP` **2.680 mm** | `J_RH_EXHAUST` 8.870 mm | **+6.190 mm** |
+
+   `MIN_OWNERSHIP_MARGIN_MM` is 1.5, so this clears it 4×. The 30 V NOT-SELV
+   render-lens P0 — declared above to be unfixable by any silk-only pass, which
+   was true — closes as a SIDE EFFECT of the scope reduction. `OWNERSHIP_FIX` in
+   `fix_silk_placement.py` still names only `("J_DOOR","J_ESTOP","J_MODE")`, so
+   **`J_ISOLOOP` must be ADDED to it** or nothing will try.
+4. **CORRECTION to section 1 of the previous update: the "4.1 x 6.1 mm empty"
+   pocket was worse than "R_DOORPD's designator slot".** Measured on the sealed
+   v1.6 board, it also held **`J_ESTOP`'s designator** (x[187.978, 192.022]
+   y[77.266, 78.494]) **and `J_DOOR`'s** (x[189.149, 192.851] y[75.146, 76.374]).
+   Triple-booked before ADR-0024 added anything. The reusable finding is unchanged
+   and stronger: a floorplan comment that clears a region by checking COURTYARDS
+   has checked the wrong layer.
+5. **CORRECTION, measured: marking parts NOT-ASSEMBLED does not free one micron of
+   silk.** `fix_silk_placement.py` contains no `dnp` / `exclude_from_bom` /
+   population reference at all (grepped). A DNP part still gets a designator
+   placed, so DNP-ing `R_DOORS`/`R_ESTOPS`/`J_DOOR`/`J_ESTOP` leaves the stage-1b
+   `FATAL: no clear silk position for ['R_DOORPD']` exactly where it is. Only
+   REMOVAL from the netlist, or MOVING the parts west toward `U_SCHM` (174, 60),
+   frees the pocket. Do not expect the FATAL to dissolve from a BOM change.

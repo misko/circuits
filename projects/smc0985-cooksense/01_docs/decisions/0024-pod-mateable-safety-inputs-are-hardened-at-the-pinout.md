@@ -289,3 +289,77 @@ schema is one field short of being able to state the truth. Until it exists, the
 arithmetic in this ADR is held by `part_value` on every term of it plus
 `pin_on_net` on the structure — which is strictly more than a comment, and is
 honestly less than the outcome assert ADR-0007 asks for.
+
+---
+
+# ADDENDUM 2026-07-29 — the SCOPE under this ADR shrank. What survives, and what
+# is now MOOT. (Append-only: nothing above is edited. See ADR-0025.)
+
+**USER DECISION, 2026-07-29: neither `J_DOOR` nor `J_ESTOP` is installed in this
+build.** No access to those signals. Two of the four cross-mateable `C189896`
+housings therefore leave the assembly, and this ADR's premise — a pod harness
+being cross-plugged into a door or E-stop connector — has no housing to happen
+in. The consequence is worked in **ADR-0025**, which is `proposed` and awaiting a
+user decision; this addendum records only what happens to THIS ADR's claims. A
+superseded reason is evidence, so nothing here is deleted.
+
+## STILL TRUE, and load-bearing
+
+- **Decision A (`J_DOOR.4` = GND) stands on its own merits.** It removed a real
+  path AND removed the "pins 2 and 4 are one net" obstruction that made door EOL
+  supervision unimplementable (v1.7 topology P1). Neither depends on cross-plug.
+- **`R_DOORPD` / `R_ESTOPPD` = 470 Ω stands, and is now load-bearing for a
+  DIFFERENT reason than it was chosen for.** With the connector body absent it is
+  the ONLY thing holding the node: measured in ADR-0025,
+  `V ≤ (1 µA × 470 Ω) + (1 µA × 680 Ω) = 1.15 mV` against V_T−(min) 0.500 V. A
+  floating HC14 input would be indeterminate and self-oscillating. **These two
+  resistors must survive every option in ADR-0025.**
+- **The corrected worst-case bound `R_pd ≤ 559.3 Ω` stands** (and the 592 Ω
+  nominal-corner figure remains withdrawn, with the reason: **560 Ω, the only
+  standard value under 592 Ω, gives 0.7007 V and FAILS by 0.7 mV**). 470 Ω is
+  unaffected at +91.7 mV. This correction must survive with the ADR because it
+  governs any FUTURE fitted harness, and because the error it records — a bound
+  quoted at a corner the decision does not use — is the failure this ADR is named
+  after.
+- **The pull-DOWN polarity derivation stands.** It is about what a zero-ohm sink
+  can reach, and applies to any harness ever fitted here.
+- **The `MODE_RAW` exclusion and its named residual stand.** `J_MODE` IS
+  installed; ADR-0018's mechanical key and the "no ESD device on `MODE_RAW`" owed
+  item are unaffected by this scope change.
+
+## NOW MOOT — not wrong, unreachable
+
+- **The 12-ordered-pair cross-plug enumeration collapses to 2** (the two pod
+  housings against each other). Every row of the matrix that names `J_DOOR` or
+  `J_ESTOP` is unreachable, including the door/E-stop-harness-into-`J_RH_*` rows,
+  because those harnesses do not exist in this build.
+- **"What this does NOT do" #1 — the `J_DOOR` ↔ `J_ESTOP` transposition — is
+  CLOSED BY SCOPE.** With no housings fitted there is nothing to swap. The
+  mechanical key it called for (ADR-0018 decision C applied again) is **NOT to be
+  pursued**, and neither is the ZH-3 (`C72591`) / SH-3 (`C160403`) sourcing spike
+  recorded in `01_docs/learnings/label_ownership_se_corner.md` — that data is
+  retained as a measured spike, not as an open action.
+- **"What this does NOT do" #2 and #3** (a hard 3V3 short reads the door closed;
+  the door is unsupervised) are unreachable for the same reason.
+- **Decision B's `R_DOORS` / `R_ESTOPS` = 680 Ω lose both of their stated jobs**
+  — keeping the field pin off the logic pin, and limiting current into the HC14
+  input clamp after `D_DOOR` clamps — because both are about a field harness. So
+  are `D_DOOR` / `D_ESTOP`. They are removable under ADR-0025's O4+O5 and must be
+  KEPT under O2. **Warning, measured: marking them not-assembled does NOT free
+  their silk slot** — `fix_silk_placement.py` has no population awareness — so
+  DNP does not fix the stage-1b `FATAL: no clear silk position for ['R_DOORPD']`.
+  See ADR-0025 "Correction 1".
+- **The owed `node_level: injected` skill patch is no longer needed FOR THIS
+  BOARD**, since there is no injection path. It remains owed as a general
+  checker-schema gap and is reported, not withdrawn.
+
+## And one thing this ADR got blamed for that it did not cause alone
+
+The stage-1b silk FATAL was traced to this ADR putting `R_DOORS`/`R_ESTOPS` into
+the floorplan pocket `x[189.6, 193.7] y[73.2, 79.3]` that `floorplan.yaml:365`
+calls *"4.1 x 6.1mm and holding nothing"*. Re-measured on the sealed v1.6 board:
+that pocket already contained **`J_ESTOP`'s designator** (x[187.978, 192.022]
+y[77.266, 78.494]) **and `J_DOOR`'s** (x[189.149, 192.851] y[75.146, 76.374]),
+before this ADR added anything. The pocket was never empty; the comment measured
+courtyards and the occupancy was on silk. ADR-0024 landed two 0402s in a slot
+that was already triple-booked.
