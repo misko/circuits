@@ -362,8 +362,32 @@ part nothing else could:
 
 - BOM part with no `02_parts/` entry → fetch, extract, commit. Do not order
   until it exists.
-- `02_parts/` entry not in the BOM → the part was swapped; delete the directory
-  (git history keeps it) and note the swap in `01_docs/CHANGELOG.md`.
+- `02_parts/` entry not in the BOM → the part was swapped. **DO NOT reflexively
+  delete the directory, and note that the parenthetical this bullet USED to
+  carry — "git history keeps it" — is the exact wrong reassurance: git keeps the
+  BYTES, but every gate reads the WORKING TREE.** `02_parts/` is the MPN
+  authority for EVERY sealed release, not just the current board, so removing a
+  dossier — or moving its `sourcing.lcsc`/`mpn:` — can break an immutable
+  archive that may never be edited (canon **M-DEPEND**).
+  It is NOT append-only: a board that legitimately drops a part must be able to
+  drop its dossier. What is REQUIRED is that the code every sealed
+  `fab/bom.csv` cites still resolves afterwards. Three legitimate outcomes:
+  keep the dossier; keep the retired code resolvable as a **mapping-form**
+  `alternates:` entry (`- {lcsc: C506653, mpn: MCP23017-E/SS}` — the BARE form
+  declares no part number and resolves nothing, see the `sourcing:` note above);
+  or move the code->MPN fact to
+  `skills/jlcpcb-fab/references/lcsc_passives_ledger.yaml`, the live
+  hand-verified home for a code no board vendors any more. Then note the swap in
+  `01_docs/CHANGELOG.md`.
+  Gated by `sealed_dependency_check.py PROJECT_DIR` and `policy_audit`'s
+  M-DEPEND row — which exist because this bullet, as written, CAUSED the
+  incident: cooksense's v1.7 work followed it, removed `02_parts/ULN2803ADWR/`,
+  and the sealed byte-unchanged `cooksense-v1.6-2026-07-27` flipped F-MPN
+  PASS->FAIL on row 56, then flipped BACK when the dossier was restored — twice
+  in opposite directions in one session, with nothing recording that it had been
+  red. Measured fleet-wide 2026-07-29: **539 rows across 25 of 33 sealed
+  releases resolve ONLY because a dossier is still in the tree**, and the 8
+  releases carrying their own map contribute zero of them.
 - sha256 mismatch → the PDF was replaced with a different revision. STOP: the
   extracted facts may be wrong. Re-verify `pins:` before trusting anything.
 
