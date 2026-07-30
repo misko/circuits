@@ -440,6 +440,43 @@ prep:
       - {x0: 146.66, y0: 54.95, x1: 147.76, y1: 56.05, layer: User.2} # R_OS2.2  3V3@147.210,55.50 (OS2_RC signal pad1@146.190 W, east edge 146.46 -> 0.30mm clear)
       - {x0: 59.77, y0: 80.35, x1: 61.855, y1: 81.605, layer: User.2} # C_TCDV   3V3@60.320 + GND@61.280 (both plane; whole cap; 1.14mm channel kept open to C_TCAV's rect at x62.87)
       - {x0: 145.47, y0: 81.405, x1: 147.535, y1: 82.55, layer: User.2} # C_EXP    3V3@146.020 + GND@146.980 (both plane; whole cap)
+      # ===== SEVENTH WAVE — the v18g (ADR-0025) race's four trapped pads ======
+      # The v18g chain (c0/r9, PROMOTED to route/final_chain.kicad_pcb in the same
+      # change — 933d7e5) reached 0 violations / 0 schematic parity with FOUR
+      # unconnected items, and the class is the one this file has fixed twenty-odd
+      # times. What is new is that one of the four is a ZONE-TO-ZONE item, so the
+      # four were CLASSIFIED rather than assumed to be one shape (canon: classify,
+      # never count). Union-find over every piece of FILLED GND/3V3 copper — pads,
+      # tracks, vias and each zone island, joined by exact-shape collision, layers
+      # bridged only by through-items — returns EXACTLY four defects and they map
+      # one-for-one onto the four DRC items:
+      #   GND  626 copper items -> 4 clusters:
+      #     {R_ESTOPOKPD.2 + the F.Cu island x[169.260,169.760] y[59.700,60.400],
+      #      0.327 mm2}   <- THIS is DRC's "Zone GND F.Cu <-> Zone GND In1.Cu".
+      #                      DRC names both endpoints at the zone ORIGIN (12,53),
+      #                      which is why the item looked pad-less: the island is
+      #                      R_ESTOPOKPD's own thermal pocket, and bonding the PAD
+      #                      bonds the island through it. One via, two symptoms.
+      #     {C_LATCHB.2}   singleton
+      #     {U_CAND2.2}    singleton
+      #   3V3  168 copper items -> 2 clusters: {TP_3V3.1} singleton.
+      # R_ESTOPOKPD is NEW in ADR-0025 (the ESTOP_OK pull-down that makes the AND
+      # chain restrictive-by-default), so its pad had never been reserved.
+      # SITES: measured on the post-stitch v18g board by
+      # 03_src/cooksense/scan_bond_sites.py (this board's own max-growth scanner,
+      # promoted out of scratch per canon M8) — pcb_toolkit.via_site_ok at exactly
+      # seed_stubs' parameters, via 0.25/0.15, clearance 0.13, and scored by
+      # GROWTH, not proximity. Boxes are the TIGHT +-0.275 mm via-site kind, NOT
+      # the +-0.55: measured at +-0.55 the R_ESTOPOKPD box would have fenced 15
+      # foreign items (PRESS_TIMED, 5V_STOP, ESTOP_RAW and its via) out of the
+      # densest corner of the AND-chain field, which is the exact trade the
+      # "1.3 mm-tall boxes cut the analog channels and stranded TH_CAM_A/B" note
+      # above was written about. At +-0.275 all four boxes hold ZERO foreign
+      # centrelines on this chain.
+      - {x0: 169.365, y0: 59.725, x1: 169.915, y1: 60.275, layer: User.2} # R_ESTOPOKPD.2 GND@169.510,60.000 -> via 169.640,60.000
+      - {x0: 183.545, y0: 75.915, x1: 184.095, y1: 76.465, layer: User.2} # C_LATCHB.2    GND@183.680,76.200 -> via 183.820,76.190
+      - {x0: 185.975, y0: 80.925, x1: 186.525, y1: 81.475, layer: User.2} # U_CAND2.2     GND@185.7625,81.200 -> via 186.250,81.200
+      - {x0: 111.775, y0: 69.925, x1: 112.325, y1: 70.475, layer: User.2} # TP_3V3.1      3V3@111.500,70.000 -> via 112.050,70.200
   waves:
     exclude: ["GND", "3V3", "unconnected-*"]   # In1 GND plane + In2 3V3 plane own these
     groups:
@@ -1044,6 +1081,41 @@ stitch:
       # inside each 3.43mm-wide tab, >0.65mm hole gap.
       - {net: GND, vias: [[16.610, 59.720], [17.460, 59.720]]}
       - {net: GND, vias: [[27.390, 59.720], [28.240, 59.720]]}
+      # ===== EIGHTH WAVE (v1.7 seal run, 2026-07-29) — the v18g / ADR-0025 four ===
+      # One bond per pad, one pad per CLUSTER — see the seventh-wave reservation
+      # block above for the union-find classification. The rule this file learned
+      # the hard way applies here too ("One via per FENCED PAD, not one per pair"):
+      # four defects, four bonds, and the zone-to-zone item is bonded through
+      # R_ESTOPOKPD.2's pad because the orphan island IS that pad's thermal pocket.
+      #
+      # SITES: max-GROWTH, measured on the post-stitch v18g board with
+      # 03_src/cooksense/scan_bond_sites.py (pcb_toolkit.via_site_ok, via
+      # 0.25/0.15, clearance 0.13 — seed_stubs' own parameters, so a site it
+      # accepts is a site seed_stubs does not refuse; the GATE is kicad-cli DRC,
+      # which shares no method with either).
+      #
+      # AND A CONSTRAINT THE PRECEDENTS ABOVE DO NOT CARRY, stated because it
+      # COSTS growth and was taken anyway: every site here is BARREL-INSIDE — the
+      # whole 0.25 mm annulus lies within the pad's own copper, checked on 8 rays.
+      # `pad.HitTest(centre)`, which is what the earlier waves used, only proves
+      # the CENTRE is on copper, and the unconstrained max-growth winners here sat
+      # with 0.025-0.065 mm of barrel hanging off a 0402's east edge (and
+      # U_CAND2.2's winner 0.538 mm out on a 0.6625 mm half-pad, i.e. flush with
+      # the tip). Growth paid for it, honestly reported:
+      #     pad             unconstrained            BARREL-INSIDE (taken)
+      #     R_ESTOPOKPD.2   0.20 @169.720,60.060  ->  0.05 @169.640,60.000
+      #     C_LATCHB.2      0.15 @183.860,76.190  ->  0.05 @183.820,76.190
+      #     U_CAND2.2       0.40 @186.300,81.200  ->  0.30 @186.250,81.200
+      #     TP_3V3.1        1.10 @112.200,70.150  ->  1.00 @112.050,70.200
+      # The two 0402 sites at growth 0.05 are thin — thicker than the 0.04 that
+      # U_SCHM.14 has shipped since v1.2, and the reason to accept thin HERE is
+      # that the chain is FROZEN in the same commit: growth exists to survive a
+      # re-route, and with --reuse-route there is no re-route to survive. The
+      # +-0.275 rects above are what protects them if that ever stops being true.
+      - {net: GND, pin: R_ESTOPOKPD.2, vias: [[169.640, 60.000]]}   # 266 barrel-inside points, 19 legal, growth 0.05, 0.130 off centre (ON the pad's y centreline). Also bonds the 0.327 mm2 F.Cu island that is DRC's zone-to-zone item.
+      - {net: GND, pin: C_LATCHB.2,    vias: [[183.820, 76.190]]}   # 270 barrel-inside, 18 legal, growth 0.05, 0.140 off centre. Pairs with C_LATCHB.1's 3V3 bond above — this cap now has BOTH plane pads deterministic.
+      - {net: GND, pin: U_CAND2.2,     vias: [[186.250, 81.200]]}   # 147 barrel-inside, 28 legal, growth 0.30, 0.488 off centre, ON the SOT-23 pad's own y centreline (pad 1.325x0.600)
+      - {net: 3V3, pin: TP_3V3.1,      vias: [[112.050, 70.200]]}   # 489 barrel-inside, 218 legal, growth 1.00 — the most slack of any bond on this board; a 1.5mm TestPoint pad has room the 0402s do not
       # v1.2 RE-RACE (2026-07-24): three v1.1 realization-coupled 3V3 stubs were
       # retired for the fresh race, each marked "re-derive on any re-race". OUTCOME:
       # C_DECU.1 + C_OENAND.1 both stranded again on the re-race -> re-derived at
