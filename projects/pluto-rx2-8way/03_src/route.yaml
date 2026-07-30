@@ -116,7 +116,34 @@ prep:
     # through the 225-315 degree escape sector on L3 and must never run
     # parallel to an RF arm (nets.yaml CTRL/QSPI `routing:`).
     layers: [User.2, User.3]
-    mounting_holes: {radius: 3.0}       # M3 head + margin, four at the corners
+    # `refdes_prefix: H` ADDED 2026-07-30, AND IT IS THE WHOLE OF A 10-NET BUG.
+    # `mounting_holes` has NO refdes filter by default, so prep stamped a
+    # 2r x 2r rect around EVERY NPTH PAD ON THE BOARD — and J_USB is a
+    # through-hole-anchored USB-C receptacle whose vendor land carries two
+    # 0.650 mm ALIGNMENT PEGS at (43.110, 86.210) and (48.890, 86.210). They
+    # are NPTH, so they were read as mounting holes and fenced at the M3
+    # radius. MEASURED: the two 6.0 x 6.0 mm rects union to
+    # x 40.110..51.890 / y 83.210..89.210 and cover ALL 16 J_USB SMD pads at
+    # y 85.140 — USB_DM, USB_DP, VBUS, USB_CC1 and USB_CC2, 10 of the 28
+    # unconnected. The over-reach is 3.0 - 0.5 = 2.5 mm: the nearest J_USB
+    # copper edge is 0.5000 mm from a peg centre.
+    # The four real M3 holes are H1..H4 and keep the 3.0 mm fence unchanged
+    # (each has exactly one NPTH pad, so the prefix branch still stamps on the
+    # PAD, not the footprint origin).
+    mounting_holes: {radius: 3.0, refdes_prefix: H}   # M3 head + margin, H1-H4
+    # ...and the pegs still need a fence, just a HONEST one: KRT knows only the
+    # copper clearance, not DRC's hole_clearance, so an unfenced barrel gets
+    # grazed. r = drill/2 + margin = 0.325 + 0.15 = 0.475 mm.
+    # 0.15 IS NOT A GUESS AND NOT THE 0.25 THIS FIX WAS FIRST WRITTEN WITH.
+    # It is floorplan.yaml's own `hole_clearance: 0.15` (line 614) — the very
+    # DRC number the fence exists to satisfy. MEASURED against the pads:
+    # the closest J_USB pad edge sits 0.5000 mm from a peg centre, so
+    #     margin 0.25 -> r 0.575 -> COVERS 8 PADS (A1 GND, A4/A9 VBUS, ...)
+    #     margin 0.20 -> r 0.525 -> COVERS 8 PADS
+    #     margin 0.15 -> r 0.475 -> 0 pads covered, 0.025 mm of slack
+    # i.e. the originally-named 0.25 would have RE-CREATED THIS EXACT BUG at
+    # one fifth the scale, and it would have been much harder to see.
+    npth_pads: {margin: 0.15}
     edge_band: 0.7                      # KRT has no edge concept; dru floor 0.3
     rects:
       # THE RECEIVE FAN IS KEEPOUT FOR THE DIGITAL WAVES. The star centre is
