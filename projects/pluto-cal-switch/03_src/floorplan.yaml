@@ -631,6 +631,33 @@ keepouts:
   # RULE AREA that denies nothing; A-PLANE guards In1.Cu, which is untouched.
   - {rect: [104.80, 33.00, 115.20, 43.00], layers: [F.Cu, In2.Cu],
      name: taper_u_mcu, deny: []}
+  # THREE TAP RULE AREAS ADDED 2026-07-30, ONE PER MEASURED track_width CLASS.
+  # These license the widths `route.yaml taps:` DECLARES, and they exist because
+  # a tap width is authored in route.yaml while the DRC floor is authored in
+  # nets.yaml — nothing joined the two, so eight declared taps were graded
+  # against netclass trunk floors they were never meant to meet. Each rect is the
+  # measured bounding box of the copper it licenses plus margin, NOT a widened
+  # existing area: enlarging taper_u_sw1/taper_u_mcu instead would have relaxed
+  # RX_PLUTOn and the whole 3V3 net over ground they do not need.
+  #
+  # THE TWO BGS12WN6 VDD TAPS. U_SWn.4 -> C_SWnA.1, measured at
+  # (52.350,48.150)->(49.920,48.150)->(49.920,49.900) and its +14.5 mm twin.
+  # 0.25 mm against PWR's 0.400: the pin draws 125 uA max (BGS12WN6 Table 2),
+  # four orders under anything ampacity could ask for, and PWR's 0.4 is an
+  # IR-drop choice against a 0.10 A trunk envelope this branch is not on.
+  - {rect: [49.70, 47.95, 52.60, 50.10], layers: [F.Cu], name: tap_3v3_sw1, deny: []}
+  - {rect: [49.70, 62.45, 52.60, 64.60], layers: [F.Cu], name: tap_3v3_sw2, deny: []}
+  # THE USB PAIR'S DIE END, INCLUDING ITS B.Cu HOP — which is why this is a
+  # separate area and not a taller taper_u_mcu: the hop leaves F.Cu entirely
+  # (measured B.Cu runs (110.800,31.600)->(112.000,29.590) and
+  # (111.400,34.562)->(113.600,29.590)), and taper_u_mcu is F.Cu/In2.Cu. It also
+  # runs to y 29.59, north of taper_u_mcu's y0 33.00. Bounding box of the four
+  # measured segments + margin. The 0.33 mm class width is not required here at
+  # all: this board's own USB_DP intent block records that full speed needs no
+  # controlled pair over a 5.1 mm stub (critical length ~170 mm at a 4 ns edge)
+  # and that 0.33 was taken only because the stackup gave it free.
+  - {rect: [110.50, 29.30, 113.90, 34.80], layers: [F.Cu, B.Cu],
+     name: tap_usb_die, deny: []}
 
 silk:
   min_text_height: 0.6

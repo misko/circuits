@@ -448,6 +448,58 @@ scoped_floors:
       impedance over a run this short and that 0.33 mm was taken because the
       stackup gave it for free; a 0.25 mm neck at the die end is free too.
 
+  - zone: tap_3v3_sw1
+    nets: [3V3_SW]
+    min_width: 0.25
+    why: >
+      LICENSES A WIDTH route.yaml ALREADY DECLARES. `taps:` routes
+      U_SW1.4 -> C_SW1A.1 at 0.25 mm and nothing joined that declaration to this
+      file, so DRC graded it against PWR's 0.400 mm trunk floor: measured
+      2026-07-30 as 4 of the 8 track_width findings (two segments per channel,
+      1.75 mm and 2.43 mm). BGS12WN6 pin 4 is VDD and draws 125 uA MAXIMUM
+      (Table 2) — four orders of magnitude under anything ampacity could ask
+      for — and PWR's 0.4 mm is an IR-drop choice against the board's 0.10 A
+      trunk envelope, which this branch is not on (nets.yaml PWR block says so).
+      0.25 mm on 1 oz copper carries over 1 A at a 10 degC rise. Scoped to the
+      measured bounding box of that tap, not to the switch land field: the
+      neighbouring taper_u_sw1 relaxes RX_PLUTO1/RF_CTRL_SW1 to 0.15 and must
+      not grow to cover a power branch.
+  - zone: tap_3v3_sw2
+    nets: [3V3_SW]
+    min_width: 0.25
+    why: >
+      The arm-2 twin, and the same 0.25 mm for the same reason. U_SW2 is U_SW1
+      translated by exactly +14.500 mm at identical rotation, so the two taps are
+      congruent and this is common-mode between the receive channels rather than
+      a new per-channel asymmetry. Stated separately rather than by widening one
+      rect across both switches, which would license the 4.5 mm of board between
+      them for no reason.
+  - zone: tap_usb_die
+    nets: [USB_DP_MCU, USB_DM_MCU]
+    min_width: 0.20
+    why: >
+      0.20 AND NOT 0.25, AND THE 0.05 IS MEASURED RATHER THAN CHOSEN: the tap is
+      DECLARED at 0.25 in route.yaml and two of its F.Cu segments come out at
+      0.200 mm, because U_MCU.47 is itself a 0.200 mm land and the threader
+      leaves the pad at the pad's own width. `stitch.width_floor` would lift them
+      to 0.25 but its region stops at y0 = 33.00 and this copper runs to y 31.60.
+      Extending that region was REJECTED as the fix: it also lifts every 3V3 and
+      VREG_VOUT track in the flash/decoupling field to 0.25, which is a widening
+      into the most congested area on the board to satisfy a cosmetic number.
+      0.200 mm on 1 oz carries ~0.8 A at a 10 degC rise against a USB full-speed
+      signal, so the neck costs nothing real.
+      THE USB PAIR'S DIE-END TAPS, INCLUDING THE B.Cu HOP — 3 of the 8
+      track_width findings, measured 2026-07-30. taper_u_mcu could not cover
+      them for TWO independent reasons, which is why this is its own area and not
+      a bigger one: the hop leaves F.Cu entirely (B.Cu runs measured at
+      (110.800,31.600)->(112.000,29.590) and (111.400,34.562)->(113.600,29.590))
+      and taper_u_mcu is F.Cu/In2.Cu only; and it reaches y 29.59, north of
+      taper_u_mcu's y0 = 33.00. The 0.330 mm USB_DP class width is not required
+      on this run at all: this file's own USB_DP intent block records that full
+      speed needs no controlled pair over a stub this short (critical length
+      ~170 mm at a 4 ns edge against a 5.1 mm run) and that 0.33 mm was taken
+      only because the stackup gave it for free. The LONG run — J_USB -> USBLC6
+      -> the 27 ohm terminators — is untouched and still F.Cu-only at 0.33.
 # ===========================================================================
 # length_match — canon R-LEN. THE ONLY PLACE THIS BOARD'S RELEASE ARTIFACT IS
 # GRADED ON COPPER.

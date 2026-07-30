@@ -26,6 +26,15 @@
 (rule "scoped_taper_u_mcu"
   (condition "A.insideArea('taper_u_mcu') && (A.NetName == '3V3' || A.NetName == 'VREG_VOUT' || A.NetName == 'USB_DP_MCU' || A.NetName == 'USB_DM_MCU')")
   (constraint track_width (min 0.25mm)))
+(rule "scoped_tap_3v3_sw1"
+  (condition "A.insideArea('tap_3v3_sw1') && (A.NetName == '3V3_SW')")
+  (constraint track_width (min 0.25mm)))
+(rule "scoped_tap_3v3_sw2"
+  (condition "A.insideArea('tap_3v3_sw2') && (A.NetName == '3V3_SW')")
+  (constraint track_width (min 0.25mm)))
+(rule "scoped_tap_usb_die"
+  (condition "A.insideArea('tap_usb_die') && (A.NetName == 'USB_DP_MCU' || A.NetName == 'USB_DM_MCU')")
+  (constraint track_width (min 0.2mm)))
 (rule pad_rescue_stubs
   (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND')")
   (constraint track_width (min 0.300mm)))
