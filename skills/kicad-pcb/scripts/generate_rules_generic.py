@@ -306,20 +306,104 @@ def main(argv=None):
             f'(rule "{rname}"\n'
             f'  (condition "{cond}")\n'
             f'  (constraint track_width (min {sw}mm)))')
-    dru_rules += scoped_rules
+    # SCOPED CLEARANCES (2026-07-30, pluto-rx2-8way). The width relaxation
+    # above has a CLEARANCE twin and the emitter could not say it, so a routed,
+    # promoted board sat on 49 DRC findings that are ONE missing capability:
+    #   scoped_clearances:
+    #     - {zone: rf_launch, nets: [ANT1, ...], clearance: 0.14,
+    #        why: "<measurement>"}
+    # MEASURED REQUIREMENT: a 0.36mm RF arm cannot leave the PE42482A-X land at
+    # that board's 0.2mm clearance — a 20-point width x clearance sweep on r0
+    # routes 11/11 at 0.145 and 6/11 at 0.15. The board declares 0.2 UP from
+    # its 0.09 tier floor ON PURPOSE (on it clearance is ISOLATION, not a
+    # routability tax), so lowering the board-wide floor is the wrong answer
+    # and a LAUNCH-LOCAL relaxation is the right one. pluto-cal-switch had
+    # already done the width half of this by hand with three permissive rule
+    # areas (canon M8 two-strike shape).
+    #
+    # A SEPARATE LIST, NOT A FIELD ON scoped_floors, and that is a judgement:
+    # the two validate against DIFFERENT tier floors (min_track vs min_space),
+    # emit different constraints, and mean different things — width is bounded
+    # below by ampacity, which A-AMP grades from `current:` independently, while
+    # an isolation relaxation has NO downstream grader at all. Merging them
+    # would make every required key conditional ("min_width required unless
+    # clearance is present"), which is how a required key stops being required.
+    #
+    # BOUNDED ON BOTH SIDES. Clearance is a property of a PAIR, so the
+    # condition requires A **and** B insideArea: a one-sided condition would
+    # license a pair whose second item is anywhere on the board. The net clause
+    # is symmetric (A.NetName or B.NetName) because the relaxed net can be
+    # either member of the pair — the pluto case is an RF arm against an SMA
+    # PTH ground post, and which of the two KiCad calls `A` is not ours to
+    # assume. CAVEAT worth knowing before drawing the area: KiCad's insideArea
+    # is true for an item that OVERLAPS the area, not only one contained by it,
+    # so the bound is on the ITEMS and not on their point of closest approach.
+    # Draw the region tightly.
+    #
+    # `nets` is REQUIRED here though it is optional for scoped_floors: "every
+    # pair inside this box" is not an isolation argument. `why` is REQUIRED for
+    # a STRONGER reason than the width case (canon M4) — nothing downstream
+    # re-derives an isolation gap, DRC simply stops reporting what the rule
+    # permits, so an unexplained one is silent by construction.
+    clr_rules, clr_names = [], set()
+    for i, sc in enumerate(nets.get("scoped_clearances") or []):
+        sc = sc or {}
+        zone = sc.get("zone")
+        if not zone:
+            sys.exit(f"generate_rules_generic: scoped_clearances[{i}] has no "
+                     f"`zone` — an unbounded clearance relaxation is a "
+                     f"BOARD-WIDE one; name the rule area it is local to")
+        scv = mm(sc.get("clearance"))
+        if scv is None:
+            sys.exit(f"generate_rules_generic: scoped_clearances[{i}] "
+                     f"(zone {zone}) has no `clearance`")
+        cnets = sc.get("nets") or []
+        if not cnets:
+            sys.exit(f"generate_rules_generic: scoped_clearances[{i}] "
+                     f"(zone {zone}) has no `nets` — clearance is a property "
+                     f"of a PAIR, and 'every pair inside this area' is not an "
+                     f"isolation argument. Name the nets whose isolation is "
+                     f"being reduced (`nets` is optional for scoped_floors "
+                     f"because a width floor has no counterparty)")
+        if not str(sc.get("why") or "").strip():
+            sys.exit(f"generate_rules_generic: scoped_clearances[{i}] "
+                     f"(zone {zone}) has no `why` — a clearance relaxation is "
+                     f"a waived ISOLATION rule and needs EVIDENCE, not intent "
+                     f"(canon M4). Unlike a width relaxation it has NO "
+                     f"downstream grader: DRC simply stops reporting what this "
+                     f"rule permits")
+        if tier is not None and scv < float(tier["min_space"]):
+            sys.exit(f"generate_rules_generic: scoped_clearances[{i}] "
+                     f"(zone {zone}) clearance {scv}mm is below fab tier "
+                     f"'{tier['name']}' min_space {tier['min_space']}mm — a "
+                     f"scope relaxes a NETCLASS floor, never the FAB's")
+        rname = f"scoped_clr_{zone}"
+        while rname in clr_names:
+            rname += "_"
+        clr_names.add(rname)
+        clause = " || ".join(f"A.NetName == '{n}' || B.NetName == '{n}'"
+                             for n in cnets)
+        cond = (f"A.insideArea('{zone}') && B.insideArea('{zone}') "
+                f"&& ({clause})")
+        clr_rules.append(
+            f'(rule "{rname}"\n'
+            f'  (condition "{cond}")\n'
+            f'  (constraint clearance (min {scv}mm)))')
+    dru_rules += scoped_rules + clr_rules
 
     # PRESERVE foreign rules (e.g. stitch's pad_rescue_stubs sub-floor) so this
     # wholesale rewrite does not clobber them — emit them LAST for precedence.
     generated_names = ({f"{name}_width" for name in classes}
                        | {f"{name}_diffpair" for name in classes}
-                       | scoped_names)
+                       | scoped_names | clr_names)
     foreign = foreign_dru_rules(dru, generated_names)
 
     pro.write_text(json.dumps(proj, indent=2) + "\n")
     dru.write_text("\n".join(dru_rules + foreign) + "\n")
     print(f"generate_rules_generic: {len(out_classes)-1} netclasses + "
-          f"{len(patterns)} patterns -> {pro.name}; {len(dru_rules)-1} width "
-          f"rules"
+          f"{len(patterns)} patterns -> {pro.name}; "
+          f"{len(dru_rules)-1-len(clr_rules)} width rules"
+          + (f" + {len(clr_rules)} scoped clearance rules" if clr_rules else "")
           + (f" + {len(foreign)} preserved foreign rules" if foreign else "")
           + f" -> {dru.name}")
 

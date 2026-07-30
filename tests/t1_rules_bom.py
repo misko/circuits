@@ -278,6 +278,111 @@ def t_kb_scoped_floor_below_tier():
     must_fail(r, "scoped floor below the fab floor", "jlc_2layer_default")
 
 
+# --------------------------------------------------- scoped CLEARANCES
+# pluto-rx2-8way, 2026-07-30: routed, promoted, 88/28/0 — and 49 of the 88 are
+# ONE missing capability. A 0.36mm RF arm cannot leave the PE42482A-X land at
+# the board's 0.2mm clearance (MEASURED on a 20-point width x clearance sweep:
+# 0.145 routes 11/11, 0.15 routes 6/11), so the wave routes at 0.14 and the
+# copper lands 0.166..0.194mm from GND. The board declares 0.2 UP from the
+# 0.09 tier floor deliberately — on it clearance is ISOLATION — so the answer
+# is a LAUNCH-LOCAL scoped clearance, the exact parallel of scoped_floors'
+# width relaxation, which the emitter could not say.
+SC = {"zone": "rf_launch", "nets": ["5V"], "clearance": "0.14mm",
+      "why": "measured 2026-07-30 (20-point sweep on r0): a 0.36mm arm cannot "
+             "leave the PE42482A-X land at 0.2mm — 0.145 routes 11/11, 0.15 "
+             "routes 6/11; the wave routes at 0.14 so the DRC floor must not "
+             "sit above the router's own budget"}
+
+
+@test("scoped_clearances emits a BOUNDED last-match clearance relaxation "
+      "(both items inside the area, one side on a named net), idempotent "
+      "across the rules-LAST rerun")
+def t_scoped_clearances_emitted():
+    """RED-VERIFIED against the pre-fix emitter, measured 2026-07-30: the key
+    is IGNORED — generate_rules_generic exits 0, prints its usual
+    `2 netclasses + 10 patterns -> cook_loadcell.kicad_pro; 2 width rules ->
+    cook_loadcell.kicad_dru` line, and the
+    .kicad_dru contains no `scoped_clr_` rule and no `clearance` constraint at
+    all, because `scoped_floors` was emitted as `track_width` ONLY."""
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_clearances": [dict(SC)]}))
+    must_pass(r, "generate_rules_generic with scoped_clearances")
+    dru_p = proj / "04_kicad" / "cook_loadcell.kicad_dru"
+    txt = dru_p.read_text()
+    contains(txt, "scoped_clr_rf_launch", "the scoped clearance rule")
+    contains(txt, "(constraint clearance (min 0.14mm))",
+             "a CLEARANCE constraint, not a track_width one")
+    # BOUNDED: both items must be in the area, or the relaxation leaks to a
+    # pair whose second item is anywhere on the board
+    contains(txt, "A.insideArea('rf_launch') && B.insideArea('rf_launch')",
+             "both sides bounded to the region")
+    # symmetric net clause: the relaxed net may be either side of the pair
+    contains(txt, "A.NetName == '5V' || B.NetName == '5V'",
+             "the named net on either side of the pair")
+    # last-match precedence, and the netclass width floors are untouched
+    check(txt.index("scoped_clr_rf_launch") > txt.index("PWR_width"),
+          "scoped clearance must be emitted after the netclass rules")
+    contains(txt, "(min 0.4mm)", "netclass width floors are unchanged")
+    must_pass(run([PY, GEN_RULES, proj]), "generate_rules_generic rerun")
+    eq(dru_p.read_text().count("scoped_clr_rf_launch"), 1,
+       "scoped clearance duplicated on rerun")
+
+
+@test("a scoped_clearances entry with no `why` is a generation error — an "
+      "isolation relaxation with no evidence has NO other gate behind it",
+      kind="known_bad")
+def t_kb_scoped_clearance_no_why():
+    """`why` is REQUIRED here for a STRONGER reason than on scoped_floors: a
+    width relaxation is still bounded below by ampacity, which A-AMP grades
+    independently from `current:`, so a bad one has a second reader. A
+    clearance relaxation has NO downstream grader at all — DRC simply stops
+    reporting what the rule permits, and the board that needs one
+    (pluto-rx2-8way) sells ISOLATION between nine arms. Silent is exactly the
+    failure mode. RED-VERIFIED: pre-fix the key is ignored and the emitter
+    exits 0 (measured 2026-07-30)."""
+    bad = {k: v for k, v in SC.items() if k != "why"}
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_clearances": [bad]}))
+    must_fail(r, "scoped clearance without evidence", "why")
+    contains(r.out, "M4", "the error must cite the evidence canon")
+    contains(r.out, "ISOLATION", "and name what is being relaxed")
+
+
+@test("a scoped_clearances entry with no `nets` is a generation error — "
+      "isolation is a property of a PAIR, and 'everything in this box' is "
+      "not an isolation argument", kind="known_bad")
+def t_kb_scoped_clearance_no_nets():
+    """Unlike scoped_floors, where `nets` is optional (a width floor with no
+    net scope still only lowers a width), an unscoped clearance relaxation
+    licenses EVERY pair inside the area — including pairs the author never
+    considered. RED-VERIFIED: pre-fix, exit 0 (2026-07-30)."""
+    bad = {k: v for k, v in SC.items() if k != "nets"}
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_clearances": [bad]}))
+    must_fail(r, "scoped clearance with no net scope", "nets")
+
+
+@test("a scoped_clearances value below the tier's min_space FAILS naming the "
+      "tier — a scope relaxes a NETCLASS floor, never the FAB's",
+      kind="known_bad")
+def t_kb_scoped_clearance_below_tier():
+    """0.1mm at jlc_2layer_default (min_space 0.127): no rule area makes an
+    unetchable gap etchable. RED-VERIFIED: pre-fix, exit 0 (2026-07-30)."""
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_clearances": [dict(SC, clearance="0.1mm")]}))
+    must_fail(r, "scoped clearance below the fab floor", "jlc_2layer_default")
+    contains(r.out, "min_space", "the tier field is named")
+
+
+@test("a scoped_clearances entry with no `zone` is a generation error "
+      "(an unbounded relaxation is a board-wide one)", kind="known_bad")
+def t_kb_scoped_clearance_no_zone():
+    bad = {k: v for k, v in SC.items() if k != "zone"}
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_clearances": [bad]}))
+    must_fail(r, "scoped clearance with no zone", "zone")
+
+
 @test("an EXPLICIT class width below the declared tier's min_track FAILS "
       "naming the tier", kind="known_bad")
 def t_kb_width_below_tier_floor():
