@@ -23,7 +23,23 @@ stock, twin).
     a BOM csv; plain python3, offline, no pcbnew) runs **F-MPN** (every coded
     row carries BOTH MPN and LCSC, resolved from `02_parts/<MPN>/part.yaml`
     then the vetted `references/lcsc_passives_ledger.yaml`, and the two paths
-    must AGREE), **F-WORDS** (the Comment is a human-readable value — never an
+    must AGREE), **F-WORDS**
+    <!-- TARGET SEMANTICS: the target's MUTABILITY changes the verdict, so
+    TARGET is not merely a path. Both authorities above are EXTERNAL to the
+    artifact, so a SEALED release's verdict was a function of the CURRENT
+    `02_parts/` tree — cooksense v1.6 flipped PASS->FAIL and back on unchanged
+    immutable bytes in one session, and 9 of 33 sealed releases failed once both
+    external authorities were neutralised. A release dir is therefore graded
+    with its own `verification/stock_check.csv` as a release-internal
+    code->mpn map, consulted LAST and as an EXISTENCE authority only (JLC's
+    `componentModelEn` is a catalog DESCRIPTION, not the MPN, on 7 of 156 fleet
+    rows). A row no hand-verified authority resolves reports NOT RE-DERIVABLE
+    (CORROBORATED / UNGRADEABLE, with a denominator) on an IMMUTABLE target and
+    a plain FAIL on a MUTABLE one — a project dir or a staging BOM is still
+    live, so nothing there is excused. A blank MPN on a coded row is graded
+    BEFORE resolution and so is an unconditional FAIL on every target:
+    immutability can never excuse it, because no authority is needed to see
+    it. --> (the Comment is a human-readable value — never an
     LCSC code, never a `simple_*` placeholder, never blank) and **F-ENCODE**
     (the file decodes IDENTICALLY under UTF-8 and cp936; a byte-order-mark or
     ASCII `Ohm` both pass — the check is INDIFFERENT to which). `--echo
