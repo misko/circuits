@@ -5,7 +5,19 @@ INTERPOSER (Board C) is deferred (coupon-gated) and has no release yet.
 
 ---
 
-# ⛔ DO-NOT-ORDER — EVERY cooksense RELEASE, v1.0 THROUGH v1.6 (2026-07-28)
+# ⛔ DO-NOT-ORDER — EVERY SEALED cooksense RELEASE THAT EXISTS: v1.0 THROUGH v1.6
+
+**Scope, stated unambiguously because a reader needs to know what is covered:
+this banner covers EVERY cooksense release in `07_releases/`. There are six of
+them — v1.0, v1.1, v1.3, v1.4, v1.5, v1.6 — and ALL SIX are DO-NOT-ORDER.
+THERE IS NO GOOD ONE. `v1.7` is a CANDIDATE that has never been sealed: as of
+2026-07-29 it exists only as `06_build/staging/cooksense-v1.7/`, and the fresh
+four-lens review battery returned DO-NOT-ORDER / DO-NOT-ORDER / DO-NOT-ORDER /
+FAIL against it. If you are looking for a cooksense board to build, the answer
+today is that there is not one.**
+
+**The `interposer` board is a different board and is unaffected:
+`interposer-v1.1-2026-07-27` remains ORDERABLE.**
 
 **Applies to the MAIN board `cooksense` only. The `interposer` board is
 unaffected and `interposer-v1.1-2026-07-27` remains ORDERABLE.**
@@ -14,6 +26,70 @@ unaffected and `interposer-v1.1-2026-07-27` remains ORDERABLE.**
 the reed-relay land pattern is re-derived.** This is not a paperwork verdict; the
 key-matrix relay array as drawn cannot work.
 
+> ## STATUS UPDATE 2026-07-29 (third) — ALL FOUR P0s CLOSED, THE BATTERY RUN, AND TWO NEW ORDER-BLOCKERS
+>
+> **The four P0s this board carried for a week are closed. It still does not
+> seal, and the reason is now different: the fresh four-lens battery — deferred
+> twice while a P0 was open, correctly — was finally run, and all four lenses
+> came back negative.** Render **DO-NOT-ORDER** (2 P0), topology
+> **DO-NOT-ORDER** (7 P1), layout/thermal **DO-NOT-ORDER** (7 P1, one of them
+> order-blocking), pin review **FAIL** (zero pin-map FAILs, two evidence-grade
+> FAILs). Full ledger with every number:
+> `08_reviews/DISPOSITIONS_v1.7.md`, section 2026-07-29 (third).
+>
+> ### The two things that block, and neither is fixable after fabrication
+>
+> 1. **LABEL OWNERSHIP ON CROSS-MATEABLE SAFETY CONNECTORS.** The string
+>    `J_ISOLOOP` — the 30 V NOT-SELV terminal's own designator — is printed
+>    **0.161 mm from `J_RH_EXHAUST`**, a humidity-sensor header, and 2.739 mm
+>    from the terminal it names. `J_ESTOP`'s designator is **0.161 mm from BOTH
+>    `J_ESTOP` and `J_DOOR`**, which are the SAME part (C189896) and therefore
+>    physically cross-mateable — two of the four such headers are safety
+>    inputs. `J_DOOR`'s own designator is nearer `D_DOOR` than J_DOOR. This is
+>    the SAME defect v1.7's battery raised as RENDER P0-A and marked FIX
+>    REQUIRED; an ownership-aware silk pass landed and demonstrably does not
+>    reach these refs — the generator prints `WARN silk ownership ... no owned
+>    slot in the 4x84 search` for 56 refs and places them anyway. The cause is
+>    PLACEMENT DENSITY in the SE corner, so it is a floorplan change and a
+>    re-race, not a silk tweak, and it was deliberately NOT attempted here.
+> 2. **NO CAPACITOR ANYWHERE ON THE eFUSE INPUT SIDE.** `5V_IN` / `5V_FUSED` /
+>    `5V_RPP` carry **zero** capacitors; `C_IN1` and `C_IN2` are on the eFuse
+>    OUTPUT. The layout rule written to hold that cap local is addressed to net
+>    **`5V_SELV`, which is not a net on this board** — so the budget has been
+>    grading nothing. A missing input capacitor on the protection stage of a
+>    mains-adjacent board cannot be added to a fabricated panel.
+>
+> ### What DID close, with the measurement
+>
+> - **The comb slots were a real P0 and are FIXED.** JLCPCB publishes
+>   **"Min. Non-Plated Slots: 1.0mm"**; the twelve unplated isolation slots were
+>   **0.600 mm** — 40% under the fabricator's own floor, sighted four times
+>   across four sessions and carried each time. Widened to **1.000 mm** after
+>   measuring it free: nearest copper 2.5500 mm at worst, four layers, pours
+>   filled, against the 0.200 mm JLC asks. Creepage only improves — a wider void
+>   lengthens the path around it. DRC **0 / 0 / 0**.
+> - **The reed-coil pull-in margin is now a MACHINE CHECK, not a table in an
+>   ADR.** Eleven `node_level` asserts, one per DMOS-driven reed; **E-INV
+>   140/140 -> 151/151**; RED-verified in place at both Darlington corners
+>   (0.714 V typical and 0.895 V worst case against a 0.540 V pull-in budget,
+>   11 FAILs each). Landing it caught that ten of the eleven would have graded
+>   at the optimistic 25 C resistance.
+> - **The silk printed `GND_ISO ONLY` — a net that does not exist** (`grep -c`
+>   = 0). So did `parity_padmap.txt`, which is why a parity gate has FAILed
+>   1/169 here and 1/161 on sealed v1.6. The BOARD was right both times: the
+>   isolated keypad connector's shell tabs are unbonded BY DESIGN, measured
+>   19.407 mm from the nearest SELV copper. A sweep then found **10 of 123 net
+>   names referenced by this board's rule files and dossiers do not exist in the
+>   netlist** — 8% of its layout budgets grade nothing.
+> - **A 30 V pole legend was printed 0.161 mm from a sensor connector** and is
+>   now refused rather than misplaced.
+> - **A-RENDER had never run on this board.** Its first run FAILED twice; both
+>   were artifacts of an 8.34 px/mm render, proven by re-measuring at 15.40
+>   px/mm (U_LDO 1.248 -> 0.111 mm).
+>
+> `07_releases/` was NEVER TOUCHED. The candidate lived in
+> `06_build/staging/cooksense-v1.7/` for the whole pass.
+>
 > ## STATUS UPDATE 2026-07-29 (second) — THREE P0s CLOSED, A FOURTH FOUND, v1.7 STILL NOT SEALED
 >
 > **v1.0 through v1.6 remain DO-NOT-ORDER and that does not change.** Every one

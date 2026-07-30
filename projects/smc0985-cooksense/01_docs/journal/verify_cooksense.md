@@ -1778,3 +1778,45 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
   which is v1.6's code), and it is expected to clear when v1.7 becomes the
   resolved release. That will be PROVEN at the seal, not predicted.
 - next: re-stage from `06_build/fab_v21`, join the four lenses, then the seal.
+
+## 2026-07-29 18:20 — finish (THE BATTERY IS RUN AND IT BLOCKS; v1.7 IS NOT SEALED)
+- did: joined all four fresh-context lenses. **render DO-NOT-ORDER (2 P0),
+  topology DO-NOT-ORDER (0 P0 / 7 P1 / 13 P2), layout DO-NOT-ORDER (7 P1, one
+  order-blocking), pin FAIL (0 pin-map FAILs, 2 evidence-grade FAILs, connector
+  group owed and requested).** Ledger with every number:
+  `08_reviews/DISPOSITIONS_v1.7.md` section "2026-07-29 (third)".
+- result: **NOT SEALED, ON PURPOSE.** Two order-blockers, neither fixable after
+  fabrication and neither a paperwork item:
+  (1) LABEL OWNERSHIP on cross-mateable safety connectors — `J_ISOLOOP` printed
+  0.161 mm from `J_RH_EXHAUST`, `J_ESTOP` tied at 0.161 mm to `J_DOOR` (same
+  part, C189896), `J_DOOR` nearer `D_DOOR`. Same defect as v1.7's RENDER P0-A,
+  marked FIX REQUIRED, and the ownership pass that landed does not reach these
+  refs — the generator says so itself, 56 degraded. Cause is PLACEMENT DENSITY,
+  so it is a floorplan change and a re-race. NOT attempted here: it would spend
+  the battery a third time, and that is exactly the trap the last two sessions
+  avoided.
+  (2) **NO CAPACITOR ANYWHERE ON THE eFUSE INPUT SIDE** (`5V_IN`/`5V_FUSED`/
+  `5V_RPP` = zero caps; `C_IN1`/`C_IN2` are on the OUTPUT), and the `keep_short`
+  budget written to hold it local is addressed to `5V_SELV`, WHICH IS NOT A NET
+  ON THIS BOARD.
+  THE GHOST-NET CLASS IS NOW MEASURED AT FULL WIDTH, and it is the third
+  instance in two sessions: walking every `net:`/`nets:`/`vdd_net:` key in
+  `03_src/cooksense/rules/*.yaml` + `02_parts/*/part.yaml` against the netlist's
+  412 nets, **10 of 123 referenced names (8%) DO NOT EXIST** — `5V_SELV`, `+5V`,
+  `3V3_DIGITAL`, `HS_GATE`, `LED_DRIVE`, `N3V3`, `OPTO_LED`, `RCEXT`, `T_MINUS`,
+  `T_PLUS`. Some are datasheet-side placeholders rather than board claims, and
+  THAT IS THE POINT: nothing distinguishes a placeholder from a ghost, so a dead
+  budget is indistinguishable from a satisfied one. Proposed as a gate.
+- **`07_releases/` WAS NEVER TOUCHED.** The candidate lived at
+  `06_build/staging/cooksense-v1.7/` for the whole pass, where it cannot make
+  itself the live release. CHANGELOG banner rewritten to say without ambiguity
+  that all SIX sealed releases are DO-NOT-ORDER and that v1.7 is a CANDIDATE
+  that never sealed — the previous wording ("v1.0 THROUGH v1.6") invited the
+  reading that something newer was good.
+- next: ONE deliberate revision pass, in this order — the eFuse input capacitor
+  (schematic/BOM), then the SE-corner placement so the four cross-mateable GH
+  headers and the KF350 own their designators (consider whether the real fix is
+  four IDENTICAL 5-pin headers becoming not-identical), then the two pinned
+  captions off `Q_SWDRVA`/`TP_RKEY.1` pads, then declare the operating AMBIENT
+  (no junction temperature on this board can be closed without it) and re-open
+  the LDO tab copper with it. Then re-race, re-gate, and run the battery AGAIN.
