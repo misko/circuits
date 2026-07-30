@@ -16,7 +16,8 @@ stock, twin).
 
 - Checkers: clean + known-bad tests in `tests/` (t1_jlc_twin.py,
   t1_bom_source.py, t1_release_freshness.py, t1_assembly_gates.py,
-  t1_fab_payload.py, t1_bom_legibility.py).
+  t1_fab_payload.py, t1_bom_legibility.py,
+  t1_sealed_dependency.py).
 - **The FAB LEGIBILITY family (canon F-LEGIBLE, ADR-0006) — the BOM is graded
   AS JLC PARSES IT, not as we wrote it.**
   - `bom_legibility_check.py TARGET` (a sealed release dir, a project dir, or
@@ -81,6 +82,50 @@ stock, twin).
     this fleet has seen — our C82317 for crow-recorder-central-v2's U5 in
     THREE places, JLC's resolved output C131025 — is only visible from inside
     their UI, and the ritual lives in the release ORDER_README.
+- **M-DEPEND (canon M-DEPEND, ADR-0007's M-ENTRY half) — a SEALED release may
+  not depend on a mutable fact it does not carry.**
+  - `sealed_dependency_check.py PROJECT_DIR` (also `--release DIR`, `--fleet`,
+    `--json OUT`, `-v`; plain python3, offline, no pcbnew and **no git**)
+    grades every LCSC code in every sealed `fab/bom.csv` the project ships —
+    ALL of them, not just the newest, because the victims of a deletion are the
+    OLD releases and v1.6 does not stop being orderable because v1.7 exists.
+    Ladder: **GRADED** (a hand-verified authority resolves it) > **CORROBORATED**
+    (only the release's own `verification/stock_check.csv`, an EXISTENCE record)
+    > **ORPHAN** (nothing). ORPHAN FAILs; CORROBORATED with a FILLED MPN cell
+    FAILs; CORROBORATED with a BLANK cell is the WHOLE WAIVER and is structural
+    — there is no waiver FILE, because a waiver a human writes gets copied to
+    the next board and becomes an inherited defect. A DISAGREE between the
+    sealed cell and the live authority is REPORTED and NOT re-failed: equality
+    is F-MPN's home (canon M-WIDTH).
+    It imports `bom_legibility_check.MpnAuthority` rather than re-deriving the
+    resolution order, so the two gates cannot disagree about what the authority
+    says — F-LEGIBLE MEASURED that consulting the release map FIRST manufactures
+    7 false DISAGREE failures across four sealed releases, two of them LIVE.
+    WHY: cooksense's v1.7 work removed `02_parts/ULN2803ADWR/` (ADR-0023
+    legitimately replaced the coil driver) and the SEALED
+    `cooksense-v1.6-2026-07-27` — immutable, bytes unchanged — flipped F-MPN
+    **PASS → FAIL** on row 56 (`C9683`), then flipped **back** when the dossier
+    was restored. **Twice in opposite directions in one session, and the
+    self-healing direction is the worse half: `t1_fleet_regrade` went green on
+    its own and nothing recorded that it had been red.** 9 of 33 sealed releases
+    would have failed. THE TRIGGER IS NOT ONLY A DELETION —
+    `02_parts/MCP23017-E-SS` was **EDITED** (`sourcing.lcsc` C506653 → C558584
+    at stock 0) and 57044c0 repaired it by hand with the comment *"The old code
+    MUST stay resolvable here forever"*, a human promise with no gate.
+    **IT GRADES STATE AND NOT A GIT DIFF, on measurement:** a HEAD diff cannot
+    see a deletion that is ALREADY COMMITTED (exactly how the incident
+    happened), cannot reach an orphan nobody touched (usb-hub-3s-v3 v1.1
+    `C2866319` and v1.2 `C140903` resolve from nothing TODAY, and
+    `07_releases/` is immutable so they never can be fixed there), and has no
+    stable reference while sibling agents hold uncommitted work. State grading
+    SUBSUMES the diff: a deletion and an edit land as the same state.
+    CENSUS 2026-07-29 (1327 coded rows / 33 releases): 8 carry a map, 25 do
+    not, **539 rows across 25 releases are GRADED only because a dossier is
+    still in the tree**, 2 releases are already broken, 5 carry a
+    tree-dependent finding, 0 sit at CORROBORATED-with-a-filled-cell.
+    Pinned by `tests/t1_sealed_dependency.py` — 4 known-bad, and the headline
+    two are the REAL edits (the ULN2803ADWR deletion and the MCP23017-E-SS
+    re-source) replayed on a scratch copy of the real archive.
 - **The FAB PAYLOAD family (canon F-*) — the shipped zip is a GRADED
   artifact, not merely a hashed one (canon M6, ADR-0004).**
   - `fab_payload_census.py RELEASE_DIR` opens `fab/*_gerbers.zip` and grades

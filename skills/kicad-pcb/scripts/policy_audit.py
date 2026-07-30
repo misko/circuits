@@ -1419,6 +1419,32 @@ def main():
               f"{len(head)} finding(s): " + " || ".join(h.strip()[:120]
                                                         for h in head[:3]))
 
+    # M-DEPEND: a SEALED release may not depend on a mutable fact it does not
+    # carry. This is the ONE release-scoped row that deliberately grades ALL of
+    # the project's sealed releases and not just `latest` — the victims of a
+    # `git rm` in `02_parts/` are the OLD releases, and v1.6 does not stop being
+    # orderable because v1.7 exists. cooksense v1.7's work removed
+    # `02_parts/ULN2803ADWR/` (legitimately — ADR-0023 replaced the driver) and
+    # the immutable, byte-unchanged `cooksense-v1.6-2026-07-27` flipped F-MPN
+    # PASS -> FAIL on row 56 (C9683), then flipped BACK when the dossier was
+    # restored, with nothing recording that it had been red. The trigger is not
+    # only a deletion: `02_parts/MCP23017-E-SS` was EDITED. Offline, no pcbnew,
+    # no git — it grades STATE, which is what reaches an already-committed
+    # deletion (2 of 33 fleet releases are broken that way today).
+    _reldirs_any = bool(_all_reldirs)
+    if not _reldirs_any:
+        rows.append(("M-DEPEND", "N-A", "no releases yet"))
+    else:
+        r = sh([sys.executable, str(jlc_scripts / "sealed_dependency_check.py"),
+                str(proj)] + (["--board", board_name] if board_name else []))
+        head = [l.strip() for l in (r.stdout + r.stderr).splitlines()
+                if l.startswith(("M-DEPEND ORPHAN", "M-DEPEND UNPINNED"))]
+        cov = next((l.strip() for l in r.stdout.splitlines()
+                    if l.startswith("M-DEPEND coverage:")), "no coverage line")
+        grade("M-DEPEND", r.returncode == 0, cov,
+              f"{len(head)} sealed row(s) whose MPN authority the live tree can "
+              f"no longer supply: " + " || ".join(h[:150] for h in head[:3]))
+
     # A-BODY: every CPL placement ends up with a 3D body a renderer can load
     # (canon A-BODY). OFFLINE, like A-STOCK — it grades the EVIDENCE the
     # release ships, because a gate that needs the network is a gate that gets
