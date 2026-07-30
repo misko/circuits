@@ -466,7 +466,7 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: declared and fixtured blind spot — it PASSES a family whose every key is
 #: declared `OWED`. Raised in the SAME commit that added the declaration, which
 #: is the ratchet working rather than a number chasing the tree.
-VACUITY_FLOOR = 6
+VACUITY_FLOOR = 7
 
 
 def vacuity_declaration(text):
