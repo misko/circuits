@@ -158,22 +158,36 @@ const SmaVert = () => (
 // half outside it, which is the standard castellated-module land and what the
 // Raspberry Pi Pico datasheet's own SMT footprint does (it also warns that the
 // paste stencil must be OVER-pasted relative to the land).
+// PAD NUMBERING IS THE VENDOR'S AND IT RUNS CLOCKWISE FROM THE TOP-RIGHT — the
+// MIRROR of every IC. Top view, USB-C up: pad 1 (GP0) is the TOPMOST pad of the
+// RIGHT edge; 1..9 down the right edge; 10..14 right-to-left along the bottom;
+// 15..23 up the left edge to 5V at top-left. Cited from the Waveshare schematic
+// sheet "Pin Out" (header P1, "Header 23") and corroborated by the wiki FAQ,
+// which calls VSYS "Pin23" and 3V3 "Pin 21".
+// AN EARLIER REVISION OF THIS FILE NUMBERED THEM COUNTER-CLOCKWISE FROM THE
+// TOP-LEFT, which is the EXACT REVERSE (ours = 24 - vendor) and produced a
+// perfect mirror image that assembles, powers up, and reads every GPIO on the
+// wrong pad. It was withdrawn 2026-07-30. See 02_parts/RP2040-Zero/part.yaml.
+// Pad geometry must stay identical to
+// 03_src/lib/pluto_rx2_8way_v2.pretty/RP2040_Zero_LCC23_18x23.5.kicad_mod:
+// 2.60 x 1.20 straddling the module edge 1.00 outboard / 1.60 inboard, so the
+// centre sits 0.30 mm INBOARD of the edge (x = +/-8.70, y = -11.45).
 const Rp2040Zero = () => {
-  const sideY = Array.from({ length: 9 }, (_, i) => -10.16 + i * 2.54)
-  const botX = Array.from({ length: 5 }, (_, i) => -5.08 + i * 2.54)
+  const sideY = Array.from({ length: 9 }, (_, i) => 10.16 - i * 2.54)  // top -> bottom
+  const botX = Array.from({ length: 5 }, (_, i) => 5.08 - i * 2.54)    // right -> left
   return (
     <footprint>
       {sideY.map((y, i) => (
-        <smtpad key={`l${i}`} portHints={[`${i + 1}`]} pcbX="-9mm" pcbY={`${-y}mm`}
-          width="2.2mm" height="1.5mm" shape="rect" />
+        <smtpad key={`r${i}`} portHints={[`${i + 1}`]} pcbX="8.70mm" pcbY={`${y}mm`}
+          width="2.6mm" height="1.2mm" shape="rect" />
       ))}
       {botX.map((x, i) => (
-        <smtpad key={`b${i}`} portHints={[`${i + 10}`]} pcbX={`${x}mm`} pcbY="-11.75mm"
-          width="1.5mm" height="2.2mm" shape="rect" />
+        <smtpad key={`b${i}`} portHints={[`${i + 10}`]} pcbX={`${x}mm`} pcbY="-11.45mm"
+          width="1.2mm" height="2.6mm" shape="rect" />
       ))}
       {sideY.map((y, i) => (
-        <smtpad key={`r${i}`} portHints={[`${i + 15}`]} pcbX="9mm" pcbY={`${y}mm`}
-          width="2.2mm" height="1.5mm" shape="rect" />
+        <smtpad key={`l${i}`} portHints={[`${23 - i}`]} pcbX="-8.70mm" pcbY={`${y}mm`}
+          width="2.6mm" height="1.2mm" shape="rect" />
       ))}
     </footprint>
   )
@@ -382,21 +396,25 @@ export default () => (
         BEFORE the board is built, not after.
         ================================================================ */}
     <chip name="U_MCU" supplierPartNumbers={{ jlcpcb: [MOD_JLC] }}
+      /* VENDOR NUMBERING. NOTE THE TRAP: the silkscreen prints GPIO numbers,
+         not pad numbers, and they agree for SIXTEEN CONSECUTIVE PADS (1..16 =
+         GP0..GP15) before diverging at pad 17. Sixteen agreements is exactly
+         long enough to convince a reviewer the mapping is the identity. */
       pinLabels={{
-        pin1: "5V", pin2: "GND", pin3: "3V3", pin4: "GP29", pin5: "GP28",
-        pin6: "GP27", pin7: "GP26", pin8: "GP15", pin9: "GP14", pin10: "GP13",
-        pin11: "GP12", pin12: "GP11", pin13: "GP10", pin14: "GP9", pin15: "GP8",
-        pin16: "GP7", pin17: "GP6", pin18: "GP5", pin19: "GP4", pin20: "GP3",
-        pin21: "GP2", pin22: "GP1", pin23: "GP0",
+        pin1: "GP0", pin2: "GP1", pin3: "GP2", pin4: "GP3", pin5: "GP4",
+        pin6: "GP5", pin7: "GP6", pin8: "GP7", pin9: "GP8", pin10: "GP9",
+        pin11: "GP10", pin12: "GP11", pin13: "GP12", pin14: "GP13",
+        pin15: "GP14", pin16: "GP15", pin17: "GP26", pin18: "GP27",
+        pin19: "GP28", pin20: "GP29", pin21: "3V3", pin22: "GND", pin23: "5V",
       }}
       connections={{
-        pin2: "net.GND",
-        pin3: "net.N3V3_MOD",
-        pin19: "net.LED_STAT",
-        pin20: "net.SEL_V4",
-        pin21: "net.SEL_V3",
-        pin22: "net.SEL_V2",
-        pin23: "net.SEL_V1",
+        pin22: "net.GND",
+        pin21: "net.N3V3_MOD",
+        pin5: "net.LED_STAT",
+        pin4: "net.SEL_V4",
+        pin3: "net.SEL_V3",
+        pin2: "net.SEL_V2",
+        pin1: "net.SEL_V1",
       }}
       footprint={<Rp2040Zero />} />
 

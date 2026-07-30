@@ -22,69 +22,88 @@ not_assembled:
     evidence: "M3 mounting holes, no footprint pads with nets (floorplan 2026-07-30)"
     disposition: "n/a"
 
-# ---- CONSIGNED (we supply, JLC PLACES — these stay ON the CPL) --------------
-# A consigned part is ASSEMBLED. It is a SOURCING class, not a population class.
-consigned:
+# ---- U_MCU: NOT ASSEMBLED, AND THE REASON IS MECHANICAL ---------------------
+# POSTURE CHANGED 2026-07-30, at the placement gate, on evidence the commission
+# agent did not have. It chose CONSIGN and explicitly refused hand-solder as
+# "a fake sourcing wall" because rung 2 (JLC places a module we ship them)
+# looked open. RUNG 2 IS NOT OPEN. It is blocked by physics, and the block is
+# not a preference:
+#
+#   THE MODULE IS NOT FLAT-BACKED. MEASURED off the vendor Creo STEP assembly
+#   (RP2040_Zero.stp, sha256 in 02_parts/RP2040-Zero/part.yaml): 23 components
+#   sit on the CARRIER-FACING face — the 12 MHz crystal 1.000 mm proud, the
+#   RP2040 QFN-56 0.850, the RT9013 LDO 0.700, twenty 0201s 0.300. A
+#   castellated pad and a 1.0 mm standoff are not compatible: reflow cannot
+#   bridge that gap at 2.54 mm pitch, there is no nozzle target for a
+#   pick-and-place head, and there is no reflowable joint to inspect.
+#   Waveshare's "castellated module allows soldering directly to carrier
+#   boards" is a capability CLAIM, not a land pattern and not a profile.
+#
+# THIS IS A DIFFERENT CLAIM FROM THE ONE THE ADR USED TO MAKE, and the
+# difference is the point: "we preferred to hand-solder" and "no reflowable
+# joint exists" are not the same statement, and only the second is true.
+#
+# TWO FURTHER REASONS, EACH INDEPENDENTLY SUFFICIENT — recorded so that a
+# future revision cannot retire this entry by defeating one of them:
+#   THERMAL — this is a populated FR-4 PCBA with no MSL rating and no second-
+#     reflow profile, and its own bottom-side joints would face DOWN through
+#     the oven. Nothing published says its solder joints survive a second
+#     reflow, and the part that would fall off is the RP2040.
+#   SOURCING — C9900173620 is a JLC consign placeholder, permanently stock 0
+#     by construction, and is NOW ADDITIONALLY FLAGGED "This product is no
+#     longer manufactured". C5350143 is a Development-Boards-&-Kits line JLC
+#     marks "SMT Assembly (Fixture Required)".
+not_assembled:
+  - refs: [H1, H2, H3, H4]
+    reason: mechanical
+    evidence: "M3 mounting holes, no footprint pads with nets (floorplan 2026-07-30)"
+    disposition: "n/a"
   - refs: [U_MCU]
-    lcsc: C9900173620
-    msl: >
-      OWED — NOT A NUMBER, AND DELIBERATELY NOT INVENTED. Waveshare publishes no
-      MSL rating and no reflow profile for RP2040-Zero: it is a finished
-      consumer assembly, not a component sold in a moisture-barrier bag, so
-      there is no datasheet line to read. Filling this field with a plausible
-      "MSL 3" would be indistinguishable from a datasheet read, and the schema
-      exists precisely because crow-recorder-central v1.0 shipped a consigned
-      MSL-3 part with zero MSL text in its order paperwork.
-      MITIGATION, to be stated in the ORDER_README rather than encoded as a
-      fact: treat as unknown-MSL per JEDEC J-STD-033 — bake before shipping, or
-      ship in a desiccated bag with a humidity indicator and let JLC bake.
-      TO CLOSE THIS: ask Waveshare directly, or accept the bake unconditionally.
+    reason: user_supplied
+    on_bom: false
     evidence: >
-      LIVE JLC catalog read 2026-07-30 via
+      MECHANICAL, and MEASURED rather than argued: the vendor STEP assembly puts
+      23 components on the module's carrier-facing face, the tallest 1.000 mm
+      proud (12 MHz crystal), with the RP2040 QFN-56 at 0.850 and the RT9013 at
+      0.700. The 23 castellation lands are 0.010 mm of copper on that same face,
+      so the joint plane and the collision plane are the same plane and the part
+      cannot sit down. No reflow profile bridges a 1.0 mm standoff at 2.54 mm
+      pitch. Independently sufficient seconds: no MSL and no second-reflow
+      profile is published for a populated assembly (thermal); C9900173620 is a
+      permanently-stock-0 consign placeholder now flagged "no longer
+      manufactured" and C5350143 is a Development-Boards line marked "SMT
+      Assembly (Fixture Required)" (sourcing).
+      LIVE JLC CATALOG READ 2026-07-30 (kept, because it is still the evidence
+      that no Pico-class RP2040 module is machine-placeable from JLC stock):
       POST /api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList
-      over 20 keyword forms. RESULT: no Pico-class RP2040 module is
-      machine-placeable from JLC stock. The entries WITH stock (Raspberry Pi
-      Pico C7203002 at 1499, Pico W C7203003 at 1177) carry NO package field at
-      all and sit under "Development Boards & Tools" with an LCSC retail URL —
-      they are boards LCSC mails you, not line parts. Every entry that carries a
-      real footprint is stock 0: C5159530 (LCC-43), C19193665 (SMD,51x21mm),
-      C9900255426, C9900173620 (LCC-23, 18x23.5 — this part), C9900177322.
-      Controls confirming the discriminator, same day: C1525 100nF 0402 package
-      "0402" stock 46,923,438; C701342 ESP32-WROOM-32E package "SMD,25.5x18mm"
-      stock 19,416; C2980306 ESP32-PICO-MINI-02 package "SMD-53P,16.6x13.2mm"
-      stock 853; C2040 bare RP2040 package "LQFN-56(7x7)" stock 63,091.
-      A placeable part always carries a real package string.
-      DECISIVE DETAIL: C9900255426's erpComponentName reads
-      "【邮寄专用】PICO" — "mail-in only". JLC's own record says the
-      footprint-bearing entries exist to place modules YOU ship them.
-      HONEST LIMIT: `assemblyComponentFlag` is false on every record including
-      C2040, so it is not the capability flag it appears to be. The conclusion
-      is INFERRED from catalog field structure against the four controls above;
-      no test order was placed.
-      WHY NOT `not_assembled` WITH `reason: not_in_catalog`: that would be
-      FALSE. The part IS catalogued, with a real footprint. See ADR-0002.
+      over 20 keyword forms. Entries WITH stock (Pico C7203002 at 1499, Pico W
+      C7203003 at 1177) carry NO package field and sit under "Development Boards
+      & Tools" with an LCSC retail URL — boards LCSC mails you, not line parts.
+      Every entry carrying a real footprint is stock 0. Controls the same day
+      (C1525 "0402" 46,923,438; C701342 "SMD,25.5x18mm" 19,416; C2980306
+      "SMD-53P,16.6x13.2mm" 853; C2040 "LQFN-56(7x7)" 63,091) confirm that a
+      placeable part always carries a real package string.
     disposition: >
-      ORDER_README section 1b: buy 5+ RP2040-Zero modules, ship with the order,
-      JLC places onto LCC-23(18x23.5). Bake or desiccate per the msl: note.
-      FALLBACK, prepared rather than improvised: if consignment is declined at
-      order time, this becomes a `not_assembled:` entry with
-      `reason: user_supplied` + `on_bom: false` + FP_EXCLUDE_FROM_POS_FILES on
-      the board — we supply AND fit it, so JLC is asked neither to place nor to
-      source it, and no unmatched row stalls their BOM matcher.
-
-# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) ------------
-sourcing_plan:
-  - lcsc: C9900173620
-    measured_stock: 0
-    measured_on: 2026-07-30
-    plan: >
-      NOT A STOCK-OUT. C99* codes are JLC consigned-sourcing placeholders and
-      are permanently stock 0 BY CONSTRUCTION — the skill says so and this read
-      confirms it (brand literally "JLCPCB Assembly", isBuyComponent "0",
-      minPurchaseNum 444). JLC stock is irrelevant for this line; what must be
-      re-checked before ordering is OUR OWN holding, that we have >= 5 modules
-      to ship. Retail availability is broad (Waveshare direct, Amazon, Mouser,
-      DigiKey) and is not a single-source risk.
+      ORDER_README section 1b: JLC is asked to place NOTHING here and to source
+      NOTHING here. We buy 5+ RP2040-Zero modules at retail (Waveshare direct,
+      Amazon, Mouser, DigiKey — broad, not single-source) and HAND-SOLDER them
+      to the delivered board, on the ~1.1 mm standoff the module's own
+      bottom-side components establish. The footprint carries
+      `exclude_from_pos_files` and NO F.PASTE APERTURES — paste printed under a
+      part that is never placed reflows into solder balls, so the stencil must
+      not open there. The two carrier keepouts the standoff imposes (height, and
+      copper under the ten live underside pads) are drawn into the footprint and
+      are PLACEMENT obligations; nothing in the pipeline grades them.
+    msl: >
+      NOT APPLICABLE AS AN ORDER OBLIGATION, AND STILL NOT INVENTED. Waveshare
+      publishes no MSL rating and no reflow profile: this is a finished consumer
+      assembly, not a component sold in a moisture-barrier bag, so there is no
+      datasheet line to read. Filling this field with a plausible "MSL 3" would
+      be indistinguishable from a datasheet read, and would put a FABRICATED
+      moisture obligation into a release (crow-recorder-central v1.0 shipped a
+      consigned MSL-3 part with zero MSL text in its order paperwork — the
+      opposite failure, same field). Under the hand-solder posture the module
+      never enters JLC's oven, so no bake and no desiccant shipping is owed.
 
 # ---- EXEMPT REFDES CLASSES -------------------------------------------------
 exempt_prefixes: [H, TP, FID, MH]

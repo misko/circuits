@@ -156,9 +156,30 @@ supply rail cross the boundary.
   module edge; the carrier board must not put a tall part or the board edge
   where a cable needs to go. A NEW mechanical constraint v1 did not have, and a
   stage-5 floorplan input.
-- **The module is a 3D obstruction, not just a footprint.** It stands on
-  castellations with components on its top face; nothing may sit under it and
-  tall parts must clear it. Its keepout is its whole 18.00 x 23.50 mm outline.
+- **The module is a 3D obstruction ON BOTH FACES, and the face that matters is
+  the one facing US.** This bullet used to read "it stands on castellations with
+  components on its top face" — that is WRONG, it was unfalsifiable from a photo
+  of the top, and it is what let the commission agent choose CONSIGN. CORRECTED
+  2026-07-30 against the vendor STEP assembly, measured independently twice:
+  **23 components sit on the CARRIER-FACING face** — 12 MHz crystal **1.000 mm
+  proud**, RP2040 QFN-56 0.850, RT9013 0.700, twenty 0201s 0.300. The 23
+  castellation lands are 0.010 mm of copper on that *same* face, so the joint
+  plane and the collision plane are the same plane and the module **cannot sit
+  down**. There is no reflowable joint at a 1.0 mm standoff on 2.54 mm pitch and
+  no pick-and-place nozzle target, so this part is **HAND-SOLDERED and off the
+  CPL** (`03_src/rules/assembly.yaml`, ADR-0002), not consigned. Its keepout is
+  its whole 18.00 x 23.50 mm outline, and it imposes TWO further carrier
+  keepouts that nothing in the pipeline grades — a HEIGHT keepout over the
+  bottom-side parts and a COPPER keepout under ten live underside pads. Both are
+  drawn into the footprint (`Dwgs.User` / `User.Comments`); see
+  `01_docs/journal/04_placement.md`. If a reflowable joint is ever wanted, the
+  HEIGHT keepout becomes a CUTOUT of the same rectangle — that is the only route
+  to one.
+- **BOOT and RESET are the only way into the bootloader, forever.** Verified
+  against the vendor schematic: BOOT, RESET and SWD reach NO castellation. Once
+  the module is soldered down, those two 2.500 mm buttons are the sole hardware
+  route in, and there is no in-circuit debug. Physical access to both is a
+  stage-5 floorplan REQUIREMENT, not a nicety.
 
 ## 8. The timing frame — INHERITED from v1, and it is a DESIGN INPUT
 

@@ -13,7 +13,14 @@ datasheet:
 package: vertical THT flange jack, 6.5 x 6.5 mm flange, 13.5 mm overall,
   1/4-36UNEF thread D6.2, four 0.9 mm SQUARE posts on a 5.08 x 5.08 mm square
   plus a centre signal pin
-footprint: pluto_rx2_8way:SMA_Vertical_5.08sq_D1.4
+footprint: pluto_rx2_8way_v2:SMA_Vertical_5.08sq_D1.4
+  # LIBRARY REPOINTED 2026-07-30: was `pluto_rx2_8way:` — v1's library. v2 is a
+  # SEPARATE project and v1 is not superseded, so a cross-project FPID is a
+  # dangling ref from here (03_src/lib/contracts.md: 'every footprint referenced
+  # by 04_kicad/<board>.kicad_pcb resolves from 03_src/lib/ or a stock KiCad
+  # library'). The footprint file is VENDORED into
+  # 03_src/lib/pluto_rx2_8way_v2.pretty/, byte-identical to v1's — same part,
+  # same vendor land, and copying it is what makes v2 regenerable standalone.
   # AUTHORED 2026-07-28 -> 03_src/lib/pluto_rx2_8way.pretty/. Drawn from drawing
   # sheet 2/2 (2021.08.10): PCB inset "5-D1.4", four corner holes on 5.08 x 5.08
   # plus one at the centre; rear view 4-SQ0.9 / flange 6.5 sq / insulator D4.2.

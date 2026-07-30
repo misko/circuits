@@ -32,10 +32,10 @@ D-BACK wall the agent has PUSHED up — the coordinator acts. `state: done` =
 terminal for this stage.
 
 <!-- reader parses from here down -->
-stage:   schematic
-step:    "SCHEMATIC GATE GREEN — planned handoff at the declared boundary. Next agent starts at stage 5 (floorplan)."
-measure: "ERC 0 errors/183 warnings (baselined) | TSX-PRE 6/6 | S-COUNT 28/28 over 3 source pairs | S-NETMERGE 23/23 | E-INV 20/20 | E-ADR 1/1 | E-TOPO 1/1 rails (PD 202mW of 400, 50%) | E-MARGIN PASS | E-OFF N-A stated | M-BOM legC PASS | E-NETREF 78/78 0 ghost | M-BOUND 1 CITED | M-BEACON 1/1 | contracts_audit 0. ALL EXIT 0, ALL RUN UNPIPED."
-state:   done
-next:    "OWED before stage 5: (1) the RP2040_Zero_LCC23_18x23.5 footprint in 03_src/lib -- the FPID is referenced and the file does not exist; (2) 03_src/floorplan.yaml + route.yaml, deliberately NOT written (v2's star surroundings differ from v1's); (3) commit the two Waveshare PDFs into 02_parts/RP2040-Zero. FIRST ACT of stage 5 is the OCTILINEAR FLOOR from v2's own pads -- do NOT inherit v1's 1.4966 mm."
+stage:   placement
+step:    "PAD-MAP M1 CROSS-CHECK COMPLETE + assembly posture corrected. Footprint library authored and vendored. floorplan.yaml is the next act and is NOT started."
+measure: "TWO DEFECTS, BOTH IN THE SOURCE, BOTH FIXED. (1) NUMBERING: the schematic gate closed on an INVENTED numbering; Waveshare publishes one (sch header P1 'Header 23' + wiki FAQ 'Pin23'/'Pin 21') and it is the EXACT REVERSE, ours_n = 24 - vendor_n on all 23. Vendor numbering adopted; netlist VERIFIED DIRECTLY pad1=SEL_V1 pad4=SEL_V4 pad5=LED_STAT pad21=3V3_MOD pad22=GND. (2) MECHANICAL: 23 components on the CARRIER-FACING face, crystal 1.000mm proud (STEP-measured, twice, independently) -> no reflowable joint -> assembly.yaml consigned -> not_assembled/hand-solder, reason MECHANICAL. Plus 3 by inspection: 2 FPIDs pointed into v1's lib (vendored), rebuild_all.sh still had TEMPLATE knobs power3s (never run), tsci writes dist/ not build/ (a STALE circuit.json passed EVERY gate). GATES ALL UNPIPED: TSX-PRE 6/6, S-NETMERGE 23/23, E-INV 20/20, E-ADR 1/1, E-TOPO 1/1, E-MARGIN PASS, E-OFF N-A, S-COUNT 28/28 over 3 pairs, E-NETREF 78/78 0 ghost, M-BOM legC PASS, P-FACT 1/8 graded 7 UNREACHED listed, ERC 0 errors/248 warnings (131 off_grid + 89 lib_symbol + 28 footprint_link, all cosmetic; moved from 183 by documented tsci non-determinism)."
+state:   working
+next:    "floorplan.yaml. FIRST ACT is still the OCTILINEAR FLOOR + P-LAND, and BOTH ARE STILL UNMEASURED because both need artifacts that do not exist: P-LAND is escape_check.py --board (needs a .kicad_pcb); the octilinear floor is a property of the STAR GEOMETRY, not of the parts. The transferable LEVER from v1: put star angles on MULTIPLES OF 45 deg and the octilinear excess is zero by construction (v1 had 6 of 9 radials off-45, each paying 1.0731x). New floorplan constraints from the module: USB-C edge AT/BEYOND the carrier board edge; BOOT+RESET must stay accessible (only route into the bootloader, no SWD anywhere); GND is ONE castellation (pad 22) for all 20 GPIO returns; two keepouts drawn into the footprint (HEIGHT Dwgs.User, COPPER User.Comments) that NOTHING GRADES."
 op_pid:
-updated: 2026-07-30T12:10:00
+updated: 2026-07-30T15:20:00
