@@ -42,6 +42,10 @@ LOAD-BEARING ORDER (each deviation reintroduces a debugged failure):
     through pre-existing copper otherwise (400+ silent crossings, twice).
   * KRT output is imported ONCE, into the track-free base, never into a
     board that already carries tracks (that doubles everything).
+  * `import` REFILLS the pours it imported into — EXCEPT when the stitch plan
+    places explicit copper before its own `fill` (`stitch.seed_stubs`), where
+    it must hand `import_krt.py --no-fill` or that pass cannot run at all
+    (see `_import_may_fill`).
   * `generate_rules` runs LAST, after the final pcbnew save. This script
     never writes .kicad_pro, so it cannot clobber netclasses — but the
     caller still has to re-run its rules generator afterwards, and
@@ -740,6 +744,52 @@ def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
     return 0
 
 
+#: stitch passes that HARD-DIE on a board whose pours are already FILLED, and
+#: therefore decide whether `import` may fill. `seed_stubs` is the only member:
+#: a stub laid after fill is not flowed around by the pour, so the pin it
+#: serves stays open, and the pass refuses rather than emit dead copper.
+UNFILLED_PASSES = ("seed_stubs",)
+
+
+def _import_may_fill(cfg):
+    """False when the configured stitch plan places EXPLICIT COPPER before its
+    `fill` — then `import` must hand `import_krt.py --no-fill`.
+
+    THE BLOCKER THIS FIXES (2026-07-29, pluto-cal-switch). `import_krt.py` has
+    had `--no-fill` since it was written and `cmd_import` never passed it, so
+    every board reaching stitch through prep -> route -> import arrived with
+    its zones FILLED — and `p_seed_stubs` dies on a filled zone. The backend's
+    only EXPLICIT-GEOMETRY surface was therefore unreachable through the
+    pipeline: the whole `stitch.seed_stubs` schema, its five fixtures and its
+    contract row could only be exercised on a hand-built board. cal-switch —
+    whose published artifact IS a phase delta, and which needs its two RF arms
+    placed as deterministic copper (measured arm1 = arm2 = 16.080266 mm,
+    spread 0.000000 mm, equal in integer nanometres) — could only get there by
+    HAND-UNFILLING the board between import and stitch, correctly called that
+    a diagnostic rather than a shippable path, and correctly REFUSED to promote
+    the chain: a recipe not expressible in `route.yaml` is a canon-M3 violation
+    wearing a green gate.
+
+    DERIVED, NOT DECLARED — deliberately no new config key. An opt-in
+    `import.fill: false` would leave the failure mode alive (configure
+    seed_stubs, forget the key, die at stitch); and the fact is already
+    written down twice in the config, in `stitch.passes` and in
+    `stitch.seed_stubs.stubs`. The condition is NARROW on purpose: only a
+    non-empty stub list, in a pass list where `seed_stubs` precedes `fill`.
+    Every other board keeps the old post-import filled state byte-for-byte,
+    because the pre-`fill` stitch passes were debugged against it.
+    """
+    order = list(get(cfg, "stitch.passes", DEFAULT_PASSES) or [])
+    if not (get(cfg, "stitch.seed_stubs.stubs") or []):
+        return True
+    for name in order:
+        if name == "fill":
+            return True                 # fill comes first: nothing to protect
+        if name in UNFILLED_PASSES:
+            return False
+    return True
+
+
 def cmd_import(cfg):
     """Import the final chain file ONCE into the track-free base."""
     import pcbnew
@@ -767,8 +817,12 @@ def cmd_import(cfg):
     if stale.is_file():
         stale.unlink()          # a fresh import invalidates any resume point
     imp = Path(__file__).resolve().parent / "import_krt.py"
-    r = subprocess.run([sys.executable, str(imp), str(chain),
-                        str(target), str(target)])
+    cmd = [sys.executable, str(imp), str(chain), str(target), str(target)]
+    if not _import_may_fill(cfg):
+        cmd.append("--no-fill")
+        print("import: --no-fill (the stitch plan places explicit copper "
+              "before its `fill` — see _import_may_fill)")
+    r = subprocess.run(cmd)
     if r.returncode != 0:
         die(f"import_krt exited {r.returncode}")
     return 0

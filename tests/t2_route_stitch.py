@@ -14,14 +14,15 @@ part that has actually shipped broken (`route_prep` handing KRT a bare
 Default-0.2mm .kicad_pro, so ampacity floors were never in force).
 """
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains,  # noqa: E402
-                     edit_board, eq, main, must_fail, must_pass, run, test,
-                     tmpdir)
+                     edit_board, eq, main, must_fail, must_pass,
+                     not_contains, run, test, tmpdir)
 
 RS = SCRIPTS / "route_and_stitch_generic.py"
 GEN = SCRIPTS / "generate_board_generic.py"
@@ -2042,6 +2043,180 @@ def t_kb_seed_stubs_after_fill():
         [{"net": "PWR", "pin": "U1.1", "vias": [[15, 10]]}],
         passes=("fill", "seed_stubs", "gate"))
     must_fail(stitch(p), "seed_stubs after fill", "BEFORE `fill`")
+
+
+# --------- REACHABILITY: the pass must survive the trip through `import` ----
+# The five fixtures above all hand `stitch` a HAND-BUILT board. That is where
+# the pass was reachable and NOWHERE ELSE: `import_krt.py` has carried
+# `--no-fill` since it was written, `cmd_import` never passed it, so every
+# board arriving at stitch through prep -> route -> import arrived with its
+# pours FILLED — and `p_seed_stubs` HARD-DIES on a filled zone. The backend's
+# only EXPLICIT-GEOMETRY surface was therefore unreachable through the
+# pipeline: this whole schema, those five fixtures and its contract row could
+# only ever be exercised off-pipeline. pluto-cal-switch (0 tracks; its
+# published artifact IS a phase delta, so its two RF arms are owed as
+# deterministic copper) could reach the pass only by HAND-UNFILLING between
+# import and stitch — a recipe not expressible in `route.yaml`, which is a
+# canon-M3 violation wearing a green gate, and its agent rightly refused to
+# promote the chain.
+#
+# So asserting that `--no-fill` reaches argv would NOT be enough: a flag that
+# arrives while the pass still dies is not a fix. These two tests drive the
+# REAL `import` command on a real chain file and then the REAL `stitch`, and
+# own both halves of `_import_may_fill` — the plan that must not fill, and
+# every other board, which must fill exactly as it did before.
+_SEED_CHAIN = ('(kicad_pcb\n  (net 0 "")\n  (net 1 "SIG")\n'
+               '  (segment (start 25.0 17.0) (end 27.0 17.0) (width 0.25) '
+               '(layer "F.Cu") (net "SIG"))\n)\n')
+
+
+def seed_pipeline(stubs):
+    """seed_scratch's board wired for the IMPORT leg: a promoted KRT chain
+    file plus `route.final` pointing at it, so `import` runs the same
+    cmd_import every board goes through. Also returns the PRISTINE pre-import
+    copy of the base — the reference for the byte comparison."""
+    import yaml
+    d = tmpdir("t2_seedpipe_")
+    for sub in ("03_src", "04_kicad", "06_build"):
+        (d / sub).mkdir()
+    board = d / "04_kicad" / "seed.kicad_pcb"
+    must_pass(run([KPY, "-c", _MK_SEED, board, json.dumps({"blocker": False})]),
+              "build seed board")
+    pristine = d / "base_pristine.kicad_pcb"
+    shutil.copy(board, pristine)
+    chain = d / "03_src" / "chain.kicad_pcb"
+    chain.write_text(_SEED_CHAIN)
+    cfg = {"project": {"name": "seed", "board": "04_kicad/seed.kicad_pcb",
+                       "build_dir": "06_build"},
+           "route": {"final": "03_src/chain.kicad_pcb"},
+           "stitch": {"clearance": 0.15,
+                      "via": {"size": 0.6, "drill": 0.3, "spacing": 0.62},
+                      "keepin": {"inset": 0.8},
+                      "passes": ["seed_stubs", "fill", "gate"],
+                      "seed_stubs": {"clearance": 0.13,
+                                     "via": {"size": 0.6, "drill": 0.3},
+                                     "stubs": stubs}}}
+    p = d / "03_src" / "route.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board, chain, pristine
+
+
+def zone_fill(board):
+    """[[netname, is_filled, filled-area-nm2], ...] per copper zone, read back
+    with pcbnew from the SAVED file — a different method than the driver's own
+    bookkeeping (canon M1)."""
+    code = ("import pcbnew,sys,json\nb=pcbnew.LoadBoard(sys.argv[1]); o=[]\n"
+            "for z in b.Zones():\n"
+            "  if z.GetIsRuleArea(): continue\n"
+            "  o.append([z.GetNetname(), bool(z.IsFilled()),\n"
+            "            int(z.GetFilledArea())])\n"
+            "print('@@'+json.dumps(o))\n")
+    r = must_pass(run([KPY, "-c", code, str(board)]), "zone_fill")
+    return json.loads(r.out.split("@@", 1)[1].strip())
+
+
+def _uuid_blind(b):
+    """pcbnew mints a fresh uuid for every object it creates, so two imports
+    of the same chain into the same base differ by exactly those uuids and
+    nothing else. Blind them and the rest must match byte for byte."""
+    return re.sub(rb'\(uuid "[0-9a-fA-F-]+"\)', b'(uuid)', b)
+
+
+@test("a seed_stubs plan REACHES its pass through `import`: the pours come "
+      "out UNFILLED, the pass runs, and the stub copper LANDS")
+def t_seed_stubs_reachable_through_import():
+    """THE BLOCKER, END TO END. Not 'the flag reached argv' — a flag that
+    arrives while the pass still dies is not a fix — but: real `import` on a
+    real chain file, then real `stitch`, and the stub must be ON THE BOARD.
+    Four independent readings, none of them the driver's own stdout claim:
+    the saved file's zone is unfilled after import, the pass reports the pin
+    served, a PWR via exists in the saved copper, and kicad-cli DRC (a
+    different method) sees the pour-fed pin closed.
+
+    RED-VERIFIED 2026-07-30 against `git show HEAD:.../route_and_stitch_generic.py`
+    — run from a symlink farm of SCRIPTS with only that one module replaced,
+    so the working tree was never swapped out from under a concurrent routing
+    run. This test failed there on the zone read-back:
+
+        Failed: the pour must arrive at stitch UNFILLED or seed_stubs cannot
+        run (net, IsFilled, filled area nm^2): got [['PWR', True,
+        550936523120362]], want [['PWR', False, 0]]
+
+    Driving the same fixture past that point on the pre-fix module measured
+    the consequence: `import` exited 0 announcing no --no-fill, and `stitch`
+    exited 1 on
+
+        ERROR: seed_stubs must run BEFORE `fill` — a stub laid after fill is
+        not flowed around by the pour, so the pin it serves stays open
+
+    with 0 vias on the board and DRC unconnected=1. The pass could not run AT
+    ALL. Post-fix the same fixture measures [['PWR', False, 0]] out of import,
+    "1 pin(s) served", {'PWR': 1} vias, and unconnected=0.
+    """
+    d, p, board, chain, pristine = seed_pipeline(
+        [{"net": "PWR", "pin": "U1.1", "vias": [[15, 10]]}])
+    r = must_pass(run([KPY, RS, "import", p]), "import with a seed_stubs plan")
+    # STRUCTURE FIRST, stdout last: the defect is the board state, not a
+    # missing print, so that is what a regression must trip over.
+    z = zone_fill(board)
+    eq([[n, f, a] for n, f, a in z], [["PWR", False, 0]],
+       "the pour must arrive at stitch UNFILLED or seed_stubs cannot run "
+       "(net, IsFilled, filled area nm^2)")
+    rs = must_pass(run([KPY, RS, "stitch", p]), "stitch after a piped import")
+    contains(rs.out, "seed_stubs: 1 pin(s) served", "the pass must RUN")
+    eq(via_nets(board).get("PWR", 0), 1,
+       "the stub via did not LAND in the saved copper")
+    eq(drc_counts(board)["unconnected"], 0,
+       "the piped seed stub did not bond the pour-fed pin")
+    contains(r.out, "--no-fill", "import must announce why it did not fill")
+
+
+@test("a route.yaml with NO seed_stubs still fills at `import` — byte-for-byte "
+      "what the pre-fix command line produced")
+def t_import_still_fills_without_seed_stubs():
+    """The other half, and the one that protects every board that is not
+    cal-switch: the pre-`fill` stitch passes were all debugged against a
+    FILLED post-import board, so `--no-fill` must be NARROW. The reference is
+    the pre-fix command line itself — `import_krt.py CHAIN BASE OUT`, no flags
+    — run against the SAME pristine base, and the two files must agree byte
+    for byte once the uuids pcbnew mints fresh on every import are blinded.
+    (Measured: the raw diff is exactly one uuid line, the imported segment's.)
+    The DRC tail is the pairing with the test above: without a stub the
+    pour-fed pin stays open at 1 unconnected, so that test's 0 came from the
+    stub and not from the fixture.
+
+    RED-VERIFIED 2026-07-30 against the NAIVE fix this narrowness rules out —
+    `_import_may_fill` returning False unconditionally (always --no-fill),
+    run from the same symlink farm. This test failed there on:
+
+        Failed: a board with no seed_stubs must still arrive at stitch FILLED
+        (net, IsFilled): got [['PWR', False]], want [['PWR', True]]
+
+    and driving that variant past the point measured the byte comparison
+    going with it: uuid-blind equality False, 36 diff hunk lines against the
+    green run's 11 (of which 2 are the one uuid pair). It passes unmodified
+    against HEAD, which is the point — this half must not move."""
+    d, p, board, chain, pristine = seed_pipeline([])
+    r = must_pass(run([KPY, RS, "import", p]), "import with no seed_stubs")
+    z = zone_fill(board)                       # structure first, stdout last
+    eq([[n, f] for n, f, _a in z], [["PWR", True]],
+       "a board with no seed_stubs must still arrive at stitch FILLED "
+       "(net, IsFilled)")
+    check(z[0][2] > 0, f"the pour reports filled but has no area: {z}")
+    ref = d / "ref.kicad_pcb"
+    must_pass(run([KPY, SCRIPTS / "import_krt.py", chain, pristine, ref]),
+              "the pre-fix import_krt command line")
+    got, want = _uuid_blind(board.read_bytes()), _uuid_blind(ref.read_bytes())
+    if got != want:
+        import difflib
+        d40 = list(difflib.unified_diff(want.decode().splitlines(),
+                                        got.decode().splitlines(),
+                                        "pre-fix", "piped", lineterm=""))[:40]
+        check(False, "post-import state DRIFTED from the pre-fix command "
+                     "line:\n" + "\n".join(d40))
+    eq(drc_counts(board)["unconnected"], 1,
+       "fixture drift: without a stub the pour-fed pin must stay OPEN")
+    not_contains(r.out, "--no-fill", "import stdout")
 
 
 # ============================= BOUNDED TAP REATTEMPT (item 3, canon M8) ======
