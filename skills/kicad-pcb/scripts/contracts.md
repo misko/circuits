@@ -42,6 +42,33 @@ BACKEND GAP to report, not a bespoke script to write here.
   clean is decoration and should be deleted rather than trusted.
   `SKIP_BASENAMES` lists generators/libraries that produce rather than grade;
   adding a name there is a coverage decision and must be justified.
+- **NET REFERENCES (canon E-NETREF).** `net_reference_audit.py PROJECT_DIR`
+  (`--root REPO` for the fleet, `--kinds` to print the denominator) grades
+  ELEVEN enumerated kinds of net-name reference in hand-authored source —
+  `nets.yaml`, `electrical_invariants.yaml`, `power_tree.yaml`,
+  `02_parts/*/part.yaml`, `03_src/floorplan.yaml` including net-shaped tokens in
+  silk caption PROSE — against the exported `.net`. Each kind carries a NAMED
+  CONSUMER, which is the argument that a miss costs something; adding a kind
+  without one is not allowed. Verdicts are RESOLVED / GHOST (fails) / UNREACHED
+  (reported, does not fail), never a silent skip, and every unresolved name gets
+  a near-miss diagnosis with its own counted denominator.
+  WHY: cooksense v1.7 measured **10 of 123** referenced net names absent from
+  its own netlist and the first fleet sweep **64 of 908** — a `GND_ISO` silk
+  caption that reached the shipped F.Silkscreen, an eFuse input-decoupling
+  `keep_short` addressed to `5V_SELV` so three real rails carried zero graded
+  capacitors, and `supplies: {N3V3: 3.3}` hiding a whole rail from every
+  `node_level` grade.
+  **The oracle is read by a method the checked side does not share** (canon M1):
+  two regexes over the netlist's `(nets ...)` section, NOT
+  `electrical_invariants.py`'s s-expression tokenizer and not pcbnew — so this
+  audit cannot inherit a parser bug from the gate whose narrow `supplies:` case
+  it widens. `supplies:` STAYS owned by `electrical_invariants.py`, which can
+  refuse at load time; the overlap on that one field is deliberate.
+  **Matching is EXACT.** Only `nets.yaml` `classes.<C>.nets[]` honours `*`/`?`,
+  because those become KiCad netclass PATTERNS. Substring matching is the defect
+  that let `GND_ISO` pass a human read against `SPI_MISO`, and
+  `t1_net_reference.py` pins it: the fixture asserts the gate FAILS *and* that a
+  naive containment resolver PASSES the same bytes.
 - **IMPORTED FACTS (canon M-IMPORT / D-MATE, ADR-0005 phase 3).**
   `import_provenance_check.py PROJECT_DIR` (or `--root REPO` for every board)
   grades the PROVENANCE of every fact a board consumes from hardware this repo

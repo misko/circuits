@@ -92,9 +92,54 @@ explicit sub-floor values are generation errors naming the tier.
 Floors are BACKSTOPS, not sizing: trunk current rides pours and planes. The
 floor's job is to make "silently thin" impossible, not to carry the amps.
 
+## Every net name in this folder is a REFERENCE, and it is MACHINE-CHECKED
+
+**Canon E-NETREF, `net_reference_audit.py PROJECT_DIR`** (`--root REPO` sweeps
+the fleet; `--kinds` prints the denominator). A net name written here is not a
+label — some gate or generator will LOOK IT UP, and when the lookup misses
+almost nothing says so: the reference silently grades, generates or prints
+NOTHING and the surrounding verdict stays green. This folder contributes SIX of
+the eleven graded reference kinds — `nets.yaml` `classes.<C>.nets[]` (a
+`.kicad_pro` netclass PATTERN: matching zero nets leaves the class with no
+members, so its `min_width`/`clearance` floor is enforced on nothing while
+`rules_audit.py`'s class-reaches-the-project check still finds the class present
+in the `.kicad_pro` — the two agree and both are content) and
+`scoped_floors[].nets[]`;
+`electrical_invariants.yaml` `supplies.<NET>`, `invariants[].net` and
+`invariants[].chain[]`; `power_tree.yaml` `rails[]/linear_rails[].name`. The
+remaining five live in `02_parts/*/part.yaml` (`layout.keep_short[].net`) and
+`03_src/floorplan.yaml` (`zones[].net`, `asserts.pad_net[].net`,
+`placement.patterns[].pad_overrides[].on_net`, and net-shaped tokens in
+`silk.captions[].text`).
+
+Matching is EXACT; only `nets:` entries honour `*`/`?`, because KiCad netclass
+patterns are globs. **Substring matching is forbidden and is how the incident
+survived** — cooksense's silk printed `GND_ISO ONLY`, a net with 0 occurrences
+in the netlist whose only ISO-bearing neighbour is `SPI_MISO`.
+
+A miss is classified, and all three classes are printed. GHOST (absent AND a
+named consumer was going to use it) FAILS. UNREACHED is REPORTED and does not
+fail, and exactly one kind is there by construction: `power_tree.yaml` rail
+`name:` is a LABEL — `power_topology.py` grades the rail's numbers and never
+resolves the name — so `name: USB-A` and `name: 3V3_SW_A / 3V3_SW_B / ...` are
+legitimate. A board with no exported netlist yet is UNREACHED as a WHOLE, named,
+never a wall of ghosts; an empty or non-netlist oracle is UNGRADED at exit 2,
+never a green zero. Every unresolved name carries a NEAR-MISS with its counted
+denominator (case-fold; the tsx AUTHOR-PREFIX `N`, both directions; difflib; the
+underscore family) because `N3V3` -> `3V3` is one edit away and a verdict that
+names the candidate turns a hunt into a fix.
+
+**`supplies:` is still owned by `electrical_invariants.py`, not by this audit** —
+it can REFUSE at load time, before grading, which a separate audit cannot; E-NETREF
+grades it too, and the overlap is deliberate. The `nets.yaml` line under
+**Validate** below had said "every net in nets.yaml exists in the netlist" since
+this folder was created; it was a sentence a human was supposed to check, and for
+its whole history nothing did.
+
 ## Validate
 
-- every net in `nets.yaml` exists in the netlist (else the class is a no-op)
+- every net in `nets.yaml` exists in the netlist (else the class is a no-op) —
+  now MACHINE-CHECKED as E-NETREF above, at the width of the whole class
 - every net carrying >1A per `01_docs/ARCHITECTURE.md`'s power tree appears in
   some class here — an unclassed high-current net is a BUG
 - regenerating produces byte-identical `.kicad_dru` + `.kicad_pro`

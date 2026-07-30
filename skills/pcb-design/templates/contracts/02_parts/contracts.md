@@ -197,7 +197,20 @@ layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
                             # 27R), or prose like "V+ decoupler (pin 8)"
                             # resolves to nothing, and P-ADJ-UNREACHED FAILS it
                             # by name: a budget nothing evaluates is not a
-                            # pass. Measured 2026-07-28 before that gate
+                            # pass. **E-NETREF grades the same field from the
+                            # NETLIST ALONE** (`net_reference_audit.py`, kind
+                            # K7) — so it reaches a project BEFORE there is a
+                            # board, it isolates "no such net" from P-ADJ's two
+                            # other causes, and it NAMES THE NEAR-MISS, which
+                            # is the fix: `N3V3` -> `3V3` (the tsx
+                            # author-prefix), `5V_SELV` -> the `5V_*` family.
+                            # Measured 2026-07-29 across six boards: 64 of 181
+                            # declared keep_short nets do not exist on their
+                            # own board — cooksense's eFuse input-decoupling
+                            # budget among them, and ALL 64 of the fleet's
+                            # ghost net references across every kind land in
+                            # THIS field.
+                            # Measured 2026-07-28 before that gate
                             # existed: 61 of 119 budgets fleet-wide (51%) were
                             # graded by NOTHING; measured again 2026-07-29 with
                             # the anchor rule, 7 MORE (4 on pluto-cal-switch —
@@ -442,6 +455,13 @@ the board's placement HONOURS it:
   RSNS incident still FAILS, 7.34mm U1.19 -> Q6.5 against 5mm).
   **P-ADJ-PAIR** grades `layout.adjacency` refdes pairs on the copper GAP
   between them. **P-ADJ-UNREACHED** covers both kinds.
+  **E-NETREF** (`net_reference_audit.py`, canon E-NETREF) is the netlist-only
+  sibling of P-ADJ-UNREACHED for the `keep_short[].net` field: same defect
+  class, different oracle and different reach — no board and no pcbnew, so it
+  grades a project before routing; it distinguishes "this net does not exist"
+  from P-ADJ's other unreached causes; and it names the NEAR-MISS. It is one of
+  eleven reference kinds it grades, because a net name in ANY hand-authored
+  source is a reference something will look up (canon M-WIDTH).
   Both are SEPARATE rows and NEITHER is waivable by a P-ADJ waiver:
   P-ADJ-UNREACHED fails any budget that does not resolve to a measurable pair
   here (no such net, fewer than 2 pads, no pad of the declaring part, no shared

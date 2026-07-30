@@ -49,6 +49,7 @@ SUITES=(
   t1_net_label_survival.py
   t1_tsx_to_board.py
   t1_electrical_invariants.py
+  t1_net_reference.py
   t1_power_topology.py
   t1_release_git_dirty.py
   t1_release_index.py
