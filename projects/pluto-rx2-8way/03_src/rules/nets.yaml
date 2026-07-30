@@ -274,7 +274,10 @@ classes:
 
 length_match:
   RF_RADIAL_STAR:
-    adr: 0007
+    adr: "0007"        # QUOTED: YAML 1.1 reads a leading-zero scalar as
+                       # OCTAL, so bare 0007 rendered as "ADR-7" in the gate's
+                       # own output. Found on pluto-cal-switch the same day with
+                       # `adr: 0011` -> 9; the two boards are the two strikes.
     intent: >
       THE EIGHT CONGRUENT 50 OHM RADIALS OF THE SWITCH STAR - seven antenna
       arms plus the RFC output - each a single two-pad net from a PE42482A-X RF

@@ -210,3 +210,73 @@
       have refused the 1.0 mm ceiling at authoring time this morning instead of
       at the fifth KRT run. A ceiling below the router's own lower bound is
       unreachable by construction and should be a hard error, not a FAIL later.
+
+## 2026-07-29 20:20 — iterate 5 (post-back: BOTH walls have EXISTING fixes, and one of them refutes the canon)
+- did: read the sibling commit `ce70658` (pluto-cal-switch stage 6, landed while
+  this stage was running) and then went back into KRT's own CLI surface rather
+  than trusting the canon's summary of it. Two things changed the escalation.
+- result:
+  * THE OCTAL BUG, INHERITED AND FIXED IN THE SAME DAY. `adr: 0007` is read by
+    YAML 1.1 as OCTAL, so the gate printed `RF_RADIAL_STAR ADR-7`. The sibling
+    hit it as `adr: 0011 -> 9`. Now quoted; the gate prints `ADR-0007`. Two
+    boards, one day, same defect — the schema in `copper_length_audit.py
+    --schema` shows the field unquoted, which is where it comes from.
+  * W1 HAS A PRECEDENTED SOURCE-SIDE MECHANISM AND I HAD MISSED IT. The sibling
+    fixed the identical wall (eleven pads whose netclass minimum cannot land on
+    them) with PERMISSIVE rule areas in `floorplan.yaml` (`deny: []`, the
+    documented DRU-anchor use, precedent cook-hub `u7_taps`, F.Cu only) plus
+    `scoped_floors:` in `nets.yaml`, emitted AFTER the netclass rules so KiCad's
+    last-match precedence lets a width floor be relaxed ONLY inside the named
+    area and ONLY for the named nets. That is a spatially bounded NECK
+    legalisation, and their own framing is the right one: 0.45 mm of neck is
+    lambda_g/61 at 6 GHz, a lumped reactance, while narrowing the whole class
+    would be the real defect. So `scoped_floors:` is NOT limited to power taps
+    and `nets.yaml`'s "NO SCOPED FLOORS, DELIBERATELY" needs the same amendment
+    theirs got. WHAT IT DOES NOT FIX, measured: legalising the neck at DRC does
+    not make KRT PRODUCE a neck. Its power-net neck-down still falls back to
+    re-routing the WHOLE net narrow, so the arm comes back at the neck width and
+    then fails `RF50_width` OUTSIDE the rule area — detectable, not silent, but
+    still not a route.
+  * W2's FIX EXISTS INSIDE KRT, AND THE CANON SAYS IT DOES NOT.
+    `copper_length_audit.py`'s docstring states: "KRT's meander machinery
+    (diff_pair_loop.py, diff_xnet.py) is DIFF-PAIR shaped ... single-ended
+    50 ohm traces that must match EACH OTHER ACROSS NETS ... is a different
+    problem with no tool behind it here. Equalisation is therefore a HUMAN,
+    ITERATIVE routing task." MEASURED FALSE. `route.py` exposes
+    `--length-match-group` (repeatable, fnmatch net patterns),
+    `--length-match-tolerance`, `--meander-amplitude` and even `--time-matching`
+    / `--time-match-tolerance` (propagation time, not length — the right
+    quantity for this board), backed by `length_matching.py` ("trombone-style
+    meanders ... at the longest straight segment"). Run on this board's rf wave
+    it printed, in its own words:
+        Length match group: ['ANT*', 'RX2_OUT']
+        Matched nets: ANT1 ANT5 ANT4 ANT2 ANT7 ANT3 RX2_OUT ANT6
+        Length matching group: 8 nets (0 diff pairs, 8 single-ended),
+        target=19.83mm
+    and the MEASURED group spread fell from 2.237 mm to **1.1586 mm (15.28 deg
+    at 6 GHz)** — 11/11 rf nets routed, 0 failed, `min_clearance_used: 0.2`,
+    i.e. with NO clearance relaxation anywhere. The remaining 1.16 mm is the
+    tolerance/amplitude setting, not a limit: tolerance was 0.15 mm and the
+    meanders are added only at the longest straight segment, so a second pass
+    with a tighter tolerance and a smaller amplitude has room to close it.
+  * SO THE BLOCKER IS NARROWER AND SHARPER THAN THE 19:40 ENTRY SAID. It is not
+    "no tool exists". It is that FIVE KRT capabilities that this board's product
+    depends on cannot be DECLARED in `route.yaml` — `_KRT_FLAGMAP` in
+    `route_and_stitch_generic.py` has no `neckdown_length`,
+    `neckdown_taper_length`, `length_match_group`, `length_match_tolerance` or
+    `meander_amplitude`, and an unknown key is a hard error by design ("extend
+    _KRT_FLAGMAP rather than guessing a flag name"). A route that needs them can
+    be produced BY HAND on the command line — I just did — but not from source,
+    and a promoted chain whose recipe is not in `route.yaml` is a canon-M3
+    violation dressed as a green gate. That is why nothing was promoted.
+  * AND THE ARMS ARE STILL NOT 0.36 mm IN ANY CONFIGURATION. The length-matched
+    11/11 chain is 0.25 mm (58 ohm) end to end, which `generate_rules`' own
+    `RF50_width` DRU rule fails on every arm. W1 and W2 have to be fixed
+    TOGETHER — a launch neck that KRT applies reliably, plus the meander pass —
+    and only one of the two is a config change.
+- next: escalation unchanged in shape, corrected in substance. The `_KRT_FLAGMAP`
+  patch is now the FIRST item and the cheapest: five keys, mechanical, and it
+  unblocks a measured 2.237 -> 1.159 mm improvement on the property this board
+  sells. `copper_length_audit.py`'s docstring must also be corrected where it
+  says no inter-net skew tool exists — that sentence is what made me stop
+  looking for one, and it is in the file that grades this board.
