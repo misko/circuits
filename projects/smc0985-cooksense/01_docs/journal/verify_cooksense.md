@@ -1972,3 +1972,99 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
 - next: user answers B30-01. Then ONE rebuild closes B30-11 execution, the
   topology lens is re-gated on its own resolved finding, MANIFEST closes
   B30-18, and the 2-commit seal runs.
+
+## 2026-07-30 22:0x — SEALING PASS: ONE atomic rebuild landed; the re-gate BLOCKED the seal. v1.7 IS NOT SEALED (eighth decline)
+- did: (1) folded B30-11's comment cleanup and the `rev "dev"` schematic
+  regeneration into ONE rebuild and graded it ONCE; (2) re-measured the live
+  stock state, the land-pattern equivalence and the H4/J_ESTOP facts MYSELF
+  rather than inheriting them; (3) wrote the A-STOCK M4 waiver on the argument
+  plus a buyer-facing `ORDER_README` §5-0; (4) re-gated the topology lens on its
+  own finding; (5) **stood down when it returned DO-NOT-ORDER.**
+- result — **THE ATOMIC REBUILD IS DONE AND CLEAN.** `rebuild_schematic.sh` now
+  passes `--rev` (fixed in SOURCE, not by hand-editing `04_kicad/` — canon M3),
+  so the sheet reads `(rev "v1.7")` where every prior one read `"dev"`. The 13
+  `v1.8` strings — **13, not the 12 the beacon carried** — are all inside
+  comment spans, verified by a PARSER rather than by eye, and now read `v1.7`.
+  **THE NETLIST md5 MOVED AND THE NETLIST DID NOT:** 198 nets / 239 components /
+  806 nodes both sides, **0** nets with a differing node set, **0** components
+  with a differing (value, footprint), normalised md5 identical at
+  `900941caafe43eb6de7347171a8eb443`; the delta is the title block plus KiCad's
+  per-run UUIDs. `cooksense.kicad_pcb` md5 **`9f4fd5fa…` UNCHANGED**.
+- result — gates, unpiped, raw exits: DRC `--severity-all --refill-zones
+  --schematic-parity` **0/0/0 EXIT 0**; `policy_audit` **EXIT 0, FAIL=0**
+  (PASS=28 WAIVED=6 HUMAN=6 N-A=5); ERC **0 errors / 411 warnings**; S-COUNT
+  **4/4 over 239 refdes**; E-INV **167/167**; E-ADR **11/11**; M-BOM **PASS**;
+  M-DEPEND **PASS**; contracts_audit **0 violations**; A-STOCK **EXIT 1**
+  (waived with evidence, see below); the driver's own safety-chain sanity check
+  **22/22**.
+- result — **A REAL ARCHIVE DEFECT CAUGHT BY THE STAGING RE-MEASURE.** The
+  archive did not stand alone: `kicad-cli pcb drc source/cooksense.kicad_pcb`
+  returned **14 violations, all `lib_footprint_issues`**, because
+  `source/fp-lib-table` had been copied byte-for-byte from `04_kicad/` and its
+  vendored-library URI `${KIPRJMOD}/../03_src/lib/cooksense.pretty` points
+  OUTSIDE the archive. The `.pretty` was vendored; the table that finds it was
+  not rewritten. **A REGRESSION against this board's own sealed v1.6**, which
+  gets it right. One URI rewritten -> **0/0/0 standing alone**. Fleet sweep:
+  **5 of 33** sealed archives point outside themselves (cooksense-v1.1,
+  interposer-v1.0, usb-hub-3s-v3 v1.3/v1.4/v1.6) — immutable, recorded, not
+  repaired. No gate exists for it; filed as a skill patch.
+- result — **B30-01 WAIVED WITH EVIDENCE, and the evidence is mine.** Live at
+  **2026-07-30T21:33:59Z**, both through `jlc_stock_check` and independently of
+  it: `C265111` stock **5** / MOQ **21**; `C42376901` 6030/1; `C22391766` 0/444;
+  control `C5620` 5212. **MOQ 21 > stock 5 = unbuyable at any quantity**; the
+  threshold to watch is 21, not the gate's 10. Land-pattern equivalence
+  re-derived by a method that is NOT `jlc_twin` (raw EasyEDA `PAD~` records +
+  `pcbnew`, translation-only rigid fit): genuine **0.0002 mm**, clone
+  **0.0100 mm** signal / **0.0399 mm** tabs, non-mirrored.
+- result — **THE INHERITED `0.01 mm` WAS NOT EVIDENCE, and that is why
+  re-measuring mattered.** Its whole triple — `0.01` / `jlc_offset=0` / both
+  refs — is **verbatim the GENUINE part's own rows** in this archive's twin log
+  (`twin_run.log:440-441`, `C265111 J_THERM_A OK fit=0.01mm jlc_offset=0`), and
+  a search of all of `06_build/` finds **no jlc_twin artifact for C42376901
+  anywhere**. `fit=` is the max per-pad residual at `%.2f`, so it prints `0.01`
+  for the genuine part too and **cannot discriminate the two**. Canon M4's
+  headline defect, found in this board's own waiver.
+- result — **THE RE-GATE BLOCKED THE SEAL: `verdict: DO-NOT-ORDER`,
+  `P0-1: NOT RESOLVED`.** The lens reproduced every number here independently
+  and then found **five things this archive got wrong**. The decisive one,
+  RG-P1-1: **§5-0 told a buyer to "edit one cell of `fab/bom.csv`" — and
+  `fab/bom.csv` is not the file JLC receives.** The assembly step takes
+  `bom_jlc.csv` and `cpl_jlc.csv`, and the CPL's `Val` column carries the LCSC
+  code because `fp.GetValue()` on these footprints IS `C265111`. A buyer
+  following my instruction exactly would have ordered the unbuyable part. Also
+  RG-P2-1 (the "zero bytes of the fab set" claim is false — 6 cells across 4
+  files; the surviving form is "zero bytes of the gerbers, drill and CPL
+  GEOMETRY"), RG-P2-2 (the fit table omitted tab pad SIZE — board 1.000x2.700,
+  genuine JLC land 1.210x2.700, clone 1.000x2.500, so the board's retention tab
+  matches the CLONE and "the board IS the genuine part's land" holds on the
+  signal pads only), RG-P2-3 (**my §5-0 stated a safety consequence BACKWARDS**:
+  a dropped pod does not remove `TEMP_OK`, it ASSERTS it — margin 0.07022 of
+  rail = 231.7 mV at 3.300 V, rail-independent — so the real cost is nuisance
+  latched stops, not a defeated interlock), RG-P2-4 (an H2 heading "ORDERABLE"
+  693 lines above the section saying it is not). **All five FIXED in staging.**
+- result — **v1.7 IS NOT SEALED. This is the eighth decline, and it is the first
+  one where the blocker is NOT the board and NOT the paperwork.** The lens wrote
+  that it *"would accept the seal"* — the M4 argument is sound — but that
+  *"sealing is not the question this verdict field asks."* The gate reads
+  `verdict:`, `verdict:` means ORDERABLE, and this release is not orderable
+  today. **Nothing physical is in dispute.** `07_releases/` was left untouched
+  and the staged `cooksense-v1.7-2026-07-30/` directory was REMOVED rather than
+  left implying a seal.
+- **SIX PROPOSED SKILL PATCHES FILED, `skills/` DELIBERATELY UNTOUCHED**
+  (`06_build/staging/cooksense-v1.7/verification/owed_skill_patches.md`, P1-P10,
+  four of them restated debt): **P1** stock belongs at ORDER time and a seal
+  must be able to state "correct" and "orderable" separately; **P10** its
+  review-side twin, a `design_verdict` / `order_verdict` split, filed because a
+  lens said in as many words that it would seal and could not say so in the
+  field the gate reads; **P3** `--rev` defaults to `"dev"` and **33 of 33**
+  sealed schematics in this repo say so; **P4** A-STOCK has no MOQ term (scoped
+  by the lens's sweep: `C265111` is the ONLY line where MOQ > stock, but
+  `C25076`/`C11702`/`C25105` carry reel MOQs of 837/914/887 against needs of
+  10/45/10); **P9** nothing checks that an archive can find its own vendored
+  footprint library, 5 of 33 cannot; **P2** `jlc_twin` emits no parseable
+  verdict line.
+- next: the board is DONE and the paperwork is now correct. What is owed is not
+  work on this board — it is either **stock `C265111` >= 21**, or a
+  **mate-verified** clone substitution (needs physical parts), or **P1/P10** so
+  a seal can say "this design is correct" without also having to claim "and you
+  can buy it today".

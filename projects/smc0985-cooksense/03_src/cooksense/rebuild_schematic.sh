@@ -51,9 +51,26 @@ bash "$S/gen_tscircuit.sh" "$PROJ" || true      # its own parity leg compares ag
                                                 # the OLD 04_kicad board and is expected
                                                 # to differ until rebuild_all.sh runs
 
-echo "== 2/4 converter FORCED to --mode grid (see the header: layout mode shorts AND1 to 3V3) =="
+# ############################ WHY --rev IS PASSED #########################
+# `circuit_json_to_kicad_sch.py --rev` DEFAULTS TO "dev" (script line 1159), and
+# this driver never passed it — so every sheet this board has ever published to
+# `04_kicad/` carried `(rev "dev")` in its title block, including the one copied
+# into six sealed release archives. A sheet whose own title block says "dev" is
+# the one artifact a reader opens FIRST when a board comes back wrong, and it
+# disclaims the release it is the source of. MEASURED 2026-07-30 on the v1.7
+# candidate: `04_kicad/cooksense.kicad_sch` line 4 read
+#   (title_block (title "cooksense") (date "2026-07-29") (rev "dev")
+# The fix is HERE, not a hand-edit of 04_kicad/ (canon M3: 04_kicad must be fully
+# regenerable from source; a hand-edited title block regenerates back to "dev" on
+# the next run and nothing would notice).
+# BUMP THIS WITH THE RELEASE. The board silk carries the same token
+# (floorplan.yaml `cooksense  SMC0985KS  sidecar v1.7`), so the two must move
+# together or a fabricated board and its schematic disagree about what they are.
+SCH_REV="v1.7"
+
+echo "== 2/4 converter FORCED to --mode grid (see the header: layout mode shorts AND1 to 3V3), --rev $SCH_REV =="
 $PY "$S/circuit_json_to_kicad_sch.py" "$T/build/circuit.json" \
-    -o "$T/kicad/cooksense.kicad_sch" --project cooksense --mode grid
+    -o "$T/kicad/cooksense.kicad_sch" --project cooksense --mode grid --rev "$SCH_REV"
 
 echo "== 3/4 ERC + netlist export from the grid sheet =="
 kicad-cli sch erc --severity-all -o "$T/verification/erc_converter.rpt" \

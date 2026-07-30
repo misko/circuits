@@ -93,7 +93,7 @@ export default () => (
         pin5: "net.N5V_PROTECTED", pin6: "net.EFUSE_FLT_N", pin7: "net.EF_ILM", pin8: "net.GND",
       }} />
     <capacitor name="C_DVDT" capacitance="1nF" footprint="0402" connections={{ pin1: "net.EF_DVDT", pin2: "net.GND" }} />
-    {/* ============ v1.8 — THE eFUSE INPUT HAD NO CAPACITOR AT ALL =====================
+    {/* ============ v1.7 — THE eFUSE INPUT HAD NO CAPACITOR AT ALL =====================
         MEASURED on the netlist before adding it: `5V_IN`, `5V_FUSED` and `5V_RPP` carried
         ZERO capacitors between them. `C_IN1` (10 uF) and `C_IN2` (100 nF) are both on
         `5V_PROTECTED` — the OUTPUT side — and their names read like input caps, which is
@@ -288,7 +288,7 @@ export default () => (
         driven by exactly ONE push-pull CMOS output, so a 100k does nothing while the board
         is healthy and everything when the driver is absent — unfitted, tombstoned, cracked
         or dead. A dead U_SCHM (SOIC-14) floats ESTOP_OK + MODE_AUTO_HW AT ONCE (until
-        v1.8/ADR-0025 it floated DOOR_OK too; that channel and R_DOOROKPD are deleted),
+        v1.7/ADR-0025 it floated DOOR_OK too; that channel and R_DOOROKPD are deleted),
         and U_EXP.2/3/4 read back the SAME floating nets so software has no cross-check. And
         the asymmetry that makes hardware the only fix: all four permissions sit on MCP23017
         port B, one GPPUB write pulls them UP with 100k (DS20001952C section 3.5.7) turning
@@ -335,7 +335,7 @@ export default () => (
     <capacitor name="C_OENAND" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
 
     {/* ---- SN74HC14 Schmitt: clean the slow/noisy E-stop and Mode contacts (2 inverters each = buffer) ---- */}
-    {/* v1.8 / ADR-0025: STAGES 5 AND 6 ARE NOW SPARE (the door channel is deleted). Their
+    {/* v1.7 / ADR-0025: STAGES 5 AND 6 ARE NOW SPARE (the door channel is deleted). Their
         INPUTS 5A (pin 11) and 6A (pin 13) are TIED TO GND and their outputs 5Y (pin 10) and
         6Y (pin 12) are left open, per SCLS085L / SCEA043: an unused HC input must be tied to
         a rail or it self-oscillates and draws supply current, an unused output must NOT be.
@@ -402,7 +402,7 @@ export default () => (
         SN74LVC1G123 — TI DS: retriggerable up to 100% duty, so the <=500ms PRESS bound was
         not hard; review F5). Section 1: 1A_N=GND, 1B=PRESS_REQ (Schmitt, rising), 1R_N=
         OS_CLR_N = ESTOP_OK·STOP_REQ_N (E-STOP OR STOP preemption clears
-        the pulse; it was DOOR_OK until v1.8/ADR-0025 deleted the door channel),
+        the pulse; it was DOOR_OK until v1.7/ADR-0025 deleted the door channel),
         1Q=PRESS_TIMED, 1Q_N=PRESS_TIMED_N (latch-freeze). tw = K*Rx*Cx, K~0.7-0.75 at 3V3:
         510k*1uF -> 357-383ms typ, <=436ms worst < 500ms HARD (DETAIL_DESIGN #2).
 
@@ -449,7 +449,7 @@ export default () => (
     <capacitor name="C_OS2" capacitance="1uF" footprint="0603" connections={{ pin1: "net.OS2_C", pin2: "net.OS2_RC" }} />
     <capacitor name="C_OSV" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     {/* STOP_REQ_N inverter (1G00 as inverter) + one-shot clear gate.
-        v1.8 / ADR-0025: OS_CLR_N = ESTOP_OK · STOP_REQ_N. It WAS DOOR_OK · STOP_REQ_N; the
+        v1.7 / ADR-0025: OS_CLR_N = ESTOP_OK · STOP_REQ_N. It WAS DOOR_OK · STOP_REQ_N; the
         door channel is deleted and this input takes the E-STOP rather than a 3V3 tie-off,
         which is what BRIEF.md:89's "A monitored + hardware key-relay inhibit" asks for and
         the board did not have. The fail direction is unchanged: ESTOP_OK LOW (plug out,
@@ -530,7 +530,7 @@ export default () => (
     <capacitor name="C_DECDEN" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
 
     {/* ---- 2x TBD62083AFWG DMOS coil drivers (16 ch, 12 used, 4 spare). COM -> gated 5V_KEY_RELAY (clamp). ----
-        v1.8 (ADR-0023): WAS ULN2803ADWR (C9683). A Darlington drops 0.67 V TYP / ~0.88 V worst case at the
+        v1.7 (ADR-0023): WAS ULN2803ADWR (C9683). A Darlington drops 0.67 V TYP / ~0.88 V worst case at the
         ~7 mA reed coil, and that drop IS the entire pull-in deficit: margin(T) = 4.740 - V_driver -
         3.500x(1+0.004(T-20)) went NEGATIVE at 60.7 C typical and 45.7 C WORST CASE, i.e. BELOW the brief's
         own <=50 C NORMAL enclosure band. Twelve relays not guaranteed to close on a cooking appliance, and
@@ -817,7 +817,7 @@ export default () => (
     <diode name="D_LCCLK" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.LC_CLK", pin2: "net.GND" }} />
 
     {/* ---- discrete safety inputs: E-STOP (contact A), MODE (DPDT) ----
-        ================= v1.8 / ADR-0025 — THE DOOR CHANNEL IS DELETED =================
+        ================= v1.7 / ADR-0025 — THE DOOR CHANNEL IS DELETED =================
         USER DECISION 2026-07-29: there is NO access to the appliance's door signal and
         none will be obtained. `J_DOOR`, `R_DOORPD`, `R_DOORS`, `D_DOOR` and
         `R_DOOROKPD` are REMOVED FROM THE NETLIST — not marked not-assembled. The
@@ -883,13 +883,13 @@ export default () => (
         across the isolation boundary. Pins 3/4 are now GND, so this housing is
         SELV-ONLY and every pin on it belongs to one domain. The loop moves to its own
         J_ESTOPLOOP terminal block below. */}
-    {/* v1.8 / ADR-0024: `ESTOP_RAW_IN` is the connector-side node, split from `ESTOP_RAW`
+    {/* v1.7 / ADR-0024: `ESTOP_RAW_IN` is the connector-side node, split from `ESTOP_RAW`
         by R_ESTOPS so the field pin is never the logic pin. ADR-0024's reason for J_ESTOP
         being safe against a pod cross-plug was a PROPERTY OF ITS PINOUT (pins 3/4/5 GND),
         which survived a cross-plug and not a mis-built harness. That reason is now
         SUPERSEDED BY A MECHANICAL ONE — see below.
 
-        ======== v1.8 / ADR-0025 — J_ESTOP IS KEYED TO JST SH-3, AND THIS IS WHY =========
+        ======== v1.7 / ADR-0025 — J_ESTOP IS KEYED TO JST SH-3, AND THIS IS WHY =========
         The user's decision keeps `J_ESTOP` POPULATED and satisfies it with a REMOVABLE
         SHORTING PLUG, so that a real E-stop can be fitted later without a copper
         revision. That choice creates a hazard the unpopulated board did not have, and it
@@ -1048,7 +1048,7 @@ export default () => (
     {/* ================= BLOCK 6 — MCP23017 EXPANDER (ADR-0003) ============ */}
     {/* Slow signals: 4 rail enables, contactor req, re-arm, BOARD_ID straps; readbacks on GPB0-7. */}
     {/* flag 3: pin12 = SCL (I2C), NOT SCK; pins 11 & 14 = NC (do NOT wire). */}
-    {/* v1.8 (ADR-0023 consequences): code WAS C506653 (MCP23017-E/SS), which read LCSC stockCount 0
+    {/* v1.7 (ADR-0023 consequences): code WAS C506653 (MCP23017-E/SS), which read LCSC stockCount 0
         on 2026-07-28 and again on 2026-07-29 after reading 56/56 the session before -- a live catalog
         change, not an inherited number. C558584 = MCP23017T-E/SS, stock 7490, the SAME DIE IN THE SAME
         SSOP-28: DS20001952C's PRODUCT IDENTIFICATION SYSTEM lists (f) MCP23017-E/SS and (g)
@@ -1109,7 +1109,7 @@ export default () => (
         DEFECT AND WERE MISSED: ADR-0020 identified the mechanism,
         computed the remedy, and applied it to ONE of six pins.
 
-        GPB1-GPB5 sat DIRECTLY on MODE_AUTO_HW / ESTOP_OK / DOOR_OK (deleted v1.8) /
+        GPB1-GPB5 sat DIRECTLY on MODE_AUTO_HW / ESTOP_OK / DOOR_OK (deleted v1.7) /
         TEMP_OK / FAULT. `IODIRB = 0x00, OLATB = 0xFF` is ONE I2C
         transaction. Arithmetic from the two datasheets: MCP23017
         V_OH >= V_DD-0.7 at -3.0 mA (DS20001952C D090) => weakest source
@@ -1128,7 +1128,7 @@ export default () => (
         ================================================================= */}
     <resistor name="R_MODEHWSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.MODE_AUTO_HW", pin2: ["U_EXP.pin2", "net.MODE_AUTO_HW_EXP"] }} />
     <resistor name="R_ESTOPOKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.ESTOP_OK", pin2: ["U_EXP.pin3", "net.ESTOP_OK_EXP"] }} />
-    {/* v1.8 / ADR-0025: this WAS R_DOOROKSER (DOOR_OK -> GPB3). The door channel is
+    {/* v1.7 / ADR-0025: this WAS R_DOOROKSER (DOOR_OK -> GPB3). The door channel is
         deleted, so GPB3 has nothing to read back. It is NOT left open and it is NOT
         hard-tied: the same resistor, the same C60490 line, now pulls GPB3 to GND. Open
         would leave an MCP23017 input floating (indeterminate readback, and ADR-0019's whole
@@ -1228,7 +1228,7 @@ export default () => (
         pullups die with the rail). The <=v1.1 RH-rail pullup pairs are DELETED — parallel
         pullups from two switched rails would back-power the off rail's device. Phantom-power
         residual (documented, ADR-0010): stuck-bus recovery must cycle BOTH rails of a bus. */}
-    {/* CODES PINNED v1.8 / ADR-0024, and the reason is NOT the I2C bus. These four are the
+    {/* CODES PINNED v1.7 / ADR-0024, and the reason is NOT the I2C bus. These four are the
         SOURCE OF THE NUMBER that the door and E-stop cross-plug rejection is computed from:
         ADR-0018's injection table, and now ADR-0024's, take **2.2 kOhm = THIS BOARD'S OWN
         I2C PULL-UP VALUE** as the worst-case impedance a field-built sensor-pod harness

@@ -144,54 +144,133 @@ consigned: []
 sourcing_plan:
   - lcsc: C265111
     refs: [J_THERM_A, J_THERM_B]
-    measured_stock: 0
-    measured_on: 2026-07-29
-    plan: "GENUINE JST GH-8 IS OUT OF STOCK AT LCSC AND A GEOMETRICALLY
-           DROP-IN SUBSTITUTE IS IN STOCK. This entry records the measurements,
-           not a hope, because the seal gate correctly refuses a plan without
-           them. All figures are live LCSC/JLC catalog reads on 2026-07-29
-           (selectSmtComponentList, the endpoint jlc_stock_check.py uses):
-             C265111   SM08B-GHS-TB(LF)(SN)     JST       stock 0, minPurchase 21
-             C22391766 SM08B-GHS-TB             JST       stock 0, minPurchase 444
-             C42376901 SH-SM08B-GHS-TB(LF)(SN)  SHOU HAN  stock 6086, minPurchase 1
-           BOTH genuine-JST listings read 0, so this is a CATALOG state and not a
-           code choice — and the GH-5 housings on the same board (C189896, JST)
-           read 80976, so it is specific to the 8-circuit part.
-           THE SUBSTITUTE'S LAND PATTERN IS MEASURED, NOT ASSUMED: jlc_twin
-           fitted C42376901's OWN JLC footprint against this board's
-           JST_GH_SM08B-GHS-TB_1x08-1MP_P1.25mm_Horizontal at **0.01 mm**
-           residual, NON-MIRRORED, jlc_offset 0, independently on both refs
-           (2026-07-29). So no copper, no CPL rotation and no footprint change
-           follows a swap.
+    measured_stock: 5
+    measured_on: 2026-07-30
+    # THIS ENTRY IS THE M4 WAIVER FOR A-STOCK ON THE v1.7 SEAL. The long-form
+    # argument, with its commands and their raw output, is shipped as
+    # 07_releases/cooksense-v1.7-2026-07-30/verification/A-STOCK_waiver.md.
+    plan: "THE GENUINE JST GH-8 IS UNBUYABLE TODAY — NOT MERELY SHORT — AND THE
+           BOARD IS SEALED NAMING IT ANYWAY, BECAUSE SEALING IS NOT ORDERING.
+           LIVE CATALOG READ 2026-07-30T21:33:59Z (selectSmtComponentList, the
+           endpoint jlc_stock_check.py uses, queried BOTH through the gate and
+           independently of it — the numbers agreed):
+             C265111   SM08B-GHS-TB(LF)(SN)     JST       stock 5,    MOQ 21
+             C22391766 SM08B-GHS-TB             JST       stock 0,    MOQ 444
+             C42376901 SH-SM08B-GHS-TB(LF)(SN)  SHOU HAN  stock 6030, MOQ 1
+           CONTROL the same minute: C5620 (74HC238D) = 5212, so the 5 and the 0
+           are the catalog's answer and not a dead field.
+           **MOQ 21 EXCEEDS STOCK 5.** You cannot order 21 pieces when 5 exist
+           and you cannot order 5, so the threshold that unblocks a purchase is
+           **21, not the gate's 10** (qty 2 x 5 boards). Both genuine-JST
+           listings are unbuyable; the GH-5 housings on this same board
+           (C189896, JST) are deep, so this is specific to the 8-circuit part.
+           WHY THE SEALED BOM STILL NAMES C265111 — THE FAB SET IS INVARIANT
+           UNDER THE SUBSTITUTION, AND I MEASURED THAT RATHER THAN ASSUMING IT.
+           Method (canon M1 — deliberately NOT jlc_twin, which produced the
+           inherited number): JLC's own recommended land for each code read
+           straight out of the EasyEDA `packageDetail.dataStr` PAD records, and
+           this board's copper read out of 04_kicad/cooksense.kicad_pcb with
+           pcbnew; then a translation-only rigid fit, no rotation, no reflection.
+             C265111   vs board copper: signal pads 1-8 residual 0.0002 mm,
+                                        tabs 0.0002 mm in POSITION (but see the
+                                        tab-SIZE note below — the board is the
+                                        genuine part's land on the eight signal
+                                        pads only)
+             C42376901 vs board copper: signal pads 1-8 residual **0.0100 mm**
+                                        (all eight equal), mechanical tabs
+                                        **0.0399 mm**, fit dx +0.0001 mm,
+                                        NON-MIRRORED (pin1->pin8 sweeps +8.750
+                                        mm on both lands)
+             pitch      board 1.2500 | C265111 1.2499 | C42376901 1.2499
+             tab |x|    board 6.2250 | C265111 6.2249 | C42376901 6.2249
+           **AND THE INHERITED '0.01 mm' TURNS OUT NOT TO HAVE BEEN EVIDENCE.**
+           The figure this release inherited was stated as jlc_twin fitting
+           C42376901's own JLC footprint at 0.01 mm / NON-MIRRORED /
+           jlc_offset 0 / both refs. That exact triple is **the GENUINE part's
+           own rows** in this archive's twin log —
+             twin_run.log:440  C265111  J_THERM_A  OK  fit=0.01mm jlc_offset=0
+             twin_run.log:441  C265111  J_THERM_B  OK  fit=0.01mm jlc_offset=0
+           — and a search of the whole 06_build tree finds NO jlc_twin artifact
+           for C42376901 at all, only four prose files naming the code. `fit=`
+           is jlc_twin's max per-pad residual printed at %.2f, so 0.01 is what
+           it prints for any good fit: it CANNOT discriminate the clone from
+           the genuine part, because it prints the same value for both. The
+           conclusion survives, but it survives because it was RE-MEASURED
+           above, not because the inherited number was evidence (canon M4).
+           TWO DECOMPOSED DELTAS THE INHERITED CLAIM DID NOT
+           CARRY, recorded because a residual that hides its terms is the
+           adjudication defect canon M4 is named after: (a) the clone's own
+           recommended land is 0.100 x 0.100 mm LARGER per signal pad and its
+           signal-row-to-tab-row separation is 3.1501 mm against the board's
+           3.2000 — a fillet preference and a 0.0499 mm row offset, absorbed
+           inside a 1.700 mm-tall pad, which is why the tab residual is 4x the
+           signal residual and both are still far inside the land; (b) JLC's two
+           lands NUMBER THE MECHANICAL TABS OPPOSITELY (pad 9 at x -6.225 on
+           C265111, at +6.225 on C42376901). That is electrically null HERE and
+           only here: both tabs are on GND on both refs, measured off the board.
+           WHAT A SWAP ACTUALLY EDITS, COUNTED — AND THE 'ZERO BYTES' FORM
+           OF THIS CLAIM IS RETRACTED. An earlier version of this entry said
+           'zero bytes of the fab set'; that is FALSE, because this board's
+           exporter feeds fp.GetValue() — which for these two footprints IS the
+           string C265111 — to both the BOM Comment column and the CPL Val
+           column. Cell census, independently reproduced by the v1.7 topology
+           re-gate:
+             fab/bom.csv      L51    col LCSC
+             fab/bom_jlc.csv  L51    col LCSC
+             fab/cpl.csv      L77,78 col Val
+             fab/cpl_jlc.csv  L77,78 col Val
+             11 gerbers + 2 .drl     ZERO occurrences
+           = 6 CELLS ACROSS 4 FILES. The surviving, load-bearing form of the
+           claim is: a swap changes ZERO BYTES OF THE GERBERS, THE DRILL FILES
+           AND THE CPL GEOMETRY. J_THERM_* has 0 drilled pads, so no hole can
+           move; J_THERM_A stays at (32.0, -96.75, top, 0.0) and J_THERM_B at
+           (54.0, -96.75, top, 0.0) either way. That geometric invariance is
+           what the land-pattern measurement establishes, and it is what makes
+           this a waiver rather than a defect.
+           AND THE REMEDY IS A REGENERATION, NOT A HAND EDIT (canon M3). The
+           code is authored at 03_tscircuit/src/cooksense.tsx lines 1216/1218
+           (supplierPartNumbers={{ jlcpcb: ['C265111'] }}); change it there and
+           all six cells follow from source. An earlier ORDER_README said 'edit
+           one cell of fab/bom.csv' — and fab/bom.csv is NOT the file JLC
+           receives (bom_jlc.csv and cpl_jlc.csv upload in the assembly step),
+           so that instruction would have shipped the unbuyable part. Fixed;
+           the finding is RG-P1-1.
+           TAB PAD SIZE, the term the residual is blind to (RG-P2-2): board
+           1.000 x 2.700, genuine JLC land 1.210 x 2.700, clone 1.000 x 2.500.
+           The board's retention tab is 17.4% NARROWER than JLC recommends for
+           the genuine part and matches the CLONE exactly, so '(the board's
+           footprint IS the genuine part's land)' is true on the eight signal
+           pads and FALSE on both tabs. Pre-existing library difference; cuts
+           toward the clone, not against it; stated because it sits on the one
+           axis this entry declares unverified.
            WHAT IS **NOT** MEASURED, stated plainly because it is the part that
            matters: pad correspondence is not MATE compatibility. The pods are
-           third-party SHT45 modules on GH pigtails, and the SHOU HAN describe
-           string differs from JST's on body material (LCP vs PA9T), colour
-           (beige vs white) and voltage rating (125 V vs 50 V — higher, so not a
-           concern in itself). Whether a genuine GHR-08V plug seats and retains
-           correctly in a SHOU HAN shroud has NOT been verified here, and on a
-           connector that carries the thermistor pods it is the user's call, not
-           this pass's — ADR-0024's pod-mismate analysis is written about the GH
-           FAMILY's geometry and a clone shroud is outside what it measured.
-           THREE OPTIONS, in the order they should be considered, all costed:
-             (1) RE-QUERY AT ORDER TIME. minPurchase on the genuine part is 21
-                 (not 444), so a restock of one reel clears 5 boards x2 = 10
-                 pieces comfortably. This is the only option with zero new risk.
-             (2) SUBSTITUTE C42376901 (SHOU HAN), land pattern measured drop-in
-                 above. Requires a plug-mate confirmation first.
-             (3) DECLARE not_assembled AND HAND-FIT. The board already
-                 hand-fits 14 refs (12 relays + J_LOADCELL/J_PI) so the
-                 mechanism exists — but a 1.25 mm 8-circuit SMD header is a
-                 harder hand-solder than any of them, and it would need
-                 `exclude_from_pos_files` in floorplan.yaml plus a board
-                 regeneration, i.e. a new copper revision's worth of
-                 verification for a sourcing problem.
-           THE SEAL POSITION: this release is sealed with option (1) pending —
-           the line stays ON the CPL with its genuine JST code, because that is
-           what we intend to buy, and the ORDER_README carries the recheck as a
-           blocking pre-order step. A-STOCK is satisfied by this entry's
-           MEASURED NUMBER AND DATE, which is what the gate asks for; it is NOT
-           satisfied by the claim that stock will return."
+           third-party SHT45 modules on genuine GH pigtails, and the SHOU HAN
+           describe string differs from JST's on body material (LCP vs PA9T),
+           colour (beige vs white) and voltage rating (125 V vs 50 V — higher,
+           so not a concern in itself). **Whether a genuine GHR-08V plug seats
+           and RETAINS in a SHOU HAN shroud is UNVERIFIED**, on the two
+           connectors that carry the thermistor pods, and ADR-0024's pod-mismate
+           analysis is written about the GH FAMILY's geometry — a clone shroud is
+           outside what it measured.
+           THE SEAL POSITION, DECIDED (B30-01, user, 2026-07-30): **the sealed
+           BOM names the GENUINE C265111 and the substitution is documented as
+           an ORDER-TIME PATH.** The reasoning, so it is not re-litigated:
+             - Choosing the clone NOW would bake an UNVERIFIED mechanical
+               retention risk into a sealed, immutable release, on the
+               thermistor-pod connectors, and buy nothing — nobody is ordering
+               today.
+             - Choosing not_assembled forces a BOARD REGENERATION for a sourcing
+               problem: `exclude_from_pos_files` plus a new copper revision's
+               worth of verification, on a 1.25 mm 8-circuit SMD header that is a
+               harder hand-solder than any of the 14 refs already hand-fit.
+             - Naming the genuine part preserves BOTH options at zero cost,
+               because the fab set does not move under either.
+           So the line stays ON the CPL with its genuine JST code, ORDER_README
+           section 5-0 carries the buyer-facing block (live numbers, the MOQ-
+           exceeds-stock fact, the measured drop-in AND the unverified retention
+           check), and A-STOCK is satisfied by THIS ENTRY'S MEASURED NUMBER AND
+           DATE — never by the claim that stock will return."
 
 # ---- EXEMPT REFDES CLASSES -------------------------------------------------
 # H  = M3 mounting holes (generate_board_generic sets FP_BOARD_ONLY +
