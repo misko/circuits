@@ -38,6 +38,7 @@ un-fixed refdes is exactly the defect being repaired.
 
 Usage:  /usr/bin/python3 03_src/cooksense/fix_silk_placement.py <project_dir>
 """
+import re
 import sys
 from pathlib import Path
 
@@ -703,6 +704,38 @@ def main(argv):
     # terminal, so the reserve (PASS D0) is armed BEFORE any label is placed and
     # every refdes placement in this file honours it.  Nothing about silk is
     # first-come-first-served once a hazard label needs the space.
+    # OWNERSHIP IS PART OF "PLACED", AND IT WAS NOT — FOUND 2026-07-29 BY TWO
+    # INDEPENDENT ROUTES.  This block bounded each caption's distance to ITS OWN
+    # part (ISO_MAX_GAP_MM) and tested nothing about the OTHER parts nearby.  So
+    # `'1C2L3L4E'` — the four-pole legend for a 30 V NOT-SELV terminal — was
+    # placed at (181.250, 101.000), 7.960 mm from the block and therefore legal
+    # by this pass's own rule, and MEASURED 0.161 mm from `J_RH_EXHAUST`, a
+    # 5-pole JST-GH humidity-sensor connector, against 5.512 mm from the nearest
+    # other connector.  As printed it reads as J_RH_EXHAUST's pin legend: four
+    # pole letters beside a five-pole sensor header.  `policy_audit`'s new
+    # P-SILK-OWN row caught the same thing from the other direction (it attributed
+    # the token to J_RH_AMBIENT, 13.841 mm, and named J_RH_EXHAUST at 6.210 mm
+    # centroid-to-text) — two methods, no shared code, same conclusion.
+    # A candidate site is now REJECTED unless J_ISOLOOP is the NEAREST member of
+    # the connector/fuse/test-point family to it.  That converts a silent mislabel
+    # into the "DOES NOT FIT ... reported, not dropped" path this block already
+    # has, which is the honest outcome: the same information is carried IN FULL
+    # and SELF-IDENTIFIED by the north-stack caption "J_ISOLOOP (SE CORNER) =
+    # ISOLATED 30V CONTACTOR LOOP -- NOT SELV -- POLES 1=C 2=LOOP 3=LOOP 4=E".
+    # A legend nobody can attribute is worse than a legend that is one sentence
+    # further away.
+    _OWN_FAM = re.compile(r"^(J|F|TP)([0-9]|_)")
+    _own_fam_boxes = [(r, bx) for r, bx in fp_boxes.items()
+                      if _OWN_FAM.match(r) and r != "J_ISOLOOP"]
+
+    def _iso_owns(cb):
+        """True iff J_ISOLOOP is the nearest J*/F*/TP* part to this text box."""
+        mine = box_gap(cb, fp_boxes["J_ISOLOOP"])
+        for _r, bx in _own_fam_boxes:
+            if box_gap(cb, bx) < mine:
+                return False
+        return True
+
     iso_fp = fps.get("J_ISOLOOP")
     if iso_fp is not None:
         iso_box = fp_boxes["J_ISOLOOP"]
@@ -733,6 +766,8 @@ def main(argv):
                             continue
                         if any(hit(cb, o) for o in near):
                             continue
+                        if not _iso_owns(cb):
+                            continue          # OWNERSHIP, see the note above
                         best = (g, x, y, rot)
             if best is None or best[0] > ISO_MAX_GAP_MM:
                 if txt in ISO_ART_BEST_EFFORT:

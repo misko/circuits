@@ -4,14 +4,41 @@
 #
 # ---- JST-GH / Micro-Fit mechanical solder tabs (pad name "MP") ----------------
 # The JST-GH and Micro-Fit KiCad footprints carry two mechanical solder tabs on a
-# single pad node named "MP". The tscircuit pinrow tokens model only the numbered
-# signal pads, so "MP" is NOT authored in cooksense.tsx. At the BOARD stage the MP
-# tabs are reflowed to GND (SELV-logic connectors) or GND_ISO (the isolated keypad
-# connector J_KEY_MATRIX). Listed here so TSX-PRE treats the alphanumeric MP pad as
-# covered. format: <part-dir> <tsx-pad-or-MP> <real-pad / board-stage bond>
+# single pad node named "MP". Listed here so TSX-PRE treats the alphanumeric MP pad
+# as covered. format: <part-dir> <tsx-pad-or-MP> <real-pad / board-stage bond>
+#
+# CORRECTED 2026-07-29 — THIS BLOCK NAMED A NET THAT DOES NOT EXIST, and it is why
+# `kicad_sch_parity.py` has returned FAIL on this board (including on SEALED v1.6,
+# re-measured today: the same single `('J_KEY_MATRIX','MP')` no-connect difference,
+# 1/161 nets there and 1/169 here). It said the MP tabs are reflowed to "GND
+# (SELV-logic connectors) or **GND_ISO** (the isolated keypad connector
+# J_KEY_MATRIX)". MEASURED: `grep -c GND_ISO` on the netlist is **0** — there is no
+# such net and there never was; the only ISO-bearing net name on the board is
+# `SPI_MISO`, matched by substring. Same shape as the `supplies: {N3V3: 3.3}`
+# defect found 2026-07-29: a source file asserting a bond to a net the netlist can
+# disprove.
+#
+# THE BOARD IS RIGHT AND THE DOCUMENT WAS WRONG. J_KEY_MATRIX's two MP tabs are
+# DELIBERATELY UNBONDED — netless on the board, and absent from the netlist (the
+# tsx authors `MP` for all eight other connectors and not for this one, which is a
+# decision, not an omission). It has to be that way: J_KEY_MATRIX is the ONLY
+# connector on the ISOLATED keypad side of the 1.5 kVDC reed barrier, so reflowing
+# its shell tabs to the SELV `GND` plane — what every other connector here does —
+# would short the isolated domain to SELV at the connector, defeating ADR-0002's
+# isolation claim at the one connector that carries the isolated nets off-board.
+# There is no keypad-domain ground to bond them to instead, by design.
+# MEASURED CONSEQUENCE of leaving them floating (pours filled, all four layers):
+# nearest SELV-net copper **19.407 mm** (worst of the two tabs; the other 28.181)
+# against a >= 6.000 mm requirement, and 39.975 mm to any plane. Their nearest
+# netted neighbour is a keypad-domain track (KP_U1, 0.450 mm) — same domain, so a
+# bridge there reaches a conductor that goes nowhere.
+# The residual parity FAIL is therefore EXPECTED, is confined to this one
+# mechanical pad, and is dispositioned with these numbers in the release
+# verification rather than waived. It is a checker gap (a mechanical pad that is
+# unbonded BY DESIGN has no way to say so), not a copper defect.
 SM05B-GHS-TB MP GND
 SM08B-GHS-TB MP GND
-SM10B-GHS-TB MP GND_ISO
+SM10B-GHS-TB MP UNBONDED-BY-DESIGN   # J_KEY_MATRIX — isolated keypad side; see above
 43650-0224 MP GND
 #
 # ---- DIP05-1A72-13L reed relay: 'dip4' pads == real land pads (IDENTITY) -------

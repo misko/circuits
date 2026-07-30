@@ -1688,3 +1688,93 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
   the rail rather than inherited: 5V_STOP vout_min **4.754** V, so +70 C margin is
   **+0.454 V** at the estimated 0.10 V V_DS and **+0.054 V** even at 0.50 V.
 - next: stage the archive from `06_build/fab_v20/`, then the four fresh lenses.
+
+## 2026-07-29 18:05 — iterate (P-SILK-OWN'S FIRST RUN CAUGHT A REAL MISLABEL, AND A SILK CAPTION NAMED A NET THAT DOES NOT EXIST)
+- **A 30 V POLE LEGEND WAS PRINTED 0.161 mm FROM A SENSOR CONNECTOR.** The new
+  P-SILK-OWN row reported `J_RH_AMBIENT: silk '1C2L3L4E' 13.841 mm own vs
+  J_RH_EXHAUST 6.210 mm`. Re-measured EDGE-to-EDGE: the token — J_ISOLOOP's
+  four-pole legend for the NOT-SELV 30 V terminal — sat **0.161 mm from
+  `J_RH_EXHAUST`**, a 5-pole JST-GH humidity header, against 5.512 mm from the
+  part the gate attributed it to. As printed it reads as that connector's pin
+  legend: four pole letters beside a five-pole sensor header.
+  ROOT CAUSE, and it is a rule that was never written: `fix_silk_placement.py`
+  bounded each hazard caption's distance to **its own part** (`ISO_MAX_GAP_MM`
+  8.0) and tested NOTHING about the other parts nearby, so 7.960 mm from the
+  block was "legal" by its own rule. It now REJECTS any candidate site where
+  J_ISOLOOP is not the nearest connector/fuse/test-point, and the token takes the
+  block's existing "DOES NOT FIT ... reported, not dropped" path: after the
+  rebuild it prints `nearest legal site inf mm away` — there is NO owned site
+  anywhere near that corner, which is the honest answer. The information is
+  carried IN FULL and SELF-IDENTIFIED by the north-stack caption
+  "J_ISOLOOP (SE CORNER) = ISOLATED 30V CONTACTOR LOOP -- NOT SELV -- POLES
+  1=C 2=LOOP 3=LOOP 4=E". Two methods, no shared code, same finding.
+- **THE SILK PRINTED `GND_ISO ONLY` — A NET THAT DOES NOT EXIST.** The keypad
+  caption read "KEYPAD ISOLATION COMB >=6mm creepage **GND_ISO ONLY** (contact
+  columns face pockets)". `grep -c GND_ISO` on the netlist is **0**; the only
+  ISO-bearing net name on this board is `SPI_MISO`, matched by substring. Same
+  ghost as `supplies: {N3V3: 3.3}`, except this one was printed ON THE PRODUCT:
+  an integrator was told to bond the isolated keypad domain to a net nobody
+  authored. Corrected to **NO GND BOND** — one character shorter, so the pinned
+  caption's bbox cannot displace a neighbour. The truth it now states is the
+  design: the isolated keypad domain has NO ground, which is what makes the
+  1.5 kVDC reed barrier mean anything.
+- **THE SAME GHOST WAS IN `parity_padmap.txt`, AND IT IS WHY A GATE HAS BEEN
+  FAILING SINCE BEFORE v1.6.** The file said J_KEY_MATRIX's two MP tabs are
+  "reflowed to GND_ISO". MEASURED: they carry NO net; every one of the eight
+  OTHER connectors' MP tabs is on `GND`; and the netlist authors an `MP` node for
+  all eight and NOT for J_KEY_MATRIX — a decision, not an omission. It has to be:
+  J_KEY_MATRIX is the only connector on the ISOLATED side of the reed barrier, so
+  reflowing its shell tabs to the SELV plane would short the isolated domain to
+  SELV at the one connector that carries the isolated nets off-board. **The board
+  is right and the document was wrong.** MEASURED consequence of floating tabs
+  (pours filled, four layers): nearest SELV-net copper **19.407 mm** (other tab
+  28.181) against a >= 6.000 mm requirement, 39.975 mm to any plane; nearest
+  netted neighbour is a keypad-domain track at 0.450 mm, same domain.
+  `kicad_sch_parity.py` therefore reports **1/169 nets FAIL** on the single
+  `('J_KEY_MATRIX','MP')` no-connect — and it reports the IDENTICAL finding
+  against **SEALED v1.6** (1/161), so it is inherited, not new. Dispositioned
+  with those numbers, not waived; it is a checker gap (a mechanical pad unbonded
+  BY DESIGN has no way to say so).
+- **P-SILK-OWN: waived, with a measurement the gate does not make.** The other
+  five entries are artifacts of the gate's CENTROID-to-text metric on large
+  bodies. Re-measured box-EDGE-to-EDGE: J_ISOLOOP OWNS 'ISO 30V' by **+0.499 mm**
+  (0.561 vs J_DOOR 1.060) where the gate saw 9.641 vs 7.844; TP_RKEY owns the
+  keypad caption by **+2.406 mm** (0.000 overlap vs 2.406); TP_USEL ties
+  **1.304/1.304** on the BOARD TITLE; TP_PGOOD's nearest caption '5V SELV IN' is
+  correctly F1's (1.008 mm — F1 is the input polyfuse ON that rail);
+  J_RH_EXHAUST owns none, its nearest being J_ISOLOOP's 'ISO 30V' at 6.661 mm
+  against the true owner's 0.561 — an 11.9x lead. All five measured on this
+  board today, by a method independent of the gate's.
+- **W-FOREIGN, and it was cooksense's own inherited-waiver flag.**
+  `waiver_provenance.py` FAILED the S-OCCL waiver for naming crow-mic-pod-v2 with
+  no `derived_from`. The waiver's EVIDENCE is native (77 sites at 12 px/mm on this
+  board's own schematic), so `derived_from: [crow-recorder-central-v2,
+  crow-mic-pod-v2]` is DECLARED with a note that only the waiver CLASS is
+  inherited — the citation is a real precedent and deleting it to green a gate
+  would have been the worse move. Scoped verdict now **PASS, 12/12 waivers, all
+  independently reasoned**. The remaining fleet FAIL is
+  crow-recorder-central-v2's own S-OCCL, a SIBLING board — reported, not touched.
+- **A REPRODUCIBILITY MEASUREMENT, INCLUDING MY OWN WRONG FIRST READING.** Two
+  exports of the SAME board file first looked NON-deterministic; that was MY
+  measurement error — I stripped `Created by KiCad` and not the second timestamp,
+  `%TF.CreationDate`. With BOTH stripped, two exports are **BYTE-IDENTICAL on all
+  eleven gerbers**. What IS real: rebuilding from source with a SILK-ONLY source
+  delta moved copper by **11 D01 vertices on F.Cu and 4 on B.Cu** (In1/In2
+  order-only, F_Mask / Edge_Cuts / pastes byte-identical, CPL and BOM identical) —
+  a zone-fill tie-break in the refill. So the pipeline is SEMANTICALLY
+  reproducible and not BYTE-reproducible across runs, and the MANIFEST will say
+  so rather than imply otherwise.
+- MEASURED after the silk fix: DRC **0/0/0** (`06_build/proof/drc_v21.json`),
+  E-INV **151/151**, E-ADR **9/9**, audit_board PASS (I-ISO 6.22 mm, I-OUT
+  0.35 mm), placement_gates PASS 0/0, S-COUNT **4/4 over 241**, twin **209 OK /
+  471 rows, bodies 208/208** exit 0, A-RENDER hires **exit 0, 53 measured / 210,
+  0 resolvable-but-unmeasured**, export **A-ROT 208/208** + **F-LEGIBLE 59/59**,
+  F-LEGIBLE on the staged bytes **OK 58 checks**, bom_source_check **PASS** (leg C
+  27/27 over 59 rows), P-FACT **OK 5/5 graded, 0 unreached**, rotation table
+  **OK 64 rows**, stock **PASS 56/56** with `stock_check.csv` a REAL map (56 rows,
+  `mpn` column, ZERO blank MPNs on coded rows), ERC 0 errors. policy_audit
+  **FAIL=1 / WAIVED=6 / PASS=22 / HUMAN=6 / N-A=9** — the one FAIL is M-BOM
+  grading SEALED v1.6's BOM against current source (it names C506653 for U_EXP,
+  which is v1.6's code), and it is expected to clear when v1.7 becomes the
+  resolved release. That will be PROVEN at the seal, not predicted.
+- next: re-stage from `06_build/fab_v21`, join the four lenses, then the seal.

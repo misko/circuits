@@ -914,8 +914,18 @@ silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJKQ"}
   captions:
+    # CORRECTED 2026-07-29: the keypad caption printed "GND_ISO ONLY" — a NET NAME
+    # THAT DOES NOT EXIST ON THIS BOARD (`grep -c GND_ISO` on the netlist = 0; the
+    # only ISO-bearing net name here is `SPI_MISO`, matched by substring). It is
+    # the same ghost `03_tscircuit/parity_padmap.txt` carried, and printing it on
+    # the SILK put it on the physical product: an integrator reading the board is
+    # told to bond the keypad domain to a net that was never authored. The truth is
+    # that the isolated keypad domain has NO ground on this board BY DESIGN — that
+    # is what makes the 1.5 kVDC reed barrier meaningful — so the caption now says
+    # NO GND BOND. One character shorter than the string it replaces, so the
+    # stroke-font bbox cannot displace a neighbour.
     - {text: "cooksense  SMC0985KS  sidecar v1.7", at: [106.0, 13.0], size: 0.9, nudge: false}   # BUMPED v1.2 -> v1.3 (2026-07-26): both red-team lenses caught the board silk naming a revision that was never sealed, sitting between two DO-NOT-ORDER releases. v1.3 has real physical deltas (H4 notch, merged J_ISOLOOP) so a field board must not claim to be v1.2. BUMPED v1.3 -> v1.7 (2026-07-28) by the SAME rule and it is the first bump that was OWED and nearly missed: v1.4/v1.5/v1.6 were all docs/BOM-only supersedes over a board that was md5-identical to v1.3's, so the silk was HONEST through all three. v1.7 moves copper (J_MODE JST-GH -> JST-ZH, +11 restrictive-default resistors, the CD74HC221 section-2 REARM_N edge-detect), so a field board that still said v1.3 would send anyone diffing it against the sealed v1.3 archive to the wrong netlist. Same 4-character token, so the stroke-font bbox is unchanged and the pinned caption cannot displace a neighbour.
-    - {text: "KEYPAD ISOLATION COMB   >=6mm creepage   GND_ISO ONLY   (contact columns face pockets)", at: [106.0, 21.0], size: 0.8, nudge: false}
+    - {text: "KEYPAD ISOLATION COMB   >=6mm creepage   NO GND BOND   (contact columns face pockets)", at: [106.0, 21.0], size: 0.8, nudge: false}
     - {text: "5V SELV IN", at: [39.0, 54.3], size: 0.7, nudge: false}
     - {text: "ANALOG SENSE (3V3_ANALOG)", at: [36.0, 84.0], size: 0.7, nudge: false}
     - {text: "PI 40-PIN RIBBON (SIDECAR)", at: [112.0, 90.0], size: 0.7, nudge: false}

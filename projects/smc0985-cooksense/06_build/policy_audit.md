@@ -6,25 +6,27 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 
 | ID | Grade | Detail |
 |---|---|---|
-| S-ERC | PASS | 0 errors (417 warnings) |
-| S-NC | PASS | all floats no_connect-flagged |
+| S-ERC | N-A | no schematic or --skip-drc |
+| S-NC | N-A | no ERC data |
 | S-NET | PASS | 168 routed nets, all named |
-| S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'SN74HC14DR', 'SN74HC595DR', 'X9555WV-2x16-6TV01'] (8/36) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
-| P-ESC | PASS | 44 parts: escape blocks agree with escape_check |
+| S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'SN74HC14DR', 'SN74HC595DR', 'ULN2803ADWR'] (9/37) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
+| P-ESC | PASS | 45 parts: escape blocks agree with escape_check |
 | P-TIER | PASS | all parts escape at declared fab_tier 'jlc_4layer_advanced' |
-| P-LAYOUT | PASS | 33 in-scope parts carry a datasheet layout: block |
-| P-ADJ | WAIVED | datasheet layout budgets exceeded: ["3V3 span 176.9mm > 5.0mm (COUT (>=22uF-class) hard against VOUT (pin2 / tab) - it IS the LDO's frequency-compensation cap; loop stability depends on it (ds1117 Stability))", '5V_PROTECTED span 169.1mm > 8.0mm (CIN local to VIN (pin3) for line/transient bypass)', 'OS_RC span 12.6mm > 8.0mm (one-shot timing node 1CX(14)/1CXRX(15): Rx+Cx directly at pins 14/15 — an RC I/O node that must not be pulled to a rail; large 510k impedance makes it noise-sensitive)', 'TH_CAM_A span 39.6mm > 8.0mm (high-impedance thermistor sense into 1IN+; keep short + away from switched relay rail to avoid pickup that could false-trip / mask the over-temp inhibit)', 'TH_CAM_B span 39.2mm > 8.0mm (high-impedance thermistor sense into 2IN+; same)'] — re-place per the part's layout: block (targets HARD against the chip), or waive with the measured span + why (P-ADJ) — waived: BOARD-WIDE-RAIL keep_short budgets are geometrically unreachable by P-ADJ's max-pairwise-p... |
-| P-ADJ-UNREACHED | WAIVED | budgets DECLARED but graded by NOTHING: ["2N7002: keep_short net 'HS_GATE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "43650-0224: keep_short net '+5V' has 0 pad(s) on this board (needs 2) — budget 10.0mm graded NOTHING", "AO3401A: keep_short net 'HS_GATE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "AQY212GS: keep_short net 'LED_DRIVE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "CD74HC221M96: keep_short net 'N3V3' has 0 pad(s) on this board (needs 2) — budget 5.0mm graded NOTHING"] (25/37) — the net name does not name a 2+-pad net on this board (renamed, or copied from the datasheet's reference design). Fix the name or drop the budget; a budget nothing evaluates is not a pass — waived: A SEPARATE waiver with its OWN evidence, deliberately NOT folded into the P-ADJ waiver abo... |
+| P-LAYOUT | PASS | 34 in-scope parts carry a datasheet layout: block |
+| P-ADJ | WAIVED | datasheet layout.keep_short budgets exceeded: ['AMS1117-3.3:3V3 U_LDO.2->C_3V3.1 5.89mm of 5.0mm EXCEEDED (COUT (>=22uF-class) hard against VOUT (pin2 / tab) - it IS t)', 'SN74HC238DR:3V3 U_DECD.16->U_DECDEN.6 5.97mm of 5.0mm EXCEEDED (0.1uF VCC(16)-GND(8) bypass hard against the package)'] (2/10 graded) — re-place per the part's layout: block (targets HARD against the chip), or waive with the measured pair + why (P-ADJ) — waived: BOARD-WIDE-RAIL keep_short budgets are geometrically unreachable by P-ADJ's max-pairwise-p... |
+| P-ADJ-PAIR | N-A | no layout.adjacency budgets declared in 02_parts |
+| P-ADJ-UNREACHED | WAIVED | budgets DECLARED but graded by NOTHING: ["2N7002: keep_short net 'HS_GATE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "43650-0224: keep_short net '+5V' has 0 pad(s) on this board (needs 2) — budget 10.0mm graded NOTHING", "AO3401A: keep_short net 'HS_GATE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "AQY212GS: keep_short net 'LED_DRIVE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "CD74HC221M96: keep_short net 'N3V3' has 0 pad(s) on this board (needs 2) — budget 5.0mm graded NOTHING"] (27/37) — the net/refdes does not name a measurable pair on this board (renamed, split by a series element, or copied from the datasheet's reference design). Fix the name, name the pins with anchor_pins:, or drop the budget; a budget nothing evaluates is not a pass — waived: A SEPARATE waiver with its OWN evidence, deliberately NOT folded into the P-ADJ waiver abo... |
 | S-OCCL | PASS | 0 text occlusions (<= 0) |
 | S5 | HUMAN | design-math spot-check per review protocol |
 | S6 | HUMAN | schematic readability graded in render review |
 | S7 | HUMAN | decoupling-adjacency graded in render review |
-| P-CRT | PASS | 0 courtyard findings |
-| R-DRC | PASS | 0/0/0 at severity-all |
+| P-CRT | N-A | no DRC run |
+| R-DRC | N-A | no DRC run |
 | P-POL | PASS | polarity machine-check present (pad-1 nets vs part facts) |
 | P-KEEP | PASS | mate/keepout checks present in project audit |
 | P-SILK-REF | PASS | all refdes on visible silk |
-| P-SILK-FN | WAIVED | no functional silk text within 8.0mm of: ['TP_WDOK', 'TP_TCFAULT', 'TP_SPARE', 'TP_ESTOP', 'TP_ALLOW', 'J_PWR', 'J_KEY_MATRIX', 'J_TC', 'J_THERM_B', 'J_ESTOP'] — waived: NEW FAILURE ON A NEWLY-SIGHTED GATE, AND THAT IS THE POINT. Until 2026-07-28 P-SILK-FN's d... |
+| P-SILK-FN | WAIVED | no functional silk text within 8.0mm(+body) of: ['TP_WDOK', 'TP_TCFAULT', 'TP_SPARE', 'TP_ESTOP', 'TP_ALLOW', 'J_PWR', 'J_KEY_MATRIX', 'J_TC', 'J_THERM_B', 'J_ESTOP'] (20/31) — waived: NEW FAILURE ON A NEWLY-SIGHTED GATE, AND THAT IS THE POINT. Until 2026-07-28 P-SILK-FN's d... |
+| P-SILK-OWN | WAIVED | LABEL ON THE WRONG PART (5/31): ["J_RH_EXHAUST: silk 'ISO 30V' is 11.52mm from J_RH_EXHAUST but 7.84mm from J_DOOR", "TP_PGOOD: silk '5V SELV IN' is 8.43mm from TP_PGOOD but 3.83mm from F1", "TP_USEL: silk 'cooksense  SMC0985KS  ' is 6.95mm from TP_USEL but 4.61mm from TP_DSEL", "J_ISOLOOP: silk 'ISO 30V' is 9.64mm from J_ISOLOOP but 7.84mm from J_DOOR", "TP_RKEY: silk 'KEYPAD ISOLATION COMB ' is 5.70mm from TP_RKEY but 5.41mm from TP_DSEL"] — a legend nearer another '^(J\|F\|TP)([0-9]\|_)' part misdirects whoever plugs the cable in. MOVE it (do not add a second), or waive with the measured pair of distances + why it is one legend for a bank — waived: FIVE misowned labels reported, and ALL FIVE are an artifact of the gate's CENTROID-TO-TEXT... |
 | P-PLANE | PASS | In1 carries only its plane (0 tracks) |
 | R-PLANE | N-A | no plane_regions configured |
 | R-POUR | WAIVED | high-current-class nets with no pour: ['5V_FUSED', '5V_IN', '5V_PROTECTED', '5V_RPP'] — waived: The four PWR_IN-class 5V nets (5V_IN, 5V_FUSED, 5V_PROTECTED, 5V_RPP) are distributed as T... |
@@ -32,7 +34,7 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | R-RULES | PASS | r0.kicad_pro: classes=['Default', 'PWR_IN', 'COIL_RAIL', 'STOP_RAIL', 'PWR_3V3', 'PWR_SW', 'ISO_CONTACTOR', 'KEYPAD_ISO', 'ANALOG_SENSE'] |
 | R4 | HUMAN | escape-first routing order — design review (feasibility itself is machine-checked: P-ESC/P-TIER) |
 | R-LEN | PASS | length-spread audit present in 03_src |
-| E-INV | PASS | E-INV OK: 140/140 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
+| E-INV | PASS | E-INV OK: 151/151 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
 | E-ADR | PASS | E-ADR OK: 9/9 protection/topology ADR(s) cited by an invariant (graded against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/03_src/rules/electrical_invariants.yaml) |
 | E-TOPO | PASS | E-TOPO OK: 1/1 rail(s) topology-correct, covering 1/1 converter part(s) in 02_parts   rail '3V3' (Vin 4.754-5.25 V, Vout 3.201-3.399 V): required=BUCK, declared=LINEAR (AMS1117-3.3) -> step-down requi |
 | E-MARGIN | N-A | E-MARGIN N-A: no rail declares load_uv_threshold - no regulated rail feeds a known fixed-brownout load |
@@ -41,6 +43,7 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | M-REL | PASS | cooksense-v1.6-2026-07-27: provenance + hashes verify (board 'cooksense': 6 of 8 release dir(s) in 07_releases) |
 | M-BOM | FAIL | 8 BOM-vs-source defect(s): MERGED row '100kΩ' (LCSC C25741): its designators have DIFFERENT source codes and must be SEPARATE rows — R_COILENPD->C137948, R_CTRREQPD->C25741, R_DECDPD->C25741, R_DECUPD->C25741, R_HOSTAUTHPD->C25741, R_HSG->C25741, R_KRSTPD->C25741, R_MCUENPD->C25741, R_MR->C25741, R_OPENB->C25741, R_OVT->C270658, R_PG->C25741, R_RAENAPD->C25741, R_RAENBPD->C25741, R_RAENRHAPD->C25741, R_RAENRHEPD->C25741, R_REARMPU->C25741, R_STOPPD->C25741, R_SWPUA->C25741, R_SWPUB->C25741, R_SWPURHA->C25741, R_SWPURHE->C25741 \|\| SUBSTITUTED code on row '15kΩ': BOM has C25756 but source says C407739 for ['R_OVB'] \|\| SUBSTITUTED code on row 'MCP23017-E/SS': BOM has C506653 but source says C558584 for ['U_EXP'] |
 | A-POP | PASS | cooksense-v1.6-2026-07-27: A-POP: PASS (every unpopulated part is declared with evidence) |
+| M-DEPEND | PASS | M-DEPEND coverage: 316 coded row(s) across 6 sealed release(s) — 316 GRADED, 0 WAIVED (release-internal map, blank cell), 0 PINNED-AND-DISAGREEING (F-MPN's), 0 FAIL |
 | A-BODY | PASS | cooksense-v1.6-2026-07-27: bodies mounted 189/189 (generated) |
 | M-JRNL | PASS | 10 stage journals, 10 with entries |
 | M-LEARN | PASS | 4 stage learnings files |
@@ -48,4 +51,4 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | M1 | HUMAN | independent-reference coverage — release review |
 | M6 | HUMAN | authoritative-source discipline — encoded in protocols |
 
-Summary: FAIL=1, HUMAN=6, N-A=4, PASS=25, WAIVED=5
+Summary: FAIL=1, HUMAN=6, N-A=9, PASS=22, WAIVED=6

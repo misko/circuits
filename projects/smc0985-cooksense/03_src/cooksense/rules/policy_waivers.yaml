@@ -167,6 +167,17 @@
 
 - id: S-OCCL
   refs: ["03_tscircuit/kicad/cooksense.kicad_sch"]
+  # DECLARED 2026-07-29 (W-FOREIGN, canon M4). The `why` below cites two other
+  # boards, and `waiver_provenance.py` FAILED it for naming another project with
+  # no `derived_from` — correctly, because an undeclared foreign citation is the
+  # byte-copy signature. What is inherited here is the waiver CLASS ONLY (the
+  # converter .kicad_sch is the MACHINE artifact per ADR-0002; readability is
+  # graded on tscircuit's own render). THE MEASUREMENT IS THIS BOARD'S: 77 sites
+  # inspected individually at 12 px/mm on cooksense's own schematic, plus the two
+  # 4.17 x 0.04 mm edge-kisses re-measured with the audit's own bbox model. The
+  # declaration is added rather than the citation deleted: the precedent is a real
+  # fact and hiding it to make a gate green would be the worse move.
+  derived_from: [crow-recorder-central-v2, crow-mic-pod-v2]   # waiver CLASS only; evidence is native
   why: >-
     The occlusions (count varies run-to-run — 77/78/79 observed, because the
     converter mints fresh UUIDs and label bboxes shift; it is NOT a stable
@@ -297,3 +308,58 @@
     as functional silk when the refdes is not a bare `<prefix><digits>` — and it
     still has no known-bad fixture, which the v1.7 dispositions already record as
     a debt. Until it has one, this waiver is the measurement standing in for it.
+
+- id: P-SILK-OWN
+  why: >-
+    FIVE misowned labels reported, and ALL FIVE are an artifact of the gate's
+    CENTROID-TO-TEXT-CENTRE metric on parts with large bodies. Re-measured
+    2026-07-29 on 04_kicad/cooksense.kicad_pcb by an INDEPENDENT method — box
+    EDGE-TO-EDGE gap, text bounding box against footprint bounding box (pads +
+    graphics, GetBoundingBox(False, False)) — which is the distance a human
+    reading the fabricated board actually judges by, and which the gate's own
+    text acknowledges it wants ("waive with the measured pair of distances").
+    Every number below is from that re-measure, and the gate's own numbers are
+    quoted beside them so the disagreement is visible rather than hidden.
+      (1) J_ISOLOOP / 'ISO 30V' — gate: 9.641 mm own vs J_DOOR 7.844 mm.
+          EDGE: own **0.561 mm** vs J_DOOR **1.060 mm** -> J_ISOLOOP OWNS IT by
+          +0.499 mm. Same for 'NOT SELV': EDGE own 1.936 vs J_DOOR 2.092. The
+          centroid measure is wrong here BY CONSTRUCTION: J_ISOLOOP is a KF350
+          4-pole block whose body spans x[191.57, 199.22], so its centroid sits
+          ~4 mm from the edge the caption is printed against. THE ONE HAZARD
+          LABEL ON THIS BOARD IS OWNED BY ITS OWN TERMINAL, and that is the
+          finding that matters in this row.
+      (2) TP_RKEY / 'KEYPAD ISOLATION COMB   >=6mm creepage   NO GND BOND' —
+          gate: 5.701 own vs TP_DSEL 5.408. EDGE: own **0.000 mm** (the boxes
+          overlap) vs TP_DSEL **2.406 mm** -> TP_RKEY OWNS IT by +2.406 mm.
+      (3) TP_USEL / 'cooksense  SMC0985KS  sidecar v1.7' — gate: 6.946 own vs
+          TP_DSEL 4.610. EDGE: **1.304 mm to BOTH** — an exact tie, because this
+          is the BOARD-IDENTIFICATION caption centred on the north edge between
+          the two select test points. It names the board, not a connector; there
+          is no "own part" for it to be nearer to, and nobody wires anything by
+          reading a revision string.
+      (4) TP_PGOOD / '5V SELV IN' — gate: 8.429 own vs F1 3.833. EDGE: own
+          4.472 vs F1 **1.008**. F1 IS THE CORRECT SUBJECT: the caption names
+          the 5 V SELV input RAIL and F1 is the input polyfuse ON that rail, so
+          the label is 1.008 mm from the thing it describes. TP_PGOOD is a test
+          point and carries its own refdes on F.Silkscreen at (44.60, 56.20).
+      (5) J_RH_EXHAUST — owns no functional caption at all; its nearest is
+          J_ISOLOOP's 'ISO 30V' at EDGE **6.661 mm**, where the true owner sits
+          at 0.561 mm — an 11.9x lead for J_ISOLOOP. A hazard caption 6.7 mm
+          away is not plausibly read as this connector's legend, and
+          J_RH_EXHAUST's identity is its own refdes on F.Silkscreen at
+          (180.00, 95.50).
+    WHAT WAS NOT WAIVED, BECAUSE IT WAS A REAL DEFECT AND IT WAS FIXED: this
+    gate's first run on this board ALSO reported `J_RH_AMBIENT: silk '1C2L3L4E'
+    ... 13.841 mm own vs J_RH_EXHAUST 6.210 mm`. That token is J_ISOLOOP's
+    four-pole legend, and EDGE-measured it sat **0.161 mm from J_RH_EXHAUST**
+    (a 5-pole JST-GH sensor header) against 5.512 mm from its attributed owner.
+    `fix_silk_placement.py` had bounded that caption's distance to its OWN part
+    and tested nothing about the others, so it placed a 30 V pole legend against
+    a sensor connector, legally by its own rule. The pass now REJECTS any site
+    where J_ISOLOOP is not the nearest connector/fuse/test-point, and the token
+    reports DOES NOT FIT (no owned site exists anywhere near the block) instead
+    of being printed on the wrong part. The information is carried in full and
+    SELF-IDENTIFIED by the north-stack caption "J_ISOLOOP (SE CORNER) =
+    ISOLATED 30V CONTACTOR LOOP -- NOT SELV -- POLES 1=C 2=LOOP 3=LOOP 4=E".
+    Two independent methods found that one — this gate, and the placement pass's
+    own new ownership test — and they share no code.
