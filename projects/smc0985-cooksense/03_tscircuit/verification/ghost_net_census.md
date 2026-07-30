@@ -121,3 +121,48 @@ The census is 30 lines of Python over `06_build/netlists/cooksense.net` +
 **This should be a GATE, not an artifact** — a sibling agent is building the
 general one. This file exists so the two counts can be reconciled on the same
 board rather than argued about.
+
+
+## RECONCILED against the fleet gate (E-NETREF, `701f099`) — 2026-07-29
+
+The sibling's `net_reference_audit.py` landed while this was being written, so the
+two counts are reconciled here on the same board instead of being argued about.
+Run after this revision's fixes:
+
+    E-NETREF: FAIL — 281/302 references resolved, 21 ghost (5 with a named
+              near-miss), 0 unreached          [exit 1]
+
+**They agree, and the difference is informative.**
+
+- **All 21 of E-NETREF's ghosts are `K7` = `02_parts/*/part.yaml
+  layout.keep_short[].net`** — the same population as classes A/B-open/B-multi/C
+  above, and the same 13 distinct names once `VOUT` is set aside.
+- **The four eFuse rows this revision re-pointed are GONE from its output.**
+  `5V_SELV`, `EN_OVLO_N`, `ILM` and `dVdt` do not appear. That is the Blocker-2
+  fix confirmed by an INDEPENDENT instrument written by another author (canon M1:
+  the checker and the checked must not share a method). Before the fix its count
+  would have been 25.
+- Its denominator is larger (302 vs 236) because it scans twelve kinds — netclass
+  members, floorplan zones/pad_net asserts/captions, `power_tree` rail names — where
+  this census walked eight keys.
+
+### THE ONE ROW E-NETREF DOES NOT SEE, and it is the field the `GND_ISO` ghost lived in
+
+This census counts **22 rows** to E-NETREF's 21. The extra is
+`02_parts/AMS1117-3.3/part.yaml` `pins.4.tie: VOUT`, and **`pins.<n>.tie` is not
+among E-NETREF's K1–K12.**
+
+It is not a harmless field. Six dossiers use it and **five name the real net
+`GND`** — and those ties drive real copper: the eFuse `pins.9.tie: GND` is an
+entire rebuild stage (`5a/8 tie U_EFUSE EP unnamed sub-pads -> GND`), and the
+connector `MP: {tie: GND}` tabs are exactly what `parity_padmap.txt` adjudicates —
+**the file where the `GND_ISO` ghost that reached the shipped F.Silkscreen was
+found.** So this is the field class that already cost this project once.
+
+The sixth (`VOUT`) is a PIN name, not a net, which is why the kind needs the
+net-name-vs-pin-name discrimination rather than a blanket rule — and is why it is
+worth a kind of its own.
+
+**REPORTED UPSTREAM, not patched here** (a sibling is live in `skills/`):
+add a kind for `02_parts/*/part.yaml pins.<n>.tie`, tolerant of pin names in the
+way K6 is advisory about rail names.
