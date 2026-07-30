@@ -934,7 +934,21 @@ def t_dru_flags_the_real_cooksense_rule_file():
     scoped-floor rule on that board, are graded and PASS. A checker that flagged
     all 11 would be useless."""
     import gate_contract_audit as gca                       # noqa: E402
-    dru = ROOT / "projects/smc0985-cooksense/04_kicad/cooksense.kicad_dru"
+    # READ THE SEALED RELEASE, NOT `04_kicad/`. This fixture went red the moment
+    # it was merged into main, and not because the checker was wrong: cooksense's
+    # LIVE board was mid-rebuild, so its `.kicad_dru` did not yet carry the
+    # barrier rules at all (`apply_drc_policy.py` re-applies them AFTER
+    # `generate_rules`) and `KEYPAD_ISO` was absent from its `.kicad_pro`, where
+    # netclasses actually live — 0 occurrences live against 15 in the seal,
+    # exactly the clobber canon R1 warns about. A gate whose verdict depends on
+    # whether a sibling happens to be rebuilding is not a gate.
+    #
+    # This is the THIRD time today a test broke by reading mutable project
+    # state (`t1_fleet_regrade` did, and the copper-length gate pre-empted it by
+    # choosing the seal for the same reason). Sealed bytes are the right oracle
+    # for an acceptance fixture — canon M-SHIP — and they are also flake-free.
+    dru = (ROOT / "projects/smc0985-cooksense/07_releases"
+           / "cooksense-v1.6-2026-07-27/source/cooksense.kicad_dru")
     if not dru.exists():
         raise Failed(f"{dru} is gone — this acceptance test cannot go quiet; "
                      f"repoint it at the board that carries the barrier rules "
