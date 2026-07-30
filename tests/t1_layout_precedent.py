@@ -337,4 +337,4 @@ def t_the_precedent_ratchet_is_pinned_to_the_fleet():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

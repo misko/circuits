@@ -47,6 +47,7 @@ NOT REPRODUCED — recorded here rather than faked
   builds the defect geometry from scratch and is verified red a different
   way — by neutering MIRROR_MARGIN, see the comment on that test.
 """
+import ast
 import json
 import re
 import shutil
@@ -1404,6 +1405,139 @@ def t_male_plug_and_calibration():
     r2 = run([KPY, esc, "--style", "qfn", "--pitch", "0.45"])
     check("INFEASIBLE" in r2.out and "jlc_4layer_advanced" in r2.out,
           "stranded SY8368 config lost its unconditional-advanced verdict")
+
+
+# ===================================================== THE HARNESS ITSELF ====
+# INCIDENT(2026-07-27, 0dd56ab0) -> REINTRODUCED(2026-07-30, bcec2fd6).
+#
+# Nine fast-tier suites ended in `main()` rather than `sys.exit(main())`, so
+# they printed "N passed, M failed" and exited 0; run_tests.sh gates on the
+# EXIT STATUS, so it printed ALL SUITES PASSED underneath red. 0dd56ab0 swept
+# the nine out by hand and pinned NOTHING, so when t1_layout_precedent.py was
+# created at bcec2fd6 three days later it carried the bug straight back in —
+# and hid its own PREC_GRADED_FLOOR ratchet failure for as long as it stood.
+# That is the jlc_twin shape (a gate reporting a failure and returning success)
+# sitting in the instrument that grades every other gate.
+#
+# Nothing guarded the idiom because nothing could: the sweep matched a STRING.
+# These two tests grade the PROPERTY instead, which is the incident's own
+# footnote — 0dd56ab0's first pass flagged t3_acceptance.py, which ends
+# `sys.exit(main(sys.argv[1:] + ["--slow"]))` and is CORRECT. The commit body
+# calls that out as "the adjacent-property error, committed while investigating
+# an adjacent-property error".
+TESTS_DIR = Path(__file__).resolve().parent
+RUN_TESTS_SH = TESTS_DIR / "run_tests.sh"
+
+
+def suite_files():
+    """Every executable suite in tests/ — `t*.py` plus the e2e driver.
+
+    `t5_skill_canary/` is a directory of briefs, not a suite, so the top-level
+    glob is deliberate; `harness.py` is the library, tested by its users."""
+    return sorted(set(TESTS_DIR.glob("t*.py")) | {TESTS_DIR / "e2e_boards.py"})
+
+
+def main_guard_exit_code(path):
+    """Run ONLY the `if __name__ == "__main__":` block of `path`, with `main`
+    stubbed to return 1 (a suite reporting failures), and report what reaches
+    the shell.
+
+    Returns `(has_guard, exit_code)`. `exit_code is None` means the block ran
+    to completion WITHOUT raising SystemExit — a suite that would exit 0 while
+    printing "1 failed". That is the defect, and it is measured, not matched:
+    the real `sys` is in the namespace, so `sys.exit(main(sys.argv[1:] +
+    ["--slow"]))` propagates and passes exactly as it should.
+
+    The module body is never executed, so this is hermetic and costs nothing."""
+    src = path.read_text(encoding="utf-8")
+    for node in ast.parse(src, str(path)).body:
+        if not isinstance(node, ast.If):
+            continue
+        t = node.test
+        if not (isinstance(t, ast.Compare) and isinstance(t.left, ast.Name)
+                and t.left.id == "__name__"):
+            continue
+        blk = ast.Module(body=node.body, type_ignores=[])
+        ns = {"__name__": "__main__", "sys": sys, "main": lambda *a, **k: 1}
+        try:
+            exec(compile(blk, str(path), "exec"), ns)      # noqa: S102
+        except SystemExit as e:
+            return True, e.code
+        return True, None
+    return False, None
+
+
+@test("INCIDENT(2026-07-27 0dd56ab0, REINTRODUCED 2026-07-30 bcec2fd6): the "
+      "exit-code guard BITES a bare `main()` — and does NOT accuse the "
+      "`main(sys.argv[1:] + [...])` form that a STRING match once flagged",
+      kind="known_bad")
+def t_exit_code_guard_bites_a_bare_main():
+    """The known-bad half, so the sweep below cannot become a gate that
+    cannot fail once the tree is clean. Four synthetic suites, one property:
+    does a run that REPORTS a failure reach the shell as nonzero?
+
+    RED-VERIFIED 2026-07-30 the honest way — this predicate was written and run
+    BEFORE `t1_layout_precedent.py` was repaired, and the sweep below named it:
+    `suites that report a failure and exit 0 anyway: ['t1_layout_precedent.py']`.
+    Then the one-line fix landed and the sweep went green. The pre-fix code for
+    this guard is its ABSENCE, so the real bytes it was verified against are
+    the reintroduced defect itself."""
+    d = tmpdir("exitguard_")
+    tail = {
+        "bare.py":   "    main()\n",
+        "plain.py":  "    sys.exit(main())\n",
+        "argvform.py": "    sys.exit(main(sys.argv[1:] + [\"--slow\"]))\n",
+        "noguard.py": None,
+    }
+    for name, last in tail.items():
+        body = "import sys\n\n\ndef main(argv=None):\n    return 0\n\n\n"
+        if last is not None:
+            body += 'if __name__ == "__main__":\n' + last
+        (d / name).write_text(body)
+
+    eq(main_guard_exit_code(d / "bare.py"), (True, None),
+       "a bare main() DISCARDS the failure — the incident")
+    eq(main_guard_exit_code(d / "noguard.py"), (False, None),
+       "no __main__ block at all is the same hole, and is reported as such")
+    eq(main_guard_exit_code(d / "plain.py"), (True, 1),
+       "the canonical form propagates")
+    eq(main_guard_exit_code(d / "argvform.py"), (True, 1),
+       "and so does the argv form a grep for `sys.exit(main())` MISSES — "
+       "0dd56ab0's own false positive, which is why this grades the property")
+
+
+@test("INCIDENT(2026-07-27 0dd56ab0, REINTRODUCED 2026-07-30 bcec2fd6): EVERY "
+      "suite in tests/ propagates its exit code, and every suite is WIRED "
+      "INTO run_tests.sh — a suite that exits 0 on red, or never runs at "
+      "all, is a gate that cannot fail")
+def t_every_suite_propagates_and_is_wired_in():
+    """Two ways for a suite's verdict to never reach anyone, swept together
+    because they are one defect: the runner reports success it did not earn.
+
+    1. EXIT CODE (the 0dd56ab0 incident, reintroduced at bcec2fd6).
+    2. NOT LISTED. `run_tests.sh` runs an explicit SUITES array, so a suite on
+       disk that nobody added is dead code that reads as coverage. MEASURED
+       2026-07-30: `t1_release_required.py` — A-EVID, 6 tests, 4 known-bad,
+       landed 94300f2 and fixed again at c2c49ea7 — had never once run from
+       the runner. It passes; the hole was that nothing would have said if it
+       did not."""
+    files = suite_files()
+    check(len(files) >= 30, f"the suite sweep found only {len(files)} files — "
+                            f"a zero-ish denominator is never a pass (M-COVER)")
+
+    swallowed, unguarded = [], []
+    for f in files:
+        has_guard, code = main_guard_exit_code(f)
+        if not has_guard:
+            unguarded.append(f.name)
+        elif not code:
+            swallowed.append(f.name)
+    eq(swallowed, [], "suites that report a failure and exit 0 anyway")
+    eq(unguarded, [], "suites with no `if __name__ == \"__main__\":` block")
+
+    sh = RUN_TESTS_SH.read_text(encoding="utf-8")
+    missing = [f.name for f in files if f.name not in sh]
+    eq(missing, [], "suites on disk that run_tests.sh never invokes")
 
 
 if __name__ == "__main__":

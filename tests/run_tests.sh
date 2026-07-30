@@ -59,6 +59,7 @@ SUITES=(
   t1_release_git_dirty.py
   t1_release_index.py
   t1_release_freshness.py
+  t1_release_required.py
   t1_assembly_gates.py
   t1_status.py
   t1_jlc_twin.py
@@ -113,6 +114,23 @@ if [ "$TK" -eq 0 ]; then
   echo "FAILED: no known-bad fixture ran — this run proved nothing about the gates"
   exit 1
 fi
+# THE RUNNER'S TWO CHANNELS MUST AGREE. `rc` comes from each suite's EXIT
+# STATUS; `TF` is grepped from its STDOUT. They are independent, and when they
+# disagree the printed verdict is a lie: commit 0dd56ab (2026-07-27) was nine
+# suites ending in `main()` instead of `sys.exit(main())`, printing "2 failed"
+# and exiting 0 — and this block printed ALL SUITES PASSED underneath. Reading
+# only one channel is what made that possible for as long as it lasted, and the
+# defect came back at bcec2fd6 (2026-07-30). So: fail on EITHER channel, and
+# when they disagree say so by name, because the disagreement is never
+# cosmetic — it means a suite is swallowing its own verdict.
+if [ "$TF" -gt 0 ] && [ $rc -eq 0 ]; then
+  echo "FAILED: HARNESS DISAGREEMENT — $TF failure(s) were REPORTED on stdout"
+  echo "        while every suite exited 0. A suite is not propagating its exit"
+  echo "        code (canonical form: \`sys.exit(main())\`). Pinned by"
+  echo "        tests/t4_regressions.py::t_every_suite_propagates_and_is_wired_in."
+  rc=1
+fi
+[ "$TF" -gt 0 ] && rc=1
 if [ $rc -eq 0 ]; then
   echo "ALL SUITES PASSED"
   [ "$SLOW" = 0 ] && echo "(fast tier — run with --slow for the e2e board rebuilds)"
