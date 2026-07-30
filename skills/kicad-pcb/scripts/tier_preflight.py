@@ -234,29 +234,85 @@ class Preflight:
                          cc is not None)
         return out
 
+    def route_clearance_scopes(self):
+        """EVERY place a router clearance can be set, as
+        [(param, value|None, source), ...] — the common scope first, then one
+        entry per wave that OVERRIDES it.
+
+        WHY THIS IS A LIST AND NOT A NUMBER (2026-07-30, pluto-rx2-8way). The
+        pre-fix `eff_route_clearance` read `route.common.clearance` ONLY, so a
+        per-wave `clearance:` was INVISIBLE: that board declared 0.2mm at
+        route.common, at both netclasses and at stitch — and overrode one wave
+        to 0.14 to escape a PE42482A-X land. Preflight printed `0 FAIL —
+        config is tier-consistent` while the wave routed 0.06mm under the DRC
+        floor, and the route landed 49 clearance findings at 0.166..0.194mm.
+
+        The values are NOT collapsed to one figure, because collapsing is how
+        the defect survived: the strictest number alone would have flagged
+        SOMETHING, but attributed it to `route.common.clearance` — a key whose
+        value was correct — and the fix line would have told the author to
+        change the one place that was already right. Each scope is graded and
+        NAMED separately; only `check_clearances`' hardcode comparison
+        (PF-RULES-CLR, which asks "will the router ever route tighter than an
+        undeclared DRC default") takes the strictest, and says so there."""
+        if hasattr(self, "_clr_scopes"):
+            return self._clr_scopes
+        base = self.get("route.common.clearance")
+        if base is not None:
+            scopes = [("route.common.clearance", float(base),
+                       "explicit")]
+        elif self.tier is not None:
+            scopes = [("route.common.clearance", float(self.tier["min_space"]),
+                       f"tier-derived min_space (tier {self.tier['name']})")]
+        else:
+            scopes = [("route.common.clearance", None, "unset, no tier")]
+        inherit = []
+        for i, wv in enumerate(self.get("route.waves", []) or []):
+            wv = wv or {}
+            name = wv.get("name", f"w{i + 1}")
+            c = wv.get("clearance")
+            if c is None:
+                inherit.append(name)
+                continue
+            scopes.append((f"route.waves[{name}].clearance", float(c),
+                           f"wave OVERRIDE of common {scopes[0][1]}"))
+        for name in inherit:
+            self.note(f"route.waves[{name}]: inherits "
+                      f"{scopes[0][0]} = {scopes[0][1]}")
+        self._clr_scopes = scopes
+        return scopes
+
     def eff_route_clearance(self):
-        c = self.get("route.common.clearance")
-        if c is not None:
-            return float(c), "route.common.clearance (explicit)"
-        if self.tier is not None:
-            return (float(self.tier["min_space"]),
-                    f"tier-derived min_space (tier {self.tier['name']})")
-        return None, "unset, no tier"
+        """The STRICTEST scope — the clearance the router will pack to
+        SOMEWHERE on this board. Used only where a single figure is the
+        question (the PF-RULES-CLR hardcode comparison); everything else
+        grades `route_clearance_scopes()` scope by scope."""
+        scopes = [s for s in self.route_clearance_scopes() if s[1] is not None]
+        if not scopes:
+            return None, "unset, no tier"
+        param, val, src = min(scopes, key=lambda s: s[1])
+        return val, f"{param} ({src})"
 
     def check_clearances(self):
         drc = self.drc_clearances()
         drc_max = max(v for v, _ in drc.values())
         drc_who = [k for k, (v, _) in drc.items() if v == drc_max]
+        scopes = self.route_clearance_scopes()
         rclr, rsrc = self.eff_route_clearance()
         self.note(f"DRC clearances: " + ", ".join(
             f"{k}={v}{'' if ex else ' (HARDCODE default)'}"
             for k, (v, ex) in drc.items()))
-        self.note(f"route clearance: {rclr} [{rsrc}]; DRC max {drc_max} "
-                  f"({','.join(drc_who)})")
+        self.note("route clearance scopes: " + ", ".join(
+            f"{p}={v} [{s}]" for p, v, s in scopes))
+        self.note(f"strictest route clearance: {rclr} [{rsrc}]; DRC max "
+                  f"{drc_max} ({','.join(drc_who)})")
 
         # PF-RULES-CLR — defect class 1: a netclass riding generate_rules'
         # hardcoded 0.2 while the router routes tighter. The unexamined
         # hardcode IS the defect (crow-rv2: 500 -> 158 phantom findings).
+        # This one question IS about a single number — "will the router route
+        # tighter than a floor nobody declared, ANYWHERE" — so it takes the
+        # strictest scope; the per-scope grading below then attributes it.
         if rclr is not None:
             hard = [k for k, (v, ex) in drc.items()
                     if not ex and v > rclr + 1e-9]
@@ -276,22 +332,33 @@ class Preflight:
                         f"min_space {self.tier['min_space'] if self.tier else '?'})")
                 return  # PF-ROUTE-CLR would duplicate the same mismatch
 
-        # PF-ROUTE-CLR — router clearance vs the (explicit) DRC clearances.
-        if rclr is not None and rclr < drc_max - 1e-9:
-            self.fail(
-                "PF-ROUTE-CLR", "route.common.clearance",
-                f"effective {rclr} [{rsrc}] < DRC clearance {drc_max} "
-                f"({','.join(drc_who)}) — KRT packs to its clearance under "
-                f"congestion, so routed copper lands below the DRC floor",
-                fix=f"route.common.clearance: {drc_max}  (or lower the "
-                    f"netclass clearance, floor: tier min_space "
-                    f"{self.tier['min_space'] if self.tier else '?'})")
-        if self.tier is not None and rclr is not None \
-                and rclr < float(self.tier["min_space"]) - 1e-9:
-            self.fail("PF-ROUTE-CLR", "route.common.clearance",
-                      f"{rclr} is below fab tier '{self.tier['name']}' "
-                      f"min_space {self.tier['min_space']}",
-                      fix=f"route.common.clearance: {self.tier['min_space']}")
+        # PF-ROUTE-CLR — router clearance vs the (explicit) DRC clearances,
+        # graded ONCE PER SCOPE. A per-wave override is a first-class scope:
+        # pluto-rx2-8way 2026-07-30 rode a 0.14 wave under a 0.2 DRC floor
+        # through a gate that only ever read route.common (49 findings at
+        # 0.166..0.194mm). The finding NAMES the scope, so the fix line points
+        # at the key that is actually wrong.
+        for param, val, src in scopes:
+            if val is None:
+                continue
+            if val < drc_max - 1e-9:
+                self.fail(
+                    "PF-ROUTE-CLR", param,
+                    f"effective {val} [{src}] < DRC clearance {drc_max} "
+                    f"({','.join(drc_who)}) — KRT packs to its clearance "
+                    f"under congestion, so routed copper lands below the DRC "
+                    f"floor (pluto-rx2-8way 2026-07-30: a 0.14 WAVE override "
+                    f"under a 0.2 floor = 49 clearance findings)",
+                    fix=f"{param}: {drc_max}  (or lower the netclass "
+                        f"clearance, floor: tier min_space "
+                        f"{self.tier['min_space'] if self.tier else '?'})")
+            if self.tier is not None \
+                    and val < float(self.tier["min_space"]) - 1e-9:
+                self.fail("PF-ROUTE-CLR", param,
+                          f"{val} is below fab tier '{self.tier['name']}' "
+                          f"min_space {self.tier['min_space']} — no netclass "
+                          f"or scoped relaxation makes that etchable",
+                          fix=f"{param}: {self.tier['min_space']}")
 
         # PF-STITCH-CLR — the clearance stitch/taps/seed verify their copper
         # at. Under-strict = the emitted copper can fail DRC clearance; WARN

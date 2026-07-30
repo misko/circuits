@@ -317,6 +317,85 @@ def t_krt_preset_legal_values():
     contains(r3.out, "33 vias at 0.25mm", "with its measured incident")
 
 
+def _wave_clearance_scratch():
+    """pluto-rx2-8way's shape, minimised: the board declares its clearance UP
+    (0.2mm = ISOLATION, not a routability tax) everywhere a reader looks —
+    route.common, both netclasses, stitch — and then ONE wave overrides it
+    down to 0.14 to get the RF launch out of a QFN land."""
+    return scratch(
+        mut_route=lambda r: (
+            r["route"]["common"].update({"clearance": 0.2}),
+            r["route"]["waves"].__setitem__(
+                0, {"name": "rf", "nets": ["A"], "clearance": 0.14}),
+            r["stitch"].update({"clearance": 0.2})),
+        mut_nets=lambda n: (n.update({"default_clearance": "0.2mm"}),
+                            n["classes"]["PWR"].update({"clearance": "0.2mm"})))
+
+
+@test("PF-ROUTE-CLR FAILS a per-WAVE clearance override under the DRC floor — "
+      "the gate must read EVERY place the value can be set, not just "
+      "route.common", kind="known_bad")
+def t_route_clr_per_wave():
+    """MEASURED, pluto-rx2-8way 2026-07-30. `route.common.clearance: 0.2` (and
+    every netclass at 0.2, and stitch at 0.2) with wave `rf` overriding
+    `clearance: 0.14` to escape the PE42482A-X land. The board then routed and
+    landed 49 clearance findings at 0.166..0.194mm against the 0.2 floor — the
+    EXACT mismatch PF-ROUTE-CLR exists to catch, one YAML level below where it
+    was looking.
+
+    RED-VERIFIED against the pre-fix `eff_route_clearance` (which read only
+    `route.common.clearance` and returned a single number): this fixture exits
+    0 printing
+
+        tier preflight: 0 FAIL / 0 WARN — config is tier-consistent
+
+    measured 2026-07-30. Third instance of one shape on this board in three
+    days: PF-KRT read `fab_tier` without validating it (t_krt_preset_* above);
+    this read `clearance` without reading everywhere it can be set."""
+    r = must_fail(preflight(_wave_clearance_scratch()),
+                  "wave clearance under the DRC floor", "PF-ROUTE-CLR")
+    contains(r.out, "route.waves[rf].clearance", "the WAVE scope is named")
+    contains(r.out, "0.14", "the effective wave clearance")
+    contains(r.out, "0.2", "the DRC clearance it is under")
+    not_contains(r.out, "config is tier-consistent",
+                 "the verdict must not claim consistency")
+
+
+@test("tier_preflight grades clearance PER SCOPE: a legal common with one "
+      "illegal wave names the WAVE, and the derivation lists every scope")
+def t_route_clr_scopes_are_graded_separately():
+    """The collapse this fix refuses: reporting one number over a config that
+    has several is how the defect happened. --explain must enumerate the
+    scopes, and a config whose waves all inherit must still grade exactly the
+    common scope (no duplicate findings)."""
+    r = must_fail(preflight(_wave_clearance_scratch(), "--explain"),
+                  "per-scope grading", "PF-ROUTE-CLR")
+    contains(r.out, "route clearance scopes:", "the scope list is derived")
+    contains(r.out, "route.common.clearance=0.2", "common scope listed")
+    contains(r.out, "route.waves[rf].clearance=0.14", "wave scope listed")
+    # exactly ONE PF-ROUTE-CLR finding: the common scope is legal here
+    check(r.out.count("PF-ROUTE-CLR") == 1,
+          f"one finding for the one illegal scope (got "
+          f"{r.out.count('PF-ROUTE-CLR')})")
+    # and the clean tree (waves inherit) stays clean
+    r2 = must_pass(preflight(scratch(), "--explain"), "inheriting waves")
+    contains(r2.out, "0 FAIL / 0 WARN", "clean verdict")
+    contains(r2.out, "route.waves[sig]: inherits", "inheritance is derived")
+
+
+@test("PF-ROUTE-CLR FAILS a wave clearance below the FAB TIER floor, which "
+      "no netclass can waive", kind="known_bad")
+def t_route_clr_wave_under_tier():
+    """A wave at 0.05 on jlc_6layer_smallvia (min_space 0.09): sub-tier copper
+    is unmakeable, not merely DRC-illegal. RED-VERIFIED against the pre-fix
+    code: `0 FAIL / 0 WARN — config is tier-consistent`, measured 2026-07-30."""
+    d = scratch(mut_route=lambda r: r["route"]["waves"].__setitem__(
+        0, {"name": "rf", "nets": ["A"], "clearance": 0.05}))
+    r = must_fail(preflight(d), "sub-tier wave clearance", "PF-ROUTE-CLR")
+    contains(r.out, "below fab tier", "the tier bound is named")
+    contains(r.out, "route.waves[rf].clearance", "the wave scope is named")
+
+
 @test("tier_preflight FAILS the frozen crow-array-pod archive "
       "(PF-RULES-CLR latent mismatch — the reason its e2e run uses "
       "--skip-preflight)", kind="known_bad")
