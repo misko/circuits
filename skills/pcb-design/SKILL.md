@@ -326,6 +326,19 @@ dropping, or the same finding IDs recurring), or on any finding class the
 CURRENT stage's config cannot express, stop iterating. Do not negotiate
 with a wall.
 
+**1a. CLASSIFY BEFORE YOU ESCALATE.** D-BACK sends you upstream along the
+symptom's causal edge — so a MISCLASSIFIED symptom sends you up the wrong edge,
+and the protocol will work perfectly while pointing at the wrong stage.
+pluto-rx2-8way 2026-07-30: D-BACK was declared on 28 unconnected attributed to
+"MCU-field congestion", which sent three agents at a PLACEMENT problem. Measured
+later, only 8 were at the MCU, 18 were two keepout config lines, and the 8 were
+arithmetic (0.400 mm pitch, 0.250 mm via, 0.175 mm against a 0.200 mm floor — no
+legal via-in-pad exists) rather than congestion. The board was never short of
+AREA: 108 mm2 of courtyard-free space sat 2.6 mm west. **Group the findings by
+CAUSE and name the groups before invoking the ladder.** If the groups are
+heterogeneous, do the cheap INDEPENDENT ones first — they are often most of the
+count — and escalate only what survives.
+
 **2. The backtrack ladder — where to land.** Follow the symptom's causal
 edge one stage up (repeat if the upstream stage is also stuck, max depth
 until the spec itself):
@@ -500,17 +513,56 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
      from first principles when a routed reference exists. In authority
      order: (1) the part datasheet's Layout Guidelines/Example figure —
      canon M6: the manufacturer's own routed picture WINS over your
-     derivation; (2) the manufacturer's EVAL BOARD design files (EVM
-     layouts are tested instances of the exact local circuit — study the
-     escape pattern, hot-loop shape, sense-line dress, via strategy);
-     (3) OSHWLab/EasyEDA open projects SEARCHED BY LCSC CODE — real
-     JLC-fabbed boards using the exact part, copper viewable; (4) open
-     KiCad projects (GitHub/Kitspace; unvetted — weakest). STUDY, THEN
-     RE-DERIVE: extract the decisions (adjacency, orientation, corridor,
-     layer drops) into part.yaml gotchas + floorplan.yaml — NEVER import
-     copper (canon M3). Record what you consulted as a
-     `layout_refs:` list in the part.yaml (doc names/EVM ids/project
-     links), and harvest it into proven-parts.yaml with the part — the
+     derivation; (2) **any OPEN-HARDWARE REFERENCE DESIGN WITH PUBLISHED
+     LAYOUT — the manufacturer's EVAL BOARD / EVM design files first, but
+     NOT ONLY those** (EVM layouts are tested instances of the exact local
+     circuit — study the escape pattern, hot-loop shape, sense-line dress,
+     via strategy); (3) OSHWLab/EasyEDA open projects SEARCHED BY LCSC
+     CODE — real JLC-fabbed boards using the exact part, copper viewable;
+     (4) open KiCad projects (GitHub/Kitspace; unvetted — weakest).
+          **AN EDITABLE DESIGN FILE OUTRANKS A RENDERED FIGURE, and that
+     is a difference in EVIDENCE, not convenience.** A figure is read by
+     eye at whatever DPI the PDF happens to carry; a design file opens in
+     KiCad and is MEASURED. So a tier-1 datasheet figure does not
+     discharge tier 2 when design files exist — check for them explicitly,
+     and check the LICENCE while you are there, because a permissive
+     licence is what makes the file openable at all. It never licenses
+     copying: study-then-re-derive is canon M3 regardless of licence.
+     THE WORKED CASE (canon P-PREC): pluto-rx2-8way read the RP2040's
+     Figure 6 visually at 200 dpi off a raster, while Raspberry Pi
+     publishes a "Minimal Viable Board" reference design **in KiCad**
+     (schematic + PCB) and the Pico / Pico W designs in Cadence Allegro,
+     free, at raspberrypi.com/documentation/microcontrollers/rp2040.html,
+     under "permission to use, copy, modify, and distribute ... for any
+     purpose, with or without fee" (verified 2026-07-30).
+          **THEN ASK WHETHER THE PRECEDENT TRANSFERS — the reference's
+     SURROUNDINGS ARE PART OF ITS EVIDENCE, and this is the half the
+     search kept missing.** A reference proves its local pattern works IN
+     ITS OWN NEIGHBOURHOOD. Before adopting it, compare the neighbourhoods:
+     how much free space does the reference leave on each side of the
+     part, and does THIS board leave the same? If the reference has open
+     room on four sides and your floorplan pushes the part to an edge, or
+     puts an RF star in the middle of what was empty, then the LOCAL
+     decisions (adjacency, decoupling rows, orientation) may still hold
+     while the ESCAPE BUDGET does not — and the escape budget is what
+     bites at stage 6, not the decoupling. Do the arithmetic at PLACEMENT:
+     escapes per side x (track + clearance) against the band you have
+     actually left. Measured on pluto-rx2-8way: 8 escapes on the north
+     0.400 mm side into a 3.2 mm band is exactly 8 x (0.25 + 0.15), and
+     that board carries 28 unconnected nets and 21 via-clearance findings
+     in the MCU field. The RP2040 consult was careful and correct about
+     the flash corner and the decoupling; NOTHING IN THE PROCESS ASKED
+     whether the fanout survived a different surrounding.
+          STUDY, THEN RE-DERIVE: extract the decisions (adjacency,
+     orientation, corridor, layer drops) into part.yaml gotchas +
+     floorplan.yaml — NEVER import copper (canon M3). Record what you
+     consulted as a `layout_refs:` list in the part.yaml, and **use the
+     GRADED MAPPING FORM** — `{tier:, artifact:, reached:, why:}` — so the
+     record says which authority tier was actually reached and names what
+     was NOT (canon P-PREC, graded by `policy_audit.py`). THE LADDER MUST
+     NAME ITS CEILING: stopping at tier 1 is often the right call, but it
+     must be a stated call, with the stronger artifact named and the
+     reason given. Harvest into proven-parts.yaml with the part — the
      precedent search is paid once per part, ever. Full source catalog,
      search technique per source, and the study-vs-copy rules:
      `kicad-pcb/references/layout-precedents.md`.
@@ -1021,3 +1073,23 @@ Final message to the user: decisions summary (with the protection ADR
 called out), gate scoreboard, release path + git sha, open items for
 order day (stock re-check, JLC preview rotation confirmations), and any
 D# assumptions made in their absence.
+
+**MARK EVERY LOAD-BEARING CLAIM AS MEASURED OR INHERITED.** A report is the input
+to the next agent's brief, and a number that arrives unlabelled is treated as
+fact by everyone downstream. Say `MEASURED (by me, <how>)` or `INHERITED (from
+<source>, NOT re-verified)` — and put the inherited ones in their own list, so a
+successor knows exactly which claims are load-bearing and unchecked.
+
+This is the same discipline the gates already enforce on numbers in DOCUMENTS —
+M-BOUND regenerates a published bound, M4 regenerates a waiver's measurement,
+E-NETREF validates a reference, G-ORPHAN checks a declared key has a reader — and
+none of them reaches a finding passed between agents. That is the hole it closes.
+
+MEASURED, pluto-rx2-8way 2026-07-30: "the 28 unconnected are one MCU-field
+congestion problem" was inherited from one agent's summary, restated in three
+successor briefs as `STATE (measured, do not re-derive)`, and reported to the
+user as the board's remaining risk. It was wrong in every part — four problems,
+not one; 18 of 28 were two config lines; the 8 that were at the MCU were
+arithmetic, not congestion. **An instruction not to re-derive is an efficiency
+gain on a correct number and an error-propagation mechanism on a wrong one**, so
+it may only be given about a claim the giver measured.
