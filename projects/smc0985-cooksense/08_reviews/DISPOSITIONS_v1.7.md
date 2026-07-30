@@ -244,3 +244,33 @@ polarity-correct two independent ways**. The pin lens found **zero pin-map
 FAILs** across 41 graded parts, re-derived the relay land from the datasheet
 figure without reference to the footprint (**PASS x12**), and confirmed
 `01_docs/pin_map.md` against all 40 Pi header pins with zero mismatches.
+
+## ADDENDUM — the pin lens's connector group, requested and delivered, and it makes the connector corner a THIRD blocker
+
+The pin lens's first report left `Connectors | 12 x J_*` marked *pending*. It was
+asked to finish, told only that four of them are the same part and that the
+question is what the board DOES on a mis-plug — not what to conclude. It came
+back with the mechanism, and the main loop then re-derived it from the netlist.
+
+| id | finding | disposition |
+|---|---|---|
+| **PIN C1 — CROSS-PLUGGING A SENSOR POD INTO THE DOOR INTERLOCK CAN ASSERT `DOOR_OK`.** `J_DOOR` pin 4 is `DOOR_RAW`; on the identical `J_ESTOP` pin 4 is GND, and on the identical `J_RH_*` pods pin 4 is `SCL_*`. So a pod harness in `J_DOOR` lands a PULLED-UP I2C clock on `DOOR_RAW`, which is held only by `R_DOORPD` 10k. The lens computes 1.650 V from a 10k pod pull-up against SCLS085L's conservative 4.5 V row, V_T+ MIN **1.55 V**. **RE-DERIVED BY THE MAIN LOOP, AND IT IS WORSE THAN THE LENS SAID, TWICE OVER:** `U_SCHM` pin 14 is on **3V3**, not 5 V, so the applicable V_T+ MIN is BELOW the 4.5 V row's 1.55 V (the 2.0 V row is ~0.7 V), i.e. the injected level clears the threshold by MORE; and this board's own I2C pull-ups are **2.2k**, which on the same divider gives **3.3 x 10/(10+2.2) = 2.70 V**, not 1.650 V. A conforming HC14 reads the door **CLOSED with no door attached**. `J_DOOR` pins **2 and 4 are ONE net**, which is separately why the topology lens found EOL supervision unimplementable (T-06) — the same wiring, found from two directions. | **ACCEPTED — BLOCKS, and it is the one with a KNOWN fix shape.** ADR-0018 closed this exact class on `COIL_EN_IN` with a 680 ohm series element and it was NOT carried across to the other externally-cabled safety inputs. That makes the next revision's connector work electrical as well as geometric, and it is why "move the labels apart" was never going to be the whole answer. |
+| **PIN C2** — a `J_DOOR`<->`J_ESTOP` swap (identical housings, courtyards **0.090 mm** apart) leaves `ESTOP_OK` HIGH: the contactor still opens, but nothing latches a fault and the coil rail stays up | ACCEPTED — same pass |
+| **PIN C5 / C6** — `J_PWR`'s pin-1-versus-key is confirmed by NO artifact in this tree; `J_ISOLOOP`'s NOT-SELV land is derived from the project's OWN 2P footprint (canon M1: checker and checked share a method) | ACCEPTED — C5 to the bring-up ritual, C6 needs an outside authority |
+| **PIN C9 / §6** — **`J_TC`, the thermocouple input, had NO dossier and was assigned to no reviewer**: it is dropped by `pin_audit.py`'s `>3 pads` filter. Symmetric land, the silk `+` sits under the housing once fitted, and a reversed thermocouple raises no fault flag | ACCEPTED — and it is the 17th ref that gate silently omits |
+| **PIN Q1** — all eight `U_EXP` status inputs are on **port B** and `EXP_INTB` (pin 19) is the board's ONLY named single-node net, while the Pi watches **INTA** (pin 20). Dead alert path unless `IOCON.MIRROR = 1`, documented nowhere | ACCEPTED — a firmware-visible contract that must be written down or wired |
+| **PIN F1** — `SN74LVC1G00DCKR` has no committed PDF and its `doc_id` `SCES214` contradicts the real `SCES212AB`, which the same file's `layout.source` names correctly. Four safety-chain gates rested on "the 1G-family convention" | ACCEPTED. The lens fetched SCES212AB, read the §6 **DCK** figure (deliberately avoiding the DPW figure on the same page, which has A and B swapped) and the map is CORRECT — copper right, provenance not what the tree claims |
+
+**AND THE THING THIS BOARD WAS MOST AFRAID OF DID NOT HAPPEN.** The relay land is
+RIGHT, proved the hard way and independently of the footprint: sub-figure 13 read
+off DS p.3 at 600 dpi, its grid measured (contact = leads 14/8 at the row
+extremes, coil = leads 2/6 inset one pitch, rows 7.62 mm apart), then the
+FIGURE's lead coordinates transformed into the footprint frame — **pure +90
+degree rotation, NO reflection, every residual <= 0.05 mm**, pin-1 silk dot on
+the correct corner. Coil and contact net domains **provably disjoint across all
+198 nets**, the contact domain touching only `J_KEY_MATRIX`, two resistors and
+three test points — no rail, no ground, no logic. Driver channel mapping 11/11.
+The decoders are the active-HIGH '238, not the '138 that would have fired eleven
+coils at once. 21 distinct MPNs opened at figure resolution covering 50 of 54
+refs; **0 mirrored footprints, 0 pad-to-net contradictions against any datasheet
+that could be read.**

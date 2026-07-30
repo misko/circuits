@@ -1820,3 +1820,35 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
   captions off `Q_SWDRVA`/`TP_RKEY.1` pads, then declare the operating AMBIENT
   (no junction temperature on this board can be closed without it) and re-open
   the LDO tab copper with it. Then re-race, re-gate, and run the battery AGAIN.
+
+## 2026-07-29 18:30 — finish (the connector group came back, and it is a THIRD blocker with a known fix shape)
+- did: the pin lens's `Connectors` group had been left *pending*; requested and
+  delivered. It found the mis-plug MECHANISM, and I re-derived it from the
+  netlist rather than accept it: `J_DOOR` pin 4 is `DOOR_RAW`, while on the
+  IDENTICAL `J_RH_*` pods pin 4 is `SCL_*` and on the identical `J_ESTOP` it is
+  GND. A pod harness in `J_DOOR` therefore lands a PULLED-UP I2C clock on
+  `DOOR_RAW`, held only by `R_DOORPD` 10k. **The lens said 1.650 V; it is worse
+  than that, twice over.** `U_SCHM` pin 14 is on **3V3**, not 5 V, so the
+  applicable SCLS085L V_T+ MIN is BELOW the 4.5 V row's 1.55 V; and this board's
+  own I2C pull-ups are **2.2k**, giving 3.3 x 10/(10+2.2) = **2.70 V**. A
+  conforming HC14 reads the door **CLOSED with no door attached.** `J_DOOR` pins
+  2 and 4 are ONE net, which is independently why the topology lens found EOL
+  supervision unimplementable — same wiring, two directions.
+  **ADR-0018 CLOSED THIS EXACT CLASS on `COIL_EN_IN` with a 680 ohm series
+  element AND IT WAS NOT CARRIED ACROSS.** So the connector work in the next
+  revision is ELECTRICAL as well as geometric, and "move the labels apart" was
+  never going to be the whole answer.
+- also: `J_TC`, the THERMOCOUPLE input, had no dossier and was assigned to no
+  reviewer — `pin_audit.py` drops it on the `>3 pads` filter. It is the 17th ref
+  that gate silently omits. Symmetric land, silk `+` under the housing once
+  fitted, and a reversed thermocouple raises no fault flag.
+- and the negative result that matters most: **THE RELAY LAND IS RIGHT, PROVED
+  INDEPENDENTLY OF THE FOOTPRINT.** Sub-figure 13 read at 600 dpi, its lead grid
+  measured, and the FIGURE's coordinates transformed into the footprint frame:
+  **pure +90 degree rotation, NO reflection, every residual <= 0.05 mm.** Coil
+  and contact domains provably disjoint across all 198 nets. 21 MPNs opened at
+  figure resolution over 50 of 54 refs; **0 mirrored footprints, 0 pad-to-net
+  contradictions against any datasheet that could be read.** The thing this board
+  was re-spun for is closed by a lens that could not see the re-spin.
+- result: **v1.7 NOT SEALED. THREE order-blockers, all recorded with numbers.**
+  M-BEACON PASS 2/2 with the beacon naming all three.
