@@ -332,3 +332,140 @@ committed ceiling, and `--strict-machine` fails them.
 - Number about a mating target found inline in `mates.yaml`, a floorplan
   comment, or an ADR body → it has a second home now. Move it to
   `spf/<device>/facts.yaml` with its method and grade, and reference the id.
+
+## Every schema key here NAMES THE GATE THAT READS IT — canon G-ORPHAN
+
+**`schema_reader_audit.py --root REPO`** (`--families` prints the denominator).
+E-NETREF above grades every net-shaped VALUE in this folder; G-ORPHAN grades
+every KEY, in the same method widened from values to the schema itself (canon
+M-WIDTH). The reason is the same: a field nothing reads READS AS COVERED. A key
+in a board's source with no row below is an ORPHAN and FAILS; `ADVISORY`
+(nobody reads it, and that is correct) and `OWED` (a gate is intended and
+absent) are DECLARED states and both REQUIRE a reason.
+
+TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
+
+* **`nets.yaml` `classes.<C>.intent` / `routing` / `verify` are read by NOTHING
+  — not even their PRESENCE.** "Each class requires: `intent`, `nets`,
+  `min_width`, `routing`, `verify`" has been in the *Structure: `nets.yaml`*
+  section since this folder was created, and 38 classes fleet-wide fill all
+  three in; `rules_audit.py` names `intent` only in its own module docstring.
+  This is the `current:` lesson repeated one column over — that field got a
+  gate (A-AMP) and a "silence is not a declaration" rule, and its three
+  neighbours in the same required list got neither. They are declared OWED.
+* **`power_tree.yaml` `linear_rails[]` numeric envelopes are read by NOTHING**
+  — five rails on smc0985-cooksense with `vin_min`/`vin_max`/`vout_min`/
+  `vout_max`/`iout_max_A` filled in, and `power_topology.py` names
+  `linear_rails` only in a docstring paragraph explaining that it ignores it.
+  The 2026-07-27 LINEAR fix moved cooksense's one true LDO rail INTO `rails:`
+  and left five pass-through/load-switch rails behind, where "Vout IS Vin minus
+  an Rds(on)/ESR drop" is checkable arithmetic that nothing checks. `name:` IS
+  graded (E-NETREF K6, advisory); the numbers are OWED.
+
+### keys: 03_src/rules/nets.yaml
+
+| key | reader | why |
+|---|---|---|
+| `fab_tier` | `fab_tier_util.py, policy_audit.py` | the SINGLE source of capability floors (P-TIER) |
+| `default_track_width` | `generate_rules_generic.py` | project-wide default |
+| `default_clearance` | `generate_rules_generic.py, tier_preflight.py` | project-wide default |
+| `classes.<C>.nets` | `generate_rules_generic.py, rules_audit.py, net_reference_audit.py` | the netclass PATTERN list (E-NETREF K1) |
+| `classes.<C>.min_width` | `generate_rules_generic.py, rules_audit.py` | the enforced width floor (A-AMP) |
+| `classes.<C>.clearance` | `generate_rules_generic.py, tier_preflight.py` | the enforced clearance floor |
+| `classes.<C>.current` | `rules_audit.py` | A-AMP ampacity obligation; silence is not a declaration |
+| `classes.<C>.pour_fed` | `rules_audit.py` | A-AMP plane-fed evidence |
+| `classes.<C>.diff_pair.width` | `generate_rules_generic.py` | controlled-impedance geometry |
+| `classes.<C>.diff_pair.gap` | `generate_rules_generic.py` | controlled-impedance geometry |
+| `classes.<C>.diff_pair.via_gap` | `generate_rules_generic.py` | controlled-impedance geometry |
+| `classes.<C>.diff_pair.max_uncoupled` | `generate_rules_generic.py` | `.kicad_dru` uncoupled-length max |
+| `classes.<C>.intent` | OWED | the *Structure* section above makes it REQUIRED per class and NOTHING reads it — not the text, not its presence. `rules_audit.py` names `intent` only in its own docstring. Owed: the same presence-plus-readability gate `current:` got as A-AMP |
+| `classes.<C>.routing` | OWED | REQUIRED per class ("pour vs track, and the strategy") and read by nothing, though it states which conductor actually carries the current that A-AMP grades as a track width |
+| `classes.<C>.verify` | OWED | REQUIRED per class ("how to prove it") and read by nothing; a declared verification method that no gate resolves is the R-LEN shape |
+| `classes.<C>.exemptions` | OWED | *Validate* above says "every `exemptions[].area` names a rule area that exists on the board" — a sentence a human was supposed to check, and nothing does. Not declared by any board today |
+| `scoped_floors[].zone` | `generate_rules_generic.py` | the named rule area the relaxation is scoped to |
+| `scoped_floors[].nets` | `generate_rules_generic.py, net_reference_audit.py` | insideArea clause nets (E-NETREF K2) |
+| `scoped_floors[].min_width` | `generate_rules_generic.py` | the relaxed floor |
+| `scoped_floors[].why` | `generate_rules_generic.py` | REQUIRED evidence (canon M4); the emitter refuses a floor without it |
+| `length_match.<G>.adr` | `copper_length_audit.py` | R-LEN: the ADR that emitted the intent |
+| `length_match.<G>.intent` | `copper_length_audit.py` | R-LEN group intent |
+| `length_match.<G>.members.<M>` | `copper_length_audit.py, net_reference_audit.py` | the ORDERED net chain measured (E-NETREF K12) |
+| `length_match.<G>.max_spread_mm` | `copper_length_audit.py` | R-LEN drift ceiling |
+| `length_match.<G>.topology` | `copper_length_audit.py` | chain vs tree |
+| `length_match.<G>.congruent_pads` | `copper_length_audit.py` | the unmeasured-pad-copper claim |
+| `length_match.<G>.no_vias` | `copper_length_audit.py` | the ONLY place a per-net via ban is graded |
+| `length_match.<G>.stackup_mm` | `copper_length_audit.py` | via-barrel pricing |
+| `length_match.<G>.pin.spread_mm` | `copper_length_audit.py` | R-LEN-PIN reproducibility |
+| `length_match.<G>.pin.tol_mm` | `copper_length_audit.py` | R-LEN-PIN tolerance |
+| `length_match.<G>.pin.measured_on` | `copper_length_audit.py` | R-LEN-PIN provenance |
+| `length_match.<G>.phase` | OWED | the block's own comment calls it "OPTIONAL reporting aid, never a gate" — and it does not reach the report either: `copper_length_audit.py` prints its phase conversion from constants it re-derives itself (6.105 ps/mm, 13.19 deg/mm), never from this declaration. A board writing `t_pd_ps_per_mm: 6.0` beside a gate using 6.105 has two homes for one number and nothing reconciles them |
+
+### keys: 03_src/rules/electrical_invariants.yaml
+
+| key | reader | why |
+|---|---|---|
+| `supplies.<NET>` | `electrical_invariants.py, net_reference_audit.py` | `node_level` rail map; the loader REFUSES a net the netlist lacks (E-NETREF K3) |
+| `invariants[].assert` | `electrical_invariants.py` | which kind this is |
+| `invariants[].net` | `electrical_invariants.py, net_reference_audit.py` | the subject net (E-NETREF K4) |
+| `invariants[].pin` | `electrical_invariants.py` | `pin_on_net` subject pin |
+| `invariants[].part` | `electrical_invariants.py` | `net_has_part` / `part_value` subject |
+| `invariants[].part_type` | `electrical_invariants.py` | `net_has_part` type filter |
+| `invariants[].chain` | `electrical_invariants.py, net_reference_audit.py` | `series_chain` elements (E-NETREF K5) |
+| `invariants[].through.<REF>` | `electrical_invariants.py` | `series_chain` intermediate parts, keyed by refdes -> the pin pair the current passes through |
+| `invariants[].min` | `electrical_invariants.py` | `part_value` lower bound |
+| `invariants[].max` | `electrical_invariants.py` | `part_value` upper bound |
+| `invariants[].equals` | `electrical_invariants.py` | `part_value` exact value |
+| `invariants[].tolerance_pct` | `electrical_invariants.py` | `part_value` tolerance window |
+| `invariants[].receiver` | `electrical_invariants.py` | `node_level` REF.PIN |
+| `invariants[].driver_state` | `electrical_invariants.py` | `node_level` released/contended |
+| `invariants[].must_be` | `electrical_invariants.py` | `node_level` expected logic level |
+| `invariants[].aggressor` | `electrical_invariants.py` | cross-domain subject |
+| `invariants[].defender` | `electrical_invariants.py` | cross-domain subject |
+| `invariants[].adr` | `electrical_invariants.py` | E-ADR: the ADR that emitted it; must be QUOTED |
+| `invariants[].why` | `electrical_invariants.py` | REQUIRED evidence (canon M4) |
+| `label_survival.exempt` | `net_label_survival.py` | S-NETMERGE exemptions, each needing `why:` |
+| `label_survival.pin_map` | `net_label_survival.py` | S-NETMERGE per-pin net assertions |
+
+### keys: 03_src/rules/power_tree.yaml
+
+| key | reader | why |
+|---|---|---|
+| `input_trunk_class` | `power_topology.py` | which netclass carries the trunk current |
+| `source_type` | `power_topology.py` | E-OFF: battery vs mains-derived |
+| `off_control` | `power_topology.py` | E-OFF: the de-energization path |
+| `quiescent_ua` | `power_topology.py` | E-OFF: stored draw when off |
+| `pack_capacity_mah` | `power_topology.py` | E-OFF: shelf life arithmetic |
+| `ir_floor_mohm` | `power_topology.py` | E-MARGIN default series resistance |
+| `rails[].name` | `power_topology.py, net_reference_audit.py` | the rail LABEL (E-NETREF K6 — advisory THERE because no gate resolves it as a net; the KEY is read) |
+| `rails[].converter` | `power_topology.py` | E-TOPO: the part whose `type:` is asserted |
+| `rails[].vin_min` | `power_topology.py` | E-TOPO envelope + dropout headroom |
+| `rails[].vin_max` | `power_topology.py` | E-TOPO envelope + dissipation |
+| `rails[].vout_min` | `power_topology.py` | E-TOPO envelope + dissipation |
+| `rails[].vout_max` | `power_topology.py` | E-TOPO envelope + dropout headroom |
+| `rails[].iout_max_A` | `power_topology.py` | trunk current + dissipation |
+| `rails[].eff` | `power_topology.py` | trunk current for a switching rail |
+| `rails[].dropout_mv` | `power_topology.py` | per-rail override of the part's dropout |
+| `rails[].pdiss_max_mw` | `power_topology.py` | per-rail override of the package rating |
+| `rails[].load_uv_threshold` | `power_topology.py` | E-MARGIN: the load's brownout voltage |
+| `rails[].ir_budget_mohm` | `power_topology.py` | E-MARGIN: board+connector+cable series R |
+| `rails[].margin` | `power_topology.py` | E-MARGIN declared headroom |
+| `rails[].feedback` | `power_topology.py` | the FB-divider tolerance window |
+| `rails[].note` | ADVISORY | per-rail prose for a reviewer; the graded facts are the numbers beside it, and no gate resolves the sentence |
+| `linear_rails[].name` | `net_reference_audit.py` | E-NETREF K6 resolves it (and reports it UNREACHED by construction) |
+| `linear_rails[].kind` | OWED | the closed-ish vocabulary (`protection_pass`, load switch, link) that would decide WHICH bound applies, read by nothing |
+| `linear_rails[].element` | OWED | the pass element's refdes — the part whose Rds(on)/ESR sets the drop the envelope claims |
+| `linear_rails[].vin_min` | OWED | see the note above: `power_topology.py` names `linear_rails` only in a docstring. Five cooksense rails carry a full envelope no gate reads |
+| `linear_rails[].vin_max` | OWED | as `vin_min` |
+| `linear_rails[].vout_min` | OWED | as `vin_min`; this is the number the Rds(on)/ESR drop arithmetic would be checked against |
+| `linear_rails[].vout_max` | OWED | as `vin_min` |
+| `linear_rails[].iout_max_A` | OWED | as `vin_min`; also absent from the trunk-current sum `rails[]` feeds |
+| `linear_rails[].ovlo_trip_V` | OWED | an over-voltage trip point, declared once and graded nowhere |
+| `linear_rails[].note` | ADVISORY | per-rail prose, as `rails[].note` |
+
+### keys: 03_src/rules/policy_waivers.yaml
+
+| key | reader | why |
+|---|---|---|
+| `[].id` | `policy_audit.py, waiver_provenance.py` | the WAIVED check-ID; must be a real one |
+| `[].refs` | OWED | **A WAIVER IS APPLIED BY `id` ALONE.** `policy_audit.py` builds `waived_ids` from `w["id"]` and never reads `refs:`, and `waiver_provenance.py` reads `why`/`derived_from` only — so a waiver written for `refs: [J1]` silences that check for EVERY ref on the board, and the list reads as a scope it does not have. `policy_audit.py`'s own docstring documents the `{id, refs, why}` shape, which is a MENTION and exactly the R-LEN shape. Owed: honour `refs:` as the waiver's scope, or state in the schema that it is documentation |
+| `[].why` | `policy_audit.py, waiver_provenance.py` | M-WAIV: the measurement; an entry without it is a FAIL |
+| `[].derived_from` | `waiver_provenance.py` | W-COPY/W-FOREIGN: which board this rationale was inherited from |

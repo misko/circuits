@@ -52,6 +52,7 @@ SUITES=(
   t1_net_reference.py
   t1_waiver_evidence.py
   t1_adr_bounds.py
+  t1_schema_reader.py
   t1_copper_length.py
   t1_power_topology.py
   t1_release_git_dirty.py
