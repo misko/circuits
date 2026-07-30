@@ -2068,3 +2068,27 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
   **mate-verified** clone substitution (needs physical parts), or **P1/P10** so
   a seal can say "this design is correct" without also having to claim "and you
   can buy it today".
+- **THE REPO SUITE IS EXIT 1 WITH SEVEN FAILURES AND NONE OF THEM IS THIS
+  BOARD'S — recorded by name rather than waited on.** Re-run per file by me,
+  raw exit codes: `t1_escape_tier` **exit 1**, 2 FAIL (P-LAND known-bad fixture,
+  `got 5, want 11`, on `pluto_cal_switch.kicad_pcb`); `t1_layout_precedent`
+  **exit 0**, 1 FAIL (`PREC_GRADED_FLOOR`); `t1_adr_bounds` **exit 1**, 2 FAIL
+  (`CITED_FLOOR`, 37 of 38 bound-publishing ADRs OWED fleet-wide);
+  `t1_schema_reader` **exit 1**, 2 FAIL (`G-ORPHAN`, 307/307 keys graded and
+  **1 orphan** — `pluto-rx2-8way-v2/02_parts/RP2040-Zero/part.yaml`
+  `mechanical`). Seven total, reproducing the reported count exactly.
+  **Attribution CHECKED, not assumed:** every failing assertion names its own
+  subject and none names a cooksense artifact — cooksense ADRs appear only in
+  `t1_adr_bounds`' OWED listing, which is pre-existing debt, not the failing
+  assertion; and nothing this pass changed declares a schema key or publishes an
+  ADR bound, so none of them can reach these checks. **None of the seven blocked
+  this pass** — the blocker was the topology re-gate.
+- **AND ONE OF THE SEVEN CANNOT BE SEEN FROM AN EXIT CODE.**
+  `tests/t1_layout_precedent.py` prints `10 passed, 1 failed` and **exits 0** —
+  reproduced twice with `$?` captured. A test file that reports a failure and
+  returns success is exactly what the testing contract forbids (the `jlc_twin`
+  exit-0-on-11-unverified-parts shape): anything gating on its exit code sees
+  green while it says red. NOT fixed here — different board's owner, and a
+  diagnosing agent is already assigned — but named, because it is the difference
+  between a suite that is 7-red and one that reports 7-red while one of them is
+  skippable by whoever reads `$?`.
