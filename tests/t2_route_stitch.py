@@ -389,6 +389,143 @@ def t_krt_fab_overrides():
            "the fab_overrides value did not reach KRT")
 
 
+@test("a length_match_group in route.yaml REACHES route.py's argv as a "
+      "repeatable --length-match-group, and its tolerance/amplitude with it")
+def t_krt_length_match_reaches_argv():
+    """THE FAILURE MODE THIS PINS IS SILENT. A key in `route.yaml` that the
+    driver drops produces a route with NO length matching and NO error — the
+    yaml says the arms are matched, the copper is not, and the DRC gate is
+    green either way. So the assertion is on ARGV: the flag, its patterns, and
+    the exact grouping.
+
+    PROVENANCE (pluto-rx2-8way, 2026-07-29). KRT does single-ended inter-net
+    length matching — MEASURED, `--length-match-group 'ANT*' 'RX2_OUT'
+    --length-match-tolerance 0.15` printed "8 nets (0 diff pairs, 8
+    single-ended), target=19.83mm" and took the group spread 2.237 -> 1.1586 mm
+    (29.5 -> 15.28 deg at 6 GHz), 11/11 routed, min_clearance_used 0.2. The
+    repo had asserted twice that no such tool existed. Because these three keys
+    were absent from `_KRT_FLAGMAP`, the better route could only be produced BY
+    HAND, and the recipe was therefore unexpressible in 03_src/ — canon M3.
+
+    RED-VERIFIED against the pre-fix flagmap (HEAD), where `route` hard-died
+    `unknown KRT option 'length_match_group'` before invoking KRT at all —
+    measured pre-fix: 0 KRT calls, rc != 0, the exact error t_kb_unknown_krt_flag
+    proves bites — 2026-07-29."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["common"]["length_match_group"] = ["ANT*", "RX2_OUT"]
+        cfg["route"]["common"]["length_match_tolerance"] = 0.15
+        cfg["route"]["common"]["meander_amplitude"] = 0.8
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    calls = krt_calls(d / "krt")
+    check(len(calls) >= 1, "no KRT waves were invoked")
+    for c in calls:
+        i = c.index("--length-match-group")
+        eq(c[i + 1:i + 3], ["ANT*", "RX2_OUT"],
+           "a flat list must reach KRT as ONE nargs='+' group")
+        eq(c[c.index("--length-match-tolerance") + 1], "0.15",
+           "the tolerance did not reach KRT — the residual spread IS this "
+           "number, so dropping it silently changes the result")
+        eq(c[c.index("--meander-amplitude") + 1], "0.8",
+           "the meander amplitude did not reach KRT")
+        eq(c.count("--length-match-group"), 1, "exactly one group")
+
+
+@test("a LIST OF LISTS becomes one --length-match-group per group (the flag is "
+      "argparse action='append'), and a mis-shaped one is a hard error")
+def t_krt_length_match_multiple_groups():
+    """`--length-match-group` is `action="append", nargs="+"`, so two groups are
+    two occurrences. Flattening them into one would silently match nets that
+    must NOT be matched to each other — a wrong board with a green gate. The
+    mis-shaped case is a hard error rather than a coercion for the same
+    reason."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["common"]["length_match_group"] = [["ANT*"], ["QSPI_*"]]
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    for c in krt_calls(d / "krt"):
+        eq(c.count("--length-match-group"), 2, "one flag occurrence per group")
+        i, j = (k for k, v in enumerate(c) if v == "--length-match-group")
+        eq(c[i + 1:i + 2], ["ANT*"], "first group")
+        eq(c[j + 1:j + 2], ["QSPI_*"], "second group")
+
+    def bad(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["common"]["length_match_group"] = "ANT*"   # not a list
+    d2, p2 = scratch(bad)
+    must_pass(prep(p2), "prep")
+    must_fail(run([sys.executable, RS, "route", p2]),
+              "a bare string length_match_group",
+              "must be a non-empty list of net patterns")
+
+
+@test("neckdown_length / neckdown_taper_length reach KRT — the answer to a "
+      "vendor land that cannot carry the impedance width")
+def t_krt_neckdown_reaches_argv():
+    """MEASURED on PE42482A-X (pluto-rx2-8way, 2026-07-29): the 0.60 x 0.30 mm
+    land at 0.50 mm pitch puts a GND land edge 0.350 mm off the RF centreline,
+    and a 0.36 mm trace needs 0.180 + 0.200 = 0.380 mm — deficit 0.030 mm. Six
+    of eleven rf nets routed; the five pins with GND on BOTH flanks failed. Max
+    landable width is the pad width itself, 0.30 mm = 55.3 ohm, which FAILS the
+    RF50_width floor. Relaxing clearance to <= 0.17 mm was REFUSED on measured
+    grounds (the stitch fence would sit 0.15-0.17 mm from a 0.36 mm arm, g/h
+    ~ 0.8, detuning the 50.5 ohm pure microstrip the width was derived from).
+    A neck-down + taper is the intended answer and it was unexpressible.
+
+    RED-VERIFIED against the pre-fix flagmap (HEAD): `unknown KRT option
+    'neckdown_length'`, rc != 0, 0 KRT calls — 2026-07-29."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["waves"][0]["neckdown_length"] = 1.2
+        cfg["route"]["waves"][0]["neckdown_taper_length"] = 0.4
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    calls = krt_calls(d / "krt")
+    eq(calls[0][calls[0].index("--neckdown-length") + 1], "1.2",
+       "the neck-down length did not reach KRT")
+    eq(calls[0][calls[0].index("--neckdown-taper-length") + 1], "0.4",
+       "the neck-down taper length did not reach KRT")
+    for c in calls[1:]:
+        check("--neckdown-length" not in c,
+              "a per-wave neck-down leaked into a later wave")
+
+
+@test("every key in _KRT_FLAGMAP is a flag route.py ACTUALLY accepts")
+def t_flagmap_matches_krt_argparse():
+    """canon M1, and the cheapest possible version of it. `_krt_args` dies on a
+    key it does not know, but nothing stopped the map itself from carrying a
+    flag KRT dropped or renamed — in which case argparse would reject the whole
+    command and the route stage would die on wave 1 with a message about a flag
+    the board's author never wrote. Cross-checked against route.py's own
+    --help text, not against a copy of the list."""
+    import importlib
+    sys.path.insert(0, str(SCRIPTS))
+    rs = importlib.import_module("route_and_stitch_generic")
+    import yaml
+    krt = (yaml.safe_load((LC / "03_src" / "route.yaml").read_text())
+           .get("route", {}).get("krt") or "~/gits/KiCadRoutingTools")
+    kd = Path(krt).expanduser()
+    if not (kd / "route.py").is_file():
+        return                       # KRT not checked out here; nothing to pin
+    # route.py delegates --fab-tier/--fab-overrides to fab_tiers.add_fab_tier_args,
+    # so both files are the argparse surface.
+    src = "".join((kd / f).read_text(errors="replace")
+                  for f in ("route.py", "fab_tiers.py") if (kd / f).is_file())
+    missing = [f"{k} -> {v[0]}" for k, v in rs._KRT_FLAGMAP.items()
+               if f'"{v[0]}"' not in src and f"'{v[0]}'" not in src]
+    check(not missing,
+          f"_KRT_FLAGMAP names flags route.py does not define: {missing}")
+    # and the five that were missing until 2026-07-29 are present now
+    for k in ("neckdown_length", "neckdown_taper_length", "length_match_group",
+              "length_match_tolerance", "meander_amplitude"):
+        check(k in rs._KRT_FLAGMAP, f"{k} is not expressible in route.yaml")
+
+
 @test("via_site_ok checks the board's FULL copper stack by default, catching "
       "an inner-layer conflict a F/B-only check misses")
 def t_via_site_full_custack():

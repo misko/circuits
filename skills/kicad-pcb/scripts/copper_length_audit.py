@@ -218,13 +218,100 @@ two different jobs:
       KNOWN, STABLE and REPRODUCIBLE — not that it be zero**, and `pin:` is
       the only one of these two checks that grades that.
 
-WHAT THIS GATE DOES NOT ATTEMPT. It does not length-match anything. KRT's
-meander machinery (`diff_pair_loop.py`, `diff_xnet.py`) is DIFF-PAIR shaped —
-intra-pair and inter-pair P/N equalisation. The pluto matched paths are
-single-ended 50 ohm traces that must match EACH OTHER ACROSS NETS, which is
-inter-net skew: a different problem with no tool behind it here. Equalisation
-is therefore a HUMAN, ITERATIVE routing task, and this gate is the instrument
-that task is steered by.
+WHAT THIS GATE DOES NOT ATTEMPT. It does not length-match anything; it
+measures. **CORRECTED BY MEASUREMENT, 2026-07-29 — the sentence that used to
+stand here was WRONG, and I wrote it.** It said: KRT's meander machinery is
+DIFF-PAIR shaped (intra/inter-pair P/N), so single-ended inter-net skew is "a
+different problem with no tool behind it here", and equalisation is therefore a
+human, iterative routing task. That claim was asserted twice — here and in
+pluto-rx2-8way's `nets.yaml` — WITHOUT ANYONE RUNNING THE FLAG, and it is the
+reason a nine-arm AoA board whose entire release value is phase match was about
+to be routed with no length matching at all.
+
+**KRT DOES DO SINGLE-ENDED INTER-NET LENGTH MATCHING.** MEASURED on
+pluto-rx2-8way: `route.py --length-match-group 'ANT*' 'RX2_OUT'
+--length-match-tolerance 0.15` printed *"8 nets (0 diff pairs, 8 single-ended),
+target=19.83mm"* and took the group spread **2.237 mm -> 1.1586 mm (29.5 deg ->
+15.28 deg at 13.19 deg/mm)**, 11/11 routed, 0 failed, `min_clearance_used: 0.2`
+— no clearance relaxation anywhere. The residual is the TOLERANCE that was
+passed in, not a floor. The tool was there the whole time; what was missing was
+five keys in `route_and_stitch_generic.py`'s `_KRT_FLAGMAP`
+(`length_match_group`, `length_match_tolerance`, `meander_amplitude`,
+`neckdown_length`, `neckdown_taper_length`), so `route.yaml` could not express
+the recipe and the better route existed only as a hand-run command — a canon-M3
+violation wearing a green gate. Those keys are wired now.
+
+So equalisation is a DECLARED, REPRODUCIBLE routing step, and this gate is the
+instrument that step is verified by — not a substitute for it. The lesson is
+canon M1 shaped: a capability claim about a TOOL must be measured against the
+tool, not inferred from reading two of its modules.
+
+===========================================================================
+THE OCTILINEAR FLOOR — WHY A CEILING MUST BE CHECKED AGAINST THE ROUTER'S
+MOVE SET, FROM PADS ALONE, BEFORE A ROUTER RUNS (canon M-ENTRY)
+===========================================================================
+
+**KRT IS OCTILINEAR.** It moves on a grid in 8 directions, so the shortest
+copper it can lay between two pads is not the Euclidean distance but
+
+    oct(dx, dy) = max(dx,dy) + (sqrt(2) - 1) * min(dx,dy)
+
+(travel `min` diagonally at sqrt(2) per unit, then `max-min` straight). That
+is an EXACT lower bound on any monotone 45-degree path, and it is computable
+from PAD POSITIONS ALONE — no copper, no router, no stackup.
+
+MEASURED on pluto-rx2-8way, whose ADR-0007 claims the nine radials are "equal
+length BY CONSTRUCTION":
+
+| member  | pads                        | Euclid  | octilinear floor | ratio |
+|---|---|---|---|---|
+| ARM_RF1 | J_ANT1.1 -> U_SW.24 | 17.7784 | 17.9628 | 1.0104 |
+| ARM_RF2 | J_ANT2.1 -> U_SW.2  | 17.9725 | **19.2523** | 1.0712 |
+| ARM_RF3 | J_ANT3.1 -> U_SW.4  | 18.1021 | **19.4594** | 1.0750 |
+| ARM_RF4 | J_ANT4.1 -> U_SW.6  | 17.7784 | 17.9628 | 1.0104 |
+| ARM_RF5 | J_ANT5.1 -> U_SW.13 | 17.7784 | 17.9628 | 1.0104 |
+| ARM_RF6 | J_ANT6.1 -> U_SW.15 | 18.1021 | **19.4594** | 1.0750 |
+| ARM_RF7 | J_ANT7.1 -> U_SW.17 | 17.9725 | **19.2523** | 1.0712 |
+| ARM_RFC | J_RX2.1  -> U_SW.22 | 18.1021 | **19.4594** | 1.0750 |
+
+**Euclidean spread 0.3238 mm (4.27 deg). Octilinear floor spread 1.4966 mm
+(19.74 deg at 13.19 deg/mm).** Only three of the nine radials (135/225/315
+deg) lie on a 45-degree multiple; the other six pay ~7% of their radius,
++1.3 mm each. The board's declared `max_spread_mm: 1.0` is therefore excluded
+by the ROUTER'S MOVE SET, not by its effort — no amount of iteration budget or
+clearance tuning reaches it, and ADR-0007's "equal by construction" is true of
+the PLACEMENT and FALSE of the copper.
+
+(A NUMBER CORRECTED IN PASSING: the session that found this reported the floor
+spread as 1.6475 mm / 21.73 deg. That figure multiplies each arm's Euclidean
+length by the octilinear factor of its IDEAL RADIAL ANGLE from the star centre
+— 1.0 on the diagonals, 1.0731 at 15 deg off-axis. It is 0.15 mm pessimistic
+because the switch's lands sit on a SQUARE, so the true pad-to-pad dx/dy is
+not the radial dx/dy. The exact pads-alone bound is **1.4966 mm**, and even
+the three "diagonal" arms cost 0.1844 mm because their QFN pad is off the
+radial. Same conclusion, measured instead of idealised.)
+
+WHAT THE FLOOR SPREAD DOES AND DOES NOT BOUND, stated precisely because the
+loose version would be wrong. It is NOT a lower bound on the achievable
+spread: a router can always LENGTHEN a short member to meet a long one, which
+is exactly what meandering is for. What it bounds is the spread you get when
+every member is routed at its shortest — i.e. the no-length-matching case. So
+the finding is conditional and the gate says so: a numeric `max_spread_mm`
+below the octilinear floor spread is unreachable UNLESS the route recipe
+deliberately elongates. A group may declare
+
+    elongation: meander
+
+to claim that it does, and the gate then CROSS-CHECKS `03_src/route.yaml` for a
+`length_match_group` — because the claim is only worth the recipe behind it,
+and until 2026-07-29 that recipe was not expressible at all. Without the
+declaration, a sub-floor ceiling is **R-LEN-OCT, a FAIL, at authoring time,
+before a router has run.** That is the whole value of this check: it turns a
+three-hour route-and-discover into an authoring-time error message.
+
+`router_moves: any` disables the bound for a group routed by something with an
+arbitrary-angle move set. It is an honest escape hatch and it must be declared,
+not assumed — every router in this pipeline is KRT, and KRT is octilinear.
 
 RECORDED FINDING, 2026-07-29: **NO PER-NET VIA BAN IS ENFORCED AT ROUTE
 TIME.** `route_and_stitch_generic.py` and both pluto `route.yaml` files carry
@@ -306,6 +393,19 @@ length_match:
     max_spread_mm: 1.0         # the DRIFT ceiling (see the module docstring:
                                # derived from TC*dT*dL, NOT a matching target)
                                # or the literal `report` for no ceiling.
+    # ---- THE OCTILINEAR FLOOR (R-LEN-OCT), graded FROM PADS ALONE, so it
+    # bites BEFORE a router runs (canon M-ENTRY). KRT moves in 8 directions,
+    # so oct = max(dx,dy) + 0.4142*min(dx,dy) is an exact lower bound on the
+    # copper it can lay pad-to-pad. On pluto-rx2-8way the 0.3238 mm Euclidean
+    # pad spread is a 1.4966 mm OCTILINEAR floor spread (19.74 deg at 6 GHz),
+    # which excludes max_spread_mm: 1.0 by the router's MOVE SET.
+    router_moves: octilinear   # OPTIONAL, default octilinear. `any` disables
+                               # the bound — declare it, never assume it.
+    elongation: meander        # OPTIONAL. Claims the recipe deliberately
+                               # LENGTHENS short members to meet long ones, so
+                               # the floor spread is not a bound. Cross-checked:
+                               # 03_src/route.yaml must carry a
+                               # `length_match_group` or this is a FAIL.
     pin:                       # OPTIONAL, and the check that guards a release:
       spread_mm: 0.000         # the PUBLISHED spread this board's artifact
       tol_mm: 0.05             # claims. drift beyond tol_mm FAILS, because a
@@ -472,6 +572,116 @@ def read_copper(path):
     return nets, copper_layers(text), text
 
 
+# ============================================================ the pad reader
+# PADS, not copper — this is what makes the octilinear floor an AUTHORING-TIME
+# check: it needs a placed board and nothing else. Same independent
+# s-expression scanner (canon M1), no pcbnew.
+
+def _subblocks(body, tag):
+    """Yield every `(tag ...)` item nested anywhere inside `body`, by paren
+    matching. Unlike `_blocks` this is depth-agnostic: a pad lives at
+    footprint depth, which varies with KiCad's indent."""
+    open_pat = f"({tag} "
+    i = body.find(open_pat)
+    while i != -1:
+        depth, k, in_str = 0, i, False
+        while k < len(body):
+            c = body[k]
+            if in_str:
+                if c == "\\":
+                    k += 2
+                    continue
+                if c == '"':
+                    in_str = False
+            elif c == '"':
+                in_str = True
+            elif c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            k += 1
+        yield body[i:k + 1]
+        i = body.find(open_pat, k)
+
+
+_AT3 = (r"\(at\s+([-\d.eE+]+)\s+([-\d.eE+]+)"
+        r"(?:\s+([-\d.eE+]+))?\s*\)")
+
+
+def read_pads(text):
+    """{net -> [(ref, pad, x_mm, y_mm)]} in BOARD coordinates.
+
+    A pad's `(at ...)` is relative to its footprint origin and is rotated by
+    the FOOTPRINT's rotation. KiCad's y axis points DOWN, so a positive
+    footprint angle is a clockwise screen rotation and the transform is
+
+        x = fx + px*cos(a) + py*sin(a)
+        y = fy - px*sin(a) + py*cos(a)
+
+    Getting that sign wrong is silent — it mirrors the part and every derived
+    span stays plausible. It is verified against a MEASURED third number:
+    pluto-rx2-8way's `nets.yaml` publishes the three PE42482A-X RF-land radii
+    (2.2743 / 2.0427 / 1.9164 mm about the star centre 46,46) derived by the
+    board's own audit through pcbnew; this reader reproduces all three, so the
+    transform is corroborated rather than asserted (canon M1).
+    """
+    out = {}
+    for fb in _blocks(text, "footprint"):
+        m = re.search(_AT3, fb)
+        if not m:
+            continue
+        fx, fy = float(m.group(1)), float(m.group(2))
+        a = math.radians(float(m.group(3)) if m.group(3) else 0.0)
+        rm = re.search(r'\(property\s+"Reference"\s+"([^"]+)"', fb) or \
+            re.search(r'\(fp_text\s+reference\s+"([^"]+)"', fb)
+        ref = rm.group(1) if rm else "?"
+        ca, sa = math.cos(a), math.sin(a)
+        for pb in _subblocks(fb, "pad"):
+            nm = re.search(r'\(pad\s+"([^"]*)"', pb)
+            am = re.search(_AT3, pb)
+            nn = re.search(r'\(net\s+(?:\d+\s+)?"([^"]*)"\s*\)', pb)
+            if not (nm and am and nn) or not nn.group(1):
+                continue
+            px, py = float(am.group(1)), float(am.group(2))
+            out.setdefault(nn.group(1), []).append(
+                (ref, nm.group(1), fx + px * ca + py * sa,
+                 fy - px * sa + py * ca))
+    return out
+
+
+#: sqrt(2) - 1: the diagonal premium of an 8-direction move set.
+OCT_K = math.sqrt(2.0) - 1.0
+
+
+def oct_floor(a, b):
+    """Shortest 45-degree-grid path between two points. EXACT, not a heuristic:
+    travel min(dx,dy) diagonally at sqrt(2) per unit, then max-min straight."""
+    dx, dy = abs(b[0] - a[0]), abs(b[1] - a[1])
+    return max(dx, dy) + OCT_K * min(dx, dy)
+
+
+def member_pad_floor(chain, pads):
+    """(floor_mm, [why]) for one member's ORDERED net chain, pads only.
+
+    A net with exactly two pads contributes its octilinear pad-to-pad floor.
+    Anything else (0, 1, or 3+ pads) is UNREACHED for the whole member and
+    says which net and how many — a three-pad net has no single pad PAIR, and
+    inventing one would be the adjacent-property error this file exists to
+    stop.
+    """
+    total, why = 0.0, []
+    for n in chain:
+        ps = pads.get(n) or []
+        if len(ps) != 2:
+            why.append(f"{n}: {len(ps)} pad(s) on the board, not 2 — no pad "
+                       f"PAIR, so no octilinear floor for this net")
+            continue
+        total += oct_floor(ps[0][2:4], ps[1][2:4])
+    return (None if why else total), why
+
+
 # ================================================================ the geometry
 def _node(xy, layer):
     return (int(round(xy[0] * NM)), int(round(xy[1] * NM)), layer)
@@ -623,6 +833,13 @@ def load_groups(proj):
         if top not in ("chain", "tree"):
             raise AuditError(f"{p}: length_match.{g}.topology must be `chain` "
                              f"or `tree`, got {top!r}")
+        rm = d.get("router_moves", "octilinear")
+        if rm not in ("octilinear", "any"):
+            raise AuditError(
+                f"{p}: length_match.{g}.router_moves must be `octilinear` "
+                f"(KRT's 8-direction move set — the default) or `any`, got "
+                f"{rm!r}. A router's move set is a FACT about the tool, so "
+                f"only these two claims are checkable")
         pin = d.get("pin")
         if pin is not None:
             if not isinstance(pin, dict) or "spread_mm" not in pin \
@@ -649,6 +866,107 @@ def find_board(proj, override=None):
     return cands[0]
 
 
+# ================================================== the octilinear floor check
+def route_recipe(proj):
+    """(has_length_match, path) for 03_src/route.yaml — does the ROUTE RECIPE
+    actually ask for length matching anywhere (common or any wave)?
+
+    This is the only place this gate reads the route config, and it reads it
+    for exactly one reason: `elongation: meander` is a claim about the RECIPE,
+    and a claim whose mechanism is absent is decoration. Until 2026-07-29 the
+    mechanism could not be written down at all — `length_match_group` was not
+    in route_and_stitch_generic's `_KRT_FLAGMAP`, so a board that needed it
+    had to be routed by hand.
+    """
+    p = Path(proj) / "03_src" / "route.yaml"
+    if not p.is_file():
+        return False, p
+    try:
+        doc = yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
+    except Exception:
+        return False, p
+    r = doc.get("route") or {}
+    blocks = [r.get("common") or {}] + list(r.get("waves") or [])
+    for b in blocks:
+        if isinstance(b, dict) and b.get("length_match_group"):
+            return True, p
+    return False, p
+
+
+def grade_octilinear(gname, d, pads, recipe, row, res):
+    """R-LEN-OCT: is the declared ceiling reachable by an OCTILINEAR router?
+
+    Pads only — no copper, no stackup, no router run. See the module docstring
+    for the derivation and the pluto-rx2-8way table (0.3238 mm Euclidean pad
+    spread -> 1.4966 mm octilinear floor spread, 19.74 deg at 6 GHz, against a
+    declared 1.0 mm ceiling).
+    """
+    row["router_moves"] = d.get("router_moves", "octilinear")
+    row["oct_floor_mm"] = {}
+    row["oct_spread_mm"] = None
+    if row["router_moves"] != "octilinear":
+        row["oct_why"] = ("`router_moves: any` declared — the 45-degree floor "
+                          "does not apply and is not computed")
+        return
+    row["oct_why"] = ""
+    unreached = []
+    for mname, chain in d["members"].items():
+        floor, why = member_pad_floor(chain, pads)
+        row["oct_floor_mm"][mname] = floor
+        unreached += [f"{mname}: {w}" for w in why]
+    if unreached:
+        row["oct_why"] = "; ".join(unreached)
+        res["unreached"].append(
+            f"R-LEN-OCT-UNREACHED [{gname}] the octilinear floor needs a PAD "
+            f"PAIR per member net: {row['oct_why']}")
+        return
+
+    vals = row["oct_floor_mm"]
+    spread = max(vals.values()) - min(vals.values())
+    row["oct_spread_mm"] = spread
+    tol = d.get("max_spread_mm", "report")
+    if tol == "report":
+        return
+    if spread <= float(tol) + 1e-9:
+        return
+
+    lo = min(vals, key=vals.get)
+    hi = max(vals, key=vals.get)
+    detail = (f"floor spread {spread:.4f} mm ({spread * DEG_PER_MM_6GHZ:.2f} "
+              f"deg at 6 GHz) exceeds max_spread_mm {tol}: shortest member "
+              f"{lo} >= {vals[lo]:.4f} mm, longest {hi} >= {vals[hi]:.4f} mm. "
+              f"An octilinear router (KRT moves in 8 directions, so the "
+              f"shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) "
+              f"cannot do better")
+    if not d.get("elongation"):
+        row["verdict"] = "FAIL"
+        res["fails"].append(
+            f"R-LEN-OCT [{gname}] {detail}. THIS IS EXCLUDED BY THE ROUTER'S "
+            f"MOVE SET, NOT BY ITS EFFORT — no iteration budget, clearance or "
+            f"placement tuning reaches it, and this is measured FROM PADS "
+            f"ALONE, so it holds before a router has run (ADR-{d['adr']}). "
+            f"Either raise max_spread_mm to >= {spread:.4f}, or declare "
+            f"`elongation: meander` AND put a `length_match_group` in "
+            f"03_src/route.yaml so short members are deliberately lengthened.")
+        return
+
+    has_lm, rp = recipe
+    if not has_lm:
+        row["verdict"] = "FAIL"
+        res["fails"].append(
+            f"R-LEN-OCT-RECIPE [{gname}] {detail}, and the group declares "
+            f"`elongation: meander` — but {rp} carries no "
+            f"`length_match_group` in route.common or any wave, so NOTHING "
+            f"lengthens the short members and the ceiling is unreachable "
+            f"anyway. A claim about the recipe is worth the recipe behind it.")
+        return
+    row["oct_why"] = (
+        f"{detail} — accepted because `elongation: meander` is declared and "
+        f"{rp.name} carries a length_match_group, so the short members are "
+        f"deliberately lengthened. The realized spread below is the check "
+        f"that the elongation actually happened.")
+
+
 # ==================================================================== grading
 def grade(proj, board_override=None):
     proj = Path(proj)
@@ -670,8 +988,10 @@ def grade(proj, board_override=None):
             res["n_member"] += len(groups[g]["members"])
         return res
 
-    nets, layer_order, _ = read_copper(board)
+    nets, layer_order, text = read_copper(board)
     board_nets = set(nets)
+    pads = read_pads(text)
+    recipe = route_recipe(proj)
 
     for gname, d in groups.items():
         stack = d.get("stackup_mm")
@@ -680,6 +1000,12 @@ def grade(proj, board_override=None):
         row = {"name": gname, "adr": d["adr"], "topology": top,
                "max_spread_mm": tol, "members": [], "verdict": "PASS",
                "why": "", "spread_mm": None}
+        # THE OCTILINEAR FLOOR RUNS FIRST, AND FROM PADS ONLY. It does not
+        # touch copper, so it grades a PLACED-BUT-UNROUTED board — which is
+        # the whole point (canon M-ENTRY: check the fact where it ENTERS).
+        # It is deliberately ahead of every copper early-return below, so a
+        # sub-floor ceiling FAILS on a board with no tracks at all.
+        grade_octilinear(gname, d, pads, recipe, row, res)
         ghosts = []
         for mname, chain in d["members"].items():
             res["n_member"] += 1
@@ -834,14 +1160,24 @@ def report(res, out=print, verbose=True):
         "measured: pad-entry copper (so every absolute is a LOWER BOUND), and "
         "via barrels without a declared stackup_mm.")
     for g in res["groups"]:
-        sp = ("-" if g["spread_mm"] is None else f"{g['spread_mm']:.4f} mm")
+        sp = ("-" if g.get("spread_mm") is None else f"{g['spread_mm']:.4f} mm")
         out(f"  [{g['verdict']:<9}] {g['name']}  ADR-{g.get('adr')}  "
             f"topology={g.get('topology')}  spread={sp}  "
             f"ceiling={g.get('max_spread_mm')}")
-        if g["spread_mm"] is not None:
+        if g.get("spread_mm") is not None:
             out(f"      = {g['spread_mm'] * T_PD_PS_PER_MM:.3f} ps, "
                 f"{g['spread_mm'] * DEG_PER_MM_6GHZ:.2f} deg at 6 GHz "
                 f"({T_PD_PS_PER_MM} ps/mm, {DEG_PER_MM_6GHZ} deg/mm derived)")
+        if g.get("oct_spread_mm") is not None:
+            out(f"      OCTILINEAR FLOOR (pads alone, no copper): spread "
+                f"{g['oct_spread_mm']:.4f} mm = "
+                f"{g['oct_spread_mm'] * DEG_PER_MM_6GHZ:.2f} deg at 6 GHz, "
+                f"moves={g.get('router_moves')}")
+            if verbose:
+                for mn, v in g.get("oct_floor_mm", {}).items():
+                    out(f"        {mn:<10s} floor >= {v:9.4f} mm")
+        if g.get("oct_why"):
+            out(f"      octilinear: {g['oct_why']}")
         if verbose:
             for m in g["members"]:
                 out(f"      {m['name']:<10s} >= {m['total_mm']:9.4f} mm  "

@@ -54,6 +54,9 @@ HARD ERRORS (never silent):
     floor (nets.yaml classes) — a missing width DERIVES from the largest
     member floor instead, so a wave cannot ride under its class
   * a KRT wave naming a net the board does not have
+  * a mis-shaped `length_match_group` (not a list of patterns, or not a list
+    of such lists) — coercing it would route with the WRONG matched set and
+    say nothing
   * a KRT wave exiting nonzero
   * any stitch pass falling short of its configured `min` / `require`
   * `import` onto a board that already has tracks
@@ -434,6 +437,39 @@ def wave_nets(cfg, allnets):
 
 
 # ============================================================= ROUTE =====
+# EVERY KRT CAPABILITY THIS DRIVER CANNOT NAME IS A CAPABILITY THE PIPELINE DOES
+# NOT HAVE. A key absent from this map is not a soft limitation: `_krt_args`
+# hard-dies on it (t_kb_unknown_krt_flag), so a `route.yaml` that needs it
+# cannot be written at all, and the only way to get the route is BY HAND — which
+# is a canon-M3 violation (nothing under 03_src/ regenerates it) wearing a green
+# DRC gate. That is exactly what happened on pluto-rx2-8way, 2026-07-29: the
+# nine-arm AoA board whose entire release value IS phase match had to be routed
+# by hand with `--length-match-group`, and the agent correctly REFUSED to promote
+# the chain file because the recipe was unexpressible. Five keys were missing:
+#
+#   neckdown_length / neckdown_taper_length — the answer to a launch whose
+#     vendor land cannot carry the impedance width. MEASURED on PE42482A-X:
+#     the 0.60 x 0.30 mm land at 0.50 mm pitch puts a GND land edge 0.350 mm
+#     off the RF centreline; a 0.36 mm trace needs 0.180 + 0.200 = 0.380 mm,
+#     deficit 0.030 mm, so 6 of 11 rf nets routed and the five pins with GND on
+#     BOTH flanks (ANT2/3/6/7, RX2_OUT) failed. Max landable width is the pad
+#     width itself, 0.30 mm = 55.3 ohm, which FAILS the RF50_width floor. The
+#     alternative — relaxing clearance to <= 0.17 mm — was refused for a
+#     measured reason: the stitch fence would then sit 0.15-0.17 mm from a
+#     0.36 mm arm (g/h ~ 0.8) and detune the pure-microstrip 50.5 ohm the width
+#     was derived from. A neck-down + taper is the intended answer.
+#   length_match_group / length_match_tolerance / meander_amplitude — KRT DOES
+#     do SINGLE-ENDED INTER-NET length matching, contrary to what this repo
+#     asserted twice before anyone ran the flag. MEASURED, same session:
+#     `--length-match-group 'ANT*' 'RX2_OUT' --length-match-tolerance 0.15`
+#     printed "8 nets (0 diff pairs, 8 single-ended), target=19.83mm" and took
+#     the group spread 2.237 -> 1.1586 mm (29.5 -> 15.28 deg at 13.19 deg/mm),
+#     11/11 routed, 0 failed, min_clearance_used 0.2 — NO clearance relaxation
+#     anywhere. The residual is the tolerance that was passed in, not a floor.
+#
+# `--length-match-group` is argparse `action="append", nargs="+"`, so it is
+# REPEATABLE and each occurrence is one group. `grouplist` renders both shapes:
+# a flat list of patterns is ONE group; a list of lists is one flag per group.
 _KRT_FLAGMAP = {
     "layers": ("--layers", "list"),
     "clearance": ("--clearance", "val"),
@@ -451,6 +487,11 @@ _KRT_FLAGMAP = {
     "rip_existing_nets": ("--rip-existing-nets", "list"),
     "power_nets": ("--power-nets", "list"),
     "power_nets_widths": ("--power-nets-widths", "list"),
+    "neckdown_length": ("--neckdown-length", "val"),
+    "neckdown_taper_length": ("--neckdown-taper-length", "val"),
+    "length_match_group": ("--length-match-group", "grouplist"),
+    "length_match_tolerance": ("--length-match-tolerance", "val"),
+    "meander_amplitude": ("--meander-amplitude", "val"),
     "no_stub_layer_swap": ("--no-stub-layer-swap", "flag"),
     "no_power_tap_neckdown": ("--no-power-tap-neckdown", "flag"),
     "keepout": ("--keepout", "flag"),
@@ -472,6 +513,23 @@ def _krt_args(d):
         elif kind == "list":
             out.append(flag)
             out += [str(x) for x in v]
+        elif kind == "grouplist":
+            # a REPEATABLE nargs='+' flag: one occurrence per group. A flat
+            # list of strings is one group (the common case); a list of lists
+            # is several. Anything else is a config error, not a coercion —
+            # a mis-shaped group that silently became one flag would route
+            # with the WRONG matching set and say nothing.
+            if not isinstance(v, (list, tuple)) or not v:
+                die(f"{k!r} must be a non-empty list of net patterns, or a "
+                    f"list of such lists (one per group), got {v!r}")
+            groups = v if isinstance(v[0], (list, tuple)) else [v]
+            for g in groups:
+                if not isinstance(g, (list, tuple)) or not g or \
+                        not all(isinstance(x, str) for x in g):
+                    die(f"{k!r}: each group must be a non-empty list of net "
+                        f"pattern STRINGS, got {g!r}")
+                out.append(flag)
+                out += [str(x) for x in g]
         else:
             out += [flag, str(v)]
     return out

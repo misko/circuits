@@ -263,6 +263,60 @@ def t_tier_typo():
     must_fail(preflight(d), "tier typo", "fab_tier")
 
 
+@test("PF-KRT FAILS a route.common.fab_tier outside KRT's {standard,advanced} "
+      "— the PIPELINE tier name copied into a KRT-preset slot", kind="known_bad")
+def t_krt_preset_not_a_krt_choice():
+    """MEASURED, pluto-rx2-8way 2026-07-29. `route.common.fab_tier` was
+    `jlc_4layer_advanced` — the board's real, correct PIPELINE tier
+    (fab_tiers.yaml), one level down in a slot that means KRT's own
+    `--fab-tier` PRESET, whose argparse `choices` are exactly
+    {standard, advanced}. route.py exited 2 on the FIRST wave, so nothing
+    routed at all — while this gate printed
+    `tier preflight: 0 FAIL / 0 WARN — config is tier-consistent` over it.
+
+    The pre-fix check read the value ONLY to compare it to the literal
+    'advanced' and `return`ed silently on anything else: a gate that passed a
+    value it never validated. RED-VERIFIED against the pre-fix
+    `check_krt_preset` (swap `if preset != "advanced": return` back to the top
+    and drop the choices test): this fixture exits 0 with
+    `0 FAIL / 0 WARN — config is tier-consistent`, measured 2026-07-29."""
+    d = scratch(mut_route=lambda r: r["route"]["common"].update(
+        {"fab_tier": "jlc_6layer_smallvia"}))
+    r = must_fail(preflight(d), "pipeline tier name in the KRT preset slot",
+                  "PF-KRT")
+    contains(r.out, "not one of KRT's --fab-tier choices", "the reason")
+    contains(r.out, "['standard', 'advanced']", "the legal set is printed")
+    contains(r.out, "PIPELINE tier name", "and the confusion is named")
+    contains(r.out, "exits 2", "with the measured consequence")
+    contains(r.out, "fix: route.common.fab_tier: advanced", "a copy-paste fix")
+    not_contains(r.out, "config is tier-consistent",
+                 "the verdict line must NOT claim consistency")
+
+
+@test("PF-KRT PASSES the legal 'advanced' preset when fab_overrides pins the "
+      "tier via floor, and both legal choices are accepted")
+def t_krt_preset_legal_values():
+    """The other side of the known-bad above: `advanced` is a legal KRT choice
+    and must not be blocked by the new validation. It still WARNs unpinned (the
+    crow-rv2 0.25-via escalation), so the pinned form is the clean case."""
+    d = scratch(mut_route=lambda r: r["route"]["common"].update(
+        {"fab_tier": "advanced", "fab_overrides": "/tmp/ov.txt"}))
+    r = must_pass(preflight(d, "--explain"), "advanced + pinned overrides")
+    contains(r.out, "0 FAIL / 0 WARN", "clean verdict")
+    contains(r.out, "argparse-legal", "the derivation records the check ran")
+    d2 = scratch(mut_route=lambda r: r["route"]["common"].update(
+        {"fab_tier": "standard"}))
+    r2 = must_pass(preflight(d2), "standard preset")
+    contains(r2.out, "0 FAIL", "standard is legal too")
+    # and an unpinned 'advanced' is still the crow-rv2 WARN, not a FAIL
+    d3 = scratch(mut_route=lambda r: r["route"]["common"].update(
+        {"fab_tier": "advanced"}))
+    r3 = must_pass(preflight(d3), "advanced unpinned")
+    contains(r3.out, "WARN route.common.fab_tier",
+             "the pre-existing PF-KRT WARN is preserved")
+    contains(r3.out, "33 vias at 0.25mm", "with its measured incident")
+
+
 @test("tier_preflight FAILS the frozen crow-array-pod archive "
       "(PF-RULES-CLR latent mismatch — the reason its e2e run uses "
       "--skip-preflight)", kind="known_bad")

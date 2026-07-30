@@ -607,13 +607,55 @@ class Preflight:
                 f"legal 0.30mm sites; 0.35 measurably helped)",
                 fix=f"placement.legalize.clearance: {pocket}")
 
+    #: KRT's own `--fab-tier` choices (KiCadRoutingTools/fab_tiers.py TIERS).
+    #: NOT this pipeline's tier vocabulary — that is fab_tiers.yaml, whose
+    #: names (jlc_4layer_advanced, jlc_6layer_smallvia, ...) argparse REJECTS.
+    KRT_PRESETS = ("standard", "advanced")
+
     def check_krt_preset(self):
-        """PF-KRT (WARN): KRT's own {standard,advanced} preset is NOT this
-        pipeline's fab tier. On a tier whose via floor sits between the
-        presets, 'advanced' auto-escalates vias DOWN below the declared
-        floor unless pinned (crow-rv2 2026-07-23: 33 vias at 0.25 < the
-        0.30 floor until --fab-overrides pinned it)."""
+        """PF-KRT: `route.common.fab_tier` is KRT's own {standard,advanced}
+        PRESET, not this pipeline's fab tier. Two distinct defects:
+
+        (1) FAIL — a value outside {standard, advanced}. KRT's argparse
+            `choices` rejects it, so `route.py` exits 2 on the FIRST wave and
+            the whole route stage is dead. MEASURED on pluto-rx2-8way,
+            2026-07-29: `route.common.fab_tier: jlc_4layer_advanced` (the
+            pipeline tier name, copied one level down) killed wave 1 while
+            this very gate printed "0 FAIL / 0 WARN — config is
+            tier-consistent" over it, because the old check read the value
+            ONLY to compare it against the literal 'advanced' and returned
+            silently on everything else. A gate that passes a value it never
+            validated.
+        (2) WARN — a legal 'advanced' preset on a tier whose via floor sits
+            above KRT's internal 0.25, unpinned: KRT auto-escalates vias DOWN
+            below the declared floor (crow-rv2 2026-07-23: 33 vias at 0.25 <
+            the 0.30 floor until --fab-overrides pinned it).
+        """
         preset = self.get("route.common.fab_tier")
+        if preset is None:
+            return                      # KRT's own default ('standard') applies
+        if preset not in self.KRT_PRESETS:
+            extra = ""
+            if str(preset) == self.tier["name"]:
+                extra = (" — this is the PIPELINE tier name (fab_tiers.yaml) "
+                         "copied into a KRT-preset slot; the two vocabularies "
+                         "are different and only one of them is argparse-legal")
+            self.fail(
+                "PF-KRT", "route.common.fab_tier",
+                f"{preset!r} is not one of KRT's --fab-tier choices "
+                f"{list(self.KRT_PRESETS)}{extra}. route.py's argparse "
+                f"REJECTS it, so the FIRST wave exits 2 and no board is "
+                f"routed (pluto-rx2-8way 2026-07-29: 'jlc_4layer_advanced' "
+                f"here killed wave 1 while this gate said 'tier-consistent')",
+                fix=f"route.common.fab_tier: advanced   # + "
+                    f"route.common.fab_overrides pinning via "
+                    f"{self.tier['min_via_diameter']}/"
+                    f"{self.tier['min_via_drill']} for tier "
+                    f"{self.tier['name']}")
+            return
+        self.note(f"KRT preset {preset!r} is argparse-legal "
+                  f"{list(self.KRT_PRESETS)}; pipeline tier is "
+                  f"{self.tier['name']} (a DIFFERENT vocabulary)")
         if preset != "advanced":
             return
         vd = float(self.tier["min_via_diameter"])

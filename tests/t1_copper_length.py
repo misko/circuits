@@ -78,7 +78,57 @@ LAYERS = """\
 """
 
 
-def board_text(segs=(), vias=(), arcs=(), zones=()):
+def footprint_text(ref, at, rot, pads):
+    """One real KiCad 9 footprint block. `pads` is [(name, net, (px, py))] in
+    FOOTPRINT-relative mm, which is what the reader has to un-rotate."""
+    out = ['\t(footprint "t1:pad2"', '\t\t(layer "F.Cu")',
+           f'\t\t(at {at[0]} {at[1]}' + (f' {rot})' if rot else ')'),
+           f'\t\t(property "Reference" "{ref}"', '\t\t\t(at 0 0 0)', '\t\t)']
+    for name, net, (px, py) in pads:
+        out += [f'\t\t(pad "{name}" smd rect', f'\t\t\t(at {px} {py})',
+                '\t\t\t(size 0.6 0.3)', '\t\t\t(layers "F.Cu")',
+                f'\t\t\t(net 1 "{net}")', '\t\t)']
+    out.append('\t)')
+    return out
+
+
+def decl_pads(decl, span=5.0):
+    """Default fixture pads: one two-pad footprint per net named by the
+    declaration's members, `span` mm apart on the X axis.
+
+    WHY EVERY FIXTURE CARRIES PADS. The octilinear-floor check (R-LEN-OCT)
+    grades FROM PADS ALONE, so a pad-free board would leave it UNREACHED on
+    every fixture in this file — i.e. the copper tests would silently stop
+    exercising it. A flat 5 mm span makes each member's floor
+    5 * len(chain) mm and the group's floor SPREAD exactly 0.0000, so the
+    pre-check is computed and clean everywhere and each copper fixture keeps
+    grading exactly the one thing it is about. Tests that mean to exercise the
+    floor pass `pads=` explicitly with real geometry.
+    """
+    import yaml
+    try:
+        doc = yaml.safe_load(decl) or {}
+    except Exception:
+        return []
+    if not isinstance(doc, dict):
+        return []
+    lm = doc.get("length_match")
+    if not isinstance(lm, dict):        # the malformed-declaration fixtures
+        return []
+    out, i = [], 0
+    for g, d in lm.items():
+        if not isinstance(d, dict):
+            continue
+        for mname, chain in (d.get("members") or {}).items():
+            for net in (chain if isinstance(chain, list) else []):
+                i += 1
+                out.append((f"P{i}", (0.0, 40.0 + i), 0.0,
+                            [("1", net, (0.0, 0.0)),
+                             ("2", net, (span, 0.0))]))
+    return out
+
+
+def board_text(segs=(), vias=(), arcs=(), zones=(), pads=()):
     """A minimal but REAL KiCad 9 board body. Fixtures are built by breaking a
     good one in exactly one way, so every geometric number here is exact and
     the expected length is arithmetic, not a golden file."""
@@ -99,18 +149,21 @@ def board_text(segs=(), vias=(), arcs=(), zones=()):
     for net in zones:
         out += ['\t(zone', '\t\t(layers "In1.Cu")', f'\t\t(net_name "{net}")',
                 '\t\t(polygon (pts (xy 0 0) (xy 5 0) (xy 5 5) (xy 0 5)))', '\t)']
+    for ref, at, rot, pd in pads:
+        out += footprint_text(ref, at, rot, pd)
     out.append(')')
     return "\n".join(out) + "\n"
 
 
-def scratch(decl, segs=(), vias=(), arcs=(), zones=(), name="fix"):
+def scratch(decl, segs=(), vias=(), arcs=(), zones=(), name="fix", pads=None):
     """A project tree: 03_src/rules/nets.yaml + 04_kicad/<name>.kicad_pcb."""
     d = tmpdir("ct_len_")
     (d / "03_src" / "rules").mkdir(parents=True)
     (d / "04_kicad").mkdir()
     (d / "03_src" / "rules" / "nets.yaml").write_text(decl)
     (d / "04_kicad" / f"{name}.kicad_pcb").write_text(
-        board_text(segs, vias, arcs, zones))
+        board_text(segs, vias, arcs, zones,
+                   decl_pads(decl) if pads is None else pads))
     return d
 
 
@@ -513,11 +566,245 @@ def t_unparseable_copper_is_ungraded():
     contains(r.out, "refusing to under-report copper", "and the reason")
 
 
+# ===================================== R-LEN-OCT: THE OCTILINEAR FLOOR
+# PROVENANCE, 2026-07-29, pluto-rx2-8way. The board declares nine radials
+# "equal length BY CONSTRUCTION" (ADR-0007) and a `max_spread_mm: 1.0` drift
+# ceiling. Its pad geometry makes 1.0 mm UNREACHABLE by KRT, which is
+# OCTILINEAR: only 3 of 9 radials (135/225/315 deg) sit on a 45-degree
+# multiple, and the other six pay ~7% of their radius. Three hours of routing
+# found that; these pads find it in milliseconds, and the check needs NO
+# COPPER, so it bites at authoring time (canon M-ENTRY).
+#
+# MEASURED on the real board's placement, reproduced exactly by the fixture
+# below: Euclidean pad spread 0.3238 mm (4.27 deg at 6 GHz) vs OCTILINEAR
+# floor spread 1.4966 mm (19.74 deg).
+RX2_STAR = {                      # net -> ((x1,y1), (x2,y2)) in board mm
+    "ANT1": ((31.8580, 31.8580), (44.7500, 44.1000)),   # 225 deg, diagonal
+    "ANT2": ((44.1000, 45.2500), (26.6810, 40.8240)),   # 195 deg, off-axis
+    "ANT3": ((26.6810, 51.1760), (44.1000, 46.2500)),   # 165 deg
+    "ANT4": ((31.8580, 60.1420), (44.1000, 47.2500)),   # 135 deg, diagonal
+    "ANT5": ((60.1420, 60.1420), (47.9000, 47.2500)),   # 45 deg, diagonal
+    "ANT6": ((65.3190, 51.1760), (47.9000, 46.2500)),   # 15 deg
+    "ANT7": ((65.3190, 40.8240), (47.9000, 45.2500)),   # -15 deg
+    "RX2_OUT": ((40.8240, 26.6810), (45.7500, 44.1000)),  # 255 deg (RFC)
+}
+#: the three PE42482A-X RF-land radii pluto-rx2-8way's nets.yaml PUBLISHES,
+#: derived by that board's own audit through pcbnew about the star centre
+#: (46, 46). The pad reader here must reproduce all three (canon M1).
+RX2_CENTRE = (46.0, 46.0)
+RX2_LAND_RADII = (2.2743, 2.0427, 1.9164)
+
+
+def star_pads(star=None):
+    """One two-pad footprint per radial, at the REAL measured pad centres."""
+    star = star or RX2_STAR
+    return [(f"F_{n}", (0.0, 0.0), 0.0,
+             [("1", n, a), ("2", n, b)]) for n, (a, b) in star.items()]
+
+
+def star_decl(tol=1.0, extra=(), star=None):
+    star = star or RX2_STAR
+    lines = ["classes: {}", "length_match:", "  RF_RADIAL_STAR:",
+             '    adr: "0007"', "    intent: >",
+             "      the eight congruent 50 ohm radials of the switch star;",
+             "      the per-path phase deltas are a PUBLISHED artifact.",
+             "    members:"]
+    for n in star:
+        lines.append(f"      ARM_{n}: [{n}]")
+    lines += ["    topology: chain", "    congruent_pads: true",
+              f"    max_spread_mm: {tol}"] + list(extra)
+    return "\n".join(lines) + "\n"
+
+
+def write_route_yaml(d, length_match_group=None):
+    """03_src/route.yaml — the RECIPE `elongation: meander` is a claim about."""
+    body = ["project:", "  name: fix",
+            "  board: 04_kicad/fix.kicad_pcb", "route:", "  common:",
+            "    layers: [F.Cu]"]
+    if length_match_group:
+        body.append(f"    length_match_group: {length_match_group}")
+    body += ["  waves:", "    - {name: rf, nets: [ANT1]}"]
+    (d / "03_src" / "route.yaml").write_text("\n".join(body) + "\n")
+
+
+@test("R-LEN-OCT REFUSES a ceiling the ROUTER'S MOVE SET excludes, from PADS "
+      "ALONE on a TRACK-FREE board — the rx2 star's 1.0 mm vs its 1.4966 mm "
+      "octilinear floor", kind="known_bad")
+def t_oct_floor_refuses_unreachable_ceiling():
+    """THE HIGHEST-VALUE LINE IN THIS FILE: it turns a three-hour
+    route-and-discover into an authoring-time error.
+
+    pluto-rx2-8way declared `max_spread_mm: 1.0` on eight radials whose pads
+    make 1.4966 mm the SHORTEST spread an octilinear router can produce. The
+    fixture is the board's REAL pad centres and NO COPPER AT ALL, so this
+    proves the refusal lands before a router has run.
+
+    RED-VERIFIED against the pre-fix code, 2026-07-29: pre-fix
+    copper_length_audit had no pad reader and no R-LEN-OCT at all, so this same
+    fixture printed `UNREACHED R-LEN ... 8 member net(s) carry no copper` and
+    EXITED 0 — the unreachable ceiling was invisible. Neutering the landed
+    check (`if spread <= float(tol) + 1e-9: return` -> `return`) reproduces
+    that: measured `21 passed, 3 failed` — this fixture stops biting, and so do
+    the two siblings that read the same branch."""
+    d = scratch(star_decl(tol=1.0), pads=star_pads())
+    r = must_fail(run([KPY, LEN, d]), "the rx2 star at a 1.0 mm ceiling",
+                  "R-LEN-OCT")
+    contains(r.out, "floor spread 1.4966 mm", "the measured floor spread")
+    contains(r.out, "19.74 deg", "converted to phase at 6 GHz")
+    contains(r.out, "max(dx,dy)+0.4142*min(dx,dy)", "the bound is derivable")
+    contains(r.out, "EXCLUDED BY THE ROUTER'S MOVE SET",
+             "the finding says it is not an effort problem")
+    contains(r.out, "raise max_spread_mm to >= 1.4966", "an actionable fix")
+    contains(r.out, "before a router has run", "and that it is pre-route")
+    # the per-member floors, and the tie pattern that proves the geometry:
+    # three diagonals at 17.9628 and three 15-deg-off arms at 19.4594
+    for v in ("17.9628", "19.2523", "19.4594"):
+        contains(r.out, v, f"member floor {v}")
+    check("(segment" not in (d / "04_kicad" / "fix.kicad_pcb").read_text(),
+          "the fixture must carry NO copper — the point is that pads suffice")
+
+
+@test("the octilinear floor is EXACTLY 1.0 x Euclidean on a 45-degree "
+      "multiple and 1.0731 x at 15 degrees off-axis")
+def t_oct_floor_arithmetic():
+    """The bound is arithmetic, not a fitted constant, so it is checked
+    against hand-computed values rather than the gate's own output (canon M1).
+    A 225-deg diagonal arm costs nothing; a 15-deg-off-axis arm costs
+    cos+0.4142*sin = 0.9659 + 0.4142*0.2588 = 1.0731 of its radius, which is
+    +1.3 mm on an 18 mm arm and is where the whole 1.4966 mm spread comes
+    from."""
+    sys.path.insert(0, str(SCRIPTS))
+    import importlib
+    cla = importlib.import_module("copper_length_audit")
+    diag = cla.oct_floor((0.0, 0.0), (10.0, 10.0))
+    eq(round(diag, 6), round(10.0 * math.sqrt(2), 6),
+       "a pure 45-degree run costs exactly its Euclidean length")
+    off = cla.oct_floor((0.0, 0.0), (math.cos(math.radians(15)) * 20,
+                                     math.sin(math.radians(15)) * 20))
+    eq(round(off / 20.0, 4), 1.0731,
+       "a 15-degree-off-axis run costs 1.0731 x its Euclidean length")
+    # and the fixture's own numbers, from the pads, by hand
+    a, b = RX2_STAR["ANT2"]
+    eq(round(cla.oct_floor(a, b), 4), 19.2523, "ANT2's floor")
+    eq(round(math.dist(a, b), 4), 17.9725, "ANT2's Euclidean length")
+
+
+@test("the pad reader reproduces pluto-rx2-8way's three PUBLISHED "
+      "PE42482A-X land radii and a rotated footprint's pad, without pcbnew")
+def t_pad_reader_independence():
+    """canon M1 — the pad transform (footprint rotation, y-down) is silent when
+    it is wrong: a mirrored part still yields plausible spans. So it is
+    corroborated against a THIRD number nobody here computed: the three RF-land
+    radii 2.2743 / 2.0427 / 1.9164 mm that pluto-rx2-8way's nets.yaml publishes,
+    derived by that board's own audit_board.py through pcbnew. This reader must
+    reproduce all three from the shipped bytes."""
+    sys.path.insert(0, str(SCRIPTS))
+    import importlib
+    cla = importlib.import_module("copper_length_audit")
+    board = ROOT / "projects/pluto-rx2-8way/04_kicad/pluto_rx2_8way.kicad_pcb"
+    if not board.is_file():
+        return                        # sibling tree not present; nothing to pin
+    pads = cla.read_pads(board.read_text(encoding="utf-8-sig", errors="replace"))
+    got = set()
+    for net in RX2_STAR:
+        ps = pads.get(net) or []
+        eq(len(ps), 2, f"{net} must have exactly two pads")
+        for ref, _pad, x, y in ps:
+            if ref.startswith("U_"):
+                got.add(round(math.dist((x, y), RX2_CENTRE), 4))
+    for want in RX2_LAND_RADII:
+        check(any(abs(g - want) <= 0.0005 for g in got),
+              f"published RF-land radius {want} not reproduced; got "
+              f"{sorted(got)}")
+    # the rotation transform, on a synthetic footprint with hand arithmetic:
+    # a pad at (+1, 0) on a footprint at (10, 20) rotated 90 deg lands at
+    # (10, 19) — y-DOWN, so a positive angle turns clockwise on screen.
+    txt = board_text(pads=[("R1", (10.0, 20.0), 90.0, [("1", "N", (1.0, 0.0))])])
+    p = cla.read_pads(txt)["N"][0]
+    eq((round(p[2], 6), round(p[3], 6)), (10.0, 19.0),
+       "a 90-degree footprint rotation must move the pad the right way")
+
+
+@test("`elongation: meander` with NO length_match_group in the route recipe "
+      "is a FAIL — a claim is worth the recipe behind it", kind="known_bad")
+def t_oct_elongation_without_recipe_fails():
+    """The escape hatch must not be a rubber stamp. Declaring that the router
+    deliberately lengthens short members is checkable: 03_src/route.yaml has to
+    carry a `length_match_group`. Until 2026-07-29 it COULD NOT — the key was
+    absent from route_and_stitch_generic's `_KRT_FLAGMAP`, so a board needing
+    it was routed by hand and its recipe lived nowhere (canon M3).
+
+    RED-VERIFIED: neutering `if not has_lm:` -> `if False:` makes this fixture
+    exit 0 — measured `23 passed, 1 failed`, this fixture the only red. Against
+    the pre-fix file (no R-LEN-OCT at all) it exits 0 too."""
+    d = scratch(star_decl(tol=1.0, extra=["    elongation: meander"]),
+                pads=star_pads())
+    write_route_yaml(d)                       # no length_match_group
+    r = must_fail(run([KPY, LEN, d]), "elongation claimed, recipe empty",
+                  "R-LEN-OCT-RECIPE")
+    contains(r.out, "carries no `length_match_group`", "the missing mechanism")
+    contains(r.out, "NOTHING lengthens the short members", "and what it costs")
+
+
+@test("`elongation: meander` PLUS a length_match_group in route.yaml is "
+      "accepted: the sub-floor ceiling stops being a FAIL")
+def t_oct_elongation_with_recipe_accepted():
+    """The other side of the known-bad above — same declaration, same pads,
+    one line added to the recipe. The group is still UNREACHED (the fixture has
+    no copper, and realized spread is what actually guards the release), but
+    R-LEN-OCT no longer fires."""
+    d = scratch(star_decl(tol=1.0, extra=["    elongation: meander"]),
+                pads=star_pads())
+    write_route_yaml(d, "['ANT*', RX2_OUT]")
+    r = must_pass(run([KPY, LEN, d]), "elongation with a real recipe")
+    not_contains(r.out, "FAIL R-LEN-OCT", "no octilinear failure")
+    contains(r.out, "accepted because `elongation: meander` is declared",
+             "and it says why it was accepted")
+    contains(r.out, "OCTILINEAR FLOOR", "the floor is still published")
+    contains(r.out, "UNREACHED R-LEN", "realized copper is still ungraded")
+
+
+@test("`router_moves: any` disables the bound, and a typo'd move set is "
+      "UNGRADED (exit 2) rather than silently defaulting")
+def t_oct_router_moves_declaration():
+    d = scratch(star_decl(tol=1.0, extra=["    router_moves: any"]),
+                pads=star_pads())
+    r = must_pass(run([KPY, LEN, d]), "router_moves: any")
+    not_contains(r.out, "R-LEN-OCT", "the bound does not apply")
+    contains(r.out, "does not apply and is not computed", "and it says so")
+    d2 = scratch(star_decl(tol=1.0, extra=["    router_moves: octagonal"]),
+                 pads=star_pads())
+    r2 = run([KPY, LEN, d2])
+    eq(r2.rc, 2, "a typo'd router_moves must exit 2")
+    contains(r2.out, "router_moves must be `octilinear`", "naming the legal set")
+
+
+@test("a member net without a PAD PAIR is octilinear-UNREACHED with its pad "
+      "count, never a silent pass", kind="known_bad")
+def t_oct_no_pad_pair_unreached():
+    """canon M-COVER. A three-pad net has no single pad PAIR, so there is no
+    floor to compute; inventing one from two of the three would be the
+    adjacent-property error this whole file exists to stop.
+
+    RED-VERIFIED: neutering `if unreached:` -> `if False:` in grade_octilinear
+    makes the gate compute a floor over the members it CAN read and exit 0 on
+    --strict — measured `23 passed, 1 failed`, this fixture the only red."""
+    pads = star_pads()
+    pads.append(("F_EXTRA", (0.0, 0.0), 0.0, [("3", "ANT1", (80.0, 80.0))]))
+    d = scratch(star_decl(tol=1.0), pads=pads)
+    r = run([KPY, LEN, d, "--strict"])
+    eq(r.rc, 1, "--strict must fail on an UNREACHED floor")
+    contains(r.out, "R-LEN-OCT-UNREACHED", "the finding is named")
+    contains(r.out, "3 pad(s) on the board, not 2", "with the measured count")
+    not_contains(r.out, "PASS R-LEN", "and it is never a pass")
+
+
 @test("the schema is self-documenting and the gate obeys G-INPUT/G-COVER")
 def t_schema_and_gate_contract():
     r = must_pass(run([KPY, LEN, "--schema"]), "--schema")
     for k in ("length_match:", "members:", "topology: chain", "no_vias:",
-              "max_spread_mm:", "pin:", "congruent_pads:", "stackup_mm:"):
+              "max_spread_mm:", "pin:", "congruent_pads:", "stackup_mm:",
+              "router_moves:", "elongation:"):
         contains(r.out, k, f"the schema documents {k}")
     ga = SCRIPTS / "gate_contract_audit.py"
     r = must_pass(run([KPY, ga, "--root", ROOT]), "gate_contract_audit")

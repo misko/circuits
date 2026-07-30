@@ -69,6 +69,29 @@ route:
     # 0.21 not 0.15: 0.6/0.3 vias at 0.15 pack drills to ~0.45 < the 0.5
     # hole-to-hole fab floor; 0.21 forces centres to 0.81 -> drill gap 0.51
     clearance: 0.21
+    # ---- OPTIONAL, per-wave or common. Both blocks are REAL KRT capability
+    # this driver could not express until 2026-07-29, which cost pluto-rx2-8way
+    # a hand-routed chain it then (correctly) refused to promote.
+    #
+    # LENGTH MATCHING IS SINGLE-ENDED AND INTER-NET. KRT matches a GROUP of
+    # ordinary nets against each other, not just diff-pair P/N. MEASURED on the
+    # nine-arm AoA star: `length_match_group: ['ANT*', RX2_OUT]` with
+    # tolerance 0.15 printed "8 nets (0 diff pairs, 8 single-ended),
+    # target=19.83mm" and took the group spread 2.237 -> 1.1586 mm (29.5 ->
+    # 15.28 deg at 6 GHz), 11/11 routed, min_clearance_used 0.2 — no clearance
+    # relaxation. The residual IS the tolerance passed in.
+    # A flat list is ONE group; a list of lists is several.
+    # length_match_group: ['ANT*', RX2_OUT]
+    # length_match_tolerance: 0.15    # mm of acceptable in-group variance
+    # meander_amplitude: 1.0          # meander height perpendicular to trace
+    #
+    # NECK-DOWN is the answer to a launch whose vendor land cannot carry the
+    # impedance width (PE42482A-X: 0.60 x 0.30 land at 0.50 pitch leaves
+    # 0.350 mm to the GND land edge, a 0.36 mm trace needs 0.380 — deficit
+    # 0.030). Relaxing clearance instead detunes the microstrip the width was
+    # derived from; narrowing near the pad does not.
+    # neckdown_length: 2.5            # mm of narrow track from the target pad
+    # neckdown_taper_length: 0.5      # mm of stepped narrow->wide taper (0=abrupt)
   waves:
     # track_width may be OMITTED: it then DERIVES from the wave's member
     # nets' netclass floors (rules/nets.yaml `classes` min_width — the same
