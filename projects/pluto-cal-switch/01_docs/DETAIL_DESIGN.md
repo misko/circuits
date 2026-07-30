@@ -785,8 +785,8 @@ inherits ~0.05 dB and a 16.5 dB local return loss at 6 GHz.
 | `C_CTRL1/2` shunt at each switch CTRL | **1 nF 0402 X7R** | Infineon's own measurement board carried 1 nF CTRL–GND and 1 nF VDD–GND (Table 6 fn 2). With the 1 kΩ this makes the shared control net RF-dead: at 1.5 GHz — λ/4 of a 25 mm control stub on this stackup, i.e. mid-band — the 1 nF is ≈0.1 Ω plus j2.4 Ω of ESL, an effective short. **Without it the control trace is a resonator, not a wire** |
 | | | RC = 1 µs, so the state transition takes ≈2.2 µs against the switch's own 220 ns [DS WN6 Table 10]. The brief states no switching-speed requirement; a bench cal switch does not need microseconds |
 | `R_CTRL_PD1/2` pulldown at each switch | **10 kΩ** | Must hold CTRL below V_Ctrl,L = 0.45 V against I_Ctrl max 10 nA ⇒ R_max = 45 MΩ; 10 kΩ is chosen for noise immunity. Load check: two in parallel = 5 kΩ ⇒ 0.66 mA from the MCU at 3.3 V, inside even the 2 mA drive setting (VOH ≥ 2.62 V) [DS] |
-| `R_HDR_S` header series | **2.2 kΩ** | With `R_HDR_G` forms a ÷2.5 divider (§9.1). Also bounds a reverse fault: an MCU pin wrongly driving 3.3 V into a Zynq pin clamped at ~2.3 V sources (3.3−2.3)/2.2k = **0.45 mA**, inside any IO clamp |
-| `R_HDR_G` header shunt to GND | **3.3 kΩ** | Divider ratio (2.2+3.3)/3.3 = **2.5**. Also the pull-down that makes an UNCONNECTED header read 0 V = antenna mode. Loading on a 1.8 V driver: 1.8/5.5 kΩ = 0.33 mA |
+| `R_HDR_S` header series | **3.3 kΩ** | With `R_HDR_G` forms a ÷2.5 divider (§9.1). Also bounds a reverse fault: an MCU pin wrongly driving 3.3 V into a Zynq pin clamped at ~2.3 V sources (3.3−2.3)/3.3k = **0.303 mA**, inside any IO clamp |
+| `R_HDR_G` header shunt to GND | **2.2 kΩ** | Divider ratio (R_S+R_G)/R_G = (3.3+2.2)/2.2 = **2.5**. Also the pull-down that makes an UNCONNECTED header read 0 V = antenna mode. Loading on a 1.8 V driver: 1.8/5.5 kΩ = 0.33 mA |
 | ADC threshold (firmware) | **0.36 V** | Half of the 1.8 V case. Header levels at the pin: 1.8 V→0.72 V, 3.3 V→1.32 V, 5.0 V→2.00 V, all inside the 0–3.3 V ADC range; a 12-bit LSB is 0.81 mV |
 | `R_LED` ×2 | **680 Ω** | (3.3 − 2.0)/2 mA = 650 Ω → E24 680 Ω ⇒ 1.9 mA |
 

@@ -505,18 +505,41 @@ export default () => (
       pinLabels={{ pin1: "NC", pin2: "NC", pin3: "IO1", pin4: "GND", pin5: "IO2" }}
       connections={conn({ 3: "HDR_CTRL_IN", 4: "GND", 5: "HDR_STATE_OUT" })}
       /* 1, 2 = NC -> no_connect */ />
-    {/* 2.2k / 3.3k = /2.5. Header at the pin: 1.8 V -> 0.72 V, 3.3 V ->      */}
-    {/* 1.32 V, 5.0 V -> 2.00 V, all inside the 0-3.3 V ADC range; firmware   */}
-    {/* thresholds at 0.36 V and a 12-bit LSB is 0.81 mV. The 2.2k is also    */}
-    {/* the FAULT-CURRENT BOUND, not just a divider leg: a firmware bug       */}
-    {/* driving 3.3 V into a clamped 1.8 V Zynq pin sources 0.45 mA.          */}
-    <resistor name="R_HDR_S" resistance="2.2k" footprint="0402"
-      supplierPartNumbers={{ jlcpcb: [P.R2K2] }}
+    {/* THE TWO VALUES WERE TRANSPOSED UNTIL 2026-07-30, and the comment that  */}
+    {/* used to sit here is how it survived stage 4: it read "2.2k / 3.3k =    */}
+    {/* /2.5" and then tabulated 0.72 / 1.32 / 2.00 V, which is the table for  */}
+    {/* SERIES 3.3k over SHUNT 2.2k. As authored (series 2.2k, shunt 3.3k) the */}
+    {/* ratio is 3.3/(2.2+3.3) = 0.600, so the numbers in the comment, in      */}
+    {/* ADR-0008 and in electrical_invariants all described a divider the      */}
+    {/* netlist did not contain. Nothing caught it: the only assert was        */}
+    {/* `part_value R_HDR_S min: 1k`, which 2.2k satisfies.                    */}
+    {/* The DEFECT was the 5.0 V CEILING, not the detect threshold: at 0.600   */}
+    {/* a 5.0 V header reads 3.000 V against a 3.3 V ADC full scale — 0.30 V   */}
+    {/* of headroom, ~0.23 V against a -2 % ADC_AVDD of 3.234 V — and at the   */}
+    {/* USB-legal 5.5 V it reads 3.300 V, AT or ABOVE AVDD, forward-biasing    */}
+    {/* the input ESD diode. SWAPPED rather than re-documented, because the    */}
+    {/* swap restores every published number AND tightens the fault bound.     */}
+    {/* SERIES 3.3k / SHUNT 2.2k = /2.5. Header at the pin: 1.8 V -> 0.720 V,  */}
+    {/* 3.3 V -> 1.320 V, 5.0 V -> 2.000 V (1.30 V of ADC headroom), 5.5 V ->  */}
+    {/* 2.200 V; firmware thresholds at 0.36 V and a 12-bit LSB is 0.81 mV.    */}
+    {/* The SERIES leg is also the FAULT-CURRENT BOUND, not just a divider     */}
+    {/* leg: a firmware bug driving 3.3 V into a clamped 1.8 V Zynq pin now    */}
+    {/* sources (3.3-2.3)/3300 = 0.303 mA, BETTER than the 0.45 mA ADR-0008    */}
+    {/* claimed for 2.2k. BOM-NEUTRAL: R2K2 and R3K3 are each used exactly     */}
+    {/* once and only here, so the swap moves which refdes takes which reel    */}
+    {/* and changes no line-item quantity.                                     */}
+    {/* Pinned by BOTH `series_chain` (which leg is which) and `part_value     */}
+    {/* equals` on EACH resistor (what each leg is) in                         */}
+    {/* 03_src/rules/electrical_invariants.yaml — a chain assert alone passes  */}
+    {/* the transposition, and a value assert alone does not know which leg    */}
+    {/* it graded.                                                             */}
+    <resistor name="R_HDR_S" resistance="3.3k" footprint="0402"
+      supplierPartNumbers={{ jlcpcb: [P.R3K3] }}
       connections={{ pin1: N("HDR_CTRL_IN"), pin2: N("HDR_CTRL_ADC") }} />
     {/* Divider bottom AND the pull-down that makes an UNCONNECTED header     */}
     {/* read 0 V = ANTENNA mode. */}
-    <resistor name="R_HDR_G" resistance="3.3k" footprint="0402"
-      supplierPartNumbers={{ jlcpcb: [P.R3K3] }}
+    <resistor name="R_HDR_G" resistance="2.2k" footprint="0402"
+      supplierPartNumbers={{ jlcpcb: [P.R2K2] }}
       connections={{ pin1: N("HDR_CTRL_ADC"), pin2: N("GND") }} />
     {/* Emulated open-drain state output: firmware drives LOW or leaves the   */}
     {/* pin a hi-Z input, so it cannot exceed whatever rail the user pulls it */}

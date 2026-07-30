@@ -60,15 +60,42 @@ runtime — one firmware bug or one netlist error destroys the user's Pluto.
 
 ### 1. The header lands on an ADC pin through a ÷2.5 divider
 
-`HDR_CTRL_IN` → **2.2 kΩ series → GPIO28 (ADC2)**, with **3.3 kΩ to GND** and
+`HDR_CTRL_IN` → **3.3 kΩ series → GPIO28 (ADC2)**, with **2.2 kΩ to GND** and
 an ESD clamp at the connector. Firmware thresholds at **0.36 V**.
 
-| header logic | voltage at the pin | vs 0.36 V threshold |
-|---|---|---|
-| 0 V / unconnected | 0.00 V | LOW |
-| 1.8 V (PlutoPlus) | 0.72 V | HIGH, 2× margin |
-| 3.3 V | 1.32 V | HIGH |
-| 5.0 V | 2.00 V | HIGH, inside the 0–3.3 V ADC range |
+> **CORRECTED 2026-07-30 — the two resistor values were TRANSPOSED in the
+> as-authored netlist, and this table was the evidence.** Stage 4 shipped
+> `R_HDR_S` = 2.2 kΩ and `R_HDR_G` = 3.3 kΩ, i.e. ratio **0.600**, while this
+> ADR's prose said "2.2 kΩ series … 3.3 kΩ to GND" and the table below listed
+> the voltages for **0.400**. The table was never an estimate — it is exactly
+> what the two values produce when swapped, which is what identified the fault
+> as a transposition rather than a rounding disagreement. **The netlist was
+> corrected to match the table** (series 3.3 kΩ / shunt 2.2 kΩ), not the other
+> way round, for three reasons: (a) the ratio the whole ADR argues for is
+> ÷2.5; (b) the swap **tightens** the fault-current bound below (0.303 mA
+> instead of 0.45 mA); (c) at 0.600 the ADC ceiling collapses — see the
+> headroom column. **BOM-neutral**: `C25879` (2.2 k) and `C137992` (3.3 k) are
+> each used exactly once and only here, so the swap changes no line item.
+> Now machine-checked three ways — `series_chain` pins which leg is which,
+> `part_value equals` pins each leg's value, `net_has_part` pins existence —
+> because the single pre-existing assert (`R_HDR_S min: 1k`) was satisfied by
+> the wrong value.
+
+| header logic | voltage at the pin | vs 0.36 V threshold | headroom to 3.3 V FS |
+|---|---|---|---|
+| 0 V / unconnected | 0.00 V | LOW | — |
+| 1.8 V (PlutoPlus) | 0.72 V | HIGH, 2× margin | 2.58 V |
+| 3.3 V | 1.32 V | HIGH | 1.98 V |
+| 5.0 V (silk-stated ceiling) | 2.00 V | HIGH, inside the 0–3.3 V ADC range | **1.30 V** |
+| 5.5 V (USB-legal worst case) | 2.20 V | HIGH | 1.10 V |
+
+For contrast, the transposed 0.600 ratio that was actually built: 1.080 /
+1.980 / **3.000** / 3.300 V. The 0.36 V detect threshold clears with *better*
+margin at 0.600 — which is why no functional test would have found it — but
+the 5.0 V case leaves **0.30 V** of headroom against a 3.3 V full scale
+(≈0.23 V against a −2 % `ADC_AVDD` of 3.234 V), and the 5.5 V case reaches
+**3.300 V, at or above AVDD**, forward-biasing the input ESD diode. The
+failure mode of this divider is the CEILING, not the threshold.
 
 Four properties, all of which the alternatives buy only partially:
 
@@ -76,8 +103,10 @@ Four properties, all of which the alternatives buy only partially:
   and no assumption about what the user connects.
 - **INPUT-ONLY BY CONSTRUCTION.** An ADC-configured pin has its digital output
   disabled, so no firmware bug can drive 3.3 V into a 2.35 V-max Zynq pin. The
-  2.2 kΩ bounds any such fault to **0.45 mA** regardless, inside any IO clamp.
-- **An unconnected header reads 0 V = antenna mode** — the 3.3 kΩ is the
+  3.3 kΩ series bounds any such fault to **0.303 mA** regardless, inside any
+  IO clamp. (Was stated as 0.45 mA for a 2.2 kΩ series — see the 2026-07-30
+  transposition note above; the corrected value is the *tighter* bound.)
+- **An unconnected header reads 0 V = antenna mode** — the 2.2 kΩ shunt is the
   pull-down.
 - Loads a 1.8 V driver with only 1.8 V / 5.5 kΩ = **0.33 mA**.
 

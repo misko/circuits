@@ -378,10 +378,32 @@ invariants:
       that only asks whether it can spuriously enter loopback"
 
   # ---- ADR-0008: the header can never drive the Pluto ---------------------
+  # =========================================================================
+  # THE DIVIDER RATIO IS PINNED BY THREE ASSERTS THAT PIN THREE DIFFERENT
+  # THINGS, and it took all three because it took all three to catch the
+  # defect that was actually here. 2026-07-30: the board shipped stage 4 with
+  # R_HDR_S = 2.2k and R_HDR_G = 3.3k, i.e. ratio 3.3/(2.2+3.3) = 0.600,
+  # while ADR-0008, the tsx comment and every published voltage described
+  # 0.400 — the two values TRANSPOSED. The only assert on the divider was
+  # `part_value R_HDR_S min: 1k`, and 2.2k satisfies it, so nothing went red.
+  #   * `series_chain`   pins WHICH LEG IS WHICH  (topology/position)
+  #   * `part_value equals` on EACH resistor pins WHAT EACH LEG IS  (value)
+  #   * `net_has_part`   pins that both legs EXIST at all           (existence)
+  # Neither of the first two is sufficient alone, and that is the point:
+  # the chain assert passes a transposition unchanged (the series leg is
+  # still A resistor on the right two nets), and a value assert on one part
+  # alone does not know which leg it graded. Position x value = ratio.
+  # RED-VERIFIED 2026-07-30 against the PRE-FIX netlist: with the values
+  # transposed both `equals` asserts fail by name and value.
+  # =========================================================================
   - assert: series_chain
-    chain: [HDR_CTRL_IN, R_HDR_S, HDR_CTRL_ADC]
+    chain: [HDR_CTRL_IN, R_HDR_S, HDR_CTRL_ADC, R_HDR_G, GND]
     adr: "0008"
-    why: "the header input reaches the MCU ONLY through the series resistor.
+    why: "the header input reaches the MCU ONLY through the series resistor,
+      and the shunt leg lands on GND — the full divider, not just its top half.
+      EXTENDED 2026-07-30 through R_HDR_G to GND: the old chain stopped at
+      HDR_CTRL_ADC, so it pinned that a series resistor existed but said
+      nothing about which resistor was the SHUNT, which is half of the ratio.
       Direct connection is BOTH non-functional (PlutoPlus IO is 1.8 V against
       RP2040's flat 2.0 V VIH — it would read permanently LOW, fail-safe and
       therefore invisible to any 'can it enter loopback' bench test) AND a
@@ -390,13 +412,40 @@ invariants:
 
   - assert: part_value
     part: R_HDR_S
+    equals: 3.3k
+    tolerance_pct: 1
+    adr: "0008"
+    why: "THE TOP LEG OF THE /2.5 DIVIDER. With R_HDR_G = 2.2k this makes the
+      ratio 2.2/(3.3+2.2) = 0.400 and the published table true: 1.8 V -> 0.720,
+      3.3 V -> 1.320, 5.0 V -> 2.000 V. The number that actually forced the
+      value is the CEILING, not the 0.36 V detect threshold: at the transposed
+      0.600 a 5.0 V header reads 3.000 V against a 3.3 V ADC full scale
+      (0.30 V of headroom, ~0.23 V against a -2 % ADC_AVDD of 3.234 V), and at
+      the USB-legal 5.5 V it reads 3.300 V — AT or ABOVE AVDD, forward-biasing
+      the input ESD diode. At 0.400 the same 5.5 V reads 2.200 V"
+
+  - assert: part_value
+    part: R_HDR_G
+    equals: 2.2k
+    tolerance_pct: 1
+    adr: "0008"
+    why: "THE BOTTOM LEG, and the assert that did not exist until 2026-07-30 —
+      which is exactly why the transposition shipped. R_HDR_G was pinned only
+      by `net_has_part` (a resistor exists on HDR_CTRL_ADC), and existence does
+      not pin value. It is also the pull-down that makes an UNCONNECTED header
+      read 0 V = ANTENNA mode, so it may not be removed to 'fix' a ratio"
+
+  - assert: part_value
+    part: R_HDR_S
     min: 1k
     adr: "0008"
-    why: "the series resistor is the FAULT-CURRENT BOUND, not just a divider
-      leg. At 2.2k a firmware bug driving 3.3 V into a clamped 1.8 V Zynq pin
-      sources (3.3-2.3)/2200 = 0.45 mA. Below ~1k that bound stops protecting
-      the user's Pluto, and the divider ratio also stops matching the 0.36 V
-      firmware threshold"
+    why: "SEPARATE REASON, DELIBERATELY NOT FOLDED INTO THE `equals` ABOVE: the
+      series resistor is the FAULT-CURRENT BOUND, not just a divider leg. At
+      3.3k a firmware bug driving 3.3 V into a clamped 1.8 V Zynq pin sources
+      (3.3-2.3)/3300 = 0.303 mA (ADR-0008 claimed 0.45 mA for the 2.2k it
+      thought was here — the swap TIGHTENS this bound). Below ~1k that bound
+      stops protecting the user's Pluto. This floor survives any future
+      re-ratio of the divider; the `equals` above does not"
 
   - assert: net_has_part
     net: HDR_CTRL_ADC

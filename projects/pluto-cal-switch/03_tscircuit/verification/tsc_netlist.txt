@@ -42,8 +42,8 @@ COMPONENTS:
  - FB2: FB2, source_component
  - J_HDR: 
  - U_HDR_ESD: 
- - R_HDR_S: 2.2kΩ res0402 resistor
- - R_HDR_G: 3.3kΩ res0402 resistor
+ - R_HDR_S: 3.3kΩ res0402 resistor
+ - R_HDR_G: 2.2kΩ res0402 resistor
  - R_HDR_O: 1kΩ res0402 resistor
  - U_MCU: 
  - C_IO1: 100nF 0402 capacitor
@@ -696,11 +696,11 @@ U_HDR_ESD
 - pin4(GND): NETS(GND)
 - pin5(IO2): NETS(HDR_STATE_OUT)
 
-R_HDR_S (2.2kΩ res0402)
+R_HDR_S (3.3kΩ res0402)
 - pin1(anode, pos, left): NETS(HDR_CTRL_IN)
 - pin2(cathode, neg, right): NETS(HDR_CTRL_ADC)
 
-R_HDR_G (3.3kΩ res0402)
+R_HDR_G (2.2kΩ res0402)
 - pin1(anode, pos, left): NETS(HDR_CTRL_ADC)
 - pin2(cathode, neg, right): NETS(GND)
 

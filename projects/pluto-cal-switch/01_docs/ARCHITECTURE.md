@@ -255,15 +255,21 @@ mode forever, and the failure is *fail-safe*, so no bench test that asks "can
 it spuriously enter loopback" would ever find it.
 
 The header therefore lands on an **ADC-capable pin (GPIO28)** through a
-2.2 kΩ / 3.3 kΩ divider (÷2.5), thresholded in firmware at 0.36 V. That:
+**3.3 kΩ series / 2.2 kΩ shunt** divider (÷2.5), thresholded in firmware at
+0.36 V. That:
 
 - reads **1.8 V, 3.3 V and 5.0 V** logic (0.72 / 1.32 / 2.00 V at the pin, all
   inside the 0–3.3 V ADC range) with no level translator and no second rail;
 - is **input-only by construction** — an ADC-configured pin has its digital
   output disabled, so no firmware bug can drive 3.3 V into a 1.8 V Zynq pin
-  whose absolute max is ≈2.35 V. The 2.2 kΩ series bounds any such fault to
-  <1.5 mA regardless;
-- reads 0 V when the header is unconnected (the 3.3 kΩ is a pull-down).
+  whose absolute max is ≈2.35 V. The 3.3 kΩ series bounds any such fault to
+  0.303 mA regardless;
+- reads 0 V when the header is unconnected (the 2.2 kΩ shunt is a pull-down).
+
+**The two values were TRANSPOSED in the as-built netlist until 2026-07-30**
+(series 2.2 kΩ / shunt 3.3 kΩ = ÷1.667), which put the 5.0 V case at 3.000 V
+against a 3.3 V ADC full scale. Corrected in `03_tscircuit`, machine-checked
+by `series_chain` + `part_value equals` on both legs. See ADR-0008.
 
 ADR-0008.
 
