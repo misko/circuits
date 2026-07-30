@@ -514,6 +514,15 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
      precedent search is paid once per part, ever. Full source catalog,
      search technique per source, and the study-vs-copy rules:
      `kicad-pcb/references/layout-precedents.md`.
+**A DOSSIER MAY BE DELETED, BUT NOT SILENTLY (canon M-DEPEND).** `02_parts/`
+is the MPN authority for EVERY sealed release, not just this board, so removing
+a dossier — or moving its `sourcing.lcsc`/`mpn:` — can break an immutable
+archive. It is NOT append-only: three legitimate outcomes are keep the dossier,
+keep the retired code resolvable as a **mapping-form** `alternates:` entry, or
+move the code->MPN fact to the vetted ledger. Graded by
+`sealed_dependency_check.py`. Measured: 539 rows across 25 of 33 sealed releases
+resolve ONLY because a dossier is still in the tree.
+
 3. `03_src/rules/nets.yaml` + `generate_rules.py` BEFORE any layout.
 4. `03_src/rules/electrical_invariants.yaml` — the INTENT gate (canon E-INV):
    every protection/topology ADR emits netlist assertions (`pin_on_net`,
@@ -521,6 +530,29 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
    just self-consistency. This is the gate the D1 reverse-polarity defect
    needed. `electrical_invariants.py --adr-coverage` (E-ADR) flags a protection
    ADR that emits none.
+5. **`03_src/rules/nets.yaml` `length_match:` — REQUIRED THE MOMENT TWO PATHS
+   MUST HAVE THE SAME LENGTH** (canon R-LEN). Without it `copper_length_audit`
+   reports UNREACHED and you route with NO gate on the property the board sells.
+   Size `max_spread_mm` from **DRIFT** (`d_tau = TC*dT*dL*t_pd`), never from a
+   desired match: a tolerance tighter than the part's own relative-phase window
+   is not physics. **CHECK THE OCTILINEAR FLOOR FROM PADS BEFORE ROUTING** —
+   KRT is octilinear, so `max(dx,dy)+0.4142*min(dx,dy)` is the shortest copper
+   it can lay, and a ceiling below that is excluded by the router's MOVE SET,
+   not by effort. `elongation: meander` opts out and is cross-checked against a
+   real `length_match_group` in `route.yaml`. The knob is `meander_amplitude`,
+   NOT `length_match_tolerance`.
+6. **`03_src/rules/nets.yaml` `scoped_clearances:` — the launch-local relaxation**
+   (canon R-SCOPE), when a pad cannot emit its class width at the board-wide
+   clearance. **`why:` AND `nets:` are both REQUIRED and the emit is refused
+   without them**, for a stronger reason than the `scoped_floors` width case: a
+   width relaxation is bounded below by ampacity and A-AMP grades it
+   independently from `current:`, but **an isolation relaxation has NO
+   downstream grader at all** — DRC simply stops reporting what the rule
+   permits, so unexplained it is silent by construction. Clearance is a property
+   of a PAIR, so "every pair inside this box" is not an isolation argument.
+   When a launch will not route the ranked causes are **grid, then clearance,
+   then width** — a neck-down is REFUTED as the remedy (measured: it delivers
+   150 mm at the narrow width and 0 mm at the wide one).
 
 ## 4-6. Generate, place, route — all regenerable from 03_src
 
@@ -576,6 +608,28 @@ pads (USB-C `A1..B12`, shield `SH`) are rejected by tscircuit WITHOUT an error
 and the part vanishes with ERC still 0 (2026-07-21: four USB connectors, 48/52).
 Author `03_tscircuit/manifest.yaml` (`components: [C1, R1, …]` — your declared
 refdes list) alongside the tsx, and gate the schematic AND board stages on
+**GATES ADDED 2026-07-29/30 — RUN THEM; NONE WAS IN THIS DOC UNTIL NOW, WHICH IS
+THE SAME "DECLARED BUT NOTHING READS IT" DEFECT THEY EXIST TO CATCH.**
+`net_reference_audit.py` (**E-NETREF** — every net name a rule file or dossier
+references must EXIST; measured 64 of 908 fleet references were ghosts, every one
+a `keep_short` budget, and one reached SHIPPED SILK) · `sealed_dependency_check.py`
+(**M-DEPEND**, above) · `copper_length_audit.py` (**R-LEN**, incl. the octilinear
+floor) · `adr_bound_provenance.py` (**M-BOUND** — a published inequality is
+REGENERATED, and the nearest standard value under it is re-evaluated at the
+declared corner; a bound whose only admissible value fails is a FAIL, not a
+rounding note) · `schema_reader_audit.py` (**G-ORPHAN** — every schema key names
+the gate that reads it, and that gate must PROVABLY read it) ·
+`gate_contract_audit.py` (**G-VACUOUS** — every gate declares the input on which
+it PASSES while its subject is FALSE, with a fixture; **G-SELFCON**; and
+`--dru` grades a `.kicad_dru` predicate that can never fire).
+
+**A WAIVER'S NUMBER IS REGENERATED, NOT TYPED** (canon M4). Load-bearing numbers
+carry `evidence: {command:, output:}` and `waiver_provenance.py` re-runs and
+diffs them. Measured: 16 of 22 fleet waivers rest on a typed number and ONE
+REVERSES ITS OWN CONCLUSION when re-measured (typed 2.62 mm, measures 3.085 mm,
+against a 3 mm budget it claimed to be inside). A tolerance must be SMALLER than
+the margin it lives inside, or it cannot distinguish pass from fail.
+
 `kicad-pcb/scripts/count_parity.py <project>` — generated artifacts all agree
 with each other after a silent drop; only declared intent disagrees.
 **Two audiences (ADR-0002 Phase A):** the human schematic document = tscircuit's
