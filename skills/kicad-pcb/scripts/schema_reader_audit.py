@@ -280,7 +280,10 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 7
-PROVEN_FLOOR = 239
+PROVEN_FLOOR = 241   # 239 -> 241 on 2026-07-29: route.yaml's
+#: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
+#: route_and_stitch_generic.py, which provably reads both. The floor
+#: rises in the commit that EARNS it — that is the whole ratchet.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.

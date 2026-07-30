@@ -366,6 +366,9 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 
 | key | reader | why |
 |---|---|---|
+| `length_match.<G>.phase.t_pd_ps_per_mm` | OWED | **A SECOND HOME FOR A NUMBER THE GATE RE-DERIVES, and the two DISAGREE.** `copper_length_audit.py` computes t_pd from the stackup (6.105 ps/mm on JLC04161H-7628) and names this key only in a docstring schema example, so the declared value is graded by nothing. pluto-cal-switch declares **6.0** — measured 1.3% low, because ADR-0010's constants were solved at eps_r 4.3 while its own stackup table declares Dk 4.4. The resolution is a CROSS-CHECK, not a read: reading the declared value would make the gate use the wrong number, whereas comparing them would have caught the stackup defect from the source alone (canon M-ENTRY). Do NOT close this by having the gate read it |
+| `length_match.<G>.phase.f_ghz` | OWED | the frequency the phase conversion is quoted at; same cross-check as `t_pd_ps_per_mm` above |
+| `length_match.<G>.phase.stackup` | OWED | the stackup the constants were solved on; the key that would make a stackup change invalidate a published picosecond figure LOUDLY rather than silently — ADR-0011's own stated worry, currently unenforced |
 | `fab_tier` | `fab_tier_util.py, policy_audit.py` | the SINGLE source of capability floors (P-TIER) |
 | `default_track_width` | `generate_rules_generic.py` | project-wide default |
 | `default_clearance` | `generate_rules_generic.py, tier_preflight.py` | project-wide default |

@@ -442,10 +442,29 @@ def t_real_fleet_denominator():
         contains(r.out, fam)
 
 
-@test("REAL FINDING — a policy waiver is applied by `id` ALONE: neither "
-      "policy_audit.py nor waiver_provenance.py reads `refs:`, so a waiver "
-      "written for one refdes silences the check for every ref")
+@test("REAL FINDING — a policy waiver is applied by `id` ALONE: policy_audit.py "
+      "reads no `refs:`, so a waiver written for one refdes silences the check "
+      "for every ref — and `refs:` is OVERLOADED, which is why it survived")
 def t_real_finding_waiver_refs_is_not_a_scope():
+    """NARROWED 2026-07-29, and the narrowing is the interesting part.
+
+    This fixture first asserted that NEITHER `policy_audit.py` nor
+    `waiver_provenance.py` reads `refs:`. Within the hour the M4 evidence work
+    landed `W-REFS`, which resolves path-shaped `refs:` and validates that a
+    cited line span exists — so `waiver_provenance.py` now genuinely reads it and
+    the fixture correctly refused to keep claiming otherwise.
+
+    What survives is sharper: **`refs:` is OVERLOADED.** Most fleet entries use
+    it as an EVIDENCE POINTER (file paths, now validated by W-REFS); three use it
+    as a SCOPE (refdes lists), and `policy_audit.py` — the only consumer that
+    could honour a scope — still builds `waived_ids` from `w["id"]` alone. So
+    cooksense's `P-SILK-FN` waiver names 22 refdes and silences that check
+    BOARD-WIDE; a 23rd failing refdes is silent, on the board carrying a 30 V
+    NOT-SELV terminal where connector labelling is the safety story.
+
+    The ambiguity is the reason nobody noticed: a reader who checks whether
+    `refs:` is read finds that it is, and stops. The fixture therefore pins the
+    CONSUMER, not the key."""
     # the CLAIM side: the contract now says OWED and says why
     c = (ROOT / "skills/pcb-design/templates/contracts/03_src/rules"
          / "contracts.md").read_text(encoding="utf-8")
@@ -455,14 +474,20 @@ def t_real_finding_waiver_refs_is_not_a_scope():
     sys.path.insert(0, str(SCRIPTS))
     import ast
     import schema_reader_audit as g
-    for name in ("policy_audit.py", "waiver_provenance.py"):
+    # policy_audit is the ONLY consumer that could honour a scope, and it is the
+    # one pinned. waiver_provenance DOES read `refs:` now (W-REFS validates
+    # path-shaped citations) — that is the evidence-pointer use, not the scope
+    # use, so it is asserted separately below rather than folded in.
+    for name in ("policy_audit.py",):
         uses = g.read_positions(ast.parse(
             (SCRIPTS / name).read_text(encoding="utf-8-sig")))
         kind = uses.get("refs", (None,))[0]
         check(kind in (None, g.MENTION),
-              f"{name} now READS 'refs' ({kind}) — the finding is closed; move "
-              f"the contract row from OWED to name this gate and delete this "
-              f"assertion's OWED half")
+              f"{name} now READS 'refs' ({kind}) — if it reads it as a SCOPE the "
+              f"finding is closed: move the contract row from OWED to name this "
+              f"gate and retire this fixture. If it reads it as an evidence "
+              f"POINTER the finding stands and this assertion needs re-narrowing, "
+              f"not deleting")
         check(uses.get("id", (None,))[0] == g.READ,
               f"{name} must read 'id' — if it does not, the fixture is not "
               f"reproducing the asymmetry that IS the finding")

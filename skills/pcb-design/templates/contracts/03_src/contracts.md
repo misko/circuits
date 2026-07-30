@@ -294,6 +294,8 @@ two cannot drift apart without the router failing to find its own pass.
 
 | key | reader | why |
 |---|---|---|
+| `stitch.seed_stubs.*` | `route_and_stitch_generic.py` | seeded GND stubs the stitch pass places before the A* fallback; read as a stitch-pass config key |
+| `taps.reattempt.*` | `route_and_stitch_generic.py` | re-attempt budget for tap insertion |
 | `project.name` | `route_and_stitch_generic.py` | board naming |
 | `project.board` | `route_and_stitch_generic.py` | the board to route |
 | `project.build_dir` | `route_and_stitch_generic.py` | working directory |
