@@ -52,6 +52,36 @@ def cell(text):
 
 GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A")
 
+# ------------------------------------------- P-PREC: the precedent ratchet
+# MEASURED read-only over `projects/*/02_parts/*/part.yaml` on 2026-07-30 at
+# main tip, with P-LAYOUT's own in-scope rule (npins > 2, or `type:` matching
+# LAYOUT_SCOPE) so the two gates share ONE denominator and cannot disagree
+# about which parts are in scope.
+#
+# MONOTONE IN THE DIRECTION THAT MATTERS, following `adr_bound_provenance`'s
+# CITED_FLOOR/OWED_CEILING and `gate_contract_audit`'s VACUITY_FLOOR:
+#   GRADED may only RISE, OWED may only FALL.
+# Edit either only in the commit that earns it, and say which run produced the
+# number. Pinned to the measured tree by `tests/t1_layout_precedent.py`
+# `t_the_precedent_ratchet_is_pinned_to_the_fleet` — which sweeps the fleet
+# with its OWN reader (canon M1) rather than running this gate, so the floor
+# can neither be lowered to buy a green run nor silently lag adoption.
+#
+# THESE ARE FLEET NUMBERS AND THIS GATE RUNS PER BOARD, so P-PREC itself does
+# NOT enforce them; it reports its board's graded/owed split and hard-fails a
+# MALFORMED or UNCLOSED record. The test is the ratchet. Said here rather than
+# left to be discovered, because a constant no code reads is the exact defect
+# class this repo keeps finding (canon G-ORPHAN).
+PREC_GRADED_FLOOR = 0    # in-scope parts carrying a TIER-GRADED precedent
+                         # record. ZERO TODAY and that is the honest number:
+                         # no dossier in the fleet uses the mapping form yet,
+                         # so the floor is INERT and says so. It stops being
+                         # inert on the first graded dossier.
+PREC_OWED_CEILING = 89   # in-scope parts with NO tier-graded record: 89 of 89.
+                         # 45 of them DO carry a bare-string `layout_refs:`
+                         # list — a real precedent search recorded as prose no
+                         # machine can rank — and 44 carry nothing at all.
+
 
 def parse_report(text):
     """(rows, stated_summary) read back out of a rendered policy_audit.md.
@@ -322,8 +352,47 @@ def main():
     # each layout keep_short net-span budget (warn+waiver via grade()).
     LAYOUT_SCOPE = re.compile(r'fet|mosfet|current_sense|shunt|crystal|'
                               r'oscillator|inductor', re.I)
+    # P-PREC (canon row P-PREC in references/design-policies.md): the LAYOUT
+    # PRECEDENT SEARCH record, GRADED BY TIER.
+    # SKILL.md has demanded this search since it was written, in a four-step
+    # AUTHORITY ORDER — (1) the datasheet's Layout figure, (2) the manufacturer's
+    # EVAL-BOARD / reference DESIGN FILES, (3) OSHWLab-by-LCSC, (4) open KiCad
+    # projects — and `layout_refs:` has been the place to record it. What was
+    # missing is that the record was PROSE: a bare-string list in which "I read
+    # the strongest reference available" and "I read a picture and never fetched
+    # the design files" are the SAME SHAPE, so no gate, and no reviewer skimming
+    # a diff, could tell them apart.
+    #
+    # MOTIVATING CASE, and it is the repo's BEST dossier rather than its worst.
+    # pluto-rx2-8way `02_parts/RP2040/part.yaml` consulted the manufacturer's own
+    # routed reference — "Hardware design with RP2040" Figure 6, PDF p9 — READ
+    # VISUALLY AT 200 dpi off a raster. Raspberry Pi also publishes, at
+    # https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html
+    # (fetched 2026-07-30), a **"Minimal Viable Board" reference design in
+    # KiCad** and the full Pico / Pico W designs in Cadence Allegro, all under
+    # "Raspberry Pi grants permission to use, copy, modify, and distribute the
+    # following designs for any purpose, with or without fee" — i.e. an EDITABLE
+    # tier-2 artifact you can open and MEASURE, free, for the exact part. The
+    # dossier reached tier 1 and said so honestly: it already carries
+    # "OWED: minimal-design-example and VGA-demo KiCad design files ... Not
+    # fetched; Figure 6 is a raster." THAT SENTENCE IS THE JUDGEMENT THIS GATE
+    # WANTS, and it was invisible to every gate in the repo.
+    #
+    # WHAT IS GRADED, AND WHY IT IS NOT "REACH TIER 2 OR FAIL". This gate cannot
+    # know whether a stronger artifact EXISTS for an arbitrary part — that is a
+    # fact about the web, not about this tree — and a gate that demanded tier 2
+    # unconditionally would red all 89 in-scope parts on day one and be switched
+    # off within the week (the failure mode named by name in both
+    # `gate_contract_audit`'s G-VACUOUS block and `schema_reader_audit`'s
+    # ratchet). Reaching tier 2 is also not always RIGHT: the guide is a 19.9 MB
+    # fetch and Allegro is not openable here. What IS always right, and what is
+    # therefore the graded obligation, is that THE LADDER NAMES ITS CEILING —
+    # a record that stops below tier 4 must carry a `reached: false` entry
+    # saying what sits above it and why that was not reached. Honesty about the
+    # ceiling is checkable; possession of the ceiling is not.
     if part_yamls and yaml:
         scoped, missing, bad = 0, [], []
+        prec_graded, prec_owed, prec_bad = 0, [], []
         for py in part_yamls:
             y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
             npins = len(y.get("pins") or {})
@@ -340,6 +409,59 @@ def main():
             elif not (lay.get("keep_short") or lay.get("adjacency")
                       or lay.get("notes")):
                 bad.append(f"{name}: layout: declares no keep_short/adjacency/notes")
+
+            # ---- P-PREC, on the SAME scope and the SAME single read -------
+            # The MAPPING form of a `layout_refs:` entry is what is graded. The
+            # bare-string form stays legal and is counted OWED, never failed —
+            # 45 of the fleet's 89 in-scope parts are bare strings today and
+            # they represent real work, not absence. Same two-form idiom as
+            # `pins.<N>` (scalar vs mapping) and `sourcing.alternates` (bare
+            # code vs mapping), so this is not a new dialect.
+            entries = [e for e in (y.get("layout_refs") or [])
+                       if isinstance(e, dict)]
+            if not entries:
+                prec_owed.append(name)
+                continue
+            prec_graded += 1
+            reached, named_gap = [], False
+            for e in entries:
+                tier = e.get("tier")
+                if not (isinstance(tier, int) and not isinstance(tier, bool)
+                        and 1 <= tier <= 4):
+                    prec_bad.append(
+                        f"{name}: layout_refs entry declares no tier: 1-4 "
+                        f"(got {tier!r}) — the authority order is the grade")
+                    continue
+                if not str(e.get("artifact") or "").strip():
+                    prec_bad.append(
+                        f"{name}: layout_refs tier {tier} entry names no "
+                        f"artifact: (URL / document + figure + page / design "
+                        f"file) — an unnamed precedent is not a precedent")
+                    continue
+                got = e.get("reached")
+                if got is True:
+                    reached.append(tier)
+                elif got is False:
+                    named_gap = True
+                    if len(str(e.get("why") or "").strip()) < 20:
+                        prec_bad.append(
+                            f"{name}: layout_refs tier {tier} is reached: false "
+                            f"with no why: — an unreached tier is a DEBT and a "
+                            f"debt states its reason (canon M-WAIV's shape)")
+                else:
+                    prec_bad.append(
+                        f"{name}: layout_refs tier {tier} entry declares no "
+                        f"reached: true/false — consulted and merely known-of "
+                        f"are exactly what this gate exists to separate")
+            if reached and max(reached) < 4 and not named_gap:
+                prec_bad.append(
+                    f"{name}: precedent record stops at tier {max(reached)} and "
+                    f"names NO stronger tier — THE LADDER MUST NAME ITS CEILING. "
+                    f"Add a reached: false entry for the tier above with why: "
+                    f"(tier 2 = the mfr's eval-board / reference DESIGN FILES, "
+                    f"which outrank a rendered figure because you can MEASURE "
+                    f"them; the RP2040 KiCad 'Minimal Viable Board' is the "
+                    f"worked example in canon P-PREC)")
         if scoped:
             grade("P-LAYOUT", not (missing or bad),
                   f"{scoped} in-scope parts carry a datasheet layout: block",
@@ -347,8 +469,23 @@ def main():
                   f"block — missing ({len(missing)}): {missing[:6]}"
                   f"{'...' if len(missing) > 6 else ''}; "
                   f"malformed ({len(bad)}): {bad[:3]}")
+            # THE DENOMINATOR PRINTS ON THE PASS PATH TOO (canon M-COVER). A
+            # board where nothing is graded says so in the same words as a board
+            # where everything is, so "0 graded" can never read as "all clear".
+            grade("P-PREC", not prec_bad,
+                  f"layout precedent: {prec_graded}/{scoped} in-scope parts "
+                  f"carry a TIER-GRADED record, {len(prec_owed)} OWED "
+                  f"(bare-string or absent)"
+                  + (f": {sorted(prec_owed)[:6]}"
+                     f"{'...' if len(prec_owed) > 6 else ''}" if prec_owed
+                     else "") + f" [fleet floors: graded >= "
+                  f"{PREC_GRADED_FLOOR}, owed <= {PREC_OWED_CEILING}]",
+                  f"precedent record malformed or UNCLOSED "
+                  f"({len(prec_bad)}): {prec_bad[:3]}"
+                  f"{'...' if len(prec_bad) > 3 else ''}")
         else:
             rows.append(("P-LAYOUT", "N-A", "no in-scope (IC / power-sense) parts"))
+            rows.append(("P-PREC", "N-A", "no in-scope (IC / power-sense) parts"))
 
         # P-ADJ: board placement vs each layout budget — keep_short AND
         # adjacency.
@@ -684,6 +821,7 @@ def main():
             rows.append(("P-ADJ-PAIR", "N-A", "no board"))
     else:
         rows.append(("P-LAYOUT", "N-A", "no 02_parts entries"))
+        rows.append(("P-PREC", "N-A", "no 02_parts entries"))
         rows.append(("P-ADJ", "N-A", "no 02_parts entries"))
         rows.append(("P-ADJ-PAIR", "N-A", "no 02_parts entries"))
 
