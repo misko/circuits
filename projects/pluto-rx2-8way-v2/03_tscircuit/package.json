@@ -1,0 +1,6 @@
+{
+  "name": "pluto-rx2-8way-v2",
+  "main": "src/pluto_rx2_8way_v2.tsx",
+  "type": "module",
+  "dependencies": { "tscircuit": "*" }
+}

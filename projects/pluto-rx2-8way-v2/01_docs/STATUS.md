@@ -32,10 +32,10 @@ D-BACK wall the agent has PUSHED up — the coordinator acts. `state: done` =
 terminal for this stage.
 
 <!-- reader parses from here down -->
-stage:   commission
-step:    "D-SPEC: module sourcing spike (live JLC stock) + RT6150/PFM RF-spur spike running concurrently"
-measure: "brief re-verified vs v1 — 19 nets/5 functional CONFIRMED; QFN pitch 0.4000mm CONFIRMED; lambda_g/20 1.3693mm CONFIRMED (my own HJ derivation, eps_eff 3.3286); v1 unconnected is 28 not 11 (CORRECTED); the 0.200mm is v1's netclass clearance not the 0.09 fab floor (CORRECTED)"
+stage:   schematic
+step:    "03_tscircuit scaffolding written (package/manifest/net_aliases/padmap); tsx blocked on the RP2040-Zero pad map, which is being read off the vendor drawing rather than guessed"
+measure: "D-SPEC CLOSED: module SURVIVES the RF test (RP2040-Zero = RT9013-33 LDO, no inductor on the vendor schematic; the RT6150/PFM objection is confirmed and applies to the Pico ONLY). Assembly posture = CONSIGN (live JLC read: every footprint-bearing Pico-class code is stock 0; bare RP2040 C2040 at 63,091). 3 ADRs, 4 rules files, 28 components declared vs v1's 64."
 state:   working
-next:    "settle the RF spur question with evidence -> module choice + assembly posture -> ARCHITECTURE"
+next:    "module part.yaml -> tsx -> tsx_preflight -> tsci build -> ERC + parity + the cheap semantic battery = the SCHEMATIC GATE (declared handoff boundary)"
 op_pid:
-updated: 2026-07-30T08:25:00
+updated: 2026-07-30T10:05:00
