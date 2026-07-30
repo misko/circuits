@@ -1852,3 +1852,55 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
   was re-spun for is closed by a lens that could not see the re-spin.
 - result: **v1.7 NOT SEALED. THREE order-blockers, all recorded with numbers.**
   M-BEACON PASS 2/2 with the beacon naming all three.
+
+## 2026-07-30 — the FRESH four-lens battery, and the sixth correct refusal to seal
+
+- **subject**: `06_build/staging/cooksense-v1.7` REFRESHED from current source
+  (the archive on disk was 2026-07-29T17:31 — pre-ADR-0025, `J_DOOR` still in the
+  netlist, pre-bond copper, `fab_v21`). Board md5 `9f4fd5fae810f40a52b1035df727243c`.
+  `pdf/`, `3d/` and the bare renders REGENERATED today; `fab_v22` copied in.
+- **gates, all unpiped, exit codes raw** — 17 green, 3 non-zero. DRC **0/0/0**;
+  `policy_audit` **FAIL=0 PASS=28 WAIVED=6 HUMAN=6 N-A=5**; E-INV **167/167**;
+  E-ADR **11/11**; S-COUNT **4/4 over 239**; `jlc_twin` **exit 0, 208/208 bodies**.
+- **three of the brief's inherited numbers did not survive**: PASS=28 not 27,
+  E-INV 167/167 not 180/180, E-ADR 11/11 not 10/10. Every one still a PASS with a
+  different denominator — but a number that travels through a brief unmeasured is
+  the class the INHERITED rule was written for, and it travelled three times.
+- **jlc_twin exited 1, then 0, on ONE MISSING SYMLINK.** `03_src/rules/` is a
+  symlink farm over `03_src/cooksense/rules/`; five files are linked and
+  `twin_adjudications.yaml` is not. SKILL.md's documented invocation therefore
+  runs the twin UNADJUDICATED — 32 PAD-GEOM + 1 MIRRORED unexcused — and the
+  previous run's log carries **no verdict line at all**, which under this repo's
+  own rule is a FAIL that had been reading as a pass.
+- **A-AMP: two DECLARATION defects, `nets.yaml` untouched since 2026-07-23**, i.e.
+  BEFORE v1.6 sealed. Not a regression — the gate got stricter. And the copper is
+  fine: `R_ILM` 1.2k sets the eFuse hard limit at **1.79 A**, so IPC-2221 gives
+  dT +0.9 C at the 0.50 A operating case and +16.2 C at the silicon ceiling
+  against a 1.93 A 20 C-rise capacity. `power_topology`'s own advisory says the
+  same thing backwards: the declared 2 A is **>2x the derived need 0.3 A**.
+- **the battery**: topology **DO-NOT-ORDER**, layout ORDER, pin ORDER, render
+  ORDER. 1 P0, 24 P1, 6 P2/QUESTION, all in `08_reviews/DISPOSITIONS.md`.
+- **the P0 is a catalogue, not copper**: `C265111` stock **5** against 10 needed.
+  It read 0 yesterday. Every remedy needs a decision that is the user's.
+- **the one disagreement between lenses adjudicated by tracing the netlist**:
+  render said the over-temp trip is 74.89 C (matches the docs), topology said
+  72.79 C (docs wrong by 2.1 C). Both right, different circuits — `TCAM_THRESH`
+  has no clamp so the THRESHOLD VOLTAGE is 0.4231 V, but `R_CLMPA` 22k IS on the
+  `TH_CAM_A` SENSE node so the TEMPERATURE that reaches it moves: 1575.9 Ohm =
+  **72.81 C** with the clamp, 1470.6 Ohm = 74.90 C without. The render lens
+  reproduced the DOCUMENT, the topology lens reproduced the BOARD. Still inside
+  the brief's 70-75 C window, so P1 not P0.
+- **a finding that corrected MY OWN measurement**: I scanned the twelve comb
+  slots and published a 1.000 mm minimum web. The layout lens found **0.850 mm**
+  at `H4` — hole wall to the east notch — which my scan structurally could not
+  see, because it only considered slot-END-to-OUTLINE pairs. Re-measured and
+  confirmed to four decimals. The ORDER_README DFM query is now about 0.850 mm.
+- **two methods, four identical names**: the render lens found `R_REF4`,
+  `R_SER2`, `R_SER3`, `R_MODEPD` printing nowhere on silk with no F.Fab
+  duplicate; `waiver_provenance` in the same pass reported exactly those four as
+  UNBACKED W-MACHINE refdes waived by `04_kicad/refdes_waiver.json`. Silkscreen
+  pixels and a waiver file, same four parts. `R_MODEPD` is an ADR-0019
+  restrictive-default pull that cannot be identified on the assembled board.
+- **result: v1.7 NOT SEALED.** The `08_reviews` contract blocks it twice over —
+  a confirmed P0 without a `fixed` disposition, and a required red-team lens
+  carrying DO-NOT-ORDER. Six agents have now declined; this is the sixth.

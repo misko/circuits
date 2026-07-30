@@ -5,26 +5,77 @@ INTERPOSER (Board C) is deferred (coupon-gated) and has no release yet.
 
 ---
 
-# ⛔ DO-NOT-ORDER — EVERY SEALED cooksense RELEASE THAT EXISTS: v1.0 THROUGH v1.6
+# ⛔ DO-NOT-ORDER — ALL SIX SEALED cooksense RELEASES: v1.0, v1.1, v1.3, v1.4, v1.5, v1.6
 
-**Scope, stated unambiguously because a reader needs to know what is covered:
-this banner covers EVERY cooksense release in `07_releases/`. There are six of
-them — v1.0, v1.1, v1.3, v1.4, v1.5, v1.6 — and ALL SIX are DO-NOT-ORDER.
-THERE IS NO GOOD ONE. `v1.7` is a CANDIDATE that has never been sealed: as of
-2026-07-29 it exists only as `06_build/staging/cooksense-v1.7/`, and the fresh
-four-lens review battery returned DO-NOT-ORDER / DO-NOT-ORDER / DO-NOT-ORDER /
-FAIL against it. If you are looking for a cooksense board to build, the answer
-today is that there is not one.**
+## THE SCOPE OF THIS BANNER, IN ONE SENTENCE EACH — read all four lines
 
-**The `interposer` board is a different board and is unaffected:
-`interposer-v1.1-2026-07-27` remains ORDERABLE.**
+1. **EVERY cooksense release that has ever been SEALED is DO-NOT-ORDER.** There
+   are exactly six of them in `07_releases/` — **v1.0, v1.1, v1.3, v1.4, v1.5,
+   v1.6** — and this banner covers all six with no exceptions. **THERE IS NO
+   GOOD SEALED ONE.**
+2. **`v1.7` IS NOT ON THAT LIST BECAUSE IT HAS NEVER BEEN SEALED.** It is an
+   UNSEALED CANDIDATE living in `06_build/staging/cooksense-v1.7/`. You cannot
+   order it, because it does not exist as a release. It is not covered by this
+   banner and it is not exempt from it — it is simply not a release.
+3. **`interposer` IS A DIFFERENT BOARD AND IS COMPLETELY UNAFFECTED.**
+   `interposer-v1.1-2026-07-27` **remains ORDERABLE.** Nothing in this banner
+   touches it.
+4. **If you are looking for a cooksense board to build today, there is not one.**
 
-**Applies to the MAIN board `cooksense` only. The `interposer` board is
-unaffected and `interposer-v1.1-2026-07-27` remains ORDERABLE.**
+**Why the six are DO-NOT-ORDER:** they carry the **pin-out-12** reed-relay land
+(`Relay_StandexDIP_1A_pinout12`) and the part that exists is pin-out **13**. This
+is not a paperwork verdict — the key-matrix relay array as drawn cannot work. Do
+not fabricate or hand-build a cooksense board from any sealed release.
 
-**Do not fabricate or hand-build a cooksense board from any sealed release until
-the reed-relay land pattern is re-derived.** This is not a paperwork verdict; the
-key-matrix relay array as drawn cannot work.
+> ### STATUS UPDATE 2026-07-30 — THE FRESH FOUR-LENS BATTERY RAN ON THE REAL BOARD. **THREE ORDER, ONE DO-NOT-ORDER. v1.7 STILL DOES NOT SEAL, AND THE BLOCKER IS A PART YOU CANNOT BUY.**
+>
+> **The previous statement of this banner is WITHDRAWN as STALE, not as wrong.**
+> It said the fresh battery returned *"DO-NOT-ORDER / DO-NOT-ORDER /
+> DO-NOT-ORDER / FAIL"*. That was the **2026-07-29T18:04** battery, and it graded
+> a board that no longer exists: `J_DOOR` was still in the netlist, the SE-corner
+> silk ownership fix had not landed, the four plane-pad bonds had not been made
+> and the fab set was `fab_v21`. Those four verdicts are HISTORY.
+>
+> **The 2026-07-30 battery graded the current candidate** — board md5
+> `9f4fd5fae810f40a52b1035df727243c`, `fab_v22`, PDFs/3D/bare renders regenerated
+> the same day — with `08_reviews/`, the journals, this CHANGELOG and the STATUS
+> beacon **denied to every lens**, so no lens could grade its own or a
+> predecessor's verdict:
+>
+> | lens | verdict |
+> |---|---|
+> | topology / protection / ratings | **DO-NOT-ORDER** |
+> | layout / thermal / power-integrity | ORDER |
+> | pin review (53/53 dossiers, 47 against a datasheet figure) | ORDER |
+> | render review | ORDER |
+>
+> **THE ONE P0 IS NOT COPPER — IT IS A CATALOGUE.** `J_THERM_A`/`J_THERM_B`
+> specify `C265111` (SM08B-GHS-TB). LCSC reads **stock 5** (it read **0** on
+> 2026-07-29 — the part is restocking, not discontinued); `build_quantity` is 5
+> and the part is ×2 per board, so **10 pieces are needed** and
+> `jlc_stock_check` exits 1. **The release cannot be PLACED as it stands**, and
+> "orderable" is the only claim a seal makes that matters. All three remedies —
+> re-query at order time, substitute the land-pattern-measured `C42376901` whose
+> **plug-mate compatibility is explicitly unverified**, or declare the refs
+> not-assembled and hand-fit — need a decision or a revision that is the user's,
+> not the design's.
+>
+> **THE BOARD ITSELF CAME BACK SOUND, and that is worth saying plainly.** DRC
+> **0/0/0**; `policy_audit` **FAIL=0, PASS=28, WAIVED=6, HUMAN=6**; E-INV
+> **167/167**; `jlc_twin` exit 0 with **208/208** bodies. The topology lens
+> hunted specifically for a consistently-wrong-together artifact set and did not
+> find one. The layout lens re-derived the headline safety property with its own
+> polygon engine, never running the DRU: **the 6 mm keypad-contact barrier holds
+> at 6.3100 mm with ZERO domain crossings**, and it checked the rule's
+> `J_KEY_MATRIX` exemption rather than trusting it. The pin lens graded 53/53
+> dossiers with **no FAIL**, confirming the new TBD62083AFWG coil driver maps
+> 18/18 and that the twelve reed coil and contact domains are provably disjoint.
+>
+> **24 P1s and 6 P2s are recorded in `08_reviews/DISPOSITIONS.md`** with their
+> verification and disposition, including three that must close before ANY seal:
+> the release-identity mismatch (the archive says v1.7, the `.tsx` says v1.8 in
+> 12 places, the artifacts say `rev "dev"`), the commission fact-lock still
+> naming the superseded `DIP05-1A72-12L`, and the missing MANIFEST.
 
 > ## STATUS UPDATE 2026-07-29 (fifth) — THE SCOPE DECISION LANDED. **ALL THREE ORDER-BLOCKERS ARE NOW CLOSED IN SOURCE; v1.8 IS STILL NOT SEALED AND THE DRC GATE IS NOT YET 0/0/0.**
 >
