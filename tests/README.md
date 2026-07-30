@@ -309,3 +309,48 @@ assertion makes `run_tests.sh --only=pin-1` print `1 passed, 1 failed` /
 `FAILURES PRESENT` and **exit 1**; restored, exit 0. Measure the runner's own
 status, not a pipeline's — `./tests/run_tests.sh | tail` reports `tail`'s exit
 code and reads as a false all-clear.
+
+## 2026-07-29 — `t1_schema_reader` (canon G-ORPHAN)
+
+`schema_reader_audit.py` grades the SKILL, not a board: every schema key a
+hand-authored source file may declare must name the gate that reads it, and the
+named gate must PROVABLY read it (AST read positions, never a grep). 24 tests,
+10 known-bad, 1 declared vacuity.
+
+* **The headline known-bad is the R-LEN discrimination.** A reader that carries
+  the exact key name as a plain assignment and a message, and reads it nowhere,
+  must FAIL with `MENTION` in the finding — and the fixture asserts inline that
+  the pre-fix predicate (`re.search(key, source_text)`, which passed
+  smc0985-cooksense on two comments about a creepage slot being lengthened)
+  CREDITS that same reader. A real red against the wrong algorithm rather than
+  against a file that did not exist yesterday.
+* **Both halves on one input.** An `ADVISORY` key with a reason PASSES; the
+  same key in the same tree with that one contract row deleted FAILS as an
+  ORPHAN. Same for the vacuity's contrast: one row moved from `OWED` to a named
+  reader that does not read it flips the verdict.
+* **Four REAL findings are asserted against real bytes**, each with its
+  contrast so the fixture cannot pass vacuously: a policy waiver is applied by
+  `id` ALONE (neither `policy_audit.py` nor `waiver_provenance.py` reads
+  `refs:`, while both read `id`); `power_topology.py` reaches `linear_rails`
+  nowhere while reading its sibling `rails`; `rules_audit.py` reads `current`
+  and not `intent`/`routing`/`verify`; and `pins.<N>.tie` is read by none of
+  four candidate gates across 43 real dossiers. Each assertion FAILS LOUDLY
+  when the finding is closed, naming the contract row to move off `OWED` —
+  the ratchet, not a regression.
+* **`VACUITY_FLOOR` in `gate_contract_audit.py` rose 5 -> 6 in the same
+  commit**, because this gate declares a blind spot (it passes a family whose
+  every key is `OWED`). `t_vacuity_floor_is_pinned_to_the_measured_count`
+  measures the tree, so the number could not have been left behind.
+
+**HARNESS INTEGRITY re-measured on this suite:** breaking one new assertion
+makes `run_tests.sh --only='PROVABLY reads'` print `0 passed, 1 failed` /
+`FAILURES PRESENT` and exit 1; restored it prints `1 passed, 0 failed` (and
+still exits 1, because that filter selects no known-bad fixture and the runner
+refuses to report success on zero — which is the guard working, not a flake).
+
+**This suite has 8 sibling failures in a FRESH WORKTREE and they are not
+regressions:** `06_build/` is gitignored, so `t1_electrical_invariants` (6) and
+`t1_net_reference` (2) cannot find `projects/smc0985-cooksense/06_build/
+netlists/cooksense.net` or the pluto-cal-switch netlists their real-bytes
+fixtures require. Full run in this worktree: **861 passed, 8 failed, 512
+known-bad**, every failure that one cause.

@@ -490,3 +490,129 @@ and the release, not merely written down:
 - Adoption is opt-in per part and the coverage line prints
   `N/M part.yaml declare an asserts: block`, so "we check part facts" can
   never be true-sounding and empty.
+
+## Every schema key here NAMES THE GATE THAT READS IT — canon G-ORPHAN
+
+**`schema_reader_audit.py --root REPO`** (`--families` prints the denominator).
+**THIS IS THE FILE THE RULE WAS WRITTEN FOR.** `layout.adjacency:` — a
+refdes-pair proximity budget — sat in these dossiers looking live while P-ADJ
+read `keep_short` entries ONLY, so pluto-rx2-8way's requirement that `U_ESD` sit
+within ~2.0 mm of `J_USB`, where 6 nH per 10 mm of loop turns a 17 V clamp into
+a 305 V spike, was graded by NO GATE AT ALL and a human had to hand-measure it.
+`part.yaml` is the most expensive artifact this pipeline makes and the easiest
+place to write a fact that nothing consumes: P-FACT's own row records that until
+2026-07-25 only five of its blocks reached any gate.
+
+So every key is classified, and the classification is PROVED out of the named
+reader's AST on every run. A key in a real dossier with no row below is an
+ORPHAN and FAILS. `ADVISORY` and `OWED` are DECLARED states and both REQUIRE a
+reason (canon M4): ADVISORY means nobody reads it AND THAT IS CORRECT — a
+datasheet fact spent by a human at part-selection time, whose executable channel
+is the `asserts:` block beside it; OWED means a gate is INTENDED and absent.
+A trailing `.*` declares a whole subtree, which is how the open per-part fact
+bags (`limits:`, `land_pattern:`, `ratings:`) are covered without pretending
+their contents are a closed schema — but a subtree declaration is a CLAIM about
+the whole bag, and enumerating a key out of one is always the stronger move.
+
+`pins.<N>.tie` IS THE MEASURED HOLE HERE AND IT IS OWED WITH ITS PATCH.
+84 pins across 43 dossiers declare which net they must land on, and NOTHING
+reads it — not `pin_audit.py`, not `electrical_invariants.py`, not
+`net_reference_audit.py`. That is the exact field class the `GND_ISO` ghost that
+reached shipped F.Silkscreen lived in: a net NAME in hand-authored source with
+no consumer. It belongs to E-NETREF, not to a second net resolver; the K13 patch
+is written out in `schema_reader_audit.py`'s docstring, including the
+`tie: none` exclusion (`XU316-1024-TQ128-I24` floats four IO-voltage straps
+deliberately, and failing those is how a new kind gets waived).
+
+### keys: 02_parts/*/part.yaml
+
+| key | reader | why |
+|---|---|---|
+| `mpn` | `part_facts_check.py, bom_source_check.py, shopping_list.py` | the MPN authority (F-MPN prefers this FIELD over the directory name) |
+| `manufacturer` | `shopping_list.py` | distributor search + M-QUOTE |
+| `package` | `escape_check.py` | P-ESC/P-TIER package class |
+| `footprint` | `generate_board_generic.py, escape_check.py, policy_audit.py` | the FPID realised on the board |
+| `type` | `policy_audit.py, power_topology.py, bom_source_check.py` | E-TOPO topology assertion + BOM row class |
+| `value` | `part_facts_check.py, bom_source_check.py, bom_legibility_check.py` | the BOM/CPL value, graded against the fab BOM |
+| `verified` | `pin_audit.py, policy_audit.py` | S-VER: the datasheet figure+page citation, read as a KEY not by grep |
+| `status` | `jlc_stock_check.py, release_freshness_check.py, shopping_list.py` | lifecycle |
+| `superseded_by` | OWED | the retirement pointer of a replaced dossier; `status:` is read, this is not, so a superseded part names its replacement to nobody |
+| `function` | ADVISORY | a one-line human summary of what the part is for; the graded facts are `type`, `value` and the `asserts:` block |
+| `design` | ADVISORY | the free-prose design narrative (a `\|` block on five converter dossiers); its numbers belong in `electrical:`/`limits:` where they can be asserted |
+| `notes` | `policy_audit.py` | P8: the part's placement/design notes, whose PRESENCE P-LAYOUT grades |
+| `gotchas` | ADVISORY | warnings addressed to the next author to touch this part (128 dossiers). Machine-grading English here would be theatre; what IS graded is that the expensive facts it warns about live in `pins:`/`escape:`/`limits:` |
+| `note_dirname` | ADVISORY | records why the directory name differs from the MPN; the MPN authority reads `mpn:` |
+| `on_live_board` | OWED | a claim that this exact part is on a shipped board — checkable against the sealed BOM and checked by nothing |
+| `layout_refs` | OWED | the datasheet figures the layout was derived from. P8 requires `layout.source:` and grades it; this parallel list is read by nobody, which is a second home for the same provenance |
+| `datasheet.url` | `pin_audit.py` | the datasheet under review |
+| `datasheet.local` | OWED | the in-tree PDF path. M-DEPEND grades that a sealed release carries its dossiers; nothing grades that this path RESOLVES, so a moved PDF is silent |
+| `datasheet.sha256` | OWED | the fetched PDF's digest — an M-IMPORT provenance grade nothing recomputes, so a re-fetched or substituted revision cannot be detected |
+| `datasheet.revision` | OWED | the revision the pin map and limits were read from; a datasheet revving under a sealed release is exactly M-DEPEND's class and this field is where it would be caught |
+| `datasheet.doc_id` | ADVISORY | the vendor document number, for a human re-fetching it |
+| `datasheet.fetched` | ADVISORY | the date the PDF was pulled, for a human judging staleness |
+| `datasheet.pages` | ADVISORY | page count, so a truncated download is visible to a reader |
+| `datasheet.note` | ADVISORY | prose about the fetch |
+| `datasheet.provenance` | ADVISORY | prose about where the PDF came from |
+| `datasheet.product_page` | ADVISORY | the vendor landing page |
+| `datasheet.lcsc_url` | ADVISORY | the distributor page the PDF was reached through |
+| `datasheet.pdf` | ADVISORY | an alternate spelling of `local:` on two dossiers; consolidate on `local:` |
+| `datasheet.file` | ADVISORY | as `pdf:` |
+| `pins.<N>` | `pin_audit.py, circuit_json_to_kicad_sch.py, policy_audit.py` | the pin map, in the bare `<N>: "name"` scalar form |
+| `pins.<N>.name` | `pin_audit.py, circuit_json_to_kicad_sch.py, policy_audit.py` | the pin map, mapping form |
+| `pins.<N>.note` | ADVISORY | per-pin datasheet prose (274 pins). The CONSTRAINTS inside it belong in `electrical.pins.<N>`, which IS graded by `node_level` |
+| `pins.<N>.tie` | OWED | 84 pins name the net they must land on and NOTHING reads it — the `GND_ISO` field class. E-NETREF K13; the patch is in `schema_reader_audit.py`'s docstring |
+| `escape.style` | `escape_check.py` | P-ESC escape geometry class |
+| `escape.pitch` | `escape_check.py` | P-ESC pitch |
+| `escape.tier_required` | `escape_check.py, policy_audit.py` | P-TIER: the fab tier the escape needs |
+| `escape.escapes_worst_side` | `escape_check.py` | P-ESC worst-side count |
+| `escape.conditions` | `escape_check.py` | P-ESC qualifying conditions |
+| `escape.checked` | OWED | the date/method the escape was calibrated. 125 dossiers carry it; `escape_check.py` recomputes the geometry and never reads this, so a stale calibration note is invisible |
+| `escape.loaded_side_escapes` | OWED | a second escape count for the loaded side, declared once and read by nothing |
+| `escape.per_pin.<N>` | OWED | per-pin escape overrides; not declared by any dossier today, and P-ESC would not see one if it were |
+| `mates` | `escape_check.py` | the mating connector class |
+| `layout.source` | `policy_audit.py` | P8: the datasheet Layout section cited |
+| `layout.reviewed` | OWED | the date the layout section was read. P-LAYOUT grades that `layout:` EXISTS and that `source:` is cited; nothing grades this, so an unreviewed copy of a sibling's block reads identically |
+| `layout.notes` | `policy_audit.py` | P-LAYOUT: prose rules, whose presence satisfies the declare-something obligation |
+| `layout.keep_short[].net` | `policy_audit.py, net_reference_audit.py` | P-ADJ span budget subject (E-NETREF K7) |
+| `layout.keep_short[].max_span_mm` | `policy_audit.py` | P-ADJ budget; a non-numeric value is a FAIL, not a skip |
+| `layout.keep_short[].anchor_pins` | `policy_audit.py` | P-ADJ anchor override — an unstated anchor is a hidden assumption |
+| `layout.keep_short[].why` | `policy_audit.py` | the datasheet requirement being honoured |
+| `layout.adjacency[].refdes` | `policy_audit.py` | P-ADJ refdes-pair budget (the incident: read by nothing until 2026-07-29) |
+| `layout.adjacency[].a` | `policy_audit.py` | P-ADJ pair member |
+| `layout.adjacency[].b` | `policy_audit.py` | P-ADJ pair member |
+| `layout.adjacency[].max_mm` | `policy_audit.py` | P-ADJ copper-gap budget |
+| `layout.adjacency[].why` | `policy_audit.py` | the datasheet requirement being honoured |
+| `asserts[].assert` | `part_facts_check.py` | P-FACT: which assertion kind |
+| `asserts[].equals` | `part_facts_check.py` | P-FACT expected value |
+| `asserts[].tolerance_pct` | `part_facts_check.py` | P-FACT tolerance window |
+| `asserts[].polarity` | `part_facts_check.py` | P-FACT `pad1_net_polarity` |
+| `asserts[].pad` | `generate_board_generic.py, part_facts_check.py` | P-FACT subject pad |
+| `asserts[].level` | `part_facts_check.py` | P-FACT `msl` level |
+| `asserts[].floor_life_h` | `part_facts_check.py` | P-FACT `msl` floor life |
+| `asserts[].layers` | `generate_board_generic.py` | `keepout_region` layers (DEFERRED, and P-FACT says so) |
+| `asserts[].region` | `generate_board_generic.py` | `keepout_region` outline (DEFERRED) |
+| `asserts[].why` | `part_facts_check.py` | REQUIRED evidence (canon M4) |
+| `electrical.vdd` | `electrical_invariants.py` | `node_level` supply reference |
+| `electrical.vdd_net` | `electrical_invariants.py` | `node_level` supply net |
+| `electrical.defaults.*` | `electrical_invariants.py` | `node_level` per-part default thresholds and drive strength |
+| `electrical.pins.<N>.*` | `electrical_invariants.py` | `node_level` per-pin thresholds (`v_ih_min`, `v_il_max`, their `_frac_vdd` forms, `r_on_ohm_max`) and per-pin prose |
+| `electrical.source` | ADVISORY | the datasheet section the electrical block was read from, for a reviewer |
+| `electrical.*` | OWED | the rest of the block is per-part datasheet numbers with no consumer: coil pull-in/resistance over temperature, Vce(sat)/Vds points, r_on corners, dropout, tempco, `t_op`. Each is the kind of number a `part_value`/`node_level` invariant SHOULD cite, and the cooksense relay coil at 70 C is the worked case for why (it was checked by hand) |
+| `limits.*` | ADVISORY | the open per-part absolute-maximum/rating fact bag. The EXECUTABLE channel for anything in here is an `asserts:` entry or an `electrical_invariants.yaml` `part_value`/`node_level` that cites it; the bag itself is a human's datasheet transcription and forcing a schema on it would only push the facts out of the tree |
+| `land_pattern.*` | ADVISORY | the human derivation record for a vendored footprint — pad sizes, fillet balance, datums, the datasheet figure they came from. Its CONSEQUENCE is graded, hard, by `jlc_twin` against JLC's own CAD model (canon M1), which is a stronger check than reading this back would be |
+| `ratings.*` | OWED | per-part electrical ratings (`i_sat`, `dcr_max`, `impedance_100mhz`, `voltage`, `dielectric`, ...). Unlike `limits:` these are the SELECTION criteria the part was chosen on, so they are assertable — an inductor's `i_sat` against the rail's `iout_max_A` is arithmetic nothing does |
+| `power_pins.<NAME>.*` | OWED | a per-rail pin grouping on the one 128-pin MCU dossier. `pins:` is graded; this parallel structure is a second home for the same map and read by nobody |
+| `mechanical_pads.<NAME>.*` | OWED | shield/NPTH pads and their KiCad pad names — the field that decides whether a shell tab is a net or a hole, read by nothing |
+| `orientation.*` | OWED | the as-placed rotation and pin-1/pole marker evidence. The rotation AUTHORITY is `jlc_rotation_*`; this per-dossier claim is not cross-checked against it, which is the M-PROV shape |
+| `loading_caps.*` | OWED | a crystal's load-capacitor formula and per-leg value — an `electrical_invariants.yaml` `part_value` waiting to be written |
+| `i2c.address` | OWED | the device address; a bus with two parts at one address is checkable from the dossiers alone |
+| `dropout_mv` | `power_topology.py` | E-TOPO linear dropout bound |
+| `pdiss_max_mw` | `power_topology.py` | E-TOPO linear dissipation bound |
+| `sourcing.lcsc` | `bom_source_check.py, part_facts_check.py, shopping_list.py` | the LCSC code on the BOM |
+| `sourcing.alternates[].lcsc` | `bom_legibility_check.py` | F-ECHO substitution candidates |
+| `sourcing.alternates[].mpn` | `bom_legibility_check.py` | F-ECHO substitution candidates |
+| `sourcing.digikey` | `shopping_list.py` | Q-family distributor lookup |
+| `sourcing.note` | `shopping_list.py` | sourcing prose surfaced in the shopping list |
+| `sourcing.jlc_basic` | OWED | basic-vs-extended, which sets the assembly fee and the stock risk; `jlc_stock_check.py` queries the catalog and never reads this claim, so the two cannot be reconciled |
+| `sourcing.do_not_use` | OWED | an explicit ban on a code. Nothing reads it, so a banned code can be typed back into a BOM with every gate green |
+| `sourcing.mfr_substituted` | OWED | records that the manufacturer was substituted; `release_freshness_check.py --sourcing-supersede` grades the BOM/CPL delta of a substitution and does not read this |

@@ -462,7 +462,11 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: OWED gates are named, while only three things FAIL: a false declaration, a
 #: declaration without a fixture, and a drop below this floor. Raise it as gates
 #: adopt; `t_vacuity_floor_is_pinned_to_the_measured_count` refuses a lowering.
-VACUITY_FLOOR = 5
+#: 6 since 2026-07-29: `schema_reader_audit.py` (canon G-ORPHAN) landed with a
+#: declared and fixtured blind spot — it PASSES a family whose every key is
+#: declared `OWED`. Raised in the SAME commit that added the declaration, which
+#: is the ratchet working rather than a number chasing the tree.
+VACUITY_FLOOR = 6
 
 
 def vacuity_declaration(text):

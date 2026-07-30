@@ -171,3 +171,160 @@ Imax; and a battery source's de-energization path + stored quiescent draw),
   `{id: <CHECK-ID>, refs: [...], derived_from: <project?>, why: "<measurement
   evidence>"}` — an entry without evidence is itself a FAIL, and an inherited
   rationale without `derived_from` is a `waiver_provenance` FAIL (W-COPY/W-FOREIGN).
+
+## Every schema key here NAMES THE GATE THAT READS IT — canon G-ORPHAN
+
+**`schema_reader_audit.py --root REPO`** (`--families` prints the denominator).
+A DECLARED FIELD THAT NOTHING READS IS WORSE THAN AN ABSENT ONE, because it reads
+as covered: `02_parts` `layout.adjacency:` sat in source looking live while
+P-ADJ read `keep_short` only, so pluto-rx2-8way's 2.0 mm `U_ESD`-to-`J_USB`
+requirement — where 6 nH per 10 mm turns a 17 V clamp into 305 V — was graded by
+no gate at all and a human hand-measured it. So the tables below are the ONE
+home of "who reads this key", the gate proves each claim out of the named
+reader's AST on every run, and a key that appears in a board's source with no row
+is an ORPHAN and FAILS. `ADVISORY` (nobody reads it, and that is correct) and
+`OWED` (a gate is intended and absent) are DECLARED states and both REQUIRE a
+reason — canon M4 wants evidence, not silence.
+
+What the proof can and cannot do is stated in `schema_reader_audit.py`'s
+docstring and matters when reading these tables: it proves the key name is used
+to REACH a value in the named reader (subscript, `.get`, `==`/`in`, a literal
+key table, a dotted-path accessor, a registry/decorator key), NOT that the read
+is off this structure or that the value reaches a verdict. A MENTION — a
+docstring, a message, a plain assignment — is refused, because crediting a
+word's presence is exactly what made R-LEN pass on a comment about creepage.
+
+The `rules/` schemas are declared in `rules/contracts.md`; `02_parts/*/part.yaml`
+in the `02_parts` contract. These two are this folder's own.
+
+### keys: 03_src/floorplan.yaml
+
+| key | reader | why |
+|---|---|---|
+| `project.name` | `generate_board_generic.py` | board/file naming |
+| `project.netlist` | `generate_board_generic.py` | the netlist to realise |
+| `project.output` | `generate_board_generic.py` | where the board is written |
+| `project.parts_dir` | `generate_board_generic.py` | dossier root |
+| `project.fp_lib_table` | `generate_board_generic.py` | footprint library table |
+| `board.outline.x0` | `generate_board_generic.py` | Edge.Cuts |
+| `board.outline.x1` | `generate_board_generic.py` | Edge.Cuts |
+| `board.outline.y0` | `generate_board_generic.py` | Edge.Cuts |
+| `board.outline.y1` | `generate_board_generic.py` | Edge.Cuts |
+| `board.edge_width` | `generate_board_generic.py` | Edge.Cuts stroke |
+| `board.layers` | `generate_board_generic.py` | copper layer count |
+| `board.mounting_holes.at` | `generate_board_generic.py` | NPTH placement |
+| `board.mounting_holes.footprint` | `generate_board_generic.py` | NPTH FPID |
+| `board.mounting_holes.refdes_prefix` | `generate_board_generic.py` | NPTH refdes |
+| `board.fiducials.at` | `generate_board_generic.py` | fiducial placement |
+| `board.fiducials.footprint` | `generate_board_generic.py` | fiducial FPID |
+| `design_rules.*` | `generate_board_generic.py` | pcbnew design-settings floors, applied through the `DS_KEYS` literal table; an explicit value below the fab tier is a generation error |
+| `libraries[].lib` | `generate_board_generic.py` | fp-lib-table nickname |
+| `libraries[].path` | `generate_board_generic.py` | fp-lib-table path |
+| `placement.anchors.<REF>` | `generate_board_generic.py` | fixed placement |
+| `placement.seeds.<REF>` | `generate_board_generic.py` | legalizer start point |
+| `placement.regions.<NAME>` | `generate_board_generic.py` | named placement region |
+| `placement.require_anchor` | `generate_board_generic.py` | refuse an unanchored part |
+| `placement.legalize.enable` | `generate_board_generic.py` | legalizer on/off |
+| `placement.legalize.clearance` | `generate_board_generic.py` | legalizer spacing |
+| `placement.legalize.edge_margin` | `generate_board_generic.py` | legalizer edge keepout |
+| `placement.legalize.hole_keepout` | `generate_board_generic.py` | legalizer hole keepout |
+| `placement.legalize.ring_max` | `generate_board_generic.py` | legalizer search ring |
+| `placement.patterns[].match` | `generate_board_generic.py` | refdes selector |
+| `placement.patterns[].near` | `generate_board_generic.py` | proximity target |
+| `placement.patterns[].attrs` | `generate_board_generic.py` | footprint attributes |
+| `placement.patterns[].clear_attrs` | `generate_board_generic.py` | attribute removal |
+| `placement.patterns[].pad_overrides[].on_net` | `generate_board_generic.py, net_reference_audit.py` | pad-override selector (E-NETREF K10) |
+| `placement.patterns[].pad_overrides[].pads` | `generate_board_generic.py` | pad selector |
+| `placement.patterns[].pad_overrides[].clearance` | `generate_board_generic.py` | per-pad clearance |
+| `placement.patterns[].pad_overrides[].zone_connection` | `generate_board_generic.py` | pad zone connection |
+| `zones[].net` | `generate_board_generic.py, net_reference_audit.py` | copper pour net (E-NETREF K8) |
+| `zones[].layers` | `generate_board_generic.py` | pour layers |
+| `zones[].rect` | `generate_board_generic.py` | pour outline |
+| `zones[].points` | `generate_board_generic.py` | pour polygon |
+| `zones[].region` | `generate_board_generic.py` | pour outline by named region |
+| `zones[].priority` | `generate_board_generic.py` | pour priority |
+| `zones[].connect` | `generate_board_generic.py` | pad connection style |
+| `zones[].clearance` | `generate_board_generic.py` | pour clearance |
+| `zones[].min_thickness` | `generate_board_generic.py` | pour min thickness |
+| `keepouts[].name` | `generate_board_generic.py` | rule-area name |
+| `keepouts[].layers` | `generate_board_generic.py, placement_gates.py` | rule-area layers |
+| `keepouts[].deny` | `generate_board_generic.py` | what the rule area denies |
+| `keepouts[].rect` | `generate_board_generic.py` | rule-area outline |
+| `keepouts[].points` | `generate_board_generic.py` | rule-area polygon |
+| `escape_corridors[].ref` | `generate_board_generic.py` | P-ESC corridor owner |
+| `escape_corridors[].side` | `generate_board_generic.py` | corridor side |
+| `escape_corridors[].depth_mm` | `generate_board_generic.py` | corridor depth |
+| `asserts.pad_net[].ref` | `generate_board_generic.py, net_reference_audit.py` | pad-net assertion (E-NETREF K9) |
+| `asserts.pad_net[].pad` | `generate_board_generic.py, net_reference_audit.py` | pad-net assertion |
+| `asserts.pad_net[].net` | `generate_board_generic.py, net_reference_audit.py` | pad-net assertion |
+| `asserts.body_offset[].ref` | `generate_board_generic.py` | body-offset assertion |
+| `asserts.body_offset[].axis` | `generate_board_generic.py` | body-offset assertion |
+| `asserts.body_offset[].sign` | `generate_board_generic.py` | body-offset assertion |
+| `asserts.pad_order[].ref` | `generate_board_generic.py` | pad-order assertion |
+| `asserts.pad_order[].axis` | `generate_board_generic.py` | pad-order assertion |
+| `asserts.pad_order[].pads` | `generate_board_generic.py` | pad-order assertion |
+| `asserts.pad_beyond_edge[].ref` | `generate_board_generic.py` | edge-overhang assertion |
+| `asserts.pad_beyond_edge[].pad` | `generate_board_generic.py` | edge-overhang assertion |
+| `asserts.pad_beyond_edge[].edge` | `generate_board_generic.py` | edge-overhang assertion |
+| `asserts.pad_beyond_edge[].offset` | `generate_board_generic.py` | edge-overhang assertion |
+| `asserts.pad_beyond_edge[].tolerance` | `generate_board_generic.py` | edge-overhang assertion |
+| `silk.min_text_height` | `generate_board_generic.py` | F-LEGIBLE silk floor |
+| `silk.caption_nudge` | `generate_board_generic.py` | caption de-collision step |
+| `silk.captions[].text` | `generate_board_generic.py, net_reference_audit.py` | silk caption (E-NETREF K11) |
+| `silk.captions[].at` | `generate_board_generic.py` | caption position |
+| `silk.captions[].size` | `generate_board_generic.py` | caption text height |
+| `silk.captions[].rot` | `generate_board_generic.py` | caption rotation |
+| `silk.captions[].nudge` | `generate_board_generic.py` | caption de-collision |
+| `silk.labels[].match` | `generate_board_generic.py` | derived-label selector |
+| `silk.labels[].from` | `generate_board_generic.py` | derived-label source field |
+| `silk.labels[].strip` | `generate_board_generic.py` | derived-label edit |
+| `silk.labels[].size` | `generate_board_generic.py` | derived-label height |
+| `silk.refdes.size` | `generate_board_generic.py` | refdes text height |
+| `silk.refdes.min_size` | `generate_board_generic.py` | refdes floor |
+| `silk.refdes.clearance` | `generate_board_generic.py` | refdes de-collision |
+| `silk.refdes.fab_copy` | `generate_board_generic.py` | F.Fab duplicate |
+| `silk.refdes.priority_prefixes` | `generate_board_generic.py` | de-collision priority |
+
+### keys: 03_src/route.yaml
+
+Every row here is read through `route_and_stitch_generic.py`'s dotted-path
+`get(cfg, "a.b.c")` accessor or its `@stitch_pass("<name>")` registry, which is
+why the subtree form is used: the pass NAME is the config block name, and the
+two cannot drift apart without the router failing to find its own pass.
+
+| key | reader | why |
+|---|---|---|
+| `project.name` | `route_and_stitch_generic.py` | board naming |
+| `project.board` | `route_and_stitch_generic.py` | the board to route |
+| `project.build_dir` | `route_and_stitch_generic.py` | working directory |
+| `prep.out` | `route_and_stitch_generic.py` | the track-free r0 written |
+| `prep.keepouts.*` | `route_and_stitch_generic.py` | per-layer router keepouts |
+| `prep.waves.*` | `route_and_stitch_generic.py` | wave net groups + exclusions |
+| `route.krt` | `route_and_stitch_generic.py` | the KRT entry point |
+| `route.kicad_python` | `route_and_stitch_generic.py` | interpreter for KRT |
+| `route.race` | `route_and_stitch_generic.py` | parallel candidate count |
+| `route.final` | `route_and_stitch_generic.py` | the chain file promoted |
+| `route.common.*` | `route_and_stitch_generic.py` | per-run KRT geometry defaults |
+| `route.waves[].*` | `route_and_stitch_generic.py` | per-wave KRT overrides, validated against the netclass floors at PREP time |
+| `stitch.passes` | `route_and_stitch_generic.py` | the pass ORDER; a list with no `fill` is refused |
+| `stitch.clearance` | `route_and_stitch_generic.py` | stitch clearance |
+| `stitch.keepin.*` | `route_and_stitch_generic.py` | stitch keep-in inset |
+| `stitch.via.*` | `route_and_stitch_generic.py` | stitch via geometry + tiers |
+| `stitch.stitch_grid.*` | `route_and_stitch_generic.py` | plane stitch grid |
+| `stitch.pad_rescue.*` | `route_and_stitch_generic.py` | pad-rescue pass |
+| `stitch.island_rescue.*` | `route_and_stitch_generic.py` | island-rescue pass |
+| `stitch.heal_islands.*` | `route_and_stitch_generic.py` | same-net pour bridge pass |
+| `stitch.unify_zone_priorities.*` | `route_and_stitch_generic.py` | zone-priority pass |
+| `stitch.normalize_vias.*` | `route_and_stitch_generic.py` | via normalisation pass |
+| `stitch.dedupe_vias.*` | `route_and_stitch_generic.py` | via de-duplication pass |
+| `stitch.drop_dangling.*` | `route_and_stitch_generic.py` | dangling-track pass |
+| `stitch.drop_micro_fragments.*` | `route_and_stitch_generic.py` | micro-fragment pass |
+| `stitch.prune_stitch_dangling.*` | `route_and_stitch_generic.py` | stitch-via prune pass |
+| `stitch.split_t_junctions.*` | `route_and_stitch_generic.py` | T-junction split pass |
+| `stitch.stub_fallback.*` | `route_and_stitch_generic.py` | stub fallback pass |
+| `stitch.astar_fallback.*` | `route_and_stitch_generic.py` | A* fallback pass |
+| `stitch.hole_to_hole.*` | `route_and_stitch_generic.py` | hole-to-hole pass |
+| `stitch.width_floor.*` | `route_and_stitch_generic.py` | post-route width floor pass |
+| `taps.clearance` | `route_and_stitch_generic.py` | power-tap clearance |
+| `taps.via.*` | `route_and_stitch_generic.py` | power-tap via geometry |
+| `taps.connections[].*` | `route_and_stitch_generic.py` | per-tap from/to/net/layer/width and escape options |

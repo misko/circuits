@@ -50,6 +50,7 @@ SUITES=(
   t1_tsx_to_board.py
   t1_electrical_invariants.py
   t1_net_reference.py
+  t1_schema_reader.py
   t1_copper_length.py
   t1_power_topology.py
   t1_release_git_dirty.py
