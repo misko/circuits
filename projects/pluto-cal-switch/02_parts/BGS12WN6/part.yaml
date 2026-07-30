@@ -113,6 +113,20 @@ layout:
        25 mm of this stackup's microstrip is lambda/4 at ~1.5 GHz, mid-band"}
     - {net: RF_CTRL_SW2, max_span_mm: 4, why: "the mirror of the above, on the
        arm-2 switch"}
+    # ADDED 2026-07-29 — the SWITCH HALF of the antenna run, which no part.yaml
+    # owned. KH-SMA-KE-Z declared the whole 25 mm jack->switch run as one
+    # SW1_ANT budget, but the SMA jack carries no pad on SW1_ANT: the DC block
+    # (ADR-0005) splits the node, and it is THIS part that sits on the far side.
+    # So the leg is declared here, on the part whose pin 3 (RF1) is on the net,
+    # and the 25 mm ceiling is split 16 (KH-SMA-KE-Z, RX_ANT1) + 9 (here) with
+    # no loosening. MEASURED: U_SW1.3 -> C_DCBLK1.2 5.800 mm and
+    # U_SW2.3 -> C_DCBLK2.2 5.800 mm, identical, so the loss stays common-mode.
+    - {net: SW1_ANT, max_span_mm: 9, anchor_pins: ["3"], why: "RF1 (pin 3) to
+       the DC block — the switch's half of the antenna run. 0.036 dB/mm at
+       6 GHz, and it must MATCH arm 2 exactly or an asymmetry here is
+       indistinguishable from an arm mismatch (the D4 comparison)"}
+    - {net: SW2_ANT, max_span_mm: 9, anchor_pins: ["3"], why: "the mirror of the
+       above, on the arm-2 switch"}
     - {net: "3V3_SW", max_span_mm: 4, why: "100 nF + 1 nF at the VDD pad. Table 6
        footnote 2 records that Infineon's own measurement board carried 1 nF from
        VDD to GND and 1 nF from VCTRL to GND — that is the configuration the

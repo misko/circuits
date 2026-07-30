@@ -94,10 +94,35 @@ layout:
     looks like, and this part does not have one."
   reviewed: "2026-07-27"
   keep_short:
-    - {net: SW1_ANT, max_span_mm: 25, why: "the antenna run; kept short mainly
-       for FR4 loss (0.036 dB/mm at 6 GHz on this stackup), and identical on
-       both channels so the loss is common-mode"}
-    - {net: SW2_ANT, max_span_mm: 25, why: "the mirror of the above"}
+    # RE-POINTED 2026-07-29, AND IT WAS NEVER A PASS. These two entries used to
+    # name SW1_ANT / SW2_ANT with a single 25 mm budget. This part is placed as
+    # the five SMA jacks and NONE of them carries a pad on SW1_ANT/SW2_ANT: the
+    # DC block (ADR-0005) is a SERIES element that splits the antenna node into
+    # TWO nets, and the jack sits on the OTHER one. P-ADJ's old whole-net metric
+    # graded the budget anyway, off C_DCBLK1.2 -> U_SW1.3 — two pads belonging
+    # to parts that are not this part — and printed PASS. P-ADJ-UNREACHED now
+    # says so ("carries NO pad on it, so the budget's own part is not in it").
+    #
+    # THE PHYSICAL QUANTITY the 25 mm was about is the WHOLE jack->switch run,
+    # which is two nets and therefore not expressible as one budget. MEASURED on
+    # the regenerated board, by an independent pcbnew script:
+    #     J_SMA_ANT1.1 -> C_DCBLK1.1  13.300 mm   (RX_ANT1, the jack's own leg)
+    #     C_DCBLK1.2   -> U_SW1.3      5.800 mm   (SW1_ANT, the switch's leg)
+    #     J_SMA_ANT1.1 -> U_SW1.3     20.000 mm   TOTAL = 0.72 dB at 6 GHz
+    # and the arm-2 numbers are 13.300 / 5.800 / 20.000 — IDENTICAL to 0.000 mm,
+    # which is the "identical on both channels so the loss is common-mode" half
+    # of the original why, now measured instead of asserted.
+    # The 25 mm total is SPLIT AT THE PART BOUNDARY so each leg is graded by the
+    # part that actually owns a pad on it: 16 mm here + 9 mm on BGS12WN6 = the
+    # same 25 mm ceiling, no loosening. anchor_pins: ["1"] states the anchor —
+    # pin 1 is the centre contact, and an unstated anchor is a hidden assumption.
+    - {net: RX_ANT1, max_span_mm: 16, anchor_pins: ["1"], why: "the jack's own
+       leg of the antenna run, jack centre pin to the DC block. Kept short for
+       FR4 loss (0.036 dB/mm at 6 GHz on this stackup); 16 mm + BGS12WN6's 9 mm
+       on SW1_ANT is the 25 mm total this entry used to claim as one number"}
+    - {net: RX_ANT2, max_span_mm: 16, anchor_pins: ["1"], why: "the mirror of
+       the above, and it must stay the mirror: the two legs are 13.300 mm each,
+       so the FR4 loss is common-mode and cancels in the D4 arm comparison"}
     - {net: TX_PLUTO, max_span_mm: 15, why: "ADR-0015: this port is now an SMA
        jack, not an SMP edge launch. It feeds PAD_A1 directly and every mm of
        it is 0.036 dB at 6 GHz that lands in the published loss curve"}

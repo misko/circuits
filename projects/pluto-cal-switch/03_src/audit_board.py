@@ -536,7 +536,21 @@ def main():
         dy = max(y0 - y, 0.0, y - y1)
         return math.hypot(dx, dy)
 
-    cents = {r: crtyd_box(f) for r, f in fps.items()}
+    # THE RIVAL SET EXCLUDES MOUNTING HOLES, and it did not until 2026-07-29.
+    # I8 already excludes them as the things being GRADED ("board features, not
+    # components"); leaving them in the set of things a label can be STOLEN BY
+    # was the same category error, one line later. A mounting hole carries no
+    # printed designator, so no reader can mistake a nearby refdes for its name.
+    # It cost a FALSE finding, measured: J_USB's own refdes sits 1.70 mm from
+    # J_USB's courtyard and 0.31 mm from H2's, so I9 reported the USB
+    # connector's own label as belonging to a screw hole. The shared placer's
+    # ownership objective already excludes holes for exactly this reason
+    # (generate_board_generic._ownership, "mounting holes carry no printed
+    # designator and cannot be confused with a part"), so this also removes a
+    # disagreement between the two checkers about what a rival IS.
+    # NOT A LOOSENING: I9 stays FAIL at 23 of 73, and the removed entry is the
+    # only one of the 24 whose rival was a hole.
+    cents = {r: crtyd_box(f) for r, f in comps_only.items()}
     stolen, worst_margin, worst_ref = [], None, None
     for r, fp in sorted(comps_only.items()):
         t = fp.Reference().GetPosition()

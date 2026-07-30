@@ -68,11 +68,20 @@ values, footprints, rules, placement) MUST.
 This folder answers the board-state policies: **P1** courtyards (P-CRT), **P2**
 polarized pad-1 nets (P-POL — a scripted check in `03_src/audit_board.py`),
 **P3** mate/keepout/antenna checks (P-KEEP), **P4** every refdes on visible silk
-(P-SILK-REF), **P5** functional silk near every terminal/fuse/TP (P-SILK-FN),
-**P6/R3** reference-plane integrity (P-PLANE / R-PLANE), **P8** layout-adjacency
-net-spans (P-ADJ — each board net's pad-span within its `keep_short.max_span_mm`
-budget; warn+waiver in `03_src/rules/policy_waivers.yaml` with the measured span
-+ why; P8's other half P-LAYOUT — part.yaml carries a `layout:` block — stays a
+(P-SILK-REF), **P5** functional silk near every terminal/fuse/TP (P-SILK-FN)
+**and OWNED by it** (P-SILK-OWN — within the J/F/TP family each part must have a
+nearby legend NEARER to it than to any other member, and the row reports the
+ownership lead in mm; presence alone passed a legend sitting on the NEIGHBOURING
+connector, measured 55 times across 11 of 23 boards on 2026-07-29, and a
+misdirecting label is worse than a missing one),
+**P6/R3** reference-plane integrity (P-PLANE / R-PLANE), **P8** datasheet layout
+budgets (P-ADJ — each `keep_short` budget measured from THE ANCHOR PIN (a pad of
+the declaring part on that net) to its NEAREST QUALIFYING PARTNER, within
+`max_span_mm`, with the graded pair NAMED; and P-ADJ-PAIR — each
+`layout.adjacency` refdes pair within `max_mm` of COPPER GAP, poured nets
+excluded; warn+waiver in `03_src/rules/policy_waivers.yaml` with the measured
+pair + why, and a P-ADJ waiver covers NEITHER P-ADJ-PAIR nor P-ADJ-UNREACHED;
+P8's other half P-LAYOUT — part.yaml carries a `layout:` block — stays a
 02_parts check), **R2** power on pours (R-POUR), **R5** length gates (R-LEN),
 **R6** thermal vias (R-THERM), **R7** DRC 0/0/0 at severity-all (R-DRC).
 

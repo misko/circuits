@@ -482,31 +482,79 @@ silk:
     # where no other part competes, and the OWNERSHIP margin is printed by
     # audit_board (the caption is nearer its own jack than any other part by at
     # least 4 mm in every case).
-    # All five are >= 0.60 mm so they carry the published 0.15 mm silk stroke:
-    # fab_tiers.yaml's rule for "anything a human reads under stress", and
-    # choosing the wrong RF port is exactly that — it is SILENT, the board still
-    # assembles and still passes DRC and quietly measures the wrong path.
+    # All five are 1.2 mm, which is ABOVE fab_tiers.yaml's
+    # published_stroke_min_height 0.9375, so they carry the published 0.15 mm
+    # stroke (1.2 -> 0.192). That is the tier's rule for "anything a human reads
+    # under stress", and choosing the wrong RF port is exactly that — it is
+    # SILENT, the board still assembles and still passes DRC and quietly
+    # measures the wrong path. (0.60 mm does NOT reach 0.15; see the derivation
+    # further down. The number to compare against is 0.9375, and it is now DATA
+    # in fab_tiers.yaml rather than a sentence anyone has to re-derive.)
+    #
+    # RX1 / RX2 ROTATED 90 deg AND PULLED IN 2026-07-29. The placer gained an
+    # ownership objective and reported 'RX1' DEGRADED: it landed 5.95 mm from
+    # J_SMA_RX1 but 5.15 mm from C_DCBLK2 (lead -0.80 mm). The cause is
+    # geometric and not fixable by nudging: 'RX1' at 1.2 mm is 3.5 mm WIDE, the
+    # only clear band is west of the jack's courtyard (x < 48.80), and a
+    # 3.5 mm-wide box centred in that band has its centre at x ~46.8 — which is
+    # 0.7 mm from C_DCBLK2's x. ROTATING IT 90 deg turns the 3.8 mm into the
+    # y-axis and leaves 2.08 mm in x, so the same slot admits a centre 0.85 mm
+    # further east, hugging the jack. THE POSITION WAS SEARCHED, NOT GUESSED: a
+    # 0.05 mm grid over x 42..49.5, y 50..65 with the footprint-body and
+    # existing-silk obstacles, maximising (nearest rival - own). The optimum is
+    # (47.65, 56.70) at lead +0.64 mm, and the SAME search over the horizontal
+    # orientation is NEGATIVE EVERYWHERE (best -0.18 mm) — which is what makes
+    # the rotation load-bearing rather than cosmetic. MEASURED on the saved
+    # board: 'RX1' 5.12 mm from J_SMA_RX1 vs 5.76 mm from C_DCBLK2 — OWNED.
+    # RX2 takes the identical slot translated +14.50 mm (47.65, 71.20) so the
+    # silkscreen stays congruent with the copper; it was already owned at
+    # +0.67 mm and still is, now against C_SW2B at 5.79 vs 5.12.
+    # 0.64 mm IS A THIN LEAD AND IT IS REPORTED AS ONE. The rival is C_DCBLK2, a
+    # 0402 capacitor: nobody plugs a cable into a 0402. Against the family that
+    # CAN be mis-mated — the five identical SMA jacks — the lead is 10.68 mm
+    # (nearest other jack is J_SMA_RX2 at 15.80 mm), and that is the number the
+    # mis-mate hazard is graded on (policy_audit P-SILK-OWN, audit_board I10,
+    # which measures courtyard EDGE and reports 1.16 to J_SMA_RX1 vs 4.93 to
+    # C_SW1B — its tightest port-caption margin, up from 2.57 mm).
+    # Buying more all-parts lead would mean moving C_DCBLK1/C_DCBLK2, i.e.
+    # perturbing an RF placement that measures A-SYM 0.0 um and a 20.000 mm
+    # antenna run identical on both arms, to improve a metric whose rival is a
+    # decoupling cap. Not done, deliberately, and both numbers are stated.
     - {text: "ANT1", at: [32.35, 43.20], size: 1.2}
     - {text: "ANT2", at: [32.35, 57.70], size: 1.2}
-    - {text: "RX1",  at: [47.60, 57.15], size: 1.2}
-    - {text: "RX2",  at: [47.60, 71.65], size: 1.2}
+    - {text: "RX1",  at: [47.65, 56.70], size: 1.2, rot: 90}
+    - {text: "RX2",  at: [47.65, 71.20], size: 1.2, rot: 90}
     - {text: "TX",   at: [93.38, 50.20], size: 1.2}
     - {text: "70 MHz - 6 GHz  50R  >=40 dB TX->RX", at: [76.00, 77.50], size: 1.0}
     # ---------------------------------------------------------------------
     # EVERYTHING BELOW IS >= 1.0 mm, AND THAT IS THE FAB TIER'S RULE, NOT TASTE.
     # fab_tiers.yaml enforces min_silk_text_height 0.45 / min_silk_stroke 0.1125
     # (0.1125 = 0.25 x 0.45, KiCad's clamp — the file used to demand 0.45 height
-    # AND 0.15 stroke, which is arithmetically unsatisfiable). It then states the
-    # corollary: TO REACH JLC's PUBLISHED 0.15 mm STROKE THE TEXT MUST BE
-    # >= 0.60 mm, and that is the rule for "anything a human reads under stress:
-    # connector and safety designators, polarity marks, terminal legends".
-    # ON THIS GENERATOR THE THRESHOLD IS HIGHER THAN 0.60 AND IT WAS MEASURED, NOT
-    # ASSUMED: caption stroke comes out as max(0.1125, 0.13, height x 0.16), so
-    # 0.60 -> 0.13, 0.80 -> 0.13 and 0.70 -> 0.13, ALL BELOW 0.15. The first
-    # height that actually reaches it is 0.9375, so every stress-read caption here
-    # is 1.0 (-> 0.16) or 1.2 (-> 0.192). The 73 refdes stay at 0.60/0.12: they
-    # are assembly aids read at leisure with a BOM in hand, they clear the
-    # ENFORCED 0.1125 floor, and they are also duplicated on F.Fab.
+    # AND 0.15 stroke, which is arithmetically unsatisfiable).
+    #
+    # THE ">= 0.60 mm REACHES 0.15" COROLLARY IS WRONG AND IS NO LONGER IN THE
+    # CANON (corrected upstream 2026-07-29, 3bfdbc6). This file used to repeat
+    # it as fab_tiers.yaml's rule; it isn't one any more. The tier now carries
+    # published_silk_stroke: 0.15 and published_stroke_min_height: 0.9375 as
+    # DATA, and G-SELFCON grades both directions, so the threshold is CHECKED
+    # instead of believed. RE-VERIFIED HERE against the corrected floors by
+    # calling the generator's own silk_stroke() (not a re-implementation):
+    #   THERE ARE TWO FORMULAS, WHICH IS WHY ONE HAND-DERIVED NUMBER COULD NOT
+    #   COVER BOTH. Board-silk captions take max(min_silk_stroke, 0.13,
+    #   0.16 x h); the refdes de-collision path takes max(min_silk_stroke, 0.09,
+    #   0.20 x h). Both are clamped above by KiCad's 0.25 x h.
+    #     caption path: 0.60 -> 0.1300   0.70 -> 0.1300   0.80 -> 0.1300
+    #                   0.90 -> 0.1440   0.9375 -> 0.1500  <- first to reach it
+    #                   1.00 -> 0.1600   1.20 -> 0.1920
+    #     refdes  path: 0.60 -> 0.1200   0.75 -> 0.1500  <- its own threshold
+    # So every stress-read caption here is 1.0 (-> 0.160) or 1.2 (-> 0.192),
+    # measured on the saved board, and all 16 clear 0.9375. The 73 refdes stay at
+    # 0.60 -> 0.120: they are assembly aids read at leisure with a BOM in hand,
+    # they clear the ENFORCED 0.1125 floor, and they are duplicated on F.Fab.
+    # NOTED AND NOT TAKEN: 0.75 mm would put the refdes on the published 0.15
+    # stroke too, because the refdes path's ratio is 0.20 and not 0.16. It is not
+    # taken because a 25% wider glyph re-runs the whole 73/73 placement and the
+    # ownership search, and rx2 has already shown that costs refdes to F.Fab.
     #
     # THE FOUR TERMINAL LEGENDS WERE AT y 46.00/48.54/51.08/53.62 AND THAT WAS
     # WRONG BY 6 mm IN THE MOST DANGEROUS POSSIBLE WAY. J_HDR's origin is PAD 1,
@@ -521,22 +569,75 @@ silk:
     - {text: "STATE", at: [127.20, 57.08], size: 1.0}
     - {text: "G",     at: [127.20, 59.62], size: 1.0}
     # The two LEDs are the SAME red device; only silk tells them apart.
-    - {text: "PWR",  at: [97.20, 22.50], size: 1.0}
-    - {text: "LOOP", at: [97.60, 25.20], size: 1.0}
+    # MOVED WEST 2026-07-29. Both captions used to sit EAST of the LEDs, which
+    # put R_LED1/R_LED2 physically BETWEEN each caption and the LED it names.
+    # The placer's new ownership objective reported 'PWR' DEGRADED: 7.00 mm from
+    # D_LED_PWR but 3.50 mm from R_LED1 (lead -3.50 mm) — the caption was, by
+    # every reading a human can make of it, labelling the resistor. No nudge
+    # inside the +/-4.2 mm ladder can fix that, because the resistor is on the
+    # only side the caption was allowed to be.
+    # West of the LEDs is EMPTY: nothing sits between x 27.49 (H1) and x 89.47
+    # (D_LED_PWR's courtyard) at y 20..27. The two captions are also spread
+    # +/-1.0 mm in y against the LEDs' 2.7 mm pitch, so the CAPTIONS are 4.7 mm
+    # apart while the parts they name are 2.7 mm apart — that widens the lead in
+    # the one direction the geometry allows, and it also makes the pairing
+    # visually obvious rather than a 50/50 guess. MEASURED after the change:
+    # 'PWR' 4.12 mm from D_LED_PWR vs 5.45 mm from D_LED_MODE (lead +1.33 mm).
+    # 'LOOP' is NOT graded by the ownership objective: the owner is inferred from
+    # the single refdes containing the caption's token, and no refdes contains
+    # "LOOP" (the LED is D_LED_MODE). It is moved anyway — leaving one caption
+    # east and one west would be the asymmetry that invites misreading — and its
+    # hand-measured lead is 4.12 mm to D_LED_MODE vs 5.45 mm to D_LED_PWR.
+    # It is NOT renamed to "MODE" to make it gradeable: "LOOP" is what the LED
+    # means to a user, and renaming silk to satisfy a checker is a fake grade.
+    - {text: "PWR",  at: [87.00, 21.50], size: 1.0}
+    - {text: "LOOP", at: [87.00, 26.20], size: 1.0}
     - {text: "OFF = ANTENNA", at: [104.00, 43.60], size: 1.0}
     # ADDED 2026-07-29 for policy_audit P-SILK-FN, which measured NO functional
     # silk within 8 mm of F1 or J_USB. Both are exactly the class the rule is
     # about: F1 is the only current-limiting element on the board and its rating
     # is the number a person needs when it opens; J_USB is the primary entry and
     # is one of two connectors on a board whose other one has a 5.0 V ceiling.
-    # Both >= 0.60 mm so they carry the published 0.15 mm stroke.
-    # Both sit in the one free band in this corner: x 119.4..129.0, y ~27.5,
-    # between J_USB's courtyard (ends y=26.2), U_ESD's (ends x=119.09) and F1's
-    # (starts y=29.0). The first draft put them under the connector and inside
-    # F1's courtyard, and the generator's caption-crowding check said so.
-    # Shortened to fit at 1.0 mm (the height that reaches 0.15 stroke) inside the
-    # 9.6 mm band between U_ESD's courtyard and the board edge.
-    - {text: "USB 5V", at: [121.60, 27.60], size: 1.0}
+    # Both are 1.0 mm, above published_stroke_min_height 0.9375, so both carry
+    # the published 0.15 mm stroke (-> 0.160 measured).
+    #
+    # 'USB 5V' MOVED 2026-07-29 BECAUSE IT WAS ON THE WRONG PART. Both captions
+    # were squeezed into the one free band in this corner (x 119.4..129.0,
+    # y ~27.5, between J_USB's courtyard which ends y=26.2, U_ESD's which ends
+    # x=119.09, and F1's which starts y=29.0). That band is geometrically nearer
+    # F1 than J_USB, and policy_audit's new P-SILK-OWN measured exactly that:
+    # 'USB 5V' sat 7.40 mm from J_USB but 6.01 mm from F1, so the USB connector
+    # owned NO legend at all and the FUSE appeared to be labelled as the 5 V
+    # source. On a connector legend that is a mis-mate hazard, not a cosmetic
+    # one, and it is worth a move rather than a waiver.
+    # THE MOVE: west of J_USB instead of below it. The band x 95.5..113.5,
+    # y 20.0..24.4 is EMPTY (J_USB's courtyard starts x=113.50, U_FLASH's starts
+    # y=25.25, R_LED2's ends x=95.47), and it is wide enough for the 5.5 mm-wide
+    # glyph run at 1.0 mm, so no rotation is needed. At x=110.40 the text ends at
+    # x=113.15 — it abuts the connector's own courtyard with 0.35 mm to spare, so
+    # it reads as the connector's legend. MEASURED after the change: 7.72 mm from
+    # J_USB vs 18.65 mm from F1, a +10.93 mm ownership lead, and still inside
+    # P-SILK-FN's effective radius for J_USB (8.0 + body diagonal/2 = 13.43 mm),
+    # so PRESENCE stays satisfied at the same time as OWNERSHIP.
+    # WHAT THIS MOVE DOES NOT FIX, MEASURED, BECAUSE NO POSITION DOES: against
+    # ALL parts (not just the ^(J|F|TP) family) the legend is still nearer a
+    # passive than the connector — 7.72 mm from J_USB vs 5.35 mm from C_FLASH,
+    # lead -2.37 mm. That is STRUCTURAL, not a slot that was missed. J_USB's
+    # body is 8.94 x 6.16 mm, so its CENTROID sits 4.47 mm inside its own
+    # courtyard and the nearest legal slot outside it is already 7.6 mm from the
+    # centroid, while every free pocket in this corner is ringed by 0402s at
+    # 5-7 mm. SEARCHED, not assumed: over the whole free band the best
+    # achievable all-parts lead is -0.18 mm, and that point (110.40, 20.60)
+    # breaks the 0.4 mm frame margin; the best LEGAL point is -0.72 mm, and
+    # rotating the glyph run 90 deg into the x 110.2..113.5 pocket is WORSE
+    # (-3.82 mm, because C_FLASH is what that pocket is next to).
+    # The previous position was ALSO negative on that metric (-1.98 mm, vs
+    # U_ESD), so nothing was traded away: what changed is the number the hazard
+    # is actually about. A person choosing where to plug a USB cable is choosing
+    # among CONNECTORS, and 'USB 5V' is not a refdes — C_FLASH prints its own.
+    # 'F 0.5A' does NOT move: it is 4.43 mm from F1, 10.79 mm from J_USB and
+    # 9.91 mm from its nearest rival of any kind (FB1), so it is owned outright.
+    - {text: "USB 5V", at: [110.40, 23.00], size: 1.0}
     - {text: "F 0.5A",  at: [127.00, 27.60], size: 1.0}
 
 asserts:

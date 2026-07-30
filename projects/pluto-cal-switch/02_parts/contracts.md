@@ -59,11 +59,40 @@ type: buck_controller       # REQUIRED. The part CLASS, not its value.
                             # "10k NTC 3380K" on an R_0402 footprint is a
                             # THERMISTOR; it was coded as a plain 10k resistor
                             # and would have shipped as the temp sensor.
-                            # For a CONVERTER the class (buck|boost|buck_boost)
-                            # is machine-graded by E-TOPO against the topology
-                            # DERIVED from 03_src/rules/power_tree.yaml voltage
-                            # envelopes — an over- or under-capable class FAILS
+                            # For a CONVERTER the class is machine-graded by
+                            # E-TOPO against the topology DERIVED from
+                            # 03_src/rules/power_tree.yaml voltage envelopes.
+                            # Recognised (substring, in this order):
+                            #   buck+boost -> BUCK_BOOST
+                            #   buck       -> BUCK
+                            #   boost      -> BOOST
+                            #   ldo|linear|low-dropout -> LINEAR
+                            # An over- or under-capable class FAILS
                             # (buck_boost where a buck suffices = FAIL).
+                            # A part that is NOT a converter (a load switch,
+                            # an eFuse, a pass FET, a ferrite) classifies as
+                            # NOTHING and may not appear on a `rails:` entry —
+                            # such a stage converts nothing and E-TOPO has
+                            # nothing to derive.
+
+# LINEAR CONVERTERS ONLY — both REQUIRED before E-TOPO will grade a rail whose
+# converter is one. A linear regulator's failure modes are DROPOUT and
+# DISSIPATION, and the Vin-vs-Vout topology derivation is blind to BOTH, so a
+# LINEAR rail without them is a rail the gate cannot grade — a FAIL, never a
+# pass (canon M-COVER). Until 2026-07-27 `normalize_type()` rejected every
+# linear part outright, so the only route to a green E-TOPO on an LDO-only
+# board was to DELETE power_tree.yaml; three fleet boards took it.
+# dropout_mv: 120           # datasheet MAX dropout at the part's RATED output
+                            # current (the conservative reading). A rail may
+                            # override with the number at ITS own iout_max_A.
+                            # Graded: vin_min - vout_max >= dropout_mv.
+# pdiss_max_mw: 300         # package power rating. A rail may override with a
+                            # board-specific derating (hot ambient, no copper
+                            # under the part). Graded:
+                            #   (vin_max - vout_min) * iout_max_A <= this.
+                            # STATE THE AMBIENT if the datasheet does; a
+                            # rating with no stated datum is ESTIMATED, not
+                            # CITED (canon M-IMPORT).
 datasheet:
   doc_id: SNVSAI4
   revision: SNVSAI4F        # PIN IT — pinouts change between revisions
@@ -137,10 +166,67 @@ layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
   source: "TI SLVSDG8B Sec.11 + EVM SLVUAP7A: pass FET + sense R + VBUS caps
     HARD against the power-stage pin edge; Kelvin-sense back to the chip"
   reviewed: "2026-07-14"
-  keep_short:               # nets whose pad-span P-ADJ measures on the board
+  keep_short:               # P-ADJ measures THE ANCHOR PIN to its NEAREST
+                            # QUALIFYING PARTNER — not the net's worst pad pair
+                            # (changed 2026-07-29). The anchor is a pad of THIS
+                            # part; the partner is the nearest pad on the same
+                            # net belonging to another footprint; the graded
+                            # number is the worst anchor pin's distance, and
+                            # the report NAMES THE PAIR it graded. Rationale:
+                            # a datasheet sentence is about a PIN ("100 nF
+                            # close to EACH IOVDD pin"), and the whole-net
+                            # maximum made a budget score WORSE when a
+                            # correctly-placed bulk cap was added to the net.
+                            # Measured: pluto-cal-switch RP2040:3V3 read
+                            # 72.96mm against 4mm on the whole net (it is a
+                            # poured rail crossing the board) and 2.60mm
+                            # (U_MCU.26 -> C_IO3.1) on the anchor.
     - {net: RSNS,  max_span_mm: 5, why: "Kelvin sense R adjacent to ISNS/VPWR"}
     - {net: PDSRC, max_span_mm: 5, why: "pass-FET source common node at chip"}
-  # adjacency: [...]        # optional refdes-pair form; notes: free-text rules
+    # - {net: DVDD, max_span_mm: 10, anchor_pins: [45], why: "..."}
+                            # `max_span_mm` is a pad-CENTRE span, in mm.
+                            # `anchor_pins:` (optional) names the pin numbers
+                            # the datasheet sentence is about, when it is about
+                            # one pair; omitted, every pad of this part on the
+                            # net is an anchor and the worst one is graded.
+                            # `net:` MUST be a NET NAME ON THIS BOARD carrying
+                            # >= 2 pads, ONE OF WHICH IS THIS PART'S. A name
+                            # copied out of the datasheet's reference design, a
+                            # renamed net, a node split by a series element
+                            # (RP2040's USB_DP becomes USB_DP_MCU after the
+                            # 27R), or prose like "V+ decoupler (pin 8)"
+                            # resolves to nothing, and P-ADJ-UNREACHED FAILS it
+                            # by name: a budget nothing evaluates is not a
+                            # pass. Measured 2026-07-28 before that gate
+                            # existed: 61 of 119 budgets fleet-wide (51%) were
+                            # graded by NOTHING; measured again 2026-07-29 with
+                            # the anchor rule, 7 MORE (4 on pluto-cal-switch —
+                            # KH-SMA-KE-Z SW1_ANT/SW2_ANT and RP2040
+                            # USB_DP/USB_DM — and 3 on pluto-rx2-8way) were
+                            # being graded off pads belonging to OTHER parts
+                            # entirely.
+  adjacency:                # REFDES-PAIR budgets, graded as P-ADJ-PAIR (a
+                            # SEPARATE row from P-ADJ since 2026-07-29,
+                            # because a P-ADJ waiver's evidence is a list of
+                            # measured keep_short spans and must not absorb a
+                            # different class — same reason as
+                            # P-ADJ-UNREACHED). Read by NOTHING before that
+                            # date: the field was in this contract and in the
+                            # part.yaml files and no gate opened it, which
+                            # reads as covered and is worse than absent.
+    - {refdes: [U_ESD, J_USB], max_mm: 2.0, why: "ST DocID11265 sec 2.2: 6 nH
+        per 10 mm turns a 17 V clamp into 305 V, so this is a clamp-voltage
+        term and not tidiness"}
+                            # `max_mm` is the COPPER GAP — pad EDGE to pad
+                            # edge, i.e. the track length the nH/mm arithmetic
+                            # applies to — measured on the worst net the two
+                            # parts share. POURED nets are excluded and said
+                            # to be: a plane joins two parts without a track,
+                            # so a pad gap does not measure it (that is stitch
+                            # / R-THERM work). A pair sharing no un-poured net,
+                            # or naming a refdes absent from the board, is
+                            # P-ADJ-UNREACHED.
+  # notes: [...]            # free-text rules for the half no gate can grade
 layout_refs:                # REQUIRED for every HARD part (dense escapes,
                             # switching power, >0.5A analog, RF): the LAYOUT
                             # PRECEDENT SEARCH record — the routed references
@@ -186,6 +272,21 @@ asserts:                    # OPTIONAL, canon P-FACT. The part's own facts,
     tolerance_pct: 5               # SI-aware: 1k / 1kOhm / 1kΩ / 4k7 / 0R1
     why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k; TI SLVS165O 7.3.4
       names 1k explicitly"         # NB m is MILLI and M is MEGA
+  - assert: value                  # ...and an `equals:` the SI decoder cannot
+    equals: PE42482A-X             # read is a LITERAL, compared EXACTLY to the
+    why: "the Comment must NAME the switch; a pin-compatible SPDT in the same
+      land is a different part"    # Comment (whitespace-stripped, NOT
+                                   # case-folded and NOT punctuation-
+                                   # normalised: `SS12D07VG6 087` vs
+                                   # `SS12D07VG6-087` is a drift this fleet has
+                                   # already shipped). `tolerance_pct:` on a
+                                   # literal is a CONFIG ERROR — a percentage
+                                   # band around a part number grades nothing.
+                                   # Until 2026-07-28 a non-numeric `equals:`
+                                   # emitted a non-blocking P-FACT-CONFIG and
+                                   # checked NOTHING while the run printed
+                                   # `P-FACT OK`: 11 of 13 asserts on
+                                   # pluto-rx2-8way and 5 on pluto-cal-switch.
   - assert: not_on_assembly_bom    # no ref of this part may carry an LCSC on
     why: "THT on an SMT-only order and stock 0 on all three siblings (live
       query 2026-07-25) — hand-wire from Digi-Key"   # the BOM, or sit on CPL
@@ -259,6 +360,24 @@ drawing, not just electricals.
 - A part that fails S-VER may not enter the BOM until its note cites the
   figure. "Same as <other part>" and "standard pinout" are not citations.
 
+**S-VER IS THE NARROW INSTANCE OF `M-IMPORT` (canon Meta, landed 2026-07-27,
+ADR-0005 phase 1).** The class is *every fact imported from outside this repo*;
+a pin map is one member, and this folder is where that member is governed. The
+grades M-IMPORT defines apply to everything else a `part.yaml` imports too:
+**MEASURED** (the physical object, or a machine-readable source — a
+`.kicad_pcb`, a drill file, a STEP), **CITED** (a vendor document, WITH figure /
+page / section — what a `verified:` note is), **ESTIMATED** (derived,
+photogrammetric, inferred — and it MUST carry an error bar). A dimension used in
+COPPER is MEASURED or CITED, never ESTIMATED without its bar; a published number
+whose DATUM is unstated is ESTIMATED, not CITED; and where the grades disagree
+**the object beats its drawing**. The wider rule gained its machine half on
+2026-07-27 (ADR-0005 phases 2-4): `03_src/rules/mates.yaml` + `spf/<device>/`,
+graded by `import_provenance_check.py` for M-EXIST/M-GRADE/M-BAR/M-PROXY/
+M-OWED/M-RESTATE/D-MATE. **It reaches MATING geometry, not this folder**: a
+`part.yaml` imports its facts from a datasheet and is still graded by S-VER
+plus review, so outside pin maps and outside a `mates.yaml` this remains [H],
+and this contract says so rather than implying a check that does not exist.
+
 This folder also answers **P-LAYOUT / P-ADJ** — the datasheet LAYOUT section is
 read (not just the pin table) and encoded as a `layout:` block for every IC and
 power/sense part (with the routed precedents behind that read catalogued in
@@ -269,10 +388,24 @@ the board's placement HONOURS it:
 - Audit: `policy_audit.py` **P-LAYOUT** fails an in-scope part (multi-pin active,
   or `type:` matching fet/mosfet/current_sense/shunt/crystal/oscillator/inductor)
   that has no `layout:` block with a `source:` citation + a keep_short/adjacency
-  budget. **P-ADJ** measures each `layout.keep_short` net's pad-span on the board
-  and flags any that exceeds its `max_span_mm` (the datasheet's "keep it local"
-  rule made mechanical) — warn+waiver: a real over-span must be re-placed or
-  dispositioned in `policy_waivers.yaml` with the measured span + why.
+  budget. **P-ADJ** measures each `layout.keep_short` budget from THE ANCHOR PIN
+  (a pad of the declaring part on that net) to its NEAREST QUALIFYING PARTNER
+  (the nearest pad on the same net on another footprint), worst anchor wins, and
+  names the pair — the datasheet's "keep it local" rule made mechanical, at the
+  granularity the sentence has. It is NOT the whole net's worst pad pair: that
+  metric made a budget score WORSE when a correctly-placed bulk capacitor was
+  added, so it could not guide placement (changed 2026-07-29; the usb-hub-3s-v2
+  RSNS incident still FAILS, 7.34mm U1.19 -> Q6.5 against 5mm).
+  **P-ADJ-PAIR** grades `layout.adjacency` refdes pairs on the copper GAP
+  between them. **P-ADJ-UNREACHED** covers both kinds.
+  Both are SEPARATE rows and NEITHER is waivable by a P-ADJ waiver:
+  P-ADJ-UNREACHED fails any budget that does not resolve to a measurable pair
+  here (no such net, fewer than 2 pads, no pad of the declaring part, no shared
+  un-poured net, a refdes not on the board). The split is deliberate — a P-ADJ
+  waiver's evidence is a set of MEASURED spans, and letting it also cover
+  budgets that were never measured, or a different budget KIND, is exactly the
+  waiver-widening canon M4 forbids. Any of the three reporting `PASS` over ZERO
+  measured budgets is itself a FAIL (canon M-COVER).
 - The Layout read is the independent human half: escape/pinout can be right while
   the part is still placed wrong (usb-hub-3s-v2 TPS25740A). P-ADJ is the machine
   half — it caught RSNS span 11.5mm > 5mm on that exact board.
