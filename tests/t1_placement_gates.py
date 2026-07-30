@@ -151,10 +151,25 @@ def t_real_boards_pass():
     keypad nets — the hardest honest PASS), usb-hub-3s-v3, and
     crow-recorder-central-v2. Measured worst demand/capacity ratios at the
     time of writing: 0.14 / 0.02 / 0.07 — vs the defect board's 0.90."""
+    # cooksense reads its SEALED release, not `04_kicad/`. This calibration
+    # asserts PASS on a real board, and cooksense's live board is regenerated
+    # from source whenever anyone revises it — during a rebuild it is track-free
+    # with netclasses clobbered (canon R1's warning, observed), so asserting
+    # PASS on it makes this test's verdict a function of whether someone happens
+    # to be building. A sibling fixture in t1_gate_contract.py went red for
+    # exactly that reason on 2026-07-29. Sealed bytes are the M-SHIP-correct
+    # oracle for a calibration set and they are also flake-free. Measured on the
+    # seal: P-OUT 0.30mm (J_ESTOP.MP), P-CAP ratio 0.23 — still the hardest
+    # honest PASS in this set. The other two boards are read live deliberately:
+    # both are sealed and idle, and keeping one live read here is what would
+    # catch a placement regression the moment someone DID revise them.
+    SEALED = {"smc0985-cooksense":
+              "07_releases/cooksense-v1.6-2026-07-27/source/cooksense.kicad_pcb"}
     for proj, stem in (("smc0985-cooksense", "cooksense"),
                        ("usb-hub-3s-v3", "usb_hub_3s_v2"),
                        ("crow-recorder-central-v2", "crow_recorder_central_v2")):
-        board = ROOT / "projects" / proj / "04_kicad" / f"{stem}.kicad_pcb"
+        board = (ROOT / "projects" / proj / SEALED[proj] if proj in SEALED
+                 else ROOT / "projects" / proj / "04_kicad" / f"{stem}.kicad_pcb")
         r = must_pass(run([KPY, PG, board]), f"placement_gates on {proj}")
         contains(r.out, "PLACEMENT-GATES: PASS", f"{proj} verdict")
 

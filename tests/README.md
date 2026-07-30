@@ -244,6 +244,41 @@ This is the whole workflow — follow it every time something ships broken.
    fixture in this suite corresponds to a defect that actually shipped;
    the docstring is where that context lives.
 
+## Which real bytes may a fixture read?
+
+A fixture that asserts something about a REAL board must read bytes that cannot
+move under it. Three legal oracles, in order of preference:
+
+1. **A pinned commit** — `git show <COMMIT>:<path>`. The strongest, because the
+   path is only a locator. `t1_audit.py`'s `PRENOTCH_COMMIT` and
+   `t1_placement_gates.py`'s `PREREDO_COMMIT` do this, and they are immune to
+   anything happening in the working tree.
+2. **A sealed release** — `07_releases/<rel>/source/…`. Immutable by canon, so a
+   verdict derived from it is reproducible (canon M-SHIP).
+3. **A live `projects/<board>/04_kicad/…`** — legal only where the assertion
+   tolerates the board being regenerated, or where a live read is the POINT
+   (catching a regression the moment someone revises that board). Say which in
+   a comment.
+
+**Never assert PASS/FAIL content about a live `04_kicad/` board you do not own.**
+`04_kicad/` is regenerated from source, and mid-rebuild it is track-free with
+netclasses clobbered — exactly what canon R1 warns about, and it was observed as
+a test failure on 2026-07-29: `t1_gate_contract.py`'s G-VACUOUS-DRU fixture went
+red because cooksense's live `.kicad_dru` did not yet carry the barrier rules
+(`apply_drc_policy.py` re-applies them AFTER `generate_rules`) and `KEYPAD_ISO`
+was absent from `.kicad_pro`, where netclasses actually live — 0 occurrences live
+against 15 in the seal. A gate whose verdict depends on whether a sibling happens
+to be rebuilding is not a gate.
+
+**There is deliberately NO CHECKER for this rule.** The whole population is
+three files and seven references, measured 2026-07-29, and five of the seven were
+already correct. A new gate for a seven-item set is the gate sprawl this repo is
+starting to pay for: 73 check-IDs across 32 gates, each of which is maintenance
+and each of which can itself go vacuous (see G-VACUOUS). The durable asset is the
+meta-principles, not another ID. If this class recurs — a third fixture breaking
+on mutable project state — that is the evidence that earns a checker, and the
+count above is the baseline to compare against.
+
 ## Interpreter notes
 
 - `/usr/bin/python3` is the KiCad-bundled interpreter and the only one with
