@@ -90,6 +90,104 @@ def t_mpn_field_beats_dirname():
               f"{code}: {r.mpn!r} is unrelated to its dir {dirname!r}")
 
 
+@test("the MPN authority READS both `alternates:` schema forms, and NEVER "
+      "invents an MPN for the bare one", kind="known_bad")
+def t_bare_alternates_are_not_silently_skipped():
+    """A SILENT SKIP INSIDE THE AUTHORITY ITSELF, live for this file's whole
+    existence. `load_part_mpns` read `alternates:` as `{lcsc:, mpn:}` mappings
+    and `continue`d past anything else. MEASURED 2026-07-29 across the fleet's
+    dossiers: **351 alternates are BARE STRINGS and 2 are mappings** — and one of
+    those two had been written an hour earlier to work around this bug. The bare
+    form is what the `02_parts` contract's own example shows
+    (`alternates: [C2650259, C3188678]`) and what `electrical_invariants.py`
+    reads, so the tree spoke the documented dialect and the MPN authority
+    understood 0.6% of it without a word. That is the `jlc_twin`-exits-0 shape:
+    a clean run over a fact nobody checked.
+
+    AND THE OBVIOUS FIX IS WORSE THAN THE BUG, which is the second half of what
+    this pins. Keying a bare alternate to the PARENT dossier's `mpn:` — as the
+    mapping branch already does when `mpn:` is omitted — writes a FALSE part
+    number into the column whose entire job is to be the exact part number. The
+    measured case is `02_parts/MCP23017-E-SS`, whose alternate `C47023` is
+    `MCP23017-E/SO`: a SOIC-28W part needing a different footprint, not the
+    SSOP-28 the dossier is about. So a bare alternate resolves a KNOWN CODE with
+    an UNDECLARED MPN: never returned by `resolve()`, reachable by
+    `known_without_mpn()` for the diagnosis, and COUNTED in `describe()`.
+
+    RED-VERIFIED 2026-07-29 against `git show HEAD:...bom_legibility_check.py`
+    restored in place: `known_without_mpn` does not exist (AttributeError), and
+    `load_part_mpns` over a dossier whose only sourcing is a bare alternate
+    returns `{}` — 0 codes, no warning. Fix restored: the code is keyed, its MPN
+    is empty, and `describe()` says how many such entries there are.
+
+    THE THIRD THING IT PINS is a bug the FIX introduced and the suite caught:
+    `C79924` (crow-recorder-central-v2 U9) is both its own dossier's
+    `sourcing.lcsc` AND a bare alternate of another dossier. Registered with
+    `setdefault` in filesystem order the empty-MPN placeholder landed first and
+    permanently shadowed the real answer — a fix for a silent skip introducing a
+    silent skip, on a row that had been resolving correctly. Precedence is by
+    INFORMATION CONTENT now, and that is asserted on the real tree below."""
+    import yaml as _yaml
+
+    # --- the fleet premise: the bare form is the DOMINANT form, not an edge case
+    bare, mapping = [], []
+    for y in sorted((ROOT / "projects").glob("*/02_parts/*/part.yaml")):
+        d = _yaml.safe_load(y.read_text(encoding="utf-8-sig")) or {}
+        if not isinstance(d, dict):
+            continue
+        for alt in ((d.get("sourcing") or {}).get("alternates") or []):
+            (mapping if isinstance(alt, dict) else bare).append((y, alt))
+    check(len(bare) > len(mapping),
+          f"{len(bare)} bare vs {len(mapping)} mapping-form alternates — the "
+          f"premise of this test (the bare form is what the fleet actually "
+          f"writes) has changed; RE-MEASURE before editing it")
+
+    # --- a bare alternate is READ, and carries NO MPN
+    d = tmpdir("altschema_")
+    p = d / "PART-A"
+    p.mkdir()
+    (p / "part.yaml").write_text(
+        "mpn: PART-A\nsourcing:\n  lcsc: C111111\n"
+        "  alternates: [C222222, 'C333333 (a note about the part)',\n"
+        "               'PCM1864DBTR']\n")
+    table = load_part_mpns(d)
+    eq(table["C111111"].mpn, "PART-A", "the dossier's own code must resolve")
+    for code in ("C222222", "C333333"):
+        check(code in table,
+              f"{code} is declared as a BARE alternate and the MPN authority "
+              f"cannot see it — 351 of the fleet's 353 alternates are this "
+              f"shape, and every one was invisible")
+        eq(table[code].mpn, "",
+           f"{code} was given an MPN it does not have. A bare alternate declares "
+           f"NO part number, and inheriting the parent's puts a string that is "
+           f"NOT the part number in the MPN column (C47023 is MCP23017-E/SO, "
+           f"not the -E/SS its dossier is about)")
+    eq(sorted(table), ["C111111", "C222222", "C333333"],
+       "the bare entry that names NO LCSC code (`PCM1864DBTR`) must key "
+       "nothing — a free-text note is not a code, and guessing at one would be "
+       "the same invention as inheriting the parent MPN")
+
+    auth = MpnAuthority(d)
+    eq(auth.resolve("C222222"), None,
+       "resolve() returned an MPN-LESS entry, so every consumer now believes "
+       "the authority named a part number for a code it cannot name")
+    check(auth.known_without_mpn("C222222"),
+          "the code is neither resolvable NOR reportable — that is the silent "
+          "skip again, just moved")
+    contains(auth.describe(), "BARE",
+             "the authority must COUNT the entries it could only half-read "
+             "(canon M-COVER)")
+
+    # --- a code that is BOTH a real sourcing.lcsc and someone's bare alternate
+    # must resolve to the REAL MPN, whatever order the dossiers are read in
+    crow = MpnAuthority(RELEASES / "crow-recorder-central-v2/02_parts")
+    hit = crow.resolve("C79924")
+    check(hit and hit.mpn,
+          "C79924 (U9) is its own dossier's sourcing.lcsc AND a bare alternate "
+          "elsewhere; an empty-MPN placeholder has shadowed the real answer, "
+          "which BREAKS a row that used to resolve")
+
+
 @test("F-WORDS refuses the three measured shapes and NOTHING ELSE")
 def t_comment_defect_is_narrow():
     """A legibility test that over-reaches is worse than none: widening it to
@@ -298,7 +396,16 @@ def t_unresolvable_code_fails():
     """`mpn_map.get(code, "")` is the defect ADR-0006 names: a miss produced a
     blank column with no warning, the `row_kind` shape canon M-COVER forbids.
     C0000001 exists in no dossier and no ledger; the row must be REFUSED, and
-    the finding must say the code, not just 'a row'."""
+    the finding must say the code, not just 'a row'.
+
+    AMENDED 2026-07-29 (the M-SHIP verdict split). This fixture's row carries a
+    BLANK MPN as well as an unresolvable code, so it now exercises the
+    SELF-CONTAINED half of the split — a coded row with no MPN is a defect in the
+    SHIPPED BYTES and is graded without consulting any authority, which is why it
+    stays a FAIL even where immutability forbids a fix. The halves it no longer
+    covers are pinned separately by `t_sealed_unresolvable_is_ungraded`:
+    unresolvable + a NON-BLANK MPN on an immutable target is UNGRADEABLE, and the
+    same bytes on a MUTABLE target are still a FAIL."""
     d = tmpdir("bomleg_")
     p = bom_csv(d / "bom.csv", ["1nF,C1,C_0402,,C0000001"], bom_marker=True)
     r = must_fail(run([KPY, CHECK, p]), "F-LEGIBLE on an unresolvable code",
@@ -353,6 +460,273 @@ def t_echo_clean():
     echo.write_text("Designator,LCSC,JLC Matched Part\nC1,C1523,C1523\n")
     r = must_pass(run([KPY, CHECK, p, "--echo", echo]), "F-ECHO clean")
     contains(r.out, "coverage F-ECHO", "the echo verdict has a denominator")
+
+
+# ====================== a SEAL MUST BE RE-DERIVABLE FROM THE SEALED BYTES ===
+#: the live release whose verdict MOVED under it, twice, in one session
+COOK_V16 = (RELEASES / "smc0985-cooksense/07_releases"
+            / "cooksense-v1.6-2026-07-27")
+
+
+def moved_on_tree(tag="mship_"):
+    """(empty 02_parts, empty ledger) — the dossier tree AS IT WILL LOOK once the
+    next revision has legitimately moved on.
+
+    This is the PERTURBATION, and it is not a hypothetical: `cooksense-v1.6` was
+    sealed 2026-07-27, and on 2026-07-29 the live v1.7 work removed the
+    `ULN2803ADWR` dossier (v1.7 genuinely has no ULN2803) and later restored it.
+    Emptying both external authorities is the same event with the timing taken
+    out of it, and it is an INDEPENDENT method (canon M1): it does not ask the
+    gate whether it is coupled to mutable source, it makes the coupling
+    observable from outside.
+    """
+    d = tmpdir(tag)
+    (d / "02_parts").mkdir()
+    (d / "empty_ledger.yaml").write_text("{}\n")
+    return d / "02_parts", d / "empty_ledger.yaml"
+
+
+def sealed_scratch(rows, tag="sealed_", stock=None,
+                   header="Comment,Designator,Footprint,MPN,LCSC"):
+    """A scratch directory SHAPED LIKE a sealed release — `07_releases/<dir>/`
+    with `fab/bom.csv` and optionally `verification/stock_check.csv`.
+
+    Synthetic by necessity, and narrowly so: the two verdict classes being
+    discriminated differ by whether the graded artifact MAY BE EDITED, and there
+    is no sealed release in this repo that carries an unresolvable code together
+    with a non-blank MPN (MEASURED 2026-07-29: 0 of 33). Building the case by
+    hand is the only way to prove the branch exists — and it is built from the
+    GOOD case broken in exactly one way, per tests/README.
+    """
+    d = tmpdir(tag) / "07_releases" / "board-v9.9-2026-01-01"
+    (d / "fab").mkdir(parents=True)
+    (d / "verification").mkdir()
+    bom_csv(d / "fab" / "bom.csv", rows, bom_marker=True, header=header)
+    if stock:
+        (d / "verification" / "stock_check.csv").write_text(
+            "Comment,Designator,Footprint,LCSC,qty,status,code,type,stock,mpn,"
+            "pkg,price\n" + "".join(stock))
+    return d
+
+
+@test("a SEALED release's F-LEGIBLE verdict does not move when the dossier tree "
+      "moves on", kind="known_bad")
+def t_sealed_verdict_is_rederivable():
+    """THE DEFECT, and it is measured in both directions on ONE release.
+
+    `cooksense-v1.6-2026-07-27` is sealed and immutable. On 2026-07-29 16:15
+    F-LEGIBLE FAILED it on row 39 (U_EXP, C506653) and row 56 (U_ULNA/U_ULNB,
+    C9683); hours later, with not one byte of the release changed, it PASSED it
+    again. What moved was `02_parts/`: the live v1.7 work removed the
+    `ULN2803ADWR` dossier and then restored it. A verdict that moves under an
+    immutable artifact is not evidence about that artifact, and the self-healing
+    direction is the worse of the two — a red that repairs itself for an
+    unrelated reason is a red nobody records.
+
+    The property asserted is REPRODUCIBILITY, not the verdict: graded normally
+    and graded with BOTH external authorities emptied, the same sealed bytes must
+    not produce a different PASS/FAIL. The release carries its own code->MPN map
+    (`verification/stock_check.csv`, JLC's catalog recorded at the seal, already
+    a REQUIRED release artifact) and that is what makes the answer re-derivable.
+
+    RED-VERIFIED 2026-07-29 with `git show HEAD:...bom_legibility_check.py`
+    restored in place: the perturbed run exits **1 with 55 findings** against the
+    unperturbed run's **0**, including `FAIL F-MPN row 39 (U_EXP): LCSC C506653
+    resolves NO MPN from any authority` — i.e. the pre-fix gate condemns a sealed
+    release for the state of a tree it does not contain. Fix restored: 0 and 0.
+    MEASURED fleet-wide the same way: **9 of 33 sealed releases flipped
+    PASS -> FAIL under this perturbation — every release that passed F-LEGIBLE at
+    all, four of them LIVE — and 0 of 33 do now.**"""
+    parts, ledger = moved_on_tree()
+    plain = must_pass(run([KPY, CHECK, COOK_V16]), "v1.6 graded as things stand")
+    moved = run([KPY, CHECK, COOK_V16, "--parts", parts, "--ledger", ledger])
+    check(moved.rc == 0,
+          f"the SEALED cooksense v1.6 FAILS once the dossier tree has moved on "
+          f"(rc={moved.rc}). 07_releases is IMMUTABLE — no edit to this release "
+          f"could ever clear that finding, so the verdict is about our tree and "
+          f"not about the release:\n{moved.out[-2500:]}")
+    for code, ref in (("C506653", "U_EXP"), ("C9683", "U_ULNA")):
+        contains(moved.out, code,
+                 f"the {ref} row ({code}) — one of the two the moved tree "
+                 f"orphaned — must still be accounted for by name")
+    contains(moved.out, "verification/stock_check.csv",
+             "the answer must come from the map sealed INSIDE the release")
+    # and it must not read as a clean bill: the equality check really did not run
+    not_contains(moved.out, "F-LEGIBLE OK",
+                 "a run that could not cross-check 54 rows against a "
+                 "hand-verified authority reported itself as OK")
+    contains(moved.out, "NOT-REDERIVABLE-FROM-SHIPPED-BYTES",
+             "the verdict must carry the token a fleet sweep greps for")
+    contains(plain.out, "F-LEGIBLE OK",
+             "premise: v1.6 passes cleanly while its dossiers are in reach")
+
+
+@test("the release-carried map is an EXISTENCE authority and is consulted LAST")
+def t_release_map_is_existence_not_equality():
+    """MEASURED, not assumed, and the measurement is why the ORDER is pinned.
+
+    JLC's `componentModelEn` — the `mpn` column `jlc_stock_check.py` records — is
+    a catalog DESCRIPTION, and it is not the manufacturer part number on 7 of the
+    156 rows fleet-wide that have one: `436500224` for Molex `43650-0224`,
+    `SMAJ5.0A-13-F` for `SMAJ5.0A`, `2.54-2*20PFemale longPC104` for
+    `2.54-2*20PPC104`. Consulting it FIRST would have turned those 7 rows on four
+    sealed releases — cooksense v1.5/v1.6 and crow-recorder-central-v2
+    v1.6/v1.7, two of them LIVE — into false DISAGREE FAILures, which is the
+    same harm as the defect being fixed, arriving from the other side.
+
+    So: dossier -> ledger -> release-carried, and a release-carried hit is
+    flagged so no caller can grade equality on it. This test fails if anyone
+    reorders the resolution or drops the flag."""
+    parts = RELEASES / "smc0985-cooksense/02_parts"
+    auth = MpnAuthority(parts, None, COOK_V16)
+    check(auth.release, "no release-carried map read from v1.6's stock_check.csv")
+    eq(auth.resolve("C9683").mpn, "ULN2803ADWR",
+       "the release's own sealed record must resolve the code the moved tree "
+       "orphaned")
+
+    # the divergences are real and must be REACHED THROUGH the dossier, not
+    # through JLC's description
+    diverge = {c: r for c, r in auth.release.items()
+               if c in auth.parts and auth.parts[c].mpn != r.mpn}
+    check(diverge,
+          "no code where JLC's catalog description differs from the dossier's "
+          "MPN — the premise of this ordering is gone, RE-MEASURE before "
+          "changing the resolution order")
+    for code in diverge:
+        res = auth.resolve(code)
+        eq(res.mpn, auth.parts[code].mpn,
+           f"{code}: resolution reached JLC's catalog DESCRIPTION "
+           f"{auth.release[code].mpn!r} instead of the hand-verified dossier "
+           f"MPN — that is 7 false DISAGREE failures across four sealed "
+           f"releases, two of them live")
+        check(not MpnAuthority.release_carried(res),
+              f"{code} resolved from the dossier but is flagged release-carried")
+    check(MpnAuthority.release_carried(auth.release["C9683"]),
+          "a release-carried resolution is not flagged as one, so a caller "
+          "cannot refuse to grade equality on it")
+
+
+@test("a SEALED row whose MPN CONTRADICTS its code still FAILS — immutability "
+      "is not an excuse", kind="known_bad")
+def t_sealed_contradiction_still_fails():
+    """THE OTHER HALF OF THE DISCRIMINATION, and the class F-LEGIBLE was built
+    for. A check that only ever fires one way ranks nothing.
+
+    Two shapes, both graded on a target that MAY NOT BE EDITED, both still FAIL:
+
+      1. the MPN DISAGREES with the authority. This is the usb-hub-3s-v3
+         `SS12D07VG6 087`-vs-`SS12D07VG6-087` side-file drift, pinned on real
+         sealed bytes by `t_sidefile_drift_is_caught`; here it is pinned on a
+         target that also carries its OWN release map, to prove the map cannot
+         launder a contradiction.
+      2. a BLANK MPN on a coded row. Self-contained — it needs no authority at
+         all, which is exactly why immutability can never excuse it. It is what
+         JLC leaves at 'No Part Selected' and it is the v1.2 incident.
+
+    RED-VERIFIED 2026-07-29 by inverting the fix in place — resolving the
+    release-carried map FIRST, which is what the obvious implementation would do.
+    This test goes RED with "does not contain 'DISAGREE'": C1523 resolves from
+    the release's own map, which says exactly what the BOM says, so the
+    contradiction is graded as existence-only and the finding disappears. Reduced
+    to that one row alone the inverted gate EXITS 0 and prints
+    NOT-REDERIVABLE-FROM-SHIPPED-BYTES (measured); in this two-row fixture the
+    run still fails, but only on the OTHER row's blank MPN — which is precisely
+    the shape of a laundered defect, a real finding hidden behind an unrelated
+    one. Order restored: DISAGREE is back and the fixture is RED-for-the-right-
+    reason again.
+    """
+    stock = ["1nF,C1,C_0402,C1523,1,OK,C1523,base,9000,WRONG-PART,0402,0.01\n"]
+    d = sealed_scratch(["1nF,C1,C_0402,WRONG-PART,C1523",
+                        "10uF,C2,C_0805,,C15850"], stock=stock)
+    r = must_fail(run([KPY, CHECK, d]), "F-LEGIBLE on a sealed contradiction")
+    contains(r.out, "DISAGREE",
+             "a shipped MPN that contradicts the hand-verified authority must "
+             "FAIL even on immutable bytes")
+    contains(r.out, "C1523", "and the finding names the code")
+    contains(r.out, "BLANK MPN",
+             "a coded row with no MPN is a defect in the SHIPPED BYTES and "
+             "needs no authority to see")
+    not_contains(r.out, "NOT-REDERIVABLE-FROM-SHIPPED-BYTES",
+                 "a real contradiction was downgraded to 'not gradeable' — the "
+                 "whole point of the discrimination is that it does not do this")
+
+
+@test("a SEALED row that resolves from NOTHING is UNGRADEABLE — never OK, and "
+      "never a FAIL against bytes nobody may fix", kind="known_bad")
+def t_sealed_unresolvable_is_ungraded():
+    """THE NEW VERDICT CLASS. `07_releases/` is IMMUTABLE (CLAUDE.md), so a
+    release sealed before `stock_check.csv` carried an `mpn` column can NEVER
+    gain one, and a FAIL against it is a verdict with no remedy — it says
+    'somebody fix this' about bytes nobody is permitted to touch. It is equally
+    not an OK: the two-path agreement check did not run.
+
+    So it is a THIRD verdict, and it must be impossible to mistake for either.
+    What this pins: exit 0 (no defect was found — the row ships a legible
+    Comment, an MPN and a code), the word UNGRADEABLE, the code, the DENOMINATOR
+    (canon M-COVER), the grep token, and the ABSENCE of 'F-LEGIBLE OK'.
+
+    RED-VERIFIED 2026-07-29 against `git show HEAD:...bom_legibility_check.py`
+    restored in place: the pre-fix gate exits **1** on this fixture with
+    `FAIL F-MPN row 1 (U1): LCSC C0000001 resolves NO MPN from any authority`,
+    so `check(r.rc == 0)` fails and the token is absent. Fix restored: exit 0
+    with the ungraded verdict.
+
+    THE ASYMMETRY IS THE PRINCIPLE, and its other half is pinned below: the same
+    BOM on a MUTABLE target is still a FAIL, because there a remedy exists."""
+    row = "MCP23017-E/SS,U1,SSOP-28,MCP23017-E/SS,C0000001"
+    d = sealed_scratch([row], tag="sealed_ungr_")
+    r = run([KPY, CHECK, d])
+    check(r.rc == 0,
+          f"an unresolvable code on an IMMUTABLE release exited {r.rc} — a FAIL "
+          f"against bytes nobody may edit is a verdict with no remedy, and it "
+          f"is how ordinary progress on the next revision retro-fails a sealed "
+          f"release:\n{r.out[-2000:]}")
+    contains(r.out, "UNGRADEABLE", "the new class names itself")
+    contains(r.out, "C0000001", "and names the code it could not resolve")
+    contains(r.out, "NOT-REDERIVABLE-FROM-SHIPPED-BYTES",
+             "the verdict carries the token the fleet sweep greps for")
+    contains(r.out, "not re-derivable from the shipped bytes",
+             "and the coverage line states the denominator (canon M-COVER)")
+    not_contains(r.out, "F-LEGIBLE OK",
+                 "an ungraded row was folded into OK — the `row_kind` silent "
+                 "default canon M-COVER forbids")
+
+    # the SAME bytes on a MUTABLE target: a remedy exists, so it is a FAIL and
+    # the exporter keeps blocking before anything is ever sealed.
+    loose = tmpdir("mutable_ungr_")
+    p = bom_csv(loose / "bom.csv", [row], bom_marker=True)
+    r2 = must_fail(run([KPY, CHECK, p]),
+                   "F-LEGIBLE on an unresolvable code in a MUTABLE target",
+                   "resolves NO MPN")
+    contains(r2.out, "add the dossier's `sourcing.lcsc`",
+             "a mutable target must be told the remedy that exists for it")
+
+
+@test("a sealed release whose OWN map covers the orphaned code is CORROBORATED, "
+      "and says so without claiming an equality check it did not run")
+def t_release_map_corroborates():
+    """The clean half of the new class, and the reason it has two sub-classes
+    rather than one. `cooksense-v1.6` is the real instance (above); this pins the
+    behaviour on a fixture built one way from the good case, so it survives the
+    day cooksense v1.6 leaves the LIVE set.
+
+    CORROBORATED is a weaker claim than OK and must READ that way: the code named
+    a real, catalog-resolvable part with a manufacturer part number ON THE DAY OF
+    THE SEAL, on JLC's own evidence, sealed inside the archive. Whether our MPN
+    string EQUALS theirs is not graded, because their string is a description
+    (see `t_release_map_is_existence_not_equality`)."""
+    stock = ["ULN2803ADWR,U1,SOIC-18W,C9683,1,OK,C9683,expand,2315,"
+             "ULN2803ADWR,SOIC-18-300mil,6.22\n"]
+    d = sealed_scratch(["ULN2803ADWR,U1,SOIC-18W,ULN2803ADWR,C9683"],
+                       tag="sealed_corr_", stock=stock)
+    r = run([KPY, CHECK, d])
+    check(r.rc == 0, f"a corroborated release FAILED (rc={r.rc}):\n{r.out}")
+    contains(r.out, "CORROBORATES", "the sub-class names itself")
+    contains(r.out, "1 corroborated by the release's own sealed",
+             "and is COUNTED with its denominator (canon M-COVER)")
+    not_contains(r.out, "F-LEGIBLE OK",
+                 "corroboration is not the two-path equality check and must "
+                 "not read as though it were")
 
 
 # ================================================= the EXPORTER, end to end =

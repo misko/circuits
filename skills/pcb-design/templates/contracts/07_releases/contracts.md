@@ -126,7 +126,25 @@ the only thing that says which board a sealed archive belongs to.
         │                            verdict lines; this is the one shape the
         │                            gate grades. A missing/unparseable
         │                            verdict is a FAIL, never a skip
-        ├── stock_check.{txt,csv}
+        ├── stock_check.{txt,csv}    REQUIRED. The `.csv` is ALSO THE RELEASE'S
+        │                            OWN code->MPN MAP and must carry its `mpn`
+        │                            column (JLC's `componentModelEn`, one row
+        │                            per queried line): it is the ONLY MPN
+        │                            authority that lives INSIDE the archive,
+        │                            and canon F-LEGIBLE reads it so a sealed
+        │                            verdict can be RE-DERIVED from the sealed
+        │                            bytes (canon M-SHIP). Both hand-verified
+        │                            authorities — `02_parts/` and the passives
+        │                            ledger — are OUTSIDE the release and
+        │                            editable: cooksense v1.6 went FAIL, then
+        │                            PASS, on UNCHANGED sealed bytes inside one
+        │                            session because the next revision's work
+        │                            removed and restored one dossier. It is an
+        │                            EXISTENCE authority only — JLC's string is
+        │                            a catalog DESCRIPTION and is not the MPN on
+        │                            7 of 156 rows fleet-wide (`436500224` for
+        │                            `43650-0224`) — so F-LEGIBLE never grades
+        │                            EQUALITY against it
         ├── bom_source_check.txt     fab/bom.csv LCSC == source per refdes
         │                            (bom_source_check.py / policy_audit M-BOM):
         │                            no merged/substituted/missing/dropped code —
@@ -626,6 +644,18 @@ checked shared a method.
     cp936. **Adopted-forward**: 25 of the 26 releases sealed before ADR-0006
     fail this and are NOT retro-fixed (07_releases immutability). A board that
     needs a legible BOM gets a NEW version; `fleet_regrade.py` says which
+  - **AND it reports ZERO rows `not re-derivable from the shipped bytes`**
+    (added 2026-07-29). Exit 0 is no longer sufficient, because F-LEGIBLE has a
+    THIRD verdict — `F-LEGIBLE NOT FULLY GRADED
+    [NOT-REDERIVABLE-FROM-SHIPPED-BYTES]`, which exits 0 by design: the rows are
+    legible and no defect was found, but the two-path MPN AGREEMENT check could
+    not be performed from anything the release carries. A release sealed in that
+    state can never be graded again, and 07_releases immutability means it can
+    never be repaired either. **The seal is the one moment the dossier tree is
+    still live**, so full hand-verified coverage is required THERE and nowhere
+    else. A row that can only be CORROBORATED by the release's own
+    `stock_check.csv` still counts against this, because corroboration is
+    existence and not agreement
 - **the ORDER-TIME F-ECHO ritual (canon F-LEGIBLE, human-gated).** The
   ORDER_README carries it beside the A-POL rotation-preview gate: after
   uploading `fab/bom.csv`, save JLC's OWN resolved/matched part table out of

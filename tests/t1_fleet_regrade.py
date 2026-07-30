@@ -21,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (KPY, ROOT, check, contains, main, must_fail,  # noqa: E402
-                     must_pass, run, test, tmpdir)
+                     must_pass, not_contains, run, test, tmpdir)
 
 TOOL = ROOT / "skills/kicad-pcb/scripts/fleet_regrade.py"
 
@@ -143,7 +143,13 @@ def t_retires_the_pour_defect():
 
     def verdicts_of(line):
         cols = ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP")
-        cells = [c for c in line.split()[1:] if c in ("PASS", "FAIL", "?")]
+        # UNGR ADDED 2026-07-29 and it is not cosmetic: the gate ran, found no
+        # defect, and could not cross-check the shipped bytes. A parser that
+        # does not know the state SILENTLY DROPS the cell and mis-zips every
+        # verdict after it onto the wrong gate — the table would move under the
+        # test without the test noticing, which is why the count is asserted.
+        cells = [c for c in line.split()[1:]
+                 if c in ("PASS", "FAIL", "UNGR", "?")]
         return dict(zip(cols, cells))
 
     v19 = [l for l in r.out.splitlines()
@@ -208,6 +214,74 @@ def t_retires_the_pour_defect():
           f"the LIVE release must ship a BOM JLC can read:\n{live[0]}")
 
 
+@test("regrade_measures_whether_a_seal_can_be_re_derived", kind="known_bad")
+def t_measures_reproducibility():
+    """THE REGRADE'S OWN PREMISE, WHICH WAS FALSE.
+
+    This tool exists to re-grade sealed work against later knowledge. That is
+    only meaningful if a sealed release's verdict is a function of the sealed
+    bytes — and for F-LEGIBLE it was not. `cooksense-v1.6-2026-07-27` went FAIL,
+    then PASS, on UNCHANGED sealed bytes within one session, because the live
+    v1.7 work removed and then restored an `02_parts/ULN2803ADWR` dossier. The
+    sweep could not have told anyone: it printed whichever answer the tree
+    happened to give that hour.
+
+    So reproducibility is now MEASURED, by an independent method (canon M1): each
+    gate that declares a perturbation is re-run with its mutable EXTERNAL
+    authority neutralised, and a verdict that MOVES is a verdict about our tree
+    rather than about the release. MEASURED at landing: 9 of 33 sealed releases
+    flipped PASS -> FAIL under it — every release that passed F-LEGIBLE at all,
+    four of them LIVE — and 0 of 33 do now.
+
+    THE KNOWN-BAD IS A SCRATCH FLEET, because the real one is (now) clean and a
+    fixture that evaporates when the defect it guards is repaired proves nothing
+    afterwards — the exact failure c1af621 recorded for this very tool. The
+    synthetic release ships MPN `WRONG-PART` for C1523 while its `02_parts`
+    dossier declares `0402B102K500NT`: graded with the tree in reach that is a
+    DISAGREE FAIL, graded with the tree gone it is UNGRADEABLE, so the verdict
+    MOVES and the sweep must say so and exit non-zero.
+
+    RED-VERIFIED 2026-07-29 by running this fixture through the pre-census
+    fleet_regrade (`--no-reproducibility`, which is that tool exactly): the
+    NOT-REPRODUCIBLE line is absent and the run reports only the FAIL, i.e. the
+    old sweep sees a defective release and cannot see that the defect is a
+    property of our editable source. Asserted both ways below."""
+    d = tmpdir("regr_repro_")
+    (d / "skills").symlink_to(ROOT / "skills")
+    rel = d / "projects" / "synth" / "07_releases" / "synth-v1.0-2026-01-01"
+    (rel / "fab").mkdir(parents=True)
+    (rel / "verification").mkdir()
+    (rel / "fab" / "bom.csv").write_bytes(
+        b"\xef\xbb\xbfComment,Designator,Footprint,MPN,LCSC\n"
+        b"1nF,C1,C_0402_1005Metric,WRONG-PART,C1523\n")
+    dossier = d / "projects" / "synth" / "02_parts" / "0402B102K500NT"
+    dossier.mkdir(parents=True)
+    (dossier / "part.yaml").write_text(
+        "mpn: 0402B102K500NT\nsourcing:\n  lcsc: C1523\n")
+
+    r = run([KPY, TOOL, "--root", d])
+    check(r.rc != 0, f"a fleet with a non-reproducible verdict exited 0:\n{r.out}")
+    contains(r.out, "NOT-REPRODUCIBLE",
+             "a verdict that MOVES when the mutable authority is neutralised "
+             "must be named as such — it is a statement about our tree, not "
+             "about the sealed release")
+    contains(r.out, "synth/synth-v1.0-2026-01-01", "and the release is named")
+    contains(r.out, "reproducibility:",
+             "the census declares its own denominator (canon M-COVER)")
+    contains(r.out, "NOT MEASURED",
+             "the gates with NO declared perturbation must be NAMED — "
+             "unmeasured is not certified reproducible")
+
+    # the pre-census tool, which is what `--no-reproducibility` restores
+    old = run([KPY, TOOL, "--root", d, "--no-reproducibility"])
+    not_contains(old.out, "NOT-REPRODUCIBLE",
+                 "the perturbation must actually be what finds this — if the "
+                 "un-perturbed sweep reports it too, this fixture is not "
+                 "testing the census")
+    contains(old.out, "REPRODUCIBILITY NOT MEASURED",
+             "opting out must SAY it graded nothing, not imply a clean bill")
+
+
 @test("regrade_confirms_the_clean_boards_are_clean")
 def t_confirms_clean_boards():
     """The other half of discrimination: a sweep that fails everything ranks
@@ -262,7 +336,7 @@ def t_confirms_clean_boards():
                 and ":" not in ln.split(rel)[0]]
         check(line, f"{proj} {rel} missing from the regrade table")
         cells = [c for c in line[0].split()[1:]
-                 if c in ("PASS", "FAIL", "?")]
+                 if c in ("PASS", "FAIL", "UNGR", "?")]
         check(len(cells) == len(cols),
               f"{proj} {rel}: parsed {len(cells)} verdict cells, expected "
               f"{len(cols)} — the table shape moved:\n{line[0]}")
@@ -324,6 +398,29 @@ def t_confirms_clean_boards():
               f"smc0985-cooksense {live} is the LIVE release and {gid} fails "
               f"it. A live release must pass every gate that can be run "
               f"against it standalone:\n{line}")
+
+    # AMENDED 2026-07-29, and this is the amendment that keeps the assertion
+    # HONEST rather than merely green. This test was RED on 2026-07-29 because
+    # F-LEGIBLE failed the sealed cooksense v1.6 on C506653 and C9683; hours
+    # later it was GREEN again with no byte of that release changed, because the
+    # concurrent v1.7 work happened to restore the `ULN2803ADWR` dossier it had
+    # removed. A "PASS" that a sibling agent's unrelated edit can hand you and
+    # take away is not a passing gate — it is a coin toss the test cannot see.
+    # So the LIVE release must also be REPRODUCIBLE: no verdict of its may move
+    # when the mutable authority behind it is neutralised. If this line ever goes
+    # red, the gate has re-acquired a dependency on editable source and the
+    # verdicts above mean nothing.
+    r = run([KPY, TOOL, "--project", "smc0985-cooksense"])
+    moved = [ln for ln in r.out.splitlines()
+             if "NOT-REPRODUCIBLE" in ln and live in ln]
+    check(not moved,
+          f"the LIVE cooksense release {live} has a verdict that MOVES when the "
+          f"gate's mutable external authority is neutralised, so the PASSes "
+          f"asserted above are statements about our 02_parts tree and not about "
+          f"the sealed release:\n" + "\n".join(moved))
+    contains(r.out, "reproducibility:",
+             "the sweep must MEASURE reproducibility, not assume it — assuming "
+             "it is how a seal's verdict moved twice in one session unnoticed")
 
 
 if __name__ == "__main__":
