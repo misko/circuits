@@ -1435,19 +1435,76 @@ def main():
     cjs = (glob.glob(str(proj / "03_tscircuit" / "build" / "circuit.json"))
            or glob.glob(str(proj / "03_tscircuit" / "dist" / "**" / "circuit.json"),
                         recursive=True))
-    # the orderable artifact: prefer THIS BOARD's latest sealed release, else
-    # the build. An UNRESOLVABLE release set falls through to neither — the
-    # gate says so rather than quietly grading 06_build as if it were sealed.
-    fab_bom = next((b for b in
-                    [str(latest / "fab" / "bom.csv") if latest else "",
-                     str(proj / "06_build" / "fab" / "bom.csv"),
-                     str(proj / "06_build" / "fab" / "bom_jlc.csv")]
-                    if b and Path(b).exists()), None)
+    # WHICH BOM, AND AGAINST WHICH SOURCE — the pair must be CONTEMPORANEOUS.
+    #
+    # This preferred the latest SEALED release and graded it against the LIVE
+    # `03_tscircuit/build/circuit.json`. Those are two different revisions the
+    # moment work starts on the next one, so the gate asked a question with no
+    # correct answer: measured on cooksense 2026-07-29 it reported 11
+    # "BOM-vs-source defects" that were simply v1.6's sealed BOM differing from
+    # v1.7's source, while `bom_source_check` run DIRECTLY on the v1.7 artifact
+    # returned `PASS (every BOM LCSC == source)`, 28/28 R/C rows value-graded.
+    # M-BOM had been predicted to "clear at the seal" FOUR times and never
+    # demonstrated, because pre-seal it CANNOT clear — the latest seal is always
+    # the previous revision.
+    #
+    # This is the F-LEGIBLE defect in a second gate (canon M-SHIP: grade the
+    # SHIPPED BYTES, and grade them against bytes that shipped WITH them). That
+    # one was fixed hours earlier the same day by reading a release-internal
+    # map; the class was not swept, so this instance survived.
+    #
+    # A SEALED RELEASE IS NOT RE-DERIVABLE BY THIS METHOD, and that is reported
+    # rather than failed: the seal carries `source/*.net`, `.kicad_pcb`, `.tsx`
+    # — but NO `circuit.json`, which is the only input `refdes_codes_from_circuit`
+    # accepts. Grading the sealed BOM against the sealed NETLIST would make it
+    # re-derivable from its own bytes and is the owed follow-up.
+    def _candidate_bom():
+        """The BOM being PREPARED, newest versioned export first.
+
+        `06_build/fab_v22/` was invisible here — only `06_build/fab/` was
+        looked at — so even post-seal the real artifact was missed. Picked by
+        NUMERIC version, never by glob order: `count_parity` took `paths[0]`
+        off an unsorted glob and silently graded the wrong board (fixed the
+        same day; the same mistake twice in one file is enough).
+        """
+        vs = []
+        for d in (proj / "06_build").glob("fab_v*"):
+            m = re.fullmatch(r"fab_v(\d+)", d.name)
+            if m and d.is_dir():
+                vs.append((int(m.group(1)), d))
+        for _, d in sorted(vs, reverse=True):
+            for n in ("bom_jlc.csv", "bom.csv"):
+                if (d / n).exists():
+                    return d / n
+        for n in ("bom_jlc.csv", "bom.csv"):
+            if (proj / "06_build" / "fab" / n).exists():
+                return proj / "06_build" / "fab" / n
+        return None
+
+    # WHICH ARTIFACT IS CONTEMPORANEOUS WITH THE SOURCE — try the SEAL first.
+    #
+    # A settled board's sealed BOM still matches current source, and grading it
+    # is the stronger check because the seal is what you can actually order. The
+    # seal is only the WRONG target once source has moved PAST it, which is
+    # exactly the mid-revision case that produced cooksense's phantom 11.
+    #
+    # Grading the candidate unconditionally (my first fix) traded one false
+    # verdict for another: the fleet regrade immediately red-flagged
+    # crow-recorder-central-v2 on a LEFTOVER `06_build/fab_v16` export that
+    # predates its own seal by hours and carries a since-corrected code
+    # (C25767 where source and the SEALED v1.7 both say C138030). The seal was
+    # right; the leftover was not an orderable artifact at all. Requiring the
+    # fleet regrade before landing is what caught it.
+    _sealed_bom = (str(latest / "fab" / "bom.csv")
+                   if latest and (latest / "fab" / "bom.csv").exists() else None)
+    _cand = _candidate_bom()
     if _rel_error:
         rows.append(("M-BOM", "FAIL",
                      f"cannot identify the orderable BOM: {_rel_error}"))
-    elif not cjs or not fab_bom:
-        rows.append(("M-BOM", "N-A", "no circuit.json source or no fab BOM"))
+    elif not cjs or not (_sealed_bom or _cand):
+        rows.append(("M-BOM", "N-A",
+                     "no circuit.json source, and neither a sealed nor a "
+                     "candidate fab BOM"))
     else:
         try:
             sys.path.insert(0, str(jlc_scripts))
@@ -1459,12 +1516,38 @@ def main():
             # the rows a correct assembly.yaml says to remove, which pressures
             # the operator into putting an unsourceable row back on the BOM.
             unpop = _bsc.load_not_assembled(proj / "03_src/rules/assembly.yaml")
-            probs = _bsc.check(_bsc.read_bom(fab_bom), refdes_code, vendored,
-                               None, unpop)
-            grade("M-BOM", not probs,
-                  f"{Path(fab_bom).parent.parent.name}/fab/bom.csv: "
-                  f"every LCSC == source ({sum(1 for v in refdes_code.values() if v)} coded)",
-                  f"{len(probs)} BOM-vs-source defect(s): " + " || ".join(probs[:3]))
+            _coded = sum(1 for v in refdes_code.values() if v)
+
+            def _probs(path):
+                return _bsc.check(_bsc.read_bom(str(path)), refdes_code,
+                                  vendored, None, unpop)
+
+            # 1. the SEAL, if it is still contemporaneous with source.
+            if _sealed_bom and not _probs(_sealed_bom):
+                grade("M-BOM", True,
+                      f"{Path(_sealed_bom).relative_to(proj)} (SEALED, and still "
+                      f"contemporaneous with source): every LCSC == source "
+                      f"({_coded} coded)", "")
+            elif _cand:
+                # 2. source has moved past the seal (or there is none): the
+                #    orderable artifact is the CANDIDATE being prepared.
+                _rel = Path(_cand).relative_to(proj)
+                probs = _probs(_cand)
+                _why = (f"; the sealed {latest.name} is NOT contemporaneous — "
+                        f"source has moved past it" if _sealed_bom else "")
+                grade("M-BOM", not probs,
+                      f"{_rel} (CANDIDATE): every LCSC == source "
+                      f"({_coded} coded){_why}",
+                      f"{len(probs)} BOM-vs-source defect(s) in {_rel}: "
+                      + " || ".join(probs[:3]))
+            else:
+                # a seal that disagrees with source and NO candidate to compare:
+                # this gate cannot say which is right, and says so.
+                grade("M-BOM", False, "",
+                      f"the sealed {latest.name} disagrees with current source "
+                      f"and no candidate export exists to grade — re-export "
+                      f"before reading this as a defect in the seal: "
+                      + " || ".join(_probs(_sealed_bom)[:3]))
         except Exception as e:
             rows.append(("M-BOM", "FAIL", f"bom_source_check errored: {e}"))
 

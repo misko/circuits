@@ -883,5 +883,107 @@ def t_kb_policy_cell_escaping():
           "this passes, cell() is not what is doing the work")
 
 
+
+# ---------------------------------------------------------------- M-BOM pair
+def _bom_pair_project(d, cand_dirname="fab_v22", cand_code="C111", sealed_code="C999"):
+    """A project carrying BOTH a sealed release BOM and a candidate build BOM,
+    which disagree. Source matches the CANDIDATE — the normal shape the moment
+    work starts on the next revision."""
+    rel = _per_board_release(d)
+    (rel / "fab").mkdir(parents=True, exist_ok=True)
+    (rel / "fab" / "bom.csv").write_text(
+        "Comment,Designator,Footprint,MPN,LCSC\n"
+        f"74LVC1G00,U1,SOIC-8,SN74LVC1G00,{sealed_code}\n")
+    cand = d / "06_build" / cand_dirname
+    cand.mkdir(parents=True, exist_ok=True)
+    (cand / "bom_jlc.csv").write_text(
+        "Comment,Designator,Footprint,MPN,LCSC\n"
+        f"74LVC1G00,U1,SOIC-8,SN74LVC1G00,{cand_code}\n")
+    cj = d / "03_tscircuit" / "build"
+    cj.mkdir(parents=True, exist_ok=True)
+    (cj / "circuit.json").write_text(json.dumps(
+        [{"type": "source_component", "name": "U1",
+          "supplier_part_numbers": {"jlcpcb": [cand_code]}}]))
+    return d
+
+
+def _mbom_row(d):
+    """The row from the WRITTEN REPORT. policy_audit prints a summary to stdout
+    and writes the graded table to 06_build/policy_audit.md; reading stdout
+    returns an empty row and a fixture that asserts on "" passes vacuously."""
+    run([KPY, POLICY, str(d)])
+    md = Path(d) / "06_build" / "policy_audit.md"
+    check(md.exists(), f"policy_audit wrote no report at {md}")
+    for line in md.read_text(encoding="utf-8-sig").splitlines():
+        if line.strip().startswith("| M-BOM "):
+            return line
+    check(False, f"no M-BOM row in {md} — a fixture asserting on an empty "
+                 f"row would pass vacuously, which is the defect class this "
+                 f"very test exists for")
+    return ""
+
+
+@test("M-BOM grades the CANDIDATE build BOM against CURRENT source, not the "
+      "previous SEALED release — the pair must be contemporaneous",
+      kind="known_bad")
+def t_mbom_grades_the_contemporaneous_pair():
+    """MEASURED ON cooksense 2026-07-29, after the prediction had been made and
+    not demonstrated FOUR times. M-BOM preferred `latest_sealed/fab/bom.csv` and
+    graded it against the LIVE `03_tscircuit/build/circuit.json`. Those are two
+    different revisions the moment the next one starts, so the gate asked a
+    question with no correct answer: it reported **11 BOM-vs-source defects**
+    that were only v1.6's sealed BOM differing from v1.7's source, while
+    `bom_source_check` run DIRECTLY on the v1.7 artifact returned `PASS (every
+    BOM LCSC == source)` with 28/28 R/C rows value-graded.
+
+    So M-BOM could not clear PRE-SEAL BY CONSTRUCTION — the latest seal is
+    always the previous revision — which is exactly why four sessions predicted
+    it would "clear at the seal" and none showed it.
+
+    This is the F-LEGIBLE defect in a second gate (canon M-SHIP), and F-LEGIBLE
+    had been fixed HOURS EARLIER the same day. The class was not swept, so this
+    instance survived: fixing one member of a class and not counting the rest is
+    the recurring failure this repo keeps paying for.
+
+    RED-VERIFIED: with the pre-fix candidate list restored (sealed release
+    first, `06_build/fab/` only), this fixture reports
+    `1 BOM-vs-source defect(s)` naming C999 against a source that says C111."""
+    d = _bom_pair_project(tmpdir("mbom_"))
+    line = _mbom_row(d)
+    check("| PASS |" in line,
+          f"M-BOM must grade the candidate, which MATCHES source:\n{line}")
+    check("fab_v22" in line,
+          f"and must NAME the artifact it graded, so a reader can check it:\n{line}")
+    # the sealed release is not silently ignored — the row says WHY it was not
+    # the target, so a reader is never left guessing which artifact was graded.
+    check("not contemporaneous" in line.lower(),
+          f"the row must say WHY the seal was not graded, not just drop it:\n{line}")
+    check("CANDIDATE" in line,
+          f"and must label which of the two artifacts it graded:\n{line}")
+
+
+@test("M-BOM picks the NEWEST versioned export by NUMBER, not by glob order",
+      kind="known_bad")
+def t_mbom_newest_versioned_export_wins():
+    """`06_build/fab_v22/` was invisible: the candidate list looked only at
+    `06_build/fab/`, so even POST-seal the real artifact was missed.
+
+    Picked by numeric version deliberately. `count_parity` took `paths[0]` off
+    an unsorted glob and silently graded the interposer against cooksense's
+    manifest — fixed the same day. Lexically `fab_v9` sorts ABOVE `fab_v22`, so
+    a sorted() over names would reintroduce that defect in this very file.
+
+    RED-VERIFIED: keying the sort on the directory NAME instead of the parsed
+    integer makes this fixture grade `fab_v9` and FAIL on C999."""
+    d = _bom_pair_project(tmpdir("mbomv_"), cand_dirname="fab_v22")
+    stale = d / "06_build" / "fab_v9"          # lexically ABOVE 'fab_v22'
+    stale.mkdir(parents=True, exist_ok=True)
+    (stale / "bom_jlc.csv").write_text(
+        "Comment,Designator,Footprint,MPN,LCSC\n10k,R1,R_0402,RC0402-10K,C999\n")
+    line = _mbom_row(d)
+    check("fab_v22" in line and "| PASS |" in line,
+          f"fab_v22 must beat fab_v9 on NUMBER, not on string order:\n{line}")
+
+
 if __name__ == "__main__":
     sys.exit(main())
