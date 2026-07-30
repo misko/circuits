@@ -1904,3 +1904,71 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
 - **result: v1.7 NOT SEALED.** The `08_reviews` contract blocks it twice over —
   a confirmed P0 without a `fixed` disposition, and a required red-team lens
   carrying DO-NOT-ORDER. Six agents have now declined; this is the sixth.
+
+## 2026-07-30 21:35 — finish (pre-seal pass): A-STOCK re-read LIVE, two paperwork items closed, NOT SEALED
+- did: (1) re-read A-STOCK live as the first action, per brief; (2) re-verified
+  the headline gates myself rather than inheriting them; (3) re-derived three
+  inherited load-bearing numbers straight off the board; (4) fixed B30-17 and
+  RULED on B30-11; (5) proved the netlist did not move.
+- result — **A-STOCK, THE BLOCKER, STILL RED**: `jlc_stock_check` EXIT **1**,
+  verdict line verbatim `FAIL: 57/58 coded BOM lines have stock >= 5 x qty
+  (1 with problems); 3/61 lines carry NO LCSC`. `C265111` stock **5**, need 10.
+  Re-queried independently off `selectSmtComponentList` (not through the gate)
+  — same number. **NEW AND DECISION-CHANGING: `minPurchaseNum` = 21 against
+  stock 5.** The genuine JST part is not merely short, it is **unbuyable at any
+  quantity today**; the restock threshold to watch is **21, not 10**. Live
+  comparators: `C42376901` stock 6030 (was 6086) MOQ 1; `C2653844` stock 103.
+- result — gates re-measured, unpiped: DRC `--severity-all --refill-zones
+  --schematic-parity` **0/0/0 EXIT 0**; `policy_audit` **EXIT 0, PASS=28
+  WAIVED=6 HUMAN=6 N-A=5**; M-BEACON PASS 2/2.
+- result — **three inherited numbers re-derived from the board; all three
+  confirm the brief and one CORRECTS the previous beacon**:
+    (a) `J_ESTOP` 1=GND / 2=**3V3** / 3=ESTOP_RAW_IN, pitch **1.0000 mm** — a
+        1-2 bridge is a dead short of the main logic rail, no series FET.
+    (b) **minimum web = 0.8500 mm at H4** (Ø2.700 NPTH wall to Edge_Cuts),
+        smallest of **105** drilled holes; next is `J_ISOLOOP.1` at 1.150.
+        The previous beacon's "minimum web 1.000 mm" was measuring COMB-SLOT
+        webs — a different feature that structurally could not see H4. The
+        0.850 figure is right and ORDER_README §3a already carries it.
+    (c) H4 sits **0.2005 mm** from FILLED copper on ALL FOUR layers — GND on
+        F.Cu/B.Cu/In1.Cu and **3V3 on In2.Cu**. Measured against filled polys;
+        measuring against zone OUTLINES gives negative nonsense (−0.45 mm) and
+        is the wrong method. A conductive fastener at H4 bridges both planes.
+- result — **THE NETLIST DID NOT MOVE, PROVEN BY md5 RATHER THAN ASSERTED.**
+  Every artifact hash the four lenses recorded in their own headers is
+  byte-identical: `cooksense.net` 6d83ebe7…, `cooksense.kicad_pcb` 9f4fd5fa…,
+  `cooksense.tsx` c42fada9…, `bom.csv` c491dd00…, `cpl.csv` 38a332bd…; and
+  `03_tscircuit/`+`04_kicad/` are byte-identical to the archive copies.
+  Nothing I edited (`BRIEF.md`, this journal, `DISPOSITIONS.md`,
+  `ORDER_README.md`) is a build input. **THE BATTERY THEREFORE STANDS.**
+- closed: **B30-17 FIXED** — `BRIEF.md` fact-lock `DIP05-1A72-12L ×13` ->
+  **`DIP05-1A72-13L` ×12**, both fields wrong, on the row a BUYER reads for a
+  self-supplied DO-NOT-SUBSTITUTE part whose wrong code is the exact land
+  defect that makes v1.0–v1.6 DO-NOT-ORDER. Surfaced into the fact-lock the
+  fact the part dossier had been keeping to itself: every distributor quote in
+  this tree is keyed to `-12L` and does NOT transfer, so `-13L` distributor
+  sourcing is still OWED.
+- closed: **B30-11 DECIDED — the release is `v1.7`.** The number is unclaimed
+  (nothing ever sealed as v1.7; the series already skips v1.2). Decisive
+  constraint: the four lens reviews are APPEND-ONLY VERBATIM EVIDENCE whose
+  `subject:` headers name v1.7 + md5 9f4fd5fa, so renumbering to v1.8 strands
+  the battery on a release that does not exist with **no legal way to edit
+  those headers** — renumbering costs a battery, keeping v1.7 costs nothing.
+  The 12 `v1.8` strings in `cooksense.tsx` are **all comments**, verified line
+  by line; declared NON-NORMATIVE.
+- **NOT DONE, DELIBERATELY**: no regeneration. Editing those comments changes
+  the `.tsx` md5 all four lenses recorded — a comment cleanup would invalidate
+  the battery — and `rev "dev"` needs a schematic regen
+  (`circuit_json_to_kicad_sch.py --rev` defaults to `"dev"`), which the seal
+  ritual does not do. Run ONE atomic rebuild in the sealing pass, together with
+  whatever B30-01 forces, and grade it once. Regenerating now would mean
+  grading twice and re-running a battery for a board that still cannot ship.
+- stuck/blocked: **B30-01 is a USER decision and this pass declines to take
+  it**, per `assembly.yaml`'s own words. **v1.7 IS NOT SEALED.** The
+  `08_reviews` contract blocks it twice: a CONFIRMED P0 without a `fixed`
+  disposition, and the topology lens carrying `verdict: DO-NOT-ORDER` (its
+  single P0 is P0-1, this same sourcing state — verified by reading the
+  review's own P0 section: exactly one entry).
+- next: user answers B30-01. Then ONE rebuild closes B30-11 execution, the
+  topology lens is re-gated on its own resolved finding, MANIFEST closes
+  B30-18, and the 2-commit seal runs.
