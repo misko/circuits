@@ -1,90 +1,198 @@
-# <board> — architecture
+# ARCHITECTURE — pluto-rx2-8way-v2
 
-The high-level concepts a reader (or agent) must hold before touching
-anything. This file says **what is**; `decisions/` says **why**; and machine-
-enforced facts live in `../03_src/rules/nets.yaml`, which generates the
-netclasses and DRC floors.
+**This is the MODULE arm of a two-arm comparison.** `projects/pluto-rx2-8way`
+(v1) is the bare-RP2040 arm, is NOT superseded, and is not written to. Every RF
+decision below is held identical to v1 deliberately, so the two boards differ in
+ONE variable: how the MCU is realised.
 
-Rule of thumb: if a tool must check it, it belongs in `nets.yaml`. If a human
-must understand it, it belongs here. Never restate widths/floors here — they
-drift. Link instead.
+Decisions live in `decisions/`; this file says WHAT IS. Machine-readable net
+facts live in `03_src/rules/nets.yaml`, rail envelopes in
+`03_src/rules/power_tree.yaml` — not restated here.
 
----
+## 1. The one-paragraph description
 
-## Power tree
+An SP8T RF switch (PE42482A-X) sits at the centre of a radial star of ten
+vertical SMA jacks. Eight are antenna ports; the ninth (`J_RX2`) carries the
+switch common to PlutoSDR RX2; the tenth (`J_RX1`) carries the RX1 antenna
+straight through to PlutoSDR RX1. **Antenna 8 is not a dedicated element — it IS
+the RX1 antenna**, sampled by a two-resistor pickoff so that RX1 keeps its own
+path and the array gains a phase reference it shares with the receiver's other
+channel. A **Waveshare RP2040-Zero module** drives the switch's four select
+lines from a free-running PIO sequencer, so the antenna sweep is self-timed and
+the host does nothing but capture.
 
-Every rail, source → conversion → load, with worst-case current. Net names
-must match `nets.yaml` exactly.
+## 2. Signal chain
 
-```
-J1 XT60 (3S, 9–13V, 13A)
-  └─ F1 15A ATO ─ VBATT_RAW
-       └─ U4 LM74800 ideal diode + Q2/Q3 back-to-back ─ VBATT_F → VSW
-            ├─ Buck A (U1 LM5145) ─ SW_A ─ LA1 3.3µH ─ 5V_A  5.18V / 6A → Pi
-            └─ Buck B (U2 LM5145) ─ SW_B ─ LB1 3.3µH ─ 5VB_PRE
-                 └─ L4 π-filter ─ 5V_B  5.08V / 6A → 3× USB-A + aux
-```
+    J_ANT1..J_ANT7  -- ANT1..ANT7 ------------> U_SW RF1..RF7
+                                                   |
+    J_ANT8 (= the RX1 antenna)                     |
+       |                                           |
+       +--- RX1_MAIN --+---------------------> J_RX1   (to PlutoSDR RX1)
+                       |
+                       +-- R_T1 220 -- RX1_TAP_MID -- R_T2 220 --
+                                                   RX1_TAP --> U_SW RF8
 
-State, per rail: nominal, tolerance, max load, and what browns out first.
+                                       U_SW RFC -- RX2_OUT --> J_RX2 (to RX2)
 
-## Net domains
+    U_MCU GP0..GP3 -- SEL_V1..SEL_V4 -- R_S1..R_S4 (47R) -- SW_V1..SW_V4
+                                                               |    |
+                                            R_PD1..R_PD4 (10k)-+    +--> U_SW V1..V4
+                                                               |
+                                                              GND
 
-One row per class in `nets.yaml`. This table is a reader's index, not the
-source — the source is the YAML.
+`U_SW` pin 1 (`LS`) is tied to GND, not to a pulled-down net: it carries a
+1 Mohm INTERNAL pull-up, so a float reads as logic 1 and selects the
+COMPLEMENTED half of the truth table — the board would still sweep eight
+antennas, in a plausible-looking wrong order. Pin 20 (`NC`) is also tied to GND;
+it sits between RF8 and GND inside the RF fan, so grounding it closes the via
+fence there rather than leaving an unterminated stub.
 
-| Class | Nets | Why it is special |
+**What changed from v1 in this chain: nothing.** The RF core and the control
+plane are identical, by design.
+
+## 3. Power tree
+
+    [module's own USB-C]  -->  RP2040-Zero  -->  RT9013-33 LDO  -->  3V3 pad
+                               (on the module, off our board)              |
+                                                                          |
+      our board:   3V3_MOD --+-- C_BULK 4.7uF                              |
+                             |                                            |
+                             +-- FB_3V3 (ferrite) --+-- 3V3 -- U_SW VDD  <-+
+                                                    |
+                                                    +-- C_SW1 100nF
+                                                    +-- C_SW2 1uF
+
+**This board has no power connector of its own.** Its only power input is the
+module's `3V3` castellation. That is a deliberate consequence of ADR-0002 and it
+is why v1's PPTC/TVS/LDO chain is absent rather than merely unbuilt.
+
+**The ferrite `FB_3V3` is an RF measure, not a protection measure.** The
+RP2040's core and QSPI current transients ride on the module's 3V3 rail, and the
+PE42482A-X's VDD biases its FET stack while publishing no PSRR figure. Series
+ferrite plus a local ceramic AT the VDD pad is the whole mitigation.
+
+**Headroom is not the constraint.** `U_SW` draws 120 uA typ / 200 uA max
+(PE42482A-X Table 2, PDF p3) against an RT9013 rated 500 mA. `C_SW1`/`C_SW2`
+exist for CONTROL-LINE transients, not for load current — which is exactly why
+they must be at the pad to be anything at all.
+
+Envelopes (vin/vout min-max, iout, converter, off-control, quiescent) are in
+`03_src/rules/power_tree.yaml`, the E-TOPO/E-MARGIN/E-OFF input.
+
+## 4. Net domains
+
+Widths and the ampacity declarations are in `03_src/rules/nets.yaml`; this table
+says what makes each class special.
+
+| class | nets | what makes it special |
 |---|---|---|
-| `SWITCH_NODE` | SW_A, SW_B | 6A + highest dV/dt; the EMI aggressor. Poured, minimal area, tight loop. |
-| `PWR_RAIL` | VBATT_*, VSW, 5V_* | trunk on planes/pours; also carries mA sense taps |
-| `VBUS` | VBUS1-3, AUX_5V | current-limited port power |
-| `USB_DATA` | D?_N, D?_P | passed through, ESD in series |
+| `RF50` | `ANT1..ANT7`, `RX1_MAIN`, `RX1_TAP_MID`, `RX1_TAP`, `RX2_OUT` | **the width is an IMPEDANCE, not an ampacity.** Widening it is exactly as wrong as narrowing it. F.Cu only, no vias inside an arm, solid In1.Cu beneath |
+| `CTRL` | `SEL_V1..SEL_V4`, `SW_V1..SW_V4` | switched DC, not RF. **No shunt capacitance anywhere on this class**: a 1k+1nF RC is 4.6 us to 99 %, more than the whole 4.267 us blanking allowance |
+| `PWR` | `3V3_MOD`, `3V3` | width for IR drop and robustness, far above the ampacity need. `3V3_MOD` and `3V3` are separated by a SERIES ferrite, so they are two nets, not one continued |
+| default | `LED_STAT`, `LED_STAT_A` | `LED_STAT_A` is the ballasted anode node between `R_LED` and `LED_ST`; a series resistor between a driver and an LED needs two nets |
+| `GND` | pours + stitching on all four layers; no netclass width | `U_SW` pin 1 (`LS`) and pin 20 (`NC`) are ON this net, by vias at the pads |
 
-**Any net carrying >1A that is not in a class is a bug** — nothing checks
-ampacity for you.
+**Classes v1 carries that v2 does NOT, and why the absence is a fact rather than
+an omission:** `USB_D` (`USB_DP`/`USB_DM`) — no board USB, the module owns it.
+`QSPI` — the flash bus is on the module's own PCB, so the comb v1 calls *"the
+board's only continuous in-band spur source"* is no longer on this laminate.
+`DVDD_1V1` — the RP2040 core rail and its copper link live inside the module.
+Those three classes disappearing is the entire point of the board.
 
-## Stackup
+## 5. Stackup
 
-What each layer is FOR, not just what it is.
+`JLC04161H-7628`, 4 layers, impedance control requested, at fab tier
+`jlc_4layer_advanced`. Layer roles:
 
-| Layer | Purpose |
+| layer | role |
 |---|---|
-| F.Cu | components + signal + power pours |
-| In1.Cu | **solid GND** — the return path for everything above |
-| In2.Cu | power planes (VSW, 5V_A, 5V_B, VBATT_S) |
-| B.Cu | GND pour + escape routing |
+| **F.Cu** | RF, and only RF plus short control/power runs. Every one of the nine radial arms lives here and nowhere else |
+| **In1.Cu** | **the SOLID, UNBROKEN RF REFERENCE. EXCLUDED from the routing layers.** Not a preference — it is what makes nine arm phases comparable at all |
+| **In2.Cu** | power/signal |
+| **B.Cu** | GND pour + stitching |
 
-Fab tier and the option it forces (e.g. advanced/small-via if any via is
-below 0.45/0.2) — state it here AND in every release's ORDER_README.
+Excluding In1.Cu from routing is Ossmann's rule 1 (*"unbroken power planes on
+the inside of your board"*), which v1 arrived at independently and which
+`skills/kicad-pcb/references/rf-design.md` 3(d) now carries as canon.
 
-## Ground strategy
+Constants derived ONCE from this stackup (ADR-0003, regenerable — the ADR
+carries the command, not the digits): eps_eff **3.3286**, Z0 **50.29 ohm** at
+w = 0.36 mm, t_pd **6.0857 ps/mm**, lambda_g(6 GHz) **27.387 mm**, phase
+**13.145 deg/mm**. Every v2 document cites these; none re-types them.
 
-Planes, splits, stitching, and the return-path intent. If there are no
-splits, say so explicitly — "solid, unbroken In1 GND" is a decision a future
-router can otherwise destroy silently.
+## 6. Ground strategy
 
-## Critical geometries
+One ground net, poured on all four layers, with In1.Cu unbroken beneath the RF.
+Each SMA jack's four ground posts gets its own via cluster AT the pad — the
+posts are the launch's return path and are only electrically short if the return
+is. A ground-via fence flanks every RF arm at **<= 1.35 mm** (the largest round
+value under the derived lambda_g/20 = 1.3693 mm bound, ADR-0003).
 
-The things a router will wreck if it does not know. Each one needs a
-`nets.yaml` `verify:` line or a rule area — prose alone does not survive.
+The module contributes a second ground reference: its own PCB plane, tied to
+ours only through the `GND` castellations. That is a real discontinuity and it
+is ACCEPTABLE here for one reason — **no RF crosses it.** Nothing on the module
+carries a signal this board's product depends on; only DC select lines and a
+supply rail cross the boundary.
 
-- **Hot loops** — the FET/inductor/input-cap loop on each buck. Minimal area.
-- **Kelvin sense** — the shunt's sense taps: they must meet AT the shunt, not
-  share trunk copper.
-- **Tap corridors** — gate-drive returns are deliberately thin (0.15mm) and
-  exempted by NAMED rule areas so the strict floor still governs the trunk.
-- **Keep-outs** — mounting-hole screw heads; connector bodies (a shell over a
-  hole means no screw access — check in 3D, not just DRC).
+## 7. Critical geometries
 
-## Interfaces
+- **The nine radial arms.** Equal pad radii from the switch centre. The
+  governing tolerance is DRIFT (`d_tau = TC*dT*dL*t_pd`), NOT static mismatch:
+  PE42482A-X's own part-to-part relative-phase window is 13.2 deg = 1.00 mm of
+  copper, so a tolerance tighter than that is not physics. v1's withdrawn
+  "+/-0.10 mm" (= 1.3 deg) is NOT re-adopted (BRIEF A5).
+- **The octilinear floor must be checked from PADS, before routing.** KRT routes
+  on 45-degree multiples, so `oct(dx,dy) = max(dx,dy) + 0.4142*min(dx,dy)` is
+  the shortest copper it can lay. On v1 the Euclidean pad spread was 0.3238 mm
+  against a 1.4966 mm octilinear floor — found by routing for hours, findable
+  from pads in milliseconds. **Stage-5 obligation, recorded here so it is not
+  re-learned.**
+- **Min landable width per pad** vs the netclass floor, same stage, same reason.
+- **`C_SW1`/`C_SW2` hard against `U_SW` pin 8**, span <= 3 mm.
+- **`R_PD1..R_PD4` at the SWITCH end, `R_S1..R_S4` at the MODULE end.** The
+  pull-downs are only a power-on guarantee if they are on the switch's side of
+  the series resistor.
+- **The module's USB-C must remain pluggable.** Its connector overhangs the
+  module edge; the carrier board must not put a tall part or the board edge
+  where a cable needs to go. A NEW mechanical constraint v1 did not have, and a
+  stage-5 floorplan input.
+- **The module is a 3D obstruction, not just a footprint.** It stands on
+  castellations with components on its top face; nothing may sit under it and
+  tall parts must clear it. Its keepout is its whole 18.00 x 23.50 mm outline.
 
-Connector-by-connector: what plugs in, pinout reference, and polarity. For
-any keyed/polarized connector, the authoritative pad↔polarity fact lives in
-`02_parts/<MPN>/part.yaml` — cite it, do not restate it. (A reversed battery
-connector is invisible to every electrical check; the netlist is
-self-consistent either way.)
+## 8. The timing frame — INHERITED from v1, and it is a DESIGN INPUT
 
-## Firmware boundary
+8192 samples per antenna, 4096 at the reference, 128 blank between dwells; one
+499,712-sample buffer at 30 Msps holds exactly eight complete sweeps, and the
+half-length reference dwell is the frame marker. Driven by a free-running PIO
+3-bit sequencer, which is the reason an MCU is on this board at all.
 
-What the board does with the MCU **unprogrammed**. If the power path is
-hardware-default-on, say so loudly: the board will appear to work and quietly
-lack every protection.
+**INHERITED from v1's D1 and NOT re-derived here.** v2 changes how the MCU is
+packaged, not what it does. The select lines are `GP0..GP3` — four CONSECUTIVE
+GPIOs, in physical order down the module's right edge, because a PIO `out`
+writes a CONTIGUOUS pin range and non-consecutive pins force a
+read-modify-write.
+
+## 9. Receiver configuration this design DEPENDS on
+
+Host must configure RX2 as **MGC not AGC**, **RX FIR bypassed or short**, and
+**DC-offset / quadrature tracking FROZEN**. These are DESIGN INPUTS, not
+preferences: the 128-sample blanking allowance is false without them.
+INHERITED from v1.
+
+## 10. What this board does NOT solve
+
+- **It does not remove the QSPI comb — it relocates it.** The flash still
+  clocks; it clocks on the module's PCB, ~20 mm from the star, over the module's
+  own reference plane, coupled to our RF only through the shared 3V3/GND
+  castellations and free space. That is expected to be better and it is not
+  measured. **The first physical unit should be spur-surveyed before any phase
+  table is published.**
+- **It ADDS one continuous source v1 does not have:** the module's WS2812B RGB
+  LED, whose internal oscillator free-runs whenever powered. Recorded as a debit
+  in ADR-0001, not argued away.
+- **It does not make the board turnkey.** The module is CONSIGNED — bought by
+  us, shipped with the order, placed by JLC (ADR-0002). v1 is the arm that JLC
+  can build unattended.
+- **It does not settle whether the module or the bare chip is better.** That is
+  what having both arms is for.

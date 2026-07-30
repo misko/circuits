@@ -1,0 +1,275 @@
+mpn: PE42482A-X
+manufacturer: pSemi Corporation (a Murata company)
+type: rf_switch_sp8t_absorptive
+datasheet:
+  doc_id: DOC-75785
+  revision: DOC-75785-4          # printed in the page footer of every page,
+                                 # "DOC-75785-4 – (09/2023)"
+  url: https://www.psemi.com/pdf/datasheets/pe42482ds.pdf
+  sha256: 794579f2973d31c9d8bbe44bfd3656ae95027ff13ab79a0ceaede2a680cc9ec1
+  fetched: 2026-07-27
+  pages: 23
+package: QFN-24, 4.00 x 4.00 x 0.85 mm, 0.50 mm pitch (6 leads/side, "2.50 Ref."
+  across 5 gaps), exposed ground pad 2.70 +/-0.05 mm sq, lead 0.25 x 0.40 mm,
+  0.30 x 45 deg pin-1 chamfer. Figure 23 'Package Mechanical Drawing', PDF p21
+footprint: pluto_rx2_8way:QFN-24_4x4_P0.5_EP2.7_PE42482
+  # AUTHORED 2026-07-28 -> 03_src/lib/pluto_rx2_8way.pretty/. Drawn from the
+  # RECOMMENDED LAND PATTERN inset of Figure 23 (PDF p21): pad 0.30 x 0.60 (x24),
+  # pitch 0.50 (x20), envelope 4.40, EP land 2.75 sq -> pad centres at r = 1.90.
+  # NOT interchangeable with KiCad's stock QFN-24-1EP_4x4mm_P0.5mm_EP2.65x2.65mm,
+  # which is IPC-generated: its pads are 0.85 long at r = 1.95 and its EP is 2.65.
+  # Using the stock part would move every RF land 0.05 mm outward and shrink the
+  # RF-ground EP by 0.10 mm on a 4.00 mm package. The vendor land is what is drawn.
+escape:                          # emitted by escape_check.py, 2026-07-27
+  style: qfn
+  pitch: 0.5
+  escapes_worst_side: 5          # side pins 7-12 = GND,VDD,V1,V2,V3,V4:
+                                 # five nets leave (GND excluded). The three
+                                 # other sides carry 3 each (RF2/RF3/RF4;
+                                 # RF5/RF6/RF7; RF8/RFC/RF1 — LS and NC both
+                                 # tie to GND, see gotchas).
+  tier_required: jlc_4layer_advanced
+  checked: escape_check 2026-07-27
+pins:                            # Figure 22 'Pin Configuration (Top View)',
+  1:  {name: LS,   tie: GND}     # PDF p20 — figure RENDERED at 300 dpi and read
+  2:  RF2                        # VISUALLY, then cross-checked pin-by-pin
+  3:  {name: GND,  tie: GND}     # against Table 8 on the same page.
+  4:  RF3                        # Left column top->bottom 1..6; bottom
+  5:  {name: GND,  tie: GND}     # left->right 7..12; right column bottom->top
+  6:  RF4                        # 13..18; top right->left 19..24. Pin-1 dot at
+  7:  {name: GND,  tie: GND}     # the TOP-LEFT corner.
+  8:  VDD
+  9:  V1
+  10: V2
+  11: V3
+  12: V4
+  13: RF5
+  14: {name: GND,  tie: GND}
+  15: RF6
+  16: {name: GND,  tie: GND}
+  17: RF7
+  18: {name: GND,  tie: GND}
+  19: RF8
+  20: {name: NC,   tie: GND, note: "Table 8 fn 2: may be GND or left open. Tie
+        it — an open pad inside an RF fan is an unterminated stub"}
+  21: {name: GND,  tie: GND}
+  22: RFC
+  23: {name: GND,  tie: GND}
+  24: RF1
+  25: {name: EP,   tie: GND, note: "exposed ground pad, Table 8 last row:
+        'Exposed pad: ground for proper operation'. NOT optional — it is the
+        RF ground return for all nine RF ports"}
+limits:
+  frequency_operating: 10 MHz - 8 GHz          # Table 3 first row, PDF p4. This
+                                               # is the OPERATING FREQUENCY row
+                                               # of the electrical-spec table,
+                                               # not an absolute-max headline —
+                                               # every IL/isolation sub-row
+                                               # carries a min or max column
+                                               # across 10 MHz-8 GHz.
+  vdd_op: 2.3 / 3.3 / 5.5 V                    # Table 2, PDF p3
+  vdd_abs_max: -0.3 to 5.5 V                   # Table 1, PDF p2
+  idd: 120 uA typ / 200 uA max                 # Table 2, PDF p3
+  v_ih: 1.17 V min                             # Table 2, PDF p3
+  v_il: 0.6 V max (-0.3 V min)                 # Table 2, PDF p3
+  v_digital_abs_max: -0.3 to 3.6 V             # Table 1, PDF p2 — NOTE this is
+                                               # 3.6 V, BELOW the 5.5 V VDD max.
+  i_digital: 5 uA max (V1-V4) / 10 uA max (LS) # Table 2, PDF p3
+  prf_op: see Figure 2 derating curve, PDF p11 # 33 dBm CW headline (p1)
+  p_hotswitch: 20 dBm above 100 MHz            # 'Hot-Switching Capability', p9
+  v_rfdc_max: 0 V                              # Table 8 fn 1, PDF p20
+  ta: -40 to +105 C                            # Table 2, PDF p3
+  tj_max: +150 C                               # Table 1, PDF p2
+  theta_ja: 63 C/W                             # Table 4, PDF p9
+  psi_jt: 23 C/W                               # Table 4, PDF p9
+  t_switch: 227 ns typ / 290 ns max            # Table 3, PDF p9 (50% CTRL to
+                                               # 90%/10% RF)
+  t_settle_0p05dB: 870 ns typ / 1400 ns max    # Table 3, PDF p9 — the number the
+                                               # blanking budget actually needs
+  t_rise_fall: 100 ns typ / 130 ns max         # Table 3, PDF p9
+  msl: 1                                       # 'Moisture Sensitivity Level',
+                                               # PDF p21. Unlimited floor life;
+                                               # no bake obligation, which is why
+                                               # there is no `msl` assert below.
+gotchas:
+  - "TRUTH TABLE IS A STRAIGHT 3-BIT BINARY MUX WITH V1 AS MSB (Table 5, PDF
+     p10). With LS=0 and V4=0: RF_n is selected where n-1 = 4*V1 + 2*V2 + 1*V3.
+     That is the whole decode — three PIO lines, no external logic, no decoder.
+     V3 is the LSB. Getting V1/V3 backwards silently reverses the antenna sweep
+     order, which an AoA solution absorbs as a rotated array and NOTHING on the
+     board can detect."
+  - "LS HAS A 1 MEGOHM INTERNAL PULL-UP AND MUST BE TIED TO GND (Table 5 fn 1,
+     PDF p10). Left floating it reads as logic 1, which selects the SECOND,
+     complemented half of the truth table — RF1 and RF8 swap, RF2<->RF3,
+     RF4<->RF7, RF5<->RF6. A board that forgets the LS ground still sweeps eight
+     antennas in a plausible order. Table 3 fn 1 (PDF p9) additionally says
+     'insertion loss and isolation performance can be improved by a good RF
+     ground on the LS pin (pin 1)', so the tie must be a SHORT via to the
+     ground plane at the pad, not a trace to a distant net."
+  - "V1-V4 HAVE NO INTERNAL PULL OF ANY KIND — only 5 uA max input current
+     (Table 2, PDF p3). All four FLOAT on an unprogrammed board, during RP2040
+     reset and through supply ramp, so the selected antenna is undefined. V4
+     is the worst case: V4=1 with V1=V2=V3=0 is the ALL-PORTS-TERMINATED state
+     (Table 5 last row, PDF p10), so a floating V4 can silently mute the
+     receiver. External pull-downs on all four are MANDATORY."
+  - "DIGITAL ABS-MAX IS 3.6 V WHILE VDD ABS-MAX IS 5.5 V (Table 1, PDF p2). The
+     control pins are NOT rated to the supply. On a 3.3 V rail this is a 300 mV
+     margin, and it forbids ever running this part at 5 V with 5 V logic."
+  - "NO DC BLOCKING CAPACITORS ARE REQUIRED, provided every RF pin sits at
+     0 VDC (Table 8 fn 1, PDF p20; Product Description, PDF p1). This is what
+     removes the 85.7:1-bandwidth DC-block problem from the signal path — no
+     single capacitor value spans 70 MHz to 6 GHz. The 0 VDC proviso is a BOARD
+     obligation: any antenna port that can see an external DC source still
+     needs its own block, and that decision is OWED, not settled here."
+  - "ABSORPTIVE, NOT REFLECTIVE. Deselected ports are internally terminated in
+     50 ohm (functional diagram Figure 1, PDF p1; 'Return loss (terminated
+     port)' rows, Table 3 PDF p7, 15-23 dB typ across the band). For an antenna
+     array this is a first-order property, not a nicety: with a reflective
+     switch each deselected element is short-circuited, and the mutual coupling
+     seen by the SELECTED element then changes with which element is selected.
+     Absorptive termination holds every deselected element at ~50 ohm in all
+     eight states, which is what makes the per-path phase CONSTANT (brief D4)."
+  - "RELATIVE INSERTION PHASE IS PUBLISHED WITH MIN/TYP/MAX (Table 3, PDF p8) —
+     RF2-RF1, RF3-RF1, RF4-RF1 at 1/2/4/6/8 GHz, and symmetric for
+     RF7-RF8/RF6-RF8/RF5-RF8. At 6 GHz: RF2-RF1 -9.4/-2.8/+3.8 deg,
+     RF3-RF1 -11.2/-5.7/-0.3 deg, RF4-RF1 -35.8/-26.3/-16.9 deg. The die's own
+     port-to-port phase spread is therefore ~26 deg typ at 6 GHz and the
+     unit-to-unit band on the worst term is ~19 deg wide. This is the vendor
+     bound the release's measured phase table (brief D4) is checked against —
+     no comparable data exists for ANY of the SPDT alternatives."
+  - "RETURN LOSS HAS NO MIN COLUMN anywhere (Table 3, PDF pp6-7) — every RL row
+     is typ-only, and the port-to-port spread is large: at 4-6 GHz the RFC-port
+     RL is 24 dB typ on RF1/8 but 13 dB typ on RF3/6. Insertion loss (max) and
+     isolation (min) ARE guaranteed; match is not. Budget accordingly."
+  - "PER-PORT IL AND ISOLATION ARE NOT EQUAL AND THE DATASHEET SAYS SO. IL max
+     at 4-6 GHz: 1.9 dB (RF1/8), 2.3 (RF2/7), 2.2 (RF3/6), 2.2 (RF4/5). The
+     die is a binary tree internally; the ports are not interchangeable. Assign
+     the RF1/RF8 pair to the paths whose sensitivity matters most."
+  - "MSL1, 24-lead QFN, 0.5 mm pitch with an exposed pad: PCBA part. Reflow
+     only; the EP cannot be hand-soldered or visually inspected."
+  - "ORDER CODE. Table 9 (PDF p23) lists exactly ONE production code,
+     'PE42482A-X', 500 units/T&R. LCSC also carries a bare 'PE42482A'
+     (C726151) at a different reel count; treat it as a distributor string for
+     the same die+package, but order the -X."
+verified: "pin map read from Figure 22 'Pin Configuration (Top View)', PDF p20 —
+  page RENDERED at 300 dpi and read VISUALLY, then cross-checked pin-by-pin
+  against Table 8 'Pin Descriptions for PE42482' on the same page. Truth table
+  from Table 5, PDF p10. Package/land pattern from Figure 23, PDF p21.
+  2026-07-27"
+layout:
+  source: "pSemi DOC-75785-4 has NO prose Layout/Application-Information section
+    — reported as an absence rather than invented. What it DOES publish is
+    Figure 21 'Evaluation Board Layout for PE42482' (PDF p19), and that figure
+    is the reference layout: an OCTAGONAL board with U1 at the exact geometric
+    CENTRE, nine edge-launch SMA jacks (J0=RFC at 12 o'clock, J1..J8 = RF1..RF8
+    around the remaining facets), and nine EQUAL-LENGTH 50 ohm traces radiating
+    RADIALLY from the package to the board edge, each flanked by a continuous
+    ground-via fence. The digital section (C1-C4 bypass cluster, R1, JP1/JP2
+    strap jumpers, J11 control header) is grouped entirely on the pin-7..12
+    edge, OUTSIDE the RF fan, and the control nets escape on the BOTTOM layer
+    (visible in the p19 bottom-copper view) so they never cross an RF trace.
+    Two further placement rules come from the pin table itself: Table 3 fn 1
+    (PDF p9) makes LS an RF GROUND, and Table 8 fn 2 permits NC (pin 20) to be
+    grounded — pin 20 sits between RF8 and GND inside the RF fan, so grounding
+    it closes the fence there. The radial-star archetype is what the AoA
+    requirement wants anyway: equal trace length is equal phase by
+    construction, and it is the pin-out's natural form because the eight RF
+    ports are distributed one per side-pair around the package."
+  reviewed: "2026-07-27"
+  keep_short:
+    # `SW_VDD` WAS A GHOST NET AND IS RE-POINTED, 2026-07-29 (stage 6). No net
+    # of that name has ever existed on this board: E-NETREF's nearest match was
+    # `SW_V4`, which is a different pin. Pin 8 sits on the GLOBAL `3V3` rail
+    # (no series element makes a second node), and the budget is now written
+    # against that node with `anchor_pins: ["8"]` — the pin the datasheet
+    # sentence is about. That is only gradeable because P-ADJ changed metric on
+    # 2026-07-29: the WHOLE-NET maximum would score this 3V3 rail at ~21.7 mm
+    # (U_SW.8 -> U_MCU.22, a pair the sentence is not about), the ANCHOR metric
+    # scores U_SW.8 against its nearest qualifying partner. The previous
+    # revision of policy_waivers.yaml asserted `anchor_pins:` "CANNOT rescue
+    # any of the six" because the declaring part had no pad on the named net —
+    # true of four of them, FALSE here and false for ABM8's `XOUT`, and that
+    # error is corrected in the same change. GRADED PAIR, MEASURED off the
+    # stage-5 board: U_SW.8 -> C_SW1.1 = 2.873 mm of 3.0 (+0.127). The number
+    # is not new — it is the same 2.873 mm the stage-5 pass moved C_SW1 to
+    # x 44.7 to achieve by hand; what is new is that a gate now reads it.
+    - {net: 3V3, max_span_mm: 3, anchor_pins: ["8"], why: "bypass at pin 8. The
+       EVK clusters C1-C4 immediately against the pin-7..12 edge (Figure 21,
+       PDF p19); IDD is 120 uA typ so this is decoupling for control-line
+       transients, not for load current, and it must sit at the pad to be that.
+       ANCHORED at pin 8 because 3V3 is the board-wide rail: without the anchor
+       the budget grades the rail's diameter, which is the metric error P-ADJ
+       retired on 2026-07-29"}
+    # `SW_LS <= 2 mm` IS DELETED HERE, NOT RE-POINTED TO A PASSING NET, AND NOT
+    # ABANDONED. Pin 1 IS on a real node — `GND`, by ADR-0005 — so unlike
+    # `SW_VDD` this one had a name available that P-ADJ would have accepted.
+    # It is refused, because it would grade the WRONG QUANTITY: the anchor
+    # metric would compare U_SW.1 against the nearest other-footprint GND pad,
+    # MEASURED at 6.956 mm (C_SW1.2), and report a 4.956 mm miss of a budget
+    # about something else entirely. GND on this board is a four-layer pour;
+    # pin 1 does not reach it through a trace to another part's pad, it reaches
+    # it through a VIA AT THE PAD, and no pad-to-pad span can see a via. The
+    # obligation is therefore moved to the instrument that can: 03_src/
+    # audit_board.py I8 measures the nearest GND via centre to the pin-1 pad
+    # centre against 0.5 mm, on the stitched board, and CHECKLIST section D
+    # carries the same line. Raising 2 mm to 7 mm to make the old declaration
+    # green would have been the exact defect P-ADJ-UNREACHED exists to catch.
+    - {net: SW_V4, max_span_mm: 4, why: "pull-down at pin 12. V4=1 with
+       V1..V3=0 mutes every port (Table 5, PDF p10), so this is the pin whose
+       float is silent. The resistor belongs at the pad, not at the PIO end"}
+  notes:
+    - "PIN 1 (LS) IS A GEOMETRIC OBLIGATION, NOT A SPAN BUDGET — moved out of
+       keep_short: 2026-07-29 (see the comment there). Table 5 fn 1 (PDF p10)
+       makes LS a logic input with a 1 Mohm internal pull-up that MUST be tied
+       to GND, and Table 3 fn 1 (PDF p9) makes the same pin an RF ground whose
+       quality moves insertion loss and isolation. Both sentences ask for ONE
+       thing: a via to the plane AT the pad. The measurable form is `nearest
+       GND via centre within 0.5 mm of the pin-1 pad centre`, graded by
+       03_src/audit_board.py I8 after the stage-6 stitch. A pad-to-pad span
+       budget cannot express it — the partner is a plane, not a pad."
+    - "DERIVED (my reading, not the datasheet's words): the RF ports are
+       interleaved with GND on three of four sides (RF2/GND/RF3/GND/RF4,
+       RF5/GND/RF6/GND/RF7, RF8/NC/GND/RFC/GND/RF1), so every RF launch already
+       has a ground land on at least one flank. The ONE side with no RF at all
+       is pins 7-12 — that is where the escape budget of 5 lands, and it is
+       also where the whole digital section belongs. Rotating the package so
+       that side faces the RP2040 costs nothing and buys a clean split."
+    - "DERIVED: RFC (pin 22) is on the TOP side between two GND pins, opposite
+       the digital side. On this board RFC is the single output to Pluto RX2,
+       so the natural floorplan is Pluto-facing edge at the top, eight antenna
+       SMAs around the remaining perimeter, RP2040 at the bottom."
+    - "OWED: pSemi publishes an EVK (EK42482-02) and a 'Multi-throw Count RF
+       Switch Evaluation Kit (EVK) User's Manual'. Neither was fetched during
+       the D-SPEC spike. Fetch before drawing the floorplan — Figure 21 is a
+       raster of the EVK, not its dimensions."
+layout_refs:
+  - "pSemi PE42482 DOC-75785-4, Figure 21 'Evaluation Board Layout for
+     PE42482', PDF p19 — the manufacturer's own routed board (top + bottom
+     copper), read visually at 300 dpi"
+  - "pSemi PE42482 DOC-75785-4, Figure 23 'Package Mechanical Drawing',
+     including the RECOMMENDED LAND PATTERN inset (2.75 / 4.40 envelope),
+     PDF p21"
+  - "pSemi PE42482 DOC-75785-4, Table 3 fn 1 (PDF p9) + Table 8 fn 1/2
+     (PDF p20) — the LS-as-RF-ground and 0 VDC / NC-to-GND rules"
+  - "OWED: EK42482-02 EVK design files and the Multi-throw Count RF Switch EVK
+     User's Manual, from psemi.com. Not fetched at spike time."
+  - "OWED: no OSHWLab-by-LCSC board was searched for C5121458. Recorded as not
+     done, not as absent."
+sourcing:
+  lcsc: C5121458
+  alternates: [C726151, C500479]   # C726151 = 'PE42482A', same die+package per
+                                   # Ordering Info Table 9 (which lists only
+                                   # -X). C500479 = PE42582A-X, the 9 kHz-8 GHz
+                                   # sibling in the same QFN-24 4x4 — SAME
+                                   # 3-bit parallel control, but it adds a
+                                   # VSS_EXT pin, so it is NOT drop-in and its
+                                   # numbers were NOT independently read here.
+asserts:
+  - assert: value
+    equals: PE42482A-X
+    why: "the BOM Comment must name the ORDER CODE, not the family. Table 9
+      (PDF p23) lists exactly one production code and it carries the -X. The
+      neighbouring family parts are throw-count variants in the SAME 24-lead
+      4x4 QFN — PE42462 is an SP6T and PE42442 an SP4T — so a substitution that
+      looks like a package match silently deletes two or four antennas from an
+      eight-element array, and the board would assemble, power up and sweep."

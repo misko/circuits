@@ -1,0 +1,433 @@
+mpn: KT-0603R
+manufacturer: Hubei KENTO Electronics Co., Ltd. (湖北匡通电子股份有限公司)
+type: led_indicator_red        # a light-emitting DIODE, not a "0603 passive".
+                               # It has a POLARITY, a forward-voltage BIN spread
+                               # and a moisture floor life, and all three are
+                               # invisible on a BOM line that reads "LED 0603".
+                               # Classifies as NOTHING for E-TOPO (it converts
+                               # nothing) and may not appear on a `rails:` entry.
+status: primary
+datasheet:
+  doc_id: "KT-0603R 承认书 / Specification for Approval (0603-0.6 红光)"
+  revision: "A.0"              # 版本(Revision) A.0, printed on the cover sheet
+                               # (PDF p1) alongside 发件日期(Issue date)
+                               # 2018-12-06. There is no other revision marker
+                               # anywhere in the file and no revision-history
+                               # table — so "A.0" is the whole provenance the
+                               # document offers, and this line says so rather
+                               # than implying a controlled revision stream.
+  url: https://datasheet.lcsc.com/datasheet/pdf/011ec3e8cb1e825f6961d29bc4db4c7a.pdf?productCode=C2286
+  sha256: a3bac1cc9c59cb306ad03512945cce12c87bb54252abc223b796e1d20d41d4a1
+  fetched: 2026-07-28
+  pages: 11
+  note: "PROVENANCE, STATED PLAINLY. Hubei KENTO publishes no reachable English
+    product site and no direct PDF host was found; this is the LCSC-redistributed
+    copy, obtained by the mechanism 02_parts/README.md records — the
+    `lcsc_datasheet_1810231112_...C2286.pdf` URL serves an HTML LANDING PAGE
+    (50,921 bytes of markup, confirmed by `file`), and the real document is the
+    `datasheet.lcsc.com/datasheet/pdf/<hash>.pdf` link embedded in that page's
+    own markup. It IS the manufacturer's own document, not an LCSC rewrap:
+    every page carries the 湖北匡通电子股份有限公司 letterhead and the
+    (0603-0.6 红光) part header, the cover is KENTO's customer approval form
+    (承认书) with signature blocks, and it is a Word/Aspose export, not a
+    catalogue generator. Grade: CITED. TWO LIMITS, recorded rather than
+    smoothed over: (1) it is a SPECIFICATION-FOR-APPROVAL, i.e. the document a
+    customer signs, not a controlled datasheet — the customer-name, part-number
+    and revision fields on the cover are BLANK, so nothing here was approved
+    against this board; (2) it is dated 2018-12-06 and a newer revision may
+    exist and was NOT obtainable. What that risks is bounded: the 0603 body and
+    the recommended land are EIA-standard geometry and cannot move; re-read
+    the FORWARD-VOLTAGE and LUMINOUS-INTENSITY tables if a newer sheet ever
+    becomes reachable, because those are the numbers this board's ballast was
+    sized against."
+package: >-
+  0603 chip LED (1608 metric). Section 1 + section 2, PDF p2: body
+  1.60 x 0.80 x 0.60 mm, transparent planar lens, water clear. Bottom-face
+  termination band 0.30 mm long at each end with a 1.00 mm unmetallised gap
+  between them (0.30 + 1.00 + 0.30 = 1.60); top-face electrode band 0.41 mm;
+  end-cap wrap 0.28 mm. Tolerance +/-0.10 mm unless otherwise noted (section 2
+  note 2). Tape 8.0 mm, 4.0 mm pitch, 4000 pcs per reel (section 8, PDF p6).
+  THE PART CARRIES NO MARKING AT ALL beyond the moulded cathode-end chamfer —
+  there is no printed code, so the ONLY identity on a populated board is the
+  BOM Comment plus the reel label.
+footprint: LED_SMD:LED_0603_1608Metric   # STANDARD KiCad part, and it MATCHES —
+                               # numbers in gotchas. NOT the
+                               # _Pad1.05x0.95mm_HandSolder variant: this is a
+                               # reflow part on an SMT board.
+escape:                        # emitted by escape_check.py, 2026-07-28
+  style: passive
+  pitch: 1.575                 # pad centre-to-centre MEASURED from the KiCad
+                               # footprint text (pads at x = +/-0.7875 mm),
+                               # cross-checked with pcbnew.FootprintLoad.
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+pins:                          # 2-pad diode. Recorded ANYWAY, and at length,
+                               # because the pin NUMBERING is the whole risk on
+                               # this part — see the first gotcha.
+                               # THESE ARE THE **FOOTPRINT'S** PAD NUMBERS
+                               # (LED_SMD:LED_0603_1608Metric), which is what
+                               # the netlist and pin_audit.py resolve against.
+                               # They are the OPPOSITE of the vendor drawing's
+                               # own terminal numbers. Deliberate. See gotcha 1.
+  1: {name: K, note: "CATHODE. KiCad marks pad 1 as the cathode in BOTH of its
+       artifacts and both were read from the files, not assumed:
+       Device:LED carries the property `Sim.Pins` = \"1=K 2=A\" and its pin 1 is
+       named K (/usr/share/kicad/symbols/Device.kicad_sym); LED_0603_1608Metric
+       puts its F.Fab body chamfer at (-0.5,-0.4)->(-0.8,-0.1) and its F.SilkS
+       closed vertical bar at x = -1.485, both at the pad-1 (x<0) end.
+       On the PHYSICAL part this is the CHAMFERED corner (green in the vendor
+       drawing) — which the vendor calls terminal 2."}
+  2: {name: A, note: "ANODE. The un-chamfered end; the vendor calls it terminal
+       1 and prints '+' beside it. Takes the ballast (R_LED1 / R_LED2)."}
+limits:                        # CITED from the committed document; section and
+                               # page given per line. Ta = 25 C throughout.
+  # --- section 4, Absolute Maximum Ratings, PDF p3 ---
+  pd_max:        40 mW
+  ifp_max:       "60 mA (1/10 duty, 0.1 ms pulse width)"
+  if_dc_max:     25 mA
+  vr_max:        5 V
+  topr:          -40 to +85 C
+  tstg:          -40 to +85 C
+  tsol:          "reflow 260 C / 10 s; hand 300 C / 3 s (section 11.1.3 adds:
+                  hand-solder ONCE only, iron <= 25 W)"
+  esd:           "NOT STATED. Section 4 prints an 抗静电能力/Electrostatic
+                  Discharge row with a unit (V) and NO VALUE. Reported as an
+                  ABSENCE, not inferred — section 11.5 warns that ESD damages
+                  the part and gives no number to design to."
+  # --- section 5, Electrical Optical Characteristics, PDF p3 ---
+  vf:            "1.8 V min / 2.4 V max at IF = 20 mA. NO TYPICAL IS PUBLISHED."
+  iv:            "145 mcd min / 300 mcd max at IF = 20 mA"
+  viewing_angle: "120 deg typ (2 theta 1/2)"
+  lambda_d:      "615-630 nm at IF = 20 mA (dominant)"
+  lambda_p:      "625-645 nm at IF = 20 mA (peak)"
+  ir:            "5 uA max at VR = 5 V"
+  delta_lambda:  "20 nm typ (spectral half-width)"
+  # --- section 6, binning, PDF p4 ---
+  bins:          "Vf bins VE 1.8-1.9 / VF 1.9-2.0 / VG 2.0-2.1 / VH 2.1-2.2 /
+                  VI 2.2-2.3 / VJ 2.3-2.4 V (+/-0.05 V); Iv bins P22 145-175 /
+                  P23 175-210 / P23 210-250 / P24 250-300 mcd (+/-10 %);
+                  wavelength bins R1..R5 over 615-630 nm (+/-1 nm).
+                  THE ORDERED MPN `KT-0603R` CARRIES NO BIN SUFFIX, so none of
+                  these is selectable — see gotcha 3."
+  # --- section 11.4, Cautions / storage, PDF p10 ---
+  floor_life:    "7 days at <= 30 C and <= 60 % RH after the bag is opened
+                  (section 11.4.2); one year unopened at the same conditions
+                  (11.4.1). Bake to recover: reel 60 +/-5 C / 24 h, bulk
+                  105 +/-5 C / 1 h. NO JEDEC MSL LEVEL IS STATED ANYWHERE — see
+                  gotcha 6; that is why there is no `msl` assert below."
+  reflow_count:  "2 max (section 11.1.2)"
+gotchas:
+  - "PAD 1 IS THE CATHODE, AND THE VENDOR'S OWN DRAWING NUMBERS IT THE OTHER WAY
+     ROUND. THIS IS THE ONE THING ON THIS PART THAT CAN SHIP WRONG.
+     The vendor, section 2 'Package Profile & Soldering PAD Suggested' (PDF p2),
+     page RENDERED at 300 dpi and read VISUALLY: the body outline is labelled
+     with a circled 1 at one end and a circled 2 at the other, and the internal-
+     circuit inset beside it prints '+' next to circled-1 and '-' next to
+     circled-2, with the diode's bar (cathode) drawn at the circled-2 end.
+     The moulded CHAMFER (drawn green) is at the circled-2 = CATHODE end.
+       vendor terminal 1 = ANODE  (+, un-chamfered)
+       vendor terminal 2 = CATHODE (-, chamfered)
+     KiCad numbers the SAME PHYSICAL FEATURE the opposite way: Device:LED pin 1
+     is K, and LED_SMD:LED_0603_1608Metric puts the F.Fab chamfer and the F.SilkS
+     cathode bar at PAD 1.
+     THE PHYSICAL FACTS AGREE — in both worlds the marked/chamfered end is the
+     cathode. Only the INTEGER disagrees, and the integer is what a part.yaml
+     writes down. So the failure mode is precise and it is a DOCUMENTATION
+     failure, not a component one: transcribing the vendor's pinout figure
+     faithfully — which is exactly what the 02_parts contract's 'PHYSICAL PADS,
+     read from the pinout figure' instruction asks for — yields
+     `pins: {1: A, 2: K}`, and a schematic wired to THAT puts the anode on the
+     pad the board's own silkscreen marks as the cathode. Every indicator on the
+     board is then dark, and NOTHING sees it: the netlist is self-consistent
+     either way, ERC passes, DRC passes, schematic-parity passes, and a reversed
+     indicator LED draws ~0 A so the board runs perfectly. This dossier therefore
+     declares the FOOTPRINT's numbering (pin_audit.py resolves `pins:` against
+     footprint pads and reports 'part.yaml pins with NO pad on the footprint'),
+     and records BOTH numberings so the disagreement can never be rediscovered
+     as a surprise."
+  - "THE COLOUR IS A HARD CONSTRAINT, NOT A PREFERENCE, AND THE ARITHMETIC IS
+     WHY. DETAIL_DESIGN section 5 sizes R_LED1/R_LED2 at 680 ohm from
+     (3.3 - 2.0)/680 = 1.91 mA — i.e. at Vf = 2.0 V, which only a RED/orange-red
+     or amber emitter has. Substitute a green or blue 0603 (Vf 2.6-3.1 V) into
+     the same 680 ohm and the current becomes (3.3 - Vf)/680 = 1.03 mA down to
+     0.29 mA. That is not merely dimmer: at the 3.1 V end the LED sits 0.2 V
+     below the rail, so the current is the DIFFERENCE OF TWO SIMILAR NUMBERS and
+     swings with rail tolerance and Vf bin together. At the 3V3 rail's own -3 %
+     floor (3.20 V, DETAIL_DESIGN section 5) a 3.1 V part draws 0.15 mA and is
+     invisible. A colour swap on this board is a re-derivation of the ballast,
+     never a like-for-like."
+  - "THE 2.0 V IN THE BALLAST DERIVATION IS THE MIDDLE OF A BAND, NOT A
+     DATASHEET TYPICAL — AND THIS SHEET PUBLISHES NO TYPICAL AT ALL. Section 5
+     gives Vf 1.8 min / 2.4 max at IF = 20 mA and leaves the Typ. column blank.
+     Section 6.2 then bins Vf into six 0.1 V classes VE..VJ across that band —
+     but `KT-0603R` HAS NO BIN SUFFIX, so the bin is not orderable and JLC ships
+     whatever it has. The honest bound on the operating current, and it is a
+     bound rather than a number:
+       using the CITED 20 mA band directly (CONSERVATIVE, because Vf can only
+       be LOWER at 2 mA than at 20 mA):
+         Vf 2.4 V -> (3.3-2.4)/680 = 1.32 mA
+         Vf 2.0 V -> (3.3-2.0)/680 = 1.91 mA   <- the design number
+         Vf 1.8 V -> (3.3-1.8)/680 = 2.21 mA
+       extending the upper end with an ESTIMATE for the low-current droop (an
+       AlGaInP red loses roughly 0.15-0.25 V going from 20 mA to 2 mA, so
+       Vf(2 mA) >= ~1.55 V):  I <= (3.3-1.55)/680 = 2.57 mA
+     So I is in [1.32, ~2.6] mA. Against the 25 mA DC maximum that is >= 9.6x
+     margin, and P = 2.6 mA x 1.8 V = 4.7 mW against a 40 mW Pd is 8.5x.
+     THE ENVELOPE DOES NOT MOVE: DETAIL_DESIGN section 5 budgets '2 indicator
+     LEDs | 3.8 mA'; the worst case is 2 x 2.6 = 5.2 mA, +1.4 mA on a declared
+     0.15 A envelope whose typical is ~60 mA. Nothing needs changing — but the
+     3.8 mA is a nominal, not a maximum, and this line says so.
+     THE DROOP IS ESTIMATED, NOT CITED: section 7 contains ONE curve, a spectrum
+     distribution. There is no Vf-vs-If curve, no Iv-vs-If curve and no thermal
+     derating curve in this document. Recorded as an absence."
+  - "TWO INDICATORS ON ONE BOARD CAN LOOK VISIBLY DIFFERENT, AND THAT IS NOT A
+     DEFECT. With no bin coding on the MPN, LED_PWR and LED_ST can arrive from
+     different Iv bins (145 vs 300 mcd, a 2.07x span) AND different Vf bins
+     (1.8 vs 2.4 V, which is itself a 1.67x current span through a fixed 680 ohm
+     ballast). Compounded, one indicator can be roughly 3x the brightness of the
+     other on the same board. If matched indicators are ever a requirement, that
+     is a DIFFERENT part (a bin-coded order code or a constant-current driver),
+     not a tighter resistor."
+  - "BRIGHTNESS AT THE OPERATING POINT IS ESTIMATED. Iv is CITED at 145-300 mcd
+     at 20 mA. At ~1.9 mA, scaling roughly linearly, that is ~14-30 mcd — a
+     clearly-visible bench indicator, not a bright one. There is NO Iv-vs-If
+     curve in this document (section 7 has only the spectrum), so the scaling is
+     DERIVED from the physics and carries no vendor support. If the enclosure
+     puts the indicators behind a light pipe or a tinted window, re-derive it
+     before assuming they will be seen."
+  - "A REVERSED PART IS DARK, NOT DAMAGED — WHICH IS WHY NOTHING WILL EVER TELL
+     YOU. VR max is 5 V (section 4) and the highest rail on this board is 3.3 V,
+     so a backwards LED sits at 3.3 V reverse with 5 uA max leakage (section 5),
+     comfortably inside its rating, forever. It draws no current, dissipates
+     nothing, and the board is otherwise perfect. Combined with gotcha 1 this is
+     the complete failure story: an invisible cause with an invisible effect.
+     The only instruments that can catch it are the part fact recorded above and
+     a human looking at the assembled board."
+  - "MOISTURE: A 7-DAY FLOOR LIFE IS STATED AND A JEDEC MSL LEVEL IS NOT.
+     Section 11.4.2 (PDF p10) requires <= 30 C / <= 60 % RH and use within 7 days
+     once the bag is opened, and prescribes a bake if that is exceeded (reel
+     60 +/-5 C / 24 h; bulk 105 +/-5 C / 1 h) — 168 h is the J-STD-020 floor
+     life OF MSL 3, but the document never writes 'MSL 3' and this dossier will
+     not write it for them. Reported as an ABSENCE, which is why there is no
+     `msl` assert below. It is not a live obligation for THIS board: the part is
+     JLC-assembly-sourced (base library, C2286), so the reel and its handling are
+     the assembler's. It becomes live the moment anyone hand-supplies it — get
+     the level off the reel label, not off this sheet."
+  - "THE BINNING TABLE HAS TWO TYPOGRAPHICAL ERRORS AND THEY ARE WORTH KNOWING
+     BEFORE SOMEONE TRIES TO ORDER A BIN. Section 6.1 (PDF p4) lists the
+     luminous-intensity bins as P22 / P23 / P23 / P24 — 'P23' twice, for the
+     175-210 and 210-250 mcd rows — and its Unit column says 'V' where it must
+     mean mcd. Nothing on this board depends on the bin table (the MPN carries no
+     bin), but a reader who tried to specify P23 would be specifying an ambiguity.
+     Recorded as an erratum in the source, not corrected."
+  - "KICAD LED_0603_1608Metric vs KENTO SECTION 2, MEASURED — DECLARED A MATCH.
+     Vendor recommended land (section 2's right-hand 'Soldering PAD Suggested'
+     figure, PDF p2): two pads, pad LENGTH 0.70 and inner GAP 0.70, both CITED
+     from the dimension arrows; pad WIDTH carries NO dimension and is ESTIMATED
+     0.70 +/-0.03 mm, read photogrammetrically off the to-scale figure at 300 dpi
+     and calibrated on the two cited 0.70s (measured 201 px wide against a
+     199.5 px mean pad height). Pitch 1.40 and span 2.10 are DERIVED from those.
+     KiCad places 0.875 x 0.95 pads at x = +/-0.7875 (read from the .kicad_mod
+     text by an independent parser AND confirmed via pcbnew.FootprintLoad):
+       inner GAP     0.700 vs 0.70 CITED       EXACT (delta 0.0000)
+       inner EDGE    +/-0.350 vs +/-0.350      EXACT
+       pad LENGTH    0.875 vs 0.70             +0.175 (IPC toe)
+       pad WIDTH     0.950 vs ~0.70 ESTIMATED  +0.250 (IPC side)
+       pitch         1.575 vs 1.40 DERIVED     +0.175
+       total span    2.450 vs 2.10 DERIVED     +0.350
+     THE ONE DIMENSION THAT IS EXACT IS THE ONE THAT MATTERS: the inner gap sets
+     where the body seats and bounds the solder-bridge risk, and it agrees to
+     four decimal places. Everything else is KiCad's standard IPC-7351 nominal
+     expansion OUTWARD, which cannot bridge. Termination coverage checked
+     numerically: the bottom-face band spans |x| 0.50-0.80 and the KiCad pad
+     spans |x| 0.350-1.225, so the pad fully covers the termination with 0.15 mm
+     of heel and 0.425 mm of toe. NO PROJECT-LOCAL FOOTPRINT IS OWED for this
+     part — unlike PE42482A-X, KH-SMA-KE-Z and TYPE-C-31-M-12A (README
+     deviations 4 and 6)."
+  - "JLC LIBRARY TIER IS **base**, WHICH IS THE POINT. 02_parts/README.md names
+     '11 of 12 populated parts are extended' as this board's standing sourcing
+     risk. C2286 is base with 7,593,490 in the assembly pool (live 2026-07-28)
+     and 4,975,100 on the LCSC retail page — BOTH pools deep, so the C25091 trap
+     the README documents (retail 0 against assembly 995,162) was CHECKED HERE
+     and does not fire. Stock is never committed to this file (02_parts
+     contract); it lives in 06_build/cache/stock_hmi.json."
+verified: "2-pad LED — exempt from the S-VER pinout-FIGURE requirement per the
+  02_parts contract (policy_audit skips parts with <= 2 pins), and the citation
+  is written ANYWAY because the exemption is exactly wrong for this part: a
+  2-pad part with a POLARITY whose vendor numbering is inverted relative to the
+  footprint is the highest-risk 2-pad case there is, and a gate that skips it
+  proves nothing. Read from section 2 'Package Profile & Soldering PAD
+  Suggested', PDF p2, page RENDERED at 300 dpi and read VISUALLY at 3x
+  magnification: the body outline with circled terminal 1 (un-chamfered end) and
+  circled terminal 2 (chamfered end, drawn green); the internal-circuit inset
+  beside it showing '+' at terminal 1 and '-' at terminal 2 with the diode bar at
+  the terminal-2 end; the dimensioned package views (1.60 x 0.80 x 0.60, bottom
+  band 0.30 / gap 1.00, top electrode 0.41, end wrap 0.28); and the recommended
+  land (pad 0.70, gap 0.70). Section 8's tape drawing, PDF p6, was read as an
+  INDEPENDENT second figure and agrees: its 'polarity' key draws the diode with
+  '+' away from the sprocket-hole edge and '-' toward it, i.e. the same
+  cathode-at-the-marked-end fact from a different drawing made for a different
+  purpose. Electrical numbers from section 4 (PDF p3) and section 5 (PDF p3);
+  bins from section 6 (PDF p4); storage/floor life from section 11.4 (PDF p10).
+  The KiCad side of the comparison was re-derived from the .kicad_mod TEXT by a
+  parser that shares no code with pcbnew, then confirmed against
+  pcbnew.FootprintLoad — two methods, one answer (canon M1). 2026-07-28"
+layout:                        # NOT in P-LAYOUT scope (2 pins, and `type:` does
+                               # not match the fet/crystal/inductor class), so
+                               # this block is voluntary — same posture as
+                               # ../BLM21SP601SN1D/part.yaml. The vendor
+                               # publishes NO layout section, so every rule
+                               # below is labelled DERIVED.
+  source: "The KENTO document has no layout chapter. Its only layout-relevant
+    content is the recommended land in section 2 (PDF p2, compared numerically
+    in gotchas:), the reflow profile in section 3 (PDF p2: 260 C max, 10 s max
+    above peak, <= 220 C for <= 120 s, ramp 1-5 C/s) and the handling cautions in
+    section 11 (PDF p9-11: soft lens, no ultrasonic cleaning, no PCB flexing
+    after reflow, max 2 reflows). EVERYTHING BELOW IS DERIVED ENGINEERING and is
+    labelled as such."
+  reviewed: "2026-07-28"
+  notes:
+    - "DERIVED, and it is the only placement rule with teeth: THE INDICATORS ARE
+       A HUMAN INTERFACE, so their placement is bounded by the ENCLOSURE and the
+       viewing direction, not by electricals. 1.9 mA through a 120-degree
+       emitter is ~14-30 mcd (ESTIMATED, gotcha 5) — visible head-on, weak off
+       axis. 03_src/floorplan.yaml as declared on 2026-07-28 puts LED_PWR at
+       [58.0, 85.0] and LED_ST at [61.5, 85.0], each 2.5 mm above its ballast,
+       and clear of the M3 keepout at [67.5, 84.5]. That is a sane arrangement;
+       what it does NOT yet encode is which board edge a user reads them from."
+    - "DERIVED: keep the ballast ADJACENT to its LED (R_LED1<->LED_PWR,
+       R_LED2<->LED_ST). Not for signal integrity — 1.9 mA of DC has none — but
+       because the pair is a unit that must be read together during bring-up,
+       and because a ballast placed far from its LED invites the next person to
+       re-use the wrong one. No max_span_mm budget is declared here: there is no
+       datasheet number behind it and P-ADJ would then be measuring an opinion."
+    - "DERIVED, from section 11 rather than from any electrical constraint: the
+       lens is SOFT (11.1.1) and the part must not see mechanical force after
+       reflow (11.1.4), and PCB flexing is called out explicitly. Keep both
+       indicators away from board-edge break-off features, mounting-hole
+       compression zones and any panel cut-out that would load the lens. On this
+       board that means the M3 keepout margin already in the floorplan is a
+       MECHANICAL requirement of the part, not just a clearance."
+    - "DERIVED: the cathode return is the one net worth a thought, and only
+       because it is shared. Both indicators return to the same ground pour that
+       carries the digital strip; at 2 mA the IR drop is nothing (2 mA x a few
+       milliohms), so there is no star-ground argument to make here. Recorded so
+       that nobody makes one."
+    - "OWED: NO manufacturer application note, reference layout or EVM exists for
+       this part — it is a commodity chip LED and KENTO publishes none. No
+       OSHWLab-by-LCSC board was searched for C2286 either. Recorded as not done,
+       not as absent."
+layout_refs:
+  - "Hubei KENTO KT-0603R spec-for-approval Rev A.0, section 2 'Package Profile &
+     Soldering PAD Suggested', PDF p2 — the vendor's recommended land, which the
+     footprint comparison in gotchas: is measured against"
+  - "Hubei KENTO KT-0603R spec-for-approval Rev A.0, section 8 'Reel And Tape
+     Dimensions', PDF p6 — the tape polarity key, read as the INDEPENDENT second
+     figure confirming cathode-at-the-chamfer"
+  - "Hubei KENTO KT-0603R spec-for-approval Rev A.0, section 3 'Soldering Profile
+     Suggested', PDF p2 + section 11 'Cautions', PDF p9-11 — reflow limits and
+     the mechanical/handling rules the placement notes are derived from"
+  - "/usr/share/kicad/symbols/Device.kicad_sym symbol `LED` and
+     /usr/share/kicad/footprints/LED_SMD.pretty/LED_0603_1608Metric.kicad_mod —
+     read as TEXT, the authority for KiCad's pad-1 = cathode convention"
+  - "OWED: no manufacturer app note, EVM or routed reference exists for a
+     commodity chip LED and none was searched for on OSHWLab"
+sourcing:
+  lcsc: C2286
+  alternates: []               # DELIBERATELY EMPTY, and the reason is the
+                               # opposite of the usual one. Red 0603 indicators
+                               # are the most substitutable part on any BOM —
+                               # C84263 (NCD0603R1, 2.5M stock), C157741
+                               # (LTST-C193KRKT-5A, 964k), C94869 (LTST-C190KRKT)
+                               # and dozens more drop into the identical land.
+                               # Listing them would imply they are equivalent,
+                               # and on the axis that matters they are NOT
+                               # CHECKED: every one is `extended` tier, and each
+                               # has its OWN Vf band that the 680 ohm ballast was
+                               # not sized against. A substitution here is a
+                               # re-derivation of R_LED1/R_LED2 (gotcha 2 and 3),
+                               # cheap but not free. If C2286 ever goes short,
+                               # pick the replacement by reading its Vf table,
+                               # not by reading this line.
+asserts:
+  # DECLARED BUT NOT ACTUALLY GRADED TODAY — the same limitation the
+  # ../SMBJ6.0A and ../BLM21SP601SN1D dossiers record: part_facts_check.py
+  # decodes `equals:` through parse_si(), which is NUMERIC-ONLY, so an MPN
+  # string returns None and the entry reports P-FACT-CONFIG and grades NOTHING.
+  # Reported, not fixed — part_facts_check.py lives under skills/.
+  #
+  # AND A SECOND, BOARD-LEVEL DIVERGENCE FOUND WHILE WRITING THIS DOSSIER, WHICH
+  # THE FIRST ONE IS CURRENTLY HIDING. `equals:` below names the MPN, because
+  # that is what all thirteen sibling dossiers on this board do. But this board's
+  # schematic does NOT put the MPN in `value` — it puts the LCSC CODE. Measured
+  # 2026-07-28 from 06_build/netlists/pluto_rx2_8way.net:
+  #     U_ESD  value "C7519"      U_LDO   value "C638611"
+  #     D_TVS  value "C83270"     Y_XTAL  value "C20625731"
+  #     FB_IN  value "C3716677"   U_FLASH value "C97521"
+  #     F_IN   value "C2154056"   (passives carry the value: R_T1 "220Ω")
+  # and the placeholders this dossier exists to fill read literally
+  # `__LED_LCSC__` / `__SW_LCSC__`. So if part_facts_check.py ever gains the
+  # literal-string fallback, EVERY MPN-asserting dossier on this board goes red
+  # at once — not because a part is wrong, but because the assert convention and
+  # the board convention disagree. That is ONE decision for the board owner
+  # (move the asserts to C-codes, or make the BOM Comment carry the MPN), not
+  # fifteen. Recorded here rather than silently diverging in this one file.
+  - assert: value
+    equals: KT-0603R
+    why: "the BOM Comment must name the full order code, because on this part it
+      is the ONLY identity that exists: section 2 shows no marking of any kind on
+      the body — no printed code, nothing but the moulded cathode chamfer — so
+      once the reel is loaded there is no way to tell a red 0603 from a green one
+      except by powering it. And the near-miss is not exotic, it is the default:
+      every 0603 indicator in the JLC library fits this land, and a green or blue
+      substitution silently re-scales the current through the fixed 680 ohm
+      ballast from 1.91 mA to between 1.03 and 0.29 mA (gotcha 2). The board
+      assembles, passes DRC, parity and twin, and the indicators are dim or dark."
+  # ~~NO `pad1_net_polarity` ASSERT, AND THE OMISSION IS DELIBERATE.~~
+  # SUPERSEDED 2026-07-28 AT SCHEMATIC CAPTURE — the condition below is now
+  # RESOLVED and the assert IS shipped, at the end of this block. The
+  # reasoning is kept verbatim rather than deleted, because it is the record
+  # of WHY the gate waited for a decision instead of guessing at one.
+  # The graded kind reads pad 1's NET from the exported netlist and matches it
+  # against a negative-net regex (GND|VSS|*_N|...). Whether pad 1 lands on a
+  # negative net depends on WHERE THE BALLAST SITS, which is a schematic
+  # decision this dossier does not own and which was not yet made on 2026-07-28:
+  #   ballast on the ANODE side  (3V3/GPIO -> R -> A(pad 2); K(pad 1) -> GND)
+  #     -> pad 1's net is GND -> the assert would PASS and would be a real gate
+  #   ballast on the CATHODE side (3V3/GPIO -> A(pad 2); K(pad 1) -> R -> GND)
+  #     -> pad 1's net is LED_PWR / LED_STAT -> the assert would FAIL on a
+  #        CORRECTLY ORIENTED board
+  # Shipping it now would be a coin-flip gate, and a gate that fires on a correct
+  # board is how waiving becomes a habit (canon: a waiver copied is an inherited
+  # defect). It is registered as OWED in 02_parts/README.md instead, with the
+  # one-line change that closes it once the topology is fixed. The unconditional
+  # half of the fact — pad 1 IS the cathode — is in pins: and gotcha 1, where it
+  # cannot be conditional on anything.
+
+  # ---- ENABLED 2026-07-28, and it could not have been enabled before. The
+  # block above withheld this assert because it grades pad 1's NET, and which
+  # net that is depends on which side of the LED the ballast sits — an open
+  # schematic decision. THE TOPOLOGY IS NOW FIXED, in
+  # 03_tscircuit/src/pluto_rx2_8way.tsx:
+  #   R_LED1: 3V3 -> LED_PWR    ; LED_PWR.2 (A) = LED_PWR    , LED_PWR.1 (K) = GND
+  #   R_LED2: LED_STAT -> LED_STAT_A ; LED_ST.2 (A) = LED_STAT_A , LED_ST.1 (K) = GND
+  # The BALLAST IS ON THE ANODE SIDE of both indicators, so pad 1 is on GND on
+  # both — the arm this block calls "a real gate". Read back off
+  # 06_build/netlists/pluto_rx2_8way.net, not assumed.
+  - assert: pad1_net_polarity
+    pad: 1
+    polarity: negative
+    why: "pad 1 is the CATHODE in KiCad's numbering (Device:LED `Sim.Pins`
+      1=K 2=A; LED_0603_1608Metric puts its F.Fab chamfer and its F.SilkS closed
+      bar at the pad-1 end) and on both indicators the cathode goes straight to
+      GND. WHY THIS PART SPECIFICALLY NEEDS IT: the VENDOR DRAWING NUMBERS ITS
+      TERMINALS THE OTHER WAY ROUND — section 2's internal-circuit inset prints
+      '+' at terminal 1 and '-' at terminal 2, with the diode bar and the
+      moulded chamfer at terminal 2. Transcribing that figure FAITHFULLY, which
+      is exactly what the 02_parts contract asks for, yields `1: A, 2: K` and
+      reverses both indicators against the board's own silkscreen. Nothing else
+      catches it: the netlist stays self-consistent, ERC/DRC/parity all pass,
+      and a reversed indicator at V_R 5 V on a 3.3 V rail sits DARK AND
+      UNDAMAGED — so the board arrives, works, and has two dead lights nobody
+      can explain. This assert reads the net off the exported NETLIST; canon
+      P2/P-POL grades the same fact off the BOARD. Two artifacts, one claim."
