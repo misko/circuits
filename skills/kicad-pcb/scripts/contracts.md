@@ -345,6 +345,20 @@ BACKEND GAP to report, not a bespoke script to write here.
   Day-one fleet: 7 boards, 2689 copper pads, 791 graded, 6 boards PASS; the
   OWED set is `pluto-rx2-8way` alone (8 findings), 5 of which a rule-area
   clearance of 0.14 mm clears outright. Pinned by `t1_escape_tier.py`.
+  **NOT WIRED INTO `policy_audit.py` at landing, deliberately** (the same
+  choice R-LEN made): one board is genuinely OWED, and a row that reds a
+  live board the day it appears is a row that gets commented out. It is run
+  from the stage-5 placement step and by the fleet census until rx2's
+  launches are relaxed or re-placed; wiring it in is the ratchet's next
+  notch, not this change.
+  **WHAT IT NEEDS FROM THE SCOPED-CLEARANCE WORK:** `scoped_floors:` emits
+  `track_width` only, so the relaxation that actually rescues an RF launch
+  cannot be declared today. The reader is already here — any rule with
+  `constraint clearance (min ...)` under `A.NetClass ==` or
+  `A.insideArea(...)` is resolved by the same last-match precedence — so the
+  emitter needs only to write that constraint (ideally on the SAME `zone:`
+  key, so one rule area carries both relaxations and P-LAND reports them
+  together).
 
 ## Structure
 
