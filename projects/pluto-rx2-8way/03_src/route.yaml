@@ -35,6 +35,66 @@
 #       floor is a hard error at prep; a silent ride-under is what cost
 #       usb-hub-3s 157 track_width findings on its first DRC.
 #
+# ============================================================================
+# THE 17 track_width FINDINGS, CLASSIFIED (2026-07-30, from the promoted
+# board). "Classify, never count" — and the count that had been carried was
+# WRONG: it read 7 artifact / 10 real. It is 8 / 9, and the misfiled one is
+# the tell, because it is the only member of the artifact class that does NOT
+# sit at 0.1998.
+#
+# EVERY ONE OF THE 17 CARRIES THE SAME 0.2 um DEFICIT, and it has a NAME.
+# KRT's terminal-graze necker (single_ended_routing.py _neck_terminal_grazes)
+# computes
+#     allowed_half = d - clearance - 1e-4        # "stay just inside the rule"
+#     new_w        = max(fab_floor, 2 * allowed_half)
+# so every width it emits is 2 x 1e-4 = 0.0002 mm below the width the geometry
+# actually allows. That is the whole of the artifact: the board carries 17
+# tracks at 199800 nm and 1 at 399800 nm, and NOTHING else on it is off-grid.
+# The same 0.0002 mm signature is on record fleet-wide (crow-mic-pod-v2 v1.0:
+# 3 tracks at 0.2498 mm under a 0.25 mm floor — rules_audit's own docstring).
+#
+#   ARTIFACT, 8 findings — the neck took the 1e-4 margin and NOTHING ELSE, so
+#   the copper is at its class floor to within 0.2 um:
+#       7 at 0.1998 vs a 0.2 mm floor — SEL_V1 x2, SEL_V2, SEL_V4 (CTRL),
+#         QSPI_CSN x2, QSPI_SD3 (QSPI)
+#       1 at 0.3998 vs the 0.4 mm PWR floor — 3V3, the 1.4142 mm segment at
+#         (39.000, 76.700). THIS is the one the 7/10 count filed as real. It
+#         is the same 0.0002 mm, on a different floor.
+#   REAL, 9 findings — 3V3 power taps at 0.1998 against the 0.4 mm PWR floor,
+#   a 0.2002 mm shortfall = 0.2 mm of genuine neck PLUS the same 0.0002 mm
+#   margin. All nine touch U_MCU's 3V3 pads (y 76.438) and all nine are
+#   short: 0.0375..1.1314 mm, 3.2936 mm of copper in total.
+#
+# WHY NEITHER HALF GETS COPPER, and both reasons are measurements.
+#   The ARTIFACT half must not be "fixed". This pipeline ALREADY encodes the
+#   judgement: the stitcher's own width_floor pass lifts a track only when it
+#   is more than 1000 nm under its floor (route_and_stitch_generic
+#   p_width_floor) — a dead band FIVE TIMES this deficit. So the pipeline
+#   grades 0.2 um as tolerance and the DRC gate grades it as a violation, and
+#   the disagreement is between two gates, not on this board. 0.2 um is 0.1%
+#   of a 0.2 mm trace and an order of magnitude inside any etch tolerance a
+#   fab will quote. Putting copper on it would be answering a tolerance
+#   question with geometry.
+#   The REAL half must not be lifted BLIND. The neck is what KRT did to hold
+#   the 0.2 mm clearance at U_MCU's 3V3 pad field; setting those nine segments
+#   back to 0.4 mm re-creates exactly the graze the pass removed, i.e. trades
+#   9 track_width findings for an unmeasured number of clearance findings.
+#   WHAT THE NECK COSTS, measured rather than feared: 3.2936 mm at 0.1998 mm
+#   on 35 um copper is 8.10 mOhm; at the 0.4 mm floor it would be 4.05 mOhm,
+#   so the neck costs 4.05 mOhm = 0.61 mV at the PWR class's declared 0.15 A
+#   envelope. And 0.4 mm is NOT an ampacity floor — nets.yaml says so in the
+#   PWR intent ("far above the ampacity need ... chosen for IR drop and
+#   robustness"): IPC-2221 external at 0.15 A, 10 degC rise, 1 oz needs
+#   0.0219 mm, so even the NECKED 0.1998 mm is 9.1x the ampacity requirement.
+#   The honest remedy is therefore a bounded `scoped_floors:` width relaxation
+#   over the U_MCU 3V3 pad field carrying these numbers as its `why:` — the
+#   WIDTH twin of the scoped_clearances now in nets.yaml. It is NOT taken here
+#   because that pad field is the same MCU congestion that owns the 28
+#   unconnected and the 21 digital clearance findings, and that is a stage-5
+#   PLACEMENT question: relaxing a floor over copper that is about to be
+#   re-placed would bake in a waiver for a geometry that will not survive.
+# ============================================================================
+#
 #   NOT YET MEASURED — STAGE 6 OWNS THESE, and nothing below has been run:
 #     keepout rects, per-wave iteration budgets, the stitch pass ORDER and
 #     its per-pass parameters, seed stubs, taps, and the stitch grid extent.
