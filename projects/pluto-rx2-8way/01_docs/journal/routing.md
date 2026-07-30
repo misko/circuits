@@ -280,3 +280,82 @@
   sells. `copper_length_audit.py`'s docstring must also be corrected where it
   says no inter-net skew tool exists — that sentence is what made me stop
   looking for one, and it is in the file that grades this board.
+
+## 2026-07-30 — stage 6 resumed: BOTH WALLS FELL TO CONFIG, and the record of how the first one fell was wrong
+
+- start: the five KRT keys are in `_KRT_FLAGMAP` and `route.common.fab_tier` is
+  `advanced`, so the 2026-07-29 D-BACK's stated blocker (a recipe that could not
+  be written down) is gone. Task: declare the recipe, route, promote, gate.
+- result, and the two walls are now BOTH closed by keys in `03_src/route.yaml`:
+
+  * **W2 (octilinear length) — SOLVED, and the controlling knob is NOT the one
+    the last entry named.** `elongation: meander` in `nets.yaml` +
+    `length_match_group` in `route.yaml` make `R-LEN-OCT` pass for the stated
+    reason (the gate cross-checks the claim against the recipe and prints so).
+    Then a 15-run sweep over (meander_amplitude x length_match_tolerance):
+
+        amp 1.0 -> spread 1.5586 mm      amp 0.5 -> 0.6549 mm
+        amp 0.8 -> spread 1.1586 mm      amp 0.3 -> 0.3236 mm
+                                         amp 0.2 -> 0.3236 mm
+
+    and **length_match_tolerance moved the spread by EXACTLY ZERO at every
+    amplitude** — {0.15, 0.10, 0.05} all identical. KRT meanders toward the
+    group target and stops on a whole meander quantum; the band never binds.
+    THE LAST ENTRY CREDITS THE TOLERANCE WITH THE 1.1586 mm RESULT ("the
+    residual is the 0.15 mm tolerance I passed rather than a floor"). Measured
+    false: 1.1586 is the amp-0.8 row, and it is reproduced here exactly.
+    CHOSEN amp 0.3 -> **0.3236 mm = 4.27 deg at 6 GHz** against the 1.0 mm
+    ceiling. That number is not a minimum, it is THE GEOMETRIC RESIDUE: the
+    Euclidean pad spread this board derives from circle-jacks-on-square-lands
+    is 0.3238 mm, so the elongation has recovered the ENTIRE 1.4966 mm
+    octilinear penalty and left only the term ADR-0006's published table
+    calibrates out. 0.3 over 0.2 (they tie) because the larger amplitude needs
+    fewer trombone teeth and leaves more separation between a meander's own
+    parallel legs.
+
+  * **W1 (the launch) — SOLVED AT FULL 0.36 mm, by clearance + GRID.** A
+    20-point width x clearance sweep on r0, rf wave alone, nets routed of 11:
+
+                  clr 0.20  0.15  0.145  0.14  0.12  0.09
+          w 0.36      6      6     11     11    11    11
+          w 0.32      6     11      -      -    11    11
+          w 0.30      6     11      -      -    11    11
+          w 0.26      6     11      -      -    11    11
+
+    **and at KRT's DEFAULT grid_step 0.1, NOTHING routes at ANY width** — not
+    0.30, not 0.25, not 0.20. The RF land centres are odd multiples of 0.05
+    (y = 45.25, 46.25, ...) and a 0.1 mm grid cannot put a centreline on them.
+    So the 2026-07-29 "11/11 at 0.25 mm" is NOT REPRODUCIBLE from the recorded
+    recipe, and the wall was never width alone. `grid_step: 0.05` is the free
+    half of the fix and it is what makes the 0.36 mm answer exist at all.
+    CHOSEN `clearance: 0.14` on the rf wave ONLY: it is the least relaxation
+    that routes with margin (0.145 routes, 0.15 does not — a 0.005 mm
+    quantisation cliff no stochastic router should be parked on), it is 1.56x
+    the tier's 0.09 min_space, and **`stitch.clearance` stays 0.2, so the via
+    fence gap — the thing `route.common.clearance`'s comment actually protects
+    — is untouched.**
+
+  * **NECK-DOWN IS REFUTED AS A MECHANISM ON THIS BOARD, and this is the
+    finding to carry.** `--track-width 0.25 --power-nets 'ANT*'
+    --power-nets-widths 0.36 --neckdown-length 0.3 --neckdown-taper-length 0.2`
+    routes 11/11 and then reports **149.832 mm of RF copper at 0.25 mm, 0.500 mm
+    in taper steps, and 0.000 mm at 0.36**. KRT's re-widen pass restores the
+    wide width only where the NARROW-PLANNED path happens to have wide
+    clearance, and on a radial star leaving a QFN it never does. The keys work;
+    they cannot buy a 50 ohm arm here. Both the previous entry's escalation and
+    the RF canon assume the opposite.
+
+  * **THE RF WAVE IS DETERMINISTIC.** All four race candidates returned
+    byte-identical RF geometry: 158.237 mm of copper, 100% at 0.36 mm, three
+    arm lengths 19.6369 / 19.8018 / 19.9604 mm, spread 0.3236 mm. The race
+    differentiates only the digital waves, so the promoted chain's PUBLISHED
+    number does not depend on which candidate won.
+
+  * **A GATE BLIND SPOT, found by using it.** `tier_preflight`'s
+    `eff_route_clearance()` reads ONLY `route.common.clearance` and never scans
+    `route.waves[]`. A per-wave clearance override — exactly what this board now
+    ships — is INVISIBLE to PF-ROUTE-CLR and PF-RULES-CLR, the two checks whose
+    entire purpose is "the router routed under a DRC floor nobody declared".
+    Preflight printed `0 FAIL / 1 WARN — config is tier-consistent` over a wave
+    routing at 0.14 under a 0.2 mm DRC clearance. Same shape as the PF-KRT
+    defect this board found on 2026-07-28.

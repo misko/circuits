@@ -135,6 +135,72 @@ route:
     # property this board sells.
     #
     # ------------------------------------------------------------------------
+    # W1 — THE LAUNCH. `clearance: 0.14` + `grid_step: 0.05`, ADDED 2026-07-30.
+    # THIS IS THE ONE PLACE ON THE BOARD WHERE CLEARANCE GOES DOWN, and the
+    # comment on route.common.clearance above — which rejects a relaxation —
+    # is NOT being overruled: re-read it and it rejects relaxing the DRC FLOOR
+    # to 0.09 to quiet a preflight warning, and it protects THE VIA FENCE GAP,
+    # which is `stitch.clearance` and is STILL 0.2. Nothing about the fence
+    # changes. What changes is the router's own budget on this wave only.
+    #
+    # THE WALL, EXACTLY. PE42482A-X's vendor land is 0.60 x 0.30 on a 0.50 mm
+    # pitch, so a neighbouring GND land's near edge is 0.350 mm off the RF
+    # centreline. FIVE of the eleven rf nets — ANT2, ANT3, ANT6, ANT7 and
+    # RX2_OUT — are exactly the pads with a GND land on BOTH in-row flanks
+    # (verified pad by pad off r0: pads 2, 4, 15, 17, 22). They have no escape
+    # at all; the other six have one open flank and route at any setting.
+    #
+    # MEASURED, NOT REASONED — a 20-point (width x clearance) sweep on r0,
+    # rf wave alone, nets routed out of 11:
+    #             clr 0.20   0.15   0.145  0.14   0.12   0.09
+    #     w 0.36      6      6      11     11     11     11
+    #     w 0.32      6      11     -      -      11     11
+    #     w 0.30      6      11     -      -      11     11
+    #     w 0.26      6      11     -      -      11     11
+    # and at grid_step 0.1 (KRT's default) NOTHING routes — not 0.30, not
+    # 0.25, not 0.20 — because the RF land centres sit at odd multiples of
+    # 0.05 (y = 45.25, 46.25, ...) and a 0.1 grid cannot put a centreline on
+    # them. THE GRID IS A SEPARATE, FREE HALF OF THIS FIX and the 2026-07-29
+    # record misses it: that day's "11/11 at 0.25 mm" is not reproducible at
+    # grid 0.1 at ANY width, so the note attributing the wall to width alone
+    # would have sent the next reader to the wrong knob.
+    #
+    # WHY 0.14: it is the LEAST relaxation that routes. 0.145 also routes and
+    # 0.15 does not — a 0.005 mm cliff, which is grid quantisation, not
+    # physics. Sitting a stochastic router on a measured cliff edge is how a
+    # re-race silently loses five nets, so 0.14 buys one step of margin. It is
+    # 1.56x the jlc_4layer_advanced min_space floor of 0.09, so it is
+    # comfortably FABRICABLE; what it is not is DRC-legal against the 0.2 mm
+    # Default clearance generate_rules emits, and that is a bounded, LOCATED
+    # consequence rather than a diffuse one — the sub-0.2 copper can only
+    # occur where the router had no room, i.e. inside the QFN launch.
+    #
+    # WHY THIS AND NOT THE OTHER TWO CANDIDATES:
+    #   * NECK THE TRACE (neckdown_length/taper). REFUTED BY MEASUREMENT, and
+    #     this is the finding worth carrying: KRT's neck-down cannot produce a
+    #     wide body from a narrow plan. Run with --track-width 0.25
+    #     --power-nets 'ANT*' --power-nets-widths 0.36 --neckdown-length 0.3,
+    #     it routes 11/11 and then reports 149.83 mm of RF copper at 0.25 mm,
+    #     0.50 mm in taper steps and 0.00 mm at 0.36. The re-widen pass only
+    #     restores width where the NARROW-PLANNED path happens to have wide
+    #     clearance, and on a radial star leaving a QFN it never does. The keys
+    #     are in _KRT_FLAGMAP and they work; on THIS geometry they do not buy
+    #     a 50 ohm arm. Do not re-try this without re-reading that number.
+    #   * NARROW THE WHOLE ARM to 0.25 mm. That is 58 ohm over the full ~20 mm
+    #     of every arm — a mismatch on the entire line, on the one board whose
+    #     product is its RF paths. A local 0.6 mm discontinuity is lambda_g/45
+    #     and LUMPED; 20 mm of wrong impedance is not.
+    # AND THE LOCAL PERTURBATION IS COMMON-MODE: all eight launches are the
+    # same vendor land rotated, which is the rotational congruence nets.yaml
+    # already claims under `congruent_pads`, so whatever the launch does to
+    # phase it does EQUALLY to all eight and cancels in every published delta.
+    # HONEST CAVEAT, and it belongs in the file rather than in a report: this
+    # repo has NO FIELD SOLVER, so it cannot distinguish "the coplanar GND
+    # land at 0.14 mm loads the line" from "the DRC rule says 0.2". The claim
+    # made here is the CLEARANCE claim, which is measurable. The RF claim is
+    # not made.
+    #
+    # ------------------------------------------------------------------------
     # length_match_group / length_match_tolerance ADDED 2026-07-30, and they
     # are here because "equal by construction" IS FALSE OF COPPER on an
     # OCTILINEAR router. KRT moves in 8 directions, so the shortest possible
@@ -176,11 +242,50 @@ route:
     # also the value the 2026-07-29 hand run was MEASURED at: 8 nets,
     # target 19.83 mm, group spread 2.237 -> 1.1586 mm, 11/11 routed, 0 failed,
     # min_clearance_used 0.2 — no clearance relaxation anywhere.
-    # meander_amplitude is LEFT AT KRT's 1.0 mm default: it is unmeasured on
-    # this board and an unproven key in a promoted recipe is a guess wearing a
-    # config row. If the realized spread misses max_spread_mm it is the FIRST
-    # thing to try, and it gets a number here when it earns one.
+    # AND THE TOLERANCE IS INERT ON THIS BOARD — MEASURED 2026-07-30, and it
+    # is recorded here because the 2026-07-29 journal credits it with the
+    # improvement it did not cause. Sweeping tolerance over {0.15, 0.10, 0.05}
+    # at fixed amplitude moved the realized spread by EXACTLY ZERO at all five
+    # amplitudes tried (15 runs). KRT meanders each member toward the group
+    # TARGET and stops at a whole meander quantum; the residual is set by that
+    # quantum, not by the tolerance band, so the band never binds. 0.15 stays
+    # because it is the honest number for what it means (see above) and
+    # because a value that does not bind is not a value to tune — but nobody
+    # should expect it to buy anything here.
+    #
+    # meander_amplitude IS THE CONTROLLING KNOB, and this is the whole of the
+    # W2 fix. Realized group spread vs amplitude, 11/11 routed at every point,
+    # all copper at 0.36 mm:
+    #     amp 1.0 -> 1.5586 mm   (WORSE than the 1.4966 mm octilinear floor:
+    #                             a 1 mm trombone OVERSHOOTS the target)
+    #     amp 0.8 -> 1.1586 mm   (the 2026-07-29 hand-run number, which that
+    #                             journal entry attributes to the tolerance)
+    #     amp 0.5 -> 0.6549 mm
+    #     amp 0.3 -> 0.3236 mm  <-- CHOSEN
+    #     amp 0.2 -> 0.3236 mm   (identical: the floor is reached at 0.3)
+    # 0.3236 mm IS THE PRIZE AND IT IS NOT AN ARBITRARY MINIMUM: nets.yaml
+    # derives a 0.3238 mm EUCLIDEAN pad-spread residue from the fact that the
+    # jacks sit on a CIRCLE and the QFN's lands on a SQUARE (three switch-pad
+    # radii, three arm lengths). The meandered copper lands 0.0002 mm off that
+    # geometric residue, i.e. the elongation has recovered the ENTIRE
+    # octilinear penalty and left only the irreducible term ADR-0006's
+    # published table calibrates out. 0.3236 mm = 4.27 deg at 6 GHz against a
+    # 1.0 mm ceiling — 3.1x margin.
+    # 0.3 IS CHOSEN OVER 0.2 THOUGH THEY TIE, on RF grounds rather than on the
+    # spread: they reach the same floor, so take the LARGER amplitude, which
+    # needs FEWER trombone teeth and leaves MORE transverse separation between
+    # adjacent meander legs. A meander's error term is the coupling between
+    # its own parallel runs, and 0.2 mm of amplitude against a 0.36 mm trace
+    # would put those runs closer together than the line is wide for no
+    # measured gain.
+    #
+    # clearance 0.14 and grid_step 0.05 ARE THE W1 FIX AND THEY ARE ONE
+    # DECISION. See the block above `- {name: rf ...}` — this override is the
+    # ONLY place on the board where clearance goes DOWN, it is scoped to this
+    # wave, and stitch.clearance stays 0.2 so the via fence — the gap that is
+    # actually electrical — is unaffected.
     - {name: rf,   group: rf,   layers: [F.Cu], max_iterations: 400000,
+       clearance: 0.14, grid_step: 0.05, meander_amplitude: 0.3,
        length_match_group: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, RX2_OUT],
        length_match_tolerance: 0.15}
     - {name: pwr,  group: pwr,  max_iterations: 400000}
@@ -190,10 +295,21 @@ route:
     - {name: sig,  group: sig,  keepout_layer: User.3, max_iterations: 800000,
        max_probe_iterations: 60000, max_ripup: 30}
   # canon M3: the shipped board imports the PROMOTED chain file, not a fresh
-  # stochastic route. NO CHAIN HAS BEEN PROMOTED YET — this key stays absent
-  # until stage 6 promotes one into 03_src/route/ and commits it. Its absence
-  # is what makes `import` a no-op today rather than a silent wrong replay.
-  # final: 03_src/route/rN.kicad_pcb
+  # stochastic route.
+  #
+  # PROMOTED 2026-07-30 from `route --race 4`, and the choice is JUDGED against
+  # the MEASURED length spread rather than taken from the race's own tie-break.
+  # THE FINDING IS THAT THERE WAS NOTHING TO CHOOSE BETWEEN: all four
+  # candidates returned the SAME RF geometry — 158.237 mm of arm copper, 100%
+  # of it at 0.36 mm, three arm lengths 19.6369 / 19.8018 / 19.9604 mm, group
+  # spread 0.3236 mm — and the same digital metrics (26 unconnected, 88
+  # violations pre-stitch, all four). The rf wave is EFFECTIVELY DETERMINISTIC
+  # here: it runs first on a track-free board and the length matcher converges
+  # on one solution, so the number this board PUBLISHES does not depend on
+  # which lane won. c0 is the lowest index of four indistinguishable chains,
+  # and that is the whole of the judgement — recorded because "the first chain
+  # that reached 0 unconnected" would have been a different and worse reason.
+  final: 03_src/route/r6.kicad_pcb
 
 stitch:
   # 0.2, raised from 0.15 on 2026-07-28: tier_preflight PF-STITCH-CLR — rescue
