@@ -349,7 +349,24 @@ stitch:
       - {net: GND, layer: In1.Cu}
     via_in_pad: true
     served_within: 1.6
-    rings: [0.6, 0.8, 1.0, 1.4, 1.9, 2.5]
+    # 0.15 PREPENDED 2026-07-30. THE RESCUE STARTED OUTSIDE THE BOUND IT HAS
+    # TO SATISFY. `rings` is measured from the pad BOUNDING-BOX EDGE, not from
+    # its centre (route_and_stitch_generic._rescue_one_net:
+    # vx = px + (w2 + r)*cos(ang)), so on U_SW.1 — a 0.60 x 0.30 land, w2 0.30
+    # / h2 0.15 — the FIRST candidate ring 0.6 puts the barrel between 0.75 mm
+    # (at 90 deg) and 0.90 mm (at 0 deg) from the pad centre, against
+    # audit_board I8's 0.5 mm bound. MEASURED before this change: 0.863 mm,
+    # which is exactly ring 0.6 at the default 30 deg angle_step
+    # (sqrt((0.9*cos30)^2 + (0.75*sin30)^2) = 0.865, rounded to the 0.01 mm
+    # grid). So the first site the pass could ever propose was already a FAIL:
+    # no ordering of the remaining rings could have satisfied it, and the
+    # pass reported success while the check reported failure.
+    # WHY 0.15 AND NOT 0.2: at 0.2 the 0 deg site lands at w2 + r = 0.500 mm,
+    # equal to the bound with zero margin. 0.15 bounds every angle at
+    # <= 0.45 mm (0.45 at 0/180 deg, 0.30 at 90/270 deg). It is a CANDIDATE,
+    # not a forcing: try_via still refuses any site that breaks hole-to-copper
+    # or hole-to-hole, and the pass falls through to 0.6 exactly as before.
+    rings: [0.15, 0.6, 0.8, 1.0, 1.4, 1.9, 2.5]
     stub_width: 0.3
     require: none
   stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
