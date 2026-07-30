@@ -524,6 +524,22 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
 
 ## 4-6. Generate, place, route — all regenerable from 03_src
 
+**RF BOARDS ROUTE DIFFERENTLY, AND THE OBLIGATIONS ARE IN
+`kicad-pcb/references/rf-design.md`.** If the deliverable is impedance, phase or
+isolation: route RF FIRST on ONE layer with NO VIAS inside a phase-critical arm;
+EXCLUDE the reference layer from the routing layers so the plane under a matched
+group cannot be cut (this is Ossmann's rule 1, and one board arrived at it
+independently — nine arms share one unbroken reference, "what makes their phases
+comparable at all"). Where two paths must MATCH, prefer a DETERMINISTIC transform
+over a stochastic route — but VERIFY WHICH TRANSFORM: on one board a +14.5 mm
+translation and a reflection about y = 55.000 coincide for every part the
+symmetry gate grades and diverge at the splitter, so the transform is PER-NET and
+the gate cannot tell them apart. And the published RF artifact — a delta, a
+spread — is MEASURED FROM ROUTED COPPER, never asserted from placement: a
+placement gate that reports "the delta is a placement property, not a routing
+outcome" is asserting something a stochastic octilinear router can falsify.
+
+
 Build `03_src/` generators + `rebuild_all.sh` (set -euo pipefail) in the
 canonical order. **Schematic authoring — tscircuit/TSX is THE standard,
 schwriter2 is FALLBACK-ONLY (ADR-0002 Phases D+E, migration COMPLETE):**
