@@ -141,7 +141,57 @@ consigned: []
 # Populated at seal time from verification/stock_check.json. An empty list here
 # means EVERY coded, placed line cleared stock >= qty x build_quantity on its
 # own; any line that did not MUST appear here with a measured number and a date.
-sourcing_plan: []
+sourcing_plan:
+  - lcsc: C265111
+    refs: [J_THERM_A, J_THERM_B]
+    measured_stock: 0
+    measured_on: 2026-07-29
+    plan: "GENUINE JST GH-8 IS OUT OF STOCK AT LCSC AND A GEOMETRICALLY
+           DROP-IN SUBSTITUTE IS IN STOCK. This entry records the measurements,
+           not a hope, because the seal gate correctly refuses a plan without
+           them. All figures are live LCSC/JLC catalog reads on 2026-07-29
+           (selectSmtComponentList, the endpoint jlc_stock_check.py uses):
+             C265111   SM08B-GHS-TB(LF)(SN)     JST       stock 0, minPurchase 21
+             C22391766 SM08B-GHS-TB             JST       stock 0, minPurchase 444
+             C42376901 SH-SM08B-GHS-TB(LF)(SN)  SHOU HAN  stock 6086, minPurchase 1
+           BOTH genuine-JST listings read 0, so this is a CATALOG state and not a
+           code choice — and the GH-5 housings on the same board (C189896, JST)
+           read 80976, so it is specific to the 8-circuit part.
+           THE SUBSTITUTE'S LAND PATTERN IS MEASURED, NOT ASSUMED: jlc_twin
+           fitted C42376901's OWN JLC footprint against this board's
+           JST_GH_SM08B-GHS-TB_1x08-1MP_P1.25mm_Horizontal at **0.01 mm**
+           residual, NON-MIRRORED, jlc_offset 0, independently on both refs
+           (2026-07-29). So no copper, no CPL rotation and no footprint change
+           follows a swap.
+           WHAT IS **NOT** MEASURED, stated plainly because it is the part that
+           matters: pad correspondence is not MATE compatibility. The pods are
+           third-party SHT45 modules on GH pigtails, and the SHOU HAN describe
+           string differs from JST's on body material (LCP vs PA9T), colour
+           (beige vs white) and voltage rating (125 V vs 50 V — higher, so not a
+           concern in itself). Whether a genuine GHR-08V plug seats and retains
+           correctly in a SHOU HAN shroud has NOT been verified here, and on a
+           connector that carries the thermistor pods it is the user's call, not
+           this pass's — ADR-0024's pod-mismate analysis is written about the GH
+           FAMILY's geometry and a clone shroud is outside what it measured.
+           THREE OPTIONS, in the order they should be considered, all costed:
+             (1) RE-QUERY AT ORDER TIME. minPurchase on the genuine part is 21
+                 (not 444), so a restock of one reel clears 5 boards x2 = 10
+                 pieces comfortably. This is the only option with zero new risk.
+             (2) SUBSTITUTE C42376901 (SHOU HAN), land pattern measured drop-in
+                 above. Requires a plug-mate confirmation first.
+             (3) DECLARE not_assembled AND HAND-FIT. The board already
+                 hand-fits 14 refs (12 relays + J_LOADCELL/J_PI) so the
+                 mechanism exists — but a 1.25 mm 8-circuit SMD header is a
+                 harder hand-solder than any of them, and it would need
+                 `exclude_from_pos_files` in floorplan.yaml plus a board
+                 regeneration, i.e. a new copper revision's worth of
+                 verification for a sourcing problem.
+           THE SEAL POSITION: this release is sealed with option (1) pending —
+           the line stays ON the CPL with its genuine JST code, because that is
+           what we intend to buy, and the ORDER_README carries the recheck as a
+           blocking pre-order step. A-STOCK is satisfied by this entry's
+           MEASURED NUMBER AND DATE, which is what the gate asks for; it is NOT
+           satisfied by the claim that stock will return."
 
 # ---- EXEMPT REFDES CLASSES -------------------------------------------------
 # H  = M3 mounting holes (generate_board_generic sets FP_BOARD_ONLY +

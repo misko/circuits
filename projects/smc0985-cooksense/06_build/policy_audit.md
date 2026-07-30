@@ -6,13 +6,14 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 
 | ID | Grade | Detail |
 |---|---|---|
-| S-ERC | N-A | no schematic or --skip-drc |
-| S-NC | N-A | no ERC data |
-| S-NET | PASS | 164 routed nets, all named |
+| S-ERC | PASS | 0 errors (411 warnings) |
+| S-NC | PASS | all floats no_connect-flagged |
+| S-NET | PASS | 166 routed nets, all named |
 | S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'SN74HC14DR', 'SN74HC595DR', 'ULN2803ADWR'] (9/38) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
-| P-ESC | PASS | 46 parts: escape blocks agree with escape_check |
+| P-ESC | PASS | 47 parts: escape blocks agree with escape_check |
 | P-TIER | PASS | all parts escape at declared fab_tier 'jlc_4layer_advanced' |
 | P-LAYOUT | PASS | 35 in-scope parts carry a datasheet layout: block |
+| P-PREC | PASS | layout precedent: 0/35 in-scope parts carry a TIER-GRADED record, 35 OWED (bare-string or absent): ['10FDZ-BT', '2.54-2x20PPC104', '2N7002', '43650-0224', 'AMS1117-3.3', 'AO3401A']... [fleet floors: graded >= 0, owed <= 89] |
 | P-ADJ | WAIVED | datasheet layout.keep_short budgets exceeded: ['AMS1117-3.3:3V3 U_LDO.2->C_3V3.1 5.89mm of 5.0mm EXCEEDED (COUT (>=22uF-class) hard against VOUT (pin2 / tab) - it IS t)', 'SN74HC238DR:3V3 U_DECD.16->U_DECDEN.6 5.97mm of 5.0mm EXCEEDED (0.1uF VCC(16)-GND(8) bypass hard against the package)', 'TPS259573DSGR:5V_RPP U_EFUSE.3->C_EFIN.1 5.95mm of 3.0mm EXCEEDED (Cin 0.01-0.1uF IN->GND loop minimized at the terminals (Fig.)', 'TPS259573DSGR:EF_OVLO U_EFUSE.2->R_OVT.2 7.56mm of 5.0mm EXCEEDED (OVLO divider (IN/pin2/GND) local to pin 2, short GND return,)', 'TPS259573DSGR:EF_ILM U_EFUSE.7->R_ILM.1 6.98mm of 5.0mm EXCEEDED (Rilm local to pin 7 / GND - trace resistance adds directly t)'] (5/15 graded) — re-place per the part's layout: block (targets HARD against the chip), or waive with the measured pair + why (P-ADJ) — waived: BOARD-WIDE-RAIL keep_short budgets are geometrically unreachable by P-ADJ's max-pairwise-p... |
 | P-ADJ-PAIR | N-A | no layout.adjacency budgets declared in 02_parts |
 | P-ADJ-UNREACHED | WAIVED | budgets DECLARED but graded by NOTHING: ["2N7002: keep_short net 'HS_GATE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "43650-0224: keep_short net '+5V' has 0 pad(s) on this board (needs 2) — budget 10.0mm graded NOTHING", "AO3401A: keep_short net 'HS_GATE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "AQY212GS: keep_short net 'LED_DRIVE' has 0 pad(s) on this board (needs 2) — budget 6.0mm graded NOTHING", "CD74HC221M96: keep_short net 'N3V3' has 0 pad(s) on this board (needs 2) — budget 5.0mm graded NOTHING"] (23/38) — the net/refdes does not name a measurable pair on this board (renamed, split by a series element, or copied from the datasheet's reference design). Fix the name, name the pins with anchor_pins:, or drop the budget; a budget nothing evaluates is not a pass — waived: A SEPARATE waiver with its OWN evidence, deliberately NOT folded into the P-ADJ waiver abo... |
@@ -20,8 +21,8 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | S5 | HUMAN | design-math spot-check per review protocol |
 | S6 | HUMAN | schematic readability graded in render review |
 | S7 | HUMAN | decoupling-adjacency graded in render review |
-| P-CRT | N-A | no DRC run |
-| R-DRC | N-A | no DRC run |
+| P-CRT | PASS | 0 courtyard findings |
+| R-DRC | PASS | 0/0/0 at severity-all |
 | P-POL | PASS | polarity machine-check present (pad-1 nets vs part facts) |
 | P-KEEP | PASS | mate/keepout checks present in project audit |
 | P-SILK-REF | PASS | all refdes on visible silk |
@@ -30,8 +31,8 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | P-PLANE | PASS | In1 carries only its plane (0 tracks) |
 | R-PLANE | N-A | no plane_regions configured |
 | R-POUR | WAIVED | high-current-class nets with no pour: ['5V_FUSED', '5V_IN', '5V_PROTECTED', '5V_RPP'] — waived: The four PWR_IN-class 5V nets (5V_IN, 5V_FUSED, 5V_PROTECTED, 5V_RPP) are distributed as T... |
-| R-THERM | FAIL | underserved power pads: ['U_LDO.4(0)', 'J_PWR.MP(0)', 'J_PWR.MP(0)'] |
-| R-RULES | FAIL | 1 rule(s) CANNOT FIRE: A-FIRE rule 'pad_rescue_stubs': conditions on insideArea('pad_rescue_stubs'), and no zone/rule area of that name exists on cooksense.kicad_pcb (33 nam |
+| R-THERM | PASS | all pads >=4.0mm2 have >=2 nearby same-net vias |
+| R-RULES | PASS | r0.kicad_pro: classes=['Default', 'PWR_IN', 'COIL_RAIL', 'STOP_RAIL', 'PWR_3V3', 'PWR_SW', 'ISO_CONTACTOR', 'KEYPAD_ISO', 'ANALOG_SENSE'] |
 | R4 | HUMAN | escape-first routing order — design review (feasibility itself is machine-checked: P-ESC/P-TIER) |
 | R-LEN | PASS | length-spread audit present in 03_src (VACUOUS: this grades the WORD, not the copper — see the note above and run copper_length_audit.py) |
 | E-INV | PASS | E-INV OK: 167/167 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
@@ -41,7 +42,7 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | E-OFF | N-A | E-OFF N-A: no self-contained energy source detected (source_type: 'external_5v_selv' (externally powered)) - de-energization is by unplugging the input |
 | M-REPRO | PASS | all rebuild inputs git-tracked |
 | M-REL | PASS | cooksense-v1.6-2026-07-27: provenance + hashes verify (board 'cooksense': 6 of 8 release dir(s) in 07_releases) |
-| M-BOM | FAIL | 10 BOM-vs-source defect(s): MERGED row '100kΩ' (LCSC C25741): its designators have DIFFERENT source codes and must be SEPARATE rows — R_COILENPD->C137948, R_CTRREQPD->C25741, R_DECDPD->C25741, R_DECUPD->C25741, R_HOSTAUTHPD->C25741, R_HSG->C25741, R_KRSTPD->C25741, R_MCUENPD->C25741, R_MR->C25741, R_OPENB->C25741, R_OVT->C270658, R_PG->C25741, R_RAENAPD->C25741, R_RAENBPD->C25741, R_RAENRHAPD->C25741, R_RAENRHEPD->C25741, R_REARMPU->C25741, R_STOPPD->C25741, R_SWPUA->C25741, R_SWPUB->C25741, R_SWPURHA->C25741, R_SWPURHE->C25741 \|\| MERGED row '10kΩ' (LCSC C60490): its designators have DIFFERENT source codes and must be SEPARATE rows — R_BID0->C60490, R_BID1->C60490, R_ESTOPPD->C25117, R_MODEPD->C60490, R_OE->C60490, R_OS2->C60490, R_REF0->C60490, R_REF1->C60490, R_REF2->C60490, R_REF3->C60490, R_REF4->C60490, R_REF5->C60490, R_REF6->C60490, R_REF7->C60490, R_TEMPOK->C60490 \|\| SUBSTITUTED code on row '15kΩ': BOM has C25756 but source says C407739 for ['R_OVB'] |
+| M-BOM | PASS | 06_build/fab_v22/bom_jlc.csv (CANDIDATE): every LCSC == source (208 coded); the sealed cooksense-v1.6-2026-07-27 is NOT contemporaneous — source has moved past it |
 | A-POP | PASS | cooksense-v1.6-2026-07-27: A-POP: PASS (every unpopulated part is declared with evidence) |
 | M-DEPEND | PASS | M-DEPEND coverage: 316 coded row(s) across 6 sealed release(s) — 316 GRADED, 0 WAIVED (release-internal map, blank cell), 0 PINNED-AND-DISAGREEING (F-MPN's), 0 FAIL |
 | A-BODY | PASS | cooksense-v1.6-2026-07-27: bodies mounted 189/189 (generated) |
@@ -51,4 +52,4 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | M1 | HUMAN | independent-reference coverage — release review |
 | M6 | HUMAN | authoritative-source discipline — encoded in protocols |
 
-Summary: FAIL=3, HUMAN=6, N-A=9, PASS=20, WAIVED=6
+Summary: HUMAN=6, N-A=5, PASS=28, WAIVED=6

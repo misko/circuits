@@ -1,0 +1,84 @@
+mpn: 0402WGF4700TCE
+manufacturer: UNI-ROYAL(Uniroyal Elec)
+type: resistor_thickfilm   # 1 ref: R_ESTOPPD, the E-stop input's default-safe pull-down
+datasheet: {doc_id: 0402WGF series, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C25117.html", sha256: null, fetched: 2026-07-29}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-27}
+pins: {1: A, 2: B}
+limits: {R: "470 ohm", tol: "F +-1%", tcr: "+-100ppm/C", power: "62.5mW (0402)", vmax: "50V", temp: "-55C..+155C"}
+asserts:
+  - {assert: value, equals: 470, tolerance_pct: 1,
+     why: "THIS IS THE ONLY REASON THE BOARD IS SAFE WITH NO E-STOP FITTED, and it
+       is a BOUND, not a preference. R_ESTOPPD is the pull-down on ESTOP_RAW_IN.
+       ADR-0024 Decision A derives the ceiling from the POD-MISMATE corner (an
+       SHT45 sensor pod cross-plugged into the safety housing drives its 500 uA
+       measurement current into this node): with R_pd = 470 ohm the node reaches
+       0.591 V (0.608 V at the 3V3 rail ceiling 3.399 V from power_tree.yaml)
+       against the 74HC14's V_T- floor, PASSING by +92 mV. The corrected bound is
+       `R_pd <= 559.3 ohm` — and the next standard value UP, 560 ohm, gives
+       0.7007 V and FAILS BY 0.7 mV. There is no headroom above this value.
+       ADR-0025 then made it load-bearing a SECOND time: with J_ESTOP unfitted
+       (the shipped configuration, behind a removable shorting plug) this resistor
+       is the SOLE DC path on ESTOP_RAW_IN, holding it at
+       (1 uA x 470) + (1 uA x 680) = 1.15 mV against V_T-(min) 0.500 V, i.e. the
+       AND chain goes INERT rather than permissive. A substituted 10k would still
+       read LOW unfitted and would silently FAIL the mismate corner — the defect
+       would be invisible until a pod met the E-stop connector."}
+gotchas:
+  - "THIS DOSSIER EXISTS BECAUSE F-MPN BLOCKED THE EXPORT, and that is the gate
+     working. ADR-0024 chose C25117 and recorded its catalog facts IN THE ADR
+     (line 172: `C25117 = 0402WGF4700TCE, 470 ohm +-1%, BASE library, stock
+     1 834 632`, live) — but no `02_parts/<MPN>/part.yaml` was ever created and the
+     code is not in the vetted passives ledger, so
+     `export_jlc_package.py` refused with `F-MPN C25117: R_ESTOPPD — no
+     02_parts/<MPN>/part.yaml declares this code and it is not in the vetted
+     passives ledger`. A fab artifact is graded as its RECIPIENT parses it
+     (canon F-*, ADR-0006): a BOM row whose MPN column no source resolves is a
+     row a human cannot review. The ADR is the right place for the DECISION and
+     the wrong place for the FACT — the fact's one home is here."
+  - "BASIC/BASE library (`componentLibraryType: base`), unlike the 10k
+     RC0402FR-0710KL beside it, which is `expand`. So this line carries NO
+     one-time feeder fee, and its order-day stock risk is materially lower than
+     the extended 0402s on this BOM. That is a reason to prefer it, not a reason
+     to skip the order-day recheck: `stockCount` is LCSC CATALOG stock and JLC
+     allocates assembly feeders from a different pool (usb-hub-3s-v3 v1.10 sealed
+     with `\"status\": \"OK\", \"stock\": 291` on a line the ASSEMBLY uploader
+     refused hours later)."
+  - "DO NOT let the exporter value-resolve this ref, and do not merge its BOM row
+     with the board's other 470-ohm-class parts. The .tsx pins the code
+     explicitly (`supplierPartNumbers={{ jlcpcb: [\"C25117\"] }}`), which is what
+     makes `bom_source_check` leg A able to see a substitution at all: the KiCad
+     board carries only a Value string, so a value-token exporter is structurally
+     blind to two distinct codes sharing one value+footprint (the usb-hub-3s-v3
+     v1.1 50V-caps-became-25V class)."
+  - "qty 1/board = 5 for a 5-board order, and the minimum purchase step dominates.
+     A one-resistor line is still a line: it must appear SEPARATELY on the BOM
+     because its code differs from every other 0402 on this board (M-BOM grades
+     per-refdes code identity, not per-value)."
+verified: "2-pad passive, non-polarized, standard IPC-7351 0402 land — there is no pin
+  map to derive, so S-VER's figure citation does not apply and the fact that needs
+  provenance is the VALUE. Two independent readings:
+  (1) MPN DECODE — UNI-ROYAL 0402WGF series: `4700` is the E96/E24 3-significant-figure
+  + multiplier code, 470 x 10^0 = 470 ohm; `F` = +-1% tolerance; `TCE` = taping.
+  (2) LIVE JLC CATALOG QUERY — POST
+  https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList
+  keyword C25117, exact componentCode match, read 2026-07-29: componentModelEn
+  `0402WGF4700TCE`, componentSpecificationEn `0402`, componentLibraryType `base`,
+  stockCount 1830193, describe
+  `-55C~+155C 470Ohm 50V 62.5mW Thick Film Resistor +-1% +-100ppm/C 0402 Chip
+  Resistor - Surface Mount ROHS`. M-QUOTE grade: CITED (machine-readable API
+  response, source + read date recorded here). This read is INDEPENDENT of
+  ADR-0024's (different session, different day) and AGREES with it on model,
+  value, tolerance, tempco and library tier; only the volatile stock figure moved
+  (1 834 632 -> 1 830 193), which is why stock lives in the release's
+  stock_check.json and not in this file. The land pattern is the same
+  Resistor_SMD:R_0402_1005Metric this board already uses for its other 0402s."
+sourcing:
+  lcsc: C25117
+  alternates: []
+  note: "JLCPCB BASIC library (`componentLibraryType: base`). Any 470 ohm +-1%
+    0402 is electrically equivalent IF it also satisfies ADR-0024's ceiling
+    (R_pd <= 559.3 ohm) — but PIN THE CODE IN THE .tsx and re-verify the catalog
+    `describe` as a string. Do NOT substitute upward: 560 ohm, the next standard
+    value, FAILS the pod-mismate corner by 0.7 mV."
