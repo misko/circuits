@@ -217,13 +217,16 @@ layout:
     as an absence, and the fit above is DERIVED from the dimension table."
   reviewed: "2026-07-28"
   keep_short:
-    - {net: VBUS_F, max_span_mm: 12, why: "DERIVED: FB_IN's input pad, D_TVS's
-       cathode, C_BULK and F_IN's output must be ONE compact node. Above
-       ~100 MHz a long VBUS_F stops being a node at all, and the bead is then
-       filtering against an inductance rather than against the bulk cap. Same
-       12 mm budget as ../SMBJ6.0A/part.yaml declares for the same net and for
-       the same physical reason — deliberately identical, so the tighter of two
-       numbers can never bind by accident."}
+    - {net: 3V3_MOD, max_span_mm: 12, why: "DERIVED, AND RE-TARGETED FOR v2 —
+       this budget said VBUS_F when the dossier was copied from
+       pluto-rx2-8way, where this bead sat on the USB VBUS rail feeding an LDO.
+       On v2 there is no VBUS on the board at all (ADR-0002: the module owns
+       the only USB), and the bead's input node is 3V3_MOD, shared with C_BULK
+       and the module's 3V3 castellation. The PHYSICS is unchanged and so is
+       the number: above ~100 MHz a long input node stops being a node, and the
+       bead is then filtering against an inductance rather than against the
+       bulk cap. E-NETREF caught the stale name — left as VBUS_F it would have
+       made P-ADJ grade nothing at all, silently."}
   notes:
     - "DERIVED: the LDO's input capacitor is HALF THIS FILTER. Place C_LDI at
        U_LDO.VIN with the shortest possible loop to the ground pour; the bead

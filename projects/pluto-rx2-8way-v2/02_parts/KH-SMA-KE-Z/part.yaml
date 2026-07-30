@@ -96,11 +96,36 @@ layout:
     5-D1.4 hole pattern itself."
   reviewed: "2026-07-27"
   keep_short:
-    - {net: RF_ANT_LAUNCH, max_span_mm: 3, why: "DERIVED: the transition from
-       the D1.4 through-hole barrel to 50 ohm microstrip is the highest-VSWR
-       feature on each port. Any series part (DC block, ESD) belongs inside
-       3 mm of the launch or it adds a second discontinuity at a different
-       reference plane"}
+    # ONE ENTRY PER REAL LAUNCH NET. The dossier arrived from pluto-rx2-8way
+    # carrying a single entry on `RF_ANT_LAUNCH`, which is a PLACEHOLDER NAME
+    # and is not a net on that board either — E-NETREF classes it a GHOST, and
+    # a ghost keep_short does not fail loudly, it makes P-ADJ grade NOTHING for
+    # this part while still counting as a declared budget. (Canon E-NETREF was
+    # written after exactly this: 64 of 908 fleet references were ghosts and
+    # EVERY ONE was a keep_short.)
+    # The budget below is the SAME derived 3 mm, applied to each of the nine
+    # launches this board actually has. Ten jacks, nine nets: J_ANT8 and J_RX1
+    # share RX1_MAIN, which is the pickoff node and is the whole point of the
+    # board.
+    - {net: ANT1, max_span_mm: 3, why: "DERIVED: the transition from the D1.4
+       through-hole barrel to 50 ohm microstrip is the highest-VSWR feature on
+       each port. Any series part belongs inside 3 mm of the launch or it adds
+       a second discontinuity at a different reference plane"}
+    - {net: ANT2, max_span_mm: 3, why: "DERIVED, as ANT1 — per-port, because a
+       budget on one representative port would leave eight ungraded"}
+    - {net: ANT3, max_span_mm: 3, why: "DERIVED, as ANT1"}
+    - {net: ANT4, max_span_mm: 3, why: "DERIVED, as ANT1"}
+    - {net: ANT5, max_span_mm: 3, why: "DERIVED, as ANT1"}
+    - {net: ANT6, max_span_mm: 3, why: "DERIVED, as ANT1"}
+    - {net: ANT7, max_span_mm: 3, why: "DERIVED, as ANT1"}
+    - {net: RX1_MAIN, max_span_mm: 3, why: "DERIVED, as ANT1 — but this net
+       carries THREE pads (J_ANT8.1, J_RX1.1, R_T1.1), so its span is a T and
+       the 3 mm budget is measured across the whole node rather than along a
+       path. It is the tightest of the nine in practice and it is the node the
+       published main-line insertion loss depends on"}
+    - {net: RX2_OUT, max_span_mm: 3, why: "DERIVED, as ANT1 — the switch common
+       out to J_RX2. Its length is COMMON-MODE across all eight measured paths,
+       so an over-budget span here costs absolute loss but no published delta"}
   notes:
     - "DERIVED: a D1.4 plated barrel in a 1.6 mm board is a ~1.6 mm-long,
        1.4 mm-diameter conductor — electrically short (lambda/20 at 6 GHz is

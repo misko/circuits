@@ -66,10 +66,21 @@ rails:
     load_uv_threshold: 2.3
     # PE42482A-X VDD operating minimum (Table 2, PDF p3: 2.3 / 3.3 / 5.5 V).
     # This is a real brownout threshold for the one load our board owns.
-    ir_budget_mohm: 100000
-    # (vout_min - load_uv) / iout_ours = (3.234 - 2.3) / 0.0002 = 4670 ohm.
-    # The declared 100 ohm-equivalent (100000 mOhm) is already 47x inside that,
-    # and the real path is a few tens of milliohms of copper plus a 0.06 ohm
-    # ferrite. E-MARGIN is not a close call on this board and the numbers say
-    # why: our load is 200 uA, so IR drop cannot reach a volt without a broken
-    # connection, which is a different failure with a different detector.
+    ir_budget_mohm: 100
+    # THE ACTUAL SERIES RESISTANCE of the delivery path, not a ceiling — I got
+    # this wrong once and E-MARGIN caught it (declared 100000 mOhm meaning "a
+    # generous ceiling", which the gate correctly read as a 100 ohm delivery
+    # path and failed). Budget, itemised:
+    #     FB_3V3 DCR                          60 mOhm  (Murata max, PDF p2)
+    #     ~20 mm of 0.4 mm trace, 1 oz        ~25 mOhm
+    #     castellation + reflow joints         ~5 mOhm
+    #                                        ~90 mOhm -> declared 100
+    # There is NO cable and NO connector in this path: the module is soldered
+    # to the board and the board has no power connector at all (ADR-0002), so
+    # the two terms that dominate a USB-powered board's IR budget are simply
+    # absent. That is a real advantage of the module topology and it is worth
+    # naming rather than leaving as an unexplained small number.
+    # CONSERVATIVE BY CONSTRUCTION: the gate charges this path with the WHOLE
+    # rail's 0.1 A, but only OUR 200 uA actually crosses it — the module's own
+    # ~100 mA never leaves the module. The declared arrangement therefore
+    # over-states the drop by ~500x, and it still passes with ~78x of margin.

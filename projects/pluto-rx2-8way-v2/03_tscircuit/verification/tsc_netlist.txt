@@ -1,0 +1,379 @@
+COMPONENTS:
+ - U_SW: 
+ - J_ANT1: 
+ - J_ANT2: 
+ - J_ANT3: 
+ - J_ANT4: 
+ - J_ANT5: 
+ - J_ANT6: 
+ - J_ANT7: 
+ - J_ANT8: 
+ - J_RX1: 
+ - J_RX2: 
+ - R_T1: 220Ω res0402 resistor
+ - R_T2: 220Ω res0402 resistor
+ - R_S1: 47Ω res0402 resistor
+ - R_S2: 47Ω res0402 resistor
+ - R_S3: 47Ω res0402 resistor
+ - R_S4: 47Ω res0402 resistor
+ - R_PD1: 10kΩ res0402 resistor
+ - R_PD2: 10kΩ res0402 resistor
+ - R_PD3: 10kΩ res0402 resistor
+ - R_PD4: 10kΩ res0402 resistor
+ - FB_3V3: 0805
+ - C_BULK: 4.7uF 0805 capacitor
+ - C_SW1: 100nF 0402 capacitor
+ - C_SW2: 1uF 0603 capacitor
+ - U_MCU: 
+ - R_LED: 680Ω res0402 resistor
+ - LED_ST: 
+
+NET: ANT1
+  - J_ANT1 RF
+  - U_SW RF1
+
+NET: ANT2
+  - J_ANT2 RF
+  - U_SW RF2
+
+NET: ANT3
+  - J_ANT3 RF
+  - U_SW RF3
+
+NET: ANT4
+  - J_ANT4 RF
+  - U_SW RF4
+
+NET: ANT5
+  - J_ANT5 RF
+  - U_SW RF5
+
+NET: ANT6
+  - J_ANT6 RF
+  - U_SW RF6
+
+NET: ANT7
+  - J_ANT7 RF
+  - U_SW RF7
+
+NET: RX2_OUT
+  - J_RX2 RF
+  - U_SW RFC
+
+NET: RX1_MAIN
+  - R_T1 pin1
+  - J_RX1 RF
+  - J_ANT8 RF
+
+NET: RX1_TAP_MID
+  - R_T2 pin1
+  - R_T1 pin2
+
+NET: RX1_TAP
+  - R_T2 pin2
+  - U_SW RF8
+
+NET: SW_V1
+  - R_PD1 pin1
+  - R_S1 pin2
+  - U_SW V1
+
+NET: SW_V2
+  - R_PD2 pin1
+  - R_S2 pin2
+  - U_SW V2
+
+NET: SW_V3
+  - R_PD3 pin1
+  - R_S3 pin2
+  - U_SW V3
+
+NET: SW_V4
+  - R_PD4 pin1
+  - R_S4 pin2
+  - U_SW V4
+
+NET: N3V3
+  - C_SW2 pin1 (+)
+  - C_SW1 pin1 (+)
+  - FB_3V3 OUT
+  - U_SW VDD
+
+NET: N3V3_MOD
+  - U_MCU 3V3
+  - C_BULK pin1 (+)
+  - FB_3V3 IN
+
+NET: SEL_V4
+  - U_MCU GP3
+  - R_S4 pin1
+
+NET: SEL_V3
+  - U_MCU GP2
+  - R_S3 pin1
+
+NET: SEL_V2
+  - U_MCU GP1
+  - R_S2 pin1
+
+NET: SEL_V1
+  - U_MCU GP0
+  - R_S1 pin1
+
+NET: LED_STAT
+  - R_LED pin1
+  - U_MCU GP4
+
+NET: GND
+  - LED_ST K
+  - U_MCU GND
+  - C_SW2 pin2 (-)
+  - C_SW1 pin2 (-)
+  - C_BULK pin2 (-)
+  - R_PD4 pin2
+  - R_PD3 pin2
+  - R_PD2 pin2
+  - R_PD1 pin2
+  - J_RX2 GND
+  - J_RX2 GND
+  - J_RX2 GND
+  - J_RX2 GND
+  - J_RX1 GND
+  - J_RX1 GND
+  - J_RX1 GND
+  - J_RX1 GND
+  - J_ANT8 GND
+  - J_ANT8 GND
+  - J_ANT8 GND
+  - J_ANT8 GND
+  - J_ANT7 GND
+  - J_ANT7 GND
+  - J_ANT7 GND
+  - J_ANT7 GND
+  - J_ANT6 GND
+  - J_ANT6 GND
+  - J_ANT6 GND
+  - J_ANT6 GND
+  - J_ANT5 GND
+  - J_ANT5 GND
+  - J_ANT5 GND
+  - J_ANT5 GND
+  - J_ANT4 GND
+  - J_ANT4 GND
+  - J_ANT4 GND
+  - J_ANT4 GND
+  - J_ANT3 GND
+  - J_ANT3 GND
+  - J_ANT3 GND
+  - J_ANT3 GND
+  - J_ANT2 GND
+  - J_ANT2 GND
+  - J_ANT2 GND
+  - J_ANT2 GND
+  - J_ANT1 GND
+  - J_ANT1 GND
+  - J_ANT1 GND
+  - J_ANT1 GND
+  - U_SW EP
+  - U_SW NC
+  - U_SW GND
+  - U_SW GND
+  - U_SW GND
+  - U_SW GND
+  - U_SW GND
+  - U_SW GND
+  - U_SW GND
+  - U_SW GND
+  - U_SW LS
+
+NET: LED_STAT_A
+  - LED_ST A
+  - R_LED pin2
+
+
+COMPONENT_PINS:
+U_SW
+- pin1(LS): NETS(GND)
+- pin2(RF2): NETS(ANT2)
+- pin3(GND): NETS(GND)
+- pin4(RF3): NETS(ANT3)
+- pin5(GND): NETS(GND)
+- pin6(RF4): NETS(ANT4)
+- pin7(GND): NETS(GND)
+- pin8(VDD): NETS(N3V3)
+- pin9(V1): NETS(SW_V1)
+- pin10(V2): NETS(SW_V2)
+- pin11(V3): NETS(SW_V3)
+- pin12(V4): NETS(SW_V4)
+- pin13(RF5): NETS(ANT5)
+- pin14(GND): NETS(GND)
+- pin15(RF6): NETS(ANT6)
+- pin16(GND): NETS(GND)
+- pin17(RF7): NETS(ANT7)
+- pin18(GND): NETS(GND)
+- pin19(RF8): NETS(RX1_TAP)
+- pin20(NC): NETS(GND)
+- pin21(GND): NETS(GND)
+- pin22(RFC): NETS(RX2_OUT)
+- pin23(GND): NETS(GND)
+- pin24(RF1): NETS(ANT1)
+- pin25(EP): NETS(GND)
+
+J_ANT1
+- pin1(RF): NETS(ANT1)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_ANT2
+- pin1(RF): NETS(ANT2)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_ANT3
+- pin1(RF): NETS(ANT3)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_ANT4
+- pin1(RF): NETS(ANT4)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_ANT5
+- pin1(RF): NETS(ANT5)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_ANT6
+- pin1(RF): NETS(ANT6)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_ANT7
+- pin1(RF): NETS(ANT7)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_ANT8
+- pin1(RF): NETS(RX1_MAIN)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_RX1
+- pin1(RF): NETS(RX1_MAIN)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+J_RX2
+- pin1(RF): NETS(RX2_OUT)
+- pin2(GND): NETS(GND)
+- pin3(GND): NETS(GND)
+- pin4(GND): NETS(GND)
+- pin5(GND): NETS(GND)
+
+R_T1 (220Ω res0402)
+- pin1(anode, pos, left): NETS(RX1_MAIN)
+- pin2(cathode, neg, right): NETS(RX1_TAP_MID)
+
+R_T2 (220Ω res0402)
+- pin1(anode, pos, left): NETS(RX1_TAP_MID)
+- pin2(cathode, neg, right): NETS(RX1_TAP)
+
+R_S1 (47Ω res0402)
+- pin1(anode, pos, left): NETS(SEL_V1)
+- pin2(cathode, neg, right): NETS(SW_V1)
+
+R_S2 (47Ω res0402)
+- pin1(anode, pos, left): NETS(SEL_V2)
+- pin2(cathode, neg, right): NETS(SW_V2)
+
+R_S3 (47Ω res0402)
+- pin1(anode, pos, left): NETS(SEL_V3)
+- pin2(cathode, neg, right): NETS(SW_V3)
+
+R_S4 (47Ω res0402)
+- pin1(anode, pos, left): NETS(SEL_V4)
+- pin2(cathode, neg, right): NETS(SW_V4)
+
+R_PD1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(SW_V1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_PD2 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(SW_V2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_PD3 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(SW_V3)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_PD4 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(SW_V4)
+- pin2(cathode, neg, right): NETS(GND)
+
+FB_3V3
+- pin1(IN, left): NETS(N3V3_MOD)
+- pin2(OUT, right): NETS(N3V3)
+
+C_BULK (4.7uF 0805)
+- pin1(pos, anode, left): NETS(N3V3_MOD)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_SW1 (100nF 0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_SW2 (1uF 0603)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U_MCU
+- pin1(5V): NOT_CONNECTED
+- pin2(GND): NETS(GND)
+- pin3(3V3): NETS(N3V3_MOD)
+- pin4(GP29): NOT_CONNECTED
+- pin5(GP28): NOT_CONNECTED
+- pin6(GP27): NOT_CONNECTED
+- pin7(GP26): NOT_CONNECTED
+- pin8(GP15): NOT_CONNECTED
+- pin9(GP14): NOT_CONNECTED
+- pin10(GP13): NOT_CONNECTED
+- pin11(GP12): NOT_CONNECTED
+- pin12(GP11): NOT_CONNECTED
+- pin13(GP10): NOT_CONNECTED
+- pin14(GP9): NOT_CONNECTED
+- pin15(GP8): NOT_CONNECTED
+- pin16(GP7): NOT_CONNECTED
+- pin17(GP6): NOT_CONNECTED
+- pin18(GP5): NOT_CONNECTED
+- pin19(GP4): NETS(LED_STAT)
+- pin20(GP3): NETS(SEL_V4)
+- pin21(GP2): NETS(SEL_V3)
+- pin22(GP1): NETS(SEL_V2)
+- pin23(GP0): NETS(SEL_V1)
+
+R_LED (680Ω res0402)
+- pin1(anode, pos, left): NETS(LED_STAT)
+- pin2(cathode, neg, right): NETS(LED_STAT_A)
+
+LED_ST
+- pin1(K): NETS(GND)
+- pin2(A): NETS(LED_STAT_A)

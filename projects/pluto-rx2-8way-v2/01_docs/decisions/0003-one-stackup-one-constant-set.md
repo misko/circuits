@@ -103,10 +103,18 @@ command: >-
   print(round(299.792458/(f*math.sqrt(ee))/20,4))"
 governs:
   evaluate: >-
-    /usr/bin/python3 -c "print('fence pitch {} mm is lambda_g/{:.1f}'.format({value},
-    27.387/{value}))"
+    /usr/bin/python3 -c "print(round(27.387/{value}, 4))"
   budget: ">= 20"
   unit: divisions of lambda_g
+  # Prints a BARE NUMBER, and that is not cosmetic: adr_bound_provenance
+  # requires the last stdout line to carry exactly one number, and a first
+  # version of this line printed a human sentence with three numbers in it
+  # ("fence pitch 1.3693 mm is lambda_g/20.0"). The bound regenerated
+  # perfectly and the GOVERNS check was unevaluable — which the gate reports
+  # as UNVERIFIED, not as a pass.
+  # What it asks: at the published pitch, how many divisions of the guided
+  # wavelength is the fence? Must be >= 20. At 1.3693 it is exactly 20.0; at
+  # the declared standard value 1.35 it is 20.29, i.e. tighter than required.
 standard_value:
   explicit: [1.35, 1.30, 1.25]
   series_why: >-
