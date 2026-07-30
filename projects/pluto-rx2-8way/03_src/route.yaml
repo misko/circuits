@@ -133,7 +133,56 @@ route:
     # RF FIRST, F.Cu ONLY, NO VIAS. Equal length is equal phase by
     # construction (ADR-0007); a layer change inside an arm destroys the one
     # property this board sells.
-    - {name: rf,   group: rf,   layers: [F.Cu], max_iterations: 400000}
+    #
+    # ------------------------------------------------------------------------
+    # length_match_group / length_match_tolerance ADDED 2026-07-30, and they
+    # are here because "equal by construction" IS FALSE OF COPPER on an
+    # OCTILINEAR router. KRT moves in 8 directions, so the shortest possible
+    # pad-to-pad arm is max(dx,dy) + 0.4142*min(dx,dy); only 3 of the 9 radials
+    # sit on a 45-degree multiple and the other six pay ~7% of their radius.
+    # MEASURED FROM PADS ALONE (copper_length_audit R-LEN-OCT, no router run):
+    # Euclidean pad spread 0.3238 mm, OCTILINEAR FLOOR spread 1.4966 mm =
+    # 19.74 deg at 6 GHz, against nets.yaml's max_spread_mm 1.0. The ceiling is
+    # excluded BY THE MOVE SET, not by router effort — no iteration budget,
+    # clearance or placement tuning reaches it.
+    #
+    # The floor is NOT a bound on the ACHIEVABLE spread, because a router can
+    # LENGTHEN a short member. That is what this group does: KRT's
+    # length_matching.py adds trombone meanders at the longest straight segment
+    # of each member until every member reaches the group target. nets.yaml
+    # therefore declares `elongation: meander` on RF_RADIAL_STAR, and the gate
+    # CROSS-CHECKS that claim against THIS key — a claim about the recipe is
+    # worth the recipe behind it. THE TWO EDITS ARE ONE CHANGE; deleting either
+    # one alone re-fails R-LEN-OCT (as R-LEN-OCT-RECIPE if this key goes).
+    #
+    # THE GROUP IS WRITTEN OUT AS EIGHT LITERAL NET NAMES, not as the proven
+    # hand-run's `['ANT*', 'RX2_OUT']`. The flag is fnmatch, so today the glob
+    # selects exactly the same 8 nets — but the matched set must be IDENTICAL
+    # to nets.yaml's `length_match: RF_RADIAL_STAR` members, and a glob makes
+    # that an accident of naming: the ninth radial's nets (RX1_TAP,
+    # RX1_TAP_MID, RX1_MAIN) are excluded ON PHYSICS (ADR-0006: a lumped
+    # 2x220 ohm pickoff, "unequal by construction"), and if one were ever
+    # renamed ANT8 the glob would silently pull it into the matched set and
+    # meander a path whose length is not a phase. Literal names cost one line
+    # and cannot drift.
+    #
+    # TOLERANCE 0.15 mm IS CHOSEN AGAINST THE ASSEMBLY, NOT AGAINST A WISH.
+    # At 13.19 deg/mm (6 GHz, JLC04161H-7628, eps_eff 3.350) 0.15 mm is
+    # 1.98 deg — one solder-fillet's worth of mounting-inductance asymmetry
+    # (ADR-0006(d): ~0.1 nH ~ 2 deg per fillet, a CPL/reflow property no router
+    # controls). Asking the router for less than the reflow oven can hold buys
+    # a quantity that cannot exist on an assembled board; that is exactly the
+    # arithmetic that withdrew the old +/-0.10 mm (= 1.3 deg) obligation. It is
+    # also the value the 2026-07-29 hand run was MEASURED at: 8 nets,
+    # target 19.83 mm, group spread 2.237 -> 1.1586 mm, 11/11 routed, 0 failed,
+    # min_clearance_used 0.2 — no clearance relaxation anywhere.
+    # meander_amplitude is LEFT AT KRT's 1.0 mm default: it is unmeasured on
+    # this board and an unproven key in a promoted recipe is a guess wearing a
+    # config row. If the realized spread misses max_spread_mm it is the FIRST
+    # thing to try, and it gets a number here when it earns one.
+    - {name: rf,   group: rf,   layers: [F.Cu], max_iterations: 400000,
+       length_match_group: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, RX2_OUT],
+       length_match_tolerance: 0.15}
     - {name: pwr,  group: pwr,  max_iterations: 400000}
     - {name: usb,  group: usb,  layers: [F.Cu], max_iterations: 400000}
     - {name: ctrl, group: ctrl, keepout_layer: User.3, max_iterations: 600000}

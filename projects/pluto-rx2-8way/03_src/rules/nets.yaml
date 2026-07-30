@@ -349,6 +349,34 @@ length_match:
     # hole, so ONE via on ONE arm is a pure DIFFERENTIAL error on a published
     # delta.
     max_spread_mm: 1.0
+    elongation: meander
+    # ADDED 2026-07-30, AND IT IS NOT A WAIVER — it changes WHICH question
+    # R-LEN-OCT asks, and the realized-spread check below is untouched.
+    # THE PROBLEM: KRT is OCTILINEAR (45-degree multiples), so the shortest
+    # copper it can lay between two pads is max(dx,dy) + 0.4142*min(dx,dy),
+    # not the Euclidean distance. Only three of the nine radials (135/225/315
+    # deg) sit on a legal move direction; the other six pay ~7.3% of their
+    # radius. MEASURED FROM PADS ALONE, before any router ran: Euclidean pad
+    # spread 0.3238 mm, OCTILINEAR FLOOR spread 1.4966 mm = 19.74 deg at
+    # 6 GHz. The 1.0 mm ceiling above is BELOW that floor.
+    # WHY THE CEILING DOES NOT MOVE. 1.0 mm was derived twice over — from
+    # dtau = TC*dT*dL*t_pd (ADR-0006(b)) and as ~1x PE42482A-X's own 13.2 deg
+    # part-to-part window — and raising it to 1.4966 mm to clear the gate
+    # would be a DRIFT claim bought with a router limitation. The floor is a
+    # statement about the router's move set, not about the physics the ceiling
+    # encodes, and the two must not be traded.
+    # WHY MEANDERING IS THE HONEST ANSWER: the octilinear floor bounds the
+    # SHORTEST path, not the ACHIEVABLE SPREAD. A router can always LENGTHEN a
+    # short member, and KRT's length_matching.py does exactly that — trombone
+    # meanders at the longest straight segment, driven by
+    # `--length-match-group`. So the fix is to equalise UP to the longest
+    # member's floor rather than to demand a shortest path nobody can lay.
+    # THE CLAIM IS CROSS-CHECKED, NOT TRUSTED: copper_length_audit refuses
+    # `elongation:` unless 03_src/route.yaml carries a real
+    # `length_match_group` (R-LEN-OCT-RECIPE), and the members' REALIZED
+    # copper is still graded against max_spread_mm 1.0 off the board. This key
+    # buys exactly one thing — it stops the gate from failing a ceiling on
+    # PAD geometry that the recipe deliberately does not route to.
     stackup_mm: [0.2104, 0.9792, 0.2104]   # ADR-0003, JLC04161H-7628.
     # Documentation only: `no_vias: true` means a via is a FAIL before a barrel
     # is ever priced. Declared so that a future reader who relaxes no_vias does
