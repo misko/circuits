@@ -170,6 +170,78 @@ BACKEND GAP to report, not a bespoke script to write here.
   mating-feasibility checker (error bar vs mating budget). That has been run
   once, by hand, on one interface; canon M8 promotes on the SECOND board
   needing it.
+- **PUBLISHED BOUNDS (canon M-BOUND, the ADR analogue of M4's `evidence:`).**
+  `adr_bound_provenance.py ROOT [--adr NAME] [--no-regen] [--strict-owed]`
+  grades every inequality bound an ADR publishes. Input: `docs/decisions/` plus
+  every `*/01_docs/decisions/[0-9]*.md`; a bound is DECLARED by a line reading
+  `<!-- bound -->` followed by a fenced `yaml` block carrying `{id, claim,
+  relation, value, unit, corner, command, governs{evaluate, budget, unit},
+  standard_value{series, series_why}, chosen, tolerance, tolerance_why, grade,
+  requires, why_not_rerunnable, corner_commands}`. `command` is re-run from the
+  repo root and diffed against `value`; `governs.evaluate` carries a `{value}`
+  placeholder and is run TWICE MORE, and those two runs are the whole gate.
+  Findings: **B-REGEN** (the command disagrees beyond `tolerance`), **B-FLIP**
+  (the value the ADR says it CHOSE satisfies the published bound and not the
+  regenerated one — a REVERSED VERDICT, separate from B-REGEN and excused by no
+  tolerance), **B-CORNER** (the bound, nudged inward by its own declared
+  tolerance, violates its own `governs.budget` — so it was not derived at the
+  corner it declares; fails ON THAT ALONE, independent of every other check),
+  **B-STDVAL** (the nearest standard value admissible under the bound,
+  re-evaluated at the declared corner, violates that budget), **B-SERIES** (the
+  series is unnamed, unknown, or unjustified), **B-TOL** (no `tolerance_why`, or
+  a tolerance >= the margin to the nearest value the bound must rule on),
+  **B-SCHEMA** / **B-GRADE** / **B-CMD** (as M4's, and the denylist is
+  `waiver_provenance.MUTATING`, IMPORTED rather than copied — one dialect).
+  Ladder and ratchet are M4's verbatim: CITED -> UNVERIFIED -> ESTIMATED ->
+  OWED, `CITED_FLOOR` and `OWED_CEILING`, coverage reported and every OWED
+  document named.
+  WHY: smc0985-cooksense ADR-0024 published `R_pd <= 592 Ohm` as the one-line
+  takeaway of a document whose entire argument is worst-case. **592 is the
+  NOMINAL corner**; the worst-case bound is **559.283 Ohm**; and **560 Ohm, the
+  nearest E24 value under 592, gives 0.700712 V against a 0.700 V budget and
+  FAILS by 0.7 mV.** The published bound permitted exactly one standard value
+  and that value does not clear — the failure the ADR is NAMED after, reproduced
+  in its own summary line. The chosen 470 Ohm was unaffected, so no gate could
+  have found it from the board: **A BOUND IS NOT A NUMBER, IT IS A NUMBER PLUS
+  THE SET OF PARTS YOU CAN ACTUALLY BUY.** The series is DECLARED PER BOUND and
+  never assumed, because it changes the verdict (E24 admits 560 under 592, E96
+  admits 590, a stocked-set declaration may admit only 470) — a safety
+  pull-down and a decoupling cap are not sourced from the same supply chain, and
+  one global default standing in for two is the "the generator was two
+  generators all along" defect (0.9375 mm board silk vs 0.75 mm refdes, same
+  day) one level up.
+  AND IT IS FOUR DOCUMENTS, NOT ONE (canon M-WIDTH — name the class, enumerate
+  the members). Re-deriving all 108 published bounds found: cooksense ADR-0024
+  (above, corrected since); **cooksense ADR-0018:213, `V <= 1.0 V => R >= 1 564
+  Ohm`, STILL PUBLISHED** — in a section headed verbatim "WORST CASE, INJECTED
+  PULL-UP" whose own column header reads `3.3 · 680/(680+R)`, while the board's
+  `power_tree.yaml` declares 3V3 `vout_max: 3.399` and the ADR takes 3.201 V for
+  the opposite direction forty lines earlier; the true bound is **1 631.3 Ohm**,
+  and the published one admits E24 1.60 k (1.0137 V), E96 1.58 k (1.0227 V) and
+  E96 1.62 k (1.0049 V), NOT ONE OF WHICH CLEARS. usb-hub-3s-v3 ADR-0003's
+  `PASS <= 300 uA`, which that board's `power_tree.yaml` retired in writing
+  ("the old `<= 300 uA` WOULD HAVE FAILED A GOOD BOARD") — a gate that cannot
+  PASS, published as a bound. crow-recorder-central-v2 ADR-0007's `~1.1 A hold`
+  F_BEEP PTC, naming MINISMDC110F against six pods firing together at 0.900 A
+  where this repo's own x0.8-at-50 C derating puts that part at 0.880 A — 560 Ohm
+  in a different unit.
+  MEASURED 2026-07-29: **37 of 72 ADRs publish an inequality bound, 108 bounds
+  in all, 0 declare a block** — so the gate is a NAMED DEBT under `OWED_CEILING
+  = 37` and reds nothing today; the next ADR publishing a typed bound must
+  declare it or raise the ceiling in the same commit. Known-bads in
+  `t1_adr_bounds.py`, headed by ADR-0024's real 592 Ohm bound (caught twice) and
+  red-verified by ABLATION: with B-CORNER and B-STDVAL excised the same bytes
+  PASS, because a `command:` solving at the nominal corner regenerates 592.3077
+  and AGREES with the typed 592.3 — the M4-shaped half of the gate is satisfied
+  by the defect.
+  DECLARED SCOPE LIMIT: it catches a MISLABELLED corner, not a badly CHOSEN one.
+  An ADR that says `corner: nominal` and does nominal arithmetic is internally
+  consistent and passes, even when the document's argument is worst-case; and
+  `governs.evaluate` is the ADR author's arithmetic, so an evaluator wrong in
+  the same direction as the bound agrees with it (canon M1 — the gate owns the
+  ladder, the E-series and the relation, never the physics). The `VACUITY:`
+  block and its bound fixture are OWED: promoting them requires
+  `gate_contract_audit.VACUITY_FLOOR` 5 -> 6.
 - **THE LIVE BEACON (canon M9 / M-BEACON).** `pcb_status.py` READS the beacon;
   `status_beacon_check.py [PROJECT ...] [--root REPO]` grades it against the
   TREE — the two are deliberately separate scripts, because a reader that
