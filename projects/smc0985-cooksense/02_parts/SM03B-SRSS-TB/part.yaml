@@ -1,0 +1,98 @@
+mpn: SM03B-SRSS-TB
+manufacturer: JST
+type: connector_wire_to_board_header_1x3   # CLASS: 1.0mm SH SMD side-entry header
+datasheet:
+  doc_id: eSH                     # JST SH series drawing (no printed numeric revision)
+  revision: eSH                   # JST catalog sheet carries no rev code; token == filename
+  url: https://www.jst-mfg.com/product/pdf/eng/eSH.pdf
+  sha256: ea3071ca5ee5a6069eba534fa39a10f34c9fb742ee42135a69ab4156bfa0f5de
+  fetched: 2026-07-29
+package: JST SH 1.0mm 3-circuit SMD side-entry (right-angle) shrouded header, 2 solder tabs
+footprint: Connector_JST:JST_SH_SM03B-SRSS-TB_1x03-1MP_P1.00mm_Horizontal
+escape:                           # escape_check.py --style connector --pitch 1.0
+  style: connector
+  pitch: 1.0
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-29   # measured, not inherited: the ZH/GH precedents were
+                                     # 1.50/1.25mm and did NOT cover 1.00mm. All five tiers
+                                     # report ok; jlc_2layer_default is the floor.
+pins:                             # 1..3 signal + 2 mechanical tabs (KiCad pad name "MP")
+  1: P1                           # No.1 circuit is the marked end of the row (eSH p.3)
+  2: P2
+  3: P3
+  MP: {name: MP, tie: GND, note: "two tin-plated reinforcement/solder tabs (footprint pad 'MP' x2 = one common node); carry no signal current — tie to GND for retention"}
+limits: {current_per_contact: "1.0A AC/DC (AWG#28)", voltage: "50V AC/DC", temp_range: "-25..+85C incl. current rise", wire: "AWG #32-#28, insulation OD 0.4-0.8mm", withstanding: "500VAC 1 min, no breakdown", insulation_resistance: "100 MOhm min", contact_resistance: "20 mOhm initial / 40 mOhm after environmental tests"}
+gotchas:
+  - "THIS PART EXISTS ON THIS BOARD FOR ITS PITCH, NOT ITS ELECTRICALS (ADR-0025), exactly
+    as S4B-ZR-SM4A-TF does for J_MODE (ADR-0018 decision C). It keys `J_ESTOP` out of every
+    other harness on the board so that the REMOVABLE SHORTING PLUG which satisfies the
+    E-stop permission cannot be fitted anywhere else. DO NOT 'normalise' J_ESTOP back to a
+    5-pin GH for BOM tidiness: a GH-5 shorting plug bridging circuits 1-2 lands on
+    pin1 = switched 3V3 sensor rail and pin2 = GND on all four sensor-pod housings
+    (J_RH_AMBIENT/J_RH_EXHAUST/J_THERM_A/J_THERM_B) = a DEAD SHORT limited only by an
+    AO3401A's R_DS(on)."
+  - "THE KEYING EVIDENCE, BOTH DIRECTIONS, from the three JST drawings and measured
+    KiCad courtyards. INTO this header (blocked by hard interference): the SH-3 side-entry
+    shroud is B = 5.0mm wide x 2.9mm tall (eSH p.3, SM03B-SRSS-TB row A=2.0 B=5.0; side-entry
+    outline 2.9 x 4.25). GHR-05V-S is 7.50 x 4.15 (eGH p.2) -> 2.50mm width + 1.25mm height
+    interference. ZHR-4 is 7.50 x 3.40 (eZH p.2) -> 2.50 + 0.50. GHR-08V-S / GHR-10V-S and
+    XHP-5 are larger again. NOTHING on this board can enter it.
+    OUT OF this header (bounded by pitch offset, NOT by latching): an SHR-03V-S-B plug is
+    6.0 x 2.8mm (eSH p.2) and CAN be pushed loosely into a GH or ZH shroud. It cannot latch,
+    but 'cannot latch' is not a safety claim, so the claim rests on contact alignment. SH
+    circuits sit at 0/1.0/2.0mm; GH posts at 0/1.25/2.50mm (offsets 0/0.25/0.50); ZH posts at
+    0/1.50/3.00mm (offsets 0/0.50/1.00). Circuit 3 is the worst-aligned in every foreign
+    family (>=0.50mm against a ~0.30mm post) so it is the one circuit that can never engage
+    elsewhere. THE PINOUT IS CHOSEN ON THAT: E-stop sense on circuit 3, shorting plug
+    bridges 2-3, so the short cannot be COMPLETED in any other housing. A 1-2 bridge would
+    have used the 0/0.25mm pair, which is the pair that might engage."
+  - "3 CIRCUITS IS THE FULL REQUIREMENT, NOT A COMPROMISE. BRIEF.md:89 asks for a 4-pin
+    E-stop housing because contact B was originally on it; v1.3 P0-2 moved contact B off
+    permanently (SELV and the isolated 30V loop 0.650mm apart in ONE harness was a
+    common-cause failure across the LTV-817S barrier). A real mushroom E-stop wires contact
+    A to J_ESTOP 2-3 and contact B to J_ISOLOOP's screw terminals. SM04B-SRSS-TB (C160404,
+    stock 17 438 live 2026-07-29, footprint ships in-tree, same 1.00mm pitch and therefore
+    the same keying) was CHECKED and rejected only because the 4th circuit has nothing to
+    carry and costs 1.000mm of a 1.198mm east-column slack budget."
+  - "THE MP SOLDER TABS ARE THE OUTERMOST COPPER AND THEY OVERHANG THE MOUTH FACE.
+    Measured on the built board: MP pad bb reaches local y +2.775 (centre 1.875 +
+    half-height 0.900) where F.Fab stops at +2.575, and the GH-5's MP centre sits at
+    only +1.350 — so an SH-3 dropped in at a GH-5's coordinate puts 0.525mm MORE
+    copper toward the board edge. AN SH IS NOT A SMALL GH. On this board that cost
+    two `copper_edge_clearance` errors at 0.2250mm against a 0.3000mm rule (one per
+    tab) until the anchor moved 0.400mm inboard. Predicting the east face from the
+    footprint's pad CENTRES is what got it wrong; use pad BOUNDING BOXES."
+  - "COURTYARD IS 6.800 x 6.560mm (measured from the in-tree footprint's F.CrtYd), against
+    GH-5's 10.700 x 6.400. It FREES 3.900mm of the east connector column and costs 0.160mm
+    of inboard depth. That freed width is what the J_ISOLOOP label-ownership blocker needed
+    (01_docs/learnings/label_ownership_se_corner.md)."
+  - "RETENTION IS A HOUSING LANCE, NOT A POSITIVE LATCH (eSH p.1, 'Housing lance system') —
+    the same trade S4B-ZR-SM4A-TF makes. On THIS net set the loss fails safe: an unplugged
+    J_ESTOP leaves ESTOP_RAW_IN held at 1.15mV by R_ESTOPPD 470R, so ESTOP_OK is LOW and the
+    coil rail, the fault latch and the PRESS one-shot are all held restrictive. ORDER_README
+    requires a cable-tie strain relief at this housing, as it does at J_MODE."
+  - "WIRE RANGE IS THE NARROWEST ON THE BOARD: AWG #32-#28, insulation OD 0.4-0.8mm. For the
+    SHORTING PLUG this is a non-issue — it is a ~5mm crimped bridge carrying 3.3V/470R =
+    7.0mA. For a FUTURE field run to a mushroom button it is thin: #28 at 7mA is
+    electrically trivial but mechanically fragile over a metre, so the ORDER_README calls for
+    an in-enclosure splice from #28 pigtail to #24/#26 field cable rather than a single run.
+    This is the one honest cost of the keying and it is the reason SH ranked 2nd in the
+    original spike (01_docs/learnings/label_ownership_se_corner.md); the objection applies to
+    the field harness and NOT to the shorting plug, which is what the board ships needing."
+  - "mates with JST SHR-03V-S-B crimp housing (C268100, LCSC stock 0) + SSH-003T-P0.2-H
+    contacts (C263995, stock 167 600, JST-genuine, listed for SH and APSH). Stocked
+    equivalents for the plug body if the genuine reads 0 at order time: HDGC1002H-3P
+    (C2909166, 2 153), HC-1.0-3Y (C2962274, 1 625), A1002H-3P (C338906, 515). This is a THIRD
+    crimp system on the harness bench, which is the POINT: a J_ESTOP plug cannot be built
+    from GH or ZH parts by accident."
+verified: "pad map 1..3 + 2xMP from footprint Connector_JST:JST_SH_SM03B-SRSS-TB_1x03-1MP_P1.00mm_Horizontal (pin1 x=-1.0, pin2 x=0.0, pin3 x=+1.0 -> 1.00mm pitch; MP at +-2.3, y=+1.875); F.CrtYd 6.800 x 6.560. Ratings from JST eSH.pdf p.1 (Specifications: 1.0A AC/DC AWG#28, 50V, -25..+85C, 500VAC withstanding, 20/40 mOhm, 100 MOhm); model/dimension row SM03B-SRSS-TB A=2.0 B=5.0 and side-entry outline 2.9/4.25 from eSH.pdf p.3 (Header table); mating housing SHR-03V-S-B A=2.0 B=6.0 (with protrusions) and contact SSH-003T-P0.2-H (AWG#32-28, OD 0.4-0.8) from eSH.pdf p.2 - 2026-07-29"
+layout:                           # in P-LAYOUT scope (npins>2)
+  source: "JST eSH SMD land pattern + solder-tab retention (mechanical). Passive interconnect carrying a DRY contact (a mushroom E-stop's NC contact A, or the shorting plug that stands in for it), so it has no bus-integrity constraint of its own. The one electrical rule it imposes is ADR-0024's front end, which stays AT this connector."
+  reviewed: "2026-07-29"
+  keep_short:
+    - {net: ESTOP_RAW_IN, max_span_mm: 12.0, why: "R_ESTOPPD 470R and D_ESTOP (PESD5V0S1BA) must sit AT this connector, not out at the SN74HC14: the 470R IS the divider that rejects an injected pull-up (ADR-0024 decision B, R_pd <= 559.3 Ohm) and is the sole reason the unfitted node measures 1.15mV instead of floating, and the TVS only clamps at the pin. The logic-side node ESTOP_RAW carries no such budget - it draws no DC and sits 1150R from GND through R_ESTOPS + R_ESTOPPD."}
+  notes: "Tie both MP tabs to GND (retention). Pin 1 is the marked end of the row. Field cable leaving the enclosure: series-R + ESD at this connector entry — implemented as R_ESTOPS 680R + D_ESTOP. PINOUT IS LOAD-BEARING AND IS NOT FREE TO PERMUTE: 1 = GND, 2 = 3V3, 3 = ESTOP_RAW_IN. Circuit 3 is the one circuit that cannot engage in any other housing on this board, so the sense node lives there and the shorting plug bridges 2-3 (see gotchas)."
+sourcing:
+  lcsc: C160403
+  alternates: []
+  note: "genuine JST, ordered as SM03B-SRSS-TB(LF)(SN) = C160403 (JLC extended), stockCount 52 323 read live 2026-07-29. NO stock/price committed (volatile) — the selection-time read is in 06_build/cache/. DO-NOT-SUBSTITUTE: a clone, a different series, or a different circuit count changes the keying property this part was chosen for. SM04B-SRSS-TB (C160404, 17 438) is the ONE alternate that preserves the keying (same 1.00mm pitch) and was rejected on column width, not on stock."

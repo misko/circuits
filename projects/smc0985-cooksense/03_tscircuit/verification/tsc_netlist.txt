@@ -44,7 +44,6 @@ COMPONENTS:
  - R_WDOKPD: 100kΩ res0402 resistor
  - R_ESTOPOKPD: 100kΩ res0402 resistor
  - R_MODEHWPD: 100kΩ res0402 resistor
- - R_DOOROKPD: 100kΩ res0402 resistor
  - R_AND1PD: 100kΩ res0402 resistor
  - R_AND2PD: 100kΩ res0402 resistor
  - R_CTRSAFEPD: 100kΩ res0402 resistor
@@ -164,11 +163,7 @@ COMPONENTS:
  - R_LCCLK: 33Ω res0402 resistor
  - D_LCDAT: D_LCDAT, source_component
  - D_LCCLK: D_LCCLK, source_component
- - J_DOOR: pinrow5
- - R_DOORPD: 470Ω res0402 resistor
- - R_DOORS: 680Ω res0402 resistor
- - D_DOOR: D_DOOR, source_component
- - J_ESTOP: pinrow5
+ - J_ESTOP: pinrow3
  - R_ESTOPPD: 470Ω res0402 resistor
  - R_ESTOPS: 680Ω res0402 resistor
  - D_ESTOP: D_ESTOP, source_component
@@ -185,7 +180,7 @@ COMPONENTS:
  - C_EXP: 100nF 0402 capacitor
  - R_MODEHWSER: 10kΩ res0402 resistor
  - R_ESTOPOKSER: 10kΩ res0402 resistor
- - R_DOOROKSER: 10kΩ res0402 resistor
+ - R_GPB3PD: 10kΩ res0402 resistor
  - R_TEMPOKSER: 10kΩ res0402 resistor
  - R_FAULTSER: 10kΩ res0402 resistor
  - R_WDOKSER: 10kΩ res0402 resistor
@@ -309,10 +304,6 @@ NET: ESTOP_NI
 NET: MODE_NI
   - U_SCHM 4A
   - U_SCHM 3Y
-
-NET: DOOR_NI
-  - U_SCHM 6A
-  - U_SCHM 5Y
 
 NET: WD_MR_N
   - C_MR pin1 (+)
@@ -653,16 +644,6 @@ NET: LC_CLK
   - R_LCCLK pin1
   - J_LOADCELL pin5
 
-NET: DOOR_RAW
-  - R_DOORS pin2
-  - U_SCHM 5A
-
-NET: DOOR_RAW_IN
-  - D_DOOR pin1 (+)
-  - R_DOORS pin1
-  - R_DOORPD pin1
-  - J_DOOR pin2
-
 NET: ESTOP_RAW
   - R_ESTOPS pin2
   - U_SCHM 1A
@@ -671,7 +652,7 @@ NET: ESTOP_RAW_IN
   - D_ESTOP pin1 (+)
   - R_ESTOPS pin1
   - R_ESTOPPD pin1
-  - J_ESTOP pin2
+  - J_ESTOP pin3
 
 NET: COIL_EN_IN
   - J_MODE pin4
@@ -730,14 +711,8 @@ NET: ESTOP_OK_EXP
   - R_ESTOPOKSER pin2
   - U_EXP GPB2
 
-NET: DOOR_OK
-  - R_DOOROKSER pin1
-  - U_OSCLR A
-  - U_SCHM 6Y
-  - R_DOOROKPD pin1
-
-NET: DOOR_OK_EXP
-  - R_DOOROKSER pin2
+NET: GPB3_SPARE
+  - R_GPB3PD pin2
   - U_EXP GPB3
 
 NET: TEMP_OK_EXP
@@ -1013,6 +988,7 @@ NET: GND
   - R_RAENRHAPD pin2
   - R_RAENBPD pin2
   - R_RAENAPD pin2
+  - R_GPB3PD pin1
   - C_EXP pin2 (-)
   - U_EXP A2
   - U_EXP A1
@@ -1026,14 +1002,7 @@ NET: GND
   - R_MODEPD pin2
   - D_ESTOP pin2 (-)
   - R_ESTOPPD pin2
-  - J_ESTOP pin5
-  - J_ESTOP pin4
-  - J_ESTOP pin3
-  - D_DOOR pin2 (-)
-  - R_DOORPD pin2
-  - J_DOOR pin5
-  - J_DOOR pin4
-  - J_DOOR pin3
+  - J_ESTOP pin1
   - D_LCCLK pin2 (-)
   - D_LCDAT pin2 (-)
   - J_LOADCELL pin3
@@ -1103,6 +1072,8 @@ NET: GND
   - U_WD GND
   - C_SCHM pin2 (-)
   - U_SCHM GND
+  - U_SCHM 6A
+  - U_SCHM 5A
   - C_OENAND pin2 (-)
   - U_OENAND GND
   - R_FSETNPD pin2
@@ -1111,7 +1082,6 @@ NET: GND
   - R_CTRSAFEPD pin2
   - R_AND2PD pin2
   - R_AND1PD pin2
-  - R_DOOROKPD pin2
   - R_MODEHWPD pin2
   - R_ESTOPOKPD pin2
   - R_WDOKPD pin2
@@ -1188,8 +1158,7 @@ NET: N3V3
   - U_CAND2 VCC
   - U_CAND1 VCC
   - J_MODE pin1
-  - J_ESTOP pin1
-  - J_DOOR pin1
+  - J_ESTOP pin2
   - J_LOADCELL pin2
   - C_TCDV pin1 (+)
   - C_TCAV pin1 (+)
@@ -1303,6 +1272,7 @@ NET: ESTOP_OK
   - TP_ESTOP pin1
   - R_ESTOPOKSER pin1
   - U_CAND1 B
+  - U_OSCLR A
   - U_SCHM 2Y
   - R_ESTOPOKPD pin1
   - U_FAULTAND B
@@ -1589,10 +1559,6 @@ R_MODEHWPD (100kΩ res0402)
 - pin1(anode, pos, left): NETS(MODE_AUTO_HW)
 - pin2(cathode, neg, right): NETS(GND)
 
-R_DOOROKPD (100kΩ res0402)
-- pin1(anode, pos, left): NETS(DOOR_OK)
-- pin2(cathode, neg, right): NETS(GND)
-
 R_AND1PD (100kΩ res0402)
 - pin1(anode, pos, left): NETS(AND1)
 - pin2(cathode, neg, right): NETS(GND)
@@ -1646,10 +1612,10 @@ U_SCHM
 - pin7(GND): NETS(GND)
 - pin8(4Y): NETS(MODE_AUTO_HW)
 - pin9(4A): NETS(MODE_NI)
-- pin10(5Y): NETS(DOOR_NI)
-- pin11(5A): NETS(DOOR_RAW)
-- pin12(6Y): NETS(DOOR_OK)
-- pin13(6A): NETS(DOOR_NI)
+- pin10(5Y): NOT_CONNECTED
+- pin11(5A): NETS(GND)
+- pin12(6Y): NOT_CONNECTED
+- pin13(6A): NETS(GND)
 - pin14(VCC): NETS(N3V3)
 
 C_SCHM (100nF 0402)
@@ -1725,7 +1691,7 @@ U_STOPINV
 - pin5(VCC): NETS(N3V3)
 
 U_OSCLR
-- pin1(A): NETS(DOOR_OK)
+- pin1(A): NETS(ESTOP_OK)
 - pin2(GND): NETS(GND)
 - pin3(B): NETS(STOP_REQ_N)
 - pin4(Y): NETS(OS_CLR_N)
@@ -2268,31 +2234,10 @@ D_LCCLK
 - pin1(pos, anode, left): NETS(LC_CLK)
 - pin2(neg, cathode, right): NETS(GND)
 
-J_DOOR
-- pin1: NETS(N3V3)
-- pin2: NETS(DOOR_RAW_IN)
-- pin3: NETS(GND)
-- pin4: NETS(GND)
-- pin5: NETS(GND)
-
-R_DOORPD (470Ω res0402)
-- pin1(anode, pos, left): NETS(DOOR_RAW_IN)
-- pin2(cathode, neg, right): NETS(GND)
-
-R_DOORS (680Ω res0402)
-- pin1(anode, pos, left): NETS(DOOR_RAW_IN)
-- pin2(cathode, neg, right): NETS(DOOR_RAW)
-
-D_DOOR
-- pin1(pos, anode, left): NETS(DOOR_RAW_IN)
-- pin2(neg, cathode, right): NETS(GND)
-
 J_ESTOP
-- pin1: NETS(N3V3)
-- pin2: NETS(ESTOP_RAW_IN)
-- pin3: NETS(GND)
-- pin4: NETS(GND)
-- pin5: NETS(GND)
+- pin1: NETS(GND)
+- pin2: NETS(N3V3)
+- pin3: NETS(ESTOP_RAW_IN)
 
 R_ESTOPPD (470Ω res0402)
 - pin1(anode, pos, left): NETS(ESTOP_RAW_IN)
@@ -2360,7 +2305,7 @@ U_EXP
 - pin1(GPB0): NETS(EFUSE_FLT_N)
 - pin2(GPB1): NETS(MODE_AUTO_HW_EXP)
 - pin3(GPB2): NETS(ESTOP_OK_EXP)
-- pin4(GPB3): NETS(DOOR_OK_EXP)
+- pin4(GPB3): NETS(GPB3_SPARE)
 - pin5(GPB4): NETS(TEMP_OK_EXP)
 - pin6(GPB5): NETS(FAULT_EXP)
 - pin7(GPB6): NETS(TC_FAULT_N)
@@ -2398,9 +2343,9 @@ R_ESTOPOKSER (10kΩ res0402)
 - pin1(anode, pos, left): NETS(ESTOP_OK)
 - pin2(cathode, neg, right): NETS(ESTOP_OK_EXP)
 
-R_DOOROKSER (10kΩ res0402)
-- pin1(anode, pos, left): NETS(DOOR_OK)
-- pin2(cathode, neg, right): NETS(DOOR_OK_EXP)
+R_GPB3PD (10kΩ res0402)
+- pin1(anode, pos, left): NETS(GND)
+- pin2(cathode, neg, right): NETS(GPB3_SPARE)
 
 R_TEMPOKSER (10kΩ res0402)
 - pin1(anode, pos, left): NETS(TEMP_OK)

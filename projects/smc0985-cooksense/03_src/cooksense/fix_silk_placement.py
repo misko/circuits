@@ -51,21 +51,40 @@ MM = pcbnew.ToMM
 # part and 16 are nearer a different part — re-anchoring all of them is a
 # generator change, not a board change.  These are the ones where the
 # designator is a documented SAFETY mitigation.
-OWNERSHIP_FIX = ("J_DOOR", "J_ESTOP", "J_MODE")
-# NOT in that list, and the omission is MEASURED, not an oversight: `J_ISOLOOP`
-# was also reported (R-04: its label is 0.80 mm from J_RH_EXHAUST).  A full sweep
-# of every legal silk position for it finds NO position where that label is
-# nearer J_ISOLOOP than J_RH_EXHAUST — the only clear silk band (y ~101) lies
-# west of J_ISOLOOP and south of J_RH_EXHAUST, so the geometry is against it.
-# The number is RE-MEASURED AND PRINTED at every run (see the RESIDUAL line at
-# the end) rather than quoted from a prior session: 2026-07-29 it reads
-# **-3.963 mm** where an earlier session recorded -2.955 mm, and the earlier
-# number was never re-derived.  It is also not the same hazard class: J_ISOLOOP
-# is a KF350 4-pole screw terminal and J_RH_EXHAUST is a 5-pin GH — they cannot
-# be cross-plugged into each other, so the designator is not a mitigation for
-# anything there.  AND IT NO LONGER CARRIES THE BLOCK'S IDENTITY ALONE: PASS E
-# puts an `ISO 30V` caption 0.561 mm from the block body, which is what a human
-# actually reads.  Recorded as a residual P2, with the caption as the mitigation.
+OWNERSHIP_FIX = ("J_ESTOP", "J_ISOLOOP", "J_MODE")
+# v1.8 / ADR-0025.  TWO CHANGES HERE AND BOTH ARE CONSEQUENCES OF THE SAME
+# NETLIST REMOVAL, not of a silk idea.
+#
+# `J_DOOR` LEAVES because the part leaves.  The user has no door signal, so the
+# connector is removed from the netlist (not marked DNP — DNP frees zero silk,
+# this file has no population concept at all, which is exactly why the 1b/7
+# `FATAL: no clear silk position for ['R_DOORPD']` could not be fixed from the
+# BOM).  There is no designator to own.
+#
+# `J_ISOLOOP` JOINS, and until this revision its omission was CORRECT and
+# MEASURED.  The prior text read: "A full sweep of every legal silk position
+# finds NO position where that label is nearer J_ISOLOOP than J_RH_EXHAUST — the
+# only clear silk band (y ~101) lies west of J_ISOLOOP and south of
+# J_RH_EXHAUST, so the geometry is against it," with the residual printed at
+# -3.963 mm on 2026-07-29.  That was true, and `label_ownership_se_corner.md`
+# proves all four directions out of the courtyard were closed.  The direction
+# that was closed BY J_DOOR is now open: re-measured at the one candidate
+# pocket's centre (192.655, 84.975), the nearest `J*`/`F*`/`TP*` courtyard goes
+# from `J_DOOR` 1.100 mm to `J_ISOLOOP` 2.680 mm with `J_ESTOP` 8.769 mm second
+# — an ownership margin of **+6.089 mm** against MIN_OWNERSHIP_MARGIN_MM 1.5,
+# 4x the bar.  Adding the ref is what makes the pass TRY; without it nothing
+# ever looked, which is why the 30 V terminal's designator sat on a humidity
+# header through five sealed releases.
+#
+# WHY IT MATTERS MORE THAN THE OTHERS: `J_ISOLOOP` is the NOT-SELV 30 V isolated
+# contactor loop.  Its failure was never mis-MATING (a KF350 3.5 mm screw
+# terminal cannot accept a JST-GH plug) — it was MISIDENTIFICATION, a human
+# reading the silk before touching a live 30 V terminal.  The `ISO 30V` and
+# `NOT SELV` captions from PASS E are still there and are still the primary
+# mitigation; this makes the designator stop actively contradicting them.
+# The RESIDUAL line at the end still re-measures and prints the margin every
+# run — if a future placement change closes the pocket again, the number says so
+# rather than the comment.
 
 # ---------------------------------------------------------------------------
 # PASS C — CROSS-NAMED LABELS.  Added 2026-07-28 after the RENDER lens' P0-A,
@@ -79,11 +98,19 @@ OWNERSHIP_FIX = ("J_DOOR", "J_ESTOP", "J_MODE")
 # the two).  A human looking for "which one is the door connector" reads a
 # token containing the word DOOR at the E-STOP housing.  Pass B graded
 # J_-prefixed labels against J_-prefixed rivals and never looked at it.
-SAFETY_CONNECTORS = ("J_ESTOP", "J_DOOR", "J_MODE", "J_ISOLOOP")
+SAFETY_CONNECTORS = ("J_ESTOP", "J_MODE", "J_ISOLOOP")   # J_DOOR deleted, ADR-0025
 # The identity TOKEN of each — the word a human reads off the board and matches
 # against the harness in their hand.
-SAFETY_TOKENS = {"ESTOP": "J_ESTOP", "DOOR": "J_DOOR",
+SAFETY_TOKENS = {"ESTOP": "J_ESTOP",
                  "MODE": "J_MODE", "ISOLOOP": "J_ISOLOOP"}
+# v1.8 / ADR-0025: the "DOOR" token is REMOVED because every part carrying it —
+# J_DOOR, R_DOORPD, R_DOORS, D_DOOR, R_DOOROKPD — is out of the netlist.  Leaving
+# it mapped would be a rule with no possible subject, which reads as coverage.
+# `D_DOOR`, the flyback diode whose h=0.60 label sat 0.353 mm from the E-STOP
+# connector and 6.411 mm from itself, was the ORIGINAL motivation for PASS C.
+# The pass stays — `R_ESTOPPD`/`R_ESTOPS`/`D_ESTOP` and the MODE/ISOLOOP tokens
+# are still live subjects — but its founding example is gone, and saying so keeps
+# the next reader from hunting for a part that no longer exists.
 # THE RULE, and it took two cuts to state it correctly.
 #
 #   Any silk label whose TEXT carries the identity token of a safety connector
@@ -622,6 +649,46 @@ def main(argv):
                           _ib[2] + ISO_RESERVE_MM, _ib[3] + ISO_RESERVE_MM)
         _ev = []
         for ref in sorted(fps):
+            # ===== v1.8 / ADR-0025: THE RESERVE MAY NOT EVICT ITS OWN OWNER ====
+            # `J_ISOLOOP` IS NOT A FOREIGN LABEL IN `J_ISOLOOP`'S HAZARD RESERVE.
+            # Skipping it here is not a loosening — it is the repair of a
+            # CONTRADICTION BY CONSTRUCTION that only became reachable when
+            # ADR-0025 added `J_ISOLOOP` to OWNERSHIP_FIX, and the first rebuild
+            # after that hit it immediately:
+            #
+            #   FATAL: no clear silk position for ['J_ISOLOOP']
+            #
+            # The mechanism, read straight out of that log. The reserve is armed
+            # at x[188.975,201.825] y[85.075,104.925] and `J_ISOLOOP`'s courtyard
+            # is x[191.555,199.245] y[87.655,102.345] — WHOLLY INSIDE IT. So
+            # every position from which the designator could be nearer its own
+            # part than any other was `forbid`den to it, while `need_owner` was
+            # simultaneously required. Unsatisfiable, and the pass reported the
+            # unsatisfiability honestly rather than degrading — which is why this
+            # is a one-line fix and not a re-architecture.
+            #
+            # THE RESERVE'S PURPOSE IS UNCHANGED AND IS NOT WEAKENED: it exists
+            # so that OTHER parts' designators (`D_DOOR` on v1.7, `R_OPTOLED` and
+            # `U_OPTO` on this run) cannot squat the band where the NOT-SELV
+            # hazard captions have to print. `J_ISOLOOP`'s own designator belongs
+            # to the same class as those captions — it is part of what identifies
+            # the 30 V terminal, and its being 0.141 mm from a humidity header
+            # through five sealed releases is the defect this whole pass exists
+            # to close.
+            #
+            # MEASURED SAFE, not assumed: with the designator left in place at
+            # x[192.809,197.791] y[86.438,87.562] all three captions still find
+            # sites — 'ISO 30V' rot 90 at x[191.45,192.05], 'NOT SELV' rot 90 at
+            # x[198.2,198.8], '1C2L3L4E' at y 101.0 — and none of the three
+            # overlaps that box in x. The captions are placed in PASS E AFTER
+            # this loop and go through ordinary collision avoidance, so if a
+            # future placement change ever does make them collide, PASS E says so
+            # rather than silently dropping a hazard warning.
+            if ref == "J_ISOLOOP":
+                print("  ISOLOOP    NOT evicting J_ISOLOOP's own designator — a "
+                      "hazard reserve may not forbid the band its own owner "
+                      "needs in order to own its label (ADR-0025)")
+                continue
             t = fps[ref].Reference()
             if not (t.IsVisible() and t.IsOnLayer(pcbnew.F_SilkS)):
                 continue

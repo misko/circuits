@@ -213,7 +213,68 @@ placement:
     # from IN pad 4 (59.05,57.75), and pad2 (GND) drops straight onto the In1 plane
     # on the far side. That is 0.30mm more loop than attempt 1 and it leaves the
     # west lane to the net that has nowhere else to go.
-    C_EFIN:      [59.4, 59.6, 0]
+    # ATTEMPT 3 (v1.8 DRC gate, 2026-07-29). ATTEMPT 2 WAS ALSO WRONG, AND THE GATE
+    # SAID SO IN ONE LINE: `items_not_allowed | Items not allowed (keepout area
+    # 'esc_U_EFUSE_S') | Footprint C_EFIN @ (59.400,59.600)`. Attempt 2's courtyard
+    # x[58.445,60.355] y[59.095,60.105] sits INSIDE the eFuse's own 4.0 mm SOUTH
+    # escape corridor, measured on the built board at x[58.475,61.525]
+    # y[58.275,62.275]. The comment above says "the escape corridor is SOUTH" in the
+    # same breath as it puts a capacitor in it. Attempt 1 blocked the WEST lane,
+    # attempt 2 blocked the SOUTH corridor, and the reason is that the two obvious
+    # short-loop directions out of a WSON-8 are the only two escape budgets it has.
+    #
+    # ATTEMPT 3 IS SOUTH-WEST *OUTSIDE BOTH*, in the pocket between the 5V_RPP west
+    # lane and C_DVDT, and it is the FIRST of the three that improves the loop
+    # instead of trading it. Courtyard x[56.145,58.055] y[58.245,59.255]. MEASURED
+    # clearances, all off the built board:
+    #   -> esc_U_EFUSE_S left face 58.475          0.420  (OUTSIDE the keepout)
+    #   -> U_EFUSE courtyard (left 58.455, bot 58.295)  0.400 in x
+    #   -> C_DVDT courtyard (top 59.495)           0.240
+    #   -> the 5V_RPP west lane (Q_REV.2 y57.050 -> U_EFUSE.3/.4 y57.250/57.750,
+    #      band top-to-bottom y[56.9,58.0])        0.245 below its floor
+    #   -> C_IN1 (bottom 54.725) / efuse_escape (top 61.000)   not in play
+    # ROTATION 180 IS LOAD-BEARING and is why the loop shrinks: it puts pad 1
+    # (5V_RPP) on the EAST end at (57.580,58.750), which is 1.78 mm from IN pad 4
+    # (59.050,57.750) against attempt 2's 1.85 mm — and pad 2 (GND) west at
+    # (56.620,58.750), where it drops straight onto the In1 plane. A ceramic
+    # capacitor is unpolarized, so 180 costs nothing electrically (I-POL treats
+    # 2-pad passives by class, and Q_REV already uses 180 on this board).
+    # ATTEMPT 4, and it is the one that stops fighting the escape budget and USES it.
+    # ATTEMPT 3 at (57.100,58.750) cleared `esc_U_EFUSE_S` and then broke a DIFFERENT
+    # gate: `seed_stub GND C_DVDT.2: REFUSED - via (57.48,60.0) collides foreign
+    # copper`, i.e. the stitch pass could no longer drop C_DVDT's GND via, because
+    # freeing the south-east pocket let the router lay track through the 1.2 mm band
+    # that via needs. THREE POSITIONS, THREE DIFFERENT RESOURCES BROKEN: attempt 1
+    # the 5V_RPP west lane, attempt 2 the WSON's south escape corridor, attempt 3
+    # C_DVDT's GND seed stub. The band west of the corridor is only 1.22 mm tall
+    # (esc_U_EFUSE_S top 58.275 to C_DVDT courtyard top 59.495) and it is shared with
+    # that via — it was never a pocket, it was a corridor with a via in it.
+    #
+    # THE RE-FRAME: `esc_U_EFUSE_S` is not an obstacle to route AROUND, it is a
+    # corridor RESERVED FOR U_EFUSE'S OWN ESCAPES — and `5V_RPP` IS one of U_EFUSE's
+    # nets. So C_EFIN goes DUE SOUTH of the corridor, just outside it, and its 5V_RPP
+    # leg runs NORTH THROUGH the corridor to IN pads 3/4 (x 59.050), which is the
+    # corridor doing exactly its job. Courtyard x[58.445,60.355] y[62.695,63.705];
+    # MEASURED clear on the built board:
+    #   -> esc_U_EFUSE_S bottom 62.275                     0.420 (OUTSIDE)
+    #   -> C_DVDT courtyard (bottom 60.505) and its GND seed via (57.480,60.000)
+    #                                                      2.190 in y, and no x overlap
+    #   -> CE1 courtyard (right 54.745)                     3.700
+    #   -> R_ILM courtyard (y bottom 61.515, x[66.025,...]) no overlap
+    #   -> D_TVS courtyard (top 65.705)                     2.000
+    #   -> efuse_escape x[48,62] y[61,70] OVERLAPS, and that is legal: its
+    #      `deny:` list is EMPTY, it is a scoped floor marker and not a keepout.
+    #      esc_U_EFUSE_S is the one that denies, and this is outside it.
+    # ROTATION 0 puts pad 1 (5V_RPP) WEST at (58.920,63.200), 0.130 mm off the IN
+    # pads' own x — a straight north run. THE COST, STATED PLAINLY: the loop is
+    # 5.45 mm against attempt 2's 1.85 mm, and SLVSE57C sec.10 asks for "minimal loop
+    # area at the IN/GND terminals". That is the honest price of a WSON-8 whose only
+    # two short-loop directions are its only two escape budgets, and it is paid
+    # deliberately: a 0.01uF Cin with 5.5 mm of loop still bypasses the IN pin, where
+    # a Cin that breaks the router or the GND stitch yields no board at all. If a
+    # future revision needs the short loop back, the lever is a BOTTOM-SIDE placement
+    # directly under the IN pads (two-sided assembly), not another pocket on top.
+    C_EFIN:      [59.4, 63.2, 0]
     D_REVCLAMP:  [40.0, 64.0, 0]     # SS34 reverse crowbar (K=5V_FUSED, downstream of F1)
     CE1:         [50.0, 66.0, 0]     # 220uF bulk (pad1=+)
     D_TVS:       [63.0, 68.0, 0]     # SMBJ5.0A on 5V_PROTECTED (K=pad1; S of eFuse escape)
@@ -312,18 +373,29 @@ placement:
     # THE COLUMN IS AT CAPACITY AND THESE FOUR NUMBERS ARE SOLVED, NOT CHOSEN.
     # The packing is 1-D and every term is MEASURED off the built footprints, so
     # the order of the connectors cannot change the answer:
+    # ===== v1.8 / ADR-0025 RE-DERIVES THIS AND THE COLUMN IS NO LONGER SATURATED =
+    # `J_DOOR` is REMOVED FROM THE NETLIST (no door signal exists) and `J_ESTOP`
+    # moves from a GH-5 to an SH-3 whose courtyard is 6.800 x 6.560 against the
+    # GH's 10.700 x 6.400 — MEASURED off the in-tree footprints' F.CrtYd, not
+    # quoted. Re-derived, same 1-D packing, every term still measured:
     #     H4 courtyard bottom                       54.547
-    #   + J_MODE / J_ESTOP / J_DOOR courtyards    3 x 10.790
-    #   - (J_DOOR courtyard bottom is 0.545 south of its GND shell tab)  -0.545
+    #   + J_MODE courtyard (ZH-4, rot90 -> y)       10.500
+    #   + J_ESTOP courtyard (SH-3, rot90 -> y)       6.800
     #   + the ISO_CONTACTOR moat                     2.000
-    #   + J_ISOLOOP pad column (2x5.25 pitch + pad)  12.700
+    #   + J_ISOLOOP pad column (2x5.25 pitch + pad) 12.700
     #   + copper-to-board-edge (board rule)          0.300
     #   ------------------------------------------------------
-    #                                              101.372  vs the edge at 102.000
-    # => 0.628mm of AGGREGATE slack to spend on FIVE margins at once. The v1.3
-    # first attempt spent it before it was counted and landed J_ESTOPLOOP inside
-    # J_DOOR; the predecessor solve reached 0.028mm and still measured 1.702mm on
-    # the moat (P-COLLIDE + the ISO scan both caught it).
+    #                                               86.847  vs the edge at 102.000
+    # => 15.153mm of AGGREGATE slack where v1.7 had 0.628. THE COLUMN STOPS BEING
+    # THE BINDING CONSTRAINT ON THIS BOARD, which is the second prize of the scope
+    # reduction (the first is that J_ISOLOOP's designator becomes OWNABLE). The
+    # history stands as the warning it was: the v1.3 first attempt spent the slack
+    # before it was counted and landed J_ESTOPLOOP INSIDE J_DOOR; the predecessor
+    # solve reached 0.028mm and still measured 1.702mm on the moat (P-COLLIDE + the
+    # ISO scan both caught it). Do not re-spend this slack casually — 15mm of void
+    # between J_ESTOP and J_ISOLOOP is exactly the silk resource the SE-corner
+    # label-ownership blocker needs, and it is the whole reason this pass can place
+    # J_ISOLOOP's own designator at all.
     #
     # WHERE THE 0.628 CAME FROM: the KF350-3.5-4P pad is 2.20mm, not the 2P's
     # 2.60 (annular ring 0.50mm vs a 0.15mm JLC floor — see the part.yaml). At
@@ -331,19 +403,26 @@ placement:
     # is a number no one can defend; 2.20 is the only lever on this board that
     # costs nothing external. It also lifts pole-to-pole gap 0.90 -> 1.30mm.
     #
-    # THE MOAT IS 2-D, NOT VERTICAL. J_DOOR's binding copper is its EAST shell
-    # tab (pad MP, GND, x[197.0,199.7]) — not its signal pads, which sit at
-    # x[194.3,196.0] and are 4.1mm clear. J_ISOLOOP is pulled 1.70mm west of the
-    # SELV column so its pad column x[194.20,196.40] clears the tab in x by
-    # 0.600mm and buys that back diagonally. West is bounded by J_RH_EXHAUST's
-    # courtyard (right edge 191.395); x195.30 leaves 0.160mm there.
+    # THE MOAT IS 2-D, NOT VERTICAL, and v1.8 removes the part that made it tight.
+    # J_DOOR's EAST shell tab (pad MP, GND, x[197.0,199.7], south edge 86.61) was
+    # the binding SELV copper against the 2.0mm ISO rule — 2.126mm, +0.126 on the
+    # rule. With J_DOOR gone the nearest SELV copper north of J_ISOLOOP is more
+    # than 12mm away, so the ISO->SELV margin is NO LONGER SET BY THIS COLUMN. It
+    # is now set by U_OPTO's own primary-side pads, which is inherent to the part
+    # and already covered by `opto_barrier` + `iso_moat_opto`. THE NEW NUMBER IS
+    # NOT PREDICTED HERE: the ISO scan measures it on the built board and the
+    # routing journal records it. J_ISOLOOP stays pulled 1.70mm west of the SELV
+    # column (x195.30) because west is still bounded by J_RH_EXHAUST's courtyard
+    # (right edge 191.395, 0.160mm) and because moving it re-opens the south-edge
+    # and label-ownership solves for nothing.
     # MEASURED margins at these anchors (regenerate and re-measure if any move):
     #   H4 courtyard -> J_MODE courtyard            0.058   (fixed; H4 is the wall)
-    #   J_MODE -> J_ESTOP courtyard                 0.080
-    #   J_ESTOP -> J_DOOR courtyard                 0.090
-    #   J_DOOR -> J_ISOLOOP courtyard               0.510
+    #   J_MODE -> J_ESTOP courtyard                 2.230   (was 0.080; SH-3 is
+    #     3.900mm narrower in the column than the GH-5 it replaces)
+    #   J_ESTOP -> J_ISOLOOP courtyard             14.370   (was J_ESTOP->J_DOOR
+    #     0.090 then J_DOOR->J_ISOLOOP 0.510)
     #   J_ISOLOOP -> J_RH_EXHAUST courtyard         0.160
-    #   ISO->SELV copper (J_ISOLOOP.4 <-> J_DOOR.MP) 2.126  (+0.126 on the rule)
+    #   ISO->SELV copper                           RE-MEASURE (see above)
     #   J_ISOLOOP.1 copper -> south board edge      0.650   (+0.350 on the rule)
     #   J_ISOLOOP body south face                 102.000   (FLUSH, not proud —
     #     the enclosure wall is the board edge, so the block may not overhang)
@@ -360,18 +439,42 @@ placement:
     # Westward the courtyard takes 1.305mm of a strip whose only occupant was
     # R_MODEPD (now anchored, below, with the three COIL_EN front-end parts).
     J_MODE:      [195.95, 60.00, 90]  # mouth EAST (by HC14/AND-chain)
-    J_ESTOP:     [197.0, 70.88, 90]  # was 72.0; north 1.12 to open the moat
-    # v1.8 (ADR-0024 decision B): the two series elements, in the pocket MEASURED
-    # empty on the v1.7 board — x[189.6,193.7] y[73.2,79.3], between R_ESTOPPD's
-    # courtyard bottom 73.115 and R_DOORPD's top 79.385, 4.1 x 6.1mm and holding
-    # nothing (R_STOPRAIL stops at x189.525). Gaps at these anchors: R_ESTOPPD ->
-    # R_ESTOPS 1.570, R_ESTOPS -> R_DOORS 1.370, R_DOORS -> R_DOORPD 1.270.
-    # These two carry NO DC (the HC14 input draws none), so their span is
-    # electrically free and only their CONGESTION cost matters — which is why they
-    # are pinned here instead of being allowed to drift into the contactor cluster.
+    # SH-3 (v1.8/ADR-0025), x MOVED 0.400 WEST OF THE GH-5 IT REPLACES, AND THE DRC
+    # GATE IS WHAT SET THE NUMBER. The prediction written here first was "Cu east
+    # 199.000, 1.000 mm clear of the edge" and it was WRONG BY 0.775 mm, because it
+    # took F.Cu extents from the footprint's pad CENTRES and forgot the pad bodies:
+    # at x 197.000 the two MP solder tabs measure bb x[197.975,199.775] on the built
+    # board, i.e. 0.225 mm from the x=200.000 edge against a 0.300 mm rule, and
+    # `kicad-cli pcb drc` returned it twice — once per tab.
+    #   copper_edge_clearance | actual 0.2250 mm | Pad MP [GND] of J_ESTOP
+    # THE SH-3's MP TABS OVERHANG ITS OWN MOUTH FACE: MP reaches ly 2.775 where
+    # F.Fab stops at 2.575, and MP sits 0.525 mm further out than the GH-5's did
+    # (ly 1.875 vs 1.350). That is the whole finding — an SH is not a small GH, its
+    # retention tabs are the outermost copper.
+    # AT x 196.600: MP bb right 199.375 -> 0.625 mm clearance (2.1x the rule), and
+    # the mouth face (F.Fab) sits at 199.175, 0.825 mm inside the edge against the
+    # GH-5's 0.550 mm. A side-entry plug enters horizontally with its body
+    # overhanging the outline, so 0.275 mm more inset costs nothing; J_MODE's ZH sits
+    # at 0.050 mm and the GH-5 sat at 0.550, so this is within the range the board
+    # already ships. In y the courtyard SHRINKS to y[67.435,74.325] from the GH-5's
+    # y[65.530,76.230], and westward it reaches x 193.275 — 0.525 mm further west
+    # than the GH ever did, which leaves 0.375 mm to R_ESTOPS. P-COLLIDE regrades it.
+    J_ESTOP:     [196.6, 70.88, 90]
+    # v1.8 (ADR-0024 decision B, amended by ADR-0025): ONE series element now.
+    # THE POCKET IT SITS IN WAS THE 1b/7 FATAL. The comment that stood here called
+    # x[189.6,193.7] y[73.2,79.3] "4.1 x 6.1mm and holding nothing" because it had
+    # been cleared by checking COURTYARDS — and silk is a placement resource with
+    # its own occupancy. Measured on the SEALED v1.6 board that pocket held
+    # R_DOORPD's designator x[189.038,190.162] y[75.223,80.177], J_ESTOP's
+    # x[187.978,192.022] y[77.266,78.494] AND J_DOOR's x[189.149,192.851]
+    # y[75.146,76.374]: TRIPLE-BOOKED before ADR-0024 anchored two more 0402s into
+    # it. That is why `FATAL: no clear silk position for ['R_DOORPD']` could never
+    # be fixed by marking parts DNP. R_DOORS, R_DOORPD, D_DOOR and J_DOOR are all
+    # gone from the netlist now, so the pocket holds ONE resistor and its own
+    # designator. R_ESTOPS carries NO DC (the HC14 input draws none) so its span is
+    # electrically free; only its congestion cost matters, which is why it is
+    # pinned rather than left to drift into the contactor cluster.
     R_ESTOPS:    [191.8, 75.20, 0]
-    R_DOORS:     [191.8, 77.60, 0]
-    J_DOOR:      [197.0, 81.76, 90]  # was 84.0; north 2.24 (the binding shift)
     J_ISOLOOP:   [195.3, 95.00, 90]  # KF350-3.5-4P, the ONE isolated block;
                                      # 1.70 west of the SELV column (2-D moat),
                                      # body y[88.00,102.00] flush to the south
@@ -513,7 +616,8 @@ placement:
     R_WDOKPD:     [151.29, 82.66, 0]   # WD_OK       DOWN  (U_WD.1)
     R_ESTOPOKPD:  [169.00, 60.00, 0]   # ESTOP_OK    DOWN  (U_SCHM.4)
     R_MODEHWPD:   [174.96, 65.42, 0]   # MODE_AUTO_HW DOWN (U_SCHM.8)
-    R_DOOROKPD:   [146.64, 72.08, 0]   # DOOR_OK     DOWN  (U_SCHM.12 -> U_OSCLR.1)
+    # R_DOOROKPD DELETED v1.8/ADR-0025 with the DOOR_OK net. The property it held
+    # (U_OSCLR.1 defaults LOW if its driver is absent) is now R_ESTOPOKPD's, above.
     R_AND1PD:     [157.29, 70.66, 0]   # AND1        DOWN  (U_AND1.4)
     R_AND2PD:     [169.29, 70.66, 0]   # AND2        DOWN  (U_AND2.4)
     R_CTRSAFEPD:  [177.24, 85.08, 0]   # CTR_SAFE    DOWN  (U_CAND1.4)
@@ -621,7 +725,10 @@ placement:
     C_ULNB:   [186.0, 67.5]     # I-PROX to U_ULNB (184,59) = 8.7 <= 9.0
     # ---- v1.2 STOP-preemption cluster (old U_SR2 spot + one-shot flank) ----
     U_STOPINV: [126.0, 73.0]    # 1G00 inverter: STOP_REQ -> STOP_REQ_N
-    U_OSCLR:   [146.0, 68.0]    # 1G11: OS_CLR_N = DOOR_OK · STOP_REQ_N (near one-shot R1_N)
+    U_OSCLR:   [146.0, 68.0]    # 1G11: OS_CLR_N = ESTOP_OK · STOP_REQ_N (near one-shot
+                                # R1_N). v1.8/ADR-0025 swapped the DOOR_OK term for
+                                # ESTOP_OK; the anchor does not move, but the net span
+                                # does - ESTOP_OK's driver U_SCHM.4 is at (174,60).
     U_LATCHG:  [102.0, 71.0]    # 1G11: KEY_LATCH_G (near U_SR1 RCLK)
     U_DECUEN:  [80.0, 63.0]     # 1G11: DECU_G1 gate (near U_DECU G1)
     U_DECDEN:  [126.0, 68.5]    # 1G11: DECD_G1 gate (near U_DECD G1)
@@ -739,25 +846,20 @@ placement:
     # v1.2 (ADR-0010): R_SDARHA/R_SCLRHA/R_SDARHE/R_SCLRHE deleted — RH pods
     # share the camera buses; the one 2.2k pair per bus stays at J_THERM_A/B.
     # ---- discrete input locals ----
-    - {match: "R_DOORPD", near: J_DOOR}   # v1.3: pulls DOWN now (P1-2 fail-permissive fix)
-    - {match: "D_DOOR", near: J_DOOR}
+    # R_DOORPD / D_DOOR DELETED v1.8/ADR-0025 with J_DOOR. R_ESTOPPD's `near:`
+    # survives and is now the ONLY instance — and it is more load-bearing than
+    # before: 470R at the pin is the sole reason the UNFITTED node reads 1.15mV
+    # instead of floating (ADR-0024 addendum / ADR-0025).
     - {match: "R_ESTOPPD", near: J_ESTOP}
     - {match: "D_ESTOP", near: J_ESTOP}
-    # v1.8 (ADR-0024): the SERIES half of the ADR-0018 decision-D front end, carried
-    # across to the two pod-mateable safety inputs. `near:` and not an explicit seed
-    # DELIBERATELY: the east column is the most saturated region on this board (H4
-    # notch -> J_MODE -> J_ESTOP -> J_DOOR -> J_ISOLOOP with 0.09-0.51mm courtyard
-    # gaps) and the engine already knows the occupancy, where a hand seed in that
-    # corner is how J_ESTOPLOOP once landed INSIDE J_DOOR. The pocket these should
-    # find is x[189.6,193.7] y[73.2,79.3] (between R_ESTOPPD's courtyard bottom
-    # 73.115 and R_DOORPD's top 79.385, measured on the v1.7 board, 4.1 x 6.1mm and
-    # empty). Both resistors carry NO DC, so their span is electrically free —
-    # unlike R_DOORPD/R_ESTOPPD, which must stay AT the connector pin because that
-    # is where the divider acts.
-    # ANCHORED, NOT `near:` — attempt 1 used `near:` and it put R_DOORS ~3.4mm from
-    # U_OPTO's designator, i.e. in the CONTACTOR/opto cluster and nowhere near the
-    # door connector, and the stitch gate then REFUSED the 3V3 seed stub at
-    # C_LATCHB.1 (182.66,76.18) in that same cluster. Explicit anchors below.
+    # v1.8 (ADR-0024, amended by ADR-0025): the SERIES half of the ADR-0018
+    # decision-D front end. R_ESTOPS is ANCHORED and not `near:` — attempt 1 used
+    # `near:` and it put its twin R_DOORS ~3.4mm from U_OPTO's designator, i.e. in
+    # the CONTACTOR/opto cluster and nowhere near the connector, and the stitch
+    # gate then REFUSED the 3V3 seed stub at C_LATCHB.1 (182.66,76.18) in that same
+    # cluster. R_ESTOPS carries NO DC so its span is electrically free — unlike
+    # R_ESTOPPD, which must stay AT the connector pin because that is where the
+    # divider acts. The anchor is in the anchor block above.
     # (kept as comments so the next reader sees what was tried)
     # R_MODEPD: explicit anchor now (v1.7) — the near-pattern site is inside the
     # new ZH courtyard.
@@ -903,12 +1005,14 @@ keepouts:
   #     x[186.765,192.765] y[85.84,94.16]; its WEST half is already denied on
   #     all four layers by opto_barrier, this covers the EAST half and the run
   #     across to J_ISOLOOP.
-  # THE NORTH EDGE OF THE BLOCK RECT IS THE TIGHT ONE: 86.65 is exactly
-  # J_ISOLOOP.4's pad top (88.65) minus the 2.0mm rule, and J_DOOR's south GND
-  # shell tab ends at 86.61 - so the pour still reaches and bonds that tab, with
-  # 0.04mm to spare. Move J_DOOR south and the tab falls inside the moat and
-  # goes unconnected; move it north and the moat closes. Both are MEASURED
-  # failures, which is why the anchor block above says the numbers are solved.
+  # THE NORTH EDGE OF THE BLOCK RECT WAS THE TIGHT ONE AND v1.8 RELEASES IT.
+  # 86.65 is exactly J_ISOLOOP.4's pad top (88.65) minus the 2.0mm rule, and
+  # J_DOOR's south GND shell tab used to end at 86.61 - 0.04mm to spare, with
+  # "move it south and the tab falls inside the moat and goes unconnected, move it
+  # north and the moat closes" as two MEASURED failures either side. ADR-0025
+  # removes J_DOOR from the netlist, so there is no longer any SELV copper in that
+  # 0.04mm window at all. The rect is UNCHANGED (it is derived from J_ISOLOOP's own
+  # pads, which have not moved) and the constraint it used to fight is simply gone.
   # deny: [pours] ONLY - the isolated nets themselves are TRACKS and must be
   # able to cross their own moat. The usable ISO track corridor is whatever is
   # left 2.0mm inside these rects: x[194.20,196.40] south of the opto lobe (the
@@ -1068,5 +1172,4 @@ asserts:
     - {ref: J_RH_AMBIENT, axis: y, sign: "+"}       # mouth SOUTH
     - {ref: J_RH_EXHAUST, axis: y, sign: "+"}
     - {ref: J_MODE, axis: x, sign: "+"}             # mouth EAST
-    - {ref: J_ESTOP, axis: x, sign: "+"}
-    - {ref: J_DOOR, axis: x, sign: "+"}
+    - {ref: J_ESTOP, axis: x, sign: "+"}   # SH-3, mouth EAST (J_DOOR deleted, ADR-0025)

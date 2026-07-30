@@ -226,7 +226,7 @@
 
 # ---------------------------------------------------------------------------
 - id: P-SILK-FN
-  refs: [J_ISOLOOP, J_THERM_B, J_LOADCELL, J_DOOR, J_TC, J_KEY_MATRIX, J_PWR,
+  refs: [J_ISOLOOP, J_THERM_B, J_LOADCELL, J_TC, J_KEY_MATRIX, J_PWR,
          J_ESTOP, J_RH_AMBIENT, J_RH_EXHAUST,
          TP_3V3, TP_5VKR, TP_5VP, TP_ALLOW, TP_ENCL, TP_ESTOP, TP_FAULT,
          TP_SPARE, TP_TCDRDY, TP_TCFAULT, TP_TCTH, TP_TEMPOK, TP_WDOK]
@@ -275,8 +275,12 @@
         underscore-insensitively against the netlist: TP_3V3->3V3,
         TP_5VP->5V_PROTECTED, TP_ESTOP->ESTOP_OK, TP_FAULT->FAULT,
         TP_TEMPOK->TEMP_OK, TP_WDOK->WD_OK, TP_TCDRDY->TC_DRDY_N,
-        TP_TCFAULT->TC_FAULT_N, J_DOOR->DOOR_RAW, J_ESTOP->ESTOP_RAW,
-        J_TC->TC_NEG_IN.
+        TP_TCFAULT->TC_FAULT_N, J_ESTOP->ESTOP_RAW, J_TC->TC_NEG_IN.
+        (v1.8/ADR-0025: `J_DOOR->DOOR_RAW` is struck — J_DOOR is removed from the
+        netlist, so 10 of 22 now name a net they touch. The DENOMINATOR MOVED and
+        is restated rather than left stale: the graded set drops from 23 refs to
+        22, because a waiver whose counts no longer add up is how an inherited
+        defect looks from the inside.)
       * the other 12 name a FUNCTION rather than a net, which is the correct
         thing for a connector to be called: J_PWR, J_LOADCELL, J_KEY_MATRIX,
         J_ISOLOOP, J_RH_AMBIENT, J_RH_EXHAUST, J_THERM_B, TP_ENCL, TP_ALLOW,
@@ -297,11 +301,17 @@
 
     NOT A BLANKET PASS ON CONNECTOR SILK. The hazard P-SILK-FN exists to catch —
     "which housing is this?" — is graded on this board by TWO other things that
-    DID fail and were FIXED this revision: `fix_silk_placement.py` pass B
-    (ownership: J_DOOR/J_ESTOP/J_MODE must each be nearer their own housing than
-    any other, achieved leads +2.353 / +1.742 / +10.784 mm) and pass C
-    (cross-naming: `D_DOOR` and `R_DOORPD` were printed at the E-STOP housing
-    and were moved). Both re-derive from the final board and both FAIL THE BUILD.
+    DID fail and were FIXED: `fix_silk_placement.py` pass B (ownership) and pass
+    C (cross-naming). Both re-derive from the final board and both FAIL THE BUILD.
+    v1.8/ADR-0025 CHANGES THE MEMBERSHIP OF PASS B AND THE LEADS MUST BE
+    RE-MEASURED, NOT INHERITED: the list was `J_DOOR/J_ESTOP/J_MODE` with achieved
+    leads +2.353 / +1.742 / +10.784 mm. It is now `J_ESTOP/J_ISOLOOP/J_MODE` —
+    `J_DOOR` leaves with its part, and `J_ISOLOOP` (the NOT-SELV 30 V terminal)
+    JOINS because removing J_DOOR's courtyard opens the one candidate pocket that
+    was closed to it: +6.089 mm predicted at (192.655, 84.975), to be CONFIRMED by
+    the pass's own RESIDUAL line on the built board. Pass C's founding subjects
+    `D_DOOR` and `R_DOORPD` are both deleted; the pass and its remaining subjects
+    (`R_ESTOPPD`, `R_ESTOPS`, `D_ESTOP`, the MODE and ISOLOOP tokens) stand.
 
     OWED, and reported upstream rather than patched here (this agent may not edit
     `skills/`): P-SILK-FN should count a footprint's own visible silk REFERENCE

@@ -363,3 +363,77 @@ y[77.266, 78.494]) **and `J_DOOR`'s** (x[189.149, 192.851] y[75.146, 76.374]),
 before this ADR added anything. The pocket was never empty; the comment measured
 courtyards and the occupancy was on silk. ADR-0024 landed two 0402s in a slot
 that was already triple-booked.
+
+---
+
+# ADDENDUM 2 — 2026-07-29 (later). THE USER DECISION LANDED AND IT IS NOT THE ONE
+# ADDENDUM 1 ASSUMED. Three of Addendum 1's conclusions are WITHDRAWN.
+
+Addendum 1 was written against "**neither** `J_DOOR` nor `J_ESTOP` is installed."
+The resolution the user actually chose (ADR-0025, now `accepted`) is
+**ASYMMETRIC**: `J_DOOR` is deleted from the netlist, and **`J_ESTOP` STAYS
+POPULATED** behind a removable shorting plug so a real E-stop can be fitted later
+without a copper revision. That asymmetry reverses three things Addendum 1
+concluded, and they are corrected here rather than left to be inherited.
+
+## WITHDRAWN 1 — "the mechanical key is NOT to be pursued." It WAS pursued, and it had to be.
+
+Addendum 1 closed the transposition hazard "by scope" and told the next pass to
+drop the ZH-3 / SH-3 spike. **That was correct while both housings were
+unpopulated and became WRONG the moment `J_ESTOP` stayed populated**, for a reason
+Addendum 1 could not have considered: **with only one connector left, the
+travelling object is the PLUG.** A GH-5 shorting plug bridging circuits 1–2 lands
+on pin 1 = a SWITCHED 3V3 SENSOR RAIL and pin 2 = GND on all four sensor-pod
+housings — a dead short behind an AO3401A. The object that exists purely to
+satisfy a safety input would have become the board's most damaging single
+mis-plug, and **this ADR's own argument says nothing about that direction**: "pins
+3/4/5 are GND" protects `J_ESTOP` against a POD being plugged into it, not against
+its own plug being plugged into a pod.
+
+`J_ESTOP` is therefore **SH-3 `SM03B-SRSS-TB` / `C160403`** (1.00 mm pitch, unique
+on this board; `escape_check` PASSES at 1.00 mm on all five tiers). Full
+derivation, both mating directions measured, in ADR-0025 D5.
+
+**The retained spike is what made that possible in one pass instead of three.** A
+measured spike whose motivating hazard closes is not litter — it answered a
+question nobody had asked yet.
+
+## WITHDRAWN 2 — "Decision B's `R_ESTOPS` = 680 Ω loses both its stated jobs." It keeps both.
+
+That was true only under "no field harness will ever be fitted." `J_ESTOP` is now
+the connector a real mushroom E-stop plugs into, so **`R_ESTOPS` (680 Ω) and
+`D_ESTOP` keep both jobs unchanged** — keep the field pin off the logic pin, and
+limit current into the HC14 input clamp after the PESD clamps. Their `part_value`
+and `net_has_part` asserts stay. Only the `R_DOORS` / `D_DOOR` instances leave,
+with `J_DOOR`.
+
+## WITHDRAWN 3 — "the 12-ordered-pair enumeration collapses to 2."
+
+It collapses differently, and the new denominator is bigger and better. `J_DOOR`
+is gone, but `J_ESTOP` left the GH family altogether — so the cross-mateable set
+is now the **FIVE** JST-GH housings (`J_RH_AMBIENT`, `J_RH_EXHAUST`, `J_THERM_A`,
+`J_THERM_B`, `J_KEY_MATRIX`) and **not one of them is a safety input.** The
+enumeration that matters is therefore: **zero cells in which any cross-plug
+anywhere on the board reaches a permission.** That is a stronger statement than
+this ADR's original "zero cells assert a permission", because it no longer depends
+on a pinout rule holding — it depends on 1.00 mm pitch appearing exactly once.
+
+## UNCHANGED, and load-bearing for a NEW reason
+
+- **`R_ESTOPPD` = 470 Ω and the corrected bound `R_pd ≤ 559.3 Ω`.** 560 Ω — the
+  only standard value under the withdrawn 592 — gives 0.7007 V and fails by
+  0.7 mV. The value now carries a SECOND, different job: it is the sole reason the
+  UNFITTED node measures (1 µA × 470 Ω) + (1 µA × 680 Ω) = **1.15 mV** against
+  V_T−(min) 0.500 V, i.e. it is what makes `ESTOP_OK` LOW = restrictive with the
+  shorting plug pulled. Its `part_value` E-INV says both reasons out loud.
+- **Decision A (`J_DOOR.4` = GND) is NOT retracted, it is UNREACHABLE.** Its five
+  `J_DOOR.*` pinout asserts are deleted with the part; the ten `J_RH_*` asserts
+  carry the denominator argument forward. A superseded reason is evidence.
+- **The DNP warning stands and was the pass's most useful single measurement:**
+  marking parts not-assembled frees ZERO silk, so DNP could never have dissolved
+  the stage-1b `FATAL: no clear silk position for ['R_DOORPD']`. Only netlist
+  removal did.
+- **The owed `node_level: injected` schema gap remains owed**, and ADR-0025 adds a
+  second one from the same checker: `node_level`'s `released` branch requires a
+  resistive path to a supply RAIL, so it returns `UNREACHED` on any node whose only
+  DC path is a pull-down to GND — which is every restrictive-default node here.

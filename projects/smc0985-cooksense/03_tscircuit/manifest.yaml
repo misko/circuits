@@ -8,6 +8,21 @@
 # the MCP23017's 3.6 V abs-max AND above its 2.640 V V_IH, so the divider that
 # was added to fix the first problem (and created the second, sitting the pin
 # at 0.833 V in the indeterminate band) has nothing left to do. Two parts out.
+# v1.8 / ADR-0025, 2026-07-29 (THE SCOPE REDUCTION): -J_DOOR -R_DOORPD -D_DOOR
+# -R_DOOROKPD, and R_DOOROKSER RENAMED R_GPB3PD (same C60490 line, now a 10k
+# pull-down on the freed MCP23017 GPB3 instead of a series element off DOOR_OK).
+# The user has no door signal, so the channel is REMOVED FROM THE NETLIST rather
+# than marked not-assembled -- DNP frees zero silk (fix_silk_placement.py has no
+# population concept) and only removal frees the SE pocket that the J_ISOLOOP 30V
+# label-ownership P0 needs. DOOR_OK's only consumer, U_OSCLR.1, now carries
+# ESTOP_OK, so no AND input is tied off permissive and the E-stop gains the
+# "hardware key-relay inhibit" BRIEF.md:89 commissions.
+# ALSO FIXED HERE, and it is a real S-COUNT gap this list is the only source for:
+# +R_ESTOPS and +C_EFIN were MISSING from the declared intent. R_ESTOPS landed with
+# ADR-0024 (its sibling R_COILENS was declared, it was not) and C_EFIN with the
+# eFuse input filter. count_parity.py compares the SYMMETRIC DIFFERENCE, so it
+# would have caught both -- it had not run since ADR-0024, because the build has
+# been dying at stage 1b/7. Declaring them now is the fix, not the workaround.
 # 235 components (v1.7 ELECTRICAL REVISION 2026-07-28: +11 restrictive defaults
 # ADR-0019, +R_COILENS/+D_COILEN ADR-0018, +C_OS2 ADR-0020, -R_EXPRST ADR-0020
 # (its net EXP_RST_N had no driver and its 10k pull-up would have landed on WD_OK).
@@ -38,6 +53,7 @@ components:
   - C_DECU
   - C_DECUEN
   - C_DVDT
+  - C_EFIN
   - C_EXP
   - C_FAULTAND
   - C_FLT0
@@ -79,7 +95,6 @@ components:
   - C_ULNB
   - C_WD
   - D_COILEN
-  - D_DOOR
   - D_ESD_IN
   - D_ESTOP
   - D_KSTOP
@@ -89,7 +104,6 @@ components:
   - D_TVS
   - F1
   - FB1
-  - J_DOOR
   - J_ESTOP
   - J_ISOLOOP
   - J_KEY_MATRIX
@@ -138,16 +152,15 @@ components:
   - R_CTRSAFEPD
   - R_DECDPD
   - R_DECUPD
-  - R_DOOROKPD
-  - R_DOOROKSER
-  - R_DOORPD
   - R_ESTOPOKPD
   - R_ESTOPOKSER
   - R_ESTOPPD
+  - R_ESTOPS
   - R_FAULTPU
   - R_FAULTSER
   - R_FLCPD
   - R_FSETNPD
+  - R_GPB3PD
   - R_HOSTAUTHPD
   - R_HSG
   - R_HYS1

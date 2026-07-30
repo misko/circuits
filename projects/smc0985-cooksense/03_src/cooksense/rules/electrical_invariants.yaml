@@ -256,12 +256,22 @@ invariants:
     pin: "U_ONESHOT.3"                 # CD74HC221 pad3 = 1R_N (reset)
     net: OS_CLR_N
     adr: "0011"
-    why: "the PRESS one-shot clear is the GATED OS_CLR_N = DOOR_OK · STOP_REQ_N — STOP preemption clears an in-flight press (was DOOR_OK only in <=v1.1, review F4)"
+    why: "the PRESS one-shot clear is the GATED OS_CLR_N = ESTOP_OK · STOP_REQ_N — STOP preemption clears an in-flight press (review F4). v1.8/ADR-0025 replaced the DOOR_OK term with ESTOP_OK; the pin and the net are unchanged, only what feeds the gate"
+  # ===== v1.8 / ADR-0025 — THE TERM THAT REPLACED THE DOOR ====================
+  # This is the ONE assert that pins the whole scope reduction's electrical
+  # substance. `DOOR_OK` fed exactly one gate input, `U_OSCLR.1`. Deleting the
+  # door channel freed that input, and the safe thing to do with a freed input on
+  # a safety AND is NOT to tie it to 3V3 (ADR-0025 rejects that as O4', which is
+  # the already-rejected O3 relocated) — it is to give it a real term.
+  #
+  # If this assert ever reads 3V3 the board has silently become one-shot-clearable
+  # only by STOP_REQ, which is a REDUCTION in the E-stop's authority disguised as
+  # a tidy-up, and nothing else in the tree would notice.
   - assert: pin_on_net
     pin: "U_OSCLR.1"
-    net: DOOR_OK
-    adr: "0011"
-    why: "door-open still aborts the press (brief §3: open => abort, release PRESS)"
+    net: ESTOP_OK
+    adr: "0025"
+    why: "OS_CLR_N = ESTOP_OK · STOP_REQ_N. BRIEF.md:89 commissions the E-stop as 'A monitored + hardware key-relay inhibit' and until v1.8 ESTOP_OK gated the coil RAIL and SET the fault latch but could NOT clear an in-flight PRESS pulse — DOOR_OK did that, and the door channel is deleted (ADR-0025). This is the input DOOR_OK vacated, and it must carry ESTOP_OK and not 3V3: a 3V3 tie-off is the rejected O4'/O3 move and would delete ADR-0025's own third stop, the one that holds U_ONESHOT R1_N asserted with the connector unfitted"
   - assert: pin_on_net
     pin: "U_OSCLR.3"
     net: STOP_REQ_N
@@ -390,19 +400,19 @@ invariants:
     part_type: resistor
     min: 1
     adr: "0019"
-    why: "R_ESTOPOKPD — restrictive = LOW = E-stop pressed. A dead U_SCHM floats this AND MODE_AUTO_HW AND DOOR_OK at once, and U_EXP.3/2/4 read back the SAME nets so software has no independent cross-check"
+    why: "R_ESTOPOKPD — restrictive = LOW = E-stop pressed. A dead U_SCHM floats this AND MODE_AUTO_HW at once (until v1.8/ADR-0025 it floated DOOR_OK too), and U_EXP.3/2 read back the SAME nets so software has no independent cross-check. v1.8/ADR-0025 makes this pull-down load-bearing for a FOURTH consumer: U_OSCLR.1, the PRESS one-shot clear that DOOR_OK used to hold"
   - assert: net_has_part
     net: MODE_AUTO_HW
     part_type: resistor
     min: 1
     adr: "0019"
     why: "R_MODEHWPD — restrictive = LOW = not in AUTO"
-  - assert: net_has_part
-    net: DOOR_OK
-    part_type: resistor
-    min: 1
-    adr: "0019"
-    why: "R_DOOROKPD — restrictive = LOW = door open -> OS_CLR_N low -> the PRESS one-shot is held clear"
+  # DELETED v1.8 / ADR-0025: the DOOR_OK restrictive default (R_DOOROKPD) went with
+  # the door channel. The PROPERTY it protected did not disappear — it MOVED: the
+  # net that now holds U_OSCLR.1 low when U_SCHM is dead is ESTOP_OK, whose own
+  # restrictive default R_ESTOPOKPD is asserted above and is now consumed by FOUR
+  # gates instead of three. Removing the assert with the resistor is correct;
+  # removing it without saying where the property went is how coverage rots.
   - assert: net_has_part
     net: AND1
     part_type: resistor
@@ -525,16 +535,15 @@ invariants:
   # WD_PET P0: a safety input that reads SAFE when its wire is broken. Pinning
   # them here is the whole point — the fix is a DIRECTION and a PRESENCE, and
   # neither is visible to DRC, ERC or parity.
-  - assert: pin_on_net
-    pin: "R_DOORPD.1"
-    net: DOOR_RAW_IN
-    adr: "0011"
-    why: "the door pull sits on the CONNECTOR-SIDE node (v1.3: this resistor was R_DOORPU and pulled UP; v1.8/ADR-0024 split the net at R_DOORS and moved the pull to DOOR_RAW_IN, which is where a divider against an injected pull-up can act at all). If this ever moves back to DOOR_RAW, downstream of the series element, the pull-down still gives the right DEFAULT and stops rejecting injection entirely — the rejection is a property of WHERE the pull sits, not of its value"
-  - assert: pin_on_net
-    pin: "R_DOORPD.2"
-    net: GND
-    adr: "0011"
-    why: "DIRECTION: DOWN, and this is the entire v1.3 P1-2 fix. Until now DOOR_RAW was the ONLY external safety input pulled to the PERMISSIVE rail — a broken or unplugged door cable read DOOR-CLOSED, so the door abort silently never happened; and with the pull-up-consistent harness a normal magnet-closes reed made DOOR_OK=0 whenever the door was SHUT, so K_PRESS could never fire at all. Pulled DOWN it matches R_ESTOPPD/R_MODEPD: open circuit => DOOR_OK=0 => door treated as OPEN. If this ever reverts to 3V3 the interlock silently becomes documentation again"
+  # DELETED v1.8 / ADR-0025: the two R_DOORPD asserts (pull on the CONNECTOR-SIDE
+  # node, DIRECTION down) were the executable form of the v1.3 P1-2 fix. The part
+  # and its connector are removed from the netlist, so the asserts are removed
+  # too rather than left to fail. The v1.3 finding itself is NOT retracted and is
+  # still live on the surviving instance: R_ESTOPPD carries the identical pair of
+  # asserts in the ADR-0024 block below, and ADR-0024's addendum records that
+  # 470 Ohm and the corrected bound R_pd <= 559.3 Ohm now hold the UNFITTED node
+  # at 1.15 mV against V_T-(min) 0.500 V — a second, different reason for the
+  # same value.
   - assert: net_has_part
     net: TCAM_OPEN
     part_type: resistor
@@ -754,21 +763,29 @@ invariants:
     net: ESTOP_OK
     adr: "0020"
     why: "and the near end is on the RAW ESTOP_OK, so the isolation is a series element and not a stub"
+  # v1.8 / ADR-0025: R_DOOROKSER IS RENAMED R_GPB3PD AND REPOINTED, not deleted.
+  # GPB3's readback net (DOOR_OK) is gone, so the pin is a spare — and a spare
+  # MCP23017 pin is exactly where ADR-0020's lesson has to be applied a seventh
+  # time. Left OPEN it is a floating CMOS input with an indeterminate readback.
+  # Hard-tied to GND it is a 25 mA-rated bidirectional I/O one I2C write
+  # (IODIRB.3=0, OLATB.3=1) away from driving into a dead short. Through the SAME
+  # 10k on the SAME C60490 line it is a deterministic 0 with the mis-write
+  # current-limited to 330 uA. Same three asserts as its six siblings.
   - assert: part_value
-    part: R_DOOROKSER
+    part: R_GPB3PD
     equals: "10k"
-    adr: "0020"
-    why: "the bound on GPB3. DOOR_OK is the interlock; forcing it permissive is running the cook cycle with the door open. 10k holds the contention below V_IL; 0R does not"
+    adr: "0025"
+    why: "the bound on GPB3, now a SPARE pin rather than a readback. 0R would make an I2C write (IODIRB.3=0, OLATB.3=1) a hard drive into ground on a 25 mA I/O; 10k makes it 330 uA and still reads 0. The value is the whole protection, and the topology asserts below stay green without it — which is precisely how ADR-0020 shipped the defect on five of six pins"
   - assert: pin_on_net
-    pin: "U_EXP.4"                     # MCP23017 pad4 = GPB3 (door readback)
-    net: DOOR_OK_EXP
-    adr: "0020"
-    why: "GPB3 sits on the FAR side of R_DOOROKSER and nowhere else"
+    pin: "U_EXP.4"                     # MCP23017 pad4 = GPB3 (spare, pulled down)
+    net: GPB3_SPARE
+    adr: "0025"
+    why: "GPB3 sits on its OWN net and nowhere else. If a future edit re-homes a permission here it must go through a series element, not onto the raw net — that is the ADR-0020 rule and this assert is what keeps the pin from being reachable directly"
   - assert: pin_on_net
-    pin: "R_DOOROKSER.1"
-    net: DOOR_OK
-    adr: "0020"
-    why: "and the near end is on the RAW DOOR_OK, so the isolation is a series element and not a stub"
+    pin: "R_GPB3PD.1"
+    net: GND
+    adr: "0025"
+    why: "DIRECTION: DOWN. A pull-UP here would make an unconfigured spare read 1, and on a board where every permission's restrictive level is LOW that is the wrong default to leave lying around for whoever re-uses the pin"
   - assert: part_value
     part: R_TEMPOKSER
     equals: "10k"
@@ -1134,56 +1151,49 @@ invariants:
   # housings is pinned — not just the one a lens happened to look at. That
   # denominator is the point: the defect was ONE pin out of twenty, and nothing
   # in the tree asserted the other nineteen either.
-  - assert: pin_on_net
-    pin: "J_DOOR.4"
-    net: GND
-    adr: "0024"
-    why: "*** THE ASSERT THAT WOULD HAVE CAUGHT IT. *** Pin 4 was DOOR_RAW until v1.8 and it was the ONE asymmetric pin in the four-housing C189896 family. A cross-mated SHT45 pod lands its pulled-up SCL wire here: 3.3 x 10/12.2 = 2.705 V at the 2.2k corner against SCLS085L's interpolated V_T+ MAX 2.348 V = GUARANTEED HIGH = door reads CLOSED with no door attached, on a cooking appliance's interlock. On GND the pod's pull-up lands on ground and the only pin that reaches a safety node is the pod's own GND pin, which drives DOOR_RAW_IN RESTRICTIVE. The door harness never used pin 4 (3V3 on pin 1 -> Form-A reed -> pin 2), so nothing is lost"
-  - assert: pin_on_net
-    pin: "J_DOOR.2"
-    net: DOOR_RAW_IN
-    adr: "0024"
-    why: "the field pin sits on the INPUT side of the series element R_DOORS, never on U_SCHM's pin — the ADR-0018 decision-D form, carried across (canon M-WIDTH)"
-  - assert: pin_on_net
-    pin: "J_DOOR.3"
-    net: GND
-    adr: "0024"
-    why: "a cross-mated pod's SDA pin lands here and must land on ground"
-  - assert: pin_on_net
-    pin: "J_DOOR.5"
-    net: GND
-    adr: "0024"
-    why: "shell/shield pin; a pod's SHIELD_DRAIN pin lands here"
-  - assert: pin_on_net
-    pin: "J_DOOR.1"
-    net: 3V3
-    adr: "0024"
-    why: "the harness feed. It is the pin a cross-mated pod POWERS FROM, and that is deliberate: a pod that powers up normally puts its GND on pin 2 and its pull-ups on pins 3/4, which is the whole reason the enumeration comes out restrictive"
-  - assert: pin_on_net
-    pin: "J_ESTOP.2"
-    net: ESTOP_RAW_IN
-    adr: "0024"
-    why: "same split as the door. J_ESTOP was ALREADY safe against the pod cross-plug and ONLY because its pins 3/4/5 are GND — a property of the pinout, not of its front end, so it survived a cross-plug and not a mis-built harness"
+  # v1.8 / ADR-0025: THE FIVE `J_DOOR.*` PINOUT ASSERTS ARE DELETED WITH THE PART.
+  # They were decision A's executable form and they were right; `J_DOOR` is no
+  # longer in the netlist (the user has no door signal), so keeping them would be
+  # asserting about a part that does not exist. The DENOMINATOR argument in the
+  # header above still governs the housings that remain, and the ten `J_RH_*`
+  # asserts below are what carry it. ADR-0024's decision-A finding is retained in
+  # full in ADR-0024 and in ADR-0025; a superseded reason is evidence, not litter.
+  # What CLOSES the class now is mechanical rather than a pinout rule — see the
+  # ADR-0025 block immediately below.
+  # ===== v1.8 / ADR-0025 — J_ESTOP IS AN SH-3 AND ITS PINOUT IS THE KEY =======
+  # ADR-0024's reason for J_ESTOP being safe against a pod cross-plug was that its
+  # pins 3/4/5 were GND — a PINOUT property, which is why it survived a cross-plug
+  # and not a mis-built harness. That reason is now MECHANICAL: 1.00 mm pitch
+  # appears exactly once on this board, and no other harness can enter the shroud
+  # (GHR-05V-S 7.50x4.15 and ZHR-4 7.50x3.40 against a 5.0x2.9 mm cavity = hard
+  # interference in both dimensions).
+  #
+  # THE PINOUT IS NOT FREE TO PERMUTE AND THAT IS WHAT THESE THREE ASSERTS SAY.
+  # J_ESTOP is populated and satisfied by a REMOVABLE SHORTING PLUG (the whole
+  # point: a real E-stop replaces the plug with no copper revision). An SH plug is
+  # small enough to be PUSHED into a GH or ZH shroud even though it cannot latch,
+  # so the claim rests on contact alignment: SH circuits sit at 0/1.0/2.0 mm, GH
+  # posts at 0/1.25/2.50 (offsets 0/0.25/0.50) and ZH posts at 0/1.50/3.00
+  # (offsets 0/0.50/1.00). CIRCUIT 3 IS THE ONE CIRCUIT THAT CANNOT ENGAGE IN ANY
+  # FOREIGN HOUSING, so the sense node lives there and the plug bridges 2-3 — the
+  # short cannot be COMPLETED anywhere else. A 1-2 bridge would use the 0/0.25 mm
+  # pair, which is the pair that MIGHT engage, and on all four sensor-pod housings
+  # pins 1-2 are switched-3V3-to-GND: a dead short behind an AO3401A.
   - assert: pin_on_net
     pin: "J_ESTOP.3"
-    net: GND
-    adr: "0024"
-    why: "SELV-ONLY housing (v1.3 P0-2 moved the isolated loop off it); also the pod's SDA landing pin"
+    net: ESTOP_RAW_IN
+    adr: "0025"
+    why: "*** THE SENSE NODE IS ON CIRCUIT 3 AND THAT IS THE KEY, NOT AN ARBITRARY PINOUT. *** Circuit 3 is >=0.50 mm off every post in every other housing on this board, so it is the one circuit an SH-3 shorting plug cannot engage elsewhere; the plug therefore bridges 2-3 and its short cannot be completed in a GH or ZH shroud. Move the sense to circuit 1 or 2 and the plug's bridge lands on the 0/0.25 mm pair, which on J_RH_AMBIENT/J_RH_EXHAUST/J_THERM_A/J_THERM_B is switched-3V3 to GND. It is also still the ADR-0024 split: the field pin sits on the INPUT side of R_ESTOPS, never on U_SCHM's pin"
   - assert: pin_on_net
-    pin: "J_ESTOP.4"
-    net: GND
-    adr: "0024"
-    why: "the pod's SCL landing pin. This pin is the reason J_ESTOP was already safe where J_DOOR was not, and it is now asserted rather than incidental"
-  - assert: pin_on_net
-    pin: "J_ESTOP.5"
-    net: GND
-    adr: "0024"
-    why: "shell/shield pin"
+    pin: "J_ESTOP.2"
+    net: 3V3
+    adr: "0025"
+    why: "the harness feed for the NC E-stop contact, and the plug's other bridged circuit. On 2 rather than 1 so that the bridged PAIR is 2-3 (see above)"
   - assert: pin_on_net
     pin: "J_ESTOP.1"
-    net: 3V3
-    adr: "0024"
-    why: "the harness feed for the NC E-stop contact"
+    net: GND
+    adr: "0025"
+    why: "SELV-ONLY housing (v1.3 P0-2 moved the isolated 30 V loop off it permanently, which is also why 3 circuits is the FULL requirement and not a reduction of the brief's 4-pin ask). GND on circuit 1 is deliberate: it is the circuit MOST likely to engage in a foreign shroud, and a ground landing there is the restrictive outcome in every case"
   - assert: pin_on_net
     pin: "J_RH_AMBIENT.2"
     net: GND
@@ -1227,37 +1237,21 @@ invariants:
 
   # ---- decision B: the second layer, and its VALUE is the safety figure --------
   - assert: part_value
-    part: R_DOORPD
-    equals: "470"
-    adr: "0024"
-    why: "*** 680 OHM DOES NOT TRANSFER, AND THIS NUMBER IS WHY THE ASSERT EXISTS. *** ADR-0018 rejected an injected pull-up on COIL_EN_IN with 680R because its receiver is a 2N7002 whose V_GS(th) MIN is 1.000 V. THIS receiver is an SN74HC14 on 3V3, whose lowest possible switching point is bounded WITHOUT interpolation by SCLS085L sec.5.5's V_CC = 2.0 V row: V_T+(MIN) = 0.700 V (V_T+ rises monotonically with V_CC). At 686.8R worst case the injected 2.2k gives 0.791 V and FAILS by 91 mV; 470R gives 0.591 V, 0.608 V at the 3V3 ceiling, +92 mV. The general bound is R <= 592 ohm. A silent decade change here would move a published safety figure while every existence assert stayed green — R_WDPETPD and R_OPENT were both nearly shipped exactly that way"
-  - assert: part_value
     part: R_ESTOPPD
     equals: "470"
     adr: "0024"
-    why: "the same bound on the E-stop input. Two field-fed inputs, two asserts — a single-instance assert on a two-instance fact is the M-WIDTH defect ADR-0020 shipped"
-  - assert: part_value
-    part: R_DOORS
-    equals: "680"
-    adr: "0024"
-    why: "the series element, and it is asserted while being HONEST that it contributes ZERO to the rejection arithmetic: the HC14 input draws no DC, so it drops no volts. Its job is ADR-0018 decision D's other half — keep the field pin off the logic pin, and limit current into the HC14's own input clamp (abs max +-20 mA, SCLS085L sec.5.1) after D_DOOR clamps, because the PESD5V0S1BA's clamping voltage is far above the HC14's V_CC+0.5 V input abs-max. Without it the ESD device protects the connector and not the receiver. Shares R_COILENPD/R_COILENS's C137948 line: zero new BOM lines"
+    why: "*** 680 OHM DOES NOT TRANSFER, AND THIS NUMBER IS WHY THE ASSERT EXISTS. *** ADR-0018 rejected an injected pull-up on COIL_EN_IN with 680R because its receiver is a 2N7002 whose V_GS(th) MIN is 1.000 V. THIS receiver is an SN74HC14 on 3V3, whose lowest possible switching point is bounded WITHOUT interpolation by SCLS085L sec.5.5's V_CC = 2.0 V row: V_T+(MIN) = 0.700 V (V_T+ rises monotonically with V_CC). At 686.8R worst case the injected 2.2k gives 0.791 V and FAILS by 91 mV; 470R gives 0.591 V, 0.608 V at the 3V3 ceiling, +92 mV. The corrected general bound is R_pd <= 559.3 ohm, and 560 ohm — the only standard value under the withdrawn 592 — gives 0.7007 V and FAILS by 0.7 mV. *** AND SINCE v1.8/ADR-0025 THIS VALUE CARRIES A SECOND, DIFFERENT JOB: *** it is the sole reason the UNFITTED node measures (1 uA x 470R) + (1 uA x 680R) = 1.15 mV instead of floating, i.e. it is what makes ESTOP_OK = LOW = restrictive with the shorting plug pulled. Its twin R_DOORPD went with the door channel; a single-instance assert is no longer an M-WIDTH defect because there is only one instance left"
   - assert: part_value
     part: R_ESTOPS
     equals: "680"
     adr: "0024"
-    why: "the E-stop series element, same claim, second instance"
-  - assert: net_has_part
-    net: DOOR_RAW_IN
-    part_type: diode
-    min: 1
-    adr: "0024"
-    why: "D_DOOR must sit on the CONNECTOR side of R_DOORS. An ESD device downstream of a 680R series element is protecting a node that is already current-limited and leaving the field pin bare — the moved-not-added distinction matters, so it is asserted on the net rather than merely on the part's existence"
+    why: "the series element, and it is asserted while being HONEST that it contributes ZERO to the rejection arithmetic: the HC14 input draws no DC, so it drops no volts. Its job is ADR-0018 decision D's other half — keep the field pin off the logic pin, and limit current into the HC14's own input clamp (abs max +-20 mA, SCLS085L sec.5.1) after D_ESTOP clamps, because the PESD5V0S1BA's clamping voltage is far above the HC14's V_CC+0.5 V input abs-max. Without it the ESD device protects the connector and not the receiver. Shares R_COILENPD/R_COILENS's C137948 line: zero new BOM lines. (Its twin R_DOORS went with the door channel, v1.8/ADR-0025; it also never appeared in manifest.yaml, which is the S-COUNT gap that pass fixed.)"
   - assert: net_has_part
     net: ESTOP_RAW_IN
     part_type: diode
     min: 1
     adr: "0024"
-    why: "D_ESTOP on the connector side, same claim"
+    why: "D_ESTOP must sit on the CONNECTOR side of R_ESTOPS. An ESD device downstream of a 680R series element is protecting a node that is already current-limited and leaving the field pin bare — the moved-not-added distinction matters, so it is asserted on the net rather than merely on the part's existence. (D_DOOR's instance went with the door channel, v1.8/ADR-0025.)"
   # THE 2.2k PULL-UPS ARE A SAFETY NUMBER ON THIS BOARD, NOT AN I2C DETAIL.
   # 2.2k is the declared worst-case injected impedance in BOTH ADR-0018's and
   # ADR-0024's tables, on the stated reasoning that a field-built pod harness

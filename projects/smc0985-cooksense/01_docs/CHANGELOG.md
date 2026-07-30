@@ -26,6 +26,66 @@ unaffected and `interposer-v1.1-2026-07-27` remains ORDERABLE.**
 the reed-relay land pattern is re-derived.** This is not a paperwork verdict; the
 key-matrix relay array as drawn cannot work.
 
+> ## STATUS UPDATE 2026-07-29 (fifth) — THE SCOPE DECISION LANDED. **ALL THREE ORDER-BLOCKERS ARE NOW CLOSED IN SOURCE; v1.8 IS STILL NOT SEALED AND THE DRC GATE IS NOT YET 0/0/0.**
+>
+> **Nothing in `07_releases/` changed. v1.0-v1.6 remain DO-NOT-ORDER, v1.7 remains
+> an unsealed candidate, and v1.8 is a work-in-progress. If you are looking for a
+> cooksense board to build, the answer today is still that there is not one.**
+>
+> ### CLOSED — the THIRD blocker (the SE-corner label-ownership P0), and MEASURED
+>
+> `J_ISOLOOP` is the NOT-SELV **30 V** isolated contactor loop and its designator
+> was printed 0.141 mm from a JST-GH **humidity-sensor** header. The v1.8 pass
+> proved no silk-only fix existed: all four directions out of its courtyard were
+> closed, and the one candidate pocket lost to `J_DOOR`'s courtyard by 1.100 mm
+> against 2.680 mm. **ADR-0025 (accepted) removes `J_DOOR` from the NETLIST** — the
+> user has no door signal and never will — and adds `J_ISOLOOP` to the silk pass's
+> `OWNERSHIP_FIX` list, which had never contained it, so nothing had ever tried.
+> Measured on the rebuilt board by the pass's own VERIFY line:
+>
+>     J_ISOLOOP  label centre 8.000 mm from own part
+>                vs 13.656 mm from J_RH_EXHAUST   (lead +5.656 mm)  -> OWNS ITS LABEL
+>
+> against a 1.500 mm requirement. The three hazard captions also improved and are
+> now all AT the block body (`ISO 30V` 0.085 mm, `NOT SELV` 0.117 mm, pole map
+> 0.085 mm) — the earlier claim that `NOT SELV`'s nearest site measured 11.086 mm
+> is WITHDRAWN, it was true only while `J_DOOR` held the pocket.
+>
+> ### THE SCOPE REDUCTION, and it is a BRIEF AMENDMENT stated in full (ADR-0025)
+>
+> The user has **no access to the appliance's door signal and no E-stop signal**.
+> The resolution is deliberately ASYMMETRIC:
+>
+> * **`J_DOOR` is DELETED from the netlist** with `R_DOORPD`, `R_DOORS`, `D_DOOR`
+>   and `R_DOOROKPD`. `BRIEF.md` §3's "Door:" clause is WITHDRAWN. Marking the
+>   parts not-assembled would NOT have worked and that was measured: the silk pass
+>   has no population concept, so DNP frees zero silk.
+> * **`J_ESTOP` STAYS POPULATED**, satisfied by a **REMOVABLE SHORTING PLUG**, so a
+>   real E-stop can be fitted later with no copper revision. **THE BOARD DOES NOT
+>   FUNCTION WITHOUT THAT PLUG** — with `J_ESTOP` open the board is inert by
+>   design, which is correct and is also indistinguishable from a dead board to a
+>   technician who has not read this. It is a REQUIRED BUILD STEP.
+> * **`J_ESTOP` moves from JST GH-5 to JST SH-3** (`SM03B-SRSS-TB`, `C160403`)
+>   because the plug is itself a new hazard: a GH-5 shorting plug bridging circuits
+>   1-2 lands on switched-3V3-to-GND on all four sensor-pod housings, a dead short
+>   behind a load switch. 1.00 mm pitch appears exactly ONCE on this board, and the
+>   sense node sits on **circuit 3** — the one circuit that cannot align in any
+>   foreign shroud — so the plug bridges 2-3 and its short cannot be COMPLETED
+>   anywhere else. Both mating directions are measured in ADR-0025 D5.
+> * **`DOOR_OK` was never a term of `KEY_RELAY_ALLOWED`** (`BRIEF.md`:82 has no door
+>   term); its only consumer was the PRESS one-shot's reset. That input now carries
+>   **`ESTOP_OK`**, which is what `BRIEF.md`:89's "hardware key-relay inhibit" asks
+>   for and the board did not have. **No AND input is tied off permissive.**
+>
+> ### NOT YET DONE — stated because a banner that overstates is worse than none
+>
+> The board rebuilds, stage 1b/7 passes, schematic parity is **0**, the netlist
+> gate is **22/22** and E-INV is **167/167** (all seven new ADR-0025 asserts
+> RED-VERIFIED against the immutable sealed v1.6 netlist). **The DRC gate is NOT
+> 0/0/0 yet**: a small number of trapped plane pads need deterministic seed-stub
+> bonds, and the fab/assembly battery and the FRESH four-lens review battery have
+> not been run. **v1.8 IS NOT SEALED.**
+
 > ## STATUS UPDATE 2026-07-29 (fourth) — TWO OF THE THREE ORDER-BLOCKERS ARE CLOSED IN SOURCE. **v1.8 IS NOT SEALED AND THE THIRD BLOCKER IS STILL OPEN.**
 >
 > **Nothing in `07_releases/` changed. v1.0-v1.6 remain DO-NOT-ORDER, v1.7 remains

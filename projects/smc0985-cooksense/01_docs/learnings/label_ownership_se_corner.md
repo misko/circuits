@@ -322,3 +322,93 @@ a user decision); ADR-0024 carries an addendum. What that does to THIS file:
    `FATAL: no clear silk position for ['R_DOORPD']` exactly where it is. Only
    REMOVAL from the netlist, or MOVING the parts west toward `U_SCHM` (174, 60),
    frees the pocket. Do not expect the FATAL to dissolve from a BOM change.
+
+---
+
+# CLOSED 2026-07-29 (v1.8, ADR-0025) — and the closing pass found a SECOND defect
+# of the SAME SHAPE in the code that was supposed to fix the first
+
+**`J_ISOLOOP` OWNS ITS LABEL. Measured on the built board by the pass's own
+VERIFY/RESIDUAL lines, not predicted:**
+
+    VERIFY   J_ISOLOOP  label centre 8.000 mm from own part
+                        vs 13.656 mm from J_RH_EXHAUST  (lead +5.656 mm)
+                        -> OWNS ITS LABEL
+
+against `MIN_OWNERSHIP_MARGIN_MM = 1.5`. The three hazard captions also improved
+and are now all at the block body: `ISO 30V` 0.085 mm, `NOT SELV` 0.117 mm,
+`1C2L3L4E` 0.085 mm. **The line above that said `NOT SELV`'s nearest site
+measured 11.086 mm is therefore WITHDRAWN** — it was true while `J_DOOR`'s
+courtyard held the north pocket and it is not true now.
+
+## What actually closed it, in order
+
+1. **`J_DOOR` left the NETLIST** (ADR-0025 D1 — the user has no door signal).
+   That opened the one direction the four-direction table above proved closed.
+2. **`J_ISOLOOP` was ADDED to `OWNERSHIP_FIX`.** The list named only
+   `("J_DOOR","J_ESTOP","J_MODE")`, so *nothing had ever tried* for the 30 V
+   terminal. It now reads `("J_ESTOP","J_ISOLOOP","J_MODE")`.
+3. **A latent contradiction in `fix_silk_placement.py` had to be repaired first,
+   and step 2 is what made it reachable.** The first rebuild after adding the ref
+   died at stage 1b/7 with
+
+       FATAL: no clear silk position for ['J_ISOLOOP']
+
+   PASS D0 arms a 2.6 mm hazard-caption reserve around `J_ISOLOOP` at
+   x[188.975, 201.825] y[85.075, 104.925] and evicts every silk label inside it,
+   **`forbid`ding the band** so an evictee cannot be re-placed back in. But the
+   loop ran over `sorted(fps)` *including `J_ISOLOOP` itself*, whose courtyard
+   x[191.555, 199.245] y[87.655, 102.345] is **WHOLLY INSIDE the reserve.** So
+   every position from which its designator could own itself was forbidden to it
+   while `need_owner` was simultaneously required — **unsatisfiable by
+   construction.** One guard clause: a hazard reserve may not evict its own
+   owner. Measured safe rather than assumed — with the designator left in place at
+   x[192.809, 197.791] y[86.438, 87.562] none of the three captions collides with
+   it in x, and the captions are placed AFTER the eviction loop so a future
+   collision would be reported rather than silently dropping a hazard warning.
+
+## THE REUSABLE FINDING, and this corner has now produced it TWICE IN TWO PASSES
+
+**A rule that clears a region by checking the wrong kind of occupancy will report
+the region as free.**
+
+| pass | what cleared the region | what it missed |
+|---|---|---|
+| v1.8 attempt 3 | the floorplan cleared the SE pocket by checking **COURTYARDS** | three DESIGNATORS were in it (`J_ESTOP`, `J_DOOR`, `R_DOORPD`) |
+| v1.8 attempt 4 | the caption reserve cleared its band by checking **FOREIGNNESS** | the OWNER is not foreign |
+
+Both were honest failures — each pass refused to place rather than degrading —
+and that is the only reason either was findable. A silk pass that fell back to
+"nearest slot" would have shipped both.
+
+## What is NO LONGER an action, and what the E-stop half became
+
+The `J_ESTOP`/`J_DOOR` transposition half of this file (the exact 0.141 mm tie)
+is gone, but **not** in the way the update above predicted. `J_DOOR` was deleted;
+`J_ESTOP` stayed POPULATED behind a removable shorting plug so a real E-stop can
+be fitted later without a copper revision. **That decision resurrected the keyed
+connector spike this file's previous update told the next pass to abandon** — and
+for a reason the abandonment did not consider: with only one connector left, the
+travelling object is the PLUG, and a GH-5 shorting plug bridging circuits 1-2
+lands on switched-3V3-to-GND on all four sensor-pod housings. So `J_ESTOP` is now
+**SH-3 `SM03B-SRSS-TB` / `C160403`** (stock 52 323 live, `escape_check` at
+1.00 mm pitch PASSES on all five tiers — the gap this file listed as unverified),
+with the sense node on **circuit 3** because circuit 3 is the one circuit that
+cannot align in any foreign shroud. Full derivation in ADR-0025 D5.
+
+**Retaining the measured spike after its motivating hazard closed is what made
+that possible.** The sourcing table above was written for a transposition hazard
+that scope removed; it turned out to answer a question nobody had asked yet.
+
+## Two numbers in this file that the closing pass CORRECTED
+
+- **`escape_check.py` at 1.00 mm pitch: no longer unverified.** PASS, all five
+  tiers, floor `jlc_2layer_default`, 2026-07-29.
+- **`SM03B-SRSS-TB`'s MP tabs are the outermost copper and overhang its mouth
+  face.** The column table above compares COURTYARDS (6.800 vs 10.700) and that
+  is right, but the first anchor at the GH-5's own x coordinate produced **two
+  `copper_edge_clearance` errors at 0.2250 mm against a 0.300 mm rule** — MP pad
+  bb reaches local y +2.775 where F.Fab stops at +2.575, and the GH-5's MP centre
+  is at only +1.350. **An SH is not a small GH**, and predicting an east face
+  from a footprint's pad CENTRES rather than pad BOUNDING BOXES is what got it
+  wrong. Fixed by moving the anchor 0.400 mm inboard (0.625 mm clearance).

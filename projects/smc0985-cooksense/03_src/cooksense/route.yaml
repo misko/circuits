@@ -76,7 +76,16 @@ prep:
       # Together they leave exactly the corridor the moat can defend: the y[88.85,
       # 92.40] band from U_OPTO east, then the x[194.40,200.10] column south to
       # J_ISOLOOP.1. That is the ONLY path, which is what determinism looks like.
-      - {x0: 194.00, y0: 83.60, x1: 200.10, y1: 88.85, layer: User.4}   # U4-a: J_DOOR MP tab + 2.0mm, centreline-corrected
+      # U4-a: RETAINED DELIBERATELY THOUGH ITS SUBJECT IS GONE. v1.8/ADR-0025
+      # removes J_DOOR, so the SELV copper this rect was the 2.0mm offset of no
+      # longer exists — the constraint is vacuous on this revision. It is NOT
+      # deleted, because it is a KEEPOUT: removing it OPENS 5.25mm of new corridor
+      # to the ISO wave immediately north of J_ISOLOOP's pads, which would change
+      # a route solve that is DRC-clean for a benefit nobody needs. Keeping a
+      # keepout costs nothing; re-racing the router to widen a moat is a trade with
+      # no upside. If a future revision needs that corridor, delete it THEN and
+      # re-measure the ISO scan.
+      - {x0: 194.00, y0: 83.60, x1: 200.10, y1: 88.85, layer: User.4}   # (was: J_DOOR MP tab + 2.0mm, centreline-corrected)
       - {x0: 186.00, y0: 92.40, x1: 194.40, y1: 102.10, layer: User.4}  # U4-b: west of the block moat's 2.0mm interior
       # ---- TRAPPED PLANE-PAD RESERVATIONS (task#21, 2026-07-25, MEASURED) -----
       # C_SWB.2 and R_DECDPD.2 were the two GND pads the c0/r9 stitch stranded
@@ -466,10 +475,18 @@ prep:
       # order all three expander-fault escapes together, BEFORE the sig-wave BOARD_ID0
       # walls pin7. SAFETY-relevant: TC over-temp fault flag. (wave PROMOTION is the
       # journal's durable fix for walled late-wave pads.)
+      # v1.8 / ADR-0025: DOOR_OK, DOOR_RAW and DOOR_NI are STRUCK — the door
+      # channel is removed from the netlist. The wave loses 3 of 19 members, and
+      # the DOOR_NI promotion rationale above is retained as the reason the
+      # SURVIVING _NI nets are in this wave: ESTOP_NI still links U_SCHM.2<->.3 and
+      # MODE_NI still links U_SCHM.6<->.9, both intra-package nets that must route
+      # past their own neighbours, and U_SCHM's pins 10-13 are now free copper
+      # rather than a fourth escape competitor. This wave should get EASIER, not
+      # harder; if it does not, the promotion argument is where to look.
       safety: [TEMP_OK, WD_OK, ESTOP_OK, FAULT, TC_FAULT_N, MODE_AUTO_HW,
-               DOOR_OK, REARM_N, STOP_REQ, PRESS_TIMED,
-               KEY_RELAY_ALLOWED, ESTOP_RAW, MODE_RAW, DOOR_RAW,
-               DECU_G1_RAW, DECD_G1_RAW, ESTOP_NI, MODE_NI, DOOR_NI]
+               REARM_N, STOP_REQ, PRESS_TIMED,
+               KEY_RELAY_ALLOWED, ESTOP_RAW, MODE_RAW,
+               DECU_G1_RAW, DECD_G1_RAW, ESTOP_NI, MODE_NI]
       # THE ISOLATED DOMAIN gets its OWN wave (task#21, 2026-07-25). CONTACTOR_C
       # was sitting in `safety` at track_width 0.2 while the v1.3 ISO_CONTACTOR
       # netclass declares min_width 0.3 — prep's netclass-floor validator dies on

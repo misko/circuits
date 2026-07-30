@@ -77,28 +77,44 @@ EXPECT = {
     "AND1": 3, "AND2": 3, "KEY_RELAY_ALLOWED": 3, "CTR_SAFE": 3,
     "FAULT_SET_N": 3, "FAULT_LATCH_CLEAR": 5, "WD_OK": 10, "WD_OK_EXP": 2,
     "EF_OVLO": 3, "COIL_EN": 2, "COIL_EN_IN": 4,
-    # v1.8 (ADR-0024). The two field-fed safety inputs are now SPLIT at a series
-    # element, and the split is the fix — so the node counts are what pins it.
-    # DOOR_RAW_IN = {J_DOOR.2, R_DOORPD.1, R_DOORS.1, D_DOOR.1}: four nodes and
-    # NOT five, because J_DOOR.4 left this net for GND (that pin was the whole
-    # injection path). DOOR_RAW = {R_DOORS.2, U_SCHM.11}: exactly two, i.e. the
-    # logic node is reachable from the field ONLY through a resistor. If a future
-    # edit re-merges them this check fails before any gate that grades geometry.
-    "DOOR_RAW_IN": 4, "DOOR_RAW": 2,
+    # v1.8 (ADR-0024, amended by ADR-0025). The ONE surviving field-fed safety
+    # input is SPLIT at a series element, and the split is the fix — so the node
+    # counts are what pins it. ESTOP_RAW_IN = {J_ESTOP.3, R_ESTOPPD.1, R_ESTOPS.1,
+    # D_ESTOP.1}: four nodes. ESTOP_RAW = {R_ESTOPS.2, U_SCHM.1}: exactly two, i.e.
+    # the logic node is reachable from the field ONLY through a resistor. If a
+    # future edit re-merges them this fails before any gate that grades geometry.
+    # DOOR_RAW_IN / DOOR_RAW are GONE — ADR-0025 deleted the door channel from the
+    # netlist. Their absence is asserted NEGATIVELY below, because a check that
+    # only counts nodes on nets it expects cannot notice a net that should not
+    # exist at all.
     "ESTOP_RAW_IN": 4, "ESTOP_RAW": 2,
+    # ADR-0025: the PRESS one-shot's reset is now OS_CLR_N = ESTOP_OK . STOP_REQ_N.
+    # ESTOP_OK gains U_OSCLR.1 and so carries EIGHT nodes: U_SCHM.4 (driver),
+    # U_AND1.6, U_FAULTAND.3, U_CAND1.3, U_OSCLR.1, R_ESTOPOKPD.1, R_ESTOPOKSER.1,
+    # TP_ESTOP.1. If the count drops to 7 the new term silently left the circuit.
+    "ESTOP_OK": 8, "OS_CLR_N": 2,
+    # ADR-0025: the freed MCP23017 GPB3 is pulled DOWN through 10k, never open and
+    # never hard-tied. Two nodes: R_GPB3PD.2 + U_EXP.4.
+    "GPB3_SPARE": 2,
     # 5V_RPP gains C_EFIN, the eFuse input capacitor that did not exist for five
     # releases (SLVSE57C sec.10 Fig.67): Q_REV.2 + U_EFUSE.3 + U_EFUSE.4 + R_OVT.1
     # + C_EFIN.1.
     "5V_RPP": 5,
 }
+# ADR-0025: nets that MUST NOT EXIST. A node-count table is blind to a net that
+# should have been deleted, and "the door channel is gone" is the whole change.
+FORBIDDEN = ["DOOR_RAW_IN", "DOOR_RAW", "DOOR_NI", "DOOR_OK", "DOOR_OK_EXP"]
 bad = []
+for k in FORBIDDEN:
+    if k in d:
+        bad.append(f"{k}: STILL EXISTS ({len(d[k])} nodes) — ADR-0025 deletes the door channel")
 for k, n in EXPECT.items():
     got = d.get(k)
     if got is None:
         bad.append(f"{k}: MISSING (merged into another net?)")
     elif len(got) != n:
         bad.append(f"{k}: {len(got)} nodes, expected {n} -> {sorted(got)}")
-print(f"   {len(nets)} nets; safety-chain spot-check {len(EXPECT)-len(bad)}/{len(EXPECT)}")
+print(f"   {len(nets)} nets; spot-check {len(EXPECT)+len(FORBIDDEN)-len(bad)}/{len(EXPECT)+len(FORBIDDEN)} ({len(EXPECT)} node-counts + {len(FORBIDDEN)} must-not-exist)")
 for b in bad:
     print("   FAIL " + b)
 sys.exit(1 if bad else 0)
