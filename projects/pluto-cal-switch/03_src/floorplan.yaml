@@ -502,16 +502,35 @@ design_rules:
   # tier model does not carry it; carry the check into ORDER_README the way the
   # tier file carries "verify at order time" on min_hole_to_hole.
   hole_clearance: 0.20
-  # LEFT AT 0.5, DELIBERATELY, EVEN THOUGH THE DECLARED TIER'S FLOOR IS 0.25.
-  # jlc_4layer_advanced publishes min_hole_to_hole 0.25 ("verify at order time"),
-  # so 0.5 is the STANDARD-tier number and is 2x stricter than what this board
-  # pays for. It stays because the stitch config is built on it (`stitch.via.
-  # spacing: 0.85` = a 0.55 mm drill-edge gap, chosen against this 0.5) and
-  # because relaxing a hole-to-hole floor to a number the tier file itself marks
-  # unverified is not a trade worth making for via density we do not need.
-  # If a future escape genuinely walls in at 0.5, 0.25 is available WITH the
-  # order-time verification, and that is the moment to spend it.
-  hole_to_hole: 0.5
+  # 0.5 -> 0.25 ON 2026-07-30. THE PARAGRAPH THIS REPLACES NAMED ITS OWN TRIGGER
+  # AND THE TRIGGER FIRED: "If a future escape genuinely walls in at 0.5, 0.25
+  # is available WITH the order-time verification, and that is the moment to
+  # spend it." Five escape vias walled in at 0.5 (measured gaps 0.282, 0.350,
+  # 0.373, 0.404, 0.450 mm) and the stitch gate refused the board on all five.
+  # Every one of them is LEGAL at the declared tier.
+  #
+  # IT IS NOT A DENSITY TRADE. IT IS ARITHMETIC, AND AT 0.5 THIS BOARD FORBADE
+  # ITSELF THE VERY ESCAPE IT BOUGHT THE TIER FOR. Two adjacent escape vias on
+  # the RP2040's 0.400 mm pitch, at the tier's own 0.15 mm drill, are
+  #     pitch - drill = 0.400 - 0.150 = 0.250 mm  apart, EXACTLY.
+  # So at a 0.5 floor EVERY adjacent-pin escape via on a QFN-56 is a violation
+  # BY CONSTRUCTION — the same shape as the hole_clearance 0.25 defect fixed
+  # directly above (57 findings -> 0), and `escape_check`'s own wall test is
+  # literally `pitch - min_via_drill < min_hole_to_hole`, which is FALSE at the
+  # tier's 0.25 and TRUE at 0.5. ADR-0010 raised the tier to advanced with the
+  # RP2040 QFN-56 0.40 mm escape as justification #1; keeping the standard
+  # tier's 0.5 mm floor while claiming that justification is the board's rule
+  # set contradicting its own ADR (the G-SELFCON shape again).
+  #
+  # 0.25 IS THE DECLARED TIER'S PUBLISHED FLOOR, not a number invented here, and
+  # the tightest measured gap on the routed board is 0.282 mm — inside it with
+  # 0.032 mm to spare, so this is not a floor set to fit the result.
+  # `stitch.via.spacing: 0.85` (a 0.55 mm drill-edge gap) is unchanged and stays
+  # 2.2x more conservative than the floor; only ROUTED escape vias needed it.
+  # ORDER-TIME OBLIGATION, INHERITED FROM fab_tiers.yaml's OWN "verify at order
+  # time" ON THIS KEY: confirm JLC's advanced-option hole-to-hole with the
+  # order, alongside the hole-to-track obligation recorded above.
+  hole_to_hole: 0.25
   copper_edge_clearance: 0.3
   via_min_size: 0.25
   min_through_drill: 0.15

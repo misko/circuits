@@ -3,9 +3,9 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
-	(descr "Infineon PG-TSNP-6 (0.7 x 1.1 x 0.37 mm leadless, 0.40 mm pitch both axes) - BGS12WN6 C534203, and the pin-, truth-table- and LAND-identical BGS12P2L6 C3312945. Land from BGS12WN6 Rev 2.9 Figure 5 'Footprint recommendation': NSMD, six 0.25x0.25 mm lands on a 0.40x0.40 mm grid, a SINGLE solder-mask opening over all six (the 0.15 mm land-to-land gap is below JLCPCB's 0.2 mm mask-dam minimum, so per-pad openings are unmanufacturable), and 6 circular D0.25 stencil apertures. Pin map from Figure 2 (TOP VIEW): left col 4/5/6, right col 3/2/1. PIN-2 GROUND VIA MUST ESCAPE OUTWARD (ARCHITECTURE sec.10.7): a 0.45 mm standard-tier via at the 0.25 mm land leaves 0.050 mm to pins 1 and 3, under the 0.127 mm floor - this part is why the board is jlc_4layer_advanced (0.25/0.15 vias fit, 0.150 mm clear).")
+	(descr "Infineon PG-TSNP-6 (0.7 x 1.1 x 0.37 mm leadless, 0.40 mm pitch both axes) - BGS12WN6 C534203, and the pin-, truth-table- and LAND-identical BGS12P2L6 C3312945. Land from BGS12WN6 Rev 2.9 Figure 5 'Footprint recommendation': NSMD, six 0.25x0.25 mm lands on a 0.40x0.40 mm grid, a SINGLE solder-mask opening over all six (the 0.15 mm land-to-land gap is below JLCPCB's 0.2 mm mask-dam minimum, so per-pad openings are unmanufacturable), and 6 circular D0.25 stencil apertures. THE SHARED APERTURE IS DECLARED TO KiCad AS `allow_soldermask_bridges` (2026-07-30): without it KiCad reports every pad and every track under that one intended opening as a solder_mask_bridge - 67 findings across 12 distinct pairs on pluto-cal-switch, ALL inside U_SW1/U_SW2 and ALL the same single aperture. The attribute states the datasheet fact in the footprint that OWNS it, rather than waiving 67 findings downstream in a gate that would then carry an unevidenced exception. Pin map from Figure 2 (TOP VIEW): left col 4/5/6, right col 3/2/1. PIN-2 GROUND VIA MUST ESCAPE OUTWARD (ARCHITECTURE sec.10.7): a 0.45 mm standard-tier via at the 0.25 mm land leaves 0.050 mm to pins 1 and 3, under the 0.127 mm floor - this part is why the board is jlc_4layer_advanced (0.25/0.15 vias fit, 0.150 mm clear).")
 	(tags "TSNP-6 PG-TSNP-6-10 DFN RF SPDT Infineon BGS12WN6 BGS12P2L6 NSMD")
-	(attr smd)
+	(attr smd allow_soldermask_bridges)
 	(property "Reference" "REF**"
 		(at 0 -1.25 0)
 		(layer "F.SilkS")
