@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (KPY, SCRIPTS, check, contains, eq, main,  # noqa: E402
+from harness import (KPY, ROOT, SCRIPTS, check, contains, eq, main,  # noqa: E402
                      must_fail, not_contains,
                      must_pass, run, test, tmpdir)
 
@@ -966,6 +966,309 @@ def t_padj_pair_prose_entry_does_not_crash():
     contains(rows["P-ADJ-PAIR"][1], "GRADED NOTHING", "with no denominator")
     # the keep_short half is unaffected by a malformed neighbour
     eq(rows["P-ADJ"][0], "PASS", "keep_short still graded")
+
+
+# ===========================================================================
+# P-LAND — the widest track that can actually leave a pad (canon M-ENTRY)
+# ===========================================================================
+# THE FIXTURE CORPUS IS THE TWO REAL BOARDS THAT ASKED THE QUESTION, not a
+# model of them. Both halves must work or the gate ranks nothing:
+#   * a pad that genuinely cannot emit its class width must FAIL, and
+#   * a pad relaxed by a rule area / `scoped_floors` must PASS.
+# `pluto-cal-switch` supplies both from ONE board: as it stands it has three
+# permissive rule areas + `scoped_floors`, and stripping those three rules
+# from the .kicad_dru copy (the good input broken in exactly one way) brings
+# back the eleven pads its stage-6 hand measurement found.
+#
+# RED-VERIFIED against pre-fix code: `git show HEAD~1:...escape_check.py`
+# has no `--board` at all, so every P-LAND test below exits 2 with
+# `unrecognized arguments: --board`. That is the weak red. The STRONG reds
+# were run by ablation on the post-fix gate and are recorded per test:
+#   (a) relaxation reader neutered (`resolve_min` ignoring kind == "area"):
+#       the clean board test goes RED with the ELEVEN failures back, i.e.
+#       the gate reds a board that already fixed the problem;
+#   (b) landing grid neutered (`launch_points` returning the centre only):
+#       the clean board test goes RED with SIX failures — U_SW1.1/.3/.4 and
+#       their channel-2 twins, pads the board routed at 0.35 mm;
+#   (c) pour + via-on-pad exemptions neutered: the sealed
+#       crow-recorder-central-v2 goes RED with 17 failures, 16 of them on a
+#       TQFP-128 power ring that carries no track at all.
+CAL_KICAD = ROOT / "projects" / "pluto-cal-switch" / "04_kicad"
+RX2_KICAD = ROOT / "projects" / "pluto-rx2-8way" / "04_kicad"
+CRC_KICAD = (ROOT / "projects" / "crow-recorder-central-v2" / "04_kicad")
+
+# the eleven, verbatim from pluto-cal-switch's own nets.yaml evidence block:
+# pad, class floor, landable maximum measured by hand at stage 6
+CAL_ELEVEN = [("U_SW1.5", "0.350", "0.250"), ("U_SW2.5", "0.350", "0.250"),
+              ("U_MCU.46", "0.330", "0.300"), ("U_MCU.47", "0.330", "0.300"),
+              ("U_MCU.10", "0.400", "0.300"), ("U_MCU.22", "0.400", "0.300"),
+              ("U_MCU.26", "0.400", "0.300"), ("U_MCU.33", "0.400", "0.300"),
+              ("U_MCU.23", "0.400", "0.300"), ("U_MCU.45", "0.400", "0.300"),
+              ("U_MCU.50", "0.400", "0.300")]
+
+
+def board_copy(kicad_dir, drop_rules=(), extra_dru="", keep_rules=None):
+    """A scratch copy of a real 04_kicad board triple, optionally with its
+    .kicad_dru edited. The BOARD bytes are never touched — only the rule file
+    the gate reads its floors and relaxations from."""
+    import shutil
+    d = tmpdir("land_")
+    stem = sorted(Path(kicad_dir).glob("*.kicad_pcb"))[0].stem
+    for ext in ("kicad_pcb", "kicad_pro", "kicad_dru"):
+        shutil.copy(Path(kicad_dir) / f"{stem}.{ext}", d / f"{stem}.{ext}")
+    dru = d / f"{stem}.kicad_dru"
+    blocks = re.split(r"(?=\(rule )", dru.read_text())
+    out = []
+    for b in blocks:
+        m = re.match(r'\(rule\s+"?([^"\s)]+)"?', b)
+        if m and any(m.group(1).startswith(p) for p in drop_rules):
+            continue
+        if m and keep_rules is not None and m.group(1) not in keep_rules:
+            continue
+        out.append(b)
+    dru.write_text("".join(out) + extra_dru)
+    return d / f"{stem}.kicad_pcb"
+
+
+def land(board, *args):
+    return run([KPY, ESC, "--board", str(board), *args])
+
+
+def denominator(out):
+    m = re.search(r"P-LAND denominator \S+: (\d+) graded / (\d+) copper pads "
+                  r"\((\d+) no declared width floor, (\d+) fed by a same-net "
+                  r"POUR, (\d+) escaped by a VIA ON THE LAND, (\d+) no net, "
+                  r"(\d+) UNREACHED\); (\d+) graded against a SCOPED floor, "
+                  r"(\d+) against a scoped clearance; (\d+) failing", out)
+    check(m is not None, f"no P-LAND denominator line in:\n{out[-2000:]}")
+    keys = ("graded", "pads", "no_floor", "pour", "via", "no_net",
+            "unreached", "scoped", "scoped_clear", "failing")
+    return dict(zip(keys, (int(x) for x in m.groups())))
+
+
+@test("P-LAND passes the board that ALREADY FIXED the problem")
+def t_land_passes_the_relaxed_board():
+    """pluto-cal-switch solved its eleven pads with three permissive rule
+    areas + `scoped_floors` bounded to lambda_g/61. A gate that reports
+    eleven failures on it is switched off inside a week, so this is the
+    half that decides whether P-LAND is adoptable at all.
+
+    ABLATION RED (a): with `resolve_min` skipping kind == "area" rules the
+    same command exits 1 with the eleven FAIL lines. ABLATION RED (b): with
+    `launch_points` returning only the pad centre it exits 1 with six other
+    failures (U_SW1.1/.3/.4 + twins), pads this board routed at 0.35 mm and
+    whose hand measurement is 0.460 mm."""
+    r = must_pass(land(CAL_KICAD / "pluto_cal_switch.kicad_pcb"),
+                  "P-LAND on pluto-cal-switch as it stands")
+    d = denominator(r.out)
+    eq(d["failing"], 0, "failing pads on the board that fixed the problem")
+    check(d["scoped"] >= 11, f"pads graded against a SCOPED floor: "
+                             f"{d['scoped']} (the three tapers license 21)")
+    check(d["graded"] > 100, f"only {d['graded']} pads graded")
+    contains(r.out, "input: floors+relaxations = ",
+             "G-INPUT names the rule file the verdict depends on")
+
+
+@test("P-LAND FAILS the ELEVEN pads when the relaxations are stripped",
+      kind="known_bad")
+def t_land_fails_the_eleven():
+    """THE MOTIVATING MEASUREMENT, reproduced by an independent method. The
+    board's own stage-6 measurement (48 directions x a 30 um landing grid,
+    by hand, recorded in nets.yaml) found ELEVEN pads under their own class
+    minimum. Strip the three `scoped_*` rules from a COPY of the .kicad_dru
+    — the good input broken in exactly one way — and this gate must name the
+    same eleven with the same numbers.
+
+    Pre-fix (HEAD~1) there is no `--board` flag at all: nothing in the
+    pipeline asked this question, which is why it was found by hand."""
+    b = board_copy(CAL_KICAD, drop_rules=("scoped_",))
+    r = must_fail(land(b), "P-LAND with the scoped_floors stripped")
+    d = denominator(r.out)
+    eq(d["failing"], 11, "pads under their own class floor")
+    eq(d["scoped"], 0, "scoped floors, after stripping them")
+    for pad, floor, landable in CAL_ELEVEN:
+        contains(r.out, f"{pad} ", f"the finding names {pad}")
+        m = re.search(rf"FAIL P-LAND \S+ {re.escape(pad)} .*?floor="
+                      rf"([0-9.]+) .*?landable=([0-9.]+)", r.out)
+        check(m is not None, f"{pad} has no FAIL line")
+        eq((m.group(1), m.group(2)), (floor, landable),
+           f"{pad} floor/landable vs the hand measurement")
+
+
+@test("P-LAND does not blame WIDTH for a routing failure")
+def t_land_fix_order_ranks_grid_first():
+    """The correction that cost a day: on pluto-rx2-8way the arms did NOT
+    fail for want of width. At `grid_step: 0.1` nothing routed the five
+    boxed RF pads at ANY width; at 0.05 + clearance 0.14 the same wave
+    routes 11/11 at the full 0.36 mm. So a failing run must rank GRID,
+    then CLEARANCE, then WIDTH — and must not offer NECK-DOWN, which was
+    MEASURED to deliver 149.832 mm at 0.25 mm and 0.000 mm at 0.36."""
+    b = board_copy(CAL_KICAD, drop_rules=("scoped_",))
+    r = must_fail(land(b), "a failing P-LAND run")
+    for needle in ("ROUTER GRID", "grid_step: 0.05", "SCOPED CLEARANCE",
+                   "NOT A REMEDY", "149.832", "0.000 mm at 0.36",
+                   "DOES NOT CLAIM WIDTH IS WHY A BOARD FAILED TO ROUTE"):
+        contains(r.out, needle, "the fix-line")
+    gi = r.out.index("1. ROUTER GRID")
+    ci = r.out.index("2. A LAUNCH-LOCAL SCOPED CLEARANCE")
+    wi = r.out.index("3. WIDTH")
+    check(gi < ci < wi, "the ranked causes are GRID, CLEARANCE, WIDTH")
+
+
+@test("P-LAND honours a rule-area CLEARANCE relaxation")
+def t_land_honours_a_scoped_clearance():
+    """WHAT THIS GATE NEEDS FROM THE SCOPED-CLEARANCE WORK. Today
+    `scoped_floors:` emits `track_width` only, so the ONE relaxation that
+    actually rescues pluto-rx2-8way's RF launches cannot be declared. The
+    reader is already here: any `.kicad_dru` rule carrying `constraint
+    clearance (min ...)` is resolved by the same last-match precedence.
+
+    MEASURED on the real rx2 board: with the declared 0.200 mm clearance the
+    five boxed RF launches take 0.316 mm against a 0.360 mm RF50 floor; add
+    a 0.14 mm clearance rule for RF50 and all five clear it outright
+    (0.436 mm), taking the board from 8 findings to 3."""
+    base = must_fail(land(RX2_KICAD / "pluto_rx2_8way.kicad_pcb"),
+                     "P-LAND on pluto-rx2-8way as it stands")
+    hard = denominator(base.out)
+    for pad in ("U_SW.2", "U_SW.4", "U_SW.15", "U_SW.17", "U_SW.22"):
+        contains(base.out, f"{pad} net=", f"the RF launch {pad} is named")
+    b = board_copy(RX2_KICAD, extra_dru=(
+        '(rule "scoped_rf_launch_clearance"\n'
+        "  (condition \"A.NetClass == 'RF50'\")\n"
+        "  (constraint clearance (min 0.14mm)))\n"))
+    r = land(b)
+    d = denominator(r.out)
+    check(d["scoped_clear"] > 0, "pads graded against a scoped clearance")
+    check(d["failing"] < hard["failing"],
+          f"a 0.14 mm scoped clearance must clear findings: "
+          f"{hard['failing']} -> {d['failing']}")
+    for pad in ("U_SW.2", "U_SW.4", "U_SW.15", "U_SW.17", "U_SW.22"):
+        not_contains(r.out, f"FAIL P-LAND pluto_rx2_8way {pad} ",
+                     f"{pad} under a 0.14 mm scoped clearance")
+
+
+@test("P-LAND leaves POUR-fed and VIA-escaped pads out of scope, and says so")
+def t_land_pour_and_via_are_out_of_scope():
+    """The sealed, DRC-clean crow-recorder-central-v2 escapes its XU316
+    TQFP-128 power ring with a VIA ON THE LAND — U1.10 carries NO track at
+    all, only a 0.3 mm via on a 1.475 x 0.250 mm pad — and pours feed
+    another 34 pads. A gate that demands a track floor of those pads reds a
+    board that shipped.
+
+    ABLATION RED (c): with both exemptions removed this exits 1 with 17
+    failures, 16 of them on that power ring."""
+    r = must_pass(land(CRC_KICAD / "crow_recorder_central_v2.kicad_pcb"),
+                  "P-LAND on the sealed crow-recorder-central-v2")
+    d = denominator(r.out)
+    eq(d["failing"], 0, "failures on a sealed DRC-clean board")
+    check(d["pour"] >= 30 and d["via"] >= 40,
+          f"pour-fed {d['pour']} / via-escaped {d['via']} pads named in the "
+          f"denominator")
+    eq(d["graded"] + d["no_floor"] + d["pour"] + d["via"] + d["no_net"]
+       + d["unreached"], d["pads"], "the denominator accounts for every pad")
+
+
+@test("P-LAND cross-checks its own model against routed copper")
+def t_land_model_is_falsifiable_on_routed_copper():
+    """canon M1/G-VACUOUS: a prediction nothing can contradict is not a
+    prediction. On a routed board every graded pad already carrying same-net
+    copper is compared against the width that ACTUALLY left it. 0 of 540
+    over five sealed boards — and the 5 that fire on pluto-rx2-8way are its
+    RF star routed at 0.36 mm on a clearance the .kicad_dru never declares,
+    which is the same board's 49 DRC findings."""
+    r = must_pass(land(CRC_KICAD / "crow_recorder_central_v2.kicad_pcb"),
+                  "P-LAND on the sealed crow-recorder-central-v2")
+    m = re.search(r"routed cross-check \S+: (\d+) graded pad\(s\) already "
+                  r"carry a same-net track, (\d+) of them WIDER", r.out)
+    check(m is not None, f"no routed cross-check line:\n{r.out[-1500:]}")
+    check(int(m.group(1)) > 100, "the cross-check reached real copper")
+    eq(int(m.group(2)), 0, "pads where routed copper refutes the model")
+
+
+@test("P-LAND FAILS a board with no declared width floor at all",
+      kind="known_bad")
+def t_land_zero_denominator_fails():
+    """canon M-COVER: a zero denominator is a FAIL, never a pass. Netclass
+    floors are generated BEFORE routing (canon R1), so 0 graded pads means
+    generate_rules never ran — the exact shape of `escape_check.py` with a
+    glob that matched nothing, one artifact up."""
+    b = board_copy(CAL_KICAD, keep_rules=())
+    r = must_fail(land(b), "P-LAND on a board whose .kicad_dru declares "
+                           "no width floor", "0 pads graded")
+    contains(r.out, "M-COVER", "names the canon it is enforcing")
+    eq(denominator(r.out)["graded"], 0, "graded pads")
+
+
+@test("P-LAND FAILS a board path that does not exist", kind="known_bad")
+def t_land_missing_board_fails():
+    """A board that cannot be read is not a board that passed (G-COVER)."""
+    must_fail(land(tmpdir("land_") / "nope.kicad_pcb"),
+              "P-LAND on a missing board", "no such board")
+
+
+@test("P-LAND reports an UNREADABLE land as UNREACHED, never as a pass",
+      kind="known_bad")
+def t_land_unreached_pad_is_named():
+    """M-COVER's other half. A pad whose land geometry cannot be resolved is
+    named and counted, never silently absent from the denominator. Injected
+    at the one seam where it can happen (KiCad failing to give a pad
+    polygon), because no real board in this fleet has one — which is exactly
+    why the branch needs a fixture."""
+    d = tmpdir("land_")
+    drv = d / "drv.py"
+    drv.write_text(
+        "import sys\n"
+        f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
+        "import escape_check as ec\n"
+        "real = ec.read_board\n"
+        "def fake(p):\n"
+        "    pads, un, areas, pours, vias, tracks = real(p)\n"
+        "    bad = pads.pop()\n"
+        "    bad['why_unreached'] = 'pad outline unreadable (injected)'\n"
+        "    un.append(bad)\n"
+        "    return pads, un, areas, pours, vias, tracks\n"
+        "ec.read_board = fake\n"
+        "sys.argv = ['escape_check', '--board', sys.argv[1]]\n"
+        "ec.main()\n")
+    r = run([KPY, drv, CAL_KICAD / "pluto_cal_switch.kicad_pcb"])
+    check(r.rc != 0, "an UNREACHED pad must not exit 0\n" + r.out[-1500:])
+    contains(r.out, "UNREACHED pluto_cal_switch ", "the pad is named")
+    eq(denominator(r.out)["unreached"], 1, "UNREACHED pads in the denominator")
+
+
+@test("P-LAND passes a pad whose class declares NO width floor",
+      kind="vacuity", gate="escape_check.py")
+def t_vacuity_P_LAND_passes_a_pad_whose_class_declares_no_width_floor():
+    """THE DECLARED BLIND SPOT (canon G-VACUOUS), and it is the whole scope
+    decision stated as a fixture: P-LAND grades a pad against a DECLARED
+    floor, so a class that declares none cannot fail. Delete three lines
+    from pluto-cal-switch's nets.yaml and all ELEVEN findings become
+    silence, while the geometry — 0.250 mm of landable width on a pad whose
+    net wants 0.350 — is unchanged.
+
+    It is BOUNDED and ENUMERATED rather than hidden: `N no declared width
+    floor` prints inside the denominator on every run (1440 of 2689 copper
+    pads fleet-wide). It is NOT closed by grading against a netclass DEFAULT
+    width — that invents a requirement the board never made and would red
+    every board on day one, which is how a gate gets switched off.
+
+    The must_fail CONTRAST below is what proves the fact is gradeable at
+    all: restore the floors, same board, same pads, eleven findings."""
+    # keep ONE floor (QSPI, whose 13 pads are all comfortable) so the run is
+    # not the zero-denominator FAIL — the blind spot is a PARTIAL
+    # denominator that reads as a clean board.
+    b = board_copy(CAL_KICAD, keep_rules={"QSPI_width"})
+    r = must_pass(land(b),
+                  "P-LAND on a board that declares no width floor for the "
+                  "classes whose pads cannot take one")
+    d = denominator(r.out)
+    eq(d["failing"], 0, "findings once nothing declares a floor")
+    eq(d["graded"], 13, "pads still graded (the one surviving class)")
+    check(d["no_floor"] > 250, f"only {d['no_floor']} pads out of scope")
+    # CONTRAST: the same geometry, with the class floors back = eleven.
+    hard = must_fail(land(board_copy(CAL_KICAD, drop_rules=("scoped_",))),
+                     "the same pads with their class floors declared")
+    eq(denominator(hard.out)["failing"], 11, "the findings the vacuity hides")
 
 
 if __name__ == "__main__":

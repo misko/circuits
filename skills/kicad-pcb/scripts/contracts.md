@@ -306,6 +306,60 @@ BACKEND GAP to report, not a bespoke script to write here.
   Pinned by `tests/t1_release_index.py` and `t1_audit.py`
   (`t_mrel_scopes_to_the_board_under_audit`, red-verified).
 
+- **LANDABLE WIDTH PER PAD (canon P-LAND, ADR-0007's M-ENTRY).**
+  `escape_check.py --board B.kicad_pcb [--project P] [--dru D] [--dirs N]
+  [--reach MM] [--verbose]` measures, for every copper pad whose net resolves
+  a DECLARED `track_width` floor, the widest straight track that can leave the
+  land — a 30 um landing grid inside the land x 48 directions x 1.0 mm reach,
+  every other-net land within 2.5 mm as an obstacle, `w = 2*(d - clearance)` —
+  and FAILS a pad that cannot emit its own floor. It runs at STAGE 5, on
+  placement alone: no router, no copper, no stackup.
+  **Floors AND relaxations are read from the board's `.kicad_dru` with KiCad's
+  last-match precedence**, never from the `nets.yaml` that generated them
+  (canon M1) — so a `scoped_floors:` taper, and a rule-area `clearance`
+  relaxation once one exists, are honoured exactly as DRC will honour them.
+  `A.NetClass == 'X'` and `A.insideArea('Z') [&& A.NetName == ...]` are the
+  two condition shapes modelled; any other condition is NAMED as unapplied,
+  never silently dropped.
+  Out of scope, counted in the denominator on every run and never silent: a
+  pad fed by a same-net POUR, a pad escaped by a VIA ON THE LAND, a pad with
+  no net, and a pad whose class declares no floor (the gate's declared
+  VACUITY). An unreadable land is UNREACHED, named, never passed.
+  **The model is falsifiable on routed input**: every graded pad already
+  carrying same-net copper is cross-checked against the width that actually
+  left it, and copper wider than the model allows prints `MODEL-REFUTED` with
+  both readings (the model is too strict, or that copper does not hold the
+  declared clearance and DRC will say so). Measured 0 of 540 on five sealed
+  boards.
+  WHY: two boards asked this question independently and no gate did (canon
+  M8). `pluto-rx2-8way`'s PE42482A-X land leaves 0.350 mm from the RF
+  centreline to a GND land edge where a 0.36 mm trace at 0.200 mm clearance
+  needs 0.380 — found only when 6 of 11 RF nets failed to route.
+  `pluto-cal-switch` had ELEVEN pads under their own class minimum, found BY
+  HAND, with `placement_gates` PASSED and `tier_preflight` 0 FAIL.
+  **The message ranks GRID, then CLEARANCE, then WIDTH and claims nothing
+  about why a board failed to route**: at `grid_step: 0.1` nothing routed rx2's
+  boxed RF pads at ANY width, and at 0.05 + 0.14 clearance the same wave routes
+  11/11 at the full 0.36 mm. Router NECK-DOWN is REFUTED as the remedy, not
+  merely unconfigured (149.832 mm at 0.25 and 0.000 mm at 0.36).
+  Day-one fleet: 7 boards, 2689 copper pads, 791 graded, 6 boards PASS; the
+  OWED set is `pluto-rx2-8way` alone (8 findings), 5 of which a rule-area
+  clearance of 0.14 mm clears outright. Pinned by `t1_escape_tier.py`.
+  **NOT WIRED INTO `policy_audit.py` at landing, deliberately** (the same
+  choice R-LEN made): one board is genuinely OWED, and a row that reds a
+  live board the day it appears is a row that gets commented out. It is run
+  from the stage-5 placement step and by the fleet census until rx2's
+  launches are relaxed or re-placed; wiring it in is the ratchet's next
+  notch, not this change.
+  **WHAT IT NEEDS FROM THE SCOPED-CLEARANCE WORK:** `scoped_floors:` emits
+  `track_width` only, so the relaxation that actually rescues an RF launch
+  cannot be declared today. The reader is already here — any rule with
+  `constraint clearance (min ...)` under `A.NetClass ==` or
+  `A.insideArea(...)` is resolved by the same last-match precedence — so the
+  emitter needs only to write that constraint (ideally on the SAME `zone:`
+  key, so one rule area carries both relaxations and P-LAND reports them
+  together).
+
 ## Structure
 
 One file per tool; no package/`__init__.py` — scripts are invoked by path.
