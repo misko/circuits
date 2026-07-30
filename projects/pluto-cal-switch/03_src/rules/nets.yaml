@@ -6,7 +6,7 @@
 # TWO THINGS ABOUT THIS BOARD THAT MAKE IT UNLIKE THE OTHERS IN THIS FLEET:
 #
 # 1. THE DOMINANT WIDTH CONSTRAINT IS IMPEDANCE, NOT AMPACITY. The RF classes
-#    below are 0.35 mm because that is 50 ohm on the ordered stackup
+#    below are 0.36 mm because that is 50 ohm on the ordered stackup
 #    (JLC04161H-7628, 0.2104 mm top prepreg — DETAIL_DESIGN section 1), NOT
 #    because of current. A "safety" widening of an RF class is a DEFECT, not a
 #    conservative choice: it detunes the line. Both directions are wrong.
@@ -66,12 +66,90 @@ fab_tier: jlc_4layer_advanced
 # board has open area everywhere outside the two switch lands.
 default_clearance: 0.15mm
 
+# ===========================================================================
+# WIDTH DERIVATION — WHY THE RF CLASSES ARE 0.36 mm, AND WHY THREE SOLVES OF
+# THE SAME QUESTION DO NOT AGREE. Measured 2026-07-30.
+# ===========================================================================
+# Cross-section: h 0.2104 mm (L1->L2 prepreg 7628), t 0.035 mm (1 oz),
+# Dk 4.4 — JLC's PUBLISHED value for JLC04161H-7628 and the one in ADR-0010's
+# own stackup table. DETAIL_DESIGN section 1 used to say "eps_r taken as 4.3";
+# that is now 4.4 everywhere, because a constant the fab publishes is not ours
+# to round.
+#
+# THREE SOLVES, STATED WITH THEIR MODELS RATHER THAN AVERAGED (canon M1 — the
+# checker and the checked must not share a method, and the two pre-existing
+# derivations were BOTH Hammerstad closed-form, so they were one method twice):
+#
+#   w for 50.00 ohm        method                                    model
+#   -----------------      ----------------------------------------  -----------
+#   0.3610 mm              Hammerstad-Jensen + thickness correction   bare trace
+#                          (the two prior derivations, ADR-0010)
+#   0.3736 mm              2D finite-difference field solve,          bare trace
+#                          box-integration, discrete-Gauss charge,
+#                          mesh bias cancelled against H-J at t=0
+#   0.3590 mm              the SAME field solve on the AS-FABBED      as fabbed
+#                          cross-section: trapezoidal etch (top
+#                          0.02 mm narrower) + 0.020 mm conformal
+#                          solder mask at Dk 3.8
+#
+# THE FIRST TWO ARE THE SAME CROSS-SECTION COMPUTED TWO WAYS AND THEY DISAGREE
+# BY 0.0126 mm (3.4 %) — a disagreement LARGER than the correction being made.
+# That alone refutes "0.35 is not 50 ohm, therefore use 0.361": 0.361 is one
+# method's answer to a question the methods do not agree on.
+#
+# WHAT BROKE THE TIE IS THAT NEITHER PRIOR DERIVATION CARRIES THE SOLDER MASK,
+# AND THE MASK IS WORTH MORE THAN THE WHOLE CORRECTION. Measured at w 0.35 mm,
+# Dk 4.4, one term at a time off the same solver:
+#     bare rectangular trace                      Z0 51.64 ohm
+#     + trapezoidal etch (top -0.02 mm)           Z0 52.11 ohm   (+0.46)
+#     + conformal solder mask 0.020 mm, Dk 3.8    Z0 50.09 ohm   (-1.55)
+#     as fabbed (both terms together)             Z0 50.68 ohm   (-0.97)
+# This board's RF runs are NOT mask-opened, so the as-fabbed row is the one the
+# copper will actually be. A 1.55 ohm term omitted from a 0.8 ohm argument is
+# not a refinement, it is the argument.
+#
+# 0.36 mm IS CHOSEN BECAUSE BOTH SURVIVING METHODS BRACKET IT: 0.3590 (field
+# solve, as fabbed) and 0.3610 (closed form, bare) differ by 2 um and 0.360
+# sits between them on a 10 um authoring grid. That is convergence, not
+# averaging — the two models agree to 0.6 % once the geometry is complete.
+#
+# WHAT IT ACTUALLY BUYS, STATED PLAINLY AND NOT INFLATED:
+#     w 0.35 mm   as fabbed  Z0 50.68 ohm  |G| 0.0068  RL 43.4 dB  VSWR 1.014
+#                 bare       Z0 51.82 ohm  |G| 0.0179  RL 35.0 dB  VSWR 1.036
+#     w 0.36 mm   as fabbed  Z0 49.93 ohm  |G| 0.0007  RL 62.5 dB  VSWR 1.002
+#                 bare       Z0 51.03 ohm  |G| 0.0102  RL 39.8 dB  VSWR 1.021
+# The WORST case for the OLD width is 35.0 dB return loss. ADR-0010's own
+# corrected figure for the THT SMA launch is RL 6.0 dB. So the old width was
+# never an electrical defect on this board — it was a DOCUMENTATION defect,
+# and this change is a documentation-consistency fix that happens to pick up a
+# small electrical improvement. Anyone who reads this as "the RF was broken"
+# has read it wrong.
+#
+# STILL OWED, AND ADR-0010 ALREADY SAID SO AS A CHECKLIST ITEM, NOT A NOTE:
+# re-confirm against JLCPCB's OWN impedance calculator for the exact ordered
+# stackup before release. Three of our own solves is still three of OUR solves;
+# the fab's model is the one the fab builds to.
+#
+# DERIVED CONSTANTS AT THE NEW WIDTH (as fabbed, Dk 4.4, w 0.36 mm) — these
+# are the numbers ADR-0011's published picoseconds convert with, and
+# 03_src/rf_copper.py carries the same three:
+#     eps_eff 3.383   t_pd 6.135 ps/mm   lambda_g(6 GHz) 27.17 mm
+#     phase 13.25 deg/mm at 6 GHz
+# ADR-0010/0011 published eps_eff 3.26 and 6.0 ps/mm, which are ~2.2 % low.
+# THE PUBLISHED D4 DELTA IS IMMUNE and that is arithmetic, not luck: the arm
+# spread is 0.000000 mm BY CONSTRUCTION, and 0.000000 x any constant is
+# 0.0000 ps. Only the PER-ARM ABSOLUTE moves.
+
 classes:
   RF50:
     intent: >
-      Every 50 ohm single-ended RF net. 0.35 mm on L1 over a SOLID L2 ground is
-      50 ohm on the ordered stackup (Hammerstad-Jensen: 0.30 -> 55.2 ohm,
-      0.35 -> 51.0 ohm, 0.40 -> 47.5 ohm). THIS IS AN IMPEDANCE WIDTH, NOT AN
+      Every 50 ohm single-ended RF net. 0.36 mm on L1 over a SOLID L2 ground is
+      50 ohm on the ordered stackup AS FABBED — see the WIDTH DERIVATION block
+      just above `classes:` for the three independent solves and why they do
+      not agree. WAS 0.35 mm until 2026-07-30, on a bare-trace closed form that
+      this file's own table already contradicted (it read "0.35 -> 51.0 ohm" in
+      the same breath as calling 0.35 the 50 ohm width). THIS IS AN IMPEDANCE
+      WIDTH, NOT AN
       AMPACITY WIDTH — widening it is as wrong as narrowing it. Fenced with
       ground vias at <=2.0 mm (lambda_g/12 at 6 GHz); L2 unbroken underneath
       everywhere; no vias, no layer changes. Current is negligible and is NOT
@@ -83,7 +161,7 @@ classes:
            SW1_ANT, SW2_ANT, LOOP_SPLIT,
            PAD_A1_1, PAD_A1_2, PAD_A1_3, PAD_A1_4]
     current: signal
-    min_width: 0.35mm
+    min_width: 0.36mm
     # EXPLICIT, not inherited: generate_rules' unexamined 0.2 mm hardcode is
     # itself the defect tier_preflight PF-RULES-CLR names, and 0.2 is
     # unbuildable against the BGS12WN6 / SOT-553 land gaps. See
@@ -130,7 +208,7 @@ classes:
            PAD_A2A_1, PAD_A2B_1,
            LOOP_ARM1_SW, LOOP_ARM2_SW]
     current: signal
-    min_width: 0.35mm
+    min_width: 0.36mm
     clearance: 0.15mm
     routing: KRT, L1 only, mirrored pair, no vias
     verify: DRC floor + the PUBLISHED per-arm length and delta (ADR-0011)
@@ -263,8 +341,8 @@ classes:
 # MINIMUM":
 #
 #   pad                 net          class    needs   max landable   short by
-#   U_SW1.5             RX_PLUTO1    RF50     0.350       0.250        0.100
-#   U_SW2.5             RX_PLUTO2    RF50     0.350       0.250        0.100
+#   U_SW1.5             RX_PLUTO1    RF50     0.360       0.250        0.110
+#   U_SW2.5             RX_PLUTO2    RF50     0.360       0.250        0.110
 #   U_MCU.47            USB_DP_MCU   USB_DP   0.330       0.300        0.030
 #   U_MCU.46            USB_DM_MCU   USB_DP   0.330       0.300        0.030
 #   U_MCU.10/22/26/33   3V3          PWR      0.400       0.300        0.100
@@ -281,7 +359,7 @@ classes:
 # are QFN-56 at 0.400 mm, the same pitch that forced ADR-0010's tier. The pads
 # that are NOT hemmed in need nothing at all: U_SW.1 (LOOP_ARMn_SW), U_SW.3
 # (SWn_ANT) and U_SW.4 all measure 0.460 mm landable, so the two published
-# loopback arms and both antenna runs land at their full 0.35 mm impedance width
+# loopback arms and both antenna runs land at their full 0.36 mm impedance width
 # with 0.200 mm of clearance to spare, and no relaxation touches them.
 #
 # NO GATE ASKED THIS. placement_gates PASSED, tier_preflight is 0 FAIL / 2 WARN,
@@ -294,7 +372,7 @@ classes:
 # WHY A TAPER IS NOT AN IMPEDANCE DEFECT, WHICH IS THE ONLY REASON THIS IS
 # ALLOWED. The relaxation is bounded in SPACE by a rule area drawn around the
 # land, so the necked copper is at most ~1 mm long. At 6 GHz lambda_g on this
-# stackup is 27.29 mm, so 1 mm is lambda_g/27 and 0.45 mm (what RX_PLUTOn
+# stackup is 27.17 mm, so 1 mm is lambda_g/27 and 0.45 mm (what RX_PLUTOn
 # actually needs) is lambda_g/61 — a discontinuity that short is a lumped
 # reactance, not a transmission line, and the reflection it causes is far below
 # the 0.4 dB the SMA launch itself contributes. The alternative — widening the
@@ -322,11 +400,11 @@ scoped_floors:
       MEASURED 2026-07-29 on the placed board: the widest track that can land on
       U_SW1.5 (BGS12WN6 RFC, the middle pad of the 0.400 mm second row, between
       3V3_SW on pad 4 and RF_CTRL_SW1 on pad 6) at the 0.15 mm clearance floor is
-      0.250 mm, against this net's RF50 minimum of 0.350 mm. Exactly: the
+      0.250 mm, against this net's RF50 minimum of 0.360 mm. Exactly: the
       neighbouring 0.250 mm land's copper edge is 0.275 mm from the RFC land
       centre, so w <= 2*(0.275-0.150) = 0.250. 0.22 mm realizes 0.165 mm of
       clearance. The neck runs 0.45 mm — lambda_g/61 at 6 GHz on JLC04161H-7628
-      (lambda_g 27.29 mm) — and the line is back at its 0.35 mm impedance width
+      (lambda_g 27.17 mm) — and the line is back at its 0.36 mm impedance width
       for the remaining 8.55 mm to J_SMA_RX1. Not a placement finding: the pitch
       is the part.
       SECOND MEASUREMENT, 2026-07-29, AFTER THE FIRST ROUTED BOARD, and it is
@@ -348,7 +426,7 @@ scoped_floors:
     why: >
       The arm-2 twin of taper_u_sw1, MEASURED INDEPENDENTLY rather than inherited
       (canon: a waiver copied from a sibling is an inherited defect). U_SW2.5
-      measures the same 0.250 mm landable maximum against the same 0.350 mm RF50
+      measures the same 0.250 mm landable maximum against the same 0.360 mm RF50
       floor, and U_SW2 is U_SW1 translated by exactly +14.500 mm at identical
       rotation, so the two necks are congruent and the taper is common-mode
       between the two receive channels rather than a new asymmetry.
@@ -487,12 +565,15 @@ length_match:
       tol_mm: 0.010
       measured_on: stage-6 route, pre-release (no version sealed yet)
     phase:
-      # ADR-0011 pins 6.0 ps/mm; the canon R-LEN row re-derives 6.105 ps/mm
-      # from this same stackup (eps_eff 3.350 at w/h = 1.711) and the two agree
-      # within 2%. The gate's own constant is 6.105, so this block states the
-      # ADR's number for traceability rather than to override anything — and
-      # because the spread is 0.000 the two constants give the same answer.
-      t_pd_ps_per_mm: 6.0
+      # RE-DERIVED 2026-07-30 AND NOW AGREEING WITH THE ADR, which is the
+      # point of the change: ADR-0011 published 6.0 ps/mm, the canon R-LEN row
+      # re-derived 6.105, and this block used to state 6.0 'for traceability'
+      # while the gate ran on 6.105 — two constants for one quantity, kept
+      # apart only because the spread is 0.000 and neither could be caught.
+      # Both are now 6.135 ps/mm (eps_eff 3.383, as-fabbed field solve at
+      # w 0.36 mm; see the WIDTH DERIVATION block at the top of this file),
+      # and ADR-0011 has been amended to the same number.
+      t_pd_ps_per_mm: 6.135
       f_ghz: 6.0
       stackup: JLC04161H-7628
     # NO `stackup_mm:` DELIBERATELY. It exists only to price via barrels, and

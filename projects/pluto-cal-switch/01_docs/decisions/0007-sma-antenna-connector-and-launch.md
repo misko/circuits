@@ -123,7 +123,7 @@ recommended hole size.
   microstrip is 3.112 mm wide — half-width 1.556 mm against a ground-pad edge
   at 1.415–1.540 mm, i.e. **NEGATIVE clearance**; the trace would overlap the
   ground pads and is wider than the centre pad it lands on. On the chosen
-  0.2104 mm-prepreg stackup the line is 0.35 mm and the clearance is real.
+  0.2104 mm-prepreg stackup the line is 0.36 mm and the clearance is real.
 - **THT disqualifies the board from JLC Economic PCBA** and adds ~$6.93 per
   order ($3.50 setup + ~$0.0173/joint × 10 joints + $3.00 extended-component),
   not the ~$3.93 the spike computed.

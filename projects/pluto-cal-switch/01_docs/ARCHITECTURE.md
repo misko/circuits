@@ -381,7 +381,7 @@ SMA jacks**, because the cables are the user's and are not on this BOM.
 
 | layer | thickness | function |
 |---|---|---|
-| L1 | 35 µm Cu | **RF microstrip (0.35 mm = 50 Ω)**, USB pair, control fan-out |
+| L1 | 35 µm Cu | **RF microstrip (0.36 mm = 50 Ω)**, USB pair, control fan-out |
 | — | 0.2104 mm prepreg 7628, Dk 4.4 | |
 | L2 | 35 µm Cu | **SOLID GND — no splits anywhere under an RF trace or the USB pair.** The single most important rule on this board |
 | — | 1.065 mm core | |
@@ -395,16 +395,19 @@ wide. The splitter's whole 3×0402 delta is ~2 mm across; the MC1630
 attenuator lands are 0.30 mm; the BGS12P2L6 lands are 0.25 mm. Three 3 mm
 lines cannot land on a 2 mm triangle, and at the SMA the trace would overlap
 the ground pads (half-width 1.556 mm against a pad edge at 1.415–1.540 mm — a
-NEGATIVE clearance). On the 0.2104 mm prepreg the 50 Ω line is 0.35 mm and
+NEGATIVE clearance). On the 0.2104 mm prepreg the 50 Ω line is 0.36 mm and
 matches every pad on the board.
 
 **Controlled impedance is REQUESTED**, and the widths above are
-Hammerstad-Jensen closed-form — they must be re-confirmed against JLCPCB's own
+Hammerstad-Jensen closed-form CROSS-CHECKED BY A 2D FINITE-DIFFERENCE FIELD
+SOLVE (2026-07-30) — they must still be re-confirmed against JLCPCB's own
 impedance calculator for the exact stackup ordered, before release. ADR-0010.
 
 Derived constants pinned to this stackup, used throughout DETAIL_DESIGN:
-`εeff ≈ 3.26`, `tpd = 6.0 ps/mm`, `λg(6 GHz) = 27.7 mm`,
+`εeff = 3.383`, `tpd = 6.135 ps/mm`, `λg(6 GHz) = 27.17 mm`,
 microstrip loss `0.036 dB/mm @6 GHz`, `0.0018 dB/mm @70 MHz`.
+(Was `3.26 / 6.0 ps/mm / 27.7 mm` at w 0.35 mm and ε_r 4.3; the permittivity
+is now JLC's published **4.4** throughout and the width 0.36 mm — ADR-0010.)
 
 **The tpd number is what makes brief D4 executable**: the published per-arm
 length delta converts to picoseconds with a constant pinned to the ordered
@@ -441,7 +444,7 @@ Classes and widths: `03_src/rules/nets.yaml`. Every class declares a typed
 
 | class | nets | what makes it special |
 |---|---|---|
-| `RF50` | `RX_ANT1/2`, `SW1_ANT`, `SW2_ANT`, `RX_PLUTO1/2`, `TX_PLUTO`, `PAD_A1_1..4`, `LOOP_SPLIT` | 0.35 mm = 50 Ω on L1 over solid L2. NOT an ampacity width — a width relaxation or a widening both break the impedance. Fenced at ≤2.0 mm |
+| `RF50` | `RX_ANT1/2`, `SW1_ANT`, `SW2_ANT`, `RX_PLUTO1/2`, `TX_PLUTO`, `PAD_A1_1..4`, `LOOP_SPLIT` | 0.36 mm = 50 Ω on L1 over solid L2. NOT an ampacity width — a width relaxation or a widening both break the impedance. Fenced at ≤2.0 mm |
 | `RF_LOOP_MATCH` | `LOOP_ARM1/2`, `PAD_A2A_1`, `PAD_A2B_1`, `LOOP_ARM1_SW`, `LOOP_ARM2_SW` | the D4 pair, **and it is the WHOLE RUN from the splitter vertex to the switch, not just its first segment** — three nets per arm, because the 11.9 dB arm pad is two chips. Mirror-symmetric by construction, delta MEASURED and PUBLISHED |
 | `USB_DP` | `USB_DP`, `USB_DM`, `USB_DP_MCU`, `USB_DM_MCU` | 0.33 mm / 0.25 mm gap ≈ 90 Ω differential, same layer + same reference as RF. The 27 Ω terminators split the pair into a long controlled run and a short MCU stub; both carry the class width |
 | `CTRL` | `RF_CTRL`, `RF_CTRL_SW1`, `RF_CTRL_SW2`, `HDR_CTRL_IN`, `HDR_CTRL_ADC`, `HDR_STATE_OUT`, `HDR_STATE_GPIO` | slow-edge, 2 mA drive, series R + 1 nF at each switch pin. Must NOT run parallel to either loopback arm |

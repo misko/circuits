@@ -69,7 +69,7 @@ all independently argued for **4-layer**.
 
 | layer | | function |
 |---|---|---|
-| L1 | 35 µm | **RF microstrip (0.35 mm = 50 Ω)**, USB pair, control fan-out |
+| L1 | 35 µm | **RF microstrip (0.36 mm = 50 Ω)**, USB pair, control fan-out |
 | | 0.2104 mm prepreg 7628, Dk 4.4 | |
 | L2 | 35 µm | **SOLID GND — no split anywhere under an RF trace or the USB pair** |
 | | 1.065 mm core | |
@@ -80,9 +80,40 @@ all independently argued for **4-layer**.
 **Controlled impedance is REQUESTED.**
 
 Derived constants pinned to this stackup and used throughout DETAIL_DESIGN:
-50 Ω single-ended **w = 0.35 mm**; 90 Ω differential **0.33 mm / 0.25 mm gap**;
-ε_eff **3.26**; **tpd = 6.0 ps/mm**; λg(6 GHz) **27.7 mm**; microstrip loss
+50 Ω single-ended **w = 0.36 mm**; 90 Ω differential **0.33 mm / 0.25 mm gap**;
+ε_eff **3.383**; **tpd = 6.135 ps/mm**; λg(6 GHz) **27.17 mm**; microstrip loss
 **0.036 dB/mm @6 GHz**, 0.0019 dB/mm @70 MHz.
+
+> **AMENDED 2026-07-30 — ε_r IS 4.4 THROUGHOUT, AND THE HEADLINE "0.35 mm =
+> 50 Ω" WAS WRONG AT EITHER PERMITTIVITY.** This ADR's own stackup table above
+> says Dk 4.4 (JLC published); DETAIL_DESIGN §1 said "ε_r taken as 4.3". The
+> two give different answers and the dispute never mattered, because at *both*
+> values 0.35 mm is above 50 Ω — moving to 4.3 makes it worse, not better.
+> `03_src/rules/nets.yaml` had recorded "0.35 → 51.0 Ω" in its own table since
+> stage 4, contradicting this line in the same repository.
+>
+> **The width is now 0.36 mm, and it is derived THREE ways, not two.** The two
+> derivations that produced 0.35 mm were both Hammerstad-Jensen closed form —
+> one method run twice, which is the shared-method trap canon M1 names. An
+> independent **2D finite-difference field solve** (box-integration Laplace,
+> discrete-Gauss charge extraction, validated against Hammerstad-Jensen to
+> −0.35 % at t = 0) puts the answer for a *bare* trace at **0.3736 mm**, not
+> 0.3610 mm — the two maths disagree by 3.4 % on the same cross-section, which
+> is a wider spread than the correction itself.
+>
+> **What settled it is a term neither closed form carries: the solder mask.**
+> At w = 0.35 mm the conformal mask is worth **−1.55 Ω** and the trapezoidal
+> etch **+0.46 Ω**; the as-fabbed cross-section (this board does not open mask
+> over its RF runs) needs **0.3590 mm** for 50 Ω. The bare-trace closed form
+> and the as-fabbed field solve then bracket **0.36 mm** within 2 µm, which is
+> why that is the authored value. Full derivation, per-term measurements and
+> the return-loss table: `03_src/rules/nets.yaml`, "WIDTH DERIVATION" block.
+>
+> **This is a documentation-consistency fix, not an RF rescue.** The worst
+> model puts the OLD 0.35 mm line at RL 35.0 dB (best: 43.4 dB); the SMA
+> launch on this board is RL 6.0 dB by this ADR's own corrected figure. The
+> old width was never the limiting mismatch and this change does not claim to
+> have fixed a broken board.
 
 **ORDER_README line (required by D-TIER):**
 > **ADVANCED option REQUIRED** — 4-layer, 0.25 mm via / 0.15 mm drill,
@@ -100,10 +131,14 @@ Derived constants pinned to this stackup and used throughout DETAIL_DESIGN:
   chain tilt is 3.09 dB rather than the sourcing spike's 1.64 dB. **That single
   correction moved the attenuator value** (DETAIL_DESIGN §1.1). The cost is
   accepted because the alternative does not physically fit the parts.
-- **THE WIDTHS ARE CLOSED-FORM, NOT A FIELD SOLVE.** Hammerstad-Jensen with a
-  thickness correction. **They must be re-confirmed against JLCPCB's own
-  impedance calculator for the exact stackup ordered, before release.**
-  A CHECKLIST item, not a note.
+- **THE WIDTHS ARE NOW A FIELD SOLVE AS WELL AS A CLOSED FORM** (amended
+  2026-07-30). Hammerstad-Jensen with a thickness correction, cross-checked by
+  an independent 2D finite-difference field solve on the as-fabbed
+  cross-section. That cross-check is what found the 3.4 % method spread and
+  the missing solder-mask term. **They must STILL be re-confirmed against
+  JLCPCB's own impedance calculator for the exact stackup ordered, before
+  release** — three of our own solves are still ours, and the fab builds to
+  its model, not to ours. A CHECKLIST item, not a note.
 - **The layer assignment is the single most important routing rule on the
   board.** L2 solid under everything RF and under the USB pair. This is where
   the RF requirement and the USB requirement coincide rather than compete

@@ -32,8 +32,8 @@ This board's release artifact IS a number: BRIEF D4 / ADR-0011 ship the routed
 electrical length of each loopback arm and the arm-to-arm DELTA, converted to
 picoseconds against a constant pinned to the ordered stackup, so the Pluto's
 calibration can software-offset a KNOWN quantity. At 6 GHz on JLC04161H-7628
-phase runs at 13.19 deg/mm (lambda_g 27.29 mm, t_pd 6.105 ps/mm, eps_eff
-3.350), so ONE MILLIMETRE of unmatched copper is the size of a whole phase
+phase runs at 13.25 deg/mm (lambda_g 27.17 mm, t_pd 6.135 ps/mm, eps_eff
+3.383), so ONE MILLIMETRE of unmatched copper is the size of a whole phase
 budget.
 
 KRT IS STOCHASTIC BY CONTRACT (its own CLAUDE.md: "outputs carry per-run random
@@ -188,7 +188,7 @@ PATHS = [
     # ---------------------------------------------------------------- antenna
     # jack centre pin straight to the DC block. 13.300 mm, which is what A-SEG
     # measures pad-to-pad, so the run is exactly the placement's own budget.
-    dict(net1="RX_ANT1", net2="RX_ANT2", xf="T", w=0.35,
+    dict(net1="RX_ANT1", net2="RX_ANT2", xf="T", w=0.36,
          pts=[(32.350, 47.750), (45.650, 47.750)],
          ends=("J_SMA_ANT1.1", "C_DCBLK1.1"),
          ends2=("J_SMA_ANT2.1", "C_DCBLK2.1")),
@@ -199,7 +199,7 @@ PATHS = [
     # (52.250, 47.650) — inside the land, 0.025 mm from its west and north
     # edges — puts both at 0.375 mm centre-to-edge = 0.200 mm of clearance.
     # The 0.100 mm of slope over 5.7 mm is 1.0 deg of trace angle.
-    dict(net1="SW1_ANT", net2="SW2_ANT", xf="T", w=0.35,
+    dict(net1="SW1_ANT", net2="SW2_ANT", xf="T", w=0.36,
          pts=[(46.550, 47.750), (52.250, 47.650)],
          ends=("C_DCBLK1.2", "U_SW1.3"),
          ends2=("C_DCBLK2.2", "U_SW2.3")),
@@ -217,7 +217,7 @@ PATHS = [
          ends=("U_SW1.5", None), ends2=("U_SW2.5", None)),
     # back to the impedance width for the remaining 8.550 mm. At y = 48.600 the
     # 0.35 mm cap is 0.251 mm from the pad-4/pad-6 corners.
-    dict(net1="RX_PLUTO1", net2="RX_PLUTO2", xf="T", w=0.35,
+    dict(net1="RX_PLUTO1", net2="RX_PLUTO2", xf="T", w=0.36,
          pts=[(52.750, 48.600), (52.750, 57.150)],
          ends=(None, "J_SMA_RX1.1"), ends2=(None, "J_SMA_RX2.1")),
     # ------------------------------------------------- the resistive splitter
@@ -231,10 +231,10 @@ PATHS = [
     # clearance there at all. This is a branch vertex, which is why LOOP_SPLIT
     # is NOT a member of the length_match group — the group starts at
     # R_DELTAn.2, where each arm becomes its own net.
-    dict(net1="LOOP_SPLIT", net2=None, xf=None, w=0.35,
+    dict(net1="LOOP_SPLIT", net2=None, xf=None, w=0.36,
          pts=[(69.503, 55.000), (64.000, 55.000), (64.000, 54.570)],
          ends=("U_PAD_A1E.5", "R_DELTA1.1")),
-    dict(net1="LOOP_SPLIT", net2=None, xf=None, w=0.35,
+    dict(net1="LOOP_SPLIT", net2=None, xf=None, w=0.36,
          pts=[(64.000, 55.000), (64.000, 55.430)],
          ends=(None, "R_DELTA2.1")),
     # ------------------------------------------------------ THE MATCHED ARMS
@@ -253,7 +253,7 @@ PATHS = [
     # to pads 1 and 3 — the whole approach is uniformly clear. The corners are
     # 45 deg mitres rather than square: a 45 deg entry straight into the land
     # would pass 0.071 mm from pad 1's corner and is refused by check (2).
-    dict(net1="LOOP_ARM1", net2="LOOP_ARM2", xf="R", w=0.35,
+    dict(net1="LOOP_ARM1", net2="LOOP_ARM2", xf="R", w=0.36,
          pts=[(62.400, 54.550),    # R_DELTA3.1, the bridge leg
               (64.000, 53.670),    # R_DELTA1.2, passed THROUGH (same net)
               (64.500, 53.670),
@@ -264,7 +264,7 @@ PATHS = [
          ends=("R_DELTA3.1", "U_PAD_A2A1.2"),
          ends2=("R_DELTA3.2", "U_PAD_A2B1.2")),
     # between the two YAT chips of the 11.9 dB arm attenuator. Straight.
-    dict(net1="PAD_A2A_1", net2="PAD_A2B_1", xf="T", w=0.35,
+    dict(net1="PAD_A2A_1", net2="PAD_A2B_1", xf="T", w=0.36,
          pts=[(62.126, 47.750), (60.927, 47.750)],
          ends=("U_PAD_A2A1.5", "U_PAD_A2A2.2"),
          ends2=("U_PAD_A2B1.5", "U_PAD_A2B2.2")),
@@ -274,7 +274,7 @@ PATHS = [
     # corner is the only clear entry — 0.200 mm to both. THIS IS THE NET WHOSE
     # TRANSFORM MUST BE THE TRANSLATION: reflected, the entry would land at
     # y 62.340, which is 0.010 mm from U_SW2.6.
-    dict(net1="LOOP_ARM1_SW", net2="LOOP_ARM2_SW", xf="T", w=0.35,
+    dict(net1="LOOP_ARM1_SW", net2="LOOP_ARM2_SW", xf="T", w=0.36,
          pts=[(59.053, 47.750), (53.250, 47.650)],
          ends=("U_PAD_A2A2.5", "U_SW1.1"),
          ends2=("U_PAD_A2B2.5", "U_SW2.1")),
@@ -283,21 +283,21 @@ PATHS = [
     # with their GND lands 0.650 mm off-axis: straight 0.35 mm runs, 1.126 mm
     # each. Single-channel — common-mode to both arms by construction, since
     # this copper is upstream of the splitter vertex.
-    dict(net1="PAD_A1_4", net2=None, xf=None, w=0.35,
+    dict(net1="PAD_A1_4", net2=None, xf=None, w=0.36,
          pts=[(71.377, 55.000), (72.503, 55.000)],
          ends=("U_PAD_A1E.2", "U_PAD_A1D.5")),
-    dict(net1="PAD_A1_3", net2=None, xf=None, w=0.35,
+    dict(net1="PAD_A1_3", net2=None, xf=None, w=0.36,
          pts=[(74.377, 55.000), (75.503, 55.000)],
          ends=("U_PAD_A1D.2", "U_PAD_A1C.5")),
-    dict(net1="PAD_A1_2", net2=None, xf=None, w=0.35,
+    dict(net1="PAD_A1_2", net2=None, xf=None, w=0.36,
          pts=[(77.377, 55.000), (78.503, 55.000)],
          ends=("U_PAD_A1C.2", "U_PAD_A1B.5")),
-    dict(net1="PAD_A1_1", net2=None, xf=None, w=0.35,
+    dict(net1="PAD_A1_1", net2=None, xf=None, w=0.36,
          pts=[(80.377, 55.000), (81.503, 55.000)],
          ends=("U_PAD_A1B.2", "U_PAD_A1A.5")),
     # the TX launch: 10.003 mm on the axis, threading J_SMA_TX's own GND
     # barrels 1.665 mm either side.
-    dict(net1="TX_PLUTO", net2=None, xf=None, w=0.35,
+    dict(net1="TX_PLUTO", net2=None, xf=None, w=0.36,
          pts=[(83.377, 55.000), (93.380, 55.000)],
          ends=("U_PAD_A1A.2", "J_SMA_TX.1")),
 ]
@@ -545,8 +545,8 @@ def main(argv=None):
     d = abs(tot["ARM1"] - tot["ARM2"])
     print(f"  D4 MEMBERS: ARM1 {tot['ARM1'] / NM:.6f} mm   "
           f"ARM2 {tot['ARM2'] / NM:.6f} mm   "
-          f"SPREAD {d / NM:.6f} mm = {d / NM * 6.105:.4f} ps = "
-          f"{d / NM * 13.19:.4f} deg at 6 GHz")
+          f"SPREAD {d / NM:.6f} mm = {d / NM * 6.135:.4f} ps = "
+          f"{d / NM * 13.25:.4f} deg at 6 GHz")
 
     if not a.emit:
         return 0

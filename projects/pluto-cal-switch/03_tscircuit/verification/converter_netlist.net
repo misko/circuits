@@ -1,0 +1,8904 @@
+(export
+	(version "E")
+	(design
+		(source "/home/mouse9911/gits/circuits/projects/pluto-cal-switch/03_tscircuit/kicad/pluto_cal_switch.kicad_sch")
+		(date "2026-07-30T12:01:59")
+		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
+		(sheet
+			(number "1")
+			(name "/")
+			(tstamps "/")
+			(title_block
+				(title "pluto_cal_switch")
+				(company)
+				(rev "dev")
+				(date "2026-07-30")
+				(source "pluto_cal_switch.kicad_sch")
+				(comment
+					(number "1")
+					(value "")
+				)
+				(comment
+					(number "2")
+					(value "")
+				)
+				(comment
+					(number "3")
+					(value "")
+				)
+				(comment
+					(number "4")
+					(value "")
+				)
+				(comment
+					(number "5")
+					(value "")
+				)
+				(comment
+					(number "6")
+					(value "")
+				)
+				(comment
+					(number "7")
+					(value "")
+				)
+				(comment
+					(number "8")
+					(value "")
+				)
+				(comment
+					(number "9")
+					(value "")
+				)
+			)
+		)
+	)
+	(components
+		(comp
+			(ref "C_ADCV")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_ADCV")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "6659479c-3f3f-4a50-a07d-d3b20562a216")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_CTRL1")
+			(value "1nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_CTRL1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "11c79f98-e788-4c17-9600-7f49c6aea573")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_CTRL2")
+			(value "1nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_CTRL2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "fccc2be9-d226-4c51-b6f7-f8fc86a52df1")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_DCBLK1")
+			(value "1nF")
+			(footprint "pluto_cal_switch:C_0402_1005Metric_RF")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:C_0402_1005Metric_RF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_DCBLK1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b9ab97cc-0ee1-4a1d-b44b-f39d88d45ad5")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_DCBLK2")
+			(value "1nF")
+			(footprint "pluto_cal_switch:C_0402_1005Metric_RF")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:C_0402_1005Metric_RF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_DCBLK2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "1076f16a-dbfc-4fb3-8be5-23c23eb10fa4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_DV1")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_DV1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "44ac84de-f458-403c-a874-30e6ded50ded")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_DV2")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_DV2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a0aae8c8-cea6-4e19-8ec0-40037deceb22")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_FLASH")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_FLASH")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "91b1d304-419f-48da-84db-512c3b1aef45")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_IO1")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_IO1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e5994986-8dd9-441c-adb0-dc528a71eeb1")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_IO2")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_IO2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "6358c372-6404-42b4-8f20-7d3e6d64d0fd")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_IO3")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_IO3")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "89d1cac9-297d-4d2f-a042-544e3d4f8dac")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_IO4")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_IO4")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2415fb25-671f-4886-ad3d-681e04b12939")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_IO5")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_IO5")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "21c236c0-ba27-4ddd-9703-dd8f8e707250")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_IO6")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_IO6")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e8d3e737-4ef9-4f4d-afdd-92f786fe60b4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_LDOI")
+			(value "1uF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_LDOI")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a720e1c4-8def-42c5-bc45-704e7e58d474")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_LDOO")
+			(value "1uF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_LDOO")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "55d20b37-4843-469e-a914-c50089d37f18")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_SW1A")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_SW1A")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e1708d73-de6d-4aef-b079-0b3db2e97afd")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_SW1B")
+			(value "1nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_SW1B")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7c6d3a43-68be-4063-b7c4-8315ff727435")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_SW2A")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_SW2A")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "98bf48fe-7f5d-42f7-8b79-56f66fb98ea0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_SW2B")
+			(value "1nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_SW2B")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "01d575d3-d68e-4a51-b61b-2f5b4fcaf49f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_USBV")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_USBV")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "1074c63c-d43f-40ae-ac48-60243b3d2ce5")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_VBUS")
+			(value "4.7uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_VBUS")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "4f9018d1-cf6f-40bf-8fe8-3a10da6c7ab4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_VBUSH")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_VBUSH")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "04055c45-61a9-4af7-b7a7-8429b151664f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_VREGI")
+			(value "1uF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_VREGI")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "071a152b-a825-49a1-b828-3eedefa6b2e7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_VREGO")
+			(value "1uF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_VREGO")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "9a340714-6e96-43d3-89b6-64f1e6d440df")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_XIN")
+			(value "15pF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_XIN")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "dd9ec520-b69f-4072-af59-37c1991967ea")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_XOUT")
+			(value "15pF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_XOUT")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "3340df55-c431-41bf-9b3a-94bb530c1314")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D_LED_MODE")
+			(value "C2286")
+			(footprint "LED_SMD:LED_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "LED_SMD:LED_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D_LED_MODE")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7acfe3c1-10e8-4ccf-8dd1-da63be5aeb67")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D_LED_PWR")
+			(value "C2286")
+			(footprint "LED_SMD:LED_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "LED_SMD:LED_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D_LED_PWR")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "6068670e-82bb-447f-8506-97459201eafc")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "F1")
+			(value "C2649901")
+			(footprint "Fuse:Fuse_1812_4532Metric")
+			(fields
+				(field
+					(name "Footprint") "Fuse:Fuse_1812_4532Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_F1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "74dbc51a-1397-4763-b9dd-4dc82f4d3095")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "FB1")
+			(value "C3716677")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_FB1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0df69543-048f-404b-895e-46c2529900c7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "FB2")
+			(value "C3716677")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_FB2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f3ea6159-9378-4456-8f18-30a790c8e3a1")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_HDR")
+			(value "C2894927")
+			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
+			(fields
+				(field
+					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_HDR")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a7cfe93b-a860-470b-9176-6521359c5cd2")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_SMA_ANT1")
+			(value "C504007")
+			(footprint "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_SMA_ANT1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b7536bc5-da5d-4125-8a36-b5ff09bc961c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_SMA_ANT2")
+			(value "C504007")
+			(footprint "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_SMA_ANT2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c44ab285-61fc-4e46-8772-ba38795deda8")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_SMA_RX1")
+			(value "C504007")
+			(footprint "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_SMA_RX1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e0a7335c-83f3-4c9d-b5d0-6c0862e52e34")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_SMA_RX2")
+			(value "C504007")
+			(footprint "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_SMA_RX2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0849e7a3-0381-4694-bf40-edb26422ed99")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_SMA_TX")
+			(value "C504007")
+			(footprint "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_SMA_TX")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e3f10aa2-bc1f-47fe-926d-6b045e196169")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_USB")
+			(value "C319160")
+			(footprint "pluto_cal_switch:USB_Micro-B_XKB_U254-051T")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:USB_Micro-B_XKB_U254-051T")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_USB")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a5535780-ba6c-4109-905c-8d8504ab8dfd")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_BOOT")
+			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_BOOT")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "339663ca-0974-49d9-8dc5-f5dce4add3d8")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_CTRL1")
+			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_CTRL1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ec632d8c-a131-4e2e-b4dc-df940e47f076")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_CTRL2")
+			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_CTRL2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "47cb04b8-9d6b-4f91-86c8-f8195f6c80a2")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_CTRL_PD1")
+			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_CTRL_PD1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0add4dce-a128-4473-869f-ddcd3c3083ce")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_CTRL_PD2")
+			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_CTRL_PD2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5575a720-7098-43ff-a1f6-57dd20694194")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_DELTA1")
+			(value "49.9Ω")
+			(footprint "pluto_cal_switch:R_0402_1005Metric_RF")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:R_0402_1005Metric_RF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_DELTA1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8780ad68-d7c2-45ca-a444-a8e332adefc8")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_DELTA2")
+			(value "49.9Ω")
+			(footprint "pluto_cal_switch:R_0402_1005Metric_RF")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:R_0402_1005Metric_RF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_DELTA2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8949c12a-c1dc-4085-90c3-c24b3c1ca4af")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_DELTA3")
+			(value "49.9Ω")
+			(footprint "pluto_cal_switch:R_0402_1005Metric_RF")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:R_0402_1005Metric_RF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_DELTA3")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a21efec6-0b4d-419a-9d7e-34b11fa22f87")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_HDR_G")
+			(value "2.2kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_HDR_G")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "cb7b4782-f661-4ac3-8670-8c5bb996597f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_HDR_O")
+			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_HDR_O")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ea9ad325-7363-470f-b525-72b649ae0ae9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_HDR_S")
+			(value "3.3kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_HDR_S")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "85dd98ba-b4db-47ba-bb56-12a4548a4b05")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_LED1")
+			(value "680Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_LED1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7bb0b049-decd-4f50-9525-fd6493e51cc2")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_LED2")
+			(value "680Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_LED2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7d32b6fd-ee4b-48ac-9c55-85cfcd4cb910")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_USBM")
+			(value "27Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_USBM")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "139e7c4a-daa4-4289-bc4c-1a6ac447be7a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_USBP")
+			(value "27Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_USBP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d518f750-9eb6-46dd-a990-083e4ecb29ea")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_XTAL")
+			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_XTAL")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d8c172e2-697b-4411-b059-0a323674df80")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "SW_BOOT")
+			(value "C318884")
+			(footprint "pluto_cal_switch:SW_Push_1P1T_XKB_TS-1187A")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:SW_Push_1P1T_XKB_TS-1187A")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_SW_BOOT")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b00afda5-387b-4507-affe-01672f70d1a4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_ESD")
+			(value "C7519")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_ESD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ae0119b0-e968-43ec-8297-9ff57a4f67a1")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_FLASH")
+			(value "C82317")
+			(footprint "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm")
+			(fields
+				(field
+					(name "Footprint") "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_FLASH")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d4918801-f970-47c6-a311-3d91d8fd6f2f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_HDR_ESD")
+			(value "C1972959")
+			(footprint "Package_TO_SOT_SMD:SOT-553")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-553")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_HDR_ESD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f075ff95-1e99-46bc-8336-8a70396b70c7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_LDO")
+			(value "C82942")
+			(footprint "Package_TO_SOT_SMD:SOT-23-5")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-5")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_LDO")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "be9af44a-c2db-456f-9927-f8f797166226")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_MCU")
+			(value "C2040")
+			(footprint "Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm")
+			(fields
+				(field
+					(name "Footprint") "Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_MCU")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "4e36bc3a-6800-4867-aa79-154a0608e1f4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "13")
+						)
+						(pin
+							(num "14")
+						)
+						(pin
+							(num "15")
+						)
+						(pin
+							(num "16")
+						)
+						(pin
+							(num "17")
+						)
+						(pin
+							(num "18")
+						)
+						(pin
+							(num "19")
+						)
+						(pin
+							(num "20")
+						)
+						(pin
+							(num "21")
+						)
+						(pin
+							(num "22")
+						)
+						(pin
+							(num "23")
+						)
+						(pin
+							(num "24")
+						)
+						(pin
+							(num "25")
+						)
+						(pin
+							(num "26")
+						)
+						(pin
+							(num "27")
+						)
+						(pin
+							(num "28")
+						)
+						(pin
+							(num "29")
+						)
+						(pin
+							(num "57")
+						)
+						(pin
+							(num "56")
+						)
+						(pin
+							(num "55")
+						)
+						(pin
+							(num "54")
+						)
+						(pin
+							(num "53")
+						)
+						(pin
+							(num "52")
+						)
+						(pin
+							(num "51")
+						)
+						(pin
+							(num "50")
+						)
+						(pin
+							(num "49")
+						)
+						(pin
+							(num "48")
+						)
+						(pin
+							(num "47")
+						)
+						(pin
+							(num "46")
+						)
+						(pin
+							(num "45")
+						)
+						(pin
+							(num "44")
+						)
+						(pin
+							(num "43")
+						)
+						(pin
+							(num "42")
+						)
+						(pin
+							(num "41")
+						)
+						(pin
+							(num "40")
+						)
+						(pin
+							(num "39")
+						)
+						(pin
+							(num "38")
+						)
+						(pin
+							(num "37")
+						)
+						(pin
+							(num "36")
+						)
+						(pin
+							(num "35")
+						)
+						(pin
+							(num "34")
+						)
+						(pin
+							(num "33")
+						)
+						(pin
+							(num "32")
+						)
+						(pin
+							(num "31")
+						)
+						(pin
+							(num "30")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A1A")
+			(value "C5839318")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A1A")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "462323ef-dbfa-4987-9c80-57d13e464e6c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A1B")
+			(value "C5839318")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A1B")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "cf0256d3-2b6d-4840-857a-c283bb26e978")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A1C")
+			(value "C5205333")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A1C")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f24270cc-44a7-4881-a0c0-e72ed8b6890e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A1D")
+			(value "C5205333")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A1D")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "de53bd98-f088-4097-ac2d-1d1c2818f17d")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A1E")
+			(value "C5205333")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A1E")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "adb717e1-8552-4e48-a316-54c6f94d06d2")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A2A1")
+			(value "C5839318")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A2A1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f68b141d-26aa-449b-8054-167aba61feee")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A2A2")
+			(value "C5205333")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A2A2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "4f536a45-e657-4152-a235-bf43fee6dc4a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A2B1")
+			(value "C5839318")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A2B1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "96ed4001-3628-42a4-a9d1-8869f3965e31")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_PAD_A2B2")
+			(value "C5205333")
+			(footprint "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_PAD_A2B2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "42ca9f98-5006-4293-88f7-c0f188f6ab4d")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_SW1")
+			(value "C534203")
+			(footprint "pluto_cal_switch:TSNP-6_0.7x1.1_P0.4_NSMD")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:TSNP-6_0.7x1.1_P0.4_NSMD")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_SW1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "58604953-8ac6-4a27-a350-a792ab58a64f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_SW2")
+			(value "C534203")
+			(footprint "pluto_cal_switch:TSNP-6_0.7x1.1_P0.4_NSMD")
+			(fields
+				(field
+					(name "Footprint") "pluto_cal_switch:TSNP-6_0.7x1.1_P0.4_NSMD")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_SW2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b6378271-02ad-4e59-b543-7d54453d97be")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "Y1")
+			(value "C20625731")
+			(footprint "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm")
+			(fields
+				(field
+					(name "Footprint") "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_Y1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/pluto_cal_switch.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ad6cfdfe-2ffb-4445-8ce3-015b9426a0fd")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+	)
+	(groups)
+	(variants)
+	(libparts
+		(libpart
+			(lib "elt")
+			(part "SYM_C_ADCV")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_ADCV")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_CTRL1")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_CTRL1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_CTRL2")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_CTRL2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_DCBLK1")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_DCBLK1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_DCBLK2")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_DCBLK2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_DV1")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_DV1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_DV2")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_DV2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_FLASH")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_FLASH")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_IO1")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_IO1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_IO2")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_IO2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_IO3")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_IO3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_IO4")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_IO4")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_IO5")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_IO5")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_IO6")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_IO6")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_LDOI")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_LDOI")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_LDOO")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_LDOO")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_SW1A")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_SW1A")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_SW1B")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_SW1B")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_SW2A")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_SW2A")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_SW2B")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_SW2B")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_USBV")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_USBV")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_VBUS")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_VBUS")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_VBUSH")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_VBUSH")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_VREGI")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_VREGI")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_VREGO")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_VREGO")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_XIN")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_XIN")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_XOUT")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_XOUT")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D_LED_MODE")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D_LED_MODE")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D_LED_PWR")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D_LED_PWR")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_F1")
+			(fields
+				(field
+					(name "Reference") "F")
+				(field
+					(name "Value") "SYM_F1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_FB1")
+			(fields
+				(field
+					(name "Reference") "F")
+				(field
+					(name "Value") "SYM_FB1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_FB2")
+			(fields
+				(field
+					(name "Reference") "F")
+				(field
+					(name "Value") "SYM_FB2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_HDR")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_HDR")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "CTRL_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "STATE_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_SMA_ANT1")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_SMA_ANT1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_SMA_ANT2")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_SMA_ANT2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_SMA_RX1")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_SMA_RX1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_SMA_RX2")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_SMA_RX2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_SMA_TX")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_SMA_TX")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_USB")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_USB")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "VBUS")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "DM")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "DP")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "ID")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "SHELL")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_BOOT")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_BOOT")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_CTRL1")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_CTRL1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_CTRL2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_CTRL2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_CTRL_PD1")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_CTRL_PD1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_CTRL_PD2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_CTRL_PD2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_DELTA1")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_DELTA1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_DELTA2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_DELTA2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_DELTA3")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_DELTA3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_HDR_G")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_HDR_G")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_HDR_O")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_HDR_O")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_HDR_S")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_HDR_S")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_LED1")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_LED1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_LED2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_LED2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_USBM")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_USBM")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_USBP")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_USBP")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_XTAL")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_XTAL")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_SW_BOOT")
+			(fields
+				(field
+					(name "Reference") "S")
+				(field
+					(name "Value") "SYM_SW_BOOT")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "B")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "B")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_ESD")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_ESD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "IO1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "IO2")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "IO2")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "VBUS")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "IO1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_FLASH")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_FLASH")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "CSn")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "IO1")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "IO2")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "IO0")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "CLK")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "IO3")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "VCC")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_HDR_ESD")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_HDR_ESD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "NC")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "NC")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "IO1")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "IO2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_LDO")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_LDO")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "VIN")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "VSS")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "CE")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "NC")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "VOUT")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_MCU")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_MCU")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "9")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "10")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "11")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "12")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "13")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "14")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "15")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "16")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "17")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "18")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "19")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "20")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "21")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "22")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "23")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "24")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "25")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "26")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "27")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "28")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "29")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "30")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "31")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "32")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "33")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "34")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "35")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "36")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "37")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "38")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "39")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "40")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "41")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "42")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "43")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "44")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "45")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "46")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "47")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "48")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "49")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "50")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "51")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "52")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "53")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "54")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "55")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "56")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "57")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A1A")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A1A")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A1B")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A1B")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A1C")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A1C")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A1D")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A1D")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A1E")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A1E")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A2A1")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A2A1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A2A2")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A2A2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A2B1")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A2B1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_PAD_A2B2")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_PAD_A2B2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RF_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_SW1")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_SW1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF2")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "RF1")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "VDD")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RFIN")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "CTRL")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_SW2")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_SW2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF2")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "RF1")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "VDD")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "RFIN")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "CTRL")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_Y1")
+			(fields
+				(field
+					(name "Reference") "Y")
+				(field
+					(name "Value") "SYM_Y1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "XA")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "XB")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+	)
+	(libraries)
+	(nets
+		(net
+			(code "1")
+			(name "3V3")
+			(class "Default")
+			(node
+				(ref "C_ADCV")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_FLASH")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO5")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO6")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_LDOO")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_USBV")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_VREGI")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D_LED_PWR")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "FB2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_FLASH")
+				(pin "8")
+				(pinfunction "VCC_8")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_LDO")
+				(pin "5")
+				(pinfunction "VOUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "10")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "22")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "26")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "33")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "42")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "43")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "44")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "48")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "49")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "3V3_SW")
+			(class "Default")
+			(node
+				(ref "C_SW1A")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW1B")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW2A")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW2B")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "FB2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW1")
+				(pin "4")
+				(pinfunction "VDD_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW2")
+				(pin "4")
+				(pinfunction "VDD_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
+			(name "GND")
+			(class "Default")
+			(node
+				(ref "C_ADCV")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_CTRL1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_CTRL2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_DV1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_DV2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_FLASH")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO4")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO5")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_IO6")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_LDOI")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_LDOO")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW1A")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW1B")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW2A")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW2B")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_USBV")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_VBUS")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_VBUSH")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_VREGI")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_VREGO")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_XIN")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_XOUT")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_HDR")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_HDR")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT1")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT1")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT1")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT1")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT2")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT2")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT2")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT2")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_RX1")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_RX1")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_RX1")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_RX1")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_RX2")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_RX2")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_RX2")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_RX2")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_TX")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_TX")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_TX")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_TX")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_USB")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_USB")
+				(pin "6")
+				(pinfunction "SHELL_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_CTRL_PD1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_CTRL_PD2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_HDR_G")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_LED1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_LED2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "SW_BOOT")
+				(pin "3")
+				(pinfunction "B_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "SW_BOOT")
+				(pin "4")
+				(pinfunction "B_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ESD")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_FLASH")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_HDR_ESD")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_LDO")
+				(pin "2")
+				(pinfunction "VSS_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "19")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "57")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1A")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1A")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1A")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1A")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1A")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1B")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1B")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1B")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1B")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1B")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1C")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1C")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1C")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1C")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1C")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1D")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1D")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1D")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1D")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1D")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1E")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1E")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1E")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1E")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1E")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A1")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A1")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A1")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A1")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A1")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A2")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A2")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A2")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A2")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A2")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B1")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B1")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B1")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B1")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B1")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B2")
+				(pin "1")
+				(pinfunction "GND_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B2")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B2")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B2")
+				(pin "6")
+				(pinfunction "GND_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B2")
+				(pin "7")
+				(pinfunction "EP_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW1")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW2")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "Y1")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "Y1")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "4")
+			(name "HDR_CTRL_ADC")
+			(class "Default")
+			(node
+				(ref "R_HDR_G")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_HDR_S")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "40")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "5")
+			(name "HDR_CTRL_IN")
+			(class "Default")
+			(node
+				(ref "J_HDR")
+				(pin "2")
+				(pinfunction "CTRL_IN_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_HDR_S")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_HDR_ESD")
+				(pin "3")
+				(pinfunction "IO1_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "6")
+			(name "HDR_STATE_GPIO")
+			(class "Default")
+			(node
+				(ref "R_HDR_O")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "7")
+			(name "HDR_STATE_OUT")
+			(class "Default")
+			(node
+				(ref "J_HDR")
+				(pin "3")
+				(pinfunction "STATE_OUT_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_HDR_O")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_HDR_ESD")
+				(pin "5")
+				(pinfunction "IO2_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
+			(name "LED_MODE")
+			(class "Default")
+			(node
+				(ref "D_LED_MODE")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "9")
+			(name "LED_MODE_K")
+			(class "Default")
+			(node
+				(ref "D_LED_MODE")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_LED2")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "10")
+			(name "LED_PWR_K")
+			(class "Default")
+			(node
+				(ref "D_LED_PWR")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_LED1")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
+			(name "LOOP_ARM1")
+			(class "Default")
+			(node
+				(ref "R_DELTA1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_DELTA3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A1")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "12")
+			(name "LOOP_ARM1_SW")
+			(class "Default")
+			(node
+				(ref "U_PAD_A2A2")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW1")
+				(pin "1")
+				(pinfunction "RF2_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "13")
+			(name "LOOP_ARM2")
+			(class "Default")
+			(node
+				(ref "R_DELTA2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_DELTA3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B1")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "14")
+			(name "LOOP_ARM2_SW")
+			(class "Default")
+			(node
+				(ref "U_PAD_A2B2")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW2")
+				(pin "1")
+				(pinfunction "RF2_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "15")
+			(name "LOOP_SPLIT")
+			(class "Default")
+			(node
+				(ref "R_DELTA1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_DELTA2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1E")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "16")
+			(name "PAD_A1_1")
+			(class "Default")
+			(node
+				(ref "U_PAD_A1A")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1B")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "17")
+			(name "PAD_A1_2")
+			(class "Default")
+			(node
+				(ref "U_PAD_A1B")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1C")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "18")
+			(name "PAD_A1_3")
+			(class "Default")
+			(node
+				(ref "U_PAD_A1C")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1D")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "19")
+			(name "PAD_A1_4")
+			(class "Default")
+			(node
+				(ref "U_PAD_A1D")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1E")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "20")
+			(name "PAD_A2A_1")
+			(class "Default")
+			(node
+				(ref "U_PAD_A2A1")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2A2")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "21")
+			(name "PAD_A2B_1")
+			(class "Default")
+			(node
+				(ref "U_PAD_A2B1")
+				(pin "5")
+				(pinfunction "RF_OUT_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A2B2")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "22")
+			(name "QSPI_CSN")
+			(class "Default")
+			(node
+				(ref "R_BOOT")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_FLASH")
+				(pin "1")
+				(pinfunction "CSn_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "56")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "23")
+			(name "QSPI_SCLK")
+			(class "Default")
+			(node
+				(ref "U_FLASH")
+				(pin "6")
+				(pinfunction "CLK_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "52")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "24")
+			(name "QSPI_SD0")
+			(class "Default")
+			(node
+				(ref "U_FLASH")
+				(pin "5")
+				(pinfunction "IO0_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "53")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "25")
+			(name "QSPI_SD1")
+			(class "Default")
+			(node
+				(ref "U_FLASH")
+				(pin "2")
+				(pinfunction "IO1_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "55")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "26")
+			(name "QSPI_SD2")
+			(class "Default")
+			(node
+				(ref "U_FLASH")
+				(pin "3")
+				(pinfunction "IO2_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "54")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "27")
+			(name "QSPI_SD3")
+			(class "Default")
+			(node
+				(ref "U_FLASH")
+				(pin "7")
+				(pinfunction "IO3_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "51")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "28")
+			(name "RF_CTRL")
+			(class "Default")
+			(node
+				(ref "R_CTRL1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_CTRL2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "29")
+			(name "RF_CTRL_SW1")
+			(class "Default")
+			(node
+				(ref "C_CTRL1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_CTRL1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_CTRL_PD1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW1")
+				(pin "6")
+				(pinfunction "CTRL_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "30")
+			(name "RF_CTRL_SW2")
+			(class "Default")
+			(node
+				(ref "C_CTRL2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_CTRL2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_CTRL_PD2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW2")
+				(pin "6")
+				(pinfunction "CTRL_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "31")
+			(name "RX_ANT1")
+			(class "Default")
+			(node
+				(ref "C_DCBLK1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT1")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "32")
+			(name "RX_ANT2")
+			(class "Default")
+			(node
+				(ref "C_DCBLK2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_SMA_ANT2")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "33")
+			(name "RX_PLUTO1")
+			(class "Default")
+			(node
+				(ref "J_SMA_RX1")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW1")
+				(pin "5")
+				(pinfunction "RFIN_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "34")
+			(name "RX_PLUTO2")
+			(class "Default")
+			(node
+				(ref "J_SMA_RX2")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW2")
+				(pin "5")
+				(pinfunction "RFIN_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "35")
+			(name "SW1_ANT")
+			(class "Default")
+			(node
+				(ref "C_DCBLK1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW1")
+				(pin "3")
+				(pinfunction "RF1_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "36")
+			(name "SW2_ANT")
+			(class "Default")
+			(node
+				(ref "C_DCBLK2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW2")
+				(pin "3")
+				(pinfunction "RF1_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "37")
+			(name "TX_PLUTO")
+			(class "Default")
+			(node
+				(ref "J_SMA_TX")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_PAD_A1A")
+				(pin "2")
+				(pinfunction "RF_IN_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "38")
+			(name "USB_BOOT")
+			(class "Default")
+			(node
+				(ref "R_BOOT")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "SW_BOOT")
+				(pin "1")
+				(pinfunction "A_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "SW_BOOT")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "39")
+			(name "USB_DM")
+			(class "Default")
+			(node
+				(ref "J_USB")
+				(pin "2")
+				(pinfunction "DM_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_USBM")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ESD")
+				(pin "3")
+				(pinfunction "IO2_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ESD")
+				(pin "4")
+				(pinfunction "IO2_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "40")
+			(name "USB_DM_MCU")
+			(class "Default")
+			(node
+				(ref "R_USBM")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "46")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "41")
+			(name "USB_DP")
+			(class "Default")
+			(node
+				(ref "J_USB")
+				(pin "3")
+				(pinfunction "DP_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_USBP")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ESD")
+				(pin "1")
+				(pinfunction "IO1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ESD")
+				(pin "6")
+				(pinfunction "IO1_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "42")
+			(name "USB_DP_MCU")
+			(class "Default")
+			(node
+				(ref "R_USBP")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "47")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "43")
+			(name "VBUS")
+			(class "Default")
+			(node
+				(ref "C_VBUS")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_VBUSH")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "F1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_USB")
+				(pin "1")
+				(pinfunction "VBUS_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ESD")
+				(pin "5")
+				(pinfunction "VBUS_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "44")
+			(name "VBUS_F")
+			(class "Default")
+			(node
+				(ref "C_LDOI")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "FB1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_LDO")
+				(pin "1")
+				(pinfunction "VIN_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_LDO")
+				(pin "3")
+				(pinfunction "CE_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "45")
+			(name "VBUS_PF")
+			(class "Default")
+			(node
+				(ref "F1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "FB1")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "46")
+			(name "VREG_VOUT")
+			(class "Default")
+			(node
+				(ref "C_DV1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_DV2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_VREGO")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "23")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "45")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "50")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "47")
+			(name "XIN")
+			(class "Default")
+			(node
+				(ref "C_XIN")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "20")
+				(pintype "passive")
+			)
+			(node
+				(ref "Y1")
+				(pin "1")
+				(pinfunction "XA_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "48")
+			(name "XOUT")
+			(class "Default")
+			(node
+				(ref "R_XTAL")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "21")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "49")
+			(name "XOUT_R")
+			(class "Default")
+			(node
+				(ref "C_XOUT")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_XTAL")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "Y1")
+				(pin "3")
+				(pinfunction "XB_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "50")
+			(name "unconnected-(J_USB-ID-Pad4)")
+			(class "Default")
+			(node
+				(ref "J_USB")
+				(pin "4")
+				(pinfunction "ID_4")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "51")
+			(name "unconnected-(U_HDR_ESD-NC-Pad1)")
+			(class "Default")
+			(node
+				(ref "U_HDR_ESD")
+				(pin "1")
+				(pinfunction "NC_1")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "52")
+			(name "unconnected-(U_HDR_ESD-NC-Pad2)")
+			(class "Default")
+			(node
+				(ref "U_HDR_ESD")
+				(pin "2")
+				(pinfunction "NC_2")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "53")
+			(name "unconnected-(U_LDO-NC-Pad4)")
+			(class "Default")
+			(node
+				(ref "U_LDO")
+				(pin "4")
+				(pinfunction "NC_4")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "54")
+			(name "unconnected-(U_MCU-Pad2)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "2")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "55")
+			(name "unconnected-(U_MCU-Pad3)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "3")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "56")
+			(name "unconnected-(U_MCU-Pad7)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "7")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "57")
+			(name "unconnected-(U_MCU-Pad8)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "8")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "58")
+			(name "unconnected-(U_MCU-Pad9)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "9")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "59")
+			(name "unconnected-(U_MCU-Pad11)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "11")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "60")
+			(name "unconnected-(U_MCU-Pad12)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "12")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "61")
+			(name "unconnected-(U_MCU-Pad13)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "13")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "62")
+			(name "unconnected-(U_MCU-Pad14)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "14")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "63")
+			(name "unconnected-(U_MCU-Pad15)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "15")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "64")
+			(name "unconnected-(U_MCU-Pad16)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "16")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "65")
+			(name "unconnected-(U_MCU-Pad17)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "17")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "66")
+			(name "unconnected-(U_MCU-Pad18)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "18")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "67")
+			(name "unconnected-(U_MCU-Pad24)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "24")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "68")
+			(name "unconnected-(U_MCU-Pad25)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "25")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "69")
+			(name "unconnected-(U_MCU-Pad27)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "27")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "70")
+			(name "unconnected-(U_MCU-Pad28)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "28")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "71")
+			(name "unconnected-(U_MCU-Pad29)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "29")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "72")
+			(name "unconnected-(U_MCU-Pad30)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "30")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "73")
+			(name "unconnected-(U_MCU-Pad31)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "31")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "74")
+			(name "unconnected-(U_MCU-Pad32)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "32")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "75")
+			(name "unconnected-(U_MCU-Pad34)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "34")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "76")
+			(name "unconnected-(U_MCU-Pad35)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "35")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "77")
+			(name "unconnected-(U_MCU-Pad36)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "36")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "78")
+			(name "unconnected-(U_MCU-Pad37)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "37")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "79")
+			(name "unconnected-(U_MCU-Pad38)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "38")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "80")
+			(name "unconnected-(U_MCU-Pad39)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "39")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "81")
+			(name "unconnected-(U_MCU-Pad41)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "41")
+				(pintype "passive+no_connect")
+			)
+		)
+	)
+)

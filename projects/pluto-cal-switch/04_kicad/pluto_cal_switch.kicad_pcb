@@ -8947,7 +8947,7 @@
 				)
 			)
 		)
-		(property "Value" "2.2kΩ"
+		(property "Value" "3.3kΩ"
 			(at 0 1.17 0)
 			(layer "F.Fab")
 			(uuid "9538f803-e82d-4f37-8471-3c139222d6b8")
@@ -14746,7 +14746,7 @@
 				)
 			)
 		)
-		(property "Value" "3.3kΩ"
+		(property "Value" "2.2kΩ"
 			(at 0 1.17 0)
 			(layer "F.Fab")
 			(uuid "9bd2314f-2f4c-40a1-aab7-cce03b816b19")

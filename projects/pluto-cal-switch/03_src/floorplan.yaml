@@ -375,6 +375,50 @@ placement:
     # Filling it would make the differential pair detour around a decoupling cap,
     # and RP2040 hardware-design sec.2.4.1 wants that pair over unbroken ground
     # for its whole length. The gap is why C_IO4 sits at the far end of the row.
+    #
+    # ======================================================================
+    # 2026-07-30: A PROPOSED PLACEMENT MOVE INTO THIS GAP WAS REFUSED, AND
+    # THE REASON IS THE PARAGRAPH DIRECTLY ABOVE.
+    # ======================================================================
+    # The stage-6 D-BACK on U_MCU.45/.50 (VREG_VOUT, unreachable) carried a
+    # named remedy: "the x-slot between C_USBV (109.1) and C_ADCV (112.8) at
+    # y 32.5 is EMPTY, so move C_VREGO into it". MEASURED off the placed board,
+    # the slot is indeed empty — pad extents give x[109.410, 112.490], a
+    # 3.080 mm gap, and the whole rectangle x[109.41,112.49] y[30.88,34.13] is
+    # free of pads and zones. Both VREG_VOUT pins' x values (109.800 and
+    # 111.800) fall inside it, so the move looks compelling.
+    #
+    # IT IS THE USB CORRIDOR. "Empty" is what a RESERVED corridor looks like.
+    # The gap was not left over; it was placed, by this block, for pads 47/46,
+    # and C_IO4 sits at the far end of the row PAYING for it. Filling it trades
+    # a VREG_VOUT open for a USB pair detouring around a decoupling cap —
+    # swapping a routing failure that DRC reports for a signal-integrity defect
+    # that DRC does not. The existing `taps:` waypoint for USB_DP_MCU sits at
+    # (110.800, 31.600), i.e. INSIDE this corridor, so the corridor is not a
+    # prediction — it is load-bearing in the shipped route config.
+    #
+    # WHAT THE MEASUREMENT ACTUALLY FOUND, and it is not a placement fact:
+    # there are TWO horizontal corridors north of the MCU pad ring, not one.
+    #   * LOWER band  y[33.260, 34.125] = 0.865 mm, between the pad ring and
+    #     the decoupling row. This one IS saturated: 8 escapes leave the north
+    #     side on a 0.400 mm pitch and 0.25 track + 0.15 space = exactly 0.400,
+    #     so no escape may cross another. All FOUR of the failed stage-6
+    #     attempts routed here.
+    #   * UPPER band  y[30.880, 31.740] = 0.860 mm, between the decoupling row
+    #     and the R_USBP/R_USBM row. NOTHING was ever tried here, and the
+    #     USB_DP_MCU tap that DOES work crosses it at (110.800, 31.600).
+    # So the causal edge was read as PLACEMENT when the measurement only ever
+    # showed that ONE of two corridors is full. Re-aimed at the upper band
+    # before any part moves — canon: classify your own unconnected before
+    # escalating to a placement change (pluto-rx2-8way, 2026-07-30, where the
+    # same "MCU-field congestion" story turned out to be four unrelated bugs).
+    #
+    # A cap CANNOT simply be re-slotted against its pin here either, and that is
+    # measured too: pad 45 (x 111.800) sits INSIDE the USB corridor, so the
+    # nearest legal cap slot is x 112.80 — which is C_ADCV's, and moving C_ADCV
+    # out puts ADC_AVDD's decoupling 4.8 mm from pad 43 on the very ADC the
+    # header divider lands on. The row has no free slot that serves pad 45
+    # without costing something that is not currently broken.
     # THE ROW COORDINATES ARE SET BY COURTYARDS, MEASURED, NOT ESTIMATED. A
     # 0402 courtyard is 1.91 x 1.01 mm and the QFN-56's is 8.35 mm square, so:
     #   W/E rows at x 104.60 / 115.40, rot 0  -> 0.27 mm to U_MCU's 105.825 /

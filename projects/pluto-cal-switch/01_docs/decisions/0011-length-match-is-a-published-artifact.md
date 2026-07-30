@@ -38,13 +38,39 @@ Three things surfaced during design that D4 as written does not cover.
 | quantity | per arm | delta | why |
 |---|---|---|---|
 | routed electrical length, mm | yes | yes | the raw geometric fact |
-| propagation delay, ps | yes | yes | at **6.0 ps/mm**, the constant DERIVED for the ordered stackup (ε_eff 3.26 — DETAIL_DESIGN §1) |
+| propagation delay, ps | yes | yes | at **6.135 ps/mm**, the constant DERIVED for the ordered stackup (ε_eff 3.383 — DETAIL_DESIGN §1) |
 | insertion loss vs frequency | yes | yes | 70 MHz – 6 GHz |
 
 **and the layout achieves symmetry BY CONSTRUCTION**, not by tuning: the two
 arms are mirror images about the splitter axis, identical bend for bend, same
 layer, no vias, with the arm attenuators at **identical rotation, not mirrored
 rotation**.
+
+> **THE CONGRUENCE TRANSFORM IS PER-NET, NOT ONE MAP FOR THE WHOLE ARM
+> (added 2026-07-30 — the next person will assume one map, because both prior
+> readers of this ADR did).** "Mirror images about the splitter axis" is true
+> of the splitter end and FALSE of the switch end:
+>
+> - **The splitter resistors are REFLECTED** about y = 55.000. `LOOP_ARM1`'s
+>   `R_DELTA1.2` is at y 53.670; the reflection sends it to 56.330, which is
+>   `R_DELTA2.2` exactly. A **+14.5 mm translation sends it to y 68.170, where
+>   there is no pad at all.**
+> - **The switches are TRANSLATED** by +14.5 mm. `U_SW1` sits at y 47.950 and
+>   `U_SW2` at 62.450 (a reflection would give 62.050). Their pin-1 lands
+>   coincide under both maps, but the **second pad row does not**: a reflected
+>   arm-2 entry lands **0.010 mm from `U_SW2.6`** against a 0.150 mm clearance
+>   floor. Measured, and refused by the planner.
+>
+> **`audit_board.py` A-SYM cannot see this and reports PASS at 0.0 µm**, which
+> is not a bug in A-SYM — it grades the arm parts whose pads sit at
+> y 47.750 / 62.250, and for those pads the two maps are *the same map*,
+> because 62.250 = 2 × 55.000 − 47.750. The population A-SYM grades is exactly
+> the population where the distinction is invisible. Both maps are isometries,
+> so the member totals are equal to the nanometre either way — the spread is
+> 0.000000 mm under either choice, and only the *landability* distinguishes
+> them. `03_src/rf_copper.py` declares the map per net (`xf="R"` vs `xf="T"`)
+> and verifies landing, clearance, width, grid and congruence against the live
+> board, refusing whole rather than shaving.
 
 ### The three extensions to D4
 
@@ -56,8 +82,28 @@ rotation**.
    measured and published.* An unpublished 1.6 dB is exactly the error this
    board exists to remove.
 2. **The conversion constant is a DERIVED number, and it must ship with the
-   delta.** 6.0 ps/mm is pinned to `JLC04161H-7628`. A stackup change silently
-   invalidates every published picosecond. The artifact states the stackup.
+   delta.** 6.135 ps/mm is pinned to `JLC04161H-7628`. A stackup change
+   silently invalidates every published picosecond. The artifact states the
+   stackup.
+
+   > **CORRECTED 2026-07-30, BY THIS CLAUSE'S OWN ARGUMENT.** This ADR
+   > published **6.0 ps/mm** (ε_eff 3.26). Re-derived on the as-fabbed
+   > cross-section at Dk 4.4 — the value JLC publishes for the ordered
+   > stackup, against DETAIL_DESIGN §1's "taken as 4.3" — the constant is
+   > **6.135 ps/mm** (ε_eff 3.383, λ_g 27.17 mm at 6 GHz, 13.25 °/mm). The old
+   > figure was **2.2 % low**. The clause above says a stackup change
+   > invalidates every published picosecond; a *constant* change does the
+   > same, so it is corrected here rather than noted downstream. Derivation:
+   > `03_src/rules/nets.yaml`, "WIDTH DERIVATION" block.
+   >
+   > **THE PUBLISHED DELTA IS IMMUNE, AND THAT IS ARITHMETIC, NOT LUCK.** The
+   > arm spread is **0.000000 mm BY CONSTRUCTION** (the two arms are congruent
+   > under a per-net isometry — see below), and 0.000000 mm × any constant is
+   > **0.0000 ps**. No conversion constant, right or wrong, can move a delta
+   > that is exactly zero. What moves is the **per-arm ABSOLUTE**: at the
+   > promoted arm length the per-arm delay goes from 96.48 ps at 6.0 ps/mm to
+   > **98.65 ps** at 6.135 ps/mm. Only the absolute was ever at risk, and it
+   > is the number this correction exists to make true.
 3. **Mirrored rotation is forbidden, and it is a CPL fact.** The splitter has
    zero intrinsic phase shift, so 100 % of observed phase imbalance comes from
    layout and from mounting-inductance mismatch: **0.1 nH ≈ 3.8 Ω ≈ 2° at

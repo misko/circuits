@@ -12,37 +12,65 @@ them the conclusion is sensitive to.
 
 ## 1. The stackup constants everything else rests on
 
-JLCPCB `JLC04161H-7628`, 4-layer 1.6 mm. L1→L2 prepreg **0.2104 mm**, Dk 4.4
-(JLC published), εr taken as 4.3, tan δ 0.02, 1 oz Cu.
+JLCPCB `JLC04161H-7628`, 4-layer 1.6 mm. L1→L2 prepreg **0.2104 mm**,
+**Dk 4.4** (JLC published, and used throughout — see the amendment note),
+tan δ 0.02, 1 oz Cu (t = 0.035 mm).
 
 | quantity | value | source |
 |---|---|---|
-| 50 Ω microstrip width, L1 over L2 | **0.35 mm** | [DERIVED] Hammerstad-Jensen with thickness correction: 0.30 → 55.2 Ω, 0.35 → 51.0 Ω, 0.38 → 48.8 Ω, 0.40 → 47.5 Ω |
+| 50 Ω microstrip width, L1 over L2 | **0.36 mm** | [DERIVED] 2D finite-difference field solve on the AS-FABBED cross-section (trapezoidal etch + 0.020 mm solder mask), bracketed by Hammerstad-Jensen on the bare trace — see `03_src/rules/nets.yaml` "WIDTH DERIVATION" |
+| Z₀ at 0.36 mm | **49.93 Ω** as fabbed / 51.03 Ω bare | [MEASURED, field solve] RL 62.5 dB / 39.8 dB |
 | 90 Ω differential pair (USB) | **0.33 mm / 0.25 mm gap** ⇒ ~89 Ω | [DERIVED] `Zdiff ≈ 2·Z0·(1 − 0.48·e^(−0.96·s/h))` |
-| ε_eff | **3.26** | [DERIVED] |
-| propagation delay | **6.0 ps/mm** | [DERIVED] `tpd = √ε_eff / c` |
-| λg at 6 GHz | **27.7 mm** | [DERIVED] |
-| λg/20 at 6 GHz (lumped-element ceiling) | **1.39 mm** | [DERIVED] |
-| λg/12 at 6 GHz (via-fence pitch) | **2.3 mm** → use **≤2.0 mm** | [DERIVED] |
+| ε_eff | **3.383** | [DERIVED] field solve, as fabbed |
+| propagation delay | **6.135 ps/mm** | [DERIVED] `tpd = √ε_eff / c` |
+| λg at 6 GHz | **27.17 mm** | [DERIVED] (13.25 °/mm) |
+| λg/20 at 6 GHz (lumped-element ceiling) | **1.36 mm** | [DERIVED] |
+| λg/12 at 6 GHz (via-fence pitch) | **2.26 mm** → use **≤2.0 mm** | [DERIVED] |
 
-> The widths are closed-form, not a field solve. **They must be re-confirmed
-> against JLCPCB's own impedance calculator for the exact stackup ordered,
-> before release.** Recorded as a CHECKLIST item.
+> **AMENDED 2026-07-30.** This section previously read "Dk 4.4 (JLC
+> published), **ε_r taken as 4.3**" and published 0.35 mm / ε_eff 3.26 /
+> 6.0 ps/mm. Three things were wrong and they compounded:
+> 1. **The permittivity dispute was decided against the fab's own number.**
+>    ADR-0010's stackup table says 4.4; this said 4.3. It is now **4.4
+>    everywhere**. The dispute never rescued 0.35 mm anyway — at 4.3 the line
+>    is *further* from 50 Ω, not closer.
+> 2. **The width was one method run twice.** Both prior derivations were
+>    Hammerstad closed-form (canon M1: the checker and the checked shared a
+>    method). An independent field solve disagrees by 3.4 % on the same bare
+>    cross-section, and the solder mask — carried by neither closed form — is
+>    worth −1.55 Ω, more than the whole correction.
+> 3. **The row above already contradicted itself**: it called 0.35 mm the 50 Ω
+>    width and then tabulated "0.35 → 51.0 Ω" in its own source column.
+>
+> The widths are now closed-form **and** field-solve. **They must still be
+> re-confirmed against JLCPCB's own impedance calculator for the exact stackup
+> ordered, before release.** Recorded as a CHECKLIST item.
 
 ### 1.1 Microstrip loss — the term the sourcing spike got wrong by 2.7×
 
-Conductor loss (∝√f) plus dielectric loss (∝f), for w = 0.35 mm:
+Conductor loss (∝√f) plus dielectric loss (∝f), for w = 0.36 mm:
 
 ```
 α_d = 27.3 · [εr(ε_eff−1)] / [√ε_eff·(εr−1)] · tanδ / λ0
-    = 27.3 · (4.3×2.26)/(1.8055×3.3) · 0.02/λ0 = 0.8906/λ0   dB/m
-    @6 GHz (λ0 = 49.97 mm):  17.8 dB/m = 0.178 dB/cm
+    = 27.3 · (4.4×2.383)/(1.8393×3.4) · 0.02/λ0 = 0.9154/λ0   dB/m
+    @6 GHz (λ0 = 49.97 mm):  18.3 dB/m = 0.183 dB/cm
 
 Rs  = √(π·f·µ0/σ),  σ_Cu = 5.8e7 S/m
     @6 GHz: Rs = 0.02021 Ω/sq
 α_c = K · 8.686·Rs/(Z0·w),  K = 1.6 (edge current crowding, narrow line)
-    @6 GHz: 1.6 × 8.686×0.02021/(50×0.00035) = 16.1 dB/m = 0.161 dB/cm
+    @6 GHz: 1.6 × 8.686×0.02021/(50×0.00036) = 15.6 dB/m = 0.156 dB/cm
 ```
+
+> **Recomputed 2026-07-30 at Dk 4.4 / ε_eff 3.383 / w 0.36 mm** (was 4.3 /
+> 3.26 / 0.35 mm). The two terms move in OPPOSITE directions and very nearly
+> cancel: dielectric loss rises 17.8 → 18.3 dB/m, conductor loss falls
+> 16.1 → 15.6 dB/m on the wider line. **Total 33.9 dB/m before, 33.9 dB/m
+> after** — unchanged to three figures. The published **0.036 dB/mm @6 GHz**
+> therefore stands, and with it the 1.91 dB loopback figure, the 3.09 dB chain
+> tilt, and the attenuator values ADR-0004/ADR-0016 derived from that tilt.
+> **Nothing downstream of the loss constant moves.** Stated explicitly because
+> a permittivity change that silently re-opened the attenuator decision would
+> be exactly the kind of unnoticed cascade ADR-0011 §2 warns about.
 
 | | 70 MHz | 6 GHz |
 |---|---|---|
@@ -77,9 +105,10 @@ influence.
 | **total, TX jack → each RX jack** | **65 mm** | |
 | switch RF1 → `RX_ANTn` SMA | 20 mm | ×2, antenna edge |
 
-**65 mm × 6.0 ps/mm = 390 ps** nominal one-way loopback delay per arm, ON THE
-BOARD. The D4 artifact is the measured per-arm length and the arm-to-arm
-DELTA, converted with the 6.0 ps/mm constant pinned to the ordered stackup.
+**65 mm × 6.135 ps/mm = 399 ps** nominal one-way loopback delay per arm, ON
+THE BOARD (was 390 ps at the superseded 6.0 ps/mm — §1). The D4 artifact is
+the measured per-arm length and the arm-to-arm DELTA, converted with the
+6.135 ps/mm constant pinned to the ordered stackup.
 
 **A8 added a SECOND, LARGER delay term the board cannot measure: the cables.**
 0.3 m of RG316-class coax is ~1.5 ns each, four times the whole on-board run,

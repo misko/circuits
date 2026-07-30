@@ -154,7 +154,7 @@ on it.
 | **Board-to-Pluto interface** | **3 × SMA male–male CABLES, user-supplied**; the board carries **5 × KH-SMA-KE-Z SMA JACKS** | **A8** (ADR-0015) |
 | TX drive level | **+8 dBm max, CITED** — AD9363 Rev. D p.4 of 32, `Maximum Output Power` 800 MHz. ⚠️ Still carries ONE gap: that is the TRANSCEIVER's maximum, and it bounds the SMA PORT only if the Pluto's TX front end is passive — OWED (`plutoplus_tx_frontend_active`). ≥40 dB absorbs 19 dB of undiscovered TX gain before the RX rating is reached | **A9** + `spf/` |
 | RX damage threshold | **+2.5 dBm PEAK, CITED** — AD9363 Rev. D p.15 of 32, ABSOLUTE MAXIMUM RATINGS, `RF Inputs (Peak Power)` | **A9** + `spf/` |
-| Impedance | 50 Ω, **controlled impedance REQUESTED** | pinned by ADR-0010: 4-layer `JLC04161H-7628`, 0.35 mm microstrip on the 0.2104 mm top prepreg |
+| Impedance | 50 Ω, **controlled impedance REQUESTED** | pinned by ADR-0010: 4-layer `JLC04161H-7628`, 0.36 mm microstrip on the 0.2104 mm top prepreg |
 | ~~Reference frequency for the 30 dB~~ | **N/A — a MINIMUM needs none.** Binds at 70 MHz by construction | **A9 retires D5** |
 | ~~PlutoPlus port span~~ | **N/A — not consumed.** The board is referenced to no Pluto dimension | **A8 retires D6** |
 | Control resolution (USB vs header) | OR + 10 s USB watchdog | **D7 — assumed, user ABSENT. The last open one** |
