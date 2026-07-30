@@ -17,6 +17,27 @@
 (rule "DVDD_1V1_width"
   (condition "A.NetClass == 'DVDD_1V1'")
   (constraint track_width (min 0.4mm)))
+(rule "scoped_clr_rf_launch"
+  (condition "A.insideArea('rf_launch') && B.insideArea('rf_launch') && (A.NetName == 'ANT1' || B.NetName == 'ANT1' || A.NetName == 'ANT2' || B.NetName == 'ANT2' || A.NetName == 'ANT3' || B.NetName == 'ANT3' || A.NetName == 'ANT4' || B.NetName == 'ANT4' || A.NetName == 'ANT5' || B.NetName == 'ANT5' || A.NetName == 'ANT6' || B.NetName == 'ANT6' || A.NetName == 'ANT7' || B.NetName == 'ANT7' || A.NetName == 'RX2_OUT' || B.NetName == 'RX2_OUT' || A.NetName == 'RX1_TAP' || B.NetName == 'RX1_TAP')")
+  (constraint clearance (min 0.14mm)))
+(rule "scoped_clr_rf_jack_ant2"
+  (condition "A.insideArea('rf_jack_ant2') && B.insideArea('rf_jack_ant2') && (A.NetName == 'ANT2' || B.NetName == 'ANT2')")
+  (constraint clearance (min 0.14mm)))
+(rule "scoped_clr_rf_jack_ant3"
+  (condition "A.insideArea('rf_jack_ant3') && B.insideArea('rf_jack_ant3') && (A.NetName == 'ANT3' || B.NetName == 'ANT3')")
+  (constraint clearance (min 0.14mm)))
+(rule "scoped_clr_rf_jack_ant6"
+  (condition "A.insideArea('rf_jack_ant6') && B.insideArea('rf_jack_ant6') && (A.NetName == 'ANT6' || B.NetName == 'ANT6')")
+  (constraint clearance (min 0.14mm)))
+(rule "scoped_clr_rf_jack_ant7"
+  (condition "A.insideArea('rf_jack_ant7') && B.insideArea('rf_jack_ant7') && (A.NetName == 'ANT7' || B.NetName == 'ANT7')")
+  (constraint clearance (min 0.14mm)))
+(rule "scoped_clr_rf_jack_rx1"
+  (condition "A.insideArea('rf_jack_rx1') && B.insideArea('rf_jack_rx1') && (A.NetName == 'RX1_MAIN' || B.NetName == 'RX1_MAIN')")
+  (constraint clearance (min 0.14mm)))
+(rule "scoped_clr_rf_jack_rx2"
+  (condition "A.insideArea('rf_jack_rx2') && B.insideArea('rf_jack_rx2') && (A.NetName == 'RX2_OUT' || B.NetName == 'RX2_OUT')")
+  (constraint clearance (min 0.14mm)))
 (rule pad_rescue_stubs
   (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND')")
   (constraint track_width (min 0.300mm)))

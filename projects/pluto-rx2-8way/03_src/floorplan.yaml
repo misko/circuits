@@ -541,6 +541,51 @@ placement:
 escape_corridors:
   - {ref: U_SW, side: S, depth_mm: 1.5}
 
+# ============================================================================
+# PERMISSIVE RULE AREAS for canon R-SCOPE (`deny: []` — these forbid NOTHING).
+# They exist so 03_src/rules/nets.yaml `scoped_clearances:` can bound an
+# ISOLATION relaxation to a place; generate_rules_generic.py emits, for each,
+# a last-match .kicad_dru rule conditioned on
+#   A.insideArea('<name>') && B.insideArea('<name>') && (net clause)
+# READ THE nets.yaml BLOCK FOR THE ARGUMENT. Only the GEOMETRY is decided
+# here, and the geometry is the binding question: the 49 RF clearance findings
+# split 9 at the QFN land and 40 at an SMA GROUND POST 20 mm away, so a
+# launch-only region licenses 9 of 49 and leaves the board at 79 violations.
+#
+# THE CAVEAT THAT SIZES THEM. KiCad's insideArea is true for an item that
+# OVERLAPS the area, not only one CONTAINED by it, so the bound is on the
+# ITEMS and not on their point of closest approach: a 13 mm arm that pokes
+# into a region is "inside" it along its whole length. Every region is
+# therefore drawn as tightly as the measured pair allows, and the net clause
+# does the rest of the bounding — the relaxed pair must ALSO have an arm net
+# on one side, so what a region licenses is "this arm against ground copper
+# that reaches into this box", never "everything in this box".
+#
+# TWO SHAPES, both DERIVED from pad coordinates read off the board:
+#   rf_launch     — the PE42482A-X land field. U_SW's 24 peripheral land
+#                   CENTRES span 44.100..47.900 in x and y; the lands are
+#                   0.60 mm on their long side, so copper reaches
+#                   43.800..48.200. +0.3 mm of margin = 43.5..48.5.
+#   rf_jack_<n>   — the bbox of the TWO pads the finding is actually about:
+#                   the jack's centre pin and the ONE ground post facing
+#                   U_SW (KH-SMA-KE-Z posts are 1.90 mm square, so pad centre
+#                   +/- 0.95), expanded 0.6 mm. ~5-6 mm on a side.
+# ONLY THE SIX JACKS THAT MEASURE A VIOLATION GET A REGION. J_ANT1, J_ANT4,
+# J_ANT5 and J_ANT8 route their last approach with >= 0.2 mm and are left
+# alone: an isolation relaxation has no downstream grader (R-SCOPE), so
+# declaring one where nothing measures it would be exactly the inherited-
+# waiver defect CLAUDE.md names. The consequence is stated rather than
+# hidden — if the star is ever RE-RACED, this list has to be re-derived from
+# the new DRC report, not assumed to still cover.
+keepouts:
+  - {name: rf_launch,    layers: [F.Cu], deny: [], rect: [43.500, 43.500, 48.500, 48.500]}
+  - {name: rf_jack_ant2, layers: [F.Cu], deny: [], rect: [25.131, 39.274, 31.342, 44.170]}
+  - {name: rf_jack_ant3, layers: [F.Cu], deny: [], rect: [25.131, 47.830, 31.342, 52.726]}
+  - {name: rf_jack_ant6, layers: [F.Cu], deny: [], rect: [60.658, 47.830, 66.869, 52.726]}
+  - {name: rf_jack_ant7, layers: [F.Cu], deny: [], rect: [60.658, 39.274, 66.869, 44.170]}
+  - {name: rf_jack_rx1,  layers: [F.Cu], deny: [], rect: [55.000, 30.308, 61.692, 33.408]}
+  - {name: rf_jack_rx2,  layers: [F.Cu], deny: [], rect: [39.274, 25.131, 44.170, 31.342]}
+
 design_rules:
   # jlc_4layer_advanced floors (ADR-0003 / fab_tiers.yaml). These are FLOORS —
   # RF50 runs at 0.36 mm because that is 50 ohm, not because of a DRC minimum.

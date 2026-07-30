@@ -20,6 +20,21 @@
 #    here reads as a bare "<n> A" or the literal word "signal"; qualifying
 #    prose goes in `intent:`, where it cannot silence the gate.
 
+# THE BOARD'S ISOLATION NUMBER, SAID FROM SOURCE (2026-07-30). 0.2 mm was
+# already the effective DRC clearance on every class — but only because
+# generate_rules_generic HARDCODES 0.2 as its default, which is not the same
+# thing as this board having decided it. The prose in the RF50 block has
+# claimed since stage 3 that "the board declares 0.2 UP from its 0.09 tier
+# floor ON PURPOSE, because on it clearance is ISOLATION between nine arms,
+# not a routability tax" — and nothing in the file said so where a gate could
+# read it. tier_preflight PF-RULES-CLR is the gate that asks: it flags every
+# class riding the hardcode while a router wave packs to 0.14, because an
+# undeclared floor is one nobody chose. Declaring 0.2 explicitly changes NO
+# emitted number (verified: DRC identical across the change); it changes who
+# owns it, and it is the half of R-SCOPE that has to come BEFORE the
+# relaxation — you cannot bound a relaxation of a floor you never declared.
+default_clearance: 0.2mm
+
 fab_tier: jlc_4layer_advanced
 # D-TIER (ADR-0003). Raised from the template default jlc_2layer_default,
 # which FAILED P-TIER on 2026-07-28:
@@ -66,6 +81,7 @@ classes:
     nets: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7,
            RX1_MAIN, RX1_TAP_MID, RX1_TAP, RX2_OUT]
     current: signal
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
     min_width: 0.36mm
     routing: KRT, L1 only, no vias, radial star per ADR-0007
     verify: DRC floor + P-ADJ spans + the published VNA sweep (ADR-0006)
@@ -87,6 +103,7 @@ classes:
       real current is 1.3 mA into the four 10 kohm pull-downs when driven high.
     nets: [SEL_V1, SEL_V2, SEL_V3, SEL_V4, SW_V1, SW_V2, SW_V3, SW_V4]
     current: signal
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
     min_width: 0.2mm
     routing: KRT, L3 under ground across the RF region
     verify: DRC floor + no RF-arm parallelism (R-PLANE / design review)
@@ -105,6 +122,7 @@ classes:
       or a plane split. Current: signal.
     nets: [USB_DP, USB_DM, USB_DP_MCU, USB_DM_MCU]
     current: signal
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
     min_width: 0.28mm
     routing: KRT, L1, matched pair, inside the digital strip
     verify: DRC floor + no plane split under the pair (R-PLANE)
@@ -133,6 +151,7 @@ classes:
       declare.
     nets: [VBUS, VBUS_F, VBUS_LDO, 3V3]
     current: 0.15 A
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
     min_width: 0.4mm
     routing: KRT, L1 stubs onto an L3 pour
     verify: DRC floor + A-AMP
@@ -147,6 +166,7 @@ classes:
       lowest RF flange. Current: signal.
     nets: [QSPI_SCLK, QSPI_CSN, QSPI_SD0, QSPI_SD1, QSPI_SD2, QSPI_SD3]
     current: signal
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
     min_width: 0.2mm
     routing: KRT, inside the digital strip only
     verify: DRC floor + P-ADJ span budget from the MCU layout block
@@ -171,6 +191,7 @@ classes:
       (DETAIL_DESIGN section 5) are the whole of the design here.
     nets: [DVDD_1V1]
     current: 0.1 A
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
     min_width: 0.4mm
     routing: KRT, inside the digital strip only
     verify: DRC floor + A-AMP
@@ -213,6 +234,126 @@ classes:
 # NO SCOPED FLOORS, DELIBERATELY. A width relaxation inside a zone would break
 # the impedance of any RF class it touched, and canon M4 requires evidence for
 # one anyway. Declared absent rather than omitted.
+
+# ============================================================================
+# scoped_clearances — canon R-SCOPE. THE ISOLATION TWIN OF scoped_floors, and
+# the thing this board could not say from source until 2026-07-30.
+#
+# WHAT IT BUYS AND WHAT IT COSTS. The board's 0.2 mm clearance is declared UP
+# from the jlc_4layer_advanced floor of 0.09 ON PURPOSE: on a nine-arm receive
+# fan, clearance is ISOLATION between arms, not a routability tax, so lowering
+# the BOARD-WIDE floor to route one launch would spend the whole reason the
+# number exists. What is relaxed here is 49 measured pairs, each of which has
+# an RF arm on one side and GROUND on the other — never arm-to-arm, which is
+# the isolation that matters and which is untouched at 0.2 mm everywhere.
+#
+# WHY 0.14 AND NOT 0.145. 0.145 is the ROUTABILITY threshold (the 20-point
+# width x clearance sweep on r0: 11/11 at 0.145, 6/11 at 0.15, a 0.005 mm grid
+# quantisation cliff). The router was given 0.14 and PACKED TO IT, so a 0.145
+# DRC floor would fail the copper it just laid by 5 um. The floor has to be
+# the router's budget, not the threshold that motivated it — R-SCOPE's own
+# PF-ROUTE-CLR ordering rule, one level down. Measured worst approach across
+# all 49 findings is 0.1659 mm (RX1_MAIN vs J_RX1 post 2), so 0.14 clears the
+# tightest pair on the board by 0.0259 mm and sits 0.05 mm above the fab
+# tier's 0.09 min_space, which a scope may never relax.
+#
+# WHY SEVEN REGIONS AND NOT ONE — THIS IS THE WHOLE OF THE JUDGEMENT.
+# The 49 findings were predicted to be QFN-land findings and they are NOT.
+# Classified off 06_build/drc (this session, from the promoted board):
+#     9  arm vs a U_SW GND LAND, all at 0.1700 mm, one per RF pin
+#          (ANT1..ANT7, RX2_OUT, RX1_TAP)
+#    40  arm vs an SMA PTH GROUND POST at the far end of the arm, 20 mm away,
+#          0.1659..0.1936 mm — J_ANT2/J_ANT3/J_ANT6/J_ANT7/J_RX2 seven each,
+#          J_RX1 five
+# A launch-only region therefore licenses 9 of 49 and leaves 79 violations
+# standing. The post findings are a DIFFERENT geometry with the same cause:
+# the arm arrives at a 1.90 mm square post ring that the KH-SMA-KE-Z land
+# fixes at 3.592 mm pitch, and 0.36 mm of impedance copper cannot pass it at
+# 0.2 mm. Each jack gets its own region keyed on its OWN arm net, so the
+# relaxation cannot travel: nothing in rf_jack_ant6 is licensed for ANT2.
+#
+# WHAT IS DELIBERATELY *NOT* HERE. J_ANT1, J_ANT4, J_ANT5 and J_ANT8 measure
+# clean and get no region — an isolation relaxation has NO downstream grader
+# (DRC simply stops reporting what it permits), so a region declared for
+# symmetry rather than for a measurement is the inherited-waiver defect. The
+# GND POUR is likewise untouched: it holds its own 0.25 mm zone clearance,
+# which a DRC floor of 0.14 does not lower.
+#
+# THE ITEM-vs-POINT CAVEAT, recorded because it bounds how much this really
+# licenses: KiCad's insideArea is true for an item that OVERLAPS the area, so
+# a 13 mm arm poking into rf_launch is "inside" along its whole length. The
+# regions are drawn as tightly as the measured pair allows (see the keepouts
+# block in 03_src/floorplan.yaml for the derivation of every coordinate), and
+# the SYMMETRIC net clause does the rest: a licensed pair must still have one
+# of these arm nets on one side of it.
+scoped_clearances:
+  - zone: rf_launch
+    nets: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, RX2_OUT, RX1_TAP]
+    clearance: 0.14
+    why: >
+      MEASURED, 9 DRC findings on the promoted board (r6, 2026-07-30), one per
+      RF land of U_SW: every arm leaves its PE42482A-X land 0.1700 mm from the
+      neighbouring GND land, against the board's 0.2 mm floor. The gap is
+      GEOMETRIC, not a router choice — the vendor land from the Figure 23
+      inset is 0.30 x 0.60 mm on a 0.50 mm pitch, so a 0.36 mm impedance trace
+      centred on the land leaves (0.50 - 0.36)/2 = 0.070 mm of nominal gap to
+      the next land edge and 0.170 mm to the next land's copper. The three
+      alternatives were each measured and each is worse: a 0.30 mm arm is
+      54.5 ohm and detunes a line the board PUBLISHES a phase table for;
+      KRT neck-down delivers 149.832 mm at 0.25 mm and 0.000 mm at 0.36 mm
+      (the re-widen pass only restores width where the narrow path had wide
+      clearance, which leaving a QFN it never does); and dropping the
+      board-wide floor to 0.14 would relax arm-to-arm isolation across the
+      whole fan, which is the one thing the 0.2 mm number exists to buy.
+      0.14 is the value the rf wave was actually routed at, so this rule
+      states the copper that exists rather than a target it must be re-cut to.
+  - zone: rf_jack_ant2
+    nets: [ANT2]
+    clearance: 0.14
+    why: >
+      MEASURED, 7 findings, ANT2 track vs J_ANT2 PTH pad 4 (GND post at
+      29.792, 42.620), worst 0.1692 mm. The arm's last 3.2 mm approach to the
+      centre pin passes the post ring; KH-SMA-KE-Z fixes the post-to-pin
+      pitch at 3.592 mm and the posts are 1.90 mm square, so the aperture is
+      not a placement variable. Relaxed for ANT2 only, inside the box
+      containing exactly that pin and that post.
+  - zone: rf_jack_ant3
+    nets: [ANT3]
+    clearance: 0.14
+    why: >
+      MEASURED, 7 findings, ANT3 track vs J_ANT3 PTH pad 4 (GND post at
+      29.792, 49.380), worst 0.1687 mm. Same fixed KH-SMA-KE-Z aperture as
+      rf_jack_ant2, rotated to this jack's angle on the r = 20 mm ring.
+  - zone: rf_jack_ant6
+    nets: [ANT6]
+    clearance: 0.14
+    why: >
+      MEASURED, 7 findings, ANT6 track vs J_ANT6 PTH pad 2 (GND post at
+      62.208, 49.380), worst 0.1687 mm. Same fixed KH-SMA-KE-Z aperture.
+  - zone: rf_jack_ant7
+    nets: [ANT7]
+    clearance: 0.14
+    why: >
+      MEASURED, 7 findings, ANT7 track vs J_ANT7 PTH pad 2 (GND post at
+      62.208, 42.620), worst 0.1687 mm. Same fixed KH-SMA-KE-Z aperture.
+  - zone: rf_jack_rx1
+    nets: [RX1_MAIN]
+    clearance: 0.14
+    why: >
+      MEASURED, 5 findings, RX1_MAIN track vs J_RX1 PTH pad 2 (GND post at
+      56.550, 31.858), worst 0.1659 mm — the TIGHTEST pair on the board, and
+      the one that sets the 0.14 value's 0.0259 mm margin. RX1_MAIN is the
+      main-line output, not a star member, so this region touches nothing the
+      RF_RADIAL_STAR length_match group grades.
+  - zone: rf_jack_rx2
+    nets: [RX2_OUT]
+    clearance: 0.14
+    why: >
+      MEASURED, 7 findings, RX2_OUT track vs J_RX2 PTH pad 3 (GND post at
+      42.620, 29.792), worst 0.1687 mm. RX2_OUT is the RFC radial and IS a
+      star member; the relaxation is on its ISOLATION, not on its length or
+      width, and copper_length_audit still grades its realized copper against
+      the group's 1.0 mm ceiling from the board.
 
 # ============================================================================
 # length_match — canon R-LEN, graded by
