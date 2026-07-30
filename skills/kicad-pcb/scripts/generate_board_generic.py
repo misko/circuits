@@ -86,6 +86,36 @@ except Exception:                                            # pragma: no cover
 MM = pcbnew.ToMM
 STD_FP_ROOT = "/usr/share/kicad/footprints"
 
+# ------------------------------------------------- THE silk stroke formula
+# THE ONLY PLACE the emitted-stroke arithmetic lives. G-SELFCON
+# (gate_contract_audit.py) does not copy these numbers or re-implement the
+# formula: it lifts `silk_stroke` and these constants out of THIS file's AST
+# and calls them. A checker carrying its own copy of the formula it grades is
+# canon M1 failing in the other direction — it agrees with a stale copy, which
+# is exactly how the "0.60mm reaches a 0.15 stroke" corollary survived being
+# written down (it is 0.9375mm; see fab_tiers.yaml).
+KICAD_STROKE_OVER_HEIGHT = 0.25   # KiCad's own clamp: stroke <= 0.25 x height
+SILK_STROKE_MIN = 0.13            # hard floor for board-level silk text
+SILK_STROKE_OVER_SIZE = 0.16      # ... and its stroke:height ratio
+REFDES_STROKE_MIN = 0.09          # the refdes de-collision path has its own
+REFDES_STROKE_OVER_SIZE = 0.20    # ... pair, and they differ. Both are graded.
+
+
+def silk_stroke(size, floor, ratio=SILK_STROKE_OVER_SIZE,
+                hard=SILK_STROKE_MIN):
+    """The stroke (mm) this generator emits for silk text of height `size` on
+    a tier whose published stroke floor is `floor`.
+
+    TWO bounds, and the pair is the whole point: a LOWER floor
+    (max(floor, hard, ratio x size)) and KiCad's UPPER clamp
+    (KICAD_STROKE_OVER_HEIGHT x size). Before 2026-07-29 the lower floor was
+    applied without the clamp, so 0.45mm text was stored with a 0.13mm stroke
+    that KiCad can only plot at 0.1125 — a value no tier could publish
+    truthfully in either direction. The clamp is a no-op at size >= 0.52mm,
+    which is every height any shipped board uses."""
+    return min(size * KICAD_STROKE_OVER_HEIGHT,
+               max(float(floor or 0.0), hard, size * ratio))
+
 
 def _kicad_fp_env():
     """The running KiCad's versioned footprint-dir env var (KiCad renames it
@@ -1412,6 +1442,99 @@ class BoardBuilder:
                 pad_obst.append(box_of(fp.GetBoundingBox(False, False), 0.05))
         return pad_obst, silk_obst
 
+    # ------------------------------------------------- silk OWNERSHIP term
+    # A LABEL MUST END UP NEARER ITS OWN PART THAN ANY OTHER. The slot search
+    # used to take the FIRST non-colliding offset out to ~11mm and never ask
+    # whose label it was, so the objective it optimised ("does not collide")
+    # was silent about the only property a reader uses ("which part is this
+    # naming?"). MEASURED on the shipped output of two boards, 2026-07-29:
+    # pluto-cal-switch 36 of 73 refdes labels nearer another part than their
+    # own; pluto-rx2-8way 40 of 64, plus the 'ANT4'/'RX1'/'RX2' port captions
+    # attributed to passives on a board with ten near-identical SMA jacks —
+    # a mis-mate hazard, not a cosmetic one.
+    #
+    # This is a MISSING OBJECTIVE, not a measurement-precision problem:
+    # pluto-cal-switch first tried tightening the METRIC (courtyard-edge
+    # distance instead of centroid) and it rescued ZERO of its 36. Hence a
+    # term, scored inside the placer's own obstacle model (which includes the
+    # whole-footprint body bbox an offline check omits).
+    def _ownership(self, cand, ref):
+        """(ok, d_own, d_other, other_ref) for label box `cand` claimed by
+        `ref`. Distances are box-centre to footprint centroid — the same
+        measurement the board audits use, so the numbers are comparable.
+        Mounting holes carry no printed designator and cannot be confused
+        with a part, so they do not compete."""
+        cx = (cand[0] + cand[2]) / 2.0
+        cy = (cand[1] + cand[3]) / 2.0
+        d_own, d_oth, oth = None, float("inf"), None
+        for r, x, y in self._own_cent:
+            d = math.hypot(x - cx, y - cy)
+            if r == ref:
+                d_own = d
+            elif d < d_oth:
+                d_oth, oth = d, r
+        if d_own is None:                  # unknown/hole ref: nothing to own
+            return True, 0.0, d_oth, oth
+        return (d_own <= d_oth + 1e-9), d_own, d_oth, oth
+
+    def _caption_owner(self, txt):
+        """A fixed caption's PRESUMPTIVE owner, inferred from the board's own
+        data rather than a new config key: the SINGLE part whose refdes
+        contains the caption's alphanumeric token ('ANT4' -> J_ANT4,
+        'RX2' -> J_RX2). Ambiguous ('CTRL' on a board with R_CTRL1/R_CTRL2)
+        or unmatched ('70 MHz - 6 GHz') means no owner, and then the caption
+        keeps the pre-existing first-clear-slot behaviour."""
+        tok = re.sub(r"[^A-Z0-9]", "", txt.upper())
+        if len(tok) < 2:
+            return None
+        hits = [r for r in self.fps if r not in self.hole_refs
+                and tok in re.sub(r"[^A-Z0-9]", "", r.upper())]
+        return hits[0] if len(hits) == 1 else None
+
+    def _place_owned(self, t, ax, ay, offsets, ref, kind, txt,
+                     pad_obst, silk_obst, poses=(None,), frame_m=0.2):
+        """Slot search with the ownership term. PHASE 1 walks the poses and
+        offsets in the placer's existing preference order but accepts only a
+        slot that is collision-free AND OWNED. PHASE 2 runs only when no owned
+        slot exists anywhere: it takes the slot with the SMALLEST ownership
+        deficit and files an EVIDENCED degradation with the measured lead —
+        never a silent first-slot placement (the J_ISOLOOP class is real: pads
+        at the centre of the body in x means anything printed either side is
+        under the moulding once fitted, and no term can fix that). Returns
+        (placed, cand)."""
+        best = None
+        for pose in poses:
+            if pose:
+                pose()
+            for dx, dy in offsets:
+                t.SetPosition(pcbnew.VECTOR2I_MM(ax + dx, ay + dy))
+                cand = box_of(t.GetBoundingBox())
+                if not self._in_frame(cand, frame_m):
+                    continue
+                if any(hit(cand, o) for o in pad_obst) \
+                        or any(hit(cand, o) for o in silk_obst):
+                    continue
+                if ref is None:
+                    return True, cand
+                ok, d_own, d_oth, oth = self._ownership(cand, ref)
+                if ok:
+                    self.own_ok += 1
+                    return True, cand
+                if best is None or (d_own - d_oth) < best[0] - 1e-12:
+                    best = (d_own - d_oth, pose, dx, dy, d_own, d_oth, oth)
+        if best is None:
+            return False, None
+        _, pose, dx, dy, d_own, d_oth, oth = best
+        if pose:
+            pose()
+        t.SetPosition(pcbnew.VECTOR2I_MM(ax + dx, ay + dy))
+        self.own_deg.append((kind, ref, txt, d_own, d_oth, oth))
+        print(f"WARN silk ownership: {kind} {txt!r} for {ref} lands "
+              f"{d_own:.2f}mm from {ref} but {d_oth:.2f}mm from {oth} "
+              f"(lead {d_oth - d_own:+.2f}mm) — no owned slot in the "
+              f"{len(poses)}x{len(offsets)} search")
+        return True, box_of(t.GetBoundingBox())
+
     def _in_frame(self, cand, m=0.2):
         return (self.X0 + m < cand[0] and cand[2] < self.X1 - m
                 and self.Y0 + m < cand[1] and cand[3] < self.Y1 - m)
@@ -1433,11 +1556,10 @@ class BoardBuilder:
         t.SetText(txt)
         t.SetLayer(layer if layer is not None else pcbnew.F_SilkS)
         t.SetTextSize(pcbnew.VECTOR2I_MM(size, size))
-        # stroke floored at the tier's min_silk_stroke: a 0.13mm stroke on a
-        # 0.15mm-floor process prints, just badly — and the board's silk
-        # thickness DRC constraint now derives from the same floor.
+        # stroke from the ONE formula (module-level silk_stroke): floored at
+        # the tier's min_silk_stroke and clamped to what KiCad can plot.
         t.SetTextThickness(pcbnew.FromMM(
-            max(self.silk_floors()[1], 0.13, size * 0.16)))
+            silk_stroke(size, self.silk_floors()[1])))
         return t
 
     def add_silk(self):
@@ -1446,6 +1568,11 @@ class BoardBuilder:
         min_h = self.silk_h(self.silk_cfg.get("min_text_height"), 0.6,
                             "min_text_height")
         pad_obst, silk_obst = self._obstacles(clr)
+        # ownership scoring state (see _ownership / _place_owned)
+        self._own_cent = [(r, MM(f.GetPosition().x), MM(f.GetPosition().y))
+                          for r, f in sorted(self.fps.items())
+                          if r not in self.hole_refs]
+        self.own_ok, self.own_deg, self.own_none = 0, [], []
 
         # ---- fixed functional captions, collision-nudged
         cap_nudge = bool(self.silk_cfg.get("caption_nudge", True))
@@ -1468,17 +1595,14 @@ class BoardBuilder:
             t = self._mktext(txt, size)
             if rot:
                 t.SetTextAngleDegrees(rot)
-            ok = False
-            for dx, dy in nudge:
-                t.SetPosition(pcbnew.VECTOR2I_MM(x + dx, y + dy))
-                cand = box_of(t.GetBoundingBox())
-                if not self._in_frame(cand, 0.4):
-                    continue
-                if any(hit(cand, o) for o in pad_obst) or any(hit(cand, o) for o in silk_obst):
-                    continue
-                ok = True
-                break
-            self.board.Add(t)          # keep even if crowded (best offset wins)
+            owner = self._caption_owner(txt)
+            ok, _ = self._place_owned(t, x, y, nudge, owner, "caption", txt,
+                                      pad_obst, silk_obst, frame_m=0.4)
+            if not ok:
+                # no clear slot at all: fall back to the coordinate the config
+                # ASKED FOR, not the last offset the search happened to try.
+                t.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+            self.board.Add(t)          # keep even if crowded
             if not ok:
                 crowded += 1
                 print(f"WARN silk caption crowded: {txt[:40]}")
@@ -1520,17 +1644,14 @@ class BoardBuilder:
             f = self.fps[ref]
             t = self._mktext(txt, max(size, min_h))
             fx, fy = MM(f.GetPosition().x), MM(f.GetPosition().y)
-            for dx, dy in self.OFF:
-                t.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
-                cand = box_of(t.GetBoundingBox())
-                if not self._in_frame(cand):
-                    continue
-                if any(hit(cand, o) for o in pad_obst) or any(hit(cand, o) for o in silk_obst):
-                    continue
+            ok, cand = self._place_owned(t, fx, fy, self.OFF, ref, "label",
+                                         txt, pad_obst, silk_obst)
+            if ok:
                 silk_obst.append(cand)
                 self.board.Add(t)
                 nlab += 1
-                break
+            else:
+                self.own_none.append(("label", ref, txt))
 
         # ---- polarity marks ("K" beside pad 1 of a diode, etc.)
         for mark in self.silk_cfg.get("polarity_marks") or []:
@@ -1540,17 +1661,13 @@ class BoardBuilder:
             if p1 is None:
                 die(f"polarity_mark: {ref} has no pad {pad}")
             px, py = MM(p1.GetPosition().x), MM(p1.GetPosition().y)
-            for dx, dy in self.OFF:
-                kt = self._mktext(glyph, self.silk_h(None, 0.6, "polarity mark"))
-                kt.SetPosition(pcbnew.VECTOR2I_MM(px + dx, py + dy))
-                cand = box_of(kt.GetBoundingBox())
-                if self._in_frame(cand) and not any(hit(cand, o) for o in pad_obst) \
-                        and not any(hit(cand, o) for o in silk_obst):
-                    self.board.Add(kt)
-                    silk_obst.append(cand)
-                    break
-            else:
+            kt = self._mktext(glyph, self.silk_h(None, 0.6, "polarity mark"))
+            ok, cand = self._place_owned(kt, px, py, self.OFF, ref, "polarity",
+                                         glyph, pad_obst, silk_obst)
+            if not ok:
                 die(f"no clear spot for the {ref} polarity mark {glyph!r}")
+            self.board.Add(kt)
+            silk_obst.append(cand)
 
         # ---- refdes: F.SilkS de-collided + ALWAYS an F.Fab copy
         # (fab_size is NOT tier-floored: F.Fab is documentation, not silk)
@@ -1577,36 +1694,42 @@ class BoardBuilder:
             ref.SetLayer(pcbnew.F_SilkS)
             ref.SetVisible(True)
             fx, fy = MM(fp.GetPosition().x), MM(fp.GetPosition().y)
-            ok = False
-            for rot in (0, 90):                       # stand up in narrow gaps
-                ref.SetTextAngleDegrees(rot)
-                for sz in (size, small):
+
+            def mkpose(rot, sz, ref=ref):
+                def _pose():
+                    ref.SetTextAngleDegrees(rot)   # stand up in narrow gaps
                     ref.SetTextSize(pcbnew.VECTOR2I_MM(sz, sz))
-                    ref.SetTextThickness(int(max(self.silk_floors()[1],
-                                                 0.09, sz * 0.2) * 1e6))
-                    for dx, dy in self.OFF:
-                        ref.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
-                        cand = box_of(ref.GetBoundingBox())
-                        if not self._in_frame(cand):
-                            continue
-                        if any(hit(cand, o) for o in pad_obst) \
-                                or any(hit(cand, o) for o in silk_obst):
-                            continue
-                        silk_obst.append(cand)
-                        ok = True
-                        break
-                    if ok:
-                        break
-                if ok:
-                    break
+                    ref.SetTextThickness(int(silk_stroke(
+                        sz, self.silk_floors()[1], REFDES_STROKE_OVER_SIZE,
+                        REFDES_STROKE_MIN) * 1e6))
+                return _pose
+
+            poses = [mkpose(rot, sz) for rot in (0, 90)
+                     for sz in (size, small)]
+            ok, cand = self._place_owned(ref, fx, fy, self.OFF, r, "refdes",
+                                        r, pad_obst, silk_obst, poses=poses)
+            if ok:
+                silk_obst.append(cand)
             if not ok:
                 ref.SetTextAngleDegrees(0)
                 ref.SetVisible(False)
                 self.waived.append(r)
+                self.own_none.append(("refdes", r, r))
         n = len(self.fps) - len(self.hole_refs)
         self.say(f"refdes on silk: {n - len(self.waived)}/{n} placed, "
                  f"{len(self.waived)} waived to F.Fab: {sorted(self.waived)}; "
                  f"{nlab} functional labels, {crowded} crowded captions")
+        # THE DENOMINATOR (canon M-COVER): every label with an owning part is
+        # graded, and the ones ownership could not be satisfied for are named
+        # with their measured lead — a degradation REPORTED, never silent.
+        own_tot = self.own_ok + len(self.own_deg) + len(self.own_none)
+        self.say(f"silk ownership: {self.own_ok}/{own_tot} owned labels sit "
+                 f"nearer their own part than any other; "
+                 f"{len(self.own_deg)} degraded, {len(self.own_none)} unplaced"
+                 + (": " + ", ".join(
+                     f"{k} {t!r}@{rf} own {a:.2f} vs {o} {b:.2f}"
+                     for k, rf, t, a, b, o in self.own_deg)
+                    if self.own_deg else ""))
 
     def write_waiver(self):
         wp = self.cfg.get("project", {}).get("waiver")

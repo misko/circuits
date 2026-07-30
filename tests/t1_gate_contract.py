@@ -224,6 +224,29 @@ def t_scans_the_whole_real_tree():
 
 
 # ----------------------------------------------- G-SELFCON (ADR-0007, 2026-07-29)
+#: The tier every fixture below is a ONE-FIELD break of: the corrected
+#: jlc_2layer_default. 0.45mm text carries 0.1125mm of stroke (KiCad's clamp,
+#: and what the generator emits there); JLC's published 0.15 needs 0.9375mm.
+GOOD = dict(min_silk_text_height=0.45, min_silk_stroke=0.1125,
+            published_silk_stroke=0.15, published_stroke_min_height=0.9375)
+
+
+def _tiers(d, **broken):
+    """A fab_tiers.yaml with the corrected tier plus one broken in exactly ONE
+    field (tests/README: a known-bad is a good input broken one way)."""
+    def block(name, fields):
+        return f"  {name}:\n" + "".join(
+            f"    {k}: {v}\n" for k, v in fields.items())
+    bad = dict(GOOD)
+    bad.update({k: v for k, v in broken.items() if v is not None})
+    for k, v in broken.items():
+        if v is None:
+            bad.pop(k, None)
+    (d / "fab_tiers.yaml").write_text(
+        "tiers:\n" + block("ok_tier", GOOD) + block("bad_tier", bad))
+    return d
+
+
 @test("G-SELFCON FAILS a tier whose silk stroke floor is unreachable at its own "
       "text-height floor", kind="known_bad")
 def t_selfcon_unreachable_stroke():
@@ -237,25 +260,169 @@ def t_selfcon_unreachable_stroke():
 
     RED-VERIFIED: run against the real repo BEFORE the fab_tiers fix, this
     reports 5 failures (one per tier); after, 0. The fixture below is
-    synthetic so the test does not go green merely because the repo was fixed."""
+    synthetic so the test does not go green merely because the repo was fixed.
+    Re-measured 2026-07-29 after the widening: the pre-fix checker files **1**
+    failure on this fixture because it modelled one stroke path; there are two,
+    and both are graded now."""
     import gate_contract_audit as gca                       # noqa: E402
-    d = tmpdir("selfcon_")
-    (d / "fab_tiers.yaml").write_text(
-        "tiers:\n"
-        "  bad_tier:\n"
-        "    min_silk_text_height: 0.45\n"
-        "    min_silk_stroke: 0.15\n"
-        "  ok_tier:\n"
-        "    min_silk_text_height: 0.60\n"
-        "    min_silk_stroke: 0.15\n")
+    d = _tiers(tmpdir("selfcon_"), min_silk_stroke=0.15)
     fails, n = gca.check_self_consistency(d)
     eq(n, 2, "both tiers graded (the denominator, canon M-COVER)")
-    eq(len(fails), 1, f"exactly the unsatisfiable tier fails:\n{fails}")
-    check("bad_tier" in fails[0], f"names the offending tier:\n{fails[0]}")
-    check("0.1125" in fails[0],
-          f"states the stroke actually reachable:\n{fails[0]}")
-    check("0.60" in fails[0],
-          f"states the height that WOULD satisfy the declared stroke:\n{fails[0]}")
+    check(fails and all("bad_tier" in f for f in fails),
+          f"only the unsatisfiable tier fails:\n{fails}")
+    unreach = [f for f in fails if "UNREACHABLE" in f]
+    eq(len(unreach), 2, f"both stroke emitters are graded, not one:\n{fails}")
+    check("0.1125" in unreach[0],
+          f"states the stroke actually reachable:\n{unreach[0]}")
+    check("0.60" in unreach[0],
+          f"states the height that WOULD satisfy the declared stroke:\n{unreach[0]}")
+
+
+@test("G-SELFCON FAILS a published stroke floor the generator will never emit "
+      "— the direction the first version was blind to", kind="known_bad")
+def t_selfcon_understated_stroke():
+    """THE SECOND LESSON OF THE SAME DAY. As first written (ad487df) G-SELFCON
+    modelled ONLY KiCad's upper clamp (`KICAD_STROKE_OVER_HEIGHT = 0.25`), so it
+    could prove a published stroke unreachable but could not see a published
+    stroke that is a FICTION: the generator's LOWER floor is
+    max(min_silk_stroke, 0.13, 0.16 x height) for board silk text and
+    max(min_silk_stroke, 0.09, 0.20 x height) for the refdes path, so a tier
+    declaring 0.1125 at a 0.60mm height floor publishes a number no board can
+    be built at — everything it emits is 0.13 / 0.12.
+
+    That blindness is what let the wrong corollary be written beside it. A gate
+    that catches only the direction its author got right is worthless
+    (canon M-WIDTH).
+
+    RED-VERIFIED against the pre-fix checker (`git show ad487df:...
+    gate_contract_audit.py` exec'd in-process, 2026-07-29): it returns
+    **0 fails** on this fixture — it cannot represent the defect. After: 2
+    (one per stroke emitter), naming both the emitted value and the tier."""
+    import gate_contract_audit as gca                       # noqa: E402
+    d = _tiers(tmpdir("selfcon_"), min_silk_text_height=0.60)
+    fails, n = gca.check_self_consistency(d)
+    eq(n, 2, "both tiers graded")
+    fict = [f for f in fails if "FICTION" in f]
+    eq(len(fict), 2, f"both emitters graded in the LOWER direction:\n{fails}")
+    check(all("bad_tier" in f for f in fict), f"names the tier:\n{fict}")
+    check(any("0.1300" in f for f in fict) and any("0.1200" in f for f in fict),
+          f"states what the generator ACTUALLY emits, per emitter:\n{fict}")
+
+
+@test("G-SELFCON FAILS the wrong threshold height for the fab's published "
+      "stroke — MY error, reproduced", kind="known_bad")
+def t_selfcon_wrong_threshold_height():
+    """THE ERROR THIS TEST EXISTS FOR. The fab_tiers.yaml header declared, for
+    one day: 'TO REACH THE PUBLISHED 0.15 STROKE, TEXT MUST BE >= 0.60mm'. It
+    is 0.9375mm. At 0.60 the generator emits max(0.1125, 0.13, 0.096) = 0.13;
+    0.70 and 0.80 also emit 0.13; only 0.16 x h >= 0.15 gets there. Both pluto
+    boards found it by MEASURING the generator after following the sentence —
+    rx2's port captions print 0.152 at 0.95mm, cal-switch went to 1.0/1.2mm.
+
+    The corollary is therefore DATA now (`published_stroke_min_height`), graded
+    against the generator's own `silk_stroke`, because a prose corollary is
+    exactly what failed. The fixture is the sentence as written.
+
+    RED-VERIFIED against the pre-fix checker (exec'd in-process, 2026-07-29):
+    **0 fails** — it had no notion of the threshold at all, which is why the
+    wrong number survived being written down in the same commit."""
+    import gate_contract_audit as gca                       # noqa: E402
+    d = _tiers(tmpdir("selfcon_"), published_stroke_min_height=0.60)
+    fails, n = gca.check_self_consistency(d)
+    eq(n, 2, "both tiers graded")
+    eq(len(fails), 1, f"exactly the wrong threshold fails:\n{fails}")
+    check("bad_tier" in fails[0], f"names the tier:\n{fails[0]}")
+    check("0.1300" in fails[0],
+          f"states what 0.60mm text actually emits:\n{fails[0]}")
+    check("0.9375" in fails[0],
+          f"states the TRUE first height reaching 0.15:\n{fails[0]}")
+
+
+@test("G-SELFCON FAILS an overstated threshold height too (a floor that "
+      "outlaws legible text)", kind="known_bad")
+def t_selfcon_overstated_threshold():
+    """Both directions or neither: a threshold ABOVE the first height that
+    reaches the published stroke would forbid legible silk for no reason, and a
+    gate that only ever pushes numbers up is a ratchet, not a model. 1.2mm text
+    already reaches 0.15 at 0.9375."""
+    import gate_contract_audit as gca                       # noqa: E402
+    d = _tiers(tmpdir("selfcon_"), published_stroke_min_height=1.2)
+    fails, n = gca.check_self_consistency(d)
+    eq(n, 2, "both tiers graded")
+    eq(len(fails), 1, f"exactly the overstated tier fails:\n{fails}")
+    check("0.9375" in fails[0], f"names the true threshold:\n{fails[0]}")
+
+
+@test("G-SELFCON FAILS a tier that declares a stroke floor but no coupling",
+      kind="known_bad")
+def t_selfcon_missing_coupling():
+    """A tier with no `published_silk_stroke` / `published_stroke_min_height`
+    has quietly gone back to prose: the floor is declared and the rule that
+    binds it is not, which is the state the file was in when the 0.60 sentence
+    was believed for a day."""
+    import gate_contract_audit as gca                       # noqa: E402
+    d = _tiers(tmpdir("selfcon_"), published_silk_stroke=None,
+               published_stroke_min_height=None)
+    fails, n = gca.check_self_consistency(d)
+    eq(n, 2, "both tiers graded")
+    eq(len(fails), 1, f"exactly the uncoupled tier fails:\n{fails}")
+    check("bad_tier" in fails[0] and "published_stroke_min_height" in fails[0],
+          f"names the tier and the missing field:\n{fails[0]}")
+
+
+@test("G-SELFCON carries NO COPY of the formula it grades, and FAILS if it "
+      "cannot lift it from the generator", kind="known_bad")
+def t_selfcon_formula_is_not_copied():
+    """CANON M1, IN THE OTHER DIRECTION. A checker that keeps its own copy of
+    the constants it grades does not disagree with the generator — it agrees
+    with a STALE COPY, and then a formula change silently un-grades itself.
+    (`KICAD_STROKE_OVER_HEIGHT = 0.25` was such a copy: correct, and blind to
+    the 0.13 / 0.16 floor that produced the wrong corollary.)
+
+    So two assertions. (1) no float in gate_contract_audit.py's AST is one of
+    the generator's stroke constants — the numbers exist in exactly one place;
+    (2) if the generator stops declaring them, G-SELFCON FAILS loudly instead
+    of falling back on a copy.
+
+    RED-VERIFIED against the pre-fix checker (2026-07-29): assertion (1) fails
+    on it because `KICAD_STROKE_OVER_HEIGHT = 0.25` is a literal in
+    gate_contract_audit.py — a copy that happened to be right, and blind
+    besides; assertion (2) fails with AttributeError because no extraction
+    existed. Assertion (2) also caught a real hole while being written: a
+    renamed constant raised NameError out of the exec instead of failing the
+    gate, so `load_stroke_model` now converts any exec failure into a
+    SelfConError."""
+    import ast as _ast
+    import gate_contract_audit as gca                       # noqa: E402
+
+    src = Path(gca.__file__).read_text()
+    lits = {c.value for c in _ast.walk(_ast.parse(src))
+            if isinstance(c, _ast.Constant) and isinstance(c.value, float)}
+    fn, ns = gca.load_stroke_model()
+    copied = lits & {ns["SILK_STROKE_MIN"], ns["SILK_STROKE_OVER_SIZE"],
+                     ns["REFDES_STROKE_MIN"], ns["REFDES_STROKE_OVER_SIZE"],
+                     ns["KICAD_STROKE_OVER_HEIGHT"]}
+    check(not copied,
+          f"gate_contract_audit.py hard-codes the generator's stroke "
+          f"constants {sorted(copied)} — it would agree with a stale copy")
+    eq(fn(0.6, 0.1125), 0.13, "the lifted formula is the generator's own")
+
+    # (2) the generator loses a constant -> a LOUD failure, not a fallback
+    d = tmpdir("selfcon_gen_")
+    gen = (d / "generate_board_generic.py")
+    gen.write_text(Path(gca.GEN_PATH).read_text().replace(
+        "SILK_STROKE_OVER_SIZE = 0.16", "SILK_STROKE_OVER_SIZE_RENAMED = 0.16"))
+    try:
+        gca.GEN_PATH = gen
+        fails, n = gca.check_self_consistency(
+            _tiers(tmpdir("selfcon_")))
+        eq(n, 0, f"nothing may be graded without the formula:\n{fails}")
+        eq(len(fails), 1, f"the missing constant must FAIL:\n{fails}")
+        check("SILK_STROKE_OVER_SIZE" in fails[0],
+              f"names the constant it could not lift:\n{fails[0]}")
+    finally:
+        gca.GEN_PATH = Path(gca.__file__).resolve().parent / \
+            "generate_board_generic.py"
 
 
 @test("G-SELFCON passes the repo's own fab_tiers.yaml, with a denominator")

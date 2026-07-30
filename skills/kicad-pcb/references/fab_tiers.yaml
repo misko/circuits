@@ -37,10 +37,33 @@
 #     proven-by-ordering evidence that set the height — those shipped boards
 #     printed at 0.1125 by construction. It is NOT a claim that JLC's
 #     published 0.15 has been relaxed.
-#   * TO REACH THE PUBLISHED 0.15 STROKE, TEXT MUST BE >= 0.60mm. That is the
-#     rule for anything a human reads under stress: connector and safety
-#     designators, polarity marks, terminal legends. Declared here rather
-#     than left to be rediscovered per board.
+#   * THE COUPLING HAS TWO BOUNDS, NOT ONE, and the first version of this
+#     paragraph (2026-07-29 morning) modelled only the upper one and got the
+#     corollary WRONG. Both bounds are now stated, and both are MACHINE-CHECKED
+#     by G-SELFCON against `generate_board_generic.silk_stroke` itself:
+#       - UPPER (KiCad): a plotted stroke is clamped to <= 0.25 x text height.
+#       - LOWER (this pipeline): the generator emits
+#             stroke = max(min_silk_stroke, HARD, RATIO x height)
+#         with (HARD, RATIO) = (0.13, 0.16) for board silk text and
+#         (0.09, 0.20) for the refdes de-collision path — two DIFFERENT pairs,
+#         which is why one hand-derived number could not cover both.
+#     `min_silk_stroke` is therefore pinned: it must equal what the generator
+#     actually emits at this tier's own `min_silk_text_height`, in BOTH
+#     directions. A published floor ABOVE that is unsatisfiable (the ad487df
+#     defect); a published floor BELOW it is a fiction, since no board can be
+#     built thinner than the generator's own hard floor.
+#   * TO REACH THE PUBLISHED 0.15 STROKE, TEXT MUST BE >= 0.9375mm — NOT the
+#     0.60mm this file claimed for one day. At 0.60 the generator emits
+#     max(0.1125, 0.13, 0.096) = 0.13; 0.70 and 0.80 also emit 0.13; only
+#     0.16 x h >= 0.15 gets there, i.e. h >= 0.9375. MEASURED, not derived:
+#     pluto-rx2-8way's port captions print 0.152 at h=0.95 and its 0.60mm
+#     safety captions print 0.130, and pluto-cal-switch reached 0.16/0.192 by
+#     going to 1.0/1.2mm. Both boards had to measure the generator after
+#     following the 0.60 sentence and finding it did not hold.
+#     That threshold is the rule for anything a human reads under stress:
+#     connector and safety designators, polarity marks, terminal legends. It is
+#     carried per tier as `published_stroke_min_height` so it is CHECKED rather
+#     than believed — a prose corollary is exactly what went wrong here.
 
 tiers:
   jlc_2layer_default:
@@ -55,8 +78,13 @@ tiers:
                               # (ADR-0008: 0.65mm pitch - 0.3 drill = 0.35 < 0.5)
     via_in_pad: false
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
-                               # JLC publishes 0.15, which needs >= 0.60mm text.
+    min_silk_stroke: 0.1125    # what the generator EMITS at the 0.45 height
+                               # floor, = KiCad's 0.25 x height clamp there.
+                               # G-SELFCON pins both directions; see header.
+    published_silk_stroke: 0.15         # JLC's published legibility floor (M6)
+    published_stroke_min_height: 0.9375  # ... first height the generator
+                               # actually reaches it at (0.16 x h >= 0.15).
+                               # NOT 0.60: at 0.60 the emitted stroke is 0.13.
     provenance: "cook-loadcell / crow-array-pod shipped at these floors"
 
   jlc_4layer_standard:
@@ -70,8 +98,13 @@ tiers:
                               # (usb-pwr-hub-3s ADR-0008, 2026-07-21)
     via_in_pad: false
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
-                               # JLC publishes 0.15, which needs >= 0.60mm text.
+    min_silk_stroke: 0.1125    # what the generator EMITS at the 0.45 height
+                               # floor, = KiCad's 0.25 x height clamp there.
+                               # G-SELFCON pins both directions; see header.
+    published_silk_stroke: 0.15         # JLC's published legibility floor (M6)
+    published_stroke_min_height: 0.9375  # ... first height the generator
+                               # actually reaches it at (0.16 x h >= 0.15).
+                               # NOT 0.60: at 0.60 the emitted stroke is 0.13.
     provenance: >
       JLC published no-fee multilayer floor. The clean-room 3S run's 2
       drill_out_of_range violations (2026-07-20) were router-emitted vias
@@ -87,8 +120,13 @@ tiers:
     min_hole_to_hole: 0.25    # JLC advanced-option floor — verify at order time
     via_in_pad: true          # POFV: resin-filled + capped, paid option
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
-                               # JLC publishes 0.15, which needs >= 0.60mm text.
+    min_silk_stroke: 0.1125    # what the generator EMITS at the 0.45 height
+                               # floor, = KiCad's 0.25 x height clamp there.
+                               # G-SELFCON pins both directions; see header.
+    published_silk_stroke: 0.15         # JLC's published legibility floor (M6)
+    published_stroke_min_height: 0.9375  # ... first height the generator
+                               # actually reaches it at (0.16 x h >= 0.15).
+                               # NOT 0.60: at 0.60 the emitted stroke is 0.13.
     order_readme: "ADVANCED option REQUIRED: min via 0.25/0.15 mm (<reason>)"
     provenance: >
       usb-power-3s v1.0-v1.3 ordered with exactly this line ("VQFN fanout");
@@ -104,8 +142,13 @@ tiers:
     min_hole_to_hole: 0.5     # JLC published — binds adjacent-pin escape vias
     via_in_pad: false
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
-                               # JLC publishes 0.15, which needs >= 0.60mm text.
+    min_silk_stroke: 0.1125    # what the generator EMITS at the 0.45 height
+                               # floor, = KiCad's 0.25 x height clamp there.
+                               # G-SELFCON pins both directions; see header.
+    published_silk_stroke: 0.15         # JLC's published legibility floor (M6)
+    published_stroke_min_height: 0.9375  # ... first height the generator
+                               # actually reaches it at (0.16 x h >= 0.15).
+                               # NOT 0.60: at 0.60 the emitted stroke is 0.13.
     order_readme: "6-layer stackup selected in the order form (<reason>)"
     provenance: >
       JLC published 6L standard floor (same via geometry as 4L standard;
@@ -126,8 +169,13 @@ tiers:
     via_in_pad: true          # ADR-0009: 0.30/0.15 via-in-pad on 0.4mm pitch
                               # keeps 0.10mm copper gap — resin fill + cap
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
-                               # JLC publishes 0.15, which needs >= 0.60mm text.
+    min_silk_stroke: 0.1125    # what the generator EMITS at the 0.45 height
+                               # floor, = KiCad's 0.25 x height clamp there.
+                               # G-SELFCON pins both directions; see header.
+    published_silk_stroke: 0.15         # JLC's published legibility floor (M6)
+    published_stroke_min_height: 0.9375  # ... first height the generator
+                               # actually reaches it at (0.16 x h >= 0.15).
+                               # NOT 0.60: at 0.60 the emitted stroke is 0.13.
     order_readme: "6 layers + \"advanced\" SMALL-VIA option REQUIRED: min via 0.30/0.15 mm (<reason>)"
     provenance: >
       crow-array-central v1.0-2026-07-18 SEALED at these floors (ADR-0009:

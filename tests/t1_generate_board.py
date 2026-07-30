@@ -5,6 +5,7 @@ Clean cases: parts land where the config says. Must-fail cases: a missing
 FPID is a HARD ERROR (the defect that matters most — a silently un-placed
 part is an electrically-wrong board that still passes DRC).
 """
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -579,6 +580,183 @@ def _tier_silk_floors(tier="jlc_4layer_advanced"):
                         "fab_tiers.yaml").read_text())
     e = d["tiers"][tier]
     return float(e["min_silk_text_height"]), float(e["min_silk_stroke"])
+
+
+# ------------------------------------------------- the stroke/height coupling
+@test("the EMITTED stroke follows the generator's own formula: 0.60mm text "
+      "gets 0.13, and 0.15 needs 0.9375mm")
+def t_silk_stroke_threshold():
+    """fab_tiers.yaml declared for one day (ad487df) that 'to reach the
+    published 0.15 stroke, text must be >= 0.60mm'. IT IS 0.9375mm. The
+    generator emits max(min_silk_stroke, 0.13, 0.16 x size), clamped to KiCad's
+    0.25 x size, so 0.60 / 0.70 / 0.80 ALL emit 0.13 and only 0.16 x h >= 0.15
+    gets there. MEASURED on shipped output: pluto-rx2-8way's 0.95mm port
+    captions print 0.152 and its 0.60mm safety captions print 0.130.
+
+    This test pins the EMITTER; t1_gate_contract pins the RULE FILE that
+    documents it, against the same function. Both move together or neither
+    does. RED-verified two ways (2026-07-29): against the corollary as written
+    (0.60mm emits 0.1300, so the claimed 0.15 is off by 13%), and against the
+    pre-fix generator run out of a temp repo copy — it emits **0.1300** for the
+    0.45mm caption below, above KiCad's own 0.25 x height clamp of 0.1125, i.e.
+    it stored a stroke KiCad cannot plot. The clamp is a no-op at every height
+    at or above 0.52mm, which is every height any shipped board uses."""
+    def mutate(cfg):
+        cfg["silk"]["min_text_height"] = 0.45
+        cfg["silk"]["captions"] = [
+            {"text": "SIXTENTHS", "at": [45.0, 45.0], "size": 0.6},
+            {"text": "REACHES", "at": [45.0, 50.0], "size": 0.9375},
+            {"text": "SEVENTENTHS", "at": [55.0, 45.0], "size": 0.7},
+            {"text": "CLAMPED", "at": [55.0, 50.0], "size": 0.45},
+        ]
+    d, p = scratch_config(mutate)
+    (d / "03_src" / "rules").mkdir(parents=True)
+    (d / "03_src" / "rules" / "nets.yaml").write_text(
+        "fab_tier: jlc_2layer_default\n")
+    out = d / "b.kicad_pcb"
+    gen(p, out)
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\ng={}\n"
+            "for t in b.GetDrawings():\n"
+            "  if t.GetClass()=='PCB_TEXT' and t.IsOnLayer(pcbnew.F_SilkS):\n"
+            "    g[t.GetText()]=(t.GetTextSize().y/1e6,t.GetTextThickness()/1e6)\n"
+            "print('@@'+repr(g))\n")
+    r = must_pass(run([KPY, "-c", code, out]), "probe caption strokes")
+    got = eval(r.out.split("@@")[1].strip())
+    for txt, want_h, want_t in (("SIXTENTHS", 0.6, 0.13),
+                                ("SEVENTENTHS", 0.7, 0.13),
+                                ("REACHES", 0.9375, 0.15),
+                                ("CLAMPED", 0.45, 0.1125)):
+        h, t = got[txt]
+        check(abs(h - want_h) < 1e-6, f"{txt} height {h} != {want_h}")
+        check(abs(t - want_t) < 1e-6,
+              f"{txt} at {want_h}mm emits a {t}mm stroke, not {want_t} — the "
+              f"fab_tiers.yaml corollary and the emitter disagree")
+
+
+# ------------------------------------------------------ silk OWNERSHIP (M-COVER)
+def _measure_ownership(out):
+    """Ownership measured from the SAVED BOARD by code that shares nothing
+    with the placer (canon M1): for every visible silk refdes and every board
+    silk text, the nearest footprint centroid to the text's box centre.
+    Mounting holes/fiducials print no designator, so they do not compete —
+    the same exclusion `_ownership` makes, stated rather than shared.
+    Returns (mislabelled_refdes, {text: nearest_ref})."""
+    code = ("import pcbnew,sys,math,re\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "MM=pcbnew.ToMM\nfps={f.GetReference():f for f in b.GetFootprints()}\n"
+            "cen={r:(MM(f.GetPosition().x),MM(f.GetPosition().y))\n"
+            "     for r,f in fps.items() if not re.match(r'H\\d|FID',r)}\n"
+            "def near(x,y,skip=None):\n"
+            "  best=(1e9,None)\n"
+            "  for r,(cx,cy) in cen.items():\n"
+            "    if r==skip: continue\n"
+            "    d=math.hypot(cx-x,cy-y)\n"
+            "    if d<best[0]: best=(d,r)\n"
+            "  return best\n"
+            "def ctr(t):\n"
+            "  bb=t.GetBoundingBox()\n"
+            "  return (MM((bb.GetLeft()+bb.GetRight())//2),\n"
+            "          MM((bb.GetTop()+bb.GetBottom())//2))\n"
+            "mis=[]\n"
+            "for r,f in sorted(fps.items()):\n"
+            "  t=f.Reference()\n"
+            "  if not t.IsVisible() or r not in cen: continue\n"
+            "  if t.GetLayer() not in (pcbnew.F_SilkS,pcbnew.B_SilkS): continue\n"
+            "  x,y=ctr(t); own=math.hypot(cen[r][0]-x,cen[r][1]-y)\n"
+            "  d,o=near(x,y,r)\n"
+            "  if d<own: mis.append((r,round(own,2),o,round(d,2)))\n"
+            "txt={}\n"
+            "for g in b.GetDrawings():\n"
+            "  if g.GetClass()=='PCB_TEXT' and g.IsOnLayer(pcbnew.F_SilkS):\n"
+            "    x,y=ctr(g); d,o=near(x,y); txt[g.GetText()]=(o,round(d,2))\n"
+            "print('@@'+repr((mis,txt)))\n")
+    r = must_pass(run([KPY, "-c", code, out]), "measure silk ownership")
+    return eval(r.out.split("@@")[1].strip())
+
+
+@test("every silk refdes lands nearer its OWN part than any other, and the "
+      "placer reports the ownership denominator")
+def t_silk_ownership():
+    """THE MISSING OBJECTIVE. The slot search took the first non-colliding
+    offset out to ~11mm and never asked whose label it was, so a label naming
+    its neighbour was indistinguishable from a correct one. Measured on shipped
+    output 2026-07-29: pluto-cal-switch 36 of 73 refdes nearer another part
+    than their own, pluto-rx2-8way 40 of 64, and on a board with ten
+    near-identical SMA jacks that is a mis-mate hazard, not a cosmetic one.
+
+    RED-VERIFIED against the pre-fix placer (`git show HEAD:...
+    generate_board_generic.py` run out of a temp dir with PYTHONPATH into
+    skills/kicad-pcb/scripts, 2026-07-29): on cook-loadcell it places **6 of
+    29** refdes nearer another part — C7 (own 6.00mm vs SJ1 3.50), J1 (7.00 vs
+    Q1 5.09), J6 (3.60 vs D1 1.75), TP6 (7.07 vs D1 3.22), TP7 (6.00 vs D2
+    2.83), U1 (6.00 vs C5 5.79) — and prints NO ownership line at all, so both
+    assertions here fail. After the term: 0 of 29, and 36/36 owned labels.
+
+    Tightening the METRIC does not substitute for the TERM: pluto-cal-switch
+    tried courtyard-edge distance instead of centroid and it rescued ZERO of
+    its 36."""
+    d = tmpdir("gbg_own_")
+    out = d / "b.kicad_pcb"
+    r = gen(LC / "03_src" / "floorplan.yaml", out)
+    contains(r.out, "silk ownership:", "the placer must report ownership")
+    m = re.search(r"silk ownership: (\d+)/(\d+) owned labels", r.out)
+    check(m is not None, f"no ownership denominator (canon M-COVER): {r.out[-400:]!r}")
+    ok, tot = int(m.group(1)), int(m.group(2))
+    check(tot >= 29, f"only {tot} labels graded on a 29-part board — the "
+                     f"denominator has gone quiet")
+    mis, _ = _measure_ownership(out)
+    check(mis == [], f"labels nearer another part than their own: {mis}")
+    check(ok == tot, f"placer claims {ok}/{tot} owned but the board measures "
+                     f"clean — the report and the board disagree")
+
+
+@test("a label that CANNOT own its slot is REPORTED with its measured lead, "
+      "never silently first-slotted", kind="known_bad")
+def t_kb_silk_ownership_degraded():
+    """THE HONEST DEGRADATION. Some labels genuinely cannot be nearest their
+    own part — cooksense's J_ISOLOOP has its pads at the CENTRE of the body in
+    x, so anything printed either side is under the moulding once fitted. The
+    failure mode to prevent is not the degradation, it is the SILENCE: the
+    pre-fix placer took the first clear slot and said nothing, which is how 36
+    of 73 shipped.
+
+    The fixture crowds three caps into the left edge so TP2's 'S+' terminal
+    legend has no owned slot in the whole 84-offset search. Note it is a
+    FUNCTIONAL label — the safety-legible class — not a refdes.
+
+    Not an exit code, deliberately: a board with an unownable label is still
+    buildable, so the contract is an EVIDENCED report with the measured lead
+    and a denominator. RED-verified against the pre-fix placer (same temp-dir
+    swap as the test above, 2026-07-29): it prints no WARN and no ownership
+    line for this fixture, and every assertion below fails; the 'S+' legend
+    still lands 3.04mm from R2 against 4.40mm from its own TP2."""
+    def mutate(cfg):
+        cfg["placement"]["anchors"].update({
+            "C1": [20.9, 38.0, 0], "C2": [24.5, 38.0, 0],
+            "C3": [20.9, 41.6, 0], "C4": [20.9, 34.4, 0]})
+    d, p = scratch_config(mutate)
+    out = d / "b.kicad_pcb"
+    r = gen(p, out)
+    contains(r.out, "WARN silk ownership:", "the degradation must be reported")
+    m = re.search(r"WARN silk ownership: (\w+) '([^']+)' for (\w+) lands "
+                  r"([\d.]+)mm from \w+ but ([\d.]+)mm from (\w+)", r.out)
+    check(m is not None, f"the WARN carries no measured lead: {r.out[-600:]!r}")
+    kind, txt, ref, d_own, d_oth, oth = m.groups()
+    check(float(d_oth) < float(d_own),
+          f"the reported lead is not a degradation: {m.group(0)}")
+    dm = re.search(r"silk ownership: (\d+)/(\d+) owned labels sit nearer "
+                   r"their own part than any other; (\d+) degraded", r.out)
+    check(dm is not None, f"no ownership summary: {r.out[-400:]!r}")
+    check(int(dm.group(3)) >= 1, "a degradation happened but 0 were counted")
+    # canon M1: the REPORT's claim must survive an independent measurement of
+    # the saved board — a gate that grades its own arithmetic proves nothing.
+    mis, texts = _measure_ownership(out)
+    if kind == "refdes":
+        check(any(x[0] == ref for x in mis),
+              f"reported {ref} degraded, but the board measures it owned: {mis}")
+    else:
+        check(texts.get(txt, (None,))[0] == oth,
+              f"report says {txt!r} is nearest {oth}; the board says "
+              f"{texts.get(txt)}")
 
 # --------------------------------------------- escape corridors (Phase F)
 @test("escape_corridors expands to a named footprint/pour rule area")

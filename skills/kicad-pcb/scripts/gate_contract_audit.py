@@ -176,21 +176,124 @@ def audit(root, enforce=None):
 
 # --------------------------------------------------------------- G-SELFCON
 # ADR-0007. A rule file can contradict ITSELF, and then no board can satisfy it.
-# fab_tiers.yaml declares min_silk_text_height 0.45 AND min_silk_stroke 0.15 on
+# fab_tiers.yaml declared min_silk_text_height 0.45 AND min_silk_stroke 0.15 on
 # every tier, while KiCad clamps a text stroke to <= 0.25 x height: 0.45 mm text
 # can reach at most 0.1125 mm of stroke, so the two floors cannot both be met.
 # smc0985-cooksense then shipped six SAFETY designators below the stroke floor —
 # J_ESTOP, J_DOOR, J_MODE among them — and the waiver written the same day
 # called 0.13 acceptable. Nothing could have passed; nothing said so.
-KICAD_STROKE_OVER_HEIGHT = 0.25      # KiCad's own clamp on stroke vs text height
+#
+# WIDENED 2026-07-29 (same day, second lesson). The first version modelled ONLY
+# that upper clamp, so it could prove a published stroke UNREACHABLE but was
+# blind to the other direction — and the corollary written beside it in
+# fab_tiers.yaml ("to reach the published 0.15 stroke, text must be >= 0.60mm")
+# was WRONG for exactly that reason: the generator's LOWER floor is
+# max(min_silk_stroke, 0.13, 0.16 x height), so 0.60 / 0.70 / 0.80 all emit
+# 0.13 and the true threshold is 0.9375. Two boards (pluto-rx2-8way,
+# pluto-cal-switch) each discovered that by measuring the generator after
+# following the sentence. A gate that catches only the direction its author got
+# right is worthless (canon M-WIDTH), so the rule is now written at the width of
+# its class: a tier's published stroke floor must EQUAL what the generator will
+# actually emit at that tier's own height floor, in BOTH directions, and the
+# tier's declared threshold height for the fab's published stroke must be the
+# FIRST height at which the generator reaches it.
+#
+# THE FORMULA IS NOT COPIED HERE. `load_stroke_model` lifts `silk_stroke` and
+# its constants out of generate_board_generic.py's AST and calls them: a checker
+# that carries its own copy of the formula it grades is canon M1 failing in the
+# other direction — it agrees with a stale copy.
+GEN_PATH = Path(__file__).resolve().parent / "generate_board_generic.py"
+
+#: (label, ratio-constant, hard-floor-constant) — the generator has TWO stroke
+#: pairs, and one hand-derived corollary could not have covered both.
+EMITTERS = (("board silk text", "SILK_STROKE_OVER_SIZE", "SILK_STROKE_MIN"),
+            ("refdes de-collision", "REFDES_STROKE_OVER_SIZE",
+             "REFDES_STROKE_MIN"))
+
+
+class SelfConError(RuntimeError):
+    """The stroke model could not be lifted from the generator. Never a skip:
+    a G-SELFCON that cannot find the formula must FAIL, not pass quietly."""
+
+
+def load_stroke_model(path=GEN_PATH):
+    """(silk_stroke, constants) taken FROM the generator's own source.
+
+    The module cannot simply be imported — it imports pcbnew, which only the
+    KiCad interpreter has — so its AST is filtered to the module-level numeric
+    constants plus the `silk_stroke` FunctionDef and exec'd. What runs here is
+    therefore the exact arithmetic the boards are built with."""
+    tree = ast.parse(Path(path).read_text(encoding="utf-8-sig"))
+    keep, fn = [], None
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 \
+                and isinstance(node.targets[0], ast.Name) \
+                and isinstance(node.value, ast.Constant) \
+                and isinstance(node.value.value, (int, float)) \
+                and not isinstance(node.value.value, bool):
+            keep.append(node)
+        elif isinstance(node, ast.FunctionDef) and node.name == "silk_stroke":
+            keep.append(node)
+            fn = node
+    ns = {}
+    try:
+        exec(compile(ast.Module(body=keep, type_ignores=[]), str(path), "exec"),
+             ns)
+    except Exception as e:            # a renamed/moved constant lands here
+        raise SelfConError(
+            f"{path.name}'s silk_stroke() no longer stands alone at module "
+            f"level ({type(e).__name__}: {e}) — G-SELFCON grades the "
+            f"generator's OWN formula and will not fall back to a copy of it "
+            f"(canon M1). Keep the formula and its constants module-level, or "
+            f"update load_stroke_model deliberately")
+    need = ["KICAD_STROKE_OVER_HEIGHT"] + \
+        [c for _, r, h in EMITTERS for c in (r, h)]
+    missing = [k for k in need if not isinstance(ns.get(k), float)]
+    if fn is None or missing:
+        raise SelfConError(
+            f"{path.name} no longer declares "
+            f"{'silk_stroke() ' if fn is None else ''}{missing} at module "
+            f"level — G-SELFCON grades the generator's OWN formula and will "
+            f"not fall back to a copy of it (canon M1)")
+    return ns["silk_stroke"], ns
+
+
+def _emitted(fn, ns, h, floor):
+    """{emitter: stroke the generator emits} for text of height `h`."""
+    return {name: fn(float(h), float(floor), ns[ratio], ns[hard])
+            for name, ratio, hard in EMITTERS}
+
+
+def _first_height_reaching(fn, ns, floor, target, hi=50.0):
+    """The LOWEST text height at which EVERY emitter reaches `target`, by
+    bisection on the generator's own (monotone non-decreasing) formula. None
+    when no height does."""
+    def worst(h):
+        return min(_emitted(fn, ns, h, floor).values())
+    if worst(hi) < target - 1e-12:
+        return None
+    lo = 1e-3
+    for _ in range(200):
+        mid = (lo + hi) / 2.0
+        if worst(mid) >= target - 1e-12:
+            hi = mid
+        else:
+            lo = mid
+    return hi
 
 
 def check_self_consistency(refs_dir):
-    """Cross-FIELD checks on the rule files themselves. Returns (fails, n)."""
+    """Cross-FIELD checks on the rule files themselves. Returns (fails, n),
+    n being the number of tiers graded (canon M-COVER)."""
     fails, n = [], 0
     ft = Path(refs_dir) / "fab_tiers.yaml"
     if not ft.exists() or yaml is None:
         return fails, n
+    try:
+        fn, ns = load_stroke_model(GEN_PATH)   # module global: patchable in tests
+    except (SelfConError, SyntaxError, OSError, ValueError) as e:
+        return [f"G-SELFCON {e}"], 0
+    clamp = ns["KICAD_STROKE_OVER_HEIGHT"]
     doc = yaml.safe_load(ft.read_text(encoding="utf-8-sig")) or {}
     for tier, d in sorted((doc.get("tiers") or {}).items()):
         if not isinstance(d, dict):
@@ -199,16 +302,68 @@ def check_self_consistency(refs_dir):
         if h is None or s is None:
             continue
         n += 1
-        reachable = float(h) * KICAD_STROKE_OVER_HEIGHT
-        if float(s) > reachable + 1e-9:
+        h, s = float(h), float(s)
+        emitted = _emitted(fn, ns, h, s)
+
+        # (1) BOTH DIRECTIONS. The published floor must be exactly what the
+        #     generator emits at the tier's own height floor.
+        for name, got in sorted(emitted.items()):
+            if got < s - 1e-9:
+                fails.append(
+                    f"G-SELFCON fab_tiers.yaml[{tier}]: min_silk_stroke "
+                    f"{s} mm is UNREACHABLE at min_silk_text_height {h} mm — "
+                    f"KiCad clamps stroke to <= {clamp} x height, so the most "
+                    f"the {name} path can plot is {got:.4f} mm. No board can "
+                    f"satisfy both floors; raise the height to "
+                    f">= {s / clamp:.2f} mm or lower the stroke to "
+                    f"<= {got:.4f} mm")
+            elif got > s + 1e-9:
+                fails.append(
+                    f"G-SELFCON fab_tiers.yaml[{tier}]: min_silk_stroke {s} mm "
+                    f"is a FICTION — at min_silk_text_height {h} mm the "
+                    f"generator's {name} path emits {got:.4f} mm and cannot go "
+                    f"thinner, so the published floor understates the file's "
+                    f"own behaviour and a board 'meeting' it proves nothing. "
+                    f"Publish {got:.4f} mm, or raise min_silk_text_height")
+
+        # (2) THE COROLLARY, AS DATA. A tier that publishes the fab's stroke
+        #     must also declare the FIRST height its own generator reaches it
+        #     at — the claim that was prose, and wrong, for one day.
+        pub, ph = d.get("published_silk_stroke"), d.get("published_stroke_min_height")
+        if pub is None or ph is None:
             fails.append(
-                f"G-SELFCON fab_tiers.yaml[{tier}]: min_silk_stroke "
-                f"{s} mm is UNREACHABLE at min_silk_text_height {h} mm — "
-                f"KiCad clamps stroke to <= {KICAD_STROKE_OVER_HEIGHT} x height, "
-                f"so the most this text can plot is {reachable:.4f} mm. "
-                f"No board can satisfy both floors; raise the height to "
-                f">= {float(s)/KICAD_STROKE_OVER_HEIGHT:.2f} mm or lower the "
-                f"stroke to <= {reachable:.4f} mm")
+                f"G-SELFCON fab_tiers.yaml[{tier}]: declares min_silk_stroke "
+                f"but not the coupling it is bound by — "
+                f"published_silk_stroke / published_stroke_min_height are "
+                f"missing, so the file's legibility corollary is prose again "
+                f"and cannot be checked (it was prose, and wrong, on "
+                f"2026-07-29: '0.60mm reaches 0.15' — it is 0.9375mm)")
+            continue
+        pub, ph = float(pub), float(ph)
+        if pub < s - 1e-9:
+            fails.append(
+                f"G-SELFCON fab_tiers.yaml[{tier}]: published_silk_stroke "
+                f"{pub} mm is BELOW the enforced min_silk_stroke {s} mm — the "
+                f"fab's published floor cannot be laxer than the one enforced")
+        true_h = _first_height_reaching(fn, ns, s, pub)
+        at_declared = min(_emitted(fn, ns, ph, s).values())
+        if at_declared < pub - 1e-9:
+            fails.append(
+                f"G-SELFCON fab_tiers.yaml[{tier}]: "
+                f"published_stroke_min_height {ph} mm does NOT reach "
+                f"published_silk_stroke {pub} mm — at {ph} mm the generator "
+                f"emits only {at_declared:.4f} mm "
+                f"({', '.join(f'{k} {v:.4f}' for k, v in sorted(_emitted(fn, ns, ph, s).items()))}). "
+                f"The first height that reaches {pub} mm is "
+                f"{'no height below 50 mm' if true_h is None else f'{true_h:.4f} mm'}")
+        elif true_h is not None and ph > true_h + 1e-6:
+            fails.append(
+                f"G-SELFCON fab_tiers.yaml[{tier}]: "
+                f"published_stroke_min_height {ph} mm is not the FIRST height "
+                f"reaching published_silk_stroke {pub} mm — the generator "
+                f"already emits {min(_emitted(fn, ns, true_h, s).values()):.4f} mm "
+                f"at {true_h:.4f} mm, so the declared threshold outlaws legible "
+                f"text for no reason")
     return fails, n
 
 
@@ -233,7 +388,9 @@ def main(argv=None):
 
     sc_fails, sc_n = check_self_consistency(
         Path(__file__).resolve().parent.parent / "references")
-    print(f"  G-SELFCON: {sc_n} rule-file cross-field pair(s) graded")
+    print(f"  G-SELFCON: {sc_n} tier(s) graded x {len(EMITTERS)} stroke "
+          f"emitter(s) + the published-stroke threshold, against "
+          f"{GEN_PATH.name}'s own silk_stroke()")
     for f in sc_fails:
         print(f"  FAIL {f}")
 
