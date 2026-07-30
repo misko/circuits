@@ -764,9 +764,19 @@ def t_node_level_no_cap_path():
     printed a CONFIDENT WRONG PATH (2.500 V via R_FLTDIVB + CE1). A DC series
     path may only run through resistance.
 
-    Here the ONLY route to a rail is through C_UP, so the honest verdict is
-    UNREACHED. Pre-fix the walker crosses the cap and computes a level, which
-    is the failure this fixture pins: not a wrong number, but ANY number."""
+    Here the ONLY route to a rail is through C_UP. Pre-fix the walker crossed
+    the cap and computed a level, which is the failure this fixture pins: not a
+    wrong number, but ANY number.
+
+    EXPECTATION UPDATED 2026-07-29, and the property it guards is UNCHANGED.
+    This fixture used to assert `UNREACHED`. The restrictive-default branch now
+    resolves the node the honest DC way — with every driver released, a node
+    whose only resistive path is a pull-down to GND sits AT GND — so the verdict
+    is now a graded 0.000 V that FAILS the logic_high assert. That is strictly
+    more informative than UNREACHED and it was always the correct DC answer.
+    What this fixture exists to prove is untouched and is asserted below: the
+    capacitor is still not crossed, `C_UP` never appears in a path, and no
+    2.500 V divider is invented. Only the verdict changed, not the refusal."""
     nets = {"V5":  [("C_UP", "2", "p2")],
             "TAP": [("C_UP", "1", "p1"), ("R_B", "1", "p1"), ("U_RX", "1", "GPB0")],
             "GND": [("R_B", "2", "p2")]}
@@ -774,9 +784,12 @@ def t_node_level_no_cap_path():
                                           "U_RX": "CRX"}), inv_text=NL_INV)
     _parts(d, "CRX", NL_EL)
     r = must_fail(einv(d), "node_level with only a capacitive path to a rail")
-    contains(r.out, "UNREACHED", "refuses rather than crossing the capacitor")
     check("C_UP" not in r.out,
           f"the capacitor must not appear in a DC path:\n{r.out}")
+    check("2.500" not in r.out,
+          f"the pre-fix divider-through-the-capacitor must not be computed:\n{r.out}")
+    contains(r.out, "no resistive path to any declared rail",
+             "says WHY it did not reach a rail")
 
 
 @test("E-INV node_level reports UNREACHED when the receiver declares no "
@@ -913,6 +926,53 @@ def t_node_level_join_precedence():
         "mpn: CRX\nelectrical:\n  vdd: 3.3\n  pins:\n"
         '    "1": {kind: input, v_ih_min: 5.0}\n')
     must_pass(einv(d), "node_level with a decoy dossier named after the code")
+
+
+@test("E-INV node_level grades a RESTRICTIVE DEFAULT — pull-down only, no rail "
+      "path — instead of reporting UNREACHED", kind="known_bad")
+def t_node_level_restrictive_default():
+    """The mirror of the pull-up case, missing from the start. `_grade_node_level`
+    special-cased "no path to GND -> pulled to the rail" and had no branch for
+    "no path to a rail -> pulled to GND", so every RESTRICTIVE DEFAULT in the
+    fleet graded UNREACHED.
+
+    That is not a cosmetic gap. cooksense ADR-0019 adds ELEVEN restrictive
+    defaults, and ADR-0025's unfitted safety inputs are the same shape — the
+    pull-down alone holds the node, hand-measured at 1.15 mV against V_T-(min)
+    0.500 V, and it is the fact the whole scope reduction turns on. A board
+    agent reported it as a gate limitation it would not work around, which is
+    the right call and is why this exists.
+
+    RED-VERIFIED: with the branch removed the fixture reports `UNREACHED
+    node_level (ADR 0007): no series-RESISTIVE path from 'TAP' to any declared
+    rail` and exits 1."""
+    nets = {"V5":  [("C_V5", "2", "p2")],       # rail EXISTS, reachable only via a cap
+            "TAP": [("R_PD", "1", "p1"), ("U_RX", "1", "GPB0")],
+            "GND": [("R_PD", "2", "p2"), ("C_V5", "1", "p1")]}
+    inv = NL_INV.replace("must_be: logic_high", "must_be: logic_low")
+    d = project(net_text=_nl_comps(nets, {"R_PD": "10k", "C_V5": "100n",
+                                          "U_RX": "CRX"}), inv_text=inv)
+    _parts(d, "CRX", NL_EL)
+    must_pass(einv(d), "node_level on a pull-down-only node asserted logic_low")
+
+
+@test("E-INV the restrictive-default branch still FAILS a node asserted "
+      "logic_high — it grades, it does not excuse", kind="known_bad")
+def t_node_level_restrictive_default_discriminates():
+    """The other half. A branch that resolves a level must be able to REFUSE
+    one: the same pull-down-only node asserted `logic_high` reads 0.000 V
+    against a 2.640 V threshold and must fail by name. Without this the new
+    branch would be a way to make any pull-down node pass."""
+    nets = {"V5":  [("C_V5", "2", "p2")],
+            "TAP": [("R_PD", "1", "p1"), ("U_RX", "1", "GPB0")],
+            "GND": [("R_PD", "2", "p2"), ("C_V5", "1", "p1")]}
+    d = project(net_text=_nl_comps(nets, {"R_PD": "10k", "C_V5": "100n",
+                                          "U_RX": "CRX"}), inv_text=NL_INV)
+    _parts(d, "CRX", NL_EL)
+    r = must_fail(einv(d), "a pull-down-only node asserted logic_high")
+    contains(r.out, "0.000", "reports the level it computed")
+    contains(r.out, "2.640", "reports the threshold it graded against")
+    contains(r.out, "restrictive default", "names what is holding the node")
 
 
 if __name__ == "__main__":

@@ -860,10 +860,34 @@ def _grade_node_level(inv, nl, parts_dir=None, supplies=None):
             if isinstance(r_up, float) and (best is None or r_up < best[0]):
                 best = (r_up, rail, float(vsup), p_up)
         if best is None:
+            # THE MIRROR OF THE PULL-UP CASE BELOW, and its absence was an
+            # asymmetry rather than a limit. With no resistive path to any rail
+            # but a resistive path to GND, a released node is pulled DOWN — that
+            # is exactly what a RESTRICTIVE DEFAULT is (cooksense ADR-0019 adds
+            # eleven of them, and ADR-0025's unfitted safety inputs are the
+            # same shape: the pull-down alone holds the node, measured at
+            # 1.15 mV against V_T-(min) 0.500 V). The pull-up half was special-
+            # cased from the start and this half was not, so every
+            # restrictive-default node in the fleet graded UNREACHED and the one
+            # assert a board most wanted to write could not be written.
+            if isinstance(r_dn, float):
+                v = 0.0
+                detail = (f"no resistive path to any declared rail, pulled to "
+                          f"GND through {fmt_si(r_dn)} [{' + '.join(p_dn)}] "
+                          f"-> {v:.3f} V (restrictive default)")
+                ok = (v >= vih) if want == "logic_high" else (v <= vil)
+                if ok:
+                    return None
+                thr = (f"V_IH(min) {vih:.3f} V" if want == "logic_high"
+                       else f"V_IL(max) {vil:.3f} V")
+                return (f"node_level (ADR {adr}): {net} reads {v:.3f} V at "
+                        f"{recv}, required {want.replace('_', ' ')} against "
+                        f"{thr} — {detail}. {inv.get('why', '')[:70]}")
             return (f"UNREACHED node_level (ADR {adr}): no series-RESISTIVE "
-                    f"path from {net!r} to any declared rail. A DC path may "
-                    f"not run through a capacitor or an inductor, so this is "
-                    f"refused rather than guessed")
+                    f"path from {net!r} to any declared rail, and none to GND "
+                    f"either — the node is held by nothing this gate can see. "
+                    f"A DC path may not run through a capacitor or an "
+                    f"inductor, so this is refused rather than guessed")
         r_up, rail, vsup, p_up = best
         if isinstance(r_dn, float):
             v = vsup * r_dn / (r_up + r_dn)
