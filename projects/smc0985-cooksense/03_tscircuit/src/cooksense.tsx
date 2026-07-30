@@ -93,6 +93,34 @@ export default () => (
         pin5: "net.N5V_PROTECTED", pin6: "net.EFUSE_FLT_N", pin7: "net.EF_ILM", pin8: "net.GND",
       }} />
     <capacitor name="C_DVDT" capacitance="1nF" footprint="0402" connections={{ pin1: "net.EF_DVDT", pin2: "net.GND" }} />
+    {/* ============ v1.8 — THE eFUSE INPUT HAD NO CAPACITOR AT ALL =====================
+        MEASURED on the netlist before adding it: `5V_IN`, `5V_FUSED` and `5V_RPP` carried
+        ZERO capacitors between them. `C_IN1` (10 uF) and `C_IN2` (100 nF) are both on
+        `5V_PROTECTED` — the OUTPUT side — and their names read like input caps, which is
+        how five releases went out with a bare eFuse input.
+        THE DATASHEET ASKS FOR IT IN TWO PLACES, and neither is optional hygiene:
+          SLVSE57C sec.10 "Power Supply Recommendations" Fig.67 and sec.11 Layout
+          Guidelines / Fig.68 Layout Example: "0.01uF+ Cin between IN and GND with MINIMAL
+          loop area at the IN/GND terminals".
+          The function it serves is named in the same document (Eq.18): it bounds the
+          SHORT-CIRCUIT INTERRUPT TRANSIENT. When the eFuse's current limit slams shut on a
+          fault, the input-side inductance (harness + polyfuse + the reverse-polarity FET)
+          has nowhere to dump its stored energy; with no Cin the resulting spike appears on
+          the IN pins, whose abs-max is 20 V. This board has MORE series inductance in front
+          of the part than the reference design does, not less — J_PWR harness, F1
+          polyfuse, Q_REV — so it needed the cap more than the EVM did.
+        WHY THIS WAS NEVER CAUGHT: the `keep_short` budget written to hold it named the net
+        **`5V_SELV`**, which is not a net on this board (grep = 0; the eFuse IN pins are on
+        `5V_RPP`). P-ADJ can only grade a budget whose net RESOLVES, so the row was silently
+        counted as UNREACHED and read as covered. The budget is re-pointed at `5V_RPP` in
+        02_parts/TPS259573DSGR/part.yaml — the net the datasheet sentence is ACTUALLY about,
+        not the net that makes the number pass; it now GRADES, and it grades as a violation
+        against the whole-rail span metric, waived with the local pad-to-pad measurement
+        (policy_waivers.yaml P-ADJ) exactly as the AMS1117 CIN/COUT rows already are.
+        0.1 uF is the top of the datasheet's own range in the smallest body that carries it,
+        on the SAME 100nF 0402 line as C_AND1/C_SCHM/C_EXP and 20 others — zero new BOM
+        lines, zero new feeders. */}
+    <capacitor name="C_EFIN" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N5V_RPP", pin2: "net.GND" }} />
     {/* ---- v1.7: THE OVLO DIVIDER. THIS IS A SAFETY SETPOINT AND BOTH LEGS ARE CODE-PINNED. ----
         v1.2-v1.6 shipped 100k/15k, and so did the BLOCKED v1.7 staging archive: ratio
         0.130435, which against SLVSE57C's V_OVLO(R)
@@ -782,8 +810,54 @@ export default () => (
         and all 8 MCP3208 channels and all 4 comparator channels are already used.
         Cost is in 01_docs/STATUS-cooksense.md; deferred pending a decision. */}
     {/* SM05B-GHS 5-pin used for each (the brief's 4-pin locking role; 5th pin = GND/shield). */}
+    {/* ============ v1.8 / ADR-0024 — PIN 4 IS GND, AND THAT IS THE PRIMARY FIX ==========
+        `J_DOOR.4` WAS `DOOR_RAW`, AND IT WAS THE ONE ASYMMETRIC PIN IN THE GH-5 FAMILY.
+        Four housings on this board are the SAME part (C189896 SM05B-GHS-TB) and therefore
+        mutually cross-mateable: J_DOOR, J_ESTOP, J_RH_AMBIENT, J_RH_EXHAUST. On the two
+        POD housings pin 4 is `SCL_*` — a line a sensor pod holds UP through its own module
+        pull-up. On J_ESTOP pin 4 is GND. On J_DOOR ALONE it was `DOOR_RAW`, the door
+        interlock's own sense node.
+
+        WHAT THAT COST, RE-DERIVED FROM THE NETLIST AND WORSE THAN THE REVIEW SAID. An
+        SHT45 pod harness cross-plugged into J_DOOR powers up from pin 1 (real 3V3) and
+        lands its pulled-up SCL wire on `DOOR_RAW` against `R_DOORPD`:
+            10 kOhm module pull-up  -> 3.3 x 10/20    = 1.650 V   (the review's figure)
+            2.2 kOhm pull-up        -> 3.3 x 10/12.2  = 2.705 V   <- THIS BOARD'S OWN I2C
+                                                                     VALUE, and the value
+                                                                     ADR-0018's injection
+                                                                     table already declares
+                                                                     as the worst case
+        `U_SCHM` is an SN74HC14 on 3V3 and SCLS085L publishes thresholds only at V_CC =
+        2.0 / 4.5 / 6.0 V, so there is NO guaranteed 3.3 V row. Every reading condemns it:
+            V_T+ MIN, 4.5 V row      1.550 V  -> 1.650 V already exceeds it, so a
+                                                CONFORMING part may read the door CLOSED
+            V_T+ MAX, interpolated   2.348 V  -> 2.705 V exceeds even THAT, i.e. at the
+                                                2.2 kOhm corner it is a GUARANTEED HIGH
+        DOOR_OK = door CLOSED with no door attached, on the interlock of a cooking
+        appliance. THE FIX IS TO REMOVE THE PATH, NOT TO ATTENUATE IT: pin 4 becomes GND,
+        so every pin a cross-mated pod can SOURCE current into (its pins 3 and 4) lands on
+        GND, and the only pin that reaches a safety node is the pod's own GND pin — which
+        drives DOOR_RAW toward the RESTRICTIVE level. Enumerated over all 12 ordered pairs
+        of the four GH-5 housings in ADR-0024; ZERO cells remain in which a cross-plug
+        asserts a permission. ADR-0018's own 20-cell matrix left the four "? driven into
+        the threshold band (pod -> J_DOOR/J_ESTOP)" cells explicitly UNTOUCHED; this is
+        what closes them.
+
+        WHY THE PULL-DOWN POLARITY IS KEPT, derived rather than inherited (the tempting
+        "industrial" answer is a pull-UP with the contact to GND, and it is WRONG HERE): a
+        cross-mated pod always lands its GND pin — a ZERO-ohm sink — on one of these pins.
+        With a pull-DOWN reference that asserts the RESTRICTIVE state and only the pod's
+        finite-impedance signal pins can push permissive, which attenuation can defend.
+        With a pull-UP reference the pod's GND pin asserts the PERMISSIVE state through
+        zero ohms, and ADR-0018's closing sentence already says no resistor defends a
+        zero-ohm source. The pull-down is not a convention here, it is the load-bearing
+        choice.
+        PIN 4 WAS NOT CARRYING THE HARNESS: the door harness is 3V3 on pin 1 -> Form-A
+        reed -> pin 2 (ORDER_README 10.1). Pins 2 and 4 being ONE net is also what made
+        EOL supervision unimplementable as built (v1.7 topology P1), so this removes a
+        redundancy that only ever cost. */}
     <chip name="J_DOOR" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
-      connections={{ pin1: "net.N3V3", pin2: "net.DOOR_RAW", pin3: "net.GND", pin4: "net.DOOR_RAW", pin5: "net.GND" }} />
+      connections={{ pin1: "net.N3V3", pin2: "net.DOOR_RAW_IN", pin3: "net.GND", pin4: "net.GND", pin5: "net.GND" }} />
     {/* v1.3 P0-CLASS FIX (layout+topology lens P1-2, 2026-07-25): this was R_DOORPU, a
         10k pull-UP to 3V3 — the ONLY external safety input on the board pulled to the
         PERMISSIVE rail. A broken or unplugged door cable read DOOR-CLOSED, so the door
@@ -795,8 +869,42 @@ export default () => (
         J_DOOR.1 -> Form-A reed (magnet CLOSES it with the door shut) -> J_DOOR.2. This
         moves the door interlock from a load-bearing documentation dependency to a
         hardware property. */}
-    <resistor name="R_DOORPD" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.DOOR_RAW", pin2: "net.GND" }} />
-    <diode name="D_DOOR" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.DOOR_RAW", pin2: "net.GND" }} />
+    {/* ---- v1.8 / ADR-0024 DECISION B — THE SECOND LAYER, AND ITS VALUE IS RE-DERIVED,
+        NOT COPIED. ADR-0018 hardened `COIL_EN_IN` with a 680 Ohm pull-down AT THE PIN plus
+        a 680 Ohm series element, and it was never carried to `DOOR_RAW`/`ESTOP_RAW`, which
+        still held 10 kOhm. Carrying the PATTERN is right; carrying the VALUE is NOT, and
+        that is the finding:
+            680 Ohm here -> 3.3 x 686.8/(686.8+2178) = 0.791 V worst case (0.779 nominal)
+        ADR-0018's receiver is a 2N7002 whose V_GS(th) MIN is 1.000 V, so 0.779 V clears it
+        by 209 mV. THIS receiver is an SN74HC14 on 3V3, and the bar is its LOWEST possible
+        switching point. V_T+ rises monotonically with V_CC, so SCLS085L sec.5.5's V_CC = 2.0 V
+        row bounds V_T+(min) at 3.3 V from BELOW without interpolating: **0.700 V**. 0.791 V
+        EXCEEDS IT. A straight carry-across of 680 Ohm would have looked like the proven
+        remedy and would not have closed the case.
+            470 Ohm  -> 3.3 x 474.7/(474.7+2178) = 0.591 V   (R +1%, injection -1%)
+                        a 10 kOhm module pull-up instead -> 0.151 V
+                        at the 3V3 rail's own ceiling 3.399 V -> 0.608 V
+                        margin to V_T+(min) 0.700 V          = +92 mV
+        Legitimate path is UNAFFECTED, and that ordering is ADR-0018's whole trick: the
+        HC14 input draws no DC, so `R_DOORS` drops ZERO volts and a closed reed puts the
+        full rail on `DOOR_RAW`. Cost: 3.399/465.3 = 7.31 mA and 24.8 mW in a 62.5 mW 0402
+        (40%). BONUS, not designed for but worth stating: 7 mA is an order of magnitude
+        above the ~1 mA dry-circuit threshold, so the reed and the E-stop contact now get
+        real wetting current instead of a microamp trickle through a 10 kOhm.
+        C25117 = 0402WGF4700TCE, 470 Ohm +-1%, BASE library, stock 1 834 632 read live
+        2026-07-29 — the SAME UNI-ROYAL 0402WGF...TCE family this board already carries, so
+        no new feeder class.
+        `R_DOORS` 680 Ohm is on the EXISTING C137948 line (R_COILENPD/R_COILENS). It
+        contributes ZERO to the rejection arithmetic and is here for the other half of
+        ADR-0018 decision D: it keeps the field pin off the logic pin and limits the current
+        into the HC14's own input clamp after `D_DOOR` (PESD5V0S1BA) has clamped — the
+        PESD's clamping voltage is far above the HC14's V_CC+0.5 input abs-max, so without a
+        series element the ESD diode protects the connector and not the receiver. Saying so
+        explicitly matters: a reader who assumes the series resistor does the rejecting will
+        size the pull-down wrong next time. */}
+    <resistor name="R_DOORPD" resistance="470" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25117"] }} connections={{ pin1: "net.DOOR_RAW_IN", pin2: "net.GND" }} />
+    <resistor name="R_DOORS" resistance="680" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C137948"] }} connections={{ pin1: "net.DOOR_RAW_IN", pin2: "net.DOOR_RAW" }} />
+    <diode name="D_DOOR" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.DOOR_RAW_IN", pin2: "net.GND" }} />
     {/* E-stop: contact A monitored (ESTOP_RAW, high=OK); contact B (pins3-4) in series with the ISOLATED */}
     {/* contactor loop (opto C -> ESTOP_B_IN, ESTOP_B_OUT -> J_CONTACTOR): E-stop physically breaks it. */}
     {/* v1.3 P0-2 FIX (layout lens): the OPTO-ISOLATED contactor loop is OFF this connector.
@@ -807,14 +915,22 @@ export default () => (
         across the isolation boundary. Pins 3/4 are now GND, so this housing is
         SELV-ONLY and every pin on it belongs to one domain. The loop moves to its own
         J_ESTOPLOOP terminal block below. */}
+    {/* v1.8 / ADR-0024: pin 2 moves to `ESTOP_RAW_IN`, the connector-side node. J_ESTOP was
+        ALREADY safe against the pod cross-plug and only because pins 3/4/5 are GND — the
+        pod's pull-ups land on ground and ESTOP_RAW sees no injected source (the review's own
+        finding). That is a property of the PINOUT, not of the front end, so it survives a
+        cross-plug and NOT a mis-built harness; the 470 Ohm/680 Ohm front end below is the
+        second layer, carried at the width of the class (canon M-WIDTH) rather than fitted
+        only where a lens happened to look. */}
     <chip name="J_ESTOP" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
-      connections={{ pin1: "net.N3V3", pin2: "net.ESTOP_RAW", pin3: "net.GND", pin4: "net.GND", pin5: "net.GND" }} />
+      connections={{ pin1: "net.N3V3", pin2: "net.ESTOP_RAW_IN", pin3: "net.GND", pin4: "net.GND", pin5: "net.GND" }} />
     {/* The E-stop's second (dry, isolated) pole lands on J_ISOLOOP, the ONE isolated
         terminal block (declared with U_OPTO below, since every pole on it is on the far
         side of that barrier). See the J_ISOLOOP comment there for why v1.3 merged what
         v1.3 first split into two blocks. */}
-    <resistor name="R_ESTOPPD" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
-    <diode name="D_ESTOP" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
+    <resistor name="R_ESTOPPD" resistance="470" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25117"] }} connections={{ pin1: "net.ESTOP_RAW_IN", pin2: "net.GND" }} />
+    <resistor name="R_ESTOPS" resistance="680" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C137948"] }} connections={{ pin1: "net.ESTOP_RAW_IN", pin2: "net.ESTOP_RAW" }} />
+    <diode name="D_ESTOP" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.ESTOP_RAW_IN", pin2: "net.GND" }} />
     {/* Mode DPDT, AS BUILT (corrected 2026-07-28 — the line that stood here said "pole A
         (pins1-2) ... pole B (pins3-4)" and CONTRADICTED the block below AND the netlist; it
         was the pre-2026-07-23-re-pin survivor, and a harness built from it would have left
@@ -1088,10 +1204,21 @@ export default () => (
         pullups die with the rail). The <=v1.1 RH-rail pullup pairs are DELETED — parallel
         pullups from two switched rails would back-power the off rail's device. Phantom-power
         residual (documented, ADR-0010): stuck-bus recovery must cycle BOTH rails of a bus. */}
-    <resistor name="R_SDAA" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SDA_A", pin2: "net.N3V3_SW_A" }} />
-    <resistor name="R_SCLA" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SCL_A", pin2: "net.N3V3_SW_A" }} />
-    <resistor name="R_SDAB" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SDA_B", pin2: "net.N3V3_SW_B" }} />
-    <resistor name="R_SCLB" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SCL_B", pin2: "net.N3V3_SW_B" }} />
+    {/* CODES PINNED v1.8 / ADR-0024, and the reason is NOT the I2C bus. These four are the
+        SOURCE OF THE NUMBER that the door and E-stop cross-plug rejection is computed from:
+        ADR-0018's injection table, and now ADR-0024's, take **2.2 kOhm = THIS BOARD'S OWN
+        I2C PULL-UP VALUE** as the worst-case impedance a field-built sensor-pod harness
+        presents, because that is the value a harness built in this shop will carry. A silent
+        decade change here would move a published SAFETY figure while every existence assert
+        stayed green — the R_WDPETPD / R_OPENT failure mode exactly. C25879 =
+        0402WGF2201TCE, 2.2 kOhm +-1%, BASE library, stock 1 232 820 read live 2026-07-29;
+        this is the code the auto-picker had ALREADY chosen, so the BOM does not move — the
+        pin exists so the next rebuild cannot re-choose. E-INV carries `part_value` asserts
+        on all four. */}
+    <resistor name="R_SDAA" resistance="2.2k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25879"] }} connections={{ pin1: "net.SDA_A", pin2: "net.N3V3_SW_A" }} />
+    <resistor name="R_SCLA" resistance="2.2k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25879"] }} connections={{ pin1: "net.SCL_A", pin2: "net.N3V3_SW_A" }} />
+    <resistor name="R_SDAB" resistance="2.2k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25879"] }} connections={{ pin1: "net.SDA_B", pin2: "net.N3V3_SW_B" }} />
+    <resistor name="R_SCLB" resistance="2.2k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25879"] }} connections={{ pin1: "net.SCL_B", pin2: "net.N3V3_SW_B" }} />
     {/* shield drain: RC/0R option to GND at a single point (brief: NOT hard-bonded to signal ground) */}
     <resistor name="R_SHIELD" resistance="0" footprint="0603" connections={{ pin1: "net.SHIELD_DRAIN", pin2: "net.GND" }} />
 

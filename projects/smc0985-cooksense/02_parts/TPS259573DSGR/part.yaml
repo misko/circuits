@@ -47,10 +47,28 @@ layout:
   source: "TI SLVSE57C Sec.11 Layout Guidelines + Fig.68 Layout Example + Sec.10 Power Supply Recs Fig.67: 0.01uF+ Cin between IN and GND with MINIMAL loop area at the IN/GND terminals; power path IN->OUT SHORT and sized >=2x full-load current; GND terminal to the plane AT the IC pin; Rilm, Cdvdt and the OVLO-divider resistors LOCAL to their pins with the shortest GND return and NO coupling to switching nodes; TVS/Schottky protection hard against OUT."
   reviewed: "2026-07-22"
   keep_short:
-    - {net: 5V_SELV,    max_span_mm: 3, why: "Cin 0.01-0.1uF IN->GND loop minimized at the terminals (Fig.68); controls the short-circuit interrupt transient (Eq.18)"}
-    - {net: EN_OVLO_N,  max_span_mm: 5, why: "OVLO divider (IN/pin2/GND) local to pin 2, short GND return, no switching coupling - this divider SETS the OV trip point"}
-    - {net: ILM,        max_span_mm: 5, why: "Rilm local to pin 7 / GND - trace resistance adds directly to current-limit error"}
-    - {net: dVdt,       max_span_mm: 5, why: "Cdvdt local to pin 1 / GND - sets the inrush slew"}
+    # v1.8 2026-07-29: this row said `net: 5V_SELV` from the day it was written, and there
+    # IS NO NET CALLED 5V_SELV ON THIS BOARD (grep = 0; the IN pins 3/4 are on `5V_RPP`).
+    # P-ADJ can only grade a budget whose net RESOLVES, so the row was counted UNREACHED and
+    # read as covered — while the thing it was written to hold, the Cin itself, DID NOT
+    # EXIST: `5V_IN`/`5V_FUSED`/`5V_RPP` carried ZERO capacitors and both C_IN1/C_IN2 sit on
+    # the OUTPUT rail. An unenforceable budget is not a weak check, it is a check that
+    # cannot fail, and this is what it hid. `C_EFIN` 100nF is now fitted on 5V_RPP and the
+    # budget names the net the datasheet sentence is actually about. It will VIOLATE against
+    # P-ADJ's whole-net max-pairwise-pad-span metric (5V_RPP measures 15.581 mm end to end
+    # because the same net feeds R_OVT and Q_REV's drain); that violation is carried in
+    # policy_waivers.yaml with the LOCAL pad-to-pad measurement, which is the fact this row
+    # asserts, exactly as the AMS1117 CIN/COUT rows already are. Renaming it to something
+    # that PASSES was refused: the budget names a node, not a score.
+    - {net: 5V_RPP,     max_span_mm: 3, why: "Cin 0.01-0.1uF IN->GND loop minimized at the terminals (Fig.68); controls the short-circuit interrupt transient (Eq.18). 5V_RPP IS the IN-pin net on this board (pins 3+4); the row said `5V_SELV` until v1.8 and graded as UNREACHED while no Cin existed at all"}
+    # v1.8: these three were REFERENCE-DESIGN PIN NAMES, not nets on this board, and so were
+    # UNREACHED for the same structural reason 5V_SELV was. This part has exactly ONE instance
+    # and each pin has exactly ONE net, so the real name is unambiguous and the rename is the
+    # node the datasheet sentence is about — not a name chosen to score well (EF_OVLO and
+    # EF_ILM both VIOLATE the budget once they resolve; see policy_waivers.yaml P-ADJ).
+    - {net: EF_OVLO,    max_span_mm: 5, why: "OVLO divider (IN/pin2/GND) local to pin 2, short GND return, no switching coupling - this divider SETS the OV trip point. Was `EN_OVLO_N`, a pin name, until v1.8"}
+    - {net: EF_ILM,     max_span_mm: 5, why: "Rilm local to pin 7 / GND - trace resistance adds directly to current-limit error. Was `ILM`, a pin name, until v1.8"}
+    - {net: EF_DVDT,    max_span_mm: 5, why: "Cdvdt local to pin 1 / GND - sets the inrush slew. Was `dVdt`, a pin name, until v1.8"}
   notes: >
     OUTWARD-ONLY-LOCAL is the EARNED cheap-tier condition (escape.conditions): the IN/OUT power pins escape
     outward as WIDE copper; every fine pin (dVdt, EN/OVLO, FLT, ILM) terminates in an ADJACENT local passive with

@@ -174,7 +174,7 @@ converts the whole table above into one arithmetic assertion.
 DOUBT — see `01_docs/journal/verify_cooksense.md` for the measured RED/GREEN
 proof and the three-line patch it waits on.** `_load_part_electrical()` joins a
 dossier to a netlist component through `sourcing.lcsc` + `sourcing.alternates`,
-i.e. through an **LCSC code**. The thirteen reed relays are SELF-SUPPLIED: JLC
+i.e. through an **LCSC code**. The twelve reed relays are SELF-SUPPLIED: JLC
 stocks none of them, so their netlist `value` is the **MPN**
 `DIP05-1A72-13L`, and no LCSC code identifies them. The join therefore cannot
 resolve, `node_level` returns UNREACHED, and E-INV would go from 136/136 to a

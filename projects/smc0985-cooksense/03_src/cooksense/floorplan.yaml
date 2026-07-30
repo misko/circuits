@@ -186,6 +186,34 @@ placement:
     F1:          [40.0, 58.0, 0]     # polyfuse 1812
     Q_REV:       [49.0, 58.0, 180]   # revpol P-FET: D=input(west) S=load(east)
     U_EFUSE:     [60.0, 57.0, 0]     # TPS259573 WSON-8 (dense 0.5mm) -- escape corridor SOUTH
+    # ---- v1.8: C_EFIN, THE Cin THAT DID NOT EXIST, AND ITS FIRST POSITION BROKE
+    # THE ROUTE. SLVSE57C sec.10 Fig.67 / sec.11 Fig.68 ask for "0.01uF+ Cin between
+    # IN and GND with MINIMAL loop area at the IN/GND terminals", and there was NO
+    # capacitor on 5V_IN, 5V_FUSED or 5V_RPP at all (see the tsx and ADR-0024).
+    #
+    # ATTEMPT 1 WAS A SEED AT (57.0,57.5) — DUE WEST of the IN pads, which is the
+    # shortest possible loop and is WRONG HERE, MEASURED: the KRT race came back
+    # `unconnected=1 violations=0` on ALL THREE candidates (deterministic, not
+    # stochastic; the three immediately-preceding full re-routes were CLEAN 0/0 on
+    # all three) and the stitch gate then REFUSED two seed stubs. Read off the race
+    # winner: 5V_RPP was forced through a via at (56.5,57.5) under the cap and out
+    # EAST on B.Cu along y=58.000 from (59.3,58.0) to (64.5,58.0) to reach R_OVT —
+    # straight through the lane `5V_PROTECTED` needs to leave U_EFUSE pad 5 (OUT,
+    # 60.95,57.75) on, and pad 5 is the pad that came back unconnected. THE WEST
+    # FACE IS 5V_RPP'S ONLY WAY OUT: this anchor's own comment says the escape
+    # corridor is SOUTH, and both IN pads are WEST, so west/south is the whole
+    # budget for that net.
+    #
+    # ATTEMPT 2 IS SOUTH-WEST AND OUT OF THE y=57.5 LANE, as an ANCHOR not a seed
+    # (seeds are explicitly "free to move", so rotation and position were both
+    # unpinned — for a part whose value IS a loop area that is the wrong primitive).
+    # Courtyard x[58.425,60.375] y[59.085,60.115]; MEASURED clear: 0.790mm to
+    # U_EFUSE's courtyard (bottom 58.295), 0.470mm to C_DVDT (right 57.955),
+    # 2.650mm to R_PG (left 63.025). Loop: pad1 (5V_RPP) at (58.92,59.6) is 1.85mm
+    # from IN pad 4 (59.05,57.75), and pad2 (GND) drops straight onto the In1 plane
+    # on the far side. That is 0.30mm more loop than attempt 1 and it leaves the
+    # west lane to the net that has nowhere else to go.
+    C_EFIN:      [59.4, 59.6, 0]
     D_REVCLAMP:  [40.0, 64.0, 0]     # SS34 reverse crowbar (K=5V_FUSED, downstream of F1)
     CE1:         [50.0, 66.0, 0]     # 220uF bulk (pad1=+)
     D_TVS:       [63.0, 68.0, 0]     # SMBJ5.0A on 5V_PROTECTED (K=pad1; S of eFuse escape)
@@ -333,6 +361,16 @@ placement:
     # R_MODEPD (now anchored, below, with the three COIL_EN front-end parts).
     J_MODE:      [195.95, 60.00, 90]  # mouth EAST (by HC14/AND-chain)
     J_ESTOP:     [197.0, 70.88, 90]  # was 72.0; north 1.12 to open the moat
+    # v1.8 (ADR-0024 decision B): the two series elements, in the pocket MEASURED
+    # empty on the v1.7 board — x[189.6,193.7] y[73.2,79.3], between R_ESTOPPD's
+    # courtyard bottom 73.115 and R_DOORPD's top 79.385, 4.1 x 6.1mm and holding
+    # nothing (R_STOPRAIL stops at x189.525). Gaps at these anchors: R_ESTOPPD ->
+    # R_ESTOPS 1.570, R_ESTOPS -> R_DOORS 1.370, R_DOORS -> R_DOORPD 1.270.
+    # These two carry NO DC (the HC14 input draws none), so their span is
+    # electrically free and only their CONGESTION cost matters — which is why they
+    # are pinned here instead of being allowed to drift into the contactor cluster.
+    R_ESTOPS:    [191.8, 75.20, 0]
+    R_DOORS:     [191.8, 77.60, 0]
     J_DOOR:      [197.0, 81.76, 90]  # was 84.0; north 2.24 (the binding shift)
     J_ISOLOOP:   [195.3, 95.00, 90]  # KF350-3.5-4P, the ONE isolated block;
                                      # 1.70 west of the SELV column (2-D moat),
@@ -705,6 +743,22 @@ placement:
     - {match: "D_DOOR", near: J_DOOR}
     - {match: "R_ESTOPPD", near: J_ESTOP}
     - {match: "D_ESTOP", near: J_ESTOP}
+    # v1.8 (ADR-0024): the SERIES half of the ADR-0018 decision-D front end, carried
+    # across to the two pod-mateable safety inputs. `near:` and not an explicit seed
+    # DELIBERATELY: the east column is the most saturated region on this board (H4
+    # notch -> J_MODE -> J_ESTOP -> J_DOOR -> J_ISOLOOP with 0.09-0.51mm courtyard
+    # gaps) and the engine already knows the occupancy, where a hand seed in that
+    # corner is how J_ESTOPLOOP once landed INSIDE J_DOOR. The pocket these should
+    # find is x[189.6,193.7] y[73.2,79.3] (between R_ESTOPPD's courtyard bottom
+    # 73.115 and R_DOORPD's top 79.385, measured on the v1.7 board, 4.1 x 6.1mm and
+    # empty). Both resistors carry NO DC, so their span is electrically free —
+    # unlike R_DOORPD/R_ESTOPPD, which must stay AT the connector pin because that
+    # is where the divider acts.
+    # ANCHORED, NOT `near:` — attempt 1 used `near:` and it put R_DOORS ~3.4mm from
+    # U_OPTO's designator, i.e. in the CONTACTOR/opto cluster and nowhere near the
+    # door connector, and the stitch gate then REFUSED the 3V3 seed stub at
+    # C_LATCHB.1 (182.66,76.18) in that same cluster. Explicit anchors below.
+    # (kept as comments so the next reader sees what was tried)
     # R_MODEPD: explicit anchor now (v1.7) — the near-pattern site is inside the
     # new ZH courtyard.
     # ---- test points ----

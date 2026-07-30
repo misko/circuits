@@ -77,6 +77,19 @@ EXPECT = {
     "AND1": 3, "AND2": 3, "KEY_RELAY_ALLOWED": 3, "CTR_SAFE": 3,
     "FAULT_SET_N": 3, "FAULT_LATCH_CLEAR": 5, "WD_OK": 10, "WD_OK_EXP": 2,
     "EF_OVLO": 3, "COIL_EN": 2, "COIL_EN_IN": 4,
+    # v1.8 (ADR-0024). The two field-fed safety inputs are now SPLIT at a series
+    # element, and the split is the fix — so the node counts are what pins it.
+    # DOOR_RAW_IN = {J_DOOR.2, R_DOORPD.1, R_DOORS.1, D_DOOR.1}: four nodes and
+    # NOT five, because J_DOOR.4 left this net for GND (that pin was the whole
+    # injection path). DOOR_RAW = {R_DOORS.2, U_SCHM.11}: exactly two, i.e. the
+    # logic node is reachable from the field ONLY through a resistor. If a future
+    # edit re-merges them this check fails before any gate that grades geometry.
+    "DOOR_RAW_IN": 4, "DOOR_RAW": 2,
+    "ESTOP_RAW_IN": 4, "ESTOP_RAW": 2,
+    # 5V_RPP gains C_EFIN, the eFuse input capacitor that did not exist for five
+    # releases (SLVSE57C sec.10 Fig.67): Q_REV.2 + U_EFUSE.3 + U_EFUSE.4 + R_OVT.1
+    # + C_EFIN.1.
+    "5V_RPP": 5,
 }
 bad = []
 for k, n in EXPECT.items():

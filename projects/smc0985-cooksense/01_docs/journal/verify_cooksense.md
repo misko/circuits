@@ -301,7 +301,7 @@ mrepro_method_trap: a `.kicad_pcb` copied to a scratch dir WITHOUT its `.kicad_p
   UNVERIFIED; the topology lens read it and reported it WRONG; I read it and
   confirm 9.200 V nominal, 8.492-9.933 V worst case. Intent per the part.yaml
   gotcha, power_tree.yaml:130, ARCHITECTURE.md:41 and BRIEF.md:77 is 5.5-6 V.
-  Exposure: 13 DIP05-1A72-12L reed coils at **7.5 V max** and D_TVS SMBJ5.0A
+  Exposure: 12 DIP05-1A72-12L reed coils at **7.5 V max** and D_TVS SMBJ5.0A
   whose V_BR starts at **6.40 V** (so on a sustained OV the 600 W transient part
   becomes the DC regulator). **AND THE MOST USEFUL OUTPUT IS THAT BOTH LENSES'
   PROPOSED FIXES ARE WRONG**, which only three-way arithmetic shows: my first cut
@@ -1497,7 +1497,7 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
   *** IT IS NOT IN `electrical_invariants.yaml`, AND THE REASON IS A CHECKER
   GAP, NOT A DESIGN DOUBT. *** `_load_part_electrical()` joins a dossier to a
   netlist component through `sourcing.lcsc` + `sourcing.alternates` — i.e.
-  through an LCSC CODE. The thirteen reed relays are SELF-SUPPLIED: JLC stocks
+  through an LCSC CODE. The twelve reed relays are SELF-SUPPLIED: JLC stocks
   none of them, so K_U1's netlist `value` is the MPN `DIP05-1A72-13L` and NO
   LCSC code identifies it. Run against the shipped checker the same assert
   returns, verbatim:

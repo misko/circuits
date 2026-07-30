@@ -1,0 +1,29 @@
+RED VERIFICATION — ADR-0024 + the eFuse input cap (v1.8, 2026-07-29)
+Every assert below is proven able to FAIL by putting the DEFECT back into a COPY of
+the netlist and re-running the gate. The source netlist is byte-identical afterwards
+(asserted in the script, not claimed).
+
+### RED 1 — J_DOOR.4 moved back onto the door sense node (the v1.7 defect)
+exit=1
+E-INV FAIL: 1/180 invariants violated (netlist RED1_jdoor4_on_doorraw.net):
+  pin_on_net (ADR 0024): J_DOOR.4 is on net 'DOOR_RAW_IN', invariant requires 'GND' — *** THE ASSERT THAT WOULD HAVE CAUGHT IT. *** Pin 4 was DOOR_RAW until v1.8 and
+
+### RED 2 — R_DOORPD reverted 470 -> 10k (the value the 2.705 V comes from)
+exit=1
+E-INV FAIL: 1/180 invariants violated (netlist RED2_rdoorpd_10k.net):
+  part_value (ADR 0024): R_DOORPD is 10kΩ (10k), invariant requires 470 — *** 680 OHM DOES NOT TRANSFER, AND THIS NUMBER IS WHY THE ASSERT EXISTS. *** ADR-0018 rejected an in
+
+### RED 3 — C_EFIN removed from 5V_RPP (the five-release state: no cap on any input net)
+exit=1
+E-INV FAIL: 1/180 invariants violated (netlist RED3_no_efuse_input_cap.net):
+  net_has_part (ADR 0001): net '5V_RPP' carries 0 capacitor(s) [], needs >= 1 — SLVSE57C sec.10 Fig.67 + sec.11 Fig.68: '0.01uF+ Cin between IN and GND with MIN
+
+### RED 4 — the E-stop series element removed (ESTOP_RAW_IN collapsed into ESTOP_RAW)
+exit=1
+E-INV FAIL: 2/180 invariants violated (netlist RED4_estop_series_removed.net):
+  pin_on_net (ADR 0024): J_ESTOP.2 is on net 'ESTOP_RAW', invariant requires 'ESTOP_RAW_IN' — same split as the door. J_ESTOP was ALREADY safe against the pod cross-plug and 
+  net_has_part (ADR 0024): net 'ESTOP_RAW_IN' carries 0 diode(s) [], needs >= 1 — D_ESTOP on the connector side, same claim
+
+### GREEN — the real netlist, unmodified, after all four RED runs
+exit=0
+E-INV OK: 180/180 invariants hold against projects/smc0985-cooksense/06_build/netlists/cooksense.net

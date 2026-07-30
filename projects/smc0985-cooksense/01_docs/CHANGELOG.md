@@ -26,6 +26,86 @@ unaffected and `interposer-v1.1-2026-07-27` remains ORDERABLE.**
 the reed-relay land pattern is re-derived.** This is not a paperwork verdict; the
 key-matrix relay array as drawn cannot work.
 
+> ## STATUS UPDATE 2026-07-29 (fourth) — TWO OF THE THREE ORDER-BLOCKERS ARE CLOSED IN SOURCE. **v1.8 IS NOT SEALED AND THE THIRD BLOCKER IS STILL OPEN.**
+>
+> **Nothing in `07_releases/` changed. v1.0-v1.6 remain DO-NOT-ORDER, v1.7 remains
+> an unsealed candidate, and v1.8 is a work-in-progress in `03_src/` +
+> `03_tscircuit/` + `04_kicad/`. If you are looking for a cooksense board to
+> build, the answer today is still that there is not one.**
+>
+> ### CLOSED — the SAFETY blocker (ADR-0024)
+>
+> `J_DOOR` pin 4 was `DOOR_RAW`. On the two POD housings, which are the SAME PART
+> (`C189896`, physically cross-mateable), pin 4 is `SCL_*`. A cross-plugged SHT45
+> pod put its pulled-up clock on the door sense node: **2.705 V** at this board's
+> own 2.2 kOhm pull-up value, against an SN74HC14 on 3V3 whose interpolated
+> V_T+ MAX is **2.348 V** — a GUARANTEED logic high. **The board read the door
+> CLOSED with no door attached, on a cooking appliance's interlock.** Re-derived
+> from the netlist it is 1.055 V worse than the review lens reported and crosses
+> from "a conforming part MAY read it high" to "does".
+>
+> **Fixed by removing the path, not by attenuating it**: pin 4 is GND, so all four
+> cross-mateable housings now present GND on every pin a pod can source current
+> into. All 12 ordered cross-plug pairs are enumerated in ADR-0024 and **zero
+> cells remain in which a cross-plug asserts a permission** — ADR-0018's own
+> matrix had left four such cells explicitly untouched.
+>
+> **And the remedy did NOT transfer at its published value.** ADR-0018 closed this
+> class on `COIL_EN_IN` with 680 Ohm; at 686.8 Ohm worst case that gives 0.791 V,
+> which FAILS the SN74HC14's V_T+(MIN) of **0.700 V** (SCLS085L sec.5.5, the
+> V_CC = 2.0 V row — the only bound TI publishes that holds at 3.3 V without
+> interpolation) by 91 mV. Its receiver was a 2N7002 with a 1.000 V threshold.
+> `R_DOORPD`/`R_ESTOPPD` are **470 Ohm** (C25117), giving 0.591 V, +92 mV.
+> A straight carry-across would have looked like the proven fix and would not have
+> closed the case.
+>
+> ### CLOSED — the eFuse input blocker
+>
+> **`5V_IN`, `5V_FUSED` and `5V_RPP` carried ZERO capacitors** for five releases;
+> `C_IN1`/`C_IN2` are both on the OUTPUT. `C_EFIN` 100nF is now on `5V_RPP`
+> (SLVSE57C sec.10 Fig.67 / sec.11 Fig.68; Eq.18 names the function — it bounds
+> the short-circuit interrupt transient). **The gate that should have caught it was
+> addressed to `5V_SELV`, which is not a net on this board**, so P-ADJ could never
+> evaluate it and the row read as covered. An unenforceable budget is not a weak
+> check; it is a check that cannot fail. Budget re-pointed at `5V_RPP`, and three
+> more ghosts on the same dossier (`EN_OVLO_N`/`ILM`/`dVdt`) re-pointed at
+> `EF_OVLO`/`EF_ILM`/`EF_DVDT`. Full ghost census, 14 names / 22 rows with a
+> disposition each: `03_tscircuit/verification/ghost_net_census.md`.
+>
+> ### STILL OPEN — label ownership on cross-mateable SAFETY connectors
+>
+> Not fixed, and not papered over. Measured on the v1.7 board, box-to-courtyard:
+> the string `J_ISOLOOP` prints **0.141 mm** from `J_RH_EXHAUST` and 2.719 mm from
+> the 30 V terminal it names; `J_ESTOP`'s designator is **0.141 mm from BOTH**
+> `J_ESTOP` and `J_DOOR`, an exact tie. Re-derived here: **there is no owned site
+> for `J_ISOLOOP`'s designator anywhere on this placement** — east and south are
+> the board edge, north is `J_DOOR`'s courtyard, west is `U_OPTO` then
+> `J_RH_EXHAUST`, and the generator's own "nearest legal site inf mm away" is
+> literally true. The real remedy for the `J_ESTOP`/`J_DOOR` half is **a mechanical
+> key** (ADR-0018 decision C applied again), because those two are the same part,
+> are cross-mateable, and their transposition de-latches the E-stop — silk cannot
+> fix a connector that mates. That is a part change plus an east-column repack, and
+> it is written up as the open blocker rather than approximated.
+>
+> ### Also in this revision
+>
+> * **The relay count is TWELVE, not thirteen.** Corrected in the three files that
+>   said 13: this CHANGELOG, ADR-0023, and `journal/verify_cooksense.md`.
+> * `SCLS085L` is COMMITTED with its `sha256` (the v1.7 pin lens graded this
+>   dossier an evidence FAIL), and its threshold table is transcribed into an
+>   `electrical:` block, because a published safety margin now depends on it.
+> * The 2.2 kOhm I2C pull-up codes are PINNED (`C25879`) — not for the bus, but
+>   because 2.2 kOhm is the declared worst-case injection value in two ADRs.
+> * **E-INV 151/151 -> 180/180, E-ADR 9/9 -> 10/10**, all four new assert families
+>   RED-verified (`06_build/proof/einv_red_verification_adr0024.txt`).
+> * `node_level` could NOT express the cross-plug outcome assert, and the reason is
+>   measured rather than assumed: a resistor's netlist `value` is its resistance,
+>   never an LCSC code, so no resistor dossier can resolve as a `contended`
+>   aggressor or defender — and a correct pull-down-only safety input has no
+>   on-board resistive path to a rail for the `released` form to walk. Three ways
+>   to force it were rejected as worse than the gap (ADR-0024, last section). The
+>   one-field schema patch is reported upstream.
+
 > ## STATUS UPDATE 2026-07-29 (third) — ALL FOUR P0s CLOSED, THE BATTERY RUN, AND TWO NEW ORDER-BLOCKERS
 >
 > **The four P0s this board carried for a week are closed. It still does not
@@ -752,7 +832,7 @@ against SLVSE57C's `V_OVLO(R)` = 1.13/1.20/1.27 V. Four documents state the
 intent as 5.5–6 V. **Found INDEPENDENTLY by BOTH red-team lenses** (layout P0-1
 reported it UNVERIFIED because it could not open the PDF; topology RT-02 read the
 PDF and reported it WRONG) and confirmed by the lead from
-`02_parts/TPS259573DSGR/SLVSE57C.pdf`. Exposure: 13 DIP05-1A72-12L coils rated
+`02_parts/TPS259573DSGR/SLVSE57C.pdf`. Exposure: 12 DIP05-1A72-12L coils rated
 7.5 V max, and `D_TVS` SMBJ5.0A whose V_BR starts at **6.40 V** — so on a
 sustained OV the 600 W transient part becomes the DC regulator. **Both lenses
 proposed a fix and neither is correct:** `R_OVB`→22 k tops out at 7.159 V (above

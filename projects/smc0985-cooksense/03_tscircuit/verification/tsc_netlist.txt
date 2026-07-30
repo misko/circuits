@@ -5,6 +5,7 @@ COMPONENTS:
  - D_REVCLAMP: sma
  - U_EFUSE: dfn8
  - C_DVDT: 1nF 0402 capacitor
+ - C_EFIN: 100nF 0402 capacitor
  - R_OVT: 100kΩ res0402 resistor
  - R_OVB: 26.1kΩ res0402 resistor
  - R_ILM: 1.2kΩ res0402 resistor
@@ -164,10 +165,12 @@ COMPONENTS:
  - D_LCDAT: D_LCDAT, source_component
  - D_LCCLK: D_LCCLK, source_component
  - J_DOOR: pinrow5
- - R_DOORPD: 10kΩ res0402 resistor
+ - R_DOORPD: 470Ω res0402 resistor
+ - R_DOORS: 680Ω res0402 resistor
  - D_DOOR: D_DOOR, source_component
  - J_ESTOP: pinrow5
- - R_ESTOPPD: 10kΩ res0402 resistor
+ - R_ESTOPPD: 470Ω res0402 resistor
+ - R_ESTOPS: 680Ω res0402 resistor
  - D_ESTOP: D_ESTOP, source_component
  - J_MODE: pinrow4
  - R_MODEPD: 10kΩ res0402 resistor
@@ -256,6 +259,7 @@ NET: EF_DVDT
 
 NET: N5V_RPP
   - R_OVT pin1
+  - C_EFIN pin1 (+)
   - U_EFUSE IN
   - U_EFUSE IN
   - Q_REV S
@@ -650,17 +654,24 @@ NET: LC_CLK
   - J_LOADCELL pin5
 
 NET: DOOR_RAW
-  - D_DOOR pin1 (+)
-  - R_DOORPD pin1
-  - J_DOOR pin4
-  - J_DOOR pin2
+  - R_DOORS pin2
   - U_SCHM 5A
 
+NET: DOOR_RAW_IN
+  - D_DOOR pin1 (+)
+  - R_DOORS pin1
+  - R_DOORPD pin1
+  - J_DOOR pin2
+
 NET: ESTOP_RAW
+  - R_ESTOPS pin2
+  - U_SCHM 1A
+
+NET: ESTOP_RAW_IN
   - D_ESTOP pin1 (+)
+  - R_ESTOPS pin1
   - R_ESTOPPD pin1
   - J_ESTOP pin2
-  - U_SCHM 1A
 
 NET: COIL_EN_IN
   - J_MODE pin4
@@ -1021,6 +1032,7 @@ NET: GND
   - D_DOOR pin2 (-)
   - R_DOORPD pin2
   - J_DOOR pin5
+  - J_DOOR pin4
   - J_DOOR pin3
   - D_LCCLK pin2 (-)
   - D_LCDAT pin2 (-)
@@ -1132,6 +1144,7 @@ NET: GND
   - D_TVS pin2 (-)
   - R_ILM pin2
   - R_OVB pin2
+  - C_EFIN pin2 (-)
   - C_DVDT pin2 (-)
   - U_EFUSE GND
   - D_REVCLAMP A
@@ -1392,6 +1405,10 @@ U_EFUSE
 
 C_DVDT (1nF 0402)
 - pin1(pos, anode, left): NETS(EF_DVDT)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_EFIN (100nF 0402)
+- pin1(pos, anode, left): NETS(N5V_RPP)
 - pin2(neg, cathode, right): NETS(GND)
 
 R_OVT (100kΩ res0402)
@@ -2253,32 +2270,40 @@ D_LCCLK
 
 J_DOOR
 - pin1: NETS(N3V3)
-- pin2: NETS(DOOR_RAW)
-- pin3: NETS(GND)
-- pin4: NETS(DOOR_RAW)
-- pin5: NETS(GND)
-
-R_DOORPD (10kΩ res0402)
-- pin1(anode, pos, left): NETS(DOOR_RAW)
-- pin2(cathode, neg, right): NETS(GND)
-
-D_DOOR
-- pin1(pos, anode, left): NETS(DOOR_RAW)
-- pin2(neg, cathode, right): NETS(GND)
-
-J_ESTOP
-- pin1: NETS(N3V3)
-- pin2: NETS(ESTOP_RAW)
+- pin2: NETS(DOOR_RAW_IN)
 - pin3: NETS(GND)
 - pin4: NETS(GND)
 - pin5: NETS(GND)
 
-R_ESTOPPD (10kΩ res0402)
-- pin1(anode, pos, left): NETS(ESTOP_RAW)
+R_DOORPD (470Ω res0402)
+- pin1(anode, pos, left): NETS(DOOR_RAW_IN)
 - pin2(cathode, neg, right): NETS(GND)
 
+R_DOORS (680Ω res0402)
+- pin1(anode, pos, left): NETS(DOOR_RAW_IN)
+- pin2(cathode, neg, right): NETS(DOOR_RAW)
+
+D_DOOR
+- pin1(pos, anode, left): NETS(DOOR_RAW_IN)
+- pin2(neg, cathode, right): NETS(GND)
+
+J_ESTOP
+- pin1: NETS(N3V3)
+- pin2: NETS(ESTOP_RAW_IN)
+- pin3: NETS(GND)
+- pin4: NETS(GND)
+- pin5: NETS(GND)
+
+R_ESTOPPD (470Ω res0402)
+- pin1(anode, pos, left): NETS(ESTOP_RAW_IN)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_ESTOPS (680Ω res0402)
+- pin1(anode, pos, left): NETS(ESTOP_RAW_IN)
+- pin2(cathode, neg, right): NETS(ESTOP_RAW)
+
 D_ESTOP
-- pin1(pos, anode, left): NETS(ESTOP_RAW)
+- pin1(pos, anode, left): NETS(ESTOP_RAW_IN)
 - pin2(neg, cathode, right): NETS(GND)
 
 J_MODE

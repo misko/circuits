@@ -3,8 +3,15 @@ manufacturer: Texas Instruments
 type: hex_schmitt_inverter
 datasheet:
   doc_id: SCLS085
+  revision: SCLS085L               # DECEMBER 1982 - REVISED FEBRUARY 2025
   url: https://www.ti.com/lit/ds/symlink/sn74hc14.pdf
-  fetched: 2026-07-19 (standard pinout; re-verified in pin review)
+  sha256: 2244349d27123d8abc6b3184beab586bca05b4b75061e05e9d60288dec218aa2
+  local: SCLS085L.pdf              # COMMITTED v1.8 (2026-07-29). The v1.7 pin lens graded this
+                                   # dossier an EVIDENCE FAIL (F-EV1): no PDF, no sha256, no
+                                   # revision - and by v1.8 this part's THRESHOLD NUMBERS are
+                                   # load-bearing for a published safety margin (ADR-0024), so
+                                   # "fetched, trust me" stopped being good enough.
+  fetched: 2026-07-29 (thresholds read from sec.5.5 directly; pinout re-verified in pin review)
 package: SOIC-14 (D)
 footprint: Package_SO:SOIC-14_3.9x8.7mm_P1.27mm
 escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
@@ -23,7 +30,53 @@ pins:
   12: 6A_Y   # placeholder - see gotcha
   13: 6A
   14: VCC
-limits: {vcc: "2-6V"}
+limits: {vcc: "2-6V", vin_abs_max: "VCC+0.5V (sec.5.1)", iik_abs_max: "+-20mA input clamp current (sec.5.1)"}
+
+# ============ THE THRESHOLD FACTS, READ FROM SCLS085L sec.5.5 "Electrical
+#              Characteristics - 74", VERBATIM. ADDED v1.8 for ADR-0024. =============
+# TI SPECIFIES THIS PART AT V_CC = 2.0 / 4.5 / 6.0 V AND AT NO OTHER VOLTAGE. On this
+# board U_SCHM runs on 3V3, so THERE IS NO GUARANTEED ROW, and every number derived for
+# 3.3 V has to say which way it was obtained. Both forms are recorded here because the
+# ADR-0024 argument uses BOTH and they answer different questions.
+#
+#   parameter | V_CC | MIN  | TYP  | MAX
+#   VT+       | 2.0V | 0.7  | 1.2  | 1.5
+#   VT+       | 4.5V | 1.55 | 2.5  | 3.13
+#   VT+       | 6.0V | 2.1  | 3.3  | 4.2
+#   VT-       | 2.0V | 0.3  | 0.6  | 1.0
+#   VT-       | 4.5V | 0.9  | 1.6  | 2.45
+#   VT-       | 6.0V | 1.2  | 2.0  | 3.2
+#
+# LINEARLY INTERPOLATED TO 3.3 V (a MODEL, not a guarantee - labelled as such wherever
+# it is used): VT+ [1.142, 2.348], VT- [0.612, 1.754].
+electrical:
+  vdd_net: 3V3
+  vdd: 3.3
+  defaults:
+    # v_il_max IS THE "CANNOT HAVE SWITCHED" BOUND FOR A SCHMITT INPUT, and it is
+    # DELIBERATELY V_T+(MIN) FROM THE 2.0 V ROW rather than any V_T- figure. Two reasons,
+    # both load-bearing:
+    #  (1) V_T+ increases monotonically with V_CC, so the 2.0 V row's 0.700 V bounds
+    #      V_T+(min) at 3.3 V FROM BELOW with no interpolation. It is the only threshold
+    #      statement about this part at 3.3 V that TI's own table actually supports.
+    #  (2) A Schmitt input's output is never indeterminate: below V_T+ it CANNOT have
+    #      left the state it was in, and for these three inputs that state is the
+    #      RESTRICTIVE one (an unplugged harness holds them at 0 V through their
+    #      pull-downs). So "stays under V_T+(min)" is the property the safety argument
+    #      needs; a V_T- bound would be answering "is it a guaranteed logic 0", which is
+    #      a stricter question than the failure mode requires and which no realistic
+    #      pull-down value can satisfy against a 2.2 kOhm injection.
+    v_il_max: 0.700
+    # For completeness, and NOT used by ADR-0024: the guaranteed-high bound at 3.3 V is
+    # V_T+(MAX), for which the interpolated 2.348 V is a model and the 4.5 V row's 3.13 V
+    # is the only hard number. Every legitimate drive on this board is the full rail
+    # (3.201-3.399 V), which clears the interpolated figure and is inside 1% of the 4.5 V
+    # row's, so no input here depends on the difference.
+    v_ih_min: 2.348
+  pins:
+    1:  {note: "1A = ESTOP_RAW. Field-fed via J_ESTOP.2 -> R_ESTOPS 680R (ADR-0024)"}
+    5:  {note: "3A = MODE_RAW. Field-fed via J_MODE.2, mechanically keyed (ADR-0018 C)"}
+    11: {note: "5A = DOOR_RAW. Field-fed via J_DOOR.2 -> R_DOORS 680R (ADR-0024)"}
 gotchas:
   - "pin 12 = 6Y (output), pin 13 = 6A (input) - name key kept unique; symbol uses 12=6Y"
   - "ALL SIX GATES ARE USED — corrected 2026-07-28 (v1.6 declared gap 22). This line read
