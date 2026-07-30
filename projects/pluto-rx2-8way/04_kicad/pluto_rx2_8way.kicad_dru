@@ -17,3 +17,6 @@
 (rule "DVDD_1V1_width"
   (condition "A.NetClass == 'DVDD_1V1'")
   (constraint track_width (min 0.4mm)))
+(rule pad_rescue_stubs
+  (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND')")
+  (constraint track_width (min 0.300mm)))

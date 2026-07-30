@@ -359,3 +359,40 @@
     Preflight printed `0 FAIL / 1 WARN — config is tier-consistent` over a wave
     routing at 0.14 under a 0.2 mm DRC clearance. Same shape as the PF-KRT
     defect this board found on 2026-07-28.
+
+- gates, on the routed+stitched board (all unpiped, real exit codes):
+  * `copper_length_audit` **PASS** — RF_RADIAL_STAR spread **0.3236 mm =
+    1.975 ps = 4.27 deg at 6 GHz** against the 1.0 mm ceiling. 8/8 member paths
+    measured; every member reports `vias 0  branch 0  comp 1  ends 2`, so
+    `no_vias: true` and `topology: chain` are VERIFIED FROM COPPER rather than
+    asserted. Arms 19.6369 / 19.8018 / 19.9604 mm.
+  * `count_parity` PASS 4/4 over 64 refdes. `waiver_provenance` PASS 3/22.
+    `status_beacon_check` PASS. `tier_preflight` 0 FAIL / 1 WARN.
+  * `policy_audit` FAIL=2 HUMAN=6 N-A=10 PASS=24 WAIVED=2 — the same COUNTS as
+    the unrouted baseline and entirely different CONTENT.
+  * **R-DRC 88 / 28 / 0. Parity is 0; unconnected 99 -> 28.** Classified, never
+    counted:
+      - **49 clearance, RF vs GND, 0.166..0.194 mm.** The deliberate 0.14 mm
+        wave budget. NOT where predicted: 40 of the 49 are an RF track against
+        an SMA **PTH ground post**, not against the QFN land. The launch cost
+        ~9; the rest is the arm threading the jack's post square.
+      - **21 clearance, digital, 0.175 / 0.1817 mm**, all VIA-vs-pad or
+        VIA-vs-via in the MCU field. Not RF, not caused by this change.
+      - **17 track_width.** 10 real: 3V3 power taps necked to 0.1998 mm by
+        KRT's `power_tap_neckdown` against a 0.4 mm PWR floor. 7 are a 0.2 um
+        ROUNDING artifact — 0.1998 against a 0.2000 floor — and note that
+        `width_floor`'s 1 um tolerance would NOT lift those.
+      - 1 starved_thermal (1 spoke of 2).
+  * `audit_board` **FAIL (1)** — I8: U_SW.1 (LS) nearest GND via **0.863 mm**
+    against the 0.5 mm bound. Mechanism: `stitch.pad_rescue.rings` starts at
+    **0.6**, so the pass's FIRST candidate site is already outside the bound.
+    The gate is new this week and it is reaching the pad it was written for.
+- next: the 49 RF clearance findings are STRUCTURAL, not effort. A 0.36 mm arm
+  cannot leave that land at 0.2 mm clearance (measured: it needs <= 0.145), so
+  the board needs a LAUNCH-LOCAL scoped CLEARANCE rule — and
+  `generate_rules_generic.py` emits `scoped_floors` as `track_width` ONLY.
+  There is no clearance constraint, so this cannot be said from source today.
+  That is patch #4 of the 2026-07-29 escalation, and it now has a MEASURED
+  requirement behind it instead of an anticipated one. Until it exists the
+  choice is a 20 mm-long 58 ohm arm or an evidenced waiver, and the waiver is
+  the better of the two.
