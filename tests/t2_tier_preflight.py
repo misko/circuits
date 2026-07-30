@@ -396,6 +396,65 @@ def t_route_clr_wave_under_tier():
     contains(r.out, "route.waves[rf].clearance", "the wave scope is named")
 
 
+SC = {"zone": "rf_launch", "nets": ["A"], "clearance": 0.14,
+      "why": "measured 2026-07-30: a 0.36mm arm cannot leave the "
+             "PE42482A-X land at 0.2mm — 0.145 routes 11/11, 0.15 routes 6/11"}
+
+
+@test("a BOUNDED nets.yaml scoped_clearances entry at or below the wave's "
+      "budget downgrades PF-ROUTE-CLR to a WARN — and the WARN says what the "
+      "gate did NOT verify")
+def t_scoped_clearance_downgrades():
+    """The other end of the pluto-rx2-8way defect: with canon R-SCOPE the
+    board can now DECLARE the launch-local relaxation instead of waiving it,
+    and preflight must let it route. It is a WARN and never silence, because
+    'the tight copper lands inside that rule area' is a GEOMETRY claim this
+    gate reads no copper to check.
+
+    RED-VERIFIED against the code as committed in 14bb467 (per-scope grading,
+    no scoped_clearances awareness): this fixture FAILS with
+    `PF-ROUTE-CLR route.waves[rf].clearance: effective 0.14 ... < DRC
+    clearance 0.2` — a board that had done everything canon asks could not
+    reach 0 FAIL. Measured 2026-07-30."""
+    d = _wave_clearance_scratch()
+    import yaml
+    p = d / "03_src" / "rules" / "nets.yaml"
+    n = yaml.safe_load(p.read_text())
+    n["scoped_clearances"] = [dict(SC)]
+    p.write_text(yaml.safe_dump(n))
+    r = must_pass(preflight(d, "--explain"), "declared scoped clearance")
+    contains(r.out, "0 FAIL", "the declared relaxation unblocks the route")
+    contains(r.out, "WARN route.waves[rf].clearance", "still reported")
+    contains(r.out, "R-SCOPE", "the canon row is named")
+    contains(r.out, "NOT VERIFIED HERE", "the blind spot is stated")
+    contains(r.out, "scoped_clearances: rf_launch=0.14",
+             "the derivation shows the entry was read")
+
+
+@test("a scoped_clearances relaxation ABOVE the router's budget still FAILS — "
+      "it licenses nothing at the value KRT packs to", kind="known_bad")
+def t_scoped_clearance_above_budget():
+    """The R8 mismatch re-created one level down, inside the rule area: the
+    board declares 0.145 (the measured routability threshold) while the wave
+    routes at 0.14, so 5um of copper is licensed by nothing. RED-VERIFIED
+    against 14bb467, which fails this fixture with the UNSCOPED message and no
+    mention of the ordering — the finding would have sent the author to
+    `route.waves[rf].clearance` instead of to the 5um gap. Measured
+    2026-07-30."""
+    d = _wave_clearance_scratch()
+    import yaml
+    p = d / "03_src" / "rules" / "nets.yaml"
+    n = yaml.safe_load(p.read_text())
+    n["scoped_clearances"] = [dict(SC, clearance=0.145)]
+    p.write_text(yaml.safe_dump(n))
+    r = must_fail(preflight(d), "scoped clearance above the router budget",
+                  "PF-ROUTE-CLR")
+    contains(r.out, "ABOVE the router's own budget", "the ordering is named")
+    contains(r.out, "0.145", "the declared relaxation")
+    contains(r.out, "scoped_clearances[].clearance: 0.14",
+             "the fix matches the two values up")
+
+
 @test("tier_preflight FAILS the frozen crow-array-pod archive "
       "(PF-RULES-CLR latent mismatch — the reason its e2e run uses "
       "--skip-preflight)", kind="known_bad")

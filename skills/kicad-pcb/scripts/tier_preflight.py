@@ -234,6 +234,20 @@ class Preflight:
                          cc is not None)
         return out
 
+    def scoped_clearances(self):
+        """nets.yaml `scoped_clearances[]` as [(zone, value, nets), ...] — the
+        BOUNDED isolation relaxations generate_rules will emit into the
+        .kicad_dru (canon R-SCOPE). Entries missing a zone or a value are
+        skipped here and REFUSED by the emitter, which owns that validation:
+        this gate must not be the only place a malformed entry is noticed."""
+        out = []
+        for sc in (self.nets.get("scoped_clearances") or []):
+            sc = sc or {}
+            v = _mm(sc.get("clearance"))
+            if sc.get("zone") and v is not None:
+                out.append((sc["zone"], v, list(sc.get("nets") or [])))
+        return out
+
     def route_clearance_scopes(self):
         """EVERY place a router clearance can be set, as
         [(param, value|None, source), ...] — the common scope first, then one
@@ -338,20 +352,64 @@ class Preflight:
         # through a gate that only ever read route.common (49 findings at
         # 0.166..0.194mm). The finding NAMES the scope, so the fix line points
         # at the key that is actually wrong.
+        scoped = self.scoped_clearances()
+        if scoped:
+            self.note("nets.yaml scoped_clearances: " + ", ".join(
+                f"{z}={v} {n or '(no nets — emitter refuses)'}"
+                for z, v, n in scoped))
         for param, val, src in scopes:
             if val is None:
                 continue
             if val < drc_max - 1e-9:
-                self.fail(
-                    "PF-ROUTE-CLR", param,
-                    f"effective {val} [{src}] < DRC clearance {drc_max} "
-                    f"({','.join(drc_who)}) — KRT packs to its clearance "
-                    f"under congestion, so routed copper lands below the DRC "
-                    f"floor (pluto-rx2-8way 2026-07-30: a 0.14 WAVE override "
-                    f"under a 0.2 floor = 49 clearance findings)",
-                    fix=f"{param}: {drc_max}  (or lower the netclass "
-                        f"clearance, floor: tier min_space "
-                        f"{self.tier['min_space'] if self.tier else '?'})")
+                # canon R-SCOPE: a BOUNDED nets.yaml scoped_clearances entry is
+                # the declared, evidenced answer to this mismatch. It downgrades
+                # to WARN and never to silence, because the relaxation is a
+                # GEOMETRIC claim (the tight copper must actually lie inside the
+                # named rule area) and this gate reads config, not copper — DRC
+                # is what settles it.
+                cover = [(z, v) for z, v, _ in scoped if v <= val + 1e-9]
+                if cover:
+                    self.warn(
+                        "PF-ROUTE-CLR", param,
+                        f"effective {val} [{src}] < DRC clearance {drc_max} "
+                        f"({','.join(drc_who)}), but nets.yaml declares "
+                        f"scoped_clearances "
+                        f"{[f'{z}={v}' for z, v in cover]} at or below it "
+                        f"(canon R-SCOPE). NOT VERIFIED HERE: whether the "
+                        f"sub-{drc_max} copper actually lands inside those "
+                        f"rule areas is a GEOMETRY question this gate cannot "
+                        f"answer — DRC settles it",
+                        fix="none if the relaxation is intended; confirm the "
+                            "rule area encloses BOTH items of every tight "
+                            "pair (KiCad insideArea is per-ITEM, not per "
+                            "closest-approach point)")
+                elif scoped:
+                    hi = min(v for _, v, _ in scoped)
+                    self.fail(
+                        "PF-ROUTE-CLR", param,
+                        f"effective {val} [{src}] < DRC clearance {drc_max} "
+                        f"({','.join(drc_who)}), and the declared "
+                        f"scoped_clearances relaxation ({hi}) sits ABOVE the "
+                        f"router's own budget — it licenses nothing at the "
+                        f"value KRT will pack to, so the R8 mismatch is "
+                        f"re-created one level down inside the rule area",
+                        fix=f"nets.yaml scoped_clearances[].clearance: {val} "
+                            f"(match the router budget) — or raise {param} to "
+                            f"{hi}")
+                else:
+                    self.fail(
+                        "PF-ROUTE-CLR", param,
+                        f"effective {val} [{src}] < DRC clearance {drc_max} "
+                        f"({','.join(drc_who)}) — KRT packs to its clearance "
+                        f"under congestion, so routed copper lands below the "
+                        f"DRC floor (pluto-rx2-8way 2026-07-30: a 0.14 WAVE "
+                        f"override under a 0.2 floor = 49 clearance findings)",
+                        fix=f"{param}: {drc_max}  (or lower the netclass "
+                            f"clearance, floor: tier min_space "
+                            f"{self.tier['min_space'] if self.tier else '?'}; "
+                            f"or, if the relaxation is LOCAL and evidenced, a "
+                            f"nets.yaml scoped_clearances entry bounded to a "
+                            f"rule area — canon R-SCOPE)")
             if self.tier is not None \
                     and val < float(self.tier["min_space"]) - 1e-9:
                 self.fail("PF-ROUTE-CLR", param,
