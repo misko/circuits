@@ -129,3 +129,148 @@ exact tie, and that ladder lives in `03_src/cooksense/fix_silk_placement.py`
 (project-local, editable). `OWNERSHIP_FIX` currently names only
 `("J_DOOR", "J_ESTOP", "J_MODE")` — **`J_ISOLOOP` and the two pod housings are
 not in it at all**, which is why nothing even tried for the 30 V terminal.
+
+---
+
+# UPDATE 2026-07-29 (v1.8 attempt 3) — the sourcing question is ANSWERED, and
+# the pin-count key inside the GH family turns out to be FAIL-PERMISSIVE
+
+Two things landed after the section above was written. Both change what the next
+pass should do, so they are recorded here rather than re-derived.
+
+## 1. The rebuild now DIES IN THE SILK PASS, and ADR-0024 is the cause
+
+`rebuild_all.sh --reroute` (attempt 3, `06_build/rebuild_v18c.log`) does not reach
+the router at all. It exits **1 at stage 1b/7**:
+
+    FATAL: no clear silk position for ['R_DOORPD'] — a refdes that cannot be
+    placed must not be left in a milled void
+
+The chain, read out of the log and confirmed against the stage-1 board:
+
+1. ADR-0024 added `R_DOORS` and `R_ESTOPS` and this floorplan anchored them into
+   the pocket **x[189.6, 193.7] y[73.2, 79.3]**, whose comment (above, line ~752)
+   records it as *"4.1 x 6.1 mm and empty"*.
+2. `R_DOORS` lands in the **SAFETY-TEXT CLASS** (10 members this run — membership
+   is GEOMETRIC, "every label within 8.0 mm of a safety housing", so it changes
+   run to run), which forces its designator to **h 0.600** and gives it priority.
+3. At h 0.600 rot 90 that designator needs `R_DOORPD`'s slot and takes it:
+   `R_DOORS displaces R_DOORPD from x[189.436,190.664] y[75.392,79.808]`.
+4. `R_DOORPD` is re-placed at **(191.800, 74.150)** — which is inside `J_ESTOP`'s
+   courtyard y-band (`J_ESTOP` bbox y[65.505, 76.255]; `J_DOOR` starts at
+   y 76.385, so the two are 0.130 mm apart and the watershed is y ≈ 76.32).
+5. The CROSS-NAME rule then correctly refuses it: *"R_DOORPD carries J_DOOR's
+   identity token but its label centre is 6.143 mm from J_ESTOP and only
+   9.217 mm from J_DOOR"* — a resistor named `R_DOORPD` printed on the E-stop
+   connector. Relocation finds no slot at any rung of the
+   1.5 / 1.0 / 0.5 / 0.1 mm ladder, and the pass dies.
+
+**THE FINDING, and it is the reusable one: the pocket was measured EMPTY OF
+COURTYARDS, and it was not empty. It was `R_DOORPD`'s DESIGNATOR SLOT.** On the
+v1.7 board `R_DOORPD`'s label occupied x[189.038, 190.162] y[75.223, 80.177] —
+squarely inside the "empty" pocket. Silk is a placement resource with its own
+occupancy, and a floorplan comment that clears a region by checking courtyards
+has checked the wrong layer. Two 0402s whose COPPER fits caused a build failure
+because their DESIGNATORS did not.
+
+The floorplan's own justification for putting them there is still sound and is
+the lever for the fix: *"Both resistors carry NO DC, so their span is
+electrically free — unlike R_DOORPD/R_ESTOPPD, which must stay AT the connector
+pin because that is where the divider acts."* ADR-0024 Decision B says the same
+("they contribute ZERO to the rejection arithmetic"). `U_SCHM` is at
+**(174.000, 60.000)**, ~25 mm west of the connector column, so `R_DOORS` /
+`R_ESTOPS` have the whole run to sit on. **Do not spend the SE corner on them.**
+
+## 2. The keyed-connector sourcing spike — ANSWERED, with a candidate the earlier
+##    recommendation would have got wrong
+
+The section above asks for `S3B-ZR-SM4A-TF` stock to be verified before
+committing. **Verified, live JLC/LCSC catalog reads 2026-07-29** (data only — no
+part was swapped; a connector change on a safety input is the user's call):
+
+| MPN | LCSC | stock | lib | pitch | ckts | I | courtyard W vs GH-5 10.700 | fits the 1.198 mm column slack? |
+|---|---|---|---|---|---|---|---|---|
+| **S3B-ZR-SM4A-TF** ZH-3 | **C72591** | **38 697** | ext | 1.50 | 3 | 1 A | 9.000 (**−1.700**) | yes — frees more than the whole slack |
+| **SM03B-SRSS-TB** SH-3 | **C160403** | **52 328** | ext | 1.00 | 3 | 1 A | 6.800 (**−3.900**) | yes |
+| S3B-PH-SM4-TB PH-3 | C265101 | 1 673 | ext | 2.00 | 3 | 2 A | 11.200 (+0.500) | width yes; **depth +3.800 inboard** |
+
+Both top candidates SHRINK the east column, which is the resource the
+`J_ISOLOOP` label-ownership blocker needs — so the part change and the label
+blocker close together, as the section above predicted.
+
+**THE DISQUALIFICATION THAT MATTERS MOST, because it is the one a reasonable
+reader would have chosen: a 3-circuit JST GH (`SM03B-GHS-TB`, C514175) IS
+FAIL-PERMISSIVE AND IS WORSE THAN THE DEFECT IT FIXES.** A pin-count change
+INSIDE the GH family is not a key. It blocks the wide→narrow direction only:
+a `GHR-05V-S` (B = 7.50 mm) cannot enter a 3-circuit GH shroud (~5.0 mm cavity,
+≈2.5 mm interference) — but the **narrow→wide direction is a full, pitch-matched,
+multi-circuit engagement**, because the pitch is 1.25 mm on both. A `GHR-03V-S`
+door harness left-seated in `J_ESTOP`'s GH-5 shroud puts 3V3 / sense / GND on
+`3V3` / `ESTOP_RAW_IN` / `GND`, and the reed bridges 3V3 → `ESTOP_RAW_IN`:
+**the E-stop reads NOT-ASSERTED with no E-stop button attached.** GH-2 (C189893)
+fails identically with 4 seat positions. GH-4 is dead twice over — same
+intra-series cell, and `C189895` reads **stock 1** on a fresh read today, exactly
+as ADR-0018 option E recorded.
+
+Also disqualified, each by a named cell: **ZH-4** (= `J_MODE`, the already-known
+cell); **ZH-5** C485355 (a `ZHR-4` enters a ZH-5 shroud with 1.5 mm slack →
+mode pole B bridges 3V3 → `DOOR_RAW_IN` → door reads CLOSED — and it is 0.102 mm
+over the column slack); **ZH-6** C265070 (same, +2.800 mm); **ZH-2** C265329 —
+worth reading, because it is the worst of the set: a `ZHR-2` in `J_MODE`'s ZH-4
+shroud has **3 seat positions and one of them is circuits 3–4**, where the door
+reed bridges `KEY_RELAY_ALLOWED` → `COIL_EN_IN` = pole A = **the oven door closes
+the physical MANUAL rail cut.** That is ADR-0018's hazard re-created verbatim.
+**Molex PicoBlade** C293630 is REJECTED on the precautionary principle rather
+than on evidence: it shares GH's 1.25 mm pitch exactly, so if the shrouds do
+intermate the contacts align on EVERY circuit, and the cross-section drawings
+needed to settle it were not available. A key whose blocking claim is unproven
+is not a key.
+
+**Ranked, for the human decision:**
+
+- **Rank 1 — ZH-3 `S3B-ZR-SM4A-TF` / C72591.** Deep genuine-JST stock, KiCad
+  footprint ships in-tree, and **no new crimp system** — `SZH-002T-P0.5`
+  (C246761, stock 113 425) is already required for `J_MODE`. One
+  possibly-mateable cell (into `J_MODE`, same series), and it is RESTRICTIVE in
+  **both** seat positions: left-seated the harness GND lands on
+  `KEY_RELAY_ALLOWED` and shorts the AND-chain output; right-seated it lands
+  directly on `COIL_EN_IN` and holds it at 0 V. Neither seat bridges 3↔4.
+  **Two conditions, neither optional:** (a) pin it 1 = 3V3, 2 = `DOOR_RAW_IN`,
+  3 = GND and build the harness with THREE wires — the GND on circuit 3 is what
+  makes both seats *actively* restrictive instead of merely open-pinned; a
+  harness built on circuits 2–3 would put the right seat on `J_MODE` 3–4 = pole
+  A = permissive. (b) depth grows **+1.600 mm inboard** (8.000 vs 6.400) and the
+  inboard neighbours of `J_DOOR` were NOT checked — **unverified.**
+- **Rank 2 — SH-3 `SM03B-SRSS-TB` / C160403.** Safest of all: **zero
+  possibly-mateable cells anywhere on the board** (1.00 mm pitch is unique
+  here), no seat-position argument needed, frees 3.900 mm, depth +0.160 mm
+  (free). Ranked second only on BUILDABILITY: `SSH-003T-P0.2` takes AWG#32–28 at
+  0.4–0.8 mm insulation OD, and a field run to an appliance reed or an E-stop
+  button wants AWG#26 or heavier (the existing GH harness is spec'd #30–26).
+  **If the harness can honestly be built in AWG#28, SH-3 should be rank 1** — it
+  is the only option needing no argument about how a plug seats. Adds a third
+  crimp system; genuine `SHR-03V-S-B` C268100 reads stock 0 (`APSHR-03V-S`
+  C392108 / 25 405 is the stocked JST-compatible plug).
+- **Rank 3 — PH-3 `S3B-PH-SM4-TB` / C265101.** Zero mateable cells, 2 A, best
+  wire range (AWG#24–30), excellent harness stock (`PHR-3` C265393 / 91 778).
+  Blocked on geometry (+3.800 mm depth) and a thin 1 673 header stock for a
+  DO-NOT-SUBSTITUTE safety part.
+
+**WHICH connector to change is also a human call, and there is an argument the
+section above did not make.** It proposes `J_DOOR`. But `J_ESTOP` is the input
+whose transposition costs the LATCHING property, so giving *`J_ESTOP`* the unique
+housing means the higher-integrity input cannot accept any other harness on the
+board. Electrically the two are interchangeable for this purpose — same 1/2/GND
+structure — and whichever stays GH-5 remains covered by ADR-0024's already-proven
+restrictive cells against the pods.
+
+**Still unverified, stated rather than glossed:** Mouser/DigiKey availability of
+every plug housing and crimp contact (LCSC only was read; `ZHR-3` C160376 and
+`SHR-03V-S-B` C268100 both read LCSC stock 0, which for self-supplied harness
+parts is not decisive but is not verified either); depth clearance inboard of
+`J_DOOR`/`J_ESTOP` for the +1.600 mm ZH growth; `escape_check.py` at 1.00 mm
+pitch for SH-3 (GH passed at 1.25 and ZH at 1.50, so ZH-3 is covered by
+precedent and SH-3 is not); the 2.126 mm ISO moat re-derivation (both top
+candidates SHRINK the column so it should only get easier, but ADR-0018 records
+the moat is 2-D and it was not re-solved). Every stock figure is LCSC catalog
+`stockCount`, not JLC assembly-warehouse allocation.

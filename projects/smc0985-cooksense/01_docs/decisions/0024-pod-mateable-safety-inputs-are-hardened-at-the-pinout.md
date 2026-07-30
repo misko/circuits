@@ -121,7 +121,38 @@ bounds V_T+(min) at 3.3 V from below with no interpolation: 0.700 V.** 0.791 V
 | 680 Ω (ADR-0018's value) | **0.791 V** | 0.221 V | **FAIL by 91 mV** |
 | **470 Ω (chosen)** | **0.591 V** (0.608 V at the rail ceiling **3.399 V**, `power_tree.yaml` 3V3 `vout_max`) | 0.151 V | **PASS, +92 mV** |
 
-General bound: V ≤ 0.700 V ⇒ **R_pd ≤ 592 Ω**. Cost, measured: 3.399/465.3 =
+General bound: V ≤ 0.700 V ⇒ **R_pd ≤ 559 Ω at the WORST-CASE corner.**
+
+**CORRECTED 2026-07-29 by an independent re-derivation, and the correction is the
+same error this ADR was written about.** The bound first published here was
+`R_pd ≤ 592 Ω`, which is the **NOMINAL** corner (3.300 V, 2200 Ω exactly, R_pd at
+0 % tolerance) — sitting as the one-line takeaway of an ADR whose entire argument
+is worst-case, and directly above a row that correctly quotes the rail ceiling.
+Re-solved at the corner the rest of the section uses (rail **3.399 V**, injection
+**2178 Ω** = 2.2 kΩ −1 %, R_pd **+1 %**):
+
+| corner | bound on R_pd |
+|---|---|
+| nominal 3.300 V / 2200 Ω / ±0 % — **what 592 Ω was** | 592.3 Ω |
+| **worst case 3.399 V / 2178 Ω / +1 % — the governing bound** | **559.3 Ω** |
+
+**Why a 33 Ω error mattered.** 470 Ω is unaffected (+91.7 mV, unchanged), so the
+board is not wrong — but **560 Ω is the next standard value a future pass reaches
+for under a 592 Ω ceiling, and at the worst-case corner it produces 0.7007 V and
+FAILS by 0.7 mV.** The published bound permitted exactly one value, and that value
+does not clear. Re-derived: 549 Ω passes by 10.3 mV, 511 Ω by 48.9 mV, 499 Ω by
+61.3 mV. **A bound stated at a corner the decision does not use is a remedy copied
+without re-deriving it — the failure mode this ADR names in its own title.**
+
+Also reconciled while re-deriving: the 680 Ω row's **0.791 V** is toleranced
+resistors against a NOMINAL 3.300 V rail. At the same 3.399 V ceiling the row
+above and below both use, 680 Ω gives **0.8149 V — FAIL by 115 mV, not 91 mV.**
+The conclusion is unchanged and strictly stronger; the 91 mV figure quoted
+elsewhere in this tree is the nominal-rail number and should be read as a floor.
+
+Cost, measured (the CURRENT corner is R_pd LOW, 470 Ω −1 % = 465.3 Ω, the
+opposite corner from the voltage bound above — both are used deliberately):
+3.399/465.3 =
 **7.31 mA** and **24.8 mW** in a 62.5 mW 0402 (40%), per input, ×2 = 14.6 mA on
 3V3. **Bonus that was not designed for**: 7 mA is an order of magnitude above the
 ~1 mA dry-circuit threshold, so the reed and the E-stop contact now get real
