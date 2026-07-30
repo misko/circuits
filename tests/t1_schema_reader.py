@@ -570,6 +570,199 @@ def t_real_finding_pins_tie_is_owed_with_its_patch():
                    f"claim in the 02_parts contract before trusting it")
 
 
+# ----------------------------------------- the module 3D envelope (2026-07-30)
+REAL_02PARTS = (ROOT / "skills/pcb-design/templates/contracts/02_parts"
+                / "contracts.md")
+
+#: a gate that genuinely reads `mpn`, so the fixture family has a PROVEN row and
+#: the only thing under test is the `mechanical` block.
+MPN_READER = '''#!/usr/bin/env python3
+"""A gate that reads the MPN."""
+
+
+def grade(d):
+    return d["mpn"]
+'''
+
+#: the defect CONSTRUCTED, not borrowed from a live dossier (tests/README, the
+#: third-instance rule): a part.yaml carrying a module 3D envelope, shaped after
+#: pluto-rx2-8way-v2's RP2040-Zero — four stack scalars plus the open per-feature
+#: bag, including the two facts the contract calls out as unchecked arithmetic.
+ENVELOPE_PART = """\
+mpn: RP2040-Zero
+mechanical:
+  pcb_thickness_mm: 1.091
+  top_side_max_height_mm: 3.250
+  bottom_side_max_protrusion_mm: 1.000
+  total_thickness_mm: 5.341
+  crystal: {side: bottom, protrusion_mm: 1.000,
+            extent_mm: [[6.975, 10.925], [3.320, 6.420]]}
+  usb_c:
+    mating_face_y_mm: 24.816
+    z_mm: [-0.910, 3.250]
+"""
+
+
+def _shipped_mechanical_rows():
+    """The five `mechanical.` rows LIFTED VERBATIM out of the shipped contract.
+
+    Not a transcription: the fixture below grades the rows this repo actually
+    ships, so deleting or weakening them in the template shows up HERE rather
+    than in a copy that drifted. `mechanical_pads.<NAME>.*` does not match — the
+    character after `mechanical` is `_`, not `.`.
+    """
+    rows = [ln for ln in REAL_02PARTS.read_text(encoding="utf-8").splitlines()
+            if ln.startswith("| `mechanical.")]
+    eq(len(rows), 5, "`mechanical.` rows lifted from the shipped 02_parts "
+                     "contract (4 enumerated scalars + 1 `*` bag)")
+    return rows
+
+
+def _parts_repo(d, rows):
+    """A scratch repo whose 02_parts contract carries `rows` and nothing else."""
+    d = Path(d)
+    cdir = d / "skills/pcb-design/templates/contracts/02_parts"
+    cdir.mkdir(parents=True, exist_ok=True)
+    (cdir / "contracts.md").write_text(
+        "# contract: 02_parts/\n\n### keys: 02_parts/*/part.yaml\n\n"
+        "| key | reader | why |\n|---|---|---|\n"
+        "| `mpn` | `reader.py` | the MPN authority |\n"
+        + "".join(r + "\n" for r in rows), encoding="utf-8")
+    sdir = d / "skills/kicad-pcb/scripts"
+    sdir.mkdir(parents=True, exist_ok=True)
+    (sdir / "reader.py").write_text(MPN_READER, encoding="utf-8")
+    pdir = d / "projects/bd/02_parts/RP2040-Zero"
+    pdir.mkdir(parents=True, exist_ok=True)
+    (pdir / "part.yaml").write_text(ENVELOPE_PART, encoding="utf-8")
+    return d
+
+
+@test("G-ORPHAN FAILS a part.yaml module 3D ENVELOPE whose contract rows are "
+      "absent — the 2026-07-30 defect, with the shipped rows lifted VERBATIM so "
+      "the red side is re-measured every run instead of asserted in a docstring",
+      kind="known_bad")
+def t_known_bad_module_envelope_with_no_contract_row():
+    """THE INCIDENT, and it is the whole reason this suite was red at 217ea175.
+
+    pluto-rx2-8way-v2's RP2040-Zero dossier grew a `mechanical:` block — the
+    module's 3D envelope, every number MEASURED off the vendor Creo STEP —
+    because the module is NOT flat-backed: 23 components sit on the
+    carrier-facing face, the 12 MHz crystal 1.000 mm proud, so the joint plane
+    and the collision plane are the same plane and the part cannot sit down.
+    That number is why the board's `assembly.yaml` refuses to have `U_MCU`
+    machine-placed. It arrived with NO row in the governing contract, and
+    G-ORPHAN failed 2 of this file's assertions naming it.
+
+    RED-VERIFY, BOTH DIRECTIONS, ON ONE TREE — the `t_advisory_declared_passes_
+    undeclared_fails` shape applied to real shipped bytes. Removing the rows is
+    exactly `git show HEAD~:...contracts.md`, so the pre-fix contract is what
+    the red half grades; the green half then restores them and re-measures. If
+    the rows are ever deleted from the template the lift asserts 5 and this
+    fixture goes red on the CLAIM side before it ever reaches the gate.
+
+    GIT-SWAP RED-VERIFIED 2026-07-30, and BOTH new fixtures were confirmed to
+    bite rather than riding the two pre-existing failures. The pre-fix contract
+    restored over the fixed one (`git show HEAD:...02_parts/contracts.md`), this
+    file measured **22 passed / 4 failed / 10 known-bad**: the two the defect was
+    reported as (`t_governed_family_floor_is_pinned`,
+    `t_real_fleet_denominator`) PLUS this fixture and its REAL-FINDING sibling.
+    Restored, **26 / 0 / 11**, exit 0. The pre-fix G-ORPHAN run itself measured
+    `307/307 declared keys graded OK (251 PROVEN, floor 251), 1 orphan` — a
+    ratchet floor MET and a genuinely new schema key with no contract home,
+    which is why this landed as a contract row and not as a floor edit."""
+    rows = _shipped_mechanical_rows()
+
+    # RED — the pre-fix contract: the `mpn` row alone, envelope ungoverned.
+    r = sweep(_parts_repo(tmpdir(), []))
+    must_fail(r, "G-ORPHAN on an ungoverned module envelope", "ORPHAN")
+    contains(r.out, "`mechanical`")
+    # ONE finding for the whole block, at its topmost level — not eight
+    not_contains(r.out, "`mechanical.pcb_thickness_mm`: declared in")
+
+    # GREEN, the ADJACENT-PROPERTY re-verify: same tree, same source bytes,
+    # the shipped rows restored and nothing else changed.
+    d2 = _parts_repo(tmpdir(), rows)
+    r2 = sweep(d2)
+    must_pass(r2, "G-ORPHAN with the shipped `mechanical.` rows in place")
+    contains(r2.out, "0 ORPHAN key(s) in source with no row")
+
+    # and the ENUMERATION is real, not a blanket wearing four hats: the four
+    # stack scalars are credited to their OWN rows, the open feature bag to the
+    # `*` row. A single `mechanical.*` would have passed the gate too, and would
+    # have governed nothing (the contract's own "enumerating a key out of a
+    # subtree is always the stronger move").
+    import json
+    out = Path(d2) / "rep.json"
+    must_pass(sweep(d2, ["--json", str(out)]), "the JSON report")
+    cov = {x["key"]: x["covers"] for x in json.loads(
+        out.read_text(encoding="utf-8"))["rows"]}
+    eq(cov.get("mechanical.bottom_side_max_protrusion_mm"),
+       ["mechanical.bottom_side_max_protrusion_mm"],
+       "the SEATABILITY scalar is credited to its own row")
+    eq(sorted(cov.get("mechanical.*", [])),
+       ["mechanical", "mechanical.crystal", "mechanical.usb_c"],
+       "the `*` row covers the open feature bag and NOT the four scalars")
+
+
+@test("REAL FINDING — the module 3D ENVELOPE is read by NOTHING, and the "
+      "obvious candidate reader is a NAME COLLISION that would score PROVEN "
+      "while grading a different file's field")
+def t_real_finding_module_envelope_has_no_reader_and_the_obvious_one_collides():
+    """The finding is not "nobody reads it" — it is that the fix which makes
+    the finding go quiet costs ONE WORD and is FALSE.
+
+    `assembly_coverage.py` contains `"mechanical"` in a READ position (a set
+    literal, line 84), so naming it in the 02_parts contract would score PROVEN.
+    That occurrence is the closed `reason:` vocabulary of
+    `03_src/rules/assembly.yaml` — a different file, a different structure —
+    and is limitation (a) of `schema_reader_audit.py`'s own docstring ("cannot
+    prove the read is off THIS structure") arriving as a live temptation rather
+    than a caveat. The DISCRIMINATOR is the block's own fields: the key NAME is
+    read somewhere in the fleet, and `bottom_side_max_protrusion_mm` is read
+    nowhere at all. Same word, different structure, opposite conclusions.
+
+    MEASURED 2026-07-30 across nine candidate consumers: the key reaches a read
+    position in exactly one, and that one is the collision.
+
+    RATCHET: this FAILS LOUDLY when the finding is closed, naming the rows to
+    move off OWED — that breakage is the fix landing, not a regression."""
+    import ast
+    sys.path.insert(0, str(SCRIPTS))
+    import schema_reader_audit as g
+
+    # (1) the eight candidates that could plausibly own a part's 3D envelope
+    for name in ("import_provenance_check.py", "policy_audit.py",
+                 "escape_check.py", "part_facts_check.py", "pin_audit.py",
+                 "generate_board_generic.py", "export_jlc_package.py",
+                 "placement_gates.py"):
+        p = g.find_reader(ROOT, name)
+        check(p is not None, f"{name} is not in {g.READER_DIRS}")
+        uses = g.read_positions(ast.parse(p.read_text(encoding="utf-8-sig")))
+        check(uses.get("mechanical", (None,))[0] in (None, g.MENTION),
+              f"{name} now reads 'mechanical' — if that is M-IMPORT's machine "
+              f"half reaching 02_parts, move the five `mechanical.` rows off "
+              f"OWED to name this gate and retire this assertion")
+
+    # (2) the COLLISION, asserted rather than avoided — and its discriminator
+    ac = g.read_positions(ast.parse(g.find_reader(ROOT, "assembly_coverage.py")
+                                    .read_text(encoding="utf-8-sig")))
+    check(ac.get("mechanical", (None,))[0] not in (None, g.MENTION),
+          "assembly_coverage.py no longer reads the word 'mechanical' — the "
+          "collision this fixture pins has moved; re-read the 02_parts G-ORPHAN "
+          "section before trusting its warning")
+    check(ac.get("bottom_side_max_protrusion_mm") is None,
+          "assembly_coverage.py now reads the envelope's own field, so the "
+          "occurrence is no longer a collision — re-grade the contract rows")
+
+    # (3) the CLAIM side: the rows exist, say OWED, and name the settlement
+    c = REAL_02PARTS.read_text(encoding="utf-8")
+    contains(c, "| `mechanical.bottom_side_max_protrusion_mm` | OWED |",
+             "the 02_parts seatability row")
+    contains(c, "| `mechanical.*` | OWED |", "the 02_parts feature-bag row")
+    contains(c, "would score PROVEN and grade NOTHING",
+             "the 02_parts G-ORPHAN section's collision warning")
+
+
 @test("the gate obeys its own contract: it names its input and prints an N/M "
       "denominator on every path, including the UNGRADED one")
 def t_obeys_its_own_gate_contract():

@@ -152,6 +152,43 @@ pins:                       # PHYSICAL PADS, read from the pinout figure
                             # vias into the EP); `tie:` only fixes the netlist blind
                             # spot. (crow-recorder... TPS259573 EP floated pre-2026-07-23.)
 limits: {vin_max: 75V, tj_max: 125C}
+mechanical:                 # THE 3D ENVELOPE — the part's shape ABOVE and BELOW
+                            # its land pattern. REQUIRED for a part the carrier
+                            # must physically ACCOMMODATE rather than merely
+                            # land: a purchased MODULE (`escape.style: module`),
+                            # any assembly that is not flat-backed, a connector
+                            # that overhangs the outline it is mounted on. OMIT
+                            # it entirely for a part whose only geometry is its
+                            # land pattern — an empty block declares nothing and
+                            # `land_pattern:` is where 2D copper geometry lives.
+                            # EVERY NUMBER HERE IS AN IMPORTED FACT (canon
+                            # M-IMPORT) AND MUST SAY HOW IT WAS OBTAINED: a STEP
+                            # / 3D model is MEASURED (machine-readable), a
+                            # dimension drawing is CITED with its figure, a
+                            # number off a render is ESTIMATED and needs its
+                            # error bar. WHERE A DRAWING AND THE MODEL DISAGREE
+                            # THE MACHINE-READABLE SOURCE WINS, and the loser is
+                            # recorded so nobody re-derives the conflict.
+  pcb_thickness_mm: 1.091                # the module's own laminate
+  top_side_max_height_mm: 3.250          # tallest feature AWAY from the carrier
+  bottom_side_max_protrusion_mm: 1.000   # tallest feature on the CARRIER-FACING
+                            # face. THE SEATABILITY NUMBER: non-zero means the
+                            # part CANNOT SIT FLAT, which is a POPULATION
+                            # decision — a standoff, a hand-solder, an
+                            # `03_src/rules/assembly.yaml` entry — and not a
+                            # footprint note. Say which feature it is.
+  total_thickness_mm: 5.341 # DERIVED: bottom + laminate + top. Stated so the
+                            # enclosure stack is one number AND so the sum is
+                            # falsifiable (1.000 + 1.091 + 3.250).
+  <feature>:                # ONE ENTRY PER NAMED 3D FEATURE the model contains
+    side: bottom            # top|bottom — which face it stands on
+    protrusion_mm: 1.000    # how proud it stands on that face (a top-side
+                            # feature reads the same way as `height_mm`)
+    extent_mm: [[6.975, 10.925], [3.320, 6.420]]   # its footprint, part frame
+    # `centre_mm` / `body_mm` / `part` and per-kind CONNECTOR terms
+    # (`mating_face_y_mm`, `z_mm`, `shell_x_mm`) are open — the feature bag is
+    # declared BLANKET in the `### keys:` table below and the four scalars
+    # above are enumerated OUT of it, because they are not open.
 gotchas:
   - "EP is pad 21, not implicit — without the pins: entry + tie: it floats (the converter ties it only when tie: is declared)"
 verified: "pin map cross-checked against datasheet fig 6-1 — 2026-07-14"
@@ -555,6 +592,46 @@ is written out in `schema_reader_audit.py`'s docstring, including the
 `tie: none` exclusion (`XU316-1024-TQ128-I24` floats four IO-voltage straps
 deliberately, and failing those is how a new kind gets waived).
 
+`mechanical:` IS THE SECOND MEASURED HOLE, IT ARRIVED 2026-07-30, AND THE
+OBVIOUS READER FOR IT IS A TRAP. The block is a part's 3D ENVELOPE, and the one
+dossier that declares it — pluto-rx2-8way-v2's RP2040-Zero — took every number
+off the vendor Creo STEP, which is the MEASURED grade (canon M-IMPORT: a
+machine-readable source). It is not decoration: `bottom_side_max_protrusion_mm:
+1.000` is *why* that board's `assembly.yaml` refuses to have `U_MCU` machine
+placed, because 23 components on the carrier-facing face put the joint plane and
+the collision plane in the same plane and the module cannot sit down. So the
+physics is stated TWICE, in two files, and no gate can make the two disagree.
+
+Which gate is owed it is a real question with a wrong-looking answer, and the
+wrong answer is the one this gate exists to refuse. **`assembly_coverage.py`
+contains the exact string `"mechanical"` in a READ POSITION — a set literal at
+line 84 — so naming it here would score PROVEN and grade NOTHING**, because that
+occurrence is the closed `reason:` vocabulary of `03_src/rules/assembly.yaml`, a
+different file and a different structure. That is limitation (a) in
+`schema_reader_audit.py`'s own docstring ("cannot prove the read is off THIS
+structure") arriving as a live temptation rather than a caveat, and it is worth
+more than the row: the fix that makes the finding go quiet is available, costs
+one word, and is false. Measured 2026-07-30 across nine candidate consumers —
+`import_provenance_check.py`, `policy_audit.py`, `escape_check.py`,
+`part_facts_check.py`, `pin_audit.py`, `generate_board_generic.py`,
+`export_jlc_package.py`, `placement_gates.py` and `assembly_coverage.py` — the
+key reaches a read position in exactly one of them, and that one is the
+collision. Pinned by `tests/t1_schema_reader.py`
+`t_real_finding_module_envelope_has_no_reader_and_the_obvious_one_is_a_collision`.
+
+The honest home is M-IMPORT's machine half. `import_provenance_check.py` already
+grades exactly this class — a foreign device's geometry, with a provenance grade
+per fact — and is scoped to `03_src/rules/mates.yaml` against `spf/<device>/`,
+which this contract's own M-IMPORT section says in as many words does not reach
+this folder. A purchased module IS foreign hardware the board mates to, so the
+debt has two admissible settlements and both are cheap to state: either the
+envelope moves to `spf/<device>/` with a `mates.yaml` reference (canon
+M-RESTATE — one home per fact, boards reference and never restate), or
+`import_provenance_check.py` grows a `02_parts` reach. Until one of them lands,
+these five rows are OWED, and the two self-consistency sums named in the table
+(`total_thickness_mm` against its three terms, `bottom_side_max_protrusion_mm`
+against the `side: bottom` features) are the cheapest first bite.
+
 ### keys: 02_parts/*/part.yaml
 
 | key | reader | why |
@@ -637,6 +714,11 @@ deliberately, and failing those is how a new kind gets waived).
 | `land_pattern.*` | ADVISORY | the human derivation record for a vendored footprint — pad sizes, fillet balance, datums, the datasheet figure they came from. Its CONSEQUENCE is graded, hard, by `jlc_twin` against JLC's own CAD model (canon M1), which is a stronger check than reading this back would be |
 | `ratings.*` | OWED | per-part electrical ratings (`i_sat`, `dcr_max`, `impedance_100mhz`, `voltage`, `dielectric`, ...). Unlike `limits:` these are the SELECTION criteria the part was chosen on, so they are assertable — an inductor's `i_sat` against the rail's `iout_max_A` is arithmetic nothing does |
 | `power_pins.<NAME>.*` | OWED | a per-rail pin grouping on the one 128-pin MCU dossier. `pins:` is graded; this parallel structure is a second home for the same map and read by nobody |
+| `mechanical.pcb_thickness_mm` | OWED | the part's own laminate thickness — one term of the carrier stack and of `total_thickness_mm`'s sum, read by nothing |
+| `mechanical.top_side_max_height_mm` | OWED | tallest feature on the face AWAY from the carrier: the enclosure/lid budget. Spent by a human today, and nothing reconciles it against the per-feature heights in the bag below |
+| `mechanical.bottom_side_max_protrusion_mm` | OWED | **THE SEATABILITY NUMBER, and the load-bearing key of this block.** Tallest feature on the CARRIER-FACING face, so non-zero means the part cannot be reflowed flat — a POPULATION decision, not a footprint note. RP2040-Zero declares 1.000 (the 12 MHz crystal, MEASURED off the vendor STEP) and pluto-rx2-8way-v2's `assembly.yaml` carries the matching `not_assembled` entry for `U_MCU`, whose evidence opens "MECHANICAL, and MEASURED rather than argued". `assembly_coverage.py` grades that entry's SHAPE — reason inside the closed vocabulary, dated evidence, the ref off the CPL — and never that the reason is TRUE. The intended gate is the one that makes the two homes able to DISAGREE OUT LOUD |
+| `mechanical.total_thickness_mm` | OWED | the stack, and it is DERIVED: bottom protrusion + laminate + top height (1.000 + 1.091 + 3.250 = 5.341 on the one dossier that declares it). A sum nothing re-adds is the `ratings.*` shape — assertable arithmetic with no assertion |
+| `mechanical.*` | OWED | the per-FEATURE 3D bag: one entry per named feature the vendor model contains (`usb_c`, `buttons`, `ws2812`, `rp2040`, `crystal`, `rt9013`, `flash` on the RP2040-Zero), each carrying its `side`, its footprint (`extent_mm`/`centre_mm`/`body_mm`) and how proud it stands (`protrusion_mm`/`height_mm`), plus per-kind connector terms (`mating_face_y_mm`, `z_mm`, `shell_x_mm`, `cavity_centreline_above_pcb_top_mm`). BLANKET because the feature NAMES and their per-kind terms are both open; the four scalars above are enumerated OUT of it because they are not. Two facts in here are ARITHMETIC against those scalars and nothing performs it: `bottom_side_max_protrusion_mm` must be the max `protrusion_mm` over the `side: bottom` entries (max(0.850, 1.000, 0.700) = 1.000 today), and a `mating_face_y_mm` past the part outline is a carrier KEEPOUT the floorplan must honour (24.816 against an outline ending at 23.500 — 1.21 mm of receptacle hanging over the board edge) |
 | `mechanical_pads.<NAME>.*` | OWED | shield/NPTH pads and their KiCad pad names — the field that decides whether a shell tab is a net or a hole, read by nothing |
 | `orientation.*` | OWED | the as-placed rotation and pin-1/pole marker evidence. The rotation AUTHORITY is `jlc_rotation_*`; this per-dossier claim is not cross-checked against it, which is the M-PROV shape |
 | `loading_caps.*` | OWED | a crystal's load-capacitor formula and per-leg value — an `electrical_invariants.yaml` `part_value` waiting to be written |
