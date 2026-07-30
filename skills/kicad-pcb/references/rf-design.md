@@ -68,9 +68,13 @@ The most valuable section. Each item is actionable.
 **(a) Board-edge clearance — WE ARE LOOSER THAN THE SOURCE.** rfessentials wants
 RF traces **>= 5x substrate height** from the edge. On `JLC04161H-7628`
 (h = 0.2104 mm) that is **1.05 mm**. `pluto-rx2-8way`'s `route.yaml` declares
-`edge_band: 0.7` = **3.3x h**. Not obviously wrong — that board carries an edge
-via fence — but it is a deviation nobody derived. **Owed: derive it or adopt
-1.05 mm.**
+`edge_band: 0.7` = **3.3x h**. **RESOLVED 2026-07-30 by measurement: it does not
+bind.** The closest RF pad to a board edge is **4.731 mm = 22.5x substrate
+height**, and the arms run INWARD from there, so the 5x rule is satisfied by
+geometry with 4.5x of margin. `edge_band` is a router keepout, not the RF
+clearance — the number stands and the derivation is now recorded. Worth keeping
+as an example: the sourced rule was real, the concern was reasonable, and the
+board was already compliant by construction. Measure before changing a number.
 
 **(b) Via-fence pitch — THREE METHODS IN ONE FLEET, only one of them derived.**
 The source uses **free-space lambda/20**: at 6 GHz that is 50/20 = **2.5 mm**.
@@ -130,11 +134,45 @@ physics:** PE42482A-X publishes a **13.2 deg** part-to-part relative-phase windo
 standing "+/-0.10 mm" obligation was **1.3 deg** and was withdrawn as unreachable
 by any router and unheld by any process.
 
-**(c) A VENDOR LAND CAN MAKE THE REQUIRED WIDTH UNROUTABLE.** Compute, per pad,
-the widest track that can leave it without violating clearance to its neighbours,
-and grade that against the netclass floor. `pluto-rx2-8way`: max landable
-**0.30 mm = 55.3 ohm** against a 50 ohm class, and 6 of 11 RF nets would not
-route. `pluto-cal-switch`: the same defect on **eleven** pads. Nothing asked.
+**THE KNOB IS `meander_amplitude`, NOT `length_match_tolerance`.** Measured by a
+15-run sweep on `pluto-rx2-8way`: tolerance {0.15, 0.10, 0.05} moved the realized
+spread by **exactly zero** at all five amplitudes, while amplitude moved it
+1.0 -> 1.5586, 0.8 -> 1.1586, 0.5 -> 0.6549, 0.3 -> 0.3236, 0.2 -> 0.3236 mm. An
+earlier record credited the tolerance with the 1.1586 result; that is the
+amplitude-0.8 row. And 0.3236 mm is not a router minimum — it is the **0.3238 mm
+Euclidean pad residue**, so the elongation recovered the ENTIRE 1.4966 mm
+octilinear penalty. The floor is a floor on the ROUTER'S MOVE SET, never a bound
+on the achievable spread.
+
+**(c) A VENDOR LAND CAN MAKE THE REQUIRED WIDTH UNROUTABLE — AND ON THE BOARD
+THAT MOTIVATED THIS ITEM, THE REAL CAUSE WAS THE ROUTER GRID. Corrected
+2026-07-30 by measurement; the original claim is kept because being wrong about
+the MECHANISM while right about the SYMPTOM is the trap.**
+
+The symptom stands: compute, per pad, the widest track that can leave without
+violating clearance to its neighbours, and grade it against the netclass floor.
+`pluto-cal-switch` has **eleven** pads that cannot accept their own class minimum
+and nothing asked.
+
+But on `pluto-rx2-8way` the arms did not fail for want of width. At KRT's default
+`grid_step: 0.1`, **NOTHING routes the five boxed RF pads at ANY width** — 0.30,
+0.25 and 0.20 all fail — because the RF land centres sit at odd multiples of
+0.05 mm (y = 45.25, 46.25, ...) and a 0.1 mm grid cannot place a centreline on
+them. With `grid_step: 0.05` and `clearance: 0.14` (the least relaxation that
+routes: 0.145 works, 0.15 does not) the wave routes **11/11 at the full 0.36 mm
+impedance width**. The earlier "11/11 at 0.25 mm" was not reproducible from the
+recorded recipe.
+
+**AND NECK-DOWN IS REFUTED AS THE REMEDY, not merely unconfigured.** Measured:
+`--power-nets 'ANT*' --power-nets-widths 0.36 --neckdown-length 0.3` routes 11/11
+and delivers **149.832 mm of RF copper at 0.25 mm and 0.000 mm at 0.36**. KRT's
+re-widen pass only restores width where the NARROW-PLANNED path has wide
+clearance — which, on a radial star leaving a QFN, it never does. This document
+said otherwise for one day.
+
+**So the ranked remedy is: grid first, then a launch-local scoped clearance,
+then width.** A launch that will not route is three different questions and the
+grid one is free.
 
 **(d) ONE STACKUP MUST HAVE ONE CONSTANT SET.** Two boards on `JLC04161H-7628`
 carried different eps_eff / t_pd / lambda_g because one solved at eps_r 4.3 and
