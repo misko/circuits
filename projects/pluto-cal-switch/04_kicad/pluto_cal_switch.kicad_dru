@@ -17,3 +17,12 @@
 (rule "PWR_width"
   (condition "A.NetClass == 'PWR'")
   (constraint track_width (min 0.4mm)))
+(rule "scoped_taper_u_sw1"
+  (condition "A.insideArea('taper_u_sw1') && (A.NetName == 'RX_PLUTO1')")
+  (constraint track_width (min 0.22mm)))
+(rule "scoped_taper_u_sw2"
+  (condition "A.insideArea('taper_u_sw2') && (A.NetName == 'RX_PLUTO2')")
+  (constraint track_width (min 0.22mm)))
+(rule "scoped_taper_u_mcu"
+  (condition "A.insideArea('taper_u_mcu') && (A.NetName == '3V3' || A.NetName == 'VREG_VOUT' || A.NetName == 'USB_DP_MCU' || A.NetName == 'USB_DM_MCU')")
+  (constraint track_width (min 0.25mm)))

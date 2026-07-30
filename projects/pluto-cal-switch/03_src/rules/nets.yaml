@@ -242,6 +242,247 @@ classes:
 # Default class (0.25 mm): status LEDs and anything else unlisted.
 # GND is pours + stitching on L2/L4 and carries no netclass width.
 
-# NO SCOPED FLOORS, DELIBERATELY. A width relaxation inside a zone would break
-# the impedance of any RF class it touched, and canon M4 requires evidence for
-# one anyway. Declared absent rather than omitted.
+# ===========================================================================
+# scoped_floors — THREE LAND TAPERS. THIS FILE PREVIOUSLY DECLARED "NO SCOPED
+# FLOORS, DELIBERATELY"; THAT SENTENCE WAS RIGHT ABOUT THE REASONING AND WRONG
+# ABOUT THE BOARD, AND THE MEASUREMENT IS WHY.
+# ===========================================================================
+# The old text read: "A width relaxation inside a zone would break the impedance
+# of any RF class it touched, and canon M4 requires evidence for one anyway.
+# Declared absent rather than omitted." Both halves stand — a BROAD relaxation
+# on an RF class IS an impedance defect, and canon M4 does require evidence.
+# What was missing was the evidence, and it arrived at the top of stage 6, before
+# a single track existed, from a question nothing in this pipeline had asked:
+#
+#   FOR EVERY PAD ON A CLASS WITH A WIDTH FLOOR, WHAT IS THE WIDEST TRACK THAT
+#   CAN LAND ON IT AT THIS BOARD'S OWN 0.15 mm CLEARANCE FLOOR?
+#
+# Measured from pad geometry only — 48 approach directions x a 30 um grid of
+# landing points inside each land, every other-net F.Cu pad within 2.5 mm as an
+# obstacle, no router involved. ELEVEN PADS ANSWER "LESS THAN MY OWN CLASS
+# MINIMUM":
+#
+#   pad                 net          class    needs   max landable   short by
+#   U_SW1.5             RX_PLUTO1    RF50     0.350       0.250        0.100
+#   U_SW2.5             RX_PLUTO2    RF50     0.350       0.250        0.100
+#   U_MCU.47            USB_DP_MCU   USB_DP   0.330       0.300        0.030
+#   U_MCU.46            USB_DM_MCU   USB_DP   0.330       0.300        0.030
+#   U_MCU.10/22/26/33   3V3          PWR      0.400       0.300        0.100
+#   U_MCU.23/45/50      VREG_VOUT    PWR      0.400       0.300        0.100
+#
+# and the arithmetic behind the search is one line: for a 0.250 mm land on
+# 0.400 mm pitch the neighbouring land's copper edge sits 0.275 mm from the
+# centre, so w/2 <= 0.275 - 0.150 gives w <= 0.250; for the RP2040's 0.200 mm
+# land on the same pitch it is 0.300 mm, so w <= 0.300.
+#
+# THE PITCH IS THE PART, SO NEITHER ROUTING NOR PLACEMENT CAN FIX IT.
+# U_SW1.5/U_SW2.5 are the BGS12WN6's RFC port — the MIDDLE pad of its second
+# row, with 3V3_SW and RF_CTRL_SW at +-0.400 mm on either side. The RP2040 pins
+# are QFN-56 at 0.400 mm, the same pitch that forced ADR-0010's tier. The pads
+# that are NOT hemmed in need nothing at all: U_SW.1 (LOOP_ARMn_SW), U_SW.3
+# (SWn_ANT) and U_SW.4 all measure 0.460 mm landable, so the two published
+# loopback arms and both antenna runs land at their full 0.35 mm impedance width
+# with 0.200 mm of clearance to spare, and no relaxation touches them.
+#
+# NO GATE ASKED THIS. placement_gates PASSED, tier_preflight is 0 FAIL / 2 WARN,
+# and `escape_check` (D-ESC) models escape as a VIA-RING / outward-pad
+# feasibility question — it never compares a netclass track width against the
+# land the track has to terminate on. Left alone the board would have routed and
+# produced clearance violations that read as ROUTER defects, on a board whose
+# rules were unsatisfiable before the router started.
+#
+# WHY A TAPER IS NOT AN IMPEDANCE DEFECT, WHICH IS THE ONLY REASON THIS IS
+# ALLOWED. The relaxation is bounded in SPACE by a rule area drawn around the
+# land, so the necked copper is at most ~1 mm long. At 6 GHz lambda_g on this
+# stackup is 27.29 mm, so 1 mm is lambda_g/27 and 0.45 mm (what RX_PLUTOn
+# actually needs) is lambda_g/61 — a discontinuity that short is a lumped
+# reactance, not a transmission line, and the reflection it causes is far below
+# the 0.4 dB the SMA launch itself contributes. The alternative — widening the
+# LAND, or narrowing the whole RF class to 0.25 mm (about 63 ohm on this
+# stackup) — would be the real impedance defect. This is the standard fine-pitch
+# answer, written down and machine-checked instead of left to the router.
+#
+# WHY THE PWR RELAXATION IS NOT AN AMPACITY DEFECT. This file's own PWR block
+# says 0.4 mm "is far above the ampacity need — it is chosen for IR drop and
+# robustness", against a DESIGN ENVELOPE of 0.10 A. At 0.25 mm on 1 oz copper
+# IPC-2152 gives well over 1 A for a 10 degC rise, and the necked length is
+# under 1 mm, so the added IR drop is microvolts. A-AMP grades the CLASS, which
+# is unchanged at 0.4 mm.
+#
+# EACH FLOOR IS SET BELOW THE MEASURED MAXIMUM, NOT AT IT, so the number is not
+# riding on the grid search's resolution: 0.22 against a 0.250 ceiling
+# (0.165 mm realized clearance) and 0.25 against a 0.300 ceiling (0.175 mm).
+# Both are far above jlc_4layer_advanced's 0.127 mm min_track, which
+# generate_rules_generic checks independently and would refuse.
+scoped_floors:
+  - zone: taper_u_sw1
+    nets: [RX_PLUTO1]
+    min_width: 0.22
+    why: >
+      MEASURED 2026-07-29 on the placed board: the widest track that can land on
+      U_SW1.5 (BGS12WN6 RFC, the middle pad of the 0.400 mm second row, between
+      3V3_SW on pad 4 and RF_CTRL_SW1 on pad 6) at the 0.15 mm clearance floor is
+      0.250 mm, against this net's RF50 minimum of 0.350 mm. Exactly: the
+      neighbouring 0.250 mm land's copper edge is 0.275 mm from the RFC land
+      centre, so w <= 2*(0.275-0.150) = 0.250. 0.22 mm realizes 0.165 mm of
+      clearance. The neck runs 0.45 mm — lambda_g/61 at 6 GHz on JLC04161H-7628
+      (lambda_g 27.29 mm) — and the line is back at its 0.35 mm impedance width
+      for the remaining 8.55 mm to J_SMA_RX1. Not a placement finding: the pitch
+      is the part.
+  - zone: taper_u_sw2
+    nets: [RX_PLUTO2]
+    min_width: 0.22
+    why: >
+      The arm-2 twin of taper_u_sw1, MEASURED INDEPENDENTLY rather than inherited
+      (canon: a waiver copied from a sibling is an inherited defect). U_SW2.5
+      measures the same 0.250 mm landable maximum against the same 0.350 mm RF50
+      floor, and U_SW2 is U_SW1 translated by exactly +14.500 mm at identical
+      rotation, so the two necks are congruent and the taper is common-mode
+      between the two receive channels rather than a new asymmetry.
+  - zone: taper_u_mcu
+    nets: [3V3, VREG_VOUT, USB_DP_MCU, USB_DM_MCU]
+    min_width: 0.25
+    why: >
+      MEASURED 2026-07-29: nine RP2040 QFN-56 pads cannot accept their own class
+      minimum at the 0.15 mm floor — 3V3 on pins 10/22/26/33 and VREG_VOUT on
+      23/45/50 need 0.400 mm (PWR) and USB_DP_MCU/USB_DM_MCU on 47/46 need
+      0.330 mm (USB_DP), against a landable maximum of 0.300 mm on every one of
+      them (0.200 mm land on 0.400 mm pitch: w <= 2*(0.300-0.150)). 0.25 mm
+      realizes 0.175 mm. Bounded to U_MCU's own escape field (the pad ring
+      +~1.1 mm) so no trunk is relaxed: PWR's 0.4 mm is an IR-drop choice against
+      a 0.10 A envelope, not an ampacity one (this file's PWR block says so), and
+      0.25 mm on 1 oz copper carries over 1 A at a 10 degC rise, so a sub-1 mm
+      neck costs microvolts. On the USB pair the width is not even required —
+      the pair's own intent block records that full speed needs no controlled
+      impedance over a run this short and that 0.33 mm was taken because the
+      stackup gave it for free; a 0.25 mm neck at the die end is free too.
+
+# ===========================================================================
+# length_match — canon R-LEN. THE ONLY PLACE THIS BOARD'S RELEASE ARTIFACT IS
+# GRADED ON COPPER.
+# ===========================================================================
+# AUTHORED 2026-07-29, AT THE TOP OF STAGE 6, BEFORE ANY TRACK EXISTED — and
+# that order is the point. Without this block `copper_length_audit.py` reports
+# `R-LEN-UNREACHED`, which is honest but means the board could be routed and
+# then have no gate at all on the one property it exists to publish (ADR-0011,
+# BRIEF D4). The netclass RF_LOOP_MATCH above makes the pair visible to the
+# ROUTER; this block makes the pair visible to a GATE, measured off the shipped
+# `.kicad_pcb`. They are not the same job: a netclass constrains WIDTH, and
+# phase is a property of LENGTH.
+#
+# WHY THIS BOARD'S OWN AUDIT WAS NOT ALREADY ENOUGH. `03_src/audit_board.py`
+# publishes A-SYM at PASS — "11 arm pairs, exact translation, worst error
+# 0.0 um" — from footprint `GetPosition()`, and A-SEG sums PAD-TO-PAD straight
+# lines. Both are PLACEMENT metrics wearing electrical names. Two
+# mirror-perfect placements joined by two differently-meandered traces have
+# identical A-SYM and different phase, and KRT is stochastic by contract.
+#
+# THE TWO NUMBERS BELOW HAVE DIFFERENT JOBS AND CONFLATING THEM IS THE WHOLE
+# JUDGEMENT:
+#   * `max_spread_mm` is a DRIFT ceiling, DERIVED not chosen. The static delta
+#     is calibrated out in software (ADR-0011: "as long as distance is
+#     precisely known it will be software offset"); what is NOT calibrated out
+#     is how the delta MOVES with temperature, and that term scales with the
+#     length DIFFERENCE: dtau = TC*dT*dL*t_pd. At the estimated +100 ppm/degC
+#     for FR-4 over 40 degC, dL = 1 mm drifts 0.024 ps = 0.05 deg at 6 GHz,
+#     while dL = 20 mm (a naive rectangular fan-out) drifts 1.05 deg — the size
+#     of a whole phase budget. 1.0 mm is therefore the defensible ceiling, and
+#     it is also ~1x the BGS12WN6-class part-to-part insertion-phase window
+#     (13.2 deg at 6 GHz = 1.00 mm of copper), so matching tighter than this
+#     buys a quantity that cannot be distinguished from the switch we bought.
+#   * `pin:` is the REPRODUCIBILITY check and it is the one that guards the
+#     release. It records the spread the published artifact CLAIMS and FAILS
+#     when the copper moves off it, because a re-route silently turns every
+#     published picosecond into fiction.
+#
+# THE PIN IS 0.000 mm AND IT IS NOT A HOPE — IT IS AN ARITHMETIC CONSEQUENCE
+# OF HOW THE ARM COPPER IS GENERATED. `03_src/arm_copper.py` routes arm 1 and
+# emits arm 2 as arm 1 REFLECTED ABOUT y = 55.000 mm, in integer nanometres
+# (y' = 110000000 - y), so the two arms are congruent by construction and the
+# spread is exactly zero, not approximately zero. A reflection is an isometry;
+# the transform cannot change a length.
+#
+# **THE TRANSFORM IS A REFLECTION, NOT THE "+14.5 mm TRANSLATION" A-SYM
+# REPORTS, AND THE DIFFERENCE IS MEASURED.** A-SYM's translation is true for
+# every arm part sitting at y = 47.750 / 62.250 — but only because
+# 62.250 = 2*55.000 - 47.750, i.e. for THOSE parts the two maps coincide. The
+# splitter resistors are not at those y's and there the maps disagree:
+#   LOOP_ARM1  R_DELTA1.2 (64.000, 53.670)   R_DELTA3.1 (62.400, 54.550)
+#   LOOP_ARM2  R_DELTA2.2 (64.000, 56.330)   R_DELTA3.2 (62.400, 55.450)
+# +14.5 sends 53.670 -> 68.170, where there is no pad. y -> 110.0 - y sends
+# 53.670 -> 56.330 and 54.550 -> 55.450, EXACTLY, and maps all 11 arm-net pads
+# onto their partners at 0.000 mm. ADR-0011's own words are "mirror images
+# about the splitter axis". Generating arm 2 by the translation A-SYM published
+# would have missed arm 2 entirely.
+#
+# `tol_mm` IS 0.010, TIGHTER THAN THE 0.05 THE CANON ROW SUGGESTS, AND THE
+# REASON IS THAT IT IS NOT A PHYSICS TOLERANCE. A tolerance tighter than
+# ~0.5 mm would be meaningless as a MATCHING target: etch tolerance moves trace
+# WIDTH (impedance), not centreline length, and the fab length terms — outline
+# route +-0.2 mm, Dk spread +-1.7% on t_pd — are COMMON MODE across two arms
+# cut by one tool path on one panel. But the pin does not grade the process; it
+# grades whether the FILE still has the property the release published, and
+# copper length in a `.kicad_pcb` is exact to the nanometre and free to check.
+# 0.010 mm = 0.13 deg at 6 GHz is 10x the reader-vs-pcbnew agreement floor
+# (1 um) and small enough that ANY re-route which abandons the reflection —
+# which would move the spread by whole millimetres — trips it immediately.
+#
+# WHAT THE ABSOLUTE PER-ARM NUMBER INCLUDES, STATED SO IT IS NOT A SURPRISE:
+# LOOP_ARMn is a THREE-pad net, because R_DELTA3 (the delta's bridge leg,
+# ADR-0003) lands on it. Its tap is real copper on a member net and is counted.
+# It is laid as a DAISY CHAIN terminating on the R_DELTA1.2 / R_DELTA2.2 land
+# (R_DELTA3.n -> R_DELTAn.2 -> U_PAD_A2x1.2) so the copper graph has ZERO
+# branch vertices and `topology: chain` is satisfiable — a T here would make
+# the group R-LEN-UNREACHED, which is the correct verdict for an ambiguous
+# number and not one worth earning. The tap is mirror-symmetric, so it cancels
+# in the delta exactly as the pad-entry term does.
+length_match:
+  RF_LOOP_D4:
+    adr: "0011"          # QUOTED: bare 0011 is OCTAL 9 in YAML 1.1, and the
+                        # gate then prints "ADR-9". The schema in
+                        # copper_length_audit.py --schema shows it unquoted.
+    intent: >
+      The two loopback arms are the board's RELEASE ARTIFACT: BRIEF D4 ships
+      the routed electrical length per arm and the arm-to-arm delta, converted
+      to picoseconds at a constant pinned to the ordered stackup, so the
+      Pluto's AoA calibration can software-offset a KNOWN number. What the
+      match buys is therefore not accuracy but CALIBRATABILITY — an unpublished
+      delta is exactly the error this board exists to remove. Graded across the
+      WHOLE run from the splitter's series resistor to the switch RF2 pin,
+      because the 11.9 dB arm attenuator is TWO chips and each series part
+      splits the run into another net.
+    members:
+      ARM1: [LOOP_ARM1, PAD_A2A_1, LOOP_ARM1_SW]
+      ARM2: [LOOP_ARM2, PAD_A2B_1, LOOP_ARM2_SW]
+    topology: chain
+    congruent_pads: true
+    # EARNED, not asserted: the reflection y -> 110.0 - y maps all 11 arm-net
+    # pads onto their partners at 0.000 mm (audit_board A-SYM measures the
+    # footprint side of the same fact), the parts are the same MPNs from the
+    # same reel, and the two arm attenuator chips are at IDENTICAL rotation as
+    # ADR-0011 sec.3 requires. So the unmeasured pad-entry copper is the same
+    # length on both members and cancels in the delta.
+    no_vias: true
+    # ADR-0011's "no vias in either arm, no layer changes" made executable.
+    # MEASURED 2026-07-29: this is the ONLY place that intent is graded
+    # anywhere — route.yaml and route_and_stitch_generic.py have no per-net via
+    # ban, only a per-WAVE `layers:` restriction that nothing re-checks. One
+    # via on one arm is a pure DIFFERENTIAL error on a published delta.
+    max_spread_mm: 1.0
+    pin:
+      spread_mm: 0.000
+      tol_mm: 0.010
+      measured_on: stage-6 route, pre-release (no version sealed yet)
+    phase:
+      # ADR-0011 pins 6.0 ps/mm; the canon R-LEN row re-derives 6.105 ps/mm
+      # from this same stackup (eps_eff 3.350 at w/h = 1.711) and the two agree
+      # within 2%. The gate's own constant is 6.105, so this block states the
+      # ADR's number for traceability rather than to override anything — and
+      # because the spread is 0.000 the two constants give the same answer.
+      t_pd_ps_per_mm: 6.0
+      f_ghz: 6.0
+      stackup: JLC04161H-7628
+    # NO `stackup_mm:` DELIBERATELY. It exists only to price via barrels, and
+    # `no_vias: true` means a via here is a FAIL, not a length to price.
+    # Declaring it would create a path on which a via could be silently costed
+    # instead of refused.

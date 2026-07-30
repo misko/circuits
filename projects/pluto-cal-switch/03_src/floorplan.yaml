@@ -465,6 +465,71 @@ zones:
   - {net: 3V3, layers: [In2.Cu], region: digital, priority: 2, min_thickness: 0.3, clearance: 0.3, connect: solid}
   - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
 
+# ===========================================================================
+# keepouts — THREE PERMISSIVE RULE AREAS. `deny: []` — THEY FORBID NOTHING.
+# ===========================================================================
+# The `zones:` comment above says "`keepouts:` is absent from this file on
+# purpose", and for TRUE keepouts that is still exactly right: nothing may
+# interrupt In1.Cu, and none of these three touches an inner layer. These are
+# the OTHER documented use of the key (generate_board_generic.add_keepouts
+# docstring): a NAMED-BUT-PERMISSIVE area that exists only so
+# `generate_rules_generic` can scope a `.kicad_dru` rule to
+# `insideArea('<name>')`. Precedent: cook-hub's `u7_taps`, usb-power-3s's
+# `SW_TAP_A/B`. A-PLANE still measures In1.Cu = 1 pour / 0 keepouts.
+#
+# WHY THEY EXIST, MEASURED AT THE TOP OF STAGE 6 AND NOT PREDICTED BY ANY GATE.
+# I measured, for every pad on a class with a width floor, the WIDEST TRACK THAT
+# CAN LAND ON IT at this board's own 0.15 mm clearance floor (pad geometry only,
+# 48 approach directions x a 30 um grid of landing points inside each land).
+# ELEVEN PADS CANNOT ACCEPT THEIR OWN NETCLASS MINIMUM:
+#
+#   pad          net           class     needs   max landable   short by
+#   U_SW1.5      RX_PLUTO1     RF50      0.350       0.250        0.100
+#   U_SW2.5      RX_PLUTO2     RF50      0.350       0.250        0.100
+#   U_MCU.47     USB_DP_MCU    USB_DP    0.330       0.300        0.030
+#   U_MCU.46     USB_DM_MCU    USB_DP    0.330       0.300        0.030
+#   U_MCU.10/22/26/33   3V3    PWR       0.400       0.300        0.100
+#   U_MCU.23/45/50 VREG_VOUT   PWR       0.400       0.300        0.100
+#
+# (the two figures per row are the grid search's answer and the exact
+# arithmetic: for a 0.250 mm land on 0.400 mm pitch the neighbour's copper edge
+# is 0.275 mm from the land centre, so w/2 <= 0.275 - 0.150 gives w <= 0.250;
+# for the RP2040's 0.200 mm land on 0.400 mm pitch it is 0.300 mm, w <= 0.300.)
+#
+# THIS IS NOT A ROUTING PROBLEM AND NO PLACEMENT CHANGE FIXES IT: the pitch is
+# the part. U_SW1.5/U_SW2.5 are the BGS12WN6's RFC port, the MIDDLE pad of its
+# second row, hemmed by 3V3_SW and RF_CTRL_SW at +-0.400 mm; the RP2040 pins are
+# the QFN-56's 0.400 mm pitch. The corner and end pads (U_SW.1, U_SW.3, U_SW.4)
+# measure 0.460 mm landable and need nothing.
+#
+# NOTHING IN THE PIPELINE ASKED THIS QUESTION. placement_gates PASSED,
+# tier_preflight is 0 FAIL, and `escape_check` models the escape as a VIA-RING /
+# outward-pad feasibility question — it never compares a netclass track width to
+# the land it has to terminate on. So the board would have routed and produced
+# clearance violations that read as router defects.
+#
+# The fix is the standard RF/fine-pitch answer — TAPER AT THE LAND — made
+# machine-checkable: these areas + `scoped_floors:` in `03_src/rules/nets.yaml`,
+# which emits `insideArea` width relaxations AFTER the netclass rules so KiCad
+# last-match precedence lets them win ONLY here and ONLY for the named nets.
+# The evidence and the impedance argument live at that block.
+keepouts:
+  # The BGS12WN6 RFC escape. Covers the neck from U_SW1.5 (52.750, 48.150)
+  # southward until a full-width 0.35 mm line is legal again (y >= 48.45 by the
+  # corner arithmetic), with margin. Deliberately does NOT reach y = 47.750,
+  # where U_SW1.1/U_SW1.3 sit and where nothing needs relaxing.
+  - {rect: [52.00, 47.98, 53.50, 49.20], layers: [F.Cu], name: taper_u_sw1, deny: []}
+  - {rect: [52.00, 62.48, 53.50, 63.70], layers: [F.Cu], name: taper_u_sw2, deny: []}
+  # The RP2040 escape ring. The pad ring is x 106.125..113.875, y 34.125..41.875;
+  # this is that box + ~1.1 mm on every side, wider than any neck needs. It
+  # contains no other WHOLE footprint; it clips the near pads of the 3V3 /
+  # VREG_VOUT decoupling caps that hug the MCU (C_IO1/C_IO2 at x 104.6,
+  # C_DV1/C_IO3 at y 43.4), and those pads are on the very nets being relaxed —
+  # they are the far end of the same escape. One rect rather than four side
+  # strips because the honest statement is "inside the RP2040's own escape field
+  # there is no trunk, only taps".
+  - {rect: [104.80, 33.00, 115.20, 43.00], layers: [F.Cu], name: taper_u_mcu, deny: []}
+
 silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
