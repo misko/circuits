@@ -1,5 +1,6 @@
-# pluto-rx2-8way — policy_audit waivers. FIRST waivers on this board, all
-# three written at the PLACEMENT gate, 2026-07-28.
+# pluto-rx2-8way — policy_audit waivers. Written at the PLACEMENT gate
+# 2026-07-28, rewritten 2026-07-29 when three gate fixes changed WHAT IS
+# MEASURED without changing a single track or pad.
 #
 # THE RULE THIS FILE IS HELD TO (repo CLAUDE.md): "Waivers need evidence, not
 # rationale. A waiver copied from another board is not a judgement — it is an
@@ -7,142 +8,192 @@
 # number the gate itself printed, and every entry says what the property WOULD
 # have to be for the waiver to become unnecessary.
 #
+# ============================================================================
+# THE P-ADJ WAIVER IS RETIRED. IT WAS THREE-QUARTERS ARGUMENT FOR A FIX THAT
+# HAS NOW LANDED, WHICH IS NOT A JUDGEMENT ANY MORE.
+# ============================================================================
+# It carried three exceeding budgets and, in its own closing paragraph, asked
+# for exactly the change that arrived on 2026-07-29: "the budget would be
+# gradeable as written if keep_short could name pins rather than a net".
+# P-ADJ now grades the ANCHOR PIN of the DECLARING part against its nearest
+# qualifying partner, and all three entries dissolved rather than moved:
+#   * RP2040 `DVDD_1V1 <= 10 mm` — was 13.167 mm as a whole-net maximum
+#     (U_MCU.23 -> C_VREG_OUT.1, a pair the sentence is not about). The anchor
+#     metric reads 8.787 mm (U_MCU.23 -> C_MCU7.1): PASS, and it NAMES the
+#     tight pair instead of burying it under a board-scale number. Nothing was
+#     re-placed for this; the same copper now grades correctly.
+#   * PE42482A-X `SW_V4 <= 4 mm` — was 21.64 mm because R_S4, the source
+#     termination ADR-0005 deliberately puts at the DRIVER end, is the third
+#     pad on the net. Now 3.057 mm (U_SW.12 -> R_PD4.1): PASS. The topology the
+#     board's own ADR chose is no longer scored as a placement error.
+#   * ABM8-272-T3 `GND <= 3 mm` — was 67.24 mm, which was the BOARD DIAGONAL.
+#     The anchor metric read 3.233 mm (Y_XTAL.4 -> C_XTAL1.2), a real 0.233 mm
+#     miss of a real property, and THAT WAS FIXED IN COPPER rather than waived:
+#     both load capacitors were rotated 180 degrees so their GND pad faces the
+#     can instead of their live pad, and the pair now measures 2.457 mm
+#     (Y_XTAL.4 -> C_XTAL1.2) and 2.291 mm (Y_XTAL.2 -> C_XTAL2.2). The cost is
+#     stated in 03_src/floorplan.yaml: the live legs lengthen 1.821 -> 2.780 mm
+#     (XIN) and 2.011 -> 2.915 mm (XOUT_XTAL), which is +0.153 pF total against
+#     the part.yaml's own 3 pF stray allowance, while the ground return that the
+#     same sentence says is IN the oscillator loop shortens by 0.78/0.85 mm.
+#   P-ADJ is now PASS: 30 of 36 declared keep_short budgets graded, 0 exceeded,
+#   tightest margin +0.161 mm (QSPI_SD2, U_MCU.54 -> U_FLASH.3, 11.839 of 12.0).
+#
+# P-ADJ-PAIR NEEDS NO WAIVER EITHER, AND IT IS THE ONE HONEST NEW RED THIS
+# ROUND. `layout.adjacency` had been in the 02_parts contract, in the
+# part.yaml files, and READ BY NOTHING; graded for the first time it reported
+# MCP1755S-3302E-DB U_LDO~C_LDO at 4.879 mm and U_LDO~C_LDI at 10.781 mm of
+# copper gap against the 3 mm its own datasheet sec 4.3/4.4 asks for. NOT
+# waived, because the cause was an ORIENTATION and not a shortage of room:
+# U_LDO sat at rotation 0, pointing pins 1/2/3 at a board edge 1.29 mm away, so
+# no capacitor could ever be placed at VIN or VOUT. Rotation 180 turns the pin
+# row inboard and the two gaps become 0.860 mm and 1.200 mm. P-ADJ-PAIR is now
+# PASS, 7/7 graded, tightest +0.311 mm (J_USB~U_ESD on USB_DM, 1.689 of 2.0).
+# INDEPENDENT CONFIRMATION WORTH RECORDING (canon M1): that 1.689 mm is the
+# same number this board's own 03_src/audit_board.py hand-measures for the D+/D-
+# pair, reached by a different method in a different script — so ST DocID11265
+# sec 2.2's 6 nH/10 mm -> 305 V clamp-overshoot hazard is closed by two lenses.
+#
 # WHAT IS DELIBERATELY *NOT* WAIVED, so the absence is a decision and not an
 # oversight: R-DRC (4 violations / 99 unconnected / 0 parity) and R-THERM
 # (U_LDO.4, U_SW.25, U_MCU.57 with zero thermal vias) are STRUCTURAL FAILS —
 # there are no tracks and no stitch vias on this board yet, because stage 5
-# stops before routing. They are the exact analogue of E-INV being the one
-# FAIL at stage 3 (it could not run before a netlist existed) and they close
-# when stage 6 routes and stitches. Waiving a gate because its stage has not
-# run yet would be the worst thing in this file.
-#
-# THOSE R-DRC NUMBERS WERE 24 / 100 / 12 WHEN THIS FILE WAS WRITTEN, and three
-# of the four classes behind them were NOT structural at all — they were
-# authoring defects hiding behind a fail the reader had been told to expect.
-# Re-measured and fixed 2026-07-29, each with its cause:
-#   * 12 parity `footprint_symbol_field_mismatch` -> 0. The three AUTHORED
-#     footprints set `Datasheet` and `Description` properties; the converter's
-#     symbols carry neither, so KiCad compared a citation against "". Both
-#     properties are now empty in the .kicad_mod and the citation lives where it
-#     always belonged, in the footprint's own `descr` — which parity does not
-#     compare and which is the field a human reads in the library browser.
-#     NOTHING was lost: the SMA descr still names "drawing sheet 2/2 dated
-#     2021.08.10" and the vendor derivation in full.
-#   * 7 `text_thickness` (0.1125 actual vs a 0.15 board minimum) -> 0. The
-#     board was generated on 2026-07-28, BEFORE fab_tiers.yaml's
-#     `min_silk_stroke` moved 0.15 -> 0.1125 on 2026-07-29 to stop declaring an
-#     unsatisfiable pair. Regenerating from unchanged source cleared all seven:
-#     the defect was a stale generated artifact, not a placement.
-#   * 2 `silk_edge_clearance` -> 0. J_USB's authored footprint drew its flank
-#     silk to local y +3.9 and a cross line at +3.9, but the board edge is at
-#     local +3.19, so 0.71 mm of silk was OFF THE BOARD. The flanks now stop at
-#     +2.95 and the cross line is DELETED rather than moved inboard — moving it
-#     would draw a line where the connector body does not end, and an assembler
-#     aligning to it would misplace the part. The mouth overhangs on purpose.
-#   * 15 `starved_thermal` -> 4, by pad-level `zone_connection: full` on the
-#     GND pads of U_SW, J_USB and U_MCU. Three of the fifteen were "1 spokes
-#     connected to isolated island", i.e. a GND pad on the RF switch whose only
-#     spoke did not reach the pour. The reasoning and the four DELIBERATELY
-#     left starved are in 03_src/floorplan.yaml placement.patterns.
-# What remains in R-DRC is 99 unconnected (there are no tracks) and those 4.
-
-- id: P-ADJ
-  refs: [Y_XTAL, R_PD4, R_S4, U_SW, C_VREG_OUT, C_MCU7]
-  why: >
-    THREE budgets exceed, not the two this waiver claimed when it was written.
-    (3) BELOW IS A RETRACTION: this file previously stated that RP2040's
-    DVDD_1V1 budget was "fixed rather than waived ... MEASURED 8.84 mm on the
-    placed board (U_MCU.23 to C_MCU8.1)" and therefore PASSING. THAT CLAIM WAS
-    FALSE and it was false in the way this repo's own rules name: it measured a
-    pad pair it CHOSE instead of the pair P-ADJ measures. The net has SIX pads,
-    not five — C_VREG_OUT.1 is on DVDD_1V1 and was omitted. Re-measured
-    2026-07-29 straight off the board: worst pair U_MCU.23 (45.400, 69.5625) ->
-    C_VREG_OUT.1 (35.825, 78.600) = 13.167 mm against the 10 mm budget. P-ADJ
-    reports it as EXCEEDED and always did; the waiver, not the gate, was wrong.
-    THE THREE MEASUREMENTS THAT MATTER, none of which the whole-net metric shows:
-      * pin 45 (VREG_VOUT) -> pins 23 / 50 (DVDD), which is the link the RP2040
-        sentence behind this budget is actually about: 6.98 / 6.93 mm — INSIDE
-        the 10 mm.
-      * the two 100 nF on DVDD_1V1: C_MCU7.1 at 1.11 mm and C_MCU8.1 at 3.90 mm
-        from the pins they decouple. The HF return is short.
-      * the MANDATORY 1 uF (RP2040 sec 2.10.1, PDF p157): C_VREG_OUT.1 sits
-        8.65 mm from pin 45, and C_VREG_IN.1 7.98 mm from pin 44. THAT is the
-        real weakness on this net and it is not hidden here.
-    WHAT WAS TRIED, because "no room" is a claim and this one was measured: an
-    exhaustive 0.1 mm-grid search of the whole digital strip (33..58 x 68..88 mm)
-    for a legal 0603 courtyard at 0.25 mm clearance found the best position for
-    C_VREG_OUT at (49.50, 79.70) — 6.22 mm from pin 45, a 1.68 mm gain, which
-    still leaves the net span at 10.67 mm and routes the 1.1 V reservoir the
-    long way around C_MCU8 and R_USB1. The only placement that puts the 1 uF AT
-    the pin is to swap it with C_MCU7, and that is geometrically impossible: the
-    sub-MCU row holds EIGHT parts at 2.2 mm pitch in a 1.92 mm-tall band, a
-    0603 needs 3.26 mm of x with clearance, and the largest gap is 2.20 mm.
-    Shifting C_VREG_IN alone to its best spot (37.70, 76.40; 6.10 mm, a 1.10 mm
-    gain) leaves 0.19 mm to C_VREG_OUT, under the legalizer's own 0.25 mm.
-    So the placement is at a local optimum and is NOT churned for 1.7 mm.
-    STAGE-6 OBLIGATION, carried in CHECKLIST section D rather than absorbed
-    here: DVDD_1V1 from pin 45 to C_VREG_OUT is routed as a direct wide trace,
-    not a daisy chain through the decoupling row.
-    THE STRUCTURAL POINT, handed up as a proposed skill change and not made
-    here: P-ADJ grades a datasheet sentence about ONE PIN PAIR by taking the
-    max pad pair over the WHOLE net, so adding a correctly-placed bulk capacitor
-    to a net makes the budget worse. The budget would be gradeable as written if
-    keep_short could name pins (`U_MCU.45 -> U_MCU.23`) rather than a net.
-
-    (1) and (2) below are STRUCTURALLY UNSATISFIABLE, both measured.
-    (1) ABM8-272-T3 `GND <= 3 mm`, measured span 67.24 mm. GND on this board is
-    a four-layer pour (F/In1/In2/B) with 100+ pads spread over 50 x 71 mm, so
-    its board-wide max pad-pair distance is a property of the BOARD SIZE, not
-    of the crystal. The budget's own `why` field already says so in the
-    part.yaml ("this budget is graded by NOTHING ... it is discharged
-    geometrically at placement"). What the crystal actually needs is that
-    each of its two GND pads takes its OWN via to the L2 plane AT the pad,
-    which is a stage-6 stitch obligation carried in CHECKLIST section D, not a
-    net span. The waiver would become unnecessary if P-ADJ skipped nets that
-    carry a plane/pour class, which is a SKILL change proposed rather than
-    made here.
-    (2) PE42482A-X `SW_V4 <= 4 mm`, measured span 21.64 mm. The budget is
-    written about the PULL-DOWN ("the resistor belongs at the pad, not at the
-    PIO end") and R_PD4 IS at the pad: MEASURED 2.53 mm from its pad 1 to
-    U_SW pin 12, inside the 4 mm the sentence means. What blows the span is
-    the THIRD pad on the net, R_S4 — the 47 R source termination that
-    ADR-0005 deliberately places at the DRIVER end, 21 mm away at the RP2040.
-    P-ADJ measures the whole net's worst pad PAIR, so the budget as written
-    grades a topology this board's own ADR chose. Splitting the net at the
-    termination (SEL_V4 / SW_V4 already exist as separate nets elsewhere in
-    this design) would make it gradeable, and that is a schematic change, not
-    a placement one.
+# stops before routing. They close when stage 6 routes and stitches. Waiving a
+# gate because its stage has not run yet would be the worst thing in this file.
+# (Those R-DRC numbers were 24 / 100 / 12 when this file was first written and
+# three of the four classes behind them were authoring defects hiding behind a
+# fail the reader had been told to expect: 12 parity -> 0 by clearing Datasheet
+# and Description properties in the three AUTHORED .kicad_mod, whose citations
+# live in each footprint's `descr` where parity does not compare them; 7
+# text_thickness -> 0 by REGENERATION ALONE, a stale artifact from before
+# fab_tiers' min_silk_stroke moved 0.15 -> 0.1125; 2 silk_edge_clearance -> 0 by
+# trimming J_USB's flank silk to local +2.95 and DELETING the cross line rather
+# than moving it inboard, because a line drawn where the body does not end
+# misplaces the part it is meant to align; 15 starved_thermal -> 4 by pad-level
+# zone_connection: full on the GND pads of U_SW / J_USB / U_MCU.)
 
 - id: P-ADJ-UNREACHED
-  refs: [KH-SMA-KE-Z, PE42482A-X]
+  refs: [ABM8-272-T3, KH-SMA-KE-Z, MCP1755S-3302E-DB, PE42482A-X, USBLC6-2SC6]
   why: >
-    THREE of the four budgets P-ADJ could not reach are net names that do not
-    and cannot name a two-pad net on this board; the FOURTH was made GRADEABLE
-    rather than waived (RP2040's `DVDD` renamed to this board's actual net
-    `DVDD_1V1`). CORRECTION 2026-07-29: this entry claimed the rename made it
-    PASS "at 8.84 mm against 10". It does not — it EXCEEDS, at 13.167 mm, and
-    the P-ADJ waiver above carries the retraction and the real measurements.
-    The rename was still the right call: it converted a silent skip into a
-    live, honest FAIL. Turning an UNREACHED budget into a graded one is not
-    justified by the answer coming out green, and this entry should never have
-    said it did. The three that remain, each with the hand measurement that
-    replaces the ungraded budget:
-    (a) KH-SMA-KE-Z `RF_ANT_LAUNCH <= 3 mm` — a GENERIC name from the dossier,
-    not a board net. Its real subjects are the ten launches, and they are
-    graded by 03_src/audit_board.py I2 (all ten centre pins carry the
-    >= D3.5 mm antipad override) and I3 (nine radial arms, pad-to-pad
-    17.778..18.102 mm).
-    (b) PE42482A-X `SW_VDD <= 3 mm` — pin 8 sits on the GLOBAL 3V3 net (there
-    is no series element to make a second node), so the budget would grade the
-    whole rail. MEASURED by hand instead: C_SW1 pad 1 to U_SW pin 8 = 2.62 mm,
-    inside the 3 mm the datasheet sentence means.
-    (c) PE42482A-X `SW_LS <= 2 mm` — LS is tied to GND by ADR-0005, so there
-    is no LS node at all. The real obligation is a ground via within 0.5 mm of
-    the pin-1 pad centre, which is stage-6 stitch work and is a CHECKLIST
-    section D line.
-    All three become gradeable only if the part.yaml budgets are rewritten
-    against BOARD nets, which for (b) and (c) would convert a silent skip into
-    a guaranteed FAIL against a plane — worse, not better.
+    SIX of the 43 declared layout budgets are graded by NOTHING, and THREE of
+    the six are NEW to this round — they used to be graded off OTHER PARTS'
+    PADS ENTIRELY, which is worse than ungraded because it looked covered. Each
+    one below carries the hand measurement that replaces the ungraded budget,
+    and each says why no automatic anchor exists. The new optional
+    `anchor_pins:` key CANNOT rescue any of the six: it filters among the pads
+    the declaring part already has ON the named net, and in every case here the
+    declaring part has NO pad on that net at all (or the net has no pads).
+    AND THE LINE THIS ENTRY WILL NOT CROSS: for (d), (e) and (f) there IS a
+    board net whose name would make the budget graded and passing. Re-pointing
+    a budget at a net that makes it pass is not a fix, it is the thing this row
+    exists to catch, so the names are left alone and the substance is measured
+    by hand here instead.
+
+    (a) KH-SMA-KE-Z `RF_ANT_LAUNCH <= 3 mm` — a GENERIC name from the dossier's
+    reference design, not a board net: 0 pads carry it. Its real subjects are
+    the ten launches, and they are graded by 03_src/audit_board.py I2 (all ten
+    SMA centre pins carry the >= D3.5 mm L2 antipad override) and I3 (nine
+    radial arms, pad-to-pad 17.778..18.102 mm, spread 0.324 mm). UNCHANGED
+    from 2026-07-28 and re-verified today.
+
+    (b) PE42482A-X `SW_VDD <= 3 mm` — pin 8 sits on the GLOBAL 3V3 net (no
+    series element makes a second node), so the budget as written would grade
+    the whole rail. HAND MEASURED, AND THE PREVIOUS REVISION OF THIS ENTRY WAS
+    WRONG: it claimed "C_SW1 pad 1 to U_SW pin 8 = 2.62 mm, inside the 3 mm".
+    That number does not reproduce at any measure — the pair was 3.085 mm
+    centre-to-centre and 2.375 mm of copper gap, i.e. under P-ADJ's own
+    measure (pad centre to pad centre) it EXCEEDED the datasheet's 3 mm by
+    0.085 mm while this file asserted it passed. So C_SW1 MOVED, x 44.0 ->
+    44.7, and it now measures 2.873 mm centre-to-centre. The limit on going
+    closer is R_PD4's courtyard at x 45.485 (0.28 mm of clearance left against
+    the 0.25 legalizer floor) and the 1.5 mm escape corridor above, which ends
+    at y 49.995 and leaves C_SW1's courtyard 0.25 mm of headroom.
+
+    (c) PE42482A-X `SW_LS <= 2 mm` — LS is tied to GND by ADR-0005, so there is
+    no LS node on this board at all (U_SW.1 is on GND, confirmed off the
+    netlist). The real obligation is a ground via within 0.5 mm of the pin-1 pad
+    centre, which is stage-6 stitch work and is a CHECKLIST section D line. A
+    budget rewritten against GND would grade a four-layer pour, which is worse
+    than ungraded, not better.
+
+    (d) NEW — ABM8-272-T3 `XOUT <= 6 mm`: Y_XTAL carries NO pad on `XOUT`.
+    R_XTAL, the 1 kohm damping resistor the RP2040 hardware-design guide's
+    Figure 8 requires, splits the node in two: `XOUT` is the MCU side and
+    `XOUT_XTAL` is the crystal side. THE PART.YAML PREDICTED THIS IN WRITING on
+    2026-07-28 — "once R_XTAL exists there are TWO nets here ... whichever of
+    the two keeps that name, the OTHER one inherits this same 6 mm budget and
+    currently has nowhere to be declared" — and the whole-net metric graded it
+    anyway, off pads belonging to other parts. HAND MEASURED, both legs,
+    because the budget's subject is the whole XOUT path: MCU leg U_MCU.21 ->
+    R_XTAL.1 = 3.062 mm (this one IS graded, under RP2040:XOUT), crystal leg
+    Y_XTAL.3 -> R_XTAL.2 = 3.618 mm, and the load capacitor on the crystal side
+    (which is where Figure 8 puts it) C_XTAL2.1 -> Y_XTAL.3 = 2.915 mm. Each
+    leg is inside 6 mm; the pin-to-pin path is 6.680 mm across the two nets and
+    that is REPORTED rather than compared, because 6 mm was written against a
+    single span and no single span exists here. The gradeable version of this
+    budget is a `XOUT_XTAL` declaration in 03_src/rules/nets.yaml carrying its
+    own 6 mm — a SOURCE change owed at the next schematic revision, recorded in
+    CHECKLIST section D, and deliberately not made by renaming the budget.
+
+    (e) NEW — MCP1755S-3302E-DB `VBUS_F <= 15 mm`: U_LDO carries NO pad on
+    `VBUS_F`. BLM21SP601SN1D (FB_IN) sits between them, so the LDO's pin 1 is
+    on `VBUS_LDO` and VBUS_F is the node upstream of the ferrite. THIS ONE WAS
+    ACTUALLY FAILING WHILE UNGRADED, which is the reason this row exists: hand
+    measured on the 2026-07-28 placement, U_LDO.1 -> FB_IN.2 was 17.194 mm and
+    U_LDO.1 -> F_IN.2 (the real VBUS_F pad) was 16.808 mm — both OVER the
+    datasheet's 15 mm, with no gate able to say so. The rotation-180 fix made
+    for P-ADJ-PAIR closed it as a side effect: the same pairs now measure
+    9.395 mm and 10.602 mm. Inside 15 mm on both readings.
+
+    (f) NEW — USBLC6-2SC6 `VBUS <= 25 mm`: U_ESD carries NO pad on `VBUS`. That
+    is ADR-0008 working as designed — the ESD array's VBUS leg is deliberately
+    tied to `VBUS_F`, DOWNSTREAM of the 0.5 A fuse, so a clamp event is
+    current-limited. HAND MEASURED against the node the sentence means:
+    U_ESD.5 -> J_USB.A9 = 5.707 mm centre-to-centre, 4.336 mm of copper gap,
+    inside the 25 mm by more than 19 mm. The property the ST sentence is
+    actually about — the array close to the connector — is graded, twice, by
+    the adjacency budgets U_ESD~J_USB (1.689 mm of 2.0) from both part.yamls.
+
+- id: P-SILK-REF
+  refs: [C_MCU7, R_CC1]
+  why: >
+    CARRIED FOR THE RECORD, NOT TO CHANGE A VERDICT: P-SILK-REF reports PASS
+    today, and it reports PASS *because it reads a waiver file the generator
+    writes for itself*. generate_board_generic drops a refdes to F.Fab when its
+    ownership-and-collision search finds no slot, lists it in
+    04_kicad/refdes_waiver.json, and policy_audit's P-SILK-REF skips every
+    refdes in that list. Checker and checked share a method there (canon M1),
+    so the gate cannot demand evidence for those two and this entry supplies it
+    anyway; it is handed up as a proposed skill change (the gate should require
+    a project-side evidenced entry per machine-waived refdes, not just the
+    machine's own list).
+    THE MEASURED REGRESSION, STATED AS A REGRESSION: this board printed 64/64
+    refdes on silk with ZERO waived on 2026-07-28. It now prints 62/64, and
+    C_MCU7 and R_CC1 are on F.Fab only. The cause is the ownership term added
+    to the placer on 2026-07-29: the search now insists a refdes land nearer
+    its own part than any other, which consumes different real estate, and two
+    labels lose. That is a real loss in one metric bought with a larger gain in
+    another, and both numbers belong in the same sentence: refdes ownership went
+    24/64 -> 39/64 (the first measurement of the property at all), silk
+    ownership overall is 50 of 74 labels owned with 22 degraded and 2 unplaced,
+    and ALL SEVENTEEN CAPTIONS ARE NOW OWNED where five were not.
+    WHY THESE TWO CAN AFFORD IT, per part:
+      * C_MCU7 is one of ten identical 100 nF 0402 MCU decouplers, sitting in
+        the sub-MCU row of EIGHT parts at 2.2 mm pitch inside a 1.92 mm band —
+        the tightest silk real estate on the board. A hand-fitting operator
+        never places it: it is a JLC-assembled 0402 on a CPL row.
+      * R_CC1 is one of two identical 5.1 k CC pull-downs sitting under the
+        USB-C connector's bounding box (J_USB occupies y >= 83.54 across
+        x 40.68..51.32), where its own courtyard is 2.87 mm from the C_ESD
+        refdes that beat it to the slot. Same story: 0402, machine-placed.
+    THE MITIGATION, and it is a mitigation and not a reason the check does not
+    apply: both refdes are PRESENT on F.Fab at 0.45 mm, both parts are on the
+    fab CPL with their own x/y/rotation, and the CPL — not the silkscreen — is
+    what positions a machine-assembled 0402. A silk refdes on these two would
+    only serve rework, and rework on a 0402 in a 2.2 mm row is done against the
+    fab drawing anyway. THIS BECOMES UNNECESSARY when the placer can shrink or
+    rotate into the gaps those two rows leave; the honest statement today is
+    that 0.45 mm text at 0.16 mm clearance does not fit beside them.
 
 - id: S-OCCL
   refs: [pluto_rx2_8way.kicad_sch]

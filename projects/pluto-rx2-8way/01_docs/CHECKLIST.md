@@ -181,16 +181,43 @@ a checklist line. Run from the project root unless stated.
       "RX2 → PLUTO RX2" measured **7.29 mm from `J_ANT1` against 7.85 mm from
       `J_RX2`**, i.e. it named the wrong connector, and nothing graded it
 - [x] **The ten port labels are 0.95 mm text / 0.152 mm stroke, not 0.60/0.13.**
-      `fab_tiers.yaml`'s corollary "reaching 0.15 mm of stroke requires ≥ 0.60 mm
-      text" is NECESSARY BUT NOT SUFFICIENT under the generic backend, whose
-      stroke is `max(min_silk_stroke, 0.13, 0.16 × size)` — 0.60 mm text yields
-      0.13. **0.15 needs size ≥ 0.9375** (measured, not read). These ten are the
-      only text on the board read under stress with a cable in one hand
+      The "≥ 0.60 mm text reaches a 0.15 stroke" corollary this board was handed
+      is WRONG and the canon now says so: `fab_tiers.yaml` carries
+      `published_stroke_min_height: 0.9375` as DATA, with G-SELFCON grading it
+      against the generator in both directions. Board-silk stroke is
+      `max(min_silk_stroke, 0.13, 0.16 × size)` clamped to ≤ 0.25 × size, so
+      0.60 / 0.70 / 0.80 mm text all emit **0.130** and **0.9375 mm is the first
+      height that reaches 0.15**. These ten are the only text on the board read
+      under stress with a cable in one hand, and the only text that clears JLC's
+      published 0.15
+- [ ] **ORDER-DAY DFM, and it is a SECOND formula that the 0.9375 figure does not
+      cover: refdes de-collision uses `max(min_silk_stroke, 0.09, 0.20 × size)`,
+      not the board-silk pair.** MEASURED off the generated board, every silk
+      text classified: 10 captions at 0.95 / **0.152**, 7 prose captions at
+      0.60 / **0.130**, 44 refdes at 0.60 / **0.120**, 17 refdes at 0.45 /
+      **0.1125**. So under the refdes formula 0.60 mm emits 0.12 (not 0.13) and
+      the first height reaching 0.15 is **0.75 mm** — 61 of this board's refdes
+      are therefore BELOW JLC's published 0.15 stroke, at the 0.1125 floor the
+      tier declares it will emit. Raising refdes text to 0.75 mm was NOT done at
+      stage 5: the ownership-first search already fails to seat two refdes at
+      0.60/0.45, so a taller glyph would strand more. Carried as a fab-review
+      item with its numbers rather than silently accepted
 - [ ] **`Y_XTAL` pads 2 and 4 each take their OWN via to the L2 plane AT the
-      pad.** The crystal's `GND ≤ 3 mm` budget is P-ADJ-waived as structurally
-      unsatisfiable (GND is a four-layer pour, measured span 67.24 mm), so this
-      per-pad via IS the obligation that budget was standing in for — and it is
-      graded by nothing but this line
+      pad.** REWRITTEN 2026-07-29: the crystal's `GND ≤ 3 mm` budget is NO LONGER
+      waived and never was unsatisfiable — the 67.24 mm "span" was the board
+      diagonal, an artifact of P-ADJ measuring whole nets. Graded against the
+      anchor pin it read 3.233 mm (`Y_XTAL.4 → C_XTAL1.2`), a real 0.233 mm miss,
+      and rotating both load capacitors so their GND pad faces the can made it
+      **2.457 / 2.291 mm — PASS**. This per-pad via is still owed, because it is
+      the part of the sentence ("each GND pad takes its own via to L2 at the
+      pad") that no pad-span metric can see
+- [ ] **`XOUT_XTAL` gets its own 6 mm `keep_short` declaration in
+      `03_src/rules/nets.yaml`.** `R_XTAL` splits the XOUT node in two and the
+      ABM8 part.yaml predicted in writing that the crystal-side half would
+      "inherit this same 6 mm budget and currently has nowhere to be declared".
+      It is now P-ADJ-UNREACHED and waived with both legs hand-measured
+      (`U_MCU.21 → R_XTAL.1` 3.062 mm, `Y_XTAL.3 → R_XTAL.2` 3.618 mm). The fix
+      is a SOURCE declaration, not a rename of the existing budget
 - [ ] **`DVDD_1V1` from `U_MCU` pin 45 to `C_VREG_OUT` is a direct wide trace,
       not a daisy chain through the decoupling row.** The mandatory 1 µF
       (RP2040 §2.10.1) sits **8.65 mm** from `VREG_VOUT` because the sub-MCU row

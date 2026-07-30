@@ -165,3 +165,200 @@
   L2 antipads measured on the FILLED board, and the four CHECKLIST-D
   obligations this stage added. Nothing in `04_kicad/` is sealed and everything
   in it regenerates from `03_src/` + the pinned `03_tscircuit/kicad/*.kicad_sch`.
+
+## 2026-07-29 17:00 — start (third pass: DISPOSITION the reds three gate fixes surfaced)
+- did: took a dispositioning mandate, not a building one. Three gate fixes
+  landed after the second pass closed (`62a82fa` P-ADJ anchor pin + P-ADJ-PAIR +
+  P-SILK-OWN + P-FACT denominator, `3f5dab4` the `adjacency:` prose crash,
+  `3bfdbc6` silk ownership in the placer + the arithmetically wrong stroke
+  corollary) and **none of them changed a track or a pad** — they changed what is
+  MEASURED. So every red below was already true and had been reported as a pass.
+  Read repo CLAUDE.md, design-policies.md (M-COVER / M-WIDTH / M4),
+  fab_tiers.yaml, this board's STATUS + journals + eight ADRs, and
+  `git show c07aaf2 0580e01 3bfdbc6 62a82fa 3f5dab4`.
+- result: baseline re-measured before touching anything, and it reproduces the
+  handoff exactly: **policy_audit FAIL=3 HUMAN=6 N-A=10 PASS=21 WAIVED=3**,
+  DRC **4 / 99 / 0**, generate_board 64 footprints / 15 anchored / 10-of-10
+  asserts / 0 pad shorts / **61-of-64 refdes on silk, 3 waived (FB_IN, R_CC1,
+  R_USB2)** / 0 crowded / **44-of-74 labels owned, 27 degraded, 3 unplaced**,
+  audit_board PASS, placement_gates PASS, tier_preflight 0 FAIL 1 WARN,
+  S-COUNT 4/4 over 64. One INVOCATION correction worth recording because a
+  mis-invoked gate reads exactly like a failing one (this board has paid for that
+  once already): `waiver_provenance.py projects/pluto-rx2-8way` returns
+  **FAIL 0/0 waivers graded** — its `root` argument is the *projects/* directory,
+  so the correct call is `waiver_provenance.py projects --project pluto-rx2-8way`,
+  which reports ok W-COPY 3/21 across 1/5.
+- next: (1) full-list dump of P-ADJ / P-ADJ-PAIR / P-ADJ-UNREACHED, because the
+  gate truncates its detail at five items and there are six unreached; (2) decide
+  FIX-vs-WAIVE on each red with a measurement, not a preference; (3) retire the
+  P-ADJ waiver, which now argues for a change that has landed.
+
+## 2026-07-29 17:20 — iterate (four fixes in copper; only one thing got waived)
+- did: reproduced the gate's own P-ADJ loop offline to get the untruncated lists
+  (36 keep_short + 7 adjacency + 6 unreached = 43 budgets), then dispositioned
+  each red. **THE HEADLINE IS THAT FOUR OF THE FIVE REDS TURNED OUT TO BE FIXABLE
+  IN COPPER, so this round retires a waiver rather than adding one.**
+- result: **P-ADJ's WAIVER IS RETIRED, AND TWO OF ITS THREE ENTRIES DISSOLVED
+  WITHOUT ANY COPPER MOVING.** DVDD_1V1 goes 13.167 -> **8.787 mm** (U_MCU.23 ->
+  C_MCU7.1) and SW_V4 goes 21.64 -> **3.057 mm** (U_SW.12 -> R_PD4.1): the same
+  placement, measured correctly. The waiver's own closing paragraph had ASKED for
+  the anchor-pin metric, which is the tell that it had stopped being a judgement.
+- result: **ABM8 `GND <= 3 mm` WAS A REAL 0.233 mm MISS AND IS FIXED, NOT
+  WAIVED.** The old 67.24 mm figure was the board diagonal; the anchor metric read
+  3.233 mm (Y_XTAL.4 -> C_XTAL1.2) and 3.140 mm (Y_XTAL.2 -> C_XTAL2.2). Both load
+  capacitors were ROTATED 180 so their GND pad faces the can instead of their live
+  pad — no coordinate moved, and a 2-terminal 0402 courtyard is symmetric so
+  nothing else shifted. Now **2.457 / 2.291 mm, PASS with 0.543 mm of margin**.
+  The cost is reported, not hidden: the live legs lengthen 1.821 -> 2.780 (XIN) and
+  2.011 -> 2.915 mm (XOUT_XTAL), which against the part.yaml's OWN 0.099 pF/mm and
+  3 pF stray allowance is +0.153 pF = 5.1% of the allowance, while the return that
+  the same sentence says is IN the oscillator loop shortens by 0.78/0.85 mm.
+- result: **P-ADJ-PAIR's TWO NEW FAILS WERE AN ORIENTATION, NOT A SHORTAGE.**
+  `layout.adjacency` had been in the contract, in the part.yaml, and opened by
+  NOTHING; graded for the first time, MCP1755S U_LDO~C_LDO read 4.879 mm and
+  U_LDO~C_LDI 10.781 mm of copper gap against 3.0. Root cause: U_LDO sat at
+  rotation 0, pointing pins 1/2/3 at a board edge 1.29 mm away, so no capacitor
+  could EVER be placed at VIN or VOUT. Rotation 180 turns the pin row inboard;
+  C_LDO moved to (33.06, 78.1) and C_LDI to (29.745, 85.9) **rot 270**. Now
+  **0.860 mm and 1.200 mm — PASS**. Two measurements behind the details: the
+  pocket between H3's keepout (ends x 27.99) and D_TVS (starts x 31.50) is
+  3.51 mm and an 0805 courtyard is 3.49, i.e. 0.02 mm of slack against a 0.25
+  legalize floor, which is why C_LDI stands up; and rot 90 was rejected BY
+  ARITHMETIC before being tried, because it puts pad 1 on the far side for a
+  3.10 mm gap — a 0.10 mm fail.
+- result: **AND THE ROTATION CLOSED A BUDGET THAT WAS FAILING WHILE UNGRADED.**
+  MCP1755S `VBUS_F <= 15 mm` is P-ADJ-UNREACHED (U_LDO has no pad on VBUS_F —
+  FB_IN's ferrite makes pin 1 `VBUS_LDO`). Hand-measured on the OLD placement,
+  U_LDO.1 -> FB_IN.2 was **17.194 mm** and U_LDO.1 -> F_IN.2 **16.808 mm**, both
+  OVER the datasheet's 15 mm with no gate able to say so. They are now 9.395 and
+  10.602 mm. That is the strongest argument in this session for why an UNREACHED
+  budget is a finding and not a skip.
+- result: **A WAIVER'S OWN HAND MEASUREMENT DID NOT REPRODUCE, AND THE PAIR WAS
+  OVER BUDGET.** The P-ADJ-UNREACHED entry for PE42482A `SW_VDD <= 3 mm` claimed
+  "C_SW1 pad 1 to U_SW pin 8 = 2.62 mm, inside the 3 mm". Measured: **3.085 mm**
+  centre-to-centre (2.375 mm of copper gap) — i.e. under P-ADJ's own measure it
+  EXCEEDED by 0.085 mm while the file asserted it passed. C_SW1 moved x 44.0 ->
+  44.7 and now measures **2.873 mm**; the stop is R_PD4's courtyard at x 45.485
+  (0.28 mm left against the 0.25 floor) and the escape corridor above (ends
+  y 49.995, 0.25 mm of headroom). The same paragraph's "R_PD4 pad 1 -> 2.53 mm
+  from pin 12" (this file said 2.42) MEASURES 3.056 mm — it passes its 4 mm
+  budget, but two numbers in the source were wrong and the 0402 RESISTOR land's
+  0.51 mm pad offset vs the CAPACITOR land's 0.48 is most of the difference.
+- result: **THE ANT8 CAPTION MOVED, AND SO DID FOUR MORE — ALL SEVENTEEN CAPTIONS
+  ARE NOW OWNED.** The ownership term measured five port labels nearer a passive
+  than their own jack: ANT8 -8.40 mm (2.00 from R_T2), ANT4 -5.48, RX1 -3.29,
+  ANT5 -2.96, RX2 -1.54. ANT8 is the one that matters, because ANT8 IS the RX1
+  antenna and R_T1/R_T2 are the pickoff every published path delta is referenced
+  to. WHAT WAS MEASURED before moving it, on a 0.05-0.1 mm grid against the
+  generator's own obstacle model: **on theta 75 there is NO owned slot at all**
+  (J_ANT8's body bbox starts at r 14.93 and R_T1's ends at 14.9 — they are FLUSH,
+  so a caption is confined to r <= 13.9 while ownership against R_T1 needs
+  r >= 16.9, which would need the pickoff at r <= 7.8 and ~6 mm more RX1 main
+  line); **outboard on theta 75 is occupied by J_ANT8's own pad 5** (x
+  51.86..54.08, y 22.46..24.68, leaving 0.43 mm to the y0 edge); and **horizontal
+  text anywhere gives at best +1.76 mm against J_RX1**, which trades the pickoff
+  ambiguity for the one jack-to-jack ambiguity this board most needs to avoid and
+  is WORSE than the 2.23 mm it already had. **Rotating the caption 90 degrees is
+  what solves it**: 2029 owned slots, best at (56.95, 23.30) — 6.692 mm from
+  J_ANT8, 9.134 from J_RX1, lead **+2.442 mm**, i.e. closer AND owned AND better
+  discriminated than before. The same rot-0/90 search then rescued the other
+  four (RX1 7.663/+5.428, RX2 5.822/+2.864, ANT4 6.619/+3.343, ANT5
+  6.694/+3.907), every one both closer to its jack and owned, so the port-label
+  RULE changed from a geometric convention ("inboard on its own theta") to the
+  safety property itself ("maximise the ownership lead subject to jack-to-jack
+  discrimination >= 2.2 mm"). Four labels now stand outboard and vertical; six
+  did not move. **Ownership 44/74 -> 50/74, degraded 27 -> 22, unplaced 3 -> 2.**
+- result: **THE FIRST ANT8 ATTEMPT CAME BACK `WARN silk caption crowded` AND IT
+  WAS NOT A COLLISION.** At y = 23.25 every pad, body, footprint-silk and sibling
+  caption box clears; the failing test was `_in_frame(0.4)` against the DECLARED
+  outline y0 = 21.0 (not the 20.95 edge-cut bbox) — the rotated box top sat at
+  21.398 against a 21.400 limit, **2 um out of frame**. The generator emits the
+  same one-word WARN for both causes, which cost a rebuild to tell apart.
+- next: rewrite the waiver file (retire P-ADJ, re-evidence P-ADJ-UNREACHED with
+  all six, add the refdes-on-silk regression WITH its evidence), close the ABM8
+  pagination question, correct every doc that repeats the 0.60 mm stroke figure,
+  then re-run the whole gate suite unpiped.
+
+## 2026-07-29 17:34 — finish (STAGE 5 STILL DONE, STILL STOPPED BEFORE ROUTING)
+- did: re-ran every gate in the mandated order, unpiped, exit codes read from the
+  process and not from a pipeline tail.
+- result: **policy_audit FAIL=2 HUMAN=6 N-A=11 PASS=23 WAIVED=2** (exit 1), from
+  a baseline of FAIL=3 / N-A=10 / PASS=21 / WAIVED=3. The denominator itself grew
+  by one row — M-DEPEND appeared (N-A, "no releases yet"), 43 rows -> 44 — which
+  is why N-A moved 10 -> 11 with nothing regressing. P-ADJ **PASS** 30/36 graded
+  (tightest QSPI_SD2 11.839/12.0, +0.161), P-ADJ-PAIR **PASS** 7/7 (tightest
+  J_USB~U_ESD 1.689/2.0, +0.311), P-SILK-OWN **PASS** 12/12 with the thinnest
+  lead now **J_ANT8 owns 'ANT8' by 2.44 mm** (was 2.23). The two remaining FAILs
+  are R-DRC (99 unconnected: there are no tracks) and R-THERM (U_LDO.4 /
+  U_MCU.57 / U_SW.25 at zero thermal vias: there are no vias), both refused a
+  waiver on purpose, both closing at stage 6.
+- result: **DRC 4 / 99 / 0**, unchanged, and the four are the SAME four deliberate
+  starvations re-identified by position off the report: C_MCU7.2 (44.28, 78.10),
+  C_ESD.2 (46.48, 78.10), C_MCU8.2 (48.68, 78.10), C_MCU9.2 (39.88, 78.10) — all
+  `starved_thermal ... zone min spoke count 2; actual 1` on F.Cu.
+- result: the rest, every number: generate_board **64 footprints / 15 anchored /
+  10-of-10 asserts / 1 legalized / 0 pad shorts / 62-of-64 refdes on silk (2
+  waived: C_MCU7, R_CC1) / 0 crowded captions / 50-of-74 labels owned, 22
+  degraded, 2 unplaced** · audit_board **PASS, 7 invariant groups, 12
+  measurements** (RX1_TAP_MID 1.180 of 1.37; U_ESD 1.689 mm on both D+ and D-;
+  C_ESD 0.890; J_USB pad row 6.860 vs the vendor's 6.86; overhang 0.535) ·
+  placement_gates **PASS 0/0** with P-OUT 1.29 mm (J_USB.SH) vs 0.15 and P-CAP
+  ratio 0.07 vs 0.5, run BEFORE any routing attempt · generate_rules 6 netclasses
+  + 34 patterns + 6 width rules · tier_preflight **0 FAIL / 1 WARN**
+  (PF-LEGALIZE, carried) · count_parity **S-COUNT PASS 4/4 over 64 refdes** ·
+  waiver_provenance **PASS, ok W-COPY 3 waivers all independently reasoned** ·
+  bom_source_check --circuit-only **PASS** · contracts_audit **0 violations in
+  this board's scope** (the fleet number is 2669 and none of them are here).
+- result: **THE REFDES REGRESSION, PAID FOR RATHER THAN HIDDEN.** 64/64 with zero
+  waived became **62/64**, and C_MCU7 and R_CC1 are on F.Fab only. Both numbers
+  belong in one sentence: refdes ownership went 24/64 -> 39/64 (the first
+  measurement of that property at all) and every caption is now owned, and the
+  same ownership-first search that bought those is what strands two 0402s. The
+  evidence per part is in the waiver file: C_MCU7 is one of ten identical 100 nF
+  in a row of EIGHT parts at 2.2 mm pitch inside a 1.92 mm band; R_CC1 is one of
+  two identical 5.1 k under J_USB's bounding box, beaten to its slot by the C_ESD
+  refdes at 2.87 mm. The mitigation is stated AS a mitigation: both are on F.Fab
+  at 0.45 mm and both are machine-placed 0402s whose position comes from the CPL,
+  not the silkscreen. It is better than the 61/64 the gate fixes first produced
+  (FB_IN, R_CC1, R_USB2), because the LDO and caption moves freed real estate.
+- result: **THE ABM8 PROVENANCE DEFECT IS CLOSED, BY RE-FETCHING RATHER THAN BY
+  ARGUMENT.** The three committed sheets carry footers "Page (2) of (9)",
+  "(4) of (9)", "(6) of (9)", which reads like a partial harvest and would have
+  put the footprint's NO-VENDOR-LAND verdict at risk. Re-fetched
+  https://abracon.com/datasheets/ABM8-272-T3.pdf today: **330972 bytes, sha256
+  aead22b6bd9d6f8ad4472352f70fce3ade633e90b9772ba80fabe8fd0856ae91 —
+  byte-identical to the committed file — and `pdfinfo` reports `Pages: 3`.** The
+  document Abracon publishes IS three sheets; the "of (9)" is the vendor's own
+  Word-export artifact (Creator: "Acrobat PDFMaker 24 for Word"). Stated narrowly:
+  this proves the CITED document is complete as published, not that Abracon has
+  no land recommendation elsewhere.
+- result: **THE STROKE FIGURE, AND THE CORRECTION I OWE UPWARD IS ITSELF A
+  CORRECTION.** The canon is now right (`published_stroke_min_height: 0.9375` as
+  DATA on all five tiers, G-SELFCON grading both directions) and this board was
+  already at 0.95/0.152, so no copper changed. But "0.60/0.70/0.80 all emit
+  0.130" is true only of the BOARD-SILK formula. The refdes path uses
+  `max(min_silk_stroke, 0.09, 0.20 x size)`, under which 0.60 emits **0.12** and
+  0.75 mm is the first height reaching 0.15. MEASURED, every silk text on this
+  board classified: 10 captions 0.95/**0.152**, 7 captions 0.60/**0.130**, 44
+  refdes 0.60/**0.120**, 17 refdes 0.45/**0.1125**. So 61 refdes sit below JLC's
+  published 0.15 stroke and only the ten port labels clear it. Not churned at
+  stage 5 (taller glyphs would strand more refdes than the two already stranded);
+  carried in CHECKLIST as an order-day DFM item with its numbers.
+- next: **STOP — STAGE 5 REMAINS THE HANDOFF BOUNDARY; NOTHING WAS ROUTED.**
+  Stage 6 owns routing. FIVE SKILL PATCHES PROPOSED, NONE MADE (skills/ was
+  off-limits, an agent is live in there): (1) `refdes_waiver.json` is written BY
+  generate_board and honoured BY policy_audit's P-SILK-REF, so checker and checked
+  share a method (canon M1) — P-SILK-REF should require a project-side evidenced
+  entry per machine-waived refdes, which is why this board now carries one even
+  though the row is PASS; (2) `WARN silk caption crowded` should say WHICH test
+  failed — an out-of-frame miss of 2 um and a real pad collision print the same
+  word; (3) the caption slot search should try rotation 0/90 the way the refdes
+  search does, since rotation is what rescued all five of this board's degraded
+  captions and no amount of translation could; (4) `published_stroke_min_height`
+  cannot be true for both stroke formulas at once and is currently the
+  board-silk one — the refdes pair needs its own published figure (0.75); (5)
+  M-REPRO's byte-identical banner still overstates: two runs differ in footprint
+  ORDER while every property is identical. Carried from before and unchanged:
+  P-COLLIDE's 7 anchored courtyard overlaps remain MEASURED false positives (DRC
+  reports 0 `courtyards_overlap` with that rule at severity error, because the
+  generator compares axis-aligned bboxes on jacks rotated 15/45/75 degrees).

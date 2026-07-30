@@ -70,6 +70,18 @@
   code that produces Y and evaluate it at X before writing the corollary down.
   Locally: the ten port labels are 0.95 mm / 0.152 mm and that number was read
   off the generated board, not derived from the tier file.
+- LANDED 2026-07-29, and the fix went further than the candidate asked: the tier
+  file now carries `published_stroke_min_height: 0.9375` as DATA on all five
+  tiers and G-SELFCON grades the tier against the generator in BOTH directions.
+  The 0.60 mm corollary is gone from the canon.
+- STILL OPEN, and it is a SECOND formula the 0.9375 figure does not cover: the
+  refdes de-collision path uses its own pair,
+  `max(min_silk_stroke, 0.09, 0.20 x size)`, so 0.60 mm refdes text emits
+  **0.12** (not the 0.13 the board-silk formula gives) and 0.75 mm is the first
+  refdes height that reaches 0.15. MEASURED on this board, every silk text:
+  10 captions 0.95/0.152, 7 captions 0.60/0.130, 44 refdes 0.60/0.120, 17 refdes
+  0.45/0.1125. A single `published_stroke_min_height` per tier cannot be true for
+  both formulas at once, and it is currently the board-silk one.
 - candidate-canon: yes — extend G-SELFCON to evaluate the generator's actual
   stroke expression at the tier's `min_silk_text_height` and fail if the result
   is below `min_silk_stroke`, or if the tier's declared corollary height does not

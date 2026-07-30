@@ -17,6 +17,24 @@ datasheet:
   sha256: aead22b6bd9d6f8ad4472352f70fce3ade633e90b9772ba80fabe8fd0856ae91
   fetched: 2026-07-28
   pages: 3
+  # PROVENANCE DEFECT RAISED 2026-07-29 AND CLOSED THE SAME DAY. The three
+  # committed sheets carry footers reading "Page (2) of (9)", "Page (4) of (9)"
+  # and "Page (6) of (9)", which reads exactly like a partial harvest — and it
+  # would have put the NO-VENDOR-LAND verdict for this footprint at risk, since
+  # that verdict rests on "this document publishes no recommended land pattern"
+  # and six of nine pages would never have been seen.
+  # CLOSED BY RE-FETCHING, not by argument: the URL above was fetched again on
+  # 2026-07-29 and returns 330972 bytes, sha256 aead22b6... — BYTE-IDENTICAL to
+  # the committed file — and `pdfinfo` reports `Pages: 3`. The document Abracon
+  # publishes IS three sheets. The "of (9)" is the VENDOR'S OWN numbering
+  # artifact: the PDF's Creator is "Acrobat PDFMaker 24 for Word", so the Word
+  # source paginated to 9 and the published export is 3. Nothing is missing and
+  # the hash chain is intact.
+  # WHAT THIS DOES *NOT* CLOSE, stated so it is not over-read: it proves the
+  # CITED document is complete as published, not that Abracon has no land
+  # recommendation anywhere else. The layout authority used here is the MCU
+  # vendor's for this exact pairing (see layout.source), which is a separate
+  # and stronger basis.
 package: >
   Ultra-miniature ceramic SMD crystal, 3.2 +/-0.20 x 2.5 +/-0.20 mm, height
   0.80 max (Table 2, the plain "ABM8" height class). Four bottom terminations,

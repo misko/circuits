@@ -317,25 +317,39 @@ placement:
   # courtyard overlaps before the legalizer runs, so the legalizer should move
   # nothing. If it reports movement, something upstream changed.
   #
-  # WHAT P-ADJ WILL SAY, PRE-COMPUTED SO STAGE 5 DOES NOT REDISCOVER IT:
-  #   PASS  VBUS 7.25/8 · VBUS_F 11.47/12 · USB_CC1 3.43/5 · USB_CC2 2.79/5
-  #         USB_DP 7.97/20 · USB_DM 8.50/20 · XIN 4.03/6 · XOUT 2.80/6
-  #         QSPI_SD0 6.42 · SD1 10.83 · SD2 11.55 · SD3 5.52 · SCLK 5.83 (/12)
-  #         QSPI_CSN 14.27/15 · BOOTSEL_N 9.50/20 · RUN_N 17.86/20
-  #   UNREACHED (net name not on this board — four, not the three the stage-4
-  #         handoff named): SW_VDD, SW_LS, RF_ANT_LAUNCH, and RP2040's DVDD
-  #         (this board's net is DVDD_1V1).
-  #   FAIL, both STRUCTURALLY UNSATISFIABLE, both waived with measurements in
-  #         03_src/rules/policy_waivers.yaml:
-  #         * ABM8-272-T3 `GND <= 3 mm` — GND is a four-layer pour with 100+
-  #           pads; measured span 67.24 mm. No placement can pass it.
-  #         * PE42482A-X `SW_V4 <= 4 mm` — the budget is written about the
-  #           PULL-DOWN ("the resistor belongs at the pad, not at the PIO
-  #           end") but SW_V4 also carries R_S4, the SOURCE TERMINATION that
-  #           ADR-0005 puts at the DRIVER end 21 mm away. P-ADJ measures the
-  #           whole net's max pad pair, so the budget grades a topology the
-  #           board's own ADR chose. Measured 21.43 mm; the part the budget is
-  #           about, R_PD4 -> U_SW pin 12, measures 2.42 mm.
+  # WHAT P-ADJ SAYS, RE-MEASURED 2026-07-29 AGAINST THE ANCHOR-PIN METRIC. The
+  # block that used to sit here listed whole-net maxima and is deleted rather
+  # than annotated, because EVERY NUMBER IN IT WAS THE WRONG MEASUREMENT: P-ADJ
+  # took `max(dist(a,b))` over the whole net, so a budget written about one pin
+  # pair was scored against the two furthest pads on the node — and adding a
+  # correctly-placed bulk capacitor made a budget WORSE. It now grades the
+  # DECLARING PART'S ANCHOR PIN against its nearest qualifying partner and NAMES
+  # the pair, on the PASS side too.
+  #   P-ADJ            PASS — 30 of 36 declared keep_short budgets graded,
+  #                    0 exceeded. Tightest three: QSPI_SD2 11.839/12.0
+  #                    (U_MCU.54 -> U_FLASH.3, +0.161), QSPI_SD1 11.128/12.0
+  #                    (+0.872), ABM8 GND 2.457/3.0 (Y_XTAL.4 -> C_XTAL1.2,
+  #                    +0.543 — see the crystal cell for the rotation that
+  #                    bought it). DVDD_1V1 reads 8.787/10.0 (U_MCU.23 ->
+  #                    C_MCU7.1) where the whole-net figure was 13.167, and
+  #                    SW_V4 reads 3.057/4.0 (U_SW.12 -> R_PD4.1) where it was
+  #                    21.64. Neither was re-placed; both were mis-measured.
+  #   P-ADJ-PAIR       PASS — 7 of 7 declared `layout.adjacency` budgets graded,
+  #                    a row that did not exist before 2026-07-29 and a field
+  #                    NOTHING had ever opened. Tightest: J_USB~U_ESD on USB_DM
+  #                    1.689/2.0 (+0.311), then U_ESD~C_ESD 0.890/2.0,
+  #                    J_USB~R_CC1 2.807/4.0, U_LDO~C_LDI 1.200/3.0,
+  #                    J_USB~R_CC2 1.897/4.0, U_LDO~C_LDO 0.860/3.0. The two
+  #                    U_LDO budgets FAILED on their first ever grading at
+  #                    4.879 and 10.781 mm and are fixed in copper below.
+  #   P-ADJ-UNREACHED  WAIVED — six budgets name no measurable pair on this
+  #                    board: KH-SMA RF_ANT_LAUNCH, PE42482A SW_VDD and SW_LS,
+  #                    and (new, because the anchor metric stopped grading them
+  #                    off other parts' pads) ABM8 XOUT, MCP1755S VBUS_F and
+  #                    USBLC6 VBUS. Every one carries a hand measurement in
+  #                    03_src/rules/policy_waivers.yaml. RP2040's DVDD is no
+  #                    longer among them: it was renamed to this board's real
+  #                    net DVDD_1V1 at stage 5 and it now GRADES and PASSES.
   seeds:
     # ---- the switch cell -------------------------------------------------
     # Below the 2.0 mm escape corridor (which ends at y = 50.45) and INSIDE the
@@ -343,8 +357,22 @@ placement:
     # this radius is on an RF arm: at y = 51.1 the RF4 arm is at x = 40.4 and
     # the RF5 arm at x = 51.6. Rotation 270 on the 0402s puts pad 1 toward the
     # package, which is what makes the bypass a bypass.
-    C_SW1: [44.0, 51.2, 270]       # 3V3 bypass; pad 1 -> 2.62 mm from pin 8
-    R_PD4: [46.0, 51.2, 270]       # V4 pull-down; pad 1 -> 2.53 mm from pin 12
+    # TWO NUMBERS IN THIS BLOCK WERE WRONG AND HAD BEEN CARRIED SINCE 2026-07-28,
+    # found by re-measuring straight off the board when P-ADJ started naming the
+    # pad pair it grades. Both were quoted as pad-1-to-pin distances and neither
+    # reproduces at any measure: "C_SW1 pad 1 -> 2.62 mm from pin 8" MEASURES
+    # 3.085 mm centre-to-centre (2.375 mm of copper gap), and "R_PD4 pad 1 ->
+    # 2.53 mm from pin 12" (the P-ADJ waiver said 2.53, this file said 2.42)
+    # MEASURES 3.056 mm (the 0402 RESISTOR land has a 0.51 mm pad offset where
+    # the 0402 CAPACITOR land has 0.48, which is most of the difference between
+    # the two rows). R_PD4 passes its 4 mm budget either way. C_SW1 did NOT pass
+    # the 3 mm SW_VDD sentence at 3.085, so it MOVED: x 44.0 -> 44.7 puts pad 1
+    # at 2.873 mm from pin 8, and the limit on going further is R_PD4's courtyard
+    # (starts x 45.485; 44.7 leaves 0.28 mm against the 0.25 legalize clearance).
+    # y cannot help — C_SW1's courtyard top is already 0.25 mm off the 1.5 mm
+    # escape corridor, which ends at y 49.995.
+    C_SW1: [44.7, 51.2, 270]       # 3V3 bypass; pad 1 MEASURED 2.873 mm from pin 8
+    R_PD4: [46.0, 51.2, 270]       # V4 pull-down; pad 1 MEASURED 3.056 mm from pin 12
     R_PD3: [48.0, 51.2, 270]
     R_PD2: [45.0, 53.6, 270]
     R_PD1: [47.0, 53.6, 270]
@@ -369,8 +397,27 @@ placement:
     # crystal cell at XIN/XOUT. R_XTAL is IN the XOUT net and C_XTAL2 sits on
     # the CRYSTAL side of it (RP2040 HD guide sec 2.3, Figure 8, PDF p11).
     Y_XTAL:  [45.9, 66.8, 0]
-    C_XTAL1: [42.5, 67.6, 180]     # pad 1 faces the crystal
-    C_XTAL2: [49.4, 66.4, 0]
+    # THE LOAD CAPS ARE ROTATED SO THEIR **GND** PAD FACES THE CAN, NOT THEIR
+    # LIVE PAD, AND THAT IS WHAT MAKES `GND <= 3 mm` PASS. It was the other way
+    # round until 2026-07-29 ("pad 1 faces the crystal"), which read as obviously
+    # right and was graded by nothing: P-ADJ measured the WHOLE net, so this
+    # budget scored the board's 67.24 mm GND diagonal. The anchor-pin metric
+    # grades what the part.yaml sentence means — each of the can's two GND pads
+    # against its nearest partner GND pad — and MEASURED THE MISS: Y_XTAL.4 ->
+    # C_XTAL1.2 3.233 mm and Y_XTAL.2 -> C_XTAL2.2 3.140 mm, both over 3.0.
+    # Reversing both caps in place (no coordinate moved, and a 2-terminal 0402
+    # courtyard is symmetric so nothing else shifts) makes it
+    # 2.457 / 2.291 mm — PASS with 0.54 mm of margin.
+    # THE COST, MEASURED AND NOT HIDDEN: the live legs lengthen, XIN
+    # C_XTAL1.1 -> Y_XTAL.1 1.821 -> 2.457 mm and XOUT_XTAL C_XTAL2.1 ->
+    # Y_XTAL.3 2.011 -> 2.915 mm. Against the part.yaml's OWN arithmetic
+    # (0.099 pF/mm on this stackup, a 3 pF total stray allowance) that is
+    # +0.063 pF and +0.090 pF — 5.1% of the allowance for both legs together —
+    # while the ground return, which the same sentence says is IN the oscillator
+    # loop (XIN pad -> C2 -> ground -> C3 -> XOUT pad), shortens by 0.78/0.85 mm.
+    # Both XIN and XOUT budgets are 6.0 mm and stay PASS by >3 mm.
+    C_XTAL1: [42.5, 67.6, 0]       # pad 2 (GND) faces the can — see above
+    C_XTAL2: [49.4, 66.4, 180]     # pad 2 (GND) faces the can — see above
     R_XTAL:  [49.4, 68.1, 0]
     # source terminations at the DRIVER end (ADR-0005), on the +x half of the
     # -y band so they do not fight the crystal for the pins-20/21 frontage
@@ -428,9 +475,32 @@ placement:
     D_TVS:  [35.2, 81.9, 180]      # cathode = pad 1 -> VBUS_F
     C_BULK: [37.0, 85.6, 180]
     FB_IN:  [38.5, 87.9, 180]
-    C_LDI:  [32.5, 87.9, 0]        # regulator INPUT cap, on VBUS_LDO
-    U_LDO:  [26.6, 80.2, 0]
-    C_LDO:  [30.5, 85.6, 0]
+    # ---- THE LDO CELL, REBUILT 2026-07-29 BECAUSE `layout.adjacency` BECAME
+    #      GRADED AND THIS CELL FAILED IT TWICE. The MCP1755S dossier declares
+    #      U_LDO~C_LDO <= 3 mm (sec 4.3, PDF p17) and U_LDO~C_LDI <= 3 mm
+    #      (sec 4.4), and until today NOTHING in the pipeline opened the
+    #      `adjacency:` key — it was in the 02_parts contract, in the part.yaml,
+    #      and read by no gate. First run measured 4.879 mm and 10.781 mm of
+    #      copper gap. Not waived: the cause was an ORIENTATION, not a shortage.
+    #      U_LDO sat at rotation 0, which points pins 1/2/3 at the x0 board edge
+    #      1.29 mm away, so NOTHING could ever be placed at VIN or VOUT and the
+    #      two caps had to live around the corner. Rotation 180 turns the pin row
+    #      inboard (pin 1 VIN -> 29.75, 82.5; pin 3 VOUT -> 29.75, 77.9) and puts
+    #      the GND tab against the edge, where the pour already is. That single
+    #      change also shortens the input feed: U_LDO.1 -> FB_IN.2 goes 17.194 ->
+    #      9.404 mm, which is what makes the MCP1755S `VBUS_F <= 15 mm` budget
+    #      satisfied-in-substance (it is UNREACHED as written; see the
+    #      P-ADJ-UNREACHED waiver).
+    #      C_LDI IS ROTATED 270, NOT 0, AND THE REASON IS A MEASUREMENT: the
+    #      pocket between H3's 3.2 mm keepout (ends x 27.99) and D_TVS (starts
+    #      x 31.50) is 3.51 mm wide and an 0805 courtyard is 3.49 mm, i.e. 0.02 mm
+    #      of total slack against a 0.25 mm legalize clearance. Standing it up
+    #      makes it 2.04 mm wide with 0.735 mm each side. Rotation 90 was
+    #      REJECTED by arithmetic before it was tried: it puts pad 1 on the FAR
+    #      side (y +0.95), giving a 3.10 mm gap to U_LDO.1 — a 0.10 mm FAIL.
+    U_LDO:  [26.6,   80.2, 180]    # pin row inboard; GND tab to the x0 edge
+    C_LDO:  [33.06,  78.1, 0]      # output cap at pin 3; pad 1 (3V3) faces VOUT
+    C_LDI:  [29.745, 85.9, 270]    # input cap at pin 1, STOOD UP — see above
 
     # ---- flash + boot straps (QSPI side, +x of the MCU) ------------------
     U_FLASH: [55.5, 73.5, 180]     # rotation 180 puts pins 5-8 (SD0, SCLK,
@@ -640,19 +710,91 @@ silk:
     #
     # x = 46 + r*cos(theta), y = 46 - r*sin(theta) — the SAME expression the
     # anchors use, so a label and its jack cannot drift apart silently.
-    - ["ANT7", 58.509, 42.648, 0.95]   # theta  15, r = 12.95
-    - ["RX1",  53.672, 38.328, 0.95]   # theta  45, r = 10.85
-    - ["RX2",  42.829, 34.167, 0.95]   # theta 105, r = 12.25
-    - ["ANT1", 38.328, 38.328, 0.95]   # theta 135, r = 10.85
-    - ["ANT2", 33.491, 42.648, 0.95]   # theta 165, r = 12.95
-    - ["ANT3", 33.491, 49.352, 0.95]   # theta 195, r = 12.95
-    - ["ANT4", 38.328, 53.672, 0.95]   # theta 225, r = 10.85
-    - ["ANT5", 53.672, 53.672, 0.95]   # theta 315, r = 10.85
-    - ["ANT6", 58.509, 49.352, 0.95]   # theta 345, r = 12.95
-    # ANT8 sits deepest of the ten, and the reason is the pickoff: R_T1 and R_T2
-    # are ON theta 75 at r = 13.8 and 11.6, so the search walks past both and
-    # settles at r = 9.60.
-    - ["ANT8", 48.485, 36.727, 0.95]   # theta  75, r = 9.60
+    #  (d) THE RULE CHANGED ON 2026-07-29, FROM A GEOMETRIC CONVENTION TO THE
+    #      SAFETY PROPERTY ITSELF. "One label per 30-degree radius, inboard, at
+    #      the largest clear r" was a convention CHOSEN because it looked like
+    #      ownership; when the placer learned to MEASURE ownership it reported
+    #      that five of the ten labels were nearer a passive than their own jack:
+    #      RX1 -3.29 mm (R_T2), RX2 -1.54 (R_T2), ANT4 -5.48 (C_SW2),
+    #      ANT5 -2.96 (R_PD3), ANT8 -8.40 (R_T2). The inboard annulus is where
+    #      this board's passives live, so the convention and the property were in
+    #      conflict, and the convention was the part that was guessed.
+    #      THE RULE IS NOW, and each of the ten below satisfies it as MEASURED by
+    #      the generator itself: the position that MAXIMISES the ownership lead
+    #      (nearest-other-part minus own-part) subject to a jack-to-jack
+    #      discrimination of at least 2.2 mm — the floor the old block achieved,
+    #      so no label gets less separation from another JACK than before.
+    #      Searched on a 0.1 mm grid within 13 mm of each jack, over rotations
+    #      0 and 90, against the generator's own obstacle model. Four labels move
+    #      OUTBOARD and stand up, because outboard of the ring is empty laminate
+    #      and inboard is not; six stay where they were. The mixed geometry is the
+    #      honest consequence of a measured objective and not an oversight.
+    #      MEASURED, own vs nearest-other-part, before -> after:
+    #        RX1  9.15/-3.29 -> 7.663/+5.428    ANT4 9.15/-5.48 -> 6.619/+3.343
+    #        RX2  7.75/-1.54 -> 5.822/+2.864    ANT5 9.15/-2.96 -> 6.694/+3.907
+    #        ANT8 10.40/-8.40 -> 6.692/+2.442 (its own note below)
+    #      Every one is CLOSER to its jack than before as well as owned.
+    - ["ANT7", 58.509, 42.648, 0.95]   # theta  15, r = 12.95 (inboard, unmoved)
+    - {text: "RX1",  at: [66.642, 27.800], size: 0.95, rot: 90}
+    - {text: "RX2",  at: [40.624, 32.500], size: 0.95}
+    - ["ANT1", 38.328, 38.328, 0.95]   # theta 135, r = 10.85 (inboard, unmoved)
+    - ["ANT2", 33.491, 42.648, 0.95]   # theta 165, r = 12.95 (inboard, unmoved)
+    - ["ANT3", 33.491, 49.352, 0.95]   # theta 195, r = 12.95 (inboard, unmoved)
+    - {text: "ANT4", at: [25.300, 61.042], size: 0.95, rot: 90}
+    - {text: "ANT5", at: [66.642, 61.742], size: 0.95, rot: 90}
+    - ["ANT6", 58.509, 49.352, 0.95]   # theta 345, r = 12.95 (inboard, unmoved)
+    # ---- ANT8 IS THE ONE LABEL OFF THE RADIAL SYSTEM, AND IT HAD TO LEAVE ----
+    # It was at (48.485, 36.727) — theta 75, r = 9.60, deepest of the ten,
+    # because R_T1 and R_T2 sit ON theta 75 at r = 13.8 and 11.6 and the search
+    # walked past both. The ownership term added to the placer on 2026-07-29
+    # MEASURED the consequence: that position is 10.40 mm from J_ANT8 and
+    # **2.00 mm from R_T2**, a lead of -8.40 mm, so the caption belonged to the
+    # resistive pickoff and not to the jack. On a board with ten near-identical
+    # SMA barrels where ANT8 IS the RX1 antenna and R_T1/R_T2 are the -19.8 dB
+    # pickoff every published path delta is referenced to, that is a mis-mate
+    # hazard and not a cosmetic one.
+    # WHAT WAS MEASURED, EXHAUSTIVELY, BEFORE MOVING IT (0.05 mm grid over the
+    # whole board, the generator's own obstacle model reproduced offline —
+    # pads+0.16, footprint silk+0.08, whole-footprint body bbox+0.05, the other
+    # 16 captions+0.08, frame margin 0.4):
+    #   * ON theta 75 THERE IS NO OWNED SLOT AT ALL, and the reason is
+    #     arithmetic rather than crowding. Along that ray J_ANT8's own body bbox
+    #     starts at r = 14.93 and R_T1's bbox ends at r = 14.9 — they are FLUSH
+    #     (0.03 mm) — so a caption is confined to r <= ~13.9, and ownership
+    #     against R_T1 at r = 13.8 needs r >= 16.9. Moving the pickoff inboard
+    #     to open it needs R_T1 at r <= 7.8, which lengthens the RX1 main line
+    #     ~6 mm and re-derives ADR-0006's published -19.8 dB. Not traded for a
+    #     silk label.
+    #   * OUTBOARD on theta 75 is occupied BY THE JACK ITSELF: J_ANT8 pad 5
+    #     (a ground land, rotated 15 deg) covers x 51.86..54.08, y 22.46..24.68,
+    #     and the remaining strip to the y0 edge is 0.43 mm. Six candidate
+    #     positions were tested individually and all six collide.
+    #   * HORIZONTAL text: 294 owned slots exist, and the BEST of them
+    #     (57.950, 22.250) is 8.09 mm from J_ANT8 against 9.86 mm from J_RX1 —
+    #     only +1.76 mm of discrimination between an ANTENNA INPUT and an SDR
+    #     OUTPUT, i.e. it trades the pickoff ambiguity for the one jack-to-jack
+    #     ambiguity this board most needs to avoid, and it is WORSE than the
+    #     +2.23 mm the old position had against its nearest other jack.
+    #   * ROTATING THE CAPTION 90 deg IS WHAT SOLVES IT, by letting the box hug
+    #     the outboard corner of J_ANT8's bbox instead of standing off it: 2029
+    #     owned slots over rot 0/90 and the best is BELOW, vertical.
+    # THE RESULT, all three numbers better than before: 6.692 mm from J_ANT8
+    # (was 10.40), nearest other part J_RX1 at 9.134 mm so the ownership lead is
+    # +2.442 mm (was -8.400), and the jack-to-jack discrimination is that same
+    # +2.442 mm (was +2.230) — inside the 2.2-3.9 mm band every other port label
+    # holds. It is the only vertical caption on the board; that asymmetry is the
+    # signal that this port is the reference path, and it is cheaper than either
+    # of the two ambiguities above.
+    # y IS 23.30 AND NOT 23.25, WHICH IS THE BETTER-OWNED POSITION, because the
+    # first attempt at 23.25 came back `WARN silk caption crowded: ANT8` and the
+    # cause was NOT an obstacle — every pad, body, footprint-silk and sibling
+    # caption box clears it. It was `_in_frame(0.4)` against the DECLARED outline
+    # y0 = 21.0 (not the 20.95 edge-cut bbox): the rotated box top sat at 21.398
+    # against a 21.400 limit, i.e. 2 um out of frame, and the generator's only
+    # feedback for that is the same one-word WARN it gives for a real collision.
+    # Recorded because the two causes read identically and cost a rebuild to tell
+    # apart; the proposed skill patch is for that WARN to say WHICH test failed.
+    - {text: "ANT8", at: [56.95, 23.30], size: 0.95, rot: 90}
 
     # ---- the fuse, which P-SILK-FN grades and nothing else does -------------
     # F_IN is one of the TWO refdes this board waives to F.Fab (with R_XTAL), so
