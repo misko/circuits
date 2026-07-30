@@ -171,6 +171,33 @@ USAGE
 
 Netlist-independent: reads part.yaml `type:` + the rule YAMLs; runs on any
 python3 with PyYAML.
+
+VACUITY: (canon G-VACUOUS — the input class on which this gate PASSES while the
+fact it grades is FALSE, fixtured by `t1_power_topology.py`
+`t_vacuity_E_OFF_is_N_A_on_a_battery_board_that_declares_nothing`.)
+
+E-OFF grades "a self-contained energy source has an off_control and a declared
+quiescent draw". `detect_energy_source` finds that source three ways: the
+`source_type:` field of `03_src/rules/power_tree.yaml`, a net matching
+VBAT/BATT/PACK, or a battery-ish word in the FILENAME PLUS FIRST 400 CHARACTERS
+of a `01_docs/decisions/*.md`. When none hits it returns `("unknown", ...)` and
+E-OFF reports **N-A, exit 0**.
+
+So a board that really does carry a cell and declares no `source_type:`, names
+its rail something other than VBAT/BATT/PACK, and mentions the cell only past
+character 400 of an ADR (or in `BRIEF.md` / `ARCHITECTURE.md`, neither of which
+is scanned) gets a silent pass on the whole de-energization contract. The
+conservatism is deliberate and the code says so; what is undeclared is that the
+escape is REACHABLE BY DEFAULT — declaring nothing is the least effort path.
+
+MEASURED, and this is the correction to a report that had it the other way
+round: the ADR scan is `re.search(r"batter|lipo|li[-_ ]?ion|\bcell\b|\bpack\b|
+discharge", head, re.I)` and it is NEGATION-BLIND — the sentence "this board has
+no battery backup" returns `("battery", "ADR ...")`. That direction makes E-OFF
+STRICTER (exit 1 demanding off_control on a USB-only board), so it is a FALSE
+FAIL, not a false pass, and it is not this gate's vacuity condition. The
+`_BATT_RE` at module level never sees prose at all; it is matched only against
+`power_tree.yaml`'s own `source_type:` string.
 """
 import argparse
 import glob

@@ -102,6 +102,38 @@ which is the exact invocation that used to exit 0 while drawing all 203 boxes
 un-mirrored. The mirror itself is pinned in pixels: flip J1 to B.Cu and its
 B.CrtYd box must land at px x 601.7..658.6 of the synthetic fixture, 459 px
 from where the un-mirrored projection would put it.
+
+VACUITY: (canon G-VACUOUS — the input class on which this gate PASSES while the
+fact it grades is FALSE, fixtured by `t1_twin_overlay.py`
+`t_vacuity_a_body_under_the_resolvability_floor_is_excluded_not_graded`.)
+
+A-RENDER's verdict is `fails = {r: g for r, g in graded.items() if ...}` — over
+the GRADED SUBSET only. Two exclusions run BEFORE that dict is built and NEITHER
+can fail: `unresolvable` (an expected body under `MIN_BODY_MM = 2.0` in either
+dimension, reported as "Not measurable by construction") and `no_model` (no JLC
+footprint cached). `unmeasured` — big enough to resolve and no pixels found — is
+correctly a hard FAIL; the other two are quiet.
+
+MEASURED on the sealed crow-recorder-central-v2 v1.5 release this suite fixtures
+against: `COVERAGE: 2 measured / 23 with an expected body; 21 unresolvable, 0
+resolvable-but-unmeasured, 162 no-model, 203 courtyards drawn`. **The verdict
+rests on 2 of 203 parts.** So A-RENDER can exit 0 with any 0402 or 0603 on the
+board rotated 180 degrees, mis-swapped, or absent — 1.0 x 0.5 mm is under the
+2.0 mm floor by construction, and those are exactly the parts that get rotated.
+The denominator is printed on every run, which is why this is discoverable at
+all; what is missing is any gate that reads it.
+
+A SECOND, SMALLER MOUTH, in the other direction and NOT this gate's vacuity:
+`MIN_BODY_PX = 20` and `EROSION = 2` are PIXEL floors sitting beside a
+millimetre tolerance (`--tol`, default 1.00 mm), while jlc_twin hard-codes
+`--width 1600 --height 1000` — 8.34 px/mm on the 188.1 mm cooksense board.
+Measured there: the two A-RENDER FAILs at that scale (`U_LDO` centre delta
+1.248 mm, `Q_SWDRVRHA` 13 body px against the floor of 20) BOTH VANISH at
+15.3961 px/mm — 0.111 mm and 872 px, exit 0. The render was faithful and the
+SEGMENTATION was resolution-limited (cross-checked by an independent PIL column
+scan, canon M1). That makes the low-resolution verdict a FALSE FAIL, not a false
+pass, so it is a defect to fix and not a vacuity condition; it is recorded here
+because the two were reported as one thing and are not.
 """
 import argparse
 import csv

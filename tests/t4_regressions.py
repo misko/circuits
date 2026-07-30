@@ -813,6 +813,79 @@ def t_waiver_zero_denominator():
     contains(r.out, "M-COVER", "cites the canon it is enforcing")
 
 
+@test("G-VACUOUS W-COPY/W-FOREIGN: an ORIGINAL waiver carrying an INVENTED "
+      "measurement passes — the verdict is invariant under the number",
+      kind="vacuity", gate="waiver_provenance.py")
+def t_vacuity_a_waiver_whose_typed_measurement_is_arithmetically_false_passes():
+    """THE DECLARED BLIND SPOT (canon G-VACUOUS; the executable half of the
+    `VACUITY:` block in waiver_provenance.py's docstring).
+
+    This fixture asserts the gate PASSES while the fact it grades — "this
+    waiver's evidence is about THIS board" — is FALSE. It PINS the defect;
+    closing it should break this test, which then becomes a `known_bad`.
+
+    THE INCIDENT (measured 2026-07-29, pluto-rx2-8way at commit c07aaf2). The
+    waiver `P-ADJ-UNREACHED` read:
+
+        MEASURED by hand instead: C_SW1 pad 1 to U_SW pin 8 = 2.62 mm, inside
+        the 3 mm the datasheet sentence means.
+
+    Re-measured with pcbnew against the board that revision governed: **3.085 mm**
+    pad-centre to pad-centre, which is the measure `policy_audit.py:412` itself
+    defines for P-ADJ — 0.085 mm OVER the threshold the waiver asserted it was
+    inside. THE WAIVER'S CONCLUSION FLIPS. `2.62` reproduces under no definition
+    (edge-to-edge is 2.375 mm rect / 2.438 mm roundrect), so it is a free-hand
+    estimate rather than a typo or a mis-defined metric. A second entry read
+    "2.53 mm" against an actual 3.057 mm; that one stayed inside its 4 mm budget,
+    so it was wrong without being load-bearing. Both survived a full revision
+    cycle. Fleet denominator: **16 of 22 waiver entries carry a hand-typed
+    number**; 2 carry a re-runnable command.
+
+    WHY THE GATE CANNOT SEE IT. W-COPY and W-FOREIGN compare one piece of prose
+    to another, and `normalize()` deliberately folds unit spacing so a number
+    survives a reword. The only other gate on waiver evidence is
+    `policy_audit.py:165`, `len(str(w.get("why", ""))) < 40` — a LENGTH test.
+
+    PROVED WITHOUT A BOARD, which is the sharpest available form: the fixture
+    holds everything constant and replaces only the measurement, first with the
+    true value, then with the false one, then with a PHYSICALLY IMPOSSIBLE one.
+    The gate's output is byte-identical every time. A number that cannot change
+    the verdict is not an input to it."""
+    d = tmpdir("t4wav_vac_")
+    tmpl = ("- id: P-ADJ\n"
+            "  refs: [C_SW1]\n"
+            "  why: >-\n"
+            "    MEASURED by hand (pcbnew, 2026-07-29) on THIS board: C_SW1 pad 1\n"
+            "    to U_SW pin 8 = {n} mm, inside the 3 mm the PE42482A-X datasheet\n"
+            "    sentence means. Pin 8 sits on the global 3V3 net so no keep_short\n"
+            "    budget can address it.\n")
+    outs = {}
+    for label, n in (("true", "3.085"), ("false", "2.62"),
+                     ("impossible", "-410.00")):
+        root = d / label / "projects"
+        scratch_project(root, "board-alpha", waivers=tmpl.format(n=n))
+        scratch_project(root, "board-bravo", waivers=INDEPENDENT_B)
+        r = must_pass(run([PY, WAIVER_PROV, root]),
+                      f"waiver_provenance on the {label} measurement — THE "
+                      f"BLIND SPOT. If the 'false' or 'impossible' case now "
+                      f"FAILS, the gate has learned to re-derive a number: "
+                      f"convert this fixture to kind=\"known_bad\"")
+        outs[label] = r.out.replace(str(root), "<root>")
+
+    eq(outs["false"], outs["true"],
+       "the verdict must be shown INVARIANT under a measurement that is over "
+       "the threshold it claims to be inside — if these differ the gate reads "
+       "the number after all and this fixture is wrong")
+    eq(outs["impossible"], outs["true"],
+       "a NEGATIVE 410 mm separation between two pads on a 40 mm board is "
+       "graded identically to the true 3.085 mm — nothing in this repo reads "
+       "the digits")
+    contains(outs["true"], "waiver(s) graded",
+             "the gate does report a denominator — it counts the waivers it "
+             "never re-derives, which is why the blind spot survived being "
+             "measured by G-COVER")
+
+
 @test("waiver_provenance SAYS SO when only one project carries waivers")
 def t_waiver_single_project_says_so():
     """The subtler half, and the reason the zero case above is not enough.

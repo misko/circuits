@@ -36,9 +36,23 @@ KPY = "/usr/bin/python3"          # the interpreter that has pcbnew
 _REGISTRY = []
 
 
-def test(name, kind="clean", slow=False):
+def test(name, kind="clean", slow=False, gate=None):
+    """kind: "clean" | "known_bad" | "vacuity".
+
+    `kind="vacuity"` (canon G-VACUOUS) is a DECLARED BLIND SPOT: it constructs
+    the input class on which `gate` returns PASS/OK though the fact it grades is
+    FALSE, and asserts the gate passes on it. It is the executable half of the
+    gate's `VACUITY:` docstring block, and `gate="<basename>.py"` is what binds
+    the two — `gate_contract_audit.py` reads this decorator's AST and fails a
+    declaration with no fixture, a fixture with no declaration, and a fixture
+    that asserts `must_fail` (which would disprove the blind spot it claims).
+
+    A vacuity fixture PINS a defect on purpose. Closing the blind spot is
+    therefore expected to break it, and the fix is to convert it into a
+    `known_bad` — that breakage is the ratchet, not a regression."""
     def deco(fn):
-        _REGISTRY.append({"name": name, "kind": kind, "slow": slow, "fn": fn})
+        _REGISTRY.append({"name": name, "kind": kind, "slow": slow,
+                          "gate": gate, "fn": fn})
         return fn
     return deco
 
@@ -168,9 +182,10 @@ def main(argv=None):
            if (want_slow or not t["slow"])
            and (not only or re.search(only, t["name"], re.I))]
     npass = nfail = 0
-    failed, kb_pass = [], 0
+    failed, kb_pass, vac_pass = [], 0, 0
     for t in sel:
-        tag = "known-bad" if t["kind"] == "known_bad" else "clean"
+        tag = {"known_bad": "known-bad", "vacuity": "vacuity"}.get(
+            t["kind"], "clean")
         sys.stdout.write(f"  [{tag:9}] {t['name']} ... ")
         sys.stdout.flush()
         try:
@@ -185,12 +200,20 @@ def main(argv=None):
             npass += 1
             if t["kind"] == "known_bad":
                 kb_pass += 1
+            if t["kind"] == "vacuity":
+                vac_pass += 1
             print("ok")
     skipped = len(_REGISTRY) - len(sel)
     print(f"\n  {npass} passed, {nfail} failed"
           + (f", {skipped} skipped (use --slow)" if skipped else ""))
     print(f"  {kb_pass} of those are KNOWN-BAD fixtures that made their "
           f"checker fail as required")
+    if vac_pass:
+        # Not a success metric. This number is how many places a gate is KNOWN
+        # to pass while the fact it grades is false (canon G-VACUOUS) — an
+        # inventory of open blind spots, printed so it cannot stay quiet.
+        print(f"  {vac_pass} DECLARED BLIND SPOT(S) reproduced: a gate passing "
+              f"on input whose graded fact is FALSE (G-VACUOUS)")
     if not kb_pass and sel:
         # Not fatal per-suite: the e2e tier is legitimately all-clean, and a
         # --only= filter can select clean tests. run_tests.sh enforces the

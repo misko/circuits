@@ -43,6 +43,37 @@ acceptance test is adversarial: on first run against this repo it MUST flag a
 large number of scripts. A gate-on-gates that comes back clean on a codebase
 independently measured as riddled is decoration, and should be deleted rather
 than trusted.
+
+VACUITY: (canon G-VACUOUS, applied to G-VACUOUS. Fixtured by
+`t1_gate_contract.py` `t_vacuity_G_VACUOUS_passes_a_repo_where_no_gate_declares
+_anything`.)
+
+G-VACUOUS grades "every gate's blind spot is known". It PASSES on a repo where
+**no gate declares anything**, because it treats an absent declaration as OWED
+rather than as a violation. That is not a slip — a day-one mandate over 31 gates
+lands as 31 red rows and is disabled within the week, which is the failure mode
+this whole family exists to avoid. But it means the exit code is compatible with
+the graded fact being false for the entire fleet.
+
+HOW THE CIRCLE IS BROKEN. A coverage gate on partial adoption cannot be made
+non-vacuous on the empty case; asking it to police itself only regresses. What it
+CAN be made is BOUNDED, ENUMERATED and MONOTONE, and all three are outside its own
+judgement:
+
+  * BOUNDED — the blind spot is exactly the set in `owed`, and nothing else. Any
+    gate that DOES declare is fully graded, in both directions.
+  * ENUMERATED — every owed gate is printed BY NAME on every run. The vacuity is
+    therefore never silent, which is what separates it from all six instances in
+    the G-VACUOUS block below: each of those passed with nothing said.
+  * MONOTONE — `VACUITY_FLOOR` is a committed integer, and a drop below it is a
+    hard FAIL. `t_vacuity_floor_is_pinned_to_the_measured_count` additionally
+    pins the floor to what the tree actually achieves, so the floor cannot be
+    lowered to buy a green run and cannot silently lag adoption either.
+
+The floor is data a human must edit, in a file a reviewer reads, checked by a test
+that measures the tree. That is the break: G-VACUOUS does not certify its own
+adoption — the committed number and the test do, and neither is reachable from
+inside the audit.
 """
 import argparse
 import ast
@@ -367,12 +398,391 @@ def check_self_consistency(refs_dir):
     return fails, n
 
 
+# --------------------------------------------------------------- G-VACUOUS
+# THE QUESTION G-RED DOES NOT ASK. G-RED asks "can this gate fail at all?" and
+# 31/31 gates answer yes. That is the weak form. The strong form is: CAN IT FAIL
+# ON THE CASE IT EXISTS FOR? Six gates measured GREEN on 2026-07-28/29 while the
+# fact each grades was FALSE, every one of them internally honest:
+#
+#   * R-LEN (policy_audit.py:1078) is `re.search(r"length|spread", audit_src)`.
+#     smc0985-cooksense gets PASS on ZERO code matches — its only two hits are
+#     the words "slot-lengthened" and "lengthens" in COMMENTS about high-voltage
+#     creepage. Measured: 3 of 6 boards PASS, 1 of the 3 on comments alone; and
+#     pluto-cal-switch, which carries an ADR titled "length match is a published
+#     artifact", grades N-A "no timing-critical nets declared".
+#   * cooksense's `keypad_isolation_6mm` .kicad_dru rule conditions on
+#     `B.NetName != ''`, so UNNETTED copper is exempt BY CONSTRUCTION. Measured:
+#     the nearest unnetted copper to a KEYPAD_ISO net is 1.0672 mm from a
+#     6.000 mm constraint — a 5.6x violation, on 106 pairs, and the nearest item
+#     is J_KEY_MATRIX.MP, the connector shell tab the rule was written for.
+#     "0 DRC violations" was never evidence about it.
+#   * twin_overlay A-RENDER grades only the parts whose body survives a 2 px
+#     erosion at jlc_twin's hard-coded 1600x1000 render. On the 188.1 mm
+#     cooksense board that is 8.34 px/mm and 53 of 210 parts are graded.
+#   * waiver_provenance W-COPY/W-FOREIGN compare waiver PROSE to other prose and
+#     never re-derive a number. A waiver reading "C_SW1 pad 1 -> U_SW pin 8 =
+#     2.62 mm, inside the 3 mm" measures 3.085 mm centre-to-centre — OVER the
+#     threshold it claimed to be inside — and passed for a full revision cycle.
+#   * power_topology E-OFF returns N-A when it finds no source_type, no battery
+#     net and no battery-ish ADR, so a real battery board that declares nothing
+#     exits 0.
+#   * part_facts_check P-FACT now FAILS a zero denominator, but two paths still
+#     print `P-FACT OK - 0/0` and exit 0.
+#
+# So a gate must declare the input class on which it PASSES while the graded
+# fact is FALSE. THE DECLARATION IS A FIXTURE, NOT PROSE. A declared blind spot
+# with no fixture is strictly worse than an undeclared one: it reads as diligence
+# and grades nothing, which is the `keep_short` failure (39 of 181 budgets
+# addressed to net names no board has) one level up. So the binding is
+# bidirectional and both halves are machine-graded:
+#
+#   the gate's module DOCSTRING carries a `VACUITY:` block   <->   tests/ carries
+#   @test(..., kind="vacuity", gate="<basename>.py") that CONSTRUCTS that input
+#   and asserts the gate PASSES on it.
+#
+# A fixture asserting `must_fail` is a FALSE declaration and fails statically:
+# it proves the gate BITES where the docstring claims it is blind. Prose with no
+# fixture fails. A fixture with no prose fails (a reader of the gate must see
+# it). A fixture naming a gate not in the inventory fails (a rename silently
+# un-declares otherwise).
+#
+# WHY THE DOCSTRING AND NOT A REGISTRY. A registry is a second home and drifts;
+# the R-LEN defect above is precisely a check satisfied by text. So the
+# declaration is read from `ast.get_docstring` ONLY — a `VACUITY:` in a comment,
+# in a nested function's docstring, or in a code string does NOT satisfy it, and
+# `t_vacuity_prose_outside_the_module_docstring_is_not_a_declaration` pins that.
+# The docstring alone is still prose; what makes it a check is that it is
+# INERT WITHOUT the fixture, and the fixture is inert without it.
+VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
+
+#: THE RATCHET. 31 gates are in the inventory and a day-one fleet mandate would
+#: land as 31 red rows and be disabled by the end of the week (the honest
+#: precedent: G-RED's own adversarial acceptance floor had to be DELETED once
+#: the backlog closed, not lowered). So coverage is REPORTED for all 31 and
+#: OWED gates are named, while only three things FAIL: a false declaration, a
+#: declaration without a fixture, and a drop below this floor. Raise it as gates
+#: adopt; `t_vacuity_floor_is_pinned_to_the_measured_count` refuses a lowering.
+VACUITY_FLOOR = 5
+
+
+def vacuity_declaration(text):
+    """The `VACUITY:` block from the MODULE docstring, or None.
+
+    Deliberately not a whole-file search. `R-LEN` is
+    `re.search(r"length|spread", audit_src)` over raw source text, and
+    smc0985-cooksense earns a PASS from the word "lengthens" in a comment about
+    creepage. A gate-on-gates that accepted a `VACUITY:` anywhere in a file
+    would reproduce that defect in the act of policing it."""
+    try:
+        doc = ast.get_docstring(ast.parse(text))
+    except SyntaxError:
+        return None
+    if not doc or not VACUITY_RE.search(doc):
+        return None
+    return doc[VACUITY_RE.search(doc).start():].strip()
+
+
+def vacuity_fixtures(tests_dir):
+    """{gate basename: [fixture]} from `@test(..., kind="vacuity", gate=...)`.
+
+    An EXACT binding, read from the decorator's AST — not a name-in-the-file
+    proxy like `has_red_fixture`. G-RED had to settle for a proxy because it
+    retrofits 31 pre-existing suites; G-VACUOUS is new, so it can demand that a
+    fixture NAME its subject and there is no reason to accept less.
+
+    Each fixture records whether its body asserts PASS or FAIL, because that is
+    what makes the declaration checkable: a vacuity fixture asserts the gate
+    passes on input whose graded fact is false. One asserting `must_fail` has
+    disproved the very blind spot it claims."""
+    out = {}
+    for t in sorted(Path(tests_dir).glob("t*.py")):
+        try:
+            tree = ast.parse(t.read_text(errors="replace"))
+        except SyntaxError:
+            continue
+        src = t.read_text(errors="replace").splitlines()
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            for dec in node.decorator_list:
+                if not isinstance(dec, ast.Call):
+                    continue
+                kw = {k.arg: k.value for k in dec.keywords if k.arg}
+                kind = kw.get("kind")
+                if not (isinstance(kind, ast.Constant)
+                        and kind.value == "vacuity"):
+                    continue
+                gate = kw.get("gate")
+                gate = gate.value if isinstance(gate, ast.Constant) else None
+                body = "\n".join(src[node.lineno - 1:(node.end_lineno or
+                                                      node.lineno)])
+                # ORDER MATTERS, and this cost a revision. The first version
+                # failed any vacuity fixture containing `must_fail` at all —
+                # and that flagged the four best fixtures in the repo, because
+                # each asserts the blind spot AND THEN a CONTRAST: the same
+                # input changed in one way, which the gate DOES catch. The
+                # contrast is what proves the fixture is a good input broken one
+                # way (tests/README) rather than an input the gate simply cannot
+                # read. So the rule is about the SUBJECT assertion: the FIRST
+                # pass/fail assertion must be a `must_pass`, on the vacuity
+                # input itself. A fixture whose first — or only — assertion is
+                # `must_fail` has disproved the blind spot it claims.
+                order = [m.group(1) for m in
+                         re.finditer(r"\b(must_pass|must_fail)\(", body)]
+                out.setdefault(gate, []).append({
+                    "test": t.name, "func": node.name,
+                    "asserts_fail": bool(order) and order[0] == "must_fail",
+                    "asserts_pass": ("must_pass(" in body
+                                     or "check(" in body or "eq(" in body),
+                })
+    return out
+
+
+def check_vacuity(root, rows):
+    """(fails, stats) for G-VACUOUS over the gate inventory `rows`."""
+    root = Path(root)
+    fixtures = vacuity_fixtures(root / "tests")
+    inventory = {Path(r["script"]).name for r in rows}
+    fails, declared, bound, owed = [], [], [], []
+
+    for r in rows:
+        name = Path(r["script"]).name
+        try:
+            decl = vacuity_declaration((root / r["script"]).read_text(
+                encoding="utf-8-sig"))
+        except OSError:
+            decl = None
+        fx = fixtures.get(name, [])
+        r["vacuity"] = bool(decl)
+        r["vacuity_fixture"] = [f["func"] for f in fx]
+        if decl:
+            declared.append(name)
+        if decl and fx:
+            bound.append(name)
+        elif decl and not fx:
+            fails.append(
+                f"G-VACUOUS {r['script']}: its docstring declares a VACUITY: "
+                f"condition and NO tests/ fixture exercises it "
+                f"(@test(..., kind=\"vacuity\", gate=\"{name}\")). A declared "
+                f"blind spot with no fixture is WORSE than an undeclared one — "
+                f"it reads as diligence and grades nothing, which is the "
+                f"keep_short defect (39 of 181 budgets addressed to net names "
+                f"no board has) one level up")
+        elif fx and not decl:
+            fails.append(
+                f"G-VACUOUS {r['script']}: tests/{fx[0]['test']} carries a "
+                f"vacuity fixture ({fx[0]['func']}) but the module docstring "
+                f"has no VACUITY: block — the blind spot is invisible where "
+                f"anyone reading the gate would look, and a docstring rewrite "
+                f"cannot then contradict a fixture nobody reads")
+        else:
+            owed.append(name)
+        for f in fx:
+            if f["asserts_fail"]:
+                fails.append(
+                    f"G-VACUOUS {r['script']}: {f['test']}:{f['func']} is "
+                    f"declared kind=\"vacuity\" and its FIRST assertion is "
+                    f"must_fail — it PROVES the gate bites on the input the "
+                    f"docstring calls a blind spot, so the declaration is "
+                    f"FALSE. A blind spot that has been closed is a known_bad "
+                    f"fixture, not a vacuity one. (A must_fail CONTRAST after "
+                    f"the must_pass on the vacuity input is not only allowed "
+                    f"but wanted — it is what proves the fact is gradeable at "
+                    f"all.)")
+            elif not f["asserts_pass"]:
+                fails.append(
+                    f"G-VACUOUS {r['script']}: {f['test']}:{f['func']} is "
+                    f"declared kind=\"vacuity\" and asserts NOTHING — no "
+                    f"must_pass/check/eq in its body. That is prose in a .py "
+                    f"file, which is the form this check exists to reject")
+
+    for gate, fx in sorted(fixtures.items()):
+        if gate is None:
+            fails.append(
+                f"G-VACUOUS tests/{fx[0]['test']}:{fx[0]['func']}: a vacuity "
+                f"fixture with no gate=\"<basename>.py\" — an unbound fixture "
+                f"cannot be counted for any gate and cannot go stale visibly")
+        elif gate not in inventory:
+            fails.append(
+                f"G-VACUOUS tests/{fx[0]['test']}:{fx[0]['func']}: names "
+                f"gate=\"{gate}\", which is not in the verdict-printing "
+                f"inventory — a renamed or retired gate silently un-declares "
+                f"its blind spot otherwise")
+
+    # THE FLOOR IS A FACT ABOUT THIS TREE, so it is enforced only when the tree
+    # under audit IS the one this script lives in. A `--root` pointing at a
+    # miniature fixture (or another checkout) is a DIFFERENT inventory, and a
+    # committed count of 5 says nothing about it — enforcing it there made three
+    # of the pre-existing G-COVER/G-INPUT/G-RED synthetic tests fail on a
+    # property they are not about. Not an escape hatch: the floor is separately
+    # pinned to the measured count by t1_gate_contract's
+    # `t_vacuity_floor_is_pinned_to_the_measured_count`, which always runs
+    # against the real ROOT.
+    own_tree = root.resolve() == Path(__file__).resolve().parents[3]
+    if own_tree and len(bound) < VACUITY_FLOOR:
+        fails.append(
+            f"G-VACUOUS: {len(bound)} gate(s) carry a fixtured vacuity "
+            f"condition, below the committed floor of {VACUITY_FLOOR}. The "
+            f"floor only ratchets UP; a gate whose blind spot was documented "
+            f"and is now not has lost a control, not gained a clean run")
+
+    return fails, {"declared": sorted(declared), "bound": sorted(bound),
+                   "owed": sorted(owed), "total": len(rows),
+                   "floor": VACUITY_FLOOR}
+
+
+# ------------------------------------------------- G-VACUOUS, the DRU class
+# THE WORST INSTANCE ON THE LIST IS NOT A PYTHON GATE. `keypad_isolation_6mm`
+# lives in a `.kicad_dru` file, and its condition ends `&& B.NetName != ''`.
+# Every rule-file predicate is a gate, and a predicate that excludes its own
+# subject is the same defect — worse, because it makes DRC ITSELF report zero.
+#
+# Two checkable species, and the parser is deliberately small: it grades the
+# CONDITION as a boolean over an INVENTORY of what the board actually contains,
+# so it needs no geometry. `condition` is a disjunction of conjunctions in every
+# form this repo generates; a rule can only fire if SOME alternative has all its
+# required atoms satisfiable.
+DRU_ATOM_RE = re.compile(
+    r"(?P<side>[AB])\.(?P<prop>NetClass|NetName)\s*(?P<op>==|!=)\s*"
+    r"'(?P<val>[^']*)'|"
+    r"(?P<side2>[AB])\.insideArea\(\s*'(?P<area>[^']*)'\s*\)")
+
+#: constraints whose whole purpose is to police copper that may be UNNETTED —
+#: a shell tab, a mounting pad, a fill island. An exemption for empty net names
+#: in one of these excludes the subject.
+DRU_CLEARANCE_KINDS = ("clearance", "physical_clearance", "hole_clearance",
+                       "edge_clearance", "physical_hole_clearance",
+                       "silk_clearance", "courtyard_clearance")
+
+
+def parse_dru(text):
+    """[{name, condition, constraints, line}] by paren matching (the format is
+    s-expressions; a line regex would miss a wrapped condition)."""
+    rules = []
+    for m in re.finditer(r"\(rule\s+\"([^\"]*)\"", text):
+        depth, i = 0, m.start()
+        while i < len(text):
+            if text[i] == "(":
+                depth += 1
+            elif text[i] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            i += 1
+        body = text[m.start():i + 1]
+        cond = re.search(r"\(condition\s+\"((?:[^\"\\]|\\.)*)\"", body)
+        rules.append({
+            "name": m.group(1),
+            "condition": (cond.group(1).replace('\\"', '"') if cond else None),
+            "constraints": re.findall(r"\(constraint\s+(\w+)", body),
+            "line": text[:m.start()].count("\n") + 1,
+        })
+    return rules
+
+
+def check_dru_vacuity(rules, inv, source="<dru>"):
+    """(fails, graded) — a rule-file predicate must be able to fire on the
+    geometry it names.
+
+    `inv` is what the board HAS: {"netclasses": set, "nets": set,
+    "areas": set, "unnetted": int}. Pure and inventory-driven on purpose, so
+    the same function grades a synthetic fixture and a real board and nothing
+    has to be believed about either."""
+    fails, graded = [], 0
+    for r in rules:
+        cond = r["condition"]
+        if cond is None:
+            continue
+        graded += 1
+        clear = [c for c in r["constraints"] if c in DRU_CLEARANCE_KINDS]
+
+        # (1) CAN IT FIRE AT ALL? A positive atom naming a netclass/net/area the
+        #     board does not have is a required conjunct that is never true.
+        alts, dead = [a.strip() for a in cond.split("||")], []
+        for alt in alts:
+            for m in DRU_ATOM_RE.finditer(alt):
+                if m.group("area") is not None:
+                    if m.group("area") not in inv.get("areas", set()):
+                        dead.append(f"insideArea('{m.group('area')}') — no such "
+                                    f"rule area on the board")
+                    continue
+                if m.group("op") != "==" or not m.group("val"):
+                    continue
+                pool = ("netclasses" if m.group("prop") == "NetClass"
+                        else "nets")
+                if m.group("val") not in inv.get(pool, set()):
+                    dead.append(f"{m.group('side')}.{m.group('prop')} == "
+                                f"'{m.group('val')}' — no such "
+                                f"{'netclass' if pool == 'netclasses' else 'net'}")
+        if dead and len(dead) >= len(alts):
+            fails.append(
+                f"G-VACUOUS-DRU {source}:{r['line']} rule \"{r['name']}\": its "
+                f"condition can NEVER be true — {'; '.join(sorted(set(dead)))}. "
+                f"The rule is decoration and DRC reports zero for it by "
+                f"construction")
+
+        # (2) DOES IT EXEMPT ITS OWN SUBJECT? `NetName != ''` on a clearance
+        #     rule exempts unnetted copper, which is exactly what an isolation
+        #     barrier exists to hold off.
+        for m in re.finditer(r"([AB])\.NetName\s*!=\s*''", cond):
+            if not clear:
+                continue
+            fails.append(
+                f"G-VACUOUS-DRU {source}:{r['line']} rule \"{r['name']}\": its "
+                f"{m.group(1)}-side condition requires "
+                f"{m.group(1)}.NetName != '', so UNNETTED copper is EXEMPT BY "
+                f"CONSTRUCTION from a {'/'.join(clear)} constraint — and the "
+                f"board carries {inv.get('unnetted', '?')} unnetted copper "
+                f"item(s). A shell tab, mounting pad or fill island is the case "
+                f"an isolation barrier exists for, so '0 DRC violations' is not "
+                f"evidence about it. Measured on smc0985-cooksense: nearest "
+                f"unnetted copper to a KEYPAD_ISO net 1.0672 mm against a "
+                f"6.000 mm constraint, 106 pairs under the floor, the nearest "
+                f"being the keypad connector's own shell tab")
+    return fails, graded
+
+
+def dru_inventory(pcb_path):
+    """What the board HAS, read from the .kicad_pcb by pcbnew.
+
+    Imported lazily: G-VACUOUS's python arm must run under a plain interpreter,
+    and only this function needs the KiCad one."""
+    import pcbnew                                       # noqa: PLC0415
+    b = pcbnew.LoadBoard(str(pcb_path))
+    nets = {n.GetNetname() for n in b.GetNetsByNetcode().values()
+            if n.GetNetname()}
+    ncls = {b.FindNet(n).GetNetClassName() for n in nets if b.FindNet(n)}
+    areas = {z.GetZoneName() for z in b.Zones() if z.GetZoneName()}
+    # ON COPPER, and this number was reconciled rather than accepted. A first
+    # forensic pass reported 8 unnetted pads on cooksense; 6 of those are NPTH
+    # mounting holes (H1-H4) and J_TC's two NPTH pads, which are on NO copper
+    # layer and therefore cannot violate a copper clearance rule at all. The
+    # honest count is 2 — and both are `J_KEY_MATRIX.MP`, the keypad connector's
+    # SM10B-GHS-TB shell tabs, i.e. EXACTLY the tab `keypad_isolation_6mm` was
+    # written for. Filtering to copper made the finding sharper, not weaker.
+    unnetted = 0
+    for f in b.GetFootprints():
+        for p in f.Pads():
+            if (not p.GetNetname()
+                    and p.GetAttribute() != pcbnew.PAD_ATTRIB_NPTH
+                    and p.IsOnCopperLayer()):
+                unnetted += 1
+    for t in b.GetTracks():
+        if not t.GetNetname():
+            unnetted += 1
+    return {"nets": nets, "netclasses": ncls, "areas": areas,
+            "unnetted": unnetted}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(Path(__file__).resolve().parents[3]))
     ap.add_argument("--json", default=None)
     ap.add_argument("--enforce", default=None,
                     help="comma list, e.g. G-COVER,G-INPUT (default: all)")
+    ap.add_argument("--dru", default=None,
+                    help="a .kicad_dru to grade for predicate vacuity; its "
+                         "sibling .kicad_pcb supplies the inventory")
     a = ap.parse_args(argv)
 
     enforce = a.enforce.split(",") if a.enforce else None
@@ -394,13 +804,42 @@ def main(argv=None):
     for f in sc_fails:
         print(f"  FAIL {f}")
 
-    bad = len(r["fails"]) + len(r["unparsed"]) + len(sc_fails)
+    vc_fails, vs = check_vacuity(a.root, r["gates"])
+    r["vacuity"] = vs
+    print(f"  G-VACUOUS: {len(vs['bound'])}/{vs['total']} gate(s) declare a "
+          f"vacuity condition WITH a fixture that exercises it "
+          f"(floor {vs['floor']}); {len(vs['owed'])} OWED")
+    # THE OWED GATES ARE NAMED. An adoption ratchet whose remainder is a bare
+    # count is how a partial rollout becomes permanent — nobody can see whose
+    # blind spot is still unknown.
+    for name in vs["owed"]:
+        print(f"  OWED G-VACUOUS {name}: no declared vacuity condition")
+    for f in vc_fails:
+        print(f"  FAIL {f}")
+
+    dru_fails, dru_n = [], 0
+    if a.dru:
+        dru = Path(a.dru)
+        pcb = dru.with_suffix(".kicad_pcb")
+        inv = dru_inventory(pcb) if pcb.exists() else {}
+        dru_fails, dru_n = check_dru_vacuity(
+            parse_dru(dru.read_text(encoding="utf-8-sig")), inv, source=dru.name)
+        against = pcb.name if pcb.exists() else \
+            "NO board (inventory empty — netclass/area existence UNGRADED)"
+        print(f"  G-VACUOUS-DRU: {dru_n} predicate(s) graded in {dru.name} "
+              f"against {against}")
+        for f in dru_fails:
+            print(f"  FAIL {f}")
+
+    bad = len(r["fails"]) + len(r["unparsed"]) + len(sc_fails) + \
+        len(vc_fails) + len(dru_fails)
     if bad:
         print(f"G-CONTRACT FAIL: {bad} obligation(s) unmet across "
               f"{len(r['gates'])} verdict-printing script(s)")
         return 1
     print(f"G-CONTRACT OK: {len(r['gates'])} verdict-printing script(s) "
-          f"meet G-INPUT/G-COVER/G-RED; {sc_n} rule-file pair(s) self-consistent")
+          f"meet G-INPUT/G-COVER/G-RED; {sc_n} rule-file pair(s) "
+          f"self-consistent; {len(vs['bound'])} fixtured vacuity condition(s)")
     return 0
 
 
