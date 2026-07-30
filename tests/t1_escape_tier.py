@@ -1172,7 +1172,7 @@ def t_land_pour_and_via_are_out_of_scope():
 def t_land_model_is_falsifiable_on_routed_copper():
     """canon M1/G-VACUOUS: a prediction nothing can contradict is not a
     prediction. On a routed board every graded pad already carrying same-net
-    copper is compared against the width that ACTUALLY left it. 0 of 550
+    copper is compared against the width that ACTUALLY left it. 0 of 540
     over five sealed boards — and the 5 that fire on pluto-rx2-8way are its
     RF star routed at 0.36 mm on a clearance the .kicad_dru never declares,
     which is the same board's 49 DRC findings."""

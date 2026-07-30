@@ -329,7 +329,7 @@ BACKEND GAP to report, not a bespoke script to write here.
   carrying same-net copper is cross-checked against the width that actually
   left it, and copper wider than the model allows prints `MODEL-REFUTED` with
   both readings (the model is too strict, or that copper does not hold the
-  declared clearance and DRC will say so). Measured 0 of 550 on five sealed
+  declared clearance and DRC will say so). Measured 0 of 540 on five sealed
   boards.
   WHY: two boards asked this question independently and no gate did (canon
   M8). `pluto-rx2-8way`'s PE42482A-X land leaves 0.350 mm from the RF
