@@ -248,10 +248,41 @@ layout_refs:                # REQUIRED for every HARD part (dense escapes,
                             # RE-DERIVE; never import copper (M3). Harvested into
                             # proven-parts.yaml with the part, so the search is
                             # paid once per part, ever.
+                            # TWO FORMS, AS `pins.<N>` AND `sourcing.alternates`
+                            # ALSO HAVE. The BARE STRING below is legal and is
+                            # what 45 of the fleet's 89 in-scope parts use; it
+                            # is counted OWED by P-PREC, never failed. The
+                            # MAPPING form is GRADED (canon P-PREC).
   - "datasheet SNVSAI4F Sec.11 layout figure"    # (1) mfr's own routed picture
   - "TI EVM SLVUAP7A design files"               # (2) tested instance of circuit
   - "OSHWLab by-LCSC C485912"                     # (3) JLC-fabbed board, Cu viewable
   # - "GitHub kicad project <url>"               # (4) unvetted — weakest
+                            # THE GRADED (MAPPING) FORM. `tier:` is the SKILL.md
+                            # authority order 1-4; `artifact:` names the thing
+                            # (URL / document + figure + page / design-file
+                            # name); `reached:` separates CONSULTED from merely
+                            # KNOWN-OF; `why:` is REQUIRED (>=20 chars) on an
+                            # unreached tier, because a debt states its reason.
+                            # THE LADDER MUST NAME ITS CEILING: if the best
+                            # `reached: true` tier is below 4, at least one
+                            # `reached: false` entry must name what sits above
+                            # it. Reaching only tier 1 with the gap NAMED is a
+                            # PASS — what is graded is honesty about the
+                            # ceiling, not possession of it, because no gate can
+                            # know what exists on the web for an arbitrary part.
+                            # TIER 2 IS ANY OPEN-HARDWARE REFERENCE DESIGN WITH
+                            # PUBLISHED LAYOUT, not just a vendor EVM, and an
+                            # EDITABLE design file OUTRANKS A RENDERED FIGURE —
+                            # you can open it and MEASURE it. Licence matters
+                            # here (it is what makes the file openable) but
+                            # never licenses copying: study-then-re-derive is M3.
+  # - {tier: 1, reached: true,
+  #    artifact: "Hardware design with RP2040 Fig 6, PDF p9 (raster, 200 dpi)"}
+  # - {tier: 2, reached: false,
+  #    artifact: "Raspberry Pi 'Minimal Viable Board' KiCad reference design,
+  #      raspberrypi.com/documentation/microcontrollers/rp2040.html",
+  #    why: "19.9 MB fetch not attempted at the parts stage; Figure 6's raster
+  #      used instead. Recorded as NOT DONE, not as absent."}
 sourcing: {lcsc: C485912, alternates: [C2650259, C3188678]}
                             # ALTERNATES TAKE TWO FORMS AND THEY ARE NOT
                             # EQUIVALENT. A BARE code (the form shown above) is
@@ -543,7 +574,11 @@ deliberately, and failing those is how a new kind gets waived).
 | `gotchas` | ADVISORY | warnings addressed to the next author to touch this part (128 dossiers). Machine-grading English here would be theatre; what IS graded is that the expensive facts it warns about live in `pins:`/`escape:`/`limits:` |
 | `note_dirname` | ADVISORY | records why the directory name differs from the MPN; the MPN authority reads `mpn:` |
 | `on_live_board` | OWED | a claim that this exact part is on a shipped board — checkable against the sealed BOM and checked by nothing |
-| `layout_refs` | OWED | the datasheet figures the layout was derived from. P8 requires `layout.source:` and grades it; this parallel list is read by nobody, which is a second home for the same provenance |
+| `layout_refs` | `policy_audit.py` | the LAYOUT PRECEDENT SEARCH record. **Was OWED until 2026-07-30**, and the debt was real: P8 grades `layout.source:`, while this parallel list — the record of WHAT ELSE EXISTED and how strong it was — was read by nobody. P-PREC now reads it, counting the bare-string form OWED and grading the mapping form |
+| `layout_refs[].tier` | `policy_audit.py` | P-PREC: the SKILL.md authority tier this artifact sits at, 1-4. The tier IS the grade — without it an entry names what was read and still cannot be ranked |
+| `layout_refs[].artifact` | `policy_audit.py` | P-PREC: the thing itself (URL / document + figure + page / design-file name). An unnamed precedent is not a precedent, and `tier: 2, reached: true` with nothing named is an unfalsifiable claim to have done the most valuable half of the search |
+| `layout_refs[].reached` | `policy_audit.py` | P-PREC: CONSULTED (`true`) vs merely KNOWN-OF (`false`). This is the whole distinction the gate exists to make — the pluto-rx2-8way RP2040 dossier drew it correctly in PROSE and no machine could see it |
+| `layout_refs[].why` | `policy_audit.py` | P-PREC: REQUIRED (>=20 chars) on a `reached: false` entry. An unreached tier is a DEBT, and a debt without a reason is the waiver-without-evidence shape (canon M-WAIV) |
 | `datasheet.url` | `pin_audit.py` | the datasheet under review |
 | `datasheet.local` | OWED | the in-tree PDF path. M-DEPEND grades that a sealed release carries its dossiers; nothing grades that this path RESOLVES, so a moved PDF is silent |
 | `datasheet.sha256` | OWED | the fetched PDF's digest — an M-IMPORT provenance grade nothing recomputes, so a re-fetched or substituted revision cannot be detected |

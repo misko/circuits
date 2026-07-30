@@ -280,7 +280,7 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 7
-PROVEN_FLOOR = 246   # 239 -> 241 on 2026-07-29: route.yaml's
+PROVEN_FLOOR = 251   # 239 -> 241 on 2026-07-29: route.yaml's
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
@@ -290,6 +290,13 @@ PROVEN_FLOOR = 246   # 239 -> 241 on 2026-07-29: route.yaml's
 #: touches in this file — the floor is pinned by EQUALITY
 #: (t1_schema_reader.t_governed_family_floor_is_pinned), so a commit that
 #: adds contract rows and does NOT raise it leaves the suite red.
+#: 246 -> 251 on 2026-07-30: `layout_refs` STOPPED BEING OWED and gained a
+#: reader (canon P-PREC, `policy_audit.py`), bringing `layout_refs[].tier`,
+#: `[].artifact`, `[].reached` and `[].why` with it — 4 new rows plus the one
+#: that changed state, all PROVEN. This is the ratchet paying out exactly as
+#: designed: the OWED row named a gate that was INTENDED and absent, and the
+#: floor rose in the commit that built it. Measured `--root .`: 307/307
+#: declared keys graded OK, 251 PROVEN, 0 orphan.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.
