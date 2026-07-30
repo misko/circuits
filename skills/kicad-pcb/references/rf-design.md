@@ -4,14 +4,25 @@ Canon for boards whose deliverable is a **radio property** — impedance, phase,
 isolation — rather than connectivity plus DRC. Two boards in this fleet are of
 that kind and both found the pipeline had no gate for the thing they sell.
 
-## READ THE TWO VOICES SEPARATELY
+## READ THE THREE VOICES SEPARATELY
 
-Every item below is tagged **[SOURCED]** with a URL, or **[MEASURED]** with the
-number and the board it came from. **Never blend them.** The defect this rule
-exists for is local: `pluto-cal-switch` ADR-0010 solved its constants once at
-eps_r 4.3, published "0.35 mm = 50 ohm", and later ADRs re-cited that headline as
-though it had been measured — while the board's own generated `nets.yaml` said
-`0.35 -> 51.0 ohm` the whole time.
+Every item below is tagged **[SOURCED]** with a URL, **[MEASURED]** with the
+number and the board it came from, or **[DERIVED]** with the closed form, its
+inputs, and the stackup field each input came from. **Never blend them.** The
+defect this rule exists for is local: `pluto-cal-switch` ADR-0010 solved its
+constants once at eps_r 4.3, published "0.35 mm = 50 ohm", and later ADRs
+re-cited that headline as though it had been measured — while the board's own
+generated `nets.yaml` said `0.35 -> 51.0 ohm` the whole time.
+
+**THE THIRD VOICE WAS ADDED 2026-07-30, AND ITS ABSENCE IS WHY THIS FILE
+PUBLISHED A WRONG CONSTANT.** With only two tags a COMPUTED number has nowhere
+to live, so `eps_eff 3.350` was filed in section 4 — a section whose heading
+reads *"What this fleet MEASURED"* — while being a closed-form evaluation
+nobody had ever re-run. Not one sentence in the file was false. The number was
+wearing the wrong voice, and **a reader who wants provenance stops asking once
+a thing is labelled measured.** A derivation is not a measurement and it is not
+a citation: it is a third thing, and it is the only one of the three a reader
+can check without leaving the desk. Section 4A is what checking it found.
 
 ---
 
@@ -107,7 +118,8 @@ board-specific choice.
 
 ## 4. What this fleet measured that the sources do NOT cover [MEASURED]
 
-Gaps a general RF guide will not fill. All measured 2026-07-29.
+Gaps a general RF guide will not fill. All measured 2026-07-29, except (d),
+which turned out not to be a measurement at all — see 4A.
 
 **(a) AN OCTILINEAR ROUTER MAKES "EQUAL LENGTH BY CONSTRUCTION" FALSE OF
 COPPER.** A radial star has equal *pad* radii; the router does not have equal
@@ -176,13 +188,168 @@ grid one is free.
 
 **(d) ONE STACKUP MUST HAVE ONE CONSTANT SET.** Two boards on `JLC04161H-7628`
 carried different eps_eff / t_pd / lambda_g because one solved at eps_r 4.3 and
-the other at the declared Dk 4.4. Phase runs at **13.19 deg/mm** at 6 GHz
-(eps_eff 3.350, t_pd 6.105 ps/mm, lambda_g 27.29 mm), so a 1.3% constant error is
-a real published error on a board whose artifact is a picosecond figure.
+the other at the declared Dk 4.4. Phase runs at **~13.2 deg/mm** at 6 GHz, so a
+1% constant error is a real published error on a board whose artifact is a
+picosecond figure.
+
+**THE CONSTANTS THIS ITEM ITSELF PUBLISHED — eps_eff 3.350, t_pd 6.105 ps/mm,
+lambda_g 27.29 mm, 13.19 deg/mm — ARE WITHDRAWN, 2026-07-30.** They came from a
+closed form that does not exist. And the rule as worded above was too weak to
+catch even its own violation: it says a stackup has one constant set and says
+nothing about WHICH cross-section or WHICH form, so by the day this was checked
+the fleet was publishing **five** sets for this one laminate, two of them inside
+one file. **Section 4A is what this item should have said**, and it is a
+section rather than a rewrite because five live board documents cite this file
+by section number.
 
 **(e) MEASURE THE PRIZE, DO NOT INHERIT IT.** An SMA bottom-plane antipad was
 claimed at ~9 dB and re-derived at **5.6 dB** of return loss at 6 GHz (RL 8.9 ->
 14.5). Both numbers were "known"; only one was measured.
+
+## 4A. WHERE THIS REPO DISAGREES WITH ITSELF — one stackup, FIVE constant sets
+
+Section 3 is the EXTERNAL axis: the published sources against us. This is the
+internal one, and it is the more dangerous of the two, because an external
+disagreement announces itself and an internal one gets re-cited as
+corroboration. Numbered `4A` rather than renumbered into place on purpose: five
+live board documents cite this file as `4(d)`, `3(b)`, `3(d)`, `section 1` and
+`section 5`, and **silently renumbering canon that boards cite is the exact
+drift this section is about.**
+
+### What the fleet published for `JLC04161H-7628`, w = 0.36 mm, 6 GHz
+
+All rows re-checked 2026-07-30 by reading each file and re-running its stated
+arithmetic. `lambda_g/20` is shown because it is the via-fence pitch every
+board in this family inherits.
+
+| where | eps_eff | t_pd ps/mm | lambda_g mm | deg/mm | lg/20 | the method ACTUALLY used |
+|---|---|---|---|---|---|---|
+| 4(d) above (withdrawn) + `pluto-rx2-8way` `nets.yaml` phase block | 3.350 | 6.105 | 27.29 | 13.19 | 1.365 | a HYBRID closed form — (i) |
+| `pluto-rx2-8way` `nets.yaml` netclass comment, SAME FILE | *(3.3229)* | — | **27.41** | — | 1.371 | 3.328 divided into a lambda_0 ROUNDED to 50 mm — (iv) |
+| `pluto-rx2-8way` ADR-0003 / DETAIL_DESIGN | 3.328 | 6.09 | *(27.39)* | — | 1.369 | H-J eps_eff at a single Wheeler `w_eff` — (ii) |
+| `pluto-rx2-8way-v2` ADR-0003 | 3.3286 | 6.0857 | 27.387 | 13.145 | 1.369 | same method, more digits |
+| `pluto-cal-switch` (re-derived the same day) | **3.383** | 6.135 | 27.17 | 13.25 | 1.359 | **2D field solve, AS FABBED** — (iii) |
+| **this section, derived independently** | **3.3226** | **6.0802** | **27.411** | **13.133** | **1.371** | H-J + H-J's OWN thickness correction, BARE |
+
+**(i) 3.350 HAS a provenance, and finding it IS the answer: it is a closed form
+that does not exist.** [DERIVED] It is recorded verbatim in
+`copper_length_audit.py`'s own docstring, so nothing was hidden —
+
+    eps_eff = (er+1)/2 + (er-1)/2 / sqrt(1 + 10h/w)
+            = 2.70 + 1.70/sqrt(1 + 5.844) = 2.70 + 0.650 = 3.350
+
+The arithmetic is correct and the formula is not. The constant **10** is
+Hammerstad-Jensen's, whose exponent is **-a(u)*b(er)**; the exponent **-1/2**
+is Schneider/Wheeler's, whose constant is **12**. The expression takes one term
+from each parent. Evaluate both parents on the same inputs (h 0.2104 mm,
+er 4.4, w 0.36 mm, t 0, so u = w/h = 1.7110):
+
+    Hammerstad-Jensen  (1 + 10/u)^-a(u)b(er),  a*b = 0.54170   ->  3.2999
+    Schneider/Wheeler  (1 + 12/u)^-0.5                         ->  3.3005
+    the hybrid                                                 ->  3.3498
+
+**The two parents agree with each other to 0.02%.** So 3.350 is not a value
+sitting between two models that disagree — it is 1.5% above two models that
+AGREE, and it matches neither. No measurement is cited for it anywhere in the
+tree and none exists; under canon M6 it outranks nothing. **Withdrawn.** The
+lesson is not "check the arithmetic" — the arithmetic was checkable and
+correct. It is that **a formula is an input too, and only the inputs were
+tagged.**
+
+**(ii) The SECOND fork is the thickness treatment, and it is why two honest
+agents land on 3.3226 and 3.3286.** [DERIVED] Here t/h = 0.035/0.2104 = 0.166,
+so copper thickness is not a rounding term. Hammerstad-Jensen carries its own
+correction and it produces TWO corrected widths, not one:
+
+    du1 = (t/h)/pi * ln(1 + 4e / ((t/h) * coth^2(sqrt(6.517*u))))  ->  u1 = 1.9329
+    dur = 0.5 * (1 + 1/cosh(sqrt(er - 1))) * du1                   ->  ur = 1.8562
+
+`u1` feeds Z0, `ur` feeds eps_eff, and `ur < u1` because only PART of the extra
+fringing a thick strip captures sits in the dielectric — that
+`0.5*(1 + 1/cosh(sqrt(er-1)))` = 0.656 factor is the dielectric's share.
+Feeding one Wheeler `w_eff = w + (t/pi)(1 + ln(2h/t)) = 0.3988 mm` (u = 1.8957)
+into the eps_eff formula instead spends the WHOLE increment on the dielectric
+term and lands 0.18% high. Both are defensible engineering; only one is
+internally consistent with the formula it feeds. H-J's own gives **eps_eff
+3.3226 and Z0 49.79 ohm at the 0.36 mm these boards actually route** — landing
+on 50 ohm at an independently chosen width is the corroboration that matters.
+
+**(iii) AND THE ENTIRE ARGUMENT IS SMALLER THAN THE TERM NO CLOSED FORM
+CARRIES.** [MEASURED] `pluto-cal-switch`, 2026-07-30, 2D finite-difference
+field solve on this exact cross-section, one term at a time at w 0.35 mm:
+
+    bare rectangular trace                       Z0 51.64 ohm
+    + trapezoidal etch (top -0.02 mm)            Z0 52.11 ohm   (+0.46)
+    + conformal solder mask 0.020 mm, Dk 3.8     Z0 50.09 ohm   (-1.55)
+
+Convert the mask row to permittivity — and it converts EXACTLY, because
+`Z0 = Z0_air / sqrt(eps_eff)` and `Z0_air` is a function of GEOMETRY ONLY, which
+that row holds fixed:
+
+    eps_eff_masked / eps_eff_bare = (51.64 / 50.09)^2 = 1.063     ->  +6.3%
+
+**Every closed form in the table above is a BARE-TRACE model, and no board in
+this fleet fabricates a bare trace.** On a mask-covered 0.36 mm run the bare
+3.3226 implies roughly **3.53** before the trapezoid gives a little back. So
+the correction this section makes is REAL but it is not the biggest one
+available, and **the derivable number is not automatically the true number** —
+3.350 was wrong for a bad reason and wrong in the RIGHT DIRECTION, while every
+bare closed form is right about a cross-section nobody builds. Two consequences,
+both stated rather than resolved:
+
+- **A constant set is meaningless without its CROSS-SECTION.** "Mask-opened
+  over the RF run" or not is a stackup field, and the fleet does not declare
+  it. It is worth more than the 1.5% everyone has been arguing about.
+- **OWED, and reported rather than fixed** (this is a project record, not
+  canon): `pluto-cal-switch`'s own per-term Z0 table implies a masked eps_eff
+  near 3.52 at w 0.35, while the composite it publishes is 3.383 at w 0.36.
+  Those do not reconcile from the record as written, because the record gives
+  Z0 per term and eps_eff only for the composite. The field solve is also the
+  only method in the table with **no re-runnable command** — best method,
+  weakest regenerability, which is its own M-BOUND finding.
+
+**(iv) THE FENCE PITCH WAS RIGHT BY LUCK, TWICE, FROM TWO UNRELATED ERRORS.**
+[DERIVED] `lambda_g = 27.41 mm` — the figure the family's `lambda_g/20 =
+1.37 mm` via fence was actually computed from — is `50 / 1.8242`, i.e.
+`lambda_0` rounded from **49.9654 mm** to 50 mm at 6 GHz. From the same
+eps_eff 3.328 the honest quotient is 27.389. And this section's independent
+derivation, by a different route entirely, gives **27.411 mm**. The three-digit
+agreement is a COLLISION, not a corroboration, and it is the specimen worth
+keeping: a number can survive two independent errors and still be quoted as
+confirmed. The fence stands at 1.37 mm; every rung of its derivation was wrong.
+
+**(v) NOTHING SHIPPED IS UNSAFE, AND THAT IS NOT THE POINT.** [DERIVED] The
+laminate's own Dk window is 4.2-4.6, which moves eps_eff **3.187 -> 3.458** and
+the pitch **1.399 -> 1.344 mm**. Every disagreement above lives INSIDE that
+window; the fence is conservative at all of them. Dispersion (Kirschning-Jansen
+at 6 GHz) adds +0.30%, and does not reach 3.350 either. **What is at stake is
+regenerability, not accuracy** — canon M-BOUND. A constant nobody can re-derive
+survives every review, because reviewing it requires re-deriving it, which is
+the work everyone assumes was already done.
+
+### THE RULE
+
+> **ONE STACKUP, ONE CONSTANT SET — AND THE SET IS IDENTIFIED BY THE TUPLE
+> `(stackup, w, cross-section, method)`, NEVER BY THE STACKUP ALONE.** A board
+> publishes eps_eff / t_pd / lambda_g ONCE, with the formula, every input, and
+> the stackup field each input was read from, so the number is a COMMAND and
+> not a digit. Two documents may hold different constants for one laminate only
+> when the tuple differs and both tuples are printed. A re-typed copy is not a
+> citation; a formula assembled from two sources is not a formula; and a number
+> whose method is not named cannot be compared to another number at all.
+
+Because the failure is now WITHIN one file rather than between two boards, this
+is canon M8's second strike and the rule is a gate candidate.
+
+**PROPOSED CHECK ID: `M-BOUND-EPS`** (extends `adr_bound_provenance.py` /
+M-BOUND). Collect every published eps_eff / t_pd / lambda_g / deg-per-mm in a
+project, re-derive from the declared stackup + netclass width, and FAIL on
+disagreement beyond a stated tolerance; FAIL a set that names no method or no
+cross-section; FAIL two sets for one tuple. It catches 4(d), 3(b) and every row
+of the table above from source alone. **NOT IMPLEMENTED HERE, DELIBERATELY** —
+`smc0985-cooksense` is mid-seal, and a board mid-seal pins its gates: changing
+a checker underneath it moves the numbers its seal is being graded on. The gate
+lands after that seal, and this proposal is the handoff.
 
 ## 5. Protocol — what an RF board does differently, by stage
 
@@ -191,8 +358,11 @@ Mapped onto `skills/pcb-design/SKILL.md`.
 - **Stage 2/3 (parts, source).** Choose the most integrated part (rule 2). Copy
   the vendor reference layout (rule 4) and RECORD the comparison — deviating
   here is how both fleet land defects happened. Declare the stackup ONCE and
-  derive eps_eff / t_pd / lambda_g from it; every ADR cites the derived
-  constants, never a re-typed copy (4d; canon M-BOUND).
+  derive eps_eff / t_pd / lambda_g from it, **printing the formula, the inputs
+  and the CROSS-SECTION (mask-opened or not) alongside the number**; every ADR
+  cites the derived constants, never a re-typed copy (4d, 4A; canon M-BOUND).
+  If a closed form is the method, name WHICH — the fleet has shipped a formula
+  assembled from two of them (4A(i)).
 - **Stage 4 (schematic).** Declare `length_match:` groups now, with
   `max_spread_mm` derived from DRIFT (4b) and the phase constants attached. A
   matched set that does not exist as a schema cannot be graded.
@@ -220,12 +390,17 @@ every one can itself go vacuous, so this list is short on purpose.
    `escape_check.py`). Two boards asked independently — canon M8's two-strike is
    met. Highest leverage: refuses at authoring time a board that otherwise fails
    after a full race, and needs only footprint + netclass.
-2. **One stackup, one constant set** (extend `adr_bound_provenance.py` /
-   M-BOUND). Cross-check every published eps_eff / t_pd / lambda_g against the
-   value derived from the declared stackup. Catches 4d and 3b from source alone.
-   `length_match.<G>.phase.*` is already declared OWED in the `03_src/rules`
-   contract for this reason — the resolution is a CROSS-CHECK, never having the
-   gate READ the declared number.
+2. **One stackup, one constant set — `M-BOUND-EPS`** (extend
+   `adr_bound_provenance.py` / M-BOUND). Cross-check every published eps_eff /
+   t_pd / lambda_g against the value derived from the declared stackup, and
+   REFUSE a set that names no method or no cross-section. Catches 4d, 3b and
+   every row of 4A's table from source alone. `length_match.<G>.phase.*` is
+   already declared OWED in the `03_src/rules` contract for this reason — the
+   resolution is a CROSS-CHECK, never having the gate READ the declared number.
+   **Promoted to first-ranked-by-evidence 2026-07-30**: the defect recurred
+   INSIDE a single file (canon M8's second strike) and the fleet was measured
+   carrying FIVE sets for one laminate. **Deliberately not built yet** — a
+   board is mid-seal and a board mid-seal pins its gates.
 3. **Reference-plane continuity under a matched group** — assert the layer
    beneath a `length_match:` group carries no routed net. Rule 1 made executable,
    and it is the failure that silently destroys phase.
