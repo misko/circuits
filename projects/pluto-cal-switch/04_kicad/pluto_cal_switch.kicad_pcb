@@ -16111,38 +16111,7 @@
 		)
 		(polygon
 			(pts
-				(xy 52 62.48) (xy 53.5 62.48) (xy 53.5 63.7) (xy 52 63.7)
-			)
-		)
-	)
-	(zone
-		(layer "F.Cu")
-		(uuid "aeee073b-0c80-4b30-8566-f4b575950e13")
-		(name "taper_u_mcu")
-		(hatch edge 0.5)
-		(connect_pads
-			(clearance 0)
-		)
-		(min_thickness 0.25)
-		(keepout
-			(tracks allowed)
-			(vias allowed)
-			(pads allowed)
-			(copperpour allowed)
-			(footprints allowed)
-		)
-		(placement
-			(enabled no)
-			(sheetname "")
-		)
-		(fill
-			(thermal_gap 0.5)
-			(thermal_bridge_width 0.5)
-			(island_removal_mode 0)
-		)
-		(polygon
-			(pts
-				(xy 104.8 33) (xy 115.2 33) (xy 115.2 43) (xy 104.8 43)
+				(xy 52 62.48) (xy 54.6 62.48) (xy 54.6 64.099999) (xy 52 64.099999)
 			)
 		)
 	)
@@ -16193,7 +16162,38 @@
 		)
 		(polygon
 			(pts
-				(xy 52 47.98) (xy 53.5 47.98) (xy 53.5 49.2) (xy 52 49.2)
+				(xy 52 47.98) (xy 54.6 47.98) (xy 54.6 49.6) (xy 52 49.6)
+			)
+		)
+	)
+	(zone
+		(layers "F.Cu" "In2.Cu")
+		(uuid "aeee073b-0c80-4b30-8566-f4b575950e13")
+		(name "taper_u_mcu")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 104.8 33) (xy 115.2 33) (xy 115.2 43) (xy 104.8 43)
 			)
 		)
 	)

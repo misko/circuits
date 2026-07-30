@@ -437,7 +437,36 @@ design_rules:
   track_min_width: 0.127
   min_clearance: 0.127
   via_min_annulus: 0.05
-  hole_clearance: 0.25
+  # CORRECTED 2026-07-29 AT STAGE 6, FROM 0.25, BECAUSE 0.25 WAS THIS BOARD'S OWN
+  # RULE SET CONTRADICTING ITSELF (the G-SELFCON shape). There is NO
+  # hole-to-copper key in skills/kicad-pcb/references/fab_tiers.yaml at all, so
+  # 0.25 had been taken from the tier's `min_hole_to_hole: 0.25` — a DIFFERENT
+  # specification, which stage 5's own beacon already flagged ("a 0.250 floor
+  # that is itself derived from the tier's HOLE-TO-HOLE number, which is not the
+  # same specification") for J_USB's 0.225 mm locating boss.
+  # DERIVED, not chosen: the tightest hole-to-copper this board's own geometry
+  # can ever produce is its minimum via's annulus plus its own copper clearance
+  #     (0.25 via - 0.15 drill)/2 + 0.15 clearance = 0.05 + 0.15 = 0.200 mm
+  # so at 0.25 EVERY legally-placed 0.25/0.15 via was a hole_clearance violation
+  # by construction: measured 57 of them on the first routed board, all at
+  # 0.220-0.225 mm. At the tier's own floors the same arithmetic gives
+  # 0.05 + 0.09 = 0.140 mm, so 0.200 is still 1.43x the tier's implied minimum.
+  # It also makes PF-HTC's warning moot in the right direction: pcb_toolkit's
+  # via_site_ok hardcodes 0.205 mm "assuming a 0.20 floor", so the stitch screen
+  # and the DRC gate now agree instead of the screen being 0.045 mm looser.
+  # ORDER-TIME OBLIGATION: JLC publishes a hole-to-track number and this repo's
+  # tier model does not carry it; carry the check into ORDER_README the way the
+  # tier file carries "verify at order time" on min_hole_to_hole.
+  hole_clearance: 0.20
+  # LEFT AT 0.5, DELIBERATELY, EVEN THOUGH THE DECLARED TIER'S FLOOR IS 0.25.
+  # jlc_4layer_advanced publishes min_hole_to_hole 0.25 ("verify at order time"),
+  # so 0.5 is the STANDARD-tier number and is 2x stricter than what this board
+  # pays for. It stays because the stitch config is built on it (`stitch.via.
+  # spacing: 0.85` = a 0.55 mm drill-edge gap, chosen against this 0.5) and
+  # because relaxing a hole-to-hole floor to a number the tier file itself marks
+  # unverified is not a trade worth making for via density we do not need.
+  # If a future escape genuinely walls in at 0.5, 0.25 is available WITH the
+  # order-time verification, and that is the moment to spend it.
   hole_to_hole: 0.5
   copper_edge_clearance: 0.3
   via_min_size: 0.25
@@ -518,8 +547,12 @@ keepouts:
   # southward until a full-width 0.35 mm line is legal again (y >= 48.45 by the
   # corner arithmetic), with margin. Deliberately does NOT reach y = 47.750,
   # where U_SW1.1/U_SW1.3 sit and where nothing needs relaxing.
-  - {rect: [52.00, 47.98, 53.50, 49.20], layers: [F.Cu], name: taper_u_sw1, deny: []}
-  - {rect: [52.00, 62.48, 53.50, 63.70], layers: [F.Cu], name: taper_u_sw2, deny: []}
+  # ENLARGED 2026-07-29 after the first routed board: RF_CTRL_SW2's escape from
+  # U_SW2.6 fans out to x 54.1 before it clears the land field, so the original
+  # x <= 53.50 box did not contain the copper it had to license. Both boxes are
+  # the same rect +14.5 mm apart, so the two channels are licensed identically.
+  - {rect: [52.00, 47.98, 54.60, 49.60], layers: [F.Cu], name: taper_u_sw1, deny: []}
+  - {rect: [52.00, 62.48, 54.60, 64.10], layers: [F.Cu], name: taper_u_sw2, deny: []}
   # The RP2040 escape ring. The pad ring is x 106.125..113.875, y 34.125..41.875;
   # this is that box + ~1.1 mm on every side, wider than any neck needs. It
   # contains no other WHOLE footprint; it clips the near pads of the 3V3 /
@@ -528,7 +561,13 @@ keepouts:
   # they are the far end of the same escape. One rect rather than four side
   # strips because the honest statement is "inside the RP2040's own escape field
   # there is no trunk, only taps".
-  - {rect: [104.80, 33.00, 115.20, 43.00], layers: [F.Cu], name: taper_u_mcu, deny: []}
+  # In2.Cu AS WELL AS F.Cu, added after the first routed board: three of the
+  # RP2040's necked escapes came out on In2 (KRT drops to the inner layer inside
+  # the escape field), and an F.Cu-only rule area licensed none of them —
+  # measured as 3 of the 5 remaining track_width findings. In2.Cu here is a
+  # RULE AREA that denies nothing; A-PLANE guards In1.Cu, which is untouched.
+  - {rect: [104.80, 33.00, 115.20, 43.00], layers: [F.Cu, In2.Cu],
+     name: taper_u_mcu, deny: []}
 
 silk:
   min_text_height: 0.6

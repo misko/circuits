@@ -316,8 +316,8 @@ classes:
 # generate_rules_generic checks independently and would refuse.
 scoped_floors:
   - zone: taper_u_sw1
-    nets: [RX_PLUTO1]
-    min_width: 0.22
+    nets: [RX_PLUTO1, RF_CTRL_SW1]
+    min_width: 0.15
     why: >
       MEASURED 2026-07-29 on the placed board: the widest track that can land on
       U_SW1.5 (BGS12WN6 RFC, the middle pad of the 0.400 mm second row, between
@@ -329,9 +329,22 @@ scoped_floors:
       (lambda_g 27.29 mm) — and the line is back at its 0.35 mm impedance width
       for the remaining 8.55 mm to J_SMA_RX1. Not a placement finding: the pitch
       is the part.
+      SECOND MEASUREMENT, 2026-07-29, AFTER THE FIRST ROUTED BOARD, and it is
+      why this floor is 0.15 and not 0.22: RF_CTRL_SW2 could not escape U_SW2.6
+      at its CTRL class minimum of 0.200 mm either. KRT necked it to 0.1498 mm
+      of its own accord, and the geometry says why — leaving pad 6 north-east,
+      the track passes 0.225 mm from U_SW2.1's land, which admits 2*(0.225-0.150)
+      = 0.150 mm and no more. Its channel-1 twin RF_CTRL_SW1 found a 0.200 mm
+      path in the same land field, so this is a real per-channel asymmetry in the
+      CONTROL copper, not a symmetric one: harmless, because RF_CTRL_SWn is a DC
+      logic level behind a 1 kohm series and a 1 nF shunt (nets.yaml CTRL:
+      "2 nA typ / 10 nA max per switch"), and 0.15 mm carries that with five
+      orders of magnitude to spare. The floor is stated as 0.15 for BOTH nets so
+      the two channels are licensed identically even though only one used it.
+      0.15 is 1.18x the tier's 0.127 mm min_track.
   - zone: taper_u_sw2
-    nets: [RX_PLUTO2]
-    min_width: 0.22
+    nets: [RX_PLUTO2, RF_CTRL_SW2]
+    min_width: 0.15
     why: >
       The arm-2 twin of taper_u_sw1, MEASURED INDEPENDENTLY rather than inherited
       (canon: a waiver copied from a sibling is an inherited defect). U_SW2.5

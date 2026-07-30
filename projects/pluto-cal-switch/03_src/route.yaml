@@ -3,36 +3,65 @@
 # routing Python.
 #
 # =============================================================================
-# STATE 2026-07-28: IDENTITY ONLY. NO ROUTING IS AUTHORED YET.
+# STATE 2026-07-29: ROUTED. The banner this file carried until today said "NO
+# ROUTING IS AUTHORED YET"; it is now authored, and the shape is NOT the one the
+# banner anticipated.
 # =============================================================================
-# Stage 4 (schematic) finished at its declared handoff boundary. Routing is a
-# LATER session's work and it cannot start before placement exists.
+# THE CALIBRATION CHAIN IS NOT ROUTED. All eighteen RF nets — both loopback
+# arms, both antenna runs, both receive runs, the splitter and the five-chip
+# pre-split attenuator cascade — are EXCLUDED from every wave and placed instead
+# as EXPLICIT GEOMETRY by `stitch.seed_stubs` at the bottom of this file. The
+# reason is the reason this board exists: its release artifact is a PHASE DELTA
+# (ADR-0011, BRIEF D4) at 13.19 deg/mm, KRT is stochastic by its own contract,
+# and a stochastic router cannot produce a REPRODUCIBLE published number. The
+# arms are constructed by a per-net isometry and their spread is 0.000000 mm BY
+# ARITHMETIC, verified independently by `copper_length_audit.py` (canon R-LEN)
+# off the saved bytes and pinned in `03_src/rules/nets.yaml`
+# `length_match.RF_LOOP_D4.pin`.
 #
-# Same reason this file was touched at stage 4 as floorplan.yaml: it was still
-# the cook-loadcell TEMPLATE VERBATIM (`project.name: cook_loadcell`, a 2-layer
-# F/B wave plan, an analog-guard keepout for a load-cell bridge, and
-# `final: 03_src/route/r2.kicad_pcb` pointing at a promoted chain that does not
-# exist here). A rebuild would have replayed a foreign board's routing intent.
-# Purged; identity set; the plan left EMPTY, which is honest.
+# THE COORDINATES ARE PLANNED, NOT HAND-WRITTEN. `03_src/rf_copper.py --emit`
+# derives them (channel 1 declared, channel 2 by a per-net isometry), verifies
+# landing / clearance / width / grid / congruence against the board, and PRINTS
+# the `seed_stubs:` block below. It writes no copper. That is the same
+# planner/emitter split `p_seed_stubs` itself was promoted from (its docstring
+# cites usb-hub-3s `03_src/plan_seed_stubs.py` + `add_seed_stubs.py`), and it is
+# what keeps the whole recipe expressible HERE: a chain whose recipe is not in
+# `route.yaml` is a canon-M3 violation wearing a green gate. Re-run `--emit` and
+# repaste if any arm part ever moves.
 #
-# WHAT A ROUTING SESSION MUST HONOUR HERE, already decided upstream:
-#   * KRT ONLY, fanout-first, on a TRACK-FREE board, imported ONCE, and the
-#     final chain PROMOTED into 03_src/route/ and committed (canon M3). KiCad
-#     has no autorouter.
-#   * netclass widths come from rules/nets.yaml and are IMPEDANCE widths on
-#     every RF class: 0.35 mm is 50 ohm on this stackup and BOTH a narrowing
-#     AND a widening are defects. Do not let a wave override them.
-#   * LOOP_ARM1/2 (+ their _SW halves and the arm-pad internal nets) are a
-#     MATCHED PAIR, mirror-symmetric, SAME LAYER, NO VIAS. Their delta is a
-#     published release artifact (ADR-0011).
-#   * RF_CTRL routes on an INNER layer under ground across the RF region and
-#     must NEVER run parallel to a loopback arm (ARCHITECTURE sec.10.6).
-#   * L2 stays one unbroken plane: no routing channel through it, anywhere.
-#   * ground-via fence at <=2.0 mm pitch (lambda_g/12 at 6 GHz) beside every RF
-#     trace and around every SMA launch, plus a >=D3.5 mm bottom-plane antipad
-#     at each launch, opening OUTWARD (ADR-0007).
-#   * fab tier jlc_4layer_advanced — tier_preflight (R-PREFLIGHT) will refuse
-#     any via/clearance below its floors and will name the tier.
+# KRT never sees this copper as an obstacle, because seed_stubs runs at stitch
+# time. Two things cover that: the long, otherwise-empty RF corridors are
+# RESERVED from the router as `prep.keepouts.rects` on User.2, and
+# `p_seed_stubs` exact-collision-checks every segment against the routed board
+# and REFUSES WHOLE on a conflict — so a wave that does invade a corridor
+# surfaces as a named refusal, never as a silent short.
+#
+# The banner's own note said HARDEST-FIRST means the two arms go first, together,
+# as one wave, "because a router that threads one and then squeezes the other has
+# already destroyed the property this board exists to publish". That reasoning
+# was right and its conclusion was one step short: even routing them TOGETHER
+# leaves the delta to a stochastic search. So they are not routed at all.
+#
+# WHAT THE WAVES BELOW STILL HONOUR, from the original banner:
+#   * KRT ONLY, on a TRACK-FREE board (rf_copper runs on the PREP OUTPUT, so the
+#     board `prep` reads is still track-free and its refusal still bites),
+#     imported ONCE, chain PROMOTED to 03_src/route/ and committed (canon M3).
+#   * netclass widths are IMPEDANCE widths on every RF class and a wave may not
+#     override them (check_wave_widths refuses at prep).
+#   * L2 (In1.Cu) stays one unbroken plane: it is not in `route.common.layers`,
+#     so no wave can put a track on it. A-PLANE re-measures it after stitch.
+#   * fab tier jlc_4layer_advanced; tier_preflight refuses a sub-floor config.
+#
+# ONE MEASURED LIMITATION OF THE SHARED BACKEND, REPORTED NOT WORKED AROUND
+# SILENTLY: `wave_track_width` derives a wave's width from `nets.yaml classes`
+# and does NOT read `scoped_floors`, so it refuses an explicit width that the
+# board's own .kicad_dru licenses inside a rule area. That matters here because
+# nine RP2040 pins and two USB pins cannot accept their class minimum at all
+# (see nets.yaml scoped_floors). Those eleven connections are therefore made as
+# `taps:` — the backend's own mechanism for "collision-checked NAMED connections
+# KRT cannot thread" — which takes an explicit per-tap width. That is a
+# supported path, not a hack, but the width guard being blind to scoped_floors
+# is a real gap and is written up in the stage-6 journal.
 # =============================================================================
 
 project:
@@ -45,22 +74,62 @@ prep:
   keepouts:
     layers: [User.2]
     edge_band: 0.7            # KRT has no edge concept; the dru floor is 0.3
-  waves:
-    exclude: ["GND", "unconnected-*"]
-    groups: {}                # NOT AUTHORED — see the banner above
-  # NOTE for the routing session: on this board the HARDEST-FIRST rule (golden
-  # rule 4) means the loopback arms go FIRST, together, as one wave — they are a
-  # matched pair and a router that threads one and then squeezes the other has
-  # already lost the property the board exists to publish.
+    # RF CORRIDORS RESERVED FROM THE ROUTER, ONE PER PLANNED POLYLINE.
+    # `p_seed_stubs` places the calibration chain AFTER the waves, so a wave that
+    # crossed one of these corridors would make that placement impossible; these
+    # rects are how the router is told. They are on User.2, which only KRT reads.
+    #
+    # EMITTED BY `03_src/rf_copper.py --emit`, NOT DRAWN BY HAND, and the reason
+    # is measured: a hand-drawn set of seven rects (an eyeball of "the long,
+    # otherwise-empty runs") under-reserved four corridors — one of them by
+    # 0.07 mm — and `p_seed_stubs` REFUSED 4 of 21 stubs where a wave had walked
+    # in. Each rect is now one polyline's exact bounding box plus
+    # half-width + 0.15 clearance + 0.125 slack.
+    #
+    # This DOES cost the router space inside the two BGS12WN6 land fields, which
+    # the hand-drawn version deliberately left open so KRT could reach U_SWn.4
+    # (3V3_SW). That connection is now a `taps:` entry instead — measured either
+    # way: it was open after the waves in BOTH configurations.
+    rects:
+      - {x0: 31.900, y0: 47.300, x1: 46.100, y1: 48.200}   # RX_ANT1
+      - {x0: 31.900, y0: 61.800, x1: 46.100, y1: 62.700}   # RX_ANT2
+      - {x0: 46.100, y0: 47.200, x1: 52.700, y1: 48.200}   # SW1_ANT
+      - {x0: 46.100, y0: 61.700, x1: 52.700, y1: 62.700}   # SW2_ANT
+      - {x0: 52.365, y0: 47.765, x1: 53.135, y1: 48.985}   # RX_PLUTO1
+      - {x0: 52.365, y0: 62.265, x1: 53.135, y1: 63.485}   # RX_PLUTO2
+      - {x0: 52.300, y0: 48.150, x1: 53.200, y1: 57.600}   # RX_PLUTO1
+      - {x0: 52.300, y0: 62.650, x1: 53.200, y1: 72.100}   # RX_PLUTO2
+      - {x0: 63.550, y0: 54.120, x1: 69.953, y1: 55.450}   # LOOP_SPLIT
+      - {x0: 63.550, y0: 54.550, x1: 64.450, y1: 55.880}   # LOOP_SPLIT
+      - {x0: 61.950, y0: 47.300, x1: 65.350, y1: 55.000}   # LOOP_ARM1
+      - {x0: 61.950, y0: 55.000, x1: 65.350, y1: 62.700}   # LOOP_ARM2
+      - {x0: 60.477, y0: 47.300, x1: 62.576, y1: 48.200}   # PAD_A2A_1
+      - {x0: 60.477, y0: 61.800, x1: 62.576, y1: 62.700}   # PAD_A2B_1
+      - {x0: 52.800, y0: 47.200, x1: 59.503, y1: 48.200}   # LOOP_ARM1_SW
+      - {x0: 52.800, y0: 61.700, x1: 59.503, y1: 62.700}   # LOOP_ARM2_SW
+      - {x0: 70.927, y0: 54.550, x1: 72.953, y1: 55.450}   # PAD_A1_4
+      - {x0: 73.927, y0: 54.550, x1: 75.953, y1: 55.450}   # PAD_A1_3
+      - {x0: 76.927, y0: 54.550, x1: 78.953, y1: 55.450}   # PAD_A1_2
+      - {x0: 79.927, y0: 54.550, x1: 81.953, y1: 55.450}   # PAD_A1_1
+      - {x0: 82.927, y0: 54.550, x1: 93.830, y1: 55.450}   # TX_PLUTO
 
 route:
   krt: ~/gits/KiCadRoutingTools
   common:
     layers: [F.Cu, In2.Cu]
-    fab_tier: jlc_4layer_advanced   # via_size/via_drill/clearance DEFAULT to
-                                    # this tier's published floors when omitted;
-                                    # an explicit sub-floor value is a hard
-                                    # error that names the tier (R-PREFLIGHT)
+    fab_tier: advanced              # KRT's OWN vocabulary (its --fab-tier takes
+                                    # only standard|advanced) — NOT the repo's
+                                    # tier id. This key is a pure pass-through to
+                                    # route.py; the repo tier that sets
+                                    # via_size/via_drill/clearance floors comes
+                                    # from nets.yaml `fab_tier:
+                                    # jlc_4layer_advanced` via fab_tier(cfg), and
+                                    # an explicit sub-floor value here is still a
+                                    # hard error naming that tier (R-PREFLIGHT).
+                                    # It read `jlc_4layer_advanced` for the first
+                                    # attempt and KRT exited 2 on wave 1 with
+                                    # "invalid choice" — a config error that costs
+                                    # nothing to find and everything to guess at.
     clearance: 0.15                 # DECLARED 2026-07-29, ABOVE the tier floor.
                                     # Omitted, this defaulted to the tier's
                                     # 0.09 mm min_space while every netclass DRC
@@ -77,12 +146,141 @@ route:
     no_stub_layer_swap: true
     keepout: true
     keepout_layer: User.2
-  waves: []                   # NOT AUTHORED — see the banner above
-  # final: 03_src/route/rN.kicad_pcb   # the PROMOTED chain (canon M3). No chain
-  #                                    # is promoted yet; there is nothing to
-  #                                    # replay, and pointing at one that does
-  #                                    # not exist is how a foreign board's
-  #                                    # routing gets replayed by accident.
+  waves:
+    # RF_CTRL is the ONE net that must cross the calibration region, and
+    # ARCHITECTURE sec.10.6 puts it on an inner layer under ground and never
+    # parallel to a loopback arm. It goes FIRST, alone, so it picks its corridor
+    # before anything else claims one. Verified after the fact by measurement,
+    # not by asserting the router obeyed prose.
+    - {name: ctrl_span, group: ctrl_span}
+    # The USB pair needs an UNINTERRUPTED In1.Cu reference for its whole length
+    # (RP2040 hardware-design sec.2.4.1), so it is pinned to F.Cu: a layer hop
+    # to In2 would put the pair over the In2 GND/3V3 pour boundary.
+    - {name: usb, group: usb, layers: [F.Cu]}
+    - {name: ctrl_local, group: ctrl_local}
+    - {name: xtal, group: xtal}
+    - {name: qspi, group: qspi}
+    # PWR at its 0.4 mm class width, with every PWR net declared as a power net
+    # so KRT NECKS a tap that will not fit rather than abandoning it (its issue
+    # #72). MEASURED on the first routed board: this got 3V3's 25 pads fully
+    # connected and left only VREG_VOUT x2 and 3V3_SW x2 open, which the `taps:`
+    # block above now names. The cost is that the neck-down TAPER emits four
+    # width steps, one of which came out at 0.0953 mm — see stitch.width_floor.
+    - {name: pwr, group: pwr,
+       power_nets: ["3V3", "VREG_VOUT", "VBUS", "VBUS_F", "VBUS_PF", "3V3_SW"],
+       power_nets_widths: [0.4, 0.4, 0.4, 0.4, 0.4, 0.4]}
+    - {name: rest, group: rest}
+  # final: 03_src/route/r7.kicad_pcb  # NOT PROMOTED, DELIBERATELY, 2026-07-29.
+  #   The waves route 7/7 and the chain exists in 06_build/route/, but promoting
+  #   it would seal an RF width the board's own rules file contradicts: measured
+  #   from the stackup, w = 0.35 mm is 51.37 ohm at Dk 4.3 / 50.84 at Dk 4.4 and
+  #   50.00 needs 0.368 / 0.361 mm (nets.yaml's own table already says 51.0).
+  #   A width change re-authors every RF run, so the chain has to be re-raced
+  #   after it; re-racing is cheap and a superseded release is not. Two opens
+  #   (U_MCU.45/.50 -> VREG_VOUT) are also still declared. See 01_docs/STATUS.md
+  #   and the stage-6 journal; pointing this key at a chain that does not exist
+  #   is how a foreign board's routing gets replayed by accident.
+
+# ===========================================================================
+# taps — THE ELEVEN CONNECTIONS NO WAVE CAN MAKE, plus the four it left open.
+# ===========================================================================
+# Runs AFTER `import`, BEFORE `stitch`. This is the backend's own mechanism for
+# "collision-checked NAMED connections KRT cannot thread", and it is the ONLY
+# place in the config that takes an EXPLICIT per-connection width — which is
+# exactly what this board needs, because `wave_track_width` derives a wave's
+# width from `nets.yaml classes` and does NOT read `scoped_floors`, so a wave
+# cannot legally be told to route at a width the board's own `.kicad_dru`
+# licenses inside a rule area. That gap is reported in the stage-6 journal.
+#
+# WHY THESE ELEVEN: measured at the top of stage 6, nine RP2040 pins and two USB
+# pins cannot accept their netclass minimum AT ALL (nets.yaml scoped_floors: a
+# 0.200 mm land on 0.400 mm pitch admits w <= 0.300, against PWR's 0.400 and
+# USB_DP's 0.330). Every one of them lands inside `taper_u_mcu`, which licenses
+# 0.25 mm, and each tap is short enough to stay inside it.
+taps:
+  clearance: 0.15
+  reattempt: {max_retries: 3}
+  connections:
+    # SIX CONNECTIONS, ONE PER MEASURED OPEN — not a guess list. The first
+    # version of this block also tapped the four MCU 3V3 pins and U_MCU.23;
+    # `quick` then MEASURED that KRT had already connected all five (3V3's 25
+    # pads came out with 0 opens), so those five taps were redundant copper
+    # competing for the same congested escape corridor as the ones that were
+    # actually needed, and 7 of 11 failed. Removing them is the fix: a tap is a
+    # NAMED connection and the list should name exactly what is open.
+    #
+    # THE TWO RP2040 CORE-RAIL PINS. The datasheet requires both DVDD pins tied
+    # to VREG_VOUT OFF-CHIP (sec.2.9.7.1 Figure 16), and pins 45/50 came out of
+    # the waves 1.820 mm and 3.593 mm from the nearest VREG_VOUT copper. They
+    # hop through B.Cu because the F.Cu escape field north of the top pad row is
+    # already carrying the USB pair and four 3V3 escapes — measured, not assumed:
+    # both failed twice at w=0.25 on F.Cu alone.
+    # `to:` is a BARE POINT on the VREG_VOUT copper the pwr wave already laid
+    # (measured: its nearest endpoint to these two pins is (108.400, 33.400),
+    # 1.820 mm from pin 50 and 3.593 mm from pin 45). Aiming at C_VREGO.1
+    # instead — 4.4 mm away, past the whole decoupling row — failed twice at
+    # both pins even with a B.Cu hop; the shortest legal span to the SAME
+    # electrical node is the one to ask for.
+    # ==================================================================
+    # U_MCU.45 AND U_MCU.50 (VREG_VOUT) ARE **NOT TAPPED**, AND THAT IS A
+    # DECLARED OPEN, NOT AN OMISSION. STAGE-6 D-BACK, journalled.
+    # ==================================================================
+    # Four bounded attempts, each with a MEASURED result and none of them
+    # better than the last on these two pins:
+    #   1. -> C_VREGO.1 on F.Cu                          both FAIL
+    #   2. -> C_VREGO.1 with a B.Cu hop                   both FAIL
+    #   3. -> [108.400, 33.400] (the nearest point of the copper the pwr wave
+    #         already laid: 1.820 mm from pin 50, 3.593 mm from pin 45)
+    #                                                     both FAIL
+    #   4. split at waypoints in the 0.915 mm band between the RP2040 pad ring
+    #      (y >= 34.125) and the decoupling row (y <= 33.21): pin 45's own
+    #      escape to [111.800, 33.650] SUCCEEDED, and every span that has to
+    #      travel WEST along that band FAILED.
+    # The same waypoint split fixed USB_DP_MCU on the first try, so the
+    # threader is not the limit — the band is. The causal edge is PLACEMENT:
+    # eight escapes leave the RP2040's north side on a 0.400 mm pitch (3V3 x4,
+    # VREG_VOUT x2, USB_DP, USB_DM) into a band 3.2 mm wide, which is exactly
+    # 8 x (0.25 track + 0.15 space) — saturated, so no escape may cross
+    # another; and BOTH VREG_VOUT targets (C_VREGO at x 107.8, C_DV2 at
+    # x 106.5) sit on the FAR SIDE of the row from pin 45 at x 111.8. That is
+    # the `escape-corridor` CONDITIONAL escape_check publishes for a dense
+    # side, and `03_src/floorplan.yaml` declares no `escape_corridors:` at all.
+    # Grinding the router further would be the mistake canon D-BACK names.
+    # The fix is upstream and cheap: the x-slot between C_USBV (109.1) and
+    # C_ADCV (112.8) at y = 32.5 is EMPTY, so moving C_VREGO into it puts a
+    # VREG_VOUT land directly north of pin 45's own escape. That is a stage-5
+    # change with P-ADJ to re-grade (RP2040:VREG_VOUT currently 4.30 mm of a
+    # 5.0 mm budget), which is why it is not made from inside a routing session.
+    # THE USB PAIR'S DIE END, which no wave could make at all: U_MCU.46/.47 are
+    # 0.200 mm lands on 0.400 mm pitch and admit w <= 0.300 against USB_DP's
+    # 0.330 mm floor, so KRT left both nets with ZERO copper. 0.25 mm inside
+    # `taper_u_mcu`. A B.Cu hop is permitted here and it IS a documented
+    # deviation from ARCHITECTURE sec.10's "same layer, same reference": this
+    # board's own USB_DP intent block records that full speed needs no
+    # controlled pair over a run this short (critical length ~170 mm at a 4 ns
+    # edge; this stub is 5.1 mm) and that the 0.33 mm width was taken only
+    # because the stackup gave it for free. The LONG run — J_USB -> USBLC6 ->
+    # the 27 ohm terminators — is still F.Cu-only by its wave's `layers: [F.Cu]`.
+    # USB_DP_MCU IS SPLIT INTO TWO TAPS THROUGH A SHARED WAYPOINT. The single
+    # 5.0 mm U_MCU.47 -> R_USBP.2 span failed three times: it has to leave a
+    # saturated 0.4 mm pad row and then thread the decoupling row, and the tap
+    # threader's astar window is a few mm wide. Two spans meeting at
+    # (110.800, 31.600) — the open lane between C_USBV (x 109.1) and C_ADCV
+    # (x 112.8) — is the same copper with each half inside the threader's reach.
+    # The waypoint is shared exactly, so the two taps are one continuous run.
+    - {net: USB_DP_MCU, from: U_MCU.47, to: [110.800, 31.600], width: 0.25,
+       layer: F.Cu, hop_layer: B.Cu}
+    - {net: USB_DP_MCU, from: [110.800, 31.600], to: R_USBP.2, width: 0.25,
+       layer: F.Cu, hop_layer: B.Cu}
+    - {net: USB_DM_MCU, from: U_MCU.46, to: R_USBM.2, width: 0.25,
+       layer: F.Cu, hop_layer: B.Cu}
+    # THE TWO SWITCH VDD PINS. BGS12WN6 pin 4 is a corner land of the same
+    # 0.400 mm second row; a 0.4 mm PWR track can land on its SW corner
+    # (0.170-0.180 mm clear) but KRT stopped 0.951 mm and 2.750 mm short on the
+    # two channels. Named here at 0.25 mm, which is what the pin draws (125 uA
+    # max per switch, BGS12WN6 Table 2) by four orders of magnitude.
+    - {net: 3V3_SW, from: U_SW1.4, to: C_SW1A.1, width: 0.25}
+    - {net: 3V3_SW, from: U_SW2.4, to: C_SW2A.1, width: 0.25}
 
 stitch:
   # 0.15 = the DRC clearance, exactly (nets.yaml default_clearance). This started
@@ -98,23 +296,122 @@ stitch:
   # The same floors gate normalize_vias, hole_to_hole.shrink_to and the
   # astar_fallback via pin (whose 0.45/0.2 toolkit default was below a
   # 2-layer standard board's floors — crow-array-pod incident).
-  # `tiers` DECLARED 2026-07-29 for ONE reason: hole_to_copper. via_site_ok's
-  # default is 0.205 mm, which assumes a 0.20 mm hole-clearance floor. THIS
-  # board's floor is 0.25 (jlc_4layer_advanced, and it is in the generated
-  # .kicad_pro), so the default lets the stitch screen ACCEPT sites that DRC then
-  # rejects on hole_clearance — a screen looser than its gate (tier_preflight
-  # PF-HTC). size/drill are restated at the same 0.6/0.3 as the parent so the
-  # tier list changes the CLEARANCE TEST and nothing else.
+  # `tiers` DECLARED 2026-07-29 for ONE reason: hole_to_copper, and the number
+  # CHANGED TWICE THE SAME DAY IN OPPOSITE DIRECTIONS, which is the story.
+  # via_site_ok's default is 0.205 mm, which assumes a 0.20 mm hole-clearance
+  # floor. While floorplan.yaml declared 0.25 this was set to 0.255, because a
+  # 0.205 screen would ACCEPT sites DRC then rejected — a screen looser than its
+  # gate (tier_preflight PF-HTC), and route.yaml records that shape twice
+  # already. Stage 6 then found 0.25 was itself wrong: it had been inherited from
+  # the tier's HOLE-TO-HOLE number, and at 0.25 every legally-placed 0.25/0.15
+  # via was a hole_clearance violation by construction (57 measured). With the
+  # floor corrected to its DERIVED 0.20 (see floorplan.yaml design_rules), 0.255
+  # became the OPPOSITE defect — PF-HTC FAILED it as "0.055 mm STRICTER than the
+  # board floor ... a FALSE placement wall", citing crow-rv2 where 7 of 8
+  # "unstitchable" pads had legal sites 0.2-0.8 mm away and it was misdiagnosed
+  # as a placement D-BACK. So 0.205 = the floor + 5 um, which is both the
+  # preflight's own suggested fix and the toolkit default it was written against.
+  # size/drill are restated at the same 0.6/0.3 as the parent so the tier list
+  # changes the CLEARANCE TEST and nothing else.
   via: {size: 0.6, drill: 0.3, spacing: 0.85, pth_margin: 0.3,
-        tiers: [{size: 0.6, drill: 0.3, hole_to_copper: 0.255}]}
+        tiers: [{size: 0.6, drill: 0.3, hole_to_copper: 0.205}]}
   keepin: {inset: 0.8}
   # seed_stubs runs FIRST (before fill so the pour flows around the stub
   # copper); unify_zone_priorities runs after the last fill, before
   # heal_islands (it needs filled zones to check for pour fragmentation).
-  passes: [seed_stubs, dedupe_vias, normalize_vias, drop_micro_fragments,
+  passes: [seed_stubs, dedupe_vias, normalize_vias, width_floor,
+           drop_micro_fragments,
            drop_dangling, split_t_junctions, reload, hole_to_hole, pad_rescue,
            stub_fallback, astar_fallback, stitch_grid, fill, island_rescue,
-           fill, unify_zone_priorities, heal_islands, gate]
+           fill, heal_islands, gate]
+  # `unify_zone_priorities` IS DELIBERATELY NOT IN THAT LIST, and it was, until
+  # it FAILED this board for a legal plane. Measured: it refused with "zones of
+  # DIFFERENT nets overlap ([3V3] and [GND]) — that is a SHORT". They are not a
+  # short. floorplan.yaml puts the 3V3 pour on In2.Cu at PRIORITY 2 inside the
+  # board-wide In2 GND pour at PRIORITY 0, on purpose and with the reason
+  # written down ("it nests inside the board-wide In2 GND rather than fighting
+  # it"); distinct priorities are exactly how KiCad models a nested plane, and
+  # only a SAME-priority overlap produces the `zones_intersect` finding the pass
+  # exists to fix. This board has no same-net overlapping pour at all: the four
+  # GND pours are one per copper layer and cannot overlap. So the pass has
+  # nothing to do here and its cross-net check is a FALSE POSITIVE that stops
+  # the run. Reported upstream rather than worked around silently: the check
+  # should compare PRIORITIES before calling an overlap a short.
+  # width_floor — ONE JOB, TIGHTLY SCOPED, AND IT IS NOT AMPACITY.
+  # KRT's power-net neck-down (its issue #72) tapers a wide tap in FOUR STEPS
+  # into the pad, and on the first routed board one of those steps came out at
+  # 0.0953 mm — BELOW jlc_4layer_advanced's own 0.127 mm min_track, i.e. not
+  # manufacturable at any DRC setting. `--neckdown-taper-length 0` would stop it
+  # at source but `_KRT_FLAGMAP` cannot pass that flag, so the taper stubs are
+  # lifted to the scoped floor here instead. `region` confines it to U_MCU's
+  # escape field, exactly the `taper_u_mcu` rule area that licenses 0.25 mm, so
+  # no trunk is touched; `nets` names only the four nets that rule area covers.
+  # 0.25 (not 0.4) because 0.4 is unlandable on these pins — that is the whole
+  # finding above.
+  width_floor:
+    nets: {3V3: 0.25, VREG_VOUT: 0.25, USB_DP_MCU: 0.25, USB_DM_MCU: 0.25}
+    region: {x0: 104.80, y0: 33.00, x1: 115.20, y1: 43.00}
+  # ===========================================================================
+  # THE CALIBRATION CHAIN. Planned and verified by `03_src/rf_copper.py --emit`;
+  # DO NOT HAND-EDIT — re-run it and repaste. Every coordinate is a pad centre
+  # or a corner derived from a measured clearance, and the derivations live in
+  # that file beside the declaration.
+  #
+  # ARM1 = LOOP_ARM1 + PAD_A2A_1 + LOOP_ARM1_SW = 16.080266 mm
+  # ARM2 = LOOP_ARM2 + PAD_A2B_1 + LOOP_ARM2_SW = 16.080266 mm
+  # SPREAD 0.000000 mm = 0.0000 ps = 0.0000 deg at 6 GHz, BY CONSTRUCTION.
+  #
+  # The transform is PER NET and that is not a stylistic choice: LOOP_ARMn is a
+  # REFLECTION about y = 55.000 (the splitter resistors are mirrored) while
+  # LOOP_ARMn_SW is a TRANSLATION of +14.5 mm (the switches are translated, and a
+  # reflected entry lands 0.010 mm from U_SW2.6 against a 0.150 mm floor). Both
+  # are isometries, so the member totals are equal to the nanometre either way.
+  seed_stubs:
+    clearance: 0.15
+    stubs:
+      - {net: RX_ANT1, pin: C_DCBLK1.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[32.350, 47.750], [45.650, 47.750]]}]}
+      - {net: RX_ANT2, pin: C_DCBLK2.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[32.350, 62.250], [45.650, 62.250]]}]}
+      - {net: SW1_ANT, pin: U_SW1.3,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[46.550, 47.750], [52.250, 47.650]]}]}
+      - {net: SW2_ANT, pin: U_SW2.3,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[46.550, 62.250], [52.250, 62.150]]}]}
+      - {net: RX_PLUTO1, pin: U_SW1.5,
+         segments: [{layer: F.Cu, width: 0.22, pts: [[52.750, 48.150], [52.750, 48.600]]}]}
+      - {net: RX_PLUTO2, pin: U_SW2.5,
+         segments: [{layer: F.Cu, width: 0.22, pts: [[52.750, 62.650], [52.750, 63.100]]}]}
+      - {net: RX_PLUTO1, pin: J_SMA_RX1.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[52.750, 48.600], [52.750, 57.150]]}]}
+      - {net: RX_PLUTO2, pin: J_SMA_RX2.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[52.750, 63.100], [52.750, 71.650]]}]}
+      - {net: LOOP_SPLIT, pin: R_DELTA1.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[69.503, 55.000], [64.000, 55.000], [64.000, 54.570]]}]}
+      - {net: LOOP_SPLIT, pin: R_DELTA2.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[64.000, 55.000], [64.000, 55.430]]}]}
+      - {net: LOOP_ARM1, pin: U_PAD_A2A1.2,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[62.400, 54.550], [64.000, 53.670], [64.500, 53.670], [64.900, 53.270], [64.900, 48.150], [64.500, 47.750], [64.000, 47.750]]}]}
+      - {net: LOOP_ARM2, pin: U_PAD_A2B1.2,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[62.400, 55.450], [64.000, 56.330], [64.500, 56.330], [64.900, 56.730], [64.900, 61.850], [64.500, 62.250], [64.000, 62.250]]}]}
+      - {net: PAD_A2A_1, pin: U_PAD_A2A2.2,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[62.126, 47.750], [60.927, 47.750]]}]}
+      - {net: PAD_A2B_1, pin: U_PAD_A2B2.2,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[62.126, 62.250], [60.927, 62.250]]}]}
+      - {net: LOOP_ARM1_SW, pin: U_SW1.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[59.053, 47.750], [53.250, 47.650]]}]}
+      - {net: LOOP_ARM2_SW, pin: U_SW2.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[59.053, 62.250], [53.250, 62.150]]}]}
+      - {net: PAD_A1_4, pin: U_PAD_A1D.5,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[71.377, 55.000], [72.503, 55.000]]}]}
+      - {net: PAD_A1_3, pin: U_PAD_A1C.5,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[74.377, 55.000], [75.503, 55.000]]}]}
+      - {net: PAD_A1_2, pin: U_PAD_A1B.5,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[77.377, 55.000], [78.503, 55.000]]}]}
+      - {net: PAD_A1_1, pin: U_PAD_A1A.5,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[80.377, 55.000], [81.503, 55.000]]}]}
+      - {net: TX_PLUTO, pin: J_SMA_TX.1,
+         segments: [{layer: F.Cu, width: 0.35, pts: [[83.377, 55.000], [93.380, 55.000]]}]}
+
   # DETERMINISTIC POUR-FED PIN SEED STUBS (canon M8: usb-hub-3s
   # plan_seed_stubs.py + add_seed_stubs.py). The pour-fed nets that leave a
   # dense IC pin row and weave across the escape field to their pour island —
