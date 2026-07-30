@@ -334,16 +334,39 @@ class Preflight:
                 sug = rclr if (self.tier is None
                                or rclr >= float(self.tier["min_space"])) \
                     else round(float(self.tier["min_space"]) + 0.01, 3)
+                # THE FIX LINE MUST OFFER BOTH DIRECTIONS (2026-07-30). Where
+                # the strictest scope is a WAVE override, "declare the DRC
+                # floor at the router's number" means adopting a LOCAL
+                # routability budget BOARD-WIDE — and on the board that made
+                # this reachable (pluto-rx2-8way) clearance is ISOLATION
+                # between nine RF arms, so that advice would trade the whole
+                # electrical argument for a green gate. Its route.yaml already
+                # records rejecting this line once. The other direction —
+                # declare the isolation number EXPLICITLY (which is what this
+                # check actually asks for: stop riding a hardcode) and bound
+                # the relaxation with scoped_clearances — is the one that keeps
+                # both facts true, so it is printed beside the first.
+                alt = ""
+                if rsrc.startswith("route.waves["):
+                    alt = (f"; the strictest scope is a WAVE ({rsrc}), so if "
+                           f"{sug}mm is a LOCAL routability budget rather than "
+                           f"the board's isolation, declare the isolation "
+                           f"number explicitly instead and bound the "
+                           f"relaxation: nets.yaml scoped_clearances: "
+                           f"[{{zone: <rule area>, nets: [...], clearance: "
+                           f"{sug}, why: <measurement>}}]  (canon R-SCOPE)")
                 self.fail(
                     "PF-RULES-CLR", "nets.yaml clearance",
                     f"{hard} ride generate_rules' HARDCODED "
                     f"{D['rules_clearance']}mm clearance default (no explicit "
-                    f"clearance), above the route clearance {rclr} — the "
-                    f"router will route under the DRC floor nobody declared "
-                    f"(crow-rv2 2026-07-23: 500 phantom clearance findings)",
+                    f"clearance), above the route clearance {rclr} [{rsrc}] — "
+                    f"the router will route under the DRC floor nobody "
+                    f"declared (crow-rv2 2026-07-23: 500 phantom clearance "
+                    f"findings)",
                     fix=f"nets.yaml: default_clearance: {sug}mm and/or "
                         f"per-class clearance: {sug}mm (tier "
-                        f"min_space {self.tier['min_space'] if self.tier else '?'})")
+                        f"min_space {self.tier['min_space'] if self.tier else '?'})"
+                        + alt)
                 return  # PF-ROUTE-CLR would duplicate the same mismatch
 
         # PF-ROUTE-CLR — router clearance vs the (explicit) DRC clearances,

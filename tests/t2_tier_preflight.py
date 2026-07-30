@@ -396,6 +396,39 @@ def t_route_clr_wave_under_tier():
     contains(r.out, "route.waves[rf].clearance", "the wave scope is named")
 
 
+@test("when the strictest scope is a WAVE, PF-RULES-CLR's fix line offers BOTH "
+      "directions — declaring a local routability budget board-wide is not "
+      "the only way to close it")
+def t_rules_clr_fix_offers_scoped_alternative():
+    """MEASURED on the real board, 2026-07-30: with per-scope reading,
+    pluto-rx2-8way lands on PF-RULES-CLR (its seven netclasses declare no
+    explicit clearance and ride the 0.2 hardcode) and the pre-fix fix line
+    read `default_clearance: 0.14mm` — i.e. adopt the RF launch's local
+    routability budget as the whole board's isolation floor, on the board
+    whose route.yaml already records rejecting exactly that trade. RED-
+    VERIFIED against e5c2373: the finding printed with only the
+    `default_clearance: 0.14mm and/or per-class clearance: 0.14mm` line and no
+    scoped alternative, and no mention of which scope the 0.14 came from."""
+    def strip(nets):
+        nets.pop("default_clearance")
+        nets["classes"]["PWR"].pop("clearance")
+    d = scratch(
+        mut_route=lambda r: (
+            r["route"]["common"].update({"clearance": 0.2}),
+            r["route"]["waves"].__setitem__(
+                0, {"name": "rf", "nets": ["A"], "clearance": 0.14}),
+            r["stitch"].update({"clearance": 0.2})),
+        mut_nets=strip)
+    r = must_fail(preflight(d), "hardcode under a wave override",
+                  "PF-RULES-CLR")
+    contains(r.out, "route.waves[rf].clearance",
+             "the finding names WHICH scope the strict number came from")
+    contains(r.out, "the strictest scope is a WAVE",
+             "and says so in the fix line")
+    contains(r.out, "scoped_clearances:", "the bounded alternative is offered")
+    contains(r.out, "R-SCOPE", "with its canon row")
+
+
 SC = {"zone": "rf_launch", "nets": ["A"], "clearance": 0.14,
       "why": "measured 2026-07-30: a 0.36mm arm cannot leave the "
              "PE42482A-X land at 0.2mm — 0.145 routes 11/11, 0.15 routes 6/11"}
