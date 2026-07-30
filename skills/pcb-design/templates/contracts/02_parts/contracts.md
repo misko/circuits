@@ -240,6 +240,26 @@ layout_refs:                # REQUIRED for every HARD part (dense escapes,
   - "OSHWLab by-LCSC C485912"                     # (3) JLC-fabbed board, Cu viewable
   # - "GitHub kicad project <url>"               # (4) unvetted — weakest
 sourcing: {lcsc: C485912, alternates: [C2650259, C3188678]}
+                            # ALTERNATES TAKE TWO FORMS AND THEY ARE NOT
+                            # EQUIVALENT. A BARE code (the form shown above) is
+                            # READ — its leading `C...` is keyed — but it
+                            # declares NO mpn, and the PARENT's `mpn:` IS NOT
+                            # ITS MPN: `C47023` is `MCP23017-E/SO` (SOIC-28W, a
+                            # DIFFERENT FOOTPRINT), not the `-E/SS` the dossier
+                            # it sits in is about. So an alternate whose code
+                            # can ever appear on a BOM MUST use the mapping form
+                            # `{lcsc: C..., mpn: ...}`, or F-MPN will FAIL that
+                            # row by name. Measured fleet-wide 2026-07-29: 351
+                            # bare vs 2 mapping — and `bom_legibility_check.py`
+                            # read ONLY the mapping form, so the MPN authority
+                            # understood 0.6% of its own documented dialect,
+                            # silently, for the file's whole life. Inheriting
+                            # the parent mpn: was REJECTED as the fix precisely
+                            # because it would have written `-E/SS` for a
+                            # `-E/SO` part: a confident wrong answer in place of
+                            # a silent skip is not an improvement. A bare
+                            # alternate now resolves as a KNOWN CODE WITH AN
+                            # UNDECLARED MPN, which is diagnosable by name.
 asserts:                    # OPTIONAL, canon P-FACT. The part's own facts,
                             # made EXECUTABLE. Everything above this line that
                             # a machine does not read lands in `gotchas:` as
