@@ -36,9 +36,22 @@ post-mortems — `git log` is a primary source, not just history).
   to `03_src/route/` and commit it.
 - Auto/AI placement is blind to electrical proximity. A routing failure is
   usually a PLACEMENT problem — check net span lengths before tuning the router.
-- DRC violations are CLASSIFIED, never counted. Gate is `kicad-cli pcb drc
-  --severity-all --refill-zones --schematic-parity` = 0 violations / 0
-  unconnected / 0 parity.
+- DRC violations **AND UNCONNECTED ITEMS** are CLASSIFIED, never counted. Gate is
+  `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` = 0
+  violations / 0 unconnected / 0 parity.
+  **BOTH HALVES. THE UNCONNECTED HALF IS THE ONE THAT GETS SUMMARISED INSTEAD.**
+  pluto-rx2-8way 2026-07-30: the 39 violations were classified properly (21
+  clearance + 17 track_width + 1 starved_thermal, each traced to a cause) while
+  the 28 unconnected were summarised as "MCU-field congestion" — and that summary
+  travelled through three agent briefs and a user report over several hours.
+  Classified, they are FOUR unrelated problems, and **18 of the 28 are two
+  config lines**: a `mounting_holes: {radius: 3.0}` with no refdes filter
+  stamping a keepout around J_USB's own 0.650 mm alignment pegs (over-reach
+  2.500 mm, swallowing all 12 signal pads, 10 unconnected), and an RF-fan
+  keepout rect containing the SW_V1..V4 endpoints (8 unconnected, zero track
+  copper anywhere). Only 8 were at the MCU, and those are ARITHMETIC — at
+  0.400 mm pitch a 0.250 mm via leaves 0.175 mm against a 0.200 mm floor, so no
+  legal via-in-pad exists — not congestion at all.
 
 ## Testing
 

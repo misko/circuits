@@ -1127,8 +1127,26 @@ def t_land_honours_a_scoped_clearance():
     five boxed RF launches take 0.316 mm against a 0.360 mm RF50 floor; add
     a 0.14 mm clearance rule for RF50 and all five clear it outright
     (0.436 mm), taking the board from 8 findings to 3."""
-    base = must_fail(land(RX2_KICAD / "pluto_rx2_8way.kicad_pcb"),
-                     "P-LAND on pluto-rx2-8way as it stands")
+    # BASELINE IS BUILT BY STRIPPING, NOT BY ASSUMING THE BOARD IS UNFIXED.
+    # This read the LIVE board and asserted the five RF launches still fail —
+    # which was true when written and became false hours later when canon
+    # R-SCOPE landed `scoped_clr_rf_*` on that very board. A fixture that
+    # asserts a defect the tree has since REPAIRED fails for being right.
+    #
+    # THIRD INSTANCE of a fixture breaking on mutable project state
+    # (t1_fleet_regrade on a dossier deletion, t1_gate_contract on a
+    # mid-rebuild board), which is the trigger tests/README.md names for
+    # earning a checker. Stripping makes it a ROUND TRIP on real bytes and
+    # therefore stronger: remove the relaxation and the five come back, add it
+    # and they clear — the gate's response to the rule is what is under test,
+    # not the board's current state.
+    stripped = board_copy(RX2_KICAD, drop_rules=(
+        "scoped_clr_rf_launch", "scoped_clr_rf_jack_ant2",
+        "scoped_clr_rf_jack_ant3", "scoped_clr_rf_jack_ant6",
+        "scoped_clr_rf_jack_ant7", "scoped_clr_rf_jack_rx1",
+        "scoped_clr_rf_jack_rx2"))
+    base = must_fail(land(stripped),
+                     "P-LAND with the scoped clearances STRIPPED")
     hard = denominator(base.out)
     for pad in ("U_SW.2", "U_SW.4", "U_SW.15", "U_SW.17", "U_SW.22"):
         contains(base.out, f"{pad} net=", f"the RF launch {pad} is named")

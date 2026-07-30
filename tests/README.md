@@ -270,9 +270,33 @@ was absent from `.kicad_pro`, where netclasses actually live — 0 occurrences l
 against 15 in the seal. A gate whose verdict depends on whether a sibling happens
 to be rebuilding is not a gate.
 
-**There is deliberately NO CHECKER for this rule.** The whole population is
-three files and seven references, measured 2026-07-29, and five of the seven were
-already correct. A new gate for a seven-item set is the gate sprawl this repo is
+**THE TRIGGER FIRED — THIRD INSTANCE, 2026-07-30.** `t1_escape_tier`'s
+`t_land_honours_a_scoped_clearance` read the LIVE pluto-rx2-8way board and
+asserted five RF launches still fail. True when written; false hours later, when
+canon R-SCOPE landed `scoped_clr_rf_*` on that very board and REPAIRED them. The
+fixture failed for being right about a board that had moved. Fixed by building
+the baseline through `board_copy(drop_rules=...)` — strip the relaxation, prove
+the five come back, add it, prove they clear. **That is strictly stronger than
+the original**: it is a round trip on real bytes, and what is under test is the
+gate's response to the RULE rather than the board's current state.
+
+So the three instances are `t1_fleet_regrade` (a dossier deletion),
+`t1_gate_contract` (a mid-rebuild board) and this one (a board that got FIXED) —
+and note the third is the one no rule would have predicted: the others broke on
+transient states, this one broke on a permanent improvement.
+
+**A CHECKER IS NOW EARNED AND IS STILL NOT BUILT, DELIBERATELY.** All three were
+caught by the suite itself within one run of the change that caused them, which
+is the outcome a checker would buy — and the repo carries 34 gates and 73+
+check-IDs against a standing argument to consolidate. What the pattern actually
+teaches is cheaper than a gate and is now the rule above: **a fixture asserting a
+defect must CONSTRUCT the defect, never assume a live board still has it.**
+Reach for `drop_rules=` / a pinned commit / a sealed release before reaching for
+`projects/<board>/04_kicad`. If a FOURTH instance appears that the suite does not
+catch in the same run, build the checker then.
+
+**The earlier population count stands.** It was three files and seven
+references, measured 2026-07-29, and five of the seven were already correct. A new gate for a seven-item set is the gate sprawl this repo is
 starting to pay for: 73 check-IDs across 32 gates, each of which is maintenance
 and each of which can itself go vacuous (see G-VACUOUS). The durable asset is the
 meta-principles, not another ID. If this class recurs — a third fixture breaking
