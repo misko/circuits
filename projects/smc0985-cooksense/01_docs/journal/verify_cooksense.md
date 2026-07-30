@@ -1591,3 +1591,100 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
   anything staged in a shared tree.**
 - next: unchanged — four-lens battery, two rotation rows, the node_level join
   patch, manifest line, seal.
+
+## 2026-07-29 17:10 — start (SEAL RUN: the fresh four-lens battery, the carried items, and v1.7)
+- did: read CLAUDE.md, SKILL.md stage 7 + the seal ritual, design-policies.md,
+  STATUS-cooksense.md, DISPOSITIONS_v1.7.md, CHANGELOG's DO-NOT-ORDER banner,
+  ADR-0023 and 57044c0/95e6c01/de58693/9f516e4. Confirmed the three skill
+  landings this run depends on: **both A-ROT rows ARE in
+  `jlc_lcsc_rotations.csv`** (C165895 -> 270 rms 0.1500 vs 8.1344; C558584 ->
+  270 rms 0.0403 vs 6.1624, both `single-channel`, both naming the JLC
+  order-preview human gate).
+- **FIRST FINDING, BEFORE ANY GATE RAN: `06_build/fab_v18/` — the payload I was
+  told to stage from — IS A 2-LAYER EXPORT OF A 4-LAYER BOARD.** It holds 11
+  gerbers and its zip holds 11; `cooksense-In1_Cu.g1` and `cooksense-In2_Cu.g2`
+  are ABSENT. The board's own layer stack (`04_kicad/cooksense.kicad_pcb` line
+  10) declares `F.Cu / In1.Cu / In2.Cu / B.Cu`, sealed v1.6's `fab/` ships 13
+  gerbers including both inner layers, and `06_build/fab_v17/` ships 13 too.
+  `export_jlc_package.py --layers` defaults to 4, so fab_v18 was invoked with
+  `--layers 2`. Staging it would have shipped a 4-layer design to JLC with no
+  inner copper in the zip: both GND/3V3 planes and every plane-bond via's
+  destination silently gone. Not staged. Re-exporting at `--layers 4`.
+- next: DRC re-measure from the committed board, re-export the fab payload,
+  stage the archive, then launch the four fresh-context lenses against it.
+
+## 2026-07-29 17:30 — iterate (THE COMB SLOTS WERE A REAL P0, AND THE COIL MARGIN IS NOW GATED)
+- **P0-SLOT — SETTLED AGAINST JLC'S OWN CAPABILITY PAGE, AND FIXED.** The fourth
+  carried sighting was correct and it was never a risk assessment.
+  jlcpcb.com/capabilities/pcb-capabilities, read 2026-07-29 (twice, and
+  corroborated by an independent search): **"Min. Non-Plated Slots: 1.0mm"** —
+  "The minimum Non-Plated Slot Width is 1.0mm, please draw the slot outline in
+  the mechanical layer(GM1 or GKO)". The twelve comb slots were 0.600 mm, i.e.
+  **40% under the fabricator's published floor**, and the same page adds
+  "Rectangular holes and slots without rounded corners are not supported", which
+  a 1.0 mm bit satisfies by construction and a 0.6 mm feature does not.
+  MEASURED FREE FIRST, then changed: at the new 1.000 mm band the nearest copper
+  item on any of the four layers with pours filled is **2.8500 mm** (north,
+  2.5500 at r11r12 to trk RSTOP_MID) and **2.7300 mm** (south, to the K_* contact
+  pads), where JLC asks 0.200 mm. Both comb keepout families already spanned the
+  widened bands (north 23.2-29.4, south 46.9-52.9), and widening a void only
+  LENGTHENS a surface path, so every creepage derivation stands unchanged.
+  Widened symmetrically about the same centre-lines: y26.0-26.6 -> **y25.8-26.8**,
+  y49.3-49.9 -> **y49.1-50.1**. VERIFIED IN THE BOARD, not just the source: the
+  Edge_Cuts horizontal set is now [10.0, 25.8, 26.8, 48.8, 49.1, 49.8, 50.1,
+  102.0] — the H4 notch (48.8-49.8) was already 1.000 mm and is outline geometry
+  anyway. Full from-source rebuild, **DRC 0 violations / 0 unconnected / 0
+  schematic parity** (`06_build/proof/drc_v20.json`).
+  RECORDED, NOT FIXED: the WEST end pocket slot leaves a **1.00 mm web** to the
+  board edge while the file's own comment justifies skipping the EAST end pocket
+  as "<3mm to the board edge, web too fragile" — a self-contradiction. JLC
+  publishes no remaining-wall minimum (their Q&A #176 asks exactly this and is
+  UNANSWERED), so there is no number to measure against; carried to ORDER_README
+  as a DFM query rather than a silent outline change.
+  COST OF THE CHANGE, stated: the silk lost one designator slot —
+  refdes-on-silk 235/241 with **6** waived to F.Fab (was 5). Generator output,
+  regenerated deterministically, and the assembly drawing still carries all six.
+- **THE COIL-MARGIN ASSERT IS LANDED AND RED-VERIFIED IN PLACE.** Eleven
+  `node_level` asserts in `03_src/cooksense/rules/electrical_invariants.yaml`,
+  one per DMOS-driven reed. **E-INV 140/140 -> 151/151.** RED verify
+  (`06_build/proof/einv_red_verification_coil_margin.txt`): putting the
+  superseded Darlington's drop back as its equivalent resistance at the same
+  7.0 mA coil current — 0.670/0.007 = 95.7 ohm and 0.880/0.007 = 125.7 ohm —
+  gives **E-INV FAIL 11/151 at 0.714 V** and **FAIL 11/151 at 0.895 V**, both
+  against the 0.540 V pull-in budget, exit 1 each time; restored, GREEN again,
+  dossier byte-identical after (`diff` clean). The two numbers reproduce the
+  hand computation to the millivolt.
+  ONE DEFECT FOUND WHILE LANDING IT, and it would have made ten of the eleven
+  asserts quietly optimistic: only pad **"18"** of the TBD62083AFWG dossier
+  carried the hot-corner `r_on_ohm_max: 6.50`; every other output pin would have
+  fallen back to `defaults.r_on_ohm_max: 3.25`, the **25 C** figure. All eleven
+  driven channels now declare 6.50 explicitly (canon M-WIDTH).
+  ALSO CORRECTED: the count is **TWELVE** reed relays (K_U1-6, K_D1-4, K_PRESS,
+  K_STOP), not thirteen as this journal, the beacon and ADR-0023 all say. Eleven
+  hang off the two arrays; K_STOP is on a 2N7002 and is EXCLUDED BY NAME.
+- **A-RENDER (twin_overlay) HAS NEVER BEEN RUN ON THIS BOARD, AND ITS FIRST RUN
+  FAILED FOR A REASON THAT IS NOT THE BOARD.** At jlc_twin's own render size
+  (1600x1000 = **8.34 px/mm** on a 188 mm board) it reported FAIL on `U_LDO`
+  (centre delta **1.248 mm**) and `Q_SWDRVRHA` "should have been measurable and
+  was not" (13 body px against a floor of 20). Re-rendered at 4800x3000 =
+  **15.3961 px/mm** and re-run: **exit 0, 53 measured / 210, ZERO
+  resolvable-but-not-measured**, `U_LDO` **0.111 mm** and `Q_SWDRVRHA`
+  **0.086 mm** (872 px). Both failures were EXTRACTION artifacts of an
+  under-resolved render, and the proof is a re-measurement at 1.85x, not an
+  argument. The U_LDO signature said so before the re-run: three edges within
+  0.68 mm and the LEAD side alone off by 1.87 mm, i.e. gull-wing leads on silver
+  pads classified as pad rather than body. **PROPOSED SKILL PATCH (new, not one
+  of the two already owed): `twin_overlay.py` should REFUSE or loudly warn below
+  a px/mm floor, and `jlc_twin.py`'s hard-coded 1600x1000 is too coarse for
+  A-RENDER on any board over ~120 mm.** A gate whose verdict flips with the
+  resolution of its input must say so.
+  Bottom side: overlay correctly REFUSED (nothing on B.CrtYd, 245 courtyards on
+  the other side) — single-sided assembly, so A-RENDER bottom is N/A by
+  construction and is named rather than skipped.
+- MEASURED, unchanged: stock **PASS 56/56**, thinnest line C2653844 TPS259573DSGR
+  still at **103** on a fresh read. Twin **209 OK / 471 rows, bodies 208/208**,
+  exit 0. Export **A-ROT OK 208/208**, **F-LEGIBLE OK 59/59**, A-POL single-channel
+  10 codes -> the order-preview human gate. K_STOP's own margin re-derived from
+  the rail rather than inherited: 5V_STOP vout_min **4.754** V, so +70 C margin is
+  **+0.454 V** at the estimated 0.10 V V_DS and **+0.054 V** even at 0.50 V.
+- next: stage the archive from `06_build/fab_v20/`, then the four fresh lenses.

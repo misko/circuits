@@ -889,24 +889,214 @@ invariants:
   # and the margin is +0.774 V at +50 C / +0.424 V at +75 C.
   #
   # WHAT THESE ASSERTS ARE FOR, AND WHAT THEY ARE NOT.  Three of the four facts
-  # the swap turns on are gradeable from the netlist and are graded here.  The
-  # FOURTH — the arithmetic margin itself — is a `node_level` assert and is NOT
-  # in this file, because `_load_part_electrical()` joins a dossier to a
-  # component through an LCSC CODE and the thirteen reed relays are
-  # SELF-SUPPLIED: JLC stocks none of them, so their netlist `value` is the MPN
-  # `DIP05-1A72-13L` and no LCSC code identifies them.  The assert therefore
-  # returns UNREACHED, which would turn E-INV red on a checker limitation rather
-  # than a defect.  The exact YAML, the measured RED/GREEN proof against a
-  # locally patched checker, and the three-line patch it waits on are in ADR-0023
-  # and `01_docs/journal/verify_cooksense.md`.  Forcing the join by writing the
-  # MPN into `sourcing.alternates:` was considered and REJECTED: that field means
-  # "pin-compatible substitute", this relay is DO-NOT-SUBSTITUTE (spec 15.4), and
-  # its own note already records an alternate WITHDRAWN for being a different
-  # pin-out code.  Making a gate green by writing something false into a dossier
-  # is the failure mode this repo keeps paying for.
+  # the swap turns on are gradeable from the netlist and are graded here.  THE
+  # FOURTH — THE ARITHMETIC MARGIN ITSELF — IS NOW GRADED TOO, AND THAT IS NEW
+  # ON 2026-07-29.  It could not be, until this week: `_load_part_electrical()`
+  # joined a dossier to a component through an LCSC CODE ONLY, and the twelve
+  # reed relays are SELF-SUPPLIED — JLC stocks none of them, so their netlist
+  # `value` is the MPN `DIP05-1A72-13L` and no LCSC code identifies them.  Every
+  # `node_level` assert on the coil driver came back UNREACHED, i.e. the gate
+  # could not express the very margin the board was re-spun to fix.  The checker
+  # now ALSO joins on `mpn:` and on the dossier directory name (de58693), so the
+  # eleven asserts below are LANDED rather than quoted in an ADR.
+  #
+  # (Forcing the join by writing the MPN into `sourcing.alternates:` was
+  # considered and REJECTED: that field means "pin-compatible substitute", this
+  # relay is DO-NOT-SUBSTITUTE (spec 15.4), and its own note already records an
+  # alternate WITHDRAWN for being a different pin-out code.  Making a gate green
+  # by writing something false into a dossier is the failure mode this repo keeps
+  # paying for.  The fix went into the CHECKER, where the defect was.)
+  #
+  # HOW THE ARITHMETIC BECOMES ONE ASSERTION.  `v_il_max: 0.540` on the DIP05
+  # dossier's pad 2 is THE PULL-IN BUDGET, not a logic threshold:
+  #     node <= 0.540 V   <=>   coil sees >= 4.740 - 0.540 = 4.200 V = V_PI(+70 C)
+  # where 4.740 V is `5V_KEY_RELAY`'s vout_min (power_tree.yaml) and V_PI(+70 C)
+  # is the datasheet's 3.500 V MAX pull-in walked out at its own published
+  # 0.4 %/K.  The equivalence is EXACT, so the whole ADR-0023 margin table
+  # collapses into one inequality the checker evaluates from the netlist.
+  # The contention model is the checker's own: with the coil as the pull-UP leg
+  # (r_on_ohm_max 540 ohm = 450 ohm at -10 % x 1.20 at +70 C, the LOWEST coil R
+  # and so the worst case for the driver's share) against the DMOS channel
+  # (6.50 ohm = 2x the 25 C EC-table max, no tempco published),
+  #     4.740 x 6.50 / (540 + 6.50) = 0.056 V  <=  0.540 V     PASS
+  # and with the superseded Darlington's drop expressed as its equivalent
+  # resistance at the same 7 mA coil current (0.67 V / 7 mA = 95.7 ohm typical,
+  # 0.88 V / 7 mA = 125.7 ohm worst case),
+  #     4.740 x  95.7 / (540 +  95.7) = 0.714 V  >  0.540 V     FAIL
+  #     4.740 x 125.7 / (540 + 125.7) = 0.895 V  >  0.540 V     FAIL
+  # RED-VERIFIED IN PLACE, both of those, by putting each Darlington-equivalent
+  # resistance into the TBD62083AFWG dossier's channel rows and re-running this
+  # gate: 11 FAILs each time, restored to GREEN after.  Numbers, commands and
+  # verbatim failure lines: `01_docs/journal/verify_cooksense.md`, 2026-07-29.
+  #
+  # ELEVEN ASSERTS, NOT ONE (canon M-WIDTH).  Eleven reeds hang off the two DMOS
+  # arrays and each one is its own coil, its own channel and its own net.  The
+  # twelfth reed, K_STOP, is driven by a 2N7002 whose 0.10 V V_DS is an ESTIMATE
+  # from a datasheet this tree has NOT committed, so it is deliberately EXCLUDED
+  # and named as excluded — not silently absent.  (It is also the one with room
+  # to spare: even at 0.50 V its +70 C margin is +0.054 V.)
   #
   # The COM assert below is the one whose loss would have made ADR-0023 a
   # TOPOLOGY change instead of a part swap, so it is the one worth pinning.
+  - assert: node_level
+    net: COIL_U1_N
+    receiver: K_U1.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U1.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.18              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      THE PULL-IN MARGIN, ASSERTED AS AN OUTCOME (ADR-0007's own worked example
+      is this margin). The driven end of the coil must sit at or below the
+      0.540 V PULL-IN BUDGET, or this reed is not guaranteed to close at the top
+      of the board's own declared +70 C envelope — and a reed that does not close
+      hot is a cooking appliance that silently stops switching a load, at the one
+      temperature a bench test at room temperature will never reach. The
+      superseded ULN2803A FAILED this at both its typical (0.714 V) and its
+      worst-case (0.895 V) drop; the DMOS array reads 0.056 V. This is the assert
+      the part change exists for, and until 2026-07-29 no checker could reach it.
+
+  - assert: node_level
+    net: COIL_U2_N
+    receiver: K_U2.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U2.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.17              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_U3_N
+    receiver: K_U3.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U3.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.16              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_U4_N
+    receiver: K_U4.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U4.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.15              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_U5_N
+    receiver: K_U5.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U5.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.14              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_U6_N
+    receiver: K_U6.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U6.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.13              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_D1_N
+    receiver: K_D1.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_D1.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.12              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_D2_N
+    receiver: K_D2.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_D2.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.11              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_D3_N
+    receiver: K_D3.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_D3.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNB.18              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_D4_N
+    receiver: K_D4.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_D4.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNB.17              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_PRESS_N
+    receiver: K_PRESS.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_PRESS.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNB.16              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
   - assert: pin_on_net
     pin: "U_ULNA.10"                   # TBD62083AFWG pad10 = COMMON
     net: 5V_KEY_RELAY

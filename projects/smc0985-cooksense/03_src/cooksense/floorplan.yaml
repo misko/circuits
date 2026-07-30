@@ -24,8 +24,10 @@
 #   - Creepage held by construction: keypad band y<=23.2 vs coil-gap pads
 #     y>=29.63 (6.28mm); pocket pads y<=46.37 vs logic/planes y>=53 (6.63mm);
 #     pocket drops vs coil pads 7.62mm horizontal; intra-relay columns 6.12mm.
-#     Milled 0.6mm slots reinforce each coil-gap mouth (y26.0-26.6) and each
-#     pocket mouth (y49.3-49.9), per the v1.0 slot pattern.
+#     Milled 1.0mm slots reinforce each coil-gap mouth (y25.8-26.8) and each
+#     pocket mouth (y49.1-50.1). WIDENED from 0.600 mm 2026-07-29 (P0-SLOT):
+#     JLC's published floor for an unplated slot is 1.0 mm — see the cutouts
+#     block for the capability quote and the measured clearances.
 #   - DRC-enforced comb (deny tracks/vias/pours): 12 intra-relay column rects +
 #     6 coil-gap north strips + 7 pocket south strips — a track that collapses
 #     the comb FAILS kicad DRC ("items not allowed"), like v1.0's iso_barrier.
@@ -51,10 +53,11 @@ board:
   mounting_holes:
     footprint: MountingHole:MountingHole_2.7mm_M2.5_ISO14580
     at: [[24.0, 14.0], [194.0, 14.0], [17.0, 90.0], [193.0, 52.0]]
-  # ISOLATION milled slots (0.6mm), v1.1 comb pattern:
-  #   - 6 coil-gap NORTH slots (y26.0-26.6): lengthen the keypad-band ->
+  # ISOLATION milled slots (1.0mm — widened from 0.6mm 2026-07-29, P0-SLOT,
+  # see the cutouts block), v1.1 comb pattern:
+  #   - 6 coil-gap NORTH slots (y25.8-26.8): lengthen the keypad-band ->
   #     coil-gap-logic surface path across each gap mouth.
-  #   - 6 pocket SOUTH slots (y49.3-49.9): lengthen the pocket-keypad ->
+  #   - 6 pocket SOUTH slots (y49.1-50.1): lengthen the pocket-keypad ->
   #     south-logic-band surface path across each pocket mouth (east end
   #     pocket skipped: <3mm to the board edge, web too fragile; its single
   #     RSTOP_MID drop is covered by the 6.63mm construction gap).
@@ -101,18 +104,52 @@ board:
     # 1.800mm east corridor is where RSTOP_MID and KP_U6 CLIMB, not slack.
     # Full derivation and the three failed re-races: ADR-0015.
     - {rect: [191.50, 48.8, 200.10, 49.8]}   # H4 keypad-isolation notch (edge-reaching) — LOAD-BEARING, see above
-    - {rect: [29.40, 26.0, 37.84, 26.6]}    # coil gap r1r2
-    - {rect: [59.88, 26.0, 68.32, 26.6]}    # coil gap r3r4
-    - {rect: [90.36, 26.0, 98.80, 26.6]}    # coil gap r5r6
-    - {rect: [120.84, 26.0, 129.28, 26.6]}  # coil gap r7r8
-    - {rect: [151.32, 26.0, 159.76, 26.6]}  # coil gap r9r10
-    - {rect: [181.80, 26.0, 190.24, 26.6]}  # coil gap r11r12
-    - {rect: [13.00, 49.3, 22.60, 49.9]}    # west end pocket
-    - {rect: [44.64, 49.3, 53.08, 49.9]}    # pocket r2r3
-    - {rect: [75.12, 49.3, 83.56, 49.9]}    # pocket r4r5
-    - {rect: [105.60, 49.3, 114.04, 49.9]}  # pocket r6r7
-    - {rect: [136.08, 49.3, 144.52, 49.9]}  # pocket r8r9
-    - {rect: [166.56, 49.3, 175.00, 49.9]}  # pocket r10r11
+    # ===== SLOT WIDTH 0.600 -> 1.000 mm (2026-07-29, P0-SLOT) =================
+    # JLCPCB's OWN published capability page (jlcpcb.com/capabilities/
+    # pcb-capabilities, read 2026-07-29) states **"Min. Non-Plated Slots:
+    # 1.0mm"** — "The minimum Non-Plated Slot Width is 1.0mm, please draw the
+    # slot outline in the mechanical layer(GM1 or GKO)". These twelve comb slots
+    # are exactly that class: unplated internal slots on Edge_Cuts. At 0.600 mm
+    # they were 40% under the fabricator's stated floor — sighted FOUR times
+    # across four sessions and carried each time, which is a process failure and
+    # not a risk assessment. The same page also says "Rectangular holes and
+    # slots without rounded corners are not supported"; at 1.000 mm a 1.0 mm
+    # router bit radiuses the corners by construction, so widening settles that
+    # too. (The H4 notch below is NOT in this class — it reaches the board edge,
+    # so it is outline geometry, and it already measures 1.000 mm.)
+    # WIDENED SYMMETRICALLY about the same centre-line, so every creepage
+    # derivation above still holds (a wider void only LENGTHENS the surface path
+    # around it). MEASURED FREE before the edit, bbox gap to the nearest copper
+    # item on any of the four layers with the pours filled, at the NEW 1.000 mm
+    # band: north slots 2.8500 mm (2.5500 at r11r12, to trk RSTOP_MID), south
+    # slots 2.7300 mm (to the K_* contact pads). Nothing is within 2.5 mm, where
+    # JLC asks 0.2 mm ("Copper clearance from routed slots: >= 0.2 mm"), and both
+    # comb keepout families already span the widened bands (north 23.2-29.4,
+    # south 46.9-52.9) so the DRC-enforced no-man's zones are unchanged.
+    - {rect: [29.40, 25.8, 37.84, 26.8]}    # coil gap r1r2   (was 26.0-26.6)
+    - {rect: [59.88, 25.8, 68.32, 26.8]}    # coil gap r3r4   (was 26.0-26.6)
+    - {rect: [90.36, 25.8, 98.80, 26.8]}    # coil gap r5r6   (was 26.0-26.6)
+    - {rect: [120.84, 25.8, 129.28, 26.8]}  # coil gap r7r8   (was 26.0-26.6)
+    - {rect: [151.32, 25.8, 159.76, 26.8]}  # coil gap r9r10  (was 26.0-26.6)
+    - {rect: [181.80, 25.8, 190.24, 26.8]}  # coil gap r11r12 (was 26.0-26.6)
+    # Same P0-SLOT widening, south family (was y49.3-49.9, 0.600 mm).
+    # RECORDED AND NOT FIXED HERE: the WEST end pocket slot starts at x13.00
+    # against a board edge at x12.00, i.e. it leaves a **1.00 mm web**, while the
+    # comment above justifies SKIPPING the east end pocket because "<3mm to the
+    # board edge, web too fragile". The file's own stated rule contradicts its
+    # own geometry, and widening in y does not touch it. Carried as a P1 to the
+    # ORDER_README rather than silently changed: JLC publishes NO minimum
+    # remaining-wall figure (their Q&A #176 asks exactly this and is UNANSWERED,
+    # read 2026-07-29), so there is no capability number to measure against, and
+    # the alternative — extending the slot through x12.00 to make it an
+    # edge-reaching notch like H4 — changes the mechanical OUTLINE of a board
+    # whose enclosure interface is already specified. A DFM query, not a respin.
+    - {rect: [13.00, 49.1, 22.60, 50.1]}    # west end pocket (was 49.3-49.9)
+    - {rect: [44.64, 49.1, 53.08, 50.1]}    # pocket r2r3     (was 49.3-49.9)
+    - {rect: [75.12, 49.1, 83.56, 50.1]}    # pocket r4r5     (was 49.3-49.9)
+    - {rect: [105.60, 49.1, 114.04, 50.1]}  # pocket r6r7     (was 49.3-49.9)
+    - {rect: [136.08, 49.1, 144.52, 50.1]}  # pocket r8r9     (was 49.3-49.9)
+    - {rect: [166.56, 49.1, 175.00, 50.1]}  # pocket r10r11   (was 49.3-49.9)
 
 libraries: [/usr/share/kicad/footprints, 03_src/lib]
 

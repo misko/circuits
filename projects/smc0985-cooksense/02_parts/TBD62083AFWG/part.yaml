@@ -81,8 +81,26 @@ electrical:
     drive: open_drain_dmos_sink
     r_on_ohm_max: 3.25           # EC TABLE p.5 (see r_on_source), Ta = 25 C
   pins:
-    "18": {r_on_ohm_max: 6.50}   # THE HOT-CORNER FIGURE the coil-margin assert uses.
-                                 # 2x the 25 C table max, see the tempco gotcha.
+    # THE HOT-CORNER FIGURE the coil-margin `node_level` asserts use: 6.50 ohm =
+    # 2x the 25 C EC-table MAX, because Toshiba publishes no R_on tempco (see the
+    # tempco gotcha). DECLARED PER CHANNEL AT FULL WIDTH (canon M-WIDTH,
+    # 2026-07-29): only "18" carried it while the asserts landed, and every OTHER
+    # output pin would then have fallen back to `defaults.r_on_ohm_max: 3.25` —
+    # the 25 C number — so ten of the eleven coil asserts would have graded at
+    # the OPTIMISTIC resistance without saying so. Nothing in the datasheet
+    # distinguishes the channels; the pessimism has to be declared on each one.
+    # These are the eleven outputs this board actually drives (U_ULNA 11-18 =
+    # D2,D1,U6,U5,U4,U3,U2,U1; U_ULNB 16-18 = PRESS,D4,D3). K_STOP is NOT here —
+    # it is driven by a 2N7002, whose 0.10 V V_DS is an ESTIMATE from an
+    # uncommitted datasheet, so it is deliberately outside this assert family.
+    "11": {r_on_ohm_max: 6.50}   # OUT8 -> COIL_D2_N
+    "12": {r_on_ohm_max: 6.50}   # OUT7 -> COIL_D1_N
+    "13": {r_on_ohm_max: 6.50}   # OUT6 -> COIL_U6_N
+    "14": {r_on_ohm_max: 6.50}   # OUT5 -> COIL_U5_N
+    "15": {r_on_ohm_max: 6.50}   # OUT4 -> COIL_U4_N
+    "16": {r_on_ohm_max: 6.50}   # OUT3 -> COIL_U3_N / (U_ULNB) COIL_PRESS_N
+    "17": {r_on_ohm_max: 6.50}   # OUT2 -> COIL_U2_N / (U_ULNB) COIL_D4_N
+    "18": {r_on_ohm_max: 6.50}   # OUT1 -> COIL_U1_N / (U_ULNB) COIL_D3_N
   r_on_typ_ohm: 2.00             # EC table p.5, all three current points
   r_on_max_ohm: 3.25             # EC table p.5, all three current points, Ta=25 C
   r_on_max_ohm_hot: 6.50         # DERIVED, deliberately pessimistic — see gotcha
