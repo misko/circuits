@@ -1,127 +1,176 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
-# 03_src/rules/ and replace the values — the KEYS are the contract.
+# electrical_invariants.yaml — pluto-rx2-8way-v2
+# Design INTENT the exported netlist must satisfy (canon E-INV). Every
+# protection/topology ADR emits at least one assertion here, or E-ADR flags it.
 #
-# ELECTRICAL-INVARIANTS (canon E-INV, phase E1 = netlist-only). Design INTENT
-# made EXECUTABLE against the exported netlist. Every gate elsewhere proves
-# SELF-CONSISTENCY; this one proves the netlist matches what the ADRs decided.
+# WHY THIS BOARD NEEDS THEM MORE THAN MOST: almost nothing this board sells is
+# observable in copper. RF8 was chosen by an ISOLATION argument, RF1 is the
+# delta reference for the whole published phase table, V1-as-MSB is what stops
+# the antenna sweep running backwards (an AoA solver absorbs a reversed sweep as
+# a ROTATED ARRAY and reports a plausible wrong answer), and the pickoff's TWO
+# resistors are what halve the parasitic. The netlist, DRC, ERC and parity are
+# IDENTICAL under every one of those mistakes.
 #
-# WHY: the D1 reverse-polarity defect (usb-hub-3s v1.0) passed ERC, DRC, parity,
-# jlc_twin AND pin review — symbol/footprint/netlist/board were consistently
-# WRONG together; only intent disagreed, and intent was not machine-checkable.
-#
-# Graded by: electrical_invariants.py PROJECT_DIR  (exit 1 names the assertion
-# + the actual net found). A protection/topology ADR that emits NO invariant is
-# flagged by E-ADR (electrical_invariants.py PROJECT_DIR --adr-coverage).
-#
-# Every invariant REQUIRES `adr:` (the ADR that emitted it) and `why:`.
+# `adr:` IS QUOTED EVERYWHERE BELOW. A bare zero-padded `adr: 0011` is a YAML
+# 1.1 OCTAL literal that silently becomes "0009" — the invariant then satisfies
+# the WRONG ADR and E-ADR credits a document that emitted nothing.
+
+supplies:
+  3V3: 3.3
+# Declared with the CANONICAL net name, not the tsx author-prefix form `N3V3`.
+# cooksense 2026-07-29 declared `N3V3` here, the grader filtered supplies to
+# nets it could see, and the rail was INVISIBLE to every node_level grade on
+# the board while the error message told the author to write a block they had
+# already written.
 
 invariants:
-  # 1) pin_on_net — the named pin must be on the named net (the D1 class).
-  - assert: pin_on_net
-    pin: "D1.1"          # REF.PAD
-    net: VIN
+
+  # ---- ADR-0001: the module IS the MCU, and its rail is the board's rail ----
+  - kind: pin_on_net
+    part: U_SW
+    pin: "8"
+    net: 3V3
     adr: "0001"
-    why: "D1 reverse-polarity clamp cathode feeds VIN, not the raw battery rail"
+    why: >
+      U_SW VDD must sit on the FERRITE-FILTERED side of the supply, not on
+      3V3_MOD. FB_3V3 is the only mitigation this board carries for the module's
+      RP2040 core and QSPI transients, and the PE42482A-X publishes no PSRR
+      figure. Wiring VDD to 3V3_MOD instead would be electrically functional,
+      pass every gate, and silently delete the filter.
 
-  # 2) series_chain — consecutive elements share a net, in order. A 2-pad part
-  #    (F1) bridges the nets on its two pads (inferred). A >2-pad part names its
-  #    two bridging pins via `through:` (pin number, pinfunction, or a
-  #    pinfunction with its trailing _<n> stripped: D_5 -> D).
-  - assert: series_chain
-    chain: [VBAT, F1, VBAT_F, Q1, VIN]
-    through: {Q1: [D, S]}
+  - kind: net_has_part
+    net: 3V3_MOD
+    part: FB_3V3
     adr: "0001"
-    why: "battery -> fuse -> protected node -> reverse-polarity FET (D->S) -> VIN"
+    why: >
+      The ferrite must actually be IN SERIES between the module pad and the
+      switch. A board with FB_3V3 shunted, or with 3V3_MOD and 3V3 merged into
+      one net, is indistinguishable from this one in DRC and in parity.
 
-  # 3) net_has_part — the net must carry >= min parts of a type (refdes prefix:
-  #    C=capacitor, R=resistor, L=inductor, D=diode, Q=transistor, F=fuse,
-  #    U=ic, J=connector, FB=ferrite, LED=led, Y/X=crystal, TP=testpoint).
-  #    The bridge-rail-decoupling class (red-team B).
-  - assert: net_has_part
-    net: VIN
-    part_type: capacitor
-    min: 1
-    adr: "0007"
-    why: "the VIN rail must carry at least one decoupling capacitor"
+  # ---- ADR-0002: the control plane's power-on default ----------------------
+  - kind: pin_on_net
+    part: U_SW
+    pin: "1"
+    net: GND
+    adr: "0002"
+    why: >
+      LS carries a 1 Mohm INTERNAL PULL-UP (PE42482A-X Table 5 fn 1, PDF p10).
+      Floating it reads as logic 1 and selects the COMPLEMENTED half of the
+      truth table — RF1<->RF8, RF2<->RF3, RF4<->RF7, RF5<->RF6. The board still
+      sweeps eight antennas, in a plausible-looking wrong order, and no
+      electrical check can see it. Table 3 fn 1 also makes it an RF ground.
 
-  # 4) part_value — the PARAMETER kind. The three kinds above pin TOPOLOGY:
-  #    which parts exist and what they connect to. AN INVARIANT THAT PINS A
-  #    COMPONENT'S EXISTENCE DOES NOT PIN ITS VALUE.
-  #
-  #    THE INCIDENT (smc0985-cooksense, 2026-07-25, ab94de3 -> 929b089). A
-  #    safety P0 was found: WD_PET, the TPS3823 watchdog heartbeat, had no
-  #    pull-down, so with the host unplugged the supervisor self-pulsed, WD_OK
-  #    never fell, and the external COOKING CONTACTOR stayed energised
-  #    indefinitely. The fix added the pull-down AT 100k. TI SLVS165O S6.5
-  #    gives I_IL at WDI = 190 uA MAX and the pin SOURCES it, so the hold
-  #    resistor is bounded by I_IL x R < V_IL:
-  #        R_max = (0.3 x 3.3 V) / 190 uA = 0.99 V / 190 uA ~= 5.2k
-  #        1k    -> 0.19 V, 81% margin (TI's own recommended value)
-  #        100k  -> node sits at ~VDD; THE WATCHDOG IS SILENTLY DISABLED
-  #    The 100k board looked exactly like the fixed board. All THREE
-  #    invariants that landed with that fix — one net_has_part and two
-  #    pin_on_net, the ones written above this comment in spirit — PASS on the
-  #    100k netlist, because a resistor DOES exist on WD_PET with its pads on
-  #    the right nets. They would have certified the broken board, and did.
-  #
-  #    Bounds: min: / max: / equals: (+ optional tolerance_pct with equals).
-  #    At least ONE is required — an assertion naming a part and bounding
-  #    nothing is the exact gap this kind closes. Values come from the
-  #    netlist's own (comp (value ...)) and are decoded as SI, so 1k / 1kOhm /
-  #    1kΩ / 4k7 / 0R1 are one number. NOTE m is MILLI and M is MEGA. A value
-  #    the gate cannot decode is a FAILURE, never a skip.
-  - assert: part_value
-    part: R_WDPETPD
-    max: 5.2k
-    adr: "0011"
-    why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k; TI SLVS165O S7.3.4
-      names 1k explicitly. Above this the WDI node sits at ~VDD and the
-      supervisor never times out — the interlock fails PERMISSIVE"
+  - kind: pin_on_net
+    part: U_SW
+    pin: "20"
+    net: GND
+    adr: "0002"
+    why: >
+      NC may be grounded or left open (Table 8 fn 2). It sits between RF8 and
+      GND inside the RF fan, so grounding it closes the via fence there instead
+      of leaving an unterminated stub in the middle of a radial star.
 
-# ---------------------------------------------------------------------------
-# label_survival — the schematic NET-MERGE gate (candidate S-NETMERGE), graded
-# by net_label_survival.py PROJECT_DIR. WHY: `kicad-cli sch export netlist`
-# CONNECTS wires whose endpoint touches a foreign wire (T-junction) or that
-# overlap collinearly — a net label silently merges into another net and
-# every downstream gate stays green because all are self-consistent with the
-# merged netlist (crow-recorder-central-v2 P5VA_4->AUDIO4M + MID2P->5V, two
-# DO-NOT-ORDER defects on one board, 2026-07-23).
-#
-# The GENERIC check (every schematic global_label must exist as a netlist net)
-# is ALWAYS ON and needs no config — this block only carries the optional
-# extras. Keys:
-#   exempt:  labels allowed to be absent from the netlist; each entry REQUIRES
-#            `why:` evidence (canon M4 — an exemption without evidence is a
-#            defect).
-#   pin_map: board-specific pin-for-pin net assertions (the generalization of
-#            the crow-recorder 8-port RJ45 map): each entry checks every ref
-#            in `refs`; `{n}` in a net pattern expands to n_start + position;
-#            `unconnected` pins must carry no real net.
-label_survival: {}
-#label_survival:
-#  exempt:
-#    - {label: SPARE_NET, why: "test-point label, deliberately unloaded (ADR-000X)"}
-#  pin_map:
-#    - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
-#      n_start: 1
-#      pins: {"1": "AUDIO{n}P", "2": "AUDIO{n}M", "3": PLUS5V_BEEP,
-#             "4": "P5VA_{n}", "5": GND, "6": BEEP_RETURN,
-#             "7": "P5VA_{n}", "8": GND}
-#      unconnected: ["9", "10", "11", "12"]
+  - kind: series_chain
+    chain: [U_MCU, R_S1, R_PD1, U_SW]
+    adr: "0002"
+    why: >
+      ORDER IS THE WHOLE POINT. R_PD1 must sit on the SWITCH side of R_S1. On
+      the module side it would still hold a level, but not the one that matters:
+      V1..V4 have NO internal pull of any kind (5 uA max input current, Table 2
+      PDF p3), so all four FLOAT through reset and supply ramp, and a floating
+      V4 selects the ALL-PORTS-TERMINATED state which SILENTLY MUTES the
+      receiver. A pull-down upstream of the series resistor does not guarantee
+      the switch pin when the module is absent, unpowered, or still in reset.
 
-# node_level (ADR-0007) — assert the OUTCOME, not the mechanism. Needs the
-# supplies map above and an `electrical:` block on the RECEIVER's dossier.
-#
-# supplies: {5V_PROTECTED: 5.0, N3V3: 3.3}
-#
-#  - assert: node_level
-#    net: EFUSE_FLT_DIV
-#    receiver: U_EXP.1          # the pin whose thresholds decide the verdict
-#    driver_state: released     # open-drain drivers OFF; or `contended`
-#    must_be: logic_high        # + aggressor:/defender: when contended
-#    adr: "0022"
-#    why: "the readback must reach a valid logic high or the flag is dead"
+  - kind: part_value
+    part: R_S1
+    equals: 47
+    tolerance_pct: 10
+    adr: "0002"
+    why: >
+      PE42482A-X's digital absolute maximum is 3.6 V while its VDD absolute
+      maximum is 5.5 V — the control pins are NOT rated to the supply, leaving
+      300 mV of headroom on a 3.3 V rail. Unterminated, the far-end peak into
+      the ~67 ohm control line at the RP2040's strongest drive is 4.807 V; with
+      47 ohm it is 3.181 V. A wrong value here is invisible to every gate that
+      grades topology, which is why the VALUE is asserted and not just the part.
 
-# DEFERRED to E2 (geometric — need footprint/geometry, not just the netlist):
-#   clamp_le_rating  — a clamp/TVS standoff <= the rail it protects
-#   kelvin_within    — a sense pair within N mm of the element it senses
+  - kind: part_value
+    part: R_PD1
+    equals: 10000
+    tolerance_pct: 10
+    adr: "0002"
+    why: >
+      Sets the undriven level (5 uA x 10 k = 50 mV, far below V_IL) and the
+      driven level (3.3 x 10000/10047 = 3.2846 V, far above V_IH 1.17 V). Too
+      large and leakage lifts the pin; too small and it fights the driver. Both
+      failures are silent.
+
+  # ---- ADR from v1 carried as INTENT: the pickoff is a SERIES PAIR ---------
+  - kind: series_chain
+    chain: [J_ANT8, R_T1, R_T2, U_SW]
+    adr: "0001"
+    why: >
+      TWO resistors, in series, not one. A single 440 ohm part satisfies the
+      topology in spirit and DESTROYS the property: two 220 ohm 0402s put their
+      ~0.04 pF parasitics in series so C_eff halves, the 6 GHz tap tilt drops
+      from +1.69 dB to +0.43 dB, and the UNKNOWN band narrows from 2.73 dB to
+      0.83 dB. The netlist, DRC, ERC and parity are identical either way.
+
+  - kind: part_value
+    part: R_T1
+    equals: 220
+    tolerance_pct: 5
+    adr: "0001"
+    why: >
+      The pickoff's three published numbers are all functions of this value:
+      main-line insertion loss 0.4322 dB, tap coupling -20.2567 dB, return loss
+      26.2773 dB at RX1_MAIN (DETAIL_DESIGN section 2, each with a runnable
+      derivation). RX1's sensitivity is a PERMANENT cost paid by this resistor,
+      so a substituted value is a substituted instrument.
+
+  - kind: part_value
+    part: R_T2
+    equals: 220
+    tolerance_pct: 5
+    adr: "0001"
+    why: >
+      Same argument as R_T1, and asserted separately on purpose: the failure
+      this catches is one resistor changed, not both. Note the deliberate
+      order-day lever recorded in DETAIL_DESIGN section 2 — populating R_T2 as
+      0 ohm trades RX1 loss for reference SIR. If that lever is ever pulled,
+      THIS assertion is what must be updated, which is the point of it being
+      here rather than in prose.
+
+  # ---- the RF port assignment, which nothing in copper can check -----------
+  - kind: pin_on_net
+    part: U_SW
+    pin: "24"
+    net: ANT1
+    adr: "0001"
+    why: >
+      RF1 (pin 24) is the DELTA REFERENCE for the entire published phase table
+      and the power-on default (select 0000). If RF1 and some other port were
+      swapped, every published delta would be re-referenced and the board would
+      look perfectly correct.
+
+  - kind: pin_on_net
+    part: U_SW
+    pin: "19"
+    net: RX1_TAP
+    adr: "0001"
+    why: >
+      RF8 (pin 19) is the port that carries the TAPPED copy of the RX1 antenna,
+      and it was chosen by an isolation argument, not by convenience. Putting
+      the tap on any other port silently changes which dwell is the shared-phase
+      reference the host correlates against.
+
+  - kind: pin_on_net
+    part: U_SW
+    pin: "22"
+    net: RX2_OUT
+    adr: "0001"
+    why: >
+      RFC (pin 22) is the switch common and the only path to PlutoSDR RX2. It is
+      asserted because it is the one net whose length is COMMON-MODE across all
+      eight paths — if it were wired to an RF port instead, the board would
+      still switch, and every delta would be wrong by a different amount.

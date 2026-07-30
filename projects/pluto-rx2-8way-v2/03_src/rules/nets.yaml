@@ -1,65 +1,220 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
-# board as a reference for the generic backend's config format. Copy into a
-# new project's 03_src/ and replace the values — the KEYS are the contract.
+# nets.yaml — pluto-rx2-8way-v2
 #
-# cook-loadcell net architecture — netclasses + DRU floors source.
-# fab_tier is a COST CEILING decided at commission (D-TIER), named from
-# skills/kicad-pcb/references/fab_tiers.yaml. Default to the CHEAPEST
-# plausible tier; policy_audit P-TIER blocks any part whose escape needs a
-# costlier one — raising it requires the tier ADR + ORDER_README line.
+# THE MODULE ARM. v1 (projects/pluto-rx2-8way) is the bare-chip arm and is not
+# superseded. The RF classes here are IDENTICAL to v1's on purpose: the two
+# boards must differ in one variable.
 #
-# fab_tier is also the SINGLE SOURCE of capability floors for the generic
-# backend (fab_tier_util.py): generate_rules_generic floors class widths at
-# the tier's min_track (an EXPLICIT width below it is a hard error, never a
-# silent clamp); route_and_stitch_generic derives missing via_size/via_drill/
-# clearance from the tier and rejects explicit sub-floor values; and
-# generate_board_generic floors silk text heights at min_silk_text_height.
+# TWO THINGS THAT MAKE THIS BOARD UNLIKE A POWER BOARD (carried from v1, and
+# both still true):
 #
-# `classes` below are ALSO the width source for the router: a route.yaml
-# wave with no track_width derives it from its member nets' class floors
-# (largest member floor wins), and an explicit wave width below a member's
-# floor is a hard error at route-prep naming the class. One source — the
-# router can no longer disagree with the .kicad_dru gate this file emits.
-fab_tier: jlc_2layer_default   # 0.6/0.3 vias, no advanced option
+# 1. THE DOMINANT WIDTH CONSTRAINT IS IMPEDANCE, NOT AMPACITY. RF50 is
+#    0.36 mm because that is 50.29 ohm on the ordered stackup (JLC04161H-7628,
+#    0.2104 mm top prepreg, Dk 4.4 — DETAIL_DESIGN section 1), NOT because of
+#    current. A "safety" widening of an RF class is a DEFECT, not a
+#    conservative choice: it detunes the line. Both directions are wrong.
+#    Every such class declares `current: signal` EXPLICITLY and says in
+#    `intent:` what the width really is.
+#
+# 2. `current:` IS A TYPED DECLARATION, NOT PROSE (canon A-AMP / M-COVER).
+#    Every class reads as a bare "<n> A" or the literal word "signal";
+#    qualifying prose goes in `intent:`, where it cannot silence the gate.
+#
+# WHAT THIS BOARD DOES NOT CARRY, STATED SO THE ABSENCE IS A DECLARATION:
+#    USB_D    — no board USB. The module owns its own USB-C (ADR-0002).
+#    QSPI     — the flash bus lives on the module's PCB, not this laminate.
+#    DVDD_1V1 — the RP2040 core rail and its copper link are inside the module.
+#    Those three classes disappearing is the entire point of v2.
+
+default_clearance: 0.2mm
+
+fab_tier: jlc_4layer_advanced
+# UNCHANGED from v1 and still FORCED by one line of arithmetic that has nothing
+# to do with the MCU: PE42482A-X QFN-24 at 0.50 mm pitch — at the standard-tier
+# 0.30 mm drill the adjacent-pin hole-to-hole gap is 0.50 - 0.30 = 0.20 mm
+# against a 0.50 mm floor, so no escape via fits. Removing the RP2040's 0.400 mm
+# QFN-56 did NOT relax the tier; the switch sets it by itself.
+# ORDER_README line (exact):
+#   "ADVANCED option REQUIRED: min via 0.25/0.15 mm (PE42482A-X QFN-24 at
+#    0.50 mm pitch - at the standard-tier 0.30 mm drill the adjacent-pin
+#    hole-to-hole gap is 0.50 - 0.30 = 0.20 mm against a 0.50 mm floor, so no
+#    escape via fits). 4-layer JLC04161H-7628, IMPEDANCE CONTROL REQUESTED."
 
 classes:
-  BRIDGE:
+  RF50:
     intent: >
-      Microvolt-level bridge nodes + excitation: the four ring splices and
-      E+/S+/S-/E-. 0.5mm floor = robustness + low IR drop in excitation;
-      kept < 15mm, guarded by both GND pours, no clock crossings (audit).
-    nets: [E_PLUS, S_PLUS, S_MINUS, RING_12, RING_23, RING_34, RING_41]
-    current: "excitation ~1.5mA (4x 2k bridge) + uV signals"
-    min_width: 0.5mm
-    routing: engineered corner stubs (KRT wave 1, analog corner)
-    verify: audit I-AN separation + DRC floor
+      Every 50 ohm single-ended RF net: the nine radial arms of the switch star,
+      the RX1 main line and the pickoff tap. 0.36 mm on L1 over a SOLID L2
+      ground is 50.29 ohm on the ordered stackup (Hammerstad-Jensen with the
+      Wheeler thickness correction, DETAIL_DESIGN section 1 — the derivation is
+      a runnable command there, not a typed digit). THIS IS AN IMPEDANCE WIDTH,
+      NOT AN AMPACITY WIDTH: widening it is as wrong as narrowing it.
+      Constraints that are not preferences: L1 ONLY, NO VIAS inside a
+      phase-critical arm, and a SOLID unbroken In1.Cu beneath — In1.Cu is
+      EXCLUDED from the routing layers so the reference under a matched group
+      cannot be cut. That exclusion is Ossmann's rule 1 and it is what makes
+      nine arm phases comparable at all.
+      Ground-via fence flanking every arm at <= 1.35 mm, the largest round value
+      under the derived guided lambda_g/20 = 1.3693 mm bound (ADR-0003).
+      GUIDED, not free-space (which would be 2.5 mm) and not the bulk-eps_r
+      wavelength.
+    nets: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7,
+           RX1_MAIN, RX1_TAP_MID, RX1_TAP, RX2_OUT]
+    current: signal
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
+    min_width: 0.36mm
+    routing: KRT, L1 only, no vias, radial star
+    verify: DRC floor + P-ADJ spans + the published VNA sweep
+
+  CTRL:
+    intent: >
+      The four select lines, in two halves separated by the 47 ohm source
+      terminations: SEL_V* on the module side, SW_V* on the switch side.
+      Switched DC, not RF — but the timing is load-bearing, because the whole
+      level change must settle inside the 128-sample (4.267 us at 30 Msps)
+      blanking allowance.
+      NO SHUNT CAPACITANCE ANYWHERE ON THIS CLASS. A 1k + 1nF RC is 4.6 us to
+      99%, which is MORE than the entire blanking allowance. The control plane
+      is deliberately un-filtered and this line is the reason.
+      Keep these off any long parallel run beside an RF arm: a switching edge
+      coupled into an arm lands inside the dwell it is supposed to start.
+    nets: [SEL_V1, SEL_V2, SEL_V3, SEL_V4, SW_V1, SW_V2, SW_V3, SW_V4]
+    current: signal
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
+    min_width: 0.2mm
+    routing: KRT, inner layer under ground across the RF region
+    verify: DRC floor + no RF-arm parallelism (design review)
 
   PWR:
-    intent: 5V feed, AVDD regulator loop, 3V3 digital. 0.4mm floor.
-    nets: [5V, 3V3, AVDD_FB]
-    current: 0.02A
+    intent: >
+      The board's whole power tree, which is two nets long because this board
+      has NO POWER CONNECTOR OF ITS OWN (ADR-0002): its only input is the
+      module's 3V3 castellation.
+      3V3_MOD AND 3V3 ARE TWO NETS, NOT ONE CONTINUED. FB_3V3 is a SERIES
+      element (a ferrite), so the net on each side of it is a different net —
+      the same rule that made VBUS_LDO a fourth net on v1, where it was missed
+      until a late merge and would have been graded as a signal while carrying
+      the whole rail.
+      Width is for IR drop and robustness, FAR above the ampacity need: the only
+      load on 3V3 is U_SW's VDD at 120 uA typ / 200 uA max. The declared
+      current below is the honest envelope, not a padded one — the pull-downs
+      and the LED are sourced by module GPIO pins and are NOT on this net.
+    nets: [3V3_MOD, 3V3]
+    current: 0.01 A
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
     min_width: 0.4mm
-    routing: KRT
-    verify: DRC floor
+    routing: KRT, L1 stubs onto an inner pour
+    verify: DRC floor + A-AMP
 
-# Default 0.25: DAT, CLK, RATE_SEL, SH. GND = pours + stitch.
-
-# SCOPED FLOORS (canon M8 two-strike promotion: cook-hub u7_taps, then the
-# clean-room 3S append_sw_floor.py). A width relaxation that applies ONLY
-# inside a named board zone / rule area, emitted as a KiCad last-match
-# `insideArea('<zone>')` .kicad_dru rule AFTER the netclass floors — for
-# sense taps / thin backstops riding a pour-fed trunk class. `nets` scopes
-# the relaxation to the listed nets so an unrelated thin net crossing the
-# area keeps its own floor. `why` is REQUIRED (canon M4: a floor relaxation
-# without evidence is an inherited defect — generation fails without it),
-# and min_width must still be >= the declared tier's min_track (no scope
-# makes a sub-fab-floor track manufacturable).
+# LED_STAT and LED_STAT_A take the DEFAULT class (0.25 mm). LED_STAT_A is the
+# ballasted anode node between R_LED and LED_ST: a series resistor between a
+# driver and an LED needs two nets and there is no way around it. At 1.3-2.2 mA
+# (DETAIL_DESIGN section 5) the default width is correct by a wide margin.
 #
-# scoped_floors:
-#   - zone: sw_pour_zone          # zone or rule-area NAME on the board
-#     nets: [SW]                  # optional net scope (recommended)
-#     min_width: 0.3
-#     why: >
-#       U1 SW-sense taps ride inside the SW island; the 15A path is the
-#       POUR, the 0.3mm tracks are connectivity backstops (measured on
-#       usb-pwr-hub-3s: DRC track_width x2 without this, 0 with).
+# GND is poured on all four layers with stitching and carries no netclass width.
+# U_SW pin 1 (LS) and pin 20 (NC) are ON this net, by vias at the pads.
+
+# ---------------------------------------------------------------------------
+# scoped_clearances: DELIBERATELY ABSENT, and that is a decision (canon R-SCOPE
+# + M4).
+#
+# v1 carries six launch-local relaxations to 0.14 mm, each earned by MEASUREMENT
+# at ITS routing stage. v2 has not been placed and has not been routed, so it
+# has measured nothing, and copying v1's set would be inheriting a waiver — the
+# exact pattern canon M4 names ("a waiver copied from another board is not a
+# judgement, it is an inherited defect").
+#
+# The relaxations are also the LAST remedy, not the first. rf-design.md 4(c)
+# ranks the causes of a launch that will not route as GRID, then CLEARANCE, then
+# WIDTH — and on v1 the real cause was the GRID: at KRT's default grid_step 0.1
+# NOTHING routed the five boxed RF pads at ANY width, because the RF land
+# centres sit at odd multiples of 0.05 mm. grid_step 0.05 routed 11/11 at the
+# full 0.36 mm impedance width. A neck-down was measured and REFUTED (149.832 mm
+# of RF copper delivered at 0.25 mm and 0.000 mm at 0.36).
+# So stage 6 tries the grid FIRST. Any clearance entry that lands here later
+# must carry its own `nets:` and `why:` — an isolation relaxation has NO
+# downstream grader at all (DRC simply stops reporting what the rule permits),
+# which is why unexplained it is silent by construction.
+# ---------------------------------------------------------------------------
+
+length_match:
+  RF_ARMS:
+    intent: >
+      The eight congruent radial arms whose relative phase this board PUBLISHES.
+      Each is a two-pad net from a switch RF land to an SMA jack's signal pad,
+      at equal pad radius from the switch centre.
+      WHAT IS EXCLUDED, AND IT IS PHYSICS NOT CONVENIENCE: the ninth radial —
+      RF8 out through the pickoff — is NOT a member. Three facts each
+      disqualify it. (i) It is not one net but three in series
+      (RX1_TAP -> RX1_TAP_MID -> RX1_MAIN), so its copper is not congruent with
+      a two-pad arm. (ii) RX1_MAIN additionally carries J_RX1 pin 1, the RX1
+      main-line output, so its copper is a T and a total length on it is not a
+      path length. (iii) Its insertion phase is dominated by a LUMPED 2 x 220
+      ohm resistive cell, not by transmission-line length — which is why
+      RX1_TAP_MID carries a lambda_g/20 bound instead of a match.
+      RX2_OUT (RFC) IS included and its term is COMMON-MODE: RFC is in series
+      with all eight paths, so its length adds equally to every one and
+      contributes nothing to any published delta. It is graded anyway because it
+      independently tests that the router treated one more radial the same way.
+      IF THIS GROUP EVER FAILS ON RX2_OUT ALONE, the finding is about
+      construction, not about a delta, and must be reported that way.
+    members:
+      ARM_RF1: [ANT1]
+      ARM_RF2: [ANT2]
+      ARM_RF3: [ANT3]
+      ARM_RF4: [ANT4]
+      ARM_RF5: [ANT5]
+      ARM_RF6: [ANT6]
+      ARM_RF7: [ANT7]
+      ARM_RFC: [RX2_OUT]
+    topology: chain
+    congruent_pads: true
+    # The unmeasured pad-entry copper is IDENTICAL across members and cancels in
+    # the delta, by ROTATIONAL congruence: all ten jacks are the same
+    # KH-SMA-KE-Z footprint rotated to their own theta (the 4-fold post square
+    # makes theta mod 90 equivalent), and all eight switch lands are the same
+    # vendor land. Stated so it can be attacked, not assumed.
+    no_vias: true
+    # THE ONLY PLACE THIS IS GRADED. Nothing in the router enforces a per-NET
+    # via ban — route.yaml's `layers: [F.Cu]` is a per-WAVE restriction and
+    # nothing re-checks it afterwards. A via's inductance depends on drill and
+    # plating, which are not specified per hole, so ONE via on ONE arm is a pure
+    # DIFFERENTIAL error on a published delta.
+    max_spread_mm: 1.0
+    # SIZED FROM DRIFT, NOT FROM A DESIRED MATCH: dtau = TC*dT*dL*t_pd. It is
+    # also ~1x PE42482A-X's own 13.2 deg part-to-part relative-phase window,
+    # which is 1.00 mm of copper on this stackup. A TOLERANCE TIGHTER THAN THE
+    # PART'S OWN WINDOW IS NOT PHYSICS — v1's standing "+/-0.10 mm" was 1.3 deg,
+    # unreachable by any router and unheld by any process, and was WITHDRAWN.
+    # v2 does not re-adopt it (BRIEF A5).
+    elongation: meander
+    # KRT is OCTILINEAR (45-degree multiples), so the shortest copper it can lay
+    # between two pads is max(dx,dy) + 0.4142*min(dx,dy), not the Euclidean
+    # distance. On v1, measured FROM PADS before any router ran: Euclidean
+    # spread 0.3238 mm, octilinear FLOOR spread 1.4966 mm = 19.74 deg at 6 GHz —
+    # above the 1.0 mm ceiling.
+    # THE CEILING DOES NOT MOVE TO CLEAR THE GATE. Raising it would be a DRIFT
+    # claim bought with a router limitation, and the floor is a statement about
+    # the router's MOVE SET, not about the physics the ceiling encodes.
+    # Meandering is the honest answer because the octilinear floor bounds the
+    # SHORTEST path, not the ACHIEVABLE SPREAD: a router can always LENGTHEN a
+    # short member. Cross-checked, not trusted — copper_length_audit refuses
+    # `elongation:` unless route.yaml carries a real `length_match_group`, and
+    # realized copper is still graded against max_spread_mm 1.0.
+    # v2 MUST RE-MEASURE THE FLOOR FROM ITS OWN PADS AT STAGE 5. The floor is a
+    # property of the FLOORPLAN, and v2's floorplan is not v1's — the MCU field
+    # shrank from a QFN-56 plus flash, crystal, USB and ten decouplers to one
+    # 18 x 23.5 mm module, which moves the star's surroundings.
+    stackup_mm: [0.2104, 0.9792, 0.2104]   # JLC04161H-7628
+    phase:
+      t_pd_ps_per_mm: 6.0857
+      f_ghz: 6.0
+      stackup: JLC04161H-7628
+      # DERIVED FOR THIS BOARD, NOT INHERITED. 6.0857 comes from eps_eff 3.3286
+      # (ADR-0003 carries the regenerable command). v1's phase block and
+      # rf-design.md 4(d) both publish 6.105 from eps_eff 3.350, which is not
+      # reproducible from the stackup either board declares, and v1 carries a
+      # THIRD value (lambda_g 27.41 mm => eps_eff 3.3229) in the same file. The
+      # three span 0.7% and nothing is unsafe at any of them; what differs is
+      # whether a command stands behind the number. ADR-0003 records the OWED
+      # question: if 3.350 has a measurement behind it, that measurement
+      # OUTRANKS this derivation (canon M6) and ADR-0003 should be superseded.
