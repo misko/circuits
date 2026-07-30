@@ -475,7 +475,19 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
      their hard nets (BST/SW/FB) face open copper. An "escape failure" on
      a short-local net (bootstrap, CC) is almost always a stranded passive,
      not a routing problem.
-     **ARCHETYPES FIRST — placement is ADAPTATION, not derivation.**
+     **IF THE BOARD'S DELIVERABLE IS A RADIO PROPERTY — impedance, phase or
+     isolation — READ `kicad-pcb/references/rf-design.md` BEFORE PLACING.**
+     It carries Ossmann's five rules (cited), the numeric guidance external
+     sources give, the places those sources DISAGREE with this repo, and four
+     things this fleet measured that no general RF guide covers. Two checks in
+     it belong at THIS stage and refuse an impossible board in milliseconds:
+     the OCTILINEAR FLOOR from pads alone (an octilinear router makes "equal
+     length by construction" FALSE of copper — measured 0.3238 mm Euclidean
+     spread against a 1.4966 mm floor, 19.74 deg at 6 GHz), and MIN LANDABLE
+     WIDTH per pad against the netclass floor (a vendor land left 0.350 mm
+     where a 0.36 mm trace needed 0.380, and six of eleven RF nets would not
+     route). Both were found by routing for hours; both are pad arithmetic.
+          **ARCHETYPES FIRST — placement is ADAPTATION, not derivation.**
      Before drawing a floorplan, check
      `kicad-pcb/references/floorplan-archetypes.md` for this board's
      CLASS (power-hub, sensor-chain, …): a proven placement shape with
