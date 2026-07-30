@@ -113,7 +113,33 @@ _DATE_RE = re.compile(r"-(\d{4})-(\d{2})-(\d{2})$")
 #: A beacon claims a COMPLETED seal. `stage: seal` alone is the seal STAGE
 #: (staging is in progress and the live release is still the predecessor), so
 #: it counts only once `state:` says the stage's gate is green.
-_SEALED_RE = re.compile(r"sealed", re.I)
+_SEALED_RE = re.compile(r"\bsealed\b", re.I)
+
+#: ...and a beacon that says the OPPOSITE is not claiming a seal. The bare
+#: substring `sealed` matches inside `NOT-SEALED`, `UNSEALED` and `not yet
+#: sealed`, so a beacon DENYING a seal was graded as ASSERTING one. cooksense
+#: hit this on 2026-07-29 with a beacon reading `NOT-SEALED`; it was worked
+#: around by REWORDING THE BEACON, which is the wrong repair — it leaves the
+#: next board to trip over the same matcher and quietly pressures authors to
+#: write around a checker instead of describing their state. Same shape as
+#: A-POL's documented blindness ("the keyword check cannot see a negation"),
+#: and the negation here is the whole meaning of the field.
+_NOT_SEALED_RE = re.compile(
+    r"\b(?:not[-\s]*(?:yet[-\s]*)?sealed|un-?sealed|never[-\s]*sealed|"
+    r"pre[-\s]*seal)\b", re.I)
+
+
+def _claims_seal(*fields):
+    """True only where a field asserts a COMPLETED seal and none denies it.
+
+    A denial anywhere in the graded fields wins: `stage: NOT-SEALED` beside a
+    `state:` mentioning a past seal is a board that is not sealed. Note
+    DO-NOT-ORDER is deliberately NOT a denial — cooksense v1.6 is sealed AND
+    unorderable, and conflating the two would erase a real distinction.
+    """
+    if any(_NOT_SEALED_RE.search(f or "") for f in fields):
+        return False
+    return any(_SEALED_RE.search(f or "") for f in fields)
 
 
 def strip_quotes(v):
@@ -207,8 +233,7 @@ def grade_beacon(path, project, rel_root=None):
 
     last = {f: occ[f][-1][1] for f in occ}
     stage, state = last.get("stage", ""), last.get("state", "")
-    row["seal_claimed"] = bool(_SEALED_RE.search(stage)
-                               or _SEALED_RE.search(state)
+    row["seal_claimed"] = bool(_claims_seal(stage, state)
                                or (stage.strip().lower() == "seal"
                                    and state.strip().lower() == "done"))
 

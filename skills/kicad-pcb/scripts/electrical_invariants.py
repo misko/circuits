@@ -708,12 +708,30 @@ _GRADERS = {
 # reports UNREACHED rather than assuming one (canon M-COVER).
 
 def _load_part_electrical(parts_dir):
-    """LCSC code -> the dossier's `electrical:` block. The netlist's `value`
-    field carries the LCSC on this pipeline, and `sourcing.lcsc` in the dossier
-    is the other half of the join."""
+    """LCSC code OR MPN -> the dossier's `electrical:` block.
+
+    The netlist's `value` field carries the LCSC on this pipeline and
+    `sourcing.lcsc` is the other half of the join — but that is only true of
+    parts this pipeline SOURCES. A SELF-SUPPLIED part has no LCSC to carry, so
+    its netlist value is its MPN, and an LCSC-only join silently misses it.
+
+    cooksense 2026-07-29: the 13 reed relays carry `DIP05-1A72-13L` as their
+    netlist value, so every `node_level` assert on the coil driver came back
+    UNREACHED — and the one that mattered had already been computed by hand and
+    shown to PASS at +0.494 V where the superseded driver FAILED. The gate could
+    not express the very margin the board was re-spun to fix. Joining on `mpn:`
+    and on the dossier DIRECTORY NAME closes it.
+
+    Rejected alternative, recorded because it looks tempting: forcing the join
+    by adding the MPN to `sourcing.alternates:`. That field means SUBSTITUTE,
+    and this relay is DO-NOT-SUBSTITUTE — its isolation geometry is the safety
+    argument. Overloading a sourcing field to fix a lookup would have put a
+    false substitution claim into the dossier.
+    """
     out = {}
     if not parts_dir or not Path(parts_dir).is_dir() or yaml is None:
         return out
+    sourced, named = {}, {}
     for py in sorted(Path(parts_dir).glob("*/part.yaml")):
         try:
             d = yaml.safe_load(py.read_text(encoding="utf-8-sig")) or {}
@@ -722,14 +740,28 @@ def _load_part_electrical(parts_dir):
         el = d.get("electrical")
         if not el:
             continue
-        codes = []
+        mpn = d.get("mpn")
+        ent = {"mpn": mpn or py.parent.name, "el": el}
         src = d.get("sourcing") or {}
         if src.get("lcsc"):
-            codes.append(str(src["lcsc"]))
+            sourced.setdefault(str(src["lcsc"]), ent)
         for a in (src.get("alternates") or []):
-            codes.append(str(a))
-        for c in codes:
-            out[c] = {"mpn": d.get("mpn", py.parent.name), "el": el}
+            # alternates entries are EITHER a bare string OR a {lcsc:, mpn:}
+            # mapping — BOTH forms occur in the tree and the 02_parts contract's
+            # own example shows the bare one. Reading only one form is a silent
+            # skip inside a lookup authority.
+            vals = ([v for k, v in a.items() if k in ("lcsc", "mpn") and v]
+                    if isinstance(a, dict) else [a])
+            for v in vals:
+                sourced.setdefault(str(v), ent)
+        for extra in (mpn, py.parent.name):
+            if extra:
+                named.setdefault(str(extra), ent)
+    # PRECEDENCE IS EXPLICIT, not glob order: a SOURCING code always wins over a
+    # key derived from an MPN or a directory name, so widening the join cannot
+    # shadow a real LCSC lookup with some other dossier's name.
+    out.update(named)
+    out.update(sourced)
     return out
 
 

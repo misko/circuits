@@ -292,6 +292,63 @@ def t_beacon_agrees_with_the_tree():
     contains(r.out, "coverage:", "G-COVER denominator present")
 
 
+@test("M-BEACON reads `NOT-SEALED` as DENYING a seal, not claiming one",
+      kind="known_bad")
+def t_beacon_negated_seal_is_not_a_claim():
+    """cooksense 2026-07-29. `_SEALED_RE` was the bare substring `sealed`, which
+    matches inside `NOT-SEALED`, `UNSEALED` and `not yet sealed` — so a beacon
+    DENYING a seal was graded as ASSERTING one, and then failed for not naming
+    the version it had never claimed. The board worked around it by REWORDING
+    THE BEACON, which is the wrong repair twice over: the defect survives for
+    the next board, and it quietly teaches authors to write around a matcher
+    instead of describing their state. A beacon is the one artifact whose whole
+    job is to say what is true.
+
+    Same shape as A-POL's documented keyword blindness ("the keyword check
+    cannot see a negation") — except here the negation IS the field's meaning.
+
+    Note what is deliberately NOT treated as a denial: DO-NOT-ORDER. cooksense
+    v1.6 is sealed AND unorderable, and folding those together would erase a
+    distinction the fleet depends on.
+
+    RED-VERIFIED: with `re.compile(r"sealed", re.I)` restored, this beacon is
+    graded seal_claimed and the gate exits 1 demanding a version."""
+    body = (
+        "# STATUS beacon\n<!-- reader parses from here down -->\n"
+        "stage:   NOT-SEALED\n"
+        'step:    "the coil driver swap is landed and the board rebuilds from '
+        'source; no release has been cut"\n'
+        'measure: "DRC 0 violations / 0 unconnected / 0 parity; E-INV 140/140"\n'
+        "state:   blocked\n"
+        'next:    "fresh four-lens review battery, then stage the fab payload"\n'
+        "op_pid:\n"
+        "updated: 2026-07-29T12:00:00\n")
+    proj, _ = beacon_project("crow-mic-pod-v2", body=body)
+    r = must_pass(beacon_gate(proj, "crow-mic-pod-v2"),
+                  "M-BEACON on a beacon that denies a seal")
+    contains(r.out, "M-BEACON PASS", "verdict")
+
+
+@test("M-BEACON still FAILS a REAL seal claim that names no version — the "
+      "negation fix must not blunt the check", kind="known_bad")
+def t_beacon_real_seal_claim_still_graded():
+    """The other half of the discrimination. Teaching the matcher to see `NOT`
+    is only safe if an affirmative claim still lands, so this beacon says SEALED
+    and names nothing, and must still be caught."""
+    body = (
+        "# STATUS beacon\n<!-- reader parses from here down -->\n"
+        "stage:   seal\n"
+        'step:    "SEALED and live"\n'
+        'measure: "DRC 0/0/0"\n'
+        "state:   done\n"
+        'next:    "order it"\n'
+        "op_pid:\n"
+        "updated: 2026-07-29T12:00:00\n")
+    proj, _ = beacon_project("crow-mic-pod-v2", body=body)
+    must_fail(beacon_gate(proj, "crow-mic-pod-v2"),
+              "M-BEACON on a seal claim naming no version")
+
+
 @test("M-BEACON grades EVERY beacon in the fleet and prints an N/M "
       "denominator — no beacon is silently skipped (canon M-COVER)")
 def t_beacon_fleet_denominator():

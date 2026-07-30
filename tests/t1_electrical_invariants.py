@@ -843,5 +843,77 @@ def t_supplies_net_absent_while_another_resolves():
     contains(r.out, "N3V3", "names the misnamed rail even though V5 resolved")
 
 
+@test("E-INV node_level resolves a SELF-SUPPLIED receiver, whose netlist value "
+      "is an MPN and not an LCSC code", kind="known_bad")
+def t_node_level_mpn_join():
+    """cooksense 2026-07-29, and the cost was that the gate could not express
+    the very margin the board was being re-spun to fix. `_load_part_electrical`
+    joined dossiers to the netlist by LCSC code only. That holds for parts this
+    pipeline SOURCES — but a SELF-SUPPLIED part has no LCSC to carry, so its
+    netlist value is its MPN, and the join silently missed it. The 13 reed
+    relays carry `DIP05-1A72-13L`, so every coil-driver `node_level` came back
+    UNREACHED even though the margin had been computed by hand and shown to PASS
+    at +0.494 V on the new driver where the superseded one FAILED.
+
+    UNREACHED was at least honest — it did not invent a verdict (that is
+    M-COVER working). But an honest refusal on a fact the tree DOES carry is
+    still a gate that cannot grade its board.
+
+    RED-VERIFIED: with the MPN and directory-name keys removed from the join,
+    this fixture reports `UNREACHED ... (code 'DIP05-1A72-13L') declares no
+    input thresholds` and exits 1."""
+    nets = {"V3": [("R_PG", "2", "p2")],
+            "TAP": [("R_PG", "1", "p1"), ("U_RX", "1", "GPB0")],
+            "GND": [("R_B", "2", "p2"), ("R_B", "1", "p1")]}
+    inv = NL_INV.replace("supplies: {V5: 5.0}", "supplies: {V3: 3.3}")
+    d = project(net_text=_nl_comps(nets, {"R_PG": "100k", "R_B": "1k",
+                                          "U_RX": "DIP05-1A72-13L"}),
+                inv_text=inv)
+    pd = d / "02_parts" / "DIP05-1A72-13L"
+    pd.mkdir(parents=True, exist_ok=True)
+    # a SELF-SUPPLIED dossier: `mpn:` and deliberately NO `sourcing.lcsc`
+    (pd / "part.yaml").write_text("mpn: DIP05-1A72-13L\n" + NL_EL)
+    must_pass(einv(d), "node_level on a self-supplied receiver")
+
+
+@test("E-INV the widened join does NOT let a directory name shadow another "
+      "dossier's real LCSC code", kind="known_bad")
+def t_node_level_join_precedence():
+    """The risk the widening introduces, fixtured so the cure cannot become the
+    next defect. Once MPNs and DIRECTORY NAMES are join keys, a directory could
+    collide with a genuine LCSC code and answer a lookup that belongs to another
+    part — swapping in the wrong part's thresholds, which is a CONFIDENT WRONG
+    verdict rather than an UNREACHED one.
+
+    Here a decoy dossier declares `mpn: CRX` — the LCSC code of the real
+    receiver — and a threshold that flips the grade: `v_ih_min: 5.0`, which the
+    3.300 V node cannot reach. (A FRACTION does not discriminate here and my
+    first attempt at this fixture used one: 0.99 x 3.3 = 3.267 V, and the node
+    sits AT the rail on 3.300, so it passed with either dossier answering. A
+    fixture that cannot tell the two apart proves nothing.) It lives in
+    `ZDECOY/` so that it
+    sorts AFTER the real `PART/` dossier: that ordering is the whole point,
+    because a single-pass loader with plain assignment is last-write-wins and
+    would hand the lookup to the decoy. Precedence is explicit in the loader —
+    sourcing codes are applied AFTER name-derived keys — so the real dossier
+    wins whatever the glob order.
+
+    RED-VERIFIED: collapsing the two passes into one with plain assignment makes
+    the decoy answer the lookup and this fixture fails on the 0.99 threshold."""
+    nets = {"V3": [("R_PG", "2", "p2")],
+            "TAP": [("R_PG", "1", "p1"), ("U_RX", "1", "GPB0")],
+            "GND": [("R_B", "2", "p2"), ("R_B", "1", "p1")]}
+    inv = NL_INV.replace("supplies: {V5: 5.0}", "supplies: {V3: 3.3}")
+    d = project(net_text=_nl_comps(nets, {"R_PG": "100k", "R_B": "1k",
+                                          "U_RX": "CRX"}), inv_text=inv)
+    _parts(d, "CRX", NL_EL)                      # the real, SOURCED dossier
+    decoy = d / "02_parts" / "ZDECOY"            # sorts AFTER PART/
+    decoy.mkdir(parents=True, exist_ok=True)
+    (decoy / "part.yaml").write_text(            # its MPN collides with the code
+        "mpn: CRX\nelectrical:\n  vdd: 3.3\n  pins:\n"
+        '    "1": {kind: input, v_ih_min: 5.0}\n')
+    must_pass(einv(d), "node_level with a decoy dossier named after the code")
+
+
 if __name__ == "__main__":
     sys.exit(main())
