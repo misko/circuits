@@ -126,21 +126,49 @@ a checklist line. Run from the project root unless stated.
 - [ ] `$K/placement_gates.py 04_kicad/pluto_rx2_8way.kicad_pcb --config
       03_src/placement_gates.json` → **P-OUT and P-CAP PASS** before any
       routing attempt
-- [ ] **All nine radial arms measure within ±0.10 mm of each other.** Equal
-      length is the AoA requirement (ADR-0006); a spread of 20 mm would cost
-      ~1° of thermal phase drift at 6 GHz over 40 °C
+- [ ] **The eight congruent radials hold a REALIZED COPPER spread ≤ 1.0 mm**,
+      graded by `$K/copper_length_audit.py .` against
+      `length_match: RF_RADIAL_STAR` in `03_src/rules/nets.yaml`, and the
+      measured spread is PINNED there (`pin.spread_mm`, tol 0.05 mm) so a
+      re-route cannot silently invalidate the published picoseconds.
+      **THE ±0.10 mm VERSION OF THIS LINE IS WITHDRAWN, 2026-07-29**, with the
+      reason rather than quietly: 0.10 mm is **1.3° at 6 GHz** on this stackup
+      (13.19 °/mm, ε_eff 3.350, t_pd 6.105 ps/mm), i.e. inside PE42482A-X's own
+      published **13.2° = 1.00 mm** part-to-part relative-insertion-phase window
+      (Table 3, PDF p8) and below the ~2°/fillet mounting-inductance asymmetry
+      of ADR-0006(d) — and KRT has no inter-net skew machinery to deliver it
+      (its length matching is diff-pair shaped). 1.0 mm is a DRIFT ceiling
+      derived from `Δτ = TC·ΔT·ΔL·t_pd`: 1 mm is **0.05°** over 40 °C, 20 mm
+      (the rejected rectangular fan-out) is **1.05°**, comparable to the whole
+      AoA budget. ADR-0006 rejected "match all eight to within X mm" from the
+      start — what the board owes is CONSTANCY, not equality
+- [ ] **The ninth radial (RF8 → `J_ANT8`) is REPORTED, not matched**, and its
+      copper is stated beside the group's: it is three nets through the pickoff,
+      `RX1_MAIN` is a T (it also carries `J_RX1.1`), and its phase is set by a
+      LUMPED 2 × 220 Ω cell, not by length (ADR-0002; ADR-0006 "unequal by
+      construction")
 - [ ] **`RX1_TAP_MID` pad-to-pad span ≤ 1.37 mm** (λg/20 at 6 GHz — the arm
       must stay a LUMPED element)
 - [ ] **`R_T1` and `R_T2` at IDENTICAL rotation, not mirrored** — measured on
       the CPL, not asserted. It is invisible at export time
 - [ ] **`U_SW` pin 1 (LS): ground via centre within 0.5 mm of the pad centre.**
-      MEASURE IT — LS is on the GND net, so P-ADJ has no net to grade and
-      SKIPS this budget silently (ADR-0005)
-- [ ] `SW_V4` span ≤ 4 mm (P-ADJ, from the part.yaml). **`SW_VDD` joins `SW_LS`
-      in P-ADJ-UNREACHED, not in P-ADJ**: `U_SW` pin 8 is on the global `3V3`
-      net and there is no series element to make a second node, so the budget
-      names a net this board does not carry. MEASURE the pin-8-to-`C_SW1` span
-      by hand instead — same disposition as LS
+      NOW GRADED, by `03_src/audit_board.py` **I8** (added 2026-07-29) — and it
+      grades the same way for `Y_XTAL` pads 2 and 4, which must each take their
+      OWN distinct via (≤ 1.0 mm), the part of ABM8's sentence no pad span can
+      see. The `SW_LS ≤ 2 mm` keep_short was **DELETED** rather than re-pointed
+      at `GND`: the anchor metric would have read U_SW.1 → C_SW1.2 = **6.956 mm**
+      and failed a budget about a barrel on a number about a pad (ADR-0005)
+- [ ] `SW_V4` span ≤ 4 mm (P-ADJ, from the part.yaml). **`SW_VDD` IS NO LONGER
+      A GHOST**: re-pointed 2026-07-29 to `{net: 3V3, anchor_pins: ["8"]}`, the
+      node pin 8 actually sits on, which is gradeable because P-ADJ measures the
+      ANCHOR PIN against its nearest partner rather than the whole rail. MEASURED
+      **U_SW.8 → C_SW1.1 = 2.873 mm of 3.0** — the same number stage 5 moved
+      C_SW1 to x 44.7 to get, now read by a gate instead of by hand
+- [ ] `XOUT_XTAL` span ≤ 6 mm on **ABM8's** own budget, re-pointed 2026-07-29
+      from the ghost `XOUT` (Y_XTAL carries no pad on the MCU side of R_XTAL).
+      Split at the part boundary: the MCU leg stays on RP2040's `XOUT` at
+      3.062 mm, the crystal leg is `{net: XOUT_XTAL, anchor_pins: ["3"]}` at
+      **3.618 mm of 6.0**
 - [ ] **`U_ESD` centre within 2.0 mm of `J_USB`'s D+/D− pad row** (ADR-0008,
       ST DocID11265 §2.2). **NOTHING GRADES THIS**: P-ADJ grades `keep_short`
       net SPANS only and ignores `adjacency:` refdes pairs, and the netlist is

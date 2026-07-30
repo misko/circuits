@@ -213,3 +213,148 @@ classes:
 # NO SCOPED FLOORS, DELIBERATELY. A width relaxation inside a zone would break
 # the impedance of any RF class it touched, and canon M4 requires evidence for
 # one anyway. Declared absent rather than omitted.
+
+# ============================================================================
+# length_match — canon R-LEN, graded by
+# skills/kicad-pcb/scripts/copper_length_audit.py. AUTHORED 2026-07-29 at the
+# START of stage 6, before a single track existed, because the obligation it
+# replaces was IMPOSSIBLE AS WRITTEN.
+#
+# WHAT WAS HERE BEFORE: nothing. The intent lived in ADR-0007 prose ("nine
+# EQUAL-LENGTH 50 ohm traces ... equal trace length is equal phase BY
+# CONSTRUCTION") and in 03_src/audit_board.py's I3, which measures PAD-CENTRE
+# RADIUS. Phase is a property of COPPER, and R-LEN in policy_audit.py passed
+# this board on the WORD "length" appearing in that file. So the board whose
+# release artifact is a per-path phase table had no gate on the quantity.
+#
+# THE +/-0.10 mm OBLIGATION IS WITHDRAWN, AND HERE IS THE ARITHMETIC.
+# CHECKLIST section D and I3's own note asked for "equalise ROUTED length to
+# +/-0.10 mm". MEASURED on the ordered stackup JLC04161H-7628 (h = 0.2104 mm
+# top prepreg, Dk 4.4, RF50 w = 0.36 mm): Hammerstad eps_eff = 3.350,
+# t_pd = 6.105 ps/mm, lambda_g(6 GHz) = 27.29 mm, and phase runs at
+# 13.19 deg/mm. So 0.10 mm is 1.3 deg at 6 GHz. Three independent reasons it
+# is the wrong number, none of them "it is hard":
+#   1. IT IS BELOW THE PART'S OWN WINDOW. PE42482A-X publishes relative
+#      insertion phase with min/typ/max (Table 3, PDF p8). At 6 GHz RF2-RF1 is
+#      -9.4 / -2.8 / +3.8 deg — a 13.2 deg window = 1.00 mm of copper, part to
+#      part, on the very paths whose difference this board publishes. Copper
+#      matched to 0.10 mm buys a quantity that cannot be distinguished from the
+#      switch that was bought.
+#   2. IT IS BELOW THE ASSEMBLY TERM. ADR-0006(d): mounting-inductance
+#      asymmetry is ~0.1 nH ~ 3.8 ohm ~ 2 deg at 6 GHz per solder fillet,
+#      = 0.15 mm of copper, and it is a CPL/reflow property no router controls.
+#   3. NOTHING IN THE SYSTEM CAN DELIVER IT. KRT's length-matching machinery
+#      (diff_pair_loop.py, diff_xnet.py) is DIFF-PAIR shaped — intra/inter-pair
+#      P/N equalisation. These are single-ended 50 ohm traces that must match
+#      EACH OTHER ACROSS NETS, which is inter-net skew, and there is no tool
+#      behind it here. A ceiling nobody can hold is waived within a week, and a
+#      waived ceiling is weaker than an honest number.
+# ADR-0006 ALREADY SAID SO IN PROSE and was not being read: "Treat it as a
+# routing tolerance ('match all eight to within X mm'). REJECTED: ... a
+# tolerance band is not a number ... what the board owes is CONSTANCY."
+#
+# WHAT REPLACES IT — TWO FIELDS WITH TWO DIFFERENT JOBS:
+#   max_spread_mm: 1.0 is a DRIFT ceiling, not a matching target. The static
+#     delta is calibrated out by the published table; what cannot be calibrated
+#     out is how the delta MOVES, and ADR-0006(b) shows that term is
+#     proportional to the length DIFFERENCE: dtau = TC * dT * dL * t_pd. At
+#     +100 ppm/degC (ESTIMATED, +-100, ADR-0006(b)) over 40 degC: dL = 1 mm is
+#     0.024 ps = 0.05 deg at 6 GHz, and dL = 20 mm (the rejected rectangular
+#     fan-out) is 1.05 deg, comparable to the whole AoA budget. 1.0 mm is
+#     therefore derived twice over — from the drift arithmetic, and as ~1x the
+#     vendor's own part-to-part window — and it is what the by-construction
+#     geometry already delivers with 3x margin.
+#   pin: is the check that actually guards the release. The router is
+#     STOCHASTIC and a published picosecond is invalidated by any re-route that
+#     moves copper. pin.spread_mm records the measured number the artifact
+#     claims and FAILS when the board drifts off it by more than tol_mm.
+#     tol_mm 0.05 = 0.66 deg, chosen because it is FREE: copper length in the
+#     .kicad_pcb is a file property, deterministic to the nanometre.
+# ============================================================================
+
+length_match:
+  RF_RADIAL_STAR:
+    adr: 0007
+    intent: >
+      THE EIGHT CONGRUENT 50 OHM RADIALS OF THE SWITCH STAR - seven antenna
+      arms plus the RFC output - each a single two-pad net from a PE42482A-X RF
+      land at r ~ 2.1 mm to an SMA centre pin on the r = 20.0 mm jack ring
+      (ADR-0007 section 3). What the match buys is the ONE property this board
+      sells: the eight per-path phase deltas are a PUBLISHED, per-unit measured
+      artifact (ADR-0006 section 3), and a published constant is only worth the
+      stability of the geometry behind it. Equal copper is what bounds the
+      THERMAL DIFFERENTIAL drift of those deltas (ADR-0006(b)) and it is why
+      the radial star beat the rectangular fan-out, which spread arms by
+      ~20 mm.
+      THE SPREAD IS NOT ZERO AND CANNOT BE, and the reason is geometric rather
+      than a routing failure: the jacks sit on a CIRCLE and the QFN's lands sit
+      on a SQUARE, so the switch-pad radius takes exactly three values -
+      2.2743 mm (corner pins 24/6/13/19), 2.0427 (pins 2/17) and 1.9164 (pins
+      4/15/22) - and the pad-to-pad arm length takes the three matching values
+      17.7784 / 17.9725 / 18.1021 mm. 0.324 mm of residue, 4.27 deg at 6 GHz,
+      which ADR-0006's published table CALIBRATES OUT and whose 40 degC drift
+      contribution is 0.016 deg.
+      RX2_OUT (RFC, pin 22) IS INCLUDED AND ITS TERM IS COMMON-MODE. RFC is in
+      series with all eight signal paths, so its length adds equally to every
+      one and contributes NOTHING to any published delta. It is graded anyway
+      because ADR-0007's by-construction claim covers it at zero cost and
+      because it independently tests that the router treated one more radial
+      the same way. IF THIS GROUP EVER FAILS ON RX2_OUT ALONE, the finding is
+      about construction, not about a delta, and must be reported that way.
+      WHAT IS EXCLUDED, AND WHY THAT IS PHYSICS AND NOT CONVENIENCE: the ninth
+      radial - RF8 (pin 19) out to J_ANT8 - is NOT a member. ADR-0006 says so
+      in its own rejected-options paragraph: "the tapped path (ADR-0002)
+      contains two resistors and a different topology, so it is unequal by
+      construction". Three separate facts each disqualify it from a spread
+      comparison: (i) it is not one net but three in series through the pickoff
+      (RX1_TAP -> RX1_TAP_MID -> RX1_MAIN) so its copper is not congruent with
+      a two-pad arm; (ii) `RX1_MAIN` additionally carries J_RX1.1, the RX1
+      main-line output, so its copper is a T and `total_mm` on it is not a path
+      length; (iii) its insertion phase is dominated by a LUMPED 2 x 220 ohm
+      resistive cell (ADR-0002), not by transmission-line length, which is why
+      RX1_TAP_MID carries a lambda_g/20 bound instead of a match. Its radial
+      geometry IS still graded, as geometry: 03_src/audit_board.py I3 measures
+      all NINE pad-to-pad radials and I4 the pickoff, and stage 6 reports its
+      realized copper alongside this group's rather than inside it.
+    members:
+      ARM_RF1: [ANT1]
+      ARM_RF2: [ANT2]
+      ARM_RF3: [ANT3]
+      ARM_RF4: [ANT4]
+      ARM_RF5: [ANT5]
+      ARM_RF6: [ANT6]
+      ARM_RF7: [ANT7]
+      ARM_RFC: [RX2_OUT]
+    topology: chain
+    # VERIFIED by the gate from the copper, not asserted: 0 branch vertices and
+    # 0 cycles on every member. Each is a two-pad net with no stub, no shunt
+    # and no fence tap - the ground fence is on GND, not on the arm.
+    congruent_pads: true
+    # THE CLAIM, stated so it can be attacked: the unmeasured pad-entry copper
+    # is IDENTICAL across members and cancels in the delta. It holds here by
+    # ROTATIONAL congruence - all ten jacks are the same KH-SMA-KE-Z footprint,
+    # each rotated to its own theta (the 4-fold post square makes theta mod 90
+    # equivalent), and all eight switch lands are the same 0.30 x 0.60 mm
+    # vendor land from the Figure 23 inset. Every arm is therefore the SAME
+    # radial pad geometry rotated, which is exactly the congruence ADR-0006(d)
+    # and audit_board I3's ring check already require independently.
+    no_vias: true
+    # ADR-0006(c), and this is the ONLY place it is graded. Nothing in the
+    # router enforces a per-NET via ban: route.yaml's `layers: [F.Cu]` is a
+    # per-WAVE restriction and nothing re-checks it afterwards. A via's
+    # inductance depends on drill and plating, which are not specified per
+    # hole, so ONE via on ONE arm is a pure DIFFERENTIAL error on a published
+    # delta.
+    max_spread_mm: 1.0
+    stackup_mm: [0.2104, 0.9792, 0.2104]   # ADR-0003, JLC04161H-7628.
+    # Documentation only: `no_vias: true` means a via is a FAIL before a barrel
+    # is ever priced. Declared so that a future reader who relaxes no_vias does
+    # not inherit an UNREACHED group.
+    phase:
+      t_pd_ps_per_mm: 6.105
+      f_ghz: 6.0
+      stackup: JLC04161H-7628
+      # 6.105 is re-derived from the stackup (Hammerstad eps_eff 3.350) and
+      # agrees with ADR-0003's 6.09 to 0.25%. ADR-0006 section 3 pins the
+      # PUBLISHED conversion constant at 6.09 ps/mm and the release ships that
+      # number with the table; both are stated rather than silently merged.

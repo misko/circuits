@@ -293,13 +293,34 @@ layout:
        eps_eff 3.245, Z0 60.6 ohm, t_pd 6.01 ps/mm, hence C' = t_pd/Z0 =
        0.099 pF/mm. Six millimetres is 0.6 pF, a fifth of the whole allowance, and
        that is what makes 6 mm the budget rather than a round number"}
-    - {net: XOUT, max_span_mm: 6, why: "same 0.099 pF/mm arithmetic, plus the fact
-       that the 1 kohm damping resistor lives IN this net, so the pad-to-pad span
-       already has a part inside it. WARNING, recorded rather than left to be
-       discovered: once R_XTAL exists there are TWO nets here — the MCU-pin side
-       and the crystal side — and 03_src/rules/nets.yaml today declares only
-       `XOUT`. Whichever of the two keeps that name, the OTHER one inherits this
-       same 6 mm budget and currently has nowhere to be declared"}
+    # RE-POINTED `XOUT` -> `XOUT_XTAL`, 2026-07-29 (stage 6). The WARNING the
+    # 2026-07-28 revision of this entry wrote down came true exactly as
+    # written: R_XTAL split the node, `XOUT` kept the MCU-PIN side, and
+    # Y_XTAL has NO PAD ON IT — so this budget was graded by nothing while
+    # LOOKING covered (it was previously scored off R_XTAL.1 and U_MCU.21,
+    # two pads belonging to other parts). The crystal side is `XOUT_XTAL`
+    # and it exists on the board: [R_XTAL.2, Y_XTAL.3, C_XTAL2.1]. The MCU
+    # side is already graded, by RP2040's own `XOUT <= 6 mm` at 3.062 mm
+    # (U_MCU.21 -> R_XTAL.1), so the budget is SPLIT AT THE PART BOUNDARY —
+    # each leg graded by the part that owns a pad on it — which is the same
+    # shape pluto-cal-switch used for its DC-blocked SMA arms. NOT a
+    # loosening: 6 + 6 replaces one 6 mm span that never existed, and the
+    # 6.680 mm pin-to-pin path across both nets is REPORTED in
+    # 03_src/rules/policy_waivers.yaml rather than compared to a number
+    # written for a single span.
+    # GRADED PAIR, MEASURED off the stage-5 board: Y_XTAL.3 -> R_XTAL.2 =
+    # 3.618 mm of 6.0 (+2.382); the load capacitor on the same node,
+    # C_XTAL2.1 -> Y_XTAL.3, is 2.915 mm.
+    - {net: XOUT_XTAL, max_span_mm: 6, anchor_pins: ["3"], why: "same
+       0.099 pF/mm arithmetic as XIN, on the CRYSTAL side of the 1 kohm damping
+       resistor R_XTAL — which is where the RP2040 Hardware Design guide's
+       Figure 8 puts the XOUT load capacitor, so this is the leg whose track
+       capacitance lands in the 3 pF stray allowance that sets the 15 pF BOM
+       value. ANCHORED at pad 3 (the crystal's XOUT terminal): the node also
+       carries R_XTAL.2 and C_XTAL2.1, and the budget is about the crystal's
+       own pin, not about the resistor-to-capacitor hop. The MCU-pin side of
+       the same damping resistor keeps the name `XOUT` and is graded by
+       RP2040's own 6 mm budget"}
     - {net: GND, max_span_mm: 3, why: "pads 2 and 4 are the can's ground and they
        are the RETURN for the whole oscillator loop. A crystal loop is XIN pad ->
        C2 -> ground -> C3 -> XOUT pad, so ground path length is IN the loop, not

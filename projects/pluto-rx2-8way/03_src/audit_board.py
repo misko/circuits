@@ -31,6 +31,14 @@ this file existed:
   * The USB-C mouth. `body_offset` in floorplan.yaml checks the SIGN; this
     checks the vendor DATUM (pad row 6.86 mm inside the y1 edge) and that the
     body actually overhangs.
+  * ADDED 2026-07-29 (stage 6) — THREE GROUND VIAS AT THREE PADS (I8). U_SW.1
+    (LS, an RF ground per Table 3 fn 1 AND a hard logic 0 per Table 5 fn 1) and
+    Y_XTAL.2 / Y_XTAL.4 (the crystal can's return, INSIDE the oscillator loop)
+    are sentences about a BARREL, and no pad-to-pad span metric can express
+    one: the partner is a plane. PE42482A-X's `SW_LS <= 2 mm` keep_short was
+    DELETED for exactly this reason rather than re-pointed at GND, where the
+    anchor metric would have measured U_SW.1 -> C_SW1.2 = 6.956 mm, a real
+    number about the wrong thing.
 
 Every threshold below is CITED to the ADR or datasheet section that set it.
 Run: /usr/bin/python3 03_src/audit_board.py  (from the project root)
@@ -146,8 +154,23 @@ def main():
 
     # ---------------------------------------------------------------- I3
     # THE NINE RADIAL ARMS ARE EQUAL. Measured switch-pad-to-jack-pin, which
-    # is the quantity ADR-0007 derived (17.85mm at r=20). CHECKLIST section D
-    # asks for +/-0.10mm; equal length is equal phase BY CONSTRUCTION.
+    # is the quantity ADR-0007 derived (17.85mm at r=20).
+    # THIS IS A PLACEMENT PROXY AND SAYS SO, 2026-07-29. It measures PAD
+    # CENTRES; phase is a property of COPPER, and the copper is graded by the
+    # SHARED gate skills/kicad-pcb/scripts/copper_length_audit.py against the
+    # `length_match: RF_RADIAL_STAR` block in 03_src/rules/nets.yaml (canon
+    # R-LEN). The two are deliberately different lenses on the same claim: this
+    # one reads pcbnew pad positions, that one is an independent
+    # s-expression reader over the shipped board text (canon M1).
+    # THE +/-0.10mm OBLIGATION THIS NOTE USED TO CARRY IS WITHDRAWN. 0.10mm is
+    # 1.3 deg at 6 GHz on this stackup (13.19 deg/mm), which is INSIDE
+    # PE42482A-X's own published 13.2 deg part-to-part relative-insertion-phase
+    # window (Table 3, PDF p8) and below the ~2 deg per-fillet mounting-
+    # inductance asymmetry of ADR-0006(d); KRT has no inter-net skew machinery
+    # to deliver it either. ADR-0006 rejected "match all eight to within X mm"
+    # in prose from the start - what the board owes is CONSTANCY. The
+    # replacement is a 1.0mm DRIFT ceiling plus a pinned measured spread; the
+    # full derivation is in nets.yaml's length_match header.
     ARMS = {"ANT1": ("U_SW", "24", "J_ANT1"), "ANT2": ("U_SW", "2", "J_ANT2"),
             "ANT3": ("U_SW", "4", "J_ANT3"), "ANT4": ("U_SW", "6", "J_ANT4"),
             "ANT5": ("U_SW", "13", "J_ANT5"), "ANT6": ("U_SW", "15", "J_ANT6"),
@@ -195,9 +218,11 @@ def main():
                        f"{max(lens, key=lens.get)} {hi:.3f}) - larger than the "
                        f"QFN pad-ring residue, so a jack or the switch has moved")
         note("I3", f"{len(lens)} radial arms, pad-to-pad {lo:.3f}..{hi:.3f}mm "
-                   f"(spread {hi - lo:.4f}mm = the square-pad-ring residue). "
-                   f"STAGE-6 OBLIGATION: equalise ROUTED length to +/-0.10mm; "
-                   f"0.324mm of copper is ~2 ps, ~4.3 deg at 6 GHz")
+                   f"(spread {hi - lo:.4f}mm = the square-pad-ring residue, "
+                   f"{(hi - lo) * 13.19:.2f} deg at 6 GHz). PLACEMENT PROXY: the "
+                   f"copper is graded by copper_length_audit.py against "
+                   f"length_match: RF_RADIAL_STAR (ceiling 1.0mm of DRIFT "
+                   f"spread, not a +/-0.10mm matching target - see nets.yaml)")
 
     # ---------------------------------------------------------------- I4
     # THE PICKOFF. Identical rotation (never mirrored - ADR-0006(d) calls the
@@ -346,6 +371,72 @@ def main():
     note("I7", f"{len(holes)} M3 keepouts clear of all {len(fps)} parts "
                f"(washer radius {WASHER_R}mm)")
 
+    # ---------------------------------------------------------------- I8
+    # GROUND VIA *AT* THE PAD — three obligations that are sentences about a
+    # VIA, not about a span, and which therefore no pad-to-pad metric can see.
+    # ADDED 2026-07-29 (stage 6) when PE42482A-X's `SW_LS <= 2 mm` keep_short
+    # was DELETED rather than re-pointed: LS is on GND (ADR-0005), and the
+    # anchor metric would have compared U_SW.1 to the nearest other-footprint
+    # GND pad, MEASURED at 6.956 mm (C_SW1.2) — a real number about the wrong
+    # thing. GND here is a four-layer pour; pin 1 reaches it through a barrel.
+    #   * U_SW.1 (LS): Table 3 fn 1 (PDF p9) makes pin 1 an RF ground whose
+    #     quality moves IL and isolation, and Table 5 fn 1 (p10) makes it a
+    #     logic 0 against a 1 Mohm internal pull-up. 0.5 mm is the figure
+    #     ADR-0007's adjacency table and policy_waivers.yaml (c) already
+    #     declared for it.
+    #   * Y_XTAL.2 / Y_XTAL.4: ABM8-272-T3's own keep_short `why` says "each
+    #     GND pad takes its OWN via to L2 at the pad" — the oscillator loop is
+    #     XIN -> C2 -> ground -> C3 -> XOUT, so the ground path is IN the loop.
+    #     The budget it is written beside (`GND <= 3 mm`) grades the pad span
+    #     and PASSES at 2.457/2.291 mm; the per-pad via is the part of the
+    #     sentence that span cannot express, and the two vias must be DISTINCT.
+    #     1.0 mm: pad half-height 0.40 + via radius 0.125 leaves room for a
+    #     neck but not for a trip to a stitch elsewhere.
+    # PRE-ROUTE BEHAVIOUR IS STATED, NOT SILENT: on a board with NO vias at all
+    # this is UNREACHED and prints as such (canon M-COVER). It cannot be dodged
+    # that way — a board with no vias also fails R-THERM and R-DRC.
+    VIA_AT_PAD = [("U_SW", "1", 0.5,
+                   "LS is an RF ground (Table 3 fn 1) AND a hard logic 0 "
+                   "(Table 5 fn 1) - both sentences ask for a barrel at the pad"),
+                  ("Y_XTAL", "2", 1.0,
+                   "the crystal can's ground return is INSIDE the oscillator "
+                   "loop (ABM8 keep_short GND); its own via, not a neck"),
+                  ("Y_XTAL", "4", 1.0, "as Y_XTAL.2, and it must be a DIFFERENT via")]
+    gnd_vias = [(MM(t.GetPosition().x), MM(t.GetPosition().y))
+                for t in board.Tracks()
+                if t.Type() == pcbnew.PCB_VIA_T and t.GetNetname() == "GND"]
+    if not gnd_vias:
+        note("I8", "UNREACHED: the board carries 0 GND vias, so the three "
+                   "via-at-pad obligations (U_SW.1, Y_XTAL.2, Y_XTAL.4) are "
+                   "NOT graded here. This is the pre-stitch state; it is a "
+                   "FAIL at R-THERM and R-DRC, never a pass here")
+    else:
+        chosen = {}
+        for ref, pn, lim, why in VIA_AT_PAD:
+            f = fps.get(ref)
+            p = pads(f).get(pn) if f else None
+            if p is None:
+                fail("I8", f"{ref}.{pn} not on the board")
+                continue
+            px, py = xy(p)
+            d, best = min(((math.hypot(px - vx, py - vy), (vx, vy))
+                           for vx, vy in gnd_vias), key=lambda t: t[0])
+            if d > lim + 1e-6:
+                fail("I8", f"{ref}.{pn}: nearest GND via is {d:.3f}mm away "
+                           f"(bound {lim}mm) - {why}")
+            else:
+                note("I8", f"{ref}.{pn} GND via at {d:.3f}mm (bound {lim})")
+            chosen[f"{ref}.{pn}"] = best
+        y2, y4 = chosen.get("Y_XTAL.2"), chosen.get("Y_XTAL.4")
+        if y2 is not None and y2 == y4:
+            fail("I8", f"Y_XTAL pads 2 and 4 share ONE via at {y2} - ABM8's "
+                       f"sentence is 'each GND pad takes its own via', because "
+                       f"a shared barrel puts both load-capacitor returns "
+                       f"through one inductance inside the oscillator loop")
+        elif y2 is not None and y4 is not None:
+            note("I8", f"Y_XTAL pads 2 and 4 take DISTINCT GND vias "
+                       f"({math.hypot(y2[0] - y4[0], y2[1] - y4[1]):.3f}mm apart)")
+
     # ---------------------------------------------------------------- out
     for n in NOTES:
         print(f"  note {n}")
@@ -354,7 +445,7 @@ def main():
         for f in FAILS:
             print(f"  FAIL {f}")
         return 1
-    print(f"AUDIT-BOARD: PASS (7 invariant groups, {len(NOTES)} measurements)")
+    print(f"AUDIT-BOARD: PASS (8 invariant groups, {len(NOTES)} measurements)")
     return 0
 
 

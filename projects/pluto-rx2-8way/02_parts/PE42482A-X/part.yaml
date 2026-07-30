@@ -177,18 +177,56 @@ layout:
     ports are distributed one per side-pair around the package."
   reviewed: "2026-07-27"
   keep_short:
-    - {net: SW_VDD, max_span_mm: 3, why: "bypass at pin 8. The EVK clusters
-       C1-C4 immediately against the pin-7..12 edge (Figure 21, PDF p19); IDD
-       is 120 uA typ so this is decoupling for control-line transients, not
-       for load current, and it must sit at the pad to be that"}
-    - {net: SW_LS, max_span_mm: 2, why: "pin 1 is BOTH a logic input with a
-       1 Mohm internal pull-up AND, per Table 3 fn 1, an RF ground whose
-       quality moves IL and isolation. It has to be a via to plane at the pad;
-       any measurable span means it is neither a hard logic 0 nor an RF ground"}
+    # `SW_VDD` WAS A GHOST NET AND IS RE-POINTED, 2026-07-29 (stage 6). No net
+    # of that name has ever existed on this board: E-NETREF's nearest match was
+    # `SW_V4`, which is a different pin. Pin 8 sits on the GLOBAL `3V3` rail
+    # (no series element makes a second node), and the budget is now written
+    # against that node with `anchor_pins: ["8"]` — the pin the datasheet
+    # sentence is about. That is only gradeable because P-ADJ changed metric on
+    # 2026-07-29: the WHOLE-NET maximum would score this 3V3 rail at ~21.7 mm
+    # (U_SW.8 -> U_MCU.22, a pair the sentence is not about), the ANCHOR metric
+    # scores U_SW.8 against its nearest qualifying partner. The previous
+    # revision of policy_waivers.yaml asserted `anchor_pins:` "CANNOT rescue
+    # any of the six" because the declaring part had no pad on the named net —
+    # true of four of them, FALSE here and false for ABM8's `XOUT`, and that
+    # error is corrected in the same change. GRADED PAIR, MEASURED off the
+    # stage-5 board: U_SW.8 -> C_SW1.1 = 2.873 mm of 3.0 (+0.127). The number
+    # is not new — it is the same 2.873 mm the stage-5 pass moved C_SW1 to
+    # x 44.7 to achieve by hand; what is new is that a gate now reads it.
+    - {net: 3V3, max_span_mm: 3, anchor_pins: ["8"], why: "bypass at pin 8. The
+       EVK clusters C1-C4 immediately against the pin-7..12 edge (Figure 21,
+       PDF p19); IDD is 120 uA typ so this is decoupling for control-line
+       transients, not for load current, and it must sit at the pad to be that.
+       ANCHORED at pin 8 because 3V3 is the board-wide rail: without the anchor
+       the budget grades the rail's diameter, which is the metric error P-ADJ
+       retired on 2026-07-29"}
+    # `SW_LS <= 2 mm` IS DELETED HERE, NOT RE-POINTED TO A PASSING NET, AND NOT
+    # ABANDONED. Pin 1 IS on a real node — `GND`, by ADR-0005 — so unlike
+    # `SW_VDD` this one had a name available that P-ADJ would have accepted.
+    # It is refused, because it would grade the WRONG QUANTITY: the anchor
+    # metric would compare U_SW.1 against the nearest other-footprint GND pad,
+    # MEASURED at 6.956 mm (C_SW1.2), and report a 4.956 mm miss of a budget
+    # about something else entirely. GND on this board is a four-layer pour;
+    # pin 1 does not reach it through a trace to another part's pad, it reaches
+    # it through a VIA AT THE PAD, and no pad-to-pad span can see a via. The
+    # obligation is therefore moved to the instrument that can: 03_src/
+    # audit_board.py I8 measures the nearest GND via centre to the pin-1 pad
+    # centre against 0.5 mm, on the stitched board, and CHECKLIST section D
+    # carries the same line. Raising 2 mm to 7 mm to make the old declaration
+    # green would have been the exact defect P-ADJ-UNREACHED exists to catch.
     - {net: SW_V4, max_span_mm: 4, why: "pull-down at pin 12. V4=1 with
        V1..V3=0 mutes every port (Table 5, PDF p10), so this is the pin whose
        float is silent. The resistor belongs at the pad, not at the PIO end"}
   notes:
+    - "PIN 1 (LS) IS A GEOMETRIC OBLIGATION, NOT A SPAN BUDGET — moved out of
+       keep_short: 2026-07-29 (see the comment there). Table 5 fn 1 (PDF p10)
+       makes LS a logic input with a 1 Mohm internal pull-up that MUST be tied
+       to GND, and Table 3 fn 1 (PDF p9) makes the same pin an RF ground whose
+       quality moves insertion loss and isolation. Both sentences ask for ONE
+       thing: a via to the plane AT the pad. The measurable form is `nearest
+       GND via centre within 0.5 mm of the pin-1 pad centre`, graded by
+       03_src/audit_board.py I8 after the stage-6 stitch. A pad-to-pad span
+       budget cannot express it — the partner is a plane, not a pad."
     - "DERIVED (my reading, not the datasheet's words): the RF ports are
        interleaved with GND on three of four sides (RF2/GND/RF3/GND/RF4,
        RF5/GND/RF6/GND/RF7, RF8/NC/GND/RFC/GND/RF1), so every RF launch already

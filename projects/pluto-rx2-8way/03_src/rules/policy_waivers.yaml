@@ -73,69 +73,74 @@
 # zone_connection: full on the GND pads of U_SW / J_USB / U_MCU.)
 
 - id: P-ADJ-UNREACHED
-  refs: [ABM8-272-T3, KH-SMA-KE-Z, MCP1755S-3302E-DB, PE42482A-X, USBLC6-2SC6]
+  refs: [KH-SMA-KE-Z, MCP1755S-3302E-DB, USBLC6-2SC6]
   why: >
-    SIX of the 43 declared layout budgets are graded by NOTHING, and THREE of
-    the six are NEW to this round — they used to be graded off OTHER PARTS'
-    PADS ENTIRELY, which is worse than ungraded because it looked covered. Each
-    one below carries the hand measurement that replaces the ungraded budget,
-    and each says why no automatic anchor exists. The new optional
-    `anchor_pins:` key CANNOT rescue any of the six: it filters among the pads
-    the declaring part already has ON the named net, and in every case here the
-    declaring part has NO pad on that net at all (or the net has no pads).
-    AND THE LINE THIS ENTRY WILL NOT CROSS: for (d), (e) and (f) there IS a
-    board net whose name would make the budget graded and passing. Re-pointing
-    a budget at a net that makes it pass is not a fix, it is the thing this row
-    exists to catch, so the names are left alone and the substance is measured
-    by hand here instead.
+    THREE of the 42 declared layout budgets are graded by NOTHING. IT WAS SIX
+    OF 43 ON 2026-07-29 AT STAGE 5, AND THE OTHER THREE ARE NOW CLOSED IN
+    SOURCE RATHER THAN WAIVED — stage 6 opened by fixing the DECLARATIONS
+    instead of re-asserting the hand measurements. What follows is the
+    correction of this file's own reasoning, because the previous revision
+    stated a general claim that is FALSE:
+
+      "The new optional `anchor_pins:` key CANNOT rescue any of the six: it
+       filters among the pads the declaring part already has ON the named net,
+       and in every case here the declaring part has NO pad on that net at all"
+
+    The mechanism is right and the survey behind it was wrong. It is true of
+    (a), (b) and (c) below. It was FALSE for two of the three that have gone,
+    and E-NETREF had already printed the evidence as a NEAR MISS: `SW_VDD`
+    resolved to nothing while its nearest existing name was `SW_V4`, and
+    `SW_LS` near-missed the whole `SW_V1..V4` family — a near miss on a name
+    that does not exist is a sign the budget is pointed at a DATASHEET PIN
+    FUNCTION rather than at a board node, and the board node is usually right
+    there. What was actually needed was to ask which NODE each datasheet
+    sentence is about:
+
+      * PE42482A-X `SW_VDD <= 3 mm` -> `{net: 3V3, anchor_pins: ["8"]}`.
+        U_SW DOES have a pad on 3V3: pin 8, the pin the sentence is about. The
+        old objection ("the budget as written would grade the whole rail") was
+        true of the WHOLE-NET metric and stopped being true when P-ADJ moved to
+        the anchor metric on 2026-07-29 — the whole-rail reading is 21.669 mm
+        (U_SW.8 -> U_MCU.22), the anchor reading is U_SW.8 -> C_SW1.1 =
+        2.873 mm of 3.0. This entry's own (b) had already MEASURED that
+        2.873 mm by hand; the fix was to let the gate read it. It is now
+        P-ADJ's TIGHTEST GRADED MARGIN on the board (+0.127 mm).
+      * ABM8-272-T3 `XOUT <= 6 mm` -> `{net: XOUT_XTAL, anchor_pins: ["3"]}`.
+        The old entry (d) named the gradeable version correctly — "a XOUT_XTAL
+        declaration ... a SOURCE change owed at the next schematic revision" —
+        and then deferred it. `XOUT_XTAL` was ALREADY on the board
+        ([R_XTAL.2, Y_XTAL.3, C_XTAL2.1]), so no schematic revision was owed:
+        the budget is SPLIT AT THE PART BOUNDARY, MCU leg graded by RP2040's
+        own `XOUT` at 3.062 mm (U_MCU.21 -> R_XTAL.1) and crystal leg graded
+        here at Y_XTAL.3 -> R_XTAL.2 = 3.618 mm of 6.0. The 6.680 mm
+        pin-to-pin path across both nets stays REPORTED, not compared: 6 mm was
+        written against a single span and no single span exists.
+      * PE42482A-X `SW_LS <= 2 mm` -> DELETED, and this is the one where
+        re-pointing was REFUSED. Pin 1 is on `GND` (ADR-0005), so unlike the
+        other two a name was available that P-ADJ would have accepted — and it
+        would have graded the wrong quantity: nearest other-footprint GND pad
+        MEASURED at 6.956 mm (C_SW1.2), a 4.956 mm "miss" of a budget about a
+        BARREL. The obligation moved to the instrument that can see it,
+        03_src/audit_board.py **I8**: nearest GND via centre within 0.5 mm of
+        the pin-1 pad centre, on the stitched board, with the same treatment
+        extended to Y_XTAL pads 2 and 4 (own via each, <= 1.0 mm, distinct).
+        Raising 2 mm to 7 mm to make the declaration green would have been the
+        exact defect this row exists to catch.
+
+    THE LINE THIS ENTRY STILL WILL NOT CROSS: for (b) and (c) there IS a board
+    net whose name would make the budget graded and passing. Re-pointing a
+    budget at a net BECAUSE it passes is not a fix. The test applied to all
+    three closures above was "is this the node the datasheet sentence is
+    about?", and it is why one of them was deleted instead.
 
     (a) KH-SMA-KE-Z `RF_ANT_LAUNCH <= 3 mm` — a GENERIC name from the dossier's
     reference design, not a board net: 0 pads carry it. Its real subjects are
     the ten launches, and they are graded by 03_src/audit_board.py I2 (all ten
     SMA centre pins carry the >= D3.5 mm L2 antipad override) and I3 (nine
-    radial arms, pad-to-pad 17.778..18.102 mm, spread 0.324 mm). UNCHANGED
+    radial arms, pad-to-pad 17.778..18.102 mm, spread 0.3238 mm). UNCHANGED
     from 2026-07-28 and re-verified today.
 
-    (b) PE42482A-X `SW_VDD <= 3 mm` — pin 8 sits on the GLOBAL 3V3 net (no
-    series element makes a second node), so the budget as written would grade
-    the whole rail. HAND MEASURED, AND THE PREVIOUS REVISION OF THIS ENTRY WAS
-    WRONG: it claimed "C_SW1 pad 1 to U_SW pin 8 = 2.62 mm, inside the 3 mm".
-    That number does not reproduce at any measure — the pair was 3.085 mm
-    centre-to-centre and 2.375 mm of copper gap, i.e. under P-ADJ's own
-    measure (pad centre to pad centre) it EXCEEDED the datasheet's 3 mm by
-    0.085 mm while this file asserted it passed. So C_SW1 MOVED, x 44.0 ->
-    44.7, and it now measures 2.873 mm centre-to-centre. The limit on going
-    closer is R_PD4's courtyard at x 45.485 (0.28 mm of clearance left against
-    the 0.25 legalizer floor) and the 1.5 mm escape corridor above, which ends
-    at y 49.995 and leaves C_SW1's courtyard 0.25 mm of headroom.
-
-    (c) PE42482A-X `SW_LS <= 2 mm` — LS is tied to GND by ADR-0005, so there is
-    no LS node on this board at all (U_SW.1 is on GND, confirmed off the
-    netlist). The real obligation is a ground via within 0.5 mm of the pin-1 pad
-    centre, which is stage-6 stitch work and is a CHECKLIST section D line. A
-    budget rewritten against GND would grade a four-layer pour, which is worse
-    than ungraded, not better.
-
-    (d) NEW — ABM8-272-T3 `XOUT <= 6 mm`: Y_XTAL carries NO pad on `XOUT`.
-    R_XTAL, the 1 kohm damping resistor the RP2040 hardware-design guide's
-    Figure 8 requires, splits the node in two: `XOUT` is the MCU side and
-    `XOUT_XTAL` is the crystal side. THE PART.YAML PREDICTED THIS IN WRITING on
-    2026-07-28 — "once R_XTAL exists there are TWO nets here ... whichever of
-    the two keeps that name, the OTHER one inherits this same 6 mm budget and
-    currently has nowhere to be declared" — and the whole-net metric graded it
-    anyway, off pads belonging to other parts. HAND MEASURED, both legs,
-    because the budget's subject is the whole XOUT path: MCU leg U_MCU.21 ->
-    R_XTAL.1 = 3.062 mm (this one IS graded, under RP2040:XOUT), crystal leg
-    Y_XTAL.3 -> R_XTAL.2 = 3.618 mm, and the load capacitor on the crystal side
-    (which is where Figure 8 puts it) C_XTAL2.1 -> Y_XTAL.3 = 2.915 mm. Each
-    leg is inside 6 mm; the pin-to-pin path is 6.680 mm across the two nets and
-    that is REPORTED rather than compared, because 6 mm was written against a
-    single span and no single span exists here. The gradeable version of this
-    budget is a `XOUT_XTAL` declaration in 03_src/rules/nets.yaml carrying its
-    own 6 mm — a SOURCE change owed at the next schematic revision, recorded in
-    CHECKLIST section D, and deliberately not made by renaming the budget.
-
-    (e) NEW — MCP1755S-3302E-DB `VBUS_F <= 15 mm`: U_LDO carries NO pad on
+    (b) MCP1755S-3302E-DB `VBUS_F <= 15 mm`: U_LDO carries NO pad on
     `VBUS_F`. BLM21SP601SN1D (FB_IN) sits between them, so the LDO's pin 1 is
     on `VBUS_LDO` and VBUS_F is the node upstream of the ferrite. THIS ONE WAS
     ACTUALLY FAILING WHILE UNGRADED, which is the reason this row exists: hand
@@ -145,7 +150,7 @@
     for P-ADJ-PAIR closed it as a side effect: the same pairs now measure
     9.395 mm and 10.602 mm. Inside 15 mm on both readings.
 
-    (f) NEW — USBLC6-2SC6 `VBUS <= 25 mm`: U_ESD carries NO pad on `VBUS`. That
+    (c) USBLC6-2SC6 `VBUS <= 25 mm`: U_ESD carries NO pad on `VBUS`. That
     is ADR-0008 working as designed — the ESD array's VBUS leg is deliberately
     tied to `VBUS_F`, DOWNSTREAM of the 0.5 A fuse, so a clamp event is
     current-limited. HAND MEASURED against the node the sentence means:
