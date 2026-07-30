@@ -123,7 +123,66 @@ prep:
       # (46, 46) and the jack ring radius is 20.0, so the fan occupies
       # roughly x 21..71, y 21..66. The digital strip starts at y ~ 65
       # (below the lowest flange edge at y = 60.14 + 3.25).
-      - {x0: 21.0, y0: 21.0, x1: 71.0, y1: 65.0, layer: User.3}
+      #
+      # ----------------------------------------------------------------------
+      # THE ESCAPE WEDGE IS CARVED OUT, 2026-07-30. WHAT WAS HERE BEFORE WAS A
+      # SINGLE RECT {21, 21, 71, 65} THAT CONTRADICTED THE COMMENT ABOVE IT.
+      # The comment says the control and QSPI buses "must descend through the
+      # 225-315 degree escape sector"; the rect closed that sector completely.
+      #
+      # WHAT IT COST, MEASURED: the rect CONTAINED the endpoints of four nets.
+      # SW_V1..SW_V4 leave U_SW's SOUTH LEAD ROW (pads 9-12, y 47.900,
+      # x 45.75..47.25) and land on R_PD1-4.1 (y 50.690 / 53.090) — all eight
+      # pads INSIDE the keepout — while their far ends R_S1-4.2 (y 66.6 / 68.1)
+      # sit outside it. KRT's own docstring names this exact failure
+      # (obstacle_map.add_user_keepout_obstacles): "a zone drawn over a routed
+      # net's pad can make that net unroutable -- zones are meant for open
+      # board area, not over pads." The four nets carried 0.000 mm of track
+      # copper anywhere on the board and were 8 of the 28 unconnected.
+      # It also blocks ALL COPPER LAYERS, so the L3 descent the comment
+      # prescribes was blocked too — the keepout layer tags which WAVE sees
+      # the zone, never which copper layer it frees.
+      #
+      # THE WEDGE IS REAL AND IT IS EMPTY BY CONSTRUCTION. The ten jacks sit at
+      # 15/45/75/105/135/165/195/225 and 315/345 degrees; 240..300 HAS NO JACK,
+      # which is why the escape sector was specified there in the first place.
+      # Measured on the PROMOTED chain (03_src/route/r6.kicad_pcb, meanders
+      # included): the only RF copper south of y=52 is ANT4 running to J_ANT4
+      # at 225 deg and ANT5 running to J_ANT5 at 315 deg, and between them the
+      # RF-free channel opens from 1.5 mm at y=47 to 32 mm at y=61.
+      #
+      # THE STAIRCASE BELOW IS FITTED TO THAT MEASUREMENT, not to a model: each
+      # block edge is the measured 0.60 mm offset from the nearest RF track
+      # CENTRELINE over its whole band (a linear fit to the arms was tried
+      # first and was wrong by 0.65 mm — the trombone meanders push ANT4 out to
+      # x=42.5, and the corridor grazed it at 0.0000 mm).
+      # VERIFIED after fitting: all 8 SW_V1..V4 pads free (pad BOUNDING BOX,
+      # not centre), 0 ctrl/qspi pads still covered, and the newly opened
+      # 373.44 mm^2 comes no closer than 0.5000 mm to any RF centreline
+      # = 0.320 mm to arm COPPER at the 0.36 mm arm width, against the 0.2 mm
+      # Default clearance the DRC gate judges at. That single closest point is
+      # U_SW.12's OWN PAD CORNER (47.400, 47.500) — the one band that needed a
+      # 0.15 mm clamp off the 0.60 mm fit, and it is forced by the PE42482A-X
+      # package (the SW leads sit between the ANT4 and ANT5 launch pads at
+      # y=47.25), not chosen.
+      #
+      # AND THE STAR CANNOT MOVE: these rects are User.3, `route.common`
+      # declares `keepout_layer: User.2`, and only the ctrl/qspi/sig waves
+      # override it to User.3. The rf wave never reads this geometry.
+      - {x0: 21.0, y0: 21.0, x1: 71.0, y1: 47.5,  layer: User.3}
+      # the 240-300 deg escape wedge, left open between the ANT4/ANT5 arms
+      - {x0: 21.0,  y0: 47.5, x1: 44.65, y1: 48.3, layer: User.3}
+      - {x0: 47.5,  y0: 47.5, x1: 71.0,  y1: 48.3, layer: User.3}
+      - {x0: 21.0,  y0: 48.3, x1: 44.5,  y1: 50.3, layer: User.3}
+      - {x0: 47.5,  y0: 48.3, x1: 71.0,  y1: 50.3, layer: User.3}
+      - {x0: 21.0,  y0: 50.3, x1: 42.5,  y1: 53.5, layer: User.3}
+      - {x0: 49.5,  y0: 50.3, x1: 71.0,  y1: 53.5, layer: User.3}
+      - {x0: 21.0,  y0: 53.5, x1: 39.3,  y1: 57.5, layer: User.3}
+      - {x0: 52.7,  y0: 53.5, x1: 71.0,  y1: 57.5, layer: User.3}
+      - {x0: 21.0,  y0: 57.5, x1: 35.3,  y1: 60.5, layer: User.3}
+      - {x0: 56.7,  y0: 57.5, x1: 71.0,  y1: 60.5, layer: User.3}
+      # below y=60.5 both arms have reached their jacks (RF copper ends at
+      # y=59.867) and the band to the digital strip is RF-free outright.
   waves:
     exclude: ["GND", "unconnected-*"]
     groups:
