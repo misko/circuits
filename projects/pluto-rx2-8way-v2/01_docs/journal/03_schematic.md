@@ -72,3 +72,67 @@
   dossier would invent a sourcing relationship that does not exist.
 - next: E-TOPO closes when the module dossier lands with a `type:` that names
   its internal regulator class.
+
+## 2026-07-30 12:05 — finish (SCHEMATIC GATE GREEN)
+- did: authored `02_parts/RP2040-Zero/part.yaml` — the one part no board in this
+  fleet has used — then rebuilt and ran the whole battery UNPIPED.
+- result: **every gate exit 0.**
+
+  | gate | ID | result |
+  |---|---|---|
+  | `kicad-cli sch erc --severity-all` | — | **0 errors**, 183 warnings (baselined) |
+  | `tsx_preflight` | TSX-PRE | PASS 6/6 (3 multi-pin) |
+  | `count_parity` | S-COUNT | PASS **28/28 over 3 source pairs** |
+  | `net_label_survival` | S-NETMERGE | PASS 23/23 labels survive |
+  | `electrical_invariants` | E-INV | PASS **20/20** |
+  | `electrical_invariants --adr-coverage` | E-ADR | PASS 1/1 |
+  | `power_topology` | E-TOPO | PASS 1/1 rails, 1/1 converters; PD 202 mW of 400 (50 %) |
+  | `power_topology --margin` | E-MARGIN | PASS |
+  | `power_topology --off-control` | E-OFF | N-A, STATED not inferred |
+  | `bom_source_check --circuit-only` | M-BOM leg C | PASS |
+  | `net_reference_audit` | E-NETREF | PASS **78/78, 0 ghost** |
+  | `adr_bound_provenance` | M-BOUND | PASS, 1 bound **CITED** |
+  | `status_beacon_check` | M-BEACON | PASS 1/1 |
+  | `contracts_audit` | C-* | 0 violations |
+
+  The converter now resolves **28 of 28** FPIDs (was 27, blocked on the module
+  dossier). E-TOPO's resolution is the one worth re-reading: the rail's
+  converter is a regulator inside a module we buy assembled, and it grades
+  because the module dossier's `type:` names its internal regulator class. The
+  alternative was a vacuous N-A.
+
+- **PLANNED HANDOFF at the declared boundary.** Context past the threshold; the
+  schematic gate is the scheduled split point and nothing is in flight.
+
+### What the next agent must NOT inherit
+
+1. **`03_src/floorplan.yaml` and `route.yaml` DO NOT EXIST, deliberately.** The
+   seeded templates were deleted rather than half-filled. v2's star
+   surroundings are NOT v1's — the MCU field collapsed from a QFN-56 plus
+   flash, crystal, USB-C, two switches and ten decouplers to one 18 x 23.5 mm
+   module — so a copied floorplan would be a copied answer to a different
+   question. **The FIRST act of stage 5 is the OCTILINEAR FLOOR computed from
+   v2's OWN pads** (`max(dx,dy) + 0.4142*min(dx,dy)`), plus min landable width
+   per pad. Both are milliseconds of pad arithmetic; v1 found both by routing
+   for hours. **Do not inherit v1's 1.4966 mm** — it is a property of v1's
+   floorplan.
+2. **`scoped_clearances` is empty on purpose** (`nets.yaml` says why at length).
+   When a launch will not route, the ranked remedy is GRID, then clearance,
+   then width — on v1 the real cause was the grid (`grid_step: 0.05` routed
+   11/11 at the full 0.36 mm width; a neck-down was measured and REFUTED).
+3. **The via-fence pitch is 1.35 mm, not v1's 1.37**, from v2's own derived
+   eps_eff 3.3286. ADR-0003 carries the regenerating command.
+
+### OWED, named rather than left silent
+
+- **The footprint `pluto_rx2_8way_v2:RP2040_Zero_LCC23_18x23.5` is REFERENCED
+  and DOES NOT EXIST.** It must be authored in `03_src/lib/` before
+  `generate_board_generic` runs. Geometry is in the dossier: 23 pads, 2.54 mm,
+  9 left / 5 bottom / 9 right, lands straddling the module edge, USB-C edge at
+  the top carrying no pads.
+- **The two Waveshare PDFs are not committed** into `02_parts/RP2040-Zero/`
+  (`datasheet.local: OWED`). The project is not standalone for this part.
+- **Whether the module's WS2812B power can be gated** — a schematic question,
+  recorded in the dossier's notes and in ADR-0001's consequences.
+- **`msl:` for the consigned module** — nobody publishes it; the mitigation is
+  written, the number is not invented.

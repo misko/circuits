@@ -1,4 +1,4 @@
-ERC report (2026-07-30T14:38:40, Encoding UTF8)
+ERC report (2026-07-30T14:47:14, Encoding UTF8)
 Report includes: Errors, Warnings, Exclusions
 
 ***** Sheet /
@@ -64,10 +64,10 @@ Report includes: Errors, Warnings, Exclusions
     @(54.61 mm, 172.72 mm): Symbol J_ANT4 [SYM_J_ANT4]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(58.42 mm, 63.50 mm): Vertical Wire, length 8.255 mm
+    @(58.42 mm, 71.755 mm): Horizontal Wire, length 2.54 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(58.42 mm, 71.755 mm): Horizontal Wire, length 2.54 mm
+    @(58.42 mm, 63.50 mm): Vertical Wire, length 8.255 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(60.96 mm, 71.755 mm): Symbol R_T1 Pin 1 [Passive, Line]
@@ -323,6 +323,9 @@ Report includes: Errors, Warnings, Exclusions
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
     @(136.525 mm, 66.04 mm): Symbol FB_3V3 [SYM_FB_3V3]
+[footprint_link_issues]: The current configuration does not include the footprint library 'pluto_rx2_8way_v2'
+    ; warning
+    @(136.525 mm, 146.05 mm): Symbol U_MCU [SYM_U_MCU]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
     @(136.525 mm, 146.05 mm): Symbol U_MCU [SYM_U_MCU]
@@ -382,10 +385,10 @@ Report includes: Errors, Warnings, Exclusions
     @(160.655 mm, 66.04 mm): Vertical Wire, length 24.13 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(161.925 mm, 215.90 mm): Vertical Wire, length 2.54 mm
+    @(152.40 mm, 215.90 mm): Horizontal Wire, length 9.525 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(152.40 mm, 215.90 mm): Horizontal Wire, length 9.525 mm
+    @(161.925 mm, 215.90 mm): Vertical Wire, length 2.54 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(161.925 mm, 218.44 mm): Symbol R_PD4 Pin 1 [Passive, Line]
@@ -418,16 +421,16 @@ Report includes: Errors, Warnings, Exclusions
     @(166.37 mm, 120.015 mm): Symbol R_S2 Pin 1 [Passive, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(166.37 mm, 144.145 mm): Horizontal Wire, length 3.175 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
     @(166.37 mm, 144.145 mm): Symbol R_S1 Pin 1 [Passive, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(181.61 mm, 90.17 mm): Horizontal Wire, length 12.065 mm
+    @(166.37 mm, 144.145 mm): Horizontal Wire, length 3.175 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(169.545 mm, 90.17 mm): Vertical Wire, length 3.175 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(181.61 mm, 90.17 mm): Horizontal Wire, length 12.065 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(169.545 mm, 93.345 mm): Symbol R_PD2 Pin 1 [Passive, Line]
@@ -493,19 +496,19 @@ Report includes: Errors, Warnings, Exclusions
     @(170.815 mm, 76.835 mm): Symbol #FLG01 Hidden pin 1 [pwr, Power output, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(170.815 mm, 76.835 mm): Symbol #PWR56 [GND]
+    @(170.815 mm, 76.835 mm): Symbol #FLG01 [PWR_FLAG]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(170.815 mm, 76.835 mm): Symbol #FLG01 [PWR_FLAG]
+    @(170.815 mm, 76.835 mm): Symbol #PWR56 [GND]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(173.99 mm, 120.015 mm): Horizontal Wire, length 7.62 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(174.625 mm, 170.18 mm): Wire, length 26.043 mm
+    @(76.20 mm, 170.18 mm): Horizontal Wire, length 98.425 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(76.20 mm, 170.18 mm): Horizontal Wire, length 98.425 mm
+    @(174.625 mm, 170.18 mm): Wire, length 26.043 mm
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
     @(177.80 mm, 191.77 mm): Symbol #PWR39 [GND]
@@ -549,7 +552,7 @@ Report includes: Errors, Warnings, Exclusions
     ; warning
     @(217.805 mm, 143.51 mm): Vertical Wire, length 27.305 mm
 
- ** ERC messages: 182  Errors 0  Warnings 182
+ ** ERC messages: 183  Errors 0  Warnings 183
 
  ** Ignored checks:
     - Global label only appears once in the schematic

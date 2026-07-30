@@ -33,9 +33,9 @@ terminal for this stage.
 
 <!-- reader parses from here down -->
 stage:   schematic
-step:    "03_tscircuit scaffolding written (package/manifest/net_aliases/padmap); tsx blocked on the RP2040-Zero pad map, which is being read off the vendor drawing rather than guessed"
-measure: "D-SPEC CLOSED: module SURVIVES the RF test (RP2040-Zero = RT9013-33 LDO, no inductor on the vendor schematic; the RT6150/PFM objection is confirmed and applies to the Pico ONLY). Assembly posture = CONSIGN (live JLC read: every footprint-bearing Pico-class code is stock 0; bare RP2040 C2040 at 63,091). 3 ADRs, 4 rules files, 28 components declared vs v1's 64."
-state:   working
-next:    "module part.yaml -> tsx -> tsx_preflight -> tsci build -> ERC + parity + the cheap semantic battery = the SCHEMATIC GATE (declared handoff boundary)"
+step:    "SCHEMATIC GATE GREEN — planned handoff at the declared boundary. Next agent starts at stage 5 (floorplan)."
+measure: "ERC 0 errors/183 warnings (baselined) | TSX-PRE 6/6 | S-COUNT 28/28 over 3 source pairs | S-NETMERGE 23/23 | E-INV 20/20 | E-ADR 1/1 | E-TOPO 1/1 rails (PD 202mW of 400, 50%) | E-MARGIN PASS | E-OFF N-A stated | M-BOM legC PASS | E-NETREF 78/78 0 ghost | M-BOUND 1 CITED | M-BEACON 1/1 | contracts_audit 0. ALL EXIT 0, ALL RUN UNPIPED."
+state:   done
+next:    "OWED before stage 5: (1) the RP2040_Zero_LCC23_18x23.5 footprint in 03_src/lib -- the FPID is referenced and the file does not exist; (2) 03_src/floorplan.yaml + route.yaml, deliberately NOT written (v2's star surroundings differ from v1's); (3) commit the two Waveshare PDFs into 02_parts/RP2040-Zero. FIRST ACT of stage 5 is the OCTILINEAR FLOOR from v2's own pads -- do NOT inherit v1's 1.4966 mm."
 op_pid:
-updated: 2026-07-30T10:05:00
+updated: 2026-07-30T12:10:00

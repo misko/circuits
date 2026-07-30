@@ -1,0 +1,347 @@
+mpn: RP2040-Zero
+manufacturer: Waveshare Electronics
+package: LCC-23, 18.00 x 23.50 mm castellated module, 2.54 mm pitch
+footprint: pluto_rx2_8way_v2:RP2040_Zero_LCC23_18x23.5
+type: rp2040_module_with_onboard_ldo_3v3
+# ^ THE `type:` STRING IS DOING TWO JOBS AND BOTH ARE INTENDED.
+#   (a) it says what the part IS — an RP2040 module, not a regulator;
+#   (b) it contains `ldo`, so `power_topology.py`'s _LINEAR_RE classifies this
+#       part as the LINEAR converter of the 3V3 rail (E-TOPO).
+#   That second job is deliberate and is argued in 01_docs/journal/03_schematic
+#   and learnings L5. The rail's real regulator is an RT9013-33 INSIDE this
+#   module. We never order that regulator, it has no BOM line and no LCSC code
+#   of its own, so giving it its own dossier would invent a sourcing
+#   relationship that does not exist. The alternative — declaring no rails and
+#   collecting a clean E-TOPO N-A — is the exact failure power_topology.py's
+#   own docstring names on three boards in this fleet. The rail's `dropout_mv`
+#   and `pdiss_max_mw` are PER-RAIL overrides in 03_src/rules/power_tree.yaml.
+value: RP2040-Zero
+status: active
+function: >
+  The board's entire MCU subsystem in one part: RP2040 + 2 MB QSPI flash +
+  12 MHz crystal + 3V3 LDO + USB-C + BOOT/RESET, on a 23-pad castellated
+  carrier. It exists on this board to run a free-running PIO 3-bit sequencer
+  that walks four select lines into a PE42482A-X SP8T. Five of its 23 pads are
+  used.
+
+# ============================================================================
+# WHY THIS PART AND NOT A RASPBERRY PI PICO — the decision is ADR-0001 and the
+# one-line version is REGULATOR TOPOLOGY. A Pico's 3V3 comes from an RT6150
+# buck-boost SMPS whose PS pin (GPIO23) defaults to PFM — a VARIABLE,
+# load-dependent switching frequency, which is the worst spur shape next to a
+# receiver because it cannot be planned around. This module's 3V3 comes from an
+# RT9013-33 LDO. There is no switching frequency to plan around because there
+# is no switching.
+# ============================================================================
+
+datasheet:
+  url: https://files.waveshare.com/upload/4/4c/RP2040_Zero.pdf
+  doc_id: "RP2040-Zero schematic (Waveshare), sheet 1"
+  note: >
+    WAVESHARE PUBLISHES NO DATASHEET FOR THIS MODULE. What exists is a
+    SCHEMATIC PDF and a DIMENSION DRAWING, plus a wiki page. That is a
+    materially weaker documentary base than any other part on this board and it
+    is stated here rather than papered over: there is no electrical
+    characteristics table, no absolute-maximum table, no recommended land
+    pattern, no reflow profile and no MSL rating. Every `limits:` entry below
+    therefore cites either the SCHEMATIC (for what is fitted) or the datasheet
+    of a component fitted ON it (for that component's ratings), and says which.
+  provenance: >
+    Schematic + dimension drawing read 2026-07-30. The pad-position geometry is
+    corroborated INDEPENDENTLY by JLC's own catalog footprint name for this
+    part, `LCC-23(18x23.5)` — 23 pads, 18 x 23.5 mm — which agrees with the
+    drawing. Two sources, one of them not Waveshare's.
+  local: OWED
+  # The vendor PDFs are NOT yet committed into this dossier folder. The 02_parts
+  # contract wants the project standalone for every part that has a dossier, so
+  # this is a real debt, named rather than left silent. Close it by fetching
+  # RP2040_Zero.pdf and 900px-RP2040-Zero-details-size.jpg into this directory.
+  sha256: OWED
+  revision: OWED
+
+verified: >
+  PIN MAP READ FROM WAVESHARE'S OWN DIMENSION/PINOUT DRAWING
+  (https://www.waveshare.com/w/upload/f/f4/900px-RP2040-Zero-details-size.jpg),
+  2026-07-30, CITED not MEASURED — nobody in this project has put a caliper or
+  a meter on a physical module.
+  THE READ CARRIES ITS OWN CONSISTENCY CHECK, which is why it is trustworthy
+  despite being a single visual source: walking the perimeter counter-clockwise
+  from the top-left corner, the GPIO sequence is ONE CONTINUOUS DECREASING RUN
+  from GP29 to GP0 (left edge downward GP29..GP14, bottom edge left-to-right
+  GP13..GP9, right edge bottom-to-top GP8..GP0). Any single transposition in
+  the read breaks that monotonicity, so the ordering is self-checking in a way
+  a flat list of names would not be.
+  GEOMETRY corroborated independently by JLC's catalog footprint name
+  `LCC-23(18x23.5)` (23 pads, 18 x 23.5 mm), which is not a Waveshare source.
+
+# ---- PAD NUMBERING IS OURS, AND IT IS DECLARED ------------------------------
+# Waveshare labels the pads by FUNCTION and does not number them. We number
+# them the way a QFN is numbered — perimeter walk, counter-clockwise, starting
+# at the top-left with the USB-C edge at the top:
+#     1..9   left edge,   top -> bottom
+#     10..14 bottom edge, left -> right
+#     15..23 right edge,  bottom -> top
+# THE USB-C IS ON THE TOP EDGE AND THAT EDGE CARRIES NO PADS. It is the datum
+# for this numbering and for the orientation of the footprint.
+pins:
+  1:  {name: "5V",   note: "module USB VBUS. DELIBERATELY UNCONNECTED on this
+        board — there is no power entry here (ADR-0002) and connecting it would
+        create a second power path into the module"}
+  2:  {name: GND,  tie: GND}
+  3:  {name: "3V3", note: "RT9013-33 LDO OUTPUT, and this board's ONLY power
+        input. Sourcing, not sinking"}
+  4:  GP29
+  5:  GP28
+  6:  GP27
+  7:  GP26
+  8:  GP15
+  9:  GP14
+  10: GP13
+  11: GP12
+  12: GP11
+  13: GP10
+  14: GP9
+  15: GP8
+  16: GP7
+  17: GP6
+  18: GP5
+  19: {name: GP4,  note: "LED_STAT on this board"}
+  20: {name: GP3,  note: "SEL_V4 — the bit whose float mutes the receiver"}
+  21: {name: GP2,  note: "SEL_V3"}
+  22: {name: GP1,  note: "SEL_V2"}
+  23: {name: GP0,  note: "SEL_V1, the MSB. GP0..GP3 are CONSECUTIVE and also
+        physically adjacent and in order down this edge, which is what lets a
+        PIO `out pins, 4` write all four bits in ONE instruction"}
+
+limits:
+  vin_5v_pad: >
+    OWED. Waveshare publishes no absolute-maximum table. The 5V pad is the USB
+    VBUS rail, so 5.25 V is the operating expectation; the RT9013's own input
+    maximum is 6.5 V (Richtek RT9013 datasheet). DO NOT design against 6.5 V
+    here — the pad also reaches the USB-C connector and whatever protection
+    Waveshare did or did not fit, which is not documented.
+  vout_3v3: >
+    3.3 V nominal, +/-2 % output accuracy (Richtek RT9013-33 datasheet, the
+    regulator FITTED per the Waveshare schematic — NOT a Waveshare figure).
+  iout_3v3_available: >
+    RT9013 is rated 500 mA. The module's own consumption (RP2040 at 125 MHz,
+    flash, WS2812) is not published by Waveshare; this board draws 200 uA MAX
+    for U_SW's VDD, so headroom is not a live question — see
+    03_src/rules/power_tree.yaml, which declares the WHOLE rail at 0.10 A
+    rather than only our share.
+  dropout: >
+    250 mV at 500 mA (Richtek RT9013 datasheet headline). At our load the
+    dropout term is negligible; the margin that matters is vin_min - vout_max =
+    4750 - 3366 = 1384 mV, 5.5x the requirement.
+  gpio: >
+    RP2040 silicon. Same as the bare chip: 3.3 V I/O, software-selectable drive
+    strength up to 12 mA. The 47 ohm source terminations on this board are
+    sized against the STRONGEST setting because drive strength lives in a
+    firmware register and protection that lives in a register is not
+    protection.
+  msl: >
+    OWED — NOBODY PUBLISHES IT. This is a finished consumer assembly, not a
+    component sold in a moisture-barrier bag. Mirrored in
+    03_src/rules/assembly.yaml `consigned:` with the JEDEC J-STD-033
+    unknown-MSL mitigation. NOT filled with a plausible guess: "MSL 3" would be
+    indistinguishable from a datasheet read.
+  reflow_profile: >
+    OWED. Waveshare's product page states "Castellated module allows soldering
+    direct to carrier boards" and "suitable for SMD applications", which is a
+    capability claim, not a profile. Compare the Raspberry Pi Pico datasheet,
+    which does publish an SMT footprint AND a paste-stencil instruction for the
+    same class of part — that is the standard this vendor does not meet.
+
+escape:
+  style: connector
+  pitch: 2.54
+  escapes_worst_side: 9
+  tier_required: jlc_2layer_default
+  # 2.54 mm pitch with 5 signals used out of 23 pads. This part is the OPPOSITE
+  # of an escape problem and that is the entire reason it is on this board:
+  # v1's bare RP2040 was a QFN-56 at 0.400 mm pitch with nineteen nets to get
+  # out, of which five were the board's function. `escapes_worst_side: 9` is the
+  # PAD COUNT on the loaded edges, not the routed count — only five pads carry
+  # a net (2, 3, 19, 20, 21, 22, 23 = seven, of which GND and 3V3 are plane
+  # connections), so the real escape demand on the right edge is four adjacent
+  # select lines plus one LED line, at 2.54 mm.
+  # tier_required is the CHEAPEST tier: nothing about this part forces
+  # advanced. The board's tier is set by PE42482A-X's QFN-24 and by nothing
+  # else — verified, not assumed, when the module replaced the bare chip.
+
+layout:
+  source: >
+    WAVESHARE PUBLISHES NO LAYOUT SECTION AND NO RECOMMENDED LAND PATTERN. Every
+    rule below is DERIVED ENGINEERING, in the same posture as
+    ../KH-SMA-KE-Z/part.yaml and ../BLM21SP601SN1D/part.yaml. The nearest
+    AUTHORITATIVE artifact for this class of part is the Raspberry Pi Pico
+    datasheet section 2.2, which publishes a reflow footprint for a castellated
+    RP2040 module and warns that the paste stencil must be LARGER than the land
+    ("over-pasting the pads ensures the best possible results") — that guidance
+    is adopted here by analogy and is labelled as such, because it is a
+    different vendor's module.
+  reviewed: "2026-07-30"
+  keep_short:
+    - {net: 3V3_MOD, max_span_mm: 10, why: "DERIVED: the module's 3V3 pad,
+       C_BULK and FB_3V3's input must be ONE compact node. This is the input
+       side of the board's only filter, and above ~100 MHz a long node stops
+       being a node — the bead then filters against an inductance instead of
+       against the bulk cap. Deliberately the same physical argument as
+       ../BLM21SP601SN1D/part.yaml's own 12 mm budget on this net, written
+       TIGHTER here (10 mm) because this end also carries the castellation
+       joint. The tighter of the two binds, which is intended."}
+    - {net: SEL_V1, max_span_mm: 25, why: "DERIVED: the select lines run from
+       this module to R_S1..R_S4 and on to the switch, and the whole level
+       change must settle inside the 4.267 us blanking allowance. 25 mm is not
+       a timing constraint — at ~6.1 ps/mm it is 0.15 ns — it is a COUPLING
+       constraint: these are the only switching edges on a board whose product
+       is a phase measurement, and a long select line beside an RF arm couples
+       an edge into the dwell it is supposed to start."}
+    - {net: SEL_V2, max_span_mm: 25, why: "DERIVED, as SEL_V1 — per line,
+       because a budget on one leaves three ungraded"}
+    - {net: SEL_V3, max_span_mm: 25, why: "DERIVED, as SEL_V1 — per line"}
+    - {net: SEL_V4, max_span_mm: 25, why: "DERIVED, as SEL_V1 — per line"}
+
+layout_refs:
+  - tier: 1
+    artifact: "Waveshare RP2040-Zero schematic, https://files.waveshare.com/upload/4/4c/RP2040_Zero.pdf (sheet 1) + dimension drawing https://www.waveshare.com/w/upload/f/f4/900px-RP2040-Zero-details-size.jpg"
+    reached: true
+    why: >
+      The only vendor artifacts that exist for this part. The schematic
+      establishes the regulator topology that ADR-0001 turns on (U1 = RT9013-33,
+      pins VIN/VOUT/EN/BP/GND, 100 nF on BP, and NO INDUCTOR anywhere — a
+      full-text search for uH/nH/inductor returns zero hits, and the L1
+      designator on that sheet is the WS2812B RGB LED, whose pins are
+      VDD/DIN/DOUT/VSS). The drawing establishes the 23-pad 2.54 mm geometry.
+  - tier: 1
+    artifact: "Raspberry Pi Pico datasheet section 2.2 'Surface-mount footprint' + section 4.4 'Powerchain', https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf"
+    reached: true
+    why: >
+      A DIFFERENT VENDOR'S module, consulted for two things this one's vendor
+      does not document: a reflow land pattern for a castellated RP2040 module
+      (adopted by analogy, labelled as such in layout.source) and the RT6150
+      PFM behaviour that made us REJECT the Pico. Reading the rejected
+      candidate's datasheet is what let ADR-0001 be a selection rather than a
+      preference.
+  - tier: 2
+    artifact: "Raspberry Pi 'Minimal Viable Board' reference design, published in KiCad (schematic + PCB), raspberrypi.com/documentation/microcontrollers/rp2040.html"
+    reached: false
+    why: >
+      NOT REACHED, and the reason is that it is a reference for the BARE CHIP,
+      which is v1's problem and not v2's. This board never lays out an RP2040 —
+      it lays out a module's land pattern and five nets. Named anyway because
+      canon P-PREC requires the ladder to state its ceiling, and because
+      pluto-rx2-8way's own dossier is recorded as having read Figure 6
+      VISUALLY at 200 dpi off a raster while these editable KiCad files existed
+      free under a permissive licence. If v2 ever backtracks to chip-down, this
+      is the first thing to open.
+  - tier: 3
+    artifact: "OSHWLab / EasyEDA open projects searched by LCSC code C9900173620"
+    reached: false
+    why: >
+      NOT REACHED. C9900173620 is a JLC CONSIGN placeholder rather than a
+      buyable catalog line, so an OSHWLab search keyed on it is unlikely to
+      resolve to real fabbed boards the way a normal LCSC code does. Recorded
+      as a stated ceiling, not as an oversight — and it is the cheapest
+      remaining lead if the land pattern needs a second opinion before fab.
+
+sourcing:
+  lcsc: C9900173620
+  # NOT A BUYABLE LINE AND NOT A STOCK NUMBER. C99* codes are JLC
+  # consigned-sourcing placeholders and are permanently stock 0 BY CONSTRUCTION
+  # (brand literally "JLCPCB Assembly", isBuyComponent "0", minPurchaseNum 444
+  # — read live 2026-07-30). This code exists so JLC's line can PLACE a module
+  # WE SHIP THEM onto footprint LCC-23(18x23.5). The population decision, the
+  # dated catalog evidence and the fallback all live in
+  # 03_src/rules/assembly.yaml `consigned:` — one home, not two.
+  alternates:
+    - lcsc: C9900177322
+      mpn: XIAO RP2040
+      note: >
+        THE RECORDED SECOND SOURCE, and it is a REAL alternative rather than a
+        courtesy entry: Seeed XIAO RP2040 is LDO-regulated too
+        (RS3236-3.3YUTDN4, RUNIC), so it passes the same RF test that selected
+        this part. It is NOT drop-in — 21 x 17.8 mm, 14 castellations plus 6
+        underside pads, and its GP0..GP4 are exposed as pads D6, D7, D8, D10,
+        D9, i.e. contiguous in GPIO NUMBER and scrambled in SPACE, so the
+        select-line fanout would cross itself. Adopting it is a footprint
+        change and a floorplan change, not a BOM swap.
+  purchase: >
+    Retail. Waveshare direct, and broadly stocked by Amazon / Mouser / DigiKey.
+    NOT single-sourced, which is why the permanent stock-0 on the JLC line is
+    not a supply risk — see 03_src/rules/assembly.yaml `sourcing_plan:`.
+
+notes:
+  - "DERIVED: this module is a 3D OBSTRUCTION, not just a footprint. It stands
+     on castellations with components on its top face, so nothing may sit under
+     it and its whole 18.00 x 23.50 mm outline is a keepout. The USB-C
+     overhangs the TOP edge (the one with no pads) and a cable must be able to
+     reach it — the carrier board must not put a tall part or its own edge in
+     that path. This is a mechanical constraint v1 did not have."
+  - "DERIVED: the 15 unconnected GPIO pads are SOLDERED DOWN and cannot be
+     probed. That is the module's one real cost against the bare chip, and it
+     is a decision to make BEFORE the board is built: a revision wanting debug
+     access must bring those pads out to test points at layout time, because
+     afterwards they are inaccessible."
+  - "CITED (Waveshare schematic): a WS2812B RGB LED is fitted on the module's
+     3V3 rail. Its internal PWM oscillator free-runs whenever the module is
+     powered, so it is a CONTINUOUS emitter that v1 does not have. ADR-0001
+     records it as a debit rather than arguing it away. OWED: whether its power
+     can be gated — the Seeed XIAO RP2040 has a NeoPixel POWER-ENABLE GPIO and
+     whether this module has any equivalent is a schematic question that has
+     not been answered. If it cannot be gated, that is a fact for the first
+     spur survey, not a reason to reopen the module choice."
+
+gotchas:
+  - "THE PICO IS NOT THIS PART AND THE DIFFERENCE IS THE WHOLE ADR. A Raspberry
+     Pi Pico carries an RT6150 buck-boost SMPS whose PS pin (GPIO23) defaults to
+     PFM — a VARIABLE, load-dependent switching frequency. Anyone substituting
+     'a Pico' for 'a Pico-class module' on this board reintroduces exactly the
+     hazard ADR-0001 spent its evidence eliminating. Two further facts make the
+     usual mitigation weaker than it looks: forced PWM still leaves f_OSC at
+     0.8-1.2 MHz (a +/-20 % part-to-part spread), and feeding 3V3 externally
+     with the SMPS disabled is NOT vendor-supported — the Pico datasheet
+     describes 3V3 only as an output, and the Raspberry Pi forum thread asking
+     whether VOUT is high-Z to GROUND with EN low has no staff reply."
+  - "PAD NUMBERS ON THIS PART ARE OURS, NOT THE VENDOR'S. Waveshare labels by
+     function only. If a future author re-derives a numbering from a different
+     drawing orientation, the netlist will be self-consistently WRONG and no
+     electrical check will see it — this is the mirror-numbered-footprint class
+     that jlc_twin exists to catch. The self-check is the monotonic GP29->GP0
+     perimeter run described in `verified:`; use it."
+  - "C9900173620 IS NOT A PART YOU CAN BUY FROM JLC. It is a consign
+     placeholder at permanent stock 0. Reading that zero as 'out of stock' and
+     waiting for it to replenish is a mistake that costs an order cycle — the
+     module is bought at retail and SHIPPED TO JLC."
+  - "MEASURED 2026-07-30, and it is the finding that shaped the assembly
+     posture: NO Pico-class RP2040 module is machine-placeable from JLC stock.
+     The entries WITH stock (Pico C7203002 at 1499) carry NO package field and
+     sit under 'Development Boards & Tools' with an LCSC retail URL; every
+     entry that carries a real footprint is stock 0. The discriminator was
+     confirmed against four controls the same day (C1525, C701342, C2980306,
+     C2040 — a placeable part always carries a real package string), and
+     C9900255426's own erpComponentName reads 'mail-in only' in Chinese."
+  - "THE VENDOR PUBLISHES NO DATASHEET, NO LAND PATTERN, NO MSL AND NO REFLOW
+     PROFILE. Every geometric and electrical rule for this part is either
+     DERIVED here, borrowed by analogy from the Raspberry Pi Pico datasheet, or
+     taken from the datasheet of a component fitted ON the module. That is a
+     materially weaker base than any other part on this board and it cannot be
+     waived by citing 'the datasheet' — there is not one."
+
+asserts:
+  - assert: value
+    expect: RP2040-Zero
+    why: >
+      The BOM Comment must read as the module, not as its LCSC code. F-WORDS
+      rejects a Comment that IS an LCSC code, and this part is the one most
+      likely to acquire one, because C9900173620 is the only handle JLC's
+      assembly side recognises.
+  - assert: pad1_net
+    pad: 3
+    expect: 3V3_MOD
+    why: >
+      Pad 3 is the LDO OUTPUT and this board's only power input. If it landed
+      on 3V3 (the filtered side) instead, FB_3V3 would be bypassed and the
+      board's only filter would be gone — with DRC, ERC and parity all passing.
+      The mirror assertion, from the switch's end, is in
+      03_src/rules/electrical_invariants.yaml.
