@@ -34,13 +34,15 @@ ONE FIELD. That fix is correct and it STAYS; this gate is the general one, and
 the reason it exists is canon M-WIDTH: **which reference sites are safe is a
 fact about the tree, not about the schema.** So the sites are ENUMERATED by
 reading the consumers, and the denominator is PRINTED — a gate that covers 3 of
-11 reference kinds and reports OK is the vacuous pass this repo keeps
+12 reference kinds and reports OK is the vacuous pass this repo keeps
 rediscovering (canon M-COVER).
 
-THE ELEVEN REFERENCE KINDS (the denominator; `--kinds` prints it):
+THE TWELVE REFERENCE KINDS (the denominator; `--kinds` prints it):
 
   nets.yaml           K1  classes.<C>.nets[]            netclass pattern
                       K2  scoped_floors[].nets[]        DRU insideArea clause
+                      K12 length_match.<G>.members.<M>[] realized-copper length
+                                                        group (canon R-LEN)
   electrical_
     invariants.yaml   K3  supplies.<NET>                node_level rail map
                       K4  invariants[].net              pin_on_net/net_has_part/
@@ -67,7 +69,7 @@ PRINTED:
 
   RESOLVED   the name (or, for K1, the glob PATTERN) matches >= 1 net.
   GHOST      absent AND the reference was supposed to grade, generate or print
-             something. This FAILS (exit 1). K1/K2/K3/K4/K5/K7/K8/K9/K10 and
+             something. This FAILS (exit 1). K1/K2/K3/K4/K5/K7/K8/K9/K10/K12 and
              the K11 prose tokens are all in this class: each one is consumed by
              a named piece of code that will now quietly do nothing.
   UNREACHED  absent, and NOTHING was going to resolve it against the netlist
@@ -172,6 +174,8 @@ KINDS = {
             "generate_board_generic.py pad override selector", True),
     "K11": ("floorplan.yaml", "silk.captions[].text (net-shaped token)",
             "generate_board_generic.py -> F.Silkscreen", True),
+    "K12": ("nets.yaml", "length_match.<G>.members.<M>[]",
+            "copper_length_audit.py R-LEN realized-copper length group", True),
 }
 
 
@@ -277,6 +281,27 @@ def collect_rules(rules_dir, refs):
                     refs.append(Ref("K2",
                                     f"nets.yaml scoped_floors[{i}].nets[{j}]",
                                     s))
+        # K12 — the MATCHED-GROUP declaration (canon R-LEN, added 2026-07-29).
+        # A `length_match:` member names an ORDERED chain of nets whose realized
+        # COPPER length `copper_length_audit.py` measures and compares. It is in
+        # the HARD class for the same reason K7 is: a tolerance addressed to a
+        # net the board does not have grades nothing while reading as a matched
+        # pair — and this is the reference kind whose miss is most expensive,
+        # because the quantity it guards (a published phase delta) is the whole
+        # reason two boards in this fleet exist. Matching is EXACT, no globs: a
+        # netclass pattern becomes a KiCad pattern, a matched member does not.
+        for gname, g in (d.get("length_match") or {}).items():
+            if not isinstance(g, dict):
+                continue
+            for mname, chain in (g.get("members") or {}).items():
+                if not isinstance(chain, list):
+                    continue
+                for j, n in enumerate(chain):
+                    s = _str(n)
+                    if s:
+                        refs.append(Ref("K12", f"nets.yaml length_match."
+                                               f"{gname}.members.{mname}[{j}]",
+                                        s))
 
     inv_y = rules_dir / "electrical_invariants.yaml"
     if inv_y.is_file():

@@ -69,6 +69,39 @@ BACKEND GAP to report, not a bespoke script to write here.
   that let `GND_ISO` pass a human read against `SPI_MISO`, and
   `t1_net_reference.py` pins it: the fixture asserts the gate FAILS *and* that a
   naive containment resolver PASSES the same bytes.
+- **REALIZED COPPER LENGTH (canon R-LEN).** `copper_length_audit.py
+  PROJECT_DIR` (`--census` for a per-net table on any routed board with no
+  declaration needed, `--strict` to make UNREACHED exit 1, `--schema` for the
+  authoritative field list, `--root REPO` for the fleet) measures the length of
+  the COPPER — track centrelines, arc centrelines as r*theta, via barrel
+  z-length — for the `length_match:` groups declared in
+  `03_src/rules/nets.yaml`, and grades their spread against a derived DRIFT
+  ceiling plus an optional REPRODUCIBILITY `pin:`.
+  WHY: R-LEN had been `re.search(r"length|spread", audit_src)` over the
+  project's `audit_board.py` since the canon was written, so a COMMENT
+  satisfied it. Measured 2026-07-29 — smc0985-cooksense PASSED on two remarks
+  about a creepage slot being lengthened; pluto-rx2-8way PASSED on comments
+  plus a check that grades pad-centre RADIUS; crow-recorder-central-v2 was the
+  only honest pass in the fleet (it sums `t.GetLength()` over the USB pair, and
+  promoting that bespoke check into this shared one is canon M8's second
+  strike); and **pluto-cal-switch — whose release artifact IS a published
+  length delta — graded N-A, "no timing-critical nets declared"**, while its own
+  `A-SYM` printed *"the D4 delta is a placement property, not a routing
+  outcome"* over footprint positions. Phase is a property of COPPER, and the
+  router that lays it is stochastic.
+  **The judgement is in the tolerance, not the arithmetic:** the requirement is
+  that the delta be KNOWN, STABLE and REPRODUCIBLE, never that it be zero. The
+  switch's own published insertion-phase window is already 1.00 mm of copper
+  part-to-part at 13.19 deg/mm, so a matching target tighter than that is not
+  physics; `pin:` grades the FILE, which is exact and free, and is what catches
+  a re-route silently invalidating a published picosecond.
+  **The board is read WITHOUT pcbnew** (canon M1: pcbnew generated and imported
+  this copper), and `t1_copper_length.t_reader_agrees_with_pcbnew` MEASURES the
+  independence claim against `PCB_TRACK.GetLength()` — 351 nets across four
+  real routed boards, 0 disagreements above 1 um. Member nets are graded where
+  they ENTER as `net_reference_audit.py` kind **K12** (canon M-ENTRY).
+  **NOT WIRED INTO `policy_audit.py` at landing, deliberately** — see the note
+  at the `R-LEN` row there for exactly what is owed.
 - **IMPORTED FACTS (canon M-IMPORT / D-MATE, ADR-0005 phase 3).**
   `import_provenance_check.py PROJECT_DIR` (or `--root REPO` for every board)
   grades the PROVENANCE of every fact a board consumes from hardware this repo

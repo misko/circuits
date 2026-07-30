@@ -1075,9 +1075,88 @@ def main():
         rows.append(("R-RULES", "N-A", "no route-input .kicad_pro found"))
     rows.append(("R4", "HUMAN", "escape-first routing order — design review "
                  "(feasibility itself is machine-checked: P-ESC/P-TIER)"))
+    # =====================================================================
+    # R-LEN — THIS ROW IS THE DEFECT, AND THE REPLACEMENT IS LANDED BUT NOT
+    # WIRED. DO NOT LEAVE IT LIKE THIS.
+    # =====================================================================
+    # The predicate below passes if the WORD "length" or "spread" appears
+    # anywhere in the project's audit_board.py. A COMMENT satisfies it.
+    # MEASURED 2026-07-29, fleet-wide:
+    #   smc0985-cooksense        PASS  <- two COMMENTS about a creepage slot
+    #                                    being "lengthened" and an outline
+    #                                    notch that "lengthens" a path. No net.
+    #   pluto-rx2-8way           PASS  <- comments, plus an I3 check grading
+    #                                    pad-centre RADIUS (placement), whose
+    #                                    own text says "STAGE-6 OBLIGATION:
+    #                                    equalise ROUTED length to +/-0.10mm"
+    #                                    with nothing enforcing it.
+    #   crow-recorder-central-v2 PASS  <- the ONLY honest pass in the fleet: it
+    #                                    really sums t.GetLength() over the USB
+    #                                    pair and floors the spread at 1 mm.
+    #   pluto-cal-switch         N-A   <- "no timing-critical nets declared", on
+    #                                    the board whose RELEASE ARTIFACT IS A
+    #                                    PUBLISHED LENGTH DELTA (ADR-0011).
+    #   crow-mic-pod-v2, usb-hub-3s-v3   N-A (correct — no matched path).
+    # So 3 of 6 boards passed a length gate on prose and 1 of 6 measured
+    # copper. Phase is a property of COPPER and the router is stochastic.
+    #
+    # THE REPLACEMENT: skills/kicad-pcb/scripts/copper_length_audit.py, with
+    # tests/t1_copper_length.py (16 tests, 9 known-bad) and a canon R-LEN row.
+    #
+    # WHY IT IS NOT WIRED HERE YET: at landing, smc0985-cooksense was mid-fix
+    # on three order-blockers with a full review battery in flight, and THIS
+    # ROW'S vacuous PASS is part of that battery's evidence. Re-pointing it
+    # would move cooksense from `R-LEN PASS` to `R-LEN N-A` inside another
+    # agent's evidence run. An unwired gate plus a measurement is recoverable
+    # in one follow-up; a corrupted seal battery is not. Same reasoning, same
+    # shape, as E-NETREF landing unwired the same day.
+    #
+    # WHAT IS OWED, EXACTLY (do all four in one change, once the boards are
+    # quiet):
+    #   1. Replace the four lines below with a subprocess call:
+    #        clen = Path(__file__).resolve().parent / "copper_length_audit.py"
+    #        r = sh([sys.executable, str(clen), str(proj)])
+    #        detail = (r.stdout + r.stderr).strip().replace("\n", " ")[:200]
+    #        if "N-A: no `length_match:`" in detail:
+    #            rows.append(("R-LEN", "N-A", detail))
+    #        elif r.returncode == 2:
+    #            rows.append(("R-LEN", "UNGRADED", detail))
+    #        elif "UNREACHED R-LEN" in detail:
+    #            rows.append(("R-LEN", "UNREACHED", detail))
+    #        else:
+    #            grade("R-LEN", r.returncode == 0, detail, detail)
+    #      Note: exit 2 is UNGRADED, NOT N-A, and an UNREACHED group must never
+    #      render as PASS — that is the whole vacuity being removed.
+    #   2. Expect the row to become N-A on all six boards until a
+    #      `length_match:` block is authored, because the DECLARATION is owed
+    #      too (step 3). N-A-with-a-reason is strictly better than today's
+    #      PASS-on-a-comment, but it is NOT the finished state.
+    #   3. Author `length_match:` in 03_src/rules/nets.yaml on the two boards
+    #      that need it — the ready-to-paste blocks are in the R-LEN canon row
+    #      and in `copper_length_audit.py --schema`:
+    #        * pluto-cal-switch RF_LOOP_D4 (ADR-0011): members ARM1
+    #          [LOOP_ARM1, PAD_A2A_1, LOOP_ARM1_SW] and ARM2 [LOOP_ARM2,
+    #          PAD_A2B_1, LOOP_ARM2_SW]; no_vias: true; congruent_pads: true
+    #          (A-SYM already proves the congruence); max_spread_mm: 1.0.
+    #        * pluto-rx2-8way RF_RADIAL_STAR (ADR-0007): the nine radial arms,
+    #          one member each; no_vias: true; max_spread_mm: 1.0. ADR-0007's
+    #          "equal-length BY CONSTRUCTION" is a claim about COPPER and this
+    #          is where it gets graded. NOTE its audit_board I3 currently asks
+    #          for +/-0.10 mm of ROUTED length: that is 1.3 deg at 6 GHz, well
+    #          inside the switch's OWN 13.2 deg part-to-part window, KRT has no
+    #          inter-net skew machinery to deliver it, and a ceiling nobody can
+    #          hold gets waived into uselessness. Re-derive it against the
+    #          drift arithmetic in the R-LEN canon row before adopting it.
+    #   4. Then wire E-NETREF too (its own owed note says so), because K12
+    #      grades those same member net names against the NETLIST, and a
+    #      tolerance addressed to a net that does not exist is decoration.
+    # Until all four land, run `copper_length_audit.py PROJECT_DIR` BY HAND;
+    # the canon row and that file are the authority, `--root .` is the census.
     has_len = bool(re.search(r"length|spread", audit_src, re.I))
     rows.append(("R-LEN", "PASS" if has_len else "N-A",
-                 "length-spread audit present in 03_src" if has_len
+                 "length-spread audit present in 03_src (VACUOUS: this grades "
+                 "the WORD, not the copper — see the note above and run "
+                 "copper_length_audit.py)" if has_len
                  else "no timing-critical nets declared"))
 
     # ---------------- electrical (the netlist must match INTENT) ----------

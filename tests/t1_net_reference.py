@@ -180,15 +180,15 @@ def clean_tree(**over):
 
 # ----------------------------------------------------------- the clean half
 @test("E-NETREF passes a tree whose EVERY reference resolves, and prints its "
-      "denominator over all 11 reference kinds")
+      "denominator over all 12 reference kinds")
 def t_clean_passes():
     """The other half of the discrimination. A gate that only ever fires one
     way ranks nothing, and the denominator is canon M-COVER: without `N/M` and
     the kind table, `0 ghost` is indistinguishable from `0 references read`."""
     r = must_pass(audit(clean_tree()), "clean net-reference tree")
     contains(r.out, "E-NETREF: PASS")
-    contains(r.out, "reference site(s) across 11 kinds")
-    for k in [f"K{i}" for i in range(1, 12)]:
+    contains(r.out, "reference site(s) across 12 kinds")
+    for k in [f"K{i}" for i in range(1, 13)]:
         contains(r.out, k, f"kind table row {k}")
     # the trap net is RESOLVED, not silently skipped
     contains(r.out, "resolved")
@@ -196,12 +196,14 @@ def t_clean_passes():
 
 
 @test("E-NETREF grades every kind it enumerates: --kinds names a CONSUMER for "
-      "each of the 11, so no kind is listed without an argument that a miss "
+      "each of the 12, so no kind is listed without an argument that a miss "
       "costs something")
 def t_kinds_have_consumers():
     r = must_pass(run([KPY, NRA, "--kinds"]), "--kinds")
-    eq(r.out.count("consumer:"), 11, "kinds carrying a named consumer")
-    eq(len([l for l in r.out.splitlines() if l.startswith("K")]), 11,
+    # 12 since 2026-07-29: K12 (`nets.yaml length_match.<G>.members.<M>[]`,
+    # consumer copper_length_audit.py) was added with canon R-LEN.
+    eq(r.out.count("consumer:"), 12, "kinds carrying a named consumer")
+    eq(len([l for l in r.out.splitlines() if l.startswith("K")]), 12,
        "kind rows")
 
 
