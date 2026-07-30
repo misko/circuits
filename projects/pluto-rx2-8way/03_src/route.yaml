@@ -103,7 +103,29 @@ route:
     # the QSPI bus apart, and lowering it to quiet a gate would be an
     # electrical relaxation bought with a warning. 0.2 is 2.2x the tier floor.
     clearance: 0.2
-    fab_tier: jlc_4layer_advanced
+    # `advanced`, NOT `jlc_4layer_advanced`. THIS KEY IS KRT'S OWN PRESET NAME
+    # AND ITS ONLY LEGAL VALUES ARE {standard, advanced} — it is NOT this
+    # pipeline's fab-tier identifier, which lives in 03_src/rules/nets.yaml and
+    # is what `fab_tier(cfg)` reads for every via/clearance floor above. The
+    # stage-4 rewrite of this file wrote the repo tier name here (the comment
+    # block at the top of this file still explains the tier as though this were
+    # that field), and route.py died on its FIRST wave with
+    #     route.py: error: argument --fab-tier: invalid choice:
+    #     'jlc_4layer_advanced' (choose from 'standard', 'advanced')
+    # after prep had already succeeded. `advanced` is the right preset here and
+    # needs no `fab_overrides` pin: KRT's internal advanced via floor is 0.25
+    # and jlc_4layer_advanced's `min_via_diameter` is also 0.25, so there is
+    # nothing for KRT to auto-escalate DOWN past (that is the crow-rv2 hazard
+    # PF-KRT warns about, and it fires only when the tier floor is LOOSER than
+    # 0.25 — measured here: equal, so no warning and no pin).
+    # SKILL PATCH PROPOSED, NOT MADE (skills/ is off-limits this session):
+    # tier_preflight.py PF-KRT reads this key and `return`s immediately unless
+    # the value is exactly "advanced", so an INVALID value is indistinguishable
+    # from "standard" and preflight reported `0 FAIL / 1 WARN — config is
+    # tier-consistent` over a value KRT rejects outright. PF-KRT should FAIL a
+    # value outside {standard, advanced, absent} — the check owns the only
+    # place this string is validated before a KRT cycle is spent.
+    fab_tier: advanced
     no_stub_layer_swap: true
     keepout: true
     keepout_layer: User.2
