@@ -65,6 +65,82 @@ def drc_gate_ok(txt):
     return False
 
 
+def erc_invocations(txt):
+    """Every `kicad-cli sch erc` command in the driver, continuation-joined."""
+    joined = txt.replace("\\\n", " ")
+    return [m.group(0) for m in re.finditer(r'kicad-cli\s+sch\s+erc[^\n]*',
+                                            joined)]
+
+
+def erc_gate_ok(txt):
+    """-> (ok, why). The BLOCKING ERC run must gate on ERRORS, not warnings.
+
+    Canon S4 and the kicad-pcb golden rules both make the gate "0 errors,
+    warnings baselined with reasons". `--exit-code-violations` is what makes
+    kicad-cli return nonzero at all (MEASURED: the same schematic exits 0
+    without it and 5 with it), so it marks the BLOCKING run — and paired with
+    `--severity-all` it blocks on warnings, which is the defect.
+
+    Three properties, each a separate way to get this wrong:
+      * a blocking run EXISTS (an ERC stage that cannot fail is not a gate);
+      * NO blocking run carries `--severity-all` (gating on warnings);
+      * a full-severity REPORTING run exists (dropping it would trade a false
+        gate for a blind one — "baselined" needs a recorded baseline).
+    """
+    runs = erc_invocations(txt)
+    if not runs:
+        return False, "the driver runs no `kicad-cli sch erc` at all"
+    blocking = [r for r in runs if "--exit-code-violations" in r]
+    if not blocking:
+        return False, ("no ERC run carries --exit-code-violations, so ERC "
+                       "cannot fail this driver at any severity")
+    bad = [r for r in blocking if "--severity-all" in r]
+    if bad:
+        return False, (f"a BLOCKING ERC run gates at --severity-all, i.e. on "
+                       f"WARNINGS: {bad[0][:90]!r}")
+    if not any("--severity-error" in r for r in blocking):
+        return False, ("no blocking ERC run names --severity-error; the "
+                       "severity it gates on must be stated, not defaulted")
+    if not any("--severity-all" in r and "--exit-code-violations" not in r
+               for r in runs):
+        return False, ("no full-severity REPORTING run: warnings are supposed "
+                       "to be baselined, and a baseline nobody writes down "
+                       "cannot be reviewed")
+    return True, ""
+
+
+def audit_board_guard_ok(txt):
+    """-> (ok, why). The per-board `03_src/audit_board.py` call is GUARDED by
+    a file test AND its absence is ANNOUNCED.
+
+    Two failure modes with opposite signs, which is why both halves are here:
+    calling it unconditionally aborts every zero-bespoke-Python board at
+    `set -e`; skipping it silently makes a board that LOST its audit script
+    indistinguishable from one that never had it (the M-COVER class, arriving
+    in a driver instead of a checker).
+    """
+    call = re.search(r'^[^#\n]*(?:\$PY|python3?)\s+\S*03_src/audit_board\.py',
+                     txt, re.M)
+    if not call:
+        return False, ("the driver never invokes 03_src/audit_board.py — the "
+                       "per-board placement gate has no call site")
+    blocks = [m for m in re.finditer(
+        r'^if\s+\[[^\]]*-f\s+\S*03_src/audit_board\.py[^\]]*\].*?^fi\s*$',
+        txt, re.M | re.S)]
+    holder = next((m for m in blocks
+                   if m.start() < call.start() < m.end()), None)
+    if holder is None:
+        return False, ("the audit_board.py call is NOT inside an `if [ -f "
+                       "... ]` guard — it aborts any board that has no "
+                       "per-board audit script (a generic-backend board)")
+    if not re.search(r'^\s*else\b', holder.group(0), re.M) or \
+            not re.search(r'\becho\b', holder.group(0).split("else", 1)[-1]):
+        return False, ("the guard has no `else` that SAYS SO — a silent skip "
+                       "makes a board that lost its audit script look like a "
+                       "board that passed one")
+    return True, ""
+
+
 def rules_last_after_stitch(txt):
     """True iff the LAST generate_rules_generic call comes after the LAST
     stitch call, and one generate_rules call precedes the import."""
@@ -248,6 +324,128 @@ def t_kb_wiring_teeth():
     check(consumed - produced,
           "the wiring check ACCEPTED a driver that grades a circuit.json its "
           "builder never wrote — it is blind to the exact defect it exists for")
+
+
+# ================================================ the ERC gate + the [4] guard
+@test("rebuild_all.sh: the BLOCKING ERC run gates on ERRORS, and the "
+      "full-severity baseline is still recorded")
+def t_erc_gates_on_errors():
+    """Canon S4 says "0 errors, warnings baselined with reasons" and this
+    TEMPLATE said `--severity-all --exit-code-violations`, which blocks on
+    warnings. The template contradicted the canon it implements.
+
+    MEASURED 2026-07-30, pluto-rx2-8way-v2's real `04_kicad/
+    pluto_rx2_8way_v2.kicad_sch`, by running kicad-cli directly:
+
+        --severity-all   --exit-code-violations -> EXIT 5, 220 findings
+                                                   (131 endpoint_off_grid,
+                                                     89 lib_symbol_issues)
+        --severity-error --exit-code-violations -> EXIT 0, 0 findings
+        --severity-all   (no exit flag)         -> EXIT 0   [safe under set -e]
+
+    Both warning classes are tscircuit->KiCad converter geometry/symbol
+    artifacts; neither is electrical. A driver that cannot reach its own DRC
+    stage on 220 cosmetics gets edited per-board, and the per-board edit is how
+    the ERC gate becomes whatever each board could make pass."""
+    ok, why = erc_gate_ok(ALL.read_text())
+    check(ok, f"rebuild_all.sh ERC gate: {why}")
+
+
+@test("the ERC-gate check has TEETH: the PRE-FIX template (one "
+      "`--severity-all --exit-code-violations` run) is rejected",
+      kind="known_bad")
+def t_kb_erc_gate_teeth():
+    """RED-VERIFIED by RECONSTRUCTING the pre-fix line inline rather than
+    describing it, so the red side is re-measured on every run.
+
+    The reconstruction is byte-equivalent to what
+    `git show 982858d8:skills/pcb-design/templates/03_src/rebuild_all.sh`
+    carries. GIT-SWAP RED-VERIFIED 2026-07-30: the real pre-fix template
+    restored over the fixed one, this suite measured **20 passed / 4 FAILED** —
+    this fixture, `t_erc_gates_on_errors`, and the two `[4]`-guard fixtures,
+    and NOTHING ELSE, so each pair isolates its own defect. `erc_gate_ok` on
+    those bytes returned `a BLOCKING ERC run gates at --severity-all, i.e. on
+    WARNINGS`. Restored: **24 / 0**.
+
+    THE THIRD PROPERTY IS ASSERTED SEPARATELY because the obvious wrong fix
+    passes the first two: simply DELETING the `--severity-all` reporting run
+    leaves a gate that is correct and a baseline nobody can review."""
+    pre = ('kicad-cli sch erc --severity-all --exit-code-violations '
+           '"04_kicad/$BOARD.kicad_sch" \\\n    -o 06_build/erc.rpt '
+           '|| { echo "ERC FAILED"; exit 1; }\n')
+    ok, why = erc_gate_ok(pre)
+    check(not ok, "the ERC-gate check ACCEPTED the pre-fix line that gates on "
+                  "220 cosmetic warnings")
+    contains(why, "WARNINGS", "the finding must name what it is gating on")
+
+    # an ERC stage that cannot fail at all is equally refused (the opposite
+    # over-correction: drop the exit flag and the gate quietly stops gating).
+    ok2, why2 = erc_gate_ok('kicad-cli sch erc --severity-error "$S" -o r\n')
+    check(not ok2, "a non-blocking ERC stage was accepted as a gate")
+
+    # and dropping the recorded baseline is refused too.
+    ok3, _ = erc_gate_ok('kicad-cli sch erc --severity-error '
+                         '--exit-code-violations "$S" -o r\n')
+    check(not ok3, "an ERC gate with NO full-severity report was accepted — "
+                   "'warnings are baselined' with no baseline written down")
+
+    # ADJACENT PROPERTY, re-measured every run: the SHIPPED template, which
+    # differs from `pre` in exactly this respect, passes all three.
+    ok4, why4 = erc_gate_ok(ALL.read_text())
+    check(ok4, f"the shipped template no longer satisfies its own gate: {why4}")
+
+
+@test("rebuild_all.sh: the per-board audit_board.py call is GUARDED, and its "
+      "absence is ANNOUNCED rather than skipped in silence")
+def t_audit_board_guarded():
+    """A ZERO-BESPOKE-PYTHON board (repo ADR-0002 — the go-forward default)
+    has no `03_src/audit_board.py` at all: placement comes from floorplan.yaml
+    and every invariant the script would have hand-checked is a SHARED gate
+    running beside this line. The template called it unconditionally, so under
+    `set -euo pipefail` it aborted every such board — measured on
+    pluto-rx2-8way-v2, 2026-07-30."""
+    ok, why = audit_board_guard_ok(ALL.read_text())
+    check(ok, f"rebuild_all.sh [4]: {why}")
+
+
+@test("the [4] guard check has TEETH in BOTH directions: the unconditional "
+      "PRE-FIX call is rejected, and so is a SILENT skip", kind="known_bad")
+def t_kb_audit_board_guard_teeth():
+    """The two failure modes have opposite signs and the same cause — nobody
+    decided what "this board has no audit_board.py" means.
+
+    RED-VERIFIED by reconstruction, re-measured every run. `$PY
+    03_src/audit_board.py` on its own line is verbatim what
+    `git show 982858d8:...rebuild_all.sh` carries; GIT-SWAP RED-VERIFIED
+    2026-07-30 alongside the ERC pair — the real pre-fix template made this
+    fixture and `t_audit_board_guarded` red too, **20 passed / 4 FAILED** with
+    both pre-fix defects restored and **24 / 0** with both fixed.
+
+    The SILENT half matters more than it looks: `if [ -f x ]; then run; fi`
+    with no `else` fixes the abort and introduces the M-COVER defect — a board
+    that LOST its audit script becomes indistinguishable from one that never
+    had one, and reads as having passed a gate that never ran."""
+    ok, why = audit_board_guard_ok("$PY 03_src/audit_board.py\n")
+    check(not ok, "the guard check ACCEPTED the unconditional pre-fix call")
+    contains(why, "aborts", "the finding must name the consequence")
+
+    silent = ("if [ -f 03_src/audit_board.py ]; then\n"
+              "    $PY 03_src/audit_board.py\n"
+              "fi\n")
+    ok2, why2 = audit_board_guard_ok(silent)
+    check(not ok2, "a guard that skips the per-board gate SILENTLY was "
+                   "accepted — a board that lost its audit script would read "
+                   "as one that passed it")
+    contains(why2, "silent skip", "the finding must name the silent skip")
+
+    # a driver with no call site at all is a FAIL, never a pass-by-absence.
+    ok3, _ = audit_board_guard_ok("echo hello\n")
+    check(not ok3, "a driver that never calls audit_board.py was accepted")
+
+    # ADJACENT PROPERTY: the shipped template differs from `silent` in exactly
+    # the `else` and passes.
+    ok4, why4 = audit_board_guard_ok(ALL.read_text())
+    check(ok4, f"the shipped template no longer satisfies its own guard: {why4}")
 
 
 @test("rebuild_all.sh: M-FRESH stamps BEFORE the build and verifies AFTER it, "

@@ -82,15 +82,56 @@ $PY "$S/count_parity.py" . \
 $PY "$FS/bom_source_check.py" --circuit-only "$CJ" --parts 02_parts \
     || { echo "GATE FAILED [1b] M-BOM leg C (bom_source_check.py --circuit-only): a coded R/C's catalog value != its tsx value prop (the R12/R30 class)"; exit 1; }
 
-# [2] ERC gate (0 errors)
-kicad-cli sch erc --severity-all --exit-code-violations "04_kicad/$BOARD.kicad_sch" \
-    -o 06_build/erc.rpt || { echo "ERC FAILED"; exit 1; }
+# [2] ERC gate — 0 ERRORS. TWO RUNS, AND THE SPLIT IS THE CANON'S, NOT A
+# SOFTENING. Canon S4 and the kicad-pcb golden rules both say the gate is
+# "0 errors, warnings baselined with reasons" — but this template gated with
+# `--severity-all --exit-code-violations`, which returns nonzero on ANY
+# reported violation, warnings included. So the TEMPLATE contradicted the canon
+# it implements, and a board fails its own driver on cosmetics.
+#
+# MEASURED 2026-07-30 on pluto-rx2-8way-v2's real .kicad_sch:
+#   --severity-all   --exit-code-violations  -> EXIT 5, 220 findings
+#                                               (131 endpoint_off_grid,
+#                                                 89 lib_symbol_issues)
+#   --severity-error --exit-code-violations  -> EXIT 0, 0 findings
+# Both classes are artifacts of the tscircuit->KiCad converter's geometry and
+# symbol-library synthesis; neither is electrical. A driver that cannot reach
+# its own DRC stage on 220 cosmetic warnings gets edited per-board, and the
+# per-board edit is how the ERC gate quietly becomes whatever each board could
+# make pass.
+#
+# The full-severity report is still written FIRST and unconditionally, because
+# "baselined with reasons" is only reviewable if the baseline is recorded —
+# dropping it would trade a false gate for a blind one.
+kicad-cli sch erc --severity-all "04_kicad/$BOARD.kicad_sch" -o 06_build/erc.rpt
+kicad-cli sch erc --severity-error --exit-code-violations \
+    "04_kicad/$BOARD.kicad_sch" -o 06_build/erc_errors.rpt \
+    || { echo "GATE FAILED [2] ERC: the schematic carries ERC ERRORS (warnings are baselined in 06_build/erc.rpt; errors are not baselinable)"; exit 1; }
 
 # [3] board (placement + zones) from floorplan.yaml  [SHARED]
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
 
 # [4] placement/pad invariants  [per-board gate + SHARED placement gates]
-$PY 03_src/audit_board.py
+# `03_src/audit_board.py` is the ONLY per-board emitter this pipeline still
+# sanctions (03_src/contracts.md), and on a ZERO-BESPOKE-PYTHON board it does
+# not exist: ADR-0002's whole point is that a new board writes NO generation
+# Python, so placement comes from floorplan.yaml and every invariant the script
+# would have hand-checked is a SHARED gate that runs below or beside this line
+# — generate_board_generic's own `asserts:` (pad_net polarity, body_offset,
+# pad_order, pad_beyond_edge), P-COLLIDE, placement_gates.py P-OUT/P-CAP,
+# escape_check.py --board P-LAND, copper_length_audit.py R-LEN.
+#
+# Calling it unconditionally ABORTS every such board at `set -e` (the template
+# shipped this way; pluto-rx2-8way-v2 hit it 2026-07-30). SKIPPING IT SILENTLY
+# is the worse repair, and is why this is an `if` with an `else` that SPEAKS: a
+# board that LOST its audit script would then be indistinguishable from a board
+# that never had one, and would read as having passed a gate that never ran —
+# the M-COVER class, arriving in a driver instead of a checker.
+if [ -f 03_src/audit_board.py ]; then
+    $PY 03_src/audit_board.py
+else
+    echo "[4] no 03_src/audit_board.py (generic-backend board) — shared placement gates below"
+fi
 # P-OUT pads-inside-outline + P-CAP corridor crossing-demand vs capacity —
 # the two checks the cooksense routing D-BACK (2026-07-23, ~13h) proved were
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL
