@@ -299,7 +299,27 @@ route:
 stitch:
   clearance: 0.2
   via:
-    spacing: 0.85
+    # 0.85 -> 0.75, AND THE REASON IS THAT 0.85 WAS SILENTLY CENSORING THE
+    # FENCE. `try_via`'s FIRST guard rejects any new via within `spacing` of any
+    # existing one, NET-BLIND, and the stitch lattice goes through that guard
+    # like everything else. At the old 0.95 pitch 0.85 was invisible (0.85 <
+    # 0.95, so no lattice site ever refused its neighbour). At the ADR-0004
+    # pitch of 0.80 it is 0.05 mm LARGER than the pitch, so every second site
+    # refuses — MEASURED on the first 0.80 build: **1668 grid vias, FEWER than
+    # the 2208 the coarser 0.95 lattice emitted**, and the fence got sparser as
+    # the declared pitch got finer. A guard whose value crosses the pitch turns
+    # a refinement into a regression, in silence.
+    #
+    # 0.75 IS DERIVED, NOT TUNED: the largest 0.05 multiple strictly under the
+    # declared 0.80 lattice pitch, so one lattice row can never refuse itself.
+    # It is checked against the FLOOR from the other end, not just from the
+    # pitch: every stitch via is on GND, so copper clearance does not apply
+    # between them (same net) and the binding rule is hole-to-hole —
+    # `jlc_4layer_advanced.min_hole_to_hole 0.25` + drill 0.15 = **0.40 mm**
+    # minimum centre-to-centre. 0.75 keeps 1.88x on that floor, and the
+    # independent `hole_to_hole {min_gap: 0.25}` pass below re-checks it against
+    # the saved board rather than trusting this number.
+    spacing: 0.75
     pth_margin: 0.3
     tiers: [{size: 0.25, drill: 0.15, hole_to_copper: 0.155}]
   keepin: {inset: 0.8}
@@ -507,19 +527,14 @@ stitch:
     # orientation is 1.1910/sqrt(2) = 0.8422 -> **0.80**, giving 1.1314 mm on
     # a diagonal arm.
     #
-    # WHY 0.80 IS NOT WRITTEN IN BELOW. Changing it here without regenerating
-    # would put the source and `04_kicad/` into disagreement, and canon M3's
-    # whole value is that the board is what the source says. The board is at
-    # 0.95 and this file says 0.95. **0.80 is the value the next regeneration
-    # must carry**, together with the OTHER change the bound needs — CTRL off
-    # F.Cu across the rosette, which `rules/nets.yaml` already declares and
-    # which 90-96 % of SW_V1/V2/V4 copper does not do. Re-stitching alone
-    # closes 18 of the 34 over-bound apertures (the pure-lattice class, no
-    # occupier at all); the CTRL re-route closes 5 more including the 3.0500 mm
-    # worst case. See ARCHITECTURE sec 6 for all four classes.
+    # 0.80 IS NOW WRITTEN IN, AND THE BOARD BELOW IT WAS REGENERATED IN THE SAME
+    # PASS (2026-07-31). The previous revision of this comment said 0.80 was
+    # "the value the next regeneration must carry" and deliberately left 0.95
+    # here, because changing the number without rebuilding would put the source
+    # and `04_kicad/` into disagreement (canon M3). This IS that regeneration.
     net: GND
-    x: [23, 67, 0.95]
-    y: [23, 90, 0.95]
+    x: [23, 67, 0.80]
+    y: [23, 90, 0.80]
     # AVOID: one ring per SMA CENTRE PIN. MEASURED — the first stitched build
     # put grid vias at (31.0, 59.0) and (29.0, 61.0), which are 0.7312 and
     # 0.7858 mm from J_ANT3's pad 1 against that pad's own 0.80 mm LOCAL
