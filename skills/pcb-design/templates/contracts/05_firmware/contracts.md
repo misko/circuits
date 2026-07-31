@@ -10,6 +10,7 @@ the board has no MCU.
 | Path | What |
 |---|---|
 | `*.c\|*.h\|*.rs\|*.py` `src/**` `include/**` | the firmware — sources at the top level, or at any depth under `src/`/`include/`. **The pipes are BACKSLASH-ESCAPED because this is a markdown table cell**: an unescaped `\|` inside a code span is still a cell delimiter, and the auditor read this row as `*.c` alone until 2026-07-28, so every `.h`, `.rs` and `.py` in the repo failed C-ALLOW while the contract said they were permitted. A firmware tree is arbitrary depth, so it takes DEEP patterns rather than a nested `contracts.md` per source folder |
+| `target/**` `host/**` | the TWO-SIDED split, when the board ships both: MCU firmware under `target/`, its host-side counterpart (the control tool that speaks the same protocol) under `host/`. Named here because the row above promises "arbitrary depth" and then enumerated exactly two folder names — MEASURED 2026-07-31, `programmable-usb2-hub` was the first board to split this way and all 4 of its C/H/PY sources under `target/`+`host/` failed C-ALLOW against a contract whose own prose said they were fine. A host tool that implements the wire protocol belongs beside the firmware that answers it, not in `03_src/` |
 | `Makefile` / build config | must take the MCU as a VARIABLE, not a constant |
 | `tests/` | host-runnable logic tests |
 | `README.md` | how to build, how to flash, which connector |

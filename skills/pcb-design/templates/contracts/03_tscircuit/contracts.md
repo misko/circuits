@@ -59,6 +59,7 @@ truncates it to 2 pins, and emits an unannotated sheet that netlists to 0 nets.
 | `verification/net_check.net` | gen | scratch netlist export used for node-count sanity mid-authoring |
 | `dist/**` | gen | tsci build output tree (mirrors `build/`; regenerate) |
 | `.tscircuit/**` | gen | tsci cache (gitignored; regenerate) |
+| `.gitignore` | hand | keeps `dist/`, `.tscircuit/` and `node_modules/` out of git. **12 of the fleet's boards ship one and no contract permitted it until 2026-07-31** — the board-root contract has a `.gitignore` row, this one did not, and the gap was invisible because `--projects`' exit code was never read |
 | `contracts.md` | hand | this file |
 
 **`--study`-only artifacts** (DEFAULT OFF; `gen_tscircuit.sh <project> --study`).

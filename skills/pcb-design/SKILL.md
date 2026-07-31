@@ -845,6 +845,62 @@ sub-agents/background jobs and join before the policy audit (which
 consumes their verdicts). Serializing them roughly doubles the stage's
 wall-clock for no independence gain.
 
+### A MANUAL STEP THAT FIXES A PRODUCER'S OUTPUT IS A DEFECT REPORT
+
+**If you hand-copy, hand-rename or hand-fix ANYTHING on the way to a gate,
+STOP and file it against the PRODUCER.** Do not do the fix and move on, and
+do not "note it for later" — a pipeline step a human has to repair is a
+defect, and repairing it silently converts a HARD failure into a PERMANENT
+SILENT one.
+
+THE INCIDENT, MEASURED. `export_jlc_package.py` wrote `fab/bom_jlc.csv`
+while `07_releases/contracts.md` — and every seal — required `fab/bom.csv`.
+Every prior release produced the correct names **BY HAND-COPYING**. The
+hand-copy did not merely hide the bug, **it GUARANTEED it stayed hidden**:
+every downstream gate always saw a correct tree, so the producer's defect was
+UNOBSERVABLE BY CONSTRUCTION. It could not have been found by running the
+pipeline, only by reading it.
+
+The cost was not cosmetic. `A-STOCK` and `A-BUY` — two gates that exist
+BECAUSE five sealed releases shipped failing stock evidence — resolve their
+subject through `fab/bom.csv`. With the name absent they reached a ZERO
+DENOMINATOR and emitted NOTES instead of failures. **The repair kept the
+humans unblocked and left the machines grading nothing.**
+
+MEASURED 2026-07-31 across the fleet's **90 sealed release dirs**: 37 carry
+`fab/bom.csv`, 28 carry the legacy flat `bom.csv` at release root, 25 carry
+neither — and **5 sealed archives contain BOTH `fab/bom.csv` AND
+`fab/bom_jlc.csv`**. That last number is the fingerprint of the hand-copy,
+sealed immutably into five releases, sitting in plain sight for weeks.
+Nobody read it, because a tree that contains the right file looks right.
+
+The symptom to watch for is the feeling of *"I'll just rename this"*. That
+feeling is a bug report arriving, and the rename is the thing that discards
+it. Same class as canon M8 (the third hand-written copy of a script is a
+promotion, not a convenience) and M3 (everything must be regenerable from
+`03_src/` + `03_tscircuit/` — a tree that only a human can assemble is not).
+
+### A DECLARED FIELD WITH NO CONSUMER IS A DEFECT
+
+A config field nobody reads is not a weak control, it is **the APPEARANCE of
+one**: the value sits right there in the canon, so a reader checking whether
+the requirement is captured finds that it is, and stops looking.
+
+`skills/kicad-pcb/references/fab_tiers.yaml` carries the exact required
+ORDER_README sentence per fab tier as an `order_readme:` field and **no
+script reads it** — which is how `pluto-rx2-8way-v2`'s ORDER_README came to
+name no fab option at all while **3446 of its 3496 plated holes** sit under
+the no-fee tier's 0.30 mm floor.
+
+Machine check: `tests/t1_contracts.py::t_declared_field_has_a_consumer`, with
+a TIGHT per-file `ORPHAN_CEILING`. MEASURED 2026-07-31: **47 declared fields
+across the 4 `skills/**/references/*.yaml`, 9 with no reader** (fab_tiers 1,
+grind_fixes 6, proven-parts 2). The ceiling may only FALL, so wiring a field
+up must lower its row in the same change — an honestly declared gap that
+costs nothing is how this one survived. **When you add a field to a
+reference yaml, add its reader in the SAME change**, or record it and say
+who owes the consumer.
+
 - `export_jlc_package.py` (jlcpcb-fab skill): produces `fab/bom.csv` +
   `cpl.csv`; LCSC flows from the TSX `supplierPartNumbers` via
   circuit.json — there is no per-board BOM-seeding script. An UNCODED line is
