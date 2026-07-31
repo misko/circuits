@@ -670,12 +670,53 @@ rails:
     # The skill patch that makes the derating first-class is proposed in
     # 06_build/staging/cooksense-v1.7/verification/owed_skill_patches.md.
     #
-    #   PD = (5.250 - 3.201) x 0.150 = 307.4 mW  vs  497.8 mW  -> 62 %, PASS
+    # WORKED EXAMPLE — REGENERATED FROM THE GRADED KEYS, NOT TYPED (canon
+    # M-BOUND). The `worked_example:` line below is the ONLY second copy of
+    # these four numbers anywhere in the tree, and ADR-0028's bound
+    # `LDO_TJ_WORKED_EXAMPLE` re-derives all four FROM `rails[3V3]`'s OWN
+    # `vin_max` / `vout_min` / `iout_max_A` in this file and prints 999 if the
+    # line and the keys disagree. adr_bound_provenance.py then FAILS on B-REGEN.
     #
-    # RESULTING JUNCTION TEMPERATURE, which is the number that actually matters:
-    #   Tj = 75 + (0.3074 + 0.0578) x 90 = 75 + 32.9 = 107.9 C   (17.1 C margin)
-    #   + the <=1.1 s dual-heater excursion from the iout block, +3.8 C
-    #                                                = 111.7 C   (13.3 C margin)
+    # THAT GATE EXISTS BECAUSE THIS EXAMPLE READ THE WRONG KEY FOR FOUR ROUNDS.
+    # v1.0-v1.7 computed it at 0.150 A — which is NOT this rail's declared
+    # current and NOT its derived one (0.1169 A). It is
+    # `linear_rails[5V_KEY_RELAY].iout_max_A`, a key `power_topology.py` does
+    # not read, sitting 230 lines below in the section this file itself labels
+    # "Documentation-only (ignored by power_topology.py)". So the file published
+    # `Tj 107.9 C (17.1 C margin)` while the gate that grades it, ADR-0026,
+    # ADR-0027 and `adr_bound_provenance --adr .../0026` all said 117.08 /
+    # 7.92 — **the published margin was 2.16x the true one**. It is the SAME
+    # ignored key that produced this rail's round-2 P0. A worked example that
+    # can read a key the grader does not is a second home for a number, and
+    # canon M4 already knows what those do; the bound closes the class.
+    #
+    #   PD = (vin_max 5.250 - vout_min 3.201) x iout_max_A 0.200 = 409.8 mW
+    #        vs pdiss_max_mw 497 -> 82.5 %, PASS
+    #   Tj = Ta 75 + (0.4098 + vin_max x Iq_max 0.0578) x theta_JA 90
+    #      = 75 + 42.08 = 117.08 C  ->  7.92 C of margin to Tj_max 125 C
+    #   worked_example: iout_A=0.200 pd_mW=409.8 tj_C=117.08 margin_C=7.92
+    #
+    # THE `+3.8 C` DUAL-HEATER EXCURSION THAT USED TO BE ADDED HERE IS DELETED,
+    # NOT RE-ARGUED. ADR-0027 Decision 4, shipped in the same directory, says of
+    # exactly that figure: "ds1117 publishes no thermal time constant, so the
+    # excursion is NOT BOUNDED BY ANY CITED NUMBER and must not be claimed."
+    # Its steady-state alternative is +17.8 C (Tj 134.9 C), so the deleted line
+    # was the OPTIMISTIC end of an unbounded interval. Decision 3's staggering
+    # constraint removes the question instead of answering it: staggered, the
+    # peak is +6.6 mA / +0.0135 W over the declaration, i.e. +0.2 C adiabatic /
+    # +1.2 C steady state, and Tj stays at 117.1-118.3 C.
+    #
+    # AND 7.92 C IS ITSELF OPTIMISTIC BY A TERM NOTHING HERE CARRIES — ADR-0028,
+    # P1-1 of the v1.7 re-gate-3 layout lens. `Tj = Ta + PD x theta_JA` charges
+    # the LDO only its OWN dissipation, but theta_JA is a junction-to-AMBIENT-AIR
+    # figure measured with only the device under test dissipating, and ds1117's
+    # own Thermal Considerations says "additional heat sources mounted near the
+    # device must be considered". This board's other 0.958 W (12 reed coils
+    # dominate) raises the copper the tab sinks into by +1.55...+4.65 C, i.e.
+    # 20-59 % of the margin above. THE HONEST MARGIN AT Ta 75 C IS 3.3-6.4 C.
+    # That term is DERIVED (a lens's thermal-network model), not CITED, so it is
+    # NOT subtracted from the graded number here — it is named, and ADR-0028
+    # carries the ambient envelope it implies.
     pdiss_max_mw: 497
 
 # Documentation-only (ignored by power_topology.py). Each linear rail's envelope.

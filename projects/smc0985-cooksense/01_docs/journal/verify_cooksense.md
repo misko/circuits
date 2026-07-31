@@ -2401,3 +2401,42 @@ is a check that cannot fail.
   `--assembly projects/smc0985-cooksense/03_src/cooksense/rules/assembly.yaml`;
   without it the sourcing state reads CLEAR instead of BLOCKED-1 and A-POP
   reads FAIL. `count_parity.py` and `policy_audit.py` need `--board cooksense`.**
+
+## 2026-07-30 22:40 — iterate (margin-vs-ambient pass, ADR-0028)
+
+- did: established the HONEST margin-vs-ambient answer for the 3V3 LDO rail —
+  both margins as curves, every term at its own temperature basis, the two
+  still-missing terms (Micro-Fit contact resistance; the temperature basis of
+  the 58 % of the series sum that is components) added and carried SEPARATELY.
+  Built my own model by decomposing ADR-0027's two MEASURED transfer
+  resistances into a copper part (tempco-corrected) and a per-component part;
+  control reproduces `V(U_LDO.3) = 4.7281 V` / `1329.1 mV` exactly. Then fixed
+  the unambiguous defects and archived five orphaned reviews.
+- result: **THE TWO MARGINS ARE NEARLY INDEPENDENT AXES AND THE ONE EVERYONE
+  ARGUED ABOUT IS THE ONE AMBIENT BARELY MOVES.** Dropout slope **−0.31 mV/K**
+  (copper is only 42 % of the sum at 0.393 %/K), so 62 K of ambient is worth
+  19 mV — less than the connector term alone. Worst case with the CITED 10 mΩ
+  contacts: +33.0 mV @ 23 °C → **+18.1 mV @ 75 °C** → +14.0 @ 85; at the aged
+  2 × 30 mΩ allowance **+2.0 mV @ 75 °C**, −2.1 @ 85, and ADR-0027's STAGGERED
+  heater peak goes **−0.6 mV**. Typical case **+497 mV**. THERMAL binds first:
+  Ta ≤ **82.9 °C** citable, **78.3–80.1 °C** with the DERIVED board-rise term;
+  honest margin at 75 °C is **3.3–6.4 °C**, not the published 7.92. F1's PTC
+  tempco is UN-CITED — but inverting Bourns' own `Ihold` table (2.00 A @ 23 °C
+  → 1.29 A @ 85 °C) under a NAMED assumption gives R(85)/R(23) = 1.0–1.15 and
+  makes the ×1.82 break-even imply a **278 °C** switching temperature.
+  Gates unpiped: DRC 0/0/0 (`--exit-code-violations`) 0 · E-TOPO 0 · E-INV
+  168/168 0 · E-ADR 12/12 0 · policy_audit FAIL=0 0 · M-BOUND 0 (5 CITED,
+  37 OWED vs a ≤37 floor) · G-ORPHAN 315/315 0 · M-BEACON 0 · E-NETREF 1
+  (pre-existing). Board md5 `9f4fd5fae810f40a52b1035df727243c` UNCHANGED.
+  Three NEW `<!-- bound -->` blocks, each RED-TESTED against the pre-fix state
+  before being accepted: `LDO_TJ_WORKED_EXAMPLE` (999 in BOTH drift
+  directions), `LDO_TA_MAX_CITED`, `COIL_PULLIN_BUDGET` (999 on a stale
+  dossier; and at the stale 0.540 V the coil evaluates to 4.151 V, firing
+  B-CORNER from the documents alone).
+- next: **THE ENVELOPE IS THE USER'S DECISION AND THIS PASS DELIBERATELY DOES
+  NOT TAKE IT.** Recommendation on the table: (a) narrow to 65 °C + (d) a
+  MANDATORY bench gate; tab-vias at the next copper revision; not (c) yet. The
+  seal ALSO waits on which review the contract filename carries — four lenses
+  split 2 SOUND / 2 DEFECTIVE and the two SOUND ones overwrote the DEFECTIVE
+  ones, so M-REV's design-side red currently clears on a filename technicality.
+  All five reviews are archived verbatim in `08_reviews/` with md5s.

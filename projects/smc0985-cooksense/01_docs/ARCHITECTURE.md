@@ -23,7 +23,7 @@ plus a passive coupon-gated keypad interposer. Full source: BRIEF.md
     │  TPS3823 watchdog · HW fault latch (WD·ESTOP·TEMP set) · STOP preempts  │
     │  in HW (clears PRESS, disables both decoders, K_STOP on its own         │
     │  always-available 5V_STOP rail) · contactor HW-gated (ADR-0011, v1.2)   │
-    │  SENSING: MCP3208 8ch thermistor + LM393 comparators -> TEMP_OK          │
+    │  SENSING: MCP3208 8ch thermistor + LMV393 comparators -> TEMP_OK         │
     │           MAX31856 K-TC · HX711 link (J_LOADCELL) · door/E-stop/mode     │
     │  MCP23017 expander: switched rails, readbacks, BOARD_ID (ADR-0003)      │
     │  Pi 40-pin header: shift-reg lines, heartbeat, auth, SPI, I2C pass-thru │
@@ -53,15 +53,33 @@ DIP05 coil's 7.5 V max — the v1.7 P0;
 3V3 rails LINEAR (AMS1117-class + per-sensor switched high-side) —
 NO switching converter on the board; since 2026-07-27 E-TOPO GRADES the
 all-linear rail rather than skipping it (dropout + dissipation), and with
-the ADR-0021 envelope it PASSES: headroom 1355 mV vs 1300, PD 615 mW /
-51% (total budget ~<1A: 12 reed coils ~120mA worst + logic + sensors). Pi header
-5V/3V3 are NC/sense only; no backfeed either direction (Ioff buffers).
+the ADR-0021 envelope it PASSES: **headroom 1329 mV vs 1300, PD 410 mW /
+82 %** (total budget ~<1A: 12 reed coils ~120mA worst + logic + sensors). Pi
+header 5V/3V3 are NC/sense only; no backfeed either direction.
+**⚠ TWO CORRECTIONS, 2026-07-30 (ADR-0028 pass).** (1) The old figures
+`1355 mV / 615 mW / 51 %` were the ADR-0021 numbers and are SUPERSEDED — by
+ADR-0026 (the load is a sum over five rails and the ceiling has an ambient) and
+ADR-0027 (the series sum counts the board's own copper). Current values are
+E-TOPO's own, RAW_EXIT 0, and the margin is **thin, not comfortable**: +29 mV of
+dropout headroom and 82 % of a 497 mW ceiling. ADR-0028 carries the margin as a
+curve over ambient, the two terms still missing from it, and the priced options.
+(2) **"(Ioff buffers)" is DELETED because that hardware does not exist.**
+MEASURED from `source/cooksense.net`: `KEY_CLOCK` / `KEY_DATA` / `KEY_RESET_N`
+run `J_PI` → `U_SR1` (SN74**HC**595) DIRECT, `WD_PET` runs `J_PI` → `U_WD`
+direct, and SPI runs `J_PI` → MCP3208 / MAX31856 direct — no buffer sits in any
+of those paths and none of those parts has an Ioff (power-off protection)
+specification. The CONSEQUENCE is benign, and it is stated rather than assumed:
+the coil rails hang off `5V_PROTECTED`, which the Pi cannot feed, so a partly
+back-fed `3V3` leaves the board inert rather than dangerous. But a protection
+MECHANISM named in the architecture document and existing nowhere in copper is
+exactly the class this repo keeps paying for, so the claim goes rather than
+being softened.
 
 ## Safety model (ADR-0002, hardened v1.2 by ADR-0011)
 All enforcement is hardware: decoder one-hot selection, NON-retriggerable
 one-shot press cap (CD74HC221), external watchdog, E-stop dual-loop,
 Manual-mode physical rail cut, comparator TEMP_OK (68k/10k threshold =
-74.9C hard stop, solder-select field), discrete fault latch (set by
+**72.80C** hard stop, solder-select field), discrete fault latch (set by
 WD·ESTOP·TEMP) w/ manual re-arm, STOP hardware preemption (clears PRESS,
 disables both decoders, dedicated always-available K_STOP rail), and a
 hardware contactor gate (REQ·WD·ESTOP·TEMP·LATCH_CLEAR). The Pi (and the

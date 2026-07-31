@@ -4,33 +4,64 @@
 
 - id: P-ADJ
   why: >-
-    BOARD-WIDE-RAIL keep_short budgets are geometrically unreachable by P-ADJ's
-    max-pairwise-pad-span metric, which charges the ENTIRE rail net to the
-    budget declared for a LOCAL decoupling cap. Three violations, all measured on 04_kicad/cooksense.kicad_pcb 2026-07-23
-    (spans ~150mm, +-2mm across stochastic legalize runs; pad COUNTS are stable):
-      (1) 3V3 span ~149-151mm > 5mm (AMS1117-3.3 layout: "COUT >=22uF hard against
-          VOUT") — 3V3 is the whole-board digital rail feeding 60 pads across
-          the 154mm sidecar (every 595/238/HC14/1G-family/MCP23017/watchdog/
-          one-shot VCC + decoupler + the AMS output). No placement shrinks it.
-      (2) 3V3 span ~149-151mm > 5mm (SN74HC238DR layout: "0.1uF VCC-GND bypass hard
-          against the package") — same 60-pad rail; the budget is the per-'238
-          bypass, not the rail.
-      (3) 5V_PROTECTED span ~150mm > 8mm (AMS1117-3.3 layout: "CIN local to
-          VIN") — 5V_PROTECTED is the whole-board protected rail (14 pads: eFuse
-          OUT, bulk CE1, LDO IN, Q_COIL source, comparator VCC, loadcell feed,
-          TP), spanning power(NW) to analog(SW).
-    The ELECTRICAL INTENT each budget encodes — the local cap mounted hard
-    against the pin — IS honoured, verified pad-to-pad on the board:
-      * AMS1117 COUT C_LDOOUT(3V3) <-> U_LDO VOUT(pad2/4) = 3.12mm  (<5mm)
-      * AMS1117 CIN  C_LDOIN(5V_P) <-> U_LDO VIN(pad3)     = 3.00mm  (<8mm)
-      * '238 bypass  C_DECU/C_DECD(3V3) <-> U_DECU/D VCC   = 4.89mm  (<5mm)
-      * every IC 0.1uF decoupler sits 2-5mm from its package (audit_board.py
-        I-PROX gate, PASS: 26 proximity checks).
-    The span metric cannot distinguish the 3mm local cap from the rail's 151mm
-    reach; there is no per-IC input/output net to measure a local span on (the
-    same limitation crow-recorder-central recorded for its board-wide buck VIN,
-    07_releases/v1.0/.../redteam_layout L2). The rails ride the generate_rules
-    DRU floors (PWR_3V3 0.3mm, PWR_IN 0.5mm) and pours, not a keep-short trace.
+    *** RE-EVIDENCED AND RE-SCOPED 2026-07-30 (ADR-0028 pass). THE PREVIOUS
+    EVIDENCE DESCRIBED A METRIC THE GATE NO LONGER USES, AND THE ARGUMENT IT
+    RESTED ON IS STRUCTURALLY INAPPLICABLE TO MOST OF THE CURRENT FINDINGS. ***
+    It said "Three violations ... spans ~150mm" and argued that P-ADJ charges an
+    ENTIRE rail to a LOCAL cap's budget. P-ADJ now reports NAMED PAD PAIRS.
+    MEASURED by me, `policy_audit.py --board cooksense`, RAW_EXIT 0, report
+    `06_build/policy_audit.md`, on the unchanged board md5
+    9f4fd5fae810f40a52b1035df727243c — **FIVE violations, 5 of 15 budgets
+    graded, every one a LOCAL pair in single-digit millimetres, not one a rail
+    span**:
+      (1) AMS1117-3.3   3V3      U_LDO.2  -> C_3V3.1     5.89 of 5.0  (1.18x)
+      (2) SN74HC238DR   3V3      U_DECD.16-> U_DECDEN.6  5.97 of 5.0  (1.19x)
+      (3) TPS259573DSGR 5V_RPP   U_EFUSE.3-> C_EFIN.1    5.95 of 3.0  (**1.98x**)
+      (4) TPS259573DSGR EF_OVLO  U_EFUSE.2-> R_OVT.2     7.56 of 5.0  (1.51x)
+      (5) TPS259573DSGR EF_ILM   U_EFUSE.7-> R_ILM.1     6.98 of 5.0  (1.40x)
+    THE OLD ARGUMENT CANNOT REACH ROWS 3-5 AT ALL, and that is arithmetic rather
+    than opinion. MEASURED by me from `source/cooksense.net` (198 nets, node
+    count per net): **`EF_ILM` has 2 pads and `EF_OVLO` has 3; `5V_RPP` has 5.**
+    A two-pad net has exactly ONE pair, so there is no rail for a max-pairwise
+    metric to over-charge. (For contrast, and because the old text's own numbers
+    were also stale: `3V3` measures **76** pads, not 60, and `5V_PROTECTED` **12**,
+    not 14.)
+    WHAT THIS WAIVER NOW COVERS — rows (1) and (2) ONLY, and they are BOARD-WIDE
+    RAIL cases where the budget names a rail because the datasheet wrote a local
+    rule as a net name:
+      * (1) is the AMS1117 "COUT >=22uF hard against VOUT" budget resolving to
+        the whole 76-pad `3V3` rail. The INTENT is honoured and verified
+        pad-to-pad: C_LDOOUT(3V3) <-> U_LDO VOUT(pad2/4) = 3.12 mm, inside 5 mm.
+        The graded pair is a DIFFERENT capacitor on the same rail.
+      * (2) is the same shape on the '238 bypass: C_DECU/C_DECD(3V3) <-> the
+        respective VCC = 4.89 mm, inside 5 mm; the graded pair is two other
+        pads on the same rail.
+      * cross-instrument corroboration (canon M1 — a different tool, not this
+        one): `audit_board.py`'s I-PROX gate PASSES, measuring every IC 0.1 uF
+        decoupler 2-5 mm from its own package pin, pad-to-pad.
+    WHAT THIS WAIVER DOES **NOT** COVER, stated so silence is not read as
+    coverage — rows (3), (4) and (5) are GENUINE LOCAL-LAYOUT FINDINGS on the
+    eFuse cell and they are DEFERRED, not excused:
+      * (3) is the tightest thing P-ADJ reports anywhere on this board at
+        **1.98x** its budget. SLVSE57C asks for the IN->GND Cin loop minimised
+        AT THE TERMINALS; 5.95 mm against 3.0 mm is loop INDUCTANCE in the
+        dV/dt and fault path. It is immaterial at the 0.4024 A continuous
+        current this board actually draws and it is NOT immaterial at an inrush
+        or short-circuit event, which is the case the part exists for.
+      * (4) and (5) are the OVLO divider and the ILIM resistor. Trace resistance
+        in the ILM leg adds directly to the current-limit setpoint, and the
+        OVLO divider's local return sets the trip accuracy ADR-0021 depends on.
+        Both are 1.4-1.5x, both are local placement, both are fixable by moving
+        three passives.
+      * WHY DEFERRED: all three are PLACEMENT, placement is copper, and this
+        board is at DRC 0/0/0 with an md5 unchanged across five analysis rounds.
+        Re-placing the eFuse cell invalidates a route that measures 0/0/0 —
+        that is a design revision, not a seal step. **CARRIED AS THE NAMED
+        v-next LAYOUT ITEM for the eFuse cell: pull C_EFIN, R_OVT/R_OVB and
+        R_ILM hard against U_EFUSE pins 3, 2 and 7.** It belongs in the same
+        copper revision as ADR-0027's deferred 5 V pour and ADR-0028's tab-via
+        item, and a waiver that said "three rail spans" would have hidden all
+        three of these behind a metric complaint.
 
 - id: P-ADJ-UNREACHED
   why: >-
@@ -128,11 +159,50 @@
 #     waiver yet — fleet harvest #44); they make the ignore transparent + auditable.
 - id: SILK-OVER-COPPER
   why: >-
-    silk_over_copper ignored: the reed-relay DIP body-outline silk overlays the THT
-    reed pads inherent to the DIP05-1A72-13L footprint (12 relays) — the outline is
-    the assembly body marker, unavoidable over the part's own pads; no OTHER-part or
-    functional silk is over copper. Real silk-over-PAD was caught + fixed separately
-    (ANALOG SENSE label relocated off U_ADC pads 1&16). Render-review backstops.
+    *** RE-EVIDENCED 2026-07-30 (ADR-0028 pass). THE PREVIOUS TEXT ASSERTED
+    SOMETHING FALSE OF THIS BOARD, AND THE FIX IT CITED IS WHAT CREATED THE
+    EXCEPTION IT DENIED. *** It said "no OTHER-part or functional silk is over
+    copper" and cited the ANALOG SENSE relocation as the remedy. MEASURED by me,
+    by RE-RUNNING DRC ON A SCRATCH COPY WITH ALL NINE `ignore` SEVERITIES FLIPPED
+    TO `warning` (the only way to see a class this waiver holds at `ignore`;
+    `kicad-cli pcb drc --severity-all --refill-zones`, RAW_EXIT 0, 255 findings
+    of which 199 are `lib_footprint_issues`): **49 `silk_over_copper`, and they
+    are 48 + 1, not 49 of one kind.**
+      * 48 of 49 ARE the claimed class and the claim holds for them: the twelve
+        reed DIP body outlines over their OWN THT pads, exactly 4 per relay
+        (K_U1..U6, K_D1..D4, K_PRESS, K_STOP), pads 1-4 = 5V_KEY_RELAY /
+        COIL_*_N / KP_* / *_SEL_BUS. Inherent to the DIP05-1A72-13L footprint,
+        the outline IS the assembly body marker, and it is over the part's own
+        pads. Unavoidable without deleting the body marker.
+      * **1 of 49 IS EXACTLY WHAT THE OLD SENTENCE SAID DOES NOT EXIST:**
+        `PCB text 'ANALOG SENSE (3V3_ANALOG)' on F.Silkscreen` against
+        `Pad 3 [SWG_A] of Q_SWDRVA on F.Cu` — a FUNCTIONAL board label, an SMD
+        pad, and a DIFFERENT part from the one the label belongs to. The same
+        text also produces BOTH of the board's two `silk_overlap` findings
+        (against Q_SWDRVA's polygon and its segment on F.Silkscreen). The
+        relocation that moved this label off U_ADC pads 1 & 16 landed it on
+        Q_SWDRVA.3.
+    THE CLAIM IS THEREFORE CORRECTED RATHER THAN CARRIED, and the honest
+    statement is narrower: silk_over_copper is ignored because 48 of 49 findings
+    are a footprint-inherent body marker over its own pads, and the 49th is ONE
+    functional label overlapping ONE SMD pad on a neighbouring part.
+    WHY THE 49TH IS NOT A BOARD DEFECT, MEASURED rather than argued: silkscreen
+    ink over a pad is a SOLDERABILITY and legibility question, and `SWG_A` is
+    the AO3401A gate node on a switched 3V3 sensor rail carrying 31.4 mA — not a
+    power pad, not a fine-pitch pad, and not a polarity or pin-1 marker (the
+    label is a rail NAME). JLC prints silk AFTER solder mask, so ink over an
+    exposed pad is trimmed by the mask aperture in fabrication rather than
+    landing on the metal.
+    WHY IT IS NOT FIXED IN THIS PASS, said plainly instead of implied: moving
+    the label is a SILK change, silk is copper-adjacent source, and this board
+    is at DRC 0/0/0 with `04_kicad/cooksense.kicad_pcb` md5
+    9f4fd5fae810f40a52b1035df727243c unchanged across five analysis rounds. This
+    pass is explicitly not a copper pass and not a seal pass. **CARRIED AS A
+    NAMED v-next SILK ITEM: relocate `ANALOG SENSE (3V3_ANALOG)` clear of
+    Q_SWDRVA — and this time re-measure the DESTINATION with the severities
+    flipped, because that is precisely the step the first relocation skipped.**
+    Render-review backstops legibility; it does not backstop this, which is why
+    the number above comes from DRC and not from a lens.
 - id: SILK-EDGE-CLEARANCE
   why: >-
     silk_edge_clearance ignored: the 252x92mm board packs dense edge connectors

@@ -54,6 +54,51 @@ gotchas:
     NOT fixed in v1.3 - swapping five footprints after the DRC gate was
     measured is not worth invalidating that gate for a cosmetic assertion.
     Carried as a v1.4 item.
+limits:
+  # ADDED 2026-07-30, ADR-0028 Decisions 4+5. Until now this dossier recorded
+  # the PINNING at length and NO RATINGS AT ALL -- the only protection part on
+  # this board with no `limits:` block -- while D_ESD_IN sits on `5V_IN`,
+  # DIRECTLY ACROSS THE INPUT, ahead of the polyfuse and ahead of the eFuse,
+  # with nothing in series. MEASURED from the netlist:
+  # `5V_IN = {J_PWR.1, F1.1, D_ESD_IN.1}`.
+  # All four rows below MEASURED by a reviewer from the ARCHIVED Nexperia
+  # PESD5V0S1BA_2024-04-26.pdf, Table 6 (Characteristics), 2026-07-30.
+  vrwm_max_V: 5.0                 # reverse standoff voltage
+  vbr_min_V: 5.5                  # breakdown, I_R = 1 mA, 25 C
+  vbr_max_V: 9.5
+  irm_at_vrwm_max_nA: 100         # 5 nA typ, at VRWM 5 V, 25 C
+  vcl_V: 10.0                     # clamping voltage at I_PP = 1 A
+  derating_note: >
+    THIS PART IS OPERATED ABOVE ITS STAND-OFF ON THIS BOARD, AND THE NUMBER
+    THAT MATTERS IS 250 mV. ADR-0021's sanctioned supply ceiling is 5.25 V:
+    that is 105 % of VRWM (5.0 V max) and only 250 mV below VBR MIN (5.5 V).
+    Leakage at 5.25 V is UNSPECIFIED -- a two-point exponential fit between the
+    datasheet's own 100 nA at 5.0 V and 1 mA at 5.5 V gives ~10 uA, which is
+    harmless and is an ESTIMATE, not a citation. This is the LOWEST-BREAKDOWN
+    clamp on the board: 0.9 V below D_TVS's SMBJ5.0A V_BR 6.40 V and below the
+    eFuse's earliest guaranteed OVLO trip of 5.3682 V -- and OVLO disconnects
+    the LOAD, which is on the wrong side of this part. So above ~5.5 V (the
+    mis-selected-adapter case ADR-0021 exists to bound) THE FIRST DEVICE TO
+    CONDUCT ON THIS BOARD IS A SOD-323 WITH NO FUSE, NO eFUSE AND NO SERIES
+    RESISTANCE IN ITS PATH.
+  placement_verdict: >
+    DEFENSIBLE AS PRACTICE, UNDOCUMENTED AS A DECISION, UNDER-DERATED AS A PART
+    (ADR-0028 Decision 5). The POSITION is right: an ESD clamp belongs at the
+    connector so the strike does not traverse the board. This board's own
+    invariant for the OTHER shunt clamp -- `electrical_invariants.yaml` pins
+    `D_REVCLAMP.1` on `5V_FUSED` because "on 5V_IN the clamp current bypassed
+    the fuse and was bounded only by the supply" -- reads as contradicting it,
+    but does not: D_REVCLAMP is a CROWBAR for a SUSTAINED reverse fault and must
+    trip F1, while D_ESD_IN is for a nanosecond event that must not be routed
+    through the board first. Two jobs, correctly two positions. What is NOT
+    defensible is that neither the position nor the 5.5-vs-5.25 V derating is
+    recorded anywhere, no invariant pins the node, and this block did not exist.
+    DISPOSITION: v-next PART change, not a v1.7 blocker -- a 6.0 V or 6.8 V
+    stand-off SOD-323 (PESD6V8 family) restores the derating at zero layout
+    cost, zero copper and zero netlist change. Recorded rather than fixed
+    because it is a BOM change on a board whose fab set is otherwise invariant.
+    It is a REAL FINDING and it is not closed by this argument; the numbers are
+    now here so the trade is evaluable, which is what was missing.
 verified: >
   Pinning read from the ARCHIVED Nexperia datasheet (section 5, Table 2) on
   2026-07-26: both pins are cathodes, the device is bidirectional, orientation

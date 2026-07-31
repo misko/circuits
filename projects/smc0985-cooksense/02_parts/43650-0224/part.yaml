@@ -18,7 +18,45 @@ pins:                             # 2 signal + 2 mechanical tabs (KiCad pad name
   1: {name: P1, note: "pin 1 marked on housing; the polarizing peg keys the mating plug (cannot mate reversed). Assign +5V vs RTN in the schematic and keep the silk polarity mark."}
   2: P2
   MP: {name: MP, tie: GND, note: "two SMD solder tabs (footprint pad 'MP' x2 = one common node), mechanical retention only, no current — reflow to GND copper"}
-limits: {current_per_contact: "5.0A (this SKU, UL); Micro-Fit 3.0 series up to 8.5A/circuit subject to wire gauge + circuit-count derating", voltage: "250V (UL) / 600V working per series spec", temp_range: "-40..+105C", reflow: "LCP housing, 265C IR-reflow capable"}
+limits:
+  current_per_contact: "5.0A (this SKU, UL); Micro-Fit 3.0 series up to 8.5A/circuit subject to wire gauge + circuit-count derating"
+  voltage: "250V (UL) / 600V working per series spec"
+  temp_range: "-40..+105C"
+  reflow: "LCP housing, 265C IR-reflow capable"
+  # ADDED 2026-07-30, ADR-0028 Decision 3. THIS ROW EXISTS BECAUSE ITS ABSENCE
+  # WAS LOAD-BEARING. ADR-0021 specifies this board's supply "measured AT THE
+  # CONNECTOR under full load"; ADR-0027's 328.29 mOhm series sum starts at the
+  # PCB pad `J_PWR.1`. What separates those two nodes is this mating interface,
+  # and it was in NO sum, in no OWED list, and not in this block -- worth
+  # 8.1-24.1 mV against a +29.1 mV dropout margin, i.e. 28-83 % of it. Worse,
+  # it had already been found once: ORDER_README §13 P1-B's earlier ladder
+  # carried a "with the connector" row THAT WENT NEGATIVE, and the pass that
+  # re-measured the copper half upward dropped the connector half silently.
+  contact_resistance_initial_max_mohm: 10
+  contact_resistance_aged_max_mohm: 30
+  contact_resistance_note: >
+    CITED (initial): "Contact Resistance (max.) 10 milliohms", stated identically
+    in Molex's Micro-Fit 3.0 Connector System family literature 987650-5984.pdf
+    (Electrical section, beside "Current (max.) 8.5 A" and "Mates With ... Header
+    (Series 43650)") and on the Molex 43030/43031 crimp-terminal sales drawings
+    ("Contact Resistance 10 milliohms max.", Product Specification PS-43045 /
+    PS-43650). Read 2026-07-30.
+    INHERITED, NOT RE-VERIFIED (aged): PS-43650-001 additionally allows <=20
+    mOhm CHANGE FROM INITIAL after durability / thermal-aging / vibration /
+    shock, hence 30 mOhm/contact as the end-of-life bound. Taken from a web
+    search summary -- molex.com would not serve the PDF (three fetch attempts
+    timed out). The 10 mOhm figure is CITED; the 30 is not.
+    HOW TO SPEND IT: this is a 2-circuit power connector, so BOTH legs of the
+    5 V loop cross a contact (supply at J_PWR.1, return at J_PWR.2) and the
+    series term is 2 x R_contact carried at the WHOLE-BOARD current, not at the
+    LDO branch current. At the declared 0.4024 A that is 8.05 mV initial /
+    24.14 mV aged. It also moves ADR-0027's published break-even:
+    LDO_DROPOUT_IBOARD_MAX 0.4910 A -> 0.4631 A at 20 mOhm, 0.4154 A at 60.
+    UN-CITABLE and OWED: the contact resistance of THIS build, with these
+    crimps, this wire gauge and this mating-cycle count. The datasheet number is
+    a specification ceiling, not a measurement of the harness that will be
+    fitted. Bench it in the same G4 session that owes theta_JA and the AMS1117
+    dropout at 0.2 A (ADR-0028 Decision 7).
 gotchas:
   - "SMD VERTICAL (footprint is (attr smd), all pads on F.Cu/F.Mask/F.Paste) — this dash-number is surface-mount, NOT through-hole; retained by 2 SMD solder tabs + a PCB polarizing peg"
   - "keyed/polarized housing prevents reverse mating; pin 1 marked. Mates with a Micro-Fit 3.0 receptacle housing (e.g. 43645-0200) + 43030-series crimp terminals"

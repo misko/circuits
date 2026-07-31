@@ -141,11 +141,41 @@ consigned: []
 # Populated at seal time from verification/stock_check.json. An empty list here
 # means EVERY coded, placed line cleared stock >= qty x build_quantity on its
 # own; any line that did not MUST appear here with a measured number and a date.
+# WATCH LIST — thinning but NOT blocking, so deliberately NOT `sourcing_plan:`
+# entries (every line below clears a 5x floor for a small build today). MEASURED
+# 2026-07-31T03:02Z, my own urllib client against selectSmtComponentList, both
+# controls in the same run (POSITIVE C6186 -> 1,615,670; NEGATIVE C99999999 ->
+# NO_EXACT_MATCH). Recorded here because a falling line is a fact with a date,
+# and because canon says volatile stock never enters `02_parts/*/part.yaml`.
+#
+#   C587657   Molex 436500224   J_PWR   1/board   stock  70  MOQ 1  expand
+#       **130 (archive) -> 80 (07-30 lens) -> 70 (07-31T03:02Z).** The steepest
+#       faller on this BOM and a SINGLE-SOURCE connector: the only listed
+#       fallback, Molex 43650-0215 (C293740), is THROUGH-HOLE and therefore
+#       changes the footprint and the CPL. A footprint change is a copper
+#       change, so this line has no drop-in second source -- watch it, and if it
+#       reaches the build quantity re-specify BEFORE it reaches zero, not after.
+#   C2653844  TPS259573DSGR     U_EFUSE 1/board   stock 103  MOQ 1  expand
+#   C407739   26.1k 0.5% 0402   R_OVB   1/board   stock 227  MOQ 1  expand
+#   C89650    MF-MSMF200L-2     F1      1/board   stock 232  MOQ 1  expand
+#
 sourcing_plan:
   - lcsc: C265111
     refs: [J_THERM_A, J_THERM_B]
     measured_stock: 0          # RE-MEASURED 2026-07-31T02:17:24Z at the v1.7
-    measured_on: 2026-07-31     # re-gate-3 seal attempt, with my own urllib
+    # *** DATE CONVENTION, DECLARED 2026-07-30 (ADR-0028 pass), because ONE
+    # FACT WAS CARRYING TWO CONVENTIONS AND THAT IS WHAT `ORDER-DECL-UNDATED`
+    # WAS FIRING ON. `measured_on:` read 2026-07-31 (the UTC date of the
+    # instant) while MANIFEST.txt and ORDER_README.md read 2026-07-30 (the
+    # repo's LOCAL date), so a gate comparing them saw a one-day disagreement
+    # about a measurement taken at 19:17 local. **THIS PROJECT DATES IN LOCAL
+    # TIME** — every ADR, CHANGELOG entry and release directory in this tree
+    # already does — and the UTC INSTANT is preserved in the comment above,
+    # where it is unambiguous and cannot be compared against a local date by
+    # accident. A date field is a JOIN KEY between three files; an instant is
+    # evidence. Do not put an instant in the key.
+    measured_on: 2026-07-30     # LOCAL date of 2026-07-31T02:17:24Z. The
+                                # re-gate-3 seal attempt, with my own urllib
     # client and BOTH controls (C2040 -> 63064, C99999999 -> no exact-code row;
     # substitute C42376901 -> 5993 / MOQ 1). **STOCK WENT 5 -> 0 DURING THE
     # PASS**, on a board whose md5 did not move, and that is the cleanest
@@ -154,6 +184,23 @@ sourcing_plan:
     # (0 on 2026-07-29, 5 on 2026-07-30, 0 on 2026-07-31). The BLOCKING fact
     # was never the stock: minPurchaseNum 21 has been above stock at every
     # reading. WATCH 21, NOT 10.
+    #
+    # FOURTH READING, 2026-07-31T03:02Z (ADR-0028 pass): **stock is back to 5**,
+    # MOQ **21**, lib `expand`, brand JST, mpn `SM08B-GHS-TB(LF)(SN)`. MEASURED
+    # by me with my own urllib client against selectSmtComponentList, with both
+    # controls in the same run (POSITIVE C6186 -> 1,615,670; NEGATIVE C99999999
+    # -> NO_EXACT_MATCH over 25 fuzzy rows). The graded `measured_stock: 0` /
+    # `measured_on: 2026-07-31` fields above are LEFT AS THEY ARE: they are
+    # cross-checked against MANIFEST.txt and ORDER_README.md by
+    # release_freshness_check.py, this pass is not a seal pass, and the reading
+    # they record was true when taken. THE SEQUENCE IS NOW
+    # 0 (07-29) -> 5 (07-30) -> 0 (07-31T02:17Z) -> 5 (07-31T03:02Z) -- four
+    # readings, two reversals, 45 minutes between the last two, on a board whose
+    # md5 has not moved. **THE VERDICT IS UNCHANGED IN EITHER DIRECTION BECAUSE
+    # THE BLOCKER IS NOT THE STOCK**: minPurchaseNum 21 exceeds every reading
+    # taken, so the line cannot be bought AS SEALED at any quantity on any of
+    # these four days. Anyone re-reading 5 and calling it recovery has watched
+    # the wrong number. RE-MEASURE ON ORDER DAY; do not carry any of these.
     # canon A-BUY: 5 does not cover 2 x 5 boards = 10, so this entry MUST
     # classify itself. (The ID is A-BUY and NOT A-ORDER: `rules_audit.py`'s
     # A-ORDER has meant "generate_rules runs LAST, because a pcbnew save
@@ -259,14 +306,33 @@ sourcing_plan:
            receives (bom_jlc.csv and cpl_jlc.csv upload in the assembly step),
            so that instruction would have shipped the unbuyable part. Fixed;
            the finding is RG-P1-1.
-           TAB PAD SIZE, the term the residual is blind to (RG-P2-2): board
-           1.000 x 2.700, genuine JLC land 1.210 x 2.700, clone 1.000 x 2.500.
-           The board's retention tab is 17.4% NARROWER than JLC recommends for
-           the genuine part and matches the CLONE exactly, so '(the board's
-           footprint IS the genuine part's land)' is true on the eight signal
-           pads and FALSE on both tabs. Pre-existing library difference; cuts
-           toward the clone, not against it; stated because it sits on the one
-           axis this entry declares unverified.
+           TAB PAD SIZE, the term the residual is blind to (RG-P2-2).
+           *** THE 'MATCHES THE CLONE EXACTLY' READING IS REFUTED. CORRECTED
+           2026-07-30, ADR-0028 pass, from a MEASURED sweep of JLC's cached CAD
+           plus a live EasyEDA fetch. DO NOT RESTORE IT. ***
+
+             pad set        board            genuine C265111   clone C42376901
+             8 signal       0.600 x 1.700    0.600 x 1.700     0.700 x 1.800
+             2 tabs         1.000 x 2.700    1.210 x 2.700     1.000 x 2.500
+
+           The board DISAGREES with the clone on all eight signal pads AND on
+           tab LENGTH (2.700 vs 2.500). It matches the clone on tab WIDTH alone
+           — 1 of 10 pads' full geometry — so the old sentence had it backwards:
+           the board is the GENUINE land on 8 of 10 pads and differs from BOTH
+           vendors on the tabs.
+           CLASS SWEEP, which is what settles it: JLC's own models for the
+           sibling JST GH parts C189896 (SM05B) and C2683602 (SM10B) are
+           1.000 x 2.700 — EXACTLY our land. Two of three vendor models in the
+           same family agree with this board; only C265111 differs, by 0.210 mm
+           of tab width. **THE OUTLIER IS JLC'S MODEL, NOT OUR BOARD.**
+           WHAT SURVIVES THE CORRECTION, unchanged: the tab is 17.4 % narrower
+           than JLC's C265111 land, and that is a RETENTION derate on a pad
+           whose function is mechanical strain relief, not a connection. It
+           stays UNRESOLVED and it stays shippable as UNRESOLVED. What does NOT
+           survive is the RATIONALE — 'we match the clone, so choosing the clone
+           is free' was the sentence doing the reassuring, and it was false. A
+           refuted rationale under a correct verdict is exactly the shape canon
+           M4 calls an inherited defect.
            WHAT IS **NOT** MEASURED, stated plainly because it is the part that
            matters: pad correspondence is not MATE compatibility. The pods are
            third-party SHT45 modules on genuine GH pigtails, and the SHOU HAN

@@ -765,3 +765,55 @@ because nothing superseded it.**
 
 Remaining P2s (a–j, l from topology; 1–5 from layout) are recorded verbatim in
 the two review files, which ship in the candidate's `verification/`.
+
+---
+
+## 2026-07-30 — REVIEW ARCHIVE RESCUE + CONTRACT-NAME PROVENANCE (ADR-0028 pass)
+
+**FIVE reviews existed only under `06_build/` — the folder this repo declares
+THROWAWAY — or only in a session scratchpad.** None was byte-identical to
+anything in this folder (checked by md5 against every `08_reviews/*.md`). They
+are now archived VERBATIM here; the md5 of each archived copy equals the md5 of
+its source, so "verbatim" is a measurement and not a claim.
+
+| archived as | md5 | design_verdict | where it was found |
+|---|---|---|---|
+| `..._redteam_topology_REGATE2b.md` | `936dcec0…` | **DEFECTIVE** | a session scratchpad ONLY. It had been written to the contract name `redteam_topology.md` and was then DISPLACED by a later review. One more scratchpad clean and the round-2 DEFECTIVE topology verdict would not have existed anywhere. |
+| `..._redteam_topology_REGATE3.md` | `ed78477e…` | **DEFECTIVE** | staging `verification/`, dated name |
+| `..._redteam_topology_REGATE3b.md` | `af10f549…` | SOUND | staging `verification/`, occupying the contract name `redteam_topology.md` |
+| `..._redteam_layout_REGATE3.md` | `680229e7…` | **DEFECTIVE** | staging `verification/`, dated name |
+| `..._redteam_layout_REGATE3b.md` | `b487fd16…` | SOUND | staging `verification/`, occupying the contract name `redteam_layout.md` |
+
+**WHICH REVIEW EACH CONTRACT NAME CARRIES, STATED PLAINLY BECAUSE M-REV READS
+ONLY THOSE TWO NAMES.** As of this pass both contract-named files carry **SOUND**
+reviews (`REGATE3b` topology, `REGATE3b` layout), while **two `DEFECTIVE`
+re-gate-3 lenses sit beside them under dated names** (`REGATE3` topology,
+`REGATE3` layout). A gate that parses one filename cannot see the other four
+documents, so the archive is where the disagreement has to be legible.
+
+**THIS PASS DOES NOT RESOLVE WHICH VERDICT GOVERNS, AND THAT IS DELIBERATE** —
+choosing what the contract name carries IS the seal decision, and this pass is
+explicitly not a seal pass and not a re-gate. What it does is make the choice
+IMPOSSIBLE TO MAKE BY ACCIDENT: five documents, five md5s, five verdicts, all in
+the append-only folder, none of them reachable only through a build directory.
+
+**THE TWO TOPOLOGY LENSES DISAGREE ON SEVERITY, NOT ON FACTS.** Both found the
+`power_tree.yaml` dissipation worked example computing at `0.150 A` — a key
+`power_topology.py` does not read — and publishing `Tj 107.9 °C / 17.1 °C
+margin` against the graded `117.08 °C / 7.92 °C`. `REGATE3` graded it **P0**
+(a load-bearing number WRONG in the canonical file); `REGATE3b` graded it
+**P1**. Same measurement, same arithmetic, different severity. **It is fixed
+either way** (ADR-0028 Decision 1, plus the `LDO_TJ_WORKED_EXAMPLE` bound that
+regenerates all four numbers from the graded keys and goes red in both drift
+directions), so the severity split changes nothing about the remedy and is
+recorded here for the re-gate to settle rather than argued.
+
+| # | Finding (severity) | Disposition | Evidence / change |
+|---|---|---|---|
+| RG3-T-P0/P1-1 | worked example reads `linear_rails[5V_KEY_RELAY].iout_max_A` (0.150 A), publishing a thermal margin **2.16×** the true one, and re-asserts a `+3.8 °C` excursion ADR-0027 §4 deletes. Graded **P0** by `REGATE3`, **P1** by `REGATE3b`. | **FIXED** — recomputed from `rails[3V3]`'s own keys; the `+3.8 °C` line deleted, not re-argued. Made structural: a `worked_example:` line is the only second copy and a bound regenerates it. | ADR-0028 Decision 1; bound `LDO_TJ_WORKED_EXAMPLE` CITED, red-tested in BOTH drift directions (revert the line → 999; move the key → 999). |
+| RG3-T-P1-1 | the series sum starts at a PCB pad while ADR-0021 specifies the supply AT THE CONNECTOR — 20–60 mΩ of Micro-Fit contact resistance, **28–83 % of the whole margin**, in no sum, no dossier and no OWED list. The prior round's ORDER_README ladder already had a "with the connector" row **that went negative**. | **RECORDED + DOSSIER FIXED.** The node ambiguity is NOT resolved by this pass (it is an ADR-0021 question); the resistance is now in `02_parts/43650-0224/part.yaml` `limits:` with CITED and INHERITED graded apart, so the next sum cannot omit it by not knowing. | ADR-0028 Decision 3 + the margin-vs-ambient ladders. |
+| RG3-T-P1-3 | `D_ESD_IN` (PESD5V0S1BA) is the lowest-breakdown clamp on the board, `V_BR` **min 5.5 V** against a 5.25 V ceiling, upstream of F1 and the eFuse with nothing in series, and its dossier had **no `limits:` block at all**. | **JUDGED, NOT WAIVED:** placement DEFENSIBLE (ESD belongs at the connector; `D_REVCLAMP`'s downstream rule is about a SUSTAINED crowbar that must trip F1 — different job); derating NOT defensible; `limits:` added; a 6.0/6.8 V stand-off SOD-323 recorded as a v-next part change. | ADR-0028 Decision 5; `02_parts/PESD5V0S1BA/part.yaml` `limits.derating_note` + `limits.placement_verdict`. |
+| RG3-T-P1 (coil) | the ADR-0023 reed pull-in invariant still carried `v_il_max 0.540 / vdd 4.740` derived from a rail floor ADR-0027 re-derived to **4.691 V** — a SAFETY gate **49 mV too loose in the PERMISSIVE direction**, which would have accepted a coil at 4.151 V against a 4.200 V must-operate. | **FIXED** — 0.491 / 4.691 propagated, both margin tables re-derived (all rows still positive, +0.445 V at +70 °C), `K_STOP`'s insensitivity claim corrected rather than carried. Made structural. | ADR-0028 Decision 8; bound `COIL_PULLIN_BUDGET` CITED, red-tested (revert the dossier → 999; and at the stale 0.540 the coil evaluates to 4.151 V, firing B-CORNER). MEASURED node 0.056 V — the board was never at risk, the gate was. |
+| RG3-L-P0 | the 328.29 mΩ series sum derates ONLY the copper; 58 % of it is components at 23 °C / a 70 °C junction / ≤85 °C, and `F1` is a **PTC with no published R-vs-T**. Break-even F1 ×1.82. | **RECORDED, WITH A BOUND ON THE ASSUMPTION.** Citable corrections give +29.1 → +23.1 mV. Bourns' own `Ihold` derating table, inverted under a NAMED assumption, puts `R(85 °C)/R(23 °C)` at **1.0–1.15** and makes ×1.82 imply a 278 °C polymer switching temperature. Still UN-CITABLE; on the bench list. | ADR-0028, the three-grade section. |
+| RG3-L-P1-1 | `Tj = Ta + PD·θ_JA` omits the board's other **0.958 W** — +1.55…+4.65 °C, i.e. **20–59 %** of the declared 7.92 °C margin. | **RECORDED AND CARRIED SEPARATELY**, not folded into a graded number (it is a model output, not a citation). The honest margin at Ta 75 °C is **3.3–6.4 °C**, and the citable ambient ceiling 82.9 °C is known-optimistic by 2.8–4.7 °C. | ADR-0028 thermal ladder + bound `LDO_TA_MAX_CITED`. |
+| RG3-L-P1-2 | ADR-0026's options table for the LDO tab enumerated a 3V3 pour and "state the path", and **never counted the vias** — 6 more in the existing pad is **−18.0 °C/W / +8.4 °C** for no BOM, schematic or netlist change. | **RECORDED as the cheapest item in the options pricing**, for the next copper revision beside ADR-0027's deferred 5 V pour. | ADR-0028 Options (b). |

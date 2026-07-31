@@ -20,14 +20,25 @@ pins:                       # DS p.1 Pinout (PDIP/SOIC top view) — '221 standa
   2: 1B       # section 1 leading-edge trigger, SCHMITT input — PRESS_REQ
   3: 1R_N     # section 1 reset (active-low): LOW terminates/blocks the pulse — OS_CLR_N
   4: 1Q_N     # section 1 Q-bar — PRESS_TIMED_N (latch-freeze + lockout logic)
-  5: 2Q       # section 2 Q (unused)
-  6: 2CX      # section 2 Cext (unused — leave open)
-  7: 2CXRX    # section 2 Rext/Cext (unused — 10k to VCC, never hard-tie the RC node)
+  # *** SECTION 2 IS IN USE. IT IS THE RE-ARM EDGE DETECTOR (ADR-0020). ***
+  # CORRECTED 2026-07-30 (ADR-0028 pass). Every section-2 line below previously
+  # read "unused" and prescribed a tie-off, and **FOLLOWED LITERALLY THE
+  # PRESCRIPTION DESTROYS THE RE-ARM PATH**: `2R_N` tied GND holds section 2
+  # permanently reset, so `REARM_PULSE_N` never fires and the discrete fault
+  # latch can never be cleared — the board locks out after its first fault with
+  # no way back. MEASURED from `source/cooksense.net`, every pin of U_ONESHOT.
+  5: 2Q       # section 2 Q — genuinely unconnected on this board
+  6: 2CX      # section 2 Cext — WIRED: `OS2_C` (section-2 timing cap)
+  7: 2CXRX    # section 2 Rext/Cext — WIRED: `OS2_RC` (section-2 timing node)
   8: GND
-  9: 2A_N     # tie N3V3 (blocks section-2 trigger)
-  10: 2B      # tie GND
-  11: 2R_N    # tie GND (section 2 held in reset)
-  12: 2Q_N    # unused
+  9: 2A_N     # section 2 trailing-edge trigger (active-low) — WIRED: `REARM_N`.
+              # A REARM_N FALLING EDGE is what fires the re-arm pulse.
+  10: 2B      # section 2 leading-edge trigger — WIRED: `3V3` (held high so the
+              # A_N edge is the sole trigger; NOT tied GND)
+  11: 2R_N    # section 2 reset (active-low) — WIRED: `WD_OK`. A watchdog fault
+              # holds section 2 in reset, so re-arm is impossible while the
+              # watchdog is unhappy. THIS IS A SAFETY INTERLOCK, NOT A TIE-OFF.
+  12: 2Q_N    # section 2 Q-bar — WIRED: `REARM_PULSE_N` (clears the fault latch)
   13: 1Q      # section 1 Q — PRESS_TIMED
   14: 1CX     # section 1 Cext
   15: 1CXRX   # section 1 Rext/Cext (timing node: Rx to VCC, Cx between 14-15)
@@ -47,8 +58,20 @@ gotchas:
     must drop PRESS_REQ on abort."
   - "Q is LOW at power-up until first valid trigger — relays locked out until the Pi
     deliberately pulses PRESS_REQ (same safe-boot property the 1G123 had)."
-  - "Unused section 2: 2A_N=VCC, 2B=GND, 2R_N=GND (held reset), 2Q/2Q_N open, 2CX open,
-    2CXRX pulled to VCC via 10k (an RC I/O node — never hard-tie to a rail)."
+  - "*** SECTION 2 IS USED — THE 'UNUSED SECTION 2' GOTCHA WAS DELETED 2026-07-30
+    (ADR-0028 pass) AND IS REPLACED BY THIS ONE. DO NOT RESTORE IT. *** It read
+    'Unused section 2: 2A_N=VCC, 2B=GND, 2R_N=GND (held reset), 2Q/2Q_N open,
+    2CX open, 2CXRX pulled to VCC via 10k'. Every clause is false of this board,
+    and one of them is DANGEROUS: tying 2R_N to GND holds section 2 in permanent
+    reset, so REARM_PULSE_N never fires, the discrete fault latch can never be
+    cleared, and the board is bricked into lockout after its first fault. The
+    dossier is what a future agent reads when 'tidying up an unused section'.
+    MEASURED from source/cooksense.net (all 16 pins): section 2 is the RE-ARM
+    EDGE DETECTOR of ADR-0020 — 2A_N=REARM_N (the trigger, on its FALLING edge),
+    2B=3V3 (held high), 2R_N=WD_OK (a watchdog fault inhibits re-arm — a safety
+    interlock), 2Q_N=REARM_PULSE_N (clears the latch), 2CX=OS2_C, 2CXRX=OS2_RC,
+    2Q genuinely open. The RC-node rule survives and still applies to the
+    SECTION-2 timing network: never hard-tie CXRX to a rail."
 verified: "pin map from DS p.1 Pinout (CD74HC221 PDIP/SOIC top view) + Functional Diagram
   pin numbers (1CX=14, 1CXRX=15, 1Q=13, 1Q_N=4); non-retriggerable statement + tw formula
   from DS p.1; truth table + Note 1 (reset-triggering) from DS p.2 — SCHS166F, 2026-07-24"
