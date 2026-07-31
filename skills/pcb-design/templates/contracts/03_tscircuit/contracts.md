@@ -43,7 +43,9 @@ truncates it to 2 pins, and emits an unannotated sheet that netlists to 0 nets.
 | `manifest.yaml` | hand | `components: [refdes, …]` — the AUTHOR'S declared part list, written with the tsx. The S-COUNT parity base: after a silent tsci drop every generated artifact agrees, only this file disagrees (`count_parity.py`) |
 | `parity_padmap.txt` | hand | documented per-board footprint pad-name deltas consumed by `kicad_sch_parity.py` |
 | `sealed_ref.txt` | hand | one line: the sealed parity reference board, if not `04_kicad/<board>.kicad_pcb` |
-| `build/circuit.json` | gen | tscircuit's canonical intermediate — the single source both audiences compile from |
+| `build/circuit.json` | gen | tscircuit's canonical intermediate — the single source both audiences compile from. **IT IS A COPY, NOT A BUILD OUTPUT**: `tsci build` writes `dist/src/<TSX>/circuit.json` and never writes `build/`, so whoever drives the build MUST copy it here and canon **M-FRESH** (`build_provenance.py verify`) asserts the two are byte-identical before any gate reads it — unconnected, this path holds whatever an earlier run left and nine gates went green on it (2026-07-30) |
+| `build/.tsci_build_marker` | gen | transient: `gen_tscircuit.sh` drops it immediately before `tsci build` and removes it on BOTH exits, so a producer that does not post-date it means the build did not run. A lingering one means a run was killed mid-build — delete it |
+| `dist/**` | gen | `tsci build`'s OWN output tree (`dist/src/<TSX>/circuit.json`). Never read by a gate directly; it is the PRODUCER that M-FRESH resolves independently of the driver, which is what makes the comparison canon-M1 clean |
 | `build/schematic.svg` | gen | tscircuit's native render |
 | `build/schematic.pdf` | gen | **the HUMAN schematic document — SHIP THIS in the release** |
 | `kicad/<board>.kicad_sch` | gen | **the AUTHORITATIVE machine bridge** (our converter, `--mode layout` = wired) |

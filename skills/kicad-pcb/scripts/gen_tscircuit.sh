@@ -56,8 +56,26 @@ step(){ echo "  [$1] $2"; }
 cd "$T" || exit 2
 
 # --- BRIDGE (DEFAULT): circuit.json + human schematic doc ---
-step build "circuit-json";      timeout 240 tsci build "src/$BASE.tsx" >/dev/null 2>&1 \
-  && cp "dist/src/$BASE/circuit.json" "build/circuit.json" 2>/dev/null
+# `tsci build` writes dist/src/<BASE>/circuit.json; build/circuit.json is OURS.
+# This script has no `set -e`, so a swallowed build failure used to leave the
+# PREVIOUS run's build/circuit.json in place and every step below — converter,
+# ERC, parity — then graded superseded content and reported green. That is the
+# 2026-07-30 pluto-rx2-8way-v2 shape (there it was a missing copy rather than a
+# failed one). Refuse loudly instead: the producer must exist and post-date the
+# marker dropped immediately before the build, or nothing downstream may run.
+step build "circuit-json"
+: > build/.tsci_build_marker
+timeout 240 tsci build "src/$BASE.tsx" >/dev/null 2>&1
+PRODUCED="dist/src/$BASE/circuit.json"
+if [ ! -s "$PRODUCED" ] || [ ! "$PRODUCED" -nt build/.tsci_build_marker ]; then
+  echo "    FATAL: tsci build produced no fresh $PRODUCED — REFUSING to run the"
+  echo "           converter/ERC/parity on whatever build/circuit.json holds."
+  echo "           (a stale artifact makes every gate below green and wrong)"
+  rm -f build/.tsci_build_marker
+  exit 4
+fi
+cp "$PRODUCED" "build/circuit.json"
+rm -f build/.tsci_build_marker
 step export "schematic-svg";    timeout 240 tsci export "src/$BASE.tsx" -f schematic-svg -o "../build/schematic.svg" >/dev/null 2>&1
 step export netlist;            timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
 

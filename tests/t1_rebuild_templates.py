@@ -21,18 +21,36 @@ The properties pinned here are each a paid-for incident:
   * rebuild_reuse.sh never invokes tsci/tsci-build — `tsci build` is
     non-deterministic (~2900-line UUID/ordering churn in the regenerated
     .kicad_sch, measured on crow-rv2); the committed sch is PINNED canonical.
+  * rebuild_all.sh hands the converter the artifact `tsci build` ACTUALLY
+    WROTE (M-FRESH, 2026-07-30 — see below).
+
+M-FRESH (2026-07-30, pluto-rx2-8way-v2). `tsci build` writes
+`03_tscircuit/dist/src/<TSX>/circuit.json`; this template read
+`03_tscircuit/build/circuit.json`, a path the builder never writes. The
+converter consumed a SUPERSEDED file and TSX-PRE, S-NETMERGE, E-INV, E-ADR,
+E-TOPO, E-MARGIN, S-COUNT, E-NETREF and M-BOM all reported green against an
+entire obsolete pad-numbering scheme. No checker was wrong — they graded
+exactly what they were handed. The path fix alone is worth nothing (the next
+mis-wiring is free), so the driver now stamps before the build and VERIFIES
+after it, via `skills/kicad-pcb/scripts/build_provenance.py`. The known-bads
+below drive that checker directly, because a template-text assertion can only
+prove the wiring is right today.
 """
+import json
+import os
 import re
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (ROOT, check, contains, main, not_contains, run,  # noqa: E402
-                     test)
+from harness import (ROOT, SCRIPTS, KPY, check, contains, main,  # noqa: E402
+                     must_fail, must_pass, not_contains, run, test, tmpdir)
 
 TPL_DIR = ROOT / "skills" / "pcb-design" / "templates" / "03_src"
 REUSE = TPL_DIR / "rebuild_reuse.sh"
 ALL = TPL_DIR / "rebuild_all.sh"
+PROV = SCRIPTS / "build_provenance.py"
 
 
 def drc_gate_ok(txt):
@@ -56,6 +74,40 @@ def rules_last_after_stitch(txt):
     if not (rules and stitch and imp):
         return False
     return rules[-1] > stitch[-1] and rules[0] < imp[0]
+
+
+# ------------------------------------------------------------------ M-FRESH
+def _expand(txt):
+    """Expand the driver's own top-level `NAME=value` assignments.
+
+    Enough shell to resolve `$CJ`, `$TSX`, `$BOARD` in path arguments; anything
+    fancier is out of scope and shows up as an unexpanded `$` (which the
+    wiring check treats as UNRESOLVED, never as satisfied)."""
+    env = dict(re.findall(r'^([A-Z][A-Z0-9_]*)=([^\s#]+)', txt, re.M))
+    for _ in range(3):
+        for k, v in env.items():
+            txt = txt.replace(f'"${k}"', v).replace(f"${{{k}}}", v).replace(f"${k}", v)
+    return txt
+
+
+def circuit_json_wiring(txt):
+    """(consumed, produced) — the circuit.json paths this driver FEEDS to
+    downstream tools, and the ones it WRITES from the builder's output tree.
+
+    The 2026-07-30 defect is exactly `consumed - produced != {}`: the converter
+    was fed `03_tscircuit/build/circuit.json`, which `tsci build` never writes
+    and which nothing in the driver copied there."""
+    t = _expand(txt)
+    consumed = set()
+    for tool in (r"circuit_json_to_kicad_sch\.py", r"bom_source_check\.py"):
+        for m in re.finditer(tool + r'"?((?:\s+--?\S+)*\s+)(\S*circuit\.json)', t):
+            consumed.add(m.group(2).strip('"\''))
+    produced = set()
+    for m in re.finditer(r'^\s*cp\s+"?(\S*?dist/\S*circuit\.json)"?\s+"?(\S*circuit\.json)"?',
+                         t, re.M):
+        produced.add(m.group(2).strip('"\''))
+    produced |= {c for c in consumed if "dist/" in c}   # reading dist/ directly is fine
+    return consumed, produced
 
 
 # ---------------------------------------------------------- clean cases
@@ -147,6 +199,317 @@ def t_kb_drc_flag_teeth():
     check(mutated != txt, "mutation did not change the template")
     check(not drc_gate_ok(mutated),
           "the DRC-flag check ACCEPTED a gate without --schematic-parity")
+
+
+# ============================================================ M-FRESH: wiring
+@test("rebuild_all.sh: every circuit.json the driver GRADES is one the builder "
+      "WROTE (the 2026-07-30 silent-staleness defect)")
+def t_converter_reads_what_the_builder_wrote():
+    consumed, produced = circuit_json_wiring(ALL.read_text())
+    check(consumed, "the driver feeds no circuit.json to any tool at all — "
+                    "the wiring check has lost its subject")
+    orphans = sorted(consumed - produced)
+    check(not orphans,
+          f"the driver grades {orphans}, which nothing in it writes from "
+          f"03_tscircuit/dist/. `tsci build` writes dist/src/<TSX>/circuit.json "
+          f"and NOTHING ELSE; a path it never writes holds whatever an earlier "
+          f"run left there, and every gate below then reports green on "
+          f"superseded content.")
+
+
+@test("the wiring assertion has TEETH: the PRE-FIX template (converter fed "
+      "build/circuit.json with no copy) is rejected", kind="known_bad")
+def t_kb_wiring_teeth():
+    """RED-VERIFIED against the pre-fix template, reconstructed here rather
+    than described: delete the `cp dist/... $CJ` line — which is byte-for-byte
+    what `skills/pcb-design/templates/03_src/rebuild_all.sh` looked like on
+    2026-07-30 — and `t_converter_reads_what_the_builder_wrote` must reject it.
+
+    MEASURED, not asserted, and RE-MEASURED 2026-07-30 at 221687ef. The real
+    pre-fix file was swapped back in
+    (`git show e50be3f:skills/pcb-design/templates/03_src/rebuild_all.sh`) and
+    this suite rerun — **17 passed, 3 FAILED** — and `circuit_json_wiring` on
+    those bytes returned:
+
+        consumed = ['03_tscircuit/build/circuit.json']
+        produced = []            -> orphans = ['03_tscircuit/build/circuit.json']
+
+    versus produced == consumed (0 orphans) on the fixed template. The three
+    reds were this test, the clean wiring test above, and the M-FRESH ordering
+    test. THIS one goes red for the right reason: on a template with no `cp`
+    from dist/ there is nothing to delete, so the mutation is a no-op and the
+    `mutated != txt` guard fires. Restored after."""
+    txt = ALL.read_text()
+    mutated = re.sub(r'^\s*cp\s+"?\S*dist/\S*circuit\.json"?[^\n]*\n', "",
+                     txt, flags=re.M)
+    check(mutated != txt, "mutation did not change the template — the copy "
+                          "from dist/ is gone already")
+    consumed, produced = circuit_json_wiring(mutated)
+    check(consumed - produced,
+          "the wiring check ACCEPTED a driver that grades a circuit.json its "
+          "builder never wrote — it is blind to the exact defect it exists for")
+
+
+@test("rebuild_all.sh: M-FRESH stamps BEFORE the build and verifies AFTER it, "
+      "before the first gate can report green")
+def t_mfresh_ordering():
+    t = ALL.read_text()
+    stamp = re.search(r'build_provenance\.py"?\s+stamp', t)
+    build = re.search(r'^\s*\(\s*cd 03_tscircuit && tsci build', t, re.M)
+    verify = re.search(r'build_provenance\.py"?\s+verify', t)
+    conv = re.search(r'circuit_json_to_kicad_sch\.py', t)
+    check(stamp and build and verify and conv,
+          "the driver is missing one of stamp / tsci build / verify / converter")
+    check(stamp.start() < build.start(),
+          "M-FRESH stamp must run BEFORE the build — a witness written by the "
+          "build is not a witness (canon M1), and the knob check has to fire "
+          "before anything is produced")
+    check(build.start() < verify.start() < conv.start(),
+          "M-FRESH verify must sit between the build and the converter: after "
+          "it there is an artifact to compare, and before it no gate has yet "
+          "graded anything")
+
+
+# ==================================================== M-FRESH: the checker
+def _scratch(name="pluto_x", board=None, tsx=None):
+    """A minimal project tree the checker can grade without bun/tsci/kicad."""
+    d = tmpdir("mfresh_")
+    (d / "03_src").mkdir(parents=True)
+    (d / "03_tscircuit" / "src").mkdir(parents=True)
+    (d / "03_tscircuit" / "src" / f"{name}.tsx").write_text("export default 1\n")
+    (d / "03_tscircuit" / "package.json").write_text('{"name":"scratch"}\n')
+    (d / "04_kicad").mkdir()
+    (d / "06_build").mkdir()
+    # an ADOPTED driver: it calls the checker, so its runs leave evidence and
+    # `audit` grades it rather than filing it under OWED.
+    (d / "03_src" / "rebuild_all.sh").write_text(
+        f"#!/bin/bash\nBOARD={board or name}\nTSX={tsx or name}\n"
+        f'$PY "$S/build_provenance.py" stamp . --board "$BOARD" --tsx "$TSX"\n')
+    return d
+
+
+def _produce(d, name, payload):
+    """Stand in for `tsci build`: write dist/src/<name>/circuit.json."""
+    p = d / "03_tscircuit" / "dist" / "src" / name / "circuit.json"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(payload))
+    return p
+
+
+def _stamp(d, name):
+    return run([KPY, PROV, "stamp", d, "--board", name, "--tsx", name])
+
+
+def _verify(d, name, artifact):
+    return run([KPY, PROV, "verify", d, "--board", name, "--tsx", name,
+                "--artifact", artifact])
+
+
+@test("M-FRESH passes when the converter input IS the builder's output")
+def t_mfresh_clean():
+    d = _scratch()
+    must_pass(_stamp(d, "pluto_x"), "M-FRESH stamp on a well-formed project")
+    time.sleep(0.01)
+    src = _produce(d, "pluto_x", {"pads": "vendor-order"})
+    dst = d / "03_tscircuit" / "build" / "circuit.json"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(src.read_bytes())
+    r = must_pass(_verify(d, "pluto_x", dst), "M-FRESH verify on a copied build")
+    contains(r.out, "M-FRESH PASS", "verify output")
+    contains(r.out, "byte-identical", "verify output")
+
+
+@test("M-FRESH FAILS on the pluto-rx2-8way-v2 incident: the converter input is "
+      "a SUPERSEDED file the builder never wrote", kind="known_bad")
+def t_kb_mfresh_the_incident():
+    """THE ACCEPTANCE FIXTURE. This reconstructs 2026-07-30 exactly:
+    `build/circuit.json` holds an obsolete pad-numbering scheme from an earlier
+    run, `tsci build` writes the corrected one to `dist/src/<TSX>/`, and the
+    converter is handed `build/`.
+
+    RED-VERIFIED by mutation, MEASURED 2026-07-30 at 221687ef: with the
+    content comparison in `cmd_verify` disabled (`if a != b:` -> `if False:`)
+    the suite went **18 passed / 2 FAILED** — this test and the touch test
+    below, and nothing else. Restored after.
+
+    Before `build_provenance.py` existed there was no command to run here at
+    all, and the pipeline that DID run on these exact semantics reported
+    TSX-PRE, S-NETMERGE, E-INV, E-ADR, E-TOPO, E-MARGIN, S-COUNT, E-NETREF and
+    M-BOM all green. The last assertion below pins why: the stale bytes are
+    perfectly well-formed circuit-json, so every downstream checker parses and
+    passes them. Freshness is not a property any of them can see, which is why
+    it needed its own gate rather than a fix inside one."""
+    d = _scratch()
+    stale = d / "03_tscircuit" / "build" / "circuit.json"
+    stale.parent.mkdir(parents=True, exist_ok=True)
+    stale.write_text(json.dumps({"pads": "invented-order"}))     # the superseded scheme
+    must_pass(_stamp(d, "pluto_x"), "M-FRESH stamp")
+    time.sleep(0.01)
+    _produce(d, "pluto_x", {"pads": "vendor-order"})             # what the build made
+    r = must_fail(_verify(d, "pluto_x", stale),
+                  "M-FRESH verify on a stale converter input", expect="F-PATH")
+    contains(r.out, "this build did not produce", "verify output")
+    # the contrast that makes the finding non-trivial: the stale file is VALID.
+    # A parser-shaped checker sees nothing wrong with it — which is precisely
+    # why nine of them passed.
+    json.loads(stale.read_text())
+
+
+@test("M-FRESH is NOT defeatable by touching the stale file", kind="known_bad")
+def t_kb_mfresh_touch_cannot_forge():
+    """A rerun that 'happens to touch the file' is the obvious way an mtime-only
+    freshness check gets defeated, and it is the failure mode this repo would
+    have shipped if the assertion were `is build/ newer than dist/`. The
+    equality is CONTENT-based and CROSS-FILE, so the newest mtime in the tree
+    buys nothing.
+
+    RED-VERIFIED, and this mutation is the one that matters. MEASURED
+    2026-07-30 at 221687ef: replacing the hash comparison with the naive mtime
+    rule (`if artifact.stat().st_mtime_ns < producer.stat().st_mtime_ns:`)
+    leaves the incident test above PASSING — **19 passed / 1 FAILED** — and only
+    THIS test goes red. The plausible wrong implementation is caught here and
+    nowhere else; without this fixture the gate would look fully tested and
+    still be defeated by one `touch`. Restored after."""
+    d = _scratch()
+    stale = d / "03_tscircuit" / "build" / "circuit.json"
+    stale.parent.mkdir(parents=True, exist_ok=True)
+    stale.write_text(json.dumps({"pads": "invented-order"}))
+    must_pass(_stamp(d, "pluto_x"), "M-FRESH stamp")
+    time.sleep(0.01)
+    _produce(d, "pluto_x", {"pads": "vendor-order"})
+    now = time.time() + 5                       # newest mtime in the whole tree
+    os.utime(stale, (now, now))
+    must_fail(_verify(d, "pluto_x", stale),
+              "M-FRESH verify against a touched stale artifact", expect="F-PATH")
+
+
+@test("M-FRESH FAILS when the builder wrote nothing at all", kind="known_bad")
+def t_kb_mfresh_void():
+    """`tsci build` exiting 0 without writing (or being skipped entirely) must
+    not be indistinguishable from a build that produced the graded artifact."""
+    d = _scratch()
+    must_pass(_stamp(d, "pluto_x"), "M-FRESH stamp")
+    stale = d / "03_tscircuit" / "build" / "circuit.json"
+    stale.parent.mkdir(parents=True, exist_ok=True)
+    stale.write_text(json.dumps({"pads": "invented-order"}))
+    must_fail(_verify(d, "pluto_x", stale),
+              "M-FRESH verify with an empty dist/", expect="F-VOID")
+
+
+@test("M-FRESH FAILS on the BOARD=power3s shape — a driver never edited for "
+      "this board, caught BEFORE the build", kind="known_bad")
+def t_kb_mfresh_template_knobs():
+    """The second half of the 2026-07-30 finding: pluto-rx2-8way-v2 carried the
+    TEMPLATE's own `BOARD=power3s` / `TSX=power3s` from commission (ea6d1fa1)
+    through four commits, so the full driver had never run there while its stage
+    gates were reporting green one at a time.
+
+    RED-VERIFIED by mutation, MEASURED 2026-07-30 at 221687ef: with the knob
+    check neutered in `cmd_stamp` (`fails = grade_knobs(...)` -> `fails = []`)
+    the suite went **19 passed / 1 FAILED** — this test alone — and the checker
+    happily stamped a run for a board whose .tsx does not exist. Restored
+    after.
+
+    It fails at `stamp`, i.e. before `tsci build` — the earliest point at which
+    it is knowable, and before anything downstream could go green."""
+    d = _scratch(name="pluto_x")
+    r = must_fail(run([KPY, PROV, "stamp", d, "--board", "power3s",
+                       "--tsx", "power3s"]),
+                  "M-FRESH stamp with the template knobs", expect="F-KNOB")
+    contains(r.out, "TEMPLATE SENTINEL", "stamp output")
+    contains(r.out, "BEFORE the build ran", "stamp output")
+    check(not (d / "06_build" / "build_provenance.json").exists(),
+          "a refused stamp still wrote a provenance record — a refusal that "
+          "leaves evidence of a run is worse than no check")
+
+
+@test("M-FRESH audit FAILS a board whose driver has never completed a run",
+      kind="known_bad")
+def t_kb_mfresh_audit_norun():
+    """`rm -rf 06_build/` is always legal (06_build is disposable), so 'no
+    record' means exactly 'no evidence this board was built' — which is the
+    honest verdict, not a pass. This is what distinguishes a board that ran and
+    passed from one that never ran."""
+    d = _scratch()
+    must_fail(run([KPY, PROV, "audit", d]),
+              "M-FRESH audit on a never-built board", expect="F-NORUN")
+
+
+@test("M-FRESH audit FAILS once the sources move past the last verified build "
+      "(canon M3)", kind="known_bad")
+def t_kb_mfresh_audit_stale_sources():
+    """M3 says everything is regenerable from 03_src/ + 03_tscircuit/. That is
+    worthless if the regeneration silently no-ops, so a board whose tscircuit
+    sources have changed since its last verified build is reported STALE rather
+    than assumed current."""
+    d = _scratch()
+    must_pass(_stamp(d, "pluto_x"), "M-FRESH stamp")
+    time.sleep(0.01)
+    src = _produce(d, "pluto_x", {"pads": "vendor-order"})
+    dst = d / "03_tscircuit" / "build" / "circuit.json"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(src.read_bytes())
+    must_pass(_verify(d, "pluto_x", dst), "M-FRESH verify")
+    must_pass(run([KPY, PROV, "audit", d]), "M-FRESH audit right after a build")
+    (d / "03_tscircuit" / "src" / "pluto_x.tsx").write_text("export default 2\n")
+    must_fail(run([KPY, PROV, "audit", d]),
+              "M-FRESH audit after the sources moved", expect="F-STALE")
+
+
+@test("M-FRESH audit NAMES what it cannot grade, and an empty denominator "
+      "never reads as a pass", kind="known_bad")
+def t_kb_mfresh_audit_never_silent():
+    """canon M-COVER. Three fleet shapes must stay distinguishable and none may
+    land in the pass column: a driver with no knobs at all (UNREACHED — cooksense
+    and crow-mic-pod-v2 drive `gen_tscircuit.sh`), a knobbed driver that has not
+    adopted the stamp (OWED — it emits no evidence either way, so 'never ran' is
+    unknowable there), and an adopted driver with no record (FAIL F-NORUN)."""
+    d = _scratch()
+    (d / "03_src" / "rebuild_all.sh").write_text("#!/bin/bash\necho hi\n")
+    r = run([KPY, PROV, "audit", d])
+    contains(r.out, "UNREACHED", "audit output")
+    contains(r.out, "NOT a pass", "audit output")
+    not_contains(r.out, "M-FRESH PASS", "audit output")
+
+    # knobbed but UNADOPTED: named and counted as OWED, and still not a pass
+    (d / "03_src" / "rebuild_all.sh").write_text(
+        "#!/bin/bash\nBOARD=pluto_x\nTSX=pluto_x\n")
+    r = run([KPY, PROV, "audit", d])
+    contains(r.out, "OWED", "audit output")
+    not_contains(r.out, "M-FRESH PASS", "audit output")
+
+    # adopted with no record: the honest FAIL
+    (d / "03_src" / "rebuild_all.sh").write_text(
+        "#!/bin/bash\nBOARD=pluto_x\nTSX=pluto_x\nbuild_provenance.py stamp .\n")
+    must_fail(run([KPY, PROV, "audit", d]),
+              "M-FRESH audit once the driver stamps but has no record",
+              expect="F-NORUN")
+
+
+@test("M-FRESH audit FAILS an unresolvable BOARD= even on a driver that never "
+      "adopted the stamp", kind="known_bad")
+def t_kb_mfresh_knob_fails_without_adoption():
+    """The adoption ratchet must not become an amnesty. `BOARD=power3s` is a
+    defect TODAY — it means the driver was never edited for this board — and it
+    is knowable from the tree with no cooperation from the driver at all. So
+    F-KNOB is graded on every knobbed board, adopted or not, and it FAILS.
+
+    RED-VERIFIED by mutation, MEASURED 2026-07-30 at 221687ef: neutering the
+    OTHER `grade_knobs` call — the one in `audit_project`, which is a SEPARATE
+    call site from `cmd_stamp`'s — gives **19 passed / 1 FAILED**, this test
+    alone. The two call sites are red-verified independently on purpose:
+    collapsing them is exactly how the adoption ratchet would quietly become an
+    amnesty. Restored after."""
+    d = _scratch(name="pluto_x")
+    (d / "04_kicad" / "pluto_x.kicad_pcb").write_text("(kicad_pcb)\n")
+    (d / "03_src" / "rebuild_all.sh").write_text(       # UNADOPTED on purpose
+        "#!/bin/bash\nBOARD=power3s\nTSX=power3s\n")
+    r = must_fail(run([KPY, PROV, "audit", d]),
+                  "M-FRESH audit on an unadopted driver with template knobs",
+                  expect="F-KNOB")
+    contains(r.out, "OWED", "audit output")            # counted as unadopted
+    contains(r.out, "BOARD=power3s", "audit output")
+    contains(r.out, "TEMPLATE SENTINEL", "audit output")
 
 
 if __name__ == "__main__":

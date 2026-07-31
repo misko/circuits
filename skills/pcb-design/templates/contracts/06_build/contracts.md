@@ -25,6 +25,7 @@
 | `rebuild.sh` `policy_audit.md` `policy_erc.json` `policy_drc.json` | orchestration + audit outputs at build root | regenerate |
 | `render/**` | render outputs (either spelling; boards have used both) | regenerate |
 | `*.log` `*.rpt` `*.csv` `*.json` `*.md` `*.net` `*.step` `*.png` `*.svg` `*.sh` | loose build-root artifacts — the tree is DISPOSABLE; structure lives in the subdirs above | regenerate |
+| `build_provenance.json` | canon **M-FRESH**: the per-run build witness written by `build_provenance.py stamp` and completed by `verify` (`run_id`, `started_ns`, `src_fingerprint` + the file LIST behind it, `board`/`tsx`, then `artifact`/`artifact_sha256`/`producer`). It lives HERE, and that placement is load-bearing: `rm -rf 06_build/` is always legal, so "no record" means exactly "no evidence this board was built", which `audit` reports as `F-NORUN` rather than as a pass | regenerate (rerun `03_src/rebuild_all.sh`) |
 | `contracts.md` | this file (the only tracked file here) | |
 
 ## Why `cache/` matters

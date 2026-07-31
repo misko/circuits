@@ -24,9 +24,40 @@ export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 $PY "$S/tsx_preflight.py" . \
     || { echo "GATE FAILED [0] TSX-PRE (tsx_preflight.py): map alphanumeric pads in 03_tscircuit/parity_padmap.txt BEFORE tsci build"; exit 1; }
 
+# [0b] M-FRESH stamp — BEFORE the build, so the run has a witness that is not
+# the build. Refuses on the spot if BOARD=/TSX= above are still the TEMPLATE
+# knobs or do not resolve in this project: pluto-rx2-8way-v2 carried
+# BOARD=power3s from commission through four commits, so the full driver had
+# NEVER RUN there while its stage gates reported green one at a time. A driver
+# that was never run for this board must not look like one that ran and passed.
+$PY "$S/build_provenance.py" stamp . --board "$BOARD" --tsx "$TSX" \
+    || { echo "GATE FAILED [0b] M-FRESH (build_provenance.py stamp): the driver's BOARD=/TSX= knobs do not resolve to this project — edit them at the top of this file"; exit 1; }
+
 # [1] tscircuit TSX -> circuit.json -> converter .kicad_sch -> netlist
+#
+# `tsci build` writes dist/src/<TSX>/circuit.json. It DOES NOT WRITE build/.
+# The bridge home is build/circuit.json (03_tscircuit/contracts.md), so the
+# copy is what connects them — and its absence is precisely the 2026-07-30
+# pluto-rx2-8way-v2 defect: the converter was handed build/circuit.json, a path
+# the builder never writes, so it consumed a SUPERSEDED file and TSX-PRE,
+# S-NETMERGE, E-INV, E-ADR, E-TOPO, E-MARGIN, S-COUNT, E-NETREF and M-BOM all
+# went green against an obsolete pad-numbering scheme. No checker was wrong.
+# They graded exactly what they were handed.
+CJ=03_tscircuit/build/circuit.json             # the ONE name for the converter input
 ( cd 03_tscircuit && tsci build "src/$TSX.tsx" )
-$PY "$S/circuit_json_to_kicad_sch.py" 03_tscircuit/build/circuit.json \
+mkdir -p 03_tscircuit/build
+cp "03_tscircuit/dist/src/$TSX/circuit.json" "$CJ"
+
+# [1a] M-FRESH verify — the pipeline asserts the artifact it is about to grade
+# is the one it just built. build_provenance.py finds the producer under dist/
+# ITSELF (it does not take this script's word for it) and requires the bytes to
+# match, so a `touch` cannot forge freshness; it also requires the producer to
+# post-date [0b] and the sources to be unmoved since. Canon M1: the checker
+# neither builds nor copies the thing it grades.
+$PY "$S/build_provenance.py" verify . --board "$BOARD" --tsx "$TSX" --artifact "$CJ" \
+    || { echo "GATE FAILED [1a] M-FRESH (build_provenance.py verify): the artifact the converter would read is NOT the one this build produced — every gate below would be green against stale content"; exit 1; }
+
+$PY "$S/circuit_json_to_kicad_sch.py" "$CJ" \
     -o "04_kicad/$BOARD.kicad_sch" --parts 02_parts
 kicad-cli sch export netlist --output "06_build/netlists/$BOARD.net" "04_kicad/$BOARD.kicad_sch"
 
@@ -48,7 +79,7 @@ $PY "$S/power_topology.py" . --off-control \
     || { echo "GATE FAILED [1b] E-OFF (power_topology.py --off-control): battery source without a declared de-energization path"; exit 1; }
 $PY "$S/count_parity.py" . \
     || { echo "GATE FAILED [1b] S-COUNT (count_parity.py): refdes sets disagree across intent/artifacts (silent drop)"; exit 1; }
-$PY "$FS/bom_source_check.py" --circuit-only 03_tscircuit/build/circuit.json --parts 02_parts \
+$PY "$FS/bom_source_check.py" --circuit-only "$CJ" --parts 02_parts \
     || { echo "GATE FAILED [1b] M-BOM leg C (bom_source_check.py --circuit-only): a coded R/C's catalog value != its tsx value prop (the R12/R30 class)"; exit 1; }
 
 # [2] ERC gate (0 errors)

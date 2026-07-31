@@ -673,7 +673,30 @@ rounding note) · `schema_reader_audit.py` (**G-ORPHAN** — every schema key na
 the gate that reads it, and that gate must PROVABLY read it) ·
 `gate_contract_audit.py` (**G-VACUOUS** — every gate declares the input on which
 it PASSES while its subject is FALSE, with a fixture; **G-SELFCON**; and
-`--dru` grades a `.kicad_dru` predicate that can never fire).
+`--dru` grades a `.kicad_dru` predicate that can never fire) ·
+`build_provenance.py` (**M-FRESH** — the artifact a gate grades must be the one
+the build just wrote).
+
+**M-FRESH IS WIRED INTO THE DRIVER, NOT RUN BY HAND, AND THAT IS THE POINT.**
+`rebuild_all.sh` stage **[0b]** stamps BEFORE `tsci build` and stage **[1a]**
+verifies between the build and the converter, so the pipeline ASSERTS the
+identity instead of resting on one correct path. `tsci build` writes
+`03_tscircuit/dist/src/<TSX>/circuit.json` and **never writes `build/`** — the
+driver's `cp` is what connects them, and its absence is the 2026-07-30
+pluto-rx2-8way-v2 defect: the converter consumed a superseded
+`build/circuit.json` and **TSX-PRE, S-NETMERGE, E-INV, E-ADR, E-TOPO, E-MARGIN,
+S-COUNT, E-NETREF and M-BOM all reported green on an obsolete pad-numbering
+scheme**, caught only by a by-hand netlist read. **No checker was wrong**; they
+graded exactly what they were handed, and the stale bytes are valid json, so no
+parser-shaped gate could ever have seen it. The equality is sha256 across two
+independently-resolved paths, so a `touch` cannot forge it (`F-PATH`), and the
+knob check (`F-KNOB`) fires at `stamp` — the same board carried the TEMPLATE's
+own `BOARD=power3s` through four commits, meaning its full driver had never run
+while its stage gates reported green one at a time. Fleet state:
+`build_provenance.py audit --root .` names every board as adopted / OWED /
+UNREACHED and prints **NOTHING GRADED ... This is NOT a pass** when nothing
+stamps. **A board whose driver predates this is reseeded from
+`templates/03_src/rebuild_all.sh` at its next revision — never retro-edited.**
 
 **A WAIVER'S NUMBER IS REGENERATED, NOT TYPED** (canon M4). Load-bearing numbers
 carry `evidence: {command:, output:}` and `waiver_provenance.py` re-runs and
