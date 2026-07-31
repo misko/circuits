@@ -543,15 +543,15 @@ import circuit_json_to_kicad_sch as C
 C.label_plate_side = lambda n, pin_reach=None: (n.get("anchor_side") or "left")
 C.LABEL_ANG_JUST = {{"left": (180, "right"), "right": (0, "left"),
                     "top": (90, "left"), "bottom": (270, "left")}}
-C.main()
+{extra}C.main()
 '''
 
 
-def convert_prefix(fixture):
+def convert_prefix(fixture, extra=""):
     """Convert a t0 fixture with the PRE-FIX side derivation restored."""
     d = tmpdir("convpre_")
     shim = d / "prefix_conv.py"
-    shim.write_text(PREFIX_SHIM.format(scripts=str(SCRIPTS)))
+    shim.write_text(PREFIX_SHIM.format(scripts=str(SCRIPTS), extra=extra))
     out = d / f"{fixture}_prefix.kicad_sch"
     must_pass(run([PY, shim, T0 / fixture / "circuit.json", "-o", out,
                    "--project", fixture]), f"pre-fix convert {fixture}")
@@ -699,6 +699,14 @@ def t_kicad_direction_table_is_measured():
         eq(measured[a], want[side], f"GND_ANG[{side!r}] = {a} points")
 
 
+# The label de-collision pass (canon S11) runs AFTER the direction derivation
+# and would relocate whatever the two fixtures below emit — so they hold it OFF
+# and grade the stage they are about, exactly as the pre-fix converter behaved.
+# `_prefix_decollide_masks_the_direction_defect` then measures what happens with
+# it ON, and the answer is the reason this shim is not a convenience.
+_NO_DECOLLIDE = ('C.place_labels = lambda cands, *a, **k: (cands, [], [], 0)\n')
+
+
 @test("PRE-FIX: a horizontally placed 2-pin part's plates both fire INWARD, "
       "across the body and each other", kind="known_bad")
 def t_prefix_inverts_horizontal():
@@ -711,7 +719,7 @@ def t_prefix_inverts_horizontal():
     angle and the justification — so ERC, `--schematic-parity`, S-NETMERGE and
     every other connectivity-keyed gate are structurally blind to it, and the
     only artefact that carries the defect is the one a human reads."""
-    d, bad = convert_prefix("label_sides_h")
+    d, bad = convert_prefix("label_sides_h", _NO_DECOLLIDE)
     coll, plates, body = label_collisions(bad)
     check(coll, "the PRE-FIX converter produced NO collisions on the "
                 "horizontal fixture — the fixture does not reproduce the defect")
@@ -742,7 +750,7 @@ def t_prefix_inverts_vertical():
     That cancellation is why repairing either defect alone would have BROKEN
     the ~155 fleet labels the pair was getting right, and why this fixture
     asserts the cancellation explicitly rather than just "vertical is wrong"."""
-    d, bad = convert_prefix("label_sides_v")
+    d, bad = convert_prefix("label_sides_v", _NO_DECOLLIDE)
     coll, plates, body = label_collisions(bad)
     check(f"{NET_R} x BODY" in coll,
           f"expected the LOWER plate across the body, got {coll}")
@@ -841,14 +849,29 @@ def _gnd_fixture(base, gnd_pin):
     return p
 
 
-def _convert_json(cj, name, prefix=False):
-    """Convert an arbitrary circuit.json, optionally with the PRE-FIX property
-    rows restored. The red side is RE-RUN every run, never asserted in prose."""
+#: the LABEL DE-COLLISION pass held off — which is exactly what the converter
+#: did before `place_labels` existed, so this is the RED side of every
+#: de-collision fixture below, re-run on every run rather than asserted in a
+#: docstring. Verified equivalent to the real pre-pass file by whole-file git
+#: swap; see `t_decollide_horizontal`.
+_NO_DECOLLIDE_SHIM = '''import sys
+sys.path.insert(0, {scripts!r})
+import circuit_json_to_kicad_sch as C
+C.place_labels = lambda cands, *a, **k: (cands, [], [], 0)
+C.main()
+'''
+
+
+def _convert_json(cj, name, prefix=False, raw=False):
+    """Convert an arbitrary circuit.json. `prefix` restores the PRE-FIX
+    property rows; `raw` holds the LABEL DE-COLLISION pass off. Either red side
+    is RE-RUN every run, never asserted in prose."""
     d = tmpdir("gndconv_")
     out = d / f"{name}.kicad_sch"
-    if prefix:
-        shim = d / "prefix_prop.py"
-        shim.write_text(_PREFIX_PROP_SHIM.format(scripts=str(SCRIPTS)))
+    if prefix or raw:
+        shim = d / "shim.py"
+        shim.write_text((_PREFIX_PROP_SHIM if prefix else _NO_DECOLLIDE_SHIM)
+                        .format(scripts=str(SCRIPTS)))
         cmd = [PY, shim, cj, "-o", out, "--project", name]
     else:
         cmd = [PY, CONV, cj, "-o", out, "--project", name]
@@ -1181,6 +1204,608 @@ def t_glyph_geometry_is_measured():
         span = (round(pred[2] - pred[0], 4), round(pred[3] - pred[1], 4))
         eq(span, (2.0, 2.54) if ang in (0, 180) else (2.54, 2.0),
            f"elt:GND at {ang} deg spans (x, y) mm")
+
+
+# ==================== LABEL DE-COLLISION (canon S11, 2026-07-31) ============
+# THE DEFECT. Every one of the 182 S-OCCL findings left on this fleet after the
+# label-DIRECTION fix (`948ef54d`) and the property-row fix (`9088b4f4`) had a
+# global_label as one of its two members — 77 label-vs-pin, 42 label-vs-
+# Reference, 32 label-vs-label, 16 label-vs-glyph, 8 label-vs-body, 7
+# label-vs-Value, and NOTHING else. The plates were emitted exactly where
+# tscircuit's anchor put them and never checked against the sheet they landed
+# on. The load-bearing instance is pluto-rx2-8way-v2's `ANT2 x 3V3_MOD`: two
+# plates reaching toward each other along one row, overlapping by 0.5515 mm of
+# REAL INK, compositing into `N3V3_MOD2` — a sheet that reads as though the 3V3
+# rail reaches an RF port.
+#
+# THE MODEL IS MEASURED, and this is where the previous constant went wrong in
+# the dangerous direction. The converter's shipped plate width was
+# `(len + 2) * 1.05` — every character the same. KiCad's stroke font is
+# PROPORTIONAL: 95 characters measured out of rendered ink give an exact k/21 of
+# the font size, k from 8 to 28. The flat model is 6.48 mm too NARROW for a
+# 20-character name of capitals, so a de-collision search built on it would
+# place plates it called clear and KiCad draws through their neighbours.
+
+def _plate_ink(sheet):
+    """name -> [plate rectangles] and name -> [text-run boxes], both straight
+    out of `kicad-cli sch export svg`. A plate is identified by its MEASURED
+    cross extent (2.5408 mm, zero spread) — not as 'the smallest polyline
+    containing the text', which is the PAGE BORDER for every label on the
+    sheet and reads as a 433 mm plate."""
+    runs, _graphics = _svg_ink(sheet)
+    txt = sheet.read_text()
+    names = set(re.findall(r'\(global_label "([^"]*)"', txt))
+    d = sheet.parent
+    svg = (d / (sheet.stem + ".svg")).read_text()
+
+    def pts(s):
+        return [(float(a), float(b)) for a, b in
+                re.findall(r"(-?\d+\.?\d*)[\s,]+(-?\d+\.?\d*)", s)]
+
+    body = re.sub(r'<g class="stroked-text">.*?</g>', "", svg, flags=re.S)
+    polys = []
+    for m in re.finditer(r'<(?:path|polyline)\b[^>]*?\b(?:d|points)="([^"]+)"',
+                         body):
+        p = pts(m.group(1))
+        if len(p) >= 5:
+            polys.append((min(q[0] for q in p), min(q[1] for q in p),
+                          max(q[0] for q in p), max(q[1] for q in p)))
+    plates, texts = {}, {}
+    for nm, boxes in runs.items():
+        if nm not in names:
+            continue
+        for b in boxes:
+            texts.setdefault(nm, []).append(b)
+            hit = None
+            for pb in polys:
+                if not (2.45 <= min(pb[2] - pb[0], pb[3] - pb[1]) <= 2.65):
+                    continue
+                if (pb[0] - 0.6 <= b[0] and b[2] <= pb[2] + 0.6 and
+                        pb[1] - 0.6 <= b[1] and b[3] <= pb[3] + 0.6):
+                    if hit is None or ((pb[2] - pb[0]) * (pb[3] - pb[1]) <
+                                       (hit[2] - hit[0]) * (hit[3] - hit[1])):
+                        hit = pb
+            if hit:
+                plates.setdefault(nm, []).append(hit)
+    return plates, texts
+
+
+def _ink_overlap(a, b):
+    """Signed overlap of two boxes: positive means ink really is on top of ink."""
+    return min(min(a[2], b[2]) - max(a[0], b[0]),
+               min(a[3], b[3]) - max(a[1], b[1]))
+
+
+def _worst_pair(boxes_a, boxes_b):
+    return max([_ink_overlap(x, y) for x in boxes_a for y in boxes_b] + [-1e9])
+
+
+def _twin_fixture(base, dx, dy, rename):
+    """`base` with a SECOND copy of its one component offset by (dx, dy)
+    tscircuit units, and the four nets renamed so exactly the FACING pair of
+    plates collides. A good input broken in exactly one way (tests/README):
+    the geometry is the shipped fixture's, only doubled and spaced."""
+    import json
+    import tempfile
+    src = json.load(open(T0 / base / "circuit.json"))
+    ids = set()
+    for e in src:
+        for k, v in e.items():
+            if isinstance(v, str) and (k.endswith("_id") or
+                                       k == "subcircuit_connectivity_map_key"):
+                ids.add(v)
+
+    def clone(e):
+        o = {}
+        for k, v in e.items():
+            if isinstance(v, str) and v in ids:
+                o[k] = v + "__2"
+            elif isinstance(v, dict) and "x" in v and "y" in v:
+                o[k] = {"x": v["x"] + dx, "y": v["y"] + dy}
+            else:
+                o[k] = v
+        if o.get("type") == "source_component":
+            o["name"] = "R2"
+        return o
+
+    out = [dict(e) for e in src] + [clone(e) for e in src]
+    for e in out:
+        if e["type"] in ("source_net", "schematic_net_label"):
+            key = e.get("source_net_id")
+            if key in rename:
+                if e["type"] == "source_net":
+                    e["name"] = rename[key]
+                else:
+                    e["text"] = rename[key]
+    p = Path(tempfile.mkdtemp(prefix="twinfx_")) / "circuit.json"
+    p.write_text(json.dumps(out))
+    return p
+
+
+# The facing pair is R1's SECOND pin (reaches right / down) against R2's FIRST
+# (reaches left / up). Those two get long names; the outer two stay short so
+# nothing else on the sheet is in contention.
+_FACE_A, _FACE_B = "COLLIDING_PLATE_ONE", "COLLIDING_PLATE_TWO"
+_RENAME = {"sn_b": _FACE_A, "sn_a__2": _FACE_B, "sn_a": "LA", "sn_b__2": "LB"}
+
+
+def _decollide_case(base, dx, dy):
+    """(fixed sheet, un-de-collided sheet) for one axis."""
+    cj = _twin_fixture(base, dx, dy, _RENAME)
+    d1, good = _convert_json(cj, f"{base}_twin_fixed")
+    d2, bad = _convert_json(cj, f"{base}_twin_raw", raw=True)
+    return good, bad
+
+
+@test("converter: two labels colliding HORIZONTALLY are separated by the "
+      "de-collision pass — asserted in RENDERED INK", kind="known_bad")
+def t_decollide_horizontal():
+    """THE HEAD-ON SHAPE, which is `ANT2 x 3V3_MOD` on pluto-rx2-8way-v2.
+
+    Two parts face each other across a gap and each fires a plate into it. The
+    two plates are longer than the gap, so this is not a placement accident and
+    no anchor position could have avoided it.
+
+    RED SIDE RE-RUN EVERY RUN, never asserted in prose: the same circuit.json is
+    converted with `place_labels` held off — which is EXACTLY what the converter
+    did before this change — and KiCad's own render must show the two labels'
+    GLYPH RUNS drawn through each other by more than one 0.254 mm stroke width.
+    Then the fixed converter must show them not touching at all.
+
+    THE BLINDNESS PROOF, inline: the two sheets have the SAME netlist, node for
+    node, and both ERC at 0 errors. A label's anchor is connectivity, so moving
+    one along its own net changes nothing any connectivity-keyed gate can see —
+    which is why S-OCCL is the only gate that could ever have caught this, and
+    why its own plate model had to be re-measured first.
+
+    WHOLE-FILE GIT SWAP, MEASURED 2026-07-31 (tests/README step 3). With
+    `git show HEAD:skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py`
+    swapped in, this suite prints **28 passed / 8 failed** — exactly the eight
+    fixtures added with the de-collision pass and nothing else. Restored:
+    **36 / 0 / 13 known-bad**. The `_NO_DECOLLIDE_SHIM` used as the red side
+    here is therefore equivalent to the real pre-pass file: the pre-pass file
+    has no `place_labels` to monkeypatch, and it produces the same sheets."""
+    good, bad = _decollide_case("label_sides_h", 3.2, 0.0)
+    pb, tb = _plate_ink(bad)
+    for nm in (_FACE_A, _FACE_B):
+        check(nm in tb, f"{nm}: no rendered glyph run on the un-de-collided sheet")
+    red = _worst_pair(tb[_FACE_A], tb[_FACE_B])
+    check(red > 0.254,
+          f"the un-de-collided sheet draws the two glyph runs {red:.4f} mm "
+          f"through each other, which does not exceed one 0.254 mm stroke "
+          f"width — the fixture is not discriminating")
+    check(_worst_pair(pb[_FACE_A], pb[_FACE_B]) > 0.254, "plates do not overlap")
+    pg, tg = _plate_ink(good)
+    black = _worst_pair(tg[_FACE_A], tg[_FACE_B])
+    check(black <= 0.0,
+          f"the FIXED converter still draws the two glyph runs {black:.4f} mm "
+          f"through each other")
+    eq(netlist_of(bad), netlist_of(good),
+       "netlist of the un-de-collided sheet vs the de-collided one")
+    eq(erc_errors(bad), 0, "ERC on the un-de-collided sheet")
+    eq(erc_errors(good), 0, "ERC on the de-collided sheet")
+
+
+@test("converter: two labels colliding VERTICALLY are separated by the "
+      "de-collision pass — the axis the horizontal fixture cannot see",
+      kind="known_bad")
+def t_decollide_vertical():
+    """A fix proven on one axis is not proven. The vertical case exercises a
+    different half of every table this pass touches: `SIDE_REACH['top'|
+    'bottom']`, the perpendicular the search steps along, and the branch of
+    `plate_box` that puts the 2.5408 mm cross extent on X instead of Y.
+
+    It is also the axis where the stub has to be HORIZONTAL, so it tests the
+    other half of the wire-safety rules."""
+    good, bad = _decollide_case("label_sides_v", 0.0, -3.2)
+    pb, tb = _plate_ink(bad)
+    for nm in (_FACE_A, _FACE_B):
+        check(nm in tb, f"{nm}: no rendered glyph run on the un-de-collided sheet")
+    red = _worst_pair(tb[_FACE_A], tb[_FACE_B])
+    check(red > 0.254,
+          f"the un-de-collided sheet draws the two glyph runs {red:.4f} mm "
+          f"through each other — not discriminating")
+    pg, tg = _plate_ink(good)
+    black = _worst_pair(tg[_FACE_A], tg[_FACE_B])
+    check(black <= 0.0,
+          f"the FIXED converter still draws the two glyph runs {black:.4f} mm "
+          f"through each other")
+    eq(netlist_of(bad), netlist_of(good),
+       "netlist of the un-de-collided sheet vs the de-collided one")
+    eq(erc_errors(bad), 0, "ERC on the un-de-collided sheet")
+    eq(erc_errors(good), 0, "ERC on the de-collided sheet")
+
+
+@test("THE ADJACENT PROPERTY: a sheet with NO collisions comes out of the "
+      "de-collision pass byte-for-byte unmoved")
+def t_decollide_moves_nothing_it_should_not():
+    """The control, and the property this pass is most likely to violate
+    quietly. A de-collider that improves the crowded sheets by nudging every
+    label a little has not fixed anything — it has replaced an author's layout
+    with its own and made the diff unreadable.
+
+    Graded the strongest way available: the two shipped no-collision fixtures
+    are converted WITH the pass and with it held OFF, and the sheets must be
+    IDENTICAL once UUIDs are normalised — not merely 'no findings either way'.
+
+    MEASURED on the real fleet at the same time: the converter reports `moved 0
+    of 33 labels` on smc0985-cooksense's interposer, whose S-OCCL count was
+    already 0, and that sheet is byte-identical across this change too."""
+    uu = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+    for fx in ("label_sides_h", "two_resistors"):
+        cj = T0 / fx / "circuit.json"
+        d1, good = _convert_json(cj, f"{fx}_ctl")
+        d2, raw = _convert_json(cj, f"{fx}_ctl", raw=True)
+        eq(uu.sub("U", good.read_text()), uu.sub("U", raw.read_text()),
+           f"{fx}: the de-collision pass moved something on a clean sheet")
+
+    # THE THIRD SHIPPED FIXTURE IS NOT A CONTROL, and finding that out is the
+    # reason this test is worth more than its name suggests. `label_sides_v`
+    # LOOKS clean — `t_label_sides_vertical` passes it — but that test grades
+    # plate-vs-body and plate-vs-plate only. Its two VERTICAL plates run right
+    # through the Reference and the Value, which are centred on the same x.
+    # So it must MOVE, and the move is graded here in INK: the property glyph
+    # runs are inside plate ink before and outside it after.
+    cj = T0 / "label_sides_v" / "circuit.json"
+    d1, good = _convert_json(cj, "lsv_ctl")
+    d2, raw = _convert_json(cj, "lsv_ctl", raw=True)
+    check(uu.sub("U", good.read_text()) != uu.sub("U", raw.read_text()),
+          "label_sides_v was expected to MOVE — its vertical plates cross its "
+          "own Reference and Value")
+    for sheet, want_hit in ((raw, True), (good, False)):
+        plates, _texts = _plate_ink(sheet)
+        runs, _g = _svg_ink(sheet)
+        worst = -1e9
+        for prop in ("R1", "1k"):
+            for pb in runs.get(prop, []):
+                for boxes in plates.values():
+                    for pl in boxes:
+                        worst = max(worst, _ink_overlap(pb, pl))
+        if want_hit:
+            check(worst > 0.254,
+                  f"un-de-collided label_sides_v: property ink is only "
+                  f"{worst:.4f} mm inside a plate — not discriminating")
+        else:
+            check(worst <= 0.0,
+                  f"de-collided label_sides_v STILL draws a plate {worst:.4f} "
+                  f"mm through its own property text")
+
+
+def _boxed_in_fixture():
+    """`label_sides_h` with ONE thing added: a 3.0 x 3.0-unit component parked
+    over everything the right-hand label could reach. 38.1 mm square is wider
+    than the search's whole outward reach (6 x 1.27 mm) and taller than its
+    whole sideways reach (2 x 10 x 1.27 mm), so no offset in the ladder escapes
+    it — and that is arithmetic, not luck."""
+    import json
+    import tempfile
+    src = json.load(open(T0 / "label_sides_h" / "circuit.json"))
+    out = [dict(e) for e in src]
+    for e in out:
+        if e["type"] == "source_net" and e["source_net_id"] == "sn_b":
+            e["name"] = "UNPLACEABLE_LABEL_NAME"
+        if e["type"] == "schematic_net_label" and e["source_net_id"] == "sn_b":
+            e["text"] = "UNPLACEABLE_LABEL_NAME"
+    out += [
+        {"type": "source_component", "source_component_id": "sc_BLK",
+         "name": "U_BLK", "ftype": "simple_chip", "supplier_part_numbers": {}},
+        {"type": "source_net", "source_net_id": "sn_g", "name": "GND",
+         "subcircuit_connectivity_map_key": "k_g"},
+        {"type": "source_port", "source_port_id": "sp_BLK_1",
+         "source_component_id": "sc_BLK", "pin_number": 1, "name": "p1",
+         "subcircuit_connectivity_map_key": "k_g"},
+        {"type": "source_port", "source_port_id": "sp_BLK_2",
+         "source_component_id": "sc_BLK", "pin_number": 2, "name": "p2",
+         "subcircuit_connectivity_map_key": "k_g"},
+        {"type": "schematic_component", "schematic_component_id": "shc_BLK",
+         "center": {"x": 2.2, "y": 0.0}, "rotation": 0,
+         "size": {"width": 3.0, "height": 3.0}, "pin_spacing": 0.2,
+         "source_component_id": "sc_BLK", "symbol_name": "box"},
+        {"type": "schematic_port", "schematic_port_id": "shp_BLK_1",
+         "schematic_component_id": "shc_BLK", "center": {"x": 3.9, "y": 0.2},
+         "source_port_id": "sp_BLK_1", "pin_number": 1,
+         "facing_direction": "right"},
+        {"type": "schematic_port", "schematic_port_id": "shp_BLK_2",
+         "schematic_component_id": "shc_BLK", "center": {"x": 3.9, "y": -0.2},
+         "source_port_id": "sp_BLK_2", "pin_number": 2,
+         "facing_direction": "right"},
+    ]
+    p = Path(tempfile.mkdtemp(prefix="boxfx_")) / "circuit.json"
+    p.write_text(json.dumps(out))
+    return p
+
+
+@test("a label with NO legal placement is a HARD ERROR naming it — never a "
+      "silent drop and never a fallback to a different emitter",
+      kind="known_bad")
+def t_decollide_hard_error_names_the_label():
+    """Canon S11, and the same rule the silkscreen `_place_owned` search has
+    carried since a board shipped with no reference designators on it at all.
+
+    Two things this asserts that a bare non-zero exit would not:
+      * the message NAMES the label, because a de-collider that fails without
+        saying which label is unplaceable sends the next agent to read a whole
+        sheet;
+      * it is NOT a `LayoutFallback`. Falling back to `--mode grid` would
+        answer 'this label cannot be placed legibly' with a DIFFERENT SHEET,
+        and the run would exit 0 with a quietly worse artifact. The fixture
+        proves the exit is non-zero and the stdout carries no `MODE=grid`.
+
+    THE ADJACENT PROPERTY, re-measured every run: remove the blocking component
+    and NOTHING else, and the same label places without complaint. That is what
+    separates 'the search is bounded correctly' from 'the search is broken'."""
+    import json
+    cj = _boxed_in_fixture()
+    d = tmpdir("boxed_")
+    r = run([PY, CONV, cj, "-o", d / "boxed.kicad_sch", "--project", "boxed"])
+    must_fail(r, "converter on a boxed-in label", "UNPLACEABLE_LABEL_NAME")
+    contains(r.out, "no legal placement", "converter output")
+    contains(r.out, "LABEL PLACEMENT FAILED", "converter output")
+    eq(r.rc, 3, "converter exit code on an unplaceable label")
+    check("MODE=grid" not in r.out,
+          "an unplaceable label fell back to --mode grid instead of failing — "
+          "that answers the question with a different sheet")
+    check(not (d / "boxed.kicad_sch").is_file() or
+          "MODE=" not in r.out, "a sheet was reported written despite the error")
+    # ...and with the blocker removed, the very same label is placeable.
+    src = [e for e in json.load(open(cj))
+           if e.get("source_component_id") != "sc_BLK"
+           and e.get("schematic_component_id") not in ("shc_BLK",)
+           and e.get("source_net_id") != "sn_g"]
+    p2 = cj.parent / "unblocked.json"
+    p2.write_text(json.dumps(src))
+    d2, ok = _convert_json(p2, "unblocked")
+    check(ok.is_file(), "the unblocked fixture did not convert")
+
+
+@test("PRE-FIX INTERACTION: the de-collision pass HIDES the label-direction "
+      "defect — so a clean S-OCCL is not a proof of direction",
+      kind="known_bad")
+def t_prefix_decollide_masks_the_direction_defect():
+    """A finding about the gates, not about a board, and it is the reason
+    `t_prefix_inverts_horizontal` and `t_prefix_inverts_vertical` hold this
+    pass OFF instead of running end-to-end.
+
+    With the PRE-FIX direction derivation restored, both plates of a horizontal
+    2-pin part fire INWARD across the body. Run the de-collision pass on that
+    sheet and it does its job: it shoves them somewhere they do not overlap, and
+    the sheet comes out with ZERO collisions while every plate still points at
+    the wrong pin. The occlusion count went to zero and the sheet still lies.
+
+    So this fixture pins the ORDER of the two claims: direction is graded by
+    `t_kicad_direction_table_is_measured` and by the two PRE-FIX fixtures with
+    de-collision held off; S-OCCL grades crowding. Neither substitutes for the
+    other, and anyone who later reads a green S-OCCL as evidence that labels
+    point the right way has this test to tell them otherwise."""
+    d, masked = convert_prefix("label_sides_h")      # PRE-FIX dirs, pass ON
+    coll, plates, body = label_collisions(masked)
+    check(not coll,
+          f"expected the de-collision pass to HIDE the direction defect, but "
+          f"the sheet still collides: {coll} — if this is now failing, the "
+          f"pass has stopped masking it and the two PRE-FIX fixtures can go "
+          f"back to running end-to-end")
+    # ...while the direction is still wrong: the plate on the LEFT-hand pin
+    # must still be reaching RIGHT, which is what makes the clean count a lie.
+    j2s = {v: k for k, v in _C_MOD().LABEL_ANG_JUST.items()}
+    sides = {}
+    for m in re.finditer(r'\(global_label "([^"]+)".*?\(at [-\d.]+ [-\d.]+ '
+                         r'(\d+)\).*?\(justify (\w+)\)', masked.read_text()):
+        sides[m.group(1)] = j2s[(int(m.group(2)), m.group(3))]
+    eq(sides.get(NET_L), "right",
+       f"{NET_L} sits on the LEFT-hand pin; pre-fix its plate reaches")
+    eq(sides.get(NET_R), "left",
+       f"{NET_R} sits on the RIGHT-hand pin; pre-fix its plate reaches")
+
+
+def _C_MOD():
+    sys.path.insert(0, str(SCRIPTS))
+    import circuit_json_to_kicad_sch as C          # noqa: E402
+    return C
+
+
+@test("the label PLATE geometry the de-collision search runs on is MEASURED "
+      "from KiCad's own render, not derived — base, cross extent and the "
+      "whole per-character advance table")
+def t_text_geometry_is_measured():
+    """Canon M1: the emitter must not grade its own geometry, and the brief's
+    standing rule that a geometry constant is measured, never inherited. Two
+    constants in this repo's schematic geometry were recently found wrong in
+    OPPOSITE directions — a plate cross extent 13% narrow (silence) and a
+    property half-height 70% too tall (invention) — and this is the third:
+    `CH_W = 1.05` per character, flat, against a PROPORTIONAL stroke font.
+
+    Everything the search depends on is re-derived here from `kicad-cli sch
+    export svg` ink on a probe sheet KiCad renders itself:
+      * PLATE_BASE and PLATE_CROSS, both of which measure with ZERO spread;
+      * the FULL per-character advance table, every entry of which must come
+        back an exact k/21 of the font size (KiCad's newstroke em is 21 units,
+        so a non-integer would mean the measurement, not the font, is wrong);
+      * the property text's up/down extents and the no-connect half-extent.
+
+    It also asserts the model is an UPPER bound on rendered ink, which is the
+    direction that matters: a plate model that under-reaches places labels the
+    search calls clear and KiCad draws through their neighbours."""
+    C = _C_MOD()
+    import schwriter2 as SW                        # noqa: E402
+    d = tmpdir("textprobe_")
+    n = [0]
+
+    def uu():
+        n[0] += 1
+        return "00000000-0000-0000-0000-%012d" % n[0]
+
+    chars = sorted(C.ADV21)
+    out = ['(kicad_sch (version 20230121) (generator probe)',
+           '  (uuid "00000000-0000-0000-0000-000000000001")',
+           '  (paper "User" 1600.00 2400.00)',
+           '  (title_block (title "probe") (date "2026-07-31") (rev "p")', '  )',
+           '  (lib_symbols'] + list(SW.power_lib_symbols("elt").values()) + ['  )']
+    sites, i = {}, 0
+    for c in chars:
+        for rep in (1, 10):
+            nm = c * rep
+            x, y = 90 + (i % 6) * 250, 60 + (i // 6) * 30
+            sites[(c, rep)] = (x, y)
+            esc = nm.replace("\\", "\\\\").replace('"', '\\"')
+            out.append(f'  (global_label "{esc}" (shape passive) (at {x} {y} 0)'
+                       f' (fields_autoplaced) (effects (font (size 1.27 1.27))'
+                       f' (justify left)) (uuid "{uu()}"))')
+            i += 1
+    ncx, ncy = 90, 60 + (i // 6 + 3) * 30
+    out.append(f'  (no_connect (at {ncx} {ncy}) (uuid "{uu()}"))')
+    out += ['  (sheet_instances (path "/" (page "1")))', ')']
+    sch = d / "probe.kicad_sch"
+    sch.write_text("\n".join(out) + "\n")
+    _runs, graphics = _svg_ink(sch)
+    polys = {}
+    for (p, q) in graphics:
+        polys.setdefault(None, []).append((p, q))
+    # rebuild closed boxes from the raw segment soup: group by proximity to a
+    # probe site and take the extent of everything near it.
+    def ink_box(x, y, reach):
+        acc = [v for seg in graphics for v in seg
+               if abs(v[0] - x) < reach and abs(v[1] - y) < reach]
+        check(acc, f"no ink within {reach} mm of ({x}, {y})")
+        return (min(v[0] for v in acc), min(v[1] for v in acc),
+                max(v[0] for v in acc), max(v[1] for v in acc))
+
+    bases, crosses, nonint = set(), set(), []
+    for c in chars:
+        x1, y1 = sites[(c, 1)]
+        x10, y10 = sites[(c, 10)]
+        b1 = ink_box(x1, y1, 24.0)
+        b10 = ink_box(x10, y10, 24.0)
+        adv = ((b10[2] - b10[0]) - (b1[2] - b1[0])) / 9.0
+        k = adv / 1.27 * 21.0
+        if abs(k - round(k)) > 0.02:
+            nonint.append((c, round(k, 3)))
+        eq(round(k), C.ADV21[c], f"advance of {c!r}, in 21sts of the font size")
+        bases.add(round((b1[2] - b1[0]) - adv, 4))
+        crosses.add(round(b1[3] - b1[1], 4))
+    check(not nonint,
+          f"advances that are not an integer 21st of the font size: {nonint}")
+    eq(sorted(bases), [round(C.PLATE_BASE, 4)],
+       "PLATE_BASE measured out of the render (a set, so ZERO spread is "
+       "asserted, not averaged away)")
+    eq(sorted(crosses), [round(C.PLATE_CROSS, 4)],
+       "PLATE_CROSS measured out of the render (zero spread asserted)")
+
+    # the model must never UNDER-reach the ink it stands for
+    for c in chars:
+        for rep in (1, 10):
+            x, y = sites[(c, rep)]
+            got = ink_box(x, y, 24.0)[2] - ink_box(x, y, 24.0)[0]
+            want = C.plate_span(c * rep)
+            check(want >= got - 0.002,
+                  f"plate_span({c * rep!r}) = {want:.4f} mm UNDER-reaches the "
+                  f"{got:.4f} mm KiCad draws")
+
+    # the no-connect marker
+    nb = ink_box(ncx, ncy, 6.0)
+    for e, want in zip(nb, (ncx - C.NC_HALF, ncy - C.NC_HALF,
+                            ncx + C.NC_HALF, ncy + C.NC_HALF)):
+        check(abs(e - want) <= 0.02,
+              f"no_connect marker edge {e:.4f} vs NC_HALF prediction {want:.4f}")
+
+
+@test("property text: the up/down extents the de-collision search treats a "
+      "Reference/Value as occupying are MEASURED, and are an upper bound")
+def t_prop_text_geometry_is_measured():
+    """`prop_box` is the other half of the obstacle model — 49 of the fleet's
+    182 findings were a plate on a Reference or a Value — and its vertical
+    extent is ASYMMETRIC about the anchor (a descender reaches further down
+    than any capital reaches up), which a single half-height cannot express."""
+    C = _C_MOD()
+    d = tmpdir("proptext_")
+    n = [0]
+
+    def uu():
+        n[0] += 1
+        return "00000000-0000-0000-0000-%012d" % n[0]
+
+    probe = ('    (symbol "elt:BOX" (in_bom no) (on_board yes)\n'
+             '      (property "Reference" "#B" (at 0 0 0)'
+             ' (effects (font (size 1.27 1.27)) hide))\n'
+             '      (property "Value" "B" (at 0 0 0)'
+             ' (effects (font (size 1.27 1.27)) hide))\n'
+             '      (symbol "BOX_0_1"\n'
+             '        (rectangle (start -2 -2) (end 2 2)'
+             ' (stroke (width 0.254) (type default)) (fill (type none)))\n'
+             '      )\n    )')
+    out = ['(kicad_sch (version 20230121) (generator probe)',
+           '  (uuid "00000000-0000-0000-0000-000000000001")',
+           '  (paper "User" 1400.00 900.00)',
+           '  (title_block (title "probe") (date "2026-07-31") (rev "p")', '  )',
+           '  (lib_symbols', probe, '  )']
+    cases, i = [], 0
+    for txt in ("R1", "C_SW2", "C3716677", "WWWWWWWWWW", "IIIIIIIIII"):
+        x, y = 90 + (i % 4) * 300, 90 + (i // 4) * 120
+        cases.append((txt, x, y))
+        out += [f'  (symbol (lib_id "elt:BOX") (at {x} {y} 0) (unit 1)'
+                f' (in_bom no) (on_board yes) (dnp no) (uuid "{uu()}")',
+                f'    (property "Reference" "#B{i:02d}" (at {x} {y - 8} 0)'
+                f' (effects (font (size 1.27 1.27)) hide))',
+                f'    (property "Value" "{txt}" (at {x} {y + 8} 0)'
+                f' (effects (font (size 1.27 1.27))))',
+                f'    (pin "1" (uuid "{uu()}"))',
+                f'    (instances (project "probe" (path "/00000000-0000-0000-'
+                f'0000-000000000001" (reference "#B{i:02d}") (unit 1))))', '  )']
+        i += 1
+    out += ['  (sheet_instances (path "/" (page "1")))', ')']
+    sch = d / "probe.kicad_sch"
+    sch.write_text("\n".join(out) + "\n")
+    runs, _g = _svg_ink(sch)
+    seen = 0
+    for txt, x, y in cases:
+        boxes = [b for b in runs.get(txt, []) if abs(b[1] - (y + 8)) < 4]
+        check(boxes, f"{txt!r}: no rendered glyph run near its anchor")
+        b = boxes[0]
+        pred = C.prop_box(txt, x, y + 8)
+        check(pred[0] <= b[0] + 1e-6 and b[2] <= pred[2] + 1e-6,
+              f"prop_box({txt!r}) x-extent {pred[0]:.3f}..{pred[2]:.3f} does "
+              f"not contain the rendered {b[0]:.3f}..{b[2]:.3f}")
+        check(pred[1] <= b[1] + 1e-6 and b[3] <= pred[3] + 1e-6,
+              f"prop_box({txt!r}) y-extent {pred[1]:.3f}..{pred[3]:.3f} does "
+              f"not contain the rendered {b[1]:.3f}..{b[3]:.3f}")
+        seen += 1
+    eq(seen, len(cases), "property texts measured out of the render")
+
+
+@test("the de-collision search is DETERMINISTIC and refuses to change a "
+      "label's reach direction or its net")
+def t_decollide_is_deterministic_and_refuses():
+    """Two properties the pipeline's regenerability rests on.
+
+    DETERMINISM: the same circuit.json converted twice must place every label
+    at the same coordinate. The sheet is not byte-comparable (UUIDs are fresh
+    every run by design), so this compares the label set itself.
+
+    WHAT IT REFUSES: every emitted label must still carry the (angle, justify)
+    of the side it started on. A plate is read as belonging to the pin at its
+    blunt end, so turning one around re-attributes it to a different pin — the
+    exact defect `948ef54d` fixed — and no amount of extra whitespace is worth
+    re-introducing it."""
+    C = _C_MOD()
+    cj = _twin_fixture("label_sides_h", 3.2, 0.0, _RENAME)
+
+    def labels(sheet):
+        return sorted(re.findall(
+            r'\(global_label "([^"]+)" \(shape passive\) \(at ([-\d.]+) '
+            r'([-\d.]+) (\d+)\).*?\(justify (\w+)\)', sheet.read_text()))
+
+    d1, a = _convert_json(cj, "det_a")
+    d2, b = _convert_json(cj, "det_b")
+    eq(labels(a), labels(b), "label placement across two identical runs")
+    d3, raw = _convert_json(cj, "det_raw", raw=True)
+    before = {n: (ang, j) for n, _x, _y, ang, j in labels(raw)}
+    after = {n: (ang, j) for n, _x, _y, ang, j in labels(a)}
+    eq(after, before, "the (angle, justify) of every label across the pass")
+    check(set(after) == set(before),
+          f"the pass changed the label SET: {set(before) ^ set(after)}")
+    # ...and it really did move something, or the assertion above is vacuous
+    moved = [n for n, x, y, _a, _j in labels(a)
+             if (n, x, y) not in {(m, p, q) for m, p, q, _c, _d in labels(raw)}]
+    check(moved, "no label moved at all — this fixture proves nothing")
 
 
 if __name__ == "__main__":

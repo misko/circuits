@@ -683,6 +683,14 @@ LABEL_ANG_JUST = {'left': (180, 'right'), 'right': (0, 'left'),
                   'top': (90, 'left'), 'bottom': (270, 'right')}
 GND_ANG = {'left': 270, 'right': 90, 'top': 180, 'bottom': 0}
 
+#: the same four side names as UNIT REACH VECTORS on a y-DOWN KiCad sheet.
+#: This is `LABEL_ANG_JUST` read as geometry, and `tests/t1_converter.py
+#: t_kicad_direction_table_is_measured` closes the loop every run: the
+#: (angle, justify) each side maps to is measured from rendered ink and must
+#: reach exactly this way.
+SIDE_REACH = {'left': (-1, 0), 'right': (1, 0), 'top': (0, -1), 'bottom': (0, 1)}
+_PERP_OF = {'left': (0, -1), 'right': (0, 1), 'top': (1, 0), 'bottom': (-1, 0)}
+
 # tscircuit's `anchor_side` names the EDGE OF THE LABEL PLATE that the anchor
 # sits on — the OPPOSITE of the direction the plate reaches. See
 # `label_plate_side`.
@@ -692,6 +700,93 @@ _ANCHOR_OPPOSITE = {'left': 'right', 'right': 'left',
 #: gap from the nearest thing already drawn on that side of a symbol to a
 #: property text's anchor.
 PROP_GAP = 2.2
+
+# ------------------------------------------------ MEASURED text geometry
+# Everything below is MEASURED from `kicad-cli sch export svg` INK on probe
+# sheets KiCad renders itself (kicad-cli 10.0.4, 2026-07-31), never derived and
+# never copied from another module — canon M1, and the brief's standing rule
+# that two geometry constants in this repo were recently found wrong in
+# OPPOSITE directions. `tests/t1_converter.py t_text_geometry_is_measured`
+# re-derives the whole of it on every run.
+#
+# WHY IT COULD NOT BE INHERITED. The converter's own shipped plate model is
+# `(len + 2) * CH_W` with `CH_W = 1.05`, i.e. every character the same width.
+# KiCad's stroke font is PROPORTIONAL: measured over 95 characters the advance
+# is an exact k/21 of the font size with k from 8 (`` ` ``) to 28 (`m`), a 3.5x
+# spread. The flat model is 0.77 mm too WIDE for `IIII` and 6.48 mm too NARROW
+# for a 20-character name of capitals — and too narrow is the dangerous
+# direction, because a de-collision search built on it would place a plate the
+# search calls clear and KiCad draws straight through its neighbour.
+#
+#: plate extent ALONG the reach = PLATE_BASE + the advance of every character.
+#: MEASURED: 1.3341 mm with ZERO spread over all 95 characters (the arrow point
+#: plus both margins), at the 1.27 mm font size this module always emits.
+PLATE_BASE = 1.3341
+#: plate extent ACROSS the reach. MEASURED: 2.5408 mm with ZERO spread over 56
+#: plates (7 name lengths x 8 (angle, justify) combinations).
+PLATE_CROSS = 2.5408
+#: KiCad newstroke advance per character, in TWENTY-FIRSTS of the font size —
+#: the font's em is 21 units, so every one of the 95 measured advances is an
+#: exact integer and the table is lossless. An unmeasured character takes the
+#: WIDEST measured advance, so a name this table has never seen can only make
+#: the placer more cautious, never less (canon M-COVER in a geometry model).
+ADV21 = {}
+for _k, _cs in {8: "`", 10: "!',.:;Iij", 11: "l", 12: "^ft", 13: "r",
+                14: "()[\\]{}", 15: "~", 16: " \"*JT_vy", 17: "Lksxz",
+                18: "?AFVYce", 19: "Eabdghnopqu", 20: "$0123456789SXZ|",
+                21: "#BCDGKPR", 22: "/HNOQUw", 24: "%MW", 26: "&+-<=>",
+                27: "@", 28: "m"}.items():
+    for _c in _cs:
+        ADV21[_c] = _k
+ADV21_MAX = max(ADV21.values())
+#: property (Reference/Value) text ink extent ABOVE and BELOW its anchor, as a
+#: fraction of the font size. MEASURED 0.5441 / 0.5520 (the lower figure is the
+#: descender case, `C_SW2`); rounded OUTWARD so the model never under-reaches.
+PROP_UP, PROP_DN = 0.545, 0.553
+#: a `no_connect` marker is an X of this HALF-extent. MEASURED 0.6096 mm,
+#: identical at all three probe sites.
+NC_HALF = 0.6096
+#: font size every label and property this module emits is drawn at.
+FONT = 1.27
+
+
+def text_span(s, size=FONT):
+    """Ink width of a stroke-font run, mm. Sum of the per-character advances —
+    a strict UPPER bound on the rendered ink, because the final character's
+    trailing side bearing is advanced over but never drawn (MEASURED: 10 `W`s
+    advance 14.514 mm and ink 14.151 mm)."""
+    return sum(ADV21.get(c, ADV21_MAX) for c in s) * size / 21.0
+
+
+def plate_span(name, size=FONT):
+    """Extent of a global_label's plate ALONG its reach, mm."""
+    return PLATE_BASE * size / FONT + text_span(name, size)
+
+
+def plate_box(name, x, y, side, size=FONT):
+    """The rectangle a global_label's plate occupies, from its ANCHOR, given
+    the DIRECTION IT REACHES (this module's side vocabulary)."""
+    ux, uy = SIDE_REACH[side]
+    reach = plate_span(name, size)
+    half = PLATE_CROSS * size / FONT / 2.0
+    if ux:
+        return (min(x, x + ux * reach), y - half,
+                max(x, x + ux * reach), y + half)
+    return (x - half, min(y, y + uy * reach),
+            x + half, max(y, y + uy * reach))
+
+
+def prop_box(txt, x, y, size=FONT, just=None):
+    """The rectangle a Reference/Value text occupies. A property with no
+    `justify` is CENTRED on its anchor (MEASURED — unlike a global_label,
+    whose absent justify renders as `left`)."""
+    w = text_span(txt, size)
+    up, dn = PROP_UP * size, PROP_DN * size
+    if just == "left":
+        return (x, y - up, x + w, y + dn)
+    if just == "right":
+        return (x - w, y - up, x, y + dn)
+    return (x - w / 2, y - up, x + w / 2, y + dn)
 
 
 def sym_xf(lx, ly, ang):
@@ -899,6 +994,435 @@ def _on_segment(px, py, x1, y1, x2, y2, eps=1e-4):
     return L2 > eps and eps < dot < L2 - eps
 
 
+# ==================================================== label de-collision (S11)
+#: search step, mm. 1.27 is half the 2.54 mm pin pitch and two units of this
+#: module's own L_G = 0.635 snap grid, so every candidate anchor lands exactly
+#: on the grid the wires and pin tips already live on.
+DC_STEP = 1.27
+#: how far the search may go, in steps: outward ALONG the reach, and sideways
+#: ACROSS it. Chosen at SATURATION, not tuned to a number: measured over the
+#: six layout-mode sheets, (4, 6) leaves 4 labels stuck, (6, 10) places every
+#: label on every board, and (8, 14) and (10, 20) then produce the IDENTICAL
+#: placement — 8/39 moved on crow-mic-pod-v2 and 96/303 on
+#: crow-recorder-central-v2 at all three. So the bound is past the point where
+#: it decides anything, which is the only honest place to put one.
+DC_MAX_ALONG, DC_MAX_CROSS = 6, 10
+#: two objects are in CONTACT when they overlap by more than this.
+#:
+#: MEASURED, not inherited and not chosen. Every plate-vs-anything overlap this
+#: model finds across the six layout-mode sheets was tabulated: 108 at exactly
+#: zero, 205 at exactly 0.0004 or 0.0008 mm, then NOTHING until 0.0677 mm, and
+#: the rest above 0.2 mm. The 0.0004/0.0008 cluster is arithmetic, not
+#: crowding: PLATE_CROSS is 2.5408 mm and pins sit on a 2.540 mm pitch, so two
+#: labels on ADJACENT pins of one symbol overlap by 0.0008 mm and a label
+#: against the neighbouring pin LINE by half of that. Every schematic in this
+#: fleet already looks like that and always will.
+#: So the threshold sits in the empty two-decade gap between the two clusters:
+#: 12x above the abutment, 6.8x below the smallest real overlap on the fleet,
+#: and 1/25 of the 0.254 mm stroke width — small enough that nothing it
+#: forgives could be seen by a human, large enough that the grid's own
+#: arithmetic is not mistaken for a defect.
+DC_TOUCH = 0.01
+#: how close a new wire end may come to a connection point it is not part of.
+DC_NET_TOL = 0.01
+#: bounded re-derivation rounds (see `place_labels`). Bounded, so an
+#: oscillating pair terminates rather than spinning; the loop also stops the
+#: moment a round changes nothing.
+DC_ROUNDS = 8
+
+
+class LabelPlacementError(Exception):
+    """No legal placement exists for a global_label.
+
+    A HARD ERROR that NAMES the label, never a silent drop and never a fallback
+    — canon S11 and the same rule the silkscreen `_place_owned` search has
+    carried since a board shipped with no reference designators on it at all.
+    Deliberately NOT a `LayoutFallback`: falling back to `--mode grid` would
+    answer "this label cannot be placed legibly" with a different sheet, which
+    is not an answer.
+    """
+
+
+def _hit_box(a, b, eps=DC_TOUCH):
+    return (min(a[2], b[2]) - max(a[0], b[0]) > eps and
+            min(a[3], b[3]) - max(a[1], b[1]) > eps)
+
+
+def _seg_in_box(p, q, box):
+    """Length of segment p->q lying inside an axis-aligned box (Liang-Barsky).
+
+    A pin is a LINE, not a rectangle: asking how much of it the text actually
+    covers is what makes a plate's own attachment point score exactly zero."""
+    x0, y0, x1, y1 = box
+    dx, dy = q[0] - p[0], q[1] - p[1]
+    t0, t1 = 0.0, 1.0
+    for pp, qq in ((-dx, p[0] - x0), (dx, x1 - p[0]),
+                   (-dy, p[1] - y0), (dy, y1 - p[1])):
+        if abs(pp) < 1e-12:
+            if qq < 0:
+                return 0.0
+        else:
+            r = qq / pp
+            if pp < 0:
+                if r > t1:
+                    return 0.0
+                t0 = max(t0, r)
+            else:
+                if r < t0:
+                    return 0.0
+                t1 = min(t1, r)
+    return max(0.0, t1 - t0) * math.hypot(dx, dy)
+
+
+def _obstacles(placed, prop_rows_by_ref, flag_host, comp_by_ref):
+    """Every non-label piece of ink a label plate must stay off: symbol bodies,
+    pin lines, the Reference/Value rows, the ground/flag glyphs, no-connect
+    markers. Returns ([(box, desc)], [((p, q), desc)])."""
+    boxes, segs = [], []
+    for comp in placed:
+        ref = comp["refdes"]
+        ix, iy = comp["inst"]
+        w, h = comp["w"], comp["h"]
+        boxes.append(((ix - w / 2, iy - h / 2, ix + w / 2, iy + h / 2),
+                      f"body {ref}"))
+        ry, vy = prop_rows_by_ref[ref]
+        for txt, ty, kind in ((ref, ry, "Reference"),
+                              (comp["value"], vy, "Value")):
+            if txt:
+                boxes.append((prop_box(str(txt), ix, ty), f"{kind} {txt}"))
+        nets = {p: comp_pin_net(comp_by_ref, ref, p)
+                for p in comp["tips"]}
+        for num, _pn, lx, ly, pang, plen in comp["pins_geo"]:
+            tip = comp["tips"][str(num)]
+            # the (at) point IS the tip; the pin runs from there toward the
+            # body along `pang` in symbol-LOCAL (y-up) space.
+            ex = lx + plen * math.cos(math.radians(pang))
+            ey = ly + plen * math.sin(math.radians(pang))
+            end = (ix + ex, iy - ey)
+            segs.append(((tip, end), f"pin {ref}.{num}"))
+            net = nets.get(str(num))
+            if net is None:
+                boxes.append(((tip[0] - NC_HALF, tip[1] - NC_HALF,
+                               tip[0] + NC_HALF, tip[1] + NC_HALF),
+                              f"no_connect {ref}.{num}"))
+            elif net == "GND":
+                side = comp["sides"][str(num)]
+                boxes.append((glyph_box(power_syms()["GND"], tip[0], tip[1],
+                                        GND_ANG[side]), f"glyph {ref}.{num}"))
+                if flag_host == (ref, str(num)):
+                    boxes.append((glyph_box(power_syms()["PWR_FLAG"],
+                                            tip[0], tip[1], 0),
+                                  f"flag {ref}.{num}"))
+    return boxes, segs
+
+
+def _candidates():
+    """The search ladder, in a FIXED order — same input, same sheet, always.
+
+    Cheapest first (`(0, 0)` is always tried first, so a label with no
+    collision never moves at all); at equal cost prefer the sideways step,
+    because an outward step lengthens the label's reach into whatever lies
+    beyond it while a sideways one keeps the reach envelope exactly where the
+    author put it; `+cross` before `-cross` purely to break the tie."""
+    out = []
+    for cost in range(DC_MAX_ALONG + DC_MAX_CROSS + 1):
+        for a in range(DC_MAX_ALONG + 1):
+            for c in range(DC_MAX_CROSS + 1):
+                if a + c != cost:
+                    continue
+                for s in ((0,) if c == 0 else (1, -1)):
+                    out.append((a, c * s))
+    return out
+
+
+_DC_LADDER = _candidates()
+
+
+def _stub(anchor, side, along, cross, cross_first=True):
+    """The wire path from a label's ORIGINAL anchor to a displaced one. Both
+    corner orders reach the same end point and are BOTH tried, in this order:
+
+      * ACROSS FIRST is preferred, because it does not lengthen the label's
+        reach — the plate's far edge stays exactly where the author put it;
+      * OUTWARD FIRST is the fallback, and it is not a nicety. A label
+        anchored on a pin of a multi-pin symbol sits in a COLUMN of pin tips
+        2.54 mm apart, so a sideways wire leaving that anchor runs straight
+        through its neighbours and is (rightly) refused every time. One step
+        out of the column first, and the same sideways move is free. MEASURED
+        on pluto-rx2-8way-v2: `ANT2` and `3V3_MOD` both sit in such a column,
+        and across-first alone cannot place either of them.
+    """
+    ux, uy = SIDE_REACH[side]
+    px, py = _PERP_OF[side]
+    legs = ([(px * cross, py * cross), (ux * along, uy * along)] if cross_first
+            else [(ux * along, uy * along), (px * cross, py * cross)])
+    pts = [anchor]
+    for dx, dy in legs:
+        if dx or dy:
+            pts.append((round(pts[-1][0] + dx, 3), round(pts[-1][1] + dy, 3)))
+    return pts
+
+
+def _near(a, b, tol=DC_NET_TOL):
+    return abs(a[0] - b[0]) < tol and abs(a[1] - b[1]) < tol
+
+
+def _pt_on_wire(pt, a, b, tol=DC_NET_TOL):
+    """Does `pt` lie ON segment a-b, ENDPOINTS INCLUDED?
+
+    The endpoints are the whole point. A global_label sitting anywhere along a
+    wire is attached to it by `kicad-cli sch export netlist` — that is the same
+    mid-segment attachment the `3V3_ANALOG` merge above turns on — so a
+    displaced label whose new anchor happens to land mid-span on some OTHER
+    net's wire silently merges the two. MEASURED before this check existed:
+    72 nodes moved on crow-recorder-central-v2, 24 on pluto-cal-switch and 4 on
+    pluto-rx2-8way (`U_MCU.51` read `DVDD_1V1` where it had read `QSPI_SD3`),
+    while every stub still satisfied the connection-POINT rules — because a
+    point in the MIDDLE of a wire is not a connection point.
+    """
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    L2 = dx * dx + dy * dy
+    if L2 <= 1e-12:
+        return _near(pt, a, tol)
+    t = max(0.0, min(1.0, ((pt[0] - a[0]) * dx + (pt[1] - a[1]) * dy) / L2))
+    return math.hypot(pt[0] - (a[0] + t * dx), pt[1] - (a[1] + t * dy)) <= tol
+
+
+def _stub_plan(path, wires, conn_pts, tips, home, net):
+    """The wire segments a displacement must ADD, or None if it cannot be made
+    without risking a change of connectivity.
+
+    THE CHEAP CASE FIRST, and it is most of them: if the step runs ALONG a wire
+    of the label's OWN net that already covers it, the label simply slides down
+    that wire and NOTHING is added. A global_label sitting mid-wire is attached
+    by KiCad's netlister exactly as one sitting on a pin tip is — the same fact
+    that made the `3V3_ANALOG` merge above possible — so this is a free move,
+    and on this fleet it is the move most labels need, because the direction a
+    crowded label wants to escape in is usually the direction its own wire
+    already runs.
+
+    Where a wire really has to be added the rules are blunt, because a wire
+    that merges two nets is a far worse outcome than a label that does not
+    move: nothing already on the sheet may touch the new segment or sit at its
+    far end (only `home`, the point it leaves from, may), and it may not run
+    collinear-and-overlapping with any wire. A transverse CROSSING is allowed —
+    KiCad joins crossing wires only where a junction dot says so.
+    """
+    emit = []
+    for k in range(len(path) - 1):
+        p, q = path[k], path[k + 1]
+        covered = False
+        for (a, b, wnet) in wires:
+            if not _collinear_overlap(p, q, a, b):
+                continue
+            if wnet != net:
+                return None                      # would join a foreign net
+            if _contains(a, b, p) and _contains(a, b, q):
+                covered = True                   # a free ride on our own wire
+            else:
+                return None                      # partial overlap: don't guess
+        if covered:
+            continue
+        for pt in conn_pts:
+            if _near(pt, home):
+                continue
+            if _on_segment(pt[0], pt[1], p[0], p[1], q[0], q[1], eps=DC_NET_TOL):
+                return None
+            if _near(pt, q):
+                return None
+        emit.append((p, q))
+    # NOTHING the label now touches may belong to a foreign net. Every corner
+    # of the path, and above all the far end where the label itself lands, is
+    # tested against every wire on the sheet — not merely against connection
+    # POINTS, because a label anchored mid-span is attached just as firmly as
+    # one anchored on an endpoint.
+    for pt in path[1:]:
+        for (a, b, wnet) in wires:
+            if wnet != net and _pt_on_wire(pt, a, b):
+                return None
+    # ...and it must not land ON another pin's connection point, which would
+    # read as naming that pin — the one thing this pass must never do.
+    for t in tips:
+        if _near(t, path[-1]) and not _near(t, home):
+            return None
+    return emit
+
+
+def _contains(a, b, p, eps=1e-6):
+    """Does the segment a-b contain the (already collinear) point p?"""
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    L2 = dx * dx + dy * dy
+    if L2 <= eps:
+        return False
+    t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2
+    return -eps <= t <= 1 + eps
+
+
+def _collinear_overlap(p, q, a, b, eps=1e-6):
+    """Do segments p-q and a-b lie on one line and share more than a point?"""
+    dx, dy = q[0] - p[0], q[1] - p[1]
+    for pt in (a, b):
+        if abs((pt[0] - p[0]) * dy - (pt[1] - p[1]) * dx) > eps * 1e3:
+            return False
+    L2 = dx * dx + dy * dy
+    if L2 <= eps:
+        return False
+    ts = sorted(((pt[0] - p[0]) * dx + (pt[1] - p[1]) * dy) / L2 for pt in (a, b))
+    return min(ts[1], 1.0) - max(ts[0], 0.0) > eps
+
+
+def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
+                 segs, junctions, pin_tip):
+    """De-collide every global_label this module places. Canon S11.
+
+    THE CONTRACT, and it is as much about what this REFUSES as what it does.
+    A label's REACH DIRECTION is the fact the sheet is read by — a plate is
+    understood to belong to the pin at its blunt end and to name the net
+    running out of it — so the search never changes `side`, never flips a label
+    onto the far side of its pin, and never re-anchors it on a different pin or
+    a different net. The only freedoms are to step the anchor OUTWARD along the
+    reach it already has, or SIDEWAYS across it, carrying a wire with it so the
+    label stays electrically exactly where it was.
+
+    A label with no legal placement raises `LabelPlacementError` NAMING it. It
+    is never dropped, never silently left overlapping, and never answered by
+    falling back to a different emitter.
+
+    Returns (labels, stubs, extra_junctions, moved) where `labels` is
+    [(net, x, y, side)] and `stubs` is [((p, q), net)].
+    """
+    boxes, obsegs = _obstacles(placed, prop_rows_by_ref, flag_host, comp_by_ref)
+    base_tips = sorted({(round(t[0], 3), round(t[1], 3)) for t in pin_tip.values()})
+    base_pts = set(base_tips) | set(junctions) | {
+        (round(v[0], 3), round(v[1], 3)) for a, b, _n in segs for v in (a, b)}
+
+    # DETERMINISTIC ORDER. Tie-broken all the way down to the net name and then
+    # the index, so two labels at one coordinate can never swap between runs.
+    order = sorted(range(len(cands)),
+                   key=lambda i: (cands[i][2], cands[i][1], cands[i][0], i))
+    pos = {i: (0, 0) for i in range(len(cands))}      # (along, cross) in STEPS
+    plan = {}                                        # i -> [(p, q), ...] added
+
+    def anchor(i, off):
+        _net, x, y, side = cands[i]
+        ux, uy = SIDE_REACH[side]
+        px, py = _PERP_OF[side]
+        a, c = off[0] * DC_STEP, off[1] * DC_STEP
+        return (round(x + ux * a + px * c, 3), round(y + uy * a + py * c, 3))
+
+    def box_of(i, off):
+        net, _x, _y, side = cands[i]
+        ax, ay = anchor(i, off)
+        return plate_box(net, ax, ay, side)
+
+    def clashes(i, off):
+        b = box_of(i, off)
+        for ob, desc in boxes:
+            if _hit_box(b, ob):
+                return desc
+        for (p, q), desc in obsegs:
+            if _seg_in_box(p, q, b) > DC_TOUCH:
+                return desc
+        for j in range(len(cands)):
+            if j != i and _hit_box(b, box_of(j, pos[j])):
+                return f"label {cands[j][0]}"
+        return None
+
+    def world(exclude):
+        """Wires and connection points as they stand, with one label's own
+        contribution taken out — so a label is never blocked by itself."""
+        w = list(segs)
+        pts = set(base_pts)
+        for j, adds in plan.items():
+            if j == exclude:
+                continue
+            for (p, q) in adds:
+                w.append((p, q, cands[j][0]))
+                pts.add(p)
+                pts.add(q)
+        for j in range(len(cands)):
+            if j != exclude:
+                pts.add(anchor(j, pos[j]))
+        return w, sorted(pts)
+
+    def best_offset(i):
+        net, x, y, side = cands[i]
+        home = (round(x, 3), round(y, 3))
+        w, pts = world(i)
+        for off in _DC_LADDER:
+            if clashes(i, off) is not None:
+                continue
+            for cross_first in (True, False):
+                path = _stub(home, side, off[0] * DC_STEP, off[1] * DC_STEP,
+                             cross_first)
+                add = ([] if len(path) == 1
+                       else _stub_plan(path, w, pts, base_tips, home, net))
+                if add is not None:
+                    return off, add
+                if len(path) < 3:
+                    break        # a single leg has only one corner order
+        return None
+
+    # ROUND-BASED, and the rounds are what make it work rather than a nicety.
+    # Where two labels collide with each other, EITHER may move; a single
+    # greedy pass tries only the one its ordering reaches first, and if that
+    # one happens to be the boxed-in half it fails on a pair the other half
+    # could have resolved in one step (MEASURED: `3V3_MOD x ANT2` on
+    # pluto-rx2-8way-v2 does exactly this). Re-deriving the clash set each
+    # round lets the freer label take the step, and a label whose counterparty
+    # moved away is re-offered `(0, 0)` first and settles back home.
+    for _rnd in range(DC_ROUNDS):
+        todo = [i for i in order if clashes(i, pos[i]) is not None]
+        if not todo:
+            break
+        progressed = False
+        for i in todo:
+            got = best_offset(i)
+            if got is None or got[0] == pos[i]:
+                continue
+            pos[i], plan[i] = got[0], got[1]
+            if got[0] == (0, 0):
+                plan.pop(i, None)
+            progressed = True
+        if not progressed:
+            break
+
+    stuck = [i for i in order if clashes(i, pos[i]) is not None]
+    if stuck:
+        i = stuck[0]
+        net, x, y, side = cands[i]
+        raise LabelPlacementError(
+            f"global_label {net!r} at ({x:.3f}, {y:.3f}) reaching {side}: no "
+            f"legal placement — it occludes {clashes(i, pos[i])} and every one "
+            f"of the {len(_DC_LADDER)} offsets in the search is blocked too "
+            f"({len(stuck)} label(s) stuck: "
+            f"{', '.join(sorted(cands[j][0] for j in stuck[:6]))}). Its reach "
+            f"direction is load-bearing (canon S11) so it may not be turned "
+            f"around, and re-anchoring it on another pin would change what the "
+            f"sheet says. Fix the tscircuit schematic layout.")
+
+    stubs, extra_junc, moved = [], [], 0
+    for i in order:
+        if pos[i] == (0, 0):
+            continue
+        moved += 1
+        net = cands[i][0]
+        home = (round(cands[i][1], 3), round(cands[i][2], 3))
+        for (p, q) in plan.get(i, []):
+            stubs.append(((p, q), net))
+        # leaving from the MIDDLE of an existing wire is a T, and KiCad joins a
+        # T only where a junction dot says so.
+        if plan.get(i) and any(_on_segment(home[0], home[1], a[0], a[1], b[0], b[1])
+                               for a, b, _n in segs):
+            extra_junc.append(home)
+
+    out = []
+    for i, (net, _x, _y, side) in enumerate(cands):
+        ax, ay = anchor(i, pos[i])
+        out.append((net, ax, ay, side))
+    return out, stubs, extra_junc, moved
+
+
 def convert_layout(circuit_json, project, title, rev, date, aliases=None, overrides=None,
                    ties=None):
     """Layout-preserving emitter. Returns (content, components, stats). Raises
@@ -1100,7 +1624,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
     tip_reach = {}              # sheet coord -> the reach of the pin sitting there
     for (_rd, _pd), _t in pin_tip.items():
         tip_reach.setdefault(key(_t), pin_side[(_rd, _pd)])
-    cand_labels = []            # (net, x, y, ang, just)
+    cand_labels = []            # (net, x, y, side) — `side` is the REACH
     for n in snlabel:
         net = canon_net(n['text'], aliases)
         if net is None or net == "GND":
@@ -1110,8 +1634,9 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         # own geometry — never `anchor_side`, which names the opposite edge and
         # inverted every label on every board until 2026-07-31.
         side = label_plate_side(n, tip_reach.get(key((x, y))))
-        ang, just = LABEL_ANG_JUST.get(side, (0, 'left'))
-        cand_labels.append((net, x, y, ang, just))
+        if side not in SIDE_REACH:
+            side = 'left'
+        cand_labels.append((net, x, y, side))
 
     # ---- prune dangling wires: iteratively drop any segment with a FREE end
     # (an endpoint not on a pin tip / junction / net label and not shared with
@@ -1120,7 +1645,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
     # them never drops connectivity a pin needs (the pin keeps its GND symbol /
     # net label / other wires; the self-healing pass still names every pin).
     anchors = set(tip_net.keys()) | set(junctions)
-    anchors |= {key((x, y)) for (_n, x, y, _a, _j) in cand_labels}
+    anchors |= {key((x, y)) for (_n, x, y, _s) in cand_labels}
     pruned = 0
     changed = True
     while changed:
@@ -1148,7 +1673,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         uf.union(key(a), key(b))
     for k in junctions:
         uf.find(k)
-    for net, x, y, _a, _j in cand_labels:
+    for net, x, y, _s in cand_labels:
         uf.find(key((x, y)))
         # A label sitting MID-SEGMENT is electrically ON that wire — KiCad's
         # netlister attaches it, so it must join the wire's root here too.
@@ -1172,7 +1697,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         pin_root[(refdes, pad)] = r
         if net is not None:
             root_pin_nets.setdefault(r, set()).add(net)
-    for net, x, y, _a, _j in cand_labels:
+    for net, x, y, _s in cand_labels:
         r = uf.find(key((x, y)))
         root_label_names.setdefault(r, set()).add(net)
 
@@ -1218,10 +1743,10 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
     # ---- emit candidate labels only if they name a real (pin-bearing) root
     emit_labels = []
     named_roots = set()
-    for net, x, y, ang, just in cand_labels:
+    for net, x, y, side in cand_labels:
         r = uf.find(key((x, y)))
         if r in root_pin_nets and net in root_pin_nets[r]:
-            emit_labels.append((net, x, y, ang, just))
+            emit_labels.append((net, x, y, side))
             named_roots.add(r)
 
     # ---- self-healing safety labels: name any pin-root a label didn't cover
@@ -1239,10 +1764,28 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         # tie-pad pin is side 'bottom' — the row that rendered UP until the
         # LABEL_ANG_JUST fix above.
         side = pin_side[(refdes, pad)]
-        ang, just = LABEL_ANG_JUST.get(side, (0, 'left'))
-        emit_labels.append((net, tip[0], tip[1], ang, just))
+        emit_labels.append((net, tip[0], tip[1], side))
         covered.add(r)
         safety += 1
+
+    # ---- LABEL DE-COLLISION (canon S11). Every property row is resolved
+    # first, because a Reference/Value is one of the things a plate has to
+    # stay off — and the rows themselves move to clear the ground glyphs of
+    # their own pins (`prop_rows`), so they must be settled before, not during.
+    prop_rows_by_ref = {}
+    for comp in placed:
+        pads = [num for num, _pn, _lx, _ly, _a, _l in comp["pins_geo"]]
+        nets = {p: comp_pin_net(comp_by_ref, comp["refdes"], p) for p in pads}
+        prop_rows_by_ref[comp["refdes"]] = prop_rows(
+            comp["inst"][0], comp["inst"][1], comp["w"], comp["h"],
+            attached_glyph_boxes(pads, comp["tips"], comp["sides"], nets,
+                                 str(flag_host[1]) if flag_host
+                                 and flag_host[0] == comp["refdes"] else None))
+    emit_labels, stubs, extra_junc, moved = place_labels(
+        emit_labels, placed, prop_rows_by_ref, flag_host, comp_by_ref,
+        segs, junctions, pin_tip)
+    segs = segs + [(p, q, net) for (p, q), net in stubs]
+    junctions = junctions | {key(j) for j in extra_junc}
 
     # ================================================================= emit
     root_uuid = _u()
@@ -1250,9 +1793,10 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
     pwr = [0]
     for comp in placed:
         b = _emit_layout_component(comp, project, root_uuid, flag_host, pwr,
-                                   comp_by_ref)
+                                   comp_by_ref, prop_rows_by_ref[comp["refdes"]])
         body.extend(b)
-    for net, x, y, ang, just in emit_labels:
+    for net, x, y, side in emit_labels:
+        ang, just = LABEL_ANG_JUST[side]
         labels.append(
             f'  (global_label "{net}" (shape passive) (at {x:.3f} {y:.3f} {ang})'
             f' (fields_autoplaced) (effects (font (size 1.27 1.27)) (justify {just}))'
@@ -1292,7 +1836,9 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         (content.count("("), content.count(")"))
     stats = {"wires": len(segs), "labels": len(emit_labels),
              "tsc_labels": len(emit_labels) - safety, "safety_labels": safety,
-             "junctions": len(juncs), "dropped_segs": dropped, "pruned_segs": pruned}
+             "junctions": len(juncs), "dropped_segs": dropped,
+             "pruned_segs": pruned, "moved_labels": moved,
+             "stub_segs": len(stubs)}
     return content, components, stats
 
 
@@ -1326,17 +1872,16 @@ def attached_glyph_boxes(pins, tips, sides, nets, flag_pad=None):
     return out
 
 
-def _emit_layout_component(comp, project, root_uuid, flag_host, pwr, comp_by_ref):
+def _emit_layout_component(comp, project, root_uuid, flag_host, pwr, comp_by_ref,
+                           rows):
     """Emit one symbol instance at its tscircuit center + the per-pin GND power
-    symbols / no_connect flags (nets are carried by wires + labels)."""
+    symbols / no_connect flags (nets are carried by wires + labels).
+
+    `rows` is the (reference_y, value_y) pair `convert_layout` already resolved
+    — ONE home, so the de-collision search and the emitter cannot disagree
+    about where a property text is."""
     ix, iy = comp["inst"]
-    pads = [num for num, _pn, _lx, _ly, _a, _l in comp["pins_geo"]]
-    nets = {p: comp_pin_net(comp_by_ref, comp["refdes"], p) for p in pads}
-    ry, vy = prop_rows(
-        ix, iy, comp["w"], comp["h"],
-        attached_glyph_boxes(pads, comp["tips"], comp["sides"], nets,
-                             str(flag_host[1]) if flag_host
-                             and flag_host[0] == comp["refdes"] else None))
+    ry, vy = rows
     in_bom = "no" if comp["is_tp"] else "yes"
     out = [
         f'  (symbol (lib_id "{LIB}:{comp["sym"]}") (at {ix:.3f} {iy:.3f} 0) (unit 1)'
@@ -1412,6 +1957,13 @@ def main():
             print(f"LAYOUT FALLBACK -> grid for {os.path.basename(a.out)}: {e}",
                   file=sys.stderr)
             mode = "grid"
+        except LabelPlacementError as e:
+            # NOT a fallback (canon S11): answering "this label cannot be placed
+            # legibly" with a different sheet is not an answer. Fail, name it,
+            # and write nothing.
+            print(f"LABEL PLACEMENT FAILED for {os.path.basename(a.out)}: {e}",
+                  file=sys.stderr)
+            return 3
     if mode == "grid":
         content, comps = convert(a.circuit_json, project, title, a.rev, a.date,
                                  aliases, overrides, ties)
@@ -1424,14 +1976,17 @@ def main():
               f"({nfp} with FPID), {npins} pins; {stats['wires']} wires, "
               f"{stats['tsc_labels']} tscircuit labels + {stats['safety_labels']} "
               f"safety labels, {stats['junctions']} junctions "
-              f"({stats['dropped_segs']} segs dropped as cross-net)")
+              f"({stats['dropped_segs']} segs dropped as cross-net); "
+              f"de-collision moved {stats['moved_labels']} of "
+              f"{stats['labels']} labels on {stats['stub_segs']} stub segs")
     else:
         print(f"wrote {a.out} [MODE=grid, label-glue fallback]: {len(comps)} "
               f"components ({nfp} with FPID), {npins} pins")
     print(f"  overrides: {len(overrides)} keys from {parts_dir or '(none)'}; "
           f"aliases: {len(aliases)} from {alias_path or '(none)'}; "
           f"tie-parts: {len(ties)} keys")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

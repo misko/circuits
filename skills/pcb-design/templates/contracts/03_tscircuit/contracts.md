@@ -169,6 +169,15 @@ embedded `elt` lib isn't in the running kicad-cli config), `footprint_link_issue
 - Converter fell back to `grid` mode (logged to stderr) → tscircuit's trace
   geometry couldn't import without a genuine cross-net short. Parity is still
   enforced, but the sheet is label-glue rather than wired; fix the TSX layout.
+- Converter exited **3** with `LABEL PLACEMENT FAILED ... no legal placement`
+  → a `global_label` has nowhere legible to go (canon S11). The converter
+  de-collides labels by sliding an anchor outward along the reach it already
+  has, or sideways across it, carrying a wire so connectivity is untouched; it
+  will NOT turn a plate around or re-anchor it on another pin, because a plate
+  is read as belonging to the pin at its blunt end. This is a HARD ERROR and
+  deliberately **not** a fallback to `grid`: answering "this label cannot be
+  placed legibly" with a different sheet is not an answer. The message names
+  the label and what it occludes — open the TSX and give that corner room.
 
 ## Compliance audit (design-policies.md IDs)
 
