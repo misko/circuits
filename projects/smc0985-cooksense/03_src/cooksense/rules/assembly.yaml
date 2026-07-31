@@ -144,8 +144,16 @@ consigned: []
 sourcing_plan:
   - lcsc: C265111
     refs: [J_THERM_A, J_THERM_B]
-    measured_stock: 5
-    measured_on: 2026-07-30
+    measured_stock: 0          # RE-MEASURED 2026-07-31T02:17:24Z at the v1.7
+    measured_on: 2026-07-31     # re-gate-3 seal attempt, with my own urllib
+    # client and BOTH controls (C2040 -> 63064, C99999999 -> no exact-code row;
+    # substitute C42376901 -> 5993 / MOQ 1). **STOCK WENT 5 -> 0 DURING THE
+    # PASS**, on a board whose md5 did not move, and that is the cleanest
+    # evidence there is for why DESIGN and SOURCING are two fields: no edit to
+    # this design changes this number, and it changed anyway, twice in 48 h
+    # (0 on 2026-07-29, 5 on 2026-07-30, 0 on 2026-07-31). The BLOCKING fact
+    # was never the stock: minPurchaseNum 21 has been above stock at every
+    # reading. WATCH 21, NOT 10.
     # canon A-BUY: 5 does not cover 2 x 5 boards = 10, so this entry MUST
     # classify itself. (The ID is A-BUY and NOT A-ORDER: `rules_audit.py`'s
     # A-ORDER has meant "generate_rules runs LAST, because a pcbnew save

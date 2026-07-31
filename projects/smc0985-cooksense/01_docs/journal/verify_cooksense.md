@@ -2306,3 +2306,98 @@ is a check that cannot fail.
   the two errors point in OPPOSITE directions and must not be allowed to cancel
   by accident** — that is how this rail arrived here. Then re-gate the topology
   lens only; the layout lens returned SOUND on copper that cannot move.
+
+## 2026-07-30 20:30 — iterate (v1.7 RE-GATE 3: the dropout half)
+
+- did: closed the THIRD P0 on the 3V3 rail — the series-resistance sum that
+  counted three named components and none of the board's own copper. Method:
+  an EXACT DC NODAL SOLVE of the whole 5 V chain off the release board
+  (md5 9f4fd5fae810f40a52b1035df727243c, read-only into a scratch copy), every
+  track an edge / every via a plated barrel / every pad a node / the cited
+  component R as bridges / real load currents injected at the REAL PADS.
+  Also swept for a FOURTH by enumerating all 87 resistors from the netlist
+  with BOTH endpoint nets and tracing every pull-down's far node to its DRIVER.
+- result: **COPPER 137.79 mOhm** (26.29 / 7.17 / 24.07 / 80.25 per segment),
+  total 328.29 mOhm, of which 248.04 is TRUNK shared by every 5V_PROTECTED
+  load. **THE TWO ERRORS POINT IN OPPOSITE DIRECTIONS AND WERE NOT ALLOWED TO
+  CANCEL: copper -52 mV, the fictitious 0.50 A +26 mV.** vin_min 4.754 ->
+  4.728; headroom +55 mV (claimed) -> **+29.1 mV (MEASURED)**; E-TOPO RAW_EXIT
+  0. At the file's own literal reading (0.50 A LUMPED at the LDO) the answer is
+  **-13.1 mV, a FAIL**. Break-even 0.4910 A; the deleted "still passes at
+  0.60 A (+37 mV)" measures -35.8 mV.
+  **WORSE THAN THE LENS THAT FOUND IT** (109.0 mOhm): it took the two eFuse
+  IN-pad routes as disjoint parallel branches and allowed 0.5 mOhm/via where a
+  0.15 mm barrel at 18 um is 3.5 mOhm. Its ONE via-free segment (5V_IN, 25.87)
+  reproduces exactly, which is why it was accepted rather than re-litigated.
+  **THE 11.8 mA LOAD DELTA IS CLOSED, UPWARD**: three absent terms, all the
+  same shape (current leaving a 3V3-POWERED OUTPUT, not the 3V3 NET) — A" 17
+  pull-downs 0.884 mA, C' R_COILENPD 680 via J_MODE 4.999 mA, C" R_OPTOLED 330
+  + opto LED 7.270 mA — plus one NEITHER count had (R_GPB3PD 10k, 0.340 mA).
+  Sum **116.859 mA**; x1.5 = 175.3, so `iout_max_A` STAYS 0.20 and ADR-0026's
+  thermal half is untouched.
+  **A FOURTH FINDING: J_LOADCELL.1 is on 5V_PROTECTED and no revision ever
+  carried it** — UN-DERIVED (Board D is not in this repo), bounded 20 mA,
+  MEASURED insensitive to 125.9 mA.
+  **ONE NEW CONSTRAINT INSTEAD OF AN INVENTED NUMBER** (ADR-0027 §3): the two
+  SHT45 heaters never coincident at 200 mW. Coincident = -2.6 mV and a junction
+  excursion bounded by NO cited number; staggered = +27.0 mV.
+  Gates re-measured UNPIPED: DRC **0/0/0 exit 0** (both halves, empty sets);
+  ERC exit 0, 411 warnings 0 errors; **policy_audit exit 0 FAIL=0**
+  (PASS=28 WAIVED=6 HUMAN=6 N-A=5); E-INV 168/168; E-ADR 12/12; M-BOUND PASS
+  3 CITED / 37 OWED (floor <=37, unchanged); S-COUNT 4/4 over 239; M-BOM PASS;
+  F-LEGIBLE OK 60; P-FACT 6/6; A-POP PASS; A-ROT/A-POL 64 rows; M-DEPEND PASS;
+  G-ORPHAN 315/315; G-VACUOUS OK; M-BEACON PASS; placement_gates PASS;
+  F-PAYLOAD OK; contracts_audit 0 violations; M-FRESH PASS.
+  Pre-existing reds unchanged: E-NETREF (21 ghost K7 refs), A-AMP (2 nets.yaml
+  defects predating v1.6), A-STOCK.
+  **A-STOCK RE-MEASURED LIVE BY ME 2026-07-31T02:17:24Z with my own urllib
+  client and BOTH controls: C265111 is now stock 0 / MOQ 21** (was 5 / 21) —
+  positive control C2040 63064, negative control C99999999 no exact-code row,
+  substitute C42376901 stock 5993 / MOQ 1. The blocker got HARDER.
+- next: join both fresh-context lenses (relaunched on the two-key vocabulary,
+  each told the prior round's verdicts are SUPERSEDED text); a DEFECTIVE from
+  either means STOP. Then regenerate stock_check.json, update the sourcing_plan
+  measurement, install both verdicts, MANIFEST, 2-commit seal, refresh beacon.
+
+## 2026-07-30 21:40 — handoff (v1.7 RE-GATE 3: source COMPLETE, lenses NOT RUN)
+
+- did: attempted the seal. Installed the freshly regenerated stock evidence
+  (verification/stock_check.{json,txt}) and updated assembly.yaml's
+  sourcing_plan to the re-measured number. Launched BOTH red-team lenses
+  fresh-context on the two-key vocabulary and polled to completion in blocking
+  calls.
+- result: **BOTH LENS AGENTS DIED WITHOUT PRODUCING ANYTHING.** Their transcript
+  files are 139 bytes and have not changed since 19:12:50 / 19:13:18 — verified
+  by size+mtime twice, 45 s apart. Neither
+  `verification/2026-07-30_v1.7_redteam_{topology,layout}_REGATE3.md` was ever
+  written. ~25 min of blocking polls returned ABSENT.
+  **THE SEAL IS THEREFORE NOT TAKEN, AND NOT FOR A DESIGN REASON.** The
+  blocking condition is M-REV: `release_freshness_check.py` grades the
+  contract-named `verification/redteam_topology.md`, which still carries the
+  RE-GATE 2 `design_verdict: DEFECTIVE` — a verdict written against the
+  PRE-FIX `vin_min: 4.754` and now STALE. A stale red is not a verdict about
+  this archive, and it must not be argued away: it must be RE-GATED.
+  **A-STOCK RE-MEASURED AT SEAL TIME, 2026-07-31T02:17:24Z, own client + both
+  controls: C265111 stock 0 / MOQ 21** (was 5/21 earlier the same pass;
+  0 on 2026-07-29). Controls: C2040 -> 63064, C99999999 -> no exact-code row,
+  substitute C42376901 -> 5993 / MOQ 1. Full re-run: 57/58 coded lines OK,
+  verdict FAIL, exactly one problem line and it is the known BLOCKED one.
+  **Stock moved 5 -> 0 on a board whose md5 did not move**, which is the
+  cleanest evidence yet for why DESIGN and SOURCING are two fields.
+  Everything else from the 20:30 entry stands and was not re-run.
+- next: **RE-GATE BOTH LENSES. Nothing else blocks the seal.** Then copy each
+  REGATE3 review over the contract-named `verification/redteam_topology.md` /
+  `redteam_layout.md` (M-REV grades those exact names, parsing
+  `design_verdict:`/`order_verdict:` from the header). A `DEFECTIVE` from
+  either means STOP. Then: stage the archive into
+  `07_releases/cooksense-v1.7-2026-07-30/` (the seal contract stages THERE, not
+  in 06_build/staging — and doing so also clears the two EVIDENCE-PATH-MISMATCH
+  findings and the `_load_assembly` miss, both of which are artifacts of
+  grading a staging dir); MANIFEST; 2-commit seal; SUPERSEDED.md on v1.6;
+  CHANGELOG; refresh the beacon as PART of the seal.
+  **INVOCATION NOTE THAT COST THIS PASS TIME — this project's rules live under
+  `03_src/cooksense/rules/` (symlinked from `03_src/rules/`), so
+  `release_freshness_check.py` and `assembly_coverage.py` need an explicit
+  `--assembly projects/smc0985-cooksense/03_src/cooksense/rules/assembly.yaml`;
+  without it the sourcing state reads CLEAR instead of BLOCKED-1 and A-POP
+  reads FAIL. `count_parity.py` and `policy_audit.py` need `--board cooksense`.**

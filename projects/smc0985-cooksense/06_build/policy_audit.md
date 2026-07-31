@@ -35,9 +35,9 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | R-RULES | PASS | r0.kicad_pro: classes=['Default', 'PWR_IN', 'COIL_RAIL', 'STOP_RAIL', 'PWR_3V3', 'PWR_SW', 'ISO_CONTACTOR', 'KEYPAD_ISO', 'ANALOG_SENSE'] |
 | R4 | HUMAN | escape-first routing order — design review (feasibility itself is machine-checked: P-ESC/P-TIER) |
 | R-LEN | PASS | length-spread audit present in 03_src (VACUOUS: this grades the WORD, not the copper — see the note above and run copper_length_audit.py) |
-| E-INV | PASS | E-INV OK: 167/167 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
-| E-ADR | PASS | E-ADR OK: 11/11 protection/topology ADR(s) cited by an invariant (graded against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/03_src/rules/electrical_invariants.yaml) |
-| E-TOPO | PASS | E-TOPO OK: 1/1 rail(s) topology-correct, covering 1/1 converter part(s) in 02_parts   rail '3V3' (Vin 4.754-5.25 V, Vout 3.201-3.399 V): required=BUCK, declared=LINEAR (AMS1117-3.3) -> step-down requi |
+| E-INV | PASS | E-INV OK: 168/168 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
+| E-ADR | PASS | E-ADR OK: 12/12 protection/topology ADR(s) cited by an invariant (graded against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/03_src/rules/electrical_invariants.yaml) |
+| E-TOPO | PASS | E-TOPO OK: 1/1 rail(s) topology-correct, covering 1/1 converter part(s) in 02_parts   rail '3V3' (Vin 4.728-5.25 V, Vout 3.201-3.399 V): required=BUCK, declared=LINEAR (AMS1117-3.3) -> step-down requi |
 | E-MARGIN | N-A | E-MARGIN N-A: no rail declares load_uv_threshold - no regulated rail feeds a known fixed-brownout load |
 | E-OFF | N-A | E-OFF N-A: no self-contained energy source detected (source_type: 'external_5v_selv' (externally powered)) - de-energization is by unplugging the input |
 | M-REPRO | PASS | all rebuild inputs git-tracked |
