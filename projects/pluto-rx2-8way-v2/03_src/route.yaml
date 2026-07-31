@@ -507,6 +507,90 @@ stitch:
       # where the tap detour crosses the jack field), never a new location and
       # never a widening number: 3.6000 -> 1.9769 -> 1.9802 -> re-measure.
       - {net: GND, vias: [[48.584, 30.131]]}     # RX1_TAP  E
+      # ============ LAUNCH RELIEF, 8 BARRELS: THE HOLE CLASS ============
+      # THESE EIGHT ARE NOT FENCE REPAIRS. They are the SAME lattice sites the
+      # grid would place anyway, DISPLACED 0.035 mm radially outward from the
+      # SMA ground barrel they crowd -- because the lattice's phase happens to
+      # stand a 0.15 mm via 1.0766..1.0894 mm from a 1.400 mm PTH centre, and
+      # that is the board's tightest hole class.
+      #
+      # WHY THE CLASS MATTERS AND THE SCALAR DID NOT. The board reported ONE
+      # hole-to-hole number, 0.3016 mm against a 0.25 floor, +20.6 %, over all
+      # 3500 holes. CLASSIFIED BY PAIR CLASS (MEASURED, 4 mm spatial grid):
+      # VIA<->PTH pad 54 pairs / min 0.3016; VIA<->VIA 2 / 0.3785;
+      # VIA<->NPTH 1 / 0.3768; PTH<->PTH 0 / 1.6934. **The 3446-via fence is
+      # NOT the tight class** -- 55 of the 57 sub-0.45 pairs involve a
+      # component hole, and the tight population is a stitching via against an
+      # SMA jack's own ground barrel, recurring on ALL TEN launches. JLC
+      # publishes 0.2 mm via-to-via and 0.45 mm pad-to-pad; every mixed pair
+      # sits BETWEEN them, their tolerance article states no mixed rule, and
+      # their public Q&A #693 is a customer asking this exact question,
+      # unanswered. The governing vendor rule for this board's tightest
+      # feature class DOES NOT EXIST.
+      #
+      # WHY 0.3016 WAS NOT A MARGIN. JLC publishes +0.13/-0.08 mm on PAD holes
+      # and states via hole diameter is NOT controlled. At max material the
+      # 1.400 mm barrel becomes 1.530 (radius +0.065) and
+      #     0.3016 - 0.065 = 0.2366 mm  -- UNDER the declared 0.25 floor.
+      # MEASURED: 8 of the 54 mixed pairs go sub-floor at max material
+      # (nominal < 0.315): 0.3016 x2, 0.3028, 0.3118, 0.3121 x2, 0.3144 x2.
+      # The published tolerance consumes 126 % of the stated +0.0516 margin.
+      # No gate in this repo applied a vendor drill tolerance to a hole gap.
+      #
+      # WHY 0.035 mm, AND WHY MOVE RATHER THAN DELETE. Both constraints here
+      # are tight -- the ADR-0004 fence bound is met with 1.2 % margin
+      # (1.1769 vs 1.1910) -- so the displacement was SWEPT and both margins
+      # measured at each step rather than either being assumed:
+      #   delta    min h2h MAX-MATERIAL   fence worst interior gap
+      #   0.000        0.2366  FAIL           1.1769  pass
+      #   0.0134       0.2500  edge           1.1769  pass
+      #   0.025        0.2615  pass           1.1769  pass   <- h2h saturates
+      #   0.035        0.2615  pass           1.1769  pass   <- CHOSEN
+      #   0.048        0.2615  pass           1.1769  pass   <- fence starts to move
+      #   0.0632       0.2615  pass           1.1910  edge
+      #   0.070        0.2615  pass           1.1968  FAIL (ANT1 E, ANT5 E)
+      # The BOTH-PASS window is delta in [0.0134, 0.0632] mm, 49.8 um wide.
+      # Above 0.025 the hole metric SATURATES -- the binding pair becomes an
+      # untouched one (via 43.000,27.000 <-> J_ANT8.3, 0.3265 nom / 0.2615 max)
+      # -- so displacement beyond it buys nothing and only spends fence
+      # margin. 0.035 is the centre of [0.025, 0.048], the sub-window where
+      # the hole gap is at its achievable maximum AND the fence is bit-for-bit
+      # unchanged: 21.6 um above the hole edge, 28.2 um below the fence edge.
+      #
+      # DELETING THE EIGHT ALSO CLEARS BOTH, AND WAS REJECTED FOR A REASON THE
+      # GATE CANNOT SEE. MEASURED, all eight removed: hole 0.3265/0.2615 and
+      # fence 1.1769 -- IDENTICAL to this. But five of the eight are not
+      # graded at all (2 project beyond an arm end, 3 sit outside the +/-2.5 mm
+      # band) and two are graded END points: dropping them grows ANT1 E's
+      # lead-in and ANT5 E's run-out from 1.520 mm (ADR-0005 GREEN, accept
+      # unconditionally) to 2.652 mm (ADR-0005 RED, full-wave required).
+      # `fence_pitch.py` grades max INTERIOR gap only, so it would have called
+      # that free. Moving keeps the copper and the verdict alike, and the one
+      # perverse consequence of the gate's blind spot -- that DELETING a via
+      # scores better than MOVING it 0.14 mm -- never has to be relied on.
+      #
+      # EVERY SITE MEASURED LEGAL by the stitcher's OWN primitive,
+      # `pcb_toolkit.via_site_ok` (size 0.25, drill 0.15, hole_to_copper
+      # 0.155, hole_to_hole 0.315, exact collision on all four copper layers),
+      # so a site named here is one route_and_stitch_generic accepts. The
+      # displaced lattice site is suppressed twice over: `try_via`'s net-blind
+      # `stitch.via.spacing` 0.50 guard (0.035 < 0.50) and the 0.315 floor in
+      # floorplan.yaml `design_rules.hole_to_hole`, which is what MACHINE-
+      # ENFORCES this fix instead of leaving it as geometry nothing grades.
+      # Nearest OTHER lattice site is 0.8 - 0.035 = 0.765 mm away, outside
+      # `dedupe_vias`' 0.5 mm box, so nothing here trades with the wall.
+      #
+      # LIKE THE FENCE ABOVE, THESE COORDINATES ARE ROUTE-DEPENDENT and must
+      # be re-derived, never carried, after any route change.
+      #      resulting gap nominal / max-material, per site:
+      - {net: GND, vias: [[29.4065, 63.8344]]}   # ANT3 J_ANT3.3  0.3366/0.2716
+      - {net: GND, vias: [[52.5935, 43.0344]]}   # ANT7 J_ANT7.3  0.3366/0.2716
+      - {net: GND, vias: [[28.6312, 46.2159]]}   # ANT2 J_ANT2.5  0.3378/0.2728
+      - {net: GND, vias: [[59.7923, 28.6341]]}   # RX1  J_RX1.4   0.3468/0.2818
+      - {net: GND, vias: [[43.8164, 36.6309]]}   # RX2  J_RX2.4   0.3470/0.2820
+      - {net: GND, vias: [[53.3691, 46.1836]]}   # ANT6 J_ANT6.2  0.3470/0.2820
+      - {net: GND, vias: [[29.3855, 39.7681]]}   # ANT1 J_ANT1.3  0.3494/0.2844
+      - {net: GND, vias: [[50.2319, 60.6145]]}   # ANT5 J_ANT5.2  0.3494/0.2844
   # `seed_stubs` RUNS FIRST, AND THE ALTERNATIVE WAS TRIED AND REFUTED.
   #
   # The pass places DECLARED geometry, and this board declares two unrelated
@@ -553,7 +637,18 @@ stitch:
   width_floor: {default: 0.2}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
   split_t_junctions: {tol: 0.05}
-  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
+  # 0.25 -> 0.315 TO TRACK floorplan.yaml `design_rules.hole_to_hole`. A
+  # REPAIR pass must never be looser than the floor it repairs to, or it
+  # certifies a pair that DRC then fails. MEASURED, this is a NO-OP today and
+  # is declared as one: `p_hole_to_hole` walks PCB_VIA pairs ONLY -- it never
+  # looks at a drilled PAD -- so it could not have caught the launch class
+  # this floor was raised for, and the board's min VIA<->VIA gap is 0.3785 mm,
+  # above both the old value and the new. That the pass is blind to the mixed
+  # class is a BACKEND GAP, recorded here rather than papered over: the repair
+  # for a via crowding a PTH pad is `via_site_ok`'s build-time REFUSAL (which
+  # does see pads, via `Toolkit.hole_sites`) plus a declared seed_stub, which
+  # is exactly the route this board takes above.
+  hole_to_hole: {min_gap: 0.315, mode: nudge, prefer_keep: [GND]}
   pad_rescue:
     # In1.Cu is the plane every GND pad must reach — including each SMA jack's
     # four posts, which ARE the launch return path and are only electrically

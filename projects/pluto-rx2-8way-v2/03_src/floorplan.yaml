@@ -367,7 +367,34 @@ design_rules:
   min_through_drill: 0.15
   via_min_annulus: 0.05
   hole_clearance: 0.15
-  hole_to_hole: 0.25
+  # 0.25 -> 0.315, AND THE 0.065 IS THE VENDOR'S OWN PUBLISHED TOLERANCE, NOT
+  # CAUTION. jlc_4layer_advanced declares min_hole_to_hole 0.25 mm, and every
+  # gate in this repo graded the board's holes against it at NOMINAL diameter.
+  # JLC publishes +0.13/-0.08 mm on PAD holes ("the diameter of via holes is
+  # not controlled"), so at max material a 1.400 mm SMA ground barrel drills
+  # 1.530 and every via-to-that-pad gap loses 0.065 mm of wall. MEASURED on
+  # the 2026-07-31 board: min hole-to-hole 0.3016 mm nominal -> 0.2366 mm at
+  # max material, i.e. UNDER the declared floor, on 8 pairs; the vendor's own
+  # tolerance consumed 126 % of the +0.0516 mm margin the archive reported.
+  #     0.25 declared floor + 0.065 max-material pad-radius growth = 0.315
+  # is therefore the NOMINAL floor that guarantees the DECLARED one, and it is
+  # DERIVED from the tier plus a published number, not tuned. It is enforced
+  # in two places at once, which is the point: `pcb_toolkit.via_site_ok` reads
+  # it out of m_HoleToHoleMin and REFUSES a crowding lattice site at build
+  # time, and kicad-cli DRC re-checks it on the saved board -- so the fix
+  # cannot silently regress into geometry nothing grades.
+  # BLAST RADIUS, MEASURED, NOT ASSUMED: exactly 8 sites on this route sit in
+  # [0.25, 0.315); the next-tightest pair anywhere on the board is 0.3265 mm
+  # (via 43.000,27.000 <-> J_ANT8.3) and min VIA<->VIA is 0.3785, so nothing
+  # else on the board is even close to the new floor. The 8 are re-placed
+  # 0.035 mm outward as declared `stitch.seed_stubs` -- see route.yaml.
+  # WHAT THIS DOES NOT CLAIM: JLC publishes NO rule for the mixed
+  # via-hole-to-pad-hole class at all (0.2 mm via-to-via, 0.45 mm pad-to-pad,
+  # nothing between; their public Q&A #693 asks exactly this and is
+  # unanswered). 0.315 makes the board honour ITS OWN declared tier at max
+  # material. It does not settle the vendor question, which is a DFM item to
+  # put to JLC in writing before the order.
+  hole_to_hole: 0.315
   copper_edge_clearance: 0.3
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
