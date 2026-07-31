@@ -1,0 +1,52 @@
+# twin_adjudications.yaml — pluto-rx2-8way-v2
+#
+# The register of JLC-digital-twin findings that have been REVIEWED against an
+# authority OUTSIDE the twin (canon M1: the checker and the checked must not
+# share a method). A `pad_alias` is PREFERRED over an adjudication wherever one
+# applies — an alias RESTORES verification coverage, a `why:` only waives it.
+
+# ---------------------------------------------------------------------------
+# C504007 — KH-SMA-KE-Z vertical SMA jack, all ten (J_ANT1..8, J_RX1, J_RX2)
+# ---------------------------------------------------------------------------
+# THIS IS A NUMBERING CLASH, NOT A LAND-PATTERN DISAGREEMENT, AND THE TWO ARE
+# DISTINGUISHABLE FROM THE PAD COORDINATES ALONE.
+#
+# MEASURED 2026-07-30, both footprints read directly (ours through pcbnew's
+# GetFPRelativePosition, JLC's from their own cached
+# 06_build/twin/easyeda/C504007/jlc.pretty/SMA-TH_KH-SMA-KE-Z.kicad_mod):
+#
+#   OURS  pad 1 (0.000, 0.000)   pad 2 (-2.54,-2.54)  pad 3 (-2.54,+2.54)
+#         pad 4 (+2.54,+2.54)    pad 5 (+2.54,-2.54)
+#   JLC   pad 5 (0.000, 0.000)   pad 2 (-2.54,-2.54)  pad 1 (-2.54,+2.54)
+#         pad 4 (+2.54,+2.54)    pad 3 (+2.54,-2.54)
+#
+# The five HOLE CENTRES are IDENTICAL to 0.000 mm. What differs is which hole
+# is called `1`: WE number the CENTRE PIN 1 (it is the RF signal, and the
+# datasheet's own PCB inset labels the pattern `5-D1.4` with the centre as the
+# signal), JLC numbers the centre 5 and walks the four corner posts 1..4.
+#
+# So the reported `PAD-GEOM pad 3<->5 ours 7.18 vs JLC 3.59` is arithmetic on
+# two different label sets: 7.18 mm is the full 5.08-square DIAGONAL
+# (corner-to-opposite-corner) and 3.59 mm is the HALF diagonal
+# (centre-to-corner). One library's `3<->5` is a corner pair, the other's is a
+# centre-to-corner pair. Nothing about the copper disagrees. The same fact
+# drives PAD-MISMATCH `best=(3.59, mirrored, 90)`: a fit forced through
+# mismatched labels lands on a mirrored 90 with a 3.59 mm residual, which is
+# exactly the half-diagonal.
+#
+# The alias below maps JLC's numbers onto ours BY POSITION, which restores the
+# fit, the rotation channel, MODEL-REG and the polarity check for ten of this
+# board's thirty-two parts. It is a relabeling with ZERO geometric content —
+# every mapped pair is at the same local coordinate to 0.000 mm.
+#
+# WHAT THE ALIAS DOES NOT COVER, STATED SO IT IS NOT READ AS COVERED: JLC's
+# model uses a 1.600 mm drill and 2.500 mm pads where ours uses 1.400 / 1.900.
+# OURS IS THE DATASHEET NUMBER and it is deliberate — KH-SMA-KE-Z sheet 2/2's
+# PCB inset reads `5-D1.4`, and the dossier records the arithmetic (a 0.9 mm
+# SQUARE post has a 1.273 mm diagonal, so D1.3 leaves 0.014 mm radial and D1.4
+# leaves 0.064 mm). JLC's 1.6 is their catalog model's approximation of the
+# same part, not a land-pattern requirement, and a 1.6 mm hole would give
+# 0.164 mm radial slop on a launch whose whole job is a controlled transition.
+# We keep D1.4.
+- lcsc: C504007
+  pad_alias: {"5": "1", "1": "3", "2": "2", "3": "5", "4": "4"}

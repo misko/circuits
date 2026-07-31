@@ -110,3 +110,66 @@ not_assembled:
 
 # ---- EXEMPT REFDES CLASSES -------------------------------------------------
 exempt_prefixes: [H, TP, FID, MH]
+
+# ---- THE THROUGH-HOLE LINE IS BOUGHT, NOT DODGED ---------------------------
+# A-POP raised this at the staging gate 2026-07-30 and it is a REAL finding, not
+# a formality: ten KH-SMA-KE-Z jacks sat on the CPL of a `service: standard`
+# `sides: [top]` order with FIFTY plated drilled pads and F.Paste on NONE of
+# them. No reflow profile solders that. The board would have arrived with every
+# RF port loose — on a board whose entire product is ten RF ports.
+#
+# THE EASY ANSWER WAS AVAILABLE AND IS WRONG. Declaring them
+# `not_assembled: {reason: process_incompatible}` and hand-soldering fifty
+# barrels would have cleared the gate in one line. The doctrine says a
+# hand-solder posture is a sourcing wall you must PROVE you hit — and we did not
+# hit one:
+#
+#   LIVE JLC CATALOG READ 2026-07-30, the ASSEMBLY parts endpoint (the SMT
+#   shopping-cart component list, not the LCSC retail catalog):
+#   POST /api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList
+#   {"keyword":"C504007"} ->
+#     componentCode            C504007
+#     componentModelEn         KH-SMA-KE-Z      (Shenzhen Kinghelm Elec)
+#     componentSpecificationEn "Plugin"          <- JLC's own word for THROUGH-HOLE
+#     componentTypeEn          "Coaxial Connectors (RF)"
+#     componentLibraryType     expand            (extended, per-reel setup fee)
+#     stockCount               23169
+#     minPurchaseNum           1
+#   Raw record saved to verification/jlc_catalog_C504007.json.
+#   Cross-check the same day, same endpoint, via jlc_stock_check --json:
+#   OK at 10 needed vs 23169 in stock (verification/stock_check.{json,csv},
+#   the `pkg` column reads `Plugin` for exactly this line and a real SMD package
+#   string for all ten others).
+#
+# So the part is IN JLC's assembly library, as a plug-in part, with stock three
+# orders of magnitude over the build. The line to buy is theirs.
+#
+# WHAT THIS DECLARATION DOES NOT PROVE, STATED SO IT IS NOT READ AS PROVEN: that
+# JLC will RUN a through-hole line on this particular order. `assemblyProcess`
+# comes back null and there is no API that answers it — the same reason canon
+# F-ECHO exists. Selecting through-hole assembly is therefore an ORDER-TIME
+# HUMAN GATE and it is on the FIRST SCREEN of ORDER_README, beside the rotation
+# gate. If JLC declines the process, the fallback is `not_assembled` with
+# `reason: process_incompatible` for these ten refs — which is a BOM/CPL change
+# and therefore a new release, not an edit.
+through_hole:
+  process: >
+    JLCPCB through-hole (plug-in) assembly, selected at order time — the ten
+    KH-SMA-KE-Z vertical SMA jacks stay ON the CPL and JLC solders them. Extended
+    part: one reel/tray setup fee for C504007.
+  refs: [J_ANT1, J_ANT2, J_ANT3, J_ANT4, J_ANT5, J_ANT6, J_ANT7, J_ANT8,
+         J_RX1, J_RX2]
+  evidence: >
+    HOLE CENSUS, measured off the sealed board 2026-07-30 by assembly_coverage.py
+    itself: 10 refs x 5 plated drilled pads = 50 plated holes, F.Paste on none of
+    them (pin-in-paste is not available — the KH-SMA-KE-Z posts are 0.9 mm SQUARE
+    in D1.4 holes and the dossier's 0.064 mm radial clearance is a mechanical fit
+    number, not a paste volume). CATALOG READ, dated 2026-07-30, JLC's own
+    assembly-parts endpoint: C504007 = KH-SMA-KE-Z, componentSpecificationEn
+    "Plugin", componentTypeEn "Coaxial Connectors (RF)", componentLibraryType
+    expand, stockCount 23169, minPurchaseNum 1; raw record in
+    verification/jlc_catalog_C504007.json, cross-checked by
+    verification/stock_check.csv (pkg=Plugin, OK at 10 vs 23169). NOT PROVEN by
+    either read: that the through-hole line is available on this order —
+    assemblyProcess is null and no API answers it, so the selection is an
+    order-time human gate on ORDER_README's first screen.
