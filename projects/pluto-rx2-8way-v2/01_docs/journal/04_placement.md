@@ -252,3 +252,111 @@ oscillator frequency and edge rate are variant-specific. This is a
 distance-and-orientation constraint on the star, and **powering the module down
 between measurements composes well with the self-timed dwell scheme this board
 already has.**
+
+## 2026-07-30 — finish (placement gate GREEN): the 45-degree lever, spent
+
+- did: authored `03_src/floorplan.yaml`, generated the board, and MEASURED the
+  two floors that were owed at handoff. Both needed a `.kicad_pcb` and both are
+  now measured off the real one, not estimated.
+- result: **OCTILINEAR FLOOR SPREAD 0.0007 mm = 0.01 deg at 6 GHz**
+  (`copper_length_audit.py`, from pads alone) against v1's 1.4966 mm / 19.74 deg
+  — a 2100x reduction bought at placement, for free, before a router ran.
+  **P-LAND PASS**, 50 pads graded of 130 copper pads, 0 failing, after one
+  scoped clearance earned by this board's own measurement.
+- next: `route.yaml`, then route/stitch, then `generate_rules` LAST, then DRC.
+
+### THE STAR: EIGHT GRADED ARMS ON EIGHT COMPASS POINTS, AND IT IS FORCED
+
+The eight members of `RF_ARMS` leave U_SW pads 24/2/4/6/13/15/17/22 at bearings
+135/180/225/270/315/0/45/90. That is the ONLY assignment that is monotone in
+the QFN's own CCW RF pin order (RF1, RF2, RF3, RF4, [control], RF5, RF6, RF7,
+[RF8 pickoff], RFC) AND seats eight members on eight 45-degree multiples. It
+was not chosen from a menu; there is one.
+
+The control escape then lands in the 45-degree sector between the S arm (270)
+and the SE arm (315), centred on 292.5 — which is where U_SW's own control pads
+already point (pads 9..12 sit at theta 262..303). Nothing was bent for it.
+
+**ARM LENGTHS 14.00 (axis) AND 9.90 PER AXIS (diagonal), and the pair is the
+whole trick.** 9.90*sqrt(2) = 14.000714, because 99/70 is the convergent of
+sqrt(2) (99^2 = 9801 vs 2*70^2 = 9800). Both numbers are exact multiples of the
+0.05 mm router grid, which rf-design 4(c) says is the FIRST cause of a launch
+that will not route. The 0.000714 mm residue is the price of staying on-grid
+and it is 0.0094 deg at 6 GHz.
+
+MEASURED, `copper_length_audit.py .`:
+
+    OCTILINEAR FLOOR (pads alone, no copper): spread 0.0007 mm = 0.01 deg at 6 GHz
+      ARM_RF1 14.0007   ARM_RF2 14.0000   ARM_RF3 14.0007   ARM_RF4 14.0000
+      ARM_RF5 14.0007   ARM_RF6 14.0000   ARM_RF7 14.0007   ARM_RFC 14.0000
+
+The realized-copper half is UNREACHED and says so — the board is unrouted. That
+is the correct reading, not a pass.
+
+### THE BOARD DID NOT LOAD, AND THE CAUSE WAS A LAYER NAME
+
+`pcbnew.LoadBoard` returned **None** and `kicad-cli` said only *"Failed to load
+board"* — no line, no token. Bisected by rebuilding the file from its top-level
+elements: the culprit is `RP2040_Zero_LCC23_18x23.5.kicad_mod`, which draws the
+COPPER keepout on **`User.Comments`**. That is KiCad's GUI DISPLAY name; the
+file token is **`Cmts.User`**, and the board's own layer table says so in the
+same file: `(19 "Cmts.User" user "User.Comments")`.
+
+Two lines fixed. The interesting part is the failure shape: the footprint was
+authored last session and reviewed in prose ("both keepouts are now drawn into
+the footprint so they travel with the part"), and it was TRUE that they were
+drawn — one of them was drawn onto a layer that does not exist, which made
+every board carrying the part unloadable, and nothing could see it until a
+board existed. A footprint is not validated by anything in this pipeline until
+a generator consumes it.
+
+### P-LAND: SIX PADS, AND IT IS ARITHMETIC
+
+`escape_check.py --board` BEFORE any router ran:
+
+    U_SW.2  ANT2    RF50 floor 0.360  landable 0.300  short 0.060
+    U_SW.4  ANT3    RF50 floor 0.360  landable 0.300  short 0.060
+    U_SW.15 ANT6    RF50 floor 0.360  landable 0.300  short 0.060
+    U_SW.17 ANT7    RF50 floor 0.360  landable 0.300  short 0.060
+    U_SW.22 RX2_OUT RF50 floor 0.360  landable 0.300  short 0.060
+    U_SW.8  3V3     PWR  floor 0.400  landable 0.300  short 0.100
+
+The vendor land is 0.30 x 0.60 on a 0.50 pitch, so a neighbour's copper edge is
+0.350 mm from the pad centre and the widest track that leaves at clearance c is
+2*(0.350 - c): 0.300 at c=0.200, 0.420 at c=0.140. The three RF pads that do
+NOT fail (24, 6, 13) are exactly the ones whose arm leaves DIAGONALLY — which
+is independent evidence that the number is about pad geometry, not the router.
+
+ONE scoped clearance (`rf_launch`, 5.40 x 5.40 mm about the switch centre,
+bounded on both sides of the pair) at 0.14 mm. **FIVE of v1's six relaxations
+are NOT re-adopted, and the reason is geometry rather than restraint:** v1's
+`rf_jack_*` entries relax an arm against an SMA GROUND POST because v1's arms
+cut across the post square at 15/45/75 degrees. v2's arms arrive on the post
+square's own symmetry axes (axis jacks rotation 0, diagonal jacks rotation 45),
+so every arm centreline clears the nearest post centre by 2.540 mm — 1.590 mm
+of copper gap against a 0.20 mm floor. The rotation rule bought that.
+
+Re-measured after: **P-LAND PASS, 0 failing, 10 pads graded against the scoped
+clearance.**
+
+### ALSO FIXED HERE
+
+* `rules/nets.yaml` `length_match.RF_ARMS` had no `adr:` and `copper_length_audit`
+  refused to grade it at all (exit 2, R-LEN UNGRADED). Pointed at **"0003"**,
+  quoted — 0003 is where eps_eff -> t_pd -> deg/mm is derived with its command,
+  which is what turns PE42482A-X's 13.2 deg window into the 1.00 mm ceiling.
+  Unquoted, YAML 1.1 would read `0003` as octal and hand the gate the integer 3.
+* `rules/assembly.yaml` carried **two** top-level `not_assembled:` keys. Last-wins
+  made it harmless by accident (the second block was the complete one); an edit
+  to the first would have been discarded silently. One home now.
+
+### PLACEMENT GATES, UNPIPED
+
+| gate | result |
+|---|---|
+| `generate_board_generic.py` | 28 placed, 28 anchored, asserts 12/12, exit 0 |
+| P-COLLIDE | 0 pad shorts, 0 anchored courtyard overlaps, 134 copper pads |
+| R-LEN-OCT `copper_length_audit.py` | floor spread **0.0007 mm**, exit 0 |
+| P-LAND `escape_check.py --board` | **PASS** 50/130 graded, 0 failing, exit 0 |
+| P-OUT `placement_gates.py` | PASS, tightest pad-to-outline 1.49 mm (U_MCU.1) |
+| P-CAP | PASS, worst cut y=60.5: 5 nets vs 112 capacity, ratio 0.04 |

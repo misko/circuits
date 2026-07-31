@@ -114,30 +114,98 @@ classes:
 # U_SW pin 1 (LS) and pin 20 (NC) are ON this net, by vias at the pads.
 
 # ---------------------------------------------------------------------------
-# scoped_clearances: DELIBERATELY ABSENT, and that is a decision (canon R-SCOPE
-# + M4).
+# scoped_clearances — canon R-SCOPE. ONE entry, EARNED BY THIS BOARD'S OWN
+# MEASUREMENT at stage 5, not inherited from v1.
 #
-# v1 carries six launch-local relaxations to 0.14 mm, each earned by MEASUREMENT
-# at ITS routing stage. v2 has not been placed and has not been routed, so it
-# has measured nothing, and copying v1's set would be inheriting a waiver — the
-# exact pattern canon M4 names ("a waiver copied from another board is not a
-# judgement, it is an inherited defect").
+# v1 carries SIX launch-local relaxations. FIVE OF THEM ARE NOT RE-ADOPTED AND
+# THE REASON IS GEOMETRY, NOT RESTRAINT: v1's `rf_jack_ant2/3/6/7` and
+# `rf_jack_rx1/rx2` each relax an arm against an SMA GROUND POST, because v1's
+# arms arrive at the jack on the r = 20 mm ring's 15/45/75-degree bearings and
+# cut across the post square. v2's arms arrive ON the post square's own
+# symmetry axes (axis jacks at rotation 0, diagonal jacks at rotation 45, so
+# the approach always bisects two posts), and the perpendicular distance from
+# every arm centreline to the nearest post CENTRE is 2.540 mm — 1.590 mm of
+# copper gap after the 0.95 mm post pad radius, against a 0.20 mm floor. The
+# jack-approach relaxations are not needed on this board and their absence is a
+# consequence of the rotation rule, not an omission.
 #
-# The relaxations are also the LAST remedy, not the first. rf-design.md 4(c)
-# ranks the causes of a launch that will not route as GRID, then CLEARANCE, then
-# WIDTH — and on v1 the real cause was the GRID: at KRT's default grid_step 0.1
-# NOTHING routed the five boxed RF pads at ANY width, because the RF land
-# centres sit at odd multiples of 0.05 mm. grid_step 0.05 routed 11/11 at the
-# full 0.36 mm impedance width. A neck-down was measured and REFUTED (149.832 mm
-# of RF copper delivered at 0.25 mm and 0.000 mm at 0.36).
-# So stage 6 tries the grid FIRST. Any clearance entry that lands here later
-# must carry its own `nets:` and `why:` — an isolation relaxation has NO
-# downstream grader at all (DRC simply stops reporting what the rule permits),
-# which is why unexplained it is silent by construction.
+# THE ONE THAT REMAINS IS THE QFN LAUNCH, and it is ARITHMETIC:
+# ---------------------------------------------------------------------------
+scoped_clearances:
+  - zone: rf_launch
+    nets: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, RX2_OUT, RX1_TAP, 3V3]
+    clearance: 0.14
+    why: >
+      MEASURED ON THIS BOARD, BEFORE ANY ROUTER RAN — `escape_check.py --board
+      04_kicad/pluto_rx2_8way_v2.kicad_pcb` (2026-07-30, 50 pads graded of 130
+      copper pads) reports SIX pads of U_SW that cannot emit their own class
+      width at the board-wide 0.200 mm clearance:
+        U_SW.2  ANT2    RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.4  ANT3    RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.15 ANT6    RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.17 ANT7    RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.22 RX2_OUT RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.8  3V3     PWR  floor 0.400  landable 0.300  short 0.100
+      THE DEFICIT IS GEOMETRIC AND HAS NOTHING TO DO WITH ROUTING EFFORT. The
+      PE42482A-X vendor land (Figure 23 inset, DOC-75785-4 p21) is 0.30 x
+      0.60 mm on a 0.50 mm pitch, so a neighbouring land's copper edge sits
+      0.50 - 0.15 = 0.350 mm from the pad centre and the widest track that can
+      leave at clearance c is 2*(0.350 - c). At c = 0.200 that is 0.300 mm; the
+      RF50 impedance width needs 0.360 and PWR needs 0.400. At c = 0.140 it is
+      0.420 mm, which clears both with 0.060/0.020 mm to spare. The three RF
+      pads that do NOT fail (24, 6, 13) are the ones whose arm leaves
+      DIAGONALLY, where the neighbour is further from the launch axis — which
+      is itself evidence that the number is about pad geometry and not about
+      the router.
+      THE ALTERNATIVES WERE EACH CONSIDERED AND EACH IS WORSE, and two of the
+      three are REFUTED by measurement rather than by argument:
+        * NARROWING THE ARM. 0.30 mm on this stackup is ~54.5 ohm. The width is
+          an IMPEDANCE, not an ampacity, on a board that PUBLISHES a phase
+          table; widening and narrowing are equally wrong (see RF50 `intent:`).
+        * ROUTER NECK-DOWN. REFUTED, measured on v1: `--neckdown-length 0.3`
+          routes 11/11 and delivers 149.832 mm of RF copper at 0.25 mm and
+          0.000 mm at 0.36 — KRT's re-widen pass only restores width where the
+          NARROW-PLANNED path has wide clearance, which leaving a QFN it never
+          does (rf-design.md 4(c)).
+        * DROPPING THE BOARD-WIDE FLOOR to 0.14 would relax arm-to-arm
+          isolation across the whole fan, which is the one thing the 0.20 mm
+          number exists to buy.
+      THE GRID WAS TRIED FIRST AND IT IS A DIFFERENT QUESTION. rf-design.md
+      4(c) ranks the causes of a launch that will not route as GRID, then
+      CLEARANCE, then WIDTH, and the grid is free: every coordinate in
+      03_src/floorplan.yaml is a multiple of 0.05 mm and route.yaml runs the RF
+      wave at `grid_step: 0.05`, so v1's "nothing routes at any width on a
+      0.1 grid" cannot recur here. But the grid does not move THIS number —
+      P-LAND is a clearance-versus-width fact and is grid-independent. Both
+      remedies are applied; only one of them addresses this finding.
+      WE DO NOT MODEL COPLANAR LOADING, AND THAT IS STATED RATHER THAN GLOSSED
+      (rf-design.md 3(c) names it as OWED for this fleet). At 0.14 mm the
+      gap-to-height ratio against the 0.2104 mm top prepreg is g/h = 0.67, low
+      enough that a coplanar ground would pull Z0 down if it ran alongside the
+      line — it does not. The relaxation is bounded to a 5.40 x 5.40 mm box
+      about the switch centre (`rf_launch`, bounded on BOTH sides of the pair),
+      i.e. at most 0.50 mm of copper per arm outboard of its own land, which is
+      lambda_g/55 at 6 GHz on the ADR-0003 constant set. A discontinuity that
+      short is a lumped element, not a transmission-line section. An external
+      field solve would settle it properly and this repo has none; that is the
+      honest statement, not a claim that the effect is zero.
+      NOT ABOVE THE ROUTER'S OWN BUDGET: 03_src/route.yaml runs the RF wave at
+      `clearance: 0.14`, so the DRC floor and what KRT was allowed to pack to
+      are the same number (canon R-SCOPE's last paragraph / PF-ROUTE-CLR).
 # ---------------------------------------------------------------------------
 
 length_match:
   RF_ARMS:
+    adr: "0003"
+    # QUOTED, because YAML 1.1 reads a leading-zero scalar as OCTAL and
+    # `adr: 0003` silently becomes the integer 3 (v1 hit this and recorded it).
+    # 0003 AND NOT 0001/0002: every number in this block descends from ONE
+    # quantity, and 0003 is where it is derived with its command — eps_eff
+    # 3.3286 -> t_pd 6.0857 ps/mm -> 13.145 deg/mm, which is what converts the
+    # PE42482A-X part-to-part window (13.2 deg) into the 1.00 mm of copper that
+    # `max_spread_mm` is, and what converts DRIFT (TC*dT*dL*t_pd) into the same
+    # units. 0003's own Context sentence names "the phase budget, the drift
+    # tolerance" as its consumers. No other v2 ADR emits a length intent.
     intent: >
       The eight congruent radial arms whose relative phase this board PUBLISHES.
       Each is a two-pad net from a switch RF land to an SMA jack's signal pad,

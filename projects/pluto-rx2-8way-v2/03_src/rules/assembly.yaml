@@ -16,11 +16,14 @@ fiducials: none
 build_quantity: 5
 
 # ---- NOT ASSEMBLED ---------------------------------------------------------
-not_assembled:
-  - refs: [H1, H2, H3, H4]
-    reason: mechanical
-    evidence: "M3 mounting holes, no footprint pads with nets (floorplan 2026-07-30)"
-    disposition: "n/a"
+# ONE `not_assembled:` KEY, and the duplicate that used to sit here was a live
+# defect rather than a tidy-up: this file carried the mapping TWICE (a H1..H4
+# stub, then the full block below). YAML's last-wins made it harmless by
+# accident — the second block happened to be the complete one — but an edit to
+# the first would have been silently discarded, and a strict loader rejects the
+# document outright. Removed 2026-07-30 at the placement gate; the block below
+# is now the only home, which is the same single-home rule this whole file
+# exists to enforce for the population set.
 
 # ---- U_MCU: NOT ASSEMBLED, AND THE REASON IS MECHANICAL ---------------------
 # POSTURE CHANGED 2026-07-30, at the placement gate, on evidence the commission

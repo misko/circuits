@@ -1,0 +1,365 @@
+# floorplan.yaml — pluto-rx2-8way-v2
+#
+# The per-board input to skills/kicad-pcb/scripts/generate_board_generic.py.
+# ZERO board-specific generation Python (repo ADR-0002).
+#
+# ===========================================================================
+# THE ONE DECISION THIS FILE EXISTS TO MAKE: THE STAR ANGLES
+# ===========================================================================
+#
+# v1 (projects/pluto-rx2-8way, NOT superseded, not written to) put ten jacks on
+# a 20 mm ring at 30-degree spacing. That is a CIRCLE, and a circle is the wrong
+# locus for a board whose copper is laid by an OCTILINEAR router. KRT moves on
+# 45-degree multiples, so the shortest copper it can lay between two pads is
+#
+#     oct(dx, dy) = max(dx, dy) + 0.4142 * min(dx, dy)
+#
+# and on v1's ring only 3 of 9 radials sat on a 45-degree multiple; the other
+# six each paid 1.0731x. MEASURED on v1: Euclidean pad spread 0.3238 mm,
+# OCTILINEAR FLOOR spread 1.4966 mm = 19.74 deg at 6 GHz, against a 1.0 mm
+# ceiling. v1 found that by routing for hours. It is pad arithmetic.
+#
+# v2 SPENDS THE LEVER AT PLACEMENT INSTEAD. Every one of the EIGHT graded
+# members leaves its OWN switch pad on an EXACT 45-degree multiple:
+#
+#   member    U_SW pad   bearing (theta, math convention, y up)   delta (KiCad)
+#   ANT1        24        135  NW      (-9.90, -9.90)
+#   ANT2         2        180  W       (-14.00,  0    )
+#   ANT3         4        225  SW      (-9.90, +9.90)
+#   ANT4         6        270  S       ( 0    ,+14.00)
+#   ANT5        13        315  SE      (+9.90, +9.90)
+#   ANT6        15          0  E       (+14.00,  0   )
+#   ANT7        17         45  NE      (+9.90, -9.90)
+#   RX2_OUT     22         90  N       ( 0    ,-14.00)
+#
+# THAT ASSIGNMENT IS FORCED, NOT CHOSEN. Arms may not cross (F.Cu only, no vias
+# inside an arm), so the angular order must be the QFN's own RF pin order. Going
+# counter-clockwise from RF1 that order is
+#
+#     RF1, RF2, RF3, RF4, [control escape], RF5, RF6, RF7, [RF8 pickoff], RFC
+#
+# and the ONLY way to seat eight members on eight 45-degree multiples while
+# staying monotone in that order is the table above. The control escape then
+# falls in the 45-degree sector between the S arm (270) and the SE arm (315),
+# centred on 292.5 — which is where U_SW's own control pads already point
+# (pads 9..12 sit at theta 262..303). Nothing had to be bent to make that work.
+#
+# THE ARM LENGTHS ARE 14.00 AND 9.90, AND THE PAIR IS NOT ARBITRARY. A diagonal
+# arm of 9.90 per axis has octilinear length 9.90*sqrt(2); to make that equal an
+# axis arm both numbers would have to be irrational. 99/70 is the convergent of
+# sqrt(2) (99^2 = 9801, 2*70^2 = 9800), so 9.90 and 14.00 are BOTH exact
+# multiples of the 0.05 mm router grid AND agree to
+#
+#     9.90*sqrt(2) = 14.000714 mm   vs   14.000000 mm
+#
+# PREDICTED octilinear floor spread 0.000714 mm = 0.0094 deg at 6 GHz, against
+# the 1.0 mm ceiling in rules/nets.yaml. It is DERIVED here and MEASURED off the
+# generated board by `copper_length_audit.py` — this file's number is a
+# prediction and is not evidence.
+#
+# THE GRID MATTERS AND IT IS WHY THE RESIDUE WAS SPENT THIS WAY, not the other:
+# rf-design.md 4(c) measured that at KRT's default `grid_step: 0.1` NOTHING
+# routed v1's five boxed RF pads at ANY width, because the RF land centres sat
+# at odd multiples of 0.05 mm. Every coordinate in this file is a multiple of
+# 0.05 mm so a 0.05 grid can place a centreline on it.
+#
+# ---------------------------------------------------------------------------
+# WHAT IS *NOT* ON THE 45-DEGREE STAR, AND WHY THAT IS NOT A CONCESSION
+# ---------------------------------------------------------------------------
+# RX1_TAP (RF8, pad 19) leaves on bearing 67.5 to R_T2/R_T1. It is DELIBERATELY
+# excluded from the length-match group (rules/nets.yaml `RF_ARMS`: it is three
+# nets in series, its insertion phase is dominated by a lumped 2 x 220 ohm cell,
+# and RX1_MAIN is a T rather than a path), so it is graded by nothing and needs
+# no 45-degree seat. It gets 67.5 because both neighbouring 45-degree bearings
+# would run it PARALLEL to a graded arm at ~1.3 mm for its whole length: a 45
+# NE ray from pad 19 sits 1.273 mm from ANT7's ray, and a due-N ray sits 1.50 mm
+# from RX2_OUT's. 67.5 diverges from both. That is a COUPLING decision, not a
+# length one.
+#
+# J_ANT8 and J_RX1 are on RX1_MAIN and carry no length obligation either. They
+# are a NORTH ROW at y = 25.00 rather than ring members, for three reasons:
+# (i) the wedge between ANT7 (45) and RX2_OUT (90) is 45 degrees wide and two
+# more 7.5 mm courtyards do not fit in it at ring radius; (ii) the through path
+# this board actually publishes is J_ANT8 -> J_RX1 with R_T1 tapping it, so the
+# two belong ADJACENT (8.00 mm apart here) and R_T1 lands 8.6 mm from J_ANT8 on
+# a nearly straight run; (iii) it keeps the NE corner free for H2.
+#
+# ---------------------------------------------------------------------------
+# MODULE FACTS THAT CONSTRAIN THIS FILE (all STEP-MEASURED, journal/04_placement)
+# ---------------------------------------------------------------------------
+# * U_MCU is rotation 180 so its USB-C faces the board's SOUTH edge. The
+#   receptacle overhangs the module outline by 1.216 mm; at YM 80.75 the module
+#   outline ends at y 92.50 and the receptacle tip reaches 93.72, i.e. 0.72 mm
+#   BEYOND the board edge at y1 = 93.0. A plug's overmould runs ~1.0 mm below
+#   the module's bottom face and only just clears the ~1.1 mm standoff, so the
+#   board edge must not be outboard of it.
+# * THE MODULE CANNOT SIT FLAT: 23 components on the CARRIER-FACING face, the
+#   12 MHz crystal 1.000 mm proud. It is HAND-SOLDERED and off the CPL
+#   (rules/assembly.yaml). Its keepout is the whole 18.00 x 23.50 outline and it
+#   carries two further carrier keepouts DRAWN INTO THE FOOTPRINT (HEIGHT on
+#   Dwgs.User, COPPER on User.Comments) that NOTHING in this pipeline grades.
+#   No part of this floorplan places anything under it.
+# * BOOT and RESET are the only route into the bootloader, forever (BOOT/RESET/
+#   SWD reach no castellation). They sit on the module's UP face at local
+#   (-6.05..-3.05, 1.825..6.475) and (2.95..5.95, ...) and nothing on this
+#   carrier can reach them, so accessibility is satisfied by construction --
+#   stated rather than assumed, because it is a requirement.
+# * At rotation 180 the SELECT pads (1..4 = GP0..GP3) land on the module's WEST
+#   edge and 3V3/GND (21/22) on its EAST edge. That is a property of the part,
+#   not a choice: they are on opposite edges at every rotation. R_S1..R_S4 are
+#   therefore hard against the west edge (SEL_V1 span 1.52 mm of a 25 mm budget)
+#   and FB_3V3 + C_BULK hard against the east edge.
+#
+# ---------------------------------------------------------------------------
+# WHAT IS OWED FROM THIS FILE, MEASURED LATER, NOT ASSERTED HERE
+# ---------------------------------------------------------------------------
+# * the octilinear floor      -> copper_length_audit.py, off the real board
+# * min landable width P-LAND -> escape_check.py --board, off the real board
+# Both need a .kicad_pcb. v1's 1.4966 mm and its scoped_clearances set are NOT
+# inherited (canon M4: a waiver copied from another board is an inherited
+# defect).
+
+project:
+  name: pluto_rx2_8way_v2
+  netlist: 06_build/netlists/pluto_rx2_8way_v2.net
+  output: 04_kicad/pluto_rx2_8way_v2.kicad_pcb
+  parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
+
+board:
+  # 46.0 x 73.0 mm. The star is 8 jacks on a 45-degree rosette (outer courtyard
+  # radius ~20.7 mm about the switch), the RX1 pair is a north row, and the
+  # module fills the south-east. The south-west clearing is where the silk
+  # legend lives — it is the only large area the star geometry leaves, and it
+  # is deliberately not filled with parts so the USB-C corner stays free of
+  # anything a cable can foul.
+  outline: {x0: 20.0, y0: 20.0, x1: 66.0, y1: 93.0}
+  edge_width: 0.1
+  layers: 4
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    refdes_prefix: H
+    # THREE CORNERS AND A SOUTH-CENTRE, and the asymmetry is the module's
+    # fault, not an oversight: U_MCU's courtyard reaches x 43.45..61.95 and
+    # y 68.75..92.75, so the south-east corner is under the module and a
+    # 3.45 mm-radius M3 courtyard cannot fit there. H4 takes the south edge
+    # west of the module instead. The module is hand-soldered and ~2 g.
+    at: [[23.8, 23.8], [62.0, 23.8], [23.8, 89.2], [36.5, 89.2]]
+
+# PROJECT LIBRARY FIRST. `03_src/lib/` holds pluto_rx2_8way_v2.pretty/ with the
+# three authored/vendored lands (QFN-24 PE42482, SMA_Vertical_5.08sq_D1.4,
+# RP2040_Zero_LCC23_18x23.5). Order matters: KiCad ships same-named parts in
+# its own libraries and a stock land is NOT the vendor land.
+libraries: [03_src/lib, /usr/share/kicad/footprints]
+
+placement:
+  # EVERY part is an ANCHOR. Nothing on this board is free to be legalized:
+  # the eight graded jacks ARE the published property (a 0.05 mm nudge is a
+  # 0.0007 mm phase error the gate would then have to explain), the pickoff
+  # pair carries a lambda_g/20 lumped bound, and every passive is either at a
+  # pin (C_SW1) or in a corridor whose width is the reason it is there.
+  anchors:
+    U_SW:   [41.0000, 49.0000, 0]
+
+    # ---- the 45-degree rosette: eight graded arms, one per compass point ----
+    # bearing / U_SW pad / octilinear pad-to-pad floor (derived, MEASURED later)
+    J_ANT1: [29.8500, 37.2000, 45]    # 135 NW  pad 24  14.000714
+    J_ANT2: [25.1000, 48.2500,  0]    # 180 W   pad  2  14.000000
+    J_ANT3: [29.2000, 59.1500, 45]    # 225 SW  pad  4  14.000714
+    J_ANT4: [39.1000, 64.2500,  0]    # 270 S   pad  6  14.000000
+    J_ANT5: [52.8000, 60.1500, 45]    # 315 SE  pad 13  14.000714
+    J_ANT6: [56.9000, 49.2500,  0]    #   0 E   pad 15  14.000000
+    J_ANT7: [52.8000, 38.3500, 45]    #  45 NE  pad 17  14.000714
+    J_RX2:  [40.7500, 33.1000,  0]    #  90 N   pad 22  14.000000
+    # JACK ROTATION IS (-theta) mod 90 and it is an RF decision, not cosmetics.
+    # The KH-SMA-KE-Z post square is 4-fold symmetric so theta mod 90 is
+    # electrically free, but the ARM must arrive BETWEEN two ground posts, not
+    # at one. At rotation 0 the posts sit on the 45-degree diagonals, which is
+    # right for an axis arm; at rotation 45 they sit on the axes, which is right
+    # for a diagonal arm. Getting this backwards puts a D1.4 barrel dead ahead
+    # of the launch.
+
+    # ---- the RX1 pickoff: RF8 out on bearing 67.4, then the north row -------
+    # R_T2 is the SWITCH side (pin 2 = RX1_TAP), R_T1 the ANTENNA side
+    # (pin 1 = RX1_MAIN). BOTH at rotation 270: identical rotation, never
+    # mirrored, long axes COLLINEAR and 2.20 mm apart, so the RX1_TAP_MID pad
+    # span is 2.20 - 2*0.4825 = 1.235 mm, inside the lambda_g/20 = 1.3693 mm
+    # lumped bound (ADR-0003). THAT SPAN IS THE ONLY THING THE ROTATION HAS TO
+    # BUY: v1 lost its pickoff to a rotation inherited from the JACK rule (15
+    # deg, long axes 60 deg off the pair axis) and measured 2.66 mm — the
+    # pickoff stopped being a lumped element on the one path everything else is
+    # calibrated against.
+    # THE COLUMN IS VERTICAL AND NOT RADIAL, AND THAT IS THE FIT: the pickoff
+    # has to live inside the 3.00 mm channel between J_RX2's bounding box
+    # (x <= 44.50) and J_ANT7's (x >= 47.497 — a 45-degree SMA courtyard has a
+    # 5.303 mm half-diagonal and the placement gate works in bounding boxes).
+    # x = 46.00 centres it with 1.03 mm each side. The chain R_T2 -> R_T1 ->
+    # J_ANT8 is then a straight 0.50 mm-offset run and only the tap arm from
+    # U_SW pad 19 is angled (9.77 mm at bearing 67.4).
+    R_T2:   [46.0000, 37.6000, 270]
+    R_T1:   [46.0000, 35.4000, 270]
+    J_ANT8: [46.5000, 25.0000, 0]     # = THE RX1 ANTENNA, not an 8th element
+    J_RX1:  [54.5000, 25.0000, 0]     # -> PlutoSDR RX1
+
+    # ---- switch-side control pocket ----------------------------------------
+    # Bounded WEST by the S arm (a 0.36 mm run at x = 39.10) and NORTH-EAST by
+    # the SE arm (the 45-degree line y = x - 0.65 in switch-local coords). Every
+    # part below is south-west of that line; the measured clearance from each
+    # arm centreline to the nearest courtyard is >= 0.60 mm against the 0.38 mm
+    # a 0.36 mm track at 0.20 mm clearance needs.
+    C_SW1:  [40.2500, 53.1000, 270]   # 100nF AT pin 8: pad-1 span 1.72 mm of 3
+    C_SW2:  [41.2000, 55.3000, 0]     # 1uF, the second half of the pin-8 bypass
+    R_PD1:  [41.6000, 58.2000, 270]   # V1..V4 pull-downs, at the SWITCH end --
+    R_PD2:  [43.2000, 58.2000, 270]   # they are only a power-on guarantee if
+    R_PD3:  [44.8000, 58.2000, 270]   # they sit on the switch's side of the
+    R_PD4:  [46.4000, 58.2000, 270]   # 47R series element (ARCHITECTURE sec 7)
+
+    # ---- the module cell ----------------------------------------------------
+    U_MCU:  [52.7000, 80.7500, 180]   # USB-C faces the board's south edge
+    R_S1:   [42.0000, 90.9100, 180]   # 47R SOURCE terminations, hard against
+    R_S2:   [42.0000, 88.3700, 180]   # the module's west castellation column.
+    R_S3:   [42.0000, 85.8300, 180]   # pad 1 faces EAST (the module) so
+    R_S4:   [42.0000, 83.2900, 180]   # SEL_V* is 1.52 mm and SW_V* is the long
+                                      # half -- which is the correct end for a
+                                      # series termination.
+    R_LED:  [42.0000, 80.7500, 180]   # 680R ballast at module pad 5 (GP4)
+    LED_ST: [38.8000, 80.7500, 0]     # pad 1 = CATHODE = GND, facing WEST
+    FB_3V3: [63.6000, 85.8000, 90]    # pad 1 (IN, 3V3_MOD) faces SOUTH toward
+                                      # C_BULK; pad 2 (OUT, 3V3) faces NORTH,
+                                      # which is the direction the switch is.
+    C_BULK: [63.6000, 89.8000, 270]   # 4.7uF on the UNFILTERED side, pad 1
+                                      # north at the ferrite
+
+  patterns:
+    # Pad-level SOLID zone connection on the GND pads of the two multi-GND
+    # parts. v1 measured this taking `starved_thermal` from 15 to 4: a thermal
+    # relief counts SPOKES, and a QFN ground pad in a dense fan does not get
+    # four of them. U_MCU's single GND castellation (pad 22) carries every
+    # return from 20 GPIO and must not be thermally relieved at all.
+    - {match: U_SW,  pad_overrides: [{on_net: GND, zone_connection: full}]}
+    - {match: U_MCU, pad_overrides: [{on_net: GND, zone_connection: full}]}
+    # The ten SMA jacks: each of the four posts IS the launch return path and is
+    # only electrically short if the return is (KH-SMA-KE-Z part.yaml notes).
+    - {match: "J_*",  pad_overrides: [{on_net: GND, zone_connection: full}]}
+
+  legalize: {enable: false}
+  # DISABLED, DELIBERATELY. Every refdes is an anchor, so there is nothing for
+  # the legalizer to walk; leaving it enabled would let a future edit silently
+  # move a jack and turn a 0.000714 mm floor spread into something the gate
+  # would have to discover.
+
+design_rules:
+  # jlc_4layer_advanced (rules/nets.yaml `fab_tier:`), forced by PE42482A-X's
+  # QFN-24 at 0.50 mm pitch: at the standard-tier 0.30 mm drill the adjacent-pin
+  # hole-to-hole gap is 0.20 mm against a 0.50 mm floor, so no escape via fits.
+  track_min_width: 0.09
+  min_clearance: 0.09
+  via_min_size: 0.25
+  min_through_drill: 0.15
+  via_min_annulus: 0.05
+  hole_clearance: 0.15
+  hole_to_hole: 0.25
+  copper_edge_clearance: 0.3
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  # GND on ALL FOUR layers. In1.Cu is poured here and EXCLUDED from the routing
+  # layers in route.yaml -- that is the whole point: pouring makes it the solid
+  # reference, excluding it from routing is what keeps it unbroken. Ossmann's
+  # rule 1, and it is what makes nine arm phases comparable at all.
+  - {net: GND, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], priority: 0,
+     min_thickness: 0.2, clearance: 0.25, connect: thermal}
+
+keepouts:
+  # `rf_launch` DENIES NOTHING. It is a NAMED RULE AREA that exists so
+  # rules/nets.yaml `scoped_clearances:` has a boundary to bind to — the
+  # emitted .kicad_dru constraint is
+  # `A.insideArea(rf_launch) && B.insideArea(rf_launch)`, bounded on BOTH
+  # sides, so a relaxation cannot license a pair whose second item is
+  # anywhere on the board.
+  #
+  # WHY IT EXISTS AT ALL, MEASURED off this board by `escape_check.py --board`
+  # BEFORE any router ran: SIX pads of U_SW cannot emit their own class width
+  # at the board-wide 0.200 mm clearance. It is arithmetic, not congestion —
+  # the PE42482A-X vendor land is 0.30 x 0.60 mm on a 0.50 mm pitch, so a
+  # neighbouring land's copper edge sits 0.350 mm from the pad centre and a
+  # 0.360 mm impedance trace needs 0.180 + 0.200 = 0.380 mm.
+  #
+  # THE BOX IS DRAWN TIGHTLY (canon R-SCOPE caveat: KiCad's `insideArea` is
+  # true for an item that OVERLAPS the area, not only one contained by it).
+  # +/-2.70 mm about the switch centre = 0.50 mm outboard of the outermost
+  # land edge (+/-2.20), which is the whole launch and nothing else. At that
+  # radius adjacent arms are already 2.07 mm apart, so arm-to-arm isolation
+  # is not what is being relaxed.
+  - {name: rf_launch, layers: [F.Cu], deny: [],
+     rect: [38.300, 46.300, 43.700, 51.700]}
+
+asserts:
+  pad_net:
+    # NONE of these is observable in copper, and each names a defect that
+    # assembles, powers up and reports a plausible wrong answer.
+    - {ref: U_SW,  pad: 1,  net: GND}       # LS: 1 Mohm INTERNAL pull-up, so a
+                                            # float selects the COMPLEMENTED
+                                            # half of the truth table
+    - {ref: U_SW,  pad: 9,  net: SW_V1}     # V1 = MSB; a reversed sweep is
+    - {ref: U_SW,  pad: 12, net: SW_V4}     # absorbed by an AoA solver as a
+                                            # ROTATED ARRAY
+    - {ref: U_SW,  pad: 19, net: RX1_TAP}   # RF8 = the pickoff port
+    - {ref: U_SW,  pad: 22, net: RX2_OUT}   # RFC = the common out
+    - {ref: U_SW,  pad: 24, net: ANT1}      # RF1 = the delta reference
+    - {ref: U_SW,  pad: 25, net: GND}       # EP = the RF ground return
+    # The module's numbering is the VENDOR's and runs CLOCKWISE FROM THE
+    # TOP-RIGHT -- the mirror of every IC -- and the silk prints GPIO numbers,
+    # which agree with pad numbers for SIXTEEN CONSECUTIVE PADS before
+    # diverging at 17. These four are the cross-check that survived the
+    # renumbering (journal/04_placement.md FINDING 1).
+    - {ref: U_MCU, pad: 1,  net: SEL_V1}    # GP0
+    - {ref: U_MCU, pad: 4,  net: SEL_V4}    # GP3
+    - {ref: U_MCU, pad: 21, net: 3V3_MOD}   # NOT 3V3 -- FB_3V3 is a SERIES
+                                            # element and the module-side node
+                                            # is its own net
+    - {ref: U_MCU, pad: 22, net: GND}       # the ONE ground castellation
+    - {ref: LED_ST, pad: 1, net: GND}       # pad 1 = CATHODE (KiCad marker
+                                            # convention); a reversed LED is
+                                            # self-consistent in every artifact
+
+silk:
+  min_text_height: 0.6
+  refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16,
+           priority_prefixes: "UJ"}
+  caption_nudge: true
+  captions:
+    # Port legends, each INBOARD of its jack on its own radius (7.00 mm from
+    # the jack centre toward the switch, clear of the 7.80 mm jack silk square).
+    # A legend on the NEIGHBOUR is the v1 defect this ordering exists to avoid:
+    # v1's "RX2 -> PLUTO RX2" measured NEARER J_ANT1 (7.29 mm) than J_RX2
+    # (7.85 mm), on the one pair of ports whose confusion feeds an SDR input
+    # with an antenna.
+    - ["ANT1", 34.800, 42.150, 0.9]
+    - ["ANT2", 32.100, 48.250, 0.9]
+    - ["ANT3", 34.150, 54.200, 0.9]
+    # ANT4/ANT5 sit SOUTH of their jacks, not inboard: inboard puts them
+    # nearer a pull-down resistor than their own jack (silk-ownership, the
+    # v1 "labelled on its neighbour" class). The band between the rosette
+    # and the module is empty and owns them cleanly.
+    - ["ANT4", 39.100, 69.600, 0.9]
+    - ["ANT5", 52.800, 67.000, 0.9]
+    - ["ANT6", 49.900, 49.250, 0.9]
+    - ["ANT7", 47.850, 43.300, 0.9]
+    - ["RX2",  40.750, 40.100, 0.9]
+    # The RX1 pair is a north ROW, so its legends go SOUTH of the jacks in the
+    # band above the rosette rather than on a radius.
+    - ["ANT8", 41.000, 25.000, 0.9]
+    - ["RX1",  59.400, 25.000, 0.9]
+    # Legend block, in the south-west clearing.
+    - ["pluto-rx2-8way-v2  8-WAY AoA", 30.500, 70.500, 0.7]
+    - ["70 MHz - 6 GHz",               30.500, 72.500, 0.6]
+    - ["RX ONLY - NO TRANSMIT",        30.500, 74.500, 0.6]
+    - ["PASSIVE ANT - 0 VDC MAX",      30.500, 76.500, 0.6]
+    - ["ANT8 = RX1 TAP -20.26 dB",     30.500, 78.500, 0.6]
+    - ["RX1/RX2 = SDR OUTPUTS",        30.500, 80.500, 0.6]
+    - ["U_MCU HAND-SOLDER ONLY",       30.500, 84.000, 0.6]
+    - ["USB-C = PWR + BOOTLOADER",     30.500, 86.000, 0.6]
+  polarity_marks:
+    - {ref: LED_ST, pad: 1, text: "K"}
