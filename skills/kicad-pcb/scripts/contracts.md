@@ -308,17 +308,55 @@ BACKEND GAP to report, not a bespoke script to write here.
   measured — a plate's cross extent (2.5408 mm against 2.2, silence) and a
   property text's half-height (0.53x font against 0.9, a 70%-too-tall box that
   INVENTED findings the render refutes).
+  **AND THE WIDTH WAS A FIXED-WIDTH MODEL OVER A PROPORTIONAL FONT — the FOURTH
+  inherited constant found wrong, 2026-07-31.** `CH_W = 1.05` per character is
+  now a measured per-character ADVANCE table: independently derived from 294
+  rendered plates (98 characters x 3 name lengths), every advance an exact
+  integer TWENTY-FIRST of the font size, k from 8 to 28, residual < 0.0008 mm.
+  It was NOT read off `circuit_json_to_kicad_sch.py`'s own table for the same
+  font — a checker that inherits the checked module's arithmetic is not a second
+  measurement (canon M1) — and the test re-derives the whole table from ink on
+  every run so a shared error cannot survive. Against the 1507 real fleet plates
+  the flat model is too SHORT on 596 (worst 1.6654 mm), too WIDE on 911 (worst
+  1.1173 mm) and **EXACT ON ZERO**; the corrected model matches the box KiCad
+  draws to 0.000210 mm on all 1507. The same sweep added the plate base per
+  SHAPE (passive 1.3341 / input+output 2.4454 / bidirectional+tri_state 3.5567 mm),
+  linear scaling in the font SIZE (both read from the sheet now, and a label
+  declaring neither is UNPLACED rather than assumed), the same advance table for
+  PROPERTY text (the flat `PROP_W = 0.82` modelled `AVDD_MCU_3V3_RAIL` 1.47 mm
+  short) and a per-character vertical INK envelope (a descender reaches
+  1.0029 mm below the anchor against a symmetric 0.6731).
+  **THE ADVANCE SUM IS NOT AN UPPER BOUND ON INK.** Three glyphs in 98 draw
+  outside their own advance cell — `\` by 0.0098 left / 0.2321 right, and `_`,
+  the fleet's commonest label character, by 0.1112 right — so `text_pad` carries
+  those three measured overhangs and only the first/last character can matter
+  (largest overhang 0.2321 mm, smallest advance 0.4838 mm). A character the
+  table has never measured makes the object UNPLACED naming the character.
+  **THE MODEL IS A CENTRELINE MODEL, and the pen is a NAMED residual**: KiCad
+  strokes at a measured 0.1524 mm, so ink reaches 0.0762 mm past every
+  centreline on both sides of every comparison. Inflating the boxes instead is
+  not available — it would make every label overlap the pin it attaches to by
+  exactly the pen width.
   **FALSIFIED IN BOTH DIRECTIONS**: 68 of 68 text-vs-text findings on four
-  post-fix sheets confirmed as real ink overlaps, 0 unconfirmed; the converse
-  sweep is the gate's DECLARED VACUITY (pin NAME/NUMBER text is not placed —
-  KiCad derives its position from the body edge, `pin_names (offset)`, the hide
-  flags and the rotation, and guessing would invent findings on every board).
+  post-fix sheets confirmed as real ink overlaps, 0 unconfirmed; and the two
+  findings the width fix GAINED were confirmed in ink as well (central-v2
+  `label USB_VDD33 x pin FB_u33.1`, 0.0943 mm of rendered pin inside the
+  rendered plate; cal-switch `label HDR_CTRL_ADC x pin U_MCU.19`, the whole
+  1.2700 mm pin line). The converse sweep is the gate's DECLARED VACUITY (pin
+  NAME/NUMBER text is not placed — KiCad derives its position from the body
+  edge, `pin_names (offset)`, the hide flags and the rotation, and guessing
+  would invent findings on every board).
   An object it cannot PLACE is a FAIL naming it, never a pass (M-COVER);
-  0 unplaced across all 8 fleet sheets. 9 known-bad + 1 vacuity in
+  0 unplaced across all 8 fleet sheets. 11 known-bad + 1 vacuity in
   `tests/t1_occlusion.py`, four axes in two shapes each, with the RED side
-  re-extracted from `git show 948ef54d:policy_audit.py` and RUN every run.
-  DECLARED SCOPE LIMIT: it grades the `.kicad_sch`, not the `pdf/schematic.pdf`
-  a human reads — the premise pluto-rx2-8way-v2's withdrawn waiver rested on.
+  re-extracted from `git show 948ef54d:policy_audit.py` (direction) and
+  `git show c90c51c3:sch_occlusion.py` (width) and RUN every run.
+  TWO DECLARED SCOPE LIMITS: it grades the `.kicad_sch`, not the
+  `pdf/schematic.pdf` a human reads — the premise pluto-rx2-8way-v2's withdrawn
+  waiver rested on; and **a green verdict is not evidence that labels point at
+  the right pin**, because the converter's de-collision pass run over the
+  PRE-FIX direction derivation produces a sheet with zero collisions and every
+  plate still naming the wrong pin.
 
 - **RELEASE SELECTION IS SCOPED TO A BOARD, AND IMPORTED, NEVER RE-DERIVED.**
   `policy_audit.py` takes `--board <04_kicad stem>` on a MULTI-BOARD project

@@ -578,7 +578,18 @@ def t_label_sides_vertical():
     the SECOND defect lived: LABEL_ANG_JUST['bottom'] was (270, 'left'), which
     KiCad renders reaching UP. Pre-fix the two bugs CANCELLED on
     `anchor_side: bottom` labels (~155 across the fleet) and did not on
-    `anchor_side: top` ones, which is why both had to move together."""
+    `anchor_side: top` ones, which is why both had to move together.
+
+    WHAT THIS TEST DOES NOT SAY, corrected 2026-07-31. `label_collisions()`
+    grades plate-vs-BODY and plate-vs-PLATE only, so for most of its life this
+    fixture read as a clean bill on a sheet that was not clean: R1 is placed
+    VERTICALLY, its Reference and Value are centred on the same x as both
+    plates, and both plates are drawn straight through them. That is
+    plate-vs-PROPERTY and nothing here could see it. It is now graded by the
+    gate that can — `sch_occlusion.py`, which reads this fixture 2 -> 0 across
+    the de-collision pass, fixtured in
+    `tests/t1_occlusion.py t_label_sides_v_is_clean_only_because_the_pass_moves_it`
+    — and the whole-sheet assertion below is the local half of that."""
     d, sheet, r = convert("label_sides_v")
     contains(r.out, "MODE=layout", "converter stdout")
     bad, plates, body = label_collisions(sheet)
@@ -586,6 +597,15 @@ def t_label_sides_vertical():
     # KiCad sheets are y-DOWN: the upper pin's plate ends ABOVE the body.
     check(plates[NET_L][1] < body[1], f"{NET_L} does not reach above the body")
     check(plates[NET_R][3] > body[3], f"{NET_R} does not reach below the body")
+    # ...and CLEAN means clean against EVERY drawn object, not just the two
+    # classes the helper above models.
+    sys.path.insert(0, str(SCRIPTS))
+    import sch_occlusion as SO                                  # noqa: E402
+    occl, unm, graded, total = SO.occlusions(
+        sheet.read_text(encoding="utf-8-sig"))
+    eq(unm, [], "drawable objects S-OCCL could not place on label_sides_v")
+    eq(occl, [], "S-OCCL over the WHOLE emitted sheet — plate-vs-property "
+                 "included, which is the class this fixture used to hide")
 
 
 @test("the (angle, justify) -> plate-direction table is MEASURED from KiCad, "

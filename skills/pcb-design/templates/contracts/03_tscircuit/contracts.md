@@ -178,6 +178,19 @@ embedded `elt` lib isn't in the running kicad-cli config), `footprint_link_issue
   deliberately **not** a fallback to `grid`: answering "this label cannot be
   placed legibly" with a different sheet is not an answer. The message names
   the label and what it occludes — open the TSX and give that corner room.
+- **A GREEN S-OCCL DOES NOT MEAN THE LABELS POINT AT THE RIGHT PIN, and this is
+  the one thing to remember about the de-collision pass.** MEASURED 2026-07-31:
+  run it over the PRE-FIX direction derivation (`948ef54d`, where 1504 of 1504
+  fleet labels carried an `anchor_side` exactly opposite
+  `center - anchor_position`) and the sheet comes out with ZERO collisions while
+  every plate still names the WRONG pin — the pass moves plates until nothing
+  overlaps, and a plate fired across its own part is as movable as any other.
+  Legibility and correctness are different questions; only the first is graded
+  here, and no connectivity-keyed gate can see the second (same netlist, same
+  ERC). Two fixtures in `tests/t1_converter.py` hold the pass off deliberately
+  to keep that pinned. The shipped fixture `label_sides_v` is the miniature of
+  it: its own vertical plates run through its own Reference and Value, and it
+  reads clean only because the pass moves them (S-OCCL 2 -> 0, MEASURED).
 
 ## Compliance audit (design-policies.md IDs)
 
