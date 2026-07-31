@@ -17,6 +17,15 @@ lipo3s_trace.md
 *.kicad_pro.lck
 *.lck
 
+# Stitch resume state. `route_and_stitch_generic.py` must re-exec a FRESH
+# INTERPRETER to cross the pcbnew Remove()/LoadBoard barrier, and carries its
+# counters across in `<board>.kicad_pcb.stitch_state.json` written BESIDE the
+# board — i.e. inside 04_kicad/, which is otherwise immutable. Same class as
+# the .lck files above and gitignored for the same reason: process state,
+# never content. Found 2026-07-31 by `contracts_audit.py --present`, on the
+# day that scope landed, in two projects at once.
+*.stitch_state.json
+
 # --- secrets: API keys, never committed (added 2026-07-27) ---
 .secrets/
 *.env
