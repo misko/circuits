@@ -98,3 +98,39 @@ the number was never taken before this pass.
   the stitch `gate:` pass reported `clean` on the pre-DRC board independently).
   A 4.2x denser via field added ZERO findings of either kind.
 - next: Phase 2 — re-seed `03_src/rebuild_all.sh` from the template.
+
+## 2026-07-30 20:25 — finish (Phase 2, reproducibility hygiene)
+
+- did: **re-seeded `03_src/rebuild_all.sh` from
+  `skills/pcb-design/templates/03_src/rebuild_all.sh`**, keeping only the two
+  board-specific knobs. The fork and the template had independently fixed the
+  SAME two defects (the ERC line gating on WARNINGS — this board fails its own
+  driver at 220 cosmetic warnings with 0 errors; and the unconditional
+  `03_src/audit_board.py` call, which aborts a zero-bespoke-Python board at
+  `set -e`), so the fork was functionally right and textually divergent, which
+  is the state that drifts.
+- result: `diff template project` is now **exactly two lines** — `BOARD=` and
+  `TSX=`. Ran the full driver END TO END: **exit 0 in 1 m 55.8 s, DRC 0/0/0**.
+  Gate-by-gate from the run log: TSX-PRE PASS 6/6 · **M-FRESH PASS (stamp)**
+  run `c236e0c2236e` · **M-FRESH PASS (verify) 6/6 assertions** —
+  `03_tscircuit/build/circuit.json` byte-identical to
+  `dist/src/pluto_rx2_8way_v2/circuit.json`, written this run, from the sources
+  now on disk · S-NETMERGE 23/23 · E-INV 20/20 · E-ADR 1/1 · E-TOPO 1/1 ·
+  E-MARGIN 1/1 (headroom 934 mV = 9340 mOhm budget at 0.1 A vs 10 mV IR) ·
+  S-COUNT 4/4 over 28 refdes · M-BOM leg C PASS · ERC **0 errors** ·
+  P-OUT/P-CAP PASS 0 fails 0 warns · R-PREFLIGHT 0 FAIL / 1 WARN (PF-ROUTE-CLR,
+  the two declared scoped clearances) · stitch `gate: clean`.
+  Fleet `build_provenance.py audit --root .`: **`ok pluto-rx2-8way-v2`**, the
+  only adopted board of five knobbed ones.
+- next: pin the schematic and prove the deterministic path agrees.
+
+**THE TWO DRIVERS PRODUCE THE SAME BOARD, MEASURED, NOT ASSUMED.** `tsci build`
+churned `circuit.json` (63 lines changed) — **id-stripped it is EQUAL**, 1353
+objects both sides. The converter output was then pinned to
+`03_tscircuit/kicad/` and `rebuild_reuse.sh` re-run from it: exit 0, DRC 0/0/0.
+The two boards differ in md5 (`e4b4a2d7` vs `dd35c63c`) and are IDENTICAL as
+geometry — **218 segments, 2265 vias, 32 footprints, set-equal, 0 only-in-either
+on all three**. The md5 delta is UUIDs and s-expression write order. Worth
+stating because the file-level comparison alone would have read as a difference,
+and a comparison that finds no differences and one that compares nothing print
+the same word (this board already paid for that once, on the netlist regexes).

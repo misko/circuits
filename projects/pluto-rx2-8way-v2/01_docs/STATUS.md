@@ -33,9 +33,9 @@ terminal for this stage.
 
 <!-- reader parses from here down -->
 stage:   verify
-step:    "PHASE 1 DONE: the via fence is closed as far as the lever reaches. Declared stitch_grid pitch 0.95 = floor_0.05(1.35/sqrt(2)) — a square lattice at p is NOT a fence at p, it projects at p*sqrt(2) on a 45-degree arm. Next: Phase 2, re-seed rebuild_all.sh from the template and prove the full driver end-to-end."
-measure: "FENCE MEASURED OFF THE BOARD (06_build/verify/fence_pitch.txt): 2208 grid vias + 40 SMA PTH ground posts; worst STRUCTURAL along-arm projection 1.3435 mm vs the 1.35 bound (was 1.9092 at a declared 1.35, 2.8284 derived at the shipped 2.0). 12 of 21 arm-sides still over, EVERY ONE a named site occupancy (SMA avoid rings worst 5.1071 at J_ANT8; the SSE control corridor 3.6200 at ANT4; the star hub 1.8803) - classified in 06_build/verify/fence_apertures.txt. DRC re-established: 0 violations / 0 unconnected / 0 parity, BOTH LISTS EMPTY (Counter() on each), --severity-all --refill-zones --schematic-parity, 2026-07-30T18:35:24."
+step:    "PHASE 2 DONE. rebuild_all.sh re-seeded from the template — diff is exactly the two BOARD=/TSX= knobs. Full driver ran tsx -> DRC end to end, exit 0, and the deterministic rebuild_reuse path reproduces the SAME GEOMETRY from the pinned schematic. Next: Phase 3 battery + two-key red-team + seal."
+measure: "FULL DRIVER exit 0 in 1m55.8s, DRC 0/0/0. M-FRESH PASS stamp+verify (6/6), fleet audit says ok pluto-rx2-8way-v2 (only adopted board of 5 knobbed). TSX-PRE 6/6, S-NETMERGE 23/23, E-INV 20/20, E-ADR 1/1, E-TOPO 1/1, E-MARGIN 1/1, S-COUNT 4/4 over 28 refdes, M-BOM leg C PASS, ERC 0 errors, P-OUT/P-CAP 0 fails 0 warns, R-PREFLIGHT 0 FAIL 1 WARN. TWO DRIVERS, ONE BOARD: 218 segments / 2265 vias / 32 footprints SET-EQUAL between rebuild_all and rebuild_reuse outputs, 0 only-in-either; md5 differs on UUIDs and write order only. FENCE (final board): worst structural along-arm 1.3435 vs bound 1.35; 12 of 21 arm-sides carry a NAMED occupancy aperture, worst 5.1071 at J_ANT8 avoid ring."
 state:   working
-next:    "Phase 2 re-seed the driver; Phase 3 battery + two-key red-team + seal. The residual fence apertures go into the red-team brief VERBATIM so an independent lens grades them, not the designer."
+next:    "Phase 3: fab export, jlc_stock, jlc_twin, twin_overlay, pin + render reviews, TWO-KEY red-team (design_verdict + order_verdict, EVERY lens re-gated), policy_audit, release_freshness (A-BUY + M-REV), standalone-archive DRC, MANIFEST, 2-commit seal, beacon refresh."
 op_pid:
-updated: 2026-07-30T20:05:00
+updated: 2026-07-30T20:30:00
