@@ -763,6 +763,123 @@ def t_real_finding_module_envelope_has_no_reader_and_the_obvious_one_collides():
              "the 02_parts G-ORPHAN section's collision warning")
 
 
+# -------------------------------------- silk.polarity_marks (2026-07-30)
+REAL_03SRC = (ROOT / "skills/pcb-design/templates/contracts/03_src"
+              / "contracts.md")
+REAL_GBG = SCRIPTS / "generate_board_generic.py"
+
+#: the ONE call that makes the three rows true. Everything else the rows name
+#: (`ref`, `pad`, `text`) is read in that same file for OTHER structures.
+_POLARITY_READ = 'self.silk_cfg.get("polarity_marks")'
+
+#: a floorplan declaring the block and NOTHING else, so the only thing the
+#: fixture can be measuring is these three rows.
+POLARITY_FLOORPLAN = """\
+silk:
+  polarity_marks:
+    - {ref: LED_ST, pad: 1, text: "K"}
+"""
+
+
+def _shipped_polarity_rows():
+    """The three `silk.polarity_marks` rows LIFTED VERBATIM from the shipped
+    03_src contract — not transcribed, so weakening them in the template goes
+    red HERE rather than in a copy that drifted."""
+    rows = [ln for ln in REAL_03SRC.read_text(encoding="utf-8").splitlines()
+            if ln.startswith("| `silk.polarity_marks")]
+    eq(len(rows), 3, "`silk.polarity_marks` rows lifted from the shipped "
+                     "03_src contract (ref + pad + text)")
+    return rows
+
+
+def _floorplan_repo(d, rows, reader_src):
+    """A scratch repo: `rows` as the whole floorplan contract, `reader_src` as
+    `generate_board_generic.py`, and one board declaring the block."""
+    d = Path(d)
+    cdir = d / "skills/pcb-design/templates/contracts/03_src"
+    cdir.mkdir(parents=True, exist_ok=True)
+    (cdir / "contracts.md").write_text(
+        "# contract: 03_src/\n\n### keys: 03_src/floorplan.yaml\n\n"
+        "| key | reader | why |\n|---|---|---|\n"
+        + "".join(r + "\n" for r in rows), encoding="utf-8")
+    sdir = d / "skills/kicad-pcb/scripts"
+    sdir.mkdir(parents=True, exist_ok=True)
+    (sdir / "generate_board_generic.py").write_text(reader_src,
+                                                    encoding="utf-8")
+    pdir = d / "projects/bd/03_src"
+    pdir.mkdir(parents=True, exist_ok=True)
+    (pdir / "floorplan.yaml").write_text(POLARITY_FLOORPLAN, encoding="utf-8")
+    return d
+
+
+@test("REAL FINDING CLOSED — `silk.polarity_marks` rows rest on ONE read, and "
+      "deleting it turns all three UNREAD while `ref`/`pad`/`text` stay proven "
+      "off DECOY structures in the very same file",
+      kind="known_bad")
+def t_polarity_marks_row_rests_on_its_own_read():
+    """THE REPO'S LAST G-ORPHAN, and the trap it walked into on the way out.
+
+    pluto-rx2-8way-v2's floorplan declares `silk.polarity_marks` — an F.SilkS
+    glyph anchored at a named PAD, required on any 2-pad polarized part whose
+    reversal no electrical gate can see (the D1 reverse-polarity class, where
+    DRC/ERC/parity/netlist are all consistently wrong together). It was a real
+    generator key with NO row in the governing contract, and G-ORPHAN failed on
+    it: `1 orphan`, exit 1.
+
+    THE TRAP, WHICH IS WHY THIS FIXTURE EXISTS RATHER THAN A BARE PASS.
+    `generate_board_generic.py` already reads `"ref"` (`asserts.pad_net[].ref`),
+    `"pad"` (`asserts.pad_beyond_edge[].pad`) and `"text"`
+    (`silk.captions[].text`) — three DIFFERENT structures in the SAME file. So
+    all three new rows score PROVEN whether or not the polarity code exists at
+    all: limitation (a) of `schema_reader_audit.py`'s own docstring ("cannot
+    prove the read is off THIS structure") arriving as a live temptation, the
+    same shape as the `mechanical`/`assembly_coverage.py` collision above. The
+    DISCRIMINATING segment is `polarity_marks`, and it occurs exactly once.
+
+    RED-VERIFY, BOTH DIRECTIONS, ON ONE TREE, WITH REAL SHIPPED BYTES — the
+    reader is the actual `generate_board_generic.py`, not a model of it.
+    Removing the one `.get("polarity_marks")` call is the pre-fix generator as
+    far as these rows are concerned.
+
+    MEASURED 2026-07-30 against the LIVE repo, by neutering that call in place:
+    `312/315 graded OK, 251 PROVEN, 3 UNREAD`, all three findings reading
+    `'polarity_marks' does not appear in any read position at all`, plus the
+    floor breach `251 ... below the committed floor of 254` — and NOT ONE of
+    them named `ref`, `pad` or `text`, which is the decoy reads doing exactly
+    what this fixture claims. Restored: `315/315, 254 PROVEN, 0 orphan`."""
+    rows = _shipped_polarity_rows()
+    good = REAL_GBG.read_text(encoding="utf-8")
+    check(good.count(_POLARITY_READ) == 1,
+          f"expected exactly ONE {_POLARITY_READ} in generate_board_generic.py "
+          f"— the discriminating read this fixture is built on has moved; "
+          f"re-derive it before trusting either half")
+    # the pre-fix generator, as far as these three rows are concerned: the one
+    # discriminating read gone, every decoy read untouched.
+    blind = good.replace(_POLARITY_READ,
+                         'self.silk_cfg.get("polarity_marks_ABSENT")')
+
+    # RED — three UNREAD rows, and the finding names the segment that carries
+    # the claim rather than the three that do not.
+    r = sweep(_floorplan_repo(tmpdir(), rows, blind))
+    must_fail(r, "G-ORPHAN against a generator that does not read the block",
+              "UNREAD")
+    contains(r.out, "'polarity_marks' does not appear in any read position")
+    eq(r.out.count("G-ORPHAN UNREAD"), 3, "all three rows go UNREAD together")
+    # THE TRAP, ASSERTED: the decoys carried `ref`/`pad`/`text` right through
+    # the red run. If any of these ever appears, the discrimination is gone and
+    # the rows would be passing on an unrelated structure's read.
+    for seg in ("'ref' does not appear", "'pad' does not appear",
+                "'text' does not appear"):
+        not_contains(r.out, seg)
+
+    # GREEN, the ADJACENT-PROPERTY re-verify: same tree, same source bytes,
+    # same rows, the one call restored and nothing else changed.
+    r2 = sweep(_floorplan_repo(tmpdir(), rows, good))
+    must_pass(r2, "G-ORPHAN with the real generator in place")
+    contains(r2.out, "3 PROVEN")
+    contains(r2.out, "0 ORPHAN key(s) in source with no row")
+
+
 @test("the gate obeys its own contract: it names its input and prints an N/M "
       "denominator on every path, including the UNGRADED one")
 def t_obeys_its_own_gate_contract():

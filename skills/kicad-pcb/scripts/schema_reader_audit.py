@@ -280,7 +280,7 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 7
-PROVEN_FLOOR = 251   # 239 -> 241 on 2026-07-29: route.yaml's
+PROVEN_FLOOR = 254   # 239 -> 241 on 2026-07-29: route.yaml's
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
@@ -297,6 +297,18 @@ PROVEN_FLOOR = 251   # 239 -> 241 on 2026-07-29: route.yaml's
 #: designed: the OWED row named a gate that was INTENDED and absent, and the
 #: floor rose in the commit that built it. Measured `--root .`: 307/307
 #: declared keys graded OK, 251 PROVEN, 0 orphan.
+#: 251 -> 254 on 2026-07-30: `floorplan.yaml` `silk.polarity_marks[]`
+#: {ref, pad, text} bound to generate_board_generic.py — THE REPO'S LAST
+#: ORPHAN, and the one that shows why the DISCRIMINATING SEGMENT is the whole
+#: question. `ref`, `pad` and `text` are each already read in that same file
+#: for OTHER structures (`asserts.pad_net[].ref`, `asserts.pad_beyond_edge[]
+#: .pad`, `silk.captions[].text`), so all three rows would have scored PROVEN
+#: on reads that have nothing to do with polarity silk — the "CANNOT PROVE
+#: (a)" case in this file's own docstring, arriving for real. The read that
+#: makes the claim TRUE is the single `.get("polarity_marks")` at ~L1657, and
+#: deleting THAT one call turns all three rows UNREAD while every one of the
+#: decoy reads stays put. Red-verified both directions by
+#: `t1_schema_reader.t_polarity_marks_row_rests_on_its_own_read`.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.

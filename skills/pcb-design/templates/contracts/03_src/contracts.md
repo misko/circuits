@@ -281,11 +281,52 @@ in the `02_parts` contract. These two are this folder's own.
 | `silk.labels[].from` | `generate_board_generic.py` | derived-label source field |
 | `silk.labels[].strip` | `generate_board_generic.py` | derived-label edit |
 | `silk.labels[].size` | `generate_board_generic.py` | derived-label height |
+| `silk.polarity_marks[].ref` | `generate_board_generic.py` | the part the glyph belongs to; an unknown refdes is a HARD ERROR (see below) |
+| `silk.polarity_marks[].pad` | `generate_board_generic.py` | which PHYSICAL pad the glyph is anchored at (default `1`); a pad the footprint does not have is a HARD ERROR |
+| `silk.polarity_marks[].text` | `generate_board_generic.py` | the glyph (default `"K"`), tier-floored and de-collided like a refdes; NO CLEAR OWNED SLOT IS A HARD ERROR, never a silent drop |
 | `silk.refdes.size` | `generate_board_generic.py` | refdes text height |
 | `silk.refdes.min_size` | `generate_board_generic.py` | refdes floor |
 | `silk.refdes.clearance` | `generate_board_generic.py` | refdes de-collision |
 | `silk.refdes.fab_copy` | `generate_board_generic.py` | F.Fab duplicate |
 | `silk.refdes.priority_prefixes` | `generate_board_generic.py` | de-collision priority |
+
+**`silk.polarity_marks` IS THE SILK HALF OF `asserts.pad_net`, AND THE PAIR IS
+NOT CROSS-CHECKED — say so rather than let the row read as full coverage.**
+`asserts.pad_net` asserts which NET pad 1 sits on; `polarity_marks` prints WHICH
+PHYSICAL PAD THAT IS, so a human at a bench can see the orientation of a 2-pad
+polarized part whose reversal no electrical gate can ever see (the D1
+reverse-polarity class: a generic `1`/`2` symbol on a polarized footprint is
+self-consistent under DRC, ERC, parity and netlist — golden rule "generic 2-pin
+symbols"). Required on any such part. No other governed key expresses it:
+`silk.labels` prints a part's VALUE, and `silk.captions` takes ABSOLUTE
+coordinates that do not move when the part moves — this one anchors at the
+PAD's own position and rides with it.
+
+What is graded today, and what is not:
+
+* **GRADED, by the generator itself, hard.** An unknown `ref`, a `pad` the
+  footprint does not have, and a glyph with no clear owned slot after the
+  `_place_owned` de-collision search each `die()`. The mark is never silently
+  dropped, which is the failure mode that would matter: a polarity glyph that
+  quietly did not print is indistinguishable from a board that never asked for
+  one.
+* **NOT GRADED — two gaps, stated, not owed to a new check-ID.** (a) COVERAGE:
+  nothing enumerates the board's polarized 2-pad parts and demands a mark for
+  each, so a missing declaration is invisible. (b) AGREEMENT: nothing checks
+  that the glyph and the `asserts.pad_net` row for the SAME `ref`+`pad` tell the
+  same story, so silk and netlist could disagree and both be individually green.
+  Both belong in `audit_template.py`'s I-series polarity check when a second
+  board asks (canon M8's two-strike rule); one board is not yet evidence.
+
+Note for a reviewer checking the rows above by hand: `ref`, `pad` and `text` are
+each read in `generate_board_generic.py` for OTHER structures too
+(`asserts.pad_net[].ref` at ~L951, `asserts.pad_beyond_edge[].pad` at ~L1002,
+`silk.captions[].text` at ~L1582), and G-ORPHAN's proof cannot tell those reads
+apart from this one (its docstring, "CANNOT PROVE (a)"). The segment that
+DISCRIMINATES is `polarity_marks` itself, and it appears exactly once —
+`self.silk_cfg.get("polarity_marks")`, `generate_board_generic.py` ~L1657 — off
+`self.silk_cfg`, which is `cfg.get("silk")` (~L278) of THIS file. Deleting that
+one call makes all three rows go UNREAD, which is how the claim was verified.
 
 ### keys: 03_src/route.yaml
 
