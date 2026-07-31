@@ -35,6 +35,22 @@ fleet** by side effect, which is the largest blast radius in this repo.
   description of it. `PATH_PROBES` and `OSPATH_PROBES` are read by `install()`;
   a roster that merely DESCRIBES code drifts away from it, and a declaration
   nothing reads is the defect class this layer exists to find.
+- **EVERY FIELD THIS FILE WRITES INTO A TRACE MUST HAVE A CONSUMER THAT FAILS
+  LOUDLY**, and that rule is here because it was broken here. `truncated` was
+  written by `_flush()` from the day the tracer was built and read by NOTHING —
+  a declaration with no consumer, the exact defect class this layer exists to
+  report, inside the layer. It now drives `trace_audit.truncated_traces()` and a
+  truncated trace is **exit 5, carrying no GG verdict at all**: truncation is
+  unsound in the direction that FIRES, because GG-SHADOW's claim is *nothing
+  opened this file* and a PREFIX of the read-set cannot support it, so a capped
+  run manufactures FALSE findings rather than losing true ones. Adding a field
+  to the trace record without a reader is the same defect again; add the reader
+  in the same change or do not add the field.
+- **ONE PROCESS, ONE TRACE — AND THAT IS A PROPERTY DOWNSTREAM DEPENDS ON.**
+  `trace.<pid>.json` is per-process by design, so a gate that spawns workers
+  arrives as several traces. `trace_audit.opened_union()` unions them BEFORE
+  grading; anything here that changed the file-per-pid convention would silently
+  re-partition that union.
 - **`UNOBSERVABLE` IS A MEASUREMENT, NOT A WAIVER.** It enumerates the
   path-level channels this tracer knows it cannot see (a non-python child,
   pcbnew's C++ object model, an fd-inherited open). `trace_audit.py` prints its

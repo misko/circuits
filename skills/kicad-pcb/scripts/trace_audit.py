@@ -30,6 +30,15 @@ neither half was carried. See the post-mortem in `design-policies.md`'s
               run opened. The strongest thing the layer produced: mode-
               invariant, 0 false positives across 7 projects, silent on the
               highest-multiplicity basename in the tree (47 `part.yaml`).
+              **"NOTHING IN THE RUN" IS A FLEET UNION OVER EVERY TRACE, AND
+              THE UNION IS THE PREDICATE.** A tracer writes one trace per
+              PROCESS, so a gate that dispatches a worker subprocess per board
+              arrives as several. Testing "never opened" against ONE of those
+              — which is what shipped — makes the verdict a function of the
+              gate's PROCESS TOPOLOGY: MEASURED, `tests/fixtures/gg_dispatch/`,
+              two gates with the provably identical 2-file read-set gave RAW
+              EXIT 1 with 2 FALSE findings (dispatcher) against RAW EXIT 0 with
+              none (in-process). See `opened_union()`.
   GG-RESOLVE  a path the gate LOOKED AT (opened *or statted*) that does not
               exist, while a file of that name DOES exist under the subject
               root, and the gate looked at EXACTLY ONE path of that name.
@@ -54,16 +63,28 @@ WHAT IT CANNOT DO. Stated here rather than left to be discovered:
 VACUITY: (canon G-VACUOUS, applied to this gate.) Fixtured by
 `tests/t1_trace_audit.py`, `kind="vacuity", gate="trace_audit.py"`.
 
-**THIS GATE CAN EXIT 0 OVER A BATTERY THAT SAW ONLY ITS OWN PRE-EXISTING
-EXHAUST, AND NO GUARD IT HAS CLOSES THAT.** The read count printed below is a
+**THIS GATE CAN EXIT 0 OVER A BATTERY THAT SAW NOTHING BUT A FILE IT HAPPENED
+TO OPEN, AND NO GUARD IT HAS CLOSES THAT.** The read count printed below is a
 SUPERSET of subject evidence, and it is printed as a raw count with that caveat
 attached rather than as a certification, because the certification would be
-FALSE. MEASURED — the decisive control that ended the layer:
+FALSE. MEASURED — the control that ended the layer, and the wider one that
+followed it. Both arms use a genuinely-blind board (a real project with its
+source dirs moved aside, so every gate IS blind) and differ by ONE FILE:
 
-    two IDENTICAL genuinely-blind boards (a real project with its source dirs
-    moved aside, so every gate IS blind), differing by ONE FILE. With
-    `06_build/policy_audit.md` present: rc 0. Without it: rc 3. The only
-    variable is the basename, and it is the battery gate's own output.
+    06_build/ alone .................................... RAW EXIT 3
+    + 06_build/policy_audit.md .......................... RAW EXIT 0
+    + 01_docs/BRIEF.md, THREE LINES OF PROSE ............ RAW EXIT 0
+
+The first extra file is a battery gate's OWN OUTPUT — the narrow, declared arm.
+**THE SECOND IS NOT ANY GATE'S OUTPUT AND IS GRADED BY NOTHING.** `BRIEF.md` is
+merely a file two battery gates (`power_topology.py`,
+`import_provenance_check.py`) happen to open, and it lifts exit 3 to exit 0
+exactly as the exhaust does. The true statement is therefore **ANY PRE-EXISTING
+FILE ANY GATE HAPPENS TO OPEN**, and the exhaust case is its worst instance
+rather than its boundary. This was found by measuring a caveat that had been
+DECLARED narrower than it measures; the umbrella sentences stayed true, so it
+was an under-statement, but the executable ratchet was pinned to the narrow arm
+and the wide one was undefended.
 
 The cause is that BOTH available guards are the wrong KIND of test:
 
@@ -80,7 +101,10 @@ sound is the negative: **zero reads is a proof of no observation**, so a
 a verdict here.
 
 The identity test that would close it — resolving each battery gate's declared
-output paths and subtracting THOSE — is OWED, named, and not pretended to.
+output paths and subtracting THOSE — is OWED, named, and not pretended to. AND
+IT IS NOW KNOWN TO BE A PARTIAL FIX: it closes the `policy_audit.md` arm and
+does NOT close the `BRIEF.md` arm, because BRIEF.md is not an output. Both arms
+are reproduced on every suite run by the `kind="vacuity"` fixture.
 """
 import argparse
 import json
@@ -120,12 +144,27 @@ EXIT = {
        "ZERO pre-existing files under it",
     4: "UNRESOLVED — a path a gate SELECTED does not exist while that basename "
        "does exist under the subject root (GG-RESOLVE)",
-    5: "UNOBSERVABLE — the canary came back silent. NEVER a skip",
+    5: "UNOBSERVABLE — observation was not COMPLETE: the canary came back "
+       "silent, or a trace hit the GRADELIB_MAX_EVENTS cap and holds a PREFIX "
+       "of its read-set. NEVER a skip",
 }
 
 
 def legend():
     return "\n".join(f"    exit {k} = {v}" for k, v in sorted(EXIT.items()))
+
+
+def _trunc_line(where, pids):
+    """The exit-5 sentence for a TRUNCATED trace. One home, both call sites."""
+    return (
+        f"GG UNOBSERVABLE: {len(pids)} {where} trace(s) hit the "
+        f"GRADELIB_MAX_EVENTS cap and STOPPED RECORDING (pid(s) "
+        f"{', '.join(str(p) for p in pids[:6])}). A truncated trace holds a "
+        f"PREFIX of the read-set, not the read-set, and GG-SHADOW's claim is "
+        f"that NOTHING opened a file — the one claim a prefix CANNOT support, "
+        f"so truncation manufactures FALSE findings rather than losing true "
+        f"ones. No GG-SHADOW or GG-RESOLVE verdict is carried. Raise "
+        f"GRADELIB_MAX_EVENTS and rerun. This is NOT a pass.")
 
 
 class Finding:
@@ -193,6 +232,65 @@ def wrote(tr):
     return [e["p"] for e in tr["events"]
             if e["k"] == "open"
             and any(c in e.get("m", "r") for c in ("w", "a", "+", "x"))]
+
+
+def opened_union(traces):
+    """-> {realpath} EVERY path ANY traced process in the run opened for reading.
+
+    **GG-SHADOW'S PREDICATE IS A FLEET UNION, AND THIS IS WHERE THE UNION IS
+    TAKEN.** The canon row, this module's docstring and `default_battery`'s all
+    say a shadow is a file *never opened by anything in the run*, and the
+    derived battery exists BECAUSE of that union — a hand-listed battery made 10
+    of 16 round-1 findings false. Building the read-set PER TRACE instead
+    silently narrows "the run" to "this one process", and the two are the same
+    thing only for a gate that does all its own reading.
+
+    MEASURED 2026-07-31, and it is why this function exists: two gates with the
+    PROVABLY IDENTICAL read-set (2 files, both arms) — `tests/fixtures/
+    gg_dispatch/dispatch_gate.py`, which spawns one worker SUBPROCESS per board,
+    and `inproc_gate.py`, which reads the same two files in one process. Per
+    trace: RAW EXIT **1** with **2** GG-SHADOW findings, both FALSE, against RAW
+    EXIT **0** with none. **THE VERDICT WAS A FUNCTION OF THE GATE'S PROCESS
+    TOPOLOGY, NOT OF WHAT THE GATE READ.**
+
+    That is not an exotic shape. `03_src/rebuild_all.sh` already dispatches
+    per-board; `adr_bound_provenance.py` and `waiver_provenance.py` spawn
+    subprocesses; and `policy_audit.py` splits into 8 traces on
+    smc0985-cooksense where its largest single trace sees 76 of the 133 files
+    the gate opened — **43 % of the battery's most important gate's own reads
+    were invisible to the predicate grading it.**
+
+    A tracer writes one `trace.<pid>.json` per PROCESS, so a subprocess's reads
+    arrive as a SEPARATE trace. Union first, grade after.
+
+    Realpath-keyed, and `.exists()`-filtered, exactly as the per-trace set was:
+    a path opened through a `03_src/rules/` symlink and a path opened at
+    `03_src/<board>/rules/` are the same file and must cancel.
+    """
+    return {os.path.realpath(p) for tr in traces for p in opened(tr)
+            if Path(p).exists()}
+
+
+def truncated_traces(traces):
+    """-> [pid] whose event log hit `GRADELIB_MAX_EVENTS` and STOPPED.
+
+    THE CONSUMER FOR A FIELD THAT HAD NONE. `sitecustomize.py` has recorded
+    `truncated` since the tracer was written and NOTHING read it — a
+    declaration with no consumer, which is the exact defect class this layer
+    exists to report, sitting inside the layer. Either it gets a reader that
+    fails loudly or it gets deleted; this is the reader.
+
+    It has to be LOUD rather than advisory, because a truncated trace is not
+    merely incomplete — it is UNSOUND IN THE DIRECTION THAT FIRES. GG-SHADOW's
+    claim is *nothing opened this file*. Over a read-set that stopped at a cap,
+    that claim cannot be made about anything past the cap, so truncation
+    manufactures FALSE findings rather than losing true ones. A run with any
+    truncated trace therefore carries no GG-SHADOW verdict at all: exit 5,
+    UNOBSERVABLE, the same code as a silent canary and for the same reason —
+    "I could not see" must never print the same word as "there was nothing to
+    see".
+    """
+    return sorted(tr.get("pid") for tr in traces if tr.get("truncated"))
 
 
 def probed(tr):
@@ -344,18 +442,32 @@ def gg_resolve(tr, subject, have, existed):
     return out
 
 
-def gg_shadow(tr, subject, have, writes=()):
-    """A same-basename file under the subject root the gate NEVER opened.
+def gg_shadow(tr, subject, have, real, writes=()):
+    """A same-basename file under the subject root NOTHING IN THE RUN opened.
 
     smc0985-cooksense keeps five rule files at `03_src/rules/` as SYMLINKS into
     `03_src/cooksense/rules/`, and a second, real set at
     `03_src/interposer/rules/`. A gate reading the flat path grades the
     cooksense board and reports on the project. MEASURED: the interposer's
     288-line rule set is opened by NO battery gate that exists.
+
+    `tr` supplies the LEFT half of the claim — *this gate opened this one* —
+    and is per-trace, because the finding is reported against a path some gate
+    actually read. `real` supplies the RIGHT half — *and nothing in the run
+    opened its twin* — and is a REQUIRED FLEET UNION built by `opened_union()`
+    over EVERY trace the run collected.
+
+    **`real` IS A PARAMETER AND HAS NO DEFAULT, DELIBERATELY.** It used to be
+    rebuilt from `tr` alone inside this function, which made the finding string
+    below ("were NEVER opened") false about its own run whenever a gate did its
+    reading in a subprocess, and made the verdict a function of the battery's
+    PROCESS TOPOLOGY. A default that reconstructed the per-trace set would let
+    that regression back in at any call site that forgot the argument; there is
+    no such call site to forget it with.
     """
     out = []
     writes = set(writes)
-    real = {os.path.realpath(p) for p in opened(tr) if Path(p).exists()}
+    real = set(real)
     for p in opened(tr):
         ap = Path(p)
         if not ap.exists() or not under(ap, subject) or not _authored(ap) \
@@ -596,11 +708,25 @@ def run_canary(tracedir):
     What this CAN check without knowing the answer is whether it is BLIND: a
     canary that yields NOTHING means observation is off — a dropped
     `PYTHONPATH`, a broken shim, a cleaned env — and that is exit 5.
+
+    **EACH CANARY GATE IS ITS OWN RUN, so `opened_union` is taken over THAT
+    gate's traces and no other's.** That is the definition, not a shortcut: the
+    union's scope is "the invocation set being graded", which on a `--subject`
+    run is the whole derived battery and here is one hand-written gate. Unioning
+    ACROSS the canary gates would be a category error with a visible cost —
+    `clean_gate.py` enumerates both boards' `power_tree.yaml`, so a cross-gate
+    union would make `shadow_gate.py` go silent and delete the positive control.
+
+    Returns `(findings-by-gate, truncated-pids)`. The second half is the
+    `truncated` consumer for the canary's own traces: a canary that hit the
+    event cap has a PREFIX of its read-set, so its silence would not prove
+    observation is off and its findings would not prove it is on.
     """
     subject = CANARY / "subject"
     pre = snapshot(subject)
     have = index_basenames(subject)
     existed = _pre_existed(pre, subject)
+    trunc = []
     # EVERY GATE RUN IS A KEY, INCLUDING THE ONES THAT YIELD NOTHING. Keying
     # only the gates that produced a finding would make the printed denominator
     # "2 gate(s)" on a 3-gate canary and would DELETE the negative control from
@@ -612,11 +738,13 @@ def run_canary(tracedir):
         td.mkdir(parents=True, exist_ok=True)
         _rc, _out, traces = run_traced([KPY, gate, subject], td, timeout=60)
         _r, _p, writes = subject_evidence(traces, subject, pre)
+        trunc += truncated_traces(traces)
+        real = opened_union(traces)
         for tr in traces:
             for f in gg_resolve(tr, subject, have, existed) \
-                    + gg_shadow(tr, subject, have, writes):
+                    + gg_shadow(tr, subject, have, real, writes):
                 found[gate.name].append(f.gid)
-    return {k: sorted(set(v)) for k, v in found.items()}
+    return {k: sorted(set(v)) for k, v in found.items()}, sorted(trunc)
 
 
 # ======================================================================= MAIN
@@ -672,7 +800,8 @@ def main(argv=None):
     battery, observed_gates = [], []
     try:
         # ---- the canary runs FIRST, and its emptiness is exit 5 -------------
-        can = run_canary(tmp / "canary") if CANARY.is_dir() else {}
+        can, can_trunc = (run_canary(tmp / "canary") if CANARY.is_dir()
+                          else ({}, []))
         can_n = sum(len(v) for v in can.values())
         print(f"  GG canary: {can_n} finding(s) over {len(can)} hand-written "
               f"gate(s) in tests/fixtures/gg_canary/")
@@ -691,6 +820,14 @@ def main(argv=None):
         # that the verdict then called "unearned" — numbers computed with
         # observation off, on the page, above the line that disowns them. If
         # the canary cannot see, nothing below it is worth printing.
+        #
+        # TRUNCATION IS CHECKED FIRST, AND BEFORE THE EMPTINESS TEST. A canary
+        # that hit the event cap may be silent BECAUSE it was truncated, and
+        # reporting that as "observation is off" would name the wrong cause.
+        if can_trunc:
+            print(_trunc_line("canary", can_trunc))
+            print(legend())
+            return 5
         if not can_n:
             print(f"GG UNOBSERVABLE: the canary produced NOTHING over "
                   f"{len(can)} hand-written gate(s) with KNOWN defects. "
@@ -767,15 +904,34 @@ def main(argv=None):
             allt += traces
             per_gate[gname] = traces
 
+        # A TRUNCATED READ-SET CARRIES NO GG-SHADOW VERDICT. Same reasoning as
+        # the canary branch above and the same exit code: the numbers below
+        # would be computed over a PREFIX, and GG-SHADOW's claim is that
+        # NOTHING opened a file — precisely the claim a prefix cannot support.
+        bat_trunc = truncated_traces(allt)
+        if bat_trunc:
+            print(_trunc_line("battery", bat_trunc))
+            print(legend())
+            return 5
+
         # THE ONE SUBJECT-SIDE READ SET, computed BEFORE any predicate runs,
         # because GG-SHADOW needs the FLEET write-set and a per-trace view
         # cannot have it.
         reads, probes, writes = subject_evidence(allt, subj, pre)
         read_n, probe_n, write_n = len(reads), len(probes), len(writes)
+        # AND THE FLEET READ UNION, FOR THE SAME REASON AND ONE STRONGER. The
+        # write-set was already fleet-wide here; the READ set that GG-SHADOW
+        # tested "never opened" against was not — it was rebuilt inside the
+        # predicate from the ONE trace being graded. A gate that dispatches a
+        # worker subprocess per board therefore accused itself of not reading
+        # what its own children had just read. MEASURED, `tests/fixtures/
+        # gg_dispatch/`: RAW EXIT 1 with 2 false findings against RAW EXIT 0
+        # for the same read-set in one process.
+        real = opened_union(allt)
         for gname, traces in sorted(per_gate.items()):
             for tr in traces:
                 fails += gg_resolve(tr, subj, have, existed)
-                fails += gg_shadow(tr, subj, have, writes)
+                fails += gg_shadow(tr, subj, have, real, writes)
 
         # THE COVERAGE DENOMINATOR (canon G-COVER, M-COVER): how much of the
         # derived battery this run actually OBSERVED.
@@ -802,12 +958,35 @@ def main(argv=None):
     # test, so the positive direction is not provable and is not claimed. The
     # caveat travels ON THE PRINTED LINE, because a number quoted without it in
     # a downstream summary is exactly how this defect propagates.
+    #
+    # AND THE CAVEAT WAS ITSELF DECLARED TOO NARROW. Its first wording scoped
+    # the inflation to "a battery gate's OWN OUTPUT", which is the WORST case
+    # and not the boundary. MEASURED 2026-07-31 over an otherwise EMPTY subject,
+    # three arms, `--subject` unpiped:
+    #
+    #     06_build/ alone .................................. RAW EXIT 3
+    #     + 06_build/policy_audit.md (a gate's own output) .. RAW EXIT 0
+    #     + 01_docs/BRIEF.md, THREE LINES OF PROSE .......... RAW EXIT 0
+    #
+    # `BRIEF.md` is nobody's output and is graded by nothing; it is merely a
+    # file two battery gates (`power_topology.py`,
+    # `import_provenance_check.py`) happen to open. The umbrella sentences
+    # stayed true, so this was an UNDER-STATEMENT rather than a falsehood — but
+    # the executable ratchet was pinned to the narrow arm and the wide one was
+    # undefended. The consequence is recorded because it changes what the OWED
+    # identity test buys: subtracting the battery's declared OUTPUTS closes the
+    # `policy_audit.md` arm and DOES NOT CLOSE the `BRIEF.md` arm.
     caveat = (
-        "THIS IS A RAW READ COUNT, NOT A PROOF OF OBSERVATION: a battery "
-        "gate's OWN OUTPUT that ALREADY EXISTED when the run started is "
-        "counted in it. The write-set is a METHOD test and the pre-run "
-        "snapshot is an EXISTENCE test; NEITHER IS AN IDENTITY TEST. Only the "
-        "ZERO carries a verdict (exit 3).")
+        "THIS IS A RAW READ COUNT, NOT A PROOF OF OBSERVATION: it counts ANY "
+        "PRE-EXISTING FILE ANY GATE HAPPENS TO OPEN. A battery gate's OWN "
+        "OUTPUT is the WORST case, not the boundary — MEASURED, three lines of "
+        "PROSE in 01_docs/BRIEF.md, which is nobody's output and is graded by "
+        "nothing, lift a genuinely-blind board from exit 3 to exit 0 exactly as "
+        "06_build/policy_audit.md does. The write-set is a METHOD test and the "
+        "pre-run snapshot is an EXISTENCE test; NEITHER IS AN IDENTITY TEST, "
+        "and subtracting the battery's declared OUTPUTS would not close the "
+        "prose arm because BRIEF.md is not one. Only the ZERO carries a "
+        "verdict (exit 3).")
     print(f"  GG read count [SUPERSET]: {read_n} pre-existing file(s) under "
           f"the subject root OPENED FOR READING, {probe_n} path(s) merely "
           f"PROBED (stat family, own channel, never summed), {write_n} "
@@ -837,12 +1016,21 @@ def main(argv=None):
             + (f" (plus {shadow_n} GG-SHADOW finding(s), listed above)"
                if shadow_n else ""))
     elif fails:
+        # THE HEADLINE WORD IS THE EXIT WORD, and that is the fix for a label
+        # with no canon row. Both of these lines used to be headed `GG-TRACE`
+        # — a check-ID belonging to the WITHDRAWN liveness family, kept alive
+        # as the top-line label of every verdict this gate prints, with no
+        # canon row behind it and no emitter to justify one. It was invisible
+        # to `t_no_canon_gg_row_lacks_an_emitter` because that test scanned
+        # `Finding("GG-...")` and a verdict-line label is not a Finding. The
+        # verdict is now headed by EXIT[code]'s own first word, so the label
+        # and the exit code cannot diverge and neither needs a row of its own.
         code, line = 1, (
-            f"GG-TRACE FAIL: {shadow_n} GG-SHADOW finding(s) over "
+            f"GG FINDINGS: {shadow_n} GG-SHADOW finding(s) over "
             f"{len(observed_gates)}/{len(battery)} observed battery gate(s)")
     else:
         code, line = 0, (
-            f"GG-TRACE: no GG-SHADOW or GG-RESOLVE finding over "
+            f"GG NO FINDING: no GG-SHADOW or GG-RESOLVE finding over "
             f"{len(observed_gates)}/{len(battery)} observed battery gate(s). "
             f"{read_n} pre-existing file(s) read. {caveat}")
 
@@ -914,6 +1102,13 @@ def default_battery(root):
     hard findings across the fleet in round 1. Two of those boards were SEALED,
     and a meta-gate that turns a sealed board red on its own omission is a
     meta-gate that gets waived off; this repo has already lost a check that way.
+
+    **THIS PARAGRAPH DESCRIBED A UNION THE CODE DID NOT BUILD** for the whole
+    of the bank's first life. The battery was derived, the write-set was
+    fleet-wide, and the READ set GG-SHADOW graded against was rebuilt PER TRACE
+    inside the predicate — so the same false-positive mechanism this docstring
+    claims to have fixed came back one level down, keyed on PROCESS instead of
+    on gate name. `opened_union()` is where the union is now actually taken.
 
     So the roster is computed, from three properties none of which is a
     hand-maintained list: the script takes a PROJECT DIR, it PRINTS A VERDICT

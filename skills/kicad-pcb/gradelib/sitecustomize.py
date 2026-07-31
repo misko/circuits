@@ -104,6 +104,16 @@ if _DIR:
                 "probes": probes,
                 "probes_patched": _N_PATCHED,
                 "unobservable": len(shims.UNOBSERVABLE),
+                # READ BY `trace_audit.truncated_traces()`, WHICH TURNS IT INTO
+                # EXIT 5. It was written here and read by NOTHING for the whole
+                # of this tracer's first life — a declaration with no consumer,
+                # which is the defect class this layer exists to report. It is
+                # not advisory: `_EV` STOPS APPENDING at the cap, so a truncated
+                # record is a PREFIX of the read-set, and GG-SHADOW's claim is
+                # *nothing opened this file* — the one claim a prefix cannot
+                # support. Truncation therefore manufactures FALSE findings
+                # rather than losing true ones, so a run that hits the cap
+                # carries no GG verdict at all.
                 "truncated": len(_EV) >= _CAP,
             }
             os.makedirs(_DIR, exist_ok=True)

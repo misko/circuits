@@ -21,7 +21,31 @@ by ONE FILE — `06_build/policy_audit.md`, a battery gate's own output. With it
 rc 0. Without it: rc 3. That is the control that stopped the layer, and it is
 run on every suite invocation so the sentence it falsifies can never come back:
 the rc-0 run must carry the exhaust caveat and must NOT claim observation.
+`t_vac_...` now carries a SECOND arm using `01_docs/BRIEF.md` — three lines of
+prose that are nobody's output — because the bypass measures wider than it was
+declared.
+
+RED-VERIFIED BY SWAP, 2026-07-31, and recorded here rather than asserted. The
+pre-fix `trace_audit.py` (sha `b7467540`) was restored in place and this suite
+run UNPIPED. **18 passed, 8 failed.** The eight, and what each one caught:
+
+    t_kb_dispatcher_subprocess_is_not_a_shadow  rc 1, want 0 — the dispatcher
+                                                fixture, END TO END, on the
+                                                shipped binary
+    t_gg_shadow_has_no_per_trace_default        `real` is not a parameter
+    t_kb_planted_twin_fires_exactly_once        no `opened_union`
+    t_kb_md_in_scope_returns_the_journal_fp     no `opened_union`
+    t_kb_index_is_pre_battery                   no `opened_union`
+    t_vac_exit_zero_over_pre_existing_exhaust   the caveat is declared at the
+                                                NARROW width
+    t_kb_truncated_trace_is_exit_5              no `truncated_traces` — the
+                                                field had no consumer
+    t_no_canon_gg_row_lacks_an_emitter          `GG-TRACE` HEADS every verdict
+                                                line with no canon row
+
+The post-fix file was then restored and the suite re-run: 26 passed, 0 failed.
 """
+import ast
 import json
 import os
 import re
@@ -38,6 +62,7 @@ from harness import (KPY, ROOT, check, contains, eq, main,      # noqa: E402
 TOOL = ROOT / "skills/kicad-pcb/scripts/trace_audit.py"
 GRADELIB = ROOT / "skills/kicad-pcb/gradelib"
 CANARY = ROOT / "tests/fixtures/gg_canary"
+DISPATCH = ROOT / "tests/fixtures/gg_dispatch"
 CANON = ROOT / "skills/kicad-pcb/references/design-policies.md"
 
 #: THE HUMAN'S ANSWER KEY. One row per canary gate. `clean_gate.py` yielding []
@@ -60,16 +85,30 @@ def gg(args, **kw):
     return run([KPY, TOOL] + [str(a) for a in args], **kw)
 
 
-def blind_subject(d, with_exhaust):
+def blind_subject(d, with_exhaust, with_prose=False):
     """A GENUINELY BLIND subject: a directory with no source at all, so every
-    battery gate IS blind. `with_exhaust` adds the ONE file that separates the
-    two arms of the instance-19 control — `06_build/policy_audit.md`, which
-    `policy_audit.py` writes and reads back."""
+    battery gate IS blind.
+
+    `with_exhaust` adds the ONE file that separates the two arms of the
+    instance-19 control — `06_build/policy_audit.md`, which `policy_audit.py`
+    writes and reads back. That is the NARROW arm: a battery gate's own output.
+
+    `with_prose` adds `01_docs/BRIEF.md`, three lines of English. It is NOT any
+    gate's output and is graded by NOTHING; it is merely a file two battery
+    gates (`power_topology.py`, `import_provenance_check.py`) happen to open.
+    That is the WIDE arm, and it was undefended: the caveat, the module
+    docstring, the canon row and this suite all scoped the exit-3 bypass to "a
+    battery gate's OWN OUTPUT" while it measures as "ANY pre-existing file ANY
+    gate happens to open"."""
     d = Path(d)
     (d / "06_build").mkdir(parents=True, exist_ok=True)
     if with_exhaust:
         (d / "06_build" / "policy_audit.md").write_text(
             "| M-REPRO | PASS | inherited from a previous run\n")
+    if with_prose:
+        (d / "01_docs").mkdir(parents=True, exist_ok=True)
+        (d / "01_docs" / "BRIEF.md").write_text(
+            "The board powers a sensor.\nIt runs from USB.\nTwo layers.\n")
     return d
 
 
@@ -82,12 +121,64 @@ def trace(opens=(), probes=(), writes=()):
 
 
 def emitted_ids():
+    """EVERY GG-* id this tool can put in front of a reader — the ids it files
+    `Finding`s under AND the LABELS THAT HEAD ITS VERDICT LINES.
+
+    The second half was the gap. `GG-TRACE` — the retired liveness family's id —
+    headed every verdict line this gate printed while having no canon row and no
+    `Finding`, and this function could not see it, so
+    `t_no_canon_gg_row_lacks_an_emitter` reported both directions clean over a
+    live orphan label. A label a reader meets at the top of a verdict is a
+    check-ID in every way that matters downstream: it gets quoted, waived and
+    grepped for.
+
+    The label half is read from the AST rather than by regex over the raw
+    source, because this file DELIBERATELY records the retired sentence
+    (`"GG-TRACE OK: ..."`) inside a comment, and a comment is not something the
+    gate prints. `ast` sees string and f-string constants and never sees a
+    comment, which is exactly the distinction needed.
+    """
     src = TOOL.read_text()
-    return set(re.findall(r'Finding\(\s*"(GG-[A-Z]+)"', src))
+    ids = set(re.findall(r'Finding\(\s*"(GG-[A-Z]+)"', src))
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            m = re.match(r"(GG-[A-Z]+)\b", node.value)
+            if m:
+                ids.add(m.group(1))
+    return ids
+
+
+def printed_labels(outs):
+    """The BEHAVIOURAL half of the same question: every GG-* token that HEADS a
+    line in REAL output. A different method from reading the source (canon M1),
+    so a label the AST scan cannot reach is still caught."""
+    ids = set()
+    for out in outs:
+        for line in out.splitlines():
+            m = re.match(r"\s*(?:FAIL\s+)?(GG-[A-Z]+)\b", line)
+            if m:
+                ids.add(m.group(1))
+    return ids
 
 
 def canon_gg_rows():
     return set(re.findall(r"^\|\s*(GG-[A-Z]+)\s*\|", CANON.read_text(), re.M))
+
+
+def dispatch_root(d):
+    """A scratch `--root` holding the gg_dispatch fixture's gates, plus a COPY
+    of its subject. The worker is copied in beside the gates because
+    `dispatch_gate.py` resolves it relative to its own `__file__`."""
+    d = Path(d)
+    sd = d / "skills" / "x" / "scripts"
+    sd.mkdir(parents=True, exist_ok=True)
+    for f in ("dispatch_gate.py", "dispatch_worker.py", "inproc_gate.py",
+              "chatty_gate.py"):
+        shutil.copy(DISPATCH / f, sd / f)
+    proj = d / "proj"
+    if not proj.exists():
+        shutil.copytree(DISPATCH / "subject", proj)
+    return d, proj
 
 
 # ================================================================ THE CANARY
@@ -182,27 +273,67 @@ def t_kb_instance19_without_the_exhaust_file_is_exit_3():
     shutil.rmtree(d, ignore_errors=True)
 
 
-@test("exit 0 over a battery that saw ONLY its own pre-existing exhaust",
+@test("exit 0 over a battery that saw ONLY a file it happened to open — "
+      "BOTH ARMS: a gate's own exhaust, and PROSE that is nobody's output",
       kind="vacuity", gate="trace_audit.py")
 def t_vac_exit_zero_over_pre_existing_exhaust():
-    """THE DECLARED BLIND SPOT, EXECUTABLE (canon G-VACUOUS).
+    """THE DECLARED BLIND SPOT, EXECUTABLE, AT ITS TRUE WIDTH (canon
+    G-VACUOUS).
 
-    The graded fact — *the battery saw this board* — is FALSE here: the subject
-    contains no source at all and every gate is blind. The gate exits 0 anyway,
-    because the one file present is a battery gate's own output that ALREADY
-    EXISTED, and neither the write-set (a METHOD test) nor the pre-run snapshot
-    (an EXISTENCE test) is an IDENTITY test.
+    The graded fact — *the battery saw this board* — is FALSE in both arms: the
+    subject contains no source at all and every gate is blind. The gate exits 0
+    anyway, because ONE file under the root was opened by SOMETHING and neither
+    the write-set (a METHOD test) nor the pre-run snapshot (an EXISTENCE test)
+    is an IDENTITY test.
 
-    Closing this needs an identity test — resolving each battery gate's declared
-    OUTPUT paths and subtracting those — which is OWED and named in the module
-    docstring. When it lands, this fixture is expected to break, and the fix is
-    to convert it into a `known_bad`. That breakage is the ratchet."""
+    ARM 1 — `06_build/policy_audit.md`, a battery gate's OWN OUTPUT. This is
+    the arm that ended the layer, and it was the ONLY arm this fixture, the
+    printed caveat, the module docstring and the canon row described.
+
+    ARM 2 — `01_docs/BRIEF.md`, THREE LINES OF PROSE. It is not any gate's
+    output, it is graded by nothing, and it flips the same board from exit 3 to
+    exit 0 exactly as the exhaust does. MEASURED 2026-07-31, unpiped:
+
+        06_build/ alone ............................. RAW EXIT 3
+        + 06_build/policy_audit.md .................. RAW EXIT 0
+        + 01_docs/BRIEF.md (prose only) ............. RAW EXIT 0
+
+    **THE TRUE STATEMENT IS "ANY PRE-EXISTING FILE ANY GATE HAPPENS TO OPEN",
+    AND THE EXHAUST CASE IS ITS WORST INSTANCE, NOT ITS BOUNDARY.** The
+    umbrella sentences stayed true, so the narrow wording was an
+    UNDER-STATEMENT rather than a falsehood — but the executable ratchet sat on
+    the narrow arm and left the wide one undefended, which is how a declared
+    gap quietly stops covering what it is cited for.
+
+    THE CONSEQUENCE, RECORDED BECAUSE IT CHANGES WHAT THE OWED FIX BUYS:
+    **subtracting the battery's declared OUTPUT paths will close ARM 1 AND WILL
+    NOT CLOSE ARM 2**, because `BRIEF.md` is not an output. The identity test
+    is still owed and still named in the module docstring; it is now known to
+    be a partial remedy. When it lands, arm 1 is expected to break and the fix
+    is to convert it into a `known_bad`; arm 2 must be expected to survive."""
     d = tmpdir("gg_vac_")
     r = must_pass(gg(["--subject", blind_subject(d, True)]),
-                  "the vacuous pass this gate declares")
+                  "the vacuous pass this gate declares — EXHAUST arm")
     contains(r.out, "1 pre-existing file(s) under the subject root OPENED FOR "
                     "READING")
     shutil.rmtree(d, ignore_errors=True)
+
+    # ARM 2. A NON-EXHAUST file, and the assertion that the ratchet is not
+    # pinned to the narrow arm: nothing here is anybody's output.
+    p = tmpdir("gg_vacp_")
+    r2 = must_pass(gg(["--subject", blind_subject(p, False, with_prose=True)]),
+                   "the vacuous pass over PROSE that is nobody's output")
+    eq(r2.rc, 0, "three lines of prose lift a genuinely-blind board out of "
+                 "exit 3 exactly as a gate's own exhaust does")
+    contains(r2.out, "1 pre-existing file(s) under the subject root OPENED FOR "
+                     "READING")
+    # And the printed caveat must state the WIDE arm, not only the narrow one.
+    contains(r2.out, "ANY PRE-EXISTING FILE ANY GATE HAPPENS TO OPEN",
+             "the caveat must be declared at the width it MEASURES")
+    contains(r2.out, "not the boundary",
+             "the caveat must say the exhaust case is the worst instance, not "
+             "the edge of the gap")
+    shutil.rmtree(p, ignore_errors=True)
 
 
 # ============================================================== EXIT VOCABULARY
@@ -290,6 +421,77 @@ def t_kb_canary_silent_is_exit_5():
     shutil.rmtree(d, ignore_errors=True)
 
 
+@test("a TRUNCATED trace is exit 5, never a verdict — and `truncated` has a "
+      "consumer that fails loudly", kind="known_bad")
+def t_kb_truncated_trace_is_exit_5():
+    """THE FIELD THAT NOTHING READ.
+
+    `gradelib/sitecustomize.py` has recorded `truncated` in every trace since
+    the tracer was written and NOTHING consumed it — a declaration with no
+    reader, which is the exact defect class this whole layer exists to report,
+    sitting inside the layer. It is not cosmetic: truncation is unsound in the
+    direction that FIRES. GG-SHADOW's claim is *nothing opened this file*, and
+    over a read-set that stopped at a cap that claim cannot be made about
+    anything past the cap — so truncation manufactures FALSE findings rather
+    than losing true ones, and a run that hit the cap can carry no GG-SHADOW
+    verdict at all.
+
+    BOTH ARMS ARE MEASURED HERE, and the discrimination matters: an assertion
+    that a capped run exits 5 proves nothing on its own, because a capped run
+    could exit 5 for the OTHER exit-5 reason (a silent canary).
+
+    MEASURED 2026-07-31: canary gate processes record 3, 4 and 4 events, so a
+    cap of 100 leaves the canary intact and truncates `chatty_gate.py`, which
+    re-reads each board 200 times."""
+    import trace_audit as ta                                    # noqa: E402
+
+    # (1) THE UNIT: the reader exists, names the same field the writer writes,
+    #     and DISCRIMINATES.
+    eq(ta.truncated_traces([{"pid": 7, "truncated": True},
+                            {"pid": 8, "truncated": False}]), [7],
+       "truncated_traces must return the truncated pid and only that one")
+    eq(ta.truncated_traces([trace(opens=["/x"])]), [],
+       "a synthetic trace with no `truncated` key is NOT truncated")
+    contains((GRADELIB / "sitecustomize.py").read_text(), '"truncated"',
+             "the WRITER's field name")
+    contains(TOOL.read_text(), 'get("truncated")',
+             "the READER's field name — one name, both homes, or the "
+             "declaration has no consumer again")
+
+    # (2) THE BATTERY ARM, END TO END AND UNPIPED. The canary survives the cap;
+    #     the chatty battery gate does not.
+    d = tmpdir("gg_trunc_")
+    root, proj = dispatch_root(d)
+    args = ["--root", root, "--subject", proj, "--gate", "chatty_gate.py",
+            "--in-place"]
+    clean = gg(args)
+    eq(clean.rc, 0, "the chatty gate is CORRECT — uncapped it must be a pass, "
+                    "or the capped arm below would be measuring a real defect")
+
+    r = must_fail(gg(args, env={"GRADELIB_MAX_EVENTS": "100"}),
+                  "a battery whose trace hit the event cap",
+                  expect="GG UNOBSERVABLE")
+    eq(r.rc, 5, "a truncated battery trace")
+    contains(r.out, "hit the GRADELIB_MAX_EVENTS cap and STOPPED RECORDING")
+    contains(r.out, "battery trace(s)",
+             "the truncation must be attributed to the BATTERY, not blamed on "
+             "the canary — the two exit-5 causes must not print the same word")
+    contains(r.out, "This is NOT a pass")
+    # And nothing downstream of the truncation may print a number.
+    for banned in ("GG read count", "GG NO FINDING", "GG FINDINGS"):
+        not_contains(r.out, banned,
+                     "a verdict computed over a PREFIX of the read-set")
+
+    # (3) THE CANARY ARM: the same field, checked BEFORE the emptiness test, so
+    #     a canary that is silent BECAUSE it truncated names the right cause.
+    c = must_fail(gg(["--canary"], env={"GRADELIB_MAX_EVENTS": "1"}),
+                  "a canary whose traces hit the event cap",
+                  expect="GG UNOBSERVABLE")
+    eq(c.rc, 5, "a truncated canary")
+    contains(c.out, "canary trace(s)")
+    shutil.rmtree(d, ignore_errors=True)
+
+
 @test("an unreadable --root is exit 2 (never started), not exit 3 (graded "
       "nothing)", kind="known_bad")
 def t_kb_bad_root_is_exit_2():
@@ -324,14 +526,14 @@ def t_kb_planted_twin_fires_exactly_once():
     (a / "nets.yaml").write_text("nets: []\n")
     have_clean = ta.index_basenames(d)
     tr = trace(opens=[a / "nets.yaml"])
-    eq(len(ta.gg_shadow(tr, d, have_clean)), 0,
+    eq(len(ta.gg_shadow(tr, d, have_clean, ta.opened_union([tr]))), 0,
        "a gate reading the only file of its name has no shadow")
     # Plant the twin. ONE finding, not two — the finding is about the READ
     # path, and a count that scaled with the battery size would make a ceiling
     # a function of how many gates happened to run.
     (b / "nets.yaml").write_text("nets: []\n")
     have = ta.index_basenames(d)
-    fs = ta.gg_shadow(tr, d, have)
+    fs = ta.gg_shadow(tr, d, have, ta.opened_union([tr]))
     eq(len(fs), 1, "findings after planting one unread twin")
     eq(fs[0].gid, "GG-SHADOW", "finding id")
     contains(fs[0].msg, "boardB", "the finding names the unread twin")
@@ -476,6 +678,99 @@ def t_kb_short_is_mode_invariant_across_a_symlink():
     shutil.rmtree(d, ignore_errors=True)
 
 
+# ============================================ THE DISPATCHER (PROCESS TOPOLOGY)
+@test("a gate that dispatches one WORKER SUBPROCESS per board is not thereby "
+      "blind to the boards its workers read", kind="known_bad")
+def t_kb_dispatcher_subprocess_is_not_a_shadow():
+    """RED-VERIFIED, MEASURED ON EVERY RUN — the pre-fix predicate is
+    re-introduced below and measured FIRING; the shipped one is measured
+    SILENT. Neither direction is asserted in prose.
+
+    THE DEFECT. Canon GG-SHADOW, this tool's module docstring, the 03_src
+    contract and `SKILL.md` all define a shadow as a file *never opened by
+    anything in the run* — a FLEET UNION. `gg_shadow` rebuilt that set from the
+    ONE TRACE it was grading. A tracer writes one trace per PROCESS, so a gate
+    that hands each board to a worker subprocess had its own children's reads
+    invisible to the predicate grading it, and accused itself.
+
+    MEASURED 2026-07-31, `tests/fixtures/gg_dispatch/`, UNPIPED raw exits, on
+    two gates with the PROVABLY IDENTICAL read-set (both print `2 pre-existing
+    file(s) ... OPENED FOR READING`):
+
+        dispatch_gate.py  (one worker subprocess per board)  RAW EXIT 1, 2 FPs
+        inproc_gate.py    (same two files, one process)      RAW EXIT 0, 0
+
+    **THE VERDICT WAS A FUNCTION OF THE GATE'S PROCESS TOPOLOGY, NOT OF WHAT
+    THE GATE READ.** Post-fix both are RAW EXIT 0 with none.
+
+    AND THE SEQUENCING, WHICH IS WHY THIS IS A `known_bad` AND NOT A TIDY-UP.
+    The remedy owed by task #31 — per-board `03_src/<board>/` path resolution —
+    is naturally built as a dispatcher; `projects/smc0985-cooksense/03_src/
+    rebuild_all.sh` ALREADY has that shape, and `adr_bound_provenance.py` and
+    `waiver_provenance.py` already spawn subprocesses. Pre-fix, THE FIX FOR THE
+    DEFECT GG-SHADOW FOUND WOULD HAVE MADE GG-SHADOW FIRE. That is the
+    ratchet-breaks-on-a-correct-action failure (`PREC_OWED_CEILING`) which
+    GG-SHADOW's own canon row cites as its reason for scoping `.md` out — and
+    it would have arrived while a correctly-fixed board sat red.
+    """
+    d = tmpdir("gg_disp_")
+    root, proj = dispatch_root(d)
+
+    # (1) THE SHIPPED GATE, BOTH SHAPES, END TO END AND UNPIPED.
+    disp = gg(["--root", root, "--subject", proj, "--gate", "dispatch_gate.py",
+               "--in-place"])
+    eq(disp.rc, 0, "a dispatcher whose workers read every board")
+    inproc = gg(["--root", root, "--subject", proj, "--gate", "inproc_gate.py",
+                 "--in-place"])
+    eq(inproc.rc, 0, "the same read-set in one process")
+    for r, who in ((disp, "dispatcher"), (inproc, "in-process")):
+        not_contains(r.out, "FAIL GG-SHADOW",
+                     f"a false GG-SHADOW against the {who} gate")
+        contains(r.out, "2 pre-existing file(s) under the subject root OPENED "
+                        "FOR READING",
+                 f"the {who} arm must have the SAME read-set, or the two arms "
+                 f"are not comparable and this fixture proves nothing")
+
+    # (2) THE PRE-FIX PREDICATE, RE-INTRODUCED AND MEASURED FIRING. Two boards,
+    # one trace each, exactly as the tracer delivers a dispatcher's run.
+    import trace_audit as ta                                    # noqa: E402
+    a = proj / "03_src" / "boardA" / "rules" / "nets.yaml"
+    b = proj / "03_src" / "boardB" / "rules" / "nets.yaml"
+    trs = [trace(opens=[a]), trace(opens=[b])]         # one trace per WORKER
+    have = ta.index_basenames(proj)
+
+    def prefix_real(tr):
+        """The SHIPPED-BEFORE version: `real` rebuilt from ONE trace."""
+        return {os.path.realpath(p) for p in ta.opened(tr)
+                if Path(p).exists()}
+
+    pre_n = sum(len(ta.gg_shadow(tr, proj, have, prefix_real(tr)))
+                for tr in trs)
+    eq(pre_n, 2, "the PRE-FIX per-trace read-set must produce 2 FALSE findings "
+                 "— one worker accusing the other, in both directions — or "
+                 "this red-verification proves nothing")
+
+    union = ta.opened_union(trs)
+    post_n = sum(len(ta.gg_shadow(tr, proj, have, union)) for tr in trs)
+    eq(post_n, 0, "the FLEET UNION must clear both")
+    shutil.rmtree(d, ignore_errors=True)
+
+
+@test("gg_shadow REFUSES to reconstruct its own read-set")
+def t_gg_shadow_has_no_per_trace_default():
+    """A default for `real` would let the per-trace regression back in at any
+    call site that forgot the argument. There is no such call site to forget it
+    with, and the signature makes that structural rather than a convention."""
+    import inspect                                              # noqa: E402
+    import trace_audit as ta                                    # noqa: E402
+    sig = inspect.signature(ta.gg_shadow)
+    p = sig.parameters["real"]
+    eq(p.default, inspect.Parameter.empty,
+       "gg_shadow(real=...) must have NO default — a default would silently "
+       "restore the per-trace read-set that made the verdict a function of "
+       "process topology")
+
+
 # ================================================== RED-VERIFIED MECHANISM
 @test("switching the STAT channel off blinds GG-RESOLVE on its own canary",
       kind="known_bad")
@@ -528,12 +823,13 @@ def t_kb_md_in_scope_returns_the_journal_false_positive():
         (d / "01_docs" / sub / "routing.md").write_text("# routing\n")
     have = ta.index_basenames(d)
     tr = trace(opens=[d / "01_docs" / "journal" / "routing.md"])
-    eq(len(ta.gg_shadow(tr, d, have)), 0,
+    real = ta.opened_union([tr])
+    eq(len(ta.gg_shadow(tr, d, have, real)), 0,
        "the shipped scope must be SILENT on the repo's own doc layout")
     keep = ta.GRADED_SUFFIXES
     try:
         ta.GRADED_SUFFIXES = keep + (".md",)
-        n = len(ta.gg_shadow(tr, d, have))
+        n = len(ta.gg_shadow(tr, d, have, real))
     finally:
         ta.GRADED_SUFFIXES = keep
     eq(n, 1, "with .md back in scope the false positive must RETURN, or this "
@@ -557,9 +853,10 @@ def t_kb_index_is_pre_battery():
     (born / "nets.yaml").write_text("nets: []\n")     # the battery writes it
     have_post = ta.index_basenames(d)                 # AFTER (the pre-fix way)
     tr = trace(opens=[a / "nets.yaml"])
-    eq(len(ta.gg_shadow(tr, d, have_pre)), 0,
+    real = ta.opened_union([tr])
+    eq(len(ta.gg_shadow(tr, d, have_pre, real)), 0,
        "a pre-battery index must not see a file that did not exist yet")
-    eq(len(ta.gg_shadow(tr, d, have_post)), 1,
+    eq(len(ta.gg_shadow(tr, d, have_post, real)), 1,
        "a post-battery index MUST manufacture the finding, or this "
        "red-verification proves nothing")
     shutil.rmtree(d, ignore_errors=True)
@@ -569,19 +866,57 @@ def t_kb_index_is_pre_battery():
 @test("every emitted GG-* id has a canon row, and every canon GG-* row has an "
       "emitter")
 def t_no_canon_gg_row_lacks_an_emitter():
-    """BOTH DIRECTIONS. A check-ID with no canon row cannot be waived, counted
-    or regraded; a canon row with no emitter is a capability a reader believes
-    in that does not exist — this repo already carries one (`M-BOUND`), which is
-    why the withdrawn GG-* families were retired from BOTH halves rather than
-    left as prose."""
+    """BOTH DIRECTIONS, AND BY TWO METHODS. A check-ID with no canon row cannot
+    be waived, counted or regraded; a canon row with no emitter is a capability
+    a reader believes in that does not exist — this repo already carries one
+    (`M-BOUND`), which is why the withdrawn GG-* families were retired from BOTH
+    halves rather than left as prose.
+
+    THE HOLE THIS TEST USED TO HAVE. It scanned `Finding("GG-...")` only, so it
+    could not see a GG-* id used as the LABEL AT THE HEAD OF A VERDICT LINE —
+    and `GG-TRACE`, the retired liveness family's id, headed EVERY verdict this
+    gate printed with no canon row behind it, while this test reported both
+    directions clean. A label a reader meets at the top of a verdict is a
+    check-ID in every way that matters downstream.
+
+    So the label half is checked TWICE, by different methods (canon M1): once
+    from the AST of the source (`emitted_ids`) and once from the OUTPUT of real
+    runs (`printed_labels`). The verdict lines are now headed by the exit
+    vocabulary's own words — `GG NO FINDING`, `GG FINDINGS`, `GG GRADED
+    NOTHING`, `GG UNRESOLVED`, `GG UNOBSERVABLE` — which are not check-IDs and
+    need no rows."""
     emitted, canon = emitted_ids(), canon_gg_rows()
-    eq(emitted, BANKED, "GG-* ids emitted by trace_audit.py")
+    eq(emitted, BANKED, "GG-* ids emitted by trace_audit.py (Finding ids AND "
+                        "verdict-line labels)")
     eq(canon, BANKED, "GG-* rows in design-policies.md")
+
+    # THE BEHAVIOURAL HALF. Every exit code that prints a verdict, over real
+    # runs, and no GG-* token may HEAD a line unless it is a banked family.
+    d0, d3 = tmpdir("gg_lbl0_"), tmpdir("gg_lbl3_")
+    d14 = tmpdir("gg_lbl14_")
+    proj = d14 / "proj"
+    shutil.copytree(CANARY / "subject", proj)
+    outs = [gg(["--subject", blind_subject(d0, True)]).out,
+            gg(["--subject", blind_subject(d3, False)]).out,
+            gg(["--explain"]).out,
+            gg(["--canary"]).out]
+    for g in ("shadow_gate.py", "resolve_gate.py"):
+        shutil.copy(CANARY / g, d14 / g)
+        outs.append(_run_gate_as_battery(d14, proj, g).out)
+    stray = printed_labels(outs) - BANKED
+    check(not stray,
+          f"a GG-* label HEADS a printed line with no canon row behind it: "
+          f"{sorted(stray)}. `GG-TRACE` sat here for the whole of the bank's "
+          f"first life — the retired liveness family's id, surviving as the "
+          f"headline of every verdict")
+    for x in (d0, d3, d14):
+        shutil.rmtree(x, ignore_errors=True)
+
     for gone in ("GG-KEY", "GG-ZERO", "GG-OPAQUE", "GG-CENSUS", "GG-BASIS",
-                 "GG-ALIAS"):
+                 "GG-ALIAS", "GG-TRACE"):
         check(gone not in canon and gone not in emitted,
-              f"{gone} was WITHDRAWN by the bank-and-stop decision; it must "
-              f"have neither a canon row nor an emitter")
+              f"{gone} has no canon row; it must have no emitter and no "
+              f"verdict-line label either")
 
 
 @test("the canon row for the snapshot rule states the LIMIT, not a general "

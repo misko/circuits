@@ -1,0 +1,5 @@
+nets:
+  - name: VBUS
+    class: power
+  - name: GND
+    class: power

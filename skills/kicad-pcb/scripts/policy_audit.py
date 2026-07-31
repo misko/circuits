@@ -18,6 +18,26 @@ Waivers (PROJECT_DIR/03_src/rules/policy_waivers.yaml): YAML list of
 twin adjudications; a waiver without a why is itself a FAIL.
 
 Run with the KiCad-bundled python (/usr/bin/python3, pcbnew importable).
+
+OWED, AND READ THIS BEFORE STARTING IT: THE FLAT `03_src/rules/<name>` PATHS
+BELOW ARE WRONG ON AN ADR-0007 MULTI-BOARD PROJECT. On the two-board exemplar
+they resolve to five SYMLINKS into `03_src/<boardA>/rules/` while a second, REAL
+288-line set at `03_src/<boardB>/rules/` is graded by nothing — so this gate
+grades ONE board and reports on the PROJECT, and `03_src/floorplan.yaml` and
+`03_src/route.yaml` do not exist at all at the flat path while the per-board
+copies do. Named by canon GG-SHADOW / GG-RESOLVE; `trace_audit.py --subject
+projects/<name>` reproduces it in one command.
+
+**THE REMEDY IS NATURALLY A DISPATCHER — ONE WORKER PER BOARD — AND UNTIL
+2026-07-31 THAT SHAPE WOULD HAVE TURNED GG-SHADOW RED ON THE FIXED PROJECT.**
+`gg_shadow` rebuilt its "was this opened" set from ONE TRACE, and a tracer writes
+one trace per PROCESS, so the fix for the defect GG-SHADOW found would have made
+GG-SHADOW fire. MEASURED then: a dispatcher and its in-process twin with the
+identical read-set gave RAW EXIT 1 (2 false findings) and RAW EXIT 0.
+`trace_audit.opened_union()` now takes the union across every trace and
+`tests/fixtures/gg_dispatch/` keeps it that way — so the dispatcher shape is
+SAFE, but do not reintroduce a per-trace read-set while doing this work, and if
+GG-SHADOW fires on a correctly split project, suspect that first.
 """
 import argparse
 import glob

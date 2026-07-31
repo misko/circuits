@@ -404,6 +404,13 @@ BACKEND GAP to report, not a bespoke script to write here.
   and emits **GG-SHADOW** (a same-basename file under the root that nothing
   opened) and **GG-RESOLVE** (a path a gate SELECTED — one look at that name —
   that is absent while the basename exists elsewhere).
+  **GG-SHADOW's "nothing opened it" IS A FLEET UNION over EVERY TRACE**
+  (`opened_union()`), and a tracer writes one trace per PROCESS, so a gate that
+  dispatches a worker subprocess per board is graded on its children's reads
+  too. `gg_shadow(real=...)` has NO DEFAULT, deliberately: a default would
+  restore the per-trace read-set that made the verdict a function of the gate's
+  process topology (MEASURED: dispatcher RAW EXIT 1 with 2 false findings vs
+  its in-process twin at RAW EXIT 0, same 2-file read-set).
   **`--subject` IS MANDATORY.** There is no repo-level predicate, so a
   subject-less run has nothing to do and exits 2 rather than printing a green
   that says nothing about whether any gate can see its board.
@@ -417,16 +424,29 @@ BACKEND GAP to report, not a bespoke script to write here.
   `--in-place` opts out and says so; MEASURED, the two modes agree exactly.
   **THE READ COUNT IS NOT A PROOF OF OBSERVATION AND MUST NEVER BE QUOTED AS
   ONE.** Neither the write-set (a METHOD test) nor the pre-run snapshot (an
-  EXISTENCE test) is an IDENTITY test, so a battery gate's own output that
-  pre-dated the run is counted in it. The caveat is printed on the same line as
+  EXISTENCE test) is an IDENTITY test, so it counts **ANY pre-existing file ANY
+  gate happens to open**. A battery gate's own output is the WORST case, not
+  the boundary — MEASURED, three lines of prose in `01_docs/BRIEF.md` (nobody's
+  output, graded by nothing) lift a genuinely-blind board from exit 3 to exit 0
+  exactly as `06_build/policy_audit.md` does, so the OWED identity test closes
+  one arm and not the other. The caveat is printed on the same line as
   the number and carried in the `--json` sidecar as
   `read_count_proves_observation: false`. Only the ZERO carries a verdict
   (exit 3). The gate declares this as its `VACUITY:` blind spot and
-  `t1_trace_audit.py` reproduces it on every run.
+  `t1_trace_audit.py` reproduces BOTH ARMS on every run.
   Exit codes are a VOCABULARY: **2** invocation · **3** graded nothing · **4**
-  unresolved · **5** unobservable (the canary came back silent — never a skip).
+  unresolved · **5** unobservable — the canary came back silent OR a trace hit
+  the `GRADELIB_MAX_EVENTS` cap; never a skip, and a truncated read-set carries
+  NO verdict, because "nothing opened this file" is the one claim a PREFIX
+  cannot support and truncation therefore manufactures FALSE findings.
+  **VERDICT LINES ARE HEADED BY THE EXIT WORD, NEVER BY A CHECK-ID** (`GG NO
+  FINDING` / `GG FINDINGS` / `GG GRADED NOTHING` / `GG UNRESOLVED` /
+  `GG UNOBSERVABLE`): they used to be headed `GG-TRACE`, a withdrawn family's
+  id with no canon row.
   Six withdrawn `GG-*` families have neither a canon row nor an emitter, and
-  `t_no_canon_gg_row_lacks_an_emitter` checks both directions.
+  `t_no_canon_gg_row_lacks_an_emitter` checks both directions — over `Finding`
+  ids AND over verdict-line labels, by two independent methods (an AST scan of
+  the source and a scan of real run OUTPUT).
 
 ## Structure
 

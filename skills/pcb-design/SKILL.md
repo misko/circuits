@@ -682,15 +682,30 @@ board they were pointed at. Driver step [10c], advisory. On an ADR-0007
 two-board project it names, unaided, every flat `03_src/rules/<name>` gate that
 grades ONE board and reports on the PROJECT).
 
+**GG-SHADOW's "nothing in the run opened it" IS A FLEET UNION OVER EVERY TRACE,
+AND A TRACER WRITES ONE TRACE PER PROCESS.** A gate that hands each board to a
+worker subprocess is graded on what its children read too. **IF YOU ARE PICKING
+UP THE PER-BOARD PATH RESOLUTION OWED FOR ADR-0007, READ THIS FIRST**: that
+remedy is naturally built as a dispatcher (`03_src/rebuild_all.sh` already is
+one; `adr_bound_provenance.py` and `waiver_provenance.py` already spawn
+subprocesses), and with the per-trace read-set that shipped, THE FIX FOR THE
+DEFECT GG-SHADOW FINDS WOULD HAVE MADE GG-SHADOW FIRE — a ratchet breaking on a
+correct action, on a correctly-fixed board. MEASURED on two gates with the
+identical 2-file read-set: dispatcher RAW EXIT 1 with 2 false findings,
+in-process twin RAW EXIT 0 with none. Fixed by `opened_union()`; fixtured by
+`tests/fixtures/gg_dispatch/`.
+
 **READ GG's READ COUNT WITH ITS CAVEAT, AND NEVER QUOTE IT WITHOUT ONE.** It is
-a SUPERSET of subject evidence: a battery gate's own output that ALREADY EXISTED
-when the run started is counted in it, because neither the write-set (a METHOD
-test) nor the pre-run snapshot (an EXISTENCE test) is an IDENTITY test. MEASURED
-— two identical genuinely-blind boards differing only by the presence of
-`06_build/policy_audit.md` exit 0 and 3. **Only the ZERO carries a verdict**: an
-empty read set is exit 3 GRADED NOTHING and is never a pass. A nonzero one is a
-raw number, and this layer's predecessor was stopped for printing it as a
-certificate. `design-policies.md`'s `GG-* mechanics` section carries the control.
+a SUPERSET of subject evidence: it counts ANY PRE-EXISTING FILE ANY GATE HAPPENS
+TO OPEN, because neither the write-set (a METHOD test) nor the pre-run snapshot
+(an EXISTENCE test) is an IDENTITY test. MEASURED — a genuinely-blind board
+exits **3** bare, **0** with `06_build/policy_audit.md` (a gate's own output),
+and **0** with `01_docs/BRIEF.md` holding three lines of PROSE that are nobody's
+output and are graded by nothing. The exhaust case is the worst instance, not
+the boundary. **Only the ZERO carries a verdict**: an empty read set is exit 3
+GRADED NOTHING and is never a pass. A nonzero one is a raw number, and this
+layer's predecessor was stopped for printing it as a certificate.
+`design-policies.md`'s `GG-* mechanics` section carries both controls.
 
 **M-FRESH IS WIRED INTO THE DRIVER, NOT RUN BY HAND, AND THAT IS THE POINT.**
 `rebuild_all.sh` stage **[0b]** stamps BEFORE `tsci build` and stage **[1a]**
