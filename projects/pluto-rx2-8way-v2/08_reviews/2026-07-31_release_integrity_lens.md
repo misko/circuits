@@ -400,3 +400,127 @@ record. The copper is untouched and correct; the netlist did not move a node.
 
 **Rebuild at current HEAD and re-stage. Do not seal this snapshot, and do not
 seal it under a name chosen to make a gate green.**
+
+---
+
+# ADDENDUM (same session, after the sections above were committed)
+
+Verifying §2's strip-last claim against the *project* rather than the archive
+turned up a live stray, and pulling that thread found a fleet-wide blind spot.
+The verdict keys at the top are unchanged — none of this alters the pluto-rx2
+archive, which is still clean (§1, §2) — but two sealed releases are affected.
+
+## 11. A `.kicad_prl` is in this board's `04_kicad/` RIGHT NOW, invisible to every gate
+
+```
+projects/pluto-rx2-8way-v2/04_kicad/pluto_rx2_8way_v2.kicad_prl   2304 B   11:35:45
+```
+
+**I did not create it.** Its mtime is 11:35:45, before my session's first tool
+call (~11:42) and before my only `pcbnew.LoadBoard` on that file (11:50:52). It
+carries the same second as `fp-lib-table` and `refdes_waiver.json` — it is a
+dropping of the 11:35 rebuild that produced commit `9af663f0`.
+
+It is harmless as *content* — a `.kicad_prl` is never design data. It matters
+because it sits in `04_kicad/`, which CLAUDE.md calls immutable and
+generator-owned, and because **three independent mechanisms each fail to see it**:
+
+| mechanism | why it misses this file | MEASURED |
+|---|---|---|
+| `generate_rules_generic.py:119` purge | globs `*.kicad_pcb.kicad_prl` — the **double** extension. The real file is plain `<board>.kicad_prl` | `glob('*.kicad_pcb.kicad_prl')` → `[]`; `glob('*.kicad_prl')` → `['pluto_rx2_8way_v2.kicad_prl']` |
+| `git status` | `.gitignore:11:*.kicad_prl` | `git check-ignore` → IGNORED |
+| `contracts_audit.py --present` | population is *tracked ∪ untracked-not-ignored*; a gitignored file is in **neither** | 26 `.kicad_prl` listed fleet-wide, **0** of them this one |
+
+The double-extension restriction is deliberate and correct **for `.kicad_pro`** —
+the code comment explains a genuine second `.kicad_pro` must still abort. But a
+`.kicad_prl` is *never* content, so the same caution buys nothing there and
+costs the purge its target.
+
+**The gitignore rule is what blinds the detector.** The 26 strays the audit
+*does* report all live under boards whose `.gitignore` lacks `*.kicad_prl`
+(verified on two). Sixteen boards carry the rule; those are exactly the boards
+where a stray cannot be seen. This is the "gate negation blindness" shape again:
+the rule that keeps the tree tidy is the rule that hides the mess.
+
+## 12. Two SEALED, IMMUTABLE releases contain a `.kicad_prl` — and one was written AFTER sealing
+
+Swept the sixteen blind boards. Three sealed release trees hold one:
+
+| sealed release (named bare, see §5) | file | in its MANIFEST? | file mtime vs seal date |
+|---|---|---|---|
+| `crow-recorder-central-v2-v1.5-2026-07-25` | `source/crow_recorder_central_v2.kicad_prl`, 2311 B | **NO** | 2026-07-26 — **1 day after** |
+| `interposer-v1.1-2026-07-27` | `source/interposer.kicad_prl`, 2297 B | **NO** | 2026-07-31 02:38 — **4 days after** |
+| `cooksense-v1.7-2026-07-30` | `source/cooksense.kicad_prl`, 2296 B | **YES**, line 445 | 2026-07-30 21:46 |
+
+**Two corrections to the framing I was given:**
+
+1. **`cooksense-v1.7` is no longer the defect it was described as.** The brief
+   says its `MANIFEST.txt:445` hashes a `.kicad_prl` its `source/` *lacks*. That
+   is **not true now**: the file is present, and its hash **matches the MANIFEST
+   exactly** (`a2e8ca51…` both sides, re-derived with hashlib). That row is
+   bijective. It still ships process state inside an immutable release, which is
+   its own defect — but not the one on the ticket.
+
+2. **`interposer-v1.1` is a third instance nobody has named**, and it is the
+   clearest evidence of the mechanism: sealed 2026-07-27, and its `.kicad_prl`
+   was written **2026-07-31 at 02:38** — today. Something opened that sealed
+   board four days after it was sealed and wrote into it.
+
+`crow-recorder-central-v2-v1.5` is confirmed exactly as described: present in
+the archive, absent from its own MANIFEST, while that MANIFEST's header claims
+to cover "every file in this archive". **This is the direction-B violation, and
+it is still live.**
+
+**The generalisation:** `kicad-cli` writes a `.kicad_prl` beside any board it
+opens (§2, reproduced). Sealed releases get opened — for comparison, for
+re-measurement, for exactly the kind of verification this review round performs.
+Because `*.kicad_prl` is gitignored on all three boards, the write is invisible
+to `git status` and to `contracts_audit --present`. **Immutability is being
+violated by the act of inspection, silently, and the fleet's own stray detector
+is structurally unable to report it.**
+
+This is not hypothetical for the board in front of me: the archive I graded is
+clean only because a strip ran after the last kicad-cli invocation. The `04_kicad/`
+it was built from is **not** clean right now (§11). A re-stage that copies
+`04_kicad/` wholesale, without re-running the strip last, reproduces
+`crow-recorder-central-v2-v1.5` on this board.
+
+## Additional proposed `skills/` changes — PROPOSED, NOT APPLIED
+
+I did not delete any of these files. `04_kicad/` and `07_releases/` are
+immutable; the sealed instances in particular must be dispositioned by whoever
+owns those boards, not swept by a reviewer, and the correct repair for a sealed
+release is a new version plus `SUPERSEDED.md`, never an edit.
+
+4. **`generate_rules_generic.py:119` — purge plain `*.kicad_prl` too.** Keep the
+   double-extension caution for `*.kicad_pcb.kicad_pro` (a genuine second
+   `.kicad_pro` must still abort), but a `.kicad_prl` is never content and the
+   plain form is the one that actually appears. Known-bad fixture: drop a
+   `<board>.kicad_prl` in a fixture `04_kicad/`, assert the rebuild removes it,
+   and RED-verify against the current glob — which leaves it.
+
+5. **`contracts_audit.py --present` — a gitignored file must not be
+   unauditable.** Its population (*tracked ∪ untracked-not-ignored*) means any
+   pattern a board chooses to ignore becomes a hole in the stray detector, and
+   the sixteen boards carrying `*.kicad_prl` are all holes. Suggest a
+   forbidden-class sweep that runs over the raw filesystem regardless of ignore
+   status, at minimum for `*.kicad_prl` / `*.lck` under `04_kicad/` and
+   `07_releases/`. It would have found all four files in this addendum.
+
+6. **A seal-time and inspection-time invariant.** `07_releases/**` should be
+   asserted free of `*.kicad_prl` / `*.lck` *after* any tooling that opens a
+   board, not only at seal. The `interposer-v1.1` timestamp shows seal-time-only
+   checking is insufficient: the file arrived four days later.
+
+## Revised bottom line
+
+Everything in §1–§10 stands. The pluto-rx2-8way-v2 staging archive is bijective
+both ways, carries no `.kicad_prl`, stands alone at DRC 0/0/0, and overstates
+nothing. It is **stale**, by 91 minutes and one fixed schematic defect, and that
+is why it must not be sealed as-is.
+
+The addendum does not change that verdict. It adds a warning for whoever
+performs the rebuild: **the `04_kicad/` you will re-stage from is not clean, and
+neither `git status` nor the stray audit will tell you.** Strip last, then verify
+with a walker that ignores `.gitignore` — the archive graded here proves that
+ordering works, and §11–§12 show what happens on the boards where it did not run.
