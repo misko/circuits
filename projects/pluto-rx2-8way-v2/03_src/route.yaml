@@ -1,0 +1,247 @@
+# route.yaml — pluto-rx2-8way-v2
+#
+# The per-board input to skills/kicad-pcb/scripts/route_and_stitch_generic.py.
+# ZERO board-specific routing Python (repo ADR-0002).
+#
+# ===========================================================================
+# THE THREE RF INVARIANTS, AND WHERE EACH ONE IS ENFORCED
+# ===========================================================================
+#
+# 1. `In1.Cu` IS THE SOLID UNBROKEN RF REFERENCE AND IS EXCLUDED FROM ROUTING.
+#    Enforced by `route.common.layers: [F.Cu, In2.Cu]` — In1.Cu and B.Cu are
+#    POURED (floorplan.yaml `zones:`) and never routed. This is Ossmann's
+#    rule 1, and it is what makes nine arm phases comparable at all.
+# 2. RF ON F.Cu ONLY, NO VIAS INSIDE AN ARM. Enforced HERE by the rf wave's
+#    `layers: [F.Cu]`, and GRADED by `copper_length_audit.py` (`no_vias: true`
+#    in rules/nets.yaml) — the wave restriction is a per-WAVE setting that
+#    nothing re-checks afterwards, so the grade is the real enforcement.
+# 3. RF FIRST. The rf wave is wave 1: escape lanes are claimed by whoever
+#    routes first, and the arms are the board's published property.
+#
+# ===========================================================================
+# THE RF WAVE'S TWO UNUSUAL NUMBERS, BOTH MEASURED
+# ===========================================================================
+#
+# `grid_step: 0.05` — rf-design.md 4(c): at KRT's default 0.1, NOTHING routed
+# v1's five boxed RF pads at ANY width (0.30/0.25/0.20 all fail), because the
+# RF land centres sit at odd multiples of 0.05 mm and a 0.1 grid cannot place a
+# centreline on them. Every coordinate in 03_src/floorplan.yaml is a multiple
+# of 0.05 mm precisely so this grid can hit it — including the arm lengths,
+# where 9.90 / 14.00 was chosen over the exact sqrt(2) pair for that reason.
+#
+# `clearance: 0.14` — MEASURED on THIS board by `escape_check.py --board`
+# BEFORE any router ran: six U_SW pads cannot emit their own class width at the
+# board-wide 0.200 mm. The PE42482A-X land is 0.30 x 0.60 on a 0.50 pitch, so
+# the widest track that can leave at clearance c is 2*(0.350 - c) — 0.300 mm at
+# 0.200, 0.420 mm at 0.140. The full derivation, the three refuted
+# alternatives, and the bounded rule area live in rules/nets.yaml
+# `scoped_clearances:`; the DRC floor there and this router budget are THE SAME
+# NUMBER, which is what canon R-SCOPE's last paragraph (and PF-ROUTE-CLR)
+# require.
+#
+# ===========================================================================
+# WHAT THE User.3 KEEPOUT IS FOR, AND THE INCIDENT IT IS DRAWN AGAINST
+# ===========================================================================
+# It fences the DIGITAL waves (pwr / ctrl / sig) out of the RF rosette, so a
+# select line cannot end up running alongside an arm (rules/nets.yaml CTRL
+# `intent:` — a switching edge coupled into an arm lands inside the dwell it is
+# supposed to start), and so no digital via perforates In1.Cu under an arm.
+#
+# THE RECTS LEAVE A CORRIDOR AND THAT IS THE WHOLE DESIGN: x 39.80..47.50 for
+# y 47.00..68.00, plus everything south of y = 68.00. That corridor is the
+# 45-degree sector between the S arm (270) and the SE arm (315), which is where
+# U_SW's own control pads point. EVERY control endpoint is inside it —
+# U_SW pads 8..12 (y 50.90), C_SW1 (40.25, 53.10), C_SW2 (41.20, 55.30),
+# R_PD1..4 (41.60..46.40, 58.20) — and every other one is south of y = 68.
+#
+# THAT LAST SENTENCE IS THE CHECK, NOT A COURTESY. pluto-rx2-8way 2026-07-30:
+# an RF-fan keepout rect CONTAINED the SW_V1..V4 endpoints and produced EIGHT
+# unconnected nets with zero track copper anywhere — and it was summarised for
+# hours as "MCU-field congestion". A keepout that contains an endpoint does not
+# route badly; it does not route at all.
+
+project:
+  name: pluto_rx2_8way_v2
+  board: 04_kicad/pluto_rx2_8way_v2.kicad_pcb
+  build_dir: 06_build/route
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2, User.3]
+    # `refdes_prefix: H` IS NOT OPTIONAL. Without it the mounting-hole keepout
+    # is stamped around EVERY hole on the board, and on pluto-rx2-8way that
+    # meant a 3.0 mm radius around J_USB's own 0.650 mm alignment pegs —
+    # over-reach 2.500 mm, swallowing all 12 signal pads, TEN unconnected. On
+    # THIS board the ten SMA jacks each carry five 1.4 mm plated holes, so an
+    # unfiltered rule would sterilise the entire rosette.
+    mounting_holes: {radius: 3.0, refdes_prefix: H}
+    npth_pads: {margin: 0.15}
+    edge_band: 0.7          # KRT has no edge concept; the dru floor is 0.3
+    rects:
+      # The digital fence. See the header: these leave the SSE control
+      # corridor and everything south of the rosette open.
+      - {x0: 20.00, y0: 20.00, x1: 66.00, y1: 47.00, layer: User.3}  # north
+      - {x0: 20.00, y0: 47.00, x1: 39.80, y1: 68.00, layer: User.3}  # west
+      - {x0: 47.50, y0: 47.00, x1: 66.00, y1: 68.00, layer: User.3}  # east
+      # THE MODULE'S OWN COPPER KEEPOUT, on User.2 so it binds EVERY wave.
+      # RP2040-Zero carries TEN LIVE SMD PADS on its carrier-facing face
+      # (GP17..GP25 + GND, 1.270 mm pitch, STEP-measured) at module-frame
+      # X 2.4..3.6 / Y 4.8..17.0; at U_MCU (52.70, 80.75, rot 180) that lands
+      # at board x 58.10..59.30, y 73.80..86.00. They are ZERO height, so the
+      # 1.000 mm HEIGHT keepout does not cover them, and they sit ~1.1 mm above
+      # our F.Cu with nothing between: a solder ball or a flexed board shorts
+      # nine GPIO. The rectangle is drawn into the footprint on Cmts.User and
+      # is graded by NOTHING -- this is the line that makes the router obey it.
+      - {x0: 58.10, y0: 73.80, x1: 59.30, y1: 86.00, layer: User.2}
+  waves:
+    exclude: ["GND", "unconnected-*"]
+    groups:
+      # RX1_TAP / RX1_TAP_MID / RX1_MAIN ride the rf wave even though they are
+      # NOT length-matched members: they are 50 ohm copper on F.Cu and they
+      # leave the same QFN, so they need the same grid and the same launch
+      # clearance. Their exclusion from the MATCH is a separate statement,
+      # made in rules/nets.yaml and graded there.
+      rf:   [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7,
+             RX2_OUT, RX1_TAP, RX1_TAP_MID, RX1_MAIN]
+      pwr:  [3V3_MOD, 3V3]
+      ctrl: [SEL_V1, SEL_V2, SEL_V3, SEL_V4, SW_V1, SW_V2, SW_V3, SW_V4]
+      sig:  rest        # LED_STAT, LED_STAT_A
+
+route:
+  krt: ~/gits/KiCadRoutingTools
+  common:
+    layers: [F.Cu, In2.Cu]   # In1.Cu POURED, NEVER ROUTED — invariant 1
+    clearance: 0.2
+    # `grid_step: 0.05` IS COMMON, NOT AN RF SETTING, AND THAT IS A CORRECTION.
+    # rf-design.md 4(c) records the grid trap against the RF launch, so the
+    # first draft of this file gave 0.05 to the rf wave alone. MEASURED here:
+    # that leaves the DIGITAL escape broken in exactly the same way. U_SW's
+    # control pads sit at x = 40.75 / 41.25 / 41.75 / 42.25 — ODD multiples of
+    # 0.05, because the QFN's own pad offsets are +/-0.25, +/-0.75, +/-1.25
+    # about a centre on the 0.05 grid — and at KRT's default 0.1 no centreline
+    # can land on them. Symptom: SW_V2 (the pad with a routed neighbour on BOTH
+    # sides) failed with "no rippable blockers found" in EIGHT of eight raced
+    # candidate chains, which is what an infeasibility looks like when it is
+    # mistaken for congestion. The grid is a property of the PAD COORDINATES,
+    # not of the net class.
+    grid_step: 0.05
+    fab_tier: advanced
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+  waves:
+    - {name: rf,   group: rf,   layers: [F.Cu], max_iterations: 400000,
+       clearance: 0.14, meander_amplitude: 0.2,
+       length_match_group: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, RX2_OUT],
+       length_match_tolerance: 0.10}
+    # `length_match_tolerance` IS CARRIED AND IS KNOWN TO DO NOTHING. A 15-run
+    # sweep on v1 (rf-design.md 4(b)) moved the realized spread by EXACTLY ZERO
+    # across {0.15, 0.10, 0.05} while `meander_amplitude` moved it 1.0 ->
+    # 1.5586, 0.3 -> 0.3236, 0.2 -> 0.3236 mm. It is here because KRT's group
+    # takes the argument, and it is documented as inert so nobody credits it
+    # with a result again. THE AMPLITUDE IS 0.2, the smallest measured value:
+    # v2's octilinear floor spread is 0.0007 mm, so the equalisation pass has
+    # almost nothing to do and a large amplitude could only ADD spread.
+    - {name: pwr,  group: pwr,  keepout_layer: User.3, max_iterations: 400000}
+    # ONE ctrl wave, NOT one per select line, and the failed experiment is
+    # recorded because it is counter-intuitive. U_SW's south edge is a single
+    # 0.50 mm-pitch row -- GND(39.75) 3V3(40.25) V1(40.75) V2(41.25) V3(41.75)
+    # V4(42.25) -- escaping south into a corridor that opens eastward, and
+    # golden rule 4 says escape lanes are claimed by whoever routes first. The
+    # obvious remedy was to fan them WEST TO EAST as four ordered waves.
+    # MEASURED, it is WORSE: one ctrl wave leaves SW_V2 open (7 of 8), four
+    # ordered waves leave SW_V2, SW_V4 AND LED_STAT_A open (3 open). The reason
+    # is that KRT can only RIP UP WITHIN ITS OWN WAVE — copper laid by an
+    # earlier wave is immovable — so splitting a congested field into
+    # single-net waves does not order the escapes, it FREEZES the first
+    # choice. Ordering helps ACROSS independent fields; inside one field the
+    # wave must stay whole and the router must be allowed to race.
+    - {name: ctrl, group: ctrl, keepout_layer: User.3, max_iterations: 1200000,
+       max_probe_iterations: 60000, max_ripup: 30}
+    - {name: sig,  group: sig,  keepout_layer: User.3, max_iterations: 600000,
+       max_probe_iterations: 60000, max_ripup: 30}
+  final: 03_src/route/r4.kicad_pcb
+
+stitch:
+  clearance: 0.2
+  via:
+    spacing: 0.85
+    pth_margin: 0.3
+    tiers: [{size: 0.25, drill: 0.15, hole_to_copper: 0.155}]
+  keepin: {inset: 0.8}
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, width_floor, reload, hole_to_hole, pad_rescue,
+           stub_fallback,
+           astar_fallback, stitch_grid, fill, island_rescue, fill,
+           unify_zone_priorities, heal_islands, prune_stitch_dangling, gate]
+  unify_zone_priorities: {min_bbox: 0.8}
+  dedupe_vias: {radius: 0.5, metric: box}
+  normalize_vias: {below_width: 0.249, size: 0.25, drill: 0.15}
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true}
+  # `width_floor` LIFTS a sub-floor segment instead of deleting it. MEASURED:
+  # KRT's via-in-pad stub for SW_V3 came out 0.1069 mm wide over a 0.100 mm run
+  # on In2.Cu at (41.75, 50.80) — one `track_width` finding against the 0.200 mm
+  # CTRL floor. It is NOT a micro-fragment: it has no free end (it is the only
+  # copper joining the barrel to the land), so dropping it would trade a width
+  # finding for an OPEN NET, which is the worse of the two by a wide margin.
+  width_floor: {default: 0.2}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    # In1.Cu is the plane every GND pad must reach — including each SMA jack's
+    # four posts, which ARE the launch return path and are only electrically
+    # short if the return is (KH-SMA-KE-Z part.yaml).
+    nets:
+      - {net: GND, layer: In1.Cu}
+    via_in_pad: true
+    served_within: 1.6
+    rings: [0.15, 0.6, 0.8, 1.0, 1.4, 1.9, 2.5]
+    stub_width: 0.3
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
+  astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
+  stitch_grid:
+    # 2.0 mm, AND IT IS COARSER THAN THIS BOARD'S OWN FENCE BOUND — stated
+    # rather than glossed. ARCHITECTURE sec 6 asks for a ground-via fence
+    # flanking every arm at <= 1.35 mm (the largest round value under the
+    # derived guided lambda_g/20 = 1.3693 mm, ADR-0003). The shared stitcher's
+    # grid pass steps with `range(int(...))`, so its pitch is an INTEGER number
+    # of millimetres: 1 mm (a via forest, ~2500 sites) or 2 mm. 2.0 mm is
+    # lambda_g/13.7, which is conservative against the SOURCED free-space
+    # lambda/20 = 2.5 mm at 6 GHz (rf-design.md sec 2) and is what
+    # pluto-cal-switch ships, but it does NOT meet this board's own tighter
+    # self-imposed bound. Recorded as a measured gap, not a met requirement.
+    net: GND
+    x: [23, 63, 2]
+    y: [23, 90, 2]
+    # AVOID: one ring per SMA CENTRE PIN. MEASURED — the first stitched build
+    # put grid vias at (31.0, 59.0) and (29.0, 61.0), which are 0.7312 and
+    # 0.7858 mm from J_ANT3's pad 1 against that pad's own 0.80 mm LOCAL
+    # clearance, and it cost 12 of the run's 21 DRC findings (8 clearance +
+    # 4 hole_clearance, the same two pairs reported once per copper layer).
+    # `stitch.via.pth_margin` is a BOARD-WIDE number and raising it to 0.85
+    # would push stitch vias away from every PTH pad including the forty SMA
+    # GROUND POSTS — which need no stitch via at all, being through-holes that
+    # already tie all four planes, but whose neighbourhood is exactly where
+    # ground stitching is worth most. So the exclusion is per-PIN, not global.
+    # RADIUS 1.90 = pad radius 0.95 + the pad's local clearance 0.80 + via
+    # radius 0.125, rounded up. That local 0.80 is not decoration: it is what
+    # opens the >= D3.5 mm bottom-plane antipad the KH-SMA-KE-Z dossier calls
+    # for, so a via inside it is a return-loss defect before it is a DRC one.
+    avoid:
+      - {x0: 29.85, y0: 37.20, x1: 29.85, y1: 37.20, margin: 1.90}   # J_ANT1
+      - {x0: 25.10, y0: 48.25, x1: 25.10, y1: 48.25, margin: 1.90}   # J_ANT2
+      - {x0: 29.20, y0: 59.15, x1: 29.20, y1: 59.15, margin: 1.90}   # J_ANT3
+      - {x0: 39.10, y0: 64.25, x1: 39.10, y1: 64.25, margin: 1.90}   # J_ANT4
+      - {x0: 52.80, y0: 60.15, x1: 52.80, y1: 60.15, margin: 1.90}   # J_ANT5
+      - {x0: 56.90, y0: 49.25, x1: 56.90, y1: 49.25, margin: 1.90}   # J_ANT6
+      - {x0: 52.80, y0: 38.35, x1: 52.80, y1: 38.35, margin: 1.90}   # J_ANT7
+      - {x0: 40.75, y0: 33.10, x1: 40.75, y1: 33.10, margin: 1.90}   # J_RX2
+      - {x0: 46.50, y0: 25.00, x1: 46.50, y1: 25.00, margin: 1.90}   # J_ANT8
+      - {x0: 54.50, y0: 25.00, x1: 54.50, y1: 25.00, margin: 1.90}   # J_RX1
+  island_rescue: {min_bbox: 0.8, layers: [B.Cu, F.Cu, In1.Cu, In2.Cu],
+                  require: all}
+  heal_islands: {min_bbox: 0.8}
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2}

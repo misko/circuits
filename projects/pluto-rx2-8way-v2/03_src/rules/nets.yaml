@@ -192,6 +192,69 @@ scoped_clearances:
       NOT ABOVE THE ROUTER'S OWN BUDGET: 03_src/route.yaml runs the RF wave at
       `clearance: 0.14`, so the DRC floor and what KRT was allowed to pack to
       are the same number (canon R-SCOPE's last paragraph / PF-ROUTE-CLR).
+      THE FOUR SW_V* NETS ARE **NOT** IN THE LIST ABOVE, and the second entry
+      below says why: this area is F.Cu and their finding is on In2.Cu.
+  - zone: ctrl_escape
+    nets: [SW_V1, SW_V2, SW_V3, SW_V4]
+    clearance: 0.14
+    why: >
+      THE In2.Cu TWIN OF rf_launch, AND IT IS A SEPARATE AREA BECAUSE A RULE
+      AREA IS (RECTANGLE AND LAYER SET), NEVER A RECTANGLE. The first attempt at
+      this finding added SW_V1..V4 to rf_launch's `nets:` list; rf_launch is
+      declared `layers: [F.Cu]`, KiCad evaluates `insideArea` per layer, and the
+      DRC finding was UNCHANGED — a relaxation that is declared, reads as
+      declared, and binds nothing. That is the same silent-by-construction
+      shape canon R-SCOPE warns about, arriving from the other direction.
+      MEASURED, and the pair is NAMED because "every pair inside this box" is
+      not an isolation argument: SW_V2's In2.Cu segment
+      (41.630, 51.286)->(41.267, 50.923) approaches SW_V3's In2.Cu segment
+      (41.750, 50.800)->(41.750, 50.900) to 0.358 mm centre-to-centre; at
+      0.200 mm each that is a 0.158 mm gap. The area is 1.10 x 0.90 mm and
+      contains those two segments and their two barrels and nothing else —
+      SW_V1's barrel (x 40.75) and 3V3's In2.Cu run (x 40.20) are outside it
+      and keep the 0.20 mm floor.
+      THE PAIR IS TWO ADJACENT BITS OF ONE 4-BIT SELECT WORD, leaving two
+      adjacent lands of the SAME 0.50 mm-pitch row, on an INTERNAL layer, at
+      3.3 V CMOS, each series-terminated at 47 ohm at its source. IPC-2221
+      internal-conductor spacing at that voltage is 0.05 mm, so 0.158 mm is
+      over 3x the standard; and crosstalk between them is not a hazard by
+      construction — V1..V4 are written by ONE PIO `out pins, 4` instruction,
+      so they are a synchronous word whose bits change together and are read by
+      nothing until the next dwell begins.
+      IT IS ALSO A FINDING THIS BOARD CREATED WHILE FIXING ANOTHER, recorded
+      rather than folded in silently: KRT's via-in-pad stub for SW_V3 came out
+      0.1069 mm wide, the `width_floor` stitch pass lifted it to the 0.200 mm
+      CTRL floor as it should, and the extra 0.047 mm per side is exactly what
+      took this pair from 0.205 mm to 0.158 mm. The alternative — leaving the
+      stub thin and scoping the WIDTH floor instead — was rejected because the
+      number to be justified would then be 0.1069 mm, an artifact of one router
+      run, rather than a geometry anyone can re-derive.
+# ---- the withdrawn first attempt, kept as the record ----------------------
+#     THE FOUR SW_V* NETS WERE ADDED AFTER THE FIRST STITCHED DRC RUN, and the
+#      pair is NAMED because "every pair inside this box" is not an isolation
+#      argument (canon R-SCOPE). MEASURED: SW_V2's In2.Cu segment
+#      (41.630, 51.286)->(41.267, 50.923) approaches SW_V3's In2.Cu segment
+#      (41.750, 50.800)->(41.750, 50.900) to 0.358 mm centre-to-centre; at
+#      0.200 mm each that is a 0.158 mm gap, and BOTH segments lie wholly inside
+#      rf_launch (x 38.30..43.70, y 46.30..51.70), which is what the
+#      bounded-on-both-sides `insideArea` condition requires.
+#      THE PAIR IS TWO ADJACENT BITS OF ONE 4-BIT SELECT WORD, leaving two
+#      adjacent lands of the SAME 0.50 mm-pitch row, on an INTERNAL layer, at
+#      3.3 V CMOS, each series-terminated at 47 ohm at its source. IPC-2221
+#      internal-conductor spacing at that voltage is 0.05 mm, so 0.158 mm is
+#      over 3x the standard; and crosstalk between them is not a hazard by
+#      construction — V1..V4 are written by ONE PIO `out pins, 4` instruction,
+#      so they are a synchronous word whose bits change together and are read by
+#      nothing until the next dwell begins.
+#      IT IS ALSO A FINDING THIS BOARD CREATED WHILE FIXING ANOTHER, which is
+#      why it is recorded rather than folded in silently: KRT's via-in-pad stub
+#      for SW_V3 came out 0.1069 mm wide, the `width_floor` stitch pass lifted
+#      it to the 0.200 mm CTRL floor as it should, and the extra 0.047 mm per
+#      side is exactly what took this pair from 0.205 mm to 0.158 mm. The
+#      alternative — leaving the stub thin and scoping the WIDTH floor instead —
+#      was rejected because the number to be justified would then be 0.1069 mm,
+#      an artifact of one router run, rather than a geometry anyone can
+#      re-derive.
 # ---------------------------------------------------------------------------
 
 length_match:

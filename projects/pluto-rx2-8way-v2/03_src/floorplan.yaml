@@ -224,10 +224,10 @@ placement:
                                       # series termination.
     R_LED:  [42.0000, 80.7500, 180]   # 680R ballast at module pad 5 (GP4)
     LED_ST: [38.8000, 80.7500, 0]     # pad 1 = CATHODE = GND, facing WEST
-    FB_3V3: [63.6000, 85.8000, 90]    # pad 1 (IN, 3V3_MOD) faces SOUTH toward
+    FB_3V3: [64.0000, 85.8000, 90]    # pad 1 (IN, 3V3_MOD) faces SOUTH toward
                                       # C_BULK; pad 2 (OUT, 3V3) faces NORTH,
                                       # which is the direction the switch is.
-    C_BULK: [63.6000, 89.8000, 270]   # 4.7uF on the UNFILTERED side, pad 1
+    C_BULK: [64.0000, 89.8000, 270]   # 4.7uF on the UNFILTERED side, pad 1
                                       # north at the ferrite
 
   patterns:
@@ -242,7 +242,7 @@ placement:
     # only electrically short if the return is (KH-SMA-KE-Z part.yaml notes).
     - {match: "J_*",  pad_overrides: [{on_net: GND, zone_connection: full}]}
 
-  legalize: {enable: false}
+  legalize: {enable: false, clearance: 0.45}
   # DISABLED, DELIBERATELY. Every refdes is an anchor, so there is nothing for
   # the legalizer to walk; leaving it enabled would let a future edit silently
   # move a jack and turn a 0.000714 mm floor spread into something the gate
@@ -295,6 +295,21 @@ keepouts:
   - {name: rf_launch, layers: [F.Cu], deny: [],
      rect: [38.300, 46.300, 43.700, 51.700]}
 
+  # `ctrl_escape` — the In2.Cu twin, and the reason it is a SEPARATE area is a
+  # measured mistake worth keeping: `rf_launch` is declared `layers: [F.Cu]`,
+  # and KiCad's `insideArea` is evaluated PER LAYER, so a scoped clearance bound
+  # to it cannot reach a pair of tracks on In2.Cu no matter how far inside the
+  # rectangle they sit. Adding the SW_V* nets to rf_launch's `nets:` list
+  # therefore changed NOTHING and the DRC finding stood — a relaxation that
+  # looks declared, reads as declared, and binds nothing. A rule area is
+  # (rectangle AND layer set), never a rectangle.
+  # 1.10 x 0.90 mm, tight around the one measured pair (SW_V2's In2.Cu segment
+  # and SW_V3's via-in-pad stub) and NOTHING else: SW_V1's barrel at x 40.75 and
+  # 3V3's In2.Cu run at x 40.20 both fall outside it, so they keep the 0.20 mm
+  # floor.
+  - {name: ctrl_escape, layers: [In2.Cu], deny: [],
+     rect: [41.000, 50.600, 42.100, 51.500]}
+
 asserts:
   pad_net:
     # NONE of these is observable in copper, and each names a defect that
@@ -344,7 +359,7 @@ silk:
     # v1 "labelled on its neighbour" class). The band between the rosette
     # and the module is empty and owns them cleanly.
     - ["ANT4", 39.100, 69.600, 0.9]
-    - ["ANT5", 52.800, 67.000, 0.9]
+    - ["ANT5", 56.500, 66.000, 0.9]
     - ["ANT6", 49.900, 49.250, 0.9]
     - ["ANT7", 47.850, 43.300, 0.9]
     - ["RX2",  40.750, 40.100, 0.9]

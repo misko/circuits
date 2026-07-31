@@ -360,3 +360,101 @@ clearance.**
 | P-LAND `escape_check.py --board` | **PASS** 50/130 graded, 0 failing, exit 0 |
 | P-OUT `placement_gates.py` | PASS, tightest pad-to-outline 1.49 mm (U_MCU.1) |
 | P-CAP | PASS, worst cut y=60.5: 5 nets vs 112 capacity, ratio 0.04 |
+
+## 2026-07-30 — finish (ROUTING gate GREEN): DRC 0 / 0 / 0
+
+- did: authored `03_src/route.yaml`, routed with KRT, promoted the chain,
+  stitched, ran `generate_rules` LAST, and classified every DRC finding to a
+  cause until there were none.
+- result: **`kicad-cli pcb drc --severity-all --refill-zones
+  --schematic-parity` = 0 violations / 0 unconnected / 0 parity.** R-LEN PASS:
+  realized copper spread **0.5314 mm = 7.01 deg at 6 GHz** against the 1.0 mm
+  ceiling, every arm 0 vias / 1 component / 2 ends.
+- next: stage 6 verification, then seal.
+
+### THE GRID WAS THE ANSWER TWICE, AND THE SECOND TIME WAS NOT AN RF PROBLEM
+
+`SW_V2` — the one control pad with a routed neighbour on BOTH sides — failed
+with *"ROUTE FAILED - no rippable blockers found"* in **eight of eight raced
+candidate chains**. Eight identical failures is what an INFEASIBILITY looks
+like when it is being read as congestion.
+
+The cause is `rf-design.md` 4(c) arriving on the digital side: U_SW's control
+pads sit at x = 40.75 / 41.25 / 41.75 / 42.25, ODD multiples of 0.05 mm,
+because the QFN's own pad offsets are +/-0.25, +/-0.75, +/-1.25 about a centre
+on the 0.05 grid — and at KRT's default `grid_step: 0.1` no centreline can land
+on them. The first draft of `route.yaml` gave `grid_step: 0.05` to the rf wave
+only, because that is where the canon records it. **The grid is a property of
+the PAD COORDINATES, not of the net class.** Moved to `route.common`: 4/4 waves
+routed, `quick` verdict CLEAN, zero clearance findings pre-stitch.
+
+**AND THE OBVIOUS REMEDY WAS MEASURABLY WORSE.** Before finding the grid I
+split the four select lines into four ordered west-to-east waves, reasoning
+that escape lanes are claimed by whoever routes first (golden rule 4). MEASURED:
+one `ctrl` wave leaves SW_V2 open (7 of 8 routed); four ordered waves leave
+SW_V2, SW_V4 **and** LED_STAT_A open. KRT can only rip up WITHIN ITS OWN WAVE,
+so splitting a congested field into single-net waves does not order the escapes
+— it FREEZES the first choice. Ordering helps ACROSS independent fields; inside
+one field the wave must stay whole.
+
+### THE DRC BURN-DOWN: 21 -> 2 -> 1 -> 0, FIVE CAUSES, NEVER A COUNT
+
+First stitched run, 21 findings. Grouped by CAUSE they are five unrelated
+problems, and 12 of the 21 are one config line:
+
+| n | class | cause |
+|---|---|---|
+| 12 | 8 clearance + 4 hole_clearance | **stitch-grid vias inside an SMA centre pin's own 0.80 mm LOCAL clearance.** Two grid sites at (31.0, 59.0) and (29.0, 61.0) measured 0.7312 and 0.7858 mm from J_ANT3 pad 1. Reported once per copper layer, which is why one geometric fact appears twelve times. |
+| 5 | silk_over_copper | the MODULE FOOTPRINT's own silk: four corner brackets ending 0.10 mm from its own castellation lands, and the pin-1 dot 0.10 mm from pad 1. |
+| 2 | clearance | **C_BULK placed 0.175 mm from U_MCU's east castellation column** — a placement error of 0.025 mm, invisible until copper existed. |
+| 1 | track_width | KRT's via-in-pad stub for SW_V3 came out **0.1069 mm** over a 0.100 mm run against the 0.200 mm CTRL floor. |
+| 1 | silk_overlap | J_ANT5's refdes vs **U_MCU's Value field, which the authored footprint put on F.SilkS** instead of F.Fab. |
+
+Fixes, one per cause: a per-PIN `avoid` ring in `stitch_grid` (radius 1.90 =
+pad 0.95 + local clearance 0.80 + via 0.125 — NOT a board-wide `pth_margin`
+bump, which would push stitch vias away from all forty SMA ground posts too);
+the footprint brackets shortened and the pin-1 dot moved; C_BULK and FB_3V3
+0.40 mm east; the `width_floor` stitch pass added; and the module's Value field
+moved to F.Fab, where KiCad's own convention puts it and where a JLC CONSIGN
+PLACEHOLDER CODE for a part JLC is asked to place nothing of does not print on
+the silkscreen.
+
+### THE ONE FINDING THIS BOARD CREATED WHILE FIXING ANOTHER
+
+Lifting SW_V3's 0.1069 mm stub to the 0.200 mm floor is right, and it cost
+0.047 mm per side: the pair SW_V2/SW_V3 went from a 0.205 mm gap to **0.158 mm**
+at 0.358 mm centre-to-centre. Recorded rather than folded in, because it is the
+failure museum's *"fixing a nudged via into a new violation"* entry.
+
+**AND THE FIRST FIX FOR IT DID NOTHING AT ALL, WHICH IS THE MORE USEFUL HALF.**
+I added SW_V1..V4 to `rf_launch`'s `nets:` list. `rf_launch` is declared
+`layers: [F.Cu]`; the pair is on **In2.Cu**; KiCad evaluates `insideArea` PER
+LAYER — so the relaxation was declared, read as declared, and bound nothing.
+The DRC finding was byte-identical afterwards. **A rule area is (rectangle AND
+layer set), never a rectangle.** The real fix is `ctrl_escape`, a 1.10 x 0.90 mm
+In2.Cu area containing exactly those two segments and their two barrels; SW_V1's
+barrel and 3V3's In2.Cu run fall outside it and keep the 0.20 mm floor.
+
+### FINAL SCOREBOARD, ALL UNPIPED, RAW EXIT CODES
+
+| gate | result |
+|---|---|
+| `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` | **0 / 0 / 0** |
+| R-LEN `copper_length_audit.py` | **PASS** spread **0.5314 mm = 7.01 deg**, ceiling 1.0; floor spread 0.0007 mm; 8/8 members measured, 0 vias each |
+| P-LAND `escape_check.py --board` | **PASS** 45 graded / 130 copper pads, 0 failing, 9 against a scoped clearance; routed cross-check 45/45, 0 wider than the model allows |
+| P-OUT / P-CAP `placement_gates.py` | **PASS** 0 fails 0 warns; tightest pad-to-outline 1.28 mm (C_BULK.1); worst corridor ratio 0.04 |
+| E-NETREF `net_reference_audit.py` | **PASS 95/95**, 0 ghost, 0 unreached |
+| R-PREFLIGHT `tier_preflight.py` | 0 FAIL / 1 WARN (PF-ROUTE-CLR, expected and answered by the two scoped clearances) |
+| stitch `gate:` | clean; 493 grid vias, 528 emitted, 0 pruned |
+
+### OWED, MEASURED, NOT MET — the via fence
+
+ARCHITECTURE sec 6 asks for a ground-via fence flanking every arm at
+**<= 1.35 mm** (guided lambda_g/20 = 1.3693, ADR-0003). The shared stitcher's
+`stitch_grid` steps with `range(int(...))`, so its pitch is an INTEGER number of
+millimetres — 1 mm (a ~2500-site via forest) or 2 mm. This board ships **2.0 mm
+= lambda_g/13.7**, which is conservative against the SOURCED free-space
+lambda/20 = 2.5 mm at 6 GHz and matches what `pluto-cal-switch` ships, but it
+does NOT meet this board's own tighter bound. Stated as a measured gap.
+A fractional step is silently TRUNCATED (`int(1.35)` = 1), which is a skill
+finding reported upward, not worked around here.
