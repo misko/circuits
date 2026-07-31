@@ -242,7 +242,7 @@ def t_strongest_tier_reached_passes():
 
 
 @test("the BARE-STRING form stays legal and is counted OWED, never failed — "
-      "45 of the fleet's 89 in-scope parts are real searches recorded as prose")
+      "47 of the fleet's 92 in-scope parts are real searches recorded as prose")
 def t_bare_string_is_owed_not_failed():
     """A gate that reds every existing part on day one gets switched off
     (G-VACUOUS's and schema_reader_audit's shared lesson). The bare-string list
@@ -267,7 +267,14 @@ def t_denominator_prints_on_the_pass_path():
     eq(g, "PASS", "P-PREC with no layout_refs anywhere")
     contains(det, "0/1", "graded/scoped prints even when graded is zero")
     contains(det, "OWED", "the owed half prints")
-    contains(det, "fleet floors", "the ratchet's numbers print with the row")
+    contains(det, "fleet floor", "the ratchet's numbers print with the row")
+    # This scratch tree is not a fleet board, so it exercises the NEW-BOARD
+    # path: an un-ratcheted board is told so IN ITS OWN ROW, with the line to
+    # add, rather than failed for existing. See PREC_OWED_CEILING's comment.
+    contains(det, "NOT YET RATCHETED",
+             "a board with no owed ceiling says so instead of borrowing one")
+    contains(det, "PREC_OWED_CEILING",
+             "and names where the bound is recorded, so the gap is closable")
 
 
 @test("P-PREC shares P-LAYOUT's in-scope rule exactly — the two gates cannot "
@@ -293,47 +300,141 @@ verified: "datasheet p.2"
 
 
 # ==================================================== the ratchet ============
-@test("the precedent ratchet is PINNED to the fleet — it may not be lowered "
-      "to buy a green run, nor silently lag adoption")
-def t_the_precedent_ratchet_is_pinned_to_the_fleet():
-    """`adr_bound_provenance`'s CITED_FLOOR/OWED_CEILING precedent, and
-    G-VACUOUS's VACUITY_FLOOR trick of measuring from OUTSIDE the gate.
+def _sweep_the_fleet():
+    """(graded, per_board_owed, scoped) measured with THIS FILE'S OWN reader.
 
-    THIS SWEEP USES ITS OWN READER (canon M1): it walks
-    `projects/*/02_parts/*/part.yaml` and applies the in-scope rule directly
-    rather than invoking `policy_audit`, so the numbers the floors claim are
-    not produced by the code the floors are meant to constrain. It is also
-    strictly READ-ONLY — running `policy_audit` over the live projects would
-    write `06_build/policy_audit.md` into six boards.
-
-    MEASURED 2026-07-30 at main tip: 89 in-scope parts across 6 boards, 0 with
-    a tier-graded record, 89 OWED (45 of them carrying a bare-string list — a
-    real search recorded as prose — and 44 carrying nothing at all)."""
+    canon M1: it walks `projects/*/02_parts/*/part.yaml` and applies the
+    in-scope rule directly rather than invoking `policy_audit`, so the numbers
+    the bounds claim are not produced by the code the bounds constrain. It is
+    also strictly READ-ONLY — running `policy_audit` over the live projects
+    would write `06_build/policy_audit.md` into seven boards."""
     import yaml
     src = POLICY.read_text(encoding="utf-8")
-    floor = int(re.search(r"^PREC_GRADED_FLOOR = (\d+)", src, re.M).group(1))
-    ceil = int(re.search(r"^PREC_OWED_CEILING = (\d+)", src, re.M).group(1))
     scope = re.search(r"LAYOUT_SCOPE = re\.compile\(r'([^']*)'\s*\n\s*r'([^']*)'",
                       src)
     check(scope, "could not read LAYOUT_SCOPE back out of policy_audit.py")
     rx = re.compile(scope.group(1) + scope.group(2), re.I)
 
-    scoped = graded = owed = 0
+    graded, scoped, owed = 0, 0, {}
     for py in sorted((ROOT / "projects").glob("*/02_parts/*/part.yaml")):
         y = yaml.safe_load(py.read_text(encoding="utf-8-sig")) or {}
         if not (len(y.get("pins") or {}) > 2 or rx.search(str(y.get("type", "")))):
             continue
         scoped += 1
+        board = py.parent.parent.parent.name
+        owed.setdefault(board, 0)
         if any(isinstance(e, dict) for e in (y.get("layout_refs") or [])):
             graded += 1
         else:
-            owed += 1
+            owed[board] += 1
+    return graded, owed, scoped
+
+
+def _read_bounds():
+    """PREC_GRADED_FLOOR (int) and PREC_OWED_CEILING (dict) as SOURCE TEXT.
+
+    Parsed, never imported: `policy_audit` imports pcbnew at module scope on
+    some paths, and a bound read by executing the gate is a bound the gate
+    could compute."""
+    src = POLICY.read_text(encoding="utf-8")
+    floor = int(re.search(r"^PREC_GRADED_FLOOR = (\d+)", src, re.M).group(1))
+    block = re.search(r"^PREC_OWED_CEILING = \{(.*?)^\}", src, re.M | re.S)
+    check(block, "PREC_OWED_CEILING is not a per-board mapping in "
+                 "policy_audit.py — a fleet-wide absolute count is the bound "
+                 "that a correct action (commissioning a board) breaks")
+    caps = {m.group(1): int(m.group(2)) for m in
+            re.finditer(r'"([^"]+)"\s*:\s*(\d+)', block.group(1))}
+    return floor, caps
+
+
+@test("the precedent ratchet is PINNED to the fleet — it may not be lowered "
+      "to buy a green run, nor silently lag adoption")
+def t_the_precedent_ratchet_is_pinned_to_the_fleet():
+    """`adr_bound_provenance`'s CITED_FLOOR precedent, and G-VACUOUS's
+    VACUITY_FLOOR trick of measuring from OUTSIDE the gate.
+
+    GRADED is the FLEET half and is the only half that may be a fleet
+    aggregate: commissioning a board can only ADD parts, so the numerator
+    never falls, and a new board arriving with a graded dossier costs one
+    number raised in the same commit.
+
+    MEASURED 2026-07-30 at 221687ef: 92 in-scope parts across 7 boards, 1 with
+    a tier-graded record (pluto-rx2-8way-v2/02_parts/RP2040-Zero), 91 OWED."""
+    floor, _ = _read_bounds()
+    graded, _owed, scoped = _sweep_the_fleet()
     check(scoped > 0, "the fleet sweep found no in-scope parts — a zero "
                       "denominator is never a pass (canon M-COVER)")
     eq(graded, floor, f"tier-graded parts measured ({scoped} in scope) vs "
                       f"PREC_GRADED_FLOOR — it may only RISE, and it may not "
                       f"lag adoption either")
-    eq(owed, ceil, "OWED parts measured vs PREC_OWED_CEILING — it may only FALL")
+
+
+@test("the OWED ceiling is PER BOARD and TIGHT — every board with in-scope "
+      "parts carries a row, and each row equals what that board measures")
+def t_owed_ceilings_are_per_board_and_tight():
+    """WHY THIS TEST CHANGED SHAPE ON 2026-07-30, and it is the interesting
+    half. `PREC_OWED_CEILING` was ONE fleet-wide integer (89), asserted here
+    with `eq(owed, ceil)`. That bound BREAKS ON A CORRECT ACTION: commissioning
+    any board with one un-graded in-scope part raises the fleet count, and no
+    amount of work on the existing boards can prevent it. It breached within
+    hours — pluto-rx2-8way-v2 arrived with 3 in-scope parts, the fleet went
+    89 -> 91 while genuinely IMPROVING (89/89 = 1.000 of scope owed, then
+    91/92 = 0.989), and this very test was the thing that went red.
+
+    MEASURED, both directions:
+      * the fleet-wide form, run against the tree at 221687ef, is
+        `eq(91, 89)` -> RED, on a fleet that had improved. That is the defect,
+        reproduced: a ratchet that a correct action breaks is a tax on
+        commissioning, and the only way to pay it is to re-baseline, which
+        records nothing and re-breaks on the next board.
+      * a FRACTION-of-scope ceiling does not fix it either and is the obvious
+        next idea: while the fraction is below 1.000, a new all-ungraded board
+        pushes it back UP. Any FLEET AGGREGATE has this shape.
+
+    So the bound is per board: a board's own owed count is a thing that
+    board's author controls, it can only fall through their work, and a NEW
+    board cannot breach another board's row. EQUALITY, not `<=`, so a board
+    that improves must lower its own row in the same commit and cannot bank
+    slack — that is the ratchet.
+
+    THE COVERAGE HALF IS WHAT KEEPS THIS FROM GOING VACUOUS: a per-board map
+    is trivially satisfiable by deleting rows, so every board the sweep finds
+    with in-scope parts MUST have one. `policy_audit` reports a board with no
+    row as NOT YET RATCHETED in its own P-PREC row rather than failing it
+    (a board that has never been measured cannot have regressed); this test is
+    where that grace stops being free.
+
+    RED-VERIFIED 2026-07-30 by mutating `PREC_OWED_CEILING`, all three
+    directions MEASURED (12/0 restored after each):
+      * DELETE `"pluto-cal-switch": 13` -> 11 passed / 1 FAILED, naming
+        `NO PREC_OWED_CEILING row: ['pluto-cal-switch']`. The map cannot be
+        satisfied by omission.
+      * LOOSEN `"smc0985-cooksense": 35` -> 40 -> 11 passed / 1 FAILED,
+        `got 35, want 40`. Slack cannot be banked.
+      * ADD a row for a board the sweep does not see -> 11 passed / 1 FAILED,
+        naming it. A bound nothing measures is not a bound."""
+    _, caps = _read_bounds()
+    _graded, owed, scoped = _sweep_the_fleet()
+    check(scoped > 0, "the fleet sweep found no in-scope parts — a zero "
+                      "denominator is never a pass (canon M-COVER)")
+    check(owed, "no board carries an owed count — the per-board map would be "
+                "vacuously satisfied")
+    missing = sorted(set(owed) - set(caps))
+    check(not missing,
+          f"boards with in-scope parts and NO PREC_OWED_CEILING row: "
+          f"{missing}. Add `'<board>': <n>,` to PREC_OWED_CEILING in "
+          f"policy_audit.py — an absent row is an unratcheted board, and a "
+          f"map that may omit boards is not a bound")
+    stale = sorted(set(caps) - set(owed))
+    check(not stale,
+          f"PREC_OWED_CEILING rows for boards the sweep does not see: "
+          f"{stale}. A row for a board that no longer has in-scope parts is a "
+          f"bound nothing measures")
+    for board in sorted(owed):
+        eq(owed[board], caps[board],
+           f"{board}: OWED parts measured vs its PREC_OWED_CEILING row — it "
+           f"may only FALL, and the row is TIGHT so an improvement must be "
+           f"recorded in the same commit rather than banked as slack")
 
 
 if __name__ == "__main__":

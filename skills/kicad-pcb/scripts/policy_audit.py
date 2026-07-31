@@ -59,30 +59,68 @@ GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A")
 # about which parts are in scope.
 #
 # MONOTONE IN THE DIRECTION THAT MATTERS, following `adr_bound_provenance`'s
-# CITED_FLOOR/OWED_CEILING and `gate_contract_audit`'s VACUITY_FLOOR:
-#   GRADED may only RISE, OWED may only FALL.
+# CITED_FLOOR and `gate_contract_audit`'s VACUITY_FLOOR:
+#   GRADED may only RISE (fleet-wide), OWED may only FALL (PER BOARD).
 # Edit either only in the commit that earns it, and say which run produced the
 # number. Pinned to the measured tree by `tests/t1_layout_precedent.py`
 # `t_the_precedent_ratchet_is_pinned_to_the_fleet` — which sweeps the fleet
 # with its OWN reader (canon M1) rather than running this gate, so the floor
 # can neither be lowered to buy a green run nor silently lag adoption.
 #
-# THESE ARE FLEET NUMBERS AND THIS GATE RUNS PER BOARD, so P-PREC itself does
-# NOT enforce them; it reports its board's graded/owed split and hard-fails a
-# MALFORMED or UNCLOSED record. The test is the ratchet. Said here rather than
-# left to be discovered, because a constant no code reads is the exact defect
-# class this repo keeps finding (canon G-ORPHAN).
+# THE TWO HALVES ARE SCOPED DIFFERENTLY, AND THAT ASYMMETRY IS THE WHOLE POINT.
+#
+# A ratchet is only a ratchet if the work it demands is work someone can DO.
+# GRADED-may-only-RISE is fleet-wide and safe there: commissioning a board can
+# only ADD parts, so the count never falls, and when a new board arrives
+# carrying a graded dossier the obligation is to raise one number in the same
+# commit — satisfiable.
+#
+# OWED WAS FLEET-WIDE TOO, AND THAT WAS A DEFECT, not a strict setting.
+# `owed <= 89` is an absolute count of un-graded in-scope parts across every
+# board. Commissioning ANY board with one un-graded in-scope part breaches it
+# on day one, and NO amount of work on the existing boards can prevent that.
+# It breached within hours of landing: pluto-rx2-8way-v2 arrived with 3 in-scope
+# parts and the fleet went 89 -> 91 while genuinely IMPROVING (89/89 = 1.000 of
+# scope owed, then 91/92 = 0.989). A bound that a correct action breaks is not
+# a ratchet; it is a tax on commissioning, and the only way to pay it is to
+# re-baseline — which records nothing and re-breaks on the next board.
+#
+# A FRACTION-OF-SCOPE CEILING DOES NOT FIX IT EITHER, which is worth writing
+# down because it is the obvious next idea. While the fleet fraction is below
+# 1.000, a new all-ungraded board pushes it back UP toward 1.000 and breaches
+# again. Any FLEET AGGREGATE has this shape.
+#
+# So OWED is scoped PER BOARD. A board's own owed count is a thing that board's
+# author controls, it can only fall through their work, and a NEW board cannot
+# breach another board's bound. A board absent from the map is reported as NOT
+# YET RATCHETED in its own P-PREC row — not failed, because a board that has
+# never been measured cannot have regressed — and picks up a bound the first
+# time someone records one. That declared gap is the honest price of never
+# failing a board for existing.
 PREC_GRADED_FLOOR = 1    # in-scope parts carrying a TIER-GRADED precedent
-                         # record. RAISED 0 -> 1 on 2026-07-30: the fleet's
-                         # first mapping-form dossier is
+                         # record, FLEET-WIDE. RAISED 0 -> 1 on 2026-07-30: the
+                         # fleet's first mapping-form dossier is
                          # pluto-rx2-8way-v2/02_parts/RP2040-Zero. The floor
                          # was declared INERT at zero and this is it stopping
                          # being inert, exactly as advertised — a numerator
                          # advance against a floor that may only RISE.
-PREC_OWED_CEILING = 89   # in-scope parts with NO tier-graded record: 89 of 89.
-                         # 45 of them DO carry a bare-string `layout_refs:`
-                         # list — a real precedent search recorded as prose no
-                         # machine can rank — and 44 carry nothing at all.
+#
+# PER-BOARD owed ceilings: in-scope parts with NO tier-graded record. Each may
+# only FALL, and each is TIGHT (the test asserts equality, so a board that
+# improves must lower its own row in the same commit and cannot bank slack).
+# MEASURED 2026-07-30 at 221687ef, read-only sweep of `projects/*/02_parts/`:
+# 92 in scope across 7 boards, 1 GRADED, 91 OWED — 47 of those carrying a
+# bare-string `layout_refs:` list (a real precedent search recorded as prose no
+# machine can rank) and 44 carrying nothing at all.
+PREC_OWED_CEILING = {
+    "crow-mic-pod-v2": 4,
+    "crow-recorder-central-v2": 17,
+    "pluto-cal-switch": 13,
+    "pluto-rx2-8way": 8,
+    "pluto-rx2-8way-v2": 2,        # 3 in scope, 1 of them GRADED
+    "smc0985-cooksense": 35,
+    "usb-hub-3s-v3": 12,
+}
 
 
 def parse_report(text):
@@ -383,7 +421,7 @@ def main():
     # WHAT IS GRADED, AND WHY IT IS NOT "REACH TIER 2 OR FAIL". This gate cannot
     # know whether a stronger artifact EXISTS for an arbitrary part — that is a
     # fact about the web, not about this tree — and a gate that demanded tier 2
-    # unconditionally would red all 89 in-scope parts on day one and be switched
+    # unconditionally would red all 92 in-scope parts on day one and be switched
     # off within the week (the failure mode named by name in both
     # `gate_contract_audit`'s G-VACUOUS block and `schema_reader_audit`'s
     # ratchet). Reaching tier 2 is also not always RIGHT: the guide is a 19.9 MB
@@ -415,8 +453,9 @@ def main():
             # ---- P-PREC, on the SAME scope and the SAME single read -------
             # The MAPPING form of a `layout_refs:` entry is what is graded. The
             # bare-string form stays legal and is counted OWED, never failed —
-            # 45 of the fleet's 89 in-scope parts are bare strings today and
-            # they represent real work, not absence. Same two-form idiom as
+            # 47 of the fleet's 92 in-scope parts are bare strings today (44
+            # more carry nothing at all) and they represent real work, not
+            # absence. Same two-form idiom as
             # `pins.<N>` (scalar vs mapping) and `sourcing.alternates` (bare
             # code vs mapping), so this is not a new dialect.
             entries = [e for e in (y.get("layout_refs") or [])
@@ -474,14 +513,25 @@ def main():
             # THE DENOMINATOR PRINTS ON THE PASS PATH TOO (canon M-COVER). A
             # board where nothing is graded says so in the same words as a board
             # where everything is, so "0 graded" can never read as "all clear".
+            #
+            # The owed ceiling is THIS BOARD's (see the constant block). A board
+            # with no row is NOT YET RATCHETED, and says so HERE — in its own
+            # report, which its own author reads at seal time — because that is
+            # the only channel where the person who can close the gap is
+            # looking. Failing it instead would fail a board for existing.
+            owed_cap = PREC_OWED_CEILING.get(proj.name)
             grade("P-PREC", not prec_bad,
                   f"layout precedent: {prec_graded}/{scoped} in-scope parts "
                   f"carry a TIER-GRADED record, {len(prec_owed)} OWED "
                   f"(bare-string or absent)"
                   + (f": {sorted(prec_owed)[:6]}"
                      f"{'...' if len(prec_owed) > 6 else ''}" if prec_owed
-                     else "") + f" [fleet floors: graded >= "
-                  f"{PREC_GRADED_FLOOR}, owed <= {PREC_OWED_CEILING}]",
+                     else "") + f" [fleet floor: graded >= "
+                  f"{PREC_GRADED_FLOOR}; this board's owed ceiling: "
+                  + (f"{owed_cap}, may only FALL]" if owed_cap is not None
+                     else f"NOT YET RATCHETED — add "
+                          f"'{proj.name}': {len(prec_owed)} to "
+                          f"PREC_OWED_CEILING in policy_audit.py]"),
                   f"precedent record malformed or UNCLOSED "
                   f"({len(prec_bad)}): {prec_bad[:3]}"
                   f"{'...' if len(prec_bad) > 3 else ''}")
