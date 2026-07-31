@@ -473,7 +473,7 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: interesting part is that ONE GATE now carries both: the same file has an
 #: undefeatable assertion and a forgeable one, and only saying so out loud keeps
 #: a reader from generalising the strong one to the weak one.
-VACUITY_FLOOR = 8
+VACUITY_FLOOR = 9
 
 
 def vacuity_declaration(text):

@@ -37,6 +37,7 @@ fi
 # has already paid for.
 SUITES=(
   t1_converter.py
+  t1_occlusion.py
   t1_generate_board.py
   t1_audit.py
   t1_placement_gates.py

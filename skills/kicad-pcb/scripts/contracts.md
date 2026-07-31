@@ -287,6 +287,39 @@ BACKEND GAP to report, not a bespoke script to write here.
   every live release never graded by FAB-PAYLOAD or RENDER** — both landed that
   day, which is the mechanism working, not a defect.
 
+- **SCHEMATIC OCCLUSION IS GEOMETRY, AND A DIRECTION IS TWO FACTS (canon S11).**
+  `sch_occlusion.py SHEET.kicad_sch [--max N] [--verbose] [--json OUT]` places
+  every glyph a `.kicad_sch` draws — global-label plates by their REACH, symbol
+  bodies / pin lines / ground glyphs by the instance ROTATION — and reports a
+  finding wherever TEXT lands on another drawn object. `policy_audit.py` imports
+  it for the S-OCCL row; the ceiling `soccl_max` is 0 and no board overrides it.
+  WHY IT MOVED OUT OF `policy_audit.py`: the model inlined there built every
+  plate as `if ang == 180: reach -x else: reach +x`. `justify` — which is what
+  selects the SENSE — was read nowhere, the vertical axis did not exist (68 of
+  1507 fleet labels sit at 90/270), and there was no symbol geometry of any
+  kind. MEASURED 2026-07-31 across the converter fix at `948ef54d`:
+  **pluto-rx2-8way-v2 read 4 findings before and 4 after while 3 of the 4 were
+  REPLACED**; direction-aware the same two sheets read 88 -> 11 and the
+  interposer 58 -> 0.
+  **EVERY CONSTANT IS MEASURED FROM `kicad-cli sch export svg` INK** (canon M1 —
+  the emitter must not grade its own angles): the `(angle, justify)` table, the
+  no-`justify` default, the rotation transform, and the two text metrics. Two
+  inherited constants were wrong in OPPOSITE directions and both are now
+  measured — a plate's cross extent (2.5408 mm against 2.2, silence) and a
+  property text's half-height (0.53x font against 0.9, a 70%-too-tall box that
+  INVENTED findings the render refutes).
+  **FALSIFIED IN BOTH DIRECTIONS**: 68 of 68 text-vs-text findings on four
+  post-fix sheets confirmed as real ink overlaps, 0 unconfirmed; the converse
+  sweep is the gate's DECLARED VACUITY (pin NAME/NUMBER text is not placed —
+  KiCad derives its position from the body edge, `pin_names (offset)`, the hide
+  flags and the rotation, and guessing would invent findings on every board).
+  An object it cannot PLACE is a FAIL naming it, never a pass (M-COVER);
+  0 unplaced across all 8 fleet sheets. 9 known-bad + 1 vacuity in
+  `tests/t1_occlusion.py`, four axes in two shapes each, with the RED side
+  re-extracted from `git show 948ef54d:policy_audit.py` and RUN every run.
+  DECLARED SCOPE LIMIT: it grades the `.kicad_sch`, not the `pdf/schematic.pdf`
+  a human reads — the premise pluto-rx2-8way-v2's withdrawn waiver rested on.
+
 - **RELEASE SELECTION IS SCOPED TO A BOARD, AND IMPORTED, NEVER RE-DERIVED.**
   `policy_audit.py` takes `--board <04_kicad stem>` on a MULTI-BOARD project
   and resolves M-REL / M-BOM / A-POP / A-BODY against **that board's** release

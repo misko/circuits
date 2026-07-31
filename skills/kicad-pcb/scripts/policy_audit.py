@@ -31,6 +31,9 @@ from pathlib import Path
 
 import pcbnew
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import sch_occlusion                                          # noqa: E402
+
 try:
     import yaml
 except ImportError:
@@ -877,52 +880,38 @@ def main():
         rows.append(("P-ADJ", "N-A", "no 02_parts entries"))
         rows.append(("P-ADJ-PAIR", "N-A", "no 02_parts entries"))
 
-    # S-OCCL: schematic text occlusions — global-label plates vs each other
-    # and vs symbol Reference/Value property texts (approx bboxes; the same
-    # ground-truth-geometry philosophy as the board silk de-collision).
+    # S-OCCL: schematic text occlusion, DIRECTION-AWARE. The model lives in
+    # `sch_occlusion.py` — it places every drawn object on the page (label
+    # plates by their MEASURED (angle, justify) reach, symbol bodies, pins and
+    # ground glyphs by the MEASURED rotation transform) and reports genuine
+    # overlaps.
+    #
+    # WHAT WAS HERE, and why it had to go. The model inlined at this spot built
+    # a label's rectangle as `if ang == 180: reach -x else: reach +x` — every
+    # non-180 angle sent to +x, `justify` read nowhere, and no symbol geometry
+    # of any kind. So the whole VERTICAL axis (68 of 1507 fleet labels) was
+    # modelled on the wrong axis, and a plate lying across a chip body was
+    # invisible. MEASURED consequence on pluto-rx2-8way-v2: it reported 4
+    # findings before the converter fix at 948ef54d and 4 after while 3 of the
+    # 4 were REPLACED — the same number over a different sheet. The
+    # direction-aware model reads 88 -> 11 on those two sheets.
     if sch_p:
         stxt = Path(sch_p).read_text(encoding="utf-8-sig")
-        items = []  # (x0,y0,x1,y1,desc)
-        CH_W, CH_H = 1.05, 2.2   # per-char width, line height @1.27mm font
-        for m in re.finditer(r'\(global_label "([^"]+)".{0,80}?\(at ([-\d.]+) ([-\d.]+) (\d+)\)', stxt):
-            txt, gx, gy, ang = m.group(1), float(m.group(2)), float(m.group(3)), int(m.group(4))
-            wlen = (len(txt) + 2) * CH_W
-            if ang == 180:   # plate extends left of anchor
-                items.append((gx - wlen, gy - CH_H / 2, gx, gy + CH_H / 2,
-                              f"label {txt}"))
-            else:
-                items.append((gx, gy - CH_H / 2, gx + wlen, gy + CH_H / 2,
-                              f"label {txt}"))
-        # INSTANCE properties only — lib_symbols prototypes all sit at the
-        # same local coords and generate pure false positives
-        for im_ in re.finditer(r'\(symbol \(lib_id[^\n]*\n(.{0,1200}?)\(pin ',
-                               stxt, re.S):
-            blk = im_.group(1)
-            for pm in re.finditer(r'\(property "(Reference|Value)" "([^"]+)" \(at ([-\d.]+) ([-\d.]+) \d+\)\s*\(effects \(font \(size ([\d.]+) [\d.]+\)\)(?: \(justify (\w+)\))?', blk):
-                kind, txt, gx, gy, fs, just = (pm.group(1), pm.group(2),
-                                               float(pm.group(3)),
-                                               float(pm.group(4)),
-                                               float(pm.group(5)), pm.group(6))
-                if "hide" in blk[pm.end():pm.end() + 60]:
-                    continue
-                w = len(txt) * fs * 0.82
-                if just == "right":
-                    box = (gx - w, gy - fs * 0.9, gx, gy + fs * 0.9)
-                elif just == "left":
-                    box = (gx, gy - fs * 0.9, gx + w, gy + fs * 0.9)
-                else:
-                    box = (gx - w / 2, gy - fs * 0.9, gx + w / 2, gy + fs * 0.9)
-                items.append(box + (f"{kind} {txt}",))
-        occl = []
-        for i in range(len(items)):
-            for j in range(i + 1, len(items)):
-                a, b = items[i], items[j]
-                if a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]:
-                    occl.append(f"{a[4]} x {b[4]}")
+        occl, unmodelled, graded, tot_obj = sch_occlusion.occlusions(stxt)
         thr = int(cfg.get("soccl_max", 0))
-        grade("S-OCCL", len(occl) <= thr,
-              f"{len(occl)} text occlusions (<= {thr})",
-              f"{len(occl)} schematic text occlusions: {occl[:6]}")
+        # An object this model could not PLACE is not a clear one (canon
+        # M-COVER). Measured 2026-07-31: 0 unplaced across all 8 fleet sheets.
+        if unmodelled:
+            grade("S-OCCL", False, "",
+                  f"{len(unmodelled)} of {tot_obj} drawable object(s) could "
+                  f"not be placed, so this sheet is not graded: "
+                  f"{unmodelled[:4]}")
+        else:
+            grade("S-OCCL", len(occl) <= thr,
+                  f"{len(occl)} text occlusions (<= {thr}); "
+                  f"{graded}/{tot_obj} drawable objects placed",
+                  f"{len(occl)} schematic text occlusions "
+                  f"({graded}/{tot_obj} drawable objects placed): {occl[:6]}")
     else:
         rows.append(("S-OCCL", "N-A", "no schematic"))
     rows.append(("S5", "HUMAN", "design-math spot-check per review protocol"))
