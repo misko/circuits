@@ -751,21 +751,41 @@ def t_stock_clean():
 
 
 @test("release_freshness A-STOCK: a sourcing_plan entry with the MEASURED "
-      "stock and its date clears an otherwise-blocking line")
+      "stock, its date AND its order_status clears an otherwise-blocking line")
 def t_stock_sourcing_plan_clears():
-    """The ONE legitimate way past a non-OK line — and it costs a number and
-    a date, not a sentence.
+    """The ONE legitimate way past a non-OK line — and it costs a number, a
+    date and a CLASSIFICATION, not a sentence.
 
-    NB this is the single A-STOCK case that does NOT go red against the
-    pre-change gate: it asserts the ABSENCE of a finding, which is vacuously
-    true when the check does not exist. Its teeth live in
-    `t_stock_plan_incomplete` (a plan without the measurement FAILS) and
-    `t_stock_verdict_fail` (the same line with NO plan FAILS)."""
+    CHANGED 2026-07-30 (canon A-BUY — NOT `A-ORDER`, which has meant
+    `rules_audit`'s generate-rules-runs-LAST check since 2026-07-17; the new
+    check was renamed before landing and this docstring carried the pre-rename
+    name). This fixture used to omit `order_status:` and still pass, because a
+    plan entry SILENTLY CLEARED its line whatever its own measured number said.
+    That silence is the defect A-BUY closes: a plan measuring 0 against a need
+    of 5 now has to say which of PLANNED (the catalog is irrelevant to this
+    line — consignment, as here) or BLOCKED (it cannot be bought as sealed) it
+    means.
+
+    NB this case asserts the ABSENCE of a finding, so its teeth live in the
+    known-bads: `t_stock_plan_incomplete` (no measurement) and
+    `t_stock_verdict_fail` (no plan at all) here, plus A-BUY's own 11
+    known-bads in `tests/t1_release_freshness.py` — of which
+    `t_order_plan_unclassified` is exactly this tree minus the
+    `order_status:` line.
+
+    RED-VERIFIED on REAL BYTES, 2026-07-30, in the direction that matters:
+    `projects/crow-recorder-central-v2/03_src/rules/assembly.yaml` is the live
+    source for the sealed v1.7 release and carries the same consigned C6938291
+    shortfall. Graded WITH `order_status: PLANNED` it prints
+    `SOURCING: PLANNED-1`; with that ONE line reverted to its pre-change form
+    it prints `SOURCING: UNGRADED + FAIL (1 finding(s))` and
+    `ORDER-PLAN-UNCLASSIFIED: ... measures stock 0 against 1 x 5 = 5`."""
     asm = CLEAN_ASSEMBLY + """
 sourcing_plan:
   - lcsc: C6938291
     measured_stock: 0
     measured_on: 2026-07-24
+    order_status: PLANNED
     plan: "consigned from stock on hand (5 pcs); JLC stock irrelevant here"
 """
     rel, _ = rel_tree(CROW13, assembly=asm,
@@ -779,6 +799,9 @@ sourcing_plan:
     not_contains(r.out, "STOCK-VERDICT-FAIL",
                  "a planned line does not accuse the release")
     not_contains(r.out, "STOCK-INSUFFICIENT", "the plan covers the line")
+    contains(r.out, "SOURCING: PLANNED-1",
+             "a consigned shortfall is PLANNED, and it is stated out loud "
+             "rather than vanishing into the YAML")
 
 
 @test("release_freshness A-STOCK FAILS crow-recorder-central-v2 v1.3: its "

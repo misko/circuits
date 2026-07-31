@@ -185,6 +185,14 @@ sourcing_plan:
   - lcsc: C6938291
     measured_stock: 0
     measured_on: 2026-07-25
+    # canon A-BUY (NOT A-ORDER — that ID has meant `rules_audit`'s
+    # generate-rules-runs-LAST check since 2026-07-17, and this one was
+    # renamed before landing): a plan whose own measured number does not cover
+    # qty x build_quantity MUST classify itself. PLANNED, not BLOCKED: the
+    # catalog reading is irrelevant to whether this order can be placed,
+    # because the part is CONSIGNED (see consigned: U1). A buyer following
+    # ORDER_README can order today.
+    order_status: PLANNED
     plan: "CONSIGNED — JLC stock is IRRELEVANT for this line. We supply U1
            (XU316-1024-TQ128-I24) from global distribution; JLC only places it.
            Measured JLC stock on 2026-07-25 is 0 and has been 0 at every check
