@@ -50,3 +50,26 @@
 # We keep D1.4.
 - lcsc: C504007
   pad_alias: {"5": "1", "1": "3", "2": "2", "3": "5", "4": "4"}
+  why: >
+    NUMBERING CLASH, NOT A LAND-PATTERN DISAGREEMENT, and the pad coordinates
+    settle it rather than argue it. MEASURED 2026-07-30 from BOTH footprint
+    files directly — ours through pcbnew's GetFPRelativePosition, JLC's from
+    their own cached jlc.pretty/SMA-TH_KH-SMA-KE-Z.kicad_mod. All FIVE hole
+    centres agree to 0.000 mm: (0,0), (-2.54,-2.54), (-2.54,+2.54),
+    (+2.54,+2.54), (+2.54,-2.54). What differs is which hole is called 1 — we
+    number the CENTRE PIN 1 (it is the RF signal, and the datasheet sheet-2 PCB
+    inset labels the pattern 5-D1.4 with the centre as signal), JLC numbers the
+    centre 5 and walks the four corner posts 1..4. The reported
+    `PAD-GEOM pad 3<->5 ours 7.18 vs JLC 3.59` is therefore arithmetic over two
+    label sets: 7.18 mm is the 5.08-square DIAGONAL and 3.59 mm is the HALF
+    diagonal, so one library's pair is corner-to-corner and the other's is
+    centre-to-corner. AFTER the alias, all ten refs measure
+    `OK fit=0.00mm jlc_offset=0` and the twin's OK count rises 15 -> 25 with
+    rotation-fitted refs 17 -> 27: the alias RESTORES verification coverage
+    rather than waiving the question. NOT COVERED by the alias, stated so it is
+    not read as covered: JLC's model drills 1.600 mm where ours drills 1.400 mm
+    and pads 2.500 vs 1.900. OURS IS THE DATASHEET NUMBER (5-D1.4; a 0.9 mm
+    SQUARE post has a 1.273 mm diagonal, so D1.3 leaves 0.014 mm radial and
+    D1.4 leaves 0.064 mm) and JLC's 1.6 is their catalog model's approximation,
+    which would give 0.164 mm slop on a launch whose whole job is a controlled
+    transition. We keep D1.4.

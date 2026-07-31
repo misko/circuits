@@ -1,0 +1,96 @@
+# policy_waivers.yaml — pluto-rx2-8way-v2
+#
+# Read by skills/kicad-pcb/scripts/policy_audit.py. Shape:
+#   {id: <CHECK-ID>, refs: [...], why: "<EVIDENCE, not rationale>"}
+#
+# CANON M4: a waiver needs EVIDENCE, not rationale, and a waiver copied from
+# another board is an inherited defect rather than a judgement. Every entry
+# below names the measurement that discharges the check and the command that
+# produced it. Nothing here is copied from another project.
+#
+# THREE ENTRIES, and TWO OF THEM ARE GATE/BOARD-SHAPE MISMATCHES RATHER THAN
+# BOARD DEFECTS — reported upward as proposed skills/ changes in the same
+# breath, because a waiver that hides a gate bug is how a gate becomes
+# furniture.
+
+# ---------------------------------------------------------------------------
+- id: P-POL
+  refs: [ALL]
+  why: >
+    THE CHECK LOOKS FOR PER-BOARD PYTHON THAT ADR-0002 ABOLISHED. P-POL greps
+    03_src/ for "a scripted pad-1-net polarity check"; this is a ZERO-BESPOKE-
+    PYTHON board (repo ADR-0002 amendment 2026-07-23 — a new board writes no
+    generation Python at all), so 03_src/ contains config and two drivers and
+    nothing to grep. The check is not unperformed, it is performed ELSEWHERE
+    AND MECHANICALLY: 03_src/floorplan.yaml declares an `asserts.pad_net:`
+    block of TWELVE pad->net assertions, and
+    skills/kicad-pcb/scripts/generate_board_generic.py evaluates every one of
+    them at board-generation time and HARD-FAILS the driver on a mismatch.
+    MEASURED 2026-07-30 in the full `03_src/rebuild_all.sh` run (exit 0):
+    "pad_net polarity, 12/12". The twelve are the assertions no copper check
+    can see — U_SW.1 (LS) = GND, because LS carries a 1 Mohm INTERNAL pull-up
+    so a float selects the COMPLEMENTED half of the truth table and the board
+    would sweep eight antennas in a plausible-looking wrong order; U_SW.9/.12 =
+    SW_V1/SW_V4 (V1 is the MSB, and a reversed sweep is absorbed by an AoA
+    solver as a ROTATED ARRAY); U_SW.19/.22/.24 = RX1_TAP/RX2_OUT/ANT1;
+    U_SW.25 (EP) = GND; and four U_MCU pads that cross-check the module's
+    VENDOR numbering, which runs CLOCKWISE FROM THE TOP-RIGHT — the mirror of
+    every IC — and agrees with the printed GPIO numbers for SIXTEEN
+    CONSECUTIVE PADS before diverging at 17.
+    PROPOSED SKILLS PATCH (reported, not applied — skills/ is not this board's
+    partition): P-POL should accept a floorplan.yaml `asserts.pad_net:` block
+    as satisfying evidence, exactly as it accepts a script, or every
+    generic-backend board will carry this identical waiver.
+
+# ---------------------------------------------------------------------------
+- id: P-KEEP
+  refs: [ALL]
+  why: >
+    SAME SHAPE AS P-POL: the check greps 03_src/ for "scripted mate-direction/
+    keepout checks" and this board writes no per-board Python. The keepouts are
+    DECLARED and MACHINE-ENFORCED, in three places, each with a measurement:
+    (1) 03_src/route.yaml `prep.keepouts` — the mounting-hole rule carries
+    `refdes_prefix: H`, without which a 3.0 mm radius would be stamped around
+    every hole on the board and this board's ten SMA jacks carry five 1.4 mm
+    plated holes each (50 holes), sterilising the entire rosette; (2) the
+    module's own carrier-facing copper keepout, a User.2 rect at
+    x 58.10..59.30 / y 73.80..86.00, derived from the vendor Creo STEP
+    (RP2040-Zero carries TEN LIVE SMD PADS on its underside at 1.270 mm pitch,
+    module-frame X 2.4..3.6 / Y 4.8..17.0, mapped through U_MCU at
+    (52.70, 80.75, rot 180)); (3) the User.3 digital fence that keeps the
+    ctrl/pwr/sig waves out of the RF rosette. ENFORCEMENT IS MEASURED, not
+    asserted: `route_and_stitch_generic.py` refuses to route into them and
+    `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
+    reports 0 violations / 0 unconnected / 0 parity on the driver-produced
+    board (verification/drc.json, both lists empty). MATE DIRECTION: this board
+    has no board-to-board mate and no `03_src/rules/mates.yaml` — the ten SMA
+    jacks mate to cables, and their orientation is graded by A-POS (worst
+    0.00000 mm over 27 CPL rows) and by the twin's per-body overlay
+    (verification/twin_overlay_top.md, 11 measurable bodies all within 1.00 mm).
+    PROPOSED SKILLS PATCH (reported, not applied): P-KEEP should accept
+    route.yaml `prep.keepouts` + floorplan keepout declarations as satisfying
+    evidence on a generic-backend board.
+
+# ---------------------------------------------------------------------------
+- id: S-OCCL
+  refs: ["3V3 x C_SW2", "SW_V2 x SEL_V2", "RX1_TAP x RX1_TAP_MID",
+         "LED_STAT x LED_STAT_A"]
+  why: >
+    FOUR TEXT OCCLUSIONS IN THE CONVERTER-GENERATED `.kicad_sch`, WHICH IS NOT
+    THIS BOARD'S HUMAN SCHEMATIC DOCUMENT. ADR-0002 Phase A splits the two
+    audiences explicitly: the human schematic is TSCIRCUIT'S OWN RENDER, shipped
+    as `pdf/schematic.pdf` (from 03_tscircuit/build/schematic.pdf), and the
+    converter `.kicad_sch` is the MACHINE artifact only — it feeds ERC, the
+    netlist and `--schematic-parity` and "need not be pretty" (kicad-pcb skill,
+    golden rule 3d). The four collisions are auto-placed label geometry in that
+    machine artifact and NONE of them changes a node: MEASURED on this board,
+    the netlist is 40 nets / 130 nodes, `net_label_survival.py` reports 23/23
+    labels surviving to the exported netlist (S-NETMERGE PASS), `count_parity`
+    is 4/4 source pairs over 28 refdes, and `kicad-cli pcb drc
+    --schematic-parity` returns 0 parity issues. Readability of the document a
+    human actually reads is graded on `pdf/schematic.pdf` by the fresh-context
+    render review, not here.
+    SCOPE OF THE WAIVER: the four named pairs only. A FIFTH occlusion, or any
+    occlusion involving a symbol body rather than a label, is not covered and
+    re-fails this check — which is the point of listing them by name instead of
+    waiving the check.

@@ -134,3 +134,115 @@ on all three**. The md5 delta is UUIDs and s-expression write order. Worth
 stating because the file-level comparison alone would have read as a difference,
 and a comparison that finds no differences and one that compares nothing print
 the same word (this board already paid for that once, on the netlist regexes).
+
+## 2026-07-30 20:50 — iterate 1 (Phase 3, the staging gates)
+
+- did: staged the complete archive into `07_releases/v1.0-2026-07-30/` and ran
+  the mechanical battery against it, UNPIPED, before any lens.
+- result, all MEASURED:
+
+| gate | result |
+|---|---|
+| `export_jlc_package.py` | **A-ROT BLOCKED, exit 2** — 12 placements over 3 LCSC codes carry no measured rotation row |
+| `bom_source_check.py` | PASS — every BOM LCSC == source; 7/7 R/C values graded |
+| `bom_legibility_check.py` | **F-LEGIBLE OK**, 13 checks; 11/11 rows carry a resolved MPN |
+| `jlc_stock_check.py --json` | **PASS 11/11** coded lines at >= 5x qty |
+| `part_facts_check.py` | P-FACT OK, 6/8 assertions graded, 2 UNREACHED and named |
+| `jlc_twin.py` | 25 OK / 56 rows, bodies mounted **27/27**, 1 critical (LED_ST POLARITY-FIT) |
+| `twin_overlay.py` (A-RENDER) | **OK** — 11 measurable bodies all within 1.00 mm; coverage 11/27, 16 unresolvable and NAMED |
+| `assembly_coverage.py` (A-POP) | was FAIL x11, now 1 (MANIFEST-UNDECLARED, closes with the MANIFEST) |
+| `policy_audit.py` | FAIL=3, PASS=29, WAIVED=3, HUMAN=6, N-A=4 |
+
+- next: two of the three policy FAILs close with the MANIFEST. The third does
+  not, and neither does A-ROT.
+
+**THE SEAL IS BLOCKED BY TWO INDEPENDENT WALLS, AND ONE OF THEM IS NOT MINE.**
+
+**WALL 1 — A-ROT, and it is a PARTITION wall, not a measurement one.** Three
+LCSC codes have no measured row in the per-LCSC rotation authority table:
+C2286 (LED_ST), C504007 (all ten SMA jacks), C5121458 (U_SW). The exporter
+exits 2 and deletes the BOM/CPL. THE MEASUREMENTS ARE DONE — all three are
+below, hand-derived — but the table lives at
+`skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv` and this agent's partition is
+`projects/pluto-rx2-8way-v2/**`. Reported upward as a patch rather than applied.
+The staged fab set was produced with `--allow-unsourced-rotations` and is marked
+NOT ORDERABLE; it will be BYTE-IDENTICAL once the rows land, because all three
+measured offsets are 0 and the CPL already carries board_rot + 0.
+
+**WALL 2 — P-ADJ, and it is a real placement finding on THIS board.** Two
+budgets are exceeded, both MEASURED off the board:
+ * `PE42482A-X:SW_V4 U_SW.12 -> R_PD4.1 = 7.96 mm of 4.0 mm`. The dossier's
+   reason is not decorative: V4=1 with V1..V3=0 MUTES EVERY PORT (Table 5,
+   PDF p10), so pin 12 is the one whose float is silent, and the dossier says
+   "the resistor belongs at the pad, not at the PIO end". It is at 2x the
+   budget. NOT WAIVED.
+ * `KH-SMA-KE-Z:RX1_MAIN J_RX1.1 -> J_ANT8.1 = 8.00 mm of 3.0 mm`. The two
+   jacks are the node; their flanges are 6.5 mm, so 8.00 mm is near the
+   physical floor. The number the budget's own sentence is about is the SERIES
+   part: **R_T1.1 sits 9.903 mm from J_ANT8.1**, and the routed RX1_MAIN copper
+   is 18.107 mm for an 8.00 mm through path — i.e. a ~10 mm branch, 0.36 lambda_g
+   at 6 GHz. That is the finding worth having, and it was invisible while eight
+   arms were failing the same check for a different reason.
+
+### THE BUDGET THAT DEMANDED A 3 mm ARM
+
+P-ADJ first reported EIGHT failures at `14.00mm of 3.0mm` — every RF arm. The
+gate was right about the number and the budget was wrong about the constraint.
+Its own `why:` reads *"Any SERIES PART belongs inside 3 mm of the launch"* —
+a statement about where a series part may sit. P-ADJ grades a NET SPAN, so on a
+TWO-PAD net the only span there is IS the whole arm, and the budget silently
+became "this arm must be 3 mm long". **The arm is 14.00 mm by ARCHITECTURE and
+cannot be 3**: it is the equalised radius of a ten-jack star around a 4x4 mm
+QFN, and the switch body alone is 4 mm across. A budget whose only admissible
+value cannot exist is a MIS-ENCODING, not a finding — and grading it as one is
+how a real gate becomes furniture.
+
+Corrected at source, not waived: the budget stays where the constraint it
+states can bind (RX1_MAIN, the only RF net carrying a series part), and the
+eight pure arms get the constraint as what it actually is — a PROHIBITION in
+`notes:` (no series part on an arm at all), which is checkable by reading the
+netlist and is not a length.
+
+**AND THE GATE CAUGHT MY OWN OVER-CORRECTION TWENTY MINUTES LATER.** I had also
+added RX1_TAP and RX1_TAP_MID to the SMA dossier. `P-ADJ-UNREACHED` fired:
+"budgets DECLARED but graded by NOTHING". Correct — neither net carries a
+KH-SMA-KE-Z pad, and P-ADJ anchors a part's budget at THAT PART's pads, so both
+were ungraded lines that read like stricter ones. Same shape as the
+`RF_ANT_LAUNCH` ghost the block was already written against. Removed.
+
+### THE THREE ROTATION ROWS, MEASURED — the patch owed to `skills/`
+
+`jlc_rotation_measure.py` WITHHELD all three as `single-channel` (it has no
+cathode-mark channel and the three lands are geometrically degenerate). Derived
+by hand from the raw footprint pairs, which is a DIFFERENT method from the tool
+(canon M1):
+
+* **C2286 = 0**, `two-channel`. The tool proposes **180 and is WRONG** — the
+  same class as C2296/C2297. PAD-CLOUD is degenerate ({0,180} both 0.0375 mm),
+  so geometry admits both and only the polarity mark decides. OURS: F.SilkS
+  cathode bar at local x = **-1.485** and the F.Fab body chamfer cutting the
+  -x corner; pad 1 = GND = cathode. JLC (`LED-SMD_L1.6-W0.8-R-RD`): the
+  BEVELLED silk end runs (-1.40,-0.70)->(-1.70,-0.40)->(-1.70,+0.40)->
+  (-1.40,+0.70) — the -x end — while the pin-1 dot sits at (+0.80,-0.40) beside
+  their pad 1 at **x=+0.75**. So JLC numbers pad 1 = ANODE and KiCad numbers
+  pad 1 = CATHODE, and BOTH draw the cathode WEST: the physical parts already
+  align, **offset 0**. Datasheet corroboration is already in
+  `02_parts/KT-0603R/part.yaml`: the vendor figure numbers the cathode
+  terminal 2 with the diode bar at the circled-2 end. **A 180 row ships the
+  indicator dark, which is indistinguishable from a bad joint.**
+* **C504007 = 0**, `two-channel`. PAD-CLOUD is **0.0000 mm at ALL FOUR angles**:
+  four D1.4 holes on a 5.08 square plus one at the centre is its own 90-degree
+  rotation, and the part is a round threaded jack on a SQUARE 6.5 mm flange. The
+  numbering-free channel does not discriminate an angle — it proves there is no
+  angle to get wrong, which is stronger. PAD-NUMBER after the `pad_alias`:
+  rms 0.0000 at 0.
+* **C5121458 = 0**, `single-channel`, and it MUST name the JLC order-preview
+  human gate (RULE 3; precedent C13755). PAD-NUMBER rms **0.0098 mm @0 vs
+  2.8927 next best (295x)**; SIZE-CLASS degenerate 0.0000 at all four and
+  PAD-CLOUD degenerate 0.4684 at all four, because a QFN-24 4x4 P0.5 with a
+  centred 2.7 mm EP is its own 90-degree rotation; PIN-1-MARK 0.0000 @0 vs
+  3.2774, which follows numbering and is corroboration only.
+
+- next: STOP at the seal and report. The rows are a three-line patch to a file
+  this agent may not touch; P-ADJ is a placement finding for the red-team lenses
+  to grade, not for the designer to waive.

@@ -114,25 +114,54 @@ layout:
     # launches this board actually has. Ten jacks, nine nets: J_ANT8 and J_RX1
     # share RX1_MAIN, which is the pickoff node and is the whole point of the
     # board.
-    - {net: ANT1, max_span_mm: 3, why: "DERIVED: the transition from the D1.4
-       through-hole barrel to 50 ohm microstrip is the highest-VSWR feature on
-       each port. Any series part belongs inside 3 mm of the launch or it adds
-       a second discontinuity at a different reference plane"}
-    - {net: ANT2, max_span_mm: 3, why: "DERIVED, as ANT1 — per-port, because a
-       budget on one representative port would leave eight ungraded"}
-    - {net: ANT3, max_span_mm: 3, why: "DERIVED, as ANT1"}
-    - {net: ANT4, max_span_mm: 3, why: "DERIVED, as ANT1"}
-    - {net: ANT5, max_span_mm: 3, why: "DERIVED, as ANT1"}
-    - {net: ANT6, max_span_mm: 3, why: "DERIVED, as ANT1"}
-    - {net: ANT7, max_span_mm: 3, why: "DERIVED, as ANT1"}
-    - {net: RX1_MAIN, max_span_mm: 3, why: "DERIVED, as ANT1 — but this net
-       carries THREE pads (J_ANT8.1, J_RX1.1, R_T1.1), so its span is a T and
-       the 3 mm budget is measured across the whole node rather than along a
-       path. It is the tightest of the nine in practice and it is the node the
-       published main-line insertion loss depends on"}
-    - {net: RX2_OUT, max_span_mm: 3, why: "DERIVED, as ANT1 — the switch common
-       out to J_RX2. Its length is COMMON-MODE across all eight measured paths,
-       so an over-budget span here costs absolute loss but no published delta"}
+    # CORRECTED 2026-07-30 AT THE RELEASE GATE, AND THE CORRECTION IS THE
+    # INTERESTING PART. The block below used to carry a `max_span_mm: 3` entry
+    # for ANT1..ANT7 and RX2_OUT as well. P-ADJ measured them and FAILED ALL
+    # EIGHT at 14.00 mm of 3.0 mm — and P-ADJ was right about the number and
+    # the budget was wrong about the constraint.
+    #
+    # READ THE `why:` THAT SHIPPED WITH THOSE ENTRIES: "Any SERIES PART belongs
+    # inside 3 mm of the launch or it adds a second discontinuity at a different
+    # reference plane." That is a statement about where a SERIES PART may sit.
+    # P-ADJ grades a NET SPAN — the anchor pad to its nearest qualifying partner
+    # — so on a TWO-PAD net the only span there is IS the whole arm, and the
+    # budget silently became "this arm must be 3 mm long".
+    #
+    # THE ARM IS 14.00 mm BY ARCHITECTURE AND CANNOT BE 3. It is the equalised
+    # radius of a ten-jack radial star around a 4x4 mm QFN; the equal radii ARE
+    # the board's published property (ARCHITECTURE sec 7, ADR-0003). A 3 mm arm
+    # is not tight, it is geometrically impossible — the switch body alone is
+    # 4 mm across. A budget whose only admissible value cannot exist is a
+    # mis-encoding, not a finding, and grading it as a finding is how a real
+    # gate gets waived into furniture.
+    #
+    # So the budget is kept EXACTLY where the constraint it states can bind —
+    # the three RX1-chain nets, which are the only RF nets on this board that
+    # carry a series part — and the eight pure arms get the constraint stated
+    # as what it actually is: a prohibition, in notes:, not a span.
+    # MEASURED at this gate: ANT1..ANT7 and RX2_OUT each carry exactly TWO pads
+    # (J_ANTn.1 -> U_SW.k), so there is no series part on any of them to be
+    # 3 mm from, and the budget was vacuous as intent and false as arithmetic.
+    - {net: RX1_MAIN, max_span_mm: 3, why: "DERIVED: the transition from the
+       D1.4 through-hole barrel to 50 ohm microstrip is the highest-VSWR
+       feature on each port, so a series part belongs inside 3 mm of the launch
+       or it adds a second discontinuity at a different reference plane. THIS
+       net is where that can actually happen: it carries THREE pads
+       (J_ANT8.1, J_RX1.1, R_T1.1), R_T1 being the pickoff series resistor, so
+       the span is a real T and the budget grades a real placement choice. It
+       is the node the published main-line insertion loss depends on"}
+    # RX1_TAP AND RX1_TAP_MID WERE ADDED HERE IN THE SAME CORRECTION AND
+    # REMOVED AGAIN TWENTY MINUTES LATER, BY THE GATE. P-ADJ-UNREACHED fired:
+    # "budgets DECLARED but graded by NOTHING". It is right — those two nets
+    # carry NO KH-SMA-KE-Z pad (RX1_TAP is R_T2.2 -> U_SW.19, RX1_TAP_MID is
+    # R_T1.2 -> R_T2.1), and P-ADJ anchors a part's budget at THAT PART's pads.
+    # A budget declared on a net the part does not touch is not a stricter
+    # board, it is an ungraded line that reads like one — the same shape as the
+    # `RF_ANT_LAUNCH` ghost this block was already written against. If those two
+    # nets want a budget, its home is the dossier of a part that sits on them.
+    # MEASURED for the record while they were briefly declared:
+    # RX1_TAP U_SW.19 <-> R_T2.2 = 9.741 mm; RX1_TAP_MID R_T2.1 <-> R_T1.2 =
+    # 1.180 mm (routed copper 10.553 and 1.200 mm).
   notes:
     - "DERIVED: a D1.4 plated barrel in a 1.6 mm board is a ~1.6 mm-long,
        1.4 mm-diameter conductor — electrically short (lambda/20 at 6 GHz is
@@ -144,8 +173,28 @@ layout:
        >= D3.5 mm, not the D2.6 that DRC would accept — the barrel plus a tight
        antipad is a capacitive discontinuity that shows up as return loss at
        6 GHz, and the correction is geometric, not tunable later."
-    - "DERIVED: ground-via fence at <= 2.0 mm pitch (lambda/20 at 6 GHz)
-       continuing >= 10 mm down BOTH sides of each RF trace out of the launch."
+    - "PROHIBITION, and it replaces a mis-encoded span budget (see keep_short
+       above, corrected 2026-07-30): NO SERIES PART MAY SIT ON A PURE ARM.
+       ANT1..ANT7 and RX2_OUT run launch-pad to switch-pad with two pads and
+       nothing between them, and that is the requirement — not a 3 mm length,
+       which the equalised 14.00 mm radial star cannot have and must not be
+       graded against. The 3 mm launch-proximity budget belongs only to the
+       three RX1-chain nets, which are the only RF nets here that carry a
+       series part, and it is declared on exactly those."
+    - "CORRECTED 2026-07-30: the ground-via fence pitch is the GUIDED
+       lambda_g/20, not the free-space lambda/20. This note used to read
+       '<= 2.0 mm pitch (lambda/20 at 6 GHz)' — 2.0 mm is roughly the
+       FREE-SPACE figure (50/20 = 2.5 mm), and rf-design.md 3(b) settles that a
+       fence sitting in the substrate beside a microstrip must sample the wave
+       ON THE LINE, whose wavelength is lambda_0/sqrt(eps_eff). The two are
+       sqrt(3.3286) = 1.82x apart, so satisfying the free-space one proves
+       nothing about the guided one. On JLC04161H-7628 at 6 GHz the bound is
+       lambda_g/20 = 1.3693 mm (ADR-0003), the board declares <= 1.35, and it
+       ships a 0.95 mm lattice because a SQUARE lattice at pitch p projects at
+       p*sqrt(2) along the 45-degree arms. The fence continues >= 10 mm down
+       BOTH sides of each RF trace out of the launch. Left uncorrected, this
+       note was exactly the re-citation path rf-design.md 3(b) was written
+       against: a number with a parenthetical that does not derive it."
     - "OWED, and this is the biggest open item on this part: TEN jacks on one
        board is a port-to-port isolation question the vendor sheet does not
        touch. Two adjacent SMA barrels 10 mm apart share a laminate; the
