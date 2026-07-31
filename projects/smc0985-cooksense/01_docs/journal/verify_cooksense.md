@@ -2092,3 +2092,126 @@ on PROPERTIES, never on bytes — and every graded property reproduced exactly.
   diagnosing agent is already assigned — but named, because it is the difference
   between a suite that is 7-red and one that reports 7-red while one of them is
   skippable by whoever reads `$?`.
+
+## 2026-07-30 17:00 — start (v1.7 SEAL pass, the ninth attempt and the first with a vocabulary for the answer)
+
+- did: loaded `pcb-design` / `kicad-pcb` / `jlcpcb-fab` and CLAUDE.md, read
+  `217ea175` (the commit that split the release verdict into two claims), and
+  re-measured EVERY gate myself, UNPIPED, with raw exit codes captured — the
+  beacon's numbers were treated as INHERITED and re-derived rather than carried.
+  Staged the archive into `07_releases/cooksense-v1.7-2026-07-30/` (MUTABLE
+  until the seal commit, per the 07_releases contract) and launched BOTH
+  red-team lenses as concurrent zero-context re-gates on the new two-key
+  vocabulary.
+- result: **DESIGN-SIDE GATES ALL GREEN, MEASURED BY ME.** DRC 0/0/0 exit 0 on
+  the live board AND, separately, on `source/` copied OUTSIDE the repository
+  (the archive stands alone). policy_audit exit 0 FAIL=0. ERC exit 0, 411
+  violations **all severity `warning`, 0 errors** — computed from the severity
+  histogram in `erc.json`, not read off the "Found 411 violations" headline.
+  S-COUNT 4/4 over 239 refdes; E-INV 167/167; E-ADR 11/11; M-BOM PASS;
+  F-LEGIBLE 60 checks; P-FACT 6/6 reached a comparison; M-DEPEND PASS; M4
+  waiver_provenance PASS; placement_gates PASS; A-ROT/A-POL 64 measured rows;
+  contracts_audit 0 violations; M-BEACON PASS. **jlc_twin exit 0**, 207 OK / 465
+  finding rows, **206/206 bodies mounted against the CPL**. **A-STOCK exit 1 on
+  exactly one line.**
+- next: the two lens verdicts, then MANIFEST + the 2-commit seal.
+
+## 2026-07-30 17:00 — iterate 1 (three things the re-measure found that the inherited state did not say)
+
+- did: took nothing on faith, including which arguments the gates wanted.
+- result: **(a) `count_parity.py` REFUSES this project without `--board`** —
+  raw exit 1, `2 kicad_sch artifacts and no --board: ['cooksense',
+  'interposer']`. That refusal is the check working: `rels[-1]` over a two-board
+  project graded the wrong archive in four gates at once on 2026-07-27, and this
+  is the same class caught at the CLI. Re-run with `--board cooksense`: exit 0.
+  **(b) A-POP and F-LEGIBLE and the freshness gate all need `--assembly
+  03_src/cooksense/rules/assembly.yaml` / `--parts 02_parts` explicitly** on
+  this project, because the per-board rules live under `03_src/<board>/rules/`
+  and the default probe looks at `03_src/rules/`. Run with the default, A-POP
+  reports 37 UNDECLARED-UNPOPULATED refs — a number that is an ARTIFACT OF THE
+  INVOCATION, not of the board. Run correctly: the only finding is the missing
+  MANIFEST. **A gate pointed at the wrong file does not fail safe; it fails
+  LOUDLY AND WRONGLY, and a number copied out of that run into a report is
+  indistinguishable from a real one.** (c) `waiver_provenance.py` takes the
+  `projects` ROOT plus `--project`, not a project path; given the project path
+  it reports `0/0 waivers graded` and FAILs on the zero denominator (canon
+  M-COVER doing its job). Correct invocation: PASS, 12/72 graded.
+- next: A-RENDER, which is the gate whose verdict is not a property of the board.
+
+## 2026-07-30 17:00 — iterate 2 (A-RENDER's verdict is a function of its INPUT's resolution, reproduced from scratch)
+
+- did: re-ran `jlc_twin` into a fresh directory with the EasyEDA cache seeded
+  from the prior run (exit 0), then ran `twin_overlay.py` against three
+  different renders of the same unchanged board.
+- result: the gate returns THREE DIFFERENT VERDICTS on one board.
+  At jlc_twin's own built-in render (**5.1356 px/mm**): FAIL — `U_LDO` centre
+  1.25 mm, and `Q_SWDRVRHA` resolvable-but-unmeasured at 13 body pixels against
+  a floor of 20. At **9.7448 px/mm**: still FAIL, but on a DIFFERENT ref —
+  `J_KEY_MATRIX`, centre 1.11 mm, outward 0.02 mm — while U_LDO and
+  Q_SWDRVRHA both clear. At **15.3907 px/mm**: **exit 0**, 52 measured / 208
+  with an expected body, **0 resolvable-but-unmeasured**, every measurable body
+  within the 1.00 mm tolerance. This INDEPENDENTLY reproduces the disposition
+  recorded on 2026-07-28 (which measured 15.3961 px/mm and 53/210 — the small
+  denominator difference is mine being scoped by `--cpl`), so the finding is
+  confirmed twice by two agents from two renders. **The point that survives:
+  the failing REF changes with resolution, so the low-resolution FAIL was never
+  about U_LDO — it was about pixels.** The board never moved; only the picture
+  did. Shipped as `verification/twin_overlay.md` (15.39 px/mm, exit 0) WITH
+  `twin_overlay_lowres.md` beside it, because deleting the run that failed
+  would be choosing the resolution that gives the answer you want.
+- next: MANIFEST, then the seal — and the `git_dirty` wall that is not mine.
+
+## 2026-07-30 17:55 — stuck / STAND-DOWN (the seal was declined, and this time by the board)
+
+- did: re-gated BOTH red-team lenses fresh-context on the two-key vocabulary —
+  the topology one because it is the one that had declined eight times, and the
+  LAYOUT one for what looked like a bookkeeping reason: its legacy
+  `verdict: ORDER` retrofits to `order_verdict: ORDER`, and M-REV cross-checks
+  that against the measurement, so `ORDER` on a release measured
+  `SOURCING: BLOCKED` fires `REVIEW-ORDER-CONTRADICTS-EVIDENCE`.
+- result: **topology returned `design_verdict: SOUND` + `order_verdict:
+  BLOCKED-SOURCING` — exactly the sentence eight passes had no field for, and no
+  design P0.** **LAYOUT returned `design_verdict: DEFECTIVE` with TWO P0s.**
+  I re-measured both before standing down, and both CONFIRMED:
+  **(P0-1)** `power_tree.yaml` grades the AMS1117 at `iout_max_A: 0.3` while the
+  same file declares four 0.1 A switched sensor rails under a `linear_rails:`
+  key it labels "ignored by power_topology.py". With `pcbnew` on the archive's
+  own board — not the yaml, not the lens's word — `Q_SWA`/`Q_SWB`/`Q_SWRHA`/
+  `Q_SWRHE` pad 2 is `3V3` on **all four**, and the drains are `J_THERM_A.1`,
+  `J_THERM_B.1`, `J_RH_AMBIENT.1`, `J_RH_EXHAUST.1`. Declared load 0.70 A; the
+  graded 0.3 is **43 %** of it. At the file's own constants PD = 1.434 W = 120 %
+  of ceiling and dropout headroom = −15 mV.
+  **(P0-2)** `pdiss_max_mw: 1200` is a 25 °C figure with no ambient term on a
+  board the BRIEF puts at 50–75 °C; at the 75 °C hard limit the ceiling is
+  0.600 W, under the release's own 615 mW. I enumerated every zone on the board:
+  **the only zone on net `3V3` anywhere is on `In2.Cu` — there is NO F.Cu `3V3`
+  zone at all**, so the file's "the tab is flooded with 3V3 copper → 55–65 °C/W"
+  is refuted as written.
+- next: **STOOD DOWN, not argued.** The candidate moved back to
+  `06_build/staging/cooksense-v1.7/`; `07_releases/` untouched; the
+  `SUPERSEDED.md` drafted for v1.6 REMOVED, because nothing superseded it. The
+  fix is `power_tree.yaml` + the AMS1117 dossier, then re-run E-TOPO — **not a
+  layout change** — and one bench measurement at bring-up retires both. If
+  E-TOPO still passes at a defensible 0.36–0.40 A with an ambient term, the next
+  pass seals; if it does not, that is a real engineering decision and belongs to
+  a v1.8 revision.
+
+## 2026-07-30 17:55 — the process note worth keeping
+
+The ninth decline is NOT the eighth repeated, and the difference is the one
+thing to carry forward: **the layout lens was re-asked only because a verdict
+FIELD would not validate.** Nobody suspected its design content — its previous
+pass had said ORDER. Widening the re-gate from "the lens that declined" to
+"both lenses" is what found two P0s that eight passes and four graded lenses had
+walked past. The general form: when a review's VOCABULARY changes, every lens's
+verdict is stale, not just the one whose answer you disliked — and a lens
+re-asked for a bookkeeping reason still gets to look at the board.
+
+Second note, on the shape of both P0s: each is a number the gate was GIVEN
+rather than a number the gate got wrong. E-TOPO passed correctly on
+`iout_max_A: 0.3`; the defect is that 0.3 omits 0.4 A the same file declares in
+a section the checker is documented to ignore. That is the P-ADJ-UNREACHED
+shape (a budget written where nothing reads it) and the E-MARGIN shape (a gate
+optional-activated by a key nobody wrote, printing N-A) appearing a third time
+in one file. A declaration the checker cannot reach is not a weaker check — it
+is a check that cannot fail.

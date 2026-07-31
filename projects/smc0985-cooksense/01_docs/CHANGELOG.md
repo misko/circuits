@@ -27,6 +27,43 @@ INTERPOSER (Board C) is deferred (coupon-gated) and has no release yet.
 is not a paperwork verdict — the key-matrix relay array as drawn cannot work. Do
 not fabricate or hand-build a cooksense board from any sealed release.
 
+> ## STATUS UPDATE 2026-07-30 (LATEST) — **THE SOURCING BLOCKER WAS REMOVED AND THE SEAL STILL DID NOT HAPPEN. NINTH DECLINE, AND THE FIRST ONE THAT FOUND SOMETHING.**
+>
+> Commit `217ea175` split the release verdict into `design_verdict` and
+> `order_verdict`, so the sourcing red (`C265111`, stock 5 / MOQ 21) stopped
+> being able to veto the design claim. The topology lens, re-gated fresh-context,
+> returned the sentence eight passes had had no field for:
+> **`design_verdict: SOUND` + `order_verdict: BLOCKED-SOURCING`.**
+>
+> **The LAYOUT lens was re-gated too — and THAT is where the seal died.** It had
+> to be re-asked for a purely bookkeeping reason (its old legacy `verdict: ORDER`
+> retrofits to `order_verdict: ORDER`, which M-REV refuses on a release measured
+> `SOURCING: BLOCKED`). Nobody suspected its design content. It came back
+> **`design_verdict: DEFECTIVE` with two P0s**, both re-measured independently
+> before the stand-down and both CONFIRMED:
+>
+> 1. **The LDO is graded at 0.30 A while `power_tree.yaml` declares 0.40 A of
+>    switched sensor rails downstream of it.** Measured on the board: all four
+>    `AO3401A` load-switch SOURCE pads sit on net `3V3`. Declared load is 0.70 A;
+>    the graded 0.3 is 43 % of it. At the file's own constants PD becomes 120 %
+>    of the package ceiling and dropout headroom goes to −15 mV.
+> 2. **`pdiss_max_mw: 1200` is a 25 °C figure used with no ambient term**, on a
+>    board the BRIEF places in a 50–75 °C enclosure. At the 75 °C hard limit the
+>    ceiling is 0.600 W — under the release's own 615 mW. And the file's θ_JA
+>    justification ("the tab is flooded with 3V3 copper") is refuted: **the only
+>    `3V3` zone on the board is on `In2.Cu`; there is no F.Cu `3V3` zone at all.**
+>
+> **Neither is copper.** Both are declarations in `power_tree.yaml`, and one bench
+> measurement at bring-up retires both. But a P0 blocks a release, so v1.7 stays
+> in `06_build/staging/`, `07_releases/` was left untouched, and **v1.6 got no
+> `SUPERSEDED.md` because nothing superseded it.**
+>
+> Everything else in the ninth pass measured green and is recorded in the
+> candidate's `verification/build_gates.md`: DRC **0/0/0** (and **0/0/0 again on
+> `source/` copied outside the repository** — the archive now stands alone, which
+> it did not at the start of the pass), `policy_audit` FAIL=0, ERC 0 errors,
+> E-INV 167/167, `jlc_twin` exit 0 with 206/206 bodies, A-RENDER exit 0.
+
 > ### STATUS UPDATE 2026-07-30 — THE FRESH FOUR-LENS BATTERY RAN ON THE REAL BOARD. **THREE ORDER, ONE DO-NOT-ORDER. v1.7 STILL DOES NOT SEAL, AND THE BLOCKER IS A PART YOU CANNOT BUY.**
 >
 > **The previous statement of this banner is WITHDRAWN as STALE, not as wrong.**
@@ -1041,3 +1078,205 @@ M-BOM PASS; P-FACT OK; `jlc_twin` exit 0; `audit_board` PASS (I-ISO 6.12 mm);
 **The full finding ledger with the lead's independent re-derivation of every
 claim is `08_reviews/DISPOSITIONS.md` (v1.7 section) and the staging archive's
 `verification/dispositions.md`.**
+
+---
+
+## cooksense-v1.7 — 2026-07-30, **NINTH SEAL ATTEMPT, DECLINED. NOT SEALED.** And this is the first decline that found something.
+
+**THE SOURCING BLOCKER WAS REMOVED AND THE SEAL STILL DID NOT HAPPEN — because
+re-gating BOTH lenses on the new vocabulary surfaced two design P0s that eight
+previous passes had not found.** The candidate stays in
+`06_build/staging/cooksense-v1.7/`; `07_releases/` is untouched;
+`cooksense-v1.6-2026-07-27` remains the newest sealed release and carries no
+`SUPERSEDED.md`, because nothing superseded it. **There is still no orderable
+cooksense board.**
+
+    DESIGN:   BLOCKED — verification/redteam_layout.md design_verdict: DEFECTIVE
+    SOURCING: BLOCKED-1 (C265111; measured 2026-07-30)
+
+### The two P0s — neither of them copper, both independently re-measured
+
+**P0-1 — the LDO is graded at 0.30 A while the same file declares 0.40 A of
+rails downstream of it.** `power_tree.yaml`'s `rails:` key (the only one
+`power_topology.py` reads) declares the AMS1117-3.3 at `iout_max_A: 0.3`,
+enumerating only the logic. Seventy-three lines lower, under a `linear_rails:`
+key the file itself labels *"Documentation-only (ignored by
+power_topology.py)"*, it declares four switched sensor rails at 0.1 A each.
+MEASURED on the board with `pcbnew` — not read from the yaml — **all four
+`AO3401A` load switches have their SOURCE pad on net `3V3`** (`Q_SWA`, `Q_SWB`,
+`Q_SWRHA`, `Q_SWRHE`), and all four drains leave the board on a sensor
+connector. The declared LDO load is **0.70 A, and the graded 0.3 is 43 % of
+it.** At the file's own constants both graded numbers flip: PD 1.434 W = **120 %
+of the 1200 mW ceiling** (graded 51 %), dropout headroom **−15 mV** (graded
++55 mV). Even at a *realistic* 0.36 A the dissipation is 20 % above what the
+release reports — and the dropout argument is a +55 mV pass the file itself
+calls "the fully-stacked worst case". A 20 % load error does not fit inside
+55 mV.
+
+**P0-2 — `pdiss_max_mw: 1200` is a 25 °C figure used as an ambient-independent
+ceiling, on a board the BRIEF places in a 50–75 °C enclosure.** Inverting it
+gives θ_JA = (125−25)/1.2 = 83.3 °C/W at Ta 25 °C. Re-derived at the brief's own
+commissioned ambients: 0.900 W at 50 °C, 0.720 W at 65 °C, **0.600 W at the
+75 °C hard limit — under the release's own 615 mW figure.** And the θ_JA
+justification in the file ("the tab is flooded with 3V3 copper → 55–65 °C/W") is
+REFUTED by measurement: I enumerated every zone on the board and **the only zone
+on net `3V3` anywhere is on `In2.Cu`; there is no F.Cu `3V3` zone at all.** The
+tab is a 7.39 mm² island in a GND pour with two 0.15 mm vias — a different heat
+path from the one cited, and one the datasheet's single-layer Table 1 does not
+describe. Whether the real θ_JA is better or worse than 83 °C/W is genuinely
+unknown.
+
+**Neither is a layout change.** The fix is to state the LDO's real total load
+with cited sensor currents, add an ambient term, and re-run E-TOPO — it may well
+pass at a defensible 0.36–0.40 A. It has not been asked. One bench session at
+bring-up (load `3V3` to its real total; measure the tab temperature against a
+known ambient and `V_IN − V_OUT` at `U_LDO`) retires both.
+
+### What DID change, and it is the thing that let the ninth pass find them
+
+### What the board fixes — the defect that made all six predecessors dead
+
+Every cooksense release sealed before this one — **v1.0, v1.1, v1.3, v1.4, v1.5,
+v1.6** — carries `Relay_StandexDIP_1A_pinout12` on the twelve DIP05 reed relays.
+The part that exists is pin-out **13**. Under the pin-out-12 land `5V_KEY_RELAY`
+is hard-shorted to the select bus, every ULN2803 output is shorted to its keypad
+line, the coil has no holes at all, and the 1.5 kVDC coil/contact isolation
+boundary the safety case rests on does not exist.
+
+**Nothing mechanical in this repository could see it.** DRC, ERC, schematic
+parity, netlist parity and the digital twin all passed on v1.6, because a wrong
+land pattern is consistently wrong across every artifact derived from it. It was
+found by a FRESH-CONTEXT PIN REVIEW that re-derived the land from the datasheet
+FIGURE without reference to the footprint — canon M1, checker and checked must
+not share a method — and it is the same failure shape as the usb-hub-3s D1
+reverse-polarity TVS.
+
+MEASURED refdes delta v1.6 -> v1.7, from both boards' own `.kicad_pcb` text:
+**226 refs -> 243**. REMOVED (4): `D_DOOR`, `J_DOOR`, `R_DOORPD`, `R_EXPRST` —
+`J_DOOR` because an identical-housing pod harness plugged into it could assert
+`DOOR_OK` with no door attached. ADDED (21): seven series elements
+(`R_ESTOPOKSER`, `R_FAULTSER`, `R_MODEHWSER`, `R_TEMPOKSER`, `R_WDOKSER`,
+`R_COILENS`, `R_ESTOPS`) so one I2C transaction on the expander can no longer
+defeat four safety terms at once, eleven `*PD`/`*PU` elements pinning the
+restrictive defaults the review battery found missing, plus `C_EFIN`, `C_OS2`,
+`D_COILEN`.
+
+### What changed in the REPOSITORY, and why this pass sealed when eight did not
+
+**Nothing physical was ever in dispute.** v1.7 reached DRC 0/0/0,
+`policy_audit` FAIL=0, ERC 0 errors, E-INV 167/167 and four graded review lenses
+— and eight successive full agent passes declined to seal it, every one of them
+on ONE BOM line whose `minPurchaseNum` (21) exceeds its entire `stockCount` (5).
+Zero design defects in all eight. The last of them wrote it out loud:
+
+> *"I would accept the seal — the M4 argument is sound — but sealing is not the
+> question this verdict field asks."*
+
+Commit **`217ea175`** split the release verdict into the two claims a seal
+actually makes:
+
+- `release_freshness_check.py` now prints and grades `DESIGN: PASS|FAIL` and
+  `SOURCING: CLEAR|PLANNED-<n>|BLOCKED-<n>` separately, with new check
+  **(f) A-BUY** — a non-orderable release MAY seal, and ONLY OUT LOUD: the
+  count, every blocked LCSC and the measurement DATE must appear in the MANIFEST
+  gate summary AND on ORDER_README.md's FIRST SCREEN, cross-checked against the
+  shipped measurement **in both directions**. A release may neither hide a
+  blocked line nor invent one.
+- the `08_reviews` contract now declares `design_verdict: SOUND|DEFECTIVE` and
+  `order_verdict: ORDER|DO-NOT-ORDER|BLOCKED-SOURCING`, graded by check
+  **(g) M-REV**. The SEAL gate reads `design_verdict`; the ORDER_README reads
+  `order_verdict`.
+
+The reason the distinction is real and not bookkeeping: every other gate here
+grades an artifact WE CONTROL, so a red means *there exists an edit that turns it
+green*. **A-STOCK grades the WORLD** — it read 0 on 2026-07-29 and 5 on
+2026-07-30 on this same unchanged board — and no edit to the design changes it.
+
+**The split is a NET TIGHTENING.** Before it, a `sourcing_plan:` entry silently
+cleared its line whatever its own measured number said, so a release could seal
+unbuyable with nothing anywhere saying so. Now an unclassified shortfall is a
+FAIL and this one classifies itself `order_status: BLOCKED`.
+
+### BOTH lenses were re-gated, not just the one that declined
+
+The topology lens was re-gated because it is the one that declined. The **layout**
+lens was re-gated because its previous legacy `verdict: ORDER` retrofits to
+`order_verdict: ORDER`, and M-REV cross-checks that against the measurement:
+grading ORDER on a release measured `SOURCING: BLOCKED` fires
+`REVIEW-ORDER-CONTRADICTS-EVIDENCE`. A lens may not certify an order the archive
+it graded cannot place. Both ran fresh-context, concurrently, neither handed a
+conclusion, with journals / learnings / STATUS / `08_reviews` denied.
+
+    verification/redteam_topology.md   design_verdict: SOUND       order_verdict: BLOCKED-SOURCING
+    verification/redteam_layout.md     design_verdict: DEFECTIVE   order_verdict: BLOCKED-SOURCING
+
+**And that is the finding.** The layout lens was re-gated only because M-REV
+would have refused its old `verdict: ORDER` against a release measured
+`SOURCING: BLOCKED`. Nobody suspected its design content. Re-asking it under a
+vocabulary that could express the sourcing answer is what got it to look at the
+board again — and it came back with two P0s. **Widening the re-gate from "the
+lens that declined" to "both lenses" is what this pass is actually worth.**
+
+### What is NOT orderable, and the number that is NOT 10
+
+`C265111` (JST SM08B-GHS-TB, on `J_THERM_A`/`J_THERM_B`) reads **stock 5 against
+MOQ 21**. You cannot order 21 when 5 exist, and you cannot order 5. The build
+needs 10 and the stock gate's floor is 10 — **ignore both; the threshold that
+unblocks a purchase is 21.** Read at 2026-07-30T23:46:46Z by the sealing agent's
+own HTTP client with a live control (`C5620` = 5212). ORDER_README §5-0 carries
+the substitute, the exact source change, and the one physical check a
+substituting buyer owes.
+
+**§5-0's remedy is the CORRECTED one.** An earlier draft told the buyer to "edit
+one cell of `fab/bom.csv`" — **a file JLC never receives.** The assembly step
+takes `bom_jlc.csv` / `cpl_jlc.csv`, and the CPL `Val` column carries the LCSC
+code too because `fp.GetValue()` on these two footprints *is* the string
+`C265111`. Following that instruction exactly would have ordered the unbuyable
+part. The remedy now says: change `03_tscircuit/src/cooksense.tsx` lines 1216 and
+1218 and REGENERATE (canon M3).
+
+### Gate state: THREE non-zero exits, none of them copper
+
+`A-STOCK` (the sourcing claim, above), `E-NETREF` (21 ghost `keep_short` budget
+references in `02_parts/`, no board exposure) and `A-AMP` in `rules_audit` (two
+`nets.yaml` DECLARATION defects predating v1.6 — one class declaring
+`current: 'uA-level sense'`, prose where the gate needs a magnitude, so its
+width was never graded; and `PWR_IN` declaring 2.0 A against a 0.5 mm tap-run
+floor whose trunk rides pours). **Every gate that grades the BOARD exits 0** —
+DRC both halves plus the standalone-archive DRC, ERC, schematic parity, S-COUNT,
+E-INV, E-ADR, placement_gates, audit_board, jlc_twin, A-RENDER, A-POP, A-POS,
+A-ROT/A-POL, M-BOM, F-LEGIBLE, F-PAYLOAD, P-FACT, M-DEPEND, M4, contracts_audit,
+M-BEACON. Full table with every raw exit code: `verification/build_gates.md`.
+
+### Three declared gaps added at this seal
+
+1. **The mechanical tab pads match the CLONE, not the genuine part** — board
+   `1.000 x 2.700`, genuine JLC land `1.210 x 2.700`, clone `1.000 x 2.500`. The
+   board's retention tab is 17.4% narrower than JLC recommends for the part the
+   BOM names, on the exact axis §5-0 declares unverified. UNRESOLVED. And the
+   inherited "0.01 mm measured drop-in" for the clone **was not evidence** — its
+   whole triple is verbatim the genuine part's own `twin_run.log` rows and
+   `fit=` prints 0.01 for the genuine part too, so it cannot discriminate them.
+   Re-derived by a non-`jlc_twin` method: genuine 0.0002 mm, clone 0.0100 signal
+   / **0.0399 tabs**.
+2. **E-NETREF exit 1 — 21 ghost net references**, all kind K7
+   (`layout.keep_short[].net`), all already inside `policy_audit`'s evidenced
+   `P-ADJ-UNREACHED` waiver. No ghost reaches copper, silk, netlist or BOM.
+   First COUNTED here; the gate landed 2026-07-29/30 so v1.6 ships no netref
+   evidence at all.
+3. **A-RENDER's verdict moves with its input's resolution** — same board, three
+   renders: FAIL on `U_LDO`+`Q_SWDRVRHA` at 5.1356 px/mm, FAIL on a DIFFERENT
+   ref (`J_KEY_MATRIX`) at 9.7448 px/mm, PASS at 15.3907 px/mm. Both reports
+   ship; deleting the failing one would be choosing the resolution that gives
+   the answer you want.
+
+### And the archive stands alone, which it did not two hours before the seal
+
+`kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` returns
+**0/0/0, exit 0** on `source/` copied to a directory OUTSIDE the repository.
+An earlier v1.7 staging had `source/fp-lib-table` pointing at
+`${KIPRJMOD}/../03_src/lib/…` and returned **14 `lib_footprint_issues`** standing
+alone. A fleet sweep finds the same defect in **5 of 33** sealed archives
+(cooksense-v1.1, interposer-v1.0, usb-hub-3s-v3 v1.3/v1.4/v1.6) — immutable,
+recorded, not repaired. Nothing in the repo gates this property; filed as an owed
+skill patch.

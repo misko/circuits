@@ -53,12 +53,44 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
 | `<version>-<date>/verification/**` | every gate's evidence |
 
 
+### The directory NAME is how a machine tells the boards apart
+
+Two shapes ship: bare `v<N>[.<N>…]-<YYYY-MM-DD>` and, when a project builds
+more than one board, per-board `<board>-v<N>[.<N>…]-<YYYY-MM-DD>`
+(`cooksense-v1.4-2026-07-26`). **`<board>` MUST be the `04_kicad` board stem**
+(separator style and case are free: `crow_recorder_central_v2` and
+`crow-recorder-central-v2` are the same board). This is not cosmetic — it is
+the only thing that says which board a sealed archive belongs to.
+
+- **A MULTI-BOARD project MUST use the per-board form for every release**,
+  including the first. A bare name in a multi-board `07_releases/` is
+  unattributable and every gate that resolves "this board's latest release"
+  REFUSES it (`release_index.py`, canon M-COVER) rather than guessing.
+- **Versions order NUMERICALLY PER COMPONENT**: `v1.10 > v1.9 > v1.2`. Never
+  sort these names as text, and never re-implement the ordering — import
+  `jlcpcb-fab/scripts/release_index.py`, which is its one home.
+- **"The latest release" means the newest of THIS BOARD's series**, never the
+  last directory in `07_releases/`. `smc0985-cooksense` holds `cooksense-*`
+  and `interposer-*`; `interposer-…` sorts last, and a gate taking `rels[-1]`
+  graded the interposer while reporting on cooksense, then demanded
+  `SUPERSEDED.md` on the live `cooksense-v1.4` and blocked its successor
+  (2026-07-27).
+- `SUPERSEDED.md` is a WITHIN-SERIES claim: it is owed by this board's earlier
+  releases, never by a sibling board's.
+
 ```
 07_releases/
-└── <version>-<YYYY-MM-DD>/         e.g. v4.10-2026-07-14
+└── [<board>-]<version>-<YYYY-MM-DD>/   e.g. v4.10-2026-07-14,
+    │                                   cooksense-v1.4-2026-07-26
     ├── MANIFEST.txt                REQUIRED — sha256 of EVERY file below
     ├── ORDER_README.md             REQUIRED — order options, hand-solder list,
-    │                               first-power ritual
+    │                               first-power ritual. It is the BUYER's document,
+    │                               so it carries the ORDER-side facts on its FIRST
+    │                               SCREEN (40 lines): the `SOURCING:` gate line when
+    │                               the release is not orderable as sealed (canon
+    │                               A-BUY) and the lenses' `order_verdict` (canon
+    │                               M-REV). A warning 900 lines down is a warning for
+    │                               the reader who already knew
     ├── fab/                        REQUIRED — the JLCPCB order set, exactly as uploaded
     │   ├── <board>_gerbers.zip     the PCB order page
     │   ├── <board>.drl (+ NPTH)    drill files (also inside the zip; kept loose
@@ -100,11 +132,55 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
         │                            verdict lines; this is the one shape the
         │                            gate grades. A missing/unparseable
         │                            verdict is a FAIL, never a skip
-        ├── stock_check.{txt,csv}
+        ├── stock_check.{txt,csv}    REQUIRED. The `.csv` is ALSO THE RELEASE'S
+        │                            OWN code->MPN MAP and must carry its `mpn`
+        │                            column (JLC's `componentModelEn`, one row
+        │                            per queried line): it is the ONLY MPN
+        │                            authority that lives INSIDE the archive,
+        │                            and canon F-LEGIBLE reads it so a sealed
+        │                            verdict can be RE-DERIVED from the sealed
+        │                            bytes (canon M-SHIP). Both hand-verified
+        │                            authorities — `02_parts/` and the passives
+        │                            ledger — are OUTSIDE the release and
+        │                            editable: cooksense v1.6 went FAIL, then
+        │                            PASS, on UNCHANGED sealed bytes inside one
+        │                            session because the next revision's work
+        │                            removed and restored one dossier. It is an
+        │                            EXISTENCE authority only — JLC's string is
+        │                            a catalog DESCRIPTION and is not the MPN on
+        │                            7 of 156 rows fleet-wide (`436500224` for
+        │                            `43650-0224`) — so F-LEGIBLE never grades
+        │                            EQUALITY against it
         ├── bom_source_check.txt     fab/bom.csv LCSC == source per refdes
         │                            (bom_source_check.py / policy_audit M-BOM):
         │                            no merged/substituted/missing/dropped code —
         │                            the v1.1 25V-for-50V-cap defect (canon M6)
+        ├── bom_legibility.txt       REQUIRED — canon F-LEGIBLE (ADR-0006): the
+        │                            BOM graded AS JLC PARSES IT, not as we
+        │                            wrote it (`bom_legibility_check.py
+        │                            <release_dir>`). F-MPN every coded row
+        │                            carries BOTH MPN and LCSC, resolved from
+        │                            02_parts/<MPN>/part.yaml then the vetted
+        │                            passives ledger, the two agreeing;
+        │                            F-WORDS the Comment is a human-readable
+        │                            value, never an LCSC code or a `simple_*`
+        │                            placeholder; F-ENCODE the file decodes
+        │                            identically under UTF-8 and cp936.
+        │                            bom_source_check asks "is this value
+        │                            RIGHT?"; this asks "can the recipient READ
+        │                            it?" — one BOM was uploaded and its parts
+        │                            "were not being picked up by their web
+        │                            processing" while every semantic gate was
+        │                            green (canon M1)
+        ├── bom_echo_gate.txt        REQUIRED where the order has been placed —
+        │                            canon F-ECHO, the human-gated half. Written
+        │                            by `export_jlc_package.py` beside A-POL's
+        │                            rotation_human_gate.txt: the (code, value,
+        │                            refs) triples to compare against JLC's OWN
+        │                            resolved table after upload. A code JLC
+        │                            redirects is a SUBSTITUTION and a FINDING
+        │                            (C82317 -> C131025 on a shipped board;
+        │                            nothing in this repo could see it)
         ├── twin_report.{csv,txt}   the JLC digital-twin verification (jlc_twin.py)
         ├── twin_{top,bottom,iso_nw,iso_se,edge_west,edge_east}.png
         │                            six renders of the board with JLC's part
@@ -116,15 +192,32 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
         │                            paired with the modeled twin renders above
         ├── missing_models.txt       every CPL ref with no attached 3D body in the
         │                            modeled render (a bodiless footprint means "no
-        │                            model", NEVER "not placed" — CPL is population truth)
+        │                            model", NEVER "not placed" — CPL is population truth).
+        │                            GENERATED by jlc_twin's NO-BODY pass (canon
+        │                            A-BODY) and carrying its `bodies mounted: N/M`
+        │                            header — NEVER hand-authored: v1.5 of one board
+        │                            shipped a hand-written copy claiming zero while
+        │                            7 of 108 placements rendered nothing
         ├── pin_review.md            fresh-context pin review verdicts (pin-review-protocol)
         ├── render_review.md         fresh-eyes render review verdicts
         ├── redteam_topology.md      RED-TEAM release review, topology/protection/
-        │                            ratings lens — ORDER verdict; verbatim copy of
-        │                            the 08_reviews/ archive (a P0 blocks the release)
+        │                            ratings lens; verbatim copy of the 08_reviews/
+        │                            archive (a P0 blocks the release). THESE TWO
+        │                            EXACT NAMES are what canon M-REV grades —
+        │                            deliberately not a redteam*.md glob, because
+        │                            archived reviews of EARLIER versions sit beside
+        │                            them and grading a v1.0 review against a v1.12
+        │                            release is the adjacent-property error
         ├── redteam_layout.md        RED-TEAM release review, layout/thermal/
-        │                            power-integrity lens — ORDER verdict; verbatim
-        │                            copy of the 08_reviews/ archive
+        │                            power-integrity lens; verbatim copy of the
+        │                            08_reviews/ archive. Both files carry the TWO
+        │                            header keys `design_verdict: SOUND|DEFECTIVE`
+        │                            and `order_verdict: ORDER|DO-NOT-ORDER|
+        │                            BLOCKED-SOURCING` (08_reviews contract). The
+        │                            SEAL reads design_verdict; the ORDER_README
+        │                            reads order_verdict. A legacy single `verdict:`
+        │                            retrofits to both. A missing or out-of-
+        │                            vocabulary verdict is a FAIL, never a skip
         ├── policy_audit.md          zero FAIL, waivers evidence-backed
         └── parity.md                node-for-node netlist parity vs the source
 ```
@@ -158,7 +251,11 @@ fab:          JLCPCB, 4 layer, advanced small-via option (0.25/0.15 vias)
 quantity:     5
 gates:        DRC 0/0/0 · netlist parity 0 · audit PASS · ERC 0 err ·
               twin PASS · pin_review PASS · policy_audit 0 FAIL ·
-              redteam ORDER/ORDER, 0 open P0 · stock 55/55 verified
+              redteam SOUND/SOUND, 0 open P0 · stock 55/55 verified
+DESIGN:       PASS                       # is the artifact CORRECT (seal-time)
+SOURCING:     CLEAR                      # can it be BOUGHT (order-time)
+                                         # ... or PLANNED-<n>, or
+                                         # BLOCKED-1 (C265111; measured 2026-07-30)
 3d:           step present, gltf absent (no exporter for this board)
 sha256:       # EVERY file in the release, not just the fab set
   fab/power_board_v1_gerbers.zip   f5d56393...
@@ -180,6 +277,43 @@ consigned:    U1 C6938291 (XU316) — MSL 3, 168h floor life (ds v2.0.0 s.15.2)
 msl:          U1 MSL-3 (bake if floor life exceeded); no other exposed-pad part
 not_assembled: J4,J5,J13 (THT USB-A, not_in_catalog) · F1 element (user_supplied)
 ```
+
+### `DESIGN:` and `SOURCING:` — a seal makes TWO claims (canon A-BUY)
+
+`DESIGN: PASS|FAIL` and `SOURCING: CLEAR|PLANNED-<n>|BLOCKED-<n>` are both
+printed by `release_freshness_check.py` and both stamped here. They are
+separate because they are answered by different authorities at different
+times: the design gates at SEAL time, the CATALOG at ORDER time. Every other
+gate in this repo grades an artifact WE CONTROL, so a red means "there exists
+an edit to this design that turns it green"; **A-STOCK grades the WORLD**, and
+no edit to the design changes a vendor's `stockCount`.
+
+- **A release may seal with `DESIGN: PASS` + `SOURCING: PLANNED-<n>` or
+  `BLOCKED-<n>`. It may NEVER seal with `DESIGN: FAIL`.**
+- `PLANNED` means the plan makes the catalog irrelevant for that line
+  (consignment, self-supply); `BLOCKED` means it cannot be bought as sealed.
+  The classification is `order_status:` on the `03_src/rules/assembly.yaml`
+  `sourcing_plan:` entry, and it is REQUIRED whenever the entry's own
+  `measured_stock` does not cover `qty x build_quantity`. **An unclassified
+  shortfall is a FAIL** — before this it cleared the line SILENTLY whatever
+  its own number said, so a release could seal unbuyable with nothing
+  anywhere saying so.
+- **A BLOCKED release seals only OUT LOUD.** Both this MANIFEST and the FIRST
+  SCREEN (40 lines) of `ORDER_README.md` must carry the gate line
+
+      SOURCING: BLOCKED-<n> (<lcsc codes>; measured <YYYY-MM-DD>)
+
+  and its status, count, LCSC set and date are compared against the
+  measurement **in BOTH directions** — a release may neither hide a blocked
+  line nor invent one. The date is the newest blocking `measured_on` and may
+  not predate the release by more than 7 days: a stock reading is perishable,
+  and an undated one is not evidence.
+- **Order-time re-grade.** A sealed archive is immutable, so the sourcing
+  question is re-asked from OUTSIDE it:
+  `release_freshness_check.py <release_dir> --claim sourcing --stock-evidence
+  FRESH.json`. A measurement POSTDATING the seal is reported, never failed —
+  an archive cannot declare a fact discovered after it was written, and
+  demanding it would be the retro-fill this contract forbids.
 
 ### `not_assembled:` is a REQUIRED, GENERATED block
 
@@ -259,6 +393,14 @@ lands; **immutability begins the moment the seal commit exists.**
    same finding after the seal costs a supersede** (3 of one family's 4
    seals died to post-ceremony reviews, mean seal lifetime 5.6h,
    2026-07-23). Do not proceed with any open P0 or FAIL.
+   **"FAIL" HERE MEANS `DESIGN: FAIL`, NOT `SOURCING: BLOCKED`** (canon
+   A-BUY). A release whose only red is that a vendor is out of stock is
+   SEALABLE — declare it per the `DESIGN:`/`SOURCING:` section above and
+   proceed. Nine successive agents declined to seal a board at DRC 0/0/0
+   and `policy_audit` FAIL=0 because the gate had one verdict for two
+   questions, and each of them spent a full pass rediscovering why. Grade
+   the claims separately when you need to:
+   `release_freshness_check.py <staging_dir> --claim design`.
 1. **Source commit S.** Commit every INPUT: the board's own subtree and
    any `skills/` changes. `release_git_dirty.py <board>` must report
    clean apart from the staged release dir itself (the release dir is
@@ -286,6 +428,22 @@ lands; **immutability begins the moment the seal commit exists.**
 3. **Seal commit.** A commit that adds ONLY the release directory, the
    `01_docs/CHANGELOG.md` entry, and `SUPERSEDED.md` on the predecessor.
    From this commit on the directory is IMMUTABLE.
+4. **Refresh the beacon — the seal is not complete without it (canon
+   M-BEACON).** OVERWRITE `01_docs/STATUS*.md` (the board's own, on a
+   multi-board project) so that `step:` names the release just created,
+   `state:` is `done`, and `updated:` is now; then run
+   `status_beacon_check.py <project>` and require exit 0. The beacon is the
+   coordinator's only between-gates eye and it does not go blank when it goes
+   stale — it keeps reporting the PREVIOUS release as live, with a plausible
+   `sealed / done`. Measured 2026-07-27, before this step existed: EVERY
+   beacon in the fleet named a superseded release (13 M-BEACON findings across
+   4 of 6 boards), and one had a whole second frame APPENDED into a file this
+   contract says is OVERWRITTEN. This step is where that class is closed —
+   the gate catches drift AFTER the fact; the ritual is what prevents it.
+   It comes AFTER the seal commit deliberately: the release directory it must
+   name does not exist until then. Commit the refreshed beacon with the next
+   working commit (it is `01_docs/` working state, never part of the sealed
+   archive, and it must NEVER be added to the release directory).
 
 **Docs-only supersede mode.** When the new release changes ONLY
 documentation (dispositions, README, MANIFEST — no fab/source/3d delta),
@@ -297,6 +455,175 @@ README + MANIFEST must byte-differ (otherwise the release supersedes
 nothing). The audit/manifest-agreement and draft-marker checks still run.
 Never waive fab-identical files one-by-one for this case — the mode
 asserts the identity instead of flagging it.
+
+**BOM-only supersede mode.** The one case docs-only mode correctly refuses:
+the copper is untouched but the ASSEMBLY BOM must lose rows, because canon
+A-POP requires an unplaced part to LEAVE the BOM rather than sit on it
+uncoded. Gate it with `--bom-only-supersede <prior-release-dir>`, which is
+docs-only PLUS an exemption for exactly one file, `fab/bom.csv` — and only
+because the mode then asserts something STRONGER about that file than
+identity: the delta must be **whole rows REMOVED, for designators that are
+NOT on the CPL**. A row ADDED, a row EDITED (a changed value/footprint/LCSC
+is a different board), or a removal for a designator still on the CPL all
+FAIL. Everything else in `fab/`, and all of `source/` and `3d/`, must still
+be byte-identical. Motivating case: crow-mic-pod-v2 v1.0 (2026-07-25) shipped
+MK1 with its MPN *and* LCSC columns both empty and J1 at stock 0, neither on
+the CPL — the upload stalls at JLC's BOM/CPL matcher, and fixing it changes
+`fab/`, so a plain docs-only claim would have been a lie. Do NOT reach for
+`--allow-identical` waivers here; the point is to assert the shape of the
+change, not to excuse it.
+
+**LEGIBLE-BOM supersede mode.** The case all three modes above correctly
+refuse. Canon **F-LEGIBLE** (ADR-0006): the copper is untouched but
+`fab/bom.csv` must be rewritten so the RECIPIENT can PARSE it — MPN filled
+from the part's own `02_parts/<MPN>/part.yaml` (then the vetted passives
+ledger), a Comment that is a human-readable value instead of an LCSC code or
+a `simple_*` generator placeholder, and a UTF-8 byte-order-mark so a cp936
+reader cannot render `Ω` as `惟`. That EDITS every row, so docs-only
+refuses (fab/ changed) and BOM-only refuses too — rightly, since it FAILs on
+any edited row for the A-POP defect IT guards. Gate it with
+`--legible-bom-supersede <prior-release-dir>`: docs-only PLUS an exemption
+for exactly `fab/bom.csv`, and the mode then asserts something STRONGER than
+identity about it — **every row's designator group, `Footprint` and `LCSC`
+UNCHANGED; no row added or removed; no MPN blanked; only `Comment` and `MPN`
+may move** — and, taken from the F-LEGIBLE gate itself rather than
+re-implemented, **this release's BOM must PASS `bom_legibility_check.py` and
+the prior one must FAIL it**. A changed `LCSC` is a SUBSTITUTION (the
+C82317 → C131025 class) and FAILs; a changed `Footprint` is a different
+board and FAILs. Motivating case: crow-recorder-central-v2 v1.5 (2026-07-27)
+— its BOM was uploaded to JLCPCB and the parts "were not being picked up by
+their web processing".
+
+**SOURCING supersede mode.** The case ALL FOUR modes above correctly
+refuse, and the one that had to be built twice before it was built once
+(canon **M8**, two-strike promotion). JLC will not SUPPLY a line: the part
+is at stock 0 at the order quantity, or the uploader returns a shortfall.
+The fix substitutes an electrically identical part **at source** and moves
+no copper — `MPN` and `LCSC` change together on the affected rows and
+nothing else in the payload changes at all. docs-only refuses (fab/
+changed), cpl-only permits only coordinates, bom-only permits only row
+REMOVAL, and legible-bom explicitly FAILs a changed LCSC (correctly — when
+it was written, a changed LCSC could only be the C82317 → C131025
+accident). Gate it with `--sourcing-supersede <prior-release-dir>`, which
+asserts, none of it waivable:
+
+- the `source/*.kicad_pcb` is **md5-IDENTICAL** and the hash is PRINTED;
+- `fab/cpl.csv` is **byte-identical** — a substitution moves no placement,
+  so an unchanged CPL is what makes "drop-in" mean something;
+- every gerber and drill is identical after stripping **only the plot's own
+  timestamps** (`%TF.CreationDate`, `G04 Created by`, the Excellon date
+  line and its `; #@! TF.CreationDate` twin) — so a **RE-PLOT from this
+  release's own board is ACCEPTED**, which is stronger evidence than a
+  byte-copy, and any other difference is copper;
+- `fab/bom.csv` keeps its **row count and its designator groups in the same
+  order**, and the ONLY cells permitted to move are `MPN` + `LCSC`,
+  together, on the substituted rows. A `Comment` or `Footprint` change
+  FAILs; an `MPN` moving where the `LCSC` did not FAILs and is redirected
+  to `--legible-bom-supersede`;
+- no substituted row is left with a blank `MPN` or a blank/malformed
+  `LCSC`, and the new BOM **PASSES `bom_legibility_check`** (taken from the
+  F-LEGIBLE gate itself, not re-implemented — ONE grader, canon M1);
+- a `source/*.tsx` **CHANGED** (canon M3): a `fab/bom.csv` that moved
+  without its source is a HAND-EDITED BOM, the defect crow-mic-pod-v2 paid
+  for on 2026-07-27;
+- and **BOTH codes of every substitution are NAMED in MANIFEST.txt or the
+  order README**, so the diff is auditable by someone who was not here.
+
+Motivating cases: usb-hub-3s-v3 v1.11 (2026-07-27) sealed this exact shape
+gated by **SEVEN individually-measured file waivers** because the mode did
+not exist — weaker evidence than the release it superseded, since every one
+of those measurements is machine-checkable; and crow-recorder-central-v2
+v1.7 (`C25767` → `C138030`, 220 kΩ at `R_vb1`, stock 0 at the 5-board
+quantity), the second board, which is what makes promotion mandatory. Do
+NOT reach for `--allow-identical` waivers here: an assertion the gate makes
+beats a waiver a human writes.
+
+**VALUE-CHANGE supersede mode.** The case ALL FIVE modes above correctly
+refuse, and the one where "no copper moved" and "BOM only" come apart. A part
+VALUE changes on parts that are ALREADY PLACED (22 kΩ → 33 kΩ on an existing
+0603). Gate it with `--value-change-supersede <prior-release-dir>
+--designators R4,R5`.
+
+Measured on crow-mic-pod-v2 v1.3, 2026-07-28: `export_jlc_package.py` reads
+`val = fp.GetValue()` **from the board** and feeds that ONE string to BOTH the
+BOM `Comment` column and the CPL `Val` column. So a pure value change moves
+the `.kicad_pcb`, the `.kicad_sch`, the `.net`, the BOM rows for those refs
+and exactly their CPL `Val` cells — while **all 11 gerbers and drills are
+byte-identical** (11/11, the method validated by re-plotting the sealed v1.3
+fab set from its own archived board). docs-only refuses (fab/ changed);
+bom-only refuses (it permits only row REMOVAL, and only for refs NOT on the
+CPL — these ARE on it); legible-bom refuses (a changed LCSC is a substitution
+to it); sourcing refuses (it demands an md5-identical board and a
+byte-identical CPL, and a value change moves both); and cpl-only names a
+`Val` change as its own explicit exclusion. Without this mode the only way to
+seal a copper-identical value fix is to hand-edit a CSV, which canon M3
+forbids. The mode asserts, none of it waivable:
+
+- **the COPPER did not move**: every gerber and drill identical after
+  stripping only the plot's own timestamps (`%TF.CreationDate`, `G04 Created
+  by`, the Excellon `; DRILL file … date` line and its `; #@! TF.CreationDate`
+  twin) — so a **RE-PLOT from this release's own board is ACCEPTED**, which is
+  stronger evidence than a byte-copy, and anything else is copper. A release
+  with no gerber/drill on both sides cannot make the claim and FAILs;
+- **the SOURCE moved**, in the direction canon M3 requires here: both
+  `source/*.kicad_pcb` and `source/*.kicad_sch` CHANGED, with both md5s
+  PRINTED. A value lives in those files, so unchanged source means a
+  HAND-EDITED CSV. Editing the board alone is not a way out — measured, that
+  leaves `kicad-cli pcb drc --schematic-parity` reporting
+  `footprint_symbol_mismatch` on exactly those refs;
+- **the CPL delta is `Val` cells and NOTHING else**: identical row count,
+  identical designator sequence, and for every ref the coordinate, rotation,
+  layer and package unchanged. A moved coordinate is `--cpl-only-supersede`'s
+  defect (A-POS) and a moved rotation is A-ROT's; neither rides along here;
+- **every moved cell belongs to a DECLARED designator.** `--designators` is
+  REQUIRED (an empty confinement list confines nothing, so the mode refuses to
+  run) and must be neither too narrow nor too WIDE: a change touching an
+  undeclared ref FAILs, and a declared ref that moved nothing FAILs too;
+- **the BOM ref set is FROZEN.** Rows may split or merge around the new values
+  — the exporter groups by `(code, val, footprint)` — but no designator may be
+  added or dropped (that is A-POP's business and `--bom-only-supersede`'s
+  mode), and a declared ref's `Footprint` may not move;
+- **a declared ref's `LCSC` MUST move with its value.** A different value is a
+  different part: a row whose `Comment` claims the new value against the OLD
+  part's code is the R12/R30 wrong-part class verbatim, and it is exactly what
+  a board-only edit produces;
+- **the two artifacts AGREE** — each declared ref's new CPL `Val` appears as a
+  token in its own BOM `Comment` (one merged `a / b` Comment is written when
+  two values share a code+footprint, so containment is the honest form). They
+  come from ONE `GetValue()` call; a disagreement is positive evidence that
+  one CSV was written by hand;
+- the new BOM **PASSES `bom_legibility_check`** (from the F-LEGIBLE gate
+  itself, never re-implemented — ONE grader, canon M1), so a new value with no
+  vetted ledger row or `02_parts` dossier blocks;
+- and **BOTH the old and the new value of every declared designator are NAMED
+  in `MANIFEST.txt` or the order README**, so the reason this release exists
+  is legible to someone who was not here.
+
+This mode is the FIRST of the six built proactively rather than after a seal
+paid for its absence, and that is recorded deliberately: canon M8 promotes on
+the second strike, so a one-strike build is an exception, taken because the
+measurement (11/11 gerbers, the `fp.GetValue()` single-source finding) already
+existed and the alternative shape — individually-measured file waivers — is
+the exact weaker-evidence pattern M8 condemns. crow-mic-pod-v2 itself took a
+firmware-side fix and sealed nothing; this gate is for the fleet's next value
+change. Do NOT reach for `--allow-identical` waivers here.
+
+**CPL-only supersede mode.** When the new release changes ONLY
+`fab/cpl.csv` — a PLACEMENT fix — gate the staging with
+`release_freshness_check.py <release_dir> --cpl-only-supersede
+<prior-release-dir>`: everything else in `fab/`, and all of `source/` and
+`3d/`, must be BYTE-IDENTICAL, and the CPL delta must be coordinate moves
+and/or whole rows REMOVED for parts that are no longer populated. A
+ROTATION, `Layer`, `Val` or `Package` change FAILs, and so does an ADDED
+row, and so does a CPL that did not change at all (that is a docs-only
+supersede). This exists because a wrong CPL coordinate is the one defect
+that is 100% assembly data and 0% copper: crow-recorder-central-v2 v1.4
+shipped its only USB-C 1.3025mm off its own pads (canon A-POS — the
+exporter emitted KiCad's footprint ANCHOR, not JLC's pad-array datum),
+and fixing it changes exactly one file. Keeping rotation OUT of this mode
+is load-bearing: the v1.3 -> v1.4 supersede was ALSO a CPL-only change and
+it moved seven ROTATIONS, so without the split the two defect classes
+would share one unaccountable channel.
 
 Deviations that force rework (both happened, 2026-07-23): regenerating ANY
 artifact after S makes S stale — return to step 1 with a new S. Committing
@@ -340,6 +667,21 @@ checked shared a method.
   this fleet shipped a `FAIL:` last line, one with the board's own CPU at
   stock 0. Fix the sourcing or record the `sourcing_plan:` entry with the
   measured number and its date.
+- **Sealing a NON-ORDERABLE release QUIETLY** (canon A-BUY). Sealing one is
+  PERMITTED — `DESIGN: PASS` + `SOURCING: BLOCKED-<n>` is a consistent state,
+  and refusing it is what cost smc0985-cooksense v1.7 nine seals on a board
+  with zero design defects. What is forbidden is a `sourcing_plan:` shortfall
+  with no `order_status:` classification, and a BLOCKED measurement that does
+  not appear — with its count, its LCSC codes and its date — in BOTH the
+  MANIFEST and the first screen of `ORDER_README.md`. Equally forbidden in
+  the other direction: DECLARING a blocked line the evidence does not
+  measure. A release may neither hide one nor invent one.
+- **Sealing with `design_verdict: DEFECTIVE`** on either red-team lens
+  (canon M-REV). The verdict split adds a dimension; it adds no way past a
+  design-side red. `order_verdict: DO-NOT-ORDER` blocks the ORDER, not the
+  seal — but only once it has been re-graded honestly: if the reason is
+  SOURCING and the design is sound, the lens has the vocabulary to say so
+  (`design_verdict: SOUND` + `order_verdict: BLOCKED-SOURCING`).
 - **A release that outsources its own contents to git.** No `source/` means
   no release — "it's at that SHA" is not an archive. Likewise no symlinks
   into `04_kicad/` or `03_tscircuit/`; those folders keep moving.
@@ -378,13 +720,59 @@ checked shared a method.
     the shipped stock evidence carries a PARSEABLE PASS verdict and every
     coded, placed line clears `qty x build_quantity` or names a
     `sourcing_plan:` entry with its measured stock and date
-- red-team review present in `verification/`, both lenses'
-  (topology/protection + layout/thermal) verdicts = ORDER, zero unresolved
-  P0 (a P0 blocks the release); archived verbatim in `08_reviews/`
+  - **and check (f) (canon A-BUY): every `sourcing_plan:` shortfall carries
+    `order_status: PLANNED|BLOCKED`, and a release measured `BLOCKED-<n>`
+    declares it — count, LCSC set and date all MATCHING the measurement — in
+    the MANIFEST and in the first 40 lines of `ORDER_README.md`.** The gate
+    prints `DESIGN:` and `SOURCING:` separately and `--claim design|sourcing`
+    exit-codes them independently, so a sourcing red can no longer veto the
+    design claim
+  - **and check (g) (canon M-REV): both contract-named red-team lens files
+    carry `design_verdict: SOUND`, and their `order_verdict` does not
+    contradict the measured `SOURCING:` state in either direction.** A
+    missing, prose-only or out-of-vocabulary verdict is a FAIL, never a skip
+  - `bom_legibility_check.py <release_dir>` exits 0 (canon F-LEGIBLE) — every
+    coded row carries an MPN that AGREES with its dossier, every Comment is a
+    human-readable value, and the file decodes identically under UTF-8 and
+    cp936. **Adopted-forward**: 25 of the 26 releases sealed before ADR-0006
+    fail this and are NOT retro-fixed (07_releases immutability). A board that
+    needs a legible BOM gets a NEW version; `fleet_regrade.py` says which
+  - **AND it reports ZERO rows `not re-derivable from the shipped bytes`**
+    (added 2026-07-29). Exit 0 is no longer sufficient, because F-LEGIBLE has a
+    THIRD verdict — `F-LEGIBLE NOT FULLY GRADED
+    [NOT-REDERIVABLE-FROM-SHIPPED-BYTES]`, which exits 0 by design: the rows are
+    legible and no defect was found, but the two-path MPN AGREEMENT check could
+    not be performed from anything the release carries. A release sealed in that
+    state can never be graded again, and 07_releases immutability means it can
+    never be repaired either. **The seal is the one moment the dossier tree is
+    still live**, so full hand-verified coverage is required THERE and nowhere
+    else. A row that can only be CORROBORATED by the release's own
+    `stock_check.csv` still counts against this, because corroboration is
+    existence and not agreement
+- **the ORDER-TIME F-ECHO ritual (canon F-LEGIBLE, human-gated).** The
+  ORDER_README carries it beside the A-POL rotation-preview gate: after
+  uploading `fab/bom.csv`, save JLC's OWN resolved/matched part table out of
+  their UI and run `bom_legibility_check.py fab/bom.csv --echo SAVED.csv`
+  against `bom_echo_gate.txt`. A code JLC redirects is a SUBSTITUTION and a
+  FINDING to adjudicate BEFORE paying, never after. There is deliberately no
+  JLCPCB API integration (ADR-0006): it would require handing over
+  credentials, the same line already drawn on the Mouser/Nexar APIs
+- red-team review present in `verification/` under the two contract-named
+  files, both lenses' (topology/protection + layout/thermal)
+  `design_verdict: SOUND`, zero unresolved P0 (a P0 blocks the release);
+  archived verbatim in `08_reviews/`. `order_verdict` is graded too, against
+  the SOURCING measurement rather than against the seal (canon M-REV)
 - the bare/modeled render pair for both sides (`render_{top,bottom}_bare.png`
   beside the twin renders) and `missing_models.txt` are present in
-  `verification/`
+  `verification/`; `missing_models.txt` carries the `GENERATED by jlc_twin`
+  provenance line and a `bodies mounted: N/M` header with **N == M** (canon
+  A-BODY). A missing or unparseable counter is a FAIL, not a skip
 - `01_docs/CHANGELOG.md` has an entry whose `Released:` names this directory
+- while this directory is the LIVE release (no `SUPERSEDED.md`), the board's
+  `01_docs/STATUS*.md` beacon NAMES it and is not older than it —
+  `status_beacon_check.py <project>` exits 0 (canon M-BEACON). The beacon is
+  working state, not release content: it is refreshed by seal step 4 and never
+  written into this directory
 
 ## Repair
 
@@ -422,5 +810,9 @@ This folder answers **M5** (M-REL) and hosts the evidence for everything:
 - `verification/policy_audit.md` ships in the bundle: zero FAIL, waivers
   evidence-backed, HUMAN items (S5/S6/S7, M1) carrying reviewer verdicts.
 
-Audit: `policy_audit.py <project>` runs M-REL mechanically; a release cut
-with any policy FAIL is invalid (cut a new one after the fix or waiver).
+Audit: `policy_audit.py <project> [--board <04_kicad stem>]` runs M-REL
+mechanically; a release cut with any policy FAIL is invalid (cut a new one
+after the fix or waiver). **On a multi-board project `--board` is REQUIRED to
+grade the second board** — the audit grades one board per run (the report's
+header line names it), and M-REL/M-BOM/A-POP/A-BODY resolve the release from
+THAT board's series.

@@ -146,6 +146,22 @@ sourcing_plan:
     refs: [J_THERM_A, J_THERM_B]
     measured_stock: 5
     measured_on: 2026-07-30
+    # canon A-BUY: 5 does not cover 2 x 5 boards = 10, so this entry MUST
+    # classify itself. (The ID is A-BUY and NOT A-ORDER: `rules_audit.py`'s
+    # A-ORDER has meant "generate_rules runs LAST, because a pcbnew save
+    # clobbers netclasses" since 2026-07-17 and is cited by name in four
+    # files. Two policies under one NAME is worse than a missing ID — a
+    # waiver written for either would read as covering the other. Fixed
+    # here 2026-07-30 at the v1.7 seal; the WIP draft carried the collided
+    # name.) BLOCKED, not PLANNED: `minPurchaseNum` 21 > stock 5
+    # means the line cannot be bought AS SEALED at any quantity today, and
+    # nothing consigns it. The consequence of BLOCKED is not a veto on the
+    # seal — it is an OBLIGATION: MANIFEST.txt and the first screen of
+    # ORDER_README.md must both carry
+    #     SOURCING: BLOCKED-1 (C265111; measured 2026-07-30)
+    # and release_freshness_check.py grades the count, the code and the date
+    # against this measurement in both directions.
+    order_status: BLOCKED
     # THIS ENTRY IS THE M4 WAIVER FOR A-STOCK ON THE v1.7 SEAL. The long-form
     # argument, with its commands and their raw output, is shipped as
     # 07_releases/cooksense-v1.7-2026-07-30/verification/A-STOCK_waiver.md.
