@@ -34,9 +34,20 @@ publishes a three-column table whose cells are
 **`Min. Via: 0.2mm` is ambiguous between a HOLE and a DIAMETER, and this
 board's orderability flips on the reading:**
 
-- if it means via **HOLE**: `0.15 < 0.20` — the board's vias are BELOW the
-  impedance-controlled process minimum, and the two options cannot both be had.
-- if it means via **DIAMETER**: `0.25 >= 0.20` — no conflict at all.
+- if it means via **HOLE**: the board's 0.15 mm drill is BELOW the 0.20 mm
+  figure, so its vias are under the impedance-controlled process minimum and
+  the two options cannot both be had.
+- if it means via **DIAMETER**: the board's 0.25 mm via pad is above the same
+  figure, and there is no conflict at all.
+
+**THIS ADR PUBLISHES NO BOUND, and the absence is declared rather than merely
+arranged.** It carries no `<!-- bound -->` block because it derives no
+inequality that governs a design quantity: the 0.20 mm above is the VENDOR's
+number under a reading this document explicitly declines to choose, and the
+board's 0.15/0.25 geometry is fixed elsewhere (`03_src/rules/nets.yaml`, from
+the U_SW land width — see Consequences). If JLC answers "hole", the number that
+lands here becomes a real bound and this ADR is amended to declare it with its
+provenance, per canon B-OWED. Until then there is nothing to cite.
 
 **The page does not settle it, and that was measured rather than assumed.**
 Machine-counted over the page's full extracted text, the words `hole`, `drill`,
