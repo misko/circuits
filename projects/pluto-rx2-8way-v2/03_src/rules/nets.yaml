@@ -28,16 +28,49 @@
 default_clearance: 0.2mm
 
 fab_tier: jlc_4layer_advanced
-# UNCHANGED from v1 and still FORCED by one line of arithmetic that has nothing
-# to do with the MCU: PE42482A-X QFN-24 at 0.50 mm pitch — at the standard-tier
-# 0.30 mm drill the adjacent-pin hole-to-hole gap is 0.50 - 0.30 = 0.20 mm
-# against a 0.50 mm floor, so no escape via fits. Removing the RP2040's 0.400 mm
-# QFN-56 did NOT relax the tier; the switch sets it by itself.
+# UNCHANGED from v1 and still FORCED by the PE42482A-X, not by the MCU: removing
+# the RP2040's 0.400 mm QFN-56 did NOT relax the tier; the switch sets it alone.
+#
+# THE ARITHMETIC WAS RE-DERIVED 2026-07-31 AND THE PREVIOUS VERSION OF IT WAS
+# WRONG TWICE. It read: "at the standard-tier 0.30 mm drill the adjacent-pin
+# hole-to-hole gap is 0.50 - 0.30 = 0.20 mm against a 0.50 mm floor, so no
+# escape via fits."
+#   (a) THE FLOOR IS NOT 0.50 mm. MEASURED on JLC's capabilities page: the
+#       published hole-to-hole floors are via<->via 0.2 mm and pad<->pad
+#       0.45 mm. 0.50 mm is the Min. NPTH SIZE and the castellated hole-to-hole
+#       — two unrelated rows. So 0.20 mm would sit AT the real floor, not under
+#       it, and the sentence proves nothing.
+#   (b) IT IS THE WRONG QUANTITY. MEASURED on the shipped board, the tightest
+#       via<->via HOLE gap anywhere near U_SW is 0.6017 mm — no two adjacent
+#       0.5 mm-pitch pins both carry a via, so the hole-to-hole quantity never
+#       binds here at all. The escape is via-in-pad on four NUMBERED lands
+#       (pad 8 3V3, pad 11 SW_V3, pad 18 GND, pad 25 EP) plus the EP thermal
+#       cross.
+#
+# THE CORRECT DERIVATION, and it reaches the same tier:
+#   U_SW's signal lands are 0.300 x 0.600 mm on a 0.500 mm pitch, so the gap
+#   between adjacent LAND edges is 0.200 mm. A via centred in a land must clear
+#   the neighbouring land by this board's default_clearance 0.2 mm:
+#       via pad 0.25 -> edge at 0.125 from centre, neighbour land edge at
+#                       0.350  =>  0.225 mm clear   OK
+#       via pad 0.40 -> 0.150 mm clear                     FAILS 0.2
+#       via pad 0.45 -> 0.125 mm clear                     FAILS 0.2
+#       via pad 0.60 -> 0.050 mm clear                     FAILS everything
+#   So 0.25 mm is the largest via PAD this land admits. JLC's own footnote (1)
+#   -- "Via diameter should be 0.1mm(0.15mm preferred) larger than Via hole
+#   size" -- then forces the HOLE to <= 0.15 mm, and a 0.15 mm hole is fee-table
+#   row 1 (Engineering fee $31.43 + $47.14/m2). BOTH free rows require a via
+#   diameter of 0.45 or 0.40 mm, neither of which fits a 0.300 mm land.
+#   THE PAID OPTION IS FORCED BY THE LAND WIDTH, via the vendor's own
+#   diameter-vs-hole rule. Conclusion unchanged; the argument is now true.
+#
 # ORDER_README line (exact):
 #   "ADVANCED option REQUIRED: min via 0.25/0.15 mm (PE42482A-X QFN-24 at
-#    0.50 mm pitch - at the standard-tier 0.30 mm drill the adjacent-pin
-#    hole-to-hole gap is 0.50 - 0.30 = 0.20 mm against a 0.50 mm floor, so no
-#    escape via fits). 4-layer JLC04161H-7628, IMPEDANCE CONTROL REQUESTED."
+#    0.50 mm pitch - its 0.300 mm signal lands admit a via PAD of at most
+#    0.25 mm at 0.2 mm clearance to the neighbouring land, and JLC's own rule
+#    that via diameter exceed via hole by >= 0.1 mm then forces a <= 0.15 mm
+#    drill; both no-fee rows need a 0.40-0.45 mm via pad, which does not fit).
+#    4-layer JLC04161H-7628, IMPEDANCE CONTROL REQUESTED."
 
 classes:
   RF50:

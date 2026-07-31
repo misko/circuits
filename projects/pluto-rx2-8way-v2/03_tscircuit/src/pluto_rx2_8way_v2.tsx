@@ -81,7 +81,17 @@ const MOD_JLC = "C9900173620" // RP2040-Zero-NoLogo — a C99* CONSIGN placehold
 const R220 = "C25091"        // 0402WGF2200TCE   220R +/-1%  0402  base
 const R47 = "C137864"        // RC0402JR-0747RL   47R +/-5%  0402
 const R680 = "C137948"       // RC0402FR-07680RL 680R        0402
-const R10K = "C25744"        // 0402WGF1002TCE    10k        0402  ledger-vetted
+const R10K = "C60490"        // RC0402FR-0710KL   10k        0402  ledger-vetted
+// ^ WAS C25744 (UniOhm 0402WGF1002TCE) until 2026-07-31. C25744 is BUYABLE BUT
+//   NOT AT OUR QUANTITY: JLC's selectSmtComponentList returns minPurchaseNum
+//   779 against our need of 20 (4 refdes x 5 boards), with canPresaleNumber
+//   -6,175,510 — its 30,949 catalog units are already oversubscribed by six
+//   million, which is why the minimum jumped. jlc_stock_check.py reads
+//   stockCount ONLY (blind spot #73), so A-STOCK reported PASS on a line that
+//   cannot be ordered as budgeted. C60490 is the same 10k +/-1% 62.5 mW 0402,
+//   already in the vetted ledger, minPurchaseNum 1.
+//   COST OF THE SWAP: C60490 is `expand` where C25744 was `base`, so this line
+//   now carries an extended-part setup fee. Recorded in ORDER_README section 1.
 const C100N = "C1525"        // CL05B104KO5NNNC 100nF X7R    0402  ledger-vetted
 const C1U0603 = "C15849"     // CL10A105KB8NNNC   1uF        0603  ledger-vetted
 const C4U7 = "C1779"         // CL21A475KAQNNNE  4.7uF       0805  ledger-vetted
