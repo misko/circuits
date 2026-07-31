@@ -12,6 +12,7 @@ canon (design policies, fab tiers, empirics).
 | `contracts.md` | this file |
 | `scripts/` | executable tooling (own contract) |
 | `references/` | canon documents + data models (own contract) |
+| `gradelib/` | the OBSERVED-GRADE tracer, auto-imported via `PYTHONPATH` (own contract) |
 
 ## Audit
 

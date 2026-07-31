@@ -1,0 +1,13 @@
+# CANARY SUBJECT — board B's waivers, at the PER-BOARD path.
+# There is DELIBERATELY no `03_src/rules/policy_waivers.yaml`. A gate that
+# SELECTS that flat address on this subject has resolved to the wrong place
+# and will never grade a waiver — which is inventory defect 7 verbatim
+# (`waiver_provenance`, exit 1 on a zero denominator, two waivers drifted).
+#
+# The file exists so GG-RESOLVE's scoping condition holds: the predicate only
+# accuses a missing path when a file OF THAT NAME does exist under the subject
+# root, so a gate legitimately probing for an OPTIONAL file is never accused.
+waivers:
+  - id: P-SILK-REF
+    reason: refdes under a connector shell, graded by hand on the render
+    evidence: 08_reviews/silk_render.png

@@ -1,0 +1,5 @@
+nets:
+  - name: VDD_3V3
+    class: power
+  - name: GND
+    class: power

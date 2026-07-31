@@ -473,7 +473,14 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: interesting part is that ONE GATE now carries both: the same file has an
 #: undefeatable assertion and a forgeable one, and only saying so out loud keeps
 #: a reader from generalising the strong one to the weak one.
-VACUITY_FLOOR = 9
+#: 10 since 2026-07-31: `trace_audit.py` (canon GG-SHADOW/GG-RESOLVE) declares
+#: the blind spot that STOPPED its own layer — it exits 0 over a battery that
+#: saw only a gate's own PRE-EXISTING exhaust, because neither the write-set (a
+#: METHOD test) nor the pre-run snapshot (an EXISTENCE test) is an IDENTITY
+#: test. The declaration landed WITH its fixture, which reproduces the vacuous
+#: pass on every run instead of asserting it in prose. Raised in the same commit
+#: that earns it, never ahead of one.
+VACUITY_FLOOR = 10
 
 
 def vacuity_declaration(text):
