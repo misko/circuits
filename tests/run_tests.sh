@@ -69,6 +69,7 @@ SUITES=(
   t1_bom_legibility.py
   t1_sealed_dependency.py
   t1_gate_contract.py
+  t1_trace_audit.py
   t1_fleet_regrade.py
   t1_rotation_authority.py
   t1_rotation_fixtures.py

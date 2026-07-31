@@ -675,7 +675,22 @@ the gate that reads it, and that gate must PROVABLY read it) ·
 it PASSES while its subject is FALSE, with a fixture; **G-SELFCON**; and
 `--dru` grades a `.kicad_dru` predicate that can never fire) ·
 `build_provenance.py` (**M-FRESH** — the artifact a gate grades must be the one
-the build just wrote).
+the build just wrote) · `trace_audit.py --subject .` (**GG-SHADOW** /
+**GG-RESOLVE** — the OBSERVATION arm of M-COVER: every gate above prints `N/M`,
+and this one traces a derived battery of them to check that N and M describe the
+board they were pointed at. Driver step [10c], advisory. On an ADR-0007
+two-board project it names, unaided, every flat `03_src/rules/<name>` gate that
+grades ONE board and reports on the PROJECT).
+
+**READ GG's READ COUNT WITH ITS CAVEAT, AND NEVER QUOTE IT WITHOUT ONE.** It is
+a SUPERSET of subject evidence: a battery gate's own output that ALREADY EXISTED
+when the run started is counted in it, because neither the write-set (a METHOD
+test) nor the pre-run snapshot (an EXISTENCE test) is an IDENTITY test. MEASURED
+— two identical genuinely-blind boards differing only by the presence of
+`06_build/policy_audit.md` exit 0 and 3. **Only the ZERO carries a verdict**: an
+empty read set is exit 3 GRADED NOTHING and is never a pass. A nonzero one is a
+raw number, and this layer's predecessor was stopped for printing it as a
+certificate. `design-policies.md`'s `GG-* mechanics` section carries the control.
 
 **M-FRESH IS WIRED INTO THE DRIVER, NOT RUN BY HAND, AND THAT IS THE POINT.**
 `rebuild_all.sh` stage **[0b]** stamps BEFORE `tsci build` and stage **[1a]**

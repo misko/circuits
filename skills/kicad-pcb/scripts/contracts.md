@@ -393,6 +393,41 @@ BACKEND GAP to report, not a bespoke script to write here.
   key, so one rule area carries both relaxations and P-LAND reports them
   together).
 
+- **OBSERVED GRADING (canon GG-SHADOW / GG-RESOLVE) — M-COVER's observation
+  arm.** `trace_audit.py --subject PROJECT_DIR` is the only gate here that
+  grades OTHER GATES AT RUNTIME. Everything above proves a checker prints
+  `N graded / M total`; this one proves N and M describe the artifact the
+  checker was pointed at. It installs `../gradelib/` on `PYTHONPATH`, runs a
+  DERIVED battery (a script that takes a project dir, prints a verdict — the
+  detector IMPORTED from `gate_contract_audit`, never re-implemented, canon M1
+  — and opens no socket) against a `cp -a --reflink=auto` COPY of the subject,
+  and emits **GG-SHADOW** (a same-basename file under the root that nothing
+  opened) and **GG-RESOLVE** (a path a gate SELECTED — one look at that name —
+  that is absent while the basename exists elsewhere).
+  **`--subject` IS MANDATORY.** There is no repo-level predicate, so a
+  subject-less run has nothing to do and exits 2 rather than printing a green
+  that says nothing about whether any gate can see its board.
+  **IT DOES NOT WRITE INTO THE PROJECT** — traced gates open `*.kicad_prl`
+  (every `pcbnew.LoadBoard` does) and `06_build/policy_audit.md` for writing,
+  and a grader must not mutate its subject. The sandbox is a REPO
+  (`<tmp>/repo/projects/<name>` with every other top-level entry SYMLINKED
+  beside it) so a gate resolving a repo-relative path by walking up still
+  resolves; symlinks inside the subject are PRESERVED, because a copy that
+  dereferenced them would silently repair the defect being reported.
+  `--in-place` opts out and says so; MEASURED, the two modes agree exactly.
+  **THE READ COUNT IS NOT A PROOF OF OBSERVATION AND MUST NEVER BE QUOTED AS
+  ONE.** Neither the write-set (a METHOD test) nor the pre-run snapshot (an
+  EXISTENCE test) is an IDENTITY test, so a battery gate's own output that
+  pre-dated the run is counted in it. The caveat is printed on the same line as
+  the number and carried in the `--json` sidecar as
+  `read_count_proves_observation: false`. Only the ZERO carries a verdict
+  (exit 3). The gate declares this as its `VACUITY:` blind spot and
+  `t1_trace_audit.py` reproduces it on every run.
+  Exit codes are a VOCABULARY: **2** invocation · **3** graded nothing · **4**
+  unresolved · **5** unobservable (the canary came back silent — never a skip).
+  Six withdrawn `GG-*` families have neither a canon row nor an emitter, and
+  `t_no_canon_gg_row_lacks_an_emitter` checks both directions.
+
 ## Structure
 
 One file per tool; no package/`__init__.py` — scripts are invoked by path.

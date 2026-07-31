@@ -1,0 +1,10 @@
+# CANARY SUBJECT — board B's rules. THE SHADOWED FILE.
+# A gate that resolves `03_src/rules/power_tree.yaml` grades board A and
+# reports on the PROJECT. This file is graded by nothing, and on the real
+# smc0985-cooksense tree its analogue holds 50 electrical invariants that no
+# pipeline invocation reaches.
+source_type: external_24v
+rails:
+  - name: 5V
+    vin_min: 22.0
+    vout_max: 5.25

@@ -1,0 +1,14 @@
+# CANARY SUBJECT — board A's rules, at the FLAT path a single-board gate reads.
+# The point of this file is that a second one exists at 03_src/boardB/rules/
+# with the same basename, so a gate reading only this one is SHADOWED.
+source_type: external_5v
+rails:
+  - name: 3V3
+    vin_min: 4.7
+    vout_max: 3.4
+# DECLARED AND READ BY NOTHING — the `linear_rails:` shape, in miniature.
+# The unit suffix on `iout_max_A` is what makes GG-KEY tag it [LOAD] rather
+# than [DOC]: a quantity is never documentation debt.
+linear_rails:
+  - name: 5V_AUX
+    iout_max_A: 0.15

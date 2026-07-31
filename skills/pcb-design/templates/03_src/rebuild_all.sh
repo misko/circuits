@@ -185,3 +185,30 @@ $PY "$S/generate_rules_generic.py" .
 kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
+
+# [10c] GG-*: OBSERVED grading — canon M-COVER's observation arm.  [SHARED]
+# Every gate above printed `N graded / M total`. This one RE-RUNS a derived
+# battery of them under `skills/kicad-pcb/gradelib/` and grades what they
+# ACTUALLY OPENED: a same-basename file under this root that nothing read
+# (GG-SHADOW — on an ADR-0007 two-board project every flat `03_src/rules/<name>`
+# gate grades ONE board and reports on the PROJECT), and a path a gate SELECTED
+# that is not there while that basename is (GG-RESOLVE).
+#
+# ADVISORY ON PURPOSE — `|| true`, and that is a decision, not an oversight. A
+# day-one fleet mandate lands as red rows on every board and is switched off
+# within the week; this repo has already lost a check that way. What this line
+# buys a board agent is the NAMES, at the moment they are cheap to act on.
+#
+# IT DOES NOT WRITE INTO THIS PROJECT. The battery runs against a
+# `cp -a --reflink=auto` copy with symlinks preserved: traced gates open
+# `*.kicad_prl` (every pcbnew LoadBoard does) and `06_build/policy_audit.md` for
+# writing, and a grader that mutates its subject is not observing it.
+# `--in-place` opts out. MEASURED 11 s on a two-board project.
+#
+# READ THE READ COUNT WITH ITS CAVEAT. It is a SUPERSET of subject evidence: a
+# battery gate's own output that ALREADY EXISTED when the run started is counted
+# in it, because neither the write-set (a METHOD test) nor the pre-run snapshot
+# (an EXISTENCE test) is an IDENTITY test. Only the ZERO carries a verdict.
+# Exit codes are a VOCABULARY: 3 = GRADED NOTHING (never a pass), 4 = a path did
+# not resolve, 5 = UNOBSERVABLE. `--explain` prints the legend.
+$PY "$S/trace_audit.py" --subject . || true
