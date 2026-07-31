@@ -139,17 +139,39 @@ board's own bound by 41 %. The lattice therefore steps at
 **0.95 = floor_0.05(1.35 / sqrt(2))**, giving **1.3435 mm** on a diagonal arm
 and 0.95 on an axis arm — 2208 grid vias plus the 40 SMA ground posts.
 
-**Twelve of twenty-one arm-sides still carry an interior aperture wider than
-1.35 mm, and each one is a named site OCCUPANCY rather than a pitch**
-(classified in `verification/fence_apertures.txt`): the declared `avoid` rings
-that keep stitch vias out of each SMA's >= D3.5 mm bottom-plane antipad (worst
-5.1071 mm at J_ANT8, where the jack's own four ground posts stand); the SSE
+**THE BOUND IS NOT MET, AND THE NUMBERS BELOW ARE RE-MEASURED OFF THE CURRENT
+BOARD (2026-07-30, after the C_SW2 rotation and the six barrel windows moved the
+control pocket). The previous revision of this paragraph quoted `12 of 21` /
+worst `5.1071` / `3.6200` from a SUPERSEDED board and was left standing across a
+re-place and two re-routes — a stale disclosure reads exactly like a current
+one, which is why it is dated here and regenerated with the artifact.**
+
+MEASURED, `verification/fence_pitch.txt` (which reads the saved `.kicad_pcb`
+through pcbnew and never reads `route.yaml`, so a declared pitch cannot certify
+itself): **worst interior along-arm aperture 3.0500 mm at ANT4 sideW,
+s = 7.12..10.17, against a 1.35 mm bound — 2.26x over — with 11 of 20 arm-sides
+over.** The file's own last line is `VERDICT: FAIL`. An independent re-derivation
+by a zero-context layout reviewer agrees on the worst value and counts 13 of 20;
+the count differs with the band/segment convention and the WORST VALUE does not.
+
+Each aperture is a named site OCCUPANCY rather than a pitch (classified in
+`verification/fence_apertures.txt`, one named occupier per empty lattice site):
+the declared `avoid` rings that keep stitch vias out of each SMA's >= D3.5 mm
+bottom-plane antipad, where the jack's own four ground posts stand; the SSE
 control corridor's `3V3`/`SW_V1`/`SW_V3`/`SW_V4` copper against the S and SE
-arms (worst 3.6200 mm); and the star hub, where the arm's own 0.36 mm copper
-and its 45-degree neighbour leave no legal site inside ~4 mm radius. A finer
-pitch does not fill an occupied site — these close only by moving the control
-corridor or by a per-arm fence pass the shared stitcher does not have. Carried
-as an open finding, not as a met requirement.
+arms (the 3.0500 mm worst case: SW_V4 F.Cu at 0.06 mm and SW_V3 In2.Cu at
+0.13 mm from the empty sites); and the star hub, where the arm's own 0.36 mm
+copper and its 45-degree neighbour leave no legal site. A finer pitch does not
+fill an occupied site — these close only by moving the control corridor or by a
+per-arm fence pass the shared stitcher does not have.
+
+**THIS IS AN OPEN P0 AGAINST ADR-0003's PUBLISHED INEQUALITY, NOT A MET
+REQUIREMENT AND NOT A WAIVER.** It is recorded here so that no downstream reader
+can take the 0.95 mm lattice pitch as evidence that the fence bound is met: the
+PITCH meets it and the realized FENCE does not. Resolving it needs either a
+placement change that frees the occupied sites, a per-arm fence pass, or an
+ADR-0003 amendment that re-derives the bound the board can actually hold and
+says what the residual apertures cost in isolation — measured, not asserted.
 
 The module contributes a second ground reference: its own PCB plane, tied to
 ours only through the `GND` castellations. That is a real discontinuity and it
@@ -235,8 +257,17 @@ INHERITED from v1.
 - **It ADDS one continuous source v1 does not have:** the module's WS2812B RGB
   LED, whose internal oscillator free-runs whenever powered. Recorded as a debit
   in ADR-0001, not argued away.
-- **It does not make the board turnkey.** The module is CONSIGNED — bought by
-  us, shipped with the order, placed by JLC (ADR-0002). v1 is the arm that JLC
-  can build unattended.
+- **It does not make the board turnkey.** The module is **NOT ASSEMBLED and NOT
+  on the CPL** — the builder supplies one RP2040-Zero and HAND-SOLDERS it to the
+  23 castellation lands (ADR-0002 Amendment 1, `03_src/rules/assembly.yaml`
+  `not_assembled:`). v1 is the arm that JLC can build unattended.
+  CORRECTED 2026-07-30, and the correction is called out rather than made
+  quietly because THIS SENTENCE IS WHY THE CHECK EXISTS: section 7 of this same
+  file was brought into agreement with the physics earlier the same day and this
+  one was not, so the document contradicted ITSELF for hours while every gate
+  stayed green — a zero-context reviewer found it, no checker did. The physics
+  (23 components on the carrier-facing face, crystal 1.000 mm proud, so the joint
+  plane and the collision plane are the same plane) is measured in section 7 and
+  in ADR-0002 Amendment 1; there is no reflowable joint for JLC to place.
 - **It does not settle whether the module or the bare chip is better.** That is
   what having both arms is for.

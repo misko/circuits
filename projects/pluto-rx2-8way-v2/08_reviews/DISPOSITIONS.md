@@ -76,3 +76,51 @@ yields sweep order 1,5,3,7,2,6,4,8 which an AoA solver absorbs as a permuted
 array; and **the `RP2040-Zero` dossier shipped with an empty function column and
 no `verified:` note**, so the pin reviewer graded it against the vendor files
 present rather than against a dossier claim.
+
+## 2026-07-30 — round 2 (r2), the ONLY live verdicts. Round 1 is VOID.
+
+The four `2026-07-30_v1.0_*.md` reviews without an `_r2` suffix graded a board
+that NO LONGER EXISTS: since they were written, C_SW2 rotated 180 degrees, six
+User.3 barrel windows were declared, the control pocket was re-routed twice
+(`--race 3` then `--race 4`), the promoted chain moved r4 -> r5, and five
+declared thermal barrels landed in U_SW's exposed pad. A placement change of
+that size voids a verdict; the round-1 files are retained as history and MUST
+NOT be cited as this board's verification.
+
+The four r2 reviews were run FRESH-CONTEXT and CONCURRENT, each with a DISTINCT
+filename. That is deliberate: a contract naming ONE review file lets a second
+reviewer silently overwrite the first, which nearly lost a review on the sibling
+board.
+
+| lens | file | design_verdict | order_verdict |
+|---|---|---|---|
+| topology/protection/ratings | `2026-07-30_v1.0_redteam_topology_r2.md` | **DEFECTIVE** | DO-NOT-ORDER |
+| layout/thermal/PI/RF        | `2026-07-30_v1.0_redteam_layout_r2.md`   | **DEFECTIVE** | DO-NOT-ORDER |
+| fresh-context pin review    | `2026-07-30_v1.0_pin-review_all_r2.md`   | SOUND | ORDER |
+| fresh-context render review | `2026-07-30_v1.0_render-review_all_r2.md`| SOUND | DO-NOT-ORDER |
+
+**TWO DEFECTIVE VERDICTS => THE SEAL IS REFUSED.** The staging archive was
+deleted from `07_releases/` rather than left sitting there (an unsealed
+directory named like a release is a lie waiting to be read); the bytes are
+preserved at `06_build/staging/` so the next round re-stages rather than
+re-derives. No release exists for this board.
+
+### Dispositions
+
+| finding | lens | disposition |
+|---|---|---|
+| **P0 fence: worst along-arm aperture 3.0500 mm vs the ADR-0003 bound of 1.35 mm (2.26x), `fence_pitch.txt` ships ending `VERDICT: FAIL`, and ARCHITECTURE sec 6 quoted stale numbers from a superseded board** | layout | **OPEN — the blocking finding.** ARCHITECTURE sec 6 REWRITTEN 2026-07-30 with the re-measured numbers, dated, and labelled an open P0 rather than a met requirement. The physical gap is NOT closed: it needs a placement change that frees the occupied lattice sites, a per-arm fence pass, or an ADR-0003 amendment that re-derives a bound the board can hold and measures what the residual apertures cost. The reviewer's independent count (13 of 20) and the tool's (11 of 20) differ with the segment convention; the WORST VALUE agrees exactly. |
+| **P0 no MANIFEST / no ORDER_README in the staged archive; three order-time human gates homeless** | topology | **CORRECT, and it is why the archive was pulled.** Staging was incomplete when the lenses ran — the reviewer graded what was there and was right to. |
+| **P0 shipped `policy_audit.md` predates the fab artifacts, so A-POP/M-BOM/M-REL read vacuous N-A and the summary shows zero FAILs** | topology | **CORRECT and generalisable.** A stale audit inside a release does not look stale; it looks passing. Next round: `policy_audit` runs LAST, after the fab set, and its output is copied in the same step. |
+| **P1 ARCHITECTURE sec 10 still called the module CONSIGNED and "placed by JLC"** | topology | **FIXED 2026-07-30.** Section 7 had been corrected earlier the same day and section 10 had not, so the document contradicted ITSELF while every gate stayed green. Found by a zero-context reviewer; no checker looks at prose. |
+| **P1 the S-OCCL waiver's premise is falsified by the shipped file — all four occlusions ARE in `pdf/schematic.pdf`, plus two the checker never listed** | render | **OPEN, and the waiver is now KNOWN-BAD.** Its whole argument was that the collisions live only in the machine `.kicad_sch`. They do not. The waiver must be withdrawn or re-argued against the document a human reads — it may not be renewed as written. |
+| **P1 schematic readability S6 FAIL: `N3V3_MOD`/`ANT2` overlap on U_SW pin 2 so the picture says the 3V3 rail is wired to an RF port; no title block; struck-through labels** | render | **OPEN.** S6 is a HUMAN-graded item and the human graded it FAIL. A label pair that actively lies is worse than an unreadable one. |
+| **P1 `assembly.pdf` / `pcb_layers.pdf` unusable as documents (1:1 in a corner of A4, no layer-name captions)** | render | **OPEN.** Export options, not board content. |
+| **P1 arms are built as grounded coplanar waveguide (GND pour at median 0.205 mm both sides over 67.5-94.3% of each arm) while the published constant set is a BARE-MICROSTRIP derivation; `nets.yaml` states in writing that a coplanar ground "does not" run alongside** | layout | **OPEN, and the most valuable finding of the round.** If it holds, ADR-0003's whole constant set is derived for a geometry the board does not have (CBCPW: eps_eff 3.1552, -5.21%, -4.98 deg per arm at 6 GHz). It also moves the fence bound. Must be settled BEFORE the fence P0, because it changes the number the fence is graded against. |
+| **P1 the length-match meander widens the 0.360 mm line to 0.600 mm over 0.555 mm (local Z0 37.17 ohm) on six of eight arms, and turned a 0.001 mm pad-chord spread into 0.5313 mm of track-length spread** | layout | **OPEN.** A gate that shares the router's own length metric cannot see this. |
+| **P1 the "unbroken In1.Cu under a matched arm" invariant is held on ANT5 by 0.0224 mm against +/-0.075-0.10 mm layer registration** | layout | **OPEN.** A tolerance smaller than the registration it lives inside cannot distinguish pass from fail. |
+| **P1 no stackup/impedance declaration anywhere in the order package** | layout | **OPEN.** A controlled-impedance board that does not tell the fab it is one is not a controlled-impedance board. |
+| **P1 `P-FACT` could not reach the KT-0603R `pad1_net_polarity` assertion although `source/*.net` is present** | topology | **OPEN (gate defect).** The reviewer verified the polarity by hand and it is correct; the CHECK is structurally blind. Propose upward as a `skills/` patch — not this board's partition. |
+| **P1 `pin_audit.py` produced a CONTENT-FREE dossier for U_MCU** (`MPN unknown`, `datasheet: (none)`, `(not in yaml)` x23) because it resolves refdes->MPN through `bom_jlc.csv`, and U_MCU is declared-unpopulated so it is in neither BOM nor CPL | pin | **OPEN (gate defect), and the shape is A-POP's twin.** The gate could not have failed on the one part whose own `part.yaml` warns in capitals about wrong-pad GPIO. The reviewer recovered the map from `02_parts/` and both vendor figures independently and the board is unaffected. Propose upward as a `skills/` patch. |
+| **P1 three-corner mounting: the SE hole sits 12.7 mm inboard, leaving the USB-C quadrant unsupported** | render | **OPEN.** A press-fit USB-C on an unsupported corner is a flex path. |
+| P2 x25 across the four lenses | all | recorded in the review files; none blocking. |

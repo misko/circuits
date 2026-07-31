@@ -73,3 +73,73 @@
     D1.4 leaves 0.064 mm) and JLC's 1.6 is their catalog model's approximation,
     which would give 0.164 mm slop on a launch whose whole job is a controlled
     transition. We keep D1.4.
+
+# ---------------------------------------------------------------------------
+# C2286 — KT-0603R indicator LED, LED_ST (the board's ONLY status indicator)
+# ---------------------------------------------------------------------------
+# POLARITY-FIT fires because the twin's TWO CHANNELS DISAGREE, and that is the
+# correct behaviour: it is the C2296/C2297 class, live on this board. The
+# disagreement is a LABELLING difference, not a geometric one, and it has
+# ALREADY been resolved AGAINST the twin — the resolution is not made here, it
+# is CITED here, from an authority outside the twin (canon M1).
+#
+# WHERE THE RESOLUTION LIVES: `skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv`
+# row `C2286,0,...,two-channel`. That row was measured 2026-07-30 BY HAND from
+# the raw `.kicad_mod` text of BOTH lands — own parser, own operator, no pcbnew,
+# and explicitly NOT from `jlc_twin`'s `jlc_offset` (canon M1/M-PROV: never
+# populate a rotation row from the checker's own output).
+#
+# THE MEASUREMENT, restated so this entry is readable without the CSV:
+#   - The pad cloud is DEGENERATE. rms 0.0375 mm at BOTH 0 and 180 (1.0875 mm
+#     at 90/270), because a 2-pad chip land is its own 180-degree reflection.
+#     Geometry admits {0, 180} and cannot choose; only a polarity mark can.
+#   - OUR pad 1 is at x = -0.7875 (WEST); JLC's pad 1 is at x = +0.7500 (EAST).
+#   - NUMBERING-FREE CHANNEL, marks read as SHAPES. Ours: the F.SilkS bracket's
+#     closed full-height edge at x = -1.485 and the F.Fab body chamfer cutting
+#     the (-0.800,-0.400) corner — both on the -x end. Theirs: a pin-1 DOT at
+#     (+0.80,-0.40) beside their pad 1, and a CHAMFERED bracket at the far -x
+#     end; their diode glyph corroborates with no pad number read, the cathode
+#     BAR at x = +0.090 with its lead running WEST.
+#   - THE BOARD SAYS IT TOO, with no drawing read at all: LED_ST pad 1 is on
+#     GND and pad 2 on LED_STAT_A, so OUR pad 1 IS the cathode (KiCad
+#     Device:LED pin 1 = K), which 02_parts/KT-0603R/part.yaml confirms against
+#     the vendor terminal drawing (vendor terminal 2 = cathode = chamfered end;
+#     only the INTEGER disagrees).
+#   => BOTH LIBRARIES DRAW THE CATHODE WEST. The physical parts already align.
+#      The correct CPL offset is 0, and the CPL ships LED_ST at 0.0.
+#
+# THE TWIN'S OWN `ROT-DB-SUGGEST: add LCSC row C2286,180` IN THE SAME REPORT IS
+# WRONG, and it is named here rather than ignored: it reports the fitted
+# `jlc_offset`, which on this part measures the labelling difference. A 180 row
+# would seat every unit cathode-east onto a west cathode pad — reverse-biased,
+# dark, and indistinguishable from a bad joint. One artifact states both
+# answers and only the wrong one is phrased as a paste-ready row.
+#
+# NOT DISCHARGED BY THIS ENTRY: because the two channels disagreed, C2286/LED_ST
+# is on the JLC ORDER-PREVIEW HUMAN GATE before the first order (canon A-POL),
+# and the ORDER_README carries it as a first-class step.
+- lcsc: C2286
+  status: POLARITY-FIT
+  refs: [LED_ST]
+  why: >
+    LABELLING DIFFERENCE, NOT A GEOMETRIC ONE, and it is resolved OUTSIDE the
+    twin. The pad cloud is degenerate (rms 0.0375 mm at BOTH 0 and 180, vs
+    1.0875 mm at 90/270 — a 2-pad chip land is its own 180-degree reflection),
+    so the pad-number fit's "180" carries no physical claim. MEASURED by hand
+    from both `.kicad_mod` files: our pad 1 sits WEST (x = -0.7875), JLC's pad 1
+    sits EAST (x = +0.7500), i.e. the two libraries number the terminals
+    oppositely. Read as SHAPES with no pad number: our F.SilkS bracket's closed
+    edge (x = -1.485) and F.Fab chamfer are on the -x end; JLC's pin-1 dot is at
+    (+0.80,-0.40) beside THEIR pad 1 while their chamfered bracket and their
+    diode glyph's cathode bar+lead both point to the -x end. BOTH LIBRARIES DRAW
+    THE CATHODE WEST, so the physical parts align and the correct CPL offset is
+    0 — which is what `jlc_lcsc_rotations.csv` row C2286 states and what the
+    shipped CPL carries (LED_ST, 0.0). Corroborated by the BOARD without reading
+    any drawing: LED_ST pad 1 is on GND, pad 2 on LED_STAT_A, and KiCad's
+    Device:LED is pin 1 = K, so our pad 1 IS the cathode;
+    02_parts/KT-0603R/part.yaml records the vendor terminal drawing agreeing
+    (vendor terminal 2 = cathode = the moulded-chamfer end). The twin's
+    ROT-DB-SUGGEST line proposing `C2286,180` in this same report is REFUTED,
+    not ignored: it reports the fitted jlc_offset, and a 180 row would seat
+    every unit reverse-biased. LED_ST/C2286 is carried on the JLC order-preview
+    HUMAN GATE before the first order (canon A-POL, two-channel disagreement).

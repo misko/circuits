@@ -615,3 +615,82 @@ cross-check 45/45 · P-OUT/P-CAP **PASS** · E-NETREF **PASS 95/95** · M-FRESH
   `stitch_grid` site at each pad; `pad_rescue.rings` starting below 0.15;
   reading why via-in-pad refuses those two sites (it placed one at R_PD1.2 and
   C_SW1.2, 1.30 mm either side, so it is site-specific, not systemic).
+
+## 2026-07-30 23:00 — finish (routing) + stuck (verify)
+
+- did: closed BOTH stranded GND pads deterministically, closed R-THERM in
+  source, re-seeded the driver, ran it end to end, re-measured the fence off the
+  new board, amended the docs, staged a release, and re-gated all four lenses
+  fresh-context. Then STOPPED: two lenses returned DEFECTIVE.
+- result (MEASURED by me this session unless stated):
+  * `03_src/rebuild_all.sh` RUNS END TO END. It did not before — it DIED at
+    stitch pass `heal_islands`, which `die()`s when a heal does not reduce the
+    island count. "2 unconnected" understated it: the driver could not complete.
+  * DRC `--severity-all --refill-zones --schematic-parity` = **0 / 0 / 0**,
+    both lists empty in `06_build/drc/gate.json`.
+  * `policy_audit`: FAIL=0, HUMAN=6, N-A=9, PASS=29, WAIVED=1.
+  * M-FRESH **PASS 9/9 including F-RENDER** — P0-4 (a schematic.pdf stamped
+    14:47 beside a 20:08 circuit.json) closes mechanically, not by hand.
+  * twin exit 0, 26 OK / 56 rows, **bodies mounted 27/27**; A-RENDER overlay
+    OK (11 measurable bodies all within 1.00 mm); A-ROT all 27 sourced;
+    F-LEGIBLE 13 checks; M-BOM PASS; A-STOCK 11/11 at >= 5x.
+- THE TWO STRANDED PADS WERE TWO DIFFERENT DEFECTS, and the diagnosis is the
+  finding. Both were measured, not guessed:
+  * **R_PD2.2** — `via_site_ok` returns TRUE at its own pad centre and 144
+    legal 0.25/0.15 sites exist inside its island. Nothing about CLEARANCE
+    refused it. `pad_rescue` reaches its via through `try_via`, whose FIRST
+    guard is `stitch.via.spacing` (0.85 mm) measured against every via on the
+    board, **NET-BLIND** — and a SW_V1 escape via sat **0.7440 mm** away,
+    0.106 mm inside a lattice rule that has nothing to say about a via-in-pad
+    on a different net. None of the five swept knobs touches that line.
+  * **C_SW2.2** — **0 legal sites out of 608 interior points** of its
+    1.411 x 1.437 mm island, identical at clearance 0.20 / 0.14 / 0.13. Three
+    In2.Cu control verticals ran under one 0.90 mm pad at x 41.850 / 42.350 /
+    42.800; a 0.25 barrel needs 0.125 + 0.200 + 0.100 = **0.425 mm** from a
+    0.2 mm centreline, so no site fits between them at ANY y. F.Cu was walled
+    by the 0.400 mm 3V3 trunk (S+W) and SW_V3 (E). Landlocked.
+- ROOT CAUSE, one sentence, general: **a router reserves a barrel window on the
+  pad's OWN layer automatically and on NO OTHER**, because a pad it is not
+  routing is invisible to it there — and `waves.exclude: [GND, ...]` means these
+  pads are never routed at all, so nothing speaks for them. On F.Cu a foreign
+  centreline stands >= 0.45 + 0.20 + 0.10 = 0.75 mm off an 0805 pad centre,
+  which already clears the 0.425 mm a barrel needs. On In2.Cu, nothing does.
+- THE FIX IS DECLARED, IN THREE PARTS: C_SW2 rotated 0 -> 180 (centre unmoved,
+  so the control corridor and the SW_V4 / 3V3 budgets are untouched); SIX
+  User.3 BARREL WINDOWS, one per pour-fed GND terminal in the pocket; and
+  `stitch.seed_stubs` declaring a via-in-pad at all six BY NAME plus five in
+  U_SW's exposed pad. seed_stubs bypasses the net-blind spacing guard,
+  exact-collision-checks every primitive, REFUSES rather than shaves, and
+  PROVES the copper lands on the named pad.
+- **HALF-WIDTH 0.55 IS DERIVED AND THE FIRST GUESS WAS WRONG, WHICH IS THE
+  USEFUL PART.** At 0.325 (= barrel + clearance) the next route landed In2
+  centrelines at EXACTLY 0.3250 and 0.3750 mm — hard against the wall. KRT
+  keeps track CENTRELINES out of a keepout, not track COPPER, so a half-width
+  buys itself and not itself-plus-a-half-track. 0.55 = 0.125 + 0.200 + 0.200
+  (half the 0.400 mm 3V3 trunk).
+- ALL SIX, NOT THE TWO THAT STRANDED: which two strand is a property of the
+  ROUTE. Re-racing moved the set from {R_PD2.2, C_SW2.2} to {C_SW2.2, C_SW1.2,
+  R_PD3.2}. Declaring only the observed pair cures one draw.
+- COST: none measurable. Two race campaigns (3 then 4 candidates) came back
+  **ALL CLEAN** (0 unconnected / 0 violations pre-stitch). The pocket kept its
+  escape.
+- **STUCK at verify (this is the D-BACK entry).** Two of four fresh-context
+  lenses returned `design_verdict: DEFECTIVE`, so the seal is REFUSED and the
+  staged archive was moved to `06_build/staging` rather than left in
+  `07_releases/` under a release name. The blocking finding is NOT copper:
+  the ground-via fence measures **3.0500 mm worst interior along-arm aperture
+  against ADR-0003's published 1.35 mm bound (2.26x), 11 of 20 arm-sides over**,
+  the shipped `fence_pitch.txt` ends `VERDICT: FAIL`, and ARCHITECTURE sec 6 was
+  still quoting `12 of 21` / `5.1071` / `3.6200` from a SUPERSEDED board — a
+  stale disclosure reads exactly like a current one. Section 6 is rewritten with
+  the re-measured numbers and labelled an open P0. Section 10 still called the
+  module CONSIGNED while section 7 of the SAME FILE had been corrected hours
+  earlier; found by a zero-context reviewer, by no checker.
+- causal hypothesis for the retry, and the ORDER MATTERS: the layout lens
+  measured the arms as **grounded coplanar waveguide** (GND pour at median
+  0.205 mm on both sides over 67.5-94.3% of each arm) while ADR-0003's constant
+  set is a BARE-MICROSTRIP derivation. If that holds, eps_eff moves
+  3.3286 -> 3.1552 and **the fence bound moves with it**, so grading the fence
+  before settling the transmission-line model grades it against the wrong
+  number. Settle the model FIRST.
+- next: see `01_docs/STATUS.md` `next:` and `08_reviews/DISPOSITIONS.md`.

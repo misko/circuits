@@ -4,7 +4,67 @@ date: 2026-07-30
 status: accepted
 tags: [assembly, sourcing, protection, topology, spec-tension]
 ---
-# 0002 — the module is CONSIGNED, its own USB-C is the board's only port, and the protection chain goes with the boundary
+# 0002 — the module is HAND-SOLDERED (amended from CONSIGNED), its own USB-C is the board's only port, and the protection chain goes with the boundary
+
+## Amendment 1 — 2026-07-30, at the placement gate: rung 2 is CLOSED BY PHYSICS
+
+**Decision item 1 below ("The RP2040-Zero is CONSIGNED") and the first
+Consequence are SUPERSEDED. They are kept in place, unedited, because the
+reasoning that produced them was sound on the evidence it had and the shape of
+the error is the useful part of this record.**
+
+The original decision rested on a claim about the module that was
+UNFALSIFIABLE FROM THE SOURCE IT WAS TAKEN FROM — a photograph of the module's
+TOP face — namely that the bottom is flat and only the castellations stand
+proud. It was written down as "it stands on castellations with components on
+its top face". That sentence is what made rung 2 (consign: we buy the modules,
+JLC places them) look open, and the ladder's own rule then made rung 3
+(hand-solder) a *fake* sourcing wall: you may not take rung 3 while rung 2 is
+available.
+
+MEASURED 2026-07-30 off the vendor Creo STEP assembly (`RP2040_Zero.stp`,
+sha256 in `02_parts/RP2040-Zero/part.yaml`), independently twice:
+
+- **23 components sit on the CARRIER-FACING face.** 12 MHz crystal **1.000 mm
+  proud**, RP2040 QFN-56 0.850, RT9013 LDO 0.700, twenty 0201s 0.300.
+- The 23 castellation lands are **0.010 mm of copper on that same face**.
+
+So the joint plane and the collision plane are the same plane, and **the module
+cannot sit down**. There is no reflow profile that bridges a 1.0 mm standoff at
+2.54 mm pitch, no nozzle target for a pick-and-place head, and no reflowable
+joint to inspect. Waveshare's "castellated module allows soldering directly to
+carrier boards" is a capability CLAIM — not a land pattern and not a profile.
+
+**RUNG 2 IS NOT OPEN. It is blocked by physics, and the block is not a
+preference.** The distinction matters and is the whole amendment: *"we preferred
+to hand-solder"* and *"no reflowable joint exists"* are different statements,
+and only the second is true.
+
+**AMENDED DECISION 1. `U_MCU` is NOT ASSEMBLED and NOT on the CPL.**
+`03_src/rules/assembly.yaml` carries a `not_assembled:` entry with
+`reason: user_supplied`, `on_bom: false`, and the MEASURED mechanical evidence
+above — plus two independently sufficient seconds recorded so a future revision
+cannot retire the entry by defeating one: THERMAL (a populated FR-4 PCBA with
+no published MSL and no second-reflow profile, its own bottom-side joints facing
+down through the oven) and SOURCING (the live JLC read below — C9900173620 is a
+permanently-stock-0 consign placeholder now flagged "no longer manufactured",
+C5350143 is a Development-Boards line marked "SMT Assembly (Fixture Required)").
+`exclude_from_pos_files` is set on the footprint so the part actually LEAVES the
+CPL: a blank-LCSC CPL row instructs the machine to place a part it cannot
+source, which is canon A-POP's founding defect (cooksense v1.1 shipped 13).
+
+**AMENDED CONSEQUENCE.** There is NO consignment logistics step and no `msl:`
+obligation, because the part is not reflowed. What replaces both is an
+ORDER_README hand-solder entry: the builder supplies one RP2040-Zero and fits it
+to the 23 castellation lands. The `msl:` paragraph below is retained because its
+reasoning — *a required field filled with a plausible guess is worse than one
+filled with the truth that nobody knows* — is why the OWED fact never became a
+number, and that is worth keeping whether or not the field is still required.
+
+**Cross-references now agreeing with the physics:** `ARCHITECTURE.md`
+"HAND-SOLDERED and off the CPL ... not consigned"; `03_src/rules/assembly.yaml`
+`not_assembled:` block; the release MANIFEST's `not_assembled:` line, which is
+GENERATED from that file and never hand-written beside it.
 
 ## Context
 
@@ -108,7 +168,10 @@ that order, and each rung must be refused on evidence before the next is taken.
 
 ## Decision
 
-**1. The RP2040-Zero is CONSIGNED.** `03_src/rules/assembly.yaml` carries a
+**1. The RP2040-Zero is CONSIGNED.** — **SUPERSEDED BY AMENDMENT 1 (2026-07-30):
+rung 2 is closed by physics; the module is NOT ASSEMBLED and NOT on the CPL.
+The paragraph is kept unedited as the record of what was decided and on what.**
+`03_src/rules/assembly.yaml` carries a
 `consigned:` entry for `U_MCU` with `lcsc: C9900173620`, the dated catalog
 evidence above, and an `msl:` line. It stays on the CPL and gets the same
 rotation rigor as any placed part — **more**, because a consigned part is the
@@ -149,7 +212,10 @@ cheap answer and it is the ONE place this board's supply meets its RF part.
 
 ## Consequences
 
-- **Committed to a consignment logistics step at order time.** Modules must be
+- **Committed to a consignment logistics step at order time.** — **SUPERSEDED
+  BY AMENDMENT 1: there is no consignment step; the builder hand-fits one
+  module.** Kept unedited below as the record.
+  Modules must be
   bought and shipped with the order. This is a real cost and delay that v1 does
   not have, and it is the honest price of the module. It goes in the
   ORDER_README as a first-class step, not a footnote.
