@@ -2493,3 +2493,15 @@ is a check that cannot fail.
 - next: four fresh-context lens verdicts, then the 2-commit seal. Seal also
   waits on `skills/` going clean (another agent's `tier_preflight.py` is in
   flight and `git_dirty` is scoped to `projects/<board>/ + skills/`).
+
+## 2026-07-30 22:35 — finish (v1.7 SEALED)
+- did: 2-commit seal. Source S `1d7a41e8`, seal `2fd75317` (release dir +
+  SUPERSEDED.md on v1.6 only), beacon refreshed as part of the seal.
+- result: **`07_releases/cooksense-v1.7-2026-07-30/` — SEALED.** All four
+  fresh-context lenses `design_verdict: SOUND`, ZERO P0. policy_audit FAIL=0,
+  release_freshness DESIGN PASS / SOURCING BLOCKED-1 / FRESHNESS PASS,
+  M-BEACON PASS, all RAW_EXIT 0. Three of four lenses independently found the
+  relay's −20…+70 °C limit; ADR-0030 + the ORDER_README fixes landed BEFORE the
+  seal, which is exactly what pre-seal verification is for.
+- next: order-day work only (re-measure C265111 vs MOQ 21, rotation human gate,
+  F-ECHO) and the §7b bench hour. v-next work order is in the beacon.
