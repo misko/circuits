@@ -2440,3 +2440,56 @@ is a check that cannot fail.
   split 2 SOUND / 2 DEFECTIVE and the two SOUND ones overwrote the DEFECTIVE
   ones, so M-REV's design-side red currently clears on a filename technicality.
   All five reviews are archived verbatim in `08_reviews/` with md5s.
+
+## 2026-07-30 21:45 — iterate (v1.7 seal pass, envelope decision applied)
+- did: applied the USER'S BINDING ENVELOPE DECISION (65 °C declared + a
+  MANDATORY six-measurement bench gate), re-measured sourcing at seal time,
+  closed the freshness blockers, and re-gated all four lenses fresh-context.
+  ADR-0029 written; BRIEF.md D12 + a thermal-envelope fact-lock row;
+  `power_tree.yaml`'s declared-envelope block; `ORDER_README.md` §0-T + §7b.
+- result: MEASURED (by me). Board md5 `9f4fd5fae810f40a52b1035df727243c`
+  UNMOVED. Thermal, at the DECLARED 65 °C, from CITED constants only:
+  `PD_pass` 409.800 mW + `PD_q` 57.750 mW, rise 42.0795 °C, `Tj` 107.0795 °C,
+  margin **17.9205 °C citable / 13.27…16.37 °C carrying the board's other
+  0.958 W**. At 75 °C the same two forms are 7.92 and 3.27…6.37 — so **the
+  published 7.92 was wrong regardless of the envelope**, by a term worth
+  20–59 % of itself. Dropout at 65 °C is **+19.5 mV** worst case with the CITED
+  2 × 10 mΩ contacts (INHERITED from ADR-0028's ladder; slope −0.31 mV/K, so
+  narrowing bought +1.4 mV).
+  **`pdiss_max_mw` HELD at 497 (the 75 °C derating) on purpose** — the gate was
+  never red, so moving it to the arithmetically-correct 608 would only loosen a
+  ceiling. Narrowing a declaration must not relax a gate.
+  GATES, UNPIPED: DRC 0 violations / 0 unconnected / 0 parity **RAW_EXIT 0**
+  with `--exit-code-violations` (both halves, both zero) · standalone DRC on
+  `source/` copied OUTSIDE the repo also **0/0/0 RAW_EXIT 0** · E-TOPO **0**
+  (PD 410 mW vs 497, 82 %) · E-OFF N-A · E-MARGIN N-A · policy_audit FAIL=0
+  (HUMAN=6 N-A=5 PASS=28 WAIVED=6) **0** · M-BOUND **0** (7 CITED, 37 OWED vs a
+  ≤37 ceiling; the NEW bound `LDO_TJ_DECLARED_AMBIENT` RED-TESTED in THREE
+  directions — ambient back to 75 → 999, example off the graded keys → 999,
+  graded key moved under a fixed example → 999) · G-ORPHAN 315/315 **0** ·
+  release-freshness **0**.
+  **M4 GRADED THIS BOARD FOR THE FIRST TIME**, after skills commit `1b70262a`
+  (P19) landed the multi-board waiver path: **RAW_EXIT 0, PASS (0 fails, 1 ok)**,
+  16 waivers graded (12 cooksense + 4 interposer), all 16 OWED-for-evidence
+  under a 22 ceiling, 4 UNBACKED machine waivers under a 9 ceiling. Before that
+  commit it exited 1 on a ZERO DENOMINATOR and read as an invocation error.
+  SOURCING re-measured at seal time (2026-07-30 21:29 local / 2026-07-31T04:29Z,
+  own urllib client, both controls in-run): `C265111` **stock 5 / MOQ 21** —
+  the FIFTH reading, sequence 0→5→0→5→5 in 48 h, and **MOQ 21 at every one**.
+  The blocker is the MOQ and it has never once been the stock. `C587657`
+  (Molex `J_PWR`) **70 / MOQ 1**, falling 130→80→70→70, single-source with no
+  drop-in fallback (its only listed alternative is through-hole).
+  **TWO OF THE THREE DECLARED FRESHNESS BLOCKERS WERE NOT REAL.** Both
+  `EVIDENCE PATH MISMATCH` findings are invocation artifacts:
+  `release_freshness_check.py` resolves sibling releases against
+  `release_dir.parent`, which for a staging directory is `06_build/staging/`,
+  and the same defect manufactured a phantom `STOCK-INSUFFICIENT` +
+  `ORDER-DECL-FALSE` pair by failing to find `03_src/rules/assembly.yaml` from
+  a staging path. Pointed at the real releases root and assembly file, only
+  `ORDER-DECL-UNDATED` was real (a UTC date in a project that DECLARES local
+  dating). Filed as owed skill patch P21; P20 = a declared envelope needs a
+  graded home that is not a derating. Neither implemented — `skills/` is
+  outside this board's partition.
+- next: four fresh-context lens verdicts, then the 2-commit seal. Seal also
+  waits on `skills/` going clean (another agent's `tier_preflight.py` is in
+  flight and `git_dirty` is scoped to `projects/<board>/ + skills/`).
