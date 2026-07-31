@@ -362,3 +362,62 @@ pin 20 NC->GND is explicitly permitted by Table 8 note 2, and the truth table
 read visually confirms **V1 is the MSB and V4 is the mute control, not a select
 bit**. The module's CW-from-top-right vendor numbering matches pad-for-pad
 including the GP15->GP26 divergence at pad 17.
+
+## 2026-07-30 22:00 — stuck, addendum (the render lens made it FIVE P0s)
+
+- did: the fresh-eyes render review landed. It read the pictures and the PDFs
+  with no design context, and it is the reason that lens exists.
+- result: **`design_verdict: DEFECTIVE` / `order_verdict: DO-NOT-ORDER`,
+  2 P0 / 8 P1 / 10 P2, schematic readability FAIL.** Its unprompted
+  one-sentence description of the board is correct in every part, which is the
+  cheapest sanity check a fresh lens gives you.
+
+**P0-4 — THE SHIPPED HUMAN SCHEMATIC RENDERS AN EARLIER REVISION.**
+`pdf/schematic.pdf` draws `U_MCU` pin 1 = 5V ... pin 23 = GP0; the released
+`.kicad_sch` and `.net` both say pin 1 = GP0 ... pin 23 = 5V, the exact reverse,
+and it names the rails `N3V3`/`N3V3_MOD` where the netlist says `3V3`/`3V3_MOD`.
+CONFIRMED BY A DIFFERENT INSTRUMENT than the lens used — file times and the
+driver's own stage list rather than a second read of the PDF:
+`03_tscircuit/build/schematic.pdf` is stamped **14:47:14**, `circuit.json`
+beside it **18:42:05**, the released `.kicad_sch` **18:54:21**. The PDF is four
+hours older than the circuit it claims to render and predates the driver run.
+
+CAUSE, and it is a sibling this board has met before: `tsci build` writes
+`dist/src/<TSX>/` and **NEVER writes `build/`**; only `gen_tscircuit.sh` writes
+`build/schematic.{pdf,svg}`; and `rebuild_all.sh` copies **circuit.json** from
+`dist/` to `build/` **and nothing else**. So the PDF is whatever the last
+hand-run left behind. The stale-`build/circuit.json` defect that cost this board
+nine green gates against superseded content was the SAME DIRECTORY and the SAME
+CAUSE — and M-FRESH does not cover this one, because M-FRESH stamps
+`circuit.json`. **I shipped it into the archive with a `cp` and never asked when
+it was written.** OWED UPWARD as a template patch: `rebuild_all.sh` must
+regenerate or at minimum freshness-check `03_tscircuit/build/schematic.pdf`,
+because the 07_releases contract names that exact file as the release's HUMAN
+SCHEMATIC DOCUMENT — the one artifact no machine gate reads and every human does.
+
+**P0-5 — THE BOARD CANNOT BE CABLED.** `J_ANT8` and `J_RX1` sit **8.000 mm**
+centre to centre. A standard SMA coupling nut is 5/16 in = **7.94 mm across
+flats, 9.17 mm across corners**, so the two hex nuts OVERLAP AT EVERY ROTATION
+and no wrench fits on either. MEASURED by me through pcbnew against the nut
+dimension (the lens measured pixels on the calibrated twin render — a different
+instrument, same answer). It is **exactly one pair**: the next-closest jacks are
+`J_RX2 <-> J_ANT8` at 9.933 mm, clearing across-corners by 0.76 mm. And it is
+the pair the netlist puts on the SAME NET, `RX1_MAIN` — the two that must be
+cabled SIMULTANEOUSLY for the reference channel to exist at all.
+
+### ONE PLACEMENT DECISION, THREE CONSEQUENCES, THREE LENSES, NO OVERLAP
+
+The 8.000 mm between `J_ANT8` and `J_RX1` is simultaneously:
+
+| what it is | who found it | what it costs |
+|---|---|---|
+| a `keep_short` span failure | `policy_audit` P-ADJ, a MECHANICAL gate, first, ~4 h before any lens | nothing — it reported a number and priced nothing |
+| a 10.107 mm BRANCH LINE, 90 deg at 4.06 GHz | the layout lens, by ABCD model | **-13.995 dB** RX1 through-loss, 1.91 dB return loss at 4.00 GHz |
+| two SMA nuts that physically interfere | the render lens, LOOKING AT PICTURES | the board cannot be cabled on the one pair that must be cabled together |
+
+**No single lens found more than one of them**, and the cheapest lens — a fresh
+agent shown pictures — found the one that no amount of netlist analysis reaches.
+That is the concrete argument for the full battery over "one integrated lens",
+and it is also the argument against ever waiving a mechanical finding you cannot
+price: P-ADJ was pointing at all three, four hours early, and said only "8.00mm
+of 3.0mm".
