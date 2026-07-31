@@ -7,6 +7,16 @@ lipo3s_trace.md
 # local agent worktrees / session state
 .claude/
 
+# KiCad advisory lock files. kicad-cli/pcbnew CREATE these merely by OPENING a
+# board, so they appear under 04_kicad/ and — because a release's own DRC and
+# export steps open the staged copy — inside sealed 07_releases/*/source/ too.
+# Eleven were found strewn across the fleet 2026-07-31, four of them polluting
+# sealed archives. They are process state, never content: same class as the
+# .kicad_prl that shipped in cooksense v1.7's MANIFEST (task #45).
+~*.kicad_pro.lck
+*.kicad_pro.lck
+*.lck
+
 # --- secrets: API keys, never committed (added 2026-07-27) ---
 .secrets/
 *.env
