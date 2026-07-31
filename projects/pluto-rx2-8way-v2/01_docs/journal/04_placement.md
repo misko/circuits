@@ -458,3 +458,48 @@ lambda/20 = 2.5 mm at 6 GHz and matches what `pluto-cal-switch` ships, but it
 does NOT meet this board's own tighter bound. Stated as a measured gap.
 A fractional step is silently TRUNCATED (`int(1.35)` = 1), which is a skill
 finding reported upward, not worked around here.
+
+## 2026-07-30 — finish (REGENERABILITY, canon M3 + M-FRESH)
+
+- did: adopted the M-FRESH-corrected driver from the skill template and ran
+  `03_src/rebuild_all.sh` END TO END, from the `.tsx` to the DRC gate.
+- result: **exit 0, DRC 0/0/0.** `build_provenance.py audit` **M-FRESH PASS**.
+  The board reproduces from `03_src/` + `03_tscircuit/` with ZERO board-specific
+  generation Python.
+
+**THE STALE-PATH DEFECT WAS STILL IN THIS BOARD'S OWN DRIVER.** The previous
+session found it, worked around it by hand (`cp dist/ -> build/`) and reported
+the driver line as skill-owned — and the driver line stayed wrong. VERIFIED
+BEFORE TOUCHING ANYTHING that nothing here had been graded stale:
+`03_tscircuit/build/circuit.json` and
+`03_tscircuit/dist/src/pluto_rx2_8way_v2/circuit.json` are BYTE-IDENTICAL
+(sha256 `59a5ad62…`), and both the schematic and the netlist post-date them.
+
+**tsci NON-DETERMINISM, MEASURED RATHER THAN ASSUMED.** The driver's own
+`tsci build` rewrote the schematic: the `.kicad_sch` and `.net` bytes both
+CHANGED. Node-for-node they are IDENTICAL — **40 nets, 130 nodes, zero
+differences** — so the churn is schematic geometry and the board is untouched.
+Worth recording HOW that was measured: the first two comparison scripts
+reported "identical" while matching NOTHING, because KiCad 10 pretty-prints the
+netlist across lines and both regexes were written for the KiCad 7 same-line
+form. The skill warns about exactly this. A comparison that finds nothing and a
+comparison that finds no differences print the same word.
+
+**ERC MOVED 248 -> 220 WARNINGS, 0 ERRORS BOTH TIMES**, and the 28 that left
+are the `footprint_link_issues` — one per component — now that
+`04_kicad/fp-lib-table` resolves every FPID. 131 `endpoint_off_grid` + 89
+`lib_symbol_issues` remain, both converter-geometry artifacts, neither
+electrical.
+
+**THE TEMPLATE'S ERC LINE GATES ON WARNINGS.** `kicad-cli sch erc
+--severity-all --exit-code-violations` exits non-zero on ANY violation, so this
+board failed its own driver at 220 cosmetic warnings while carrying zero
+errors. The canon gate is 0 ERRORS with warnings baselined. Split in this
+project's copy into two runs — the full-severity report is still WRITTEN
+(a baseline nobody records cannot be reviewed) and only the error-severity run
+gates. Reported upward as a template finding.
+
+FINAL, on the driver-produced board: DRC **0/0/0** · R-LEN **PASS** 0.5314 mm =
+7.01 deg (floor spread 0.0007 mm) · P-LAND **PASS** 0 failing, routed
+cross-check 45/45 · P-OUT/P-CAP **PASS** · E-NETREF **PASS 95/95** · M-FRESH
+**PASS** · ERC **0 errors**.

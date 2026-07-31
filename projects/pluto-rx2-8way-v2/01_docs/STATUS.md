@@ -33,9 +33,9 @@ terminal for this stage.
 
 <!-- reader parses from here down -->
 stage:   verify
-step:    "ROUTING GATE GREEN. DRC 0/0/0 at full severity. Route chain PROMOTED to 03_src/route/r4.kicad_pcb and committed."
-measure: "kicad-cli pcb drc --severity-all --refill-zones --schematic-parity = 0 violations / 0 unconnected / 0 parity. R-LEN PASS: realized copper spread 0.5314 mm = 7.01 deg at 6 GHz vs the 1.0 mm DRIFT ceiling; octilinear FLOOR spread 0.0007 mm; 8/8 members measured, 0 vias / 1 component / 2 ends each. P-LAND PASS 45 graded/130 copper pads, 0 failing, 9 against a scoped clearance, routed cross-check 45/45 none wider than the model allows. P-OUT/P-CAP PASS (tightest pad-to-outline 1.28 mm, worst corridor ratio 0.04). E-NETREF PASS 95/95 0 ghost. tier_preflight 0 FAIL/1 WARN. DRC burn-down 21 -> 0 over FIVE causes: 12 stitch-grid vias inside an SMA pin 0.80 mm local clearance (one fact, reported once per layer), 5 module-footprint silk vs its own lands, 2 C_BULK 0.175 mm from the module castellations, 1 KRT 0.1069 mm via-in-pad stub, 1 module Value field on F.SilkS instead of F.Fab."
+step:    "ROUTING GATE GREEN AND REGENERABLE. The full driver 03_src/rebuild_all.sh runs tsx -> DRC and exits 0."
+measure: "DRC --severity-all --refill-zones --schematic-parity = 0 violations / 0 unconnected / 0 parity, ON THE DRIVER-PRODUCED BOARD. R-LEN PASS realized spread 0.5314 mm = 7.01 deg at 6 GHz vs the 1.0 ceiling; octilinear FLOOR spread 0.0007 mm (v1: 1.4966 mm = 19.74 deg, ABOVE its ceiling). P-LAND PASS 0 failing, routed cross-check 45/45 none wider than the model allows. P-OUT/P-CAP PASS. E-NETREF PASS 95/95 0 ghost. M-FRESH PASS (build_provenance audit). ERC 0 errors / 220 warnings (was 248; the 28 footprint_link_issues left when fp-lib-table resolved). tsci churned the schematic bytes but the netlist is NODE-FOR-NODE IDENTICAL, 40 nets / 130 nodes."
 state:   done
-next:    "Stage 6/7 verification: fab export, jlc_twin, pin + render reviews, policy_audit, then seal. OWED and MEASURED: the ground-via fence ships at 2.0 mm = lambda_g/13.7 against this board's own <= 1.35 mm bound, because stitch_grid steps with range(int(...)) and cannot take a fractional pitch."
+next:    "Stage 6/7: fab export, jlc_twin, pin + render reviews, policy_audit, seal. OWED and MEASURED: the ground-via fence ships at 2.0 mm = lambda_g/13.7 against this board's own <= 1.35 mm bound (stitch_grid steps with range(int(...)) so a fractional pitch is silently truncated). OWED upward: a contract row for floorplan `silk.polarity_marks` (G-ORPHAN), and two template findings (the ERC line gates on warnings; the driver calls 03_src/audit_board.py unconditionally)."
 op_pid:
-updated: 2026-07-30T18:35:00
+updated: 2026-07-30T18:55:00
