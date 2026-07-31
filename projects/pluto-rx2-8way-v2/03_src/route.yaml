@@ -257,17 +257,48 @@ route:
     keepout_layer: User.2
   waves:
     - {name: rf,   group: rf,   layers: [F.Cu], max_iterations: 400000,
-       clearance: 0.14, meander_amplitude: 0.2,
-       length_match_group: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, RX2_OUT],
-       length_match_tolerance: 0.10}
-    # `length_match_tolerance` IS CARRIED AND IS KNOWN TO DO NOTHING. A 15-run
-    # sweep on v1 (rf-design.md 4(b)) moved the realized spread by EXACTLY ZERO
-    # across {0.15, 0.10, 0.05} while `meander_amplitude` moved it 1.0 ->
-    # 1.5586, 0.3 -> 0.3236, 0.2 -> 0.3236 mm. It is here because KRT's group
-    # takes the argument, and it is documented as inert so nobody credits it
-    # with a result again. THE AMPLITUDE IS 0.2, the smallest measured value:
-    # v2's octilinear floor spread is 0.0007 mm, so the equalisation pass has
-    # almost nothing to do and a large amplitude could only ADD spread.
+       clearance: 0.14}
+    # THERE IS NO LENGTH-MATCH GROUP ON THE rf WAVE, AND ITS ABSENCE IS THE
+    # DESIGN. The three keys that used to live here — `meander_amplitude: 0.2`,
+    # `length_match_group: [ANT1..ANT7, RX2_OUT]`, `length_match_tolerance:
+    # 0.10` — were REMOVED on 2026-07-31 because the pass they configure had
+    # nothing to correct and left a differential defect behind.
+    #
+    # WHAT IT COST, MEASURED (r2 layout lens, off the routed copper, by
+    # rendering each arm and measuring its perpendicular extent every 0.005 mm
+    # along the pad-to-pad chord): ANT1, ANT2, ANT4, ANT5, ANT6 and RX2_OUT
+    # each carried ONE jog where the realized conductor is 0.600 mm wide over a
+    # 0.555 mm run — 67 % over the 0.360 mm impedance width — while ANT3 and
+    # ANT7 carried NONE. At w = 0.600 the section is 37.17 ohm against a 51.25
+    # ohm line: |Gamma| = 0.0389, RL -28.2 dB, VSWR 1.081 per jog. The cause is
+    # arithmetic: a 0.2 mm meander amplitude on a 0.360 mm trace makes limbs
+    # 0.200 mm apart carrying 0.360 mm of copper, so they SELF-OVERLAP into a
+    # solid blob instead of becoming line. An amplitude that is not larger than
+    # the trace width does not lengthen a path, it widens it.
+    #
+    # AND IT IS A DIFFERENTIAL ERROR ON THE PUBLISHED PROPERTY. This board
+    # sells RELATIVE phase between the arms. A discontinuity present on SIX
+    # arms and absent on TWO does not cancel in the delta — a common-mode
+    # defect would. That is why this outranks its P1 label.
+    #
+    # AND THE PASS HAD NOTHING TO DO. v2's octilinear FLOOR spread, measured
+    # from the pads before any router ran, is 0.0007 mm, and the eight
+    # pad-to-pad chords measure 14.000/14.001 mm — spread 0.001 mm. After the
+    # pass the track-length spread was 0.5313 mm and the copper-path spread
+    # 0.1313 mm. Every measure of spread got WORSE. `nets.yaml`'s
+    # `elongation: meander` is withdrawn in the same change: the claim it makes
+    # is that the recipe deliberately lengthens short members to beat the
+    # octilinear floor, and on THIS floorplan there is no floor to beat.
+    #
+    # `length_match_tolerance` GOES WITH IT AND WAS ALWAYS INERT: a 15-run v1
+    # sweep (rf-design.md 4(b)) moved the realized spread by EXACTLY ZERO
+    # across {0.15, 0.10, 0.05}, while `meander_amplitude` moved it 1.0 ->
+    # 1.5586, 0.3 -> 0.3236, 0.2 -> 0.3236 mm. Leaving a tolerance behind with
+    # no group would read as a match the router is not making.
+    # DO NOT re-add `meander_amplitude` alone to "turn the meander off": KRT's
+    # own default is 1.0 mm (route.py --meander-amplitude default=1.0), the
+    # WORST value v1 measured. The group is what enables the pass; the group is
+    # what had to go.
     - {name: rf_tap, group: rf_tap, layers: [F.Cu], max_iterations: 400000,
        clearance: 0.14, keepout_layer: User.4}
     - {name: pwr,  group: pwr,  keepout_layer: User.3, max_iterations: 400000}
@@ -310,7 +341,20 @@ stitch:
     # the declared pitch got finer. A guard whose value crosses the pitch turns
     # a refinement into a regression, in silence.
     #
-    # 0.75 IS DERIVED, NOT TUNED: the largest 0.05 multiple strictly under the
+    # 0.75 -> 0.50 ON 2026-07-31, A SECOND CORRECTION IN THE SAME KEY, AND THE
+    # SECOND ONE IS ABOUT WHAT THE GUARD DOES TO THE *FENCE* PASS. `seed_stubs`
+    # runs before `stitch_grid`, so a declared fence barrel is on the board when
+    # the lattice walks its sites, and at 0.75 every lattice site within 0.75 mm
+    # of a fence via was refused — the fence via did not JOIN the wall, it
+    # TRADED with it. MEASURED: 14 declared barrels closed 11 apertures and
+    # re-opened 2, one of them a gap that had not existed before. 0.50 is above
+    # the 0.40 mm hole-to-hole floor (0.25 + 0.15) and above nothing else that
+    # binds, and it is the value `fence_sites.py` reads back out of this key as
+    # its own keep-off radius, so the search and the guard cannot disagree.
+    # The 0.80 lattice is untouched either way (0.80 > 0.75 > 0.50).
+    #
+    # THE FIRST CORRECTION, KEPT BECAUSE IT IS THE MORE DANGEROUS DEFECT:
+    # 0.85 IS DERIVED, NOT TUNED: the largest 0.05 multiple strictly under the
     # declared 0.80 lattice pitch, so one lattice row can never refuse itself.
     # It is checked against the FLOOR from the other end, not just from the
     # pitch: every stitch via is on GND, so copper clearance does not apply
@@ -391,6 +435,105 @@ stitch:
       - {net: GND, pin: U_SW.25,
          vias: [[41.000, 49.000], [40.300, 48.300], [41.700, 48.300],
                 [40.300, 49.700], [41.700, 49.700]]}
+      # ================= THE PER-ARM FENCE, 14 BARRELS =================
+      # A SQUARE LATTICE IS A POOR FENCE, and these fourteen vias are what the
+      # lattice cannot express. Its sites are fixed relative to the BOARD
+      # ORIGIN, so where an arm's flank meets other nets' copper the lattice
+      # has one site to offer and no way to step aside by 0.2 mm.
+      # `stitch_grid` at 0.80 leaves ELEVEN apertures over the ADR-0004 bound
+      # of 1.1910 mm; these fourteen close ALL ELEVEN. There is no residual,
+      # and therefore NO EXCEPTION IS CLAIMED against the published inequality.
+      #
+      # EVERY COORDINATE IS MEASURED, NOT CHOSEN. `03_src/fence_sites.py`
+      # sweeps the CONTINUUM inside each over-bound aperture's +/-2.5 mm flank
+      # band at 0.05 mm in both arclength and lateral offset and asks the
+      # stitcher's OWN `pcb_toolkit.via_site_ok` -- exact collision on every
+      # copper layer plus net-blind hole-to-hole -- whether a 0.25/0.15 GND
+      # barrel can stand there. It then BINARY-SEARCHES the smallest worst
+      # sub-gap that a mutually-compatible set of those sites can achieve, and
+      # emits the cover that achieves it. The ten declared SMA `avoid` rings
+      # and the module-underside rect are EXCLUDED from the search, read out of
+      # this same file, so a via can never close an aperture by eating the
+      # launch antipad the KH-SMA-KE-Z needs.
+      #
+      # WHY THIS IS NOT A WAIVER WEARING A VIA'S CLOTHES: the set is proposed
+      # by one instrument and graded by two others that know nothing about it.
+      # `seed_stubs` REFUSES any barrel its own collision check dislikes (a
+      # refusal is a driver stop, not a shave), and `fence_pitch.py` then
+      # re-measures every aperture off the SAVED board. Neither can be talked
+      # into agreeing with the search.
+      #
+      # THE COORDINATES ARE VALID ONLY FOR THE ROUTE THEY WERE MEASURED
+      # AGAINST. They are a function of where the control copper landed; a
+      # re-race of the ctrl wave moves that copper and these must be
+      # re-derived, not carried. Re-run fence_sites.py after any route change.
+      - {net: GND, vias: [[39.610, 56.460]]}     # ANT4     W
+      - {net: GND, vias: [[41.560, 58.150]]}     # ANT4     W
+      - {net: GND, vias: [[41.060, 59.300]]}     # ANT4     W
+      - {net: GND, vias: [[40.860, 60.450]]}     # ANT4     W
+      - {net: GND, vias: [[44.647, 52.860]]}     # ANT5     E
+      - {net: GND, vias: [[56.150, 23.640]]}     # RX1_MAIN W
+      - {net: GND, vias: [[51.500, 25.510]]}     # RX1_MAIN E
+      - {net: GND, vias: [[52.650, 27.260]]}     # RX1_MAIN E
+      - {net: GND, vias: [[56.150, 26.460]]}     # RX1_MAIN E
+      - {net: GND, vias: [[46.739, 41.749]]}     # RX1_TAP  W
+      - {net: GND, vias: [[48.300, 28.390]]}     # RX1_TAP  W
+      - {net: GND, vias: [[51.050, 28.390]]}     # RX1_TAP  W
+      - {net: GND, vias: [[44.870, 45.343]]}     # RX1_TAP  E
+      - {net: GND, vias: [[48.043, 29.660]]}     # RX1_TAP  E
+      # ROUND 2 -- TWO MORE, AND THE SECOND ROUND IS STRUCTURAL, NOT SLOPPY.
+      # `seed_stubs` runs BEFORE `stitch_grid` (it has to: the pin-serving
+      # entries above must claim their barrels first -- see the note on
+      # `passes`), so each declared fence via makes the lattice pass SKIP every
+      # site within `stitch.via.spacing` = 0.75 mm of it. The fence therefore
+      # perturbs the wall it is repairing, and the perturbation is only
+      # knowable by re-measuring. MEASURED: round 1's fourteen barrels took 11
+      # apertures over the bound down to 2, and both survivors are lattice
+      # sites the round-1 barrels displaced, not copper. These two close them.
+      # Convergence is MEASURED at every step, never assumed:
+      #     11 apertures over bound -> 2 -> re-measure below.
+      # What makes round 2 safe where an earlier attempt was NOT: the search
+      # now refuses any candidate inside `dedupe_vias`' 0.5 mm BOX of an
+      # existing via. Without that guard a round-2 proposal landed 0.4052 mm
+      # from a round-1 barrel, `seed_stubs` placed both reporting "0 refused",
+      # `dedupe_vias` deleted one, and the aperture RE-OPENED at 2.1071 mm --
+      # an iteration that went backwards while every gate stayed green.
+      - {net: GND, vias: [[56.900, 27.260]]}     # RX1_MAIN E
+      - {net: GND, vias: [[48.060, 30.200]]}     # RX1_TAP  E
+      # ROUND 3 -- ONE, AND THE SEQUENCE 11 -> 2 -> 1 -> 0 IS THE EVIDENCE THAT
+      # THIS CONVERGES RATHER THAN OSCILLATES. Every round of this iteration
+      # closed strictly more than it opened, and each round's survivor was a
+      # displaced lattice site in the SAME dense corner (RX1_TAP's east flank
+      # where the tap detour crosses the jack field), never a new location and
+      # never a widening number: 3.6000 -> 1.9769 -> 1.9802 -> re-measure.
+      - {net: GND, vias: [[48.584, 30.131]]}     # RX1_TAP  E
+  # `seed_stubs` RUNS FIRST, AND THE ALTERNATIVE WAS TRIED AND REFUTED.
+  #
+  # The pass places DECLARED geometry, and this board declares two unrelated
+  # kinds: seven pin-serving stubs (six pour-fed pocket terminals + U_SW's
+  # exposed pad) and a per-arm FENCE (below). A fence exists to SUPPLEMENT the
+  # lattice, so it has to see the lattice. Run before `stitch_grid`, each fence
+  # barrel instead COMPETES with it: `try_via`'s `spacing` guard is net-blind,
+  # so every lattice site within 0.75 mm of a declared via is skipped, and
+  # `dedupe_vias` (radius 0.5, metric BOX) then silently deletes whichever of
+  # the two survivors it meets second. MEASURED with seed_stubs first: 14
+  # declared barrels closed 11 apertures and RE-OPENED 2, one of them a gap
+  # that had not existed before — the fence traded with the wall instead of
+  # joining it.
+  #
+  # SO WHY NOT MOVE IT AFTER `stitch_grid`? BECAUSE THE PASS CARRIES TWO
+  # UNRELATED KINDS OF GEOMETRY AND THEY WANT OPPOSITE ORDERS. Seven entries
+  # SERVE A PIN (six pour-fed pocket terminals + U_SW's exposed pad) and must
+  # claim their barrel before anything else can take it; the fence entries
+  # SUPPLEMENT the lattice and would rather see it. MEASURED with the pass
+  # moved after `stitch_grid`: `seed_stub GND U_SW.25: REFUSED — via
+  # (40.3,48.3) collides foreign copper`, i.e. a lattice via reached the
+  # exposed pad's barrel site first and the driver stopped, exit 1. The
+  # pin-serving half wins the argument, so the pass stays first and the fence
+  # is iterated to a fixed point instead (see the fence block above). THAT
+  # SPLIT IS THE REAL BACKEND GAP: a fence is not a stub, and giving it its own
+  # pass with its own slot in this list is what `03_src/fence_sites.py`'s
+  # DECLARED BACKEND GAP proposes.
   passes: [seed_stubs,
            dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
            split_t_junctions, width_floor, reload, hole_to_hole, pad_rescue,

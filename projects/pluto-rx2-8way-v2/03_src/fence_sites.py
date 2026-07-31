@@ -151,10 +151,61 @@ def pth_ok(x, y):
     return True
 
 
+# A PROPOSED BARREL MUST ALSO SURVIVE THE PASSES THAT RUN AFTER IT, and the
+# first version of this script did not check that, so it proposed vias the
+# backend then SILENTLY DELETED.  Two downstream mechanisms, both measured:
+#
+#   `dedupe_vias` (stitch.dedupe radius 0.45, metric "box") removes a same-net
+#   via whose |dx| AND |dy| are both under 0.45 mm of another.  It is a BOX,
+#   not a circle, so a pair 0.405 mm apart on the diagonal is inside it while
+#   a pair 0.50 mm apart on one axis is not.  MEASURED: a round-2 proposal at
+#   (47.760, 29.950) and a round-1 proposal at (48.043, 29.660) are 0.4052 mm
+#   apart; `seed_stubs` reported "0 refused" and placed both, `dedupe_vias`
+#   reported "deduped 2 twin vias", and the aperture the round-1 via existed
+#   to close RE-OPENED at 2.1071 mm.  The pass list is not a filter the search
+#   can ignore.
+#
+#   `stitch.via.spacing` (0.75) is `try_via`'s first guard and it is net-blind.
+#   `seed_stubs` runs BEFORE `stitch_grid`, so a declared barrel within that
+#   radius of a lattice SITE makes the lattice pass skip that site — the seed
+#   does not join the fence, it TRADES with it.
+#
+# So a candidate must stand at least `spacing` from every via already on the
+# board and from every other candidate accepted in the same run.  That is not
+# a restriction in practice: an aperture is BY DEFINITION a place where the
+# lattice is absent, so the room is there — and where it is not, the honest
+# answer is that no via belongs there.
+# BOTH mechanisms, and ONLY these two -- a plain 0.75 mm circle was tried and
+# is far too blunt: it took two RX1_TAP apertures from 172 and 250 legal sites
+# to ZERO, refusing barrels that neither pass would have touched.
+# KEEPOFF IS THE DEDUPE RADIUS, NOT `spacing`, AND THE DIFFERENCE WAS MEASURED.
+# Using `spacing` (0.75) as a keep-off circle is far too blunt: it took two
+# RX1_TAP apertures from 172 and 250 legal sites to ZERO and manufactured three
+# residuals that do not exist. The two radii guard different things and only
+# one of them is FATAL. `dedupe_vias` DELETES a via silently, so a proposal
+# inside its box is worthless; `spacing` only makes `stitch_grid` SKIP a
+# lattice site near the proposal, which costs one via somewhere the lattice
+# had spares and is recovered by re-measuring and iterating. Guard hard
+# against the deletion, iterate against the skip.
+DEDUPE = float(_st.get("dedupe_vias", {}).get("radius", 0.45))   # box half-side
+KEEPOFF = DEDUPE
+
+
+def clear_of(x, y, others):
+    for ox, oy in others:
+        if math.hypot(x - ox, y - oy) < KEEPOFF:      # try_via spacing (circle)
+            return False
+        if abs(x - ox) < DEDUPE and abs(y - oy) < DEDUPE:   # dedupe (BOX)
+            return False
+    return True
+
+
 def legal(x, y):
     if not (X0 <= x <= X1 and Y0 <= y <= Y1):
         return False
     if in_avoid(x, y) or not pth_ok(x, y):
+        return False
+    if not clear_of(x, y, elems):
         return False
     return tk.via_site_ok(x, y, GNDC, size=VS, drill=VD, hole_to_copper=H2C)
 
@@ -242,6 +293,10 @@ def report():
 
   total_over, closable, residual, emit = 0, 0, [], []
   CACHE = []
+  # accepted proposals, GLOBAL across apertures: two arms' flank bands
+  # overlap near the star hub, so the cross-candidate spacing rule cannot
+  # be per-aperture.
+  PICKED = []
   for net in ARMS:
       ch = polyline(net)
       if len(ch) < 2:
@@ -305,29 +360,60 @@ def report():
               # at 2.6123 mm when the true floor is set by one blocked stretch.
               # A search that gives up must not be allowed to publish its
               # give-up point as a physical limit.)
-              allmarks = sorted([s1] + [z[0] for z in sites] + [s2])
-              best_possible = max(allmarks[j + 1] - allmarks[j]
-                                  for j in range(len(allmarks) - 1))
+              # THE MINIMAX FLOOR IS A FEASIBILITY QUESTION, NOT A GREEDY ONE.
+              # Two earlier estimators were wrong here and both were wrong in
+              # the SAME direction -- they invented residuals the copper does
+              # not have, which is the direction that buys an unnecessary
+              # exception, so it is worth naming the failures.
+              #   (i) "take EVERY legal site" is minimax-optimal only if the
+              #       sites are mutually compatible. They are not: two accepted
+              #       barrels must stand `KEEPOFF` apart.
+              #   (ii) "take a greedy maximal separated subset in increasing
+              #       arclength, then read its worst spacing" is not optimal
+              #       either -- greedily banking a site at s=4.55 forfeits the
+              #       one at s=5.00 that a cover actually wants. MEASURED: it
+              #       reported RX1_MAIN sideE as a 1.4500 mm RESIDUAL when
+              #       sites at s=5.00 and s=6.00 cover the same aperture with a
+              #       worst sub-gap of 1.0000 mm, comfortably inside the bound.
+              # So: ask FEASIBILITY at a threshold T -- walk from s1 taking the
+              # farthest admissible site within T, which is the optimal cover
+              # rule for an interval -- and BINARY-SEARCH the smallest T that
+              # succeeds. `feasible` also returns the cover, so the reported
+              # via list is always the one that achieves the reported number.
+              def feasible(T):
+                  placed, cur = [], s1
+                  taken = list(PICKED)
+                  while s2 - cur > T + 1e-9:
+                      cand = [z for z in sites
+                              if cur < z[0] <= cur + T + 1e-9
+                              and clear_of(z[1], z[2], taken)]
+                      if not cand:
+                          return None
+                      pick = cand[-1]
+                      placed.append(pick)
+                      taken.append((pick[1], pick[2]))
+                      cur = pick[0]
+                  return placed
+
+              lo, hi, bestcover = 0.0, g, feasible(g)
+              # feasible(g) is trivially the empty cover, so hi is always sound.
+              for _ in range(40):
+                  mid = (lo + hi) / 2.0
+                  got = feasible(mid)
+                  if got is None:
+                      lo = mid
+                  else:
+                      hi, bestcover = mid, got
+              best_possible = hi
+              ok = best_possible <= BOUND + 1e-9
+              chosen = feasible(BOUND) if ok else bestcover
+              if chosen is None:
+                  chosen = bestcover or []
+              for z in chosen:
+                  PICKED.append((z[1], z[2]))
               CACHE.append({"net": net, "side": tag, "s1": s1, "s2": s2,
                             "gap": g, "best_possible": best_possible,
                             "sites": [list(z) for z in sites]})
-              ok = best_possible <= BOUND + 1e-9
-              thresh = BOUND if ok else best_possible
-              # then MINIMISE THE COUNT at that threshold: farthest site still
-              # within `thresh`, and when even that is empty, step to the next
-              # site beyond it (the blocked stretch) and carry on.
-              chosen, cur = [], s1
-              while s2 - cur > thresh + 1e-9:
-                  cand = [z for z in sites if cur < z[0] <= cur + thresh + 1e-9]
-                  if cand:
-                      pick = cand[-1]
-                  else:
-                      nxt = [z for z in sites if z[0] > cur]
-                      if not nxt:
-                          break
-                      pick = nxt[0]
-                  chosen.append(pick)
-                  cur = pick[0]
               marks = [s1] + [z[0] for z in chosen] + [s2]
               worst_after = max(marks[j + 1] - marks[j]
                                 for j in range(len(marks) - 1))

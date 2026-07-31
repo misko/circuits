@@ -348,7 +348,26 @@ length_match:
     # PART'S OWN WINDOW IS NOT PHYSICS — v1's standing "+/-0.10 mm" was 1.3 deg,
     # unreachable by any router and unheld by any process, and was WITHDRAWN.
     # v2 does not re-adopt it (BRIEF A5).
-    elongation: meander
+    # NO `elongation:` KEY, AND ITS ABSENCE IS DELIBERATE (2026-07-31).
+    # `elongation: meander` stood here until the pass it claims was MEASURED on
+    # this board's own copper and found to be making things worse, not better.
+    # The claim the key makes is that short members are deliberately lengthened
+    # to beat the octilinear floor; on v2's floorplan there is no floor to
+    # beat, so the claim was true of the recipe and false of the need.
+    #   octilinear FLOOR spread, from pads alone, before any router:  0.0007 mm
+    #   pad-to-pad chords, all eight:                    14.000/14.001, sd 0.001
+    #   track-length spread WITH the meander pass:                    0.5314 mm
+    #   track-length spread WITHOUT it (measured, race c0):           0.1657 mm
+    # and the pass left six of the eight arms carrying a 0.600 mm-wide blob
+    # over a 0.555 mm run (37.17 ohm against a 51.25 ohm line) while two
+    # carried none — a DIFFERENTIAL discontinuity on the very quantity this
+    # group exists to protect. See route.yaml's `rf` wave for the arithmetic.
+    # R-LEN still grades this group: with the floor spread (0.0007) inside
+    # max_spread_mm (1.0), copper_length_audit's octilinear check returns
+    # before it ever asks about elongation, and the REALIZED spread is graded
+    # against max_spread_mm exactly as before. Nothing is ungated by this
+    # removal; one false claim is.
+    #
     # KRT is OCTILINEAR (45-degree multiples), so the shortest copper it can lay
     # between two pads is max(dx,dy) + 0.4142*min(dx,dy), not the Euclidean
     # distance. On v1, measured FROM PADS before any router ran: Euclidean

@@ -652,3 +652,130 @@ failing — the direction motivated reasoning cannot take you.
   the chain, then re-gate all four lenses fresh-context with DISTINCT
   filenames. Classes B and D survive all of that and need either a per-arm
   fence pass or a measured exception — that is the one genuinely open question.
+
+## 2026-07-31 02:10 — finish (the fence P0 is CLOSED, and no exception was spent)
+
+- did: closed the via-fence P0 in copper, in the order the previous agent's
+  ordered list gave, re-measuring after every step with the FIXED
+  `fence_pitch.py` (which now exits non-zero on FAIL).
+- result: **`VERDICT: PASS`, exit 0. Worst interior along-arm aperture
+  1.1769 mm against the 1.1910 mm bound; 0 of 22 arm-sides over.** DRC
+  `--severity-all --refill-zones --schematic-parity --exit-code-violations`
+  = 0 violations / 0 unconnected / 0 parity. R-LEN PASS.
+
+**THE WHOLE SEQUENCE, MEASURED AT EVERY STEP** (arm-sides over / worst mm):
+
+| step | over | worst | what changed |
+|---|---|---|---|
+| inherited | 17 of 20 | 3.0500 | lattice 0.95 |
+| pitch 0.95 -> 0.80 | 11 of 22 | 3.6000 | + `spacing` 0.85 -> 0.75 |
+| re-route, no meander | 6 of 22 | 3.6000 | straight arms |
+| fence round 1 (14 barrels) | 2 of 22 | 1.9769 | |
+| fence round 2 (2 barrels) | 1 of 22 | 1.9802 | |
+| fence round 3 (1 barrel) | **0 of 22** | **1.1769** | **PASS** |
+
+**CLASS A DID NOT CLOSE THE WAY THE PLAN SAID, AND THE REASON IS A GUARD.**
+Writing the ADR-0004 pitch of 0.80 into `stitch_grid` ALONE made the fence
+SPARSER: **1668 grid vias where the coarser 0.95 lattice emitted 2208.**
+`stitch.via.spacing` is `try_via`'s first guard, net-blind, and every lattice
+site passes through it; at 0.95 its 0.85 was invisible, at 0.80 it is 0.05 mm
+LARGER than the pitch, so each site refused its own neighbour. A guard whose
+value crosses the pitch turns a refinement into a regression, and every gate
+stayed green while it did. 0.75 is DERIVED from both ends: under the 0.80
+pitch, and 1.88x the real floor, which is hole-to-hole (0.25 + drill 0.15 =
+0.40 mm) — copper clearance does not bind between stitch vias because they are
+all GND and same-net copper may touch. 3419 grid vias after.
+
+**"OCCUPIED" IS NOT "UNSTITCHABLE", AND THAT IS THE FINDING.**
+`fence_apertures.py` names the object NEAREST each empty LATTICE site — a
+centre-to-centre distance to a pad centre or a track MIDPOINT. It is a hint,
+not a verdict, and read as a verdict it says classes B and D cannot be closed.
+New instrument `03_src/fence_sites.py` asks the different question: sweeping
+the CONTINUUM inside each aperture's +/-2.5 mm flank band at 0.05 mm in
+arclength AND lateral offset, can a 0.25/0.15 GND barrel legally stand
+anywhere? Legality is the stitcher's own `pcb_toolkit.via_site_ok` (exact
+collision on every copper layer + net-blind hole-to-hole), and the ten declared
+SMA `avoid` rings plus the module-underside rect are excluded on top, READ OUT
+OF `route.yaml` so the exclusion set cannot drift from the stitcher's.
+**Answer: every aperture had legal ground in it.** Class B — the SMA `avoid`
+rings — closed with barrels sitting OUTSIDE the ring at 1.36-2.46 mm offset;
+the ring was never the obstruction, the lattice's inability to step aside was.
+This is the stranded-pad lesson again (144 legal sites inside an island a
+net-blind guard was refusing).
+
+**THREE OF MY OWN INSTRUMENT'S ANSWERS WERE WRONG BEFORE THEY WERE RIGHT, AND
+ALL THREE ERRED TOWARDS INVENTING A RESIDUAL** — i.e. towards buying an
+exception the board did not need. Recorded because that is the dangerous
+direction:
+1. sites whose re-projected arclength fell outside the aperture were left in
+   the mark list unsorted, so ANT1 sideE reported 182 legal sites and a "best
+   achievable" equal to the untouched gap;
+2. the greedy walk ABORTED the aperture the first time a window held no site
+   and then published its give-up point as a physical limit — ANT5 sideE as
+   2.6123 mm when the true floor was 1.3500;
+3. "take a greedy maximal separated subset, read its worst spacing" is not the
+   minimax — it reported RX1_MAIN sideE as a 1.4500 mm RESIDUAL when sites at
+   s=5.00 and s=6.00 cover it with a worst sub-gap of 1.0000 mm. Replaced with
+   a BINARY SEARCH on the threshold whose feasibility test is the optimal
+   interval-cover walk. A search that gives up must not be allowed to publish
+   its give-up point as physics.
+
+**THE ITERATION IS STRUCTURAL, NOT SLOPPINESS.** `seed_stubs` must run BEFORE
+`stitch_grid` — the seven pin-serving entries have to claim their barrels
+first, and MEASURED with the pass moved after the lattice, `seed_stub GND
+U_SW.25: REFUSED — via (40.3,48.3) collides foreign copper`, driver exit 1.
+But running first means each declared fence barrel makes the lattice SKIP every
+site within `spacing` of it, so the fence perturbs the wall it repairs and the
+perturbation is knowable only by re-measuring. Hence three rounds, each
+measured, each closing strictly more than it opened, every survivor in the same
+dense corner. **THE REAL BACKEND GAP IS THAT A FENCE IS NOT A STUB** and wants
+its own pass with its own slot in `passes` — reported upward, not built here.
+
+**AND ONE ITERATION WENT BACKWARDS WHILE EVERY GATE STAYED GREEN.** An early
+round-2 proposal landed 0.4052 mm from a round-1 barrel. `seed_stubs` reported
+`0 refused` and placed both; `dedupe_vias` (radius 0.5, metric **BOX**) then
+deleted one; the aperture the round-1 via existed to close RE-OPENED at
+2.1071 mm and the arm-sides over went 2 -> 3. The search now refuses any
+candidate inside that box. A proposal that a later pass silently deletes is
+worse than no proposal, because the config still claims it.
+
+**REFUTED, MEASURED: `stitch.via.spacing` 0.75 -> 0.50.** Tried to stop the
+lattice eviction at its source. It made things worse — `deduped 14 twin vias`
+and 7 arm-sides over — because `dedupe_vias` is a BOX of half-side 0.5 and the
+smallest circle containing it has radius 0.5*sqrt(2) = 0.707, so any `spacing`
+below 0.707 admits pairs that dedupe then deletes. 0.75 is above that and 0.50
+is not. REVERTED; the constraint is now understood rather than tuned.
+
+- next: `rebuild_all.sh` for the schematic PDF, then staging, four lenses,
+  MANIFEST, seal.
+
+## 2026-07-31 02:20 — the blind exception criterion, FORMED AND NOT SPENT
+
+- did: the brief required that if classes B/D could not be closed physically,
+  the exception be derived FROM PHYSICS with the criterion stated BEFORE
+  measuring against it — and, because I had already seen which apertures
+  failed, that it be formed by a FRESH-CONTEXT agent given the GEOMETRY BUT NOT
+  THE FAILURE LIST. I took that route: a zero-context sub-agent was given the
+  stackup, the constants, the arm geometry, the lattice, the adopted
+  `lambda_pp/20` rule and the fact that isolated obstructions exist — and was
+  explicitly denied this repository and any measured aperture.
+- result: it returned `L_a <= lambda_pp/12 = 1.985 mm` for a SINGLE isolated
+  aperture (green unconditionally at `lambda_pp/15 = 1.588 mm`), subject to
+  five conditions: compliant opposite flank over +/-L_a; no FACING aperture
+  across the trace; a missing POST and never a missing ROW; at least L_a from
+  any other unreferenced feature (explicitly NO relaxation inside a launch);
+  and multi-defect separations avoiding 11.910 / 14.063 / 23.820 mm. Its
+  reasoning: `lambda/20` encodes a 10x resonance margin PLUS coherent
+  accumulation over N cells PLUS a cascade requirement, and a lone defect has
+  only the first; removing the other two at a fixed leaked-power budget buys a
+  factor of 1.67 in length and nothing more. It also volunteered that this
+  board CANNOT falsify the criterion — the predicted penalty at the accept
+  limit (< 0.01 dB, < 0.22 deg) is below every practical measurement floor —
+  and that anyone citing a passing board as validation has validated nothing.
+- **NOT SPENT, AND THAT IS THE POINT.** The fence closed at 1.1769 mm, inside
+  the ORIGINAL `lambda_pp/20 = 1.1910` bound, so no aperture is graded against
+  the relaxation and NO EXCEPTION IS CLAIMED anywhere in this release. The note
+  is recorded as the criterion that WOULD have governed, formed blind, and the
+  board is held to the tighter number it actually meets. An exception argument
+  that turns out to be unnecessary is the cheapest possible outcome of forming
+  it honestly first.
