@@ -685,6 +685,18 @@ invariants:
     adr: "0021"
     why: "the divider is ACROSS the reverse-protected input with its tap at U_EFUSE.2 (EN/OVLO). This is the topology half of the setpoint: a 'simplification' that re-homes R_OVT to 5V_PROTECTED (the eFuse OUTPUT) would make the sense node collapse the instant the FET turns off, converting a clean hysteretic cutoff into an oscillator, and the two part_value asserts above would stay green through it"
 
+  # ===== ADR-0027 — the dropout margin counts the BOARD'S OWN COPPER ==========
+  # The one link in the measured path that no gate held. ADR-0001 already pins
+  # 5V_IN -> F1 -> 5V_FUSED -> Q_REV -> 5V_RPP (series_chain) and U_EFUSE.5 on
+  # 5V_PROTECTED (pin_on_net); the LDO's own INPUT pin was asserted by nothing,
+  # and it is the endpoint of the 328.29 mOhm J_PWR.1 -> U_LDO.3 walk that the
+  # whole v1.7 dropout verdict is computed from.
+  - assert: pin_on_net
+    pin: "U_LDO.3"                     # AMS1117-3.3 SOT-223 pad3 = VIN
+    net: 5V_PROTECTED
+    adr: "0027"
+    why: "U_LDO's INPUT sits at the far end of the protection chain, behind ALL THREE series elements (F1 + Q_REV + U_EFUSE) and behind 137.79 mOhm of the board's own unzoned track — MEASURED by nodal solve on the release board (md5 9f4fd5fae810f40a52b1035df727243c), 80.25 mOhm of it on 5V_PROTECTED alone. Re-homing this pin AHEAD of any element — onto 5V_RPP to 'save a via', say — would invalidate every number in ADR-0027 (vin_min 4.728, headroom +29 mV, break-even 0.4910 A) while leaving E-TOPO green, because E-TOPO reads the DECLARED vin_min and never walks the copper. The 3V3 rail's dropout verdict is a property of THIS pin being on THIS net"
+
   # ===== ADR-0020 §CORRECTION — GPB7 IS ISOLATED FROM WD_OK BY 10k ===========
   # The v1.7 P0 that this revision's OWN previous fix created: ADR-0020 moved
   # U_EXP.18 (RESET_N) onto WD_OK, where U_EXP.8 (GPB7, a BIDIRECTIONAL 25 mA
