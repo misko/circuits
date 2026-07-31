@@ -128,6 +128,29 @@ posts are the launch's return path and are only electrically short if the return
 is. A ground-via fence flanks every RF arm at **<= 1.35 mm** (the largest round
 value under the derived lambda_g/20 = 1.3693 mm bound, ADR-0003).
 
+**AS BUILT, AND THE DECLARED PITCH IS NOT 1.35** (2026-07-30, measured —
+`06_build/verify/fence_pitch.txt`, shipped in the release `verification/`). The
+fence is the stitch lattice, and **a square lattice at pitch p is not a fence at
+pitch p**: its nearest-neighbour distance is p in every direction, but the
+spacing that governs is the projection onto the ARM AXIS, and eight of the nine
+arms lie on 45-degree multiples where one lattice row projects at `p*sqrt(2)`.
+At `p = 1.35` the measured structural spacing is **1.9092 mm**, outside this
+board's own bound by 41 %. The lattice therefore steps at
+**0.95 = floor_0.05(1.35 / sqrt(2))**, giving **1.3435 mm** on a diagonal arm
+and 0.95 on an axis arm — 2208 grid vias plus the 40 SMA ground posts.
+
+**Twelve of twenty-one arm-sides still carry an interior aperture wider than
+1.35 mm, and each one is a named site OCCUPANCY rather than a pitch**
+(classified in `verification/fence_apertures.txt`): the declared `avoid` rings
+that keep stitch vias out of each SMA's >= D3.5 mm bottom-plane antipad (worst
+5.1071 mm at J_ANT8, where the jack's own four ground posts stand); the SSE
+control corridor's `3V3`/`SW_V1`/`SW_V3`/`SW_V4` copper against the S and SE
+arms (worst 3.6200 mm); and the star hub, where the arm's own 0.36 mm copper
+and its 45-degree neighbour leave no legal site inside ~4 mm radius. A finer
+pitch does not fill an occupied site — these close only by moving the control
+corridor or by a per-arm fence pass the shared stitcher does not have. Carried
+as an open finding, not as a met requirement.
+
 The module contributes a second ground reference: its own PCB plane, tied to
 ours only through the `GND` castellations. That is a real discontinuity and it
 is ACCEPTABLE here for one reason — **no RF crosses it.** Nothing on the module

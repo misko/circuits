@@ -203,19 +203,67 @@ stitch:
   stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
   astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
   stitch_grid:
-    # 2.0 mm, AND IT IS COARSER THAN THIS BOARD'S OWN FENCE BOUND — stated
-    # rather than glossed. ARCHITECTURE sec 6 asks for a ground-via fence
-    # flanking every arm at <= 1.35 mm (the largest round value under the
-    # derived guided lambda_g/20 = 1.3693 mm, ADR-0003). The shared stitcher's
-    # grid pass steps with `range(int(...))`, so its pitch is an INTEGER number
-    # of millimetres: 1 mm (a via forest, ~2500 sites) or 2 mm. 2.0 mm is
-    # lambda_g/13.7, which is conservative against the SOURCED free-space
-    # lambda/20 = 2.5 mm at 6 GHz (rf-design.md sec 2) and is what
-    # pluto-cal-switch ships, but it does NOT meet this board's own tighter
-    # self-imposed bound. Recorded as a measured gap, not a met requirement.
+    # 0.95 mm — AND THE NUMBER IS **1.35 / sqrt(2)**, NOT 1.35. DERIVED, NOT
+    # TUNED, AND THE FACTOR OF sqrt(2) IS THE WHOLE FINDING OF THIS PASS.
+    #
+    # A SQUARE LATTICE AT PITCH p IS NOT A FENCE AT PITCH p. Its
+    # nearest-neighbour distance is p in every direction, so `p = 1.35` looks
+    # like it discharges the bound — but the spacing that governs is the one a
+    # wave travelling ALONG THE ARM sees, i.e. the projection of the flanking
+    # vias onto the arm axis. Eight of this board's arms sit on 45-degree
+    # multiples (the star's angular order is forced by the QFN's own CCW RF pin
+    # order), and one lattice row projects onto a 45-degree axis at **p*sqrt(2)**,
+    # not p. MEASURED at p = 1.35 on the real board: 15 of 20 arm-sides over the
+    # bound, the structural value landing at exactly **1.9092 = 1.35*sqrt(2)**.
+    # So the largest lattice pitch that meets a 1.35 mm along-arm bound in EVERY
+    # orientation is 1.35/sqrt(2) = 0.95459, and the largest 0.05 multiple under
+    # it is **0.95**. Diagonal arms then measure 0.95*sqrt(2) = **1.3435 mm**
+    # (inside 1.35 by 0.0065) and axis arms measure 0.95.
+    #
+    # THE BOUND IT ANSWERS TO.
+    #
+    # ARCHITECTURE sec 6 asks for a ground-via fence flanking every RF arm at
+    # <= 1.35 mm: the largest round value under this board's own derived
+    # GUIDED lambda_g/20 = 1.3693 mm (ADR-0003, eps_eff 3.328, lambda_g(6 GHz)
+    # = 27.387 mm). rf-design.md 3(b) settles which lambda governs and the
+    # answer is not cosmetic: a fence sits in the substrate BESIDE a
+    # microstrip, so what it must sample is the wave ON THE LINE. Free-space
+    # lambda/20 = 2.5 mm is the LOOSER figure and satisfying it proves nothing
+    # about the guided one — the two are sqrt(3.328) = 1.82x apart.
+    #
+    # THIS BOARD SHIPPED AT 2.0 mm = lambda_g/13.7 UNTIL NOW, AND THE CAUSE WAS
+    # NOT JUDGEMENT. The shared stitcher's grid pass stepped with
+    # `range(int(start), int(stop), int(pitch))`, so the pitch was silently
+    # floored to a whole millimetre and the only expressible choices were 1 mm
+    # (a ~2500-site via forest) or 2 mm. `1.35` would have become `1`: not a
+    # refusal, a DIFFERENT BOARD. Fixed 2026-07-30 at eccf602e — the axis now
+    # steps with `ceil((stop - start) / pitch)` (range's own length rule, so
+    # every integer config in the fleet is byte-identical) and HARD-ERRORS on a
+    # non-positive pitch, which previously placed zero vias in silence.
+    #
+    # MEASURED OFF THE REAL BOARD after this change (06_build/verify/
+    # fence_pitch.txt) — a declared pitch is a config value, not a fence.
+    # 2208 grid vias + 40 SMA ground POSTS (1.4 mm PTH, all four planes: those
+    # are fence elements too, and counting only `via` objects reports an
+    # aperture at every launch where the ground is in fact densest).
+    #
+    # WHAT THE LATTICE STILL CANNOT DO, NAMED RATHER THAN AVERAGED. 12 of 21
+    # arm-sides carry an interior aperture over 1.35 mm, and every one is a
+    # SITE OCCUPANCY, not a pitch: (a) the SMA `avoid` rings below — ANT2 2.27,
+    # ANT6 1.90 both sides, RX1_MAIN 5.11 at J_ANT8 — which are a DELIBERATE RF
+    # measure (the >= D3.5 mm bottom-plane antipad KH-SMA-KE-Z calls for), so a
+    # via there is a return-loss defect before it is a DRC one; (b) the SSE
+    # control corridor's own copper against the S and SE arms — ANT4 3.62
+    # (3V3 + SW_V1 on F.Cu/In2.Cu), ANT5 2.79 (SW_V3/SW_V4); (c) the star hub,
+    # where the arm's own 0.36 mm copper and its neighbour leave no legal site —
+    # RX2_OUT 1.68, RX1_TAP 1.88. A FINER PITCH DOES NOT FILL AN OCCUPIED SITE:
+    # these close only by moving the control corridor (a placement backtrack
+    # that discards the promoted route chain) or by a per-arm fence pass the
+    # shared stitcher does not have. Classified in
+    # 06_build/verify/fence_apertures.txt, one named occupier per aperture.
     net: GND
-    x: [23, 63, 2]
-    y: [23, 90, 2]
+    x: [23, 63, 0.95]
+    y: [23, 90, 0.95]
     # AVOID: one ring per SMA CENTRE PIN. MEASURED — the first stitched build
     # put grid vias at (31.0, 59.0) and (29.0, 61.0), which are 0.7312 and
     # 0.7858 mm from J_ANT3's pad 1 against that pad's own 0.80 mm LOCAL

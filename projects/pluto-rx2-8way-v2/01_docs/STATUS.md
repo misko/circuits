@@ -33,9 +33,9 @@ terminal for this stage.
 
 <!-- reader parses from here down -->
 stage:   verify
-step:    "ROUTING GATE GREEN AND REGENERABLE. The full driver 03_src/rebuild_all.sh runs tsx -> DRC and exits 0."
-measure: "DRC --severity-all --refill-zones --schematic-parity = 0 violations / 0 unconnected / 0 parity, ON THE DRIVER-PRODUCED BOARD. R-LEN PASS realized spread 0.5314 mm = 7.01 deg at 6 GHz vs the 1.0 ceiling; octilinear FLOOR spread 0.0007 mm (v1: 1.4966 mm = 19.74 deg, ABOVE its ceiling). P-LAND PASS 0 failing, routed cross-check 45/45 none wider than the model allows. P-OUT/P-CAP PASS. E-NETREF PASS 95/95 0 ghost. M-FRESH PASS (build_provenance audit). ERC 0 errors / 220 warnings (was 248; the 28 footprint_link_issues left when fp-lib-table resolved). tsci churned the schematic bytes but the netlist is NODE-FOR-NODE IDENTICAL, 40 nets / 130 nodes."
-state:   done
-next:    "Stage 6/7: fab export, jlc_twin, pin + render reviews, policy_audit, seal. OWED and MEASURED: the ground-via fence ships at 2.0 mm = lambda_g/13.7 against this board's own <= 1.35 mm bound (stitch_grid steps with range(int(...)) so a fractional pitch is silently truncated). OWED upward: a contract row for floorplan `silk.polarity_marks` (G-ORPHAN), and two template findings (the ERC line gates on warnings; the driver calls 03_src/audit_board.py unconditionally)."
+step:    "PHASE 1 DONE: the via fence is closed as far as the lever reaches. Declared stitch_grid pitch 0.95 = floor_0.05(1.35/sqrt(2)) — a square lattice at p is NOT a fence at p, it projects at p*sqrt(2) on a 45-degree arm. Next: Phase 2, re-seed rebuild_all.sh from the template and prove the full driver end-to-end."
+measure: "FENCE MEASURED OFF THE BOARD (06_build/verify/fence_pitch.txt): 2208 grid vias + 40 SMA PTH ground posts; worst STRUCTURAL along-arm projection 1.3435 mm vs the 1.35 bound (was 1.9092 at a declared 1.35, 2.8284 derived at the shipped 2.0). 12 of 21 arm-sides still over, EVERY ONE a named site occupancy (SMA avoid rings worst 5.1071 at J_ANT8; the SSE control corridor 3.6200 at ANT4; the star hub 1.8803) - classified in 06_build/verify/fence_apertures.txt. DRC re-established: 0 violations / 0 unconnected / 0 parity, BOTH LISTS EMPTY (Counter() on each), --severity-all --refill-zones --schematic-parity, 2026-07-30T18:35:24."
+state:   working
+next:    "Phase 2 re-seed the driver; Phase 3 battery + two-key red-team + seal. The residual fence apertures go into the red-team brief VERBATIM so an independent lens grades them, not the designer."
 op_pid:
-updated: 2026-07-30T18:55:00
+updated: 2026-07-30T20:05:00
