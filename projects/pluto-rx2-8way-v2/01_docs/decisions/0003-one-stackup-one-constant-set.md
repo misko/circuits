@@ -1,7 +1,7 @@
 ---
 id: 0003
 date: 2026-07-30
-status: accepted
+status: superseded-by-0004
 tags: [rf, provenance]
 ---
 # 0003 — v2 derives its own microstrip constant set, because the fleet publishes three

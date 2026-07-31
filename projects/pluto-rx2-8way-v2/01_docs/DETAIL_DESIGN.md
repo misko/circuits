@@ -16,32 +16,42 @@ typed (canon M4/M-BOUND). Copy-paste them; they take no arguments.
 
 Declared stackup: `JLC04161H-7628`, top prepreg **h = 0.2104 mm**, declared
 **Dk = 4.4**, outer copper **t = 0.035 mm** (1 oz), RF50 width **w = 0.36 mm**.
-Hammerstad-Jensen with the Wheeler thickness correction.
+**Cross-section: CONDUCTOR-BACKED COPLANAR WAVEGUIDE, gap s = 0.2005 mm on both
+sides, BARE** — measured off the board, not assumed (`03_src/line_type.py`).
+Method: quasi-static conformal mapping, Ghione / Naghed-Wolff CBCPW form.
 
 | quantity | value |
 |---|---|
-| `eps_eff` | **3.3286** |
-| `Z0` at w = 0.36 mm | **50.29 ohm** |
-| `t_pd` | **6.0857 ps/mm** |
-| `lambda_g` at 6 GHz | **27.387 mm** |
-| phase | **13.145 deg/mm** at 6 GHz |
-| via-fence bound, lambda_g/20 | **1.3693 mm** -> declared **1.35 mm** |
+| `eps_eff` | **3.1557** |
+| `Z0` at w = 0.36 mm | **51.249 ohm** |
+| `t_pd` | **5.9255 ps/mm** |
+| `lambda_g` at 6 GHz | **28.1269 mm** |
+| phase | **12.7991 deg/mm** at 6 GHz |
+| ground-stitch bound, `lambda_pp/20` | **1.1910 mm** -> lattice pitch **0.80 mm** |
 
 ```
-/usr/bin/python3 -c "import math; w,h,er,t,f=0.36,0.2104,4.4,0.035,6.0;
-we=w+(t/math.pi)*(1+math.log(2*h/t)); u=we/h;
-a=1+(1/49)*math.log((u**4+(u/52)**2)/(u**4+0.432))+(1/18.7)*math.log(1+(u/18.1)**3);
-b=0.564*((er-0.9)/(er+3))**0.053; ee=(er+1)/2+(er-1)/2*(1+10/u)**(-a*b);
-F=6+(2*math.pi-6)*math.exp(-((30.666/u)**0.7528));
-z0=(376.73/(2*math.pi*math.sqrt(ee)))*math.log(F/u+math.sqrt(1+(2/u)**2));
-lam=299.792458/(f*math.sqrt(ee));
-print('eps_eff %.4f  Z0 %.2f ohm  t_pd %.4f ps/mm  lambda_g %.3f mm  %.3f deg/mm  lam/20 %.4f mm'
-%(ee,z0,math.sqrt(ee)/0.299792458,lam,360/lam,lam/20))"
+/usr/bin/python3 projects/pluto-rx2-8way-v2/03_src/gcpw_constants.py
 ```
 
-**Width choice.** 0.36 mm gives 50.29 ohm — the closest of {0.35, 0.36, 0.37} to
-50. This is an IMPEDANCE width. Widening it "for safety" detunes the line
-exactly as much as narrowing it, and both directions are wrong.
+**THESE SUPERSEDE A BARE-MICROSTRIP SET (ADR-0003 -> ADR-0004, 2026-07-30).**
+This section used to publish `eps_eff 3.3286 / Z0 50.29 / t_pd 6.0857 /
+lambda_g 27.387 / 13.145 deg-per-mm / fence 1.3693 -> 1.35`, from
+Hammerstad-Jensen with the Wheeler thickness correction. That is the right
+answer for a strip over a plane with nothing lateral, and **this board has no
+such strip**: a GND pour flanks every RF arm at 0.2005–0.2010 mm edge-to-edge
+on BOTH sides (`g/h = 0.955`) over 61–93 % of its length, and the remainder is
+the SMA launch, not microstrip. The old command is preserved in ADR-0003, which
+is `superseded-by-0004`; it was never wrong arithmetic, only the wrong
+cross-section.
+
+**Width choice.** 0.36 mm gives **51.25 ohm** as a coplanar line (it gives
+50.29 as a microstrip). Still the closest of {0.35, 0.36, 0.37} to 50 and
+**unchanged**, because the width was chosen against a target the correction
+moves by only +1.9 %. This is an IMPEDANCE width. Widening it "for safety"
+detunes the line exactly as much as narrowing it, and both directions are wrong.
+Note which quantity survived: the correction is **−5.19 % on `eps_eff`** and
+only **+1.9 % on `Z0`**, so the impedance the width was chosen for held and the
+PHASE CONSTANT — the number this board publishes — did not.
 
 **DISAGREEMENT WITH v1 AND WITH THE CANON, stated rather than smoothed over.**
 v1's `nets.yaml` phase block and `rf-design.md` 4(d) publish eps_eff 3.350 /

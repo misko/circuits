@@ -44,19 +44,31 @@ classes:
     intent: >
       Every 50 ohm single-ended RF net: the nine radial arms of the switch star,
       the RX1 main line and the pickoff tap. 0.36 mm on L1 over a SOLID L2
-      ground is 50.29 ohm on the ordered stackup (Hammerstad-Jensen with the
-      Wheeler thickness correction, DETAIL_DESIGN section 1 — the derivation is
-      a runnable command there, not a typed digit). THIS IS AN IMPEDANCE WIDTH,
+      ground, with the GND pour 0.2005 mm off each edge, is 51.25 ohm on the
+      ordered stackup (conductor-backed COPLANAR WAVEGUIDE by conformal
+      mapping, ADR-0004 / DETAIL_DESIGN section 1 — the derivation is a runnable
+      command there, not a typed digit). It computed 50.29 ohm while this file
+      modelled it as a bare microstrip; the width does not move, because the
+      correction is -5.19 % on eps_eff and only +1.9 % on Z0.
+      THIS IS AN IMPEDANCE WIDTH,
       NOT AN AMPACITY WIDTH: widening it is as wrong as narrowing it.
       Constraints that are not preferences: L1 ONLY, NO VIAS inside a
       phase-critical arm, and a SOLID unbroken In1.Cu beneath — In1.Cu is
       EXCLUDED from the routing layers so the reference under a matched group
       cannot be cut. That exclusion is Ossmann's rule 1 and it is what makes
       nine arm phases comparable at all.
-      Ground-via fence flanking every arm at <= 1.35 mm, the largest round value
-      under the derived guided lambda_g/20 = 1.3693 mm bound (ADR-0003).
-      GUIDED, not free-space (which would be 2.5 mm) and not the bulk-eps_r
-      wavelength.
+      Ground-via stitching flanking every arm at <= 1.1910 mm (ADR-0004). NOT
+      the microstrip guided lambda_g/20 = 1.3693 mm this line used to name:
+      these arms MEASURE as grounded coplanar waveguide (GND pour both sides at
+      0.2005 mm, g/h = 0.955, over 61-93 % of each arm), the coplanar pour
+      already IS the lateral wall, and what the vias must do instead is SHORT
+      that pour to the In1.Cu reference so the parasitic parallel-plate mode
+      between the two ground sheets cannot propagate. That mode fills the
+      dielectric between two planes, so it runs at the BULK er:
+      lambda_pp = lambda_0/sqrt(4.4) = 23.8201 mm, and lambda_pp/20 = 1.1910.
+      13 % TIGHTER than the number it replaces, and tighter across the whole
+      declared Dk window. Still not free-space (2.4983 mm), which is looser than
+      all of them.
     nets: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7,
            RX1_MAIN, RX1_TAP_MID, RX1_TAP, RX2_OUT]
     current: signal
@@ -178,17 +190,33 @@ scoped_clearances:
       0.1 grid" cannot recur here. But the grid does not move THIS number —
       P-LAND is a clearance-versus-width fact and is grid-independent. Both
       remedies are applied; only one of them addresses this finding.
-      WE DO NOT MODEL COPLANAR LOADING, AND THAT IS STATED RATHER THAN GLOSSED
-      (rf-design.md 3(c) names it as OWED for this fleet). At 0.14 mm the
-      gap-to-height ratio against the 0.2104 mm top prepreg is g/h = 0.67, low
-      enough that a coplanar ground would pull Z0 down if it ran alongside the
-      line — it does not. The relaxation is bounded to a 5.40 x 5.40 mm box
-      about the switch centre (`rf_launch`, bounded on BOTH sides of the pair),
-      i.e. at most 0.50 mm of copper per arm outboard of its own land, which is
-      lambda_g/55 at 6 GHz on the ADR-0003 constant set. A discontinuity that
-      short is a lumped element, not a transmission-line section. An external
-      field solve would settle it properly and this repo has none; that is the
-      honest statement, not a claim that the effect is zero.
+      COPLANAR LOADING IS REAL ON THIS BOARD AND THIS PARAGRAPH USED TO DENY
+      IT. It read: "at 0.14 mm the gap-to-height ratio against the 0.2104 mm
+      top prepreg is g/h = 0.67, low enough that a coplanar ground would pull
+      Z0 down if it ran alongside the line — IT DOES NOT." **It does, for
+      essentially the whole line.** MEASURED 2026-07-30 off the saved
+      `.kicad_pcb` (`03_src/line_type.py`): a GND pour flanks every RF
+      arm at 0.2005-0.2010 mm edge-to-edge on BOTH sides over 61-93 % of its
+      length (mean 75.2 %), g/h = 0.955, g/w = 0.558. The arms are grounded
+      coplanar waveguide, and the correct constant set is ADR-0004
+      (eps_eff 3.1557, t_pd 5.9255 ps/mm, lambda_g 28.1269 mm, 12.7991 deg/mm),
+      not ADR-0003's bare-microstrip set. A RULE FILE THAT ASSERTS A
+      CROSS-SECTION IS ASSERTING SOMETHING THE BOARD CAN CONTRADICT, and this
+      one did — nothing in the pipeline compared the sentence to the copper
+      until a reviewer measured the pour.
+      What survives the correction is the SCOPE argument, and it survives
+      unchanged: the relaxation is bounded to a 5.40 x 5.40 mm box about the
+      switch centre (`rf_launch`, bounded on BOTH sides of the pair), i.e. at
+      most 0.50 mm of copper per arm outboard of its own land = lambda_g/56 at
+      6 GHz on the ADR-0004 constant set (it was lambda_g/55 on ADR-0003's —
+      the bound moved 1.8 % and the conclusion does not turn on it). A
+      discontinuity that short is a lumped element, not a transmission-line
+      section. WE STILL DO NOT MODEL COPLANAR LOADING WITH A FIELD SOLVER
+      (rf-design.md 3(c) names it OWED for this fleet); what changed is that we
+      no longer claim the loading is absent. ADR-0004's closed form is a
+      quasi-static conformal mapping, not a field solve, and it is BARE — no
+      solder-mask term, which rf-design.md 4A(iii) measures at +6.3 % on
+      eps_eff, larger than the microstrip-vs-coplanar correction itself.
       NOT ABOVE THE ROUTER'S OWN BUDGET: 03_src/route.yaml runs the RF wave at
       `clearance: 0.14`, so the DRC floor and what KRT was allowed to pack to
       are the same number (canon R-SCOPE's last paragraph / PF-ROUTE-CLR).
@@ -259,16 +287,19 @@ scoped_clearances:
 
 length_match:
   RF_ARMS:
-    adr: "0003"
+    adr: "0004"
     # QUOTED, because YAML 1.1 reads a leading-zero scalar as OCTAL and
-    # `adr: 0003` silently becomes the integer 3 (v1 hit this and recorded it).
-    # 0003 AND NOT 0001/0002: every number in this block descends from ONE
-    # quantity, and 0003 is where it is derived with its command — eps_eff
-    # 3.3286 -> t_pd 6.0857 ps/mm -> 13.145 deg/mm, which is what converts the
-    # PE42482A-X part-to-part window (13.2 deg) into the 1.00 mm of copper that
-    # `max_spread_mm` is, and what converts DRIFT (TC*dT*dL*t_pd) into the same
-    # units. 0003's own Context sentence names "the phase budget, the drift
-    # tolerance" as its consumers. No other v2 ADR emits a length intent.
+    # `adr: 0004` silently becomes the integer 4 (v1 hit this at 0003 and
+    # recorded it).
+    # 0004 AND NOT 0003: every number in this block descends from ONE quantity,
+    # and 0004 is now where it is derived with its command — eps_eff 3.1557 ->
+    # t_pd 5.9255 ps/mm -> 12.7991 deg/mm, which is what converts the
+    # PE42482A-X part-to-part window (13.2 deg) into the millimetres of copper
+    # that `max_spread_mm` is, and what converts DRIFT (TC*dT*dL*t_pd) into the
+    # same units. 0003 derived the same chain for a BARE MICROSTRIP, which is a
+    # cross-section this board does not contain (measured: a GND pour flanks
+    # every arm at 0.2005 mm), and is `superseded-by-0004`. No other v2 ADR
+    # emits a length intent.
     intent: >
       The eight congruent radial arms whose relative phase this board PUBLISHES.
       Each is a two-pad net from a switch RF land to an SMA jack's signal pad,
@@ -337,15 +368,33 @@ length_match:
     # 18 x 23.5 mm module, which moves the star's surroundings.
     stackup_mm: [0.2104, 0.9792, 0.2104]   # JLC04161H-7628
     phase:
-      t_pd_ps_per_mm: 6.0857
+      t_pd_ps_per_mm: 5.9255
       f_ghz: 6.0
       stackup: JLC04161H-7628
-      # DERIVED FOR THIS BOARD, NOT INHERITED. 6.0857 comes from eps_eff 3.3286
-      # (ADR-0003 carries the regenerable command). v1's phase block and
-      # rf-design.md 4(d) both publish 6.105 from eps_eff 3.350, which is not
-      # reproducible from the stackup either board declares, and v1 carries a
-      # THIRD value (lambda_g 27.41 mm => eps_eff 3.3229) in the same file. The
-      # three span 0.7% and nothing is unsafe at any of them; what differs is
-      # whether a command stands behind the number. ADR-0003 records the OWED
-      # question: if 3.350 has a measurement behind it, that measurement
-      # OUTRANKS this derivation (canon M6) and ADR-0003 should be superseded.
+      cross_section: coplanar_grounded_bare   # s = 0.2005 mm both sides
+      # DERIVED FOR THIS BOARD, NOT INHERITED, AND FOR THE CROSS-SECTION THE
+      # BOARD ACTUALLY HAS. 5.9255 comes from eps_eff 3.1557 (ADR-0004 carries
+      # the regenerable command), a conductor-backed COPLANAR WAVEGUIDE with
+      # w = 0.360 and s = 0.2005 mm both sides, solved by quasi-static
+      # conformal mapping (Ghione / Naghed-Wolff).
+      #
+      # THIS FIELD HELD 6.0857 UNTIL 2026-07-30 AND THAT NUMBER WAS NOT WRONG
+      # ARITHMETIC — it is the correct Hammerstad-Jensen answer for a BARE
+      # MICROSTRIP, a cross-section this board does not contain anywhere.
+      # MEASURED off the saved .kicad_pcb (03_src/line_type.py): a GND
+      # pour runs alongside every arm at 0.2005-0.2010 mm edge-to-edge on BOTH
+      # sides, g/h = 0.955, over 61-93 % of each arm. The 5.19 % move in
+      # eps_eff is -4.97 deg of absolute phase on a 14.366 mm arm at 6 GHz, on
+      # a board whose published artifact is a degrees-per-millimetre table.
+      # `cross_section:` is declared HERE, next to the number, because
+      # rf-design.md 4A's rule is that a constant set is identified by the
+      # tuple (stackup, w, cross-section, method) and is MEANINGLESS without
+      # it — the fleet published five sets for this one laminate by naming
+      # only the stackup.
+      #
+      # WHAT REMAINS OWED, unchanged by this correction and larger than it:
+      # `_bare` means no solder-mask term. rf-design.md 4A(iii) measures a
+      # 0.020 mm conformal mask at +6.3 % on eps_eff by 2D field solve on this
+      # exact laminate. Every constant set in this fleet, ADR-0003's and
+      # ADR-0004's alike, models a bare trace on a board that ships with mask.
+      # The word `bare` is the disclosure, not the fix.

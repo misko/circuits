@@ -196,4 +196,5 @@ should carry it.
 |---|---|---|---|
 | ADR-0001 | which module, and its regulator topology vs the RF spur constraint (T1/G9) | agent (A2, P-delegation) | `decisions/0001-module-selection-and-the-rf-spur-question.md` |
 | ADR-0002 | module assembly posture, protection boundary, and the second-USB question (T2/T3/G10) | agent (A3/A4) | `decisions/0002-assembly-posture-and-the-power-entry-boundary.md` |
-| ADR-0003 | v2 derives its own microstrip constant set; the fleet's three sets disagree (T4) | agent (A6) | `decisions/0003-one-stackup-one-constant-set.md` |
+| ADR-0003 | v2 derives its own microstrip constant set; the fleet's three sets disagree (T4) — **superseded-by-0004: the derivation was sound and the cross-section was wrong** | agent (A6) | `decisions/0003-one-stackup-one-constant-set.md` |
+| ADR-0004 | the arms MEASURE as grounded coplanar waveguide, not microstrip, so the constant set is re-derived (eps_eff 3.3286 -> 3.1557) and the fence's job changes from lateral shielding to shorting the parasitic parallel-plate mode — moving the bound 1.3693 -> **1.1910 mm, 13 % TIGHTER** | agent | `decisions/0004-the-arms-are-coplanar-and-the-fence-shorts-a-different-mode.md` |

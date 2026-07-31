@@ -115,55 +115,152 @@ Excluding In1.Cu from routing is Ossmann's rule 1 (*"unbroken power planes on
 the inside of your board"*), which v1 arrived at independently and which
 `skills/kicad-pcb/references/rf-design.md` 3(d) now carries as canon.
 
-Constants derived ONCE from this stackup (ADR-0003, regenerable — the ADR
-carries the command, not the digits): eps_eff **3.3286**, Z0 **50.29 ohm** at
-w = 0.36 mm, t_pd **6.0857 ps/mm**, lambda_g(6 GHz) **27.387 mm**, phase
-**13.145 deg/mm**. Every v2 document cites these; none re-types them.
+Constants derived ONCE from this stackup (**ADR-0004**, regenerable — the ADR
+carries the command, not the digits), and identified by the tuple canon
+requires rather than by the stackup alone:
+
+    (JLC04161H-7628 h=0.2104 er=4.4 t=0.035 / w = 0.360 mm /
+     CONDUCTOR-BACKED COPLANAR WAVEGUIDE, s = 0.2005 mm both sides, BARE /
+     quasi-static conformal mapping, Ghione-Naghed-Wolff CBCPW)
+
+    eps_eff 3.1557   Z0 51.249 ohm   t_pd 5.9255 ps/mm
+    lambda_g(6 GHz) 28.1269 mm       phase 12.7991 deg/mm
+
+Every v2 document cites these; none re-types them.
+
+**THESE REPLACED A BARE-MICROSTRIP SET, AND THE CROSS-SECTION IS WHY.**
+ADR-0003 derived `eps_eff 3.3286 / t_pd 6.0857 / 13.145 deg/mm` for a strip
+over a plane with nothing lateral. MEASURED 2026-07-30 off the saved board
+(`03_src/line_type.py` -> `line_type.txt`; it marches a perpendicular
+ray at 0.0005 mm into the F.Cu GND zone FILL and reads no rule file): a GND
+pour runs alongside EVERY arm at **0.2005–0.2010 mm edge-to-edge on both
+sides** — it went to the 0.200 mm DRC clearance and stopped — over **61.3 %
+to 93.2 %** of each arm (mean 75.2 %). `g/h = 0.955`, `g/w = 0.558`. At
+`g ~= h` the coplanar ground carries a real share of the return current, so
+these arms are grounded coplanar waveguide, not microstrip.
+
+The remainder is not microstrip either: it is ONE interval per arm,
+1.40–1.75 mm at the SMA end, coinciding exactly with the In1.Cu antipad void
+(ANT1 s = 0.00–1.75, ANT4 s = 12.62–14.32, …). That is the LAUNCH — no
+coplanar ground and no reference plane. **There is no bare-microstrip section
+anywhere on this board.** In1.Cu is otherwise continuous beneath every arm;
+RX1_TAP has no void at all.
+
+The correction is **−5.19 % on eps_eff** and **−4.97 deg of absolute phase on a
+14.366 mm arm at 6 GHz**. Z0 moves +1.9 %, so the impedance survives and the
+phase constant — the thing this board sells — did not. **OWED and stated, not
+closed:** every constant set here is a BARE-trace model, and `rf-design.md`
+4A(iii) measures a conformal solder mask at **+6.3 % on eps_eff**, larger than
+this whole correction. The word BARE in the tuple is the disclosure.
 
 ## 6. Ground strategy
 
 One ground net, poured on all four layers, with In1.Cu unbroken beneath the RF.
 Each SMA jack's four ground posts gets its own via cluster AT the pad — the
 posts are the launch's return path and are only electrically short if the return
-is. A ground-via fence flanks every RF arm at **<= 1.35 mm** (the largest round
-value under the derived lambda_g/20 = 1.3693 mm bound, ADR-0003).
+is.
 
-**AS BUILT, AND THE DECLARED PITCH IS NOT 1.35** (2026-07-30, measured —
-`06_build/verify/fence_pitch.txt`, shipped in the release `verification/`). The
-fence is the stitch lattice, and **a square lattice at pitch p is not a fence at
-pitch p**: its nearest-neighbour distance is p in every direction, but the
-spacing that governs is the projection onto the ARM AXIS, and eight of the nine
-arms lie on 45-degree multiples where one lattice row projects at `p*sqrt(2)`.
-At `p = 1.35` the measured structural spacing is **1.9092 mm**, outside this
-board's own bound by 41 %. The lattice therefore steps at
-**0.95 = floor_0.05(1.35 / sqrt(2))**, giving **1.3435 mm** on a diagonal arm
-and 0.95 on an axis arm — 2208 grid vias plus the 40 SMA ground posts.
+**WHAT THE GROUND VIAS BESIDE AN ARM ARE FOR CHANGED WHEN THE LINE TYPE WAS
+MEASURED (ADR-0004), AND THE BOUND GOT TIGHTER, NOT LOOSER.** A via fence
+beside a MICROSTRIP is a lateral shield, and `lambda_g/20` keeps it a
+continuous wall instead of a periodic structure with a passband — that is what
+ADR-0003's bound claimed. On a GCPW that job is already discharged and **not by
+the fence**: the coplanar pour is solid copper 0.2005 mm from the trace edge, an
+aperture of zero by construction that no via wall at any pitch improves on.
 
-**THE BOUND IS NOT MET, AND THE NUMBERS BELOW ARE RE-MEASURED OFF THE CURRENT
-BOARD (2026-07-30, after the C_SW2 rotation and the six barrel windows moved the
-control pocket). The previous revision of this paragraph quoted `12 of 21` /
-worst `5.1071` / `3.6200` from a SUPERSEDED board and was left standing across a
-re-place and two re-routes — a stale disclosure reads exactly like a current
-one, which is why it is dated here and regenerated with the artifact.**
+The vias' remaining job is the VERTICAL one. A conductor-backed CPW has TWO
+grounds — the F.Cu coplanar pour and the In1.Cu reference — and those sheets
+form a parallel-plate waveguide with **no cutoff**. Any asymmetry (a bend, the
+launch, an unequal excitation of the two coplanar grounds) puts a voltage
+between them and launches the parasitic parallel-plate/slotline mode, which
+carries power out of the line and couples arm to arm. The vias SHORT the two
+sheets, and a via wall is a short only where it is electrically short against
+THAT mode. That mode fills the dielectric between two conducting planes, so it
+runs at the BULK permittivity:
 
-MEASURED, `verification/fence_pitch.txt` (which reads the saved `.kicad_pcb`
+    lambda_pp = lambda_0/sqrt(er) = 49.9654/sqrt(4.4) = 23.8201 mm
+    BOUND: along-arm ground-stitch spacing <= lambda_pp/20 = **1.1910 mm**
+
+The divisor 20 is unchanged (the fleet's inherited via-wall divisor); only the
+WAVELENGTH it applies to moved — the same correction `rf-design.md` 3(b) made
+once already for microstrip. Ranked at 6 GHz: microstrip `lambda_g/20` 1.3693 ·
+CBCPW `lambda_g/20` 1.4063 · **parallel-plate `lambda_pp/20` 1.1910 (BINDING)** ·
+free space 2.4983. **1.3693 -> 1.1910 mm is 13 % TIGHTER**, and it is tighter
+across the whole declared Dk window (4.2 -> 1.2190, 4.6 -> 1.1648).
+
+**THIS CLOSES ONE OF THE THREE EXITS THIS SECTION USED TO OFFER.** The previous
+revision said the P0 could be resolved by "an ADR-0003 amendment that re-derives
+the bound the board can actually hold". There is no such amendment: the honest
+re-derivation moves the bound the wrong way for that hope. Recorded so no
+successor spends a session looking for it.
+
+**AS BUILT, AND THE LATTICE PITCH IS 0.95** (2026-07-30, measured —
+`06_build/verify/fence_pitch.txt`). The fence is the stitch lattice, and **a
+square lattice at pitch p is not a fence at pitch p**: its nearest-neighbour
+distance is p in every direction, but the spacing that governs is the projection
+onto the ARM AXIS, and eight of the nine arms lie on 45-degree multiples where
+one lattice row projects at `p*sqrt(2)`. The lattice steps at **0.95**, chosen
+as `floor_0.05(1.35/sqrt(2))` against the SUPERSEDED microstrip bound, giving
+**1.3435 mm** on a diagonal arm and 0.95 on an axis arm — 2208 grid vias plus
+the 40 SMA ground posts. Against the ADR-0004 bound the lattice must fall to
+**0.80** (`0.80*sqrt(2) = 1.1314 <= 1.1910`); 0.95 no longer qualifies on any
+diagonal arm.
+
+**THE BOUND IS NOT MET. Every number below is re-measured off the CURRENT board
+on 2026-07-30 against the CURRENT (ADR-0004) bound.** An earlier revision of
+this paragraph quoted `12 of 21` / worst `5.1071` from a SUPERSEDED board and
+was left standing across a re-place and two re-routes — a stale disclosure reads
+exactly like a current one, which is why each is dated and regenerated with the
+artifact.
+
+MEASURED, `06_build/verify/fence_pitch.txt` (which reads the saved `.kicad_pcb`
 through pcbnew and never reads `route.yaml`, so a declared pitch cannot certify
-itself): **worst interior along-arm aperture 3.0500 mm at ANT4 sideW,
-s = 7.12..10.17, against a 1.35 mm bound — 2.26x over — with 11 of 20 arm-sides
-over.** The file's own last line is `VERDICT: FAIL`. An independent re-derivation
-by a zero-context layout reviewer agrees on the worst value and counts 13 of 20;
-the count differs with the band/segment convention and the WORST VALUE does not.
+itself; it now **exits 1** on FAIL, having previously printed `VERDICT: FAIL`
+and exited 0):
 
-Each aperture is a named site OCCUPANCY rather than a pitch (classified in
-`verification/fence_apertures.txt`, one named occupier per empty lattice site):
-the declared `avoid` rings that keep stitch vias out of each SMA's >= D3.5 mm
-bottom-plane antipad, where the jack's own four ground posts stand; the SSE
-control corridor's `3V3`/`SW_V1`/`SW_V3`/`SW_V4` copper against the S and SE
-arms (the 3.0500 mm worst case: SW_V4 F.Cu at 0.06 mm and SW_V3 In2.Cu at
-0.13 mm from the empty sites); and the star hub, where the arm's own 0.36 mm
-copper and its 45-degree neighbour leave no legal site. A finer pitch does not
-fill an occupied site — these close only by moving the control corridor or by a
-per-arm fence pass the shared stitcher does not have.
+> **worst interior along-arm aperture 3.0500 mm at ANT4 sideW,
+> s = 7.12..10.17, against the 1.1910 mm bound — `lambda_pp/7.81`, 2.56x over —
+> with 17 of 20 arm-sides over and 34 apertures above the bound.**
+> `VERDICT: FAIL`, exit 1.
+
+At the superseded 1.35 mm bound the same board read 11 of 20; the worst value is
+unchanged, because the worst aperture is an occupied site and no bound moves it.
+
+**CLASSIFIED BY CAUSE, NEVER COUNTED** (`06_build/verify/fence_apertures.txt`
+names one occupier per empty lattice site). The 34 apertures are FOUR unrelated
+problems, and grouping them is what says which are cheap:
+
+| class | n | worst | what occupies the site | what closes it |
+|---|---|---|---|---|
+| **A — lattice projection** | **18** | 1.3435 | **nothing.** 12 are exactly `0.95*sqrt(2)`, the lattice's own diagonal, with no obstruction at all; 6 more are near-lattice spacings in 1.19–1.33 | re-stitch at pitch **0.80** — a `route.yaml` value, no placement change. Expressible only since the shared stitcher's whole-millimetre grid floor was fixed (`rf-design.md` 3(b)) |
+| **B — SMA avoid ring** | 5 | 2.8500 | the declared `avoid` rings holding stitch vias out of each jack's >= D3.5 mm bottom-plane antipad (ANT2 W, ANT6 W+E, RX1_TAP L at J_ANT8, RX1_TAP R at J_ANT7) | a per-arm fence pass, or a declared exception — see the caution below |
+| **C — SSE control corridor** | 5 | **3.0500** | `SW_V1`/`SW_V3`/`SW_V4` and `3V3` copper plus `C_SW1`/`C_SW2` pads, mid-arm on ANT4 and ANT5 (SW_V4 F.Cu at 0.06 mm and SW_V3 In2.Cu at 0.13 mm from the empty sites) | take CTRL off F.Cu across the rosette — **which `rules/nets.yaml` already declares** and the router did not do (90–96 % of SW_V1/V2/V4 is on F.Cu). A route change |
+| **D — star hub / tap** | 6 | 2.8500 | the arms' own 0.36 mm copper at the hub, RX1_TAP's detour, and `R_T1`/`RX1_TAP_MID` | a per-arm fence pass, or placement |
+
+**CLASS A IS 53 % OF THE FINDING AND HAS NO OCCUPIER AT ALL** — it is purely the
+declared pitch, and it is the one class a config value closes. Class C is the
+worst aperture and is a route change the rule file already asks for. Classes B
+and D need tooling the shared stitcher does not have (a fence pass that follows
+the arm rather than a board-wide square lattice) or a declared, measured
+exception.
+
+**A CAUTION ABOUT CLASS B, WRITTEN DOWN BECAUSE IT IS THE SHAPE MOTIVATED
+REASONING TAKES.** There is a real physical argument that the bound should not
+apply inside a launch antipad: the parallel-plate mode has no lower plate there,
+In1.Cu being voided, and the jack's four PTH ground posts tie all four planes a
+millimetre away. That argument may well be right. It was also formed AFTER
+seeing which apertures failed, which is exactly the reasoning that put
+`eps_eff = 3.350` into this fleet. It is therefore recorded as an OPEN
+CANDIDATE, not applied: it becomes an exception only when someone measures what
+those apertures cost in isolation, and the measurement is the price of the
+exception (canon M4 — a waiver needs evidence, not rationale).
+
+**THIS IS AN OPEN P0 AGAINST ADR-0004's PUBLISHED INEQUALITY, NOT A MET
+REQUIREMENT AND NOT A WAIVER.** It is recorded here so no downstream reader can
+take the lattice pitch as evidence that the bound is met: the PITCH met the old
+bound and the realized FENCE meets neither. **The board needs a copper change**
+— a re-stitch at 0.80 and a re-route of CTRL onto In2.Cu at minimum — and it is
+not sealed.
 
 **THIS IS AN OPEN P0 AGAINST ADR-0003's PUBLISHED INEQUALITY, NOT A MET
 REQUIREMENT AND NOT A WAIVER.** It is recorded here so that no downstream reader

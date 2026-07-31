@@ -442,3 +442,213 @@ of 3.0mm".
   verified, and this journal with every measured number. A copy of the staging
   tree is in the session scratchpad for the length of this session only, and is
   NOT evidence — it is a convenience.
+
+## 2026-07-30 23:20 — start (fresh agent; the RF LINE TYPE, decided BEFORE the fence is graded)
+
+- did: loaded the canon, then MEASURED what transmission line the arms are,
+  off `04_kicad/pluto_rx2_8way_v2.kicad_pcb` through pcbnew. New instrument
+  `03_src/line_type.py` (output `line_type.txt`): rebuilds each RF
+  net's F.Cu centreline from its OWN track segments, samples it every 0.05 mm,
+  and at each sample marches a ray perpendicular to the arm on BOTH sides at
+  0.0005 mm until it enters the F.Cu GND zone FILL — so the number is an
+  edge-to-edge gap to realized copper, not a rule value. The same normal is
+  marched on In1.Cu to ask whether the reference plane is beneath. It reads no
+  rule file and no ADR: a declared cross-section cannot certify itself.
+- result: **THE ARMS ARE NOT MICROSTRIP.** Every arm carries a GND pour on BOTH
+  sides at an edge-to-edge gap of **0.2005–0.2010 mm** — median 0.2010 over
+  6007 side-samples, minimum 0.2005, i.e. the pour ran to the 0.200 mm DRC
+  clearance and stopped. `g/h = 0.955`, `g/w = 0.558`. Both-sides-tight
+  (<= 0.25 mm) holds over **61.3 %–93.2 %** of each arm (ANT1 77.2, ANT2 84.5,
+  ANT3 85.2, ANT4 76.7, ANT5 66.9, ANT6 78.4, ANT7 87.7, RX2_OUT 78.4,
+  RX1_MAIN 61.3, RX1_TAP 93.2; mean 75.2 %). Track width is 0.360 mm on every
+  segment.
+  The remaining 8–29 % is NOT microstrip either: it is ONE interval per arm,
+  1.40–1.75 mm long, at the SMA end — and it coincides exactly with the
+  In1.Cu void (ANT1 s=0.00–1.75, ANT4 s=12.62–14.32, …). That interval is the
+  LAUNCH: no coplanar ground and no reference plane, because the >=3.5 mm
+  bottom-plane antipad is there. **There is no bare-microstrip section
+  anywhere on this board.** In1.Cu is continuous beneath every arm apart from
+  those launch antipads; RX1_TAP has no void at all.
+- next: ADR-0003's constant set is a BARE-MICROSTRIP derivation for a
+  cross-section this board does not contain. Derive the CBCPW set, then the
+  fence bound, and ONLY THEN grade the fence.
+
+## 2026-07-30 23:35 — iterate 1 (the BOUND, FIXED AND COMMITTED BEFORE MEASUREMENT)
+
+**THE DERIVATION ORDER IS THE POINT AND IT IS RECORDED HERE ON PURPOSE.** This
+entry is written BEFORE `fence_pitch.py` is run against the new bound. Nothing
+below was adjusted after seeing an aperture number, and the check on that claim
+is that the bound I arrived at is TIGHTER than the one the board was already
+failing — the direction motivated reasoning cannot take you.
+
+- did: derived the constant set for the MEASURED cross-section
+  (`03_src/gcpw_constants.py` -> `gcpw_constants.txt`).
+- result: **[DERIVED]**, tuple `(JLC04161H-7628 h=0.2104 er=4.4 t=0.035 /
+  w=0.360 / conductor-backed coplanar waveguide s=0.2005 both sides, BARE /
+  quasi-static conformal mapping, Ghione–Naghed-Wolff CBCPW)`:
+
+      k1 = a/b = 0.473062                    K/K'(k1) = 0.757743
+      k3 = tanh(pi a/2h)/tanh(pi b/2h) = 0.878560   K/K'(k3) = 1.312738
+      eps_eff  = (1 + er q)/(1 + q) = 3.1557     (ADR-0003 microstrip: 3.3286)
+      Z0       = 51.249 ohm                      (ADR-0003: 50.29)
+      t_pd     = 5.9255 ps/mm                    (ADR-0003: 6.0857)
+      lambda_g = 28.1269 mm @ 6 GHz              (ADR-0003: 27.387)
+      phase    = 12.7991 deg/mm                  (ADR-0003: 13.145)
+
+  Tagged **[DERIVED]**, not [MEASURED] — canon rf-design.md sec 7's third
+  voice. The zero-thickness form is adopted; the Gupta finite-thickness CPW
+  correction gives delta = 0.08163 mm = 0.407*s, which is outside its own
+  `t << s` validity, so it is printed as a sensitivity and NOT used.
+  Independent corroboration: the r2 layout lens, working alone, published
+  3.1552 — mine is 3.1557, a 0.016 % agreement between two agents who did not
+  share a script.
+
+- **WHAT THE FENCE MUST DO, FOR THIS LINE TYPE.** A microstrip fence is a
+  LATERAL SHIELD, and `lambda_g/20` keeps it a continuous wall rather than a
+  periodic structure with a passband. **On a GCPW that job is already
+  discharged, and not by the fence:** the coplanar pour is solid copper at
+  0.2005 mm, an aperture of ZERO by construction, which no discrete via wall
+  at any pitch improves on. So the fence's remaining job is the VERTICAL one.
+  A CBCPW has two grounds — the F.Cu coplanar pour and the In1.Cu reference —
+  and those two sheets form a parallel-plate waveguide with NO cutoff. Any
+  asymmetry (a bend, the launch, a discontinuity) puts a voltage between them
+  and launches the parasitic parallel-plate/slotline mode, which carries power
+  away and couples arm to arm. The stitch vias SHORT the two sheets together,
+  and a via wall is a short only where it is electrically short against THAT
+  mode — not against the mode on the line.
+- **THE BOUND.** The parallel-plate mode fills the dielectric between two
+  conducting sheets, so its permittivity is the BULK `er`, not `eps_eff`:
+
+      lambda_0  = 299.792458/6.0            = 49.9654 mm
+      lambda_pp = lambda_0/sqrt(4.4)        = 23.8201 mm
+      BOUND: along-arm ground-stitch spacing <= lambda_pp/20 = 1.1910 mm
+
+  The divisor 20 is UNCHANGED — it is the fleet's inherited via-wall divisor
+  (rf-design.md sec 2, rfessentials). What changes is the WAVELENGTH it is
+  applied to, which is the same correction sec 3(b) already made once when it
+  moved microstrip from lambda_0 to lambda_g. Four candidates at 6 GHz:
+
+      microstrip guided lambda_g/20 (ADR-0003, wrong cross-section)  1.3693
+      CBCPW      guided lambda_g/20 (this line's own mode)           1.4063
+      parallel-plate    lambda_pp/20 (the mode the fence shorts)     1.1910  <- BINDING
+      free space        lambda_0/20  (rfessentials as written)       2.4983
+
+  **THE BOUND GOES DOWN: 1.3693 -> 1.1910 mm, 13 % TIGHTER.** Stated plainly
+  because the brief asked for it plainly: correcting the line type does NOT
+  relieve this board. It makes the requirement harder. Dk window 4.2–4.6 moves
+  it 1.2190–1.1648 mm, so it is tighter than the old bound across the whole
+  window. The declared standard value is **1.15 mm** (largest 0.05 mm round
+  value under it).
+- next: NOW grade the board, at 1.1910 mm.
+
+## 2026-07-30 23:50 — iterate 2 (the board, graded against the committed bound)
+
+- did: ran `fence_pitch.py BOARD 2.5 1.1910` — same measurement geometry as
+  before (along-arm projection per side, +/-2.5 mm band, PTH GND posts counted
+  as fence elements), only the bound moved. The band was deliberately LEFT at
+  2.5 mm: a tighter band counts fewer vias and yields larger apertures, so
+  keeping it is the generous-to-the-board choice, and I did not want to stack a
+  tighter bound on top of a harsher measurement.
+- result: **VERDICT FAIL.** Worst interior along-arm aperture **3.0500 mm at
+  ANT4 sideW, s = 7.12..10.17** — `lambda_pp/7.81`, **2.56x the bound** — and
+  **17 of 20 arm-sides OVER** (it was 11 of 20 at the superseded 1.35 mm).
+  34 apertures exceed the bound in total. The worst value is UNCHANGED from the
+  old grading, because the worst aperture is an occupied lattice site and no
+  bound moves copper.
+- **`fence_pitch.py` USED TO PRINT `VERDICT: FAIL` AND EXIT 0.** Every caller
+  that checked `$?` was told the fence passed; the release that shipped this
+  file shipped a FAIL nobody could trip over. Fixed: it now exits 1 on FAIL.
+  Proven non-vacuous rather than asserted — at the real 1.1910 bound it exits
+  **1**, and at a deliberately loose 5.0 mm bound on the SAME board it exits
+  **0**. A gate that cannot pass is as useless as one that cannot fail.
+- next: classify the 34 by CAUSE before deciding anything.
+
+## 2026-07-30 23:58 — iterate 3 (CLASSIFIED, and the classification is the answer)
+
+- did: `fence_apertures.py BOARD 0.95 1.1910` (bound promoted from a hardcoded
+  1.35 to argv), which names the nearest occupying object for every empty
+  lattice site inside every over-bound gap.
+- result: **the 34 apertures are FOUR unrelated problems**, and grouping them is
+  what says which are cheap. This is canon's CLASSIFY-BEFORE-YOU-ESCALATE, and
+  the reason it is not optional here is that the previous framing — "these close
+  only by moving the control corridor or by a per-arm fence pass" — was true of
+  16 of them and false of the other 18.
+
+  | class | n | worst | occupier | closes by |
+  |---|---|---|---|---|
+  | A lattice projection | **18** | 1.3435 | **NOTHING.** 12 are exactly `0.95*sqrt(2)`, the lattice's own diagonal | re-stitch at pitch **0.80** — a route.yaml value |
+  | B SMA avoid ring | 5 | 2.8500 | the declared rings round each jack's >= D3.5 mm antipad | per-arm fence pass, or a measured exception |
+  | C SSE control corridor | 5 | **3.0500** | `SW_V1`/`SW_V3`/`SW_V4`/`3V3` copper + `C_SW1`/`C_SW2` pads, mid-arm on ANT4/ANT5 | take CTRL off F.Cu — **nets.yaml already declares this** |
+  | D star hub / tap | 6 | 2.8500 | the arms' own copper at the hub, RX1_TAP's detour, `R_T1` | per-arm fence pass, or placement |
+
+  **CLASS A IS 53 % OF THE FINDING AND HAS NO OCCUPIER AT ALL.** It is purely
+  the declared pitch, chosen as `floor_0.05(1.35/sqrt(2))` against the bound
+  that has now moved. `0.80*sqrt(2) = 1.1314 <= 1.1910` clears it. Class C is
+  the WORST aperture and it is L-07 wearing a different hat: `nets.yaml` CTRL
+  says *"inner layer under ground across the RF region"* and the r2 layout lens
+  measured 90-96 % of SW_V1/V2/V4 copper on F.Cu. The rule file already asks for
+  the fix that closes the worst aperture on the board.
+- next: decide fix-or-stop.
+
+## 2026-07-31 00:05 — stuck -> STOP (the honest answer is that this board needs COPPER)
+
+- trigger: not stagnation. A decision.
+- **measured plateau:** 17 of 20 arm-sides over a bound that is now 13 % tighter
+  than the one they were already failing; the worst aperture 2.56x over; and
+  the three remedies ARCHITECTURE sec 6 used to offer are now two, because the
+  correct re-derivation moved the bound the wrong way for the "amend the bound"
+  exit. There is no reading of the physics under which 3.0500 mm passes:
+  `lambda_pp/8 = 2.9775` still fails it, and only a `lambda/4`-class criterion
+  (5.955 mm) would let it through — that is a resonance-avoidance limit, not a
+  fence criterion, and nobody designs a stitch at `lambda/4`.
+- **causal hypothesis, and it is not a hypothesis:** classes A and C are
+  copper. A needs a re-stitch at 0.80; C needs CTRL re-routed onto In2.Cu
+  across the rosette. Both regenerate from `03_src/` per canon M3 — neither is
+  a hand-edit — but both MOVE COPPER, which voids the board, the fab set, the
+  renders and all four r2 lens verdicts. Two further P0/P1s point the same way
+  (L-03's six 37-ohm meander blobs need the elongation pass removed and a
+  re-route; L-04's SW_V4 vias sit 0.0224 mm from ANT5's In1 antipad edge,
+  inside registration tolerance).
+- **DECISION: STOP AT THE COPPER BOUNDARY. Do not seal, do not re-gate the four
+  lenses, do not stage a release.** The brief's instruction is explicit and it
+  is the right one: a board that needs copper is reported, not sealed around.
+  Re-gating four fresh-context lenses against a board that is going to be
+  re-routed would spend four full-context agents on verdicts a material change
+  voids by construction — the "verification scoping" rule, applied before the
+  waste rather than after it.
+- **WHAT WAS DONE INSTEAD** — everything that does NOT need copper, so the
+  re-route starts from a correct set of documents rather than re-deriving them:
+  ADR-0004 written and its bound regenerated (M-BOUND **CITED**, 1.1910 exact,
+  GOVERNS 20.0001 >= 20); ADR-0003 marked `superseded-by-0004`; ARCHITECTURE
+  sec 5 + sec 6 rewritten from the artifact with the four aperture classes;
+  DETAIL_DESIGN sec 1 re-tabled; `nets.yaml`'s falsified coplanar sentence
+  deleted and its `phase.t_pd_ps_per_mm` moved 6.0857 -> 5.9255 with a new
+  `cross_section:` key beside it; `route.yaml` given a disclosure block naming
+  0.80 as the value the next regeneration must carry; the S-OCCL waiver
+  WITHDRAWN; `fence_pitch.py` taught to exit 1.
+- **VERIFIED THAT THE SOURCE EDITS MOVED NO COPPER** rather than assuming it:
+  re-ran `generate_rules_generic.py` and `git status -- 04_kicad` is EMPTY, and
+  DRC re-runs at **0 violations / 0 unconnected / 0 parity** with
+  `--exit-code-violations` returning 0. Every edit above is documentation or
+  metadata; none reaches the board.
+- **THE FOUR INSTRUMENTS WERE GITIGNORED AND ARE NOW TRACKED.**
+  `line_type.py`, `gcpw_constants.py`, `fence_pitch.py` and `fence_apertures.py`
+  all lived under `06_build/`, which this project's `.gitignore` excludes
+  wholesale. ADR-0004 cites two of them as the derivation behind a published
+  constant set — an ADR whose command lives in a gitignored file is not
+  regenerable, which is golden rule 3g exactly ("a released board's only route
+  input was gitignored"). Moved to `03_src/*.py` and stamped with the STOPGAP
+  gap declaration the 03_src contract requires. All four re-run from the new
+  home and reproduce identically. **This is the SECOND board to need them**
+  (v1 carried the same measurement), which by that contract's own rule triggers
+  MANDATORY PROMOTION into the shared backend — reported to the caller, not
+  done here, because `skills/` is outside this agent's partition.
+- next: the re-route. In order: (1) `route.yaml` stitch pitch 0.95 -> 0.80;
+  (2) CTRL onto In2.Cu across the rosette; (3) drop `meander_amplitude` from
+  the rf wave (L-03: the placement already matches to 0.001 mm, so the pass had
+  nothing to correct and left six 37-ohm sections behind); (4) move the two
+  SW_V4 vias >= 0.30 mm off ANT5 (L-04); (5) de-collide the schematic labels in
+  the tsx so S-OCCL and the `N3V3_MOD x ANT2` overlap both close; (6) re-run
+  the chain, then re-gate all four lenses fresh-context with DISTINCT
+  filenames. Classes B and D survive all of that and need either a per-arm
+  fence pass or a measured exception — that is the one genuinely open question.

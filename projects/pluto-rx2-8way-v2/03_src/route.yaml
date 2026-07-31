@@ -480,6 +480,43 @@ stitch:
     # that discards the promoted route chain) or by a per-arm fence pass the
     # shared stitcher does not have. Classified in
     # 06_build/verify/fence_apertures.txt, one named occupier per aperture.
+    #
+    # =====================================================================
+    # THE BOUND THIS BLOCK ANSWERS TO MOVED ON 2026-07-30, AND 0.95 NO LONGER
+    # QUALIFIES. THE VALUE BELOW IS DELIBERATELY LEFT AT 0.95 — READ ON.
+    # =====================================================================
+    # Everything above this fence derives 0.95 from a 1.35 mm along-arm bound,
+    # which is ADR-0003's microstrip `lambda_g/20`. `06_build/verify/
+    # line_type.py` then MEASURED the arms off the saved board: a GND pour
+    # flanks every one of them at 0.2005-0.2010 mm edge-to-edge on BOTH sides
+    # (g/h = 0.955) over 61-93 % of its length. They are grounded coplanar
+    # waveguide. There is no bare-microstrip section anywhere on this board;
+    # the 8-29 % that is not two-sided-coplanar is the SMA launch, where the
+    # In1.Cu antipad means there is no reference plane either.
+    #
+    # That changes what these vias are FOR. On a microstrip the fence is a
+    # lateral shield. Here the coplanar pour already IS the wall — solid
+    # copper at 0.2005 mm, aperture zero — and the vias' job is to SHORT that
+    # pour to In1.Cu so the parasitic parallel-plate mode between the two
+    # ground sheets cannot propagate. That mode fills the dielectric between
+    # two planes, so it travels at the BULK er, not at the line's eps_eff:
+    #     lambda_pp = lambda_0/sqrt(4.4) = 23.8201 mm
+    #     bound     = lambda_pp/20       = 1.1910 mm      (ADR-0004)
+    # 13 % TIGHTER than 1.3693, and tighter across the whole Dk window
+    # 4.2-4.6. The largest 0.05 lattice pitch that meets it in EVERY
+    # orientation is 1.1910/sqrt(2) = 0.8422 -> **0.80**, giving 1.1314 mm on
+    # a diagonal arm.
+    #
+    # WHY 0.80 IS NOT WRITTEN IN BELOW. Changing it here without regenerating
+    # would put the source and `04_kicad/` into disagreement, and canon M3's
+    # whole value is that the board is what the source says. The board is at
+    # 0.95 and this file says 0.95. **0.80 is the value the next regeneration
+    # must carry**, together with the OTHER change the bound needs — CTRL off
+    # F.Cu across the rosette, which `rules/nets.yaml` already declares and
+    # which 90-96 % of SW_V1/V2/V4 copper does not do. Re-stitching alone
+    # closes 18 of the 34 over-bound apertures (the pure-lattice class, no
+    # occupier at all); the CTRL re-route closes 5 more including the 3.0500 mm
+    # worst case. See ARCHITECTURE sec 6 for all four classes.
     net: GND
     x: [23, 67, 0.95]
     y: [23, 90, 0.95]
