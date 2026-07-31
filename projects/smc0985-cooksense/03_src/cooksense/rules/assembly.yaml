@@ -162,7 +162,36 @@ consigned: []
 sourcing_plan:
   - lcsc: C265111
     refs: [J_THERM_A, J_THERM_B]
-    measured_stock: 0          # RE-MEASURED 2026-07-31T02:17:24Z at the v1.7
+    measured_stock: 5          # *** SEAL-TIME RE-MEASUREMENT, 2026-07-30 21:29
+    # *** local (2026-07-31T04:29:00Z) — the FIFTH reading, taken by me at the
+    # *** v1.7 seal with my own urllib client against selectSmtComponentList and
+    # *** BOTH controls in the same run (POSITIVE C6186 -> 1,615,823; NEGATIVE
+    # *** C99999999 -> NO_EXACT_MATCH over 25 fuzzy rows): **stock 5, MOQ 21,
+    # *** lib `expand`, brand JST, mpn SM08B-GHS-TB(LF)(SN)**. The graded field
+    # *** was `0` (the 07-31T02:17Z reading) and is moved to 5 so the number the
+    # *** gate reads is the number the seal was cut against, and so it agrees
+    # *** with the `plan:` prose below, which had already recorded 5 while the
+    # *** graded field still said 0. **THE VERDICT DOES NOT MOVE: 5 < 2 x 5
+    # *** boards = 10, and MOQ 21 > 5, so the line stays BLOCKED.**
+    #
+    # THE SEQUENCE IS NOW 0 (07-29) -> 5 (07-30) -> 0 (07-31T02:17Z) ->
+    # 5 (07-31T03:02Z) -> 5 (07-31T04:29Z, mine). FIVE readings, two reversals,
+    # on a board whose md5 never moved — and `minPurchaseNum` has read **21 at
+    # every single one**. **THE BLOCKER IS THE MOQ AND IT HAS NEVER ONCE BEEN
+    # THE STOCK.** 21 exceeds every stock reading ever taken here, so the line
+    # cannot be bought AS SEALED at any quantity on any of those five days.
+    # Anyone re-reading 5 and calling it recovery has watched the wrong number.
+    # RE-MEASURE ON ORDER DAY; carry none of these.
+    #
+    # SECOND WATCH ITEM, measured in the same run and NOT blocking today:
+    # C587657 (Molex 436500224, J_PWR, 1/board) reads **stock 70, MOQ 1** —
+    # 130 -> 80 -> 70 -> 70. It is SINGLE-SOURCE with no drop-in fallback (the
+    # only listed alternative, C293740 / Molex 43650-0215, is THROUGH-HOLE and
+    # therefore changes the footprint, the CPL and the copper). It stays in the
+    # WATCH LIST above rather than becoming a sourcing_plan entry because it
+    # still clears the 5x floor; re-specify BEFORE it reaches the build
+    # quantity, not after it reaches zero.
+    #
     # *** DATE CONVENTION, DECLARED 2026-07-30 (ADR-0028 pass), because ONE
     # FACT WAS CARRYING TWO CONVENTIONS AND THAT IS WHAT `ORDER-DECL-UNDATED`
     # WAS FIRING ON. `measured_on:` read 2026-07-31 (the UTC date of the
