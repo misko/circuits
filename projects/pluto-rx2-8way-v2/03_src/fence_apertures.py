@@ -46,9 +46,35 @@ bd = pcbnew.LoadBoard(BOARD)
 F_CU = bd.GetLayerID("F.Cu")
 mm = lambda v: v / 1e6
 
+# THE FENCE IS NOT ONLY VIAS, AND COUNTING ONLY VIAS INVENTS APERTURES.
+# MEASURED 2026-07-31 on this board: the GND fence is 3473 elements — 3433
+# PCB_VIA plus 40 PTH GND pads, the SMA launch posts (KH-SMA-KE-Z), which stand
+# exactly where the stitch grid's `avoid` ring forbids a via and are the DENSEST
+# ground on the board. This file counted the 3433 and reported RX1_TAP side E as
+# a 1.9000 mm aperture at s=21.03..22.93 — over the 1.191 mm bound. Including the
+# posts the same side measures 1.1642 mm and is CLEAN: J_ANT8.4 sits at
+# perpendicular 1.3600 mm, s=21.768, inside that very interval. Its sibling
+# 03_src/fence_pitch.py (the GATE) already counts them and reported 1.1642 /
+# 1.1769 with 0 OVER; an independent reimplementation reproduces both of those
+# numbers exactly, so the gate was right and this CLASSIFIER was wrong.
+#
+# It never blocked anything — it exits 0 by construction, it only names causes —
+# which is precisely why it was free to be wrong for so long. The cost of leaving
+# it is that its output tells the next agent to close an aperture that is already
+# solid ground, and the only way to do that is to drop vias inside a launch
+# keepout: a fix that would DAMAGE the launch this fence exists to protect.
+# fence_pitch.py's own header warns of exactly this ("Counting only PCB_VIA
+# reports an aperture at every launch that is in fact the densest ground").
 vias = [(mm(t.GetPosition().x), mm(t.GetPosition().y))
         for t in bd.GetTracks()
         if t.GetClass() == "PCB_VIA" and t.GetNetname() == "GND"]
+posts = [(mm(p.GetPosition().x), mm(p.GetPosition().y))
+         for fp in bd.GetFootprints() for p in fp.Pads()
+         if p.GetNetname() == "GND"
+         and p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD]
+print(f"fence elements: {len(vias)} PCB_VIA GND + {len(posts)} PTH GND "
+      f"post(s) = {len(vias) + len(posts)}")
+vias = vias + posts
 viaset = {(round(x, 2), round(y, 2)) for x, y in vias}
 
 # ---- every non-GND copper object, as (label, x, y) ------------------------
