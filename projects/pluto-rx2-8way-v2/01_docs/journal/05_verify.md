@@ -843,3 +843,83 @@ is not. REVERTED; the constraint is now understood rather than tuned.
 - next: HANDOFF at a gate boundary. The copper is finished and green; what
   remains is paperwork, a converter patch that is not mine to make, and the
   release ceremony. See STATUS.md.
+
+## 2026-07-31 12:xx — the hole class, and why the staging archive is REMOVED again
+
+- did: quantified the fab lens's hole-to-hole finding rather than accepting or
+  waiving it, fixed it in source, and rebuilt. **The tight hole class is the RF
+  LAUNCH, not the fence.** Classified over all 3500 holes (MEASURED, 4 mm
+  spatial grid, independent of every repo gate): VIA<->PTH pad 54 pairs / min
+  **0.3016**; VIA<->VIA 2 / 0.3785; VIA<->NPTH 1 / 0.3768; PTH<->PTH 0 /
+  1.6934. 55 of the 57 sub-0.45 pairs involve a COMPONENT hole. At JLC's
+  published pad-hole tolerance (+0.13 mm dia; via hole diameter not
+  controlled) the worst becomes **0.2366 mm** — under the declared 0.25 floor
+  on **8 of the 54**, at nominal 0.3016 x2, 0.3028, 0.3118, 0.3121 x2,
+  0.3144 x2.
+- did: SWEPT the remedy instead of guessing which of two tight constraints
+  wins. Displacing the 8 vias radially outward from their SMA barrel, both
+  margins measured at every step:
+
+  | delta mm | min h2h at MAX MATERIAL | fence worst interior gap |
+  |---|---|---|
+  | 0.000 | 0.2366 **FAIL** | 1.1769 pass |
+  | 0.0134 | 0.2500 edge | 1.1769 pass |
+  | 0.025 | 0.2615 pass *(saturates)* | 1.1769 pass |
+  | **0.035** | **0.2615 pass** | **1.1769 pass** |
+  | 0.048 | 0.2615 pass | 1.1769 pass |
+  | 0.0632 | 0.2615 pass | 1.1910 edge |
+  | 0.070 | 0.2615 pass | 1.1968 **FAIL** (ANT1 E, ANT5 E) |
+
+  **BOTH-PASS window: delta in [0.0134, 0.0632] mm, 49.8 um wide.** Above
+  0.025 the hole metric SATURATES (the binding pair becomes an untouched one,
+  via 43.000,27.000 <-> J_ANT8.3 at 0.3265/0.2615), so further displacement
+  buys nothing and only spends fence margin. 0.035 is the centre of
+  [0.025, 0.048] — hole gap at its achievable maximum, fence bit-for-bit
+  unchanged.
+- result: MEASURED after `03_src/rebuild_all.sh` (RAW EXIT 0) —
+  min hole-to-hole **0.3016 -> 0.3265** nominal, **0.2366 -> 0.2615** at max
+  material, pairs under the floor **8 -> 0**; `fence_pitch.py` **RAW EXIT 0,
+  worst 1.1769 mm, 22 arm-sides, 0 OVER, PASS** (unchanged to four decimals);
+  `fence_apertures.py` **0 GAP lines**, 3433 PCB_VIA GND + 40 PTH = 3473
+  elements (its exit code is never evidence — its own header says so);
+  band-free nearest-ground max over all arms **2.2142 -> 2.2142 mm**;
+  DRC `--severity-all --refill-zones --schematic-parity` **0 / 0 / 0**.
+- result: the floor is a GATE THAT CAN FAIL, proven with a known-bad fixture
+  rather than asserted. The PRE-FIX board graded against the new 0.315 floor:
+  kicad-cli reports **16 hole_to_hole findings over 8 distinct pairs**, at
+  exactly 0.3016 x2, 0.3028, 0.3118, 0.3121 x2, 0.3144 x2 — the same eight, at
+  the same gaps, as the independent classification found.
+- did: DELETING the eight was measured too, and rejected. It gives IDENTICAL
+  numbers (0.3265/0.2615, fence 1.1769) — but five of the eight are not graded
+  at all (2 project beyond an arm end, 3 sit outside the +/-2.5 mm band) and two
+  are graded END points, so dropping them grows ANT1 E's lead-in and ANT5 E's
+  run-out from **1.520 mm (ADR-0005 GREEN)** to **2.652 mm (ADR-0005 RED)**.
+  `fence_pitch.py` grades max INTERIOR gap only and would have called that
+  free. That blind spot even makes DELETING a via score better than MOVING it
+  0.14 mm. Moving keeps the copper and never has to rely on it. **This is the
+  RF lens's RF-4 finding deciding a real design choice, and it is still open.**
+- next: **`06_build/staging/` is REMOVED, deliberately, and for the SAME rule
+  as 2026-07-30 22:10: a material change voids prior verdicts.** THE COPPER
+  MOVED. Its gerbers describe the pre-fix board, its MANIFEST states
+  `minimum hole-to-hole edge-to-edge 0.3016 mm` which is now false, and all
+  four 2026-07-31 lens reviews graded copper that no longer exists. Promoting
+  those four verdicts into `verification/redteam_{layout,topology}.md` as THIS
+  release's verdict would be the adjacent-property error M-REV's own comment
+  warns about — grading one version's review against another version's
+  release. Nothing is lost: the staging tree was entirely UNTRACKED
+  (`06_build/*` is gitignored, `git ls-files` returns 0), and its four review
+  files are byte-identical to copies already committed in `08_reviews/`
+  (verified with `cmp`). A convenience copy is in the session scratchpad and
+  is NOT evidence.
+- next: **OWED, and not claimed anywhere as done** — (1) a fresh lens round
+  against the REBUILT board, then a re-stage; the four 2026-07-31 reviews are
+  archived reviews of the pre-fix copper from here on. (2) The mixed
+  via-hole-to-pad-hole class has NO published vendor rule (JLC: 0.2 mm
+  via-to-via, 0.45 mm pad-to-pad, nothing between; their public Q&A #693 asks
+  exactly this and is unanswered). 0.315 makes the board honour ITS OWN
+  declared tier at max material — it does not settle the vendor question,
+  which stays a DFM item to put to JLC in writing before the order, beside
+  the ORDER_README's other human gates. (3) `p_hole_to_hole` walks PCB_VIA
+  pairs ONLY and never a drilled PAD, so the repo's hole-repair pass is blind
+  to the class that actually bound this board — a backend gap, declared in
+  `03_src/route.yaml` beside the config it explains.
