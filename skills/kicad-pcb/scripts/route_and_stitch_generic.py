@@ -1850,15 +1850,61 @@ def p_hole_to_hole(ctx, c):
           + (f", {len(unfixed)} UNREPAIRABLE" if unfixed else ""))
 
 
+def _grid_axis(spec, axis):
+    """`[start, stop, pitch]` in MILLIMETRES -> the site coordinates.
+
+    A FRACTIONAL PITCH IS A REAL REQUIREMENT, NOT A ROUNDING QUESTION. This
+    was `range(int(start), int(stop), int(pitch))`, so the pitch was silently
+    floored to a whole millimetre — and on an RF board the stitch grid IS the
+    ground-via fence, whose pitch is derived from the guided wavelength and
+    lands on numbers like 1.35 mm. MEASURED, pluto-rx2-8way-v2 (2026-07-30):
+    ARCHITECTURE sec 6 requires <= 1.35 mm (the largest round value under the
+    derived lambda_g/20 = 1.3693 mm, ADR-0003), the only expressible choices
+    were 1 mm (a via forest, ~2500 sites) or 2 mm, and the board shipped at
+    **2.0 mm = lambda_g/13.7** — conservative against the SOURCED FREE-SPACE
+    lambda/20 = 2.5 mm, and NOT MEETING its own guided bound. `1.35` would
+    have become `1`: not a refusal, a different board.
+
+    THE lambda IS THE GUIDED ONE, and this is stated here so the bound is not
+    left ambiguous (rf-design.md 3(b), which measured THREE methods in one
+    fleet). A fence sits in the substrate alongside a microstrip, so what it
+    must sample is the wave ON THE LINE, whose wavelength is
+    `lambda_g = lambda_0 / sqrt(eps_eff)` — shorter than free space, hence a
+    STRICTER pitch. Free-space lambda/20 is the LOOSER bound and passing it
+    proves nothing about the guided one; the BULK-eps_r wavelength is neither.
+
+    Counts are computed as `ceil((stop - start) / pitch)`, which is exactly
+    `range`'s own length rule, so every integer config in this repo produces a
+    BYTE-IDENTICAL site set (measured over all 13 fleet + archived + template
+    configs before this landed: 0 fractional, 0 lattices moved).
+
+    A non-positive pitch is a HARD ERROR. Pre-fix, a negative pitch made
+    `range` yield nothing and the pass printed `stitch grid: 0 vias` with no
+    complaint; post-fix it would not terminate. Neither is acceptable for the
+    only pass that places a board's return-path stitching.
+    """
+    try:
+        start, stop, pitch = (float(v) for v in spec)
+    except (TypeError, ValueError):
+        die(f"stitch_grid.{axis} must be [start, stop, pitch] in mm, got "
+            f"{spec!r}")
+    if pitch <= 0:
+        die(f"stitch_grid.{axis} pitch is {pitch} — a stitch grid needs a "
+            f"POSITIVE pitch. A non-positive one placed ZERO vias and said "
+            f"nothing before 2026-07-30, which on a board whose return path "
+            f"is stitched is a silent open, not an empty pass")
+    return [start + i * pitch
+            for i in range(max(0, math.ceil((stop - start) / pitch)))]
+
+
 @stitch_pass("stitch_grid")
 def p_stitch_grid(ctx, c):
     net = ctx.net(c.get("net", "GND"))
-    gx, gy = c["x"], c["y"]
     avoid = c.get("avoid", []) or []
     n = 0
-    for x in range(int(gx[0]), int(gx[1]), int(gx[2])):
-        for y in range(int(gy[0]), int(gy[1]), int(gy[2])):
-            if ctx.try_via(net, float(x), float(y), avoid=avoid):
+    for x in _grid_axis(c["x"], "x"):
+        for y in _grid_axis(c["y"], "y"):
+            if ctx.try_via(net, x, y, avoid=avoid):
                 n += 1
     ctx.bump("grid_vias", n)
     print(f"stitch grid: {n} vias")

@@ -1362,6 +1362,121 @@ def pour_scratch(layers, passes):
     return d, p, board
 
 
+def via_xy(board):
+    """[(x_mm, y_mm)] of every via on the board, sorted."""
+    code = ("import pcbnew,sys,json\nb=pcbnew.LoadBoard(sys.argv[1])\no=[]\n"
+            "for t in b.GetTracks():\n"
+            "  if t.GetClass()=='PCB_VIA':\n"
+            "    p=t.GetPosition(); o.append([p.x/1e6, p.y/1e6])\n"
+            "print('@@'+json.dumps(sorted(o)))\n")
+    r = must_pass(run([KPY, "-c", code, str(board)]), "via_xy")
+    return [tuple(v) for v in json.loads(r.out.split("@@", 1)[1].strip())]
+
+
+def _grid_pitch_scratch(pitch, passes=("stitch_grid", "fill", "gate")):
+    """A pour board whose stitch grid steps at `pitch` mm over a fixed span."""
+    import yaml
+    d, p, board = pour_scratch(["F.Cu", "B.Cu"], passes)
+    cfg = yaml.safe_load(p.read_text())
+    cfg["stitch"]["stitch_grid"] = {"net": "GND", "x": [8.0, 20.0, pitch],
+                                    "y": [5.0, 17.0, pitch]}
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board
+
+
+@test("stitch_grid honours a FRACTIONAL pitch: every via lands on the DECLARED "
+      "lattice, not on the integer one `range(int(...))` produced")
+def t_grid_fractional_pitch():
+    """THE FENCE IS THE PRODUCT ON AN RF BOARD, and its pitch is not an
+    integer. `p_stitch_grid` stepped with `range(int(a), int(b), int(s))`, so
+    a declared 1.35 mm pitch became 1 mm — silently, and not as a refusal but
+    as a DIFFERENT BOARD (~2.8x the via count).
+
+    MEASURED, pluto-rx2-8way-v2 2026-07-30: ARCHITECTURE sec 6 requires a
+    ground-via fence flanking every arm at <= 1.35 mm (the largest round value
+    under the derived guided lambda_g/20 = 1.3693 mm, ADR-0003). The only
+    expressible choices were 1 mm (a via forest, ~2500 sites) or 2 mm, and the
+    board shipped at **2.0 mm = lambda_g/13.7** — conservative against the
+    SOURCED free-space lambda/20 = 2.5 mm at 6 GHz, and NOT meeting its own
+    guided bound. The lambda that governs a fence in substrate is the GUIDED
+    one (rf-design.md 3(b)): the fence samples the wave ON THE LINE, whose
+    wavelength is lambda_0/sqrt(eps_eff) — shorter than free space, hence the
+    stricter bound, and passing the free-space one proves nothing about it.
+
+    ASSERTED AS A LATTICE PROPERTY, NOT A COUNT, because how many sites
+    survive `try_via` is collision-dependent and this board is deliberately
+    tiny. Every via placed must sit at `start + k*pitch` on both axes; under
+    the pre-fix stepper they sit on whole millimetres, which fails this for
+    every odd k.
+
+    RED-VERIFIED 2026-07-30 by restoring the pre-fix loop body
+    (`for x in range(int(gx[0]), int(gx[1]), int(gx[2]))`) in place: this test
+    failed with **128 of 144 vias OFF the declared 1.5 mm lattice**, e.g.
+    (8.0, 6.0), (8.0, 7.0), (8.0, 9.0), (8.0, 10.0) — a 1 mm grid wearing a
+    1.5 mm config. Whole suite 76 passed / 2 failed; restored, 78 / 0.
+
+    BLAST RADIUS MEASURED BEFORE LANDING, over every `stitch_grid` in the repo
+    — 7 live boards, 5 archived, 1 template: **0 declare a fractional start,
+    stop or pitch, and 0 candidate lattices move**. The new stepper counts with
+    `ceil((stop-start)/pitch)`, which is `range`'s own length rule, so each
+    integer config produces a byte-identical site set (cook-loadcell 35/35,
+    cooksense 110/110, rx2-v2 680/680, ...). `smc0985-cooksense` was mid-seal
+    when this landed and is provably untouched — that check is the reason this
+    fix could land at all rather than waiting."""
+    pitch = 1.5
+    d, p, board = _grid_pitch_scratch(pitch)
+    must_pass(stitch(p), "stitch with a fractional grid pitch")
+    vias = via_xy(board)
+    check(vias, "the fractional-pitch grid placed no vias at all — the "
+                "property under test has no subject")
+    off = [(x, y) for x, y in vias
+           if abs(((x - 8.0) / pitch) - round((x - 8.0) / pitch)) > 1e-6
+           or abs(((y - 5.0) / pitch) - round((y - 5.0) / pitch)) > 1e-6]
+    check(not off,
+          f"{len(off)} of {len(vias)} vias are OFF the declared {pitch} mm "
+          f"lattice, e.g. {off[:4]} — the pitch was truncated to an integer")
+    # and the lattice is genuinely fractional: at least one via must sit at a
+    # coordinate the integer stepper could never have produced.
+    check(any(abs(x - round(x)) > 1e-6 or abs(y - round(y)) > 1e-6
+              for x, y in vias),
+          "every via landed on a whole millimetre, so this fixture cannot "
+          "tell the two steppers apart — pick a pitch whose lattice is "
+          "genuinely fractional")
+
+
+@test("a NON-POSITIVE stitch pitch is a hard error — pre-fix it placed ZERO "
+      "vias and said nothing", kind="known_bad")
+def t_kb_grid_nonpositive_pitch():
+    """The two steppers fail differently on the same bad config, and BOTH are
+    unacceptable for the pass that places a board's return-path stitching:
+    `range(a, b, -2)` yields nothing, so the pre-fix pass printed
+    `stitch grid: 0 vias` and carried on (only an explicit `min:` would have
+    noticed, and no fleet config sets one); the float stepper would not
+    terminate. So the fix has to REFUSE rather than pick a behaviour.
+
+    RED-VERIFIED 2026-07-30 against the pre-fix loop, and the transcript is
+    the argument — `stitch` exited 0 on a `pitch: -2.0` config:
+
+        -- stitch_grid --
+        stitch grid: 0 vias
+
+        -- fill --
+        filled 2 zones
+
+        -- gate --
+        gate: clean
+
+    A board with NO stitching at all, gated CLEAN, from a config that asked
+    for a grid. `must_fail` did not fire. Restored, both pitches refuse."""
+    for pitch in (-2.0, 0):
+        d, p, board = _grid_pitch_scratch(pitch)
+        r = must_fail(stitch(p), f"stitch with pitch {pitch}", "POSITIVE pitch")
+        contains(r.out, "stitch_grid.x", "the finding must name the axis")
+        not_contains(r.out, "stitch grid: 0 vias",
+                     "the pass must refuse BEFORE placing, not report an "
+                     "empty grid as a completed one")
+
+
 _PRUNE_PASSES = ("stitch_grid", "fill", "prune_stitch_dangling", "gate")
 
 

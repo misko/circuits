@@ -355,7 +355,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `stitch.clearance` | `route_and_stitch_generic.py` | stitch clearance |
 | `stitch.keepin.*` | `route_and_stitch_generic.py` | stitch keep-in inset |
 | `stitch.via.*` | `route_and_stitch_generic.py` | stitch via geometry + tiers |
-| `stitch.stitch_grid.*` | `route_and_stitch_generic.py` | plane stitch grid |
+| `stitch.stitch_grid.*` | `route_and_stitch_generic.py` | plane stitch grid; `x`/`y` are `[start, stop, pitch]` in mm and the PITCH MAY BE FRACTIONAL (see below) |
 | `stitch.pad_rescue.*` | `route_and_stitch_generic.py` | pad-rescue pass |
 | `stitch.island_rescue.*` | `route_and_stitch_generic.py` | island-rescue pass |
 | `stitch.heal_islands.*` | `route_and_stitch_generic.py` | same-net pour bridge pass |
@@ -373,3 +373,33 @@ two cannot drift apart without the router failing to find its own pass.
 | `taps.clearance` | `route_and_stitch_generic.py` | power-tap clearance |
 | `taps.via.*` | `route_and_stitch_generic.py` | power-tap via geometry |
 | `taps.connections[].*` | `route_and_stitch_generic.py` | per-tap from/to/net/layer/width and escape options |
+
+**`stitch.stitch_grid` `x`/`y` ARE `[start, stop, pitch]` IN MILLIMETRES, AND
+THE PITCH IS A REAL NUMBER.** Until 2026-07-30 the pass stepped with
+`range(int(start), int(stop), int(pitch))`, so a fractional pitch was floored
+to a whole millimetre — silently, and not as a refusal but as a DIFFERENT
+BOARD. On an RF board that is not a cosmetic difference: **the stitch grid IS
+the ground-via fence, and the fence is the product.** MEASURED,
+pluto-rx2-8way-v2: ARCHITECTURE sec 6 requires a fence flanking every arm at
+`<= 1.35 mm` (the largest round value under the derived guided
+`lambda_g/20 = 1.3693 mm`, ADR-0003); the only expressible pitches were 1 mm
+(a via forest, ~2500 sites) or 2 mm, and the board shipped at **2.0 mm =
+lambda_g/13.7** — conservative against the SOURCED free-space
+`lambda/20 = 2.5 mm` at 6 GHz, and NOT meeting its own guided bound.
+
+**WHICH lambda: THE GUIDED ONE.** A via fence sits in the substrate beside a
+microstrip, so what it must sample is the wave ON THE LINE, whose wavelength
+is `lambda_g = lambda_0 / sqrt(eps_eff)` — SHORTER than free space, hence a
+STRICTER pitch. Free-space `lambda/20` is the looser bound and satisfying it
+proves nothing about the guided one; the BULK-`eps_r` wavelength is neither
+(all three have been used in this fleet — `rf-design.md` 3(b), 4A). Derive the
+pitch from `lambda_g` and say so where you write it down.
+
+A NON-POSITIVE pitch is a HARD ERROR, not a behaviour. Pre-fix, `range` with a
+negative step yielded nothing and the run printed `stitch grid: 0 vias`, then
+`filled 2 zones`, then `gate: clean` — a board with no return-path stitching
+at all, gated green, from a config that asked for a grid. Both properties are
+pinned by `tests/t2_route_stitch.py` (`t_grid_fractional_pitch`,
+`t_kb_grid_nonpositive_pitch`), the fractional one as a LATTICE property
+rather than a via count, because how many sites survive collision checking is
+board-dependent.

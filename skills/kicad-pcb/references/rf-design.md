@@ -98,6 +98,35 @@ conservative against the source so nothing is unsafe — but a rule whose
 parenthetical does not derive the number attached to it gets re-cited as if it
 did. **Pick guided lambda_g and say so.**
 
+**THE ANSWER, STATED PLAINLY, BECAUSE "all three are conservative" LEFT IT
+AMBIGUOUS AND A BOARD THEN SHIPPED AGAINST THE WRONG ONE.** [DERIVED] A via
+fence sits in the substrate beside a microstrip. What it must sample is the
+wave ON THE LINE, not a wave in air, so the governing wavelength is the
+**GUIDED** one:
+
+    lambda_g = lambda_0 / sqrt(eps_eff)        eps_eff > 1, so lambda_g < lambda_0
+
+Free-space `lambda_0/20` is therefore the LOOSER bound, and satisfying it says
+nothing about the guided one — on `JLC04161H-7628` at 6 GHz the two differ by
+`sqrt(3.32) = 1.82x` (2.5 mm vs 1.37 mm). The BULK `eps_r` wavelength is a
+third thing and is not a bound at all: it uses the permittivity of the
+laminate rather than the mix of laminate and air the field actually sees, so
+it OVERSTATES eps and understates lambda_g, which happens to be conservative
+here and is still not a derivation.
+
+**MEASURED, `pluto-rx2-8way-v2`, 2026-07-30 — the case that made this
+ambiguity cost something.** Its ARCHITECTURE sec 6 requires a fence at
+`<= 1.35 mm` (the largest round value under its own derived
+`lambda_g/20 = 1.3693 mm`, ADR-0003), and it ships at **2.0 mm =
+lambda_g/13.7**. That is inside the free-space rule and OUTSIDE its own guided
+one: **the bound is NOT MET.** The cause was not judgement — the shared
+stitcher stepped its grid with `range(int(...))`, so the only expressible
+pitches were 1 mm and 2 mm and `1.35` was unsayable. Fixed 2026-07-30
+(`route_and_stitch_generic.py p_stitch_grid` / `_grid_axis`, pinned by
+`tests/t2_route_stitch.py t_grid_fractional_pitch`); **the board is not
+re-fenced by that fix and remains at 2.0 mm until it is regenerated with a
+fractional pitch declared.** Reported, not silently closed.
+
 **(c) Coplanar ground clearance — our blocker may have been DRC, not physics.**
 `pluto-rx2-8way` could not route 6 of 11 RF nets because PE42482A-X's land leaves
 **0.350 mm** to a GND pad edge while a 0.36 mm trace at the 0.200 mm DRC
@@ -408,7 +437,17 @@ every one can itself go vacuous, so this list is short on purpose.
 **Rejected, with reasons.** *A field solver* — the right answer to 3c but a large
 dependency; the honest interim is to state that we do not model coplanar loading.
 *A via-fence pitch gate* — all three fleet values are already conservative
-against the source, and the defect was the DERIVATION, which proposal 2 catches.
+against the SOURCE, and the defect was the DERIVATION, which proposal 2 catches.
+**Amended 2026-07-30 and left rejected, with the amendment stated:** the
+rejection rested on "already conservative", which is true only against the
+free-space rule. Measured against the GUIDED bound each board sets for itself,
+`pluto-rx2-8way-v2` is OUTSIDE its own (`2.0 mm` shipped vs `<= 1.35 mm`
+required, 3(b)) — so the premise was half wrong. It stays rejected because the
+cause was not a missing gate but an UNEXPRESSIBLE NUMBER: the stitcher floored
+its grid pitch to a whole millimetre, so no board could have declared 1.35 and
+a gate would only have reported an impossibility. Fixing the stepper is the
+repair; revisit this proposal only if a board misses its guided bound with a
+fractional pitch available to it.
 *An edge-clearance gate* — one deviation on one board; fix the number, do not
 build a gate for it. *A "route RF first" gate* — wave order is already declared in
 `route.yaml` and reviewed; a gate would grade a comment.
