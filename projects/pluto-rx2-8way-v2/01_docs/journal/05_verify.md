@@ -421,3 +421,24 @@ That is the concrete argument for the full battery over "one integrated lens",
 and it is also the argument against ever waiving a mechanical finding you cannot
 price: P-ADJ was pointing at all three, four hours early, and said only "8.00mm
 of 3.0mm".
+
+## 2026-07-30 22:10 — finish (session; the staging directory is REMOVED, deliberately)
+
+- did: deleted `07_releases/v1.0-2026-07-30/`. It was never sealed and it must
+  not survive as an unsealed directory named like a release.
+- result: `07_releases/` is empty again and this board's partition is clean
+  (`git status --porcelain -- projects/pluto-rx2-8way-v2` returns nothing).
+  `status_beacon_check.py` **M-BEACON PASS**.
+- next: the reason is not tidiness. `07_releases/` is IMMUTABLE-once-sealed and
+  `release_index.py` resolves "this board's latest release" from the directory
+  NAMES; an unsealed `v1.0-2026-07-30` sitting there is exactly the ambiguity it
+  REFUSES to guess at, and every gate that asks "which release is live" would
+  have found it. The archive also has no forward value: five P0s send this board
+  back to PLACEMENT, so the board, the gerbers, the CPL, the renders and every
+  verdict in it are void by construction (a material change voids prior
+  verdicts — that rule keeps its teeth here).
+  What SURVIVES is what matters and it is all committed: the four review files
+  verbatim in `08_reviews/`, `DISPOSITIONS.md` with every P0 independently
+  verified, and this journal with every measured number. A copy of the staging
+  tree is in the session scratchpad for the length of this session only, and is
+  NOT evidence — it is a convenience.
