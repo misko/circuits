@@ -245,6 +245,98 @@ sourcing_plan:
     #     SOURCING: BLOCKED-1 (C265111; measured 2026-07-30)
     # and release_freshness_check.py grades the count, the code and the date
     # against this measurement in both directions.
+    # =====================================================================
+    # SIXTH READING — 2026-07-31 (LOCAL date; instants 18:46:23Z and
+    # 18:58:14Z). ORDER-DAY RE-MEASUREMENT, THE ONE v1.7 ASKED FOR.
+    # THE GRADED `measured_stock: 5` / `measured_on: 2026-07-30` FIELDS ABOVE
+    # ARE LEFT EXACTLY AS THEY ARE, for the reason the fourth-reading block
+    # already gives: release_freshness_check.py cross-checks them BOTH WAYS
+    # against the SEALED v1.7 MANIFEST.txt and ORDER_README.md, v1.7 is
+    # IMMUTABLE, and this is not a seal pass. Moving them would make a sealed
+    # archive disagree with its own source. PROVEN: this edit is comments only
+    # — the yaml.safe_load of this file parses BYTE-IDENTICAL before and after
+    # (diff of the sorted JSON dump: empty). The reading goes in prose; the
+    # machine copy with its `fetched_at` + TTL is
+    # 06_build/cache/gh08_sourcing_2026-07-31.json (gitignored, TTL 6 h).
+    #
+    # **STOCK IS 0 AGAIN, AND THE BLOCK DID NOT CLEAR — IT DEEPENED.**
+    # Two instruments that share no code (canon M1):
+    #   (1) a MOQ-aware probe written this pass (raw urllib; does NOT import
+    #       jlc_stock_check; method spec in ADR-0031). controls_ok = True
+    #       (POSITIVE C5620 -> 5206; NEGATIVE C99999999 -> NO_EXACT_MATCH
+    #       over 25 fuzzy rows).
+    #   (2) skills/jlcpcb-fab/scripts/jlc_stock_check.py against the sealed
+    #       archive's own fab/bom_jlc.csv, UNPIPED, **RAW EXIT 1**:
+    #         LOW_STOCK(0)  C265111  x2  SM08B-GHS-TB  expand stock=0
+    #
+    #   code        brand     stock    MOQ  preMOQ  canPresale  buyable
+    #   C265111     JST           0     21      21      -1285    NO
+    #   C22391766   JST           0    444     444          0    NO
+    #   C42376901   SHOU HAN   5868      1     137       5784    yes
+    #   C54110154   XYECONN     968      1      88        966    yes
+    #   C133062     JST       32068      1      25      30350    yes
+    #
+    # THE SEQUENCE IS NOW 0 -> 5 -> 0 -> 5 -> 5 -> **0** across SIX readings in
+    # 72 h, and `minPurchaseNum` has read **21 at every one of the six**. The
+    # existing verdict stands unchanged and for the unchanged reason.
+    #
+    # *** THE ONE NEW FACT, AND IT POINTS THE WRONG WAY: canPresaleNumber
+    # *** = **-1285** on C265111 — the ONLY negative in the set. The three
+    # *** in-stock candidates all read positive and ~= their own stock
+    # *** (5784/5868, 966/968, 30350/32068). MEASURED. DERIVED, and flagged
+    # *** as derived because JLC documents none of these fields: a presale
+    # *** headroom of -1285 against a stock of 0 reads as ~1285 units of
+    # *** COMMITTED DEMAND QUEUED AHEAD OF ANY INCOMING REEL. If that is
+    # *** right, the next delivery does not become buyable stock — it is
+    # *** already spoken for, and the line does not cross 21 on the first
+    # *** restock. This is the FIRST evidence this project has ever had
+    # *** bearing on *when* it crosses 21. It is an inference from an
+    # *** undocumented field, NOT a vendor lead time: not strong enough to
+    # *** call the part dead, strong enough that "wait for the next reel"
+    # *** should stop being described as the low-risk default without a
+    # *** lead time from the distributor.
+    #
+    # CANDIDATE SWEEP (SM08B-GHS-TB, SM08B-GHS, GHS-TB 8, BM08B-GHS-TB,
+    # SM08B-GHDS-TB -> 9 unique codes). Full ledger and evidence: ADR-0031.
+    #   C133062  JST BM08B-GHS-TBT, stock 32068 MOQ 1 — GENUINE and deep, but
+    #            Mounting Type = Surface Mount,VERTICAL (top-entry). A COPPER
+    #            REVISION, not a BOM swap. Standing fallback; not taken.
+    #   C54110154 XYECONN XY-SM08B-GHS-WB — REJECTED twice over: NO DATASHEET
+    #            EXISTS (dataManualUrl None AND dataManualFileAccessId empty =
+    #            a declared catalog absence, so the pin-map-from-a-FIGURE bar
+    #            cannot be met at all), and Contact Material = BRASS where JST
+    #            and SHOU HAN are both phosphor bronze.
+    #   C42376901 SHOU HAN — unchanged as THE USER'S PURCHASING DECISION, and
+    #            better evidenced than at seal: a real vendor CUSTOMER DRAWING
+    #            exists (REV 1.00, 2020-03-22, 7pp, sha256 866a52b6...13ea58,
+    #            reachable via the EasyEDA product API even though JLC's own
+    #            dataManualUrl for the code is the EMPTY STRING). Its sheet-1
+    #            recommended-land figure dimensions the signal pad 0.7 x 1.8
+    #            and the tab pad 2.5 tall — which INDEPENDENTLY CORROBORATES
+    #            the 0.700 x 1.800 / 1.000 x 2.500 this file already derived
+    #            from JLC's EasyEDA record. Two sources, no shared method.
+    #            RATINGS, the axis nothing here had a row for: -25..+85C /
+    #            125V / 1A / <=20 mOhm contact (no after-test figure) against
+    #            the genuine part's -40..+105C / 50V / 1A / 50 mOhm after
+    #            test. CHECKED AGAINST THE DECLARED ENVELOPE FIRST: the board
+    #            declares Ta 65C, survive 75C (ADR-0029) and ADR-0030 fixed
+    #            DIP05-1A72-13L at -20..+70C as the UNIQUE minimum, so the
+    #            clone at -25..+85C is wider AT BOTH ENDS than the part that
+    #            binds — **the swap does not move the board's envelope.** It
+    #            does give up 20 K at the top and 15 K at the bottom against
+    #            the genuine JST. STILL UNVERIFIED, and unchanged: whether a
+    #            genuine GHR-08V plug SEATS AND RETAINS in a SHOU HAN shroud.
+    #            No catalog read closes that. One part, five minutes, a bench.
+    #
+    # A GATE HOLE, RECORDED HERE BECAUSE THIS BOARD IS ITS WORKED CASE (the
+    # fix belongs in skills/, outside this partition): jlc_stock_check.py
+    # reads `stockCount` and NEVER `minPurchaseNum`, so **a line can PASS
+    # A-STOCK and be unbuyable at every quantity.** Had C265111 read stock 15
+    # today, the tool would have printed OK (15 >= 5 x qty 2 = 10) while MOQ
+    # 21 still made a purchase impossible. Not hypothetical — it is the exact
+    # shape of this board's blocker, and the only reason the tool has been
+    # right so far is that stock never rose high enough to expose it.
+    # =====================================================================
     order_status: BLOCKED
     # THIS ENTRY IS THE M4 WAIVER FOR A-STOCK ON THE v1.7 SEAL. The long-form
     # argument, with its commands and their raw output, is shipped as

@@ -28,12 +28,70 @@ limits: {current_per_contact: "1.0A AC/DC (AWG#26)", voltage: "50V AC/DC", temp_
 gotchas:
   - "SM = side-entry = KiCad Horizontal (right-angle) SMD; NOT top-entry (that is BM08B-GHS-TBT, a different footprint)"
   - "mates with JST GHR-08V-S crimp housing + SSHL-002T-P0.2 contacts (build the harness to this)"
+  - "DO NOT 'CORRECT' temp_range TO MATCH THE DISTRIBUTOR. `limits.temp_range`
+     -40..+105C is JST's own eGH.pdf p.1 'Specifications', verbatim, from the
+     hash-pinned PDF in this directory. JLC/LCSC's structured `Operating
+     Temperature` attribute for this very code reads **-25C~+85C** - 20 K
+     narrower at BOTH ends - and it reads the IDENTICAL -25~+85 on every GH-08
+     clone in the catalog too (C42376901, C54110154, C133062). It is a
+     SERIES-LEVEL BOILERPLATE field: wrong on the one part where we hold the
+     manufacturer drawing, and identical on genuine and clone, so it can
+     neither clear nor condemn a substitute. Q-SNIPPET class - refused as
+     evidence in both directions. Measured 2026-07-31, ADR-0031."
 verified: "pad map 1..8 + 2xMP from footprint Connector_JST:JST_GH_SM08B-GHS-TB_1x08-1MP_P1.25mm_Horizontal (pin1 x=-4.375, pin8 x=+4.375 -> 1.25mm pitch); ratings + pin-1 (No.1 circuit at row end, side-entry) from JST eGH.pdf p.1 (Specifications) and p.3 (Header table: SM08B-GHS-TB, side-entry, 8 circuits) - 2026-07-22"
 layout:                           # in P-LAYOUT scope (npins>2); honest layout-agnostic notes
-  source: "JST eGH SMD land pattern + solder-tab retention (mechanical). This header is the thermal-head input: microvolt thermocouple routing is governed by the MAX31856MUD+T layout: block it feeds, not by this connector."
-  reviewed: "2026-07-22"
-  notes: "Passive interconnect - layout-agnostic, no self net-span budget. Carries the thermocouple pairs to the MAX31856: route each TC+/TC- pad pair as a tight differential kept clear of heater/contactor/switching nodes; place the TC input RC filter and cold-junction sense AT the MAX31856 (see that part's keep_short), never at this connector. Tie both MP tabs to GND (retention/strain-relief + shield return)."
+  source: "JST eGH SMD land pattern + solder-tab retention (mechanical). This header is the THERMAL-HEAD POD input: switched 3V3, GND, one I2C bus, three NTC sense lines, shield drain."
+  reviewed: "2026-07-22; layout.source + layout.notes CORRECTED 2026-07-31 (ADR-0031)"
+  # *** CORRECTED 2026-07-31 - THIS BLOCK DESCRIBED **J_TC's** SIGNALS ON
+  # *** **J_THERM's** PART PAGE. It read: "Carries the thermocouple pairs to
+  # *** the MAX31856: route each TC+/TC- pad pair as a tight differential".
+  # *** THERE IS NO TC PAIR ON THIS CONNECTOR - not one thermocouple net
+  # *** touches either ref. MEASURED with pcbnew over every pad of both refs on
+  # *** the SEALED v1.7 board (07_releases/cooksense-v1.7-2026-07-30/source/
+  # *** cooksense.kicad_pcb):
+  # ***   J_THERM_A  1=3V3_SW_A 2=GND 3=SDA_A 4=SCL_A
+  # ***              5=TH_CAM_A 6=TH_MOUNT_A 7=TH_PORT_A 8=SHIELD_DRAIN  MPx2=GND
+  # ***   J_THERM_B  1=3V3_SW_B 2=GND 3=SDA_B 4=SCL_B
+  # ***              5=TH_CAM_B 6=TH_MOUNT_B 7=TH_PORT_B 8=SHIELD_DRAIN  MPx2=GND
+  # *** The thermocouple is on **J_TC** (Omega_PCC-SMP-K_TypeK_PCpin, pad 1 =
+  # *** TC_POS_IN, pad 2 = TC_NEG_IN) - a different, self-supplied,
+  # *** DO-NOT-SUBSTITUTE part with its own dossier in 02_parts/PCC-SMP-K/.
+  # ***
+  # *** WRITTEN AS A DATED CORRECTION, NOT A SILENT REWORD, BECAUSE IT WAS
+  # *** PROPAGATING: an agent brief dated 2026-07-30 opened by calling
+  # *** J_THERM_A/J_THERM_B "thermocouple connectors on a board with a
+  # *** mains-adjacent isolation barrier" and reasoned about the C265111
+  # *** substitution risk from there.
+  # *** IT MATTERS BECAUSE THE TWO PARTS FAIL DIFFERENTLY. On a real TC
+  # *** connector the governing substitution risk is CONTACT METALLURGY -
+  # *** dissimilar metals at the junction form a parasitic thermocouple in
+  # *** series with a microvolt signal, so a clone with a different contact
+  # *** alloy is disqualifying (which is exactly why J_TC is DO-NOT-SUBSTITUTE).
+  # *** On THIS connector the signals are 3.3 V logic, I2C, and three
+  # *** RATIOMETRIC NTC divider taps, so the governing term is contact
+  # *** RESISTANCE, not EMF. DERIVED against this board's own divider legs
+  # *** (R_REF0 10k, R_CLMPA 22k, R_OPENT 62k, R_OPENB 100k): even JST's worst
+  # *** published AFTER-TEST contact resistance, 50 mOhm, is 0.050/10000 =
+  # *** 5.0e-6 of the 10k leg. Negligible by four orders. These are also all
+  # *** SELV nets - nothing here crosses the isolation barrier, so the
+  # *** connector's voltage rating is not a barrier term either.
+  notes: "Passive interconnect - layout-agnostic, no self net-span budget. Carries the THERMAL-HEAD POD harness: switched 3V3, GND, one I2C bus (SDA/SCL, shared with that side's camera), THREE NTC thermistor sense lines (TH_CAM / TH_MOUNT / TH_PORT) and SHIELD_DRAIN. Keep the three NTC sense lines clear of heater/contactor/switching nodes - they are high-impedance divider taps (10k-100k class) and the open-thermistor detect trips on them. Tie both MP tabs to GND (retention/strain-relief + shield return). NOT the thermocouple path: that is J_TC -> R_TCP/R_TCN -> MAX31856, and the TC input RC filter and cold-junction sense belong AT the MAX31856 (see that part's keep_short), never here."
 sourcing:
   lcsc: C265111
   alternates: [C42376901, C22391766]
-  note: "genuine JST, ordered as SM08B-GHS-TB(LF)(SN) = C265111 (JLC extended). C42376901 = SH-SM08B-GHS-TB(LF)(SN), footprint-identical second source. C22391766 = plain listing. NO stock/price committed (volatile)."
+  # NO stock, MOQ or price is committed here - those are TIER 3 (volatile, TTL
+  # hours) and live in 06_build/cache/, per this folder's contract. The live
+  # reading is 06_build/cache/gh08_sourcing_<date>.json; the probe method and
+  # the full candidate ledger with the reason each alternate lost is ADR-0031.
+  #
+  # NO `alternates_facts:` BLOCK HERE, DELIBERATELY, AND IT WAS TRIED. I first
+  # landed the alternates' ratings/land/verdicts as a new
+  # `sourcing.alternates_facts:` key. `schema_reader_audit.py` (G-ORPHAN) went
+  # 0 -> 1 ORPHAN, RAW EXIT 1: "declared in 1 source file(s) and named by NO row
+  # in the governing contract template". It was right twice over - the key had
+  # no contract home, AND this folder's contract already assigns the content
+  # elsewhere: "Rejected candidates never get a committed PDF - the binary is
+  # worthless, the reason is not... Record WHY it lost in
+  # 01_docs/decisions/NNNN-*.md". Facts about OTHER MPNs do not belong on this
+  # MPN's page. The ledger is ADR-0031; G-ORPHAN is back to 0.
+  note: "genuine JST, ordered as SM08B-GHS-TB(LF)(SN) = C265111 (JLC extended). C42376901 = SHOU HAN SH-SM08B-GHS-TB(LF)(SN), footprint-identical second source, and its own vendor CUSTOMER DRAWING (REV 1.00, 2020-03-22) independently corroborates the 0.7x1.8 signal / 2.5-tall-tab land JLC's EasyEDA record gives it - ratings -25..+85C / 125V / 1A, WIDER AT BOTH ENDS than the DIP05-1A72-13L that binds this board's envelope, so a swap does not move it; MATE/RETENTION against a genuine GHR-08V plug remains UNVERIFIED and is a bench check, not a catalog read. C22391766 = plain listing, stock 0 at MOQ 444. C54110154 (XYECONN) and C133062 (JST, but TOP-ENTRY) were swept 2026-07-31 and REJECTED. Full ledger + evidence: ADR-0031. NO stock/price/MOQ committed (volatile - 06_build/cache/, TTL hours)."
