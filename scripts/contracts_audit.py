@@ -29,55 +29,74 @@ Pattern language (first column of the Allowed tables):
   space-separated patterns. `contracts.md` is implicitly allowed everywhere.
 
 usage:
-  contracts_audit.py [--root DIR] [--projects] [--walk]
-Default root is the repo this script lives in; default universe is
-git-tracked files with projects/** excluded (--projects includes them,
-graded honestly per the adopted-forward policy). --walk uses a filesystem
-walk instead of git (for fixture trees).
+  contracts_audit.py [--root DIR] [--projects | --present] [--walk]
+Default root is the repo this script lives in. THREE scopes, and the suite
+reads the RAW EXIT CODE of all three (tests/t1_contracts.py). Never pipe
+them — `| tail` reports tail's status.
 
-COVERAGE — READ THE DENOMINATOR (measured 2026-07-28)
------------------------------------------------------
-The default invocation grades **243 of 6958 tracked files = 3.5% of the
-tree**, and its verdict used to be the bare `243 files, 0 violations`, which
-reads as coverage and is not. The verdict now states what it did not grade.
+  (default)    git-tracked, projects/** and archived_projects/** excluded.
+               STRICT: any violation exits 1.
+  --projects   all git-tracked files. Ratcheted by DEBT_CEILING, per unit.
+  --present    tracked UNION untracked-not-ignored — the filesystem walk
+               minus everything `git check-ignore` excludes. Adds
+               STRAY_UNITS. Implies --projects.
+  --walk       filesystem walk instead of git, for fixture trees. Never
+               ratcheted (the ceilings are about THIS repo).
 
-`--projects` reports **6958 files / 2666 violations**, ALL of them C-ALLOW
-(C-COV and C-ISO are both 0). Triaged, so the number is a map and not a
-scare:
+COVERAGE — READ THE DENOMINATOR, THEN READ THE EXIT CODE
+--------------------------------------------------------
+MEASURED 2026-07-31 in /home/mouse9911/gits/circuits:
 
-  by cause     2444 (92%)  a file in a SUBFOLDER governed by an ANCESTOR
-                           contract — no nested contracts.md and no deep
-                           `dir/**` pattern. These are STALE CONTRACTS, not
-                           stray files: the archived boards predate the
-                           nested-contract convention, so e.g. every
-                           `03_src/lib/*.kicad_sym` and
-                           `01_docs/decisions/*.md` under them is unmatched.
-                222 ( 8%)  the file's OWN directory holds the contract and
-                           the name genuinely is not permitted.
-  by kind      1616 (61%)  regenerable: `06_build/**` + `.easyeda_cache/**`
-                 644 (24%) sealed `07_releases/**` payload (pdf/, cpl.csv,
-                           verification/*.png) — immutable, so the CONTRACT
-                           is what must move, never the release
-  by location  2501 (94%)  archived_projects/**
-                 165 ( 6%) live projects/**
-  the pipe bug     6       05_firmware (4 headers + 2 stray .md); the 4
-                           headers are the class this commit fixed, and they
-                           clear when those archived contracts are re-synced
-                           from the template — templates are the source of
-                           truth and project copies are seeded, never
-                           retro-edited.
+  scope        files   violations   raw exit
+  (default)      280            0          0     280/7414 = 3.8% of the tree
+  --projects    7414         2646          0     = DEBT_CEILING exactly
+  --present     7523         2650          0     +109 untracked, 1 unit
 
-PROPOSED COVERAGE FIX (not done here — it is a scoped job of its own):
-  1. Sync the stage-contract TEMPLATES into the live `projects/**` boards on
-     their next revision; that is where the 165 live violations sit and it is
-     already the standing policy.
-  2. Give `06_build/**` and `.easyeda_cache/**` deep patterns in the stage
-     contracts they belong to. 61% of the number is regenerable cache that no
-     contract should be enumerating file-by-file.
-  3. Then, and only then, make `--projects` the DEFAULT and keep the
-     exclusion as an opt-out. Flipping the default first would make the gate
-     red for everyone and it would be turned off.
-Do NOT bulk-fix 2666 rows to make a number go green; each contract edit is a
+THE TWO-STAGE HISTORY OF THIS BLOCK IS THE LESSON.
+
+  2026-07-28: the verdict was a bare `243 files, 0 violations`, which READS
+  AS COVERAGE and is not — the default scope excluded 96% of the tree. Fixed
+  by making the verdict carry its denominator.
+
+  2026-07-31: that fix was HALF of one. It made the gap VISIBLE without
+  making it COST anything, and this repo has ratchet FLOORS and no CEILINGS,
+  so an honestly declared gap is free. `--projects` kept exiting **1** on
+  every suite run for the next three days — 2674 violations — while the test
+  running it asserted only that its output did not say "NOT GRADED". Nothing
+  read `w.rc`. Fixed by the ceilings below.
+
+THE 2646, CLASSIFIED (canon: violations are CLASSIFIED, never counted). All
+C-ALLOW; C-COV and C-ISO are both 0. Graded against the SHIPPED TEMPLATES
+rather than each board's own frozen copy:
+
+  2145 (81%)  THE TEMPLATE ALREADY PERMITS THEM. Stale project copies, not
+              stray files — the archived boards predate the nested-contract
+              convention. Cleared by the standing policy (project copies are
+              re-synced from the template on their next revision, never
+              retro-edited), so the CONTRACT is what moves, never the board.
+   501 (19%)  the template refuses them too:
+     256      `.easyeda_cache/**` at BOARD ROOT. The 06_build contract says
+              this cache belongs in 06_build (usb-hub-3s, 2026-07-21) — the
+              file is misplaced and the contract is right.
+      90      sealed releases in the LEGACY FLAT layout (`bom.csv` and the
+              gerber zip at release root, no `fab/`). 07_releases is
+              IMMUTABLE, so this residue is permanent and honest.
+      57      `03_tscircuit/` proof subtrees (backend_proof/, placement_proof/)
+      45      `03_src/*.sh` beyond the three named drivers
+      17      `03_src/lib/*.kicad_sym` at lib root
+      12      loose `01_docs/*.md` (COST_ESTIMATE.md and friends)
+      10      `08_reviews/` names short of `<date>_<subject>_<source>_<lens>`
+       9      board-root strays: PROGRESS.md, RESUME.md, a loose *.rpt
+       5      other single-board oddities
+
+FIXED IN THE SAME CHANGE rather than ceilinged, because these were the
+CONTRACT being wrong and a ceiling would have frozen them in:
+  * the comma-list parser bug (see parse_allowed) — 124 corrupted patterns
+    across 38 contracts, now 0.
+  * 06_build gained `verification/**`, `pin_audit/**`, `audit_<date>/**`.
+  * 03_tscircuit gained `.gitignore`; 05_firmware gained `target/**` `host/**`.
+
+Do NOT bulk-fix rows to make a number go green; each contract edit is a
 statement about what that folder is for.
 """
 import argparse
