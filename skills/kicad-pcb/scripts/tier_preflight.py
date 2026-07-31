@@ -95,27 +95,101 @@ class Finding:
         return out
 
 
+def board_scoped(root, rel, board=None):
+    """Resolve a per-board input under BOTH project layouts -> (Path|None, why).
+
+    Single-board: `03_src/<rel>`. ADR-0007 multi-board: `03_src/<board>/<rel>`.
+
+    THIS GATE MUST SELECT — it grades ONE board's route config — so unlike
+    `waiver_provenance.waiver_files()` it cannot simply enumerate. What it can
+    do is REFUSE rather than guess, which is `release_index.py`'s rule for the
+    same situation ("'the latest' with no board named on a two-board project
+    REFUSES"). Three properties, each paid for:
+
+      * A FLAT PATH THAT IS A SYMLINK INTO ONE BOARD'S DIRECTORY IS NAMED AS
+        SUCH. MEASURED on smc0985-cooksense 2026-07-30: `03_src/rules/` holds
+        FIVE such symlinks — assembly.yaml, electrical_invariants.yaml,
+        nets.yaml, policy_waivers.yaml, power_tree.yaml — every one pointing at
+        `../cooksense/rules/`. So every gate reading the flat address grades
+        the cooksense board while believing it read a project-wide file, and
+        `--board interposer` gets cooksense's netclasses. Silent before this.
+      * TWO BOARDS AND NO `--board` IS A REFUSAL, not a first-match.
+      * NOTHING FOUND returns None with a reason, so the caller can report
+        GRADED NOTHING instead of grading invented defaults (which is what
+        this gate did: with no route.yaml it fell back to `self.cfg = {}` and
+        emitted PF-ROUTE-CLR FAIL about a file that does not exist).
+    """
+    src = Path(root) / "03_src"
+    per = {}
+    for p in sorted(src.glob(f"*/{rel}")):
+        if p.is_file():
+            per.setdefault(p.relative_to(src).parts[0], p)
+    flat = src / rel
+    owner = None
+    if flat.is_file():
+        owner = next((b for b, q in per.items()
+                      if q.resolve() == flat.resolve()), None)
+    if board:
+        if board in per:
+            return per[board], f"03_src/{board}/{rel}"
+        if flat.is_file() and owner in (None, board):
+            return flat, f"03_src/{rel} (single-board layout)"
+        if flat.is_file():
+            return None, (f"--board {board} was named, but 03_src/{rel} "
+                          f"resolves into {owner}'s directory — a board "
+                          f"selector wearing a project-wide address. "
+                          f"{board} declares no {rel} of its own "
+                          f"(boards with one: {', '.join(sorted(per)) or 'none'})")
+        return None, (f"no {rel} for board {board!r} (boards declaring one: "
+                      f"{', '.join(sorted(per)) or 'none'})")
+    if flat.is_file():
+        if owner:
+            return flat, (f"03_src/{rel} — A SYMLINK INTO {owner}'s directory, "
+                          f"so this run grades {owner} however it is labelled; "
+                          f"name a board with --board to be explicit")
+        return flat, f"03_src/{rel} (single-board layout)"
+    if len(per) == 1:
+        b, p = next(iter(per.items()))
+        return p, f"03_src/{b}/{rel} (the only board declaring one)"
+    if len(per) > 1:
+        return None, (f"{len(per)} boards declare {rel} "
+                      f"({', '.join(sorted(per))}) and none was named — "
+                      f"REFUSING to guess. Pass --board <name>")
+    return None, f"ABSENT: no {rel} at 03_src/{rel} or 03_src/<board>/{rel}"
+
+
 class Preflight:
     def __init__(self, root, route_cfg=None, route_path=None, toolkit=None,
-                 explain=False):
+                 explain=False, board=None):
         self.root = Path(root).resolve()
         self.explain = explain
         self.findings = []
         self.notes = []            # --explain derivation lines
         self.toolkit = Path(toolkit) if toolkit else \
             Path(__file__).resolve().parent / "pcb_toolkit.py"
-        self.route_path = Path(route_path) if route_path else \
-            self.root / "03_src" / "route.yaml"
+        self.board = board or None
+        if route_path:
+            self.route_path, self.route_note = Path(route_path), "--route-config"
+        else:
+            self.route_path, self.route_note = board_scoped(
+                self.root, "route.yaml", self.board)
         if route_cfg is not None:
             self.cfg = route_cfg
-        elif self.route_path.is_file():
-            self.cfg = yaml.safe_load(self.route_path.read_text(encoding="utf-8-sig")) or {}
+        elif self.route_path is not None and self.route_path.is_file():
+            self.cfg = yaml.safe_load(
+                self.route_path.read_text(encoding="utf-8-sig")) or {}
         else:
             self.cfg = None
-        self.tier = resolve_tier(self.root)   # FabTierError propagates: HARD
-        nets_p = self.root / "03_src" / "rules" / "nets.yaml"
+        nets_p, self.nets_note = board_scoped(
+            self.root, "rules/nets.yaml", self.board)
+        self.nets_path = nets_p
+        # The tier comes from the SAME resolved nets.yaml this run grades. It
+        # used to come from the flat address independently, so on a multi-board
+        # tree `resolve_tier` returned None, `run()` read that as "legacy board,
+        # nothing to check" and the gate EXITED 0 having disarmed itself.
+        self.tier = resolve_tier(self.root, nets_path=nets_p)  # FabTierError: HARD
         self.nets = (yaml.safe_load(nets_p.read_text(encoding="utf-8-sig")) or {}) \
-            if nets_p.is_file() else {}
+            if nets_p is not None and nets_p.is_file() else {}
 
     # ------------------------------------------------------------- helpers
     def get(self, dotted, default=None):
@@ -822,7 +896,26 @@ class Preflight:
     def run(self):
         head = f"tier preflight: {self.root.name}"
         if self.tier is None:
-            print(f"{head} — no fab_tier declared in 03_src/rules/nets.yaml; "
+            # TWO DIFFERENT FACTS, AND COLLAPSING THEM DISARMS THE GATE.
+            # "this board declares no fab_tier" is a legacy board and a
+            # legitimate exit 0. "I could not work out WHICH nets.yaml is
+            # yours" is a zero denominator, and reporting it as the former is
+            # how a multi-board project silently turned this whole gate off
+            # (MEASURED 2026-07-30 on a synthetic ADR-0007 tree: `nothing to
+            # check (legacy board)`, exit 0, with two fully-declared tiers
+            # sitting in the tree).
+            # ABSENT is a LEGACY board and a legitimate exit 0; AMBIGUOUS is
+            # a zero denominator. Only the second disarms the gate silently.
+            if self.nets_path is None and not self.nets_note.startswith(
+                    "ABSENT:"):
+                print(f"{head} — GRADED NOTHING: could not resolve the "
+                      f"netclass declaration. {self.nets_note}")
+                print(f"  A tier this gate cannot FIND is not a board that "
+                      f"declares NO tier, and reporting the first as the "
+                      f"second turns every check here off while exiting 0 "
+                      f"(canon M-COVER).")
+                return 1
+            print(f"{head} — no fab_tier declared in {self.nets_note}; "
                   f"nothing to check (legacy board). Declare one to arm "
                   f"this gate.")
             return 0
@@ -830,19 +923,29 @@ class Preflight:
         print(f"{head}  tier={t['name']} (via {t['min_via_diameter']}/"
               f"{t['min_via_drill']}, space {t['min_space']}, "
               f"h2h {t.get('min_hole_to_hole')})")
-        if self.cfg is None:
-            print(f"  no route config at {self.route_path} — only "
-                  f"rules/toolkit checks run")
-            self.cfg = {}
-        self.check_clearances()
-        self.check_via_geometry()
-        self.check_normalize_vias()
-        self.check_hole_to_copper()
-        self.check_hole_to_hole()
-        self.check_layers()
-        self.check_via_site_source()
-        self.check_legalize()
-        self.check_krt_preset()
+        print(f"  input: route config <- {self.route_note}")
+        print(f"  input: netclasses   <- {self.nets_note}")
+        # A GATE MAY NOT GRADE A FILE THAT IS NOT THERE (canon M-COVER).
+        # MEASURED 2026-07-30 on smc0985-cooksense, whose route configs live at
+        # `03_src/<board>/route.yaml` (ADR-0007) and which therefore has no
+        # flat one: the old code set `self.cfg = {}` and ran every route check
+        # anyway, so `self.get()` returned DEFAULTS and PF-ROUTE-CLR FAILED the
+        # board over `route.common.clearance` — a key nothing had declared, in
+        # a file that does not exist. Not a green-over-nothing; a RED over
+        # nothing, which is the same defect wearing the other colour, and it
+        # sends an agent to fix a value that is not there. The route half is
+        # now reported as GRADED NOTHING and the route checks do not run.
+        cfg_route = self.cfg is not None
+        if cfg_route:
+            self.check_clearances()
+            self.check_via_geometry()
+            self.check_normalize_vias()
+            self.check_hole_to_copper()
+            self.check_hole_to_hole()
+            self.check_layers()
+            self.check_via_site_source()
+            self.check_krt_preset()
+        self.check_legalize()          # floorplan-driven, needs no route cfg
         if self.explain:
             print("  derivations:")
             for n in self.notes:
@@ -851,6 +954,20 @@ class Preflight:
         warns = [f for f in self.findings if f.level == "WARN"]
         for f in self.findings:
             print(f.render())
+        if not cfg_route:
+            print(f"tier preflight: GRADED NOTHING about the routing config — "
+                  f"{self.route_note}.")
+            print(f"  {len(fails)} FAIL / {len(warns)} WARN from the "
+                  f"floorplan/toolkit checks only; the 8 route-config checks "
+                  f"(PF-ROUTE-CLR, via geometry, hole-to-copper, hole-to-hole, "
+                  f"layers, normalize_vias, via_site_source, krt_preset) each "
+                  f"graded ZERO parameters.")
+            print(f"  This is NOT 'tier-consistent' and it is NOT a pass: this "
+                  f"gate exists to refuse a route BEFORE KRT spends hours, and "
+                  f"it has not looked at the config that would be routed "
+                  f"(canon M-COVER). Name the board with --board, or pass "
+                  f"--route-config <path>.")
+            return 1
         print(f"tier preflight: {len(fails)} FAIL / {len(warns)} WARN"
               + ("" if fails else " — config is tier-consistent"))
         return 1 if fails else 0
@@ -875,10 +992,15 @@ def main(argv=None):
                     help="pcb_toolkit.py to source-check (tests)")
     ap.add_argument("--explain", action="store_true",
                     help="print the derivation behind every check")
+    ap.add_argument("--board", default=None,
+                    help="on an ADR-0007 MULTI-BOARD project, which board to "
+                         "grade (config at 03_src/<board>/). Without it a "
+                         "project whose boards each declare a route.yaml is "
+                         "REFUSED rather than guessed at")
     a = ap.parse_args(argv)
     try:
         pf = Preflight(a.project_root, route_path=a.route_config,
-                       toolkit=a.toolkit, explain=a.explain)
+                       toolkit=a.toolkit, explain=a.explain, board=a.board)
     except FabTierError as e:
         print(f"tier preflight: FAIL — {e}")
         return 1

@@ -179,15 +179,42 @@ Imax; and a battery source's de-energization path + stored quiescent draw),
   keeps one per board at `03_src/<board>/rules/policy_waivers.yaml`, because two
   boards fab, version and WAIVE independently. `waiver_provenance.py`
   ENUMERATES both addresses and labels every finding `<project>/<board> [<id>]`
-  — it does not select, so it cannot select wrongly. **Never bridge the two
-  layouts with a symlink at the flat address.** That is a board selector wearing
-  a project-wide name: smc0985-cooksense carried
-  `03_src/rules/policy_waivers.yaml -> ../cooksense/rules/policy_waivers.yaml`
-  (mode 120000, 18392f2e), which made cooksense's 12 waivers grade by accident
-  while the interposer's 4 were graded by NOTHING and the run still printed
-  `PASS ... 12/25 waiver(s) graded` (MEASURED 2026-07-30). Delete such a
-  symlink; the enumerating gate does not need it, and `policy_audit.py`'s own
-  flat-path read is the remaining OWED half (see its `--board` gap below).
+  — it does not select, so it cannot select wrongly.
+- **NEVER BRIDGE THE TWO LAYOUTS WITH A SYMLINK AT THE FLAT ADDRESS.** A
+  symlink there is a board selector wearing a project-wide name: it makes one
+  board grade by accident, makes the other ungradeable, and makes the wrong
+  answer look like the right one. MEASURED on smc0985-cooksense 2026-07-30,
+  `03_src/rules/` holds **five** of them — `assembly.yaml`,
+  `electrical_invariants.yaml`, `nets.yaml`, `policy_waivers.yaml`,
+  `power_tree.yaml`, every one pointing into `../cooksense/rules/`. Consequences
+  measured on that tree: `waiver_provenance` graded cooksense's 12 waivers and
+  the interposer's 4 not at all while printing `PASS ... 12/25`; and
+  `export_jlc_package.py` — a WRITER — walks up to the project root and applies
+  **cooksense's** `not_assembled:`/`on_bom:` to whatever board it exports.
+  Gates that resolve per board (`waiver_provenance`, `tier_preflight`) now NAME
+  the owning board when they meet such a symlink, but naming it is a warning,
+  not a repair.
+- **A gate that must select ONE board REFUSES rather than guesses.**
+  `tier_preflight.py` takes `--board`; given two boards and no name it reports
+  `GRADED NOTHING about the routing config` and exits 1, the same rule
+  `release_index.py` applies to releases. It also resolves the fab tier from
+  the SAME `nets.yaml` it grades: resolving it independently at the flat
+  address made a multi-board project report `no fab_tier declared … (legacy
+  board)` and exit 0, i.e. the gate disarmed itself (MEASURED 2026-07-30).
+  Note the failure direction — with no route config the old code set
+  `cfg = {}` and graded CODE DEFAULTS, emitting `PF-ROUTE-CLR` about
+  `route.common.clearance` in a file that does not exist. **A gate grading
+  invented defaults is the same M-COVER defect as one grading nothing, in the
+  other colour, and it costs more: it sends an agent to fix a value that is not
+  there.**
+- **OWED, named rather than silently carried:** `policy_audit.py` still reads
+  ~13 flat `03_src/...` addresses and its `--board` reorders only the
+  `04_kicad` globs, so on a multi-board project it grades one board's copper
+  against another's rules and waivers. `export_jlc_package.py` takes no
+  `--assembly`/`--board` at all. `fleet_regrade.py` invokes
+  `assembly_coverage.py` / `fab_payload_census.py` with the release dir only,
+  so their `--assembly` flags go unused and every per-board release is regraded
+  against the flat file.
 - **A ZERO DENOMINATOR IS A DISTINCT OUTCOME WITH A DISTINCT EXIT CODE.**
   `waiver_provenance.py` exits `0` clean / `1` findings / `2` INVOCATION error
   (bad root, unknown `--project`) / `3` GRADED NOTHING, and the `3` verdict

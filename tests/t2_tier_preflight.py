@@ -529,5 +529,133 @@ def t_skip_preflight_hatch():
     check(r.rc != 0, "still fails later (no prep ran) — but past the gate")
 
 
+# ============================================================================
+# ADR-0007 MULTI-BOARD PATH RESOLUTION (2026-07-30)
+#
+# `route.yaml` and `rules/nets.yaml` were resolved at the flat single-board
+# addresses only. smc0985-cooksense (ADR-0007) declares them per board at
+# `03_src/<board>/`, so this gate found NEITHER — and instead of saying so it
+# set `self.cfg = {}` and ran every route check against CODE DEFAULTS.
+#
+# MEASURED on the real tree at 1b70262a:
+#   projects/smc0985-cooksense -> `1 FAIL / 1 WARN`, exit 1, the FAIL being
+#   `PF-ROUTE-CLR route.common.clearance: effective 0.09 < DRC clearance 0.12`
+#   — a finding about a key nobody declared, in a file that does not exist.
+#
+# That is the P19 defect wearing the opposite colour: not green-over-nothing
+# but RED-over-nothing, and it is arguably worse, because it sends an agent to
+# fix a value that is not there. Post-fix the same invocation REFUSES (two
+# boards, none named) and `--board cooksense` / `--board interposer` each grade
+# for the first time (0 FAIL / 1 WARN and 0 FAIL / 0 WARN respectively).
+#
+# BLAST RADIUS MEASURED BEFORE THE CHANGE over all 7 projects: only cooksense
+# lacks a flat route.yaml, and the other six produce byte-identical verdicts
+# pre- and post-fix (crow-mic-pod-v2 0/4, crow-recorder-central-v2 0/1,
+# pluto-cal-switch 0/1, pluto-rx2-8way 0/2, pluto-rx2-8way-v2 0/2,
+# usb-hub-3s-v3 4 FAIL/3 WARN).
+# ============================================================================
+def scratch_multiboard(boards=("main", "aux"), symlink_flat_nets=None):
+    """A tier-consistent tree in the ADR-0007 layout: per-board `route.yaml`
+    and `rules/nets.yaml` under `03_src/<board>/`, no flat ones."""
+    import os
+
+    import yaml
+    d = scratch()
+    src = d / "03_src"
+    route_txt = (src / "route.yaml").read_text()
+    nets_txt = (src / "rules" / "nets.yaml").read_text()
+    (src / "route.yaml").unlink()
+    (src / "rules" / "nets.yaml").unlink()
+    for b in boards:
+        (src / b / "rules").mkdir(parents=True)
+        (src / b / "route.yaml").write_text(route_txt)
+        (src / b / "rules" / "nets.yaml").write_text(nets_txt)
+    if symlink_flat_nets:
+        # The real cooksense shape: a flat address that is a SYMLINK into one
+        # board's directory. Five of these exist on that project today.
+        os.symlink(f"../{symlink_flat_nets}/rules/nets.yaml",
+                   src / "rules" / "nets.yaml")
+    return d
+
+
+@test("tier_preflight REFUSES a multi-board project instead of grading "
+      "invented defaults for a route.yaml that does not exist",
+      kind="known_bad")
+def t_multiboard_route_config_refuses_rather_than_inventing():
+    """THE HEADLINE. Pre-fix this tree produced a PF-ROUTE-CLR FAIL derived
+    entirely from code defaults, because `self.cfg = {}` made `self.get()`
+    answer every query with a default and no check could tell "not declared"
+    from "declared as the default".
+
+    RED-VERIFIED against pre-fix code (`git show 1b70262a:skills/kicad-pcb/
+    scripts/tier_preflight.py`): pre-fix this fixture's output contains
+    `PF-ROUTE-CLR` and NOT `GRADED NOTHING`, so both assertions below invert.
+    Restored: it refuses, names both boards, and grades no route parameter."""
+    # nets.yaml is reachable via the flat symlink, so the ROUTE half is the
+    # one with nothing to grade — which is the case the old `self.cfg = {}`
+    # fallback turned into an invented PF-ROUTE-CLR finding.
+    d = scratch_multiboard(symlink_flat_nets="main")
+    r = preflight(d)
+    check(r.rc != 0, f"a gate that never read the route config must not "
+                     f"pass\n{r.out[-2000:]}")
+    contains(r.out, "GRADED NOTHING about the routing config",
+             "says it graded nothing, in the words the reader needs")
+    contains(r.out, "REFUSING to guess",
+             "refuses rather than taking the first board — the "
+             "release_index.py rule for the same situation")
+    contains(r.out, "main", "names the boards it found")
+    contains(r.out, "aux", "names both of them")
+    # The invented KEY, not the check id — the verdict text above legitimately
+    # NAMES the eight checks it did not run, so the id alone is not the tell.
+    not_contains(r.out, "route.common.clearance:",
+                 "MUST NOT emit a route-config finding when it read no route "
+                 "config — pre-fix PF-ROUTE-CLR fired on "
+                 "`route.common.clearance`, a key nobody declared, in a file "
+                 "that does not exist")
+    not_contains(r.out, "config is tier-consistent",
+                 "and it may not claim consistency it did not check")
+
+    # ADJACENT PROPERTY: the same tree with a board NAMED grades normally, so
+    # the refusal above is about the ambiguity and not about the layout.
+    ok = must_pass(preflight(d, "--board", "main"),
+                   "the same multi-board tree with --board main")
+    contains(ok.out, "0 FAIL / 0 WARN", "and it grades clean")
+    contains(ok.out, "03_src/main/route.yaml", "naming the file it read")
+    contains(ok.out, "03_src/main/rules/nets.yaml", "and the netclasses")
+
+
+@test("tier_preflight NAMES a flat path that is a symlink into one board's "
+      "directory, instead of reporting it as project-wide", kind="known_bad")
+def t_flat_symlink_into_one_board_is_named():
+    """MEASURED on smc0985-cooksense 2026-07-30: `03_src/rules/` contains FIVE
+    symlinks — assembly.yaml, electrical_invariants.yaml, nets.yaml,
+    policy_waivers.yaml, power_tree.yaml — every one pointing into
+    `../cooksense/rules/`. Every gate reading the flat address therefore grades
+    the COOKSENSE board while believing it read a project-wide file, and
+    `--board interposer` silently gets cooksense's netclasses.
+
+    The symlink is not a mitigation, it is a board selector wearing a
+    project-wide address, and the only safe treatment is to SAY SO.
+
+    RED-VERIFIED against `git show 1b70262a:...tier_preflight.py`: pre-fix
+    there is no `input:` provenance line at all, so `contains(... "SYMLINK")`
+    fails. Restored: the run names the owning board."""
+    d = scratch_multiboard(symlink_flat_nets="main")
+    r = preflight(d)
+    contains(r.out, "SYMLINK INTO main's directory",
+             "names the board the flat address actually resolves to")
+    contains(r.out, "input: netclasses",
+             "and prints where each input came from, every run (G-INPUT)")
+
+    # THE CONTRAST that makes this a real finding rather than a label: asking
+    # for the OTHER board, whose own nets.yaml exists, must not be answered
+    # with main's file.
+    aux = preflight(d, "--board", "aux")
+    contains(aux.out, "03_src/aux/rules/nets.yaml",
+             "--board aux reads aux's OWN netclasses, not the symlink's target")
+    not_contains(aux.out, "SYMLINK INTO main",
+                 "and does not fall back to main's copy")
+
+
 if __name__ == "__main__":
     sys.exit(main())

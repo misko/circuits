@@ -37,11 +37,26 @@ def load_tiers(path=TIERS_PATH):
     return yaml.safe_load(Path(path).read_text(encoding="utf-8-sig"))["tiers"]
 
 
-def resolve(project_dir, tiers=None):
+def resolve(project_dir, tiers=None, nets_path=None):
     """The tier `<project_dir>/03_src/rules/nets.yaml fab_tier:` declares,
     as a dict with its name injected under "name" — or None if the project
-    declares none (legacy behavior stays untouched for those boards)."""
-    nets_path = Path(project_dir) / "03_src" / "rules" / "nets.yaml"
+    declares none (legacy behavior stays untouched for those boards).
+
+    `nets_path` OVERRIDES the flat address, and exists because the flat one is
+    wrong on an ADR-0007 MULTI-BOARD project, where each board declares its own
+    `03_src/<board>/rules/nets.yaml`. Returning None there does not read as
+    "cannot find the declaration" — it reads as "this board declares no tier",
+    i.e. a LEGACY board, and `tier_preflight.run()` then prints `nothing to
+    check (legacy board)` and exits 0. MEASURED 2026-07-30 on a synthetic
+    ADR-0007 tree: the whole gate disarmed itself and returned success. On the
+    real smc0985-cooksense this is masked only by an undeclared symlink at the
+    flat address, so the moment that symlink is removed — which the 03_src
+    contract now tells people to do — the gate goes quietly green.
+
+    Callers that know which board they are grading pass the resolved path; the
+    default keeps every single-board caller byte-identical."""
+    nets_path = Path(nets_path) if nets_path else \
+        Path(project_dir) / "03_src" / "rules" / "nets.yaml"
     if not nets_path.is_file():
         return None
     name = (yaml.safe_load(nets_path.read_text(encoding="utf-8-sig")) or {}).get("fab_tier")
