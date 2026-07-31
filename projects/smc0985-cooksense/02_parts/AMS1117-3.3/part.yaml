@@ -24,17 +24,37 @@ layout:                     # P-LAYOUT: linear LDO (multi-pin power part). Real 
     frequency compensation, 22uF solid tantalum on VOUT ensures stability for all operating conditions
     (larger COUT further improves stability + transient response); + 'Thermal Considerations':
     theta_JA can be as low as 45C/W given a reasonable copper area (>=1 Cu layer) to spread the heat
-    (Table 1 characterised on 1/16in FR-4, 1oz Cu); guaranteed max PD 1.2W for SOT-223 (Note 2)."
-  reviewed: "2026-07-22"
+    (Table 1 characterised on 1/16in FR-4, 1oz Cu). CORRECTED 2026-07-30: the '1.2W for SOT-223'
+    (Note 2) that used to be quoted here as a package rating is nothing of the kind - Note 2's own
+    sentence is that LINE AND LOAD REGULATION are guaranteed up to it, and it ends 'Guaranteed maximum
+    power dissipation will not be available over the full input/output range'. The package ceiling is
+    a JUNCTION TEMPERATURE and the datasheet states the formula: PD_max = (TJ_max - Ta)/theta_JA with
+    TJ_max 125C (ABS MAX 'Operating Junction Temperature Range' and Thermal Considerations 'must not
+    be exceeded under continuous normal load conditions') and theta_JA 90C/W for SOT-223 (ABS MAX
+    'Thermal Resistance', footnoted 46C/W to >90C/W depending on mounting). A rail that quotes 1.2W
+    flat is grading a 25C number at whatever ambient it actually runs - smc0985-cooksense did exactly
+    that for seven revisions; the derated ceiling now lives in that board's power_tree.yaml."
+  reviewed: "2026-07-30"
   keep_short:
     - {net: 3V3, max_span_mm: 5, why: "COUT (>=22uF-class) hard against VOUT (pin2 / tab) - it IS the LDO's frequency-compensation cap; loop stability depends on it (ds1117 Stability)"}
     - {net: 5V_PROTECTED, max_span_mm: 8, why: "CIN local to VIN (pin3) for line/transient bypass"}
   notes: >
-    SOT-223 TAB = VOUT (pin 2) and is the ONLY heat path: flood copper on the 3V3/VOUT net under and
-    around the tab to pull theta_JA toward the 45C/W floor (Thermal Considerations). That tab copper
-    sits at 3V3 - a GND pour touching the tab SHORTS the rail (existing gotcha). All-linear board
-    (no switching converter, E-TOPO N-A): no SW-node / loop-area budget applies - the governing demands
-    are the >=22uF output compensation cap at VOUT and the tab heat-spread.
+    SOT-223 TAB = VOUT (pin 2): flood copper on the 3V3/VOUT net under and around the tab to pull
+    theta_JA toward the 45C/W floor (Thermal Considerations). That tab copper sits at 3V3 - a GND pour
+    touching the tab SHORTS the rail (existing gotcha). All-linear board (no switching converter):
+    no SW-node / loop-area budget applies - the governing demands are the >=22uF output compensation
+    cap at VOUT and the tab heat-spread.
+    CORRECTED 2026-07-30, and this correction is why a theta_JA claim must never be inherited: the tab
+    is NOT "the ONLY heat path", which is what this note used to say. ds1117 Thermal Considerations
+    says the opposite in as many words - "Experiments have shown that the heat spreading copper layer
+    DOES NOT NEED TO BE ELECTRICALLY CONNECTED to the tab of the device. The PC material can be very
+    effective at transmitting heat between the pad area, attached to the pad of the device, and a
+    ground plane layer either inside or on the opposite side of the board." So on a 4-layer board with
+    a plane pair under the part, a small tab island still has a real vertical heat path. What it does
+    NOT have is Table 1's numbers: Table 1's TOP SIDE column is copper ATTACHED TO THE TAB and its
+    smallest row is 100mm2 -> 80C/W. Quoting Table 1's 55-65C/W for a board whose tab copper is a
+    7.6mm2 pad is an adjacent-property error, and smc0985-cooksense v1.0-v1.7 shipped it. Absent a
+    MEASURED tab rise, use the ABS MAX package figure 90C/W and derate to the real ambient.
 sourcing:
   lcsc: C6186
   note: "BASIC part, 1.48M stock 2026-07-19."

@@ -2215,3 +2215,94 @@ shape (a budget written where nothing reads it) and the E-MARGIN shape (a gate
 optional-activated by a key nobody wrote, printing N-A) appearing a third time
 in one file. A declaration the checker cannot reach is not a weaker check — it
 is a check that cannot fail.
+
+## 2026-07-30 18:15 — iterate (post-back, re-gate 2): BOTH DESIGN P0s RESOLVED IN SOURCE, E-TOPO PASSES ON THE HONEST NUMBERS
+
+- did: answered the engineering question the P0s actually posed — *is 0.70 A
+  simultaneous the true worst case?* — from evidence rather than assumption,
+  then declared the answer in the keys `power_topology.py` READS. Split verdict:
+  **SIMULTANEITY YES, THE NUMBER NO.** All four switched rails ARE on together
+  (BRIEF §2/§3 commission two simultaneous MLX90640 streams and two SHT45
+  channels; `DELTA_AH = AH_EXHAUST − AH_AMBIENT` is a DIFFERENCE of the two RH
+  pods so neither can be off; MEASURED with pcbnew, `J_RH_AMBIENT.3/.4 =
+  SDA_A/SCL_A` puts the ambient pod on camera A's bus and DETAIL_DESIGN §5 puts
+  that bus's 2.2k pullups on `3V3_SW_A`, so the camera rail must be UP for the
+  RH pod to be reachable at all; ADR-0004 N1 makes the switches a stuck-I2C
+  RECOVERY mechanism, never a load-shedding scheme). But `iout_max_A: 0.1` was a
+  round placeholder charged identically to four rails whose real currents differ
+  by 2.8x — and it was probably the SHT4x heater's 100 mA, applied to two rails
+  that have no heater. Every term is now cited to a datasheet MAXIMUM.
+- result: **E-TOPO RAW EXIT 0 BEFORE AND AFTER — which is the finding.** Before:
+  `PD 615 mW ((5.25−3.201) × 0.3 A) vs rating 1200 mW (51%) -> PASS`. After:
+  `PD 307 mW ((5.25−3.201) × 0.15 A) vs rating 497 mW (62%) -> PASS`. The gate
+  never disagreed with anything physical; it was grading the wrong load against
+  a 25 °C ceiling and saying PASS at 51%. Load = 95.046 mA of cited maxima
+  (logic 3.913 + `3V3_ANALOG` 3.949 + off-board 2.068 + **the four switched
+  rails 85.116**) × a declared 1.5 margin = 150 mA. Ceiling = `(125−75)/90` from
+  ds1117's OWN formula and its OWN ABS-MAX `θ_JA = 90 °C/W`, minus the
+  AMS1117's `Quiescent Current max 11 mA` burning 57.8 mW that E-TOPO's PD
+  product cannot see. **Tj = 107.9 °C, 17.1 °C of margin.**
+- result: **the old θ_JA citation is REFUTED, MEASURED.** Every filled zone
+  enumerated: GND F.Cu 2701.43 mm², GND B.Cu 7385.83, GND In1.Cu 8465.52,
+  3V3 In2.Cu 8420.03. **No F.Cu `3V3` zone exists.** `U_LDO` pad 4 is
+  2.000 × 3.800 = 7.60 mm² of island in a GND pour, against a Table 1 whose
+  smallest characterised top-side area is 100 mm² → 80 °C/W.
+- result: **a THIRD undeclared load found while asking the question** — the
+  SHT4x carries a 200/110/20 mW on-package heater, `IDD` **max 100 mA** at the
+  200 mW level, and the brief commissions the exhaust pod into a condensing
+  duct, which is the case Sensirion §4.9 lists the heater FOR. Nothing in this
+  tree had ever named it. Budgeted at the manufacturer's own ≤10 % duty limit.
+- result: no copper moved. `04_kicad/cooksense.kicad_pcb` md5
+  `9f4fd5fae810f40a52b1035df727243c`, byte-identical to `source/`. DRC 0/0/0
+  exit 0 live AND on a copy outside the repo; ERC 411 warnings / 0 errors exit
+  0; policy_audit FAIL=0 (28/6/6/5, unchanged); G-ORPHAN 315/315 0 orphan;
+  jlc_twin exit 0 (207 OK / 465 rows, 206/206 bodies); A-RENDER exit 0 at a
+  FRESH 15.2259 px/mm render, 52 measured / 208, 0 resolvable-but-unmeasured;
+  contracts_audit 258 files 0 violations. Three gates exit 1, all pre-existing:
+  A-STOCK (C265111 stock 5 / MOQ 21, re-measured by me 2026-07-31T01:07:38Z with
+  my own urllib client, controls live), E-NETREF (21 ghost K7 refs), A-AMP (2
+  `nets.yaml` declaration defects predating v1.6).
+- next: both lenses re-gating fresh-context on the two-field vocabulary, neither
+  handed a conclusion. A `design_verdict: DEFECTIVE` from either STOPS the seal.
+  **The structural half is FILED, NOT FIXED (P13a–P13d):** `skills/` is another
+  agent's partition, and the headline is that **G-ORPHAN ALREADY grades
+  `linear_rails[].iout_max_A` as OWED with the words "also absent from the
+  trunk-current sum `rails[]` feeds"** — the exact defect, in the contract, in
+  prose, exiting 0, because OWED does not fail.
+
+## 2026-07-30 19:05 — stuck (re-gate 2 complete): TENTH DECLINE. TWO P0s CLOSED, A THIRD OPENED ON THE OTHER HALF OF THE SAME RAIL
+
+- did: re-gated BOTH lenses fresh-context on the two-field vocabulary, neither
+  handed a conclusion, both told to hunt rather than confirm.
+- result: **LAYOUT `design_verdict: SOUND`, ZERO P0s.** It did not read the
+  P0-2 closure, it RE-DERIVED it: its own lumped model of the measured mounting
+  (two Ø0.150 mm in-pad vias in parallel with 0.2104 mm of dielectric under
+  7.3654 mm² of tab) gives **θ_JA ≈ 87 °C/W**, so the declared 90 °C/W is
+  conservative and the ceiling derivation holds independently.
+- result: **TOPOLOGY `design_verdict: DEFECTIVE`, ONE P0 — and it is P0-1's
+  defect class, transplanted.** `vin_min: 4.754` is derived from three NAMED
+  COMPONENT resistances (190.5 mΩ) and counts **none of the board's own
+  copper**; the routed `J_PWR.1 → F1 → Q_REV → U_EFUSE → U_LDO.3` path measures
+  **109.0 mΩ** more. A 57 % underestimate in the term the whole ADR-0021 supply
+  specification exists to produce. Re-derived headroom **+24.0 mV, not +55 mV**;
+  the file's own "still passes at 0.60 A" claim measures **−0.8 mV, FAIL**.
+- result: **I reproduced it rather than relaying it.** Per-net series-sum upper
+  bounds, 35 µm at 70 °C: `5V_IN` 26.07 mΩ / 22.120 mm (lens: 25.87 for that
+  segment — 0.8 %), `5V_FUSED` 16.23, `5V_RPP` 28.27, `5V_PROTECTED` 306.63 mΩ /
+  260.059 mm. Every lens per-segment figure sits inside its net's bound. The
+  enabling fact is one I had already measured for the θ_JA refutation and did
+  not connect: **no 5 V net has a zone anywhere on this board**, so on the 5 V
+  path tracks are the entire conductor.
+- result: **the lens also caught ME under-declaring, in the same pass whose
+  subject is a sum with a term missing.** `R_ESTOPPD` is **470 Ω** on the staged
+  BOM, not the 100 kΩ my first itemisation assumed — **213×**, worth 7.232 mA,
+  flowing whenever the ADR-0025 plug is fitted, which is always. `R_MODEPD` is
+  10 kΩ. Three of twelve `3V3` pullups are 10 kΩ. All re-read off the BOM and
+  corrected; `iout_max_A` 0.15 → **0.20**, the next admissible step above both
+  my 156 mA and the lens's 173 mA, with the 11.8 mA count delta OWED not closed.
+- next: re-derive `vin_min` with the copper counted, PER SEGMENT AT ITS OWN
+  CURRENT. It may pass: the 0.50 A that number assumes is measurably ~1.5× the
+  real worst case (0.382 A), and 0.382 × 299.5 mΩ = 114 mV leaves +37 mV. **But
+  the two errors point in OPPOSITE directions and must not be allowed to cancel
+  by accident** — that is how this rail arrived here. Then re-gate the topology
+  lens only; the layout lens returned SOUND on copper that cannot move.

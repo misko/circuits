@@ -40,6 +40,59 @@
 # derive a topology for a part that has none, and `type: pfet_30v_4a` does not
 # normalize to any topology the gate knows, so it would raise a LoadError rather
 # than grade anything. 3V3_ANALOG likewise: a ferrite bead is a filter.
+#
+# ##########################################################################
+# v1.7 RE-GATE 2, 2026-07-30 — AND THE PARAGRAPH ABOVE IS *WHY THE BOARD ALMOST
+# SEALED ON 43 % OF ITS OWN LOAD*. It is still true that a load switch is not a
+# converter. What it did NOT say — and what nothing anywhere said — is that the
+# CURRENT those four switches pass STILL COMES OUT OF THE AMS1117. `rails:` was
+# read as "the list of things to grade" when it is "the list of things that
+# CONVERT"; the four 3V3_SW_* rails converted nothing and were therefore
+# summed by nobody. `iout_max_A: 0.3` on the 3V3 rail enumerated only
+# "595/238/HC14/1G-family/MCP23017/watchdog/one-shot" — the LOGIC — while
+# 73 lines lower this same file declared 4 x 0.1 A of sensor rails hanging off
+# the same LDO output, under a key it labels "ignored by power_topology.py".
+#
+# MEASURED with pcbnew on the release's own board (md5 9f4fd5fae810f40a52b1035
+# df727243c), 2026-07-30, not read from this file and not from the netlist:
+#   Q_SWA  pad2 = 3V3, pad3 = 3V3_SW_A   -> J_THERM_A.1
+#   Q_SWB  pad2 = 3V3, pad3 = 3V3_SW_B   -> J_THERM_B.1
+#   Q_SWRHA pad2 = 3V3, pad3 = 3V3_SW_RHA -> J_RH_AMBIENT.1
+#   Q_SWRHE pad2 = 3V3, pad3 = 3V3_SW_RHE -> J_RH_EXHAUST.1
+# All four sources are on `3V3`. All four are ON TOGETHER in normal operation —
+# this is NOT an assumption, it is what the architecture requires:
+#   * BRIEF §3: "bus A = camera A + ambient SHT45 (0x44); bus B = camera B +
+#     exhaust SHT45"; §2 commissions "two MLX90640 streams; two SHT45 channels".
+#   * the deliverable DELTA_AH = AH_EXHAUST - AH_AMBIENT is a DIFFERENCE of two
+#     live pods, so neither RH rail can be off while the other is measuring.
+#   * MEASURED: J_RH_AMBIENT.3/.4 = SDA_A/SCL_A, i.e. the ambient pod shares
+#     bus A with camera A, and DETAIL_DESIGN §5 puts bus A's 2.2k pullups on
+#     3V3_SW_A — so 3V3_SW_A must be UP for the RH pod to be reachable at all.
+#   * ADR-0004 N1 + DETAIL_DESIGN §5: the switches exist for STUCK-I2C
+#     POWER-CYCLE RECOVERY ("power-cycle sensor N is just an expander write"),
+#     which takes rails DOWN one bus at a time. Recovery is the only declared
+#     reason a rail is ever off; it is not a load-shedding scheme.
+# So SIMULTANEITY IS THE WORST CASE and it is not negotiable. What WAS wrong is
+# the 0.1 A: a round placeholder for four rails whose real currents differ by
+# 3x. Every term is now CITED, below, and `iout_max_A` is their SUM.
+#
+# THE SECOND HALF: `pdiss_max_mw: 1200` WAS A 25 C NUMBER USED AS AN
+# AMBIENT-INDEPENDENT CEILING. ds1117's own Application Hints give the formula
+# verbatim — "TJ = TA(MAX) + PD(Thermal Resistance (junction-to-ambient))" and
+# "Maximum junction temperature must not exceed 125C" — so a ceiling with no
+# TA in it is not a ceiling. It is now DERIVED at a declared ambient, below.
+#
+# AND THE CITATION FOR THE OLD theta_JA WAS REFUTED ON THIS BOARD. The file used
+# to say "the tab is VOUT and is flooded with 3V3 copper ... which is the
+# mounting Table 1 (p.5) characterises at 55-65 C/W". MEASURED, every zone on
+# the board enumerated: there are FOUR filled zones — GND on F.Cu (2701.43 mm2),
+# GND on B.Cu (7385.83), GND on In1.Cu (8465.52) and 3V3 on In2.Cu (8420.03).
+# **THERE IS NO F.Cu `3V3` ZONE AT ALL.** U_LDO pad 4 (the tab, net 3V3) is
+# 2.000 x 3.800 = 7.60 mm2 of copper sitting as an ISLAND inside the F.Cu GND
+# pour. Table 1's TOP SIDE column is "tab of device attached to topside copper"
+# and its smallest row is 100 mm2 -> 80 C/W; 7.60 mm2 is off the bottom of it.
+# The 55-65 C/W quotation was about a mounting this board does not have, and it
+# is DELETED rather than re-argued.
 # ##########################################################################
 
 # SOURCE TYPE (canon E-OFF, authoritative). cooksense is EXTERNALLY powered by a
@@ -136,7 +189,152 @@ rails:
     # NOT in the datasheet. Replaced with the cited full-temperature limits.
     vout_min: 3.201
     vout_max: 3.399
-    iout_max_A: 0.3            # logic: 595/238/HC14/1G-family/MCP23017/watchdog/one-shot
+    # OUTPUT CURRENT — DERIVED, ITEMISED, AND EVERY TERM AT A DATASHEET MAXIMUM.
+    # This is the LDO's TOTAL output: on-board logic PLUS the four switched
+    # sensor rails downstream of Q_SW{A,B,RHA,RHE}. The v1.0-v1.7 value was a
+    # bare 0.3 with a comment naming only the logic families; nobody had ever
+    # added a term to it or taken one away. Refdes-to-MPN read from the staged
+    # BOM; the consumer set read off the board's own `3V3` / `3V3_ANALOG` nets
+    # with pcbnew (76 and 22 pads respectively), so nothing here is a guess
+    # about WHAT is connected — only about how hard it is driven.
+    #
+    # A. ON-BOARD 3V3 LOGIC .................................... 4.804 mA
+    #    10x SN74LVC1G11DBVR   ICC max 10 uA   TI SCES534 §5.5 p.5   0.100 mA
+    #        (AND1 AND2 AND3 CAND1 CAND2 DECDEN DECUEN FAULTAND LATCHG OSCLR)
+    #     4x SN74LVC1G00DCKR   ICC max 10 uA   TI SCES212AB §7.5 p.5 0.040 mA
+    #        (LATCHA LATCHB OENAND STOPINV)
+    #     2x SN74HC238DR       ICC max 80 uA   TI D2804 p.4 (74 grade) 0.160 mA
+    #     1x CD74HC221M96      ICC max 80 uA   TI SCHS166F p.5 (-40..85) 0.080 mA
+    #     1x SN74HC14DR        ICC max 20 uA   TI SCLS085L §5.5 p.5   0.020 mA
+    #     1x SN74HC595DR       ICC max 80 uA   TI SCLS041J §6.5 p.5   0.080 mA
+    #     1x MCP23017-E/SS     IDD max 1 mA    MCP DS20001952C T1-1 D004 1.000 mA
+    #     1x MAX31856MUD+T     IDD max 2 mA (active conversion)
+    #                                          Maxim 19-7534 Rev0 EC p.2 2.000 mA
+    #     1x TPS3823-33DBVR    IDD max 25 uA   TI SLVS165O §6.5 p.7   0.025 mA
+    #    12 pullups to 3V3, all pulled LOW at vout_max 3.399 V. **VALUES READ
+    #        OFF THE STAGED BOM, NOT ASSUMED — THREE OF THEM ARE 10k, NOT 100k,
+    #        AND AN EARLIER DRAFT OF THIS VERY BLOCK CALLED ALL TWELVE 100k.**
+    #        8x 100k (FAULTPU MR PG REARMPU SWPUA SWPUB SWPURHA SWPURHE)  0.272
+    #        3x 10k  (BID1 OE OS2)                                        1.020
+    #        1x 510k (OS, the HC221 Rext)                                 0.007
+    #                                                                     1.299 mA
+    # B. 3V3_ANALOG (behind FB1, so it is a 3V3 load) .......... 4.214 mA
+    #     MCP3208 IDD max 400 uA + VREF "Current Drain" max 150 uA
+    #                                          MCP DS21298E p.2-3     0.550 mA
+    #     2x LMV393IDR ICC max 250 uA (both comparators, -40..125 C)
+    #                                          TI SLCS136V §5.7 p.6   0.500 mA
+    #     8x thermistor channel, R_REF 10k to 3V3_ANALOG over a 10k NTC to GND;
+    #        WORST CASE is the SHORTED-NTC fault the channel is designed to
+    #        detect, i.e. the full 3.399 V across R_REF alone:
+    #                                          3.399/10k x 8 =        2.719 mA
+    #     R_TEMPOK 10k + R_TH1 68k + R_OPENT 62k, values READ OFF THE BOM,
+    #        each taken at the full 3.399 V worst case
+    #                                    0.340 + 0.050 + 0.055 =       0.445 mA
+    # C. OFF-BOARD 3V3 (MEASURED: only three pins leave on 3V3) . 9.572 mA
+    #     J_LOADCELL.2 -> cook-loadcell HX711 DVDD (pin 16) + the JP1 RATE
+    #        jumper. BOUNDED at 2.0 mA — the HX711's WHOLE quoted supply
+    #        current charged to DVDD alone, which is conservative because that
+    #        board takes its analog excitation from J_LOADCELL.1 = 5V_PROTECTED
+    #                                                                 2.000 mA
+    #     J_MODE.1 -> DPDT pole -> R_MODEPD, **BOM 10k, not 100k**
+    #                                          3.399/10k =             0.340 mA
+    #     **J_ESTOP.2 -> E-stop loop -> R_ESTOPPD, BOM `470Ω` (C25117).**
+    #        THE LARGEST SINGLE 3V3 LOAD ON THIS BOARD AFTER THE SENSOR RAILS,
+    #        and an earlier draft of this block called it a 100k pulldown — a
+    #        213x error, in the SAME PASS whose whole subject is a load-bearing
+    #        sum with a term missing. Caught by the independent topology lens,
+    #        then re-read off the staged BOM here. ADR-0025 makes the J_ESTOP
+    #        shorting plug MANDATORY, so this current flows whenever the board
+    #        is powered and functional; it is not a fault case.
+    #                                          3.399/470 =             7.232 mA
+    # D. THE FOUR SWITCHED SENSOR RAILS — THE TERM THAT WAS MISSING . 85.16 mA
+    #    per CAMERA rail (3V3_SW_A, 3V3_SW_B), each carrying one Adafruit 4407
+    #    "MLX90640 IR Thermal Camera Breakout - 55 Degree" (BRIEF §3 names the
+    #    part) plus this board's own bus pullups:
+    #      MLX90640 IDD max                    Melexis rev12 §8 p.8   25.000 mA
+    #        (VDD 3/3.3/3.6 V; IDD 15/20/25 mA — the 25 is the MAX column)
+    #      AP2112K-3.3 IQ max — the breakout's own regulator, and its EN is
+    #        HARD-TIED TO VIN in Adafruit's schematic, so it can never be shut
+    #        down                              Diodes DS39724 p.8      0.080 mA
+    #      breakout power LED: 10k from the AP2112 output, no switch and no
+    #        GPIO, lit whenever the rail is up. Vf is not specified (Adafruit's
+    #        source names the part only "GREEN"), so BOUNDED at Vf = 0
+    #                                          3.35/10k =              0.335 mA
+    #      breakout level shifter: 4x 4.7k pullups — TWO on the AP2112 3.3 V
+    #        output (SCL_3V, SDA_3V) and TWO on VIN (SCL, SDA). All four are
+    #        fed from this rail. Worst case = both bus lines held LOW:
+    #                                  2x3.399/4.7k + 2x3.35/4.7k =    2.872 mA
+    #      cooksense's own 2.2k bus pullups, R_SDA*/R_SCL* (DETAIL_DESIGN §5:
+    #        "board pullups 2.2k per bus from the CAMERA's switched rail only"),
+    #        both lines LOW                    2x 3.399/2.2k =         3.091 mA
+    #                                          -> per camera rail     31.378 mA
+    #                                          -> 2 camera rails      62.756 mA
+    #    per RH POD rail (3V3_SW_RHA, 3V3_SW_RHE), each one SHT45 pod:
+    #      SHT45 IDD max while measuring, heater off
+    #                                          Sensirion SHT4x D1 v6.4 §3 p.8
+    #                                                                  0.500 mA
+    #      pod module pullups 2x 10k (DETAIL_DESIGN §5: "SHT pods carry module
+    #        10k pullups"), both lines LOW     2x 3.399/10k =           0.680 mA
+    #      **THE SHT4x HEATER, WHICH NOTHING IN THIS TREE HAD EVER DECLARED.**
+    #        Same datasheet table: IDD with the "200 mW" heater on is typ 60 /
+    #        MAX 100 mA. That is where a 0.1 A per-rail budget plausibly came
+    #        from — and it was then charged to all four rails including the two
+    #        that have no heater at all. §4.9 + Table 9: "The heater is designed
+    #        for a maximal duty cycle of 10%", and tHeater long-pulse is
+    #        0.9/1/1.1 s with AUTOMATIC shutoff. The THERMAL bound this rail is
+    #        graded on is a steady-state junction temperature, so the correct
+    #        term is the duty-limited average, and the duty limit is the SENSOR
+    #        MANUFACTURER'S, not a constraint invented here:
+    #                                          100 mA x 10% =         10.000 mA
+    #                                          -> per RH rail         11.180 mA
+    #                                          -> 2 RH rails          22.360 mA
+    #
+    #    SUM OF CITED MAXIMA  A+B+C+D = 4.804 + 4.214 + 9.572 + 85.116
+    #                                                       =        103.706 mA
+    #    DECLARED DESIGN MARGIN x1.5, for the terms that are NOT individually
+    #    cited above and cannot honestly be: CMOS dynamic current (Cpd.V.f over
+    #    ~60 switching nodes at <=1 MHz SPI / 400 kHz I2C), the LVC dICC adder
+    #    (500 uA/input at VCC-0.6, TI SCES212AB — not a normal steady state
+    #    here but not impossible), MLCC leakage across 21 decouplers, and
+    #    connector/harness leakage.       103.706 x 1.5 = 155.6 -> 160 mA
+    #
+    #    DECLARED 0.200, NOT 0.160, AND THE GAP IS AN OPEN DISAGREEMENT RATHER
+    #    THAN PADDING. The v1.7 re-gate-2 TOPOLOGY LENS recounted this rail
+    #    INDEPENDENTLY and reached 115.5 mA of cited load against my 103.706 —
+    #    it names four loads it says are absent here, and I have not yet
+    #    identified all four (two of its findings, R_ESTOPPD and R_MODEPD, ARE
+    #    reproduced above and were mine to get wrong). 0.200 A is the next
+    #    admissible declaration up from BOTH counts (mine x1.5 = 156 mA, its
+    #    x1.5 = 173 mA), it is a member of the declared standard set in
+    #    ADR-0026's `LDO_IOUT_MAX` bound block, and it stays inside the 0.2429 A
+    #    ceiling that bound publishes. **The 11.8 mA delta is OWED, not closed.**
+    iout_max_A: 0.20
+    #
+    #    PEAK, NOT CONTINUOUS — STATED BECAUSE THE GATE CANNOT SEE IT. If BOTH
+    #    SHT45 heaters fire coincidentally at the 200 mW level, the rail draws
+    #    95.046 - 20.000 + 200.000 = 275.0 mA for <=1.1 s. That is +125 mA over
+    #    the declared continuous figure, i.e. +0.256 W. ds1117 Thermal
+    #    Considerations gives junction-to-TAB = 15 C/W, so the junction
+    #    excursion that a 1.1 s pulse can produce before the tab's own thermal
+    #    mass responds is 15 x 0.256 = +3.8 C. Carried against the 17.1 C of
+    #    Tj margin computed under pdiss_max_mw below; see the Tj line there.
+    #    The DROPOUT half is unaffected: vin_min above is derived at a 0.50 A
+    #    whole-board current, and even this peak leaves the board at
+    #    0.275 + 0.011 (LDO Iq) + 0.15 (coils) + 0.02 (5V_STOP) + 0.0013 (TVS)
+    #    = 0.457 A, still inside the 0.50 A that vin_min was derived at.
+    #
+    #    ON THE DIRECTION OF THIS CHANGE, SAID OUT LOUD: the declared figure
+    #    went DOWN, 0.30 -> 0.15, in the same pass that ADDED the four missing
+    #    rails. That is not a relaxation dressed as a fix. The old 0.30 was
+    #    never derived from anything — it is a round number over a list of part
+    #    FAMILIES — and the itemised logic total above (A+B+C = 9.93 mA at
+    #    datasheet maxima) shows it was roughly 30x the on-board logic it
+    #    claimed to cover. The sensor rails it omitted are 8.6x larger than the
+    #    logic it counted. Both errors are now closed against citations, and
+    #    **vin_min is deliberately NOT re-derived downward** (see above): a
+    #    conservative vin_min is the conservative direction for the DROPOUT
+    #    check, and re-deriving it at the new load would only make a check
+    #    easier. It stays at the 0.50 A board current, unchanged since v1.7.
     # DROPOUT — CITED, AND THE RAIL'S OWN LOAD FIGURE IS **OWED**.
     # ds1117 p.3, ELECTRICAL CHARACTERISTICS (continued), "Dropout Voltage
     # (VIN - VOUT)" row, devices AMS1117-1.5/-1.8/-2.5/-2.85/-3.3/-5.0, condition
@@ -174,15 +372,92 @@ rails:
     # The OWED bench measurement below is STILL owed and still worth taking: it is
     # the only thing that turns a 55 mV pass into a known margin.
     dropout_mv: 1300
-    # DISSIPATION — CITED. ds1117 p.3, Note 2: "the maximum power dissipation of
-    # **1.2 W for SOT-223**, 2.2W for TO-252 and 780mW for 8-Lead SOIC". U_LDO is
-    # the SOT-223 (02_parts/AMS1117-3.3 package). Not derated further: the tab is
-    # VOUT and is flooded with 3V3 copper (that part.yaml's layout `notes`), which
-    # is the mounting Table 1 (p.5) characterises at 55-65 C/W.
-    #   PD = (5.250 - 3.201) x 0.3 = 615 mW  vs  1200 mW  -> 51%, PASS
-    # (was 690 mW / 57% at the old 5.5 V ceiling: tightening the supply spec buys
-    # 75 mW of LDO dissipation as well as the dropout margin.)
-    pdiss_max_mw: 1200
+    # DISSIPATION — DERIVED AT A DECLARED AMBIENT. The v1.0-v1.7 value was
+    # ds1117 p.3 Note 2's "maximum power dissipation of **1.2 W for SOT-223**",
+    # applied with NO ambient term at all. Note 2's own sentence is about LINE
+    # AND LOAD REGULATION being guaranteed up to that figure, and it ends
+    # "Guaranteed maximum power dissipation will not be available over the full
+    # input/output range" — it is not a package ceiling you may quote flat.
+    # The ceiling is a JUNCTION TEMPERATURE, and ds1117 says so in the
+    # Application Hints, Thermal Considerations, VERBATIM:
+    #
+    #     "The power dissipation of the AMS1117 is equal to:
+    #        PD = ( VIN - VOUT )( IOUT )
+    #      Maximum junction temperature will be equal to:
+    #        TJ = TA(MAX) + PD(Thermal Resistance (junction-to-ambient))
+    #      Maximum junction temperature must not exceed 125C."
+    #
+    #   PD_max(Ta) = (TJ_max - Ta) / theta_JA
+    #
+    # theta_JA = 90 C/W — CITED, ds1117 ABSOLUTE MAXIMUM RATINGS, verbatim:
+    #   "Thermal Resistance ... SOT-223 package  phi_JA = 90 C/W*"
+    #   "* With package soldering to copper area over backside ground plane or
+    #      internal power plane phi_JA can vary from 46 C/W to >90 C/W depending
+    #      on mounting technique and the size of the copper area."
+    # 90 is the PACKAGE figure and it is the number to use when the mounting
+    # cannot be claimed. On THIS board it cannot: MEASURED (see the header
+    # block), the tab is a 7.60 mm2 island in an F.Cu GND pour with two
+    # 0.150 mm-drill vias, there is NO F.Cu 3V3 zone anywhere, and Table 1's
+    # smallest characterised top-side area is 100 mm2 -> 80 C/W. The datasheet
+    # DOES bless this board's real mechanism — "the heat spreading copper layer
+    # does not need to be electrically connected to the tab ... the PC material
+    # can be very effective at transmitting heat between the pad area ... and a
+    # ground plane layer either inside or on the opposite side of the board",
+    # and MEASURED plane coverage under the LDO body is In1 GND 98.6 % /
+    # In2 3V3 98.9 % / B.Cu GND 98.6 % at 0.2 mm of prepreg — so the true
+    # theta_JA is plausibly BETTER than 90. It is not MEASURED, so it is not
+    # claimed. **theta_JA on this mounting is OWED** (canon M-OWED) and the
+    # bench measurement that retires it is the same one that owes the 0.3 A
+    # dropout figure above: at G4 bring-up, load 3V3 to its real total, measure
+    # the U_LDO tab rise against a known ambient.
+    #
+    # TJ_max = 125 C — CITED twice: ABSOLUTE MAXIMUM RATINGS "Operating Junction
+    # Temperature Range / Control Section / Power Transistor -40 C to 125 C",
+    # and Thermal Considerations "maximum junction temperature ratings of 125 C
+    # should not be exceeded under continuous normal load conditions".
+    #
+    # Ta = 75 C — DECLARED, and it is the CONSERVATIVE reading of the only
+    # ambient this project states anywhere. BRIEF.md line 117, verbatim:
+    #   "enclosure <=50 / 55 / 65 / 75"  (preferred / warn / stop / HARD)
+    # and TH_ENCLOSURE is one of the eight monitored ADC channels precisely
+    # because the board lives in that enclosure. ADR-0014's OPEN item 2 records
+    # that the board's own thermal zone has never been declared, so taking the
+    # enclosure's HARD limit is the only reading that invents no fact. The
+    # ladder, so a future ambient decision does not have to re-derive it:
+    #
+    #   Ta      package PD_max = (125-Ta)/90   available to the pass element
+    #   50 C          833.3 mW                        775.6 mW
+    #   55 C          777.8 mW                        720.0 mW
+    #   65 C          666.7 mW                        608.9 mW
+    #   75 C          555.6 mW                        497.8 mW   <- DECLARED
+    #
+    # THE SECOND COLUMN SUBTRACTS THE LDO'S OWN QUIESCENT BURN, WHICH E-TOPO's
+    # PD FORMULA CANNOT SEE. E-TOPO computes PD = (Vin_max - Vout_min) x Iout,
+    # i.e. the PASS-ELEMENT dissipation only. The AMS1117's ground-pin current
+    # is not in that product and is not small: ds1117 ELECTRICAL
+    # CHARACTERISTICS, "Quiescent Current, AMS1117-1.5/-1.8/-2.5/-2.85/-3.3/
+    # -5.0, (VIN - VOUT) = 1.5V: 5 mA typ, **11 mA max**". It burns
+    # Vin_max x Iq_max = 5.250 x 0.011 = 57.75 mW inside the same package. So
+    # the ceiling handed to the gate is the package budget MINUS that term:
+    #
+    #   pdiss_max_mw = (125 - 75)/90 x 1000 - 5.250 x 11 = 555.6 - 57.8 = 497.8
+    #
+    # rounded DOWN. Deratings belong here rather than in a new key because
+    # `rails[].pdiss_max_mw` is the override power_topology.py documents for
+    # exactly this ("a board-specific derating (a hot ambient, no copper under
+    # the part)"), and it is the ONLY graded home available — G-ORPHAN fails
+    # any key this file declares that no gate reads, and the contract template
+    # that would have to carry a `theta_ja:`/`ambient_c:` row lives in skills/.
+    # The skill patch that makes the derating first-class is proposed in
+    # 06_build/staging/cooksense-v1.7/verification/owed_skill_patches.md.
+    #
+    #   PD = (5.250 - 3.201) x 0.150 = 307.4 mW  vs  497.8 mW  -> 62 %, PASS
+    #
+    # RESULTING JUNCTION TEMPERATURE, which is the number that actually matters:
+    #   Tj = 75 + (0.3074 + 0.0578) x 90 = 75 + 32.9 = 107.9 C   (17.1 C margin)
+    #   + the <=1.1 s dual-heater excursion from the iout block, +3.8 C
+    #                                                = 111.7 C   (13.3 C margin)
+    pdiss_max_mw: 497
 
 # Documentation-only (ignored by power_topology.py). Each linear rail's envelope.
 # 3V3 is NO LONGER LISTED HERE — it moved into `rails:` above, and keeping a
@@ -236,12 +511,59 @@ linear_rails:
     iout_max_A: 0.05              # MCP3208 VDD/VREF + thermistor ref dividers + comparator threshold
     element: GZ2012D601TF          # ferrite bead (600R@100MHz) split off 3V3
     note: "3V3 -> ferrite FB1 -> 3V3_ANALOG (ADC ref + thermistor bias, kept off digital noise)"
-  - name: 3V3_SW_A / 3V3_SW_B / 3V3_SW_RHA / 3V3_SW_RHE
+  # ##########################################################################
+  # v1.7 RE-GATE 2: THE FOUR SWITCHED RAILS WERE ONE ENTRY CARRYING ONE ROUND
+  # 0.1 A. They are two different loads that differ by 2.8x, and their SUM is
+  # now a term of the `rails:` 3V3 entry above (which is what was missing —
+  # this key is documentation, and documentation summed by nobody is how the
+  # AMS1117 came to be graded on 43 % of its own file's declared load). Every
+  # number below is the same cited figure the `rails:` budget uses; if you
+  # change one, change both — until the skill patch lands, agreement between
+  # these two homes is enforced by nothing but this sentence.
+  # ##########################################################################
+  - name: 3V3_SW_A / 3V3_SW_B
     kind: switched_load_switch      # per-sensor high-side P-FET (AO3401A) for stuck-I2C power-cycling (ADR-0004)
     vin_min: 3.201                  # = the 3V3 rail's cited output envelope (`rails:` above)
     vin_max: 3.399
     vout_min: 3.2
     vout_max: 3.399
-    iout_max_A: 0.1               # one MLX90640 camera or SHT45 + its bus pullups per rail
+    iout_max_A: 0.0314            # DERIVED per rail, all terms at datasheet max:
+                                  # MLX90640 IDD max 25.000 (Melexis rev12 §8 p.8)
+                                  # + Adafruit 4407 breakout AP2112K-3.3 IQ max 0.080
+                                  #   (EN hard-tied to VIN — never shuts down)
+                                  # + breakout power LED, 10k, no switch      0.335
+                                  # + breakout level-shifter pullups 4x 4.7k  2.872
+                                  # + cooksense 2.2k bus pullups 2x           3.091
+                                  #                              = 31.378 mA
     element: AO3401A
-    note: "3V3 -> Q_SW{A,B,RHA,RHE} (enabled by MCP23017) -> switched sensor rail; bus pullups die with the rail (ADR-0004 N1)"
+    note: "3V3 -> Q_SW{A,B} (enabled by MCP23017) -> camera rail, one Adafruit 4407
+      MLX90640 breakout each; bus pullups die with the rail (ADR-0004 N1). Both are ON
+      TOGETHER in normal operation — BRIEF §2 commissions two simultaneous MLX90640
+      streams, and MEASURED each camera rail also powers its bus's 2.2k pullups, which
+      the RH pod on the SAME bus needs (J_RH_AMBIENT.3/.4 = SDA_A/SCL_A)."
+  - name: 3V3_SW_RHA / 3V3_SW_RHE
+    kind: switched_load_switch      # per-sensor high-side P-FET (AO3401A), ADR-0004
+    vin_min: 3.201
+    vin_max: 3.399
+    vout_min: 3.2
+    vout_max: 3.399
+    iout_max_A: 0.0112            # DERIVED per rail, all terms at datasheet max:
+                                  # SHT45 IDD measuring max 0.500 (Sensirion SHT4x
+                                  #   D1 v6.4 §3 p.8) + pod 10k pullups 2x 0.680
+                                  # + SHT4x HEATER: IDD max 100 mA at the "200 mW"
+                                  #   level, at the datasheet's own <=10 % maximal
+                                  #   duty cycle (§4.9 / Table 9; tHeater long pulse
+                                  #   0.9/1/1.1 s with automatic shutoff) = 10.000
+                                  #                              = 11.180 mA
+                                  # PEAK, not continuous: a coincident dual-heater
+                                  # pulse is 100 mA per rail for <=1.1 s — carried
+                                  # as a junction excursion under `rails:` above.
+    element: AO3401A
+    note: "3V3 -> Q_SW{RHA,RHE} (enabled by MCP23017) -> SHT45 pod rail. Both are ON
+      TOGETHER by construction: the deliverable DELTA_AH = AH_EXHAUST - AH_AMBIENT is a
+      DIFFERENCE of the two pods. THE HEATER IS THE UNDECLARED CAPABILITY THIS FILE HAD
+      NEVER NAMED — the SHT4x carries a 200/110/20 mW on-package heater whose 200 mW
+      level draws up to 100 mA, and the brief commissions the exhaust pod into a
+      condensing duct ('short filtered drainable bypass', 'drainable orientation'),
+      which is exactly the case Sensirion §4.9 lists the heater FOR. Firmware may use
+      it; the board's budget now covers it at the manufacturer's 10 % duty limit."
