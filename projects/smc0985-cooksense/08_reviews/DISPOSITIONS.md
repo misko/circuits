@@ -817,3 +817,39 @@ recorded here for the re-gate to settle rather than argued.
 | RG3-L-P0 | the 328.29 mΩ series sum derates ONLY the copper; 58 % of it is components at 23 °C / a 70 °C junction / ≤85 °C, and `F1` is a **PTC with no published R-vs-T**. Break-even F1 ×1.82. | **RECORDED, WITH A BOUND ON THE ASSUMPTION.** Citable corrections give +29.1 → +23.1 mV. Bourns' own `Ihold` derating table, inverted under a NAMED assumption, puts `R(85 °C)/R(23 °C)` at **1.0–1.15** and makes ×1.82 imply a 278 °C polymer switching temperature. Still UN-CITABLE; on the bench list. | ADR-0028, the three-grade section. |
 | RG3-L-P1-1 | `Tj = Ta + PD·θ_JA` omits the board's other **0.958 W** — +1.55…+4.65 °C, i.e. **20–59 %** of the declared 7.92 °C margin. | **RECORDED AND CARRIED SEPARATELY**, not folded into a graded number (it is a model output, not a citation). The honest margin at Ta 75 °C is **3.3–6.4 °C**, and the citable ambient ceiling 82.9 °C is known-optimistic by 2.8–4.7 °C. | ADR-0028 thermal ladder + bound `LDO_TA_MAX_CITED`. |
 | RG3-L-P1-2 | ADR-0026's options table for the LDO tab enumerated a 3V3 pour and "state the path", and **never counted the vias** — 6 more in the existing pad is **−18.0 °C/W / +8.4 °C** for no BOM, schematic or netlist change. | **RECORDED as the cheapest item in the options pricing**, for the next copper revision beside ADR-0027's deferred 5 V pour. | ADR-0028 Options (b). |
+
+---
+
+## 2026-07-30 — v1.7 SEAL RE-GATE 4 (the 65 °C envelope). FOUR lenses, FOUR distinct filenames, ALL SOUND.
+
+The envelope narrowing (75 → 65 °C + a mandatory bench gate) is a MATERIAL
+change, so every prior verdict on this board was void — including the two SOUND
+ones that had come to occupy the contract filenames. All four lenses were
+re-gated fresh-context, each writing to its OWN name so no reviewer could
+overwrite another (that is how a DEFECTIVE review was nearly lost here before).
+
+| review file | design_verdict | order_verdict | P0 | headline |
+|---|---|---|---|---|
+| `2026-07-30_v1.7_redteam_topology_REGATE4-65C.md` | **SOUND** | BLOCKED-SOURCING | 0 | 65 °C figures reproduce exactly; the `pdiss_max_mw` ratchet is defensible; 2 P1 |
+| `2026-07-30_v1.7_redteam_layout_REGATE4-65C.md` | **SOUND** | BLOCKED-SOURCING | 0 | θ_JA 90 defensible (own network 81.2…92.6); the honest 13.3…16.4 °C band is CONSERVATIVE, floor reproduces to 0.12 °C; 2 P1 |
+| `2026-07-30_v1.7_pin-review_REGATE4-65C.md` | **SOUND** | BLOCKED-SOURCING | 0 FAIL | 243/243 footprints, ~420 pins; relays 12/12 mechanically keyed by the 10.16/15.24 mm lead spans |
+| `2026-07-30_v1.7_render-review_REGATE4-65C.md` | **SOUND** | BLOCKED-SOURCING | 0 | 4 P1, all silk/paperwork; no connector or polarised part in the unmeasured twin set |
+
+**The contract-named `redteam_topology.md` / `redteam_layout.md` in the sealed
+archive carry the two REGATE4 files above, unedited.** All four are also shipped
+under their own names, so the archive contains the full set and not just the two
+the gate reads.
+
+### Dispositions
+
+| finding | lens(es) | disposition |
+|---|---|---|
+| **`DIP05-1A72-13L` −20…+70 °C is the board's narrowest rating and appears in no release doc; §7b's "may reopen 75 °C" is unsound** | topology P1-1, layout P1-1, pin (noted) — **THREE independent lenses** | **FIXED PRE-SEAL.** Confirmed by my own sweep: +70 °C is the UNIQUE minimum across all 47 dossiers. ADR-0030 written; ORDER_README §0-T gains the relay section and §7b's reopen claim is WITHDRAWN and replaced with the necessary-but-not-sufficient form. |
+| **§7b B5 instructs "all 12 reed coils energised", which the two 1-of-8 decoders forbid (max 4)** | layout P1-2 | **FIXED PRE-SEAL.** Confirmed from the shipped BOM (one `C5620` row, `U_DECD`+`U_DECU`). B5 corrected to the four-coil case with a stated extrapolation; makes the published board-rise band conservative for a written-down reason. |
+| **`MF-MSMF200L-2` dossier declares the `/16X` 16 V row; the lens read `/8X` 8 V** | topology P1-2 | **FIXED PRE-SEAL, AND BOTH CLAIMS WERE WRONG.** Measured from the committed PDF: the ordering scheme's voltage vocabulary is {6,8,12,16} and `L` is not in it, so NEITHER row is citable. Recorded as NOT ESTABLISHED with 8 V as the design number; the R Min 0.020 / R1 Max 0.070 rows are IDENTICAL across /8X, /12X, /16X, so no margin on this board moves. Vendor confirmation OWED. |
+| silk `ANALOG SENSE (3V3_ANALOG)` covers 34.5 % of `Q_SWDRVA` pad 3 | render P1 (F1) | **CARRIED as the named v-next SILK item**, already documented in the `SILK-OVER-COPPER` waiver as the 1-of-49 exception. Silk is copper-adjacent source and this board is at DRC 0/0/0; not edited at seal. |
+| `assembly.pdf` cannot distinguish the 16 hand-fitted parts; no footprint is DNP | render P1 (F2) | **CARRIED to the v-next work order.** Requires a board-side attribute change. |
+| `schematic.pdf` carries no title block / project attribution | render P1 (F3) | **CARRIED.** This is `policy_audit` S6 (HUMAN) and a tscircuit render property, not a board defect. |
+| `J_ESTOP` has no 2–3 vs 1–2 bridge legend in silk | render P1 (F4) | **CARRIED to the v-next SILK item.** Mitigated today: the ORDER_README's first screen leads with it, and the wrong bridge fails loudly. |
+| `J_TC` contact polarity unverified (Omega sheet fixes no handedness) | pin (QUESTION) | **OWED to the bench hour** — heat a K-probe and confirm the reading RISES. Not in the safety chain (`TEMP_OK` comes from the LMV393 window comparators, not the MAX31856). |
+| `pin_audit.py` silently skipped `J_TC` (empty MPN column) | pin (scoping) | **REPORTED as a tooling gap.** A reviewer following the brief literally would have missed the board's only thermocouple jack. |

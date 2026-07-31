@@ -1,10 +1,34 @@
 mpn: MF-MSMF200L-2
 manufacturer: BOURNS
-type: polyfuse_2a_16v
+type: polyfuse_2a
 datasheet:
-  # SERIES sheet — the Bourns MF-MSMF family document. The catalog MPN carries an
-  # 'L' packaging/marking letter; the ELECTRICAL row is MF-MSMF200/16X (16 V), and
-  # every MF-MSMF200 variant in the table shares RMin 0.020 / R1Max 0.070.
+  # SERIES sheet — the Bourns MF-MSMF family document.
+  #
+  # *** CORRECTED 2026-07-30 (v1.7 seal). THE VOLTAGE ROW WAS ASSERTED AND IT IS
+  # *** NOT ESTABLISHED BY THIS DOCUMENT. The line above used to read
+  # *** `type: polyfuse_2a_16v` and this comment used to read "the ELECTRICAL row
+  # *** is MF-MSMF200/16X (16 V)". A v1.7 re-gate-4 topology lens read the same
+  # *** committed PDF and concluded the opposite — that `L` maps to the /8X (8 V)
+  # *** row. MEASURED BY ME from this file's own committed PDF (sha256 below,
+  # *** `pdftotext -layout`): **NEITHER IS ESTABLISHED.** The "How to Order"
+  # *** scheme is `MF - MSMF <Ihold> / <Voltage> X - <packaging>` with the voltage
+  # *** vocabulary {6, 8, 12, 16}; `L` IS NOT IN IT. `MF-MSMF200L-2` is an LCSC
+  # *** catalog string, not a Bourns order code in this scheme, so the committed
+  # *** evidence does not name a voltage row for the fitted part at all.
+  #
+  # WHAT IS ESTABLISHED, AND IT IS THE PART THAT IS LOAD-BEARING: the electrical
+  # table lists MF-MSMF200/8X, /12X and /16X and **all three carry R Min 0.020 Ohm
+  # and R1 Max 0.070 Ohm**, verbatim. So the 70 mOhm that ADR-0027's 328.29 mOhm
+  # series sum, ADR-0028's dropout ladder and E-TOPO's headroom all depend on is
+  # INVARIANT under the ambiguity — no margin on this board moves either way.
+  # Only the voltage rating is in dispute, the LOWEST candidate is 8 V, and the
+  # rail it protects is 5.250 V max (ADR-0021) with D_TVS clamping at 6.40-7.00 V,
+  # i.e. inside 8 V with margin. The exposure is therefore bounded and small, and
+  # it is recorded rather than resolved by assertion.
+  #
+  # Committed 2026-07-28 (v1.7): this dossier previously held only an LCSC URL, so
+  # the series resistance E-TOPO's dropout headroom depends on had NO cited value
+  # and the v1.6 adversarial audit had to ESTIMATE it (~34 mV at ~0.45 A).
   # Committed 2026-07-28 (v1.7): this dossier previously held only an LCSC URL, so
   # the series resistance E-TOPO's dropout headroom depends on had NO cited value
   # and the v1.6 adversarial audit had to ESTIMATE it (~34 mV at ~0.45 A).
@@ -16,8 +40,25 @@ datasheet:
 package: 1812
 footprint: Fuse:Fuse_1812_4532Metric
 limits:
-  vmax: "16 V"
+  vmax: "NOT ESTABLISHED for the fitted MPN — 8 V is the LOWEST candidate row and
+         is the number to design against. See the datasheet block above: the
+         committed PDF's ordering scheme has no `L` voltage option, so neither
+         the /8X (8 V) nor the /16X (16 V) row is citable for MF-MSMF200L-2.
+         OWED (canon M-OWED): a vendor confirmation of what LCSC's `L` suffix
+         maps to. BOUNDED MEANWHILE: the protected rail is 5.250 V max
+         (ADR-0021) and D_TVS clamps at 6.40-7.00 V, both inside 8 V."
   imax: "100 A fault current"
+  r_min_ohm: 0.020        # CITED, MF-MSMF electrical table. IDENTICAL across the
+  r1_max_ohm: 0.070       # /8X, /12X and /16X rows, so the 70 mOhm every series
+                          # sum on this board spends is INVARIANT under the
+                          # voltage-row ambiguity above. This is the number
+                          # ADR-0027/ADR-0028/E-TOPO actually depend on.
+  t_op: "-40..+85 C"      # CITED, operating range. NOT the board's binding
+                          # thermal limit — DIP05-1A72-13L is -20..+70 C and
+                          # twelve of them are fitted. See ADR-0030.
+  tempco: "NOT PUBLISHED — Bourns gives no resistance-vs-temperature data for
+           this family anywhere in the committed datasheet. This is UN-CITABLE
+           and it is ORDER_README §7b bench item B1."
   ihold: "2.00 A at 23 C"
   itrip: "3.50 A at 23 C. NOTE: the ADR-0001 note said 'Itrip 4A'; the committed series table says 3.50 A for every MF-MSMF200 variant. The TABLE governs."
   r_min: "0.020 ohm at 23 C"

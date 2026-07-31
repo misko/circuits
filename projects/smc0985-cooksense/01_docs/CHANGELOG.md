@@ -5,6 +5,69 @@ INTERPOSER (Board C) is deferred (coupon-gated) and has no release yet.
 
 ---
 
+## cooksense-v1.7-2026-07-30 — **SEALED.** The relay land is fixed, the board has a DECLARED AMBIENT for the first time, and the part that binds it is not the one anyone was arguing about.
+
+**A REAL BOARD REVISION, the first since v1.3.** `source/cooksense.kicad_pcb` md5
+`9f4fd5fae810f40a52b1035df727243c`; v1.3–v1.6 all carried
+`420445b5141dd1111eccab038c68511b`. Gerbers, drills, BOM and CPL all move.
+
+**WHAT IT FIXES vs v1.6** — the `pinout12` → `pinout13` reed-relay land (the
+defect that makes all six earlier sealed releases DO-NOT-ORDER); the eFuse OVLO
+divider (100k/15k = 9.200 V nominal, above BOTH the 5.25 V nuisance-trip bound
+and the SMBJ5.0A's 6.40 V minimum breakdown → 100k/26.1k = 5.798 V); `R_OPENT`
+62 kΩ (`C37825`); the supply specified rather than advised (D11/ADR-0021); and
+the 3V3 rail's declared load, thermal ceiling and series resistance all
+re-derived (ADR-0026/0027/0028).
+
+**WHAT IS NEW AND HAS NO PRECEDENT IN ANY EARLIER RELEASE — A DECLARED OPERATING
+AMBIENT.** User decision 2026-07-30, ADR-0029 + ADR-0030, BRIEF D12:
+
+    DECLARED OPERATING AMBIENT   Ta = 65 C    SURVIVE CORNER   Ta = 75 C
+    MANDATORY BENCH GATE B1-B6 BEFORE USE ABOVE BENCH CONDITIONS (ORDER_README §7b)
+
+At 65 °C the `U_LDO` junction margin is **17.92 °C citable / 13.3…16.4 °C**
+carrying the board's other 0.958 W; at 75 °C the same two forms are **7.92 and
+3.3…6.4**. **The 7.92 °C earlier v1.7 staging published was wrong regardless of
+the envelope** — the arithmetic was right and the FORM omitted a term worth
+20–59 % of itself. `pdiss_max_mw` is deliberately HELD at the 75 °C derating
+(497 mW) so that narrowing a declaration cannot relax a gate.
+
+**AND THE PART THAT ACTUALLY BINDS IS THE REED RELAY, NOT THE LDO** (ADR-0030,
+found independently by THREE of four fresh-context lenses). `DIP05-1A72-13L` is
+rated **−20…+70 °C** and twelve are fitted — the UNIQUE minimum across all 47
+dossiers, 15 °C tighter than the `F1` figure ADR-0028/0029 had named. **65 °C is
+the only rung on the BRIEF's ladder that fits them at all**, with 5.00 °C of
+margin; 75 °C was never inside the rating. Consequently ADR-0029's "passing
+B1–B6 may reopen 75 °C" is **WITHDRAWN**: B1–B6 can reopen at most 65 → 70 °C,
+and above 70 °C needs a BOM change, i.e. a new board revision. §7b item B5 is
+also corrected — the two SN74HC238 1-of-8 decoders permit **four** simultaneous
+coils, not twelve, so "all 12 energised" was a state the hardware forbids.
+
+**REVIEWS — four fresh-context lenses, four distinct filenames, all re-gated
+against this archive because the envelope change is MATERIAL:**
+
+    redteam_topology  design_verdict: SOUND   order_verdict: BLOCKED-SOURCING   0 P0
+    redteam_layout    design_verdict: SOUND   order_verdict: BLOCKED-SOURCING   0 P0
+    pin_review        design_verdict: SOUND   order_verdict: BLOCKED-SOURCING   0 FAIL (243/243)
+    render_review     design_verdict: SOUND   order_verdict: BLOCKED-SOURCING   0 P0
+
+**⛔ SEALED IS NOT ORDERABLE.** `SOURCING: BLOCKED-1` — `C265111` (JST
+SM08B-GHS-TB, `J_THERM_A`/`J_THERM_B`) reads **stock 5 against minPurchaseNum
+21**, measured 2026-07-30 21:29 local with both controls. Five readings in 48 h
+(0→5→0→5→5) and **MOQ 21 at every one**: the blocker has never been the stock.
+Watch item: `C587657` (Molex `J_PWR`) 130→80→70→70, single-source, no drop-in
+fallback. Re-measure on order day.
+
+Gates, UNPIPED: DRC 0/0/0 exit 0 with `--exit-code-violations` (both halves) ·
+standalone-archive DRC 0/0/0 exit 0 outside the repo · ERC 0 errors / 411
+warnings · policy_audit FAIL=0 · E-TOPO / E-INV 168/168 / E-ADR 12/12 / M-BOUND /
+G-ORPHAN 315/315 / A-POP / A-BODY 206/206 / F-LEGIBLE / M-DEPEND / M4 all exit 0.
+**M4 (`waiver_provenance`) grades this board explicitly for the first time**
+after skills commit `1b70262a`: PASS, 16 waivers graded, all OWED-for-evidence
+under a 22 ceiling — named debt, not a green verdict.
+
+---
+
 # ⛔ DO-NOT-ORDER — ALL SIX SEALED cooksense RELEASES: v1.0, v1.1, v1.3, v1.4, v1.5, v1.6
 
 ## THE SCOPE OF THIS BANNER, IN ONE SENTENCE EACH — read all four lines
@@ -13,10 +76,12 @@ INTERPOSER (Board C) is deferred (coupon-gated) and has no release yet.
    are exactly six of them in `07_releases/` — **v1.0, v1.1, v1.3, v1.4, v1.5,
    v1.6** — and this banner covers all six with no exceptions. **THERE IS NO
    GOOD SEALED ONE.**
-2. **`v1.7` IS NOT ON THAT LIST BECAUSE IT HAS NEVER BEEN SEALED.** It is an
-   UNSEALED CANDIDATE living in `06_build/staging/cooksense-v1.7/`. You cannot
-   order it, because it does not exist as a release. It is not covered by this
-   banner and it is not exempt from it — it is simply not a release.
+2. **`v1.7` IS NOT ON THAT LIST BECAUSE IT FIXES THE DEFECT.** ⚠️ **UPDATED
+   2026-07-30: `cooksense-v1.7-2026-07-30` IS NOW SEALED.** It carries the
+   correct `pinout13` relay land and is the first cooksense release that is not
+   DO-NOT-ORDER by construction. **It is SEALED and it is NOT ORDERABLE TODAY** —
+   one BOM line (`C265111`, stock 5 / MOQ 21) cannot be bought at any quantity.
+   Those are two different statements; see its MANIFEST and ORDER_README §5-0.
 3. **`interposer` IS A DIFFERENT BOARD AND IS COMPLETELY UNAFFECTED.**
    `interposer-v1.1-2026-07-27` **remains ORDERABLE.** Nothing in this banner
    touches it.
