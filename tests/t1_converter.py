@@ -1828,5 +1828,111 @@ def t_decollide_is_deterministic_and_refuses():
     check(moved, "no label moved at all — this fixture proves nothing")
 
 
+# ======================================== S12: two nets never drawn as one wire
+#: the commit carrying the converter that guarded POINTS and never PAIRS — it
+#: tests a foreign pin tip against a wire and a foreign label anchor against a
+#: wire, and never a wire against a wire.
+WIREBLIND_COMMIT = "6ef7b516"
+
+
+def _wireblind_conv():
+    """The pre-S12 converter, extracted from git and runnable.
+
+    Whole-file, so the A/B differs in the wire-vs-wire guard and nothing else.
+    """
+    blob = subprocess.run(
+        ["git", "-C", str(ROOT), "show",
+         f"{WIREBLIND_COMMIT}:skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py"],
+        capture_output=True, text=True)
+    check(blob.returncode == 0, f"git show {WIREBLIND_COMMIT}: {blob.stderr}")
+    check("disambiguate_wires" not in blob.stdout
+          and "wire_net_ambiguity" not in blob.stdout,
+          f"{WIREBLIND_COMMIT} already carries the S12 guard — this A/B would "
+          f"silently stop measuring the red side")
+    p = tmpdir("wbconv_") / "wireblind_conv.py"
+    p.write_text(blob.stdout, encoding="utf-8")
+    return p
+
+
+@test("the converter never emits two nets as ONE conductor — and the pre-fix "
+      "converter, run from git on the same circuit.json, emits exactly the "
+      "defect that blocked pluto-rx2-8way-v2's seal", kind="known_bad")
+def t_converter_refuses_two_nets_as_one_conductor():
+    """RED-VERIFIED ON THE MEASUREMENT, and graded by a module that is not the
+    one under test (canon M1): both sheets are handed to
+    `sch_occlusion.wire_net_ambiguity`, which re-parses the FILE and attributes
+    nets by the label plates each connected ink run carries — the way a reader
+    does — sharing no code with the converter.
+
+    MEASURED 2026-07-31 on pluto-rx2-8way-v2's own circuit.json:
+      pre-fix  49 wires, 3 findings — `SW_V3` (89.535,157.480)-(89.535,128.270)
+               and `SEL_V4` (89.535,168.275)-(89.535,153.035) share 4.4450 mm
+               of collinear ink on one x, and the union of vertical ink there
+               is one unbroken 40.005 mm run carrying two nets;
+      post-fix 35 wires, 0 findings, and the exported NETLIST is unchanged
+               node-for-node (symdiff 0 over 40 nets) — the drawn ink went, the
+               connectivity did not.
+    """
+    import sch_occlusion as SO
+    cj = (ROOT / "projects" / "pluto-rx2-8way-v2" / "03_tscircuit" / "build"
+          / "circuit.json")
+    if not cj.is_file():
+        check(False, f"fixture circuit.json missing: {cj}")
+    d = tmpdir("s12conv_")
+    parts = ROOT / "projects" / "pluto-rx2-8way-v2" / "02_parts"
+
+    # RED: the pre-fix converter, from git
+    red_out = d / "red.kicad_sch"
+    # PYTHONPATH so the extracted file finds its own `schwriter2` sibling; it
+    # is the CONVERTER that is swapped, not the whole scripts directory.
+    must_pass(run([PY, _wireblind_conv(), cj, "-o", red_out,
+                   "--parts", parts],
+                  env={"PYTHONPATH": str(SCRIPTS)}), "pre-fix converter")
+    red = SO.wire_net_ambiguity(red_out.read_text(encoding="utf-8-sig"))
+    check(any("share" in f and "collinear ink" in f for f in red),
+          f"the pre-fix converter did NOT emit the collinear overlap this "
+          f"fixture exists to catch — the red side has gone quiet: {red}")
+    check(any("SW_V3" in f and "SEL_V4" in f for f in red),
+          f"the pre-fix overlap is not SW_V3/SEL_V4 any more: {red}")
+
+    # GREEN: HEAD's converter on the very same input
+    good_out = d / "good.kicad_sch"
+    must_pass(run([PY, CONV, cj, "-o", good_out, "--parts", parts]),
+              "S12-guarded converter")
+    eq(SO.wire_net_ambiguity(good_out.read_text(encoding="utf-8-sig")), [],
+       "the guarded converter still draws two nets as one conductor")
+
+    # ...and it did so by dropping DRAWN INK, not connectivity: same netlist.
+    nets = {}
+    for tag, f in (("red", red_out), ("good", good_out)):
+        wd = tmpdir(f"s12net_{tag}_")
+        (wd / "b.kicad_sch").write_text(f.read_text(encoding="utf-8-sig"),
+                                        encoding="utf-8")
+        must_pass(run(["kicad-cli", "sch", "export", "netlist", "--format",
+                       "kicadsexpr", "-o", wd / "b.net", wd / "b.kicad_sch"]),
+                  f"netlist export ({tag})")
+        txt = (wd / "b.net").read_text()
+        got = {}
+        for m in re.finditer(
+                r'\(net\n\s*\(code "?\d+"?\)\n\s*\(name "([^"]*)"\)', txt):
+            depth, i = 0, m.start()          # walk the block's own parens
+            while True:
+                if txt[i] == "(":
+                    depth += 1
+                elif txt[i] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                i += 1
+            got[m.group(1)] = frozenset(re.findall(
+                r'\(ref "([^"]+)"\)\s*\n\s*\(pin "([^"]+)"\)', txt[m.start():i]))
+        nets[tag] = got
+    check(nets["red"] and nets["good"], "no nets parsed from either netlist")
+    eq(sorted(nets["good"]), sorted(nets["red"]),
+       "the S12 fix changed the NET NAME SET — it must only remove drawn ink")
+    changed = [n for n in nets["red"] if nets["red"][n] != nets["good"].get(n)]
+    eq(changed, [], "the S12 fix changed a net's PIN SET")
+
+
 if __name__ == "__main__":
     sys.exit(main())

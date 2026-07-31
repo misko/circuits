@@ -446,6 +446,9 @@ _RE_PROP = re.compile(
     r"\(property \"(Reference|Value)\" \"([^\"]*)\" \(at ([-\d.]+) ([-\d.]+) (\d+)\)\s*"
     r"\(effects \(font \(size ([\d.]+) [\d.]+\)\)(?: \(justify ([\w ]+)\))?(.{0,24}?)\)")
 _RE_GLABEL = re.compile(r"\(global_label \"([^\"]*)\"(.{0,240}?)\(uuid", re.S)
+_RE_WIRE = re.compile(r"\(wire \(pts \(xy ([-\d.]+) ([-\d.]+)\) "
+                      r"\(xy ([-\d.]+) ([-\d.]+)\)\)")
+_RE_JUNCTION = re.compile(r"\(junction \(at ([-\d.]+) ([-\d.]+)\)")
 _RE_OTHER_LABEL = re.compile(r"^\s*\((label|hierarchical_label|text|text_box) "
                              r"\"([^\"]*)\"", re.M)
 
@@ -535,6 +538,30 @@ def parse_sheet(stxt):
     if lb:                       # prototypes all sit at the same local coords
         body = stxt.replace(lb, "")   # and would be pure false positives
 
+    # WIRES ARE INK, AND UNTIL 2026-07-31 THIS MODEL HAD NEVER SEEN ONE.
+    # `grep -c wire sch_occlusion.py` was 1, and that hit was a comment. The
+    # population was 44 global_labels + 89 symbol instances on
+    # pluto-rx2-8way-v2, reported as "graded 133 of 133 drawable object(s)" —
+    # a phrase that reads as total coverage while excluding all 49 wires on the
+    # sheet. So wire-over-glyph, wire-over-plate and wire-over-wire were not
+    # findings this model could return; they were questions it could not ask.
+    # The proportional-width correction could not have reached them either: the
+    # constant was never the limit, the OBJECT SET was.
+    #
+    # A wire is an occluder of exactly the same kind as a pin line — a stroked
+    # segment that a text may not be drawn across — so it joins `segs`, and it
+    # counts in `total` because it is a drawable object this model now places.
+    # MEASURED on pluto-rx2-8way-v2 `04_kicad` (the pre-fix sheet): the `SW_V3`
+    # wire at x=89.535 runs through the plates of `SEL_V2` (96.520,142.875),
+    # `SEL_V3` (96.520,145.415) and `LED_STAT` (96.520,150.495) — three
+    # findings this file returned 0 of.
+    for m in _RE_WIRE.finditer(body):
+        total += 1
+        x1, y1, x2, y2 = (float(m.group(1)), float(m.group(2)),
+                          float(m.group(3)), float(m.group(4)))
+        segs.append((((x1, y1), (x2, y2)), f"wire ({x1:g},{y1:g})-({x2:g},{y2:g})",
+                     None))
+
     for m in _RE_GLABEL.finditer(body):
         total += 1
         name, blk = m.group(1), m.group(2)
@@ -568,7 +595,7 @@ def parse_sheet(stxt):
             continue
         texts.append((plate_box(name, gx, gy, ang, just,
                                 float(fm.group(1)), shape),
-                      f"label {name}", None))
+                      f"label {name}", None, (gx, gy)))
 
     for m in _RE_OTHER_LABEL.finditer(body):
         total += 1
@@ -608,7 +635,7 @@ def parse_sheet(stxt):
                 continue
             side = next((t for t in toks if t in ("left", "right")), None)
             texts.append((prop_box(txt, gx, gy, fs, side),
-                          f"{kind} {txt}", ref))
+                          f"{kind} {txt}", ref, None))
         g = libs.get(lib) or libs.get(lib.split(":", 1)[-1])
         if g is None:
             unmodelled.append(f"symbol {ref}: no lib_symbol {lib!r} on the sheet")
@@ -651,8 +678,8 @@ def occlusions(stxt):
     """
     texts, rects, segs, unmodelled, total = parse_sheet(stxt)
     found = set()
-    for i, (tb, td, towner) in enumerate(texts):
-        for ob, od, _ in texts[i + 1:]:
+    for i, (tb, td, towner, tanchor) in enumerate(texts):
+        for ob, od, _, _ in texts[i + 1:]:
             if boxes_overlap(tb, ob):
                 found.add((td, od))
         for ob, od, oowner in rects:
@@ -663,10 +690,228 @@ def occlusions(stxt):
         for (p, q), od, oowner in segs:
             if towner is not None and towner == oowner:
                 continue
+            # A LABEL'S OWN ATTACHMENT IS NOT AN OCCLUSION, and for a wire that
+            # is a DIFFERENT geometry from the pin case above. A global_label
+            # attaches at a wire END, and the plate starts at that same point,
+            # so a wire arriving along the plate's axis lies on its BASE EDGE —
+            # 1.27 mm of it on the shipped `label_sides_v` fixture, where the
+            # pin case abuts at exactly 0 because the pin is perpendicular.
+            # This is the same exclusion `towner == oowner` makes for a symbol's
+            # own Reference, applied to the one other object a label is
+            # definitionally attached to.
+            # THE ANCHOR MUST BE THE WIRE'S ENDPOINT, NOT MERELY ON IT: a plate
+            # anchored MID-SPAN has its own conductor drawn straight through the
+            # name from both sides, which is a real defect and is exactly the
+            # pluto-rx2-8way-v2 fixture (`SW_V3` at (89.535,140.335) on a wire
+            # running 157.480 -> 128.270).
+            # SCOPED TO WIRES, and that scope is load-bearing: the PIN case
+            # above is the one this module deliberately DOES report
+            # (`t_attachment_is_not_an_occlusion`'s contrast half — a plate
+            # laid ALONG the pin it attaches to is a finding), and a label's
+            # anchor is a pin tip just as often as it is a wire end. Applying
+            # this to every segment silently deleted that fixture.
+            if (od.startswith("wire ") and tanchor is not None and any(
+                    abs(tanchor[0] - e[0]) < 1e-6 and abs(tanchor[1] - e[1]) < 1e-6
+                    for e in (p, q))):
+                continue
             if seg_len_in_box(p, q, tb) > OVERLAP_EPS_MM:
                 found.add((td, od))
     graded = total - len(unmodelled)
     return sorted(f"{a} x {b}" for a, b in found), unmodelled, graded, total
+
+
+# ================================================ S-WNET — two nets, one wire
+# A DISTINCT CHECK ID, NOT MORE S-OCCL, and the split is deliberate.
+#
+# S-OCCL asks "is this text legible" and its remedy is to MOVE A PLATE; it
+# carries a per-board `soccl_max` ceiling because text crowding is a matter of
+# degree. The question below is "does this sheet draw two DIFFERENT NETS as ONE
+# CONDUCTOR", its remedy is to REROUTE (the emitter's `disambiguate_wires`), and
+# it has no degree: one occurrence is a sheet that lies to the reader. Folding
+# it into S-OCCL would make a single exit code mean two things and would let a
+# net-identity defect be masked by a threshold that exists for crowded labels.
+# Wires still join the S-OCCL POPULATION above as occluders — that is genuinely
+# the same question — but this is a second question about the same objects.
+#
+# MEASURED 2026-07-31, pluto-rx2-8way-v2 `04_kicad`: 1 collinear overlap of
+# 4.4450 mm between `SW_V3` and `SEL_V4` on x=89.535, plus 6 endpoint-in-interior
+# T-events, junction_dot=False on every one, and zero junction dots on the whole
+# 49-wire sheet.
+#
+# WHAT KICAD ACTUALLY DOES, measured against kicad-cli 10.0.4 on a probe sheet
+# built for it (four cases, netlist export exit 0):
+#     dotless T (endpoint on a foreign wire's interior)  -> nets stay SEPARATE
+#     collinear overlap with no junction                 -> nets stay SEPARATE
+#     junction dot at the touch point                    -> MERGED  (control)
+#     shared ENDPOINT with no junction                   -> MERGED  (control)
+# So the NETLIST is right and every netlist-shaped gate is honestly green. The
+# lie is confined to the drawn sheet — the one artifact a human reads at
+# bring-up — which is why this check reads GEOMETRY and never the netlist.
+#
+# INDEPENDENCE (canon M1). The emitter `circuit_json_to_kicad_sch.py` now has
+# its own guard against the same defect. This one shares no code with it: its
+# own parse, its own union-find, its own overlap arithmetic, and it runs on the
+# FILE rather than on the emitter's in-memory segment list — so a converter that
+# is wrong in the same way twice cannot be green here.
+def _wires_and_junctions(stxt):
+    body = stxt
+    lb = _block(stxt, "(lib_symbols")
+    if lb:
+        body = stxt.replace(lb, "")
+    wires = [((float(a), float(b)), (float(c), float(d)))
+             for a, b, c, d in _RE_WIRE.findall(body)]
+    juncs = {(round(float(x), 3), round(float(y), 3))
+             for x, y in _RE_JUNCTION.findall(body)}
+    labels = []
+    for m in _RE_GLABEL.finditer(body):
+        am = re.search(r"\(at ([-\d.]+) ([-\d.]+) ", m.group(2))
+        if am:
+            labels.append((m.group(1), (float(am.group(1)), float(am.group(2)))))
+    return wires, juncs, labels
+
+
+def _pt_on_seg(p, s, strict=False):
+    (ax, ay), (bx, by) = s
+    dx, dy = bx - ax, by - ay
+    L = math.hypot(dx, dy)
+    if L < 1e-9:
+        return False
+    if abs((p[0] - ax) * dy - (p[1] - ay) * dx) / L > 1e-4:
+        return False
+    t = ((p[0] - ax) * dx + (p[1] - ay) * dy) / (L * L)
+    return (1e-6 < t < 1 - 1e-6) if strict else (-1e-6 <= t <= 1 + 1e-6)
+
+
+def _shared_ink(s1, s2):
+    """Collinear overlap length of two segments, 0 if they are not collinear."""
+    (a1, b1), (a2, b2) = s1, s2
+    d1 = (b1[0] - a1[0], b1[1] - a1[1])
+    d2 = (b2[0] - a2[0], b2[1] - a2[1])
+    L1, L2 = math.hypot(*d1), math.hypot(*d2)
+    if L1 < 1e-9 or L2 < 1e-9:
+        return 0.0
+    if abs(d1[0] * d2[1] - d1[1] * d2[0]) / (L1 * L2) > 1e-9:
+        return 0.0
+    if abs((a2[0] - a1[0]) * d1[1] - (a2[1] - a1[1]) * d1[0]) / L1 > 1e-4:
+        return 0.0
+    u = (d1[0] / L1, d1[1] / L1)
+    pr = lambda p: (p[0] - a1[0]) * u[0] + (p[1] - a1[1]) * u[1]
+    lo1, hi1 = sorted((pr(a1), pr(b1)))
+    lo2, hi2 = sorted((pr(a2), pr(b2)))
+    return max(0.0, min(hi1, hi2) - max(lo1, lo2))
+
+
+def wire_net_ambiguity(stxt):
+    """-> sorted findings: every place this sheet draws two nets as one wire."""
+    wires, juncs, labels = _wires_and_junctions(stxt)
+    parent = list(range(len(wires)))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    # KiCad's ACTUAL rule, measured: only a shared ENDPOINT joins two wires.
+    ends = {}
+    for i, (a, b) in enumerate(wires):
+        for p in (a, b):
+            k = (round(p[0], 3), round(p[1], 3))
+            if k in ends:
+                ra, rb = find(ends[k]), find(i)
+                if ra != rb:
+                    parent[rb] = ra
+            else:
+                ends[k] = i
+    # ...and a junction dot welds whatever it sits on.
+    for jp in juncs:
+        hit = [i for i, w in enumerate(wires) if _pt_on_seg(jp, w)]
+        for i in hit[1:]:
+            ra, rb = find(hit[0]), find(i)
+            if ra != rb:
+                parent[rb] = ra
+    names = {}
+    for nm, p in labels:
+        for i, w in enumerate(wires):
+            if _pt_on_seg(p, w):
+                names.setdefault(find(i), set()).add(nm)
+                break
+
+    def net(i):
+        s = names.get(find(i))
+        return "+".join(sorted(s)) if s else None
+
+    out = []
+    for i in range(len(wires)):
+        for j in range(i + 1, len(wires)):
+            ni, nj = net(i), net(j)
+            if not ni or not nj or ni == nj:
+                continue
+            ink = _shared_ink(wires[i], wires[j])
+            if ink > OVERLAP_EPS_MM:
+                out.append(f"{ni} x {nj} share {ink:.4f}mm of collinear ink "
+                           f"at {wires[i][0]}-{wires[i][1]}")
+    # A CROSSING IS NOT A T, AND THE DIFFERENCE IS WHAT THE READER SEES.
+    # An endpoint lying in another wire's interior is only ambiguous if the ink
+    # STOPS there. Where the same net continues collinearly out the far side,
+    # the reader sees one wire crossing another — which is exactly what it is,
+    # and KiCad agrees (a dotless crossing connects nothing, MEASURED). The
+    # endpoint is then an artifact of the emitter splitting a straight run at
+    # the crossing point, invisible in the render.
+    # MEASURED 2026-07-31: this is the whole of smc0985-cooksense's interposer
+    # finding (`KP_D4` crosses `KP_D2` at (156.845,56.515) and continues down
+    # the far side) and neither of pluto-rx2-8way-v2's.
+    def continues_through(i, p, j):
+        for k in range(len(wires)):
+            if k in (i, j) or find(k) != find(i):
+                continue
+            if not any(abs(q[0] - p[0]) < 1e-6 and abs(q[1] - p[1]) < 1e-6
+                       for q in wires[k]):
+                continue
+            if _shared_ink(wires[i], wires[k]) > 0:      # doubles back
+                continue
+            d1 = (wires[i][1][0] - wires[i][0][0], wires[i][1][1] - wires[i][0][1])
+            d2 = (wires[k][1][0] - wires[k][0][0], wires[k][1][1] - wires[k][0][1])
+            n1, n2 = math.hypot(*d1), math.hypot(*d2)
+            if n1 > 1e-9 and n2 > 1e-9 and \
+                    abs(d1[0] * d2[1] - d1[1] * d2[0]) / (n1 * n2) < 1e-9:
+                return True                              # straight on through
+        return False
+
+    for i in range(len(wires)):
+        for p in wires[i]:
+            if (round(p[0], 3), round(p[1], 3)) in juncs:
+                continue
+            for j in range(len(wires)):
+                if i == j or not _pt_on_seg(p, wires[j], strict=True):
+                    continue
+                ni, nj = net(i), net(j)
+                if ni and nj and ni != nj and not continues_through(i, p, j):
+                    out.append(f"{ni} ends inside {nj} at "
+                               f"({p[0]:g},{p[1]:g}) with no junction dot")
+    return sorted(set(out))
+
+
+def population(stxt):
+    """The graded set BROKEN OUT BY CLASS -> [(class, n)].
+
+    `total` alone cannot be audited: "133 of 133" is true of any population,
+    including one that silently excludes every wire on the sheet, which is what
+    it did until 2026-07-31. Naming the classes makes an omitted class visible.
+    """
+    body = stxt
+    lb = _block(stxt, "(lib_symbols")
+    if lb:
+        body = stxt.replace(lb, "")
+    return [("wires", len(_RE_WIRE.findall(body))),
+            ("global_labels", len(_RE_GLABEL.findall(body))),
+            ("symbol instances", len(_RE_INST.findall(body))),
+            ("other labels/text", len(_RE_OTHER_LABEL.findall(body))),
+            ("junctions", len(_RE_JUNCTION.findall(body)))]
+
+
+def pop_count(pop, name):
+    return next((v for k, v in pop if k == name), 0)
 
 
 def main(argv=None):
@@ -682,8 +927,17 @@ def main(argv=None):
     if not p.is_file():
         print(f"S-OCCL FAIL: no such sheet: {p}")
         return 2
-    occl, unm, graded, total = occlusions(p.read_text(encoding="utf-8-sig"))
+    stxt = p.read_text(encoding="utf-8-sig")
+    occl, unm, graded, total = occlusions(stxt)
+    # THE DENOMINATOR NAMES ITS POPULATION. "graded 133 of 133 drawable
+    # object(s)" read as total coverage while excluding all 49 wires on the
+    # sheet — a true sentence about a set the reader had no way to bound. The
+    # classes are now printed, so a class that is NOT in the set is visible as
+    # an absence rather than hidden inside a ratio of 1.
+    pop = population(stxt)
     print(f"S-OCCL: graded {graded} of {total} drawable object(s) on {p}")
+    print(f"  population: " + ", ".join(f"{k} {v}" for k, v in pop)
+          + "  (pin NAME/NUMBER text is NOT placed — declared blind spot)")
     for f in (occl if a.verbose else occl[:12]):
         print(f"  OCCLUDED  {f}")
     if occl and not a.verbose and len(occl) > 12:
@@ -697,6 +951,19 @@ def main(argv=None):
     if unm:
         print(f"S-OCCL FAIL: {len(unm)} drawable object(s) could not be placed "
               f"— an ungraded glyph is not a clear one (canon M-COVER)")
+        return 1
+    # S-WNET is graded BEFORE S-OCCL's threshold and is never subject to it:
+    # `--max` is a crowding allowance, and "two nets drawn as one conductor" is
+    # not a matter of degree.
+    wnet = wire_net_ambiguity(stxt)
+    print(f"S-WNET: {len(wnet)} place(s) draw two nets as one conductor "
+          f"({pop_count(pop, 'wires')} wires, {pop_count(pop, 'junctions')} "
+          f"junction dots)")
+    for f in wnet:
+        print(f"  AMBIGUOUS  {f}")
+    if wnet:
+        print(f"S-WNET FAIL: {len(wnet)} — a reader tracing this sheet reads "
+              f"one net where there are two (canon S12). No threshold applies.")
         return 1
     if len(occl) > a.max:
         print(f"S-OCCL FAIL: {len(occl)} text occlusion(s) (<= {a.max})")

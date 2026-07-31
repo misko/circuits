@@ -212,11 +212,14 @@ BOX_LIB = """    (symbol "elt:BOX" (pin_names (offset 0.254)) (in_bom yes) (on_b
     )"""
 
 
-def sheet(labels=(), symbols=(), libs=(BOX_LIB,), out=None):
+def sheet(labels=(), symbols=(), libs=(BOX_LIB,), out=None,
+          wires=(), junctions=()):
     """Write a minimal one-page .kicad_sch.
 
     labels:  (name, x, y, angle, justify_or_None)
     symbols: (lib_id, x, y, angle, reference, value_or_None)
+    wires:   (x1, y1, x2, y2)
+    junctions: (x, y)
     """
     n = [0]
 
@@ -249,6 +252,12 @@ def sheet(labels=(), symbols=(), libs=(BOX_LIB,), out=None):
         L += [f'    (pin "1" (uuid "{uu()}"))',
               f'    (instances (project "occl" (path "/00000000-0000-0000-'
               f'0000-0000000000ff" (reference "{ref}") (unit 1))))', '  )']
+    for (x1, y1, x2, y2) in wires:
+        L.append(f'  (wire (pts (xy {x1} {y1}) (xy {x2} {y2}))'
+                 f' (stroke (width 0) (type default)) (uuid "{uu()}"))')
+    for (x, y) in junctions:
+        L.append(f'  (junction (at {x} {y}) (diameter 0) (color 0 0 0 0)'
+                 f' (uuid "{uu()}"))')
     L += ['  (sheet_instances (path "/" (page "1")))', ')']
     p = (out or (tmpdir("occl_") / "s.kicad_sch"))
     # utf-8 EXPLICITLY: the advance probe writes `°`, `µ` and `Ω`, and a
@@ -1280,6 +1289,204 @@ def t_label_sides_v_is_clean_only_because_the_pass_moves_it():
                        "circuit.json", "-o", q, "--project", fx]),
                   f"convert {fx} with the pass off")
         eq(counts(q)[0], [], f"{fx} un-de-collided — the control")
+
+
+# ================================================ wires: population and S-WNET
+#: the commit that carries the WIRE-BLIND `sch_occlusion.py` — the module whose
+#: `grep -c wire` is 1 and whose one hit is a comment. Pinned rather than
+#: `HEAD~1` so the A/B keeps measuring the same red side after this lands.
+NOWIRE_COMMIT = "6ef7b516"
+_NOWIRE_CACHE = []
+
+
+def nowire_module():
+    """The WIRE-BLIND `sch_occlusion.py`, loaded from git and importable.
+
+    The whole module as it stood at NOWIRE_COMMIT, so the A/B below differs
+    from HEAD in the OBJECT SET and in nothing else.
+    """
+    if _NOWIRE_CACHE:
+        return _NOWIRE_CACHE[0]
+    blob = subprocess.run(
+        ["git", "-C", str(ROOT), "show",
+         f"{NOWIRE_COMMIT}:skills/kicad-pcb/scripts/sch_occlusion.py"],
+        capture_output=True, text=True)
+    check(blob.returncode == 0,
+          f"git show {NOWIRE_COMMIT} failed: {blob.stderr}")
+    # THE GUARD IS THE POINT. A red side that only proves the module CHANGED is
+    # worthless; this asserts the pinned bytes are specifically wire-blind, so
+    # if someone re-points the constant the A/B says so instead of going quiet.
+    check("_RE_WIRE" not in blob.stdout and "wire_net_ambiguity" not in blob.stdout,
+          f"{NOWIRE_COMMIT}:sch_occlusion.py already knows about wires — this "
+          f"A/B would silently stop measuring the red side")
+    nwire = sum(1 for ln in blob.stdout.splitlines()
+                if "wire" in ln and not ln.lstrip().startswith("#"))
+    check(nwire == 0,
+          f"{NOWIRE_COMMIT}:sch_occlusion.py mentions wire on {nwire} "
+          f"non-comment line(s) — not the wire-blind model")
+    p = tmpdir("nowireso_") / "nowire_sch_occlusion.py"
+    p.write_text(blob.stdout, encoding="utf-8")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("nowire_sch_occlusion", p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    _NOWIRE_CACHE.append(mod)
+    return mod
+
+
+@test("a WIRE drawn through a label plate is a finding — and the wire-blind "
+      "model, run from git, reports the sheet CLEAN and FULLY GRADED",
+      kind="known_bad")
+def t_a_wire_through_a_plate_is_a_finding():
+    """THE RED SIDE IS A MEASUREMENT, NOT AN IMPORT ERROR. The pinned module
+    does not merely lack a function — it returns 0 findings and a coverage
+    ratio of 1 over a sheet with a conductor drawn straight through a name.
+    That is what made this class invisible on every wired board in the fleet:
+    not a wrong constant, a missing OBJECT SET.
+
+    Geometry: plate `AAAA` anchored (100,130) reaching RIGHT, so it occupies
+    x in [100, ~106]; the wire runs x=103 vertically across it."""
+    d = tmpdir("wirepop_")
+    p = sheet([("AAAA", 100.0, 130.0, 0, "left")], BOX_AT,
+              wires=[(103.0, 120.0, 103.0, 140.0)], out=d / "s.kicad_sch")
+    # RED: the wire-blind model sees a clean, fully-covered sheet
+    occl0, unm0, graded0, total0 = nowire_module().occlusions(
+        p.read_text(encoding="utf-8-sig"))
+    eq(occl0, [], "the wire-blind model reported a finding it cannot reach")
+    eq(unm0, [], "the wire-blind model left something unplaced")
+    check(graded0 == total0 == 2,
+          f"the wire-blind model graded {graded0} of {total0} — it should see "
+          f"exactly the label and the symbol, and NOT the wire")
+    # GREEN: the wire is in the population and the finding is named
+    occl, unm, graded, total = counts(p)
+    eq(unm, [], "unplaced objects")
+    check(graded == total == 3,
+          f"graded {graded} of {total} — the wire must be counted")
+    check(any(f.startswith("label AAAA x wire") for f in occl),
+          f"the wire through the plate is not reported: {occl}")
+
+
+@test("two nets drawn as ONE conductor FAIL S-WNET, and a junction dot is not "
+      "offered as the repair", kind="known_bad")
+def t_two_nets_one_conductor_fails():
+    """The pluto-rx2-8way-v2 defect in miniature, both shapes of it.
+
+    RED SIDE, and it is the same measurement rather than a missing attribute:
+    the wire-blind model returns 0 findings and full coverage over this sheet.
+    """
+    d = tmpdir("wnet_")
+    # NETA runs y=100..140 at x=200; NETB runs y=130..160 at the SAME x, so
+    # they share 10 mm of ink and NETB's end at y=130 is inside NETA.
+    p = sheet([("NETA", 200.0, 100.0, 90, "left"),
+               ("NETB", 200.0, 160.0, 90, "right")],
+              symbols=(), libs=(),
+              wires=[(200.0, 100.0, 200.0, 140.0),
+                     (200.0, 130.0, 200.0, 160.0)], out=d / "s.kicad_sch")
+    # RED
+    occl0, unm0, g0, t0 = nowire_module().occlusions(
+        p.read_text(encoding="utf-8-sig"))
+    eq(occl0, [], "the wire-blind model reported something here")
+    check(g0 == t0 == 2, f"the wire-blind model graded {g0} of {t0} — it "
+                         f"counts the two labels and neither wire")
+    # GREEN
+    bad = SO.wire_net_ambiguity(p.read_text(encoding="utf-8-sig"))
+    check(any("share" in f and "collinear ink" in f for f in bad),
+          f"the collinear overlap is not reported: {bad}")
+    r = must_fail(run([KPY, TOOL, p]), "S-WNET on two nets drawn as one wire",
+                  "S-WNET FAIL")
+    contains(r.out, "NETA", "the failing message names the nets")
+    # ...and the CONTRAST, one field changed: move NETB clear and it is clean
+    q = sheet([("NETA", 200.0, 100.0, 90, "left"),
+               ("NETB", 210.0, 160.0, 90, "right")],
+              symbols=(), libs=(),
+              wires=[(200.0, 100.0, 200.0, 140.0),
+                     (210.0, 130.0, 210.0, 160.0)], out=d / "ok.kicad_sch")
+    eq(SO.wire_net_ambiguity(q.read_text(encoding="utf-8-sig")), [],
+       "two nets on DIFFERENT lines must be clean")
+
+
+@test("a CROSSING is not a T: a net that continues out the far side is not a "
+      "finding, and that discriminator is what makes S-WNET usable")
+def t_a_crossing_is_not_a_t():
+    """THE FALSE-POSITIVE CONTROL, and it carries most of the fleet.
+
+    MEASURED 2026-07-31: without it the fleet reads 8 endpoint-in-interior
+    events, of which 5 are ordinary undotted crossings — including
+    crow-recorder-central-v2's 3V3-against-0V9 pair, which reads as a POWER
+    RAIL SHORT on a raw scan and is a 3V3 wire passing straight through the
+    0V9 rail to U1 pin 10 (w169/w170 are collinear and both 3V3). A gate that
+    called those defects would be waived within a week."""
+    d = tmpdir("cross_")
+    # NETB runs horizontally THROUGH NETA's vertical at (200,120), split into
+    # two collinear halves at the crossing — exactly what the emitter does.
+    p = sheet([("NETA", 200.0, 100.0, 90, "left"),
+               ("NETB", 190.0, 120.0, 0, "right")],
+              symbols=(), libs=(),
+              wires=[(200.0, 100.0, 200.0, 140.0),
+                     (190.0, 120.0, 200.0, 120.0),
+                     (200.0, 120.0, 210.0, 120.0)], out=d / "s.kicad_sch")
+    eq(SO.wire_net_ambiguity(p.read_text(encoding="utf-8-sig")), [],
+       "a wire crossing another and carrying on is not an ambiguity")
+    # and the CONTRAST: delete the far half and the same point becomes a T
+    q = sheet([("NETA", 200.0, 100.0, 90, "left"),
+               ("NETB", 190.0, 120.0, 0, "right")],
+              symbols=(), libs=(),
+              wires=[(200.0, 100.0, 200.0, 140.0),
+                     (190.0, 120.0, 200.0, 120.0)], out=d / "t.kicad_sch")
+    bad = SO.wire_net_ambiguity(q.read_text(encoding="utf-8-sig"))
+    check(any("ends inside" in f for f in bad),
+          f"a wire that STOPS on another net's wire must be reported: {bad}")
+
+
+@test("a junction dot at a SAME-net T clears it, and S-WNET never asks for one "
+      "at a different-net T (a dot there is the short, not the annotation)")
+def t_the_dot_is_not_the_repair():
+    """MEASURED against kicad-cli 10.0.4 on a four-case probe: a junction dot
+    MERGES the two nets, a dotless T does not. So dotting a different-net T
+    converts a drawing defect into a real short — which is why the emitter's
+    remedy is `disambiguate_wires` (drop ink) and never a dot."""
+    d = tmpdir("dot_")
+    # SAME net either side: one label, so both wires read NETA. Dotted or not,
+    # this is never an S-WNET finding — the gate is about net IDENTITY.
+    p = sheet([("NETA", 200.0, 100.0, 90, "left")], symbols=(), libs=(),
+              wires=[(200.0, 100.0, 200.0, 140.0),
+                     (200.0, 120.0, 210.0, 120.0)], out=d / "same.kicad_sch")
+    eq(SO.wire_net_ambiguity(p.read_text(encoding="utf-8-sig")), [],
+       "a T within ONE net is not two nets drawn as one conductor")
+    # DIFFERENT nets, and now WITH a dot: still a finding is wrong, but the
+    # dot must not SILENCE it — assert the gate keys on the geometry, and that
+    # adding the dot is not a way to make this sheet pass.
+    q = sheet([("NETA", 200.0, 100.0, 90, "left"),
+               ("NETB", 212.0, 120.0, 0, "left")], symbols=(), libs=(),
+              wires=[(200.0, 100.0, 200.0, 140.0),
+                     (200.0, 120.0, 212.0, 120.0)], out=d / "diff.kicad_sch")
+    check(SO.wire_net_ambiguity(q.read_text(encoding="utf-8-sig")),
+          "a different-net T with no dot must be a finding")
+
+
+@test("the fleet carries NO two-nets-as-one-conductor except the named, "
+      "measured exception on a sealed board")
+def t_fleet_wire_ambiguity_is_bounded():
+    """A live-bytes read over every `04_kicad` sheet. The one exception is
+    NAMED rather than thresholded, so a NEW board or a regression cannot hide
+    behind a count.
+
+    crow-recorder-central-v2 is SEALED at v1.7 and its `.kicad_sch` is
+    byte-identical to `04_kicad` (MEASURED). Its 3 findings are one defect:
+    `MID5P` (321.310-323.850) and `ADC5P` (323.215-328.930) share 0.6350 mm at
+    y=164.465, a 7.62 mm continuous run carrying two nets while `Rs5P` — the
+    series resistor that separates them — is drawn 20.3 mm away at x=344.170.
+    The copper is sound (netlist pin sets disjoint), so this is a drawing
+    defect on a sealed release and is carried here as a measured fact until a
+    release is cut for another reason."""
+    EXPECT = {"crow_recorder_central_v2": 3}
+    seen = 0
+    for p in sorted((ROOT / "projects").glob("*/04_kicad/*.kicad_sch")):
+        bad = SO.wire_net_ambiguity(p.read_text(encoding="utf-8-sig"))
+        eq(len(bad), EXPECT.get(p.stem, 0),
+           f"{p.stem}: two-nets-as-one-conductor findings {bad}")
+        seen += 1
+    check(seen >= 6, f"only {seen} fleet sheets scanned")
 
 
 if __name__ == "__main__":

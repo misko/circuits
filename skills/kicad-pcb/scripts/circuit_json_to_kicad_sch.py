@@ -1271,6 +1271,165 @@ def _collinear_overlap(p, q, a, b, eps=1e-6):
     return min(ts[1], 1.0) - max(ts[0], 0.0) > eps
 
 
+# ============================================ two nets as one conductor (S12)
+# THE SHEET MAY NOT DRAW TWO NETS AS ONE CONDUCTOR. Everything above this line
+# guards a POINT against a wire — a pin tip on a foreign wire (the `_on_segment`
+# drop in `convert_layout`), a label anchor on a foreign wire (`_pt_on_wire`).
+# Nothing ever compared a WIRE against a WIRE, so two nets routed onto the same
+# line were drawn as one unbroken conductor and every gate stayed green.
+#
+# MEASURED 2026-07-31, pluto-rx2-8way-v2 `04_kicad`: `SW_V3` runs
+# (89.535,157.480)->(89.535,128.270) and `SEL_V4` runs
+# (89.535,168.275)->(89.535,153.035). Same x, 4.4450 mm of shared ink, and the
+# union of vertical ink at x=89.535 is one unbroken 40.005 mm run carrying two
+# nets — with the `SW_V3` plate anchored mid-run at (89.535,140.335), on the
+# part a reader would call SEL_V4.
+#
+# WHY NO EXISTING GUARD FIRES, and it is not that they are weak. Canon S10 says
+# "kicad-cli merges wires whose endpoint touches a foreign wire or that overlap
+# collinearly". THAT CLAUSE IS FALSE, MEASURED against kicad-cli 10.0.4 on a
+# purpose-built probe sheet (scratchpad/probe, four cases, netlist exit 0):
+#     dotless T (endpoint on a foreign wire's interior)  -> SEPARATE nets
+#     collinear overlap, no junction                     -> SEPARATE nets
+#     junction dot at the touch point                    -> MERGED   (control)
+#     shared ENDPOINT, no junction                       -> MERGED   (control)
+# So the netlist is RIGHT and every netlist-shaped gate (S-NETMERGE, parity,
+# count) is honestly green. The defect is confined to the drawn sheet, which is
+# the one artifact a human reads at bring-up — and S10's false clause is
+# precisely why no wire-geometry gate was ever built: the canon asserted the
+# netlist gate already covered it.
+#
+# THE DOT IS NOT AVAILABLE AS A REMEDY FOR THE DIFFERENT-NET CASE. A junction
+# at a different-net touch point does not annotate the ambiguity, it CREATES the
+# short (control case 3 above). So different-net contact is resolved by removing
+# drawn ink — never by dotting it. Same-net contact is the opposite: there the
+# dot is the truth, and its absence is what leaves the sheet ambiguous.
+def wire_net_ambiguity(segs, junctions):
+    """Every place `segs` draws two DIFFERENT nets as one conductor.
+
+    `segs` is [(a, b, net)]; `junctions` a set of (x, y) keys.
+    -> (overlaps, tees, same_net_tees)
+       overlaps      [(i, j)]      collinear, different nets, shared ink
+       tees          [(i, j, pt)]  endpoint of i strictly inside j, different
+                                   nets, no junction dot at pt
+       same_net_tees [(i, j, pt)]  the same geometry within ONE net and no dot —
+                                   not a lie, but drawn ambiguously; the caller
+                                   dots these rather than dropping them.
+    """
+    overlaps, tees, same_tees = [], [], []
+    n = len(segs)
+    for i in range(n):
+        ai, bi, ni = segs[i]
+        for j in range(i + 1, n):
+            aj, bj, nj = segs[j]
+            if ni != nj and _collinear_overlap(ai, bi, aj, bj):
+                overlaps.append((i, j))
+    for i in range(n):
+        ai, bi, ni = segs[i]
+        for pt in (ai, bi):
+            for j in range(n):
+                if i == j:
+                    continue
+                aj, bj, nj = segs[j]
+                if not _on_segment(pt[0], pt[1], aj[0], aj[1], bj[0], bj[1]):
+                    continue
+                if (round(pt[0], 3), round(pt[1], 3)) in junctions:
+                    continue
+                (tees if ni != nj else same_tees).append((i, j, pt))
+    return overlaps, tees, same_tees
+
+
+def disambiguate_wires(segs, junctions):
+    """Drop the fewest drawn segments that leaves no two nets sharing ink.
+
+    Greedy over the conflict graph — repeatedly drop the segment in the most
+    conflicts (ties broken on the segment's own coordinates, so the choice is
+    deterministic and the sheet is reproducible). Dropping is the right verb
+    rather than trimming: a dropped wire costs the reader a drawn route, and
+    the self-healing label pass still names every pin, so connectivity is
+    preserved exactly. A TRIMMED wire would leave a free end whose position was
+    chosen by this function rather than by the layout, which is a new invention
+    on the sheet -- and inventing geometry is how the defect above got here.
+
+    -> (kept_segs, dropped_count)
+    """
+    keep = list(range(len(segs)))
+    dropped = 0
+    for _ in range(len(segs) + 1):
+        live = [segs[i] for i in keep]
+        ov, te, _same = wire_net_ambiguity(live, junctions)
+        if not ov and not te:
+            break
+        deg = {}
+        for a, b in ov:
+            deg[a] = deg.get(a, 0) + 1
+            deg[b] = deg.get(b, 0) + 1
+        for a, b, _pt in te:
+            deg[a] = deg.get(a, 0) + 1
+            deg[b] = deg.get(b, 0) + 1
+        worst = max(deg, key=lambda k: (deg[k], live[k][0], live[k][1], live[k][2]))
+        keep.pop(worst)
+        dropped += 1
+    return [segs[i] for i in keep], dropped
+
+
+def sheet_wire_ambiguity(content):
+    """The same question asked of EMITTED SHEET TEXT, by a reader that shares
+    no state with the emitter — the backstop for canon M1. Parses `(wire ...)`
+    and `(junction ...)` out of the finished s-expression and attributes a net
+    to each wire by the global_label plates its connected component carries,
+    exactly as a human tracing the ink would. -> list of human-readable strings.
+    """
+    wires = [((float(a), float(b)), (float(c), float(d))) for a, b, c, d in
+             re.findall(r"\(wire \(pts \(xy ([-\d.]+) ([-\d.]+)\) "
+                        r"\(xy ([-\d.]+) ([-\d.]+)\)\)", content)]
+    juncs = {(round(float(x), 3), round(float(y), 3)) for x, y in
+             re.findall(r"\(junction \(at ([-\d.]+) ([-\d.]+)\)", content)}
+    labels = [(nm, (float(x), float(y))) for nm, x, y in
+              re.findall(r'\(global_label "([^"]+)" \(shape \w+\) '
+                         r'\(at ([-\d.]+) ([-\d.]+)', content)]
+    # components under the rule KiCad actually implements: shared ENDPOINTS
+    # only (MEASURED — see the header above), so a dotless T or an overlap
+    # leaves the two sides in DIFFERENT components, which is the whole point.
+    uf = UF()
+    for a, b in wires:
+        uf.union(key_pt(a), key_pt(b))
+    names = {}
+    for nm, p in labels:
+        for a, b in wires:
+            if _pt_on_wire(p, a, b):
+                names.setdefault(uf.find(key_pt(a)), set()).add(nm)
+                break
+
+    def net_of(i):
+        s = names.get(uf.find(key_pt(wires[i][0])))
+        return "+".join(sorted(s)) if s else None
+
+    out = []
+    for i in range(len(wires)):
+        for j in range(i + 1, len(wires)):
+            ni, nj = net_of(i), net_of(j)
+            if ni and nj and ni != nj and _collinear_overlap(
+                    wires[i][0], wires[i][1], wires[j][0], wires[j][1]):
+                out.append(f"collinear overlap {ni} / {nj} at {wires[i]}")
+    for i in range(len(wires)):
+        for pt in wires[i]:
+            for j in range(len(wires)):
+                if i == j or key_pt(pt) in juncs:
+                    continue
+                aj, bj = wires[j]
+                if not _on_segment(pt[0], pt[1], aj[0], aj[1], bj[0], bj[1]):
+                    continue
+                ni, nj = net_of(i), net_of(j)
+                if ni and nj and ni != nj:
+                    out.append(f"dotless T {ni} into {nj} at {pt}")
+    return sorted(set(out))
+
+
+def key_pt(p):
+    return (round(p[0], 3), round(p[1], 3))
+
+
 def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
                  segs, junctions, pin_tip):
     """De-collide every global_label this module places. Canon S11.
@@ -1620,6 +1779,14 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         else:
             segs.append((a, b, net))
 
+    # ---- ...and the wire-vs-wire half of that same filter (canon S12).
+    # The loop above tests a foreign PIN TIP against this segment. Two nets can
+    # share ink with no pin tip anywhere near the shared part — which is exactly
+    # what pluto-rx2-8way-v2 shipped. See `wire_net_ambiguity` for the measured
+    # KiCad behaviour that makes this a DRAWING defect rather than a netlist one.
+    segs, amb_dropped = disambiguate_wires(segs, junctions)
+    dropped += amb_dropped
+
     # ---- candidate labels from schematic_net_label (GND excluded)
     tip_reach = {}              # sheet coord -> the reach of the pin sitting there
     for (_rd, _pd), _t in pin_tip.items():
@@ -1786,6 +1953,28 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         segs, junctions, pin_tip)
     segs = segs + [(p, q, net) for (p, q), net in stubs]
     junctions = junctions | {key(j) for j in extra_junc}
+
+    # ---- FINAL wire-geometry verdict on the set actually about to be drawn
+    # (canon S12). The stub planner already refuses to lay a stub collinear with
+    # a foreign wire, so this normally finds nothing — but "normally" is not a
+    # gate, and this is the last point at which the segment list is still the
+    # thing that gets emitted.
+    ov, te, same_te = wire_net_ambiguity(segs, junctions)
+    if ov or te:
+        det = ([f"{segs[i][2]}/{segs[j][2]} collinear at {segs[i][0]}"
+                for i, j in ov[:4]] +
+               [f"{segs[i][2]} tees into {segs[j][2]} at {p}"
+                for i, j, p in te[:4]])
+        raise LayoutFallback(
+            f"{len(ov)} collinear different-net overlap(s) and {len(te)} "
+            f"dotless different-net T-event(s) survive stub planning — this "
+            f"sheet would draw two nets as one conductor: {det}")
+    # A SAME-net T with no dot is not a lie, but it is unreadable: the reader
+    # cannot tell it from the different-net case, which is the one that matters.
+    # Here the dot is the truth (both sides are one net either way), so it is
+    # added rather than the ink being dropped.
+    for _i, _j, _p in same_te:
+        junctions = junctions | {key(_p)}
 
     # ================================================================= emit
     root_uuid = _u()
@@ -1967,6 +2156,26 @@ def main():
     if mode == "grid":
         content, comps = convert(a.circuit_json, project, title, a.rev, a.date,
                                  aliases, overrides, ties)
+
+    # ---- canon S12, asked of the FINISHED SHEET TEXT and asked in EVERY mode.
+    # The in-flight check above runs on the emitter's own segment list, which is
+    # the emitter grading itself (canon M1). This one re-reads the s-expression
+    # that is about to be written, attributes nets the way a reader does — by
+    # the label plates a connected run of ink carries — and is the only check
+    # here that the grid path passes through too.
+    #
+    # HARD, and never a fallback: answering "this sheet draws two nets as one
+    # conductor" with a different sheet is what `LayoutFallback` is for, and by
+    # this point the fallback has already been taken. Nothing is written.
+    bad = sheet_wire_ambiguity(content)
+    if bad:
+        print(f"WIRE AMBIGUITY (S12) in {os.path.basename(a.out)} "
+              f"[MODE={mode}]: {len(bad)} place(s) draw two nets as one "
+              f"conductor; nothing written", file=sys.stderr)
+        for line in bad[:12]:
+            print(f"  {line}", file=sys.stderr)
+        return 4
+
     with open(a.out, "w") as f:
         f.write(content + "\n")
     npins = sum(len(c["pins"]) for c in comps)

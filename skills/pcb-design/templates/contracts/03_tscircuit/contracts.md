@@ -178,6 +178,26 @@ embedded `elt` lib isn't in the running kicad-cli config), `footprint_link_issue
   deliberately **not** a fallback to `grid`: answering "this label cannot be
   placed legibly" with a different sheet is not an answer. The message names
   the label and what it occludes — open the TSX and give that corner room.
+- Converter exited **4** with `WIRE AMBIGUITY (S12) ... draws two nets as one
+  conductor` → tscircuit routed two DIFFERENT nets onto the same line, so the
+  emitted sheet would show one conductor where there are two. Nothing is
+  written. The converter first tries to resolve it itself
+  (`disambiguate_wires` drops the fewest imported segments that leave no two
+  nets sharing ink, and the self-healing label pass still names every pin, so
+  connectivity is untouched); exit 4 means even that was not enough, and it is
+  deliberately **not** a fallback because by then the fallback has already been
+  taken. Fix the TSX layout so the two nets do not share a track. **A JUNCTION
+  DOT IS NOT THE REPAIR** — at a different-net touch point a dot does not
+  annotate the ambiguity, it creates the short (MEASURED: a dot MERGES, a
+  dotless T does not).
+- **A CROSSING IS NOT A T.** Where a net continues collinearly out the far side
+  of the wire it touches, the reader sees one wire crossing another — which is
+  what it is, and what KiCad does — and S12 does not flag it. MEASURED
+  2026-07-31 on the fleet: that discriminator is the difference between 8 raw
+  endpoint-in-interior events and 3 real ones, and it is the whole of this
+  board family's `interposer` (`KP_D4` crosses `KP_D2` and carries on) and of
+  crow-recorder-central-v2's 3V3-against-0V9 pair, which reads as a power-rail
+  short on a raw scan and is an ordinary undotted crossing in the render.
 - **A GREEN S-OCCL DOES NOT MEAN THE LABELS POINT AT THE RIGHT PIN, and this is
   the one thing to remember about the de-collision pass.** MEASURED 2026-07-31:
   run it over the PRE-FIX direction derivation (`948ef54d`, where 1504 of 1504
@@ -201,7 +221,19 @@ no-connects emitted as `no_connect` flags), **S2** (no auto-named nets reach cop
 `manifest.yaml` and every generated artifact via `count_parity.py`, plus **TSX-PRE**
 alphanumeric-pad preflight via `tsx_preflight.py` before the first tsci build), and
 **S-DSL** (the declaration compiles to NATIVE KiCad artifacts and every gate runs on
-those artifacts, never on the DSL's claims).
+those artifacts, never on the DSL's claims), and **S12/S-WNET** (no two nets drawn
+as one conductor — `sch_occlusion.py` on `kicad/<board>.kicad_sch`, plus the
+converter's own `disambiguate_wires` + exit-4 verdict).
+
+**S12'S DECLARED SCOPE LIMIT, and it is a measurement gap rather than a clean
+result.** S12 grades `kicad/<board>.kicad_sch`. Under ADR-0002 Phase A the PDF a
+human actually reads is tscircuit's OWN render, NOT a plot of that sheet —
+MEASURED 2026-07-31: two boards in this fleet seal a `.kicad_sch` with zero wires
+while their shipped `pdf/schematic.pdf` draws hundreds of wire segments and
+junction dots. On a `--mode grid` board S12 therefore reads 0 because there is no
+drawing in the file it reads, not because the drawing is sound. Both artifacts
+descend from the same tscircuit routes, so fixing the TSX fixes both — but a
+green S12 on a grid-mode board is not evidence about the human PDF.
 
 It does NOT answer **R1/R6** (routing physics — KRT) or **M1** (the digital twin).
 Those are the two permanent hard lines: the authoring tool must never self-grade
