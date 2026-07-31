@@ -482,7 +482,22 @@ def t_polarity_check_must_exist():
     usb-power-3s's MANIFEST claimed "polarity PASS" with no scripted check
     behind it (design-policies.md, P2's motivating incident column). A
     project that has no pad-1-net check ANYWHERE must not be able to claim
-    polarity was verified."""
+    polarity was verified.
+
+    WIDENED 2026-07-30 WITH THE GATE, AND THE WIDENING IS WHY IT NEEDED
+    EDITING. P-POL used to grep only for PER-BOARD PYTHON, so stripping
+    `audit_board.py` was enough to remove "every polarity check". ADR-0002
+    abolished that location, and the check now ALSO accepts the generic
+    backend's `floorplan.yaml asserts.pad_net[]` — which cook-loadcell has had
+    all along (five entries, D1/D2 pad 1 = cathode). Stripping only the Python
+    therefore no longer removes the FACT, and this fixture would have gone
+    green while claiming to prove a gate can fail.
+
+    The incident is unchanged; what it takes to reproduce it is not. Both
+    homes are emptied below, and the ADJACENT-PROPERTY re-verify at the end
+    restores ONE of them — the declaration, not the script — and requires
+    P-POL to come back. That contrast is what proves the FAIL is about the
+    absent fact rather than about a mangled tree."""
     d, b = fresh_board()
     proj = project_copy("cook-loadcell", d / "proj", board=b)
     # strip every polarity check out of the project's own audit script
@@ -493,6 +508,17 @@ def t_polarity_check_must_exist():
     ab.write_text(stripped)
     for j in (proj / "03_src" / "rules").glob("audit*.json"):
         j.write_text(re.sub(r"(?i)polarit\w*", "XXXX", j.read_text()))
+    # ...AND out of the generic backend's declaration, the second home.
+    fpp = proj / "03_src" / "floorplan.yaml"
+    fp_before = fpp.read_text()
+    import yaml as _yaml
+    fp_y = _yaml.safe_load(fp_before) or {}
+    check((fp_y.get("asserts") or {}).get("pad_net"),
+          "cook-loadcell was expected to DECLARE asserts.pad_net — if it no "
+          "longer does, this fixture is stripping a home that is not there "
+          "and the known-bad is weaker than it reads")
+    fp_y["asserts"]["pad_net"] = []
+    fpp.write_text(_yaml.safe_dump(fp_y))
     # cook-loadcell carries a real P-POL waiver ("scripted polarity checks
     # EXIST in generate_board.py"). Drop it: a waiver whose premise we just
     # deleted must not keep grading the check green — that is the whole
@@ -506,6 +532,15 @@ def t_polarity_check_must_exist():
     row = [l for l in md.read_text().splitlines() if "P-POL" in l]
     check(row and any("FAIL" in l for l in row),
           f"P-POL passed a project with no scripted polarity check: {row}")
+    # ADJACENT PROPERTY: put the DECLARATION back (the script stays stripped).
+    # P-POL must return, from the generic home alone — which is the whole point
+    # of the widening, and is re-measured here rather than asserted upstream.
+    fpp.write_text(fp_before)
+    run([KPY, POLICY, proj, "--skip-drc"])
+    row2 = [l for l in md.read_text().splitlines() if "P-POL" in l]
+    check(row2 and not any("FAIL" in l for l in row2),
+          f"restoring floorplan.yaml asserts.pad_net did not bring P-POL back, "
+          f"so the FAIL above was not about the missing fact: {row2}")
 
 
 # ==========================================================================

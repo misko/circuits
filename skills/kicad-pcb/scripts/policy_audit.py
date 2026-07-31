@@ -960,17 +960,91 @@ def main():
         rows.append(("P-POL", "N-A", "no board yet"))
         rows.append(("P-KEEP", "N-A", "no board yet"))
     else:
-        has_pol = bool(re.search(r"polarit|pad.?1.*net|pad1.*=", audit_src, re.I))
-        pol_alt = bool(re.search(r"polarity_audit",
-                       (proj / "03_src" / "generate_schematic.py").read_text(encoding="utf-8-sig")
-                       if (proj / "03_src" / "generate_schematic.py").exists() else ""))
-        grade("P-POL", has_pol or pol_alt,
-              "polarity machine-check present (pad-1 nets vs part facts)",
-              "no scripted pad-1-net polarity check anywhere in 03_src")
-        has_keep = bool(re.search(r"mate|keepout|screw|antenna|edge", audit_src, re.I))
-        grade("P-KEEP", has_keep,
-              "mate/keepout checks present in project audit",
-              "no scripted mate-direction/keepout checks in 03_src")
+        # P-POL / P-KEEP GRADE THE FACT, NOT THE FILE IT USED TO LIVE IN.
+        #
+        # Both checks used to grep `03_src/` for PER-BOARD PYTHON — an
+        # `audit_board.py` with the word "polarit" in it, a `generate_schematic
+        # .py` mentioning `polarity_audit`. ADR-0002's amendment (2026-07-23)
+        # ABOLISHED that location: a new board writes ZERO board-specific
+        # generation Python, so `03_src/` holds config and two drivers and
+        # there is nothing to grep. The consequence was not a false FAIL on one
+        # board; it was that EVERY compliant board had to carry these two
+        # waivers VERBATIM, and a gate whose only possible output on a
+        # conforming board is a waiver has stopped grading anything — it is
+        # measuring which generation era the board was built in.
+        #
+        # It is also the exact shape canon M4 warns about: a waiver that every
+        # board copies is an INHERITED DEFECT, not a judgement, and the two
+        # sitting on pluto-rx2-8way-v2 (2026-07-30) both close with "PROPOSED
+        # SKILLS PATCH (reported, not applied)" — the board could see the gate
+        # was wrong and could only write that down.
+        #
+        # So each check now accepts EITHER home, and names which one satisfied
+        # it with a COUNT:
+        #   legacy   per-board python, unchanged (the pre-ADR-0002 boards)
+        #   generic  the DECLARATIONS the shared backend consumes and enforces
+        #            — `floorplan.yaml asserts.pad_net[]`, evaluated by
+        #            generate_board_generic.run_asserts() which HARD-FAILS the
+        #            driver on a mismatch; and the keepout/mate declarations in
+        #            `floorplan.yaml`, `route.yaml prep.keepouts` and
+        #            `rules/mates.yaml`.
+        # An EMPTY block does NOT satisfy either check (canon M-COVER: a
+        # declaration with nothing in it is not a check), which is what keeps a
+        # genuinely ungraded board failing.
+        def _y(rel):
+            p = proj / rel
+            if not (p.exists() and yaml):
+                return {}
+            try:
+                return yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
+            except Exception:
+                return {}
+
+        fp_y, rt_y = _y("03_src/floorplan.yaml"), _y("03_src/route.yaml")
+        gsp = proj / "03_src" / "generate_schematic.py"
+        pol_legacy = bool(re.search(r"polarit|pad.?1.*net|pad1.*=", audit_src, re.I)) \
+            or bool(re.search(r"polarity_audit",
+                              gsp.read_text(encoding="utf-8-sig") if gsp.exists() else ""))
+        pad_net = ((fp_y.get("asserts") or {}).get("pad_net")) or []
+        pol_where = []
+        if pol_legacy:
+            pol_where.append("03_src per-board python")
+        if pad_net:
+            pol_where.append(f"floorplan.yaml asserts.pad_net x{len(pad_net)} "
+                             f"(enforced by generate_board_generic)")
+        grade("P-POL", bool(pol_where),
+              f"pad-1-net polarity machine-checked: {'; '.join(pol_where)}",
+              "no pad-1-net polarity check anywhere: 03_src has no per-board "
+              "script asserting it AND 03_src/floorplan.yaml declares no "
+              "non-empty `asserts.pad_net:` block for the generic backend to "
+              "enforce")
+
+        keep_legacy = bool(re.search(r"mate|keepout|screw|antenna|edge",
+                                     audit_src, re.I))
+        fp_ko = fp_y.get("keepouts") or []
+        fp_mh = ((fp_y.get("board") or {}).get("mounting_holes")
+                 or fp_y.get("mounting_holes")) or {}
+        rt_ko = (((rt_y.get("prep") or {}).get("keepouts")) or {})
+        rt_n = sum(1 for k, v in rt_ko.items()
+                   if k != "layers" and v not in (None, [], {}, False))
+        keep_where = []
+        if keep_legacy:
+            keep_where.append("03_src per-board python")
+        if fp_ko:
+            keep_where.append(f"floorplan.yaml keepouts x{len(fp_ko)}")
+        if fp_mh:
+            keep_where.append("floorplan.yaml mounting_holes")
+        if rt_n:
+            keep_where.append(f"route.yaml prep.keepouts x{rt_n}")
+        if (proj / "03_src" / "rules" / "mates.yaml").exists():
+            keep_where.append("rules/mates.yaml (D-MATE)")
+        grade("P-KEEP", bool(keep_where),
+              f"mate/keepout checks declared and machine-enforced: "
+              f"{'; '.join(keep_where)}",
+              "no mate-direction/keepout check anywhere: 03_src has no "
+              "per-board script and neither floorplan.yaml (keepouts / "
+              "mounting_holes), route.yaml (prep.keepouts) nor "
+              "rules/mates.yaml declares one")
 
     if board:
         SILKS = (pcbnew.F_SilkS, pcbnew.B_SilkS)

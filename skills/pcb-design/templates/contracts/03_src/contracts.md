@@ -22,7 +22,7 @@ per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 
 | File | What | Consumed by |
 |---|---|---|
-| `floorplan.yaml` | placement config: outline, mounting holes, `fiducials {footprint, refdes_prefix, at[]}` (>=3 non-collinear; board-only, BOM- and CPL-excluded — a fiducial has no net, no BOM line and no placement row, so it is a BOARD FEATURE, not a part), named regions, anchors, `repeat:` banks, keepouts (incl. `deny: []` PERMISSIVE DRU anchors — the thing `rules/nets.yaml` `scoped_floors` scopes a width relaxation to), zones, silk, orientation asserts | SHARED `generate_board_generic.py` |
+| `floorplan.yaml` | placement config: outline, mounting holes, `fiducials {footprint, refdes_prefix, at[]}` (>=3 non-collinear; board-only, BOM- and CPL-excluded — a fiducial has no net, no BOM line and no placement row, so it is a BOARD FEATURE, not a part), named regions, anchors, `repeat:` banks, keepouts (incl. `deny: []` PERMISSIVE DRU anchors — the thing `rules/nets.yaml` `scoped_floors` scopes a width relaxation to), zones, silk, orientation asserts. **THIS FILE IS ALSO WHERE A GENERIC-BACKEND BOARD SATISFIES P-POL AND P-KEEP** (canon P2/P3): `asserts.pad_net[]` is the pad-1-net polarity check — `generate_board_generic.run_asserts()` hard-fails the driver on a mismatch — and `keepouts[]` / `board.mounting_holes` are half the keepout declaration (`route.yaml prep.keepouts` and `rules/mates.yaml` are the rest). `policy_audit.py` grades the PRESENCE of both and NAMES which home satisfied it with a count; an EMPTY block satisfies nothing (canon M-COVER). Before 2026-07-30 both checks grepped `03_src/` for the per-board Python ADR-0002 abolished, so every compliant board carried two verbatim waivers | SHARED `generate_board_generic.py`, `policy_audit.py` (P-POL/P-KEEP presence) |
 | `route.yaml` | routing + stitch config: KRT prep/route/import order, pours, thermal vias, pad-rescue, `taps:` (collision-checked named connections KRT cannot thread), and the stitch pass list — `dedupe_vias / normalize_vias / drop_micro_fragments / drop_dangling / split_t_junctions / reload / hole_to_hole / pad_rescue / stub_fallback / astar_fallback / stitch_grid / power_stitch / via_janitor / fill / island_rescue / heal_islands / prune_stitch_dangling / gate` (order is per-board config; `heal_islands` after the last `fill` auto-bridges same-net pour splits — the "Zone [X] <-> Zone [X]" DRC class) | SHARED `route_and_stitch_generic.py` (`prep`/`route`/`import`/`taps`/`stitch`) |
 | `rules/` | `nets.yaml` (netclasses + ampacity + `scoped_floors`), `electrical_invariants.yaml` (E-INV intent assertions incl. `part_value`), `power_tree.yaml` (E-TOPO per-rail voltage envelopes), `assembly.yaml` (A-POP/A-STOCK population intent: `service`, `sides`, `fiducials`, `build_quantity`, `not_assembled[]` (per-entry `refs`/`reason`/`evidence`/`disposition`, OPTIONAL `lcsc:` and OPTIONAL `on_bom: false` — the latter drops the ref from the ASSEMBLY BOM as well as the CPL, read by `export_jlc_package.py`, default true because not-PLACED and not-SOURCED are different decisions; a ref that is both `on_bom: false` and on the CPL BLOCKS the export), and `through_hole {process, refs, evidence}` — the BOUGHT through-hole line, which exempts the refs it NAMES from A-POP `CPL-NOT-SMT-PLACEABLE`; all three keys required, silence and an unnamed ref both still FAIL), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | SHARED `generate_rules_generic.py`, policy_audit, assembly_coverage, jlc_twin |
 | `route/**` | the PROMOTED KRT chain (`*.kicad_pcb`) — a committed ARTIFACT, not code (canon M3); `import` replays it deterministically | SHARED `route_and_stitch_generic.py import` |
@@ -257,9 +257,9 @@ in the `02_parts` contract. These two are this folder's own.
 | `escape_corridors[].ref` | `generate_board_generic.py` | P-ESC corridor owner |
 | `escape_corridors[].side` | `generate_board_generic.py` | corridor side |
 | `escape_corridors[].depth_mm` | `generate_board_generic.py` | corridor depth |
-| `asserts.pad_net[].ref` | `generate_board_generic.py, net_reference_audit.py` | pad-net assertion (E-NETREF K9) |
-| `asserts.pad_net[].pad` | `generate_board_generic.py, net_reference_audit.py` | pad-net assertion |
-| `asserts.pad_net[].net` | `generate_board_generic.py, net_reference_audit.py` | pad-net assertion |
+| `asserts.pad_net[].ref` | `generate_board_generic.py, net_reference_audit.py, policy_audit.py` | pad-net assertion (E-NETREF K9) |
+| `asserts.pad_net[].pad` | `generate_board_generic.py, net_reference_audit.py, policy_audit.py` | pad-net assertion |
+| `asserts.pad_net[].net` | `generate_board_generic.py, net_reference_audit.py, policy_audit.py` | pad-net assertion |
 | `asserts.body_offset[].ref` | `generate_board_generic.py` | body-offset assertion |
 | `asserts.body_offset[].axis` | `generate_board_generic.py` | body-offset assertion |
 | `asserts.body_offset[].sign` | `generate_board_generic.py` | body-offset assertion |
@@ -344,7 +344,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `project.board` | `route_and_stitch_generic.py` | the board to route |
 | `project.build_dir` | `route_and_stitch_generic.py` | working directory |
 | `prep.out` | `route_and_stitch_generic.py` | the track-free r0 written |
-| `prep.keepouts.*` | `route_and_stitch_generic.py` | per-layer router keepouts |
+| `prep.keepouts.*` | `route_and_stitch_generic.py` | per-layer router keepouts; their PRESENCE is one of the homes `policy_audit.py` accepts for P-KEEP |
 | `prep.waves.*` | `route_and_stitch_generic.py` | wave net groups + exclusions |
 | `route.krt` | `route_and_stitch_generic.py` | the KRT entry point |
 | `route.kicad_python` | `route_and_stitch_generic.py` | interpreter for KRT |

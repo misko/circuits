@@ -985,5 +985,168 @@ def t_mbom_newest_versioned_export_wins():
           f"fab_v22 must beat fab_v9 on NUMBER, not on string order:\n{line}")
 
 
+# ================================== P-POL / P-KEEP on an ADR-0002 GENERIC board
+# THE DEFECT THESE PIN (2026-07-30). Both checks used to grep `03_src/` for
+# PER-BOARD PYTHON — an `audit_board.py` containing the word "polarit", a
+# `generate_schematic.py` naming `polarity_audit`. ADR-0002's amendment
+# (2026-07-23) abolished that location: a generic-backend board writes ZERO
+# generation Python, so `03_src/` holds config and two drivers and there is
+# nothing to grep. The result was not one wrong verdict — it was that EVERY
+# COMPLIANT BOARD had to carry these two waivers VERBATIM, and a gate whose
+# only possible output on a conforming board is a waiver is not grading the
+# board, it is grading which generation era the board was built in. It is also
+# canon M4's inherited-waiver shape exactly: pluto-rx2-8way-v2 carried both,
+# and both closed with "PROPOSED SKILLS PATCH (reported, not applied)".
+#
+# The RED side is MEASURED ON EVERY RUN, not asserted in a docstring: each
+# fixture below runs the PRE-FIX predicate (reconstructed from the pinned
+# commit's source, see `_prefix_ppol_pkeep`) over the same tree and requires it
+# to disagree. A gate fix whose red side is only claimed is a claim.
+PRE_PPOL_COMMIT = "885ce0e8"
+
+
+def _generic_project(d, pad_net=None, keepouts=None, mounting=True,
+                     legacy_python=False, route_keepouts=False):
+    """A ZERO-BESPOKE-PYTHON board (ADR-0002) with a minimal loadable board.
+
+    `board is None` short-circuits P-POL/P-KEEP to N-A, so the fixture needs a
+    real `.kicad_pcb` — a minimal one is enough, because neither check reads
+    copper. That is itself the point: they grade the board's DECLARATIONS."""
+    (d / "03_src" / "rules").mkdir(parents=True, exist_ok=True)
+    (d / "04_kicad").mkdir(exist_ok=True)
+    (d / "06_build").mkdir(exist_ok=True)
+    (d / "04_kicad" / "b.kicad_pcb").write_text(
+        '(kicad_pcb (version 20240108) (generator "pcbnew")\n'
+        '  (general (thickness 1.6))\n  (paper "A4")\n'
+        '  (layers (0 "F.Cu" signal) (31 "B.Cu" signal) (44 "Edge.Cuts" user))\n'
+        '  (setup (pad_to_mask_clearance 0))\n  (net 0 "")\n)\n')
+    fp = {"project": {"name": "b"}}
+    if pad_net is not None:
+        fp["asserts"] = {"pad_net": pad_net}
+    if keepouts is not None:
+        fp["keepouts"] = keepouts
+    if mounting:
+        fp["board"] = {"mounting_holes": {"refdes_prefix": "H", "at": [[5, 5]]}}
+    import yaml as _y
+    (d / "03_src" / "floorplan.yaml").write_text(_y.safe_dump(fp))
+    if route_keepouts:
+        (d / "03_src" / "route.yaml").write_text(
+            "prep:\n  keepouts:\n    layers: [User.2]\n"
+            "    mounting_holes: {radius: 3.0, refdes_prefix: H}\n")
+    if legacy_python:
+        (d / "03_src" / "audit_board.py").write_text(
+            "# checks pad-1 net polarity and the mate direction keepout\n")
+    return d
+
+
+def _policy_rows(d):
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    return {cid: line for cid in ("P-POL", "P-KEEP")
+            for line in md.splitlines() if line.startswith(f"| {cid} ")}
+
+
+def _prefix_ppol_pkeep(d):
+    """(p_pol, p_keep) as the PRE-FIX checks would have graded this tree.
+
+    Reconstructed from the pinned commit's own source rather than paraphrased:
+    the two regexes are EXTRACTED from `git show <commit>:policy_audit.py`, so
+    if someone edits this helper to be kind the extraction fails loudly instead
+    of quietly agreeing with the new code."""
+    import re as _re
+    src = run(["git", "-C", str(ROOT), "show",
+               f"{PRE_PPOL_COMMIT}:skills/kicad-pcb/scripts/policy_audit.py"]).out
+    m_pol = _re.search(r'has_pol = bool\(re\.search\(r"([^"]+)", audit_src', src)
+    m_keep = _re.search(r'has_keep = bool\(re\.search\(r"([^"]+)", audit_src', src)
+    check(m_pol and m_keep,
+          "could not extract the PRE-FIX P-POL/P-KEEP predicates from "
+          f"{PRE_PPOL_COMMIT} — the red side of these fixtures is not being "
+          "measured, which is worse than not having it")
+    ab = d / "03_src" / "audit_board.py"
+    audit_src = ab.read_text() if ab.exists() else ""
+    gs = d / "03_src" / "generate_schematic.py"
+    pol = bool(_re.search(m_pol.group(1), audit_src, _re.I)) or bool(
+        _re.search(r"polarity_audit", gs.read_text() if gs.exists() else ""))
+    return pol, bool(_re.search(m_keep.group(1), audit_src, _re.I))
+
+
+@test("P-POL/P-KEEP PASS an ADR-0002 generic board with NO per-board python — "
+      "and the PRE-FIX checks FAIL the same tree")
+def t_ppol_pkeep_generic_board_needs_no_waiver():
+    """The headline. This is pluto-rx2-8way-v2's shape: a compliant board that
+    writes no generation Python and declares its polarity and keepout facts
+    where the SHARED backend consumes them. Post-fix both PASS on the
+    declarations. Pre-fix both FAIL, which is why every generic board was
+    carrying two verbatim waivers."""
+    d = _generic_project(tmpdir("ppol_"),
+                         pad_net=[{"ref": "U1", "pad": "1", "net": "GND"},
+                                  {"ref": "D1", "pad": "1", "net": "VBUS"}],
+                         keepouts=[{"name": "rf", "region": [1, 1, 2, 2],
+                                    "layers": ["User.2"], "deny": ["tracks"]}],
+                         route_keepouts=True)
+    rows = _policy_rows(d)
+    check("| PASS |" in rows["P-POL"], f"P-POL did not PASS:\n{rows['P-POL']}")
+    check("| PASS |" in rows["P-KEEP"], f"P-KEEP did not PASS:\n{rows['P-KEEP']}")
+    # the evidence must NAME the home and carry a COUNT — "it passed" with no
+    # denominator is how a gate stops being readable.
+    contains(rows["P-POL"], "asserts.pad_net x2", "P-POL detail")
+    contains(rows["P-KEEP"], "keepouts", "P-KEEP detail")
+    # THE RED SIDE, MEASURED: the pre-fix predicates on this exact tree.
+    pol, keep = _prefix_ppol_pkeep(d)
+    check(not pol and not keep,
+          "the PRE-FIX P-POL/P-KEEP would have PASSED this generic board — "
+          "then these fixtures prove nothing, because the fix would not have "
+          "changed the verdict")
+
+
+@test("P-POL FAILS a board that declares pad-1 polarity NOWHERE", kind="known_bad")
+def t_kb_ppol_no_declaration_anywhere():
+    """The other direction, and the one that makes the fix safe: widening a
+    gate to accept a second home must not make it unfailable. No per-board
+    script, no `asserts.pad_net` — the XT60 class (spf 2026-07-14, '+' net on
+    the '-' blade) has nothing checking it, and P-POL says so."""
+    d = _generic_project(tmpdir("ppol_"), pad_net=None, keepouts=None,
+                         mounting=False)
+    rows = _policy_rows(d)
+    check("| FAIL |" in rows["P-POL"], f"P-POL did not FAIL:\n{rows['P-POL']}")
+    contains(rows["P-POL"], "asserts.pad_net", "P-POL detail names the fix")
+    check("| FAIL |" in rows["P-KEEP"], f"P-KEEP did not FAIL:\n{rows['P-KEEP']}")
+
+
+@test("P-POL/P-KEEP refuse an EMPTY declaration block (canon M-COVER)",
+      kind="known_bad")
+def t_kb_ppol_empty_block_is_not_a_check():
+    """A declaration with nothing in it is not a check, and accepting one is
+    the cheapest way to make this fix vacuous: every board would add
+    `asserts: {pad_net: []}` and both rows would go green forever. Same tree as
+    the clean case with exactly one thing changed — the lists emptied."""
+    d = _generic_project(tmpdir("ppol_"), pad_net=[], keepouts=[],
+                         mounting=False)
+    rows = _policy_rows(d)
+    check("| FAIL |" in rows["P-POL"], f"empty pad_net passed:\n{rows['P-POL']}")
+    check("| FAIL |" in rows["P-KEEP"], f"empty keepouts passed:\n{rows['P-KEEP']}")
+
+
+@test("the LEGACY per-board-python path still satisfies P-POL/P-KEEP")
+def t_ppol_legacy_path_unchanged():
+    """Widening must not be a migration. The pre-ADR-0002 boards
+    (smc0985-cooksense keeps a real `03_src/audit_board.py`) must go on
+    passing through the ORIGINAL predicate, and the report must SAY which home
+    satisfied it so the two eras stay distinguishable in the archive.
+
+    MEASURED on the live fleet 2026-07-30: cooksense's own policy_audit.md row
+    reads `pad-1-net polarity machine-checked: 03_src per-board python`."""
+    d = _generic_project(tmpdir("ppol_"), pad_net=None, keepouts=None,
+                         mounting=False, legacy_python=True)
+    rows = _policy_rows(d)
+    check("| PASS |" in rows["P-POL"], f"legacy P-POL broke:\n{rows['P-POL']}")
+    check("| PASS |" in rows["P-KEEP"], f"legacy P-KEEP broke:\n{rows['P-KEEP']}")
+    contains(rows["P-POL"], "per-board python", "P-POL names the legacy home")
+    pol, keep = _prefix_ppol_pkeep(d)
+    check(pol and keep,
+          "the PRE-FIX predicates no longer pass the legacy tree — this "
+          "fixture is supposed to prove the old path is UNCHANGED")
+
+
 if __name__ == "__main__":
     sys.exit(main())
