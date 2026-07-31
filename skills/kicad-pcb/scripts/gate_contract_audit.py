@@ -466,7 +466,14 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: declared and fixtured blind spot — it PASSES a family whose every key is
 #: declared `OWED`. Raised in the SAME commit that added the declaration, which
 #: is the ratchet working rather than a number chasing the tree.
-VACUITY_FLOOR = 7
+#: 8 since 2026-07-30: `build_provenance.py` (canon M-FRESH) declared F-RENDER's
+#: blind spot when the finding landed — the HUMAN schematic has no second copy
+#: to hash against, so its build-time freshness is a TIME ORDERING and a `touch`
+#: defeats it, where F-PATH's cross-file sha256 cannot be defeated at all. The
+#: interesting part is that ONE GATE now carries both: the same file has an
+#: undefeatable assertion and a forgeable one, and only saying so out loud keeps
+#: a reader from generalising the strong one to the weak one.
+VACUITY_FLOOR = 8
 
 
 def vacuity_declaration(text):

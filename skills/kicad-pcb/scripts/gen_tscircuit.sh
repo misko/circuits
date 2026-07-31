@@ -76,6 +76,16 @@ if [ ! -s "$PRODUCED" ] || [ ! "$PRODUCED" -nt build/.tsci_build_marker ]; then
 fi
 cp "$PRODUCED" "build/circuit.json"
 rm -f build/.tsci_build_marker
+# DELETE BEFORE RE-EXPORTING, for the same reason the marker above exists. This
+# script has no `set -e`, so a swallowed `tsci export` or `rsvg-convert` failure
+# used to leave the PREVIOUS run's schematic.svg/.pdf in place — and the
+# 07_releases contract copies that PDF into the release as `pdf/schematic.pdf`.
+# MEASURED on pluto-rx2-8way-v2 2026-07-30: schematic.pdf stamped 14:47:14
+# beside an 18:42:05 circuit.json in the same directory, i.e. a release would
+# have shipped a human schematic that does not match its own netlist, with every
+# gate green. Absence is loud; staleness is silent and shipped (canon M-FRESH
+# F-RENDER, which is what grades this on the template-driver path).
+rm -f build/schematic.svg build/schematic.pdf
 step export "schematic-svg";    timeout 240 tsci export "src/$BASE.tsx" -f schematic-svg -o "../build/schematic.svg" >/dev/null 2>&1
 step export netlist;            timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
 
@@ -89,6 +99,12 @@ if [ -s "build/schematic.svg" ] && command -v rsvg-convert >/dev/null; then
   rsvg-convert -f pdf -o "build/schematic.pdf" "build/schematic.svg" 2>/dev/null \
     && echo "    build/schematic.pdf (SHIP THIS as the release schematic document)"
 fi
+# SAY SO when the human schematic could not be made. Silence here is what let a
+# release ship the previous revision's PDF: with the delete above, a failure now
+# leaves NOTHING, and nothing that is not announced reads as nothing that was
+# needed (canon M-COVER, in a driver).
+[ -s "build/schematic.pdf" ] || echo \
+  "    WARNING: no build/schematic.pdf this run (svg export or rsvg-convert did not produce one). The release's pdf/schematic.pdf CANNOT be filled from this run — do not copy an older PDF into it."
 
 # --- STUDY-ONLY (gated behind --study, DEFAULT OFF): tscircuit's own PCB/gerbers/3D ---
 # These are a SECOND-OPINION render of tscircuit's OWN layout. They are never a fab

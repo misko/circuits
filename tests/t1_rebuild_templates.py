@@ -158,11 +158,20 @@ def _expand(txt):
 
     Enough shell to resolve `$CJ`, `$TSX`, `$BOARD` in path arguments; anything
     fancier is out of scope and shows up as an unexpanded `$` (which the
-    wiring check treats as UNRESOLVED, never as satisfied)."""
+    wiring check treats as UNRESOLVED, never as satisfied).
+
+    THE BARE `$NAME` FORM IS BOUNDARY-ANCHORED, and it has to be: a plain
+    `str.replace("$S", ...)` rewrites `$SCHPDF` into
+    `"$SKROOT/kicad-pcb/scripts"CHPDF`, because this driver defines both `S=`
+    and `SCHPDF=`. Found 2026-07-30 when the render-wiring check below could
+    not see a `rm -f "$SCHPDF"` that was plainly there — a shell-expander that
+    mangles the path is a checker reading a file nobody wrote."""
     env = dict(re.findall(r'^([A-Z][A-Z0-9_]*)=([^\s#]+)', txt, re.M))
     for _ in range(3):
         for k, v in env.items():
-            txt = txt.replace(f'"${k}"', v).replace(f"${{{k}}}", v).replace(f"${k}", v)
+            txt = txt.replace(f'"${k}"', v).replace(f"${{{k}}}", v)
+            txt = re.sub(r'\$' + k + r'(?![A-Za-z0-9_])', v.replace('\\', '\\\\'),
+                         txt)
     return txt
 
 
@@ -184,6 +193,34 @@ def circuit_json_wiring(txt):
         produced.add(m.group(2).strip('"\''))
     produced |= {c for c in consumed if "dist/" in c}   # reading dist/ directly is fine
     return consumed, produced
+
+
+#: the template as it stood BEFORE the human schematic was rendered or graded.
+#: A pinned commit, so the red side of `t_template_render_wiring` is a real
+#: measurement on real bytes and is immune to anything in the working tree
+#: (tests/README, "Which real bytes may a fixture read?", oracle 1).
+PRE_RENDER_COMMIT = "885ce0e8"
+
+
+def _render_wiring_ok(txt):
+    """Does this driver DELETE the human schematic before regenerating it, and
+    hand it to the M-FRESH verify?
+
+    Three ordered facts, because any two of them without the third is the
+    defect: (1) `rm -f` on build/schematic.pdf, (2) a render that runs AFTER
+    that removal, (3) `--render` on the build_provenance verify, which must run
+    after both. Without (1) a failed render leaves the previous revision in
+    place and the mtime check grades last week's file; without (3) nothing
+    looks at it at all — which is the 2026-07-30 state."""
+    # join shell line-continuations first: the verify invocation is wrapped, and
+    # a per-line regex would read `--render` as belonging to a different command.
+    t = re.sub(r'\\\n\s*', ' ', _expand(txt))
+    rm = re.search(r'^\s*rm\s+-f\b[^\n]*schematic\.pdf', t, re.M)
+    render = re.search(r'rsvg-convert[^\n]*schematic', t)
+    verify = re.search(r'build_provenance\.py"?\s+verify[^\n]*--render', t)
+    if not (rm and render and verify):
+        return False
+    return rm.start() < render.start() < verify.start()
 
 
 # ---------------------------------------------------------- clean cases
@@ -708,6 +745,222 @@ def t_kb_mfresh_knob_fails_without_adoption():
     contains(r.out, "OWED", "audit output")            # counted as unadopted
     contains(r.out, "BOARD=power3s", "audit output")
     contains(r.out, "TEMPLATE SENTINEL", "audit output")
+
+
+# ======================================= F-RENDER: the HUMAN schematic (M-FRESH)
+# The 07_releases contract names 03_tscircuit/build/schematic.pdf as the release's
+# `pdf/schematic.pdf`. It is the one artifact in the archive a human reads, and
+# until 2026-07-30 NOTHING graded it: `tsci build` does not write it, the template
+# did not write it, so it was whatever the last gen_tscircuit.sh run left behind.
+def _render(d, when=None):
+    """Write the human schematic, optionally at a chosen mtime."""
+    p = d / "03_tscircuit" / "build" / "schematic.pdf"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_bytes(b"%PDF-1.4 human schematic\n")
+    if when is not None:
+        os.utime(p, ns=(when, when))
+    return p
+
+
+def _verify_r(d, name, artifact, render):
+    return run([KPY, PROV, "verify", d, "--board", name, "--tsx", name,
+                "--artifact", artifact, "--render", str(render)])
+
+
+def _built(d, name="pluto_x"):
+    """stamp -> build -> copy. Returns (project, converter_input, producer)."""
+    must_pass(_stamp(d, name), "M-FRESH stamp")
+    time.sleep(0.02)
+    src = _produce(d, name, {"pads": "vendor-order"})
+    dst = d / "03_tscircuit" / "build" / "circuit.json"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(src.read_bytes())
+    return dst, src
+
+
+@test("M-FRESH grades the HUMAN schematic too, and says so when it is NOT given "
+      "one (canon M-COVER)")
+def t_mfresh_render_clean():
+    d = _scratch()
+    dst, _ = _built(d)
+    time.sleep(0.02)
+    r = must_pass(_verify_r(d, "pluto_x", dst, _render(d)),
+                  "M-FRESH verify with a freshly rendered human schematic")
+    contains(r.out, "postdates both the stamp and the producer", "verify output")
+    # ...and the ungraded case is PRINTED, never passed silently. Same tree,
+    # one flag removed: the verdict is still PASS but it now names what it did
+    # not grade, which is the difference between coverage and a clean-looking
+    # denominator of zero.
+    d2 = _scratch()
+    dst2, _ = _built(d2)
+    r2 = must_pass(_verify(d2, "pluto_x", dst2), "M-FRESH verify with no --render")
+    contains(r2.out, "NOT GRADED", "verify output")
+    contains(r2.out, "not a pass", "verify output")
+
+
+@test("M-FRESH FAILS the pluto-rx2-8way-v2 SCHEMATIC incident: the human "
+      "schematic is OLDER than the circuit.json it depicts", kind="known_bad")
+def t_kb_mfresh_render_is_the_schematic_incident():
+    """THE SECOND ACCEPTANCE FIXTURE, and it is a MEASURED tree, not an invented
+    one. pluto-rx2-8way-v2 2026-07-30, `ls --time-style=full-iso
+    03_tscircuit/build/`:
+
+        18:42:05.403  circuit.json
+        14:47:14.802  schematic.pdf
+        14:47:13.824  schematic.svg
+
+    Three hours fifty-five minutes of design revision that the shipped
+    schematic does not show — and the release contract copies exactly that PDF
+    into `pdf/schematic.pdf`. Every gate was green, because this is the one
+    artifact M-FRESH did not cover: F-PATH grades the MACHINE input
+    (circuit.json), and the human document had no gate at all.
+
+    The fixture reproduces the ORDERING, which is the whole fact: the render
+    predates the producer. It is not a content check — there is nothing to
+    compare a PDF to — and that limit is declared in the module's VACUITY block
+    and fixtured below.
+
+    RED-VERIFIED BY THREE MUTATIONS, 2026-07-30, each isolating a different
+    subset — which is what shows the fixtures grade different facts rather than
+    one fact three times. Baseline 25 passed / 0 failed / 11 known-bad.
+      M1  neuter BOTH F-RENDER time orderings (`if rmt < ...:` -> `if False:`)
+          -> **23 / 2**: THIS test and the vacuity's CONTRAST, nothing else.
+      M2  drop `--render` support entirely (`render = None`)
+          -> **20 / 5**: all five render fixtures, no collateral.
+      M3  neuter only the audit-side `render_sha256` comparison
+          -> **24 / 1**: only `t_kb_mfresh_audit_render_rewritten`.
+    Restored: 25 / 0 / 11. M3 is the one that matters most — it proves the
+    content half and the ordering half are separately load-bearing, so removing
+    either leaves a hole the other does not cover."""
+    d = _scratch()
+    dst, producer = _built(d)
+    # the survivor: rendered well before this run's build, exactly as measured
+    stale = _render(d, when=producer.stat().st_mtime_ns - 14_090_000_000_000)
+    r = must_fail(_verify_r(d, "pluto_x", dst, stale),
+                  "M-FRESH verify on a stale human schematic", expect="F-RENDER")
+    contains(r.out, "OLDER than the circuit.json this run produced", "verify output")
+    contains(r.out, "pdf/schematic.pdf", "verify output")
+    # THE CONTRAST that proves the finding is about RECENCY and not about the
+    # file: same tree, same bytes, re-rendered after the build -> PASS.
+    d2 = _scratch()
+    dst2, _ = _built(d2)
+    time.sleep(0.02)
+    must_pass(_verify_r(d2, "pluto_x", dst2, _render(d2)),
+              "the same human schematic re-rendered after the build")
+
+
+@test("M-FRESH FAILS when the human schematic is ABSENT — the driver deletes it "
+      "before rendering, so absence is the loud failure mode", kind="known_bad")
+def t_kb_mfresh_render_missing_is_loud():
+    """Why the template does `rm -f` FIRST. A render step that fails or is
+    skipped (no `rsvg-convert` on this machine) must not be able to leave the
+    previous revision's PDF sitting where the seal will copy it. Deleting first
+    converts the failure from STALENESS, which is silent and shipped, into
+    ABSENCE, which this finding names. A gate that only checked mtime ordering
+    would PASS the skipped-render case, because the file it would have graded
+    is the one from last time."""
+    d = _scratch()
+    dst, _ = _built(d)
+    r = must_fail(_verify_r(d, "pluto_x", dst,
+                            d / "03_tscircuit" / "build" / "schematic.pdf"),
+                  "M-FRESH verify with no human schematic at all",
+                  expect="F-RENDER")
+    contains(r.out, "does not exist", "verify output")
+
+
+@test("M-FRESH audit FAILS a human schematic REWRITTEN after verification — the "
+      "content half, which no timestamp can forge", kind="known_bad")
+def t_kb_mfresh_audit_render_rewritten():
+    """The build-time half of F-RENDER is a time ordering (see the VACUITY
+    block). This is the half that is content-based: `render_sha256` is pinned
+    into the provenance record at verify time, so anything that rewrites the
+    human schematic OUTSIDE the driver — a hand re-render, a copy from another
+    board, a partially-written file — is caught after the fact, and caught at
+    `audit`, which is what runs at seal time."""
+    d = _scratch()
+    dst, _ = _built(d)
+    time.sleep(0.02)
+    rnd = _render(d)
+    must_pass(_verify_r(d, "pluto_x", dst, rnd), "M-FRESH verify")
+    rnd.write_bytes(b"%PDF-1.4 SOME OTHER BOARD\n")
+    r = must_fail(run([KPY, PROV, "audit", d]),
+                  "M-FRESH audit after the human schematic was rewritten",
+                  expect="F-RENDER")
+    contains(r.out, "rewritten outside the driver", "audit output")
+
+
+@test("M-FRESH PASSES a human schematic that was merely TOUCHED and never "
+      "re-rendered", kind="vacuity", gate="build_provenance.py")
+def t_vac_mfresh_a_touched_render_passes():
+    """THE DECLARED BLIND SPOT (canon G-VACUOUS), and it is the exact hole
+    F-PATH does not have. F-PATH compares sha256 across two independently
+    resolved paths, so no timestamp operation can forge it. THE RENDER HAS NO
+    SECOND COPY: `build/schematic.pdf` is the only instance of itself, so its
+    build-time freshness can only be a TIME ORDERING — and `touch` moves a
+    time. Here the PDF still holds the previous revision's bytes and the gate
+    says PASS.
+
+    Declared rather than papered over, and bounded by two things that do not
+    close it: the DRIVER deletes the render before regenerating (so under the
+    template the failure mode is absence, which `t_kb_mfresh_render_missing_
+    is_loud` pins), and `audit` compares `render_sha256` (which
+    `t_kb_mfresh_audit_render_rewritten` pins). What is left uncovered is a
+    `touch` between the build and the verify inside one run.
+
+    THE CONTRAST — subject first, then the same input changed in exactly one
+    way — is the un-touched file: identical bytes, true mtime, and the gate
+    FAILS. That is what makes this a blind spot rather than a fact the gate
+    cannot represent."""
+    d = _scratch()
+    dst, producer = _built(d)
+    stale = _render(d, when=producer.stat().st_mtime_ns - 14_090_000_000_000)
+    body = stale.read_bytes()
+    after = producer.stat().st_mtime_ns + 1_000_000_000
+    os.utime(stale, ns=(after, after))                  # ONE touch, no re-render
+    r = must_pass(_verify_r(d, "pluto_x", dst, stale),
+                  "M-FRESH verify on a TOUCHED but never re-rendered schematic")
+    contains(r.out, "M-FRESH PASS", "verify output")
+    check(stale.read_bytes() == body,
+          "the fixture must not have re-rendered anything — the bytes are the "
+          "previous revision's, which is the whole point")
+
+    # THE CONTRAST: same bytes, same tree, mtime left telling the truth.
+    d2 = _scratch()
+    dst2, producer2 = _built(d2)
+    honest = _render(d2, when=producer2.stat().st_mtime_ns - 14_090_000_000_000)
+    honest.write_bytes(body)
+    os.utime(honest, ns=(producer2.stat().st_mtime_ns - 14_090_000_000_000,) * 2)
+    must_fail(_verify_r(d2, "pluto_x", dst2, honest),
+              "the same stale bytes with an honest mtime", expect="F-RENDER")
+
+
+@test("rebuild_all.sh: the human schematic is DELETED then regenerated, and the "
+      "M-FRESH verify is handed it with --render")
+def t_template_render_wiring():
+    """The template half of the fix, and the `rm -f` is the load-bearing line.
+
+    Rendering into a path that already holds last revision's PDF cannot fail
+    safely: if the export or `rsvg-convert` does not run, the old file survives
+    and the seal copies it. Deleting first makes the failure mode ABSENCE,
+    which F-RENDER names. The two producers therefore carry `|| true` on
+    purpose — the GATE must report the outcome, not `set -e`, or the operator
+    gets a bare non-zero exit with no finding.
+
+    GIT-SWAP RED-VERIFIED against the pre-fix template (`git show HEAD:` at the
+    commit that added the render stage): measured below on every run, because
+    a wiring assertion that only ever sees the fixed file proves nothing."""
+    t = ALL.read_text()
+    check(_render_wiring_ok(t),
+          "rebuild_all.sh must rm -f the schematic BEFORE rendering it, and "
+          "pass --render to build_provenance.py verify")
+    # the RED side, MEASURED not asserted: the template as it stood before this
+    # change must be REJECTED by the same predicate.
+    prev = run(["git", "-C", str(ROOT), "show",
+                f"{PRE_RENDER_COMMIT}:skills/pcb-design/templates/03_src/rebuild_all.sh"])
+    check(prev.rc == 0, f"could not read the pre-fix template: {prev.out[-400:]}")
+    check(not _render_wiring_ok(prev.out),
+          "the PRE-FIX template passed the render-wiring check — the check has "
+          "no teeth (pre-fix it neither rendered nor graded schematic.pdf)")
 
 
 if __name__ == "__main__":

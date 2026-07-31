@@ -44,6 +44,41 @@ FINDINGS
            the builder wrote. THIS is the pluto-rx2-8way-v2 defect.
   F-NORUN  no verified provenance record for this board — the driver has never
            completed a run here.
+  F-RENDER the HUMAN schematic (`03_tscircuit/build/schematic.pdf`, which the
+           07_releases contract names as `pdf/schematic.pdf`) is missing, or it
+           predates the `circuit.json` this run produced — so a release can ship
+           a schematic document that does not match its own netlist.
+
+THE SECOND ARTIFACT, AND WHY IT NEEDED ITS OWN FINDING (2026-07-30, the same
+board). F-PATH covers the MACHINE artifact. The HUMAN one was uncovered:
+MEASURED on pluto-rx2-8way-v2, `03_tscircuit/build/schematic.pdf` was stamped
+14:47:14 against an 18:42:05 `circuit.json` in the same directory — three hours
+and fifty-five minutes of design revision that the shipped schematic does not
+show. Same root cause: `tsci build` never writes `build/`, the driver copies
+only `circuit.json` across, and the PDF is a survivor of whatever last rendered
+one. Every gate stayed green, because no gate looked: the release contract
+NAMES that PDF, and M-FRESH did not cover it. A copy that is merely PRESENT is
+what caused this, so presence is not the assertion — recency against the
+producer is.
+
+VACUITY: (canon G-VACUOUS, applied to F-RENDER; fixtured by
+`t1_rebuild_templates.t_vac_mfresh_a_touched_render_passes`.)
+F-PATH's equality is CONTENT-BASED AND CROSS-FILE — sha256 between two
+independently-resolved paths — and no timestamp operation can forge it. THE
+RENDER HAS NO SECOND COPY TO HASH AGAINST: `build/schematic.pdf` is the only
+instance of itself, produced by `rsvg-convert` from an SVG that is itself
+regenerated, so there is nothing to compare it to. Its build-time freshness is
+therefore a TIME ORDERING, and `touch build/schematic.pdf` DEFEATS IT: this
+gate PASSES a render that was never regenerated, provided someone bumped its
+mtime past the producer's. That is a real hole and it is declared rather than
+papered over. Two things bound it, and neither closes it: (1) the DRIVER
+DELETES the render before regenerating it, so the gate asserts something the
+pipeline actually does rather than something a human might have done — under
+the template, a missing renderer produces ABSENCE (loud, F-RENDER) instead of
+staleness (silent); (2) the AUDIT half IS content-based — `render_sha256` is
+pinned into the record at verify time, so anything that rewrites the human
+schematic OUTSIDE the driver is caught after the fact. What remains uncovered
+is exactly a `touch` between the build and the verify inside one run.
 
 WHY THE EQUALITY IS CONTENT-BASED AND CROSS-FILE (the anti-defeat argument).
 mtime alone is defeatable by `touch`, and `touch` is exactly what a rerun that
@@ -333,9 +368,56 @@ def cmd_verify(args):
             f"verify ({len(srcs)} file(s) fingerprinted) — the artifact under "
             f"grade was not built from the sources now on disk (canon M3)")
 
+    # ---- F-RENDER: the HUMAN schematic the 07_releases contract ships.
+    # Graded only when the driver names it, and its ABSENCE from the command
+    # line is printed rather than passed (canon M-COVER: an ungraded artifact
+    # may not read as a graded one).
+    render = Path(args.render) if args.render else None
+    if render is not None and not render.is_absolute():
+        render = (project / render).resolve()
+    render_fails_at = len(fails)
+    if render is not None:
+        checks += 1
+        if not render.is_file():
+            fails.append(
+                f"F-RENDER {render}: the human schematic named by the "
+                f"07_releases contract does not exist. The driver deletes it "
+                f"before regenerating, so ABSENCE means the render step did not "
+                f"produce one this run (a missing renderer, or a failed "
+                f"export) — and absence is the intended outcome, because the "
+                f"alternative is shipping the previous revision's PDF")
+        else:
+            rmt = render.stat().st_mtime_ns
+            checks += 1
+            if rmt < rec["started_ns"]:
+                fails.append(
+                    f"F-RENDER {render}: predates this run's stamp by "
+                    f"{(rec['started_ns'] - rmt) / 1e9:.1f}s — it is a survivor "
+                    f"of an earlier run, not a product of this one")
+            if producer is not None:
+                checks += 1
+                pmt = producer.stat().st_mtime_ns
+                if rmt < pmt:
+                    fails.append(
+                        f"F-RENDER {render}: is {(pmt - rmt) / 1e9:.1f}s OLDER "
+                        f"than the circuit.json this run produced "
+                        f"({producer}) — it depicts a superseded revision of "
+                        f"the design while the 07_releases contract ships it as "
+                        f"`pdf/schematic.pdf`, the human schematic for THIS "
+                        f"netlist. MEASURED pluto-rx2-8way-v2 2026-07-30: "
+                        f"14:47:14 against an 18:42:05 circuit.json, every "
+                        f"gate green")
+
     print(f"M-FRESH verify: artifact under grade = {artifact}")
     print(f"  builder wrote: {producer if producer else '(nothing)'}")
     print(f"  sources: {len(srcs)}/{len(srcs)} file(s) fingerprinted")
+    if render is None:
+        print(f"  human schematic: NOT GRADED — no --render was passed, so "
+              f"03_tscircuit/build/schematic.pdf is ungraded on this run. That "
+              f"is the gap F-RENDER exists to close, not a pass")
+    elif len(fails) == render_fails_at:
+        print(f"  human schematic: {render.name} is present and postdates both "
+              f"the stamp and the producer")
     if fails:
         for f in fails:
             print(f"  FAIL {f}")
@@ -349,11 +431,17 @@ def cmd_verify(args):
         "artifact": os.path.relpath(artifact, project),
         "artifact_sha256": sha256_file(artifact),
         "producer": os.path.relpath(producer, project),
+        # PINNED so `audit` can grade the human schematic by CONTENT after the
+        # fact — the half of F-RENDER a `touch` cannot reach (see VACUITY).
+        "render": os.path.relpath(render, project) if render else None,
+        "render_sha256": sha256_file(render) if render else None,
     })
     write_record(project, rec)
     print(f"M-FRESH PASS: {checks}/{checks} assertion(s) — "
           f"{rec['artifact']} is byte-identical to {rec['producer']}, "
-          f"written this run, from the sources now on disk")
+          f"written this run, from the sources now on disk"
+          + (f"; {rec['render']} rendered after it"
+             if rec.get("render") else "; human schematic NOT GRADED"))
     return 0
 
 
@@ -424,6 +512,20 @@ def audit_project(project):
             fails.append(
                 f"F-PATH {art}: content changed since it was verified — "
                 f"something wrote the graded artifact outside the driver")
+        # the CONTENT half of F-RENDER. Build-time freshness is a time ordering
+        # a `touch` can forge (declared VACUITY); this is not — the human
+        # schematic on disk must be the bytes that were verified.
+        if rec.get("render"):
+            rnd = project / rec["render"]
+            if not rnd.is_file():
+                fails.append(
+                    f"F-RENDER {rnd}: the verified human schematic is gone — "
+                    f"the 07_releases contract ships it as pdf/schematic.pdf")
+            elif sha256_file(rnd) != rec.get("render_sha256"):
+                fails.append(
+                    f"F-RENDER {rnd}: content changed since it was verified — "
+                    f"the human schematic was rewritten outside the driver, so "
+                    f"nothing here attests that it depicts this netlist")
     return "adopted", fails, f"board={board} tsx={tsx}"
 
 
@@ -514,6 +616,11 @@ def main(argv=None):
     v.add_argument("--tsx", required=True)
     v.add_argument("--artifact", required=True,
                    help="the path the NEXT stage will read (the converter input)")
+    v.add_argument("--render",
+                   help="the HUMAN schematic the release ships "
+                        "(03_tscircuit/build/schematic.pdf). Graded by F-RENDER "
+                        "when given; its absence is PRINTED as ungraded, never "
+                        "passed")
     v.set_defaults(fn=cmd_verify)
 
     a = sub.add_parser("audit", help="after-the-fact: did the driver run, and is it current?")
