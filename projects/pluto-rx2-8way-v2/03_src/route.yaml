@@ -88,6 +88,51 @@ prep:
       - {x0: 20.00, y0: 20.00, x1: 70.00, y1: 47.00, layer: User.3}  # north
       - {x0: 20.00, y0: 47.00, x1: 39.80, y1: 68.00, layer: User.3}  # west
       - {x0: 47.50, y0: 47.00, x1: 70.00, y1: 68.00, layer: User.3}  # east
+      # ===================================================================
+      # THE SIX BARREL WINDOWS — one per pour-fed GND terminal in the
+      # control pocket. THIS IS THE FIX FOR THE STRANDED-GND-PAD CLASS.
+      # ===================================================================
+      # A ROUTER RESERVES A BARREL WINDOW ON THE PAD'S OWN LAYER AND ON NO
+      # OTHER. On F.Cu a foreign centreline stands >= 0.45 (pad half) + 0.20
+      # (clearance) + 0.10 (track half) = 0.75 mm off a 0805 GND pad's centre,
+      # which already clears the 0.425 mm a 0.25/0.15 barrel needs. On In2.Cu
+      # that pad does not exist as far as the router is concerned — and
+      # `waves.exclude: [GND, ...]` means these pads are never routed at all,
+      # so nothing else speaks for them either. The control bus therefore
+      # threads UNDER them, and a pour-fed GND terminal ends up with no legal
+      # via site anywhere: DRC then reports `Zone [GND] <-> Zone [GND]` naming
+      # NO PAD, and the stitcher's `heal_islands` DIES. It is a hard driver
+      # stop wearing a zone's name.
+      #
+      # MEASURED (2026-07-30, two independent routes):
+      #   pre-rotation board, C_SW2.2: 0 legal 0.25/0.15 sites out of 608
+      #     interior points of its own 1.411 x 1.437 mm island — three In2
+      #     verticals at 41.850 / 42.350 / 42.800 under one 0.90 mm pad.
+      #   post-rotation race winner, with a 0.325 mm half-width window: the
+      #     nearest In2 centrelines landed at EXACTLY 0.3250 (SW_V3) and
+      #     0.3750 (SW_V1) mm — i.e. hard against the window edge. KRT keeps
+      #     track CENTRELINES out of a keepout, not track COPPER, so a
+      #     0.325 mm half-width buys 0.325 mm of standoff and not 0.425.
+      #     C_SW1.2 measured 0.1000 (SW_V4) and R_PD3.2 0.0500 (SW_V3), both
+      #     with no window at all.
+      #
+      # HALF-WIDTH 0.55 mm, DERIVED: barrel 0.125 + clearance 0.200 + the
+      # widest centreline that may abut the wall — 0.200 for the 0.400 mm 3V3
+      # trunk — = 0.525, rounded up. For the 0.200 mm control tracks the
+      # requirement is 0.425 and the margin is 0.125.
+      #
+      # THEY DENY ALMOST NOTHING. Each window sits inside its own part's
+      # courtyard, and every window's SIGNAL pad (R_PD*.1 / C_SW*.1) is
+      # OUTSIDE it — the nearest, R_PD2.1's top edge at y 52.410 against a
+      # wall at 52.560, clears by 0.150 mm — so no escape is fenced in. The
+      # 0.20 mm channels left between adjacent windows still admit a
+      # centreline, which is what a keepout excludes.
+      - {x0: 39.650, y0: 52.560, x1: 40.750, y1: 53.660, layer: User.3} # R_PD1.2
+      - {x0: 40.950, y0: 52.560, x1: 42.050, y1: 53.660, layer: User.3} # R_PD2.2
+      - {x0: 42.250, y0: 52.530, x1: 43.350, y1: 53.630, layer: User.3} # C_SW1.2
+      - {x0: 40.650, y0: 54.760, x1: 41.750, y1: 55.860, layer: User.3} # R_PD3.2
+      - {x0: 41.950, y0: 54.760, x1: 43.050, y1: 55.860, layer: User.3} # R_PD4.2
+      - {x0: 40.275, y0: 56.450, x1: 41.375, y1: 57.550, layer: User.3} # C_SW2.2
       # THE NE APPROACH FENCE, on User.2 so it binds the RF wave too. ADDED
       # 2026-07-30 with the pickoff re-architecture, and it is a MEASURED
       # repair, not a precaution. With R_T2's pad 2 at (52.00, 28.21) the
@@ -243,7 +288,13 @@ route:
        max_probe_iterations: 60000, max_ripup: 30}
     - {name: sig,  group: sig,  keepout_layer: User.3, max_iterations: 600000,
        max_probe_iterations: 60000, max_ripup: 30}
-  final: 03_src/route/r4.kicad_pcb
+  # r4 -> r5: the promoted chain is named for the LAST wave that wrote it, and
+  # this board runs FIVE waves (rf, rf_tap, pwr, ctrl, sig), so r0 + 5 = r5.
+  # The r4 name predates the rf_tap wave's split-out. Re-promoted 2026-07-30
+  # after C_SW2's 180-degree rotation moved a pwr endpoint: `route --race 3`,
+  # all three candidates measured CLEAN (0 unconnected / 0 violations
+  # pre-stitch), winner c0.
+  final: 03_src/route/r5.kicad_pcb
 
 stitch:
   clearance: 0.2
@@ -259,7 +310,69 @@ stitch:
   # looks for. MEASURED 2026-07-30: two pairs, at (39.710, 54.480) and
   # (42.160, 52.010), both in the re-laid control pocket where A* had just
   # recovered C_SW1.2 / R_PD1.2 / R_PD3.2.
-  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+  # `seed_stubs` RUNS FIRST, AND IT IS THE ONLY DECLARED-GEOMETRY PASS IN THE
+  # LIST. The two stranded GND terminals this board carried at 20:27 are closed
+  # here, by NAME, and not by a search parameter — because the search cannot
+  # close them and five measured attempts prove it (island min_bbox 0.8->0.25,
+  # astar window 3->6 / attempts 3->8, pad_rescue served_within 1.6->0.4, zone
+  # clearance 0.25->0.20, row pitch 1.30->1.60 which broke SW_V2's escape).
+  #
+  # WHY A SEARCH COULD NOT: `pad_rescue` reaches its via through `try_via`,
+  # whose FIRST guard is `stitch.via.spacing` (0.85 mm) measured against EVERY
+  # via already on the board, NET-BLIND. MEASURED on the 20:27 board:
+  # R_PD2.2's own pad centre (41.500, 53.110) passes `via_site_ok` — 144 legal
+  # 0.25/0.15 sites exist inside its island — and is refused solely because a
+  # SW_V1 escape via sits 0.7440 mm away, i.e. 0.106 mm inside a lattice
+  # spacing rule that has nothing to say about a via-in-pad on a different net.
+  # Lowering `spacing` globally would move 2422 lattice vias to fix one pad.
+  # `seed_stubs` does not consult it: every primitive is exact-collision
+  # checked (`tk.collides` / `via_site_ok`), a colliding stub is REFUSED whole
+  # rather than shaved, the pass PROVES the placed copper lands on the named
+  # pad (`_pin_touched`, so a via that connects nothing is a hard error, not a
+  # silent no-op), and a re-run emits nothing. That is what makes this a
+  # DECLARATION and not a lucky search: the site is named in source, and the
+  # gate is that the named pad ends up touched.
+  #
+  # C_SW2.2's site is the ROTATED one (floorplan.yaml C_SW2 0 -> 180); at
+  # rotation 0 no site existed at all — 0 of 608 interior points of its island.
+  seed_stubs:
+    # 0.20 = the board-wide DRC clearance, NOT the pass default of 0.13. A
+    # declared via has no reason to be graded looser than the copper around it.
+    clearance: 0.2
+    via: {size: 0.25, drill: 0.15}
+    stubs:
+      # Via-in-pad, no segment: `via_in_pad` is a capability of the DECLARED
+      # tier (fab_tiers.yaml jlc_4layer_advanced: via_in_pad true, min via
+      # 0.25/0.15), and In1.Cu under every one of these pads is the solid GND
+      # plane, so the barrel bonds pad -> plane with no copper to lay.
+      #
+      # ALL SIX POCKET TERMINALS, NOT JUST THE TWO THAT WERE STRANDED. Which
+      # two strand is a property of the ROUTE, and the route is re-raced on
+      # every campaign: on the pre-rotation chain it was R_PD2.2 + C_SW2.2, on
+      # the next chain it was C_SW2.2 + C_SW1.2 + R_PD3.2. Declaring only the
+      # observed pair would be curing the symptom of one draw. MEASURED on
+      # THIS promoted chain (r5, post-import, unfilled): every one of the six
+      # has a legal 0.25/0.15 site at its EXACT pad centre, 37 sites each.
+      - {net: GND, pin: R_PD1.2, vias: [[40.200, 53.110]]}
+      - {net: GND, pin: R_PD2.2, vias: [[41.500, 53.110]]}
+      - {net: GND, pin: C_SW1.2, vias: [[42.800, 53.080]]}
+      - {net: GND, pin: R_PD3.2, vias: [[41.200, 55.310]]}
+      - {net: GND, pin: R_PD4.2, vias: [[42.500, 55.310]]}
+      - {net: GND, pin: C_SW2.2, vias: [[40.825, 57.000]]}
+      # U_SW's EXPOSED PAD — the R-THERM finding, closed in source rather than
+      # waived. `policy_audit` reported `FAIL R-THERM: U_SW.25(0)`: canon R6
+      # wants >= 2 same-net vias in or near an EP above ~4 mm2, and this one is
+      # 2.75 x 2.75 = 7.5625 mm2 with none. It is not only a thermal pad: on a
+      # PE42482A-X it is the RF GROUND REFERENCE for every port, so the five
+      # barrels are return path first and heat path second. Five sites on a
+      # 0.70 mm half-pitch cross, each MEASURED legal by via_site_ok on this
+      # chain; hole-to-hole between neighbours is 0.700 - 0.150 = 0.550 mm
+      # against the tier's 0.25 floor.
+      - {net: GND, pin: U_SW.25,
+         vias: [[41.000, 49.000], [40.300, 48.300], [41.700, 48.300],
+                [40.300, 49.700], [41.700, 49.700]]}
+  passes: [seed_stubs,
+           dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
            split_t_junctions, width_floor, reload, hole_to_hole, pad_rescue,
            stub_fallback,
            astar_fallback, stitch_grid, dedupe_vias, fill, island_rescue, fill,

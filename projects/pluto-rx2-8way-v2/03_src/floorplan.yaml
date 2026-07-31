@@ -283,7 +283,35 @@ placement:
     C_SW1:  [42.8000, 52.6000, 270]   # they sit on the switch's side of the
     R_PD3:  [41.2000, 54.8000, 270]   # 47R series element (ARCHITECTURE sec 7)
     R_PD4:  [42.5000, 54.8000, 270]   # -- and the 4 mm SW_V4 budget only binds
-    C_SW2:  [41.6000, 57.0000, 0]     # if they are actually AT the pad.
+    # C_SW2 ROTATED 0 -> 180, 2026-07-30, AND THE ROTATION IS THE WHOLE FIX FOR
+    # THE SECOND STRANDED PAD. Its CENTRE does not move, so the SSE control
+    # corridor (route.yaml: every control endpoint inside x 39.80..47.50) and
+    # the SW_V4 / 3V3 span budgets are untouched; only which END of the part
+    # carries GND changes.
+    #
+    # WHY. MEASURED on the 20:27 board: C_SW2.2 (GND) at (42.375, 57.000) had
+    # ZERO legal 0.25/0.15 via sites anywhere in its 1.411 x 1.437 mm F.Cu pour
+    # island — 0 of 608 interior points at 0.05 mm, and the same 0 at clearance
+    # 0.20, 0.14 and 0.13, so it is not a clearance question. Three In2.Cu
+    # control verticals run UNDER that pad: SW_V4 at x = 41.850, SW_V1 at
+    # 42.350, SW_V2 at 42.800 (0.500 and 0.450 mm apart). A 0.25 barrel needs
+    # 0.125 + 0.200 + 0.100 = 0.425 mm from a 0.2 mm track centreline, so no
+    # site fits between them at ANY y, and F.Cu is walled by the 0.400 mm 3V3
+    # trunk (south + west) and SW_V3 (east). The pad was landlocked.
+    #
+    # At 180 the GND pad sits at (40.825, 57.000): 1.025 mm from the nearest
+    # In2 vertical, i.e. 2.4x the barrel requirement, and on its OWN layer the
+    # router's pad clearance already reserves the window (foreign F.Cu
+    # centrelines stand >= 0.45 + 0.20 + 0.10 = 0.75 mm off the pad centre,
+    # against the 0.425 mm a barrel needs). The 3V3 terminal takes the east
+    # end, which needs no barrel at all — 3V3 arrives on F.Cu.
+    #
+    # THE GENERAL LESSON, recorded because it is not local to this part: a
+    # router reserves a barrel window on the pad's OWN layer automatically and
+    # on NO OTHER layer, because a pad it is not routing is invisible to it
+    # there. So a pour-fed GND terminal over a signal layer's bus has no via
+    # site by construction, and no stitch parameter can create one.
+    C_SW2:  [41.6000, 57.0000, 180]   # if they are actually AT the pad.
 
     # ---- the module cell ----------------------------------------------------
     U_MCU:  [52.7000, 80.7500, 180]   # USB-C faces the board's south edge

@@ -10,7 +10,7 @@ Read by `skills/kicad-pcb/scripts/pcb_status.py`. Everything below the fence is
 `key: value` (one per line); `#` lines and blanks are ignored by the reader.
 
 Multi-board projects: one beacon PER board, named `STATUS-<board>.md`
-(mirroring the per-board `journal/<stage>_<board>.md` suffix). A single-board
+(mirroring the per-board `journal/<stage>.md` suffix). A single-board
 project uses this bare `STATUS.md`.
 
 ## Schema
@@ -33,9 +33,9 @@ terminal for this stage.
 
 <!-- reader parses from here down -->
 stage:   routing
-step:    "PLANNED HANDOFF at ~93% context. The RF P0 is CLOSED and MEASURED: the RX1 pickoff is now IN LINE with the through path (routed stub 0.0000 mm, R_T1.1 perpendicular 0.0100 mm vs a DERIVED lambda_g/16 = 1.8129 mm at 5.5 GHz). The mechanical P0 is CLOSED: every jack pair clears the 9.1654 mm coupling-nut envelope. P-ADJ SW_V4 closed. TWO defects remain open and both are named: 2 stranded GND pads, and the docs/PDF P0s not yet started."
-measure: "DRC --severity-all --refill-zones --schematic-parity = 0 violations / 2 unconnected / 0 parity. CLASSIFIED: the 2 unconnected are TWO F.Cu GND pour islands each carrying a GND pad and NO via - R_PD2.2 (island 0.67x1.34 @41.20,52.61) and C_SW2.2 (1.29x1.32 @41.51,56.50). DRC calls them Zone<->Zone and names no pad. FOUR remedies measured and failed (island min_bbox 0.8->0.25, astar window 3->6, pad_rescue served_within 1.6->0.4, zone clearance 0.25->0.20); a fifth (row pitch 1.30->1.60) BROKE SW_V2's escape and was reverted. RF: RX1_MAIN 11.0000 mm copper over an 11.0000 mm through path. Jacks: worst pair J_RX2<->J_ANT8 9.9334 (unchanged), J_ANT8<->J_RX1 8.000 -> 11.0000. SW_V4 3.3992 of 4.0; 3V3 2.8268 of 3.0. Placement gates PASS, tier_preflight 0 FAIL, 12 asserts PASS, P-COLLIDE 0/0."
-state:   blocked
-next:    "1. CLOSE THE 2 STRANDED GND PADS (R_PD2.2, C_SW2.2) - untested hypotheses in journal/04_placement.md tail: a manual stitch_grid site at each pad, pad_rescue.rings below 0.15, or read WHY via-in-pad refuses those two sites when it served R_PD1.2 and C_SW1.2 1.30 mm either side. 2. P0-2 docs: amend ADR-0002 + ARCHITECTURE sec 10 to the built user_supplied posture. 3. P0-4: regenerate 03_tscircuit/build/schematic.pdf via gen_tscircuit.sh and verify it against the shipped netlist. 4. re-run policy_audit (P-ADJ should now be PASS; M-REL/A-POP close at seal). 5. re-gate ALL FOUR lenses fresh-context. 6. MANIFEST -> 2-commit seal -> beacon. NOT YET RUN THIS SESSION: rebuild_all.sh end-to-end (so M-FRESH is UNVERIFIED since the last full run), fence_pitch.py (produced no output when invoked bare - check its argv), the standalone-archive DRC."
+step:    "Driver RE-SEEDED from the template (diff is now exactly BOARD=/TSX=) and RUN end-to-end: M-FRESH PASS 9/9 including F-RENDER, so P0-4 (stale schematic.pdf) is CLOSED mechanically. The driver then DIES at stitch pass heal_islands — the 2 stranded GND pads are a HARD DRIVER ERROR, not just 2 DRC unconnected. Both root causes now MEASURED and they are DIFFERENT defects."
+measure: "R_PD2.2 @(41.500,53.110): via_site_ok = TRUE at its own pad centre (144 legal 0.25/0.15 sites inside its island). The refusal is try_via's NET-BLIND stitch.via.spacing=0.85 guard against a SW_V1 escape via 0.7440 mm away — no clearance rule, and no stitch parameter the prior agent swept touches it. C_SW2.2 @(42.375,57.000): 0 legal via sites out of 608 interior points of its 1.411x1.437 island, at clearance 0.20/0.14/0.13 alike. Cause MEASURED: three In2.Cu control verticals SW_V4 x=41.850, SW_V1 x=42.350, SW_V2 x=42.800 run under the pad at 0.50/0.45 pitch; a 0.25/0.15 via needs 0.425 mm from a 0.2 track centreline, so no site exists between them, and F.Cu is walled by the 0.400 3V3 trunk (S+W) and SW_V3 (E). Landlocked — an upstream fix, not a stitch knob."
+state:   working
+next:    "C_SW2 rotated 0 -> 180 in floorplan.yaml (GND pad moves to x 40.825, 1.025 mm clear of the nearest In2 vertical; centre unmoved so the corridor and the SW_V4 budget are untouched); a User.3 barrel-window keepout reserves the site; stitch.seed_stubs declares a via-in-pad at BOTH pads (reduce-proved by _pin_touched, collision-refused, idempotent). Then prep -> route --race -> promote -> driver. After that: fence_pitch.py BOARD [band] [bound] off the NEW board vs 1.35; P0-2 docs (ADR-0002 + ARCHITECTURE sec 10 say consigned/on-CPL, assembly.yaml says user_supplied — physics wins); R-THERM U_SW.25(0) must be closed or evidenced-waived; DROP the now-inert P-POL/P-KEEP waivers; four fresh-context lenses; MANIFEST -> 2-commit seal -> beacon."
 op_pid:
-updated: 2026-07-30T23:45:00
+updated: 2026-07-30T21:05:00

@@ -48,14 +48,40 @@ CJ=03_tscircuit/build/circuit.json             # the ONE name for the converter 
 mkdir -p 03_tscircuit/build
 cp "03_tscircuit/dist/src/$TSX/circuit.json" "$CJ"
 
-# [1a] M-FRESH verify — the pipeline asserts the artifact it is about to grade
-# is the one it just built. build_provenance.py finds the producer under dist/
-# ITSELF (it does not take this script's word for it) and requires the bytes to
-# match, so a `touch` cannot forge freshness; it also requires the producer to
-# post-date [0b] and the sources to be unmoved since. Canon M1: the checker
-# neither builds nor copies the thing it grades.
-$PY "$S/build_provenance.py" verify . --board "$BOARD" --tsx "$TSX" --artifact "$CJ" \
-    || { echo "GATE FAILED [1a] M-FRESH (build_provenance.py verify): the artifact the converter would read is NOT the one this build produced — every gate below would be green against stale content"; exit 1; }
+# [1r] THE HUMAN SCHEMATIC — regenerated, and DELETED FIRST so that a failure
+# leaves ABSENCE rather than the previous revision.
+#
+# The 07_releases contract ships 03_tscircuit/build/schematic.pdf as
+# `pdf/schematic.pdf`, and it is the only artifact in the release a human
+# actually reads. `tsci build` does not write it any more than it writes
+# build/circuit.json, and this template did not write it either — so it was
+# whatever the last `gen_tscircuit.sh` run happened to leave. MEASURED on
+# pluto-rx2-8way-v2 2026-07-30: schematic.pdf stamped 14:47:14 beside an
+# 18:42:05 circuit.json, i.e. a release would have shipped a schematic
+# document that does not match its own netlist, with every gate green.
+#
+# The `rm -f` is the load-bearing line, not the render. A render step that
+# fails or is skipped (no rsvg-convert on this machine) must not be able to
+# leave a stale PDF sitting where the seal will copy it: absence is loud and
+# staleness is silent, so we make the failure mode absence and let M-FRESH
+# below say so by name. Hence `|| true` on the two producers — the GATE
+# reports, not `set -e`.
+SCHPDF=03_tscircuit/build/schematic.pdf
+rm -f 03_tscircuit/build/schematic.svg "$SCHPDF"
+( cd 03_tscircuit && tsci export "src/$TSX.tsx" -f schematic-svg -o "../build/schematic.svg" ) || true
+[ -s 03_tscircuit/build/schematic.svg ] \
+    && rsvg-convert -f pdf -o "$SCHPDF" 03_tscircuit/build/schematic.svg || true
+
+# [1a] M-FRESH verify — the pipeline asserts the artifacts it is about to grade
+# and to SHIP are the ones it just built. build_provenance.py finds the producer
+# under dist/ ITSELF (it does not take this script's word for it) and requires
+# the bytes to match, so a `touch` cannot forge freshness; it also requires the
+# producer to post-date [0b], the sources to be unmoved since, and the human
+# schematic to exist and post-date the circuit.json it depicts (F-RENDER).
+# Canon M1: the checker neither builds nor copies the things it grades.
+$PY "$S/build_provenance.py" verify . --board "$BOARD" --tsx "$TSX" \
+    --artifact "$CJ" --render "$SCHPDF" \
+    || { echo "GATE FAILED [1a] M-FRESH (build_provenance.py verify): the artifact the converter would read is NOT the one this build produced, or the human schematic the release ships is missing/older than it — every gate below would be green against stale content"; exit 1; }
 
 $PY "$S/circuit_json_to_kicad_sch.py" "$CJ" \
     -o "04_kicad/$BOARD.kicad_sch" --parts 02_parts
