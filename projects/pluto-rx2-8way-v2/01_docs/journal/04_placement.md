@@ -503,3 +503,115 @@ FINAL, on the driver-produced board: DRC **0/0/0** · R-LEN **PASS** 0.5314 mm =
 7.01 deg (floor spread 0.0007 mm) · P-LAND **PASS** 0 failing, routed
 cross-check 45/45 · P-OUT/P-CAP **PASS** · E-NETREF **PASS 95/95** · M-FRESH
 **PASS** · ERC **0 errors**.
+
+## 2026-07-30 22:20 — iterate (post-back, D-BACK from verify)
+
+- did: fresh agent. DERIVED the tap-branch bound from this board's own stackup
+  before touching geometry, then solved the three-way constraint (RF branch /
+  SMA nut envelope / forced 45-deg star) as one problem.
+- result (all MEASURED by me this session):
+  * **eps_eff, identified by the tuple canon 4A demands**
+    `(JLC04161H-7628 h=0.2104 er=4.4 t=0.035 | w=0.360 | AS-FABBED conformal
+    mask | Hammerstad-Jensen with H-J's OWN dual thickness correction u1/ur,
+    x the MEASURED mask factor)`:
+        eps_eff bare      = 3.3226   (4A's own independent row, re-executed)
+        mask factor       = 1.0628   (MEASURED, pluto-cal-switch 2D FD solve,
+                                      rf-design.md 4A(iii); this board declares
+                                      NO mask opening over RF runs)
+        eps_eff as-fabbed = 3.5314
+        lambda_g(5.5 GHz) = 29.0057 mm  ->  **lambda_g/16 = 1.8129 mm**
+    (bare would give 1.8690 mm; the as-fabbed value is the tighter and is the
+    one this board is graded on. THE BOARD'S OWN ADR-0003 PUBLISHES 3.3286 —
+    H-J at a SINGLE Wheeler w_eff — which 4A(ii) shows is 0.18% high and not
+    internally consistent with the formula it feeds. Reported, not silently
+    changed: ADR-0003's fence bound is unaffected in sign, see below.)
+  * **the defect reproduced independently.** 490 ohm arm on a 50 ohm branch,
+    L = 9.90..10.107 mm at 4.0 GHz -> |Zin| 5.1-5.2 ohm, S21 -15.4..-15.2 dB,
+    RL 1.61-1.62 dB. The layout lens said 5.1 ohm / -13.995 dB / 1.91 dB. Same
+    physics, different instrument.
+  * **THE BINDING NUMBER IS NOT lambda_g/16, IT IS ZERO.** The fix does not
+    aim at 1.81 mm. R_T1's pad 1 is placed ON the through line, branch 0.010 mm
+    -> |Zin| 490 ohm, S21 -0.432 dB, RL 26.28 dB at every frequency in band.
+  * **and the architecture, not the length, is what makes it robust.** With the
+    whole 440 ohm lumped at the junction, Z_node = 440 + Z_x with Re(Z_x) >= 0
+    for ANY passive termination, so |Z_node| >= 440 ohm -> RL >= 25.5 dB
+    REGARDLESS of the tap arm's length and of the PE42482's off-state port
+    impedance. Today's topology has the arm length setting the node impedance
+    and the switch's off-state modulating it. This is the brief's "series-R at
+    the junction" option and it is strictly better, not merely shorter.
+  * **the tap arm does not get longer in copper.** today 9.903 (branch) + 1.180
+    + 9.741 = 20.82 mm; after 0.010 + 1.180 + ~19.9 = ~21.1 mm. The topology
+    moves, the loss does not.
+- CONSTRAINT COLLISION, MEASURED, and how it is resolved:
+  * 5/16 in coupling nut = 7.9375 across flats = **9.1656 across corners**.
+    Every jack pair must exceed it. J_ANT8<->J_RX1 = 8.000 (P0-5).
+  * J_RX1 cannot move EAST: H2's courtyard starts x 58.5075, so x_r <= 54.7125.
+  * J_ANT8 cannot move WEST: at y 25 it must stay >= 9.17 from J_RX2 (40.75,
+    33.10), i.e. x_a >= 46.6 for a 10 mm pair. x_a <= 44.5 and x_a >= 46.6 is
+    empty. **On the 46 mm outline with H2 in the NE corner there is NO
+    placement giving all three jacks 10 mm pairwise.** Verified over y too:
+    y <= 23.995 is needed and the board edge floor is y >= 23.795, i.e. a
+    0.2 mm feasible band with zero margin at H2. That is not a design.
+  * D1 (this session): **widen the outline x1 66.0 -> 70.0 (board 46x73 ->
+    50x73 mm) and carry H2 out to the new corner at (66.0, 23.8).** The BRIEF
+    pins no board size (checked: no size row in the fact-lock, no mates.yaml —
+    this board mates to nothing foreign). It preserves the 4-corner mounting
+    pattern, preserves EVERY rosette coordinate, and leaves J_ANT8 exactly
+    where it is so d(ANT8,RX2)=9.933 does not regress. Cost at JLC: none, both
+    outlines are inside the same size bracket. FLAGGED LOUDLY in the report.
+- next: J_RX1 46.5->57.5 (11.000 mm pair, 1.834 mm nut clearance); R_T1/R_T2
+  into the 3.41 mm gap between the two jack courtyards at x 52.0, R_T1 pad 1
+  landing on y 24.99 against a through line at y 25.000; R_PD1..4 + C_SW1 +
+  C_SW2 re-laid so SW_V4 meets its 4 mm budget. Then the r4 chain is dead and
+  a fresh KRT campaign runs.
+
+## 2026-07-30 23:40 — iterate (post-back) — RESULT
+
+- did: executed the re-placement, then FOUR routing campaigns.
+- result (MEASURED by me, off the saved 04_kicad board unless stated):
+  * DRC `--severity-all --refill-zones --schematic-parity` = **0 / 2 / 0**.
+    CLASSIFIED, both halves:
+      violations 0.
+      unconnected 2, and BOTH are the SAME defect wearing a zone's name:
+      two F.Cu GND pour islands carry a GND pad and no via —
+        island 0.67 x 1.34 @(41.20, 52.61)  pad R_PD2.2
+        island 1.29 x 1.32 @(41.51, 56.50)  pad C_SW2.2
+      DRC reports them as `Zone [GND] <-> Zone [GND]` and NAMES NO PAD, which
+      is why they must be written down as stranded PADS: the ratsnest is
+      between pours, the fault is that two 0402/0805 ground terminals do not
+      reach the plane. Four remedies were MEASURED and none closed it:
+      (a) island_rescue/heal_islands min_bbox 0.8 -> 0.25   (0 extra bridges)
+      (b) astar_fallback window 3.0 -> 6.0, attempts 3 -> 8 (0 extra)
+      (c) pad_rescue served_within 1.6 -> 0.4 — and the DIAGNOSIS is here:
+          `served_within` is a EUCLIDEAN test on a TOPOLOGICAL question, so
+          R_PD2.2 was scored "served" by R_PD1.2's via 1.30 mm west while that
+          via sits on a DIFFERENT island. Lowering it did not place the via,
+          so something else refuses the site.
+      (d) zone clearance 0.25 -> 0.20 (the netclass floor, not below it) — the
+          pour gained 0.05 mm on each side of every gap and still did not merge.
+      And a fifth was measured and REVERTED: row pitch 1.30 -> 1.60 mm opened
+      the pour gaps and BROKE THE ESCAPE — SW_V2 went unroutable and DRC went
+      0/2 -> 2/6. **The pocket is escape-limited, not courtyard-limited.**
+  * RX1_MAIN routed copper **11.0000 mm over an 11.0000 mm through path =
+    STUB 0.0000 mm**; R_T1.1 perpendicular to the nearest RX1_MAIN segment
+    **0.0100 mm** against the derived lambda_g/16 = 1.8129 mm. The tap is
+    IN LINE, not on a branch. (Was: 18.107 mm of copper over 8.000 mm.)
+  * RX1_TAP routed 25.0181 mm, RX1_TAP_MID routed 1.2000 mm.
+  * every jack pair clears the 9.1654 mm coupling-nut envelope; worst is
+    J_RX2<->J_ANT8 at 9.9334 (unchanged), the fixed pair is 11.0000.
+  * SW_V4 U_SW.12->R_PD4.1 = 3.3992 of 4.0; 3V3 U_SW.8->C_SW1.1 = 2.8268 of 3.0.
+- the ROUTING campaigns, because the sequence is the finding:
+  1. no fence  -> 8 clearance, RX1_TAP straight THROUGH J_ANT7, two at
+     0.1671 mm of that jack's own 0.8000 mm launch clearance.
+  2. NE fence  -> 9, hugging J_ANT7's WEST post and J_ANT8's NE post.
+  3. + post boxes -> 6, hugging J_RX2's SE post.
+  ONE CAUSE: the rf wave routes at clearance 0.14 (six U_SW pads cannot emit
+  0.36 mm at 0.20) and outside the bounded `rf_launch` area DRC's floor is
+  0.20, so every open corridor is hugged 0.06 mm too tight and fencing one
+  post moves the hug to the next. 4. RX1_TAP given its OWN wave bound to a
+  User.4 corridor whose WALLS carry the 0.20 setback (0.20 + 0.18 half-track)
+  -> 0 clearance findings. The corridor is now DECLARED, not discovered.
+- next: the two stranded GND pads. Hypotheses NOT yet tested: a manual
+  `stitch_grid` site at each pad; `pad_rescue.rings` starting below 0.15;
+  reading why via-in-pad refuses those two sites (it placed one at R_PD1.2 and
+  C_SW1.2, 1.30 mm either side, so it is site-specific, not systemic).

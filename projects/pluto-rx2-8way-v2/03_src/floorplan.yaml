@@ -66,23 +66,73 @@
 # ---------------------------------------------------------------------------
 # WHAT IS *NOT* ON THE 45-DEGREE STAR, AND WHY THAT IS NOT A CONCESSION
 # ---------------------------------------------------------------------------
-# RX1_TAP (RF8, pad 19) leaves on bearing 67.5 to R_T2/R_T1. It is DELIBERATELY
+# RX1_TAP (RF8, pad 19) leaves on bearing 62.7 to R_T2/R_T1. It is DELIBERATELY
 # excluded from the length-match group (rules/nets.yaml `RF_ARMS`: it is three
 # nets in series, its insertion phase is dominated by a lumped 2 x 220 ohm cell,
 # and RX1_MAIN is a T rather than a path), so it is graded by nothing and needs
-# no 45-degree seat. It gets 67.5 because both neighbouring 45-degree bearings
-# would run it PARALLEL to a graded arm at ~1.3 mm for its whole length: a 45
-# NE ray from pad 19 sits 1.273 mm from ANT7's ray, and a due-N ray sits 1.50 mm
-# from RX2_OUT's. 67.5 diverges from both. That is a COUPLING decision, not a
-# length one.
+# no 45-degree seat. It gets a bearing that is not a 45-degree multiple because
+# both neighbouring multiples would run it PARALLEL to a graded arm for its
+# whole length: a 45 NE ray from pad 19 sits 1.273 mm from ANT7's ray, and a
+# due-N ray sits 1.50 mm from RX2_OUT's. 62.7 diverges from both, and its
+# closest approach to J_ANT7's own outline (the 45-degree square, half-diagonal
+# 5.3462) is 0.686 mm. That is a COUPLING decision, not a length one.
 #
-# J_ANT8 and J_RX1 are on RX1_MAIN and carry no length obligation either. They
-# are a NORTH ROW at y = 25.00 rather than ring members, for three reasons:
-# (i) the wedge between ANT7 (45) and RX2_OUT (90) is 45 degrees wide and two
-# more 7.5 mm courtyards do not fit in it at ring radius; (ii) the through path
-# this board actually publishes is J_ANT8 -> J_RX1 with R_T1 tapping it, so the
-# two belong ADJACENT (8.00 mm apart here) and R_T1 lands 8.6 mm from J_ANT8 on
-# a nearly straight run; (iii) it keeps the NE corner free for H2.
+# =========================================================================
+# THE RX1 PICKOFF IS A LUMPED SHUNT AT THE ANTENNA NODE. IT WAS A BRANCH LINE.
+# =========================================================================
+# CORRECTED 2026-07-30 at the release gate, and this is the board's P0.
+#
+# The FIRST cut put R_T1/R_T2 in the 3.00 mm channel at x = 46.00, y 35.4/37.6,
+# and the RX1 pair as a north row 8.000 mm apart at y = 25.00. R_T1's pad 1 is
+# on RX1_MAIN, so the tap hung 9.903 mm off the J_ANT8 -> J_RX1 through path:
+# a **10.107 mm routed BRANCH LINE**, not a lumped node. MEASURED consequence,
+# 490 ohm arm (2 x 220 + the switch's 50 ohm port) on 50 ohm copper:
+#
+#     4.06 GHz   the branch is lambda_g/4        -> Zin = 50^2/490 = 5.1 ohm
+#     4.00 GHz   |Zin| 5.2 ohm, S21 -15.2 dB, return loss 1.62 dB
+#
+# i.e. the antenna node was SHORTED, across roughly 2-5.5 GHz, on a board whose
+# own silkscreen reads `ANT8 = RX1 TAP -20.26 dB`.
+#
+# THE BOUND, DERIVED FROM THIS BOARD'S OWN STACKUP, identified by the tuple
+# rf-design.md 4A requires -- (JLC04161H-7628 h 0.2104 / er 4.4 / t 0.035,
+# w 0.360, AS-FABBED conformal solder mask, Hammerstad-Jensen with H-J's OWN
+# dual thickness correction u1->Z0 ur->eps_eff, times the MEASURED mask factor
+# 1.0628 from pluto-cal-switch's 2D field solve, 4A(iii)):
+#
+#     eps_eff bare 3.3226  ->  as-fabbed 3.5314
+#     lambda_g(5.5 GHz) = 29.0057 mm  ->  lambda_g/16 = 1.8129 mm
+#
+# 1.81 mm is the LOOSEST the branch may be. THE PLACEMENT BELOW DOES NOT AIM AT
+# IT. R_T1 is rotated 270 in the gap BETWEEN the two jacks, so its pad 1 sits at
+# y = 24.990 against a through line at y = 25.000: the branch is **0.010 mm**
+# and the node sees the full 490 ohm at every frequency in band (S21 -0.432 dB,
+# return loss 26.28 dB).
+#
+# AND THE ARCHITECTURE IS WHAT MAKES IT ROBUST, NOT THE LENGTH. With the whole
+# 440 ohm lumped AT the junction, Z_node = 440 + Z_x for any passive Z_x, so
+# |Z_node| >= 440 ohm and RL >= 25.5 dB no matter how long the tap arm is or
+# what the PE42482 presents at RF8 in its seven OFF states. In the old topology
+# the arm's LENGTH set the node impedance and the switch's off-state modulated
+# it. The copper does not get longer: 9.903 + 1.180 + 9.741 = 20.82 mm before,
+# 0.010 + 1.180 + ~19.9 = ~21.1 mm after.
+#
+# J_ANT8 and J_RX1 are on RX1_MAIN and carry no length obligation. They are a
+# NORTH ROW at y = 25.00 rather than ring members, for three reasons: (i) the
+# wedge between ANT7 (45) and RX2_OUT (90) is 45 degrees wide and two more
+# 7.5 mm courtyards do not fit in it at ring radius; (ii) the through path this
+# board publishes is J_ANT8 -> J_RX1 with R_T1 tapping it, so the two belong on
+# one straight line with the tap ON that line; (iii) it keeps the NE corner
+# free for H2.
+#
+# THEIR SEPARATION IS 11.000 mm AND IT IS A MECHANICAL NUMBER, NOT AN RF ONE.
+# A 5/16 in SMA coupling nut is 7.9375 mm across FLATS and **9.1656 mm across
+# CORNERS**. At the first cut's 8.000 mm the two nuts overlap at every rotation
+# -- on the ONE pair that must be cabled simultaneously for the reference
+# channel to exist. 11.000 clears by 1.834 mm. The floor this board holds for
+# every jack pair is the rosette's own adjacent-jack chord, 2*14*sin(22.5) =
+# 10.716 mm; the one pair below it is J_ANT8 <-> J_RX2 at 9.933 mm, which is
+# unchanged from the first cut and clears the nut by 0.767 mm.
 #
 # ---------------------------------------------------------------------------
 # MODULE FACTS THAT CONSTRAIN THIS FILE (all STEP-MEASURED, journal/04_placement)
@@ -133,7 +183,7 @@ board:
   # legend lives — it is the only large area the star geometry leaves, and it
   # is deliberately not filled with parts so the USB-C corner stays free of
   # anything a cable can foul.
-  outline: {x0: 20.0, y0: 20.0, x1: 66.0, y1: 93.0}
+  outline: {x0: 20.0, y0: 20.0, x1: 70.0, y1: 93.0}
   edge_width: 0.1
   layers: 4
   mounting_holes:
@@ -144,7 +194,13 @@ board:
     # y 68.75..92.75, so the south-east corner is under the module and a
     # 3.45 mm-radius M3 courtyard cannot fit there. H4 takes the south edge
     # west of the module instead. The module is hand-soldered and ~2 g.
-    at: [[23.8, 23.8], [62.0, 23.8], [23.8, 89.2], [36.5, 89.2]]
+    # H2 MOVED 62.0 -> 66.0 WITH THE EAST EDGE (2026-07-30). It is the same
+    # corner hole at the same 4.0 mm inset; it moved because it was the binding
+    # constraint on the RX1 pair. MEASURED: H2's courtyard began at x 58.5075,
+    # which capped J_RX1 at x 54.7125, while the 9.1656 mm coupling-nut envelope
+    # against J_RX2 floored J_ANT8 at x 46.6 -- an EMPTY interval, on the 46 mm
+    # outline, for every row y the board edge permits. See the pickoff block.
+    at: [[23.8, 23.8], [66.0, 23.8], [23.8, 89.2], [36.5, 89.2]]
 
 # PROJECT LIBRARY FIRST. `03_src/lib/` holds pluto_rx2_8way_v2.pretty/ with the
 # three authored/vendored lands (QFN-24 PE42482, SMA_Vertical_5.08sq_D1.4,
@@ -179,27 +235,33 @@ placement:
     # for a diagonal arm. Getting this backwards puts a D1.4 barrel dead ahead
     # of the launch.
 
-    # ---- the RX1 pickoff: RF8 out on bearing 67.4, then the north row -------
+    # ---- the RX1 pickoff: a LUMPED SHUNT sitting ON the through line -------
     # R_T2 is the SWITCH side (pin 2 = RX1_TAP), R_T1 the ANTENNA side
     # (pin 1 = RX1_MAIN). BOTH at rotation 270: identical rotation, never
-    # mirrored, long axes COLLINEAR and 2.20 mm apart, so the RX1_TAP_MID pad
-    # span is 2.20 - 2*0.4825 = 1.235 mm, inside the lambda_g/20 = 1.3693 mm
+    # mirrored, long axes COLLINEAR and 2.20 mm apart. MEASURED off the built
+    # board, the 0402 land's pad-1 offset is 0.510 mm, so the RX1_TAP_MID pad
+    # span is 2.20 - 2*0.510 = 1.180 mm, inside the lambda_g/20 = 1.3693 mm
     # lumped bound (ADR-0003). THAT SPAN IS THE ONLY THING THE ROTATION HAS TO
     # BUY: v1 lost its pickoff to a rotation inherited from the JACK rule (15
     # deg, long axes 60 deg off the pair axis) and measured 2.66 mm — the
     # pickoff stopped being a lumped element on the one path everything else is
     # calibrated against.
-    # THE COLUMN IS VERTICAL AND NOT RADIAL, AND THAT IS THE FIT: the pickoff
-    # has to live inside the 3.00 mm channel between J_RX2's bounding box
-    # (x <= 44.50) and J_ANT7's (x >= 47.497 — a 45-degree SMA courtyard has a
-    # 5.303 mm half-diagonal and the placement gate works in bounding boxes).
-    # x = 46.00 centres it with 1.03 mm each side. The chain R_T2 -> R_T1 ->
-    # J_ANT8 is then a straight 0.50 mm-offset run and only the tap arm from
-    # U_SW pad 19 is angled (9.77 mm at bearing 67.4).
-    R_T2:   [46.0000, 37.6000, 270]
-    R_T1:   [46.0000, 35.4000, 270]
+    # THE COLUMN SITS BETWEEN THE TWO JACKS AND POINTS AT THE SWITCH, and both
+    # halves of that are load-bearing. BETWEEN: x = 52.00 is the centre of the
+    # 3.410 mm gap between J_ANT8's courtyard (x <= 50.295) and J_RX1's
+    # (x >= 53.705), so R_T1's pad 1 can land at y = 24.990 -- ON the y = 25.000
+    # through line, branch 0.010 mm against the 1.8129 mm lambda_g/16 bound
+    # derived above. POINTS AT THE SWITCH: pad 1 north, pad 2 south, so the
+    # chain runs J_ANT8/J_RX1 -> R_T1 -> R_T2 -> U_SW pad 19 monotonically and
+    # nothing doubles back across the through line.
+    # THE OLD x = 46.00 CHANNEL IS NOW PURE ROUTING SPACE, which is what it was
+    # always better at: the tap arm still climbs it (RX1_TAP, ~19.9 mm at
+    # bearing 62.7 from pad 19 at (42.25, 47.10) to R_T2's pad 2 at
+    # (52.00, 28.21)), and a 50 ohm line TERMINATED IN 50 ohm is length-blind.
     J_ANT8: [46.5000, 25.0000, 0]     # = THE RX1 ANTENNA, not an 8th element
-    J_RX1:  [54.5000, 25.0000, 0]     # -> PlutoSDR RX1
+    J_RX1:  [57.5000, 25.0000, 0]     # -> PlutoSDR RX1
+    R_T1:   [52.0000, 25.5000, 270]   # pad 1 (RX1_MAIN) lands at y 24.990
+    R_T2:   [52.0000, 27.7000, 270]   # ON the y=25.000 through line
 
     # ---- switch-side control pocket ----------------------------------------
     # Bounded WEST by the S arm (a 0.36 mm run at x = 39.10) and NORTH-EAST by
@@ -207,12 +269,21 @@ placement:
     # part below is south-west of that line; the measured clearance from each
     # arm centreline to the nearest courtyard is >= 0.60 mm against the 0.38 mm
     # a 0.36 mm track at 0.20 mm clearance needs.
-    C_SW1:  [40.2500, 53.1000, 270]   # 100nF AT pin 8: pad-1 span 1.72 mm of 3
-    C_SW2:  [41.2000, 55.3000, 0]     # 1uF, the second half of the pin-8 bypass
-    R_PD1:  [41.6000, 58.2000, 270]   # V1..V4 pull-downs, at the SWITCH end --
-    R_PD2:  [43.2000, 58.2000, 270]   # they are only a power-on guarantee if
-    R_PD3:  [44.8000, 58.2000, 270]   # they sit on the switch's side of the
-    R_PD4:  [46.4000, 58.2000, 270]   # 47R series element (ARCHITECTURE sec 7)
+    # ROW 1 (y 52.60) then ROW 2 (y 54.80) at 1.30 mm PITCH. A 1.60 mm pitch
+    # was TRIED AND REVERTED, and the measurement is worth keeping: it opened
+    # the pour gaps but it BROKE THE ESCAPE — SW_V2, the pad with a routed
+    # neighbour on both sides, went unroutable (the same net the route.yaml
+    # header records failing under four ordered ctrl waves), taking DRC from
+    # 0 violations / 2 unconnected to 2 / 6. The pocket is escape-limited, not
+    # courtyard-limited, and widening it moves the constraint rather than
+    # relieving it. The pour is instead given its room by the zone's own
+    # clearance (zones: below, 0.25 -> 0.20).
+    R_PD1:  [40.2000, 52.6000, 270]   # V1..V4 pull-downs, AT THE SWITCH PADS.
+    R_PD2:  [41.5000, 52.6000, 270]   # They are only a power-on guarantee if
+    C_SW1:  [42.8000, 52.6000, 270]   # they sit on the switch's side of the
+    R_PD3:  [41.2000, 54.8000, 270]   # 47R series element (ARCHITECTURE sec 7)
+    R_PD4:  [42.5000, 54.8000, 270]   # -- and the 4 mm SW_V4 budget only binds
+    C_SW2:  [41.6000, 57.0000, 0]     # if they are actually AT the pad.
 
     # ---- the module cell ----------------------------------------------------
     U_MCU:  [52.7000, 80.7500, 180]   # USB-C faces the board's south edge
@@ -241,6 +312,16 @@ placement:
     # The ten SMA jacks: each of the four posts IS the launch return path and is
     # only electrically short if the return is (KH-SMA-KE-Z part.yaml notes).
     - {match: "J_*",  pad_overrides: [{on_net: GND, zone_connection: full}]}
+    # THE CONTROL POCKET'S PULL-DOWNS, same reason as the QFN and MEASURED the
+    # same way. A thermal relief counts SPOKES, and R_PD3/R_PD4's GND pads sit
+    # in row 2 of a pocket bounded by the S arm, the SE arm and the row above:
+    # the pour reaches them from ONE side, so they scored 1 spoke against a
+    # minimum of 2 and DRC reported `starved_thermal` twice (post-stitch,
+    # 2026-07-30). Golden rule 9's fix is pad-level SOLID, not more vias —
+    # vias do not create spokes. Applied to all four so the row is uniform
+    # rather than to the two that happened to fail.
+    - {match: "R_PD*", pad_overrides: [{on_net: GND, zone_connection: full}]}
+    - {match: "C_SW*", pad_overrides: [{on_net: GND, zone_connection: full}]}
 
   legalize: {enable: false, clearance: 0.45}
   # DISABLED, DELIBERATELY. Every refdes is an anchor, so there is nothing for
@@ -268,8 +349,17 @@ zones:
   # layers in route.yaml -- that is the whole point: pouring makes it the solid
   # reference, excluding it from routing is what keeps it unbroken. Ossmann's
   # rule 1, and it is what makes nine arm phases comparable at all.
+  # CLEARANCE 0.25 -> 0.20, WHICH IS THE DRC FLOOR AND NOT BELOW IT. MEASURED
+  # 2026-07-30: at 0.25 the pour could not enter the 1.30 mm-pitch control
+  # pocket and fragmented into six F.Cu islands, two of them (R_PD2.2 and
+  # C_SW2.2) carrying a GND pad and NO via — the board's only remaining DRC
+  # findings. A zone clearance ABOVE the netclass floor is a self-imposed
+  # handicap on plane continuity, and plane continuity is the thing this pour
+  # exists for; the 0.05 mm it gives back on each side of every gap is exactly
+  # the width a 0.6 mm sliver needs to merge. Nothing is relaxed: 0.20 is the
+  # Default/RF50/CTRL/PWR clearance the .kicad_dru already enforces.
   - {net: GND, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], priority: 0,
-     min_thickness: 0.2, clearance: 0.25, connect: thermal}
+     min_thickness: 0.2, clearance: 0.20, connect: thermal}
 
 keepouts:
   # `rf_launch` DENIES NOTHING. It is a NAMED RULE AREA that exists so
@@ -366,7 +456,11 @@ silk:
     # The RX1 pair is a north ROW, so its legends go SOUTH of the jacks in the
     # band above the rosette rather than on a radius.
     - ["ANT8", 41.000, 25.000, 0.9]
-    - ["RX1",  59.400, 25.000, 0.9]
+    # RX1's legend goes SOUTH of its jack, not east of it: J_RX1 moved to
+    # x 57.50 and the old x 59.400 now falls INSIDE the jack's own silk square.
+    # Ownership MEASURED: 5.50 mm to J_RX1, 9.15 mm to the next-nearest jack
+    # (J_ANT7) -- the v1 "labelled on its neighbour" class stays closed.
+    - ["RX1",  57.500, 30.500, 0.9]
     # Legend block, in the south-west clearing.
     - ["pluto-rx2-8way-v2  8-WAY AoA", 30.500, 70.500, 0.7]
     - ["70 MHz - 6 GHz",               30.500, 72.500, 0.6]

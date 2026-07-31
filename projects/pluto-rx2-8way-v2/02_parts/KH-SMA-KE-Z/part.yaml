@@ -142,14 +142,49 @@ layout:
     # MEASURED at this gate: ANT1..ANT7 and RX2_OUT each carry exactly TWO pads
     # (J_ANTn.1 -> U_SW.k), so there is no series part on any of them to be
     # 3 mm from, and the budget was vacuous as intent and false as arithmetic.
-    - {net: RX1_MAIN, max_span_mm: 3, why: "DERIVED: the transition from the
-       D1.4 through-hole barrel to 50 ohm microstrip is the highest-VSWR
-       feature on each port, so a series part belongs inside 3 mm of the launch
-       or it adds a second discontinuity at a different reference plane. THIS
-       net is where that can actually happen: it carries THREE pads
-       (J_ANT8.1, J_RX1.1, R_T1.1), R_T1 being the pickoff series resistor, so
-       the span is a real T and the budget grades a real placement choice. It
-       is the node the published main-line insertion loss depends on"}
+    # RX1_MAIN IS REMOVED HERE TOO, 2026-07-30, AT THE SECOND RELEASE GATE —
+    # AND IT IS THE SAME CORRECTION AS THE ONE ABOVE, WITH A HARDER PROOF.
+    #
+    # The entry that stood here read: "a series part belongs inside 3 mm of the
+    # launch or it adds a second discontinuity at a different reference plane.
+    # THIS net is where that can actually happen: it carries THREE pads
+    # (J_ANT8.1, J_RX1.1, R_T1.1)". The sentence is right. The METRIC is not.
+    # P-ADJ anchors at each KH-SMA-KE-Z pad and takes its NEAREST qualifying
+    # partner, and on a straight through line the nearest partner of each jack
+    # is THE OTHER JACK. So the budget grades `J_RX1.1 <-> J_ANT8.1` — the
+    # THROUGH PATH BETWEEN TWO PANEL CONNECTORS — and reads "the RX1 through
+    # line must be 3 mm long".
+    #
+    # THAT VALUE CANNOT EXIST, AND THE PROOF IS THIS PART'S OWN BODY. A 5/16 in
+    # SMA coupling nut measures 7.9375 mm across flats and **9.1656 mm across
+    # corners**. Two KH-SMA-KE-Z on one net can therefore never be closer than
+    # 9.1656 mm without their mated nuts interfering, so the largest admissible
+    # value of this budget is 9.1656 and the declared 3 is 3.06x below it. Canon
+    # M-BOUND: a bound whose only admissible value fails is a FAIL, not a
+    # rounding note. It is the ANT1..ANT7 mis-encoding above in a second guise —
+    # there the arm could not be 3 mm because the switch body is 4 mm across;
+    # here the through line cannot be 3 mm because the CONNECTOR'S OWN NUT is
+    # 9.17 mm across. Both times the part's own geometry refutes the number.
+    # MEASURED at this gate: 8.000 mm on the first cut (a P-ADJ FAIL, and a real
+    # mechanical defect for a different reason — the nuts DID interfere), and
+    # 11.000 mm as shipped, which is 1.834 mm of nut clearance and a WORSE score
+    # against a budget that was grading the wrong quantity in both directions.
+    #
+    # THE CONSTRAINT THE SENTENCE MEANT IS REAL, IS TIGHTER THAN 3 mm, AND IS
+    # NOT A PAD SPAN. What must be short is the BRANCH: the copper from the
+    # through line to the first series element of the shunt tap. Derived from
+    # this board's own stackup, tuple (JLC04161H-7628 h 0.2104 / er 4.4 /
+    # t 0.035, w 0.360, AS-FABBED conformal mask, Hammerstad-Jensen with H-J's
+    # own dual thickness correction x the MEASURED 1.0628 mask factor of
+    # rf-design.md 4A(iii)): eps_eff 3.5314, lambda_g(5.5 GHz) 29.0057 mm,
+    # **branch <= lambda_g/16 = 1.8129 mm**. At the first cut's 10.107 mm the
+    # branch was lambda_g/4 at 4.06 GHz and shorted the antenna node to 5.1 ohm.
+    # A pad-to-pad span cannot express it — the partner is a TRACK, not a pad,
+    # exactly as pin 1's ground obligation on the PE42482A-X could not be a span
+    # because its partner is a plane. The obligation is therefore moved to an
+    # instrument that can measure it: `06_build/verify/tap_branch.py`, which
+    # reads the routed .kicad_pcb and reports the perpendicular distance from
+    # R_T1's RX1_MAIN pad to the J_ANT8 <-> J_RX1 through path. See notes:.
     # RX1_TAP AND RX1_TAP_MID WERE ADDED HERE IN THE SAME CORRECTION AND
     # REMOVED AGAIN TWENTY MINUTES LATER, BY THE GATE. P-ADJ-UNREACHED fired:
     # "budgets DECLARED but graded by NOTHING". It is right — those two nets
@@ -173,6 +208,18 @@ layout:
        >= D3.5 mm, not the D2.6 that DRC would accept — the barrel plus a tight
        antipad is a capacitive discontinuity that shows up as return loss at
        6 GHz, and the correction is geometric, not tunable later."
+    - "PROHIBITION + A DERIVED BOUND, replacing the RX1_MAIN span budget
+       (keep_short above, removed 2026-07-30 at the second release gate): THE
+       RX1 PICKOFF IS A LUMPED SHUNT AT THE ANTENNA NODE, NOT A BRANCH LINE.
+       The tap resistor's RX1_MAIN pad must sit ON the J_ANT8 <-> J_RX1 through
+       path: branch <= lambda_g/16 = 1.8129 mm at the 5.5 GHz band edge, from
+       eps_eff 3.5314 as-fabbed (see the keep_short comment for the full tuple).
+       MEASURED as shipped: 0.010 mm. WHY THE BOUND IS NOT THE REAL SAFEGUARD:
+       with the whole 440 ohm lumped at the junction, Z_node = 440 + Z_x for any
+       passive Z_x, so |Z_node| >= 440 ohm and return loss >= 25.5 dB whatever
+       the tap arm's length and whatever the switch presents at RF8 in its seven
+       OFF states. Length-sensitivity is a property of the OLD topology, not of
+       this one. Graded by 06_build/verify/tap_branch.py off the routed board."
     - "PROHIBITION, and it replaces a mis-encoded span budget (see keep_short
        above, corrected 2026-07-30): NO SERIES PART MAY SIT ON A PURE ARM.
        ANT1..ANT7 and RX2_OUT run launch-pad to switch-pad with two pads and
