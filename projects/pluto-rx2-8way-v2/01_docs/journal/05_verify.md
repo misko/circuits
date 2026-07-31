@@ -779,3 +779,67 @@ is not. REVERTED; the constraint is now understood rather than tuned.
   board is held to the tighter number it actually meets. An exception argument
   that turns out to be unnecessary is the cheapest possible outcome of forming
   it honestly first.
+
+## 2026-07-31 03:05 — stuck -> STOP (S-OCCL cannot close inside this partition)
+
+- trigger: not stagnation. A partition boundary, with the cause MEASURED.
+- did: regenerated the whole chain with `rebuild_all.sh` (exit 0, 1m54s) so the
+  SHIPPED human schematic is a render of the CURRENT circuit — that closes
+  P0-4, whose defect was that `03_tscircuit/build/schematic.pdf` was four hours
+  older than the `circuit.json` beside it and drew a superseded pin map.
+  `build/schematic.pdf` and `circuit.json` now carry the same timestamp.
+  Re-measured everything after the full rebuild: fence **PASS** (worst 1.1769,
+  0 of 22 over), DRC **0/0/0**, `policy_audit` FAIL 3 -> **2**.
+- **R-RULES CLOSED, AND IT WAS A STALE ARTIFACT RATHER THAN A RULE.**
+  `A-FIRE rule 'pad_rescue_stubs': conditions on insideArea('pad_rescue_stubs'),
+  and no zone/rule area of that name exists` — a predicate that can never fire.
+  Cause: `generate_rules_generic` deliberately PRESERVES foreign rules already
+  in the `.kicad_dru`, and `pad_rescue` no longer places any stubs (the six
+  pocket terminals are served by `seed_stubs` by name), so the rule area
+  stopped being emitted while the rule text was carried forward forever.
+  Deleted the file and regenerated rather than editing it (canon M3): 5 rules,
+  DRC still 0/0/0.
+- **S-OCCL IS A CONVERTER DEFECT, NOT A BOARD ONE, AND IT IS FLEET-WIDE.**
+  MEASURED off the generated `.kicad_sch`: `R_LED` sits at x = **73.025** and
+  its two global labels sit at **69.215** (`LED_STAT`, ang **0**) and
+  **76.835** (`LED_STAT_A`, ang **180**) — 73.025 +/- 3.81, i.e. exactly the
+  part's own two pin tips. Angle 0 extends the plate RIGHT and 180 extends it
+  LEFT, so **both labels point INWARD across the resistor body**. The same
+  geometry holds for `R_S2` (body 118.745, labels 114.935/125.095) and `R_T2`
+  (body 151.130, labels 147.320/154.940), and `C_SW2` (body 65.405,80.645)
+  collides its `3V3` label with its own Reference text.
+  `circuit_json_to_kicad_sch.py` intends the opposite — it maps side `left` ->
+  `(180, "right")` and side `right` -> `(0, "left")`, which points a plate AWAY
+  from the body — so the mapping is right and the SIDE it is handed is wrong
+  for a horizontally-placed 2-pin part.
+  **THIS IS NOT COSMETIC AND IT CANNOT BE OUTRUN BY LAYOUT.** A pin span is
+  7.62 mm and a plate is `(len(net)+2)*1.05` mm — 11.6 mm for `SEL_V2`,
+  12.6 mm for `LED_STAT_A`, 15.75 mm for `RX1_TAP_MID`. Two plates fired into
+  a 7.62 mm gap from both ends MUST overlap, at any placement, for any board.
+  Moving parts in the `.tsx` cannot fix it; only a shorter net name or the
+  converter can.
+- **SO THE BOARD DOES NOT SEAL TODAY.** `policy_audit` FAIL = 2: **A-POP**,
+  which closes with the MANIFEST at seal, and **S-OCCL**, which does not close
+  inside `projects/pluto-rx2-8way-v2/**`. The one in-partition route to zero
+  would be renaming `LED_STAT_A` / `SEL_V2` / `RX1_TAP_MID` shorter — churning
+  every rule file, the silk, the dossiers and E-NETREF to work around a
+  converter bug, on a board whose copper was just stabilised. That trade is not
+  worth making and it would hide the real defect.
+  Raising `soccl_max` is refused outright: the S-OCCL waiver on this board was
+  WITHDRAWN once already because its premise was falsified, and a threshold is
+  a waiver with the evidence removed.
+- **WHAT THE SHIPPED HUMAN DOCUMENT ACTUALLY SAYS, MEASURED BY EYE.** Rendered
+  `build/schematic.pdf` at 200 dpi and read it. The three `.kicad_sch`
+  label-pair collisions are NOT present in the tscircuit render — it draws
+  `RX1_TAP_MID` / `RX1_TAP`, `SEL_V2` / `SW_V2` and `LED_STAT` / `LED_STAT_A`
+  cleanly separated, which is consistent with S-OCCL grading the CONVERTER
+  artifact that ADR-0002 Phase A calls a machine artifact. But the render has
+  TWO occlusions of its own, and they are the ones that matter because a human
+  reads this file: the `N3V3_MOD` label from `U_MCU` pin 21 lands on `U_SW`'s
+  **RF2 row**, so the 3V3 rail appears to be wired to an RF port; and at
+  `U_SW` pin 8 a `GND` symbol's text composites with the `N3V3` label into
+  `G|N3V3`. Both need tscircuit schematic placement (`schX`/`schY`), which this
+  board's `.tsx` does not currently declare at all.
+- next: HANDOFF at a gate boundary. The copper is finished and green; what
+  remains is paperwork, a converter patch that is not mine to make, and the
+  release ceremony. See STATUS.md.

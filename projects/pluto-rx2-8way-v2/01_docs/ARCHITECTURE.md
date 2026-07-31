@@ -194,81 +194,62 @@ the bound the board can actually hold". There is no such amendment: the honest
 re-derivation moves the bound the wrong way for that hope. Recorded so no
 successor spends a session looking for it.
 
-**AS BUILT, AND THE LATTICE PITCH IS 0.95** (2026-07-30, measured —
-`06_build/verify/fence_pitch.txt`). The fence is the stitch lattice, and **a
-square lattice at pitch p is not a fence at pitch p**: its nearest-neighbour
-distance is p in every direction, but the spacing that governs is the projection
-onto the ARM AXIS, and eight of the nine arms lie on 45-degree multiples where
-one lattice row projects at `p*sqrt(2)`. The lattice steps at **0.95**, chosen
-as `floor_0.05(1.35/sqrt(2))` against the SUPERSEDED microstrip bound, giving
-**1.3435 mm** on a diagonal arm and 0.95 on an axis arm — 2208 grid vias plus
-the 40 SMA ground posts. Against the ADR-0004 bound the lattice must fall to
-**0.80** (`0.80*sqrt(2) = 1.1314 <= 1.1910`); 0.95 no longer qualifies on any
-diagonal arm.
+**AS BUILT: LATTICE 0.80 PLUS A 17-BARREL PER-ARM FENCE, AND THE BOUND IS MET**
+(2026-07-31, measured — `06_build/verify/fence_pitch.txt`).
 
-**THE BOUND IS NOT MET. Every number below is re-measured off the CURRENT board
-on 2026-07-30 against the CURRENT (ADR-0004) bound.** An earlier revision of
-this paragraph quoted `12 of 21` / worst `5.1071` from a SUPERSEDED board and
-was left standing across a re-place and two re-routes — a stale disclosure reads
-exactly like a current one, which is why each is dated and regenerated with the
-artifact.
+**A SQUARE LATTICE AT PITCH p IS NOT A FENCE AT PITCH p.** Its
+nearest-neighbour distance is p in every direction, but the spacing that
+governs is the projection onto the ARM AXIS, and eight of the nine arms lie on
+45-degree multiples where one lattice row projects at `p*sqrt(2)`. The lattice
+steps at **0.80** = `floor_0.05(1.1910/sqrt(2))`, giving **1.1314 mm** on a
+diagonal arm and 0.800 on an axis arm.
 
-MEASURED, `06_build/verify/fence_pitch.txt` (which reads the saved `.kicad_pcb`
-through pcbnew and never reads `route.yaml`, so a declared pitch cannot certify
-itself; it now **exits 1** on FAIL, having previously printed `VERDICT: FAIL`
-and exited 0):
+**AND THE LATTICE ALONE COULD NOT CLOSE IT.** A board-wide square grid places
+its sites relative to the BOARD ORIGIN, so where an arm's flank meets other
+nets' copper it has one site to offer and no way to step aside. At 0.80 it left
+**eleven** apertures over the bound. Those are closed by a **per-arm fence of
+17 declared barrels** (`route.yaml` `stitch.seed_stubs`), each coordinate
+MEASURED by `03_src/fence_sites.py`: it sweeps the continuum inside each
+aperture's +/-2.5 mm flank band at 0.05 mm in arclength and lateral offset and
+asks the stitcher's own `via_site_ok` — exact collision on every copper layer
+plus net-blind hole-to-hole — whether a 0.25/0.15 GND barrel can legally stand
+there, with the ten SMA `avoid` rings and the module-underside rect excluded.
 
-> **worst interior along-arm aperture 3.0500 mm at ANT4 sideW,
-> s = 7.12..10.17, against the 1.1910 mm bound — `lambda_pp/7.81`, 2.56x over —
-> with 17 of 20 arm-sides over and 34 apertures above the bound.**
-> `VERDICT: FAIL`, exit 1.
+**THE BOUND IS MET. Every number below is measured off the CURRENT board.**
 
-At the superseded 1.35 mm bound the same board read 11 of 20; the worst value is
-unchanged, because the worst aperture is an occupied site and no bound moves it.
+MEASURED, `06_build/verify/fence_pitch.txt` (which reads the saved
+`.kicad_pcb` through pcbnew and never reads `route.yaml`, so a declared pitch
+cannot certify itself; it exits 1 on FAIL):
 
-**CLASSIFIED BY CAUSE, NEVER COUNTED** (`06_build/verify/fence_apertures.txt`
-names one occupier per empty lattice site). The 34 apertures are FOUR unrelated
-problems, and grouping them is what says which are cheap:
+> **worst interior along-arm aperture 1.1769 mm at RX1_TAP sideE,
+> s = 18.97..20.15, against the 1.1910 mm bound — `lambda_pp/20.24` — with
+> 0 of 22 arm-sides over.** `VERDICT: PASS`, exit 0.
 
-| class | n | worst | what occupies the site | what closes it |
-|---|---|---|---|---|
-| **A — lattice projection** | **18** | 1.3435 | **nothing.** 12 are exactly `0.95*sqrt(2)`, the lattice's own diagonal, with no obstruction at all; 6 more are near-lattice spacings in 1.19–1.33 | re-stitch at pitch **0.80** — a `route.yaml` value, no placement change. Expressible only since the shared stitcher's whole-millimetre grid floor was fixed (`rf-design.md` 3(b)) |
-| **B — SMA avoid ring** | 5 | 2.8500 | the declared `avoid` rings holding stitch vias out of each jack's >= D3.5 mm bottom-plane antipad (ANT2 W, ANT6 W+E, RX1_TAP L at J_ANT8, RX1_TAP R at J_ANT7) | a per-arm fence pass, or a declared exception — see the caution below |
-| **C — SSE control corridor** | 5 | **3.0500** | `SW_V1`/`SW_V3`/`SW_V4` and `3V3` copper plus `C_SW1`/`C_SW2` pads, mid-arm on ANT4 and ANT5 (SW_V4 F.Cu at 0.06 mm and SW_V3 In2.Cu at 0.13 mm from the empty sites) | take CTRL off F.Cu across the rosette — **which `rules/nets.yaml` already declares** and the router did not do (90–96 % of SW_V1/V2/V4 is on F.Cu). A route change |
-| **D — star hub / tap** | 6 | 2.8500 | the arms' own 0.36 mm copper at the hub, RX1_TAP's detour, and `R_T1`/`RX1_TAP_MID` | a per-arm fence pass, or placement |
+**THE FOUR CLASSES, AND HOW EACH ACTUALLY CLOSED.** The previous revision of
+this section classified 34 apertures into four classes and predicted that two
+of them (the SMA `avoid` rings and the star hub / tap) would need "a per-arm
+fence pass the shared stitcher does not have, or a declared, measured
+exception". The first half was right and the second half was not needed:
 
-**CLASS A IS 53 % OF THE FINDING AND HAS NO OCCUPIER AT ALL** — it is purely the
-declared pitch, and it is the one class a config value closes. Class C is the
-worst aperture and is a route change the rule file already asks for. Classes B
-and D need tooling the shared stitcher does not have (a fence pass that follows
-the arm rather than a board-wide square lattice) or a declared, measured
-exception.
+| class | n | what closed it |
+|---|---|---|
+| **A — lattice projection** | 18 | pitch 0.95 -> 0.80. NOT the config value alone: `stitch.via.spacing` sat at 0.85, i.e. 0.05 mm ABOVE the new pitch, and since every lattice site passes through that net-blind guard each site refused its own neighbour — 1668 grid vias where the 0.95 lattice emitted 2208. Corrected to 0.75 (under the pitch, and 1.88x the real hole-to-hole floor of 0.40 mm) |
+| **B — SMA avoid ring** | 5 | **STITCHED, not excepted.** The ring was never the obstruction — legal ground exists OUTSIDE it, and the barrels that close these sit at 1.36-2.46 mm lateral offset. What could not step aside was the lattice |
+| **C — SSE control corridor** | 5 | the re-route. Taking the meander length-match pass off the `rf` wave re-laid the arms straight, and the control copper moved with it |
+| **D — star hub / tap** | 6 | **STITCHED.** Same finding as B: "occupied" is not "unstitchable" |
 
-**A CAUTION ABOUT CLASS B, WRITTEN DOWN BECAUSE IT IS THE SHAPE MOTIVATED
-REASONING TAKES.** There is a real physical argument that the bound should not
-apply inside a launch antipad: the parallel-plate mode has no lower plate there,
-In1.Cu being voided, and the jack's four PTH ground posts tie all four planes a
-millimetre away. That argument may well be right. It was also formed AFTER
-seeing which apertures failed, which is exactly the reasoning that put
-`eps_eff = 3.350` into this fleet. It is therefore recorded as an OPEN
-CANDIDATE, not applied: it becomes an exception only when someone measures what
-those apertures cost in isolation, and the measurement is the price of the
-exception (canon M4 — a waiver needs evidence, not rationale).
-
-**THIS IS AN OPEN P0 AGAINST ADR-0004's PUBLISHED INEQUALITY, NOT A MET
-REQUIREMENT AND NOT A WAIVER.** It is recorded here so no downstream reader can
-take the lattice pitch as evidence that the bound is met: the PITCH met the old
-bound and the realized FENCE meets neither. **The board needs a copper change**
-— a re-stitch at 0.80 and a re-route of CTRL onto In2.Cu at minimum — and it is
-not sealed.
-
-**THIS IS AN OPEN P0 AGAINST ADR-0003's PUBLISHED INEQUALITY, NOT A MET
-REQUIREMENT AND NOT A WAIVER.** It is recorded here so that no downstream reader
-can take the 0.95 mm lattice pitch as evidence that the fence bound is met: the
-PITCH meets it and the realized FENCE does not. Resolving it needs either a
-placement change that frees the occupied sites, a per-arm fence pass, or an
-ADR-0003 amendment that re-derives the bound the board can actually hold and
-says what the residual apertures cost in isolation — measured, not asserted.
+**THE CAUTION ABOUT CLASS B IS RESOLVED, AND IT IS RESOLVED THE HONEST WAY.**
+This section used to carry a candidate exception argument — that the bound
+should not apply inside a launch antipad — recorded as an OPEN CANDIDATE and
+deliberately NOT applied, because it had been formed after seeing which
+apertures failed. It is now **retired rather than adopted**. Class B closed in
+copper, so no exception was needed at all; and the criterion that WOULD have
+governed was derived separately, in a fresh context given the geometry but NOT
+the failure list (**ADR-0005**: an isolated aperture `<= lambda_pp/12 =
+1.985 mm` under five conditions). That criterion is **stricter** than the
+retired argument in the one place they overlap — it grants NO relaxation
+inside a launch region, which is exactly where the old argument wanted one.
+**No exception is claimed anywhere in this release.**
 
 The module contributes a second ground reference: its own PCB plane, tied to
 ours only through the `GND` castellations. That is a real discontinuity and it

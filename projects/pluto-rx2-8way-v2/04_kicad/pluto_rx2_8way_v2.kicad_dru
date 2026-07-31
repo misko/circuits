@@ -14,6 +14,3 @@
 (rule "scoped_clr_ctrl_escape"
   (condition "A.insideArea('ctrl_escape') && B.insideArea('ctrl_escape') && (A.NetName == 'SW_V1' || B.NetName == 'SW_V1' || A.NetName == 'SW_V2' || B.NetName == 'SW_V2' || A.NetName == 'SW_V3' || B.NetName == 'SW_V3' || A.NetName == 'SW_V4' || B.NetName == 'SW_V4')")
   (constraint clearance (min 0.14mm)))
-(rule pad_rescue_stubs
-  (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND')")
-  (constraint track_width (min 0.300mm)))
