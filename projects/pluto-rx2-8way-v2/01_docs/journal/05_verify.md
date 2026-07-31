@@ -246,3 +246,119 @@ by hand from the raw footprint pairs, which is a DIFFERENT method from the tool
 - next: STOP at the seal and report. The rows are a three-line patch to a file
   this agent may not touch; P-ADJ is a placement finding for the red-team lenses
   to grade, not for the designer to waive.
+
+## 2026-07-30 21:10 — iterate 2 (the archive did not stand alone)
+
+- did: composed the archive, then tested the property the 07_releases contract
+  actually asks for — **copy `source/` OUTSIDE the repo and re-measure DRC
+  there**, with no network and no project tree around it. 5 of 33 sealed
+  archives fleet-wide carry this defect, so it is tested, not assumed.
+- result: **657 violations / 0 unconnected / 0 parity.** The archive as first
+  composed did NOT stand alone, for two independent reasons:
+  1. `source/fp-lib-table` carried
+     `${KIPRJMOD}/../03_src/lib/pluto_rx2_8way_v2.pretty` — a path that ESCAPES
+     the archive. The vendored `.pretty` was copied in correctly; the table
+     still pointed at the project tree it came from.
+  2. `source/` had no `.kicad_pro` and no `.kicad_dru`, so the standalone DRC
+     ran on KiCad's DEFAULT 0.2 mm rules with no netclasses at all. **That is
+     what produced 657** — not bad copper. The board's own floors (3 netclasses,
+     21 patterns, 3 width rules, 2 scoped clearance rules) live in those two
+     files, and an archive without them re-measures a DIFFERENT BOARD.
+- result after the fix (URI rewritten to `${KIPRJMOD}/…`, `.kicad_pro` +
+  `.kicad_dru` copied in): **0 violations / 0 unconnected / 0 parity**, measured
+  in a temp dir outside the repo. Shipped as
+  `verification/standalone_archive_drc.json`.
+- next: the second cause is the more dangerous one and it is worth naming.
+  A missing `fp-lib-table` entry announces itself (`lib_footprint_issues`); a
+  missing `.kicad_pro` does not — DRC just silently grades against Default and
+  a lenient re-measure would have read as a PASS on a board with tighter rules.
+  Here it read as 657 because our rules are TIGHTER than Default. On a board
+  whose rules are looser it would have read as clean.
+
+Remaining verification evidence staged and MEASURED: R-LEN **PASS**, realized
+spread **0.5314 mm = 7.01 deg** at 6 GHz against a 1.0 mm ceiling, octilinear
+floor spread 0.0007 mm, 8/8 member paths measured, 0 UNREACHED · E-NETREF
+**PASS 87/87**, 0 ghost · S-COUNT **4/4 source pairs over 28 refdes** ·
+placement gates PASS · E-INV / E-TOPO / E-MARGIN / E-OFF pass.
+
+## 2026-07-30 21:40 — stuck (BOTH red-team lenses returned DEFECTIVE — STOP)
+
+- did: ran the fresh-context battery against the PRE-SEAL staging archive — the
+  topology/protection/ratings lens, the layout/thermal/power-integrity lens, a
+  12-part / 98-pad pin review, and a render review — each as a zero-context
+  adversarial agent, each fed the CURATED input set (archive + BRIEF /
+  ARCHITECTURE / DETAIL_DESIGN / decisions + 02_parts + 03_src), each explicitly
+  denied `journal/`, `learnings/`, `STATUS.md` and `08_reviews/`.
+- result:
+
+| lens | design_verdict | order_verdict | P0 | P1 | P2 |
+|---|---|---|---|---|---|
+| redteam topology | **DEFECTIVE** | **DO-NOT-ORDER** | 2 | 6 | 14 |
+| redteam layout | **DEFECTIVE** | **DO-NOT-ORDER** | 1 | 8 | 8 |
+| pin review (12 parts, 98 pads) | SOUND | ORDER | 0 | 0 | 3 |
+
+- next: **STOP. The board does not seal.** A `design_verdict: DEFECTIVE` blocks
+  the seal (08_reviews contract) and is not something to argue into a green.
+
+**THE P0 THAT MATTERS IS ELECTRICAL, AND THE GATE HAD ALREADY POINTED AT IT.**
+`DETAIL_DESIGN` §2 declares that "J_ANT8, J_RX1 and the tap arm meet at ONE
+node". They do not. The layout lens measured the as-built chain: `RX1_MAIN` is
+8.0000 mm to `J_RX1` **plus a 0.7071 + 9.4000 mm branch to `R_T1.1`**. An ABCD
+model at this board's own `eps_eff 3.3286` reproduces the published
+−0.432 dB / 26.28 dB / −20.26 dB to two decimals at 70 MHz and then departs: the
+branch is **90 degrees at 4.06 GHz** and transforms the 490 ohm tap arm into a
+**5.1 ohm SHUNT across the antenna node** — RX1 through-loss **−13.995 dB** and
+antenna-node return loss **1.91 dB at 4.00 GHz**, worst −14.13 dB at 3.94 GHz,
+broken across roughly 2–5.5 GHz. The board silkscreens `ANT8 = RX1 TAP
+−20.26 dB`.
+
+**AND THIS IS THE FINDING I REFUSED TO WAIVE FOUR HOURS EARLIER.** `policy_audit`
+P-ADJ failed `KH-SMA-KE-Z:RX1_MAIN` and I measured the geometry directly —
+`J_ANT8.1 <-> J_RX1.1 = 8.000`, `J_ANT8.1 <-> R_T1.1 = 9.903`, routed copper
+**18.107 mm over an 8.000 mm through path**, i.e. a ~10 mm branch = 0.36 lambda_g
+at 6 GHz — wrote it into the journal and the commit body as an OPEN finding, and
+declined to waive it on the grounds that a designer waiving his own placement
+finding is not a judgement. The lens put the dB on it. **The mechanical gate
+found the geometry; only the adversarial lens found the CONSEQUENCE.** That is
+the whole argument for keeping both, and it is worth recording that the gate's
+signal was there hours before and said nothing about −14 dB.
+
+**THE FIX IS A D-BACK TO PLACEMENT, NOT A CONFIG EDIT.** `R_T1`/`R_T2` must sit
+hard against `J_ANT8` so the tap is a lumped node. That moves KRT-routed pads,
+which discards the promoted chain `03_src/route/r4.kicad_pcb` and needs a fresh
+routing campaign. The lens also measured the declared 3 mm budget as itself
+under-derived: **<= 1 mm is needed for >= 16.5 dB worst-case return loss.**
+
+**THE SECOND P0 IS PAPERWORK CONTRADICTING ITSELF.** ADR-0002 (status: accepted)
+and `ARCHITECTURE` §10 declare `U_MCU` **CONSIGNED and on the CPL**, while
+`assembly.yaml`, the BOM and the CPL all say `user_supplied` / hand-soldered /
+off both, and `assembly_coverage.json` reports `consigned: 0`. The posture
+CHANGE is sound and dated and MEASURED (23 components on the module's
+carrier-facing face, tallest 1.000 mm, against 0.010 mm castellation lands); the
+ADR and §10 were never brought along. This is the cooksense-v1.1 class — a
+release whose two homes give the assembler contradictory instructions about the
+same part — and it costs a docs edit, not a rebuild.
+
+**AND I MADE ONE THING WORSE, MEASURED.** The layout lens found the module's
+underside copper keepout — the User.2 rect drawn against the RP2040-Zero's TEN
+LIVE SMD PADS — contains **22 GND vias**. I re-measured: 22 vias, 0 tracks. The
+lattice puts **6 sites in that rect at the old 2.0 mm pitch, 9 at 1.35, and 26 at
+0.95**, so my fence change roughly QUADRUPLED it. Two causes, and only one was
+known: the three non-RF waves each override `keepout_layer` to User.3, and —
+decisively — **the zone and stitch passes are not router objects at all**, so a
+router keepout never bound them. `route.yaml`'s own comment claims that rect
+"binds EVERY wave"; for the stitcher that claim is FALSE. The fix is one entry in
+`stitch.stitch_grid.avoid`, and it is deliberately NOT applied yet: the board is
+going back to placement for P0-1, and editing the source without rebuilding
+would leave the committed board no longer regenerable from its own config
+(canon M3). It goes in the SAME pass.
+
+**WHAT DID NOT BLOCK.** Sourcing is clean — 11/11 coded lines at >= 5x build —
+so neither lens could grade `BLOCKED-SOURCING` and both correctly did not. The
+pin review graded 98/98 pads across 12 parts with ZERO fails, deriving each
+pinout from the datasheet figure rather than from `part.yaml`: U_SW's winding is
+CCW and NOT mirrored, RF1..RF7 map 1:1 to ANT1..ANT7, LS is hard-tied to GND,
+pin 20 NC->GND is explicitly permitted by Table 8 note 2, and the truth table
+read visually confirms **V1 is the MSB and V4 is the mute control, not a select
+bit**. The module's CW-from-top-right vendor numbering matches pad-for-pad
+including the GP15->GP26 divergence at pad 17.

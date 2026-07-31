@@ -1,0 +1,68 @@
+# DISPOSITIONS — pluto-rx2-8way-v2
+
+The findings ledger across ALL reviews. One row per finding. `verification:` is
+what I did to the CLAIM before dispositioning it — findings are claims, and each
+is checked against the artifacts (netlist / board / part.yaml) independently.
+
+**RELEASE STATE 2026-07-30: `v1.0-2026-07-30` IS STAGING AND DID NOT SEAL.**
+Both red-team lenses returned `design_verdict: DEFECTIVE`. Per the 08_reviews
+contract that BLOCKS the seal until re-gated; per the pcb-design skill it is a
+STOP-and-report, not something to argue into a green. Three P0s are open.
+
+| lens | design_verdict | order_verdict | P0 | P1 | P2 |
+|---|---|---|---|---|---|
+| redteam topology/protection/ratings | **DEFECTIVE** | **DO-NOT-ORDER** | 2 | 6 | 14 |
+| redteam layout/thermal/power-integrity | **DEFECTIVE** | **DO-NOT-ORDER** | 1 | 8 | 8 |
+| pin review (12 parts, 98 pads) | SOUND | ORDER | 0 | 0 | 3 |
+| render review | *(pending at the time of writing — see the file when it lands)* | | | | |
+
+## P0 — each blocks the release
+
+| id | review file | finding (one line) | severity | verification | disposition |
+|---|---|---|---|---|---|
+| P0-1 | `2026-07-30_v1.0_redteam_layout.md` | The RX1 resistive pickoff is BUILT AS A 10.107 mm BRANCH LINE, not the lumped node `DETAIL_DESIGN` §2 declares; the branch is 90° at 4.06 GHz and transforms the 490 Ω tap arm to **5.1 Ω shunt across the antenna node** — RX1 through-loss **−13.995 dB** and antenna-node return loss **1.91 dB at 4.00 GHz**, broken across ~2–5.5 GHz, on a board that silkscreens `ANT8 = RX1 TAP −20.26 dB` | **P0** | **confirmed, independently and BEFORE the lens ran.** `policy_audit` P-ADJ failed `KH-SMA-KE-Z:RX1_MAIN` and I measured the geometry directly: `J_ANT8.1 ↔ J_RX1.1 = 8.000 mm`, `J_ANT8.1 ↔ R_T1.1 = 9.903 mm`, RX1_MAIN routed copper **18.107 mm** over an 8.000 mm through path — i.e. a ~10 mm branch, 0.36 λg at 6 GHz. I recorded it as an open finding and explicitly refused to waive it (commit `0b012540`). The lens then put the dB on it. | **OPEN — fix requires a D-BACK to PLACEMENT.** R_T1/R_T2 must move hard against `J_ANT8` so the tap is a lumped node, which moves KRT-routed pads and therefore discards the promoted route chain (`03_src/route/r4.kicad_pcb`) and needs a fresh routing campaign. Not a config edit. |
+| P0-2 | `2026-07-30_v1.0_redteam_topology.md` | ADR-0002 (status: accepted) and `ARCHITECTURE` §10 declare `U_MCU` **CONSIGNED and on the CPL**, while `assembly.yaml`, the BOM and the CPL all say `user_supplied` / hand-soldered / off both; `assembly_coverage.json` reports `consigned: 0`. ARCHITECTURE contradicts itself between §7 and §10 | **P0** | **confirmed.** `assembly.yaml` carries a dated posture CHANGE ("POSTURE CHANGED 2026-07-30, at the placement gate, on evidence the commission agent did not have") with a MEASURED mechanical reason — 23 components on the module's carrier-facing face, tallest 1.000 mm, against 0.010 mm castellation lands. The measurement is sound; the ADR and ARCHITECTURE §10 were never updated to match, so the release's own paperwork gives JLC two contradictory instructions about the same part. This is the cooksense-v1.1 class (13 CPL rows whose BOM line was blank while the MANIFEST declared 12 of them not_assembled). | **OPEN — docs fix, cheap.** Amend ADR-0002 with a dated supersession note and rewrite ARCHITECTURE §10 to the built posture. Must land before any seal; costs no rebuild. |
+| P0-3 | `2026-07-30_v1.0_redteam_topology.md` | The staged archive has **no `MANIFEST.txt` and no `ORDER_README.md`**, and its own `assembly_coverage.txt` ships `A-POP: FAIL`; all three order-time human gates `assembly.yaml` cites (hand-solder `U_MCU`, through-hole line selection, the rotation preview) point at an ORDER_README that does not exist | **P0** | **confirmed — and it is a TRUE finding about a STAGING directory, which is what pre-seal review is for.** The archive was deliberately left un-stamped because the seal is blocked upstream by A-ROT (below); writing a MANIFEST with a placeholder `git_sha` would have shipped a draft marker. `A-POP: FAIL` reduces to exactly one finding, `MANIFEST-UNDECLARED`, which closes when the MANIFEST exists. | **OPEN — closes at seal time**, after P0-1 and P0-2. The MANIFEST's `not_assembled:` line is GENERATED from `assembly.yaml`, never hand-written. |
+
+## Blocking, not a review finding: A-ROT
+
+| id | source | finding | severity | verification | disposition |
+|---|---|---|---|---|---|
+| B-1 | `export_jlc_package.py` exit 2 | Three LCSC codes have no measured row in the per-LCSC rotation authority table: **C2286** (LED_ST), **C504007** (ten SMA jacks), **C5121458** (U_SW) — 12 placements | blocker | **measured, all three, by hand from the raw footprint pairs (canon M1 — a different method from `jlc_rotation_measure.py`, which WITHHELD all three as `single-channel`).** Derivations and numbers in `01_docs/journal/05_verify.md`. All three offsets are **0**, so the staged CPL is already correct and will be BYTE-IDENTICAL once the rows land. | **OWED OUTSIDE THIS BOARD'S PARTITION.** The table is `skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv`; board agents must not edit `skills/`. Reported upward as a three-row patch. |
+
+**A trap inside B-1, worth its own line.** `twin_report.csv` carries a
+`ROT-DB-SUGGEST` row saying *add `C2286,180`* while its own `POLARITY-FIT` row
+three lines earlier says offset **0** is the physically correct answer. The
+topology lens flagged the same contradiction independently. Copying the
+suggestion places every indicator LED backwards, which is indistinguishable from
+a bad solder joint. The correct row is `C2286,0,two-channel`: both libraries draw
+the cathode WEST (ours F.SilkS bar at local x = −1.485 plus the F.Fab chamfer on
+the −x end; JLC's bevelled silk end at −x with their pin-1 dot at +0.80 beside
+their pad 1 at x = +0.75), so JLC numbers pad 1 = ANODE where KiCad numbers pad 1
+= CATHODE and the physical parts already align.
+
+## P1 — ORDER_README + the next-rev work order
+
+| id | review file | finding | severity | verification | disposition |
+|---|---|---|---|---|---|
+| P1-1 | layout + topology (BOTH, independently) | The ground-via fence FAILS its own `≤ 1.35 mm` bound on 12 of 21 arm-sides (my measurement) / 15 of 22 (the lens's independent re-derivation); **both agree the worst is 5.1071 mm = λg/5.36**, at `J_ANT8` — the array's own phase reference | P1 | **confirmed by three independent measurements** (mine at ±2.5 mm band, the lens's re-derivation, and the lens's re-run of my instrument at ±2.6 and ±3.0 mm bands to test whether the SMA posts at 2.540 mm were being excluded — verdict unchanged at 12/21, worst 5.1071 both times). Every aperture is a named site OCCUPANCY, not a pitch: the declared SMA `avoid` rings, the SSE control corridor's copper, the star hub. | **deferred — ARCHITECTURE §6 already records it as an open finding, not a met requirement** (commit `03b0485e`). The lens's condition is accepted: the "≤ 1.35 mm" sentence must be rewritten and **no phase table may be published before bench measurement**. λ/2 resonance at 16.09 GHz is out of band. |
+| P1-2 | layout | The module's declared underside copper keepout (User.2 rect, x 58.10–59.30 / y 73.80–86.00, drawn against TEN LIVE SMD PADS on the RP2040-Zero's carrier-facing face) contains **22 GND vias**, because the pwr/ctrl/sig waves each override `keepout_layer` to User.3 and — decisively — **the zone and stitch passes are not router objects at all** | P1 | **confirmed and quantified, and I MADE IT WORSE.** Measured: 22 GND vias, 0 tracks, inside the rect. The lattice puts **6 sites there at the old 2.0 mm pitch, 9 at 1.35, and 26 at 0.95** — so my fence change (commit `03b0485e`) roughly quadrupled the count. `route.yaml`'s own comment claims that rect "binds EVERY wave"; that claim is FALSE for the stitcher, which never consults a router keepout. | **OPEN, fix identified, deliberately NOT applied yet.** `stitch.stitch_grid.avoid` takes rectangles — adding this rect removes all 22. Not applied now because the board is going back to placement for P0-1 and a source edit without a rebuild would leave the committed board no longer regenerable from its own config (canon M3). Apply it in the SAME pass that fixes P0-1. |
+| P1-3 | topology | `nets.yaml` asserts a coplanar conductor "does not" run alongside the RF lines. **Measured, it does**: `ANT5 ↔ SW_V4` at **0.265 mm** (g/h 1.26) for 1.936 mm; `ANT4 ↔ 3V3` at 0.770 mm with 100 % of the arm within 2.0 mm; six arms have 0.000 mm clearance within 2.0 mm | P1 | not re-measured by me — **INHERITED from the lens, with its numbers.** | deferred to the next-rev work order; the coplanar-loading question is the one `rf-design.md` 3(c) already records this fleet as unable to settle without a field solver. |
+| P1-4 | layout | The length-match pass half-ran: `ANT3`/`ANT7` are unmeandered at 2 segments each, leaving a **0.5314 mm** spread against a **0.0007 mm** octilinear floor = 6.985°, **53 % of the part's whole 13.2° relative-phase window, free to recover** | P1 | **confirmed against the shipped R-LEN evidence**: `copper_length_audit` reports PASS at spread 0.5314 mm = 7.01° against a 1.0 mm ceiling with the floor at 0.0007 mm. The gate passes; the lens's point is that the ceiling is loose, not that the gate is wrong. | deferred — recover in the same routing campaign that fixes P0-1, where the arms are re-routed anyway. |
+| P1-5 | layout | `ANT5` runs 2.40 mm over a reference perforated by `SW_V3`/`SW_V4` vias at 0.539–0.545 mm, vs 0.35–0.40 mm on the other seven arms | P1 | INHERITED from the lens. | deferred to the next-rev work order. |
+| P1-6 | layout | The module is **absent from the STEP export and from all five twin renders** | P1 | consistent with `missing_models.txt` and with `U_MCU` being `on_bom: false` / `exclude_from_pos_files` — a bodiless footprint means "no model", never "not placed", and here it genuinely is not placed by JLC. | recorded; ORDER_README must say so explicitly so a reviewer of the renders does not read the gap as a defect. |
+| P1-7 | topology | `keep_short {SW_V4, 4 mm}` missed by **+3.958 mm** as built (`U_SW.12 → R_PD4.1 = 7.96 mm`) | P1 | **confirmed independently, before the lens ran** — this is the second of the two findings `policy_audit` P-ADJ surfaced once the mis-encoded arm budget stopped drowning the list. Not decorative: V4 = 1 with V1..V3 = 0 MUTES EVERY PORT (Table 5, PDF p10), so pin 12 is the pin whose float is silent. NOT WAIVED. | **OPEN** — move `R_PD4` (and its three siblings) to the pad in the same placement pass as P0-1. |
+| P1-8 | topology | `source/` omitted `.kicad_pro` and `.kicad_dru` | P1 | **confirmed and FIXED during staging, and the fix is load-bearing.** A standalone re-measure of `source/` outside the repo returned **657 violations** for two independent reasons: `fp-lib-table` pointed at `${KIPRJMOD}/../03_src/lib/…` (escaping the archive) and the netclass/dru files were missing, so DRC graded the board against KiCad's DEFAULT 0.2 mm rules. After copying both files in and rewriting the URI to `${KIPRJMOD}/…`: **0/0/0**, shipped as `verification/standalone_archive_drc.json`. | **fixed in staging.** The lens read the pre-fix archive. |
+
+## P2
+
+Recorded in the two review files verbatim (14 + 8). Three from the pin review
+carry forward and are worth naming here because none is visible in copper:
+**J_ANT8's centre pin is on `RX1_MAIN`, not on a switch port** — correct per
+ARCHITECTURE §1–2, but the refdes teaches the wrong topology and deserves a silk
+legend; **the V1-is-MSB obligation now lives entirely in firmware that does not
+exist yet** (`05_firmware/` holds only `contracts.md`), and a V1 = LSB assumption
+yields sweep order 1,5,3,7,2,6,4,8 which an AoA solver absorbs as a permuted
+array; and **the `RP2040-Zero` dossier shipped with an empty function column and
+no `verified:` note**, so the pin reviewer graded it against the vendor files
+present rather than against a dossier claim.
