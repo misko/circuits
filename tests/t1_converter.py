@@ -778,5 +778,410 @@ def t_label_fixtures_are_discriminating():
                   f"discriminating")
 
 
+# ============ property text drawn ON the ground glyph of its own pin ========
+# THE DEFECT (2026-07-31, fleet-wide, every layout-mode board). `Reference` and
+# `Value` were anchored at a BLIND offset from the body edge — literally
+#
+#     ry = iy - comp["h"] / 2 - 2.2
+#     vy = iy + comp["h"] / 2 + 2.2
+#
+# — which takes no account of what is ALREADY drawn on that side of the symbol.
+# A pin whose net is GND carries an `elt:GND` hanging off its TIP in the
+# direction that pin REACHES (GND_ANG), and on a VERTICALLY placed 2-pin
+# passive that tip sits ON the body edge, so the triangle occupies the strip
+# from the edge to 2.54 mm below it — exactly where the Value is written.
+#
+# MEASURED on pluto-rx2-8way-v2 (scratch conversion, nothing regenerated in
+# place): R_PD1's "10kΩ" ink spans x 114.122-118.288 / y 95.507-96.853 and
+# #PWR52's lower vertex sits at (116.205, 96.52), inside it. Under the
+# direction-aware S-OCCL model (canon S11, `2914dcad`) this ONE class is
+# 160 of the fleet's 341 findings — 151 the 2-pin shape, 9 an IC with a
+# bottom-side GND pin — and 7 of the 11 findings blocking that board's seal.
+#
+# THE FIX MOVES EXACTLY THE DEFECT AND NOTHING ELSE: 160 of 2992 fleet property
+# anchors move, and they are precisely the 160 that were findings. The 166
+# grounded HORIZONTAL passives in the same fleet do not move at all, because a
+# left/right pin's triangle hangs sideways from a tip that is already outside
+# the body and `prop_rows` skips any glyph whose x-range misses the body. Both
+# `--mode grid` boards emit BYTE-IDENTICAL property rows (measured).
+#
+# GIT-SWAP RED-VERIFIED 2026-07-31 against the real pre-fix file — see
+# `t_prefix_value_on_its_own_ground_glyph` for the per-run red side and the
+# whole-file swap result.
+
+_PREFIX_PROP_SHIM = '''import sys
+sys.path.insert(0, {scripts!r})
+import circuit_json_to_kicad_sch as C
+# PRE-FIX: the property rows were a blind offset from the body edge, with no
+# model of the glyphs hanging off this symbol's own pins.
+C.prop_rows = (lambda ix, iy, w, h, boxes, gap_above=2.2, gap_below=None:
+               (iy - h / 2 - gap_above,
+                iy + h / 2 + (gap_above if gap_below is None else gap_below)))
+C.main()
+'''
+
+
+def _gnd_fixture(base, gnd_pin):
+    """`label_sides_{h,v}` with ONE pin moved onto GND — a good input broken in
+    exactly one way (tests/README). The GND net's `schematic_net_label` is
+    dropped because the converter draws a ground SYMBOL for it, which is the
+    whole point: that symbol is the thing the property lands on."""
+    import json
+    import tempfile
+    keep = "sn_a" if gnd_pin == 2 else "sn_b"
+    out = []
+    for e in json.load(open(T0 / base / "circuit.json")):
+        if e["type"] == "source_net" and e["source_net_id"] != keep:
+            e = dict(e, name="GND")
+        if e["type"] == "schematic_net_label" and e["source_net_id"] != keep:
+            continue
+        out.append(e)
+    p = Path(tempfile.mkdtemp(prefix="gndfx_")) / "circuit.json"
+    p.write_text(json.dumps(out))
+    return p
+
+
+def _convert_json(cj, name, prefix=False):
+    """Convert an arbitrary circuit.json, optionally with the PRE-FIX property
+    rows restored. The red side is RE-RUN every run, never asserted in prose."""
+    d = tmpdir("gndconv_")
+    out = d / f"{name}.kicad_sch"
+    if prefix:
+        shim = d / "prefix_prop.py"
+        shim.write_text(_PREFIX_PROP_SHIM.format(scripts=str(SCRIPTS)))
+        cmd = [PY, shim, cj, "-o", out, "--project", name]
+    else:
+        cmd = [PY, CONV, cj, "-o", out, "--project", name]
+    r = must_pass(run(cmd), f"convert {name}{' [PRE-FIX]' if prefix else ''}")
+    contains(r.out, "MODE=layout", f"{name}: converter stdout")
+    return d, out
+
+
+def _svg_ink(sheet):
+    """(text runs, graphic segments) in SHEET MILLIMETRES, straight out of
+    `kicad-cli sch export svg`.
+
+    KiCad's schematic SVG viewBox IS the paper in mm, so nothing is scaled:
+    what this reads is what the sheet DRAWS. Text is every
+    `<g class="stroked-text">` run keyed by its `<desc>`; graphics is every
+    `<path>` AND `<rect>` that survives removing those runs — bodies, pin
+    lines, wires, label plates and the ground triangle, with no model of any
+    of them.
+
+    THREE SHAPES KiCad 10.0.4 REALLY EMITS, each of which silently drops ink
+    if only the obvious one is handled, and all three were found by rendering
+    a fixture and counting rather than by reading the writer: `d` is NOT always
+    the first attribute (a stroked polyline carries `style=` first — and that
+    is exactly the form the GROUND TRIANGLE takes, so a `<path d=` matcher
+    reads a sheet with no ground symbol on it at all); a filled symbol body is
+    a `<rect>` and not a path; and both coordinate syntaxes (`M1.0 2.0 L3.0
+    4.0` and `M 1.0,2.0 L 3.0,4.0`) appear on ONE sheet.
+    """
+    d = sheet.parent
+    must_pass(run(["kicad-cli", "sch", "export", "svg",
+                   "--no-background-color", "-o", d, sheet]),
+              f"kicad-cli sch export svg {sheet.name}")
+    svg = d / (sheet.stem + ".svg")
+    check(svg.is_file(), f"no {svg.name} rendered")
+    txt = svg.read_text()
+
+    def pts(s):
+        return [(float(a), float(b)) for a, b in
+                re.findall(r"(-?\d+\.?\d*)[\s,]+(-?\d+\.?\d*)", s)]
+
+    runs = {}
+    for m in re.finditer(r'<g class="stroked-text"><desc>(.*?)</desc>(.*?)</g>',
+                         txt, re.S):
+        p = pts(m.group(2))
+        if not p:
+            continue
+        b = (min(q[0] for q in p), min(q[1] for q in p),
+             max(q[0] for q in p), max(q[1] for q in p))
+        runs.setdefault(m.group(1), []).append(b)
+    gtxt = re.sub(r'<g class="stroked-text">.*?</g>', "", txt, flags=re.S)
+    graphics = []
+    for m in re.finditer(r'<path\b[^>]*?\bd="([^"]+)"', gtxt):
+        p = pts(m.group(1))
+        for k in range(len(p) - 1):
+            graphics.append((p[k], p[k + 1]))
+    for m in re.finditer(r'<rect\b[^>]*?\bx="([-\d.]+)"[^>]*?\by="([-\d.]+)"'
+                         r'[^>]*?\bwidth="([-\d.]+)"[^>]*?\bheight="([-\d.]+)"',
+                         gtxt):
+        x, y, w, h = (float(m.group(k)) for k in (1, 2, 3, 4))
+        c = [(x, y), (x + w, y), (x + w, y + h), (x, y + h), (x, y)]
+        graphics += [(c[k], c[k + 1]) for k in range(4)]
+    check(graphics, f"{svg.name}: no graphic ink extracted at all")
+    return runs, graphics
+
+
+def _seg_in_box(p, q, box):
+    """Length of segment p->q inside an axis-aligned box (Liang-Barsky).
+
+    A LENGTH, not a hit test: a stroke that merely touches a corner is not a
+    text drawn on top of something, and every glyph is stroked 0.254 mm wide so
+    exact tangency is the normal case."""
+    import math
+    x0, y0, x1, y1 = box
+    dx, dy = q[0] - p[0], q[1] - p[1]
+    t0, t1 = 0.0, 1.0
+    for pp, qq in ((-dx, p[0] - x0), (dx, x1 - p[0]),
+                   (-dy, p[1] - y0), (dy, y1 - p[1])):
+        if abs(pp) < 1e-12:
+            if qq < 0:
+                return 0.0
+        else:
+            r = qq / pp
+            if pp < 0:
+                if r > t1:
+                    return 0.0
+                t0 = max(t0, r)
+            else:
+                if r < t0:
+                    return 0.0
+                t1 = min(t1, r)
+    return max(0.0, t1 - t0) * math.hypot(dx, dy)
+
+
+def _property_ink_hits(sheet):
+    """Every (property, mm of graphic ink drawn through it) on a sheet.
+
+    FALSIFIED IN INK, not against a model. The property strings come from the
+    `.kicad_sch`; their extents and the graphics they collide with come from
+    KiCad's own render — so neither the converter's geometry nor `S-OCCL`'s is
+    an input to this verdict (canon M1)."""
+    body = re.sub(r"^  \(lib_symbols.*?^  \)$", "", sheet.read_text(),
+                  flags=re.S | re.M)          # prototypes are never rendered
+    props = [(m.group(1), m.group(2)) for m in re.finditer(
+        r'\(property "(Reference|Value)" "([^"]+)" \(at [-\d. ]+\)\s*'
+        r'\(effects \(font \(size [\d.]+ [\d.]+\)\)\)\)', body)]
+    check(props, f"{sheet.name}: no VISIBLE Reference/Value property emitted")
+    runs, graphics = _svg_ink(sheet)
+    hits = []
+    for kind, txt in props:
+        for box in runs.get(txt, []):
+            worst = max([_seg_in_box(p, q, box) for p, q in graphics] + [0.0])
+            if worst > 0.05:
+                hits.append((f"{kind} {txt}", round(worst, 4), box))
+    return hits, props
+
+
+# the four orientations x directions the fix has to be right in. `gnd_pin` 2 is
+# the LOWER pin of the vertical fixture and the RIGHT pin of the horizontal one
+# (see `label_sides_*`); 1 is the upper / left one.
+_GND_CASES = [("label_sides_v", 2, "vertical, GND on the LOWER pin"),
+              ("label_sides_v", 1, "vertical, GND on the UPPER pin"),
+              ("label_sides_h", 2, "horizontal, GND on the RIGHT pin"),
+              ("label_sides_h", 1, "horizontal, GND on the LEFT pin")]
+
+
+@test("converter: a 2-pin passive's Reference and Value clear the GROUND GLYPH "
+      "on its own pin — all four orientations, verified in RENDERED INK")
+def t_property_clears_its_own_ground_glyph():
+    """The subject of the fix, graded the only way that cannot be argued with:
+    KiCad renders the sheet and NO graphic stroke may pass through the ink of
+    a Reference or Value. All four (orientation x grounded pin) cases, because
+    a fix proven on one axis is not proven — and because the two directions
+    move OPPOSITE properties (a bottom-pin triangle displaces the Value, a
+    top-pin one displaces the Reference and the PWR_FLAG above it)."""
+    for base, pin, why in _GND_CASES:
+        d, sheet = _convert_json(_gnd_fixture(base, pin), f"{base}_g{pin}")
+        hits, props = _property_ink_hits(sheet)
+        check(len(props) == 2, f"{why}: expected Reference+Value, got {props}")
+        check(not hits, f"{why}: property text drawn on graphics: {hits}")
+
+
+@test("PRE-FIX: the Value is drawn ON the ground triangle of its own lower pin "
+      "— re-measured in ink every run", kind="known_bad")
+def t_prefix_value_on_its_own_ground_glyph():
+    """THE SHIPPED DEFECT. `prop_rows` is replaced by the pre-fix expression it
+    was extracted from (`iy +/- h/2 +/- 2.2`, no glyph model) and the fixtures
+    are re-converted with it, so the RED side is measured on every run instead
+    of living in a docstring.
+
+    MEASURED, and reported honestly rather than tuned into four reds: the two
+    VERTICAL cases go red and the two HORIZONTAL ones do NOT, and that is
+    arithmetic, not luck. A left/right pin's ground triangle spans only
+    +/-1.00 mm ACROSS its axis, while the Value's nearest edge sits
+    h/2 + 2.2 - 0.53*1.27 >= 2.797 mm below the centre (h_mm has a 2.54 floor)
+    — a gap of at least 1.797 mm that no box height can close. So the
+    horizontal pair is this fixture's ADJACENT PROPERTY: text that was already
+    correct, which the fix must not displace. It does not — measured over the
+    real fleet, 0 of 166 grounded horizontal passives move.
+
+    THE BLINDNESS PROOF, asserted inline: the defective sheet's netlist is
+    node-for-node identical to the fixed one and its ERC is 0. Property
+    ANCHORS are not connectivity, so ERC, `--schematic-parity`, S-NETMERGE and
+    every other connectivity-keyed gate is structurally blind to this — the
+    only gate that could ever see it is S-OCCL, and S-OCCL could not see it
+    either until `2914dcad` gave it symbol geometry.
+
+    WHOLE-FILE GIT SWAP, MEASURED 2026-07-31 (tests/README step 3): with
+    `git show 2914dcad:skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py`
+    swapped in, this suite prints **25 passed / 3 failed** — exactly
+    `t_property_clears_its_own_ground_glyph` (the subject), this fixture's
+    "the FIXED converter still draws over graphics" leg, and
+    `t_glyph_geometry_is_measured` (`sym_xf` / `glyph_box` / `power_syms` do
+    not exist pre-fix). Restored: **28 / 0 / 9 known-bad**.
+    `t_gnd_fixtures_are_discriminating` stays GREEN through the swap on
+    PURPOSE — it grades the FIXTURE's discriminating power through the
+    monkeypatched pre-fix rows, so a red there would mean the fixture had
+    changed, not the fix.
+    """
+    red, black = [], []
+    for base, pin, why in _GND_CASES:
+        cj = _gnd_fixture(base, pin)
+        d, bad = _convert_json(cj, f"{base}_g{pin}_pre", prefix=True)
+        hits, _ = _property_ink_hits(bad)
+        (red if hits else black).append((why, hits))
+        d2, good = _convert_json(cj, f"{base}_g{pin}_fix")
+        check(not _property_ink_hits(good)[0],
+              f"{why}: the FIXED converter still draws over graphics")
+        eq(netlist_of(bad), netlist_of(good),
+           f"{why}: netlist of the DEFECTIVE sheet vs the fixed one")
+        eq(erc_errors(bad), 0, f"{why}: ERC on the DEFECTIVE sheet")
+    eq([w for w, _ in red],
+       ["vertical, GND on the LOWER pin", "vertical, GND on the UPPER pin"],
+       "which orientations the PRE-FIX converter draws text over ink in")
+    for why, hits in red:
+        names = {h[0].split(" ", 1)[0] for h in hits}
+        check(names, f"{why}: no hit recorded")
+    # the LOWER-pin case must hit the VALUE and the UPPER-pin case the REFERENCE
+    eq(sorted({h[0].split(" ", 1)[0] for h in red[0][1]}), ["Value"],
+       "the lower-pin defect lands on")
+    eq(sorted({h[0].split(" ", 1)[0] for h in red[1][1]}), ["Reference"],
+       "the upper-pin defect lands on")
+
+
+@test("the four ground-glyph fixtures are DISCRIMINATING: pre-fix the text is "
+      "drawn over MORE ink than a stroke width, and the glyph really is on the "
+      "pin the property sits by")
+def t_gnd_fixtures_are_discriminating():
+    """Canon M-DISC. A fixture whose overlap is a rounding artefact would pass
+    both before and after and prove nothing. Two properties, both measured:
+    the pre-fix overlap must exceed the 0.254 mm stroke width (so it is real
+    ink over real ink, not tangency), and the ground symbol must actually be
+    attached to the pin whose side the displaced property sits on."""
+    for (base, pin, why), want in zip(_GND_CASES[:2], ("Value", "Reference")):
+        d, bad = _convert_json(_gnd_fixture(base, pin), f"{base}_g{pin}_disc",
+                               prefix=True)
+        hits, _ = _property_ink_hits(bad)
+        check(hits, f"{why}: the fixture does not reproduce the defect at all")
+        worst = max(h[1] for h in hits if h[0].startswith(want))
+        check(worst > 0.254,
+              f"{why}: pre-fix overlap {worst:.3f} mm does not exceed one "
+              f"0.254 mm stroke width — the fixture is not discriminating")
+        txt = bad.read_text()
+        gm = re.search(r'\(symbol \(lib_id "elt:GND"\) \(at ([-\d.]+) '
+                       r'([-\d.]+) (\d+)\)', txt)
+        check(gm is not None, f"{why}: no ground symbol on the fixture sheet")
+        im = re.search(r'\(symbol \(lib_id "elt:SYM_\w+"\) \(at ([-\d.]+) '
+                       r'([-\d.]+) ', txt)
+        check(im is not None, f"{why}: no component instance on the sheet")
+        gy, iy = float(gm.group(2)), float(im.group(2))
+        check((gy > iy) == (want == "Value"),
+              f"{why}: the ground symbol at y={gy} is on the wrong side of the "
+              f"body at y={iy} for a {want} defect")
+
+
+@test("the attached-glyph geometry the converter places is MEASURED from "
+      "KiCad's own render, not derived — transform AND extent")
+def t_glyph_geometry_is_measured():
+    """Canon M1: the emitter must not grade its own geometry. `prop_rows` moves
+    text on the strength of two claims — that `sym_xf` is KiCad's instance
+    transform, and that `glyph_box` is where the ground triangle really lands —
+    and both are re-derived here from `kicad-cli sch export svg` INK.
+
+    The transform is probed with an ASYMMETRIC rectangle, so a wrong handedness
+    cannot pass by symmetry: local (1,2)-(7,4) must land at sheet-relative
+    (1,-4)-(7,-2) / (-4,-7)-(-2,-1) / (-7,2)-(-1,4) / (2,1)-(4,7).
+
+    Two inherited constants in this repo's schematic geometry were recently
+    found wrong in OPPOSITE directions — a plate cross-extent 13% narrow
+    (silence) and a property half-height 70% too tall (invention) — which is
+    why this measures the BOX and not just the direction."""
+    sys.path.insert(0, str(SCRIPTS))
+    import circuit_json_to_kicad_sch as C          # noqa: E402
+    d = tmpdir("glyphprobe_")
+    n = [0]
+
+    def uu():
+        n[0] += 1
+        return "00000000-0000-0000-0000-%012d" % n[0]
+
+    probe = ('    (symbol "elt:PROBE" (in_bom no) (on_board yes)\n'
+             '      (property "Reference" "#P" (at 0 0 0)'
+             ' (effects (font (size 1.27 1.27)) hide))\n'
+             '      (property "Value" "P" (at 0 0 0)'
+             ' (effects (font (size 1.27 1.27)) hide))\n'
+             '      (symbol "PROBE_0_1"\n'
+             '        (polyline (pts (xy 1 2) (xy 7 2) (xy 7 4) (xy 1 4)'
+             ' (xy 1 2)) (stroke (width 0.254) (type default))'
+             ' (fill (type none)))\n'
+             '      )\n    )')
+    out = ['(kicad_sch (version 20230121) (generator probe)',
+           '  (uuid "00000000-0000-0000-0000-000000000001")',
+           '  (paper "User" 500.00 300.00)',
+           '  (title_block (title "probe") (date "2026-07-31") (rev "p")', '  )',
+           '  (lib_symbols', C.power_syms()["GND"], probe, '  )']
+    sites = {}
+    for i, ang in enumerate((0, 90, 180, 270)):
+        for j, (lib, key) in enumerate((("elt:GND", "GND"),
+                                        ("elt:PROBE", "PROBE"))):
+            x, y = 60 + i * 110, 80 + j * 130
+            sites[(key, ang)] = (x, y)
+            out += [f'  (symbol (lib_id "{lib}") (at {x} {y} {ang}) (unit 1)'
+                    f' (in_bom no) (on_board yes) (dnp no) (uuid "{uu()}")',
+                    f'    (property "Reference" "#{key[0]}{ang:03d}"'
+                    f' (at {x} {y} 0) (effects (font (size 1.27 1.27)) hide))',
+                    f'    (property "Value" "{key}" (at {x} {y} 0)'
+                    f' (effects (font (size 1.27 1.27)) hide))',
+                    f'    (pin "1" (uuid "{uu()}"))',
+                    f'    (instances (project "probe" (path "/00000000-0000-'
+                    f'0000-0000-000000000001" (reference "#{key[0]}{ang:03d}")'
+                    f' (unit 1))))', '  )']
+    out += ['  (sheet_instances (path "/" (page "1")))', ')']
+    sch = d / "probe.kicad_sch"
+    sch.write_text("\n".join(out) + "\n")
+    _runs, graphics = _svg_ink(sch)
+
+    def ink_box(x, y, reach=12.0):
+        acc = [q for seg in graphics for q in seg
+               if abs(q[0] - x) < reach and abs(q[1] - y) < reach]
+        check(acc, f"no ink within {reach} mm of ({x}, {y})")
+        return (min(q[0] for q in acc), min(q[1] for q in acc),
+                max(q[0] for q in acc), max(q[1] for q in acc))
+
+    # ---- the transform, on an ASYMMETRIC rectangle
+    want_rel = {0: (1, -4, 7, -2), 90: (-4, -7, -2, -1),
+                180: (-7, 2, -1, 4), 270: (2, 1, 4, 7)}
+    for ang, rel in want_rel.items():
+        x, y = sites[("PROBE", ang)]
+        got = ink_box(x, y)
+        for k in range(4):
+            want = (x if k % 2 == 0 else y) + rel[k]
+            check(abs(got[k] - want) <= 0.20,
+                  f"PROBE at {ang} deg: rendered edge {k} is {got[k]:.3f}, "
+                  f"sym_xf predicts {want:.3f}")
+        pred = [sym for sym in [C.sym_xf(a, b, ang)
+                                for a, b in ((1, 2), (7, 2), (7, 4), (1, 4))]]
+        eq((round(min(p[0] for p in pred)), round(min(p[1] for p in pred)),
+            round(max(p[0] for p in pred)), round(max(p[1] for p in pred))),
+           rel, f"C.sym_xf at {ang} deg maps the probe rect to")
+
+    # ---- the GROUND GLYPH's extent, all four rotations
+    for ang in (0, 90, 180, 270):
+        x, y = sites[("GND", ang)]
+        got = ink_box(x, y, 8.0)
+        pred = C.glyph_box(C.power_syms()["GND"], x, y, ang)
+        for k in range(4):
+            check(abs(got[k] - pred[k]) <= 0.20,
+                  f"elt:GND at {ang} deg: rendered edge {k} is {got[k]:.3f}, "
+                  f"C.glyph_box predicts {pred[k]:.3f}")
+        # ...and it reaches AWAY from the pin, 2.54 mm, across 2.00 mm
+        span = (round(pred[2] - pred[0], 4), round(pred[3] - pred[1], 4))
+        eq(span, (2.0, 2.54) if ang in (0, 180) else (2.54, 2.0),
+           f"elt:GND at {ang} deg spans (x, y) mm")
+
+
 if __name__ == "__main__":
     sys.exit(main())

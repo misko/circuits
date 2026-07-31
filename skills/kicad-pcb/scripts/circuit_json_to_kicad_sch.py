@@ -515,6 +515,17 @@ def layout(components):
 
 
 # ------------------------------------------------------------------ emit
+_PWR_SYMS = {}
+
+
+def power_syms():
+    """The GND / PWR_FLAG lib_symbol texts this module emits — one home, so
+    `glyph_box` measures the SAME bytes the sheet carries."""
+    if not _PWR_SYMS:
+        _PWR_SYMS.update(sw.power_lib_symbols(LIB))
+    return _PWR_SYMS
+
+
 def emit_power(project, root_uuid, sym, ref, value, x, y, ang):
     return (
         f'  (symbol (lib_id "{LIB}:{sym}") (at {x:.3f} {y:.3f} {ang}) (unit 1)'
@@ -530,7 +541,25 @@ def emit_power(project, root_uuid, sym, ref, value, x, y, ang):
 def emit_component(comp, project, root_uuid, flag_host, pwr_counter):
     cx, cy, w, h = comp["cx"], comp["cy"], comp["w"], comp["h"]
     pinmap = comp["pinmap"]
-    ry, vy = cy - h / 2 - 1.6, cy + h / 2 + 1.8
+    # grid mode splits every symbol's pins half-LEFT / half-RIGHT, so its ground
+    # triangles hang sideways from tips that are already PIN_LEN outside the
+    # body and `prop_rows` skips all of them — this call is a measured no-op
+    # here (both grid-mode boards emit byte-identical property rows) and exists
+    # so the rule is a property of the MODULE rather than of one emitter.
+    gpads, gtips, gsides, gnets = [], {}, {}, {}
+    for pad, _pn, net in comp["pins"]:
+        side, pmy = pinmap[str(pad)]
+        gpads.append(str(pad))
+        gtips[str(pad)] = (cx + (-(w / 2 + PIN_LEN) if side == "L"
+                                 else (w / 2 + PIN_LEN)), cy + (-pmy))
+        gsides[str(pad)] = "left" if side == "L" else "right"
+        gnets[str(pad)] = net
+    ry, vy = prop_rows(cx, cy, w, h,
+                       attached_glyph_boxes(
+                           gpads, gtips, gsides, gnets,
+                           str(flag_host[1]) if flag_host
+                           and flag_host[0] == comp["refdes"] else None),
+                       gap_above=1.6, gap_below=1.8)
     # TP symbols track the KiCad TestPoint footprint's exclude-from-BOM default
     # (footprint_symbol_mismatch on the BOM attr otherwise). No MPN field is
     # emitted at all: KiCad library footprints carry none, so a symbol MPN
@@ -659,6 +688,81 @@ GND_ANG = {'left': 270, 'right': 90, 'top': 180, 'bottom': 0}
 # `label_plate_side`.
 _ANCHOR_OPPOSITE = {'left': 'right', 'right': 'left',
                     'top': 'bottom', 'bottom': 'top'}
+
+#: gap from the nearest thing already drawn on that side of a symbol to a
+#: property text's anchor.
+PROP_GAP = 2.2
+
+
+def sym_xf(lx, ly, ang):
+    """Symbol-LOCAL (y-up) -> sheet OFFSET from the instance origin (y-down):
+    rotate CCW by `ang` in symbol space, then negate y for the sheet.
+
+    Re-measured from rendered ink on every test run with an ASYMMETRIC probe
+    rectangle, so a wrong handedness cannot pass — `tests/t1_converter.py
+    t_glyph_geometry_is_measured` (canon M1: the emitter must not
+    grade its own transform)."""
+    if ang == 0:
+        return (lx, -ly)
+    if ang == 90:
+        return (-ly, -lx)
+    if ang == 180:
+        return (-lx, ly)
+    if ang == 270:
+        return (ly, lx)
+    raise ValueError(f"unmodelled symbol rotation {ang}")
+
+
+_RE_XY_PT = re.compile(r"\(xy ([-\d.]+) ([-\d.]+)\)")
+
+
+def glyph_box(symtext, x, y, ang):
+    """Sheet-space bbox of a power symbol's DRAWN glyph, placed at (x, y, ang).
+
+    MEASURED out of the lib_symbol text this module itself emits (schwriter2's
+    `power_lib_symbols`) rather than copied as a constant, so a redrawn ground
+    triangle moves this with it. Only `(xy ...)` graphic points are read; the
+    hidden Reference/Value anchors and the zero-length pin draw nothing."""
+    pts = [(float(a), float(b)) for a, b in _RE_XY_PT.findall(symtext)]
+    if not pts:
+        raise ValueError("power lib_symbol draws no graphics")
+    off = [sym_xf(px, py, ang) for px, py in pts]
+    xs = [x + p[0] for p in off]
+    ys = [y + p[1] for p in off]
+    return (min(xs), min(ys), max(xs), max(ys))
+
+
+def prop_rows(ix, iy, w, h, glyph_boxes, gap_above=PROP_GAP, gap_below=None):
+    """(reference_y, value_y) for a symbol instance — the ONE home for where a
+    property text is anchored, above and below the body.
+
+    THE DEFECT THIS REPLACES (MEASURED 2026-07-31, fleet-wide). The rows were
+    `iy -/+ h/2 +/- 2.2` and nothing else: a blind offset from the body edge
+    that took no account of what is ALREADY drawn on that side of the symbol.
+    A pin whose net is GND carries an `elt:GND` hanging off its TIP in the
+    direction that pin REACHES (GND_ANG), so on a VERTICALLY placed 2-pin
+    passive the bottom pin's ground triangle occupies exactly the strip the
+    Value is written into — the triangle spans 2.54 mm below a tip that sits at
+    the body edge, and the Value was anchored 2.2 mm below that same edge.
+    Measured on pluto-rx2-8way-v2: R_PD1's "10kΩ" run spans x 114.122-118.288 /
+    y 95.507-96.853 and #PWR52's lower vertex sits at (116.205, 96.52), inside
+    it. 160 of the fleet's 341 S-OCCL findings were this one class — 151 of them
+    exactly this 2-pin shape, 9 an IC with a bottom-side GND pin.
+
+    A glyph is only allowed to displace a property when it can actually reach
+    it: the property is CENTRED on `ix`, so a glyph whose x-range misses the
+    body entirely is skipped. That is what keeps the HORIZONTAL case a strict
+    no-op — a left/right pin's triangle hangs sideways from a tip already
+    outside the body, and 166 grounded horizontal passives in this fleet do not
+    move by so much as a micron (measured)."""
+    top = iy - h / 2
+    bot = iy + h / 2
+    for (bx0, by0, bx1, by1) in glyph_boxes:
+        if bx1 <= ix - w / 2 or bx0 >= ix + w / 2:
+            continue                       # not under the centred property
+        top = min(top, by0)
+        bot = max(bot, by1)
+    return top - gap_above, bot + (gap_above if gap_below is None else gap_below)
 
 
 def label_plate_side(nlabel, pin_reach=None):
@@ -1202,12 +1306,37 @@ def comp_pin_net(comp_by_ref, refdes, pad):
     return None
 
 
+def attached_glyph_boxes(pins, tips, sides, nets, flag_pad=None):
+    """Sheet-space bboxes of the power glyphs a component's OWN pins carry.
+
+    A GND pin gets an `elt:GND` at its tip, rotated by GND_ANG[side] so the
+    triangle hangs AWAY from the body; the PWR_FLAG host additionally gets a
+    flag, always emitted at angle 0 (it points UP on the sheet at every pin
+    side, so it is NOT symmetric with the ground symbol and gets its own box).
+    """
+    pw = power_syms()
+    out = []
+    for pad in pins:
+        if nets.get(pad) != "GND":
+            continue
+        ex, ey = tips[pad]
+        out.append(glyph_box(pw["GND"], ex, ey, GND_ANG[sides[pad]]))
+        if pad == flag_pad:
+            out.append(glyph_box(pw["PWR_FLAG"], ex, ey, 0))
+    return out
+
+
 def _emit_layout_component(comp, project, root_uuid, flag_host, pwr, comp_by_ref):
     """Emit one symbol instance at its tscircuit center + the per-pin GND power
     symbols / no_connect flags (nets are carried by wires + labels)."""
     ix, iy = comp["inst"]
-    ry = iy - comp["h"] / 2 - 2.2
-    vy = iy + comp["h"] / 2 + 2.2
+    pads = [num for num, _pn, _lx, _ly, _a, _l in comp["pins_geo"]]
+    nets = {p: comp_pin_net(comp_by_ref, comp["refdes"], p) for p in pads}
+    ry, vy = prop_rows(
+        ix, iy, comp["w"], comp["h"],
+        attached_glyph_boxes(pads, comp["tips"], comp["sides"], nets,
+                             str(flag_host[1]) if flag_host
+                             and flag_host[0] == comp["refdes"] else None))
     in_bom = "no" if comp["is_tp"] else "yes"
     out = [
         f'  (symbol (lib_id "{LIB}:{comp["sym"]}") (at {ix:.3f} {iy:.3f} 0) (unit 1)'
