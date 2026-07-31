@@ -49,6 +49,7 @@ NOT REPRODUCED — recorded here rather than faked
 """
 import ast
 import json
+import os
 import re
 import shutil
 import stat
@@ -839,14 +840,181 @@ def t_waiver_zero_denominator():
     meaning to a clean fleet, which is what a wrong `root` argument, a renamed
     `policy_waivers.yaml`, or a schema change all produce.
     RED-VERIFIED against pre-fix code (git show 5054b07:...waiver_provenance
-    .py): it exits 0 on this fixture."""
+    .py): it exits 0 on this fixture.
+
+    RE-VERIFIED AND STRENGTHENED 2026-07-30. The 2026-07-27 fix made this case
+    exit 1 with the word `FAIL` — which is byte-for-byte what a FINDING prints
+    and what a mistyped `root` printed, so the one verdict meaning "believe
+    nothing above this line" stayed unreadable and went on being read as an
+    invocation error. The assertions below now pin the DISTINGUISHABILITY, not
+    merely the failure: see
+    `t_graded_nothing_is_distinguishable_from_an_invocation_error`."""
     d = tmpdir("t4wav_")
     root = d / "projects"
     scratch_project(root, "board-alpha", waivers=None)
     r = must_fail(run([PY, WAIVER_PROV, root]),
                   "waiver_provenance over a tree with no waivers",
-                  "0/0 waivers graded")
+                  "GRADED NOTHING")
     contains(r.out, "M-COVER", "cites the canon it is enforcing")
+    contains(r.out, "0 of 0 waiver(s)", "carries the zero denominator")
+    # WHAT it looked for, WHERE, and that it graded zero — the three facts a
+    # reader needs to tell this apart from a usage error without reading code.
+    contains(r.out, "looked for", "names the addresses it searched")
+    contains(r.out, "03_src/<board>/rules/policy_waivers.yaml",
+             "names the ADR-0007 multi-board address too")
+    contains(r.out, "under", "names the tree it searched")
+    contains(r.out, "THIS IS NOT A PASS",
+             "says out loud that this is not a pass")
+    eq(r.rc, 3, "graded-nothing has its own exit code, not the finding code")
+
+
+@test("GRADED NOTHING and an INVOCATION ERROR are distinguishable — the whole "
+      "lesson of the 2026-07-30 waiver-path defect", kind="known_bad")
+def t_graded_nothing_is_distinguishable_from_an_invocation_error():
+    """INCIDENT (2026-07-30, smc0985-cooksense). `waiver_provenance` hardcoded
+    `03_src/rules/policy_waivers.yaml`; the ADR-0007 multi-board layout puts
+    each board's waivers at `03_src/<board>/rules/policy_waivers.yaml`. When
+    the flat address held nothing, the gate's denominator was zero — and it
+    reported that by printing `FAIL` and exiting **1**, the same code a real
+    finding uses and the same code a bad `root` argument used.
+
+    So the gate DID fail, and its failure was unreadable. It was taken for an
+    invocation error and nobody chased it. That is the defect this fixture
+    exists for: not "the gate must fail", which was already true, but "the
+    gate's blindness must be legible in one line".
+
+    Four outcomes, four exit codes, asserted here as MUTUALLY DISTINCT:
+      0 clean · 1 findings · 2 invocation error · 3 graded nothing
+
+    RED-VERIFIED against pre-fix code (`git show 74ce4b66:skills/kicad-pcb/
+    scripts/waiver_provenance.py`): pre-fix the bad-root case and the
+    no-waivers case BOTH exit 1, so `eq(usage.rc, 2)` fails and the
+    distinctness assertion below is unsatisfiable. Restored: passes."""
+    d = tmpdir("t4wav_")
+
+    # --- (a) INVOCATION ERROR: a root that is not a directory at all.
+    usage = run([PY, WAIVER_PROV, d / "no-such-tree"])
+    eq(usage.rc, 2, "a bad root is an INVOCATION error, exit 2")
+    contains(usage.out, "INVOCATION", "says so in words")
+    not_contains(usage.out, "GRADED NOTHING",
+                 "a gate that never started did not grade zero — it graded "
+                 "nothing at all, and conflating the two is the defect")
+
+    # --- (b) INVOCATION ERROR: --project naming a directory that is not there.
+    #     This used to arrive as a zero denominator, i.e. as a verdict ABOUT a
+    #     board, when it is a typo in the command line.
+    root = d / "projects"
+    scratch_project(root, "board-alpha", waivers=INDEPENDENT_A)
+    scratch_project(root, "board-bravo", waivers=INDEPENDENT_B)
+    typo = run([PY, WAIVER_PROV, root, "--project", "board-alfa"])
+    eq(typo.rc, 2, "an unknown --project is an INVOCATION error, exit 2")
+    contains(typo.out, "board-alpha",
+             "names the projects that DO exist, so the typo is fixable")
+
+    # --- (c) GRADED NOTHING: the tree is real, the gate ran, the denominator
+    #     is zero.
+    empty = d / "empty"
+    scratch_project(empty, "board-alpha", waivers=None)
+    nothing = run([PY, WAIVER_PROV, empty])
+    eq(nothing.rc, 3, "a real tree with no waivers is GRADED NOTHING, exit 3")
+
+    # --- (d) FINDINGS: a real copied waiver.
+    root2 = d / "projects2"
+    scratch_project(root2, "board-alpha", waivers=INDEPENDENT_A)
+    scratch_project(root2, "board-bravo", waivers=INDEPENDENT_A)
+    finding = run([PY, WAIVER_PROV, root2])
+    eq(finding.rc, 1, "a real finding is exit 1")
+    contains(finding.out, "W-COPY", "and it is the copy check that fired")
+
+    # --- THE ASSERTION THE INCIDENT EARNED: all four are different.
+    clean = run([PY, WAIVER_PROV, root])
+    eq(clean.rc, 0, "two independent waivers are clean")
+    codes = [clean.rc, finding.rc, usage.rc, nothing.rc]
+    check(len(set(codes)) == 4,
+          f"clean/findings/usage/graded-nothing must be four DISTINCT exit "
+          f"codes, got {codes} — collapsing any two of them onto one code is "
+          f"exactly how this gate's zero denominator read as a usage error "
+          f"for months")
+
+
+@test("ADR-0007: a MULTI-BOARD project's per-board waivers are all graded, and "
+      "findings NAME THE BOARD", kind="known_bad")
+def t_multiboard_waivers_are_all_graded():
+    """INCIDENT (2026-07-30, smc0985-cooksense at 74ce4b66). MEASURED:
+
+      * `03_src/rules/policy_waivers.yaml` was an UNDECLARED SYMLINK to
+        `../cooksense/rules/policy_waivers.yaml` (mode 120000, committed at
+        18392f2e), so cooksense's 12 waivers were graded by ACCIDENT.
+      * `03_src/interposer/rules/policy_waivers.yaml` — 4 entries, S-VER /
+        E-ADR / E-TOPO / M-REPRO — was graded by NOTHING, while the run printed
+        `WAIVER PROVENANCE: PASS (0 fails, 1 ok) — 12/25 waiver(s) graded`.
+
+    The symlink was the HAZARD, not the mitigation: a board selector wearing a
+    project-wide address, which silently picks one board and can never pick the
+    other. The fix does not select at all — `waiver_files()` ENUMERATES both
+    layouts and labels each file with its board directory.
+
+    This fixture reproduces the exact shape: two boards, the copied rationale
+    on the board the symlink does NOT point at.
+
+    RED-VERIFIED against pre-fix code (`git show 74ce4b66:skills/kicad-pcb/
+    scripts/waiver_provenance.py`), and the MEASURED pre-fix output is the
+    point: it reads only the symlinked flat address, never sees the
+    interposer's copy, and exits **0** printing
+
+        WAIVER PROVENANCE: PASS (0 fails, 2 ok) — 2/2 waiver(s) graded
+
+    i.e. a FULL denominator — 2 of 2 — over 2 of the tree's 3 waiver files.
+    The gate was not merely silent about what it missed; it certified
+    completeness it did not have, which is why nothing downstream asked.
+    Restored, the same tree reports `3/3 waiver(s) graded`, W-COPY fires
+    naming `multi-board-proj/interposer [R-POUR]`, and it exits 1."""
+    d = tmpdir("t4wav_")
+    root = d / "projects"
+
+    # A single-board project, to be copied FROM.
+    scratch_project(root, "board-alpha", waivers=INDEPENDENT_A)
+
+    # The ADR-0007 multi-board project: two boards, waivers under 03_src/<board>/.
+    multi = root / "multi-board-proj"
+    for board, text in (("main", INDEPENDENT_B), ("interposer", INDEPENDENT_A)):
+        wd = multi / "03_src" / board / "rules"
+        wd.mkdir(parents=True, exist_ok=True)
+        (wd / "policy_waivers.yaml").write_text(text)
+    # The undeclared symlink that made the pre-fix gate look like it worked:
+    # the flat single-board address pointing INTO one board's directory.
+    (multi / "03_src" / "rules").mkdir(parents=True, exist_ok=True)
+    os.symlink("../main/rules/policy_waivers.yaml",
+               multi / "03_src" / "rules" / "policy_waivers.yaml")
+
+    r = must_fail(run([PY, WAIVER_PROV, root]),
+                  "waiver_provenance over an ADR-0007 multi-board project",
+                  "W-COPY")
+    # The finding must be on the board the symlink does NOT point at — that is
+    # the entry the pre-fix gate could not reach.
+    contains(r.out, "multi-board-proj/interposer",
+             "the finding NAMES THE BOARD, because `main [R-POUR]` and "
+             "`interposer [R-POUR]` are different waivers about different "
+             "copper and the old label could not tell them apart")
+    # Both boards' files are named on the run (G-INPUT), so an ungraded board
+    # is visible rather than inferable from a total.
+    contains(r.out, "[board: main]", "names the main board's file")
+    contains(r.out, "[board: interposer]", "names the interposer's file")
+    # THE SYMLINK IS DEDUPED, NOT DOUBLE-COUNTED: 1 alpha + 2 boards = 3, not 4.
+    contains(r.out, "3 waiver(s) total",
+             "the flat symlink and the file it points at are ONE file — "
+             "resolved by real path, which is identity rather than choice")
+
+    # ADJACENT PROPERTY, so the fixture cannot pass for the wrong reason: with
+    # the interposer's rationale made INDEPENDENT and nothing else changed, the
+    # same tree PASSES. If it failed here too, the assertion above would be
+    # about the multi-board layout rather than about the copied waiver.
+    (multi / "03_src" / "interposer" / "rules"
+     / "policy_waivers.yaml").write_text(INDEPENDENT_B.replace(
+         "- id: R-THERM", "- id: R-THERM2"))
+    ok = must_pass(run([PY, WAIVER_PROV, root]),
+                   "the same multi-board tree with an INDEPENDENT rationale")
+    contains(ok.out, "3 waiver(s) total", "still reads all three files")
 
 
 @test("G-VACUOUS W-COPY/W-FOREIGN: an ORIGINAL waiver carrying an INVENTED "

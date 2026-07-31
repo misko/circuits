@@ -43,7 +43,59 @@ CHECKS
              `derived_from`. This is the byte-copy signature: the text still
              talks about the board it was written for.
 
-Exit 0 when clean, 1 on any finding.
+EXIT CODES — four outcomes, four codes, because collapsing two of them onto
+`1` is what hid this gate's own defect for months (see THE THIRD INCIDENT):
+
+  0  graded >= 1 waiver, no findings
+  1  graded >= 1 waiver, findings present
+  2  INVOCATION error — bad `root`, unknown `--project`. The gate never started.
+  3  GRADED NOTHING — the gate RAN and its denominator is zero (canon M-COVER).
+     Every verdict printed above it is vacuous.
+
+
+================================================================================
+THE THIRD INCIDENT (2026-07-30): THE PATH WAS SINGLE-BOARD, AND SO WAS THE GATE
+================================================================================
+
+`WAIVER_REL` was the literal `03_src/rules/policy_waivers.yaml`. That address is
+correct for a single-board project and WRONG for a multi-board one: ADR-0007
+(smc0985-cooksense) puts each board's waivers at
+`03_src/<board>/rules/policy_waivers.yaml`, because two boards fab, version and
+waive independently.
+
+MEASURED on smc0985-cooksense at 74ce4b66, before the fix:
+
+  * cooksense's 12 waivers WERE graded — but only through an UNDECLARED SYMLINK
+    (`03_src/rules/policy_waivers.yaml -> ../cooksense/rules/policy_waivers.yaml`,
+    mode 120000, committed at 18392f2e). Nothing declares it, no contract
+    mentions it, and no gate would notice if it were deleted or repointed.
+  * `03_src/interposer/rules/policy_waivers.yaml` — 4 entries, S-VER / E-ADR /
+    E-TOPO / M-REPRO — was graded by NOTHING, and the run printed
+    `WAIVER PROVENANCE: PASS (0 fails, 1 ok) — 12/25 waiver(s) graded`.
+  * `policy_audit.py` reads the SAME flat address and does not board-scope it,
+    so `--board interposer` applied COOKSENSE's twelve waivers to the
+    interposer's findings — canon M4's inherited-waiver defect vector arriving
+    through a path constant rather than through a copy-paste.
+
+THE SYMLINK IS THE HAZARD, NOT THE MITIGATION: it is a board selector wearing a
+project-wide address. It silently picks `cooksense`, can never pick
+`interposer`, and makes the wrong answer look like the right one.
+
+THE FIX IS NOT A BETTER SELECTOR — IT IS NOT SELECTING. `waiver_files()`
+enumerates EVERY waiver file the project carries, under both layouts, and
+labels each with the board directory it lives in; findings are labelled
+`<project>/<board> [<id>]`. There is no choice left to get wrong. The only
+identity-shaped step is a `Path.resolve()` dedupe, which makes the symlink
+appear ONCE under the label `cooksense` rather than twice or as a project-wide
+file that is secretly one board's.
+
+AND THE SECOND HALF, WHICH IS THE ACTUAL LESSON. A zero denominator already
+FAILED here — canon M-COVER, added 2026-07-27 — but it failed by printing the
+word `FAIL` and exiting `1`, which is byte-for-byte what a finding does and what
+a mistyped `root` argument did. The one message that means "believe nothing
+above this line" was indistinguishable from routine red, so it was read as an
+invocation error and never chased. A gate that cannot make its own blindness
+legible has not implemented M-COVER; it has only cited it.
 
 
 ================================================================================
@@ -204,9 +256,52 @@ try:
 except ImportError:
     sys.exit("waiver_provenance needs pyyaml")
 
-WAIVER_REL = "03_src/rules/policy_waivers.yaml"
-TWIN_REL = "03_src/rules/twin_adjudications.yaml"
+# ------------------------------------------------------- where the waivers are
+# TWO LAYOUTS, AND THE GATE MUST NOT HAVE TO CHOOSE BETWEEN THEM (2026-07-30).
+#
+# A single-board project keeps `03_src/rules/policy_waivers.yaml`. A MULTI-BOARD
+# project (ADR-0007, smc0985-cooksense) keeps one per board at
+# `03_src/<board>/rules/policy_waivers.yaml` — because two boards fab, version
+# and WAIVE independently. This module hardcoded the flat path, so on a
+# multi-board project it read whatever happened to sit at the single-board
+# address and NOTHING ELSE.
+#
+# MEASURED on smc0985-cooksense at 74ce4b66, before this fix:
+#   * `03_src/rules/policy_waivers.yaml` is an UNDECLARED SYMLINK to
+#     `../cooksense/rules/policy_waivers.yaml` (mode 120000, committed at
+#     18392f2e). So cooksense's 12 waivers WERE graded — by accident of a
+#     symlink nobody declared, nothing checks, and no contract mentions.
+#   * `03_src/interposer/rules/policy_waivers.yaml` — 4 entries, S-VER / E-ADR /
+#     E-TOPO / M-REPRO — was graded by NOTHING, and the run still printed
+#     `WAIVER PROVENANCE: PASS ... 12/25 waiver(s) graded`.
+#   * `policy_audit.py` reads the same flat address, so `--board interposer`
+#     applied COOKSENSE's twelve waivers to the interposer's findings: canon
+#     M4's inherited-waiver defect vector, arriving through a path constant.
+#
+# THE SYMLINK IS THE HAZARD, NOT THE MITIGATION. It is a board selector wearing
+# a project-wide address: it silently picks `cooksense` and can never pick
+# `interposer`, and it makes the wrong answer look like the right one.
+#
+# So the fix is not a better selector — it is NOT SELECTING. `waiver_files()`
+# ENUMERATES every waiver file the project carries and labels each with the
+# board directory it lives in. There is no choice left to get wrong. The only
+# identity-shaped step is a real-path dedupe, which is what makes the symlink
+# appear ONCE, labelled `cooksense`, instead of twice or as a project-wide file
+# that is secretly one board's.
+WAIVER_BASE = "policy_waivers.yaml"
+TWIN_BASE = "twin_adjudications.yaml"
+WAIVER_REL = f"03_src/rules/{WAIVER_BASE}"                 # single-board
+WAIVER_REL_BOARD = f"03_src/<board>/rules/{WAIVER_BASE}"   # ADR-0007
+TWIN_REL = f"03_src/rules/{TWIN_BASE}"
 MACHINE_REL = "04_kicad/refdes_waiver.json"
+
+# Exit codes, because "it failed" was the whole problem. A zero denominator
+# used to exit 1 exactly like a finding and exactly like a bad `root` argument,
+# and for months that read as an INVOCATION ERROR nobody chased.
+EXIT_CLEAN = 0        # graded >= 1 waiver, no findings
+EXIT_FINDINGS = 1     # graded >= 1 waiver, findings present
+EXIT_USAGE = 2        # the gate could not START: bad root, unknown --project
+EXIT_NOTHING = 3      # the gate RAN and GRADED ZERO (canon M-COVER)
 
 # ---------------------------------------------------------------- the ratchet
 # MEASURED on the fleet at main tip, 2026-07-29, by this script. Each is
@@ -313,9 +408,37 @@ def similarity(a, b):
     return difflib.SequenceMatcher(None, a, b).ratio()
 
 
-def load_waivers(proj_dir, rel):
+def waiver_files(proj_dir, basename):
+    """-> [(board, Path)] — EVERY waiver file this project carries.
+
+    ENUMERATE, NEVER SELECT. The gate cannot pick the wrong file because it
+    does not pick: both layouts are read, and each file is labelled with the
+    board DIRECTORY it lives in (`-` for the single-board flat layout), so a
+    finding names which board's waiver it came from.
+
+    Deduped by `Path.resolve()`, which is identity rather than choice. That is
+    what handles smc0985-cooksense's undeclared
+    `03_src/rules/policy_waivers.yaml -> ../cooksense/rules/policy_waivers.yaml`
+    symlink: the per-board sweep runs FIRST, so the real file is already
+    claimed under the label `cooksense` when the flat address is reached, and
+    the alias is dropped instead of being counted twice or being mistaken for a
+    project-wide file. A flat file that is genuinely its own bytes still lands,
+    labelled `-`.
+    """
+    src = Path(proj_dir) / "03_src"
+    found = {}                                # resolved real path -> (board, p)
+    for p in sorted(src.glob(f"*/rules/{basename}")):     # ADR-0007 multi-board
+        if p.is_file():
+            found.setdefault(p.resolve(), (p.parent.parent.name, p))
+    flat = src / "rules" / basename                        # single-board
+    if flat.is_file():
+        found.setdefault(flat.resolve(), ("-", flat))
+    return [found[k] for k in sorted(found, key=str)]
+
+
+def load_waivers(path):
     """-> list of dicts, each with the raw entry plus its file header comments."""
-    p = Path(proj_dir) / rel
+    p = Path(path)
     if not p.is_file():
         return []
     raw = p.read_text(encoding="utf-8-sig")
@@ -334,6 +457,15 @@ def load_waivers(proj_dir, rel):
         e["_header"] = header
         out.append(e)
     return out
+
+
+def at(project, entry):
+    """The finding label. On a multi-board project it NAMES THE BOARD, because
+    `cooksense [S-VER]` and `interposer [S-VER]` are different waivers about
+    different copper and the old label could not tell them apart."""
+    board = entry.get("_board", "-")
+    who = project if board in ("-", None) else f"{project}/{board}"
+    return f"{who} [{entry.get('id', '?')}]"
 
 
 def declared(entry, other_project):
@@ -633,22 +765,38 @@ def main(argv=None):
 
     root = Path(a.root)
     if not root.is_dir():
-        print(f"FAIL W-SRC: no such directory {root}")
-        return 1
+        print(f"USAGE W-SRC: no such directory {root} — this is an INVOCATION "
+              f"error (exit {EXIT_USAGE}), NOT a graded-nothing verdict "
+              f"(exit {EXIT_NOTHING}). The gate never started.")
+        return EXIT_USAGE
     repo_root = Path(a.repo_root).resolve() if a.repo_root \
         else root.resolve().parent
 
     projects = sorted(p.name for p in root.iterdir() if p.is_dir())
-    rels = [WAIVER_REL] + ([TWIN_REL] if a.twin else [])
+    # A MISSPELLED --project IS AN INVOCATION ERROR, and it used to arrive as a
+    # zero denominator — the two are now told apart before anything is read.
+    if a.project and a.project not in projects:
+        print(f"USAGE W-SRC: --project {a.project!r} is not a directory under "
+              f"{root} (have: {', '.join(projects) or '(none)'}) — INVOCATION "
+              f"error (exit {EXIT_USAGE}), not a verdict about any board.")
+        return EXIT_USAGE
 
-    # project -> list of (entry, normalized_why)
-    loaded = {}
+    bases = [WAIVER_BASE] + ([TWIN_BASE] if a.twin else [])
+    looked_for = [f"03_src/rules/{b}" for b in bases] + \
+                 [f"03_src/<board>/rules/{b}" for b in bases]
+
+    # project -> list of (entry, normalized_why); each entry carries `_board`.
+    loaded, read_files = {}, {}
     for name in projects:
-        items = []
-        for rel in rels:
-            for e in load_waivers(root / name, rel):
-                why = e.get("why", "")
-                items.append((e, normalize(why)))
+        items, files = [], []
+        for base in bases:
+            for board, path in waiver_files(root / name, base):
+                files.append((board, path))
+                for e in load_waivers(path):
+                    e["_board"] = board
+                    items.append((e, normalize(e.get("why", ""))))
+        if files:
+            read_files[name] = files
         if items:
             loaded[name] = items
 
@@ -671,7 +819,7 @@ def main(argv=None):
                     continue
                 if normalize(other) in hay and not declared(e, other):
                     fails.append(
-                        f"W-FOREIGN {name} [{e.get('id', '?')}]: rationale names "
+                        f"W-FOREIGN {at(name, e)}: rationale names "
                         f"another project ({other!r}) and declares no "
                         f"derived_from — the evidence is about a different board")
                     break
@@ -691,12 +839,12 @@ def main(argv=None):
                     if s < a.threshold:
                         continue
                     if declared(e, other) or declared(f, name):
-                        oks.append(f"W-COPY {name} [{e.get('id', '?')}] reuses "
+                        oks.append(f"W-COPY {at(name, e)} reuses "
                                    f"{other} at {s:.2f} — DECLARED")
                         continue
                     fails.append(
-                        f"W-COPY {name} [{e.get('id', '?')}]: rationale is "
-                        f"{s:.0%} identical to {other} [{f.get('id', '?')}] "
+                        f"W-COPY {at(name, e)}: rationale is "
+                        f"{s:.0%} identical to {at(other, f)} "
                         f"with no derived_from — one measurement presented as "
                         f"two independent findings")
 
@@ -714,7 +862,7 @@ def main(argv=None):
         for e, _ in loaded.get(name, []):
             if "_parse_error" in e:
                 continue
-            where = f"{name} [{e.get('id', '?')}]"
+            where = at(name, e)
             proj_dir = root / name
             fails.extend(check_refs(e, proj_dir, where))
             ef, items = grade_evidence(e, repo_root, where,
@@ -760,15 +908,29 @@ def main(argv=None):
                     f"W-MACHINE {name}: refdes {rd!r} is waived by "
                     f"{MACHINE_REL}, which generate_board_generic.py WRITES "
                     f"and policy_audit.py:793 then READS as evidence for "
-                    f"P-SILK-REF, and no entry in {WAIVER_REL} names it in "
-                    f"`refs:` — the machine is its own witness (canon M1)")
+                    f"P-SILK-REF, and no entry in any of this project's "
+                    f"{WAIVER_BASE} files names it in `refs:` — the machine is "
+                    f"its own witness (canon M1)")
     if a.strict_machine:
         fails.extend(mach_unbacked)
 
     # G-INPUT: name the tree and the files actually read. The whole check is a
-    # fleet-wide comparison, so WHICH projects were in scope is the verdict.
+    # fleet-wide comparison, so WHICH projects were in scope is the verdict —
+    # and after the ADR-0007 path defect, WHICH FILES is part of it too. Every
+    # file is printed with its board label, so "the interposer's waivers were
+    # not read" is visible on the run rather than inferable from a total.
     print(f"input: root = {root.resolve()}  "
-          f"({len(projects)} project dir(s), reading {', '.join(rels)})")
+          f"({len(projects)} project dir(s))")
+    print(f"input: looked for {', '.join(looked_for)}")
+    for name in sorted(read_files):
+        if a.project and name != a.project:
+            continue
+        for board, path in read_files[name]:
+            print(f"input:   read {path.relative_to(root)}"
+                  + (f"   [board: {board}]" if board != "-" else
+                     "   [single-board layout]")
+                  + ("   (alias of a per-board file, deduped)"
+                     if path.resolve() != path.absolute() else ""))
     n_waivers = sum(len(v) for v in loaded.values())
     print(f"input: {len(loaded)} project(s) carry waivers, "
           f"{n_waivers} waiver(s) total; grading "
@@ -839,14 +1001,37 @@ def main(argv=None):
     # printed. A run over zero waivers used to print "PASS (0 fails, 0 ok)",
     # indistinguishable from a clean fleet — and W-COPY needs at least two
     # projects loaded before it can compare anything at all.
+    #
+    # AND THEN THE FIX WAS ITSELF UNREADABLE (2026-07-30). It printed `FAIL`
+    # and exited 1 — the same word and the SAME EXIT CODE as a finding, and as
+    # a mistyped `root`. So the one output that means "this gate graded
+    # NOTHING, believe none of the green above it" arrived wearing the costume
+    # of an invocation error, and was read as one for as long as it existed.
+    # The verdict now says WHAT it looked for, WHERE it looked, that it graded
+    # ZERO, and that this is not a usage error — and it exits 3, which no other
+    # outcome uses.
     n_graded = sum(len(loaded.get(nm, [])) for nm in graded)
     if n_graded == 0:
-        print(f"WAIVER PROVENANCE: FAIL 0/{n_waivers} waivers graded — "
-              f"nothing under {root} matched {rels}. A zero denominator is a "
-              f"FAIL, never a pass (canon M-COVER); if this tree genuinely "
-              f"has no waivers, that is a fact worth stating out loud rather "
-              f"than a green verdict")
-        return 1
+        scope = (f"--project {a.project}" if a.project
+                 else f"all {len(projects)} project dir(s)")
+        print(f"WAIVER PROVENANCE: GRADED NOTHING — 0 of {n_waivers} waiver(s) "
+              f"reached this gate (canon M-COVER).")
+        print(f"  looked for : {', '.join(looked_for)}")
+        print(f"  under      : {root.resolve()}  ({scope})")
+        print(f"  found      : "
+              + (", ".join(f"{p.relative_to(root)} [board: {b}]"
+                           for nm in sorted(read_files)
+                           for b, p in read_files[nm]
+                           if not a.project or nm == a.project)
+                 or "no such file at any of those addresses"))
+        print(f"  THIS IS NOT A PASS and THIS IS NOT AN INVOCATION ERROR. "
+              f"Exit {EXIT_NOTHING} means the gate RAN and graded ZERO "
+              f"waivers; a bad root or an unknown --project exits "
+              f"{EXIT_USAGE} BEFORE reading anything. Every W-COPY / "
+              f"W-FOREIGN / W-REGEN / W-FLIP result above is vacuous.")
+        print(f"  If this tree genuinely has no waivers, that is a fact worth "
+              f"stating out loud rather than a green verdict.")
+        return EXIT_NOTHING
     corpus = (f"{n_graded}/{n_waivers} waiver(s) graded across "
               f"{len(graded)}/{len(loaded)} project(s) carrying waivers")
     if len(loaded) < 2:
@@ -855,7 +1040,7 @@ def main(argv=None):
                    "half of this gate graded nothing")
     print("WAIVER PROVENANCE:", "FAIL" if fails else "PASS",
           f"({len(set(fails))} fails, {len(set(oks))} ok) — {corpus}")
-    return 1 if fails else 0
+    return EXIT_FINDINGS if fails else EXIT_CLEAN
 
 
 if __name__ == "__main__":

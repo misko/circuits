@@ -174,6 +174,28 @@ Imax; and a battery source's de-energization path + stored quiescent draw),
   `{id: <CHECK-ID>, refs: [...], derived_from: <project?>, why: "<measurement
   evidence>"}` — an entry without evidence is itself a FAIL, and an inherited
   rationale without `derived_from` is a `waiver_provenance` FAIL (W-COPY/W-FOREIGN).
+- **WAIVERS ARE PER BOARD, AND BOTH LAYOUTS ARE READ.** A single-board project
+  keeps `03_src/rules/policy_waivers.yaml`; a MULTI-BOARD project (ADR-0007)
+  keeps one per board at `03_src/<board>/rules/policy_waivers.yaml`, because two
+  boards fab, version and WAIVE independently. `waiver_provenance.py`
+  ENUMERATES both addresses and labels every finding `<project>/<board> [<id>]`
+  — it does not select, so it cannot select wrongly. **Never bridge the two
+  layouts with a symlink at the flat address.** That is a board selector wearing
+  a project-wide name: smc0985-cooksense carried
+  `03_src/rules/policy_waivers.yaml -> ../cooksense/rules/policy_waivers.yaml`
+  (mode 120000, 18392f2e), which made cooksense's 12 waivers grade by accident
+  while the interposer's 4 were graded by NOTHING and the run still printed
+  `PASS ... 12/25 waiver(s) graded` (MEASURED 2026-07-30). Delete such a
+  symlink; the enumerating gate does not need it, and `policy_audit.py`'s own
+  flat-path read is the remaining OWED half (see its `--board` gap below).
+- **A ZERO DENOMINATOR IS A DISTINCT OUTCOME WITH A DISTINCT EXIT CODE.**
+  `waiver_provenance.py` exits `0` clean / `1` findings / `2` INVOCATION error
+  (bad root, unknown `--project`) / `3` GRADED NOTHING, and the `3` verdict
+  prints what it looked for, where, and that the denominator is zero. Collapsing
+  graded-nothing onto the finding code is what made this gate's own blindness
+  read as a usage error for months (canon M-COVER; pinned by
+  `tests/t4_regressions.py`
+  `t_graded_nothing_is_distinguishable_from_an_invocation_error`).
 
 ## Every schema key here NAMES THE GATE THAT READS IT — canon G-ORPHAN
 
