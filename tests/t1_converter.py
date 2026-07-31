@@ -724,7 +724,7 @@ def t_kicad_direction_table_is_measured():
 # and grade the stage they are about, exactly as the pre-fix converter behaved.
 # `_prefix_decollide_masks_the_direction_defect` then measures what happens with
 # it ON, and the answer is the reason this shim is not a convenience.
-_NO_DECOLLIDE = ('C.place_labels = lambda cands, *a, **k: (cands, [], [], 0)\n')
+_NO_DECOLLIDE = ('C.place_labels = lambda cands, *a, **k: (cands, [], [], 0, [])\n')
 
 
 @test("PRE-FIX: a horizontally placed 2-pin part's plates both fire INWARD, "
@@ -845,6 +845,12 @@ import circuit_json_to_kicad_sch as C
 C.prop_rows = (lambda ix, iy, w, h, boxes, gap_above=2.2, gap_below=None:
                (iy - h / 2 - gap_above,
                 iy + h / 2 + (gap_above if gap_below is None else gap_below)))
+# ...and the PROPERTY DE-COLLISION pass held off with it (2026-07-31). It runs
+# AFTER `prop_rows` and its obstacle set includes the ground glyph, so it
+# repairs this defect on its own and the red side went quiet the day it landed.
+# Both are removed together because both are the fix: what is being measured is
+# the converter as it stood before EITHER existed.
+C.place_props = lambda placed, anchors, *a, **k: (anchors, 0)
 C.main()
 '''
 
@@ -877,7 +883,7 @@ def _gnd_fixture(base, gnd_pin):
 _NO_DECOLLIDE_SHIM = '''import sys
 sys.path.insert(0, {scripts!r})
 import circuit_json_to_kicad_sch as C
-C.place_labels = lambda cands, *a, **k: (cands, [], [], 0)
+C.place_labels = lambda cands, *a, **k: (cands, [], [], 0, [])
 C.main()
 '''
 
@@ -900,9 +906,17 @@ def _convert_json(cj, name, prefix=False, raw=False):
     return d, out
 
 
-def _svg_ink(sheet):
+def _svg_ink(sheet, exclude_sheet=False):
     """(text runs, graphic segments) in SHEET MILLIMETRES, straight out of
     `kicad-cli sch export svg`.
+
+    `exclude_sheet` passes kicad-cli's own `--exclude-drawing-sheet`, which
+    drops the PAGE FRAME and title block. They are ink, but they are not
+    SCHEMATIC ink: on a small fixture the frame's page-wide rules cross the
+    bbox of any VERTICAL text run near the edge (measured on `label_sides_v`:
+    1.3910 mm through both rotated plates, from the border line at y=34.110),
+    which is a false finding about the sheet's own furniture. The render goes
+    to its own subdirectory so the two variants cannot overwrite each other.
 
     KiCad's schematic SVG viewBox IS the paper in mm, so nothing is scaled:
     what this reads is what the sheet DRAWS. Text is every
@@ -920,9 +934,11 @@ def _svg_ink(sheet):
     a `<rect>` and not a path; and both coordinate syntaxes (`M1.0 2.0 L3.0
     4.0` and `M 1.0,2.0 L 3.0,4.0`) appear on ONE sheet.
     """
-    d = sheet.parent
+    d = sheet.parent / "nosheet" if exclude_sheet else sheet.parent
+    d.mkdir(exist_ok=True)
     must_pass(run(["kicad-cli", "sch", "export", "svg",
-                   "--no-background-color", "-o", d, sheet]),
+                   "--no-background-color", "-o", d, sheet]
+                  + (["--exclude-drawing-sheet"] if exclude_sheet else [])),
               f"kicad-cli sch export svg {sheet.name}")
     svg = d / (sheet.stem + ".svg")
     check(svg.is_file(), f"no {svg.name} rendered")
@@ -1444,28 +1460,48 @@ def t_decollide_moves_nothing_it_should_not():
     label a little has not fixed anything — it has replaced an author's layout
     with its own and made the diff unreadable.
 
-    Graded the strongest way available: the two shipped no-collision fixtures
-    are converted WITH the pass and with it held OFF, and the sheets must be
+    Graded the strongest way available: the shipped no-collision fixtures are
+    converted WITH the pass and with it held OFF, and the sheets must be
     IDENTICAL once UUIDs are normalised — not merely 'no findings either way'.
 
     MEASURED on the real fleet at the same time: the converter reports `moved 0
     of 33 labels` on smc0985-cooksense's interposer, whose S-OCCL count was
-    already 0, and that sheet is byte-identical across this change too."""
+    already 0, and that sheet is byte-identical across this change too.
+
+    `two_resistors` WAS ONE OF THESE CONTROLS AND IS NOT ONE ANY MORE, and
+    that is a finding rather than a maintenance chore. Its `MID` plate is
+    anchored at (38.100,27.940) reaching +x with its own wire running
+    (38.100,27.940)-(50.800,27.940) — the conductor drawn straight down the
+    plate's centreline, 2.7819 mm of it through the three glyphs in KiCad's own
+    render. It was called clean for as long as neither the pass nor S-OCCL
+    parsed a wire. It is moved now, and it is graded below with the other
+    fixture that only LOOKED clean."""
     uu = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
-    for fx in ("label_sides_h", "two_resistors"):
+    for fx in ("label_sides_h", "thermal_ep"):
         cj = T0 / fx / "circuit.json"
         d1, good = _convert_json(cj, f"{fx}_ctl")
         d2, raw = _convert_json(cj, f"{fx}_ctl", raw=True)
         eq(uu.sub("U", good.read_text()), uu.sub("U", raw.read_text()),
            f"{fx}: the de-collision pass moved something on a clean sheet")
 
-    # THE THIRD SHIPPED FIXTURE IS NOT A CONTROL, and finding that out is the
-    # reason this test is worth more than its name suggests. `label_sides_v`
-    # LOOKS clean — `t_label_sides_vertical` passes it — but that test grades
-    # plate-vs-body and plate-vs-plate only. Its two VERTICAL plates run right
-    # through the Reference and the Value, which are centred on the same x.
-    # So it must MOVE, and the move is graded here in INK: the property glyph
-    # runs are inside plate ink before and outside it after.
+    # `two_resistors` MUST move, and the move is graded in the ink the wire
+    # really draws — the measurement that was missing while it counted as a
+    # control. Its defect is a CONDUCTOR through glyphs, so it shows up in
+    # `_ink_through_text`; `label_sides_v`'s is a PLATE over property text,
+    # which is plate-box-vs-text-run and is graded on its own terms below.
+    cj = T0 / "two_resistors" / "circuit.json"
+    d1, good = _convert_json(cj, "tr_mv")
+    d2, raw = _convert_json(cj, "tr_mv", raw=True)
+    check(uu.sub("U", good.read_text()) != uu.sub("U", raw.read_text()),
+          "two_resistors was expected to MOVE — MID's plate lies on its own "
+          "forward-running wire")
+    hits, _n, _g = _ink_through_text(raw)
+    check(any(t == "MID" and mm > 2.0 for t, mm in hits),
+          f"un-de-collided two_resistors: the conductor is no longer drawn "
+          f"through MID — this half asserts nothing: {hits}")
+    eq(_ink_through_text(good)[0], [],
+       "two_resistors: ink through text with the pass on")
+
     cj = T0 / "label_sides_v" / "circuit.json"
     d1, good = _convert_json(cj, "lsv_ctl")
     d2, raw = _convert_json(cj, "lsv_ctl", raw=True)
@@ -1492,11 +1528,21 @@ def t_decollide_moves_nothing_it_should_not():
 
 
 def _boxed_in_fixture():
-    """`label_sides_h` with ONE thing added: a 3.0 x 3.0-unit component parked
-    over everything the right-hand label could reach. 38.1 mm square is wider
-    than the search's whole outward reach (6 x 1.27 mm) and taller than its
-    whole sideways reach (2 x 10 x 1.27 mm), so no offset in the ladder escapes
-    it — and that is arithmetic, not luck."""
+    """`label_sides_h` with ONE thing added: a component parked over everything
+    the right-hand label could reach.
+
+    THE SIZE IS ARITHMETIC, NOT LUCK, AND IT IS TIED TO THE BOUNDS. At 1 unit =
+    12.7 mm the blocker is 76.2 mm wide and 152.4 mm tall, against a search
+    that reaches DC_MAX_ALONG * 1.27 = 17.78 mm outward and
+    +/-DC_MAX_CROSS * 1.27 = +/-35.56 mm sideways — so no offset in the ladder
+    escapes it. RE-SIZED 2026-07-31 when wires entered the obstacle model and
+    the bounds moved to their new saturation point (6, 10) -> (14, 28): the
+    shipped 3.0 x 3.0-unit blocker was 38.1 mm square, which a 35.56 mm
+    sideways step now clears, and this fixture QUIETLY STOPPED FAILING. A
+    known-bad whose arithmetic is pinned to a constant has to be re-derived
+    when the constant moves; `t_decollide_hard_error_names_the_label` asserts
+    the margin below so the next move of the bound is caught here rather than
+    in a board."""
     import json
     import tempfile
     src = json.load(open(T0 / "label_sides_h" / "circuit.json"))
@@ -1518,15 +1564,15 @@ def _boxed_in_fixture():
          "source_component_id": "sc_BLK", "pin_number": 2, "name": "p2",
          "subcircuit_connectivity_map_key": "k_g"},
         {"type": "schematic_component", "schematic_component_id": "shc_BLK",
-         "center": {"x": 2.2, "y": 0.0}, "rotation": 0,
-         "size": {"width": 3.0, "height": 3.0}, "pin_spacing": 0.2,
+         "center": {"x": 3.7, "y": 0.0}, "rotation": 0,
+         "size": {"width": 6.0, "height": 12.0}, "pin_spacing": 0.2,
          "source_component_id": "sc_BLK", "symbol_name": "box"},
         {"type": "schematic_port", "schematic_port_id": "shp_BLK_1",
-         "schematic_component_id": "shc_BLK", "center": {"x": 3.9, "y": 0.2},
+         "schematic_component_id": "shc_BLK", "center": {"x": 6.9, "y": 0.2},
          "source_port_id": "sp_BLK_1", "pin_number": 1,
          "facing_direction": "right"},
         {"type": "schematic_port", "schematic_port_id": "shp_BLK_2",
-         "schematic_component_id": "shc_BLK", "center": {"x": 3.9, "y": -0.2},
+         "schematic_component_id": "shc_BLK", "center": {"x": 6.9, "y": -0.2},
          "source_port_id": "sp_BLK_2", "pin_number": 2,
          "facing_direction": "right"},
     ]
@@ -1553,8 +1599,21 @@ def t_decollide_hard_error_names_the_label():
 
     THE ADJACENT PROPERTY, re-measured every run: remove the blocking component
     and NOTHING else, and the same label places without complaint. That is what
-    separates 'the search is bounded correctly' from 'the search is broken'."""
+    separates 'the search is bounded correctly' from 'the search is broken'.
+
+    AND THE BLOCKER'S MARGIN IS ASSERTED, not assumed. This fixture stopped
+    failing once, silently, when DC_MAX_CROSS moved from 10 to 28 and a 38.1 mm
+    blocker became escapable — so the arithmetic that makes it unescapable is
+    now checked against the LIVE constants."""
     import json
+    sys.path.insert(0, str(SCRIPTS))
+    import circuit_json_to_kicad_sch as _C          # noqa: E402
+    check(6.0 * 12.7 > _C.DC_MAX_ALONG * _C.DC_STEP * 2 and
+          12.0 * 12.7 > _C.DC_MAX_CROSS * _C.DC_STEP * 2,
+          f"the blocker (76.2 x 152.4 mm) no longer covers the search's reach "
+          f"({_C.DC_MAX_ALONG * _C.DC_STEP:.2f} mm outward, "
+          f"+/-{_C.DC_MAX_CROSS * _C.DC_STEP:.2f} mm sideways) — this fixture "
+          f"would stop failing for a reason that is not a fix")
     cj = _boxed_in_fixture()
     d = tmpdir("boxed_")
     r = run([PY, CONV, cj, "-o", d / "boxed.kicad_sch", "--project", "boxed"])
@@ -1932,6 +1991,323 @@ def t_converter_refuses_two_nets_as_one_conductor():
        "the S12 fix changed the NET NAME SET — it must only remove drawn ink")
     changed = [n for n in nets["red"] if nets["red"][n] != nets["good"].get(n)]
     eq(changed, [], "the S12 fix changed a net's PIN SET")
+
+
+# ================== S11 + wires: TEXT IS NEVER DRAWN ON A CONDUCTOR =========
+# THE DEFECT. `place_labels` (c90c51c3) was built against an obstacle model of
+# symbol bodies, pin lines, Reference/Value rows, ground/PWR_FLAG glyphs,
+# no-connect markers and other plates. WIRES WERE NOT IN IT, because nothing in
+# the de-collision pass parsed them — so a plate could be moved OFF a Reference
+# row and ONTO a conductor and the pass called it placed, and `prop_rows`' y-
+# only nudge could not step a Reference sideways off a wire leaving its own pin
+# at all.
+#
+# MEASURED on pluto-rx2-8way-v2's own circuit.json, in KiCad's OWN RENDERED
+# INK (not against any model of it): the pre-fix converter draws graphic
+# strokes through FIFTEEN text runs — 220Ω (4.6566 mm of wire through the
+# glyphs), R_PD1 (2.7517), R_PD4 (1.4514) and C_BULK / C_SW1 / C_SW2 / R_PD2 /
+# R_PD3 (1.3910 each, twice apiece) — and HEAD's draws through ZERO of 63.
+#
+# WHY IT WAS INVISIBLE UNTIL 2026-07-31. `sch_occlusion.py` had never parsed a
+# wire either (`grep -c wire` was 1, and that hit was a comment), so
+# text-over-wire was not a finding the fleet's own gate could return. Adding
+# the WIRE population made 699 / 276 / 248 / 94 / 63 / 13 findings visible
+# across the fleet that had been there all along.
+#: the converter as it stood with wires absent from BOTH the label obstacle
+#: model and the property rows. Pinned rather than HEAD~1 so this A/B keeps
+#: measuring the same red side after this lands.
+NOWIRE_CONV_COMMIT = "c0e21fa7"
+
+
+def _nowire_conv():
+    """The wire-blind converter, extracted from git and runnable.
+
+    Whole-file, so the A/B differs in the WIRE obstacle and nothing else."""
+    blob = subprocess.run(
+        ["git", "-C", str(ROOT), "show",
+         f"{NOWIRE_CONV_COMMIT}:skills/kicad-pcb/scripts/"
+         f"circuit_json_to_kicad_sch.py"], capture_output=True, text=True)
+    check(blob.returncode == 0,
+          f"git show {NOWIRE_CONV_COMMIT}: {blob.stderr}")
+    check("_wire_hits" not in blob.stdout and "place_props" not in blob.stdout,
+          f"{NOWIRE_CONV_COMMIT} already carries the wire obstacle model — "
+          f"this A/B would silently stop measuring the red side")
+    p = tmpdir("nwconv_") / "nowire_conv.py"
+    p.write_text(blob.stdout, encoding="utf-8")
+    return p
+
+
+def _all_visible_text(sheet):
+    """Every string the sheet DRAWS as text: global_label names plus the
+    un-hidden Reference/Value rows. Read out of the s-expression, so the set
+    does not depend on any geometry model."""
+    body = re.sub(r"^  \(lib_symbols.*?^  \)$", "", sheet.read_text(),
+                  flags=re.S | re.M)
+    out = set(re.findall(r'\(global_label "([^"]+)"', body))
+    out |= {m.group(2) for m in re.finditer(
+        r'\(property "(Reference|Value)" "([^"]+)" \(at [-\d. ]+\)\s*'
+        r'\(effects \(font \(size [\d.]+ [\d.]+\)\)\)\)', body)}
+    return out
+
+
+def _ink_through_text(sheet):
+    """[(text, mm of graphic ink drawn through its glyphs)] -> the finding a
+    HUMAN would report, measured out of `kicad-cli sch export svg`.
+
+    THE MEASUREMENT IS THE GLYPH RUN, NOT THE PLATE BOX, and that is what makes
+    the attachment case need no exemption here: a label's own wire arrives at
+    the plate's BLUNT END, several mm short of the first letter, so it is not
+    ink through the name. Nothing in this function models a plate, a pin or a
+    wire — it asks KiCad what it drew."""
+    texts = _all_visible_text(sheet)
+    check(texts, f"{sheet.name}: no visible text at all")
+    runs, graphics = _svg_ink(sheet, exclude_sheet=True)
+    hits = []
+    for t in sorted(texts):
+        for box in runs.get(t, []):
+            worst = max([_seg_in_box(p, q, box) for p, q in graphics] + [0.0])
+            if worst > 0.05:
+                hits.append((t, round(worst, 4)))
+    return hits, len(texts), len(graphics)
+
+
+#: the board this whole pass exists for — the last unsealed one in the fleet.
+_RX2 = ROOT / "projects" / "pluto-rx2-8way-v2"
+
+
+@test("converter: NO graphic ink is drawn through any text on "
+      "pluto-rx2-8way-v2 — asserted in KiCad's OWN RENDER, not in a model")
+def t_no_ink_is_drawn_through_any_text():
+    """THE GREEN SIDE OF THE FIX, with its denominators.
+
+    MEASURED 2026-07-31: 63 visible text strings against 994 rendered graphic
+    segments, 0 hits above the 0.05 mm floor. The same sheet graded by
+    `sch_occlusion.py` — a module that shares no code with the converter
+    (canon M1) — is S-OCCL 0 / S-WNET 0, and the plate pair `ANT2 x 3V3_MOD`
+    that composited into `N3V3_MOD2` is absent from the findings entirely.
+    """
+    cj = _RX2 / "03_tscircuit" / "build" / "circuit.json"
+    check(cj.is_file(), f"fixture circuit.json missing: {cj}")
+    d = tmpdir("wireocc_")
+    out = d / "rx2.kicad_sch"
+    r = must_pass(run([PY, CONV, cj, "-o", out, "--parts",
+                       _RX2 / "02_parts", "--project", "pluto_rx2_8way_v2"]),
+                  "convert pluto-rx2-8way-v2")
+    contains(r.out, "MODE=layout", "converter stdout")
+    hits, ntext, ngfx = _ink_through_text(out)
+    check(ntext >= 40 and ngfx >= 400,
+          f"the denominators collapsed — {ntext} texts / {ngfx} graphic segs; "
+          f"a 0 over an empty population is not a pass (canon M-COVER)")
+    eq(hits, [], f"graphic ink drawn through text ({ntext} texts, {ngfx} segs)")
+    # ...and the independent grader agrees, on the same bytes
+    g = run([PY, SCRIPTS / "sch_occlusion.py", out, "--verbose"])
+    eq(g.rc, 0, f"sch_occlusion on the regenerated sheet:\n{g.out}")
+    contains(g.out, "S-OCCL PASS: 0", "sch_occlusion verdict")
+    contains(g.out, "S-WNET: 0 place(s)", "sch_occlusion S-WNET verdict")
+    check("ANT2" not in g.out and "3V3_MOD" not in g.out,
+          f"the precedent pair is back in the findings:\n{g.out}")
+
+
+@test("PRE-WIRE: the converter draws conductors straight through the glyphs "
+      "of 15 text runs on the very same input — re-measured in ink every run",
+      kind="known_bad")
+def t_prewire_converter_draws_ink_through_text():
+    """THE RED SIDE IS THE MEASUREMENT, NOT THE MODULE.
+
+    GIT-SWAP RED-VERIFIED, 2026-07-31: the whole converter from
+    `c0e21fa7` — the commit before wires entered the obstacle model — is
+    extracted and run on pluto-rx2-8way-v2's own circuit.json, and the
+    RENDERED INK is measured with the same function that grades HEAD's sheet.
+    It is not enough for the red side to prove the module CHANGED: a rename
+    would do that. This asserts the defect ITSELF, in millimetres of conductor
+    lying across letters:
+
+        220Ω    4.6566        R_PD1   2.7517       R_PD4   1.4514
+        C_BULK  1.3910 (x2)   C_SW1   1.3910 (x2)  C_SW2   1.3910 (x2)
+        R_PD2   1.3910 (x2)   R_PD3   1.3910 (x2)
+
+    NINE OF THE THIRTEEN pre-fix S-OCCL findings are PROPERTY rows, not label
+    plates, which is why the repair could not be `place_labels` alone: a
+    vertically placed passive carries a wire straight up out of its top pin
+    through the Reference written above it, and `prop_rows` only ever moved a
+    row further UP that same line.
+
+    AND THE BLINDNESS PROOF: the pre-fix sheet's NETLIST is node-for-node
+    identical to HEAD's (asserted below, 130 nodes both sides). Text anchors
+    are not connectivity, so ERC, --schematic-parity, S-NETMERGE and every
+    other connectivity-keyed gate is structurally blind to this class. Only
+    S-OCCL can see it, and S-OCCL could not see it either until wires joined
+    its population on 2026-07-31.
+    """
+    cj = _RX2 / "03_tscircuit" / "build" / "circuit.json"
+    check(cj.is_file(), f"fixture circuit.json missing: {cj}")
+    d = tmpdir("nowire_")
+    red = d / "red.kicad_sch"
+    # PYTHONPATH so the extracted file finds its own `schwriter2` sibling; it
+    # is the CONVERTER that is swapped, not the whole scripts directory.
+    must_pass(run([PY, _nowire_conv(), cj, "-o", red, "--parts",
+                   _RX2 / "02_parts", "--project", "pluto_rx2_8way_v2"],
+                  env={"PYTHONPATH": str(SCRIPTS)}), "pre-wire converter")
+    hits, ntext, ngfx = _ink_through_text(red)
+    check(len(hits) >= 10,
+          f"the pre-wire converter no longer draws ink through text — the red "
+          f"side has gone quiet ({len(hits)} hits over {ntext} texts)")
+    names = {t for t, _mm in hits}
+    for want in ("C_BULK", "R_PD1", "220Ω"):
+        check(want in names,
+              f"{want!r} is no longer among the pre-wire ink hits: "
+              f"{sorted(names)}")
+    check(max(mm for _t, mm in hits) > 4.0,
+          f"the worst pre-wire hit is no longer a whole conductor's width of "
+          f"ink: {sorted(hits, key=lambda h: -h[1])[:3]}")
+
+    # THE MOVE MUST NOT MAKE THE SHEET LESS TRUE: same nodes, both sides.
+    good = d / "good.kicad_sch"
+    must_pass(run([PY, CONV, cj, "-o", good, "--parts", _RX2 / "02_parts",
+                   "--project", "pluto_rx2_8way_v2"]), "HEAD converter")
+    nred, ngood = netlist_of(red), netlist_of(good)
+    check(len(ngood) >= 100,
+          f"netlist denominator collapsed to {len(ngood)} nodes")
+    eq(len(nred), len(ngood), "node COUNT across the wire fix")
+    sym = {k for k in set(nred) | set(ngood) if nred.get(k) != ngood.get(k)}
+    eq(sorted(sym), [],
+       f"the de-collision moved a NODE, not just ink ({len(ngood)} nodes)")
+
+
+@test("converter: a label's OWN attachment wire does not push it anywhere — "
+      "the fixtures whose every plate sits on a wire end do not move")
+def t_the_attachment_wire_is_not_an_obstacle_to_its_own_plate():
+    """THE EXEMPTION, AND WHY IT IS NOT A LOOPHOLE.
+
+    A global_label attaches at a wire END and its plate STARTS at that same
+    point, so the wire it belongs to lies along the plate's base edge and a
+    Liang-Barsky length charges up to a full PLATE_CROSS (2.5408 mm) of it as
+    "inside". Without the endpoint exemption every label on every wired sheet
+    would be charged for the conductor it names and the pass would shuffle the
+    whole fleet.
+
+    THE EXEMPTION IS SCOPED TO THE ENDPOINT, never merely "on the wire": a
+    plate anchored MID-SPAN has its own conductor drawn through the name from
+    BOTH sides, which is a real defect and is exactly what `SW_V1`, `SW_V4`,
+    `SEL_V1` and `RX1_MAIN` shipped on pluto-rx2-8way-v2. That half is measured
+    by `t_no_ink_is_drawn_through_any_text` above; this is the other half.
+
+    MEASURED: `label_sides_v` emits 2 wires and 2 plates, `two_resistors` 1 and
+    2, `digit_rails` 2 and 4 — every plate on a wire end — and all three come
+    out of the render with no ink through any glyph.
+    """
+    for fx in ("label_sides_v", "two_resistors", "digit_rails",
+               "rotated_placement", "polarized"):
+        d, out, r = convert(fx)
+        nwire = out.read_text().count("(wire (pts")
+        hits, ntext, ngfx = _ink_through_text(out)
+        eq(hits, [], f"{fx}: ink through text ({nwire} wires, {ntext} texts)")
+        g = run([PY, SCRIPTS / "sch_occlusion.py", out, "--verbose"])
+        eq(g.rc, 0, f"{fx}: sch_occlusion\n{g.out}")
+
+
+# --- the truth guard on a displaced property row --------------------------
+def _two_symbol_bench():
+    """RA with a WALL of conductors over its Reference row, and RB parked just
+    off the wall's right end.
+
+    THE BENCH IS BUILT SO THE LADDER MUST CHOOSE. The wall is seven horizontal
+    wires on the 1.27 mm grid, spanning x 94.0..106.0 from RA's Reference row
+    upward — so every offset the search reaches BEFORE the extremes is drawn
+    through, and the two that escape are the two ends of the sideways step:
+
+      * `(0, +6)` — anchor (107.620, 89.000) — clear of the wall, and NEARER
+        RB's body than RA's. This is the false sheet: `RA` written beside `RB`.
+      * `(0, -6)` — anchor ( 92.380, 89.000) — equally clear, and still nearest
+        its own symbol.
+
+    `+cross` is tried before `-cross` (the tie-break in `_prop_ladder`), so the
+    FALSE placement is the one the ladder reaches first and the guard is the
+    only thing that can refuse it. Everything else about the bench is ordinary:
+    two 2-pin passives, both rows at their `prop_rows` home.
+    """
+    import circuit_json_to_kicad_sch as C          # noqa: E402
+    placed = []
+    for ref, ix, iy in (("RA", 100.0, 95.0), ("RB", 111.25, 90.0)):
+        tips = {"1": (ix, iy - 5.0), "2": (ix, iy + 5.0)}
+        placed.append({
+            "refdes": ref, "value": "", "inst": (ix, iy), "w": 2.54,
+            "h": 7.62, "is_tp": False,
+            "pins": [("1", "1", f"N{ref}1"), ("2", "2", f"N{ref}2")],
+            "pins_geo": [("1", "1", 0.0, 2.54, 90, 2.54),
+                         ("2", "2", 0.0, -2.54, 270, 2.54)],
+            "tips": tips, "sides": {"1": "top", "2": "bottom"}})
+    comp_by_ref = {c["refdes"]: c for c in placed}
+    anchors = {"RA": ((100.0, 89.0), (100.0, 101.0)),
+               "RB": ((111.25, 84.0), (111.25, 96.0))}
+    segs = [((94.0, 89.0 - 1.27 * k), (106.0, 89.0 - 1.27 * k), "NRA1")
+            for k in range(7)]
+    return C, placed, anchors, comp_by_ref, segs
+
+
+@test("converter: a property row displaced off a wire never drifts nearer a "
+      "NEIGHBOURING symbol — and with the guard removed it does",
+      kind="known_bad")
+def t_prop_move_never_drifts_to_a_neighbour():
+    """THE ONE THING THIS PASS MUST NEVER DO, made to happen.
+
+    A Reference is read as naming the symbol it sits closest to. Moving one
+    sideways to dodge a conductor is a legibility repair; moving it past the
+    midpoint to the next symbol makes the sheet say something FALSE — the same
+    shape as `ANT2`/`3V3_MOD` compositing into `N3V3_MOD2`, which read as
+    though a 3V3 rail reached an RF port and survived every review until
+    someone measured pixels.
+
+    HONEST ABOUT ITS OWN SCOPE: `prop_is_nearest` is NOT binding on any of the
+    six layout-mode fleet sheets — neutralising it leaves all six BYTE-
+    IDENTICAL (measured 2026-07-31). That is exactly why this bench exists: a
+    guard whose only evidence is fleet output nobody can make it change is an
+    untested guard.
+
+    RED-VERIFIED ON THE MEASUREMENT: the same `place_props` is run twice on the
+    same bench, once with `prop_is_nearest` replaced by `lambda *a: True`. The
+    assertion is the resulting BOX DISTANCE to each body, not that anything
+    raised.
+    """
+    sys.path.insert(0, str(SCRIPTS))
+    C, placed, anchors, comp_by_ref, segs = _two_symbol_bench()
+    bodies = {c["refdes"]: (c["inst"][0] - c["w"] / 2, c["inst"][1] - c["h"] / 2,
+                            c["inst"][0] + c["w"] / 2, c["inst"][1] + c["h"] / 2)
+              for c in placed}
+
+    def run_pass():
+        out, _moved = C.place_props(placed, anchors, None, comp_by_ref, segs)
+        (rx, ry), _v = out["RA"]
+        box = C.prop_box("RA", rx, ry)
+        return box, (C._box_gap2(box, bodies["RA"]),
+                     C._box_gap2(box, bodies["RB"]))
+
+    # the bench must actually FORCE a move, or neither side measures anything
+    home = C.prop_box("RA", *anchors["RA"][0])
+    check(C._seg_in_box(segs[0][0], segs[0][1], home) > C.DC_TOUCH,
+          f"the bench no longer puts a conductor on RA's Reference row "
+          f"(box {tuple(round(v, 3) for v in home)}) — it measures nothing")
+
+    guarded, (g_mine, g_theirs) = run_pass()
+    check(guarded != home, "the guarded pass did not move the row at all")
+    check(g_mine < g_theirs,
+          f"GUARDED: RA's Reference ended up nearer RB "
+          f"(gap^2 own {g_mine:.4f} vs neighbour {g_theirs:.4f}) — the sheet "
+          f"now names the wrong symbol")
+
+    real = C.prop_is_nearest
+    try:
+        C.prop_is_nearest = lambda box, ref, bodies_: True
+        loose, (r_mine, r_theirs) = run_pass()
+    finally:
+        C.prop_is_nearest = real
+    check(r_mine > r_theirs,
+          f"THE RED SIDE HAS GONE QUIET: with the guard neutralised RA's "
+          f"Reference is still nearest its own symbol (gap^2 own {r_mine:.4f} "
+          f"vs neighbour {r_theirs:.4f}) — this bench no longer discriminates, "
+          f"so the guarded assertion above proves nothing")
+    check(loose != guarded,
+          "the guard changed nothing on this bench — it is untested")
 
 
 if __name__ == "__main__":

@@ -179,6 +179,25 @@ embedded `elt` lib isn't in the running kicad-cli config), `footprint_link_issue
   deliberately **not** a fallback to `grid`: answering "this label cannot be
   placed legibly" with a different sheet is not an answer. The message names
   the label and what it occludes — open the TSX and give that corner room.
+- Converter printed `N plate(s) left lying on a conductor` and exited **0** →
+  the search cleared every HARD obstacle for those plates and no offset cleared
+  the WIRES, so each keeps the placement the pre-wire pass gave it and S-OCCL
+  reports it by name. **Wires are a SOFT obstacle class and everything older is
+  HARD**, on purpose: a plate on a body/pin/Reference/other plate can composite
+  into a different NET NAME (`ANT2` + `3V3_MOD` -> `N3V3_MOD2`, which read as
+  though a 3V3 rail reached an RF port) and stays exit 3; a plate on a
+  conductor is illegible but cannot say anything false, and is a matter of
+  degree. MEASURED 2026-07-31: with wires HARD, four of the six layout-mode
+  fleet sheets stop converting at all. The fix is the TSX layout — move the
+  label's pin off the bus it reaches across.
+- Reference/Value drawn on a wire → the property rows are de-collided too, and
+  they may step SIDEWAYS as well as further out. `prop_rows` alone is a y-only
+  offset from the body edge, which cannot clear a conductor leaving a vertical
+  passive's own top pin (MEASURED on pluto-rx2-8way-v2: **9 of its 13** S-OCCL
+  findings were this, not label plates). A displaced row must stay STRICTLY
+  NEAREST its own symbol's body — a Reference that drifts to the neighbouring
+  part is a prettier sheet that names the wrong component, and the candidate is
+  refused rather than shipped.
 - Converter exited **4** with `WIRE AMBIGUITY (S12) ... draws two nets as one
   conductor` → tscircuit routed two DIFFERENT nets onto the same line, so the
   emitted sheet would show one conductor where there are two. Nothing is
@@ -212,6 +231,17 @@ embedded `elt` lib isn't in the running kicad-cli config), `footprint_link_issue
   to keep that pinned. The shipped fixture `label_sides_v` is the miniature of
   it: its own vertical plates run through its own Reference and Value, and it
   reads clean only because the pass moves them (S-OCCL 2 -> 0, MEASURED).
+- **A LABEL'S OWN WIRE IS FORGIVEN ONLY FROM BEHIND OR PERPENDICULAR.** A plate
+  starts at the anchor the wire ends on, so the conductor it names lies on the
+  plate's BASE EDGE and charging it there would move every label on every wired
+  sheet. But a wire leaving that same anchor FORWARD — into the half-space the
+  plate reaches into — runs down the plate's own centreline, through the
+  letters. MEASURED on the shipped `two_resistors` fixture: `MID` at
+  (38.100,27.940) reaching `+x` with its wire running to (50.800,27.940),
+  **2.7819 mm of conductor through three glyphs in KiCad's own render**, and 0
+  findings while the exemption was scoped to touch alone. It counted as a CLEAN
+  CONTROL in two test files for as long as neither the pass nor S-OCCL had ever
+  parsed a wire.
 
 ## Compliance audit (design-policies.md IDs)
 

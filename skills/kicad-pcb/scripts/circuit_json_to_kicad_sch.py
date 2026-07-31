@@ -1000,13 +1000,27 @@ def _on_segment(px, py, x1, y1, x2, y2, eps=1e-4):
 #: on the grid the wires and pin tips already live on.
 DC_STEP = 1.27
 #: how far the search may go, in steps: outward ALONG the reach, and sideways
-#: ACROSS it. Chosen at SATURATION, not tuned to a number: measured over the
-#: six layout-mode sheets, (4, 6) leaves 4 labels stuck, (6, 10) places every
-#: label on every board, and (8, 14) and (10, 20) then produce the IDENTICAL
-#: placement — 8/39 moved on crow-mic-pod-v2 and 96/303 on
-#: crow-recorder-central-v2 at all three. So the bound is past the point where
-#: it decides anything, which is the only honest place to put one.
-DC_MAX_ALONG, DC_MAX_CROSS = 6, 10
+#: ACROSS it. Chosen at SATURATION, not tuned to a number — the bound must sit
+#: past the point where it decides anything, which is the only honest place to
+#: put one.
+#:
+#: RE-MEASURED 2026-07-31 WHEN WIRES ENTERED THE OBSTACLE MODEL, because a
+#: saturation point is a property of the obstacle set and not of the ladder.
+#: The shipped (6, 10) was at saturation against symbol ink alone and is
+#: nowhere near it against ink that includes 681 wires. MEASURED over the six
+#: layout-mode sheets, S-OCCL after regeneration
+#: (crow-mic-pod / crow-recorder / cal-switch / rx2-8way / rx2-8way-v2 /
+#: interposer):
+#:      (4, 6)    2 sheets do not convert at all
+#:      (6, 10)   0 /  9 / 15 / 5 / 0 / 3
+#:      (8, 14)   0 /  8 /  9 / 1 / 0 / 3
+#:      (10, 20)  0 /  7 /  2 / 1 / 0 / 3
+#:      (14, 28)  0 /  7 /  1 / 1 / 0 / 3
+#:      (20, 40)  0 /  7 /  1 / 1 / 0 / 3   <- BYTE-IDENTICAL to (14, 28)
+#: so (14, 28) is the first bound that decides nothing. pluto-rx2-8way-v2 is
+#: byte-identical at EVERY bound in that table, (4, 6) included: its sheet does
+#: not depend on this constant at all.
+DC_MAX_ALONG, DC_MAX_CROSS = 14, 28
 #: two objects are in CONTACT when they overlap by more than this.
 #:
 #: MEASURED, not inherited and not chosen. Every plate-vs-anything overlap this
@@ -1074,22 +1088,25 @@ def _seg_in_box(p, q, box):
     return max(0.0, t1 - t0) * math.hypot(dx, dy)
 
 
-def _obstacles(placed, prop_rows_by_ref, flag_host, comp_by_ref):
-    """Every non-label piece of ink a label plate must stay off: symbol bodies,
-    pin lines, the Reference/Value rows, the ground/flag glyphs, no-connect
-    markers. Returns ([(box, desc)], [((p, q), desc)])."""
+def _symbol_ink(placed, flag_host, comp_by_ref):
+    """Every piece of NON-TEXT ink the symbol instances draw, each tagged with
+    the refdes that owns it: bodies, pin lines, ground/flag glyphs, no-connect
+    markers. -> ([(box, desc, owner)], [((p, q), desc, owner)]).
+
+    The owner tag exists because S-OCCL exempts a text from its OWN symbol's
+    body/pins/glyphs (`towner == oowner` in `sch_occlusion.occlusions`) and the
+    property search below has to make exactly that exemption — a Reference
+    written across its own symbol's pin is not a finding and must not be
+    chased off the sheet by one. A LABEL plate takes no such exemption: its own
+    pin is reported, deliberately (`t_attachment_is_not_an_occlusion`).
+    """
     boxes, segs = [], []
     for comp in placed:
         ref = comp["refdes"]
         ix, iy = comp["inst"]
         w, h = comp["w"], comp["h"]
         boxes.append(((ix - w / 2, iy - h / 2, ix + w / 2, iy + h / 2),
-                      f"body {ref}"))
-        ry, vy = prop_rows_by_ref[ref]
-        for txt, ty, kind in ((ref, ry, "Reference"),
-                              (comp["value"], vy, "Value")):
-            if txt:
-                boxes.append((prop_box(str(txt), ix, ty), f"{kind} {txt}"))
+                      f"body {ref}", ref))
         nets = {p: comp_pin_net(comp_by_ref, ref, p)
                 for p in comp["tips"]}
         for num, _pn, lx, ly, pang, plen in comp["pins_geo"]:
@@ -1099,21 +1116,224 @@ def _obstacles(placed, prop_rows_by_ref, flag_host, comp_by_ref):
             ex = lx + plen * math.cos(math.radians(pang))
             ey = ly + plen * math.sin(math.radians(pang))
             end = (ix + ex, iy - ey)
-            segs.append(((tip, end), f"pin {ref}.{num}"))
+            segs.append(((tip, end), f"pin {ref}.{num}", ref))
             net = nets.get(str(num))
             if net is None:
                 boxes.append(((tip[0] - NC_HALF, tip[1] - NC_HALF,
                                tip[0] + NC_HALF, tip[1] + NC_HALF),
-                              f"no_connect {ref}.{num}"))
+                              f"no_connect {ref}.{num}", ref))
             elif net == "GND":
                 side = comp["sides"][str(num)]
+                # the GND triangle is a SEPARATE `#PWRnn` symbol instance on the
+                # emitted sheet, so S-OCCL gives it a different owner from the
+                # pin it hangs off and a property IS graded against it. Tagged
+                # here with a `#` owner that no refdes can equal, so the
+                # exemption cannot leak onto it.
                 boxes.append((glyph_box(power_syms()["GND"], tip[0], tip[1],
-                                        GND_ANG[side]), f"glyph {ref}.{num}"))
+                                        GND_ANG[side]), f"glyph {ref}.{num}",
+                              f"#PWR:{ref}.{num}"))
                 if flag_host == (ref, str(num)):
                     boxes.append((glyph_box(power_syms()["PWR_FLAG"],
                                             tip[0], tip[1], 0),
-                                  f"flag {ref}.{num}"))
+                                  f"flag {ref}.{num}", f"#FLG:{ref}.{num}"))
     return boxes, segs
+
+
+def _prop_boxes(placed, prop_anchors):
+    """[(box, desc, owner)] for every Reference/Value row actually drawn."""
+    out = []
+    for comp in placed:
+        ref = comp["refdes"]
+        (rx, ry), (vx, vy) = prop_anchors[ref]
+        for txt, tx, ty, kind in ((ref, rx, ry, "Reference"),
+                                  (comp["value"], vx, vy, "Value")):
+            if txt:
+                out.append((prop_box(str(txt), tx, ty), f"{kind} {txt}", ref))
+    return out
+
+
+def _obstacles(placed, prop_anchors, flag_host, comp_by_ref):
+    """Every non-label piece of ink a label plate must stay off: symbol bodies,
+    pin lines, the Reference/Value rows, the ground/flag glyphs, no-connect
+    markers. Returns ([(box, desc)], [((p, q), desc)]).
+
+    WIRES ARE NOT HERE. They are ink a plate must stay off just as much as a
+    pin line is, but a label is ATTACHED to one — see `place_labels`, which adds
+    them per-candidate with the attachment exemption this signature cannot
+    express.
+    """
+    boxes, segs = _symbol_ink(placed, flag_host, comp_by_ref)
+    boxes = [(b, d) for b, d, _o in boxes]
+    segs = [(s, d) for s, d, _o in segs]
+    boxes += [(b, d) for b, d, _o in _prop_boxes(placed, prop_anchors)]
+    return boxes, segs
+
+
+# ------------------------------------------- property rows vs wires (S11-PROP)
+#: how far a property row may be displaced, in DC_STEP units: OUTWARD (further
+#: from its own body) and SIDEWAYS. Chosen at SATURATION exactly as
+#: DC_MAX_ALONG/DC_MAX_CROSS are. MEASURED over the six layout-mode sheets,
+#: S-OCCL after regeneration: (4, 4) leaves pluto-rx2-8way at 6 findings, and
+#: (6, 6), (8, 8) and (12, 12) give BYTE-IDENTICAL sheets on all six (5 there,
+#: and unchanged on the other five). So the bound decides nothing at (6, 6).
+DC_PROP_OUT, DC_PROP_CROSS = 6, 6
+
+
+def _prop_ladder(out_max, cross_max):
+    """The property search ladder, FIXED order, cheapest first with (0, 0)
+    always first — so a row with nothing on it does not move at all.
+
+    At equal cost the OUTWARD step is preferred, which is the opposite
+    preference from `_candidates()` and for the opposite reason. A label is
+    read by the pin at the blunt end of its plate, so keeping its reach
+    envelope still is what preserves the reading. A property is read by being
+    CENTRED OVER THE SYMBOL IT NAMES, so keeping `x` on the body's centre line
+    is what preserves that one; the sideways step is the fallback, taken only
+    when nothing directly outward is clear.
+    """
+    out = []
+    for cost in range(out_max + cross_max + 1):
+        for o in range(out_max + 1):
+            for c in range(cross_max + 1):
+                if o + c != cost:
+                    continue
+                for s in ((0,) if c == 0 else (1, -1)):
+                    out.append((o, c * s))
+    return out
+
+
+_DC_PROP_LADDER = _prop_ladder(DC_PROP_OUT, DC_PROP_CROSS)
+
+
+def _box_gap2(box, other):
+    """Squared distance between two axis-aligned boxes (0 if they touch)."""
+    dx = max(other[0] - box[2], box[0] - other[2], 0.0)
+    dy = max(other[1] - box[3], box[1] - other[3], 0.0)
+    return dx * dx + dy * dy
+
+
+def prop_is_nearest(box, ref, bodies):
+    """THE TRUTH GUARD on a displaced property row: is `box` still STRICTLY
+    nearest to the body of the symbol it names?
+
+    A Reference is read as naming the symbol it sits closest to. Stepping one
+    sideways to dodge a wire is a legibility repair; stepping it past the
+    midpoint to the next symbol makes the sheet say something FALSE, and a
+    prettier sheet that is less true is the one outcome this whole pass exists
+    to avoid — the precedent is `ANT2`/`3V3_MOD` compositing into `N3V3_MOD2`.
+
+    Module-level rather than a closure so a test can neutralise it and
+    re-measure what it was holding off (`t1_converter.py
+    t_prop_move_never_drifts_to_a_neighbour`)."""
+    mine = _box_gap2(box, bodies[ref])
+    return all(mine < _box_gap2(box, bx) for r, bx in bodies.items() if r != ref)
+
+
+def place_props(placed, prop_anchors, flag_host, comp_by_ref, segs):
+    """Displace the Reference/Value rows that a WIRE (or anything else) is
+    drawn through. -> {refdes: ((rx, ry), (vx, vy))}, moved_count.
+
+    WHY A ROW NEEDS THIS AT ALL, and why `prop_rows`' y-only nudge cannot do it.
+    `prop_rows` pushes a row past whatever hangs off the body on that side; it
+    is a one-dimensional answer, and a wire leaving a pin along the body's own
+    centre line is a two-dimensional problem. MEASURED on pluto-rx2-8way-v2's
+    `04_kicad`: 9 of its 13 S-OCCL findings are exactly that shape — a
+    vertically placed passive whose top pin carries a wire straight up through
+    the Reference written above it (`C_BULK` at x 52.070, row y 121.625, wire
+    (52.070,107.315)-(52.070,122.555) covering the whole 1.392 mm tall run).
+    Stepping the row further out never clears a wire that is 15 mm long; only
+    stepping ACROSS it does.
+
+    WHAT THIS REFUSES, and it is the same shape of refusal as `place_labels`.
+    A Reference is understood to name the symbol it is centred over, so:
+
+      * a row never crosses its own body — the Reference stays ABOVE the
+        instance origin and the Value BELOW it, always;
+      * a displaced row must stay STRICTLY NEAREST to its own symbol's body.
+        A `C_BULK` that drifts closer to `R_PD3` than to `C_BULK` would be a
+        prettier sheet that says something false, which is the one outcome this
+        pass exists to avoid. The candidate is rejected, not shipped.
+
+    A row with no legal placement is LEFT WHERE `prop_rows` PUT IT rather than
+    raising: unlike a label plate, a property row occluding a wire is a
+    legibility defect and not a connectivity one, and S-OCCL is the gate that
+    reports it. Deliberately different from `LabelPlacementError`, which guards
+    a fact about the NET.
+    """
+    sym_boxes, sym_segs = _symbol_ink(placed, flag_host, comp_by_ref)
+    bodies = {c["refdes"]: (c["inst"][0] - c["w"] / 2, c["inst"][1] - c["h"] / 2,
+                            c["inst"][0] + c["w"] / 2, c["inst"][1] + c["h"] / 2)
+              for c in placed}
+    wires = [(a, b) for a, b, _n in segs]
+    # (refdes, kind) -> (text, home anchor, outward unit y)
+    items = {}
+    for comp in placed:
+        ref = comp["refdes"]
+        (rx, ry), (vx, vy) = prop_anchors[ref]
+        items[(ref, "Reference")] = (str(ref), (rx, ry), -1.0)
+        if comp["value"]:
+            items[(ref, "Value")] = (str(comp["value"]), (vx, vy), 1.0)
+    order = sorted(items)
+    pos = {k: (0, 0) for k in order}
+
+    def anchor(k, off):
+        _txt, (hx, hy), uy = items[k]
+        return (round(hx + off[1] * DC_STEP, 3),
+                round(hy + uy * off[0] * DC_STEP, 3))
+
+    def box_of(k, off):
+        txt, _home, _uy = items[k]
+        ax, ay = anchor(k, off)
+        return prop_box(txt, ax, ay)
+
+    def clashes(k, off):
+        ref = k[0]
+        b = box_of(k, off)
+        for ob, desc, owner in sym_boxes:
+            if owner == ref:
+                continue          # its own body / no-connect (canon: S-OCCL too)
+            if _hit_box(b, ob):
+                return desc
+        for (p, q), desc, owner in sym_segs:
+            if owner == ref:
+                continue          # its own pin line
+            if _seg_in_box(p, q, b) > DC_TOUCH:
+                return desc
+        for (p, q) in wires:
+            if _seg_in_box(p, q, b) > DC_TOUCH:
+                return f"wire ({p[0]:g},{p[1]:g})-({q[0]:g},{q[1]:g})"
+        for j in order:
+            if j != k and _hit_box(b, box_of(j, pos[j])):
+                return f"{j[1]} {items[j][0]}"
+        return None
+
+    def legal(k, off):
+        return prop_is_nearest(box_of(k, off), k[0], bodies)
+
+    for _rnd in range(DC_ROUNDS):
+        todo = [k for k in order if clashes(k, pos[k]) is not None]
+        if not todo:
+            break
+        progressed = False
+        for k in todo:
+            got = next((o for o in _DC_PROP_LADDER
+                        if clashes(k, o) is None and legal(k, o)), None)
+            if got is None or got == pos[k]:
+                continue
+            pos[k] = got
+            progressed = True
+        if not progressed:
+            break
+
+    out, moved = {}, 0
+    for comp in placed:
+        ref = comp["refdes"]
+        rk, vk = (ref, "Reference"), (ref, "Value")
+        rp = anchor(rk, pos[rk])
+        vp = anchor(vk, pos[vk]) if vk in items else prop_anchors[ref][1]
+        moved += sum(1 for k in (rk, vk) if k in pos and pos[k] != (0, 0))
+        out[ref] = (rp, vp)
+    return out, moved
 
 
 def _candidates():
@@ -1430,6 +1650,51 @@ def key_pt(p):
     return (round(p[0], 3), round(p[1], 3))
 
 
+def _wire_hits(box, anchor_pt, reach, wires, tol=1e-6):
+    """The first wire in `wires` that is drawn ACROSS `box`, or None.
+
+    THE ATTACHMENT EXEMPTION, and it is the whole reason this is not just one
+    more entry in `_obstacles`. A global_label attaches at a wire END and its
+    plate STARTS at that same point, so the wire it belongs to lies on the
+    plate's base edge and Liang-Barsky charges up to a full PLATE_CROSS of it
+    as "inside". Charging a plate for the wire it is attached to would move
+    every label on every wired sheet.
+
+    TWO CONDITIONS, AND BOTH ARE LOAD-BEARING.
+
+    THE ANCHOR MUST BE THE WIRE'S ENDPOINT, NOT MERELY ON IT. A plate anchored
+    MID-SPAN has its own conductor drawn straight through the name from BOTH
+    sides, which is a real defect and is what `SW_V1`, `SW_V4`, `SEL_V1` and
+    `RX1_MAIN` shipped on pluto-rx2-8way-v2.
+
+    AND THE WIRE MUST NOT LEAVE FORWARD. A wire running from the anchor INTO
+    the half-space the plate reaches into is drawn down the plate's own
+    centreline, through the letters — MEASURED on the shipped `two_resistors`
+    fixture at 2.7819 mm of conductor through `MID` in KiCad's own render, a
+    finding both this model and S-OCCL forgave in their first draft. Only a
+    wire arriving from BEHIND, or PERPENDICULAR (the base-edge case the
+    exemption exists for), is the attachment.
+
+    This is the same rule `sch_occlusion.occlusions` grades by, stated
+    independently here because the emitter must not import its own grader
+    (canon M1) — `t1_converter.py t_no_ink_is_drawn_through_any_text` pins the
+    two against each other in rendered ink.
+    """
+    for (p, q) in wires:
+        if anchor_pt is not None:
+            fwd = None
+            for a, b in ((p, q), (q, p)):
+                if (abs(anchor_pt[0] - a[0]) < tol
+                        and abs(anchor_pt[1] - a[1]) < tol):
+                    fwd = (b[0] - a[0]) * reach[0] + (b[1] - a[1]) * reach[1]
+                    break
+            if fwd is not None and fwd <= tol:
+                continue
+        if _seg_in_box(p, q, box) > DC_TOUCH:
+            return f"wire ({p[0]:g},{p[1]:g})-({q[0]:g},{q[1]:g})"
+    return None
+
+
 def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
                  segs, junctions, pin_tip):
     """De-collide every global_label this module places. Canon S11.
@@ -1447,10 +1712,39 @@ def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
     is never dropped, never silently left overlapping, and never answered by
     falling back to a different emitter.
 
-    Returns (labels, stubs, extra_junctions, moved) where `labels` is
-    [(net, x, y, side)] and `stubs` is [((p, q), net)].
+    TWO OBSTACLE CLASSES, SPLIT BY THEIR REMEDY (2026-07-31, with wires).
+    Everything the pass could see before wires — a symbol body, a pin line, a
+    Reference/Value row, a ground glyph, another PLATE — is HARD: a plate lying
+    on one of those is how `ANT2 x 3V3_MOD` composited into `N3V3_MOD2`, a
+    sheet that reads as a different NET, and there is no degree of that worth
+    shipping. Unplaceable against the hard set still raises, exactly as before.
+
+    A WIRE IS SOFT, and the asymmetry is the point rather than an escape hatch.
+    A plate drawn over a conductor is illegible; it cannot compose into another
+    NAME, because a wire carries no glyphs. Its remedy is `sch_occlusion`'s
+    S-OCCL row, which is per-board and thresholded precisely because "text
+    crowding is a matter of degree" (that module's own words). So the search
+    tries hardest to clear wires and, where a sheet's own layout makes that
+    impossible, leaves the plate WHERE THE AUTHOR PUT IT and lets S-OCCL report
+    it — rather than converting a legibility finding into a build failure.
+
+    MEASURED, and this is why the split is not a convenience: with wires HARD,
+    four of the six layout-mode fleet sheets stop converting at all —
+    crow-recorder-central-v2 (7 labels), pluto-cal-switch (4), pluto-rx2-8way
+    (4) and interposer (2), every one of them a `QSPI_*`-style plate reaching
+    across an 80 mm vertical bus that no offset in any bound can escape (the
+    ladder was re-run at (10, 16) and the same labels stay stuck). Those are
+    sealed boards whose sheets are already graded and already carry the
+    finding; a hard error there answers "this plate is hard to read" with "this
+    board cannot be built".
+
+    Returns (labels, stubs, extra_junctions, moved, on_wire) where `labels` is
+    [(net, x, y, side)], `stubs` is [((p, q), net)] and `on_wire` counts the
+    plates left lying on a conductor for S-OCCL to report.
     """
     boxes, obsegs = _obstacles(placed, prop_rows_by_ref, flag_host, comp_by_ref)
+    base_wires = [(a, b) for a, b, _n in segs]
+    prop_ink = [(b, d) for b, d, _o in _prop_boxes(placed, prop_rows_by_ref)]
     base_tips = sorted({(round(t[0], 3), round(t[1], 3)) for t in pin_tip.values()})
     base_pts = set(base_tips) | set(junctions) | {
         (round(v[0], 3), round(v[1], 3)) for a, b, _n in segs for v in (a, b)}
@@ -1474,7 +1768,16 @@ def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
         ax, ay = anchor(i, off)
         return plate_box(net, ax, ay, side)
 
-    def clashes(i, off):
+    def drawn_wires(exclude):
+        """Every wire the sheet will actually carry — the imported segments plus
+        the stubs already planned — with one label's own stub taken out, so a
+        label is never blocked by the wire it is standing on the end of."""
+        return base_wires + [pq for j, adds in plan.items() if j != exclude
+                             for pq in adds]
+
+    def clashes_hard(i, off):
+        """The obstacle set as it stood before wires — the one whose remedy is
+        never "leave it and report it"."""
         b = box_of(i, off)
         for ob, desc in boxes:
             if _hit_box(b, ob):
@@ -1485,6 +1788,38 @@ def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
         for j in range(len(cands)):
             if j != i and _hit_box(b, box_of(j, pos[j])):
                 return f"label {cands[j][0]}"
+        return None
+
+    def on_wire(i, off):
+        """WIRES. Ink of exactly the same kind as a pin line, and until this
+        landed the search had never seen one: `_obstacles` was built from symbol
+        geometry alone, so a plate could be moved OFF a Reference row and ONTO a
+        conductor and the pass called it placed."""
+        return _wire_hits(box_of(i, off), anchor(i, off),
+                          SIDE_REACH[cands[i][3]], drawn_wires(i))
+
+    def clashes(i, off):
+        return clashes_hard(i, off) or on_wire(i, off)
+
+    def stub_occludes(i, off, add):
+        """Would the wire this displacement ADDS be drawn through a text?
+
+        The rounds re-derive every label's clash set, so a stub laid across
+        SOME OTHER label is eventually answered by moving that label. Nothing
+        re-derives the PROPERTY rows — they are settled before this pass — so a
+        stub across a Reference would be a finding this pass created and no
+        later step could see. Both are checked here, which makes the rule
+        simply: a stub never becomes an occluder."""
+        for (p, q) in add:
+            for ob, desc in prop_ink:
+                if _seg_in_box(p, q, ob) > DC_TOUCH:
+                    return desc
+            for j in range(len(cands)):
+                jb = box_of(j, off if j == i else pos[j])
+                ja = anchor(j, off if j == i else pos[j])
+                if _wire_hits(jb, ja, SIDE_REACH[cands[j][3]],
+                              [(p, q)]) is not None:
+                    return f"label {cands[j][0]}"
         return None
 
     def world(exclude):
@@ -1505,22 +1840,54 @@ def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
         return w, sorted(pts)
 
     def best_offset(i):
+        """The cheapest offset that clears EVERYTHING; failing that, the
+        cheapest that clears the HARD set and is legal electrically.
+
+        The ladder is walked once, in its fixed order, and the FIRST hard-clear
+        offset with a legal stub is remembered as the fallback — which for a
+        label that was already hard-clear at home is `(0, 0)`, so a plate the
+        wire model cannot rescue keeps exactly the placement the pre-wire pass
+        gave it. That is what makes this addition unable to move a board's
+        S-OCCL count UP.
+        """
         net, x, y, side = cands[i]
         home = (round(x, 3), round(y, 3))
         w, pts = world(i)
-        for off in _DC_LADDER:
-            if clashes(i, off) is not None:
-                continue
+
+        def stub_for(off):
+            """The cheapest legal corner order for `off`, or None if neither
+            can be laid without risking connectivity."""
             for cross_first in (True, False):
                 path = _stub(home, side, off[0] * DC_STEP, off[1] * DC_STEP,
                              cross_first)
                 add = ([] if len(path) == 1
                        else _stub_plan(path, w, pts, base_tips, home, net))
                 if add is not None:
-                    return off, add
+                    return add
                 if len(path) < 3:
                     break        # a single leg has only one corner order
-        return None
+            return None
+
+        soft = None
+        for off in _DC_LADDER:
+            if clashes_hard(i, off) is not None:
+                continue
+            dirty = on_wire(i, off) is not None
+            if dirty and soft is not None:
+                continue      # a cheaper hard-clear fallback is already held
+            add = stub_for(off)
+            if add is None:
+                continue
+            # A STUB IS ALSO INK, and a displacement that lays its own wire
+            # across a plate or a Reference has moved the finding rather than
+            # removed it. Soft, for the same reason a plate on a wire is soft:
+            # both are legibility, and neither can make the sheet say a
+            # different NET.
+            if not dirty and stub_occludes(i, off, add) is None:
+                return off, add
+            if soft is None:
+                soft = (off, add)
+        return soft
 
     # ROUND-BASED, and the rounds are what make it work rather than a nicety.
     # Where two labels collide with each other, EITHER may move; a single
@@ -1546,13 +1913,13 @@ def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
         if not progressed:
             break
 
-    stuck = [i for i in order if clashes(i, pos[i]) is not None]
+    stuck = [i for i in order if clashes_hard(i, pos[i]) is not None]
     if stuck:
         i = stuck[0]
         net, x, y, side = cands[i]
         raise LabelPlacementError(
             f"global_label {net!r} at ({x:.3f}, {y:.3f}) reaching {side}: no "
-            f"legal placement — it occludes {clashes(i, pos[i])} and every one "
+            f"legal placement — it occludes {clashes_hard(i, pos[i])} and every one "
             f"of the {len(_DC_LADDER)} offsets in the search is blocked too "
             f"({len(stuck)} label(s) stuck: "
             f"{', '.join(sorted(cands[j][0] for j in stuck[:6]))}). Its reach "
@@ -1575,11 +1942,12 @@ def place_labels(cands, placed, prop_rows_by_ref, flag_host, comp_by_ref,
                                for a, b, _n in segs):
             extra_junc.append(home)
 
+    left_on_wire = sorted(cands[i][0] for i in order if on_wire(i, pos[i]))
     out = []
     for i, (net, _x, _y, side) in enumerate(cands):
         ax, ay = anchor(i, pos[i])
         out.append((net, ax, ay, side))
-    return out, stubs, extra_junc, moved
+    return out, stubs, extra_junc, moved, left_on_wire
 
 
 def convert_layout(circuit_json, project, title, rev, date, aliases=None, overrides=None,
@@ -1943,12 +2311,20 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
     for comp in placed:
         pads = [num for num, _pn, _lx, _ly, _a, _l in comp["pins_geo"]]
         nets = {p: comp_pin_net(comp_by_ref, comp["refdes"], p) for p in pads}
-        prop_rows_by_ref[comp["refdes"]] = prop_rows(
+        ry, vy = prop_rows(
             comp["inst"][0], comp["inst"][1], comp["w"], comp["h"],
             attached_glyph_boxes(pads, comp["tips"], comp["sides"], nets,
                                  str(flag_host[1]) if flag_host
                                  and flag_host[0] == comp["refdes"] else None))
-    emit_labels, stubs, extra_junc, moved = place_labels(
+        ix = comp["inst"][0]
+        prop_rows_by_ref[comp["refdes"]] = ((ix, ry), (ix, vy))
+    # ...and then off whatever the SHEET draws through them — above all the
+    # wires, which `prop_rows` has no way to see (it is a y-only offset from the
+    # body). Settled BEFORE the labels, because a plate has to stay off a
+    # property row and the row must therefore already be where it will be drawn.
+    prop_rows_by_ref, prop_moved = place_props(
+        placed, prop_rows_by_ref, flag_host, comp_by_ref, segs)
+    emit_labels, stubs, extra_junc, moved, on_wire = place_labels(
         emit_labels, placed, prop_rows_by_ref, flag_host, comp_by_ref,
         segs, junctions, pin_tip)
     segs = segs + [(p, q, net) for (p, q), net in stubs]
@@ -2027,7 +2403,8 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
              "tsc_labels": len(emit_labels) - safety, "safety_labels": safety,
              "junctions": len(juncs), "dropped_segs": dropped,
              "pruned_segs": pruned, "moved_labels": moved,
-             "stub_segs": len(stubs)}
+             "stub_segs": len(stubs), "moved_props": prop_moved,
+             "labels_on_wire": on_wire}
     return content, components, stats
 
 
@@ -2070,14 +2447,14 @@ def _emit_layout_component(comp, project, root_uuid, flag_host, pwr, comp_by_ref
     — ONE home, so the de-collision search and the emitter cannot disagree
     about where a property text is."""
     ix, iy = comp["inst"]
-    ry, vy = rows
+    (rx, ry), (vx, vy) = rows
     in_bom = "no" if comp["is_tp"] else "yes"
     out = [
         f'  (symbol (lib_id "{LIB}:{comp["sym"]}") (at {ix:.3f} {iy:.3f} 0) (unit 1)'
         f' (in_bom {in_bom}) (on_board yes) (dnp no) (uuid "{_u()}")\n'
-        f'    (property "Reference" "{comp["refdes"]}" (at {ix:.3f} {ry:.3f} 0)'
+        f'    (property "Reference" "{comp["refdes"]}" (at {rx:.3f} {ry:.3f} 0)'
         f' (effects (font (size 1.27 1.27))))\n'
-        f'    (property "Value" "{comp["value"]}" (at {ix:.3f} {vy:.3f} 0)'
+        f'    (property "Value" "{comp["value"]}" (at {vx:.3f} {vy:.3f} 0)'
         f' (effects (font (size 1.27 1.27))))\n'
         f'    (property "Footprint" "{comp["fpid"]}" (at {ix:.3f} {iy:.3f} 0)'
         f' (effects (font (size 1.27 1.27)) hide))\n'
@@ -2187,7 +2564,16 @@ def main():
               f"safety labels, {stats['junctions']} junctions "
               f"({stats['dropped_segs']} segs dropped as cross-net); "
               f"de-collision moved {stats['moved_labels']} of "
-              f"{stats['labels']} labels on {stats['stub_segs']} stub segs")
+              f"{stats['labels']} labels on {stats['stub_segs']} stub segs, "
+              f"{stats['moved_props']} property rows")
+        if stats["labels_on_wire"]:
+            # NAMED, never counted-and-summarised: this is the residue S-OCCL
+            # will report, and the operator has to be able to find it on the
+            # sheet without re-deriving it.
+            print(f"  {len(stats['labels_on_wire'])} plate(s) left lying on a "
+                  f"conductor — no offset in the search clears them and the "
+                  f"sheet's own layout is the fix: "
+                  f"{', '.join(stats['labels_on_wire'])}")
     else:
         print(f"wrote {a.out} [MODE=grid, label-glue fallback]: {len(comps)} "
               f"components ({nfp} with FPID), {npins} pins")

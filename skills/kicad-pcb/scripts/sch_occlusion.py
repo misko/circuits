@@ -523,7 +523,12 @@ def plate_box(name, gx, gy, ang, just, size=FONT_REF, shape="passive"):
 def parse_sheet(stxt):
     """-> (texts, rects, segs, unmodelled, total)
 
-    texts  [(box, desc, owner)]   things that must stay legible
+    texts  [(box, desc, owner, attach)]
+                                 things that must stay legible. `attach` is
+                                 ((x, y), (ux, uy)) for a global_label — its
+                                 anchor and the direction its plate REACHES,
+                                 which is what the wire exemption in
+                                 `occlusions` turns on — and None otherwise.
     rects  [(box, desc, owner)]   filled/outlined body graphics
     segs   [((p,q), desc, owner)] pin lines and glyph polylines
     unmodelled [str]              drawable objects this model could not place
@@ -593,9 +598,12 @@ def parse_sheet(stxt):
                               f"character(s) {''.join(bad)!r} — the advance "
                               f"table has never seen them")
             continue
+        # the ANCHOR **and the direction the plate reaches**, because the
+        # attachment exemption below turns on the direction and not on the
+        # touch alone — see `occlusions`.
         texts.append((plate_box(name, gx, gy, ang, just,
                                 float(fm.group(1)), shape),
-                      f"label {name}", None, (gx, gy)))
+                      f"label {name}", None, ((gx, gy), PLATE_DIR[(ang, just)])))
 
     for m in _RE_OTHER_LABEL.finditer(body):
         total += 1
@@ -678,7 +686,7 @@ def occlusions(stxt):
     """
     texts, rects, segs, unmodelled, total = parse_sheet(stxt)
     found = set()
-    for i, (tb, td, towner, tanchor) in enumerate(texts):
+    for i, (tb, td, towner, attach) in enumerate(texts):
         for ob, od, _, _ in texts[i + 1:]:
             if boxes_overlap(tb, ob):
                 found.add((td, od))
@@ -710,10 +718,29 @@ def occlusions(stxt):
             # laid ALONG the pin it attaches to is a finding), and a label's
             # anchor is a pin tip just as often as it is a wire end. Applying
             # this to every segment silently deleted that fixture.
-            if (od.startswith("wire ") and tanchor is not None and any(
-                    abs(tanchor[0] - e[0]) < 1e-6 and abs(tanchor[1] - e[1]) < 1e-6
-                    for e in (p, q))):
-                continue
+            #
+            # AND SCOPED BY DIRECTION, 2026-07-31. The first draft of this
+            # exemption forgave ANY wire touching the anchor, which is wrong in
+            # exactly the case a reader cares about: a wire leaving the anchor
+            # FORWARD, into the half-space the plate reaches into, is drawn
+            # down the plate's own centreline and straight through the letters.
+            # MEASURED on the shipped `two_resistors` fixture: `MID` at
+            # (38.100,27.940) reaching +x with its own wire running
+            # (38.100,27.940)-(50.800,27.940) — 2.7819 mm of conductor through
+            # the three glyphs in KiCad'S OWN RENDER, and this module returned
+            # 0. So a wire is forgiven only where the real attachment is: BEHIND
+            # the anchor or PERPENDICULAR to the reach (the base-edge case that
+            # the exemption exists for).
+            if od.startswith("wire ") and attach is not None:
+                tanchor, (ux, uy) = attach
+                fwd = None
+                for a_, b_ in ((p, q), (q, p)):
+                    if (abs(tanchor[0] - a_[0]) < 1e-6
+                            and abs(tanchor[1] - a_[1]) < 1e-6):
+                        fwd = ((b_[0] - a_[0]) * ux + (b_[1] - a_[1]) * uy)
+                        break
+                if fwd is not None and fwd <= 1e-6:
+                    continue
             if seg_len_in_box(p, q, tb) > OVERLAP_EPS_MM:
                 found.add((td, od))
     graded = total - len(unmodelled)

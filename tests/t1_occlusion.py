@@ -1262,7 +1262,7 @@ def t_label_sides_v_is_clean_only_because_the_pass_moves_it():
         "import sys\n"
         f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
         "import circuit_json_to_kicad_sch as C\n"
-        "C.place_labels = lambda cands, *a, **k: (cands, [], [], 0)\n"
+        "C.place_labels = lambda cands, *a, **k: (cands, [], [], 0, [])\n"
         f"sys.argv = [{str(conv)!r}] + sys.argv[1:]\n"
         "C.main()\n", encoding="utf-8")
     cj = ROOT / "tests" / "fixtures" / "t0" / "label_sides_v" / "circuit.json"
@@ -1281,9 +1281,17 @@ def t_label_sides_v_is_clean_only_because_the_pass_moves_it():
     eq(sorted(occl), ["label OUT_MID_LONG_NAME x Value 1k",
                       "label TAP_MID_LONG_NAME x Reference R1"],
        "what the SHIPPED fixture draws before the pass rescues it")
-    # the two CONTROL fixtures are clean either way — so the pass is not just
-    # moving everything it is handed
-    for fx in ("label_sides_h", "two_resistors"):
+    # the CONTROL fixtures are clean either way — so the pass is not just
+    # moving everything it is handed.
+    #
+    # `two_resistors` WAS ONE OF THESE AND IS NOT ANY MORE (2026-07-31). Once
+    # this model learned to parse a wire, its `MID` plate — anchored
+    # (38.100,27.940) reaching +x, with its own wire running to (50.800,27.940)
+    # — reads as `label MID x wire`, and the render agrees: 2.7819 mm of
+    # conductor through the three glyphs. It was called clean for exactly as
+    # long as nothing here had ever seen a wire. `thermal_ep` (7 plates, 0
+    # wires) takes its place as the second control.
+    for fx in ("label_sides_h", "thermal_ep"):
         q = d / f"{fx}.kicad_sch"
         must_pass(run([KPY, shim, ROOT / "tests" / "fixtures" / "t0" / fx /
                        "circuit.json", "-o", q, "--project", fx]),
@@ -1332,6 +1340,90 @@ def nowire_module():
     spec.loader.exec_module(mod)
     _NOWIRE_CACHE.append(mod)
     return mod
+
+
+#: the commit whose wire exemption forgave ANY wire touching a plate's anchor,
+#: regardless of which way it left. Pinned so this A/B keeps measuring the same
+#: red side after the direction-scoped rule lands.
+GENEROUS_COMMIT = "c0e21fa7"
+_GENEROUS_CACHE = []
+
+
+def generous_module():
+    """`sch_occlusion.py` with the DIRECTION-BLIND attachment exemption."""
+    if _GENEROUS_CACHE:
+        return _GENEROUS_CACHE[0]
+    blob = subprocess.run(
+        ["git", "-C", str(ROOT), "show",
+         f"{GENEROUS_COMMIT}:skills/kicad-pcb/scripts/sch_occlusion.py"],
+        capture_output=True, text=True)
+    check(blob.returncode == 0,
+          f"git show {GENEROUS_COMMIT} failed: {blob.stderr}")
+    # the guard: the pinned bytes must really carry the OLD exemption, so a
+    # re-pointed constant is reported instead of quietly ending the A/B.
+    check("_RE_WIRE" in blob.stdout,
+          f"{GENEROUS_COMMIT} is wire-blind — that is a different fixture")
+    check("PLATE_DIR[(ang, just)]))" not in blob.stdout,
+          f"{GENEROUS_COMMIT} already carries the direction-scoped exemption — "
+          f"this A/B would silently stop measuring the red side")
+    p = tmpdir("genso_") / "generous_sch_occlusion.py"
+    p.write_text(blob.stdout, encoding="utf-8")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("generous_sch_occlusion", p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    _GENEROUS_CACHE.append(mod)
+    return mod
+
+
+@test("a wire leaving a plate's anchor FORWARD is drawn through the name and "
+      "IS a finding — the direction-blind exemption forgave it", kind="known_bad")
+def t_the_attachment_exemption_is_scoped_by_direction():
+    """THE EXEMPTION HAD TO EXIST, AND IT WAS TOO WIDE.
+
+    A global_label attaches at a wire END and its plate STARTS there, so the
+    conductor it names lies on the plate's base edge and Liang-Barsky charges
+    up to a full PLATE_CROSS of it as "inside". Forgiving that is right.
+    Forgiving EVERY wire that touches the anchor is not: a wire leaving the
+    anchor into the half-space the plate reaches into runs down the plate's own
+    centreline, straight through the letters.
+
+    MEASURED, and it is not hypothetical — the shipped `two_resistors` fixture
+    draws exactly this: `MID` at (38.100,27.940) reaching +x with its own wire
+    running (38.100,27.940)-(50.800,27.940), which is **2.7819 mm of conductor
+    through three glyphs in KiCad's own render** and 0 findings from the
+    direction-blind model. It counted as a CLEAN CONTROL in two test files.
+
+    THREE CASES ON ONE SHEET, so the exemption is measured on both sides of the
+    line it draws rather than only where it now bites:
+      * FORWARD  — plate reaching +x from (100,130), wire (100,130)->(120,130):
+                   a finding here, forgiven by the pinned module.
+      * BEHIND   — same plate, wire (80,130)->(100,130): forgiven by BOTH, and
+                   it must be, or every label on every wired sheet moves.
+      * PERPENDICULAR — wire (100,120)->(100,130): the base-edge case the
+                   exemption exists for; forgiven by BOTH.
+    """
+    old = generous_module()
+    d = tmpdir("fwdwire_")
+    cases = [
+        ("forward", (100.0, 130.0, 120.0, 130.0), True),
+        ("behind", (80.0, 130.0, 100.0, 130.0), False),
+        ("perpendicular", (100.0, 120.0, 100.0, 130.0), False),
+    ]
+    for tag, w, want_finding in cases:
+        p = sheet([("AAAA", 100.0, 130.0, 0, "left")], (),
+                  wires=[w], out=d / f"{tag}.kicad_sch")
+        stxt = p.read_text(encoding="utf-8-sig")
+        got = [f for f in SO.occlusions(stxt)[0] if "x wire" in f]
+        red = [f for f in old.occlusions(stxt)[0] if "x wire" in f]
+        eq(red, [], f"{tag}: the DIRECTION-BLIND model reported a wire finding "
+                    f"— it forgives every wire on the anchor, so it cannot")
+        if want_finding:
+            check(got, f"{tag}: a conductor drawn down the plate's centreline "
+                       f"is not reported — the exemption is still too wide")
+        else:
+            eq(got, [], f"{tag}: the real attachment must stay forgiven, or "
+                        f"every label on every wired sheet becomes a finding")
 
 
 @test("a WIRE drawn through a label plate is a finding — and the wire-blind "
