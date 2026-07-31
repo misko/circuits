@@ -1,0 +1,4 @@
+BOM-vs-source: projects/smc0985-cooksense/06_build/staging/cooksense-v1.7/fab/bom.csv
+  source: projects/smc0985-cooksense/03_tscircuit/build/circuit.json (208 coded refdes); vendored: 44 part.yaml codes; ledger: 151 vetted passive codes
+  coverage leg C: 28/28 R/C rows value-graded (61 BOM rows seen)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

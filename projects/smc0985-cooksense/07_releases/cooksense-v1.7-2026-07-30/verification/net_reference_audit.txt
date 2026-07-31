@@ -1,0 +1,39 @@
+E-NETREF net-reference audit — 
+  netlist(s): cooksense.net (198 nets), interposer.net (10 nets) -> 198 distinct nets, 261 refdes
+  292 reference site(s) across 12 kinds: 271 resolved, 21 GHOST, 0 unreached; 5/21 unresolved names carry a NAMED near-miss
+  kind  found  resd ghost  unre  near  where / path
+  K1       40    40     0     0     0  nets.yaml classes.<C>.nets[]
+  K2        2     2     0     0     0  nets.yaml scoped_floors[].nets[]
+  K3        2     2     0     0     0  electrical_invariants.yaml supplies.<NET>
+  K4      140   140     0     0     0  electrical_invariants.yaml invariants[].net
+  K5       21    21     0     0     0  electrical_invariants.yaml invariants[].chain[]
+  K6        9     9     0     0     0  power_tree.yaml rails[].name, linear_rails[].name   [advisory kind: a miss is UNREACHED]
+  K7       38    17    21     0     5  02_parts/*/part.yaml layout.keep_short[].net
+  K8        3     3     0     0     0  floorplan.yaml zones[].net
+  K9       35    35     0     0     0  floorplan.yaml asserts.pad_net[].net
+  K10       0     0     0     0     0  floorplan.yaml placement.patterns[].pad_overrides[].on_net
+  K11       2     2     0     0     0  floorplan.yaml silk.captions[].text (net-shaped token)
+  K12       0     0     0     0     0  nets.yaml length_match.<G>.members.<M>[]
+  GHOST (21):
+    [K7] 02_parts/2N7002/part.yaml layout.keep_short[0].net: 'HS_GATE' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. Did you mean 'HS_GATE_COIL' (similar name)?
+    [K7] 02_parts/43650-0224/part.yaml layout.keep_short[0].net: '+5V' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/AO3401A/part.yaml layout.keep_short[0].net: 'HS_GATE' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. Did you mean 'HS_GATE_COIL' (similar name)?
+    [K7] 02_parts/AQY212GS/part.yaml layout.keep_short[0].net: 'LED_DRIVE' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/CD74HC221M96/part.yaml layout.keep_short[1].net: 'N3V3' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. Did you mean '3V3' (tsx author-prefix `N` — strip it)?
+    [K7] 02_parts/LTV-817S-TA1/part.yaml layout.keep_short[0].net: 'OPTO_LED' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. Did you mean 'OPTO_LED_A' (similar name)?
+    [K7] 02_parts/MAX31856MUD+T/part.yaml layout.keep_short[0].net: 'T_PLUS' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/MAX31856MUD+T/part.yaml layout.keep_short[1].net: 'T_MINUS' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/MAX31856MUD+T/part.yaml layout.keep_short[2].net: 'BIAS' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/MCP23017-E-SS/part.yaml layout.keep_short[0].net: 'VDD' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/MCP3208-CI-SL/part.yaml layout.keep_short[0].net: 'VDD' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/MCP3208-CI-SL/part.yaml layout.keep_short[1].net: 'VREF' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/SN74HC138DR/part.yaml layout.keep_short[0].net: 'VCC' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/SN74HC139DR/part.yaml layout.keep_short[0].net: 'VCC' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/SN74HC14DR/part.yaml layout.keep_short[0].net: 'VCC' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/SN74HC595DR/part.yaml layout.keep_short[0].net: 'VCC' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/SN74LVC1G00DCKR/part.yaml layout.keep_short[0].net: 'VCC' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/SN74LVC1G11DBVR/part.yaml layout.keep_short[0].net: 'VCC' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/SN74LVC1G123DCTR/part.yaml layout.keep_short[0].net: 'VCC' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/SN74LVC1G123DCTR/part.yaml layout.keep_short[1].net: 'RCEXT' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. No net with a similar name exists either.
+    [K7] 02_parts/TPS3823-33DBVR/part.yaml layout.keep_short[0].net: '3V3_DIGITAL' is NOT a net on this board, and policy_audit.py P-ADJ net-span budget will now silently grade/emit nothing for it. Did you mean '3V3, 3V3_ANALOG, 3V3_SW_A, 3V3_SW_B' (the 3V3_* family on this board)?
+E-NETREF: FAIL — 271/292 references resolved, 21 ghost (5 with a named near-miss), 0 unreached

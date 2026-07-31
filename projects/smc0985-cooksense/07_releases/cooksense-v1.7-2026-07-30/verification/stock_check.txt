@@ -1,0 +1,68 @@
+input: bom = projects/smc0985-cooksense/06_build/staging/cooksense-v1.7/fab/bom.csv
+61 BOM lines: 58 with LCSC, 3 without
+
+  OK               C17888     x2   0Ω                                     base   stock=3357690
+  OK               C21189     x2   0Ω                                     base   stock=13380156
+  OK               C138040    x1   1.2kΩ                                  expand stock=447131
+  OK               C25741     x30  100kΩ                                  base   stock=2731647
+  OK               C270658    x1   100kΩ                                  expand stock=9203
+  OK               C14663     x5   100nF                                  base   stock=102406754
+  OK               C1525      x37  100nF                                  base   stock=46556211
+  OK               C25076     x2   100Ω                                   base   stock=1082229
+  OK               C17902     x1   10kΩ                                   base   stock=3164916
+  OK               C60490     x20  10kΩ                                   expand stock=8381562
+  OK               C15195     x2   10nF                                   base   stock=10713994
+  OK               C15850     x5   10uF                                   base   stock=11496057
+  OK               C26083     x2   1MΩ                                    base   stock=1034936
+  OK               C11702     x9   1kΩ                                    base   stock=1430061
+  OK               C1523      x1   1nF                                    base   stock=5531949
+  OK               C15849     x7   1uF                                    base   stock=14435105
+  OK               C25879     x4   2.2kΩ                                  base   stock=1170828
+  OK               C35165     x1   2.54-2*20PPC104                        expand stock=4275
+  OK               C2887273   x1   220uF                                  expand stock=120488
+  OK               C25768     x2   22kΩ                                   base   stock=1440744
+  OK               C45783     x1   22uF                                   base   stock=3810482
+  OK               C407739    x1   26.1kΩ                                 expand stock=227
+  OK               C8545      x6   2N7002                                 base   stock=1031480
+  OK               C23138     x1   330Ω                                   base   stock=2007072
+  OK               C25105     x2   33Ω                                    base   stock=548541
+  OK               C587657    x1   43650-0224                             expand stock=70
+  OK               C25117     x1   470Ω                                   base   stock=1815282
+  OK               C137961    x1   510kΩ                                  expand stock=492581
+  OK               C37825     x1   62kΩ                                   expand stock=121376
+  OK               C137948    x3   680Ω                                   expand stock=537079
+  OK               C25834     x1   68kΩ                                   expand stock=180104
+  OK               C6186      x1   AMS1117-3.3                            base   stock=1615823
+  OK               C15127     x6   AO3401A                                base   stock=735875
+  OK               C157991    x1   B5B-XH-A(LF)(SN)                       expand stock=138052
+  OK               C133954    x1   CD74HC221M96                           expand stock=2529
+  OK               C1017      x1   GZ2012D601TF                           base   stock=517610
+  OK               C7984      x2   LMV393IDR                              expand stock=15887
+  OK               C125121    x1   LTV-817S-TA1                           expand stock=3781
+  OK               C2653162   x1   MAX31856MUD+T                          expand stock=7531
+  OK               C558584    x1   MCP23017-E/SS                          expand stock=7451
+  OK               C16939     x1   MCP3208-CI-SL                          expand stock=979
+  OK               C89650     x1   MF-MSMF200L-2                          expand stock=208
+  OK               C5158048   x5   PESD5V0S1BA                            expand stock=390992
+  OK               C485354    x1   S4B-ZR-SM4A-TF                         expand stock=10700
+  OK               C160403    x1   SM03B-SRSS-TB                          expand stock=52389
+  OK               C189896    x2   SM05B-GHS-TB                           expand stock=79563
+  LOW_STOCK(5)     C265111    x2   SM08B-GHS-TB                           expand stock=5
+  OK               C2683602   x1   SM10B-GHS-TB                           expand stock=2500
+  OK               C113974    x1   SMBJ5.0A                               expand stock=234172
+  OK               C6820      x1   SN74HC14DR                             expand stock=54354
+  OK               C5620      x2   SN74HC238DR                            expand stock=5212
+  OK               C10092     x1   SN74HC595DR                            expand stock=18537
+  OK               C8185      x4   SN74LVC1G00DCKR                        expand stock=12526
+  OK               C22046     x10  SN74LVC1G11DBVR                        expand stock=3469
+  OK               C8678      x2   SS34                                   base   stock=2357545
+  OK               C165895    x2   TBD62083AFWG                           expand stock=2298
+  OK               C2653844   x1   TPS259573DSGR                          expand stock=103
+  OK               C7719      x1   TPS3823-33DBVR                         expand stock=18875
+json -> /tmp/claude-1000/-home-mouse9911-gits-circuits/3b12d04f-09d8-43a8-90b8-cb1dba25296d/scratchpad/stock_new.json
+
+FAIL: 57/58 coded BOM lines have stock >= 5 x qty (1 with problems); 3/61 lines carry NO LCSC and were NOT graded by this tool
+  SCOPE: graded against LCSC CATALOG stock (stockCount). JLC's assembly uploader
+  allocates from a DIFFERENT pool, so a PASS here does NOT mean the line will
+  clear at order time. A FAIL is real; a PASS is necessary and not sufficient.
+  The only instrument that answers 'will it clear' is the uploader itself — F-ECHO.

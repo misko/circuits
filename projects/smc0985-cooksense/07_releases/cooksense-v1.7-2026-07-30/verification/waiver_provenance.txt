@@ -1,0 +1,40 @@
+# M4 / waiver_provenance — smc0985-cooksense, v1.7 seal
+# command (UNPIPED): /usr/bin/python3 skills/kicad-pcb/scripts/waiver_provenance.py projects --project smc0985-cooksense
+# RAW_EXIT: 0
+# run: 2026-07-30 (local), AFTER skills commit 1b70262a landed the multi-board path fix (P19).
+# BEFORE that commit this gate exited 1 on a ZERO DENOMINATOR — it hardcoded
+# 03_src/rules/policy_waivers.yaml while this project's live at 03_src/<board>/rules/,
+# so THIS BOARD'S 12 WAIVERS HAD NEVER BEEN GRADED and the failure read as an
+# invocation error. This is the first run in which they were.
+
+input: root = /home/mouse9911/gits/circuits/projects  (7 project dir(s))
+input: looked for 03_src/rules/policy_waivers.yaml, 03_src/<board>/rules/policy_waivers.yaml
+input:   read smc0985-cooksense/03_src/cooksense/rules/policy_waivers.yaml   [board: cooksense]
+input:   read smc0985-cooksense/03_src/interposer/rules/policy_waivers.yaml   [board: interposer]
+input: 6 project(s) carry waivers, 27 waiver(s) total; grading 1: smc0985-cooksense
+input: evidence regeneration ON, cwd for commands = /home/mouse9911/gits/circuits, per-command timeout 180s
+input: 0 entry(ies) declare `evidence:` (0 item(s)); 16 OWED
+  ok   W-COPY/smc0985-cooksense: 16 waivers, all independently reasoned
+  OWED        smc0985-cooksense/cooksense [P-ADJ-UNREACHED] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [P-ADJ] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [P-PLANE] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [P-SILK-FN] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [P-SILK-OWN] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [R-POUR] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [S-OCCL] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [S-VER] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [SILK-EDGE-CLEARANCE] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [SILK-OVER-COPPER] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/cooksense [SILK-OVERLAP] — no `evidence:` block
+  OWED        smc0985-cooksense/cooksense [SILK-TEXT-THICKNESS] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/interposer [E-ADR] — no `evidence:` block
+  OWED        smc0985-cooksense/interposer [E-TOPO] — `why` leans on a typed measurement and declares no `evidence:`
+  OWED        smc0985-cooksense/interposer [M-REPRO] — no `evidence:` block
+  OWED        smc0985-cooksense/interposer [S-VER] — `why` leans on a typed measurement and declares no `evidence:`
+  UNBACKED   W-MACHINE smc0985-cooksense: refdes 'R_MODEPD' is waived by 04_kicad/refdes_waiver.json, which generate_board_generic.py WRITES and policy_audit.py:793 then READS as evidence for P-SILK-REF, and no entry in any of this project's policy_waivers.yaml files names it in `refs:` — the machine is its own witness (canon M1)
+  UNBACKED   W-MACHINE smc0985-cooksense: refdes 'R_REF4' is waived by 04_kicad/refdes_waiver.json, which generate_board_generic.py WRITES and policy_audit.py:793 then READS as evidence for P-SILK-REF, and no entry in any of this project's policy_waivers.yaml files names it in `refs:` — the machine is its own witness (canon M1)
+  UNBACKED   W-MACHINE smc0985-cooksense: refdes 'R_SER2' is waived by 04_kicad/refdes_waiver.json, which generate_board_generic.py WRITES and policy_audit.py:793 then READS as evidence for P-SILK-REF, and no entry in any of this project's policy_waivers.yaml files names it in `refs:` — the machine is its own witness (canon M1)
+  UNBACKED   W-MACHINE smc0985-cooksense: refdes 'R_SER3' is waived by 04_kicad/refdes_waiver.json, which generate_board_generic.py WRITES and policy_audit.py:793 then READS as evidence for P-SILK-REF, and no entry in any of this project's policy_waivers.yaml files names it in `refs:` — the machine is its own witness (canon M1)
+EVIDENCE COVERAGE: 0 CITED / 0 ESTIMATED / 0 UNVERIFIED across 0 declaring entr(ies); 16 of 16 entr(ies) OWED (floors: CITED >= 0, OWED <= 22)
+MACHINE WAIVERS: 0/4 refdes in 04_kicad/refdes_waiver.json carry a project-side evidenced entry; 4 UNBACKED (ceiling 9, named debt)
+WAIVER PROVENANCE: PASS (0 fails, 1 ok) — 16/27 waiver(s) graded across 1/6 project(s) carrying waivers

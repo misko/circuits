@@ -1,0 +1,1 @@
+E-INV OK: 168/168 invariants hold against projects/smc0985-cooksense/06_build/netlists/cooksense.net

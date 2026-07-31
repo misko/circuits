@@ -1,0 +1,4 @@
+  graded: projects/smc0985-cooksense/01_docs/STATUS-cooksense.md (board cooksense, live: cooksense-v1.7-2026-07-30)
+  graded: projects/smc0985-cooksense/01_docs/STATUS-interposer.md (board interposer, live: interposer-v1.1-2026-07-27)
+  coverage: 2/2 beacons graded on M-BEACON-DUP + M-BEACON-FIELD; 1/2 claim a completed seal and are graded on M-BEACON-REL; 2/2 have a release series and are graded on M-BEACON-AGE
+M-BEACON PASS: 2 beacon(s) agree with the tree

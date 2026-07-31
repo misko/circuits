@@ -1,0 +1,1 @@
+count_parity: 2 kicad_sch artifacts and no --board: ['cooksense', 'interposer']. This project builds more than one board; name the one to grade with --board <stem>. (Refusing to pick one silently — that is the defect this check exists to catch.)

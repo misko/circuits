@@ -1,0 +1,8 @@
+== release-freshness: cooksense-v1.7-2026-07-30 ==
+  note: A-STOCK: grading verification/stock_check.json (58 graded line(s), verdict=FAIL) against 56 coded+placed BOM line(s) x 5 boards
+  note: A-STOCK: verification/stock_check.json verdict is FAIL but every problem line (C265111) is unplaced or covered by a sourcing_plan entry
+  note: A-BUY: measured SOURCING: BLOCKED-1 (C265111) over 56 coded+placed line(s)
+  note: M-REV: 2 graded / 7 redteam*.md present in verification/ (graded = the contract-named redteam_topology.md, redteam_layout.md; others are archived reviews of other versions and are not this release's verdict)
+DESIGN: PASS
+SOURCING: BLOCKED-1
+FRESHNESS: PASS

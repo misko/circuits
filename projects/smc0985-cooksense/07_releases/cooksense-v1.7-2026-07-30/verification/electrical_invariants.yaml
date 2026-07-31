@@ -1,0 +1,1305 @@
+# NET NAMES HERE ARE THE CANONICAL KiCad NAMES, NOT THE TSX AUTHOR NAMES.
+# 2026-07-29: this line read `N3V3: 3.3` — the tsx author-prefix form. No net
+# called N3V3 exists in the netlist (the converter strips the N), so the 3V3
+# rail was INVISIBLE to every `node_level` grade, and the checker's rail search
+# silently had one rail instead of two. It did not misreport the P0-b divider
+# (that network genuinely hangs off 5V_PROTECTED) but it would have reported
+# UNREACHED on the ADR-0022 fix. Found by reading the netlist, not by the gate.
+supplies: {5V_PROTECTED: 5.0, 3V3: 3.3}
+
+# cooksense ELECTRICAL-INVARIANTS (canon E-INV, phase E1 = netlist-only).
+#
+# Design INTENT made EXECUTABLE against the exported netlist. Every other gate proves
+# self-consistency; THIS proves the netlist matches what the ADRs decided. Graded by
+# electrical_invariants.py against 06_build/netlists/cooksense.net. Net names are the
+# CANONICAL KiCad names (the TSX author-prefix N is stripped: N5V_* -> 5V_*). Pins are
+# REF.PAD (physical pad number). Each invariant cites the ADR that emitted it (E-ADR).
+#
+# Protection/topology ADRs that MUST be covered (E-ADR): 0001 (topology), 0002
+# (topology+protection), 0006 (protection). All three are cited below.
+
+invariants:
+
+  # ===== ADR-0001 — input protection topology + eFuse OVLO (power chain) =========
+  - assert: series_chain
+    chain: [5V_IN, F1, 5V_FUSED, Q_REV, 5V_RPP]
+    through: {Q_REV: [3, 2]}          # AO3401A pad3=DRAIN (input side) -> pad2=SOURCE (load side)
+    adr: "0001"
+    why: "5V SELV input -> polyfuse F1 -> reverse-polarity P-FET Q_REV (DRAIN->SOURCE) -> reverse-protected input 5V_RPP"
+
+  - assert: pin_on_net
+    pin: "U_EFUSE.5"                   # TPS259573 pad5 = OUT
+    net: 5V_PROTECTED
+    adr: "0001"
+    why: "the eFuse OUTput is the 5V_PROTECTED rail — the protection stage sits in the power path, not a stub"
+
+  - assert: pin_on_net
+    pin: "D_REVCLAMP.1"                # SS34 pad1 = CATHODE
+    net: 5V_FUSED
+    adr: "0001"
+    why: "reverse-crowbar cathode DOWNSTREAM of the polyfuse (pin review Q2, 2026-07-23): the reverse fault current path supply->J_PWR->F1->clamp->GND must pass THROUGH F1 so the polyfuse trips; on 5V_IN (upstream) the clamp current bypassed the fuse and was bounded only by the supply"
+
+  - assert: pin_on_net
+    pin: "U_EFUSE.6"                   # TPS259573 pad6 = FLT_N (open-drain, LOW=fault)
+    net: EFUSE_FLT_N
+    adr: "0001"
+    why: "the eFuse fault flag rides the HONESTLY-NAMED net EFUSE_FLT_N (renamed from PWR_GOOD_N, pin review Q1 2026-07-23: FLT_N is LOW=fault i.e. HIGH=power-good, so a _N power-good name inverted the sense; consumers are software-read only — R_PG pullup, TP_PGOOD and expander pad 1 = GPB0, all three DIRECTLY on the node. v1.7's first cut inserted a 10k/22k divider here; ADR-0022 deleted it and moved R_PG's pull-up to 3V3 instead, which fixes the same abs-max problem at the root and leaves the node at a valid logic high. See the ADR-0022 block at the end of this file)"
+
+  - assert: net_has_part
+    net: DECU_G1_RAW
+    part_type: resistor
+    min: 1
+    adr: "0006"
+    why: "the U-decoder's enable REQUEST line has a pull-DOWN (pin review Q4 2026-07-23; v1.2 moved it to the RAW net, ADR-0011 §5b): when SR_OE_N tri-states the 595s it is the RAW net that floats — out-of-spec for CMOS inputs and a phantom-select hazard; the gated DECU_G1 is driven push-pull by U_DECUEN and cannot float"
+
+  - assert: net_has_part
+    net: DECD_G1_RAW
+    part_type: resistor
+    min: 1
+    adr: "0006"
+    why: "the D-decoder's enable REQUEST line has a pull-DOWN — same phantom-select hazard closure as DECU_G1_RAW (v1.2: moved to the RAW net, ADR-0011 §5b)"
+
+  - assert: net_has_part
+    net: EF_OVLO
+    part_type: resistor
+    min: 2
+    adr: "0001"
+    why: "the TPS259573 programmable OVLO divider EXISTS on EN_OVLO_N (R_OVT + R_OVB) — this is the brief §3.5 over-voltage CUTOFF (flag 2)"
+
+  - assert: net_has_part
+    net: 5V_PROTECTED
+    part_type: capacitor
+    min: 1
+    adr: "0001"
+    why: "the protected rail carries bulk + ceramic decoupling (CE1 220uF + C_IN1/C_IN2)"
+
+  # ===== ADR-0002 — safety AND-chain gates the coil rail (no-MCU HW enforcement) =
+  - assert: pin_on_net
+    pin: "U_AND3.4"                    # SN74LVC1G11 pad4 = Y (final AND output)
+    net: KEY_RELAY_ALLOWED
+    adr: "0002"
+    why: "the 3rd cascaded 3-input AND (AND1·AND2·FAULT_LATCH_CLEAR) OUTPUT is KEY_RELAY_ALLOWED — the whole 7-condition chain terminates here"
+
+  - assert: series_chain
+    chain: [5V_PROTECTED, Q_COIL, 5V_KEY_RELAY]
+    through: {Q_COIL: [2, 3]}          # AO3401A pad2=SOURCE (5V_PROTECTED) -> pad3=DRAIN (coil rail)
+    adr: "0002"
+    why: "the coil rail 5V_KEY_RELAY is reachable ONLY through the high-side switch Q_COIL (SOURCE->DRAIN); ANY AND-chain condition false turns Q_COIL off and the rail dies"
+
+  - assert: pin_on_net
+    pin: "Q_COILDRV.1"                 # 2N7002 pad1 = GATE
+    net: COIL_EN
+    adr: "0002"
+    why: "the coil-rail switch driver Q_COILDRV is gated by COIL_EN = KEY_RELAY_ALLOWED THROUGH the Manual/Auto DPDT pole A (physical MANUAL rail cut, brief §3). v1.7: COIL_EN is now the GATE-SIDE node only — it reaches the field solely through R_COILENS, and the field pin is COIL_EN_IN (ADR-0018)"
+
+  # ===== ADR-0018 — the J_MODE front end (v1.7) ================================
+  - assert: pin_on_net
+    pin: "J_MODE.4"                    # S4B-ZR-SM4A-TF pad4 = pole-A return
+    net: COIL_EN_IN
+    adr: "0018"
+    why: "THE CONNECTOR PIN IS ON THE INPUT SIDE OF THE SERIES ELEMENT, NEVER ON THE GATE. This is the assert that catches a 'simplification' that deletes R_COILENS and reunites the two nets: the divider and the clamp would still EXIST, R_COILENPD would still measure 680R, and the hazard would be back because the pin would again be the gate"
+  - assert: net_has_part
+    net: COIL_EN_IN
+    part_type: diode
+    min: 1
+    adr: "0018"
+    why: "D_COILEN (PESD5V0S1BA) — the ESD device J_DOOR (D_DOOR) and J_ESTOP (D_ESTOP) carry and J_MODE did not, on the one field pin whose job is to arm a cooking machine"
+  - assert: net_has_part
+    net: COIL_EN_IN
+    part_type: resistor
+    min: 2
+    adr: "0018"
+    why: "both R_COILENPD (the divider leg to GND) and R_COILENS (the series element out to COIL_EN) are on the pin node; a pull-down alone would leave the gate on the connector"
+
+  - assert: pin_on_net
+    pin: "U_ONESHOT.13"                # CD74HC221 pad13 = 1Q (v1.2, ADR-0011 §6)
+    net: PRESS_TIMED
+    adr: "0002"
+    why: "the one-shot Q output is PRESS_TIMED — the hardware <=436ms worst-case (<500ms) PRESS cap, independent of the Pi; v1.2 swapped the RETRIGGERABLE 1G123 for the NON-retriggerable CD74HC221 so the cap is a HARD bound"
+
+  - assert: pin_on_net
+    pin: "U_ULNB.3"                    # ULN2803 #B pad3 = IN3 (K_PRESS channel input)
+    net: PRESS_TIMED
+    adr: "0002"
+    why: "the K_PRESS coil driver input is driven ONLY by the one-shot output PRESS_TIMED — a hung Pi cannot hold PRESS beyond the one-shot window"
+
+  - assert: pin_on_net
+    pin: "U_WD.1"                      # TPS3823 pad1 = RESET_N (push-pull, high=OK)
+    net: WD_OK
+    adr: "0002"
+    why: "the external watchdog supervisor RESET_N is WD_OK — heartbeat loss / brown-out drops it (flag 1: TPS3823 is the coarse ~1.6s WD, not the fast PRESS timer)"
+
+  - assert: pin_on_net
+    pin: "U_AND1.3"                    # SN74LVC1G11 #1 pad3 = B
+    net: WD_OK
+    adr: "0002"
+    why: "WD_OK is an input of the AND-chain (U_AND1.B) — the watchdog directly gates the coil rail"
+
+  - assert: pin_on_net
+    pin: "K_U1.4"                      # DIP05 reed relay tsx pad4 = CONTACT_A (keypad side)
+    net: U_SEL_BUS
+    adr: "0002"
+    why: "the reed-relay CONTACT (keypad side) sits on the ISOLATED keypad net U_SEL_BUS, while its COIL (pad1) sits on the SELV-logic rail 5V_KEY_RELAY — the two domains meet ONLY across the relay's 1.5kV coil/contact barrier, no shared copper (brief §7, ADR-0001). Full >=6mm creepage + no-shared-GND is the geometric/audit half (E2)"
+
+  # ===== ADR-0006 — reed relay matrix: K_PRESS bridges U_SEL -> D_SEL via RKEY ====
+  - assert: series_chain
+    chain: [U_SEL_BUS, K_PRESS, RKEY_MID, R_KEY, D_SEL_BUS]
+    through: {K_PRESS: [4, 3]}         # DIP05 tsx pad4=CONTACT_A (U side) -> pad3=CONTACT_B (RKEY side)
+    adr: "0006"
+    why: "K_PRESS bridges the selected U bus to the selected D bus THROUGH the RKEY solder-select resistor (0R default, field 0/22/47/100/220/470/1k) — the emulation-resistance path of the matrix selector (T1)"
+
+  # ===== ADR-0010 — Pi 5 native-I2C pin map (v1.2, review F1) ====================
+  # Every I2C net pinned to its VERIFIED header pin (RP1 datasheet fsel table +
+  # kernel i2c*-pi5 overlays, 2026-07-24). A silent remap fails the schematic gate.
+  - assert: pin_on_net
+    pin: "J_PI.3"                      # phys 3 = GPIO2 = I2C1_SDA
+    net: I2C_SDA
+    adr: "0010"
+    why: "MCP23017 control bus on I2C1 SDA (GPIO2, the arm I2C default)"
+  - assert: pin_on_net
+    pin: "J_PI.5"                      # phys 5 = GPIO3 = I2C1_SCL
+    net: I2C_SCL
+    adr: "0010"
+    why: "MCP23017 control bus on I2C1 SCL (GPIO3)"
+  - assert: pin_on_net
+    pin: "J_PI.7"                      # phys 7 = GPIO4 = I2C2_SDA
+    net: SDA_A
+    adr: "0010"
+    why: "bus A (cam A 0x33 + ambient SHT45 0x44) SDA on the RP1 I2C2 SDA pin"
+  - assert: pin_on_net
+    pin: "J_PI.29"                     # phys 29 = GPIO5 = I2C2_SCL
+    net: SCL_A
+    adr: "0010"
+    why: "bus A SCL on the RP1 I2C2 SCL pin (this pin was KEY_DATA in <=v1.1)"
+  - assert: pin_on_net
+    pin: "J_PI.8"                      # phys 8 = GPIO14 = I2C3_SDA
+    net: SDA_B
+    adr: "0010"
+    why: "bus B (cam B 0x33 + exhaust SHT45 0x44) SDA on the RP1 I2C3 SDA pin (dtoverlay i2c3-pi5,pins_14_15; UART0 console disabled)"
+  - assert: pin_on_net
+    pin: "J_PI.10"                     # phys 10 = GPIO15 = I2C3_SCL
+    net: SCL_B
+    adr: "0010"
+    why: "bus B SCL on the RP1 I2C3 SCL pin"
+  - assert: pin_on_net
+    pin: "J_PI.36"                     # phys 36 = GPIO16 (no I2C/boot function)
+    net: KEY_DATA
+    adr: "0010"
+    why: "KEY_DATA re-homed off GPIO5/phys29 (now bus A SCL) onto a plain GPIO"
+  - assert: pin_on_net
+    pin: "J_PI.37"                     # phys 37 = GPIO26 (no I2C function)
+    net: STOP_REQ
+    adr: "0010"
+    why: "STOP_REQ is a DIRECT Pi GPIO (ADR-0011 §5): it must not sit behind the frozen KEY_LATCH or a tri-stated 595"
+  - assert: pin_on_net
+    pin: "J_RH_AMBIENT.3"
+    net: SDA_A
+    adr: "0010"
+    why: "the ambient SHT45 pod SHARES bus A with camera A (addresses 0x33/0x44 disjoint) — the RH nets SDA_RHA/SCL_RHA are deleted"
+  - assert: pin_on_net
+    pin: "J_RH_EXHAUST.3"
+    net: SDA_B
+    adr: "0010"
+    why: "the exhaust SHT45 pod SHARES bus B with camera B"
+
+  # ===== ADR-0011 — v1.2 safety-chain corrections (reviews F2/F3/F4/F5) ==========
+  - assert: pin_on_net
+    pin: "U_FAULTAND.6"                # 1G11 pad6 = C input
+    net: TEMP_OK
+    adr: "0011"
+    why: "TEMP_OK is IN the fault-latch SET condition (was tied N3V3 in <=v1.1): a thermal trip LATCHES until temps drop + manual re-arm, it cannot silently self-clear"
+  - assert: pin_on_net
+    pin: "U_CAND2.4"                   # 1G11 pad4 = Y
+    net: CONTACTOR_DRV
+    adr: "0011"
+    why: "the contactor opto LED is driven by the GATED CONTACTOR_DRV, not raw CONTACTOR_REQ"
+  - assert: pin_on_net
+    pin: "R_OPTOLED.1"
+    net: CONTACTOR_DRV
+    adr: "0011"
+    why: "the LED series resistor hangs off the gate output — CONTACTOR_REQ alone can no longer light the opto"
+  - assert: pin_on_net
+    pin: "U_CAND1.1"
+    net: WD_OK
+    adr: "0011"
+    why: "contactor permission requires WD_OK (hardware)"
+  - assert: pin_on_net
+    pin: "U_CAND1.3"
+    net: ESTOP_OK
+    adr: "0011"
+    why: "contactor permission requires ESTOP_OK (redundant with the physical contact-B loop break)"
+  - assert: pin_on_net
+    pin: "U_CAND1.6"
+    net: TEMP_OK
+    adr: "0011"
+    why: "contactor permission requires TEMP_OK — a thermal fault now drops the external contactor in hardware (review F3b's core demand)"
+  - assert: pin_on_net
+    pin: "U_CAND2.3"
+    net: FAULT_LATCH_CLEAR
+    adr: "0011"
+    why: "a LATCHED fault holds contactor permission off until manual re-arm"
+  - assert: pin_on_net
+    pin: "K_STOP.1"                    # DIP05 tsx pad1 = COIL_A (+)
+    net: 5V_STOP
+    adr: "0011"
+    why: "K_STOP's coil rides the ALWAYS-AVAILABLE 5V_STOP rail, NOT the fault-gated 5V_KEY_RELAY — the one relay that answers a fault must survive the fault (review F3c). Asserting the pin ON 5V_STOP also proves it is NOT on the key-relay rail"
+  - assert: series_chain
+    chain: [5V_PROTECTED, R_STOPRAIL, 5V_STOP]
+    adr: "0011"
+    why: "5V_STOP derives from 5V_PROTECTED through its own link — present whenever the board is powered, gated by nothing"
+  - assert: pin_on_net
+    pin: "Q_STOPDRV.1"                 # 2N7002 pad1 = GATE
+    net: STOP_REQ
+    adr: "0011"
+    why: "K_STOP has a DEDICATED driver from STOP_REQ (not a ULN channel whose COM/flyback sits on the switched key rail)"
+  - assert: pin_on_net
+    pin: "U_ONESHOT.3"                 # CD74HC221 pad3 = 1R_N (reset)
+    net: OS_CLR_N
+    adr: "0011"
+    why: "the PRESS one-shot clear is the GATED OS_CLR_N = ESTOP_OK · STOP_REQ_N — STOP preemption clears an in-flight press (review F4). v1.8/ADR-0025 replaced the DOOR_OK term with ESTOP_OK; the pin and the net are unchanged, only what feeds the gate"
+  # ===== v1.8 / ADR-0025 — THE TERM THAT REPLACED THE DOOR ====================
+  # This is the ONE assert that pins the whole scope reduction's electrical
+  # substance. `DOOR_OK` fed exactly one gate input, `U_OSCLR.1`. Deleting the
+  # door channel freed that input, and the safe thing to do with a freed input on
+  # a safety AND is NOT to tie it to 3V3 (ADR-0025 rejects that as O4', which is
+  # the already-rejected O3 relocated) — it is to give it a real term.
+  #
+  # If this assert ever reads 3V3 the board has silently become one-shot-clearable
+  # only by STOP_REQ, which is a REDUCTION in the E-stop's authority disguised as
+  # a tidy-up, and nothing else in the tree would notice.
+  - assert: pin_on_net
+    pin: "U_OSCLR.1"
+    net: ESTOP_OK
+    adr: "0025"
+    why: "OS_CLR_N = ESTOP_OK · STOP_REQ_N. BRIEF.md:89 commissions the E-stop as 'A monitored + hardware key-relay inhibit' and until v1.8 ESTOP_OK gated the coil RAIL and SET the fault latch but could NOT clear an in-flight PRESS pulse — DOOR_OK did that, and the door channel is deleted (ADR-0025). This is the input DOOR_OK vacated, and it must carry ESTOP_OK and not 3V3: a 3V3 tie-off is the rejected O4'/O3 move and would delete ADR-0025's own third stop, the one that holds U_ONESHOT R1_N asserted with the connector unfitted"
+  - assert: pin_on_net
+    pin: "U_OSCLR.3"
+    net: STOP_REQ_N
+    adr: "0011"
+    why: "STOP_REQ (inverted) is the second clear condition"
+  - assert: pin_on_net
+    pin: "U_DECUEN.4"
+    net: DECU_G1
+    adr: "0011"
+    why: "the U-decoder enable passes through the STOP gate: DECU_G1 = DECU_G1_RAW · STOP_REQ_N — STOP force-disables the U selector"
+  - assert: pin_on_net
+    pin: "U_DECDEN.4"
+    net: DECD_G1
+    adr: "0011"
+    why: "the D-decoder enable passes through the STOP gate — STOP force-disables the D selector"
+  - assert: pin_on_net
+    pin: "U_LATCHG.4"
+    net: KEY_LATCH_G
+    adr: "0011"
+    why: "the 595 RCLK is the FROZEN latch KEY_LATCH_G = KEY_LATCH · PRESS_TIMED_N: selector addresses cannot change while K_PRESS is closed (review F5b)"
+  - assert: pin_on_net
+    pin: "U_SR1.12"                    # 595 pad12 = RCLK
+    net: KEY_LATCH_G
+    adr: "0011"
+    why: "the register latches ONLY through the freeze gate"
+  - assert: pin_on_net
+    pin: "U_ONESHOT.4"                 # CD74HC221 pad4 = 1Q_N
+    net: PRESS_TIMED_N
+    adr: "0011"
+    why: "PRESS_TIMED_N comes from the one-shot's own Q-bar — the freeze window is exactly the press window by construction"
+  # --- §7 deterministic pulls, with DIRECTION proven by the resistor's far pin ---
+  - assert: pin_on_net
+    pin: "R_HOSTAUTHPD.2"
+    net: GND
+    adr: "0011"
+    why: "HOST_AUTH pulls DOWN (authorization false) while the Pi is un-driven"
+  - assert: pin_on_net
+    pin: "R_HOSTAUTHPD.1"
+    net: HOST_AUTH
+    adr: "0011"
+    why: "the pull-down actually sits on HOST_AUTH"
+  - assert: pin_on_net
+    pin: "R_MCUENPD.1"
+    net: MCU_RELAY_ENABLE
+    adr: "0011"
+    why: "MCU_RELAY_ENABLE pulled down — AND-chain false + SR_OE_N high at boot"
+  - assert: pin_on_net
+    pin: "R_MCUENPD.2"
+    net: GND
+    adr: "0011"
+    why: "direction: DOWN"
+  - assert: pin_on_net
+    pin: "R_KRSTPD.1"
+    net: KEY_RESET_N
+    adr: "0011"
+    why: "KEY_RESET_N pulled down = SRCLR asserted: registers held CLEARED during Pi boot (was noted as floating in the v1.1 order instructions)"
+  - assert: pin_on_net
+    pin: "R_KRSTPD.2"
+    net: GND
+    adr: "0011"
+    why: "direction: DOWN"
+  - assert: pin_on_net
+    pin: "R_RAENAPD.1"
+    net: RAIL_EN_A
+    adr: "0011"
+    why: "sensor rail A enable pulled down (rail off) while the expander is in reset"
+  - assert: pin_on_net
+    pin: "R_RAENBPD.1"
+    net: RAIL_EN_B
+    adr: "0011"
+    why: "sensor rail B enable pulled down"
+  - assert: pin_on_net
+    pin: "R_RAENRHAPD.1"
+    net: RAIL_EN_RHA
+    adr: "0011"
+    why: "RH-A rail enable pulled down"
+  - assert: pin_on_net
+    pin: "R_RAENRHEPD.1"
+    net: RAIL_EN_RHE
+    adr: "0011"
+    why: "RH-E rail enable pulled down"
+  - assert: pin_on_net
+    pin: "R_CTRREQPD.1"
+    net: CONTACTOR_REQ
+    adr: "0011"
+    why: "CONTACTOR_REQ pulled down — contactor request false while the expander is un-driven"
+  - assert: pin_on_net
+    pin: "R_CTRREQPD.2"
+    net: GND
+    adr: "0011"
+    why: "direction: DOWN"
+  - assert: pin_on_net
+    pin: "R_STOPPD.1"
+    net: STOP_REQ
+    adr: "0011"
+    why: "STOP_REQ pulled down — STOP relay open, decoders/one-shot ungated at boot"
+  - assert: pin_on_net
+    pin: "R_REARMPU.1"
+    net: REARM_N
+    adr: "0011"
+    why: "REARM_N pulled UP — a floating re-arm line must NOT clear the fault latch (REARM_N is active-low)"
+  - assert: pin_on_net
+    pin: "R_REARMPU.2"
+    net: 3V3
+    adr: "0011"
+    why: "direction: UP (to 3V3) — the one pull whose direction inverts the others'"
+
+  # ===== ADR-0019 — a restrictive default on every safety-chain net (v1.7) ====
+  # v1.6 measured 11 of the 18 nets feeding a permission/gating input carrying NO
+  # default at all. Each is driven by exactly ONE push-pull CMOS output, so the
+  # pull is invisible while the board is healthy and decisive when the driver is
+  # absent. Hardware is the ONLY place these can live: all four permissions are
+  # read back on MCP23017 port B, one GPPUB write pulls them UP with 100k
+  # (DS20001952C 3.5.7) turning an indeterminate float into a DETERMINISTIC
+  # PERMISSIVE, and there is NO software way to add a pull-DOWN.
+  # DIRECTION IS DERIVED PER NET, NOT BLANKET-FITTED — see the two asserts at the
+  # end of this block, which pin the two that run against habit.
+  - assert: net_has_part
+    net: WD_OK
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_WDOKPD — the supervisor verdict, consumed by FOUR gates (U_AND1.B, U_CAND1.A, U_FAULTAND.A, U_OENAND.B). Restrictive = LOW"
+  - assert: net_has_part
+    net: ESTOP_OK
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_ESTOPOKPD — restrictive = LOW = E-stop pressed. A dead U_SCHM floats this AND MODE_AUTO_HW at once (until v1.8/ADR-0025 it floated DOOR_OK too), and U_EXP.3/2 read back the SAME nets so software has no independent cross-check. v1.8/ADR-0025 makes this pull-down load-bearing for a FOURTH consumer: U_OSCLR.1, the PRESS one-shot clear that DOOR_OK used to hold"
+  - assert: net_has_part
+    net: MODE_AUTO_HW
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_MODEHWPD — restrictive = LOW = not in AUTO"
+  # DELETED v1.8 / ADR-0025: the DOOR_OK restrictive default (R_DOOROKPD) went with
+  # the door channel. The PROPERTY it protected did not disappear — it MOVED: the
+  # net that now holds U_OSCLR.1 low when U_SCHM is dead is ESTOP_OK, whose own
+  # restrictive default R_ESTOPOKPD is asserted above and is now consumed by FOUR
+  # gates instead of three. Removing the assert with the resistor is correct;
+  # removing it without saying where the property went is how coverage rots.
+  - assert: net_has_part
+    net: AND1
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_AND1PD — an INTERMEDIATE node, and it needs its own default for the same reason: if U_AND1 is missing, U_AND3 can still publish KEY_RELAY_ALLOWED from AND2 . FAULT_LATCH_CLEAR alone, and the pull-downs on U_AND1's INPUTS do nothing about a dead U_AND1. Every rung of a cascade needs its own default or the cascade has a hole one part wide"
+  - assert: net_has_part
+    net: AND2
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_AND2PD — same argument as AND1, one gate over"
+  - assert: net_has_part
+    net: CTR_SAFE
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_CTRSAFEPD — U_CAND1's verdict into U_CAND2.A — restrictive = LOW = no external contactor"
+  - assert: net_has_part
+    net: FAULT_LATCH_CLEAR
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_FLCPD — the highest-value of the eleven: ONE 5-pin part (U_LATCHB) drives it into BOTH U_AND3.6 (coil rail) and U_CAND2.3 (external contactor). Restrictive = LOW"
+  - assert: net_has_part
+    net: STOP_REQ_N
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_STOPREQNPD — restrictive = LOW = STOP asserted -> OS_CLR_N low -> the press is aborted. A dead U_STOPINV means the machine cannot press, which is the safe direction"
+  - assert: net_has_part
+    net: FAULT_SET_N
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_FSETNPD — AN ACTIVE-LOW NET WITH A PULL-DOWN, i.e. its default is ASSERTED: a dead U_FAULTAND leaves the latch permanently SET and the machine unable to arm. That is the OPPOSITE convention from REARM_N (active-low, pulled UP) in the same latch, and both are right, because the derivation is over WHICH LEVEL IS RESTRICTIVE AT THE CONSUMER, not over the net's name"
+  - assert: net_has_part
+    net: FAULT
+    part_type: resistor
+    min: 1
+    adr: "0019"
+    why: "R_FAULTPU — the eleventh, and THE ONE THAT RUNS THE OTHER WAY. FAULT is Q of the /S-/R latch and its only consumer is U_LATCHB.B"
+  - assert: pin_on_net
+    pin: "R_FAULTPU.2"
+    net: 3V3
+    adr: "0019"
+    why: "DIRECTION, and this assert is the point of the whole ADR. A blanket pull-DOWN here would be ACTIVELY HARMFUL: with U_LATCHA dead and FAULT low, FAULT_LATCH_CLEAR = NAND(REARM_PULSE_N=1, FAULT=0) = 1 = PERMISSIVE at both U_AND3.6 and U_CAND2.3. Pulled HIGH the same dead part gives 0 = restrictive. net_has_part alone would pass a pull-down soldered onto FAULT, so the DIRECTION is what is checked"
+  - assert: pin_on_net
+    pin: "R_FSETNPD.2"
+    net: GND
+    adr: "0019"
+    why: "DIRECTION on the other non-obvious one: an ACTIVE-LOW net defaulting to ASSERTED. Pulling FAULT_SET_N UP by habit (because the name ends in _N) would leave a dead U_FAULTAND unable to set the latch at all"
+
+  # ===== ADR-0020 — REARM_N is an EDGE, and the expander reset HAS a driver ====
+  - assert: pin_on_net
+    pin: "U_LATCHB.1"                  # SN74LVC1G00 pad1 = A, the latch's /R
+    net: REARM_PULSE_N
+    adr: "0020"
+    why: "THE WHOLE FIX IN ONE ASSERT. Until v1.7 this pin sat on the RAW REARM_N, so a driver that took the line low and left it there forced FAULT_LATCH_CLEAR permissive at U_AND3.6 and U_CAND2.3 forever, put the latch in its forbidden state (Q=/Q=1) with a fault present, and degenerated U_LATCHA into a combinational repeater: the live terms still gated but THE MEMORY WAS GONE. /R is now the 7ms one-shot output, so only a TRANSITION clears the latch. Re-wiring this pin back to REARM_N restores the defect and nothing else would notice"
+  - assert: pin_on_net
+    pin: "U_ONESHOT.9"                 # CD74HC221 pad9 = 2A_N, negative-edge trigger
+    net: REARM_N
+    adr: "0020"
+    why: "the edge-detect is fed by the raw line — section 2 of the dual one-shot that had been tied off unused since v1.2, so this costs ZERO new ICs"
+  - assert: pin_on_net
+    pin: "U_ONESHOT.12"                # CD74HC221 pad12 = 2Q_N
+    net: REARM_PULSE_N
+    adr: "0020"
+    why: "and its inverted output is the pulse; A_N->2Q_N is the negative-edge path, so a HIGH->LOW transition on REARM_N yields ONE low pulse and nothing else"
+  - assert: pin_on_net
+    pin: "U_ONESHOT.11"                # CD74HC221 pad11 = 2R_N
+    net: WD_OK
+    adr: "0020"
+    why: "NOT a tie-off. Holding section 2 reset while the TPS3823 asserts (a) forbids a spurious power-up pulse, which is what PRESERVES the power-up-forced-SET property (WD_OK low -> FAULT_SET_N low -> latch SET, so the coil rail cannot come up after any power interruption without an explicit re-arm), and (b) makes a re-arm attempt during a watchdog fault ignored IN HARDWARE. With R_WDOKPD a dead U_WD also holds it reset — the latch then can never be cleared, which is the restrictive direction"
+  - assert: part_value
+    part: C_OS2
+    equals: "1uF"
+    adr: "0020"
+    why: "with R_OS2 this IS the 7ms: tw = K*Rx*Cx = 0.7*10k*1uF. A substituted decade makes the re-arm pulse 0.7ms or 70ms — still a pulse, so every topology assert stays green, but the value is what the ADR and ORDER_README publish"
+  - assert: part_value
+    part: R_OS2
+    equals: "10k"
+    adr: "0020"
+    why: "the other half of tw = 7ms. Until v1.7 this was the 'never hard-tie the RC node' resistor on an UNUSED half of the package and its value was arbitrary; it is now load-bearing"
+  - assert: pin_on_net
+    pin: "U_EXP.18"                    # MCP23017 pad18 = RESET_N
+    net: WD_OK
+    adr: "0020"
+    why: "THE EXPANDER RESET HAS A DRIVER. It sat on EXP_RST_N = {R_EXPRST.1, U_EXP.18} — a net NOTHING on this board could drive — so the registers held until 3V3 dropped and a held-low REARM_N survived every Pi reboot. On WD_OK, power-up / brown-out / watchdog timeout each return every expander GPIO to POR (all INPUTS), where the eleven ADR-0019 pull-downs and R_REARMPU take over: the expander's outputs CANNOT persist across a watchdog timeout, which is exactly the retained-CONTACTOR_REQ hazard ADR-0011 section 8 could only mitigate. R_EXPRST is DELETED and must stay deleted — a 10k pull-up on this net is now a pull-up on WD_OK and beats R_WDOKPD's 100k (3.3*100/110 = 3.0 V)"
+
+  # --- §8 THE WATCHDOG MUST BITE WHEN THE PI IS ABSENT (P0, 2026-07-25) --------
+  # This is the invariant whose ABSENCE was the P0. The de-energization intent
+  # ("Pi crash (WD) -> contactor DROPPED", ADR-0011 truth table) lived only in ADR
+  # prose; no gate could see it, so a WD_PET net with exactly two nodes (J_PI.11
+  # and U_WD.4) passed every check while the board held the cooking contactor
+  # energised forever with the Pi unplugged. An ADR that emits no invariant is the
+  # E-ADR failure the canon names — so the intent is pinned here THREE ways: the
+  # net carries a resistor at all, and both of that resistor's pins are named, so
+  # the DIRECTION (down, not up) is proven and a future edit cannot quietly make
+  # it a pull-UP (which would restore the fault exactly).
+  - assert: net_has_part
+    net: WD_PET
+    part_type: resistor
+    min: 1
+    adr: "0011"
+    why: "WD_PET (the TPS3823 WDI heartbeat) MUST carry a pull resistor, and it MUST be 1k — SLVS165O §7.3.4 names that value explicitly ('place a 1kOhm resistor from WDI to ground') because §6.5 gives I_IL at WDI = 140 typ / 190 max uA: the pin SOURCES that much, so a 100k pull-down cannot hold it low and the supervisor keeps petting itself. E-INV phase E1 has no part_value kind, so this assertion pins the resistor's EXISTENCE and (below) its DIRECTION; the VALUE is guarded by ADR-0011 §8, the tsx comment, and a mandatory bring-up bench check (GPIO17 to input -> TP_WDOK must fall within 2.5 s). TPS3823-33DBVR part.yaml pin 4: 'if left floating the device self-pulses (WD effectively disabled)'. With J_PI unplugged or the Pi off, a bare WD_PET floats -> the supervisor never times out -> WD_OK stays HIGH -> U_CAND1(WD_OK,ESTOP_OK,TEMP_OK) and U_CAND2(...,CONTACTOR_REQ) both hold, the MCP23017 CONTACTOR_REQ latch retains its last written value (EXP_RST_N has no driver), and the EXTERNAL COOKING CONTACTOR STAYS ENERGISED INDEFINITELY. That falsifies ADR-0011 §3 and BRIEF C10 on a cooking-safety interlock"
+  - assert: pin_on_net
+    pin: "R_WDPETPD.1"
+    net: WD_PET
+    adr: "0011"
+    why: "the pull actually sits on WD_PET — the WDI node, not a neighbouring watchdog net (WD_MR_N already has its own R_MR pull-UP, so a mis-wired pull here would be invisible to a net-name-only check)"
+  - assert: pin_on_net
+    pin: "R_WDPETPD.2"
+    net: GND
+    adr: "0011"
+    why: "direction: DOWN, and the rail is asserted rather than merely the resistor's presence. WDI held at a defined LOW produces NO edge, so the fixed 0.9/1.6/2.5 s watchdog EXPIRES and RESET_N asserts — that is the whole safety argument. DOWN specifically (not UP, which would also be edge-free and would also bite): WD_PET terminates on J_PI.11, a Pi GPIO. A pull-UP to this board's 3V3 would source current into an UNPOWERED Pi through its GPIO ESD clamp — partially back-feeding the very host whose absence this invariant covers. DOWN is quiet in exactly the case that matters, and matches every other §7 authorization pull"
+
+  # ===== v1.3 — the two FAIL-PERMISSIVE safety defects, made executable ========
+  # Both were found by red-team lenses on v1.2 and both had the same shape as the
+  # WD_PET P0: a safety input that reads SAFE when its wire is broken. Pinning
+  # them here is the whole point — the fix is a DIRECTION and a PRESENCE, and
+  # neither is visible to DRC, ERC or parity.
+  # DELETED v1.8 / ADR-0025: the two R_DOORPD asserts (pull on the CONNECTOR-SIDE
+  # node, DIRECTION down) were the executable form of the v1.3 P1-2 fix. The part
+  # and its connector are removed from the netlist, so the asserts are removed
+  # too rather than left to fail. The v1.3 finding itself is NOT retracted and is
+  # still live on the surviving instance: R_ESTOPPD carries the identical pair of
+  # asserts in the ADR-0024 block below, and ADR-0024's addendum records that
+  # 470 Ohm and the corrected bound R_pd <= 559.3 Ohm now hold the UNFITTED node
+  # at 1.15 mV against V_T-(min) 0.500 V — a second, different reason for the
+  # same value.
+  - assert: net_has_part
+    net: TCAM_OPEN
+    part_type: resistor
+    min: 2
+    adr: "0011"
+    why: "the OPEN-THERMISTOR detect threshold divider (R_OPENT 62k / R_OPENB 100k -> 2.0370V) must exist. VALUES CORRECTED 2026-07-26: this said '6.2k -> 3.107V', which is the DEFECT, written into the file whose job is preventing it — 3.107V is above the LMV393's 2.500V common-mode ceiling, which is exactly why the second design pass rejected it. An assert describing the bug it was meant to catch reads as coverage and is worse than no assert. An open, broken or unplugged camera thermistor pulls its sense node to 3.3V, which the over-temp comparator reads as COLD — so one unplugged JST-GH cable removed the only firmware-independent over-temperature protection, from BOTH the fault-latch SET term and the contactor gate. A bias resistor provably cannot fix this: in a 2-terminal divider an open sensor IS an infinitely cold sensor, so cold and open sit on the SAME side of any single threshold. The fix is a SECOND threshold, and this net is it"
+  - assert: pin_on_net
+    pin: "U_COMP2.2"
+    net: TH_CAM_A
+    adr: "0011"
+    why: "open-detect channel 1 watches camera A's sense node. NOTE the inputs are deliberately swapped vs U_COMP: IN- is the SENSE node and IN+ is the threshold, so the output goes LOW when the node rises ABOVE 2.0370V (was written 3.107V — the pre-fix value; corrected 2026-07-26)"
+  - assert: pin_on_net
+    pin: "U_COMP2.6"
+    net: TH_CAM_B
+    adr: "0011"
+    why: "open-detect channel 2 watches camera B's sense node"
+  - assert: pin_on_net
+    pin: "U_COMP2.1"
+    net: TEMP_OK
+    adr: "0011"
+    why: "the open-detect outputs join the SAME wired-AND as the over-temp outputs, so TEMP_OK is now hot(A).hot(B).open(A).open(B) — an open head de-energizes exactly like an over-temperature"
+  - assert: pin_on_net
+    pin: "U_COMP2.7"
+    net: TEMP_OK
+    adr: "0011"
+    why: "channel 2's output on the same wired-AND"
+  - assert: pin_on_net
+    pin: "U_COMP2.8"
+    net: 3V3_ANALOG
+    adr: "0011"
+    why: "both comparators run from 3V3_ANALOG, not 5V_PROTECTED. CORRECTION (2026-07-25): an earlier version of this why: claimed 'the LMV393 is rail-to-rail on the input'. IT IS NOT, and asserting something the datasheet denies is worse than asserting nothing — SLCS136V sec.6.3/7.2.2.1 put the common-mode ceiling at VCC-0.7, i.e. 2.50-2.60V at VCC 3.3V. What the swap actually buys is that sec.7.2.2.1 SPECIFIES the output state for all four out-of-common-mode cases where the LM393 specifies none above VCC-2V: an UNDEFINED broken-sensor response becomes a DOCUMENTED one. The 22k bleed (R_CLMPA/R_CLMPB) then keeps every reading INCLUDING open below 2.2829V worst-case, inside VICR with 217mV to spare, so the case table is a backstop rather than the mechanism. ABS MAX VCC is 5.5V, not the LM393's 36V — this part must never be re-fitted to a 5V rail"
+  - assert: pin_on_net
+    pin: "U_COMP.8"
+    net: 3V3_ANALOG
+    adr: "0011"
+    why: "the over-temp comparator moves to the same rail for the same reason; TEMP_OK is now a single-rail 3V3 node instead of mixing 5V and 3V3"
+  # ===== v1.3 — the isolated contactor loop leaves the SELV connector ==========
+  - assert: pin_on_net
+    pin: "J_ISOLOOP.1"
+    net: CONTACTOR_C
+    adr: "0011"
+    why: "the opto-isolated loop lands on J_ISOLOOP, the ONE 4-pole 3.5mm KF350 block that carries the WHOLE isolated domain (v1.3 P0-A merged J_ESTOPLOOP+J_CONTACTOR into it; both only ever carried isolated nets, so one body needs one moat instead of two). Until v1.3 J_ESTOP carried ESTOP_RAW (SELV) on pin 2 and CONTACTOR_C (isolated secondary) on pin 3 — ADJACENT pads on a 1.25mm-pitch JST-GH, 0.650mm apart, in ONE field harness, which made a single damaged or contaminated harness a common-cause failure ACROSS the isolation boundary"
+  - assert: pin_on_net
+    pin: "J_ISOLOOP.2"
+    net: CONTACTOR_LOOP
+    adr: "0011"
+    why: "loop return; J_ESTOP pins 3/4 are now GND so that housing is SELV-ONLY. J_ISOLOOP.3 is the SAME net (the on-board link the old inter-connector CONTACTOR_LOOP made) and is a SEPARATE SCREW deliberately: on a safety interlock one loosening screw must not drop both the E-stop return and the contactor feed"
+  # ===== v1.3 P0-A: the merged isolated block, and the two poles that are ONE net
+  - assert: pin_on_net
+    pin: "J_ISOLOOP.3"
+    net: CONTACTOR_LOOP
+    adr: "0011"
+    why: "pins 2 and 3 are the SAME board net — this is the on-board link that used to be the CONTACTOR_LOOP run between J_ESTOPLOOP and J_CONTACTOR. Asserting it pins the merge: if a future edit re-pins pin 3 to anything else, the E-stop loop stops feeding the contactor circuit and the interlock silently becomes a permanent CLOSED loop"
+  - assert: pin_on_net
+    pin: "J_ISOLOOP.4"
+    net: CONTACTOR_E
+    adr: "0011"
+    why: "opto EMITTER out to the external contactor. With pins 1/4 on the two opto terminals and 2/3 on the loop link, every pole of this block is on the far side of the LTV-817S barrier — which is what lets ONE moat and ONE pour keepout defend the whole isolated domain"
+  # ===== v1.3 top_v13_gate_item: VALUE invariants (an EXISTENCE assert is not a VALUE assert)
+  - assert: part_value
+    part: R_WDPETPD
+    equals: "1k"
+    adr: "0011"
+    why: "THE 100k VERSION OF THIS PART PASSED ALL THREE WD_PET TOPOLOGY ASSERTS. R_WDPETPD holds WD_PET low when the Pi tri-states it, so the watchdog BITES on a dead host; the value is derived from I_IL x R < V_IL on the CD74HC221 trigger input, and at 100k the leakage drop leaves the node floating while every existence/topology invariant still reads GREEN. The VALUE is the fix"
+  - assert: part_value
+    part: R_OS
+    equals: "510k"
+    adr: "0011"
+    why: "the one-shot timing resistor: R_OS x C_OS sets the PRESS_TIMED non-retriggerable pulse the press interlock is built on. A substituted decade changes the pulse width, and no topology assert can see it"
+  # ===== v1.6 (adversarial audit 2026-07-27, A1/A3): the two resistor VALUES the
+  # ===== board's two documented cross-plug / re-arm bounds are COMPUTED FROM.
+  # ===== Both already had EXISTENCE + DIRECTION asserts, and both bounds are
+  # ===== published as numbers in ORDER_README; a silent decade change would move
+  # ===== the published number and leave every other invariant green.
+  - assert: part_value
+    part: R_COILENPD
+    equals: "680"
+    adr: "0018"
+    why: "THE REJECTION BOUND IS COMPUTED FROM THIS NUMBER, and it was 100k until 2026-07-28. R_COILENPD now sits on COIL_EN_IN (the J_MODE pole-A field pin), NOT on the gate: the gate draws no DC, so the series R_COILENS drops ZERO volts on the legitimate path while this resistor divides an injected source in full. At 680R -- legitimate AUTO drive 3.201 V (power_tree vout_min) x 680/(680+50R, the SN74LVC1G11 Ron floor) = 2.982 V against the 2N7002 V_GS(th) MAX 2.5 V, +482 mV of margin; an injected pull-up gives 0.210 V at 10k, 0.417 V at 4.7k and 0.779 V at 2.2k (this board's OWN I2C pull-up value), all under V_GS(th) MIN 1.0 V; general bound R >= 1564 ohm. At 100k the same bound was R >= 230 kOhm, i.e. NOTHING realistic was rejected, and an SHT45 pod's 10k module pull-up cross-plugged into J_MODE put 3.000 V on that gate and armed the relay coil rail with all seven AND-chain terms AND the Manual rail-cut bypassed (v1.6 ORDER_README section 10). Raise this value and the hazard returns; raise it far enough and the published bound in ADR-0018 becomes a lie while every topology assert stays green"
+  - assert: part_value
+    part: R_COILENS
+    equals: "680"
+    adr: "0018"
+    why: "the SERIES element the v1.6 audit found MISSING on this pin (J_DOOR and J_ESTOP have one, J_MODE had neither a series element nor an ESD device). It carries no DC — Q_COILDRV's gate leakage through 680R is microvolts — so its value is free on the legitimate path and is chosen to share R_COILENPD's line: ONE new BOM line covers both refs. It bounds ESD/fault current into the gate together with D_COILEN, and it is what makes COIL_EN a node that reaches the field ONLY through a resistor"
+  - assert: part_value
+    part: R_REARMPU
+    equals: "100k"
+    adr: "0011"
+    why: "the re-arm line's only restraint. REARM_N = {R_REARMPU.1, U_EXP.26 (MCP23017 GPA5), U_LATCHB.1} — ONE driver, no button, no connector pin, no test point — so this pull-up is the entire reason a dead or un-initialised expander cannot clear the fault latch. It is load-bearing twice: DS20001952C gives IODIR POR = 1111 1111, so at every power-up GPA5 is an INPUT and this resistor is what holds REARM_N high while WD_OK is still low in the TPS3823 reset delay — the property that makes the coil rail unable to come up after a power interruption without an explicit re-arm (ORDER_README section 7a-1). EXP_RST_N has no driver, so nothing else on this board can restore that state"
+  - assert: pin_on_net
+    pin: "R_CLMPA.2"
+    net: GND
+    adr: "0011"
+    why: "the camera-A sense-node BLEED. Without it an open thermistor reads the bare 3.3V rail, which is ABOVE the LMV393's 2.50-2.60V common-mode ceiling, so the open-detect comparator never actually compares against its threshold and the effective trip point collapses to the ceiling (~+1.6C of head temperature — a cold kitchen nuisance-trips the interlock). 22k bounds the open reading to 2.2687V, inside VICR. This resistor is what makes the open-detect real; deleting it as 'an unnecessary load on a sensor node' silently restores the defect"
+  - assert: pin_on_net
+    pin: "R_CLMPA.1"
+    net: TH_CAM_A
+    adr: "0011"
+    why: "the bleed is on the sense node itself, not on the threshold"
+  - assert: pin_on_net
+    pin: "R_CLMPB.2"
+    net: GND
+    adr: "0011"
+    why: "camera-B sense-node bleed, same argument"
+  - assert: pin_on_net
+    pin: "R_CLMPB.1"
+    net: TH_CAM_B
+    adr: "0011"
+    why: "the bleed is on the sense node itself"
+  - assert: pin_on_net
+    pin: "C_COMP.1"
+    net: 3V3_ANALOG
+    adr: "0011"
+    why: "U_COMP's bypass must sit on the rail U_COMP actually runs from. It was left on 5V_PROTECTED when the part moved, so it bypassed nothing. SLCS136V sec.8 p.12: supply variation 'cause temporary fluctuations in the comparator's input common mode range' — and the open-detect threshold is referenced to this same rail, so this 100nF is a safety component, not hygiene"
+
+
+  # ===== ADR-0021 — THE OV CUTOFF SETPOINT. TWO NUMBERS, AND NOTHING ELSE ON
+  # ===== THIS BOARD CAN SEE THEM. ===========================================
+  # v1.2-v1.6 and the BLOCKED v1.7 staging shipped R_OVT 100k / R_OVB 15k, and
+  # EVERY topology assert on this divider was green the whole time: the divider
+  # existed, both legs were on the right nets, the tap reached pin 2. What was
+  # wrong was arithmetic — ratio 0.130435 x V_OVLO(R) 1.20 V = a 9.200 V cutoff
+  # (8.492-9.933 worst case) on a rail feeding thirteen 7.5 V reed coils and a
+  # TVS whose V_BR starts at 6.40 V. BOTH v1.7 red-team lenses found it and
+  # NEITHER of their fixes was correct. A value assert is the only kind of gate
+  # that can see this class.
+  - assert: part_value
+    part: R_OVT
+    equals: "100k"
+    adr: "0021"
+    why: "OV cutoff = V_OVLO(R) x (R_OVT + R_OVB)/R_OVB (SLVSE57C EC table, ENABLE/OVERVOLTAGE LOCKOUT (EN/OVLO) - TPS2595x3: 1.13 / 1.20 / 1.27 V rising). With 26.1k below, 100k gives 5.798 V NOMINAL and, worst case over -20..+70 C with +-0.5% legs, +-100 ppm/C TCR and I_EN +-0.1 uA across the 20.698k source, CANNOT trip below 5.3682 V (+118 mV over the ADR-0021 supply ceiling 5.25) and HAS tripped by 6.2394 V (+161 mV under the SMBJ5.0A V_BR min 6.40 at 25 C, +43 mV under the 6.2819 V that the TVS's own +0.041 %/C gives at -20 C, +1261 mV under the DIP05 coil's 7.5 V max). Both legs are ALSO code-pinned in the tsx (C270658 +-0.5%) because an auto-picked passive code is a catalog snapshot and this one sets a protection threshold"
+  - assert: part_value
+    part: R_OVB
+    equals: "26.1k"
+    adr: "0021"
+    why: "THE LEG THAT WAS WRONG. At 15k the cutoff was 9.200 V nominal / 9.996 V worst case, where the SMBJ5.0A passes ~6.6 A and dissipates ~66 W — a 600 W TRANSIENT part asked to be a DC regulator — and every DIP05 coil is 2.5 V over its 7.5 V maximum. Both previously proposed values are REFUTED and must not return: 22k gives a 7.223 V latest trip (above the TVS) and 57.6k-on-the-top-leg nuisance-trips inside the old 5.5 V envelope. At 26.1k the TVS conducts at most 7.5 mA / 47 mW (25 C) or 9.3 mA / 58 mW (-20 C) before the eFuse cuts off, from Littelfuse's own two published points (I_R 800 uA at V_R 5.00 V, I_T 10 mA at V_BR 6.40 V). NOTE that this value is only admissible BECAUSE the supply is specified 4.85-5.25 V: at a 5.5 V ceiling no divider satisfies both bounds once TCR is carried"
+  - assert: series_chain
+    chain: [5V_RPP, R_OVT, EF_OVLO, R_OVB, GND]
+    adr: "0021"
+    why: "the divider is ACROSS the reverse-protected input with its tap at U_EFUSE.2 (EN/OVLO). This is the topology half of the setpoint: a 'simplification' that re-homes R_OVT to 5V_PROTECTED (the eFuse OUTPUT) would make the sense node collapse the instant the FET turns off, converting a clean hysteretic cutoff into an oscillator, and the two part_value asserts above would stay green through it"
+
+  # ===== ADR-0027 — the dropout margin counts the BOARD'S OWN COPPER ==========
+  # The one link in the measured path that no gate held. ADR-0001 already pins
+  # 5V_IN -> F1 -> 5V_FUSED -> Q_REV -> 5V_RPP (series_chain) and U_EFUSE.5 on
+  # 5V_PROTECTED (pin_on_net); the LDO's own INPUT pin was asserted by nothing,
+  # and it is the endpoint of the 328.29 mOhm J_PWR.1 -> U_LDO.3 walk that the
+  # whole v1.7 dropout verdict is computed from.
+  - assert: pin_on_net
+    pin: "U_LDO.3"                     # AMS1117-3.3 SOT-223 pad3 = VIN
+    net: 5V_PROTECTED
+    adr: "0027"
+    why: "U_LDO's INPUT sits at the far end of the protection chain, behind ALL THREE series elements (F1 + Q_REV + U_EFUSE) and behind 137.79 mOhm of the board's own unzoned track — MEASURED by nodal solve on the release board (md5 9f4fd5fae810f40a52b1035df727243c), 80.25 mOhm of it on 5V_PROTECTED alone. Re-homing this pin AHEAD of any element — onto 5V_RPP to 'save a via', say — would invalidate every number in ADR-0027 (vin_min 4.728, headroom +29 mV, break-even 0.4910 A) while leaving E-TOPO green, because E-TOPO reads the DECLARED vin_min and never walks the copper. The 3V3 rail's dropout verdict is a property of THIS pin being on THIS net"
+
+  # ===== ADR-0020 §CORRECTION — GPB7 IS ISOLATED FROM WD_OK BY 10k ===========
+  # The v1.7 P0 that this revision's OWN previous fix created: ADR-0020 moved
+  # U_EXP.18 (RESET_N) onto WD_OK, where U_EXP.8 (GPB7, a BIDIRECTIONAL 25 mA
+  # MCP23017 I/O) already sat beside U_WD.1 (TPS3823 RESET_N, specified only to
+  # I_OL 1.2 mA). One I2C write (IODIRB.7=0, OLATB.7=1) then held the board's
+  # most-consumed permission HIGH, and because the ONLY thing that stops the
+  # drive is the expander's own RESET — which needs <0.660 V — the defeat was
+  # SELF-SUSTAINING until the 3V3 rail dropped.
+  - assert: part_value
+    part: R_WDOKSER
+    equals: "10k"
+    adr: "0020"
+    why: "THE ENTIRE BOUND IS THIS NUMBER. At 0 ohm (or a 0R link 'because it is only a readback') the P0 returns and every topology assert stays green. TPS3823-33 V_OL <= 0.4 V at I_OL = 1.2 mA (SLVS165O 6.5) => guaranteed sink impedance <= 333.3 ohm; GPB7 at 3.3 V through 9.90k (10k at -1%) into 333.3||100k = 332.2 ohm holds WD_OK at 0.107 V, 0.114 V once 21 uA of aggregate input leakage (4 x SN74LVC +-5 uA + MCP23017 +-1 uA) is added — against MCP23017 RESET V_IL = 0.2*VDD = 0.660 V (DS20001952C D031) and SN74LVC V_IL = 0.800 V: margins 546 mV and 686 mV. Contention current 0.323 mA = 27% of the V_OL spec point and 6.5% of the +-5 mA abs max. THIS IS WHAT MAKES ADR-0020 DECISION B TRUE: the forced-high node now falls below the reset threshold, the expander IS reset, GPB7 returns to an input, and the drive ends"
+  - assert: pin_on_net
+    pin: "U_EXP.8"                     # MCP23017 pad8 = GPB7 (watchdog readback)
+    net: WD_OK_EXP
+    adr: "0020"
+    why: "GPB7 sits on the FAR side of R_WDOKSER and NOWHERE ELSE. This is the assert that catches the 'simplification' that deletes the resistor and reunites the two nets: R_WDOKSER would still measure 10k on the BOM, R_WDOKPD would still be 100k, U_EXP.18 would still be on WD_OK, and the self-sustaining watchdog defeat would be back"
+  - assert: pin_on_net
+    pin: "R_WDOKSER.1"
+    net: WD_OK
+    adr: "0020"
+    why: "and the other end is on the RAW net, so the resistor is genuinely IN SERIES between GPB7 and the permission rather than a stub hanging off either side. Direction matters here for the same reason it mattered on R_WDPETPD: both pins named = the topology cannot be quietly re-drawn"
+
+  # ===== v1.7 / TOPO P0-1 — THE OTHER FIVE MCP23017 PINS =====================
+  # R_WDOKSER above isolated GPB7.  It was ONE of SIX pins carrying the same
+  # defect, and the review battery that found it said so: GPB1-GPB5 sat DIRECTLY
+  # on MODE_AUTO_HW / ESTOP_OK / DOOR_OK / TEMP_OK / FAULT.  Every one of those
+  # is a bidirectional 25 mA MCP23017 I/O on an open-drain wired-AND permission
+  # node, so a single I2C transaction (IODIRB=0, OLATB=0xff) forces FOUR of the
+  # seven KEY_RELAY_ALLOWED terms permissive at once — and unlike GPB7 there was
+  # no resistor to make the contention lose.  Measured contention without the
+  # resistor: 0.863 V at the WEAKEST pull-down and 2.055 V at the realistic one,
+  # against SN74LVC1G11 V_IL = 0.800 V, i.e. NO datasheet corner guarantees a
+  # LOW.  TEMP_OK was the worst at 2.48 V and is the only term with no
+  # independent physical backup.
+  #
+  # The fix is deliberately the SAME 10k line already on the BOM for R_WDOKSER
+  # (C60490) — one existing line covers all six refs, so "it is only a readback,
+  # make it a 0R link" has no cost argument behind it.  The bound is the same
+  # arithmetic as R_WDOKSER's: a 3.3 V drive through 9.90k (10k at -1%) into the
+  # consumer's pull-down cannot lift the node past V_IL, whereas a direct
+  # connection is a hard 3.3 V.
+  #
+  # Each pin gets THREE asserts and the third one is the load-bearing one:
+  # value (the bound), FAR-side pin (the expander is on the isolated node), and
+  # NEAR-side pin (the resistor is genuinely IN SERIES, not a stub).  Deleting
+  # the resistor and reuniting the nets leaves the first two green on their own.
+  - assert: part_value
+    part: R_MODEHWSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB1. MODE_AUTO_HW is the J_MODE hardware-mode permission and it is an INPUT to U_AND1; at 0 ohm one I2C write asserts AUTO mode with the harness unplugged, which is the exact state ADR-0018 hardened the connector against. 10k (C60490, the R_WDOKSER line) keeps the forced node under SN74LVC1G11 V_IL = 0.800 V against the consumer pull-down; a 0R link restores a hard 3.3 V drive and every topology assert stays green"
+  - assert: pin_on_net
+    pin: "U_EXP.2"                     # MCP23017 pad2 = GPB1 (mode readback)
+    net: MODE_AUTO_HW_EXP
+    adr: "0020"
+    why: "GPB1 sits on the FAR side of R_MODEHWSER and nowhere else. Without this the expander is back on the raw permission"
+  - assert: pin_on_net
+    pin: "R_MODEHWSER.1"
+    net: MODE_AUTO_HW
+    adr: "0020"
+    why: "and the near end is on the RAW permission, so the resistor is IN SERIES rather than a stub hanging off either side. Both pins named = the topology cannot be quietly re-drawn"
+  - assert: part_value
+    part: R_ESTOPOKSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB2, and this is the E-STOP term. A forced-permissive ESTOP_OK is software overriding the one control a human reaches for when the appliance is already doing the wrong thing. 10k holds the contention below V_IL; 0R does not"
+  - assert: pin_on_net
+    pin: "U_EXP.3"                     # MCP23017 pad3 = GPB2 (E-STOP readback)
+    net: ESTOP_OK_EXP
+    adr: "0020"
+    why: "GPB2 sits on the FAR side of R_ESTOPOKSER and nowhere else"
+  - assert: pin_on_net
+    pin: "R_ESTOPOKSER.1"
+    net: ESTOP_OK
+    adr: "0020"
+    why: "and the near end is on the RAW ESTOP_OK, so the isolation is a series element and not a stub"
+  # v1.8 / ADR-0025: R_DOOROKSER IS RENAMED R_GPB3PD AND REPOINTED, not deleted.
+  # GPB3's readback net (DOOR_OK) is gone, so the pin is a spare — and a spare
+  # MCP23017 pin is exactly where ADR-0020's lesson has to be applied a seventh
+  # time. Left OPEN it is a floating CMOS input with an indeterminate readback.
+  # Hard-tied to GND it is a 25 mA-rated bidirectional I/O one I2C write
+  # (IODIRB.3=0, OLATB.3=1) away from driving into a dead short. Through the SAME
+  # 10k on the SAME C60490 line it is a deterministic 0 with the mis-write
+  # current-limited to 330 uA. Same three asserts as its six siblings.
+  - assert: part_value
+    part: R_GPB3PD
+    equals: "10k"
+    adr: "0025"
+    why: "the bound on GPB3, now a SPARE pin rather than a readback. 0R would make an I2C write (IODIRB.3=0, OLATB.3=1) a hard drive into ground on a 25 mA I/O; 10k makes it 330 uA and still reads 0. The value is the whole protection, and the topology asserts below stay green without it — which is precisely how ADR-0020 shipped the defect on five of six pins"
+  - assert: pin_on_net
+    pin: "U_EXP.4"                     # MCP23017 pad4 = GPB3 (spare, pulled down)
+    net: GPB3_SPARE
+    adr: "0025"
+    why: "GPB3 sits on its OWN net and nowhere else. If a future edit re-homes a permission here it must go through a series element, not onto the raw net — that is the ADR-0020 rule and this assert is what keeps the pin from being reachable directly"
+  - assert: pin_on_net
+    pin: "R_GPB3PD.1"
+    net: GND
+    adr: "0025"
+    why: "DIRECTION: DOWN. A pull-UP here would make an unconfigured spare read 1, and on a board where every permission's restrictive level is LOW that is the wrong default to leave lying around for whoever re-uses the pin"
+  - assert: part_value
+    part: R_TEMPOKSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB4 and the WORST-MEASURED of the six: 2.48 V of contention without the resistor, 3.1x SN74LVC1G11 V_IL. TEMP_OK gates the coil rail AND the contactor AND the fault SET, and it is the only one of the seven permission terms with NO independent physical backup — there is no second device that opens if this one lies. 10k is what makes the forced node lose"
+  - assert: pin_on_net
+    pin: "U_EXP.5"                     # MCP23017 pad5 = GPB4 (over-temp readback)
+    net: TEMP_OK_EXP
+    adr: "0020"
+    why: "GPB4 sits on the FAR side of R_TEMPOKSER and nowhere else"
+  - assert: pin_on_net
+    pin: "R_TEMPOKSER.1"
+    net: TEMP_OK
+    adr: "0020"
+    why: "and the near end is on the RAW TEMP_OK, so the isolation is a series element and not a stub"
+  - assert: part_value
+    part: R_FAULTSER
+    equals: "10k"
+    adr: "0020"
+    why: "the bound on GPB5. FAULT is the latch output; driving it from the expander lets software CLEAR a latched fault by brute force instead of through the 7 ms REARM_N one-shot, which is the whole point of the latch having memory. 10k holds the contention below V_IL; 0R does not"
+  - assert: pin_on_net
+    pin: "U_EXP.6"                     # MCP23017 pad6 = GPB5 (fault readback)
+    net: FAULT_EXP
+    adr: "0020"
+    why: "GPB5 sits on the FAR side of R_FAULTSER and nowhere else"
+  - assert: pin_on_net
+    pin: "R_FAULTSER.1"
+    net: FAULT
+    adr: "0020"
+    why: "and the near end is on the RAW FAULT, so the isolation is a series element and not a stub"
+  # ===== ADR-0022 — U_EXP.1 (GPB0) READS A REAL, VALID LOGIC LEVEL ==========
+  # TWO defects, one root, one fix.
+  #
+  # (a) PIN P0-b, 2026-07-28: EFUSE_FLT_N is the TPS259573's OPEN-DRAIN /FLT
+  #     flag.  Pulled up to 5V_PROTECTED through R_PG 100k it idled at 5.0 V
+  #     into an MCP23017 whose abs-max input is VDD+0.3 = 3.6 V — ~14 uA of
+  #     continuous injection into 3V3, forever, on the part that carries five
+  #     safety readbacks.
+  # (b) PIN-P0-1 / TOPO P1-1, 2026-07-28: the 10k/22k divider v1.7 added to fix
+  #     (a) was sized as if EFUSE_FLT_N were a STIFF 5 V source.  Its only
+  #     source of high is R_PG itself, so the real chain is 100k+10k over 22k,
+  #     ratio 22/132 not 22/32, and the tap sat at 0.833 V against the
+  #     MCP23017 V_IH(min) of 0.8 x VDD = 2.640 V.  The fault readback was
+  #     DEAD.  At R_PG = 100k no R_top > 0 solution exists — this was a design
+  #     choice, not a value tweak.
+  #
+  # THE FIX (chosen 2026-07-29): move R_PG's top end from 5V_PROTECTED to 3V3
+  # and DELETE both divider resistors.  /FLT is open-drain and indifferent to
+  # the pull-up rail (SLVSE57C states no minimum; pin abs-max 20 V), so the
+  # node idles at exactly the rail — 3.300 V, which is simultaneously inside
+  # the MCP23017 abs-max and above V_IH.  Two parts leave the BOM.
+  #
+  # WHAT THE OLD ASSERTS PROVED, AND WHY IT WAS NOT ENOUGH:  the deleted block
+  # asserted part_value on both divider legs and pin_on_net on all four of
+  # their ends.  Every one of those PASSED on the broken board, because they
+  # graded the MECHANISM (two resistors exist, at these values, on these nets)
+  # and nobody graded the OUTCOME (what voltage the pin sees).  That is exactly
+  # ADR-0007's M-ENTRY / claims-become-checks finding, and the `node_level`
+  # assert at the bottom of this block is the remedy.  It is the LAST assert
+  # here on purpose: it is the only one that can fail for an arithmetic reason.
+  #
+  # TP_PGOOD IS BACK ON THE NODE THE FIRMWARE READS.  The v1.7 draft kept it on
+  # the raw node with the rationale "the instrument must see the real node".
+  # That rationale was FALSE AS BUILT: R_FLTDIVT+R_FLTDIVB (32k) loaded the
+  # 100k pull-up, so the "raw" node a probe would have seen rested at
+  # 5.000 x 32/132 = 1.212 V, not 5 V.  The claim is recorded as refuted rather
+  # than deleted.
+  - assert: part_value
+    part: R_PG
+    equals: "100k"
+    adr: "0022"
+    why: "the ONLY source of logic-high on EFUSE_FLT_N. 100k against the MCP23017's +-1 uA input leakage costs at most 100 mV of the 660 mV headroom (3.300 - 2.640); the eFuse's own /FLT leakage is 1 uA max, so worst case 200 mV and the node still clears V_IH by 460 mV. Raise this much further and leakage, not the rail, sets the high level"
+  - assert: pin_on_net
+    pin: "R_PG.2"
+    net: 3V3
+    adr: "0022"
+    why: "THE FIX, IN ONE ASSERT. Put this end back on 5V_PROTECTED and the node idles at 5.0 V into a 3.6 V abs-max input — PIN P0-b restored — while every other assert in this file, including U_EXP.1's own pin_on_net, still passes. This is the assert that distinguishes the fixed board from the broken one"
+  - assert: pin_on_net
+    pin: "R_PG.1"
+    net: EFUSE_FLT_N
+    adr: "0022"
+    why: "and the pull-up's other end is on the flag node itself. A pull-up dangling on some other net leaves EFUSE_FLT_N floating: an open-drain output with no pull-up has NO defined high, and the readback would report whatever the input pin's leakage decides"
+  - assert: pin_on_net
+    pin: "U_EXP.1"                     # MCP23017 pad1 = GPB0 (NOT GPA0 — pad 21 is GPA0)
+    net: EFUSE_FLT_N
+    adr: "0022"
+    why: "GPB0 reads the flag DIRECTLY now that the node is a 3.3 V node. Pad 1 is GPB0; every document in the v1.7 P0-b work called it GPA0, which is pad 21 and carries RAIL_EN_A, an OUTPUT (PIN Q-1). The copper was always right; this comment is the paperwork catching up"
+  - assert: pin_on_net
+    pin: "TP_PGOOD.1"
+    net: EFUSE_FLT_N
+    adr: "0022"
+    why: "the test point and the firmware now read the SAME node, which is what the v1.7 rationale claimed and the v1.7 build did not deliver (the divider made the probed node 1.212 V). ORDER_README's bring-up table can state one number for both"
+
+  - assert: node_level
+    net: EFUSE_FLT_N
+    receiver: U_EXP.1
+    driver_state: released
+    must_be: logic_high
+    adr: "0022"
+    why: >-
+      THE OUTCOME, ASSERTED. With the eFuse released, U_EXP.1 must read a valid
+      logic HIGH or the power-good readback is dead however correct the parts
+      list looks. R_PG 100k to 3V3, no resistive path to GND, so the node is
+      pulled to the rail: 3.300 V against V_IH(min) 2.640 V. The v1.7 divider
+      that this replaces gave 0.833 V and passed six mechanism asserts while
+      doing it.
+
+
+  # ===== ADR-0023 — the reed-coil driver is a DMOS array, not a Darlington ====
+  #
+  # WHY THIS BLOCK EXISTS.  The ULN2803A's saturation drop (0.67 V TYP / ~0.88 V
+  # worst case at the ~7 mA coil) WAS the entire reed pull-in deficit:
+  #     margin(T) = 4.740 - V_driver - 3.500 x (1 + 0.004 x (T - 20))
+  # crossed zero at 60.7 C typical and 45.7 C worst case — the latter BELOW the
+  # brief's own <=50 C NORMAL enclosure band.  TBD62083AFWG (C165895) is a
+  # pin-identical DMOS array whose EC table guarantees R_ON <= 3.25 ohm at all
+  # three published current points, so 7 mA x 6.50 ohm (2x, hot bound) = 46 mV
+  # and the margin is +0.774 V at +50 C / +0.424 V at +75 C.
+  #
+  # WHAT THESE ASSERTS ARE FOR, AND WHAT THEY ARE NOT.  Three of the four facts
+  # the swap turns on are gradeable from the netlist and are graded here.  THE
+  # FOURTH — THE ARITHMETIC MARGIN ITSELF — IS NOW GRADED TOO, AND THAT IS NEW
+  # ON 2026-07-29.  It could not be, until this week: `_load_part_electrical()`
+  # joined a dossier to a component through an LCSC CODE ONLY, and the twelve
+  # reed relays are SELF-SUPPLIED — JLC stocks none of them, so their netlist
+  # `value` is the MPN `DIP05-1A72-13L` and no LCSC code identifies them.  Every
+  # `node_level` assert on the coil driver came back UNREACHED, i.e. the gate
+  # could not express the very margin the board was re-spun to fix.  The checker
+  # now ALSO joins on `mpn:` and on the dossier directory name (de58693), so the
+  # eleven asserts below are LANDED rather than quoted in an ADR.
+  #
+  # (Forcing the join by writing the MPN into `sourcing.alternates:` was
+  # considered and REJECTED: that field means "pin-compatible substitute", this
+  # relay is DO-NOT-SUBSTITUTE (spec 15.4), and its own note already records an
+  # alternate WITHDRAWN for being a different pin-out code.  Making a gate green
+  # by writing something false into a dossier is the failure mode this repo keeps
+  # paying for.  The fix went into the CHECKER, where the defect was.)
+  #
+  # HOW THE ARITHMETIC BECOMES ONE ASSERTION.  `v_il_max: 0.540` on the DIP05
+  # dossier's pad 2 is THE PULL-IN BUDGET, not a logic threshold:
+  #     node <= 0.540 V   <=>   coil sees >= 4.740 - 0.540 = 4.200 V = V_PI(+70 C)
+  # where 4.740 V is `5V_KEY_RELAY`'s vout_min (power_tree.yaml) and V_PI(+70 C)
+  # is the datasheet's 3.500 V MAX pull-in walked out at its own published
+  # 0.4 %/K.  The equivalence is EXACT, so the whole ADR-0023 margin table
+  # collapses into one inequality the checker evaluates from the netlist.
+  # The contention model is the checker's own: with the coil as the pull-UP leg
+  # (r_on_ohm_max 540 ohm = 450 ohm at -10 % x 1.20 at +70 C, the LOWEST coil R
+  # and so the worst case for the driver's share) against the DMOS channel
+  # (6.50 ohm = 2x the 25 C EC-table max, no tempco published),
+  #     4.740 x 6.50 / (540 + 6.50) = 0.056 V  <=  0.540 V     PASS
+  # and with the superseded Darlington's drop expressed as its equivalent
+  # resistance at the same 7 mA coil current (0.67 V / 7 mA = 95.7 ohm typical,
+  # 0.88 V / 7 mA = 125.7 ohm worst case),
+  #     4.740 x  95.7 / (540 +  95.7) = 0.714 V  >  0.540 V     FAIL
+  #     4.740 x 125.7 / (540 + 125.7) = 0.895 V  >  0.540 V     FAIL
+  # RED-VERIFIED IN PLACE, both of those, by putting each Darlington-equivalent
+  # resistance into the TBD62083AFWG dossier's channel rows and re-running this
+  # gate: 11 FAILs each time, restored to GREEN after.  Numbers, commands and
+  # verbatim failure lines: `01_docs/journal/verify_cooksense.md`, 2026-07-29.
+  #
+  # ELEVEN ASSERTS, NOT ONE (canon M-WIDTH).  Eleven reeds hang off the two DMOS
+  # arrays and each one is its own coil, its own channel and its own net.  The
+  # twelfth reed, K_STOP, is driven by a 2N7002 whose 0.10 V V_DS is an ESTIMATE
+  # from a datasheet this tree has NOT committed, so it is deliberately EXCLUDED
+  # and named as excluded — not silently absent.  (It is also the one with room
+  # to spare: even at 0.50 V its +70 C margin is +0.054 V.)
+  #
+  # The COM assert below is the one whose loss would have made ADR-0023 a
+  # TOPOLOGY change instead of a part swap, so it is the one worth pinning.
+  - assert: node_level
+    net: COIL_U1_N
+    receiver: K_U1.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U1.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.18              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      THE PULL-IN MARGIN, ASSERTED AS AN OUTCOME (ADR-0007's own worked example
+      is this margin). The driven end of the coil must sit at or below the
+      0.540 V PULL-IN BUDGET, or this reed is not guaranteed to close at the top
+      of the board's own declared +70 C envelope — and a reed that does not close
+      hot is a cooking appliance that silently stops switching a load, at the one
+      temperature a bench test at room temperature will never reach. The
+      superseded ULN2803A FAILED this at both its typical (0.714 V) and its
+      worst-case (0.895 V) drop; the DMOS array reads 0.056 V. This is the assert
+      the part change exists for, and until 2026-07-29 no checker could reach it.
+
+  - assert: node_level
+    net: COIL_U2_N
+    receiver: K_U2.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U2.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.17              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_U3_N
+    receiver: K_U3.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U3.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.16              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_U4_N
+    receiver: K_U4.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U4.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.15              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_U5_N
+    receiver: K_U5.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U5.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.14              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_U6_N
+    receiver: K_U6.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_U6.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.13              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_D1_N
+    receiver: K_D1.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_D1.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.12              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_D2_N
+    receiver: K_D2.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_D2.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNA.11              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_D3_N
+    receiver: K_D3.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_D3.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNB.18              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_D4_N
+    receiver: K_D4.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_D4.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNB.17              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: node_level
+    net: COIL_PRESS_N
+    receiver: K_PRESS.2                  # DIP05 tsx pad2 = COIL_B, the DRIVEN end
+    driver_state: contended
+    aggressor: K_PRESS.1                 # the coil itself, pulling UP to 5V_KEY_RELAY
+    defender: U_ULNB.16              # the DMOS channel, pulling DOWN
+    must_be: logic_low
+    adr: "0023"
+    why: >-
+      the same claim for one more coil. Eleven coils, eleven asserts: the
+      arrays are two parts with eleven independently driven channels, and a
+      single-instance assert on an eleven-instance fact is the M-WIDTH defect
+      ADR-0020 shipped.
+
+  - assert: pin_on_net
+    pin: "U_ULNA.10"                   # TBD62083AFWG pad10 = COMMON
+    net: 5V_KEY_RELAY
+    adr: "0023"
+    why: "THE FREEWHEEL PATH, ASSERTED. The twelve DIP05-1A72-13L coils have NO external flyback diode — the driver's internal OUTPUT->COMMON clamp (datasheet p.2 equivalent circuit, anode at OUTPUT, cathode at COMMON, VF <= 2.0 V at 350 mA p.5) is their ONLY clamp. It was verified from the FIGURE, not inferred from the pin name, because a DMOS array WITHOUT it would have made this a topology change and not a drop-in. COMMON must sit on the SWITCHED coil rail, not on 5V_PROTECTED, so a gated-off rail still clamps coil kick: put this pin on the ungated rail and every energised coil's kick returns through a diode into a rail the safety chain has just deliberately killed"
+  - assert: pin_on_net
+    pin: "U_ULNB.10"
+    net: 5V_KEY_RELAY
+    adr: "0023"
+    why: "the second driver's COMMON, same claim. Two parts, two asserts — a single-instance assert on a two-instance fact is the M-WIDTH defect ADR-0020 shipped (it fixed one of six pins)"
+  - assert: pin_on_net
+    pin: "U_ULNA.9"                    # pad9 = GND, the common SOURCE return
+    net: GND
+    adr: "0023"
+    why: "the common-source return for all 8 channels. Toshiba p.7 'Precautions for Using' names improper grounding of the GND line as a DESTRUCTION mode verbatim, alongside the output and COMMON lines. The aggregate here is small (8 x 7 mA) but the rule is the part's, and a driver array whose GND lands on a local net rather than the plane is a classic silent failure"
+  - assert: pin_on_net
+    pin: "U_ULNB.9"
+    net: GND
+    adr: "0023"
+    why: "the second driver's source return, same claim"
+
+  # ===== ADR-0024 — pod-mateable safety inputs are hardened AT THE PINOUT =========
+  # THE DEFECT: `J_DOOR.4` was `DOOR_RAW`. On the two POD housings that are the
+  # SAME PART (C189896 SM05B-GHS-TB, so physically cross-mateable) pin 4 is
+  # `SCL_*`, which a sensor pod holds HIGH through its own module pull-up; on
+  # `J_ESTOP` pin 4 is GND. `J_DOOR` alone put a safety sense node on the one pin
+  # a cross-mated pod actively drives, and against `R_DOORPD` = 10k that landed
+  # 2.705 V (at this board's own 2.2k I2C pull-up value) on an SN74HC14 running
+  # on 3V3 — above the INTERPOLATED V_T+ MAX of 2.348 V, i.e. a guaranteed HIGH.
+  # The door read CLOSED with no door attached.
+  #
+  # THESE ASSERTS ARE THE STRUCTURE, AND THE STRUCTURE IS THE FIX. ADR-0024
+  # decision A removes the injection PATH rather than attenuating it, so the
+  # load-bearing claim is a PINOUT claim and every pin of all four cross-mateable
+  # housings is pinned — not just the one a lens happened to look at. That
+  # denominator is the point: the defect was ONE pin out of twenty, and nothing
+  # in the tree asserted the other nineteen either.
+  # v1.8 / ADR-0025: THE FIVE `J_DOOR.*` PINOUT ASSERTS ARE DELETED WITH THE PART.
+  # They were decision A's executable form and they were right; `J_DOOR` is no
+  # longer in the netlist (the user has no door signal), so keeping them would be
+  # asserting about a part that does not exist. The DENOMINATOR argument in the
+  # header above still governs the housings that remain, and the ten `J_RH_*`
+  # asserts below are what carry it. ADR-0024's decision-A finding is retained in
+  # full in ADR-0024 and in ADR-0025; a superseded reason is evidence, not litter.
+  # What CLOSES the class now is mechanical rather than a pinout rule — see the
+  # ADR-0025 block immediately below.
+  # ===== v1.8 / ADR-0025 — J_ESTOP IS AN SH-3 AND ITS PINOUT IS THE KEY =======
+  # ADR-0024's reason for J_ESTOP being safe against a pod cross-plug was that its
+  # pins 3/4/5 were GND — a PINOUT property, which is why it survived a cross-plug
+  # and not a mis-built harness. That reason is now MECHANICAL: 1.00 mm pitch
+  # appears exactly once on this board, and no other harness can enter the shroud
+  # (GHR-05V-S 7.50x4.15 and ZHR-4 7.50x3.40 against a 5.0x2.9 mm cavity = hard
+  # interference in both dimensions).
+  #
+  # THE PINOUT IS NOT FREE TO PERMUTE AND THAT IS WHAT THESE THREE ASSERTS SAY.
+  # J_ESTOP is populated and satisfied by a REMOVABLE SHORTING PLUG (the whole
+  # point: a real E-stop replaces the plug with no copper revision). An SH plug is
+  # small enough to be PUSHED into a GH or ZH shroud even though it cannot latch,
+  # so the claim rests on contact alignment: SH circuits sit at 0/1.0/2.0 mm, GH
+  # posts at 0/1.25/2.50 (offsets 0/0.25/0.50) and ZH posts at 0/1.50/3.00
+  # (offsets 0/0.50/1.00). CIRCUIT 3 IS THE ONE CIRCUIT THAT CANNOT ENGAGE IN ANY
+  # FOREIGN HOUSING, so the sense node lives there and the plug bridges 2-3 — the
+  # short cannot be COMPLETED anywhere else. A 1-2 bridge would use the 0/0.25 mm
+  # pair, which is the pair that MIGHT engage, and on all four sensor-pod housings
+  # pins 1-2 are switched-3V3-to-GND: a dead short behind an AO3401A.
+  - assert: pin_on_net
+    pin: "J_ESTOP.3"
+    net: ESTOP_RAW_IN
+    adr: "0025"
+    why: "*** THE SENSE NODE IS ON CIRCUIT 3 AND THAT IS THE KEY, NOT AN ARBITRARY PINOUT. *** Circuit 3 is >=0.50 mm off every post in every other housing on this board, so it is the one circuit an SH-3 shorting plug cannot engage elsewhere; the plug therefore bridges 2-3 and its short cannot be completed in a GH or ZH shroud. Move the sense to circuit 1 or 2 and the plug's bridge lands on the 0/0.25 mm pair, which on J_RH_AMBIENT/J_RH_EXHAUST/J_THERM_A/J_THERM_B is switched-3V3 to GND. It is also still the ADR-0024 split: the field pin sits on the INPUT side of R_ESTOPS, never on U_SCHM's pin"
+  - assert: pin_on_net
+    pin: "J_ESTOP.2"
+    net: 3V3
+    adr: "0025"
+    why: "the harness feed for the NC E-stop contact, and the plug's other bridged circuit. On 2 rather than 1 so that the bridged PAIR is 2-3 (see above)"
+  - assert: pin_on_net
+    pin: "J_ESTOP.1"
+    net: GND
+    adr: "0025"
+    why: "SELV-ONLY housing (v1.3 P0-2 moved the isolated 30 V loop off it permanently, which is also why 3 circuits is the FULL requirement and not a reduction of the brief's 4-pin ask). GND on circuit 1 is deliberate: it is the circuit MOST likely to engage in a foreign shroud, and a ground landing there is the restrictive outcome in every case"
+  - assert: pin_on_net
+    pin: "J_RH_AMBIENT.2"
+    net: GND
+    adr: "0024"
+    why: "the OTHER half of the enumeration, and it is asserted because the hazard is SYMMETRIC: a door or E-stop harness plugged into a pod socket lands its dry contact between pin 1 and pin 2. With pin 1 = a SWITCHED sensor rail and pin 2 = GND that is a current-limited short which kills the rail loudly and, via a 3V3 droop, trips the TPS3823. Re-pin either one and that cell stops being loud"
+  - assert: pin_on_net
+    pin: "J_RH_AMBIENT.1"
+    net: 3V3_SW_RHA
+    adr: "0024"
+    why: "the pod rail is SWITCHED (ADR-0004 phantom-power rule) — which is also what bounds the reverse cross-plug cell above"
+  - assert: pin_on_net
+    pin: "J_RH_AMBIENT.4"
+    net: SCL_A
+    adr: "0024"
+    why: "pin 4 is SCL on the POD housings and that asymmetry against J_DOOR's old pin 4 IS the defect this ADR closes. Asserted on both sides so the pair cannot silently converge again"
+  - assert: pin_on_net
+    pin: "J_RH_AMBIENT.5"
+    net: SHIELD_DRAIN
+    adr: "0024"
+    why: "shield, single-point R_SHIELD to GND"
+  - assert: pin_on_net
+    pin: "J_RH_EXHAUST.2"
+    net: GND
+    adr: "0024"
+    why: "as J_RH_AMBIENT.2, second instance — two housings, two asserts"
+  - assert: pin_on_net
+    pin: "J_RH_EXHAUST.1"
+    net: 3V3_SW_RHE
+    adr: "0024"
+    why: "as J_RH_AMBIENT.1, second instance"
+  - assert: pin_on_net
+    pin: "J_RH_EXHAUST.4"
+    net: SCL_B
+    adr: "0024"
+    why: "as J_RH_AMBIENT.4, second instance"
+  - assert: pin_on_net
+    pin: "J_RH_EXHAUST.5"
+    net: SHIELD_DRAIN
+    adr: "0024"
+    why: "shield, second instance"
+
+  # ---- decision B: the second layer, and its VALUE is the safety figure --------
+  - assert: part_value
+    part: R_ESTOPPD
+    equals: "470"
+    adr: "0024"
+    why: "*** 680 OHM DOES NOT TRANSFER, AND THIS NUMBER IS WHY THE ASSERT EXISTS. *** ADR-0018 rejected an injected pull-up on COIL_EN_IN with 680R because its receiver is a 2N7002 whose V_GS(th) MIN is 1.000 V. THIS receiver is an SN74HC14 on 3V3, whose lowest possible switching point is bounded WITHOUT interpolation by SCLS085L sec.5.5's V_CC = 2.0 V row: V_T+(MIN) = 0.700 V (V_T+ rises monotonically with V_CC). At 686.8R worst case the injected 2.2k gives 0.791 V and FAILS by 91 mV; 470R gives 0.591 V, 0.608 V at the 3V3 ceiling, +92 mV. The corrected general bound is R_pd <= 559.3 ohm, and 560 ohm — the only standard value under the withdrawn 592 — gives 0.7007 V and FAILS by 0.7 mV. *** AND SINCE v1.8/ADR-0025 THIS VALUE CARRIES A SECOND, DIFFERENT JOB: *** it is the sole reason the UNFITTED node measures (1 uA x 470R) + (1 uA x 680R) = 1.15 mV instead of floating, i.e. it is what makes ESTOP_OK = LOW = restrictive with the shorting plug pulled. Its twin R_DOORPD went with the door channel; a single-instance assert is no longer an M-WIDTH defect because there is only one instance left"
+  - assert: part_value
+    part: R_ESTOPS
+    equals: "680"
+    adr: "0024"
+    why: "the series element, and it is asserted while being HONEST that it contributes ZERO to the rejection arithmetic: the HC14 input draws no DC, so it drops no volts. Its job is ADR-0018 decision D's other half — keep the field pin off the logic pin, and limit current into the HC14's own input clamp (abs max +-20 mA, SCLS085L sec.5.1) after D_ESTOP clamps, because the PESD5V0S1BA's clamping voltage is far above the HC14's V_CC+0.5 V input abs-max. Without it the ESD device protects the connector and not the receiver. Shares R_COILENPD/R_COILENS's C137948 line: zero new BOM lines. (Its twin R_DOORS went with the door channel, v1.8/ADR-0025; it also never appeared in manifest.yaml, which is the S-COUNT gap that pass fixed.)"
+  - assert: net_has_part
+    net: ESTOP_RAW_IN
+    part_type: diode
+    min: 1
+    adr: "0024"
+    why: "D_ESTOP must sit on the CONNECTOR side of R_ESTOPS. An ESD device downstream of a 680R series element is protecting a node that is already current-limited and leaving the field pin bare — the moved-not-added distinction matters, so it is asserted on the net rather than merely on the part's existence. (D_DOOR's instance went with the door channel, v1.8/ADR-0025.)"
+  # THE 2.2k PULL-UPS ARE A SAFETY NUMBER ON THIS BOARD, NOT AN I2C DETAIL.
+  # 2.2k is the declared worst-case injected impedance in BOTH ADR-0018's and
+  # ADR-0024's tables, on the stated reasoning that a field-built pod harness
+  # carries the value this shop uses. Change these and every cross-plug figure
+  # published in two ADRs moves, silently, while every existence assert stays
+  # green. Codes are pinned in the tsx for the same reason.
+  - assert: part_value
+    part: R_SCLA
+    equals: "2.2k"
+    adr: "0024"
+    why: "the SOURCE of the worst-case injection value used by ADR-0018 and ADR-0024. Not asserted for the I2C bus (2.2k vs 4.7k would both work electrically); asserted because two safety derivations are computed FROM it"
+  - assert: part_value
+    part: R_SDAA
+    equals: "2.2k"
+    adr: "0024"
+    why: "same claim; four pull-ups, four asserts, because the worst case is 'whichever value this board uses' and one drifting ref is enough to make the published figure wrong"
+  - assert: part_value
+    part: R_SCLB
+    equals: "2.2k"
+    adr: "0024"
+    why: "same claim, bus B"
+  - assert: part_value
+    part: R_SDAB
+    equals: "2.2k"
+    adr: "0024"
+    why: "same claim, bus B"
+
+  # ---- BLOCKER 2: the eFuse input capacitor, which did not exist --------------
+  # MEASURED before adding it: 5V_IN / 5V_FUSED / 5V_RPP carried ZERO capacitors;
+  # C_IN1 and C_IN2 are both on 5V_PROTECTED, the OUTPUT. The keep_short budget
+  # written to hold this named `5V_SELV`, which is not a net on this board, so
+  # P-ADJ could never grade it and the row read as covered. An unenforceable
+  # budget is not a weak check — it is a check that CANNOT FAIL.
+  - assert: net_has_part
+    net: 5V_RPP
+    part_type: capacitor
+    min: 1
+    adr: "0001"
+    why: "SLVSE57C sec.10 Fig.67 + sec.11 Fig.68: '0.01uF+ Cin between IN and GND with MINIMAL loop area at the IN/GND terminals'. Eq.18 names the function — it bounds the SHORT-CIRCUIT INTERRUPT TRANSIENT, i.e. the spike the input-side inductance produces when the eFuse's current limit slams shut. This board has MORE series inductance ahead of the part than the EVM does (J_PWR harness + F1 polyfuse + Q_REV), not less, and the IN pins' abs max is 20 V. For five releases there was no capacitor on ANY of the three input-side nets and the gate that should have caught it was addressed to a net that does not exist"

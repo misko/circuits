@@ -1,0 +1,22 @@
+{
+ "target": "projects/smc0985-cooksense/07_releases/cooksense-v1.7-2026-07-30",
+ "summary": {
+  "board": 243,
+  "cpl": 206,
+  "datum_max_mm": 0.0005,
+  "datum_max_ref": "J_ESTOP",
+  "datum_graded": 206,
+  "unpopulated": 37,
+  "declared": 16,
+  "consigned": 0,
+  "exempt_prefixes": [
+   "H",
+   "TP"
+  ],
+  "sides": {
+   "top": 206
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

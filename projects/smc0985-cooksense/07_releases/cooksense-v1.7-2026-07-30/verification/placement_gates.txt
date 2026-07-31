@@ -1,0 +1,6 @@
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+  note: P-OUT tightest pad-to-outline margin 0.62mm (J_ESTOP.MP) [min 0.15]
+  note: P-CAP worst cut x=134.4mm: demand 42 nets vs capacity 149 tracks (2 layers, pitch 0.45mm) — ratio 0.28 [fail > 0.5]
+PLACEMENT-GATES: PASS (0 fails, 0 warns)

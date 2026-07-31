@@ -1,0 +1,538 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "projects/smc0985-cooksense/06_build/staging/cooksense-v1.7/fab/bom.csv",
+ "min_stock_per_board": 5,
+ "verdict": "FAIL",
+ "stock_source": "lcsc_catalog_stockCount",
+ "predicts_jlc_assembly_allocation": false,
+ "pass_means": "catalog stock >= min_stock x qty at query time; NOT that JLC will allocate the line -- see F-ECHO",
+ "graded_lines": 58,
+ "total_lines": 61,
+ "zero_coverage": null,
+ "failures": 1,
+ "uncoded_lines": 3,
+ "lines": [
+  {
+   "lcsc": "C17888",
+   "designators": "R_KEY,R_STOP",
+   "qty": 2,
+   "status": "OK",
+   "stock": 3357690,
+   "type": "base",
+   "mpn": "1206W4F0000T5E"
+  },
+  {
+   "lcsc": "C21189",
+   "designators": "R_SHIELD,R_STOPRAIL",
+   "qty": 2,
+   "status": "OK",
+   "stock": 13380156,
+   "type": "base",
+   "mpn": "0603WAF0000T5E"
+  },
+  {
+   "lcsc": "C138040",
+   "designators": "R_ILM",
+   "qty": 1,
+   "status": "OK",
+   "stock": 447131,
+   "type": "expand",
+   "mpn": "RC0402FR-071K2L"
+  },
+  {
+   "lcsc": "C25741",
+   "designators": "R_AND1PD,R_AND2PD,R_CTRREQPD,R_CTRSAFEPD,R_DECDPD,R_DECUPD,R_ESTOPOKPD,R_FAULTPU,R_FLCPD,R_FSETNPD,R_HOSTAUTHPD,R_HSG,R_KRSTPD,R_MCUENPD,R_MODEHWPD,R_MR,R_OPENB,R_PG,R_RAENAPD,R_RAENBPD,R_RAENRHAPD,R_RAENRHEPD,R_REARMPU,R_STOPPD,R_STOPREQNPD,R_SWPUA,R_SWPUB,R_SWPURHA,R_SWPURHE,R_WDOKPD",
+   "qty": 30,
+   "status": "OK",
+   "stock": 2731647,
+   "type": "base",
+   "mpn": "0402WGF1003TCE"
+  },
+  {
+   "lcsc": "C270658",
+   "designators": "R_OVT",
+   "qty": 1,
+   "status": "OK",
+   "stock": 9203,
+   "type": "expand",
+   "mpn": "0402WGD1003TCE"
+  },
+  {
+   "lcsc": "C14663",
+   "designators": "C_3V3,C_3V3A2,C_IN2,C_ULNA,C_ULNB",
+   "qty": 5,
+   "status": "OK",
+   "stock": 102406754,
+   "type": "base",
+   "mpn": "CC0603KRX7R9BB104"
+  },
+  {
+   "lcsc": "C1525",
+   "designators": "C_ADCV2,C_AND1,C_AND2,C_AND3,C_CAND1,C_CAND2,C_COMP,C_COMP2,C_DECD,C_DECDEN,C_DECU,C_DECUEN,C_EFIN,C_EXP,C_FAULTAND,C_FLT0,C_FLT1,C_FLT2,C_FLT3,C_FLT4,C_FLT5,C_FLT6,C_FLT7,C_LATCHA,C_LATCHB,C_LATCHG,C_MR,C_OENAND,C_OSCLR,C_OSV,C_SCHM,C_SR1,C_STOPINV,C_TCAV,C_TCD,C_TCDV,C_WD",
+   "qty": 37,
+   "status": "OK",
+   "stock": 46556211,
+   "type": "base",
+   "mpn": "CL05B104KO5NNNC"
+  },
+  {
+   "lcsc": "C25076",
+   "designators": "R_TCN,R_TCP",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1082229,
+   "type": "base",
+   "mpn": "0402WGF1000TCE"
+  },
+  {
+   "lcsc": "C17902",
+   "designators": "R_TH2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 3164916,
+   "type": "base",
+   "mpn": "1206W4F1002T5E"
+  },
+  {
+   "lcsc": "C60490",
+   "designators": "R_BID0,R_BID1,R_ESTOPOKSER,R_FAULTSER,R_GPB3PD,R_MODEHWSER,R_MODEPD,R_OE,R_OS2,R_REF0,R_REF1,R_REF2,R_REF3,R_REF4,R_REF5,R_REF6,R_REF7,R_TEMPOK,R_TEMPOKSER,R_WDOKSER",
+   "qty": 20,
+   "status": "OK",
+   "stock": 8381562,
+   "type": "expand",
+   "mpn": "RC0402FR-0710KL"
+  },
+  {
+   "lcsc": "C15195",
+   "designators": "C_TCNA,C_TCPA",
+   "qty": 2,
+   "status": "OK",
+   "stock": 10713994,
+   "type": "base",
+   "mpn": "CL05B103KB5NNNC"
+  },
+  {
+   "lcsc": "C15850",
+   "designators": "C_3V3A1,C_IN1,C_KR,C_LDOIN,C_STOPR",
+   "qty": 5,
+   "status": "OK",
+   "stock": 11496057,
+   "type": "base",
+   "mpn": "CL21A106KAYNNNE"
+  },
+  {
+   "lcsc": "C26083",
+   "designators": "R_HYS1,R_HYS2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1034936,
+   "type": "base",
+   "mpn": "0402WGF1004TCE"
+  },
+  {
+   "lcsc": "C11702",
+   "designators": "R_SER0,R_SER1,R_SER2,R_SER3,R_SER4,R_SER5,R_SER6,R_SER7,R_WDPETPD",
+   "qty": 9,
+   "status": "OK",
+   "stock": 1430061,
+   "type": "base",
+   "mpn": "0402WGF1001TCE"
+  },
+  {
+   "lcsc": "C1523",
+   "designators": "C_DVDT",
+   "qty": 1,
+   "status": "OK",
+   "stock": 5531949,
+   "type": "base",
+   "mpn": "0402B102K500NT"
+  },
+  {
+   "lcsc": "C15849",
+   "designators": "C_ADCV,C_OS,C_OS2,C_SWA,C_SWB,C_SWRHA,C_SWRHE",
+   "qty": 7,
+   "status": "OK",
+   "stock": 14435105,
+   "type": "base",
+   "mpn": "CL10A105KB8NNNC"
+  },
+  {
+   "lcsc": "C25879",
+   "designators": "R_SCLA,R_SCLB,R_SDAA,R_SDAB",
+   "qty": 4,
+   "status": "OK",
+   "stock": 1170828,
+   "type": "base",
+   "mpn": "0402WGF2201TCE"
+  },
+  {
+   "lcsc": "C35165",
+   "designators": "J_PI",
+   "qty": 1,
+   "status": "OK",
+   "stock": 4275,
+   "type": "expand",
+   "mpn": "2.54-2*20PFemale longPC104"
+  },
+  {
+   "lcsc": "C2887273",
+   "designators": "CE1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 120488,
+   "type": "expand",
+   "mpn": "RVT220UF16V67RV0015"
+  },
+  {
+   "lcsc": "C25768",
+   "designators": "R_CLMPA,R_CLMPB",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1440744,
+   "type": "base",
+   "mpn": "0402WGF2202TCE"
+  },
+  {
+   "lcsc": "C45783",
+   "designators": "C_LDOOUT",
+   "qty": 1,
+   "status": "OK",
+   "stock": 3810482,
+   "type": "base",
+   "mpn": "CL21A226MAQNNNE"
+  },
+  {
+   "lcsc": "C407739",
+   "designators": "R_OVB",
+   "qty": 1,
+   "status": "OK",
+   "stock": 227,
+   "type": "expand",
+   "mpn": "0402WGD2612TCE"
+  },
+  {
+   "lcsc": "C8545",
+   "designators": "Q_COILDRV,Q_STOPDRV,Q_SWDRVA,Q_SWDRVB,Q_SWDRVRHA,Q_SWDRVRHE",
+   "qty": 6,
+   "status": "OK",
+   "stock": 1031480,
+   "type": "base",
+   "mpn": "2N7002"
+  },
+  {
+   "lcsc": "C23138",
+   "designators": "R_OPTOLED",
+   "qty": 1,
+   "status": "OK",
+   "stock": 2007072,
+   "type": "base",
+   "mpn": "0603WAF3300T5E"
+  },
+  {
+   "lcsc": "C25105",
+   "designators": "R_LCCLK,R_LCDAT",
+   "qty": 2,
+   "status": "OK",
+   "stock": 548541,
+   "type": "base",
+   "mpn": "0402WGF330JTCE"
+  },
+  {
+   "lcsc": "C587657",
+   "designators": "J_PWR",
+   "qty": 1,
+   "status": "OK",
+   "stock": 70,
+   "type": "expand",
+   "mpn": "436500224"
+  },
+  {
+   "lcsc": "C25117",
+   "designators": "R_ESTOPPD",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1815282,
+   "type": "base",
+   "mpn": "0402WGF4700TCE"
+  },
+  {
+   "lcsc": "C137961",
+   "designators": "R_OS",
+   "qty": 1,
+   "status": "OK",
+   "stock": 492581,
+   "type": "expand",
+   "mpn": "RC0402FR-07510KL"
+  },
+  {
+   "lcsc": "C37825",
+   "designators": "R_OPENT",
+   "qty": 1,
+   "status": "OK",
+   "stock": 121376,
+   "type": "expand",
+   "mpn": "0402WGF6202TCE"
+  },
+  {
+   "lcsc": "C137948",
+   "designators": "R_COILENPD,R_COILENS,R_ESTOPS",
+   "qty": 3,
+   "status": "OK",
+   "stock": 537079,
+   "type": "expand",
+   "mpn": "RC0402FR-07680RL"
+  },
+  {
+   "lcsc": "C25834",
+   "designators": "R_TH1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 180104,
+   "type": "expand",
+   "mpn": "1206W4F6802T5E"
+  },
+  {
+   "lcsc": "C6186",
+   "designators": "U_LDO",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1615823,
+   "type": "base",
+   "mpn": "AMS1117-3.3"
+  },
+  {
+   "lcsc": "C15127",
+   "designators": "Q_COIL,Q_REV,Q_SWA,Q_SWB,Q_SWRHA,Q_SWRHE",
+   "qty": 6,
+   "status": "OK",
+   "stock": 735875,
+   "type": "base",
+   "mpn": "AO3401A"
+  },
+  {
+   "lcsc": "C157991",
+   "designators": "J_LOADCELL",
+   "qty": 1,
+   "status": "OK",
+   "stock": 138052,
+   "type": "expand",
+   "mpn": "B5B-XH-A(LF)(SN)"
+  },
+  {
+   "lcsc": "C133954",
+   "designators": "U_ONESHOT",
+   "qty": 1,
+   "status": "OK",
+   "stock": 2529,
+   "type": "expand",
+   "mpn": "CD74HC221M96"
+  },
+  {
+   "lcsc": "C1017",
+   "designators": "FB1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 517610,
+   "type": "base",
+   "mpn": "GZ2012D601TF"
+  },
+  {
+   "lcsc": "C7984",
+   "designators": "U_COMP,U_COMP2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 15887,
+   "type": "expand",
+   "mpn": "LMV393IDR"
+  },
+  {
+   "lcsc": "C125121",
+   "designators": "U_OPTO",
+   "qty": 1,
+   "status": "OK",
+   "stock": 3781,
+   "type": "expand",
+   "mpn": "LTV-817S-TA1"
+  },
+  {
+   "lcsc": "C2653162",
+   "designators": "U_TC",
+   "qty": 1,
+   "status": "OK",
+   "stock": 7531,
+   "type": "expand",
+   "mpn": "MAX31856MUD+T"
+  },
+  {
+   "lcsc": "C558584",
+   "designators": "U_EXP",
+   "qty": 1,
+   "status": "OK",
+   "stock": 7451,
+   "type": "expand",
+   "mpn": "MCP23017T-E/SS"
+  },
+  {
+   "lcsc": "C16939",
+   "designators": "U_ADC",
+   "qty": 1,
+   "status": "OK",
+   "stock": 979,
+   "type": "expand",
+   "mpn": "MCP3208-CI/SL"
+  },
+  {
+   "lcsc": "C89650",
+   "designators": "F1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 208,
+   "type": "expand",
+   "mpn": "MF-MSMF200L-2"
+  },
+  {
+   "lcsc": "C5158048",
+   "designators": "D_COILEN,D_ESD_IN,D_ESTOP,D_LCCLK,D_LCDAT",
+   "qty": 5,
+   "status": "OK",
+   "stock": 390992,
+   "type": "expand",
+   "mpn": "PESD5V0S1BA"
+  },
+  {
+   "lcsc": "C485354",
+   "designators": "J_MODE",
+   "qty": 1,
+   "status": "OK",
+   "stock": 10700,
+   "type": "expand",
+   "mpn": "S4B-ZR-SM4A-TF(LF)(SN)"
+  },
+  {
+   "lcsc": "C160403",
+   "designators": "J_ESTOP",
+   "qty": 1,
+   "status": "OK",
+   "stock": 52389,
+   "type": "expand",
+   "mpn": "SM03B-SRSS-TB(LF)(SN)"
+  },
+  {
+   "lcsc": "C189896",
+   "designators": "J_RH_AMBIENT,J_RH_EXHAUST",
+   "qty": 2,
+   "status": "OK",
+   "stock": 79563,
+   "type": "expand",
+   "mpn": "SM05B-GHS-TB(LF)(SN)"
+  },
+  {
+   "lcsc": "C265111",
+   "designators": "J_THERM_A,J_THERM_B",
+   "qty": 2,
+   "status": "LOW_STOCK(5)",
+   "stock": 5,
+   "type": "expand",
+   "mpn": "SM08B-GHS-TB(LF)(SN)"
+  },
+  {
+   "lcsc": "C2683602",
+   "designators": "J_KEY_MATRIX",
+   "qty": 1,
+   "status": "OK",
+   "stock": 2500,
+   "type": "expand",
+   "mpn": "SM10B-GHS-TB"
+  },
+  {
+   "lcsc": "C113974",
+   "designators": "D_TVS",
+   "qty": 1,
+   "status": "OK",
+   "stock": 234172,
+   "type": "expand",
+   "mpn": "SMBJ5.0A"
+  },
+  {
+   "lcsc": "C6820",
+   "designators": "U_SCHM",
+   "qty": 1,
+   "status": "OK",
+   "stock": 54354,
+   "type": "expand",
+   "mpn": "SN74HC14DR"
+  },
+  {
+   "lcsc": "C5620",
+   "designators": "U_DECD,U_DECU",
+   "qty": 2,
+   "status": "OK",
+   "stock": 5212,
+   "type": "expand",
+   "mpn": "74HC238D,653"
+  },
+  {
+   "lcsc": "C10092",
+   "designators": "U_SR1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 18537,
+   "type": "expand",
+   "mpn": "SN74HC595DR"
+  },
+  {
+   "lcsc": "C8185",
+   "designators": "U_LATCHA,U_LATCHB,U_OENAND,U_STOPINV",
+   "qty": 4,
+   "status": "OK",
+   "stock": 12526,
+   "type": "expand",
+   "mpn": "SN74LVC1G00DCKR"
+  },
+  {
+   "lcsc": "C22046",
+   "designators": "U_AND1,U_AND2,U_AND3,U_CAND1,U_CAND2,U_DECDEN,U_DECUEN,U_FAULTAND,U_LATCHG,U_OSCLR",
+   "qty": 10,
+   "status": "OK",
+   "stock": 3469,
+   "type": "expand",
+   "mpn": "SN74LVC1G11DBVR"
+  },
+  {
+   "lcsc": "C8678",
+   "designators": "D_KSTOP,D_REVCLAMP",
+   "qty": 2,
+   "status": "OK",
+   "stock": 2357545,
+   "type": "base",
+   "mpn": "SS34"
+  },
+  {
+   "lcsc": "C165895",
+   "designators": "U_ULNA,U_ULNB",
+   "qty": 2,
+   "status": "OK",
+   "stock": 2298,
+   "type": "expand",
+   "mpn": "TBD62083AFWG,EL"
+  },
+  {
+   "lcsc": "C2653844",
+   "designators": "U_EFUSE",
+   "qty": 1,
+   "status": "OK",
+   "stock": 103,
+   "type": "expand",
+   "mpn": "TPS259573DSGR"
+  },
+  {
+   "lcsc": "C7719",
+   "designators": "U_WD",
+   "qty": 1,
+   "status": "OK",
+   "stock": 18875,
+   "type": "expand",
+   "mpn": "TPS3823-33DBVR"
+  }
+ ]
+}

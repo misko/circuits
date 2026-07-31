@@ -1,0 +1,3 @@
+P-FACT: 7/47 part.yaml declare an `asserts:` block; 6/6 assertion(s) REACHED A COMPARISON against 06_build/staging/cooksense-v1.7 (0 unreached; refdes<->LCSC read from bom.csv)
+  P-FACT-DEFERRED: LTV-817S-TA1: `keepout_region` is DECLARED but this checker cannot yet grade it (needs board geometry) — THE 5000Vrms INPUT<->OUTPUT BARRIER, and the gotcha saying so was already in this file whe
+P-FACT OK — 6/6 assertions graded

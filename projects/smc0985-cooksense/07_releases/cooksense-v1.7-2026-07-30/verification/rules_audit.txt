@@ -1,0 +1,28 @@
+  ok   A-CLASS PWR_IN present (track_width 0.5mm)
+  ok   A-AGREE PWR_IN pro/dru agree at 0.5mm
+  ok   A-CLASS COIL_RAIL present (track_width 0.4mm)
+  ok   A-AGREE COIL_RAIL pro/dru agree at 0.4mm
+  ok   A-AMP COIL_RAIL 0.15A ok at 0.4mm (need 0.022mm)
+  ok   A-CLASS STOP_RAIL present (track_width 0.4mm)
+  ok   A-AGREE STOP_RAIL pro/dru agree at 0.4mm
+  ok   A-AMP STOP_RAIL 0.02A ok at 0.4mm (need 0.001mm)
+  ok   A-CLASS PWR_3V3 present (track_width 0.3mm)
+  ok   A-AGREE PWR_3V3 pro/dru agree at 0.3mm
+  ok   A-AMP PWR_3V3 0.35A ok at 0.3mm (need 0.071mm)
+  ok   A-CLASS PWR_SW present (track_width 0.3mm)
+  ok   A-AGREE PWR_SW pro/dru agree at 0.3mm
+  ok   A-AMP PWR_SW 0.1A ok at 0.3mm (need 0.013mm)
+  ok   A-CLASS ISO_CONTACTOR present (track_width 0.3mm)
+  ok   A-AGREE ISO_CONTACTOR pro/dru agree at 0.3mm
+  ok   A-AMP ISO_CONTACTOR exempt by declaration ('signal (<=30V / <=50mA dry contact; the opto collector is the limit)')
+  ok   A-CLASS KEYPAD_ISO present (track_width 0.3mm)
+  ok   A-AGREE KEYPAD_ISO pro/dru agree at 0.3mm
+  ok   A-AMP KEYPAD_ISO exempt by declaration ('signal (~mA emulated keypress)')
+  ok   A-CLASS ANALOG_SENSE present (track_width 0.249mm)
+  ok   A-AGREE ANALOG_SENSE pro/dru agree at 0.249mm
+  ok   A-FIRE all 11 cooksense.kicad_dru rule(s) can fire (netclass conditions only — no --board, so insideArea() was NOT graded)
+  ok   A-ORDER generate_rules runs last before the DRC gate
+FAIL  A-AMP ANALOG_SENSE: `current: 'uA-level sense'` declares a value this gate cannot read, so its width was NEVER CHECKED. An unreadable declaration is a FAIL, not an exemption — write the magnitude as a number with a unit (`7 A worst case`), or declare the class exempt (`signal`)
+FAIL  A-AMP PWR_IN: carries 2.0A but the narrowest enforced width is 0.5mm; IPC-2221 needs >= 0.781mm (dT=10.0C, 1.0oz, external)
+  coverage A-AMP: 7/8 net-class current declarations graded
+RULES AUDIT: FAIL (2 fails, 24 checks)

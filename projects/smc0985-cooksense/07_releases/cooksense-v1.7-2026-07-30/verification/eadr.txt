@@ -1,0 +1,1 @@
+E-ADR OK: 12/12 protection/topology ADR(s) cited by an invariant (graded against projects/smc0985-cooksense/03_src/cooksense/rules/electrical_invariants.yaml)

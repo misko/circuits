@@ -1,0 +1,4 @@
+
+M-DEPEND coverage: 318 coded row(s) across 8 sealed release(s) — 318 GRADED, 0 WAIVED (release-internal map, blank cell), 0 PINNED-AND-DISAGREEING (F-MPN's), 0 FAIL
+M-DEPEND fragility: 61 row(s) across 3 release(s) are GRADED only because a `02_parts/` dossier is still in the tree, with no release-internal map to fall back on
+M-DEPEND: PASS (0 finding(s))

@@ -1,0 +1,487 @@
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+18:09:32: Debug: Adding duplicate image handler for 'PNG file'
+18:09:32: Debug: Adding duplicate image handler for 'JPEG file'
+18:09:32: Debug: Adding duplicate image handler for 'TIFF file'
+18:09:32: Debug: Adding duplicate image handler for 'GIF file'
+18:09:32: Debug: Adding duplicate image handler for 'PNM file'
+18:09:32: Debug: Adding duplicate image handler for 'PCX file'
+18:09:32: Debug: Adding duplicate image handler for 'IFF file'
+18:09:32: Debug: Adding duplicate image handler for 'Windows icon file'
+18:09:32: Debug: Adding duplicate image handler for 'Windows cursor file'
+18:09:32: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+18:09:32: Debug: Adding duplicate image handler for 'TGA file'
+18:09:32: Debug: Adding duplicate image handler for 'XPM file'
+assembly: 0 coded not-assembled/consigned ref(s) from 03_src/cooksense/rules/assembly.yaml
+
+bodies mounted: 206/206  ->  /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/missing_models.txt
+C2887273  CE1  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C5158048  D_COILEN  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C5158048  D_COILEN  POLARITY-FIT-BLIND  no usable polarity marking on our footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal
+C5158048  D_ESD_IN  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C5158048  D_ESTOP  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C5158048  D_LCCLK  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C5158048  D_LCDAT  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C113974  D_TVS  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C113974  D_TVS  POLARITY-FIT-BLIND  no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal
+C8678  D_KSTOP  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C8678  D_KSTOP  POLARITY-FIT-BLIND  no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal
+C8678  D_REVCLAMP  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C8678  D_REVCLAMP  POLARITY-FIT-BLIND  no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal
+C2887273  CE1  POLARITY-FIT-OK  marking channel agrees with the pad fit (both at pad 1; margins 1.03/0.25mm)
+C5158048  D_ESD_IN  POLARITY-FIT-OK  marking channel agrees with the pad fit (both at pad 1; margins 0.56/0.41mm)
+C5158048  D_ESTOP  POLARITY-FIT-OK  marking channel agrees with the pad fit (both at pad 1; margins 0.56/0.41mm)
+C5158048  D_LCCLK  POLARITY-FIT-OK  marking channel agrees with the pad fit (both at pad 1; margins 0.56/0.41mm)
+C5158048  D_LCDAT  POLARITY-FIT-OK  marking channel agrees with the pad fit (both at pad 1; margins 0.56/0.41mm)
+C17888  R_KEY  MODEL-REG-OK  body on courtyard (0.00mm)
+C17888  R_STOP  MODEL-REG-OK  body on courtyard (0.00mm)
+C21189  R_SHIELD  MODEL-REG-OK  body on courtyard (0.00mm)
+C21189  R_STOPRAIL  MODEL-REG-OK  body on courtyard (0.00mm)
+C138040  R_ILM  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_AND1PD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_AND2PD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_CTRREQPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_CTRSAFEPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_DECDPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_DECUPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_ESTOPOKPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_FAULTPU  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_FLCPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_FSETNPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_HOSTAUTHPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_HSG  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_KRSTPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_MCUENPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_MODEHWPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_MR  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_OPENB  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_PG  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_RAENAPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_RAENBPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_RAENRHAPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_RAENRHEPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_REARMPU  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_STOPPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_STOPREQNPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWPUA  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWPUB  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWPURHA  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWPURHE  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_WDOKPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C270658  R_OVT  MODEL-REG-OK  body on courtyard (0.00mm)
+C14663  C_3V3  MODEL-REG-OK  body on courtyard (0.00mm)
+C14663  C_3V3A2  MODEL-REG-OK  body on courtyard (0.00mm)
+C14663  C_IN2  MODEL-REG-OK  body on courtyard (0.00mm)
+C14663  C_ULNA  MODEL-REG-OK  body on courtyard (0.00mm)
+C14663  C_ULNB  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_ADCV2  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_AND1  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_AND2  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_AND3  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_CAND1  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_CAND2  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_COMP  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_COMP2  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_DECD  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_DECDEN  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_DECU  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_DECUEN  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_EFIN  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_EXP  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FAULTAND  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FLT0  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FLT1  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FLT2  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FLT3  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FLT4  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FLT5  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FLT6  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_FLT7  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_LATCHA  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_LATCHB  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_LATCHG  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_MR  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_OENAND  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_OSCLR  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_OSV  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_SCHM  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_SR1  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_STOPINV  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_TCAV  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_TCD  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_TCDV  MODEL-REG-OK  body on courtyard (0.00mm)
+C1525  C_WD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25076  R_TCN  MODEL-REG-OK  body on courtyard (0.00mm)
+C25076  R_TCP  MODEL-REG-OK  body on courtyard (0.00mm)
+C17902  R_TH2  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_BID0  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_BID1  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_ESTOPOKSER  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_FAULTSER  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_GPB3PD  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_MODEHWSER  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_MODEPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_OE  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_OS2  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_REF0  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_REF1  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_REF2  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_REF3  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_REF4  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_REF5  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_REF6  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_REF7  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_TEMPOK  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_TEMPOKSER  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R_WDOKSER  MODEL-REG-OK  body on courtyard (0.00mm)
+C15195  C_TCNA  MODEL-REG-OK  body on courtyard (0.00mm)
+C15195  C_TCPA  MODEL-REG-OK  body on courtyard (0.00mm)
+C15850  C_3V3A1  MODEL-REG-OK  body on courtyard (0.00mm)
+C15850  C_IN1  MODEL-REG-OK  body on courtyard (0.00mm)
+C15850  C_KR  MODEL-REG-OK  body on courtyard (0.00mm)
+C15850  C_LDOIN  MODEL-REG-OK  body on courtyard (0.00mm)
+C15850  C_STOPR  MODEL-REG-OK  body on courtyard (0.00mm)
+C26083  R_HYS1  MODEL-REG-OK  body on courtyard (0.00mm)
+C26083  R_HYS2  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_SER0  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_SER1  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_SER2  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_SER3  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_SER4  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_SER5  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_SER6  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_SER7  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R_WDPETPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C1523  C_DVDT  MODEL-REG-OK  body on courtyard (0.00mm)
+C15849  C_ADCV  MODEL-REG-OK  body on courtyard (0.00mm)
+C15849  C_OS  MODEL-REG-OK  body on courtyard (0.00mm)
+C15849  C_OS2  MODEL-REG-OK  body on courtyard (0.00mm)
+C15849  C_SWA  MODEL-REG-OK  body on courtyard (0.00mm)
+C15849  C_SWB  MODEL-REG-OK  body on courtyard (0.00mm)
+C15849  C_SWRHA  MODEL-REG-OK  body on courtyard (0.00mm)
+C15849  C_SWRHE  MODEL-REG-OK  body on courtyard (0.00mm)
+C25879  R_SCLA  MODEL-REG-OK  body on courtyard (0.00mm)
+C25879  R_SCLB  MODEL-REG-OK  body on courtyard (0.00mm)
+C25879  R_SDAA  MODEL-REG-OK  body on courtyard (0.00mm)
+C25879  R_SDAB  MODEL-REG-OK  body on courtyard (0.00mm)
+C2887273  CE1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25768  R_CLMPA  MODEL-REG-OK  body on courtyard (0.00mm)
+C25768  R_CLMPB  MODEL-REG-OK  body on courtyard (0.00mm)
+C45783  C_LDOOUT  MODEL-REG-OK  body on courtyard (0.00mm)
+C407739  R_OVB  MODEL-REG-OK  body on courtyard (0.00mm)
+C8545  Q_COILDRV  MODEL-REG-OK  body on courtyard (0.02mm)
+C8545  Q_STOPDRV  MODEL-REG-OK  body on courtyard (0.02mm)
+C8545  Q_SWDRVA  MODEL-REG-OK  body on courtyard (0.02mm)
+C8545  Q_SWDRVB  MODEL-REG-OK  body on courtyard (0.02mm)
+C8545  Q_SWDRVRHA  MODEL-REG-OK  body on courtyard (0.02mm)
+C8545  Q_SWDRVRHE  MODEL-REG-OK  body on courtyard (0.02mm)
+C23138  R_OPTOLED  MODEL-REG-OK  body on courtyard (0.00mm)
+C25105  R_LCCLK  MODEL-REG-OK  body on courtyard (0.00mm)
+C25105  R_LCDAT  MODEL-REG-OK  body on courtyard (0.00mm)
+C587657  J_PWR  MODEL-REG-OK  body on courtyard (0.58mm)
+C25117  R_ESTOPPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C137961  R_OS  MODEL-REG-OK  body on courtyard (0.00mm)
+C37825  R_OPENT  MODEL-REG-OK  body on courtyard (0.00mm)
+C137948  R_COILENPD  MODEL-REG-OK  body on courtyard (0.00mm)
+C137948  R_COILENS  MODEL-REG-OK  body on courtyard (0.00mm)
+C137948  R_ESTOPS  MODEL-REG-OK  body on courtyard (0.00mm)
+C25834  R_TH1  MODEL-REG-OK  body on courtyard (0.00mm)
+C6186  U_LDO  MODEL-REG-OK  body on courtyard (0.19mm)
+C15127  Q_COIL  MODEL-REG-OK  body on courtyard (0.07mm)
+C15127  Q_REV  MODEL-REG-OK  body on courtyard (0.07mm)
+C15127  Q_SWA  MODEL-REG-OK  body on courtyard (0.07mm)
+C15127  Q_SWB  MODEL-REG-OK  body on courtyard (0.07mm)
+C15127  Q_SWRHA  MODEL-REG-OK  body on courtyard (0.07mm)
+C15127  Q_SWRHE  MODEL-REG-OK  body on courtyard (0.07mm)
+C157991  J_LOADCELL  MODEL-REG-OK  body on courtyard (0.98mm)
+C133954  U_ONESHOT  MODEL-REG-OK  body on courtyard (0.00mm)
+C1017  FB1  MODEL-REG-OK  body on courtyard (0.00mm)
+C7984  U_COMP  MODEL-REG-OK  body on courtyard (0.00mm)
+C7984  U_COMP2  MODEL-REG-OK  body on courtyard (0.00mm)
+C125121  U_OPTO  MODEL-REG-OK  body on courtyard (0.00mm)
+C2653162  U_TC  MODEL-REG-OK  body on courtyard (0.00mm)
+C558584  U_EXP  MODEL-REG-OK  body on courtyard (0.00mm)
+C16939  U_ADC  MODEL-REG-OK  body on courtyard (0.00mm)
+C89650  F1  MODEL-REG-OK  body on courtyard (0.00mm)
+C5158048  D_COILEN  MODEL-REG-OK  body on courtyard (0.00mm)
+C5158048  D_ESD_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C5158048  D_ESTOP  MODEL-REG-OK  body on courtyard (0.00mm)
+C5158048  D_LCCLK  MODEL-REG-OK  body on courtyard (0.00mm)
+C5158048  D_LCDAT  MODEL-REG-OK  body on courtyard (0.00mm)
+C485354  J_MODE  MODEL-REG-OK  body on courtyard (0.90mm)
+C160403  J_ESTOP  MODEL-REG-OK  body on courtyard (0.05mm)
+C189896  J_RH_AMBIENT  MODEL-REG-OK  body on courtyard (0.10mm)
+C189896  J_RH_EXHAUST  MODEL-REG-OK  body on courtyard (0.10mm)
+C265111  J_THERM_A  MODEL-REG-OK  body on courtyard (0.03mm)
+C265111  J_THERM_B  MODEL-REG-OK  body on courtyard (0.03mm)
+C2683602  J_KEY_MATRIX  MODEL-REG-OK  body on courtyard (0.08mm)
+C113974  D_TVS  MODEL-REG-OK  body on courtyard (0.00mm)
+C6820  U_SCHM  MODEL-REG-OK  body on courtyard (0.00mm)
+C5620  U_DECD  MODEL-REG-OK  body on courtyard (0.00mm)
+C5620  U_DECU  MODEL-REG-OK  body on courtyard (0.00mm)
+C10092  U_SR1  MODEL-REG-OK  body on courtyard (0.00mm)
+C8185  U_LATCHA  MODEL-REG-OK  body on courtyard (0.00mm)
+C8185  U_LATCHB  MODEL-REG-OK  body on courtyard (0.00mm)
+C8185  U_OENAND  MODEL-REG-OK  body on courtyard (0.00mm)
+C8185  U_STOPINV  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_AND1  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_AND2  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_AND3  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_CAND1  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_CAND2  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_DECDEN  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_DECUEN  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_FAULTAND  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_LATCHG  MODEL-REG-OK  body on courtyard (0.00mm)
+C22046  U_OSCLR  MODEL-REG-OK  body on courtyard (0.00mm)
+C8678  D_KSTOP  MODEL-REG-OK  body on courtyard (0.00mm)
+C8678  D_REVCLAMP  MODEL-REG-OK  body on courtyard (0.00mm)
+C165895  U_ULNA  MODEL-REG-OK  body on courtyard (0.00mm)
+C165895  U_ULNB  MODEL-REG-OK  body on courtyard (0.00mm)
+C2653844  U_EFUSE  MODEL-REG-OK  body on courtyard (0.00mm)
+C7719  U_WD  MODEL-REG-OK  body on courtyard (0.00mm)
+C17888  R_KEY  OK  fit=0.02mm jlc_offset=0 db=0.0 src=name-DB
+C17888  R_STOP  OK  fit=0.02mm jlc_offset=0 db=0.0 src=name-DB
+C21189  R_SHIELD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21189  R_STOPRAIL  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C138040  R_ILM  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_AND1PD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_AND2PD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_CTRREQPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_CTRSAFEPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_DECDPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_DECUPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_ESTOPOKPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_FAULTPU  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_FLCPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_FSETNPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_HOSTAUTHPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_HSG  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_KRSTPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_MCUENPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_MODEHWPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_MR  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_OPENB  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_PG  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_RAENAPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_RAENBPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_RAENRHAPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_RAENRHEPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_REARMPU  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_STOPPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_STOPREQNPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWPUA  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWPUB  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWPURHA  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWPURHE  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_WDOKPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C270658  R_OVT  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663  C_3V3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663  C_3V3A2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663  C_IN2  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C14663  C_ULNA  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663  C_ULNB  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_ADCV2  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_AND1  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_AND2  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_AND3  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_CAND1  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_CAND2  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_COMP  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_COMP2  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_DECD  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_DECDEN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_DECU  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_DECUEN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_EFIN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_EXP  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FAULTAND  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FLT0  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FLT1  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FLT2  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FLT3  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FLT4  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FLT5  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FLT6  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_FLT7  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_LATCHA  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_LATCHB  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_LATCHG  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_MR  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_OENAND  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_OSCLR  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_OSV  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_SCHM  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_SR1  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_STOPINV  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_TCAV  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_TCD  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_TCDV  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525  C_WD  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C25076  R_TCN  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25076  R_TCP  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C17902  R_TH2  OK  fit=0.02mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_BID0  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_BID1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_ESTOPOKSER  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_FAULTSER  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_GPB3PD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_MODEHWSER  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_MODEPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_OE  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_OS2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_REF0  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_REF1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_REF2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_REF3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_REF4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_REF5  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_REF6  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_REF7  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_TEMPOK  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_TEMPOKSER  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60490  R_WDOKSER  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15195  C_TCNA  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C15195  C_TCPA  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C15850  C_3V3A1  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850  C_IN1  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850  C_KR  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850  C_LDOIN  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850  C_STOPR  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C26083  R_HYS1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C26083  R_HYS2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_SER0  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_SER1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_SER2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_SER3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_SER4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_SER5  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_SER6  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_SER7  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C11702  R_WDPETPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1523  C_DVDT  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C15849  C_ADCV  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C15849  C_OS  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849  C_OS2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849  C_SWA  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C15849  C_SWB  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C15849  C_SWRHA  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849  C_SWRHE  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25879  R_SCLA  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25879  R_SCLB  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25879  R_SDAA  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25879  R_SDAB  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C35165  J_PI  ADJUDICATED-MIRRORED  Numbering-wind convention on a symmetric keyless 2x20 THT socket: hole grids identical (mirror fit 0.00mm), ours winds by column (+y), JLC by row (+x); no internal pin identity to mirror, hole-constrained assembly; pin-1 defined by our netlist+silk.
+C2887273  CE1  OK  fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C25768  R_CLMPA  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25768  R_CLMPB  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C45783  C_LDOOUT  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C407739  R_OVB  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C8545  Q_COILDRV  OK  fit=0.08mm jlc_offset=180 db=180.0 src=lcsc
+C8545  Q_STOPDRV  OK  fit=0.08mm jlc_offset=180 db=180.0 src=lcsc
+C8545  Q_SWDRVA  OK  fit=0.08mm jlc_offset=180 db=180.0 src=lcsc
+C8545  Q_SWDRVB  OK  fit=0.08mm jlc_offset=180 db=180.0 src=lcsc
+C8545  Q_SWDRVRHA  OK  fit=0.08mm jlc_offset=180 db=180.0 src=lcsc
+C8545  Q_SWDRVRHE  OK  fit=0.08mm jlc_offset=180 db=180.0 src=lcsc
+C23138  R_OPTOLED  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25105  R_LCCLK  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25105  R_LCDAT  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C587657  J_PWR  OK  fit=0.00mm jlc_offset=180 db=180.0 src=lcsc
+C25117  R_ESTOPPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C137961  R_OS  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C37825  R_OPENT  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C137948  R_COILENPD  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C137948  R_COILENS  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C137948  R_ESTOPS  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25834  R_TH1  OK  fit=0.02mm jlc_offset=0 db=0.0 src=name-DB
+C6186  U_LDO  ADJUDICATED-PAD-GEOM  SOT-223 pad-length class: our lead pads [2.15..4.15] are a SUBSET of JLC's [1.72..4.22] (overlap = our full 2.00mm); tab overlap 1.99mm; pitch 2.30 identical, fit non-mirrored.
+C6186  U_LDO  OK  fit=0.27mm jlc_offset=180 db=180.0 src=lcsc
+C15127  Q_COIL  ADJUDICATED-PAD-GEOM  SOT-23 pad-length class: ours [0.20..1.68] vs JLC [0.65..1.65] per side, overlap 1.00mm (JLC near-subset of ours); pitch 1.90 identical, fit non-mirrored. KiCad official IPC pattern vs EasyEDA house fillet.
+C15127  Q_COIL  OK  fit=0.28mm jlc_offset=180 db=180.0 src=lcsc
+C15127  Q_REV  ADJUDICATED-PAD-GEOM  SOT-23 pad-length class: ours [0.20..1.68] vs JLC [0.65..1.65] per side, overlap 1.00mm (JLC near-subset of ours); pitch 1.90 identical, fit non-mirrored. KiCad official IPC pattern vs EasyEDA house fillet.
+C15127  Q_REV  OK  fit=0.28mm jlc_offset=180 db=180.0 src=lcsc
+C15127  Q_SWA  ADJUDICATED-PAD-GEOM  SOT-23 pad-length class: ours [0.20..1.68] vs JLC [0.65..1.65] per side, overlap 1.00mm (JLC near-subset of ours); pitch 1.90 identical, fit non-mirrored. KiCad official IPC pattern vs EasyEDA house fillet.
+C15127  Q_SWA  OK  fit=0.28mm jlc_offset=180 db=180.0 src=lcsc
+C15127  Q_SWB  ADJUDICATED-PAD-GEOM  SOT-23 pad-length class: ours [0.20..1.68] vs JLC [0.65..1.65] per side, overlap 1.00mm (JLC near-subset of ours); pitch 1.90 identical, fit non-mirrored. KiCad official IPC pattern vs EasyEDA house fillet.
+C15127  Q_SWB  OK  fit=0.28mm jlc_offset=180 db=180.0 src=lcsc
+C15127  Q_SWRHA  ADJUDICATED-PAD-GEOM  SOT-23 pad-length class: ours [0.20..1.68] vs JLC [0.65..1.65] per side, overlap 1.00mm (JLC near-subset of ours); pitch 1.90 identical, fit non-mirrored. KiCad official IPC pattern vs EasyEDA house fillet.
+C15127  Q_SWRHA  OK  fit=0.28mm jlc_offset=180 db=180.0 src=lcsc
+C15127  Q_SWRHE  ADJUDICATED-PAD-GEOM  SOT-23 pad-length class: ours [0.20..1.68] vs JLC [0.65..1.65] per side, overlap 1.00mm (JLC near-subset of ours); pitch 1.90 identical, fit non-mirrored. KiCad official IPC pattern vs EasyEDA house fillet.
+C15127  Q_SWRHE  OK  fit=0.28mm jlc_offset=180 db=180.0 src=lcsc
+C157991  J_LOADCELL  OK  fit=0.08mm jlc_offset=180 db=180.0 src=lcsc
+C133954  U_ONESHOT  ADJUDICATED-PAD-GEOM  SOIC-16 pad-length class (same class as C10092/U_SR1, different LCSC so its own row): ours [1.500..4.745] vs JLC [1.755..4.751] per side, overlap 2.990mm; pitch 1.27 identical, 16-pad topology matches, fit non-mirrored. KiCad IPC nominal vs EasyEDA toe-extended; the gull-wing foot (LS6.0) lands on copper in both.
+C133954  U_ONESHOT  OK  fit=0.27mm jlc_offset=270 db=270.0 src=lcsc
+C1017  FB1  OK  fit=0.09mm jlc_offset=0 db=0.0 src=name-DB
+C7984  U_COMP  ADJUDICATED-PAD-GEOM  SOIC-8 pad-length class, MEASURED 2026-07-26 against JLC SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL. Twin reports pad1<->pad8 ours 4.950mm vs JLC 5.420mm (d0.470mm) - the SAME KiCad-official-vs-EasyEDA-house-style fillet-length class already adjudicated on this board for C10092/C16939/C5620/C133954 (SOIC-16, 4.95 vs 5.48) and on usb-hub-3s for C83846/C148222. Pitch 1.27 identical, 8-pad topology matches, fit non-mirrored (rms 0.2351mm at 270 vs 4.1820mm next best). The delta is pad LENGTH along the across-body axis, so the lead lands on copper in both patterns; ours is the shorter-toe IPC/JEDEC nominal. NOTE this code is A-POL SINGLE-CHANNEL (dual-row SOIC pad cloud is its own 180 reflection; size-class degenerate) and therefore appears in rotation_human_gate.txt for BOTH refs - the geometry adjudication here does not discharge that obligation.
+C7984  U_COMP  OK  fit=0.24mm jlc_offset=270 db=270.0 src=lcsc
+C7984  U_COMP2  ADJUDICATED-PAD-GEOM  SOIC-8 pad-length class, MEASURED 2026-07-26 against JLC SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL. Twin reports pad1<->pad8 ours 4.950mm vs JLC 5.420mm (d0.470mm) - the SAME KiCad-official-vs-EasyEDA-house-style fillet-length class already adjudicated on this board for C10092/C16939/C5620/C133954 (SOIC-16, 4.95 vs 5.48) and on usb-hub-3s for C83846/C148222. Pitch 1.27 identical, 8-pad topology matches, fit non-mirrored (rms 0.2351mm at 270 vs 4.1820mm next best). The delta is pad LENGTH along the across-body axis, so the lead lands on copper in both patterns; ours is the shorter-toe IPC/JEDEC nominal. NOTE this code is A-POL SINGLE-CHANNEL (dual-row SOIC pad cloud is its own 180 reflection; size-class degenerate) and therefore appears in rotation_human_gate.txt for BOTH refs - the geometry adjudication here does not discharge that obligation.
+C7984  U_COMP2  OK  fit=0.24mm jlc_offset=270 db=270.0 src=lcsc
+C125121  U_OPTO  ADJUDICATED-PAD-GEOM  SMDIP-4, and the delta POINTS THE WRONG WAY - re-measured 2026-07-26 on the v1.3 board. The twin compares pad1<->pad4 CENTRE span (ours 9.530 vs JLC 10.000, d0.470) but the property this land exists to hold is the CLEAR STRIP between the two lead rows, i.e. the LTV-817S input<->output isolation barrier (5000Vrms; 02_parts/LTV-817S-TA1/part.yaml: 'the wide-body SMDIP-4 (W9.53mm) land holds the two lead rows ~9.53mm apart - preserve that full creepage/clearance across the barrier'). MEASURED, footprint-local: OURS rows at x=+-4.765 with 2.00mm-wide pads -> inner edges +-3.765 -> CLEAR STRIP 7.530mm. JLC OPTO-SMD-4_L4.6-W6.5-P2.54-LS10.3-BL rows at y=+-5.000 with 3.00mm-tall pads -> inner edges +-3.500 -> CLEAR STRIP 7.000mm. So JLC separates the ROWS 0.470mm further and then spends 0.265mm per side reaching back toward the barrier, leaving its strip 0.530mm NARROWER than ours. Our land is the CONSERVATIVE one on the only axis that matters, and adopting JLC would ERODE the barrier. Domains split as designed: pads 1/2 = OPTO_LED_A/GND (SELV, -x), pads 3/4 = CONTACTOR_E/CONTACTOR_C (isolated, +x); the strip is additionally denied to tracks/vias/pours on all four layers by the floorplan `opto_barrier` keepout [181.4,85.8,188.6,94.2], and the copper either side is held at 2.0mm by the `opto_isolation_2mm` DRU rule. Pitch 2.54 identical, 4-pad topology matches, fit non-mirrored; render pin-1 dot matches pad 1. This adjudication blesses GEOMETRY only - C125121 also carries a MEASURED rotation row, and the ORDER_README human gate names U_OPTO first because a rotated opto swaps the LED and transistor sides ACROSS the barrier.
+C125121  U_OPTO  OK  fit=0.24mm jlc_offset=270 db=270.0 src=lcsc
+C2653162  U_TC  OK  fit=0.06mm jlc_offset=270 db=270.0 src=lcsc
+C558584  U_EXP  OK  fit=0.04mm jlc_offset=270 db=270.0 src=lcsc
+C16939  U_ADC  ADJUDICATED-PAD-GEOM  SOIC-16 pad-length class, same measurement as C10092: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch identical, fit non-mirrored.
+C16939  U_ADC  OK  fit=0.27mm jlc_offset=270 db=270.0 src=lcsc
+C89650  F1  ADJUDICATED-PAD-GEOM  1812 fillet-style class: ours [1.58..2.70] (toe bias) vs JLC [1.15..2.55] (under-body bias) per side, overlap 0.98mm covering the full terminal band [1.60..2.25]; unpolarized part.
+C89650  F1  OK  fit=0.29mm jlc_offset=0 db=0.0 src=name-DB
+C5158048  D_COILEN  ADJUDICATED-PAD-GEOM  SOD-323 pad-length class: ours [0.750..1.350] vs JLC [0.800..1.600] per side, overlap 0.550mm covering the full lead-foot zone [0.85..1.25] (LS2.5); polarity gate PASS. v1.2 adds D_ESTOP (the E-stop input clamp, same PESD5V0S1BA land) — RE-MEASURED on the v1.2 board, extents identical to D_ESD_IN. v1.7 adds D_COILEN and RE-MEASURED BOTH LANDS FROM THE FOOTPRINTS rather than inheriting the v1.2 text: OURS Diode_SMD:D_SOD-323 pads at local x=+-1.0500 with size_x 0.6000 -> per-side copper [0.7500..1.3500]; JLC SOD-323_L1.7-W1.3-LS2.5-BI pads at local x=+-1.2000 with size 0.8000x0.8000 -> per-side copper [0.8000..1.6000]; overlap [0.800..1.350] = 0.550mm, and the LS2.5/L1.7 lead foot [0.85..1.25] is inside BOTH. All six refs carry the IDENTICAL footprint and the identical 2.100-vs-2.400 pad1<->2 delta, so one adjudication covers the class.
+C5158048  D_COILEN  OK  fit=0.15mm jlc_offset=0 db=0.0 src=lcsc
+C5158048  D_ESD_IN  ADJUDICATED-PAD-GEOM  SOD-323 pad-length class: ours [0.750..1.350] vs JLC [0.800..1.600] per side, overlap 0.550mm covering the full lead-foot zone [0.85..1.25] (LS2.5); polarity gate PASS. v1.2 adds D_ESTOP (the E-stop input clamp, same PESD5V0S1BA land) — RE-MEASURED on the v1.2 board, extents identical to D_ESD_IN. v1.7 adds D_COILEN and RE-MEASURED BOTH LANDS FROM THE FOOTPRINTS rather than inheriting the v1.2 text: OURS Diode_SMD:D_SOD-323 pads at local x=+-1.0500 with size_x 0.6000 -> per-side copper [0.7500..1.3500]; JLC SOD-323_L1.7-W1.3-LS2.5-BI pads at local x=+-1.2000 with size 0.8000x0.8000 -> per-side copper [0.8000..1.6000]; overlap [0.800..1.350] = 0.550mm, and the LS2.5/L1.7 lead foot [0.85..1.25] is inside BOTH. All six refs carry the IDENTICAL footprint and the identical 2.100-vs-2.400 pad1<->2 delta, so one adjudication covers the class.
+C5158048  D_ESD_IN  OK  fit=0.15mm jlc_offset=0 db=0.0 src=lcsc
+C5158048  D_ESTOP  ADJUDICATED-PAD-GEOM  SOD-323 pad-length class: ours [0.750..1.350] vs JLC [0.800..1.600] per side, overlap 0.550mm covering the full lead-foot zone [0.85..1.25] (LS2.5); polarity gate PASS. v1.2 adds D_ESTOP (the E-stop input clamp, same PESD5V0S1BA land) — RE-MEASURED on the v1.2 board, extents identical to D_ESD_IN. v1.7 adds D_COILEN and RE-MEASURED BOTH LANDS FROM THE FOOTPRINTS rather than inheriting the v1.2 text: OURS Diode_SMD:D_SOD-323 pads at local x=+-1.0500 with size_x 0.6000 -> per-side copper [0.7500..1.3500]; JLC SOD-323_L1.7-W1.3-LS2.5-BI pads at local x=+-1.2000 with size 0.8000x0.8000 -> per-side copper [0.8000..1.6000]; overlap [0.800..1.350] = 0.550mm, and the LS2.5/L1.7 lead foot [0.85..1.25] is inside BOTH. All six refs carry the IDENTICAL footprint and the identical 2.100-vs-2.400 pad1<->2 delta, so one adjudication covers the class.
+C5158048  D_ESTOP  OK  fit=0.15mm jlc_offset=0 db=0.0 src=lcsc
+C5158048  D_LCCLK  OK  fit=0.15mm jlc_offset=0 db=0.0 src=lcsc
+C5158048  D_LCDAT  OK  fit=0.15mm jlc_offset=0 db=0.0 src=lcsc
+C485354  J_MODE  OK  fit=0.00mm jlc_offset=180 db=180.0 src=lcsc
+C160403  J_ESTOP  OK  fit=0.00mm jlc_offset=0 db=0.0 src=name-DB
+C189896  J_RH_AMBIENT  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C189896  J_RH_EXHAUST  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C265111  J_THERM_A  OK  fit=0.01mm jlc_offset=0 db=0.0 src=lcsc
+C265111  J_THERM_B  OK  fit=0.01mm jlc_offset=0 db=0.0 src=lcsc
+C2683602  J_KEY_MATRIX  OK  fit=0.01mm jlc_offset=0 db=0.0 src=lcsc
+C113974  D_TVS  ADJUDICATED-PAD-GEOM  D_SMB fillet-length class (== usb-hub-3s C83846, 4.30 vs 4.72): ours [0.90..3.40] vs JLC [1.34..3.38] per side, overlap 2.05mm; leads land on both; polarity gate PASS.
+C113974  D_TVS  OK  fit=0.21mm jlc_offset=0 db=0.0 src=lcsc
+C6820  U_SCHM  OK  fit=0.15mm jlc_offset=270 db=270.0 src=lcsc
+C5620  U_DECD  ADJUDICATED-PAD-GEOM  SOIC-16 pad-length class, same measurement as C10092: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch identical, fit non-mirrored (Nexperia 74HC238D SOIC-16 = same JEDEC body).
+C5620  U_DECD  OK  fit=0.27mm jlc_offset=270 db=270.0 src=lcsc
+C5620  U_DECU  ADJUDICATED-PAD-GEOM  SOIC-16 pad-length class, same measurement as C10092: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch identical, fit non-mirrored (Nexperia 74HC238D SOIC-16 = same JEDEC body).
+C5620  U_DECU  OK  fit=0.27mm jlc_offset=270 db=270.0 src=lcsc
+C10092  U_SR1  ADJUDICATED-PAD-GEOM  SOIC-16 pad-length class: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch 1.27 identical, fit non-mirrored. KiCad IPC nominal vs EasyEDA toe-extended. (v1.2: U_SR2 deleted, ADR-0011 §5.)
+C10092  U_SR1  OK  fit=0.27mm jlc_offset=270 db=270.0 src=lcsc
+C8185  U_LATCHA  OK  fit=0.00mm jlc_offset=180 db=180.0 src=lcsc
+C8185  U_LATCHB  OK  fit=0.00mm jlc_offset=180 db=180.0 src=lcsc
+C8185  U_OENAND  OK  fit=0.00mm jlc_offset=180 db=180.0 src=lcsc
+C8185  U_STOPINV  OK  fit=0.00mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_AND1  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_AND1  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_AND2  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_AND2  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_AND3  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_AND3  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_CAND1  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_CAND1  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_CAND2  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_CAND2  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_DECDEN  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_DECDEN  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_DECUEN  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_DECUEN  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_FAULTAND  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_FAULTAND  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_LATCHG  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_LATCHG  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C22046  U_OSCLR  ADJUDICATED-PAD-GEOM  SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation.
+C22046  U_OSCLR  OK  fit=0.21mm jlc_offset=180 db=180.0 src=lcsc
+C8678  D_KSTOP  ADJUDICATED-PAD-GEOM  D_SMA fillet-length class (== usb-hub-3s C148222): ours [0.750..3.250] vs JLC [1.200..3.200] per side, overlap 2.000mm; polarity gate PASS (pad1=cathode vs footprint marker). v1.2 adds D_KSTOP (the K_STOP coil flyback, SS34 in the same D_SMA land) — RE-MEASURED on the v1.2 board, byte-identical extents to D_REVCLAMP.
+C8678  D_KSTOP  OK  fit=0.20mm jlc_offset=0 db=0.0 src=lcsc
+C8678  D_REVCLAMP  ADJUDICATED-PAD-GEOM  D_SMA fillet-length class (== usb-hub-3s C148222): ours [0.750..3.250] vs JLC [1.200..3.200] per side, overlap 2.000mm; polarity gate PASS (pad1=cathode vs footprint marker). v1.2 adds D_KSTOP (the K_STOP coil flyback, SS34 in the same D_SMA land) — RE-MEASURED on the v1.2 board, byte-identical extents to D_REVCLAMP.
+C8678  D_REVCLAMP  OK  fit=0.20mm jlc_offset=0 db=0.0 src=lcsc
+C165895  U_ULNA  OK  fit=0.15mm jlc_offset=270 db=270.0 src=lcsc
+C165895  U_ULNB  OK  fit=0.15mm jlc_offset=270 db=270.0 src=lcsc
+C2653844  U_EFUSE  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C7719  U_WD  OK  fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+
+207 OK / 465 finding rows; rotation-fitted refs: 207
+bodies mounted: 206/206
+report + renders -> /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin

@@ -1,0 +1,375 @@
+# policy_audit waivers — cooksense. Each REQUIRES measured evidence in `why`
+# (>=40 chars; canon M4). Read by skills/kicad-pcb/scripts/policy_audit.py.
+# Schema: list of {id, why}.
+
+- id: P-ADJ
+  why: >-
+    BOARD-WIDE-RAIL keep_short budgets are geometrically unreachable by P-ADJ's
+    max-pairwise-pad-span metric, which charges the ENTIRE rail net to the
+    budget declared for a LOCAL decoupling cap. Three violations, all measured on 04_kicad/cooksense.kicad_pcb 2026-07-23
+    (spans ~150mm, +-2mm across stochastic legalize runs; pad COUNTS are stable):
+      (1) 3V3 span ~149-151mm > 5mm (AMS1117-3.3 layout: "COUT >=22uF hard against
+          VOUT") — 3V3 is the whole-board digital rail feeding 60 pads across
+          the 154mm sidecar (every 595/238/HC14/1G-family/MCP23017/watchdog/
+          one-shot VCC + decoupler + the AMS output). No placement shrinks it.
+      (2) 3V3 span ~149-151mm > 5mm (SN74HC238DR layout: "0.1uF VCC-GND bypass hard
+          against the package") — same 60-pad rail; the budget is the per-'238
+          bypass, not the rail.
+      (3) 5V_PROTECTED span ~150mm > 8mm (AMS1117-3.3 layout: "CIN local to
+          VIN") — 5V_PROTECTED is the whole-board protected rail (14 pads: eFuse
+          OUT, bulk CE1, LDO IN, Q_COIL source, comparator VCC, loadcell feed,
+          TP), spanning power(NW) to analog(SW).
+    The ELECTRICAL INTENT each budget encodes — the local cap mounted hard
+    against the pin — IS honoured, verified pad-to-pad on the board:
+      * AMS1117 COUT C_LDOOUT(3V3) <-> U_LDO VOUT(pad2/4) = 3.12mm  (<5mm)
+      * AMS1117 CIN  C_LDOIN(5V_P) <-> U_LDO VIN(pad3)     = 3.00mm  (<8mm)
+      * '238 bypass  C_DECU/C_DECD(3V3) <-> U_DECU/D VCC   = 4.89mm  (<5mm)
+      * every IC 0.1uF decoupler sits 2-5mm from its package (audit_board.py
+        I-PROX gate, PASS: 26 proximity checks).
+    The span metric cannot distinguish the 3mm local cap from the rail's 151mm
+    reach; there is no per-IC input/output net to measure a local span on (the
+    same limitation crow-recorder-central recorded for its board-wide buck VIN,
+    07_releases/v1.0/.../redteam_layout L2). The rails ride the generate_rules
+    DRU floors (PWR_3V3 0.3mm, PWR_IN 0.5mm) and pours, not a keep-short trace.
+
+- id: P-ADJ-UNREACHED
+  why: >-
+    A SEPARATE waiver with its OWN evidence, deliberately NOT folded into the
+    P-ADJ waiver above — `policy_audit.py` says in its own source that letting
+    the existing P-ADJ waiver absorb these would be "a waiver silently widening
+    past its evidence", and that is exactly what this entry refuses to do.
+    THE COMPLETE CENSUS, MEASURED on 04_kicad/cooksense.kicad_pcb 2026-07-28:
+    **37 keep_short budgets declared across 02_parts, 12 graded, 25 unreached.**
+    Every row is enumerated in verification/padj_unreached_census.md — no
+    sampling, no "and others". The 25 split into exactly three causes:
+      (A) RAIL-PIN BUDGETS, 13 of 25 (`VCC` x4, `VDD` x2, `VREF`, `N3V3`,
+          `3V3_DIGITAL`, `+5V`, `5V_SELV`, and the two MCP entries). These are
+          per-instance LOCAL budgets ("0.1uF bypass hard against THIS package")
+          written as a PIN name. Renaming them to this board's rail is NOT a
+          fix, it is a FAKE GRADE, and that is measured rather than asserted:
+          the rail they would resolve to is `3V3` at **76 pads / ~150 mm span**,
+          which the P-ADJ waiver above already documents as geometrically
+          unreachable by a max-pairwise-pad-span metric. Renaming would convert
+          13 honest "never evaluated" into 13 instant violations absorbed by an
+          existing waiver — strictly worse evidence than saying so here.
+      (B) REFERENCE-DESIGN NET NAMES on FITTED parts, 7 of 25 (`HS_GATE` x2,
+          `OPTO_LED`, `EN_OVLO_N`, `ILM`, `dVdt`, `T_PLUS`/`T_MINUS`/`BIAS`).
+          These name a genuinely LOCAL relationship that this board DOES have
+          under a different net name. MEASURED, so the reader can see exactly
+          what the rename would have scored: HS_GATE -> `HS_GATE_COIL` 10.169mm,
+          `SWG_A` 4.128, `SWG_B` 6.445, `SWG_RHA` 6.445, `SWG_RHE` 7.429 (budget
+          6); OPTO_LED -> `OPTO_LED_A` 5.722 (budget 6, PASSES); EN_OVLO_N ->
+          `EF_OVLO` 8.473, ILM -> `EF_ILM` 6.982, dVdt -> `EF_DVDT` 4.524
+          (budgets 5); +5V -> `5V_IN` 18.106 (budget 10); 5V_SELV -> `5V_RPP`
+          15.581 (budget 3); T_PLUS/T_MINUS -> `TC_POS` 13.640 / `TC_NEG` 8.967
+          (budget 5, and the SAME two nets already grade PASS against
+          PCC-SMP-K's 20 mm budget). NOT renamed in this release: a rename
+          without a re-place trades 7 unreached for 10 violations on a placement
+          this revision did not author, and re-placing invalidates a route that
+          measures DRC 0/0/0 — that is a design pass, not a seal step.
+      (C) PARTS NOT FITTED on this board, 5 of 25 (`AQY212GS`, `SN74HC138DR`,
+          `SN74HC139DR`, `LM393DR`, `SN74LVC1G123DCTR` x2). Their budgets cannot
+          resolve because the part is not on the board. `LM393DR` is the
+          superseded comparator (v1.3 moved to the LMV393, whose IDENTICAL
+          budgets DO grade and PASS); `SN74LVC1G123DCTR` is the superseded
+          one-shot (v1.7 uses the CD74HC221's second section instead).
+    THE ELECTRICAL INTENT IS VERIFIED BY A DIFFERENT INSTRUMENT (canon M1), so
+    this is not an unmeasured hole: `audit_board.py`'s I-PROX gate PASSES 28
+    proximity checks over this board, measuring every IC decoupler 2-5 mm from
+    its own package pin, pad-to-pad — which is the fact the class-(A) budgets
+    were written to assert and which a whole-rail span metric structurally
+    cannot see. The class-(B) local spans are given above, measured.
+    OWED, and reported rather than applied (this agent may not edit skills/):
+    P-ADJ needs a per-INSTANCE budget form (`<ref-pattern> pin <n> -> <part>
+    within <x> mm`) so a local decoupling rule stops being expressed as a net
+    name. Until it exists, class (A) cannot be stated truthfully in the schema.
+
+- id: P-PLANE
+  why: >-
+    The 6 tracks on the In1 reference plane are ALL net=GND — same-net GND-pour
+    island BRIDGES emitted by stitch heal_islands, not foreign-net intrusions that
+    would SPLIT the plane. MEASURED on 04_kicad/cooksense.kicad_pcb 2026-07-23
+    (all six: net=GND, w=0.30mm, len 0.66-0.69mm, on In1.Cu, clustered x102-139
+    y94-97): each bridges two GND fill islands the pour left separated by a
+    <=0.30mm neck (heal gaps 0.26-0.29mm), reconnecting the ONE GND plane net.
+    P-PLANE's intent is that a reference plane must not be cut by SIGNAL copper
+    (which raises return-path impedance / splits the plane); a GND-on-GND bridge is
+    the OPPOSITE — it heals the plane. There is no cross-net track on In1 (verified:
+    0 non-GND In1 tracks). DRC is 0 shorts / 0 unconnected with these present, and
+    the GND net is a single connected body (heal_islands: GND 7->1 island).
+
+- id: R-POUR
+  why: >-
+    The four PWR_IN-class 5V nets (5V_IN, 5V_FUSED, 5V_PROTECTED, 5V_RPP) are
+    distributed as TRACKS, not pours, and that is ampacity-sufficient. MEASURED
+    min widths on 04_kicad/cooksense.kicad_pcb 2026-07-23: 5V_IN / 5V_FUSED /
+    5V_PROTECTED = 0.500mm (the PWR_IN DRU floor); 5V_RPP = 0.250mm ONLY at the
+    TPS259573 WSON-8 0.5mm-pitch pad entry (scoped floor efuse_padentry — the eFuse
+    PIN is the current bottleneck, not the trace; the 5V_RPP trunk is 0.5mm outside
+    that neck). Ampacity of 0.5mm @ 1oz(35um) external copper (IPC-2221): ~1.4A at
+    10C rise, ~1.9A at 20C rise. Worst-case CONTINUOUS board draw is <1A: the safety
+    interlock energizes at most 1 U-coil + 1 D-coil + PRESS at once (5V_KEY_RELAY
+    iout_max 0.15A per power_tree.yaml) + logic 0.3A + sensors 0.05A ~= 0.5A; the
+    2.0A figure in power_tree is the un-reachable absolute ceiling (all 12 coils, which
+    the interlock forbids). The TPS259573 eFuse programmable ILIM current-limits and
+    caps any fault. R-POUR expects power POURS as an ampacity heuristic; here the 5V
+    runs are short hops from the NW power-entry cluster to local loads at >=0.5mm,
+    for which a pour is not required. (GND + 3V3 DO ride inner planes; only the 5V
+    protected-input branch is track-distributed.)
+
+# --- SILK SEVERITY: transparency, not a silent blanket ignore (runbook step 5,
+#     2026-07-23). The .kicad_pro carries silk_over_copper / silk_edge_clearance /
+#     silk_overlap / text_thickness = `ignore` (so R-DRC = 0/0/0). This is NOT the
+#     fleet standard (which is silk DE-COLLISION + evidenced per-class waivers); this
+#     seal carries an EVIDENCED exception, each class documented below, backstopped by
+#     the fresh-context RENDER + POLARITY review (orchestrator verify stage) which must
+#     confirm NO functional/movable silk remains after the ANALOG SENSE relocation.
+#     NOTE: these SILK-* ids are DOCUMENTATION (policy_audit has no per-class DRC-warning
+#     waiver yet — fleet harvest #44); they make the ignore transparent + auditable.
+- id: SILK-OVER-COPPER
+  why: >-
+    silk_over_copper ignored: the reed-relay DIP body-outline silk overlays the THT
+    reed pads inherent to the DIP05-1A72-13L footprint (12 relays) — the outline is
+    the assembly body marker, unavoidable over the part's own pads; no OTHER-part or
+    functional silk is over copper. Real silk-over-PAD was caught + fixed separately
+    (ANALOG SENSE label relocated off U_ADC pads 1&16). Render-review backstops.
+- id: SILK-EDGE-CLEARANCE
+  why: >-
+    silk_edge_clearance ignored: the 252x92mm board packs dense edge connectors
+    (Micro-Fit, JST-GH x N, Pi header, terminal blocks) whose refdes/functional silk
+    sits near the milled edge by necessity; all labels remain legible and inside the
+    board. Render-review confirms no clipped/off-board text.
+- id: SILK-OVERLAP
+  why: >-
+    silk_overlap ignored: residual refdes/label overlaps in the dense connector +
+    ADC-cluster regions after the de-collision pass; none obscures a polarity/pin-1
+    or functional marker (render-review backstop). Cosmetic legibility only.
+- id: SILK-TEXT-THICKNESS
+  why: >-
+    text_thickness ignored. THE ORIGINAL TEXT OF THIS WAIVER ("0.15mm stroke =
+    JLCPCB's silk floor") WAS TRUE OF JLC'S PUBLISHED PAGE AND FALSE OF THIS
+    BOARD, and the gap is exactly what let six safety designators ship at
+    0.130 mm: `fix_silk_placement.py` was emitting `max(0.13, height * 0.2)`,
+    and `text_thickness` being `ignore` meant nothing measured it.
+    WHAT IS TRUE, ADR-0007 (2026-07-29): KiCad clamps silk stroke to
+    <= 0.25 x text height, so JLC's published 0.150 mm REQUIRES >= 0.600 mm
+    text; `fab_tiers.yaml`'s enforced height floor is 0.45 mm and its stroke
+    floor is therefore **0.1125 mm**, which is what 0.45 mm text actually
+    prints at. Both numbers now come from the same evidence (boards ordered at
+    these floors), instead of being two floors that could not both be met.
+    THE CLASS IS NOW MEASURED, NOT WAIVED: `fix_silk_placement.py` sets every
+    silk stroke to 0.25 x height and re-measures all of it from the saved
+    board — 249/249 texts at or above 0.1125 mm, 0 storing an unachievable
+    stroke, and 10/10 SAFETY texts at h 0.600 / stroke 0.150. The DRC class
+    stays `ignore` because KiCad grades it against the .kicad_pro's own
+    `min_text_thickness` rather than against the fab tier, but the property it
+    would have tested is now gated in source and fails the build loudly.
+
+- id: S-OCCL
+  refs: ["03_tscircuit/kicad/cooksense.kicad_sch"]
+  # DECLARED 2026-07-29 (W-FOREIGN, canon M4). The `why` below cites two other
+  # boards, and `waiver_provenance.py` FAILED it for naming another project with
+  # no `derived_from` — correctly, because an undeclared foreign citation is the
+  # byte-copy signature. What is inherited here is the waiver CLASS ONLY (the
+  # converter .kicad_sch is the MACHINE artifact per ADR-0002; readability is
+  # graded on tscircuit's own render). THE MEASUREMENT IS THIS BOARD'S: 77 sites
+  # inspected individually at 12 px/mm on cooksense's own schematic, plus the two
+  # 4.17 x 0.04 mm edge-kisses re-measured with the audit's own bbox model. The
+  # declaration is added rather than the citation deleted: the precedent is a real
+  # fact and hiding it to make a gate green would be the worse move.
+  derived_from: [crow-recorder-central-v2, crow-mic-pod-v2]   # waiver CLASS only; evidence is native
+  why: >-
+    The occlusions (count varies run-to-run — 77/78/79 observed, because the
+    converter mints fresh UUIDs and label bboxes shift; it is NOT a stable
+    figure and should not be quoted as one) are label-vs-reference/label bbox
+    overlaps in the tscircuit
+    CONVERTER .kicad_sch — per ADR-0002 + the 03_tscircuit contract that file is
+    the MACHINE artifact (ERC / netlist / --schematic-parity; "need not be
+    pretty"); the HUMAN schematic this board ships is tscircuit's own
+    collision-free render (03_tscircuit/build/schematic.pdf -> release
+    pdf/schematic.pdf). Same waiver class as sealed crow-recorder-central-v2 and
+    crow-mic-pod-v2. Evidence, not rationale: the fresh-context RENDER REVIEW
+    (06_build/verification/render_review.md, 2026-07-23) inspected ALL 77
+    pre-batch occlusion sites individually at 12 px/mm — zero dangerous
+    (wrong-wire-attachment) instances. The pre-seal batch re-layout shifted the
+    set 77 -> 78 (21 added / 20 removed, same three cosmetic classes on
+    unchanged circuitry); the only two pairs owned by NEW batch parts were
+    re-MEASURED with the audit's own bbox model: label DECU_G1 x Ref R_DECUPD
+    and label DECD_G1 x Ref R_DECDPD are both 4.17 x 0.04 mm edge-kisses — the
+    review's "pure noise" class (~28 of the 77 were identical 0.04 mm kisses).
+    Readability is NOT waived — it is graded on the shipped tscircuit render.
+
+- id: S-VER
+  refs: ["06_build/verification/pin_review.md"]
+  why: >-
+    The 8 flagged part.yaml entries carry verified: notes without a
+    figure/page citation string. The waiver rests on the MACHINE pin checks
+    recorded in 06_build/verification/pin_review.md (v1.3, 2026-07-26):
+    pin_audit.py over 74 dossiers, audit_board I-POL 18 polarity checks,
+    kicad-cli schematic-parity 0, and E-INV 83/83 — NOT on a narrative group
+    review. That file is EXPLICIT that its narrative review is
+    INCOMPLETE/carried-from-v1.0 and "should not be read as" coverage; this
+    waiver does not claim otherwise (an earlier revision of this text cited a
+    "5/5 groups, 0 confirmed pin-map defects" pin review that the file it names
+    does not contain — corrected here). On top of those machine checks, each
+    pinout is re-DERIVED against the named source per part:
+    SN74HC595DR (TI SCLS041J, SER/SRCLK/RCLK + QH' daisy chain), 2N7002
+    (Diodes DS11303 G/S/D, 5 instances), AO3401A (S/D/G re-derived, 6
+    instances incl. reverse-block orientation), ULN2803ADWR (IN/OUT
+    corner-pairing all 8ch, COM rail), SN74HC14DR (all 6 inverters traced),
+    LTV-817S-TA1 (817-family invariant pinout, vendor-invariant basis stated
+    in the review), X9555WV IDC (standard 2.54 2x16 odd/even grid + jlc_twin
+    pad-grid check vs JLC CAD), GZ2012D601TF (2-pad unpolarized ferrite;
+    polarity N-A, asserted by audit I9). The commodity 2/3-pad entries
+    (2N7002/AO3401A/GZ2012) additionally ride the board-generator + audit_board
+    I-POL polarity gate (18 checks PASS).
+
+# ---------------------------------------------------------------------------
+- id: P-SILK-FN
+  refs: [J_ISOLOOP, J_THERM_B, J_LOADCELL, J_TC, J_KEY_MATRIX, J_PWR,
+         J_ESTOP, J_RH_AMBIENT, J_RH_EXHAUST,
+         TP_3V3, TP_5VKR, TP_5VP, TP_ALLOW, TP_ENCL, TP_ESTOP, TP_FAULT,
+         TP_SPARE, TP_TCDRDY, TP_TCFAULT, TP_TCTH, TP_TEMPOK, TP_WDOK]
+  why: >-
+    NEW FAILURE ON A NEWLY-SIGHTED GATE, AND THAT IS THE POINT. Until
+    2026-07-28 P-SILK-FN's default pattern was `^(J|F|TP)[0-9]`, which demands a
+    DIGIT immediately after the prefix; this board names its touchpoints
+    `J_ESTOP` / `TP_WDOK`, so the gate matched exactly ONE ref of 36 (`F1`) and
+    could only ever report PASS. The pattern is now `^(J|F|TP)([0-9]|_)`, the
+    graded set went 1 -> 31, and the gate immediately FAILED on 23 of them. A
+    gate that has just learned to see is exactly the wrong moment to assume its
+    complaint is noise — so the complaint was MEASURED before being waived.
+
+    WHAT THE CHECK ACTUALLY TESTS: it looks only at board-level `PCB_TEXT` on a
+    silk layer and asks whether one lies within `8 mm + half the part diagonal`
+    of each connector/fuse/test point. It CANNOT SEE FOOTPRINT REFERENCE TEXT.
+    Its premise is a board whose designators are opaque (`J1`, `TP7`), where a
+    separate caption is the only thing that says what the touchpoint is. That
+    premise is INVERTED here: this board's designator IS the functional label,
+    which is the same naming convention that made the old pattern blind.
+
+    MEASURED on the v1.7 board (`04_kicad/cooksense.kicad_pcb`), all 23:
+      * 23 of 23 carry a VISIBLE refdes ON A SILK LAYER. **THE STROKE CLAUSE
+        OF THIS WAIVER WAS FALSE AND IS CORRECTED HERE RATHER THAN QUIETLY
+        REWRITTEN.** As first written on 2026-07-28 it said the refs carry
+        "a 0.13-0.15 mm stroke — at or above the `jlc_4layer_advanced`
+        legibility floor". They did not, and there was no floor they could
+        have been at or above: `fab_tiers.yaml` then declared
+        `min_silk_text_height: 0.45` AND `min_silk_stroke: 0.15` together,
+        which KiCad makes UNSATISFIABLE (it clamps stroke to <= 0.25 x height,
+        so 0.45 mm text carries at most 0.1125 mm). Six SAFETY designators on
+        this very board were sitting at 0.130 mm while this sentence called
+        that acceptable. ADR-0007 (2026-07-29) set `min_silk_stroke` to
+        **0.1125** and stated the corollary: reaching JLC's published 0.150
+        needs >= 0.60 mm text.
+        RE-MEASURED on the v1.7 board after the ADR-0007 silk pass, and this
+        time against a floor that can be met: **249 of 249 visible silk texts
+        carry stroke = 0.25 x height exactly, 0 below the 0.1125 mm tier floor,
+        0 storing a stroke KiCad would clamp away**, and all 10 members of the
+        SAFETY-TEXT class (the four safety connectors, every label printed
+        within 8 mm of a safety housing, and the ADR-0018 interlock parts) are
+        at h 0.600 / stroke 0.1500 — JLC's published floor. Of the 23 refs
+        here, 13 sit at h 0.60 and the rest at h 0.45 / 0.1125.
+        Refs NOT legibly on silk: **NONE**.
+      * 11 of 23 name a net the part physically touches, matched
+        underscore-insensitively against the netlist: TP_3V3->3V3,
+        TP_5VP->5V_PROTECTED, TP_ESTOP->ESTOP_OK, TP_FAULT->FAULT,
+        TP_TEMPOK->TEMP_OK, TP_WDOK->WD_OK, TP_TCDRDY->TC_DRDY_N,
+        TP_TCFAULT->TC_FAULT_N, J_ESTOP->ESTOP_RAW, J_TC->TC_NEG_IN.
+        (v1.8/ADR-0025: `J_DOOR->DOOR_RAW` is struck — J_DOOR is removed from the
+        netlist, so 10 of 22 now name a net they touch. The DENOMINATOR MOVED and
+        is restated rather than left stale: the graded set drops from 23 refs to
+        22, because a waiver whose counts no longer add up is how an inherited
+        defect looks from the inside.)
+      * the other 12 name a FUNCTION rather than a net, which is the correct
+        thing for a connector to be called: J_PWR, J_LOADCELL, J_KEY_MATRIX,
+        J_ISOLOOP, J_RH_AMBIENT, J_RH_EXHAUST, J_THERM_B, TP_ENCL, TP_ALLOW,
+        TP_5VKR, TP_TCTH, TP_SPARE.
+      * 9 of the 31 graded refs DO have a nearby board caption and pass
+        outright; the board carries 13 board-level silk texts. THE "SE CORNER
+        IS SATURATED / nearest site 41.9 mm" LINE THAT USED TO STAND HERE IS
+        ALSO WITHDRAWN: re-measured 2026-07-29 with the hazard-caption reserve
+        armed, an `ISO 30V` caption places **0.561 mm from the J_ISOLOOP block
+        body** at h 0.60 / stroke 0.150. What blocked it was never geometry —
+        it was `C_LATCHB`'s and `U_OPTO`'s designators, parked there
+        first-come-first-served. The residual constraint is real but narrower:
+        after that caption the block affords no second one (nearest site for
+        `NOT SELV` measures 11.086 mm), so the pole map rides the north-stack
+        sentence. There is still no room to add 23 captions, and adding them
+        would displace the safety captions that ARE
+        there.
+
+    NOT A BLANKET PASS ON CONNECTOR SILK. The hazard P-SILK-FN exists to catch —
+    "which housing is this?" — is graded on this board by TWO other things that
+    DID fail and were FIXED: `fix_silk_placement.py` pass B (ownership) and pass
+    C (cross-naming). Both re-derive from the final board and both FAIL THE BUILD.
+    v1.8/ADR-0025 CHANGES THE MEMBERSHIP OF PASS B AND THE LEADS MUST BE
+    RE-MEASURED, NOT INHERITED: the list was `J_DOOR/J_ESTOP/J_MODE` with achieved
+    leads +2.353 / +1.742 / +10.784 mm. It is now `J_ESTOP/J_ISOLOOP/J_MODE` —
+    `J_DOOR` leaves with its part, and `J_ISOLOOP` (the NOT-SELV 30 V terminal)
+    JOINS because removing J_DOOR's courtyard opens the one candidate pocket that
+    was closed to it: +6.089 mm predicted at (192.655, 84.975), to be CONFIRMED by
+    the pass's own RESIDUAL line on the built board. Pass C's founding subjects
+    `D_DOOR` and `R_DOORPD` are both deleted; the pass and its remaining subjects
+    (`R_ESTOPPD`, `R_ESTOPS`, `D_ESTOP`, the MODE and ISOLOOP tokens) stand.
+
+    OWED, and reported upstream rather than patched here (this agent may not edit
+    `skills/`): P-SILK-FN should count a footprint's own visible silk REFERENCE
+    as functional silk when the refdes is not a bare `<prefix><digits>` — and it
+    still has no known-bad fixture, which the v1.7 dispositions already record as
+    a debt. Until it has one, this waiver is the measurement standing in for it.
+
+- id: P-SILK-OWN
+  why: >-
+    FIVE misowned labels reported, and ALL FIVE are an artifact of the gate's
+    CENTROID-TO-TEXT-CENTRE metric on parts with large bodies. Re-measured
+    2026-07-29 on 04_kicad/cooksense.kicad_pcb by an INDEPENDENT method — box
+    EDGE-TO-EDGE gap, text bounding box against footprint bounding box (pads +
+    graphics, GetBoundingBox(False, False)) — which is the distance a human
+    reading the fabricated board actually judges by, and which the gate's own
+    text acknowledges it wants ("waive with the measured pair of distances").
+    Every number below is from that re-measure, and the gate's own numbers are
+    quoted beside them so the disagreement is visible rather than hidden.
+      (1) J_ISOLOOP / 'ISO 30V' — gate: 9.641 mm own vs J_DOOR 7.844 mm.
+          EDGE: own **0.561 mm** vs J_DOOR **1.060 mm** -> J_ISOLOOP OWNS IT by
+          +0.499 mm. Same for 'NOT SELV': EDGE own 1.936 vs J_DOOR 2.092. The
+          centroid measure is wrong here BY CONSTRUCTION: J_ISOLOOP is a KF350
+          4-pole block whose body spans x[191.57, 199.22], so its centroid sits
+          ~4 mm from the edge the caption is printed against. THE ONE HAZARD
+          LABEL ON THIS BOARD IS OWNED BY ITS OWN TERMINAL, and that is the
+          finding that matters in this row.
+      (2) TP_RKEY / 'KEYPAD ISOLATION COMB   >=6mm creepage   NO GND BOND' —
+          gate: 5.701 own vs TP_DSEL 5.408. EDGE: own **0.000 mm** (the boxes
+          overlap) vs TP_DSEL **2.406 mm** -> TP_RKEY OWNS IT by +2.406 mm.
+      (3) TP_USEL / 'cooksense  SMC0985KS  sidecar v1.7' — gate: 6.946 own vs
+          TP_DSEL 4.610. EDGE: **1.304 mm to BOTH** — an exact tie, because this
+          is the BOARD-IDENTIFICATION caption centred on the north edge between
+          the two select test points. It names the board, not a connector; there
+          is no "own part" for it to be nearer to, and nobody wires anything by
+          reading a revision string.
+      (4) TP_PGOOD / '5V SELV IN' — gate: 8.429 own vs F1 3.833. EDGE: own
+          4.472 vs F1 **1.008**. F1 IS THE CORRECT SUBJECT: the caption names
+          the 5 V SELV input RAIL and F1 is the input polyfuse ON that rail, so
+          the label is 1.008 mm from the thing it describes. TP_PGOOD is a test
+          point and carries its own refdes on F.Silkscreen at (44.60, 56.20).
+      (5) J_RH_EXHAUST — owns no functional caption at all; its nearest is
+          J_ISOLOOP's 'ISO 30V' at EDGE **6.661 mm**, where the true owner sits
+          at 0.561 mm — an 11.9x lead for J_ISOLOOP. A hazard caption 6.7 mm
+          away is not plausibly read as this connector's legend, and
+          J_RH_EXHAUST's identity is its own refdes on F.Silkscreen at
+          (180.00, 95.50).
+    WHAT WAS NOT WAIVED, BECAUSE IT WAS A REAL DEFECT AND IT WAS FIXED: this
+    gate's first run on this board ALSO reported `J_RH_AMBIENT: silk '1C2L3L4E'
+    ... 13.841 mm own vs J_RH_EXHAUST 6.210 mm`. That token is J_ISOLOOP's
+    four-pole legend, and EDGE-measured it sat **0.161 mm from J_RH_EXHAUST**
+    (a 5-pole JST-GH sensor header) against 5.512 mm from its attributed owner.
+    `fix_silk_placement.py` had bounded that caption's distance to its OWN part
+    and tested nothing about the others, so it placed a 30 V pole legend against
+    a sensor connector, legally by its own rule. The pass now REJECTS any site
+    where J_ISOLOOP is not the nearest connector/fuse/test-point, and the token
+    reports DOES NOT FIT (no owned site exists anywhere near the block) instead
+    of being printed on the wrong part. The information is carried in full and
+    SELF-IDENTIFIED by the north-stack caption "J_ISOLOOP (SE CORNER) =
+    ISOLATED 30V CONTACTOR LOOP -- NOT SELV -- POLES 1=C 2=LOOP 3=LOOP 4=E".
+    Two independent methods found that one — this gate, and the placement pass's
+    own new ownership test — and they share no code.

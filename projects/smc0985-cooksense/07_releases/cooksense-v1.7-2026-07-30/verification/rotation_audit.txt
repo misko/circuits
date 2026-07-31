@@ -1,0 +1,1 @@
+ROTATION-TABLE OK: 64 rows, each an independently MEASURED authority (M-PROV) with its polarity channel declared (A-POL)

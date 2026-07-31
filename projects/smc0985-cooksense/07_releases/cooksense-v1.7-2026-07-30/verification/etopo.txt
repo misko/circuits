@@ -1,0 +1,5 @@
+E-TOPO OK: 1/1 rail(s) topology-correct, covering 1/1 converter part(s) in 02_parts
+  rail '3V3' (Vin 4.728-5.25 V, Vout 3.201-3.399 V): required=BUCK, declared=LINEAR (AMS1117-3.3) -> step-down requirement MET by a linear pass element; rail '3V3' LINEAR (AMS1117-3.3): headroom 1329 mV (Vin_min 4.728 - Vout_max 3.399) vs dropout 1300 mV; PD 410 mW ((Vin_max 5.25 - Vout_min 3.201) x 0.2 A) vs rating 497 mW (82%) -> PASS
+  input-trunk worst case: 0.2 A at Vin_min 4.728 V (Sum Pout=0.6798 W / eff = 0.946 W input / 4.728 V)
+  OVER-BUILT (advisory): declared trunk current 2 A (class 'PWR_IN') is >2x the derived need 0.2 A — over-provisioned (the usb-hub-3s 16A-vs-7A class); confirm it is intentional
+  OVER-BUILT (advisory): fuse rated 2 A is >2x the derived need 0.2 A — over-provisioned [read from nets.yaml: TPS259573 eFuse -> 5V_PROTECTED. Carries the WHOLE-BOARD current (~1-2A worst:]

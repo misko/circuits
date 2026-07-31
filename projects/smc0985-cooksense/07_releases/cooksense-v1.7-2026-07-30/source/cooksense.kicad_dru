@@ -1,0 +1,37 @@
+(version 1)
+(rule "PWR_IN_width"
+  (condition "A.NetClass == 'PWR_IN'")
+  (constraint track_width (min 0.5mm)))
+(rule "COIL_RAIL_width"
+  (condition "A.NetClass == 'COIL_RAIL'")
+  (constraint track_width (min 0.4mm)))
+(rule "STOP_RAIL_width"
+  (condition "A.NetClass == 'STOP_RAIL'")
+  (constraint track_width (min 0.4mm)))
+(rule "PWR_3V3_width"
+  (condition "A.NetClass == 'PWR_3V3'")
+  (constraint track_width (min 0.3mm)))
+(rule "PWR_SW_width"
+  (condition "A.NetClass == 'PWR_SW'")
+  (constraint track_width (min 0.3mm)))
+(rule "ISO_CONTACTOR_width"
+  (condition "A.NetClass == 'ISO_CONTACTOR'")
+  (constraint track_width (min 0.3mm)))
+(rule "KEYPAD_ISO_width"
+  (condition "A.NetClass == 'KEYPAD_ISO'")
+  (constraint track_width (min 0.3mm)))
+(rule "ANALOG_SENSE_width"
+  (condition "A.NetClass == 'ANALOG_SENSE'")
+  (constraint track_width (min 0.249mm)))
+(rule "scoped_efuse_padentry"
+  (condition "A.insideArea('efuse_padentry') && (A.NetName == '5V_RPP' || A.NetName == '5V_PROTECTED')")
+  (constraint track_width (min 0.25mm)))
+(rule "keypad_isolation_6mm"
+  # brief section 4/7 + ADR-0001: the keypad contact domain shares no GND with SELV logic and must hold >=6mm creepage
+  # EXEMPTION, evidenced not constructed (canon M4): J_KEY_MATRIX is the ONLY connector on the isolated side of the reed barrier, so its SM10B-GHS-TB shell tabs are unbonded BY DESIGN (bonding them to the SELV plane would short the isolated domain). Measured on sealed v1.6: dropping the exemption yields 67 clearance violations, 67/67 with J_KEY_MATRIX.MP on one side and a KEYPAD_ISO net on the other - zero domain crossings, worst 0.5723mm. The board's only 2 unnetted copper items are both J_KEY_MATRIX.MP, so the exempted set is FINITE and enumerated. Previously this was `B.NetName != ''`, which exempted ALL unnetted copper BY CONSTRUCTION and made a 0-violation DRC report meaningless about the board's headline safety property.
+  (condition "A.NetClass == 'KEYPAD_ISO' && B.NetClass != 'KEYPAD_ISO' && !B.memberOfFootprint('J_KEY_MATRIX')")
+  (constraint clearance (min 6.0mm)))
+(rule "opto_isolation_2mm"
+  # IEC 60664-1 basic insulation, 30V working, pollution degree 3 (steam-carrying cooking appliance), material group IIIa
+  (condition "A.NetClass == 'ISO_CONTACTOR' && B.NetClass != 'ISO_CONTACTOR'")
+  (constraint clearance (min 2.0mm)))

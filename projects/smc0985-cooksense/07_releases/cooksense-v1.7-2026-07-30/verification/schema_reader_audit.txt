@@ -1,0 +1,77 @@
+G-ORPHAN schema-reader audit — input: /home/mouse9911/gits/circuits/skills/pcb-design/templates/contracts (claims) x 51 hand-authored source file(s) (denominator)
+  315/315 declared key(s) graded OK across 7 governed famil(ies): 254 PROVEN, 19 advisory, 42 OWED, 0 UNREAD, 0 UNPROVABLE; 0 ORPHAN key(s) in source with no row
+  the fleet's source declares 289 distinct schema key(s) under those rows; 37 row(s) are `*` SUBTREE claims covering 179 of them
+  family                                   rows obsv prov advi owed  bad
+  02_parts/*/part.yaml                       97  235   55   17   25    0
+  03_src/floorplan.yaml                      86    0   86    0    0    0
+  03_src/route.yaml                          36    0   36    0    0    0
+  03_src/rules/electrical_invariants.yaml    21   17   21    0    0    0
+  03_src/rules/nets.yaml                     40   13   32    0    8    0
+  03_src/rules/policy_waivers.yaml            4    4    3    0    1    0
+  03_src/rules/power_tree.yaml               31   20   21    2    8    0
+  OWED — a gate is INTENDED and absent (42):
+    02_parts/*/part.yaml `datasheet.local`: the in-tree PDF path. M-DEPEND grades that a sealed release carries its dossiers; nothing grades that this path RESOLVES, so a moved PDF is silent
+    02_parts/*/part.yaml `datasheet.revision`: the revision the pin map and limits were read from; a datasheet revving under a sealed release is exactly M-DEPEND's class and this field is where it would be caught
+    02_parts/*/part.yaml `datasheet.sha256`: the fetched PDF's digest — an M-IMPORT provenance grade nothing recomputes, so a re-fetched or substituted revision cannot be detected
+    02_parts/*/part.yaml `electrical.*`: the rest of the block is per-part datasheet numbers with no consumer: coil pull-in/resistance over temperature, Vce(sat)/Vds points, r_on corners, dropout, tempco, `t_op`. Each is the kind of number a `part_value`/`node_level` invariant SHOULD cite, and the cooksense relay coil at 70 C is the worked case for why (it was checked by hand)
+    02_parts/*/part.yaml `escape.checked`: the date/method the escape was calibrated. 125 dossiers carry it; `escape_check.py` recomputes the geometry and never reads this, so a stale calibration note is invisible
+    02_parts/*/part.yaml `escape.loaded_side_escapes`: a second escape count for the loaded side, declared once and read by nothing
+    02_parts/*/part.yaml `escape.per_pin.<N>`: per-pin escape overrides; not declared by any dossier today, and P-ESC would not see one if it were
+    02_parts/*/part.yaml `i2c.address`: the device address; a bus with two parts at one address is checkable from the dossiers alone
+    02_parts/*/part.yaml `layout.reviewed`: the date the layout section was read. P-LAYOUT grades that `layout:` EXISTS and that `source:` is cited; nothing grades this, so an unreviewed copy of a sibling's block reads identically
+    02_parts/*/part.yaml `loading_caps.*`: a crystal's load-capacitor formula and per-leg value — an `electrical_invariants.yaml` `part_value` waiting to be written
+    02_parts/*/part.yaml `mechanical.*`: the per-FEATURE 3D bag: one entry per named feature the vendor model contains (`usb_c`, `buttons`, `ws2812`, `rp2040`, `crystal`, `rt9013`, `flash` on the RP2040-Zero), each carrying its `side`, its footprint (`extent_mm`/`centre_mm`/`body_mm`) and how proud it stands (`protrusion_mm`/`height_mm`), plus per-kind connector terms (`mating_face_y_mm`, `z_mm`, `shell_x_mm`, `cavity_centreline_above_pcb_top_mm`). BLANKET because the feature NAMES and their per-kind terms are both open; the four scalars above are enumerated OUT of it because they are not. Two facts in here are ARITHMETIC against those scalars and nothing performs it: `bottom_side_max_protrusion_mm` must be the max `protrusion_mm` over the `side: bottom` entries (max(0.850, 1.000, 0.700) = 1.000 today), and a `mating_face_y_mm` past the part outline is a carrier KEEPOUT the floorplan must honour (24.816 against an outline ending at 23.500 — 1.21 mm of receptacle hanging over the board edge)
+    02_parts/*/part.yaml `mechanical.bottom_side_max_protrusion_mm`: THE SEATABILITY NUMBER, and the load-bearing key of this block. Tallest feature on the CARRIER-FACING face, so non-zero means the part cannot be reflowed flat — a POPULATION decision, not a footprint note. RP2040-Zero declares 1.000 (the 12 MHz crystal, MEASURED off the vendor STEP) and pluto-rx2-8way-v2's `assembly.yaml` carries the matching `not_assembled` entry for `U_MCU`, whose evidence opens "MECHANICAL, and MEASURED rather than argued". `assembly_coverage.py` grades that entry's SHAPE — reason inside the closed vocabulary, dated evidence, the ref off the CPL — and never that the reason is TRUE. The intended gate is the one that makes the two homes able to DISAGREE OUT LOUD
+    02_parts/*/part.yaml `mechanical.pcb_thickness_mm`: the part's own laminate thickness — one term of the carrier stack and of `total_thickness_mm`'s sum, read by nothing
+    02_parts/*/part.yaml `mechanical.top_side_max_height_mm`: tallest feature on the face AWAY from the carrier: the enclosure/lid budget. Spent by a human today, and nothing reconciles it against the per-feature heights in the bag below
+    02_parts/*/part.yaml `mechanical.total_thickness_mm`: the stack, and it is DERIVED: bottom protrusion + laminate + top height (1.000 + 1.091 + 3.250 = 5.341 on the one dossier that declares it). A sum nothing re-adds is the `ratings.*` shape — assertable arithmetic with no assertion
+    02_parts/*/part.yaml `mechanical_pads.<NAME>.*`: shield/NPTH pads and their KiCad pad names — the field that decides whether a shell tab is a net or a hole, read by nothing
+    02_parts/*/part.yaml `on_live_board`: a claim that this exact part is on a shipped board — checkable against the sealed BOM and checked by nothing
+    02_parts/*/part.yaml `orientation.*`: the as-placed rotation and pin-1/pole marker evidence. The rotation AUTHORITY is `jlc_rotation_*`; this per-dossier claim is not cross-checked against it, which is the M-PROV shape
+    02_parts/*/part.yaml `pins.<N>.tie`: 84 pins name the net they must land on and NOTHING reads it — the `GND_ISO` field class. E-NETREF K13; the patch is in `schema_reader_audit.py`'s docstring
+    02_parts/*/part.yaml `power_pins.<NAME>.*`: a per-rail pin grouping on the one 128-pin MCU dossier. `pins:` is graded; this parallel structure is a second home for the same map and read by nobody
+    02_parts/*/part.yaml `ratings.*`: per-part electrical ratings (`i_sat`, `dcr_max`, `impedance_100mhz`, `voltage`, `dielectric`, ...). Unlike `limits:` these are the SELECTION criteria the part was chosen on, so they are assertable — an inductor's `i_sat` against the rail's `iout_max_A` is arithmetic nothing does
+    02_parts/*/part.yaml `sourcing.do_not_use`: an explicit ban on a code. Nothing reads it, so a banned code can be typed back into a BOM with every gate green
+    02_parts/*/part.yaml `sourcing.jlc_basic`: basic-vs-extended, which sets the assembly fee and the stock risk; `jlc_stock_check.py` queries the catalog and never reads this claim, so the two cannot be reconciled
+    02_parts/*/part.yaml `sourcing.mfr_substituted`: records that the manufacturer was substituted; `release_freshness_check.py --sourcing-supersede` grades the BOM/CPL delta of a substitution and does not read this
+    02_parts/*/part.yaml `superseded_by`: the retirement pointer of a replaced dossier; `status:` is read, this is not, so a superseded part names its replacement to nobody
+    03_src/rules/nets.yaml `classes.<C>.exemptions`: *Validate* above says "every `exemptions[].area` names a rule area that exists on the board" — a sentence a human was supposed to check, and nothing does. Not declared by any board today
+    03_src/rules/nets.yaml `classes.<C>.intent`: the *Structure* section above makes it REQUIRED per class and NOTHING reads it — not the text, not its presence. `rules_audit.py` names `intent` only in its own docstring. Owed: the same presence-plus-readability gate `current:` got as A-AMP
+    03_src/rules/nets.yaml `classes.<C>.routing`: REQUIRED per class ("pour vs track, and the strategy") and read by nothing, though it states which conductor actually carries the current that A-AMP grades as a track width
+    03_src/rules/nets.yaml `classes.<C>.verify`: REQUIRED per class ("how to prove it") and read by nothing; a declared verification method that no gate resolves is the R-LEN shape
+    03_src/rules/nets.yaml `length_match.<G>.phase`: the block's own comment calls it "OPTIONAL reporting aid, never a gate" — and it does not reach the report either: `copper_length_audit.py` prints its phase conversion from constants it re-derives itself (6.105 ps/mm, 13.19 deg/mm), never from this declaration. A board writing `t_pd_ps_per_mm: 6.0` beside a gate using 6.105 has two homes for one number and nothing reconciles them
+    03_src/rules/nets.yaml `length_match.<G>.phase.f_ghz`: the frequency the phase conversion is quoted at; same cross-check as `t_pd_ps_per_mm` above
+    03_src/rules/nets.yaml `length_match.<G>.phase.stackup`: the stackup the constants were solved on; the key that would make a stackup change invalidate a published picosecond figure LOUDLY rather than silently — ADR-0011's own stated worry, currently unenforced
+    03_src/rules/nets.yaml `length_match.<G>.phase.t_pd_ps_per_mm`: A SECOND HOME FOR A NUMBER THE GATE RE-DERIVES, and the two DISAGREE. `copper_length_audit.py` computes t_pd from the stackup (6.105 ps/mm on JLC04161H-7628) and names this key only in a docstring schema example, so the declared value is graded by nothing. pluto-cal-switch declares 6.0 — measured 1.3% low, because ADR-0010's constants were solved at eps_r 4.3 while its own stackup table declares Dk 4.4. The resolution is a CROSS-CHECK, not a read: reading the declared value would make the gate use the wrong number, whereas comparing them would have caught the stackup defect from the source alone (canon M-ENTRY). Do NOT close this by having the gate read it
+    03_src/rules/policy_waivers.yaml `[].refs`: A WAIVER IS APPLIED BY `id` ALONE. `policy_audit.py` builds `waived_ids` from `w["id"]` and never reads `refs:`, and `waiver_provenance.py` reads `why`/`derived_from` only — so a waiver written for `refs: [J1]` silences that check for EVERY ref on the board, and the list reads as a scope it does not have. `policy_audit.py`'s own docstring documents the `{id, refs, why}` shape, which is a MENTION and exactly the R-LEN shape. Owed: honour `refs:` as the waiver's scope, or state in the schema that it is documentation
+    03_src/rules/power_tree.yaml `linear_rails[].element`: the pass element's refdes — the part whose Rds(on)/ESR sets the drop the envelope claims
+    03_src/rules/power_tree.yaml `linear_rails[].iout_max_A`: as `vin_min`; also absent from the trunk-current sum `rails[]` feeds
+    03_src/rules/power_tree.yaml `linear_rails[].kind`: the closed-ish vocabulary (`protection_pass`, load switch, link) that would decide WHICH bound applies, read by nothing
+    03_src/rules/power_tree.yaml `linear_rails[].ovlo_trip_V`: an over-voltage trip point, declared once and graded nowhere
+    03_src/rules/power_tree.yaml `linear_rails[].vin_max`: as `vin_min`
+    03_src/rules/power_tree.yaml `linear_rails[].vin_min`: see the note above: `power_topology.py` names `linear_rails` only in a docstring. Five cooksense rails carry a full envelope no gate reads
+    03_src/rules/power_tree.yaml `linear_rails[].vout_max`: as `vin_min`
+    03_src/rules/power_tree.yaml `linear_rails[].vout_min`: as `vin_min`; this is the number the Rds(on)/ESR drop arithmetic would be checked against
+  ADVISORY — declared read by nobody, with a reason (19):
+    02_parts/*/part.yaml `datasheet.doc_id`: the vendor document number, for a human re-fetching it
+    02_parts/*/part.yaml `datasheet.fetched`: the date the PDF was pulled, for a human judging staleness
+    02_parts/*/part.yaml `datasheet.file`: as `pdf:`
+    02_parts/*/part.yaml `datasheet.lcsc_url`: the distributor page the PDF was reached through
+    02_parts/*/part.yaml `datasheet.note`: prose about the fetch
+    02_parts/*/part.yaml `datasheet.pages`: page count, so a truncated download is visible to a reader
+    02_parts/*/part.yaml `datasheet.pdf`: an alternate spelling of `local:` on two dossiers; consolidate on `local:`
+    02_parts/*/part.yaml `datasheet.product_page`: the vendor landing page
+    02_parts/*/part.yaml `datasheet.provenance`: prose about where the PDF came from
+    02_parts/*/part.yaml `design`: the free-prose design narrative (a `|` block on five converter dossiers); its numbers belong in `electrical:`/`limits:` where they can be asserted
+    02_parts/*/part.yaml `electrical.source`: the datasheet section the electrical block was read from, for a reviewer
+    02_parts/*/part.yaml `function`: a one-line human summary of what the part is for; the graded facts are `type`, `value` and the `asserts:` block
+    02_parts/*/part.yaml `gotchas`: warnings addressed to the next author to touch this part (128 dossiers). Machine-grading English here would be theatre; what IS graded is that the expensive facts it warns about live in `pins:`/`escape:`/`limits:`
+    02_parts/*/part.yaml `land_pattern.*`: the human derivation record for a vendored footprint — pad sizes, fillet balance, datums, the datasheet figure they came from. Its CONSEQUENCE is graded, hard, by `jlc_twin` against JLC's own CAD model (canon M1), which is a stronger check than reading this back would be
+    02_parts/*/part.yaml `limits.*`: the open per-part absolute-maximum/rating fact bag. The EXECUTABLE channel for anything in here is an `asserts:` entry or an `electrical_invariants.yaml` `part_value`/`node_level` that cites it; the bag itself is a human's datasheet transcription and forcing a schema on it would only push the facts out of the tree
+    02_parts/*/part.yaml `note_dirname`: records why the directory name differs from the MPN; the MPN authority reads `mpn:`
+    02_parts/*/part.yaml `pins.<N>.note`: per-pin datasheet prose (274 pins). The CONSTRAINTS inside it belong in `electrical.pins.<N>`, which IS graded by `node_level`
+    03_src/rules/power_tree.yaml `linear_rails[].note`: per-rail prose, as `rails[].note`
+    03_src/rules/power_tree.yaml `rails[].note`: per-rail prose for a reviewer; the graded facts are the numbers beside it, and no gate resolves the sentence
+  UNGOVERNED file famil(ies) — no `### keys:` block anywhere, reported not failed (1):
+    03_src/rules/assembly.yaml
+G-ORPHAN: PASS — 315/315 declared keys graded OK (254 with a PROVEN reader, floor 254), 0 orphan, 1 ungoverned famil(ies)

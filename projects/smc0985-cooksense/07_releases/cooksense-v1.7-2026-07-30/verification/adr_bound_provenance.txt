@@ -1,0 +1,49 @@
+input: root = /home/mouse9911/gits/circuits  (79 ADR file(s) under docs/decisions + */01_docs/decisions)
+input: regeneration ON, cwd for commands = /home/mouse9911/gits/circuits, per-command timeout 180s
+input: 5 ADR(s) declare a `<!-- bound -->` block (7 block(s)); 37 OWED; 132 inequality bound(s) appear in prose across all 79
+  CITED       pluto-rx2-8way-v2/0003-one-stackup-one-constant-set.md [VIA_FENCE_PITCH]: regenerated 1.3693 vs published 1.3693 (delta 0 <= 1e-09); corner nominal: the bound value 1.3693 evaluates to 20.0007 at 1.3693, on its budget edge >= 20.0; nearest standard value 1.35 (series explicit) evaluates to 20.2867, inside >= 20.0
+  CITED       smc0985-cooksense/0026-the-ldo-budget-is-a-sum-and-the-ceiling-has-an-ambient.md [LDO_IOUT_MAX]: regenerated 0.24295049075429753 vs published 0.2429 (delta 5.049e-05 <= 0.0001); corner worst_case: the bound value 0.2429 evaluates to 124.97224800000001 at 0.2428, on its budget edge <= 125.0; nearest standard value 0.2 (series explicit) evaluates to 117.0795, inside <= 125.0
+  CITED       smc0985-cooksense/0027-the-dropout-margin-counts-the-boards-own-copper.md [LDO_DROPOUT_IBOARD_MAX]: regenerated 0.4910935989911408 vs published 0.491 (delta 9.36e-05 <= 0.0001); corner worst_case: the bound value 0.491 evaluates to 1300.0635569999997 at 0.4909, on its budget edge >= 1300.0
+  CITED       smc0985-cooksense/0028-the-3v3-rail-has-two-margins-and-they-bind-at-different-places.md [LDO_TJ_WORKED_EXAMPLE]: regenerated 117.0795 vs published 117.08 (delta 0.0005 <= 0.01); corner worst_case: the bound value 117.08 evaluates to 7.930000000000007 at 117.07, on its budget edge >= 0.0
+  CITED       smc0985-cooksense/0028-the-3v3-rail-has-two-margins-and-they-bind-at-different-places.md [LDO_TA_MAX_CITED]: regenerated 82.9205 vs published 82.92 (delta 0.0005 <= 0.01); corner worst_case: the bound value 82.92 evaluates to 124.98949999999999 at 82.91, on its budget edge <= 125.0
+  CITED       smc0985-cooksense/0028-the-3v3-rail-has-two-margins-and-they-bind-at-different-places.md [COIL_PULLIN_BUDGET]: regenerated 0.491 vs published 0.491 (delta 0 <= 0.0005); corner worst_case: the bound value 0.491 evaluates to 4.2005 at 0.4905, on its budget edge >= 4.2
+  CITED       smc0985-cooksense/0029-the-declared-ambient-is-65c-and-the-bench-hour-is-mandatory.md [LDO_TJ_DECLARED_AMBIENT]: regenerated 107.0795 vs published 107.08 (delta 0.0005 <= 0.01); corner worst_case: the bound value 107.08 evaluates to 17.930000000000007 at 107.07, on its budget edge >= 0.0
+  OWED       circuits/0001-tscircuit-authoring-boundary.md — publishes 5 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       circuits/0007-claims-become-checks.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       crow-mic-pod-v2/0002-active-balanced-driver.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       crow-recorder-central-v2/0001-input-protection.md — publishes 2 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0004-attenuation-value-and-placement.md — publishes 2 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0007-sma-antenna-connector-and-launch.md — publishes 5 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0009-input-protection-posture.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0010-stackup-and-fab-tier.md — publishes 2 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0011-length-match-is-a-published-artifact.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0012-mcu-selection-rp2040.md — publishes 4 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0013-spec-tension-30db-is-a-curve.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0015-sma-cables-not-direct-mount.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-cal-switch/0016-40db-minimum-across-the-band.md — publishes 9 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-rx2-8way/0002-spec-tension-pickoff-not-coupler.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-rx2-8way/0003-stackup-and-fab-tier.md — publishes 2 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-rx2-8way/0004-input-protection-posture.md — publishes 5 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-rx2-8way/0005-control-plane-and-power-on-default.md — publishes 3 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-rx2-8way/0006-path-deltas-are-a-published-measurement.md — publishes 2 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       pluto-rx2-8way/0007-radial-star-floorplan.md — publishes 5 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0001-system-decomposition-phase1.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0002-no-mcu-pi-direct-hardware-bounds.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0005-cn1-latched-tail-geometry-strategy.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0006-relay-technology-rkey.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0008-cn1-is-jst-10fdz-bt-zif.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0009-interposer-path-a-rigid-plus-flex-jumper.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0011-safety-chain-corrections-v12.md — publishes 2 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0012-non-conductive-enclosure-is-load-bearing.md — publishes 4 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0015-creepage-is-not-clearance-and-k-stop-is-load-bearing.md — publishes 2 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0018-jmode-keyed-off-the-gh-family-and-coil-en-hardened.md — publishes 6 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0020-rearm-edge-detect-and-a-driver-for-the-expander-reset.md — publishes 3 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0021-the-supply-is-a-specification-and-the-ov-cutoff-follows-from-it.md — publishes 6 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0022-the-efuse-flag-lives-on-3v3.md — publishes 2 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0023-the-coil-driver-is-a-dmos-array.md — publishes 10 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0024-pod-mateable-safety-inputs-are-hardened-at-the-pinout.md — publishes 6 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       smc0985-cooksense/0025-jdoor-and-jestop-are-not-installed-and-the-and-chain-goes-inert.md — publishes 3 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       usb-hub-3s-v3/0002-discrete-vbus-protection.md — publishes 1 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+  OWED       usb-hub-3s-v3/0003-status-leds-and-clamp-ordering.md — publishes 5 numeric inequality bound(s) in prose and declares no `<!-- bound -->` block
+BOUND COVERAGE: 7 CITED / 0 ESTIMATED / 0 UNVERIFIED across 7 declared block(s) in 5 ADR(s); 37 of 42 bound-publishing ADR(s) OWED (floors: CITED >= 0, OWED <= 37)
+ADR BOUND PROVENANCE: PASS (0 fails) — 42/79 ADR(s) publish an inequality bound, 5 declare one

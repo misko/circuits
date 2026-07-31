@@ -1,0 +1,1 @@
+contracts_audit: 258 files (258/7231 tracked; 6973 in projects/** and archived_projects/** NOT GRADED — rerun with --projects), 0 violations

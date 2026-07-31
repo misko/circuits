@@ -1,0 +1,8 @@
+  coverage F-IDENT: 4/4 copper gerbers compared
+  coverage F-POUR: 4/4 zone-bearing copper layers
+  ok   F-POUR B.Cu 1 zone(s) -> 16 G36 region(s)
+  ok   F-POUR F.Cu 1 zone(s) -> 128 G36 region(s)
+  ok   F-POUR In1.Cu 1 zone(s) -> 1 G36 region(s)
+  ok   F-POUR In2.Cu 1 zone(s) -> 1 G36 region(s)
+  ok   F-IDENT 4 copper gerbers all distinct
+F-PAYLOAD OK: 5 check(s) passed
