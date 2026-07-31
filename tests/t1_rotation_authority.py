@@ -425,9 +425,11 @@ def t_export_blocks():
 
     Two properties, both of which the pre-A-ROT exporter fails:
       1. exit != 0 and the block NAMES the codes;
-      2. NO cpl_jlc.csv is left in the outdir — including a STALE one from an
-         earlier run. A blocked run that leaves a plausible-looking CPL behind
-         is worse than no gate, because the next person uploads it.
+      2. NO CPL is left in the outdir — under the contract name cpl.csv OR
+         the LEGACY cpl_jlc.csv, including a STALE one from an earlier run.
+         A blocked run that leaves a plausible-looking CPL behind is worse
+         than no gate, because the next person uploads it; after the
+         2026-07-31 producer rename the LEGACY name is the likelier one.
     The worklist-size assertion is COMPLETENESS the fixture owns — every code
     the block reports appears in the worklist — not the old `>= 10`, which was
     only true while the real board happened to be missing that many rows.
@@ -439,17 +441,19 @@ def t_export_blocks():
     if not USB_BOARD.exists():
         raise AssertionError(f"missing real board fixture: {USB_BOARD}")
     d = tmpdir("exp_")
-    stale = d / "cpl_jlc.csv"
-    stale.write_text("Designator,Val\nSTALE,1\n")     # a leftover from before
+    stales = [d / n for n in ("cpl.csv", "cpl_jlc.csv",
+                              "bom.csv", "bom_jlc.csv")]
+    for stale in stales:                              # leftovers from before
+        stale.write_text("Designator,Val\nSTALE,1\n")
     r = run([KPY, EXPORT, USB_BOARD, d, "--layers", "4"],
             env=empty_rotation_env())
     must_fail(r, "fab export with unsourced rotations", "A-ROT BLOCKED")
     contains(r.out, "C473910", "the block names an unsourced code (SOT-23-6)")
     contains(r.out, "D_SOD-123", "the block names an unsourced diode")
-    check(not stale.exists(),
-          "a BLOCKED export left a stale cpl_jlc.csv behind — the next person "
-          "uploads it")
-    check(not (d / "bom_jlc.csv").exists(), "a blocked export wrote a BOM")
+    for stale in stales:
+        check(not stale.exists(),
+              f"a BLOCKED export left a stale {stale.name} behind — the next "
+              "person uploads it")
     worklist = d / "rotations_unsourced.csv"
     check(worklist.exists(), "no worklist written — a block with no worklist "
                              "is a wall, not a gate")
@@ -486,7 +490,7 @@ def t_export_escape_hatch():
                   "fab export with the escape hatch")
     contains(r.out, "A-ROT OVERRIDDEN", "the override is loud")
     contains(r.out, "MUST NOT BE ORDERED", "and says what it costs")
-    check((d / "cpl_jlc.csv").exists(), "the escape hatch wrote no CPL")
+    check((d / "cpl.csv").exists(), "the escape hatch wrote no CPL")
     check((d / "rotations_unsourced.csv").exists(), "no worklist")
 
 

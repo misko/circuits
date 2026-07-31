@@ -11,7 +11,7 @@ For every BOM line with an LCSC code, fetch JLC's OWN footprint + 3D model
   3. twin render: mount JLC's 3D models on OUR board at the fitted transform
      and render top/bottom - a local preview of what JLC's viewer will show.
 
-usage: jlc_twin.py board.kicad_pcb bom_jlc.csv outdir [--cpl fab/cpl.csv]
+usage: jlc_twin.py board.kicad_pcb bom.csv outdir [--cpl fab/cpl.csv]
 Exit 1 on any MIRRORED, PAD-MISMATCH, PAD-GEOM, MODEL-REG, NO-BODY or
 POLARITY-FIT finding.
 

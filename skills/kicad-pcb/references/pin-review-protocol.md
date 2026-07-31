@@ -47,7 +47,7 @@ the order. Do not soften: "probably fine" is a QUESTION.
 
 ## Orchestration (the main agent's side)
 
-- Generate dossiers: `pin_audit.py BOARD bom_jlc.csv 02_parts 06_build/pin_audit`
+- Generate dossiers: `pin_audit.py BOARD bom.csv 02_parts 06_build/pin_audit`
 - Spawn one fresh agent per PART GROUP (controllers; power switches;
   connectors) so no single review exceeds a few parts — attention dilutes.
 - Give each agent ONLY: the protocol, its dossier paths, the datasheet

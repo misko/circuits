@@ -469,7 +469,7 @@ def t_exporter_splits_distinct_codes():
     d = tmpdir("bomexp_")
     must_pass(run([KPY, EXPORT, board, d, "--layers", "4", "--lcsc-source", cj]),
               "export_jlc_package with a source circuit.json")
-    rows = list(csv.DictReader(open(d / "bom_jlc.csv")))
+    rows = list(csv.DictReader(open(d / "bom.csv")))
     by_code = {r["LCSC"]: r for r in rows}
     check("C77102" in by_code and "C77100" in by_code,
           f"10uF caps did not split into distinct code rows: {sorted(by_code)}")
@@ -489,8 +489,8 @@ def t_exporter_splits_distinct_codes():
 def t_exporter_exclude_from_pos_cpl():
     """The exclude_from_pos fix (2026-07-23) + the non-C LCSC-blank fix (fix pass).
     crow-mic-pod-v2 marks MK1 (electret, hand-solder) and J1 (RJHSE-5384 consign,
-    hand-solder) exclude_from_pos: ABSENT from cpl_jlc.csv yet PRESENT in
-    bom_jlc.csv. D3 (SMAJ6.0A) is POPULATED (ADR-0001 D5, the P0-D fix) — it must
+    hand-solder) exclude_from_pos: ABSENT from cpl.csv yet PRESENT in
+    bom.csv. D3 (SMAJ6.0A) is POPULATED (ADR-0001 D5, the P0-D fix) — it must
     be in BOTH the BOM and the CPL, like U1. MK1's supplier handle is an MPN
     ("AOM-5024L-HD-R"), NOT an LCSC — its BOM LCSC column must be BLANK, and a
     stale prior BOM must not resurrect it into the LCSC column on re-export.
@@ -509,9 +509,9 @@ def t_exporter_exclude_from_pos_cpl():
     must_pass(run([KPY, EXPORT, board, d, "--layers", "2", "--lcsc-source", cj]),
               "export_jlc_package (pod-v2)")
     cpl_refs = {row["Designator"]
-                for row in csv.DictReader(open(d / "cpl_jlc.csv"))}
+                for row in csv.DictReader(open(d / "cpl.csv"))}
     bom_by_ref = {}
-    for row in csv.DictReader(open(d / "bom_jlc.csv")):
+    for row in csv.DictReader(open(d / "bom.csv")):
         for x in row["Designator"].split(","):
             bom_by_ref[x.strip()] = row
     for r in ("MK1", "J1"):
@@ -527,8 +527,8 @@ def t_exporter_exclude_from_pos_cpl():
        "MK1 hand-solder line must have a BLANK LCSC (an MPN is not an LCSC)")
     # inject a STALE prior BOM carrying MK1's MPN in the LCSC column, re-export,
     # and assert the carry-over guard refuses to resurrect it (the export fix).
-    rows = list(csv.DictReader(open(d / "bom_jlc.csv")))
-    with open(d / "bom_jlc.csv", "w", newline="") as f:
+    rows = list(csv.DictReader(open(d / "bom.csv")))
+    with open(d / "bom.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=rows[0].keys())
         w.writeheader()
         for row in rows:
@@ -537,7 +537,7 @@ def t_exporter_exclude_from_pos_cpl():
             w.writerow(row)
     must_pass(run([KPY, EXPORT, board, d, "--layers", "2", "--lcsc-source", cj]),
               "re-export over a stale BOM (carry-over path)")
-    bom2 = {x.strip(): row for row in csv.DictReader(open(d / "bom_jlc.csv"))
+    bom2 = {x.strip(): row for row in csv.DictReader(open(d / "bom.csv"))
             for x in row["Designator"].split(",")}
     eq(bom2["MK1"]["LCSC"].strip(), "",
        "carry-over must NOT resurrect MK1's MPN into the LCSC column")

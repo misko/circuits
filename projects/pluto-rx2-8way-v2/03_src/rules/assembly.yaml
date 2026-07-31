@@ -135,11 +135,25 @@ exempt_prefixes: [H, TP, FID, MH]
 #     componentLibraryType     expand            (extended, per-reel setup fee)
 #     stockCount               23169
 #     minPurchaseNum           1
-#   Raw record saved to verification/jlc_catalog_C504007.json.
-#   Cross-check the same day, same endpoint, via jlc_stock_check --json:
-#   OK at 10 needed vs 23169 in stock (verification/stock_check.{json,csv},
-#   the `pkg` column reads `Plugin` for exactly this line and a real SMD package
-#   string for all ten others).
+#     assemblyProcess          null      <- NO API answers "will JLC run it"
+#
+#   RE-READ 2026-07-31 and the raw record now EXISTS. This citation was a
+#   FORWARD REFERENCE for a day: it named verification/jlc_catalog_C504007.json
+#   and verification/stock_check.csv as its evidence and NEITHER FILE EXISTED
+#   anywhere in the project. A citation to a file that does not exist reads
+#   exactly like a citation to one that does, which is the whole failure mode
+#   this file exists to prevent for the population set. Both files are now real,
+#   produced by the commands they name, and staged:
+#     verification/jlc_catalog_C504007.json  the RAW endpoint response, with a
+#       `_provenance` block carrying the URL, the request body, the timestamp
+#       and the NOT-PROVEN clause below
+#     verification/stock_check.csv           jlc_stock_check.py --out, whose
+#       `pkg` column reads `Plugin` for exactly this line and a real SMD package
+#       string for all ten others
+#   Every field above re-reads IDENTICAL on 2026-07-31 except stockCount, which
+#   moved 23169 -> 22708 (ordinary day-to-day catalog drift, still 2270x the
+#   10 this board needs). Cross-check the same day, same endpoint, via
+#   jlc_stock_check --json: OK at 10 needed vs 22708 in stock.
 #
 # So the part is IN JLC's assembly library, as a plug-in part, with stock three
 # orders of magnitude over the build. The line to buy is theirs.
@@ -167,9 +181,12 @@ through_hole:
     number, not a paste volume). CATALOG READ, dated 2026-07-30, JLC's own
     assembly-parts endpoint: C504007 = KH-SMA-KE-Z, componentSpecificationEn
     "Plugin", componentTypeEn "Coaxial Connectors (RF)", componentLibraryType
-    expand, stockCount 23169, minPurchaseNum 1; raw record in
+    expand, stockCount 23169 (RE-READ 2026-07-31: 22708, every other field
+    identical), minPurchaseNum 1; raw record in
     verification/jlc_catalog_C504007.json, cross-checked by
-    verification/stock_check.csv (pkg=Plugin, OK at 10 vs 23169). NOT PROVEN by
+    verification/stock_check.csv (pkg=Plugin, OK at 10 vs 22708). BOTH CITED
+    FILES ARE NOW PRESENT IN THE ARCHIVE — they were cited for a day before
+    they existed, which is a citation that grades nothing. NOT PROVEN by
     either read: that the through-hole line is available on this order —
     assemblyProcess is null and no API answers it, so the selection is an
-    order-time human gate on ORDER_README's first screen.
+    order-time human gate on ORDER_README's first screen (section 0).

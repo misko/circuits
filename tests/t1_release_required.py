@@ -57,6 +57,72 @@ def t_complete_passes():
     contains(r.out, "A-EVID OK", "grades clean")
 
 
+# ------------------------------------------- the PRODUCER side of A-EVID ---
+EXPORT = ROOT / "skills/jlcpcb-fab/scripts/export_jlc_package.py"
+USB_BOARD = ROOT / "projects/usb-hub-3s-v3/04_kicad/usb_hub_3s_v2.kicad_pcb"
+
+
+@test("A-EVID producer side: the fab exporter's OWN filenames satisfy the "
+      "contract — no hand-copy in between", kind="known_bad")
+def t_exporter_emits_contract_names():
+    """A-EVID grades the ARCHIVE. Nothing graded the PRODUCER, and the producer
+    was wrong: `export_jlc_package.py` wrote `fab/bom_jlc.csv` and
+    `fab/cpl_jlc.csv` while this contract — and all 34 sealed releases —
+    require `fab/bom.csv` and `fab/cpl.csv`. Every seal bridged the two names
+    by HAND-COPYING, which is what kept the mismatch invisible for the fleet's
+    whole history.
+
+    IT IS NOT COSMETIC. `release_freshness_check.py` resolves A-STOCK and A-BUY
+    through `fab/bom.csv`. On pluto-rx2-8way-v2's staged archive the hand-copy
+    did not happen, so both gates reached a ZERO DENOMINATOR and emitted NOTES
+    ("no coded, placed line to grade" / "sourcing UNGRADED — 0 line(s)
+    measured") rather than failures — two gates that exist BECAUSE five sealed
+    releases shipped failing stock evidence, silent over an empty set. Adding
+    only the two correctly-named copies flipped them to `11 graded line(s),
+    verdict=PASS` / `SOURCING: CLEAR`.
+
+    So this test runs the REAL exporter and copies its output into a release
+    WITHOUT RENAMING ANYTHING — the property is that no rename is needed.
+
+    RED-VERIFIED 2026-07-31: `bom_path = out / "bom_jlc.csv"` and
+    `open(out / "cpl_jlc.csv", ...)` swapped back into the exporter and this
+    test run — the exporter still exits 0, but the `must_pass` on
+    `release_required_check` FAILS with
+    `MISSING required artifact: fab/bom.csv` and `... fab/cpl.csv`, i.e. RED on
+    exactly the two rows. Fix restored, test re-run green.
+
+    The known-bad half is the CONTRAST at the end: put the exporter's output
+    back under the legacy names and the same check must FAIL, so this test
+    cannot pass by grading nothing."""
+    if not USB_BOARD.exists():
+        raise AssertionError(f"missing real board fixture: {USB_BOARD}")
+    d = tmpdir("aevid_prod_")
+    fab = d / "fabout"
+    must_pass(run([KPY, EXPORT, str(USB_BOARD), str(fab), "--layers", "4"]),
+              "export_jlc_package (real board)")
+
+    rel = fixture(missing=("fab/bom.csv", "fab/cpl.csv"))
+    for name in ("bom.csv", "cpl.csv"):
+        src = fab / name
+        check(src.exists(),
+              f"the exporter wrote no {name} — the contract requires "
+              f"fab/{name}, so a release cannot be assembled without a rename")
+        (rel / "fab" / name).write_bytes(src.read_bytes())
+    r = must_pass(run([KPY, TOOL, str(rel)]),
+                  "A-EVID over a release assembled from the exporter's own "
+                  "filenames, unrenamed")
+    contains(r.out, "A-EVID OK", "grades clean")
+
+    # CONTRAST (the known-bad): the pre-fix producer's names, nothing else
+    # changed. A-EVID must FAIL, naming both rows.
+    for cur, legacy in (("bom.csv", "bom_jlc.csv"), ("cpl.csv", "cpl_jlc.csv")):
+        (rel / "fab" / cur).rename(rel / "fab" / legacy)
+    rf = must_fail(run([KPY, TOOL, str(rel)]),
+                   "A-EVID over the pre-fix producer's filenames", "A-EVID FAIL")
+    contains(rf.out, "fab/bom.csv", "names the required BOM row")
+    contains(rf.out, "fab/cpl.csv", "names the required CPL row")
+
+
 @test("A-EVID FAILS a release missing drc.json — the artifact whose absence "
       "hid a real defect", kind="known_bad")
 def t_missing_drc_blocks():

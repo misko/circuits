@@ -264,7 +264,7 @@ def _run_pipeline():
 def _run_stock(d):
     """Run the JLC stock gate; SKIP with reason if the endpoint is
     network-gated (every coded line QUERY_FAILED)."""
-    bom = d / "06_build" / "fab" / "bom_jlc.csv"
+    bom = d / "06_build" / "fab" / "bom.csv"
     out = d / "06_build" / "fab" / "stock_check.csv"
     r = run([KPY, STOCK, str(bom), "--min-stock", "5", "--out", str(out)],
             timeout=300)
@@ -298,8 +298,9 @@ def _assemble_release(d, board):
     shutil.copy(fab / f"{STEM}_gerbers.zip", rel / "fab")
     for drl in fab.glob("*.drl"):
         shutil.copy(drl, rel / "fab")
-    shutil.copy(fab / "bom_jlc.csv", rel / "fab" / "bom.csv")
-    shutil.copy(fab / "cpl_jlc.csv", rel / "fab" / "cpl.csv")
+    # NO RENAME: the exporter writes the contract's own names (2026-07-31).
+    shutil.copy(fab / "bom.csv", rel / "fab" / "bom.csv")
+    shutil.copy(fab / "cpl.csv", rel / "fab" / "cpl.csv")
 
     # 2. pdf/ — tscircuit's own schematic render + KiCad pcb_layers + assembly
     tsc_sch = d / "03_tscircuit" / "build" / "schematic.pdf"

@@ -1,6 +1,6 @@
 """Check a JLC-format BOM against the JLCPCB parts library.
 
-    python3 jlc_stock_check.py bom_jlc.csv [--search-missing] [--min-stock 5]
+    python3 jlc_stock_check.py bom.csv [--search-missing] [--min-stock 5]
                                [--out report.csv] [--json report.json]
                                [--candidates 3]
 

@@ -15,8 +15,8 @@ For board *design* rules (routing, DRC floors, escape geometry) see the
 | Upload slot | File | Contents |
 |---|---|---|
 | PCB order | `<board>_gerbers.zip` | Copper gerbers (2/4/6 layers), F/B mask, F/B paste, F/B silk, Edge_Cuts, PTH + NPTH Excellon drills, job file when present (KiCad 7 emits it, 10 doesn't; optional). **Nothing else** — no BOM/CPL inside the zip. |
-| Assembly: BOM | `bom_jlc.csv` | Columns exactly: `Comment,Designator,Footprint,MPN,LCSC`. **The LCSC code is the SOURCE's per-refdes code** (`circuit.json supplier_part_numbers`, auto-discovered or `--lcsc-source`), NOT a value+footprint match. Grouped by **(LCSC, footprint)**: one line per code (JLC's uploader warns "multiple lines matched to same part" if two lines share a code), so two DISTINCT codes on one value+footprint — 10uF/50V C77102 vs 10uF/25V C77100 — stay on SEPARATE rows. Grouping by (value, footprint) instead collapsed them and shipped 25V input caps on a 50V rail (v1.1, 2026-07-23). Uncoded (hand-solder) lines stay per-value. Verify with `bom_source_check.py` before sealing. |
-| Assembly: CPL | `cpl_jlc.csv` | Columns exactly: `Designator,Val,Package,Mid X,Mid Y,Layer,Rotation`. mm units, top/bottom in `Layer`. |
+| Assembly: BOM | `bom.csv` | Columns exactly: `Comment,Designator,Footprint,MPN,LCSC`. **The LCSC code is the SOURCE's per-refdes code** (`circuit.json supplier_part_numbers`, auto-discovered or `--lcsc-source`), NOT a value+footprint match. Grouped by **(LCSC, footprint)**: one line per code (JLC's uploader warns "multiple lines matched to same part" if two lines share a code), so two DISTINCT codes on one value+footprint — 10uF/50V C77102 vs 10uF/25V C77100 — stay on SEPARATE rows. Grouping by (value, footprint) instead collapsed them and shipped 25V input caps on a 50V rail (v1.1, 2026-07-23). Uncoded (hand-solder) lines stay per-value. Verify with `bom_source_check.py` before sealing. |
+| Assembly: CPL | `cpl.csv` | Columns exactly: `Designator,Val,Package,Mid X,Mid Y,Layer,Rotation`. mm units, top/bottom in `Layer`. |
 
 Format empirics:
 - Protel extensions (.gtl/.gbl/.gts...) + gerber attributes on — JLC's
@@ -45,17 +45,17 @@ Format empirics:
              zip; LCSC comes from the SOURCE circuit.json per refdes —
              auto-discovered, or pass --lcsc-source; stale fab files from an
              older KiCad version are excluded from the zip with a warning)
-3. STOCK     python3 scripts/jlc_stock_check.py OUTDIR/bom_jlc.csv --search-missing
+3. STOCK     python3 scripts/jlc_stock_check.py OUTDIR/bom.csv --search-missing
              then the SPEC-CONFIRMATION pass below; re-run until every line
              is coded + in stock
 4. RE-EXPORT run export again after LCSC fills — source codes + carry-over keep
              the codes (per refdes), zip is rebuilt fresh
-5. BOM-SOURCE /usr/bin/python3 scripts/bom_source_check.py OUTDIR/bom_jlc.csv \
+5. BOM-SOURCE /usr/bin/python3 scripts/bom_source_check.py OUTDIR/bom.csv \
                 CIRCUIT_JSON --parts 02_parts    (canon M6 / policy_audit M-BOM)
              every BOM LCSC code == the source's per-refdes code — no merged
              row, no substitution, no dropped vendored code. MUST pass before
              sealing; ship the output in verification/bom_source_check.txt
-6. UPLOAD    zip → PCB order; bom_jlc.csv + cpl_jlc.csv → assembly; then the
+6. UPLOAD    zip → PCB order; bom.csv + cpl.csv → assembly; then the
              human checklist below against JLC's rendered preview
 ```
 
@@ -300,7 +300,7 @@ What JLC will assemble is their CAD at your CPL coordinates - not your
 footprints. This stage verifies the correspondence offline:
 
 ```
-python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
+python3(pcbnew) scripts/jlc_twin.py BOARD bom.csv OUTDIR \
     --adjudications <project>/03_src/rules/twin_adjudications.yaml \
     --also J1=C98732,J2=C53133490   # hand-solder parts with known codes
 ```

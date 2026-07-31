@@ -210,7 +210,8 @@ stock, twin).
     opposite pad-1 convention, never "the DB is stale".
   - `export_jlc_package.py` BLOCKS (exit 2) on any unsourced placement,
     writes `rotations_unsourced.csv` as the worklist, and REMOVES a stale
-    `bom_jlc.csv`/`cpl_jlc.csv` so a blocked run leaves nothing uploadable.
+    `bom.csv`/`cpl.csv` — and the LEGACY `bom_jlc.csv`/`cpl_jlc.csv` it
+    used to write — so a blocked run leaves nothing uploadable.
     `--allow-unsourced-rotations` is the loud, discouraged escape hatch.
   - The ONE exemption is MEASURED, not named: `jlc_footprint_symmetry.py`
     exempts a footprint that is its own 180-degree reflection in BOTH pads

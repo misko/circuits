@@ -771,23 +771,31 @@ def t_export_blocks_illegible():
     RED-VERIFIED 2026-07-27: `git show HEAD:skills/jlcpcb-fab/scripts/
     export_jlc_package.py` restored in place, this test run — the pre-fix
     exporter has no F-LEGIBLE path at all, exits 0 and writes a COMPLETE
-    bom_jlc.csv with a 100%-blank MPN column, so `must_fail` fails. Fix
-    restored and the test re-run green."""
+    BOM with a 100%-blank MPN column, so `must_fail` fails. Fix restored
+    and the test re-run green.
+
+    The stale sweep is asserted over BOTH the contract names (bom.csv /
+    cpl.csv, written since 2026-07-31) AND the legacy bom_jlc.csv /
+    cpl_jlc.csv: after a producer rename the LEGACY file is the likelier
+    one to be uploaded by hand, so leaving it would re-open the exact
+    hole this assertion closes."""
     if not CROW_BOARD.exists():
         raise AssertionError(f"missing real board fixture: {CROW_BOARD}")
     board, out = detached_board()
-    stale = out / "bom_jlc.csv"
-    stale.write_text("Comment,Designator\nSTALE,X1\n")
+    stales = [out / n for n in ("bom.csv", "bom_jlc.csv",
+                                "cpl.csv", "cpl_jlc.csv")]
+    for stale in stales:
+        stale.write_text("Comment,Designator\nSTALE,X1\n")
     r = run([KPY, EXPORT, board, out, "--layers", "4",
              "--lcsc-source", CROW_TSC, "--allow-unsourced-rotations"])
     must_fail(r, "fab export with an illegible BOM", "F-LEGIBLE BLOCKED")
     contains(r.out, "no 02_parts/<MPN>/part.yaml declares this code",
              "the block says what would fix it")
     contains(r.out, "F-MPN C6938291", "and names an unresolvable code (U1)")
-    check(not stale.exists(),
-          "a BLOCKED export left a stale bom_jlc.csv behind — the next person "
-          "uploads it")
-    check(not (out / "cpl_jlc.csv").exists(), "a blocked export wrote a CPL")
+    for stale in stales:
+        check(not stale.exists(),
+              f"a BLOCKED export left a stale {stale.name} behind — the next "
+              "person uploads it")
 
 
 @test("the exporter's F-LEGIBLE escape hatch is LOUD and still writes")
@@ -801,7 +809,7 @@ def t_export_escape_hatch():
                        "--allow-illegible-bom"]), "escape-hatch export")
     contains(r.out, "F-LEGIBLE OVERRIDDEN", "the override is loud")
     contains(r.out, "MUST NOT BE ORDERED", "and says what it costs")
-    check((out / "bom_jlc.csv").exists(), "the escape hatch wrote no BOM")
+    check((out / "bom.csv").exists(), "the escape hatch wrote no BOM")
 
 
 @test("the incident board's OWN export now PASSES F-LEGIBLE end to end")
@@ -816,12 +824,12 @@ def t_crow_export_is_legible_now():
     d = tmpdir("expleg_crow_")
     must_pass(run([KPY, EXPORT, CROW_BOARD, d, "--layers", "6"]),
               "export of the incident board")
-    g = must_pass(run([KPY, CHECK, d / "bom_jlc.csv", "--parts",
+    g = must_pass(run([KPY, CHECK, d / "bom.csv", "--parts",
                        RELEASES / "crow-recorder-central-v2/02_parts"]),
                   "independent F-LEGIBLE grading of the incident board")
     contains(g.out, "coverage F-MPN: 47/47", "every coded row resolved")
     contains(g.out, "coverage F-WORDS: 49/49", "every Comment reads")
-    contains(d.joinpath("bom_jlc.csv").read_text(encoding="utf-8-sig"),
+    contains(d.joinpath("bom.csv").read_text(encoding="utf-8-sig"),
              "PinHeader_1x03_P2.54mm_Vertical,JP_INJ",
              "the uncoded strap row falls back to its footprint")
 
@@ -844,7 +852,7 @@ def t_export_output_is_legible():
     r = must_pass(run([KPY, EXPORT, USB_BOARD, d, "--layers", "4"]),
                   "fab export of a fully-dossiered board")
     contains(r.out, "F-LEGIBLE OK", "the exporter's own verdict")
-    bom = d / "bom_jlc.csv"
+    bom = d / "bom.csv"
     check(bom.exists(), "no BOM written")
     raw = bom.read_bytes()
     check(raw.startswith(b"\xef\xbb\xbf"),
@@ -875,7 +883,7 @@ def t_sidefile_is_retired():
                   "export with a leftover side-file")
     contains(r.out, "RETIRED as an input", "the side-file is announced dead")
     contains(r.out, "DRIFT C2939728", "and its drift is named")
-    contains(d.joinpath("bom_jlc.csv").read_text(encoding="utf-8-sig"),
+    contains(d.joinpath("bom.csv").read_text(encoding="utf-8-sig"),
              "SS12D07VG6-087", "the dossier won")
 
 

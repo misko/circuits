@@ -6,7 +6,7 @@ Run with the KiCad-bundled interpreter (import pcbnew must work).
 Run only AFTER the audit gate and classified DRC pass (kicad-pcb skill).
 
 - The zip contains gerbers + drills + job file ONLY (JLC's PCB uploader);
-  bom_jlc.csv / cpl_jlc.csv upload separately in the assembly step.
+  bom.csv / cpl.csv upload separately in the assembly step.
 - Parts whose Value contains "DNP" are excluded from BOM/CPL (still in
   gerbers). Reference prefix H* is skipped as mounting holes.
 - LCSC part numbers come from the AUTHORITATIVE per-refdes source
@@ -14,7 +14,7 @@ Run only AFTER the audit gate and classified DRC pass (kicad-pcb skill).
   and the BOM is grouped by (LCSC code, footprint) — so two distinct codes on
   the same value+footprint stay on SEPARATE rows and a code can never be
   substituted by a value-token match (the usb-hub-3s-v3 v1.1 defect). A prior
-  bom_jlc.csv is only a per-refdes FALLBACK for parts the source does not code.
+  bom.csv is only a per-refdes FALLBACK for parts the source does not code.
 - Bottom-side CPL coordinates are NOT mirrored (JLC handles that), but
   bottom ROTATIONS are the classic failure — check the assembly preview.
 - The BOM is graded as its RECIPIENT parses it (canon F-LEGIBLE, ADR-0006):
@@ -23,6 +23,28 @@ Run only AFTER the audit gate and classified DRC pass (kicad-pcb skill).
   the Comment is a real value, never an LCSC code or a `simple_*` placeholder;
   and the file carries a UTF-8 byte-order-mark so a cp936 reader cannot render
   `Ω` as `惟`. `lcsc_mpn_map.csv` is RETIRED as an input.
+
+THE ASSEMBLY FILES ARE NAMED `bom.csv` AND `cpl.csv`, AND THAT IS THE CONTRACT'S
+NAME, NOT A PREFERENCE. `07_releases/contracts.md` requires `fab/bom.csv` +
+`fab/cpl.csv` and all 34 sealed releases carry those names; this exporter wrote
+`bom_jlc.csv`/`cpl_jlc.csv` and every seal bridged the gap by HAND-COPYING. The
+hand-copy is what made the mismatch invisible — and on pluto-rx2-8way-v2 the
+copy did not happen, so the staged archive shipped the exporter's names. The
+consequence was not a cosmetic file-not-found: `release_freshness_check.py`
+resolves A-STOCK and A-BUY through `fab/bom.csv`, so with the name absent both
+gates reached a ZERO DENOMINATOR and emitted NOTES — "no coded, placed line to
+grade" and "sourcing UNGRADED — 0 line(s) measured" — instead of failures.
+Two gates that exist BECAUSE five sealed releases shipped failing stock
+evidence went silent over an empty set (measured 2026-07-31; adding only the
+two correctly-named copies flips them to `11 graded line(s), verdict=PASS` /
+`SOURCING: CLEAR`). A producer that does not emit the name its consumers
+resolve is the defect, not the consumers.
+
+LEGACY `bom_jlc.csv`/`cpl_jlc.csv` in the OUTDIR are read for LCSC carry-over
+(so an existing 06_build/fab/ still seeds hand-solder codes) and then REMOVED,
+on the success path as well as the two block paths. Leaving them is the same
+failure the block paths already guard: a plausible-looking uploadable file that
+is not the one this run produced.
 """
 import argparse
 import csv
@@ -308,17 +330,43 @@ if cj:
     print(f"LCSC source: {cj} ({sum(1 for v in src_code.values() if v)} coded refdes)")
 else:
     print("WARNING: no circuit.json found (pass --lcsc-source). LCSC codes will "
-          "fall back to any prior bom_jlc.csv (per-refdes) and otherwise be "
+          "fall back to any prior bom.csv (per-refdes) and otherwise be "
           "BLANK — there is no authoritative source to key on. Fix the source "
           "path; the bom_source_check gate has nothing to compare against here.")
 
-# Carry-over from a prior bom_jlc.csv: ONLY a fallback for refdes the source
-# does not code (hand-solder parts, or a non-tscircuit board). Keyed per-refdes
-# via the Designator column so it can never re-merge distinct codes.
+# THE CONTRACT'S NAMES. `07_releases/contracts.md` requires fab/bom.csv +
+# fab/cpl.csv; the legacy names this exporter used to write are read for
+# carry-over and then removed (see the module docstring).
+bom_path = out / "bom.csv"
+cpl_path = out / "cpl.csv"
+LEGACY_NAMES = ("bom_jlc.csv", "cpl_jlc.csv")
+
+
+def sweep_uploadable(*extra, why):
+    """Delete every assembly file in the outdir that this run did not write.
+
+    `extra` names the CURRENT-name files to drop as well (a blocked run drops
+    both); the LEGACY names are always dropped, because after the rename they
+    are the ones most likely to be picked up by hand.
+    """
+    for _stale in (*extra, *(out / n for n in LEGACY_NAMES)):
+        if _stale.exists():
+            _stale.unlink()
+            print(f"  removed stale {_stale.name} ({why})")
+
+
+# Carry-over from a prior BOM: ONLY a fallback for refdes the source does not
+# code (hand-solder parts, or a non-tscircuit board). Keyed per-refdes via the
+# Designator column so it can never re-merge distinct codes. The legacy name is
+# accepted as a SOURCE here and nowhere else — an outdir written before this
+# rename still seeds, and then loses the stale file below.
 old_lcsc = {}       # refdes -> LCSC (from a prior export)
-bom_path = out / "bom_jlc.csv"
-if bom_path.exists():
-    with open(bom_path, encoding="utf-8-sig") as f:
+_carry = next((p for p in (bom_path, out / "bom_jlc.csv") if p.exists()), None)
+if _carry is not None:
+    if _carry.name != bom_path.name:
+        print(f"  LCSC carry-over read from the LEGACY {_carry.name}; this run "
+              f"writes {bom_path.name} and removes the legacy file")
+    with open(_carry, encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
             # An LCSC code is C-prefixed digits. A carried-over MPN string (a
             # hand-solder part's FPID handle, e.g. AOM-5024L-HD-R) is NOT an LCSC
@@ -483,8 +531,10 @@ for comment, refs, fpname, code in lines.values():
 #
 # The worklist is written EITHER WAY, so a blocked run still tells you exactly
 # what to measure. The BOM/CPL are not written on a block, and any stale ones
-# are REMOVED: a blocked run that leaves a plausible-looking cpl_jlc.csv behind
-# is worse than no gate, because the next person uploads the stale file.
+# are REMOVED: a blocked run that leaves a plausible-looking cpl.csv behind
+# is worse than no gate, because the next person uploads the stale file. The
+# sweep covers the LEGACY names too — a stale bom_jlc.csv is exactly as
+# uploadable as a stale bom.csv, and after the rename it is the likelier one.
 uns_path = out / "rotations_unsourced.csv"
 if _UNSOURCED:
     with open(uns_path, "w", newline="") as f:
@@ -540,11 +590,9 @@ if _UNSOURCED and not args.allow_unsourced_rotations:
           "row ALSO needs a NUMBERING-FREE channel (canon A-POL).")
     print("  ESCAPE HATCH (worklist only, NEVER for an order): "
           "--allow-unsourced-rotations")
-    for _stale in (bom_path, out / "cpl_jlc.csv"):
-        if _stale.exists():
-            _stale.unlink()
-            print(f"  removed stale {_stale.name} (a blocked run must not "
-                  f"leave an uploadable package behind)")
+    sweep_uploadable(bom_path, cpl_path,
+                     why="a blocked run must not leave an uploadable "
+                         "package behind")
     sys.exit(2)
 elif _UNSOURCED:
     n_refs = sum(len(e["refs"]) for e in _UNSOURCED.values())
@@ -578,11 +626,9 @@ if (_NO_MPN or _ILLEGIBLE) and not args.allow_illegible_bom:
           "dossier supply one; the exporter falls back to the resolved MPN.")
     print("  ESCAPE HATCH (worklist only, NEVER for an order): "
           "--allow-illegible-bom")
-    for _stale in (bom_path, out / "cpl_jlc.csv"):
-        if _stale.exists():
-            _stale.unlink()
-            print(f"  removed stale {_stale.name} (a blocked run must not "
-                  f"leave an uploadable package behind)")
+    sweep_uploadable(bom_path, cpl_path,
+                     why="a blocked run must not leave an uploadable "
+                         "package behind")
     sys.exit(3)
 elif _NO_MPN or _ILLEGIBLE:
     print(f"\n  F-LEGIBLE OVERRIDDEN by --allow-illegible-bom: "
@@ -614,9 +660,9 @@ with open(bom_path, "w", newline="", encoding="utf-8-sig") as f:
 # the triples to compare and the ORDER_README ritual says how.
 echo_path = out / "bom_echo_gate.txt"
 with open(echo_path, "w", encoding="utf-8") as f:
-    f.write("F-ECHO — JLC's RESOLVED BOM vs OURS. After uploading bom_jlc.csv,\n"
+    f.write("F-ECHO — JLC's RESOLVED BOM vs OURS. After uploading bom.csv,\n"
             "save JLC's own resolved/matched part table out of their UI and run\n"
-            "  bom_legibility_check.py <this outdir>/bom_jlc.csv --echo SAVED.csv\n"
+            "  bom_legibility_check.py <this outdir>/bom.csv --echo SAVED.csv\n"
             "A code JLC redirects is a SUBSTITUTION and is a FINDING, not a\n"
             "convenience. C82317 -> C131025 happened on a shipped board and no\n"
             "gate in this repo could have seen it.\n\n")
@@ -626,12 +672,17 @@ with open(echo_path, "w", encoding="utf-8") as f:
 print(f"  F-ECHO worklist: {echo_path.name} ({sum(1 for v in lines.values() if v[3])} "
       f"coded line(s) to confirm against JLC's resolved table)")
 
-with open(out / "cpl_jlc.csv", "w", newline="") as f:
+with open(cpl_path, "w", newline="") as f:
     w = csv.writer(f)
     w.writerow(["Designator", "Val", "Package", "Mid X", "Mid Y", "Layer",
                 "Rotation"])
     for row in sorted(cpl):
         w.writerow(row)
+
+# Both assembly files are now written under the CONTRACT's names. Anything left
+# under the legacy names was written by an EARLIER run of this exporter into the
+# same outdir, so it is stale by construction and uploadable by appearance.
+sweep_uploadable(why="superseded by this run's contract-named bom.csv/cpl.csv")
 if _dropped_by_decl:
     print(f"  CPL: {len(_dropped_by_decl)} row(s) dropped by the "
           f"assembly.yaml not_assembled: declaration: "
