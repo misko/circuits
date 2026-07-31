@@ -630,6 +630,91 @@ L_G = 0.635           # snap grid: coords are ~0.05u multiples -> land near 0.63
 L_M = 25.4           # sheet margin (mm)
 L_PORT_TOL2 = 0.06 ** 2   # nearest-port match radius^2 in tscircuit units
 
+# ----------------------------------------------------- direction vocabulary
+# ONE home for "a side name -> what KiCad actually draws". Throughout this
+# module a `side` is THE DIRECTION A THING REACHES, away from the body it
+# belongs to: a pin on the symbol's left reaches left, and the label on that
+# pin must reach left too (v1's grid emitter has always meant this — see
+# `emit_component`, where side "L" gets (180, "right")).
+#
+# MEASURED 2026-07-31 against kicad-cli 10.0.4, from RENDERED SVG INK rather
+# than from derivation (canon M1 — the emitter must not grade its own angles):
+#   a global_label's ANGLE selects only the AXIS. KiCad normalises the
+#   180-degree component away, and `justify` ALONE selects the sense:
+#       (0|180, left)  -> plate reaches RIGHT     (90|270, left)  -> UP
+#       (0|180, right) -> plate reaches LEFT      (90|270, right) -> DOWN
+#   an `elt:GND` instance's body points DOWN at 0, RIGHT at 90, UP at 180,
+#   LEFT at 270.
+#
+# Two rows below were WRONG until that measurement and both shipped:
+#   * LABEL_ANG_JUST['bottom'] was (270, 'left'), which renders UP, not down.
+#   * GND_ANG['top']/['bottom'] were 0/180, i.e. each pointed the ground symbol
+#     back INTO the body it hangs off.
+LABEL_ANG_JUST = {'left': (180, 'right'), 'right': (0, 'left'),
+                  'top': (90, 'left'), 'bottom': (270, 'right')}
+GND_ANG = {'left': 270, 'right': 90, 'top': 180, 'bottom': 0}
+
+# tscircuit's `anchor_side` names the EDGE OF THE LABEL PLATE that the anchor
+# sits on — the OPPOSITE of the direction the plate reaches. See
+# `label_plate_side`.
+_ANCHOR_OPPOSITE = {'left': 'right', 'right': 'left',
+                    'top': 'bottom', 'bottom': 'top'}
+
+
+def label_plate_side(nlabel, pin_reach=None):
+    """Which way a tscircuit `schematic_net_label`'s PLATE reaches, named in
+    this module's side vocabulary (see LABEL_ANG_JUST). `pin_reach` is the
+    reach of the pin the label sits on, if any — used only when the label's
+    own geometry cannot decide.
+
+    DERIVED FROM GEOMETRY, not from the enum. `center` is the plate's centre
+    and `anchor_position` is where it attaches, so `center - anchor` IS the
+    direction tscircuit drew it — true at every rotation, and independent of
+    what any field is called.
+
+    THE DEFECT THIS REPLACES (fleet-wide, every board, 2026-07-31). The caller
+    passed `anchor_side` straight into LABEL_ANG_JUST. `anchor_side` names the
+    label EDGE the anchor sits on, which is the REVERSE of the reach the table
+    expects, so the plate fired back across the body it hangs off. MEASURED
+    over all 7 live boards: 1504 of 1504 labels have `anchor_side` exactly
+    opposite `center - anchor_position`, in all four orientations, 0 missing
+    `center`, 0 degenerate. Consequence on a HORIZONTALLY placed 2-pin part:
+    both plates fire INWARD and a 7.62 mm pin span cannot hold two
+    (len+2)*1.05 mm plates -- 15.75 mm for `RX1_TAP_MID` -- at ANY placement on
+    ANY board, so it was never a placement problem. pluto-rx2-8way-v2's shipped
+    `schematic.pdf` composited `N3V3_MOD` (U_MCU pin 21) onto U_SW's RF2 row:
+    the human-readable deliverable said the 3V3 rail was wired to an RF port.
+
+    Only THREE of the four orientations rendered wrong, and the fourth is the
+    interesting one: `anchor_side: bottom` (true reach UP) mapped to
+    (270, 'left'), which KiCad renders UP -- correct by CANCELLATION between
+    this defect and the broken LABEL_ANG_JUST['bottom'] row above. That is why
+    the two fixes have to land together: repairing either one alone breaks the
+    ~155 fleet labels the pair of them was accidentally getting right.
+    """
+    a = nlabel.get('anchor_position') or {}
+    c = nlabel.get('center') or {}
+    try:
+        dx = float(c['x']) - float(a['x'])
+        dy = float(c['y']) - float(a['y'])
+    except (KeyError, TypeError, ValueError):
+        dx = dy = 0.0
+    if max(abs(dx), abs(dy)) > 1e-9:
+        if abs(dx) >= abs(dy):
+            return 'right' if dx > 0 else 'left'
+        # tscircuit y is UP and T() flips it, so a plate ABOVE the anchor in
+        # tscircuit is above it on the KiCad sheet too -> side 'top'.
+        return 'top' if dy > 0 else 'bottom'
+    # Degenerate/absent geometry (`center` == `anchor_position`, or no
+    # `center` at all). Never reached on any board in the fleet today
+    # (0/1504), but a label with no plate extent must not silently take a
+    # default direction. Prefer the PIN the label sits on — a label on a pin
+    # reaches the way the pin does, which is the same rule the self-healing
+    # safety labels use — and only then invert the enum.
+    if pin_reach in LABEL_ANG_JUST:
+        return pin_reach
+    return _ANCHOR_OPPOSITE.get(nlabel.get('anchor_side'), 'left')
+
 
 class LayoutFallback(Exception):
     """Raised when tscircuit's schematic geometry can't be imported without a
@@ -908,15 +993,20 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
             segs.append((a, b, net))
 
     # ---- candidate labels from schematic_net_label (GND excluded)
+    tip_reach = {}              # sheet coord -> the reach of the pin sitting there
+    for (_rd, _pd), _t in pin_tip.items():
+        tip_reach.setdefault(key(_t), pin_side[(_rd, _pd)])
     cand_labels = []            # (net, x, y, ang, just)
     for n in snlabel:
         net = canon_net(n['text'], aliases)
         if net is None or net == "GND":
             continue
         x, y = T(n['anchor_position']['x'], n['anchor_position']['y'])
-        side = n.get('anchor_side') or 'left'
-        ang, just = {'left': (180, 'right'), 'right': (0, 'left'),
-                     'top': (90, 'left'), 'bottom': (270, 'left')}.get(side, (0, 'left'))
+        # the SIDE is the direction the plate REACHES, derived from the label's
+        # own geometry — never `anchor_side`, which names the opposite edge and
+        # inverted every label on every board until 2026-07-31.
+        side = label_plate_side(n, tip_reach.get(key((x, y))))
+        ang, just = LABEL_ANG_JUST.get(side, (0, 'left'))
         cand_labels.append((net, x, y, ang, just))
 
     # ---- prune dangling wires: iteratively drop any segment with a FREE end
@@ -1040,9 +1130,12 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         r = pin_root[(refdes, pad)]
         if r in covered:
             continue
+        # `pin_side` is already a REACH ('left' == the pin sticks out to the
+        # left), so it feeds the shared table directly. Note every synthetic
+        # tie-pad pin is side 'bottom' — the row that rendered UP until the
+        # LABEL_ANG_JUST fix above.
         side = pin_side[(refdes, pad)]
-        ang, just = {'left': (180, 'right'), 'right': (0, 'left'),
-                     'top': (90, 'left'), 'bottom': (270, 'left')}.get(side, (0, 'left'))
+        ang, just = LABEL_ANG_JUST.get(side, (0, 'left'))
         emit_labels.append((net, tip[0], tip[1], ang, just))
         covered.add(r)
         safety += 1
@@ -1140,7 +1233,7 @@ def _emit_layout_component(comp, project, root_uuid, flag_host, pwr, comp_by_ref
             out.append(f'  (no_connect (at {ex:.3f} {ey:.3f}) (uuid "{_u()}"))')
         elif net == "GND":
             pwr[0] += 1
-            pang = {'left': 270, 'right': 90, 'top': 0, 'bottom': 180}[side]
+            pang = GND_ANG[side]
             out.append(emit_power(project, root_uuid, "GND",
                                   f'#PWR{pwr[0]:02d}', "GND", ex, ey, pang))
             if flag_host == (comp["refdes"], num):
