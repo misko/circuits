@@ -66,11 +66,31 @@ cp "03_tscircuit/dist/src/$TSX/circuit.json" "$CJ"
 # staleness is silent, so we make the failure mode absence and let M-FRESH
 # below say so by name. Hence `|| true` on the two producers — the GATE
 # reports, not `set -e`.
+# 2026-07-31: THE PDF IS NO LONGER RENDERED FROM THE tscircuit SVG. It is now
+# plotted from `04_kicad/$BOARD.kicad_sch` further down, AFTER the converter
+# runs — because the converter is where the label de-collision pass lives, and
+# a PDF made here can never contain it.
+#
+# MEASURED, and this is the whole reason: the converter's de-collision fix took
+# S-OCCL to 0 on the .kicad_sch, and `sch_occlusion.py` reported `PASS | 0 text
+# occlusions` — while `pdf/schematic.pdf`, THE ONLY ARTIFACT IN THE RELEASE A
+# HUMAN READS, still drew `ANT2` and `3V3_MOD` composited into a single glyph
+# run. `pdftotext` on the two documents built from the same source:
+#     from 04_kicad/*.kicad_sch  ->  "3V3_MOD"   (two labels, correct)
+#     from tscircuit's SVG       ->  "N3V3_MOD"  (composited)
+# A sheet that reads as though the 3V3 rail reaches an RF port, with the gate
+# green over it, because the gate graded a DIFFERENT DOCUMENT than the one that
+# ships. `policy_waivers.yaml` had even predicted the failure ("S-OCCL is now
+# expected to FAIL until the schematic is re-rendered") and the gate still said
+# PASS. Plotting from the graded sheet makes the human document and the graded
+# document THE SAME FILE, which is the only arrangement in which S-OCCL's
+# verdict is evidence about what a person will actually see.
+#
+# The tscircuit SVG is still produced — it is a separate artifact with its own
+# consumers — but it no longer feeds the release PDF.
 SCHPDF=03_tscircuit/build/schematic.pdf
 rm -f 03_tscircuit/build/schematic.svg "$SCHPDF"
 ( cd 03_tscircuit && tsci export "src/$TSX.tsx" -f schematic-svg -o "../build/schematic.svg" ) || true
-[ -s 03_tscircuit/build/schematic.svg ] \
-    && rsvg-convert -f pdf -o "$SCHPDF" 03_tscircuit/build/schematic.svg || true
 
 # [1a] M-FRESH verify — the pipeline asserts the artifacts it is about to grade
 # and to SHIP are the ones it just built. build_provenance.py finds the producer
@@ -79,13 +99,37 @@ rm -f 03_tscircuit/build/schematic.svg "$SCHPDF"
 # producer to post-date [0b], the sources to be unmoved since, and the human
 # schematic to exist and post-date the circuit.json it depicts (F-RENDER).
 # Canon M1: the checker neither builds nor copies the things it grades.
-$PY "$S/build_provenance.py" verify . --board "$BOARD" --tsx "$TSX" \
-    --artifact "$CJ" --render "$SCHPDF" \
-    || { echo "GATE FAILED [1a] M-FRESH (build_provenance.py verify): the artifact the converter would read is NOT the one this build produced, or the human schematic the release ships is missing/older than it — every gate below would be green against stale content"; exit 1; }
-
 $PY "$S/circuit_json_to_kicad_sch.py" "$CJ" \
     -o "04_kicad/$BOARD.kicad_sch" --parts 02_parts
 kicad-cli sch export netlist --output "06_build/netlists/$BOARD.net" "04_kicad/$BOARD.kicad_sch"
+
+# [1r] THE HUMAN SCHEMATIC — plotted from the sheet the gates actually grade.
+# `|| true` is deliberate and unchanged in spirit from the old render step: a
+# missing or failed plot must leave ABSENCE, which F-RENDER reports loudly at
+# [1a] below, rather than a stale PDF the seal would silently copy. Absence is
+# loud; staleness is silent — that is why [1r] is preceded by the `rm -f` above.
+kicad-cli sch export pdf --output "$SCHPDF" "04_kicad/$BOARD.kicad_sch" || true
+
+# [1a] M-FRESH verify — the pipeline asserts the artifacts it is about to grade
+# and to SHIP are the ones it just built. build_provenance.py finds the producer
+# under dist/ ITSELF (it does not take this script's word for it) and requires
+# the bytes to match, so a `touch` cannot forge freshness; it also requires the
+# producer to post-date [0b], the sources to be unmoved since, and the human
+# schematic to exist and post-date the circuit.json it depicts (F-RENDER).
+# Canon M1: the checker neither builds nor copies the things it grades.
+#
+# WHY THIS NOW RUNS AFTER THE CONVERTER, 2026-07-31: the render half needs the
+# PDF, and the PDF is now plotted from the .kicad_sch the converter writes, so
+# a single verify cannot precede both. `verify` is SINGLE-USE BY DESIGN — it
+# requires `phase == "pre-build"`, so calling it twice makes the second call
+# report F-NORUN against a stamp the first one already consumed (MEASURED).
+# Splitting it was therefore wrong; running it once, here, is right. The
+# protection is unchanged in effect: a stale artifact still fails the gate and
+# still stops the build before anything downstream consumes the output — it is
+# now detected one step later rather than one step earlier.
+$PY "$S/build_provenance.py" verify . --board "$BOARD" --tsx "$TSX" \
+    --artifact "$CJ" --render "$SCHPDF" \
+    || { echo "GATE FAILED [1a] M-FRESH (build_provenance.py verify): the artifact the converter read is NOT the one this build produced, or the human schematic the release ships is missing/older than it — every gate below would be green against stale content"; exit 1; }
 
 # [1b] CHEAP SEMANTIC BATTERY at the schematic gate — seconds each, run HERE
 # and not first at seal (a defect authored at this stage and caught at seal
