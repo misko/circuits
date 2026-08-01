@@ -123,7 +123,53 @@ re-derives. No release exists for this board.
 | **P1 `P-FACT` could not reach the KT-0603R `pad1_net_polarity` assertion although `source/*.net` is present** | topology | **OPEN (gate defect).** The reviewer verified the polarity by hand and it is correct; the CHECK is structurally blind. Propose upward as a `skills/` patch — not this board's partition. |
 | **P1 `pin_audit.py` produced a CONTENT-FREE dossier for U_MCU** (`MPN unknown`, `datasheet: (none)`, `(not in yaml)` x23) because it resolves refdes->MPN through `bom_jlc.csv`, and U_MCU is declared-unpopulated so it is in neither BOM nor CPL | pin | **OPEN (gate defect), and the shape is A-POP's twin.** The gate could not have failed on the one part whose own `part.yaml` warns in capitals about wrong-pad GPIO. The reviewer recovered the map from `02_parts/` and both vendor figures independently and the board is unaffected. Propose upward as a `skills/` patch. |
 | **P1 three-corner mounting: the SE hole sits 12.7 mm inboard, leaving the USB-C quadrant unsupported** | render | **OPEN.** A press-fit USB-C on an unsupported corner is a flex path. |
-| P2 x25 across the four lenses | all | recorded in the review files; none blocking. |
+| ~~P2 x25 across the four lenses~~ | ~~all~~ | ~~recorded in the review files; none blocking.~~ **THIS ROW WAS A DEFECT AND IS SUPERSEDED BY THE TABLE BELOW. See "The P2 aggregate row" immediately after this table.** |
+
+#### The P2 aggregate row — what it cost, and the six it hid
+
+**This ledger's contract says *"One row per finding, across ALL reviews"*
+(`08_reviews/contracts.md:40-53`) and reserves the disposition verb
+`recorded — <note>` explicitly for P2s. There is no severity filter in the
+rule.** The row above applied one anyway: every **P0 and P1** from the four r2
+lenses got an individual row, and **all 25 P2s got none** — 6 layout, 7
+topology, 0 pin, 12 render. The count reconciles exactly, which is the damning
+part: **the ledger knew precisely how many findings it was discarding.**
+
+**It cost a real one.** `L-09` below is the exposed-pad half of what is now
+`ORDER_README.md` §7 item 8 and §0 item 3 — a genuine copper defect requiring a
+paid fab option. It was raised 2026-07-30 22:34, absorbed into the aggregate in
+**the same commit** (`c7ebda44` added the review *and* the row), and
+**rediscovered from scratch by a fab lens thirteen hours later.** Its own
+remedy — *"record the plugging requirement in the fab MANIFEST"* — reached
+neither MANIFEST nor ORDER_README until 2026-07-31.
+
+**The r2 LAYOUT lens's six, enumerated, so they are greppable by the id the
+review gave them:**
+
+| id | finding (from `2026-07-30_v1.0_redteam_layout_r2.md`) | disposition |
+|---|---|---|
+| **L-06** | the module's declared underside COPPER keepout was implemented against the router, not the zone fill — 2735 of 3025 sampled points (**90.4 %**) inside the rectangle are poured | **recorded — mitigated and NOT closed.** The nine module-face GPIO in the strip are GP17–GP25, none used on this board, so nothing is shorted. The obligation was written down and the mechanism chosen (a router keepout) cannot discharge it; a real `(keepout (copperpour not_allowed))` is owed to v-next. |
+| **L-07** | CTRL declared to cross the RF region on an inner layer under ground; **90–96 %** of SW_V1/V2/V4 is on F.Cu beside the arms | **recorded — the FILE is wrong, not the copper.** Edges land inside the 128-sample (4.267 µs) blanking allowance, so it is bounded by design. `nets.yaml`'s CTRL `intent:` must be amended to what was built, or the copper moved to In2. Leaving the file claiming an inner-layer route that 91 % of the copper does not take is the defect. |
+| **L-08** | the dominant impedance discontinuity is the SMA launch (3.510 mm antipad, 1.450 mm barrel → **Z ≈ 25.2 Ω, ≈ −11.4 dB per launch**), and it is in no published number | **recorded — no layout change, but a PUBLICATION obligation.** Inherent to a THT SMA on 1.6 mm FR-4 and the antipad is already at the declared maximum. Common-mode across all ten jacks so it does not corrupt the published deltas. **The property set must state that per-port return loss is launch-dominated**, or the first VNA sweep reads as a design failure when it is a connector fact. Carried into `ORDER_README.md` §4. |
+| **L-09** | **seven open 0.15 mm via holes inside `U_SW`'s exposed pad, plugged from one side only** | **SUPERSEDED AND ESCALATED — this was the finding the aggregate lost.** Re-measured 2026-07-31 and found **larger** than L-09 stated: the population is **ten**, not seven (pads 8/`VDD`, 11/`V3` and 18/`GND` each carry a via-in-pad with **0.025 mm** of copper rail beside the annulus), and pSemi **AN62** requires plugging or paste-side tenting, of which the board does neither. **Now `ORDER_README.md` §0 item 3 (costed, with gerber evidence) and §7 item 8 (order-blocking).** Remedy is POFV on the order — no copper moves. L-09's own severity call (*P2, "acceptable … but state it"*) was defensible for the EP alone; it did not survive the three perimeter lands it had not measured. |
+| **L-10** | closest SMA pair (J_RX2 ↔ J_ANT8, **9.933 mm**) clears two 5/16 in coupling nuts (9.168 mm across corners) by **0.765 mm** — no spanner fits | **recorded — an ASSEMBLY-ORDER constraint, not a defect.** Ship as is for hand-tight use. J_ANT8 and J_RX2 must be torqued **before** their neighbour is fitted. Belongs in bring-up, not in copper. |
+| **L-11** | the release's own `policy_audit.md` predates the release (4 of 45 checks structurally vacuous) and `assembly_coverage.txt` reports `A-POP: FAIL` | **PARTLY CLOSED 2026-07-31, and the residue is now visible.** `policy_audit` is re-run after the fab set (`ORDER_README.md` §7 item 1). Fixing it exposed a second defect the staleness had masked: **the staged `verification/policy_audit.md` was a 5-line STDOUT DUMP with 0 table rows**, not the 45-row artifact the script writes to `06_build/policy_audit.md`. Corrected this revision. A-POP itself closes at the seal. |
+
+**The other 19 P2s (7 topology, 12 render) are NOT enumerated here and that is a
+declared gap, not a closure.** They are in
+`2026-07-30_v1.0_redteam_topology_r2.md` and `..._render-review_all_r2.md`,
+whose own footers count them (`P2 = 7`, `P2 = 12`). Enumerating them is owed to
+whoever next partitions those two lenses. **Recording the gap explicitly is the
+point: the row it replaces recorded a total and looked complete.**
+
+**The mechanism that would have caught this, proposed as a skill change in
+`ORDER_README.md` §9 item 8.** The existing audit checks **row → review** and
+scopes itself to **P0/P1** — the exact filter that dropped L-09 — so a finding
+that never becomes a row is invisible to it by construction, and
+`grep -rn DISPOSITIONS tests/` returns **0 hits**. The fix is a test that parses
+every `| <id> |` out of every review file and asserts it appears here, in ALL
+severities, with this project as the known-bad fixture and `usb-hub-3s-v3` (62
+individual P2 rows) as the known-good.
 
 ---
 
