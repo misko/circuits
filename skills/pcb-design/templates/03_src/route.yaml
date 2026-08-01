@@ -22,6 +22,41 @@ project:
   board: 04_kicad/cook_loadcell.kicad_pcb
   build_dir: 06_build/route
 
+# Process contract consumed by kicad-pcb/scripts/pcb_flow.py.  Geometry tools
+# ignore this block.  It makes stage ownership, deterministic/stochastic
+# copper, and wall-time expectations explicit before an expensive route begins.
+flow:
+  # Single-board defaults: this config, 03_src/rebuild_all.sh, 06_build/.
+  # An ADR-0007 multi-board project instead keeps this file at
+  # 03_src/<board>/route.yaml and MUST uncomment board-scoped paths/inputs:
+  # paths:
+  #   board_id: cook_loadcell
+  #   state_dir: 06_build/cook_loadcell
+  #   rebuild: 03_src/cook_loadcell/rebuild_all.sh
+  #   journal: 01_docs/journal/routing_cook_loadcell.md
+  # inputs:
+  #   include: [03_src/cook_loadcell,
+  #             03_tscircuit/src/cook_loadcell.tsx,
+  #             03_tscircuit/manifest-cook_loadcell.yaml]
+  #   parts: [02_parts/MPN_A, 02_parts/MPN_B]
+  #   tools: []  # extra shared/external producers beyond conductor defaults
+  owner:
+    stage: routing
+    files: [03_src/route.yaml, 03_src/floorplan.yaml,
+            03_src/route/r2.kicad_pcb]
+  copper:
+    deterministic: [prep.seed_stubs, taps.connections, stitch.seed_stubs,
+                    route.final]
+    stochastic: [route.waves]
+  budgets_s:
+    escape_packages: 30
+    escape_lands: 120
+    tier_preflight: 15
+    grind: 900
+    rebuild: 1200
+    layout_drc: 120
+  blockers: []
+
 prep:
   out: r0.kicad_pcb
   keepouts:
@@ -157,7 +192,7 @@ stitch:
   passes: [seed_stubs, dedupe_vias, normalize_vias, drop_micro_fragments,
            drop_dangling, split_t_junctions, reload, hole_to_hole, pad_rescue,
            stub_fallback, astar_fallback, stitch_grid, fill, island_rescue,
-           fill, unify_zone_priorities, heal_islands, gate]
+           fill, fresh_reload, unify_zone_priorities, heal_islands, gate]
   # DETERMINISTIC POUR-FED PIN SEED STUBS (canon M8: usb-hub-3s
   # plan_seed_stubs.py + add_seed_stubs.py). The pour-fed nets that leave a
   # dense IC pin row and weave across the escape field to their pour island —
@@ -223,7 +258,12 @@ stitch:
     # hole_to_hole clash (3S clean-room cleanup_vias.py part 1 incident).
     require: none
   stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
-  astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
+  # `layers` may constrain the search to one or two reviewed corridors; this
+  # is substantially faster than searching the whole default F/B space.  The
+  # A* via pin inherits a matching stitch.via.tiers hole_to_copper value, or
+  # it may declare one explicitly.
+  astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3,
+                   layers: [F.Cu, B.Cu]}
   stitch_grid:
     net: GND
     x: [24, 74, 8]

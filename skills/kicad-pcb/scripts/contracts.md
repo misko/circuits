@@ -68,7 +68,17 @@ BACKEND GAP to report, not a bespoke script to write here.
   **DRU predicates count.** `--dru BOARD.kicad_dru` grades rule-file conditions
   against the board's own inventory (`dru_inventory`, geometry-free): a
   condition NO object can satisfy — a netclass, net or `insideArea` the board
-  lacks — and a `NetName != ''` conjunct on a clearance-family constraint. A
+  lacks — and a `NetName != ''` conjunct on a clearance-family constraint.
+  A THIRD species needs geometry (`dru_area_members`, pcbnew): a rule whose
+  every name resolves and which STILL matches nothing, because a named rule
+  area is not a populated one. That is how a PRESERVED rule dies —
+  `generate_rules_generic` used to carry any rule it did not own forward
+  forever. It now retires a positively derived zero using `dru_subject`, which
+  parses the board as TEXT; this gate must NOT import that module, because a
+  checker sharing the emitter's derivation proves nothing about it (canon M1).
+  Both matchers read the BARE `(rule X` spelling as well as the quoted one:
+  requiring quotes made this gate skip all 6 `pad_rescue_stubs` rules in the
+  fleet — the only rule family it was preserved-vs-regenerated for. A
   predicate that excludes its subject is worse than a silent Python gate,
   because it makes DRC itself report zero.
   **THE RATCHET:** coverage is reported for all 31 and every OWED gate is

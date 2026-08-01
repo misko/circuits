@@ -1,6 +1,6 @@
 ---
 name: pcb-design
-description: "Full PCB design pipeline entry point: takes a design brief and drives it from commission to a verified, ORDERABLE-AND-ASSEMBLED JLCPCB PCBA release (/pcb-design <the board I would like to design...>). Use when the user wants a new circuit board designed end-to-end."
+description: "Full PCB design pipeline entry point: takes a design brief and drives it from commission to a verified, ORDERABLE-AND-ASSEMBLED JLCPCB PCBA release. Use when the user wants a new circuit board designed end-to-end."
 ---
 
 # /pcb-design — brief to an ASSEMBLED board
@@ -90,7 +90,14 @@ handoff loses nothing. **A successor's INTAKE is scoped:** read
 `01_docs/STATUS.md` (the beacon), the TAIL of the current stage's journal
 (the last handoff/iterate entries), and the files the beacon names — never
 whole `journal/` or `learnings/` directories (they run 40-70KB per board;
-history beyond the live frame is pulled on demand, not preloaded).
+history beyond the live frame is pulled on demand, not preloaded). For PCB
+stages, generate and validate the compact content-addressed handoff with
+`kicad-pcb/scripts/pcb_flow.py handoff|validate`; do not hand-copy hashes or
+gate counts. Its 16 KiB ceiling is the intake budget, and a source/board hash
+or tool/gate identity change makes the handoff stale by construction. A
+multi-board project must select one nested board config and isolate its input,
+part, state, and journal paths. See the kicad-pcb reference
+`references/fast-pcb-flow.md` for the stage/ownership and testing contract.
 
 ## 0. Commission (before any engineering)
 
@@ -105,7 +112,7 @@ history beyond the live frame is pulled on demand, not preloaded).
   a sibling board's design (2026-07-20). Read the contracts; they are binding.
 - Seed `03_src/` config from the skill's schema examples —
   `<pcb-design skill>/templates/03_src/{floorplan.yaml,route.yaml,rebuild_all.sh,
-  rules/{nets.yaml,power_tree.yaml,electrical_invariants.yaml}}`
+  rules/{nets.yaml,power_tree.yaml,electrical_invariants.yaml,integration.yaml}}`
   — plus `rules/mates.yaml` ONLY if the board mates to foreign hardware
   (D-MATE below; a board that mates to nothing must not carry an empty one,
   which `import_provenance_check.py` fails as M-COVER) —
@@ -216,6 +223,16 @@ history beyond the live frame is pulled on demand, not preloaded).
       any engineering is spent — propose the nearest compliant reading.
   The stage-2 part.yaml work then verifies the chosen part; it never
   DISCOVERS feasibility.
+  **D-MOD, MODULE-FIRST INTEGRATION (DEFAULT WHEN THE USER IS SILENT).** For
+  each complex subsystem—programmable compute/control, radio, interface or
+  switching-power controller, precision AFE/transceiver—search proven modules
+  before selecting a bare IC. Optimize total engineering effort (support BOM,
+  layout/escape, firmware/bring-up, verification, sourcing and assembly), not
+  only unit price or area. Record every choice in
+  `03_src/rules/integration.yaml`; `module_first_check.py` is P-MOD and runs
+  before generation. A bare IC requires an ADR naming a BINDING requirement a
+  module cannot meet, measured/cited evidence, and the modules rejected. Cost
+  or area alone is not an exception without a locked production/size target.
 
 ## Journal discipline — every stage, every iteration (canon M9)
 
@@ -411,6 +428,17 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
    (TTL'd), never in `part.yaml`, per the 02_parts contract's three-tier
    model. The PDF set MUST include the package/land-pattern drawing, not
    just electricals.
+   **Q-2SOURCE is a hard pre-selection gate, before schematic completion.**
+   A component may enter the schematic only when the exact authoritative MPN,
+   or an explicitly approved dossier alternate, is active and orderable with
+   `stock > 10` and enough stock for five board sets at **two independent
+   authorized supplier pools**. JLCPCB/LCSC, Mouser, and DigiKey are separate
+   pools; multiple listings or packaging records at one distributor count once,
+   and marketplace sellers do not count. Run `shopping_list.py` with the
+   Mouser API plus exact DigiKey product-page quotes and join those results to
+   the JLC stock snapshot. Fewer than two qualifying pools rejects the part;
+   it is not a release-time waiver. Repeat the same gate on order day because
+   stock is volatile.
    **FAN OUT the research (parts are independent):** ledger hits
    (`references/proven-parts.yaml`) need no research — copy the verified
    block. Partition the REMAINING multi-pin parts into groups of ~4 and
@@ -421,7 +449,7 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
    output, which is what makes the fan-out safe. Serial research on a
    16-part board wastes ~30 minutes for no verification gain.
 
-   **Mandatory design-decision gates (D-ESC / D-TIER / D-ADJ)** — encoded
+   **Mandatory design-decision gates (D-MOD / D-ESC / D-TIER / D-ADJ)** — encoded
    2026-07-21 after a clean-room 3S board stalled at DRC on decisions the
    skill had never captured (they lived in one interactive session and one
    board's ORDER_README; two copied boards masked the gap):
@@ -786,6 +814,13 @@ stitch_and_fill (pours + thermal vias) → **generate_rules LAST** (pcbnew
 saves clobber netclasses) → DRC gate:
 `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
 must report **0 violations / 0 unconnected / 0 parity** at FULL severity.
+At route entry run `pcb_flow.py preflight <project>`: on adopted projects it
+composes P-MOD first, then P-ESC, P-LAND, and R-PREFLIGHT before router spend.
+`pcb_flow.py layout-seal`
+performs a canonical rebuild plus a fresh 0/0/0 gate and records timings; its
+fresh-board P-LAND gate runs after that rebuild and before DRC. Its verdict is
+PCB LAYOUT scope only and never substitutes for the jlcpcb-fab
+fabrication/assembly release battery.
 **THE GRIND IS MECHANICAL FIRST, JUDGMENT SECOND:** iterate with the CHEAP
 loop — `route_and_stitch_generic.py quick` (seconds: connectivity +
 copper-clearance verdict on the pre-stitch board) — and run

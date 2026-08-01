@@ -48,6 +48,7 @@ C12891: {mpn: CL31A226KAHNNNE, value: "22uF", verified: "2026-07-23 JLC catalog 
 # (07721d6). Catalog describe verbatim: "-55C~+155C 10mOhm 1W 200V Thick Film
 # Resistor +-1% +-1500ppm/C 2512" -> 0.01 ohm, which is what the BOM labels it.
 C127692: {mpn: 25121WF100MT4E, value: "0.01", verified: "2026-07-27 JLC catalog (selectSmtComponentList describe: '10mΩ 1W 200V Thick Film Resistor ±1% 2512', UNI-ROYAL)"}
+C844901: {mpn: WSL2512R0100FEA, value: "0.01", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code record: MPN WSL2512R0100FEA, describe '10mΩ 1W ±1% ±75ppm/℃ 2512', stock 13216. Vishay ordering code independently agrees: R0100 = 0.0100Ω; exact DigiKey product record also specifies 10mΩ ±1% 1W."}
 C14663: {mpn: CC0603KRX7R9BB104, value: "100nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C14858: {mpn: CL10C101JB8NNNC, value: "100pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C15195: {mpn: CL05B103KB5NNNC, value: "10nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
@@ -249,3 +250,24 @@ C1548: {mpn: 0402CG150J500NT, value: "15pF", verified: "2026-07-28 catalog read 
 # the .tsx declares, a third check the ledger does not require.
 C270658: {mpn: 0402WGD1003TCE, value: "100k", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn 0402WGD1003TCE, stock 9643, status OK). Decode agrees independently: Uni-Royal 0402, D = +-0.5%, field '1003' = 100 x 10^3 = 100 kOhm. Agrees with cooksense.tsx:120 R_OVT resistance='100k'. TOP leg of the TPS259573 OV divider (5V_RPP -> EF_OVLO)."}
 C407739: {mpn: 0402WGD2612TCE, value: "26.1k", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn 0402WGD2612TCE, stock 227, status OK). Decode agrees independently: Uni-Royal 0402, D = +-0.5%, field '2612' = 261 x 10^2 = 26.1 kOhm. Agrees with cooksense.tsx:121 R_OVB resistance='26.1k'. BOTTOM leg (EF_OVLO -> GND); this is the leg that moved 15k -> 26.1k to bring the OV trip from 9.200 V down onto a 7.5 V coil rail. STOCK IS THIN AT 227 — clears 5x5 comfortably but is a watch-list line for any larger build, and a stock PASS is necessary and not sufficient (F-ECHO at upload is the only instrument)."}
+
+# --- programmable-usb2-hub layout seal, 2026-07-31 -------------------------
+# Exact-code JLC catalog reads for the 15 unique passive codes behind the
+# circuit-only gate's 30 UNVERIFIABLE-VALUE findings.  The ordering-code decode
+# is an independent value check; values below are catalog truth, not copied
+# from the TSX labels.  Stock is volatile and deliberately not recorded here.
+C2999456: {mpn: FRC0603F8872TS, value: "88.7k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 88.7kOhm ±1% 0603. MPN field 8872 independently decodes to 887 x 10^2 ohm = 88.7kOhm."}
+C25972: {mpn: 0603WAF4751T5E, value: "4.75k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 4.75kOhm ±1% 0603. MPN field 4751 independently decodes to 475 x 10^1 ohm = 4.75kOhm."}
+C2930136: {mpn: FRC0603F9092TS, value: "90.9k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 90.9kOhm ±1% 0603. MPN field 9092 independently decodes to 909 x 10^2 ohm = 90.9kOhm."}
+C2930057: {mpn: FRC0603F1152TS, value: "11.5k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 11.5kOhm ±1% 0603. MPN field 1152 independently decodes to 115 x 10^2 ohm = 11.5kOhm."}
+C21120: {mpn: CL10B224KA8NNNC, value: "220nF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 220nF 25V X7R ±10% 0603. MPN capacitance field 224 independently decodes to 220000pF = 220nF."}
+C24497: {mpn: CL31B104KBCNNNC, value: "100nF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 100nF 50V X7R ±10% 1206. MPN capacitance field 104 independently decodes to 100000pF = 100nF."}
+C23017: {mpn: 0603WAF3921T5E, value: "3.92k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 3.92kOhm ±1% 0603. MPN field 3921 independently decodes to 392 x 10^1 ohm = 3.92kOhm."}
+C13585: {mpn: CL31A106KBHNNNE, value: "10uF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 10uF 50V X5R ±10% 1206. MPN capacitance field 106 independently decodes to 10000000pF = 10uF."}
+C22790: {mpn: 0603WAF1202T5E, value: "12k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 12kOhm ±1% 0603. MPN field 1202 independently decodes to 120 x 10^2 ohm = 12kOhm."}
+C1647: {mpn: CL10C180JB8NNNC, value: "18pF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 18pF 50V C0G ±5% 0603. MPN capacitance field 180 independently decodes to 18pF."}
+C19666: {mpn: CL10A475KO8NNNC, value: "4.7uF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 4.7uF 16V X5R ±10% 0603. MPN capacitance field 475 independently decodes to 4700000pF = 4.7uF."}
+C5126196: {mpn: FRC0603F9760TS, value: "976", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 976Ohm ±1% 0603. MPN field 9760 independently decodes to 976 x 10^0 ohm = 976Ohm."}
+C1604: {mpn: 0603B222K500NT, value: "2.2nF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 2.2nF 50V X7R ±10% 0603. MPN capacitance field 222 independently decodes to 2200pF = 2.2nF."}
+C309062: {mpn: CL32B226KAJNNNE, value: "22uF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 22uF 25V X7R ±10% 1210. MPN capacitance field 226 independently decodes to 22000000pF = 22uF."}
+C23231: {mpn: 0603WAF6802T5E, value: "68k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 68kOhm ±1% 0603. MPN field 6802 independently decodes to 680 x 10^2 ohm = 68kOhm."}

@@ -23,6 +23,9 @@ The properties pinned here are each a paid-for incident:
     .kicad_sch, measured on crow-rv2); the committed sch is PINNED canonical.
   * rebuild_all.sh hands the converter the artifact `tsci build` ACTUALLY
     WROTE (M-FRESH, 2026-07-30 — see below).
+  * rebuild_all.sh promotes its generated schematic to the pinned reuse path
+    only AFTER the DRC/full-build gate passes. Otherwise rebuild_reuse.sh can
+    silently replay the topology from before the latest TSX edit.
 
 M-FRESH (2026-07-30, pluto-rx2-8way-v2). `tsci build` writes
 `03_tscircuit/dist/src/<TSX>/circuit.json`; this template read
@@ -107,6 +110,17 @@ def erc_gate_ok(txt):
                        "to be baselined, and a baseline nobody writes down "
                        "cannot be reviewed")
     return True, ""
+
+
+def pre_route_land_gate_ok(txt):
+    """P-LAND must run after rules exist and before any route import."""
+    board = txt.find("generate_board_generic.py")
+    rules = txt.find("generate_rules_generic.py", board + 1)
+    land = txt.find('escape_check.py" --board', rules + 1)
+    route = min((p for p in (txt.find('route_and_stitch_generic.py" prep'),
+                             txt.find('route_and_stitch_generic.py" import'))
+                 if p >= 0), default=-1)
+    return board >= 0 and rules > board and land > rules and route > land
 
 
 def audit_board_guard_ok(txt):
@@ -265,6 +279,22 @@ def t_no_tsci():
           "and belongs to rebuild_all.sh only")
     contains(txt, "PINNED", "header (must document the pinned-sch fact)")
     contains(txt, "rebuild_all.sh", "header (must say when to use which driver)")
+
+
+@test("rebuild_all.sh: the full-build schematic is promoted to the pinned "
+      "reuse path only AFTER DRC passes")
+def t_all_promotes_pinned_schematic_last():
+    txt = ALL.read_text()
+    drc = re.search(r'^\s*kicad-cli pcb drc', txt, re.M)
+    cp = re.search(
+        r'^\s*cp\s+"04_kicad/\$BOARD\.kicad_sch"\s+'
+        r'"03_tscircuit/kicad/\$BOARD\.kicad_sch"', txt, re.M)
+    verify = re.search(
+        r'^\s*cmp\s+-s\s+"04_kicad/\$BOARD\.kicad_sch"\s+'
+        r'"03_tscircuit/kicad/\$BOARD\.kicad_sch"', txt, re.M)
+    check(drc and cp and verify and drc.start() < cp.start() < verify.start(),
+          "full rebuild must copy+verify the generated schematic into the "
+          "pinned reuse path only after the DRC gate")
 
 
 @test("rebuild_reuse.sh: board name is DERIVED from floorplan.yaml project.name "
@@ -443,6 +473,24 @@ def t_audit_board_guarded():
     pluto-rx2-8way-v2, 2026-07-30."""
     ok, why = audit_board_guard_ok(ALL.read_text())
     check(ok, f"rebuild_all.sh [4]: {why}")
+
+
+@test("both rebuild drivers run P-LAND after rules and before route import")
+def t_pre_route_land_gate():
+    for path in (ALL, REUSE):
+        check(pre_route_land_gate_ok(path.read_text()),
+              f"{path.name}: P-LAND must follow generated rules and precede route import")
+
+
+@test("the pre-route P-LAND ordering check rejects a seal-only/absent gate",
+      kind="known_bad")
+def t_kb_pre_route_land_gate():
+    text = ALL.read_text().replace(
+        '$PY "$S/escape_check.py" --board "04_kicad/$BOARD.kicad_pcb" \\\n'
+        '    || { echo "GATE FAILED [5a] P-LAND: a placed pad cannot launch its declared width"; exit 1; }\n',
+        "")
+    check(not pre_route_land_gate_ok(text),
+          "a driver with no pre-route pad-launch gate was accepted")
 
 
 @test("the [4] guard check has TEETH in BOTH directions: the unconditional "

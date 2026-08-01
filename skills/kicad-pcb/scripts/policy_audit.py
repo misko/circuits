@@ -120,27 +120,27 @@ GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A")
 # never been measured cannot have regressed — and picks up a bound the first
 # time someone records one. That declared gap is the honest price of never
 # failing a board for existing.
-PREC_GRADED_FLOOR = 1    # in-scope parts carrying a TIER-GRADED precedent
-                         # record, FLEET-WIDE. RAISED 0 -> 1 on 2026-07-30: the
-                         # fleet's first mapping-form dossier is
-                         # pluto-rx2-8way-v2/02_parts/RP2040-Zero. The floor
-                         # was declared INERT at zero and this is it stopping
-                         # being inert, exactly as advertised — a numerator
-                         # advance against a floor that may only RISE.
+PREC_GRADED_FLOOR = 14   # in-scope parts carrying a TIER-GRADED precedent
+                         # record, FLEET-WIDE. RAISED 1 -> 14 on 2026-07-31:
+                         # read-only fleet sweep measured 14 graded / 113
+                         # in-scope after the v4 and programmable-hub dossiers
+                         # landed. A numerator advance raises this floor in the
+                         # same change; it may never be lowered.
 #
 # PER-BOARD owed ceilings: in-scope parts with NO tier-graded record. Each may
 # only FALL, and each is TIGHT (the test asserts equality, so a board that
 # improves must lower its own row in the same commit and cannot bank slack).
-# MEASURED 2026-07-30 at 221687ef, read-only sweep of `projects/*/02_parts/`:
-# 92 in scope across 7 boards, 1 GRADED, 91 OWED — 47 of those carrying a
-# bare-string `layout_refs:` list (a real precedent search recorded as prose no
-# machine can rank) and 44 carrying nothing at all.
+# MEASURED 2026-07-31, read-only sweep of `projects/*/02_parts/`: 113 in scope
+# across 9 boards, 14 GRADED and 99 OWED. The per-board rows below are exact;
+# `tests/t1_layout_precedent.py` independently recomputes every denominator.
 PREC_OWED_CEILING = {
     "crow-mic-pod-v2": 4,
     "crow-recorder-central-v2": 17,
     "pluto-cal-switch": 13,
     "pluto-rx2-8way": 8,
     "pluto-rx2-8way-v2": 2,        # 3 in scope, 1 of them GRADED
+    "pluto-rx2-8way-v4": 2,
+    "programmable-usb2-hub": 6,
     "smc0985-cooksense": 35,
     "usb-hub-3s-v3": 12,
 }
@@ -400,6 +400,21 @@ def main():
     else:
         rows.append(("P-ESC", "N-A", "no 02_parts entries"))
         rows.append(("P-TIER", "N-A", "no 02_parts entries"))
+
+    # P-MOD: prefer a proven integration over a bare complex subsystem. New
+    # projects adopt through integration.yaml; its absence on historical
+    # projects is explicitly UNMIGRATED/N-A and never misreported as a pass.
+    import module_first_check as mfc
+    mod = mfc.evaluate(proj)
+    if mod["status"] == "unmigrated":
+        rows.append(("P-MOD", "N-A", "legacy/unmigrated: no "
+                     "03_src/rules/integration.yaml"))
+    else:
+        grade("P-MOD", not mod["findings"],
+              f"{mod['graded']}/{mod['total']} complex subsystems graded: "
+              f"modules={mod['modules']}, bare exceptions={mod['bare']}",
+              f"module-first contract findings ({len(mod['findings'])}): "
+              f"{mod['findings'][:3]}")
 
     # P-LAYOUT / P-ADJ: datasheet LAYOUT-section compliance — the THIRD part.yaml
     # dimension, after verified: (pinout, S-VER) and escape: (package, P-ESC).

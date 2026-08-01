@@ -181,7 +181,9 @@ def read_footprints(path):
         rec = {"ref": "", "value": "", "fp": fpid.split(":")[-1],
                "layer": "", "rot": 0.0, "pads": set(), "attrs": set(),
                "at": (0.0, 0.0), "datum": None,
-               "drilled": 0, "drilled_pasted": 0}
+               "drilled": 0, "drilled_pasted": 0,
+               "assembly_drilled": 0, "_drilled_numbers": [],
+               "_smd_copper_numbers": set()}
         pad_xy = []
         for kind, span in _children(text, i):
             if kind == "at":
@@ -214,13 +216,26 @@ def read_footprints(path):
                         drill = _atoms(s2)[1:]
                 on_cu = bool(lay) and any(
                     L.endswith(".Cu") or L == "*.Cu" for L in lay)
+                number = a[1] if len(a) > 1 else ""
+                if on_cu and ptype == "smd" and number:
+                    rec["_smd_copper_numbers"].add(number)
                 if on_cu and at and len(at) > 2:
                     pad_xy.append((float(at[1]), float(at[2])))
                 if drill and ptype != "np_thru_hole":
                     rec["drilled"] += 1
+                    rec["_drilled_numbers"].append(number)
                     if lay and any(L in ("F.Paste", "B.Paste", "*.Paste")
                                    for L in lay):
                         rec["drilled_pasted"] += 1
+        # Footprint-native thermal vias share the exposed SMD land's pad
+        # number. They are not component leads and need no separate THT
+        # assembly process. Mixed connectors remain covered: an unpasted
+        # shell/anchor pin has no same-number SMD copper land.
+        rec["assembly_drilled"] = sum(
+            1 for number in rec["_drilled_numbers"]
+            if not number or number not in rec["_smd_copper_numbers"])
+        rec.pop("_drilled_numbers")
+        rec.pop("_smd_copper_numbers")
         if pad_xy:
             rec["datum"] = _pad_array_centre(pad_xy, rec["at"], rec["rot"])
         if rec["ref"]:
@@ -520,7 +535,9 @@ def check_smt_placeable(fps, cpl_refs, asm):
               "assertion; without both keys the declaration exempts nothing")
     for ref in sorted(cpl_refs):
         f = by_ref.get(ref)
-        if f is None or not f["drilled"]:
+        assembly_drilled = (f.get("assembly_drilled", f["drilled"])
+                            if f is not None else 0)
+        if f is None or not assembly_drilled:
             continue
         if f["drilled_pasted"]:
             continue                      # pin-in-paste: reflows normally
@@ -528,7 +545,7 @@ def check_smt_placeable(fps, cpl_refs, asm):
             continue                      # the THT line was BOUGHT for this ref
         fails.append(
             f"  CPL-NOT-SMT-PLACEABLE: {ref} ({f['fp'][:38]}) has "
-            f"{f['drilled']} plated DRILLED pad(s) and F.Paste on NONE of "
+            f"{assembly_drilled} plated DRILLED pad(s) and F.Paste on NONE of "
             f"them, yet it is on the CPL of a service={service or '?'} "
             f"sides={sides or '?'} order — no reflow process can solder it. "
             f"Either declare the bought process in assembly.yaml "

@@ -276,17 +276,14 @@ from waiver_provenance import (MUTATING, last_line_number,  # noqa: E402
 #   CITED may only RISE, OWED may only FALL.
 # Edit one of these only in the same commit that earns it, and say which run
 # produced the number.
-CITED_FLOOR = 0        # bound blocks regenerated and agreeing. ZERO TODAY, and
-                       # that is the honest number: nothing in the fleet
-                       # declares a block yet, so the floor is INERT and says
-                       # so. It stops being inert on the first declaration, and
-                       # `t1_adr_bounds.py:t_the_cited_floor_is_pinned_to_the_
-                       # measured_count` pins it to the measured count so the
-                       # floor cannot silently lag adoption — the same
-                       # outside-the-circle trick VACUITY_FLOOR uses.
+CITED_FLOOR = 10       # regenerated and agreeing blocks, MEASURED 2026-07-31
+                       # by the independent ratchet test after making repo ADR
+                       # 0007's board-silk threshold executable. May only rise.
 OWED_CEILING = 37      # ADRs that publish a numeric inequality bound and
-                       # declare no `bound:` block. 37 of 78, measured; 108
-                       # bounds behind them.
+                       # declare no `bound:` block. Still TIGHT at 37 of 45
+                       # bound-publishing ADRs across 92 total ADRs after the
+                       # new v4 numeric ADR and the repo-level closure cancel
+                       # one-for-one. Deliberately NOT loosened to 38.
 
 ADR_GLOBS = ("docs/decisions/[0-9]*.md", "*/01_docs/decisions/[0-9]*.md",
              "projects/*/01_docs/decisions/[0-9]*.md")

@@ -43,6 +43,7 @@ SUITES=(
   t1_placement_gates.py
   t1_contracts.py
   t1_counting.py
+  t1_module_first.py
   t1_escape_tier.py
   t1_layout_precedent.py
   t1_rules_bom.py
@@ -79,6 +80,7 @@ SUITES=(
   t2_route_stitch.py
   t2_tier_preflight.py
   t2_grind.py
+  t2_pcb_flow.py
   t4_regressions.py
 )
 [ "$SLOW" = 1 ] && SUITES+=(e2e_boards.py t3_acceptance.py)

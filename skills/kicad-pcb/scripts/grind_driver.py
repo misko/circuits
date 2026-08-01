@@ -152,16 +152,17 @@ def run_check_cmd(cmd, root, out_path):
     return json.loads(out_path.read_text(encoding="utf-8-sig"))
 
 
-def measure(args, root, cfg_path, board):
+def measure(args, root, cfg_path, board, state_dir):
     """-> (mode, findings). quick while dirty, full once quick is clean."""
-    scratch = root / "06_build" / "grind"
+    scratch = state_dir / "grind"
     scratch.mkdir(parents=True, exist_ok=True)
     if args.check_cmd:
         g = run_check_cmd(args.check_cmd, root, scratch / "check.json")
         return "check-cmd", classify_gate(g, args.fab_floor)
     qjson = scratch / "quick.json"
     rq = subprocess.run([KPY, str(SCRIPTS / "route_and_stitch_generic.py"),
-                         "quick", str(cfg_path), "--json", str(qjson)],
+                         "quick", str(cfg_path), "--root", str(root),
+                         "--json", str(qjson)],
                         cwd=str(root), capture_output=True, text=True)
     if not qjson.is_file():
         sys.exit(f"grind_driver: quick produced no JSON (exit "
@@ -190,8 +191,8 @@ def measure(args, root, cfg_path, board):
 
 
 # --------------------------------------------------------------- output --
-def journal(root, n, mode, findings, best, stall, action):
-    p = root / "01_docs" / "journal" / "routing.md"
+def journal(path, n, mode, findings, best, stall, action):
+    p = path
     p.parent.mkdir(parents=True, exist_ok=True)
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     counts = ", ".join(f"{k}={e['count']}"
@@ -240,8 +241,8 @@ def two_strike_flags(findings, table):
     return out
 
 
-def write_escalation(root, reason, findings, table, history):
-    p = root / "06_build" / "grind_escalation.md"
+def write_escalation(state_dir, reason, findings, table, history):
+    p = state_dir / "grind_escalation.md"
     p.parent.mkdir(parents=True, exist_ok=True)
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     lines = [f"# grind escalation — {ts}", "",
@@ -304,21 +305,34 @@ def main(argv=None):
     root = Path(args.root).resolve()
     cfg_path = root / args.config
     board = None
+    cfg = {}
     if cfg_path.is_file():
         cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8-sig")) or {}
         b = (cfg.get("project") or {}).get("board")
         board = (root / b) if b else None
     elif not args.check_cmd:
         sys.exit(f"grind_driver: no {cfg_path} and no --check-cmd")
+    flow_paths = ((cfg.get("flow") or {}).get("paths") or {})
+    nested = cfg_path.parent != root / "03_src"
+    board_id = str(flow_paths.get("board_id") or
+                   (cfg_path.parent.name if nested else
+                    ((cfg.get("project") or {}).get("name") or "board")))
+    state_default = str(Path("06_build") / board_id) if nested else "06_build"
+    state_dir = root / flow_paths.get("state_dir", state_default)
+    journal_default = (f"01_docs/journal/routing_{board_id}.md" if nested
+                       else "01_docs/journal/routing.md")
+    journal_path = root / flow_paths.get("journal", journal_default)
+    rebuild_default = cfg_path.parent / "rebuild_all.sh"
+    rebuild_path = root / flow_paths.get("rebuild", rebuild_default)
     table = load_fixes(args.fixes)
-    rebuild_cmd = args.rebuild_cmd or "bash 03_src/rebuild_all.sh"
+    rebuild_cmd = args.rebuild_cmd or f"bash {shlex.quote(str(rebuild_path))}"
     if args.max_cycles < 1:
         sys.exit("grind_driver: --max-cycles must be >= 1")
 
     best, stall, history = None, 0, []
     u_prev, u_stall = None, 0
     for n in range(1, args.max_cycles + 1):
-        mode, findings = measure(args, root, cfg_path, board)
+        mode, findings = measure(args, root, cfg_path, board, state_dir)
         total = total_of(findings)
         history.append(total)
         # D-BACK bookkeeping BEFORE any fix: 3 consecutive measurements
@@ -351,7 +365,7 @@ def main(argv=None):
         if not findings:
             # only reachable in full / check-cmd mode: a DIRTY quick always
             # carries findings, and a clean quick hands over to the full gate
-            journal(root, n, mode, findings, best, stall, "clean, done")
+            journal(journal_path, n, mode, findings, best, stall, "clean, done")
             print("grind: 0/0/0 — done")
             return EXIT_CLEAN
 
@@ -362,55 +376,55 @@ def main(argv=None):
                        if c in table and table[c]["action"] == "auto")
 
         if novel:
-            journal(root, n, mode, findings, best, stall,
+            journal(journal_path, n, mode, findings, best, stall,
                     f"ESCALATE novel class {novel}")
-            write_escalation(root, f"novel class(es) {novel} — no table "
+            write_escalation(state_dir, f"novel class(es) {novel} — no table "
                                    f"entry", findings, table, history)
             return EXIT_NOVEL
         if u_stall >= 4:
-            journal(root, n, mode, findings, best, stall,
+            journal(journal_path, n, mode, findings, best, stall,
                     "ESCALATE unconnected-subset plateau")
-            write_escalation(root, f"D-BACK subset plateau: unconnected flat "
+            write_escalation(state_dir, f"D-BACK subset plateau: unconnected flat "
                                    f"at {ucount} for 4 cycles while total "
                                    f"improved — a reachability problem "
                                    f"masked by cosmetic progress",
                              findings, table, history)
             return EXIT_DBACK
         if stall >= 3:
-            journal(root, n, mode, findings, best, stall,
+            journal(journal_path, n, mode, findings, best, stall,
                     "ESCALATE D-BACK stagnation")
-            write_escalation(root, "D-BACK: 3 consecutive cycles without "
+            write_escalation(state_dir, "D-BACK: 3 consecutive cycles without "
                                    "total-count improvement",
                              findings, table, history)
             return EXIT_DBACK
         if not autos:
-            journal(root, n, mode, findings, best, stall,
+            journal(journal_path, n, mode, findings, best, stall,
                     f"ESCALATE table classes {esc}")
-            write_escalation(root, f"table-escalated class(es) {esc}",
+            write_escalation(state_dir, f"table-escalated class(es) {esc}",
                              findings, table, history)
             return EXIT_ESCALATE
 
         # conservatively-safe auto fixes: v1 = the rebuild chain rerun
         runs = sorted({table[c].get("run", "rebuild") for c in autos})
         if runs != ["rebuild"]:
-            journal(root, n, mode, findings, best, stall,
+            journal(journal_path, n, mode, findings, best, stall,
                     f"ESCALATE unknown auto procedure {runs}")
-            write_escalation(root, f"auto entries name unknown "
+            write_escalation(state_dir, f"auto entries name unknown "
                                    f"procedure(s) {runs}", findings, table,
                              history)
             return EXIT_ESCALATE
         print(f"  auto-fix ({', '.join(autos)}): {rebuild_cmd}")
         r = subprocess.run(rebuild_cmd, shell=True, cwd=str(root),
                            capture_output=True, text=True)
-        journal(root, n, mode, findings, best, stall,
+        journal(journal_path, n, mode, findings, best, stall,
                 f"auto-fix rebuild for {autos} (exit {r.returncode})")
         if r.returncode != 0:
-            write_escalation(root, f"auto-fix chain exited "
+            write_escalation(state_dir, f"auto-fix chain exited "
                                    f"{r.returncode}", findings, table,
                              history)
             return EXIT_ESCALATE
 
-    write_escalation(root, f"--max-cycles cap ({args.max_cycles}) reached",
+    write_escalation(state_dir, f"--max-cycles cap ({args.max_cycles}) reached",
                      findings, table, history)
     return EXIT_DBACK
 

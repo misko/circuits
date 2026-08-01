@@ -165,6 +165,52 @@ A cross-field consistency check on the rule files themselves, run by
 `tests/run_tests.sh`. Cheap, and it catches self-contradiction anywhere in the
 config rather than only this instance — M-WIDTH applied to this ADR's own fix.
 
+### 6. The board-silk threshold is a regenerated bound
+
+The first hand derivation said 0.60 mm text reaches JLC's published 0.15 mm
+stroke. That used KiCad's upper clamp and omitted the board-silk emitter's
+actual lower rule. The generator emits
+`max(tier floor, 0.13, 0.16 × height)` before the KiCad clamp, so the first
+height that reaches 0.15 mm is 0.9375 mm. This declaration deliberately names
+the board-silk emitter; the refdes emitter has a different rule and threshold.
+
+<!-- bound: BOARD_SILK_PUBLISHED_STROKE_HEIGHT -->
+```yaml
+id: BOARD_SILK_PUBLISHED_STROKE_HEIGHT
+claim: >-
+  Minimum board-silk text height at which the exact generator emitter reaches
+  JLC's published 0.15 mm stroke. The command loads the generator's own
+  silk_stroke function through G-SELFCON's AST reader and reads the published
+  stroke and tier floor from fab_tiers.yaml; it does not restate the formula.
+relation: ">="
+value: 0.9375
+unit: mm
+corner: nominal
+command: >-
+  /usr/bin/python3 -c "import sys,yaml;sys.path.insert(0,'skills/kicad-pcb/scripts');from gate_contract_audit import load_stroke_model;f,n=load_stroke_model();d=yaml.safe_load(open('skills/kicad-pcb/references/fab_tiers.yaml'))['tiers']['jlc_2layer_default'];print(round(float(d['published_silk_stroke'])/n['SILK_STROKE_OVER_SIZE'],4))"
+governs:
+  evaluate: >-
+    /usr/bin/python3 -c "import sys,yaml;sys.path.insert(0,'skills/kicad-pcb/scripts');from gate_contract_audit import load_stroke_model;f,n=load_stroke_model();d=yaml.safe_load(open('skills/kicad-pcb/references/fab_tiers.yaml'))['tiers']['jlc_2layer_default'];print(f({value},float(d['min_silk_stroke'])))"
+  budget: ">= 0.15"
+  unit: mm stroke
+standard_value:
+  explicit: [0.95, 1.00, 1.20]
+  series_why: >-
+    Text height is an authored board dimension, not an E-series component.
+    These are the practical caption heights used by this pipeline at and above
+    the threshold; 0.95 mm is the smallest available authored value that
+    clears the regenerated 0.9375 mm minimum.
+chosen: 0.95
+chosen_why: >-
+  The smallest practical board-caption height above the threshold. At 0.95 mm
+  the exact emitter produces a 0.152 mm stroke, clearing the published floor.
+grade: CITED
+requires:
+  - skills/kicad-pcb/scripts/gate_contract_audit.py
+  - skills/kicad-pcb/scripts/generate_board_generic.py
+  - skills/kicad-pcb/references/fab_tiers.yaml
+```
+
 ## Consequences
 
 **What this would have caught before a track was laid:** the relay pin map, the

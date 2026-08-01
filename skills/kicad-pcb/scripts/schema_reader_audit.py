@@ -139,10 +139,10 @@ this follows it. Two levels:
 MEASURED ON LANDING (2026-07-29, `--root .` over 6 projects, 176 hand-authored
 source files; reproduced every run by `t_real_fleet_denominator`):
 
-  7 governed families, 3 UNGOVERNED and named (`assembly.yaml`, `mates.yaml`,
-  `twin_adjudications.yaml`). 293 declared rows: **239 PROVEN, 19 ADVISORY,
-  35 OWED**, 0 UNREAD, 0 UNPROVABLE, 0 ORPHAN. Those rows cover **937 distinct
-  schema keys** the fleet's source actually declares, 699 of them under 34 `*`
+  8 governed families, 3 UNGOVERNED and named (`assembly.yaml`, `mates.yaml`,
+  `twin_adjudications.yaml`). 377 declared rows: **304 PROVEN, 23 ADVISORY,
+  50 OWED**, 0 UNREAD, 0 UNPROVABLE, 0 ORPHAN. Those rows cover **1205 distinct
+  schema keys** the fleet's source actually declares, 881 of them under 39 `*`
   SUBTREE claims (`limits.*`, `land_pattern.*`, `stitch.<pass>.*`), which is
   why both numbers are printed: 293/293 alone would overstate it.
 
@@ -279,8 +279,8 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
-GOVERNED_FLOOR = 7
-PROVEN_FLOOR = 254   # 239 -> 241 on 2026-07-29: route.yaml's
+GOVERNED_FLOOR = 8
+PROVEN_FLOOR = 304   # 239 -> 241 on 2026-07-29: route.yaml's
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
@@ -309,6 +309,10 @@ PROVEN_FLOOR = 254   # 239 -> 241 on 2026-07-29: route.yaml's
 #: deleting THAT one call turns all three rows UNREAD while every one of the
 #: decoy reads stays put. Red-verified both directions by
 #: `t1_schema_reader.t_polarity_marks_row_rests_on_its_own_read`.
+#: 254 -> 304 and 7 -> 8 governed families on 2026-07-31: schema-governance
+#: repair added the integration family and bound the newly landed v4/hub source
+#: keys. Measured `--root .`: 377/377 declared keys graded OK, 304 PROVEN,
+#: 1205 observed keys, 0 orphan, and 3 explicitly named ungoverned families.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.

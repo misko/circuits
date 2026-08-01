@@ -640,7 +640,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `manufacturer` | `shopping_list.py` | distributor search + M-QUOTE |
 | `package` | `escape_check.py` | P-ESC/P-TIER package class |
 | `footprint` | `generate_board_generic.py, escape_check.py, policy_audit.py` | the FPID realised on the board |
-| `type` | `policy_audit.py, power_topology.py, bom_source_check.py` | E-TOPO topology assertion + BOM row class |
+| `type` | `module_first_check.py, policy_audit.py, power_topology.py, bom_source_check.py` | P-MOD complex-subsystem scope + E-TOPO topology assertion + BOM row class |
 | `value` | `part_facts_check.py, bom_source_check.py, bom_legibility_check.py` | the BOM/CPL value, graded against the fab BOM |
 | `verified` | `pin_audit.py, policy_audit.py` | S-VER: the datasheet figure+page citation, read as a KEY not by grep |
 | `status` | `jlc_stock_check.py, release_freshness_check.py, shopping_list.py` | lifecycle |
@@ -667,6 +667,11 @@ against the `side: bottom` features) are the cheapest first bite.
 | `datasheet.provenance` | ADVISORY | prose about where the PDF came from |
 | `datasheet.product_page` | ADVISORY | the vendor landing page |
 | `datasheet.lcsc_url` | ADVISORY | the distributor page the PDF was reached through |
+| `datasheet.package_url` | ADVISORY | a human retrieval link for the vendor package page; the executable package identity is `package`/`footprint`, and no gate reads this URL |
+| `datasheet.drawing` | ADVISORY | a human citation to the package drawing; `pin_audit.py` grades the figure/page citation in `verified`, not this parallel prose field |
+| `datasheet.drawing.url` | ADVISORY | the human retrieval URL for the cited package drawing; no gate fetches it |
+| `datasheet.drawing.revision` | ADVISORY | the human-readable package-drawing revision; no gate compares it with the vendored footprint |
+| `datasheet.drawing.sha256` | OWED | the package-drawing digest is a checkable provenance claim, but no reader recomputes it, so substituted drawing content is silent |
 | `datasheet.pdf` | ADVISORY | an alternate spelling of `local:` on two dossiers; consolidate on `local:` |
 | `datasheet.file` | ADVISORY | as `pdf:` |
 | `pins.<N>` | `pin_audit.py, circuit_json_to_kicad_sch.py, policy_audit.py` | the pin map, in the bare `<N>: "name"` scalar form |
@@ -678,6 +683,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `escape.tier_required` | `escape_check.py, policy_audit.py` | P-TIER: the fab tier the escape needs |
 | `escape.escapes_worst_side` | `escape_check.py` | P-ESC worst-side count |
 | `escape.conditions` | `escape_check.py` | P-ESC qualifying conditions |
+| `escape.tier_conditional` | OWED | a declared conditional fab tier that no reader compares with `escape_check.py`'s independently computed `tier_conditional()` result; a stale declaration is currently silent |
 | `escape.checked` | OWED | the date/method the escape was calibrated. 125 dossiers carry it; `escape_check.py` recomputes the geometry and never reads this, so a stale calibration note is invisible |
 | `escape.loaded_side_escapes` | OWED | a second escape count for the loaded side, declared once and read by nothing |
 | `escape.per_pin.<N>` | OWED | per-pin escape overrides; not declared by any dossier today, and P-ESC would not see one if it were |

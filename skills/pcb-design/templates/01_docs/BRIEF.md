@@ -45,6 +45,7 @@ this table is the USER-FACING lock; the yaml is the machine copy.
 | Protection posture (defended failures + escalation boundary) | ... | Q#/A#/D# |
 | Off-control / storage (how it de-energizes; quiescent budget) | ... | Q#/A#/D# |
 | Hard-cell parts (spec-critical functions): sourcing class a/b/c | ... | ledger / sourcing spike |
+| Integration posture (modules preferred; bare-IC exceptions) | ... | D-MOD / ADR / user D# |
 
 ## Mating fact-lock (D-MATE — fill at commission when this board mates to hardware this repo did not design)
 

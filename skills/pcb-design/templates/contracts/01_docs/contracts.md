@@ -165,6 +165,15 @@ range, protection posture) caused two generation restarts (~27/53 commits).
 The table mirrors `power_tree.yaml`; the yaml feeds the machine gates, the
 table is the user-facing commitment.
 
+The table also locks the integration posture. Unless the user says otherwise,
+`modules preferred` is the default for complex compute/control, radio,
+interface-control, switching-power-control and precision sensing functions.
+That decision is copied into `03_src/rules/integration.yaml` and graded by
+P-MOD before generation. A bare IC is not a silent optimization: it needs the
+D-MOD exception ADR, a binding requirement the considered modules cannot meet,
+and measured/cited comparison evidence. Unit price or PCB area alone is not a
+binding exception unless the commission locked a production-cost or size cap.
+
 ## Validate — BRIEF.md
 
 - `sha256sum` of the bytes between the prompt markers, **with the FINAL
@@ -184,6 +193,9 @@ table is the user-facing commitment.
 - the Commission fact-lock table exists with no blank `Locked by` cell —
   every row resolves to a Q#/A#/D# entry (or names the ledger/sourcing-spike
   evidence for the hard-cell row)
+- its Integration posture row resolves to the module-first default or a D-MOD
+  exception, and adopted projects carry the matching
+  `03_src/rules/integration.yaml` machine copy
 - every acceptance criterion `Status` is one of the three forms; every
   `dropped` cites a D#/Q# (never an A#)
 - decision register ↔ `decisions/`: every ADR file appears in exactly one

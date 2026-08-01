@@ -19,6 +19,11 @@ S="$SKROOT/kicad-pcb/scripts"
 FS="$SKROOT/jlcpcb-fab/scripts"                # fab-skill checkers (bom_source_check)
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 
+# [0a] P-MOD before generation spend: every complex subsystem is a module, or
+# an evidence-backed bare-IC exception with an ADR and rejected module set.
+$PY "$S/module_first_check.py" . \
+    || { echo "GATE FAILED [0a] P-MOD (module_first_check.py): prefer a proven module, or document why modules cannot meet a binding requirement"; exit 1; }
+
 # [0] S-COUNT pre-gate: alphanumeric pads mapped BEFORE the first tsci build —
 # tscircuit DROPS an unmapped part silently (ERC still 0, 2026-07-21 incident)
 $PY "$S/tsx_preflight.py" . \
@@ -167,6 +172,12 @@ $PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placemen
 # [5] netclasses BEFORE route-prep (canon R1)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 
+# [5a] P-LAND at the moment pad geometry + width floors first coexist.  This
+# is deliberately BEFORE route import: a pad that cannot emit its class width
+# is a placement/package problem, not a router failure discovered minutes later.
+$PY "$S/escape_check.py" --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [5a] P-LAND: a placed pad cannot launch its declared width"; exit 1; }
+
 # [5b] R-PREFLIGHT: tool config == declared fab tier — refuse before prep/import
 # (the template replays a promoted chain via `import`, which bypasses the
 #  route-command gate; run the preflight explicitly so rebuilds are gated too)
@@ -212,3 +223,14 @@ $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['vio
 # Exit codes are a VOCABULARY: 3 = GRADED NOTHING (never a pass), 4 = a path did
 # not resolve, 5 = UNOBSERVABLE. `--explain` prints the legend.
 $PY "$S/trace_audit.py" --subject . || true
+
+# [11] PROMOTE the exact schematic that survived the complete from-source
+# build. rebuild_reuse.sh deliberately consumes only this committed/pinned
+# copy; without this final promotion it can silently replay a superseded
+# topology after a TSX change even though rebuild_all.sh itself just passed.
+# Keep this LAST: a failed full build must not bless its partial schematic as
+# the deterministic reuse subject.
+mkdir -p 03_tscircuit/kicad
+cp "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch"
+cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
+    || { echo "GATE FAILED [11] M-PIN: promoted schematic differs from the full-build subject"; exit 1; }

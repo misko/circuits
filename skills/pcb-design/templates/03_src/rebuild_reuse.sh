@@ -43,6 +43,11 @@ S="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || echo ../../..)" && pwd)/
 [ -f "$S/generate_board_generic.py" ] || S="$HOME/.claude/skills/kicad-pcb/scripts"
 export PATH="$HOME/.bun/bin:$PATH"
 
+# P-MOD is source-only and cheap; the deterministic path must not bypass the
+# architecture decision merely because it reuses a pinned schematic.
+$PY "$S/module_first_check.py" . \
+    || { echo "GATE FAILED P-MOD: module-first architecture contract"; exit 1; }
+
 # derive the board name from the SAME config the generic backend reads
 BOARD=$($PY - <<'PYEOF'
 import re
@@ -72,6 +77,11 @@ if [ -f 03_src/audit_board.py ]; then $PY 03_src/audit_board.py; fi
 #     (generate_rules_generic itself purges kicad-cli's stray
 #     <board>.kicad_pcb.kicad_pro/.prl droppings — do NOT re-add a bespoke rmstray)
 $PY "$S/generate_rules_generic.py" .
+
+# [4a] P-LAND before promoted-route import: fail on a package/placement launch
+# wall while the board is still track-free, not after replaying/stitching it.
+$PY "$S/escape_check.py" --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [4a] P-LAND: a placed pad cannot launch its declared width"; exit 1; }
 
 # [5] import the PROMOTED KRT chain once into the track-free board  [SHARED]
 $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml

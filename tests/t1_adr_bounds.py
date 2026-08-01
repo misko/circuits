@@ -630,12 +630,14 @@ def t_an_unparseable_block_is_refused():
 # THE RATCHET, the coverage denominator, and the real fleet
 # ===========================================================================
 
-@test("the REAL fleet passes with every OWED ADR named — 37 of 72, 0 declared")
+@test("the REAL fleet passes with every OWED ADR named — 37 of 45 owed, "
+      "10 cited")
 def t_the_real_fleet_passes_with_every_owed_adr_named():
     """THE ADOPTION RATCHET, measured on the live tree.
 
-    37 ADRs publish a numeric inequality bound and 0 declare a block, so the
-    gate REPORTS coverage, PRINTS every OWED document by name, and exits 0. A
+    45 ADRs publish a numeric inequality bound; 8 ADRs declare 10 runnable
+    blocks and 37 remain OWED, so the gate REPORTS coverage, PRINTS every OWED
+    document by name, and exits 0. A
     day-one mandate over 37 documents lands as 37 red rows and gets switched off
     inside a week; the ceiling is what makes the debt monotone instead.
 
@@ -701,7 +703,9 @@ def t_cited_below_the_floor_fails():
     the hole that opens is closed here: with a floor above the achieved count
     the run is red. Asserted against ROOT because the floors are enforced only
     on this gate's own tree."""
-    must_fail(run([KPY, GATE, str(ROOT), "--cited-floor", "1"]),
+    measured = must_pass(run([KPY, GATE, str(ROOT)]), "measure CITED count")
+    cited = int(re.search(r"BOUND COVERAGE: (\d+) CITED", measured.out).group(1))
+    must_fail(run([KPY, GATE, str(ROOT), "--cited-floor", str(cited + 1)]),
               "a CITED floor above the achieved count", "B-FLOOR")
 
 
@@ -713,9 +717,8 @@ def t_the_cited_floor_is_pinned_to_the_measured_count():
     CITED bounds would let 12 declarations be deleted for free, and a floor
     above the tree is a broken build rather than a ratchet.
 
-    Today both sides are 0, and that is the honest state: nothing declares a
-    block, so the floor is INERT. It stops being inert on the first declaration
-    — and this test is what forces the floor up in the SAME commit."""
+    Today both sides are 10. The floor became active with the first declaration
+    and this test forces every later adoption into the SAME commit."""
     sys.path.insert(0, str(SCRIPTS))
     import adr_bound_provenance as abp                        # noqa: E402
     r = must_pass(run([KPY, GATE, str(ROOT)]), "measure the fleet")
@@ -783,13 +786,13 @@ def t_blindspot_a_bound_typed_only_in_prose_is_read_by_nothing():
 # RED VERIFICATION
 # ===========================================================================
 
-@test("RED (1): three gates read ADR files and NONE of them reads a NUMBER out "
+@test("RED (1): four gates reach ADR paths and NONE of them reads a NUMBER out "
       "of one — the pre-fix state, measured rather than assumed")
 def t_red_no_pre_existing_gate_reads_a_number_out_of_an_adr():
     """There is no earlier version of this checker to swap back in, so the
     pre-fix baseline is measured directly — and the first measurement was WRONG
-    in the safe direction, which is worth recording. "Nothing opens the
-    decisions folder" is false: THREE scripts do.
+    in the safe direction, which is worth recording. "Nothing reaches the
+    decisions folder" is false: FOUR scripts do.
 
     MEASURED at this commit, and inspected one by one:
 
@@ -798,6 +801,9 @@ def t_red_no_pre_existing_gate_reads_a_number_out_of_an_adr():
                                 front-matter `status:`. Its demand is that a
                                 protection/topology ADR be cited by some
                                 invariant — a citation graph, not a value.
+      module_first_check.py      validates that a bare-IC exception's `adr`
+                                path resolves under `01_docs/decisions`; it
+                                does not open or parse an ADR quantity.
       policy_audit.py           checks the folder EXISTS (`E-ADR N-A` when it
                                 does not).
       power_topology.py         keyword-matches the first 400 characters for
@@ -820,12 +826,13 @@ def t_red_no_pre_existing_gate_reads_a_number_out_of_an_adr():
         if re.search(r"decisions[/\"']", t) and re.search(
                 r"read_text|open\(|glob\(", t):
             readers.append(p.name)
-    eq(readers, ["electrical_invariants.py", "policy_audit.py",
+    eq(readers, ["electrical_invariants.py", "module_first_check.py",
+                 "policy_audit.py",
                  "power_topology.py"],
        "the set of ADR-reading gates changed. Re-inspect each one: if any now "
        "grades a NUMBER out of an ADR, this gate overlaps it and the incident "
        "claim in its docstring needs re-measuring")
-    # and positively: none of the three carries the shape that finds a published
+    # and positively: none of the four carries the shape that finds a published
     # bound in prose at all — an inequality operator followed by a number.
     for name in readers:
         t = (SCRIPTS / name).read_text(errors="replace")

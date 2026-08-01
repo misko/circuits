@@ -152,6 +152,38 @@ def t_legalizer_gives_up():
     must_fail(r, "generator with an impossible floorplan", "no clear spot for")
 
 
+@test("post_anchors moves only reviewed refs after legalization, preserving "
+      "every other footprint position")
+def t_post_anchors_preserve_legalizer_result():
+    import yaml
+    d = tmpdir("gbg_post_")
+    base = yaml.safe_load((LC / "03_src" / "floorplan.yaml").read_text())
+    base["project"]["netlist"] = str(LC / base["project"]["netlist"])
+    if base["project"].get("parts_dir"):
+        base["project"]["parts_dir"] = str(LC / base["project"]["parts_dir"])
+    p0, p1 = d / "base.yaml", d / "post.yaml"
+    p0.write_text(yaml.safe_dump(base))
+    changed = yaml.safe_load(yaml.safe_dump(base))
+    changed["placement"]["post_anchors"] = {"R1": [30.0, 39.5, 0]}
+    p1.write_text(yaml.safe_dump(changed))
+    b0, b1 = d / "base.kicad_pcb", d / "post.kicad_pcb"
+    gen(p0, b0)
+    r = gen(p1, b1)
+    contains(r.out, "post-anchored 1 reviewed local part(s)",
+             "generator stdout")
+    code = (
+        "import pcbnew,sys\n"
+        "def poses(p):\n"
+        " b=pcbnew.LoadBoard(p)\n"
+        " return {f.GetReference():(f.GetPosition().x,f.GetPosition().y,"
+        "round(f.GetOrientationDegrees(),6)) for f in b.GetFootprints()}\n"
+        "a,c=poses(sys.argv[1]),poses(sys.argv[2])\n"
+        "print('@@'+','.join(sorted(r for r in a if a[r]!=c[r])))\n")
+    rr = must_pass(run([KPY, "-c", code, b0, b1]), "compare post anchors")
+    eq(rr.out.split("@@", 1)[1].strip(), "R1",
+       "post_anchors changed a footprint other than the named ref")
+
+
 @test("a zone on a net the netlist does not have is a hard error", kind="known_bad")
 def t_bad_zone_net():
     def mutate(cfg):
@@ -924,6 +956,60 @@ def t_kb_severing_cutout():
         {"cutouts": [{"rect": [70.0, 15.0, 76.0, 70.0]}]}))
     r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
     must_fail(r, "board-severing cutout", "not a notch")
+
+
+@test("a declared physical stackup is emitted, parseable, and preserved")
+def t_stackup_roundtrip():
+    def mutate(c):
+        c["board"]["stackup"] = {
+            "nominal_thickness_mm": 1.6,
+            "thickness_tolerance_mm": 0.02,
+            "copper_finish": "ENIG",
+            "dielectric_constraints": True,
+            "mask_thickness_mm": 0.01,
+            "copper_thickness_mm": [0.035, 0.035],
+            "dielectrics": [{
+                "type": "core", "thickness_mm": 1.53,
+                "material": "FR4", "epsilon_r": 4.4,
+                "loss_tangent": 0.02,
+            }],
+        }
+    d, cfg = scratch_config(mutate)
+    out = d / "b.kicad_pcb"
+    r = gen(cfg, out)
+    contains(r.out, "stackup authored: 2 copper layers", "generator stdout")
+    text = out.read_text()
+    contains(text, "(stackup", "generated board")
+    contains(text, '(copper_finish "ENIG")', "generated board")
+    contains(text, '(layer "dielectric 1"', "generated board")
+    # pcbnew must accept the native block and preserve it through a save.
+    rt = d / "roundtrip.kicad_pcb"
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "pcbnew.SaveBoard(sys.argv[2],b)\n"
+            "print('@@%.3f' % pcbnew.ToMM(b.GetDesignSettings().GetBoardThickness()))\n")
+    rr = must_pass(run([KPY, "-c", code, out, rt]), "stackup roundtrip")
+    contains(rr.out, "@@1.600", "stackup roundtrip")
+    contains(rt.read_text(), "(stackup", "round-tripped board")
+
+
+@test("a stackup with the wrong layer cardinality is a hard error",
+      kind="known_bad")
+def t_kb_stackup_cardinality():
+    def mutate(c):
+        c["board"]["stackup"] = {
+            "nominal_thickness_mm": 1.6,
+            "copper_thickness_mm": [0.035],
+            "dielectrics": [{
+                "type": "core", "thickness_mm": 1.53,
+                "material": "FR4", "epsilon_r": 4.4,
+                "loss_tangent": 0.02,
+            }],
+        }
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "one-copper-entry stackup",
+              "copper_thickness_mm must contain exactly 2 entries")
 
 
 @test("M-REPRO: two runs from identical source are BYTE-IDENTICAL, and no "

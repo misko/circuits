@@ -242,7 +242,7 @@ def t_strongest_tier_reached_passes():
 
 
 @test("the BARE-STRING form stays legal and is counted OWED, never failed — "
-      "47 of the fleet's 92 in-scope parts are real searches recorded as prose")
+      "47 of the fleet's 113 in-scope parts are real searches recorded as prose")
 def t_bare_string_is_owed_not_failed():
     """A gate that reds every existing part on day one gets switched off
     (G-VACUOUS's and schema_reader_audit's shared lesson). The bare-string list
@@ -358,8 +358,8 @@ def t_the_precedent_ratchet_is_pinned_to_the_fleet():
     never falls, and a new board arriving with a graded dossier costs one
     number raised in the same commit.
 
-    MEASURED 2026-07-30 at 221687ef: 92 in-scope parts across 7 boards, 1 with
-    a tier-graded record (pluto-rx2-8way-v2/02_parts/RP2040-Zero), 91 OWED."""
+    MEASURED 2026-07-31: 113 in-scope parts across 9 boards, 14 with a
+    tier-graded record and 99 OWED."""
     floor, _ = _read_bounds()
     graded, _owed, scoped = _sweep_the_fleet()
     check(scoped > 0, "the fleet sweep found no in-scope parts — a zero "

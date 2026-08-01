@@ -24,6 +24,7 @@ per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 |---|---|---|
 | `floorplan.yaml` | placement config: outline, mounting holes, `fiducials {footprint, refdes_prefix, at[]}` (>=3 non-collinear; board-only, BOM- and CPL-excluded — a fiducial has no net, no BOM line and no placement row, so it is a BOARD FEATURE, not a part), named regions, anchors, `repeat:` banks, keepouts (incl. `deny: []` PERMISSIVE DRU anchors — the thing `rules/nets.yaml` `scoped_floors` scopes a width relaxation to), zones, silk, orientation asserts. **THIS FILE IS ALSO WHERE A GENERIC-BACKEND BOARD SATISFIES P-POL AND P-KEEP** (canon P2/P3): `asserts.pad_net[]` is the pad-1-net polarity check — `generate_board_generic.run_asserts()` hard-fails the driver on a mismatch — and `keepouts[]` / `board.mounting_holes` are half the keepout declaration (`route.yaml prep.keepouts` and `rules/mates.yaml` are the rest). `policy_audit.py` grades the PRESENCE of both and NAMES which home satisfied it with a count; an EMPTY block satisfies nothing (canon M-COVER). Before 2026-07-30 both checks grepped `03_src/` for the per-board Python ADR-0002 abolished, so every compliant board carried two verbatim waivers | SHARED `generate_board_generic.py`, `policy_audit.py` (P-POL/P-KEEP presence) |
 | `route.yaml` | routing + stitch config: KRT prep/route/import order, pours, thermal vias, pad-rescue, `taps:` (collision-checked named connections KRT cannot thread), and the stitch pass list — `dedupe_vias / normalize_vias / drop_micro_fragments / drop_dangling / split_t_junctions / reload / hole_to_hole / pad_rescue / stub_fallback / astar_fallback / stitch_grid / power_stitch / via_janitor / fill / island_rescue / heal_islands / prune_stitch_dangling / gate` (order is per-board config; `heal_islands` after the last `fill` auto-bridges same-net pour splits — the "Zone [X] <-> Zone [X]" DRC class) | SHARED `route_and_stitch_generic.py` (`prep`/`route`/`import`/`taps`/`stitch`) |
+| `rules/integration.yaml` | P-MOD module-first architecture record: every complex subsystem selects a module or carries a bare-IC exception with binding requirement, measured/cited comparison, considered modules and ADR. Absent means legacy/unmigrated, never pass | SHARED `module_first_check.py`, `policy_audit.py` |
 | `rules/` | `nets.yaml` (netclasses + ampacity + `scoped_floors`), `electrical_invariants.yaml` (E-INV intent assertions incl. `part_value`), `power_tree.yaml` (E-TOPO per-rail voltage envelopes), `assembly.yaml` (A-POP/A-STOCK population intent: `service`, `sides`, `fiducials`, `build_quantity`, `not_assembled[]` (per-entry `refs`/`reason`/`evidence`/`disposition`, OPTIONAL `lcsc:` and OPTIONAL `on_bom: false` — the latter drops the ref from the ASSEMBLY BOM as well as the CPL, read by `export_jlc_package.py`, default true because not-PLACED and not-SOURCED are different decisions; a ref that is both `on_bom: false` and on the CPL BLOCKS the export), and `through_hole {process, refs, evidence}` — the BOUGHT through-hole line, which exempts the refs it NAMES from A-POP `CPL-NOT-SMT-PLACEABLE`; all three keys required, silence and an unnamed ref both still FAIL), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | SHARED `generate_rules_generic.py`, policy_audit, assembly_coverage, jlc_twin |
 | `route/**` | the PROMOTED KRT chain (`*.kicad_pcb`) — a committed ARTIFACT, not code (canon M3); `import` replays it deterministically | SHARED `route_and_stitch_generic.py import` |
 | `audit_board.py` | the ONLY per-board emitter: the placement/pad invariant gate (polarity, proximity, plane-clean, refdes-on-silk, and any BOARD-SPECIFIC guard e.g. an analog-keepout distance). Everything else is config or shared. **OPTIONAL, and its absence is a DECLARATION, not a gap**: a zero-bespoke-Python board (ADR-0002) has none, and step 4 below guards the call and SAYS SO when it is missing — see that row for why a silent skip is the worse of the two failures | — (guarded call in `rebuild_all.sh` step 4) |
@@ -45,6 +46,7 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 
 | Step | Command | Interpreter |
 |---|---|---|
+| 0a | `$S/module_first_check.py .` — P-MOD before generation spend: module by default; a bare complex IC requires an evidenced exception ADR | any python3 |
 | 0 | `$S/tsx_preflight.py .` — S-COUNT PRE-gate: alphanumeric pads mapped in `03_tscircuit/parity_padmap.txt` BEFORE the first tsci build (tscircuit DROPS an unmapped part silently, ERC still 0) | any python3 |
 | 0b | `$S/build_provenance.py stamp . --board "$BOARD" --tsx "$TSX"` — canon **M-FRESH**, BEFORE the build, so the run's witness is not written BY the build (canon M1). Refuses on the spot (`F-KNOB`) if the driver's `BOARD=`/`TSX=` are still the TEMPLATE knobs or do not resolve in this project: pluto-rx2-8way-v2 carried `BOARD=power3s` from commission through four commits, so its full driver had NEVER RUN while its stage gates reported green one at a time | any python3 |
 | 1 | `03_tscircuit` → netlist (tsci build → `$S/circuit_json_to_kicad_sch.py` → `kicad-cli sch export netlist`) | bun/tsci + `/usr/bin/python3` |
@@ -61,7 +63,7 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | 7b | `$S/route_and_stitch_generic.py taps 03_src/route.yaml` — only if `taps:` configured (no-op otherwise); pour-fed sense pins / boxed-in pads, before the pours fill | `/usr/bin/python3` |
 | 7c | `$S/route_and_stitch_generic.py quick 03_src/route.yaml` — the LOOP tool, not a gate: seconds-fast ratsnest-unconnected + copper clearance/track_width verdict on the post-import pre-stitch board (JSON to `06_build/route/quick.json`). Iterate routing against THIS, not against step 10 (~seconds vs ~8-10 min/cycle measured on a 112-part board) | `/usr/bin/python3` |
 | 8 | `$S/route_and_stitch_generic.py stitch 03_src/route.yaml` (pours + thermal vias); verdict must be `gate: clean` | `/usr/bin/python3` |
-| 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (see the SAVE-DROPS list below) | any python3 |
+| 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (see the SAVE-DROPS list below). It rewrites the `.kicad_dru` wholesale and PRESERVES rules it does not own (stitch's `pad_rescue_stubs` sub-floor), but **preservation is no longer one-way**: each run re-derives whether a preserved rule's subject still exists on the saved board and RETIRES one that matches zero items, naming it and the count on stdout. A rule that comes back is a rule whose owning pass must re-run (step 8's `pad_rescue.stub_scope`) — not a rule to hand-edit back in. Needs the `04_kicad/<board>.kicad_pcb` to be present; with no board it preserves everything unretired and says so | any python3 |
 
 **WHAT A pcbnew SAVE DROPS — the list, not the instance (canon M-WIDTH).**
 This rule used to read "pcbnew saves clobber netclasses", written at the width
@@ -270,10 +272,25 @@ in the `02_parts` contract. These two are this folder's own.
 | `board.mounting_holes.refdes_prefix` | `generate_board_generic.py` | NPTH refdes |
 | `board.fiducials.at` | `generate_board_generic.py` | fiducial placement |
 | `board.fiducials.footprint` | `generate_board_generic.py` | fiducial FPID |
+| `board.fiducials.refdes_prefix` | `generate_board_generic.py` | fiducial reference prefix |
+| `board.stackup` | `generate_board_generic.py` | enables physical KiCad stackup emission and validation |
+| `board.stackup.nominal_thickness_mm` | `generate_board_generic.py` | board-thickness setting and physical stackup sum target |
+| `board.stackup.thickness_tolerance_mm` | `generate_board_generic.py` | allowed difference between nominal and summed physical thickness |
+| `board.stackup.copper_finish` | `generate_board_generic.py` | emitted KiCad stackup copper finish |
+| `board.stackup.dielectric_constraints` | `generate_board_generic.py` | emitted KiCad dielectric-constraints flag |
+| `board.stackup.mask_thickness_mm` | `generate_board_generic.py` | top and bottom solder-mask thickness |
+| `board.stackup.copper_thickness_mm` | `generate_board_generic.py` | per-copper-layer thickness list, length-checked against the copper-layer count |
+| `board.stackup.dielectrics` | `generate_board_generic.py` | dielectric-layer list, length-checked against the copper-layer count |
+| `board.stackup.dielectrics[].type` | `generate_board_generic.py` | validated prepreg/core dielectric type |
+| `board.stackup.dielectrics[].thickness_mm` | `generate_board_generic.py` | positive dielectric thickness and physical stackup sum term |
+| `board.stackup.dielectrics[].material` | `generate_board_generic.py` | emitted dielectric material |
+| `board.stackup.dielectrics[].epsilon_r` | `generate_board_generic.py` | validated and emitted dielectric relative permittivity |
+| `board.stackup.dielectrics[].loss_tangent` | `generate_board_generic.py` | validated and emitted dielectric loss tangent |
 | `design_rules.*` | `generate_board_generic.py` | pcbnew design-settings floors, applied through the `DS_KEYS` literal table; an explicit value below the fab tier is a generation error |
 | `libraries[].lib` | `generate_board_generic.py` | fp-lib-table nickname |
 | `libraries[].path` | `generate_board_generic.py` | fp-lib-table path |
 | `placement.anchors.<REF>` | `generate_board_generic.py` | fixed placement |
+| `placement.post_anchors.<REF>` | `generate_board_generic.py` | reviewed local placement applied after legalization, preserving every other floater's deterministic routed position; P-COLLIDE runs afterward |
 | `placement.seeds.<REF>` | `generate_board_generic.py` | legalizer start point |
 | `placement.regions.<NAME>` | `generate_board_generic.py` | named placement region |
 | `placement.require_anchor` | `generate_board_generic.py` | refuse an unanchored part |
@@ -284,12 +301,19 @@ in the `02_parts` contract. These two are this folder's own.
 | `placement.legalize.ring_max` | `generate_board_generic.py` | legalizer search ring |
 | `placement.patterns[].match` | `generate_board_generic.py` | refdes selector |
 | `placement.patterns[].near` | `generate_board_generic.py` | proximity target |
+| `placement.patterns[].region` | `generate_board_generic.py` | named-region placement target |
 | `placement.patterns[].attrs` | `generate_board_generic.py` | footprint attributes |
 | `placement.patterns[].clear_attrs` | `generate_board_generic.py` | attribute removal |
 | `placement.patterns[].pad_overrides[].on_net` | `generate_board_generic.py, net_reference_audit.py` | pad-override selector (E-NETREF K10) |
 | `placement.patterns[].pad_overrides[].pads` | `generate_board_generic.py` | pad selector |
 | `placement.patterns[].pad_overrides[].clearance` | `generate_board_generic.py` | per-pad clearance |
 | `placement.patterns[].pad_overrides[].zone_connection` | `generate_board_generic.py` | pad zone connection |
+| `placement.pin` | `generate_board_generic.py` | glob allowlist selecting anchored references that the legalizer must not move |
+| `placement.escape_corridors` | OWED | mis-nested declaration: `generate_board_generic.py` reads top-level `escape_corridors`, so this placement child currently emits no corridor and must be migrated or explicitly supported |
+| `placement.escape_corridors[].ref` | OWED | child of the mis-nested corridor block; the actual `generate_board_generic.py` reader reaches only top-level `escape_corridors[].ref` |
+| `placement.escape_corridors[].side` | OWED | child of the mis-nested corridor block; the actual `generate_board_generic.py` reader reaches only top-level `escape_corridors[].side` |
+| `placement.escape_corridors[].depth_mm` | OWED | child of the mis-nested corridor block; the actual `generate_board_generic.py` reader reaches only top-level `escape_corridors[].depth_mm` |
+| `placement.escape_corridors[].layers` | OWED | child of the mis-nested corridor block, and no corridor reader consumes a `layers` field at either nesting |
 | `zones[].net` | `generate_board_generic.py, net_reference_audit.py` | copper pour net (E-NETREF K8) |
 | `zones[].layers` | `generate_board_generic.py` | pour layers |
 | `zones[].rect` | `generate_board_generic.py` | pour outline |
@@ -388,12 +412,16 @@ two cannot drift apart without the router failing to find its own pass.
 
 | key | reader | why |
 |---|---|---|
+| `flow` | `pcb_flow.py, grind_driver.py` | pipeline ownership, path, input, copper-mode, and stage-budget configuration |
+| `flow.*` | `pcb_flow.py, grind_driver.py` | flow subtrees consumed for ownership, inputs, blockers, budgets, copper classification and pipeline paths |
 | `stitch.seed_stubs.*` | `route_and_stitch_generic.py` | seeded GND stubs the stitch pass places before the A* fallback; read as a stitch-pass config key |
 | `taps.reattempt.*` | `route_and_stitch_generic.py` | re-attempt budget for tap insertion |
 | `project.name` | `route_and_stitch_generic.py` | board naming |
 | `project.board` | `route_and_stitch_generic.py` | the board to route |
 | `project.build_dir` | `route_and_stitch_generic.py` | working directory |
 | `prep.out` | `route_and_stitch_generic.py` | the track-free r0 written |
+| `prep.seed_stubs` | `route_and_stitch_generic.py` | deterministic pre-route copper seeding configuration |
+| `prep.seed_stubs.*` | `route_and_stitch_generic.py` | clearance, via geometry, and stub recipes passed to the deterministic seed-stub pass |
 | `prep.keepouts.*` | `route_and_stitch_generic.py` | per-layer router keepouts; their PRESENCE is one of the homes `policy_audit.py` accepts for P-KEEP |
 | `prep.waves.*` | `route_and_stitch_generic.py` | wave net groups + exclusions |
 | `route.krt` | `route_and_stitch_generic.py` | the KRT entry point |

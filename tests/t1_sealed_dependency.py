@@ -34,9 +34,12 @@ sealed v1.6 with the dossier deleted, demoting row 56 to
 not say OK and does not say FAIL". That demotion on immutable bytes, caused by a
 live-tree edit, is precisely what M-DEPEND fails.
 """
+import csv
 import shutil
 import sys
 from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (FAB_SCRIPTS, KPY, ROOT, check, contains,  # noqa: E402
@@ -129,7 +132,7 @@ def t_fragility_census():
 @test("M-DEPEND PASSES the real smc0985-cooksense project as it stands")
 def t_cooksense_passes():
     """The in-flight seal's tree. Both dossiers the incident touched were
-    restored, so every one of cooksense's 318 coded rows across 8 sealed
+    restored, so every one of cooksense's 376 coded rows across 9 sealed
     releases must be GRADED by a hand-verified authority. This is the gate
     saying the tree is currently CORRECT — the other half of discrimination,
     without which a gate that fires on every deletion gets waived into
@@ -137,7 +140,8 @@ def t_cooksense_passes():
     r = must_pass(run([KPY, TOOL, str(COOKSENSE)]),
                   "M-DEPEND on smc0985-cooksense")
     contains(r.out, "M-DEPEND: PASS", "the verdict")
-    contains(r.out, "8 sealed release(s)", "the release denominator")
+    contains(r.out, "376 coded row(s) across 9 sealed release(s)",
+             "the row and release denominators")
     not_contains(r.out, "ORPHAN", "a clean project's output")
     not_contains(r.out, "UNPINNED", "a clean project's output")
 
@@ -150,10 +154,28 @@ def t_safe_deletion_passes():
     legitimately has no ULN2803 to keep the dossier forever. So a dossier whose
     `sourcing.lcsc` appears in no sealed BOM may be deleted freely.
 
-    `TBD62083AFWG` (C165895) is the ADR-0023 replacement part — vendored in the
-    live tree, shipped by NO sealed release yet. Deleting it must be silent."""
+    `SN74HC138DR` is a live-tree candidate whose primary and alternate LCSC
+    codes are absent from every sealed cooksense BOM. The fixture proves that
+    absence from the copied bytes before deleting it, so a future release that
+    adopts the part makes the fixture red instead of silently turning this into
+    another dependency incident."""
     d = scratch()
-    shutil.rmtree(d / "02_parts" / "TBD62083AFWG")
+    safe = d / "02_parts" / "SN74HC138DR"
+    y = yaml.safe_load((safe / "part.yaml").read_text(encoding="utf-8-sig"))
+    sourcing = y.get("sourcing") or {}
+    codes = {str(sourcing.get("lcsc") or "")}
+    for alt in sourcing.get("alternates") or []:
+        codes.add(str(alt.get("lcsc") if isinstance(alt, dict) else alt))
+    codes.discard("")
+    sealed_codes = set()
+    for bom in d.glob("07_releases/*/fab/bom.csv"):
+        with bom.open(encoding="utf-8-sig", newline="") as stream:
+            sealed_codes.update((row.get("LCSC") or "").strip()
+                                for row in csv.DictReader(stream))
+    check(codes and codes.isdisjoint(sealed_codes),
+          "SN74HC138DR is no longer a safe-deletion fixture: its codes are "
+          f"{sorted(codes & sealed_codes)} in a sealed BOM")
+    shutil.rmtree(safe)
     r = must_pass(run([KPY, TOOL, str(d)]),
                   "deleting a dossier no sealed BOM cites")
     contains(r.out, "M-DEPEND: PASS", "the verdict")

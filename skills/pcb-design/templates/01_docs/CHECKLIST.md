@@ -9,6 +9,8 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] `03_src/audit_board.py` → PASS (placement/pad invariants)
 - [ ] rules regenerate byte-identical from `03_src/rules/nets.yaml` (no hand-edits)
 - [ ] BOM ↔ `02_parts/` parity (every used part has a datasheet + facts on file)
+- [ ] `module_first_check.py .` → P-MOD PASS; every complex subsystem uses a
+      proven module or carries an evidence-backed bare-IC exception ADR
 - [ ] netlist node-for-node parity after any schematic regeneration
 
 ## Judgement (a human or a fresh-context agent)

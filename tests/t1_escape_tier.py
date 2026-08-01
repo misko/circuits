@@ -106,6 +106,26 @@ def t_calibration():
         contains(r.out, f"tier_required: {want}", f"{style}@{pitch}")
 
 
+@test("through-hole headers are an outward-escape style, not a checker crash")
+def t_through_hole_style():
+    r = must_pass(run([KPY, ESC, "--style", "through_hole", "--pitch", "1.27"]),
+                  "through-hole header escape")
+    contains(r.out, "tier_required: jlc_2layer_default", "header tier")
+
+
+@test("an unknown dossier escape style is a classified failure, not a traceback",
+      kind="known_bad")
+def t_kb_unknown_style_classified():
+    part = TSSOP_PART.format(
+        escape="escape: {style: teleport, pitch: 0.65, "
+               "tier_required: jlc_2layer_default, checked: escape_check}")
+    d = scratch_project({"FAKE-TSSOP16": part})
+    p = d / "02_parts/FAKE-TSSOP16/part.yaml"
+    r = must_fail(run([KPY, ESC, p]), "unknown escape style",
+                  "unknown escape style 'teleport'")
+    not_contains(r.out, "Traceback", "classified style failure")
+
+
 @test("P-ESC + P-TIER PASS a part whose block agrees and fits the tier")
 def t_clean_pass():
     esc = ("escape: {style: leaded, pitch: 0.65, "
@@ -994,12 +1014,13 @@ def t_padj_pair_prose_entry_does_not_crash():
 #       crow-recorder-central-v2 goes RED with 17 failures, 16 of them on a
 #       TQFP-128 power ring that carries no track at all.
 CAL_KICAD = ROOT / "projects" / "pluto-cal-switch" / "04_kicad"
+CAL_R0 = ROOT / "projects" / "pluto-cal-switch" / "06_build" / "route" / "r0.kicad_pcb"
 RX2_KICAD = ROOT / "projects" / "pluto-rx2-8way" / "04_kicad"
 CRC_KICAD = (ROOT / "projects" / "crow-recorder-central-v2" / "04_kicad")
 
 # the eleven, verbatim from pluto-cal-switch's own nets.yaml evidence block:
 # pad, class floor, landable maximum measured by hand at stage 6
-CAL_ELEVEN = [("U_SW1.5", "0.350", "0.250"), ("U_SW2.5", "0.350", "0.250"),
+CAL_ELEVEN = [("U_SW1.5", "0.360", "0.250"), ("U_SW2.5", "0.360", "0.250"),
               ("U_MCU.46", "0.330", "0.300"), ("U_MCU.47", "0.330", "0.300"),
               ("U_MCU.10", "0.400", "0.300"), ("U_MCU.22", "0.400", "0.300"),
               ("U_MCU.26", "0.400", "0.300"), ("U_MCU.33", "0.400", "0.300"),
@@ -1007,14 +1028,17 @@ CAL_ELEVEN = [("U_SW1.5", "0.350", "0.250"), ("U_SW2.5", "0.350", "0.250"),
               ("U_MCU.50", "0.400", "0.300")]
 
 
-def board_copy(kicad_dir, drop_rules=(), extra_dru="", keep_rules=None):
+def board_copy(kicad_dir, drop_rules=(), extra_dru="", keep_rules=None,
+               board_source=None):
     """A scratch copy of a real 04_kicad board triple, optionally with its
     .kicad_dru edited. The BOARD bytes are never touched — only the rule file
     the gate reads its floors and relaxations from."""
     import shutil
     d = tmpdir("land_")
     stem = sorted(Path(kicad_dir).glob("*.kicad_pcb"))[0].stem
-    for ext in ("kicad_pcb", "kicad_pro", "kicad_dru"):
+    shutil.copy(board_source or (Path(kicad_dir) / f"{stem}.kicad_pcb"),
+                d / f"{stem}.kicad_pcb")
+    for ext in ("kicad_pro", "kicad_dru"):
         shutil.copy(Path(kicad_dir) / f"{stem}.{ext}", d / f"{stem}.{ext}")
     dru = d / f"{stem}.kicad_dru"
     blocks = re.split(r"(?=\(rule )", dru.read_text())
@@ -1081,7 +1105,7 @@ def t_land_fails_the_eleven():
 
     Pre-fix (HEAD~1) there is no `--board` flag at all: nothing in the
     pipeline asked this question, which is why it was found by hand."""
-    b = board_copy(CAL_KICAD, drop_rules=("scoped_",))
+    b = board_copy(CAL_KICAD, drop_rules=("scoped_",), board_source=CAL_R0)
     r = must_fail(land(b), "P-LAND with the scoped_floors stripped")
     d = denominator(r.out)
     eq(d["failing"], 11, "pads under their own class floor")
@@ -1275,7 +1299,7 @@ def t_vacuity_P_LAND_passes_a_pad_whose_class_declares_no_width_floor():
     # keep ONE floor (QSPI, whose 13 pads are all comfortable) so the run is
     # not the zero-denominator FAIL — the blind spot is a PARTIAL
     # denominator that reads as a clean board.
-    b = board_copy(CAL_KICAD, keep_rules={"QSPI_width"})
+    b = board_copy(CAL_KICAD, keep_rules={"QSPI_width"}, board_source=CAL_R0)
     r = must_pass(land(b),
                   "P-LAND on a board that declares no width floor for the "
                   "classes whose pads cannot take one")
@@ -1284,7 +1308,8 @@ def t_vacuity_P_LAND_passes_a_pad_whose_class_declares_no_width_floor():
     eq(d["graded"], 13, "pads still graded (the one surviving class)")
     check(d["no_floor"] > 250, f"only {d['no_floor']} pads out of scope")
     # CONTRAST: the same geometry, with the class floors back = eleven.
-    hard = must_fail(land(board_copy(CAL_KICAD, drop_rules=("scoped_",))),
+    hard = must_fail(land(board_copy(CAL_KICAD, drop_rules=("scoped_",),
+                                     board_source=CAL_R0)),
                      "the same pads with their class floors declared")
     eq(denominator(hard.out)["failing"], 11, "the findings the vacuity hides")
 

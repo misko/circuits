@@ -358,11 +358,11 @@ def t_confirms_clean_boards():
     # same gap F-LEGIBLE already pins on that release, arriving through a
     # different door, so it is PINNED the same way rather than excused.
     #
-    # cooksense is expected PASS only while ITS contract copy is un-synced. When
-    # it syncs, this row moves -- record the move here rather than loosening the
-    # assertion, which is how an adopted-forward gap stops being visible.
+    # cooksense has now synced the widened contract too, so v1.4's missing
+    # ADR-0006 evidence is pinned as FAIL just like crow v1.5. Recording that
+    # move preserves the adopted-forward gap instead of weakening the gate.
     expect_aevid = {"crow-recorder-central-v2": "FAIL",
-                    "smc0985-cooksense": "PASS"}
+                    "smc0985-cooksense": "FAIL"}
     for proj, rel in (("crow-recorder-central-v2", "v1.5-2026-07-25"),
                       ("smc0985-cooksense", "cooksense-v1.4-2026-07-26")):
         line, verdicts = row(proj, rel)
@@ -383,21 +383,25 @@ def t_confirms_clean_boards():
               f"pass, either the board was re-released (update this test) or "
               f"the gate stopped biting.\n{line}")
 
-    # LIVE: every standalone gate that can run must PASS. Derived from the tree
-    # so the next cooksense seal does not break this for the wrong reason.
+    # NEWEST: every standalone gate that can run must PASS. The newest release
+    # can legitimately be superseded by an order-process defect outside these
+    # four artifact gates; the table marker must agree with the immutable
+    # release bytes instead of this test inventing a second definition of
+    # "live".
     sys.path.insert(0, str(ROOT / "skills" / "jlcpcb-fab" / "scripts"))
     import release_index as ri  # noqa: E402
     cook = ROOT / "projects" / "smc0985-cooksense"
-    live = ri.releases_for_board(cook, "cooksense")[-1].name
-    line, verdicts = row("smc0985-cooksense", live)
-    check("*" not in line[:60],
-          f"the LIVE cooksense release {live} carries a SUPERSEDED.md — the "
-          f"release index and the regrade disagree about what is live:\n{line}")
+    latest = ri.releases_for_board(cook, "cooksense")[-1].name
+    line, verdicts = row("smc0985-cooksense", latest)
+    is_superseded = (cook / "07_releases" / latest / "SUPERSEDED.md").is_file()
+    check(("*" in line[:60]) == is_superseded,
+          f"the newest cooksense release {latest} superseded marker disagrees "
+          f"with its immutable release bytes:\n{line}")
     for gid in cols:
         check(verdicts.get(gid) == "PASS",
-              f"smc0985-cooksense {live} is the LIVE release and {gid} fails "
-              f"it. A live release must pass every gate that can be run "
-              f"against it standalone:\n{line}")
+              f"smc0985-cooksense {latest} is the newest release and {gid} "
+              f"fails it. Supersession does not excuse a regression in a "
+              f"standalone artifact gate:\n{line}")
 
     # AMENDED 2026-07-29, and this is the amendment that keeps the assertion
     # HONEST rather than merely green. This test was RED on 2026-07-29 because
@@ -406,16 +410,16 @@ def t_confirms_clean_boards():
     # concurrent v1.7 work happened to restore the `ULN2803ADWR` dossier it had
     # removed. A "PASS" that a sibling agent's unrelated edit can hand you and
     # take away is not a passing gate — it is a coin toss the test cannot see.
-    # So the LIVE release must also be REPRODUCIBLE: no verdict of its may move
+    # So the NEWEST release must also be REPRODUCIBLE: no verdict of its may move
     # when the mutable authority behind it is neutralised. If this line ever goes
     # red, the gate has re-acquired a dependency on editable source and the
     # verdicts above mean nothing.
     r = run([KPY, TOOL, "--project", "smc0985-cooksense"])
     moved = [ln for ln in r.out.splitlines()
-             if "NOT-REPRODUCIBLE" in ln and live in ln]
+             if "NOT-REPRODUCIBLE" in ln and latest in ln]
     check(not moved,
-          f"the LIVE cooksense release {live} has a verdict that MOVES when the "
-          f"gate's mutable external authority is neutralised, so the PASSes "
+          f"the newest cooksense release {latest} has a verdict that MOVES "
+          f"when the gate's mutable external authority is neutralised, so the PASSes "
           f"asserted above are statements about our 02_parts tree and not about "
           f"the sealed release:\n" + "\n".join(moved))
     contains(r.out, "reproducibility:",

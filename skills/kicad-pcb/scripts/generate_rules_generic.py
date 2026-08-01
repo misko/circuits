@@ -41,6 +41,7 @@ try:
 except ImportError:
     sys.exit("generate_rules_generic needs pyyaml")
 
+import dru_subject
 from fab_tier_util import FabTierError, resolve as resolve_tier
 
 
@@ -77,19 +78,81 @@ def extract_rules(text):
     return out
 
 
-def foreign_dru_rules(dru_path, generated_names):
+def foreign_dru_rules(dru_path, generated_names, pcb_path=None):
     """Rules already in the .kicad_dru that generate_rules does NOT own — e.g.
     the `pad_rescue_stubs` insideArea sub-floor that stitch appends. generate_rules
     runs LAST and rewrites the dru wholesale; without this it would CLOBBER that
     exemption and the plane-drop via stubs would fail track_width again (the exact
     collision the clean-room 3S run's stub-floor fix would otherwise lose to
     generate_rules-LAST). Preserve them, and emit them AFTER our netclass rules so
-    KiCad last-match precedence keeps the exemption winning inside its area."""
+    KiCad last-match precedence keeps the exemption winning inside its area.
+
+    Returns `(kept_blocks, decisions)`, decisions being [(name, members, kept)]
+    with `members` None for "not derivable".
+
+    PRESERVATION IS NOT UNCONDITIONAL (2026-07-31). It used to be one-way — a
+    rule, once preserved, was preserved forever — so a rule outlived the
+    geometry it was written for and became a predicate that can never fire
+    (G-VACUOUS-DRU). The measured instance: stitch's `_scope_stub_floor` emits
+    the `pad_rescue_stubs` rule area and its `.kicad_dru` rule together, but
+    only `if stub_boxes`; on a board whose plane pads all take a via-in-pad
+    barrel there are no boxes, the rule area is absent from the saved board,
+    and the rule from an earlier run rode along regardless. Fleet at the time:
+    6 boards carried the rule, 4 with live subjects (25/16/6/2 members) and 2
+    with NO rule area on the board at all.
+
+    So each run RE-DERIVES the subject and retires a rule with a positively
+    derived ZERO — never silently: every decision is printed with the count
+    that justified it. `dru_subject.members` returns None rather than 0 for
+    anything it cannot fully evaluate, and None means KEEP, so the failure
+    mode is a dead rule surviving (which `gate_contract_audit.py --dru` then
+    grades) and never a live exemption being dropped."""
     p = Path(dru_path)
     if not p.is_file():
-        return []
-    return [blk for name, blk in extract_rules(p.read_text(encoding="utf-8-sig"))
-            if name and name not in generated_names]
+        return [], []
+    foreign = [(name, blk)
+               for name, blk in extract_rules(p.read_text(encoding="utf-8-sig"))
+               if name and name not in generated_names]
+    if not foreign:
+        return [], []
+
+    inv = None
+    if pcb_path is not None and Path(pcb_path).is_file():
+        try:
+            inv = dru_subject.index_board(pcb_path)
+        except Exception as e:                                # noqa: BLE001
+            print(f"generate_rules_generic: could not index {Path(pcb_path).name} "
+                  f"for foreign-rule subjects ({e}) — preserving all "
+                  f"{len(foreign)} foreign rule(s) unretired")
+
+    kept, decisions = [], []
+    for name, blk in foreign:
+        n = None if inv is None else dru_subject.members(blk, inv)
+        keep = n is None or n > 0
+        decisions.append((name, n, keep))
+        if keep:
+            kept.append(blk)
+    return kept, decisions
+
+
+def report_foreign_decisions(decisions, board):
+    """SAY IT OUT LOUD. A rule vanishing from a generated file with no line of
+    output is how a preserved exemption would be lost without anyone noticing —
+    the same silence that let the vacuous ones survive."""
+    for name, n, keep in decisions:
+        if keep and n is None:
+            print(f"generate_rules_generic: preserved foreign rule {name!r} "
+                  f"— subject NOT DERIVABLE from {board}.kicad_pcb, kept "
+                  f"(retirement needs a positively derived zero)")
+        elif keep:
+            print(f"generate_rules_generic: preserved foreign rule {name!r} "
+                  f"— {n} board item(s) still match it, kept")
+        else:
+            print(f"generate_rules_generic: RETIRED foreign rule {name!r} "
+                  f"— 0 board items match its condition on "
+                  f"{board}.kicad_pcb, so it can never fire "
+                  f"(G-VACUOUS-DRU). Re-emit it by re-running the pass that "
+                  f"owns it (e.g. stitch's pad_rescue stub_scope)")
 
 
 def main(argv=None):
@@ -396,7 +459,10 @@ def main(argv=None):
     generated_names = ({f"{name}_width" for name in classes}
                        | {f"{name}_diffpair" for name in classes}
                        | scoped_names | clr_names)
-    foreign = foreign_dru_rules(dru, generated_names)
+    foreign, decisions = foreign_dru_rules(dru, generated_names,
+                                           ki / f"{board}.kicad_pcb")
+    report_foreign_decisions(decisions, board)
+    retired = [d for d in decisions if not d[2]]
 
     pro.write_text(json.dumps(proj, indent=2) + "\n")
     dru.write_text("\n".join(dru_rules + foreign) + "\n")
@@ -405,6 +471,8 @@ def main(argv=None):
           f"{len(dru_rules)-1-len(clr_rules)} width rules"
           + (f" + {len(clr_rules)} scoped clearance rules" if clr_rules else "")
           + (f" + {len(foreign)} preserved foreign rules" if foreign else "")
+          + (f" + {len(retired)} retired ({', '.join(d[0] for d in retired)})"
+             if retired else "")
           + f" -> {dru.name}")
 
 

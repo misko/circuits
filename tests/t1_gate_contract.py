@@ -980,5 +980,148 @@ def t_dru_flags_the_real_cooksense_rule_file():
           f"the 2 mm opto barrier carries the same conjunct:\n{exempt}")
 
 
+# ------------------------------- G-VACUOUS-DRU, the PRESERVED-rule species
+# A rule can clear every name-existence check and still be dead, because a
+# PRESERVED rule is not regenerated: `generate_rules_generic.foreign_dru_rules`
+# carried any rule it did not own forward on every run and nothing ever retired
+# one, so `pad_rescue_stubs` outlived the stubs it exempted. Name-existence
+# (check 1, and `rules_audit`'s A-FIRE) cannot see this — the rule area is still
+# on the board, it is merely EMPTY. Only geometry answers it.
+
+MEMBER_INV = {"netclasses": {"PWR"}, "nets": {"GND", "5V"},
+              "areas": {"pad_rescue_stubs"}, "unnetted": 0}
+STUB_RULE = ("(version 1)\n(rule pad_rescue_stubs\n"
+             "  (condition \"A.insideArea('pad_rescue_stubs') "
+             "&& (A.NetName == 'GND')\")\n"
+             "  (constraint track_width (min 0.300mm)))\n")
+
+
+@test("G-VACUOUS-DRU reads a BARE rule name — the spelling every "
+      "pad_rescue_stubs on every board uses", kind="known_bad")
+def t_dru_grades_bare_rule_names():
+    """THE GATE WAS BLIND TO ITS OWN SUBJECT, and this is the measurement.
+    `.kicad_dru` allows both `(rule "X"` and `(rule X`; generate_rules writes
+    the quoted form, stitch's `_append_stub_dru` writes the bare one. `parse_dru`
+    required the quotes, so on 2026-07-31 it graded **77 of the fleet's 83
+    rules** — and all 6 it skipped were `pad_rescue_stubs`, i.e. every instance
+    of the ONE rule family that is preserved rather than regenerated, and the
+    family this gate's own docstring is about. Six ungraded rules read as six
+    clean ones.
+
+    Every other rule-name matcher in the tree already handled the bare form
+    (`rules_audit.dru_rules`, `escape_check._RULE_HEAD_RE`,
+    `generate_rules_generic.extract_rules`) — swept 2026-07-31, 6 matchers,
+    this was the only blind one.
+
+    RED against the old `re.finditer(r'\\(rule\\s+"([^"]*)"')`: it returns zero
+    rules here, so `n` is 0 and nothing is graded."""
+    import gate_contract_audit as gca                       # noqa: E402
+    rules = gca.parse_dru(STUB_RULE)
+    eq(len(rules), 1, f"the bare-named rule must be parsed: {rules}")
+    eq(rules[0]["name"], "pad_rescue_stubs", "bare name recovered verbatim")
+    eq(rules[0]["constraints"], ["track_width"], "its constraint is read too")
+    # and it is GRADED, not merely parsed
+    _fails, n = gca.check_dru_vacuity(rules, MEMBER_INV)
+    eq(n, 1, "a bare-named rule must count in the denominator")
+
+
+@test("G-VACUOUS-DRU FAILS a rule whose rule area is LIVE but EMPTY — the "
+      "species name-existence cannot see", kind="known_bad")
+def t_dru_live_area_with_zero_members_fails():
+    """Every name in the condition resolves — `pad_rescue_stubs` IS in the
+    inventory's areas, `GND` IS a net — so check (1) passes it and so does
+    `rules_audit`'s A-FIRE. Zero board items match it regardless, which is what
+    `dru_area_members` measures from geometry. This is the state a preserved
+    rule decays into once the pass that owned it stops emitting stubs there.
+
+    RED before check (3) existed: with `members` unread the rule draws no
+    finding at all."""
+    import gate_contract_audit as gca                       # noqa: E402
+    rules = gca.parse_dru(STUB_RULE)
+    fails, n = gca.check_dru_vacuity(rules, MEMBER_INV,
+                                     members={"pad_rescue_stubs": 0})
+    eq(n, 1, "one predicate graded (the denominator, canon M-COVER)")
+    eq(len(fails), 1, f"the empty area must be the one finding:\n{fails}")
+    contains(fails[0], "ZERO board items match it", "names the defect")
+    contains(fails[0], "no subject left", "names why it is not a dead-name case")
+
+
+@test("G-VACUOUS-DRU PASSES the same rule when its area still has members, and "
+      "is SILENT when membership is not derivable")
+def t_dru_live_area_with_members_passes():
+    """THE CONTRAST, and the constraint on the fix. 4 of the fleet's 6
+    `pad_rescue_stubs` rules had live subjects on 2026-07-31 (377, 44, 41 and 5
+    members); a check that flagged them would push a rebuild into deleting four
+    live exemptions. `None` — not derivable — must be as silent as a positive
+    count, because retirement requires a positively derived zero."""
+    import gate_contract_audit as gca                       # noqa: E402
+    rules = gca.parse_dru(STUB_RULE)
+    for members, what in (({"pad_rescue_stubs": 25}, "a populated area"),
+                          ({"pad_rescue_stubs": None}, "an underivable one"),
+                          ({}, "no geometry read at all")):
+        fails, n = gca.check_dru_vacuity(rules, MEMBER_INV, members=members)
+        eq(n, 1, f"{what}: still graded")
+        eq(len(fails), 0, f"{what} must draw no finding:\n{fails}")
+
+
+@test("the emptiness verdict is derived TWICE by different methods, and they "
+      "agree (canon M1)", slow=True)
+def t_dru_members_two_methods_agree():
+    """CHECKER AND CHECKED SHARE NO METHOD. `generate_rules_generic` decides
+    retirement with `dru_subject`, which parses the `.kicad_pcb` as TEXT and
+    runs its own point-in-polygon; `gate_contract_audit.dru_area_members` asks
+    pcbnew's object model and SHAPE_POLY_SET. If the gate reused the emitter's
+    derivation it would prove nothing about it.
+
+    Built here on a synthetic board rather than a fleet one on purpose: a board
+    mid-route moves under the test, and this asserts a property of the two
+    METHODS, not of any board. (The same agreement was measured across the real
+    fleet on 2026-07-31 — 20 member-counted rules, identical counts under both
+    derivations, including 377/44/41/5/0/0 for `pad_rescue_stubs`.)"""
+    import json
+    import shutil
+    sys.path.insert(0, str(ROOT / "tests"))
+    from t1_rules_bom import LC, RULE_AREA, _first_seg      # noqa: E402
+    d = tmpdir("m1cross_")
+    pcb = d / "b.kicad_pcb"
+    shutil.copy(LC / "04_kicad" / "cook_loadcell.kicad_pcb", pcb)
+    x0, y0, x1, y1 = _first_seg(pcb.read_text(encoding="utf-8-sig"), "5V")
+    txt = pcb.read_text(encoding="utf-8-sig").rstrip()
+    pcb.write_text(txt[:-1]
+                   + RULE_AREA.format(name="live_area", tag=1,
+                                      x0=min(x0, x1) - 0.5, y0=min(y0, y1) - 0.5,
+                                      x1=max(x0, x1) + 0.5, y1=max(y0, y1) + 0.5)
+                   + RULE_AREA.format(name="empty_area", tag=2,
+                                      x0=5.0, y0=5.0, x1=8.0, y1=8.0)
+                   + ")\n")
+    dru = d / "b.kicad_dru"
+    dru.write_text("(version 1)\n" + "".join(
+        f"(rule {n}\n  (condition \"A.insideArea('{a}') "
+        f"&& (A.NetName == '5V')\")\n"
+        f"  (constraint track_width (min 0.300mm)))\n"
+        for n, a in (("live", "live_area"), ("empty", "empty_area"),
+                     ("gone", "no_such_area"))))
+
+    code = ("import json,sys;sys.path.insert(0,%r);"
+            "import gate_contract_audit as g;"
+            "print('@@'+json.dumps(g.dru_area_members(sys.argv[1],"
+            "g.parse_dru(open(sys.argv[2]).read()))))"
+            % str(ROOT / "skills/kicad-pcb/scripts"))
+    r = must_pass(run([KPY, "-c", code, str(pcb), str(dru)]), "pcbnew method")
+    by_pcbnew = json.loads(r.out.split("@@", 1)[1].strip())
+
+    sys.path.insert(0, str(ROOT / "skills/kicad-pcb/scripts"))
+    import dru_subject                                       # noqa: E402
+    from generate_rules_generic import extract_rules         # noqa: E402
+    inv = dru_subject.index_board(pcb)
+    by_text = {n: dru_subject.members(b, inv)
+               for n, b in extract_rules(dru.read_text())}
+
+    eq(by_text, by_pcbnew, "the two derivations must agree rule for rule")
+    check(by_text["live"] > 0, f"the populated area must have members: {by_text}")
+    eq(by_text["empty"], 0, "an area over bare laminate has none")
+    eq(by_text["gone"], 0, "an area that is not on the board has none")
+
+
 if __name__ == "__main__":
     sys.exit(main())

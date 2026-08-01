@@ -507,6 +507,37 @@ def t_pos_not_smt_placeable():
           "red-verify: --_disable-smt must silence exactly this finding")
 
 
+@test("A-POS does not misclassify an SMT exposed pad's same-number thermal "
+      "via grid as through-hole component leads")
+def t_pos_thermal_vias_are_not_tht_leads():
+    import runpy
+    cov = runpy.run_path(str(COV))
+    with tmpdir("thermal_via_cov_") as d:
+        board = Path(d) / "thermal.kicad_pcb"
+        board.write_text('''(kicad_pcb (version 20240108) (generator pcbnew)
+  (footprint "Fixture:QFN_EP_ThermalVias"
+    (layer "F.Cu") (at 10 10) (attr smd)
+    (property "Reference" "U1" (at 0 0 0) (layer "F.SilkS"))
+    (property "Value" "QFN" (at 0 0 0) (layer "F.Fab"))
+    (pad "1" smd rect (at -1 0) (size 0.5 0.5)
+      (layers "F.Cu" "F.Paste" "F.Mask"))
+    (pad "9" smd rect (at 0 0) (size 2 2)
+      (layers "F.Cu" "F.Mask"))
+    (pad "9" thru_hole circle (at -0.3 0) (size 0.3 0.3)
+      (drill 0.15) (layers "*.Cu" "*.Mask"))
+    (pad "9" thru_hole circle (at 0.3 0) (size 0.3 0.3)
+      (drill 0.15) (layers "*.Cu" "*.Mask"))
+    (pad "" smd rect (at 0 0) (size 1.5 1.5) (layers "F.Paste")))
+)''')
+        fps = cov["read_footprints"](board)
+    eq(fps[0]["drilled"], 2, "the parser still observes both real barrels")
+    eq(fps[0]["assembly_drilled"], 0,
+       "same-number EP barrels are thermal vias, not component leads")
+    fails = cov["check_smt_placeable"](
+        fps, {"U1"}, {"service": "standard", "sides": ["top"]})
+    check(not fails, f"thermal-via QFN must remain SMT-placeable: {fails}")
+
+
 @test("A-POS: a DECLARED-AND-EVIDENCED bought THT process exempts the refs it "
       "NAMES — because taking a paid-for connector off the CPL is the wrong fix")
 def t_pos_tht_declared_process_exempts():

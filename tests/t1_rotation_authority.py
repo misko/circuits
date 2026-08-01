@@ -795,6 +795,24 @@ def t_pin1_mark_frame_is_local():
     eq(len(set(seen.values())), 1, "distinct pin-1 distance multisets")
 
 
+@test("jlc_rotation_measure treats EasyEDA zero-padded numeric pad labels as "
+      "the same electrical terminals")
+def t_zero_padded_pad_numbers():
+    """Connector models commonly spell pads 1..9 as 01..09.  Those leading
+    zeros are formatting, not different terminals, and must not erase the
+    pad-number channel or crash the verdict path."""
+    d = tmpdir("rotzero_")
+    board = measure_fixture(d, 0)
+    mod = d / "easyeda" / _FX_LCSC / "jlc.pretty" / "m.kicad_mod"
+    text = mod.read_text()
+    for n in range(1, 9):
+        text = text.replace(f"(pad {n} ", f"(pad {n:02d} ")
+    mod.write_text(text)
+    r = must_pass(measure(board, d), "zero-padded EasyEDA pad labels")
+    contains(r.out, "==> offset 180", "numeric labels still fit")
+    not_contains(r.out, "no common pad-number channel", "channel retained")
+
+
 @test("jlc_rotation_measure BLOCKS a model whose pin-1 mark contradicts the "
       "offset the row would claim — it no longer prints the dissent and "
       "exits 0", kind="known_bad")

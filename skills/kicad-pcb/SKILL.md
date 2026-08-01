@@ -75,6 +75,11 @@ credits, or debugging time — check provenance notes before assuming staleness.
 3h. **Thermal-via floors** (canon R6): on >=4-layer boards, EPs and power
    pads above ~4mm2 get >=2 same-net vias in/near the pad (policy_audit
    R-THERM). TPS2557 EPs and a DPAK tab shipped with zero.
+3i. **Modules before bare complex ICs** (canon P-MOD): when the brief is
+   silent, prefer a proven compute/control, radio, interface, power or sensing
+   module that meets the locked requirements. A bare IC needs an evidenced ADR
+   showing why considered modules fail a binding requirement; run
+   `scripts/module_first_check.py PROJECT` before generation.
 4. **Fanout before routing, hardest nets first.** Escape lanes are claimed
    by whoever routes first. `bga_fanout.py` on fine-pitch ICs, then a thin
    pass (0.15/0.13, 0.45/0.2 vias) for escape-bound nets, then the standard
@@ -117,6 +122,7 @@ credits, or debugging time — check provenance notes before assuming staleness.
 |---|---|
 | Folder layout spec→fab, datasheet/parts caching, releases | `references/project-structure.md` |
 | The 7-step generate→route→verify pipeline + KRT invocations | `references/routing-pipeline.md` |
+| Fast stage orchestration, handoffs, profiling, layout seal, testing | `references/fast-pcb-flow.md` |
 | Which routing/placement tool to use, all empirics + traps | `references/autorouter-landscape.md` |
 | pcbnew Python API gotchas with workaround patterns | `references/pcbnew-scripting.md` |
 | DRC classification, .kicad_dru patterns, JLC capability floors | `references/drc-discipline.md` |
@@ -135,9 +141,11 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/fab_tier_util.py` | Resolve a project's declared `fab_tier` into capability floors (`references/fab_tiers.yaml` is the single source) — the generators derive missing via/clearance/silk geometry from it and reject explicit sub-floor values |
 | `scripts/route_and_stitch_generic.py` | ONE parameterized route+stitch backend (prep/route/import/taps/quick/stitch) driven by `03_src/route.yaml` — replaces per-board route_prep.py + route_waves.sh + stitch_and_fill.py (+ bespoke tap scripts). `quick` = seconds-fast pre-stitch unconnected + clearance/track_width verdict (the loop tool). See `docs/generic-router-proof.md` |
 | `scripts/net_label_survival.py` | S-NETMERGE gate: every schematic global_label survives to the exported netlist (kicad-cli merges touching/collinear wires silently); config = `label_survival:` block of `03_src/rules/electrical_invariants.yaml` |
+| `scripts/module_first_check.py` | P-MOD architecture gate: every complex subsystem in an adopted project is a dossier-proven module or has an evidenced D-MOD bare-IC exception; missing policy is UNMIGRATED, never PASS |
 | `scripts/placement_gates.py` | Shared placement gates P-OUT (pads inside the real Edge.Cuts polygon) + P-CAP (static corridor crossing-demand vs capacity) — post-placement, pre-routing |
 | `scripts/tier_preflight.py` | R-PREFLIGHT gate: every routing/stitch/rescue parameter with a DRC-floor twin proven consistent with the declared fab tier BEFORE any KRT cycle; wired refuse-to-route into `route_and_stitch_generic route`; `--explain` prints derivations + copy-paste fixes |
 | `scripts/grind_driver.py` | The BOUNDED mechanical DRC grind loop: classify findings, look each class up in `references/grind_fixes.yaml`, auto-apply only conservatively-safe reruns, escalate everything else (`06_build/grind_escalation.md`, distinct exit codes). Hard stops: 0/0/0, novel class, D-BACK 3-cycle stagnation, `--max-cycles`. Journals every cycle (canon M9) |
+| `scripts/pcb_flow.py` | Thin process conductor: pre-route escape/tier preflight, timed stages, bounded grind delegation, content-addressed agent handoffs, and fresh-rebuild `layout-seal` (PCB layout only; never substitutes for jlcpcb-fab release gates) |
 
 Fab output + ordering (gerber zip, BOM/CPL, JLC stock checks) moved to the
 **`jlcpcb-fab` skill** — use it for everything order-facing. The old

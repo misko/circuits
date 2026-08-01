@@ -77,6 +77,13 @@ blockers → direct/L/Z join scan → verified A* → re-route ripped nets.
 Every added segment/via must pass the exact-collide check; re-run the
 green check after every edit including your own fixes.
 
+Constrain A* to the one or two reviewed copper layers that can actually
+carry the repair (`astar_fallback.layers`). This reduces the state space and
+prevents an apparently convenient layer change from consuming an unrelated
+escape corridor. Its transition vias must use the declared fab-tier
+size/drill and `hole_to_copper`; the stitcher inherits the latter from a
+matching `stitch.via.tiers` entry when it is not repeated in the A* block.
+
 ## Decision rule: router ordering vs package swap
 
 When airlines cluster at a fine-pitch part, split them: nets that fail
@@ -117,8 +124,14 @@ dense 4-layer board. Iterate routing against `quick`; run the full gate
 once quick is clean. quick is a loop tool — the severity-all 0/0/0 full
 DRC after stitch stays the only release gate.
 
-One stitch pass earns a special note here: **`heal_islands`** (after the
-last `fill`). A same-net pour that fills as two or more disconnected
+Two stitch passes earn a special note here. Put **`fresh_reload`** after the
+last `fill`: it unconditionally saves and re-execs in a fresh pcbnew process,
+rebuilding connectivity before any island decision. A long-lived pcbnew
+process can otherwise retain a pre-fill view and report fewer zone groups
+than the later `kicad-cli pcb drc --refill-zones` gate. This is distinct from
+`reload`, which only fires after destructive passes poison SWIG iterators.
+
+Then run **`heal_islands`**. A same-net pour that fills as two or more disconnected
 islands is the DRC unconnected class "Zone [X] <-> Zone [X]" — 4 of the v4
 usb-hub-3s canary's last 7 findings (LX1/LX2/VIN_S/VBUSA3, priority-2 F.Cu
 converter hot-loop pours sliced by escape tracks, 2026-07-21), previously
@@ -130,6 +143,12 @@ refills and re-verifies — a heal that does not reduce the island count is
 a hard error, a healed board re-runs as a no-op, and different nets are
 never bridged. The grind table's `unconnected_zone_islands` auto entry
 maps the DRC class to a stitch rerun with this pass.
+
+`heal_islands.min_bbox` is a performance filter, not a correctness waiver.
+KiCad DRC reports very small pad-bearing fragments too; dense QFN/eFuse
+boards should use a measured small floor (0.1 mm on the programmable USB hub)
+or prove that skipped fragments are padless. The release gate remains the
+fresh, refilled CLI DRC, never the in-process group count alone.
 
 `scripts/grind_driver.py` mechanizes the loop between those two levels,
 with `references/grind_fixes.yaml` as the class table. It AUTO-applies
@@ -164,6 +183,9 @@ usb-hub-3s v1.1 respin, each already hand-fixed on >= 2 boards):
   thread. The `seed_stubs` stitch pass (runs BEFORE fill) places EXPLICIT
   geometry from `stitch.seed_stubs`, verified against live copper with
   collision REFUSAL, proves each declared `pin` is reached, and is idempotent.
+  The same emitter is available as `prep.seed_stubs` when reviewed copper
+  must be present on r0 so every KRT wave routes around it (for example,
+  coupled high-speed banks assigned to different copper layers).
   Generalises usb-hub-3s `plan_seed_stubs.py` + `add_seed_stubs.py`.
 - **`tap_reattempt`** (bounded retry in `cmd_taps`). A long pour-net pin tap's
   corridor is order-fragile; on a failure the whole tap set is re-routed

@@ -52,6 +52,18 @@ import pcbnew
 TOL = 0.02
 
 
+def canonical_pad_number(value):
+    """Normalize numeric pad labels without changing alphanumeric pin names.
+
+    EasyEDA exports some connector pads as ``01``..``09`` while KiCad stores
+    the same terminals as ``1``..``9``.  Treating the formatting zeros as part
+    of the electrical identity removes the pad-number channel and used to make
+    the verdict path crash while doing arithmetic on ``None``.
+    """
+    value = str(value).strip().strip('"')
+    return str(int(value)) if value.isdigit() else value
+
+
 def rot(x, y, deg):
     """KiCad's OWN rotation of a footprint-local point (y-down, CCW), the form
     verified against pcbnew over 72 pads. NEVER the negated `xform` form."""
@@ -74,7 +86,7 @@ def parse_mod(path):
     for m in re.finditer(
             r'\(pad\s+("?[^\s")]+"?)\s+(\S+)\s+(\S+)[^)]*?\(at ([-\d.]+) '
             r'([-\d.]+)(?: ([-\d.]+))?\)\s*\(size ([-\d.]+) ([-\d.]+)\)', t):
-        pads.append({"num": m.group(1).strip('"'), "shape": m.group(3),
+        pads.append({"num": canonical_pad_number(m.group(1)), "shape": m.group(3),
                      "x": float(m.group(4)), "y": float(m.group(5)),
                      "w": float(m.group(7)), "h": float(m.group(8))})
     marks = []
@@ -101,7 +113,8 @@ def our_pads(fp):
     for p in fp.Pads():
         r = p.GetFPRelativePosition()
         s = p.GetSize()
-        out.append({"num": p.GetNumber(), "x": r.x / 1e6, "y": r.y / 1e6,
+        out.append({"num": canonical_pad_number(p.GetNumber()),
+                    "x": r.x / 1e6, "y": r.y / 1e6,
                     "w": s.x / 1e6, "h": s.y / 1e6})
     return out
 
@@ -395,6 +408,13 @@ def main(argv=None):
         cb, cv, c2, c2v = best2(cls)
         mb, mv, m2, m2v = best2(mk)
         db, dv, d2, d2v = best2(cloud)
+
+        if nb is None:
+            print("    BLOCKED — no common pad-number channel. Check whether "
+                  "the two libraries use formatting-only differences or truly "
+                  "different terminal names; no rotation row was emitted.")
+            rc = 1
+            continue
 
         # ---- the A-POL judgement, stated rather than merged
         free = []

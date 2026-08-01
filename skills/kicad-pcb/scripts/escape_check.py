@@ -150,7 +150,8 @@ except ImportError:
 
 TIERS_PATH = Path(__file__).resolve().parent.parent / "references" / "fab_tiers.yaml"
 
-OUTWARD_STYLES = {"leaded", "connector", "passive", "module"}
+OUTWARD_STYLES = {"leaded", "connector", "passive", "module",
+                  "through_hole"}
 RING_STYLES = {"qfn", "dfn"}
 
 # Calibration constants — each number is PAID-FOR ground truth, not tuning:
@@ -281,6 +282,10 @@ def check_part(part_yaml, tiers):
     style, pitch = esc.get("style"), esc.get("pitch")
     if not style or not pitch:
         return probs + [f"{mpn}: escape block missing style/pitch"]
+    known_styles = OUTWARD_STYLES | RING_STYLES | {"bga"}
+    if style not in known_styles:
+        return probs + [f"{mpn}: unknown escape style '{style}' "
+                        f"(known: {sorted(known_styles)})"]
     g_style, g_pitch = infer_from_strings(y.get("package", ""),
                                           y.get("footprint", ""))
     if g_style and g_style != style and not (

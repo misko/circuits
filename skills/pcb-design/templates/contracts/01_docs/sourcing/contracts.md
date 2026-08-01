@@ -45,6 +45,15 @@ mutable file: it is an INPUT, and a re-read replaces the entry it re-reads.
 
 ## Audit
 
+- **Pre-selection Q-2SOURCE gate:** a component may enter the schematic only
+  when at least two independent authorized distributor pools each list the
+  exact authoritative MPN (or an explicitly approved dossier alternate) as
+  active and orderable, with stock greater than 10 and sufficient for five
+  board sets. JLCPCB/LCSC is one pool, Mouser is one, and DigiKey is one;
+  marketplaces and multiple listings from the same distributor do not increase
+  the count. Fewer than two qualifying pools rejects the selection rather than
+  creating a release-time waiver. Run this before schematic completion and
+  repeat it on order day.
 - `shopping_list.py PROJECT_DIR` = the gate: **Q-COVER** (`N/M` per
   distributor; a part it could not look up is a FAIL, never an omission),
   **Q-WIDE**, **Q-IDENT**, **Q-STOCK** (`stock > 10` AND `>= qty`),

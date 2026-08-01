@@ -70,7 +70,7 @@ def stub_krt(d, exit_code=0, write_output=True):
     stand-in for the real router; also the failure-injection seam."""
     k = d / "krt"
     k.mkdir(exist_ok=True)
-    (k / "route.py").write_text(
+    body = (
         "import sys, shutil, json, pathlib\n"
         "a = sys.argv[1:]\n"
         "log = pathlib.Path(__file__).parent / 'calls.jsonl'\n"
@@ -79,6 +79,8 @@ def stub_krt(d, exit_code=0, write_output=True):
         "    o = a[a.index('--output') + 1]\n"
         "    shutil.copy(a[0], o)\n"
         f"sys.exit({exit_code})\n")
+    (k / "route.py").write_text(body)
+    (k / "route_diff.py").write_text(body)
     return k
 
 
@@ -137,6 +139,33 @@ def t_prep_keepout_layers():
           f"the analog-guard layer got no keepouts: {got}")
 
 
+@test("prep.seed_stubs places reviewed copper on r0 before KRT")
+def t_prep_seed_stubs():
+    """Deterministic high-speed/layer-assignment copper must already be an
+    obstacle when wave 1 starts.  The prep variant reuses the bounded seed
+    emitter and writes its result to r0, rather than relying on a bespoke
+    board script or adding the copper only after every route has crossed it."""
+    def mutate(cfg, _d):
+        cfg.setdefault("prep", {})["seed_stubs"] = {
+            "clearance": 0.15,
+            "via": {"size": 0.6, "drill": 0.3},
+            "stubs": [{"net": "E_PLUS", "pin": "U1.3",
+                       "vias": [[35.525, 40.095]]}],
+        }
+    d, p = scratch(mutate)
+    r = must_pass(prep(p), "prep with deterministic copper")
+    contains(r.out, "prep seed_stubs: 1 segments/vias placed before KRT",
+             "prep did not report the pre-route seed")
+    r0 = d / "06_build" / "route" / "r0.kicad_pcb"
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1]); n=b.FindNet('E_PLUS').GetNetCode()\n"
+            "print('@@'+str(sum(1 for t in b.GetTracks() "
+            "if t.GetClass()=='PCB_VIA' and t.GetNetCode()==n)))\n")
+    got = must_pass(run([KPY, "-c", code, r0]), "inspect preseeded r0")
+    eq(int(got.out.split("@@", 1)[1].strip()), 1,
+       "the deterministic via did not ride into r0")
+
+
 @test("the KRT command line carries the geometry, keepouts and per-wave overrides")
 def t_krt_cmdline():
     d, p = scratch(use_stub)
@@ -158,6 +187,25 @@ def t_krt_cmdline():
     check(calls[2][calls[2].index("--track-width") + 1] == "0.25",
           "the signal wave lost its per-wave track width")
     contains(r.out, "waves done", "route stdout")
+
+
+@test("a differential wave selects route_diff and carries only its pair geometry")
+def t_krt_diff_engine():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["waves"][0]["engine"] = "diff"
+        cfg["route"]["waves"][0]["diff_pair_gap"] = 0.17
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    r = must_pass(run([sys.executable, RS, "route", p]), "diff route")
+    calls = krt_calls(d / "krt")
+    check(len(calls) == 3, f"expected 3 waves, got {len(calls)}")
+    check("--diff-pair-gap" in calls[0], "diff gap did not reach route_diff")
+    check(calls[0][calls[0].index("--diff-pair-gap") + 1] == "0.17",
+          "wrong diff-pair gap")
+    check("--diff-pair-gap" not in calls[1],
+          "diff-only option leaked into route.py")
+    contains(r.out, "wave an (diff)", "diff engine report")
 
 
 @test("KRT waves are CHAINED: each wave routes the previous wave's output")
@@ -240,6 +288,24 @@ def t_swig_barrier():
           "the barrier run changed connectivity")
 
 
+@test("fresh_reload unconditionally rebuilds connectivity in a new process")
+def t_fresh_reload_barrier():
+    """Zone connectivity can be stale even when no board object was removed.
+    The explicit post-fill barrier therefore must fire unconditionally; the
+    ordinary removal-driven `reload` semantics are intentionally insufficient
+    for this position in the pipeline."""
+    def mutate(cfg, _d):
+        cfg["stitch"]["passes"] = ["fill", "fresh_reload", "gate"]
+    d, p = scratch(mutate)
+    board = d / "04_kicad" / f"{STEM}.kicad_pcb"
+    before = board_nodes(board)
+    r = must_pass(stitch(p), "stitch with an unconditional connectivity barrier")
+    contains(r.out, "fresh connectivity rebuild", "fresh_reload did not re-exec")
+    contains(r.out, "gate: clean", "post-reload stitch verdict")
+    check(before == board_nodes(board),
+          "fresh_reload changed electrical connectivity")
+
+
 # ======================================================== KNOWN-BAD =====
 @test("route-prep REFUSES a board that still has tracks", kind="known_bad")
 def t_kb_tracked_input():
@@ -302,6 +368,28 @@ def t_kb_krt_lies():
     must_pass(prep(p), "prep")
     must_fail(run([sys.executable, RS, "route", p]),
               "route with a silent KRT", "produced no")
+
+
+@test("every KRT wave carries .kicad_pro and .kicad_dru rule sidecars")
+def t_krt_rule_sidecars_survive_each_wave():
+    """KiCad loads custom rules by the board basename.  KRT historically
+    copied rN.kicad_pro but dropped rN.kicad_dru, so `quick` declared a route
+    clean while the final imported board reported its sub-floor tracks.  The
+    route driver owns canon R1 and must carry both sidecars across every wave,
+    independent of what a particular KRT version happens to copy."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    route_dir = d / "06_build" / "route"
+    outputs = sorted(route_dir.glob("r[1-9]*.kicad_pcb"))
+    check(outputs, "stub route emitted no wave outputs")
+    for board in outputs:
+        for ext in (".kicad_pro", ".kicad_dru"):
+            sidecar = board.with_suffix(ext)
+            check(sidecar.is_file(),
+                  f"canon R1: {sidecar.name} missing beside {board.name}")
 
 
 @test("importing onto a board that ALREADY has tracks is a hard error",
@@ -569,6 +657,62 @@ def t_via_site_full_custack():
     contains(r.out, "VIA_OK False",
              "a via on top of an In2.Cu foreign-net track must be REJECTED — "
              "an F/B-only default misses it")
+
+
+@test("verified_astar accepts a one-layer corridor and forwards the declared "
+      "hole-to-copper rule to every transition-via probe")
+def t_astar_layer_and_hole_constraints():
+    """A reviewed one-layer repair should not pay the two-layer search cost
+    or emit surprise vias.  When a two-layer search is required, its site
+    probes must use the board/fab-specific drilled-hole clearance rather than
+    pcb_toolkit's generic default."""
+    d = tmpdir("t2_astar_constraints_")
+    script = d / "probe.py"
+    script.write_text(
+        "import sys\n"
+        f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
+        "import pcbnew\n"
+        "from pcb_toolkit import Toolkit\n"
+        "b=pcbnew.BOARD(); b.SetCopperLayerCount(4)\n"
+        "n=pcbnew.NETINFO_ITEM(b,'SIG'); b.Add(n)\n"
+        "tk=Toolkit(b, clearance_mm=0.15)\n"
+        "ok=tk.verified_astar('SIG',(10,10),(12,10),0.2,grid=0.1,"
+        "window=0.5,attempts=2,layers=(pcbnew.In2_Cu,))\n"
+        "items=list(b.GetTracks())\n"
+        "print('SINGLE_OK',ok)\n"
+        "print('SINGLE_VIAS',sum(x.GetClass()=='PCB_VIA' for x in items))\n"
+        "print('SINGLE_LAYERS',sorted({b.GetLayerName(x.GetLayer()) for x in items}))\n"
+        "try:\n"
+        " tk.verified_astar('SIG',(1,1),(2,2),0.2,layers=(pcbnew.F_Cu,pcbnew.F_Cu))\n"
+        "except ValueError:\n"
+        " print('DUPLICATE_REJECTED',True)\n"
+        "b2=pcbnew.BOARD(); b2.SetCopperLayerCount(4)\n"
+        "n2=pcbnew.NETINFO_ITEM(b2,'SIG'); b2.Add(n2)\n"
+        "o=pcbnew.NETINFO_ITEM(b2,'OTHER'); b2.Add(o)\n"
+        "wall=pcbnew.PCB_TRACK(b2)\n"
+        "wall.SetStart(pcbnew.VECTOR2I_MM(11,9)); wall.SetEnd(pcbnew.VECTOR2I_MM(11,11))\n"
+        "wall.SetWidth(pcbnew.FromMM(0.4)); wall.SetLayer(pcbnew.F_Cu); wall.SetNet(o); b2.Add(wall)\n"
+        "tk2=Toolkit(b2, clearance_mm=0.15); orig=tk2.via_site_ok; calls=[]\n"
+        "def probe(x,y,nc,size=0.45,drill=0.2,**kw):\n"
+        " calls.append(kw.get('hole_to_copper'))\n"
+        " return orig(x,y,nc,size=size,drill=drill,**kw)\n"
+        "tk2.via_site_ok=probe\n"
+        "tk2.verified_astar('SIG',(10,10),(12,10),0.2,grid=0.1,window=0.6,"
+        "attempts=2,via_size=0.25,via_drill=0.15,"
+        "layers=(pcbnew.F_Cu,pcbnew.B_Cu),hole_to_copper=0.255)\n"
+        "print('STRICT_CALLS',len(calls))\n"
+        "print('STRICT_ALL',bool(calls) and all(x==0.255 for x in calls))\n")
+    r = must_pass(run([KPY, script]), "constrained verified_astar probe")
+    contains(r.out, "SINGLE_OK True", "one-layer A* did not route")
+    contains(r.out, "SINGLE_VIAS 0", "one-layer A* emitted a transition via")
+    contains(r.out, "SINGLE_LAYERS ['In2.Cu']",
+             "one-layer A* escaped onto an undeclared layer")
+    contains(r.out, "DUPLICATE_REJECTED True",
+             "duplicate A* layer declarations were accepted")
+    contains(r.out, "STRICT_CALLS", "two-layer A* never probed a via site")
+    not_contains(r.out, "STRICT_CALLS 0", "two-layer A* made no transition probes")
+    contains(r.out, "STRICT_ALL True",
+             "A* did not forward the strict hole-to-copper value")
 
 
 @test("an unknown stitch pass name is a hard error, not a skipped pass",

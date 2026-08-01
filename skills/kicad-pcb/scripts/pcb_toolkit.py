@@ -54,6 +54,7 @@ class Toolkit:
         self.h2h = float(hole_to_hole_mm)
         self._index = None
         self._index_sig = None
+        self._index_frozen = False
 
     # ------------------------------------------------------------ bbox index
     # A conservative bbox prefilter makes collides() ~100x faster on a full
@@ -66,6 +67,14 @@ class Toolkit:
                 sum(len(f.Pads()) for f in self.board.GetFootprints()))
 
     def _get_index(self):
+        # A verified A* search probes thousands of cells without mutating the
+        # board.  Recounting every track and pad for every cell turned a
+        # sub-second graph search into minutes on 3k-track boards.  The A*
+        # wrapper freezes only for the duration of one non-mutating search;
+        # it invalidates unconditionally on exit before any later caller can
+        # observe a board change through stale boxes.
+        if self._index_frozen and self._index is not None:
+            return self._index
         sig = self._sig()
         if self._index is None or sig != self._index_sig:
             self._index = (
@@ -263,11 +272,39 @@ class Toolkit:
 
     def verified_astar(self, netname, p1, p2, width, grid=0.1, viacost=25,
                        window=4.0, attempts=8, exempt_r=0.3,
-                       via_size=0.45, via_drill=0.2):
+                       via_size=0.45, via_drill=0.2, layers=None,
+                       hole_to_copper=None):
+        """Run one A* search against a stable cached obstacle index."""
+        self._get_index()
+        self._index_frozen = True
+        try:
+            return self._verified_astar(
+                netname, p1, p2, width, grid=grid, viacost=viacost,
+                window=window, attempts=attempts, exempt_r=exempt_r,
+                via_size=via_size, via_drill=via_drill, layers=layers,
+                hole_to_copper=hole_to_copper)
+        finally:
+            self._index_frozen = False
+            # The implementation may have emitted tracks/vias.  Invalidating
+            # on both success and failure keeps the historic auto-rebuild
+            # guarantee without another O(N) signature walk here.
+            self._index = None
+            self._index_sig = None
+
+    def _verified_astar(self, netname, p1, p2, width, grid=0.1, viacost=25,
+                        window=4.0, attempts=8, exempt_r=0.3,
+                        via_size=0.45, via_drill=0.2, layers=None,
+                        hole_to_copper=None):
         """Two-layer grid A* whose EMITTED path is re-verified segment by
         segment (exact shapes); failing nodes are blocked and the search
         retries. Endpoint exemption is for the search only — verification
         has no exemptions, which is the entire point.
+
+        `layers` selects one or two copper layers and defaults to `(F.Cu,
+        B.Cu)`.  Supplying e.g. `(In2.Cu, B.Cu)` lets a reviewed escape use
+        an existing inner-layer corridor; `(B.Cu,)` constrains the search to
+        one layer and emits no transition vias.  Both retain the same exact
+        collision verification.
 
         `via_size`/`via_drill` are the geometry of the LAYER-CHANGE vias this
         emits — CHECKED and PLACED with the same numbers. They default to the
@@ -278,7 +315,10 @@ class Toolkit:
         0.4995 floor, PASS), emitted the via, and a post-stitch drill floor
         then opened it to 0.3, closing the gap to 0.450: a hole_to_hole
         violation created by a check that was run against the wrong drill."""
-        F, Bc = pcbnew.F_Cu, pcbnew.B_Cu
+        layer_ids = tuple(layers or (pcbnew.F_Cu, pcbnew.B_Cu))
+        if not 1 <= len(layer_ids) <= 2 or len(set(layer_ids)) != len(layer_ids):
+            raise ValueError("verified_astar layers must name one or two distinct layers")
+        n_layers = len(layer_ids)
         net = self.board.FindNet(netname)
         nc = net.GetNetCode()
         x0, y0 = min(p1[0], p2[0]) - window, min(p1[1], p2[1]) - window
@@ -303,7 +343,7 @@ class Toolkit:
                         cache[k] = False
                     else:
                         cache[k] = not seg_ok(cx, cy, cx, cy,
-                                              F if il == 0 else Bc, width)
+                                              layer_ids[il], width)
                 return cache[k]
 
             s = (round((p1[0] - x0) / grid), round((p1[1] - y0) / grid), 0)
@@ -319,12 +359,14 @@ class Toolkit:
                     found = True
                     break
                 ix, iy, il = cur
-                for dx, dy, dl, c in ((1, 0, 0, 1), (-1, 0, 0, 1),
-                                      (0, 1, 0, 1), (0, -1, 0, 1),
-                                      (1, 1, 0, 1.4), (1, -1, 0, 1.4),
-                                      (-1, 1, 0, 1.4), (-1, -1, 0, 1.4),
-                                      (0, 0, 1, viacost)):
-                    nxt = (ix + dx, iy + dy, (il + dl) % 2)
+                moves = [(1, 0, 0, 1), (-1, 0, 0, 1),
+                         (0, 1, 0, 1), (0, -1, 0, 1),
+                         (1, 1, 0, 1.4), (1, -1, 0, 1.4),
+                         (-1, 1, 0, 1.4), (-1, -1, 0, 1.4)]
+                if n_layers == 2:
+                    moves.append((0, 0, 1, viacost))
+                for dx, dy, dl, c in moves:
+                    nxt = (ix + dx, iy + dy, (il + dl) % n_layers)
                     if not (0 <= nxt[0] < NX and 0 <= nxt[1] < NY):
                         continue
                     if nxt in came or blk(*nxt):
@@ -352,13 +394,15 @@ class Toolkit:
             for i in range(len(pts) - 1):
                 a, b = pts[i], pts[i + 1]
                 if not seg_ok(a[0], a[1], b[0], b[1],
-                              F if b[2] == 0 else Bc, width):
+                              layer_ids[b[2]], width):
                     bad.append(path[min(i + 1, len(path) - 1)])
             for i in range(1, len(path)):
                 if path[i][2] != path[i - 1][2]:
                     vx, vy = xy(path[i])
+                    kw = ({"hole_to_copper": hole_to_copper}
+                          if hole_to_copper is not None else {})
                     if not self.via_site_ok(vx, vy, nc, size=via_size,
-                                            drill=via_drill):
+                                            drill=via_drill, **kw):
                         bad.append(path[i])
             if bad:
                 extra.update(bad)
@@ -372,7 +416,7 @@ class Toolkit:
                 if abs(a[0] - b[0]) < 1e-9 and abs(a[1] - b[1]) < 1e-9:
                     continue
                 self.add_seg(a[0], a[1], b[0], b[1], net,
-                             F if b[2] == 0 else Bc, width)
+                             layer_ids[b[2]], width)
             return True
         return False
 

@@ -31,13 +31,17 @@ NOT read another project's config). Top-level keys:
 
   project:    name, netlist, output, parts_dir
   board:      outline (x0/y0/x1/y1 or x0/y0/w/h), corner_cut, edge_width,
-              layers, mounting_holes {footprint, refdes_prefix, at[]},
+              layers, optional stackup {nominal_thickness_mm,
+                copper_finish, dielectric_constraints, mask_thickness_mm,
+                copper_thickness_mm[], dielectrics[]},
+              mounting_holes {footprint, refdes_prefix, at[]},
               fiducials {footprint, refdes_prefix, at[]} — board-only
                 optical alignment targets; BOM- and CPL-excluded
   libraries:  list of ".pretty" search roots; a bare dir is treated as a
               KiCad-style root holding "<lib>.pretty", a {lib,path} entry
               binds one library name to one explicit .pretty dir
-  placement:  anchors {REF: [x,y,rot]}, seeds {REF: [x,y]}, regions,
+  placement:  anchors {REF: [x,y,rot]}, post_anchors {REF: [x,y,rot]},
+              seeds {REF: [x,y]}, regions,
               patterns[] (glob -> region/near/attrs/pad_overrides),
               repeat[] (array primitive; caption-only blocks allowed),
               bbox_override {REF: [x0,y0,x1,y1]} for modules whose footprint
@@ -417,6 +421,12 @@ class BoardBuilder:
         self.seed_uuids()
         self.board = pcbnew.BOARD()
         self.board.SetCopperLayerCount(int(self.board_cfg.get("layers", 2)))
+        stack = self.board_cfg.get("stackup") or {}
+        if stack:
+            nominal = float(stack.get("nominal_thickness_mm", 1.6))
+            if nominal <= 0:
+                die("board.stackup.nominal_thickness_mm must be positive")
+            self.board.GetDesignSettings().SetBoardThickness(pcbnew.FromMM(nominal))
         self.netmap = {}
         for n in sorted(nets):
             ni = pcbnew.NETINFO_ITEM(self.board, n)
@@ -431,6 +441,7 @@ class BoardBuilder:
         self.check_pads_present()
         self.run_asserts()
         self.legalize()
+        self.apply_post_anchors()
         self.check_placement_collisions()
         self.normalize_footprint_text()
         self.apply_design_rules()
@@ -439,12 +450,128 @@ class BoardBuilder:
         self.add_silk()
         self.out.parent.mkdir(parents=True, exist_ok=True)
         self.board.Save(str(self.out))
+        self.write_stackup()
         self.write_waiver()
         # emit fp-lib-table when configured (no-op otherwise). Kept OUT of the
         # save path above so a board without the config is unaffected.
         self.write_fp_lib_table()
         self.say(f"saved {self.out.name}: {placed} parts, {len(self.holes)} holes")
         return self.board
+
+    # ---------------------------------------------------------- stackup
+    def write_stackup(self):
+        """Author a physical KiCad stackup from declarative source.
+
+        KiCad 10's Python binding exposes ``BOARD_STACKUP`` only as an opaque
+        SWIG pointer, so there is no supported setter API.  Emitting the native
+        s-expression here is still part of the generic generator (and is
+        immediately round-tripped through pcbnew below); it is not a project
+        post-processing escape hatch.  Boards without ``board.stackup`` remain
+        byte-for-byte on the legacy path.
+        """
+        cfg = self.board_cfg.get("stackup")
+        if not cfg:
+            return
+        if not isinstance(cfg, dict):
+            die("board.stackup must be a mapping")
+
+        count = int(self.board_cfg.get("layers", 2))
+        copper = cfg.get("copper_thickness_mm")
+        dielectrics = cfg.get("dielectrics")
+        if not isinstance(copper, list) or len(copper) != count:
+            die(f"board.stackup.copper_thickness_mm must contain exactly "
+                f"{count} entries")
+        if not isinstance(dielectrics, list) or len(dielectrics) != count - 1:
+            die(f"board.stackup.dielectrics must contain exactly {count - 1} "
+                f"entries")
+
+        def num(value, path, *, allow_zero=False):
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                die(f"{path} must be numeric")
+            if value < 0 or (not allow_zero and value == 0):
+                die(f"{path} must be {'non-negative' if allow_zero else 'positive'}")
+            return f"{value:.9g}"
+
+        def quoted(value):
+            return json.dumps(str(value), ensure_ascii=False)
+
+        copper_values = [float(v) for v in copper]
+        if any(v <= 0 for v in copper_values):
+            die("board.stackup copper thicknesses must all be positive")
+        dielectric_values = []
+        for i, item in enumerate(dielectrics, 1):
+            if not isinstance(item, dict):
+                die(f"board.stackup.dielectrics[{i - 1}] must be a mapping")
+            for key in ("type", "thickness_mm", "material", "epsilon_r",
+                        "loss_tangent"):
+                if key not in item:
+                    die(f"board.stackup.dielectrics[{i - 1}] missing {key!r}")
+            if item["type"] not in ("prepreg", "core"):
+                die(f"board.stackup.dielectrics[{i - 1}].type must be prepreg "
+                    f"or core")
+            thickness = float(item["thickness_mm"])
+            if thickness <= 0:
+                die(f"board.stackup.dielectrics[{i - 1}].thickness_mm must be positive")
+            dielectric_values.append(thickness)
+            num(item["epsilon_r"],
+                f"board.stackup.dielectrics[{i - 1}].epsilon_r")
+            num(item["loss_tangent"],
+                f"board.stackup.dielectrics[{i - 1}].loss_tangent",
+                allow_zero=True)
+
+        nominal = float(cfg.get("nominal_thickness_mm", 1.6))
+        physical = sum(copper_values) + sum(dielectric_values)
+        tolerance = float(cfg.get("thickness_tolerance_mm", 0.10))
+        if tolerance < 0 or abs(physical - nominal) > tolerance + 1e-12:
+            die(f"board.stackup physical copper+dielectric thickness "
+                f"{physical:.6f}mm differs from nominal {nominal:.6f}mm by "
+                f"more than thickness_tolerance_mm={tolerance:.6f}")
+
+        mask = num(cfg.get("mask_thickness_mm", 0.01),
+                   "board.stackup.mask_thickness_mm")
+        copper_names = ["F.Cu"] + [f"In{i}.Cu" for i in range(1, count - 1)] + ["B.Cu"]
+        lines = ["\t\t(stackup",
+                 "\t\t\t(layer \"F.SilkS\"", "\t\t\t\t(type \"Top Silk Screen\")", "\t\t\t)",
+                 "\t\t\t(layer \"F.Paste\"", "\t\t\t\t(type \"Top Solder Paste\")", "\t\t\t)",
+                 "\t\t\t(layer \"F.Mask\"", "\t\t\t\t(type \"Top Solder Mask\")",
+                 f"\t\t\t\t(thickness {mask})", "\t\t\t)"]
+        for idx, layer in enumerate(copper_names):
+            lines += [f"\t\t\t(layer {quoted(layer)}", "\t\t\t\t(type \"copper\")",
+                      f"\t\t\t\t(thickness {copper_values[idx]:.9g})", "\t\t\t)"]
+            if idx < len(dielectrics):
+                item = dielectrics[idx]
+                lines += [f"\t\t\t(layer \"dielectric {idx + 1}\"",
+                          f"\t\t\t\t(type {quoted(item['type'])})",
+                          "\t\t\t\t(color \"FR4 natural\")",
+                          f"\t\t\t\t(thickness {float(item['thickness_mm']):.9g})",
+                          f"\t\t\t\t(material {quoted(item['material'])})",
+                          f"\t\t\t\t(epsilon_r {float(item['epsilon_r']):.9g})",
+                          f"\t\t\t\t(loss_tangent {float(item['loss_tangent']):.9g})",
+                          "\t\t\t)"]
+        lines += ["\t\t\t(layer \"B.Mask\"", "\t\t\t\t(type \"Bottom Solder Mask\")",
+                  f"\t\t\t\t(thickness {mask})", "\t\t\t)",
+                  "\t\t\t(layer \"B.Paste\"", "\t\t\t\t(type \"Bottom Solder Paste\")", "\t\t\t)",
+                  "\t\t\t(layer \"B.SilkS\"", "\t\t\t\t(type \"Bottom Silk Screen\")", "\t\t\t)",
+                  f"\t\t\t(copper_finish {quoted(cfg.get('copper_finish', 'None'))})",
+                  "\t\t\t(dielectric_constraints " +
+                  ("yes" if bool(cfg.get("dielectric_constraints", True)) else "no") + ")",
+                  "\t\t)"]
+
+        text = self.out.read_text()
+        marker = "\n\t(setup\n"
+        if text.count(marker) != 1:
+            die(f"cannot inject stackup: expected one setup block in {self.out}")
+        text = text.replace(marker, marker + "\n".join(lines) + "\n", 1)
+        self.out.write_text(text)
+        try:
+            parsed = pcbnew.LoadBoard(str(self.out))
+        except Exception as exc:
+            die(f"emitted stackup does not parse in pcbnew: {exc}")
+        self.board = parsed
+        self.say(f"stackup authored: {count} copper layers, "
+                 f"{physical:.4f}mm physical / {nominal:.4f}mm nominal")
 
     # --------------------------------------------------------- outline
     def _seg(self, xa, ya, xb, yb, w, layer=None):
@@ -1118,6 +1245,36 @@ class BoardBuilder:
                     f"{0.5 * ring_max:.1f}mm of its seed — the floorplan is "
                     f"over-subscribed; add an anchor or grow the board")
         self.say(f"legalized {moved} floating parts")
+
+    def apply_post_anchors(self):
+        """Apply reviewed local moves *after* deterministic legalization.
+
+        Adding an ordinary anchor removes that ref from the legalizer's
+        obstacle/search sequence and can shift unrelated floating parts,
+        invalidating an otherwise reusable promoted route.  `post_anchors`
+        is deliberately narrower: the normal legalization result is produced
+        first, then only the named footprints move.  The existing P-COLLIDE
+        gate runs immediately afterward, so a bad local move is still a hard
+        placement failure rather than hidden overlap.
+        """
+        post = self.place_cfg.get("post_anchors") or {}
+        if not isinstance(post, dict):
+            die("placement.post_anchors must be a mapping of REF: [x,y,rot]")
+        moved = 0
+        for ref, pose in sorted(post.items()):
+            if ref not in self.fps:
+                die(f"placement.post_anchors names unknown refdes {ref!r}")
+            if not isinstance(pose, (list, tuple)) or len(pose) not in (2, 3):
+                die(f"placement.post_anchors[{ref!r}] must be [x,y] or "
+                    f"[x,y,rotation]")
+            vals = list(pose) + [0]
+            fp = self.fps[ref]
+            fp.SetPosition(pcbnew.VECTOR2I_MM(float(vals[0]), float(vals[1])))
+            fp.SetOrientationDegrees(float(vals[2]))
+            self.pinned.add(ref)
+            moved += 1
+        if moved:
+            self.say(f"post-anchored {moved} reviewed local part(s)")
 
     # -------------------------------------- footprint-internal silk text
     def normalize_footprint_text(self):

@@ -480,7 +480,7 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: test. The declaration landed WITH its fixture, which reproduces the vacuous
 #: pass on every run instead of asserting it in prose. Raised in the same commit
 #: that earns it, never ahead of one.
-VACUITY_FLOOR = 10
+VACUITY_FLOOR = 11
 
 
 def vacuity_declaration(text):
@@ -672,12 +672,30 @@ DRU_CLEARANCE_KINDS = ("clearance", "physical_clearance", "hole_clearance",
                        "edge_clearance", "physical_hole_clearance",
                        "silk_clearance", "courtyard_clearance")
 
+#: constraint kinds whose subjects are exactly the objects `board.GetTracks()`
+#: returns — tracks, arcs, vias. `dru_area_members` counts members only for a
+#: rule whose every constraint is in here; a clearance-family rule also polices
+#: pads, courtyards and fill, so counting tracks alone would under-count and an
+#: under-count is what a false "0 members, retire it" is made of.
+DRU_TRACKLIKE = {"track_width", "via_diameter", "via_drill", "via_count",
+                 "annular_width", "length", "skew", "diff_pair_gap",
+                 "diff_pair_uncoupled", "track_angle", "track_segment_length"}
+
 
 def parse_dru(text):
     """[{name, condition, constraints, line}] by paren matching (the format is
-    s-expressions; a line regex would miss a wrapped condition)."""
+    s-expressions; a line regex would miss a wrapped condition).
+
+    THE NAME MAY BE BARE. `generate_rules_generic` writes `(rule "PWR_width"`
+    but stitch's `_append_stub_dru` writes `(rule pad_rescue_stubs` — both are
+    legal .kicad_dru. This matcher required the quotes until 2026-07-31, so it
+    read 77 of the fleet's 83 rules and the 6 it skipped were EVERY
+    `pad_rescue_stubs` on every board — i.e. the one rule family this gate's
+    own docstring is about, and the only family that is preserved across runs
+    rather than regenerated. A gate blind to its own subject reports zero and
+    calls it clean. RED-verified by `t_dru_grades_bare_rule_names`."""
     rules = []
-    for m in re.finditer(r"\(rule\s+\"([^\"]*)\"", text):
+    for m in re.finditer(r"\(rule\s+(?:\"([^\"]*)\"|([^\"\s()]+))", text):
         depth, i = 0, m.start()
         while i < len(text):
             if text[i] == "(":
@@ -690,7 +708,7 @@ def parse_dru(text):
         body = text[m.start():i + 1]
         cond = re.search(r"\(condition\s+\"((?:[^\"\\]|\\.)*)\"", body)
         rules.append({
-            "name": m.group(1),
+            "name": m.group(1) if m.group(1) is not None else m.group(2),
             "condition": (cond.group(1).replace('\\"', '"') if cond else None),
             "constraints": re.findall(r"\(constraint\s+(\w+)", body),
             "line": text[:m.start()].count("\n") + 1,
@@ -698,7 +716,81 @@ def parse_dru(text):
     return rules
 
 
-def check_dru_vacuity(rules, inv, source="<dru>"):
+def dru_area_members(pcb_path, rules):
+    """{rule name: member count or None} — how many board items each rule's
+    condition can actually match, by pcbnew GEOMETRY.
+
+    A NAMED AREA IS NOT A POPULATED ONE, and that is the third species of DRU
+    vacuity. Check (1) below asks whether the board HAS a rule area of that
+    name; a rule can pass it and still be dead, because the area survives on
+    the board with nothing inside it. Only geometry answers that.
+
+    INDEPENDENT ON PURPOSE (canon M1). `generate_rules_generic` retires a
+    preserved rule using `dru_subject`, which parses the `.kicad_pcb` as TEXT
+    and does its own point-in-polygon. This function must NOT import it: it
+    asks the same question of pcbnew's object model and SHAPE_POLY_SET
+    collision, so agreement between the two is evidence rather than a
+    tautology. Fleet cross-check 2026-07-31: the two methods agreed on the
+    zero/non-zero verdict for all 6 `pad_rescue_stubs` rules.
+
+    None means NOT DERIVABLE (a NetClass atom, a constraint whose subjects are
+    pads/courtyards, an unmodelled operator) and is never graded as empty."""
+    import pcbnew                                           # noqa: PLC0415
+    b = pcbnew.LoadBoard(str(pcb_path))
+    zones = {}
+    for z in b.Zones():
+        if z.GetIsRuleArea() and z.GetZoneName():
+            zones.setdefault(z.GetZoneName(), []).append(z)
+    items = [t for t in b.GetTracks()]
+
+    out = {}
+    for r in rules:
+        cond, kinds = r["condition"], set(r["constraints"])
+        if cond is None or not kinds or not kinds <= DRU_TRACKLIKE:
+            out[r["name"]] = None
+            continue
+        alts, ok_shape = [], True
+        for alt in cond.split("||"):
+            atoms, rest = [], alt
+            for m in DRU_ATOM_RE.finditer(alt):
+                atoms.append(m)
+                rest = rest.replace(m.group(0), "", 1)
+            # a B-side atom makes membership a question about a PAIR, and every
+            # TRACKLIKE constraint is single-item — decline rather than guess
+            if (re.sub(r"[\s()&]", "", rest)
+                    or any(m.group("prop") == "NetClass" for m in atoms)
+                    or any((m.group("side") or m.group("side2")) == "B"
+                           for m in atoms)):
+                ok_shape = False
+                break
+            alts.append(atoms)
+        if not ok_shape or not alts:
+            out[r["name"]] = None
+            continue
+
+        n = 0
+        for it in items:
+            shape, layer, net = it.GetEffectiveShape(), it.GetLayer(), it.GetNetname()
+            for atoms in alts:
+                hit = True
+                for m in atoms:
+                    if m.group("area") is not None:
+                        zs = [z for z in zones.get(m.group("area"), [])
+                              if z.IsOnLayer(layer)]
+                        if not any(z.Outline().Collide(shape, 0) for z in zs):
+                            hit = False
+                            break
+                    elif (net == m.group("val")) != (m.group("op") == "=="):
+                        hit = False
+                        break
+                if hit:
+                    n += 1
+                    break
+        out[r["name"]] = n
+    return out
+
+
+def check_dru_vacuity(rules, inv, source="<dru>", members=None):
     """(fails, graded) — a rule-file predicate must be able to fire on the
     geometry it names.
 
@@ -757,6 +849,24 @@ def check_dru_vacuity(rules, inv, source="<dru>"):
                 f"unnetted copper to a KEYPAD_ISO net 1.0672 mm against a "
                 f"6.000 mm constraint, 106 pairs under the floor, the nearest "
                 f"being the keypad connector's own shell tab")
+
+        # (3) IS ITS SUBJECT STILL THERE? A rule can clear (1) — every name it
+        #     mentions exists — and still match NOTHING, because the named area
+        #     survives on the board with nothing inside it. That is how a
+        #     PRESERVED rule dies: `generate_rules_generic.foreign_dru_rules`
+        #     carried any rule it did not own forward on every run, so a
+        #     `pad_rescue_stubs` sub-floor outlived the stubs it exempted.
+        #     Graded from GEOMETRY (dru_area_members), which (1) cannot see.
+        n = (members or {}).get(r["name"])
+        if n == 0 and not (dead and len(dead) >= len(alts)):    # (1) said it first
+            fails.append(
+                f"G-VACUOUS-DRU {source}:{r['line']} rule \"{r['name']}\": every "
+                f"name in its condition exists on the board, but ZERO board "
+                f"items match it — the rule has no subject left. A preserved "
+                f"rule is not retired by anything upstream, so it survives as "
+                f"a predicate that can never fire and DRC reports zero for it "
+                f"by construction. Re-run the pass that owns it, or let "
+                f"generate_rules_generic retire it")
     return fails, graded
 
 
@@ -840,12 +950,19 @@ def main(argv=None):
         dru = Path(a.dru)
         pcb = dru.with_suffix(".kicad_pcb")
         inv = dru_inventory(pcb) if pcb.exists() else {}
-        dru_fails, dru_n = check_dru_vacuity(
-            parse_dru(dru.read_text(encoding="utf-8-sig")), inv, source=dru.name)
+        dru_rules = parse_dru(dru.read_text(encoding="utf-8-sig"))
+        mem = dru_area_members(pcb, dru_rules) if pcb.exists() else {}
+        dru_fails, dru_n = check_dru_vacuity(dru_rules, inv, source=dru.name,
+                                             members=mem)
         against = pcb.name if pcb.exists() else \
             "NO board (inventory empty — netclass/area existence UNGRADED)"
-        print(f"  G-VACUOUS-DRU: {dru_n} predicate(s) graded in {dru.name} "
-              f"against {against}")
+        counted = sum(1 for v in mem.values() if v is not None)
+        print(f"  G-VACUOUS-DRU: {dru_n}/{len(dru_rules)} predicate(s) graded "
+              f"in {dru.name} against {against}; {counted}/{len(dru_rules)} "
+              f"member-counted (rest not derivable from geometry alone)")
+        for dr in dru_rules:                 # NB not `r` — that is the audit result
+            if mem.get(dr["name"]) is not None:
+                print(f"    members {dr['name']}: {mem[dr['name']]}")
         for f in dru_fails:
             print(f"  FAIL {f}")
 

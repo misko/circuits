@@ -95,6 +95,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import yaml
@@ -118,8 +119,16 @@ def load_cfg(path, root=None):
     if "project" not in cfg:
         die(f"{path}: no 'project:' block")
     cfg["_path"] = path
-    # 03_src/route.yaml -> project root is the grandparent
-    cfg["_root"] = Path(root).resolve() if root else path.parent.parent
+    # Support both 03_src/route.yaml and ADR-0007's
+    # 03_src/<board>/route.yaml. Resolve from the named stage directory,
+    # never by a fixed parent count.
+    stage = next((p for p in path.parents if p.name == "03_src"), None)
+    if root:
+        cfg["_root"] = Path(root).resolve()
+    elif stage is not None:
+        cfg["_root"] = stage.parent
+    else:
+        die(f"{path}: route config must live below a 03_src directory or use --root")
     return cfg
 
 
@@ -135,6 +144,48 @@ def get(cfg, dotted, default=None):
             return default
         node = node[part]
     return node
+
+
+def record_pass_timing(cfg, command, name, elapsed, rc=0, counters=None):
+    """Append one cheap timing sample to pcb_flow's shared performance log.
+
+    The stitch process re-execs across SWIG barriers, so in-memory profilers
+    lose precisely the slow/failure-prone boundary we care about.  Persisting
+    after every pass keeps the trace useful after a crash and lets a handoff
+    report where wall time actually went.  Timing is observational only: a
+    logging failure is printed and never changes board geometry or gate state.
+    """
+    import datetime
+    import json
+    config_path = cfg.get("_path")
+    nested = bool(config_path and config_path.parent != cfg["_root"] / "03_src")
+    state_default = (Path("06_build") / config_path.parent.name
+                     if nested else Path("06_build"))
+    state = get(cfg, "flow.paths.state_dir", state_default)
+    path = rel(cfg, state) / "performance.json"
+    try:
+        if path.is_file():
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
+        else:
+            data = {"schema": 1, "runs": []}
+        if data.get("schema") != 1 or not isinstance(data.get("runs"), list):
+            raise ValueError("unsupported performance schema")
+        row = {
+            "at": datetime.datetime.now(datetime.timezone.utc).isoformat(
+                timespec="seconds"),
+            "stage": f"{command}:{name}",
+            "seconds": round(float(elapsed), 3),
+            "rc": int(rc),
+            "command": f"route_and_stitch_generic.py {command} [{name}]",
+        }
+        if counters:
+            row["counters"] = counters
+        data["runs"].append(row)
+        data["runs"] = data["runs"][-200:]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=2) + "\n")
+    except Exception as exc:  # observation must never mutate the verdict
+        print(f"WARNING: could not record {command}:{name} timing: {exc}")
 
 
 # ------------------------------------------------- fab-tier capability floors
@@ -386,6 +437,24 @@ def cmd_prep(cfg):
     b.Save(str(out))
     _rules_ride_along(cfg, src, out)
 
+    # Some dense high-speed launches need deterministic, reviewed geometry
+    # to exist BEFORE KRT sees the board (for example, two coupled pair banks
+    # deliberately assigned to different copper layers).  Reuse the same
+    # collision-refusing/idempotent seed emitter that stitch uses, but run it
+    # on r0 so every later routing wave treats that copper as an obstacle.
+    # Keeping this config-backed avoids a per-board Python pre-router and makes
+    # the exact geometry part of the reproducible route recipe.
+    preseed = get(cfg, "prep.seed_stubs") or {}
+    if preseed.get("stubs"):
+        ctx = Ctx(cfg, out)
+        p_seed_stubs(ctx, preseed)
+        if ctx.failures:
+            die("prep.seed_stubs refused deterministic pre-route copper:\n  "
+                + "\n  ".join(ctx.failures))
+        ctx.board.Save(str(out))
+        print(f"prep seed_stubs: {ctx.counts.get('seed_stubs', 0)} "
+              "segments/vias placed before KRT")
+
     groups = wave_nets(cfg, board_nets(b))
     # wave widths vs netclass floors, HERE — a sub-floor wave must fail
     # prep, not surface as a track_width batch after the KRT cycle is spent
@@ -502,15 +571,17 @@ _KRT_FLAGMAP = {
 }
 
 
-def _krt_args(d):
+def _krt_args(d, extra_flags=None):
+    flagmap = dict(_KRT_FLAGMAP)
+    flagmap.update(extra_flags or {})
     out = []
     for k, v in d.items():
-        if k in ("name", "nets", "group"):
+        if k in ("name", "nets", "group", "engine"):
             continue
-        if k not in _KRT_FLAGMAP:
+        if k not in flagmap:
             die(f"unknown KRT option {k!r} — extend _KRT_FLAGMAP rather than "
                 f"guessing a flag name")
-        flag, kind = _KRT_FLAGMAP[k]
+        flag, kind = flagmap[k]
         if kind == "flag":
             if v:
                 out.append(flag)
@@ -568,15 +639,49 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
         tw = wave_track_width(cfg, name, list(nets), opts.get("track_width"))
         if tw is not None:
             opts["track_width"] = tw
-        cmd = ([py, str(krt / "route.py"), str(cur), "--output", str(nxt)]
-               + _krt_args(opts) + ["--nets"] + list(nets))
-        print(f"\n=== {tag}wave {name}: {len(nets)} nets ===\n  "
+        engine = str(opts.pop("engine", "single")).strip().lower()
+        if engine not in ("single", "diff"):
+            die(f"wave {name!r}: engine must be 'single' or 'diff', got {engine!r}")
+        if engine == "diff":
+            # route_diff.py owns coupled _P/_N geometry.  Unlike route.py it
+            # has no fab-preset flags; explicit via/clearance geometry has
+            # already been floored by tier_geometry() above.
+            for unsupported in ("fab_tier", "fab_overrides", "power_nets",
+                                "power_nets_widths", "no_power_tap_neckdown"):
+                opts.pop(unsupported, None)
+        router_script = "route_diff.py" if engine == "diff" else "route.py"
+        diff_flags = ({"diff_pair_gap": ("--diff-pair-gap", "val")}
+                      if engine == "diff" else None)
+        cmd = ([py, str(krt / router_script), str(cur), "--output", str(nxt)]
+               + _krt_args(opts, diff_flags) + ["--nets"] + list(nets))
+        print(f"\n=== {tag}wave {name} ({engine}): {len(nets)} nets ===\n  "
               + " ".join(cmd[:2] + ["..."] + cmd[-min(6, len(nets) + 1):]))
+        wave_start = time.perf_counter()
         r = subprocess.run(cmd, env=sub_env)
+        # Race lanes are concurrent and have their own race_log.json; avoid
+        # concurrent writers to the shared performance file.  The normal
+        # single chain records each wave here.
+        if not tag:
+            record_pass_timing(cfg, "route", name,
+                               time.perf_counter() - wave_start,
+                               rc=r.returncode,
+                               counters={"nets": len(nets), "wave": i})
         if r.returncode != 0:
             die(f"KRT wave {name!r} exited {r.returncode}")
         if not nxt.is_file():
             die(f"KRT wave {name!r} produced no {nxt}")
+        # KRT preserves the .kicad_pro today, but it does not consistently
+        # carry the custom .kicad_dru beside each output.  KiCad resolves a
+        # board's custom rules by BASENAME, so quick DRC on rN.kicad_pcb
+        # silently loses every generated width floor when rN.kicad_dru is
+        # absent.  Copy both rule sidecars from the exact wave input after
+        # every successful route.  Overwrite deliberately: a stale rN sidecar
+        # from an earlier grind is worse than no sidecar because it appears to
+        # be authoritative while grading different source rules.
+        for ext in (".kicad_pro", ".kicad_dru"):
+            src_rules = cur.with_suffix(ext)
+            if src_rules.is_file():
+                shutil.copy2(src_rules, nxt.with_suffix(ext))
         cur = nxt
     return cur
 
@@ -1679,6 +1784,20 @@ def p_reload(ctx, c):
     die("internal: 'reload' must be intercepted by cmd_stitch")
 
 
+@stitch_pass("fresh_reload")
+def p_fresh_reload(ctx, c):
+    """Unconditional save/re-exec barrier.
+
+    Unlike ``reload`` (which only protects a poisoned SWIG iterator after a
+    removal), this pass deliberately rebuilds pcbnew's connectivity model in
+    a fresh interpreter.  Put it after the authoritative final ``fill`` and
+    before connectivity-sensitive passes such as ``heal_islands``.  Dense
+    boards can otherwise retain a pre-fill connectivity view and undercount
+    small, real zone fragments that KiCad's later CLI DRC reports.
+    """
+    die("internal: 'fresh_reload' must be intercepted by cmd_stitch")
+
+
 # Prefix on every failure this pass records, so a LATER hole_to_hole pass can
 # clear an EARLIER one's findings without touching anyone else's failures.
 _H2H_TAG = "hole_to_hole: "
@@ -1710,6 +1829,14 @@ def p_hole_to_hole(ctx, c):
     vlist = sorted((t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"),
                    key=lambda v: (v.GetPosition().x, v.GetPosition().y,
                                   v.GetDrill(), v.GetNetname()))
+    # This predicate is called from the O(V^2) via-pair loop.  Scanning every
+    # board track for each conflicting pair made dense boards spend minutes in
+    # a test that only ever consumes same-net tracks (529 vias / 3323 segments
+    # on programmable-usb2-hub).  Build the exact same candidate sets once.
+    tracks_by_net = {}
+    for t in ctx.board.GetTracks():
+        if t.GetClass() == "PCB_TRACK":
+            tracks_by_net.setdefault(t.GetNetCode(), []).append(t)
 
     def vxy(v):
         return (v.GetPosition().x / 1e6, v.GetPosition().y / 1e6)
@@ -1726,9 +1853,7 @@ def p_hole_to_hole(ctx, c):
         track_dangling at the FULL DRC gate, on a chain that raced 0/0."""
         vx, vy = vxy(v)
         r = v.GetWidth() / 2e6
-        for t in ctx.board.GetTracks():
-            if (t.GetClass() != "PCB_TRACK" or t.GetNetCode() != v.GetNetCode()):
-                continue
+        for t in tracks_by_net.get(v.GetNetCode(), []):
             (ax, ay), (bx, by) = _ends_mm(t)
             if (abs(ax - vx) < 0.05 and abs(ay - vy) < 0.05) or \
                (abs(bx - vx) < 0.05 and abs(by - vy) < 0.05):
@@ -1782,11 +1907,9 @@ def p_hole_to_hole(ctx, c):
                 moved += 1
                 continue
             mx, my = vxy(vm)
-            ends = [t for t in ctx.board.GetTracks()
-                    if t.GetClass() == "PCB_TRACK"
-                    and t.GetNetCode() == vm.GetNetCode()
-                    and any(abs(e.x / 1e6 - mx) < 0.05 and abs(e.y / 1e6 - my) < 0.05
-                            for e in (t.GetStart(), t.GetEnd()))]
+            ends = [t for t in tracks_by_net.get(vm.GetNetCode(), [])
+                    if any(abs(e.x / 1e6 - mx) < 0.05 and abs(e.y / 1e6 - my) < 0.05
+                           for e in (t.GetStart(), t.GetEnd()))]
             done = False
             for r in c.get("rings", [0.25, 0.4, 0.6, 0.85, 1.1]):
                 for ang in range(0, 360, int(c.get("angle_step", 45))):
@@ -1982,8 +2105,19 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
     stub_w = float(c.get("stub_width", 0.3))
     vip = bool(c.get("via_in_pad", True))
     skip = set(c.get("skip_refs", []) or [])
+    # `seed_stubs` runs before this pass and may deliberately reach a legal
+    # barrel outside the small local pad search box.  Fresh/reloaded boards
+    # have authoritative endpoint connectivity here, so credit a pad whose
+    # same-net track component already contains a via.  The geometric test
+    # below remains necessary for a bare via-in-pad with no explicit track.
+    ctx.board.BuildConnectivity()
+    conn = ctx.board.GetConnectivity()
 
     def has_via(pad):
+        if any(item.GetClass() == "PCB_VIA"
+               and item.GetNetCode() == pad.GetNetCode()
+               for item in conn.GetConnectedItems(pad)):
+            return True
         # A via SERVES a plane pad only if its barrel drops INSIDE the pad — a
         # via-in-pad bonds pad->plane. A merely-NEARBY via (a neighbour pin's
         # drop `serve_r` away, no copper between) does NOT connect this pad;
@@ -2238,6 +2372,21 @@ def p_astar(ctx, c):
     w = float(c.get("width", 0.25))
     window = float(c.get("window", 3.0))
     attempts = int(c.get("attempts", 3))
+    target_tries = int(c.get("targets", 1))
+    layer_names = c.get("layers")
+    astar_layers = None
+    if layer_names is not None:
+        if isinstance(layer_names, str):
+            layer_names = [layer_names]
+        if not isinstance(layer_names, (list, tuple)):
+            die("stitch.astar_fallback.layers must be one or two copper "
+                "layer names")
+        astar_layers = tuple(_layer_id(ctx.pcbnew, name)
+                             for name in layer_names)
+        if not 1 <= len(astar_layers) <= 2 or \
+                len(set(astar_layers)) != len(astar_layers):
+            die("stitch.astar_fallback.layers must name one or two distinct "
+                "copper layers")
 
     # The toolkit's A* emits its own default 0.45/0.2 vias, which are BELOW
     # a 2-layer standard-tier board's floors. Pinning the geometry is config;
@@ -2245,14 +2394,34 @@ def p_astar(ctx, c):
     # toolkit into later passes. `net` may be a LIST (GND + 3V3): each plane
     # net's own via targets, so an unserved 3V3 pin is A*-recovered too.
     pin = c.get("via")
+    vs = vd = htc = None
     _orig = (ctx.tk.add_via, ctx.tk.via_site_ok)
     if pin:
         vs, vd = float(pin["size"]), float(pin["drill"])
+        if "hole_to_copper" in pin:
+            htc = float(pin["hole_to_copper"])
+        else:
+            # Reuse the matching stitch-via tier's fab-specific hole model.
+            # Tier geometry itself only owns size/drill floors, while a board
+            # may intentionally require a stricter drilled-hole-to-copper gap
+            # than pcb_toolkit's generic default.
+            tiers = get(ctx.cfg, "stitch.via.tiers", []) or []
+            for tier in tiers:
+                if (abs(float(tier.get("size", -1)) - vs) < 1e-9 and
+                        abs(float(tier.get("drill", -1)) - vd) < 1e-9 and
+                        "hole_to_copper" in tier):
+                    htc = float(tier["hole_to_copper"])
+                    break
         ctx.tk.add_via = (lambda x, y, net, size=None, drill=None, _f=_orig[0]:
                           _f(x, y, net, size=vs, drill=vd))
-        ctx.tk.via_site_ok = (lambda x, y, nc, size=None, drill=None,
-                              _f=_orig[1], **kw:
-                              _f(x, y, nc, size=vs, drill=vd, **kw))
+
+        def pinned_via_site_ok(x, y, nc, size=None, drill=None,
+                               _f=_orig[1], **kw):
+            if htc is not None:
+                kw.setdefault("hole_to_copper", htc)
+            return _f(x, y, nc, size=vs, drill=vd, **kw)
+
+        ctx.tk.via_site_ok = pinned_via_site_ok
 
     def via_coords():
         return {(round(t.GetPosition().x / 1e6, 2),
@@ -2274,14 +2443,22 @@ def p_astar(ctx, c):
                     still.append((ref, p.GetNumber()))
                     continue
                 px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
-                tgt = None
+                candidates = []
                 for tx, ty in sorted(targets,
                                      key=lambda q: math.hypot(px - q[0], py - q[1])):
                     if 0.3 < math.hypot(px - tx, py - ty) < float(c.get("max_dist", 10.0)):
-                        tgt = (tx, ty)
-                        break
-                if tgt and ctx.tk.verified_astar(netname, (px, py), tgt, w,
-                                                 window=window, attempts=attempts):
+                        candidates.append((tx, ty))
+                        if len(candidates) >= target_tries:
+                            break
+                found = any(ctx.tk.verified_astar(
+                                netname, (px, py), tgt, w,
+                                window=window, attempts=attempts,
+                                via_size=vs if vs is not None else 0.45,
+                                via_drill=vd if vd is not None else 0.2,
+                                layers=astar_layers,
+                                hole_to_copper=htc)
+                            for tgt in candidates)
+                if found:
                     fixed += 1
                     print(f"  A* recovered {ref}.{p.GetNumber()}")
                 else:
@@ -2960,15 +3137,46 @@ def p_heal_islands(ctx, c):
     for netname, (was, _n) in sorted(healed.items()):
         now = len(after.get(netname, []))
         if now >= was:
+            # The filled geometry otherwise exists only in this interpreter;
+            # a hard error exits before cmd_stitch's final Save(), erasing the
+            # exact islands that need inspection.  Preserve a clearly named
+            # diagnostic snapshot (never the canonical board) so the caller
+            # can distinguish a genuine split from a grouping false positive.
+            snap = ctx.path.with_name(ctx.path.stem + ".heal_failed"
+                                      + ctx.path.suffix)
+            ctx.board.Save(str(snap))
             die(f"heal_islands: net {netname!r} still shows {now} "
                 f"disconnected island group(s) after healing (was {was}) — "
                 f"the bridge did not merge the pour; a heal that does not "
-                f"reduce the island count is an ERROR, not a no-op")
+                f"reduce the island count is an ERROR, not a no-op; "
+                f"diagnostic snapshot saved to {snap}")
     left = sorted(n for n, g in after.items() if len(g) > 1)
     if left:
+        snap = ctx.path.with_name(ctx.path.stem + ".heal_failed"
+                                  + ctx.path.suffix)
+        ctx.board.Save(str(snap))
         die(f"heal_islands: net(s) {left} split after heal+refill (a "
             f"bridge for another net can re-slice a pour it crosses) — "
-            f"refusing to report a heal that left splits behind")
+            f"refusing to report a heal that left splits behind; "
+            f"diagnostic snapshot saved to {snap}")
+    if c.get("clear_rescue_failures", False):
+        # island_rescue runs before this authoritative refill/re-group and can
+        # legitimately record an unstitchable intermediate island that a
+        # later same-net bridge eliminates.  Keep the conservative default,
+        # but let a board whose pass order explicitly relies on heal_islands
+        # retire only those stale findings whose net now verifies as one (or
+        # zero) group.  Findings for every still-split net remain untouched.
+        zone_nets = {z.GetNetname() for z in ctx.board.Zones()
+                     if z.GetNetname() and not z.GetIsRuleArea()}
+        resolved = {n for n in zone_nets if len(after.get(n, [])) <= 1}
+        old = len(ctx.failures)
+        ctx.failures = [f for f in ctx.failures
+                        if not (f.startswith("island ")
+                                and f.split("/", 1)[0][7:] in resolved)]
+        cleared = old - len(ctx.failures)
+        if cleared:
+            print(f"heal_islands: cleared {cleared} stale island_rescue "
+                  f"finding(s) after authoritative refill verification")
     tot = sum(n for _w, n in healed.values())
     ctx.bump("islands_healed", tot)
     print(f"heal_islands: {len(healed)} net(s) healed with {tot} bridge(s): "
@@ -3367,15 +3575,34 @@ def cmd_stitch(cfg):
     start = ctx.load_state()
     for i in range(start, len(order)):
         name = order[i]
-        if name == "reload":
-            print("\n-- reload --")
+        if name in ("reload", "fresh_reload"):
+            print(f"\n-- {name} --")
+            pass_start = time.perf_counter()
+            if name == "fresh_reload":
+                record_pass_timing(cfg, "stitch", name,
+                                   time.perf_counter() - pass_start,
+                                   counters={"barrier": 1})
+                barrier(i + 1, "fresh connectivity rebuild")
             if ctx.dirty:
+                record_pass_timing(cfg, "stitch", name,
+                                   time.perf_counter() - pass_start,
+                                   counters={"barrier": 1})
                 barrier(i + 1, "explicit")
             print("   nothing removed since the last barrier — no-op")
+            record_pass_timing(cfg, "stitch", name,
+                               time.perf_counter() - pass_start,
+                               counters={"barrier": 0})
             continue
         cfgblk = get(cfg, f"stitch.{name}", {}) or {}
         print(f"\n-- {name} --")
+        before = dict(ctx.counts)
+        pass_start = time.perf_counter()
         PASSES[name](ctx, cfgblk)
+        deltas = {k: v - before.get(k, 0) for k, v in ctx.counts.items()
+                  if v - before.get(k, 0)}
+        record_pass_timing(cfg, "stitch", name,
+                           time.perf_counter() - pass_start,
+                           counters=deltas)
         # An IMPLICIT barrier after any pass that removed something. Without
         # it the NEXT pass's GetTracks() raises on a poisoned SWIG iterator,
         # and (worse) the removals stay half-applied on a saved board.

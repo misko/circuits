@@ -78,7 +78,14 @@ def t_generate_rules_preserves_foreign():
     plane-drop via stubs fail track_width again — the exact collision between
     the clean-room 3S run's shared-generate_rules (gap #1) and stub-floor
     scoping (gap #3). Verified RED against the pre-preservation wholesale write
-    (which drops the rule) — 2026-07-20."""
+    (which drops the rule) — 2026-07-20.
+
+    NO BOARD FILE HERE, deliberately: this is the ORIGINAL preservation
+    contract, and with no `.kicad_pcb` to index there is no subject to
+    re-derive, so retirement (2026-07-31) cannot apply and preservation is
+    unconditional. That is the documented degradation — no evidence, no
+    retirement. The three tests below supply a board and exercise the
+    decision itself."""
     d = tmpdir("grforeign_")
     proj = project_copy("cook-loadcell", d / "proj")
     shutil.copy(LC / "04_kicad" / "cook_loadcell.kicad_pro", proj / "04_kicad")
@@ -99,6 +106,174 @@ def t_generate_rules_preserves_foreign():
     check(txt.rstrip().endswith("mm)))") and
           txt.index("pad_rescue_stubs") > txt.index("BRIDGE"),
           "pad_rescue_stubs must be emitted AFTER the netclass rules")
+
+
+# ------------------------------------------- retiring a preserved rule (G-VACUOUS-DRU)
+# Preservation used to be ONE-WAY: `foreign_dru_rules` carried any rule it did
+# not own forward on every run and nothing ever retired one, so a rule outlived
+# the geometry it was written for. Measured on the fleet 2026-07-31: 6 boards
+# carry a `pad_rescue_stubs` rule; 4 have live subjects (crow-recorder-central-v2
+# 377 members, usb-hub-3s-v3 44, pluto-cal-switch 41, pluto-rx2-8way 5) and 2
+# have NO rule area on the board at all (crow-mic-pod-v2, programmable-usb2-hub),
+# because stitch's `_scope_stub_floor` emits the area only `if stub_boxes` and
+# those boards' plane pads all take a via-in-pad barrel.
+#
+# So the decision is PER BOARD and the fixtures come in BOTH polarities: a blanket
+# delete would pass the retirement test and drop four live exemptions, re-opening
+# the clean-room 3S stub-floor collision.
+FOREIGN_RULE = ("(rule pad_rescue_stubs\n"
+                "  (condition \"A.insideArea('pad_rescue_stubs') "
+                "&& (A.NetName == '5V')\")\n"
+                "  (constraint track_width (min 0.300mm)))\n")
+
+#: a permissive rule area, the shape `route_and_stitch_generic._add_rule_area`
+#: saves. Injected as TEXT so the fixture needs no pcbnew.
+RULE_AREA = """	(zone
+		(layers "F.Cu" "B.Cu")
+		(uuid "aaaaaaaa-0000-4000-8000-{tag:012d}")
+		(name "{name}")
+		(hatch edge 0.5)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(polygon
+			(pts
+				(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})
+			)
+		)
+	)
+"""
+
+
+def _first_seg(pcb_text, net):
+    """(x0, y0, x1, y1) of the first F.Cu segment carrying `net` — the copper
+    the fixture's rule area will be drawn around."""
+    import re
+    flat = re.sub(r"\s+", " ", pcb_text)
+    m = re.search(r"\(segment \(start ([\d.-]+) ([\d.-]+)\) \(end ([\d.-]+) "
+                  r"([\d.-]+)\) \(width [\d.]+\) \(layer \"F\.Cu\"\) "
+                  r"\(net \"" + net + r"\"\)", flat)
+    check(m is not None, f"fixture board has no F.Cu {net} segment to wrap")
+    return tuple(float(m.group(i)) for i in (1, 2, 3, 4))
+
+
+def foreign_retirement_project(box):
+    """Scratch cook-loadcell WITH its board, driven through the real rebuild
+    order: generate_rules (step 5) -> stitch appends its exemption (step 8) ->
+    generate_rules LAST (step 9). `box` is the rule area to inject, or None for
+    "no rule area at all". Returns (dru text, step-9 stdout)."""
+    d = tmpdir("grretire_")
+    proj = project_copy("cook-loadcell", d / "proj",
+                        board=LC / "04_kicad" / "cook_loadcell.kicad_pcb")
+    shutil.copy(LC / "04_kicad" / "cook_loadcell.kicad_pro", proj / "04_kicad")
+    pcb = proj / "04_kicad" / "cook_loadcell.kicad_pcb"
+    dru = proj / "04_kicad" / "cook_loadcell.kicad_dru"
+    must_pass(run([PY, GEN_RULES, proj]), "generate_rules_generic (step 5)")
+    if box is not None:
+        txt = pcb.read_text(encoding="utf-8-sig").rstrip()
+        check(txt.endswith(")"), "board file does not end in a close paren")
+        pcb.write_text(txt[:-1] + RULE_AREA.format(
+            name="pad_rescue_stubs", tag=1,
+            x0=box[0], y0=box[1], x1=box[2], y1=box[3]) + ")\n")
+    dru.write_text(dru.read_text().rstrip() + "\n" + FOREIGN_RULE)
+    r = must_pass(run([PY, GEN_RULES, proj]), "generate_rules_generic (step 9)")
+    return dru.read_text(), r.out
+
+
+@test("generate_rules KEEPS a preserved rule whose insideArea still has "
+      "members — the exemption a blanket delete would drop", kind="known_bad")
+def t_foreign_rule_with_members_is_kept():
+    """FIXTURE A, and the one that constrains the FIX rather than the defect.
+    The rule area is drawn around a real F.Cu `5V` segment, so the rule has a
+    subject and must survive step 9 exactly as before.
+
+    RED-VERIFIED against the obvious wrong fix. Retiring `pad_rescue_stubs`
+    wherever it looks stale — a blanket delete, or a membership test that
+    ignores the area and only asks whether the pass re-ran — passes the two
+    retirement tests below and FAILS here, which is the whole point: on the
+    2026-07-31 fleet that fix would have dropped four live exemptions
+    (377/44/41/5 members) and re-opened the stub-floor collision preservation
+    exists to prevent. Confirmed by replacing `members()`'s body with
+    `return 0`: this test goes RED, the two below stay green."""
+    x0, y0, x1, y1 = _first_seg(
+        (LC / "04_kicad" / "cook_loadcell.kicad_pcb").read_text(
+            encoding="utf-8-sig"), "5V")
+    txt, out = foreign_retirement_project(
+        (min(x0, x1) - 0.5, min(y0, y1) - 0.5,
+         max(x0, x1) + 0.5, max(y0, y1) + 0.5))
+    contains(txt, "(rule pad_rescue_stubs", "live foreign rule was dropped")
+    contains(out, "board item(s) still match it, kept",
+             "the KEEP decision must be spoken, with its count")
+    check("RETIRED" not in out, f"nothing may be retired here:\n{out}")
+    # still LAST, so KiCad last-match precedence keeps the exemption winning
+    check(txt.index("pad_rescue_stubs") > txt.index("BRIDGE"),
+          "kept rule must still be emitted after the netclass rules")
+
+
+@test("generate_rules RETIRES a preserved rule whose rule area survives on the "
+      "board but is EMPTY — the case name-existence cannot see", kind="known_bad")
+def t_foreign_rule_with_empty_area_is_retired():
+    """FIXTURE B, the sharp one. The rule area IS on the board, so every name in
+    the condition resolves and `rules_audit`'s A-FIRE and `gate_contract_audit`'s
+    dead-name check both pass it. It is still dead: the area is drawn over bare
+    laminate at (5,5)-(8,8), outside the fixture board's copper bbox
+    (22.7-64.7 x 21.9-62.2 mm), so ZERO items match and DRC reports nothing for
+    it by construction.
+
+    RED against the pre-2026-07-31 emitter, whose `foreign_dru_rules` returned
+    every unowned rule unconditionally — swap that one-line comprehension back
+    in and the rule survives, this assertion fails."""
+    txt, out = foreign_retirement_project((5.0, 5.0, 8.0, 8.0))
+    check("(rule pad_rescue_stubs" not in txt,
+          f"vacuous foreign rule survived the rewrite:\n{txt}")
+    contains(out, "RETIRED foreign rule 'pad_rescue_stubs'",
+             "the retirement must be spoken, not silent")
+    contains(out, "0 board items match its condition",
+             "the count that justified the retirement must be printed")
+    contains(txt, "A.NetClass == 'BRIDGE'", "netclass rules still regenerated")
+
+
+@test("generate_rules RETIRES a preserved rule whose rule area is gone from the "
+      "board entirely — the fleet's own two instances", kind="known_bad")
+def t_foreign_rule_with_no_area_is_retired():
+    """The shape crow-mic-pod-v2 and programmable-usb2-hub are actually in on
+    2026-07-31: `pad_rescue` is configured in `03_src/route.yaml` and stitch
+    served every plane pad with a via-in-pad barrel, so `_scope_stub_floor`
+    emitted no boxes and saved no rule area — while the `.kicad_dru` rule from
+    an earlier run rode along on every rebuild. Same RED as above."""
+    txt, out = foreign_retirement_project(None)
+    check("(rule pad_rescue_stubs" not in txt,
+          f"foreign rule with no rule area survived:\n{txt}")
+    contains(out, "RETIRED foreign rule 'pad_rescue_stubs'", "spoken retirement")
+
+
+@test("a preserved rule the emitter cannot fully evaluate is KEPT, and says so "
+      "— retirement needs a positively derived zero")
+def t_foreign_rule_not_derivable_is_kept():
+    """The safety direction. `dru_subject.members` returns None rather than 0
+    for anything past its model — here a `clearance` constraint, whose subjects
+    include pads and courtyards that a text parse of the board would have to
+    reconstruct a footprint transform to place. Under-retiring leaves a dead
+    rule that `gate_contract_audit --dru` still grades; over-retiring silently
+    deletes a live exemption, and only one of those is recoverable."""
+    d = tmpdir("grnoderiv_")
+    proj = project_copy("cook-loadcell", d / "proj",
+                        board=LC / "04_kicad" / "cook_loadcell.kicad_pcb")
+    shutil.copy(LC / "04_kicad" / "cook_loadcell.kicad_pro", proj / "04_kicad")
+    dru = proj / "04_kicad" / "cook_loadcell.kicad_dru"
+    must_pass(run([PY, GEN_RULES, proj]), "generate_rules_generic (step 5)")
+    dru.write_text(dru.read_text().rstrip() + "\n"
+                   "(rule hand_barrier\n"
+                   "  (condition \"A.insideArea('nowhere_at_all')\")\n"
+                   "  (constraint clearance (min 2.0mm)))\n")
+    r = must_pass(run([PY, GEN_RULES, proj]), "generate_rules_generic (step 9)")
+    contains(dru.read_text(), "(rule hand_barrier",
+             "an underivable rule must be KEPT")
+    contains(r.out, "NOT DERIVABLE", "the emitter must say why it kept it")
 
 
 def generic_rules_project(mutate=None):

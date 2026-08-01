@@ -1,0 +1,30 @@
+# P-MOD module-first architecture contract. Fill at commission/architecture.
+schema: 1
+default: prefer_module
+
+# One row for every used complex subsystem dossier (compute/control, radio,
+# interface or switching-power controller, precision AFE/transceiver).
+selections:
+  - function: <subsystem function>
+    part: <exact 02_parts directory or part.yaml mpn>
+    implementation: module
+    rationale: <why this module satisfies the locked requirements with the lowest total complexity>
+
+# If this board genuinely has no applicable subsystem, replace `selections`
+# with `selections: []` and uncomment a specific declaration:
+# no_applicable_functions: This passive board has no programmable, radio,
+#   interface-control, switching-power-control, or complex sensing subsystem.
+
+# Bare-IC exception form (modules are the default; cost/area alone is not proof):
+#  - function: <subsystem function>
+#    part: <bare IC MPN>
+#    implementation: bare_ic
+#    rationale: <total-system rationale>
+#    exception:
+#      binding_requirement: <requirement no considered module meets>
+#      evidence: <measured/cited comparison>
+#      modules_considered:
+#        - part: <module MPN>
+#          rejected_because: <specific binding mismatch>
+#          evidence: <vendor artifact / measurement / dated sourcing result>
+#      adr: 01_docs/decisions/NNNN-bare-ic-exception.md
