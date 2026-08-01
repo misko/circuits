@@ -52,3 +52,11 @@ reflow joint to the carrier.
 Pluto and antenna interconnects are cabled. No rigid mechanical mate or
 imported foreign-hole pattern exists. Host software freezes receiver AGC and
 tracking loops during the sweep and consumes the half-dwell reference marker.
+
+## Programming and control interface
+
+Programming and host control use the RP2040-Zero module's own USB-C connector;
+the carrier has no second programming connector. Hold the module BOOT button
+while attaching USB to enter its ROM UF2 bootloader. Carrier GPIO binding is
+GP0=PE42482 V1, GP1=V2, GP2=V3, GP3=V4, and GP4=status LED. The firmware target
+name is the build variable `MCU_BOARD=waveshare_rp2040_zero`.

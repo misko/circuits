@@ -12,3 +12,8 @@
   candidates measured clean before stitching.
 - Sealed layout after P-MOD, placement, landability, routing, length, policy,
   and final DRC gates; final DRC is 0/0/0.
+- Added the RX2CTL/1 firmware scaffold: allocation-free state/schedule core,
+  RP2040 PIO+DMA USB-CDC shell, host utility, and native tests.
+- Generated and graded an unsealed JLC fabrication candidate. The export uses
+  no rotation or BOM escape hatch; A-POP, stock, BOM source/legibility, and
+  27/27-body twin checks pass. No order or immutable release was created.

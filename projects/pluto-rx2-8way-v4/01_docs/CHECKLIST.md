@@ -21,6 +21,26 @@
 
 ## Release tests
 
+- [x] JLC Gerber/drill/BOM/CPL candidate exported without escape hatches.
+- [x] U_MCU absent from BOM, CPL, and paste; hand-fit instruction preserved.
+- [x] A-POP population identity and CPL datum pass (27 placed / 5 declared off).
+- [x] BOM source identity and F-LEGIBLE pass (11/11 rows).
+- [x] Live catalog stock passes 11/11 lines for five boards.
+- [x] Digital twin mounts 27/27 CPL bodies with zero model-registration errors.
+- [x] Native firmware core and host simulator tests pass.
+- [ ] Fresh-context pin review completed and dispositioned.
+- [ ] Independent topology/protection red-team review completed.
+- [ ] Independent layout/thermal red-team review completed.
+- [ ] Fresh render review completed against the candidate population.
+- [ ] All review findings dispositioned with zero open P0.
+- [ ] M-REV, release-freshness, manifest-integrity, and final seal gates pass.
+- [ ] Cross-build with Pico SDK and flash an RP2040-Zero.
+- [ ] Verify RX2CTL/1 manual select, OFF, RUN/STOP, CONFIG, and STATUS over USB.
+- [ ] Measure free-running cadence drift against Pluto sample indices; do not
+  claim phase-locked sample boundaries without a shared clock/trigger.
+- [ ] Confirm PE42482 orientation and LED polarity in JLC's order preview.
+- [ ] Confirm JLC plug-in through-hole service for all ten SMA jacks.
+
 - [ ] 3V3_MOD and filtered 3V3 measured under representative module activity.
 - [ ] Module underside clearance and solder joints inspected.
 - [ ] USB enumerates in both connector orientations.

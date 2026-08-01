@@ -1,0 +1,18 @@
+.program switch_seq
+
+; One DMA-fed word per state:
+;   bits  0..3  = GP0..GP3 = PE42482 V1..V4
+;   bits 4..31  = dwell_samples - 4
+;
+; From one OUT PINS transition to the next there are exactly X+4 PIO cycles:
+; OUT X (1), JMP loop (X+1), IRQ (1), PULL (1).  DMA keeps the FIFO supplied,
+; so USB/CPU latency cannot stretch a dwell.  IRQ 0 is observability only.
+
+.wrap_target
+    pull block
+    out pins, 4
+    out x, 28
+dwell:
+    jmp x-- dwell
+    irq 0
+.wrap

@@ -46,3 +46,32 @@ eight switch paths, RX1 main loss, reference tap loss, isolation, and phase at
 70 MHz, 100 MHz, 500 MHz, 1, 2, 4, 5, and 6 GHz. Publish raw Touchstone data
 and a host correction table; do not claim calibrated AoA performance from PCB
 geometry alone.
+
+## Unsealed fabrication candidate — 2026-07-31
+
+This is preparation evidence, not order authorization and not an immutable
+`07_releases/` archive. Generated files remain in the gitignored
+`06_build/fab/` and `06_build/twin/` work areas.
+
+- JLC four-layer output contains 11 plotted layers plus PTH/NPTH drills, 11 BOM
+  rows, and 27 top-side CPL placements. The exporter used no unsourced-rotation
+  or illegible-BOM escape hatch.
+- `U_MCU` is absent from BOM and CPL and has no paste apertures; it remains a
+  user-fitted, hand-soldered module. The ten plug-in SMA jacks remain on the CPL
+  and require explicit order-time process acceptance.
+- A-POP/A-POS pass for 32 board footprints, 27 CPL rows, and five declared
+  unpopulated refs (`H1`–`H4`, `U_MCU`); worst CPL datum error is 0.00000 mm.
+- BOM source and legibility gates pass. Live catalog stock covered five boards
+  on 2026-07-31 for all 11 lines, but this is necessary rather than sufficient
+  because the uploader allocation pool can differ.
+- The modeled twin mounts all 27 CPL bodies with registration checks passing.
+  KiCad STEP output omits VRML-only bodies, so the PNG twin is the visual
+  population truth.
+
+Before any order, retain the full independent pre-seal review battery: fresh
+pin review; separate topology/protection and layout/thermal red-team lenses;
+render review and dispositions; zero open P0; M-REV and release gates. Also
+confirm PE42482 and LED orientation and the through-hole SMA service decision
+in the actual uploader. No assembled hardware exists, so rail checks, USB
+operation, timing drift, insertion/return loss, isolation, phase, and RX1 tap
+calibration remain unmeasured; VNA acceptance must use physical hardware.
