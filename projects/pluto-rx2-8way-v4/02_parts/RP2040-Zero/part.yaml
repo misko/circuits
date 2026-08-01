@@ -1,7 +1,7 @@
 # RP2040-Zero part dossier — researched 2026-07-30 from vendor artifacts.
 #
 # SOURCE ARTIFACTS (same directory):
-#   RP2040_Zero-20211012.pdf   vendor schematic, 1 page   sha256 bab8e6fe…1362e
+#   RP2040_Zero.pdf            vendor schematic, 1 page   sha256 bab8e6fe…1362e
 #   RP2040-Zero-details-size.jpg  dimension drawing        sha256 42245fe5…cc5b9
 #   RP2040-Zero-details-7.jpg     vendor pinout figure     sha256 b2fc9115…5f921a
 #   stp/RP2040_Zero.stp           Creo STEP assembly       sha256 ce8a34fc…c14764
@@ -97,7 +97,7 @@ datasheet:
                            # token the document contains. PIN THE sha256; the
                            # revision string cannot do that job here.
   url: https://files.waveshare.com/upload/4/4c/RP2040_Zero.pdf
-  local: RP2040_Zero-20211012.pdf
+  local: RP2040_Zero.pdf
   sha256: bab8e6fecb8b1da565392a7510eaa8921529c4121f43a0505f708a06f1c1362e
   fetched: 2026-07-30
   pages: 1

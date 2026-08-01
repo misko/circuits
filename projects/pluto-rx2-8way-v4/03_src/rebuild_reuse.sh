@@ -113,4 +113,12 @@ p = len(g.get("schematic_parity", []) or [])
 print(f"ROUTING GATE: {v} violations / {u} unconnected / {p} parity")
 raise SystemExit(0 if v == u == p == 0 else 1)
 PYEOF
+
+# [8a] Reproduce the masked/via-fenced CPWG solve and make the realized-length
+# audit consume the same declared phase tuple.
+KRT_PY="$HOME/gits/KiCadRoutingTools/.venv/bin/python"
+[ -x "$KRT_PY" ] || { echo "GATE FAILED [8a] RF-SOLVE: missing $KRT_PY"; exit 1; }
+"$KRT_PY" 03_src/cpwg_field_solver.py --output 06_build/verify/cpwg_field.json
+$PY "$S/copper_length_audit.py" . --strict \
+    || { echo "GATE FAILED [8a] R-LEN: realized phase geometry/constants"; exit 1; }
 echo "rebuild_reuse: routing gate GREEN (0/0/0) from committed source"

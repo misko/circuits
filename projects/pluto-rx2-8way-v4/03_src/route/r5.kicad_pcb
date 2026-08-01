@@ -2817,7 +2817,7 @@
 				)
 			)
 		)
-		(property "Value" "47Ω"
+		(property "Value" "100Ω"
 			(at 0 1.17 180)
 			(layer "F.Fab")
 			(uuid "d8d1d859-9edc-4fb8-9b42-9d421508ccbc")
@@ -2963,7 +2963,7 @@
 				)
 			)
 		)
-		(property "Value" "47Ω"
+		(property "Value" "100Ω"
 			(at 0 1.17 180)
 			(layer "F.Fab")
 			(uuid "5fcda20a-8d2b-46d6-b6ca-bbc1c44dbeee")
@@ -3653,7 +3653,7 @@
 				)
 			)
 		)
-		(property "Value" "47Ω"
+		(property "Value" "100Ω"
 			(at 0 1.17 180)
 			(layer "F.Fab")
 			(uuid "ef1d5a61-28a2-4de1-bf93-804a74e3a4dc")
@@ -6095,7 +6095,7 @@
 				)
 			)
 		)
-		(property "Value" "47Ω"
+		(property "Value" "100Ω"
 			(at 0 1.17 180)
 			(layer "F.Fab")
 			(uuid "b275e73f-5858-4488-8206-7eb2e52cb399")
@@ -9604,7 +9604,7 @@
 	)
 	(segment
 		(start 43.300000 48.250000)
-		(end 52.800000 38.750000)
+		(end 52.800000 38.350000)
 		(width 0.36)
 		(layer "F.Cu")
 		(net "ANT7")
@@ -9628,7 +9628,7 @@
 	)
 	(segment
 		(start 38.700000 49.250000)
-		(end 29.200000 58.750000)
+		(end 29.200000 59.150000)
 		(width 0.36)
 		(layer "F.Cu")
 		(net "ANT3")

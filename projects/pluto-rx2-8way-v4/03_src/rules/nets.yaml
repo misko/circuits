@@ -8,7 +8,7 @@
 # both still true):
 #
 # 1. THE DOMINANT WIDTH CONSTRAINT IS IMPEDANCE, NOT AMPACITY. RF50 is
-#    0.36 mm because that is 50.29 ohm on the ordered stackup (JLC04161H-7628,
+#    0.36 mm because that is 50.29 ohm on the ordered stackup (JLC04121H-7628,
 #    0.2104 mm top prepreg, Dk 4.4 — DETAIL_DESIGN section 1), NOT because of
 #    current. A "safety" widening of an RF class is a DEFECT, not a
 #    conservative choice: it detunes the line. Both directions are wrong.
@@ -70,19 +70,19 @@ fab_tier: jlc_4layer_advanced
 #    0.25 mm at 0.2 mm clearance to the neighbouring land, and JLC's own rule
 #    that via diameter exceed via hole by >= 0.1 mm then forces a <= 0.15 mm
 #    drill; both no-fee rows need a 0.40-0.45 mm via pad, which does not fit).
-#    4-layer JLC04161H-7628, IMPEDANCE CONTROL REQUESTED."
+#    4-layer JLC04121H-7628, IMPEDANCE CONTROL REQUESTED."
 
 classes:
   RF50:
     intent: >
       Every 50 ohm single-ended RF net: the nine radial arms of the switch star,
       the RX1 main line and the pickoff tap. 0.36 mm on L1 over a SOLID L2
-      ground, with the GND pour 0.2005 mm off each edge, is 51.25 ohm on the
-      ordered stackup (conductor-backed COPLANAR WAVEGUIDE by conformal
-      mapping, ADR-0004 / DETAIL_DESIGN section 1 — the derivation is a runnable
-      command there, not a typed digit). It computed 50.29 ohm while this file
-      modelled it as a bare microstrip; the width does not move, because the
-      correction is -5.19 % on eps_eff and only +1.9 % on Z0.
+      ground, with the GND pour 0.2005 mm off each edge, solves to 52.09 ohm
+      on the ordered stackup. The periodic 3-D finite-volume unit cell includes
+      JLC's mask thickness/Dk defaults and both 0.25/0.15 mm via-fence rows at
+      the measured worst offset/pitch; its complete mesh-convergence interval
+      is 49.19..54.99 ohm, inside the authored 50 ohm +/-10% contract
+      (`03_src/cpwg_field_solver.py`, ADR-0004, DETAIL_DESIGN section 1).
       THIS IS AN IMPEDANCE WIDTH,
       NOT AN AMPACITY WIDTH: widening it is as wrong as narrowing it.
       Constraints that are not preferences: L1 ONLY, NO VIAS inside a
@@ -112,7 +112,7 @@ classes:
 
   CTRL:
     intent: >
-      The four select lines, in two halves separated by the 47 ohm source
+      The four select lines, in two halves separated by the 100 ohm source
       terminations: SEL_V* on the module side, SW_V* on the switch side.
       Switched DC, not RF — but the timing is load-bearing, because the whole
       level change must settle inside the 128-sample (4.267 us at 30 Msps)
@@ -246,11 +246,15 @@ scoped_clearances:
       arm at 0.2005-0.2010 mm edge-to-edge on BOTH sides over 61-93 % of its
       length (mean 75.2 %), g/h = 0.955, g/w = 0.558. The arms are grounded
       coplanar waveguide, and the correct constant set is ADR-0004
-      (eps_eff 3.1557, t_pd 5.9255 ps/mm, lambda_g 28.1269 mm, 12.7991 deg/mm),
+      (eps_eff 3.173354, t_pd 5.942081 ps/mm, lambda_g 28.048534 mm,
+      12.834895 deg/mm),
       not ADR-0003's bare-microstrip set. A RULE FILE THAT ASSERTS A
       CROSS-SECTION IS ASSERTING SOMETHING THE BOARD CAN CONTRADICT, and this
       one did — nothing in the pipeline compared the sentence to the copper
       until a reviewer measured the pour.
+      The former bare conformal-mapping estimate is superseded by the periodic
+      3-D field evidence in `06_build/verify/cpwg_field.json`; its declared
+      mask, via diameter, drill, pitch and offset are now executable inputs.
       What survives the correction is the SCOPE argument, and it survives
       unchanged: the relaxation is bounded to a 5.40 x 5.40 mm box about the
       switch centre (`rf_launch`, bounded on BOTH sides of the pair), i.e. at
@@ -258,12 +262,7 @@ scoped_clearances:
       6 GHz on the ADR-0004 constant set (it was lambda_g/55 on ADR-0003's —
       the bound moved 1.8 % and the conclusion does not turn on it). A
       discontinuity that short is a lumped element, not a transmission-line
-      section. WE STILL DO NOT MODEL COPLANAR LOADING WITH A FIELD SOLVER
-      (rf-design.md 3(c) names it OWED for this fleet); what changed is that we
-      no longer claim the loading is absent. ADR-0004's closed form is a
-      quasi-static conformal mapping, not a field solve, and it is BARE — no
-      solder-mask term, which rf-design.md 4A(iii) measures at +6.3 % on
-      eps_eff, larger than the microstrip-vs-coplanar correction itself.
+      section.
       NOT ABOVE THE ROUTER'S OWN BUDGET: 03_src/route.yaml runs the RF wave at
       `clearance: 0.14`, so the DRC floor and what KRT was allowed to pack to
       are the same number (canon R-SCOPE's last paragraph / PF-ROUTE-CLR).
@@ -293,7 +292,7 @@ scoped_clearances:
       and keep the 0.20 mm floor.
       THE PAIR IS TWO ADJACENT BITS OF ONE 4-BIT SELECT WORD, leaving two
       adjacent lands of the SAME 0.50 mm-pitch row, on an INTERNAL layer, at
-      3.3 V CMOS, each series-terminated at 47 ohm at its source. IPC-2221
+      3.3 V CMOS, each series-terminated at 100 ohm at its source. IPC-2221
       internal-conductor spacing at that voltage is 0.05 mm, so 0.158 mm is
       over 3x the standard; and crosstalk between them is not a hazard by
       construction — V1..V4 are written by ONE PIO `out pins, 4` instruction,
@@ -318,7 +317,7 @@ scoped_clearances:
 #      bounded-on-both-sides `insideArea` condition requires.
 #      THE PAIR IS TWO ADJACENT BITS OF ONE 4-BIT SELECT WORD, leaving two
 #      adjacent lands of the SAME 0.50 mm-pitch row, on an INTERNAL layer, at
-#      3.3 V CMOS, each series-terminated at 47 ohm at its source. IPC-2221
+#      3.3 V CMOS, each series-terminated at 100 ohm at its source. IPC-2221
 #      internal-conductor spacing at that voltage is 0.05 mm, so 0.158 mm is
 #      over 3x the standard; and crosstalk between them is not a hazard by
 #      construction — V1..V4 are written by ONE PIO `out pins, 4` instruction,
@@ -342,8 +341,8 @@ length_match:
     # `adr: 0004` silently becomes the integer 4 (v1 hit this at 0003 and
     # recorded it).
     # 0004 AND NOT 0003: every number in this block descends from ONE quantity,
-    # and 0004 is now where it is derived with its command — eps_eff 3.1557 ->
-    # t_pd 5.9255 ps/mm -> 12.7991 deg/mm, which is what converts the
+    # and 0004 is now where it is derived with its command — eps_eff 3.173354 ->
+    # t_pd 5.942081 ps/mm -> 12.834895 deg/mm, which is what converts the
     # PE42482A-X part-to-part window (13.2 deg) into the millimetres of copper
     # that `max_spread_mm` is, and what converts DRIFT (TC*dT*dL*t_pd) into the
     # same units. 0003 derived the same chain for a BARE MICROSTRIP, which is a
@@ -409,7 +408,7 @@ length_match:
     #   track-length spread WITH the meander pass:                    0.5314 mm
     #   track-length spread WITHOUT it (measured, race c0):           0.1657 mm
     # and the pass left six of the eight arms carrying a 0.600 mm-wide blob
-    # over a 0.555 mm run (37.17 ohm against a 51.25 ohm line) while two
+    # over a 0.555 mm run (37.17 ohm against a 52.09 ohm line) while two
     # carried none — a DIFFERENTIAL discontinuity on the very quantity this
     # group exists to protect. See route.yaml's `rf` wave for the arithmetic.
     # R-LEN still grades this group: with the floor spread (0.0007) inside
@@ -435,35 +434,21 @@ length_match:
     # property of the FLOORPLAN, and v2's floorplan is not v1's — the MCU field
     # shrank from a QFN-56 plus flash, crystal, USB and ten decouplers to one
     # 18 x 23.5 mm module, which moves the star's surroundings.
-    stackup_mm: [0.2104, 1.0650, 0.2104]   # JLC04161H-7628 published construction
+    stackup_mm: [0.2104, 0.6000, 0.2104]   # JLC04121H-7628 published construction
     phase:
-      t_pd_ps_per_mm: 5.9255
+      t_pd_ps_per_mm: 5.942081
       f_ghz: 6.0
-      stackup: JLC04161H-7628
-      cross_section: coplanar_grounded_bare   # s = 0.2005 mm both sides
-      # DERIVED FOR THIS BOARD, NOT INHERITED, AND FOR THE CROSS-SECTION THE
-      # BOARD ACTUALLY HAS. 5.9255 comes from eps_eff 3.1557 (ADR-0004 carries
-      # the regenerable command), a conductor-backed COPLANAR WAVEGUIDE with
-      # w = 0.360 and s = 0.2005 mm both sides, solved by quasi-static
-      # conformal mapping (Ghione / Naghed-Wolff).
-      #
-      # THIS FIELD HELD 6.0857 UNTIL 2026-07-30 AND THAT NUMBER WAS NOT WRONG
-      # ARITHMETIC — it is the correct Hammerstad-Jensen answer for a BARE
-      # MICROSTRIP, a cross-section this board does not contain anywhere.
-      # MEASURED off the saved .kicad_pcb (03_src/line_type.py): a GND
-      # pour runs alongside every arm at 0.2005-0.2010 mm edge-to-edge on BOTH
-      # sides, g/h = 0.955, over 61-93 % of each arm. The 5.19 % move in
-      # eps_eff is -4.97 deg of absolute phase on a 14.366 mm arm at 6 GHz, on
-      # a board whose published artifact is a degrees-per-millimetre table.
-      # `cross_section:` is declared HERE, next to the number, because
-      # rf-design.md 4A's rule is that a constant set is identified by the
-      # tuple (stackup, w, cross-section, method) and is MEANINGLESS without
-      # it — the fleet published five sets for this one laminate by naming
-      # only the stackup.
-      #
-      # WHAT REMAINS OWED, unchanged by this correction and larger than it:
-      # `_bare` means no solder-mask term. rf-design.md 4A(iii) measures a
-      # 0.020 mm conformal mask at +6.3 % on eps_eff by 2D field solve on this
-      # exact laminate. Every constant set in this fleet, ADR-0003's and
-      # ADR-0004's alike, models a bare trace on a board that ships with mask.
-      # The word `bare` is the disclosure, not the fix.
+      stackup: JLC04121H-7628
+      cross_section: coplanar_grounded_masked_periodic_via_fenced
+      epsilon_eff: 3.173354
+      z0_ohm: 52.087735
+      solver_evidence: 06_build/verify/cpwg_field.json
+      # The solver's periodic 3-D unit cell is the single source for these
+      # numbers: w=0.360, s=0.2005, h=0.2104, Dk=4.4; conformal mask Dk=3.8
+      # at JLC's 0.6/1.2 mil defaults; two 0.25/0.15 mm grounded via rows at
+      # the conservative measured 0.510 mm centre offset and 1.1769 mm pitch.
+      # It solves dielectric and all-air capacitance, derives eps_eff=C/C0 and
+      # Z0=1/(c*sqrt(C*C0)), and publishes three mesh levels plus residuals.
+      # copper_length_audit.py opens the JSON and fails if any declared phase
+      # constant differs by >0.2%; the old hard-coded 6.105 ps/mm path is not
+      # used for this group.

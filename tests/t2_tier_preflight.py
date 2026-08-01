@@ -121,6 +121,27 @@ def t_explain():
     contains(r.out, "copper stack", "layer-stack derivation")
 
 
+@test("PF-VIA-ASPECT rejects a minimum drill whose board-thickness ratio "
+      "exceeds the fab limit", kind="known_bad")
+def t_via_aspect_ratio_rejects_16_over_015():
+    def thick(fp):
+        fp["board"]["stackup"] = {"nominal_thickness_mm": 1.6}
+
+    r = must_fail(preflight(scratch(mut_fp=thick)), "10.67:1 via", "PF-VIA-ASPECT")
+    contains(r.out, "10.667:1", "measured ratio")
+    contains(r.out, "nominal_thickness_mm <= 1.500", "computed thickness repair")
+
+
+@test("PF-VIA-ASPECT accepts a 0.15mm drill through a 1.2mm board")
+def t_via_aspect_ratio_accepts_12_over_015():
+    def thick(fp):
+        fp["board"]["stackup"] = {"nominal_thickness_mm": 1.2}
+
+    r = must_pass(preflight(scratch(mut_fp=thick), "--explain"), "8:1 via")
+    contains(r.out, "8.000:1", "measured ratio")
+    not_contains(r.out, "PF-VIA-ASPECT FAIL", "no aspect failure")
+
+
 @test("tier_preflight is a no-op on a board with no declared fab_tier "
       "(legacy behavior preserved)")
 def t_no_tier():

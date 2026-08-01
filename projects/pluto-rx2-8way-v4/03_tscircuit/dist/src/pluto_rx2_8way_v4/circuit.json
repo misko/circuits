@@ -21181,7 +21181,7 @@
   },
   {
     "type": "source_part_not_found_warning",
-    "source_part_not_found_warning_id": "source_part_not_found_warning_NqHcU27bc5",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_Z7lD78abJg",
     "warning_type": "source_part_not_found_warning",
     "message": "Failed to fetch supplier footprint for <chip#264 name=\".U_MCU\" /> (jlcpcb:C9900173620): Component not found",
     "source_component_id": "source_component_25",
@@ -21191,7 +21191,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_XQyCwhkjrb",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_yhoDOKLTME",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#288 name=\".R_LED\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C137948 (copper IoU 0.7741).",
     "source_component_id": "source_component_26",
@@ -21203,103 +21203,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_9q6JeADCNr",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#240 name=\".C_SW1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_23",
-    "pcb_component_id": "pcb_component_23",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Rb3DifRaCn",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#86 name=\".R_T1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25091 (copper IoU 0.7741).",
-    "source_component_id": "source_component_11",
-    "pcb_component_id": "pcb_component_11",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25091",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Rr8Ya7z8ed",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#164 name=\".R_PD1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_17",
-    "pcb_component_id": "pcb_component_17",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_sZ4mfRyMXy",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#177 name=\".R_PD2\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_18",
-    "pcb_component_id": "pcb_component_18",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_CWXQzDLSlM",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#125 name=\".R_S2\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25076 (copper IoU 0.7741).",
-    "source_component_id": "source_component_14",
-    "pcb_component_id": "pcb_component_14",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25076",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_aArZ2LXB3R",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#203 name=\".R_PD4\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_20",
-    "pcb_component_id": "pcb_component_20",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_xwyneKF6C6",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<chip#301 name=\".LED_ST\" /> footprint the provided footprint does not match supplier footprint jlcpcb:C2286 (copper IoU 0.7826).",
-    "source_component_id": "source_component_27",
-    "pcb_component_id": "pcb_component_27",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C2286",
-    "footprint_copper_intersection_over_union": 0.7826
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_JQRoDT4Wdw",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#112 name=\".R_S1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25076 (copper IoU 0.7741).",
-    "source_component_id": "source_component_13",
-    "pcb_component_id": "pcb_component_13",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25076",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_hwIBeaQcve",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_QqLshtePCo",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#151 name=\".R_S4\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25076 (copper IoU 0.7741).",
     "source_component_id": "source_component_16",
@@ -21311,7 +21215,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_fdkXtcJfYK",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_olhMl3FiBh",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#138 name=\".R_S3\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25076 (copper IoU 0.7741).",
     "source_component_id": "source_component_15",
@@ -21323,7 +21227,31 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_E7tBI4s6jx",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_4dDYYTn4WG",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#203 name=\".R_PD4\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_20",
+    "pcb_component_id": "pcb_component_20",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_20kZ0oc5rX",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<chip#301 name=\".LED_ST\" /> footprint the provided footprint does not match supplier footprint jlcpcb:C2286 (copper IoU 0.7826).",
+    "source_component_id": "source_component_27",
+    "pcb_component_id": "pcb_component_27",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C2286",
+    "footprint_copper_intersection_over_union": 0.7826
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_G6nLN2wbGZ",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#190 name=\".R_PD3\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
     "source_component_id": "source_component_19",
@@ -21335,7 +21263,43 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_MtdSDAS3Wr",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_zFpByYrZTF",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#240 name=\".C_SW1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_23",
+    "pcb_component_id": "pcb_component_23",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_R2aLIqcKqp",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#125 name=\".R_S2\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25076 (copper IoU 0.7741).",
+    "source_component_id": "source_component_14",
+    "pcb_component_id": "pcb_component_14",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25076",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_jUKn3ay4D5",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#86 name=\".R_T1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25091 (copper IoU 0.7741).",
+    "source_component_id": "source_component_11",
+    "pcb_component_id": "pcb_component_11",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25091",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_yMAKqNrMNY",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#99 name=\".R_T2\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25091 (copper IoU 0.7741).",
     "source_component_id": "source_component_12",
@@ -21346,7 +21310,43 @@
     "footprint_copper_intersection_over_union": 0.7741
   },
   {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_wGcRrI64mF",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#164 name=\".R_PD1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_17",
+    "pcb_component_id": "pcb_component_17",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Lvie4gm5f2",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#177 name=\".R_PD2\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_18",
+    "pcb_component_id": "pcb_component_18",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_hSYmOdvMwN",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#112 name=\".R_S1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25076 (copper IoU 0.7741).",
+    "source_component_id": "source_component_13",
+    "pcb_component_id": "pcb_component_13",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25076",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
     "type": "source_project_metadata",
-    "source_filesystem_md5_hash": "b679d0fbd832dbe4d8c9c571ece5c89a"
+    "source_filesystem_md5_hash": "6577293e0151f9a68575499d77346da0"
   }
 ]

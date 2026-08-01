@@ -95,15 +95,14 @@
 # own silkscreen reads `ANT8 = RX1 TAP -20.26 dB`.
 #
 # THE BOUND, DERIVED FROM THIS BOARD'S OWN STACKUP, identified by the tuple
-# rf-design.md 4A requires -- (JLC04161H-7628 h 0.2104 / er 4.4 / t 0.035,
-# w 0.360, AS-FABBED conformal solder mask, Hammerstad-Jensen with H-J's OWN
-# dual thickness correction u1->Z0 ur->eps_eff, times the MEASURED mask factor
-# 1.0628 from pluto-cal-switch's 2D field solve, 4A(iii)):
+# rf-design.md 4A requires -- (JLC04121H-7628 h 0.2104 / er 4.4 / t 0.035,
+# w 0.360 / s 0.2005, AS-FABBED conformal solder mask, and both conservative
+# measured via-fence rows in the periodic 3-D finite-volume solve):
 #
-#     eps_eff bare 3.3226  ->  as-fabbed 3.5314
-#     lambda_g(5.5 GHz) = 29.0057 mm  ->  lambda_g/16 = 1.8129 mm
+#     eps_eff as-fabbed 3.173354
+#     lambda_g(5.5 GHz) = 30.5984 mm  ->  lambda_g/16 = 1.9124 mm
 #
-# 1.81 mm is the LOOSEST the branch may be. THE PLACEMENT BELOW DOES NOT AIM AT
+# 1.91 mm is the LOOSEST the branch may be. THE PLACEMENT BELOW DOES NOT AIM AT
 # IT. R_T1 is rotated 270 in the gap BETWEEN the two jacks, so its pad 1 sits at
 # y = 24.990 against a through line at y = 25.000: the branch is **0.010 mm**
 # and the node sees the full 490 ohm at every frequency in band (S21 -0.432 dB,
@@ -186,12 +185,20 @@ board:
   outline: {x0: 20.0, y0: 20.0, x1: 70.0, y1: 93.0}
   edge_width: 0.1
   layers: 4
+  # POFV order contract for the U_SW via-in-pad sites. These KiCad setup flags
+  # are board-level, so the order is epoxy/resin fill + copper cap for ALL vias;
+  # the ten assembly-critical U_SW sites are enumerated in DETAIL_DESIGN.md.
+  via_protection: {capping: yes, filling: yes}
   stackup:
-    # JLCPCB's published JLC04161H-7628 4-layer / 1.6 mm construction.
+    # JLCPCB's published JLC04121H-7628 4-layer / 1.2 mm construction.
     # Outer copper is 1 oz finished; the 15.2 um inner value and dielectric
-    # thicknesses reconstruct 1.5862 mm, within the nominal board tolerance.
+    # thicknesses reconstruct 1.1212 mm, within the nominal board tolerance.
     # The top 0.2104 mm / Dk 4.4 tuple is the load-bearing RF reference.
-    nominal_thickness_mm: 1.6
+    # The 1.2 mm choice is also a fabrication requirement: 0.15 mm PTH drills
+    # are 8.0:1 here, below JLC's published 10:1 aspect-ratio ceiling. The old
+    # 1.6 mm stack made all 3,446 vias 10.667:1 despite meeting the diameter
+    # floor, a defect now refused by tier_preflight PF-VIA-ASPECT.
+    nominal_thickness_mm: 1.2
     thickness_tolerance_mm: 0.10
     copper_finish: ENIG
     dielectric_constraints: true
@@ -199,7 +206,7 @@ board:
     copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
     dielectrics:
       - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
-      - {type: core, thickness_mm: 1.0650, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 0.6000, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
       - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
@@ -265,7 +272,7 @@ placement:
     # halves of that are load-bearing. BETWEEN: x = 52.00 is the centre of the
     # 3.410 mm gap between J_ANT8's courtyard (x <= 50.295) and J_RX1's
     # (x >= 53.705), so R_T1's pad 1 can land at y = 24.990 -- ON the y = 25.000
-    # through line, branch 0.010 mm against the 1.8129 mm lambda_g/16 bound
+    # through line, branch 0.010 mm against the 1.9124 mm lambda_g/16 bound
     # derived above. POINTS AT THE SWITCH: pad 1 north, pad 2 south, so the
     # chain runs J_ANT8/J_RX1 -> R_T1 -> R_T2 -> U_SW pad 19 monotonically and
     # nothing doubles back across the through line.
@@ -296,7 +303,7 @@ placement:
     R_PD1:  [40.2000, 52.6000, 270]   # V1..V4 pull-downs, AT THE SWITCH PADS.
     R_PD2:  [41.5000, 52.6000, 270]   # They are only a power-on guarantee if
     C_SW1:  [42.8000, 52.6000, 270]   # they sit on the switch's side of the
-    R_PD3:  [41.2000, 54.8000, 270]   # 47R series element (ARCHITECTURE sec 7)
+    R_PD3:  [41.2000, 54.8000, 270]   # beside the 100R series element (ARCHITECTURE sec 7)
     R_PD4:  [42.5000, 54.8000, 270]   # -- and the 4 mm SW_V4 budget only binds
     # C_SW2 ROTATED 0 -> 180, 2026-07-30, AND THE ROTATION IS THE WHOLE FIX FOR
     # THE SECOND STRANDED PAD. Its CENTRE does not move, so the SSE control

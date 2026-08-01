@@ -173,7 +173,7 @@ layout:
     # THE CONSTRAINT THE SENTENCE MEANT IS REAL, IS TIGHTER THAN 3 mm, AND IS
     # NOT A PAD SPAN. What must be short is the BRANCH: the copper from the
     # through line to the first series element of the shunt tap. Derived from
-    # this board's own stackup, tuple (JLC04161H-7628 h 0.2104 / er 4.4 /
+    # this board's own stackup, tuple (JLC04121H-7628 h 0.2104 / er 4.4 /
     # t 0.035, w 0.360, AS-FABBED conformal mask, Hammerstad-Jensen with H-J's
     # own dual thickness correction x the MEASURED 1.0628 mask factor of
     # rf-design.md 4A(iii)): eps_eff 3.5314, lambda_g(5.5 GHz) 29.0057 mm,
@@ -198,7 +198,7 @@ layout:
     # RX1_TAP U_SW.19 <-> R_T2.2 = 9.741 mm; RX1_TAP_MID R_T2.1 <-> R_T1.2 =
     # 1.180 mm (routed copper 10.553 and 1.200 mm).
   notes:
-    - "DERIVED: a D1.4 plated barrel in a 1.6 mm board is a ~1.6 mm-long,
+    - "DERIVED: a D1.4 plated barrel in a 1.2 mm board is a ~1.2 mm-long,
        1.4 mm-diameter conductor — electrically short (lambda/20 at 6 GHz is
        ~1.5 mm on this laminate) but only if the ground return is equally
        short. The four corner posts ARE that return, so all four must land on
@@ -235,7 +235,7 @@ layout:
        fence sitting in the substrate beside a microstrip must sample the wave
        ON THE LINE, whose wavelength is lambda_0/sqrt(eps_eff). The two are
        sqrt(3.3286) = 1.82x apart, so satisfying the free-space one proves
-       nothing about the guided one. On JLC04161H-7628 at 6 GHz the bound is
+       nothing about the guided one. On JLC04121H-7628 at 6 GHz the bound is
        lambda_g/20 = 1.3693 mm (ADR-0003), the board declares <= 1.35, and it
        ships a 0.95 mm lattice because a SQUARE lattice at pitch p projects at
        p*sqrt(2) along the 45-degree arms. The fence continues >= 10 mm down

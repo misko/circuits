@@ -586,6 +586,80 @@ class Preflight:
             elif self.explain:
                 self.note(f"{param}: {val} >= tier floor {floor}")
 
+    def check_via_aspect_ratio(self):
+        """PF-VIA-ASPECT: plated through holes must be plateable at thickness.
+
+        Diameter-only capability is insufficient.  A 0.15 mm mechanical drill
+        is a published minimum, but through a 1.6 mm board it is 10.67:1 and
+        exceeds JLC's published 10:1 plated-through-hole limit.  RX2 v4 reached
+        final adversarial review with 3,446 such vias because every earlier
+        gate compared the drill only to ``min_via_drill``.
+
+        The check is armed only when the declarative floorplan carries a
+        nominal physical stackup; legacy boards without that input remain
+        explicitly ungraded rather than acquiring an invented thickness.
+        """
+        limit = self.tier.get("max_pth_aspect_ratio")
+        fp = self.floorplan() or {}
+        stack = (fp.get("board") or {}).get("stackup") or {}
+        thick = stack.get("nominal_thickness_mm")
+        if limit is None:
+            self.note("via aspect ratio: tier carries no max_pth_aspect_ratio; ungraded")
+            return
+        if thick is None:
+            self.note("via aspect ratio: floorplan has no nominal stackup thickness; ungraded")
+            return
+
+        thick = float(thick)
+        limit = float(limit)
+        drills = []
+        for param, val in (
+                ("route.common.via_drill", self.get("route.common.via_drill")),
+                ("stitch.via.drill", self.get("stitch.via.drill")),
+                ("taps.via.drill", self.get("taps.via.drill")),
+                ("stitch.seed_stubs.via.drill",
+                 self.get("stitch.seed_stubs.via.drill")),
+                ("stitch.astar_fallback.via.drill",
+                 self.get("stitch.astar_fallback.via.drill")),
+                ("stitch.hole_to_hole.shrink_to.drill",
+                 self.get("stitch.hole_to_hole.shrink_to.drill"))):
+            if val is not None:
+                drills.append((param, float(val)))
+        for i, wv in enumerate(self.get("route.waves", []) or []):
+            if wv.get("via_drill") is not None:
+                drills.append((f"route.waves[{wv.get('name', f'w{i + 1}')}].via_drill",
+                               float(wv["via_drill"])))
+        for i, te in enumerate(self.get("stitch.via.tiers") or []):
+            drills.append((f"stitch.via.tiers[{i}].drill",
+                           float(te.get("drill", self.tier["min_via_drill"]))))
+        if not drills:
+            drills.append(("tier-derived min_via_drill",
+                           float(self.tier["min_via_drill"])))
+
+        seen = set()
+        for param, drill in drills:
+            key = (param, drill)
+            if key in seen:
+                continue
+            seen.add(key)
+            ratio = thick / drill
+            self.note(f"{param}: {thick:g}/{drill:g} = {ratio:.3f}:1 "
+                      f"vs tier limit {limit:g}:1")
+            if ratio > limit + 1e-9:
+                max_thick = drill * limit
+                min_drill = thick / limit
+                self.fail(
+                    "PF-VIA-ASPECT", param,
+                    f"{thick:g}mm board / {drill:g}mm mechanical drill = "
+                    f"{ratio:.3f}:1 > tier '{self.tier['name']}' plated-"
+                    f"through-hole limit {limit:g}:1 — the hole meets the "
+                    f"diameter floor but is not reliably plateable at this "
+                    f"board thickness (RX2 v4: 3,446 vias reached final "
+                    f"review at 10.667:1)",
+                    fix=f"use nominal_thickness_mm <= {max_thick:.3f}, or "
+                        f"mechanical drill >= {min_drill:.3f}mm and re-run "
+                        f"landability/clearance/impedance gates")
+
     def check_normalize_vias(self):
         """PF-NORM — defect class 3: normalize_vias resizes copper with NO
         collision check; riding its own 0.6/0.3 default on a small-via tier
@@ -939,6 +1013,7 @@ class Preflight:
         if cfg_route:
             self.check_clearances()
             self.check_via_geometry()
+            self.check_via_aspect_ratio()
             self.check_normalize_vias()
             self.check_hole_to_copper()
             self.check_hole_to_hole()

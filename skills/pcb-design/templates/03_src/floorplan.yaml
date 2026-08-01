@@ -20,6 +20,10 @@ board:
   outline: {x0: 20.0, y0: 20.0, x1: 75.0, y1: 65.0}
   edge_width: 0.1
   layers: 2
+  # Optional, board-wide fabrication intent. Enable only when the order calls
+  # for every via to use the corresponding process; separately identify all
+  # via-in-pad sites and require fabricator/assembly DFM acceptance.
+  # via_protection: {capping: yes, filling: yes}
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
     at: [[23.5, 23.5], [71.5, 23.5], [23.5, 61.5], [71.5, 61.5]]

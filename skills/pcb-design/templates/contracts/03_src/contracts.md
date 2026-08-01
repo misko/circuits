@@ -267,6 +267,8 @@ in the `02_parts` contract. These two are this folder's own.
 | `board.outline.y1` | `generate_board_generic.py` | Edge.Cuts |
 | `board.edge_width` | `generate_board_generic.py` | Edge.Cuts stroke |
 | `board.layers` | `generate_board_generic.py` | copper layer count |
+| `board.via_protection.capping` | `generate_board_generic.py` | board-level KiCad capping setup token, emitted after the final pcbnew save; boolean yes/no |
+| `board.via_protection.filling` | `generate_board_generic.py` | board-level KiCad filling setup token, emitted after the final pcbnew save; boolean yes/no |
 | `board.mounting_holes.at` | `generate_board_generic.py` | NPTH placement |
 | `board.mounting_holes.footprint` | `generate_board_generic.py` | NPTH FPID |
 | `board.mounting_holes.refdes_prefix` | `generate_board_generic.py` | NPTH refdes |

@@ -42,7 +42,7 @@
   claim phase-locked sample boundaries without a shared clock/trigger.
 - [ ] Confirm PE42482 orientation and LED polarity in JLC's order preview.
 - [ ] Confirm JLC plug-in through-hole service for all ten SMA jacks.
-- [ ] Confirm JLC04161H-7628, advanced 0.25/0.15 mm vias, impedance solver
+- [ ] Confirm JLC04121H-7628 at 1.2 mm, advanced 0.25/0.15 mm vias (8.0:1), impedance solver
       adjustment, and coupon/TDR requirement in the actual order.
 - [ ] Confirm uploader `(LCSC, value, refdes)` echo against the candidate BOM.
 

@@ -83,14 +83,38 @@ geometry alone.
 
 ## Fabrication/order instructions
 
-- Order the four-layer `JLC04161H-7628` stack, nominal 1.6 mm, ENIG.
+- Order the four-layer `JLC04121H-7628` stack, nominal 1.2 mm, ENIG. This keeps
+  each 0.15 mm through drill at 8.0:1 aspect ratio, below JLC's 10:1 limit.
+- Order epoxy/resin filling plus copper capping (POFV / IPC-4761 Type VII) for
+  **all vias**. The board source emits KiCad's board-level `(filling yes)` and
+  `(capping yes)` setup tokens; these are fabrication intent, not evidence that
+  the uploader selected the service. The ten 0.25/0.15 mm vias whose centres
+  lie inside `U_SW` SMD lands are fixed and auditable:
+
+  | U_SW land | net | via centres (mm, board coordinates) |
+  |---|---|---|
+  | exposed pad 25 | GND | (41.7000,49.7000), (40.3000,48.3000), (41.7000,48.3000), (41.0100,47.7300), (42.3500,48.9300), (40.3000,49.7000), (41.0000,49.0000) |
+  | pad 18 | GND | (42.9000,47.7000) |
+  | pad 8 | 3V3 | (40.2500,50.9000) |
+  | pad 11 | SW_V3 | (41.7500,50.9000) |
+
+  Before payment, obtain written fabrication and assembly DFM acceptance that
+  the production files resolve filling/capping for the whole via set and that
+  the ten sites above will be plated flat with no open drill at the pasteable
+  land. Save the accepted production-file preview/remark with the order record.
+  On the first assembled panel, inspect all ten joints by X-ray (or destructive
+  cross-section on a coupon/representative sacrificial board): reject exposed
+  holes, solder wicking/voiding outside the assembler's accepted limit, cap
+  dimpling/protrusion, or insufficient land wetting. Record the inspection
+  images and disposition before authorizing the remaining quantity.
 - Select the advanced small-via option required by the authored 0.25/0.15 mm
   finished-via/drill geometry; do not accept an automatic standard-tier
   substitution.
-- Request controlled impedance for the masked L1 CPWG. The authored 0.36 mm
-  width is a preliminary field-solver model on the declared stack, not a fab
-  guarantee: use JLC's order solver, allow JLC to adjust width/spacing while
-  preserving 50 ohm intent, and request/retain the impedance coupon/TDR report.
+- Request controlled impedance for the masked L1 CPWG and retain the impedance
+  coupon/TDR report. The authored 0.36/0.2005 mm geometry solves to 52.09 ohm
+  with a 49.19..54.99 ohm mesh-convergence interval. Do not authorize silent
+  production-data edits: if JLC requires geometry outside the sealed Gerbers,
+  obtain revised production plots and re-review/reseal them before payment.
 - Obtain written JLC acceptance for plug-in through-hole assembly of all ten
   KH-SMA-KE-Z jacks. If they cannot accept that process, order the carrier
   without those placements and hand-fit them; never silently convert the CPL.

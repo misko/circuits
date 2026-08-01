@@ -34,6 +34,9 @@ NOT read another project's config). Top-level keys:
               layers, optional stackup {nominal_thickness_mm,
                 copper_finish, dielectric_constraints, mask_thickness_mm,
                 copper_thickness_mm[], dielectrics[]},
+              optional via_protection {capping, filling}; each boolean emits
+                the matching board-level KiCad setup token after the final
+                pcbnew save (required for filled/capped via-in-pad orders),
               mounting_holes {footprint, refdes_prefix, at[]},
               fiducials {footprint, refdes_prefix, at[]} — board-only
                 optical alignment targets; BOM- and CPL-excluded
@@ -451,6 +454,7 @@ class BoardBuilder:
         self.out.parent.mkdir(parents=True, exist_ok=True)
         self.board.Save(str(self.out))
         self.write_stackup()
+        self.write_via_protection()
         self.write_waiver()
         # emit fp-lib-table when configured (no-op otherwise). Kept OUT of the
         # save path above so a board without the config is unaffected.
@@ -572,6 +576,60 @@ class BoardBuilder:
         self.board = parsed
         self.say(f"stackup authored: {count} copper layers, "
                  f"{physical:.4f}mm physical / {nominal:.4f}mm nominal")
+
+    # --------------------------------------------------- via protection
+    def write_via_protection(self):
+        """Emit board-level filled/capped-via fabrication intent.
+
+        KiCad 10 writes ``(capping no)`` / ``(filling no)`` when pcbnew saves
+        a board, and its Python binding exposes no supported setters for these
+        setup fields.  Therefore this must run after the final board save (and
+        after the optional stackup injection), exactly like ``write_stackup``:
+        patch the native s-expression, then parse it back with pcbnew so a
+        format drift is a generation failure rather than a malformed board.
+
+        These flags are BOARD-WIDE.  They express process intent for every via,
+        not a selective via list; order documentation must still identify the
+        via-in-pad sites and obtain fabricator/assembly DFM acceptance.
+        """
+        cfg = self.board_cfg.get("via_protection")
+        if cfg is None:
+            return
+        if not isinstance(cfg, dict):
+            die("board.via_protection must be a mapping")
+        if not cfg:
+            die("board.via_protection must declare capping and/or filling")
+        unknown = sorted(set(cfg) - {"capping", "filling"})
+        if unknown:
+            die(f"board.via_protection has unknown key(s): {unknown}; "
+                f"known: ['capping', 'filling']")
+
+        def yes_no(value, path):
+            if isinstance(value, bool):
+                return "yes" if value else "no"
+            if isinstance(value, str) and value.strip().lower() in ("yes", "no"):
+                return value.strip().lower()
+            die(f"{path} must be a boolean (yes/no)")
+
+        text = self.out.read_text()
+        emitted = []
+        for key in ("capping", "filling"):
+            if key not in cfg:
+                continue
+            value = yes_no(cfg[key], f"board.via_protection.{key}")
+            pattern = rf"(?m)^(\s*)\({key} (?:yes|no)\)\s*$"
+            text, count = re.subn(pattern, rf"\1({key} {value})", text)
+            if count != 1:
+                die(f"cannot emit board.via_protection.{key}: expected one "
+                    f"KiCad setup token in {self.out}, found {count}")
+            emitted.append(f"{key}={value}")
+        self.out.write_text(text)
+        try:
+            parsed = pcbnew.LoadBoard(str(self.out))
+        except Exception as exc:
+            die(f"emitted via protection does not parse in pcbnew: {exc}")
+        self.board = parsed
+        self.say("via protection authored (board-level): " + ", ".join(emitted))
 
     # --------------------------------------------------------- outline
     def _seg(self, xa, ya, xb, yb, w, layer=None):

@@ -165,11 +165,11 @@ FOUR ORPHANS THE FIRST RUN FOUND, each a field that read as covered:
      all 38 fleet classes, read by NOTHING — not even their presence. The
      `current:` field in the same required list got A-AMP and a "silence is not
      a declaration" rule; its three neighbours got neither.
-  4. `length_match.<G>.phase` — declared "OPTIONAL reporting aid, never a
-     gate", and it does not reach the report either: `copper_length_audit.py`
-     prints its phase conversion from constants it re-derives itself
-     (6.105 ps/mm), so a board writing `t_pd_ps_per_mm: 6.0` has a second home
-     for that number and nothing reconciles the two.
+  4. `length_match.<G>.phase` — originally declared "OPTIONAL reporting aid,
+     never a gate" while `copper_length_audit.py` printed a different global
+     constant. Closed 2026-08-01: the audit consumes the group tuple and, when
+     `solver_evidence` is named, cross-checks delay, epsilon, impedance,
+     frequency, stackup and cross-section against that artifact.
 
 Plus 21 OWED rows in `02_parts/*/part.yaml`, the file this rule was written
 for — among them `pins.<N>.tie` (84 pins, 43 dossiers), `datasheet.sha256` /
@@ -280,7 +280,7 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 8
-PROVEN_FLOOR = 304   # 239 -> 241 on 2026-07-29: route.yaml's
+PROVEN_FLOOR = 313   # 239 -> 241 on 2026-07-29: route.yaml's
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
@@ -313,6 +313,9 @@ PROVEN_FLOOR = 304   # 239 -> 241 on 2026-07-29: route.yaml's
 #: repair added the integration family and bound the newly landed v4/hub source
 #: keys. Measured `--root .`: 377/377 declared keys graded OK, 304 PROVEN,
 #: 1205 observed keys, 0 orphan, and 3 explicitly named ungoverned families.
+#: 304 -> 306 on 2026-08-01: `board.via_protection.{capping,filling}`
+#: 306 -> 313 on 2026-08-01: the complete solver-bound phase tuple
+#: bound to the generic generator's post-save KiCad setup-token emitter.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.

@@ -52,7 +52,7 @@
 //     while carrying the whole rail. Here the consequence is worse than a
 //     width: merging them DELETES THE ONLY FILTER on the board, and DRC, ERC
 //     and parity all pass.
-//   * The module's `5V` pad (pad 1) is DELIBERATELY UNCONNECTED. This board
+//   * The module's `5V` pad (pad 23) is DELIBERATELY UNCONNECTED. This board
 //     has no power entry of its own (ADR-0002); the module's own USB-C is the
 //     only port. Connecting 5V to anything would create a second power path.
 //   * SEL_V1..SEL_V4 are GP0..GP3 — four CONSECUTIVE GPIOs that are also
@@ -400,7 +400,7 @@ export default () => (
         edge, because a PIO `out pins, 4` writes a CONTIGUOUS pin range in ONE
         instruction and the whole level change must land inside the 4.267 us
         blanking allowance.
-        PAD 1 (5V) IS DELIBERATELY UNCONNECTED — see the header. Fifteen
+        PAD 23 (5V) IS DELIBERATELY UNCONNECTED — see the header. Fifteen
         further GPIO pads are unconnected because this board needs five
         signals; that is the entire point of the module, and it is also the
         module's one real cost: those pads are soldered down and cannot be

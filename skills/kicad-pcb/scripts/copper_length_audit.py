@@ -415,10 +415,14 @@ length_match:
                                # outer. Required ONLY to price via barrels;
                                # without it a member carrying a via is
                                # UNREACHED, never passed.
-    phase:                     # OPTIONAL reporting aid, never a gate
+    phase:                     # OPTIONAL single source for phase reporting
       t_pd_ps_per_mm: 6.0
       f_ghz: 6.0
       stackup: JLC04161H-7628
+      epsilon_eff: 3.24        # when present, t_pd is cross-checked
+      z0_ohm: 50.0
+      solver_evidence: 06_build/verify/cpwg_field.json
+                               # when present, result constants MUST agree
 """
 
 
@@ -932,8 +936,8 @@ def grade_octilinear(gname, d, pads, recipe, row, res):
 
     lo = min(vals, key=vals.get)
     hi = max(vals, key=vals.get)
-    detail = (f"floor spread {spread:.4f} mm ({spread * DEG_PER_MM_6GHZ:.2f} "
-              f"deg at 6 GHz) exceeds max_spread_mm {tol}: shortest member "
+    detail = (f"floor spread {spread:.4f} mm ({spread * row['deg_per_mm']:.2f} "
+              f"deg at {row['f_ghz']:g} GHz) exceeds max_spread_mm {tol}: shortest member "
               f"{lo} >= {vals[lo]:.4f} mm, longest {hi} >= {vals[hi]:.4f} mm. "
               f"An octilinear router (KRT moves in 8 directions, so the "
               f"shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) "
@@ -968,6 +972,70 @@ def grade_octilinear(gname, d, pads, recipe, row, res):
 
 
 # ==================================================================== grading
+def phase_constants(proj, d):
+    """Return one internally cross-checked phase tuple for a group.
+
+    Legacy declarations without ``phase`` retain the historical constants.
+    Once a solver artifact is named, however, prose is no longer accepted as
+    evidence: the artifact and declaration must agree numerically.
+    """
+    p = d.get("phase") or {}
+    if not p:
+        return {"t_pd_ps_per_mm": T_PD_PS_PER_MM, "f_ghz": 6.0,
+                "deg_per_mm": DEG_PER_MM_6GHZ, "epsilon_eff": None,
+                "z0_ohm": None, "solver_evidence": None}
+    tpd = float(p.get("t_pd_ps_per_mm", T_PD_PS_PER_MM))
+    freq = float(p.get("f_ghz", 6.0))
+    eps_eff = p.get("epsilon_eff")
+    if eps_eff is not None:
+        derived = math.sqrt(float(eps_eff)) / 299.792458 * 1000.0
+        if abs(derived - tpd) > max(0.002 * derived, 0.002):
+            raise AuditError(
+                f"phase t_pd {tpd} ps/mm disagrees with epsilon_eff "
+                f"{eps_eff} -> {derived:.6f} ps/mm")
+    evidence = p.get("solver_evidence")
+    z0 = p.get("z0_ohm")
+    if evidence:
+        ep = Path(proj) / str(evidence)
+        if not ep.is_file():
+            raise AuditError(f"phase solver_evidence does not exist: {ep}")
+        try:
+            evidence_doc = json.loads(ep.read_text(encoding="utf-8"))
+            solved = evidence_doc["result"]
+        except Exception as exc:
+            raise AuditError(f"cannot read phase solver evidence {ep}: {exc}")
+        checks = (("t_pd_ps_per_mm", tpd), ("epsilon_eff", eps_eff),
+                  ("z0_ohm", z0))
+        for key, declared in checks:
+            if declared is None:
+                raise AuditError(
+                    f"phase.{key} must be declared beside solver_evidence")
+            actual = float(solved[key])
+            if abs(actual - float(declared)) > max(0.002 * abs(actual), 0.002):
+                raise AuditError(
+                    f"phase.{key} {declared} disagrees with {ep} result "
+                    f"{actual:.6f}")
+        model = evidence_doc.get("model") or {}
+        for key, actual in (("stackup", model.get("stackup")),
+                            ("f_ghz", model.get("frequency_ghz"))):
+            declared = p.get(key)
+            if declared is None or str(declared) != str(actual):
+                raise AuditError(
+                    f"phase.{key} {declared!r} disagrees with {ep} model "
+                    f"{actual!r}")
+        cross = p.get("cross_section")
+        expected_cross = "coplanar_grounded_masked_periodic_via_fenced"
+        if cross != expected_cross:
+            raise AuditError(
+                f"phase.cross_section {cross!r} disagrees with solver method; "
+                f"expected {expected_cross!r}")
+    return {"t_pd_ps_per_mm": tpd, "f_ghz": freq,
+            "deg_per_mm": 0.360 * freq * tpd,
+            "epsilon_eff": float(eps_eff) if eps_eff is not None else None,
+            "z0_ohm": float(z0) if z0 is not None else None,
+            "solver_evidence": str(evidence) if evidence else None}
+
+
 def grade(proj, board_override=None):
     proj = Path(proj)
     groups, decl = load_groups(proj)
@@ -997,9 +1065,10 @@ def grade(proj, board_override=None):
         stack = d.get("stackup_mm")
         tol = d.get("max_spread_mm", "report")
         top = d.get("topology", "chain")
+        phase = phase_constants(proj, d)
         row = {"name": gname, "adr": d["adr"], "topology": top,
                "max_spread_mm": tol, "members": [], "verdict": "PASS",
-               "why": "", "spread_mm": None}
+               "why": "", "spread_mm": None, **phase}
         # THE OCTILINEAR FLOOR RUNS FIRST, AND FROM PADS ONLY. It does not
         # touch copper, so it grades a PLACED-BUT-UNROUTED board — which is
         # the whole point (canon M-ENTRY: check the fact where it ENTERS).
@@ -1123,8 +1192,9 @@ def grade(proj, board_override=None):
             res["fails"].append(
                 f"R-LEN-SPREAD [{gname}] realized copper spread "
                 f"{spread:.4f} mm exceeds max_spread_mm {tol} (ADR-{d['adr']}). "
-                f"At {DEG_PER_MM_6GHZ:.2f} deg/mm that is "
-                f"{spread * DEG_PER_MM_6GHZ:.2f} deg at 6 GHz. Members: "
+                f"At {row['deg_per_mm']:.2f} deg/mm that is "
+                f"{spread * row['deg_per_mm']:.2f} deg at "
+                f"{row['f_ghz']:g} GHz. Members: "
                 + ", ".join(f"{m['name']}={m['total_mm']:.4f}"
                             for m in row["members"]))
         pin = d.get("pin")
@@ -1138,7 +1208,8 @@ def grade(proj, board_override=None):
                     f"published number: measured spread {spread:.4f} mm vs "
                     f"pinned {pin['spread_mm']} +-{pin['tol_mm']} mm "
                     f"(drift {drift:.4f} mm = "
-                    f"{drift * DEG_PER_MM_6GHZ:.2f} deg at 6 GHz, measured_on "
+                    f"{drift * row['deg_per_mm']:.2f} deg at "
+                    f"{row['f_ghz']:g} GHz, measured_on "
                     f"{pin.get('measured_on', '?')}). The published delta no "
                     f"longer describes this board — re-measure and re-publish.")
         res["groups"].append(row)
@@ -1165,13 +1236,18 @@ def report(res, out=print, verbose=True):
             f"topology={g.get('topology')}  spread={sp}  "
             f"ceiling={g.get('max_spread_mm')}")
         if g.get("spread_mm") is not None:
-            out(f"      = {g['spread_mm'] * T_PD_PS_PER_MM:.3f} ps, "
-                f"{g['spread_mm'] * DEG_PER_MM_6GHZ:.2f} deg at 6 GHz "
-                f"({T_PD_PS_PER_MM} ps/mm, {DEG_PER_MM_6GHZ} deg/mm derived)")
+            out(f"      = {g['spread_mm'] * g['t_pd_ps_per_mm']:.3f} ps, "
+                f"{g['spread_mm'] * g['deg_per_mm']:.2f} deg at "
+                f"{g['f_ghz']:g} GHz ({g['t_pd_ps_per_mm']:.6f} ps/mm, "
+                f"{g['deg_per_mm']:.6f} deg/mm derived)")
+            if g.get("solver_evidence"):
+                out(f"      solver: {g['solver_evidence']}  "
+                    f"eps_eff={g['epsilon_eff']:.6f}  Z0={g['z0_ohm']:.3f} ohm")
         if g.get("oct_spread_mm") is not None:
             out(f"      OCTILINEAR FLOOR (pads alone, no copper): spread "
                 f"{g['oct_spread_mm']:.4f} mm = "
-                f"{g['oct_spread_mm'] * DEG_PER_MM_6GHZ:.2f} deg at 6 GHz, "
+                f"{g['oct_spread_mm'] * g['deg_per_mm']:.2f} deg at "
+                f"{g['f_ghz']:g} GHz, "
                 f"moves={g.get('router_moves')}")
             if verbose:
                 for mn, v in g.get("oct_floor_mm", {}).items():

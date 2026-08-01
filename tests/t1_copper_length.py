@@ -42,6 +42,7 @@ The other headline is the M1 independence claim:
 pcbnew's own `PCB_TRACK.GetLength()` on four real routed boards. Measured at
 landing: **351 nets, 0 disagreements above 1 um.**
 """
+import json
 import math
 import re
 import sys
@@ -256,6 +257,45 @@ def t_matched_pair_passes():
     # a member is a CHAIN of nets, which is the thing declaring only the first
     # net would have got wrong.
     contains(r.out, "20.0000 mm", "per-member realized length")
+
+
+@test("a solver-bound phase tuple is consumed once and any declaration/artifact "
+      "disagreement is UNGRADED")
+def t_solver_bound_phase_tuple():
+    phase = ("    phase:\n"
+             "      t_pd_ps_per_mm: 5.942081\n"
+             "      f_ghz: 6.0\n"
+             "      stackup: JLC04121H-7628\n"
+             "      cross_section: coplanar_grounded_masked_periodic_via_fenced\n"
+             "      epsilon_eff: 3.173354\n"
+             "      z0_ohm: 52.087735\n"
+             "      solver_evidence: 06_build/verify/cpwg_field.json")
+    d = scratch(pair_decl(tol=1.0, extra=phase),
+                segs=[straight("ARM1_A", 1.0, 8.0),
+                      straight("ARM1_B", 2.0, 12.0),
+                      straight("ARM2_A", 3.0, 12.0),
+                      straight("ARM2_B", 4.0, 8.0)])
+    ev = d / "06_build" / "verify" / "cpwg_field.json"
+    ev.parent.mkdir(parents=True)
+    ev.write_text(json.dumps({
+        "method": "periodic_3d_finite_volume_quasistatic_dual_capacitance",
+        "model": {"stackup": "JLC04121H-7628", "frequency_ghz": 6.0},
+        "result": {"t_pd_ps_per_mm": 5.9420811158,
+                   "epsilon_eff": 3.1733542631,
+                   "z0_ohm": 52.0877346183},
+    }))
+    r = must_pass(run([KPY, LEN, d, "--strict"]), "solver-bound tuple")
+    contains(r.out, "solver: 06_build/verify/cpwg_field.json",
+             "the consumed evidence is visible")
+    contains(r.out, "Z0=52.088 ohm", "the solver result reaches the report")
+
+    nets = d / "03_src" / "rules" / "nets.yaml"
+    nets.write_text(nets.read_text().replace("z0_ohm: 52.087735",
+                                              "z0_ohm: 50.0"))
+    bad = run([KPY, LEN, d, "--strict"])
+    eq(bad.rc, 2, "a solver/declaration mismatch is ungraded, never pass")
+    contains(bad.out, "phase.z0_ohm", "the disagreeing field is named")
+    contains(bad.out, "disagrees", "with the reason")
 
 
 @test("the phase conversion is reported, not just the millimetres")

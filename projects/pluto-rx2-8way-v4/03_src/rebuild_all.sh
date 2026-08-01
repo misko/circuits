@@ -202,6 +202,16 @@ kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
 
+# [10a] RF field evidence and single-source phase check.  The periodic 3-D
+# solve includes the actual mask and conservative via-fence unit cell; R-LEN
+# consumes the constants declared beside that solve rather than a fleet-wide
+# hard-coded bare-microstrip value.
+KRT_PY="$HOME/gits/KiCadRoutingTools/.venv/bin/python"
+[ -x "$KRT_PY" ] || { echo "GATE FAILED [10a] RF-SOLVE: missing $KRT_PY"; exit 1; }
+"$KRT_PY" 03_src/cpwg_field_solver.py --output 06_build/verify/cpwg_field.json
+$PY "$S/copper_length_audit.py" . --strict \
+    || { echo "GATE FAILED [10a] R-LEN: realized phase geometry/constants"; exit 1; }
+
 # [10c] GG-*: OBSERVED grading — canon M-COVER's observation arm.  [SHARED]
 # Every gate above printed `N graded / M total`. This one RE-RUNS a derived
 # battery of them under `skills/kicad-pcb/gradelib/` and grades what they

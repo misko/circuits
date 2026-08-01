@@ -1012,6 +1012,49 @@ def t_kb_stackup_cardinality():
               "copper_thickness_mm must contain exactly 2 entries")
 
 
+@test("board-level via protection emits parseable capping/filling setup tokens")
+def t_via_protection():
+    def mutate(c):
+        c["board"]["via_protection"] = {"capping": True, "filling": True}
+    d, cfg = scratch_config(mutate)
+    out = d / "b.kicad_pcb"
+    r = gen(cfg, out)
+    contains(r.out, "via protection authored (board-level): capping=yes, filling=yes",
+             "generator stdout")
+    text = out.read_text()
+    eq(len(re.findall(r"\(capping yes\)", text)), 1,
+       "generated board capping token")
+    eq(len(re.findall(r"\(filling yes\)", text)), 1,
+       "generated board filling token")
+    check("(capping no)" not in text and "(filling no)" not in text,
+          "generator left contradictory disabled via-protection tokens")
+    # The text injection must be native pcbnew state, not a comment-like patch:
+    # downstream route/stitch stages load and save the board repeatedly.
+    roundtrip = d / "roundtrip.kicad_pcb"
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "pcbnew.SaveBoard(sys.argv[2],b)\n"
+            "print('@@%d' % len(list(b.GetFootprints())))\n")
+    rr = must_pass(run([KPY, "-c", code, out, roundtrip]),
+                   "via-protection roundtrip")
+    contains(rr.out, "@@33", "via-protection parse")
+    contains(roundtrip.read_text(), "(capping yes)",
+             "round-tripped board capping token")
+    contains(roundtrip.read_text(), "(filling yes)",
+             "round-tripped board filling token")
+
+
+@test("invalid via-protection values fail before a board can claim a process",
+      kind="known_bad")
+def t_kb_via_protection_value():
+    def mutate(c):
+        c["board"]["via_protection"] = {"capping": "sometimes"}
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "invalid via-protection value",
+              "board.via_protection.capping must be a boolean (yes/no)")
+
+
 @test("M-REPRO: two runs from identical source are BYTE-IDENTICAL, and no "
       "two objects share a UUID", kind="known_bad")
 def t_uuid_determinism():

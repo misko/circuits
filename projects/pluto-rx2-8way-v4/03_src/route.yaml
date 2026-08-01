@@ -294,7 +294,7 @@ route:
     # along the pad-to-pad chord): ANT1, ANT2, ANT4, ANT5, ANT6 and RX2_OUT
     # each carried ONE jog where the realized conductor is 0.600 mm wide over a
     # 0.555 mm run — 67 % over the 0.360 mm impedance width — while ANT3 and
-    # ANT7 carried NONE. At w = 0.600 the section is 37.17 ohm against a 51.25
+    # ANT7 carried NONE. At w = 0.600 the section is 37.17 ohm against a 52.09
     # ohm line: |Gamma| = 0.0389, RL -28.2 dB, VSWR 1.081 per jog. The cause is
     # arithmetic: a 0.2 mm meander amplitude on a 0.360 mm trace makes limbs
     # 0.200 mm apart carrying 0.360 mm of copper, so they SELF-OVERLAP into a
