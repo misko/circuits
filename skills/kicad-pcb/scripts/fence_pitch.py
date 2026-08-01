@@ -84,7 +84,7 @@ for fp in bd.GetFootprints():
 
 xs = sorted({round(x, 3) for x, y in vias})
 ys = sorted({round(y, 3) for x, y in vias})
-print(f"board:            {BOARD}")
+print(f"input: board =    {BOARD}")
 print(f"GND fence elements: {len(vias)}  (of which PTH GND pads/posts: {posts})")
 print(f"lattice columns:  {len(xs)}   rows: {len(ys)}")
 if len(xs) > 2:
@@ -205,6 +205,7 @@ for net in ARMS + OTHER_RF:
 
 print(f"\nWORST interior along-arm gap: {worst:.4f} mm  [{worst_where}]"
       f"   ({rows} arm-sides measured, {len(over)} OVER)")
+print(f"coverage: {rows}/{2 * len(ARMS + OTHER_RF)} configured arm-sides graded")
 print(f"BOUND: <= {BOUND} mm  (ARCHITECTURE sec 6 / ADR-0004: GCPW "
       f"ground-stitch, lambda_pp/20 = lambda_0/sqrt(er)/20 = 1.1910 mm)")
 fail = worst > BOUND + 1e-9

@@ -53,6 +53,7 @@ from harness import (ROOT, SCRIPTS, KPY, check, contains, eq, main, must_fail,
                      must_pass, not_contains, run, test, tmpdir)
 
 LEN = SCRIPTS / "copper_length_audit.py"
+FENCE = SCRIPTS / "fence_pitch.py"
 
 # Real routed copper. All read-only. The sealed release sources are IMMUTABLE
 # and are used deliberately (canon M-SHIP: grade the shipped bytes) — and
@@ -154,6 +155,24 @@ def board_text(segs=(), vias=(), arcs=(), zones=(), pads=()):
         out += footprint_text(ref, at, rot, pd)
     out.append(')')
     return "\n".join(out) + "\n"
+
+
+def fence_board_text(gap):
+    """A real saved-board fixture with one ANT1 arm and two GND-via rows."""
+    vias = []
+    for y in (-1.0, 1.0):
+        for x in (1.0, 1.0 + gap):
+            vias += ["\t(via", f"\t\t(at {x} {y})", "\t\t(size 0.25)",
+                     "\t\t(drill 0.15)", "\t\t(layers \"F.Cu\" \"B.Cu\")",
+                     "\t\t(net 1)", "\t)"]
+    return "\n".join([
+        "(kicad_pcb", "\t(version 20241229)",
+        "\t(generator \"t1_fence_pitch\")", "\t(general (thickness 1.2))",
+        LAYERS.rstrip("\n"), "\t(net 0 \"\")", "\t(net 1 \"GND\")",
+        "\t(net 2 \"ANT1\")", "\t(segment", "\t\t(start 0 0)",
+        "\t\t(end 8 0)", "\t\t(width 0.36)", "\t\t(layer \"F.Cu\")",
+        "\t\t(net 2)", "\t)", *vias, ")", "",
+    ])
 
 
 def scratch(decl, segs=(), vias=(), arcs=(), zones=(), name="fix", pads=None):
@@ -837,6 +856,28 @@ def t_oct_no_pad_pair_unreached():
     contains(r.out, "R-LEN-OCT-UNREACHED", "the finding is named")
     contains(r.out, "3 pad(s) on the board, not 2", "with the measured count")
     not_contains(r.out, "PASS R-LEN", "and it is never a pass")
+
+
+@test("saved-board fence_pitch fails an over-bound realized aperture and "
+      "passes a closed one", kind="known_bad")
+def t_fence_pitch_red_and_green():
+    d = tmpdir("ct_fence_")
+    bad = d / "bad.kicad_pcb"
+    good = d / "good.kicad_pcb"
+    bad.write_text(fence_board_text(2.0))
+    good.write_text(fence_board_text(1.0))
+
+    r_bad = must_fail(run([KPY, FENCE, bad, "2.5", "1.1910"]),
+                      "realized fence aperture over the bound")
+    contains(r_bad.out, "VERDICT: FAIL", "the red fixture bites")
+    contains(r_bad.out, "input: board =", "G-INPUT names the saved board")
+    contains(r_bad.out, "coverage:", "G-COVER prints the denominator")
+
+    r_good = must_pass(run([KPY, FENCE, good, "2.5", "1.1910"]),
+                       "realized fence aperture inside the bound")
+    contains(r_good.out, "VERDICT: PASS", "the gate is satisfiable")
+    contains(r_good.out, "2/22 configured arm-sides graded",
+             "the denominator exposes the intentionally small fixture")
 
 
 @test("the schema is self-documenting and the gate obeys G-INPUT/G-COVER")
