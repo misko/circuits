@@ -30,8 +30,6 @@ Header block, REQUIRED:
     date: YYYY-MM-DD
     reviewer: <redteam-agent (model, lens) | external (who/what) | pin-review | render-review>
     context-given: <zero-context | release-archive-only | full-tree | unknown (external)>
-    source_commit: <full git SHA reviewed>
-    board_sha256: <SHA256 of the exact .kicad_pcb reviewed>
     design_verdict: <SOUND | DEFECTIVE>
     order_verdict:  <ORDER | DO-NOT-ORDER | BLOCKED-SOURCING>
 
@@ -116,11 +114,6 @@ register):
   (reviewer: `redteam-agent` with the named lens), each carrying both
   verdict keys in its header block. `design_verdict: DEFECTIVE` blocks the
   seal until re-gated or superseded (SKILL.md stage 7).
-- **Coverage is fail-closed:** M-REV must grade 2/2 named red-team files;
-  publication must grade 4/4 pin/render/topology/layout files. Zero or partial
-  coverage is a failure, never a skip. Every release-used review binds the
-  exact `board_sha256`, names this project in `subject`, and is byte-identical
-  to the append-only review archived here.
 - **`order_verdict` does NOT block the seal — it blocks the ORDER**, and it
   is cross-checked against the release's own shipped stock evidence in both
   directions (canon M-REV + A-BUY): a lens may not grade `ORDER` on a

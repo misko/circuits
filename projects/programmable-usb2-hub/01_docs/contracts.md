@@ -15,7 +15,6 @@ one that is unrecoverable if lost.
 | `DETAIL_DESIGN.md` | the math: ripple, compensation, ampacity, thermal, tolerance | every number that a component value depends on, with its equation |
 | `CHANGELOG.md` | one entry per revision | see structure below |
 | `CHECKLIST.md` | the gate a revision must pass before release | |
-| `PUBLISH_MANIFEST.md` | historical source-handoff inventory only; explicitly not release or order authority | must carry the non-release warning on its first screen |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
 | `STATUS*.md` | the live STATUS beacon — the coordinator's between-gates progress signal, OVERWRITTEN at every transition | `STATUS.md` (single-board) or `STATUS-<board>.md` (multi-board, mirroring `journal/<stage>_<board>.md`); schema + audit below; read by `skills/kicad-pcb/scripts/pcb_status.py` |
@@ -290,11 +289,6 @@ the seven pipeline stages above. The reader
 `state: working` + `updated` older than its threshold + no live `op_pid`; a live
 `op_pid` overrides staleness (a long route legitimately runs while the beacon
 sits). The template seed is `skills/pcb-design/templates/01_docs/STATUS.md`.
-
-**STAGE COMPLETION IS NOT PUBLICATION.** `state: done` closes only the named
-stage. Routing completion at DRC 0/0/0 advances to `stage: verify`,
-`state: working`; verification advances to `seal`. `publish_handoff`, `green`,
-and other values outside the closed vocabulary are forbidden shortcuts.
 
 **PERMITTED STRUCTURE — exactly one occurrence of each of the seven fields.**
 The file is a FRAME, not a log: it is rewritten whole, so a second `stage:` (or

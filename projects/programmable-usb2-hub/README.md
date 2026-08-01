@@ -6,9 +6,7 @@ per-port power switching, physical D+/D- connection control, fault and power
 telemetry, and a host utility that combines commanded state with the hub's
 actual attach/enumeration state.
 
-Status: canonical layout and fabrication preflight complete; independent
-verification and sealing are still pending. The board is not released or
-order-authorized.
+Status: commission complete; architecture and sourcing spike in progress.
 
 Current release: none.
 

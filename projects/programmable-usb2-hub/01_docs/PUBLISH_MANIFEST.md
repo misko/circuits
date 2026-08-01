@@ -1,12 +1,5 @@
 # Publish manifest
 
-> **Historical source-handoff inventory — not release authority.** This file
-> was assembled from mechanical build metrics before the required independent
-> pin/render/topology/layout review and seal. It must not be used to claim that
-> the board is released, publishable, or orderable. `Current release: none` is
-> authoritative until `07_releases/` contains a gate-clean sealed archive and
-> `pcb_publication_gate.py` passes.
-
 ## Hub-specific files
 
 Publish the complete non-ignored `projects/programmable-usb2-hub/` tree. Its

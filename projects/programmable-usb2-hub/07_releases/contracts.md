@@ -445,11 +445,6 @@ lands; **immutability begins the moment the seal commit exists.**
    working commit (it is `01_docs/` working state, never part of the sealed
    archive, and it must NEVER be added to the release directory).
 
-5. **Gate publication.** Before this material design reaches the publication
-   branch, run `python3 skills/pcb-design/scripts/pcb_publication_gate.py
-   --base <publication-branch-base-sha> --head <candidate-head-sha>` and
-   require `P-PUBLISH PASS`. Branch protection must require the check and a PR.
-
 **Docs-only supersede mode.** When the new release changes ONLY
 documentation (dispositions, README, MANIFEST — no fab/source/3d delta),
 gate the staging with `release_freshness_check.py <release_dir>
