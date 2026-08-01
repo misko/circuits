@@ -1026,10 +1026,16 @@ class BoardBuilder:
         downstream and nothing forced it to run; this makes the placement stage
         refuse to hand on a board that is already electrically dead.
 
-        Two findings, DELIBERATELY graded differently:
+        Three findings, DELIBERATELY graded differently:
           * SHORT (FATAL)   — copper of two pads on DIFFERENT nets overlaps.
                               There is no such thing as an acceptable short, so
                               there is no waiver and no threshold.
+          * OVERLAP (FATAL) — copper of two pads in DIFFERENT footprints but on
+                              the SAME net overlaps or touches. Connectivity is
+                              explicit track/zone copper, never coincident land
+                              geometry. Same-footprint composite pads remain
+                              legal. The post-build P-PADSEP gate additionally
+                              enforces the fab-tier positive-gap floor + paste.
           * PINNED-LAP (WARN) — two ANCHORED footprints' courtyards overlap.
                               The legalizer cannot resolve this one, so it is a
                               source defect in floorplan.yaml rather than a
@@ -1059,12 +1065,12 @@ class BoardBuilder:
                              pcbnew.ToMM(bb.GetLeft()), pcbnew.ToMM(bb.GetTop()),
                              pcbnew.ToMM(bb.GetRight()), pcbnew.ToMM(bb.GetBottom())))
         pads.sort(key=lambda r: r[3])
-        shorts, cache = [], {}
+        overlaps, cache = [], {}
         for i, (r1, p1, n1, l1, t1, x1, b1) in enumerate(pads):
             for r2, p2, n2, l2, t2, x2, b2 in pads[i + 1:]:
                 if l2 > x1:
                     break                       # sweep: no later pad can touch
-                if r1 == r2 or n1 == n2 or t1 > b2 or t2 > b1:
+                if r1 == r2 or t1 > b2 or t2 > b1:
                     continue
                 if not any(p2.GetLayerSet().Contains(l)
                            for l in p1.GetLayerSet().CuStack()):
@@ -1073,10 +1079,11 @@ class BoardBuilder:
                     if k not in cache:
                         cache[k] = self._pad_poly(pp)
                 if self._polys_overlap(cache[id(p1)], cache[id(p2)]):
-                    shorts.append((r1, p1.GetNumber(), n1,
-                                   r2, p2.GetNumber(), n2,
-                                   min(x1, x2) - max(l1, l2),
-                                   min(b1, b2) - max(t1, t2)))
+                    overlaps.append(("OVERLAP" if n1 == n2 else "SHORT",
+                                     r1, p1.GetNumber(), n1,
+                                     r2, p2.GetNumber(), n2,
+                                     min(x1, x2) - max(l1, l2),
+                                     min(b1, b2) - max(t1, t2)))
         laps = []
         pin = [f for f in self.board.GetFootprints()
                if f.GetReference() in self.pinned]
@@ -1098,10 +1105,10 @@ class BoardBuilder:
                   f"by {ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
                   f"legalizer cannot fix it; fix placement.anchors "
                   f"(full-severity DRC will fail this as courtyards_overlap)")
-        if shorts:
-            msg = ["P-COLLIDE: this placement is electrically dead."]
-            for r1, pn1, n1, r2, pn2, n2, ox, oy in sorted(shorts):
-                msg.append(f"  SHORT      {r1}.{pn1} [{n1}] <-> {r2}.{pn2} "
+        if overlaps:
+            msg = ["P-COLLIDE: this placement has inter-footprint pad overlap."]
+            for kind, r1, pn1, n1, r2, pn2, n2, ox, oy in sorted(overlaps):
+                msg.append(f"  {kind:<10} {r1}.{pn1} [{n1}] <-> {r2}.{pn2} "
                            f"[{n2}]  pad copper overlaps "
                            f"(bbox {ox:.3f} x {oy:.3f} mm)")
             for a, b, ox, oy in sorted(laps):
@@ -1109,7 +1116,8 @@ class BoardBuilder:
                            f"{ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
                            f"legalizer cannot fix it: fix placement.anchors")
             die("\n".join(msg))
-        self.say(f"P-COLLIDE: 0 pad shorts, {len(laps)} anchored courtyard "
+        self.say(f"P-COLLIDE: 0 inter-footprint pad overlaps/shorts, "
+                 f"{len(laps)} anchored courtyard "
                  f"overlap(s) ({len(pads)} copper pads, {len(pin)} anchored "
                  f"parts)")
 

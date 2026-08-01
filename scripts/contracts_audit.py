@@ -177,15 +177,12 @@ DEBT_CEILING = {
 # the tree may hold uncommitted work — and it is unmoved by how much work
 # happens inside a corner already declared.
 #
-# MEASURED 2026-07-31 in /home/mouse9911/gits/circuits: 109 untracked-not-
-# ignored files, all in the one unit below. THE SCOPING CONTROL PASSES: the
-# eleven `~*.kicad_pro.lck` files (four inside SEALED releases) are gitignored
-# as of this morning and this population reports ZERO of them.
-STRAY_UNITS = {
-    "projects/programmable-usb2-hub": (
-        "in-flight commission, uncommitted as of 2026-07-31; 109 files, "
-        "template-seeded so its own contracts govern it already"),
-}
+# MEASURED 2026-08-01 after the programmable-usb2-hub source handoff landed:
+# zero untracked-not-ignored units remain. The temporary exemption was removed
+# in the same process-hardening change; a stale exemption is itself a failure.
+# THE SCOPING CONTROL still passes: `~*.kicad_pro.lck` files are gitignored and
+# never enter this population.
+STRAY_UNITS = {}
 
 
 def _git(root, *args):

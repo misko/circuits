@@ -33,6 +33,7 @@ via an explicit pattern (see the coverage rule below).
 | `CLAUDE.md` | binding agent instructions |
 | `contracts.md` | this file |
 | `.gitignore` | build/cache exclusions |
+| `.github/` | repository automation and publication checks (own contract) |
 | `resume_state.md` | session-resume snapshot (superseded by commits as they land) |
 | `skills/` | the product: pcb-design, kicad-pcb, jlcpcb-fab, shopping-list (own contract) |
 | `docs/` | repo-level canon: ADRs + proof docs (own contract) |

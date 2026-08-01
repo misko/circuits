@@ -345,15 +345,15 @@ route:
        max_probe_iterations: 60000, max_ripup: 30}
     - {name: sig,  group: sig,  keepout_layer: User.3, max_iterations: 600000,
        max_probe_iterations: 60000, max_ripup: 30}
-  # r0 plus the five ordered waves above yields r5. The fresh v4 race used
-  # three candidates; all three measured CLEAN before stitching (zero
-  # unconnected items and zero copper violations), so deterministic tie-break
-  # selected c0. No copper from an earlier board identity is promoted here.
-  # The promoted source then received two deterministic pre-seal repairs:
-  # 3V3 skirts the physical U_MCU live-pad rule area, and SW_V4 changes at
-  # vias to In2.Cu for the ANT4-adjacent span. In1.Cu carries no tracks and
-  # remains the continuous GND reference. audit_board.py binds these facts to
-  # exact board geometry after every promoted-chain rebuild.
+  # r0 plus the five ordered waves above yields r5. The 2026-08-01 pad-
+  # separation reroute used a three-candidate race; all three reached zero
+  # unconnected items. Deterministic tie-break selected c0, then two bounded
+  # repairs restored the already-reviewed physical intent: KRT's 0.3998 mm
+  # 3V3 serialization undershoot was raised to the 0.4000 mm PWR floor, and
+  # SW_V4 retained its collision-free fresh lower escape while crossing the
+  # ANT4-adjacent span on In2.Cu. No RF-arm copper changed. In1.Cu carries no
+  # tracks and remains the continuous GND reference. audit_board.py binds
+  # these facts to exact board geometry after every promoted-chain rebuild.
   final: 03_src/route/r5.kicad_pcb
 
 stitch:
@@ -522,10 +522,12 @@ stitch:
       # re-race of the ctrl wave moves that copper and these must be
       # re-derived, not carried. Re-run fence_sites.py after any route change.
       - {net: GND, vias: [[39.610, 56.460]]}     # ANT4     W
-      # The fresh v4 route occupies the former (41.560, 58.150) site; the
-      # stitcher's exact collision gate refused it. It is deliberately
-      # omitted and the saved board is re-graded for the resulting aperture.
-      - {net: GND, vias: [[41.060, 59.300]]}     # ANT4     W
+      # The fresh v4 route occupies both the former (41.560, 58.150) site and,
+      # after the 2026-08-01 module-pad separation reroute, (41.060, 59.300).
+      # The stitcher's exact collision gate refused each stale site.  The
+      # replacement below is the nearest legal 0.25/0.15 site on the rerouted
+      # artifact, 0.300 mm west, and remains outside the 0.5 mm dedupe box.
+      - {net: GND, vias: [[40.760, 59.300]]}     # ANT4     W
       - {net: GND, vias: [[40.860, 60.450]]}     # ANT4     W
       - {net: GND, vias: [[44.647, 52.860]]}     # ANT5     E
       - {net: GND, vias: [[56.150, 23.640]]}     # RX1_MAIN W
@@ -569,7 +571,11 @@ stitch:
       # both pass via_site_ok for 0.25/0.15 mm, 0.155 mm hole-to-copper and
       # 0.315 mm hole-to-hole on all four copper layers. Rebuild and the shared
       # fence_pitch gate below are the authority on the resulting wall.
-      - {net: GND, vias: [[41.060, 57.800]]}     # ANT4 W; 1.200 -> 0.800 max
+      # The rerouted SW_V3 trace crosses the former (41.060, 57.800) barrel.
+      # This is the nearest exact-collision-legal replacement outside the
+      # stitcher's 0.5 mm dedupe box; the saved-board fence gate remains the
+      # authority on the resulting aperture.
+      - {net: GND, vias: [[41.010, 57.475]]}     # ANT4 W; remeasure below
       - {net: GND, vias: [[46.312, 42.281]]}     # ANT7 W; 1.830 -> 1.150 max
       # ============ LAUNCH RELIEF, 8 BARRELS: THE HOLE CLASS ============
       # THESE EIGHT ARE NOT FENCE REPAIRS. They are the SAME lattice sites the

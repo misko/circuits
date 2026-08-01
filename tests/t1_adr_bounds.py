@@ -786,13 +786,13 @@ def t_blindspot_a_bound_typed_only_in_prose_is_read_by_nothing():
 # RED VERIFICATION
 # ===========================================================================
 
-@test("RED (1): four gates reach ADR paths and NONE of them reads a NUMBER out "
+@test("RED (1): five gates reach ADR paths and NONE of them reads a NUMBER out "
       "of one — the pre-fix state, measured rather than assumed")
 def t_red_no_pre_existing_gate_reads_a_number_out_of_an_adr():
     """There is no earlier version of this checker to swap back in, so the
     pre-fix baseline is measured directly — and the first measurement was WRONG
     in the safe direction, which is worth recording. "Nothing reaches the
-    decisions folder" is false: FOUR scripts do.
+    decisions folder" is false: FIVE scripts do.
 
     MEASURED at this commit, and inspected one by one:
 
@@ -808,6 +808,10 @@ def t_red_no_pre_existing_gate_reads_a_number_out_of_an_adr():
                                 does not).
       power_topology.py         keyword-matches the first 400 characters for
                                 batter|lipo|cell|pack to classify the supply.
+      pcb_publication_gate.py   passes the decisions directory as a `git diff`
+                                pathspec to detect material design drift. It
+                                never opens an ADR; the proxy sees its review
+                                `read_text` calls elsewhere in the same file.
 
     Not one of them extracts a quantity. `R_pd <= 592 Ohm` was a title away from
     every gate in the tree, sat in a live document through a full revision
@@ -815,8 +819,8 @@ def t_red_no_pre_existing_gate_reads_a_number_out_of_an_adr():
 
     THE ASSERTION IS SET EQUALITY, and it is a proxy stated as one: proving "no
     ADR-derived string ever reaches a numeric comparison" needs a dataflow pass,
-    so what is pinned instead is the READER SET. A fourth reader — or one of
-    these three growing a number parser — breaks this test and forces the
+    so what is pinned instead is the READER SET. A sixth reader — or one of
+    these five growing a number parser — breaks this test and forces the
     inspection above to be redone, which is the property that actually rots."""
     readers = []
     for p in sorted(ROOT.glob("skills/*/scripts/*.py")):
@@ -827,15 +831,17 @@ def t_red_no_pre_existing_gate_reads_a_number_out_of_an_adr():
                 r"read_text|open\(|glob\(", t):
             readers.append(p.name)
     eq(readers, ["electrical_invariants.py", "module_first_check.py",
-                 "policy_audit.py",
-                 "power_topology.py"],
+                 "policy_audit.py", "power_topology.py",
+                 "pcb_publication_gate.py"],
        "the set of ADR-reading gates changed. Re-inspect each one: if any now "
        "grades a NUMBER out of an ADR, this gate overlaps it and the incident "
        "claim in its docstring needs re-measuring")
-    # and positively: none of the four carries the shape that finds a published
+    # and positively: none of the five carries the shape that finds a published
     # bound in prose at all — an inequality operator followed by a number.
     for name in readers:
-        t = (SCRIPTS / name).read_text(errors="replace")
+        matches = list(ROOT.glob(f"skills/*/scripts/{name}"))
+        eq(len(matches), 1, f"reader {name} resolves to one gate")
+        t = matches[0].read_text(errors="replace")
         check("<=|>=" not in t and "≤" not in t,
               f"{name} now carries an inequality-matching pattern — check "
               f"whether it reads a published bound, and re-measure")

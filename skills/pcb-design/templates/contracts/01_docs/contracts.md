@@ -302,6 +302,13 @@ the seven pipeline stages above. The reader
 `op_pid` overrides staleness (a long route legitimately runs while the beacon
 sits). The template seed is `skills/pcb-design/templates/01_docs/STATUS.md`.
 
+**STAGE COMPLETION IS NOT PUBLICATION.** `state: done` closes only the named
+stage. Routing completion at DRC 0/0/0 must immediately advance the frame to
+`stage: verify`, `state: working`; verification advances to `seal`. Only a
+completed seal can name a release. `publish_handoff`, `green`, and other
+out-of-vocabulary values are forbidden because they manufacture a shortcut
+around the state machine.
+
 **PERMITTED STRUCTURE — exactly one occurrence of each of the seven fields.**
 The file is a FRAME, not a log: it is rewritten whole, so a second `stage:` (or
 `step:`, `measure:`, `state:`, `next:`, `op_pid:`, `updated:`) means someone

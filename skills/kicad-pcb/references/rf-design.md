@@ -384,6 +384,20 @@ lands after that seal, and this proposal is the handoff.
 
 Mapped onto `skills/pcb-design/SKILL.md`.
 
+The executable applicability/requirements home is `03_src/rules/rf.yaml`,
+graded by `scripts/rf_contract_check.py`. New boards keep the file even when RF
+is disabled, with a rationale. When enabled, it names the exact artifact and
+requirement IDs for three independent phases; zero requirements is a failure:
+
+- RF schematic: `references/rf-schematic-review-protocol.md`;
+- RF PCB: `references/rf-pcb-review-protocol.md`;
+- plotted fab output: `references/rf-fab-review-protocol.md`.
+
+Risk tier follows electrical length and the claimed performance (impedance,
+phase, loss, isolation), not a frequency label alone. A slow clock edge can be
+an RF problem and a high carrier inside a fully integrated shielded module may
+not create a board-level controlled-impedance path.
+
 - **Stage 2/3 (parts, source).** Choose the most integrated part (rule 2). Copy
   the vendor reference layout (rule 4) and RECORD the comparison — deviating
   here is how both fleet land defects happened. Declare the stackup ONCE and
@@ -394,7 +408,9 @@ Mapped onto `skills/pcb-design/SKILL.md`.
   assembled from two of them (4A(i)).
 - **Stage 4 (schematic).** Declare `length_match:` groups now, with
   `max_spread_mm` derived from DRIFT (4b) and the phase constants attached. A
-  matched set that does not exist as a schema cannot be graded.
+  matched set that does not exist as a schema cannot be graded. Then run the
+  independent RF schematic review; a missing/partial requirement set or
+  `design_verdict: DEFECTIVE` returns to schematic work before placement.
 - **Stage 5 (placement).** Four layers, RF on top, unbroken reference beneath
   (rule 1, 3d) — exclude the reference layer from the routing layers so it
   cannot be cut. Check the **octilinear floor from pads alone** (4a) and the
@@ -406,9 +422,16 @@ Mapped onto `skills/pcb-design/SKILL.md`.
   transform over a stochastic route — but **verify WHICH transform**: on
   `pluto-cal-switch` a +14.5 mm translation and a reflection about y = 55.000
   coincide for every part A-SYM grades and diverge at the splitter, so the
-  transform is per-net and the gate cannot tell them apart.
+  transform is per-net and the gate cannot tell them apart. Run the independent
+  RF PCB review on the exact board hash before layout seal.
 - **Stage 7 (fab).** The published RF artifact (a delta, a spread) is MEASURED
-  from routed copper, never asserted from placement.
+  from routed copper, never asserted from placement. Review the exact plotted
+  Gerber/drill zip in an independent viewer and bind that hash to
+  `fab_package_verdict: READY`; JLC is not expected to design-review it.
+- **First article.** A fab-ready package authorizes a prototype, not production.
+  VNA/TDR the declared calibration plane and compare every measurement with the
+  numeric `first_article.acceptance` list. Production remains HOLD until those
+  measurements pass or a documented redesign/review loop closes the miss.
 
 ## 6. Gate proposals, ranked — and what was rejected
 

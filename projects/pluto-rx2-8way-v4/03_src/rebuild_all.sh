@@ -23,6 +23,9 @@ export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 $PY "$S/module_first_check.py" . \
     || { echo "GATE FAILED [0a] P-MOD: module-first architecture contract"; exit 1; }
 
+$PY "$S/rf_contract_check.py" . --require-applicability \
+    || { echo "GATE FAILED [0c] RF-CONTRACT: incomplete RF requirements"; exit 1; }
+
 # [0] S-COUNT pre-gate: alphanumeric pads mapped BEFORE the first tsci build —
 # tscircuit DROPS an unmapped part silently (ERC still 0, 2026-07-21 incident)
 $PY "$S/tsx_preflight.py" . \
@@ -167,6 +170,8 @@ fi
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL
 # (missing file = defaults); waivers live inside it, evidence required.
 $PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
+$PY "$S/pad_separation.py" "04_kicad/$BOARD.kicad_pcb" --project . \
+    || { echo "GATE FAILED [4b] P-PADSEP: separate footprint pads and route explicitly"; exit 1; }
 
 # [5] netclasses BEFORE route-prep (canon R1)  [SHARED]
 $PY "$S/generate_rules_generic.py" .

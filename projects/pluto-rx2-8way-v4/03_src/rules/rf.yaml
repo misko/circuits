@@ -1,0 +1,72 @@
+schema: 1
+rf:
+  enabled: true
+  rationale: >-
+    The carrier is a 70 MHz to 6 GHz phase-coherent receive switch whose
+    deliverables include 50-ohm launches, path phase, loss, and isolation.
+  risk_tier: phase-coherent
+  risk_basis: >-
+    At 6 GHz the solved guided wavelength is 28.05 mm; millimetre-scale copper
+    deltas and launch/return discontinuities materially affect the published
+    phase and impedance claims.
+  ports:
+    - id: ANTENNA_BANK
+      nets: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, ANT8]
+      band_hz: [70000000, 6000000000]
+      z0_ohm: 50
+      launch: "KH-SMA-KE-Z vertical SMA into the PE42482A-X RF fan"
+      termination: "External 50-ohm source; PE42482 RFC/RF ports"
+      reference_layer: In1.Cu
+    - id: RX_OUTPUTS
+      nets: [RX2_OUT, RX1_MAIN, RX1_TAP]
+      band_hz: [70000000, 6000000000]
+      z0_ohm: 50
+      launch: "PE42482 RFC and 2x220-ohm RX1 reference tap into vertical SMA"
+      termination: "External 50-ohm Pluto SDR receive inputs"
+      reference_layer: In1.Cu
+  cross_sections:
+    - id: CPWG_TOP_MASKED_FENCED
+      stackup_source: "JLC04121H-7628, 1.2 mm, 03_src/cpwg_field_solver.py"
+      solver: "06_build/verify/cpwg_field.json periodic 3-D finite-volume solve"
+      copper_layer: F.Cu
+      reference_layer: In1.Cu
+      dielectric_height_mm: 0.2104
+      dk: 4.4
+      target_z0_ohm: 50
+      width_mm: 0.36
+      gap_mm: 0.2005
+  performance_claims:
+    - id: RF-CLAIM-Z0
+      claim: "The realized masked/fenced F.Cu CPWG lies within 50 ohms +/-10%."
+      acceptance: "45 to 55 ohms over the declared cross-section model"
+      evidence: "06_build/verify/cpwg_field.json; converged result 52.09 ohms"
+    - id: RF-CLAIM-PHASE
+      claim: "The eight selected RF paths have bounded relative PCB copper phase."
+      acceptance: "realized routed-copper spread <= 1.0 mm"
+      evidence: "03_src/rules/nets.yaml length_match + copper_length_audit.py"
+    - id: RF-CLAIM-FENCE
+      claim: "The realized ground-via fence samples the guided field continuously."
+      acceptance: "every interior fence aperture <= 1.1910 mm"
+      evidence: "06_build/verify/fence_pitch.txt + fence_pitch.py"
+  first_article:
+    measurements:
+      - "Calibrated/de-embedded TDR impedance for every SMA launch and RF arm"
+      - "VNA S11/S21, insertion phase, path loss, RX1 tap loss, and isolation at every declared test frequency"
+      - "DC isolation at every SMA centre pin in powered, unpowered, and fault states"
+    acceptance:
+      - "TDR impedance remains 45 to 55 ohms through each board launch/path"
+      - "DC at every SMA centre remains 0 V within instrument uncertainty"
+      - "VNA data is published before production; production remains HOLD until system-level loss/isolation limits are approved"
+  reviews:
+    schematic:
+      path: 08_reviews/2026-08-01_v1.1_rf_schematic.md
+      artifact: 04_kicad/pluto_rx2_8way_v4.kicad_sch
+      requirements: [RF-SCH-TOPOLOGY, RF-SCH-RATINGS, RF-SCH-BIAS, RF-SCH-CLAIMS]
+    pcb:
+      path: 08_reviews/2026-08-01_v1.1_rf_pcb.md
+      artifact: 04_kicad/pluto_rx2_8way_v4.kicad_pcb
+      requirements: [RF-PCB-STACKUP, RF-PCB-LAUNCH, RF-PCB-RETURN, RF-PCB-LENGTH, RF-PCB-FENCE, RF-PCB-COUPLING, RF-PCB-PADSEP]
+    fab:
+      path: 08_reviews/2026-08-01_v1.1_rf_fab.md
+      artifact: 07_releases/v1.1-2026-08-01/fab/pluto_rx2_8way_v4_gerbers.zip
+      requirements: [RF-FAB-STACKUP, RF-FAB-COPPER, RF-FAB-MASK, RF-FAB-DRILL, RF-FAB-PLOT]

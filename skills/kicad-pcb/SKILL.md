@@ -133,6 +133,10 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | DRC classification, .kicad_dru patterns, JLC capability floors | `references/drc-discipline.md` |
 | Placement anchors, snap-back, proximity gates | `references/placement-and-proximity.md` |
 | Generator-driven schematics, structure links, section boxes | `references/schematic-generation.md` |
+| RF applicability, stackup/impedance/phase obligations | `references/rf-design.md` |
+| Independent RF schematic review | `references/rf-schematic-review-protocol.md` |
+| Independent RF routed-board review | `references/rf-pcb-review-protocol.md` |
+| Exact-Gerber RF fabrication review | `references/rf-fab-review-protocol.md` |
 | DeepPCB cloud API (billing traps included) | `references/deeppcb-api.md` |
 
 ## Scripts (parameterized, project-agnostic)
@@ -148,6 +152,8 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/net_label_survival.py` | S-NETMERGE gate: every schematic global_label survives to the exported netlist (kicad-cli merges touching/collinear wires silently); config = `label_survival:` block of `03_src/rules/electrical_invariants.yaml` |
 | `scripts/module_first_check.py` | P-MOD architecture gate: every complex subsystem in an adopted project is a dossier-proven module or has an evidenced D-MOD bare-IC exception; missing policy is UNMIGRATED, never PASS |
 | `scripts/placement_gates.py` | Shared placement gates P-OUT (pads inside the real Edge.Cuts polygon) + P-CAP (static corridor crossing-demand vs capacity) — post-placement, pre-routing |
+| `scripts/pad_separation.py` | P-PADSEP: separate-footprint copper must clear the fab-tier gap; exact same-net overlap/touch and foreign-pad stencil paste intrusion are fatal; same-footprint composite pads remain legal |
+| `scripts/rf_contract_check.py` | RF-CONTRACT: explicit RF applicability, ports/cross-sections/claims/first-article plan, plus exact-artifact RF schematic/PCB/fab reviews with derived nonzero requirement coverage |
 | `scripts/tier_preflight.py` | R-PREFLIGHT gate: every routing/stitch/rescue parameter with a DRC-floor twin, including nominal board-thickness/minimum-drill plated-through aspect ratio (`PF-VIA-ASPECT`), proven consistent with the declared fab tier BEFORE any KRT cycle; wired refuse-to-route into `route_and_stitch_generic route`; `--explain` prints derivations + copy-paste fixes |
 | `scripts/fence_pitch.py` | Saved-board RF ground-fence gate: reconstructs each RF F.Cu arm, projects GND vias and PTH return posts into each flank band, and fails when any realized interior aperture exceeds the declared bound |
 | `scripts/grind_driver.py` | The BOUNDED mechanical DRC grind loop: classify findings, look each class up in `references/grind_fixes.yaml`, auto-apply only conservatively-safe reruns, escalate everything else (`06_build/grind_escalation.md`, distinct exit codes). Hard stops: 0/0/0, novel class, D-BACK 3-cycle stagnation, `--max-cycles`. Journals every cycle (canon M9) |

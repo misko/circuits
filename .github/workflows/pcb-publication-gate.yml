@@ -1,0 +1,44 @@
+name: PCB publication gate
+
+on:
+  pull_request:
+    paths:
+      - "projects/**"
+      - "skills/**"
+      - "tests/**"
+      - ".github/workflows/pcb-publication-gate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "projects/**"
+      - "skills/**"
+      - "tests/**"
+      - ".github/workflows/pcb-publication-gate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  publication:
+    name: PCB publication gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Regression tests
+        run: |
+          python3 tests/t1_release_freshness.py --only='review coverage'
+          python3 tests/t1_publication_gate.py
+      - name: Grade pull-request publication boundary
+        if: github.event_name == 'pull_request'
+        run: >-
+          python3 skills/pcb-design/scripts/pcb_publication_gate.py
+          --base '${{ github.event.pull_request.base.sha }}'
+          --head '${{ github.event.pull_request.head.sha }}'
+      - name: Audit direct main updates
+        if: github.event_name == 'push'
+        run: >-
+          python3 skills/pcb-design/scripts/pcb_publication_gate.py
+          --base '${{ github.event.before }}'
+          --head '${{ github.sha }}'

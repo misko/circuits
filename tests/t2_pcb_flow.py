@@ -17,7 +17,7 @@ FLOW = SCRIPTS / "pcb_flow.py"
 
 def scratch(*, dirty=False, overlap=False, noflow=False, extra_tool=None):
     root = tmpdir("t2flow_")
-    for rel in ("02_parts/X", "03_src", "03_tscircuit/src", "04_kicad",
+    for rel in ("02_parts/X", "03_src/rules", "03_tscircuit/src", "04_kicad",
                 "06_build/drc"):
         (root / rel).mkdir(parents=True, exist_ok=True)
     copper = {
@@ -45,6 +45,11 @@ def scratch(*, dirty=False, overlap=False, noflow=False, extra_tool=None):
     (root / "03_src/route.yaml").write_text(yaml.safe_dump(route, sort_keys=False))
     (root / "03_src/floorplan.yaml").write_text("board: fixture\n")
     (root / "03_src/rebuild_all.sh").write_text("#!/bin/bash\nexit 0\n")
+    (root / "03_src/rules/rf.yaml").write_text(yaml.safe_dump({
+        "schema": 1,
+        "rf": {"enabled": False,
+               "rationale": "This orchestration fixture has no RF paths."},
+    }, sort_keys=False))
     (root / "03_tscircuit/src/fixture.tsx").write_text("export const x = 1\n")
     (root / "03_tscircuit/manifest.yaml").write_text("components: [X1]\n")
     (root / "03_tscircuit/package.json").write_text('{"name":"fixture"}\n')
@@ -125,6 +130,20 @@ def t_kb_complete_source_classes():
         path = root / rel
         path.write_text(changed)
         must_fail(flow(root, "validate"), f"stale {rel}", "source hash changed")
+
+
+@test("review archive bytes are part of the seal source witness",
+      kind="known_bad")
+def t_kb_review_mutation_stales_handoff():
+    root = scratch()
+    reviews = root / "08_reviews"
+    reviews.mkdir()
+    review = reviews / "rf_pcb.md"
+    review.write_text("design_verdict: SOUND\n")
+    must_pass(flow(root, "handoff"), "review-bound handoff")
+    review.write_text("design_verdict: DEFECTIVE\n")
+    must_fail(flow(root, "validate"), "changed review bytes",
+              "source hash changed")
 
 
 @test("shared tool identity is independently content-addressed", kind="known_bad")

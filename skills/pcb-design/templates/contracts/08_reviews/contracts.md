@@ -30,6 +30,8 @@ Header block, REQUIRED:
     date: YYYY-MM-DD
     reviewer: <redteam-agent (model, lens) | external (who/what) | pin-review | render-review>
     context-given: <zero-context | release-archive-only | full-tree | unknown (external)>
+    source_commit: <full git SHA reviewed>
+    board_sha256: <SHA256 of the exact .kicad_pcb reviewed>
     design_verdict: <SOUND | DEFECTIVE>
     order_verdict:  <ORDER | DO-NOT-ORDER | BLOCKED-SOURCING>
 
@@ -106,6 +108,24 @@ register):
 
 ## Gates
 
+### Conditional RF review subpipeline
+
+When `03_src/rules/rf.yaml` has `rf.enabled: true`, three additional reviews
+are mandatory and independent of the general topology/layout lenses:
+
+1. `RF_SCHEMATIC` before placement, following
+   `rf-schematic-review-protocol.md`;
+2. `RF_PCB` on the exact routed board before layout seal, following
+   `rf-pcb-review-protocol.md`;
+3. `RF_FAB` on the exact plotted Gerber/drill archive before prototype order,
+   following `rf-fab-review-protocol.md`.
+
+Each review path, artifact path, and non-empty requirement-ID set is declared
+in `rf.yaml`. `rf_contract_check.py` derives coverage from `requirement: <ID>
+PASS|FAIL` lines and verifies the artifact SHA; a typed count cannot create a
+pass. RF fab readiness authorizes a prototype only. Production remains HOLD
+until the declared first-article VNA/TDR acceptance measurements pass.
+
 - **A release may not seal while any CONFIRMED P0 finding lacks a `fixed`
   disposition** (red-team stage, SKILL.md stage 7).
 - **Per sealed release, BOTH red-team lenses must be present with a
@@ -114,6 +134,15 @@ register):
   (reviewer: `redteam-agent` with the named lens), each carrying both
   verdict keys in its header block. `design_verdict: DEFECTIVE` blocks the
   seal until re-gated or superseded (SKILL.md stage 7).
+- **Coverage is exact and fail-closed:** M-REV must grade 2/2 contract-named
+  red-team files. Zero or one file is `REVIEW-COVERAGE` FAIL, never "nothing
+  to grade". Publication additionally requires pin and render reviews, so the
+  publication denominator is 4/4.
+- Every release-used pin/render/topology/layout review binds the exact board
+  through `board_sha256` (a markdown exact-artifact table is accepted for
+  legacy render reviews), names this project in `subject`, and is byte-for-byte
+  identical to an append-only `.md` archived here. A review of adjacent board
+  bytes is not evidence for the released board.
 - **`order_verdict` does NOT block the seal — it blocks the ORDER**, and it
   is cross-checked against the release's own shipped stock evidence in both
   directions (canon M-REV + A-BUY): a lens may not grade `ORDER` on a

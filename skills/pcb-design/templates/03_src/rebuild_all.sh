@@ -24,6 +24,10 @@ export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 $PY "$S/module_first_check.py" . \
     || { echo "GATE FAILED [0a] P-MOD (module_first_check.py): prefer a proven module, or document why modules cannot meet a binding requirement"; exit 1; }
 
+# [0c] RF applicability/requirements are decided before schematic/layout spend.
+$PY "$S/rf_contract_check.py" . --require-applicability \
+    || { echo "GATE FAILED [0c] RF-CONTRACT: fix 03_src/rules/rf.yaml before continuing"; exit 1; }
+
 # [0] S-COUNT pre-gate: alphanumeric pads mapped BEFORE the first tsci build —
 # tscircuit DROPS an unmapped part silently (ERC still 0, 2026-07-21 incident)
 $PY "$S/tsx_preflight.py" . \
@@ -168,6 +172,12 @@ fi
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL
 # (missing file = defaults); waivers live inside it, evidence required.
 $PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
+
+# P-PADSEP — separate-footprint pads must clear the fab-tier floor even on the
+# same net; joining is explicit track/zone copper. Also catches paste over a
+# foreign land, which ordinary connectivity DRC does not consider a short.
+$PY "$S/pad_separation.py" "04_kicad/$BOARD.kicad_pcb" --project . \
+    || { echo "GATE FAILED [4b] P-PADSEP: move footprints apart and route the connection explicitly"; exit 1; }
 
 # [5] netclasses BEFORE route-prep (canon R1)  [SHARED]
 $PY "$S/generate_rules_generic.py" .

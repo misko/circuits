@@ -445,6 +445,15 @@ lands; **immutability begins the moment the seal commit exists.**
    working commit (it is `01_docs/` working state, never part of the sealed
    archive, and it must NEVER be added to the release directory).
 
+5. **Gate publication.** A seal is necessary but publication still grades the
+   repository delta: before a material PCB project reaches the publication
+   branch, run `python3 skills/pcb-design/scripts/pcb_publication_gate.py
+   --base <publication-branch-base-sha> --head <candidate-head-sha>`. Require
+   `P-PUBLISH PASS`. The gate binds live board bytes, MANIFEST source commit,
+   both existing release gates, and all four archived exact-artifact reviews.
+   Branch protection must require this check and a PR; an after-push workflow
+   cannot prevent a direct push to an unprotected branch.
+
 **Docs-only supersede mode.** When the new release changes ONLY
 documentation (dispositions, README, MANIFEST — no fab/source/3d delta),
 gate the staging with `release_freshness_check.py <release_dir>

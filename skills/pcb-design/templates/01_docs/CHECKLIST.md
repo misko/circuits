@@ -7,6 +7,9 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
       → 0 violations, 0 unconnected, 0 missing footprints
 - [ ] `03_src/audit_board.py` → PASS (placement/pad invariants)
+- [ ] `pad_separation.py 04_kicad/<board>.kicad_pcb --project .` → P-PADSEP
+      PASS: separate-footprint copper clears the fab-tier gap and paste does
+      not intrude on foreign lands
 - [ ] rules regenerate byte-identical from `03_src/rules/nets.yaml` (no hand-edits)
 - [ ] BOM ↔ `02_parts/` parity (every used part has a datasheet + facts on file)
 - [ ] `module_first_check.py .` → P-MOD PASS; every complex subsystem uses a
@@ -20,8 +23,16 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] 3D/render review: connector bodies vs mounting holes, silk collisions
 - [ ] `01_docs/CHANGELOG.md` entry written
 - [ ] anything surprising captured as an ADR in `01_docs/decisions/`
+- [ ] `03_src/rules/rf.yaml` explicitly records RF applicability. If enabled:
+      independent RF schematic review is SOUND before placement; independent
+      exact-board RF PCB review is SOUND before layout seal
 
-## Release gate (only when ordering)
+## Release and publication gate
+
+Any release, publication, ship/ready claim, or merge of material project
+changes to the publication branch requires this section. An explicitly
+unreviewed WIP may exist only on a clearly labelled branch/draft PR and is not
+mergeable.
 - [ ] release inputs clean (`git_dirty: false`, scope `projects/<board>/ + skills/` via `release_git_dirty.py <board>` — a dirty sibling board does not block)
 - [ ] tagged
 - [ ] stock re-verified TODAY (not from cache)
@@ -68,8 +79,12 @@ RELEASED must additionally pass the release gate at the bottom.
 
 - [ ] REVIEW LENSES scoped by release type (canon "Verification scoping"): INITIAL release of a material state = full battery (both red-team lenses + fresh pin review + render review); FIX-PASS release = diff-verified delta + targeted confirmation of each changed item + ONE integrated fresh-context lens — never the full battery on a fix-pass
 - [ ] all reviews ran against the PRE-SEAL staging dir (a finding costs an edit, not a supersede); red-team verdicts ORDER with ZERO open P0 BEFORE the seal commit
+- [ ] when RF is enabled, exact-Gerber RF fab review reports
+      `fab_package_verdict: READY`; prototype order is distinct from production,
+      which remains HOLD until first-article VNA/TDR acceptance passes
 - [ ] fresh-context pin review (per the scoping line above): `pin_audit.py` dossiers generated; independent agents (no session context) per `pin-review-protocol.md`; verdicts in verification/pin_review.md with ZERO unresolved FAILs
 
 - [ ] seal follows the 2-commit procedure — 07_releases contract "Seal procedure (normative)": gates+reviews on staging → source commit S → MANIFEST stamped `git_sha: S` / `git_dirty: false` + M-REL/freshness re-run → seal commit adds ONLY the release dir (+ CHANGELOG, + SUPERSEDED.md on the predecessor)
+- [ ] publication boundary: `python3 skills/pcb-design/scripts/pcb_publication_gate.py --base <publication-branch-base-sha> --head <candidate-head-sha>` exits 0; repository protection requires this check and a PR before material PCB changes can reach the publication branch
 - [ ] docs-only supersede (when the release changes ONLY documentation): `release_freshness_check.py 07_releases/<ver>-<date> --docs-only-supersede 07_releases/<prior>` exits 0 — fab/source/3d byte-identical to the prior ASSERTED, ORDER_README + MANIFEST differ; never waive fab-identical files one-by-one
 - [ ] a supersede that is NOT docs-only uses the mode matching the SHAPE of the fix, never a hand-written `--allow-identical` waiver set (usb-hub-3s-v3 v1.11 shipped seven, all machine-checkable): `--bom-only-supersede` (a row LEAVES, A-POP) · `--cpl-only-supersede` (a coordinate moves, A-POS) · `--legible-bom-supersede` (how the BOM READS, F-LEGIBLE) · `--sourcing-supersede` (WHICH PART is bought, M8) · `--value-change-supersede … --designators R4,R5` (a part's VALUE moves on already-placed parts: gerbers/drills identical after the plot-timestamp strip, CPL delta confined to `Val` cells, BOM delta confined to the DECLARED refs). Full statements: 07_releases contract

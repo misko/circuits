@@ -639,9 +639,9 @@ def t_present_scope_is_presence_not_violations():
     correctly scoped population reports ZERO of them; a population still
     listing them would be walking, not scoping. Asserted below by creating one.
 
-    RED-VERIFIED 2026-07-31, end-to-end (`_drive`), UNPIPED:
-      * `STRAY_UNITS` row DELETED -> RAW EXIT **1**,
-        `STRAY_UNITS: 'projects/programmable-usb2-hub' holds
+    RED-VERIFIED end-to-end (`_drive`), UNPIPED:
+      * a governed, allowed untracked file is planted under the hub and an
+        empty `STRAY_UNITS` -> RAW EXIT **1**, `holds
         UNTRACKED-NOT-IGNORED files.` An undeclared corner is caught.
       * a row INVENTED for a corner holding none -> RAW EXIT **1**,
         `STALE row` — an exemption that exempts nothing is how the next stray
@@ -694,12 +694,27 @@ def t_present_scope_is_presence_not_violations():
     finally:
         lck.unlink(missing_ok=True)
 
-    for body, expect in [
-            ('del ca.STRAY_UNITS["projects/programmable-usb2-hub"]',
-             "holds UNTRACKED-NOT-IGNORED files"),
-            ('ca.STRAY_UNITS["skills"] = "invented"', "STALE row")]:
-        must_fail(run([KPY, _drive(body), "--present"]),
-                  "a mutated STRAY_UNITS", expect)
+    probe = (ROOT / "projects" / "programmable-usb2-hub" / "01_docs" /
+             "renders" / "stray-ratchet-control.png")
+    probe.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        probe.write_bytes(b"stray-presence-control\n")
+        must_fail(run([KPY, _drive("ca.STRAY_UNITS = {}"), "--present"]),
+                  "an undeclared untracked unit",
+                  "holds UNTRACKED-NOT-IGNORED files")
+        must_pass(run([KPY, _drive(
+            'ca.STRAY_UNITS["projects/programmable-usb2-hub"] = "test control"'),
+            "--present"]), "the same planted unit with an evidence row")
+    finally:
+        probe.unlink(missing_ok=True)
+        try:
+            probe.parent.rmdir()
+        except OSError:
+            pass
+
+    must_fail(run([KPY, _drive(
+        'ca.STRAY_UNITS["skills"] = "invented"'), "--present"]),
+        "an invented STRAY_UNITS row", "STALE row")
 
 
 @test("a pattern cell listing several backticked patterns SEPARATED BY COMMAS "

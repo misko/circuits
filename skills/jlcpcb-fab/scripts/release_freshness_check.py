@@ -2204,8 +2204,16 @@ def check_reviews(release_dir, sourcing):
         f"present in verification/ (graded = the contract-named "
         f"{', '.join(_REVIEW_LENS_FILES)}; others are archived reviews of "
         f"other versions and are not this release's verdict)")
-    if not graded:
-        return dfails, sfails, notes
+    missing = [n for n in _REVIEW_LENS_FILES if n not in graded]
+    if missing:
+        finding = (
+            f"  REVIEW-COVERAGE: expected {len(_REVIEW_LENS_FILES)}/"
+            f"{len(_REVIEW_LENS_FILES)} contract-named red-team lenses; "
+            f"graded {len(graded)}/{len(_REVIEW_LENS_FILES)}; missing "
+            f"{', '.join('verification/' + n for n in missing)}. Zero or "
+            f"partial review coverage is a FAIL, never a skip")
+        dfails.append(finding)
+        sfails.append(finding)
     for name in graded:
         hdr = _read_review_header(ver / name)
         design = hdr.get("design_verdict")

@@ -40,6 +40,38 @@ pipeline in `~/gits/circuits/projects/<name>/`. Load the `kicad-pcb` and
 `jlcpcb-fab` skills NOW — they hold the routing/fab mechanics and the
 hard-won traps; this skill is the orchestration layer only.
 
+## Publication is a sealed-state claim (fail closed)
+
+**DRC 0/0/0, parity 0, a canonical generated board, a fabrication preflight,
+or a source-file manifest means the ROUTING/BUILD stage is green. None of
+those facts means the design is reviewed, sealed, released, publishable,
+shippable, or ready.** At routing completion, rewrite the beacon to
+`stage: verify`, `state: working`; do not invent `publish_handoff`, `green`, or
+another state outside the schema.
+
+Treat the words **publish**, **release**, **ship**, **ready**, and **merge to
+main** as a request for the complete sealed-state process unless the user
+explicitly requests an unreviewed work-in-progress branch or draft PR. An
+unreviewed WIP must say so in its title and first-screen status and must not be
+merged to the repository's publication branch. A `PUBLISH_MANIFEST.md` may
+inventory files for a handoff, but it is never release authority and may not
+be derived from build metrics alone.
+
+Immediately before any publication-branch push or merge, run:
+
+    python3 skills/pcb-design/scripts/pcb_publication_gate.py \
+      --base <publication-branch-base-sha> --head <candidate-head-sha>
+
+The gate selects every project with a material design diff and requires each
+live board to have a complete latest sealed release, existing release gates,
+byte-identical live/sealed board source, no material drift since the MANIFEST
+source commit, and all four pin/render/topology/layout reviews at
+`design_verdict: SOUND`, bound to that exact board SHA and archived verbatim in
+`08_reviews/`. Zero required reviews is 0/2 coverage and a failure, never a
+skip. Repository protection must require this check and a pull request for the
+publication branch; a workflow running after an unprotected direct push can
+report a violation but cannot undo publication.
+
 ## The execution model — a LOOP, not a line
 
 The stages below are numbered, but the pipeline is not a one-way march:
@@ -651,6 +683,16 @@ spread — is MEASURED FROM ROUTED COPPER, never asserted from placement: a
 placement gate that reports "the delta is a placement property, not a routing
 outcome" is asserting something a stochastic octilinear router can falsify.
 
+Every new board carries `03_src/rules/rf.yaml`. `rf.enabled: false` requires a
+rationale; `true` activates a dedicated subpipeline with three independent,
+exact-artifact phases: RF schematic review before placement, RF PCB review
+before layout seal, and RF Gerber/fab review before prototype ordering. Follow
+`rf-schematic-review-protocol.md`, `rf-pcb-review-protocol.md`, and
+`rf-fab-review-protocol.md`; `rf_contract_check.py` derives coverage from the
+contract's requirement IDs and refuses zero/partial coverage. A fab-ready
+prototype remains distinct from production authorization: production waits for
+the contract's first-article VNA/TDR acceptance measurements.
+
 
 Build `03_src/` generators + `rebuild_all.sh` (set -euo pipefail) in the
 canonical order. **Schematic authoring — tscircuit/TSX is THE standard,
@@ -1171,6 +1213,10 @@ seal commit adds ONLY the release dir → **refresh the STATUS beacon so it name
 the release you just cut, and run `status_beacon_check.py` (canon M-BEACON)**.
 That section is the ONE home for the seal dance (this file and
 ORCHESTRATION_STATE.md only point at it).
+Before the resulting design state is merged or pushed to the publication
+branch, run `pcb-design/scripts/pcb_publication_gate.py --base <base> --head
+<head>` and require `P-PUBLISH PASS`; this is the publication boundary, not a
+substitute for any staging or seal gate above.
 **Supersede modes — pick the one that matches the SHAPE of the fix.** A
 supersede release seals against `release_freshness_check.py <release_dir>
 --<mode>-supersede <prior-release-dir>`. Each mode is docs-only PLUS an

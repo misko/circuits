@@ -832,7 +832,7 @@ def t_corridor_bad_side():
 def t_collide_clean():
     d = tmpdir("gbg_")
     r = gen(LC / "03_src" / "floorplan.yaml", d / "b.kicad_pcb")
-    contains(r.out, "P-COLLIDE: 0 pad shorts, 0 anchored courtyard overlap",
+    contains(r.out, "P-COLLIDE: 0 inter-footprint pad overlaps/shorts, 0 anchored courtyard overlap",
              "generator stdout")
 
 
@@ -879,8 +879,8 @@ def t_collide_pinned_lap_warns():
     d, cfg = scratch_config(mutate)
     r = gen(cfg, d / "b.kicad_pcb")            # must SUCCEED
     contains(r.out, "WARN P-COLLIDE PINNED-LAP", "generator stdout")
-    contains(r.out, "0 pad shorts", "generator stdout")
-    check("electrically dead" not in r.out,
+    contains(r.out, "0 inter-footprint pad overlaps/shorts", "generator stdout")
+    check("this placement has inter-footprint pad overlap" not in r.out,
           f"a courtyard overlap with no short must not be fatal: {r.out}")
 
 

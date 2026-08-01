@@ -670,6 +670,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `datasheet.package_url` | ADVISORY | a human retrieval link for the vendor package page; the executable package identity is `package`/`footprint`, and no gate reads this URL |
 | `datasheet.drawing` | ADVISORY | a human citation to the package drawing; `pin_audit.py` grades the figure/page citation in `verified`, not this parallel prose field |
 | `datasheet.drawing.url` | ADVISORY | the human retrieval URL for the cited package drawing; no gate fetches it |
+| `datasheet.drawing_url` | ADVISORY | legacy flat spelling of the human retrieval URL for a package drawing; no gate fetches it |
 | `datasheet.drawing.revision` | ADVISORY | the human-readable package-drawing revision; no gate compares it with the vendored footprint |
 | `datasheet.drawing.sha256` | OWED | the package-drawing digest is a checkable provenance claim, but no reader recomputes it, so substituted drawing content is silent |
 | `datasheet.pdf` | ADVISORY | an alternate spelling of `local:` on two dossiers; consolidate on `local:` |

@@ -107,6 +107,16 @@ CLEAN_MANIFEST = ("board: demo\nversion: v1.0\n"
                   "not_assembled: J3-J10 (RJHSE-5384 consign/hand-solder), "
                   "JP_INJ, J_DBG (bring-up headers)\n")
 
+_SOUND_REVIEW = ("subject: demo\n"
+                 "design_verdict: SOUND\n"
+                 "order_verdict: ORDER\n")
+
+
+def write_sound_reviews(release):
+    for lens in ("topology", "layout"):
+        (release / "verification" / f"redteam_{lens}.md").write_text(
+            _SOUND_REVIEW)
+
 
 def rel_tree(src, *, assembly=None, manifest=None, stock=None,
              stock_name="stock_check.txt"):
@@ -119,6 +129,7 @@ def rel_tree(src, *, assembly=None, manifest=None, stock=None,
     (rel / "fab").mkdir(parents=True)
     (rel / "source").mkdir()
     (rel / "verification").mkdir()
+    write_sound_reviews(rel)
     shutil.copy(next(iter(sorted((src / "source").glob("*.kicad_pcb")))),
                 rel / "source")
     for n in ("bom.csv", "cpl.csv"):
@@ -758,6 +769,7 @@ def t_stock_nothing_to_grade():
     rel = d / "07_releases" / "v1.0-2026-07-25"
     (rel / "fab").mkdir(parents=True)
     (rel / "verification").mkdir()
+    write_sound_reviews(rel)
     (rel / "fab" / "demo_gerbers.zip").write_bytes(b"gerber")
     (rel / "MANIFEST.txt").write_text("board: demo\n")
     (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")

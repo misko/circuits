@@ -100,6 +100,21 @@ time this moves to the release root.
 Board 100 x 80 mm, 4 layer, 42 parts.
 """
 
+_BASE_REVIEW_SOUND = """subject: demo v{ver}
+date: 2026-07-30
+reviewer: redteam-agent ({lens} lens)
+context-given: release-archive-only
+design_verdict: SOUND
+order_verdict: ORDER
+"""
+
+
+def _write_base_reviews(release, ver):
+    """Make a generic release fixture valid on M-REV before one-axis damage."""
+    for lens in ("topology", "layout"):
+        (release / "verification" / f"redteam_{lens}.md").write_text(
+            _BASE_REVIEW_SOUND.format(ver=ver, lens=lens))
+
 
 def make_release(root, ver, *, pdf_tags, audit=_AUDIT_PASS,
                  manifest=_MANIFEST_PASS, readme=_README_FINAL,
@@ -118,6 +133,7 @@ def make_release(root, ver, *, pdf_tags, audit=_AUDIT_PASS,
     # a fab artifact keyed to the version so it is naturally fresh
     (d / "fab" / "demo_gerbers.zip").write_bytes(_blob(f"gerber-{ver}"))
     (d / "verification" / "policy_audit.md").write_text(audit)
+    _write_base_reviews(d, ver)
     (d / "MANIFEST.txt").write_text(manifest.format(ver=ver))
     (d / "ORDER_README.md").write_text(readme.format(ver=ver))
     if exceptions is not None:
@@ -1580,6 +1596,7 @@ def prefixed_release(root, name, *, pdf_tag, gerber_tag=None):
     (d / "fab" / "demo_gerbers.zip").write_bytes(
         _blob(gerber_tag or f"gerber-{name}"))
     (d / "verification" / "policy_audit.md").write_text(_AUDIT_PASS)
+    _write_base_reviews(d, name)
     (d / "MANIFEST.txt").write_text(_MANIFEST_PASS.format(ver=name))
     (d / "ORDER_README.md").write_text(_README_FINAL.format(ver=name))
     return d
@@ -1666,6 +1683,7 @@ def consistency_release(root, *, dirname="demoboard-v1.0-2026-07-23",
         f"| S-ERC | PASS | {audit_erc} |\n"
         "| M-BOM | PASS | every BOM LCSC == source |\n\n"
         "Summary: FAIL=0, PASS=30\n")
+    _write_base_reviews(d, dirname)
     (d / "verification" / "erc.json").write_text(json.dumps({
         "included_severities": list(erc_included),
         "sheets": [{"violations":
@@ -2199,6 +2217,23 @@ def t_kb_order_plan_bad_status():
 
 
 # ------------------------------------------------- (g) M-REV known-bads
+@test("M-REV FAILS zero or partial contract-named review coverage — 0/2 is "
+      "not a successful review", kind="known_bad")
+def t_kb_review_coverage_is_fail_closed():
+    for label, lenses in (
+            ("zero", {}),
+            ("partial", {"topology": _LENS_SOUND_ORDER})):
+        d = claims_release(stock_c265111=90000, verdict="PASS",
+                           lenses=lenses)
+        must_fail(gate(d), f"{label} review coverage must not pass",
+                  expect="REVIEW-COVERAGE")
+        must_fail(gate(d, "--claim", "sourcing"),
+                  f"{label} review coverage must block sourcing too",
+                  expect="REVIEW-COVERAGE")
+        must_pass(gate(d, "--_disable-reviews"),
+                  "RED-VERIFY: coverage is check (g)'s finding")
+
+
 @test("M-REV FAILS a contract-named lens file that states NO verdict at all — "
       "a missing verdict is a FAIL, never a skip", kind="known_bad")
 def t_kb_review_no_verdict():

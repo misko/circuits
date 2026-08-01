@@ -51,7 +51,8 @@ SOURCE_IGNORES = {
 }
 DEFAULT_TOOL_FILES = (
     "pcb_flow.py", "module_first_check.py", "escape_check.py",
-    "tier_preflight.py", "grind_driver.py",
+    "tier_preflight.py", "pad_separation.py", "rf_contract_check.py",
+    "grind_driver.py",
     "generate_board_generic.py", "generate_rules_generic.py",
     "route_and_stitch_generic.py", "circuit_json_to_kicad_sch.py",
     "build_provenance.py",
@@ -285,6 +286,11 @@ def source_files(ctx: FlowContext) -> list[Path]:
         path = ctx.board.with_suffix(suffix)
         if path.is_file():
             files.add(path)
+    # Independent review judgments are layout-seal inputs too. Any edit,
+    # replacement, or deletion must stale the witness.
+    review_root = ctx.root / "08_reviews"
+    if review_root.is_dir():
+        files.update(_walk_inputs(ctx, [review_root]))
     files.discard(ctx.board)
     return sorted(files)
 
@@ -461,7 +467,11 @@ def configured_budget(cfg: dict[str, Any], stage: str) -> float | None:
 
 def preflight_commands(ctx: FlowContext, include_land: bool = True
                        ) -> list[tuple[str, list[str]]]:
+    rf_contract = ctx.route_path.parent / "rules" / "rf.yaml"
     commands = [
+        ("rf_contract", [KPY, str(SCRIPTS / "rf_contract_check.py"),
+                         str(ctx.root), "--contract", str(rf_contract),
+                         "--require-applicability"]),
         ("escape_packages", [KPY, str(SCRIPTS / "escape_check.py"),
                              *map(str, part_files(ctx))]),
         ("tier_preflight", [KPY, str(SCRIPTS / "tier_preflight.py"),
@@ -478,6 +488,10 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
         commands.insert(1, ("escape_lands",
                             [KPY, str(SCRIPTS / "escape_check.py"),
                              "--board", str(ctx.board)]))
+        nets = ctx.route_path.parent / "rules" / "nets.yaml"
+        commands.insert(2, ("pad_separation", [
+            KPY, str(SCRIPTS / "pad_separation.py"), str(ctx.board),
+            "--project", str(ctx.root), "--nets", str(nets)]))
     return commands
 
 
@@ -644,10 +658,16 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool) -> int:
         raise FlowError(f"layout-seal requires canonical rebuild driver {ctx.rebuild}")
     before = preflight_commands(ctx, include_land=False)
     after = preflight_commands(ctx, include_land=True)
-    land = [row for row in after if row[0] == "escape_lands"]
+    land = [row for row in after
+            if row[0] in ("escape_lands", "pad_separation")]
     commands = before + [
         ("rebuild", ["bash", str(ctx.rebuild)]),
         *land,
+        ("rf_reviews", [
+            KPY, str(SCRIPTS / "rf_contract_check.py"), str(ctx.root),
+            "--contract", str(ctx.route_path.parent / "rules" / "rf.yaml"),
+            "--require-applicability",
+            "--require-review", "schematic", "--require-review", "pcb"]),
         ("layout_drc", ["kicad-cli", "pcb", "drc", "--severity-all",
                         "--refill-zones", "--schematic-parity", "--format",
                         "json", "-o", str(ctx.gate), str(ctx.board)]),
@@ -684,7 +704,7 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool) -> int:
         raise FlowError("internal error: newly written layout witness is invalid")
     print(f"handoff -> {ctx.handoff} ({len(htext.encode())} bytes, "
           f"stage {hdoc['stage']})")
-    print("LAYOUT SEALED: fresh rebuild + P-LAND + DRC 0/0/0")
+    print("LAYOUT SEALED: fresh rebuild + P-LAND + P-PADSEP + DRC 0/0/0")
     print("NOT RELEASE SEALED: run the jlcpcb-fab fabrication, assembly, stock, "
           "model, polarity, and staged-release gates before ordering")
     return 0

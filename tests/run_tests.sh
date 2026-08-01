@@ -41,6 +41,8 @@ SUITES=(
   t1_generate_board.py
   t1_audit.py
   t1_placement_gates.py
+  t1_pad_separation.py
+  t1_rf_contract.py
   t1_contracts.py
   t1_counting.py
   t1_module_first.py
@@ -62,6 +64,7 @@ SUITES=(
   t1_release_index.py
   t1_release_freshness.py
   t1_release_required.py
+  t1_publication_gate.py
   t1_assembly_gates.py
   t1_status.py
   t1_jlc_twin.py

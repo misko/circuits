@@ -29,7 +29,10 @@ project uses this bare `STATUS.md`.
 POLLS, does not interrupt). `state: working` + a STALE `updated` + no live
 `op_pid` = STALLED (the reader flags it). `state: blocked` = a decision or
 D-BACK wall the agent has PUSHED up — the coordinator acts. `state: done` =
-terminal for this stage.
+terminal for this stage, not for the whole design. In particular, routing at
+DRC 0/0/0 transitions to `stage: verify`, `state: working`; only the completed
+seal stage may describe a release as sealed. Never add `publish_handoff` or
+`green`: values outside the closed vocabularies hide a skipped stage.
 
 <!-- reader parses from here down -->
 stage:   commission

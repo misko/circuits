@@ -46,6 +46,8 @@ export PATH="$HOME/.bun/bin:$PATH"
 # P-MOD is source-only and cheap; deterministic reuse must not bypass it.
 $PY "$S/module_first_check.py" . \
     || { echo "GATE FAILED P-MOD: module-first architecture contract"; exit 1; }
+$PY "$S/rf_contract_check.py" . --require-applicability \
+    || { echo "GATE FAILED RF-CONTRACT: incomplete RF requirements"; exit 1; }
 
 # derive the board name from the SAME config the generic backend reads
 BOARD=$($PY - <<'PYEOF'
@@ -68,6 +70,8 @@ kicad-cli sch export netlist --format kicadsexpr \
 
 # [2] board (placement + zones) from committed floorplan.yaml  [SHARED]
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
+$PY "$S/pad_separation.py" "04_kicad/$BOARD.kicad_pcb" --project . \
+    || { echo "GATE FAILED P-PADSEP: separate footprint pads and route explicitly"; exit 1; }
 
 # [3] placement/pad invariants, if the board defines them  [per-board gate]
 if [ -f 03_src/audit_board.py ]; then $PY 03_src/audit_board.py; fi

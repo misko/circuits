@@ -337,13 +337,13 @@ placement:
 
     # ---- the module cell ----------------------------------------------------
     U_MCU:  [52.7000, 80.7500, 180]   # USB-C faces the board's south edge
-    R_S1:   [42.0000, 90.9100, 180]   # 100R SOURCE terminations, hard against
-    R_S2:   [42.0000, 88.3700, 180]   # the module's west castellation column.
-    R_S3:   [42.0000, 85.8300, 180]   # pad 1 faces EAST (the module) so
-    R_S4:   [42.0000, 83.2900, 180]   # SEL_V* is 1.52 mm and SW_V* is the long
-                                      # half -- which is the correct end for a
+    R_S1:   [41.7000, 90.9100, 180]   # 100R SOURCE terminations clear the
+    R_S2:   [41.7000, 88.3700, 180]   # module castellations by 0.22 mm copper
+    R_S3:   [41.7000, 85.8300, 180]   # gap (>0.09 mm fab floor). Pad 1 faces
+    R_S4:   [41.7000, 83.2900, 180]   # EAST; explicit tracks join SEL_V*.
+                                      # SW_V* is the long half -- correct for a
                                       # series termination.
-    R_LED:  [42.0000, 80.7500, 180]   # 680R ballast at module pad 5 (GP4)
+    R_LED:  [41.7000, 80.7500, 180]   # 680R ballast, explicit track to GP4
     LED_ST: [38.8000, 80.7500, 0]     # pad 1 = CATHODE = GND, facing WEST
     FB_3V3: [64.0000, 85.8000, 90]    # pad 1 (IN, 3V3_MOD) faces SOUTH toward
                                       # C_BULK; pad 2 (OUT, 3V3) faces NORTH,
