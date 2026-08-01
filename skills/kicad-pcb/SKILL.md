@@ -80,6 +80,11 @@ credits, or debugging time — check provenance notes before assuming staleness.
    module that meets the locked requirements. A bare IC needs an evidenced ADR
    showing why considered modules fail a binding requirement; run
    `scripts/module_first_check.py PROJECT` before generation.
+3j. **A declared RF via-fence is measured from the saved board.** Lattice
+   pitch is only an input; collision rejection and via de-duplication can open
+   larger flank apertures. Run `scripts/fence_pitch.py BOARD BAND_MM BOUND_MM`
+   after stitching and make its nonzero exit block the rebuild before a field
+   solver consumes the claimed maximum pitch.
 4. **Fanout before routing, hardest nets first.** Escape lanes are claimed
    by whoever routes first. `bga_fanout.py` on fine-pitch ICs, then a thin
    pass (0.15/0.13, 0.45/0.2 vias) for escape-bound nets, then the standard
@@ -144,6 +149,7 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/module_first_check.py` | P-MOD architecture gate: every complex subsystem in an adopted project is a dossier-proven module or has an evidenced D-MOD bare-IC exception; missing policy is UNMIGRATED, never PASS |
 | `scripts/placement_gates.py` | Shared placement gates P-OUT (pads inside the real Edge.Cuts polygon) + P-CAP (static corridor crossing-demand vs capacity) — post-placement, pre-routing |
 | `scripts/tier_preflight.py` | R-PREFLIGHT gate: every routing/stitch/rescue parameter with a DRC-floor twin, including nominal board-thickness/minimum-drill plated-through aspect ratio (`PF-VIA-ASPECT`), proven consistent with the declared fab tier BEFORE any KRT cycle; wired refuse-to-route into `route_and_stitch_generic route`; `--explain` prints derivations + copy-paste fixes |
+| `scripts/fence_pitch.py` | Saved-board RF ground-fence gate: reconstructs each RF F.Cu arm, projects GND vias and PTH return posts into each flank band, and fails when any realized interior aperture exceeds the declared bound |
 | `scripts/grind_driver.py` | The BOUNDED mechanical DRC grind loop: classify findings, look each class up in `references/grind_fixes.yaml`, auto-apply only conservatively-safe reruns, escalate everything else (`06_build/grind_escalation.md`, distinct exit codes). Hard stops: 0/0/0, novel class, D-BACK 3-cycle stagnation, `--max-cycles`. Journals every cycle (canon M9) |
 | `scripts/pcb_flow.py` | Thin process conductor: pre-route escape/tier preflight, timed stages, bounded grind delegation, content-addressed agent handoffs, and fresh-rebuild `layout-seal` (PCB layout only; never substitutes for jlcpcb-fab release gates) |
 

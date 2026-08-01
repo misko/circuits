@@ -563,6 +563,14 @@ stitch:
       # where the tap detour crosses the jack field), never a new location and
       # never a widening number: 3.6000 -> 1.9769 -> 1.9802 -> re-measure.
       - {net: GND, vias: [[48.584, 30.131]]}     # RX1_TAP  E
+      # FINAL-REVIEW CLOSURE. The frozen-board fence gate independently found
+      # two residual apertures after the ANT3/ANT7 endpoint correction. These
+      # sites are the one-via minimum covers returned by the continuum search;
+      # both pass via_site_ok for 0.25/0.15 mm, 0.155 mm hole-to-copper and
+      # 0.315 mm hole-to-hole on all four copper layers. Rebuild and the shared
+      # fence_pitch gate below are the authority on the resulting wall.
+      - {net: GND, vias: [[41.060, 57.800]]}     # ANT4 W; 1.200 -> 0.800 max
+      - {net: GND, vias: [[46.312, 42.281]]}     # ANT7 W; 1.830 -> 1.150 max
       # ============ LAUNCH RELIEF, 8 BARRELS: THE HOLE CLASS ============
       # THESE EIGHT ARE NOT FENCE REPAIRS. They are the SAME lattice sites the
       # grid would place anyway, DISPLACED 0.035 mm radially outward from the

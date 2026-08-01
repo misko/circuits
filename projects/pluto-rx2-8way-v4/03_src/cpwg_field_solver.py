@@ -53,7 +53,7 @@ MODEL = {
     "lateral_half_span_mm": 1.80,
     "air_height_mm": 0.42,
     "boundary": "periodic longitudinal; grounded lateral/reference; open top",
-    "geometry_source": "frozen PCB direct measurement, layout review 962c3cda",
+    "geometry_source": "saved PCB direct measurement; shared fence_pitch gate",
     "mask_source": "JLCPCB calculator defaults: 0.6 mil trace, 1.2 mil substrate",
 }
 

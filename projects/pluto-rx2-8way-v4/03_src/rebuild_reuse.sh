@@ -118,6 +118,9 @@ PYEOF
 # audit consume the same declared phase tuple.
 KRT_PY="$HOME/gits/KiCadRoutingTools/.venv/bin/python"
 [ -x "$KRT_PY" ] || { echo "GATE FAILED [8a] RF-SOLVE: missing $KRT_PY"; exit 1; }
+mkdir -p 06_build/verify
+$PY "$S/fence_pitch.py" "04_kicad/$BOARD.kicad_pcb" 2.5 1.1910 \
+    | tee 06_build/verify/fence_pitch.txt
 "$KRT_PY" 03_src/cpwg_field_solver.py --output 06_build/verify/cpwg_field.json
 $PY "$S/copper_length_audit.py" . --strict \
     || { echo "GATE FAILED [8a] R-LEN: realized phase geometry/constants"; exit 1; }
