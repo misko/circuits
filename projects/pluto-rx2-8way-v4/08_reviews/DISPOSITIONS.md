@@ -27,3 +27,25 @@ both defective red-team verdicts; this ledger never edits those source reports.
 | RENDER-P2-03 | `2026-07-31_48688aa3_render-review_full.md` | LED cathode silk marker collided visually with adjacent text. | P2 | confirmed in bare/twin top renders | open — move marker before final render review |
 | RENDER-P2-04 | `2026-07-31_48688aa3_render-review_full.md` | Twin report named a different CPL provenance path. | P2 | confirmed in `missing_models.txt` | open — regenerate twin from final CPL and bind hashes/path before seal |
 
+## v1.1 closure
+
+The exact-artifact v1.1 reviews supersede the blocking pre-seal reports above.
+They do not rewrite those historical findings; they verify the repaired board
+and archive at source commit `bc1fb1003cd9b7f06c70b15d973c5c018d0ff458`
+and board SHA-256
+`72875d5ea92a52baa9962be3a69f4e69c1fb1ec3b9faf5ba4412934c18296bf7`.
+
+| review phase | exact report | result |
+|---|---|---|
+| pin use | `2026-08-01_v1.1_pin_review.md` | SOUND; 100/100 high-risk pads checked, zero mismatch |
+| render | `2026-08-01_v1.1_render_review.md` | SOUND; repaired module/resistor spacing visible and legible |
+| topology/protection | `2026-08-01_v1.1_redteam_topology.md` | SOUND / ORDER; zero open P0/P1 design defects |
+| layout/manufacturability | `2026-08-01_v1.1_redteam_layout.md` | SOUND / ORDER; P-PADSEP and exact geometry pass |
+| RF schematic | `2026-08-01_v1.1_rf_schematic.md` | SOUND; 4/4 declared requirements pass |
+| RF PCB | `2026-08-01_v1.1_rf_pcb.md` | SOUND; 7/7 declared requirements pass |
+| RF fabrication | `2026-08-01_v1.1_rf_fab.md` | READY; 5/5 declared requirements pass |
+
+The remaining uploader confirmations and first-article measurements are
+order-execution and production/service acceptance controls. They do not reopen
+the sealed design verdict or create a circular prerequisite for ordering the
+article on which those measurements must be made.

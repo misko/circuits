@@ -1,0 +1,9 @@
+Input: fab/bom.csv
+Measurement date: 2026-08-01
+Build quantity: 5
+
+PASS: 11/11 coded BOM lines have LCSC catalog stock at least 5 x line quantity.
+Uncoded lines: 0/11. Problems: 0/11.
+
+This is catalog evidence only. It does not prove JLC assembly allocation;
+the uploader BOM echo remains a mandatory human order gate.

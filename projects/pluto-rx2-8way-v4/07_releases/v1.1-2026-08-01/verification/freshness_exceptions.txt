@@ -1,0 +1,4 @@
+# v1.1 fixes physical pad separation and reroutes the affected control escape.
+# Both entries below were regenerated from commit bc1fb100, not copied forward.
+pdf/schematic.pdf  IDENTICAL BY DESIGN: the electrical schematic is byte-identical (sha256 3e6627ab345b25f8a46042abceafa0a509b7c0a4dbd440fe54ed32ce0cfeae4f); v1.1 changes placement/routing only and DRC schematic parity is 0
+fab/bom.csv  IDENTICAL BY DESIGN: no component, value, footprint, quantity, or LCSC code changed; export_jlc_package.py regenerated the 11-line BOM while the CPL and Gerber package changed with the repaired placement

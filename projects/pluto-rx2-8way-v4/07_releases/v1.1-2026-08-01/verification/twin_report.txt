@@ -1,0 +1,5 @@
+JLC digital twin: PASS with 27/27 CPL bodies mounted and registered.
+
+All modeled bodies intersect their source courtyards. The two-pad LED has a
+symmetry/polarity ambiguity and remains explicitly assigned to the upload
+preview human gate; see twin_report.csv and ORDER_README.md.

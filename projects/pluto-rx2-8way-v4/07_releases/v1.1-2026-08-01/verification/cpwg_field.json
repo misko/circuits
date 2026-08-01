@@ -1,0 +1,83 @@
+{
+  "acceptance": {
+    "target_ohm": 50.0,
+    "tolerance_percent": 10.0
+  },
+  "convergence": [
+    {
+      "C0_pF_per_m": 34.87168310675671,
+      "C_pF_per_m": 105.52265302699315,
+      "deg_per_mm": 12.533415700619255,
+      "epsilon_eff": 3.026026954418703,
+      "free_nodes": 45370,
+      "lambda_g_mm": 28.72321549042796,
+      "relative_residual": 1.7599828808312602e-09,
+      "step_mm": 0.04,
+      "t_pd_ps_per_mm": 5.80250726880521,
+      "z0_ohm": 54.98826178413941
+    },
+    {
+      "C0_pF_per_m": 34.76818429585867,
+      "C_pF_per_m": 109.6009237700768,
+      "deg_per_mm": 12.792315147188308,
+      "epsilon_eff": 3.15233383594126,
+      "free_nodes": 110176,
+      "lambda_g_mm": 28.141895806806037,
+      "relative_residual": 1.8534460244587133e-09,
+      "step_mm": 0.03,
+      "t_pd_ps_per_mm": 5.92236812369829,
+      "z0_ohm": 54.03575006468342
+    },
+    {
+      "C0_pF_per_m": 35.948812460286774,
+      "C_pF_per_m": 114.07831727253048,
+      "deg_per_mm": 12.834895210107641,
+      "epsilon_eff": 3.173354263052629,
+      "free_nodes": 177952,
+      "lambda_g_mm": 28.048534413938608,
+      "relative_residual": 1.9057885088972695e-09,
+      "step_mm": 0.025,
+      "t_pd_ps_per_mm": 5.942081115790574,
+      "z0_ohm": 52.08773461827175
+    }
+  ],
+  "equations": [
+    "div(epsilon grad V)=0",
+    "epsilon_eff=C/C0",
+    "Z0=1/(c*sqrt(C*C0))"
+  ],
+  "method": "periodic_3d_finite_volume_quasistatic_dual_capacitance",
+  "model": {
+    "air_height_mm": 0.42,
+    "boundary": "periodic longitudinal; grounded lateral/reference; open top",
+    "coplanar_gap_mm": 0.2005,
+    "frequency_ghz": 6.0,
+    "geometry_source": "saved PCB direct measurement; shared fence_pitch gate",
+    "lateral_half_span_mm": 1.8,
+    "mask_dk": 3.8,
+    "mask_over_substrate_mm": 0.03048,
+    "mask_over_trace_mm": 0.01524,
+    "mask_source": "JLCPCB calculator defaults: 0.6 mil trace, 1.2 mil substrate",
+    "stackup": "JLC04121H-7628",
+    "substrate_dk": 4.4,
+    "top_to_reference_mm": 0.2104,
+    "trace_width_mm": 0.36,
+    "via_center_offset_mm": 0.51,
+    "via_drill_mm": 0.15,
+    "via_outer_diameter_mm": 0.25,
+    "via_pitch_mm": 1.1769
+  },
+  "result": {
+    "C0_pF_per_m": 35.948812460286774,
+    "C_pF_per_m": 114.07831727253048,
+    "deg_per_mm": 12.834895210107641,
+    "epsilon_eff": 3.173354263052629,
+    "free_nodes": 177952,
+    "lambda_g_mm": 28.048534413938608,
+    "relative_residual": 1.9057885088972695e-09,
+    "step_mm": 0.025,
+    "t_pd_ps_per_mm": 5.942081115790574,
+    "z0_ohm": 52.08773461827175
+  },
+  "z0_convergence_spread_ohm": 2.9005271658676577
+}

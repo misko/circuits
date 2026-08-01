@@ -1,0 +1,18 @@
+F-ECHO — JLC's RESOLVED BOM vs OURS. After uploading bom.csv,
+save JLC's own resolved/matched part table out of their UI and run
+  bom_legibility_check.py <this outdir>/bom.csv --echo SAVED.csv
+A code JLC redirects is a SUBSTITUTION and is a FINDING, not a
+convenience. C82317 -> C131025 happened on a shipped board and no
+gate in this repo could have seen it.
+
+C1525	100nF	C_SW1
+C25076	100Ω	R_S1,R_S2,R_S3,R_S4
+C60490	10kΩ	R_PD1,R_PD2,R_PD3,R_PD4
+C15849	1uF	C_SW2
+C25091	220Ω	R_T1,R_T2
+C1779	4.7uF	C_BULK
+C137948	680Ω	R_LED
+C3716677	BLM21SP601SN1D	FB_3V3
+C504007	KH-SMA-KE-Z	J_ANT1,J_ANT2,J_ANT3,J_ANT4,J_ANT5,J_ANT6,J_ANT7,J_ANT8,J_RX1,J_RX2
+C2286	KT-0603R	LED_ST
+C5121458	PE42482A-X	U_SW

@@ -1,0 +1,1 @@
+P-GEOM PASS: keepout clear; SW_V4 crosses ANT4 on In2.Cu; In1 GND uninterrupted

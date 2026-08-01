@@ -20,6 +20,7 @@ import datetime as dt
 import hashlib
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -295,6 +296,130 @@ def source_files(ctx: FlowContext) -> list[Path]:
     return sorted(files)
 
 
+def build_source_files(ctx: FlowContext) -> list[Path]:
+    """Inputs that can produce board bytes, excluding later review judgments."""
+    review_root = ctx.root / "08_reviews"
+    return [path for path in source_files(ctx)
+            if not path.is_relative_to(review_root)]
+
+
+def _review_field(text: str, name: str) -> str:
+    match = re.search(rf"(?mi)^\s*{re.escape(name)}\s*:\s*(\S+)\s*$", text)
+    return match.group(1) if match else ""
+
+
+def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
+    """Fail closed unless signed layout bytes and their producers equal COMMIT."""
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise FlowError("--reviewed-commit requires a full 40-character SHA")
+    repo_run = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], cwd=ctx.root,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if repo_run.returncode:
+        raise FlowError("--reviewed-commit requires a Git worktree")
+    repo = Path(repo_run.stdout.strip()).resolve()
+    exists = subprocess.run(
+        ["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=repo,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if exists.returncode:
+        raise FlowError(f"reviewed commit {commit} does not identify a commit")
+    ancestor = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=repo,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if ancestor.returncode:
+        raise FlowError(f"reviewed commit {commit} is not an ancestor of HEAD")
+
+    compared = [ctx.board, *build_source_files(ctx)]
+    current_set = {path.resolve().relative_to(repo).as_posix()
+                   for path in compared}
+    inputs = flow_cfg(ctx.cfg).get("inputs") or {}
+    include_roots = inputs.get("include") or list(DEFAULT_SOURCE_ROOTS)
+    part_roots = inputs.get("parts") or ["02_parts"]
+
+    def committed_under(values: Iterable[str], *, parts_only: bool = False) -> set[str]:
+        roots = [_inside(ctx.root, value, "flow input").relative_to(repo).as_posix()
+                 for value in values]
+        result = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", commit, "--", *roots],
+            cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode:
+            raise FlowError("cannot enumerate reviewed commit build inputs")
+        names = set()
+        for name in result.stdout.splitlines():
+            path = Path(name)
+            if set(path.parts) & SOURCE_IGNORES \
+                    or path.name.endswith((".pyc", ".failed")):
+                continue
+            if parts_only and path.name != "part.yaml":
+                continue
+            names.add(name)
+        return names
+
+    committed_set = committed_under(include_roots)
+    committed_set.update(committed_under(part_roots, parts_only=True))
+    exact = [ctx.route_path, ctx.rebuild, ctx.board]
+    exact.extend(ctx.board.with_suffix(suffix)
+                 for suffix in (".kicad_sch", ".kicad_pro", ".kicad_dru"))
+    for path in exact:
+        rel = path.resolve().relative_to(repo).as_posix()
+        exists_at_commit = subprocess.run(
+            ["git", "cat-file", "-e", f"{commit}:{rel}"], cwd=repo,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+        if exists_at_commit:
+            committed_set.add(rel)
+    review_prefix = (ctx.root / "08_reviews").relative_to(repo).as_posix() + "/"
+    committed_set = {name for name in committed_set
+                     if not name.startswith(review_prefix)}
+    if committed_set != current_set:
+        missing = sorted(committed_set - current_set)
+        added = sorted(current_set - committed_set)
+        detail = f"missing={missing[:1]} added={added[:1]}"
+        raise FlowError(
+            f"reviewed commit declared build-input set differs: {detail}")
+
+    for path in sorted(set(compared)):
+        try:
+            rel = path.resolve().relative_to(repo).as_posix()
+        except ValueError as exc:
+            raise FlowError(f"reviewed input is outside the Git worktree: {path}") from exc
+        blob = subprocess.run(
+            ["git", "show", f"{commit}:{rel}"], cwd=repo,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if blob.returncode:
+            raise FlowError(f"reviewed commit lacks declared build input {rel}")
+        if blob.stdout != path.read_bytes():
+            raise FlowError(f"reviewed commit byte mismatch: {rel}")
+
+    board_hash = hashlib.sha256(ctx.board.read_bytes()).hexdigest()
+    schematic = ctx.board.with_suffix(".kicad_sch")
+    schematic_hash = (hashlib.sha256(schematic.read_bytes()).hexdigest()
+                      if schematic.is_file() else "")
+    required = {
+        "pin": ("*_pin_review.md", "board_sha256", board_hash),
+        "render": ("*_render_review.md", "board_sha256", board_hash),
+        "topology": ("*_redteam_topology.md", "board_sha256", board_hash),
+        "layout": ("*_redteam_layout.md", "board_sha256", board_hash),
+        "rf schematic": ("*_rf_schematic.md", "artifact_sha256", schematic_hash),
+        "rf pcb": ("*_rf_pcb.md", "artifact_sha256", board_hash),
+    }
+    review_root = ctx.root / "08_reviews"
+    bound: list[str] = []
+    for label, (pattern, hash_field, expected_hash) in required.items():
+        matches = []
+        for path in sorted(review_root.glob(pattern)) if review_root.is_dir() else []:
+            text = path.read_text(encoding="utf-8-sig")
+            if (_review_field(text, "source_commit") == commit
+                    and _review_field(text, hash_field) == expected_hash
+                    and _review_field(text, "design_verdict").upper() == "SOUND"):
+                matches.append(path.name)
+        if not matches:
+            raise FlowError(
+                f"reviewed commit lacks exact SOUND {label} review coverage")
+        bound.append(matches[-1])
+    return {"method": "reviewed_commit", "source_commit": commit,
+            "reviews": ",".join(bound)}
+
+
 def tool_files(ctx: FlowContext) -> list[Path]:
     inputs = (flow_cfg(ctx.cfg).get("inputs") or {})
     extra = inputs.get("tools") or []
@@ -383,14 +508,18 @@ def snapshot(ctx: FlowContext) -> dict[str, str | None]:
     }
 
 
-def seal_witness_document(ctx: FlowContext) -> dict[str, Any]:
-    return {
+def seal_witness_document(ctx: FlowContext,
+                          provenance: dict[str, str] | None = None) -> dict[str, Any]:
+    witness = {
         "schema": SCHEMA,
         "generated_at": utc_now(),
         "inputs": snapshot(ctx),
         "scope": "PCB layout only",
         "board_id": ctx.board_id,
     }
+    if provenance:
+        witness["provenance"] = provenance
+    return witness
 
 
 def seal_witness_valid(ctx: FlowContext) -> bool:
@@ -400,9 +529,21 @@ def seal_witness_valid(ctx: FlowContext) -> bool:
         witness = json.loads(ctx.seal.read_text(encoding="utf-8-sig"))
     except (OSError, ValueError):
         return False
-    return (witness.get("schema") == SCHEMA
+    base = (witness.get("schema") == SCHEMA
             and witness.get("inputs") == snapshot(ctx)
             and clean_gate(gate_counts(ctx.gate)))
+    if not base:
+        return False
+    provenance = witness.get("provenance")
+    if isinstance(provenance, dict) \
+            and provenance.get("method") == "reviewed_commit":
+        try:
+            current = reviewed_commit_provenance(
+                ctx, str(provenance.get("source_commit", "")))
+        except FlowError:
+            return False
+        return provenance == current
+    return provenance is None
 
 
 def _atomic_write(path: Path, text: str) -> None:
@@ -649,7 +790,8 @@ def _failure_handoff(ctx: FlowContext, blocker: str, stage: str | None = None) -
         print(f"handoff not written after failure: {exc}", file=sys.stderr)
 
 
-def cmd_layout_seal(ctx: FlowContext, dry_run: bool) -> int:
+def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
+                    reviewed_commit: str | None = None) -> int:
     # Validate every declarative contract before deleting or writing evidence.
     flow_cfg(ctx.cfg, ctx.root)
     source_files(ctx)
@@ -660,8 +802,17 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool) -> int:
     after = preflight_commands(ctx, include_land=True)
     land = [row for row in after
             if row[0] in ("escape_lands", "pad_separation")]
-    commands = before + [
+    # Recovery for an already-reviewed immutable commit is intentionally
+    # narrower than a generic "skip rebuild" switch. It proves every board
+    # producer input and six independent review lenses against an explicit
+    # ancestor commit before the canonical producer may be skipped.
+    provenance = None
+    if reviewed_commit and not dry_run:
+        provenance = reviewed_commit_provenance(ctx, reviewed_commit)
+    build = [] if reviewed_commit else [
         ("rebuild", ["bash", str(ctx.rebuild)]),
+    ]
+    commands = before + build + [
         *land,
         ("rf_reviews", [
             KPY, str(SCRIPTS / "rf_contract_check.py"), str(ctx.root),
@@ -694,7 +845,9 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool) -> int:
 
     # Prepare both artifacts before publishing either. Publish handoff first;
     # if interrupted before the witness replace, validation safely rejects it.
-    witness = seal_witness_document(ctx)
+    if reviewed_commit:
+        provenance = reviewed_commit_provenance(ctx, reviewed_commit)
+    witness = seal_witness_document(ctx, provenance)
     htext, hdoc = handoff_text(ctx, "layout_sealed", [], pending_seal=witness)
     wtext = json.dumps(witness, indent=2) + "\n"
     _atomic_write(ctx.handoff, htext)
@@ -704,7 +857,9 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool) -> int:
         raise FlowError("internal error: newly written layout witness is invalid")
     print(f"handoff -> {ctx.handoff} ({len(htext.encode())} bytes, "
           f"stage {hdoc['stage']})")
-    print("LAYOUT SEALED: fresh rebuild + P-LAND + P-PADSEP + DRC 0/0/0")
+    method = (f"exact reviewed commit {reviewed_commit}" if reviewed_commit
+              else "fresh canonical rebuild")
+    print(f"LAYOUT SEALED: {method} + P-LAND + P-PADSEP + DRC 0/0/0")
     print("NOT RELEASE SEALED: run the jlcpcb-fab fabrication, assembly, stock, "
           "model, polarity, and staged-release gates before ordering")
     return 0
@@ -725,6 +880,12 @@ def parser() -> argparse.ArgumentParser:
         common(p)
         if name != "validate":
             p.add_argument("--dry-run", action="store_true")
+        if name == "layout-seal":
+            p.add_argument(
+                "--reviewed-commit", metavar="SHA",
+                help=("recovery path for an exact ancestor commit already "
+                      "covered by pin/render/topology/layout and RF reviews; "
+                      "all declared build inputs must be byte-identical"))
     p = sub.add_parser("handoff")
     common(p)
     p.add_argument("--stage", choices=STAGES)
@@ -762,7 +923,7 @@ def main(argv: list[str] | None = None) -> int:
                 raise FlowError("--max-cycles must be >= 1")
             return cmd_grind(ctx, args.max_cycles, args.dry_run)
         if args.command == "layout-seal":
-            return cmd_layout_seal(ctx, args.dry_run)
+            return cmd_layout_seal(ctx, args.dry_run, args.reviewed_commit)
         if not remainder:
             raise FlowError("run needs a command after --")
         return run_timed(ctx, args.stage, remainder, args.budget_s)

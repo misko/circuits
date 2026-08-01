@@ -1,0 +1,17 @@
+{
+  "schema": 2,
+  "generated_at": "2026-08-01T18:55:40+00:00",
+  "inputs": {
+    "source": "sha256:e96411cdaa53a0d4ce6d26fc5de48cd0411dcf186f5f0e2d661a686eb22d5026",
+    "board": "sha256:72875d5ea92a52baa9962be3a69f4e69c1fb1ec3b9faf5ba4412934c18296bf7",
+    "tools": "sha256:b36e654c268a6a679e858617ed9b2d110769f4ef561a23da83fc2e2f066c17bb",
+    "gate": "sha256:7a09dfe60159737709e9d20c4fa400ede4d591d039a43028b09eb556f2640979"
+  },
+  "scope": "PCB layout only",
+  "board_id": "pluto_rx2_8way_v4",
+  "provenance": {
+    "method": "reviewed_commit",
+    "source_commit": "bc1fb1003cd9b7f06c70b15d973c5c018d0ff458",
+    "reviews": "2026-08-01_v1.1_pin_review.md,2026-08-01_v1.1_render_review.md,2026-08-01_v1.1_redteam_topology.md,2026-08-01_v1.1_redteam_layout.md,2026-08-01_v1.1_rf_schematic.md,2026-08-01_v1.1_rf_pcb.md"
+  }
+}

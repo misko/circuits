@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """T2: fast PCB orchestration, handoff freshness, and timing budgets."""
 import importlib.util
+import hashlib
 import json
 import os
 import sys
@@ -78,6 +79,70 @@ def load_flow_module():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def reviewed_repo(*, scoped=False):
+    root = scratch()
+    if scoped:
+        (root / "03_src/a").mkdir()
+        (root / "03_src/b").mkdir()
+        (root / "03_src/a/custom.yaml").write_text("board_input: true\n")
+        (root / "03_src/b/unrelated.yaml").write_text("sibling: true\n")
+        route_path = root / "03_src/route.yaml"
+        route = yaml.safe_load(route_path.read_text())
+        route["flow"]["inputs"] = {
+            "include": ["03_src/a"],
+            "parts": ["02_parts/X"],
+        }
+        route_path.write_text(yaml.safe_dump(route, sort_keys=False))
+    board_hash = hashlib.sha256(
+        (root / "04_kicad/fixture.kicad_pcb").read_bytes()).hexdigest()
+    schematic_hash = hashlib.sha256(
+        (root / "04_kicad/fixture.kicad_sch").read_bytes()).hexdigest()
+    reviews = root / "08_reviews"
+    reviews.mkdir()
+    specs = {
+        "x_pin_review.md": ("board_sha256", board_hash),
+        "x_render_review.md": ("board_sha256", board_hash),
+        "x_redteam_topology.md": ("board_sha256", board_hash),
+        "x_redteam_layout.md": ("board_sha256", board_hash),
+        "x_rf_schematic.md": ("artifact_sha256", schematic_hash),
+        "x_rf_pcb.md": ("artifact_sha256", board_hash),
+    }
+    for name, (field, digest) in specs.items():
+        (reviews / name).write_text(
+            "source_commit: COMMIT\n"
+            f"{field}: {digest}\n"
+            "design_verdict: SOUND\n")
+    must_pass(run(["git", "init", "-q"], cwd=root), "fixture git init")
+    must_pass(run(["git", "config", "user.email", "test@example.invalid"],
+                  cwd=root), "fixture git email")
+    must_pass(run(["git", "config", "user.name", "PCB Flow Test"], cwd=root),
+              "fixture git name")
+    # Reviews must name the commit they are part of; use a fixed-point-free
+    # two-commit history where the source commit contains build inputs and the
+    # later commit contains exact reviews naming that source commit.
+    must_pass(run(["git", "add", "."], cwd=root), "fixture stage source")
+    must_pass(run(["git", "commit", "-qm", "source"], cwd=root),
+              "fixture source commit")
+    source = must_pass(run(["git", "rev-parse", "HEAD"], cwd=root),
+                       "fixture source sha").out.strip()
+    for path in reviews.iterdir():
+        path.write_text(path.read_text().replace("COMMIT", source))
+    must_pass(run(["git", "add", "08_reviews"], cwd=root),
+              "fixture stage reviews")
+    must_pass(run(["git", "commit", "-qm", "reviews"], cwd=root),
+              "fixture review commit")
+    return root, source
+
+
+def provenance_fails(module, root, commit, needle):
+    try:
+        module.reviewed_commit_provenance(module.resolve_context(root), commit)
+    except module.FlowError as exc:
+        contains(str(exc), needle, "reviewed-commit refusal")
+        return
+    raise AssertionError(f"reviewed-commit unexpectedly accepted: {needle}")
 
 
 @test("handoff is compact, binds all evidence, and validates current inputs")
@@ -298,6 +363,79 @@ def t_layout_seal_dry_run():
           "fresh-board P-LAND must run after rebuild")
     check(not (root / "06_build/agent_handoff.yaml").exists(),
           "dry-run must not claim a handoff or seal")
+
+
+@test("reviewed-commit seal plan does not rebuild signed bytes")
+def t_reviewed_commit_seal_dry_run():
+    root = scratch()
+    r = must_pass(run([KPY, FLOW, "layout-seal", root,
+                       "--reviewed-commit", "0" * 40, "--dry-run"]),
+                  "reviewed commit seal dry run")
+    not_contains(r.out, "[rebuild]", "signed artifact must not be rebuilt")
+    contains(r.out, "[escape_lands]", "landability is revalidated")
+    contains(r.out, "[rf_reviews]", "exact RF reviews are revalidated")
+    contains(r.out, "--schematic-parity", "exact DRC is revalidated")
+
+
+@test("reviewed-commit recovery is commit-, input-, and review-bound")
+def t_reviewed_commit_provenance():
+    module = load_flow_module()
+
+    root, source = reviewed_repo()
+    proof = module.reviewed_commit_provenance(module.resolve_context(root), source)
+    eq(proof["method"], "reviewed_commit", "witness method")
+    eq(proof["source_commit"], source, "explicit source commit")
+
+    dirty, dirty_source = reviewed_repo()
+    (dirty / "03_src/floorplan.yaml").write_text("board: changed\n")
+    provenance_fails(module, dirty, dirty_source, "byte mismatch")
+
+    deleted, deleted_source = reviewed_repo()
+    (deleted / "03_tscircuit/net_aliases.txt").unlink()
+    provenance_fails(module, deleted, deleted_source, "build-input set differs")
+
+    scoped, scoped_source = reviewed_repo(scoped=True)
+    (scoped / "03_src/a/custom.yaml").unlink()
+    provenance_fails(module, scoped, scoped_source, "build-input set differs")
+
+    isolated, isolated_source = reviewed_repo(scoped=True)
+    (isolated / "03_src/b/unrelated.yaml").write_text("sibling: changed\n")
+    module.reviewed_commit_provenance(
+        module.resolve_context(isolated), isolated_source)
+
+    board, board_source = reviewed_repo()
+    (board / "04_kicad/fixture.kicad_pcb").write_text("(kicad_pcb edited)\n")
+    provenance_fails(module, board, board_source, "byte mismatch")
+
+    review, review_source = reviewed_repo()
+    pin = review / "08_reviews/x_pin_review.md"
+    pin.write_text(pin.read_text().replace(review_source, "0" * 40))
+    provenance_fails(module, review, review_source, "pin review coverage")
+
+    other, other_source = reviewed_repo()
+    orphan = must_pass(
+        run(["git", "commit-tree", "HEAD^{tree}", "-m", "orphan"], cwd=other),
+        "fixture orphan commit").out.strip()
+    provenance_fails(module, other, orphan, "not an ancestor")
+
+
+@test("reviewed-commit witness revalidates provenance, not only file hashes",
+      kind="known_bad")
+def t_kb_reviewed_commit_history_rewrite():
+    module = load_flow_module()
+    root, source = reviewed_repo()
+    ctx = module.resolve_context(root)
+    provenance = module.reviewed_commit_provenance(ctx, source)
+    ctx.seal.write_text(json.dumps(module.seal_witness_document(
+        ctx, provenance)))
+    check(module.seal_witness_valid(ctx), "baseline reviewed witness")
+    orphan = must_pass(
+        run(["git", "commit-tree", "HEAD^{tree}", "-m", "replacement"], cwd=root),
+        "replacement history commit").out.strip()
+    must_pass(run(["git", "update-ref", "HEAD", orphan], cwd=root),
+              "replace fixture history without changing files")
+    check(not module.seal_witness_valid(ctx),
+          "history rewrite must stale reviewed-commit provenance")
 
 
 @test("adopted pcb-flow preflight runs P-MOD first; legacy remains explicit")

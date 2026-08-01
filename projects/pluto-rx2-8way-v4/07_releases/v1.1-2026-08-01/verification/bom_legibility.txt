@@ -1,0 +1,19 @@
+  graded: BOM file BOM /home/mouse9911/gits/circuits/projects/pluto-rx2-8way-v4/06_build/fab/bom.csv
+  authority: 11 code(s) from projects/pluto-rx2-8way-v4/02_parts (of which 4 are BARE `alternates:` entries that declare NO mpn) + 167 from the vetted passives ledger
+  coverage F-ENCODE: 1/1 file decoded (771 bytes)
+  coverage F-MPN: 11/11 coded rows cross-checked against a HAND-VERIFIED authority; 0 not re-derivable from the shipped bytes (0 corroborated by the release's own sealed verification/stock_check.csv, 0 ungradeable) (11 BOM rows total)
+  coverage F-WORDS: 11/11 rows legible
+  ok   F-ENCODE bom.csv: UTF-8 byte-order-mark present — the reader is told
+  ok   F-MPN row 1 (C_SW1): C1525 = CL05B104KO5NNNC (lcsc_passives_ledger.yaml)
+  ok   F-MPN row 2 (R_S1,R_S2,R_S3,R_S4): C25076 = 0402WGF1000TCE (lcsc_passives_ledger.yaml)
+  ok   F-MPN row 3 (R_PD1,R_PD2,R_PD3,R_PD4): C60490 = RC0402FR-0710KL (lcsc_passives_ledger.yaml)
+  ok   F-MPN row 4 (C_SW2): C15849 = CL10A105KB8NNNC (lcsc_passives_ledger.yaml)
+  ok   F-MPN row 5 (R_T1,R_T2): C25091 = 0402WGF2200TCE (02_parts/0402WGF2200TCE)
+  ok   F-MPN row 6 (C_BULK): C1779 = CL21A475KAQNNNE (lcsc_passives_ledger.yaml)
+  ok   F-MPN row 7 (R_LED): C137948 = RC0402FR-07680RL (lcsc_passives_ledger.yaml)
+  ok   F-MPN row 8 (FB_3V3): C3716677 = BLM21SP601SN1D (02_parts/BLM21SP601SN1D)
+  ok   F-MPN row 9 (J_ANT1,J_ANT2,J_ANT3,J_ANT4,J_ANT5,J_ANT6,J_ANT7,J_ANT8,J_RX1,J_RX2): C504007 = KH-SMA-KE-Z (02_parts/KH-SMA-KE-Z)
+  ok   F-MPN row 10 (LED_ST): C2286 = KT-0603R (02_parts/KT-0603R)
+  ok   F-MPN row 11 (U_SW): C5121458 = PE42482A-X (02_parts/PE42482A-X)
+  ok   F-WORDS all 11 Comment(s) human-readable
+F-LEGIBLE OK: 13 check(s) passed
