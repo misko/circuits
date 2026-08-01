@@ -1,0 +1,192 @@
+# assembly.yaml — pluto-rx2-8way-v4
+# The ONE machine-readable home for "who gets placed, and why not"
+# (canon A-POP / A-STOCK). The release MANIFEST's `not_assembled:` line is
+# GENERATED from this file, never hand-written beside it.
+
+service: standard
+sides: [top]
+fiducials: none
+# Deliberate, not silence. JLC adds their own fiducials on the rails for SMT
+# orders. LOCAL fiducials beside a fine-pitch part are OUR job and cannot be
+# added later — the finest pitch on this board is PE42482A-X's QFN-24 at
+# 0.50 mm, above the <=0.4 mm threshold where local fiducials start to matter.
+# NOTE the module changed this answer: v1 carried a 0.400 mm QFN-56 and v2 does
+# not, so the case for local fiducials got WEAKER, not stronger. Stated because
+# "none" is the same word in both boards and it is not the same decision.
+build_quantity: 5
+
+# ---- NOT ASSEMBLED ---------------------------------------------------------
+# ONE `not_assembled:` KEY, and the duplicate that used to sit here was a live
+# defect rather than a tidy-up: this file carried the mapping TWICE (a H1..H4
+# stub, then the full block below). YAML's last-wins made it harmless by
+# accident — the second block happened to be the complete one — but an edit to
+# the first would have been silently discarded, and a strict loader rejects the
+# document outright. Removed 2026-07-30 at the placement gate; the block below
+# is now the only home, which is the same single-home rule this whole file
+# exists to enforce for the population set.
+
+# ---- U_MCU: NOT ASSEMBLED, AND THE REASON IS MECHANICAL ---------------------
+# POSTURE CHANGED 2026-07-30, at the placement gate, on evidence the commission
+# agent did not have. It chose CONSIGN and explicitly refused hand-solder as
+# "a fake sourcing wall" because rung 2 (JLC places a module we ship them)
+# looked open. RUNG 2 IS NOT OPEN. It is blocked by physics, and the block is
+# not a preference:
+#
+#   THE MODULE IS NOT FLAT-BACKED. MEASURED off the vendor Creo STEP assembly
+#   (RP2040_Zero.stp, sha256 in 02_parts/RP2040-Zero/part.yaml): 23 components
+#   sit on the CARRIER-FACING face — the 12 MHz crystal 1.000 mm proud, the
+#   RP2040 QFN-56 0.850, the RT9013 LDO 0.700, twenty 0201s 0.300. A
+#   castellated pad and a 1.0 mm standoff are not compatible: reflow cannot
+#   bridge that gap at 2.54 mm pitch, there is no nozzle target for a
+#   pick-and-place head, and there is no reflowable joint to inspect.
+#   Waveshare's "castellated module allows soldering directly to carrier
+#   boards" is a capability CLAIM, not a land pattern and not a profile.
+#
+# THIS IS A DIFFERENT CLAIM FROM THE ONE THE ADR USED TO MAKE, and the
+# difference is the point: "we preferred to hand-solder" and "no reflowable
+# joint exists" are not the same statement, and only the second is true.
+#
+# TWO FURTHER REASONS, EACH INDEPENDENTLY SUFFICIENT — recorded so that a
+# future revision cannot retire this entry by defeating one of them:
+#   THERMAL — this is a populated FR-4 PCBA with no MSL rating and no second-
+#     reflow profile, and its own bottom-side joints would face DOWN through
+#     the oven. Nothing published says its solder joints survive a second
+#     reflow, and the part that would fall off is the RP2040.
+#   SOURCING — C9900173620 is a JLC consign placeholder, permanently stock 0
+#     by construction, and is NOW ADDITIONALLY FLAGGED "This product is no
+#     longer manufactured". C5350143 is a Development-Boards-&-Kits line JLC
+#     marks "SMT Assembly (Fixture Required)".
+not_assembled:
+  - refs: [H1, H2, H3, H4]
+    reason: mechanical
+    evidence: "M3 mounting holes, no footprint pads with nets (floorplan 2026-07-30)"
+    disposition: "n/a"
+  - refs: [U_MCU]
+    reason: user_supplied
+    on_bom: false
+    evidence: >
+      MECHANICAL, and MEASURED rather than argued: the vendor STEP assembly puts
+      23 components on the module's carrier-facing face, the tallest 1.000 mm
+      proud (12 MHz crystal), with the RP2040 QFN-56 at 0.850 and the RT9013 at
+      0.700. The 23 castellation lands are 0.010 mm of copper on that same face,
+      so the joint plane and the collision plane are the same plane and the part
+      cannot sit down. No reflow profile bridges a 1.0 mm standoff at 2.54 mm
+      pitch. Independently sufficient seconds: no MSL and no second-reflow
+      profile is published for a populated assembly (thermal); C9900173620 is a
+      permanently-stock-0 consign placeholder now flagged "no longer
+      manufactured" and C5350143 is a Development-Boards line marked "SMT
+      Assembly (Fixture Required)" (sourcing).
+      LIVE JLC CATALOG READ 2026-07-30 (kept, because it is still the evidence
+      that no Pico-class RP2040 module is machine-placeable from JLC stock):
+      POST /api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList
+      over 20 keyword forms. Entries WITH stock (Pico C7203002 at 1499, Pico W
+      C7203003 at 1177) carry NO package field and sit under "Development Boards
+      & Tools" with an LCSC retail URL — boards LCSC mails you, not line parts.
+      Every entry carrying a real footprint is stock 0. Controls the same day
+      (C1525 "0402" 46,923,438; C701342 "SMD,25.5x18mm" 19,416; C2980306
+      "SMD-53P,16.6x13.2mm" 853; C2040 "LQFN-56(7x7)" 63,091) confirm that a
+      placeable part always carries a real package string.
+    disposition: >
+      ORDER_README section 1b: JLC is asked to place NOTHING here and to source
+      NOTHING here. We buy 5+ RP2040-Zero modules at retail (Waveshare direct,
+      Amazon, Mouser, DigiKey — broad, not single-source) and HAND-SOLDER them
+      to the delivered board, on the ~1.1 mm standoff the module's own
+      bottom-side components establish. The footprint carries
+      `exclude_from_pos_files` and NO F.PASTE APERTURES — paste printed under a
+      part that is never placed reflows into solder balls, so the stencil must
+      not open there. The two carrier keepouts the standoff imposes (height, and
+      copper under the ten live underside pads) are drawn into the footprint and
+      are PLACEMENT obligations; nothing in the pipeline grades them.
+    msl: >
+      NOT APPLICABLE AS AN ORDER OBLIGATION, AND STILL NOT INVENTED. Waveshare
+      publishes no MSL rating and no reflow profile: this is a finished consumer
+      assembly, not a component sold in a moisture-barrier bag, so there is no
+      datasheet line to read. Filling this field with a plausible "MSL 3" would
+      be indistinguishable from a datasheet read, and would put a FABRICATED
+      moisture obligation into a release (crow-recorder-central v1.0 shipped a
+      consigned MSL-3 part with zero MSL text in its order paperwork — the
+      opposite failure, same field). Under the hand-solder posture the module
+      never enters JLC's oven, so no bake and no desiccant shipping is owed.
+
+# ---- EXEMPT REFDES CLASSES -------------------------------------------------
+exempt_prefixes: [H, TP, FID, MH]
+
+# ---- THE THROUGH-HOLE LINE IS BOUGHT, NOT DODGED ---------------------------
+# A-POP raised this at the staging gate 2026-07-30 and it is a REAL finding, not
+# a formality: ten KH-SMA-KE-Z jacks sat on the CPL of a `service: standard`
+# `sides: [top]` order with FIFTY plated drilled pads and F.Paste on NONE of
+# them. No reflow profile solders that. The board would have arrived with every
+# RF port loose — on a board whose entire product is ten RF ports.
+#
+# THE EASY ANSWER WAS AVAILABLE AND IS WRONG. Declaring them
+# `not_assembled: {reason: process_incompatible}` and hand-soldering fifty
+# barrels would have cleared the gate in one line. The doctrine says a
+# hand-solder posture is a sourcing wall you must PROVE you hit — and we did not
+# hit one:
+#
+#   LIVE JLC CATALOG READ 2026-07-30, the ASSEMBLY parts endpoint (the SMT
+#   shopping-cart component list, not the LCSC retail catalog):
+#   POST /api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList
+#   {"keyword":"C504007"} ->
+#     componentCode            C504007
+#     componentModelEn         KH-SMA-KE-Z      (Shenzhen Kinghelm Elec)
+#     componentSpecificationEn "Plugin"          <- JLC's own word for THROUGH-HOLE
+#     componentTypeEn          "Coaxial Connectors (RF)"
+#     componentLibraryType     expand            (extended, per-reel setup fee)
+#     stockCount               23169
+#     minPurchaseNum           1
+#     assemblyProcess          null      <- NO API answers "will JLC run it"
+#
+#   RE-READ 2026-07-31 and the raw record now EXISTS. This citation was a
+#   FORWARD REFERENCE for a day: it named verification/jlc_catalog_C504007.json
+#   and verification/stock_check.csv as its evidence and NEITHER FILE EXISTED
+#   anywhere in the project. A citation to a file that does not exist reads
+#   exactly like a citation to one that does, which is the whole failure mode
+#   this file exists to prevent for the population set. Both files are now real,
+#   produced by the commands they name, and staged:
+#     verification/jlc_catalog_C504007.json  the RAW endpoint response, with a
+#       `_provenance` block carrying the URL, the request body, the timestamp
+#       and the NOT-PROVEN clause below
+#     verification/stock_check.csv           jlc_stock_check.py --out, whose
+#       `pkg` column reads `Plugin` for exactly this line and a real SMD package
+#       string for all ten others
+#   Every field above re-reads IDENTICAL on 2026-07-31 except stockCount, which
+#   moved 23169 -> 22708 (ordinary day-to-day catalog drift, still 2270x the
+#   10 this board needs). Cross-check the same day, same endpoint, via
+#   jlc_stock_check --json: OK at 10 needed vs 22708 in stock.
+#
+# So the part is IN JLC's assembly library, as a plug-in part, with stock three
+# orders of magnitude over the build. The line to buy is theirs.
+#
+# WHAT THIS DECLARATION DOES NOT PROVE, STATED SO IT IS NOT READ AS PROVEN: that
+# JLC will RUN a through-hole line on this particular order. `assemblyProcess`
+# comes back null and there is no API that answers it — the same reason canon
+# F-ECHO exists. Selecting through-hole assembly is therefore an ORDER-TIME
+# HUMAN GATE and it is on the FIRST SCREEN of ORDER_README, beside the rotation
+# gate. If JLC declines the process, the fallback is `not_assembled` with
+# `reason: process_incompatible` for these ten refs — which is a BOM/CPL change
+# and therefore a new release, not an edit.
+through_hole:
+  process: >
+    JLCPCB through-hole (plug-in) assembly, selected at order time — the ten
+    KH-SMA-KE-Z vertical SMA jacks stay ON the CPL and JLC solders them. Extended
+    part: one reel/tray setup fee for C504007.
+  refs: [J_ANT1, J_ANT2, J_ANT3, J_ANT4, J_ANT5, J_ANT6, J_ANT7, J_ANT8,
+         J_RX1, J_RX2]
+  evidence: >
+    HOLE CENSUS, measured off the sealed board 2026-07-30 by assembly_coverage.py
+    itself: 10 refs x 5 plated drilled pads = 50 plated holes, F.Paste on none of
+    them (pin-in-paste is not available — the KH-SMA-KE-Z posts are 0.9 mm SQUARE
+    in D1.4 holes and the dossier's 0.064 mm radial clearance is a mechanical fit
+    number, not a paste volume). CATALOG READ, dated 2026-07-30, JLC's own
+    assembly-parts endpoint: C504007 = KH-SMA-KE-Z, componentSpecificationEn
+    "Plugin", componentTypeEn "Coaxial Connectors (RF)", componentLibraryType
+    expand, stockCount 23169 (RE-READ 2026-07-31: 22708, every other field
+    identical), minPurchaseNum 1; raw record in
+    verification/jlc_catalog_C504007.json, cross-checked by
+    verification/stock_check.csv (pkg=Plugin, OK at 10 vs 22708). BOTH CITED
+    FILES ARE NOW PRESENT IN THE ARCHIVE — they were cited for a day before
+    they existed, which is a citation that grades nothing. NOT PROVEN by
+    either read: that the through-hole line is available on this order —
+    assemblyProcess is null and no API answers it, so the selection is an
+    order-time human gate on ORDER_README's first screen (section 0).

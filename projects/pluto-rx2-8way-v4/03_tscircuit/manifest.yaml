@@ -1,0 +1,53 @@
+# pluto-rx2-8way-v4 — the AUTHOR'S declared component list (canon S-COUNT base).
+#
+# WHY THIS FILE IS HAND-WRITTEN AND WHY IT IS THE ONLY HONEST BASE: after a
+# silent `tsci build` drop, EVERY GENERATED ARTIFACT AGREES WITH EVERY OTHER —
+# circuit.json, the converter .kicad_sch, the netlist and the board are all
+# consistently missing the same part, and ERC still reads 0. Only DECLARED
+# INTENT disagrees. (2026-07-21: four USB connectors dropped, 48/52.) That is
+# the entire reason `count_parity.py` exists and the entire reason this file is
+# not generated from anything.
+#
+# 28 components. v1 declares 64. The 36-part difference is the commission:
+# flash, crystal + load caps + series R, USB-C + ESD array + series/CC
+# resistors, two tact switches + their pulls, the PPTC, the TVS, the LDO + its
+# two caps, ten MCU decouplers, the core-rail cap and the power LED all moved
+# off-board into the module or became unreachable with the power entry.
+#
+# Mounting holes H1-H4 are NOT here: they are emitted by
+# generate_board_generic from floorplan.yaml `mounting_holes:` and are
+# non-electrical (count_parity SKIPs ^H\d).
+components:
+  # ---- RF core: the SP8T, ten SMA jacks, the RX1 pickoff (13) -------------
+  - U_SW
+  - J_ANT1
+  - J_ANT2
+  - J_ANT3
+  - J_ANT4
+  - J_ANT5
+  - J_ANT6
+  - J_ANT7
+  - J_ANT8
+  - J_RX1
+  - J_RX2
+  - R_T1
+  - R_T2
+  # ---- control plane: source terminations + power-on pull-downs (8) -------
+  - R_S1
+  - R_S2
+  - R_S3
+  - R_S4
+  - R_PD1
+  - R_PD2
+  - R_PD3
+  - R_PD4
+  # ---- the sequencer, which is now ONE part (1) ---------------------------
+  - U_MCU
+  # ---- switch supply: the ferrite and its three capacitors (4) ------------
+  - FB_3V3
+  - C_BULK
+  - C_SW1
+  - C_SW2
+  # ---- indicator (2) ------------------------------------------------------
+  - LED_ST
+  - R_LED

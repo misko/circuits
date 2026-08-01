@@ -1,0 +1,103 @@
+mpn: 0402WGF2200TCE
+manufacturer: UNI-ROYAL (Uniroyal Electronics / UniOhm)
+type: resistor_thick_film
+datasheet:
+  doc_id: "Thick Film Chip Resistors — 1-CHIP SERIES"
+  revision: "V.3, Feb.12,2019"    # printed in the page footer of every page
+  url: https://datasheet.lcsc.com/datasheet/pdf/0a975aaa49b7c97f38a963127be4a823.pdf
+  sha256: 11cd644d5d8a34a6d12775afb80bf58d8fc11f0c3b700dbd0f7a59942ceaa5ef
+  fetched: 2026-07-28
+  pages: 9
+  note: "SERIES sheet — the same document serves every 0402WGF value, including
+    the REJECTED 470 ohm alternate in ../0402WGF4700TCE/ (which holds no PDF
+    of its own: the 02_parts contract says a rejected candidate gets the
+    reason, not the binary). The LCSC product-page URL for C25091 serves an
+    HTML landing page to a plain fetch; the CDN link above was resolved out of
+    that page's own markup and returns the document."
+package: 0402 (1005 metric), 1.00 +/-0.10 x 0.50 +/-0.05 mm, thickness
+  0.35 +/-0.05 mm, terminal 0.20 +/-0.10 / 0.25 +/-0.10 mm, thick film,
+  wrap-around termination (series sheet section 6, p4)
+footprint: Resistor_SMD:R_0402_1005Metric
+escape:
+  style: passive
+  pitch: 0.5
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+limits:                          # all CITED from the series sheet unless noted
+  resistance: 220 ohm +/-1%      # MPN decode, section 3 p2 — see gotchas
+  tempco: +/-100 ppm/C           # section 4.8 p5: 0402, R > 10 ohm -> 100 PPM/C
+  power: 62.5 mW (1/16 W) at 70 C   # section 5 p5 rated-power table
+  voltage_working: 50 V          # section 5 p5
+  voltage_overload: 100 V        # section 5 p5 (2.5x RCWV or the max, lesser)
+  ta: -55 to +155 C              # section 5 p5
+  c_parasitic: 0.04 +/- 0.02 pF  # ESTIMATED — see gotchas. Vishay TN 60107
+                                 # Table 1 p1 gives 0.0392 pF for an 0402
+                                 # WRAP-AROUND chip; that is CITED FOR THE
+                                 # CLASS and ESTIMATED FOR THIS PART, because
+                                 # UniOhm publishes no HF data anywhere in the
+                                 # nine pages.
+gotchas:
+  - "MPN DECODE, VERIFIED AGAINST THE SERIES SHEET'S OWN ORDERING SECTION
+     (section 3, p2): 0402 = size / WG = 1/16 W / F = +/-1% / 2200 = for a
+     <=1% part the first THREE digits are significant figures and the fourth
+     is the number of zeros, so 220 followed by no zeros = 220 ohm / T =
+     tape-reel / C = 10,000 pcs / E = lead-free. The neighbouring
+     0402WGF4700TCE decodes to 470 ohm by the same rule. This matters because
+     the two differ by ONE character and both are JLC Basic 0402s on the same
+     footprint: a substitution changes the published RX1 tap calibration and
+     NOTHING on the board can detect it."
+  - "THIS IS AN RF PART IN A PASSIVE PACKAGE. It is one of the two series arms
+     of the RX1 resistive pickoff (BRIEF T2/D3, ADR-0002), so its PARASITICS
+     are load-bearing and its resistance tolerance is not the interesting
+     number. TWO IN SERIES IS THE POINT: series resistors put their shunt
+     parasitics in SERIES, so C_eff = C_p/2 ~= 0.0196 pF, which cuts the
+     6 GHz tap tilt from +1.69 dB (a single 470 ohm arm) to +0.43 dB — and,
+     more importantly, narrows the UNKNOWN band implied by the +/-0.02 pF bar
+     from 2.73 dB to 0.83 dB. A single 440 ohm part satisfies the schematic
+     and destroys that property."
+  - "DO NOT SUBSTITUTE A PARALLEL PAIR OR A SINGLE 440 OHM PART. Parallel
+     resistors put their parasitics in PARALLEL, doubling C_eff and roughly
+     quadrupling the tilt. The series topology is asserted in
+     03_src/rules/electrical_invariants.yaml for exactly this reason."
+  - "THE ALTERNATE BUILD IS A BOM CHANGE, NOT A BOARD CHANGE. ADR-0002 records
+     that populating R_T2 as 0 ohm (Rs = 220 instead of 440) buys +4.84 dB of
+     reference-dwell SIR for 0.337 dB more RX1 insertion loss. Same footprint,
+     same nets, same board. If that build is ever selected, the part_value
+     invariant on R_T2 must change with it."
+  - "JLC BASIC, and note the POOL TRAP. Live 2026-07-28: the JLCPCB ASSEMBLY
+     parts library reports C25091 as library type 'base' with stock 995,162,
+     while the LCSC RETAIL product page for the same code reports stock 0 the
+     SAME DAY. Two different pools; a PCBA order allocates from the assembly
+     pool. Measuring the retail page is measuring the state of a catalog
+     record, not the state of the part (canon M-QUOTE)."
+  - "PLACEMENT IS A CPL FACT: R_T1 and R_T2 must be placed at IDENTICAL
+     rotation, never mirrored, and ideally from the same reel. Mounting-
+     inductance asymmetry of ~0.1 nH is ~3.8 ohm ~= 2 deg at 6 GHz, and
+     mirroring converts solder-fillet and pick-orientation asymmetry into
+     calibration error on the one path the board publishes (ADR-0006)."
+verified: "2-pad passive — exempt from the S-VER figure-citation requirement
+  per the 02_parts contract. Resistance decoded from the ORDERING PROCEDURE in
+  section 3, p2 of the series sheet (not from the LCSC parametric record) and
+  cross-checked against LCSC's productModel/productIntroEn for C25091 read
+  2026-07-28 ('0402WGF2200TCE', '220 ohm +/-1% 62.5mW 0402 Thick Film
+  Resistor'): two independent sources, agreeing. Tempco, rated power, working
+  and overload voltage, temperature range and dimensions all read from the
+  committed PDF whose sha256 is recorded above. 2026-07-28"
+sourcing:
+  lcsc: C25091
+  alternates: []                 # deliberately empty: the value IS the design
+                                 # (see gotchas). 0402WGF4700TCE / C25117 is
+                                 # the REJECTED single-arm alternate, recorded
+                                 # in ../0402WGF4700TCE/ and ADR-0002, not an
+                                 # interchangeable substitute for this part.
+asserts:
+  - assert: value
+    equals: 220
+    tolerance_pct: 1
+    why: "the tap ratio, the main-line insertion loss and the main-line return
+      loss are ALL set by the series arm: tap = 50/(Rs+50), IL =
+      20log10(1 + 50/(2*(Rs+50))), and the shunt (Rs+50) across 50 ohm sets
+      RL. At Rs = 440 the PUBLISHED numbers are -19.83 dB / 0.432 dB /
+      26.3 dB. A one-value substitution moves the RX1 tap calibration and
+      nothing on the board can detect it — the netlist, DRC, ERC and parity
+      are identical for any resistor value."

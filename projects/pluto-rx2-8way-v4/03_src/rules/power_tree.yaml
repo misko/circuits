@@ -1,0 +1,86 @@
+# power_tree.yaml — pluto-rx2-8way-v4
+# The E-TOPO / E-MARGIN / E-OFF input. The user-facing twin is BRIEF.md's
+# Commission fact-lock; this is the machine copy.
+#
+# THIS BOARD'S POWER TREE IS TWO NETS LONG, AND THAT IS THE HEADLINE.
+# It has NO POWER CONNECTOR OF ITS OWN (ADR-0002): the only input is the
+# RP2040-Zero module's `3V3` castellation, generated on the module by an
+# RT9013-33 LDO from the module's own USB-C. v1's PPTC -> TVS -> ferrite ->
+# MCP1755S chain defended a VBUS entry point that no longer exists here.
+#
+# WHY THE RAIL IS DECLARED AT ALL, WHEN ITS REGULATOR IS NOT OUR PART.
+# It would be easy to ship no rails and collect a clean E-TOPO N-A. That is
+# exactly the failure `power_topology.py`'s own docstring names on three boards
+# ("a gate silently grading nothing"): smc0985-cooksense with `rails: []`, and
+# both crow-recorder-centrals with their LDO rails present only as a comment.
+# This board HAS a regulated rail, it IS linear, and its dropout and dissipation
+# ARE citable — so it is declared and graded rather than excused.
+
+source_type: usb_bus_powered_5v
+off_control: unplug
+quiescent_ua: 0
+# E-OFF is N-A here and the N-A is STATED, not inferred from silence. Nothing on
+# this board stores energy: no cell, no pack, no supercap, no backup rail. It is
+# de-energized by unplugging the module's USB-C, which is the board's only power
+# path. There is no EN pin to gate and no switch to omit — the usb-hub-3s-v3
+# failure (both buck ENs tied active, pack self-drained in storage) has no
+# analogue on a bus-powered board with one connector.
+
+rails:
+  - name: 3V3
+    # The net our board actually consumes. `3V3_MOD` is the same rail on the
+    # module side of FB_3V3; a series ferrite makes it a separate NET but not a
+    # separate RAIL, so it is not listed twice.
+    vin_min: 4.75          # USB 2.0 device-end low limit
+    vin_max: 5.25          # USB 2.0 device-end high limit
+    vout_min: 3.234        # RT9013-33: 3.3 V -2 % output accuracy
+    vout_max: 3.366        # RT9013-33: 3.3 V +2 % output accuracy
+    iout_max_A: 0.10
+    # THE WHOLE RAIL, not our share. The RT9013 feeds the RP2040 core and I/O,
+    # the module's flash and its WS2812 as well as our board. OUR contribution
+    # is U_SW's VDD at 200 uA MAX — 0.2 % of this figure. Declaring only our
+    # share would understate the regulator's real duty, which is the number the
+    # dropout and dissipation checks below have to be true of.
+    converter: RP2040-Zero
+    eff: 0.63              # linear: Vout/Vin at the nominal 3.3/5.25 corner.
+                           # NOTE a linear rail's INPUT current is iout, not
+                           # Pout/eff/Vin — `eff` here describes the heat, not
+                           # the trunk current.
+    dropout_mv: 250
+    # RT9013 datasheet headline: 250 mV at 500 mA. Declared as a PER-RAIL
+    # override rather than in a part.yaml because the RT9013 is INSIDE a module
+    # we buy assembled — we never order that regulator, it has no LCSC line on
+    # our BOM, and giving it a dossier would invent a sourcing relationship that
+    # does not exist. Margin is not close: vin_min - vout_max = 4750 - 3366 =
+    # 1384 mV against a 250 mV requirement, 5.5x.
+    pdiss_max_mw: 400
+    # (Tj_max 125 C - 25 C ambient) / theta_JA ~250 C/W for SOT-23-5 = 400 mW.
+    # Actual worst case (vin_max - vout_min) * iout_max = (5.25 - 3.20) * 0.10 =
+    # 205 mW, so the rail sits at ~51 % of the budget at 25 C.
+    # STATED HONESTLY: this is the MODULE VENDOR'S thermal budget, not ours, and
+    # the ambient assumption is ours. At 85 C ambient the same arithmetic gives
+    # 160 mW and the rail would be OVER — but the module is sold and rated as a
+    # USB-powered assembly for benchtop use, and this instrument is a benchtop
+    # instrument. If it is ever enclosed and run hot, this is the line that
+    # fails first, and it will fail on the module, not on our copper.
+    load_uv_threshold: 2.3
+    # PE42482A-X VDD operating minimum (Table 2, PDF p3: 2.3 / 3.3 / 5.5 V).
+    # This is a real brownout threshold for the one load our board owns.
+    ir_budget_mohm: 100
+    # THE ACTUAL SERIES RESISTANCE of the delivery path, not a ceiling — I got
+    # this wrong once and E-MARGIN caught it (declared 100000 mOhm meaning "a
+    # generous ceiling", which the gate correctly read as a 100 ohm delivery
+    # path and failed). Budget, itemised:
+    #     FB_3V3 DCR                          60 mOhm  (Murata max, PDF p2)
+    #     ~20 mm of 0.4 mm trace, 1 oz        ~25 mOhm
+    #     castellation + reflow joints         ~5 mOhm
+    #                                        ~90 mOhm -> declared 100
+    # There is NO cable and NO connector in this path: the module is soldered
+    # to the board and the board has no power connector at all (ADR-0002), so
+    # the two terms that dominate a USB-powered board's IR budget are simply
+    # absent. That is a real advantage of the module topology and it is worth
+    # naming rather than leaving as an unexplained small number.
+    # CONSERVATIVE BY CONSTRUCTION: the gate charges this path with the WHOLE
+    # rail's 0.1 A, but only OUR 200 uA actually crosses it — the module's own
+    # ~100 mA never leaves the module. The declared arrangement therefore
+    # over-states the drop by ~500x, and it still passes with ~78x of margin.

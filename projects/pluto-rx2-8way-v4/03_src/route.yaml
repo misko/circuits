@@ -1,0 +1,873 @@
+# route.yaml — pluto-rx2-8way-v4
+#
+# The per-board input to skills/kicad-pcb/scripts/route_and_stitch_generic.py.
+# ZERO board-specific routing Python (repo ADR-0002).
+#
+# ===========================================================================
+# THE THREE RF INVARIANTS, AND WHERE EACH ONE IS ENFORCED
+# ===========================================================================
+#
+# 1. `In1.Cu` IS THE SOLID UNBROKEN RF REFERENCE AND IS EXCLUDED FROM ROUTING.
+#    Enforced by `route.common.layers: [F.Cu, In2.Cu]` — In1.Cu and B.Cu are
+#    POURED (floorplan.yaml `zones:`) and never routed. This is Ossmann's
+#    rule 1, and it is what makes nine arm phases comparable at all.
+# 2. RF ON F.Cu ONLY, NO VIAS INSIDE AN ARM. Enforced HERE by the rf wave's
+#    `layers: [F.Cu]`, and GRADED by `copper_length_audit.py` (`no_vias: true`
+#    in rules/nets.yaml) — the wave restriction is a per-WAVE setting that
+#    nothing re-checks afterwards, so the grade is the real enforcement.
+# 3. RF FIRST. The rf wave is wave 1: escape lanes are claimed by whoever
+#    routes first, and the arms are the board's published property.
+#
+# ===========================================================================
+# THE RF WAVE'S TWO UNUSUAL NUMBERS, BOTH MEASURED
+# ===========================================================================
+#
+# `grid_step: 0.05` — rf-design.md 4(c): at KRT's default 0.1, NOTHING routed
+# v1's five boxed RF pads at ANY width (0.30/0.25/0.20 all fail), because the
+# RF land centres sit at odd multiples of 0.05 mm and a 0.1 grid cannot place a
+# centreline on them. Every coordinate in 03_src/floorplan.yaml is a multiple
+# of 0.05 mm precisely so this grid can hit it — including the arm lengths,
+# where 9.90 / 14.00 was chosen over the exact sqrt(2) pair for that reason.
+#
+# `clearance: 0.14` — MEASURED on THIS board by `escape_check.py --board`
+# BEFORE any router ran: six U_SW pads cannot emit their own class width at the
+# board-wide 0.200 mm. The PE42482A-X land is 0.30 x 0.60 on a 0.50 pitch, so
+# the widest track that can leave at clearance c is 2*(0.350 - c) — 0.300 mm at
+# 0.200, 0.420 mm at 0.140. The full derivation, the three refuted
+# alternatives, and the bounded rule area live in rules/nets.yaml
+# `scoped_clearances:`; the DRC floor there and this router budget are THE SAME
+# NUMBER, which is what canon R-SCOPE's last paragraph (and PF-ROUTE-CLR)
+# require.
+#
+# ===========================================================================
+# WHAT THE User.3 KEEPOUT IS FOR, AND THE INCIDENT IT IS DRAWN AGAINST
+# ===========================================================================
+# It fences the DIGITAL waves (pwr / ctrl / sig) out of the RF rosette, so a
+# select line cannot end up running alongside an arm (rules/nets.yaml CTRL
+# `intent:` — a switching edge coupled into an arm lands inside the dwell it is
+# supposed to start), and so no digital via perforates In1.Cu under an arm.
+#
+# THE RECTS LEAVE A CORRIDOR AND THAT IS THE WHOLE DESIGN: x 39.80..47.50 for
+# y 47.00..68.00, plus everything south of y = 68.00. That corridor is the
+# 45-degree sector between the S arm (270) and the SE arm (315), which is where
+# U_SW's own control pads point. EVERY control endpoint is inside it —
+# U_SW pads 8..12 (y 50.90), R_PD1/R_PD2/C_SW1 (40.20/41.50/42.80, 52.60),
+# R_PD3/R_PD4 (41.20/42.50, 54.80), C_SW2 (41.60, 57.00) — and every other
+# one is south of y = 68. RE-CHECKED 2026-07-30 after the control pocket was
+# re-laid to meet the 4 mm SW_V4 budget: the westmost pad centre is now
+# x 40.20 against the corridor's x0 = 39.80, and the eastmost y is 57.00
+# against y1 = 68.00.
+#
+# THAT LAST SENTENCE IS THE CHECK, NOT A COURTESY. pluto-rx2-8way-v4 2026-07-30:
+# an RF-fan keepout rect CONTAINED the SW_V1..V4 endpoints and produced EIGHT
+# unconnected nets with zero track copper anywhere — and it was summarised for
+# hours as "MCU-field congestion". A keepout that contains an endpoint does not
+# route badly; it does not route at all.
+
+project:
+  name: pluto_rx2_8way_v4
+  board: 04_kicad/pluto_rx2_8way_v4.kicad_pcb
+  build_dir: 06_build/route
+
+flow:
+  owner:
+    stage: routing
+    files: [03_src/route.yaml, 03_src/floorplan.yaml]
+  copper:
+    deterministic: [prep.seed_stubs, taps.connections, stitch.seed_stubs,
+                    route.final]
+    stochastic: [route.waves]
+  budgets_s:
+    escape_packages: 30
+    escape_lands: 120
+    tier_preflight: 15
+    grind: 900
+    rebuild: 1200
+    layout_drc: 120
+  blockers: []
+  inputs:
+    include: [03_src, 03_tscircuit/src/pluto_rx2_8way_v4.tsx,
+              03_tscircuit/manifest.yaml]
+    parts: [02_parts/0402WGF2200TCE, 02_parts/BLM21SP601SN1D,
+            02_parts/KH-SMA-KE-Z, 02_parts/KT-0603R,
+            02_parts/PE42482A-X, 02_parts/RP2040-Zero]
+    tools: []
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2, User.3, User.4]
+    # `refdes_prefix: H` IS NOT OPTIONAL. Without it the mounting-hole keepout
+    # is stamped around EVERY hole on the board, and on pluto-rx2-8way-v4 that
+    # meant a 3.0 mm radius around J_USB's own 0.650 mm alignment pegs —
+    # over-reach 2.500 mm, swallowing all 12 signal pads, TEN unconnected. On
+    # THIS board the ten SMA jacks each carry five 1.4 mm plated holes, so an
+    # unfiltered rule would sterilise the entire rosette.
+    mounting_holes: {radius: 3.0, refdes_prefix: H}
+    npth_pads: {margin: 0.15}
+    edge_band: 0.7          # KRT has no edge concept; the dru floor is 0.3
+    rects:
+      # The digital fence. See the header: these leave the SSE control
+      # corridor and everything south of the rosette open.
+      - {x0: 20.00, y0: 20.00, x1: 70.00, y1: 47.00, layer: User.3}  # north
+      - {x0: 20.00, y0: 47.00, x1: 39.80, y1: 68.00, layer: User.3}  # west
+      - {x0: 47.50, y0: 47.00, x1: 70.00, y1: 68.00, layer: User.3}  # east
+      # ===================================================================
+      # THE SIX BARREL WINDOWS — one per pour-fed GND terminal in the
+      # control pocket. THIS IS THE FIX FOR THE STRANDED-GND-PAD CLASS.
+      # ===================================================================
+      # A ROUTER RESERVES A BARREL WINDOW ON THE PAD'S OWN LAYER AND ON NO
+      # OTHER. On F.Cu a foreign centreline stands >= 0.45 (pad half) + 0.20
+      # (clearance) + 0.10 (track half) = 0.75 mm off a 0805 GND pad's centre,
+      # which already clears the 0.425 mm a 0.25/0.15 barrel needs. On In2.Cu
+      # that pad does not exist as far as the router is concerned — and
+      # `waves.exclude: [GND, ...]` means these pads are never routed at all,
+      # so nothing else speaks for them either. The control bus therefore
+      # threads UNDER them, and a pour-fed GND terminal ends up with no legal
+      # via site anywhere: DRC then reports `Zone [GND] <-> Zone [GND]` naming
+      # NO PAD, and the stitcher's `heal_islands` DIES. It is a hard driver
+      # stop wearing a zone's name.
+      #
+      # MEASURED (2026-07-30, two independent routes):
+      #   pre-rotation board, C_SW2.2: 0 legal 0.25/0.15 sites out of 608
+      #     interior points of its own 1.411 x 1.437 mm island — three In2
+      #     verticals at 41.850 / 42.350 / 42.800 under one 0.90 mm pad.
+      #   post-rotation race winner, with a 0.325 mm half-width window: the
+      #     nearest In2 centrelines landed at EXACTLY 0.3250 (SW_V3) and
+      #     0.3750 (SW_V1) mm — i.e. hard against the window edge. KRT keeps
+      #     track CENTRELINES out of a keepout, not track COPPER, so a
+      #     0.325 mm half-width buys 0.325 mm of standoff and not 0.425.
+      #     C_SW1.2 measured 0.1000 (SW_V4) and R_PD3.2 0.0500 (SW_V3), both
+      #     with no window at all.
+      #
+      # HALF-WIDTH 0.55 mm, DERIVED: barrel 0.125 + clearance 0.200 + the
+      # widest centreline that may abut the wall — 0.200 for the 0.400 mm 3V3
+      # trunk — = 0.525, rounded up. For the 0.200 mm control tracks the
+      # requirement is 0.425 and the margin is 0.125.
+      #
+      # THEY DENY ALMOST NOTHING. Each window sits inside its own part's
+      # courtyard, and every window's SIGNAL pad (R_PD*.1 / C_SW*.1) is
+      # OUTSIDE it — the nearest, R_PD2.1's top edge at y 52.410 against a
+      # wall at 52.560, clears by 0.150 mm — so no escape is fenced in. The
+      # 0.20 mm channels left between adjacent windows still admit a
+      # centreline, which is what a keepout excludes.
+      - {x0: 39.650, y0: 52.560, x1: 40.750, y1: 53.660, layer: User.3} # R_PD1.2
+      - {x0: 40.950, y0: 52.560, x1: 42.050, y1: 53.660, layer: User.3} # R_PD2.2
+      - {x0: 42.250, y0: 52.530, x1: 43.350, y1: 53.630, layer: User.3} # C_SW1.2
+      - {x0: 40.650, y0: 54.760, x1: 41.750, y1: 55.860, layer: User.3} # R_PD3.2
+      - {x0: 41.950, y0: 54.760, x1: 43.050, y1: 55.860, layer: User.3} # R_PD4.2
+      - {x0: 40.275, y0: 56.450, x1: 41.375, y1: 57.550, layer: User.3} # C_SW2.2
+      # THE NE APPROACH FENCE, on User.2 so it binds the RF wave too. ADDED
+      # 2026-07-30 with the pickoff re-architecture, and it is a MEASURED
+      # repair, not a precaution. With R_T2's pad 2 at (52.00, 28.21) the
+      # cheapest octilinear path from U_SW pad 19 (42.25, 47.10) is
+      # `45 deg to (52.00, 37.35), then straight down x = 52.00` -- which runs
+      # THROUGH J_ANT7 (centre 52.80, 38.35). MEASURED on the first campaign:
+      # EIGHT clearance findings, all RX1_TAP, two of them against J_ANT7's own
+      # launch pad at 0.1671 mm of its 0.8000 mm local clearance -- and that
+      # 0.80 is the >= D3.5 mm bottom-plane antipad the KH-SMA-KE-Z dossier
+      # asks for, so copper there is a return-loss defect before it is a DRC
+      # one. The rect denies the corridor east of the J_RX2/J_ANT7 channel
+      # between the rosette and the north row; the tap then descends the
+      # channel and runs east under the jacks. NOTHING ROUTABLE IS INSIDE IT:
+      # J_ANT7's four GND posts are excluded from every wave by
+      # `waves.exclude`, its own launch pad (52.80, 38.35) is NORTH of y1, and
+      # J_RX1 / R_T1 / R_T2 / H2 are all SOUTH of y0.
+      #
+      # ===================================================================
+      # THE RX1_TAP CORRIDOR — on User.4, which ONLY the rf_tap wave binds
+      # ===================================================================
+      # RX1_TAP is the one net on this board that must cross the whole rosette
+      # field: the pickoff is a LUMPED shunt at the antenna node (floorplan.yaml),
+      # so its 440 ohm sits at y 25-28 and its launch is at U_SW pad 19
+      # (42.25, 47.10), ~21 mm away. A 50 ohm line TERMINATED in 50 ohm is
+      # length-blind, so the length is free; the PATH is not.
+      #
+      # THREE CAMPAIGNS, AND EACH ONE MOVED THE SAME DEFECT SIDEWAYS:
+      #   1. no fence      -> 8 findings, RX1_TAP straight THROUGH J_ANT7,
+      #                       two of them 0.1671 mm against that jack's own
+      #                       0.8000 mm launch clearance (the >= D3.5 mm
+      #                       bottom-plane antipad KH-SMA-KE-Z asks for, so
+      #                       copper there is a return-loss defect first)
+      #   2. NE fence      -> 9 findings, hugging J_ANT7's WEST post and
+      #                       J_ANT8's NE post at 0.171..0.183 mm
+      #   3. + post boxes  -> 6 findings, now hugging J_RX2's SE post at 0.170
+      # THE CAUSE IS ONE THING AND IT IS NOT THE ROUTER'S TASTE. The rf wave
+      # routes at clearance 0.14 (the launch override — six U_SW pads cannot
+      # emit 0.36 mm at 0.20), and OUTSIDE the bounded `rf_launch` rule area the
+      # DRC floor is 0.20. Every corridor left open is therefore hugged 0.06 mm
+      # too tight, and fencing one post just moves the hug to the next one.
+      #
+      # SO THE CORRIDOR IS DECLARED, NOT DISCOVERED, and the walls carry the
+      # 0.20 themselves: every rect is set back from the pad it protects by
+      # 0.20 (clearance) + 0.18 (half of a 0.36 mm track), which makes the
+      # narrowest AVAILABLE centreline the narrowest LEGAL one and takes the
+      # wave clearance out of the argument. It lives on User.4 and only the
+      # rf_tap wave binds it, so the eight graded arms and RX2_OUT — which need
+      # J_RX2's and J_ANT7's neighbourhoods to land in — are untouched.
+      #
+      # [a] WEST WALL. x1 = 44.70 = J_RX2's east post column (pad right edge
+      #     44.24) + 0.46. Contains J_RX2's own launch pad, which is the point:
+      #     RX2_OUT is in the OTHER wave and still owns it.
+      - {x0: 20.00, y0: 26.30, x1: 44.70, y1: 44.00, layer: User.4}
+      # [b] EAST WALL. x0 = 47.30, leaving J_ANT7's west post (pad left edge
+      #     48.258) 0.958 mm. Contains J_ANT7's launch pad — again, other wave.
+      - {x0: 47.30, y0: 29.40, x1: 70.00, y1: 44.00, layer: User.4}
+      # [c] THE UNDER-JACK SLOT'S SOUTH WALL. J_ANT8's NE post (49.040, 27.540)
+      #     has pad bottom y 28.490; y1 = 28.87 = 28.490 + 0.20 + 0.18. With
+      #     [b]'s y0 = 29.40 the eastward run's only admissible centrelines are
+      #     29.05..29.22, all >= 0.20 from the post. x1 = 51.20 keeps R_T2's
+      #     pad 2 (52.00, 28.21) reachable from the west.
+      - {x0: 44.70, y0: 26.30, x1: 51.20, y1: 28.87, layer: User.4}
+      # [d] SOUTH WALL. Denies diving under the RX1_MAIN through line at
+      #     y = 25.00 and coming up at R_T2 from the south, which would cross it.
+      - {x0: 44.70, y0: 20.00, x1: 70.00, y1: 26.30, layer: User.4}
+      # [e] the module underside, redrawn on User.4 so the rf_tap wave inherits
+      #     it too (a wave binds ONE keepout layer, so this rect needs a copy on
+      #     every layer that is bound — the User.2 original is below).
+      - {x0: 58.10, y0: 73.80, x1: 59.30, y1: 86.00, layer: User.4}
+      # THE MODULE'S OWN COPPER KEEPOUT, on User.2 so it binds EVERY wave.
+      # RP2040-Zero carries TEN LIVE SMD PADS on its carrier-facing face
+      # (GP17..GP25 + GND, 1.270 mm pitch, STEP-measured) at module-frame
+      # X 2.4..3.6 / Y 4.8..17.0; at U_MCU (52.70, 80.75, rot 180) that lands
+      # at board x 58.10..59.30, y 73.80..86.00. They are ZERO height, so the
+      # 1.000 mm HEIGHT keepout does not cover them, and they sit ~1.1 mm above
+      # our F.Cu with nothing between: a solder ball or a flexed board shorts
+      # nine GPIO. The rectangle is drawn into the footprint on Cmts.User and
+      # is graded by NOTHING -- this is the line that makes the router obey it.
+      - {x0: 58.10, y0: 73.80, x1: 59.30, y1: 86.00, layer: User.2}
+  waves:
+    exclude: ["GND", "unconnected-*"]
+    groups:
+      # RX1_TAP / RX1_TAP_MID / RX1_MAIN ride the rf wave even though they are
+      # NOT length-matched members: they are 50 ohm copper on F.Cu and they
+      # leave the same QFN, so they need the same grid and the same launch
+      # clearance. Their exclusion from the MATCH is a separate statement,
+      # made in rules/nets.yaml and graded there.
+      rf:   [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7,
+             RX2_OUT, RX1_TAP_MID, RX1_MAIN]
+      # RX1_TAP IS ITS OWN WAVE and that is the whole repair: it is the only
+      # rf net whose path crosses the rosette field, and it is the only one
+      # that needs the User.4 corridor. Splitting it does NOT re-open the
+      # "four ordered ctrl waves" mistake below — that failed because it froze
+      # escapes INSIDE one congested field; this separates two fields that
+      # share no lane, which is the case where ordering helps.
+      rf_tap: [RX1_TAP]
+      pwr:  [3V3_MOD, 3V3]
+      ctrl: [SEL_V1, SEL_V2, SEL_V3, SEL_V4, SW_V1, SW_V2, SW_V3, SW_V4]
+      sig:  rest        # LED_STAT, LED_STAT_A
+
+route:
+  krt: ~/gits/KiCadRoutingTools
+  common:
+    layers: [F.Cu, In2.Cu]   # In1.Cu POURED, NEVER ROUTED — invariant 1
+    clearance: 0.2
+    # `grid_step: 0.05` IS COMMON, NOT AN RF SETTING, AND THAT IS A CORRECTION.
+    # rf-design.md 4(c) records the grid trap against the RF launch, so the
+    # first draft of this file gave 0.05 to the rf wave alone. MEASURED here:
+    # that leaves the DIGITAL escape broken in exactly the same way. U_SW's
+    # control pads sit at x = 40.75 / 41.25 / 41.75 / 42.25 — ODD multiples of
+    # 0.05, because the QFN's own pad offsets are +/-0.25, +/-0.75, +/-1.25
+    # about a centre on the 0.05 grid — and at KRT's default 0.1 no centreline
+    # can land on them. Symptom: SW_V2 (the pad with a routed neighbour on BOTH
+    # sides) failed with "no rippable blockers found" in EIGHT of eight raced
+    # candidate chains, which is what an infeasibility looks like when it is
+    # mistaken for congestion. The grid is a property of the PAD COORDINATES,
+    # not of the net class.
+    grid_step: 0.05
+    fab_tier: advanced
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+  waves:
+    - {name: rf,   group: rf,   layers: [F.Cu], max_iterations: 400000,
+       clearance: 0.14}
+    # THERE IS NO LENGTH-MATCH GROUP ON THE rf WAVE, AND ITS ABSENCE IS THE
+    # DESIGN. The three keys that used to live here — `meander_amplitude: 0.2`,
+    # `length_match_group: [ANT1..ANT7, RX2_OUT]`, `length_match_tolerance:
+    # 0.10` — were REMOVED on 2026-07-31 because the pass they configure had
+    # nothing to correct and left a differential defect behind.
+    #
+    # WHAT IT COST, MEASURED (r2 layout lens, off the routed copper, by
+    # rendering each arm and measuring its perpendicular extent every 0.005 mm
+    # along the pad-to-pad chord): ANT1, ANT2, ANT4, ANT5, ANT6 and RX2_OUT
+    # each carried ONE jog where the realized conductor is 0.600 mm wide over a
+    # 0.555 mm run — 67 % over the 0.360 mm impedance width — while ANT3 and
+    # ANT7 carried NONE. At w = 0.600 the section is 37.17 ohm against a 51.25
+    # ohm line: |Gamma| = 0.0389, RL -28.2 dB, VSWR 1.081 per jog. The cause is
+    # arithmetic: a 0.2 mm meander amplitude on a 0.360 mm trace makes limbs
+    # 0.200 mm apart carrying 0.360 mm of copper, so they SELF-OVERLAP into a
+    # solid blob instead of becoming line. An amplitude that is not larger than
+    # the trace width does not lengthen a path, it widens it.
+    #
+    # AND IT IS A DIFFERENTIAL ERROR ON THE PUBLISHED PROPERTY. This board
+    # sells RELATIVE phase between the arms. A discontinuity present on SIX
+    # arms and absent on TWO does not cancel in the delta — a common-mode
+    # defect would. That is why this outranks its P1 label.
+    #
+    # AND THE PASS HAD NOTHING TO DO. v2's octilinear FLOOR spread, measured
+    # from the pads before any router ran, is 0.0007 mm, and the eight
+    # pad-to-pad chords measure 14.000/14.001 mm — spread 0.001 mm. After the
+    # pass the track-length spread was 0.5313 mm and the copper-path spread
+    # 0.1313 mm. Every measure of spread got WORSE. `nets.yaml`'s
+    # `elongation: meander` is withdrawn in the same change: the claim it makes
+    # is that the recipe deliberately lengthens short members to beat the
+    # octilinear floor, and on THIS floorplan there is no floor to beat.
+    #
+    # `length_match_tolerance` GOES WITH IT AND WAS ALWAYS INERT: a 15-run v1
+    # sweep (rf-design.md 4(b)) moved the realized spread by EXACTLY ZERO
+    # across {0.15, 0.10, 0.05}, while `meander_amplitude` moved it 1.0 ->
+    # 1.5586, 0.3 -> 0.3236, 0.2 -> 0.3236 mm. Leaving a tolerance behind with
+    # no group would read as a match the router is not making.
+    # DO NOT re-add `meander_amplitude` alone to "turn the meander off": KRT's
+    # own default is 1.0 mm (route.py --meander-amplitude default=1.0), the
+    # WORST value v1 measured. The group is what enables the pass; the group is
+    # what had to go.
+    - {name: rf_tap, group: rf_tap, layers: [F.Cu], max_iterations: 400000,
+       clearance: 0.14, keepout_layer: User.4}
+    - {name: pwr,  group: pwr,  keepout_layer: User.3, max_iterations: 400000,
+       neckdown_length: 0.5, neckdown_taper_length: 0.25}
+    # ONE ctrl wave, NOT one per select line, and the failed experiment is
+    # recorded because it is counter-intuitive. U_SW's south edge is a single
+    # 0.50 mm-pitch row -- GND(39.75) 3V3(40.25) V1(40.75) V2(41.25) V3(41.75)
+    # V4(42.25) -- escaping south into a corridor that opens eastward, and
+    # golden rule 4 says escape lanes are claimed by whoever routes first. The
+    # obvious remedy was to fan them WEST TO EAST as four ordered waves.
+    # MEASURED, it is WORSE: one ctrl wave leaves SW_V2 open (7 of 8), four
+    # ordered waves leave SW_V2, SW_V4 AND LED_STAT_A open (3 open). The reason
+    # is that KRT can only RIP UP WITHIN ITS OWN WAVE — copper laid by an
+    # earlier wave is immovable — so splitting a congested field into
+    # single-net waves does not order the escapes, it FREEZES the first
+    # choice. Ordering helps ACROSS independent fields; inside one field the
+    # wave must stay whole and the router must be allowed to race.
+    - {name: ctrl, group: ctrl, keepout_layer: User.3, max_iterations: 1200000,
+       max_probe_iterations: 60000, max_ripup: 30}
+    - {name: sig,  group: sig,  keepout_layer: User.3, max_iterations: 600000,
+       max_probe_iterations: 60000, max_ripup: 30}
+  # r0 plus the five ordered waves above yields r5. The fresh v4 race used
+  # three candidates; all three measured CLEAN before stitching (zero
+  # unconnected items and zero copper violations), so deterministic tie-break
+  # selected c0. No copper from an earlier board identity is promoted here.
+  final: 03_src/route/r5.kicad_pcb
+
+stitch:
+  clearance: 0.2
+  via:
+    # 0.85 -> 0.75, AND THE REASON IS THAT 0.85 WAS SILENTLY CENSORING THE
+    # FENCE. `try_via`'s FIRST guard rejects any new via within `spacing` of any
+    # existing one, NET-BLIND, and the stitch lattice goes through that guard
+    # like everything else. At the old 0.95 pitch 0.85 was invisible (0.85 <
+    # 0.95, so no lattice site ever refused its neighbour). At the ADR-0004
+    # pitch of 0.80 it is 0.05 mm LARGER than the pitch, so every second site
+    # refuses — MEASURED on the first 0.80 build: **1668 grid vias, FEWER than
+    # the 2208 the coarser 0.95 lattice emitted**, and the fence got sparser as
+    # the declared pitch got finer. A guard whose value crosses the pitch turns
+    # a refinement into a regression, in silence.
+    #
+    # 0.75 -> 0.50 WAS TRIED ON 2026-07-31 AND **REVERTED, MEASURED**. THE KEY
+    # IS 0.75. Do not re-propose 0.50 without reading the floor below first.
+    # The attempt was aimed at what the guard does to the *FENCE* pass, and
+    # that half of it is TRUE: `seed_stubs` runs before `stitch_grid`, so a
+    # declared fence barrel is on the board when the lattice walks its sites,
+    # and every lattice site within `spacing` = 0.75 mm of a fence via is
+    # refused — the fence via does not JOIN the wall, it TRADES with it.
+    # MEASURED: 14 declared barrels closed 11 apertures and re-opened 2, one of
+    # them a gap that had not existed before.
+    #
+    # WHAT 0.50 MISSED IS A FLOOR THE 0.40 mm HOLE-TO-HOLE NUMBER DOES NOT
+    # SHOW. `dedupe_vias` is a BOX of half-side 0.5, and the smallest CIRCLE
+    # containing that box has radius 0.5*sqrt(2) = **0.7071 mm**. Any `spacing`
+    # under 0.7071 admits diagonal pairs that `dedupe_vias` then silently
+    # DELETES. MEASURED at 0.50: `deduped 14 twin vias` and 7 arm-sides over
+    # bound — WORSE than the 0.75 it replaced. 0.75 clears 0.7071; 0.50 does
+    # not. The trading is real, but it is solved by iterating the fence in
+    # ROUNDS with a re-measure each time (14 barrels -> 2 -> 1, 11 apertures
+    # over bound -> 2 -> 1 -> 0 PASS), NOT by lowering this key.
+    #
+    # AND `fence_sites.py` DOES NOT READ THIS KEY AS ITS KEEP-OFF RADIUS — its
+    # `KEEPOFF` is the `dedupe_vias` radius (0.5). The two radii guard
+    # different things and only one is fatal: dedupe DELETES a via, while
+    # `spacing` only makes `stitch_grid` SKIP a lattice site the lattice had
+    # spares for. Guard hard against the deletion, iterate against the skip.
+    # The 0.80 lattice is untouched (0.80 > 0.75).
+    #
+    # THE FIRST CORRECTION, KEPT BECAUSE IT IS THE MORE DANGEROUS DEFECT:
+    # 0.75 IS DERIVED, NOT TUNED, AND THE WINDOW HOLDS EXACTLY ONE VALUE. It is
+    # bounded on BOTH sides: strictly under the declared 0.80 lattice pitch, so
+    # one lattice row can never refuse itself, and strictly over the 0.7071 mm
+    # dedupe diagonal above, so no admitted pair is later deleted. The only
+    # 0.05 multiple in (0.7071, 0.80) is **0.75** — the key is forced, not
+    # chosen. (0.85, the value before the first correction, is OUTSIDE that
+    # window on the pitch side, which is exactly how it censored the fence.)
+    # The hole-to-hole floor is checked from the other end and does NOT bind:
+    # every stitch via is on GND, so copper clearance does not apply between
+    # them (same net) and the rule is hole-to-hole —
+    # `jlc_4layer_advanced.min_hole_to_hole 0.25` + drill 0.15 = **0.40 mm**
+    # minimum centre-to-centre. 0.75 keeps 1.88x on that floor, and the
+    # independent `hole_to_hole {min_gap: 0.25}` pass below re-checks it against
+    # the saved board rather than trusting this number.
+    spacing: 0.75
+    pth_margin: 0.3
+    tiers: [{size: 0.25, drill: 0.15, hole_to_copper: 0.155}]
+  keepin: {inset: 0.8}
+  # `dedupe_vias` RUNS TWICE, and the second one is not belt-and-braces. The
+  # first runs before anything ADDS a via; pad_rescue, stub_fallback,
+  # astar_fallback and stitch_grid all emit afterwards, and a lattice site that
+  # lands on a rescue via is a `holes_co_located` pair that nothing downstream
+  # looks for. MEASURED 2026-07-30: two pairs, at (39.710, 54.480) and
+  # (42.160, 52.010), both in the re-laid control pocket where A* had just
+  # recovered C_SW1.2 / R_PD1.2 / R_PD3.2.
+  # `seed_stubs` RUNS FIRST, AND IT IS THE ONLY DECLARED-GEOMETRY PASS IN THE
+  # LIST. The two stranded GND terminals this board carried at 20:27 are closed
+  # here, by NAME, and not by a search parameter — because the search cannot
+  # close them and five measured attempts prove it (island min_bbox 0.8->0.25,
+  # astar window 3->6 / attempts 3->8, pad_rescue served_within 1.6->0.4, zone
+  # clearance 0.25->0.20, row pitch 1.30->1.60 which broke SW_V2's escape).
+  #
+  # WHY A SEARCH COULD NOT: `pad_rescue` reaches its via through `try_via`,
+  # whose FIRST guard is `stitch.via.spacing` measured against EVERY via
+  # already on the board, NET-BLIND. MEASURED on the 20:27 board, when this key
+  # still read 0.85 (HISTORICAL — it is 0.75 now): R_PD2.2's own pad centre
+  # (41.500, 53.110) passes `via_site_ok` — 144 legal 0.25/0.15 sites exist
+  # inside its island — and is refused solely because a SW_V1 escape via sits
+  # 0.7440 mm away, i.e. 0.106 mm inside a lattice spacing rule that has
+  # nothing to say about a via-in-pad on a different net.
+  # THE CONCLUSION SURVIVES THE DROP TO 0.75, WHICH IS WHY THIS PASS STILL
+  # EXISTS: 0.7440 is still inside 0.75, so the pad is still refused — but by
+  # 0.006 mm, not 0.106. The margin is 6 um and the fix is still not a search.
+  # Lowering `spacing` globally would move 2422 lattice vias to fix one pad,
+  # and it cannot go below the 0.7071 mm dedupe diagonal anyway (see `via`).
+  # `seed_stubs` does not consult it: every primitive is exact-collision
+  # checked (`tk.collides` / `via_site_ok`), a colliding stub is REFUSED whole
+  # rather than shaved, the pass PROVES the placed copper lands on the named
+  # pad (`_pin_touched`, so a via that connects nothing is a hard error, not a
+  # silent no-op), and a re-run emits nothing. That is what makes this a
+  # DECLARATION and not a lucky search: the site is named in source, and the
+  # gate is that the named pad ends up touched.
+  #
+  # C_SW2.2's site is the ROTATED one (floorplan.yaml C_SW2 0 -> 180); at
+  # rotation 0 no site existed at all — 0 of 608 interior points of its island.
+  seed_stubs:
+    # 0.20 = the board-wide DRC clearance, NOT the pass default of 0.13. A
+    # declared via has no reason to be graded looser than the copper around it.
+    clearance: 0.2
+    via: {size: 0.25, drill: 0.15}
+    stubs:
+      # Via-in-pad, no segment: `via_in_pad` is a capability of the DECLARED
+      # tier (fab_tiers.yaml jlc_4layer_advanced: via_in_pad true, min via
+      # 0.25/0.15), and In1.Cu under every one of these pads is the solid GND
+      # plane, so the barrel bonds pad -> plane with no copper to lay.
+      #
+      # ALL SIX POCKET TERMINALS, NOT JUST THE TWO THAT WERE STRANDED. Which
+      # two strand is a property of the ROUTE, and the route is re-raced on
+      # every campaign: on the pre-rotation chain it was R_PD2.2 + C_SW2.2, on
+      # the next chain it was C_SW2.2 + C_SW1.2 + R_PD3.2. Declaring only the
+      # observed pair would be curing the symptom of one draw. MEASURED on
+      # THIS promoted chain (r5, post-import, unfilled): every one of the six
+      # has a legal 0.25/0.15 site at its EXACT pad centre, 37 sites each.
+      - {net: GND, pin: R_PD1.2, vias: [[40.200, 53.110]]}
+      - {net: GND, pin: R_PD2.2, vias: [[41.500, 53.110]]}
+      - {net: GND, pin: C_SW1.2, vias: [[42.800, 53.080]]}
+      - {net: GND, pin: R_PD3.2, vias: [[41.200, 55.310]]}
+      - {net: GND, pin: R_PD4.2, vias: [[42.500, 55.310]]}
+      - {net: GND, pin: C_SW2.2, vias: [[40.825, 57.000]]}
+      # U_SW's EXPOSED PAD — the R-THERM finding, closed in source rather than
+      # waived. `policy_audit` reported `FAIL R-THERM: U_SW.25(0)`: canon R6
+      # wants >= 2 same-net vias in or near an EP above ~4 mm2, and this one is
+      # 2.75 x 2.75 = 7.5625 mm2 with none. It is not only a thermal pad: on a
+      # PE42482A-X it is the RF GROUND REFERENCE for every port, so the five
+      # barrels are return path first and heat path second. Five sites on a
+      # 0.70 mm half-pitch cross, each MEASURED legal by via_site_ok on this
+      # chain; hole-to-hole between neighbours is 0.700 - 0.150 = 0.550 mm
+      # against the tier's 0.25 floor.
+      - {net: GND, pin: U_SW.25,
+         vias: [[41.000, 49.000], [40.300, 48.300], [41.700, 48.300],
+                [40.300, 49.700], [41.700, 49.700]]}
+      # ================= THE PER-ARM FENCE, 14 BARRELS =================
+      # A SQUARE LATTICE IS A POOR FENCE, and these fourteen vias are what the
+      # lattice cannot express. Its sites are fixed relative to the BOARD
+      # ORIGIN, so where an arm's flank meets other nets' copper the lattice
+      # has one site to offer and no way to step aside by 0.2 mm.
+      # `stitch_grid` at 0.80 leaves ELEVEN apertures over the ADR-0004 bound
+      # of 1.1910 mm; these fourteen close ALL ELEVEN. There is no residual,
+      # and therefore NO EXCEPTION IS CLAIMED against the published inequality.
+      #
+      # EVERY COORDINATE IS MEASURED, NOT CHOSEN. `03_src/fence_sites.py`
+      # sweeps the CONTINUUM inside each over-bound aperture's +/-2.5 mm flank
+      # band at 0.05 mm in both arclength and lateral offset and asks the
+      # stitcher's OWN `pcb_toolkit.via_site_ok` -- exact collision on every
+      # copper layer plus net-blind hole-to-hole -- whether a 0.25/0.15 GND
+      # barrel can stand there. It then BINARY-SEARCHES the smallest worst
+      # sub-gap that a mutually-compatible set of those sites can achieve, and
+      # emits the cover that achieves it. The ten declared SMA `avoid` rings
+      # and the module-underside rect are EXCLUDED from the search, read out of
+      # this same file, so a via can never close an aperture by eating the
+      # launch antipad the KH-SMA-KE-Z needs.
+      #
+      # WHY THIS IS NOT A WAIVER WEARING A VIA'S CLOTHES: the set is proposed
+      # by one instrument and graded by two others that know nothing about it.
+      # `seed_stubs` REFUSES any barrel its own collision check dislikes (a
+      # refusal is a driver stop, not a shave), and `fence_pitch.py` then
+      # re-measures every aperture off the SAVED board. Neither can be talked
+      # into agreeing with the search.
+      #
+      # THE COORDINATES ARE VALID ONLY FOR THE ROUTE THEY WERE MEASURED
+      # AGAINST. They are a function of where the control copper landed; a
+      # re-race of the ctrl wave moves that copper and these must be
+      # re-derived, not carried. Re-run fence_sites.py after any route change.
+      - {net: GND, vias: [[39.610, 56.460]]}     # ANT4     W
+      # The fresh v4 route occupies the former (41.560, 58.150) site; the
+      # stitcher's exact collision gate refused it. It is deliberately
+      # omitted and the saved board is re-graded for the resulting aperture.
+      - {net: GND, vias: [[41.060, 59.300]]}     # ANT4     W
+      - {net: GND, vias: [[40.860, 60.450]]}     # ANT4     W
+      - {net: GND, vias: [[44.647, 52.860]]}     # ANT5     E
+      - {net: GND, vias: [[56.150, 23.640]]}     # RX1_MAIN W
+      - {net: GND, vias: [[51.500, 25.510]]}     # RX1_MAIN E
+      - {net: GND, vias: [[52.650, 27.260]]}     # RX1_MAIN E
+      - {net: GND, vias: [[56.150, 26.460]]}     # RX1_MAIN E
+      - {net: GND, vias: [[46.739, 41.749]]}     # RX1_TAP  W
+      - {net: GND, vias: [[48.300, 28.390]]}     # RX1_TAP  W
+      - {net: GND, vias: [[51.050, 28.390]]}     # RX1_TAP  W
+      - {net: GND, vias: [[44.870, 45.343]]}     # RX1_TAP  E
+      - {net: GND, vias: [[48.043, 29.660]]}     # RX1_TAP  E
+      # ROUND 2 -- TWO MORE, AND THE SECOND ROUND IS STRUCTURAL, NOT SLOPPY.
+      # `seed_stubs` runs BEFORE `stitch_grid` (it has to: the pin-serving
+      # entries above must claim their barrels first -- see the note on
+      # `passes`), so each declared fence via makes the lattice pass SKIP every
+      # site within `stitch.via.spacing` = 0.75 mm of it. The fence therefore
+      # perturbs the wall it is repairing, and the perturbation is only
+      # knowable by re-measuring. MEASURED: round 1's fourteen barrels took 11
+      # apertures over the bound down to 2, and both survivors are lattice
+      # sites the round-1 barrels displaced, not copper. These two close them.
+      # Convergence is MEASURED at every step, never assumed:
+      #     11 apertures over bound -> 2 -> re-measure below.
+      # What makes round 2 safe where an earlier attempt was NOT: the search
+      # now refuses any candidate inside `dedupe_vias`' 0.5 mm BOX of an
+      # existing via. Without that guard a round-2 proposal landed 0.4052 mm
+      # from a round-1 barrel, `seed_stubs` placed both reporting "0 refused",
+      # `dedupe_vias` deleted one, and the aperture RE-OPENED at 2.1071 mm --
+      # an iteration that went backwards while every gate stayed green.
+      - {net: GND, vias: [[56.900, 27.260]]}     # RX1_MAIN E
+      - {net: GND, vias: [[48.060, 30.200]]}     # RX1_TAP  E
+      # ROUND 3 -- ONE, AND THE SEQUENCE 11 -> 2 -> 1 -> 0 IS THE EVIDENCE THAT
+      # THIS CONVERGES RATHER THAN OSCILLATES. Every round of this iteration
+      # closed strictly more than it opened, and each round's survivor was a
+      # displaced lattice site in the SAME dense corner (RX1_TAP's east flank
+      # where the tap detour crosses the jack field), never a new location and
+      # never a widening number: 3.6000 -> 1.9769 -> 1.9802 -> re-measure.
+      - {net: GND, vias: [[48.584, 30.131]]}     # RX1_TAP  E
+      # ============ LAUNCH RELIEF, 8 BARRELS: THE HOLE CLASS ============
+      # THESE EIGHT ARE NOT FENCE REPAIRS. They are the SAME lattice sites the
+      # grid would place anyway, DISPLACED 0.035 mm radially outward from the
+      # SMA ground barrel they crowd -- because the lattice's phase happens to
+      # stand a 0.15 mm via 1.0766..1.0894 mm from a 1.400 mm PTH centre, and
+      # that is the board's tightest hole class.
+      #
+      # WHY THE CLASS MATTERS AND THE SCALAR DID NOT. The board reported ONE
+      # hole-to-hole number, 0.3016 mm against a 0.25 floor, +20.6 %, over all
+      # 3500 holes. CLASSIFIED BY PAIR CLASS (MEASURED, 4 mm spatial grid):
+      # VIA<->PTH pad 54 pairs / min 0.3016; VIA<->VIA 2 / 0.3785;
+      # VIA<->NPTH 1 / 0.3768; PTH<->PTH 0 / 1.6934. **The 3446-via fence is
+      # NOT the tight class** -- 55 of the 57 sub-0.45 pairs involve a
+      # component hole, and the tight population is a stitching via against an
+      # SMA jack's own ground barrel, recurring on ALL TEN launches. JLC
+      # publishes 0.2 mm via-to-via and 0.45 mm pad-to-pad; every mixed pair
+      # sits BETWEEN them, their tolerance article states no mixed rule, and
+      # their public Q&A #693 is a customer asking this exact question,
+      # unanswered. The governing vendor rule for this board's tightest
+      # feature class DOES NOT EXIST.
+      #
+      # WHY 0.3016 WAS NOT A MARGIN. JLC publishes +0.13/-0.08 mm on PAD holes
+      # and states via hole diameter is NOT controlled. At max material the
+      # 1.400 mm barrel becomes 1.530 (radius +0.065) and
+      #     0.3016 - 0.065 = 0.2366 mm  -- UNDER the declared 0.25 floor.
+      # MEASURED: 8 of the 54 mixed pairs go sub-floor at max material
+      # (nominal < 0.315): 0.3016 x2, 0.3028, 0.3118, 0.3121 x2, 0.3144 x2.
+      # The published tolerance consumes 126 % of the stated +0.0516 margin.
+      # No gate in this repo applied a vendor drill tolerance to a hole gap.
+      #
+      # WHY 0.035 mm, AND WHY MOVE RATHER THAN DELETE. Both constraints here
+      # are tight -- the ADR-0004 fence bound is met with 1.2 % margin
+      # (1.1769 vs 1.1910) -- so the displacement was SWEPT and both margins
+      # measured at each step rather than either being assumed:
+      #   delta    min h2h MAX-MATERIAL   fence worst interior gap
+      #   0.000        0.2366  FAIL           1.1769  pass
+      #   0.0134       0.2500  edge           1.1769  pass
+      #   0.025        0.2615  pass           1.1769  pass   <- h2h saturates
+      #   0.035        0.2615  pass           1.1769  pass   <- CHOSEN
+      #   0.048        0.2615  pass           1.1769  pass   <- fence starts to move
+      #   0.0632       0.2615  pass           1.1910  edge
+      #   0.070        0.2615  pass           1.1968  FAIL (ANT1 E, ANT5 E)
+      # The BOTH-PASS window is delta in [0.0134, 0.0632] mm, 49.8 um wide.
+      # Above 0.025 the hole metric SATURATES -- the binding pair becomes an
+      # untouched one (via 43.000,27.000 <-> J_ANT8.3, 0.3265 nom / 0.2615 max)
+      # -- so displacement beyond it buys nothing and only spends fence
+      # margin. 0.035 is the centre of [0.025, 0.048], the sub-window where
+      # the hole gap is at its achievable maximum AND the fence is bit-for-bit
+      # unchanged: 21.6 um above the hole edge, 28.2 um below the fence edge.
+      #
+      # DELETING THE EIGHT ALSO CLEARS BOTH, AND WAS REJECTED FOR A REASON THE
+      # GATE CANNOT SEE. MEASURED, all eight removed: hole 0.3265/0.2615 and
+      # fence 1.1769 -- IDENTICAL to this. But five of the eight are not
+      # graded at all (2 project beyond an arm end, 3 sit outside the +/-2.5 mm
+      # band) and two are graded END points: dropping them grows ANT1 E's
+      # lead-in and ANT5 E's run-out from 1.520 mm (ADR-0005 GREEN, accept
+      # unconditionally) to 2.652 mm (ADR-0005 RED, full-wave required).
+      # `fence_pitch.py` grades max INTERIOR gap only, so it would have called
+      # that free. Moving keeps the copper and the verdict alike, and the one
+      # perverse consequence of the gate's blind spot -- that DELETING a via
+      # scores better than MOVING it 0.14 mm -- never has to be relied on.
+      #
+      # EVERY SITE MEASURED LEGAL by the stitcher's OWN primitive,
+      # `pcb_toolkit.via_site_ok` (size 0.25, drill 0.15, hole_to_copper
+      # 0.155, hole_to_hole 0.315, exact collision on all four copper layers),
+      # so a site named here is one route_and_stitch_generic accepts. The
+      # displaced lattice site is suppressed twice over: `try_via`'s net-blind
+      # `stitch.via.spacing` 0.75 guard (0.035 < 0.75) and the 0.315 floor in
+      # floorplan.yaml `design_rules.hole_to_hole`, which is what MACHINE-
+      # ENFORCES this fix instead of leaving it as geometry nothing grades.
+      # Nearest OTHER lattice site is 0.8 - 0.035 = 0.765 mm away: outside
+      # `dedupe_vias`' 0.5 mm box, and outside the 0.75 spacing guard — BUT BY
+      # ONLY 0.015 mm. So nothing here trades with the wall, and that margin is
+      # 15 um, NOT the comfortable clearance a smaller guard would imply. A
+      # stub displaced FURTHER than 0.05 mm from its site pulls the neighbour
+      # inside 0.75 and suppresses a SECOND site. Re-check this arithmetic for
+      # any new stub; do not assume one displacement costs one site.
+      #
+      # LIKE THE FENCE ABOVE, THESE COORDINATES ARE ROUTE-DEPENDENT and must
+      # be re-derived, never carried, after any route change.
+      #      resulting gap nominal / max-material, per site:
+      - {net: GND, vias: [[29.4065, 63.8344]]}   # ANT3 J_ANT3.3  0.3366/0.2716
+      - {net: GND, vias: [[52.5935, 43.0344]]}   # ANT7 J_ANT7.3  0.3366/0.2716
+      - {net: GND, vias: [[28.6312, 46.2159]]}   # ANT2 J_ANT2.5  0.3378/0.2728
+      - {net: GND, vias: [[59.7923, 28.6341]]}   # RX1  J_RX1.4   0.3468/0.2818
+      - {net: GND, vias: [[43.8164, 36.6309]]}   # RX2  J_RX2.4   0.3470/0.2820
+      - {net: GND, vias: [[53.3691, 46.1836]]}   # ANT6 J_ANT6.2  0.3470/0.2820
+      - {net: GND, vias: [[29.3855, 39.7681]]}   # ANT1 J_ANT1.3  0.3494/0.2844
+      - {net: GND, vias: [[50.2319, 60.6145]]}   # ANT5 J_ANT5.2  0.3494/0.2844
+  # `seed_stubs` RUNS FIRST, AND THE ALTERNATIVE WAS TRIED AND REFUTED.
+  #
+  # The pass places DECLARED geometry, and this board declares two unrelated
+  # kinds: seven pin-serving stubs (six pour-fed pocket terminals + U_SW's
+  # exposed pad) and a per-arm FENCE (below). A fence exists to SUPPLEMENT the
+  # lattice, so it has to see the lattice. Run before `stitch_grid`, each fence
+  # barrel instead COMPETES with it: `try_via`'s `spacing` guard is net-blind,
+  # so every lattice site within 0.75 mm of a declared via is skipped, and
+  # `dedupe_vias` (radius 0.5, metric BOX) then silently deletes whichever of
+  # the two survivors it meets second. MEASURED with seed_stubs first: 14
+  # declared barrels closed 11 apertures and RE-OPENED 2, one of them a gap
+  # that had not existed before — the fence traded with the wall instead of
+  # joining it.
+  #
+  # SO WHY NOT MOVE IT AFTER `stitch_grid`? BECAUSE THE PASS CARRIES TWO
+  # UNRELATED KINDS OF GEOMETRY AND THEY WANT OPPOSITE ORDERS. Seven entries
+  # SERVE A PIN (six pour-fed pocket terminals + U_SW's exposed pad) and must
+  # claim their barrel before anything else can take it; the fence entries
+  # SUPPLEMENT the lattice and would rather see it. MEASURED with the pass
+  # moved after `stitch_grid`: `seed_stub GND U_SW.25: REFUSED — via
+  # (40.3,48.3) collides foreign copper`, i.e. a lattice via reached the
+  # exposed pad's barrel site first and the driver stopped, exit 1. The
+  # pin-serving half wins the argument, so the pass stays first and the fence
+  # is iterated to a fixed point instead (see the fence block above). THAT
+  # SPLIT IS THE REAL BACKEND GAP: a fence is not a stub, and giving it its own
+  # pass with its own slot in this list is what `03_src/fence_sites.py`'s
+  # DECLARED BACKEND GAP proposes.
+  passes: [seed_stubs,
+           dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, width_floor, reload, hole_to_hole, pad_rescue,
+           stub_fallback,
+           astar_fallback, stitch_grid, dedupe_vias, fill, island_rescue, fill,
+           unify_zone_priorities, heal_islands, prune_stitch_dangling, gate]
+  unify_zone_priorities: {min_bbox: 0.8}
+  dedupe_vias: {radius: 0.5, metric: box}
+  normalize_vias: {below_width: 0.249, size: 0.25, drill: 0.15}
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true}
+  # `width_floor` LIFTS a sub-floor segment instead of deleting it. MEASURED:
+  # KRT's via-in-pad stub for SW_V3 came out 0.1069 mm wide over a 0.100 mm run
+  # on In2.Cu at (41.75, 50.80) — one `track_width` finding against the 0.200 mm
+  # CTRL floor. It is NOT a micro-fragment: it has no free end (it is the only
+  # copper joining the barrel to the land), so dropping it would trade a width
+  # finding for an OPEN NET, which is the worse of the two by a wide margin.
+  width_floor: {default: 0.2}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  # 0.25 -> 0.315 TO TRACK floorplan.yaml `design_rules.hole_to_hole`. A
+  # REPAIR pass must never be looser than the floor it repairs to, or it
+  # certifies a pair that DRC then fails. MEASURED, this is a NO-OP today and
+  # is declared as one: `p_hole_to_hole` walks PCB_VIA pairs ONLY -- it never
+  # looks at a drilled PAD -- so it could not have caught the launch class
+  # this floor was raised for, and the board's min VIA<->VIA gap is 0.3785 mm,
+  # above both the old value and the new. That the pass is blind to the mixed
+  # class is a BACKEND GAP, recorded here rather than papered over: the repair
+  # for a via crowding a PTH pad is `via_site_ok`'s build-time REFUSAL (which
+  # does see pads, via `Toolkit.hole_sites`) plus a declared seed_stub, which
+  # is exactly the route this board takes above.
+  hole_to_hole: {min_gap: 0.315, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    # In1.Cu is the plane every GND pad must reach — including each SMA jack's
+    # four posts, which ARE the launch return path and are only electrically
+    # short if the return is (KH-SMA-KE-Z part.yaml).
+    nets:
+      - {net: GND, layer: In1.Cu}
+    via_in_pad: true
+    # 1.6 -> 0.4, AND THE REASON IS A CATEGORY ERROR IN THE OLD NUMBER.
+    # `served_within` calls a GND pad served when a GND via lies within it —
+    # a EUCLIDEAN test, on a plane-connection question that is TOPOLOGICAL.
+    # MEASURED 2026-07-30 in the re-laid control pocket: R_PD2.2 (41.50, 53.11)
+    # was scored served by R_PD1.2's via 1.30 mm west, and C_SW2.2 likewise —
+    # and each of those vias sits on a DIFFERENT F.Cu island, so neither pad
+    # reached the plane at all. DRC saw it as two zone-to-zone
+    # `unconnected_items` and nothing named the stranded pads. At 0.4 the test
+    # degenerates to "this pad's own via", which is what a via-in-pad rescue
+    # was always for; the cost is ~10 extra 0.25/0.15 vias under 0402 lands.
+    served_within: 0.4
+    rings: [0.15, 0.6, 0.8, 1.0, 1.4, 1.9, 2.5]
+    stub_width: 0.3
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
+  # window 3.0 -> 6.0, attempts 3 -> 8. MEASURED 2026-07-30: in the re-laid
+  # control pocket the pour fragments into 0.6-1.3 mm slivers between the
+  # 1.30 mm-pitch 0402 row, and pad_rescue left R_PD2.2 and C_SW2.2 on islands
+  # with NO via — the board's only two DRC findings, reported as zone-to-zone
+  # `unconnected_items` rather than as stranded pads, which is why they are
+  # worth naming here. A 3.0 mm search window cannot reach out of a 1.3 mm
+  # sliver; 6.0 can.
+  astar_fallback: {net: GND, width: 0.25, window: 6.0, attempts: 8}
+  stitch_grid:
+    # 0.95 mm — AND THE NUMBER IS **1.35 / sqrt(2)**, NOT 1.35. DERIVED, NOT
+    # TUNED, AND THE FACTOR OF sqrt(2) IS THE WHOLE FINDING OF THIS PASS.
+    #
+    # A SQUARE LATTICE AT PITCH p IS NOT A FENCE AT PITCH p. Its
+    # nearest-neighbour distance is p in every direction, so `p = 1.35` looks
+    # like it discharges the bound — but the spacing that governs is the one a
+    # wave travelling ALONG THE ARM sees, i.e. the projection of the flanking
+    # vias onto the arm axis. Eight of this board's arms sit on 45-degree
+    # multiples (the star's angular order is forced by the QFN's own CCW RF pin
+    # order), and one lattice row projects onto a 45-degree axis at **p*sqrt(2)**,
+    # not p. MEASURED at p = 1.35 on the real board: 15 of 20 arm-sides over the
+    # bound, the structural value landing at exactly **1.9092 = 1.35*sqrt(2)**.
+    # So the largest lattice pitch that meets a 1.35 mm along-arm bound in EVERY
+    # orientation is 1.35/sqrt(2) = 0.95459, and the largest 0.05 multiple under
+    # it is **0.95**. Diagonal arms then measure 0.95*sqrt(2) = **1.3435 mm**
+    # (inside 1.35 by 0.0065) and axis arms measure 0.95.
+    #
+    # THE BOUND IT ANSWERS TO.
+    #
+    # ARCHITECTURE sec 6 asks for a ground-via fence flanking every RF arm at
+    # <= 1.35 mm: the largest round value under this board's own derived
+    # GUIDED lambda_g/20 = 1.3693 mm (ADR-0003, eps_eff 3.328, lambda_g(6 GHz)
+    # = 27.387 mm). rf-design.md 3(b) settles which lambda governs and the
+    # answer is not cosmetic: a fence sits in the substrate BESIDE a
+    # microstrip, so what it must sample is the wave ON THE LINE. Free-space
+    # lambda/20 = 2.5 mm is the LOOSER figure and satisfying it proves nothing
+    # about the guided one — the two are sqrt(3.328) = 1.82x apart.
+    #
+    # THIS BOARD SHIPPED AT 2.0 mm = lambda_g/13.7 UNTIL NOW, AND THE CAUSE WAS
+    # NOT JUDGEMENT. The shared stitcher's grid pass stepped with
+    # `range(int(start), int(stop), int(pitch))`, so the pitch was silently
+    # floored to a whole millimetre and the only expressible choices were 1 mm
+    # (a ~2500-site via forest) or 2 mm. `1.35` would have become `1`: not a
+    # refusal, a DIFFERENT BOARD. Fixed 2026-07-30 at eccf602e — the axis now
+    # steps with `ceil((stop - start) / pitch)` (range's own length rule, so
+    # every integer config in the fleet is byte-identical) and HARD-ERRORS on a
+    # non-positive pitch, which previously placed zero vias in silence.
+    #
+    # MEASURED OFF THE REAL BOARD after this change (06_build/verify/
+    # fence_pitch.txt) — a declared pitch is a config value, not a fence.
+    # 2208 grid vias + 40 SMA ground POSTS (1.4 mm PTH, all four planes: those
+    # are fence elements too, and counting only `via` objects reports an
+    # aperture at every launch where the ground is in fact densest).
+    #
+    # WHAT THE LATTICE STILL CANNOT DO, NAMED RATHER THAN AVERAGED. 12 of 21
+    # arm-sides carry an interior aperture over 1.35 mm, and every one is a
+    # SITE OCCUPANCY, not a pitch: (a) the SMA `avoid` rings below — ANT2 2.27,
+    # ANT6 1.90 both sides, RX1_MAIN 5.11 at J_ANT8 — which are a DELIBERATE RF
+    # measure (the >= D3.5 mm bottom-plane antipad KH-SMA-KE-Z calls for), so a
+    # via there is a return-loss defect before it is a DRC one; (b) the SSE
+    # control corridor's own copper against the S and SE arms — ANT4 3.62
+    # (3V3 + SW_V1 on F.Cu/In2.Cu), ANT5 2.79 (SW_V3/SW_V4); (c) the star hub,
+    # where the arm's own 0.36 mm copper and its neighbour leave no legal site —
+    # RX2_OUT 1.68, RX1_TAP 1.88. A FINER PITCH DOES NOT FILL AN OCCUPIED SITE:
+    # these close only by moving the control corridor (a placement backtrack
+    # that discards the promoted route chain) or by a per-arm fence pass the
+    # shared stitcher does not have. Classified in
+    # 06_build/verify/fence_apertures.txt, one named occupier per aperture.
+    #
+    # =====================================================================
+    # THE BOUND THIS BLOCK ANSWERS TO MOVED ON 2026-07-30, AND 0.95 NO LONGER
+    # QUALIFIES. THE VALUE BELOW IS DELIBERATELY LEFT AT 0.95 — READ ON.
+    # =====================================================================
+    # Everything above this fence derives 0.95 from a 1.35 mm along-arm bound,
+    # which is ADR-0003's microstrip `lambda_g/20`. `06_build/verify/
+    # line_type.py` then MEASURED the arms off the saved board: a GND pour
+    # flanks every one of them at 0.2005-0.2010 mm edge-to-edge on BOTH sides
+    # (g/h = 0.955) over 61-93 % of its length. They are grounded coplanar
+    # waveguide. There is no bare-microstrip section anywhere on this board;
+    # the 8-29 % that is not two-sided-coplanar is the SMA launch, where the
+    # In1.Cu antipad means there is no reference plane either.
+    #
+    # That changes what these vias are FOR. On a microstrip the fence is a
+    # lateral shield. Here the coplanar pour already IS the wall — solid
+    # copper at 0.2005 mm, aperture zero — and the vias' job is to SHORT that
+    # pour to In1.Cu so the parasitic parallel-plate mode between the two
+    # ground sheets cannot propagate. That mode fills the dielectric between
+    # two planes, so it travels at the BULK er, not at the line's eps_eff:
+    #     lambda_pp = lambda_0/sqrt(4.4) = 23.8201 mm
+    #     bound     = lambda_pp/20       = 1.1910 mm      (ADR-0004)
+    # 13 % TIGHTER than 1.3693, and tighter across the whole Dk window
+    # 4.2-4.6. The largest 0.05 lattice pitch that meets it in EVERY
+    # orientation is 1.1910/sqrt(2) = 0.8422 -> **0.80**, giving 1.1314 mm on
+    # a diagonal arm.
+    #
+    # 0.80 IS NOW WRITTEN IN, AND THE BOARD BELOW IT WAS REGENERATED IN THE SAME
+    # PASS (2026-07-31). The previous revision of this comment said 0.80 was
+    # "the value the next regeneration must carry" and deliberately left 0.95
+    # here, because changing the number without rebuilding would put the source
+    # and `04_kicad/` into disagreement (canon M3). This IS that regeneration.
+    net: GND
+    x: [23, 67, 0.80]
+    y: [23, 90, 0.80]
+    # AVOID: one ring per SMA CENTRE PIN. MEASURED — the first stitched build
+    # put grid vias at (31.0, 59.0) and (29.0, 61.0), which are 0.7312 and
+    # 0.7858 mm from J_ANT3's pad 1 against that pad's own 0.80 mm LOCAL
+    # clearance, and it cost 12 of the run's 21 DRC findings (8 clearance +
+    # 4 hole_clearance, the same two pairs reported once per copper layer).
+    # `stitch.via.pth_margin` is a BOARD-WIDE number and raising it to 0.85
+    # would push stitch vias away from every PTH pad including the forty SMA
+    # GROUND POSTS — which need no stitch via at all, being through-holes that
+    # already tie all four planes, but whose neighbourhood is exactly where
+    # ground stitching is worth most. So the exclusion is per-PIN, not global.
+    # RADIUS 1.90 = pad radius 0.95 + the pad's local clearance 0.80 + via
+    # radius 0.125, rounded up. That local 0.80 is not decoration: it is what
+    # opens the >= D3.5 mm bottom-plane antipad the KH-SMA-KE-Z dossier calls
+    # for, so a via inside it is a return-loss defect before it is a DRC one.
+    avoid:
+      - {x0: 29.85, y0: 37.20, x1: 29.85, y1: 37.20, margin: 1.90}   # J_ANT1
+      - {x0: 25.10, y0: 48.25, x1: 25.10, y1: 48.25, margin: 1.90}   # J_ANT2
+      - {x0: 29.20, y0: 59.15, x1: 29.20, y1: 59.15, margin: 1.90}   # J_ANT3
+      - {x0: 39.10, y0: 64.25, x1: 39.10, y1: 64.25, margin: 1.90}   # J_ANT4
+      - {x0: 52.80, y0: 60.15, x1: 52.80, y1: 60.15, margin: 1.90}   # J_ANT5
+      - {x0: 56.90, y0: 49.25, x1: 56.90, y1: 49.25, margin: 1.90}   # J_ANT6
+      - {x0: 52.80, y0: 38.35, x1: 52.80, y1: 38.35, margin: 1.90}   # J_ANT7
+      - {x0: 40.75, y0: 33.10, x1: 40.75, y1: 33.10, margin: 1.90}   # J_RX2
+      - {x0: 46.50, y0: 25.00, x1: 46.50, y1: 25.00, margin: 1.90}   # J_ANT8
+      - {x0: 57.50, y0: 25.00, x1: 57.50, y1: 25.00, margin: 1.90}   # J_RX1
+      # NOT AN SMA RING. The module's carrier-facing SMD field (route.prep's
+      # User.2 rect above) binds every ROUTER wave and binds the STITCHER not
+      # at all — the zone and grid passes are not router objects. MEASURED on
+      # the first stitched build: 22 GND vias inside it, 0 tracks; the lattice
+      # puts 6 sites there at 2.00 mm pitch, 9 at 1.35 and 26 at 0.95, so the
+      # fence correction QUADRUPLED a count that was already wrong. Ten live
+      # module pads sit ~1.1 mm above this copper with nothing between them.
+      - {x0: 58.10, y0: 73.80, x1: 59.30, y1: 86.00, margin: 0.15}   # U_MCU underside
+  # min_bbox 0.8 -> 0.25 on BOTH island passes. MEASURED 2026-07-30: after the
+  # control pocket moved, DRC reported two zone-to-zone `unconnected_items`
+  # (B.Cu<->F.Cu and F.Cu<->F.Cu) while island_rescue placed 0 vias and
+  # heal_islands bridged 0 — because the orphaned islands are SMALLER than the
+  # 0.8 mm bbox both passes screen on. DRC does not screen on size, so the
+  # threshold was hiding exactly the islands it was meant to find.
+  island_rescue: {min_bbox: 0.25, layers: [B.Cu, F.Cu, In1.Cu, In2.Cu],
+                  require: all}
+  heal_islands: {min_bbox: 0.25}
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2}

@@ -1,0 +1,272 @@
+mpn: KH-SMA-KE-Z
+manufacturer: Shenzhen Kinghelm Electronic Co., Ltd.
+type: rf_connector_sma_jack_vertical_tht
+datasheet:
+  doc_id: KH-SMA-KE-Z
+  revision: "2021.08.10"          # the drawing sheet's own 日期 (date) field,
+                                  # title block sheet 2/2. The vendor publishes
+                                  # no version number; the date IS the revision.
+  url: https://datasheet.lcsc.com/lcsc/2003301010_Kinghelm-KH-SMA-KE-Z_C504007.pdf
+  sha256: 05257621aa124d9a077a47230c4ffc0030b23477c0e5c5e694abffa5f8daee08
+  fetched: 2026-07-27
+  pages: 2
+package: vertical THT flange jack, 6.5 x 6.5 mm flange, 13.5 mm overall,
+  1/4-36UNEF thread D6.2, four 0.9 mm SQUARE posts on a 5.08 x 5.08 mm square
+  plus a centre signal pin
+footprint: pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4
+  # LIBRARY REPOINTED 2026-07-30: was `pluto_rx2_8way:` — v1's library. v4 is a
+  # SEPARATE project and v1 is not superseded, so a cross-project FPID is a
+  # dangling ref from here (03_src/lib/contracts.md: 'every footprint referenced
+  # by 04_kicad/<board>.kicad_pcb resolves from 03_src/lib/ or a stock KiCad
+  # library'). The footprint file is VENDORED into
+  # 03_src/lib/pluto_rx2_8way_v4.pretty/, byte-identical to v1's — same part,
+  # same vendor land, and copying it is what makes v4 regenerable standalone.
+  # AUTHORED 2026-07-28 -> 03_src/lib/pluto_rx2_8way.pretty/. Drawn from drawing
+  # sheet 2/2 (2021.08.10): PCB inset "5-D1.4", four corner holes on 5.08 x 5.08
+  # plus one at the centre; rear view 4-SQ0.9 / flange 6.5 sq / insulator D4.2.
+  # TWO DERIVED PROPERTIES ARE CARRIED IN THE FOOTPRINT ITSELF rather than left
+  # to the board, because both are silent if forgotten:
+  #   - pad 1 carries a 0.80 mm LOCAL CLEARANCE, which is what opens the >= D3.5
+  #     antipad in every ground plane (1.9 + 2 x 0.8 = 3.5). See layout: notes.
+  #   - pads 2-5 are zone_connect 2 (SOLID). The four posts ARE the launch return
+  #     path; a thermal spoke is not one. Consequence, stated not discovered: a
+  #     solid connection into four ground planes makes these 40 THT joints harder
+  #     to hand-solder — preheat is a bring-up requirement, not a preference.
+mates: receptacle                 # JACK (female, inner HOLE). Read from the
+                                  # drawing: the model string is KH-SMA-KE-Z
+                                  # where K = hole, and the sheet-2 front view
+                                  # shows a bore, not a pin. NOT RP-SMA.
+escape:
+  style: connector
+  pitch: 5.08
+  escapes_worst_side: 1           # only the centre signal pin leaves; the four
+                                  # posts are all GND
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-27
+pins:                             # drawing sheet 2/2, PCB layout inset
+  1: RF                           # (labelled PCB shi-yi-tu), bottom right:
+  2: {name: GND, tie: GND}        # FIVE D1.4 mm holes — four on a 5.08 x 5.08
+  3: {name: GND, tie: GND}        # mm square plus ONE at the centre. Centre =
+  4: {name: GND, tie: GND}        # signal (it is the continuation of the coax
+  5: {name: GND, tie: GND}        # inner conductor in the side view); the four
+                                  # corner posts are the 4-SQ0.9 ground legs.
+limits:
+  frequency: DC - 6 GHz           # spec page sheet 1/2
+  impedance: 50 ohm
+  vswr: "<= 1.35, DC-6 GHz"       # spec page sheet 1/2
+  mating_cycles: ">= 500"
+  dielectric_withstand: ">= 1500 V"
+gotchas:
+  - "GROUND HOLES MUST BE D1.4 mm, NOT D1.3. The drawing's own PCB-layout inset
+     says 5-D1.4 and the arithmetic backs it: a 0.9 mm SQUARE post has a
+     1.273 mm diagonal, so a D1.3 hole leaves 0.014 mm radial clearance —
+     inside JLC's plated-hole tolerance. D1.4 gives 0.064 mm. Some vendor
+     sheets in this class recommend D1.3; this one does not, and the number is
+     arithmetically justified rather than inherited."
+  - "RP-SMA LANDMINE ONE CHARACTER AWAY, AND IT IS LIVE. DreamLNK SMA-KE-P901
+     (C914556, 1287 in stock 2026-07-27) and SMA-KWE901 (C914553, 5088) are
+     listed by LCSC as RP-SMA / 'Male Pin' in an external-thread shell. They
+     will not mate with a standard SMA male cable. A price-driven substitution
+     yields a board that assembles cleanly and CANNOT BE CONNECTED — on this
+     board, ten times over."
+  - "DO NOT SUBSTITUTE ON APPEARANCE. C914559 SMA-KE901 has a 4.90 mm post
+     square, not 5.08 — the legs will not enter. C5250058 BWSMA-KE11,
+     C530661 KH-SMA-KE8-G and C496550 BWSMA-KE-P001 all have an OFFSET pin
+     (centre pin not on the flange axis). C53133521 XY-SMA-KE-Z001 is rated
+     3 GHz. The '5.08' belongs in the footprint NAME."
+  - "MECHANICAL LEVER ARM is the reason this part wins its class: 13.5 mm
+     overall on four 0.9 mm posts, against 28.6 mm for BWSMA-KE23 (C5250061)
+     on the identical post pattern. Ten cabled ports on one board is ten torque
+     paths into the same laminate."
+  - "THT: this part DISQUALIFIES the board from JLC Economic PCBA and adds a
+     per-order THT surcharge (~$3.50 setup + ~$0.0173/joint + $3.00 extended-
+     component fee). At 10 jacks x 5 pins = 50 joints that is ~$0.87/board of
+     joint fee alone, before the connectors themselves."
+  - "THE VENDOR PUBLISHES NO APPLICATION OR LAYOUT SECTION. No via-fence rule,
+     no antipad rule, no board-thickness requirement, no VSWR-vs-launch curve.
+     Every launch rule in layout: below is DERIVED ENGINEERING and cannot be
+     waived by citing the datasheet."
+  - "LCSC'S PARAMETRIC RECORD FOR C504007 CARRIES NEITHER THE FREQUENCY NOR THE
+     IMPEDANCE (both show '-', live 2026-07-27), and it contradicts the PDF on
+     temperature range. Only the PDF counts for this vendor class."
+verified: "pin map read from the mechanical drawing, sheet 2/2 of 2, title block
+  KH-SMA-KE-Z, dated 2021.08.10, Shenzhen Kinghelm — page RENDERED at 200 dpi
+  and read VISUALLY. The PCB-layout inset gives 5-D1.4 with a 5.08 x 5.08
+  corner square and one centre hole; the flange view gives 4-SQ0.9 on the same
+  5.08 square; the side view gives 13.5 overall / 8 thread / 1/4-36UNEF D6.2 /
+  0.9 post. Rendered from the vendor PDF whose sha256 is recorded above and
+  checked byte-for-byte against that hash. 2026-07-27"
+layout:
+  source: "NO vendor layout section exists (see gotchas). Every rule here is
+    DERIVED from the geometry plus the 6 GHz / VSWR<=1.35 claim on sheet 1/2,
+    and is labelled as such. The single vendor-sourced constraint is the
+    5-D1.4 hole pattern itself."
+  reviewed: "2026-07-27"
+  keep_short:
+    # ONE ENTRY PER REAL LAUNCH NET. The dossier arrived from pluto-rx2-8way
+    # carrying a single entry on `RF_ANT_LAUNCH`, which is a PLACEHOLDER NAME
+    # and is not a net on that board either — E-NETREF classes it a GHOST, and
+    # a ghost keep_short does not fail loudly, it makes P-ADJ grade NOTHING for
+    # this part while still counting as a declared budget. (Canon E-NETREF was
+    # written after exactly this: 64 of 908 fleet references were ghosts and
+    # EVERY ONE was a keep_short.)
+    # The budget below is the SAME derived 3 mm, applied to each of the nine
+    # launches this board actually has. Ten jacks, nine nets: J_ANT8 and J_RX1
+    # share RX1_MAIN, which is the pickoff node and is the whole point of the
+    # board.
+    # CORRECTED 2026-07-30 AT THE RELEASE GATE, AND THE CORRECTION IS THE
+    # INTERESTING PART. The block below used to carry a `max_span_mm: 3` entry
+    # for ANT1..ANT7 and RX2_OUT as well. P-ADJ measured them and FAILED ALL
+    # EIGHT at 14.00 mm of 3.0 mm — and P-ADJ was right about the number and
+    # the budget was wrong about the constraint.
+    #
+    # READ THE `why:` THAT SHIPPED WITH THOSE ENTRIES: "Any SERIES PART belongs
+    # inside 3 mm of the launch or it adds a second discontinuity at a different
+    # reference plane." That is a statement about where a SERIES PART may sit.
+    # P-ADJ grades a NET SPAN — the anchor pad to its nearest qualifying partner
+    # — so on a TWO-PAD net the only span there is IS the whole arm, and the
+    # budget silently became "this arm must be 3 mm long".
+    #
+    # THE ARM IS 14.00 mm BY ARCHITECTURE AND CANNOT BE 3. It is the equalised
+    # radius of a ten-jack radial star around a 4x4 mm QFN; the equal radii ARE
+    # the board's published property (ARCHITECTURE sec 7, ADR-0003). A 3 mm arm
+    # is not tight, it is geometrically impossible — the switch body alone is
+    # 4 mm across. A budget whose only admissible value cannot exist is a
+    # mis-encoding, not a finding, and grading it as a finding is how a real
+    # gate gets waived into furniture.
+    #
+    # So the budget is kept EXACTLY where the constraint it states can bind —
+    # the three RX1-chain nets, which are the only RF nets on this board that
+    # carry a series part — and the eight pure arms get the constraint stated
+    # as what it actually is: a prohibition, in notes:, not a span.
+    # MEASURED at this gate: ANT1..ANT7 and RX2_OUT each carry exactly TWO pads
+    # (J_ANTn.1 -> U_SW.k), so there is no series part on any of them to be
+    # 3 mm from, and the budget was vacuous as intent and false as arithmetic.
+    # RX1_MAIN IS REMOVED HERE TOO, 2026-07-30, AT THE SECOND RELEASE GATE —
+    # AND IT IS THE SAME CORRECTION AS THE ONE ABOVE, WITH A HARDER PROOF.
+    #
+    # The entry that stood here read: "a series part belongs inside 3 mm of the
+    # launch or it adds a second discontinuity at a different reference plane.
+    # THIS net is where that can actually happen: it carries THREE pads
+    # (J_ANT8.1, J_RX1.1, R_T1.1)". The sentence is right. The METRIC is not.
+    # P-ADJ anchors at each KH-SMA-KE-Z pad and takes its NEAREST qualifying
+    # partner, and on a straight through line the nearest partner of each jack
+    # is THE OTHER JACK. So the budget grades `J_RX1.1 <-> J_ANT8.1` — the
+    # THROUGH PATH BETWEEN TWO PANEL CONNECTORS — and reads "the RX1 through
+    # line must be 3 mm long".
+    #
+    # THAT VALUE CANNOT EXIST, AND THE PROOF IS THIS PART'S OWN BODY. A 5/16 in
+    # SMA coupling nut measures 7.9375 mm across flats and **9.1656 mm across
+    # corners**. Two KH-SMA-KE-Z on one net can therefore never be closer than
+    # 9.1656 mm without their mated nuts interfering, so the largest admissible
+    # value of this budget is 9.1656 and the declared 3 is 3.06x below it. Canon
+    # M-BOUND: a bound whose only admissible value fails is a FAIL, not a
+    # rounding note. It is the ANT1..ANT7 mis-encoding above in a second guise —
+    # there the arm could not be 3 mm because the switch body is 4 mm across;
+    # here the through line cannot be 3 mm because the CONNECTOR'S OWN NUT is
+    # 9.17 mm across. Both times the part's own geometry refutes the number.
+    # MEASURED at this gate: 8.000 mm on the first cut (a P-ADJ FAIL, and a real
+    # mechanical defect for a different reason — the nuts DID interfere), and
+    # 11.000 mm as shipped, which is 1.834 mm of nut clearance and a WORSE score
+    # against a budget that was grading the wrong quantity in both directions.
+    #
+    # THE CONSTRAINT THE SENTENCE MEANT IS REAL, IS TIGHTER THAN 3 mm, AND IS
+    # NOT A PAD SPAN. What must be short is the BRANCH: the copper from the
+    # through line to the first series element of the shunt tap. Derived from
+    # this board's own stackup, tuple (JLC04161H-7628 h 0.2104 / er 4.4 /
+    # t 0.035, w 0.360, AS-FABBED conformal mask, Hammerstad-Jensen with H-J's
+    # own dual thickness correction x the MEASURED 1.0628 mask factor of
+    # rf-design.md 4A(iii)): eps_eff 3.5314, lambda_g(5.5 GHz) 29.0057 mm,
+    # **branch <= lambda_g/16 = 1.8129 mm**. At the first cut's 10.107 mm the
+    # branch was lambda_g/4 at 4.06 GHz and shorted the antenna node to 5.1 ohm.
+    # A pad-to-pad span cannot express it — the partner is a TRACK, not a pad,
+    # exactly as pin 1's ground obligation on the PE42482A-X could not be a span
+    # because its partner is a plane. The obligation is therefore moved to an
+    # instrument that can measure it: `06_build/verify/tap_branch.py`, which
+    # reads the routed .kicad_pcb and reports the perpendicular distance from
+    # R_T1's RX1_MAIN pad to the J_ANT8 <-> J_RX1 through path. See notes:.
+    # RX1_TAP AND RX1_TAP_MID WERE ADDED HERE IN THE SAME CORRECTION AND
+    # REMOVED AGAIN TWENTY MINUTES LATER, BY THE GATE. P-ADJ-UNREACHED fired:
+    # "budgets DECLARED but graded by NOTHING". It is right — those two nets
+    # carry NO KH-SMA-KE-Z pad (RX1_TAP is R_T2.2 -> U_SW.19, RX1_TAP_MID is
+    # R_T1.2 -> R_T2.1), and P-ADJ anchors a part's budget at THAT PART's pads.
+    # A budget declared on a net the part does not touch is not a stricter
+    # board, it is an ungraded line that reads like one — the same shape as the
+    # `RF_ANT_LAUNCH` ghost this block was already written against. If those two
+    # nets want a budget, its home is the dossier of a part that sits on them.
+    # MEASURED for the record while they were briefly declared:
+    # RX1_TAP U_SW.19 <-> R_T2.2 = 9.741 mm; RX1_TAP_MID R_T2.1 <-> R_T1.2 =
+    # 1.180 mm (routed copper 10.553 and 1.200 mm).
+  notes:
+    - "DERIVED: a D1.4 plated barrel in a 1.6 mm board is a ~1.6 mm-long,
+       1.4 mm-diameter conductor — electrically short (lambda/20 at 6 GHz is
+       ~1.5 mm on this laminate) but only if the ground return is equally
+       short. The four corner posts ARE that return, so all four must land on
+       plane copper with their own via cluster, not on a single shared pour
+       neck."
+    - "DERIVED: the bottom-plane antipad under the centre barrel should be
+       >= D3.5 mm, not the D2.6 that DRC would accept — the barrel plus a tight
+       antipad is a capacitive discontinuity that shows up as return loss at
+       6 GHz, and the correction is geometric, not tunable later."
+    - "PROHIBITION + A DERIVED BOUND, replacing the RX1_MAIN span budget
+       (keep_short above, removed 2026-07-30 at the second release gate): THE
+       RX1 PICKOFF IS A LUMPED SHUNT AT THE ANTENNA NODE, NOT A BRANCH LINE.
+       The tap resistor's RX1_MAIN pad must sit ON the J_ANT8 <-> J_RX1 through
+       path: branch <= lambda_g/16 = 1.8129 mm at the 5.5 GHz band edge, from
+       eps_eff 3.5314 as-fabbed (see the keep_short comment for the full tuple).
+       MEASURED as shipped: 0.010 mm. WHY THE BOUND IS NOT THE REAL SAFEGUARD:
+       with the whole 440 ohm lumped at the junction, Z_node = 440 + Z_x for any
+       passive Z_x, so |Z_node| >= 440 ohm and return loss >= 25.5 dB whatever
+       the tap arm's length and whatever the switch presents at RF8 in its seven
+       OFF states. Length-sensitivity is a property of the OLD topology, not of
+       this one. Graded by 06_build/verify/tap_branch.py off the routed board."
+    - "PROHIBITION, and it replaces a mis-encoded span budget (see keep_short
+       above, corrected 2026-07-30): NO SERIES PART MAY SIT ON A PURE ARM.
+       ANT1..ANT7 and RX2_OUT run launch-pad to switch-pad with two pads and
+       nothing between them, and that is the requirement — not a 3 mm length,
+       which the equalised 14.00 mm radial star cannot have and must not be
+       graded against. The 3 mm launch-proximity budget belongs only to the
+       three RX1-chain nets, which are the only RF nets here that carry a
+       series part, and it is declared on exactly those."
+    - "CORRECTED 2026-07-30: the ground-via fence pitch is the GUIDED
+       lambda_g/20, not the free-space lambda/20. This note used to read
+       '<= 2.0 mm pitch (lambda/20 at 6 GHz)' — 2.0 mm is roughly the
+       FREE-SPACE figure (50/20 = 2.5 mm), and rf-design.md 3(b) settles that a
+       fence sitting in the substrate beside a microstrip must sample the wave
+       ON THE LINE, whose wavelength is lambda_0/sqrt(eps_eff). The two are
+       sqrt(3.3286) = 1.82x apart, so satisfying the free-space one proves
+       nothing about the guided one. On JLC04161H-7628 at 6 GHz the bound is
+       lambda_g/20 = 1.3693 mm (ADR-0003), the board declares <= 1.35, and it
+       ships a 0.95 mm lattice because a SQUARE lattice at pitch p projects at
+       p*sqrt(2) along the 45-degree arms. The fence continues >= 10 mm down
+       BOTH sides of each RF trace out of the launch. Left uncorrected, this
+       note was exactly the re-citation path rf-design.md 3(b) was written
+       against: a number with a parenthetical that does not derive it."
+    - "OWED, and this is the biggest open item on this part: TEN jacks on one
+       board is a port-to-port isolation question the vendor sheet does not
+       touch. Two adjacent SMA barrels 10 mm apart share a laminate; the
+       coupling floor that sets is unmeasured. It bounds the AoA leakage budget
+       from below independently of the switch, and must be measured, not
+       assumed."
+layout_refs:
+  - "Kinghelm KH-SMA-KE-Z drawing sheet 2/2 (2021.08.10) — the PCB-layout
+     inset; the ONLY vendor-published layout artifact for this part"
+  - "OWED: no manufacturer application note, EVM or routed reference layout
+     exists for this connector. Recorded as an absence, not skipped."
+sourcing:
+  lcsc: C504007
+  alternates: [C6915271, C496549]  # C6915271 = KH-SMA-KE-Z48H, land-identical
+                                   # and the ONLY alternate that also publishes
+                                   # VSWR <= 1.35 / DC-6 GHz — but see the
+                                   # README deviation on its stock depth.
+                                   # C496549 = BWSMA-KE-Z001, land-identical by
+                                   # drawing, deep stock, but publishes NO VSWR
+                                   # at all.
+asserts:
+  - assert: value
+    equals: KH-SMA-KE-Z
+    why: "the BOM Comment must name the part, because the failure this prevents
+      is invisible to every electrical check: an RP-SMA sibling one character
+      away (SMA-KE-P901) shares the flange, the post square and the footprint,
+      and produces a board that passes DRC, parity and assembly inspection and
+      cannot be plugged into a Pluto."

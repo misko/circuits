@@ -1,0 +1,34 @@
+# parity_padmap.txt — pluto-rx2-8way-v4
+#
+# Documented per-board footprint pad-name deltas. Two consumers:
+#   * tsx_preflight.py (canon TSX-PRE) — every NON-NUMERIC pad name in
+#     02_parts/*/part.yaml `pins:` must appear here, or tscircuit DROPS the
+#     whole part SILENTLY, with ERC still reading 0 errors. This is not a
+#     hypothetical: 2026-07-21, four USB connectors, 48 of 52 parts, and only
+#     an agent's hand count caught it.
+#   * kicad_sch_parity.py --padmap — node-for-node parity against a sealed
+#     04_kicad board. N/A at this stage: no sealed board exists yet.
+#
+# ============================================================================
+# THIS BOARD HAS NO ALPHANUMERIC PADS. The mapping list below is EMPTY, and
+# that is a MEASURED property of v2's part set rather than an oversight:
+#
+#   U_MCU   RP2040-Zero        pads 1..23   numeric
+#   U_SW    PE42482A-X         pads 1..25   numeric (24 leads + EP)
+#   J_*     KH-SMA-KE-Z x10    pads 1..5    numeric
+#   R_*, C_*, FB_3V3, LED_ST   pads 1..2    numeric
+#
+# WHY THAT CHANGED FROM v1, AND WHY IT IS WORTH A PARAGRAPH RATHER THAN A
+# BLANK FILE: v1's single alphanumeric part was J_USB (TYPE-C-31-M-12A), whose
+# sixteen contacts are named A1..A12 / B1..B12 plus a shield pad SH — the exact
+# class tscircuit rejects WITHOUT an error. v1 had to give every one of them
+# DUAL portHints and map them here. v2 deleted that connector entirely
+# (ADR-0002: the module's own USB-C is the board's only port), so the whole
+# hazard left with it.
+#
+# THE GATE IS STILL RUN. `tsx_preflight.py` runs BEFORE the first `tsci build`
+# and `count_parity.py` after it, exactly as on a board that does carry the
+# risk. A file that says "nothing to map" and a gate that was never run look
+# identical in a release archive; only one of them is evidence.
+#
+# ---- mappings (none) -------------------------------------------------------

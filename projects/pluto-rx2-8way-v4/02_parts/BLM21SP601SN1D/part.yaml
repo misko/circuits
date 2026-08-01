@@ -1,0 +1,299 @@
+mpn: BLM21SP601SN1D
+manufacturer: Murata Manufacturing Co., Ltd.
+type: ferrite_bead            # NOT an inductor and NOT a converter. The
+                              # 02_parts contract names a ferrite explicitly as
+                              # a part that classifies as NOTHING for E-TOPO and
+                              # "may not appear on a `rails:` entry" — it
+                              # converts nothing. It is also NOT protection; see
+                              # the first gotcha.
+datasheet:
+  doc_id: "Murata Product Search Data Sheet, BLM21SP601SN1#"
+  revision: "2023-08-09"      # the sheet's own "Last updated 08/09/2023" stamp,
+                              # printed in the footer of all three pages,
+                              # normalised to ISO for the filename.
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v4/lcsc/2308111738_Murata-Electronics-BLM21SP601SN1D_C3716677.pdf
+  sha256: 9bdb50aa7deb731e5674f1f14a24987269a3f3e5ddb94f67e04cb3999023a3c3
+  fetched: 2026-07-28
+  pages: 3
+  note: "This is MURATA'S OWN generated document ('Product Search Data Sheet',
+    Murata header and footer on every page, 'This datasheet is downloaded from
+    the website of Murata Manufacturing Co., Ltd.'), served from the LCSC CDN
+    because murata.com is a JavaScript SPA that returns HTML to every plain
+    fetch tried (both /products/productdetail?partno=... and the
+    /api/pdfdownloadapi endpoint). It is a SERIES-ADJACENT sheet in one narrow
+    sense: the title is BLM21SP601SN1# where '#' is the PACKAGING code, and
+    page 1's own table decodes it — B = bulk bag 1000, D = 180 mm paper tape
+    4000, J = 330 mm paper tape 10000. The '-D' this board orders is therefore
+    the 4000-piece 180 mm reel, CITED, not assumed. Murata's own caveat is
+    reproduced rather than hidden: 'This datasheet has only typical
+    specifications ... please review our product specifications or consult the
+    approval sheet before ordering.' No approval sheet was obtained — see
+    layout: OWED."
+package: 0805 (2012 metric), 2.0 +/-0.2 x 1.25 +/-0.2 mm, thickness
+  0.85 +/-0.2 mm, mass 0.01 g typ. Specifications table, PDF p2
+footprint: Inductor_SMD:L_0805_2012Metric
+escape:                       # emitted by escape_check.py, 2026-07-28
+  style: passive
+  pitch: 2.125                # pad centre-to-centre MEASURED from the KiCad
+                              # footprint (pads at x = +/-1.0625 mm)
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+limits:                       # CITED from the Specifications table, PDF p2,
+                              # unless marked otherwise
+  z_100mhz: 600 ohm +/-25 %
+  dcr_max: 0.06 ohm
+  i_rated_85c: 2.3 A
+  i_rated_125c: 1.5 A
+  ta: -55 to +125 C
+  z_vs_frequency:             # ESTIMATED: read VISUALLY off the
+                              # 'Impedance-Frequency Characteristics' log plot,
+                              # PDF p3, page rendered at 300 dpi and the graph
+                              # cropped and enlarged. No tabulated values exist
+                              # anywhere in the document. Bars: +/-10 % on Z,
+                              # +/-15 % on f. The 100 MHz point is the one
+                              # CITED value and the read agrees with it, which
+                              # is the only calibration available.
+    1MHz:    ~15 ohm
+    10MHz:   ~150 ohm
+    30MHz:   ~300 ohm
+    70MHz:   ~480 ohm         # bottom of this board's received band
+    100MHz:  600 ohm          # CITED, spec table
+    150MHz:  ~660 ohm         # the PEAK, and X crosses zero here: Z = R,
+                              # i.e. the peak is RESISTIVE, not resonant
+    300MHz:  ~480 ohm
+    1GHz:    ~200 ohm
+    3GHz:    ~20 ohm          # see the band-coverage gotcha
+  l_low_frequency: "~2.4 uH"  # DERIVED, not published: X ~ 150 ohm at 10 MHz
+                              # (green curve, PDF p3) -> L = X/(2*pi*f).
+                              # Needed for the LC-peaking arithmetic below.
+  msl: "not stated"           # Murata publishes no MSL in this document. A
+                              # monolithic ceramic chip is not a moisture-
+                              # sensitive body; recorded as an ABSENCE in the
+                              # source rather than as an inferred level, which
+                              # is why there is no `msl` assert.
+gotchas:
+  - "FB_IN IS NOT PROTECTION AND MUST NEVER BE COUNTED AS ANY. ADR-0004 gives
+     it exactly one job — attenuate the FAST residual that gets past D_TVS —
+     and states in the same breath that 'it does nothing for a sustained
+     overvoltage, which is why the CC pull-downs and the LDO rating do that job
+     instead'. Quantitatively: at DC this part is 0.06 ohm. Put 20 V on VBUS
+     and 20 V arrives at U_LDO.VIN minus 3 mV. A reviewer who sees a ferrite
+     between the clamp and the regulator and reads it as a second line of
+     defence has misread the schematic, and this line exists so that misreading
+     is on the record as wrong."
+  - "MURATA IMPEDANCE-CODE TRAP: THE THIRD DIGIT IS A MULTIPLIER, NOT A DIGIT.
+     601 = 60 x 10^1 = 600 ohm. 600 = 60 x 10^0 = SIXTY ohm. The fleet has
+     already shipped this mistake: a 600R part.yaml was authored on the 60R MPN
+     and survived to the M-BOM staging catalog check (crow-recorder-central-v4,
+     2026-07-23). The ledger's instruction is to decode against TWO catalog
+     rows; done here against EIGHT, all read live 2026-07-28 from the JLC
+     assembly library, and the rule is consistent across every one:
+       BLM21PG600SN1D  C18305     -> 60 ohm @ 100 MHz   (79974 in stock)
+       BLM21PG601SN1D  C41556732  -> 600 ohm @ 100 MHz  (2 in stock)
+       BLM21PG300SN1D  C16903     -> 30 ohm
+       BLM21PG220SN1D  C88993     -> 22 ohm
+       BLM21PG221SN1D  C85840     -> 220 ohm
+       BLM21PG331SN1D  C74764     -> 330 ohm
+       BLM21BD102SN1D  C37751     -> 1 kohm
+       BLM21BD222TN1D  C85838     -> 2.2 kohm
+     Note the shape of the trap: BLM21PG600SN1D is ONE CHARACTER from a 600 ohm
+     part, is the SAME 0805 footprint, the SAME manufacturer, and has 79974 in
+     stock against the 600 ohm PG part's 2. A price- or availability-driven
+     substitution lands on 60 ohm and loses 20 dB of attenuation silently. The
+     INDEPENDENT confirmation for THIS part is that the committed datasheet is
+     titled BLM21SP601SN1# and its own Specifications table says 600 ohm."
+  - "IS A 2.3 A POWER-LINE BEAD RIGHT FOR A 0.15 A LEG? YES — BUT NOT BECAUSE
+     OF THE 2.3 A, AND THE REASON MATTERS BECAUSE IT IS WHAT REJECTS THE
+     'CORRECTLY SIZED' ALTERNATIVES. The current rating is 15.3x the design
+     envelope and is irrelevant on its own. What the SP construction BUYS at
+     the SAME 600 ohm @ 100 MHz is DCR, and DCR here is LDO headroom. Every
+     600 ohm 0805 in the JLC library, read live 2026-07-28:
+       BLM21SP601SN1D  2.3 A   60 mohm  ->   9.0 mV at 0.15 A   (6368 stock)
+       BLM21PG601SN1D  1.4 A  140 mohm  ->  21.0 mV             (2 stock)
+       BLM21AG601SN1D  700 mA 210 mohm  ->  31.5 mV             (131312 stock)
+       BLM21AJ601SN1D  200 mA  1.1 ohm  -> 165.0 mV             (10554 stock)
+     The AJ part — the one whose current rating actually 'matches' a 0.15 A
+     leg — would cost more headroom than F_IN does (165 mV vs 112.5 mV). The
+     AG part costs 22.5 mV more than the SP for nothing. SECOND reason, and it
+     is the physical one: a bead's impedance falls as DC bias approaches
+     saturation, so running at 0.15/2.3 = 6.5 % of rating is what DELIVERS the
+     catalogued 600 ohm, while the AJ part at 0.15/0.2 = 75 % of rating does
+     not. OVER-RATING A BEAD ON CURRENT IS HOW YOU GET ITS RATED IMPEDANCE; it
+     is not waste. THE HONEST CAVEAT: this document publishes NO
+     impedance-vs-DC-bias curve — only the temperature derating of rated
+     current (PDF p3). The saturation argument is therefore DERIVED from the
+     physics, not CITED, and Murata's SimSurfing curve was not fetched."
+  - "AND A HIGHER-IMPEDANCE BEAD WAS REJECTED WITH NUMBERS, NOT WITH TASTE.
+     BLM21AG102SN1D (C85835, 1 kohm @ 100 MHz, 600 mA, 280 mohm, 85664 stock)
+     is the obvious 'more filtering' upgrade. It costs 42 mV at 0.15 A against
+     this part's 9.0 mV — 33 mV more, 2.7 % of an LDO dropout budget already
+     9 % spent by F_IN. What it buys: the attenuator here is the bead against
+     the LDO's input capacitor, and a 1 uF X7R at 100 MHz is far past
+     self-resonance at roughly 0.3-0.6 ohm, so the divider goes from
+     20log10(600/0.4) = 63.5 dB to 20log10(1000/0.4) = 68.0 dB. 4.5 dB for
+     33 mV of headroom on a bus-powered board is a bad trade, and it is a bad
+     trade for a REASON that is arithmetic."
+  - "THE HONEST LIMIT, AND IT IS THE SAME 85.7:1 ARGUMENT THE REST OF THIS
+     BOARD IS BUILT ON. Impedance falls to ~200 ohm at 1 GHz and ~20 ohm at
+     3 GHz (PDF p3 curve). ABOVE ROUGHLY 2 GHz THIS BEAD IS NOT A FILTER. The
+     received band is 70 MHz - 6 GHz, so the top two thirds of it gets NO
+     power-rail filtering from FB_IN at all. No 0805 bead covers 70 MHz -
+     6 GHz — the impedance peak is a material resonance and it has one
+     location. This is EXACTLY the argument ADR-0002 and ADR-0004 already used
+     to refute the directional coupler, the lambda/4 ESD stub, the shunt
+     inductor and the per-port DC block on this board, and it applies here too.
+     What limits in-band rail noise above 2 GHz is the LDO's own output
+     network, the L2 ground plane, and the QSPI-containment rules in
+     nets.yaml — not this part."
+  - "FB_IN + THE LDO'S INPUT CAP IS AN UNDER-DAMPED LC AND THE PEAKING IS REAL.
+     With L ~2.4 uH (DERIVED above) and C_LDI = 1 uF X7R at maybe 0.7 uF after
+     DC derating, f0 = 1/(2*pi*sqrt(L*C)) = ~123 kHz, and
+     Q = (1/R)*sqrt(L/C) with R = 60 mohm DCR + ~50 mohm cap ESR gives Q ~ 17,
+     i.e. roughly +24 dB of gain at 123 kHz. The bead's own resistive loss does
+     nothing down there — R is essentially just DCR below 1 MHz (PDF p3, cyan
+     curve). CONSEQUENCE ON THIS BOARD, bounded honestly: nothing here
+     generates 123 kHz (there is no switcher, deliberately — ARCHITECTURE
+     section 3), so the exposure is amplification of a HOST-side supply's
+     ripple, against which the LDO still has 40-60 dB of PSRR at 123 kHz. Real
+     effect, small consequence. IT IS AN INPUT TO THE U_LDO DOSSIER, WHICH OWNS
+     C_LDI: a smaller or lower-ESR input capacitor moves f0 up and Q up
+     together, and if that dossier's stability requirement wants a small
+     ceramic, the damping question comes back."
+  - "THE NET ON FB_IN'S OUTPUT SIDE DOES NOT EXIST YET, AND IT SHOULD.
+     03_src/rules/nets.yaml declares PWR as [VBUS, VBUS_F, 3V3]. ADR-0004's
+     chain is VBUS -> F_IN -> VBUS_F -> FB_IN -> U_LDO.VIN, so a ferrite is a
+     SERIES element and the node between FB_IN and U_LDO.VIN is a fourth power
+     node with no name and no netclass. As drawn it will fall to the default
+     0.25 mm class instead of PWR's 0.40 mm, and A-AMP will grade it as a
+     signal net. The IR consequence is negligible (the run is a few mm) but the
+     netclass gap is not, and it is exactly the kind of thing that is invisible
+     once the board routes clean. Suggested name VBUS_LDO. FLAGGED, NOT FIXED:
+     03_src/ is not this dossier's to edit."
+  - "PLACEMENT IS PART OF THE FILTER, NOT DECORATION: a series bead with no
+     shunt capacitor on its LOAD side is not a low-pass filter, it is a
+     resistor. C_LDI must be at U_LDO.VIN, immediately downstream of FB_IN,
+     and the bead-to-cap loop is what sets the attenuation above ~500 MHz where
+     the loop's own inductance starts to rival the bead's impedance."
+  - "JLC LIBRARY TIER IS 'EXTENDED', SO AN ORDER-DAY STOCK RECHECK IS
+     MANDATORY. Live 2026-07-28: C3716677 = 6368 in the assembly pool. Stock is
+     never committed to this file (02_parts contract); it lives in
+     06_build/cache/."
+verified: "2-pad passive — exempt from the S-VER pinout-FIGURE requirement per
+  the 02_parts contract; no polarity, no pin map. Dimensions, operating
+  temperature, rated currents, DC resistance and the 600 ohm / 100 MHz / +/-25 %
+  impedance are read from the Specifications table on PDF p2 of the committed
+  document whose sha256 is recorded above. The packaging-code decode (D = 180 mm
+  paper tape, 4000 pcs) is read from the '< List of part numbers with package
+  codes >' + Packaging Information tables on PDF p1. The impedance-vs-frequency
+  numbers in limits: are ESTIMATED, not CITED: PDF p3 was RENDERED at 300 dpi,
+  the 'Impedance-Frequency Characteristics' graph cropped and enlarged, and the
+  three curves read VISUALLY — the Z (red), R (cyan) and X (green) assignment
+  was confirmed self-consistently by the fact that Z = X at low frequency
+  (R small) and Z = R at ~150 MHz where X crosses zero, which is the physics and
+  cannot be got backwards. The Murata code decode is cross-checked against
+  EIGHT live JLC assembly-library rows listed in gotchas: (two would satisfy the
+  ledger; eight makes the multiplier rule inductive rather than anecdotal).
+  2026-07-28"
+layout:
+  source: "Murata's Product Search Data Sheet publishes NO layout section, NO
+    recommended land pattern, NO DC-bias curve and NO S-parameters — it is
+    three pages of specifications, one impedance graph, one temperature-derating
+    graph and an equivalent circuit. EVERY RULE BELOW IS THEREFORE DERIVED
+    ENGINEERING and is labelled DERIVED, in the same posture as
+    ../KH-SMA-KE-Z/part.yaml. The two vendor-sourced inputs are the body
+    envelope (2.0 +/-0.2 x 1.25 +/-0.2 x 0.85 +/-0.2 mm, PDF p2) and the
+    equivalent circuit (PDF p3: series L then R, captioned 'Resistance element
+    becomes dominant at high frequencies') — the latter is what says the
+    100-500 MHz plateau is DISSIPATIVE rather than reactive, which is why this
+    bead damps the residual instead of ringing on it.
+    LAND-PATTERN COMPARISON, done numerically rather than assumed:
+    Inductor_SMD:L_0805_2012Metric places 0.875 x 1.20 mm pads at x =
+    +/-1.0625 mm -> gap 1.25 mm, span 3.00 mm, IPC-7351 nominal. Against the
+    body envelope: at max length 2.2 mm the body half-length is 1.10 mm, so the
+    pad (spanning |x| 0.625-1.500 mm) covers the termination band and leaves
+    0.40 mm of toe; at max width 1.45 mm the termination overhangs the 1.20 mm
+    pad by 0.125 mm per side, which is the normal IPC-nominal 0805 condition
+    and not a defect. NO VENDOR LAND EXISTS TO COMPARE AGAINST — that is stated
+    as an absence, and the fit above is DERIVED from the dimension table."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: 3V3_MOD, max_span_mm: 12, why: "DERIVED, AND RE-TARGETED FOR v4 —
+       this budget said VBUS_F when the dossier was copied from
+       pluto-rx2-8way, where this bead sat on the USB VBUS rail feeding an LDO.
+       On v4 there is no VBUS on the board at all (ADR-0002: the module owns
+       the only USB), and the bead's input node is 3V3_MOD, shared with C_BULK
+       and the module's 3V3 castellation. The PHYSICS is unchanged and so is
+       the number: above ~100 MHz a long input node stops being a node, and the
+       bead is then filtering against an inductance rather than against the
+       bulk cap. E-NETREF caught the stale name — left as VBUS_F it would have
+       made P-ADJ grade nothing at all, silently."}
+  notes:
+    - "DERIVED: the LDO's input capacitor is HALF THIS FILTER. Place C_LDI at
+       U_LDO.VIN with the shortest possible loop to the ground pour; the bead
+       alone attenuates nothing. This is also the damping element for the
+       ~123 kHz LC peaking computed in gotchas:, so its value and ESR are a
+       shared decision with the U_LDO dossier, not a plumbing choice."
+    - "DERIVED: FB_IN sits at the boundary between the USB/power entry and the
+       regulator, and its INPUT side is cable-facing. Do not run the input and
+       output copper alongside each other — capacitive coupling across a 600 ohm
+       series element is the standard way to lose 20 dB of a filter to layout.
+       Keep the crossing-free separation the digital-strip floorplan already
+       implies."
+    - "DERIVED, and it is a placement constraint the RF side imposes rather than
+       the part: this bead's impedance is falling through the entire lower half
+       of the received band and is ~20 ohm at 3 GHz. It provides no shielding
+       benefit; it must not be treated as one when deciding how close the power
+       entry may sit to the nine-arm receive fan (ADR-0007 / nets.yaml QSPI
+       containment)."
+    - "OWED: Murata's approval sheet ('please review our product specifications
+       or consult the approval sheet before ordering' — the vendor's own
+       Attention note on all three pages) was NOT obtained, and neither was the
+       SimSurfing impedance-vs-DC-bias curve or the S-parameter set. The DC-bias
+       argument in gotchas: is DERIVED for exactly that reason. Recorded as not
+       done, not as absent."
+layout_refs:
+  - "Murata Product Search Data Sheet BLM21SP601SN1#, last updated 08/09/2023,
+     'Impedance-Frequency Characteristics' and 'Equivalent Circuit', PDF p3 —
+     the only vendor-published behavioural artifacts for this part"
+  - "Murata Product Search Data Sheet BLM21SP601SN1#, Specifications table,
+     PDF p2 — the body envelope the land fit is derived against"
+  - "skills/kicad-pcb/references/proven-parts.yaml, ferrite-bead-600r-0805-power
+     — the fleet ledger entry that names this exact MPN as designed-in
+     (crow-recorder-central-v4 v1.0-2026-07-23, x4) and carries the
+     impedance-code trap. STUDIED, NOT COPIED: the datasheet was re-fetched and
+     re-hashed here and every number above is read from it."
+  - "OWED: no Murata application note (the 'Noise Suppression by EMIFIL' /
+     chip-bead selection guides) was fetched; no OSHWLab-by-LCSC board was
+     searched for C3716677."
+sourcing:
+  lcsc: C3716677
+  alternates: []              # DELIBERATELY EMPTY. The three same-impedance
+                              # siblings are NOT interchangeable on the one axis
+                              # that matters here (BLM21PG601SN1D 140 mohm and
+                              # 2 in stock; BLM21AG601SN1D 210 mohm;
+                              # BLM21AJ601SN1D 1.1 ohm), and the one part that
+                              # IS deeply stocked and one character away —
+                              # BLM21PG600SN1D, C18305 — is SIXTY ohm. Listing
+                              # any of them as an alternate would invite exactly
+                              # the substitution the gotchas reject.
+asserts:
+  # DECLARED BUT NOT ACTUALLY GRADED TODAY. part_facts_check.py decodes
+  # `equals:` through parse_si(), which is NUMERIC-ONLY; an MPN string returns
+  # None and the entry is reported P-FACT-CONFIG and grades NOTHING (measured
+  # 2026-07-28: six of nine dossiers on this board, both exemplars included).
+  # THIS PART IS THE ONE WHERE THAT GAP HAS ALREADY COST THE FLEET SOMETHING:
+  # the 601-vs-600 substitution is exactly what a working `value` assert would
+  # catch, and it is exactly what got through on crow-recorder-central-v4. Fix
+  # belongs in part_facts_check.py (literal-string fallback or an `mpn:` kind);
+  # reported, not applied.
+  - assert: value
+    equals: BLM21SP601SN1D
+    why: "the BOM Comment must name the full MPN, because the impedance code's
+      third digit is a MULTIPLIER and the fleet has already shipped a 600R
+      dossier written on a 60R MPN (crow-recorder-central-v4, 2026-07-23).
+      BLM21PG600SN1D is one character away, same 0805 land, same manufacturer,
+      79974 in stock against this part's 6368, and it is 60 ohm — a 20 dB loss
+      of attenuation that no ERC, DRC, parity or twin check can see, on a board
+      whose entire product is the constancy of nine receive paths. The DCR
+      siblings at the same 600 ohm (AG at 210 mohm, AJ at 1.1 ohm) are equally
+      invisible and cost 22.5 mV and 156 mV of LDO headroom respectively."

@@ -1,0 +1,63 @@
+# policy_waivers.yaml — pluto-rx2-8way-v4
+#
+# Read by skills/kicad-pcb/scripts/policy_audit.py. Shape:
+#   {id: <CHECK-ID>, refs: [...], why: "<EVIDENCE, not rationale>"}
+#
+# CANON M4: a waiver needs EVIDENCE, not rationale, and a waiver copied from
+# another board is an inherited defect rather than a judgement. Every entry
+# below names the measurement that discharges the check and the command that
+# produced it. Nothing here is copied from another project.
+#
+# ONE ENTRY. THE OTHER TWO WERE DELETED 2026-07-30 THE MOMENT THEY WENT INERT,
+# AND THE DELETION IS WORTH A NOTE BECAUSE NOTHING WOULD HAVE TOLD US.
+#
+# This file carried P-POL and P-KEEP waivers whose whole argument was that both
+# checks grepped 03_src/ for per-board Python that ADR-0002 abolished, so a
+# zero-bespoke-Python board could not satisfy them by any means. Commit
+# 34904c21 fixed both checks to grade the FACT rather than the abolished
+# LOCATION: they now accept either home and NAME which one satisfied them, with
+# a count. MEASURED against this board immediately after: P-POL reads
+# `asserts.pad_net` x12 and P-KEEP reads three keepout homes, and BOTH PASS
+# with no waiver present.
+#
+# `waiver_provenance.py` re-runs the `evidence:` of a waiver that HAS one; it
+# has no check for a waiver whose SUBJECT has stopped failing. So an inert
+# waiver does not announce itself — it just keeps suppressing a check that
+# would now pass on its own, and the day the check has something real to say it
+# stays silent. That is the drift that reached the sibling board, where two
+# waivers' prose had wandered off the board while still suppressing.
+
+# ---------------------------------------------------------------------------
+# ZERO ENTRIES. THE S-OCCL WAIVER WAS WITHDRAWN 2026-07-30 BECAUSE THE RELEASE
+# ITSELF DISPROVED ITS PREMISE.
+#
+# It waived four text occlusions on the argument that they lived only in the
+# CONVERTER-GENERATED `.kicad_sch`, which ADR-0002 Phase A makes a machine
+# artifact that "need not be pretty", while the human schematic is tscircuit's
+# own render shipped as `pdf/schematic.pdf`. The argument was structurally
+# correct and the FACT it rested on was false.
+#
+# MEASURED by the r2 fresh-context render lens, which opened the shipped PDF
+# (`08_reviews/2026-07-30_v1.0_render-review_all_r2.md`, findings 1, 2 and 9):
+# ALL FOUR waived pairs are present in `pdf/schematic.pdf` — visible at C_SW2,
+# R_S4/R_S2, R_T2 and R_S3 — PLUS at least two the checker never listed, one of
+# which is load-bearing: `N3V3_MOD` (U_MCU.21) and `ANT2` (U_SW.2) print on top
+# of each other and composite as `N3V3_MOD2`, so the document a human reads
+# SAYS THE MODULE'S 3.3 V OUTPUT IS WIRED TO AN ANTENNA PORT. The netlist is
+# correct (`3V3_MOD = {C_BULK.1, FB_3V3.1, U_MCU.21}`, `ANT2 = {J_ANT2.1,
+# U_SW.2}` — two nets), which is exactly why no electrical gate could see it.
+#
+# So the waiver was not merely inert (the failure mode the note below this
+# file's header describes): it was ACTIVE and WRONG, suppressing a check whose
+# subject had moved into the one document the waiver claimed it was absent
+# from. S-OCCL is now expected to FAIL until the labels are de-collided in the
+# tscircuit source and the schematic is re-rendered. A red gate that states a
+# true thing is worth more than a green one resting on a falsified premise.
+#
+# THE TRANSFERABLE LESSON, and it is not "check harder": the waiver's premise
+# was a claim about WHICH FILE a defect appears in, and no gate compares those
+# two files. The checker reads `.kicad_sch`; the human reads `pdf/schematic.pdf`;
+# nothing grades the second. Proposed remedy, reported to the caller rather than
+# built here (it is a `skills/` change and this agent owns only this board):
+# point the occlusion checker at the SHIPPED render, or gate that the two
+# documents agree on their label set.

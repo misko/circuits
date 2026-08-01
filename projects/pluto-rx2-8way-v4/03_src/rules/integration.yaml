@@ -1,0 +1,12 @@
+schema: 1
+default: prefer_module
+
+selections:
+  - function: deterministic USB-programmable four-bit RF-switch sequencer
+    part: RP2040-Zero
+    implementation: module
+    rationale: >
+      The module integrates RP2040, flash, crystal, USB-C, boot/reset and quiet
+      linear regulation while exposing GP0 through GP3 in physical order. This
+      removes the carrier's dense MCU escape and support-circuit verification
+      burden without adding the Raspberry Pi Pico's switching regulator.

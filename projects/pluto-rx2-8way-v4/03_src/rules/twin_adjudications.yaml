@@ -1,0 +1,145 @@
+# twin_adjudications.yaml — pluto-rx2-8way-v4
+#
+# The register of JLC-digital-twin findings that have been REVIEWED against an
+# authority OUTSIDE the twin (canon M1: the checker and the checked must not
+# share a method). A `pad_alias` is PREFERRED over an adjudication wherever one
+# applies — an alias RESTORES verification coverage, a `why:` only waives it.
+
+# ---------------------------------------------------------------------------
+# C504007 — KH-SMA-KE-Z vertical SMA jack, all ten (J_ANT1..8, J_RX1, J_RX2)
+# ---------------------------------------------------------------------------
+# THIS IS A NUMBERING CLASH, NOT A LAND-PATTERN DISAGREEMENT, AND THE TWO ARE
+# DISTINGUISHABLE FROM THE PAD COORDINATES ALONE.
+#
+# MEASURED 2026-07-30, both footprints read directly (ours through pcbnew's
+# GetFPRelativePosition, JLC's from their own cached
+# 06_build/twin/easyeda/C504007/jlc.pretty/SMA-TH_KH-SMA-KE-Z.kicad_mod):
+#
+#   OURS  pad 1 (0.000, 0.000)   pad 2 (-2.54,-2.54)  pad 3 (-2.54,+2.54)
+#         pad 4 (+2.54,+2.54)    pad 5 (+2.54,-2.54)
+#   JLC   pad 5 (0.000, 0.000)   pad 2 (-2.54,-2.54)  pad 1 (-2.54,+2.54)
+#         pad 4 (+2.54,+2.54)    pad 3 (+2.54,-2.54)
+#
+# The five HOLE CENTRES are IDENTICAL to 0.000 mm. What differs is which hole
+# is called `1`: WE number the CENTRE PIN 1 (it is the RF signal, and the
+# datasheet's own PCB inset labels the pattern `5-D1.4` with the centre as the
+# signal), JLC numbers the centre 5 and walks the four corner posts 1..4.
+#
+# So the reported `PAD-GEOM pad 3<->5 ours 7.18 vs JLC 3.59` is arithmetic on
+# two different label sets: 7.18 mm is the full 5.08-square DIAGONAL
+# (corner-to-opposite-corner) and 3.59 mm is the HALF diagonal
+# (centre-to-corner). One library's `3<->5` is a corner pair, the other's is a
+# centre-to-corner pair. Nothing about the copper disagrees. The same fact
+# drives PAD-MISMATCH `best=(3.59, mirrored, 90)`: a fit forced through
+# mismatched labels lands on a mirrored 90 with a 3.59 mm residual, which is
+# exactly the half-diagonal.
+#
+# The alias below maps JLC's numbers onto ours BY POSITION, which restores the
+# fit, the rotation channel, MODEL-REG and the polarity check for ten of this
+# board's thirty-two parts. It is a relabeling with ZERO geometric content —
+# every mapped pair is at the same local coordinate to 0.000 mm.
+#
+# WHAT THE ALIAS DOES NOT COVER, STATED SO IT IS NOT READ AS COVERED: JLC's
+# model uses a 1.600 mm drill and 2.500 mm pads where ours uses 1.400 / 1.900.
+# OURS IS THE DATASHEET NUMBER and it is deliberate — KH-SMA-KE-Z sheet 2/2's
+# PCB inset reads `5-D1.4`, and the dossier records the arithmetic (a 0.9 mm
+# SQUARE post has a 1.273 mm diagonal, so D1.3 leaves 0.014 mm radial and D1.4
+# leaves 0.064 mm). JLC's 1.6 is their catalog model's approximation of the
+# same part, not a land-pattern requirement, and a 1.6 mm hole would give
+# 0.164 mm radial slop on a launch whose whole job is a controlled transition.
+# We keep D1.4.
+- lcsc: C504007
+  pad_alias: {"5": "1", "1": "3", "2": "2", "3": "5", "4": "4"}
+  why: >
+    NUMBERING CLASH, NOT A LAND-PATTERN DISAGREEMENT, and the pad coordinates
+    settle it rather than argue it. MEASURED 2026-07-30 from BOTH footprint
+    files directly — ours through pcbnew's GetFPRelativePosition, JLC's from
+    their own cached jlc.pretty/SMA-TH_KH-SMA-KE-Z.kicad_mod. All FIVE hole
+    centres agree to 0.000 mm: (0,0), (-2.54,-2.54), (-2.54,+2.54),
+    (+2.54,+2.54), (+2.54,-2.54). What differs is which hole is called 1 — we
+    number the CENTRE PIN 1 (it is the RF signal, and the datasheet sheet-2 PCB
+    inset labels the pattern 5-D1.4 with the centre as signal), JLC numbers the
+    centre 5 and walks the four corner posts 1..4. The reported
+    `PAD-GEOM pad 3<->5 ours 7.18 vs JLC 3.59` is therefore arithmetic over two
+    label sets: 7.18 mm is the 5.08-square DIAGONAL and 3.59 mm is the HALF
+    diagonal, so one library's pair is corner-to-corner and the other's is
+    centre-to-corner. AFTER the alias, all ten refs measure
+    `OK fit=0.00mm jlc_offset=0` and the twin's OK count rises 15 -> 25 with
+    rotation-fitted refs 17 -> 27: the alias RESTORES verification coverage
+    rather than waiving the question. NOT COVERED by the alias, stated so it is
+    not read as covered: JLC's model drills 1.600 mm where ours drills 1.400 mm
+    and pads 2.500 vs 1.900. OURS IS THE DATASHEET NUMBER (5-D1.4; a 0.9 mm
+    SQUARE post has a 1.273 mm diagonal, so D1.3 leaves 0.014 mm radial and
+    D1.4 leaves 0.064 mm) and JLC's 1.6 is their catalog model's approximation,
+    which would give 0.164 mm slop on a launch whose whole job is a controlled
+    transition. We keep D1.4.
+
+# ---------------------------------------------------------------------------
+# C2286 — KT-0603R indicator LED, LED_ST (the board's ONLY status indicator)
+# ---------------------------------------------------------------------------
+# POLARITY-FIT fires because the twin's TWO CHANNELS DISAGREE, and that is the
+# correct behaviour: it is the C2296/C2297 class, live on this board. The
+# disagreement is a LABELLING difference, not a geometric one, and it has
+# ALREADY been resolved AGAINST the twin — the resolution is not made here, it
+# is CITED here, from an authority outside the twin (canon M1).
+#
+# WHERE THE RESOLUTION LIVES: `skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv`
+# row `C2286,0,...,two-channel`. That row was measured 2026-07-30 BY HAND from
+# the raw `.kicad_mod` text of BOTH lands — own parser, own operator, no pcbnew,
+# and explicitly NOT from `jlc_twin`'s `jlc_offset` (canon M1/M-PROV: never
+# populate a rotation row from the checker's own output).
+#
+# THE MEASUREMENT, restated so this entry is readable without the CSV:
+#   - The pad cloud is DEGENERATE. rms 0.0375 mm at BOTH 0 and 180 (1.0875 mm
+#     at 90/270), because a 2-pad chip land is its own 180-degree reflection.
+#     Geometry admits {0, 180} and cannot choose; only a polarity mark can.
+#   - OUR pad 1 is at x = -0.7875 (WEST); JLC's pad 1 is at x = +0.7500 (EAST).
+#   - NUMBERING-FREE CHANNEL, marks read as SHAPES. Ours: the F.SilkS bracket's
+#     closed full-height edge at x = -1.485 and the F.Fab body chamfer cutting
+#     the (-0.800,-0.400) corner — both on the -x end. Theirs: a pin-1 DOT at
+#     (+0.80,-0.40) beside their pad 1, and a CHAMFERED bracket at the far -x
+#     end; their diode glyph corroborates with no pad number read, the cathode
+#     BAR at x = +0.090 with its lead running WEST.
+#   - THE BOARD SAYS IT TOO, with no drawing read at all: LED_ST pad 1 is on
+#     GND and pad 2 on LED_STAT_A, so OUR pad 1 IS the cathode (KiCad
+#     Device:LED pin 1 = K), which 02_parts/KT-0603R/part.yaml confirms against
+#     the vendor terminal drawing (vendor terminal 2 = cathode = chamfered end;
+#     only the INTEGER disagrees).
+#   => BOTH LIBRARIES DRAW THE CATHODE WEST. The physical parts already align.
+#      The correct CPL offset is 0, and the CPL ships LED_ST at 0.0.
+#
+# THE TWIN'S OWN `ROT-DB-SUGGEST: add LCSC row C2286,180` IN THE SAME REPORT IS
+# WRONG, and it is named here rather than ignored: it reports the fitted
+# `jlc_offset`, which on this part measures the labelling difference. A 180 row
+# would seat every unit cathode-east onto a west cathode pad — reverse-biased,
+# dark, and indistinguishable from a bad joint. One artifact states both
+# answers and only the wrong one is phrased as a paste-ready row.
+#
+# NOT DISCHARGED BY THIS ENTRY: because the two channels disagreed, C2286/LED_ST
+# is on the JLC ORDER-PREVIEW HUMAN GATE before the first order (canon A-POL),
+# and the ORDER_README carries it as a first-class step.
+- lcsc: C2286
+  status: POLARITY-FIT
+  refs: [LED_ST]
+  why: >
+    LABELLING DIFFERENCE, NOT A GEOMETRIC ONE, and it is resolved OUTSIDE the
+    twin. The pad cloud is degenerate (rms 0.0375 mm at BOTH 0 and 180, vs
+    1.0875 mm at 90/270 — a 2-pad chip land is its own 180-degree reflection),
+    so the pad-number fit's "180" carries no physical claim. MEASURED by hand
+    from both `.kicad_mod` files: our pad 1 sits WEST (x = -0.7875), JLC's pad 1
+    sits EAST (x = +0.7500), i.e. the two libraries number the terminals
+    oppositely. Read as SHAPES with no pad number: our F.SilkS bracket's closed
+    edge (x = -1.485) and F.Fab chamfer are on the -x end; JLC's pin-1 dot is at
+    (+0.80,-0.40) beside THEIR pad 1 while their chamfered bracket and their
+    diode glyph's cathode bar+lead both point to the -x end. BOTH LIBRARIES DRAW
+    THE CATHODE WEST, so the physical parts align and the correct CPL offset is
+    0 — which is what `jlc_lcsc_rotations.csv` row C2286 states and what the
+    shipped CPL carries (LED_ST, 0.0). Corroborated by the BOARD without reading
+    any drawing: LED_ST pad 1 is on GND, pad 2 on LED_STAT_A, and KiCad's
+    Device:LED is pin 1 = K, so our pad 1 IS the cathode;
+    02_parts/KT-0603R/part.yaml records the vendor terminal drawing agreeing
+    (vendor terminal 2 = cathode = the moulded-chamfer end). The twin's
+    ROT-DB-SUGGEST line proposing `C2286,180` in this same report is REFUTED,
+    not ignored: it reports the fitted jlc_offset, and a 180 row would seat
+    every unit reverse-biased. LED_ST/C2286 is carried on the JLC order-preview
+    HUMAN GATE before the first order (canon A-POL, two-channel disagreement).

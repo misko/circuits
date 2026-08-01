@@ -1,0 +1,469 @@
+# nets.yaml — pluto-rx2-8way-v4
+#
+# MODULE-FIRST v4. The RF class values reuse measured predecessor evidence only
+# where the selected exact switch, connector, stackup and land geometry match;
+# v4 generation and gates remain authoritative.
+#
+# TWO THINGS THAT MAKE THIS BOARD UNLIKE A POWER BOARD (carried from v1, and
+# both still true):
+#
+# 1. THE DOMINANT WIDTH CONSTRAINT IS IMPEDANCE, NOT AMPACITY. RF50 is
+#    0.36 mm because that is 50.29 ohm on the ordered stackup (JLC04161H-7628,
+#    0.2104 mm top prepreg, Dk 4.4 — DETAIL_DESIGN section 1), NOT because of
+#    current. A "safety" widening of an RF class is a DEFECT, not a
+#    conservative choice: it detunes the line. Both directions are wrong.
+#    Every such class declares `current: signal` EXPLICITLY and says in
+#    `intent:` what the width really is.
+#
+# 2. `current:` IS A TYPED DECLARATION, NOT PROSE (canon A-AMP / M-COVER).
+#    Every class reads as a bare "<n> A" or the literal word "signal";
+#    qualifying prose goes in `intent:`, where it cannot silence the gate.
+#
+# WHAT THIS BOARD DOES NOT CARRY, STATED SO THE ABSENCE IS A DECLARATION:
+#    USB_D    — no board USB. The module owns its own USB-C (ADR-0002).
+#    QSPI     — the flash bus lives on the module's PCB, not this laminate.
+#    DVDD_1V1 — the RP2040 core rail and its copper link are inside the module.
+#    Those three classes disappearing is a primary benefit of module-first v4.
+
+default_clearance: 0.2mm
+
+fab_tier: jlc_4layer_advanced
+# UNCHANGED from v1 and still FORCED by the PE42482A-X, not by the MCU: removing
+# the RP2040's 0.400 mm QFN-56 did NOT relax the tier; the switch sets it alone.
+#
+# THE ARITHMETIC WAS RE-DERIVED 2026-07-31 AND THE PREVIOUS VERSION OF IT WAS
+# WRONG TWICE. It read: "at the standard-tier 0.30 mm drill the adjacent-pin
+# hole-to-hole gap is 0.50 - 0.30 = 0.20 mm against a 0.50 mm floor, so no
+# escape via fits."
+#   (a) THE FLOOR IS NOT 0.50 mm. MEASURED on JLC's capabilities page: the
+#       published hole-to-hole floors are via<->via 0.2 mm and pad<->pad
+#       0.45 mm. 0.50 mm is the Min. NPTH SIZE and the castellated hole-to-hole
+#       — two unrelated rows. So 0.20 mm would sit AT the real floor, not under
+#       it, and the sentence proves nothing.
+#   (b) IT IS THE WRONG QUANTITY. MEASURED on the shipped board, the tightest
+#       via<->via HOLE gap anywhere near U_SW is 0.6017 mm — no two adjacent
+#       0.5 mm-pitch pins both carry a via, so the hole-to-hole quantity never
+#       binds here at all. The escape is via-in-pad on four NUMBERED lands
+#       (pad 8 3V3, pad 11 SW_V3, pad 18 GND, pad 25 EP) plus the EP thermal
+#       cross.
+#
+# THE CORRECT DERIVATION, and it reaches the same tier:
+#   U_SW's signal lands are 0.300 x 0.600 mm on a 0.500 mm pitch, so the gap
+#   between adjacent LAND edges is 0.200 mm. A via centred in a land must clear
+#   the neighbouring land by this board's default_clearance 0.2 mm:
+#       via pad 0.25 -> edge at 0.125 from centre, neighbour land edge at
+#                       0.350  =>  0.225 mm clear   OK
+#       via pad 0.40 -> 0.150 mm clear                     FAILS 0.2
+#       via pad 0.45 -> 0.125 mm clear                     FAILS 0.2
+#       via pad 0.60 -> 0.050 mm clear                     FAILS everything
+#   So 0.25 mm is the largest via PAD this land admits. JLC's own footnote (1)
+#   -- "Via diameter should be 0.1mm(0.15mm preferred) larger than Via hole
+#   size" -- then forces the HOLE to <= 0.15 mm, and a 0.15 mm hole is fee-table
+#   row 1 (Engineering fee $31.43 + $47.14/m2). BOTH free rows require a via
+#   diameter of 0.45 or 0.40 mm, neither of which fits a 0.300 mm land.
+#   THE PAID OPTION IS FORCED BY THE LAND WIDTH, via the vendor's own
+#   diameter-vs-hole rule. Conclusion unchanged; the argument is now true.
+#
+# ORDER_README line (exact):
+#   "ADVANCED option REQUIRED: min via 0.25/0.15 mm (PE42482A-X QFN-24 at
+#    0.50 mm pitch - its 0.300 mm signal lands admit a via PAD of at most
+#    0.25 mm at 0.2 mm clearance to the neighbouring land, and JLC's own rule
+#    that via diameter exceed via hole by >= 0.1 mm then forces a <= 0.15 mm
+#    drill; both no-fee rows need a 0.40-0.45 mm via pad, which does not fit).
+#    4-layer JLC04161H-7628, IMPEDANCE CONTROL REQUESTED."
+
+classes:
+  RF50:
+    intent: >
+      Every 50 ohm single-ended RF net: the nine radial arms of the switch star,
+      the RX1 main line and the pickoff tap. 0.36 mm on L1 over a SOLID L2
+      ground, with the GND pour 0.2005 mm off each edge, is 51.25 ohm on the
+      ordered stackup (conductor-backed COPLANAR WAVEGUIDE by conformal
+      mapping, ADR-0004 / DETAIL_DESIGN section 1 — the derivation is a runnable
+      command there, not a typed digit). It computed 50.29 ohm while this file
+      modelled it as a bare microstrip; the width does not move, because the
+      correction is -5.19 % on eps_eff and only +1.9 % on Z0.
+      THIS IS AN IMPEDANCE WIDTH,
+      NOT AN AMPACITY WIDTH: widening it is as wrong as narrowing it.
+      Constraints that are not preferences: L1 ONLY, NO VIAS inside a
+      phase-critical arm, and a SOLID unbroken In1.Cu beneath — In1.Cu is
+      EXCLUDED from the routing layers so the reference under a matched group
+      cannot be cut. That exclusion is Ossmann's rule 1 and it is what makes
+      nine arm phases comparable at all.
+      Ground-via stitching flanking every arm at <= 1.1910 mm (ADR-0004). NOT
+      the microstrip guided lambda_g/20 = 1.3693 mm this line used to name:
+      these arms MEASURE as grounded coplanar waveguide (GND pour both sides at
+      0.2005 mm, g/h = 0.955, over 61-93 % of each arm), the coplanar pour
+      already IS the lateral wall, and what the vias must do instead is SHORT
+      that pour to the In1.Cu reference so the parasitic parallel-plate mode
+      between the two ground sheets cannot propagate. That mode fills the
+      dielectric between two planes, so it runs at the BULK er:
+      lambda_pp = lambda_0/sqrt(4.4) = 23.8201 mm, and lambda_pp/20 = 1.1910.
+      13 % TIGHTER than the number it replaces, and tighter across the whole
+      declared Dk window. Still not free-space (2.4983 mm), which is looser than
+      all of them.
+    nets: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7,
+           RX1_MAIN, RX1_TAP_MID, RX1_TAP, RX2_OUT]
+    current: signal
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
+    min_width: 0.36mm
+    routing: KRT, L1 only, no vias, radial star
+    verify: DRC floor + P-ADJ spans + the published VNA sweep
+
+  CTRL:
+    intent: >
+      The four select lines, in two halves separated by the 47 ohm source
+      terminations: SEL_V* on the module side, SW_V* on the switch side.
+      Switched DC, not RF — but the timing is load-bearing, because the whole
+      level change must settle inside the 128-sample (4.267 us at 30 Msps)
+      blanking allowance.
+      NO SHUNT CAPACITANCE ANYWHERE ON THIS CLASS. A 1k + 1nF RC is 4.6 us to
+      99%, which is MORE than the entire blanking allowance. The control plane
+      is deliberately un-filtered and this line is the reason.
+      Keep these off any long parallel run beside an RF arm: a switching edge
+      coupled into an arm lands inside the dwell it is supposed to start.
+    nets: [SEL_V1, SEL_V2, SEL_V3, SEL_V4, SW_V1, SW_V2, SW_V3, SW_V4]
+    current: signal
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
+    min_width: 0.2mm
+    routing: KRT, inner layer under ground across the RF region
+    verify: DRC floor + no RF-arm parallelism (design review)
+
+  PWR:
+    intent: >
+      The board's whole power tree, which is two nets long because this board
+      has NO POWER CONNECTOR OF ITS OWN (ADR-0002): its only input is the
+      module's 3V3 castellation.
+      3V3_MOD AND 3V3 ARE TWO NETS, NOT ONE CONTINUED. FB_3V3 is a SERIES
+      element (a ferrite), so the net on each side of it is a different net —
+      the same rule that made VBUS_LDO a fourth net on v1, where it was missed
+      until a late merge and would have been graded as a signal while carrying
+      the whole rail.
+      Width is for IR drop and robustness, FAR above the ampacity need: the only
+      load on 3V3 is U_SW's VDD at 120 uA typ / 200 uA max. The declared
+      current below is the honest envelope, not a padded one — the pull-downs
+      and the LED are sourced by module GPIO pins and are NOT on this net.
+    nets: [3V3_MOD, 3V3]
+    current: 0.01 A
+    clearance: 0.2mm    # EXPLICIT, see default_clearance above
+    min_width: 0.4mm
+    routing: KRT, L1 stubs onto an inner pour
+    verify: DRC floor + A-AMP
+
+# LED_STAT and LED_STAT_A take the DEFAULT class (0.25 mm). LED_STAT_A is the
+# ballasted anode node between R_LED and LED_ST: a series resistor between a
+# driver and an LED needs two nets and there is no way around it. At 1.3-2.2 mA
+# (DETAIL_DESIGN section 5) the default width is correct by a wide margin.
+#
+# GND is poured on all four layers with stitching and carries no netclass width.
+# U_SW pin 1 (LS) and pin 20 (NC) are ON this net, by vias at the pads.
+
+# ---------------------------------------------------------------------------
+# scoped_clearances — canon R-SCOPE. ONE entry, EARNED BY THIS BOARD'S OWN
+# MEASUREMENT at stage 5, not inherited from v1.
+#
+# v1 carries SIX launch-local relaxations. FIVE OF THEM ARE NOT RE-ADOPTED AND
+# THE REASON IS GEOMETRY, NOT RESTRAINT: v1's `rf_jack_ant2/3/6/7` and
+# `rf_jack_rx1/rx2` each relax an arm against an SMA GROUND POST, because v1's
+# arms arrive at the jack on the r = 20 mm ring's 15/45/75-degree bearings and
+# cut across the post square. v2's arms arrive ON the post square's own
+# symmetry axes (axis jacks at rotation 0, diagonal jacks at rotation 45, so
+# the approach always bisects two posts), and the perpendicular distance from
+# every arm centreline to the nearest post CENTRE is 2.540 mm — 1.590 mm of
+# copper gap after the 0.95 mm post pad radius, against a 0.20 mm floor. The
+# jack-approach relaxations are not needed on this board and their absence is a
+# consequence of the rotation rule, not an omission.
+#
+# THE ONE THAT REMAINS IS THE QFN LAUNCH, and it is ARITHMETIC:
+# ---------------------------------------------------------------------------
+scoped_floors:
+  - zone: rf_launch
+    nets: [3V3]
+    min_width: 0.20
+    why: >
+      V4 P-LAND measurement before routing: U_SW.8 can land only 0.244 mm at
+      the already-justified 0.14 mm launch clearance, against the board-wide
+      0.40 mm PWR robustness floor. The pin supplies 200 uA maximum; even the
+      0.20 mm advanced-tier floor is roughly three orders of magnitude above
+      its ampacity need. Scope is the 5.4 mm F.Cu switch-launch rule area, so
+      the module-to-filter trunk remains 0.40 mm. The neck is at most 0.50 mm
+      outboard of the QFN land and is not an RF transmission line.
+
+scoped_clearances:
+  - zone: rf_launch
+    nets: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, RX2_OUT, RX1_TAP, 3V3,
+           SW_V1, SW_V2, SW_V3, SW_V4]
+    clearance: 0.14
+    why: >
+      MEASURED ON THIS BOARD, BEFORE ANY ROUTER RAN — `escape_check.py --board
+      04_kicad/pluto_rx2_8way_v4.kicad_pcb` (2026-07-30, 50 pads graded of 130
+      copper pads) reports SIX pads of U_SW that cannot emit their own class
+      width at the board-wide 0.200 mm clearance:
+        U_SW.2  ANT2    RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.4  ANT3    RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.15 ANT6    RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.17 ANT7    RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.22 RX2_OUT RF50 floor 0.360  landable 0.300  short 0.060
+        U_SW.8  3V3     PWR  floor 0.400  landable 0.300  short 0.100
+      THE DEFICIT IS GEOMETRIC AND HAS NOTHING TO DO WITH ROUTING EFFORT. The
+      PE42482A-X vendor land (Figure 23 inset, DOC-75785-4 p21) is 0.30 x
+      0.60 mm on a 0.50 mm pitch, so a neighbouring land's copper edge sits
+      0.50 - 0.15 = 0.350 mm from the pad centre and the widest track that can
+      leave at clearance c is 2*(0.350 - c). At c = 0.200 that is 0.300 mm; the
+      RF50 impedance width needs 0.360 and PWR needs 0.400. At c = 0.140 it is
+      0.420 mm, which clears both with 0.060/0.020 mm to spare. The three RF
+      pads that do NOT fail (24, 6, 13) are the ones whose arm leaves
+      DIAGONALLY, where the neighbour is further from the launch axis — which
+      is itself evidence that the number is about pad geometry and not about
+      the router.
+      THE ALTERNATIVES WERE EACH CONSIDERED AND EACH IS WORSE, and two of the
+      three are REFUTED by measurement rather than by argument:
+        * NARROWING THE ARM. 0.30 mm on this stackup is ~54.5 ohm. The width is
+          an IMPEDANCE, not an ampacity, on a board that PUBLISHES a phase
+          table; widening and narrowing are equally wrong (see RF50 `intent:`).
+        * ROUTER NECK-DOWN. REFUTED, measured on v1: `--neckdown-length 0.3`
+          routes 11/11 and delivers 149.832 mm of RF copper at 0.25 mm and
+          0.000 mm at 0.36 — KRT's re-widen pass only restores width where the
+          NARROW-PLANNED path has wide clearance, which leaving a QFN it never
+          does (rf-design.md 4(c)).
+        * DROPPING THE BOARD-WIDE FLOOR to 0.14 would relax arm-to-arm
+          isolation across the whole fan, which is the one thing the 0.20 mm
+          number exists to buy.
+      THE GRID WAS TRIED FIRST AND IT IS A DIFFERENT QUESTION. rf-design.md
+      4(c) ranks the causes of a launch that will not route as GRID, then
+      CLEARANCE, then WIDTH, and the grid is free: every coordinate in
+      03_src/floorplan.yaml is a multiple of 0.05 mm and route.yaml runs the RF
+      wave at `grid_step: 0.05`, so v1's "nothing routes at any width on a
+      0.1 grid" cannot recur here. But the grid does not move THIS number —
+      P-LAND is a clearance-versus-width fact and is grid-independent. Both
+      remedies are applied; only one of them addresses this finding.
+      COPLANAR LOADING IS REAL ON THIS BOARD AND THIS PARAGRAPH USED TO DENY
+      IT. It read: "at 0.14 mm the gap-to-height ratio against the 0.2104 mm
+      top prepreg is g/h = 0.67, low enough that a coplanar ground would pull
+      Z0 down if it ran alongside the line — IT DOES NOT." **It does, for
+      essentially the whole line.** MEASURED 2026-07-30 off the saved
+      `.kicad_pcb` (`03_src/line_type.py`): a GND pour flanks every RF
+      arm at 0.2005-0.2010 mm edge-to-edge on BOTH sides over 61-93 % of its
+      length (mean 75.2 %), g/h = 0.955, g/w = 0.558. The arms are grounded
+      coplanar waveguide, and the correct constant set is ADR-0004
+      (eps_eff 3.1557, t_pd 5.9255 ps/mm, lambda_g 28.1269 mm, 12.7991 deg/mm),
+      not ADR-0003's bare-microstrip set. A RULE FILE THAT ASSERTS A
+      CROSS-SECTION IS ASSERTING SOMETHING THE BOARD CAN CONTRADICT, and this
+      one did — nothing in the pipeline compared the sentence to the copper
+      until a reviewer measured the pour.
+      What survives the correction is the SCOPE argument, and it survives
+      unchanged: the relaxation is bounded to a 5.40 x 5.40 mm box about the
+      switch centre (`rf_launch`, bounded on BOTH sides of the pair), i.e. at
+      most 0.50 mm of copper per arm outboard of its own land = lambda_g/56 at
+      6 GHz on the ADR-0004 constant set (it was lambda_g/55 on ADR-0003's —
+      the bound moved 1.8 % and the conclusion does not turn on it). A
+      discontinuity that short is a lumped element, not a transmission-line
+      section. WE STILL DO NOT MODEL COPLANAR LOADING WITH A FIELD SOLVER
+      (rf-design.md 3(c) names it OWED for this fleet); what changed is that we
+      no longer claim the loading is absent. ADR-0004's closed form is a
+      quasi-static conformal mapping, not a field solve, and it is BARE — no
+      solder-mask term, which rf-design.md 4A(iii) measures at +6.3 % on
+      eps_eff, larger than the microstrip-vs-coplanar correction itself.
+      NOT ABOVE THE ROUTER'S OWN BUDGET: 03_src/route.yaml runs the RF wave at
+      `clearance: 0.14`, so the DRC floor and what KRT was allowed to pack to
+      are the same number (canon R-SCOPE's last paragraph / PF-ROUTE-CLR).
+      V4 P-LAND additionally found U_SW.11 landable at only 0.156 mm at the
+      global 0.20 mm clearance. SW_V1..V4 are therefore included for their
+      F.Cu pad-launch geometry. The second entry remains necessary for the
+      distinct In2.Cu track-to-track finding; one rule area cannot bind both
+      layers silently.
+  - zone: ctrl_escape
+    nets: [SW_V1, SW_V2, SW_V3, SW_V4]
+    clearance: 0.14
+    why: >
+      THE In2.Cu TWIN OF rf_launch, AND IT IS A SEPARATE AREA BECAUSE A RULE
+      AREA IS (RECTANGLE AND LAYER SET), NEVER A RECTANGLE. The first attempt at
+      this finding added SW_V1..V4 to rf_launch's `nets:` list; rf_launch is
+      declared `layers: [F.Cu]`, KiCad evaluates `insideArea` per layer, and the
+      DRC finding was UNCHANGED — a relaxation that is declared, reads as
+      declared, and binds nothing. That is the same silent-by-construction
+      shape canon R-SCOPE warns about, arriving from the other direction.
+      MEASURED, and the pair is NAMED because "every pair inside this box" is
+      not an isolation argument: SW_V2's In2.Cu segment
+      (41.630, 51.286)->(41.267, 50.923) approaches SW_V3's In2.Cu segment
+      (41.750, 50.800)->(41.750, 50.900) to 0.358 mm centre-to-centre; at
+      0.200 mm each that is a 0.158 mm gap. The area is 1.10 x 0.90 mm and
+      contains those two segments and their two barrels and nothing else —
+      SW_V1's barrel (x 40.75) and 3V3's In2.Cu run (x 40.20) are outside it
+      and keep the 0.20 mm floor.
+      THE PAIR IS TWO ADJACENT BITS OF ONE 4-BIT SELECT WORD, leaving two
+      adjacent lands of the SAME 0.50 mm-pitch row, on an INTERNAL layer, at
+      3.3 V CMOS, each series-terminated at 47 ohm at its source. IPC-2221
+      internal-conductor spacing at that voltage is 0.05 mm, so 0.158 mm is
+      over 3x the standard; and crosstalk between them is not a hazard by
+      construction — V1..V4 are written by ONE PIO `out pins, 4` instruction,
+      so they are a synchronous word whose bits change together and are read by
+      nothing until the next dwell begins.
+      IT IS ALSO A FINDING THIS BOARD CREATED WHILE FIXING ANOTHER, recorded
+      rather than folded in silently: KRT's via-in-pad stub for SW_V3 came out
+      0.1069 mm wide, the `width_floor` stitch pass lifted it to the 0.200 mm
+      CTRL floor as it should, and the extra 0.047 mm per side is exactly what
+      took this pair from 0.205 mm to 0.158 mm. The alternative — leaving the
+      stub thin and scoping the WIDTH floor instead — was rejected because the
+      number to be justified would then be 0.1069 mm, an artifact of one router
+      run, rather than a geometry anyone can re-derive.
+# ---- the withdrawn first attempt, kept as the record ----------------------
+#     THE FOUR SW_V* NETS WERE ADDED AFTER THE FIRST STITCHED DRC RUN, and the
+#      pair is NAMED because "every pair inside this box" is not an isolation
+#      argument (canon R-SCOPE). MEASURED: SW_V2's In2.Cu segment
+#      (41.630, 51.286)->(41.267, 50.923) approaches SW_V3's In2.Cu segment
+#      (41.750, 50.800)->(41.750, 50.900) to 0.358 mm centre-to-centre; at
+#      0.200 mm each that is a 0.158 mm gap, and BOTH segments lie wholly inside
+#      rf_launch (x 38.30..43.70, y 46.30..51.70), which is what the
+#      bounded-on-both-sides `insideArea` condition requires.
+#      THE PAIR IS TWO ADJACENT BITS OF ONE 4-BIT SELECT WORD, leaving two
+#      adjacent lands of the SAME 0.50 mm-pitch row, on an INTERNAL layer, at
+#      3.3 V CMOS, each series-terminated at 47 ohm at its source. IPC-2221
+#      internal-conductor spacing at that voltage is 0.05 mm, so 0.158 mm is
+#      over 3x the standard; and crosstalk between them is not a hazard by
+#      construction — V1..V4 are written by ONE PIO `out pins, 4` instruction,
+#      so they are a synchronous word whose bits change together and are read by
+#      nothing until the next dwell begins.
+#      IT IS ALSO A FINDING THIS BOARD CREATED WHILE FIXING ANOTHER, which is
+#      why it is recorded rather than folded in silently: KRT's via-in-pad stub
+#      for SW_V3 came out 0.1069 mm wide, the `width_floor` stitch pass lifted
+#      it to the 0.200 mm CTRL floor as it should, and the extra 0.047 mm per
+#      side is exactly what took this pair from 0.205 mm to 0.158 mm. The
+#      alternative — leaving the stub thin and scoping the WIDTH floor instead —
+#      was rejected because the number to be justified would then be 0.1069 mm,
+#      an artifact of one router run, rather than a geometry anyone can
+#      re-derive.
+# ---------------------------------------------------------------------------
+
+length_match:
+  RF_ARMS:
+    adr: "0004"
+    # QUOTED, because YAML 1.1 reads a leading-zero scalar as OCTAL and
+    # `adr: 0004` silently becomes the integer 4 (v1 hit this at 0003 and
+    # recorded it).
+    # 0004 AND NOT 0003: every number in this block descends from ONE quantity,
+    # and 0004 is now where it is derived with its command — eps_eff 3.1557 ->
+    # t_pd 5.9255 ps/mm -> 12.7991 deg/mm, which is what converts the
+    # PE42482A-X part-to-part window (13.2 deg) into the millimetres of copper
+    # that `max_spread_mm` is, and what converts DRIFT (TC*dT*dL*t_pd) into the
+    # same units. 0003 derived the same chain for a BARE MICROSTRIP, which is a
+    # cross-section this board does not contain (measured: a GND pour flanks
+    # every arm at 0.2005 mm), and is `superseded-by-0004`. No other v2 ADR
+    # emits a length intent.
+    intent: >
+      The eight congruent radial arms whose relative phase this board PUBLISHES.
+      Each is a two-pad net from a switch RF land to an SMA jack's signal pad,
+      at equal pad radius from the switch centre.
+      WHAT IS EXCLUDED, AND IT IS PHYSICS NOT CONVENIENCE: the ninth radial —
+      RF8 out through the pickoff — is NOT a member. Three facts each
+      disqualify it. (i) It is not one net but three in series
+      (RX1_TAP -> RX1_TAP_MID -> RX1_MAIN), so its copper is not congruent with
+      a two-pad arm. (ii) RX1_MAIN additionally carries J_RX1 pin 1, the RX1
+      main-line output, so its copper is a T and a total length on it is not a
+      path length. (iii) Its insertion phase is dominated by a LUMPED 2 x 220
+      ohm resistive cell, not by transmission-line length — which is why
+      RX1_TAP_MID carries a lambda_g/20 bound instead of a match.
+      RX2_OUT (RFC) IS included and its term is COMMON-MODE: RFC is in series
+      with all eight paths, so its length adds equally to every one and
+      contributes nothing to any published delta. It is graded anyway because it
+      independently tests that the router treated one more radial the same way.
+      IF THIS GROUP EVER FAILS ON RX2_OUT ALONE, the finding is about
+      construction, not about a delta, and must be reported that way.
+    members:
+      ARM_RF1: [ANT1]
+      ARM_RF2: [ANT2]
+      ARM_RF3: [ANT3]
+      ARM_RF4: [ANT4]
+      ARM_RF5: [ANT5]
+      ARM_RF6: [ANT6]
+      ARM_RF7: [ANT7]
+      ARM_RFC: [RX2_OUT]
+    topology: chain
+    congruent_pads: true
+    # The unmeasured pad-entry copper is IDENTICAL across members and cancels in
+    # the delta, by ROTATIONAL congruence: all ten jacks are the same
+    # KH-SMA-KE-Z footprint rotated to their own theta (the 4-fold post square
+    # makes theta mod 90 equivalent), and all eight switch lands are the same
+    # vendor land. Stated so it can be attacked, not assumed.
+    no_vias: true
+    # THE ONLY PLACE THIS IS GRADED. Nothing in the router enforces a per-NET
+    # via ban — route.yaml's `layers: [F.Cu]` is a per-WAVE restriction and
+    # nothing re-checks it afterwards. A via's inductance depends on drill and
+    # plating, which are not specified per hole, so ONE via on ONE arm is a pure
+    # DIFFERENTIAL error on a published delta.
+    max_spread_mm: 1.0
+    # SIZED FROM DRIFT, NOT FROM A DESIRED MATCH: dtau = TC*dT*dL*t_pd. It is
+    # also ~1x PE42482A-X's own 13.2 deg part-to-part relative-phase window,
+    # which is 1.00 mm of copper on this stackup. A TOLERANCE TIGHTER THAN THE
+    # PART'S OWN WINDOW IS NOT PHYSICS — v1's standing "+/-0.10 mm" was 1.3 deg,
+    # unreachable by any router and unheld by any process, and was WITHDRAWN.
+    # v2 does not re-adopt it (BRIEF A5).
+    # NO `elongation:` KEY, AND ITS ABSENCE IS DELIBERATE (2026-07-31).
+    # `elongation: meander` stood here until the pass it claims was MEASURED on
+    # this board's own copper and found to be making things worse, not better.
+    # The claim the key makes is that short members are deliberately lengthened
+    # to beat the octilinear floor; on v2's floorplan there is no floor to
+    # beat, so the claim was true of the recipe and false of the need.
+    #   octilinear FLOOR spread, from pads alone, before any router:  0.0007 mm
+    #   pad-to-pad chords, all eight:                    14.000/14.001, sd 0.001
+    #   track-length spread WITH the meander pass:                    0.5314 mm
+    #   track-length spread WITHOUT it (measured, race c0):           0.1657 mm
+    # and the pass left six of the eight arms carrying a 0.600 mm-wide blob
+    # over a 0.555 mm run (37.17 ohm against a 51.25 ohm line) while two
+    # carried none — a DIFFERENTIAL discontinuity on the very quantity this
+    # group exists to protect. See route.yaml's `rf` wave for the arithmetic.
+    # R-LEN still grades this group: with the floor spread (0.0007) inside
+    # max_spread_mm (1.0), copper_length_audit's octilinear check returns
+    # before it ever asks about elongation, and the REALIZED spread is graded
+    # against max_spread_mm exactly as before. Nothing is ungated by this
+    # removal; one false claim is.
+    #
+    # KRT is OCTILINEAR (45-degree multiples), so the shortest copper it can lay
+    # between two pads is max(dx,dy) + 0.4142*min(dx,dy), not the Euclidean
+    # distance. On v1, measured FROM PADS before any router ran: Euclidean
+    # spread 0.3238 mm, octilinear FLOOR spread 1.4966 mm = 19.74 deg at 6 GHz —
+    # above the 1.0 mm ceiling.
+    # THE CEILING DOES NOT MOVE TO CLEAR THE GATE. Raising it would be a DRIFT
+    # claim bought with a router limitation, and the floor is a statement about
+    # the router's MOVE SET, not about the physics the ceiling encodes.
+    # Meandering is the honest answer because the octilinear floor bounds the
+    # SHORTEST path, not the ACHIEVABLE SPREAD: a router can always LENGTHEN a
+    # short member. Cross-checked, not trusted — copper_length_audit refuses
+    # `elongation:` unless route.yaml carries a real `length_match_group`, and
+    # realized copper is still graded against max_spread_mm 1.0.
+    # v2 MUST RE-MEASURE THE FLOOR FROM ITS OWN PADS AT STAGE 5. The floor is a
+    # property of the FLOORPLAN, and v2's floorplan is not v1's — the MCU field
+    # shrank from a QFN-56 plus flash, crystal, USB and ten decouplers to one
+    # 18 x 23.5 mm module, which moves the star's surroundings.
+    stackup_mm: [0.2104, 0.9792, 0.2104]   # JLC04161H-7628
+    phase:
+      t_pd_ps_per_mm: 5.9255
+      f_ghz: 6.0
+      stackup: JLC04161H-7628
+      cross_section: coplanar_grounded_bare   # s = 0.2005 mm both sides
+      # DERIVED FOR THIS BOARD, NOT INHERITED, AND FOR THE CROSS-SECTION THE
+      # BOARD ACTUALLY HAS. 5.9255 comes from eps_eff 3.1557 (ADR-0004 carries
+      # the regenerable command), a conductor-backed COPLANAR WAVEGUIDE with
+      # w = 0.360 and s = 0.2005 mm both sides, solved by quasi-static
+      # conformal mapping (Ghione / Naghed-Wolff).
+      #
+      # THIS FIELD HELD 6.0857 UNTIL 2026-07-30 AND THAT NUMBER WAS NOT WRONG
+      # ARITHMETIC — it is the correct Hammerstad-Jensen answer for a BARE
+      # MICROSTRIP, a cross-section this board does not contain anywhere.
+      # MEASURED off the saved .kicad_pcb (03_src/line_type.py): a GND
+      # pour runs alongside every arm at 0.2005-0.2010 mm edge-to-edge on BOTH
+      # sides, g/h = 0.955, over 61-93 % of each arm. The 5.19 % move in
+      # eps_eff is -4.97 deg of absolute phase on a 14.366 mm arm at 6 GHz, on
+      # a board whose published artifact is a degrees-per-millimetre table.
+      # `cross_section:` is declared HERE, next to the number, because
+      # rf-design.md 4A's rule is that a constant set is identified by the
+      # tuple (stackup, w, cross-section, method) and is MEANINGLESS without
+      # it — the fleet published five sets for this one laminate by naming
+      # only the stackup.
+      #
+      # WHAT REMAINS OWED, unchanged by this correction and larger than it:
+      # `_bare` means no solder-mask term. rf-design.md 4A(iii) measures a
+      # 0.020 mm conformal mask at +6.3 % on eps_eff by 2D field solve on this
+      # exact laminate. Every constant set in this fleet, ADR-0003's and
+      # ADR-0004's alike, models a bare trace on a board that ships with mask.
+      # The word `bare` is the disclosure, not the fix.

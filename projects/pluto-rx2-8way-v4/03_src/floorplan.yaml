@@ -1,0 +1,529 @@
+# floorplan.yaml — pluto-rx2-8way-v4
+#
+# The per-board input to skills/kicad-pcb/scripts/generate_board_generic.py.
+# ZERO board-specific generation Python (repo ADR-0002).
+#
+# ===========================================================================
+# THE ONE DECISION THIS FILE EXISTS TO MAKE: THE STAR ANGLES
+# ===========================================================================
+#
+# The first board (`projects/pluto-rx2-8way`) put ten jacks on
+# a 20 mm ring at 30-degree spacing. That is a CIRCLE, and a circle is the wrong
+# locus for a board whose copper is laid by an OCTILINEAR router. KRT moves on
+# 45-degree multiples, so the shortest copper it can lay between two pads is
+#
+#     oct(dx, dy) = max(dx, dy) + 0.4142 * min(dx, dy)
+#
+# and on v1's ring only 3 of 9 radials sat on a 45-degree multiple; the other
+# six each paid 1.0731x. MEASURED on v1: Euclidean pad spread 0.3238 mm,
+# OCTILINEAR FLOOR spread 1.4966 mm = 19.74 deg at 6 GHz, against a 1.0 mm
+# ceiling. v1 found that by routing for hours. It is pad arithmetic.
+#
+# v4 spends the lever at placement instead. Every one of the EIGHT graded
+# members leaves its OWN switch pad on an EXACT 45-degree multiple:
+#
+#   member    U_SW pad   bearing (theta, math convention, y up)   delta (KiCad)
+#   ANT1        24        135  NW      (-9.90, -9.90)
+#   ANT2         2        180  W       (-14.00,  0    )
+#   ANT3         4        225  SW      (-9.90, +9.90)
+#   ANT4         6        270  S       ( 0    ,+14.00)
+#   ANT5        13        315  SE      (+9.90, +9.90)
+#   ANT6        15          0  E       (+14.00,  0   )
+#   ANT7        17         45  NE      (+9.90, -9.90)
+#   RX2_OUT     22         90  N       ( 0    ,-14.00)
+#
+# THAT ASSIGNMENT IS FORCED, NOT CHOSEN. Arms may not cross (F.Cu only, no vias
+# inside an arm), so the angular order must be the QFN's own RF pin order. Going
+# counter-clockwise from RF1 that order is
+#
+#     RF1, RF2, RF3, RF4, [control escape], RF5, RF6, RF7, [RF8 pickoff], RFC
+#
+# and the ONLY way to seat eight members on eight 45-degree multiples while
+# staying monotone in that order is the table above. The control escape then
+# falls in the 45-degree sector between the S arm (270) and the SE arm (315),
+# centred on 292.5 — which is where U_SW's own control pads already point
+# (pads 9..12 sit at theta 262..303). Nothing had to be bent to make that work.
+#
+# THE ARM LENGTHS ARE 14.00 AND 9.90, AND THE PAIR IS NOT ARBITRARY. A diagonal
+# arm of 9.90 per axis has octilinear length 9.90*sqrt(2); to make that equal an
+# axis arm both numbers would have to be irrational. 99/70 is the convergent of
+# sqrt(2) (99^2 = 9801, 2*70^2 = 9800), so 9.90 and 14.00 are BOTH exact
+# multiples of the 0.05 mm router grid AND agree to
+#
+#     9.90*sqrt(2) = 14.000714 mm   vs   14.000000 mm
+#
+# PREDICTED octilinear floor spread 0.000714 mm = 0.0094 deg at 6 GHz, against
+# the 1.0 mm ceiling in rules/nets.yaml. It is DERIVED here and MEASURED off the
+# generated board by `copper_length_audit.py` — this file's number is a
+# prediction and is not evidence.
+#
+# THE GRID MATTERS AND IT IS WHY THE RESIDUE WAS SPENT THIS WAY, not the other:
+# rf-design.md 4(c) measured that at KRT's default `grid_step: 0.1` NOTHING
+# routed v1's five boxed RF pads at ANY width, because the RF land centres sat
+# at odd multiples of 0.05 mm. Every coordinate in this file is a multiple of
+# 0.05 mm so a 0.05 grid can place a centreline on it.
+#
+# ---------------------------------------------------------------------------
+# WHAT IS *NOT* ON THE 45-DEGREE STAR, AND WHY THAT IS NOT A CONCESSION
+# ---------------------------------------------------------------------------
+# RX1_TAP (RF8, pad 19) leaves on bearing 62.7 to R_T2/R_T1. It is DELIBERATELY
+# excluded from the length-match group (rules/nets.yaml `RF_ARMS`: it is three
+# nets in series, its insertion phase is dominated by a lumped 2 x 220 ohm cell,
+# and RX1_MAIN is a T rather than a path), so it is graded by nothing and needs
+# no 45-degree seat. It gets a bearing that is not a 45-degree multiple because
+# both neighbouring multiples would run it PARALLEL to a graded arm for its
+# whole length: a 45 NE ray from pad 19 sits 1.273 mm from ANT7's ray, and a
+# due-N ray sits 1.50 mm from RX2_OUT's. 62.7 diverges from both, and its
+# closest approach to J_ANT7's own outline (the 45-degree square, half-diagonal
+# 5.3462) is 0.686 mm. That is a COUPLING decision, not a length one.
+#
+# =========================================================================
+# THE RX1 PICKOFF IS A LUMPED SHUNT AT THE ANTENNA NODE. IT WAS A BRANCH LINE.
+# =========================================================================
+# CORRECTED 2026-07-30 at the release gate, and this is the board's P0.
+#
+# The FIRST cut put R_T1/R_T2 in the 3.00 mm channel at x = 46.00, y 35.4/37.6,
+# and the RX1 pair as a north row 8.000 mm apart at y = 25.00. R_T1's pad 1 is
+# on RX1_MAIN, so the tap hung 9.903 mm off the J_ANT8 -> J_RX1 through path:
+# a **10.107 mm routed BRANCH LINE**, not a lumped node. MEASURED consequence,
+# 490 ohm arm (2 x 220 + the switch's 50 ohm port) on 50 ohm copper:
+#
+#     4.06 GHz   the branch is lambda_g/4        -> Zin = 50^2/490 = 5.1 ohm
+#     4.00 GHz   |Zin| 5.2 ohm, S21 -15.2 dB, return loss 1.62 dB
+#
+# i.e. the antenna node was SHORTED, across roughly 2-5.5 GHz, on a board whose
+# own silkscreen reads `ANT8 = RX1 TAP -20.26 dB`.
+#
+# THE BOUND, DERIVED FROM THIS BOARD'S OWN STACKUP, identified by the tuple
+# rf-design.md 4A requires -- (JLC04161H-7628 h 0.2104 / er 4.4 / t 0.035,
+# w 0.360, AS-FABBED conformal solder mask, Hammerstad-Jensen with H-J's OWN
+# dual thickness correction u1->Z0 ur->eps_eff, times the MEASURED mask factor
+# 1.0628 from pluto-cal-switch's 2D field solve, 4A(iii)):
+#
+#     eps_eff bare 3.3226  ->  as-fabbed 3.5314
+#     lambda_g(5.5 GHz) = 29.0057 mm  ->  lambda_g/16 = 1.8129 mm
+#
+# 1.81 mm is the LOOSEST the branch may be. THE PLACEMENT BELOW DOES NOT AIM AT
+# IT. R_T1 is rotated 270 in the gap BETWEEN the two jacks, so its pad 1 sits at
+# y = 24.990 against a through line at y = 25.000: the branch is **0.010 mm**
+# and the node sees the full 490 ohm at every frequency in band (S21 -0.432 dB,
+# return loss 26.28 dB).
+#
+# AND THE ARCHITECTURE IS WHAT MAKES IT ROBUST, NOT THE LENGTH. With the whole
+# 440 ohm lumped AT the junction, Z_node = 440 + Z_x for any passive Z_x, so
+# |Z_node| >= 440 ohm and RL >= 25.5 dB no matter how long the tap arm is or
+# what the PE42482 presents at RF8 in its seven OFF states. In the old topology
+# the arm's LENGTH set the node impedance and the switch's off-state modulated
+# it. The copper does not get longer: 9.903 + 1.180 + 9.741 = 20.82 mm before,
+# 0.010 + 1.180 + ~19.9 = ~21.1 mm after.
+#
+# J_ANT8 and J_RX1 are on RX1_MAIN and carry no length obligation. They are a
+# NORTH ROW at y = 25.00 rather than ring members, for three reasons: (i) the
+# wedge between ANT7 (45) and RX2_OUT (90) is 45 degrees wide and two more
+# 7.5 mm courtyards do not fit in it at ring radius; (ii) the through path this
+# board publishes is J_ANT8 -> J_RX1 with R_T1 tapping it, so the two belong on
+# one straight line with the tap ON that line; (iii) it keeps the NE corner
+# free for H2.
+#
+# THEIR SEPARATION IS 11.000 mm AND IT IS A MECHANICAL NUMBER, NOT AN RF ONE.
+# A 5/16 in SMA coupling nut is 7.9375 mm across FLATS and **9.1656 mm across
+# CORNERS**. At the first cut's 8.000 mm the two nuts overlap at every rotation
+# -- on the ONE pair that must be cabled simultaneously for the reference
+# channel to exist. 11.000 clears by 1.834 mm. The floor this board holds for
+# every jack pair is the rosette's own adjacent-jack chord, 2*14*sin(22.5) =
+# 10.716 mm; the one pair below it is J_ANT8 <-> J_RX2 at 9.933 mm, which is
+# unchanged from the first cut and clears the nut by 0.767 mm.
+#
+# ---------------------------------------------------------------------------
+# MODULE FACTS THAT CONSTRAIN THIS FILE (all STEP-MEASURED, journal/04_placement)
+# ---------------------------------------------------------------------------
+# * U_MCU is rotation 180 so its USB-C faces the board's SOUTH edge. The
+#   receptacle overhangs the module outline by 1.216 mm; at YM 80.75 the module
+#   outline ends at y 92.50 and the receptacle tip reaches 93.72, i.e. 0.72 mm
+#   BEYOND the board edge at y1 = 93.0. A plug's overmould runs ~1.0 mm below
+#   the module's bottom face and only just clears the ~1.1 mm standoff, so the
+#   board edge must not be outboard of it.
+# * THE MODULE CANNOT SIT FLAT: 23 components on the CARRIER-FACING face, the
+#   12 MHz crystal 1.000 mm proud. It is HAND-SOLDERED and off the CPL
+#   (rules/assembly.yaml). Its keepout is the whole 18.00 x 23.50 outline and it
+#   carries two further carrier keepouts DRAWN INTO THE FOOTPRINT (HEIGHT on
+#   Dwgs.User, COPPER on User.Comments) that NOTHING in this pipeline grades.
+#   No part of this floorplan places anything under it.
+# * BOOT and RESET are the only route into the bootloader, forever (BOOT/RESET/
+#   SWD reach no castellation). They sit on the module's UP face at local
+#   (-6.05..-3.05, 1.825..6.475) and (2.95..5.95, ...) and nothing on this
+#   carrier can reach them, so accessibility is satisfied by construction --
+#   stated rather than assumed, because it is a requirement.
+# * At rotation 180 the SELECT pads (1..4 = GP0..GP3) land on the module's WEST
+#   edge and 3V3/GND (21/22) on its EAST edge. That is a property of the part,
+#   not a choice: they are on opposite edges at every rotation. R_S1..R_S4 are
+#   therefore hard against the west edge (SEL_V1 span 1.52 mm of a 25 mm budget)
+#   and FB_3V3 + C_BULK hard against the east edge.
+#
+# ---------------------------------------------------------------------------
+# WHAT IS OWED FROM THIS FILE, MEASURED LATER, NOT ASSERTED HERE
+# ---------------------------------------------------------------------------
+# * the octilinear floor      -> copper_length_audit.py, off the real board
+# * min landable width P-LAND -> escape_check.py --board, off the real board
+# Both need a .kicad_pcb. v1's 1.4966 mm and its scoped_clearances set are NOT
+# inherited (canon M4: a waiver copied from another board is an inherited
+# defect).
+
+project:
+  name: pluto_rx2_8way_v4
+  netlist: 06_build/netlists/pluto_rx2_8way_v4.net
+  output: 04_kicad/pluto_rx2_8way_v4.kicad_pcb
+  parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
+
+board:
+  # 46.0 x 73.0 mm. The star is 8 jacks on a 45-degree rosette (outer courtyard
+  # radius ~20.7 mm about the switch), the RX1 pair is a north row, and the
+  # module fills the south-east. The south-west clearing is where the silk
+  # legend lives — it is the only large area the star geometry leaves, and it
+  # is deliberately not filled with parts so the USB-C corner stays free of
+  # anything a cable can foul.
+  outline: {x0: 20.0, y0: 20.0, x1: 70.0, y1: 93.0}
+  edge_width: 0.1
+  layers: 4
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    refdes_prefix: H
+    # THREE CORNERS AND A SOUTH-CENTRE, and the asymmetry is the module's
+    # fault, not an oversight: U_MCU's courtyard reaches x 43.45..61.95 and
+    # y 68.75..92.75, so the south-east corner is under the module and a
+    # 3.45 mm-radius M3 courtyard cannot fit there. H4 takes the south edge
+    # west of the module instead. The module is hand-soldered and ~2 g.
+    # H2 MOVED 62.0 -> 66.0 WITH THE EAST EDGE (2026-07-30). It is the same
+    # corner hole at the same 4.0 mm inset; it moved because it was the binding
+    # constraint on the RX1 pair. MEASURED: H2's courtyard began at x 58.5075,
+    # which capped J_RX1 at x 54.7125, while the 9.1656 mm coupling-nut envelope
+    # against J_RX2 floored J_ANT8 at x 46.6 -- an EMPTY interval, on the 46 mm
+    # outline, for every row y the board edge permits. See the pickoff block.
+    at: [[23.8, 23.8], [66.0, 23.8], [23.8, 89.2], [36.5, 89.2]]
+
+# PROJECT LIBRARY FIRST. `03_src/lib/` holds pluto_rx2_8way_v4.pretty/ with the
+# three authored/vendored lands (QFN-24 PE42482, SMA_Vertical_5.08sq_D1.4,
+# RP2040_Zero_LCC23_18x23.5). Order matters: KiCad ships same-named parts in
+# its own libraries and a stock land is NOT the vendor land.
+libraries: [03_src/lib, /usr/share/kicad/footprints]
+
+placement:
+  # EVERY part is an ANCHOR. Nothing on this board is free to be legalized:
+  # the eight graded jacks ARE the published property (a 0.05 mm nudge is a
+  # 0.0007 mm phase error the gate would then have to explain), the pickoff
+  # pair carries a lambda_g/20 lumped bound, and every passive is either at a
+  # pin (C_SW1) or in a corridor whose width is the reason it is there.
+  anchors:
+    U_SW:   [41.0000, 49.0000, 0]
+
+    # ---- the 45-degree rosette: eight graded arms, one per compass point ----
+    # bearing / U_SW pad / octilinear pad-to-pad floor (derived, MEASURED later)
+    J_ANT1: [29.8500, 37.2000, 45]    # 135 NW  pad 24  14.000714
+    J_ANT2: [25.1000, 48.2500,  0]    # 180 W   pad  2  14.000000
+    J_ANT3: [29.2000, 59.1500, 45]    # 225 SW  pad  4  14.000714
+    J_ANT4: [39.1000, 64.2500,  0]    # 270 S   pad  6  14.000000
+    J_ANT5: [52.8000, 60.1500, 45]    # 315 SE  pad 13  14.000714
+    J_ANT6: [56.9000, 49.2500,  0]    #   0 E   pad 15  14.000000
+    J_ANT7: [52.8000, 38.3500, 45]    #  45 NE  pad 17  14.000714
+    J_RX2:  [40.7500, 33.1000,  0]    #  90 N   pad 22  14.000000
+    # JACK ROTATION IS (-theta) mod 90 and it is an RF decision, not cosmetics.
+    # The KH-SMA-KE-Z post square is 4-fold symmetric so theta mod 90 is
+    # electrically free, but the ARM must arrive BETWEEN two ground posts, not
+    # at one. At rotation 0 the posts sit on the 45-degree diagonals, which is
+    # right for an axis arm; at rotation 45 they sit on the axes, which is right
+    # for a diagonal arm. Getting this backwards puts a D1.4 barrel dead ahead
+    # of the launch.
+
+    # ---- the RX1 pickoff: a LUMPED SHUNT sitting ON the through line -------
+    # R_T2 is the SWITCH side (pin 2 = RX1_TAP), R_T1 the ANTENNA side
+    # (pin 1 = RX1_MAIN). BOTH at rotation 270: identical rotation, never
+    # mirrored, long axes COLLINEAR and 2.20 mm apart. MEASURED off the built
+    # board, the 0402 land's pad-1 offset is 0.510 mm, so the RX1_TAP_MID pad
+    # span is 2.20 - 2*0.510 = 1.180 mm, inside the lambda_g/20 = 1.3693 mm
+    # lumped bound (ADR-0003). THAT SPAN IS THE ONLY THING THE ROTATION HAS TO
+    # BUY: v1 lost its pickoff to a rotation inherited from the JACK rule (15
+    # deg, long axes 60 deg off the pair axis) and measured 2.66 mm — the
+    # pickoff stopped being a lumped element on the one path everything else is
+    # calibrated against.
+    # THE COLUMN SITS BETWEEN THE TWO JACKS AND POINTS AT THE SWITCH, and both
+    # halves of that are load-bearing. BETWEEN: x = 52.00 is the centre of the
+    # 3.410 mm gap between J_ANT8's courtyard (x <= 50.295) and J_RX1's
+    # (x >= 53.705), so R_T1's pad 1 can land at y = 24.990 -- ON the y = 25.000
+    # through line, branch 0.010 mm against the 1.8129 mm lambda_g/16 bound
+    # derived above. POINTS AT THE SWITCH: pad 1 north, pad 2 south, so the
+    # chain runs J_ANT8/J_RX1 -> R_T1 -> R_T2 -> U_SW pad 19 monotonically and
+    # nothing doubles back across the through line.
+    # THE OLD x = 46.00 CHANNEL IS NOW PURE ROUTING SPACE, which is what it was
+    # always better at: the tap arm still climbs it (RX1_TAP, ~19.9 mm at
+    # bearing 62.7 from pad 19 at (42.25, 47.10) to R_T2's pad 2 at
+    # (52.00, 28.21)), and a 50 ohm line TERMINATED IN 50 ohm is length-blind.
+    J_ANT8: [46.5000, 25.0000, 0]     # = THE RX1 ANTENNA, not an 8th element
+    J_RX1:  [57.5000, 25.0000, 0]     # -> PlutoSDR RX1
+    R_T1:   [52.0000, 25.5000, 270]   # pad 1 (RX1_MAIN) lands at y 24.990
+    R_T2:   [52.0000, 27.7000, 270]   # ON the y=25.000 through line
+
+    # ---- switch-side control pocket ----------------------------------------
+    # Bounded WEST by the S arm (a 0.36 mm run at x = 39.10) and NORTH-EAST by
+    # the SE arm (the 45-degree line y = x - 0.65 in switch-local coords). Every
+    # part below is south-west of that line; the measured clearance from each
+    # arm centreline to the nearest courtyard is >= 0.60 mm against the 0.38 mm
+    # a 0.36 mm track at 0.20 mm clearance needs.
+    # ROW 1 (y 52.60) then ROW 2 (y 54.80) at 1.30 mm PITCH. A 1.60 mm pitch
+    # was TRIED AND REVERTED, and the measurement is worth keeping: it opened
+    # the pour gaps but it BROKE THE ESCAPE — SW_V2, the pad with a routed
+    # neighbour on both sides, went unroutable (the same net the route.yaml
+    # header records failing under four ordered ctrl waves), taking DRC from
+    # 0 violations / 2 unconnected to 2 / 6. The pocket is escape-limited, not
+    # courtyard-limited, and widening it moves the constraint rather than
+    # relieving it. The pour is instead given its room by the zone's own
+    # clearance (zones: below, 0.25 -> 0.20).
+    R_PD1:  [40.2000, 52.6000, 270]   # V1..V4 pull-downs, AT THE SWITCH PADS.
+    R_PD2:  [41.5000, 52.6000, 270]   # They are only a power-on guarantee if
+    C_SW1:  [42.8000, 52.6000, 270]   # they sit on the switch's side of the
+    R_PD3:  [41.2000, 54.8000, 270]   # 47R series element (ARCHITECTURE sec 7)
+    R_PD4:  [42.5000, 54.8000, 270]   # -- and the 4 mm SW_V4 budget only binds
+    # C_SW2 ROTATED 0 -> 180, 2026-07-30, AND THE ROTATION IS THE WHOLE FIX FOR
+    # THE SECOND STRANDED PAD. Its CENTRE does not move, so the SSE control
+    # corridor (route.yaml: every control endpoint inside x 39.80..47.50) and
+    # the SW_V4 / 3V3 span budgets are untouched; only which END of the part
+    # carries GND changes.
+    #
+    # WHY. MEASURED on the 20:27 board: C_SW2.2 (GND) at (42.375, 57.000) had
+    # ZERO legal 0.25/0.15 via sites anywhere in its 1.411 x 1.437 mm F.Cu pour
+    # island — 0 of 608 interior points at 0.05 mm, and the same 0 at clearance
+    # 0.20, 0.14 and 0.13, so it is not a clearance question. Three In2.Cu
+    # control verticals run UNDER that pad: SW_V4 at x = 41.850, SW_V1 at
+    # 42.350, SW_V2 at 42.800 (0.500 and 0.450 mm apart). A 0.25 barrel needs
+    # 0.125 + 0.200 + 0.100 = 0.425 mm from a 0.2 mm track centreline, so no
+    # site fits between them at ANY y, and F.Cu is walled by the 0.400 mm 3V3
+    # trunk (south + west) and SW_V3 (east). The pad was landlocked.
+    #
+    # At 180 the GND pad sits at (40.825, 57.000): 1.025 mm from the nearest
+    # In2 vertical, i.e. 2.4x the barrel requirement, and on its OWN layer the
+    # router's pad clearance already reserves the window (foreign F.Cu
+    # centrelines stand >= 0.45 + 0.20 + 0.10 = 0.75 mm off the pad centre,
+    # against the 0.425 mm a barrel needs). The 3V3 terminal takes the east
+    # end, which needs no barrel at all — 3V3 arrives on F.Cu.
+    #
+    # THE GENERAL LESSON, recorded because it is not local to this part: a
+    # router reserves a barrel window on the pad's OWN layer automatically and
+    # on NO OTHER layer, because a pad it is not routing is invisible to it
+    # there. So a pour-fed GND terminal over a signal layer's bus has no via
+    # site by construction, and no stitch parameter can create one.
+    C_SW2:  [41.6000, 57.0000, 180]   # if they are actually AT the pad.
+
+    # ---- the module cell ----------------------------------------------------
+    U_MCU:  [52.7000, 80.7500, 180]   # USB-C faces the board's south edge
+    R_S1:   [42.0000, 90.9100, 180]   # 47R SOURCE terminations, hard against
+    R_S2:   [42.0000, 88.3700, 180]   # the module's west castellation column.
+    R_S3:   [42.0000, 85.8300, 180]   # pad 1 faces EAST (the module) so
+    R_S4:   [42.0000, 83.2900, 180]   # SEL_V* is 1.52 mm and SW_V* is the long
+                                      # half -- which is the correct end for a
+                                      # series termination.
+    R_LED:  [42.0000, 80.7500, 180]   # 680R ballast at module pad 5 (GP4)
+    LED_ST: [38.8000, 80.7500, 0]     # pad 1 = CATHODE = GND, facing WEST
+    FB_3V3: [64.0000, 85.8000, 90]    # pad 1 (IN, 3V3_MOD) faces SOUTH toward
+                                      # C_BULK; pad 2 (OUT, 3V3) faces NORTH,
+                                      # which is the direction the switch is.
+    C_BULK: [64.0000, 89.8000, 270]   # 4.7uF on the UNFILTERED side, pad 1
+                                      # north at the ferrite
+
+  patterns:
+    # Pad-level SOLID zone connection on the GND pads of the two multi-GND
+    # parts. v1 measured this taking `starved_thermal` from 15 to 4: a thermal
+    # relief counts SPOKES, and a QFN ground pad in a dense fan does not get
+    # four of them. U_MCU's single GND castellation (pad 22) carries every
+    # return from 20 GPIO and must not be thermally relieved at all.
+    - {match: U_SW,  pad_overrides: [{on_net: GND, zone_connection: full}]}
+    - {match: U_MCU, pad_overrides: [{on_net: GND, zone_connection: full}]}
+    # The ten SMA jacks: each of the four posts IS the launch return path and is
+    # only electrically short if the return is (KH-SMA-KE-Z part.yaml notes).
+    - {match: "J_*",  pad_overrides: [{on_net: GND, zone_connection: full}]}
+    # THE CONTROL POCKET'S PULL-DOWNS, same reason as the QFN and MEASURED the
+    # same way. A thermal relief counts SPOKES, and R_PD3/R_PD4's GND pads sit
+    # in row 2 of a pocket bounded by the S arm, the SE arm and the row above:
+    # the pour reaches them from ONE side, so they scored 1 spoke against a
+    # minimum of 2 and DRC reported `starved_thermal` twice (post-stitch,
+    # 2026-07-30). Golden rule 9's fix is pad-level SOLID, not more vias —
+    # vias do not create spokes. Applied to all four so the row is uniform
+    # rather than to the two that happened to fail.
+    - {match: "R_PD*", pad_overrides: [{on_net: GND, zone_connection: full}]}
+    - {match: "C_SW*", pad_overrides: [{on_net: GND, zone_connection: full}]}
+
+  legalize: {enable: false, clearance: 0.45}
+  # DISABLED, DELIBERATELY. Every refdes is an anchor, so there is nothing for
+  # the legalizer to walk; leaving it enabled would let a future edit silently
+  # move a jack and turn a 0.000714 mm floor spread into something the gate
+  # would have to discover.
+
+design_rules:
+  # jlc_4layer_advanced (rules/nets.yaml `fab_tier:`), forced by PE42482A-X's
+  # QFN-24 at 0.50 mm pitch: at the standard-tier 0.30 mm drill the adjacent-pin
+  # hole-to-hole gap is 0.20 mm against a 0.50 mm floor, so no escape via fits.
+  track_min_width: 0.09
+  min_clearance: 0.09
+  via_min_size: 0.25
+  min_through_drill: 0.15
+  via_min_annulus: 0.05
+  hole_clearance: 0.15
+  # 0.25 -> 0.315, AND THE 0.065 IS THE VENDOR'S OWN PUBLISHED TOLERANCE, NOT
+  # CAUTION. jlc_4layer_advanced declares min_hole_to_hole 0.25 mm, and every
+  # gate in this repo graded the board's holes against it at NOMINAL diameter.
+  # JLC publishes +0.13/-0.08 mm on PAD holes ("the diameter of via holes is
+  # not controlled"), so at max material a 1.400 mm SMA ground barrel drills
+  # 1.530 and every via-to-that-pad gap loses 0.065 mm of wall. MEASURED on
+  # the 2026-07-31 board: min hole-to-hole 0.3016 mm nominal -> 0.2366 mm at
+  # max material, i.e. UNDER the declared floor, on 8 pairs; the vendor's own
+  # tolerance consumed 126 % of the +0.0516 mm margin the archive reported.
+  #     0.25 declared floor + 0.065 max-material pad-radius growth = 0.315
+  # is therefore the NOMINAL floor that guarantees the DECLARED one, and it is
+  # DERIVED from the tier plus a published number, not tuned. It is enforced
+  # in two places at once, which is the point: `pcb_toolkit.via_site_ok` reads
+  # it out of m_HoleToHoleMin and REFUSES a crowding lattice site at build
+  # time, and kicad-cli DRC re-checks it on the saved board -- so the fix
+  # cannot silently regress into geometry nothing grades.
+  # BLAST RADIUS, MEASURED, NOT ASSUMED: exactly 8 sites on this route sit in
+  # [0.25, 0.315); the next-tightest pair anywhere on the board is 0.3265 mm
+  # (via 43.000,27.000 <-> J_ANT8.3) and min VIA<->VIA is 0.3785, so nothing
+  # else on the board is even close to the new floor. The 8 are re-placed
+  # 0.035 mm outward as declared `stitch.seed_stubs` -- see route.yaml.
+  # WHAT THIS DOES NOT CLAIM: JLC publishes NO rule for the mixed
+  # via-hole-to-pad-hole class at all (0.2 mm via-to-via, 0.45 mm pad-to-pad,
+  # nothing between; their public Q&A #693 asks exactly this and is
+  # unanswered). 0.315 makes the board honour ITS OWN declared tier at max
+  # material. It does not settle the vendor question, which is a DFM item to
+  # put to JLC in writing before the order.
+  hole_to_hole: 0.315
+  copper_edge_clearance: 0.3
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  # GND on ALL FOUR layers. In1.Cu is poured here and EXCLUDED from the routing
+  # layers in route.yaml -- that is the whole point: pouring makes it the solid
+  # reference, excluding it from routing is what keeps it unbroken. Ossmann's
+  # rule 1, and it is what makes nine arm phases comparable at all.
+  # CLEARANCE 0.25 -> 0.20, WHICH IS THE DRC FLOOR AND NOT BELOW IT. MEASURED
+  # 2026-07-30: at 0.25 the pour could not enter the 1.30 mm-pitch control
+  # pocket and fragmented into six F.Cu islands, two of them (R_PD2.2 and
+  # C_SW2.2) carrying a GND pad and NO via — the board's only remaining DRC
+  # findings. A zone clearance ABOVE the netclass floor is a self-imposed
+  # handicap on plane continuity, and plane continuity is the thing this pour
+  # exists for; the 0.05 mm it gives back on each side of every gap is exactly
+  # the width a 0.6 mm sliver needs to merge. Nothing is relaxed: 0.20 is the
+  # Default/RF50/CTRL/PWR clearance the .kicad_dru already enforces.
+  - {net: GND, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], priority: 0,
+     min_thickness: 0.2, clearance: 0.20, connect: thermal}
+
+keepouts:
+  # `rf_launch` DENIES NOTHING. It is a NAMED RULE AREA that exists so
+  # rules/nets.yaml `scoped_clearances:` has a boundary to bind to — the
+  # emitted .kicad_dru constraint is
+  # `A.insideArea(rf_launch) && B.insideArea(rf_launch)`, bounded on BOTH
+  # sides, so a relaxation cannot license a pair whose second item is
+  # anywhere on the board.
+  #
+  # WHY IT EXISTS AT ALL, MEASURED off this board by `escape_check.py --board`
+  # BEFORE any router ran: SIX pads of U_SW cannot emit their own class width
+  # at the board-wide 0.200 mm clearance. It is arithmetic, not congestion —
+  # the PE42482A-X vendor land is 0.30 x 0.60 mm on a 0.50 mm pitch, so a
+  # neighbouring land's copper edge sits 0.350 mm from the pad centre and a
+  # 0.360 mm impedance trace needs 0.180 + 0.200 = 0.380 mm.
+  #
+  # THE BOX IS DRAWN TIGHTLY (canon R-SCOPE caveat: KiCad's `insideArea` is
+  # true for an item that OVERLAPS the area, not only one contained by it).
+  # +/-2.70 mm about the switch centre = 0.50 mm outboard of the outermost
+  # land edge (+/-2.20), which is the whole launch and nothing else. At that
+  # radius adjacent arms are already 2.07 mm apart, so arm-to-arm isolation
+  # is not what is being relaxed.
+  - {name: rf_launch, layers: [F.Cu], deny: [],
+     rect: [38.300, 46.300, 43.700, 51.700]}
+
+  # `ctrl_escape` — the In2.Cu twin, and the reason it is a SEPARATE area is a
+  # measured mistake worth keeping: `rf_launch` is declared `layers: [F.Cu]`,
+  # and KiCad's `insideArea` is evaluated PER LAYER, so a scoped clearance bound
+  # to it cannot reach a pair of tracks on In2.Cu no matter how far inside the
+  # rectangle they sit. Adding the SW_V* nets to rf_launch's `nets:` list
+  # therefore changed NOTHING and the DRC finding stood — a relaxation that
+  # looks declared, reads as declared, and binds nothing. A rule area is
+  # (rectangle AND layer set), never a rectangle.
+  # 1.10 x 0.90 mm, tight around the one measured pair (SW_V2's In2.Cu segment
+  # and SW_V3's via-in-pad stub) and NOTHING else: SW_V1's barrel at x 40.75 and
+  # 3V3's In2.Cu run at x 40.20 both fall outside it, so they keep the 0.20 mm
+  # floor.
+  - {name: ctrl_escape, layers: [In2.Cu], deny: [],
+     rect: [41.000, 50.600, 42.100, 51.500]}
+
+asserts:
+  pad_net:
+    # NONE of these is observable in copper, and each names a defect that
+    # assembles, powers up and reports a plausible wrong answer.
+    - {ref: U_SW,  pad: 1,  net: GND}       # LS: 1 Mohm INTERNAL pull-up, so a
+                                            # float selects the COMPLEMENTED
+                                            # half of the truth table
+    - {ref: U_SW,  pad: 9,  net: SW_V1}     # V1 = MSB; a reversed sweep is
+    - {ref: U_SW,  pad: 12, net: SW_V4}     # absorbed by an AoA solver as a
+                                            # ROTATED ARRAY
+    - {ref: U_SW,  pad: 19, net: RX1_TAP}   # RF8 = the pickoff port
+    - {ref: U_SW,  pad: 22, net: RX2_OUT}   # RFC = the common out
+    - {ref: U_SW,  pad: 24, net: ANT1}      # RF1 = the delta reference
+    - {ref: U_SW,  pad: 25, net: GND}       # EP = the RF ground return
+    # The module's numbering is the VENDOR's and runs CLOCKWISE FROM THE
+    # TOP-RIGHT -- the mirror of every IC -- and the silk prints GPIO numbers,
+    # which agree with pad numbers for SIXTEEN CONSECUTIVE PADS before
+    # diverging at 17. These four are the cross-check that survived the
+    # renumbering (journal/04_placement.md FINDING 1).
+    - {ref: U_MCU, pad: 1,  net: SEL_V1}    # GP0
+    - {ref: U_MCU, pad: 4,  net: SEL_V4}    # GP3
+    - {ref: U_MCU, pad: 21, net: 3V3_MOD}   # NOT 3V3 -- FB_3V3 is a SERIES
+                                            # element and the module-side node
+                                            # is its own net
+    - {ref: U_MCU, pad: 22, net: GND}       # the ONE ground castellation
+    - {ref: LED_ST, pad: 1, net: GND}       # pad 1 = CATHODE (KiCad marker
+                                            # convention); a reversed LED is
+                                            # self-consistent in every artifact
+
+silk:
+  min_text_height: 0.6
+  refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16,
+           priority_prefixes: "UJ"}
+  caption_nudge: true
+  captions:
+    # Port legends, each INBOARD of its jack on its own radius (7.00 mm from
+    # the jack centre toward the switch, clear of the 7.80 mm jack silk square).
+    # A legend on the NEIGHBOUR is the v1 defect this ordering exists to avoid:
+    # v1's "RX2 -> PLUTO RX2" measured NEARER J_ANT1 (7.29 mm) than J_RX2
+    # (7.85 mm), on the one pair of ports whose confusion feeds an SDR input
+    # with an antenna.
+    - ["ANT1", 34.800, 42.150, 0.9]
+    - ["ANT2", 32.100, 48.250, 0.9]
+    - ["ANT3", 34.150, 54.200, 0.9]
+    # ANT4/ANT5 sit SOUTH of their jacks, not inboard: inboard puts them
+    # nearer a pull-down resistor than their own jack (silk-ownership, the
+    # v1 "labelled on its neighbour" class). The band between the rosette
+    # and the module is empty and owns them cleanly.
+    - ["ANT4", 39.100, 69.600, 0.9]
+    - ["ANT5", 56.500, 66.000, 0.9]
+    - ["ANT6", 49.900, 49.250, 0.9]
+    - ["ANT7", 47.850, 43.300, 0.9]
+    - ["RX2",  40.750, 40.100, 0.9]
+    # The RX1 pair is a north ROW, so its legends go SOUTH of the jacks in the
+    # band above the rosette rather than on a radius.
+    - ["ANT8", 41.000, 25.000, 0.9]
+    # RX1's legend goes SOUTH of its jack, not east of it: J_RX1 moved to
+    # x 57.50 and the old x 59.400 now falls INSIDE the jack's own silk square.
+    # Ownership MEASURED: 5.50 mm to J_RX1, 9.15 mm to the next-nearest jack
+    # (J_ANT7) -- the v1 "labelled on its neighbour" class stays closed.
+    - ["RX1",  57.500, 30.500, 0.9]
+    # Legend block, in the south-west clearing.
+    - ["pluto-rx2-8way-v4  8-WAY AoA", 30.500, 70.500, 0.7]
+    - ["70 MHz - 6 GHz",               30.500, 72.500, 0.6]
+    - ["RX ONLY - NO TRANSMIT",        30.500, 74.500, 0.6]
+    - ["PASSIVE ANT - 0 VDC MAX",      30.500, 76.500, 0.6]
+    - ["ANT8 = RX1 TAP -20.26 dB",     30.500, 78.500, 0.6]
+    - ["RX1/RX2 = SDR OUTPUTS",        30.500, 80.500, 0.6]
+    - ["U_MCU HAND-SOLDER ONLY",       30.500, 84.000, 0.6]
+    - ["USB-C = PWR + BOOTLOADER",     30.500, 86.000, 0.6]
+  polarity_marks:
+    - {ref: LED_ST, pad: 1, text: "K"}
