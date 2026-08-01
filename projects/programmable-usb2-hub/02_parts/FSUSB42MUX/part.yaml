@@ -1,0 +1,131 @@
+mpn: FSUSB42MUX
+manufacturer: onsemi
+type: usb2_high_speed_dpdt_data_switch
+status: active
+function: >
+  One independent physical D+/D- connect/disconnect for an external USB 2.0
+  downstream port, using OE for a real high-impedance data disconnect.
+datasheet:
+  doc_id: FSUSB42/D
+  revision: "Rev 3 (May 2022)"
+  url: https://www.onsemi.com/download/data-sheet/pdf/fsusb42-d.pdf
+  product_page: https://www.onsemi.com/products/interfaces/analog-switches/fsusb42
+  local: FSUSB42-D_Rev3.pdf
+  sha256: a3fbf9747541f510188d649c1f37a082d5d15430963e98d8c192dc7036e4fe9a
+  fetched: 2026-07-31
+  pages: 10
+  provenance: "Downloaded directly from onsemi.com; current English datasheet."
+package: MSOP-10 JEDEC MO-187, 3.0 mm wide, 0.5 mm pitch
+footprint: Package_SO:MSOP-10_3x3mm_P0.5mm
+escape:
+  style: leaded
+  pitch: 0.5
+  escapes_worst_side: 5
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-31
+pins:                         # Figure 3 + pin-description table, PDF p.2.
+  1: VCC
+  2: SEL
+  3: D+
+  4: D-
+  5: GND
+  6: HSD1-
+  7: HSD1+
+  8: HSD2-
+  9: HSD2+
+  10: OE
+limits:
+  vcc_operating: 2.4 V to 4.4 V
+  switch_io_operating: -0.5 V to 4.5 V
+  switch_io_power_off_tolerance: up to 5.25 V with VCC=0 V
+  ron: 3.9 ohm typ, 6.5 ohm max at VCC=3.0 V
+  bandwidth: 720 MHz typ unloaded, 550 MHz typ with 5 pF
+  on_capacitance: 3.7 pF typ
+  off_capacitance: 2.0 pF typ
+  propagation_delay: 0.25 ns typ
+  turn_on: 13 ns typ / 30 ns max at VCC=3.0 to 3.6 V
+  turn_off: 12 ns typ / 25 ns max at VCC=3.0 to 3.6 V
+  total_jitter: 200 ps typ at 480 Mbps
+  operating_temperature: -40 C to 85 C
+  usb_pin_system_esd: 15 kV air / 8 kV contact IEC 61000-4-2
+land_pattern:
+  source: "onsemi mechanical case 846AP, JEDEC MO-187 MSOP-10, final datasheet page"
+  body_nominal_mm: [3.0, 3.0]
+  pitch_mm: 0.5
+  note: "KiCad stock MSOP-10_3x3mm_P0.5mm is the matching no-exposed-pad leaded land pattern."
+verified: >
+  MSOP pin map read from Figure 3 "10-Lead MSOP (Top-Through View)" and
+  cross-checked against the MSOP column of the pin-description table, PDF p.2;
+  exact FSUSB42MUX suffix cross-checked in the ordering table, PDF p.7.
+  2026-07-31.
+gotchas:
+  - >
+    OE IS ACTIVE HIGH DISCONNECT: OE=HIGH disconnects every switch path;
+    OE=LOW connects the throw selected by SEL. For this board tie SEL LOW,
+    connect hub-side Pn_HUB_P/Pn_HUB_N to common pins 3/4, connect the USB-A
+    connector side to HSD1 pins 7/6, and emit explicit NC flags on HSD2 pins
+    9/8. A 10k pull-up on OE makes MCU reset fail physically disconnected.
+  - >
+    There is no hardware status output. Firmware may report the commanded OE
+    state, while actual connection/enumeration remains a host OS/hub-controller
+    fact. Do not label OE readback as attached or enumerated.
+  - >
+    SEL and OE must never float (datasheet Recommended Operating Conditions
+    note 5). 3.3 V GPIO levels are valid with a 3.3 V VCC; VIH is 1.3 V min and
+    VIL is 0.5 V max over the 2.4-3.6 V supply range.
+  - >
+    Power-off tolerance prevents a powered USB data pin from parasitically
+    powering an unpowered switch, but it does not replace connector-side ESD
+    protection or controlled-impedance differential routing.
+  - >
+    FSUSB42MUX was selected over TS3USB221ARSER: both provide a single OE and
+    USB 2.0 bandwidth, but FSUSB42 offers a leaded 0.5 mm MSOP, 3.7 pF typical
+    on-capacitance and 3.9 ohm typical RON. TS3USB221A is only available in a
+    tiny 0.5 mm UQFN and has 6 pF typical on-capacitance and 6 ohm maximum RON.
+  - >
+    Keep the unused HSD2 throw copper-free. A named dangling net or test pad on
+    that throw creates an RF stub even though the functional truth table still
+    looks correct.
+layout:
+  source: >
+    onsemi FSUSB42/D Figures 1-3, AC tables and truth table. The datasheet has
+    no routed PCB example; the inline pair routing below is DERIVED from the
+    specified 480 Mbps use, bidirectional DPDT topology, 3.7 pF CON, and 2 pF
+    COFF. Place each switch inline between hub and connector-side ESD, with an
+    unbroken reference plane and no stubs on common or HSD1.
+  reviewed: 2026-07-31
+  keep_short:
+    - {net: P1_HUB_P, max_span_mm: 25, anchor_pins: ["3"], why: "DERIVED USB2 HS launch budget from the switch common D+ pin"}
+    - {net: P1_HUB_N, max_span_mm: 25, anchor_pins: ["4"], why: "DERIVED USB2 HS launch budget from the switch common D- pin"}
+    - {net: P2_HUB_P, max_span_mm: 25, anchor_pins: ["3"], why: "DERIVED USB2 HS launch budget from the switch common D+ pin"}
+    - {net: P2_HUB_N, max_span_mm: 25, anchor_pins: ["4"], why: "DERIVED USB2 HS launch budget from the switch common D- pin"}
+    - {net: P3_HUB_P, max_span_mm: 25, anchor_pins: ["3"], why: "DERIVED USB2 HS launch budget from the switch common D+ pin"}
+    - {net: P3_HUB_N, max_span_mm: 25, anchor_pins: ["4"], why: "DERIVED USB2 HS launch budget from the switch common D- pin"}
+    - {net: P4_HUB_P, max_span_mm: 25, anchor_pins: ["3"], why: "DERIVED USB2 HS launch budget from the switch common D+ pin"}
+    - {net: P4_HUB_N, max_span_mm: 25, anchor_pins: ["4"], why: "DERIVED USB2 HS launch budget from the switch common D- pin"}
+    - {net: P1_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
+    - {net: P1_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
+    - {net: P2_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
+    - {net: P2_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
+    - {net: P3_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
+    - {net: P3_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
+    - {net: P4_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
+    - {net: P4_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
+  notes:
+    - "Route each D+/D- pair through the switch pads without necking into a stub; keep pair geometry and reference-plane continuity through the whole cell."
+    - "Place USBLC6-2SC6 at the connector, then the FSUSB42 behind it; the ESD clamp must see the disturbance before a longer trace reaches the switch or hub."
+    - "Keep the OE pull-up adjacent to pin 10 so reset cannot leave a half-selected data path."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "onsemi FSUSB42/D Rev 3 pinout, truth table and 480Mbps AC characterization; no routed PCB figure is published"}
+  - {tier: 2, reached: false, artifact: "Manufacturer FSUSB42 evaluation-board editable layout", why: "No onsemi EVM or editable reference design was found on the product page or targeted search"}
+  - {tier: 3, reached: false, artifact: "OSHWLab/EasyEDA project searched by exact LCSC C11355", why: "Search found a third-party SL2.1A hub summary but no verified editable exact-part copper artifact was opened"}
+sourcing:
+  lcsc: C11355
+  alternates: []
+  note: >
+    JLCPCB catalogs C11355 as Extended, MSOP-10, supported by Economic and
+    Standard SMT assembly; live availability must be rechecked by release.
+asserts:
+  - assert: value
+    equals: FSUSB42MUX
+    why: "The MUX suffix selects the leaded MSOP-10 pin map; substituting FSUSB42UMX silently changes both package and pin numbering."

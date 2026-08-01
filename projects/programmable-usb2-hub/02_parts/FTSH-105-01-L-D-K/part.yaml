@@ -1,0 +1,20 @@
+mpn: FTSH-105-01-L-D-K
+manufacturer: Samtec
+type: debug_header
+function: Keyed 2x5 1.27 mm ARM Cortex SWD service connector
+status: active
+datasheet:
+  product_page: https://www.samtec.com/products/ftsh-105-01-l-d-k
+  provenance: "CITED: exact Samtec configurable part page and FTSH through-hole series print, checked 2026-07-31."
+package: 2x5 through-hole, 1.27 mm row and column pitch
+footprint: Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical
+escape: {style: through_hole, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-31}
+pins: {1: VTREF, 2: SWDIO, 3: GND, 4: SWCLK, 5: GND, 6: SWO_SPARE, 7: KEY_NC, 8: NC, 9: GND_DETECT, 10: NRST}
+verified: "CITED: exact FTSH-105-01-L-D-K Samtec product page: 10 pins, two rows, through-hole, keying notch."
+gotchas:
+  - "Pin 1 is target-voltage reference only; the debugger must not back-power the board."
+  - "Pin 7 is intentionally unconnected in the ARM assignment even though the generic header footprint has a physical contact."
+layout: {source: "Samtec FTSH through-hole footprint and ARM 10-pin Cortex debug assignment", reviewed: 2026-07-31, notes: ["Keep accessible at the west edge with pin 1 marked on silk."]}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Samtec exact product page and series through-hole footprint"}
+sourcing: {lcsc: C19191796, note: "Exact Samtec part observed in distributor catalog 2026-07-31; order-day THT assembly confirmation required."}

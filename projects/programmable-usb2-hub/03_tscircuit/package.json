@@ -1,0 +1,6 @@
+{
+  "name": "programmable-usb2-hub",
+  "main": "src/programmable_usb2_hub.tsx",
+  "type": "module",
+  "dependencies": { "tscircuit": "*" }
+}

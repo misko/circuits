@@ -1,0 +1,61 @@
+mpn: AP63203QWU-7
+manufacturer: Diodes Incorporated
+type: synchronous_buck_fixed_3v3
+datasheet:
+  doc_id: DS41326
+  revision: "Rev. 3-2, November 2024"
+  url: https://www.diodes.com/assets/Datasheets/AP63200-AP63201-AP63203-AP63205.pdf
+  sha256: ef99daa3789d835bc025dfcb4c605c5c2e6d3e7223e86d40b33e6b497ea5a722
+  fetched: 2026-07-31
+package: TSOT-23-6 / TSOT26
+footprint: Package_TO_SOT_SMD:TSOT-23-6
+escape:
+  style: leaded
+  pitch: 0.95
+  tier_required: jlc_2layer_default
+  checked: "package geometry checked 2026-07-31; live board escape_check owed"
+pins:
+  1: {name: FB, note: "fixed-output sense; connect directly to 3V3"}
+  2: {name: EN, note: "active high; open or VIN gives automatic startup"}
+  3: VIN
+  4: GND
+  5: SW
+  6: BST
+limits:
+  vin_operating: "3.8 to 32 V"
+  vin_abs_dc: 35 V
+  vin_abs_400ms: 40 V
+  vout: "3.30 V, 3.27 to 3.33 V"
+  iout_continuous: 2 A
+  peak_current_limit_min: 2.5 A
+  tj_abs: 160 C
+  ta_operating: "-40 to +85 C"
+  theta_ja: "89 C/W on the datasheet minimum 2 oz single-layer test board"
+gotchas:
+  - "AP63203 is the FIXED 3.3 V member: FB goes directly to 3V3; do not fit
+     an adjustable-output divider copied from AP63200/AP63201."
+  - "The 32 V recommended input ceiling requires the protected VIN node to be
+     held below 32 V; a 24 V source does not justify an unclamped 40 V surge."
+  - "BST needs 100 nF to SW. Recommended starting network is 4.7 uH,
+     10 uF input, and 2 x 22 uF output per DS Figure 1 / EVM."
+  - "SW is a 1.1 MHz high-dV/dt node; keep its copper and the BST loop small
+     and away from every USB differential pair."
+verified: "pin map read from DS41326 top-view pin assignment and pin table, pp.1-2, 2026-07-31"
+sourcing:
+  lcsc: C5248536
+  alternates: []
+  note: "Q-2SOURCE: exact AEC-Q100 AP63203QWU-7 was active with Mouser stock
+    4,344 and DigiKey stock 2,685 on 2026-07-31. JLC catalog stock was zero, so
+    U4 is a consigned assembly line; re-check both distributors on order day."
+layout:
+  source: "DS41326 Figure 1 and Layout Guidelines / EVM layout"
+  adjacency:
+    - "10 uF VIN ceramic directly between pins 3 and 4"
+    - "100 nF bootstrap capacitor directly between BST(6) and SW(5)"
+    - "4.7 uH inductor immediately at SW(5); output ceramics immediately after it"
+    - "FB(1) senses the quiet 3V3 copper at the output capacitors, never the SW-side terminal"
+  notes:
+    - "minimize the VIN-switch-GND and SW-BST loops; keep the SW island beneath
+      the IC/inductor and do not route USB, crystal, reset, or ADC traces nearby"
+    - "provide a continuous ground plane under the cell and a local ground via
+      at the input/output capacitor returns"

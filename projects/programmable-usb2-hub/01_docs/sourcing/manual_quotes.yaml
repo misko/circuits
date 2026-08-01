@@ -1,0 +1,171 @@
+# DigiKey product-page observations for the 2026-07-31 Q-2SOURCE audit.
+# These figures are volatile and must be re-read on order day. Search-result
+# snippets were not used as stock evidence.
+
+quotes:
+  - mpn: "AON6354"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/alpha-omega-semiconductor-inc/AON6354/7690189"
+    read_on: 2026-07-31
+    dpn: "785-AON6354CT-ND"
+    stock: 3602
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact manufacturer MPN; DigiKey product page."
+
+  - mpn: "AP63203WU-7"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/diodes-incorporated/AP63203WU-7/9858426"
+    read_on: 2026-07-31
+    dpn: "AP63203WU-7DICT-ND"
+    stock: 0
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact manufacturer MPN; active but zero stock."
+
+  - mpn: "AP63203QWU-7"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/diodes-incorporated/AP63203QWU-7/16548045"
+    read_on: 2026-07-31
+    dpn: "AP63203QWU-7DICT-ND"
+    stock: 2685
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact AEC-Q100 fixed-3.3V TSOT-23-6 MPN; DigiKey product page."
+
+  - mpn: "WSL2512R0100FEA"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/vishay-dale/WSL2512R0100FEA/713493"
+    read_on: 2026-07-31
+    dpn: "WSLG-.01CT-ND"
+    stock: 110973
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 10mOhm, 1%, 1W, 2512 current-sense resistor MPN."
+
+  - mpn: "CL32A107MPVNNNE"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/samsung-electro-mechanics/CL32A107MPVNNNE/3891450"
+    read_on: 2026-07-31
+    stock: 84716
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 100uF, 10V, X5R, +/-20%, 1210 MPN."
+
+  - mpn: "CL32B106KBJNNWE"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/samsung-electro-mechanics/CL32B106KBJNNWE/3891474"
+    read_on: 2026-07-31
+    dpn: "1276-3388-1-ND"
+    stock: 130022
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 10uF, 50V, X7R, +/-10%, 1210 MPN."
+
+  - mpn: "VLS6045EX-4R7M"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/tdk-corporation/VLS6045EX-4R7M/5287379"
+    read_on: 2026-07-31
+    dpn: "445-173055-1-ND"
+    stock: 56358
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 4.7uH, +/-20%, 4.2A, 6x6mm shielded power inductor MPN."
+
+  - mpn: "1935161"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/phoenix-contact/1935161/568614"
+    read_on: 2026-07-31
+    dpn: "277-1667-ND"
+    stock: 27170
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 2-position, 5.00mm, side-entry, 18A THT terminal MPN."
+
+  - mpn: "GRM32ER61A107ME20L"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/murata-electronics/GRM32ER61A107ME20L/4905633"
+    read_on: 2026-07-31
+    dpn: "490-9969-1-ND"
+    stock: 0
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact manufacturer MPN; zero stock."
+
+  - mpn: "GRM32ER71H106KA12L"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/murata-electronics/GRM32ER71H106KA12L/2548481"
+    read_on: 2026-07-31
+    dpn: "490-6544-1-ND"
+    stock: 0
+    min: 1
+    mult: 1
+    lifecycle: "Discontinued at DigiKey"
+    note: "Exact manufacturer MPN; zero stock and discontinued at DigiKey."
+
+  - mpn: "MWSA1206S-6R8MT"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/shenzhen-sunlord-electronics-co-ltd/MWSA1206S-6R8MT/14120084"
+    read_on: 2026-07-31
+    dpn: "3442-MWSA1206S-6R8MTCT-ND"
+    stock: 905
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact manufacturer MPN; DigiKey product page."
+
+  - mpn: "STM32G0B1CBT6"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/stmicroelectronics/STM32G0B1CBT6/18086231"
+    read_on: 2026-07-31
+    dpn: "497-STM32G0B1CBT6-ND"
+    stock: 2677
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact manufacturer MPN; current DigiKey product page."
+
+  - mpn: "USB1130-15-A"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/gct/USB1130-15-A/13545899"
+    read_on: 2026-07-31
+    dpn: "2073-USB1130-15-ACT-ND"
+    stock: 19307
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 3 A, 10,000-cycle GCT connector MPN."
+
+  - mpn: "USBLC6-2SC6"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/stmicroelectronics/USBLC6-2SC6/1040559"
+    read_on: 2026-07-31
+    dpn: "497-5235-1-ND"
+    stock: 93263
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact STMicroelectronics manufacturer MPN; marketplace substitutes were not counted."

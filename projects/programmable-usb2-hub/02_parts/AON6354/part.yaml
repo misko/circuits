@@ -1,0 +1,47 @@
+mpn: AON6354
+manufacturer: Alpha & Omega Semiconductor
+type: nfet_power
+datasheet:
+  doc_id: AON6354
+  revision: "AON6354 electrical datasheet plus AOS PO-00044 version I package drawing"
+  url: https://www.aosmd.com/products/mosfets/low-voltage-mosfets-12v-30v/aon6354
+  package_url: https://www.aosmd.com/sites/default/files/res/package/DFN5x6_8L_EP1_P_0.pdf
+  sha256: c4cfcfe685c0a47831a2b7105dac554f29e1edb6b37a09ec1507acb45aac3a3e
+  fetched: 2026-07-21
+package: DFN 5x6-8L
+footprint: programmable_usb2_hub:PowerPAK_SO-8_Single_Paste65
+escape:
+  style: qfn  # checker vocabulary: DFN/SON no-lead ring escapes as 'qfn'
+  pitch: 1.27
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-21 (coarse-pitch power DFN; leads 1.27mm)
+pins:
+  1: S
+  2: S
+  3: S
+  4: G
+  5: {name: D, note: "single merged drain paddle - KiCad PowerPAK_SO-8_Single names ALL drain pads '5' (verified from footprint file); symbol pin 5 = D"}
+limits: {vds: 30V, vgs: "±20V", id_25C: 83A, rds_10V: 3.3mOhm_max, rds_4V5: 5.2mOhm_max, vspike_10us: 36V}
+gotchas:
+  - "logic-level: Rds(on) is specified at 4.5 V, matching the LM5116's
+     internally regulated gate-drive rail"
+  - "30 V Vds rating clears the protected 24 V input only when the input clamp,
+     switch-node overshoot and optional RC snubber are qualified at bench"
+  - "The historical vendored footprint name contains PowerPAK, but its copper is the exact AOS DFN5x6_8L_EP1_P pattern; do not replace it with KiCad's generic Vishay PowerPAK land."
+verified: >
+  Pin map read from the AON6354 DFN5x6 top/bottom-view and schematic diagram.
+  Land pattern read independently from Alpha & Omega package drawing PO-00044
+  version I: 6.15 mm total lead span, 0.55 x 0.50 mm source lands,
+  0.65 x 0.50 mm drain lands, and 4.12 x 4.60 mm exposed drain; checked
+  2026-07-31 and encoded in the vendored footprint.
+sourcing: {lcsc: C404363, alternates: [C51908846], note: "stock 5445 on 2026-07-21; 7 pcs/board"}
+layout_refs:
+  - "LM5116 SNVS499I sec.11 hot-loop rules govern both synchronous buck cells"
+layout:
+  source: "AON6354 electrical datasheet + AOS PO-00044 DFN5x6_8L_EP1_P package drawing + LM5116 SNVS499I sec.11 SW-loop guidance"
+  adjacency:
+    - "HS FET drain (pad5) to the input caps (VIN); LS FET drain to the SW node / inductor"
+    - "LS FET source to the current-sense shunt Rs (CS node)"
+  notes:
+    - "minimize SW-node copper area between HS source / LS drain / inductor (radiated dV/dt)"
+    - "gate (pad4) trace short + direct to the LM5116 HO/LO driver pin (few-A gate pulses)"

@@ -1,0 +1,158 @@
+# JLC digital-twin adjudication register — programmable-usb2-hub
+#
+# Every accepted electrical/mechanical mismatch below is tied to the exact
+# manufacturer land-pattern evidence recorded in 02_parts.  This file does not
+# override CPL rotation.  The only model nudge is for J7's demonstrably offset
+# JLC-internal body; its copper fit remains the independent authority.
+
+- lcsc: C404363
+  refs: [Q3, Q4, Q5, Q6]
+  status: PAD-MISMATCH
+  pad_alias: {"6": "5", "7": "5", "8": "5", "9": "5"}
+  why: &aon6354_land >
+    AON6354 exact-package review, 2026-07-31. Alpha & Omega package drawing
+    PO-00044 version I specifies the DFN5x6_8L_EP1_P land: 6.15 mm total lead
+    span, 0.55 x 0.50 mm source lands, 0.65 x 0.50 mm drain lands, and a
+    4.12 x 4.60 mm exposed drain. The vendored footprint implements those
+    dimensions. JLC's CAD splits drain terminals 5-8/EP while the schematic and
+    KiCad land intentionally merge every drain copper shape onto electrical pad
+    5; the alias records that correspondence and does not change copper.
+
+- lcsc: C404363
+  refs: [Q3, Q4, Q5, Q6]
+  status: PAD-GEOM
+  why: *aon6354_land
+
+- lcsc: C404363
+  refs: [Q3, Q4, Q5, Q6]
+  status: MODEL-REG
+  why: >
+    Consequence of JLC's split-drain CAD versus the exact AOS merged exposed-pad
+    land above. The manufacturer drawing, not JLC's body-bbox-to-courtyard
+    metric, is authoritative; no model rotation override is applied.
+
+- lcsc: C454269
+  refs: [Q1, Q2]
+  status: PAD-MISMATCH
+  pad_alias: {"6": "5", "7": "5", "8": "5"}
+  why: &bsc016_land >
+    BSC016N06NS exact-package review, 2026-07-31. Infineon datasheet rev 2.6,
+    PG-TDSON-8 Figure 2 Boardpads & Apertures, specifies the fused-drain land
+    implemented by KiCad TDSON-8-1: 4.55 x 4.41 mm drain copper and 1.27 mm
+    source pitch. JLC's CAD retains separate drain terminal numbers (and a
+    duplicated source representation), so its numbered-pad centroid cannot be
+    compared directly with the manufacturer fused land. The alias states the
+    electrical correspondence; it does not alter geometry.
+
+- lcsc: C454269
+  refs: [Q1, Q2]
+  status: PAD-GEOM
+  why: *bsc016_land
+
+- lcsc: C454269
+  refs: [Q1, Q2]
+  status: MODEL-REG
+  why: >
+    Consequence of the JLC split-terminal CAD versus Infineon's authoritative
+    fused Boardpads pattern above. No model or CPL rotation override is used.
+
+- lcsc: C85098
+  refs: [D4, D5, D6, D7]
+  status: PAD-GEOM
+  why: >
+    Exact B340A-13-F review against Diodes Incorporated DS30891 rev 19-2 p.6.
+    The suggested SMA land is 4.00 mm pad-centre span with 2.50 x 1.70 mm pads.
+    KiCad D_SMA has that exact centre span and 2.50 x 1.80 mm pads (0.10 mm
+    conservative width extension). JLC's 4.38 mm span is its own longer-fillet
+    variant, not the manufacturer's recommended pattern. Pad 1 remains cathode;
+    the first-order JLC preview polarity gate remains mandatory.
+
+- lcsc: C315992
+  refs: [D1]
+  status: PAD-GEOM
+  why: >
+    Exact Littelfuse SMBJ26A review against the SMBJ series v4 DO-214AA drawing.
+    Its solder-pad envelope requires I >= 2.26, J >= 2.16, K <= 2.74 and
+    L >= 2.16 mm. KiCad D_SMB's 2.50 x 2.30 mm pads with 1.80 mm inner gap
+    satisfy that envelope. The 0.42 mm centre-span delta is JLC's alternative
+    fillet extension, not a package mismatch. Pad 1 is the cathode; preview
+    polarity confirmation remains mandatory.
+
+- lcsc: C408523
+  refs: [L1, L2]
+  status: PAD-GEOM
+  why: >
+    Exact MWSA1206S-6R8MT review against the Sunlord series drawing. Its
+    recommended land is I=3.25 mm, J=8.0 mm and H=5.5 mm: 3.25 x 5.5 mm pads
+    on 11.25 mm centres, exactly implemented by KiCad
+    L_Sunlord_MWSA1206S-6R8. JLC's 12.00 mm centre span is not the exact
+    manufacturer land.
+
+- lcsc: C307880
+  refs: [L3]
+  status: PAD-GEOM
+  why: >
+    Exact VLS6045EX-4R7M review against TDK's 2025-06-30 VLS6045EX package
+    sheet. The recommended land is 1.9 x 5.1 mm with a 2.3 mm inner gap,
+    implemented exactly by KiCad L_TDK_VLS6045EX_VLS6045AF. JLC's 5.00 mm
+    centre span is its catalog CAD, not TDK's specified 4.20 mm span.
+
+- lcsc: C3662799
+  refs: [U9, U10, U11, U12]
+  status: PAD-GEOM
+  why: >
+    Exact TPS259470ARPWR review against TI package drawing 4225183/A,
+    RPW0010A Example Board Layout. The eight perimeter lands are
+    0.60 x 0.25 mm on 0.475 mm vertical spacing with 1.80 mm between the
+    left/right land centres, plus TI's broad central IN/OUT lands and thermal
+    via field. The vendored footprint implements the custom polygons. The
+    twin's 1.42 mm reading uses custom-pad anchor coordinates rather than the
+    copper centroids and is therefore not a physical land-span measurement.
+
+- lcsc: C5249699
+  refs: [F1]
+  status: PAD-MISMATCH
+  why: &fuse_clips >
+    F1 is intentionally excluded from JLC BOM/CPL by assembly.yaml. One board
+    reference represents the two physical Keystone 3568 MINI fuse clips, with
+    four plated holes grouped as two electrical terminals on the exact KiCad
+    Fuseholder_Blade_Mini_Keystone_3568 mounting pattern. JLC C5249699 models
+    one clip and one centroid, so it cannot represent or place the composite
+    two-clip footprint. Two exact clips per board are procured and hand-soldered
+    after PCBA; no machine placement is authorized.
+
+- lcsc: C5249699
+  refs: [F1]
+  status: PAD-GEOM
+  why: *fuse_clips
+
+- lcsc: C5249699
+  refs: [F1]
+  status: MODEL-REG
+  why: *fuse_clips
+
+- lcsc: C86462
+  refs: [J2]
+  status: MODEL-REG
+  why: >
+    Exact TE 292304-1 review against customer drawing ENG_CD_292304_D4. The
+    board uses the specified 0.92 +/-0.08 mm signal holes at 2.5 mm pitch and
+    2.3 +/-0.08 mm shell holes at 12.04 mm centres. The twin independently
+    fits JLC's pads at 0.17 mm. Its 4.1 mm MODEL-REG alarm is instead the
+    asymmetric right-angle connector body's 4.3 mm bbox-centre offset; the top
+    render shows the receptacle on the west edge over its signal/lock pattern.
+    No rotation or position override is applied.
+
+- lcsc: C19191796
+  refs: [J7]
+  status: MODEL-REG
+  board_dx: -2.54
+  board_dy: -0.63
+  why: >
+    Exact Samtec FTSH-105-01-L-D-K: 2x5 through-hole grid, 1.27 mm row and
+    column pitch, keyed option. JLC's footprint fits the board holes at
+    0.00 mm, independently proving the copper correspondence, while its own
+    model bbox is internally displaced by (-2.54,+0.63) mm from its own pads.
+    The board-frame nudge cancels only that display-model defect. It does not
+    change copper or the measured per-LCSC CPL rotation; the mandatory JLC
+    first-order pin-1 preview check remains in force.

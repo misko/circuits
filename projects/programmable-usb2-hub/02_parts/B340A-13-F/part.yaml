@@ -1,0 +1,54 @@
+mpn: B340A-13-F
+manufacturer: Diodes Incorporated
+type: schottky_rectifier
+function: Per-port negative-transient clamp from GND to switched USB VBUS
+status: active
+
+datasheet:
+  doc_id: DS30891
+  revision: "Rev. 19-2, April 2026"
+  url: https://www.diodes.com/datasheet/download/B340A.pdf
+  fetched: 2026-07-31
+  provenance: "CITED: Diodes Incorporated product page and DS30891; exact -13-F tape-and-reel suffix is listed in ordering information."
+
+package: SMA
+footprint: Diode_SMD:D_SMA
+escape:
+  style: leaded
+  tier_required: jlc_2layer_default
+  checked: "manufacturer SMA land pattern; live board escape check owed"
+
+pins:
+  1: K
+  2: A
+
+limits:
+  vrrm: 40 V
+  average_rectified_current: 3.0 A at terminal temperature 100 C
+  surge_current: 80 A, 8.3 ms half-sine
+  vf_max: 0.50 V at 3.0 A and 25 C
+  operating_junction: -55 to +150 C
+  msl: "MSL 1 per DS30891"
+
+verified: >
+  Polarity, SMA package, 3 A rating, 40 V reverse rating, 80 A surge rating,
+  MSL 1, B340A-13-F ordering suffix, and suggested SMA land (4.00 mm pad
+  centers, 2.50 x 1.70 mm pads) read from Diodes Incorporated DS30891
+  Rev. 19-2 pp.1 and 6 on 2026-07-31. KiCad D_SMA uses the same centers and
+  2.50 x 1.80 mm pads, a conservative 0.10 mm extension in the lead-width
+  direction.
+
+gotchas:
+  - "This is a transient clamp, not a series rectifier: cathode goes to Pn_VBUS and anode to GND."
+  - "Place adjacent to TPS259470 OUT and its ceramic output capacitor; a long trace defeats the inductive-clamp purpose."
+
+layout:
+  source: "TPS25947 SLVSFC9C Section 8.4 plus Diodes Incorporated SMA land pattern"
+  notes:
+    - "Keep the VBUS-to-diode-to-GND loop short and broad."
+    - "Do not place diode capacitance on D+/D-."
+
+sourcing:
+  lcsc: C85098
+  alternates: []
+  note: "Exact Diodes Incorporated B340A-13-F catalog entry observed at LCSC on 2026-07-31; stock remains an order-day check."

@@ -1,0 +1,26 @@
+(version 1)
+(rule "PWR_IN_width"
+  (condition "A.NetClass == 'PWR_IN'")
+  (constraint track_width (min 0.25mm)))
+(rule "PWR_5V_width"
+  (condition "A.NetClass == 'PWR_5V'")
+  (constraint track_width (min 0.25mm)))
+(rule "PWR_PORT_width"
+  (condition "A.NetClass == 'PWR_PORT'")
+  (constraint track_width (min 0.25mm)))
+(rule "SWITCH_POWER_width"
+  (condition "A.NetClass == 'SWITCH_POWER'")
+  (constraint track_width (min 0.25mm)))
+(rule "USB_HS_width"
+  (condition "A.NetClass == 'USB_HS'")
+  (constraint track_width (min 0.249mm)))
+(rule "USB_HS_diffpair"
+  (condition "A.NetClass == 'USB_HS'")
+  (constraint diff_pair_gap (min 0.145mm) (opt 0.15mm))
+  (constraint diff_pair_uncoupled (max 15.0mm)))
+(rule "QUIET_ANALOG_width"
+  (condition "A.NetClass == 'QUIET_ANALOG'")
+  (constraint track_width (min 0.18mm)))
+(rule "LOGIC_width"
+  (condition "A.NetClass == 'LOGIC'")
+  (constraint track_width (min 0.18mm)))

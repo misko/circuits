@@ -1,0 +1,87 @@
+invariants:
+  # ADR-0001: each proprietary 3 A port has a separately limited, measured,
+  # reverse-blocking path and a local negative-transient clamp.
+  - {assert: pin_on_net, pin: U9.5, net: 5V_A, adr: "0001", why: "port 1 eFuse input is rail A"}
+  - {assert: pin_on_net, pin: U9.6, net: P1_VBUS, adr: "0001", why: "port 1 receptacle is post-eFuse"}
+  - {assert: pin_on_net, pin: U10.5, net: 5V_A, adr: "0001", why: "port 2 eFuse input is rail A"}
+  - {assert: pin_on_net, pin: U10.6, net: P2_VBUS, adr: "0001", why: "port 2 receptacle is post-eFuse"}
+  - {assert: pin_on_net, pin: U11.5, net: 5V_B, adr: "0001", why: "port 3 eFuse input is rail B"}
+  - {assert: pin_on_net, pin: U11.6, net: P3_VBUS, adr: "0001", why: "port 3 receptacle is post-eFuse"}
+  - {assert: pin_on_net, pin: U12.5, net: 5V_B, adr: "0001", why: "port 4 eFuse input is rail B"}
+  - {assert: pin_on_net, pin: U12.6, net: P4_VBUS, adr: "0001", why: "port 4 receptacle is post-eFuse"}
+  - {assert: part_value, part: R414, equals: 976, tolerance_pct: 1, adr: "0001", why: "TPS259470 limit low corner remains above 3.0 A"}
+  - {assert: part_value, part: R424, equals: 976, tolerance_pct: 1, adr: "0001", why: "TPS259470 limit low corner remains above 3.0 A"}
+  - {assert: part_value, part: R434, equals: 976, tolerance_pct: 1, adr: "0001", why: "TPS259470 limit low corner remains above 3.0 A"}
+  - {assert: part_value, part: R444, equals: 976, tolerance_pct: 1, adr: "0001", why: "TPS259470 limit low corner remains above 3.0 A"}
+  - {assert: pin_on_net, pin: D4.1, net: P1_VBUS, adr: "0001", why: "port 1 negative-transient clamp cathode is on VBUS"}
+  - {assert: pin_on_net, pin: D4.2, net: GND, adr: "0001", why: "port 1 clamp anode returns to ground"}
+  - {assert: pin_on_net, pin: D5.1, net: P2_VBUS, adr: "0001", why: "port 2 negative-transient clamp cathode is on VBUS"}
+  - {assert: pin_on_net, pin: D5.2, net: GND, adr: "0001", why: "port 2 clamp anode returns to ground"}
+  - {assert: pin_on_net, pin: D6.1, net: P3_VBUS, adr: "0001", why: "port 3 negative-transient clamp cathode is on VBUS"}
+  - {assert: pin_on_net, pin: D6.2, net: GND, adr: "0001", why: "port 3 clamp anode returns to ground"}
+  - {assert: pin_on_net, pin: D7.1, net: P4_VBUS, adr: "0001", why: "port 4 negative-transient clamp cathode is on VBUS"}
+  - {assert: pin_on_net, pin: D7.2, net: GND, adr: "0001", why: "port 4 clamp anode returns to ground"}
+
+  # Input protection and dual-buck partition (ADR-0002).
+  - assert: series_chain
+    chain: [VIN_RAW, F1, VIN_FUSED, Q1, FET_MID, Q2, VIN_PROTECTED]
+    through: {Q1: [1, 5], Q2: [5, 1]}
+    adr: "0002"
+    why: "terminal -> fuse -> common-drain back-to-back MOSFET stage -> protected rail"
+  - {assert: pin_on_net, pin: D1.1, net: VIN_PROTECTED, adr: "0002", why: "TVS clamps only the protected side of the reverse-blocking stage"}
+  - {assert: pin_on_net, pin: D1.2, net: GND, adr: "0002", why: "TVS anode returns to ground"}
+  - {assert: pin_on_net, pin: U1.13, net: unconnected-(U1-RTN_FLOAT-Pad13), adr: "0002", why: "LM74810 exposed RTN pad is required to float"}
+  - {assert: pin_on_net, pin: U2.1, net: VIN_PROTECTED, adr: "0002", why: "buck A is fed only after input protection"}
+  - {assert: pin_on_net, pin: U2.10, net: 5V_A, adr: "0002", why: "buck A feeds ports 1 and 2"}
+  - {assert: pin_on_net, pin: U3.1, net: VIN_PROTECTED, adr: "0002", why: "buck B is fed only after input protection"}
+  - {assert: pin_on_net, pin: U3.10, net: 5V_B, adr: "0002", why: "buck B feeds ports 3 and 4"}
+  - {assert: part_value, part: R102, equals: 3.92k, tolerance_pct: 0.1, adr: "0002", why: "buck A setpoint is nominally 5.151 V"}
+  - {assert: part_value, part: R202, equals: 3.92k, tolerance_pct: 0.1, adr: "0002", why: "buck B setpoint is nominally 5.151 V"}
+
+  # ADR-0003: hub policy AND host command owns VBUS; OE high isolates data;
+  # the management device is the ungated internal fifth hub port.
+  - {assert: pin_on_net, pin: U8.3, net: P1_PWR_EN, adr: "0003", why: "AND output 1 exclusively drives port 1 eFuse EN"}
+  - {assert: pin_on_net, pin: U8.6, net: P2_PWR_EN, adr: "0003", why: "AND output 2 exclusively drives port 2 eFuse EN"}
+  - {assert: pin_on_net, pin: U8.8, net: P3_PWR_EN, adr: "0003", why: "AND output 3 exclusively drives port 3 eFuse EN"}
+  - {assert: pin_on_net, pin: U8.11, net: P4_PWR_EN, adr: "0003", why: "AND output 4 exclusively drives port 4 eFuse EN"}
+  - {assert: pin_on_net, pin: U8.1, net: HUB_PP1, adr: "0003", why: "hub port-power policy participates in port 1 enable"}
+  - {assert: pin_on_net, pin: U8.2, net: P1_PWR_CMD, adr: "0003", why: "MCU command participates in port 1 enable"}
+  - {assert: pin_on_net, pin: U8.4, net: HUB_PP2, adr: "0003", why: "hub port-power policy participates in port 2 enable"}
+  - {assert: pin_on_net, pin: U8.5, net: P2_PWR_CMD, adr: "0003", why: "MCU command participates in port 2 enable"}
+  - {assert: pin_on_net, pin: U8.9, net: HUB_PP3, adr: "0003", why: "hub port-power policy participates in port 3 enable"}
+  - {assert: pin_on_net, pin: U8.10, net: P3_PWR_CMD, adr: "0003", why: "MCU command participates in port 3 enable"}
+  - {assert: pin_on_net, pin: U8.12, net: HUB_PP4, adr: "0003", why: "hub port-power policy participates in port 4 enable"}
+  - {assert: pin_on_net, pin: U8.13, net: P4_PWR_CMD, adr: "0003", why: "MCU command participates in port 4 enable"}
+  - {assert: part_value, part: R410, equals: 100k, tolerance_pct: 5, adr: "0003", why: "port 1 power defaults disabled while logic is unpowered/reset"}
+  - {assert: part_value, part: R420, equals: 100k, tolerance_pct: 5, adr: "0003", why: "port 2 power defaults disabled while logic is unpowered/reset"}
+  - {assert: part_value, part: R430, equals: 100k, tolerance_pct: 5, adr: "0003", why: "port 3 power defaults disabled while logic is unpowered/reset"}
+  - {assert: part_value, part: R440, equals: 100k, tolerance_pct: 5, adr: "0003", why: "port 4 power defaults disabled while logic is unpowered/reset"}
+  - {assert: part_value, part: R419, equals: 10k, tolerance_pct: 5, adr: "0003", why: "FSUSB42 OE defaults high, physically disconnecting port 1 data"}
+  - {assert: part_value, part: R429, equals: 10k, tolerance_pct: 5, adr: "0003", why: "FSUSB42 OE defaults high, physically disconnecting port 2 data"}
+  - {assert: part_value, part: R439, equals: 10k, tolerance_pct: 5, adr: "0003", why: "FSUSB42 OE defaults high, physically disconnecting port 3 data"}
+  - {assert: part_value, part: R449, equals: 10k, tolerance_pct: 5, adr: "0003", why: "FSUSB42 OE defaults high, physically disconnecting port 4 data"}
+  - {assert: pin_on_net, pin: U13.10, net: P1_DATA_ISO, adr: "0003", why: "port 1 OE is the commanded physical data-isolation control"}
+  - {assert: pin_on_net, pin: U14.10, net: P2_DATA_ISO, adr: "0003", why: "port 2 OE is the commanded physical data-isolation control"}
+  - {assert: pin_on_net, pin: U15.10, net: P3_DATA_ISO, adr: "0003", why: "port 3 OE is the commanded physical data-isolation control"}
+  - {assert: pin_on_net, pin: U16.10, net: P4_DATA_ISO, adr: "0003", why: "port 4 OE is the commanded physical data-isolation control"}
+  - {assert: pin_on_net, pin: U13.2, net: GND, adr: "0003", why: "port 1 selects only HSD1; unused HSD2 remains a true NC"}
+  - {assert: pin_on_net, pin: U14.2, net: GND, adr: "0003", why: "port 2 selects only HSD1; unused HSD2 remains a true NC"}
+  - {assert: pin_on_net, pin: U15.2, net: GND, adr: "0003", why: "port 3 selects only HSD1; unused HSD2 remains a true NC"}
+  - {assert: pin_on_net, pin: U16.2, net: GND, adr: "0003", why: "port 4 selects only HSD1; unused HSD2 remains a true NC"}
+  - {assert: pin_on_net, pin: U6.11, net: MGMT_N, adr: "0003", why: "hub port 5 D- terminates only at the management MCU"}
+  - {assert: pin_on_net, pin: U6.12, net: MGMT_P, adr: "0003", why: "hub port 5 D+ terminates only at the management MCU"}
+  - {assert: pin_on_net, pin: U7.33, net: MGMT_N, adr: "0003", why: "management MCU native USB D- uses internal port 5"}
+  - {assert: pin_on_net, pin: U7.34, net: MGMT_P, adr: "0003", why: "management MCU native USB D+ uses internal port 5"}
+  - {assert: pin_on_net, pin: U6.58, net: UP_HUB_N, adr: "0003", why: "upstream D- reaches hub only through connector ESD"}
+  - {assert: pin_on_net, pin: U6.59, net: UP_HUB_P, adr: "0003", why: "upstream D+ reaches hub only through connector ESD"}
+  - {assert: pin_on_net, pin: U6.44, net: HUB_VBUS_DET, adr: "0003", why: "self-powered hub senses host VBUS without being powered from it"}
+
+label_survival:
+  pin_map:
+    - refs: [J3, J4, J5, J6]
+      n_start: 1
+      pins: {"1": "P{n}_VBUS", "2": "P{n}_CONN_N", "3": "P{n}_CONN_P", "4": GND, "5": GND}
+    - refs: [U13, U14, U15, U16]
+      n_start: 1
+      pins: {"2": GND, "3": "P{n}_HUB_P", "4": "P{n}_HUB_N", "6": "P{n}_PORT_N", "7": "P{n}_PORT_P", "10": "P{n}_DATA_ISO"}
+      unconnected: ["8", "9"]

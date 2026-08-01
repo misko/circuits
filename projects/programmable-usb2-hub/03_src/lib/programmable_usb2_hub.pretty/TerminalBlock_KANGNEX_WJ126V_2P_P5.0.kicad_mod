@@ -1,0 +1,11 @@
+(footprint "TerminalBlock_KANGNEX_WJ126V_2P_P5.0"
+  (version 20240108) (generator pcbnew) (layer "F.Cu")
+  (descr "KANGNEX WJ126V two-position terminal, exact 5.00 mm pitch")
+  (property "Reference" "REF**" (at 2.5 -4 0) (layer "F.SilkS") (effects (font (size 1 1) (thickness 0.15))))
+  (property "Value" "WJ126V-5.0-02P" (at 2.5 4 0) (layer "F.Fab") (effects (font (size 1 1) (thickness 0.15))))
+  (attr through_hole)
+  (fp_rect (start -2.7 -3.3) (end 7.7 3.3) (stroke (width 0.05) (type solid)) (fill none) (layer "F.CrtYd"))
+  (fp_rect (start -2.5 -3.1) (end 7.5 3.1) (stroke (width 0.12) (type solid)) (fill none) (layer "F.SilkS"))
+  (pad "1" thru_hole rect (at 0 0) (size 3 3) (drill 1.5) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole circle (at 5 0) (size 3 3) (drill 1.5) (layers "*.Cu" "*.Mask"))
+)

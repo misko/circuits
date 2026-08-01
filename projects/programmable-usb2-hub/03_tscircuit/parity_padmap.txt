@@ -1,0 +1,12 @@
+# tscircuit numeric pin -> real KiCad pad name.  Both connector footprints use
+# dual portHints so tscircuit sees numeric pin5 while the converter/board retain
+# the physical shell name SH.  Consumed by TSX-PRE and kicad_sch_parity.py.
+
+# Upstream TE 292304-1 USB-B receptacle: pin 5 is the paired shell stakes.
+J2 pin5=SH
+
+# Four GCT USB1130-15-A downstream USB-A receptacles: pin 5 is the shell.
+J3 pin5=SH
+J4 pin5=SH
+J5 pin5=SH
+J6 pin5=SH

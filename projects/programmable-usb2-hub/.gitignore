@@ -1,0 +1,11 @@
+06_build/*
+!06_build/contracts.md
+03_tscircuit/dist/
+03_tscircuit/.tscircuit/
+03_tscircuit/node_modules/
+03_tscircuit/tsx_build/
+*.kicad_prl
+*.kicad_pcb-bak
+*.failed
+*-backup/
+_autosave-*

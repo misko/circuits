@@ -1,0 +1,72 @@
+service: "standard SMT (top side) plus JLCPCB post-through-hole assembly for J1, J2, and J7"
+sides: [top]
+fiducials: "3 local top-side global fiducials"
+build_quantity: 5
+
+through_hole:
+  process: >
+    JLCPCB through-hole / wave-selective post-assembly, selected for this
+    order for J1, J2, and J7.
+  refs: [J1, J2, J7]
+  evidence: >
+    Exact JLC catalog records checked 2026-07-31 classify C3819953 / Phoenix
+    1935161, C86462 / TE 292304-1, and C19191796 / Samtec
+    FTSH-105-01-L-D-K as Plugin parts and set allowPostFlag=true. Their live
+    stocks were respectively 1,127, 13,342, and 1,371. The order uploader must
+    retain all three refs in the post-through-hole population and its visual
+    preview must be accepted before payment.
+
+not_assembled:
+  - refs: [F1]
+    reason: process_incompatible
+    lcsc: C5249699
+    on_bom: false
+    evidence: >
+      F1 is one electrical reference with four plated pads that represents a
+      two-clip MINI blade-fuse holder. Exact JLC code C5249699 is one physical
+      Keystone 3568 clip (live catalog stock 1,025 on 2026-07-31), so its one
+      model and one CPL centroid cannot place both clips. The generated F1
+      footprint is therefore excluded from position files and the misleading
+      one-piece BOM row is suppressed.
+    disposition: >
+      Procure and hand-solder two exact Keystone 3568 clips per board after
+      PCBA, then install the separately specified MINI blade fuse. Do not
+      substitute a one-piece holder without a reviewed footprint change.
+  - refs: [J3, J4, J5, J6]
+    reason: not_in_catalog
+    on_bom: false
+    evidence: >
+      Exact GCT USB1130-15-A search in LCSC/JLC catalog on 2026-07-31 found
+      no code; common catalog USB-A receptacles were not accepted because their
+      >=3 A continuous contact rating was not evidenced.
+    disposition: >
+      Procure four exact USB1130-15-A receptacles per board and install after
+      PCBA, or obtain written JLC consignment acceptance and move these refs to
+      consigned before release. No substitution is authorized.
+
+consigned:
+  - refs: [U4]
+    lcsc: C5248536
+    msl: >
+      MSL 1 (unlimited floor life under J-STD-020 conditions). The exact
+      AP63203QWU-7 distributor classification was checked 2026-07-31.
+    evidence: >
+      JLC catalog stock measured 0 on 2026-07-31 for C5248536. The exact MPN
+      was active and immediately orderable at two independent authorized
+      pools: Mouser stock 4,344 and DigiKey stock 2,685.
+    disposition: >
+      Buy AP63203QWU-7 from Mouser or DigiKey, ship it dry/ESD protected with
+      the PCBA order, and have JLC place U4. U4 remains on the BOM and CPL;
+      no electrical or pin-compatible substitution is authorized.
+
+sourcing_plan:
+  - lcsc: C5248536
+    measured_stock: 0
+    measured_on: 2026-07-31
+    order_status: PLANNED
+    plan: >
+      CONSIGNED — JLC catalog stock is irrelevant to procurement because we
+      supply exact AP63203QWU-7 for U4 from Mouser or DigiKey and JLC only
+      places it. See consigned: U4 above for stock and MSL handling evidence.
+
+exempt_prefixes: [H, TP, FID, MH]

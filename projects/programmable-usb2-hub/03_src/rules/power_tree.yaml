@@ -1,0 +1,81 @@
+source_type: external 12-24 V SELV DC supply
+off_control: "remove or switch the external feed (BRIEF A2); no battery is present"
+quiescent_ua: 0
+input_trunk_class: PWR_IN
+ir_floor_mohm: 70
+
+# The four logical delivery rails share two physical 7 A converter cells.
+# Declaring one entry per branch lets E-MARGIN grade the actual 3 A path rather
+# than incorrectly charging one port with both branches' 6 A through the same
+# eFuse. The repeated converter name is deliberate: ports 1/2 use U2 and 3/4
+# use U3, as pinned by electrical_invariants.yaml.
+rails:
+  - name: USB_PORT_1
+    vin_min: 12.0
+    vin_max: 24.0
+    vout_min: 5.03
+    vout_max: 5.28
+    iout_max_A: 3.0
+    converter: LM5116MHX-NOPB
+    eff: 0.90
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 70
+    feedback: &usb_feedback
+      vref: 1.215
+      vref_tol_pct: 1.5
+      r_top_ohm: 3920
+      r_top_tol_pct: 0.1
+      r_bottom_ohm: 1210
+      r_bottom_tol_pct: 1.0
+
+  - name: USB_PORT_2
+    vin_min: 12.0
+    vin_max: 24.0
+    vout_min: 5.03
+    vout_max: 5.28
+    iout_max_A: 3.0
+    converter: LM5116MHX-NOPB
+    eff: 0.90
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 70
+    feedback: *usb_feedback
+
+  - name: USB_PORT_3
+    vin_min: 12.0
+    vin_max: 24.0
+    vout_min: 5.03
+    vout_max: 5.28
+    iout_max_A: 3.0
+    converter: LM5116MHX-NOPB
+    eff: 0.90
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 70
+    feedback: *usb_feedback
+
+  - name: USB_PORT_4
+    vin_min: 12.0
+    vin_max: 24.0
+    vout_min: 5.03
+    vout_max: 5.28
+    iout_max_A: 3.0
+    converter: LM5116MHX-NOPB
+    eff: 0.90
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 70
+    feedback: *usb_feedback
+
+  - name: LOGIC_3V3
+    vin_min: 12.0
+    vin_max: 24.0
+    vout_min: 3.27
+    vout_max: 3.33
+    iout_max_A: 0.8
+    converter: AP63203QWU-7
+    eff: 0.85
+
+# The 70 mOhm branch budget is the PCB path from the regulated rail through
+# TPS259470 (45 mOhm max) to the USB-A solder terminals, leaving 25 mOhm for
+# board copper and joints. It deliberately excludes the user's mating plug and
+# cable. At the computed 5.0317 V low corner, 3 A and the gate's 20% derating
+# leave 4.7797 V at the receptacle terminals. Bench qualification must measure
+# this at all four ports before the 3 A claim can be released.

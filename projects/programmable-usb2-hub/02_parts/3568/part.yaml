@@ -1,0 +1,41 @@
+mpn: "3568"
+manufacturer: Keystone Electronics
+type: mini_blade_fuse_holder
+datasheet:
+  doc_id: M65p42
+  revision: M65p42
+  url: https://www.keyelco.com/userAssets/file/M65p42.pdf
+  sha256: caa141ea51ac68cf80ab6e14ad2075fcfc76206451f4bfe45330005c0deaf395
+  fetched: 2026-07-31
+package: Fully insulated vertical MINI blade fuse holder, THT, four mechanical leads grouped as two electrical terminals
+footprint: Fuse:Fuseholder_Blade_Mini_Keystone_3568
+escape:
+  style: passive
+  pitch: 1.0
+  escapes_worst_side: 1
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-31
+pins:
+  1: {name: FUSE_IN, note: "Two same-numbered THT pads are one holder contact in the KiCad footprint."}
+  2: {name: FUSE_OUT, note: "Two same-numbered THT pads are the opposite holder contact."}
+limits:
+  current: 20 A UL
+  voltage: 500 V AC UL
+  operating_temperature: -50 to +145 C
+gotchas:
+  - "3568 is a complete insulated MINI fuse holder, not a single loose clip. The exact KiCad footprint correctly has four holes grouped into pad numbers 1 and 2 on 9.9 mm contact spacing."
+  - "Fit a separately procured 10 A MINI blade fuse for the 75 W/12 V worst-case trunk; the holder's 20 A rating is not the fuse trip rating. The fuse element is a user-replaceable non-PCBA item."
+  - "JLC's C5249699 catalog item and through-hole assembly eligibility must be visually rechecked against the complete holder at order time; do not accept a loose-clip substitution."
+verified: "Keystone catalog M65 p.42, MINI FUSE HOLDER Cat. No. 3568 drawing and mounting detail; footprint geometry read from KiCad Fuseholder_Blade_Mini_Keystone_3568; checked 2026-07-31."
+sourcing:
+  lcsc: C5249699
+  alternates: []
+  note: "Catalog-coded exact MPN; JLC THT assembly/packaging allocation requires order-day verification. The 10 A MINI fuse element is sourced and installed separately."
+layout:
+  source: "Keystone M65 p.42 Cat. No. 3568 mounting detail and 20 A UL holder rating."
+  notes:
+    - "Place directly after the input positive terminal. Use solid/wide copper into both same-net holes on each side; do not neck the 6.25 A path to one small trace."
+    - "Leave vertical clearance for inserting/removing the MINI fuse and preserve finger/tool access from the enclosure opening."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Keystone M65 p.42, Cat. No. 3568 drawing and mounting detail"}
+  - {tier: 2, reached: false, artifact: "Open routed reference using exact Keystone 3568 holder", why: "The manufacturer's mounting detail and KiCad exact footprint were available; no stronger editable system-layout precedent was needed or located for this passive series element."}

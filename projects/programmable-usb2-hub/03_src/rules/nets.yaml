@@ -1,0 +1,169 @@
+fab_tier: jlc_4layer_advanced
+default_clearance: 0.15mm
+default_track_width: 0.18mm
+
+classes:
+  PWR_IN:
+    intent: >
+      12-24 V trunk behind a 10 A fuse. The 3.0 mm track is a connectivity
+      backstop; broad top/inner/bottom copper and via arrays carry load current.
+    nets: [VIN_RAW, VIN_FUSED, FET_MID, VIN_PROTECTED]
+    current: "10 A fused; 6.2 A calculated worst-case continuous input at 12 V"
+    min_width: 0.25mm
+    clearance: 0.15mm
+    via_diameter: 0.8mm
+    via_drill: 0.4mm
+    routing: 3.0 mm trunks/pours with at most 2.0 mm of 0.25 mm pad escape
+    verify: DRC, thermal rise, and full-load bench test
+
+  PWR_5V:
+    intent: Each LM5116 rail carries two 3 A USB branches with 1 A converter margin.
+    nets: [5V_A, 5V_B]
+    current: "7 A converter capability; 6 A declared continuous load per rail"
+    min_width: 0.25mm
+    clearance: 0.15mm
+    via_diameter: 0.8mm
+    via_drill: 0.4mm
+    routing: 2.5 mm trunks/pours with at most 2.0 mm of 0.25 mm pad escape
+    verify: DRC plus 6 A per-rail thermal test
+
+  PWR_PORT:
+    intent: >
+      Individually switched 3 A VBUS from each TPS259470 OUT land to the exact
+      3 A-rated USB1130 receptacle. Short component-pad escapes may neck down;
+      the current-carrying trunk must widen to 1.5 mm immediately afterward.
+    nets: [P1_VBUS, P2_VBUS, P3_VBUS, P4_VBUS]
+    current: "3.0 A continuous, 3.795 A worst current-limit corner"
+    min_width: 0.25mm
+    clearance: 0.15mm
+    via_diameter: 0.7mm
+    via_drill: 0.35mm
+    routing: 1.5 mm trunks/pours with at most 2.0 mm of 0.25 mm pad escape
+    verify: DRC, 70 mOhm path budget, and 3 A thermal test per port
+
+  SWITCH_POWER:
+    intent: Buck switch/current loops; compact high-di/dt copper kept out of USB region.
+    nets: [SW_A, SW_B, CS_A, CS_B, SW_3V3]
+    current: "up to 7 A in LM5116 cells; 2 A in AP63203 cell"
+    min_width: 0.25mm
+    clearance: 0.15mm
+    via_diameter: 0.8mm
+    via_drill: 0.4mm
+    routing: 1.0 mm top-layer islands with at most 2.0 mm of 0.25 mm pad escape
+    verify: loop-area review, DRC, and oscilloscope qualification
+
+  USB_HS:
+    intent: >
+      Every 480 Mbit/s USB 2.0 segment is a named P/N pair on L1 over the
+      unbroken L2 ground plane. Geometry is an order-time impedance estimate.
+    nets:
+      - UP_CONN_P
+      - UP_CONN_N
+      - UP_HUB_P
+      - UP_HUB_N
+      - MGMT_P
+      - MGMT_N
+      - P1_HUB_P
+      - P1_HUB_N
+      - P1_PORT_P
+      - P1_PORT_N
+      - P1_CONN_P
+      - P1_CONN_N
+      - P2_HUB_P
+      - P2_HUB_N
+      - P2_PORT_P
+      - P2_PORT_N
+      - P2_CONN_P
+      - P2_CONN_N
+      - P3_HUB_P
+      - P3_HUB_N
+      - P3_PORT_P
+      - P3_PORT_N
+      - P3_CONN_P
+      - P3_CONN_N
+      - P4_HUB_P
+      - P4_HUB_N
+      - P4_PORT_P
+      - P4_PORT_N
+      - P4_CONN_P
+      - P4_CONN_N
+    current: "USB 2.0 signaling only"
+    # KRT's terminal-clearance guard emits 0.2496 mm after integer-coordinate
+    # rounding when the requested impedance width is 0.2500 mm.  Grade the
+    # fabrication floor with 1 um tolerance; the impedance target below stays
+    # exactly 0.25 mm and is rechecked against the order-time stackup.
+    min_width: 0.249mm
+    clearance: 0.15mm
+    via_diameter: 0.45mm
+    via_drill: 0.20mm
+    # The SOT-23-6 ESD array and QFN hub launches cannot become coupled at the
+    # pad edge.  With the four protected downstream banks present, the direct
+    # upstream route measures 14.8662 mm total uncoupled launch; 15 mm admits
+    # that real fan-in while still catching the former 57/157.7 mm detours.
+    # Eye testing remains a release requirement.
+    diff_pair: {width: 0.25, gap: 0.15, via_gap: 0.20, max_uncoupled: 15.0}
+    routing: L1 only, no vias, no stubs, length matched within each segment
+    verify: DRC, copper-length audit, order-time impedance calculator, eye test
+
+  QUIET_ANALOG:
+    intent: eFuse limit/timing and ADC telemetry nodes isolated from switch copper.
+    nets:
+      - P1_ILIM
+      - P2_ILIM
+      - P3_ILIM
+      - P4_ILIM
+      - P1_VBUS_SENSE
+      - P2_VBUS_SENSE
+      - P3_VBUS_SENSE
+      - P4_VBUS_SENSE
+      - ADC_P1_IMON
+      - ADC_P2_IMON
+      - ADC_P3_IMON
+      - ADC_P4_IMON
+      - ADC_P1_VBUS
+      - ADC_P2_VBUS
+      - ADC_P3_VBUS
+      - ADC_P4_VBUS
+      - RBIAS
+      - XTAL1
+      - XTAL2
+    current: "signal only"
+    min_width: 0.18mm
+    clearance: 0.15mm
+    routing: short top-layer local routes with grounded separation
+    verify: DRC and analog-noise bench test
+
+  LOGIC:
+    intent: 3.3 V logic distribution and host-control/status signals.
+    nets:
+      - 3V3_LOGIC
+      - VDD18
+      - VDD18PLL
+      - HUB_PP1
+      - HUB_PP2
+      - HUB_PP3
+      - HUB_PP4
+      - HUB_SCL
+      - HUB_SDA
+      - HUB_RESET_N
+      - P1_PWR_CMD
+      - P2_PWR_CMD
+      - P3_PWR_CMD
+      - P4_PWR_CMD
+      - P1_PWR_EN
+      - P2_PWR_EN
+      - P3_PWR_EN
+      - P4_PWR_EN
+      - P1_DATA_ISO
+      - P2_DATA_ISO
+      - P3_DATA_ISO
+      - P4_DATA_ISO
+      - P1_FLT_N
+      - P2_FLT_N
+      - P3_FLT_N
+      - P4_FLT_N
+    current: "under 0.8 A aggregate logic rail; GPIO signals under 12 mA"
+    min_width: 0.18mm
+    clearance: 0.15mm
+    routing: 0.18 mm LQFP/QFN escapes on L1/L4; avoid USB and switch nodes
+    verify: DRC and functional test

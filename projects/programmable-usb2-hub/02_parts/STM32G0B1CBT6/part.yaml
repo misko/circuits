@@ -1,0 +1,132 @@
+mpn: STM32G0B1CBT6
+manufacturer: STMicroelectronics
+type: microcontroller
+function: USB full-speed management MCU for port control, sensing, and vendor protocol
+status: active
+
+datasheet:
+  doc_id: DS13560
+  revision: Rev 6
+  url: https://www.st.com/resource/en/datasheet/stm32g0b1cb.pdf
+  product_page: https://www.st.com/en/microcontrollers-microprocessors/stm32g0b1cb.html
+  local: DS13560Rev6.pdf
+  sha256: 8433e47bc5da5cac459a1d3d5a6add183655061f5655d3c653248de65ca535c9
+  fetched: 2026-07-31
+  pages: 165
+  provenance: "CITED: fetched directly from st.com; DS13560 Rev 6 dated February 2026."
+
+package: LQFP-48, 7.0 x 7.0 mm body, 0.50 mm pitch, package code 5B
+footprint: Package_QFP:LQFP-48_7x7mm_P0.5mm
+escape:
+  style: leaded
+  pitch: 0.5
+  escapes_worst_side: 11
+  tier_required: jlc_2layer_default
+  conditions: [escape-corridor]
+  checked: escape_check 2026-07-31
+
+pins:
+  1: PC13
+  2: PC14-OSC32_IN
+  3: PC15-OSC32_OUT
+  4: VBAT
+  5: VREF+
+  6: VDD/VDDA
+  7: VSS/VSSA
+  8: PF0-OSC_IN
+  9: PF1-OSC_OUT
+  10: PF2-NRST
+  11: PA0
+  12: PA1
+  13: PB0
+  14: PB1
+  15: PB2
+  16: PB10
+  17: PB11
+  18: PB12
+  19: PA2
+  20: PA3
+  21: PA4
+  22: PA5
+  23: PA6
+  24: PA7
+  25: PB13
+  26: PB14
+  27: PB15
+  28: PA8
+  29: PA9
+  30: PC6
+  31: PC7
+  32: PA10
+  33: PA11/USB_DM
+  34: PA12/USB_DP
+  35: PA13/SWDIO
+  36: PA14-BOOT0/SWCLK
+  37: PB3
+  38: PB4
+  39: PB5
+  40: PB6
+  41: PB7
+  42: PB8
+  43: PB9
+  44: PD0
+  45: PD1
+  46: PD2
+  47: PD3
+  48: PA15
+
+limits:
+  vdd_operating: 1.7 to 3.6 V
+  vdd_absolute_max: 4.0 V
+  temperature_ambient: -40 to +85 C for T6 grade
+  junction_temperature_max: 105 C for T6 grade
+  cpu_frequency_max: 64 MHz
+  flash: 128 Kbyte
+  sram: 144 Kbyte
+  usb: USB 2.0 full-speed device/host, 12 Mbit/s
+  adc_external_channels_max: 16
+  current_per_vdd_pin_max: 100 mA source
+  current_per_vss_pin_max: 100 mA sink
+  gpio_source_or_sink_max: 20 mA per pin, subject to aggregate limits
+  package_height_max: 1.60 mm
+
+land_pattern:
+  source: "CITED: DS13560 Rev 6 Figure 44 and Table 85, PDF pp134-136; JLC C2847904 CAD independently inspected 2026-07-31."
+  body_mm: [7.0, 7.0]
+  lead_span_mm: [9.0, 9.0]
+  pitch_mm: 0.5
+  recommended_land_mm: [1.2, 0.3]
+  note: "The selected KiCad footprint uses 1.475 x 0.30 mm lands and JLC's live CAD uses 1.50 x 0.27 mm; pad centers and pitch agree and must pass the JLC twin before release."
+
+gotchas:
+  - "This exact MPN is the GP LQFP48 variant. It has PC7 on pin 31 and PC6 on pin 30; it does not have the N-variant VDDIO2/VSS pair at those pins. Do not use the _CxTxN pinout."
+  - "USB device data is PA11 pin 33 = DM and PA12 pin 34 = DP by default. PA9/PA10 remap exists but must not be enabled for this board."
+  - "Crystal-less USB device operation is supported by HSI48 plus CRS synchronized from USB SOF. It is valid in device mode; firmware must enable automatic trimming before attaching."
+  - "Connect VDD/VDDA pin 6 to 3.3 V and VSS/VSSA pin 7 to ground. Fit 100 nF ceramic plus 4.7 uF at pin 6/7. Tie VREF+ pin 5 to VDDA for ADC use and decouple it with 100 nF; add 1 uF only if VREFBUF is enabled."
+  - "With no backup battery, tie VBAT pin 4 to VDD. Leave the 32 kHz and HSE oscillator pins unpopulated when internal clocks are used."
+  - "Expose SWDIO pin 35, SWCLK pin 36, NRST pin 10, 3V3 and GND on a programming header. PA14 is also BOOT0; hold the boot policy deterministic with option bytes and/or a weak pulldown while preserving SWCLK."
+  - "Unused GPIO may be left electrically open but firmware must not leave floating digital inputs enabled; configure unused pins to analog mode or a defined output/pull state."
+
+verified: "CITED: complete 1-48 map read from DS13560 Rev 6 Figure 5 'STM32G0B1CxT LQFP48 pinout', PDF p38, and cross-checked against Table 12 PDF pp47-57 and live JLC C2847904 symbol. 2026-07-31."
+
+layout:
+  source: "ST DS13560 Rev 6 Section 5.1.6 Figure 15 and General PCB design guidelines PDF pp65,106; AN5096 Rev 4 hardware design guidance"
+  reviewed: 2026-07-31
+  notes:
+    - "Place the 100 nF ceramic and 4.7 uF bulk directly at the combined VDD/VDDA pin 6 and VSS/VSSA pin 7; place VREF+ decoupling at pin 5."
+    - "Route PA11/PA12 as a short 90 ohm differential pair to the internal hub port with a continuous ground reference, matched geometry, no stubs, and minimal layer changes."
+    - "Keep SWD and reset accessible. Reserve an outward escape corridor on each 0.5 mm-pitch side; the loaded sides carry up to eleven non-supply signals."
+    - "Keep ADC sense traces away from the high-current buck switching nodes and reference their dividers to the quiet MCU analog ground region tied into the solid plane."
+
+layout_refs:
+  - tier: 1
+    reached: true
+    artifact: "ST DS13560 Rev 6 Figure 15 power-supply scheme and Figure 44 LQFP48 footprint; ST AN5096 Rev 4 reference schematics"
+  - tier: 2
+    reached: false
+    artifact: "Exact STM32G0B1CBT6 open editable evaluation-board PCB layout"
+    why: "ST publishes family Nucleo boards using other pin-count variants; no exact LQFP48 editable reference was found, so only transferable supply/USB rules were retained."
+
+sourcing:
+  lcsc: C2847904
+  note: "Exact STM32G0B1CBT6 LQFP-48 is present in the LCSC/JLC catalog and JLC states PCBA support; live EasyEDA CAD fetch succeeded 2026-07-31. Catalog stock remains order-time data and is intentionally not committed here."

@@ -1,0 +1,54 @@
+mpn: USB1130-15-A
+manufacturer: GCT
+type: usb_a_receptacle
+mates: receptacle
+datasheet:
+  doc_id: USB1130 product specification
+  revision: A1
+  url: https://gct.co/files/specs/usb1130-spec.pdf
+  sha256: a896fb6e049d54155763c63048db5b447c703523270db93022e1d1bf47317197
+  fetched: 2026-07-31
+  drawing:
+    revision: A2
+    url: https://gct.co/files/drawings/usb1130.pdf
+    sha256: 8890b46ce2c8a0b4022c3dfb2fbc39e6d4a20cbca99200d70ea89682cbb023e0
+package: USB 2.0 Type-A receptacle, right-angle THT, top mount, board-lock shell stakes
+footprint: programmable_usb2_hub:USB_A_GCT_USB1130_Horizontal
+escape:
+  style: connector
+  pitch: 2.0
+  escapes_worst_side: 4
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-31
+pins:
+  1: {name: VBUS, note: "USB Type-A contact 1; allocate the full 3 A path to this pad."}
+  2: {name: D-, note: "USB 2.0 data minus."}
+  3: {name: D+, note: "USB 2.0 data plus."}
+  4: {name: GND, note: "USB power return."}
+  SH: {name: SHIELD, note: "Two board-lock shell stakes; chassis/ground treatment is a board-level EMC decision."}
+limits:
+  contact_current: 3.0 A
+  voltage: 30 V
+  contact_resistance_initial: 30 mOhm max
+  temperature_rise_at_rated_current: 30 C max
+  operating_temperature: -40 to +85 C
+  mating_cycles: 10000
+gotchas:
+  - "The 3.0 A rating is an exact USB1130 rating, not a generic USB-A assumption. USB1130-15-A is the 15-microinch-gold, tape-and-reel ordering option."
+  - "No current LCSC/JLC catalog code was found in the bounded 2026-07-31 search. Exact-MPN consignment must be accepted by JLC before release, or the connector must be deliberately moved to post-assembly. Do not substitute a common 1.0/1.5 A USB-A receptacle."
+  - "The custom footprint must be redrawn from GCT drawing A2: four 0.92 mm contact holes, 2.00 mm contact pitch, two 2.26 mm shell holes on 7.00 mm centers, and the stated PCB-edge datum."
+  - "The vendor drawing specifies the shell-hole diameter but not a copper-land diameter. The footprint uses a 3.30 mm shell land (0.52 mm radial annulus) so the adjacent VBUS land clears the advanced-tier 0.09 mm copper rule with margin."
+verified: "GCT drawing USB1130 rev A2 sheet 1/2, mating view and Recommended PCB Layout, plus USB Type-A standard contact numbering; electrical limits from GCT USB1130 product specification rev A1 sections 3 and 5; checked 2026-07-31."
+sourcing:
+  lcsc: null
+  alternates: []
+  note: "Exact USB1130-15-A is distributor-stocked but not JLC/LCSC-coded; planned assembly route is customer-supplied consignment, subject to JLC acceptance and order-day feeder/packaging review."
+layout:
+  source: "GCT USB1130 drawing rev A2 Recommended PCB Layout and product specification rev A1 rated-current temperature-rise requirement."
+  notes:
+    - "Place at the board edge on the drawing datum. Route D+/D- as the board USB differential class with no stubs; move immediately into the per-port data switch/ESD path."
+    - "Feed VBUS and GND with broad copper/pours and no neck-down at the 3 A contact; the connector rating does not validate the PCB copper or switch path."
+    - "Keep the two shell stakes mechanically robust and implement the selected shield bond consistently at all ports."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "GCT USB1130 drawing rev A2 sheet 1/2, Recommended PCB Layout, rendered and inspected at 200 dpi"}
+  - {tier: 2, reached: false, artifact: "Open routed reference design using exact GCT USB1130-15-A", why: "No exact-MPN open routed board was located in the bounded connector search; vendor drawing governs the custom land pattern."}

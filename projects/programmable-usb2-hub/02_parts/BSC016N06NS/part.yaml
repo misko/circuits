@@ -1,0 +1,53 @@
+mpn: BSC016N06NS
+manufacturer: Infineon Technologies
+type: n_channel_power_mosfet
+datasheet:
+  doc_id: BSC016N06NS datasheet
+  revision: 2.6
+  url: https://www.infineon.com/dgdl/Infineon-BSC016N06NS-DataSheet-v02_06-EN.pdf?fileId=db3a3043353fdc160135532b353c483c
+  sha256: aa0a9bca851693347d502711a3b46028352cf29903244b8425b7c224363dbd56
+  fetched: 2026-07-31
+package: Infineon PG-TDSON-8-U04 / SuperSO8 FL, 5 x 6 mm class, 1.27 mm lead pitch
+footprint: Package_TO_SOT_SMD:TDSON-8-1
+escape:
+  style: qfn
+  pitch: 1.27
+  escapes_worst_side: 4
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-31
+pins:
+  1: SOURCE
+  2: SOURCE
+  3: SOURCE
+  4: GATE
+  5: DRAIN
+  6: DRAIN
+  7: DRAIN
+  8: DRAIN
+limits:
+  vds: 60 V
+  vgs: +/-20 V
+  rds_on_max_10v: 1.6 mOhm
+  continuous_drain_current_board_example: 31 A at 25 C and RthetaJA 50 K/W
+  junction_temperature: -55 to +175 C
+  msl: 1
+gotchas:
+  - "KiCad's verified TDSON-8-1 land consolidates datasheet drain terminals 5-8 into one physical copper pad numbered 5. The schematic therefore carries D_COMMON pad 5; the complete silicon/package pin map above remains the authority."
+  - "Use two identical devices in the LM74810 back-to-back topology. At 6.25 A, each dissipates about 0.063 W using the 25 C 1.6 mOhm maximum; hot resistance and shared copper heating still require thermal validation."
+  - "The headline 234 A is case-temperature limited. The vendor's actual board example is 31 A at 25 C on 6 cm2 of 70 um drain copper and RthetaJA=50 K/W; board copper, not the package current headline, governs this design."
+  - "60 V VDS has only 17.9 V static margin above SMBJ26A's 42.1 V specified clamp. The TVS and short low-inductance loop are mandatory; no automotive load-dump capability is claimed."
+verified: "Infineon rev 2.6 p.1 pin diagram: pins 1-3 Source, 4 Gate, 5-8 Drain; maximum ratings p.3; and PG-TDSON-8 package outline plus Figure 2 Boardpads & Apertures pp.11-13. KiCad TDSON-8-1 implements the Figure 2 fused-drain land (4.55 x 4.41 mm copper, 1.27 mm source pitch); checked 2026-07-31."
+sourcing:
+  lcsc: C454269
+  alternates: []
+  note: "JLC catalog class was Expand on 2026-07-31; order-day allocation and exact PG-TDSON footprint/model check required."
+layout:
+  source: "Infineon BSC016N06NS rev 2.6 package-outline/board-copper qualification plus TI SNOSD98A section 11 and Figure 11-1 system layout."
+  notes:
+    - "Place Q1/Q2 immediately beside the LM74810 pins they serve. Use very short gate traces and broad source/drain copper with no via bottleneck in the 6.25 A path."
+    - "Use the drain/source copper as the primary heat spreader, then verify temperature at 12 V input and all four ports at rated load."
+    - "Keep the TVS clamp loop compact so interconnect inductance does not consume the modest 60 V margin."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Infineon BSC016N06NS rev 2.6 package outlines pp.11-13 and board-copper qualification note p.3"}
+  - {tier: 2, reached: true, artifact: "TI SNOSD98A Figure 11-1 PCB Layout Example p.29 for the exact external back-to-back MOSFET controller topology"}
+  - {tier: 3, reached: false, artifact: "OSHWLab-by-LCSC exact BSC016N06NS plus LM74810 routed design", why: "No exact editable JLC-routed instance was located in the bounded search; vendor package geometry and TI's tested controller topology were re-derived instead."}

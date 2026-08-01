@@ -1,0 +1,162 @@
+mpn: TPS259470ARPWR
+manufacturer: Texas Instruments
+type: efuse_current_limited_load_switch_true_reverse_blocking
+status: active
+function: >
+  One independently host-controlled 5 V USB-A VBUS path with adjustable
+  current limiting, current telemetry, fault output, soft start, OVLO, and
+  true reverse-current blocking.
+datasheet:
+  doc_id: SLVSFC9
+  revision: "Rev C (May 2026)"
+  url: https://www.ti.com/lit/ds/symlink/tps25947.pdf
+  product_page: https://www.ti.com/product/TPS25947
+  local: SLVSFC9C.pdf
+  sha256: 051ecddfe545b8b9f4f992148d24f385f75b1116fd36bec358f85008a7d919ec
+  fetched: 2026-07-31
+  pages: 75
+  provenance: "Downloaded directly from ti.com; current English production datasheet."
+package: VQFN-HR-10 RPW0010A, 2.0 x 2.0 x 1.0 mm, 0.45 mm pitch
+footprint: programmable_usb2_hub:Texas_RPW0010A_VQFN-HR-10_2x2mm_P0.45mm_ThermalVias
+escape:
+  style: qfn
+  pitch: 0.45
+  escapes_worst_side: 4
+  tier_required: jlc_4layer_advanced
+  checked: escape_check 2026-07-31
+pins:                         # Figure 5-1 + Table 5-1, PDF pp.5-6.
+  1: EN/UVLO
+  2: OVLO
+  3: AUXOFF
+  4: FLT
+  5: IN
+  6: OUT
+  7: DVDT
+  8: GND
+  9: ILM
+  10: ITIMER
+limits:
+  vin_operating: 2.7 V to 23 V
+  vin_absolute_max: 28 V continuous
+  continuous_switch_current: 5.5 A max with TJ <= 125 C
+  ron: 28.2 mOhm typ at 3 A, 45 mOhm max over -40 C to 125 C
+  current_limit_range: 0.5 A to 6 A
+  current_limit_accuracy_above_1A: +/-10 percent
+  current_monitor_gain: 165 to 200 uA/A, 182 uA/A typ
+  reverse_leakage_unpowered: 4.86 uA typ at VOUT=12 V and VIN=0 V
+  reverse_block_fast_response: 1 us typ
+  fault_retry_interval: 110 ms typ for A auto-retry variant after thermal fault
+  tj_operating: -40 C to 125 C
+  theta_ja: 41.7 C/W on TI 4-layer board with 8 under-device thermal vias
+land_pattern:
+  source: "TI package drawing RPW0010A, PDF package pages after p.67"
+  body_mm: [2.0, 2.0]
+  max_height_mm: 1.0
+  pitch_mm: 0.45
+  note: >
+    Pins 5 and 6 are the broad central IN and OUT lands; this is not a generic
+    perimeter-pad QFN. Use TI's RPW0010A example board layout exactly as the
+    footprint source, including the two power lands and under-part via field.
+    The eight perimeter lands are 0.60 x 0.25 mm on 0.475 mm vertical spacing
+    with 1.80 mm between left/right land centers. KiCad custom-pad anchors are
+    not the copper centroids, so a checker must compare the custom polygons,
+    not only each pad's `(at ...)` anchor.
+verified: >
+  Pin map read from Figure 5-1 "TPS25947xx RPW Package 10-Pin QFN Top View"
+  and cross-checked line-by-line against Table 5-1, PDF pp.5-6, SLVSFC9C;
+  orderable suffix and active status cross-checked in the package addendum;
+  copper geometry cross-checked against TI drawing 4225183/A, RPW0010A
+  Example Board Layout. 2026-07-31.
+gotchas:
+  - >
+    SELECT THE 470A VARIANT, not 474A: TPS259470A provides active current
+    limiting plus a real active-low FLT output. TPS259474A provides PG/PGTH but
+    no FLT and uses circuit-breaker behavior. Post-switch VBUS ADC telemetry on
+    this board supplies the truthful voltage-present status that 470A lacks.
+  - >
+    TRUE REVERSE BLOCKING IS ALWAYS ACTIVE. Section 7.3.7 states that integrated
+    back-to-back MOSFETs block OUT-to-IN current under all conditions. This is
+    why the part was chosen over TPS2559-Q1, whose guaranteed reverse blocking
+    is only specified while disabled.
+  - >
+    Current-limit target for this board is RILM=976 ohm, 1 percent. Equation 5
+    gives 3334/976 = 3.416 A nominal. Combining the datasheet's +/-10 percent
+    limit accuracy above 1 A with resistor tolerance gives approximately
+    3.044 A minimum and 3.795 A maximum. This is the narrowest practical E96
+    setting found that still guarantees the requested 3.0 A continuous load.
+    One currently catalogued 0603 implementation is RM06FTN9760 / C162979;
+    release sourcing must recheck it or use an equivalent exact-value part.
+  - >
+    Recommended repeated-cell values are CITIMER=2.2 nF (about 1.85 ms typical
+    overload blanking, roughly 1.0-3.5 ms including datasheet and 10 percent
+    capacitor extremes), CdVdt=3.3 nF (about 0.61 V/ms or 8.5 ms to 5.15 V),
+    and OVLO divider 36.5k top / 10.0k bottom (5.58 V nominal, approximately
+    5.42-5.78 V including 1 percent resistors and threshold limits). Use 10k
+    pull-ups on FLT and AUXOFF if AUXOFF is populated, a 100k EN pull-down,
+    at least 100 nF at IN, and at least 1 uF at OUT, all local to the device.
+  - >
+    RILM also generates the current-monitor voltage. At 3.0 A and 182 uA/A typ,
+    976 ohm produces about 0.533 V. Do not add a normal ADC filter capacitor:
+    Section 8.4 requires ILM parasitic capacitance below 50 pF for stability.
+  - >
+    FLT is active low and indicates persistent current limiting after ITIMER,
+    thermal shutdown, ILM open/short, or reverse-current blocking (Table 7-3).
+    A transient overload below 2x ILIM is intentionally not faulted until the
+    blanking timer expires. Firmware should interrupt on FLT and force EN low,
+    but the eFuse's analog current limit and fast-trip path remain the primary
+    short-circuit protection; firmware is not part of that safety loop.
+  - >
+    AUXOFF is not load-side power-good. It rises after full FET overdrive and
+    only reports a valid input/inrush state; load faults do not deassert it
+    (Table 7-4). Use post-switch ADC for vbus_present and FLT for faults.
+  - >
+    Use the logic-level EN/UVLO input for the final hub-power AND MCU command.
+    A pull-down must hold EN low through reset. Pull FLT up to the 3.3 V logic
+    rail. OVLO and every analog timing/limit pin must not float except where the
+    datasheet explicitly allows ITIMER or DVDT open for the fastest setting.
+  - >
+    Auto-retry suffix A can retry after thermal shutdown following the 110 ms
+    interval. The MCU must latch the port command off on FLT before retry and
+    require an explicit host clear/power-cycle. This improves behavior but does
+    not replace the hardware current limiter.
+  - >
+    Worst-case steady dissipation at 3 A is 3^2*45mOhm = 0.405 W. With TI's
+    eight-via four-layer thermal example that is about 17 C rise; without the
+    via field the published theta-JA is 74.5 C/W (about 30 C rise). The custom
+    footprint and layout must include the via-assisted IN/OUT copper geometry.
+layout:
+  source: >
+    TI SLVSFC9C Section 8.4 and Figure 8-22; additionally TI EVM user guide
+    SLVUC01 Figures 6-1/6-2. Keep the IN bypass loop smallest, use broad IN/OUT
+    copper and thermal vias, keep ILM/timing nodes quiet and local, and place
+    at least 1 uF from OUT to GND immediately at the device.
+  reviewed: 2026-07-31
+  keep_short:
+    - {net: 5V_A, max_span_mm: 4, anchor_pins: ["5"], why: "Sec.8.4: input bypass capacitor closest to IN and GND, minimum loop area"}
+    - {net: 5V_B, max_span_mm: 4, anchor_pins: ["5"], why: "Sec.8.4: input bypass capacitor closest to IN and GND, minimum loop area"}
+    - {net: P1_VBUS, max_span_mm: 4, anchor_pins: ["6"], why: "Sec.8.4: >=1uF OUT bypass physically close to OUT and GND"}
+    - {net: P2_VBUS, max_span_mm: 4, anchor_pins: ["6"], why: "Sec.8.4: >=1uF OUT bypass physically close to OUT and GND"}
+    - {net: P3_VBUS, max_span_mm: 4, anchor_pins: ["6"], why: "Sec.8.4: >=1uF OUT bypass physically close to OUT and GND"}
+    - {net: P4_VBUS, max_span_mm: 4, anchor_pins: ["6"], why: "Sec.8.4: >=1uF OUT bypass physically close to OUT and GND"}
+    - {net: P1_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
+    - {net: P2_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
+    - {net: P3_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
+    - {net: P4_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
+  notes:
+    - "Power copper from IN through the two central lands to OUT must be sized for at least twice full load per Section 8.4; use pours, not routed signal-width tracks."
+    - "Keep RILM, CdVdt, CITIMER and OVLO parts on the quiet GND side of each eFuse, isolated from both LM5116 switch nodes."
+    - "TI recommends an output Schottky clamp for negative transients and local input/output ceramic protection; retain these in each repeated port cell."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSFC9C Figure 8-22, single-device routed layout example, PDF p.63"}
+  - {tier: 2, reached: true, artifact: "TI TPS25947EVM user guide SLVUC01 Figures 6-1/6-2, rendered assembly and copper, PDF pp.19-20"}
+  - {tier: 2, reached: false, artifact: "Editable TPS25947EVM PCB design files", why: "TI tool page publishes the EVM guide but no editable CAD archive; rendered copper was consulted instead"}
+sourcing:
+  lcsc: C3662799
+  alternates: []
+  note: >
+    JLCPCB catalog observation on 2026-07-31 identified C3662799 as an Extended
+    SMT-assembly part; live availability must be rechecked by the release gate.
+asserts:
+  - assert: value
+    equals: TPS259470ARPWR
+    why: "The 470A suffix is functional: it selects active limiting, FLT/AUXOFF, and auto-retry behavior; another family suffix changes host-visible semantics."

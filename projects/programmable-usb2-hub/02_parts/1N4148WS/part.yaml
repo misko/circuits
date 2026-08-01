@@ -1,0 +1,19 @@
+mpn: 1N4148WS
+manufacturer: JCET (Jiangsu Changjing)
+type: switching_diode
+datasheet: {doc_id: 1N4148WS, revision: series-sheet, url: "https://www.lcsc.com/product-detail/C2128.html", sha256: null, fetched: 2026-07-21}
+package: SOD-323
+footprint: Diode_SMD:D_SOD-323
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins:
+  1: {name: K, note: "cathode = pad 1 (KiCad D_SOD-323 convention; band side)"}
+  2: {name: A}
+gotchas: ["boot diode VCC->HB on U2: cathode(1) at BOOT_A, anode(2) at VCC_A — asserted in floorplan"]
+asserts:
+  # P-FACT. D3/D4 are the LM5116 bootstrap diodes (VCC -> HB).
+  - {assert: pad1_net_polarity, pad: 1, polarity: positive,
+     why: "pad 1 is the CATHODE and sits on BOOT_A / BOOT_C (the HB side); the anode
+       is on VCC_A / VCC_C. Reversed, the bootstrap capacitor never charges, the
+       high-side gate driver has no rail, and the buck does not switch at all."}
+verified: "2-pad polarized; KiCad footprint pad1=cathode convention - 2026-07-21 (README deviation: series sheet, no PDF)"
+sourcing: {lcsc: C2128, alternates: [C118873], note: "JLC BASIC"}

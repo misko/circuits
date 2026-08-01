@@ -1,0 +1,25 @@
+mpn: MWSA1206S-6R8MT
+manufacturer: Sunlord
+type: power_inductor
+datasheet:
+  doc_id: MWSA-S_Series
+  revision: MWSA-S series DS (DigiKey mirror)
+  url: https://media.digikey.com/pdf/Data%20Sheets/Shenzhen%20Sunlord/MWSA-S_Series_DS.pdf
+  sha256: 20c2dbc43149c070a45df90718705b99cf8fb95880cf818fa17a2185c1ef93d3
+  fetched: 2026-07-21
+package: SMD molded 12.5x12.5x6
+footprint: Inductor_SMD:L_Sunlord_MWSA1206S-6R8
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins: {1: A, 2: B}
+limits: {L: "6.8uH ±20%", dcr: 13.5mOhm_max, isat_20pct: 15.2A, isat_30pct: 19A, irms: "10-12A"}
+gotchas:
+  - "L2 of LM5116 buck: peak 8.4A < Isat 15.2A; 7A rms < Irms 10A;
+     DCR 13.5mOhm costs ~0.66W at 7A (documented efficiency tradeoff)"
+verified: "Series table row MWSA1206S-6R8MT: 6.8uH/13.5mOhm/15.2-19A. Exact recommended land on package page 2 is I=3.25 mm, J=8.0 mm, H=5.5 mm, hence 3.25 x 5.5 mm pads on 11.25 mm centers, exactly matching KiCad's L_Sunlord_MWSA1206S-6R8 footprint; checked 2026-07-31."
+sourcing: {lcsc: C408523, alternates: [C408515], note: "stock 450 on 2026-07-21"}
+layout:
+  source: "Sunlord MWSA1206S series datasheet + buck SW-loop layout practice"
+  adjacency:
+    - "input terminal at the SW node (HS source / LS drain / FET pair); output terminal to the 5V rail + Cout"
+  notes:
+    - "place directly at the SW node and keep the SW-side copper island small (this terminal swings the full dV/dt); the output terminal is the quiet 5V rail"

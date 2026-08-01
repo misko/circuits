@@ -1,0 +1,23 @@
+mpn: VLS6045EX-4R7M
+manufacturer: TDK
+type: shielded_power_inductor
+function: AP63203 3.3 V logic-buck output inductor
+status: active
+datasheet:
+  url: https://product.tdk.com/system/files/dam/doc/product/inductor/inductor/smd/catalog/inductor_commercial_power_vls6045ex_en.pdf
+  product_page: https://www.lcsc.com/product-detail/C307880.html
+  provenance: "CITED: TDK VLS6045EX datasheet and exact DigiKey product page; checked 2026-07-31."
+package: SMD 6.0 x 6.0 x 4.5 mm
+footprint: Inductor_SMD:L_TDK_VLS6045EX_VLS6045AF
+escape: {style: leaded, pitch: 4.8, tier_required: jlc_2layer_default, checked: escape_check 2026-07-31}
+pins: {1: SW, 2: VOUT}
+limits: {inductance: 4.7 uH +/-20 percent, dcr_max: 27 milliohm, saturation_current: 5.8 A, temperature_rise_current: 4.2 A}
+verified: "CITED: exact VLS6045EX-4R7M line is 4.7uH +/-20 percent, 4.2A rated, 5.8A saturation, 27mOhm, 6x6mm; the TDK 20250630 package sheet's recommended land is 1.9 x 5.1 mm with a 2.3 mm inner gap, exactly implemented by KiCad's L_TDK_VLS6045EX_VLS6045AF footprint; checked 2026-07-31."
+gotchas:
+  - "The 5.8 A saturation rating provides margin over the AP63203 2 A maximum load but is not suitable for either 7 A port buck."
+  - "Do not substitute the visually similar Sunlord SWPA6028S footprint: its 1.7 x 5.7 mm lands on 4.5 mm centers do not match TDK's 1.9 x 5.1 mm lands on 4.2 mm centers."
+  - "Keep the SW-to-inductor connection compact and keep this magnetic component away from USB differential pairs."
+layout: {source: "AP63203 application layout and TDK VLS6045EX package drawing", reviewed: 2026-07-31, notes: ["Place immediately adjacent to U4 SW; route the quiet output side to the output capacitors and FB."]}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TDK VLS6045EX electrical and package table"}
+sourcing: {lcsc: C307880, note: "Q-2SOURCE: JLC catalog stock 8,756 and DigiKey stock 56,358 observed 2026-07-31; order-day recheck required."}

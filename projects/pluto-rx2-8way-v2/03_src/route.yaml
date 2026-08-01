@@ -341,24 +341,44 @@ stitch:
     # the declared pitch got finer. A guard whose value crosses the pitch turns
     # a refinement into a regression, in silence.
     #
-    # 0.75 -> 0.50 ON 2026-07-31, A SECOND CORRECTION IN THE SAME KEY, AND THE
-    # SECOND ONE IS ABOUT WHAT THE GUARD DOES TO THE *FENCE* PASS. `seed_stubs`
-    # runs before `stitch_grid`, so a declared fence barrel is on the board when
-    # the lattice walks its sites, and at 0.75 every lattice site within 0.75 mm
-    # of a fence via was refused — the fence via did not JOIN the wall, it
-    # TRADED with it. MEASURED: 14 declared barrels closed 11 apertures and
-    # re-opened 2, one of them a gap that had not existed before. 0.50 is above
-    # the 0.40 mm hole-to-hole floor (0.25 + 0.15) and above nothing else that
-    # binds, and it is the value `fence_sites.py` reads back out of this key as
-    # its own keep-off radius, so the search and the guard cannot disagree.
-    # The 0.80 lattice is untouched either way (0.80 > 0.75 > 0.50).
+    # 0.75 -> 0.50 WAS TRIED ON 2026-07-31 AND **REVERTED, MEASURED**. THE KEY
+    # IS 0.75. Do not re-propose 0.50 without reading the floor below first.
+    # The attempt was aimed at what the guard does to the *FENCE* pass, and
+    # that half of it is TRUE: `seed_stubs` runs before `stitch_grid`, so a
+    # declared fence barrel is on the board when the lattice walks its sites,
+    # and every lattice site within `spacing` = 0.75 mm of a fence via is
+    # refused — the fence via does not JOIN the wall, it TRADES with it.
+    # MEASURED: 14 declared barrels closed 11 apertures and re-opened 2, one of
+    # them a gap that had not existed before.
+    #
+    # WHAT 0.50 MISSED IS A FLOOR THE 0.40 mm HOLE-TO-HOLE NUMBER DOES NOT
+    # SHOW. `dedupe_vias` is a BOX of half-side 0.5, and the smallest CIRCLE
+    # containing that box has radius 0.5*sqrt(2) = **0.7071 mm**. Any `spacing`
+    # under 0.7071 admits diagonal pairs that `dedupe_vias` then silently
+    # DELETES. MEASURED at 0.50: `deduped 14 twin vias` and 7 arm-sides over
+    # bound — WORSE than the 0.75 it replaced. 0.75 clears 0.7071; 0.50 does
+    # not. The trading is real, but it is solved by iterating the fence in
+    # ROUNDS with a re-measure each time (14 barrels -> 2 -> 1, 11 apertures
+    # over bound -> 2 -> 1 -> 0 PASS), NOT by lowering this key.
+    #
+    # AND `fence_sites.py` DOES NOT READ THIS KEY AS ITS KEEP-OFF RADIUS — its
+    # `KEEPOFF` is the `dedupe_vias` radius (0.5). The two radii guard
+    # different things and only one is fatal: dedupe DELETES a via, while
+    # `spacing` only makes `stitch_grid` SKIP a lattice site the lattice had
+    # spares for. Guard hard against the deletion, iterate against the skip.
+    # The 0.80 lattice is untouched (0.80 > 0.75).
     #
     # THE FIRST CORRECTION, KEPT BECAUSE IT IS THE MORE DANGEROUS DEFECT:
-    # 0.85 IS DERIVED, NOT TUNED: the largest 0.05 multiple strictly under the
-    # declared 0.80 lattice pitch, so one lattice row can never refuse itself.
-    # It is checked against the FLOOR from the other end, not just from the
-    # pitch: every stitch via is on GND, so copper clearance does not apply
-    # between them (same net) and the binding rule is hole-to-hole —
+    # 0.75 IS DERIVED, NOT TUNED, AND THE WINDOW HOLDS EXACTLY ONE VALUE. It is
+    # bounded on BOTH sides: strictly under the declared 0.80 lattice pitch, so
+    # one lattice row can never refuse itself, and strictly over the 0.7071 mm
+    # dedupe diagonal above, so no admitted pair is later deleted. The only
+    # 0.05 multiple in (0.7071, 0.80) is **0.75** — the key is forced, not
+    # chosen. (0.85, the value before the first correction, is OUTSIDE that
+    # window on the pitch side, which is exactly how it censored the fence.)
+    # The hole-to-hole floor is checked from the other end and does NOT bind:
+    # every stitch via is on GND, so copper clearance does not apply between
+    # them (same net) and the rule is hole-to-hole —
     # `jlc_4layer_advanced.min_hole_to_hole 0.25` + drill 0.15 = **0.40 mm**
     # minimum centre-to-centre. 0.75 keeps 1.88x on that floor, and the
     # independent `hole_to_hole {min_gap: 0.25}` pass below re-checks it against
@@ -382,13 +402,18 @@ stitch:
   # clearance 0.25->0.20, row pitch 1.30->1.60 which broke SW_V2's escape).
   #
   # WHY A SEARCH COULD NOT: `pad_rescue` reaches its via through `try_via`,
-  # whose FIRST guard is `stitch.via.spacing` (0.85 mm) measured against EVERY
-  # via already on the board, NET-BLIND. MEASURED on the 20:27 board:
-  # R_PD2.2's own pad centre (41.500, 53.110) passes `via_site_ok` — 144 legal
-  # 0.25/0.15 sites exist inside its island — and is refused solely because a
-  # SW_V1 escape via sits 0.7440 mm away, i.e. 0.106 mm inside a lattice
-  # spacing rule that has nothing to say about a via-in-pad on a different net.
-  # Lowering `spacing` globally would move 2422 lattice vias to fix one pad.
+  # whose FIRST guard is `stitch.via.spacing` measured against EVERY via
+  # already on the board, NET-BLIND. MEASURED on the 20:27 board, when this key
+  # still read 0.85 (HISTORICAL — it is 0.75 now): R_PD2.2's own pad centre
+  # (41.500, 53.110) passes `via_site_ok` — 144 legal 0.25/0.15 sites exist
+  # inside its island — and is refused solely because a SW_V1 escape via sits
+  # 0.7440 mm away, i.e. 0.106 mm inside a lattice spacing rule that has
+  # nothing to say about a via-in-pad on a different net.
+  # THE CONCLUSION SURVIVES THE DROP TO 0.75, WHICH IS WHY THIS PASS STILL
+  # EXISTS: 0.7440 is still inside 0.75, so the pad is still refused — but by
+  # 0.006 mm, not 0.106. The margin is 6 um and the fix is still not a search.
+  # Lowering `spacing` globally would move 2422 lattice vias to fix one pad,
+  # and it cannot go below the 0.7071 mm dedupe diagonal anyway (see `via`).
   # `seed_stubs` does not consult it: every primitive is exact-collision
   # checked (`tk.collides` / `via_site_ok`), a colliding stub is REFUSED whole
   # rather than shaved, the pass PROVES the placed copper lands on the named
@@ -574,11 +599,16 @@ stitch:
       # 0.155, hole_to_hole 0.315, exact collision on all four copper layers),
       # so a site named here is one route_and_stitch_generic accepts. The
       # displaced lattice site is suppressed twice over: `try_via`'s net-blind
-      # `stitch.via.spacing` 0.50 guard (0.035 < 0.50) and the 0.315 floor in
+      # `stitch.via.spacing` 0.75 guard (0.035 < 0.75) and the 0.315 floor in
       # floorplan.yaml `design_rules.hole_to_hole`, which is what MACHINE-
       # ENFORCES this fix instead of leaving it as geometry nothing grades.
-      # Nearest OTHER lattice site is 0.8 - 0.035 = 0.765 mm away, outside
-      # `dedupe_vias`' 0.5 mm box, so nothing here trades with the wall.
+      # Nearest OTHER lattice site is 0.8 - 0.035 = 0.765 mm away: outside
+      # `dedupe_vias`' 0.5 mm box, and outside the 0.75 spacing guard — BUT BY
+      # ONLY 0.015 mm. So nothing here trades with the wall, and that margin is
+      # 15 um, NOT the comfortable clearance a smaller guard would imply. A
+      # stub displaced FURTHER than 0.05 mm from its site pulls the neighbour
+      # inside 0.75 and suppresses a SECOND site. Re-check this arithmetic for
+      # any new stub; do not assume one displacement costs one site.
       #
       # LIKE THE FENCE ABOVE, THESE COORDINATES ARE ROUTE-DEPENDENT and must
       # be re-derived, never carried, after any route change.

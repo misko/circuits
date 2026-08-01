@@ -1,0 +1,18 @@
+mpn: WSL2512R0100FEA
+manufacturer: Vishay Dale
+type: current_sense_resistor
+datasheet: {doc_id: WSL, revision: "Rev. 11-Jun-2025", url: "https://www.vishay.com/docs/30100/wsl.pdf", sha256: null, fetched: 2026-07-31}
+package: 2512
+footprint: Resistor_SMD:R_2512_6332Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins: {1: A, 2: B}
+limits: {r: 10mOhm, tol: "1%", p: 1W}
+gotchas: ["LM5116 CS shunt RS1: 0.49W at 7A -> 1W rating is adequate; keep Kelvin sense at the resistor terminals."]
+verified: "CITED: Vishay WSL datasheet and exact DigiKey product page confirm 10 mOhm, 1 percent, 1 W, 2512; checked 2026-07-31."
+sourcing: {lcsc: C844901, alternates: [], note: "Q-2SOURCE: JLC catalog stock 13,216 and DigiKey stock 110,973 observed 2026-07-31; order-day recheck required."}
+layout:
+  source: "Vishay WSL datasheet + LM5116 SNVS499I sec.11 (Kelvin current sense)"
+  adjacency:
+    - "sits between the LS-FET source and PGND; CS(pad1)/CSG(pad2) tap at the pad body"
+  notes:
+    - "Kelvin sense: route CS/CSG from the resistor pads as a tight pair to the LM5116 CS/CSG pins, never off shared power copper"

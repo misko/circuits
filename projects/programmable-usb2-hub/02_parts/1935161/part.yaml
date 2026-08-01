@@ -1,0 +1,46 @@
+mpn: "1935161"
+manufacturer: Phoenix Contact
+type: screw_terminal_power_input
+datasheet:
+  doc_id: PT 1,5/ 2-5,0-H
+  revision: online catalog
+  url: https://www.phoenixcontact.com/us/products/1935161
+  sha256: c61f515167fce8578cdcda050d3a1de4035f9b37e67ef4ec37c21579ae910d2c
+  fetched: 2026-07-31
+package: 2-position 5.00 mm pitch side-entry THT screw terminal, green PA
+footprint: programmable_usb2_hub:TerminalBlock_KANGNEX_WJ126V_2P_P5.0
+escape:
+  style: connector
+  pitch: 5.0
+  escapes_worst_side: 2
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-31
+pins:
+  1: {name: TERMINAL_1, note: "Non-polarized hardware; assign VIN_RAW_POS in the schematic and mark '+' on silk."}
+  2: {name: TERMINAL_2, note: "Non-polarized hardware; assign VIN_RAW_NEG in the schematic and mark '-' on silk."}
+limits:
+  rated_current_ul: 18 A
+  rated_current_iec: 17.5 A
+  rated_voltage_ul: 300 V
+  rated_voltage_iec: 400 V
+  wire_range: 26 to 14 AWG / 2.5 mm2
+  contact_resistance: 20 mOhm
+  operating_temperature: -40 to +105 C
+  screw_torque: 0.35 to 0.4 N m
+gotchas:
+  - "The 18 A catalog current rating is comfortably above the 6.25 A input current of a 75 W load at 12 V."
+  - "Use adequately sized flexible wire (normally 14-16 AWG for this board's worst-case current and cable length), strip 6-7 mm, and torque to 0.3 N m."
+  - "The drawing specifies 5.00 mm pitch, 1.0 mm pins, and 1.3 mm holes; the existing 5.00 mm / 1.5 mm drilled footprint provides compatible clearance and must not be changed to 5.08 mm pitch."
+verified: "CITED: Phoenix Contact catalog and DigiKey exact product page confirm active 2-position, 5.00 mm, side-entry, 18 A terminal; existing 5.00 mm / 1.5 mm-hole footprint checked against 1.0 mm pins on 2026-07-31."
+sourcing:
+  lcsc: C3819953
+  alternates: []
+  note: "Q-2SOURCE: JLC catalog stock 1,127 and DigiKey stock 27,170 observed 2026-07-31; THT assembly allocation must be reconfirmed at order time."
+layout:
+  source: "Phoenix Contact PT 1,5/2-5,0-H catalog drawing, 5.00 mm PCB layout and 18 A catalog rating."
+  notes:
+    - "Place at the board edge with screwdriver and wire-entry access. Run the positive terminal directly into the input fuse with broad copper and no thermal-spoke bottleneck."
+    - "Make polarity unmistakable on top and bottom silkscreen; the connector itself is not keyed for polarity."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Phoenix Contact 1935161 online catalog/drawing, exact pitch, pin, current, and envelope"}
+  - {tier: 2, reached: false, artifact: "Open routed board using exact WJ126V-5.0-02P-14-00A", why: "No exact editable board was found in the bounded terminal search; this passive high-current entry is governed by the manufacturer hole pattern and current-path re-derivation."}
