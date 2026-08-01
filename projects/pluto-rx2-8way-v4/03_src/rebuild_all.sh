@@ -188,6 +188,12 @@ $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml   # replay promoted route/ chain (M3)
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 
+# Re-run the project geometry audit on the routed board. The pre-import pass
+# proves the physical rule area exists; this pass gives the assertion teeth by
+# proving real promoted copper avoids it and the ANT4 control crossing is on
+# In2.Cu while In1.Cu remains an uninterrupted GND reference.
+if [ -f 03_src/audit_board.py ]; then $PY 03_src/audit_board.py --routed; fi
+
 # [9] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 
@@ -222,3 +228,14 @@ $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['vio
 # Exit codes are a VOCABULARY: 3 = GRADED NOTHING (never a pass), 4 = a path did
 # not resolve, 5 = UNOBSERVABLE. `--explain` prints the legend.
 $PY "$S/trace_audit.py" --subject . || true
+
+# [11] PROMOTE the exact schematic that survived the complete from-source
+# build. rebuild_reuse.sh deliberately consumes only this committed/pinned
+# copy; without this final promotion it can silently replay a superseded
+# topology after a TSX change even though rebuild_all.sh itself just passed.
+# Keep this LAST: a failed full build must not bless its partial schematic as
+# the deterministic reuse subject.
+mkdir -p 03_tscircuit/kicad
+cp "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch"
+cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
+    || { echo "GATE FAILED [11] M-PIN: promoted schematic differs from the full-build subject"; exit 1; }

@@ -186,6 +186,21 @@ board:
   outline: {x0: 20.0, y0: 20.0, x1: 70.0, y1: 93.0}
   edge_width: 0.1
   layers: 4
+  stackup:
+    # JLCPCB's published JLC04161H-7628 4-layer / 1.6 mm construction.
+    # Outer copper is 1 oz finished; the 15.2 um inner value and dielectric
+    # thicknesses reconstruct 1.5862 mm, within the nominal board tolerance.
+    # The top 0.2104 mm / Dk 4.4 tuple is the load-bearing RF reference.
+    nominal_thickness_mm: 1.6
+    thickness_tolerance_mm: 0.10
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.01
+    copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
+    dielectrics:
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 1.0650, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
     refdes_prefix: H
@@ -315,7 +330,7 @@ placement:
 
     # ---- the module cell ----------------------------------------------------
     U_MCU:  [52.7000, 80.7500, 180]   # USB-C faces the board's south edge
-    R_S1:   [42.0000, 90.9100, 180]   # 47R SOURCE terminations, hard against
+    R_S1:   [42.0000, 90.9100, 180]   # 100R SOURCE terminations, hard against
     R_S2:   [42.0000, 88.3700, 180]   # the module's west castellation column.
     R_S3:   [42.0000, 85.8300, 180]   # pad 1 faces EAST (the module) so
     R_S4:   [42.0000, 83.2900, 180]   # SEL_V* is 1.52 mm and SW_V* is the long
@@ -326,8 +341,8 @@ placement:
     FB_3V3: [64.0000, 85.8000, 90]    # pad 1 (IN, 3V3_MOD) faces SOUTH toward
                                       # C_BULK; pad 2 (OUT, 3V3) faces NORTH,
                                       # which is the direction the switch is.
-    C_BULK: [64.0000, 89.8000, 270]   # 4.7uF on the UNFILTERED side, pad 1
-                                      # north at the ferrite
+    C_BULK: [65.8000, 82.7500, 0]     # 4.7uF on FILTERED 3V3; pad 1 faces
+                                      # west toward the 3V3 trunk, pad 2 GND
 
   patterns:
     # Pad-level SOLID zone connection on the GND pads of the two multi-GND
@@ -337,6 +352,7 @@ placement:
     # return from 20 GPIO and must not be thermally relieved at all.
     - {match: U_SW,  pad_overrides: [{on_net: GND, zone_connection: full}]}
     - {match: U_MCU, pad_overrides: [{on_net: GND, zone_connection: full}]}
+    - {match: C_BULK, pad_overrides: [{on_net: GND, zone_connection: full}]}
     # The ten SMA jacks: each of the four posts IS the launch return path and is
     # only electrically short if the return is (KH-SMA-KE-Z part.yaml notes).
     - {match: "J_*",  pad_overrides: [{on_net: GND, zone_connection: full}]}
@@ -417,6 +433,15 @@ zones:
      min_thickness: 0.2, clearance: 0.20, connect: thermal}
 
 keepouts:
+  # The module's ten bare underside test pads face the carrier in this strip.
+  # This is a REAL KiCad rule area, not the Cmts.User rectangle carried by the
+  # footprint for assembly teaching. DRC therefore rejects tracks, vias, and
+  # zone fill under the live pads. Coordinates include 0.15 mm
+  # margin around the STEP-derived field x=58.10..59.30/y=73.80..86.00.
+  - {name: mcu_live_underside_pads, layers: [F.Cu],
+     deny: [tracks, vias, pours],
+     rect: [57.950, 73.650, 59.450, 86.150]}
+
   # `rf_launch` DENIES NOTHING. It is a NAMED RULE AREA that exists so
   # rules/nets.yaml `scoped_clearances:` has a boundary to bind to — the
   # emitted .kicad_dru constraint is
@@ -521,7 +546,7 @@ silk:
     - ["70 MHz - 6 GHz",               30.500, 72.500, 0.6]
     - ["RX ONLY - NO TRANSMIT",        30.500, 74.500, 0.6]
     - ["PASSIVE ANT - 0 VDC MAX",      30.500, 76.500, 0.6]
-    - ["ANT8 = RX1 TAP -20.26 dB",     30.500, 78.500, 0.6]
+    - ["ANT8 = RX1 TAP",                30.500, 78.500, 0.6]
     - ["RX1/RX2 = SDR OUTPUTS",        30.500, 80.500, 0.6]
     - ["U_MCU HAND-SOLDER ONLY",       30.500, 84.000, 0.6]
     - ["USB-C = PWR + BOOTLOADER",     30.500, 86.000, 0.6]

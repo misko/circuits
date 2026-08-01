@@ -198,6 +198,10 @@ int main(void)
     rx2_status_init(&status);
     for (uint pin = SELECT_PIN_BASE; pin < SELECT_PIN_BASE + 4u; ++pin) {
         gpio_init(pin);
+        /* Board safety analysis does not credit GPIO output resistance, but
+         * the quietest pad setting further reduces RF injection and ringing. */
+        gpio_set_drive_strength(pin, GPIO_DRIVE_STRENGTH_2MA);
+        gpio_set_slew_rate(pin, GPIO_SLEW_RATE_SLOW);
         gpio_set_dir(pin, GPIO_OUT);
     }
     gpio_init(STATUS_LED_PIN);

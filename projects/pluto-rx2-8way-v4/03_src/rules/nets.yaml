@@ -435,7 +435,7 @@ length_match:
     # property of the FLOORPLAN, and v2's floorplan is not v1's — the MCU field
     # shrank from a QFN-56 plus flash, crystal, USB and ten decouplers to one
     # 18 x 23.5 mm module, which moves the star's surroundings.
-    stackup_mm: [0.2104, 0.9792, 0.2104]   # JLC04161H-7628
+    stackup_mm: [0.2104, 1.0650, 0.2104]   # JLC04161H-7628 published construction
     phase:
       t_pd_ps_per_mm: 5.9255
       f_ghz: 6.0

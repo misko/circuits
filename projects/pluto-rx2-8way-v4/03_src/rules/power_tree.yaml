@@ -35,7 +35,7 @@ rails:
     vin_max: 5.25          # USB 2.0 device-end high limit
     vout_min: 3.234        # RT9013-33: 3.3 V -2 % output accuracy
     vout_max: 3.366        # RT9013-33: 3.3 V +2 % output accuracy
-    iout_max_A: 0.10
+    iout_max_A: 0.125
     # THE WHOLE RAIL, not our share. The RT9013 feeds the RP2040 core and I/O,
     # the module's flash and its WS2812 as well as our board. OUR contribution
     # is U_SW's VDD at 200 uA MAX — 0.2 % of this figure. Declaring only our
@@ -54,15 +54,15 @@ rails:
     # does not exist. Margin is not close: vin_min - vout_max = 4750 - 3366 =
     # 1384 mV against a 250 mV requirement, 5.5x.
     pdiss_max_mw: 400
-    # (Tj_max 125 C - 25 C ambient) / theta_JA ~250 C/W for SOT-23-5 = 400 mW.
-    # Actual worst case (vin_max - vout_min) * iout_max = (5.25 - 3.20) * 0.10 =
-    # 205 mW, so the rail sits at ~51 % of the budget at 25 C.
+    # Supported-envelope bound: (Tj_max 150 C - 50 C ambient) /
+    # theta_JA ~250 C/W for SOT-23-5 = 400 mW. Actual declared worst case is
+    # (vin_max - vout_min) * iout_max = (5.25 - 3.234) * 0.125 = 252 mW,
+    # about 63 % of that upper-bound budget.
     # STATED HONESTLY: this is the MODULE VENDOR'S thermal budget, not ours, and
-    # the ambient assumption is ours. At 85 C ambient the same arithmetic gives
-    # 160 mW and the rail would be OVER — but the module is sold and rated as a
-    # USB-powered assembly for benchtop use, and this instrument is a benchtop
-    # instrument. If it is ever enclosed and run hot, this is the line that
-    # fails first, and it will fail on the module, not on our copper.
+    # the ambient assumption is ours and the module PCB is not a JEDEC board.
+    # Representative-firmware current and case-temperature measurements remain
+    # a physical qualification gate; arbitrary firmware and TA > 50 C are
+    # outside the supported envelope.
     load_uv_threshold: 2.3
     # PE42482A-X VDD operating minimum (Table 2, PDF p3: 2.3 / 3.3 / 5.5 V).
     # This is a real brownout threshold for the one load our board owns.
@@ -82,5 +82,5 @@ rails:
     # naming rather than leaving as an unexplained small number.
     # CONSERVATIVE BY CONSTRUCTION: the gate charges this path with the WHOLE
     # rail's 0.1 A, but only OUR 200 uA actually crosses it — the module's own
-    # ~100 mA never leaves the module. The declared arrangement therefore
-    # over-states the drop by ~500x, and it still passes with ~78x of margin.
+    # module load never leaves the module. The declared arrangement therefore
+    # greatly over-states the drop, and it still passes with wide margin.

@@ -12,7 +12,7 @@ consume the 128-sample blanking window.
 
 A Waveshare RP2040-Zero module integrates the RP2040, 2 MB flash, 12 MHz clock,
 USB-C, boot/reset controls and a quiet RT9013-33 LDO. GP0–GP3 are consecutive
-both logically and physically and drive the switch through 47-ohm source
+both logically and physically and drive the switch through 100-ohm source
 resistors; 10 k pull-downs at the switch define a safe 0000 power-up state.
 PIO emits the state/blank cadence without host jitter. USB is used for firmware,
 configuration, and status—not hop timing.
@@ -46,6 +46,17 @@ must confirm/select its plug-in through-hole process for the ten SMA jacks. The
 RP2040-Zero is deliberately excluded from position/paste outputs and fitted by
 the builder after carrier assembly; its populated underside prevents a direct
 reflow joint to the carrier.
+
+## Binding RF and handling envelope
+
+Every SMA (J_ANT1..8, J_RX1 and J_RX2) is a 50-ohm, passive, receive-only
+interface limited to +18 dBm CW and 0 VDC under powered, unpowered and fault
+conditions. Bias tees, active antennas, transmitters and DC-offset sources are
+prohibited. Hopping/hot switching is supported only over 100 MHz–6 GHz. At
+70–<100 MHz, de-energize RF, select and settle one static state, then reapply
+RF; do not change state with RF present. With no RF ESD clamps, this is
+ESD-controlled bench equipment: use grounded handling and remove RF and USB
+power before mating or unmating coax.
 
 ## System boundary
 

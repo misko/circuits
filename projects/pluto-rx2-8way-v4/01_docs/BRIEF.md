@@ -62,6 +62,9 @@ not authority.
 | Protection | Module owns USB entry; carrier adds no parallel power path. Ferrite + local ceramic isolate switch VDD. RF ports intentionally have no shunt ESD | D2 |
 | Off-control / storage | De-energized when USB is unplugged; no battery and no alternate source | D2 |
 | Hard-cell parts | RP2040-Zero module, PE42482A-X, KH-SMA-KE-Z | current dossiers and module selection evidence |
+| RF interface envelope | Every SMA is 50 ohm, passive receive-only, +18 dBm CW max and 0 VDC in powered/unpowered/fault states; no bias tee, active antenna, transmit path or DC offset | D5 / ADR-0003 |
+| Switching envelope | Hopping/hot switching only 100 MHz–6 GHz; 70–<100 MHz requires RF removed, static selection and settling before RF is reapplied | D5 / ADR-0003 |
+| Handling / power envelope | ESD-controlled bench equipment. Supported firmware keeps the module WS2812 dark; total module-LDO load <=125 mA at TA<=50 C. Physical current/thermal qualification remains open; arbitrary firmware is unsupported | D5/D6 |
 
 ## Mating fact-lock
 
@@ -76,8 +79,9 @@ connections use SMA cables, so no `mates.yaml` is carried.
 - A2 — Preserve the explicitly confirmed split-arm reference pickoff: two
   220-ohm 0402 resistors in series.
 - A3 — Preserve the confirmed timing frame and free-running RP2040 PIO model.
-- A4 — Use the module's USB-C as the only input and a 100 mA total module rail
-  envelope for conservative power checks.
+- A4 — Use the module's USB-C as the only input; support <=125 mA total
+  module-LDO load at TA<=50 C with the module WS2812 dark. Physical current and
+  thermal qualification is required; arbitrary firmware is unsupported.
 - P9 — Binding user amendment: use an RP2040 module, not the bare chip.
 - A5 — Apply the user's module-first preference to total design, verification,
   routing, sourcing and bring-up complexity, not BOM price/area alone.
@@ -89,6 +93,11 @@ connections use SMA cables, so no `mates.yaml` is carried.
   these are still the best fit after re-checking the requirements.
 - D4 — Use `jlc_4layer_advanced`, controlled impedance, solid L2 ground, L3
   control routing, and bottom ground. The RF switch forces the tier.
+- D5 — Bind every SMA to 50 ohm, +18 dBm CW maximum, 0 VDC and passive
+  receive-only operation; hot switching only at 100 MHz–6 GHz, cold/static
+  selection at 70–<100 MHz, and ESD-controlled de-energized cable handling.
+- D6 — Released firmware keeps the WS2812 dark; <=125 mA at TA<=50 C is a
+  supported envelope pending physical current/thermal qualification.
 
 ## Decision register
 

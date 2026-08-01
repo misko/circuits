@@ -90,6 +90,12 @@ $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
 # [6] stitch: pours + stitch/thermal vias + island heal + gate  [SHARED]
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 
+# Re-run the project geometry audit on the routed board. The pre-import pass
+# proves the physical rule area exists; this pass gives the assertion teeth by
+# proving real promoted copper avoids it and the ANT4 control crossing is on
+# In2.Cu while In1.Cu remains an uninterrupted GND reference.
+if [ -f 03_src/audit_board.py ]; then $PY 03_src/audit_board.py --routed; fi
+
 # [7] generate_rules LAST — pcbnew saves in the chain clobber netclasses  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 

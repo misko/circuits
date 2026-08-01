@@ -25,9 +25,9 @@ There is no carrier programming connector; the module USB-C/BOOT interface is
 the programming and control connector documented in `01_docs/ARCHITECTURE.md`.
 The target was cross-built on 2026-07-31 with Pico SDK 2.1.1
 (`bddd20f928ce76142793bef434d4f75f4af6e433`) and Arm GNU Toolchain
-13.3.Rel1 for `waveshare_rp2040_zero`. The resulting ELF measured 88,776 bytes
+13.3.Rel1 for `waveshare_rp2040_zero`. The resulting ELF measured 88,848 bytes
 text + 4,500 bytes BSS; the UF2 sha256 was
-`7b884c032870ea50ed9784738b7992621c53e9c09227584cb06c22d971690d66`.
+`254dca986851037093c7d139f466d9addaafb2a3821c9a7d70d01353e09d0c51`.
 The build proves the target API and link surface; flashing and USB behavior
 still require a physical module.
 

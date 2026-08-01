@@ -75,7 +75,7 @@ const MOD_JLC = "C9900173620" // footprint identity only; U_MCU is off the CPL.
 // LCC-23 land. assembly.yaml excludes U_MCU from placement; the builder fits a
 // retail module after carrier assembly (ADR-0002).
 const R220 = "C25091"        // 0402WGF2200TCE   220R +/-1%  0402  base
-const R47 = "C137864"        // RC0402JR-0747RL   47R +/-5%  0402
+const R100 = "C25076"        // 0402WGF1000TCE    100R +/-1% 0402, ledger-vetted
 const R680 = "C137948"       // RC0402FR-07680RL 680R        0402
 const R10K = "C60490"        // RC0402FR-0710KL   10k        0402  ledger-vetted
 // ^ WAS C25744 (UniOhm 0402WGF1002TCE) until 2026-07-31. C25744 is BUYABLE BUT
@@ -315,17 +315,23 @@ export default () => (
       connections={{ pin1: "net.RX1_TAP_MID", pin2: "net.RX1_TAP" }} />
 
     {/* ================================================================
-        CONTROL PLANE. 47 ohm SOURCE terminations at the MODULE end and 10 k
+        CONTROL PLANE. 100 ohm SOURCE terminations at the MODULE end and 10 k
         pull-downs at the SWITCH end.
-        The 47 ohm is not a convention: PE42482A-X's digital absolute maximum
-        is 3.6 V on a 3.3 V rail (300 mV of headroom), the CTRL line is
-        ~67 ohm, and the far-end peak is 2*Vdd*Z/(Z+Zdrv+Rs) = 4.807 V without
-        it and 3.181 V with it at the RP2040's STRONGEST drive. Protection
-        that lives in a firmware register is not protection.
+        100 ohm is a WORST-CASE safety value, not a nominal match. PE42482A-X's
+        digital absolute maximum is 3.6 V while 3V3 may be 3.366 V. Crediting
+        ZERO guaranteed RP2040 output resistance, Z0=67 ohm and the resistor's
+        -1% corner, the first far-end step is
+          2*3.366*67/(67+99) = 2.717 V < 3.6 V.
+        The 10k pull-down then sets the DC high to 3.366*10k/(10k+101)=3.332 V,
+        2.85x the switch's 1.17 V VIH minimum. Even a conservative 20 pF input
+        plus trace estimate gives 5*tau = 5*101*20 pF = 10.1 ns, negligible
+        beside 4.267 us blanking. Firmware additionally requests the RP2040's
+        2 mA drive and slow slew; the resistor is what makes safety independent
+        of those register settings.
         THE MODULE MAKES THIS MORE NECESSARY, NOT LESS: the line is now our
         copper PLUS the module's internal trace from the RP2040 pad to the
         castellation, so the electrical length grows. The driver silicon is
-        identical, so Zdrv is unchanged and 47 ohm carries over.
+        identical, but no undocumented Zdrv is credited.
         The pull-downs are MANDATORY: V1-V4 have NO internal pull of any kind
         (5 uA max input current, Table 2), so all four float during reset and
         supply ramp — and a floating V4 selects the ALL-PORTS-TERMINATED state
@@ -336,8 +342,8 @@ export default () => (
         to 99%, more than the entire 4.267 us blanking allowance.
         ================================================================ */}
     {[1, 2, 3, 4].map((k) => (
-      <resistor key={`rs${k}`} name={`R_S${k}`} resistance="47" footprint="0402"
-        supplierPartNumbers={{ jlcpcb: [R47] }}
+      <resistor key={`rs${k}`} name={`R_S${k}`} resistance="100" footprint="0402"
+        supplierPartNumbers={{ jlcpcb: [R100] }}
         connections={{ pin1: `net.SEL_V${k}`, pin2: `net.SW_V${k}` }} />
     ))}
     {[1, 2, 3, 4].map((k) => (
@@ -366,7 +372,7 @@ export default () => (
       footprint="0805" />
     <capacitor name="C_BULK" capacitance="4.7uF" footprint="0805"
       supplierPartNumbers={{ jlcpcb: [C4U7] }}
-      connections={{ pin1: "net.N3V3_MOD", pin2: "net.GND" }} />
+      connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <capacitor name="C_SW1" capacitance="100nF" footprint="0402"
       supplierPartNumbers={{ jlcpcb: [C100N] }}
       connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
@@ -389,7 +395,7 @@ export default () => (
         Application". The objection is resolved by SELECTION, not mitigation —
         there is no GPIO23 to hold high, no PWM-forcing firmware, no +/-20%
         f_OSC spread to plan around, and no unsupported 3V3-backfeed hack.
-        SELECT LINES ARE GP0..GP3 (pads 23, 22, 21, 20): four consecutive
+        SELECT LINES ARE GP0..GP3 (vendor pads 1, 2, 3, 4): four consecutive
         GPIOs that are also physically adjacent and in order down the right
         edge, because a PIO `out pins, 4` writes a CONTIGUOUS pin range in ONE
         instruction and the whole level change must land inside the 4.267 us

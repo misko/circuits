@@ -16,6 +16,11 @@ regulator, or a second input. The module's 3V3 output passes a ferrite into the
 RF-switch rail with local bypass. This reduces both electrical complexity and
 the risk of two USB sources fighting.
 
-The footprint carries the underside copper/component keepout and no paste. The
-assembly drawing and build instructions must call out user fitting, underside
-clearance, accessible USB, joint inspection, and pre-fit resistance checks.
+The footprint carries the live underside-pad copper/track/via/pour keepout and
+no paste. The vendor publishes no tolerance for bottom-component protrusion or
+castellation coplanarity, so a fixed universal standoff inferred from the STEP
+is not an acceptance claim. The assembly drawing and build instructions must
+call out DNP/user fitting, pre-fit resistance checks, sample metrology, an
+electrically insulating edge-support fixture that never loads the crystal or
+other bottom parts, positive-gap/parallelism inspection, accessible USB, and
+full fillet inspection.

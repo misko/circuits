@@ -17,3 +17,10 @@
 - Generated and graded an unsealed JLC fabrication candidate. The export uses
   no rotation or BOM escape hatch; A-POP, stock, BOM source/legibility, and
   27/27-body twin checks pass. No order or immutable release was created.
+- Closed adversarial-review repairs: 100-ohm control-source damping with
+  machine-checked transient/DC bounds, quiet GPIO pad settings, downstream
+  filtered bulk capacitance, a real module underside keepout, corrected L3
+  routing, and an authored physical JLC04161H-7628 stackup.
+- Bound the safe RF/power envelope and preserved physical/order gates for
+  module metrology, impedance/TDR, uploader polarity/BOM echo, and ten plug-in
+  SMA jacks.

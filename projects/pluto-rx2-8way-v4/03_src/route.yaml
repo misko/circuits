@@ -233,8 +233,9 @@ prep:
       # at board x 58.10..59.30, y 73.80..86.00. They are ZERO height, so the
       # 1.000 mm HEIGHT keepout does not cover them, and they sit ~1.1 mm above
       # our F.Cu with nothing between: a solder ball or a flexed board shorts
-      # nine GPIO. The rectangle is drawn into the footprint on Cmts.User and
-      # is graded by NOTHING -- this is the line that makes the router obey it.
+      # nine GPIO. This router obstacle complements (but cannot replace) the
+      # real, DRC-enforced F.Cu rule area in floorplan.yaml. audit_board.py
+      # asserts both geometries and rejects a routed board containing copper.
       - {x0: 58.10, y0: 73.80, x1: 59.30, y1: 86.00, layer: User.2}
   waves:
     exclude: ["GND", "unconnected-*"]
@@ -348,6 +349,11 @@ route:
   # three candidates; all three measured CLEAN before stitching (zero
   # unconnected items and zero copper violations), so deterministic tie-break
   # selected c0. No copper from an earlier board identity is promoted here.
+  # The promoted source then received two deterministic pre-seal repairs:
+  # 3V3 skirts the physical U_MCU live-pad rule area, and SW_V4 changes at
+  # vias to In2.Cu for the ANT4-adjacent span. In1.Cu carries no tracks and
+  # remains the continuous GND reference. audit_board.py binds these facts to
+  # exact board geometry after every promoted-chain rebuild.
   final: 03_src/route/r5.kicad_pcb
 
 stitch:
@@ -860,7 +866,10 @@ stitch:
       # puts 6 sites there at 2.00 mm pitch, 9 at 1.35 and 26 at 0.95, so the
       # fence correction QUADRUPLED a count that was already wrong. Ten live
       # module pads sit ~1.1 mm above this copper with nothing between them.
-      - {x0: 58.10, y0: 73.80, x1: 59.30, y1: 86.00, margin: 0.15}   # U_MCU underside
+      # 0.30 = 0.15 mm physical-rule-area margin + 0.125 mm via radius,
+      # rounded up. A centre-only 0.15 exclusion still admitted grid vias at
+      # y=86.20 whose barrels overlapped the rule area by 0.075 mm.
+      - {x0: 58.10, y0: 73.80, x1: 59.30, y1: 86.00, margin: 0.30}   # U_MCU underside
   # min_bbox 0.8 -> 0.25 on BOTH island passes. MEASURED 2026-07-30: after the
   # control pocket moved, DRC reported two zone-to-zone `unconnected_items`
   # (B.Cu<->F.Cu and F.Cu<->F.Cu) while island_rescue placed 0 vias and

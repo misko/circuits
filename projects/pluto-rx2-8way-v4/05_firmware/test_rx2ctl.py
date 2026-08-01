@@ -1,4 +1,5 @@
 import argparse
+import re
 import sys
 from pathlib import Path
 import unittest
@@ -57,6 +58,21 @@ class SimulatorTests(unittest.TestCase):
 
 
 class HardwareShellTests(unittest.TestCase):
+    def test_all_four_control_gpios_use_quiet_pad_settings(self):
+        source = TARGET_MAIN.read_text()
+        loop = re.search(
+            r"for\s*\(uint pin = SELECT_PIN_BASE;\s*"
+            r"pin < SELECT_PIN_BASE \+ 4u;\s*\+\+pin\)\s*\{(?P<body>.*?)\n\s*\}",
+            source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(loop, "four-pin control GPIO initialization loop missing")
+        body = loop.group("body")
+        self.assertIn(
+            "gpio_set_drive_strength(pin, GPIO_DRIVE_STRENGTH_2MA)", body
+        )
+        self.assertIn("gpio_set_slew_rate(pin, GPIO_SLEW_RATE_SLOW)", body)
+
     def test_dma_ring_wraps_the_incrementing_schedule_read_address(self):
         source = TARGET_MAIN.read_text()
         self.assertIn("channel_config_set_read_increment(&config, true)", source)

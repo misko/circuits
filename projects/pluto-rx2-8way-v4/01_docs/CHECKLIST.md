@@ -42,9 +42,14 @@
   claim phase-locked sample boundaries without a shared clock/trigger.
 - [ ] Confirm PE42482 orientation and LED polarity in JLC's order preview.
 - [ ] Confirm JLC plug-in through-hole service for all ten SMA jacks.
+- [ ] Confirm JLC04161H-7628, advanced 0.25/0.15 mm vias, impedance solver
+      adjustment, and coupon/TDR requirement in the actual order.
+- [ ] Confirm uploader `(LCSC, value, refdes)` echo against the candidate BOM.
 
 - [ ] 3V3_MOD and filtered 3V3 measured under representative module activity.
 - [ ] Module underside clearance and solder joints inspected.
+- [ ] Sample module metrology and insulating edge-support fixture record prove
+      positive gap, parallelism, and no load on bottom components/crystal.
 - [ ] USB enumerates in both connector orientations.
 - [ ] PIO cadence matches the 62,464-sample frame.
 - [ ] Each RF state and all-off state verified.

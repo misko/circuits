@@ -40,6 +40,23 @@ invariants:
       presence, because the failure is about position, not existence"
 
   - assert: pin_on_net
+    pin: "C_BULK.1"
+    net: 3V3
+    adr: "0001"
+    why: "The bulk capacitor belongs on the FILTERED side of FB_3V3. This is
+      asserted at the exact pin because a stale pinned schematic previously
+      left C_BULK.1 on 3V3_MOD while the current TSX and routed board put it on
+      3V3; ERC and the ferrite series-chain assertion both still passed"
+
+  - assert: pin_on_net
+    pin: "C_BULK.2"
+    net: GND
+    adr: "0001"
+    why: "The return side of the filtered-rail bulk capacitor must be ground;
+      asserting both capacitor pins prevents a swapped or floating capacitor
+      from satisfying the rail-side assertion alone"
+
+  - assert: pin_on_net
     pin: "U_SW.8"
     net: 3V3
     adr: "0001"
@@ -133,11 +150,11 @@ invariants:
   - assert: series_chain
     chain: [SEL_V1, R_S1, SW_V1]
     adr: "0002"
-    why: "The 47 ohm source termination must be IN SERIES between the module pin
-      and the switch pin. Shunted or omitted, the far-end peak at the RP2040's
-      strongest drive is 4.807 V against a 3.6 V digital absolute maximum
-      (PE42482A-X Table 1, PDF p2 — the control pins are NOT rated to the
-      supply). One chain per line, because one missing resistor is the failure"
+    why: "The 100 ohm source resistor must be IN SERIES between the module pin
+      and switch pin. At 3V3=3.366 V, resistor=-1%=99 ohm, Z0=67 ohm, and ZERO
+      credited GPIO source resistance, the first far-end step is 2.717 V against
+      the PE42482's 3.6 V digital absolute maximum. One chain per line, because
+      one missing resistor is the failure"
 
   - assert: series_chain
     chain: [SEL_V2, R_S2, SW_V2]
@@ -190,15 +207,21 @@ invariants:
 
   - assert: part_value
     part: R_S1
-    equals: 47
-    tolerance_pct: 10
+    equals: 100
+    tolerance_pct: 2
     adr: "0002"
-    why: "PE42482A-X's digital absolute maximum is 3.6 V while its VDD absolute
-      maximum is 5.5 V — the control pins are NOT rated to the supply, leaving
-      300 mV of headroom on a 3.3 V rail. Unterminated, the far-end peak into
-      the ~67 ohm control line at the RP2040's strongest drive is 4.807 V; with
-      47 ohm it is 3.181 V. A WRONG VALUE is invisible to every gate that grades
-      topology, which is why the VALUE is asserted and not only the part"
+    why: "Worst-case transient safety is independent of undocumented GPIO
+      resistance: 2*3.366*67/(67+99)=2.717 V. Steady high through the 10k
+      pull-down is 3.332 V versus VIH=1.17 V, and 5*tau with a conservative
+      20 pF load is 10.1 ns versus 4.267 us blanking. A wrong value is invisible
+      to topology gates, so every source resistor is asserted separately"
+
+  - {assert: part_value, part: R_S2, equals: 100, tolerance_pct: 2, adr: "0002",
+     why: "Same independent worst-case transient and settling bound as R_S1"}
+  - {assert: part_value, part: R_S3, equals: 100, tolerance_pct: 2, adr: "0002",
+     why: "Same independent worst-case transient and settling bound as R_S1"}
+  - {assert: part_value, part: R_S4, equals: 100, tolerance_pct: 2, adr: "0002",
+     why: "Same independent worst-case transient and settling bound as R_S1"}
 
   - assert: part_value
     part: R_PD1
