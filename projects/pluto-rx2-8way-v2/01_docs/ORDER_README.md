@@ -947,11 +947,37 @@ and the RF fence sits 1.1769 against a 1.1910 mm bound with a both-pass window
 measured at 49.8 µm. Adding copper to damp a noise peak that has never been
 observed is not worth spending either margin blind.
 
-**The bring-up measurement that settles it**, and it is cheap: scope `3V3_MOD`
-with 20 MHz bandwidth limit while the module runs a load-stepping loop; look for
-ringing at 90–130 kHz. **If the ring is present and above ~100 mV p-p, fit the
-damping leg on the next revision.** If it is absent, close this as NOT-A-DEFECT
-with the capture attached.
+**SETTLED ANALYTICALLY — and the dB figure was the wrong number to quote.**
++22.6 dB is the gain against a **sinusoid at exactly 98 kHz**. Nothing on this
+rail produces one: the RP2040's core regulator is an LDO, not a switcher, so
+there is no fixed-frequency excitation down there at all. What the rail actually
+sees is a **load step**, and a step is broadband — its first excursion is
+`I × Z₀` and is **NOT multiplied by Q**. Q sets how LONG it rings, not how HIGH
+the first peak goes.
+
+`Z₀ = √(L/C) = ` **1.477 Ω**, so:
+
+| load step | first excursion | % of 3V3 | vs the RP2040's ±10 % (330 mV) |
+|---|---|---|---|
+| 50 mA | 74 mV | 2.2 % | OK |
+| 100 mA | 148 mV | 4.5 % | OK |
+| 150 mA | 222 mV | 6.7 % | OK |
+| **200 mA** | **295 mV** | **9.0 %** | **OK** |
+
+This board's own derived worst case is **~110 mA** (RP2040 core plus the module's
+WS2812 at full white), so even a deliberately generous 200 mA bound stays inside
+tolerance. Ring-down envelope `τ = 2L/R` = **44 µs**, about 4 cycles.
+
+**DISPOSITION: NOT-A-DEFECT — bounded, in spec at 1.8× the board's own worst-case
+step.** No damping leg, and therefore no copper spent against this board's two
+sub-2 % margins (hole-to-hole 12.0 µm inside the enforced floor; RF fence 1.1769
+against 1.1910 mm, both-pass window 49.8 µm).
+
+**Bring-up CONFIRMATION, not a gate** — if you have a scope out anyway: 20 MHz
+bandwidth limit on `3V3_MOD` during a load-stepping loop, expect ringing near
+98 kHz decaying in ~44 µs at well under 300 mV. **Only if it exceeds ~330 mV p-p
+does the damping leg (≈ 1 Ω + 10 µF in parallel with `C_SW`) become owed** — and
+that would mean the load step is larger than anything derived here.
 
 ---
 
