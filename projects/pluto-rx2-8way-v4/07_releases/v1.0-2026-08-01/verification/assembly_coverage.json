@@ -1,0 +1,24 @@
+{
+ "target": "projects/pluto-rx2-8way-v4/06_build/fab",
+ "summary": {
+  "board": 32,
+  "cpl": 27,
+  "datum_max_mm": 0.0,
+  "datum_max_ref": "U_SW",
+  "datum_graded": 27,
+  "unpopulated": 5,
+  "declared": 5,
+  "consigned": 0,
+  "exempt_prefixes": [
+   "H",
+   "TP",
+   "FID",
+   "MH"
+  ],
+  "sides": {
+   "top": 27
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

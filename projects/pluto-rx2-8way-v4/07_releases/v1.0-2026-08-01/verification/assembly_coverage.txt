@@ -1,0 +1,5 @@
+== A-POP assembly_coverage: fab ==
+  board=32 footprints, cpl=27 placements, unpopulated=5 (declared=5, consigned=0, exempt_prefixes=['H', 'TP', 'FID', 'MH'])
+  placement histogram: top=27
+  A-POS datum: 27 CPL row(s) graded against the pad-array centre, worst = 0.00000mm (U_SW), tolerance 0.05mm
+A-POP: PASS (every unpopulated part is declared with evidence)

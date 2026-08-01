@@ -1,0 +1,35 @@
+board:            04_kicad/pluto_rx2_8way_v4.kicad_pcb
+GND fence elements: 3465  (of which PTH GND pads/posts: 40)
+lattice columns:  139   rows: 172
+column pitches seen: [0.007, 0.008, 0.01, 0.014, 0.016, 0.017]
+row pitches seen:    [0.01, 0.014, 0.016, 0.02, 0.03, 0.031]
+
+band = +/-2.5 mm perpendicular to the arm copper; vias BEYOND either end excluded; bound <= 1.191 mm
+
+arm             len side   n  max gap lead-in run-out               offsets(mm)  verdict
+ANT1         14.001    W  38   0.8485   0.389   0.346        0.53-2.37 (8 rows)  OK
+ANT1         14.001    E  29   1.1639   1.488   0.382        0.57-2.26 (9 rows)  OK
+ANT2         14.000    W  30   0.8000   0.300   0.390        0.52-2.05 (8 rows)  OK
+ANT2         14.000    E  28   0.9200   0.300   0.550        0.52-2.32 (6 rows)  OK
+ANT3         14.121    W  31   1.1078   1.424   0.390       0.59-2.49 (29 rows)  OK
+ANT3         14.121    E  32   1.1545   1.331   1.456       0.52-2.49 (32 rows)  OK
+ANT4         14.000    W  19   1.1500   2.860   0.450       0.51-2.40 (10 rows)  OK
+ANT4         14.000    E  40   0.8000   0.320   0.450        0.55-2.50 (7 rows)  OK
+ANT5         14.001    W  39   1.0677   0.276   0.389        0.64-2.43 (9 rows)  OK
+ANT5         14.001    E  23   1.1639   1.930   1.488        0.61-2.16 (6 rows)  OK
+ANT6         14.000    W  39   0.8800   0.900   0.300        0.52-2.25 (6 rows)  OK
+ANT6         14.000    E  26   0.8800   0.780   1.900        0.52-1.83 (6 rows)  OK
+ANT7         14.121    W  17   1.1502   2.384   2.269       0.52-2.17 (17 rows)  OK
+ANT7         14.121    E  40   0.8197   0.400   1.208       0.59-2.50 (40 rows)  OK
+RX2_OUT      14.000    W  38   0.8900   0.300   0.680        0.65-2.25 (7 rows)  OK
+RX2_OUT      14.000    E  27   0.8800   1.900   0.690        0.52-2.50 (7 rows)  OK
+RX1_MAIN     11.000    W  19   1.1500   0.500   0.100        1.20-2.00 (3 rows)  OK
+RX1_MAIN     11.000    E  16   1.1500   0.500   0.600        0.51-2.26 (5 rows)  OK
+RX1_TAP      25.018    W  64   1.1600   0.658   1.240       0.51-2.45 (22 rows)  OK
+RX1_TAP      25.018    E  64   1.1769   0.035   0.424       0.55-2.47 (22 rows)  OK
+RX1_TAP_MID   1.200    W   3   0.8000   0.200   0.200        1.40-2.20 (2 rows)  OK
+RX1_TAP_MID   1.200    E   4   0.8000   0.200   0.200        1.00-1.80 (2 rows)  OK
+
+WORST interior along-arm gap: 1.1769 mm  [RX1_TAP E at s=18.97..20.15]   (22 arm-sides measured, 0 OVER)
+BOUND: <= 1.191 mm  (ARCHITECTURE sec 6 / ADR-0004: GCPW ground-stitch, lambda_pp/20 = lambda_0/sqrt(er)/20 = 1.1910 mm)
+VERDICT: PASS

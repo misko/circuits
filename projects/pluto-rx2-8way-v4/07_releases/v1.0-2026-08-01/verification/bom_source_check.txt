@@ -1,0 +1,4 @@
+BOM-vs-source: projects/pluto-rx2-8way-v4/06_build/fab/bom.csv
+  source: projects/pluto-rx2-8way-v4/03_tscircuit/build/circuit.json (28 coded refdes); ledger: 167 vetted passive codes
+  coverage leg C: 7/7 R/C rows value-graded (11 BOM rows seen)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

@@ -1,0 +1,3038 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-07-31T23:41:33",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.4",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/028bdc21-79f1-46d5-bc58-8108c9363284",
+            "violations": [
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR60 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.2794,
+                                "y": 2.08915
+                            },
+                            "uuid": "610012d5-0f18-4965-b315-6fe39831f270"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol LED_ST Pin 1 [K, Passive, Line]",
+                            "pos": {
+                                "x": 0.2794,
+                                "y": 2.08915
+                            },
+                            "uuid": "f59b3a58-bf7c-4bb5-8525-c7e1d1c422c5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR60 [GND]",
+                            "pos": {
+                                "x": 0.2794,
+                                "y": 2.08915
+                            },
+                            "uuid": "392fad70-214a-4e7a-9877-40a5d8a8a427"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol LED_ST [SYM_LED_ST]",
+                            "pos": {
+                                "x": 0.4064,
+                                "y": 2.08915
+                            },
+                            "uuid": "f138c3fe-3c0b-4d89-87e8-e0e8b8cfcb14"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol C_SW2 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.53975
+                            },
+                            "uuid": "b6e9ead3-0074-4442-a628-fef7a5424877"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0063 mm",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.53975
+                            },
+                            "uuid": "e24c24bd-750e-4942-9c5c-626f0c45256a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C_SW2 [SYM_C_SW2]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.57785
+                            },
+                            "uuid": "fb1c7ac6-3e7c-4185-9740-ed3aacdb5c86"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR58 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.61595
+                            },
+                            "uuid": "ca723838-68aa-45be-9a75-3863ea84689c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR58 [GND]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.61595
+                            },
+                            "uuid": "0d361bf4-5fdc-4b54-8820-73dd07b76fdd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0063 mm",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.762
+                            },
+                            "uuid": "51e0ace0-cd72-4257-8e84-32e0753e4b61"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol C_SW1 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.76835
+                            },
+                            "uuid": "77ef9215-bef7-4459-a817-836333418c27"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0063 mm",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.76835
+                            },
+                            "uuid": "b3f83717-1faa-4c04-b995-9b301b9c3159"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C_SW1 [SYM_C_SW1]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.80645
+                            },
+                            "uuid": "b0d91d08-d826-40de-8ddc-720516061e51"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR57 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.84455
+                            },
+                            "uuid": "f164d7bb-697f-43a2-bc9d-088923e78aba"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR57 [GND]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.84455
+                            },
+                            "uuid": "8b2e0c66-778e-48c7-96b0-a8f180c6d43c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol FB_3V3 Pin 1 [IN, Passive, Line]",
+                            "pos": {
+                                "x": 0.4572,
+                                "y": 1.07315
+                            },
+                            "uuid": "76525d0a-b9ec-478f-b03b-f9c674b7aa9d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_LED [SYM_R_LED]",
+                            "pos": {
+                                "x": 0.4953,
+                                "y": 1.8161
+                            },
+                            "uuid": "2af57bc1-3aa5-4bab-8faf-d4252eb4f4ae"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol R_S3 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.50165,
+                                "y": 1.5748
+                            },
+                            "uuid": "c139528c-7669-4330-bc1c-377cb6a0bd9f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_PD3 [SYM_R_PD3]",
+                            "pos": {
+                                "x": 0.5334,
+                                "y": 1.3462
+                            },
+                            "uuid": "0540736d-8f22-42f8-a9fe-7b7200832ba9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR54 [GND]",
+                            "pos": {
+                                "x": 0.5334,
+                                "y": 1.3843
+                            },
+                            "uuid": "16eb0007-6ab2-41dd-ae02-a58938c8a460"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_S3 [SYM_R_S3]",
+                            "pos": {
+                                "x": 0.53975,
+                                "y": 1.5748
+                            },
+                            "uuid": "6403cc74-ccd5-40c2-838a-f424f270cb4b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol FB_3V3 [SYM_FB_3V3]",
+                            "pos": {
+                                "x": 0.5969,
+                                "y": 1.07315
+                            },
+                            "uuid": "48e50ac8-d11a-48a5-aea3-b8a131d8dbcd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0127 mm",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 1.92405
+                            },
+                            "uuid": "cde2c3ec-7e6d-4ccc-9b6f-76c607555a45"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0889 mm",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 2.08915
+                            },
+                            "uuid": "78447886-a3ff-4c64-9173-6071ad5b7232"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.2731 mm",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 1.8161
+                            },
+                            "uuid": "9d673d9e-3c78-42f8-baa6-8885da93e9e3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0191 mm",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 0.7366
+                            },
+                            "uuid": "ad1f2248-dfc4-4f4b-a423-12665d736e23"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.2604 mm",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.7366
+                            },
+                            "uuid": "e9db9a48-f207-486f-b3ce-3bc7ee08e74a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0063 mm",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 0.75565
+                            },
+                            "uuid": "3d9c84e2-ebbc-48f1-b780-a4a7b22e68ab"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol C_BULK Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 0.762
+                            },
+                            "uuid": "7788081b-4147-40eb-b30c-b12c16cb0d72"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C_BULK [SYM_C_BULK]",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 0.8001
+                            },
+                            "uuid": "cba95e43-9533-4e7e-b3c5-e41fd92c7b8e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR56 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 0.8382
+                            },
+                            "uuid": "cdf5b889-b312-44e0-8464-e9719f76ee42"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #FLG01 Hidden pin 1 [pwr, Power output, Line]",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 0.8382
+                            },
+                            "uuid": "e78497b1-d02c-4a88-a3c1-73061c6df5cf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR56 [GND]",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 0.8382
+                            },
+                            "uuid": "91e2b496-2d2a-4606-903f-c24bf81743e4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #FLG01 [PWR_FLAG]",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 0.8382
+                            },
+                            "uuid": "9aa160fc-9d48-49c2-a218-f25d748d08b1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.2667 mm",
+                            "pos": {
+                                "x": 0.70485,
+                                "y": 1.13665
+                            },
+                            "uuid": "6b5bdacd-37b2-473c-bd7b-db55761ad26a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0127 mm",
+                            "pos": {
+                                "x": 0.70485,
+                                "y": 1.14935
+                            },
+                            "uuid": "afcb8c59-dc94-4083-b2e7-3c822560e3fe"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 0.70485,
+                                "y": 1.40335
+                            },
+                            "uuid": "b3d451a6-b319-4be5-a995-2527b59a87dd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_S4 [SYM_R_S4]",
+                            "pos": {
+                                "x": 0.7239,
+                                "y": 1.9558
+                            },
+                            "uuid": "1586ec0a-d9fd-4427-80d4-3323453a4d6b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol U_MCU Pin 1 [GP0, Passive, Line]",
+                            "pos": {
+                                "x": 0.73025,
+                                "y": 1.40335
+                            },
+                            "uuid": "5601de6b-36f4-4b15-9559-1e50bfbee339"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0445 mm",
+                            "pos": {
+                                "x": 0.7874,
+                                "y": 2.0574
+                            },
+                            "uuid": "28e971b0-6867-4230-b246-94903ccaeb98"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0953 mm",
+                            "pos": {
+                                "x": 0.74295,
+                                "y": 2.0574
+                            },
+                            "uuid": "6c932198-d4bf-4efe-9dbd-79d1d4697bb7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol R_PD4 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.74295,
+                                "y": 2.15265
+                            },
+                            "uuid": "5dc1bca7-8e95-4e7e-b9e0-17f5b9af4d89"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_PD4 [SYM_R_PD4]",
+                            "pos": {
+                                "x": 0.74295,
+                                "y": 2.19075
+                            },
+                            "uuid": "8e9650e7-34e7-419f-b5c4-6ccce5d84752"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR55 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.74295,
+                                "y": 2.22885
+                            },
+                            "uuid": "a738045a-5448-407e-8544-fd31b0605067"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR55 [GND]",
+                            "pos": {
+                                "x": 0.74295,
+                                "y": 2.22885
+                            },
+                            "uuid": "e8ed37dd-a954-4279-95b9-0cf2c31bef0c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U_MCU [SYM_U_MCU]",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 1.54305
+                            },
+                            "uuid": "f8d52ee7-605b-49db-87fd-2d2864724af3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.1905 mm",
+                            "pos": {
+                                "x": 0.89535,
+                                "y": 1.13665
+                            },
+                            "uuid": "17c2f17d-c6d5-4c1c-ae92-49bfed8d872c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol R_S1 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.89535,
+                                "y": 1.13665
+                            },
+                            "uuid": "a64ceed5-c60e-46e3-b62e-29cf478eea62"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_PD1 [SYM_R_PD1]",
+                            "pos": {
+                                "x": 0.9271,
+                                "y": 0.9017
+                            },
+                            "uuid": "48408a8a-ec06-406a-bd3e-b2191029a4f5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR52 [GND]",
+                            "pos": {
+                                "x": 0.9271,
+                                "y": 0.9398
+                            },
+                            "uuid": "7c73c1e7-26b6-4d7d-bc60-3949961a6ac2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_S1 [SYM_R_S1]",
+                            "pos": {
+                                "x": 0.93345,
+                                "y": 1.13665
+                            },
+                            "uuid": "0aa5f119-b605-48f4-9f8b-530fba1babdf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_S2 [SYM_R_S2]",
+                            "pos": {
+                                "x": 0.9525,
+                                "y": 1.9558
+                            },
+                            "uuid": "ad2c48cf-9b22-48d2-99e5-ba74d5eeb030"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0635 mm",
+                            "pos": {
+                                "x": 0.97155,
+                                "y": 1.13665
+                            },
+                            "uuid": "59b39e5b-2db5-4d08-a388-ecd0e181973e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0318 mm",
+                            "pos": {
+                                "x": 1.016,
+                                "y": 2.0574
+                            },
+                            "uuid": "d78ee339-71d2-458e-8457-0fa8001eb1b4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0953 mm",
+                            "pos": {
+                                "x": 0.98425,
+                                "y": 2.0574
+                            },
+                            "uuid": "f709c4c9-721e-49fb-8294-00b7c13def05"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol R_PD2 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.98425,
+                                "y": 2.15265
+                            },
+                            "uuid": "c695ed38-28c2-47ad-a07f-b4c428696f1d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_PD2 [SYM_R_PD2]",
+                            "pos": {
+                                "x": 0.98425,
+                                "y": 2.19075
+                            },
+                            "uuid": "07534afc-eced-4d4d-827c-cb77c0cb214d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR53 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.98425,
+                                "y": 2.22885
+                            },
+                            "uuid": "85152c01-4ea1-4098-8b5b-69da879cec05"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR53 [GND]",
+                            "pos": {
+                                "x": 0.98425,
+                                "y": 2.22885
+                            },
+                            "uuid": "7381ca7c-3ae5-45e7-9d4a-dacda648130e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR59 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.02235,
+                                "y": 1.44145
+                            },
+                            "uuid": "f36e229f-4347-4791-929a-2292ab7a762b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR59 [GND]",
+                            "pos": {
+                                "x": 1.02235,
+                                "y": 1.44145
+                            },
+                            "uuid": "149b9b90-27ed-40fa-b66f-ae3fa57e4627"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0127 mm",
+                            "pos": {
+                                "x": 1.02235,
+                                "y": 1.46685
+                            },
+                            "uuid": "056f0eac-13fd-4d2e-a44e-4c2f7d4ba144"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.1080 mm",
+                            "pos": {
+                                "x": 1.03505,
+                                "y": 0.8382
+                            },
+                            "uuid": "aa40edb3-ee61-4f74-8b36-629f39b65a39"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0127 mm",
+                            "pos": {
+                                "x": 1.03505,
+                                "y": 1.04775
+                            },
+                            "uuid": "7f398b10-0b79-46ae-803f-2b58c3872cea"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.2984 mm",
+                            "pos": {
+                                "x": 1.03505,
+                                "y": 1.13665
+                            },
+                            "uuid": "50f3c152-fae0-4fea-be43-52cc6659ef9f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.03505,
+                                "y": 1.46685
+                            },
+                            "uuid": "13927d43-aca6-4aed-ad8a-aa9f66087ef1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.5524 mm",
+                            "pos": {
+                                "x": 1.0414,
+                                "y": 0.84455
+                            },
+                            "uuid": "30643ebb-8a75-4fa5-92b8-e27ec966700d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT2 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.12395,
+                                "y": 1.04775
+                            },
+                            "uuid": "b96287cc-47c8-4f66-8600-7e462ff9c4ef"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR16 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.12395,
+                                "y": 1.07315
+                            },
+                            "uuid": "8d3547d0-5d9f-425d-8eb0-4462d0dfb5b5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR16 [GND]",
+                            "pos": {
+                                "x": 1.12395,
+                                "y": 1.07315
+                            },
+                            "uuid": "220914cf-5a19-43a4-9990-1d293df1fa67"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR17 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.12395,
+                                "y": 1.09855
+                            },
+                            "uuid": "bf69af1c-90e8-45c8-a111-e0d6eabfeba5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR17 [GND]",
+                            "pos": {
+                                "x": 1.12395,
+                                "y": 1.09855
+                            },
+                            "uuid": "30f0e215-354f-411f-8c79-2f85f4177378"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.3048 mm",
+                            "pos": {
+                                "x": 1.1557,
+                                "y": 1.74625
+                            },
+                            "uuid": "e2de0b72-8c28-4617-b230-035d7bdae9da"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0191 mm",
+                            "pos": {
+                                "x": 1.1557,
+                                "y": 2.05105
+                            },
+                            "uuid": "a0f9f228-43b3-4c56-ae79-712af3bfaf15"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR01 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.44145
+                            },
+                            "uuid": "a720e5eb-5d60-4464-8a7e-e0715c86cdb7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol U_SW Pin 1 [LS, Passive, Line]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.44145
+                            },
+                            "uuid": "fe55a26a-7547-4b4a-9306-8ff648f2720a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR01 [GND]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.44145
+                            },
+                            "uuid": "1152a67c-214d-4d2e-a42b-c20e3570d258"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR02 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.49225
+                            },
+                            "uuid": "860d853f-4a08-47fb-9bb1-97e60eb222b0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR02 [GND]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.49225
+                            },
+                            "uuid": "8f65f430-0f9d-4b50-9bdb-214c865f82fc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR03 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.54305
+                            },
+                            "uuid": "442e4d1c-c48c-469f-85be-9beef6e85de1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR03 [GND]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.54305
+                            },
+                            "uuid": "d676af85-676f-4f8f-af8d-c4ed41946b11"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR04 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.59385
+                            },
+                            "uuid": "984a0de7-3569-4d65-a826-83481581cce9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR04 [GND]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.59385
+                            },
+                            "uuid": "34052236-75f7-4664-acae-7be90a40e96a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0191 mm",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 1.74625
+                            },
+                            "uuid": "0a18e5c6-127d-4b19-8e9e-2b4f8e6f3b2e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT5 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 2.05105
+                            },
+                            "uuid": "228db433-088a-4bb8-8efc-f0c46f2fd4c3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR28 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 2.07645
+                            },
+                            "uuid": "cf06abea-fdb9-40d4-bbcc-691fabb0f475"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR28 [GND]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 2.07645
+                            },
+                            "uuid": "9d3b4767-b6d7-437f-8df2-0a4878e02f22"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR29 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 2.10185
+                            },
+                            "uuid": "355645e7-aec9-4a8f-8d14-6a456ba87736"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR29 [GND]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 2.10185
+                            },
+                            "uuid": "a18c9a6c-0390-4320-861c-56b1ee275a37"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol R_T2 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.23825,
+                                "y": 0.78105
+                            },
+                            "uuid": "ca094457-c44a-4307-be57-d0a0219bba70"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT2 [SYM_J_ANT2]",
+                            "pos": {
+                                "x": 1.26365,
+                                "y": 1.07315
+                            },
+                            "uuid": "2b9fed6e-5644-44d4-b51c-272e835013ed"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_T2 [SYM_R_T2]",
+                            "pos": {
+                                "x": 1.27635,
+                                "y": 0.78105
+                            },
+                            "uuid": "92a2a0f3-172b-4ad9-a2a9-7b4752068105"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.2477 mm",
+                            "pos": {
+                                "x": 1.0414,
+                                "y": 0.2921
+                            },
+                            "uuid": "81604b3b-2e02-48d6-92b1-3a2f4a911ac5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol R_T1 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.28905,
+                                "y": 0.2921
+                            },
+                            "uuid": "e25af87f-70b4-4669-895a-bb3c2a289753"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U_SW [SYM_U_SW]",
+                            "pos": {
+                                "x": 1.31445,
+                                "y": 1.59385
+                            },
+                            "uuid": "c80ebb04-24a5-4c92-9373-d80f40858f24"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT5 [SYM_J_ANT5]",
+                            "pos": {
+                                "x": 1.31445,
+                                "y": 2.07645
+                            },
+                            "uuid": "f459331f-5980-4c5b-b97c-3ecd388b098f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R_T1 [SYM_R_T1]",
+                            "pos": {
+                                "x": 1.32715,
+                                "y": 0.2921
+                            },
+                            "uuid": "53db0c1c-ba91-4f34-9d1c-2b4595b951c5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR19 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.40335,
+                                "y": 1.06045
+                            },
+                            "uuid": "fca56331-1e92-4d52-bfc7-9150ba2d010b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR19 [GND]",
+                            "pos": {
+                                "x": 1.40335,
+                                "y": 1.06045
+                            },
+                            "uuid": "54a66b3e-001a-4a48-95e0-09cf204c2b0f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR18 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.40335,
+                                "y": 1.08585
+                            },
+                            "uuid": "56bb1282-64db-45e5-9365-0e1da82d6ef0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR18 [GND]",
+                            "pos": {
+                                "x": 1.40335,
+                                "y": 1.08585
+                            },
+                            "uuid": "215e9857-1a7d-40ad-b12d-c96e4d12221d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR11 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.45415
+                            },
+                            "uuid": "54b7f922-9ac2-4c77-a45e-a6ae1e7fac50"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR11 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.45415
+                            },
+                            "uuid": "c7a6a30b-2db7-4162-84af-c55b6894b54c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR10 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.50495
+                            },
+                            "uuid": "c122bcf6-a35b-47da-bd8e-b4274756c799"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR10 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.50495
+                            },
+                            "uuid": "a3085b22-12f1-4a82-82df-c77f06b8d350"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR09 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.55575
+                            },
+                            "uuid": "5f3ac34e-6a1a-4133-ac80-27cbce1a6074"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR09 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.55575
+                            },
+                            "uuid": "d789b38b-fbb8-4839-99d2-bbca78fb0419"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR08 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.58115
+                            },
+                            "uuid": "ea6d4057-79dd-497e-a088-fcb6a5c250f4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR08 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.58115
+                            },
+                            "uuid": "92c26f3d-b2ef-488d-8605-be3c982c851e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR07 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.63195
+                            },
+                            "uuid": "8ceeeac7-9c3e-4c34-8e66-c8a5334ea7a9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR07 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.63195
+                            },
+                            "uuid": "dbdd15f3-0cfb-41df-9272-183573feccaa"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR06 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.68275
+                            },
+                            "uuid": "78125bc4-680f-4351-a5d7-b4824cf9b2fd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR06 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.68275
+                            },
+                            "uuid": "ed496bab-601b-414e-ae2e-c1a291440e03"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR05 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.73355
+                            },
+                            "uuid": "643da2ab-673a-4e12-a3e0-b292935c7ec9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR05 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.73355
+                            },
+                            "uuid": "3131deeb-f859-4587-922d-313ddc6bc72f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR31 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 2.06375
+                            },
+                            "uuid": "748c3998-1445-4ee1-b85f-0762646a5831"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR31 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 2.06375
+                            },
+                            "uuid": "20da7594-ad28-4ae5-90ae-9c2dc743f516"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR30 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 2.08915
+                            },
+                            "uuid": "678f418f-21f2-4568-9f45-13e55c0c8f01"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR30 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 2.08915
+                            },
+                            "uuid": "8a01f04b-0b5a-4499-a679-f46278cbbb89"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_RX1 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.46685,
+                                "y": 0.48895
+                            },
+                            "uuid": "0839c170-c25f-4c91-a224-70f3f7df1d62"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR44 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.46685,
+                                "y": 0.51435
+                            },
+                            "uuid": "ef2d6acc-8fe5-49a3-bd1d-6cbacd217d5c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR44 [GND]",
+                            "pos": {
+                                "x": 1.46685,
+                                "y": 0.51435
+                            },
+                            "uuid": "32f8c58b-e2f8-49b2-b8f5-8a6edbcd385e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR45 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.46685,
+                                "y": 0.53975
+                            },
+                            "uuid": "e74e477f-ba66-4573-bcec-16d79b4ea44a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR45 [GND]",
+                            "pos": {
+                                "x": 1.46685,
+                                "y": 0.53975
+                            },
+                            "uuid": "cc9644c9-f253-47d5-ab94-22e3ffee0bf6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT8 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 0.84455
+                            },
+                            "uuid": "9f70f7cd-5c7d-4563-b10e-e1cf4b5d262b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.4699 mm",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 0.84455
+                            },
+                            "uuid": "f716d2c5-4f26-4010-893b-9b47910178d1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR40 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 0.86995
+                            },
+                            "uuid": "1c31c104-a049-4c6c-a922-d3bf2cc2df74"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR40 [GND]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 0.86995
+                            },
+                            "uuid": "5b0c9b8b-2364-4423-9d4a-4bba2cdf09f4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR41 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 0.89535
+                            },
+                            "uuid": "23bd4fc4-86d6-4653-b3ff-d4380af83e6d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR41 [GND]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 0.89535
+                            },
+                            "uuid": "3ac96239-2233-4167-822a-4186183d17b5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT1 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 1.20015
+                            },
+                            "uuid": "afa5f5f0-8c23-40f2-b28a-082c8d37f1ed"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR12 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 1.22555
+                            },
+                            "uuid": "1b6296a9-3a46-4122-a42a-603a53029e1c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR12 [GND]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 1.22555
+                            },
+                            "uuid": "c1dea07c-d629-4085-80ee-f5aa385184cd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR13 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 1.25095
+                            },
+                            "uuid": "82c7f748-2ae4-44f0-a5cb-c071daca40ea"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR13 [GND]",
+                            "pos": {
+                                "x": 1.5113,
+                                "y": 1.25095
+                            },
+                            "uuid": "b1ab342c-e5ce-41ce-a73a-b1399ca78b72"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT4 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.5621,
+                                "y": 1.91135
+                            },
+                            "uuid": "6cdd8fde-6d5d-4df1-b522-bf6858e48c30"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR24 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5621,
+                                "y": 1.93675
+                            },
+                            "uuid": "e8c65ef9-71b8-4668-b78c-5c84c4d34a70"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR24 [GND]",
+                            "pos": {
+                                "x": 1.5621,
+                                "y": 1.93675
+                            },
+                            "uuid": "530aa0bf-9733-446f-a9c2-142514dfea2c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR25 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5621,
+                                "y": 1.96215
+                            },
+                            "uuid": "ad4f56ee-ba2b-4093-a4dd-450156b20cf2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR25 [GND]",
+                            "pos": {
+                                "x": 1.5621,
+                                "y": 1.96215
+                            },
+                            "uuid": "71014907-25e2-4fca-b6e0-7bc7b81dda9b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_RX1 [SYM_J_RX1]",
+                            "pos": {
+                                "x": 1.60655,
+                                "y": 0.51435
+                            },
+                            "uuid": "0f4d94d6-0e92-48c1-8532-7919ba1ad162"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT3 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.6129,
+                                "y": 1.55575
+                            },
+                            "uuid": "b5b1fda0-403a-4878-9c0a-e67bafd54c42"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR20 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.6129,
+                                "y": 1.58115
+                            },
+                            "uuid": "479442b0-5355-4736-b0c5-afeb88709419"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR20 [GND]",
+                            "pos": {
+                                "x": 1.6129,
+                                "y": 1.58115
+                            },
+                            "uuid": "be95724f-9425-4200-9f1a-56eb6fd62dcf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR21 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.6129,
+                                "y": 1.60655
+                            },
+                            "uuid": "f25cd624-3029-4ada-9d0a-52a0023d762c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR21 [GND]",
+                            "pos": {
+                                "x": 1.6129,
+                                "y": 1.60655
+                            },
+                            "uuid": "2cbb7898-a19c-4384-9fab-22ae33170c78"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT8 [SYM_J_ANT8]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 0.86995
+                            },
+                            "uuid": "eedd96b4-3e77-44d1-b3fb-b385a5b872ce"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT1 [SYM_J_ANT1]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.22555
+                            },
+                            "uuid": "fc444008-890d-4f05-8cc3-74d3c91190f6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT4 [SYM_J_ANT4]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 1.93675
+                            },
+                            "uuid": "e166a4b1-f240-4ce2-a5fb-41a26498ddac"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR47 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.74625,
+                                "y": 0.50165
+                            },
+                            "uuid": "87949076-960b-4477-bd08-01f73b81484c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR47 [GND]",
+                            "pos": {
+                                "x": 1.74625,
+                                "y": 0.50165
+                            },
+                            "uuid": "37c085ed-c641-4bba-8c60-4516eea06793"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR46 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.74625,
+                                "y": 0.52705
+                            },
+                            "uuid": "f0f7038e-a6ae-43c5-9e69-93879371212e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR46 [GND]",
+                            "pos": {
+                                "x": 1.74625,
+                                "y": 0.52705
+                            },
+                            "uuid": "192fcac3-281f-4d6a-af0a-faee650b4970"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT3 [SYM_J_ANT3]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 1.58115
+                            },
+                            "uuid": "25703518-91e3-41d9-908f-19e076da9d7a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR43 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 0.85725
+                            },
+                            "uuid": "2dcda57f-fd58-4a21-a077-46093c61b4be"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR43 [GND]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 0.85725
+                            },
+                            "uuid": "f99001d4-d712-4f43-83aa-5680953dca6b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR42 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 0.88265
+                            },
+                            "uuid": "6e3994bd-44bf-4368-84d7-6619368a2b65"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR42 [GND]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 0.88265
+                            },
+                            "uuid": "fde6224e-4fe2-444a-b4f0-810e736cc3b4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR15 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 1.21285
+                            },
+                            "uuid": "c89a7aa1-c51e-486e-80b0-96743b2440e4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR15 [GND]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 1.21285
+                            },
+                            "uuid": "7b00c526-363f-4a55-b1b4-74616f25b853"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR14 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 1.23825
+                            },
+                            "uuid": "481b7301-58fd-4ee0-91a7-69a37b9f54a0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR14 [GND]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 1.23825
+                            },
+                            "uuid": "294d9503-139e-41a5-8a0e-e3aa70d60fd6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR27 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.8415,
+                                "y": 1.92405
+                            },
+                            "uuid": "ce884c52-9bee-4038-8e0a-6da492e17813"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR27 [GND]",
+                            "pos": {
+                                "x": 1.8415,
+                                "y": 1.92405
+                            },
+                            "uuid": "38bd39ff-b563-4104-b957-36a5b87f3932"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR26 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.8415,
+                                "y": 1.94945
+                            },
+                            "uuid": "4f417a88-efd7-4e99-8161-73b7160ec25c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR26 [GND]",
+                            "pos": {
+                                "x": 1.8415,
+                                "y": 1.94945
+                            },
+                            "uuid": "869f317e-6687-47e5-a2f6-06c6b5b47ccd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_RX2 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.09855
+                            },
+                            "uuid": "fb140355-2522-437b-b866-67cb19a5e2da"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR48 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.12395
+                            },
+                            "uuid": "f9978a03-09b1-47a4-97b4-f546ed74ea5f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR48 [GND]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.12395
+                            },
+                            "uuid": "a151972a-6905-47b1-a3e8-fc1b9f69b838"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR49 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.14935
+                            },
+                            "uuid": "14ea7e68-b1d2-411a-b086-a7ba46f68ffe"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR49 [GND]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.14935
+                            },
+                            "uuid": "0e273ef8-eeb9-43df-9d36-a1b0a8552da7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR23 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.56845
+                            },
+                            "uuid": "7f625fe8-eba5-413e-b22a-e787f27d80ec"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR23 [GND]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.56845
+                            },
+                            "uuid": "6ab1f470-6f95-43b3-ba80-4f3ebebe810e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR22 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.59385
+                            },
+                            "uuid": "b7bf55e6-a48b-4027-8279-084804d4e99f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR22 [GND]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.59385
+                            },
+                            "uuid": "e63f0e54-1f2b-409f-a74e-517b1ad5a854"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT6 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.9431,
+                                "y": 1.91135
+                            },
+                            "uuid": "95d1f53f-3626-4ab6-ac4a-9000db4d8c70"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR32 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.9431,
+                                "y": 1.93675
+                            },
+                            "uuid": "39cd9319-785a-4d49-928b-5194873affb5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR32 [GND]",
+                            "pos": {
+                                "x": 1.9431,
+                                "y": 1.93675
+                            },
+                            "uuid": "2801cf2a-a8ce-4108-8ddb-1ffe91cb2c82"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR33 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.9431,
+                                "y": 1.96215
+                            },
+                            "uuid": "b5efc657-64bb-455e-ad79-564e9ce5c61d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR33 [GND]",
+                            "pos": {
+                                "x": 1.9431,
+                                "y": 1.96215
+                            },
+                            "uuid": "9ab60689-948b-483c-8c59-7d860cd30c6b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT7 Pin 1 [RF, Passive, Line]",
+                            "pos": {
+                                "x": 1.9939,
+                                "y": 1.55575
+                            },
+                            "uuid": "1b957f6f-661e-4c75-944c-6a951b844698"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR36 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.9939,
+                                "y": 1.58115
+                            },
+                            "uuid": "24d9a626-93d1-4f30-bdd2-ffdc17e365a6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR36 [GND]",
+                            "pos": {
+                                "x": 1.9939,
+                                "y": 1.58115
+                            },
+                            "uuid": "1b83e7ec-7620-4d8d-a274-53dc2e59fa17"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR37 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.9939,
+                                "y": 1.60655
+                            },
+                            "uuid": "4c5be26e-c866-41e0-9428-945ecb4778a2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR37 [GND]",
+                            "pos": {
+                                "x": 1.9939,
+                                "y": 1.60655
+                            },
+                            "uuid": "0d1265cb-5ab5-496f-b135-968a4ef87cf5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_RX2 [SYM_J_RX2]",
+                            "pos": {
+                                "x": 2.032,
+                                "y": 1.12395
+                            },
+                            "uuid": "d398fafc-ba11-4b45-a9fa-90fcb8db859d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT6 [SYM_J_ANT6]",
+                            "pos": {
+                                "x": 2.0828,
+                                "y": 1.93675
+                            },
+                            "uuid": "5446de59-484b-40e4-a50a-988026ec6ab0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_ANT7 [SYM_J_ANT7]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 1.58115
+                            },
+                            "uuid": "c9760837-3739-4433-8422-b0e13121354c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR51 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.1717,
+                                "y": 1.11125
+                            },
+                            "uuid": "b3351877-a228-4d89-a3f8-2257920f7049"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR51 [GND]",
+                            "pos": {
+                                "x": 2.1717,
+                                "y": 1.11125
+                            },
+                            "uuid": "91ef7805-1ee0-4366-87d3-1d77b5d41c8a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR50 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.1717,
+                                "y": 1.13665
+                            },
+                            "uuid": "89e5e348-8725-47fc-8cc7-4d85f80a0888"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR50 [GND]",
+                            "pos": {
+                                "x": 2.1717,
+                                "y": 1.13665
+                            },
+                            "uuid": "685e7c89-5d8f-47fa-bee4-1144aeb6a155"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR35 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.2225,
+                                "y": 1.92405
+                            },
+                            "uuid": "b67f3fba-c438-481f-8664-1c9e0db3e1f0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR35 [GND]",
+                            "pos": {
+                                "x": 2.2225,
+                                "y": 1.92405
+                            },
+                            "uuid": "b1a58235-6e7f-449e-b8bf-d8a4a396eee8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR34 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.2225,
+                                "y": 1.94945
+                            },
+                            "uuid": "c3b6fe21-d169-4d96-b1ae-2ecf94a5ae15"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR34 [GND]",
+                            "pos": {
+                                "x": 2.2225,
+                                "y": 1.94945
+                            },
+                            "uuid": "4d1e3909-3dbd-4d7b-bb9b-28869d5f0ef6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR39 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.2733,
+                                "y": 1.56845
+                            },
+                            "uuid": "2066de8b-ba14-42f3-a19b-1fe596da6999"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR39 [GND]",
+                            "pos": {
+                                "x": 2.2733,
+                                "y": 1.56845
+                            },
+                            "uuid": "08ec00eb-1435-4d3c-9801-f8313a8bd0d6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR38 Hidden pin 1 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.2733,
+                                "y": 1.59385
+                            },
+                            "uuid": "e4bd9faf-fa7b-48fb-b2be-647dfe621848"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR38 [GND]",
+                            "pos": {
+                                "x": 2.2733,
+                                "y": 1.59385
+                            },
+                            "uuid": "ba229c09-2840-4375-af6b-4b08e6de7e3e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                }
+            ]
+        }
+    ],
+    "source": "pluto_rx2_8way_v4.kicad_sch"
+}

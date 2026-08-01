@@ -1,0 +1,76 @@
+# MANIFEST — pluto_rx2_8way_v4 v1.0-2026-08-01
+
+board:        pluto_rx2_8way_v4
+version:      v1.0
+ordered:      not ordered; sealed 2026-08-01
+git_sha:      2ea0fbf79980a0d9ad471e64c6ad1201bedaf402
+git_dirty:    false                   # scope: projects/pluto-rx2-8way-v4/ + skills/
+kicad:        10.0.4
+tools:        kicad-cli 10.0.4, pcbnew 10.0.4, python 3.12
+authoring:    tscircuit source/pluto_rx2_8way_v4.tsx; sealed KiCad board and parity netlist included
+fab:          JLCPCB, 4 layer advanced, JLC04121H-7628, 1.2 mm, ENIG, 50 ohm controlled impedance, filled/capped POFV, 0.25/0.15 mm vias
+quantity:     5
+gates:        DRC 0/0/0; ERC 0 errors; parity 0; audit PASS; A-POP PASS 32/27/5; twin 27/27; RF fence 22/22; pin/render/topology/layout SOUND, 0 open P0; stock 11/11
+DESIGN:       PASS
+SOURCING:     CLEAR
+order_verdict: DO-NOT-ORDER
+3d:           STEP present; GLTF absent
+assembly:     JLC assembly for 27 CPL placements; ten plug-in SMA jacks require process confirmation; RP2040-Zero user-fitted
+not_assembled: H1,H2,H3,H4,U_MCU
+
+sha256:
+  3d/pluto_rx2_8way_v4.step e2cf943d44290f957a1739f018a2b921b683385342fffff3460c4890d3b4a1ae
+  ORDER_README.md 5358b5e6c640bc20983bcceeb9c39385dfc653eb1af39704941df68eb3916095
+  fab/bom.csv 1d29b2f3d50320c6c604be3077ea88bdf71209db5474ef1709dad167f5eb1e8d
+  fab/cpl.csv 5865a2b4badb74f2417f477cd12d9b083da8b9496c61feb53d9d0e39ba4189d0
+  fab/pluto_rx2_8way_v4-NPTH.drl 29df26f5d284cb067517943a724b9247e6e7b20a56988bd210d69d1ebf2b399b
+  fab/pluto_rx2_8way_v4-PTH.drl b8925ad6c7f4f18780f4ce43b0c18f3be45b3ff8caf76004ccd2399edf092a4f
+  fab/pluto_rx2_8way_v4_gerbers.zip 38c7bb16f22cc58d44e2d225429ff20bbbf404376cd70972bc75c4064eabf45f
+  pdf/assembly.pdf a18d64a2a218ce8e1c7ddbe90b99922944c6359fdd842e9d77a449ca0eecb8ef
+  pdf/pcb_layers.pdf 7daabf33fb8ca77433f5f7f472ae42463820ea6a1ca6d9cc06f509d501e08a21
+  pdf/schematic.pdf 7601e45ca0056418ae6dfbaf5cb399c5464d89f4d73dbcb92171065b9595f673
+  source/fp-lib-table 00d5d49aa228a639d34a691d76245bc0bf536f6560c6a676c79016eccecb9e97
+  source/pluto_rx2_8way_v4.kicad_dru d7a39bc9e536c452ac2f885575532d75b9f768ffcb9725529031bf1fd08d8fb3
+  source/pluto_rx2_8way_v4.kicad_pcb 4828a4a0dab6fed6e1d17afcd806877f84cf9e77bbf9b7741d3164fb880f0e30
+  source/pluto_rx2_8way_v4.kicad_pro a404373d855fc42a167e7a2e9829e84758ea4f76c1479e597e8a3f97af168148
+  source/pluto_rx2_8way_v4.kicad_sch 3e6627ab345b25f8a46042abceafa0a509b7c0a4dbd440fe54ed32ce0cfeae4f
+  source/pluto_rx2_8way_v4.net f11374a217b3520a3f6502471683a9684118be8f698428104032249bede79c6a
+  source/pluto_rx2_8way_v4.pretty/QFN-24_4x4_P0.5_EP2.7_PE42482.kicad_mod e83a3a0bb3e0e98fafda2e4596c8ef87ad81650401c47d3ef22f291cece9a08e
+  source/pluto_rx2_8way_v4.pretty/RP2040_Zero_LCC23_18x23.5.kicad_mod b3bfd79b78a0bd22742439c354dc3025af571044c8e7f8acbaaf8005c726fea0
+  source/pluto_rx2_8way_v4.pretty/SMA_Vertical_5.08sq_D1.4.kicad_mod a70ebca45d03498e90622952c3c0313617ebf9228c6f04ab2aecfa0260717b09
+  source/pluto_rx2_8way_v4.tsx a326c554089f66838de18ac35223d1cded34f618a292f429ef71b2e81e4e4fdd
+  verification/assembly_coverage.json 4a70f3ffd5bb4ead87f8cd448ef7afd7e21ac16f9fa59fc0cdb07edf172d6e7d
+  verification/assembly_coverage.txt 69ddd4e9c2c8d28a142e4a5d92976e7b1f88575c83c9b558f0bba74a6c26f8fa
+  verification/audit.txt 7a4da82c4b9cb3d77cc6aa1e3694f4999067f5a5e3c0a4a396570c9ea294efb9
+  verification/bom_echo_gate.txt 895dbe80791a3d0a4a048b0e1d3ba596c50b2ebb23a9c1d5ba9458848359894a
+  verification/bom_legibility.json 02a7bc124336ace11d3c6cc33ea951c701ccf8a741abcc53ff416ed6dc56a09a
+  verification/bom_legibility.txt 46e2b4cc2c9324af6683bbc6524d7e3709ed1933ebae1e4740d7cdf4dd71a2d2
+  verification/bom_source_check.txt 8543ad79fc65d432233118a94d1f84a953e72d3e878121bd51d74cfe7fd3b764
+  verification/cpwg_field.json 90ddd56b8ca0baccf3bca1424ddd1ad9010a801a8865abdc72df1a58664ed7fc
+  verification/drc.json dc4597f29204cf656d8c26ddaaaf57b137f7df0c5dec9576385aeb771c5793f2
+  verification/erc.json c658cb7ef3d64c3229e1cb808a05a45c6d66215955bb2622341ed92d7d8d4f27
+  verification/fence_pitch.txt 899b748fdf60c55edf27c46e67e0d0e426de9e9380464308f5b8130d5bf733f6
+  verification/missing_models.txt 978f3b9b9f54350414c5315f9764b0ba76a9613c24ea859319e6dd3db94fbc9d
+  verification/overlay_LED_ST.png e8a6fa0d60204b3d0537b7372d1b680616e754931309c3e1f9f010b34d1ca600
+  verification/parity.md 8e4da1d37ddf1ac844f5b62918a6bfdda90a75b85107d0daa3544585fa9b0688
+  verification/pin_review.md 72162b36a5f44e19b2b0a0c94f276db414880a041da2628a11416aead9b22018
+  verification/policy_audit.md 5a669f9016115ef436283aac7751efecd8bfe22ee071d4cdf4338ee10b1d4b5f
+  verification/redteam_layout.md 96fb815ac8db922c8da7b48dc91341a4a1184d94011726cf90e6eb518aef603c
+  verification/redteam_topology.md 0288854589cc8f81f5458721a554498afd93554f1248e093a2295b8d5e9293c2
+  verification/render_bottom_bare.png f1dc8fa621379c179b665f022437df2f8f3d3518d1690965014601879de46a59
+  verification/render_review.md e223d069f27110d17aaa0f0f11717992b82e871c9740c96050567121a6f6c552
+  verification/render_top_bare.png 2e2749239b4fd98111591d4718f2650d6a2de8ffe6831fceda4915d1962713ea
+  verification/rotation_human_gate.txt f8f90e24bc610a9fd4caaa3f5a60c91b9fe5e3fd2cca0924d60ebea91d7e669b
+  verification/stock_check.csv 170f48f6431e2d047c3762a80548a86a177a6d7ceba80264853f995225c3a690
+  verification/stock_check.json 8355061abd70bcbacc422e941dfa09ff0c327ffdf1f2be4293043bb72968eaa6
+  verification/stock_check.txt 92cd79f79cc3419c030b123369e951d677decdbaaeb712a5f17ca62585dc222b
+  verification/twin_bottom.png b99c6dc7dd45e501d90f42b089821b0be13909d4fd2cf9a7aa3612162fd99342
+  verification/twin_edge_east.png f162ea33e569e51316a3ac5003542f67e4b29f0b658a73fe2ba01bee5685d5fa
+  verification/twin_edge_west.png 780c285660f20b9cf479ced06c1c600e28f65523316df156a5b85d43f1a08be8
+  verification/twin_iso_nw.png b418dfcfd996cb9e7af8a7ee5153572b5d4e8650916cbc9652b8cda1dfc844ae
+  verification/twin_iso_se.png dd9d2c43de81bed9cb6762f255b8804d480aa172a8b61202768780ea54397434
+  verification/twin_overlay_top.md dfd697be8d7b95bae0ebdd4944bf5003a73ffefd2a3aa5d24fc7fda0928eb4d4
+  verification/twin_report.csv 06dc177362c3d04ec1e0711eac855c4020ee68f9d451a50ff02a05e3628c6239
+  verification/twin_report.txt 740464e3d7b3f636147356be8e2fb84b766d684b1825024e1ceb6b3b4a385181
+  verification/twin_top.png 93241acc4ecac11f1493fe7605f7dbfa2422860b65110aabe8141f1e10c8cb26
+  verification/twin_top_courtyard_overlay.png f7d2ca0702fd698c41ce28b2d6233a3061d3655ba5c429d464f403868841b364

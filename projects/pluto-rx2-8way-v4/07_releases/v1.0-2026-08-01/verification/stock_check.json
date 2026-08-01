@@ -1,0 +1,115 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "06_build/fab/bom.csv",
+ "min_stock_per_board": 5,
+ "verdict": "PASS",
+ "stock_source": "lcsc_catalog_stockCount",
+ "predicts_jlc_assembly_allocation": false,
+ "pass_means": "catalog stock >= min_stock x qty at query time; NOT that JLC will allocate the line -- see F-ECHO",
+ "graded_lines": 11,
+ "total_lines": 11,
+ "zero_coverage": null,
+ "failures": 0,
+ "uncoded_lines": 0,
+ "lines": [
+  {
+   "lcsc": "C1525",
+   "designators": "C_SW1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 46025856,
+   "type": "base",
+   "mpn": "CL05B104KO5NNNC"
+  },
+  {
+   "lcsc": "C25076",
+   "designators": "R_S1,R_S2,R_S3,R_S4",
+   "qty": 4,
+   "status": "OK",
+   "stock": 3618037,
+   "type": "base",
+   "mpn": "0402WGF1000TCE"
+  },
+  {
+   "lcsc": "C60490",
+   "designators": "R_PD1,R_PD2,R_PD3,R_PD4",
+   "qty": 4,
+   "status": "OK",
+   "stock": 8689167,
+   "type": "expand",
+   "mpn": "RC0402FR-0710KL"
+  },
+  {
+   "lcsc": "C15849",
+   "designators": "C_SW2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 14259209,
+   "type": "base",
+   "mpn": "CL10A105KB8NNNC"
+  },
+  {
+   "lcsc": "C25091",
+   "designators": "R_T1,R_T2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1704119,
+   "type": "base",
+   "mpn": "0402WGF2200TCE"
+  },
+  {
+   "lcsc": "C1779",
+   "designators": "C_BULK",
+   "qty": 1,
+   "status": "OK",
+   "stock": 3544439,
+   "type": "base",
+   "mpn": "CL21A475KAQNNNE"
+  },
+  {
+   "lcsc": "C137948",
+   "designators": "R_LED",
+   "qty": 1,
+   "status": "OK",
+   "stock": 744354,
+   "type": "expand",
+   "mpn": "RC0402FR-07680RL"
+  },
+  {
+   "lcsc": "C3716677",
+   "designators": "FB_3V3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 5838,
+   "type": "expand",
+   "mpn": "BLM21SP601SN1D"
+  },
+  {
+   "lcsc": "C504007",
+   "designators": "J_ANT1,J_ANT2,J_ANT3,J_ANT4,J_ANT5,J_ANT6,J_ANT7,J_ANT8,J_RX1,J_RX2",
+   "qty": 10,
+   "status": "OK",
+   "stock": 22674,
+   "type": "expand",
+   "mpn": "KH-SMA-KE-Z"
+  },
+  {
+   "lcsc": "C2286",
+   "designators": "LED_ST",
+   "qty": 1,
+   "status": "OK",
+   "stock": 7307915,
+   "type": "base",
+   "mpn": "KT-0603R"
+  },
+  {
+   "lcsc": "C5121458",
+   "designators": "U_SW",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1284,
+   "type": "expand",
+   "mpn": "PE42482A-X"
+  }
+ ]
+}

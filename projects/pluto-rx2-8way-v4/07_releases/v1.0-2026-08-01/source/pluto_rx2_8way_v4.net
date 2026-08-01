@@ -1,0 +1,3765 @@
+(export
+	(version "E")
+	(design
+		(source "/home/mouse9911/gits/circuits/projects/pluto-rx2-8way-v4/03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+		(date "2026-08-01T00:55:54")
+		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
+		(sheet
+			(number "1")
+			(name "/")
+			(tstamps "/")
+			(title_block
+				(title "pluto_rx2_8way_v4")
+				(company)
+				(rev "dev")
+				(date "2026-08-01")
+				(source "pluto_rx2_8way_v4.kicad_sch")
+				(comment
+					(number "1")
+					(value "")
+				)
+				(comment
+					(number "2")
+					(value "")
+				)
+				(comment
+					(number "3")
+					(value "")
+				)
+				(comment
+					(number "4")
+					(value "")
+				)
+				(comment
+					(number "5")
+					(value "")
+				)
+				(comment
+					(number "6")
+					(value "")
+				)
+				(comment
+					(number "7")
+					(value "")
+				)
+				(comment
+					(number "8")
+					(value "")
+				)
+				(comment
+					(number "9")
+					(value "")
+				)
+			)
+		)
+	)
+	(components
+		(comp
+			(ref "C_BULK")
+			(value "4.7uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_BULK")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "89b7186a-af67-4603-a5a3-8d9eb5dedb48")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_SW1")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_SW1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "de30701a-e52e-474e-8b8c-d120dd3f5b06")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_SW2")
+			(value "1uF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_SW2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ca1aaf4f-2609-45f8-9b9b-4100f697fb39")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "FB_3V3")
+			(value "C3716677")
+			(footprint "Inductor_SMD:L_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Inductor_SMD:L_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_FB_3V3")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7fb0b014-173e-4f8c-b52a-9a6affa3d23f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_ANT1")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_ANT1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "07532aec-fa3c-4fca-8bc9-30bece6434db")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_ANT2")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_ANT2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "be69223d-299f-40df-ba9e-dbed5cb0204b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_ANT3")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_ANT3")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a3e6a6ec-91c4-4a7a-bd5e-9b17de0fcbf6")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_ANT4")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_ANT4")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f5538cbe-21d8-46b7-9905-d1f1980dbb14")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_ANT5")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_ANT5")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "012b23bb-757e-4b03-b302-b6cdc907e145")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_ANT6")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_ANT6")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a0744698-84f6-412b-b199-85f801dd34c4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_ANT7")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_ANT7")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "289ed039-29ec-4274-951c-12ebe03872cf")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_ANT8")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_ANT8")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d3b37ea4-c988-417e-bd3d-838655b193e4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_RX1")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_RX1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "9bf0fbfd-2211-41ae-8232-6242aeba576e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J_RX2")
+			(value "C504007")
+			(footprint "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:SMA_Vertical_5.08sq_D1.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J_RX2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d8a91cb3-a220-42ca-b4d9-c22efbdbf0c9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "LED_ST")
+			(value "C2286")
+			(footprint "LED_SMD:LED_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "LED_SMD:LED_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_LED_ST")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7b96b3e2-28d7-467e-86ef-a520ea544673")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_LED")
+			(value "680Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_LED")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5c1ec49c-fe1e-4f73-913d-b65a6ff97d47")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_PD1")
+			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_PD1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "27833816-96e7-4069-9a45-8a95750448f2")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_PD2")
+			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_PD2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f814f0de-87c6-4f56-8f0b-4b5c067f4d2e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_PD3")
+			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_PD3")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ad770542-c685-42b0-8f13-e7f553eccc9c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_PD4")
+			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_PD4")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0b95c0e4-f8ed-4453-b119-61952c6f3832")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_S1")
+			(value "100Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_S1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e8e4b36d-adc6-4cde-a113-74c1553d5388")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_S2")
+			(value "100Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_S2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d925319b-a676-4493-bc49-f8d516303fe9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_S3")
+			(value "100Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_S3")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0b871c9c-a915-404f-ba26-4bdef6835029")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_S4")
+			(value "100Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_S4")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "76ead7ee-3059-412d-9656-8508edcf291d")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_T1")
+			(value "220Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_T1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "867c5fa3-57b7-4cac-8749-2212f0308440")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_T2")
+			(value "220Ω")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_T2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "244b7ae6-eb94-4083-bbd0-7b7f10129c12")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_MCU")
+			(value "C9900173620")
+			(footprint "pluto_rx2_8way_v4:RP2040_Zero_LCC23_18x23.5")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:RP2040_Zero_LCC23_18x23.5")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_MCU")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "39cc9ad8-4230-484c-8817-0c890cfb1c22")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "23")
+						)
+						(pin
+							(num "22")
+						)
+						(pin
+							(num "21")
+						)
+						(pin
+							(num "20")
+						)
+						(pin
+							(num "19")
+						)
+						(pin
+							(num "18")
+						)
+						(pin
+							(num "17")
+						)
+						(pin
+							(num "16")
+						)
+						(pin
+							(num "15")
+						)
+						(pin
+							(num "14")
+						)
+						(pin
+							(num "13")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_SW")
+			(value "C5121458")
+			(footprint "pluto_rx2_8way_v4:QFN-24_4x4_P0.5_EP2.7_PE42482")
+			(fields
+				(field
+					(name "Footprint") "pluto_rx2_8way_v4:QFN-24_4x4_P0.5_EP2.7_PE42482")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_SW")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c7e185ec-8d12-48af-891a-7758cce89078")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "13")
+						)
+						(pin
+							(num "25")
+						)
+						(pin
+							(num "24")
+						)
+						(pin
+							(num "23")
+						)
+						(pin
+							(num "22")
+						)
+						(pin
+							(num "21")
+						)
+						(pin
+							(num "20")
+						)
+						(pin
+							(num "19")
+						)
+						(pin
+							(num "18")
+						)
+						(pin
+							(num "17")
+						)
+						(pin
+							(num "16")
+						)
+						(pin
+							(num "15")
+						)
+						(pin
+							(num "14")
+						)
+					)
+				)
+			)
+		)
+	)
+	(groups)
+	(variants)
+	(libparts
+		(libpart
+			(lib "elt")
+			(part "SYM_C_BULK")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_BULK")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_SW1")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_SW1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_SW2")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_SW2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_FB_3V3")
+			(fields
+				(field
+					(name "Reference") "F")
+				(field
+					(name "Value") "SYM_FB_3V3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "IN")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "OUT")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_ANT1")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_ANT1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_ANT2")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_ANT2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_ANT3")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_ANT3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_ANT4")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_ANT4")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_ANT5")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_ANT5")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_ANT6")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_ANT6")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_ANT7")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_ANT7")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_ANT8")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_ANT8")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_RX1")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_RX1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J_RX2")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J_RX2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "RF")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_LED_ST")
+			(fields
+				(field
+					(name "Reference") "L")
+				(field
+					(name "Value") "SYM_LED_ST")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_LED")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_LED")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_PD1")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_PD1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_PD2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_PD2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_PD3")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_PD3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_PD4")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_PD4")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_S1")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_S1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_S2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_S2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_S3")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_S3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_S4")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_S4")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_T1")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_T1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_T2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_T2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_MCU")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_MCU")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "GP0")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GP1")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GP2")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GP3")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GP4")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "GP5")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "GP6")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "GP7")
+					(type "passive")
+				)
+				(pin
+					(num "9")
+					(name "GP8")
+					(type "passive")
+				)
+				(pin
+					(num "10")
+					(name "GP9")
+					(type "passive")
+				)
+				(pin
+					(num "11")
+					(name "GP10")
+					(type "passive")
+				)
+				(pin
+					(num "12")
+					(name "GP11")
+					(type "passive")
+				)
+				(pin
+					(num "13")
+					(name "GP12")
+					(type "passive")
+				)
+				(pin
+					(num "14")
+					(name "GP13")
+					(type "passive")
+				)
+				(pin
+					(num "15")
+					(name "GP14")
+					(type "passive")
+				)
+				(pin
+					(num "16")
+					(name "GP15")
+					(type "passive")
+				)
+				(pin
+					(num "17")
+					(name "GP26")
+					(type "passive")
+				)
+				(pin
+					(num "18")
+					(name "GP27")
+					(type "passive")
+				)
+				(pin
+					(num "19")
+					(name "GP28")
+					(type "passive")
+				)
+				(pin
+					(num "20")
+					(name "GP29")
+					(type "passive")
+				)
+				(pin
+					(num "21")
+					(name "3V3")
+					(type "passive")
+				)
+				(pin
+					(num "22")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "23")
+					(name "5V")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_SW")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_SW")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "LS")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "RF2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "RF3")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "RF4")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "VDD")
+					(type "passive")
+				)
+				(pin
+					(num "9")
+					(name "V1")
+					(type "passive")
+				)
+				(pin
+					(num "10")
+					(name "V2")
+					(type "passive")
+				)
+				(pin
+					(num "11")
+					(name "V3")
+					(type "passive")
+				)
+				(pin
+					(num "12")
+					(name "V4")
+					(type "passive")
+				)
+				(pin
+					(num "13")
+					(name "RF5")
+					(type "passive")
+				)
+				(pin
+					(num "14")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "15")
+					(name "RF6")
+					(type "passive")
+				)
+				(pin
+					(num "16")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "17")
+					(name "RF7")
+					(type "passive")
+				)
+				(pin
+					(num "18")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "19")
+					(name "RF8")
+					(type "passive")
+				)
+				(pin
+					(num "20")
+					(name "NC")
+					(type "passive")
+				)
+				(pin
+					(num "21")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "22")
+					(name "RFC")
+					(type "passive")
+				)
+				(pin
+					(num "23")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "24")
+					(name "RF1")
+					(type "passive")
+				)
+				(pin
+					(num "25")
+					(name "EP")
+					(type "passive")
+				)
+			)
+		)
+	)
+	(libraries)
+	(nets
+		(net
+			(code "1")
+			(name "3V3")
+			(class "Default")
+			(node
+				(ref "C_BULK")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "FB_3V3")
+				(pin "2")
+				(pinfunction "OUT_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "8")
+				(pinfunction "VDD_8")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "3V3_MOD")
+			(class "Default")
+			(node
+				(ref "FB_3V3")
+				(pin "1")
+				(pinfunction "IN_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "21")
+				(pinfunction "3V3_21")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
+			(name "ANT1")
+			(class "Default")
+			(node
+				(ref "J_ANT1")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "24")
+				(pinfunction "RF1_24")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "4")
+			(name "ANT2")
+			(class "Default")
+			(node
+				(ref "J_ANT2")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "2")
+				(pinfunction "RF2_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "5")
+			(name "ANT3")
+			(class "Default")
+			(node
+				(ref "J_ANT3")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "4")
+				(pinfunction "RF3_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "6")
+			(name "ANT4")
+			(class "Default")
+			(node
+				(ref "J_ANT4")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "6")
+				(pinfunction "RF4_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "7")
+			(name "ANT5")
+			(class "Default")
+			(node
+				(ref "J_ANT5")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "13")
+				(pinfunction "RF5_13")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
+			(name "ANT6")
+			(class "Default")
+			(node
+				(ref "J_ANT6")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "15")
+				(pinfunction "RF6_15")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "9")
+			(name "ANT7")
+			(class "Default")
+			(node
+				(ref "J_ANT7")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "17")
+				(pinfunction "RF7_17")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "10")
+			(name "GND")
+			(class "Default")
+			(node
+				(ref "C_BULK")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_SW2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT1")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT1")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT1")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT1")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT2")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT2")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT2")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT2")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT3")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT3")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT3")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT3")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT4")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT4")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT4")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT4")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT5")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT5")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT5")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT5")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT6")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT6")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT6")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT6")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT7")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT7")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT7")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT7")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT8")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT8")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT8")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ANT8")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX1")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX1")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX1")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX1")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX2")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX2")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX2")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX2")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "LED_ST")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_PD1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_PD2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_PD3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_PD4")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "22")
+				(pinfunction "GND_22")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "1")
+				(pinfunction "LS_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "14")
+				(pinfunction "GND_14")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "16")
+				(pinfunction "GND_16")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "18")
+				(pinfunction "GND_18")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "20")
+				(pinfunction "NC_20")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "21")
+				(pinfunction "GND_21")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "23")
+				(pinfunction "GND_23")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "25")
+				(pinfunction "EP_25")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "3")
+				(pinfunction "GND_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "5")
+				(pinfunction "GND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "7")
+				(pinfunction "GND_7")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
+			(name "LED_STAT")
+			(class "Default")
+			(node
+				(ref "R_LED")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "5")
+				(pinfunction "GP4_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "12")
+			(name "LED_STAT_A")
+			(class "Default")
+			(node
+				(ref "LED_ST")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_LED")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "13")
+			(name "RX1_MAIN")
+			(class "Default")
+			(node
+				(ref "J_ANT8")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RX1")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_T1")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "14")
+			(name "RX1_TAP")
+			(class "Default")
+			(node
+				(ref "R_T2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "19")
+				(pinfunction "RF8_19")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "15")
+			(name "RX1_TAP_MID")
+			(class "Default")
+			(node
+				(ref "R_T1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_T2")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "16")
+			(name "RX2_OUT")
+			(class "Default")
+			(node
+				(ref "J_RX2")
+				(pin "1")
+				(pinfunction "RF_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "22")
+				(pinfunction "RFC_22")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "17")
+			(name "SEL_V1")
+			(class "Default")
+			(node
+				(ref "R_S1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "1")
+				(pinfunction "GP0_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "18")
+			(name "SEL_V2")
+			(class "Default")
+			(node
+				(ref "R_S2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "2")
+				(pinfunction "GP1_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "19")
+			(name "SEL_V3")
+			(class "Default")
+			(node
+				(ref "R_S3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "3")
+				(pinfunction "GP2_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "20")
+			(name "SEL_V4")
+			(class "Default")
+			(node
+				(ref "R_S4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_MCU")
+				(pin "4")
+				(pinfunction "GP3_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "21")
+			(name "SW_V1")
+			(class "Default")
+			(node
+				(ref "R_PD1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_S1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "9")
+				(pinfunction "V1_9")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "22")
+			(name "SW_V2")
+			(class "Default")
+			(node
+				(ref "R_PD2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_S2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "10")
+				(pinfunction "V2_10")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "23")
+			(name "SW_V3")
+			(class "Default")
+			(node
+				(ref "R_PD3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_S3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "11")
+				(pinfunction "V3_11")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "24")
+			(name "SW_V4")
+			(class "Default")
+			(node
+				(ref "R_PD4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_S4")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_SW")
+				(pin "12")
+				(pinfunction "V4_12")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "25")
+			(name "unconnected-(U_MCU-5V-Pad23)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "23")
+				(pinfunction "5V_23")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "26")
+			(name "unconnected-(U_MCU-GP5-Pad6)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "6")
+				(pinfunction "GP5_6")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "27")
+			(name "unconnected-(U_MCU-GP6-Pad7)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "7")
+				(pinfunction "GP6_7")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "28")
+			(name "unconnected-(U_MCU-GP7-Pad8)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "8")
+				(pinfunction "GP7_8")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "29")
+			(name "unconnected-(U_MCU-GP8-Pad9)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "9")
+				(pinfunction "GP8_9")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "30")
+			(name "unconnected-(U_MCU-GP9-Pad10)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "10")
+				(pinfunction "GP9_10")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "31")
+			(name "unconnected-(U_MCU-GP10-Pad11)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "11")
+				(pinfunction "GP10_11")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "32")
+			(name "unconnected-(U_MCU-GP11-Pad12)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "12")
+				(pinfunction "GP11_12")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "33")
+			(name "unconnected-(U_MCU-GP12-Pad13)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "13")
+				(pinfunction "GP12_13")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "34")
+			(name "unconnected-(U_MCU-GP13-Pad14)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "14")
+				(pinfunction "GP13_14")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "35")
+			(name "unconnected-(U_MCU-GP14-Pad15)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "15")
+				(pinfunction "GP14_15")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "36")
+			(name "unconnected-(U_MCU-GP15-Pad16)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "16")
+				(pinfunction "GP15_16")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "37")
+			(name "unconnected-(U_MCU-GP26-Pad17)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "17")
+				(pinfunction "GP26_17")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "38")
+			(name "unconnected-(U_MCU-GP27-Pad18)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "18")
+				(pinfunction "GP27_18")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "39")
+			(name "unconnected-(U_MCU-GP28-Pad19)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "19")
+				(pinfunction "GP28_19")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "40")
+			(name "unconnected-(U_MCU-GP29-Pad20)")
+			(class "Default")
+			(node
+				(ref "U_MCU")
+				(pin "20")
+				(pinfunction "GP29_20")
+				(pintype "passive+no_connect")
+			)
+		)
+	)
+)
