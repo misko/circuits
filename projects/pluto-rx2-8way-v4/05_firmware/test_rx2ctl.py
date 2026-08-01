@@ -4,6 +4,7 @@ from pathlib import Path
 import unittest
 
 HOST = Path(__file__).resolve().parent / "host"
+TARGET_MAIN = Path(__file__).resolve().parent / "target" / "main.c"
 sys.path.insert(0, str(HOST))
 
 import rx2ctl
@@ -53,6 +54,15 @@ class SimulatorTests(unittest.TestCase):
             rx2ctl.parse_response(
                 backend.transact("CONFIG 30000000 268435456 4096 128")
             )
+
+
+class HardwareShellTests(unittest.TestCase):
+    def test_dma_ring_wraps_the_incrementing_schedule_read_address(self):
+        source = TARGET_MAIN.read_text()
+        self.assertIn("channel_config_set_read_increment(&config, true)", source)
+        self.assertIn("channel_config_set_write_increment(&config, false)", source)
+        self.assertIn("channel_config_set_ring(&config, false, 5u)", source)
+        self.assertNotIn("channel_config_set_ring(&config, true, 5u)", source)
 
 
 if __name__ == "__main__":

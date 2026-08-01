@@ -34,7 +34,9 @@
 - [ ] Fresh render review completed against the candidate population.
 - [ ] All review findings dispositioned with zero open P0.
 - [ ] M-REV, release-freshness, manifest-integrity, and final seal gates pass.
-- [ ] Cross-build with Pico SDK and flash an RP2040-Zero.
+- [x] Cross-build with Pico SDK 2.1.1 + Arm GNU 13.3.Rel1 for
+      `waveshare_rp2040_zero` (UF2 sha256 recorded in firmware README).
+- [ ] Flash an RP2040-Zero.
 - [ ] Verify RX2CTL/1 manual select, OFF, RUN/STOP, CONFIG, and STATUS over USB.
 - [ ] Measure free-running cadence drift against Pluto sample indices; do not
   claim phase-locked sample boundaries without a shared clock/trigger.

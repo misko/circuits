@@ -97,7 +97,10 @@ static void sequence_start(void)
     channel_config_set_transfer_data_size(&config, DMA_SIZE_32);
     channel_config_set_read_increment(&config, true);
     channel_config_set_write_increment(&config, false);
-    channel_config_set_ring(&config, true, 5u); /* 8 words x 4 bytes */
+    /* Pico SDK's boolean selects the address side: false = READ.  The TX FIFO
+     * write address is fixed; the eight-word schedule READ address must wrap.
+     * Ringing the write side leaves the DMA reading beyond schedule[7]. */
+    channel_config_set_ring(&config, false, 5u); /* 8 words x 4 bytes */
     channel_config_set_dreq(&config, pio_get_dreq(seq_pio, seq_sm, true));
     dma_channel_configure((uint)seq_dma, &config, &seq_pio->txf[seq_sm],
                           schedule, UINT32_MAX, true);

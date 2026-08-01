@@ -16,9 +16,10 @@
   retained and independently rechecked at DRC 0/0/0, P-LAND zero failures, and
   P-MOD 1/1; the broad source-tree handoff hash remains intentionally stale
   until a future reviewed seal regenerates board and candidate together.
-- Firmware: host-tested RX2CTL/1 scaffold complete (native C core plus 6 host
-  tests); Pico-SDK cross-build and USB hardware exercise remain because this
-  workspace has no Pico SDK or ARM cross-compiler.
+- Firmware: host-tested RX2CTL/1 scaffold complete (native C core plus 7 host
+  tests); Pico SDK 2.1.1 + Arm GNU 13.3.Rel1 target cross-build passes for
+  `waveshare_rp2040_zero`. Flashing and USB hardware exercise remain physical
+  bring-up work.
 - Fabrication candidate: Gerber/drill/BOM/CPL/PDF/STEP set generated in
   `06_build/fab` without exporter escape hatches. A-POP passes,
   BOM source/legibility pass, live stock passes 11/11, and the twin mounts
