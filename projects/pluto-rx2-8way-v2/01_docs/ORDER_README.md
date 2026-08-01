@@ -261,15 +261,41 @@ The three perimeter lands are the worse case, not the exposed pad: **the barrel
 holds more than twice the solder the joint is given**, and two of the three
 (`VDD`, `V3`) have no thermal or RF justification for a via-in-pad at all.
 
-**THE PRICE — and it is OWED, not measured.** JLC's extra-charge article was
-read directly for the small-via and drill-count rows above; **it was NOT read
-for a resin-plug / POFV line, and this file will not invent one.** No price for
-this option appears anywhere in this repo. **Ask for it with the §7 questions:**
+**THE PRICE — DECLARED ABSENCE, now verified on TWO independent channels.**
+JLC's extra-charge article was read in full, twice, by two readers sharing no
+method. It lists **fifteen** chargeable cases:
 
-> *"Please quote resin-filled and capped vias (plugged and plated over, POFV)
-> for all 3446 × 0.15 mm vias on this 4-layer 1.6 mm board, and confirm the
-> option is compatible with the advanced small-via option and with controlled
-> impedance on the same order."*
+> Different Designs in One Gerber · V-Cut on Small Boards · Routing Fee ·
+> **Small Size Holes** · ENIG Area over 30 % · Bur Removal / Round Corner ·
+> Board Fee · **Orders with Special Process** · **Too Many Drilling Holes** ·
+> Small Boards · Expediting Fee (Panel) · Multiple Expedited Fee ·
+> Too Many Test Points · Difficulty Process · Large Board Fee
+
+**Not one of them is via covering, via filling, epoxy filling, plugging or
+POFV.** Two of them *are* this board's other fees — *Small Size Holes* is the
+0.15 mm drill, *Too Many Drilling Holes* is the 958,904 holes/m² at 6.39× the
+threshold — so the article demonstrably covers this board's fee surface and
+still has no row for this option. **The absence is real, not a failed read.**
+
+**Corroborated separately:** POFV is published as **free on 6-layer and above**
+and **chargeable on 4-layer**, with no rate given anywhere.
+
+**THE SHARPER QUESTION, and it is what to actually ask.** *"Orders with Special
+Process"* is an unnamed catch-all and is the plausible home for this fee. So do
+not ask what POFV costs — ask **where it is billed**:
+
+> *"For a 4-layer 1.6 mm board with 3446 × 0.15 mm vias, we need Via Covering =
+> Epoxy Filled & Capped (POFV). (1) Is that option billed under 'Orders with
+> Special Process', or under a line not published in your extra-charge article?
+> (2) What is the rate — per board, per area, or a flat setup? (3) Is there a
+> minimum order quantity attached to it? (4) Please confirm it is compatible on
+> the same order with the advanced small-via option AND with controlled
+> impedance — your impedance capability table states a 0.2 mm via minimum and we
+> are ordering 0.15 mm."*
+
+**No number may enter this repo except from a rendered quote or a written JLC
+reply.** Snippet-sourced prices are refused (Q-SNIPPET) — a snippet once
+reported a part "available today" while its own product page read In Stock: 0.
 
 **Do not order this board until that line is on the quote.** It is the only
 paid option here that is not a geometry convenience — the other three buy
