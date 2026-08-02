@@ -1,0 +1,17 @@
+mpn: RT0603BRB071K21L
+manufacturer: Yageo
+type: resistor_thinfilm_precision
+package: 0603
+footprint: Resistor_SMD:R_0603_1608Metric
+pins: {1: END_A, 2: END_B}
+limits: {resistance: "1.21 kOhm", tolerance: "0.1 percent", tcr: "10 ppm/C", power: "0.1 W"}
+verified: "Exact LCSC product page C860187 identifies RT0603BRB071K21L as 1.21 kOhm, 0.1%, 10 ppm/C, 100 mW, 0603; checked 2026-08-01."
+sourcing:
+  lcsc: C860187
+  alternates: []
+  note: "LCSC stock 3,260 on 2026-08-01. Exact tolerance is required for R103/R203; do not substitute the former 1% part."
+gotchas:
+  - "This is the LM5116 feedback bottom leg. Substitution back to 1% raises the computed high corner above the 5.25 V unloaded-port ceiling."
+layout:
+  source: "LM5116 SNVS499I feedback-divider placement guidance"
+  notes: ["Place directly between FB and quiet AGND beside the controller; keep it outside the SW copper and gate loops."]

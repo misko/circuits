@@ -36,6 +36,7 @@ except ImportError:  # pragma: no cover - the KiCad interpreter carries yaml
 
 
 SCRIPTS = Path(__file__).resolve().parent
+FAB_SCRIPTS = SCRIPTS.parent.parent / "jlcpcb-fab" / "scripts"
 KPY = "/usr/bin/python3"
 MAX_HANDOFF_BYTES = 16 * 1024
 EXIT_CONFIG, EXIT_STALE, EXIT_BUDGET = 1, 2, 6
@@ -52,7 +53,10 @@ SOURCE_IGNORES = {
 }
 DEFAULT_TOOL_FILES = (
     "pcb_flow.py", "module_first_check.py", "escape_check.py",
-    "tier_preflight.py", "pad_separation.py", "rf_contract_check.py",
+    "tier_preflight.py", "pad_separation.py", "pin_map_check.py",
+    "pre_route_review_check.py", "early_design_check.py",
+    "critical_route_check.py", "placement_gates.py",
+    "policy_audit.py", "rf_contract_check.py",
     "grind_driver.py",
     "generate_board_generic.py", "generate_rules_generic.py",
     "route_and_stitch_generic.py", "circuit_json_to_kicad_sch.py",
@@ -610,6 +614,9 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
                        ) -> list[tuple[str, list[str]]]:
     rf_contract = ctx.route_path.parent / "rules" / "rf.yaml"
     commands = [
+        ("pre_route_schematic", [
+            KPY, str(SCRIPTS / "pre_route_review_check.py"), str(ctx.root),
+            "--phase", "schematic"]),
         ("rf_contract", [KPY, str(SCRIPTS / "rf_contract_check.py"),
                          str(ctx.root), "--contract", str(rf_contract),
                          "--require-applicability"]),
@@ -619,20 +626,70 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
                             str(ctx.root), "--route-config", str(ctx.route_path),
                             "--board", ctx.board_id]),
     ]
-    # Legacy projects remain explicit/unmigrated in policy_audit. Once the
-    # source contract is adopted, P-MOD is the first preflight and cannot be
-    # bypassed by invoking pcb_flow directly instead of a rebuild template.
-    if (ctx.root / "03_src/rules/integration.yaml").is_file():
-        commands.insert(0, ("module_first", [
-            KPY, str(SCRIPTS / "module_first_check.py"), str(ctx.root)]))
+    # Legacy projects remain explicit/unmigrated. Adopted source contracts are
+    # hard architecture gates and cannot be bypassed through direct pcb_flow.
+    prefix = []
+    adopted = any((ctx.root / "03_src/rules" / name).is_file()
+                  for name in ("requirements.yaml", "integration.yaml"))
+    if adopted:
+        circuit = ctx.root / "03_tscircuit/build/circuit.json"
+        prefix.extend([
+            ("module_first", [KPY, str(SCRIPTS / "module_first_check.py"),
+                              str(ctx.root)]),
+            ("build_freshness", [KPY, str(SCRIPTS / "build_provenance.py"),
+                                 "audit", str(ctx.root)]),
+            ("early_design", [KPY, str(SCRIPTS / "early_design_check.py"),
+                              str(ctx.root)]),
+            ("net_label_survival", [KPY, str(SCRIPTS / "net_label_survival.py"),
+                                    str(ctx.root)]),
+            ("electrical_invariants", [KPY, str(SCRIPTS / "electrical_invariants.py"),
+                                       str(ctx.root)]),
+            ("adr_coverage", [KPY, str(SCRIPTS / "electrical_invariants.py"),
+                              str(ctx.root), "--adr-coverage"]),
+            ("power_topology", [KPY, str(SCRIPTS / "power_topology.py"),
+                                str(ctx.root)]),
+            ("power_margin", [KPY, str(SCRIPTS / "power_topology.py"),
+                              str(ctx.root), "--margin"]),
+            ("off_control", [KPY, str(SCRIPTS / "power_topology.py"),
+                             str(ctx.root), "--off-control"]),
+            ("count_parity", [KPY, str(SCRIPTS / "count_parity.py"),
+                              str(ctx.root)]),
+            ("circuit_bom", [KPY, str(FAB_SCRIPTS / "bom_source_check.py"),
+                             "--circuit-only", str(circuit), "--parts",
+                             str(ctx.root / "02_parts")]),
+        ])
+    commands[0:0] = prefix
     if include_land:
-        commands.insert(1, ("escape_lands",
+        # Schematic review owns the topology boundary and must remain before
+        # any board-artifact/placement gate. Insert the board checks just
+        # before package/tier routing preflight, not merely after the prefix.
+        first_board = next(i for i, row in enumerate(commands)
+                           if row[0] == "escape_packages")
+        commands.insert(first_board, ("pin_map", [
+            KPY, str(SCRIPTS / "pin_map_check.py"), str(ctx.root),
+            "--board", str(ctx.board), "--circuit-json",
+            str(ctx.root / "03_tscircuit/build/circuit.json")]))
+        commands.insert(first_board + 1, ("placement_clearance", [
+            KPY, str(SCRIPTS / "placement_gates.py"), str(ctx.board),
+            "--config", str(ctx.root / "03_src/placement_gates.json")]))
+        commands.insert(first_board + 2, ("critical_pair_map", [
+            KPY, str(SCRIPTS / "critical_route_check.py"), str(ctx.root),
+            "--board", str(ctx.board)]))
+        commands.insert(first_board + 3, ("escape_lands",
                             [KPY, str(SCRIPTS / "escape_check.py"),
                              "--board", str(ctx.board)]))
         nets = ctx.route_path.parent / "rules" / "nets.yaml"
-        commands.insert(2, ("pad_separation", [
+        commands.insert(first_board + 4, ("pad_separation", [
             KPY, str(SCRIPTS / "pad_separation.py"), str(ctx.board),
             "--project", str(ctx.root), "--nets", str(nets)]))
+        commands.insert(first_board + 5, ("placement_policy", [
+            KPY, str(SCRIPTS / "policy_audit.py"), str(ctx.root),
+            "--board", ctx.board_id, "--skip-drc", "--phase", "placement"]))
+        placement_index = next(i for i, row in enumerate(commands)
+                               if row[0] == "placement_policy") + 1
+        commands.insert(placement_index, ("pre_route_placement", [
+            KPY, str(SCRIPTS / "pre_route_review_check.py"), str(ctx.root),
+            "--phase", "placement", "--board", str(ctx.board)]))
     return commands
 
 
@@ -800,8 +857,12 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
         raise FlowError(f"layout-seal requires canonical rebuild driver {ctx.rebuild}")
     before = preflight_commands(ctx, include_land=False)
     after = preflight_commands(ctx, include_land=True)
-    land = [row for row in after
-            if row[0] in ("escape_lands", "pad_separation")]
+    post_board = [row for row in after if row[0] in (
+        "placement_clearance", "critical_pair_map", "escape_lands",
+        "pad_separation", "placement_policy", "pre_route_placement")]
+    post_board.append(("critical_route_connected", [
+        KPY, str(SCRIPTS / "critical_route_check.py"), str(ctx.root),
+        "--board", str(ctx.board), "--require-connected"]))
     # Recovery for an already-reviewed immutable commit is intentionally
     # narrower than a generic "skip rebuild" switch. It proves every board
     # producer input and six independent review lenses against an explicit
@@ -813,7 +874,7 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
         ("rebuild", ["bash", str(ctx.rebuild)]),
     ]
     commands = before + build + [
-        *land,
+        *post_board,
         ("rf_reviews", [
             KPY, str(SCRIPTS / "rf_contract_check.py"), str(ctx.root),
             "--contract", str(ctx.route_path.parent / "rules" / "rf.yaml"),
@@ -859,7 +920,8 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
           f"stage {hdoc['stage']})")
     method = (f"exact reviewed commit {reviewed_commit}" if reviewed_commit
               else "fresh canonical rebuild")
-    print(f"LAYOUT SEALED: {method} + P-LAND + P-PADSEP + DRC 0/0/0")
+    print(f"LAYOUT SEALED: {method} + P-BODYCLR + R-PAIRMAP/R-CRITESC + "
+          "P-LAND + P-PADSEP + placement review + DRC 0/0/0")
     print("NOT RELEASE SEALED: run the jlcpcb-fab fabrication, assembly, stock, "
           "model, polarity, and staged-release gates before ordering")
     return 0

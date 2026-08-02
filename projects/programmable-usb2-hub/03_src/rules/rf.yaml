@@ -1,0 +1,86 @@
+schema: 1
+rf:
+  enabled: true
+  rationale: >-
+    The hub carries 480 Mbit/s USB 2.0 high-speed differential signaling from
+    one upstream Type-B port through the hub, per-port data switches and ESD
+    arrays to four downstream Type-A ports. These interconnects require an
+    explicit signal-integrity contract even though they are not microwave RF.
+  risk_tier: ordinary-high-speed
+  risk_basis: >-
+    USB 2.0 high-speed edges contain energy well above the 240 MHz Nyquist
+    frequency; pair geometry, return continuity, uncoupled launch length and
+    switch-node coupling can materially affect the eye and packet error rate.
+  ports:
+    - id: UPSTREAM_USB2
+      nets: [UP_CONN_P, UP_CONN_N, UP_HUB_P, UP_HUB_N]
+      band_hz: [1000000, 2400000000]
+      z0_ohm: 90
+      launch: "TE 292304-1 Type-B receptacle J2 through U5 ESD to USB2517I U6"
+      termination: "USB 2.0 host and USB2517I integrated high-speed PHY"
+      reference_layer: In1.Cu
+    - id: DOWNSTREAM_USB2
+      nets: [P1_HUB_P, P1_HUB_N, P1_PORT_P, P1_PORT_N, P1_CONN_P, P1_CONN_N,
+             P2_HUB_P, P2_HUB_N, P2_PORT_P, P2_PORT_N, P2_CONN_P, P2_CONN_N,
+             P3_HUB_P, P3_HUB_N, P3_PORT_P, P3_PORT_N, P3_CONN_P, P3_CONN_N,
+             P4_HUB_P, P4_HUB_N, P4_PORT_P, P4_PORT_N, P4_CONN_P, P4_CONN_N]
+      band_hz: [1000000, 2400000000]
+      z0_ohm: 90
+      launch: "USB2517I U6 through FSUSB42 per-port disconnect switches and USBLC6 ESD arrays to J3-J6"
+      termination: "USB2517I integrated downstream PHY and attached USB 2.0 device"
+      reference_layer: In1.Cu
+    - id: MANAGEMENT_USB2
+      nets: [MGMT_P, MGMT_N]
+      band_hz: [1000000, 2400000000]
+      z0_ohm: 90
+      launch: "USB2517I management-facing USB segment to STM32G0B1 control MCU"
+      termination: "USB2517I and STM32G0B1 USB full/high-speed-capable PHY pins"
+      reference_layer: In1.Cu
+  cross_sections:
+    - id: USB2_L1_OVER_L2
+      stackup_source: "JLCPCB JLC04161H-7628 four-layer 1.6 mm controlled-impedance stack; confirm exact coupon geometry in the order calculator"
+      solver: "Hammerstad-Jensen microstrip plus coupled-pair closed form, independently rechecked in the JLC impedance calculator before payment"
+      copper_layer: F.Cu
+      reference_layer: In1.Cu
+      dielectric_height_mm: 0.2104
+      dk: 4.4
+      target_z0_ohm: 90
+      width_mm: 0.25
+      gap_mm: 0.15
+  performance_claims:
+    - id: USB2-CLAIM-ZDIFF
+      claim: "All coupled USB 2.0 high-speed runs use the declared L1-over-L2 differential geometry."
+      acceptance: "Order calculator and coupon/TDR result remain within 90 ohm +/-15%; no trace-width or gap substitution is accepted."
+      evidence: "03_src/rules/nets.yaml USB_HS width/gap and the exact board/fabrication RF reviews"
+    - id: USB2-CLAIM-RETURN
+      claim: "Every high-speed segment stays on F.Cu over the In1.Cu ground reference with no signal via or unintended stub."
+      acceptance: "Zero signal-layer transitions and zero reference-plane slot crossings on every declared P/N net."
+      evidence: "Exact-board RF PCB review and plotted-fabrication RF review"
+    - id: USB2-CLAIM-LAUNCH
+      claim: "Uncoupled pad escapes are bounded and each segment remains paired outside unavoidable package launches."
+      acceptance: "Each segment satisfies the authored 15.0 mm maximum uncoupled rule and maintains P/N topology through hub, switch, ESD and connector."
+      evidence: "04_kicad/programmable_usb2_hub.kicad_dru plus exact-board RF schematic/PCB reviews"
+  first_article:
+    measurements:
+      - "USB 2.0 high-speed eye test at J2 and each of J3-J6 with representative cable/device loads"
+      - "Differential TDR or impedance coupon measurement for the ordered stackup"
+      - "Sustained packet-error and reconnect testing while independently disconnecting/reconnecting each data path and cycling 2 A port power"
+      - "Near-field/oscilloscope check for buck-switch coupling into the USB pairs under worst-case load"
+    acceptance:
+      - "Every tested port passes the USB 2.0 high-speed eye mask and enumerates repeatedly without packet/reconnect failures"
+      - "Measured differential impedance remains within 90 ohm +/-15%"
+      - "Data disconnect is electrically open as commanded and reconnect restores enumeration without disturbing other ports"
+      - "No switch-node-correlated eye closure or packet errors occur at rated port load"
+  reviews:
+    schematic:
+      path: 08_reviews/2026-08-01_v1.0_rf_schematic.md
+      artifact: 04_kicad/programmable_usb2_hub.kicad_sch
+      requirements: [USB2-SCH-TOPOLOGY, USB2-SCH-ESD, USB2-SCH-VBUS, USB2-SCH-DISCONNECT, USB2-SCH-CLAIMS]
+    pcb:
+      path: 08_reviews/2026-08-01_v1.0_rf_pcb.md
+      artifact: 04_kicad/programmable_usb2_hub.kicad_pcb
+      requirements: [USB2-PCB-STACKUP, USB2-PCB-GEOMETRY, USB2-PCB-RETURN, USB2-PCB-UNCOUPLED, USB2-PCB-NOISE, USB2-PCB-PADSEP]
+    fab:
+      path: 08_reviews/2026-08-01_v1.0_rf_fab.md
+      artifact: 07_releases/v1.0-2026-08-01/fab/programmable_usb2_hub_gerbers.zip
+      requirements: [USB2-FAB-STACKUP, USB2-FAB-COPPER, USB2-FAB-MASK, USB2-FAB-DRILL, USB2-FAB-PLOT]

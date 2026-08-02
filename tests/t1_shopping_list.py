@@ -118,6 +118,39 @@ def fdz_project(**kw):
     return project({"10FDZ-BT": FDZ_PART}, FDZ_BOM, **kw)
 
 
+@test("a quoted hash in an orderable MPN is data, not a YAML comment")
+def t_quoted_hash_suffix_survives_part_authority():
+    d = project({"ltc": """\
+mpn: "LTC3812EFE-5#TRPBF"
+manufacturer: Analog Devices
+type: buck_controller
+"""}, ['LTC3812EFE-5#TRPBF,U1,TSSOP-16,LTC3812EFE-5#TRPBF,'])
+    rp = tmpdir("replay_hash_mpn_")
+    part = {
+        "ManufacturerPartNumber": "LTC3812EFE-5#TRPBF",
+        "MouserPartNumber": "584-LTC3812EFE5TRP",
+        "Manufacturer": "Analog Devices",
+        "Availability": "100 In Stock",
+        "LifecycleStatus": "Active",
+        "FactoryStock": "1000",
+        "LeadTime": "12 Weeks",
+        "Min": "1",
+        "Mult": "1",
+        "ProductDetailUrl": "https://www.mouser.com/example",
+        "PriceBreaks": [{"Quantity": 1, "Price": "$1.00", "Currency": "USD"}],
+    }
+    write_payload(rp, "LTC3812EFE_5_TRPBF_Exact", [part])
+    write_payload(rp, "LTC3812EFE_5_TRPBF_None", [part])
+    out = d / "r.json"
+    r = run([KPY, SHOP, d, "--scope", "all", "--replay", rp,
+             "--no-cache", "--json", out], env=NO_NET)
+    body = json.loads(out.read_text())
+    check(body["rows"][0]["mpn"] == "LTC3812EFE-5#TRPBF",
+          "part authority truncated the quoted #TRPBF suffix")
+    contains(r.out, "mouser    graded 1/1, sourceable 1/1",
+             "the exact #TRPBF record must clear Q-IDENT")
+
+
 # ----------------------------------------------------------------- headline 1
 @test("THE INCIDENT: the broad re-search rescues a part the exact match calls "
       "Obsolete (10FDZ-BT, 37 in stock)")

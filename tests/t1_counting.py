@@ -63,6 +63,15 @@ def t_count_clean():
     must_pass(run([KPY, COUNT, project()]), "count_parity on agreeing tree")
 
 
+@test("count_parity --pre-board permits a stale PCB only before regeneration")
+def t_count_pre_board():
+    d = project(refs_board=["C1", "R1"])
+    must_pass(run([KPY, COUNT, d, "--pre-board"]),
+              "schematic-stage parity with a deliberately stale PCB")
+    must_fail(run([KPY, COUNT, d]),
+              "full parity still rejects the stale PCB", "S-COUNT")
+
+
 @test("tsx_preflight passes numeric pads, and mapped alphanumeric pads")
 def t_pre_clean():
     d = project()

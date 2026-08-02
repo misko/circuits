@@ -97,7 +97,9 @@ credits, or debugging time — check provenance notes before assuming staleness.
    pad approximations and "exemption zones" both produced real crossings.
 7. **AI/auto placement is blind to electrical proximity.** Decouplers land
    50+ mm from their ICs. Always run a snap-back pass (decouplers/FB/TVS to
-   2–5 mm of anchors) and gate on a proximity table.
+   2–5 mm of anchors), then run `policy_audit.py --phase placement` before
+   routing. It is the authoritative P-LAYOUT/P-PREC/P-ADJ subset, not a second
+   proximity metric, and writes `06_build/placement_policy_audit.md`.
 8. **Classify DRC, don't count it.** Real = different-net below the fab
    floor. Margin (≥ floor) and same-net/design-intent items get scoped
    `.kicad_dru` rules or documented severity policy. Target: a zero-noise
@@ -108,10 +110,15 @@ credits, or debugging time — check provenance notes before assuming staleness.
 10. **pcbnew scripting**: save/reload after `Remove()` (segfaults), `FindNet`
    not `GetNetsByName`, design rules live in `.kicad_pro` (generators must
    never clobber it), absolute paths in background shells.
-11. **Verify with fresh eyes.** Render schematics/boards to PNG and have a
-    clean-context agent describe them back — it catches defects the author
-    is blind to (8 classes on first use). Red/green every fix; netlist
-    parity (node-for-node) after any schematic regeneration.
+11. **Verify with fresh eyes at the first judgeable artifact, then again at
+    release.** After schematic/netlist generation, PR-REVIEW requires an
+    independent exact-hash topology verdict before placement. After placement,
+    it requires exact-hash pin/layout/render verdicts plus same-camera A-RENDER
+    before routing. Fresh routed-release reviews still repeat those lenses.
+    Render schematics/boards to PNG and have a clean-context agent describe
+    them back — it catches defects the author is blind to (8 classes on first
+    use). Red/green every fix; netlist parity (node-for-node) after any
+    schematic regeneration.
 12. **Separate source / generated / build / releases; extract datasheets
     once.** Every fab order freezes into an immutable `releases/<ver>-<date>/`
     with a MANIFEST (git SHA + tool versions) — a single mutable `fab/` dir
@@ -150,8 +157,13 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/fab_tier_util.py` | Resolve a project's declared `fab_tier` into capability floors (`references/fab_tiers.yaml` is the single source) — the generators derive missing via/clearance/silk geometry from it and reject explicit sub-floor values |
 | `scripts/route_and_stitch_generic.py` | ONE parameterized route+stitch backend (prep/route/import/taps/quick/stitch) driven by `03_src/route.yaml` — replaces per-board route_prep.py + route_waves.sh + stitch_and_fill.py (+ bespoke tap scripts). `quick` = seconds-fast pre-stitch unconnected + clearance/track_width verdict (the loop tool). See `docs/generic-router-proof.md` |
 | `scripts/net_label_survival.py` | S-NETMERGE gate: every schematic global_label survives to the exported netlist (kicad-cli merges touching/collinear wires silently); config = `label_survival:` block of `03_src/rules/electrical_invariants.yaml` |
-| `scripts/module_first_check.py` | P-MOD architecture gate: every complex subsystem in an adopted project is a dossier-proven module or has an evidenced D-MOD bare-IC exception; missing policy is UNMIGRATED, never PASS |
-| `scripts/placement_gates.py` | Shared placement gates P-OUT (pads inside the real Edge.Cuts polygon) + P-CAP (static corridor crossing-demand vs capacity) — post-placement, pre-routing |
+| `scripts/module_first_check.py` | P-MOD architecture gate: every complex subsystem records module-vs-chip reasoning; bare ICs inventory external support parts and integrations at/above the configured threshold carry an evidenced module trade study; missing policy is UNMIGRATED, never PASS |
+| `scripts/pin_map_check.py` | P-PINMAP early identity gate: immediately after board generation, prove every dossier physical pin reaches both the schematic and footprint; intentional fused-land aliases require explicit evidence |
+| `scripts/pre_route_review_check.py` | PR-REVIEW fail-closed boundary: binds netlist/parts/board plus adopted design-rule bytes, so a requirements, ratings, or route-contract edit stales the independent review before routing |
+| `scripts/early_design_check.py` | D-SPEC/E-PATH/E-SWDRV/E-SURGE fail-closed authoring gate: external-output measurement boundary and complete IR path, controller/MOSFET drive compatibility, and surge coordination before schematic review/layout |
+| `scripts/placement_gates.py` | Shared placement gates P-OUT, P-CAP, and non-waivable P-BODYCLR positive same-side courtyard/body-to-foreign-pad clearance — post-placement, pre-routing |
+| `scripts/critical_route_check.py` | R-PAIRMAP cross-checks the declared inventory against independent `nets.yaml length_match` intent, engine/seed source, layers and via policy; R-CRITESC grades realized copper. Shared route/prep/import/stitch entry points invoke it, so direct calls do not bypass the gate. |
+| `scripts/policy_audit.py --phase placement` | Authoritative early P-LAYOUT/P-PREC/P-ADJ/P-ADJ-PAIR/P-ADJ-UNREACHED gate — after placement, before routing; separate report so the full release audit is not clobbered |
 | `scripts/pad_separation.py` | P-PADSEP: separate-footprint copper must clear the fab-tier gap; exact same-net overlap/touch and foreign-pad stencil paste intrusion are fatal; same-footprint composite pads remain legal |
 | `scripts/rf_contract_check.py` | RF-CONTRACT: explicit RF applicability, ports/cross-sections/claims/first-article plan, plus exact-artifact RF schematic/PCB/fab reviews with derived nonzero requirement coverage |
 | `scripts/tier_preflight.py` | R-PREFLIGHT gate: every routing/stitch/rescue parameter with a DRC-floor twin, including nominal board-thickness/minimum-drill plated-through aspect ratio (`PF-VIA-ASPECT`), proven consistent with the declared fab tier BEFORE any KRT cycle; wired refuse-to-route into `route_and_stitch_generic route`; `--explain` prints derivations + copy-paste fixes |
@@ -172,8 +184,13 @@ hardcodes a board.
 
 The gate that breaks the consistently-wrong-together failure mode (a
 mirror-numbered footprint passed DRC+parity+polarity twice): per active part,
+`pin_map_check.py` first runs immediately after the generated board exists,
+before placement review or routing, to catch missing/collapsed artifact pin
+identities while fixes are cheap. It does not replace datasheet authority:
 `pin_audit.py` extracts a conclusion-free dossier (pad positions/sides,
-computed winding, part.yaml functions, actual board nets, datasheet path);
+computed winding, part.yaml functions, actual board nets, alias/fused-land
+declarations, datasheet path). When several PDFs are vendored it selects the
+one whose bytes match `datasheet.sha256`; directory order is never authority;
 the orchestrator then spawns FRESH agents - no session context - who derive
 the expected pinout from the datasheet figure and judge every pin's net
 electrically, per the protocol. Verdicts land in the release's

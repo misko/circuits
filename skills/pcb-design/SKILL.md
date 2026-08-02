@@ -144,7 +144,8 @@ part, state, and journal paths. See the kicad-pcb reference
   a sibling board's design (2026-07-20). Read the contracts; they are binding.
 - Seed `03_src/` config from the skill's schema examples —
   `<pcb-design skill>/templates/03_src/{floorplan.yaml,route.yaml,rebuild_all.sh,
-  rules/{nets.yaml,power_tree.yaml,electrical_invariants.yaml,integration.yaml}}`
+  rules/{nets.yaml,power_tree.yaml,requirements.yaml,power_stages.yaml,
+  protection_paths.yaml,electrical_invariants.yaml,integration.yaml}}`
   — plus `rules/mates.yaml` ONLY if the board mates to foreign hardware
   (D-MATE below; a board that mates to nothing must not carry an empty one,
   which `import_provenance_check.py` fails as M-COVER) —
@@ -173,7 +174,9 @@ part, state, and journal paths. See the kicad-pcb reference
   in the report. The most-capable reading is where over-engineering hides
   (usb-hub-3s 2026-07-22; see the SPEC-CHECK rule in D-BACK).
   Fill the BRIEF's **Commission fact-lock** table NOW (output-rail voltage
-  range + Imax, input envelope, protection posture, off-control, hard-cell
+  range + Imax, connector count, simultaneous-load count, continuous/peak
+  duty, exact measurement plane and included/excluded delivery-path elements,
+  input envelope, protection posture, off-control, hard-cell
   sourcing class) — every row user-confirmed (Q#/A#) or an explicit D#;
   the two rows left unlocked on usb-hub-3s (output V range, protection
   posture) cost that family two generation restarts (~27 of 53 commits,
@@ -255,16 +258,20 @@ part, state, and journal paths. See the kicad-pcb reference
       any engineering is spent — propose the nearest compliant reading.
   The stage-2 part.yaml work then verifies the chosen part; it never
   DISCOVERS feasibility.
-  **D-MOD, MODULE-FIRST INTEGRATION (DEFAULT WHEN THE USER IS SILENT).** For
-  each complex subsystem—programmable compute/control, radio, interface or
-  switching-power controller, precision AFE/transceiver—search proven modules
-  before selecting a bare IC. Optimize total engineering effort (support BOM,
-  layout/escape, firmware/bring-up, verification, sourcing and assembly), not
-  only unit price or area. Record every choice in
+  **D-MOD, COMPLEXITY-WEIGHTED MODULE INTEGRATION (DEFAULT WHEN THE USER IS
+  SILENT).** For each complex subsystem—programmable compute/control, radio,
+  interface or switching-power controller, precision AFE/transceiver—compare
+  proven modules with the bare IC before parts are locked. Optimize total
+  engineering effort (support BOM, layout/escape, firmware/bring-up,
+  verification, sourcing and assembly), not only unit price or area. Record
+  every choice and the bare IC's external `support_refs` in
   `03_src/rules/integration.yaml`; `module_first_check.py` is P-MOD and runs
-  before generation. A bare IC requires an ADR naming a BINDING requirement a
-  module cannot meet, measured/cited evidence, and the modules rejected. Cost
-  or area alone is not an exception without a locked production/size target.
+  before generation. A bare IC with fewer than the configured support-part
+  threshold (10 by default) needs a clear total-system rationale but no ritual
+  exception. At or above the threshold it requires an ADR, measured/cited
+  evidence and at least one concrete module comparison. A module need not fail
+  an absolute requirement: a bare IC may win on total verified complexity,
+  layout maturity or integration fit, but cost/area alone is not sufficient.
 
 ## Journal discipline — every stage, every iteration (canon M9)
 
@@ -434,7 +441,36 @@ escalate one more stage up, or write the honest-stop ADR naming the wall.
 before retreating to placement; the retreat then recovered the board in
 one pass. The trigger existed in hindsight only — now it is a rule.)
 
+**ONE LIVE WRITER, STAGE-LOCKED.** Only one agent/process may edit a board's
+live source tree. Parallel agents may research parts, calculate, or review
+read-only exact artifacts; speculative downstream work belongs in an isolated
+worktree and cannot be promoted while an upstream gate is red. A D-SPEC,
+E-PATH, E-SWDRV, E-SURGE, P-BODYCLR, or R-PAIRMAP failure reopens its owning
+stage and cancels downstream promotion rather than accumulating repair work.
+
 ## 1-3. Design docs, parts, rules (order matters)
+
+**FIRST-DETECTION OWNERSHIP IS A HARD STOP, NOT A POSTMORTEM LABEL.** Each
+defect class below has one earliest stage that owns it and one later independent
+backstop. The earliest stage may not defer the decision to DRC or the release
+review; the backstop may not be cited as the reason an upstream artifact can
+remain incomplete.
+
+| Defect class | Earliest owning stage — required evidence before proceeding | Independent backstop |
+|---|---|---|
+| External-output capability and measurement boundary | **Requirements.** `requirements.yaml` binds port count, simultaneous count, continuous/peak duty, current and voltage at one named measurement plane, with machine-readable `included_elements` and `excluded_elements`. Prose-only boundary evidence fails. Run D-SPEC/E-PATH before schematic review. | E-MARGIN and simultaneous-load first-article measurement at the same plane. |
+| TVS / surge / downstream absolute-maximum compatibility | **Parts + architecture.** `DETAIL_DESIGN.md` carries one rail-wide rating table with source operating maximum and tolerance, TVS standoff/breakdown/clamp, disconnect delay, and every directly exposed part's recommended and absolute maximum. The worst protected-rail waveform must remain below every exposed limit with stated margin; a nominal-input comparison is not evidence. | Fresh topology/protection/ratings review before seal. |
+| Controller-to-MOSFET gate-drive compatibility | **Parts + schematic architecture.** `power_stages.yaml` uses maximum or explicitly qualified-maximum Qg, switching frequency, all driven FETs, controller minimum drive/current limit, bias, and thermal assumptions. Typical-only Qg is not proof. Run E-SWDRV before placement. | Switching-node waveform/startup test and controller temperature. |
+| UVLO, OVLO, enable, current-limit, and feedback thresholds | **Schematic math.** Derive guaranteed-low and guaranteed-high trip/output corners from IC threshold, resistor tolerance, bias/leakage, and temperature limits. Assert the fitted component values in `electrical_invariants.yaml`; nominal-only arithmetic is incomplete. | E-INV/E-MARGIN plus fresh schematic/topology review. |
+| Reset, brownout, debugger-halt, or unpowered safe state | **Schematic topology.** Every safety-relevant CMOS input has a physical pull/default path and a `node_level` or equivalent invariant proving the restrictive state; firmware reset behavior is not a resistor. | Fresh topology review and first-power/reset test. |
+| Sustained-current protection part | **Parts/BOM.** Fuse/breaker is an exact MPN with voltage, interrupt, and time-current evidence and an unambiguous holder/assembly quantity; a holder rating or silk value is not the protective part. | Sourcing/assembly gate and incoming inspection. |
+| End-to-end voltage drop | **Requirements + power tree.** `ir_budget_mohm` covers the entire bounded path named by the requirement: converter/switch, board copper and vias, solder joints, both mated contacts, and any claimed cable/plug. Exclusions must narrow the user-visible claim rather than silently shrink the model. | PCB resistance extraction, E-MARGIN, and simultaneous full-load qualification. |
+| Stackup, impedance, reference plane, and pair matching | **Rules before placement/routing.** Bind the intended fabricated stackup; declare each physical P/N chain in `length_match`; declare allowed layer(s), reference plane, and signal-via policy in `rf.yaml`/`nets.yaml`. | RF schematic review before placement, RF PCB review before layout seal, RF fab review on the exact Gerbers. |
+| Switching-converter hot loops / Kelvin sense | **Placement.** Adapt the datasheet/EVM layout, encode pin-local adjacency and span budgets, and pass the placement phase of `policy_audit.py` before any route run. Gate-driver, bootstrap, input-cap/FET/shunt, switch-to-inductor, and Kelvin pairs are separate obligations. | Fresh layout/power-integrity review plus first-article waveforms and temperature. |
+| Component-body, courtyard, or foreign-pad collision | **Placement.** Every assembled footprint has a same-side courtyard and passes P-BODYCLR at a positive project clearance; zero distance, touching, and overlap are fatal and non-waivable. | Independent placement/render review and assembly twin. |
+| Critical-pair omission or wrong routing mode | **Routing contract before route.** Every physical P/N chain is listed in `route.preflight_critical_pairs`, assigned to the differential engine and length-match group, with layer/via policy. R-PAIRMAP must pass before routing; R-CRITESC checks realized copper after stitch. | RF/USB PCB review and exact-fab review. |
+| High-current neckdowns and via transitions | **Routing rules.** Current-class width, maximum pad-escape length, via diameter/drill, and required parallel-via count are binding generator inputs. Audit realized copper; a wide trunk does not excuse a long narrow launch or one undersized layer transition. | DRC/ampacity policy, resistance extraction, and simultaneous full-load thermal/drop test. |
+| Render/model registration and mechanically critical manual-fit bodies | **Evidence generation.** The twin denominator includes CPL parts and declared manual-fit mechanical parts; same-camera bare subtraction and model-to-footprint registration must pass before a human render review. | Fresh render review before seal. |
 
 1. `01_docs/ARCHITECTURE.md` (topology + power math) and
    `DETAIL_DESIGN.md` (every component value derived, with margins);
@@ -525,7 +561,11 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
      local, hot loops tight). The floorplan is then ADAPTED FROM the reference
      layout, never authored against it. ENFORCED: `policy_audit` **P-LAYOUT**
      fails an in-scope part with no block; **P-ADJ** measures each board net's
-     pad-span against its budget (warn+waiver). Motivating miss (usb-hub-3s-v2
+     pad-span against its budget. `policy_audit.py --phase placement` runs the
+     same P-LAYOUT/P-PREC/P-ADJ/P-ADJ-PAIR/P-ADJ-UNREACHED implementation
+     immediately after board generation and placement gates, and MUST pass
+     before rules or routing begin; it writes `06_build/placement_policy_audit.md`
+     without replacing the full release audit. Motivating miss (usb-hub-3s-v2
      TPS25740A, 2026-07-22): pinout (S-VER) + package (P-ESC) both passed, but
      the Layout section (pass FET + sense R + VBUS caps HARD against the
      power-stage pin edge) was never read; the FET row went 7mm off the edge
@@ -634,6 +674,12 @@ keep the retired code resolvable as a **mapping-form** `alternates:` entry, or
 move the code->MPN fact to the vetted ledger. Graded by
 `sealed_dependency_check.py`. Measured: 539 rows across 25 of 33 sealed releases
 resolve ONLY because a dossier is still in the tree.
+
+For module-first coverage, a dossier retained only for an immutable historical
+release belongs in `integration.yaml` `historical_dossiers:` rather than a
+false live selection. P-MOD accepts that declaration only when the dossier's
+exact MPN and primary LCSC identity are absent from live TSX authoring source;
+if either token remains, retirement fails closed.
 
 3. `03_src/rules/nets.yaml` + `generate_rules.py` BEFORE any layout.
 4. `03_src/rules/electrical_invariants.yaml` — the INTENT gate (canon E-INV):
@@ -821,13 +867,17 @@ story-critical paths per canon S6 →
 netlist-parity gate → **CHEAP SEMANTIC BATTERY at the SCHEMATIC gate** —
 seconds each, run HERE and not first at seal (a defect authored at this
 stage and caught at seal costs a superseded release; R12/R30 shipped in
-2 sealed BOMs before the check ran, 2026-07-23): `net_label_survival.py`
+2 sealed BOMs before the check ran, 2026-07-23): `early_design_check.py`
+(D-SPEC/E-PATH/E-SWDRV/E-SURGE) first, then `net_label_survival.py`
 (S-NETMERGE — every schematic global_label survives to the exported netlist;
 the crow net-merge class) + `electrical_invariants.py`
 (E-INV, + `--adr-coverage` E-ADR) + `power_topology.py` (E-TOPO/E-MARGIN/
 E-OFF) + `count_parity.py` (S-COUNT) + `bom_source_check.py --circuit-only`
 at the SCHEMATIC gate (no BOM needed — the R12/R30 class dies when the tsx
-builds), then legs A+C again at the FIRST fab-BOM export (early, never
+builds) + `pre_route_review_check.py . --phase schematic` (PR-REVIEW: an
+independent topology review says `SOUND` and binds the exact netlist + parts
+bytes before placement or routing spend; missing, DEFECTIVE, stale, and
+unadopted evidence all stop), then legs A+C again at the FIRST fab-BOM export (early, never
 seal-first) — per-refdes LCSC
 identity vs circuit.json AND decoded-MPN-catalog-value vs the BOM label →
 generate_board — placement is hand-coded OR
@@ -837,8 +887,22 @@ then legalize) → audit gate (polarity,
 proximity, plane-clean, refdes-on-silk) + `placement_gates.py
 04_kicad/<board>.kicad_pcb --config 03_src/placement_gates.json` (SHARED:
 P-OUT pads-inside-outline-polygon, P-CAP corridor crossing-demand vs
-capacity — run BEFORE any routing attempt; a corridor FAIL is a
+capacity, P-BODYCLR positive courtyard/body clearance — run BEFORE any
+routing attempt; a corridor or collision FAIL is a
 placement/topology decision, not a router tuning problem)
++ `critical_route_check.py .` (R-PAIRMAP: inventory completeness derived from
+independent `nets.yaml length_match` intent, differential/seed source, layers
+and via policy; direct route/prep/import entry points invoke the same gate)
++ `policy_audit.py . --board <board> --skip-drc --phase placement`
+(SHARED: the authoritative P-LAYOUT/P-PREC/P-ADJ/P-ADJ-PAIR/
+P-ADJ-UNREACHED subset; it MUST pass here, after placement and before
+generate_rules or route import)
++ `pre_route_review_check.py . --phase placement --board <board>`
+(PR-REVIEW: the schematic-side topology witness already bound the exact
+netlist+parts before placement; now independent pin/layout/render reviews and
+same-camera A-RENDER bind the exact placed board before routing. Missing,
+DEFECTIVE, or stale evidence blocks. These early lenses do not replace the
+fresh routed-release lenses.)
 + `import_provenance_check.py <project>` if the board carries
 `03_src/rules/mates.yaml` (canon D-MATE: the floorplan is where a foreign
 dimension becomes copper, so its grade is re-checked at the moment it is
@@ -852,12 +916,14 @@ discouraged) — run `tier_preflight.py <project> --explain` when authoring
 route.yaml, the fix lines are copy-paste → KRT
 routing chain (fanout-first, track-free board, import once; promote the
 final chain file to 03_src/route/ and commit it — canon M3) →
-stitch_and_fill (pours + thermal vias) → **generate_rules LAST** (pcbnew
-saves clobber netclasses) → DRC gate:
+stitch_and_fill (pours + thermal vias) → `critical_route_check.py . --board
+04_kicad/<board>.kicad_pcb --require-connected` (R-CRITESC) →
+**generate_rules LAST** (pcbnew saves clobber netclasses) → DRC gate:
 `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
 must report **0 violations / 0 unconnected / 0 parity** at FULL severity.
 At route entry run `pcb_flow.py preflight <project>`: on adopted projects it
-composes P-MOD first, then P-ESC, P-LAND, and R-PREFLIGHT before router spend.
+composes P-MOD first, then P-PINMAP, P-ESC, P-LAND/P-PADSEP, the
+placement-policy P-ADJ subset, and R-PREFLIGHT before router spend.
 `pcb_flow.py layout-seal`
 performs a canonical rebuild plus a fresh 0/0/0 gate and records timings; its
 fresh-board P-LAND gate runs after that rebuild and before DRC. Its verdict is
@@ -1057,18 +1123,28 @@ who owes the consumer.
   test; A-ROT lands only once the whole table is re-derived independently.
   **The rule this bought: a gate must never derive its expectation from the
   artifact it is grading, nor from a table built by it (canon M1).**
-- `twin_overlay.py BOARD 06_build/twin/twin_top.png --side top --twin-dir
-  06_build/twin --bom fab/bom.csv --assembly 03_src/rules/assembly.yaml
+- `twin_overlay.py BOARD 06_build/twin/twin_top.png --bare
+  06_build/twin/twin_bare_top.png --side top --twin-dir 06_build/twin
+  --bom fab/bom.csv --assembly 03_src/rules/assembly.yaml
+  --adjudications 03_src/rules/twin_adjudications.yaml
   --twin-report 06_build/twin/twin_report.csv --crop-flagged --report
   06_build/verify/twin_overlay.md` (canon **A-RENDER**, BLOCKING). **Run it
   after jlc_twin and BEFORE the fresh-context render review — that review is
   worthless on a render nobody has proved is faithful.** It measures each
-  body in PIXELS out of the PNG and compares against the body position the
+  body from the populated-minus-same-camera-bare pixel delta and compares it
+  against the body position the
   BOARD implies (mesh bbox x JLC's own model transform x placement), so it
   cannot agree with a wrong mount by construction (canon M1). Run it on
   BOTH sides that carry parts; it REFUSES a perspective/iso render, a
   `--side` that contradicts the filename, and a side with no courtyards
   rather than drawing boxes it cannot trust.
+  The populated and bare PNG dimensions must match exactly. The bare twin is
+  generated by `jlc_twin.py` from the same board/camera with all 3D bodies
+  removed; static copper, silk and mask pixels therefore cancel instead of
+  masquerading as component bodies. Evidence-backed model/board nudges and
+  rotation overrides are read from the same adjudication register used to
+  build the twin, so expected and rendered geometry share the declared final
+  transform rather than disagreeing because the checker ignored it.
   **Read the COVERAGE line, not the verdict.** Pixel extraction resolves
   large isolated parts and not dense 0402 fields, so coverage is partial by
   construction — on crow-recorder-central-v2 v1.5 it is `22 measured / 177`.
@@ -1084,7 +1160,9 @@ who owes the consumer.
   waiver is a defect vector.
 - Fresh-context PIN REVIEW: `pin_audit.py` dossiers -> new agents per
   part group following `kicad-pcb/references/pin-review-protocol.md`.
-  Zero FAILs to proceed.
+  Dossiers expose `pin_aliases`/`fused` declarations and select the vendored
+  PDF whose bytes match `datasheet.sha256`; a neighboring variant selected by
+  filename or directory order is not authority. Zero FAILs to proceed.
 - Fresh-context RENDER REVIEW: a new agent reviews the twin renders +
   PDFs with no design context; triage every finding (fix or ADR-documented
   disposition).
@@ -1092,9 +1170,10 @@ who owes the consumer.
   (no per-board export script — the release contract names the files),
   visually verified via PNG export.
   **RENDER PAIR + MISSING-MODEL MANIFEST (standard, 2026-07-21):**
-  every release ships BOTH views per side — `render_<side>_bare.png`
-  (kicad-cli svg export of Cu+Mask+SilkS+Edge, rasterized: the
-  no-components truth view) and the twin's modeled render — PLUS
+  every release ships BOTH views per side — `render_<side>_bare.png`, the
+  no-components render made by `jlc_twin.py` with the exact SAME camera,
+  projection, crop, and resolution as the populated twin, and the twin's
+  modeled render — PLUS
   `verification/missing_models.txt`: every CPL ref with no attached 3D
   body in the modeled render. Incident: usb-hub-3s U1/Q5/Q6/Q7 rendered
   bodiless (JLC models unattached) and were read as UNPOPULATED by

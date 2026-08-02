@@ -9,6 +9,21 @@ board:
   outline: {x0: 20.0, y0: 20.0, x1: 150.0, y1: 110.0}
   edge_width: 0.1
   layers: 4
+  stackup:
+    # JLCPCB JLC04161H-7628, 4-layer / 1.6 mm construction.  Keep the
+    # published 0.2104 mm 7628 outer dielectrics in the native KiCad board so
+    # the 0.25/0.15 mm USB geometry and its L2 reference-plane assumption are
+    # tied to the order contract instead of prose alone.
+    nominal_thickness_mm: 1.6
+    thickness_tolerance_mm: 0.10
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.01
+    copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
+    dielectrics:
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 1.0650, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
     refdes_prefix: H
@@ -59,8 +74,8 @@ placement:
     # USB2517 supply bypass ring.  These are intentionally anchored beside
     # the matching power-pin banks instead of legalized into the wider
     # control region.
-    C32: [89.0, 57.25, 180]
-    C33: [88.5, 59.75, 180]
+    C32: [102.5, 68.0, 180]
+    C33: [107.5, 68.0, 180]
     C34: [92.5, 66.4, 90]
     C35: [103.4, 62.3, 0]
     C36: [103.4, 59.8, 0]
@@ -85,8 +100,17 @@ placement:
     C30: [91.2, 47.7, 90]
     C31: [99.4, 47.7, 90]
     R30: [96.375, 51.7, 90]
-    U7: [68.0, 59.0, 0]
+    # Rotate the MCU so its fixed USB D-/D+ pad order matches the hub's port-5
+    # pad order.  Without this, two no-via F.Cu conductors have reversed
+    # boundary endpoints and cannot be routed without a topological crossing.
+    U7: [68.0, 59.0, 180]
     U8: [76.0, 70.0, 0]
+    # Reset-state command pull-downs stay immediately south of U8. Keeping the
+    # four parts together makes the hardware-off default visually auditable.
+    R38: [70.0, 74.5, 0]
+    R39: [73.5, 74.5, 0]
+    R40: [78.5, 74.5, 0]
+    R41: [82.0, 74.5, 0]
     J7: [25.5, 70.0, 90]
 
     # Protected input and logic supply, south-west.
@@ -107,38 +131,41 @@ placement:
     # Keep the logic buck clear of the LM74810/FET gate-drive escape field.
     U4: [67.0, 82.0, 0]
     L3: [75.0, 82.0, 0]
+    # Logic-buck output ceramics stay at the inductor output, clear of the
+    # MCU reset-state command pull-down row (which the old manifest omitted).
+    C23: [81.5, 77.8, 90]
+    C24: [80.0, 82.8, 90]
     # AP63203 bootstrap capacitor bridges the adjacent BST/SW pins locally;
     # a remote bootstrap loop both boxed FB/3V3 and increased switch noise.
     C22: [69.9, 81.5, 90]
 
-    # Two proven 7 A buck cells, switch nodes directed south/east and away
-    # from the USB fanout bank.
-    U2: [96.0, 91.0, 0]
-    Q3: [87.0, 87.0, 0]
-    Q4: [88.0, 96.0, 0]
-    RS1: [88.0, 102.5, 0]
-    L1: [108.0, 91.0, 90]
-    U3: [128.0, 91.0, 0]
-    # Converter-B UVLO divider is kept immediately north of U3.  The two
-    # UVLO pads face one another, while VIN and GND face outward.
-    R205: [125.0, 84.8, 0]
-    R206: [128.5, 84.8, 0]
-    Q5: [119.0, 87.0, 0]
-    Q6: [120.0, 96.0, 0]
-    RS2: [120.0, 102.5, 0]
-    # Shift the inductor east to leave a real component/escape corridor for
-    # U3's CSF/CSGF pins and their filter resistor.
-    L2: [143.0, 91.0, 90]
-    R208: [134.2, 93.275, 180]
-    # Feedback capacitor is placed in the gap between the two MOSFETs, next
-    # to U3.8 instead of at the far edge of the buck region.
-    C202: [122.4, 91.5, 0]
-    C203: [128.0, 96.0, 0]
-    # Keep the original pre-legalization anchor here so moving this part does
-    # not perturb the deterministic legalizer's placement of every later
-    # B-channel passive.  Its electrically required final move is applied in
-    # post_anchors below, after the rest of the promoted pad field is frozen.
-    R204: [129.0, 99.0, 0]
+    # Two TPSM63606 4 A module cells. Input and output capacitors are dual and
+    # symmetric as required by TI Figure 11-2; feedback and RT stay pin-local.
+    U2: [85.0, 91.0, 0]
+    C107: [81.0, 86.0, 0]
+    C108: [89.0, 86.0, 0]
+    C109: [81.0, 88.5, 0]
+    C110: [89.0, 88.5, 0]
+    C112: [81.0, 96.0, 0]
+    C113: [89.0, 96.0, 0]
+    R101: [90.0, 90.5, 0]
+    R103: [90.0, 92.5, 0]
+    R111: [92.5, 94.5, 0]
+    R102: [95.0, 94.5, 0]
+    C101: [95.0, 92.5, 0]
+
+    U3: [120.0, 91.0, 0]
+    C207: [116.0, 86.0, 0]
+    C208: [124.0, 86.0, 0]
+    C209: [116.0, 88.5, 0]
+    C210: [124.0, 88.5, 0]
+    C212: [116.0, 96.0, 0]
+    C213: [124.0, 96.0, 0]
+    R201: [125.0, 90.5, 0]
+    R203: [125.0, 92.5, 0]
+    R211: [127.5, 94.5, 0]
+    R202: [130.0, 94.5, 0]
+    C201: [130.0, 92.5, 0]
 
     # Port-1 eFuse timing capacitor sits directly east of ITIMER.
     C411: [54.0, 44.3, 0]
@@ -188,13 +215,17 @@ placement:
     - "R34"
     - "C411"
     - "C412"
-    - "R205"
-    - "R206"
-    - "R208"
-    - "C202"
-    - "C203"
-    - "R204"
     - "R413"
+    - "C10*"
+    - "C11*"
+    - "R101"
+    - "R102"
+    - "R111"
+    - "R103"
+    - "C20*"
+    - "C21*"
+    - "R20*"
+    - "R211"
 
   # Preserve the original legalizer sequence (and therefore every other
   # promoted-route pad), then apply only these reviewed local placements.
@@ -204,17 +235,31 @@ placement:
     # compensation resistors and displaced C114, even though their promoted
     # copper remained fixed.
     R36: [84.3, 56.6, 0]
-    R104: [88.0, 78.6, 0]
-    R105: [80.5, 86.9, 0]
-    # C114 lands directly on the existing 5V_A plane-drop barrel; a 0.2 mm
-    # west shift from the legalizer result clears the adjacent SW_A trace.
-    C114: [81.2, 97.8, 0]
+    # Preserve the legalizer sequence, then correct the AP63203 cell. DS41326
+    # requires C21 directly across U4 VIN/GND and output ceramics after L3.
+    C21: [67.0, 85.2, 0]
+    C23: [81.5, 77.8, 90]
+    C24: [80.0, 82.8, 90]
+    # TPS259470 support parts are placed from the datasheet electrical
+    # budgets before routing.  Cx2 is the local IN bypass, and Rx4 is the
+    # ILIM programming resistor; all four repeated cells must satisfy the
+    # shared 5V_A/5V_B and ILIM P-ADJ rows, not merely the worst old instance.
+    C412: [50.75, 48.0, 180]
+    R414: [53.25, 46.75, 270]
+    C422: [79.0, 47.25, 180]
+    R424: [81.0, 42.25, 90]
+    C432: [110.75, 48.5, 270]
+    R434: [108.75, 42.0, 90]
+    C442: [133.25, 42.25, 180]
+    R444: [136.325, 42.25, 180]
+    # Port 4's three-passive quiet-side cluster has only a narrow legal
+    # courtyard slot.  Moving DVDT 0.125 mm east makes that slot real; ITIMER
+    # then sits north-west and reaches its reviewed inner-layer escape.
+    C440: [139.425, 42.2, 0]
+    C441: [132.5, 40.625, 180]
     # A 90-degree rotation fits between the P2_VBUS trunk and ADC_P2_VBUS.
     # The small south-west shift also clears both adjacent 0603 courtyards.
     R422: [85.5, 39.8, 90]
-    # The route-chain repair moved the COMP_B via and VIN dogleg instead of
-    # moving the component, so retain the original pad endpoints here.
-    R204: [129.0, 99.0, 0]
 
   regions:
     port1: [39.0, 28.0, 61.0, 50.0]
@@ -278,15 +323,16 @@ silk:
   min_text_height: 0.7
   refdes: {size: 0.65, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQF"}
   captions:
-    - ["PORT 1  5V / 3A", 50.0, 27.0, 0.8]
-    - ["PORT 2  5V / 3A", 80.0, 27.0, 0.8]
-    - ["PORT 3  5V / 3A", 110.0, 27.0, 0.8]
-    - ["PORT 4  5V / 3A", 136.0, 27.0, 0.8]
-    - ["USB HOST", 23.0, 61.5, 0.75]
-    - ["12-24V DC  +  -", 28.0, 107.0, 0.8]
+    - ["PORT 1  5V / 2A", 50.0, 27.0, 0.8]
+    - ["PORT 2  5V / 2A", 80.0, 27.0, 0.8]
+    - ["PORT 3  5V / 2A", 110.0, 27.0, 0.8]
+    - ["PORT 4  5V / 2A", 136.0, 27.0, 0.8]
+    - ["USB HOST", 24.5, 46.5, 0.75]
+    - ["SWD", 25.5, 75.5, 0.75]
+    - ["12-24V + -", 25.5, 104.0, 0.6]
     - ["FIT 10A MINI FUSE", 40.0, 107.0, 0.7]
     - ["PROGRAMMABLE USB2 HUB  REV A", 75.0, 109.4, 0.8]
-    - ["USB-A 3A IS PROPRIETARY POWER MODE", 105.0, 109.5, 0.6]
+    - ["USB-A 2A IS PROPRIETARY POWER MODE", 105.0, 109.5, 0.6]
 
 asserts:
   pad_net:

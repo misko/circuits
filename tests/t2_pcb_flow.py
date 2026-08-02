@@ -373,6 +373,10 @@ def t_reviewed_commit_seal_dry_run():
                   "reviewed commit seal dry run")
     not_contains(r.out, "[rebuild]", "signed artifact must not be rebuilt")
     contains(r.out, "[escape_lands]", "landability is revalidated")
+    contains(r.out, "[placement_clearance]", "P-BODYCLR is revalidated")
+    contains(r.out, "[critical_pair_map]", "R-PAIRMAP is revalidated")
+    contains(r.out, "[critical_route_connected]", "R-CRITESC is revalidated")
+    contains(r.out, "[pre_route_placement]", "placement review is revalidated")
     contains(r.out, "[rf_reviews]", "exact RF reviews are revalidated")
     contains(r.out, "--schematic-parity", "exact DRC is revalidated")
 
@@ -453,6 +457,86 @@ def t_module_first_preflight():
     contains(adopted.out, "[module_first]", "P-MOD stage")
     check(adopted.out.index("module_first_check.py") <
           adopted.out.index("escape_check.py"), "P-MOD must run first")
+
+
+@test("pcb-flow preflight places the authoritative P-ADJ policy phase before "
+      "router spend")
+def t_placement_policy_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "preflight plan")
+    contains(plan.out, "[placement_policy]", "placement policy stage")
+    contains(plan.out, "--phase placement", "authoritative policy subset")
+    check(plan.out.index("[placement_policy]") < plan.out.index("[tier_preflight]"),
+          "P-ADJ must run before routing preflight/spend")
+
+
+@test("adopted pcb-flow runs early electrical design before every schematic, "
+      "placement, and routing gate")
+def t_early_design_preflight():
+    root = scratch()
+    rules = root / "03_src/rules"
+    rules.mkdir(parents=True, exist_ok=True)
+    (rules / "requirements.yaml").write_text(
+        "schema: 1\npower_claims: []\n"
+        "no_external_power_outputs: Fixture has no external power output.\n")
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "adopted preflight plan")
+    contains(plan.out, "[early_design]", "early electrical stage")
+    check(plan.out.index("[early_design]") <
+          plan.out.index("[pre_route_schematic]") <
+          plan.out.index("[pin_map]") <
+          plan.out.index("[critical_pair_map]") <
+          plan.out.index("[tier_preflight]"),
+          "early electrical and critical-pair gates must follow stage ownership")
+    for stage in ("build_freshness", "net_label_survival",
+                  "electrical_invariants", "adr_coverage", "power_topology",
+                  "power_margin", "off_control", "count_parity", "circuit_bom"):
+        contains(plan.out, f"[{stage}]", "complete authoring semantic battery")
+
+
+@test("pcb-flow preflight runs P-PINMAP as its first board-artifact gate")
+def t_pin_map_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "preflight plan")
+    contains(plan.out, "[pin_map]", "pin-map stage")
+    contains(plan.out, "pin_map_check.py", "shared pin-map checker")
+    check(plan.out.index("[pin_map]") < plan.out.index("[escape_lands]")
+          < plan.out.index("[placement_policy]")
+          < plan.out.index("[tier_preflight]"),
+          "P-PINMAP must precede land, placement, and routing checks")
+
+
+@test("pcb-flow preflight makes both exact-artifact review boundaries blocking")
+def t_pre_route_review_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "preflight plan")
+    contains(plan.out, "[pre_route_schematic]", "schematic review stage")
+    contains(plan.out, "[pre_route_placement]", "placement review stage")
+    check(plan.out.count("pre_route_review_check.py") == 2,
+          "preflight must run each PR-REVIEW phase exactly once")
+    check(plan.out.index("[pre_route_schematic]") <
+          plan.out.index("[pre_route_placement]") <
+          plan.out.index("[tier_preflight]"),
+          "both independent review phases must precede routing preflight")
+
+
+@test("pcb-flow direct preflight cannot bypass either exact pre-route review "
+      "boundary")
+def t_pre_route_reviews_in_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "preflight plan")
+    contains(plan.out, "[pre_route_schematic]", "schematic review stage")
+    contains(plan.out, "[pre_route_placement]", "placement review stage")
+    check(plan.out.index("[pre_route_schematic]") <
+          plan.out.index("[placement_policy]") <
+          plan.out.index("[pre_route_placement]") <
+          plan.out.index("[tier_preflight]"),
+          "topology review must precede placement policy, whose exact board "
+          "must then be reviewed before the router preflight")
 
 
 @test("successful seal is transactional and every bound class can stale it")

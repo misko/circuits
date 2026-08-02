@@ -66,9 +66,17 @@ def t_real_sealed_reviewed_project_passes():
 @test("an unsealed board cannot be published even when DRC/parity are green",
       kind="known_bad")
 def t_unsealed_hub_is_refused():
-    r = must_fail(run([sys.executable, PUB, "--project",
-                       "projects/programmable-usb2-hub"]),
-                  "unsealed programmable USB hub", expect="NO-RELEASE")
+    # The real programmable hub eventually seals; pin this property to a
+    # deliberately release-less project so success cannot make the regression
+    # fixture stale. The gate exits at NO-RELEASE before invoking child tools.
+    d = tmpdir("pub_unsealed_")
+    (d / ".git").mkdir()
+    board_dir = d / "projects" / "unsealed-demo" / "04_kicad"
+    board_dir.mkdir(parents=True)
+    (board_dir / "unsealed_demo.kicad_pcb").write_text("(kicad_pcb)\n")
+    r = must_fail(run([sys.executable, PUB, "--root", d, "--project",
+                       "projects/unsealed-demo"]),
+                  "deliberately unsealed board", expect="NO-RELEASE")
     contains(r.out, "1 project(s), 1 board(s) graded", "coverage denominator")
 
 

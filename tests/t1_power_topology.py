@@ -98,6 +98,34 @@ def t_lm5116_buck_pass():
     contains(r.out, "E-TOPO OK", "clean report")
 
 
+@test("E-TOPO matches punctuated exact MPNs to filesystem-safe dossier names")
+def t_punctuated_exact_mpn_is_covered():
+    d = project(ptree(rail("USB-A", 12, 24, 5.18, 5.25, 3,
+                           "LTC3889IUKG#PBF")),
+                parts={"LTC3889IUKG-PBF": {
+                    "mpn": "LTC3889IUKG#PBF",
+                    "type": "dual_buck_controller",
+                }})
+    r = must_pass(etopo(d), "punctuated MPN coverage")
+    contains(r.out, "covering 1/1 converter", "M-COVER uses normalized identity")
+    not_contains(r.out, "UNGRADED CONVERTERS", "no false ungraded dossier")
+
+
+@test("E-TOPO grades cascaded rails without double-counting the child at the trunk")
+def t_cascaded_child_not_double_counted():
+    tree = ("input_trunk_class: PWR_IN\nrails:\n" +
+            rail("AUX", 12, 24, 5.9, 6.1, 1, "WIDE-BUCK", 0.9) +
+            rail("LOGIC", 5.9, 6.1, 3.27, 3.33, 0.8, "LOGIC-BUCK", 0.85)
+            .replace("    converter: LOGIC-BUCK\n",
+                     "    converter: LOGIC-BUCK\n    input_parent: AUX\n"))
+    nets = "classes:\n  PWR_IN:\n    current: 1 A\n    nets: [VIN]\n"
+    d = project(tree, parts={"WIDE-BUCK": "buck_converter",
+                             "LOGIC-BUCK": "buck_converter"}, nets=nets)
+    r = must_pass(etopo(d), "cascaded input current")
+    contains(r.out, "0.565 A at Vin_min 12 V", "only parent load reaches trunk")
+    not_contains(r.out, "UNDER-BUILT", "child is not charged twice")
+
+
 @test("E-TOPO PASSES a full-PD rail (5-20V out overlaps Vin) with a buck_boost")
 def t_full_pd_buckboost_pass():
     """A genuine 5-20V PD output overlaps the 9-12.6V input, so buck_boost is
@@ -251,6 +279,46 @@ def t_margin_pass():
     contains(r.out, "E-MARGIN OK", "clean report")
 
 
+@test("E-MARGIN prints and grades the same auditable end-to-end IR path")
+def t_margin_component_breakdown_pass():
+    """The scalar remains the arithmetic input, but its connector/cable/board
+    denominator is visible and mechanically tied to that scalar."""
+    breakdown = (
+        "    ir_budget_components_mohm:\n"
+        "      board_and_efuse: 70\n"
+        "      mated_vbus_and_gnd_contacts: 60\n"
+        "      bounded_cable_loop: 40\n")
+    d = project(ptree(railx("USB_DEVICE", 12.0, 24.0, 5.10, 5.10, 3,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.40,
+                            ir_budget_mohm=170) + breakdown),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(margin(d), "E-MARGIN with a complete IR breakdown")
+    contains(r.out, "board_and_efuse=70", "prints the board/switch term")
+    contains(r.out, "mated_vbus_and_gnd_contacts=60",
+             "prints the contact term")
+    contains(r.out, "bounded_cable_loop=40", "prints the bounded cable term")
+
+
+@test("E-MARGIN rejects a displayed IR breakdown whose sum differs from the "
+      "graded scalar", kind="known_bad")
+def t_margin_component_breakdown_mismatch():
+    """A reviewer must not see 170 mOhm of components while the checker grades
+    70 mOhm.  This is the same adjacent-property failure as a stale manifest."""
+    breakdown = (
+        "    ir_budget_components_mohm:\n"
+        "      board_and_efuse: 70\n"
+        "      mated_vbus_and_gnd_contacts: 60\n"
+        "      bounded_cable_loop: 40\n")
+    d = project(ptree(railx("USB_DEVICE", 12.0, 24.0, 5.10, 5.10, 3,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.40,
+                            ir_budget_mohm=70) + breakdown),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "E-MARGIN with divergent path totals",
+                  "LOAD ERROR")
+    contains(r.out, "sums to 170 mOhm", "names the visible sum")
+    contains(r.out, "ir_budget_mohm is 70", "names the graded scalar")
+
+
 @test("E-MARGIN FAILS THE INCIDENT (floor mode): 4.97V into a Pi5 at 5A = 68mOhm",
       kind="known_bad")
 def t_margin_incident_floor():
@@ -317,6 +385,27 @@ def fbblock(vref=1.215, vref_tol=1.5, rt=4120, rt_tol=0.1,
               ("r_bottom_ohm", rb), ("r_bottom_tol_pct", rb_tol)]
     body = "".join(f"      {k}: {v}\n" for k, v in fields if k != omit)
     return "    feedback:\n" + body
+
+
+def fbblock_exact(vref_min=1.195, vref_max=1.231, rt=3931, rt_tol=0.1026,
+                  rb=1210, rb_tol=0.1, ib_min=0, ib_max=500):
+    fields = [("vref_min", vref_min), ("vref_max", vref_max),
+              ("fb_bias_current_min_nA", ib_min),
+              ("fb_bias_current_max_nA", ib_max),
+              ("r_top_ohm", rt), ("r_top_tol_pct", rt_tol),
+              ("r_bottom_ohm", rb), ("r_bottom_tol_pct", rb_tol)]
+    return "    feedback:\n" + "".join(f"      {k}: {v}\n" for k, v in fields)
+
+
+@test("E-MARGIN uses exact asymmetric reference and FB-bias corners", kind="known_bad")
+def t_feedback_exact_reference_catches_false_margin():
+    d = project(ptree(railx("USB-A", 12, 24, 5.069, 5.241, 2,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.75,
+                            ir_budget_mohm=135) + fbblock_exact()),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "exact LM5116 reference corners", "IR drop")
+    contains(r.out, "5.069", "uses datasheet minimum rather than symmetric approximation")
+    contains(r.out, "500 nA", "prints the FB-bias maximum")
 
 
 @test("E-TOPO/E-MARGIN PASS an HONEST declared window covering the computed "

@@ -1,0 +1,17 @@
+mpn: TNPW06034K64BEEA
+manufacturer: Vishay
+type: resistor_thinfilm_precision
+package: 0603
+footprint: Resistor_SMD:R_0603_1608Metric
+pins: {1: END_A, 2: END_B}
+limits: {resistance: "4.64 kOhm", tolerance: "0.1 percent", tcr: "25 ppm/C", power: "0.125 W", voltage: "75 V"}
+verified: "Exact LCSC product page C2078999 identifies TNPW06034K64BEEA as 4.64 kOhm, 0.1%, 25 ppm/C, 125 mW, 75 V, 0603; checked 2026-08-01."
+sourcing:
+  lcsc: C2078999
+  alternates: []
+  note: "LCSC was out of stock when rechecked 2026-08-01. This exact line is selected electrically but must be consigned or replaced only after re-running the OV corner calculation."
+gotchas:
+  - "R3 is the LM74810 OV bottom leg. Together with R1 = 90.9 kOhm 1%, it produces 24.345 V worst-low and 26.390 V worst-high rising trip."
+layout:
+  source: "LM7481-Q1 SNOSD98A OV-divider and quiet-ground guidance"
+  notes: ["Place from OV to quiet GND directly beside U1; do not share the TVS surge-current return segment."]

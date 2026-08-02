@@ -13,43 +13,43 @@ classes:
     clearance: 0.15mm
     via_diameter: 0.8mm
     via_drill: 0.4mm
-    routing: 3.0 mm trunks/pours with at most 2.0 mm of 0.25 mm pad escape
+    routing: 3.0 mm trunks/pours; 0.50 mm minimum taps and no more than 0.5 mm of unavoidable local neckdown
     verify: DRC, thermal rise, and full-load bench test
 
   PWR_5V:
-    intent: Each LM5116 rail carries two 3 A USB branches with 1 A converter margin.
+    intent: Each TPSM63606 module rail carries two simultaneous 2 A USB branches with 2 A module margin.
     nets: [5V_A, 5V_B]
-    current: "7 A converter capability; 6 A declared continuous load per rail"
+    current: "6 A module capability; 4 A declared continuous load per rail"
     min_width: 0.25mm
     clearance: 0.15mm
     via_diameter: 0.8mm
     via_drill: 0.4mm
-    routing: 2.5 mm trunks/pours with at most 2.0 mm of 0.25 mm pad escape
-    verify: DRC plus 6 A per-rail thermal test
+    routing: 2.5 mm trunks/pours with no more than 0.5 mm of unavoidable pin-local neckdown
+    verify: DRC plus 4 A per-rail thermal test
 
   PWR_PORT:
     intent: >
-      Individually switched 3 A VBUS from each TPS259470 OUT land to the exact
+      Individually switched 2 A VBUS from each TPS259470 OUT land to the exact
       3 A-rated USB1130 receptacle. Short component-pad escapes may neck down;
       the current-carrying trunk must widen to 1.5 mm immediately afterward.
     nets: [P1_VBUS, P2_VBUS, P3_VBUS, P4_VBUS]
-    current: "3.0 A continuous, 3.795 A worst current-limit corner"
+    current: "2.0 A continuous, 2.519 A worst current-limit corner"
     min_width: 0.25mm
     clearance: 0.15mm
     via_diameter: 0.7mm
     via_drill: 0.35mm
-    routing: 1.5 mm trunks/pours with at most 2.0 mm of 0.25 mm pad escape
-    verify: DRC, 70 mOhm path budget, and 3 A thermal test per port
+    routing: 1.5 mm trunks/pours; 0.50 mm minimum taps and no more than 0.5 mm of unavoidable local neckdown
+    verify: DRC, 130 mOhm complete-path budget, and 2 A thermal test per port
 
   SWITCH_POWER:
     intent: Buck switch/current loops; compact high-di/dt copper kept out of USB region.
-    nets: [SW_A, SW_B, CS_A, CS_B, SW_3V3]
-    current: "up to 7 A in LM5116 cells; 2 A in AP63203 cell"
+    nets: [SW_3V3]
+    current: "up to 2 A in the AP63203 logic-supply cell; the TPSM63606 switch nodes are internal"
     min_width: 0.25mm
     clearance: 0.15mm
     via_diameter: 0.8mm
     via_drill: 0.4mm
-    routing: 1.0 mm top-layer islands with at most 2.0 mm of 0.25 mm pad escape
+    routing: 1.0 mm top-layer islands with no more than 0.5 mm of unavoidable pin-local neckdown
     verify: loop-area review, DRC, and oscilloscope qualification
 
   USB_HS:
@@ -167,3 +167,188 @@ classes:
     clearance: 0.15mm
     routing: 0.18 mm LQFP/QFN escapes on L1/L4; avoid USB and switch nodes
     verify: DRC and functional test
+
+# Realized-copper P/N matching contract for every physical USB segment.  A
+# segment terminates at a connector, ESD array, switch, hub, or MCU, so series
+# devices deliberately split one end-to-end USB path into several groups.
+length_match:
+  USB_UP_CONN:
+    adr: 0003
+    intent: Bound skew between J2 and the upstream ESD array.
+    members: {P: [UP_CONN_P], N: [UP_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_UP_HUB:
+    adr: 0003
+    intent: Bound skew between the upstream ESD array and hub PHY.
+    members: {P: [UP_HUB_P], N: [UP_HUB_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_UP_E2E:
+    adr: 0003
+    intent: Bound cumulative upstream skew across both ESD-separated segments.
+    members: {P: [UP_CONN_P, UP_HUB_P], N: [UP_CONN_N, UP_HUB_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 1.0
+    elongation: meander
+  USB_MGMT:
+    adr: 0003
+    intent: Bound skew on the internal hub-to-management-MCU segment.
+    members: {P: [MGMT_P], N: [MGMT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P1_HUB:
+    adr: 0003
+    intent: Bound port-1 hub-to-switch skew.
+    members: {P: [P1_HUB_P], N: [P1_HUB_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P1_PORT:
+    adr: 0003
+    intent: Bound port-1 switch-to-ESD skew.
+    members: {P: [P1_PORT_P], N: [P1_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P1_CONN:
+    adr: 0003
+    intent: Bound port-1 ESD-to-connector skew.
+    members: {P: [P1_CONN_P], N: [P1_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P1_E2E:
+    adr: 0003
+    intent: Bound cumulative port-1 skew across hub, switch, ESD, and connector segments.
+    members: {P: [P1_HUB_P, P1_PORT_P, P1_CONN_P], N: [P1_HUB_N, P1_PORT_N, P1_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 1.0
+    elongation: meander
+  USB_P2_HUB:
+    adr: 0003
+    intent: Bound port-2 hub-to-switch skew.
+    members: {P: [P2_HUB_P], N: [P2_HUB_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P2_PORT:
+    adr: 0003
+    intent: Bound port-2 switch-to-ESD skew.
+    members: {P: [P2_PORT_P], N: [P2_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P2_CONN:
+    adr: 0003
+    intent: Bound port-2 ESD-to-connector skew.
+    members: {P: [P2_CONN_P], N: [P2_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P2_E2E:
+    adr: 0003
+    intent: Bound cumulative port-2 skew across hub, switch, ESD, and connector segments.
+    members: {P: [P2_HUB_P, P2_PORT_P, P2_CONN_P], N: [P2_HUB_N, P2_PORT_N, P2_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 1.0
+    elongation: meander
+  USB_P3_HUB:
+    adr: 0003
+    intent: Bound port-3 hub-to-switch skew.
+    members: {P: [P3_HUB_P], N: [P3_HUB_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P3_PORT:
+    adr: 0003
+    intent: Bound port-3 switch-to-ESD skew.
+    members: {P: [P3_PORT_P], N: [P3_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P3_CONN:
+    adr: 0003
+    intent: Bound port-3 ESD-to-connector skew.
+    members: {P: [P3_CONN_P], N: [P3_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P3_E2E:
+    adr: 0003
+    intent: Bound cumulative port-3 skew across hub, switch, ESD, and connector segments.
+    members: {P: [P3_HUB_P, P3_PORT_P, P3_CONN_P], N: [P3_HUB_N, P3_PORT_N, P3_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 1.0
+    elongation: meander
+  USB_P4_HUB:
+    adr: 0003
+    intent: Bound port-4 hub-to-switch skew.
+    members: {P: [P4_HUB_P], N: [P4_HUB_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P4_PORT:
+    adr: 0003
+    intent: Bound port-4 switch-to-ESD skew.
+    members: {P: [P4_PORT_P], N: [P4_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P4_CONN:
+    adr: 0003
+    intent: Bound port-4 ESD-to-connector skew.
+    members: {P: [P4_CONN_P], N: [P4_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.5
+    elongation: meander
+  USB_P4_E2E:
+    adr: 0003
+    intent: Bound cumulative port-4 skew across hub, switch, ESD, and connector segments.
+    members: {P: [P4_HUB_P, P4_PORT_P, P4_CONN_P], N: [P4_HUB_N, P4_PORT_N, P4_CONN_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 1.0
+    elongation: meander

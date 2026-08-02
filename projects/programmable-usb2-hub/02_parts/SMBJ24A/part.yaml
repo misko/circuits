@@ -1,4 +1,4 @@
-mpn: SMBJ26A
+mpn: SMBJ24A
 manufacturer: Littelfuse
 type: tvs_diode_unidirectional
 datasheet:
@@ -19,23 +19,24 @@ pins:
   1: {name: CATHODE, note: "Cathode-band/pad-1 end goes to the protected positive input rail after reverse-polarity blocking."}
   2: {name: ANODE, tie: GND, note: "Short high-current return to input ground."}
 limits:
-  reverse_standoff: 26.0 V
-  breakdown: 28.9 V min / 31.9 V max at 1 mA
-  clamp: 42.1 V max at 14.3 A
+  reverse_standoff: 24.0 V
+  breakdown: 26.7 V min / 29.5 V max at 1 mA
+  clamp: 38.9 V max at 15.5 A
   peak_pulse_power: 600 W on 10/1000 us waveform
-  reverse_leakage: 1 uA max at 26 V and 25 C
+  reverse_leakage: 1 uA max at 24 V and 25 C
   operating_temperature: -65 to +150 C
   msl: 1
 gotchas:
-  - "This is the unidirectional A part, not SMBJ26CA. Incoming inspection should find the cathode band and Littelfuse marking code ME."
+  - "This is the unidirectional A part, not SMBJ24CA. Incoming inspection should find the cathode band and Littelfuse marking code LZ."
+  - "24.0 V is the maximum reverse stand-off, not a nominal-supply target with tolerance left over. The commission's 24.0 V input limit is an absolute value at J1 including supply accuracy, line regulation, ripple and wiring rise. A nominal 24 V +/-5% source is prohibited."
   - "Install after the LM74810 reverse-blocking MOSFET so reverse input cannot forward-bias the unidirectional TVS. The replaceable fuse remains upstream of the protection chain."
-  - "42.1 V is a characterized pulse clamp, not a guarantee for arbitrary surge impedance or a sustained overvoltage. The board makes no automotive load-dump claim."
+  - "38.9 V is characterized only at 15.5 A on the 10/1000 us pulse waveform. The board makes no automotive load-dump claim. Protected-rail qualification must verify <=38.9 V at the TVS terminals and <=40.0 V at U4 VIN for <=1 ms; a wider or longer event is outside the design envelope."
   - "The 600 W rating assumes 5.0 x 5.0 mm copper at each terminal. Extend copper beyond the bare KiCad D_SMB pads and minimize the clamp loop."
-verified: "Littelfuse SMBJ series v4 Electrical Characteristics table p.2, exact SMBJ26A row; DO-214AA polarity/dimensions and environmental data p.5; part-number/marking system p.6. The p.5 solder-pad envelope requires I>=2.26, J>=2.16, K<=2.74, L>=2.16 mm; KiCad D_SMB's 2.50 x 2.30 mm pads with 1.80 mm inner gap satisfy it. Checked 2026-07-31."
+verified: "Littelfuse SMBJ series v4 Electrical Characteristics table p.2, exact SMBJ24A row; DO-214AA polarity/dimensions and environmental data p.5; part-number/marking system p.6. The p.5 solder-pad envelope requires I>=2.26, J>=2.16, K<=2.74, L>=2.16 mm; KiCad D_SMB's 2.50 x 2.30 mm pads with 1.80 mm inner gap satisfy it. Checked 2026-08-01."
 sourcing:
-  lcsc: C315992
+  lcsc: C224017
   alternates: []
-  note: "JLC catalog class was Expand on 2026-07-31; exact Littelfuse unidirectional MPN/direction must be rechecked at order time."
+  note: "Exact Littelfuse SMBJ24A had LCSC stock 22,705 on 2026-08-01; assembly class and unidirectional marking must be rechecked at order time."
 layout:
   source: "Littelfuse SMBJ series v4 Maximum Ratings note 2 and DO-214AA solder-pad guidance, with clamp placement re-derived for the LM74810 protected-side rail."
   notes:
@@ -43,4 +44,4 @@ layout:
     - "Provide at least 5 x 5 mm connected copper at each terminal if relying on the 600 W rating; avoid thermal spokes in the surge path."
 layout_refs:
   - {tier: 1, reached: true, artifact: "Littelfuse SMBJ series v4 pp.1, 2, 5 and 6; exact row and package copper requirement"}
-  - {tier: 2, reached: false, artifact: "Open routed reference for SMBJ26A on an LM74810 protected-side input", why: "No exact editable reference for this specific protection stack was located in the bounded search; placement is re-derived from the controller and TVS vendor requirements."}
+  - {tier: 2, reached: false, artifact: "Open routed reference for SMBJ24A on an LM74810 protected-side input", why: "No exact editable reference for this specific protection stack was located in the bounded search; placement is re-derived from the controller and TVS vendor requirements."}

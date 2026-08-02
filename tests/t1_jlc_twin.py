@@ -96,6 +96,21 @@ def twin(d, board, bom, e2k, extra=()):
                            "JLC_TWIN_FETCH_ATTEMPTS": "1"})
 
 
+@test("JLC twin canonicalizes EasyEDA pad labels 01..09 to KiCad 1..9",
+      kind="known_bad")
+def t_leading_zero_pad_labels_are_same_identity():
+    """Samtec J7's JLC CAD uses 01..09 while the board uses 1..9. Before the
+    fix only pad 10 intersected, so the twin accepted a vacuous one-point fit
+    at offset 0 against the independently measured 270-degree rotation row."""
+    code = ("import sys\n"
+            f"sys.path.insert(0, {str(FAB_SCRIPTS)!r})\n"
+            "from jlc_twin import canonical_pad_number\n"
+            "print(','.join(canonical_pad_number(x) "
+            "for x in ('01','08','10','A1')))\n")
+    r = must_pass(run([KPY, "-c", code]), "pad-number canonicalization")
+    contains(r.out, "1,8,10,A1", "formatting zeros are not pin identity")
+
+
 # ------------------------------------------------------------- known-bad
 @test("REGRESSION: an unrecognised fetch failure is FETCH-FAILED and BLOCKS",
       kind="known_bad")
@@ -703,6 +718,133 @@ def read_mount(board, ref="U9"):
     return json.loads(
         must_pass(run([KPY, "-c", _READ_MOUNT, str(board), ref]),
                   "read mounted model").out.split("@@", 1)[1])
+
+
+def set_fixture_ref_model(board, ref, model=None):
+    """Rename U9 and optionally install one exact board-owned model."""
+    code = (
+        "import pcbnew,sys\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "fp=b.FindFootprintByReference('U9')\n"
+        "fp.SetReference(sys.argv[2])\n"
+        "fp.Models().clear()\n"
+        "if len(sys.argv) > 3:\n"
+        " m=pcbnew.FP_3DMODEL(); m.m_Filename=sys.argv[3]; "
+        "fp.Models().push_back(m)\n"
+        "b.Save(sys.argv[1])\n")
+    args = [KPY, "-c", code, str(board), ref]
+    if model is not None:
+        args.append(str(model))
+    must_pass(run(args), "prepare manual-body fixture")
+
+
+@test("REGRESSION: a manual connector absent from the CPL is injected from "
+      "assembly twin_body and counted by NO-BODY", kind="known_bad")
+def t_manual_connector_body_not_dropped_by_cpl_denominator():
+    """The released hub claimed 194/194 bodies while J3-J6 were four empty
+    connector land patterns: NO-BODY walked only the CPL, and the manual
+    connectors were excluded from it by design. This fixture has an EMPTY
+    CPL and one post-installed J3, so the pre-fix denominator is exactly 0/0.
+    The fixed run must inject the project model and grade 1/1.
+    """
+    d = tmpdir("manualbody_")
+    board, _ = synth_board(d, 0)
+    set_fixture_ref_model(board, "J3")
+    body = d / "usb1130.wrl"
+    bar_wrl(body)
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n")
+    cpl = d / "cpl.csv"
+    cpl.write_text("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n")
+    asm = d / "project" / "03_src" / "rules" / "assembly.yaml"
+    asm.parent.mkdir(parents=True)
+    part_dir = d / "project" / "02_parts" / "USB1130"
+    part_dir.mkdir(parents=True)
+    (part_dir / "part.yaml").write_text(
+        "mpn: USB1130\ntwin_body:\n  source: file\n"
+        f"  model: {body}\n  identity: exact manual USB-A body\n")
+    asm.write_text(
+        "service: standard\nsides: [top]\nfiducials: none\n"
+        "build_quantity: 1\nnot_assembled:\n"
+        "  - refs: [J3]\n    reason: not_in_catalog\n"
+        "    on_bom: false\n"
+        "    twin_body:\n      source: part\n"
+        "      dossier: USB1130\n"
+        "    evidence: dated fixture\n    disposition: install manually\n")
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    r = twin(d, board, bom, e2k,
+             extra=("--assembly", str(asm), "--cpl", str(cpl)))
+    must_pass(r, "manual connector twin")
+    check("NETWORK WAS CALLED" not in r.out, "a local body triggered a fetch")
+    contains(r.out, "bodies mounted: 1/1", "manual-inclusive denominator")
+    mm = (d / "twin" / "missing_models.txt").read_text()
+    contains(mm, "0 CPL placements", "the deliberately empty CPL")
+    contains(mm, "1 declared manual-install bodies", "manual body source")
+    mounts = read_mount(d / "twin" / "twin.kicad_pcb", "J3")
+    eq(len(mounts), 1, "J3 model count")
+    eq(Path(mounts[0]["f"]), body.resolve(), "J3 project model")
+
+
+@test("REGRESSION: F1 board body overrides a catalog near-match and keeps "
+      "its original registration", kind="known_bad")
+def t_board_body_suppresses_wrong_catalog_twin():
+    """The hub's F1 is a four-hole complete Keystone 3568 holder. Its old
+    assembly entry named C5249699, one loose clip, so jlc_twin cleared the
+    correctly registered board model and mounted the clip at a rejected
+    3.26 mm fallback fit. Keep a deliberately wrong code in this fixture:
+    `source: board` must suppress fetching it and preserve the exact path and
+    zero transform byte-for-byte.
+    """
+    d = tmpdir("boardbody_")
+    board, _ = synth_board(d, 0)
+    holder = d / "complete-holder.wrl"
+    bar_wrl(holder)
+    symbolic = "${KICAD10_3DMODEL_DIR}/complete-holder.wrl"
+    set_fixture_ref_model(board, "F1", symbolic)
+    before = read_mount(board, "F1")
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n")
+    cpl = d / "cpl.csv"
+    cpl.write_text("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n")
+    asm = d / "project" / "03_src" / "rules" / "assembly.yaml"
+    asm.parent.mkdir(parents=True)
+    part_dir = d / "project" / "02_parts" / "3568"
+    part_dir.mkdir(parents=True)
+    (part_dir / "part.yaml").write_text(
+        "mpn: 3568\ntwin_body:\n  source: board\n"
+        "  identity: complete four-hole holder\n")
+    asm.write_text(
+        "service: standard\nsides: [top]\nfiducials: none\n"
+        "build_quantity: 1\nnot_assembled:\n"
+        "  - refs: [F1]\n    reason: process_incompatible\n"
+        "    lcsc: C_WRONG_LOOSE_CLIP\n    on_bom: false\n"
+        "    twin_body:\n      source: part\n"
+        "      dossier: 3568\n"
+        "    evidence: dated fixture\n    disposition: install manually\n")
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    old_3d = os.environ.get("KICAD10_3DMODEL_DIR")
+    os.environ["KICAD10_3DMODEL_DIR"] = str(d)
+    try:
+        r = twin(d, board, bom, e2k,
+                 extra=("--assembly", str(asm), "--cpl", str(cpl)))
+    finally:
+        if old_3d is None:
+            os.environ.pop("KICAD10_3DMODEL_DIR", None)
+        else:
+            os.environ["KICAD10_3DMODEL_DIR"] = old_3d
+    must_pass(r, "board-owned holder twin")
+    check("NETWORK WAS CALLED" not in r.out,
+          "the forbidden loose-clip catalog body was fetched")
+    after = read_mount(d / "twin" / "twin.kicad_pcb", "F1")
+    eq(len(after), 1, "F1 model count")
+    eq(Path(after[0]["f"]), holder.resolve(), "resolved F1 model path")
+    eq({k: v for k, v in after[0].items() if k != "f"},
+       {k: v for k, v in before[0].items() if k != "f"},
+       "F1 scale, offset, and rotation")
+    report = (d / "twin" / "twin_report.csv").read_text()
+    contains(report, "JLC CAD replacement suppressed", "local-body semantics")
+    not_contains(report, "C_WRONG_LOOSE_CLIP", "false catalog identity")
+    not_contains(report, "MOUNT-FALLBACK", "wrong catalog registration")
 
 
 @test("INVARIANT: a mounted body's pose is JLC's pose turned by the fitted "

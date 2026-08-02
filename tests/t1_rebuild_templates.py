@@ -245,6 +245,52 @@ def t_syntax():
         check(r.rc == 0, f"bash -n {f.name} failed:\n{r.out[-1500:]}")
 
 
+@test("both rebuild drivers run the authoritative placement-policy subset "
+      "before any route import")
+def t_placement_policy_before_route():
+    for path in (REUSE, ALL):
+        txt = txt0 = path.read_text()
+        policy = txt.find("policy_audit.py")
+        phase = txt.find("--phase placement", policy)
+        route = txt.find("route_and_stitch_generic.py")
+        check(policy >= 0 and phase >= 0 and route >= 0 and policy < route,
+              f"{path.name} must run policy_audit --phase placement before "
+              "route_and_stitch_generic; got policy={policy}, phase={phase}, "
+              f"route={route} in {len(txt0)} bytes")
+
+
+@test("both rebuild drivers run P-PINMAP immediately after generation, before placement or route work")
+def t_pin_map_before_route():
+    for path in (REUSE, ALL):
+        txt = path.read_text()
+        gate = txt.find("pin_map_check.py")
+        generated = txt.rfind("generate_board_generic.py", 0, gate)
+        placement = txt.find("placement/pad invariants", gate)
+        route = txt.find("route_and_stitch_generic.py")
+        check(gate >= 0 and generated >= 0 and placement >= 0 and route >= 0
+              and generated < gate < placement < route,
+              f"{path.name} must run P-PINMAP after board generation and "
+              "before placement/routing")
+        check(txt.count('"$S/pin_map_check.py"') == 1,
+              f"{path.name} must have exactly one executable P-PINMAP call")
+
+
+@test("both rebuild drivers require exact SOUND schematic and placement reviews before route import")
+def t_pre_route_reviews_before_route():
+    for path in (REUSE, ALL):
+        txt = path.read_text()
+        schematic = txt.find('pre_route_review_check.py" . --phase schematic')
+        placement = txt.find('pre_route_review_check.py" . --phase placement')
+        route = min((p for p in (txt.find('route_and_stitch_generic.py" prep'),
+                                 txt.find('route_and_stitch_generic.py" import'))
+                     if p >= 0), default=-1)
+        check(schematic >= 0 and placement > schematic and route > placement,
+              f"{path.name}: schematic then placement PR-REVIEW must both "
+              "precede the first route operation")
+        check(txt.count('"$S/pre_route_review_check.py"') == 2,
+              f"{path.name}: expected exactly two executable PR-REVIEW calls")
+
+
 @test("rebuild_reuse.sh: ONE DRC invocation carries --severity-all "
       "--refill-zones --schematic-parity")
 def t_drc_flags():
@@ -980,6 +1026,26 @@ def t_vac_mfresh_a_touched_render_passes():
     os.utime(honest, ns=(producer2.stat().st_mtime_ns - 14_090_000_000_000,) * 2)
     must_fail(_verify_r(d2, "pluto_x", dst2, honest),
               "the same stale bytes with an honest mtime", expect="F-RENDER")
+
+
+@test("new early electrical, body-clearance, and critical-route gates are "
+      "stage-ordered in both rebuild drivers")
+def t_new_stage_gate_ordering():
+    for path in (ALL, REUSE):
+        txt = path.read_text()
+        check(txt.index("early_design_check.py") <
+              txt.index("pre_route_review_check.py"),
+              f"{path.name}: early electrical decisions must precede reviews")
+        check("placement_gates.py" in txt,
+              f"{path.name}: P-BODYCLR's shared gate is missing")
+        first_critical = txt.index("critical_route_check.py")
+        route_import = txt.index("route_and_stitch_generic.py\" import")
+        check(first_critical < route_import,
+              f"{path.name}: R-PAIRMAP must precede route import")
+        connected = txt.index("--require-connected")
+        stitch = txt.index("route_and_stitch_generic.py\" stitch")
+        check(stitch < connected,
+              f"{path.name}: R-CRITESC must grade realized post-stitch copper")
 
 
 @test("rebuild_all.sh: the human schematic is DELETED then regenerated, and the "

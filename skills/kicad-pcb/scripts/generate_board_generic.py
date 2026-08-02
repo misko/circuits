@@ -1036,23 +1036,18 @@ class BoardBuilder:
                               geometry. Same-footprint composite pads remain
                               legal. The post-build P-PADSEP gate additionally
                               enforces the fab-tier positive-gap floor + paste.
-          * PINNED-LAP (WARN) — two ANCHORED footprints' courtyards overlap.
+          * PINNED-LAP (FATAL) — two ANCHORED footprints' courtyards overlap
+                              or touch. Zero assembly distance is not a valid
+                              placement; move the anchors before routing.
                               The legalizer cannot resolve this one, so it is a
                               source defect in floorplan.yaml rather than a
                               density accident, and naming the two ANCHORS is
                               diagnosis that DRC's `courtyards_overlap` does not
-                              give you. It is a warning and not a build failure
-                              because canon P1/P-CRT ALREADY owns courtyard
-                              overlap at full-severity DRC, which every board
-                              must pass — and because MEASURED against the fleet
-                              on 2026-07-25 two existing boards carry anchored
-                              courtyard overlap with NO pad short: usb-hub-3s-v2
-                              RS3<->Q6 (0.470 x 3.950 mm) and the cooksense
-                              interposer's deliberately-packed test-point array
-                              (18 pairs at 0.053 x 2.592 mm). Making it fatal
-                              here would retro-break two boards to duplicate a
-                              gate that already exists. The capability no gate
-                              had is the SHORT.
+                              give you. This used to warn and defer to final
+                              DRC; programmable-usb2-hub then reached render
+                              review with resistors against module lands. New
+                              and materially revised boards fail here. Archived
+                              boards are not regenerated to preserve history.
         Floating-vs-anything courtyard overlap is NOT reported at all: resolving
         that is the legalizer's job and it is allowed to leave tight packing."""
         pads = []
@@ -1101,11 +1096,11 @@ class BoardBuilder:
                              pcbnew.ToMM(min(ba.GetBottom(), bb.GetBottom())
                                          - max(ba.GetTop(), bb.GetTop()))))
         for a, b, ox, oy in sorted(laps):
-            print(f"WARN P-COLLIDE PINNED-LAP {a} <-> {b}: courtyards overlap "
+            print(f"FAIL P-COLLIDE PINNED-LAP {a} <-> {b}: courtyards overlap "
                   f"by {ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
                   f"legalizer cannot fix it; fix placement.anchors "
                   f"(full-severity DRC will fail this as courtyards_overlap)")
-        if overlaps:
+        if overlaps or laps:
             msg = ["P-COLLIDE: this placement has inter-footprint pad overlap."]
             for kind, r1, pn1, n1, r2, pn2, n2, ox, oy in sorted(overlaps):
                 msg.append(f"  {kind:<10} {r1}.{pn1} [{n1}] <-> {r2}.{pn2} "

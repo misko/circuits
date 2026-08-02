@@ -407,9 +407,12 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
    pad GROUP shifted systematically in one direction, that is a land-
    pattern delta and may NOT be filed under "fit residual" (an
    adjudication did exactly that and buried a real 0.6mm disagreement).
-5. Twin render mounts JLC's WRL models on YOUR board (six views:
+5. Twin render mounts JLC's WRL models on YOUR board (six populated views:
    twin_{top,bottom,iso_nw,iso_se,edge_west,edge_east}.png + twin.kicad_pcb
-   to orbit in the KiCad 3D viewer; the edge profiles double as component-
+   to orbit in the KiCad 3D viewer), plus `twin_bare.kicad_pcb` and
+   same-camera `twin_bare_{top,bottom}.png` with every 3D body removed. The
+   latter are measurement references for A-RENDER; their resolution and camera
+   are intentionally identical to the populated orthographic views. The edge profiles double as component-
    height / enclosure-clearance checks) - the
    local substitute for JLC's end-of-order preview. Adjudicated parts are
    mounted at their best non-mirrored fit precisely so a human can eyeball
@@ -512,6 +515,18 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
    yielded items silently does nothing (the write lands on a temporary).
    Build a NEW FP_3DMODEL and push_back it; verify the saved file text when
    in doubt - two no-op probes masqueraded as evidence here.
+
+8. A-RENDER (automated, BLOCKING): after `jlc_twin.py`, run
+   `twin_overlay.py BOARD OUTDIR/twin_top.png --bare
+   OUTDIR/twin_bare_top.png --side top --twin-dir OUTDIR --bom fab/bom.csv
+   --assembly 03_src/rules/assembly.yaml --adjudications
+   03_src/rules/twin_adjudications.yaml --twin-report
+   OUTDIR/twin_report.csv --report 06_build/verify/twin_overlay.md` (and repeat
+   for the bottom side when populated). It extracts component pixels from the
+   populated-minus-bare delta, checks them against the board/model transform,
+   refuses mismatched camera dimensions, and names every unresolvable body.
+   A fresh-context render review starts only after this gate passes; otherwise
+   the reviewer may be judging a render that does not represent the CPL mount.
 
 Stock + selection gates recap (same stage): every assembled BOM line carries
 an explicit LCSC code (bom_seed fails on unmapped/TBD - never rely on JLC

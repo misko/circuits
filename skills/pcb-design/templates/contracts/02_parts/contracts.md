@@ -667,6 +667,8 @@ against the `side: bottom` features) are the cheapest first bite.
 | `datasheet.provenance` | ADVISORY | prose about where the PDF came from |
 | `datasheet.product_page` | ADVISORY | the vendor landing page |
 | `datasheet.lcsc_url` | ADVISORY | the distributor page the PDF was reached through |
+| `datasheet.interface_standard` | ADVISORY | the governing interface specification used alongside the component datasheet (for example USB-IF USB 2.0); the human pin/electrical review consumes it, while no machine gate interprets arbitrary standards PDFs |
+| `datasheet.interface_standard.*` | ADVISORY | human provenance bag for that standard (`title`, `url`, vendored `local`, `sha256`, and cited `section`); the executable consequences belong in pin identities/electrical assertions, while no gate can derive them from an arbitrary standards PDF |
 | `datasheet.package_url` | ADVISORY | a human retrieval link for the vendor package page; the executable package identity is `package`/`footprint`, and no gate reads this URL |
 | `datasheet.drawing` | ADVISORY | a human citation to the package drawing; `pin_audit.py` grades the figure/page citation in `verified`, not this parallel prose field |
 | `datasheet.drawing.url` | ADVISORY | the human retrieval URL for the cited package drawing; no gate fetches it |
@@ -679,6 +681,12 @@ against the `side: bottom` features) are the cheapest first bite.
 | `pins.<N>.name` | `pin_audit.py, circuit_json_to_kicad_sch.py, policy_audit.py` | the pin map, mapping form |
 | `pins.<N>.note` | ADVISORY | per-pin datasheet prose (274 pins). The CONSTRAINTS inside it belong in `electrical.pins.<N>`, which IS graded by `node_level` |
 | `pins.<N>.tie` | OWED | 84 pins name the net they must land on and NOTHING reads it — the `GND_ISO` field class. E-NETREF K13; the patch is in `schema_reader_audit.py`'s docstring |
+| `pin_aliases` | `pin_map_check.py` | optional, explicit logical-to-artifact pin identity map; identity is the default and aliases are never inferred from equal nets |
+| `pin_aliases.<N>.schematic` | `pin_map_check.py` | schematic pin identity reached by logical pin `<N>` |
+| `pin_aliases.<N>.footprint` | `pin_map_check.py` | physical footprint pad identity reached by logical pin `<N>` |
+| `pin_aliases.<N>.fused` | `pin_map_check.py` | declares that an intentional many-logical-pins-to-one-pad collapse is a manufacturer-fused land |
+| `pin_aliases.<N>.why` | `pin_map_check.py` | required explanation for every non-identity mapping |
+| `pin_aliases.<N>.evidence` | `pin_map_check.py` | required datasheet/package-drawing citation for every non-identity mapping |
 | `escape.style` | `escape_check.py` | P-ESC escape geometry class |
 | `escape.pitch` | `escape_check.py` | P-ESC pitch |
 | `escape.tier_required` | `escape_check.py, policy_audit.py` | P-TIER: the fab tier the escape needs |
@@ -719,6 +727,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `electrical.*` | OWED | the rest of the block is per-part datasheet numbers with no consumer: coil pull-in/resistance over temperature, Vce(sat)/Vds points, r_on corners, dropout, tempco, `t_op`. Each is the kind of number a `part_value`/`node_level` invariant SHOULD cite, and the cooksense relay coil at 70 C is the worked case for why (it was checked by hand) |
 | `limits.*` | ADVISORY | the open per-part absolute-maximum/rating fact bag. The EXECUTABLE channel for anything in here is an `asserts:` entry or an `electrical_invariants.yaml` `part_value`/`node_level` that cites it; the bag itself is a human's datasheet transcription and forcing a schema on it would only push the facts out of the tree |
 | `land_pattern.*` | ADVISORY | the human derivation record for a vendored footprint — pad sizes, fillet balance, datums, the datasheet figure they came from. Its CONSEQUENCE is graded, hard, by `jlc_twin` against JLC's own CAD model (canon M1), which is a stronger check than reading this back would be |
+| `twin_body.*` | `jlc_twin.py` | installed-product body authority for a deliberately non-CPL part: `source`, project model path or retained board model, exact `identity`, and the evidence/limitation surfaced in each `LOCAL-BODY` report row |
 | `ratings.*` | OWED | per-part electrical ratings (`i_sat`, `dcr_max`, `impedance_100mhz`, `voltage`, `dielectric`, ...). Unlike `limits:` these are the SELECTION criteria the part was chosen on, so they are assertable — an inductor's `i_sat` against the rail's `iout_max_A` is arithmetic nothing does |
 | `power_pins.<NAME>.*` | OWED | a per-rail pin grouping on the one 128-pin MCU dossier. `pins:` is graded; this parallel structure is a second home for the same map and read by nobody |
 | `mechanical.pcb_thickness_mm` | OWED | the part's own laminate thickness — one term of the carrier stack and of `total_thickness_mm`'s sum, read by nothing |
@@ -737,6 +746,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `sourcing.alternates[].mpn` | `bom_legibility_check.py` | F-ECHO substitution candidates |
 | `sourcing.digikey` | `shopping_list.py` | Q-family distributor lookup |
 | `sourcing.note` | `shopping_list.py` | sourcing prose surfaced in the shopping list |
+| `sourcing.rejected_catalog_near_matches` | ADVISORY | human review record for catalog hits that resemble but do not equal the selected MPN; no gate consumes this prose, and that is intentional because executable exclusions belong in exact BOM identity, `assembly.yaml`, and footprint/twin adjudication |
 | `sourcing.jlc_basic` | OWED | basic-vs-extended, which sets the assembly fee and the stock risk; `jlc_stock_check.py` queries the catalog and never reads this claim, so the two cannot be reconciled |
 | `sourcing.do_not_use` | OWED | an explicit ban on a code. Nothing reads it, so a banned code can be typed back into a BOM with every gate green |
 | `sourcing.mfr_substituted` | OWED | records that the manufacturer was substituted; `release_freshness_check.py --sourcing-supersede` grades the BOM/CPL delta of a substitution and does not read this |

@@ -46,11 +46,19 @@ limits:
   output_current: +/-24 mA at VCC 3.0 V
   ambient_temperature: -40 to +125 C
 
+electrical:
+  source: "Nexperia 74LVC08A Rev 8 static characteristics at VCC = 2.7 to 3.6 V"
+  vdd: 3.3
+  vdd_net: 3V3_LOGIC
+  defaults:
+    v_ih_min: 2.0
+    v_il_max: 0.8
+
 verified: "CITED: Nexperia 74LVC08A Rev 8 pin configuration and ordering information, PDF pp2-3 and p13; checked 2026-07-31."
 
 gotchas:
   - "This gate is a hardware safety/policy interlock: every eFuse EN is HUB_PRTPWR AND MCU_PWR_CMD. Do not replace it with firmware-only logic."
-  - "The 74LVC inputs must not float. USB2517I PRTPWR is driven after hub reset and MCU command outputs are initialized low before becoming outputs; each eFuse EN also has its own 100 kOhm pulldown."
+  - "The 74LVC inputs must not float. R38-R41 pull the four MCU command inputs low while STM32 pins are high-impedance through reset; the separate R410/R420/R430/R440 pull-downs hold the final eFuse EN nodes low as a second layer."
   - "Use the PW TSSOP-14 suffix. Other package suffixes have the same logic but different land patterns."
 
 layout:

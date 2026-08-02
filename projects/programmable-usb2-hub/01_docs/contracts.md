@@ -15,6 +15,7 @@ one that is unrecoverable if lost.
 | `DETAIL_DESIGN.md` | the math: ripple, compensation, ampacity, thermal, tolerance | every number that a component value depends on, with its equation |
 | `CHANGELOG.md` | one entry per revision | see structure below |
 | `CHECKLIST.md` | the gate a revision must pass before release | |
+| `PUBLISH_MANIFEST.md` | the current publication inventory and validation snapshot; descriptive only, never release authority | must name the live sealed release or explicitly say none |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
 | `STATUS*.md` | the live STATUS beacon — the coordinator's between-gates progress signal, OVERWRITTEN at every transition | `STATUS.md` (single-board) or `STATUS-<board>.md` (multi-board, mirroring `journal/<stage>_<board>.md`); schema + audit below; read by `skills/kicad-pcb/scripts/pcb_status.py` |

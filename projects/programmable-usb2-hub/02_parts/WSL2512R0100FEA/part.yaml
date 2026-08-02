@@ -12,7 +12,6 @@ verified: "CITED: Vishay WSL datasheet and exact DigiKey product page confirm 10
 sourcing: {lcsc: C844901, alternates: [], note: "Q-2SOURCE: JLC catalog stock 13,216 and DigiKey stock 110,973 observed 2026-07-31; order-day recheck required."}
 layout:
   source: "Vishay WSL datasheet + LM5116 SNVS499I sec.11 (Kelvin current sense)"
-  adjacency:
-    - "sits between the LS-FET source and PGND; CS(pad1)/CSG(pad2) tap at the pad body"
   notes:
+    - "sits between the LS-FET source and PGND; CS(pad1)/CSG(pad2) tap at the pad body"
     - "Kelvin sense: route CS/CSG from the resistor pads as a tight pair to the LM5116 CS/CSG pins, never off shared power copper"

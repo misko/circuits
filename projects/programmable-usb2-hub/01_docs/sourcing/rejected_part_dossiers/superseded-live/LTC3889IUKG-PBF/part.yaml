@@ -1,0 +1,89 @@
+mpn: LTC3889IUKG#PBF
+manufacturer: Analog Devices
+type: dual_buck_controller
+note_dirname: "directory omits # because it is awkward in shell paths"
+datasheet:
+  doc_id: LTC3889 Rev A
+  revision: "Rev. A, 2018-11-16"
+  url: https://www.analog.com/media/en/technical-documentation/data-sheets/ltc3889.pdf
+  sha256: 92e90cb66a98989544747b43fb7df58b509904bace9c66de6b0cc8fe7a8bbdce
+  fetched: 2026-08-01
+package: "UKG52(46), 52-lead 7x8 mm QFN with 46 populated leads and exposed pad"
+footprint: Package_DFN_QFN:Linear_UGK52_QFN-46-52
+escape: {style: qfn, pitch: 0.5, escapes_worst_side: 12, tier_required: jlc_4layer_advanced, checked: "exact UKG52(46) missing-lead pattern and EP compared with package drawing"}
+pins:
+  1: SW0
+  2: TG0
+  3: NC
+  4: ISENSE0+
+  5: ISENSE0-
+  6: TSNS0
+  7: VSENSE0+
+  8: VSENSE0-
+  9: ISENSE1+
+  10: ISENSE1-
+  11: ITHR0
+  12: ITH0
+  13: SYNC
+  14: SCL
+  15: SDA
+  16: ALERT
+  17: FAULT0
+  18: FAULT1
+  19: RUN0
+  20: RUN1
+  21: ASEL0
+  22: ASEL1
+  23: VOUT0_CFG
+  24: VOUT1_CFG
+  25: FREQ_CFG
+  26: PHAS_CFG
+  27: VDD25
+  28: WP
+  29: SHARE_CLK
+  30: VDD33
+  31: ITH1
+  32: ITHR1
+  33: PGOOD1
+  34: PGOOD0
+  35: VSENSE1+
+  36: TSNS1
+  37: NC
+  38: TG1
+  39: SW1
+  40: BOOST1
+  41: NC
+  42: BG1
+  43: EXTVCC
+  44: DRVCC
+  45: NC
+  46: IIN-
+  47: IIN+
+  48: VIN
+  49: NC
+  50: BG0
+  51: NC
+  52: BOOST0
+  53: {name: GND, note: "exposed pad"}
+limits: {vin_operating: "5 to 60 V", vout_range: "1 to 40 V", output_error: "less than +/-0.5% over temperature", frequency: "85 to 500 kHz", extvcc: "5.6 V maximum takeover threshold; 14 V maximum", drvcc: "programmed 6.1 to 6.5 V"}
+configuration:
+  vout_command_linear16: {word_hex: "0x14DC", value_V: 5.21484375}
+  frequency_hz: 250000
+  phase: "channel 0 = 0 degrees; channel 1 = 180 degrees"
+  current_sense_mohm: 5.0
+  current_limit_tier_mV: 48.2
+  vout_cfg: open
+  startup: "hardware RUN pull-downs hold both outputs off until MCU RAM programming and readback pass"
+gotchas:
+  - "Factory OPERATION is PWM off, but hardware RUN0/RUN1 inhibition is also required; EEPROM is not the sole safety control."
+  - "Encode and verify Linear16 word 0x14DC = 5.21484375 V."
+  - "AUX_6V supplies EXTVCC above the 5.6 V maximum takeover threshold."
+  - "Each rail uses two symmetric 6.8 uH inductors in parallel; preserve symmetric copper and verify sharing."
+  - "Use 100 ohm/1 nF current-sense filters and true Kelvin routing to the parallel 10 mOhm shunts."
+  - "Bootstrap capacitance is at least 330 nF per phase and external bootstrap diodes are at least 60 V."
+verified: "complete physical map transcribed from UKG top view and pin table; configuration checked 2026-08-01"
+sourcing: {lcsc: null, alternates: [], note: "Q-2SOURCE 2026-08-01: Mouser 47 and DigiKey 629; consigned"}
+layout:
+  source: "LTC3889 Rev. A layout checklist and DC2595A"
+  notes: ["minimize both hot loops and SW copper", "place all local bypass and bootstrap capacitors at pins", "route shunt sense as symmetric Kelvin pairs", "keep PMBus and compensation outside power islands"]
+

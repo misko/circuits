@@ -15,6 +15,7 @@ one that is unrecoverable if lost.
 | `DETAIL_DESIGN.md` | the math: ripple, compensation, ampacity, thermal, tolerance | every number that a component value depends on, with its equation |
 | `CHANGELOG.md` | one entry per revision | see structure below |
 | `CHECKLIST.md` | the gate a revision must pass before release | |
+| `PUBLISH_MANIFEST.md` | the current publication inventory and validation snapshot; descriptive only, never release authority | must name the live sealed release or explicitly say none |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
 | `STATUS*.md` | the live STATUS beacon — the coordinator's between-gates progress signal, OVERWRITTEN at every transition | `STATUS.md` (single-board) or `STATUS-<board>.md` (multi-board, mirroring `journal/<stage>_<board>.md`); schema + audit below; read by `skills/kicad-pcb/scripts/pcb_status.py` |
@@ -156,14 +157,15 @@ proxy is not accuracy about the object.
 ### 8. `## Commission fact-lock` — load-derived facts locked BEFORE architecture
 
 A table (template in `templates/01_docs/BRIEF.md`) pinning, per output rail:
-Vout min-max @ Imax, the input envelope + source type, the protection posture,
-the off-control/storage answer, and each spec-critical function's sourcing
+Vout min-max @ Imax, connector and simultaneous-load counts, continuous/peak
+duty, exact measurement plane with included/excluded path elements, the input
+envelope + source type, protection posture, off-control/storage, and each spec-critical function's sourcing
 class. Every row cites its lock (`Q#/A#` user-confirmed, or `D#/A#` explicit
 conservative assumption) — a blank or silently-inferred row fails Validate.
 Added 2026-07-23: the two facts left unlocked on usb-hub-3s (output voltage
 range, protection posture) caused two generation restarts (~27/53 commits).
-The table mirrors `power_tree.yaml`; the yaml feeds the machine gates, the
-table is the user-facing commitment.
+The table mirrors `requirements.yaml` and `power_tree.yaml`; YAML feeds
+D-SPEC/E-PATH/E-TOPO/E-MARGIN, and the table is the user-facing commitment.
 
 The table also locks the integration posture. Unless the user says otherwise,
 `modules preferred` is the default for complex compute/control, radio,

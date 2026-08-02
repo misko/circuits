@@ -1,0 +1,53 @@
+mpn: AON6266E
+manufacturer: Alpha & Omega Semiconductor
+type: n_channel_power_mosfet
+status: active
+function: 60 V low-charge synchronous switches Q3-Q6 in the two LM5116 cells
+datasheet:
+  doc_id: AON6266E
+  revision: "Rev 1.1, September 2023"
+  url: https://www.aosmd.com/res/data_sheets/AON6266E.pdf
+  local: AON6266E.pdf
+  sha256: b709460b711bd04f8d4fe134fc4926036b4a2cfa1dc03817ab659a1bb75f2dc9
+  fetched: 2026-08-01
+package: AOS DFN5x6_8L_EP1_P
+footprint: programmable_usb2_hub:PowerPAK_SO-8_Single_Paste65
+escape:
+  style: qfn
+  pitch: 1.27
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-08-01
+pins: {1: SOURCE, 2: SOURCE, 3: SOURCE, 4: GATE, 5: DRAIN, 6: DRAIN, 7: DRAIN, 8: DRAIN}
+limits:
+  vds: 60 V
+  vgs: +/-20 V
+  id_tc_25C: 24 A
+  id_board_25C: 14.5 A
+  rds_on_max_10v: 13.2 mOhm
+  rds_on_max_4v5: 17.7 mOhm
+  gate_charge_total_10v_max: 20 nC
+  gate_charge_total_4v5_max: 10 nC
+  junction_temperature: -55 to +150 C
+gotchas:
+  - "Use the maximum 20 nC Qg value, not the 13.5 nC typical value, for LM5116 internal-VCC current qualification."
+  - "The LM5116 gate rail is nominally 7.4 V. RDS(on) is guaranteed at 4.5 V and 10 V, so the 4.5 V 17.7 mOhm maximum is the conservative conduction bound."
+  - "The AOS DFN5x6 pin order is sources 1-3, gate 4 and drains 5-8, matching the retained physical-pin footprint; the historical PowerPAK name is not package authority."
+verified: >-
+  Pin map and maximum electrical limits read from AOS AON6266E Rev 1.1 pp.1-2.
+  Land identity cross-checked against AOS DFN5x6_8L_EP1_P package drawing
+  PO-00044 already cited by the AON6354 dossier; checked 2026-08-01.
+sourcing:
+  lcsc: C3277803
+  alternates: []
+  note: >-
+    Exact AON6266E production page, DigiKey listing and LCSC C3277803 were
+    observed 2026-08-01; order-day stock and JLC assembly allocation must be
+    rechecked by the release gates.
+layout:
+  source: "AOS DFN5x6 package pattern and TI LM5116 SNVS499I section 11/Figure 11-1"
+  notes:
+    - "Keep the high-side VIN-to-SW and low-side SW-to-CS loops compact and immediately adjacent to U2/U3 and their input capacitors."
+    - "Keep gate paths short and direct; use broad source/drain copper and verify switch-node overshoot and case temperature at both input corners."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "AON6266E Rev 1.1 pinout/electrical tables and AOS PO-00044 DFN5x6_8L_EP1_P package drawing"}
+  - {tier: 2, reached: true, artifact: "TI LM5116 SNVS499I Figure 11-1 PCB layout example"}

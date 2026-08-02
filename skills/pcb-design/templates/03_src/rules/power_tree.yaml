@@ -29,6 +29,8 @@
 # controllers idle-drain the pack in storage (no review asked how it is
 # de-energized). The optional fields below make both a gated NUMBER.
 
+schema: 1
+
 # ---- E-OFF: de-energization + stored quiescent draw (OPTIONAL, top-level) ----
 # Declare these when the board carries its own energy source. E-OFF FIRES when a
 # battery/cell/pack is detected (source_type:, or VBAT/BATT/PACK nets, or a
@@ -62,6 +64,7 @@ rails:
     iout_max_A: 7          # max continuous output current, amps
     converter: LM5116MHX-NOPB   # <refdes or part MPN / 02_parts dir name>
     eff: 0.9               # converter efficiency (default 0.9 if omitted)
+    external_output: false # true requires claim_id + requirements.yaml claim
 
   # A rail feeding a KNOWN brownout-sensitive load (E-MARGIN). load_uv_threshold
   # ACTIVATES the check; vout_min is the WORST-CASE (lowest) regulated output.

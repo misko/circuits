@@ -1,77 +1,67 @@
 # Detailed design
 
-## Rated operating envelope
+## Rated envelope
 
-The board accepts 12–24 V SELV DC and delivers four independently switched
-5 V outputs rated 3.0 A continuous at their USB-A solder terminals. Maximum
-declared downstream load is 60 W. At 12 V, 90% conversion efficiency and
-0.8 A of 3.3 V logic load, the calculated input is about 6.1 A / 73.5 W; the
-input connector, fuse, reverse-protection FETs and copper trunk are therefore
-designed around a 10 A fused envelope. The external source must be rated at
-least 75 W and must tolerate attached-load startup.
+The board accepts an absolute 12-24 V SELV input and guarantees four
+independently switched 5 V / 2 A outputs at the mated USB-A test plugs. The
+downstream maximum is 40 W. The power topology gate calculates approximately
+4.1 A worst-case input at 12 V including the logic rail; the retained 10 A
+fuse/trunk is conservative and supports transient/startup margin.
 
 ## Input protection
 
-The order is J1 terminal, F1 10 A MINI fuse, LM74810-Q1 controller with two
-BSC016N06NS 60 V MOSFETs in a common-drain back-to-back arrangement, then
-`VIN_PROTECTED`. The SMBJ26A TVS is on the protected side so reverse input does
-not forward-bias the TVS ahead of the controller. The LM74810 dividers set a
-nominal 24.22 V overvoltage trip (25.50 V conservative corner) and 10.96 V
-UVLO rising / 10.08 V falling. CAP-to-VS is 220 nF; both raw-side controller
-decouplers are 100 nF / 100 V. The exposed RTN pad remains floating per the
-selected operating mode.
+J1 feeds exact Littelfuse 0297010.H in a Keystone 3568 holder, then LM74810-Q1
+with two BSC016N06NS 60 V common-drain MOSFETs. SMBJ24A is on
+`VIN_PROTECTED`. The 90.9 kOhm / 4.64 kOhm OV network accepts 24.0 V at its low
+corner and trips below the TVS minimum breakdown at its high corner. U4
+AP63203 is statically coordinated by its exact 40 V/<400 ms absolute limit
+against the TVS 38.9 V/1 ms maximum clamp; first articles capture both D1 and
+U4 VIN to detect inductive overshoot.
 
-## Five-volt conversion and delivery margin
+## Five-volt conversion
 
-Two LM5116 synchronous bucks each supply two ports. Their feedback network is
-3.92 kOhm over 1.21 kOhm from the 1.215 V reference, giving 5.151 V nominal.
-The machine-readable tolerance stack in `03_src/rules/power_tree.yaml` gives a
-5.032 V low corner. Each converter is a 7 A cell carrying at most 6 A declared
-continuous load.
+Each LM5116 rail serves two 2 A ports. Q3-Q6 are exact AON6266E 60 V switches
+with 20 nC maximum Qg. At the declared 110 kHz high corner, two devices plus
+the controller's 7 mA maximum bias require 11.4 mA, below the 12.0 mA derated
+allowance. R101/R201 are 34 kOhm, giving 98.95 kHz nominal. The retained
+6.8 uH inductors remain below 15.2 A saturation at the calculated worst ripple
+and 4 A rail load. Switch loss, temperature, ringing and load-step recovery are
+first-article acceptance measurements.
 
-Each port uses a TPS259470A reverse-blocking eFuse. A 976 ohm ILM resistor sets
-3.416 A nominal current limit; the data-sheet/tolerance corner used for design
-is 3.044–3.795 A. ITIMER is 2.2 nF, dV/dt is 3.3 nF, OVLO is 36.5 kOhm / 10
-kOhm, FLT_N has a 10 kOhm pullup, and EN has a 100 kOhm pulldown. A B340A
-Schottky clamps negative VBUS transients locally.
+R102/R202 are 3.92 kOhm 0.1%, R111/R211 are 11 Ohm 1% in series, and
+R103/R203 are 1.21 kOhm 0.1%. Including the LM5116 reference tolerance gives
+5.0769 V worst-low and 5.2478 V worst-high.
 
-The PCB branch-loss budget is 70 mOhm: 45 mOhm maximum eFuse resistance plus
-25 mOhm for board copper and joints. At 3 A, applying the gate's 20% margin to
-the computed rail low corner leaves 4.780 V at the receptacle solder terminal,
-above the 4.75 V threshold. This explicitly excludes the mating plug and cable;
-the release claim requires a four-port 3 A thermal and voltage-drop bench test.
+## Per-port power path
 
-## USB hub and data isolation
+Each TPS259470A has 1.47 kOhm 1% ILM, yielding 2.268 A nominal and
+approximately 2.02-2.52 A over device/resistor tolerance. Hardware current
+limiting, FLT, post-switch VBUS ADC, ILM telemetry, default-off enable,
+soft-start, OVLO, reverse blocking and a local negative-transient Schottky are
+independent per port.
 
-USB2517I-JZX is configured as an SMBus slave at address 0x2C (`CFG[2:0]=001`).
-Ports 1–4 feed external sockets and port 5 feeds the STM32G0B1 management USB
-device; ports 6–7 are disabled during pre-enumeration configuration. Hub
-PRT_PWR outputs are active high, OCS inputs are active-low open-drain.
+The guaranteed connector-boundary resistance is 135 mOhm maximum: 45 mOhm
+eFuse, 10 mOhm PCB/vias/joints, and 80 mOhm for qualified VBUS+GND mated
+contacts. At 2 A with 20% loss margin this consumes 324 mV, leaving the
+worst-case test-plug voltage above 4.75 V. Copper extraction and hot four-wire
+measurement must each confirm the 10 mOhm board allocation.
 
-Each external pair passes through an FSUSB42MUX. SEL is fixed low so HSD1 is
-the only used throw. OE_N high disconnects the common D+/D- pins and OE_N low
-connects them. A 10 kOhm hardware pullup therefore guarantees disconnect while
-the MCU is resetting or unprogrammed. The unused HSD2 pins are not connected.
+## Hub, data isolation and control
 
-USB geometry is 0.25 mm width / 0.15 mm gap on L1 over the uninterrupted L2
-ground plane, with <=0.50 mm intra-segment mismatch. This is a preliminary
-90-ohm estimate; order-time stackup calculation and an eye test remain release
-requirements.
+USB2517I-JZX runs in SMBus mode. Ports 1-4 feed FSUSB42MUX switches; OE_N high
+physically disconnects and OE_N low connects. Hardware pull-ups guarantee
+disconnect during reset. Port 5 connects to the STM32G0B1 management USB
+device. The PHUB protocol separately reports commanded power/data states,
+enable/OE readback, measured VBUS, current estimate and faults. Actual child
+attach/enumeration is merged by the host utility from the operating system.
 
-## Host control and reported state
+## Fabrication and qualification
 
-The STM32 management interface uses fixed 64-byte PHUB v1 records with
-CRC-32. Per port it separately reports commanded power, final enable readback,
-measured VBUS present, voltage, current estimate, FLT/latched fault, commanded
-data state, and OE_N-derived data state. Actual child connection/enumeration is
-an operating-system hub-topology fact and is merged by the host utility; the
-firmware never invents it.
-
-## Fabrication posture
-
-The four-layer board uses the JLCPCB advanced tier because the TPS259470
-thermal lands contain 0.25/0.15 mm plated-over filled vias. USB1130-15-A is the
-locked 3 A USB-A receptacle but has no LCSC placement code; the present release
-is therefore not fully assembled/orderable until those four connectors are
-consigned or installed after assembly. Controlled impedance, 1 oz outer
-copper and the selected four-layer stack must be recorded with the order.
+The four-layer advanced-tier board uses the exact stackup recorded in
+`floorplan.yaml`; USB impedance is an order-time calculator/coupon check.
+USB1130-15-A is rated above the 2 A guarantee but is consigned/manual unless
+the exact part becomes JLC-placeable. Release checks include DRC/ERC/parity,
+body/pad clearance, pin identity, critical USB routing, RF schematic/PCB/fab
+reviews, assembly/twin/source checks, and fresh final adversarial reviews.
+First articles then undergo hot resistance, full-load thermal, simultaneous
+load-step, surge, USB eye and reconnect/packet-error tests.

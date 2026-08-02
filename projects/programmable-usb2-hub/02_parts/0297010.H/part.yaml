@@ -1,0 +1,46 @@
+mpn: 0297010.H
+manufacturer: Littelfuse
+type: replaceable_mini_blade_fuse_element
+datasheet:
+  doc_id: MINI 297 Series
+  revision: 2024-09-27
+  url: https://www.littelfuse.com/assetdocs/littelfuse-mini-297-datasheet?assetguid=10bc7427-9e06-4c2e-8226-b4b3b06ec98c
+  fetched: 2026-08-01
+package: MINI automotive blade fuse, red 10 A body
+footprint: none; user-replaceable element installed in Keystone 3568 holder F1
+escape:
+  style: passive
+  pitch: 1.0
+  escapes_worst_side: 1
+  tier_required: jlc_2layer_default
+  checked: manual holder fit review 2026-08-01
+pins:
+  1: FUSE_BLADE_A
+  2: FUSE_BLADE_B
+limits:
+  rated_current: 10 A
+  rated_voltage: 32 V DC
+  interrupt_rating: 1000 A at 32 V DC
+  typical_cold_resistance: 7.42 mOhm
+  typical_i2t: 122 A2s
+  time_current_135_percent: 0.75 to 600 s
+  time_current_200_percent: 0.15 to 5 s
+  time_current_350_percent: 0.08 to 0.5 s
+  time_current_600_percent: 0.03 to 0.1 s
+  max_continuous_current_at_100C: 6.5 A
+gotchas:
+  - "0297010.H is the exact 10 A / 32 V MINI fuse element. The Keystone 3568 holder's 20 A rating is not permission to fit a 20 A fuse."
+  - "The calculated maximum normal input is about 6.1 A. Littelfuse's 10 A temperature table permits 6.5 A continuous at 100 C, leaving only 0.4 A at that extreme; first-board thermal qualification must measure the holder and fuse at maximum declared load."
+  - "The fuse is a user-replaceable, manually installed consumable and is absent from the PCBA BOM/CPL. Inspect for the red 10 A marking; forbid wire links, resettable substitutes and any other ampere rating."
+verified: "Littelfuse MINI 297 Series datasheet revised 2024-09-27: exact 10 A row for 32 V DC, 1000 A interrupt rating, 7.42 mOhm typical cold resistance, 122 A2s typical I2t, time-current limits and temperature derating table; checked 2026-08-01."
+sourcing:
+  lcsc: null
+  alternates: []
+  note: "Procure exact Littelfuse 0297010.H from an authorized distributor and install after PCBA in exact Keystone 3568. No alternate fuse rating is authorized."
+layout:
+  source: "Littelfuse MINI 297 Series datasheet and Keystone 3568 holder dossier."
+  notes:
+    - "This element has no PCB footprint of its own; F1 is the complete holder assembly. Preserve finger/tool access and the input-series path."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Littelfuse MINI 297 Series datasheet revised 2024-09-27, exact 10 A row and temperature table"}
+

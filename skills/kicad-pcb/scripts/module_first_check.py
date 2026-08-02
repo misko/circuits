@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""P-MOD: enforce the module-first architecture contract.
+"""P-MOD: enforce a complexity-weighted module-first architecture contract.
 
 Graded input: ``PROJECT/03_src/rules/integration.yaml`` and every used
 ``PROJECT/02_parts/*/part.yaml`` dossier.  An adopted project must account for
-each complex subsystem as a real module or as an evidenced bare-IC exception.
+each complex subsystem as a real module or as an explicit bare-IC decision.
+Bare ICs below the configured external-support threshold need a measured
+support inventory and rationale. At or above it they additionally need an
+evidenced module trade study.
 An absent integration file is UNMIGRATED (exit 3), never a pass.
 
 VACUITY: P-MOD passes a project whose programmable device uses a custom
@@ -35,7 +38,7 @@ except ImportError:  # pragma: no cover - repository KiCad Python has PyYAML
 COMPLEX_TYPE_RE = re.compile(
     r"microcontroller|(?:^|[_ -])mcu(?:$|[_ -])|processor|(?:^|[_ -])soc(?:$|[_ -])|"
     r"fpga|cpld|wireless|wi-?fi|bluetooth|radio|gnss|cellular|"
-    r"usb[_ -]?(?:hub|pd)?[_ -]?controller|ethernet[_ -]?(?:phy|controller)|"
+    r"usb(?:[_ -][a-z0-9]+)*[_ -]controller|ethernet[_ -]?(?:phy|controller)|"
     r"buck[_ -]?controller|boost[_ -]?controller|power[_ -]?controller|"
     r"precision[_ -]?(?:adc|dac|afe)|analog[_ -]?front[_ -]?end|transceiver|"
     r"module",
@@ -79,6 +82,38 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     return value
 
 
+def _artifact_refdes(root: Path) -> set[str]:
+    """Read independently generated source refdes when circuit.json is fresh.
+
+    P-MOD runs before generation, so a stale prior build must not make a newly
+    authored support ref impossible to introduce. Freshness is intentionally
+    coarse here; canonical build freshness gates provide the cryptographic
+    binding later in the pipeline.
+    """
+    path = root / "03_tscircuit/build/circuit.json"
+    if not path.is_file():
+        return set()
+    source = root / "03_tscircuit/src"
+    source_files = list(source.rglob("*.tsx")) if source.is_dir() else []
+    if source_files and path.stat().st_mtime_ns <= max(
+            item.stat().st_mtime_ns for item in source_files):
+        return set()
+    try:
+        import json
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError, TypeError):
+        return set()
+    if not isinstance(data, list):
+        return set()
+    return {
+        str(item.get("name"))
+        for item in data
+        if isinstance(item, dict)
+        and item.get("type") == "source_component"
+        and item.get("name")
+    }
+
+
 def _parts(root: Path) -> tuple[list[Part], list[str]]:
     parts, errors = [], []
     for path in sorted((root / "02_parts").glob("*/part.yaml")):
@@ -92,13 +127,42 @@ def _parts(root: Path) -> tuple[list[Part], list[str]]:
     return parts, errors
 
 
+def _authoring_text(root: Path) -> str:
+    """Return live declarative authoring text used to reject false retirement.
+
+    Historical dossiers remain necessary to resolve immutable release archives,
+    but they must not be an escape hatch for a part that is still present in the
+    live design.  The TSX source is authoritative at this stage; generated build
+    and KiCad artifacts are deliberately excluded because they may still reflect
+    the pre-backtrack design until the next canonical rebuild.
+    """
+    source = root / "03_tscircuit/src"
+    chunks: list[str] = []
+    for path in sorted(source.rglob("*.tsx")) if source.is_dir() else []:
+        try:
+            chunks.append(path.read_text(encoding="utf-8-sig"))
+        except OSError:
+            continue
+    return "\n".join(chunks)
+
+
+def _identity_tokens(part: Part) -> set[str]:
+    tokens = {part.mpn}
+    sourcing = part.data.get("sourcing") or {}
+    if isinstance(sourcing, dict):
+        lcsc = sourcing.get("lcsc")
+        if lcsc:
+            tokens.add(str(lcsc))
+    return {token for token in tokens if token.strip()}
+
+
 def _exception_errors(root: Path, label: str, value: Any) -> list[str]:
     if not isinstance(value, dict):
         return [f"{label}: bare_ic requires an exception mapping"]
     errors = []
-    if not _text(value.get("binding_requirement"), 30):
-        errors.append(f"{label}: exception.binding_requirement needs the binding "
-                      "requirement a module cannot meet")
+    if not _text(value.get("decision_rationale") or value.get("binding_requirement"), 30):
+        errors.append(f"{label}: exception.decision_rationale needs the total-"
+                      "complexity reason for retaining the bare IC")
     if not _text(value.get("evidence"), 30):
         errors.append(f"{label}: exception.evidence needs measured/cited evidence")
     adr = value.get("adr")
@@ -126,7 +190,7 @@ def _exception_errors(root: Path, label: str, value: Any) -> list[str]:
             if not str(candidate.get("part") or "").strip():
                 errors.append(f"{at}.part is required")
             if not _text(candidate.get("rejected_because"), 30):
-                errors.append(f"{at}.rejected_because needs a binding mismatch")
+                errors.append(f"{at}.rejected_because needs a concrete tradeoff")
             if not _text(candidate.get("evidence"), 30):
                 errors.append(f"{at}.evidence needs a measured/cited comparison")
     return errors
@@ -147,10 +211,18 @@ def evaluate(project: str | Path) -> dict[str, Any]:
                 "total": 0, "graded": 0, "modules": 0, "bare": 0,
                 "findings": [str(exc)]}
 
-    if policy.get("schema") != 1:
-        findings.append("integration.yaml schema must be 1")
-    if policy.get("default") != "prefer_module":
-        findings.append("integration.yaml default must be prefer_module")
+    schema = policy.get("schema")
+    if schema not in {1, 2}:
+        findings.append("integration.yaml schema must be 1 or 2")
+    expected_default = "prefer_module" if schema == 1 else "complexity_weighted"
+    if policy.get("default") != expected_default:
+        findings.append(f"integration.yaml default must be {expected_default}")
+    threshold = 0
+    if schema == 2:
+        threshold = policy.get("module_support_threshold", 10)
+        if not isinstance(threshold, int) or isinstance(threshold, bool) or threshold < 1:
+            findings.append("integration.yaml module_support_threshold must be a positive integer")
+            threshold = 10
     selections = policy.get("selections")
     if not isinstance(selections, list):
         findings.append("integration.yaml selections must be a list")
@@ -165,7 +237,43 @@ def evaluate(project: str | Path) -> dict[str, Any]:
             aliases.setdefault(alias, []).append(part)
 
     chosen: set[Path] = set()
-    graded = modules = bare = 0
+    historical: set[Path] = set()
+    authoring_text = _authoring_text(root)
+
+    historical_rows = policy.get("historical_dossiers", [])
+    if not isinstance(historical_rows, list):
+        findings.append("integration.yaml historical_dossiers must be a list")
+        historical_rows = []
+    for index, row in enumerate(historical_rows):
+        at = f"historical_dossiers[{index}]"
+        if not isinstance(row, dict):
+            findings.append(f"{at} must be a mapping")
+            continue
+        part_name = str(row.get("part") or "").strip()
+        matches = aliases.get(part_name, [])
+        if len(matches) != 1:
+            findings.append(f"{at}.part {part_name!r} resolves to "
+                            f"{len(matches)} part dossiers")
+            continue
+        part = matches[0]
+        if not part.in_scope:
+            findings.append(f"{at}: {part.mpn} is not a complex subsystem dossier")
+            continue
+        if part.path in historical:
+            findings.append(f"{at}: {part.mpn} is declared historical more than once")
+            continue
+        if not _text(row.get("reason"), 30):
+            findings.append(f"{at}.reason must explain why the dossier is retained")
+            continue
+        present = sorted(token for token in _identity_tokens(part)
+                         if token in authoring_text)
+        if present:
+            findings.append(f"{at}: {part.mpn} is still present in live TSX source "
+                            f"via exact identity token(s) {present}")
+            continue
+        historical.add(part.path)
+    artifact_refs = _artifact_refdes(root)
+    graded = modules = bare = bare_simple = 0
     for index, selection in enumerate(selections):
         at = f"selections[{index}]"
         if not isinstance(selection, dict):
@@ -188,6 +296,9 @@ def evaluate(project: str | Path) -> dict[str, Any]:
         if part.path in chosen:
             findings.append(f"{at}: {part.mpn} is selected more than once")
             continue
+        if part.path in historical:
+            findings.append(f"{at}: {part.mpn} cannot be both selected and historical")
+            continue
         chosen.add(part.path)
         if not _text(selection.get("rationale"), 30):
             findings.append(f"{at}: rationale must explain total-complexity fit")
@@ -201,7 +312,25 @@ def evaluate(project: str | Path) -> dict[str, Any]:
         elif implementation == "bare_ic":
             if part.is_module:
                 findings.append(f"{at}: {part.mpn} is a module, not a bare_ic")
-            errors = _exception_errors(root, at, selection.get("exception"))
+            errors: list[str] = []
+            if schema == 1:
+                errors = _exception_errors(root, at, selection.get("exception"))
+            else:
+                refs = selection.get("support_refs")
+                if not isinstance(refs, list) or not refs:
+                    errors.append(f"{at}: support_refs needs the bare IC's external support inventory")
+                    refs = []
+                clean = [str(ref).strip() for ref in refs if str(ref).strip()]
+                if len(clean) != len(refs) or len(set(clean)) != len(clean):
+                    errors.append(f"{at}: support_refs must be non-empty unique refdes")
+                if artifact_refs:
+                    missing = sorted(set(clean) - artifact_refs)
+                    if missing:
+                        errors.append(f"{at}: support_refs absent from circuit.json: {missing}")
+                if len(clean) >= threshold:
+                    errors.extend(_exception_errors(root, at, selection.get("exception")))
+                elif not errors:
+                    bare_simple += 1
             findings.extend(errors)
             if not errors and not part.is_module:
                 bare += 1
@@ -209,7 +338,8 @@ def evaluate(project: str | Path) -> dict[str, Any]:
             findings.append(f"{at}.implementation must be module or bare_ic")
         graded += 1
 
-    omitted = [part.mpn for part in scoped if part.path not in chosen]
+    omitted = [part.mpn for part in scoped
+               if part.path not in chosen and part.path not in historical]
     if omitted:
         findings.append(f"complex subsystem part(s) not selected: {omitted}")
     declaration = policy.get("no_applicable_functions")
@@ -226,7 +356,8 @@ def evaluate(project: str | Path) -> dict[str, Any]:
 
     return {"status": "adopted", "root": root, "config": config,
             "total": len(scoped), "graded": graded, "modules": modules,
-            "bare": bare, "findings": findings}
+            "bare": bare, "bare_simple": bare_simple,
+            "historical": len(historical), "findings": findings}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -242,7 +373,8 @@ def main(argv: list[str] | None = None) -> int:
     verdict = "PASS" if ok else "FAIL"
     print(f"P-MOD {verdict}: {result['graded']}/{result['total']} complex "
           f"subsystem(s) graded; modules={result['modules']} "
-          f"bare_exceptions={result['bare']}; input: {result['config']}")
+          f"bare={result['bare']} simple_bare={result.get('bare_simple', 0)} "
+          f"historical={result.get('historical', 0)}; input: {result['config']}")
     for finding in result["findings"]:
         print(f"  {finding}")
     return 0 if ok else 1

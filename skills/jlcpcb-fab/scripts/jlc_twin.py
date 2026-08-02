@@ -99,6 +99,13 @@ Checks beyond the fit itself:
     list is a second home for the population set and drifts from the first
     (cooksense v1.1's MANIFEST and CPL disagreed on 12 refs for exactly that
     reason). `--also` still works for an ad-hoc probe.
+    A not-assembled entry may instead declare `twin_body: {source: board}`
+    to retain the board footprint's exact local model, or
+    `twin_body: {source: file, model: PATH}` to mount a project-owned model.
+    These manual-install bodies are included in the NO-BODY denominator even
+    though they are deliberately absent from the CPL. A declared local body
+    always wins over an LCSC code: a catalog near-match must never replace the
+    intended mechanical body merely because it can be fetched.
   - --also REF=LCSC[,REF=LCSC..]: include hand-solder/uncoded parts with
     known LCSC codes so their bodies render too (connector overhang and
     orientation checks otherwise never run for exactly the parts a human
@@ -201,10 +208,23 @@ def fetch(lcsc, cachedir, attempts=None):
     return None, msg, kind
 
 
+def canonical_pad_number(value):
+    """Normalize formatting-only decimal zeros, preserve alphanumeric pins.
+
+    EasyEDA/JLC connector CAD commonly names pads ``01``..``09`` while the
+    KiCad footprint names the same physical identities ``1``..``9``. Without
+    normalization J7's ten-pin header appeared to share only pad 10, so a
+    one-point 'fit' falsely reported offset 0 against the independently
+    measured 270-degree authority row.
+    """
+    value = str(value).strip().strip('"')
+    return str(int(value)) if value.isdigit() else value
+
+
 def pads_of(fp):
     d = {}
     for p in fp.Pads():
-        n = str(p.GetNumber())
+        n = canonical_pad_number(p.GetNumber())
         if n:
             d.setdefault(n, []).append((p.GetPosition().x / 1e6,
                                         p.GetPosition().y / 1e6))
@@ -510,10 +530,13 @@ def kicad_env(board_path):
             except Exception:
                 pass
     env.update({k: v for k, v in os.environ.items() if k.startswith("KICAD")})
-    for var, dflt in (("KICAD10_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
+    user_3d = Path.home() / ".local" / "share" / "kicad" / "10.0" / "3dmodels"
+    system_3d = Path("/usr/share/kicad/3dmodels")
+    dflt_3d = str(user_3d if user_3d.is_dir() else system_3d)
+    for var, dflt in (("KICAD10_3DMODEL_DIR", dflt_3d),
                       ("KICAD9_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
                       ("KICAD8_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
-                      ("KISYS3DMOD", "/usr/share/kicad/3dmodels")):
+                      ("KISYS3DMOD", dflt_3d)):
         env.setdefault(var, dflt)
     env["KIPRJMOD"] = str(Path(board_path).resolve().parent)
     return env
@@ -577,6 +600,125 @@ def no_body_pass(tb, refs, board_path):
             missing.append((ref, "; ".join(
                 f"unresolved model path {f!r}" for f, _ in hits)))
     return mounted, missing
+
+
+def declared_twin_bodies(assembly, assembly_path=""):
+    """Return REF -> twin_body declarations from assembly intent.
+
+    The assembly manifest is the population authority, so it is also the
+    only safe place to say that a deliberately non-CPL part is nevertheless
+    installed in the finished-product render. Keep this parser independent
+    of model mounting so its population result is easy to regression-test.
+    """
+    bodies = {}
+    for key in ("not_assembled", "consigned"):
+        for entry in (assembly.get(key) or []):
+            body = entry.get("twin_body")
+            if not body:
+                continue
+            if not isinstance(body, dict):
+                raise ValueError(f"{key} twin_body must be a mapping")
+            source = str(body.get("source") or "").strip()
+            if source not in ("board", "file", "part"):
+                raise ValueError(
+                    f"{key} twin_body.source must be board, file, or part, "
+                    f"got {source!r}")
+            if source == "file" and not str(body.get("model") or "").strip():
+                raise ValueError(f"{key} twin_body source=file requires model")
+            if source == "part":
+                dossier = str(body.get("dossier") or "").strip()
+                if not dossier or not assembly_path:
+                    raise ValueError(
+                        f"{key} twin_body source=part requires dossier and "
+                        f"an assembly path")
+                project = Path(assembly_path).resolve().parents[2]
+                part_path = project / "02_parts" / dossier / "part.yaml"
+                if not part_path.is_file():
+                    raise ValueError(f"twin_body dossier not found: {part_path}")
+                import yaml
+                part = yaml.safe_load(open(part_path, encoding="utf-8-sig")) or {}
+                part_body = part.get("twin_body")
+                if not isinstance(part_body, dict):
+                    raise ValueError(f"{part_path} has no twin_body mapping")
+                body = dict(part_body)
+                source = str(body.get("source") or "").strip()
+                if source not in ("board", "file"):
+                    raise ValueError(
+                        f"{part_path} twin_body.source must be board or file")
+                if source == "file":
+                    raw_model = str(body.get("model") or "").strip()
+                    if not raw_model:
+                        raise ValueError(f"{part_path} twin_body requires model")
+                    model = Path(os.path.expanduser(raw_model))
+                    if not model.is_absolute():
+                        model = (part_path.parent / model).resolve()
+                    body["model"] = str(model)
+                body["dossier"] = str(part_path)
+            for ref in (entry.get("refs") or []):
+                ref = str(ref).strip()
+                if ref in bodies:
+                    raise ValueError(f"duplicate twin_body declaration for {ref}")
+                bodies[ref] = dict(body)
+    return bodies
+
+
+def install_declared_twin_bodies(board, bodies, assembly_path, board_path):
+    """Apply manual-install body policy and return auditable report rows."""
+    rows = []
+    base = Path(assembly_path).resolve().parent
+    for ref, body in sorted(bodies.items()):
+        fp = board.FindFootprintByReference(ref)
+        identity = str(body.get("identity") or "installed manual part").strip()
+        authority = str(body.get("authority") or "").strip()
+        limitation = str(body.get("limitation") or "").strip()
+        source = body["source"]
+        if fp is None:
+            rows.append(("", ref, "LOCAL-BODY",
+                         f"source={source}; identity={identity}; footprint missing"))
+            continue
+        if source == "file":
+            model_path = Path(os.path.expanduser(str(body["model"])))
+            if not model_path.is_absolute():
+                model_path = (base / model_path).resolve()
+            model = pcbnew.FP_3DMODEL()
+            model.m_Filename = str(model_path)
+            fp.Models().clear()
+            fp.Models().push_back(model)
+            detail = f"source=file model={model_path}"
+        else:
+            # Deliberately do not clear or re-register the board's model.
+            # This branch exists for exact library bodies such as the complete
+            # Keystone 3568 holder; a catalog code for one loose clip is not a
+            # valid transform authority for the four-hole holder footprint.
+            # Headless kicad-cli does not necessarily inherit the GUI's 3D
+            # search-path variables. Resolve the filename now, but copy every
+            # registration field unchanged: path normalization is not a new
+            # mount transform.
+            env = kicad_env(board_path)
+            base_board = Path(board_path).resolve().parent
+            old_models = list(fp.Models())
+            fp.Models().clear()
+            resolved_count = 0
+            for old in old_models:
+                model = pcbnew.FP_3DMODEL()
+                resolved = resolve_model(old.m_Filename, env, base_board)
+                model.m_Filename = resolved or old.m_Filename
+                model.m_Scale = old.m_Scale
+                model.m_Offset = old.m_Offset
+                model.m_Rotation = old.m_Rotation
+                fp.Models().push_back(model)
+                resolved_count += bool(resolved)
+            detail = ("source=board; JLC CAD replacement suppressed; "
+                      f"resolved paths={resolved_count}/{len(old_models)}; "
+                      "scale/offset/rotation retained")
+        provenance = "; ".join(x for x in (
+            f"identity={identity}",
+            f"authority={authority}" if authority else "",
+            f"limitation={limitation}" if limitation else "",
+            f"dossier={body.get('dossier')}" if body.get("dossier") else "",
+        ) if x)
+        rows.append(("", ref, "LOCAL-BODY", f"{detail}; {provenance}"))
+    return rows
 
 
 def marker_side(fp, pads, layers=None):
@@ -715,22 +857,42 @@ def main():
     lines = [r for r in csv.DictReader(open(args.bom, encoding="utf-8-sig"))
              if r.get("LCSC")]
     extra = []          # (ref, lcsc) pairs from --assembly / --also
+    assembly = {}
+    local_bodies = {}
     if args.assembly and os.path.exists(args.assembly):
         import yaml as _yaml
-        _asm = _yaml.safe_load(open(args.assembly)) or {}
+        assembly = _yaml.safe_load(open(args.assembly)) or {}
+        try:
+            local_bodies = declared_twin_bodies(assembly, args.assembly)
+        except ValueError as exc:
+            sys.exit(f"assembly twin_body schema: {exc}")
         for _key in ("not_assembled", "consigned"):
-            for _e in (_asm.get(_key) or []):
+            for _e in (assembly.get(_key) or []):
                 _code = str(_e.get("lcsc") or "").strip()
                 for _r in (_e.get("refs") or []):
-                    if _code:
+                    # An explicit installed-product body is mechanical
+                    # authority. Never fetch a catalog near-match for it.
+                    if _code and str(_r).strip() not in local_bodies:
                         extra.append((str(_r).strip(), _code))
         print(f"assembly: {len(extra)} coded not-assembled/consigned ref(s) "
+              f"and {len(local_bodies)} declared local body ref(s) "
               f"from {args.assembly}")
     for pair in [p for p in args.also.split(",") if p.strip()]:
         ref, _, code = pair.partition("=")
         if not code:
             sys.exit(f"--also expects REF=LCSC, got: {pair}")
         extra.append((ref.strip(), code.strip()))
+    # Local-body policy also wins over a code already present on the BOM.
+    # Split grouped rows so one manual ref cannot suppress its coded siblings.
+    filtered = []
+    for row in lines:
+        refs = [d.strip() for d in row["Designator"].split(",")
+                if d.strip() and d.strip() not in local_bodies]
+        if refs:
+            copy = dict(row)
+            copy["Designator"] = ",".join(refs)
+            filtered.append(copy)
+    lines = filtered
     on_bom = {d.strip() for r in lines for d in r["Designator"].split(",")}
     for ref, code in extra:
         if ref not in on_bom:       # never double-check a ref already on the BOM
@@ -978,8 +1140,10 @@ def main():
             twin[ref] = (jfp, ang, oc, _jca, lcsc)
 
     # ---- twin render: JLC models mounted on OUR board
-    if twin:
+    if twin or local_bodies:
         tb = pcbnew.LoadBoard(args.board)
+        findings.extend(install_declared_twin_bodies(
+            tb, local_bodies, args.assembly, args.board))
         mrotz = {}
         for ref, (jfp, ang, oc, jc_common, lcsc) in twin.items():
             if lcsc in model_rot_override:
@@ -1119,12 +1283,16 @@ def main():
                     d = (row.get("Designator") or "").strip()
                     if d:
                         cpl_refs.append(d)
-            src_desc = f"{len(cpl_refs)} CPL placements ({args.cpl})"
+            placed_count = len(cpl_refs)
+            cpl_refs = sorted(set(cpl_refs) | set(local_bodies))
+            src_desc = (f"{placed_count} CPL placements ({args.cpl}) + "
+                        f"{len(local_bodies)} declared manual-install bodies "
+                        f"({args.assembly})")
         else:
             cpl_refs = sorted({d.strip() for r in lines
                                for d in r["Designator"].split(",")
-                               if d.strip() in by_ref})
-            src_desc = (f"{len(cpl_refs)} checked refs (no --cpl given; pass "
+                               if d.strip() in by_ref} | set(local_bodies))
+            src_desc = (f"{len(cpl_refs)} checked/manual refs (no --cpl given; pass "
                         f"fab/cpl.csv for the population denominator)")
         mounted, missing = no_body_pass(tb, cpl_refs, args.board)
         bodies_line = f"bodies mounted: {len(mounted)}/{len(cpl_refs)}"
@@ -1145,6 +1313,16 @@ def main():
         print(f"\n{bodies_line}  ->  {out / 'missing_models.txt'}")
 
         tb.Save(str(out / "twin.kicad_pcb"))
+        # A-RENDER's independent pixel channel needs the SAME board, camera,
+        # lighting and resolution with one controlled difference: no component
+        # models. Comparing the populated render to a separately exported SVG
+        # is not valid because its projection and renderer differ. Keep this
+        # board beside the twin as reproducible evidence; it is generated from
+        # a fresh load so clearing models cannot mutate the populated twin.
+        bare = pcbnew.LoadBoard(str(out / "twin.kicad_pcb"))
+        for fp in bare.GetFootprints():
+            fp.Models().clear()
+        bare.Save(str(out / "twin_bare.kicad_pcb"))
         VIEWS = [  # (name, extra kicad-cli render args)
             ("top",      ["--side", "top"]),
             ("bottom",   ["--side", "bottom"]),
@@ -1159,8 +1337,16 @@ def main():
             subprocess.run(["kicad-cli", "pcb", "render",
                             "--width", "1600", "--height", "1000",
                             "-o", str(out / f"twin_{name}.png"),
-                            *extra, str(out / "twin.kicad_pcb")],
+                           *extra, str(out / "twin.kicad_pcb")],
                            capture_output=True)
+        if not args.no_render:
+            for side in ("top", "bottom"):
+                subprocess.run(["kicad-cli", "pcb", "render",
+                                "--width", "1600", "--height", "1000",
+                                "-o", str(out / f"twin_bare_{side}.png"),
+                                "--side", side,
+                                str(out / "twin_bare.kicad_pcb")],
+                               capture_output=True)
 
     with open(out / "twin_report.csv", "w", newline="") as f:
         w = csv.writer(f)

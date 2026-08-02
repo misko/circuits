@@ -35,6 +35,22 @@ So **every checker gets two kinds of test**:
 | `known_bad` | the checker **FAILS** a deliberately broken input |
 | `vacuity` | the checker **PASSES** input whose graded fact is FALSE — a *declared blind spot* (canon G-VACUOUS) |
 
+P-PINMAP fixtures cover exact identities, evidenced fused lands, missing and
+extra schematic/footprint identities, unexplained aliases, unlike-function
+collapses, a zero-denominator run, and the declared consistently-truncated
+dossier/schematic/board vacuity. A-RENDER fixtures include the same-camera
+bare-image channel, saturated bodies that the old low-saturation heuristic
+could not see, leading-zero JLC/KiCad pad-number normalization, and a hard
+failure for camera-size mismatch. PR-REVIEW fixtures prove missing, defective,
+or hash-stale schematic/placement evidence blocks before routing, plus pin the
+declared human-review competence/independence blind spot.
+
+D-SPEC/E-PATH fixtures cover external-output measurement planes and complete
+IR paths; E-SWDRV covers controller/MOSFET compatibility; E-SURGE covers
+protection coordination. R-PAIRMAP fixtures reject incomplete differential
+pair routing contracts before route spend, and R-CRITESC rejects disconnected
+or policy-breaking realized copper after stitch.
+
 ### The third kind: `vacuity` — a blind spot, pinned on purpose
 
 `known_bad` proves a gate *can* fail. It does not prove the gate can fail **on

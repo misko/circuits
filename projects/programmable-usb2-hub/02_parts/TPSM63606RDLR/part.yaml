@@ -1,0 +1,80 @@
+mpn: TPSM63606RDLR
+manufacturer: Texas Instruments
+type: buck_power_module
+status: active
+function: "12-24 V to one 5.15 V / 4 A two-port USB rail"
+datasheet:
+  doc_id: SLVSGB4B
+  revision: "Rev B, April 2022"
+  url: https://www.ti.com/lit/ds/symlink/tpsm63606.pdf
+  local: TPSM63606.pdf
+  sha256: e34f4986fb0081f2b37846933a7a6ecd4aab15f6e89e66fb3ab59a2bb2048465
+  fetched: 2026-08-01
+package: "TI RDL0020A B3QFN-20, 5.5 x 5.0 x 4.1 mm max"
+footprint: programmable_usb2_hub:Texas_RDL0020A_B3QFN-20
+escape:
+  style: qfn
+  pitch: 0.5
+  escapes_worst_side: 6
+  tier_required: jlc_4layer_advanced
+  checked: "TI RDL0020A package drawing 4226416/B and example board land"
+pins:
+  1: VIN1
+  2: {name: SW, note: "internal switch node; no external connection"}
+  3: CBOOT
+  4: RBOOT
+  5: VLDOIN
+  6: AGND
+  7: {name: VCC, note: "internal regulator output; no external load"}
+  8: VOUT1
+  9: VOUT2
+  10: FB
+  11: AGND
+  12: RT
+  13: PG
+  14: EN_SYNC
+  15: NC
+  16: VIN2
+  17: PGND
+  18: PGND
+  19: PGND
+  20: PGND
+limits:
+  vin_operating: "3 to 36 V after start-up"
+  vin_absolute: 42 V
+  iout: 6 A
+  vout: "1 to 16 V"
+  feedback_accuracy: "+/-1% over -40 to 125 C and VIN range"
+  load_regulation: "0.1% over 0 to 6 A"
+  feedback_input_current: "10 nA typical"
+  switching_frequency: "200 kHz to 2.2 MHz"
+  tj_operating: "-40 to 125 C"
+configuration:
+  vout_nominal: 5.15 V
+  switching_frequency: 1 MHz
+  rfbt: "4.12 kOhm 0.1% + 30 Ohm 1% series"
+  rfbb: "1.00 kOhm 0.1%"
+  rrt: "13.0 kOhm 1%"
+  cff: 22 pF
+  cin: "4 x 10 uF 50 V X7R 1210 per module (two required, two margin)"
+  cout: "2 x CL32A107MPVNNNE 100 uF 10 V X5R per module"
+gotchas:
+  - "Pins 2 (SW), 7 (VCC), 13 (unused PG), and 15 (NC) are intentionally left electrically open."
+  - "Short RBOOT to CBOOT and tie VLDOIN to VOUT for the adopted efficient configuration."
+  - "The two output capacitors retain about 63.2 uF combined at the dossier's documented worst bias, temperature, and initial-tolerance corner, above TI's 30 uF effective minimum for 5 V."
+  - "TI specifies +/-1% feedback accuracy and separately 0.1% load regulation. The rail contract conservatively combines both, divider initial tolerance, bounded resistor TCR, and +/-10 nA typical bias sensitivity."
+  - "Use dual symmetric input/output capacitor placement, a solid layer-2 ground plane, minimal exposed SW copper, and filled/plugged 0.2 mm thermal vias at PGND lands 17-20."
+layout:
+  source: "SLVSGB4B Section 11 and Figures 11-1/11-2"
+  keep_short:
+    - {net: VIN_PROTECTED, max_span_mm: 4, anchor_pins: ["1", "16"], why: "dual symmetric input bypass loops"}
+    - {net: N5V_A, max_span_mm: 5, anchor_pins: ["8", "9"], why: "dual symmetric output bypass and feedback takeoff"}
+    - {net: N5V_B, max_span_mm: 5, anchor_pins: ["8", "9"], why: "dual symmetric output bypass and feedback takeoff"}
+  notes:
+    - "AGND pins 6/11 join PGND directly under the module; keep FB/RT local and away from the module edges."
+    - "Use at least 1 oz copper; the project stack uses four layers and the module PGND via field couples to inner ground."
+sourcing:
+  lcsc: C5219325
+  alternates: []
+  note: "JLC exact catalog query 2026-08-01: TPSM63606RDLR, Extended, stock 79; recheck at order seal."
+verified: "Pin map, limits, reference circuit, layout, and RDL0020A land read from TI SLVSGB4B; 2026-08-01."

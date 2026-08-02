@@ -5,52 +5,25 @@
 # override CPL rotation.  The only model nudge is for J7's demonstrably offset
 # JLC-internal body; its copper fit remains the independent authority.
 
-- lcsc: C404363
-  refs: [Q3, Q4, Q5, Q6]
-  status: PAD-MISMATCH
-  pad_alias: {"6": "5", "7": "5", "8": "5", "9": "5"}
-  why: &aon6354_land >
-    AON6354 exact-package review, 2026-07-31. Alpha & Omega package drawing
-    PO-00044 version I specifies the DFN5x6_8L_EP1_P land: 6.15 mm total lead
-    span, 0.55 x 0.50 mm source lands, 0.65 x 0.50 mm drain lands, and a
-    4.12 x 4.60 mm exposed drain. The vendored footprint implements those
-    dimensions. JLC's CAD splits drain terminals 5-8/EP while the schematic and
-    KiCad land intentionally merge every drain copper shape onto electrical pad
-    5; the alias records that correspondence and does not change copper.
-
-- lcsc: C404363
-  refs: [Q3, Q4, Q5, Q6]
-  status: PAD-GEOM
-  why: *aon6354_land
-
-- lcsc: C404363
-  refs: [Q3, Q4, Q5, Q6]
-  status: MODEL-REG
-  why: >
-    Consequence of JLC's split-drain CAD versus the exact AOS merged exposed-pad
-    land above. The manufacturer drawing, not JLC's body-bbox-to-courtyard
-    metric, is authoritative; no model rotation override is applied.
-
 - lcsc: C454269
-  refs: [Q1, Q2]
+  refs: [Q1, Q2, Q3, Q4, Q5, Q6]
   status: PAD-MISMATCH
-  pad_alias: {"6": "5", "7": "5", "8": "5"}
   why: &bsc016_land >
     BSC016N06NS exact-package review, 2026-07-31. Infineon datasheet rev 2.6,
     PG-TDSON-8 Figure 2 Boardpads & Apertures, specifies the fused-drain land
-    implemented by KiCad TDSON-8-1: 4.55 x 4.41 mm drain copper and 1.27 mm
-    source pitch. JLC's CAD retains separate drain terminal numbers (and a
-    duplicated source representation), so its numbered-pad centroid cannot be
-    compared directly with the manufacturer fused land. The alias states the
-    electrical correspondence; it does not alter geometry.
+    implemented by the project-local physical-pin variant: four touching drain
+    stripes numbered 5-8 whose union is exactly the specified 4.55 x 4.41 mm
+    copper, plus the 1.27 mm source pitch. Physical identities are therefore
+    preserved on both sides; any remaining JLC multiplicity/anchor difference
+    is judged against Infineon's land rather than hidden by a pin alias.
 
 - lcsc: C454269
-  refs: [Q1, Q2]
+  refs: [Q1, Q2, Q3, Q4, Q5, Q6]
   status: PAD-GEOM
   why: *bsc016_land
 
 - lcsc: C454269
-  refs: [Q1, Q2]
+  refs: [Q1, Q2, Q3, Q4, Q5, Q6]
   status: MODEL-REG
   why: >
     Consequence of the JLC split-terminal CAD versus Infineon's authoritative
@@ -67,11 +40,11 @@
     variant, not the manufacturer's recommended pattern. Pad 1 remains cathode;
     the first-order JLC preview polarity gate remains mandatory.
 
-- lcsc: C315992
+- lcsc: C224017
   refs: [D1]
   status: PAD-GEOM
   why: >
-    Exact Littelfuse SMBJ26A review against the SMBJ series v4 DO-214AA drawing.
+    Exact Littelfuse SMBJ24A review against the SMBJ series v4 DO-214AA drawing.
     Its solder-pad envelope requires I >= 2.26, J >= 2.16, K <= 2.74 and
     L >= 2.16 mm. KiCad D_SMB's 2.50 x 2.30 mm pads with 1.80 mm inner gap
     satisfy that envelope. The 0.42 mm centre-span delta is JLC's alternative
@@ -108,28 +81,6 @@
     via field. The vendored footprint implements the custom polygons. The
     twin's 1.42 mm reading uses custom-pad anchor coordinates rather than the
     copper centroids and is therefore not a physical land-span measurement.
-
-- lcsc: C5249699
-  refs: [F1]
-  status: PAD-MISMATCH
-  why: &fuse_clips >
-    F1 is intentionally excluded from JLC BOM/CPL by assembly.yaml. One board
-    reference represents the two physical Keystone 3568 MINI fuse clips, with
-    four plated holes grouped as two electrical terminals on the exact KiCad
-    Fuseholder_Blade_Mini_Keystone_3568 mounting pattern. JLC C5249699 models
-    one clip and one centroid, so it cannot represent or place the composite
-    two-clip footprint. Two exact clips per board are procured and hand-soldered
-    after PCBA; no machine placement is authorized.
-
-- lcsc: C5249699
-  refs: [F1]
-  status: PAD-GEOM
-  why: *fuse_clips
-
-- lcsc: C5249699
-  refs: [F1]
-  status: MODEL-REG
-  why: *fuse_clips
 
 - lcsc: C86462
   refs: [J2]

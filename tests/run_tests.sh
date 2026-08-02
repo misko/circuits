@@ -41,6 +41,9 @@ SUITES=(
   t1_generate_board.py
   t1_audit.py
   t1_placement_gates.py
+  t1_pin_map.py
+  t1_pin_audit.py
+  t1_pre_route_review.py
   t1_pad_separation.py
   t1_rf_contract.py
   t1_contracts.py
@@ -54,12 +57,14 @@ SUITES=(
   t1_net_label_survival.py
   t1_tsx_to_board.py
   t1_electrical_invariants.py
+  t1_early_design.py
   t1_net_reference.py
   t1_waiver_evidence.py
   t1_adr_bounds.py
   t1_schema_reader.py
   t1_copper_length.py
   t1_power_topology.py
+  t1_critical_route.py
   t1_release_git_dirty.py
   t1_release_index.py
   t1_release_freshness.py

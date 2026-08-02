@@ -1,0 +1,21 @@
+mpn: MMBT3906LT1G
+manufacturer: onsemi
+type: pnp_temperature_sensor
+datasheet:
+  doc_id: MMBT3906LT1-D
+  revision: "Rev. 21, January 2024"
+  url: https://www.onsemi.com/download/data-sheet/pdf/mmbt3906lt1-d.pdf
+  sha256: f0bc51cf5594bf0b3f236734c270dcc4896252beb1e10a29e0b9d6796d6f449b
+  fetched: 2026-08-01
+package: SOT-23
+footprint: Package_TO_SOT_SMD:SOT-23
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "SOT-23 land and pin map checked 2026-08-01"}
+pins: {1: B, 2: E, 3: C}
+limits: {vceo: 40 V, ic: 200 mA, tj: "-55 to 150 C"}
+gotchas:
+  - "For LTC3889 remote temperature sensing, emitter is TSNS and base plus collector return separately to controller ground."
+  - "Program MFR_TEMP_1_GAIN approximately 0.991 and calibrate the final assembly."
+verified: "pin 1 base, pin 2 emitter, pin 3 collector from onsemi SOT-23 diagram, 2026-08-01"
+sourcing: {lcsc: null, alternates: [], note: "Q-2SOURCE 2026-08-01: Mouser 9804 and DigiKey product listing reported 974247 exact units; consigned"}
+layout: {source: "LTC3889 external-temperature-sense section", notes: ["place one diode-connected PNP at each rail inductor and return its cathode directly to U2 exposed-pad ground"]}
+

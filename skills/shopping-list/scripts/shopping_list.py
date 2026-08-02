@@ -299,8 +299,12 @@ def read_parts(project):
             continue
         raw = y.get("mpn")
         if isinstance(raw, str) and raw.strip():
-            # trailing `# comment` survives yaml when the value is unquoted
-            mpn, src = raw.split("#")[0].strip(), "part.yaml mpn:"
+            # PyYAML has already removed YAML comments.  A `#` that survives
+            # safe_load is therefore data from a quoted scalar and is common
+            # in exact Analog Devices orderable MPNs (for example #TRPBF).
+            # Splitting it here silently changed the selected part and made
+            # Q-IDENT reject the distributor's exact catalog record.
+            mpn, src = raw.strip(), "part.yaml mpn:"
         else:
             mpn, src = d.name, "directory name (no mpn: field)"
         p = Part(mpn, src, d.name)

@@ -41,8 +41,9 @@ TWO CHECKS, both against the exported netlist:
 USAGE
 -----
   net_label_survival.py PROJECT_DIR
-      Auto-locates: schematic = 03_tscircuit/kicad/*.kicad_sch (the committed
-      pinned artifact) else 04_kicad/*.kicad_sch; netlist =
+      Auto-locates: schematic = 04_kicad/*.kicad_sch (the current full-build
+      subject) else 03_tscircuit/kicad/*.kicad_sch (the committed pinned
+      reuse artifact); netlist =
       06_build/netlists/*.net else 06_build/*.net; config = the
       `label_survival:` block of 03_src/rules/electrical_invariants.yaml
       (absent block -> check 1 still runs, check 2 is N-A).
@@ -166,8 +167,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     proj = Path(a.project).resolve()
 
-    sch = a.schematic or _first([str(proj / "03_tscircuit" / "kicad" / "*.kicad_sch"),
-                                 str(proj / "04_kicad" / "*.kicad_sch")])
+    sch = a.schematic or _first([str(proj / "04_kicad" / "*.kicad_sch"),
+                                 str(proj / "03_tscircuit" / "kicad" / "*.kicad_sch")])
     net = a.netlist or _first([str(proj / "06_build" / "netlists" / "*.net"),
                                str(proj / "06_build" / "*.net")])
     if not sch or not Path(sch).is_file():

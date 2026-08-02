@@ -862,26 +862,22 @@ def t_collide_names_the_nets():
         contains(txt, want, "P-COLLIDE names the colliding refs")
 
 
-@test("P-COLLIDE WARNS on an anchored courtyard overlap with no pad short, "
-      "and still builds")
-def t_collide_pinned_lap_warns():
-    """Calibration lock. Courtyard overlap is canon P1/P-CRT's, enforced at
-    full-severity DRC on every board; duplicating it as a generator FAILURE
-    would retro-break boards that legitimately pack anchored parts tight
-    (MEASURED 2026-07-25: usb-hub-3s-v2 RS3<->Q6 0.470 x 3.950 mm, and the
-    cooksense interposer's test-point array, 18 pairs at 0.053 x 2.592 mm —
-    neither has a pad short). The FATAL half is the SHORT."""
+@test("P-COLLIDE FAILS an anchored courtyard overlap with no pad short",
+      kind="known_bad")
+def t_collide_pinned_lap_fails():
+    """Placement owns assembly clearance. Deferring an anchored overlap to
+    final DRC allowed the programmable USB hub's resistor/module interference
+    to survive until render review. Archived boards remain immutable; every
+    newly generated or materially revised board must move the anchors."""
     # slide J2 into J1's courtyard, but not far enough for pads to touch:
     # B3B-XH courtyard is 10.99 wide on an 11.1mm pitch, pads at 2.5mm pitch.
     def mutate(c):
         a = c["placement"]["anchors"]
         a["J2"] = [a["J1"][0] + 10.6, a["J1"][1], a["J1"][2]]
     d, cfg = scratch_config(mutate)
-    r = gen(cfg, d / "b.kicad_pcb")            # must SUCCEED
-    contains(r.out, "WARN P-COLLIDE PINNED-LAP", "generator stdout")
-    contains(r.out, "0 inter-footprint pad overlaps/shorts", "generator stdout")
-    check("this placement has inter-footprint pad overlap" not in r.out,
-          f"a courtyard overlap with no short must not be fatal: {r.out}")
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "anchored courtyard overlap", "P-COLLIDE")
+    contains(r.out, "FAIL P-COLLIDE PINNED-LAP", "generator stdout")
 
 
 # ------------------------------------------------------- edge-reaching notch

@@ -77,6 +77,10 @@ C22843: {mpn: 0603WAF1501T5E, value: "1.5k", verified: "2026-07-23 JLC catalog (
 C22859: {mpn: 0603WAF100JT5E, value: "10", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C22864: {mpn: 0603WAF1212T5E, value: "12.1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C22865: {mpn: 0603WAF1242T5E, value: "12.4k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23008: {mpn: 0603WAF3402T5E, value: "34k", verified: "2026-08-01 JLC catalog selectSmtComponentList exact search: 34k 1% 0603, stock 50025"}
+C25184: {mpn: 0603WAF110JT5E, value: "11", verified: "2026-08-01 JLC catalog selectSmtComponentList exact search: 11Ohm 1% 0603, stock 32309"}
+C22830: {mpn: 0603WAF180JT5E, value: "18", verified: "2026-08-01 JLC catalog selectSmtComponentList exact search: 18Ohm 1% 0603, stock 136745"}
+C22841: {mpn: 0603WAF1471T5E, value: "1.47k", verified: "2026-08-01 JLC catalog selectSmtComponentList exact search: 1.47k 1% 0603, stock 7913"}
 C22935: {mpn: 0603WAF1004T5E, value: "1M", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C22977: {mpn: 0603WAF200KT5E, value: "2", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C22978: {mpn: 0603WAF3301T5E, value: "3.3k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}

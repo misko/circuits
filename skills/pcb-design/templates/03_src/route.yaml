@@ -26,6 +26,16 @@ project:
 # ignore this block.  It makes stage ownership, deterministic/stochastic
 # copper, and wall-time expectations explicit before an expensive route begins.
 flow:
+  # Fail-closed independent evidence before the first route. The initial
+  # schematic/placement build stops until these exact-artifact witnesses exist.
+  pre_route_reviews:
+    board: 04_kicad/cook_loadcell.kicad_pcb
+    netlist: 06_build/netlists/cook_loadcell.net
+    topology: 08_reviews/pre-route_topology.md
+    pin: 08_reviews/pre-route_pin.md
+    layout: 08_reviews/pre-route_layout.md
+    render: 08_reviews/pre-route_render.md
+    a_render: 06_build/pre_route/twin_overlay.md
   # Single-board defaults: this config, 03_src/rebuild_all.sh, 06_build/.
   # An ADR-0007 multi-board project instead keeps this file at
   # 03_src/<board>/route.yaml and MUST uncomment board-scoped paths/inputs:
@@ -79,6 +89,12 @@ prep:
 
 route:
   krt: ~/gits/KiCadRoutingTools
+  # REQUIRED decision. Fill one row per USB/RF/timing-critical pair, or leave
+  # [] and replace no_critical_routes with a specific true reason.
+  preflight_critical_pairs: []
+  no_critical_routes: null
+  # - {name: USB_UP, p: USB_UP_P, n: USB_UP_N, wave: usb,
+  #    allowed_layers: [F.Cu], no_vias: true}
   # race: 3      # KRT is stochastic — run N wave-chains CONCURRENTLY in
   #   isolated temp dirs (06_build/route/race/cN), import each candidate
   #   into a copy of the track-free board, evaluate each with `quick`, and

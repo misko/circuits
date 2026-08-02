@@ -1,0 +1,42 @@
+schema: 1
+paths:
+  - name: VIN_PROTECTED
+    source_operating_max_V: 24.0
+    source_tolerance_included: true
+    source_boundary_evidence: >-
+      Commissioned absolute connector ceiling includes source accuracy,
+      line/load regulation, ripple and wiring rise; nominal 24 V +/-5% is out
+      of scope.
+    voltage_margin_pct: 2.0
+    tvs:
+      part: SMBJ24A
+      standoff_V: 24.0
+      clamp_max_V: 38.9
+      waveform_duration_ms: 1.0
+      waveform: 10/1000 us
+      evidence: "Littelfuse SMBJ series exact SMBJ24A row"
+    exposed:
+      - {ref: Q1-Q2, part: BSC016N06NS, recommended_max_V: 60, absolute_max_V: 60}
+      - ref: U2-U3
+        part: TPSM63606RDLR
+        recommended_max_V: 36
+        absolute_max_V: 42
+        absolute_max_duration_ms: 1.0
+        transient_qualification:
+          grade: cited
+          max_V: 42
+          max_duration_ms: 1.0
+          evidence: >-
+            TI SLVSGB4B specifies a 42 V absolute input limit; the SMBJ24A
+            1 ms maximum clamp including the separate 2% design margin is
+            39.68 V, below that limit.
+      - ref: U4
+        part: AP63203QWU-7
+        recommended_max_V: 32
+        absolute_max_V: 40
+        absolute_max_duration_ms: 400
+        transient_qualification:
+          grade: cited
+          max_V: 40
+          max_duration_ms: 400
+          evidence: "AP63203Q automotive datasheet: 40 V load-dump tolerance for less than 400 ms"

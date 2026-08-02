@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """T1: the shared placement-stage gates (skills/kicad-pcb/scripts/
-placement_gates.py) — P-OUT pads-inside-outline and P-CAP corridor
-crossing-demand vs capacity.
+placement_gates.py) — P-OUT pads-inside-outline, P-CAP corridor
+crossing-demand vs capacity, and P-BODYCLR positive assembly clearance.
 
 Both checks exist because the smc0985-cooksense placement->routing D-BACK
 (2026-07-23, journal 01_docs/journal/routing_cooksense.md) consumed ~13 hours
@@ -53,7 +53,8 @@ def preredo_board():
 
 
 # ---------------------------------------------------------------- builder
-def synth_board(d, off_outline_part=False, gap_mm=1.2, wires=10):
+def synth_board(d, off_outline_part=False, gap_mm=1.2, wires=10,
+                body_lap=False, missing_courtyard=False):
     """A synthetic two-cluster board, built from scratch for full control:
 
       * L-SHAPED outline (0,0)-(60,50) with the (45..60, 30..50) corner
@@ -92,6 +93,12 @@ def net(nm):
 def part(ref, x, y, n1, n2):
     f = pcbnew.FOOTPRINT(b)
     f.SetReference(ref)
+    if not ({missing_courtyard!r} and ref == "RN0"):
+        cy = pcbnew.PCB_SHAPE(f)
+        cy.SetShape(pcbnew.SHAPE_T_RECT)
+        cy.SetStart(V(-1.5, -1.0)); cy.SetEnd(V(1.5, 1.0))
+        cy.SetLayer(pcbnew.F_CrtYd); cy.SetWidth(pcbnew.FromMM(0.05))
+        f.Add(cy)
     ps = []
     for i, nm in ((1, n1), (2, n2)):
         p = pcbnew.PAD(f)
@@ -110,7 +117,8 @@ def part(ref, x, y, n1, n2):
 W = {wires}
 for k in range(W):
     part(f"RN{{k}}", 4 + 4*k, 10, f"STUB_N{{k}}", f"X{{k}}")   # north cluster
-    part(f"RS{{k}}", 4 + 4*k, 40, f"X{{k}}", f"STUB_S{{k}}")   # south cluster
+    sy = 11.8 if ({body_lap!r} and k == 0) else 40
+    part(f"RS{{k}}", 4 + 4*k, sy, f"X{{k}}", f"STUB_S{{k}}")   # south cluster
 
 def wall(x0, x1):
     z = pcbnew.ZONE(b)
@@ -180,6 +188,35 @@ def t_synth_clean():
     b = synth_board(d, gap_mm=12.0)     # generous corridor: 12mm ~ 52 slots
     r = must_pass(run([KPY, PG, b]), "placement_gates on clean synth")
     contains(r.out, "PLACEMENT-GATES: PASS", "synth verdict")
+
+
+@test("P-BODYCLR FAILS zero/overlapping anchored assembly envelopes",
+      kind="known_bad")
+def t_bodyclr_overlap():
+    d = tmpdir("pg_")
+    b = synth_board(d, gap_mm=12.0, body_lap=True)
+    r = must_fail(run([KPY, PG, b]), "overlapping courtyards", "P-BODYCLR")
+    check("RN0<->RS0" in r.out or "RS0<->RN0" in r.out,
+          f"P-BODYCLR did not name both refs: {r.out}")
+
+
+@test("P-BODYCLR FAILS an assembled footprint with no courtyard",
+      kind="known_bad")
+def t_bodyclr_missing_geometry():
+    d = tmpdir("pg_")
+    b = synth_board(d, gap_mm=12.0, missing_courtyard=True)
+    r = must_fail(run([KPY, PG, b]), "missing courtyard", "P-BODYCLR")
+    contains(r.out, "RN0", "P-BODYCLR names missing ref")
+
+
+@test("P-BODYCLR cannot be bypassed with ignore refs or prefixes",
+      kind="known_bad")
+def t_bodyclr_nonwaivable():
+    d = tmpdir("pg_")
+    b = synth_board(d, gap_mm=12.0, body_lap=True)
+    c = cfg(d, body_clearance={"ignore_refs": ["RN0"]})
+    must_fail(run([KPY, PG, b, "--config", c]),
+              "P-BODYCLR ignore bypass", "non-waivable")
 
 
 @test("P-CAP whole-check waiver WITH evidence turns the pinched board green")

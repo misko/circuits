@@ -139,9 +139,9 @@ this follows it. Two levels:
 MEASURED ON LANDING (2026-07-29, `--root .` over 6 projects, 176 hand-authored
 source files; reproduced every run by `t_real_fleet_denominator`):
 
-  8 governed families, 3 UNGOVERNED and named (`assembly.yaml`, `mates.yaml`,
-  `twin_adjudications.yaml`). 377 declared rows: **304 PROVEN, 23 ADVISORY,
-  50 OWED**, 0 UNREAD, 0 UNPROVABLE, 0 ORPHAN. Those rows cover **1205 distinct
+  11 governed families, 4 UNGOVERNED and named (`assembly.yaml`, `mates.yaml`,
+  `rf.yaml`, `twin_adjudications.yaml`). 414 declared rows include **341
+  PROVEN** readers, with 0 ORPHAN. Those rows cover more than 1205 distinct
   schema keys** the fleet's source actually declares, 881 of them under 39 `*`
   SUBTREE claims (`limits.*`, `land_pattern.*`, `stitch.<pass>.*`), which is
   why both numbers are printed: 293/293 alone would overstate it.
@@ -279,8 +279,8 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
-GOVERNED_FLOOR = 8
-PROVEN_FLOOR = 313   # 239 -> 241 on 2026-07-29: route.yaml's
+GOVERNED_FLOOR = 11
+PROVEN_FLOOR = 341
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
@@ -316,6 +316,16 @@ PROVEN_FLOOR = 313   # 239 -> 241 on 2026-07-29: route.yaml's
 #: 304 -> 306 on 2026-08-01: `board.via_protection.{capping,filling}`
 #: 306 -> 313 on 2026-08-01: the complete solver-bound phase tuple
 #: bound to the generic generator's post-save KiCad setup-token emitter.
+#: 323 -> 341 and 8 -> 11 governed families on 2026-08-01: adopted the
+#: external-power requirements, switching-stage, and surge-path schemas plus
+#: critical-pair mapping. Their readers are early_design_check.py and
+#: critical_route_check.py; the pipeline runs both before irreversible layout
+#: or routing spend and rechecks realized critical copper after stitch.
+#: 313 -> 321 on 2026-08-01: P-PINMAP `pin_aliases` and executable
+#: policy-waiver evidence schema readers.
+#: 321 -> 323 on 2026-08-01: the USB interface-standard provenance row and
+#: `part.yaml` `twin_body.*` installed-product model authority, the latter
+#: consumed by jlc_twin for non-CPL same-camera evidence.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.

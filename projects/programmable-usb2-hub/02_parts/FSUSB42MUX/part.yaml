@@ -95,14 +95,14 @@ layout:
     unbroken reference plane and no stubs on common or HSD1.
   reviewed: 2026-07-31
   keep_short:
-    - {net: P1_HUB_P, max_span_mm: 25, anchor_pins: ["3"], why: "DERIVED USB2 HS launch budget from the switch common D+ pin"}
-    - {net: P1_HUB_N, max_span_mm: 25, anchor_pins: ["4"], why: "DERIVED USB2 HS launch budget from the switch common D- pin"}
-    - {net: P2_HUB_P, max_span_mm: 25, anchor_pins: ["3"], why: "DERIVED USB2 HS launch budget from the switch common D+ pin"}
-    - {net: P2_HUB_N, max_span_mm: 25, anchor_pins: ["4"], why: "DERIVED USB2 HS launch budget from the switch common D- pin"}
-    - {net: P3_HUB_P, max_span_mm: 25, anchor_pins: ["3"], why: "DERIVED USB2 HS launch budget from the switch common D+ pin"}
-    - {net: P3_HUB_N, max_span_mm: 25, anchor_pins: ["4"], why: "DERIVED USB2 HS launch budget from the switch common D- pin"}
-    - {net: P4_HUB_P, max_span_mm: 25, anchor_pins: ["3"], why: "DERIVED USB2 HS launch budget from the switch common D+ pin"}
-    - {net: P4_HUB_N, max_span_mm: 25, anchor_pins: ["4"], why: "DERIVED USB2 HS launch budget from the switch common D- pin"}
+    - {net: P1_HUB_P, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
+    - {net: P1_HUB_N, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
+    - {net: P2_HUB_P, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
+    - {net: P2_HUB_N, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
+    - {net: P3_HUB_P, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
+    - {net: P3_HUB_N, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
+    - {net: P4_HUB_P, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
+    - {net: P4_HUB_N, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
     - {net: P1_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
     - {net: P1_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
     - {net: P2_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}

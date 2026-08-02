@@ -1,7 +1,7 @@
-stage: publish_handoff
-step: "canonical layout and deterministic JLC fabrication gates complete"
-measure: "MEASURED canonical layout P-LAND 302/302 and KiCad DRC 0/0/0; strict fab BOM 59/59 coded and CPL 194/194 rotation-sourced; Q-2SOURCE 26/26; JLC stock 58/59 with U4 explicitly consigned; twin bodies 194/194 and zero unadjudicated critical refs"
-state: green
-next: "isolate the 122 hub files plus 10 required shared files onto a clean origin/main feature branch; before payment refresh Q-2SOURCE/JLC allocation and accept the mandatory 15-code JLC placement preview"
-op_pid: "none"
-updated: 2026-07-31T23:59:00-07:00
+stage: architecture/component-selection backtrack
+step: "finish exact pin/layout dossiers and module-first exceptions for the replacement power architecture before schematic regeneration"
+measure: "MEASURED five replacement MPNs pass the >10-stock two-authorized-supplier pre-selection gate; the LTC3889/CSD18533/TPS259823/LTC4372 path has 75.005 mV static connector margin. A newly found rating mismatch is upstream-owned: live input FET AON6354 is 30 V, not the 60 V asserted by protection_paths.yaml, and cannot remain exposed to the 38.9 V clamp. P-MOD remains red until exact dossiers, bare-IC exception evidence, and live-source retirement of LM5116 are complete. No schematic, layout, or release claim is green."
+state: active
+next: "complete official pin/equation/layout evidence; use the qualified 60 V CSD18533 in every clamp-exposed FET position; update integration and declarative electrical rules; require P-MOD and early-design gates green before changing placement"
+op_pid: none
+updated: 2026-08-01T20:39:51-07:00

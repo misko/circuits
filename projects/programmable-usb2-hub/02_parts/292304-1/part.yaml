@@ -22,6 +22,8 @@ pins:
   3: {name: D+, note: "USB 2.0 upstream data plus."}
   4: {name: GND, note: "USB upstream signal/power return."}
   SH: {name: SHIELD, note: "Two 2.3 mm shell board-lock holes on 12.04 mm centers."}
+pin_aliases:
+  SH: {schematic: "5", footprint: "5", fused: true, why: "the two physical board-lock lands are one continuous manufacturer shell and tscircuit requires one numeric shell port", evidence: "TE ENG_CD_292304_D4 sheet 1 shows both 2.3 mm board locks as features of the single stainless-steel SHELL; 03_tscircuit/parity_padmap.txt binds pin5 to SH"}
 limits:
   contact_current: 1 A max
   operating_temperature: -55 to +85 C

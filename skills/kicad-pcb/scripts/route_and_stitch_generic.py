@@ -356,7 +356,29 @@ def _rules_ride_along(cfg, src_pcb, out_pcb):
           f"{len(pats)} patterns)")
 
 
+def _critical_route_gate(cfg, require_connected=False):
+    """Make the shared route entry points enforce the adopted pair contract."""
+    root = Path(cfg["_root"])
+    route = get(cfg, "route", {}) or {}
+    adopted = any((root / "03_src/rules" / name).is_file()
+                  for name in ("requirements.yaml", "integration.yaml"))
+    if "preflight_critical_pairs" not in route and not adopted:
+        print("R-PAIRMAP: legacy/unadopted route config — not graded")
+        return
+    checker = Path(__file__).resolve().parent / "critical_route_check.py"
+    board = rel(cfg, cfg["project"]["board"])
+    cmd = [sys.executable, str(checker), str(root), "--board", str(board)]
+    if require_connected:
+        cmd.append("--require-connected")
+    result = subprocess.run(cmd)
+    if result.returncode:
+        phase = "R-CRITESC" if require_connected else "R-PAIRMAP"
+        die(f"{phase} failed — direct route/import/stitch entry cannot bypass "
+            "the adopted critical-pair contract")
+
+
 def cmd_prep(cfg):
+    _critical_route_gate(cfg)
     import pcbnew
     src = rel(cfg, cfg["project"]["board"])
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
@@ -744,6 +766,7 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
 
 
 def cmd_route(cfg, race=None, skip_preflight=False):
+    _critical_route_gate(cfg)
     # TIER PREFLIGHT FIRST (refuse-to-route). Four measured crow-rv2 defects
     # (2026-07-23) were tool defaults disagreeing with the declared fab tier
     # — 500+158 phantom clearance findings, 200 shorting + 501 clearance
@@ -897,6 +920,7 @@ def _import_may_fill(cfg):
 
 def cmd_import(cfg):
     """Import the final chain file ONCE into the track-free base."""
+    _critical_route_gate(cfg)
     import pcbnew
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     # A fresh route in the build dir WINS over the promoted chain file, the
@@ -3613,6 +3637,8 @@ def cmd_stitch(cfg):
         ctx.state_path().unlink()
     print(f"\nsaved {ctx.path}")
     rc = verify_saved_fill(ctx.path)
+    if rc == 0:
+        _critical_route_gate(cfg, require_connected=True)
     print("NEXT: run your rules generator LAST — this save did not touch "
           ".kicad_pro, but any pcbnew save in the chain clobbers netclasses.")
     return rc

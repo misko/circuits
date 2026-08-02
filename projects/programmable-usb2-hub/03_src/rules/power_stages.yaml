@@ -1,0 +1,5 @@
+schema: 1
+stages: []
+no_external_gate_drive_stages: >-
+  U2 and U3 are TPSM63606 integrated power modules; their controller, gate
+  drive, MOSFETs, inductor, current protection, and compensation are internal.

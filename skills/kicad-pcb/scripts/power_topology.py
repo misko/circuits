@@ -273,7 +273,12 @@ def normalize_type(raw):
 # --------------------------------------------------------------------------
 # part resolution — converter <refdes or MPN> -> its part.yaml topology
 def _norm_id(s):
-    return re.sub(r"[/\-_ .]", "", str(s).lower())
+    # Exact orderable MPNs routinely contain punctuation that is omitted from
+    # filesystem-safe dossier directory names (for example Analog Devices
+    # ``LTC3889IUKG#PBF`` lives in ``LTC3889IUKG-PBF``). Identity matching must
+    # normalize both through the same alphanumeric form or the rail resolves by
+    # MPN but M-COVER falsely reports its directory as an ungraded converter.
+    return re.sub(r"[^0-9a-z]", "", str(s).lower())
 
 
 #: part.yaml facts a LINEAR converter must carry so its rail can be GRADED.
@@ -340,10 +345,11 @@ def _num_opt(v, field, name):
     return None if v is None else _num(v, field, name)
 
 
-# OPTIONAL per-rail feedback-divider block: every field REQUIRED when the
-# block is present — a partial tolerance stack is the incident in disguise.
-FEEDBACK_FIELDS = ("vref", "vref_tol_pct", "r_top_ohm", "r_top_tol_pct",
-                   "r_bottom_ohm", "r_bottom_tol_pct")
+# OPTIONAL per-rail feedback-divider block. The reference is either symmetric
+# (`vref` + `vref_tol_pct`) or the datasheet's exact asymmetric
+# (`vref_min` + `vref_max`) range. Divider fields are always required.
+FEEDBACK_DIVIDER_FIELDS = ("r_top_ohm", "r_top_tol_pct",
+                           "r_bottom_ohm", "r_bottom_tol_pct")
 
 
 def _load_feedback(raw, name):
@@ -352,39 +358,125 @@ def _load_feedback(raw, name):
         return None
     if not isinstance(raw, dict):
         raise LoadError(f"rail {name!r} 'feedback:' must be a mapping with "
-                        f"fields {FEEDBACK_FIELDS}")
+                        "divider fields and one complete reference form")
     fb = {}
-    for f in FEEDBACK_FIELDS:
+    for f in FEEDBACK_DIVIDER_FIELDS:
         if f not in raw or raw[f] is None:
             raise LoadError(
                 f"rail {name!r} feedback block is missing {f!r} — a "
-                f"divider-tolerance window needs ALL of {FEEDBACK_FIELDS}; a "
+                f"divider-tolerance window needs ALL of "
+                f"{FEEDBACK_DIVIDER_FIELDS}; a "
                 f"partial stack under-states the corners (the usb-hub-3s-v3 "
                 f"Vref-only window, 2026-07-23)")
         fb[f] = _num(raw[f], f"feedback.{f}", name)
-    if fb["vref"] <= 0 or fb["r_top_ohm"] <= 0 or fb["r_bottom_ohm"] <= 0:
-        raise LoadError(f"rail {name!r} feedback: vref/r_top_ohm/r_bottom_ohm "
-                        f"must be positive")
-    for f in ("vref_tol_pct", "r_top_tol_pct", "r_bottom_tol_pct"):
+    symmetric = raw.get("vref") is not None or raw.get("vref_tol_pct") is not None
+    asymmetric = raw.get("vref_min") is not None or raw.get("vref_max") is not None
+    if symmetric == asymmetric:
+        raise LoadError(f"rail {name!r} feedback needs exactly one complete "
+                        "reference form: vref + vref_tol_pct OR vref_min + vref_max")
+    if symmetric:
+        for f in ("vref", "vref_tol_pct"):
+            if raw.get(f) is None:
+                raise LoadError(f"rail {name!r} feedback symmetric reference is missing {f!r}")
+            fb[f] = _num(raw[f], f"feedback.{f}", name)
+        if not (0 <= fb["vref_tol_pct"] < 100):
+            raise LoadError(f"rail {name!r} feedback: vref_tol_pct "
+                            f"{fb['vref_tol_pct']:g} must be a percentage in [0, 100)")
+        fb["vref_min"] = fb["vref"] * (1 - fb["vref_tol_pct"] / 100.0)
+        fb["vref_max"] = fb["vref"] * (1 + fb["vref_tol_pct"] / 100.0)
+        fb["reference_form"] = "symmetric"
+    else:
+        for f in ("vref_min", "vref_max"):
+            if raw.get(f) is None:
+                raise LoadError(f"rail {name!r} feedback asymmetric reference is missing {f!r}")
+            fb[f] = _num(raw[f], f"feedback.{f}", name)
+        if fb["vref_min"] > fb["vref_max"]:
+            raise LoadError(f"rail {name!r} feedback vref_min exceeds vref_max")
+        fb["reference_form"] = "asymmetric"
+    for f in ("r_top_tol_pct", "r_bottom_tol_pct"):
         if not (0 <= fb[f] < 100):
             raise LoadError(f"rail {name!r} feedback: {f} {fb[f]:g} must be a "
                             f"percentage in [0, 100)")
+    if fb["vref_min"] <= 0 or fb["r_top_ohm"] <= 0 or fb["r_bottom_ohm"] <= 0:
+        raise LoadError(f"rail {name!r} feedback reference and divider resistances must be positive")
+    for f in ("fb_bias_current_min_nA", "fb_bias_current_max_nA"):
+        fb[f] = _num(raw.get(f, 0), f"feedback.{f}", name)
+    if fb["fb_bias_current_max_nA"] < fb["fb_bias_current_min_nA"]:
+        raise LoadError(f"rail {name!r} feedback bias-current range must be ordered")
     return fb
 
 
 def feedback_window(fb):
     """Worst-case (vout_low, vout_high) from the divider tolerance corners.
-    vout = vref*(1 + r_top/r_bottom):
+    vout = vref*(1 + r_top/r_bottom) + i_fb*r_top:
       low  = vref_min * (1 + r_top_min / r_bottom_max)
       high = vref_max * (1 + r_top_max / r_bottom_min)"""
-    vt = fb["vref_tol_pct"] / 100.0
     tt = fb["r_top_tol_pct"] / 100.0
     bt = fb["r_bottom_tol_pct"] / 100.0
-    lo = fb["vref"] * (1 - vt) * \
-        (1 + fb["r_top_ohm"] * (1 - tt) / (fb["r_bottom_ohm"] * (1 + bt)))
-    hi = fb["vref"] * (1 + vt) * \
-        (1 + fb["r_top_ohm"] * (1 + tt) / (fb["r_bottom_ohm"] * (1 - bt)))
+    rt_lo = fb["r_top_ohm"] * (1 - tt)
+    rt_hi = fb["r_top_ohm"] * (1 + tt)
+    lo = fb["vref_min"] * (1 + rt_lo / (fb["r_bottom_ohm"] * (1 + bt))) \
+        + fb["fb_bias_current_min_nA"] * 1e-9 * rt_lo
+    hi = fb["vref_max"] * (1 + rt_hi / (fb["r_bottom_ohm"] * (1 - bt))) \
+        + fb["fb_bias_current_max_nA"] * 1e-9 * rt_hi
     return lo, hi
+
+
+def _load_ir_components(raw, total, name):
+    """Validate the optional auditable breakdown behind ir_budget_mohm.
+
+    A single scalar can be arithmetically correct while silently excluding a
+    connector or cable.  The mapping does not decide which components belong
+    in the path—that remains a requirements decision—but it makes the claimed
+    denominator visible and prevents its displayed total drifting from what
+    E-MARGIN actually grades.
+    """
+    if raw is None:
+        return None
+    if total is None:
+        raise LoadError(f"rail {name!r} declares ir_budget_components_mohm "
+                        "without ir_budget_mohm — the breakdown needs the "
+                        "exact total E-MARGIN grades")
+    if not isinstance(raw, dict) or not raw:
+        raise LoadError(f"rail {name!r} ir_budget_components_mohm must be a "
+                        "non-empty mapping of path element -> worst-case mOhm")
+    out = {}
+    for key, value in raw.items():
+        label = str(key).strip()
+        if not label:
+            raise LoadError(f"rail {name!r} ir_budget_components_mohm has an "
+                            "empty path-element label")
+        # Adopted externally-claimed rails use the structured form so a bare
+        # optimistic scalar cannot masquerade as a worst-case part fact.  The
+        # legacy numeric form remains readable for projects that have not yet
+        # adopted requirements.yaml; early_design_check.py refuses it on an
+        # adopted external path.
+        if isinstance(value, dict):
+            if "value" not in value:
+                raise LoadError(
+                    f"rail {name!r} ir_budget_components_mohm.{label} "
+                    "mapping is missing 'value'")
+            number = _num(value["value"],
+                          f"ir_budget_components_mohm.{label}.value", name)
+            basis = str(value.get("basis", "")).strip()
+            evidence = str(value.get("evidence", "")).strip()
+            if not basis or not evidence:
+                raise LoadError(
+                    f"rail {name!r} ir_budget_components_mohm.{label} "
+                    "structured entry requires basis and evidence")
+        else:
+            number = _num(value, f"ir_budget_components_mohm.{label}", name)
+        if number < 0:
+            raise LoadError(f"rail {name!r} ir_budget_components_mohm.{label} "
+                            f"is negative ({number:g})")
+        out[label] = number
+    summed = sum(out.values())
+    if abs(summed - total) > max(1e-6, abs(total) * 1e-6):
+        raise LoadError(f"rail {name!r} ir_budget_components_mohm sums to "
+                        f"{summed:g} mOhm but ir_budget_mohm is {total:g} "
+                        "mOhm — there may be one displayed path and another "
+                        "one graded")
+    return out
 
 
 # slack absorbing an honestly-ROUNDED declared corner (0.5 mV), never a
@@ -401,8 +493,11 @@ def grade_feedback_window(rail):
     if fb is None:
         return "N-A", None
     lo, hi = rail["fb_low"], rail["fb_high"]
-    hdr = (f"rail {rail['name']!r} feedback window: Vref {fb['vref']:g} V "
-           f"+/-{fb['vref_tol_pct']:g}%, Rtop {fb['r_top_ohm']:g} "
+    ref = (f"Vref {fb['vref']:g} V +/-{fb['vref_tol_pct']:g}%"
+           if fb["reference_form"] == "symmetric" else
+           f"Vref {fb['vref_min']:g}-{fb['vref_max']:g} V")
+    hdr = (f"rail {rail['name']!r} feedback window: {ref}, "
+           f"Ibias {fb['fb_bias_current_min_nA']:g}-{fb['fb_bias_current_max_nA']:g} nA, Rtop {fb['r_top_ohm']:g} "
            f"+/-{fb['r_top_tol_pct']:g}%, Rbot {fb['r_bottom_ohm']:g} "
            f"+/-{fb['r_bottom_tol_pct']:g}% => computed worst-case "
            f"{lo:.3f}-{hi:.3f} V vs declared {rail['vout_min']:g}-"
@@ -478,6 +573,8 @@ def load_rails(path):
         # the check for this rail; ir_budget_mohm + margin refine it.
         load_uv = _num_opt(r.get("load_uv_threshold"), "load_uv_threshold", name)
         ir_budget = _num_opt(r.get("ir_budget_mohm"), "ir_budget_mohm", name)
+        ir_components = _load_ir_components(
+            r.get("ir_budget_components_mohm"), ir_budget, name)
         rmargin = _num_opt(r.get("margin"), "margin", name)
         fb = _load_feedback(r.get("feedback"), name)
         fb_low = fb_high = None
@@ -487,7 +584,14 @@ def load_rails(path):
             "name": name, "vin_min": vin_min, "vin_max": vin_max,
             "vout_min": vout_min, "vout_max": vout_max, "iout": iout,
             "eff": eff, "converter": str(r["converter"]),
-            "load_uv": load_uv, "ir_budget_mohm": ir_budget, "margin": rmargin,
+            # OPTIONAL cascade ownership. A downstream converter still gets
+            # its own Vin/Vout topology grade, but its power is already inside
+            # the parent rail's declared load and must not be charged to the
+            # board input a second time.
+            "input_parent": (str(r["input_parent"]).strip()
+                             if r.get("input_parent") else None),
+            "load_uv": load_uv, "ir_budget_mohm": ir_budget,
+            "ir_budget_components_mohm": ir_components, "margin": rmargin,
             "feedback": fb, "fb_low": fb_low, "fb_high": fb_high,
             # OPTIONAL LINEAR overrides: the part.yaml number is the package /
             # datasheet figure; a rail may state a board-specific derating (a
@@ -497,6 +601,34 @@ def load_rails(path):
             "pdiss_max_mw": _num_opt(r.get("pdiss_max_mw"), "pdiss_max_mw",
                                      name),
         })
+
+    by_name = {r["name"]: r for r in rails}
+    if len(by_name) != len(rails):
+        raise LoadError("power_tree.yaml rail names must be unique")
+    for rail in rails:
+        parent_name = rail.get("input_parent")
+        if not parent_name:
+            continue
+        if parent_name == rail["name"]:
+            raise LoadError(f"rail {rail['name']!r} cannot be its own input_parent")
+        parent = by_name.get(parent_name)
+        if parent is None:
+            raise LoadError(f"rail {rail['name']!r} input_parent {parent_name!r} "
+                            "does not name another declared rail")
+        if rail["vin_min"] > parent["vout_min"] + 1e-9 or \
+                rail["vin_max"] < parent["vout_max"] - 1e-9:
+            raise LoadError(
+                f"rail {rail['name']!r} Vin {rail['vin_min']:g}-"
+                f"{rail['vin_max']:g} V does not cover parent {parent_name!r} "
+                f"Vout {parent['vout_min']:g}-{parent['vout_max']:g} V")
+        seen = {rail["name"]}
+        cursor = parent
+        while cursor.get("input_parent"):
+            next_name = cursor["input_parent"]
+            if next_name in seen:
+                raise LoadError(f"power-tree input_parent cycle includes {next_name!r}")
+            seen.add(next_name)
+            cursor = by_name[next_name]
     return rails, top
 
 
@@ -627,16 +759,17 @@ def worst_case_input_current(rails):
     A rail carries `topo` once grade_rail() has resolved its converter; a rail
     without one is treated as switching, which is the pre-existing behaviour.
     """
-    if not rails:
+    roots = [r for r in rails if not r.get("input_parent")]
+    if not roots:
         return 0.0, 0.0, 0.0, 0.0
-    p_out = sum(r["vout_max"] * r["iout"] for r in rails)
+    p_out = sum(r["vout_max"] * r["iout"] for r in roots)
     # the LOWEST Vin_min across the tree: the input current of a switching rail
     # peaks when the input sags, so every switching rail is charged at it.
-    vin_min = min(r["vin_min"] for r in rails)
+    vin_min = min(r["vin_min"] for r in roots)
     amps = sum(
         r["iout"] if r.get("topo") == LINEAR
         else r["vout_max"] * r["iout"] / r["eff"] / vin_min
-        for r in rails)
+        for r in roots)
     # reported input power, consistent with the current above. For an
     # all-switching tree this is identical to Sum(Pout/eff), unchanged.
     return amps, p_out, amps * vin_min, vin_min
@@ -788,17 +921,21 @@ def grade_margin(rail, ir_floor_mohm):
     margin = rail.get("margin")
     margin = DEFAULT_MARGIN if margin is None else margin
     if ir_budget is not None:
+        components = rail.get("ir_budget_components_mohm")
+        breakdown = ("; path " + " + ".join(
+            f"{key}={value:g}" for key, value in components.items()) + " mOhm"
+            if components else "")
         drop_v = ir_budget / 1000.0 * iout          # volts burned in the path
         need_v = drop_v * (1 + margin)
         if headroom < need_v:
             return "FAIL", (
                 f"{hdr} -> FAIL: setpoint headroom {headroom * 1000:.0f} mV < IR "
-                f"drop {drop_v * 1000:.0f} mV ({ir_budget:g} mOhm x {iout:g} A) x "
+                f"drop {drop_v * 1000:.0f} mV ({ir_budget:g} mOhm{breakdown} x {iout:g} A) x "
                 f"{1 + margin:.2f} margin = {need_v * 1000:.0f} mV - the load "
                 f"browns out under IR drop; raise the setpoint or cut delivery "
                 f"resistance")
         return "PASS", (f"{hdr} -> PASS: clears IR drop {drop_v * 1000:.0f} mV "
-                        f"({ir_budget:g} mOhm x {iout:g} A) x {1 + margin:.2f} "
+                        f"({ir_budget:g} mOhm{breakdown} x {iout:g} A) x {1 + margin:.2f} "
                         f"margin")
     # No declared IR budget: the budget must at least clear the floor (a bare
     # realistic delivery path). This is the (Vout-UV)-below-a-margin-floor form.

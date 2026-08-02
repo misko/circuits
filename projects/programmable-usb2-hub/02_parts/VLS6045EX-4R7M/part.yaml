@@ -20,4 +20,5 @@ gotchas:
 layout: {source: "AP63203 application layout and TDK VLS6045EX package drawing", reviewed: 2026-07-31, notes: ["Place immediately adjacent to U4 SW; route the quiet output side to the output capacitors and FB."]}
 layout_refs:
   - {tier: 1, reached: true, artifact: "TDK VLS6045EX electrical and package table"}
+  - {tier: 2, reached: false, artifact: "TDK manufacturer evaluation-board or editable reference-layout design files", why: "This passive inductor has a package land recommendation but no part-specific manufacturer evaluation board."}
 sourcing: {lcsc: C307880, note: "Q-2SOURCE: JLC catalog stock 8,756 and DigiKey stock 56,358 observed 2026-07-31; order-day recheck required."}
