@@ -7,11 +7,11 @@ footprint: Resistor_SMD:R_2512_6332Metric
 escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
 pins: {1: A, 2: B}
 limits: {r: 10mOhm, tol: "1%", p: 1W}
-gotchas: ["LM5116 CS shunt RS1: 0.49W at 7A -> 1W rating is adequate; keep Kelvin sense at the resistor terminals."]
+gotchas: ["Each 4 A LTC3889 rail uses one 10 mOhm shunt. At the 8.283 A worst-high peak-limit corner it dissipates 0.686 W, below its 1 W rating. Take both Kelvin sense taps at the resistor terminals."]
 verified: "CITED: Vishay WSL datasheet and exact DigiKey product page confirm 10 mOhm, 1 percent, 1 W, 2512; checked 2026-07-31."
 sourcing: {lcsc: C844901, alternates: [], note: "Q-2SOURCE: JLC catalog stock 13,216 and DigiKey stock 110,973 observed 2026-07-31; order-day recheck required."}
 layout:
-  source: "Vishay WSL datasheet + LM5116 SNVS499I sec.11 (Kelvin current sense)"
+  source: "Vishay WSL datasheet + LTC3889 Rev. A Figures 24-27 (Kelvin current sense)"
   notes:
-    - "sits between the LS-FET source and PGND; CS(pad1)/CSG(pad2) tap at the pad body"
-    - "Kelvin sense: route CS/CSG from the resistor pads as a tight pair to the LM5116 CS/CSG pins, never off shared power copper"
+    - "one part sits between each inductor-output node and regulated 5 V rail"
+    - "Kelvin sense: route ISENSE+/ISENSE- from the shunt terminals as a matched differential pair to the LTC3889 filter, never off shared power copper"

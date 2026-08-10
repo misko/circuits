@@ -556,7 +556,9 @@ remain incomplete.
      the datasheet's Layout/Application-Information section AND its reference
      design / EVM / app note, and encode the placement rules the chip demands
      into a `layout:` block: `source:` (the section/EVM cited), and a
-     `keep_short:` list of nets with `max_span_mm` budgets (the parts that must
+     `keep_short:` list of nets with `max_span_mm` budgets (use
+     `partner_refs:` whenever the requirement names a particular capacitor,
+     inductor, shunt, or other consumer; the parts that must
      hug the chip — sense R Kelvin-back, pass FET at the gate pins, decoupling
      local, hot loops tight). The floorplan is then ADAPTED FROM the reference
      layout, never authored against it. ENFORCED: `policy_audit` **P-LAYOUT**
@@ -875,8 +877,10 @@ the crow net-merge class) + `electrical_invariants.py`
 E-OFF) + `count_parity.py` (S-COUNT) + `bom_source_check.py --circuit-only`
 at the SCHEMATIC gate (no BOM needed — the R12/R30 class dies when the tsx
 builds) + `pre_route_review_check.py . --phase schematic` (PR-REVIEW: an
-independent topology review says `SOUND` and binds the exact netlist + parts
-bytes before placement or routing spend; missing, DEFECTIVE, stale, and
+independent topology review says `SOUND` and binds the exact electrical netlist
+and aggregate parts bytes before placement or routing spend; the netlist digest normalizes
+only KiCad's volatile export clock and instance UUIDs so a no-change re-export
+does not invalidate the review; missing, DEFECTIVE, stale, and
 unadopted evidence all stop), then legs A+C again at the FIRST fab-BOM export (early, never
 seal-first) — per-refdes LCSC
 identity vs circuit.json AND decoded-MPN-catalog-value vs the BOM label →

@@ -1,0 +1,14 @@
+mpn: TNPW0603100KBEEA
+manufacturer: Vishay
+type: thin_film_resistor
+datasheet: {doc_id: TNPW-e3, revision: "exact catalog/manufacturer family record", url: "https://www.vishay.com/docs/28758/tnpw.pdf", sha256: null, fetched: 2026-08-01}
+package: "0603 (1608 metric)"
+footprint: Resistor_SMD:R_0603_1608Metric
+escape: {style: passive, pitch: 0.8, tier_required: jlc_2layer_default, checked: "package geometry checked 2026-08-01; live board escape_check owed"}
+pins: {1: A, 2: B}
+limits: {resistance: "100k", tolerance: "B +-0.1%", tcr: "+-25ppm/C", power: 125mW}
+gotchas:
+  - "R200 is the top leg of the LMR36510 6 V feedback divider. Substituting a
+     1% 100 kOhm part invalidates the adopted 5.87-6.13 V rail proof."
+verified: "CITED 2026-08-01: exact JLC and Mouser identities agree on TNPW0603100KBEEA, 100k, +-0.1%, 0603."
+sourcing: {lcsc: C844888, alternates: [], note: "Q-2SOURCE 2026-08-01: exact JLC stock 37,138 and exact Mouser API stock 112,181; order-day recheck required."}

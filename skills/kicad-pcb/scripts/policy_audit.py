@@ -73,7 +73,17 @@ def cell(text):
     return str(text).replace("\r", " ").replace("\n", " ").replace("|", "\\|")
 
 
-GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A")
+def keep_short_partner_refs(value):
+    """Return the optional closed set of refdes a keep-short rule may use."""
+    if value is None:
+        return None
+    if not isinstance(value, list) or not value or any(
+            not isinstance(ref, str) or not ref.strip() for ref in value):
+        raise ValueError("partner_refs must be a non-empty list of refdes")
+    return {ref.strip() for ref in value}
+
+
+GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A", "UNGRADED")
 
 # ------------------------------------------- P-PREC: the precedent ratchet
 # MEASURED read-only over `projects/*/02_parts/*/part.yaml` on 2026-07-30 at
@@ -253,7 +263,21 @@ def main():
 
     rows = []  # (id, grade, detail)
 
-    def grade(cid, ok, detail_pass, detail_fail):
+    def grade(cid, ok, detail_pass, detail_fail, pop=None, pop_name=None):
+        # AN EMPTY POPULATION IS UNGRADED, NEVER PASS (canon M-COVER).
+        # `pop` is the collection this verdict is ABOUT. When it is empty the
+        # check did not run on anything, and "ok" is true only because there
+        # was nothing to be wrong — the zero-denominator shape.
+        # MEASURED 2026-08-02: `R-POUR PASS (0 nets)` on 6 of 9 fleet boards,
+        # one of them declaring 10 A fused / 6.4 A continuous on its input
+        # trunk. The oracle for which IDs convert is docs/denominator-census.md
+        # §1a, and ONLY the IDs it names may convert — a conversion it does not
+        # name is a regression by that document's own rule.
+        if pop is not None and len(pop) == 0:
+            rows.append((cid, "UNGRADED",
+                         f"population is EMPTY ({pop_name or 'subject'}: 0) — "
+                         f"nothing was graded, so this is not a pass"))
+            return
         if ok:
             rows.append((cid, "PASS", detail_pass))
         elif cid in waived_ids:
@@ -721,6 +745,15 @@ def main():
                     net = ks.get("net")
                     pts = netpads.get(net) or []
                     want = [str(p) for p in (ks.get("anchor_pins") or [])]
+                    try:
+                        partner_refs = keep_short_partner_refs(
+                            ks.get("partner_refs"))
+                    except ValueError as exc:
+                        unreached.append(
+                            f"{pname}: keep_short net {net!r} has malformed "
+                            f"partner_refs {ks.get('partner_refs')!r}: {exc}; "
+                            f"budget {mx}mm graded NOTHING")
+                        continue
                     if len(pts) < 2:
                         # ---- UNREACHED, not skipped (canon M-COVER) --------
                         # A declared budget whose net carries fewer than two
@@ -766,7 +799,9 @@ def main():
                     worst = None
                     for p, f in anchors:
                         cand = [(q, g) for q, g in pts
-                                if g.GetReference() != f.GetReference()]
+                                if g.GetReference() != f.GetReference()
+                                and (partner_refs is None or
+                                     g.GetReference() in partner_refs)]
                         if not cand:
                             continue
                         # key=, not a tuple: a tie would otherwise fall
@@ -779,8 +814,11 @@ def main():
                         unreached.append(
                             f"{pname}: keep_short net {net!r} has pads ONLY on "
                             f"the declaring part "
-                            f"({[f.GetReference() for f in own]}) — there is no "
-                            f"partner pin to be near; budget {mx}mm graded "
+                            f"({[f.GetReference() for f in own]})"
+                            + (f" or outside required partner_refs "
+                               f"{sorted(partner_refs)}" if partner_refs
+                               else "") + " — there is no partner pin to be "
+                            f"near; budget {mx}mm graded "
                             f"NOTHING")
                         continue
                     d, a_ref, b_ref = worst
@@ -1279,7 +1317,8 @@ def main():
         nopour = sorted(pwr - znets)
         grade("R-POUR", not nopour,
               f"high-current-class nets all poured ({len(pwr)} nets)",
-              f"high-current-class nets with no pour: {nopour[:6]}")
+              f"high-current-class nets with no pour: {nopour[:6]}",
+              pop=pwr, pop_name="high-current-class nets")
 
         # R-THERM: only meaningful where an internal plane exists to sink
         # into (>=4 layers), and only for multi-pin parts (a 2-pad

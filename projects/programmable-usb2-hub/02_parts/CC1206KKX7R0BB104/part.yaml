@@ -1,0 +1,28 @@
+mpn: CC1206KKX7R0BB104
+manufacturer: YAGEO
+type: mlcc_x7r_high_voltage
+datasheet:
+  doc_id: YAGEO-CC1206KKX7R0BB104
+  revision: "exact distributor/manufacturer product record"
+  url: "https://www.digikey.com/en/products/detail/yageo/CC1206KKX7R0BB104/2833794"
+  sha256: null
+  fetched: 2026-08-01
+package: "1206 (3216 metric)"
+footprint: Capacitor_SMD:C_1206_3216Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: "package geometry checked 2026-08-01; live board escape_check owed"}
+pins: {1: A, 2: B}
+limits:
+  cap: "100nF"
+  tol: "K +-10%"
+  voltage: 100V
+  dielectric: X7R
+  tc: "-55..125C"
+gotchas:
+  - "C2 bypasses LM74810 VS/FET_MID and C3 bypasses VIN_FUSED. Both are on
+     the unclamped or disconnect-side input path; the LM74810 dossier requires
+     100 V parts. Do not substitute the former 50 V C24497."
+verified: "CITED 2026-08-01: exact DigiKey and JLC records specify 100nF +-10%, 100V, X7R, 1206; DigiKey lists the exact MPN Active."
+sourcing:
+  lcsc: C107181
+  alternates: []
+  note: "Q-2SOURCE 2026-08-01: exact JLC catalog stock 225,916 and exact DigiKey product-page stock 83,505; order-day recheck required."

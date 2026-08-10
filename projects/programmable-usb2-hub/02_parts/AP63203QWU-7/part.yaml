@@ -34,7 +34,7 @@ limits:
 gotchas:
   - "AP63203 is the FIXED 3.3 V member: FB goes directly to 3V3; do not fit
      an adjustable-output divider copied from AP63200/AP63201."
-  - "The 32 V recommended input ceiling requires the protected VIN node to be held below 32 V in continuous operation. The SMBJ24A's 38.9 V maximum clamp is admitted only for the board's <=1 ms qualified 10/1000 us transient envelope, inside this part's 40 V / 400 ms absolute-maximum row; it is not a sustained-OV rating. Probe U4 VIN during surge qualification and reject any event above 40.0 V or longer than 400 ms."
+  - "U4 is cascaded from AUX_6V, not VIN_PROTECTED. Its input therefore remains inside the fixed-output converter's recommended range during both normal operation and the qualified upstream surge."
   - "BST needs 100 nF to SW. DS43698 Table 2 recommends 3.3 uH,
      10 uF input, and 2 x 22 uF output; its inductor guidance permits
      approximately 3.3 to 15 uH, so the implemented 4.7 uH is in range."
@@ -50,7 +50,7 @@ sourcing:
 layout:
   source: "DS43698 Figure 4, Table 2, and Recommended PCB Layout Figure 77"
   keep_short:
-    - {net: SW_3V3, max_span_mm: 3.5, anchor_pins: ["5"], why: "DS43698 Layout Guidelines: place the inductor immediately at SW(5) and minimize switch copper"}
+    - {net: SW_3V3, max_span_mm: 3.5, anchor_pins: ["5"], partner_refs: [L3], why: "DS43698 Layout Guidelines: place the inductor immediately at SW(5) and minimize switch copper"}
   adjacency:
     - {refdes: [U4, C21], max_mm: 1.5, why: "DS43698 Figure 4 and Layout Guidelines: put the 10 uF ceramic directly across VIN(3) and GND(4)"}
     - {refdes: [U4, C22], max_mm: 1.5, why: "DS43698 Figure 4: keep the 100 nF bootstrap loop directly between BST(6) and SW(5)"}

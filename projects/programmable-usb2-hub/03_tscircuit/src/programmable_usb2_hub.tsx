@@ -1,6 +1,6 @@
 // Programmable four-port USB 2.0 hub. The source contains only the selected
-// architecture; superseded battery/Pi and LM5116 implementations are retained
-// in historical release evidence, never as live generator code.
+// architecture; superseded battery/Pi, LM5116, and 3 A implementations exist
+// only in historical release evidence, never as live generator code.
 
 const Dfn56 = () => (
   <footprint>
@@ -49,13 +49,6 @@ const Qfn64Ep = () => (
   </footprint>
 )
 
-const PowerS08 = () => (
-  <footprint>
-    {Array.from({ length: 4 }, (_, i) => <smtpad key={`s${i}`} portHints={[`${i + 1}`]} pcbX="-2.4mm" pcbY={`${(1.905 - i * 1.27)}mm`} width="1.2mm" height="0.7mm" shape="rect" />)}
-    {Array.from({ length: 4 }, (_, i) => <smtpad key={`d${i}`} portHints={[`${i + 5}`]} pcbX="2.4mm" pcbY={`${(-1.905 + i * 1.27)}mm`} width="1.2mm" height="0.7mm" shape="rect" />)}
-  </footprint>
-)
-
 const Wson13 = () => (
   <footprint>
     {Array.from({ length: 6 }, (_, i) => <smtpad key={`wl${i}`} portHints={[`${i + 1}`]} pcbX="-1.7mm" pcbY={`${(1.25 - i * 0.5)}mm`} width="1mm" height="0.28mm" shape="rect" />)}
@@ -74,7 +67,7 @@ const UsbB = () => (
   </footprint>
 )
 
-const UsbA3A = () => (
+const UsbA3ARated = () => (
   <footprint>
     {Array.from({ length: 4 }, (_, i) => <platedhole key={`p${i}`} portHints={[`${i + 1}`]}
       pcbX={`${(-3 + i * 2)}mm`} pcbY="3.5mm" outerDiameter="1.7mm" holeDiameter="0.92mm" shape="circle" />)}
@@ -84,8 +77,8 @@ const UsbA3A = () => (
 
 const InputTerminal = () => (
   <footprint>
-    <platedhole portHints={["1"]} pcbX="-2.5mm" pcbY="0mm" outerDiameter="3mm" holeDiameter="1.5mm" shape="circle" />
-    <platedhole portHints={["2"]} pcbX="2.5mm" pcbY="0mm" outerDiameter="3mm" holeDiameter="1.5mm" shape="circle" />
+    <platedhole portHints={["1"]} pcbX="-2.5mm" pcbY="0mm" outerDiameter="2.2mm" holeDiameter="1.3mm" shape="circle" />
+    <platedhole portHints={["2"]} pcbX="2.5mm" pcbY="0mm" outerDiameter="2.2mm" holeDiameter="1.3mm" shape="circle" />
   </footprint>
 )
 
@@ -120,74 +113,39 @@ const Ltc3889Fp = () => {
   return <footprint>{pads}<smtpad portHints={["53"]} pcbX="0mm" pcbY="0mm" width="5.6mm" height="4.6mm" shape="rect" /></footprint>
 }
 
-const Tps25983Fp = () => <footprint>
-  {Array.from({ length: 6 }, (_, i) => <smtpad key={`el${i}`} portHints={[`${i + 1}`]} pcbX="-2.2125mm" pcbY={`${-1.25 + i * 0.5}mm`} width="0.575mm" height="0.24mm" shape="rect" />)}
-  {Array.from({ length: 6 }, (_, i) => <smtpad key={`eb${i}`} portHints={[`${i + 7}`]} pcbX={`${-1.25 + i * 0.5}mm`} pcbY="2.2125mm" width="0.24mm" height="0.575mm" shape="rect" />)}
-  {Array.from({ length: 6 }, (_, i) => <smtpad key={`er${i}`} portHints={[`${i + 13}`]} pcbX="2.2125mm" pcbY={`${1.25 - i * 0.5}mm`} width="0.575mm" height="0.24mm" shape="rect" />)}
-  {Array.from({ length: 6 }, (_, i) => <smtpad key={`et${i}`} portHints={[`${i + 19}`]} pcbX={`${1.25 - i * 0.5}mm`} pcbY="-2.2125mm" width="0.24mm" height="0.575mm" shape="rect" />)}
-  <smtpad portHints={["25"]} pcbX="0mm" pcbY="-0.8mm" width="2.7mm" height="1.45mm" shape="rect" />
-  <smtpad portHints={["26"]} pcbX="0mm" pcbY="0.5mm" width="2.7mm" height="0.85mm" shape="rect" />
-</footprint>
-
 const R2 = ({ name, value, a, b, fp = "0603", jlc }: any) =>
   <resistor name={name} resistance={value} footprint={fp}
     {...(jlc ? { supplierPartNumbers: { jlcpcb: [jlc] } } : {})}
     connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
-const C2 = ({ name, value, a, b, fp = "0603" }: any) =>
-  <capacitor name={name} capacitance={value} footprint={fp} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
+const C2 = ({ name, value, a, b, fp = "0603", jlc }: any) =>
+  <capacitor name={name} capacitance={value} footprint={fp}
+    {...(jlc ? { supplierPartNumbers: { jlcpcb: [jlc] } } : {})}
+    connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
 
-// TI RDL0020A B3QFN-20 render land. Fabrication uses the exact dossier FPID.
-const Tpsm63606Fp = () => <footprint>
-  <smtpad portHints={["1"]} pcbX="-2.25mm" pcbY="-2.25mm" width="1.4mm" height="1mm" shape="rect" />
-  {Array.from({ length: 6 }, (_, i) => <smtpad key={`ml${i}`} portHints={[`${i + 2}`]} pcbX="-2.25mm" pcbY={`${-1.25 + i * 0.5}mm`} width="0.9mm" height="0.25mm" shape="rect" />)}
-  <smtpad portHints={["8"]} pcbX="-2.25mm" pcbY="2.25mm" width="1.4mm" height="1mm" shape="rect" />
-  <smtpad portHints={["9"]} pcbX="2.25mm" pcbY="2.25mm" width="1.4mm" height="1mm" shape="rect" />
-  {Array.from({ length: 6 }, (_, i) => <smtpad key={`mr${i}`} portHints={[`${10 + i}`]} pcbX="2.25mm" pcbY={`${1.25 - i * 0.5}mm`} width="0.9mm" height="0.25mm" shape="rect" />)}
-  <smtpad portHints={["16"]} pcbX="2.25mm" pcbY="-2.25mm" width="1.4mm" height="1mm" shape="rect" />
-  {[17, 18, 19, 20].map((p, i) => <smtpad key={`mep${p}`} portHints={[`${p}`]} pcbX="0mm" pcbY={`${-1.6125 + i * 1.075}mm`} width="1.58mm" height="0.875mm" shape="rect" />)}
-</footprint>
-
-const Buck = ({ s, vout, vin = "VIN_PROTECTED", ids }: any) => {
-  const n = (x: string) => `net.${x}_${s}`
-  return <group name={`buck${s}`}>
-    <chip name={ids.U} supplierPartNumbers={{ jlcpcb: ["C5219325"] }}
-      pinLabels={{ pin1: "VIN1", pin2: "SW_NC", pin3: "CBOOT", pin4: "RBOOT", pin5: "VLDOIN", pin6: "AGND1", pin7: "VCC_NC", pin8: "VOUT1", pin9: "VOUT2", pin10: "FB", pin11: "AGND2", pin12: "RT", pin13: "PG_NC", pin14: "EN_SYNC", pin15: "NC", pin16: "VIN2", pin17: "PGND1", pin18: "PGND2", pin19: "PGND3", pin20: "PGND4" }}
-      connections={{ pin1: `net.${vin}`, pin3: n("BOOT_CTL"), pin4: n("BOOT_CTL"), pin5: `net.${vout}`, pin6: "net.GND", pin8: `net.${vout}`, pin9: `net.${vout}`, pin10: n("FB"), pin11: "net.GND", pin12: n("RT"), pin14: `net.${vin}`, pin16: `net.${vin}`, pin17: "net.GND", pin18: "net.GND", pin19: "net.GND", pin20: "net.GND" }}
-      footprint={<Tpsm63606Fp />} />
-    {ids.CIN.map((c: string) => <capacitor key={c} name={c} capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C3844168"] }} connections={{ pin1: `net.${vin}`, pin2: "net.GND" }} />)}
-    {ids.COUT.map((c: string) => <capacitor key={c} name={c} capacitance="100uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C23742"] }} connections={{ pin1: `net.${vout}`, pin2: "net.GND" }} />)}
-    <resistor name={ids.RT} resistance="13k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C22797"] }} connections={{ pin1: n("RT"), pin2: "net.GND" }} />
-    <resistor name={ids.FBT} resistance="4.12k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2984354"] }} connections={{ pin1: `net.${vout}`, pin2: n("FBTOP") }} />
-    <resistor name={ids.FBTRIM} resistance="30" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C128060"] }} connections={{ pin1: n("FBTOP"), pin2: n("FB") }} />
-    <resistor name={ids.FBB} resistance="1k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C110776"] }} connections={{ pin1: n("FB"), pin2: "net.GND" }} />
-    <capacitor name={ids.CFF} capacitance="22pF" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C1653"] }} connections={{ pin1: `net.${vout}`, pin2: n("FB") }} />
-  </group>
-}
-
-const PowerMosfet = ({ name, source, gate, drain, part = "C454269" }: any) =>
+const PowerMosfet = ({ name, source, gate, drain, part = "CSD18533Q5AT" }: any) =>
   <chip name={name} supplierPartNumbers={{ jlcpcb: [part] }}
-    pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D5", pin6: "D6", pin7: "D7", pin8: "D8" }}
-    connections={{ pin1: `net.${source}`, pin2: `net.${source}`, pin3: `net.${source}`, pin4: `net.${gate}`, pin5: `net.${drain}`, pin6: `net.${drain}`, pin7: `net.${drain}`, pin8: `net.${drain}` }}
+    pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D5", pin6: "D6", pin7: "D7", pin8: "D8", pin9: "EP_D" }}
+    connections={{ pin1: `net.${source}`, pin2: `net.${source}`, pin3: `net.${source}`, pin4: `net.${gate}`, pin5: `net.${drain}`, pin6: `net.${drain}`, pin7: `net.${drain}`, pin8: `net.${drain}`, pin9: `net.${drain}` }}
     footprint={<Dfn56 />} />
 
 const DualBuckPower = () => (
   <group name="dual_buck_power">
     <chip name="U2" supplierPartNumbers={{ jlcpcb: ["LTC3889IUKG#PBF"] }} footprint={<Ltc3889Fp />}
       pinLabels={{
-        pin1: "SW0", pin2: "TG0", pin3: "NC", pin4: "ISENSE0_P", pin5: "ISENSE0_N", pin6: "TSNS0", pin7: "VSENSE0_P", pin8: "VSENSE0_N",
+        pin1: "SW0", pin2: "TG0", pin4: "ISENSE0_P", pin5: "ISENSE0_N", pin6: "TSNS0", pin7: "VSENSE0_P", pin8: "VSENSE0_N",
         pin9: "ISENSE1_P", pin10: "ISENSE1_N", pin11: "ITHR0", pin12: "ITH0", pin13: "SYNC", pin14: "SCL", pin15: "SDA", pin16: "ALERT_N",
         pin17: "FAULT0_N", pin18: "FAULT1_N", pin19: "RUN0", pin20: "RUN1", pin21: "ASEL0", pin22: "ASEL1", pin23: "VOUT0_CFG", pin24: "VOUT1_CFG",
         pin25: "FREQ_CFG", pin26: "PHAS_CFG", pin27: "VDD25", pin28: "WP", pin29: "SHARE_CLK", pin30: "VDD33", pin31: "ITH1", pin32: "ITHR1",
-        pin33: "PGOOD1", pin34: "PGOOD0", pin35: "VSENSE1_P", pin36: "TSNS1", pin37: "NC", pin38: "TG1", pin39: "SW1", pin40: "BOOST1",
-        pin41: "NC", pin42: "BG1", pin43: "EXTVCC", pin44: "DRVCC", pin45: "NC", pin46: "IIN_N", pin47: "IIN_P", pin48: "VIN", pin49: "NC",
-        pin50: "BG0", pin51: "NC", pin52: "BOOST0", pin53: "EP_GND",
+        pin33: "PGOOD1", pin34: "PGOOD0", pin35: "VSENSE1_P", pin36: "TSNS1", pin38: "TG1", pin39: "SW1", pin40: "BOOST1",
+        pin42: "BG1", pin43: "EXTVCC", pin44: "DRVCC", pin46: "IIN_N", pin47: "IIN_P", pin48: "VIN",
+        pin50: "BG0", pin52: "BOOST0", pin53: "EP_GND",
       }}
       connections={{
         pin1: "net.SW_A", pin2: "net.TG_A", pin4: "net.ISNS_A_PF", pin5: "net.ISNS_A_NF", pin6: "net.TSNS_A", pin7: "net.N5V_A", pin8: "net.GND",
         pin9: "net.ISNS_B_PF", pin10: "net.ISNS_B_NF", pin11: "net.ITHR_A", pin12: "net.ITH_A", pin13: "net.LTC_SYNC", pin14: "net.HUB_SCL",
         pin15: "net.HUB_SDA", pin16: "net.LTC_ALERT_N", pin17: "net.LTC_FAULT_N", pin18: "net.LTC_FAULT_N", pin19: "net.RUN_A", pin20: "net.RUN_B",
-        pin21: "net.GND", pin22: "net.GND", pin25: "net.FREQ_CFG", pin26: "net.GND", pin27: "net.VDD25", pin28: "net.GND", pin29: "net.SHARE_CLK",
-        pin30: "net.N3V3_LOGIC", pin31: "net.ITH_B", pin32: "net.ITHR_B", pin33: "net.PGOOD_B_N", pin34: "net.PGOOD_A_N", pin35: "net.N5V_B",
+        pin25: "net.FREQ_CFG", pin26: "net.GND", pin27: "net.VDD25", pin28: "net.GND", pin29: "net.SHARE_CLK",
+        pin30: "net.LTC_VDD33", pin31: "net.ITH_B", pin32: "net.ITHR_B", pin33: "net.PGOOD_B_N", pin34: "net.PGOOD_A_N", pin35: "net.N5V_B",
         pin36: "net.TSNS_B", pin38: "net.TG_B", pin39: "net.SW_B", pin40: "net.BOOST_B", pin42: "net.BG_B", pin43: "net.AUX_6V",
         pin44: "net.DRVCC", pin46: "net.VIN_PROTECTED", pin47: "net.VIN_PROTECTED", pin48: "net.VIN_PROTECTED", pin50: "net.BG_A", pin52: "net.BOOST_A", pin53: "net.GND",
       }} />
@@ -197,50 +155,46 @@ const DualBuckPower = () => (
     <PowerMosfet name="Q5" source="SW_B" gate="TG_B" drain="VIN_PROTECTED" />
     <PowerMosfet name="Q6" source="GND" gate="BG_B" drain="SW_B" />
     <inductor name="L1" inductance="6.8uH" supplierPartNumbers={{ jlcpcb: ["C408523"] }} connections={{ pin1: "net.SW_A", pin2: "net.SENSE_A" }} footprint={<Pol2 w="4mm" h="11.4mm" dx="4.85mm" />} />
-    <inductor name="L2" inductance="6.8uH" supplierPartNumbers={{ jlcpcb: ["C408523"] }} connections={{ pin1: "net.SW_A", pin2: "net.SENSE_A" }} footprint={<Pol2 w="4mm" h="11.4mm" dx="4.85mm" />} />
     <inductor name="L4" inductance="6.8uH" supplierPartNumbers={{ jlcpcb: ["C408523"] }} connections={{ pin1: "net.SW_B", pin2: "net.SENSE_B" }} footprint={<Pol2 w="4mm" h="11.4mm" dx="4.85mm" />} />
-    <inductor name="L5" inductance="6.8uH" supplierPartNumbers={{ jlcpcb: ["C408523"] }} connections={{ pin1: "net.SW_B", pin2: "net.SENSE_B" }} footprint={<Pol2 w="4mm" h="11.4mm" dx="4.85mm" />} />
     <R2 name="R14" value="0.01" a="SENSE_A" b="N5V_A" fp="2512" jlc="C844901" />
-    <R2 name="R15" value="0.01" a="SENSE_A" b="N5V_A" fp="2512" jlc="C844901" />
     <R2 name="R16" value="0.01" a="SENSE_B" b="N5V_B" fp="2512" jlc="C844901" />
-    <R2 name="R17" value="0.01" a="SENSE_B" b="N5V_B" fp="2512" jlc="C844901" />
-    <R2 name="R6" value="30" a="SENSE_A" b="ISNS_A_PF" />
-    <R2 name="R7" value="30" a="N5V_A" b="ISNS_A_NF" />
-    <R2 name="R8" value="30" a="SENSE_B" b="ISNS_B_PF" />
-    <R2 name="R9" value="30" a="N5V_B" b="ISNS_B_NF" />
+    <R2 name="R6" value="30" a="SENSE_A" b="ISNS_A_PF" jlc="C128060" />
+    <R2 name="R7" value="30" a="N5V_A" b="ISNS_A_NF" jlc="C128060" />
+    <R2 name="R8" value="30" a="SENSE_B" b="ISNS_B_PF" jlc="C128060" />
+    <R2 name="R9" value="30" a="N5V_B" b="ISNS_B_NF" jlc="C128060" />
     <C2 name="C4" value="1nF" a="ISNS_A_PF" b="ISNS_A_NF" />
     <C2 name="C5" value="1nF" a="ISNS_B_PF" b="ISNS_B_NF" />
 
     <chip name="D2" supplierPartNumbers={{ jlcpcb: ["C2128"] }} pinLabels={{ pin1: "K", pin2: "A" }} connections={{ pin1: "net.BOOST_A", pin2: "net.DRVCC" }} footprint={<Pol2 w="0.6mm" h="1mm" dx="1.25mm" />} />
     <chip name="D3" supplierPartNumbers={{ jlcpcb: ["C2128"] }} pinLabels={{ pin1: "K", pin2: "A" }} connections={{ pin1: "net.BOOST_B", pin2: "net.DRVCC" }} footprint={<Pol2 w="0.6mm" h="1mm" dx="1.25mm" />} />
-    <C2 name="C7" value="330nF" a="BOOST_A" b="SW_A" />
-    <C2 name="C8" value="330nF" a="BOOST_B" b="SW_B" />
-    {[9, 10, 11, 12].map((n) => <C2 key={`vin${n}`} name={`C${n}`} value="10uF" a="VIN_PROTECTED" b="GND" fp="1210" />)}
+    <C2 name="C7" value="330nF" a="BOOST_A" b="SW_A" jlc="C282682" />
+    <C2 name="C8" value="330nF" a="BOOST_B" b="SW_B" jlc="C282682" />
+    {[9, 10, 11, 12].map((n) => <C2 key={`vin${n}`} name={`C${n}`} value="10uF" a="VIN_PROTECTED" b="GND" fp="1210" jlc="C3844168" />)}
     <C2 name="C13" value="4.7uF" a="DRVCC" b="GND" />
     <C2 name="C14" value="4.7uF" a="AUX_6V" b="GND" />
     <C2 name="C15" value="1uF" a="VDD25" b="GND" />
-    <C2 name="C16" value="1uF" a="N3V3_LOGIC" b="GND" />
-    <C2 name="C17" value="4.7nF" a="ITH_A" b="GND" />
+    <C2 name="C16" value="1uF" a="LTC_VDD33" b="GND" />
+    <C2 name="C17" value="4.7nF" a="ITH_A" b="GND" jlc="C53987" />
     <C2 name="C18" value="100pF" a="ITHR_A" b="GND" />
-    <C2 name="C19" value="4.7nF" a="ITH_B" b="GND" />
+    <C2 name="C19" value="4.7nF" a="ITH_B" b="GND" jlc="C53987" />
     <C2 name="C20" value="100pF" a="ITHR_B" b="GND" />
     <C2 name="C25" value="10nF" a="TSNS_A" b="GND" />
     <C2 name="C26" value="10nF" a="TSNS_B" b="GND" />
-    {[101, 102, 103, 104].map((n) => <C2 key={`oa${n}`} name={`C${n}`} value="100uF" a="N5V_A" b="GND" fp="1210" />)}
-    {[105, 106, 107, 108].map((n) => <C2 key={`ob${n}`} name={`C${n}`} value="100uF" a="N5V_B" b="GND" fp="1210" />)}
+    {[101, 102, 103, 104].map((n) => <C2 key={`oa${n}`} name={`C${n}`} value="100uF" a="N5V_A" b="GND" fp="1210" jlc="C23742" />)}
+    {[105, 106, 107, 108].map((n) => <C2 key={`ob${n}`} name={`C${n}`} value="100uF" a="N5V_B" b="GND" fp="1210" jlc="C23742" />)}
 
     <R2 name="R12" value="10k" a="N3V3_LOGIC" b="LTC_ALERT_N" />
     <R2 name="R13" value="10k" a="N3V3_LOGIC" b="LTC_FAULT_N" />
     <R2 name="R18" value="10k" a="N3V3_LOGIC" b="RUN_A" />
     <R2 name="R19" value="10k" a="N3V3_LOGIC" b="RUN_B" />
-    <R2 name="R20" value="24.9k" a="VDD25" b="FREQ_CFG" />
-    <R2 name="R21" value="9.09k" a="FREQ_CFG" b="GND" />
+    <R2 name="R20" value="24.9k" a="VDD25" b="FREQ_CFG" jlc="C2930080" />
+    <R2 name="R21" value="9.09k" a="FREQ_CFG" b="GND" jlc="C2930134" />
     <R2 name="R22" value="100k" a="N3V3_LOGIC" b="RUN_A_HOLD" />
     <R2 name="R23" value="100k" a="N3V3_LOGIC" b="RUN_B_HOLD" />
     <R2 name="R24" value="10k" a="N3V3_LOGIC" b="SHARE_CLK" />
     <R2 name="R25" value="10k" a="N3V3_LOGIC" b="PGOOD_A_N" />
     <R2 name="R26" value="10k" a="N3V3_LOGIC" b="PGOOD_B_N" />
-    <R2 name="R27" value="5k" a="N3V3_LOGIC" b="LTC_SYNC" />
+    <R2 name="R27" value="5k" a="N3V3_LOGIC" b="LTC_SYNC" jlc="C166926" />
     <chip name="Q7" supplierPartNumbers={{ jlcpcb: ["C85047"] }} pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }} connections={{ pin1: "net.RUN_A_HOLD", pin2: "net.GND", pin3: "net.RUN_A" }} footprint="sot23" />
     <chip name="Q8" supplierPartNumbers={{ jlcpcb: ["C85047"] }} pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }} connections={{ pin1: "net.RUN_B_HOLD", pin2: "net.GND", pin3: "net.RUN_B" }} footprint="sot23" />
     <chip name="Q21" supplierPartNumbers={{ jlcpcb: ["MMBT3906LT1G"] }} pinLabels={{ pin1: "B", pin2: "E", pin3: "C" }} connections={{ pin1: "net.GND", pin2: "net.TSNS_A", pin3: "net.GND" }} footprint="sot23" />
@@ -254,95 +208,55 @@ const AuxPower = () => (
       pinLabels={{ pin1: "PGND", pin2: "VIN", pin3: "EN", pin4: "PG", pin5: "FB", pin6: "VCC", pin7: "BOOT", pin8: "SW", pin9: "EP" }}
       connections={{ pin1: "net.GND", pin2: "net.VIN_PROTECTED", pin3: "net.VIN_PROTECTED", pin4: "net.AUX_PG_N", pin5: "net.AUX_FB", pin6: "net.AUX_VCC", pin7: "net.AUX_BOOT", pin8: "net.AUX_SW", pin9: "net.GND" }}
       footprint={<TwoSided pins={9} pitch={1.27} span={5.5} />} />
-    <inductor name="L6" inductance="33uH" supplierPartNumbers={{ jlcpcb: ["C2045462"] }} connections={{ pin1: "net.AUX_SW", pin2: "net.AUX_6V" }} footprint={<Pol2 w="3.5mm" h="12mm" dx="4.95mm" />} />
-    <R2 name="R200" value="100k" a="AUX_6V" b="AUX_FB" />
-    <R2 name="R201" value="20k" a="AUX_FB" b="GND" />
-    <R2 name="R202" value="10k" a="N3V3_LOGIC" b="AUX_PG_N" />
-    <C2 name="C200" value="2.2uF" a="VIN_PROTECTED" b="GND" fp="1210" />
-    <C2 name="C201" value="220nF" a="VIN_PROTECTED" b="GND" />
+    <inductor name="L6" inductance="33uH" supplierPartNumbers={{ jlcpcb: ["C2045462"] }} connections={{ pin1: "net.AUX_SW", pin2: "net.AUX_6V" }} footprint={<Pol2 w="3.1mm" h="5.6mm" dx="5.05mm" />} />
+    <R2 name="R200" value="100k" a="AUX_6V" b="AUX_FB" jlc="C844888" />
+    <R2 name="R201" value="20k" a="AUX_FB" b="GND" jlc="C844676" />
+    <R2 name="R202" value="10k" a="N3V3_LOGIC" b="AUX_PG_N" jlc="C25804" />
+    <C2 name="C200" value="2.2uF" a="VIN_PROTECTED" b="GND" fp="1210" jlc="C153036" />
+    <C2 name="C201" value="220nF" a="VIN_PROTECTED" b="GND" jlc="C2169715" />
     <C2 name="C202" value="22uF" a="AUX_6V" b="GND" fp="1210" />
     <C2 name="C203" value="22uF" a="AUX_6V" b="GND" fp="1210" />
     <C2 name="C204" value="22uF" a="AUX_6V" b="GND" fp="1210" />
     <C2 name="C205" value="1uF" a="AUX_VCC" b="GND" />
-    <C2 name="C206" value="100nF" a="AUX_BOOT" b="AUX_SW" />
+    <C2 name="C206" value="100nF" a="AUX_BOOT" b="AUX_SW" jlc="C14663" />
   </group>
 )
 
-const RetiredPortCell = ({ p, efuse, blocker, mux, esd, jack, rail, adcV, adcI }: any) => {
+const PortCell = ({ p, efuse, mux, esd, jack, rail, adcV, adcI }: any) => {
   const N = (s: string) => `P${p}_${s}`
   const b = 400 + p * 20
-  const out = N("EFUSE_OUT"), vbus = N("VBUS")
+  const vbus = N("VBUS")
   return <group name={`port${p}`}>
-    <chip name={efuse} supplierPartNumbers={{ jlcpcb: ["C20607218"] }} footprint={<Tps25983Fp />}
-      pinLabels={{ pin1:"IN1",pin2:"IN2",pin3:"IN3",pin4:"GND4",pin5:"GND5",pin6:"EN_UVLO",pin7:"ITIMER",pin8:"ILIM",pin9:"IMON",pin10:"RETRY_DLY",pin11:"NRETRY",pin12:"OVLO",pin13:"PG",pin14:"GND14",pin15:"BGATE",pin16:"IN16",pin17:"OUT17",pin18:"OUT18",pin19:"OUT19",pin20:"OUT20",pin21:"OUT21",pin22:"OUT22",pin23:"OUT23",pin24:"OUT24",pin25:"EP_IN",pin26:"EP_GND" }}
-      connections={{ pin1:`net.${rail}`,pin2:`net.${rail}`,pin3:`net.${rail}`,pin4:"net.GND",pin5:"net.GND",pin6:`net.${N("PWR_EN")}`,pin7:`net.${N("ITIMER")}`,pin8:`net.${N("ILIM")}`,pin9:`net.${N("IMON_RAW")}`,pin10:"net.GND",pin11:"net.GND",pin12:"net.GND",pin13:`net.${N("FLT_N")}`,pin14:"net.GND",pin15:`net.${N("BGATE_DRV")}`,pin16:`net.${rail}`,pin17:`net.${out}`,pin18:`net.${out}`,pin19:`net.${out}`,pin20:`net.${out}`,pin21:`net.${out}`,pin22:`net.${out}`,pin23:`net.${out}`,pin24:`net.${out}`,pin25:`net.${rail}`,pin26:"net.GND" }} />
-    <chip name={blocker} supplierPartNumbers={{ jlcpcb: ["C404363"] }} footprint={<PowerS08 />}
-      pinLabels={{pin1:"S1",pin2:"S2",pin3:"S3",pin4:"G",pin5:"D5",pin6:"D6",pin7:"D7",pin8:"D8"}}
-      connections={{pin1:`net.${out}`,pin2:`net.${out}`,pin3:`net.${out}`,pin4:`net.${N("BLOCK_GATE")}`,pin5:`net.${vbus}`,pin6:`net.${vbus}`,pin7:`net.${vbus}`,pin8:`net.${vbus}`}} />
-    <R2 name={`R${b}`} value="100k" a={N("PWR_EN")} b="GND" />
-    <R2 name={`R${b+1}`} value="10k" a="N3V3_LOGIC" b={N("FLT_N")} />
-    <R2 name={`R${b+2}`} value="300" a={N("ILIM")} b="GND" />
-    <R2 name={`R${b+3}`} value="2.15k" a={N("IMON_RAW")} b="GND" />
-    <R2 name={`R${b+4}`} value="1k" a={N("IMON_RAW")} b={adcI} />
-    <R2 name={`R${b+5}`} value="100k" a={vbus} b={N("VBUS_SENSE")} />
-    <R2 name={`R${b+6}`} value="68k" a={N("VBUS_SENSE")} b="GND" />
-    <R2 name={`R${b+7}`} value="1k" a={N("VBUS_SENSE")} b={adcV} />
-    <R2 name={`R${b+8}`} value="10" a={N("BGATE_DRV")} b={N("BLOCK_GATE")} />
-    <R2 name={`R${b+9}`} value="10k" a="N3V3_LOGIC" b={N("DATA_ISO")} />
-    <C2 name={`C${b}`} value="2.2nF" a={N("ITIMER")} b="GND" />
-    <C2 name={`C${b+1}`} value="100nF" a={rail} b="GND" />
-    <C2 name={`C${b+2}`} value="22uF" a={vbus} b="GND" fp="1210" />
-    <C2 name={`C${b+3}`} value="100nF" a={vbus} b="GND" />
-    <C2 name={`C${b+4}`} value="100nF" a={adcI} b="GND" />
-    <C2 name={`C${b+5}`} value="100nF" a={adcV} b="GND" />
+    <chip name={efuse} supplierPartNumbers={{ jlcpcb: ["C3662799"] }}
+      pinLabels={{ pin1:"EN_UVLO",pin2:"OVLO",pin3:"AUXOFF",pin4:"FLT",pin5:"IN",pin6:"OUT",pin7:"DVDT",pin8:"GND",pin9:"ILM",pin10:"ITIMER" }}
+      connections={{ pin1:`net.${N("PWR_EN")}`,pin2:`net.${N("OVLO")}`,pin4:`net.${N("FLT_N")}`,pin5:`net.${rail}`,pin6:`net.${vbus}`,pin7:`net.${N("DVDT")}`,pin8:"net.GND",pin9:`net.${N("ILIM")}`,pin10:`net.${N("ITIMER")}` }}
+      footprint={<TwoSided pins={10} pitch={0.45} span={2.4} />} />
+    <R2 name={`R${b}`} value="100k" a={N("PWR_EN")} b="GND" jlc="C25803" />
+    <R2 name={`R${b+1}`} value="36.5k" a={rail} b={N("OVLO")} jlc="C844160" />
+    <R2 name={`R${b+2}`} value="10k" a={N("OVLO")} b="GND" jlc="C25804" />
+    <R2 name={`R${b+3}`} value="10k" a="N3V3_LOGIC" b={N("FLT_N")} jlc="C25804" />
+    <R2 name={`R${b+4}`} value="1.47k" a={N("ILIM")} b="GND" jlc="C22841" />
+    <R2 name={`R${b+5}`} value="1k" a={N("ILIM")} b={adcI} jlc="C21190" />
+    <R2 name={`R${b+6}`} value="100k" a={vbus} b={N("VBUS_SENSE")} jlc="C25803" />
+    <R2 name={`R${b+7}`} value="68k" a={N("VBUS_SENSE")} b="GND" jlc="C23231" />
+    <R2 name={`R${b+8}`} value="1k" a={N("VBUS_SENSE")} b={adcV} jlc="C21190" />
+    <R2 name={`R${b+9}`} value="10k" a="N3V3_LOGIC" b={N("DATA_ISO")} jlc="C25804" />
+    <C2 name={`C${b}`} value="3.3nF" a={N("DVDT")} b="GND" jlc="C1613" />
+    <C2 name={`C${b+1}`} value="2.2nF" a={N("ITIMER")} b="GND" jlc="C1604" />
+    <C2 name={`C${b+2}`} value="100nF" a={rail} b="GND" jlc="C14663" />
+    <C2 name={`C${b+3}`} value="22uF" a={vbus} b="GND" fp="1210" jlc="C309062" />
+    <C2 name={`C${b+4}`} value="100nF" a={vbus} b="GND" jlc="C14663" />
+    <C2 name={`C${b+6}`} value="100nF" a={adcV} b="GND" jlc="C14663" />
     <chip name={`D${p+3}`} supplierPartNumbers={{jlcpcb:["C85098"]}} pinLabels={{pin1:"K",pin2:"A"}} connections={{pin1:`net.${vbus}`,pin2:"net.GND"}} footprint={<Pol2 w="2mm" h="2.3mm" dx="2.4mm"/>}/>
     <chip name={mux} supplierPartNumbers={{jlcpcb:["C11355"]}} footprint={<TwoSided pins={10} pitch={0.5} span={3.4}/>}
       pinLabels={{pin1:"VCC",pin2:"SEL",pin3:"D_PLUS",pin4:"D_MINUS",pin5:"GND",pin6:"HSD1_MINUS",pin7:"HSD1_PLUS",pin8:"HSD2_MINUS",pin9:"HSD2_PLUS",pin10:"OE"}}
       connections={{pin1:"net.N3V3_LOGIC",pin2:"net.GND",pin3:`net.${N("HUB_P")}`,pin4:`net.${N("HUB_N")}`,pin5:"net.GND",pin6:`net.${N("PORT_N")}`,pin7:`net.${N("PORT_P")}`,pin10:`net.${N("DATA_ISO")}`}}/>
-    <C2 name={`C${b+6}`} value="100nF" a="N3V3_LOGIC" b="GND"/>
+    <C2 name={`C${b+7}`} value="100nF" a="N3V3_LOGIC" b="GND" jlc="C14663"/>
     <chip name={esd} supplierPartNumbers={{jlcpcb:["C7519"]}} footprint="sot23_6" pinLabels={{pin1:"IO1",pin2:"GND",pin3:"IO2",pin4:"IO2B",pin5:"VBUS",pin6:"IO1B"}} connections={{pin1:`net.${N("PORT_P")}`,pin2:"net.GND",pin3:`net.${N("PORT_N")}`,pin4:`net.${N("CONN_N")}`,pin5:`net.${vbus}`,pin6:`net.${N("CONN_P")}`}}/>
-    <chip name={jack} supplierPartNumbers={{jlcpcb:["USB1130-15-A"]}} footprint={<UsbA3A/>} pinLabels={{pin1:"VBUS",pin2:"D_MINUS",pin3:"D_PLUS",pin4:"GND",pin5:"SHIELD"}} connections={{pin1:`net.${vbus}`,pin2:`net.${N("CONN_N")}`,pin3:`net.${N("CONN_P")}`,pin4:"net.GND",pin5:"net.GND"}}/>
+    <chip name={jack} supplierPartNumbers={{jlcpcb:["USB1130-15-A"]}} footprint={<UsbA3ARated/>} pinLabels={{pin1:"VBUS",pin2:"D_MINUS",pin3:"D_PLUS",pin4:"GND",pin5:"SHIELD"}} connections={{pin1:`net.${vbus}`,pin2:`net.${N("CONN_N")}`,pin3:`net.${N("CONN_P")}`,pin4:"net.GND",pin5:"net.GND"}}/>
   </group>
 }
 
-const PortCell = ({ p, efuse, mux, esd, jack, rail, adcV, adcI }: any) => {
-  const N = (suffix: string) => `P${p}_${suffix}`
-  const base = 400 + p * 10
-  return <group name={`port${p}`}>
-    <chip name={efuse} supplierPartNumbers={{ jlcpcb: ["C3662799"] }}
-      pinLabels={{ pin1: "EN_UVLO", pin2: "OVLO", pin3: "AUXOFF", pin4: "FLT", pin5: "IN", pin6: "OUT", pin7: "DVDT", pin8: "GND", pin9: "ILM", pin10: "ITIMER" }}
-      connections={{ pin1: `net.${N("PWR_EN")}`, pin2: `net.${N("OVLO")}`, pin4: `net.${N("FLT_N")}`, pin5: `net.${rail}`, pin6: `net.${N("VBUS")}`, pin7: `net.${N("DVDT")}`, pin8: "net.GND", pin9: `net.${N("ILIM")}`, pin10: `net.${N("ITIMER")}` }}
-      footprint={<TwoSided pins={10} pitch={0.45} span={2.4} />} />
-    <R2 name={`R${base}`} value="100k" a={N("PWR_EN")} b="GND" />
-    <R2 name={`R${base + 1}`} value="36.5k" a={rail} b={N("OVLO")} />
-    <R2 name={`R${base + 2}`} value="10k" a={N("OVLO")} b="GND" />
-    <R2 name={`R${base + 3}`} value="10k" a="N3V3_LOGIC" b={N("FLT_N")} />
-    <R2 name={`R${base + 4}`} value="1.47k" a={N("ILIM")} b="GND" jlc="C22841" />
-    <R2 name={`R${base + 5}`} value="1k" a={N("ILIM")} b={adcI} />
-    <R2 name={`R${base + 6}`} value="100k" a={N("VBUS")} b={N("VBUS_SENSE")} />
-    <R2 name={`R${base + 7}`} value="68k" a={N("VBUS_SENSE")} b="GND" />
-    <R2 name={`R${base + 8}`} value="1k" a={N("VBUS_SENSE")} b={adcV} />
-    <R2 name={`R${base + 9}`} value="10k" a="N3V3_LOGIC" b={N("DATA_ISO")} />
-    <C2 name={`C${base}`} value="3.3nF" a={N("DVDT")} b="GND" />
-    <C2 name={`C${base + 1}`} value="2.2nF" a={N("ITIMER")} b="GND" />
-    <C2 name={`C${base + 2}`} value="100nF" a={rail} b="GND" />
-    <C2 name={`C${base + 3}`} value="22uF" a={N("VBUS")} b="GND" fp="1210" />
-    <C2 name={`C${base + 4}`} value="100nF" a={N("VBUS")} b="GND" />
-    <C2 name={`C${base + 5}`} value="100nF" a="N3V3_LOGIC" b="GND" />
-    <chip name={`D${p + 3}`} supplierPartNumbers={{ jlcpcb: ["C85098"] }}
-      pinLabels={{ pin1: "K", pin2: "A" }} connections={{ pin1: `net.${N("VBUS")}`, pin2: "net.GND" }}
-      footprint={<Pol2 w="2mm" h="2.3mm" dx="2.4mm" />} />
-    <chip name={mux} supplierPartNumbers={{ jlcpcb: ["C11355"] }} footprint={<TwoSided pins={10} pitch={0.5} span={3.4} />}
-      pinLabels={{ pin1: "VCC", pin2: "SEL", pin3: "D_PLUS", pin4: "D_MINUS", pin5: "GND", pin6: "HSD1_MINUS", pin7: "HSD1_PLUS", pin8: "HSD2_MINUS", pin9: "HSD2_PLUS", pin10: "OE" }}
-      connections={{ pin1: "net.N3V3_LOGIC", pin2: "net.GND", pin3: `net.${N("HUB_P")}`, pin4: `net.${N("HUB_N")}`, pin5: "net.GND", pin6: `net.${N("PORT_N")}`, pin7: `net.${N("PORT_P")}`, pin10: `net.${N("DATA_ISO")}` }} />
-    <chip name={esd} supplierPartNumbers={{ jlcpcb: ["C7519"] }} footprint="sot23_6"
-      pinLabels={{ pin1: "IO1", pin2: "GND", pin3: "IO2", pin4: "IO2B", pin5: "VBUS", pin6: "IO1B" }}
-      connections={{ pin1: `net.${N("PORT_P")}`, pin2: "net.GND", pin3: `net.${N("PORT_N")}`, pin4: `net.${N("CONN_N")}`, pin5: `net.${N("VBUS")}`, pin6: `net.${N("CONN_P")}` }} />
-    <chip name={jack} supplierPartNumbers={{ jlcpcb: ["USB1130-15-A"] }} footprint={<UsbA3A />}
-      pinLabels={{ pin1: "VBUS", pin2: "D_MINUS", pin3: "D_PLUS", pin4: "GND", pin5: "SHIELD" }}
-      connections={{ pin1: `net.${N("VBUS")}`, pin2: `net.${N("CONN_N")}`, pin3: `net.${N("CONN_P")}`, pin4: "net.GND", pin5: "net.GND" }} />
-  </group>
-}
 export default () => (
   <board width="130mm" height="90mm" routingDisabled>
     {/* Input: locking terminal -> replaceable 10 A MINI fuse -> LM74810-Q1
@@ -358,33 +272,26 @@ export default () => (
     <chip name="U1" supplierPartNumbers={{ jlcpcb: ["C3215601"] }}
       pinLabels={{ pin1: "DGATE", pin2: "A", pin3: "VSNS", pin4: "SW", pin5: "OV", pin6: "EN_UVLO", pin7: "GND", pin8: "HGATE", pin9: "OUT", pin10: "VS", pin11: "CAP", pin12: "C", pin13: "RTN_FLOAT" }}
       connections={{ pin1: "net.DGATE", pin2: "net.VIN_FUSED", pin3: "net.VIN_FUSED", pin4: "net.OV_TOP", pin5: "net.OV_SENSE", pin6: "net.UV_SENSE", pin7: "net.GND", pin8: "net.HGATE", pin9: "net.VIN_PROTECTED", pin10: "net.FET_MID", pin11: "net.CAP", pin12: "net.FET_MID" }} footprint={<Wson13 />} />
-    <R2 name="R1" value="90.9k" a="VIN_FUSED" b="OV_TOP" jlc="C2930136" />
-    <R2 name="R2" value="0" a="OV_TOP" b="OV_SENSE" />
+    <R2 name="R1" value="90.9k" a="OV_TOP" b="OV_SENSE" jlc="C2930136" />
     <R2 name="R3" value="4.64k" a="OV_SENSE" b="GND" jlc="C2078999" />
     <R2 name="R4" value="90.9k" a="VIN_FUSED" b="UV_SENSE" />
     <R2 name="R5" value="11.5k" a="UV_SENSE" b="GND" />
     <C2 name="C1" value="220nF" a="CAP" b="FET_MID" />
-    <C2 name="C2" value="100nF" a="FET_MID" b="GND" fp="1206" />
-    <C2 name="C3" value="100nF" a="VIN_FUSED" b="GND" fp="1206" />
+    <C2 name="C2" value="100nF" a="FET_MID" b="GND" fp="1206" jlc="C107181" />
+    <C2 name="C3" value="100nF" a="VIN_FUSED" b="GND" fp="1206" jlc="C107181" />
     <chip name="D1" supplierPartNumbers={{ jlcpcb: ["C224017"] }} pinLabels={{ pin1: "K", pin2: "A" }}
       connections={{ pin1: "net.VIN_PROTECTED", pin2: "net.GND" }} footprint={<Pol2 w="2.1mm" h="2.4mm" dx="2.2mm" />} />
 
-    <Buck s="A" vout="N5V_A" ids={{
-      U: "U2", CIN: ["C107", "C108", "C109", "C110"], COUT: ["C112", "C113"],
-      RT: "R101", FBT: "R102", FBTRIM: "R111", FBB: "R103", CFF: "C101",
-    }} />
-    <Buck s="B" vout="N5V_B" ids={{
-      U: "U3", CIN: ["C207", "C208", "C209", "C210"], COUT: ["C212", "C213"],
-      RT: "R201", FBT: "R202", FBTRIM: "R211", FBB: "R203", CFF: "C201",
-    }} />
+    <DualBuckPower />
+    <AuxPower />
 
-    {/* The fixed 3.3 V regulator is qualified for the protected-input rail's
-        bounded operating and transient envelope. */}
+    {/* The fixed 3.3 V regulator is cascaded from the regulated auxiliary rail,
+        keeping its VIN within the qualified operating and transient envelope. */}
     <chip name="U4" supplierPartNumbers={{ jlcpcb: ["C5248536"] }}
       pinLabels={{ pin1: "FB", pin2: "EN", pin3: "VIN", pin4: "GND", pin5: "SW", pin6: "BST" }}
-      connections={{ pin1: "net.N3V3_LOGIC", pin2: "net.VIN_PROTECTED", pin3: "net.VIN_PROTECTED", pin4: "net.GND", pin5: "net.SW_3V3", pin6: "net.BST_3V3" }} footprint="sot23_6" />
+      connections={{ pin1: "net.N3V3_LOGIC", pin2: "net.AUX_6V", pin3: "net.AUX_6V", pin4: "net.GND", pin5: "net.SW_3V3", pin6: "net.BST_3V3" }} footprint="sot23_6" />
     <inductor name="L3" inductance="4.7uH" supplierPartNumbers={{ jlcpcb: ["C307880"] }} footprint={<Pol2 w="1.9mm" h="5.1mm" dx="2.1mm" />} connections={{ pin1: "net.SW_3V3", pin2: "net.N3V3_LOGIC" }} />
-    <C2 name="C21" value="10uF" a="VIN_PROTECTED" b="GND" fp="1206" />
+    <C2 name="C21" value="10uF" a="AUX_6V" b="GND" fp="1206" />
     <C2 name="C22" value="100nF" a="BST_3V3" b="SW_3V3" />
     <C2 name="C23" value="22uF" a="N3V3_LOGIC" b="GND" fp="1206" />
     <C2 name="C24" value="22uF" a="N3V3_LOGIC" b="GND" fp="1206" />

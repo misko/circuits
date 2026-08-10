@@ -140,7 +140,7 @@ MEASURED ON LANDING (2026-07-29, `--root .` over 6 projects, 176 hand-authored
 source files; reproduced every run by `t_real_fleet_denominator`):
 
   11 governed families, 4 UNGOVERNED and named (`assembly.yaml`, `mates.yaml`,
-  `rf.yaml`, `twin_adjudications.yaml`). 414 declared rows include **341
+  `rf.yaml`, `twin_adjudications.yaml`). 420 declared rows include **345
   PROVEN** readers, with 0 ORPHAN. Those rows cover more than 1205 distinct
   schema keys** the fleet's source actually declares, 881 of them under 39 `*`
   SUBTREE claims (`limits.*`, `land_pattern.*`, `stitch.<pass>.*`), which is
@@ -280,7 +280,7 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 11
-PROVEN_FLOOR = 341
+PROVEN_FLOOR = 345
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
@@ -321,6 +321,11 @@ PROVEN_FLOOR = 341
 #: critical-pair mapping. Their readers are early_design_check.py and
 #: critical_route_check.py; the pipeline runs both before irreversible layout
 #: or routing spend and rechecks realized critical copper after stitch.
+#: 341 -> 345 on 2026-08-01: bound schema-2 module support threshold,
+#: support-ref inventory and decision rationale to module_first_check.py, and
+#: cascaded power-rail input_parent to power_topology.py. The new free-form
+#: part.yaml configuration block is explicitly ADVISORY; its load-bearing
+#: values must be duplicated into a machine-read rule or firmware gate.
 #: 313 -> 321 on 2026-08-01: P-PINMAP `pin_aliases` and executable
 #: policy-waiver evidence schema readers.
 #: 321 -> 323 on 2026-08-01: the USB interface-standard provenance row and

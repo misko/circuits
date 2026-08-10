@@ -467,6 +467,7 @@ def cmd_prep(cfg):
     # Keeping this config-backed avoids a per-board Python pre-router and makes
     # the exact geometry part of the reproducible route recipe.
     preseed = get(cfg, "prep.seed_stubs") or {}
+    ctx = None
     if preseed.get("stubs"):
         ctx = Ctx(cfg, out)
         p_seed_stubs(ctx, preseed)
@@ -476,6 +477,38 @@ def cmd_prep(cfg):
         ctx.board.Save(str(out))
         print(f"prep seed_stubs: {ctx.counts.get('seed_stubs', 0)} "
               "segments/vias placed before KRT")
+
+    # Plane drops are routing INPUTS, not post-route cleanup.  Running the
+    # collision-checked pad rescue only after KRT lets dense signal/power waves
+    # consume the last legal via+stub sites around small GND/plane pads; the
+    # subsequent pour then isolates those pads and every reroute can expose a
+    # different weakest island.  `prep.pad_rescue: true` reuses the exact
+    # stitch.pad_rescue policy on the track-free r0 so KRT sees every accepted
+    # barrel/stub as an obstacle.  A mapping overlays the stitch policy when a
+    # board needs an early-only override.  This remains declarative and the
+    # normal post-route pad_rescue stays as the verification/safety net.
+    early = get(cfg, "prep.pad_rescue")
+    if early:
+        if early is True:
+            early_cfg = dict(get(cfg, "stitch.pad_rescue", {}) or {})
+        elif isinstance(early, dict):
+            early_cfg = dict(get(cfg, "stitch.pad_rescue", {}) or {})
+            early_cfg.update(early)
+        else:
+            die("prep.pad_rescue must be true or a mapping of "
+                "stitch.pad_rescue overrides")
+        _stitch_tier_geometry(cfg)
+        if ctx is None:
+            ctx = Ctx(cfg, out)
+        before = len(list(ctx.board.GetTracks()))
+        p_pad_rescue(ctx, early_cfg)
+        if ctx.failures:
+            die("prep.pad_rescue refused deterministic pre-route copper:\n  "
+                + "\n  ".join(ctx.failures))
+        ctx.board.Save(str(out))
+        added = len(list(ctx.board.GetTracks())) - before
+        print(f"prep pad_rescue: {added} copper items placed before KRT; "
+              f"{len(ctx.pending)} pad(s) left for the post-route fallback")
 
     groups = wave_nets(cfg, board_nets(b))
     # wave widths vs netclass floors, HERE — a sub-floor wave must fail
@@ -1427,24 +1460,28 @@ class Ctx:
                 return False
         return True
 
-    def try_via(self, net, x, y, avoid=()):
-        """Place one collide-checked via. THE shared primitive: every via
-        this script adds goes through here, so the spacing/PTH/keepin
-        guards can never be bypassed by a new pass."""
+    def via_choice(self, net, x, y, avoid=()):
+        """Return the first legal ``(x, y, size, drill)`` without emitting it.
+
+        Some callers need to validate copper that must reach the proposed via
+        before committing the barrel.  Keeping that probe here preserves the
+        same keep-in, spacing, PTH and hole-to-copper guards as ``try_via``;
+        a rejected compound candidate must not leave an orphan via behind and
+        consume the next candidate's spacing window."""
         v = get(self.cfg, "stitch.via", {}) or {}
         spacing = float(v.get("spacing", 0.62))
         pth_margin = float(v.get("pth_margin", 0.3))
         x, y = round(x, 2), round(y, 2)
         if not self.keepin(x, y):
-            return False
+            return None
         for r in avoid:
             m = float(r.get("margin", 0.0))
             if (float(r["x0"]) - m < x < float(r["x1"]) + m
                     and float(r["y0"]) - m < y < float(r["y1"]) + m):
-                return False
+                return None
         if any((x - ux) ** 2 + (y - uy) ** 2 < spacing ** 2
                for ux, uy in self.used):
-            return False
+            return None
         tiers = v.get("tiers") or [{"size": v.get("size", 0.6),
                                     "drill": v.get("drill", 0.3)}]
         for t in tiers:
@@ -1457,11 +1494,21 @@ class Ctx:
                 kw["hole_to_copper"] = float(t["hole_to_copper"])
             if self.tk.via_site_ok(x, y, net.GetNetCode(), size=size,
                                    drill=drill, **kw):
-                self.tk.add_via(x, y, net, size=size, drill=drill)
-                self.used.add((x, y))
-                self.emitted.append((x, y))
-                return True
-        return False
+                return x, y, size, drill
+        return None
+
+    def try_via(self, net, x, y, avoid=()):
+        """Place one collide-checked via. THE shared primitive: every via
+        this script adds goes through here, so the spacing/PTH/keepin
+        guards can never be bypassed by a new pass."""
+        choice = self.via_choice(net, x, y, avoid)
+        if choice is None:
+            return False
+        x, y, size, drill = choice
+        self.tk.add_via(x, y, net, size=size, drill=drill)
+        self.used.add((x, y))
+        self.emitted.append((x, y))
+        return True
 
     def net(self, name):
         n = self.board.FindNet(name)
@@ -2197,10 +2244,17 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
                 for ang in range(0, 360, astep):
                     vx = round(px + (w2 + r) * math.cos(math.radians(ang)), 2)
                     vy = round(py + (h2 + r) * math.sin(math.radians(ang)), 2)
-                    if not ctx.try_via(net_obj, vx, vy):
+                    # Probe the complete via+stub candidate before committing
+                    # either item.  The former order called try_via first;
+                    # when the stub then collided, the rejected via remained
+                    # on the board and consumed the spacing window needed by
+                    # later candidates (programmable-usb2-hub, 2026-08-02).
+                    if ctx.via_choice(net_obj, vx, vy) is None:
                         continue
                     if ctx.tk.collides(px, py, vx, vy, stub_w,
                                        p.GetNetCode(), lay) is not None:
+                        continue
+                    if not ctx.try_via(net_obj, vx, vy):
                         continue
                     ctx.tk.add_seg(px, py, vx, vy, p.GetNet(), lay, stub_w)
                     # GAP B: this <stub_w> drop rides `netname`, whose trunk
@@ -3106,6 +3160,20 @@ def _heal_net(ctx, c, netname, groups):
     return n
 
 
+def _heal_snapshot_path(ctx):
+    """Diagnostic snapshots belong in the build tree, never beside canon.
+
+    A ``*.heal_failed.kicad_pcb`` in ``04_kicad`` makes KiCad synthesize a
+    matching ``.kicad_pro`` when the snapshot is inspected.  That creates a
+    second project basename and correctly trips the repository's one-board /
+    one-project contract on the next rules generation.  Keep the evidence,
+    but keep it in the configured build directory where it cannot masquerade
+    as another canonical board project."""
+    build = rel(ctx.cfg, get(ctx.cfg, "project.build_dir", "06_build/route"))
+    build.mkdir(parents=True, exist_ok=True)
+    return build / (ctx.path.stem + ".heal_failed" + ctx.path.suffix)
+
+
 @stitch_pass("heal_islands")
 def p_heal_islands(ctx, c):
     """AUTO-HEAL same-net pour splits: a zone that FILLS as two or more
@@ -3166,8 +3234,7 @@ def p_heal_islands(ctx, c):
             # exact islands that need inspection.  Preserve a clearly named
             # diagnostic snapshot (never the canonical board) so the caller
             # can distinguish a genuine split from a grouping false positive.
-            snap = ctx.path.with_name(ctx.path.stem + ".heal_failed"
-                                      + ctx.path.suffix)
+            snap = _heal_snapshot_path(ctx)
             ctx.board.Save(str(snap))
             die(f"heal_islands: net {netname!r} still shows {now} "
                 f"disconnected island group(s) after healing (was {was}) — "
@@ -3176,8 +3243,7 @@ def p_heal_islands(ctx, c):
                 f"diagnostic snapshot saved to {snap}")
     left = sorted(n for n, g in after.items() if len(g) > 1)
     if left:
-        snap = ctx.path.with_name(ctx.path.stem + ".heal_failed"
-                                  + ctx.path.suffix)
+        snap = _heal_snapshot_path(ctx)
         ctx.board.Save(str(snap))
         die(f"heal_islands: net(s) {left} split after heal+refill (a "
             f"bridge for another net can re-slice a pour it crosses) — "
@@ -3707,6 +3773,19 @@ def verify_saved_fill(path):
 
 # =============================================================== MAIN ====
 def main(argv=None):
+    # LINE-BUFFER OUR OWN STDOUT, ONCE, HERE.
+    # KRT is a subprocess writing straight to the inherited fd while this
+    # driver's own prints sit in a block buffer, so on a long chain every
+    # wave header lands AFTER all of the router output it was announcing.
+    # MEASURED on programmable-usb2-hub 2026-08-02: 24 `=== wave` headers at
+    # lines 10,087-10,156 of a 10,159-line log — wave 1's header arriving
+    # 10,041 lines after wave 1's router output. The agent driving this
+    # pipeline has no other real-time feedback channel, so an unreadable
+    # progress log is a blind operator, not untidy output.
+    # Done at the stream, not as `flush=True` on each call: there are 74
+    # print() sites here, and a convention that must be remembered rots at
+    # print 75.
+    sys.stdout.reconfigure(line_buffering=True)
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("command",
                     choices=["prep", "route", "import", "taps", "quick",

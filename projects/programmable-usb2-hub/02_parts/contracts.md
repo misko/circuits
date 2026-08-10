@@ -696,6 +696,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `layout.keep_short[].net` | `policy_audit.py, net_reference_audit.py` | P-ADJ span budget subject (E-NETREF K7) |
 | `layout.keep_short[].max_span_mm` | `policy_audit.py` | P-ADJ budget; a non-numeric value is a FAIL, not a skip |
 | `layout.keep_short[].anchor_pins` | `policy_audit.py` | P-ADJ anchor override — an unstated anchor is a hidden assumption |
+| `layout.keep_short[].partner_refs` | `policy_audit.py` | optional closed refdes set for the intended capacitor, inductor, shunt, or other required partner; prevents an unrelated same-net part satisfying the budget |
 | `layout.keep_short[].why` | `policy_audit.py` | the datasheet requirement being honoured |
 | `layout.adjacency[].refdes` | `policy_audit.py` | P-ADJ refdes-pair budget (the incident: read by nothing until 2026-07-29) |
 | `layout.adjacency[].a` | `policy_audit.py` | P-ADJ pair member |

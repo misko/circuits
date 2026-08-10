@@ -1,5 +1,74 @@
-schema: 1
-stages: []
-no_external_gate_drive_stages: >-
-  U2 and U3 are TPSM63606 integrated power modules; their controller, gate
-  drive, MOSFETs, inductor, current protection, and compensation are internal.
+schema: 2
+stages:
+  - name: ltc3889-channel-a
+    controller_ref: U2
+    controller_part: LTC3889IUKG#PBF
+    switching_frequency_hz: 250000
+    gate_drive_voltage_V: 6.5
+    controller_current_limit_min_mA: 80
+    controller_bias_current_max_mA: 10
+    current_margin_pct: 20
+    bias_source: external_regulated
+    current_limit:
+      output_current_max_A: 4.0
+      vin_max_V: 24.0
+      vout_V: 5.21484375
+      inductor_each_uH_nominal: 6.8
+      inductor_tolerance_pct: 20
+      parallel_inductor_count: 1
+      sense_resistor_each_mohm_nominal: 10.0
+      sense_resistor_tolerance_pct: 1.0
+      parallel_sense_resistor_count: 1
+      threshold_nominal_mV: 75.0
+      threshold_min_ratio: 0.9066666667
+      threshold_max_ratio: 1.0933333333
+      required_peak_margin_pct: 15
+      sense_ripple_min_mV: 15
+      peak_current_path_rating_A_min: 15.2
+      peak_current_path_margin_pct: 5
+      evidence: >-
+        LTC3889 Rev. A pp. 40-42 and pp. 62-63: peak limit equals load plus
+        half ripple; high-range full-scale threshold is 68/75/82 mV and the
+        4 A design uses the guaranteed 75 mV full-scale tier. MWSA1206S-6R8MT
+        is 6.8 uH +/-20% and 15.2 A Isat(-20%); one WSL2512R0100FEA 10 mOhm
+        +/-1% shunt is used. The explicit 68/75/82 mV ratios bound the
+        guaranteed high-range threshold without interpolating another tier.
+    switches:
+      - {refs: Q3, part: CSD18533Q5AT, qg_nC: 36, qg_basis: maximum,
+         qg_test_voltage_V: 10, evidence: "TI SLPS399 maximum total gate charge"}
+      - {refs: Q4, part: CSD18533Q5AT, qg_nC: 36, qg_basis: maximum,
+         qg_test_voltage_V: 10, evidence: "TI SLPS399 maximum total gate charge"}
+  - name: ltc3889-channel-b
+    controller_ref: U2
+    controller_part: LTC3889IUKG#PBF
+    switching_frequency_hz: 250000
+    gate_drive_voltage_V: 6.5
+    controller_current_limit_min_mA: 80
+    controller_bias_current_max_mA: 10
+    current_margin_pct: 20
+    bias_source: external_regulated
+    current_limit:
+      output_current_max_A: 4.0
+      vin_max_V: 24.0
+      vout_V: 5.21484375
+      inductor_each_uH_nominal: 6.8
+      inductor_tolerance_pct: 20
+      parallel_inductor_count: 1
+      sense_resistor_each_mohm_nominal: 10.0
+      sense_resistor_tolerance_pct: 1.0
+      parallel_sense_resistor_count: 1
+      threshold_nominal_mV: 75.0
+      threshold_min_ratio: 0.9066666667
+      threshold_max_ratio: 1.0933333333
+      required_peak_margin_pct: 15
+      sense_ripple_min_mV: 15
+      peak_current_path_rating_A_min: 15.2
+      peak_current_path_margin_pct: 5
+      evidence: >-
+        Same exact LTC3889, inductor and shunt corner proof as channel A;
+        channel B uses the symmetric L4 and R16 population.
+    switches:
+      - {refs: Q5, part: CSD18533Q5AT, qg_nC: 36, qg_basis: maximum,
+         qg_test_voltage_V: 10, evidence: "TI SLPS399 maximum total gate charge"}
+      - {refs: Q6, part: CSD18533Q5AT, qg_nC: 36, qg_basis: maximum,
+         qg_test_voltage_V: 10, evidence: "TI SLPS399 maximum total gate charge"}

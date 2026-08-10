@@ -12,5 +12,11 @@ gotchas:
   - "The loss model uses the specified 36 nC maximum gate charge at 10 V and budgets 8.5 mOhm at 6.1-6.5 V drive."
   - "Q1-Q6 require 60 V because they see the input clamp or switching overshoot."
 verified: "pins 1-3 source, 4 gate, 5-8 and paddle drain read from TI drawing, 2026-08-01"
+twin_body:
+  source: file
+  model: CSD18533Q5A-envelope.wrl
+  identity: "TI CSD18533Q5A DQJ/Q5A datasheet mechanical envelope"
+  authority: "TI SLPS388B section 7.1 nominal body dimensions 4.90 x 6.00 x 1.00 mm and package pin-1 orientation"
+  limitation: "Mechanical body and orientation witness for clearance/render review; terminal and mold cosmetic detail are omitted."
 sourcing: {lcsc: null, alternates: [], note: "Q-2SOURCE 2026-08-01: Mouser 124 and DigiKey 950; consigned"}
 layout: {source: "SLPS399 Q5A drawing plus LTC3889 checklist", notes: ["place synchronous pairs beside driver pins and VIN bypass", "keep gates short and SW copper compact", "use drain paddle for current and heat"]}

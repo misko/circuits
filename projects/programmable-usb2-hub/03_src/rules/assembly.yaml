@@ -53,6 +53,21 @@ not_assembled:
       consigned before release. No substitution is authorized.
 
 consigned:
+  - refs: [Q1, Q2, Q3, Q4, Q5, Q6]
+    lcsc: null
+    msl: >
+      Level-1-260C-UNLIM (TI SLPS399 packaging-information row for exact
+      CSD18533Q5AT, read 2026-08-02).
+    evidence: >
+      CSD18533Q5AT has no credited exact JLC catalog line. The 2026-08-01
+      dual-source recheck found 124 exact parts at Mouser and 950 at DigiKey,
+      satisfying Q-2SOURCE independently of the assembler.
+    disposition: >
+      Buy six exact CSD18533Q5AT per board plus process/yield spares from
+      Mouser or DigiKey, retain the manufacturer reel/traceability and ship
+      them dry/ESD protected with the PCBA order. JLC places Q1-Q6 using the
+      exact TI DQJ/Q5A land and local body witness; no Infineon BSC016 or
+      generic PowerPAK substitution is authorized.
   - refs: [U4]
     lcsc: C5248536
     msl: >

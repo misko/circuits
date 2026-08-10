@@ -8,7 +8,8 @@ clamp was compatible with every exposed part.  This checker owns those three
 pre-placement decisions:
 
   D-SPEC / E-PATH  requirements.yaml <-> power_tree.yaml
-  E-SWDRV          power_stages.yaml gate-drive/current/thermal compatibility
+  E-SWDRV          power_stages.yaml gate-drive/current/thermal compatibility,
+                   including schema-2 peak-current-limit/ripple proof
   E-SURGE          protection_paths.yaml normal and transient ratings
 
 Missing adopted inputs are errors.  Legacy projects need not invoke this
@@ -32,7 +33,7 @@ class ContractError(ValueError):
     pass
 
 
-def load_yaml(path: Path, label: str):
+def load_yaml(path: Path, label: str, *, schemas=(1,)):
     if not path.exists():
         raise ContractError(f"{label}: missing required adopted input {path}")
     try:
@@ -41,8 +42,9 @@ def load_yaml(path: Path, label: str):
         raise ContractError(f"{label}: cannot parse {path}: {exc}") from exc
     if not isinstance(data, dict):
         raise ContractError(f"{label}: {path} must contain a YAML mapping")
-    if data.get("schema") != 1:
-        raise ContractError(f"{label}: {path} requires schema: 1")
+    if data.get("schema") not in schemas:
+        expected = "/".join(str(v) for v in schemas)
+        raise ContractError(f"{label}: {path} requires schema: {expected}")
     return data
 
 
@@ -285,7 +287,7 @@ def check_requirements(project: Path):
 
 def check_switching(project: Path):
     path = project / "03_src" / "rules" / "power_stages.yaml"
-    data = load_yaml(path, "E-SWDRV")
+    data = load_yaml(path, "E-SWDRV", schemas=(1, 2))
     stages = data.get("stages")
     if not isinstance(stages, list):
         raise ContractError("E-SWDRV stages must be a list")
@@ -361,9 +363,114 @@ def check_switching(project: Path):
         elif source != "external_regulated":
             raise ContractError(
                 f"{where}.bias_source must be internal_linear/external_regulated")
+        current_note = ""
+        if data.get("schema") == 2:
+            cl = stage.get("current_limit")
+            if not isinstance(cl, dict):
+                raise ContractError(
+                    f"{where}.current_limit must be a mapping in schema 2; "
+                    "peak current-limit/ripple proof cannot be deferred")
+            cl_where = f"{where}.current_limit"
+            iout = number(cl.get("output_current_max_A"),
+                          f"{cl_where}.output_current_max_A", positive=True)
+            vin = number(cl.get("vin_max_V"), f"{cl_where}.vin_max_V",
+                         positive=True)
+            vout = number(cl.get("vout_V"), f"{cl_where}.vout_V", positive=True)
+            if vin <= vout:
+                raise ContractError(
+                    f"{cl_where}: buck ripple proof requires vin_max_V > vout_V")
+            l_each = number(cl.get("inductor_each_uH_nominal"),
+                            f"{cl_where}.inductor_each_uH_nominal", positive=True)
+            l_tol = number(cl.get("inductor_tolerance_pct"),
+                           f"{cl_where}.inductor_tolerance_pct",
+                           nonnegative=True) / 100.0
+            if l_tol >= 1:
+                raise ContractError(
+                    f"{cl_where}.inductor_tolerance_pct must be < 100")
+            n_l = number(cl.get("parallel_inductor_count"),
+                         f"{cl_where}.parallel_inductor_count", positive=True)
+            if not n_l.is_integer():
+                raise ContractError(
+                    f"{cl_where}.parallel_inductor_count must be an integer")
+            r_each = number(cl.get("sense_resistor_each_mohm_nominal"),
+                            f"{cl_where}.sense_resistor_each_mohm_nominal",
+                            positive=True)
+            r_tol = number(cl.get("sense_resistor_tolerance_pct"),
+                           f"{cl_where}.sense_resistor_tolerance_pct",
+                           nonnegative=True) / 100.0
+            if r_tol >= 1:
+                raise ContractError(
+                    f"{cl_where}.sense_resistor_tolerance_pct must be < 100")
+            n_r = number(cl.get("parallel_sense_resistor_count"),
+                         f"{cl_where}.parallel_sense_resistor_count", positive=True)
+            if not n_r.is_integer():
+                raise ContractError(
+                    f"{cl_where}.parallel_sense_resistor_count must be an integer")
+            threshold = number(cl.get("threshold_nominal_mV"),
+                               f"{cl_where}.threshold_nominal_mV", positive=True)
+            threshold_min_ratio = number(cl.get("threshold_min_ratio"),
+                                         f"{cl_where}.threshold_min_ratio",
+                                         positive=True)
+            threshold_max_ratio = number(cl.get("threshold_max_ratio"),
+                                         f"{cl_where}.threshold_max_ratio",
+                                         positive=True)
+            if threshold_min_ratio > 1 or threshold_max_ratio < 1:
+                raise ContractError(
+                    f"{cl_where}: threshold ratios must bracket nominal 1.0")
+            peak_margin = number(cl.get("required_peak_margin_pct"),
+                                 f"{cl_where}.required_peak_margin_pct",
+                                 nonnegative=True) / 100.0
+            if peak_margin >= 1:
+                raise ContractError(
+                    f"{cl_where}.required_peak_margin_pct must be < 100")
+            sense_ripple_min = number(cl.get("sense_ripple_min_mV"),
+                                      f"{cl_where}.sense_ripple_min_mV",
+                                      positive=True)
+            path_rating = number(cl.get("peak_current_path_rating_A_min"),
+                                 f"{cl_where}.peak_current_path_rating_A_min",
+                                 positive=True)
+            path_margin = number(cl.get("peak_current_path_margin_pct"),
+                                 f"{cl_where}.peak_current_path_margin_pct",
+                                 nonnegative=True) / 100.0
+            if path_margin >= 1:
+                raise ContractError(
+                    f"{cl_where}.peak_current_path_margin_pct must be < 100")
+            text_value(cl.get("evidence"), f"{cl_where}.evidence")
+
+            l_equiv_min_h = l_each * (1.0 - l_tol) * 1e-6 / n_l
+            ripple = vout * (1.0 - vout / vin) / (fsw * l_equiv_min_h)
+            required_peak = (iout + ripple / 2.0) * (1.0 + peak_margin)
+            r_equiv_max = r_each * (1.0 + r_tol) / n_r
+            available_peak_min = threshold * threshold_min_ratio / r_equiv_max
+            if available_peak_min + 1e-9 < required_peak:
+                raise ContractError(
+                    f"E-SWDRV {name!r} current limit: {available_peak_min:.3f} A "
+                    f"worst-low peak is below {required_peak:.3f} A required "
+                    f"({iout:.3f} A load + {ripple:.3f}/2 A ripple, then "
+                    f"{peak_margin*100:g}% margin)")
+
+            r_equiv_nom = r_each / n_r
+            sense_ripple = ripple * r_equiv_nom
+            if sense_ripple + 1e-9 < sense_ripple_min:
+                raise ContractError(
+                    f"E-SWDRV {name!r} current sense ripple {sense_ripple:.3f} mV "
+                    f"is below the required {sense_ripple_min:g} mV")
+
+            r_equiv_min = r_each * (1.0 - r_tol) / n_r
+            available_peak_max = threshold * threshold_max_ratio / r_equiv_min
+            allowed_path_peak = path_rating * (1.0 - path_margin)
+            if available_peak_max > allowed_path_peak + 1e-9:
+                raise ContractError(
+                    f"E-SWDRV {name!r} current limit: {available_peak_max:.3f} A "
+                    f"worst-high peak exceeds the {allowed_path_peak:.3f} A "
+                    f"current-path allowance including {path_margin*100:g}% margin")
+            current_note = (
+                f", current-limit={available_peak_min:.3f}.."
+                f"{available_peak_max:.3f} A peak, ripple={ripple:.3f} A_pp/"
+                f"{sense_ripple:.3f} mV")
         notes.append(
             f"E-SWDRV {name}: Qg={qsum:g} nC, fsw={fsw:g} Hz, "
-            f"gate+bias={need:.3f}/{allowed:.3f} mA allowed")
+            f"gate+bias={need:.3f}/{allowed:.3f} mA allowed{current_note}")
     return notes
 
 

@@ -4,7 +4,11 @@
 The final release reviews still grade the routed, staged artifact.  This gate
 exists so datasheet authority, topology, placement, and render defects do not
 first appear after routing.  Review files are data: each carries a closed
-``design_verdict`` and hashes of the exact artifact(s) it reviewed.
+``design_verdict`` and hashes of the exact artifact(s) it reviewed.  KiCad's
+legacy netlist exporter rewrites its export clock and schematic-instance UUIDs
+on every invocation.  Those fields carry no electrical meaning, so the
+topology hash normalizes only that volatile metadata; every component, value,
+footprint, property, net, node, and pin byte remains bound by the review.
 
 VACUITY: this checker can prove that named review bytes are current and say
 SOUND; it cannot prove the reviewer was genuinely independent or competent.
@@ -29,6 +33,27 @@ FIELD = re.compile(r"^[>\s*#`-]*([a-z][a-z0-9_-]*)\s*:\s*(.*?)\s*$", re.I)
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def netlist_digest(path: Path) -> str:
+    """Hash exact electrical netlist bytes without KiCad export churn."""
+    text = path.read_text(encoding="utf-8-sig")
+    text, dates = re.subn(
+        r'(\(date\s+")[^"]*(")',
+        r'\1<KICAD_EXPORT_DATE>\2',
+        text,
+        count=1,
+    )
+    text, _stamps = re.subn(
+        r'(\(tstamps\s+")[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-'
+        r'[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(")',
+        r'\1<KICAD_INSTANCE_UUID>\2',
+        text,
+    )
+    if dates != 1:
+        raise ValueError(
+            f"expected exactly one KiCad export date in {path}, found {dates}")
+    return hashlib.sha256(text.encode()).hexdigest()
 
 
 def design_rules_digest(project: Path) -> str | None:
@@ -114,7 +139,12 @@ def main(argv=None) -> int:
         if not netlist.is_file():
             errors.append(f"missing netlist {netlist}")
         else:
-            expected = {"netlist_sha256": digest(netlist),
+            try:
+                netlist_hash = netlist_digest(netlist)
+            except (OSError, UnicodeError, ValueError) as exc:
+                errors.append(f"cannot canonicalize netlist {netlist}: {exc}")
+                netlist_hash = ""
+            expected = {"netlist_sha256": netlist_hash,
                         "parts_sha256": parts_hash}
             if rules_hash:
                 expected["design_rules_sha256"] = rules_hash

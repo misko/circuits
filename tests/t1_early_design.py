@@ -56,7 +56,7 @@ rails:
     external_output: false
 """
 
-STAGES = """schema: 1
+STAGES = """schema: 2
 stages:
   - name: buck-a
     controller_ref: U1
@@ -72,6 +72,24 @@ stages:
     ambient_max_C: 60
     junction_max_C: 150
     temperature_margin_C: 20
+    current_limit:
+      output_current_max_A: 3
+      vin_max_V: 24
+      vout_V: 5.2
+      inductor_each_uH_nominal: 10
+      inductor_tolerance_pct: 20
+      parallel_inductor_count: 1
+      sense_resistor_each_mohm_nominal: 5
+      sense_resistor_tolerance_pct: 1
+      parallel_sense_resistor_count: 1
+      threshold_nominal_mV: 50
+      threshold_min_ratio: 0.9
+      threshold_max_ratio: 1.1
+      required_peak_margin_pct: 10
+      sense_ripple_min_mV: 10
+      peak_current_path_rating_A_min: 20
+      peak_current_path_margin_pct: 10
+      evidence: fixture bounded threshold, shunt, inductor and path ratings
     switches:
       - {refs: QH, part: NFET60, qg_nC: 20, qg_basis: maximum,
          qg_test_voltage_V: 10, evidence: datasheet table row}
@@ -193,6 +211,34 @@ def t_gate_current():
                          "controller_current_limit_min_mA: 15")
     must_fail(run([sys.executable, ED, project(stages=bad), "--switching"]),
               "overloaded gate driver", "exceeds 15")
+
+
+@test("E-SWDRV schema 2 rejects a missing peak-current-limit proof",
+      kind="known_bad")
+def t_missing_current_limit():
+    start = STAGES.index("    current_limit:\n")
+    end = STAGES.index("    switches:\n", start)
+    bad = STAGES[:start] + STAGES[end:]
+    must_fail(run([sys.executable, ED, project(stages=bad), "--switching"]),
+              "missing current-limit proof", "cannot be deferred")
+
+
+@test("E-SWDRV rejects a current-limit tier below load plus ripple and margin",
+      kind="known_bad")
+def t_low_peak_current_limit():
+    bad = STAGES.replace("threshold_nominal_mV: 50",
+                         "threshold_nominal_mV: 20")
+    must_fail(run([sys.executable, ED, project(stages=bad), "--switching"]),
+              "under-rated peak current limit", "worst-low peak is below")
+
+
+@test("E-SWDRV rejects a worst-high current limit above the power-path rating",
+      kind="known_bad")
+def t_high_peak_current_limit():
+    bad = STAGES.replace("peak_current_path_rating_A_min: 20",
+                         "peak_current_path_rating_A_min: 12")
+    must_fail(run([sys.executable, ED, project(stages=bad), "--switching"]),
+              "current limit above path rating", "worst-high peak exceeds")
 
 
 @test("E-SURGE rejects a clamp above an exposed absolute maximum",

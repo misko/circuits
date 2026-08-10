@@ -1,6 +1,8 @@
+---
+status: superseded-by-0007
+---
 # ADR-0004 — Retain the reviewed power cells at a guaranteed 2 A per port
 
-status: accepted and implemented
 date: 2026-08-01
 tags: [topology, module-first, power, voltage-margin, gate-drive]
 

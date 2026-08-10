@@ -1,3 +1,25 @@
 # Review dispositions
 
-No reviews have been received yet.
+| id | review file | finding (one line) | severity | verification | disposition |
+|---|---|---|---|---|---|
+| PIN-20260801-01 | `2026-08-01_v1.0-staging_pin-review_protection-switches.md` | Q1-Q2 omitted datasheet drain identities 6-8 | P0 | confirmed against Infineon package drawing | fixed — TSX pins 1-8 plus `TDSON-8-1_PhysicalPins.kicad_mod`; fresh protection review PASS and P-PINMAP 385/385 |
+| PIN-20260801-02 | `2026-08-01_v1.0-staging_pin-review_protection-switches.md` | Q3-Q6 collapsed physical drain leads 5-8 into pad 5 | P0 | confirmed against AON6354 package drawing | fixed — TSX exposes pins 1-8 and the physical-pin footprint preserves 5/6/7/8; fresh protection review PASS |
+| PIN-20260801-03 | `2026-08-01_v1.0-staging_pin-review_connectors-clock.md` | J3-J6 contact functions initially lacked independent numbering authority | P0 | confirmed evidence gap in the earlier dossier | fixed — official USB 2.0 authority vendored and cited in USB1130-15-A part.yaml; fresh connector review PASS for J3-J6 |
+| RENDER-20260801-01 | `2026-08-01_v1.0-staging_tool_render-faithfulness.md` | A-RENDER reported 29 modeled-body disagreements from mismatched image frames | P0 | confirmed measurement-channel defect; crops selected partial bodies and separate-camera registration | fixed — `jlc_twin.py` now emits same-camera bare views and `twin_overlay.py` grades populated-minus-bare RGB delta; re-gate 57/57 PASS, 0 resolvable-unmeasured |
+| PIN-20260801-04 | `2026-08-01_v1.0-staging_pin-review_power-control.md` | U4 review received the non-automotive neighboring-family PDF instead of the exact Q-grade authority | P0 | confirmed — DS41326 explicitly redirects Q parts to a separate datasheet | fixed — exact DS43698 vendored and hash-bound; `pin_audit.py` selects PDFs by declared SHA-256; U4 targeted re-gate PASS |
+| PIN-20260801-05 | `2026-08-01_v1.0-staging_pin-review_connectors-clock.md` | J2 winding was corrupted by shell lands and the common shell collapse was not explicit | P0 | confirmed tool/metadata defect; TE signal matrix itself was never mirrored | fixed — alias-aware winding reports CCW, two shell rows remain visible, and SH->5 declares `fused: true` with TE evidence; targeted fix-confirmation PASS |
+
+All confirmed P0 findings above are fixed and independently re-gated. No open
+pin or render-faithfulness-tool P0 remains. The complete release lenses then
+opened the following design P0s, which remain blocking:
+
+| id | review file | finding (one line) | severity | verification | disposition |
+|---|---|---|---|---|---|
+| RT-TOP-01 | `2026-08-01_v1.0-staging_redteam-topology.md` | SMBJ26A protection window exceeds downstream AON6354/AP63203 absolute ratings | P0 | measured from exact staged netlist and manufacturer limits | partial source correction — SMBJ24A and 60 V Q3-Q6 close the staged VDS mismatch, but BSC016N06NS gate charge exceeds the LM5116 internal-VCC startup budget and AP63203 remains only conditionally inside the bounded pulse; lower-Qg 60 V switches or compliant VCCX plus fresh topology review remain required |
+| RT-TOP-02 | `2026-08-01_v1.0-staging_redteam-topology.md` | guaranteed-low OV trip is 23.068 V, below the allowed 24 V input | P0 | recomputed at threshold/resistor corners | fixed in source, not yet re-gated — 90.9 kOhm / 4.64 kOhm computes 24.345 V guaranteed-low and 26.390 V guaranteed-high; exact rebuilt netlist and fresh topology review must close it |
+| RT-TOP-03 | `2026-08-01_v1.0-staging_redteam-topology.md` | 5 V regulation budget omits connector/cable and fails low/high corners | P0 | recomputed with USB1130 contact resistance | reframed, still open — USB-IF grades a self-powered hub at the downstream port, matching the brief's `at connector` boundary, so detachable-cable resistance is excluded; the honest 130 mOhm eFuse/PCB/contact path still fails E-MARGIN and needs a lower-loss protection and/or tighter-regulation design |
+| LAY-P0-01 | `2026-08-01_v1.0-staging_redteam-layout.md` | USB pairs use wrong layers/references/vias and exceed declared length mismatch | P0 | measured from exact staged copper | open — re-place/reroute on F.Cu over In1.GND with machine-read length groups |
+| LAY-P0-02 | `2026-08-01_v1.0-staging_redteam-layout.md` | both LM5116 hot loops are 10–25 mm from required local parts | P0 | measured from exact staged component/pad geometry | open — rebuild both cells from TI reference-layout decisions |
+| LAY-P0-03 | `2026-08-01_v1.0-staging_redteam-layout.md` | 3 A/6 A current paths contain long 0.25 mm neckdowns and undersized vias | P0 | measured from exact staged tracks/vias; resistance lower bound exceeds budget | open — enforce power-class copper/vias and re-extract resistance |
+| RR-P0-01 | `2026-08-01_v1.0-staging_render-review.md` | J3-J6 manual-fit USB-A bodies are absent from all mechanical renders | P0 | direct inspection of staged views and model manifest | open — attach faithful models and include manual-fit criticals in coverage |
+| RR-P0-02 | `2026-08-01_v1.0-staging_render-review.md` | F1 catalog body is registered to the wrong holder geometry | P0 | twin pad spacing differs by 6.52 mm | open — use the exact Keystone 3568 holder model or remove the false identity |

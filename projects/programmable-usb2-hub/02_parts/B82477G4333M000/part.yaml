@@ -5,15 +5,15 @@ datasheet:
   doc_id: B82477G4
   revision: "June 2012"
   url: https://www.tdk-electronics.tdk.com/inf/30/db/ind_2008/b82477g4.pdf
-  sha256: 61c0ccec8202f4f065f82305596540c38c19b3bf6c4bb4f4cfadbd5ab1fff889
+  sha256: 237d4767bf558f38bdaeffda2cedf203aa5ce3e208bb5c708acf175002f25127
   fetched: 2026-08-01
 package: "shielded SMD 12.8x12.8x8.0 mm"
-footprint: Inductor_SMD:L_12x12mm_H8mm
+footprint: programmable_usb2_hub:TDK_B82477G4_12p8x12p8
 escape:
   style: leaded
-  pitch: 9.9
+  pitch: 10.1
   tier_required: jlc_2layer_default
-  checked: "TDK 13.2 x 7 mm recommended land pattern compared with KiCad 12.8 mm-body H8 footprint"
+  checked: "TDK IND0493-B exact recommendation: 13.2 mm total span, 7.0 mm inner gap and 5.6 mm land height; therefore 3.1 x 5.6 mm lands at 10.1 mm center span"
 pins: {1: winding, 2: winding}
 limits:
   inductance: "33 uH +/-20% at 100 kHz"

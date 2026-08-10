@@ -23,5 +23,6 @@
   (pad "" smd rect (at -0.7975 1.095) (size 1.235 1.57) (layers "F.Paste"))
   (pad "" smd rect (at 1.1125 -1.095) (size 1.585 1.57) (layers "F.Paste"))
   (pad "" smd rect (at 1.1125 1.095) (size 1.585 1.57) (layers "F.Paste"))
+  (model "${KIPRJMOD}/../02_parts/CSD18533Q5AT/CSD18533Q5A-envelope.wrl"
+    (offset (xyz 0 0 0)) (scale (xyz 1 1 1)) (rotate (xyz 0 0 0)))
 )
-

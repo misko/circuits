@@ -16,6 +16,20 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def netlist_sha(path):
+    """Expected netlist digest, derived INDEPENDENTLY of the gate (canon M1).
+
+    The gate normalizes KiCad's volatile export metadata before hashing. This
+    fixture re-derives the same expectation with its own substitution rather
+    than importing `netlist_digest`, so a change to the gate's normalization
+    shows up as a test failure instead of being silently agreed with.
+    """
+    text = path.read_text(encoding="utf-8-sig")
+    text = text.replace('(date "2026-01-01T00:00:00")',
+                        '(date "<KICAD_EXPORT_DATE>")')
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
 def fixture():
     d = tmpdir("prreview_")
     for rel in ("02_parts/X", "03_src/rules", "04_kicad", "06_build/pre_route"):
@@ -24,7 +38,12 @@ def fixture():
     board = d / "04_kicad/demo.kicad_pcb"
     netlist = d / "04_kicad/demo.net"
     board.write_text("(kicad_pcb pre-route-placement)\n")
-    netlist.write_text("(export (nets (net (code 1) (name GND))))\n")
+    # The netlist carries a KiCad export date because `netlist_digest`
+    # normalizes exactly one and refuses a file with none — a fixture without
+    # it exercises the error path, not the canonicalization the gate ships.
+    netlist.write_text(
+        '(export (design (date "2026-01-01T00:00:00"))'
+        " (nets (net (code 1) (name GND))))\n")
     parts_hash = hashlib.sha256(
         b"02_parts/X/part.yaml\0" + (d / "02_parts/X/part.yaml").read_bytes() + b"\0"
     ).hexdigest()
@@ -44,7 +63,7 @@ def fixture():
         p.relative_to(d).as_posix().encode() + b"\0" + p.read_bytes() + b"\0"
         for p in rule_files)).hexdigest()
     for kind, rel in paths.items():
-        binding = (f"netlist_sha256: {sha(netlist)}\nparts_sha256: {parts_hash}\n"
+        binding = (f"netlist_sha256: {netlist_sha(netlist)}\nparts_sha256: {parts_hash}\n"
                    if kind == "topology" else f"board_sha256: {sha(board)}\n")
         binding += f"design_rules_sha256: {rules_hash}\n"
         if kind == "pin":

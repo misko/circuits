@@ -1,0 +1,64 @@
+mpn: LMR36510FADDAR
+manufacturer: Texas Instruments
+type: synchronous_buck_converter
+datasheet:
+  doc_id: SNVSBD7B
+  revision: "Rev. B, November 2025"
+  url: https://www.ti.com/lit/ds/symlink/lmr36510.pdf
+  sha256: c423b995448edb1e20c5457c840e8ae3c0fd67f66fa368153691b2eaf54cd652
+  fetched: 2026-08-01
+package: "DDA HSOIC-8 PowerPAD, 3.9x4.9 mm, 1.27 mm pitch"
+footprint: programmable_usb2_hub:TI_DDA0008B_PowerPAD_SOIC-8
+escape:
+  style: leaded
+  pitch: 1.27
+  tier_required: jlc_2layer_default
+  checked: "TI DDA0008B drawing 4214849/B: 5.4 mm lead-center span, 1.55 x 0.60 mm perimeter lands, 2.95 x 4.90 mm SMD exposed copper with 2.71 x 3.40 mm mask/paste opening, and six 0.20 mm thermal vias"
+pins:
+  1: PGND
+  2: VIN
+  3: EN
+  4: PG
+  5: FB
+  6: VCC
+  7: BOOT
+  8: SW
+  9: {name: THERMAL_PAD, tie: GND, note: "thermal ground land, not an additional functional signal"}
+limits:
+  vin_operating: "4.2 to 65 V"
+  transient: 70 V
+  iout: 1 A
+  frequency: 400 kHz
+  feedback_reference: "0.98 to 1.02 V"
+configuration:
+  vout_nominal: 6.0 V
+  feedback_top: "100 kOhm 0.1%"
+  feedback_bottom: "20.0 kOhm 0.1%"
+  output_range: "approximately 5.87 to 6.13 V including reference and divider"
+  inductor: B82477G4333M000
+gotchas:
+  - "EN must not float; connect it to VIN_PROTECTED for automatic auxiliary startup."
+  - "VCC requires 1 uF local bypass and must not power an external load; BOOT requires 100 nF to SW."
+  - "AUX_6V is not the logic rail. It supplies LTC3889 EXTVCC and the AP63203 3.3 V buck."
+  - "Keep FB and its divider away from SW and the 33 uH inductor."
+verified: "pin map read from DDA top view and pin table; 6 V divider and worst corners recomputed from Rev. B, 2026-08-01"
+sourcing:
+  lcsc: C1858394
+  alternates: []
+  note: "Q-2SOURCE 2026-08-01: Mouser 946, DigiKey 1366, exact JLC/LCSC 2304"
+layout:
+  source: "SNVSBD7B Figure 8-24/layout guidelines and TI package drawing 4214849/B 09/2025"
+  notes:
+    - "place input bypass directly across VIN(2) and PGND(1)"
+    - "place BOOT capacitor directly between BOOT(7) and SW(8), and VCC bypass at pin 6"
+    - "keep the SW-to-inductor path short and the FB divider beside FB(5), shielded from SW"
+  keep_short:
+    - {net: AUX_VCC, max_span_mm: 3.2, anchor_pins: ["6"], partner_refs: [C205], why: "DERIVED pin-local VCC bypass bound from SNVSBD7B 8.5.1 and Figure 8-24"}
+    - {net: AUX_BOOT, max_span_mm: 3.5, anchor_pins: ["7"], partner_refs: [C206], why: "DERIVED compact bootstrap-loop bound from SNVSBD7B 8.5.1"}
+    - {net: AUX_SW, max_span_mm: 3.6, anchor_pins: ["8"], partner_refs: [C206], why: "DERIVED compact bootstrap-loop bound from SNVSBD7B 8.5.1"}
+    - {net: AUX_SW, max_span_mm: 4.2, anchor_pins: ["8"], partner_refs: [L6], why: "DERIVED short wide SW-to-inductor bound from Figure 8-24"}
+    - {net: AUX_FB, max_span_mm: 3.5, anchor_pins: ["5"], partner_refs: [R200], why: "DERIVED quiet FB-divider bound from SNVSBD7B 8.5.1"}
+    - {net: VIN_PROTECTED, max_span_mm: 3.5, anchor_pins: ["2"], partner_refs: [C200], why: "DERIVED input-bypass bound from SNVSBD7B 8.5.1"}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SNVSBD7B section 8.5.1, Figure 8-24, and DDA0008B drawing 4214849/B"}
+  - {tier: 2, reached: false, artifact: "Open editable LMR36510 routed reference board", why: "No exact editable routed source was found in the bounded manufacturer search; the TI figure and exact package drawing govern this local 1 A cell."}

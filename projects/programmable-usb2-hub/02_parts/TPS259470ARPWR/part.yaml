@@ -132,10 +132,10 @@ layout:
   keep_short:
     - {net: 5V_A, max_span_mm: 4, anchor_pins: ["5"], why: "Sec.8.4: input bypass capacitor closest to IN and GND, minimum loop area"}
     - {net: 5V_B, max_span_mm: 4, anchor_pins: ["5"], why: "Sec.8.4: input bypass capacitor closest to IN and GND, minimum loop area"}
-    - {net: P1_VBUS, max_span_mm: 5, anchor_pins: ["6"], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
-    - {net: P2_VBUS, max_span_mm: 5, anchor_pins: ["6"], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
-    - {net: P3_VBUS, max_span_mm: 5, anchor_pins: ["6"], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
-    - {net: P4_VBUS, max_span_mm: 5, anchor_pins: ["6"], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
+    - {net: P1_VBUS, max_span_mm: 5, anchor_pins: ["6"], partner_refs: [C423], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
+    - {net: P2_VBUS, max_span_mm: 5, anchor_pins: ["6"], partner_refs: [C443], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
+    - {net: P3_VBUS, max_span_mm: 5, anchor_pins: ["6"], partner_refs: [C463], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
+    - {net: P4_VBUS, max_span_mm: 5, anchor_pins: ["6"], partner_refs: [C483], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
     - {net: P1_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
     - {net: P2_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
     - {net: P3_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
@@ -152,8 +152,10 @@ sourcing:
   lcsc: C3662799
   alternates: []
   note: >
-    JLCPCB catalog observation on 2026-07-31 identified C3662799 as an Extended
-    SMT-assembly part; live availability must be rechecked by the release gate.
+    Q-2SOURCE MEASURED 2026-08-01: exact manufacturer MPN had Mouser API stock
+    9,831 and exact JLC/LCSC C3662799 catalog stock 1,736. Both supplier pools
+    independently satisfy five-board demand; live availability must be
+    rechecked by the release gate on order day.
 asserts:
   - assert: value
     equals: TPS259470ARPWR

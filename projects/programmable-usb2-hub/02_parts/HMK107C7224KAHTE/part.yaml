@@ -1,0 +1,31 @@
+mpn: HMK107C7224KAHTE
+manufacturer: TAIYO YUDEN
+type: mlcc_x7s_high_voltage
+datasheet:
+  doc_id: TY-COMPAS-HMK107C7224KAHTE
+  revision: "manufacturer product record / part-number change notice"
+  url: "https://ds.yuden.co.jp/TYCOMPAS/ap/detail?pn=HMK107C7224KAHTE&u=M"
+  sha256: null
+  fetched: 2026-08-01
+package: "0603 (1608 metric)"
+footprint: Capacitor_SMD:C_0603_1608Metric
+escape: {style: passive, pitch: 0.8, tier_required: jlc_2layer_default, checked: "package geometry checked 2026-08-01; live board escape_check owed"}
+pins: {1: A, 2: B}
+limits:
+  cap: "220nF"
+  tol: "K +-10%"
+  voltage: 100V
+  dielectric: X7S
+  tc: "+-22% -55..125C"
+gotchas:
+  - "C201 is the high-frequency VIN_PROTECTED bypass. Its 100 V rating clears
+     the 24 V continuous rail and the qualified 38.9 V clamp transient."
+  - "TAIYO YUDEN has renamed this exact legacy ordering code. JLC and Mouser
+     still hold deep exact-MPN stock, but a future spin must evaluate the
+     applicable new MPN rather than silently treating it as the same orderable
+     code."
+verified: "CITED 2026-08-01: TAIYO YUDEN TY-COMPAS identifies HMK107C7224KAHTE as the previous MPN and specifies 0.22uF +-10%, 100V, X7S, 0603; exact JLC and Mouser identities agree."
+sourcing:
+  lcsc: C2169715
+  alternates: []
+  note: "Q-2SOURCE 2026-08-01: exact JLC catalog stock 45,038 and exact Mouser API stock 195,837. Mouser reported factory stock 0 / 280-day lead time, so order-day recheck and renamed-part review are required."

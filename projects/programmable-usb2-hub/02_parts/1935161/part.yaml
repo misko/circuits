@@ -3,18 +3,18 @@ manufacturer: Phoenix Contact
 type: screw_terminal_power_input
 datasheet:
   doc_id: PT 1,5/ 2-5,0-H
-  revision: online catalog
+  revision: "Phoenix online catalog 2013-11-13"
   url: https://www.phoenixcontact.com/us/products/1935161
-  sha256: c61f515167fce8578cdcda050d3a1de4035f9b37e67ef4ec37c21579ae910d2c
-  fetched: 2026-07-31
+  sha256: 760ff908523dd6eccff7d1c8accbd8bedce0bf8e57bc1cbe3cc2485c7b98e83a
+  fetched: 2026-08-02
 package: 2-position 5.00 mm pitch side-entry THT screw terminal, green PA
-footprint: programmable_usb2_hub:TerminalBlock_KANGNEX_WJ126V_2P_P5.0
+footprint: programmable_usb2_hub:Phoenix_1935161_PT_1p5_2_5p0_H
 escape:
   style: connector
   pitch: 5.0
   escapes_worst_side: 2
   tier_required: jlc_2layer_default
-  checked: escape_check 2026-07-31
+  checked: "Phoenix drilling diagram: 5.00 mm pin pitch, 1.0 mm pins, 1.3 mm finished holes; JLC C3819953 exact CAD uses 2.2 mm lands"
 pins:
   1: {name: TERMINAL_1, note: "Non-polarized hardware; assign VIN_RAW_POS in the schematic and mark '+' on silk."}
   2: {name: TERMINAL_2, note: "Non-polarized hardware; assign VIN_RAW_NEG in the schematic and mark '-' on silk."}
@@ -29,18 +29,20 @@ limits:
   screw_torque: 0.35 to 0.4 N m
 gotchas:
   - "The 18 A catalog current rating is comfortably above the 6.25 A input current of a 75 W load at 12 V."
-  - "Use adequately sized flexible wire (normally 14-16 AWG for this board's worst-case current and cable length), strip 6-7 mm, and torque to 0.3 N m."
-  - "The drawing specifies 5.00 mm pitch, 1.0 mm pins, and 1.3 mm holes; the existing 5.00 mm / 1.5 mm drilled footprint provides compatible clearance and must not be changed to 5.08 mm pitch."
-verified: "CITED: Phoenix Contact catalog and DigiKey exact product page confirm active 2-position, 5.00 mm, side-entry, 18 A terminal; existing 5.00 mm / 1.5 mm-hole footprint checked against 1.0 mm pins on 2026-07-31."
+  - "Use adequately sized flexible wire (normally 14-16 AWG for this board's worst-case current and cable length), strip 6-7 mm, and torque to the specified 0.35-0.4 N m."
+  - "The manufacturer drilling diagram specifies 5.00 mm pitch, 1.0 mm pins, and 1.3 mm holes; do not substitute the visually similar Kangnex WJ126V evidence or a 5.08 mm footprint."
+  - "Phoenix defines a 10 x 9 mm body with the pin row 4 mm from one long edge; preserve that datum so edge/access checks measure the real enclosure."
+verified: "CITED: SHA-selected Phoenix-generated 1935161 catalog PDF gives the exact 5.00 mm drill pattern, 1.0 mm pins, 1.3 mm holes, 10 x 9 mm body, and 17.5 A product identity; JLC C3819953 exact CAD independently matches the pad centers and body. Checked 2026-08-02."
 sourcing:
   lcsc: C3819953
   alternates: []
   note: "Q-2SOURCE: JLC catalog stock 1,127 and DigiKey stock 27,170 observed 2026-07-31; THT assembly allocation must be reconfirmed at order time."
 layout:
-  source: "Phoenix Contact PT 1,5/2-5,0-H catalog drawing, 5.00 mm PCB layout and 18 A catalog rating."
+  source: "SHA-selected Phoenix Contact PT 1,5/2-5,0-H catalog drawing and JLC C3819953 exact CAD twin."
   notes:
     - "Place at the board edge with screwdriver and wire-entry access. Run the positive terminal directly into the input fuse with broad copper and no thermal-spoke bottleneck."
     - "Make polarity unmistakable on top and bottom silkscreen; the connector itself is not keyed for polarity."
 layout_refs:
-  - {tier: 1, reached: true, artifact: "Phoenix Contact 1935161 online catalog/drawing, exact pitch, pin, current, and envelope"}
-  - {tier: 2, reached: false, artifact: "Open routed board using exact WJ126V-5.0-02P-14-00A", why: "No exact editable board was found in the bounded terminal search; this passive high-current entry is governed by the manufacturer hole pattern and current-path re-derivation."}
+  - {tier: 1, reached: true, artifact: "Phoenix Contact 1935161 SHA-selected online-catalog PDF, exact pitch, hole, pin, current, and envelope"}
+  - {tier: 2, reached: true, artifact: "JLC C3819953 exact 1935161 footprint and 3D body, independently fit against the manufacturer drill/body datums"}
+  - {tier: 3, reached: false, artifact: "Open routed board using exact Phoenix 1935161", why: "No exact editable board was found in the bounded terminal search; this passive high-current entry is governed by the manufacturer drilling diagram and project current-path review."}

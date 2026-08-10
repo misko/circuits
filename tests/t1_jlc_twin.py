@@ -1202,6 +1202,7 @@ _POL_BOARD = (
     "import json, sys\n"
     "import pcbnew\n"
     "out = sys.argv[1]; mark_pad = sys.argv[2]\n"
+    "rotation = float(sys.argv[3]) if len(sys.argv) > 3 else 0.0\n"
     "b = pcbnew.NewBoard(out)\n"
     "for (x1,y1),(x2,y2) in (((0,0),(40,0)),((40,0),(40,40)),\n"
     "                        ((40,40),(0,40)),((0,40),(0,0))):\n"
@@ -1228,14 +1229,15 @@ _POL_BOARD = (
     "sh.SetStart(pcbnew.VECTOR2I(int((POS[0]+ov)*1e6), int((POS[1]-0.9)*1e6)))\n"
     "sh.SetEnd(pcbnew.VECTOR2I(int((POS[0]+ov)*1e6), int((POS[1]+0.9)*1e6)))\n"
     "sh.SetLayer(pcbnew.F_Fab); sh.SetWidth(120000); fp.Add(sh)\n"
-    "b.Add(fp); b.Save(out)\n"
+    "b.Add(fp); fp.SetOrientationDegrees(rotation); b.Save(out)\n"
     "print('@@ok')\n")
 
 
-def pol_board(d, mark_pad, name="pol.kicad_pcb"):
+def pol_board(d, mark_pad, name="pol.kicad_pcb", rotation=0):
     """OUR footprint: pad 1 WEST, pad 2 EAST, marking overhanging `mark_pad`."""
     board = d / name
-    must_pass(run([KPY, "-c", _POL_BOARD, str(board), mark_pad]),
+    must_pass(run([KPY, "-c", _POL_BOARD, str(board), mark_pad,
+                   str(rotation)]),
               "build polarized fixture (mark at pad %s)" % mark_pad)
     return board
 
@@ -1336,6 +1338,27 @@ def t_polarity_fit_agrees():
     check("POLARITY-FIT " not in r.out.replace("POLARITY-FIT-OK", "PFOK"),
           "POLARITY-FIT cried wolf on an agreeing part:\n%s" % r.out[-1500:])
     check(r.rc == 0, "an agreeing polarized part should exit 0:\n%s"
+                     % r.out[-1500:])
+
+
+@test("POLARITY-FIT compares graphics and pads in one local frame on a "
+      "180-degree board instance")
+def t_polarity_fit_agrees_rotated_180():
+    """The board rotation is placement, not terminal identity. The historical
+    implementation zeroed the pad cloud, restored the board rotation, and only
+    then measured the graphics; that mixed coordinate frames and made the same
+    footprint pass at 0 degrees but fail at 180 degrees (programmable USB hub
+    D2/D3, C2128)."""
+    d = tmpdir("polok180_")
+    code = "C900013"
+    pol_jlc(d, code, mark_pad="1")
+    board = pol_board(d, mark_pad="1", rotation=180)
+    r = pol_run(d, board, code)
+    contains(r.out, "POLARITY-FIT-OK", "the rotated agreeing verdict")
+    check("POLARITY-FIT " not in r.out.replace("POLARITY-FIT-OK", "PFOK"),
+          "POLARITY-FIT mixed local/global frames at 180 degrees:\n%s"
+          % r.out[-1500:])
+    check(r.rc == 0, "a rotated agreeing polarized part should exit 0:\n%s"
                      % r.out[-1500:])
 
 

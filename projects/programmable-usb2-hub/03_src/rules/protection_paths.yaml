@@ -7,6 +7,44 @@ paths:
       Commissioned absolute connector ceiling includes source accuracy,
       line/load regulation, ripple and wiring rise; nominal 24 V +/-5% is out
       of scope.
+    admitted_transient:
+      claim: "bounded SELV-supply/wiring surge; no automotive load-dump or lightning claim"
+      open_circuit_peak_max_V: 50.0
+      source_impedance_min_ohm: 1.6
+      waveform: "10/1000 us or shorter"
+      duration_max_ms: 1.0
+      repetition_duty_max_pct: 0.01
+      initial_temperature_max_C: 25
+      evidence: >-
+        Commissioning constraint, verified from the selected external supply
+        and wiring or by an equivalent Thevenin-source pulse test. A source
+        whose open-circuit transient exceeds 50 V, whose effective source
+        impedance is below 1.6 ohm, or whose pulse is broader/more repetitive
+        is outside the board rating and must be rejected.
+      tvs_current_bound_A: 14.563
+      tvs_power_bound_W: 566.5
+      arithmetic: >-
+        SMBJ24A begins avalanche no lower than 26.7 V, therefore the admitted
+        Thevenin source can supply at most (50.0-26.7)/1.6 = 14.5625 A. Even
+        pairing that current with the independent 38.9 V maximum clamp gives
+        566.5 W, below the 600 W 10/1000 us rating with the required 5 x 5 mm
+        copper at each terminal.
+    disconnect:
+      controller: LM74810QDRRRQ1
+      function: "OV comparator turns off the Q2/HGATE load-disconnect MOSFET"
+      ov_rising_trip_max_V: 26.390
+      hgate_deglitch_max_us: 5.4
+      hgate_sink_min_A: 0.168
+      fet_gate_charge_max_nC: 36.0
+      gate_discharge_max_us: 0.215
+      total_disconnect_max_us: 5.7
+      arithmetic: >-
+        TI SNOSD98A gives 5.4 us maximum OV-to-HGATE turnoff deglitch and
+        168 mA minimum HGATE sink. CSD18533Q5AT maximum Qg is 36 nC, so the
+        conservative added discharge time is 36 nC/168 mA = 0.215 us and the
+        total is below 5.7 us. The protected-side TVS carries the admitted
+        pulse only during this interval; upstream Q1/Q2/U1 are separately
+        bounded by the 50 V source ceiling.
     voltage_margin_pct: 2.0
     tvs:
       part: SMBJ24A
@@ -14,29 +52,24 @@ paths:
       clamp_max_V: 38.9
       waveform_duration_ms: 1.0
       waveform: 10/1000 us
-      evidence: "Littelfuse SMBJ series exact SMBJ24A row"
+      peak_current_max_A: 15.5
+      peak_power_max_W: 600
+      copper_per_terminal_mm: [5.0, 5.0]
+      evidence: "Littelfuse SMBJ series v4 exact SMBJ24A row and maximum-ratings notes 1-2"
     exposed:
-      - {ref: Q1-Q2, part: BSC016N06NS, recommended_max_V: 60, absolute_max_V: 60}
-      - ref: U2-U3
-        part: TPSM63606RDLR
-        recommended_max_V: 36
-        absolute_max_V: 42
+      - {ref: Q1-Q2, part: CSD18533Q5AT, domain: upstream_during_disconnect, bounded_max_V: 50.0, recommended_max_V: 60, absolute_max_V: 60}
+      - {ref: U1, part: LM74810QDRRRQ1, domain: upstream_during_disconnect, bounded_max_V: 50.0, recommended_max_V: 65, absolute_max_V: 65}
+      - {ref: Q3-Q6, part: CSD18533Q5AT, domain: tvs_clamped_protected_rail, bounded_max_V: 38.9, recommended_max_V: 60, absolute_max_V: 60}
+      - {ref: U2, part: LTC3889IUKG#PBF, domain: tvs_clamped_protected_rail, bounded_max_V: 38.9, recommended_max_V: 60, absolute_max_V: 60}
+      - ref: U3
+        part: LMR36510FADDAR
+        domain: tvs_clamped_protected_rail
+        bounded_max_V: 38.9
+        recommended_max_V: 65
+        absolute_max_V: 70
         absolute_max_duration_ms: 1.0
         transient_qualification:
           grade: cited
-          max_V: 42
+          max_V: 70
           max_duration_ms: 1.0
-          evidence: >-
-            TI SLVSGB4B specifies a 42 V absolute input limit; the SMBJ24A
-            1 ms maximum clamp including the separate 2% design margin is
-            39.68 V, below that limit.
-      - ref: U4
-        part: AP63203QWU-7
-        recommended_max_V: 32
-        absolute_max_V: 40
-        absolute_max_duration_ms: 400
-        transient_qualification:
-          grade: cited
-          max_V: 40
-          max_duration_ms: 400
-          evidence: "AP63203Q automotive datasheet: 40 V load-dump tolerance for less than 400 ms"
+          evidence: "TI SNVSBD7B absolute-maximum VIN transient row"

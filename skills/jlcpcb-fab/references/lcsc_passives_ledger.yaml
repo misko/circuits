@@ -220,6 +220,28 @@ C25915: {mpn: 0402WGF6201TCE, value: "6.2k", verified: "2026-07-26 JLC catalog (
 # ALL THREE were 6.2k (C25915, C137946 RC0402FR-076K2L, C2909371 FRC0402F6201TS),
 # apparently reading "62k" as RKM "6k2".
 C37825: {mpn: 0402WGF6202TCE, value: "62k", verified: "2026-07-26 JLC catalog (selectSmtComponentList describe; 62kΩ ±1% 0402 50V 62.5mW, stock 127526) — cooksense R_OPENT, the open-thermistor detect threshold; replaces C25915 which is 6.2k"}
+
+# --- programmable-usb2-hub 3 A architecture backtrack, 2026-08-01 --------
+# Exact component-code reads from JLC's selectSmtComponentList endpoint.  Each
+# ordering code independently decodes to the same value; stock is deliberately
+# not frozen here because A-STOCK refreshes it at release/order time.
+C128060: {mpn: RC0603FR-0730RL, value: "30", verified: "2026-08-01 JLC exact-code catalog row: 30Ω ±1% 0603; Yageo 30R ordering field independently agrees"}
+C282682: {mpn: TCC0603X7R334K500CT, value: "330nF", verified: "2026-08-01 JLC exact-code catalog row: 330nF 50V X7R ±10% 0603; 334 capacitance field independently agrees"}
+C39232: {mpn: CL32B106KAJNNNE, value: "10uF", verified: "2026-08-01 JLC exact-code catalog row: 10uF 25V X7R ±10% 1210; 106 capacitance field independently agrees"}
+C53987: {mpn: 0603B472K500NT, value: "4.7nF", verified: "2026-08-01 JLC exact-code catalog row: 4.7nF 50V X7R ±10% 0603; 472 capacitance field independently agrees"}
+C2930080: {mpn: FRC0603F2492TS, value: "24.9k", verified: "2026-08-01 JLC exact-code catalog row: 24.9kΩ ±1% 0603; 2492 resistance field independently agrees"}
+C2930134: {mpn: FRC0603F9091TS, value: "9.09k", verified: "2026-08-01 JLC exact-code catalog row: 9.09kΩ ±1% 0603; 9091 resistance field independently agrees"}
+C166926: {mpn: RTT035001FTP, value: "5k", verified: "2026-08-01 JLC exact-code catalog row: 5kΩ ±1% 0603; 5001 resistance field independently agrees"}
+C153036: {mpn: FS32X225K101EGG, value: "2.2uF", verified: "2026-08-01 JLC exact-code catalog row: 2.2uF 100V X7R ±10% 1210; 225 capacitance field independently agrees"}
+C23025: {mpn: 0603WAF3000T5E, value: "300", verified: "2026-08-01 JLC exact-code catalog row: 300Ω ±1% 0603; 3000 resistance field independently agrees"}
+C2960889: {mpn: FRC0603F2151TS, value: "2.15k", verified: "2026-08-01 JLC exact-code catalog row: 2.15kΩ ±1% 0603; 2151 resistance field independently agrees"}
+C3844168: {mpn: CL32B106KBJNNWE, value: "10uF", verified: "2026-08-01 JLC exact-code catalog row: 10uF 50V X7R ±10% 1210, stock 533; Samsung 106 capacitance field independently agrees. Selected for VIN_PROTECTED; do not substitute the 25V C39232."}
+C2169715: {mpn: HMK107C7224KAHTE, value: "220nF", verified: "2026-08-01 JLC exact-code catalog row: 220nF 100V X7S ±10% 0603, stock 45038; TAIYO YUDEN TY-COMPAS exact previous-MPN record independently agrees."}
+C107181: {mpn: CC1206KKX7R0BB104, value: "100nF", verified: "2026-08-01 JLC exact-code catalog row: 100nF 100V X7R ±10% 1206, stock 225916; exact DigiKey/YAGEO product record independently agrees. Selected for LM74810 VS and VIN_FUSED bypass; do not substitute 50V C24497."}
+C23742: {mpn: CL32A107MPVNNNE, value: "100uF", verified: "2026-08-01 JLC exact-code catalog row: 100uF 10V X5R ±20% 1210, stock 78186; exact Samsung/DigiKey product record independently agrees. Selected for 5.215V rail bulk; do not substitute the 6.3V C49066/C88154 candidates."}
+C844888: {mpn: TNPW0603100KBEEA, value: "100k", verified: "2026-08-01 JLC exact-code catalog row: 100kΩ ±0.1% ±25ppm/℃ 0603, stock 37138; exact Vishay/Mouser identity independently agrees."}
+C844676: {mpn: TNPW060320K0BEEA, value: "20k", verified: "2026-08-01 JLC exact-code catalog row: 20kΩ ±0.1% ±25ppm/℃ 0603, stock 20548; exact Vishay/Mouser identity independently agrees."}
+C844160: {mpn: CRCW060336K5FKEA, value: "36.5k", verified: "2026-08-01 JLC selectSmtComponentList exact code/model: 36.5kΩ ±1% 0603, stock 1572; exact Mouser API identity independently agreed with stock 139858. MPN field 36K5 independently decodes to 36.5kΩ."}
 # ---------------------------------------------------------------------------
 # crow-recorder-central-v2 Y1, the ONE coded row on that board whose MPN lives
 # in NEITHER authority. The other four F-MPN misses of 2026-07-27 (C237284,

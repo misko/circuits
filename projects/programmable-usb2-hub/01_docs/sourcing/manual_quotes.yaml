@@ -1,8 +1,20 @@
-# DigiKey product-page observations for the 2026-07-31 Q-2SOURCE audit.
+# DigiKey product-page observations for the dated Q-2SOURCE audits.
 # These figures are volatile and must be re-read on order day. Search-result
 # snippets were not used as stock evidence.
 
 quotes:
+  - mpn: "CC1206KKX7R0BB104"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/yageo/CC1206KKX7R0BB104/2833794"
+    read_on: 2026-08-01
+    dpn: "311-1488-1-ND"
+    stock: 83505
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 100nF, 100V, X7R, +-10%, 1206 manufacturer MPN; DigiKey product page."
+
   - mpn: "AON6354"
     distributor: digikey
     source: product_page
@@ -253,3 +265,16 @@ quotes:
     mult: 1
     lifecycle: "Active"
     note: "Exact onsemi PNP used as the LTC3889 remote junction sensor."
+
+  - mpn: "TNPW06034K64BEEA"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/vishay-dale/TNPW06034K64BEEA/1606842"
+    read_on: 2026-08-02
+    dpn: "541-3687-1-ND"
+    stock: 8323
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    unit_price_usd: 0.26
+    note: "Exact Vishay 4.64 kOhm, 0.1%, 25 ppm/C, 0603 MPN; product page, not a search snippet."

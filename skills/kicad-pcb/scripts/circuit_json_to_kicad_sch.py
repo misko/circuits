@@ -170,6 +170,24 @@ def load_aliases(path):
 
 
 # ------------------------------------------------------------------ FPID lookup
+def yaml_plain_scalar(txt, key):
+    """Read one top-level scalar without treating an embedded ``#`` as a
+    comment.
+
+    YAML starts a comment only when ``#`` is separated from a plain scalar by
+    whitespace.  Manufacturer suffixes such as ``LTC3889IUKG#PBF`` therefore
+    contain data, not a comment.  This intentionally small reader also accepts
+    quoted scalars and strips a conventional trailing `` # comment``.
+    """
+    m = re.search(rf"^{re.escape(key)}:\s*(.*?)\s*$", txt, re.M)
+    if not m:
+        return None
+    raw = re.split(r"\s+#", m.group(1), maxsplit=1)[0].strip()
+    if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in "\"'":
+        raw = raw[1:-1]
+    return raw or None
+
+
 def load_part_overrides(parts_dir):
     """Per-board FPID override seeded from `02_parts/*/part.yaml` — the project's
     source of truth for the real KiCad footprint per part. Keyed by every handle
@@ -192,9 +210,9 @@ def load_part_overrides(parts_dir):
             continue
         fp = m.group(1).strip("\"'")
         keys = {name}
-        mm = re.search(r"^mpn:\s*(.+?)\s*(?:#.*)?$", txt, re.M)
-        if mm:
-            keys.add(mm.group(1).strip().strip("\"'"))
+        mpn = yaml_plain_scalar(txt, "mpn")
+        if mpn:
+            keys.add(mpn)
         for code in re.findall(r"(?:lcsc|jlc|jlcpcb):\s*([A-Za-z0-9]+)", txt):
             keys.add(code)
         for k in keys:
@@ -246,9 +264,9 @@ def load_part_ties(parts_dir):
         if not entries:
             continue
         keys = {name}
-        mm = re.search(r'^mpn:\s*(.+?)\s*(?:#.*)?$', txt, re.M)
-        if mm:
-            keys.add(mm.group(1).strip().strip("\"'"))
+        mpn = yaml_plain_scalar(txt, "mpn")
+        if mpn:
+            keys.add(mpn)
         for code in re.findall(r'(?:lcsc|jlc|jlcpcb):\s*([A-Za-z0-9]+)', txt):
             keys.add(code)
         for k in keys:

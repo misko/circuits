@@ -90,7 +90,7 @@ $PY "$S/build_provenance.py" verify . --board "$BOARD" --tsx "$TSX" \
 
 mkdir -p 04_kicad 06_build/netlists
 $PY "$S/circuit_json_to_kicad_sch.py" "$CJ" \
-    -o "04_kicad/$BOARD.kicad_sch" --parts 02_parts --mode grid
+    -o "04_kicad/$BOARD.kicad_sch" --parts-dir 02_parts --mode grid
 kicad-cli sch export netlist --output "06_build/netlists/$BOARD.net" "04_kicad/$BOARD.kicad_sch"
 
 # [1b] CHEAP SEMANTIC BATTERY at the schematic gate — seconds each, run HERE

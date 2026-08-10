@@ -8,7 +8,7 @@ classes:
       12-24 V trunk behind a 10 A fuse. The 3.0 mm track is a connectivity
       backstop; broad top/inner/bottom copper and via arrays carry load current.
     nets: [VIN_RAW, VIN_FUSED, FET_MID, VIN_PROTECTED]
-    current: "10 A fused; 6.2 A calculated worst-case continuous input at 12 V"
+    current: "10 A fused; 6.4 A calculated worst-case continuous input at 12 V"
     min_width: 0.25mm
     clearance: 0.15mm
     via_diameter: 0.8mm
@@ -17,34 +17,35 @@ classes:
     verify: DRC, thermal rise, and full-load bench test
 
   PWR_5V:
-    intent: Each TPSM63606 module rail carries two simultaneous 2 A USB branches with 2 A module margin.
+    intent: Each LTC3889 rail carries two simultaneous 2 A USB branches through one inductor and one Kelvin shunt.
     nets: [5V_A, 5V_B]
-    current: "6 A module capability; 4 A declared continuous load per rail"
+    current: "4 A declared continuous load per rail"
     min_width: 0.25mm
     clearance: 0.15mm
     via_diameter: 0.8mm
     via_drill: 0.4mm
     routing: 2.5 mm trunks/pours with no more than 0.5 mm of unavoidable pin-local neckdown
-    verify: DRC plus 4 A per-rail thermal test
+    verify: DRC plus 4 A per-rail thermal and transient test
 
   PWR_PORT:
     intent: >
-      Individually switched 2 A VBUS from each TPS259470 OUT land to the exact
-      3 A-rated USB1130 receptacle. Short component-pad escapes may neck down;
-      the current-carrying trunk must widen to 1.5 mm immediately afterward.
+      Individually limited 2 A VBUS through each reverse-blocking TPS259470
+      to the exact 3 A-rated USB1130 receptacle. Short
+      component-pad escapes may neck down; the current-carrying trunk must
+      widen immediately afterward.
     nets: [P1_VBUS, P2_VBUS, P3_VBUS, P4_VBUS]
-    current: "2.0 A continuous, 2.519 A worst current-limit corner"
+    current: "2.0 A continuous, 2.52 A bounded current-limit high corner"
     min_width: 0.25mm
     clearance: 0.15mm
     via_diameter: 0.7mm
     via_drill: 0.35mm
-    routing: 1.5 mm trunks/pours; 0.50 mm minimum taps and no more than 0.5 mm of unavoidable local neckdown
-    verify: DRC, 130 mOhm complete-path budget, and 2 A thermal test per port
+    routing: 2.0 mm trunks/pours; 0.50 mm minimum taps and no more than 0.5 mm of unavoidable local neckdown
+    verify: DRC, 135 mOhm complete-path budget, and 2 A thermal test per port
 
   SWITCH_POWER:
     intent: Buck switch/current loops; compact high-di/dt copper kept out of USB region.
-    nets: [SW_3V3]
-    current: "up to 2 A in the AP63203 logic-supply cell; the TPSM63606 switch nodes are internal"
+    nets: [SW_A, SW_B, SENSE_A, SENSE_B, AUX_SW, SW_3V3]
+    current: "up to 4 A per LTC3889 rail, 1 A auxiliary, and 0.8 A logic"
     min_width: 0.25mm
     clearance: 0.15mm
     via_diameter: 0.8mm
@@ -116,6 +117,10 @@ classes:
       - P2_VBUS_SENSE
       - P3_VBUS_SENSE
       - P4_VBUS_SENSE
+      - P1_DVDT
+      - P2_DVDT
+      - P3_DVDT
+      - P4_DVDT
       - ADC_P1_IMON
       - ADC_P2_IMON
       - ADC_P3_IMON
@@ -127,6 +132,17 @@ classes:
       - RBIAS
       - XTAL1
       - XTAL2
+      - ISNS_A_PF
+      - ISNS_A_NF
+      - ISNS_B_PF
+      - ISNS_B_NF
+      - ITH_A
+      - ITHR_A
+      - ITH_B
+      - ITHR_B
+      - TSNS_A
+      - TSNS_B
+      - AUX_FB
     current: "signal only"
     min_width: 0.18mm
     clearance: 0.15mm
@@ -162,6 +178,16 @@ classes:
       - P2_FLT_N
       - P3_FLT_N
       - P4_FLT_N
+      - RUN_A
+      - RUN_B
+      - RUN_A_HOLD
+      - RUN_B_HOLD
+      - PGOOD_A_N
+      - PGOOD_B_N
+      - LTC_ALERT_N
+      - LTC_FAULT_N
+      - AUX_PG_N
+      - LTC_VDD33
     current: "under 0.8 A aggregate logic rail; GPIO signals under 12 mA"
     min_width: 0.18mm
     clearance: 0.15mm

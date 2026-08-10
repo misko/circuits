@@ -129,6 +129,9 @@ need an evidenced module trade study. The connector remains rated for 3 A.
 | 0002 | Retain two independent 5.16 V / 4 A LM5116 rails, two ports per rail | agent (Q2 implementation) | [ADR-0002](decisions/0002-dual-seven-amp-bucks.md) |
 | 0003 | Put the management MCU on internal hub port 5 and combine vendor telemetry with standard host hub status | agent (A4 / P-delegation) | [ADR-0003](decisions/0003-control-and-status-plane.md) |
 | 0004 | Retain the reviewed LM5116 cells using maximum-Qg AON6266E switches, a 110 kHz bounded high corner, and a 2 A complete-path margin | agent (Q2 implementation) | [ADR-0004](decisions/0004-power-architecture-backtrack.md) |
+| 0005 | Use bare LTC3889, STM32G0B1, and USB2517 integrations only where module trade studies show lower total integration risk | agent (Q2 implementation) | [ADR-0005](decisions/0005-module-first-control-plane.md) |
+| 0006 | Attempted restoration of 3 A; superseded because no user directive authorized it | agent error found by exact-hash review | [ADR-0006](decisions/0006-four-port-3a-power-architecture.md) |
+| 0007 | Honor the locked 2 A requirement using 4 A LTC3889 rails and coordinated true-reverse-blocking TPS259470 port protection | agent (Q2 correction) | [ADR-0007](decisions/0007-authoritative-2a-power-and-protection.md) |
 
 ## Spec tensions
 

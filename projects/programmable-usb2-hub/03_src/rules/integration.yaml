@@ -3,14 +3,37 @@ default: complexity_weighted
 module_support_threshold: 10
 
 selections:
-  - function: two independent 12-24 V to 5.15 V high-current USB rail converters
-    part: TPSM63606RDLR
-    implementation: module
+  - function: two independent 12-24 V to tightly regulated 5.215 V / 4 A USB rails
+    part: LTC3889IUKG#PBF
+    implementation: bare_ic
     rationale: >-
-      Two 6 A modules satisfy the 4 A shared-rail requirement with integrated
-      magnetics, switches, gate drive, protection, and compensation. They
-      replace two LM5116 cells that required more than twenty external parts
-      each and failed exact current-limit and compensation review.
+      One dual controller provides two independently commanded 4 A rails with
+      the output accuracy needed to keep every 2 A receptacle inside the
+      locked 4.75-5.25 V mated-plug window.
+    support_refs: [Q3, Q4, Q5, Q6, L1, L4, R6, R7, R8, R9, R14, R16, D2, D3, C4, C5, C7, C8, C9, C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20, C25, C26, Q7, Q8, Q21, Q22]
+    exception:
+      decision_rationale: >-
+        The stocked 6 A module candidate cannot preserve the commissioned
+        connector-voltage window after the complete 2 A delivery path and 20%
+        margin are included; the LTC3889's tighter regulation can.
+      evidence: >-
+        The architecture-backtrack calculation bounds LTC3889 at
+        5.183925-5.246075 V and the complete path at 135 mOhm, leaving
+        4.860 V at the plug. The dual controller also provides hardware-held
+        safe-off outputs and machine-readable current/voltage telemetry.
+      modules_considered:
+        - part: TPSM64406RCHR
+          rejected_because: >-
+            Its full-temperature feedback-reference window consumes too much
+            of the allowed source range to retain the required 2 A path margin
+            with the selected reverse-blocking eFuse.
+          evidence: "01_docs/sourcing/dual-source-2026-08-01-backtrack.md"
+        - part: TPSM63606RDLR
+          rejected_because: >-
+            It fails the two-authorized-supplier selection rule and offers no
+            electrical advantage that repairs the connector-voltage window.
+          evidence: "01_docs/sourcing/dual-source-2026-08-01-backtrack.md"
+      adr: 01_docs/decisions/0005-module-first-control-plane.md
 
   - function: management USB device, telemetry ADC and port control
     part: STM32G0B1CBT6

@@ -650,6 +650,8 @@ against the `side: bottom` features) are the cheapest first bite.
 | `notes` | `policy_audit.py` | P8: the part's placement/design notes, whose PRESENCE P-LAYOUT grades |
 | `gotchas` | ADVISORY | warnings addressed to the next author to touch this part (128 dossiers). Machine-grading English here would be theatre; what IS graded is that the expensive facts it warns about live in `pins:`/`escape:`/`limits:` |
 | `note_dirname` | ADVISORY | records why the directory name differs from the MPN; the MPN authority reads `mpn:` |
+| `configuration` | ADVISORY | human-readable register/value summary for programmable parts. Load-bearing configuration values must also live in a dedicated machine-read rule such as `power_stages.yaml` or an executable firmware/readback gate; this free-form dossier block is not itself release authority |
+| `configuration.*` | ADVISORY | free-form children of the same human summary; every release-driving value needs a separately machine-read home |
 | `on_live_board` | OWED | a claim that this exact part is on a shipped board — checkable against the sealed BOM and checked by nothing |
 | `layout_refs` | `policy_audit.py` | the LAYOUT PRECEDENT SEARCH record. **Was OWED until 2026-07-30**, and the debt was real: P8 grades `layout.source:`, while this parallel list — the record of WHAT ELSE EXISTED and how strong it was — was read by nobody. P-PREC now reads it, counting the bare-string form OWED and grading the mapping form |
 | `layout_refs[].tier` | `policy_audit.py` | P-PREC: the SKILL.md authority tier this artifact sits at, 1-4. The tier IS the grade — without it an entry names what was read and still cannot be ranked |

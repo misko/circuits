@@ -1,6 +1,8 @@
+---
+status: superseded-by-0007
+---
 # ADR-0002 — Dual independent 4 A buck rails
 
-status: amended by ADR-0004
 date: 2026-07-31
 amended: 2026-08-01
 tags: [topology, power, protection, thermal]

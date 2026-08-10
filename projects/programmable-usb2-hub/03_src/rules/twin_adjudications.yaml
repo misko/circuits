@@ -5,29 +5,20 @@
 # override CPL rotation.  The only model nudge is for J7's demonstrably offset
 # JLC-internal body; its copper fit remains the independent authority.
 
-- lcsc: C454269
-  refs: [Q1, Q2, Q3, Q4, Q5, Q6]
-  status: PAD-MISMATCH
-  why: &bsc016_land >
-    BSC016N06NS exact-package review, 2026-07-31. Infineon datasheet rev 2.6,
-    PG-TDSON-8 Figure 2 Boardpads & Apertures, specifies the fused-drain land
-    implemented by the project-local physical-pin variant: four touching drain
-    stripes numbered 5-8 whose union is exactly the specified 4.55 x 4.41 mm
-    copper, plus the 1.27 mm source pitch. Physical identities are therefore
-    preserved on both sides; any remaining JLC multiplicity/anchor difference
-    is judged against Infineon's land rather than hidden by a pin alias.
-
-- lcsc: C454269
-  refs: [Q1, Q2, Q3, Q4, Q5, Q6]
-  status: PAD-GEOM
-  why: *bsc016_land
-
-- lcsc: C454269
-  refs: [Q1, Q2, Q3, Q4, Q5, Q6]
-  status: MODEL-REG
+- lcsc: C2078999
+  refs: [R3]
+  status: FETCH-FAILED
   why: >
-    Consequence of the JLC split-terminal CAD versus Infineon's authoritative
-    fused Boardpads pattern above. No model or CPL rotation override is used.
+    EasyEDA's exact C2078999 CAD endpoint remained unavailable through eight
+    backoff retries on 2026-08-02; the live LCSC exact product page identifies
+    TNPW06034K64BEEA and exposes only pinout/footprint imagery, not a 3D model.
+    Vishay 28758 rev 10-Apr-2026 gives the TNPW0603 body as 1.55 +/-0.05 by
+    0.85 +/-0.10 mm. Vishay 28950 rev 12-Jul-2022 recommends 0603 reflow lands
+    spanning IPC G/Y/X/Z = 0.70/0.90/1.00/2.50 mm and IEC
+    0.90/0.55/0.90/2.00 mm. KiCad R_0603_1608Metric uses 0.80 x 0.95 mm pads,
+    0.85 mm inner gap and 2.45 mm overall span, inside that manufacturer
+    envelope. The board's installed generic 0603 model remains the render
+    body; the first-order JLC placement preview must confirm R3 registration.
 
 - lcsc: C85098
   refs: [D4, D5, D6, D7]
@@ -52,7 +43,7 @@
     polarity confirmation remains mandatory.
 
 - lcsc: C408523
-  refs: [L1, L2]
+  refs: [L1, L4]
   status: PAD-GEOM
   why: >
     Exact MWSA1206S-6R8MT review against the Sunlord series drawing. Its

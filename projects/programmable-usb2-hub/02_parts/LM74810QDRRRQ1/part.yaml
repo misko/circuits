@@ -42,13 +42,14 @@ limits:
   design_ov_thresholds: "25.34 V rising / 23.27 V falling typical; 24.345 V conservative minimum rising and 26.390 V conservative maximum rising using TI's 1.195/1.267 V threshold limits, resistor corners, and 200 nA OV-pin leakage on the high corner"
   design_uvlo_divider: "90.9 kOhm 1% from VIN_FUSED to EN/UVLO; 11.5 kOhm 1% from EN/UVLO to GND"
   design_uvlo_thresholds: "10.96 V rising / 10.08 V falling typical; conservative rising range 10.44-11.51 V and falling range 9.53-10.53 V including TI threshold limits, worst 1% resistor ratios, and 200 nA EN/UVLO-pin leakage"
-  design_charge_pump_capacitor: "220 nF X7R, 25 V minimum, CAP-to-VS; exceeds 10 x the two BSC016N06NS Ciss total (about 104 nF)"
+  design_charge_pump_capacitor: "220 nF X7R, 25 V minimum, CAP-to-VS; exceeds 10 x the two CSD18533Q5AT maximum-Ciss total (10 x 2 x 2.75 nF = 55 nF)"
   design_vs_bypass: "100 nF X7R, 100 V, VS-to-GND, at pins 10/7"
   design_input_bypass: "100 nF X7R, 100 V, VIN_FUSED-to-GND, adjacent to the FET/controller path"
 gotchas:
   - "The exposed pad is named RTN but must be left electrically floating. This overrides normal WSON thermal-pad instincts; no thermal vias or GND pour connection."
   - "This controller supplies reverse-input blocking plus UVLO/OVLO-controlled disconnect through two external N-channel MOSFETs. It is not an electronic current-limit eFuse; the replaceable 10 A input fuse provides sustained overcurrent protection."
-  - "The selected 60 V MOSFETs rely on the protected-side SMBJ24A clamp (38.9 V max at 15.5 A). Do not omit or move that clamp without repeating the absolute-maximum analysis."
+  - "The admitted surge source is capped at 50 V open circuit with at least 1.6 ohm source impedance on a 10/1000 us-or-shorter waveform. That bounds SMBJ24A current to 14.563 A and the independent worst-case clamp-power product to 566.5 W; do not omit or move the clamp without repeating the source/load-line analysis."
+  - "OV-to-HGATE disconnect is bounded below 5.7 us: 5.4 us maximum TI deglitch plus 36 nC / 168 mA = 0.215 us maximum-Qg discharge. Q1/Q2/U1 tolerate the separate 50 V upstream ceiling while Q3-Q6/U2/U3 remain behind the 38.9 V protected-rail clamp."
   - "The OV divider senses VIN_FUSED through VSNS/SW. Its 24.345 V worst-low rising trip is above the commission's absolute 24.0 V connector maximum, while its 26.390 V worst-high trip remains below SMBJ24A's 26.7 V minimum breakdown. The protected AP63203 input and all downstream converters connect only to VIN_PROTECTED, after Q2 and the TVS."
 verified: "TI SNOSD98A Figure 5-1 and Table 5-1 p.3 for pins 1-13; RTN floating instruction repeated in section 9 p.26; DRR0012E package/land pattern in package addendum; checked 2026-07-31."
 sourcing:

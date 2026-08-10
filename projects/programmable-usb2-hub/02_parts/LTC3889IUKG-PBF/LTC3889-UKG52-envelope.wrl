@@ -1,0 +1,19 @@
+#VRML V2.0 utf8
+# Analog Devices LTC3889 UKG52(46) mechanical envelope.
+# KiCad VRML units are 2.54 mm. Dimensions follow LTC drawing 05-08-1947
+# Rev A: 7.00 x 8.00 x 0.75 mm nominal.
+DEF BODY Appearance {
+  material Material { diffuseColor 0.05 0.05 0.055 specularColor 0.13 0.13 0.13 shininess 0.28 }
+}
+DEF MARK Appearance {
+  material Material { diffuseColor 0.78 0.78 0.73 specularColor 0.2 0.2 0.2 shininess 0.15 }
+}
+Transform {
+  translation 0 0 0.147638
+  children [ Shape { appearance USE BODY geometry Box { size 2.755906 3.149606 0.295276 } } ]
+}
+# Pin-1 orientation witness on the top face.
+Transform {
+  translation -1.082677 -1.279528 0.301181
+  children [ Shape { appearance USE MARK geometry Cylinder { radius 0.088583 height 0.011811 } } ]
+}

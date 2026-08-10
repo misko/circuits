@@ -159,6 +159,32 @@ def t_fpid_present():
           f"02_parts FPID override did not reach the sheet: {sorted(real)}")
 
 
+@test("converter: an embedded # in an exact MPN is data, not a YAML comment")
+def t_hash_suffix_mpn_override():
+    """Analog Devices orderable suffixes commonly contain ``#``.  YAML only
+    starts a comment when that character is separated by whitespace, so the
+    exact MPN must remain a usable footprint/tie lookup key."""
+    sys.path.insert(0, str(SCRIPTS))
+    import circuit_json_to_kicad_sch as C          # noqa: E402
+    d = tmpdir("hash_mpn_")
+    part = d / "LTC3889IUKG-PBF"
+    part.mkdir(parents=True)
+    (part / "part.yaml").write_text(
+        "mpn: LTC3889IUKG#PBF\n"
+        "footprint: Package_DFN_QFN:Linear_UGK52_QFN-46-52\n"
+        "pins:\n"
+        "  53: {name: GND, tie: GND}\n"
+    )
+    ov = C.load_part_overrides(d)
+    ties = C.load_part_ties(d)
+    eq(ov.get("LTC3889IUKG#PBF"),
+       "Package_DFN_QFN:Linear_UGK52_QFN-46-52", "exact # suffix FPID key")
+    eq(ties.get("LTC3889IUKG#PBF"), [("53", "GND", "GND")],
+       "exact # suffix tie key")
+    check("LTC3889IUKG" not in ov and "LTC3889IUKG" not in ties,
+          "parser silently truncated the exact MPN at #")
+
+
 @test("converter: a 02_parts `tie:` EP pad absent from circuit.json reaches the netlist on its net")
 def t_thermal_ep_tie():
     """The exposed thermal pad (EP) of a WSON/DFN eFuse is the sole heat path

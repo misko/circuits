@@ -929,6 +929,13 @@ def main():
             rot = fp.GetOrientationDegrees()
             fp.SetOrientationDegrees(0)
             opads_raw = pads_of(fp)
+            # Cache the numbering-free marking in the SAME footprint-local
+            # frame as opads_raw.  Restoring the board rotation before calling
+            # marker_side mixed global graphics with zero-rotation pad
+            # coordinates, so every 180-degree instance of an otherwise
+            # identical polarized footprint could report the opposite end
+            # (programmable-usb2-hub D2 PASS / D3 FAIL on the same C2128).
+            ours_mark_local = marker_side(fp, opads_raw)
             fp.SetOrientationDegrees(rot)
             # center BOTH sets on the COMMON numbered pads only: centering
             # each on its own full set biases the fit/mount whenever one side
@@ -1076,7 +1083,7 @@ def main():
                 # LED_0805_2012Metric chamfers its F.Fab at pin 1. Both draw
                 # the cathode at the WEST end, so the PHYSICAL parts already
                 # align: the correct CPL offset is 0, not 180.
-                ours_mark = marker_side(fp, opads_raw)
+                ours_mark = ours_mark_local
                 jlc_mark = marker_side(jfp, jraw)
                 if ours_mark and jlc_mark:
                     if ours_mark[0] != jlc_mark[0]:

@@ -1,6 +1,18 @@
 mpn: TNPW06034K64BEEA
 manufacturer: Vishay
 type: resistor_thinfilm_precision
+datasheet:
+  doc_id: "Vishay 28758 TNPW e3"
+  revision: "10-Apr-2026"
+  url: "https://www.vishay.com/docs/28758/tnpw_e3.pdf"
+  sha256: d4043c24ae541c92e891ffbb58991966b7ddfbd498828c37f5a0e5323804b3e3
+  fetched: 2026-08-02
+recommended_land:
+  doc_id: "Vishay 28950 Recommended Solder Pad Dimensions"
+  revision: "12-Jul-2022"
+  url: "https://www.vishay.com/doc/?28950="
+  sha256: 9e2b145c937da3be1e926b8afc2856959754eeb4d1103241d838038f7308144e
+  fetched: 2026-08-02
 package: 0603
 footprint: Resistor_SMD:R_0603_1608Metric
 pins: {1: END_A, 2: END_B}
@@ -9,9 +21,10 @@ verified: "Exact LCSC product page C2078999 identifies TNPW06034K64BEEA as 4.64 
 sourcing:
   lcsc: C2078999
   alternates: []
-  note: "LCSC was out of stock when rechecked 2026-08-01. This exact line is selected electrically but must be consigned or replaced only after re-running the OV corner calculation."
+  note: "Q-2SOURCE 2026-08-02: exact Mouser API stock 11,128 and exact DigiKey product-page stock 8,323; exact LCSC C2078999 was a thin third pool at stock 15. Order-day recheck required; no value or suffix substitution is authorized without re-running the OV corner calculation."
 gotchas:
   - "R3 is the LM74810 OV bottom leg. Together with R1 = 90.9 kOhm 1%, it produces 24.345 V worst-low and 26.390 V worst-high rising trip."
+  - "EasyEDA's C2078999 CAD endpoint remained unavailable through eight backoff retries on 2026-08-02. Vishay 28758 fixes the body at 1.55 x 0.85 mm, and Vishay 28950 recommends 0603 reflow lands spanning the IPC/IEC envelopes. The board's 0.80 x 0.95 mm pads, 0.85 mm inner gap, and 2.45 mm overall span lie inside those two manufacturer recommendations; confirm R3 in JLC's first-order placement preview."
 layout:
   source: "LM7481-Q1 SNOSD98A OV-divider and quiet-ground guidance"
   notes: ["Place from OV to quiet GND directly beside U1; do not share the TVS surge-current return segment."]

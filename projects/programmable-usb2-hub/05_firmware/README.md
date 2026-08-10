@@ -28,8 +28,17 @@ default identity.
 the STM32G0B1 target. It contains no host or STM32 HAL dependency; compile its
 host test with `cc -std=c11 -Wall -Wextra -Werror target/phub_core.c
 target/test_phub_core.c -o /tmp/phub_core_test && /tmp/phub_core_test`. The
-remaining target integration is USB descriptors/endpoints, ADC calibration,
-GPIO binding, watchdog startup, and USB2517 SMBus initialization.
+`target/phub_startup.c` is the machine-checked safe-startup image for the
+LTC3889 and USB2517. It holds both 5 V rails off, forces and verifies the PMBus
+address and every load-bearing setting, verifies power-good, then loads and
+reads back the hub image before issuing USB_ATTACH. Every I/O or comparison
+failure reasserts rail holds, hub reset, port-power off, and data isolation.
+Compile its host test with `cc -std=c11 -Wall -Wextra -Werror
+target/phub_startup.c target/test_phub_startup.c -o /tmp/phub_startup_test &&
+/tmp/phub_startup_test`.
+
+The remaining target integration is USB descriptors/endpoints, ADC calibration,
+STM32 GPIO/SMBus binding, and watchdog startup.
 The target/flash commands and SWD connector reference will be added when the
 selected MCU dossier fixes the exact target name and pins. An unprogrammed MCU
 leaves all external power and data paths disabled by hardware pulldowns.

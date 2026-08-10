@@ -1,0 +1,11 @@
+JLC catalog stock check — 2026-08-01
+
+Input: fab/bom.csv
+Coverage: 59/59 coded BOM lines graded at quantity 5 boards.
+Result: 58/59 lines have stock >= 5 x per-board quantity.
+Shortfall: C5248536 / AP63203QWU-7 / U4, stock 0.
+Disposition: PLANNED consignment of the exact MPN from Mouser or DigiKey,
+as declared in source assembly.yaml and the release MANIFEST.
+
+Catalog verdict: FAIL (one stock shortfall); release sourcing classification:
+PLANNED-1. This is a sourcing/order blocker, not a design defect.

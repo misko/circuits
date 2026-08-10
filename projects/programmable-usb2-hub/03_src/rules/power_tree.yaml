@@ -10,64 +10,62 @@ rails:
     name: USB_PORT_1
     vin_min: 12.0
     vin_max: 24.0
-    vout_min: 5.075
-    vout_max: 5.225
+    vout_min: 5.183925
+    vout_max: 5.246075
     iout_max_A: 2.0
-    converter: TPSM63606RDLR
-    eff: 0.90
+    converter: LTC3889IUKG#PBF
+    eff: 0.88
     external_output: true
     claim_id: usb_downstream_ports
     load_uv_threshold: 4.75
-    ir_budget_mohm: 130.0
-    margin: 0.10
+    ir_budget_mohm: 135.0
+    margin: 0.20
     ir_budget_components_mohm: &port_path
       protection_switch:
         value: 45.0
         basis: maximum
         evidence: "TPS259470A maximum RON over -40 to 125 C"
       pcb_copper_vias_joints:
-        value: 5.0
+        value: 10.0
         basis: budgeted_max
-        evidence: "four-layer power pours; confirm by extraction and hot four-wire first-article measurement"
+        evidence: "four-layer pours and via arrays; confirm by extraction and hot four-wire first-article measurement"
       mated_power_contacts:
         value: 80.0
         basis: qualified_max
         evidence: "USB1130 maximum 40 mOhm for each VBUS and GND mated contact"
-    feedback: &usb_feedback
-      vref: 1.0
-      vref_tol_pct: 1.1
-      fb_bias_current_min_nA: -10
-      fb_bias_current_max_nA: 10
-      r_top_ohm: 4150
-      r_top_tol_pct: 0.22
-      r_bottom_ohm: 1000
-      r_bottom_tol_pct: 0.213
 
   - <<: *usb_port
     name: USB_PORT_2
     ir_budget_components_mohm: *port_path
-    feedback: *usb_feedback
   - <<: *usb_port
     name: USB_PORT_3
     ir_budget_components_mohm: *port_path
-    feedback: *usb_feedback
   - <<: *usb_port
     name: USB_PORT_4
     ir_budget_components_mohm: *port_path
-    feedback: *usb_feedback
 
-  - name: LOGIC_3V3
+  - name: AUX_6V
     vin_min: 12.0
     vin_max: 24.0
+    vout_min: 5.87
+    vout_max: 6.13
+    iout_max_A: 0.8
+    converter: LMR36510FADDAR
+    eff: 0.85
+    external_output: false
+
+  - name: LOGIC_3V3
+    vin_min: 5.87
+    vin_max: 6.13
     vout_min: 3.27
     vout_max: 3.33
     iout_max_A: 0.8
     converter: AP63203QWU-7
-    eff: 0.85
+    input_parent: AUX_6V
+    eff: 0.90
     external_output: false
 
-# The 5.15 V setpoint calculation includes TPSM63606 +/-1% full-temperature
-# feedback accuracy, 0.1% load regulation, divider initial tolerance, bounded
-# resistor TCR to a 70 C local body temperature, and +/-10 nA bias sensitivity.
-# It computes 5.0756-5.2249 V. The complete 130 mOhm maximum path at 2 A plus
-# 10% residual margin drops 0.286 V, leaving 4.7896 V at the mated plug.
+# LTC3889 command 0x14DC represents 5.21484375 V. The declared 5 V window
+# applies a conservative +/-0.6% full-temperature/programming allowance.
+# At the worst-low rail, the complete 135 mOhm path at 2 A plus 20% residual
+# margin drops 324 mV, leaving 4.860 V at the mated plug.

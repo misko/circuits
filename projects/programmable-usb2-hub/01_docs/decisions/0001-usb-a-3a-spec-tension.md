@@ -2,7 +2,7 @@
 id: 0001
 date: 2026-07-31
 amended: 2026-08-01
-status: accepted
+status: superseded-by-0006
 tags: [spec-tension, protection, topology]
 ---
 # 0001 — USB-A 2 A is a proprietary high-current capability

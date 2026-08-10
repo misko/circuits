@@ -166,6 +166,30 @@ def t_prep_seed_stubs():
        "the deterministic via did not ride into r0")
 
 
+@test("prep.pad_rescue places collision-checked plane drops before KRT")
+def t_prep_pad_rescue():
+    """Plane-pad rescue belongs before routing: later waves must treat every
+    legal barrel/stub as an obstacle rather than consume its only site and
+    leave a post-fill pad island.  The normal stitch pass remains the safety
+    net for sites that genuinely require routed copper to exist first."""
+    def mutate(cfg, _d):
+        cfg.setdefault("prep", {})["pad_rescue"] = True
+        cfg.setdefault("stitch", {}).setdefault("pad_rescue", {})["require"] = "none"
+
+    d, p = scratch(mutate)
+    r = must_pass(prep(p), "prep with early plane-pad rescue")
+    contains(r.out, "prep pad_rescue:",
+             "prep did not report the early plane-drop pass")
+    r0 = d / "06_build" / "route" / "r0.kicad_pcb"
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1]); n=b.FindNet('GND').GetNetCode()\n"
+            "print('@@'+str(sum(1 for t in b.GetTracks() "
+            "if t.GetClass()=='PCB_VIA' and t.GetNetCode()==n)))\n")
+    got = must_pass(run([KPY, "-c", code, r0]), "inspect early-rescued r0")
+    check(int(got.out.split("@@", 1)[1].strip()) > 0,
+          "early pad_rescue placed no GND barrels on r0")
+
+
 @test("the KRT command line carries the geometry, keepouts and per-wave overrides")
 def t_krt_cmdline():
     d, p = scratch(use_stub)
@@ -1380,6 +1404,29 @@ def t_pad_rescue_multiplane():
     counts = drc_counts(board)
     check(counts["unconnected"] == 0,
           f"multi-plane rescue left {counts['unconnected']} unconnected: {counts}")
+
+
+@test("pad_rescue rejects a blocked via+stub atomically (no orphan via)")
+def t_pad_rescue_rejected_stub_leaves_no_via():
+    """A legal via site beyond a foreign-net wall is not a legal pad rescue:
+    the required same-net stub crosses the wall.  The candidate must be
+    rejected as one transaction.  Pre-fix, pad_rescue committed the via,
+    discovered the stub collision afterwards, and left that orphan barrel on
+    the board; repeated candidates consumed every nearby spacing window."""
+    d, p, board = four_layer_scratch(
+        {"GND": [[15, 10]]},
+        {"net": "GND", "via_in_pad": False, "stub_width": 0.3,
+         "rings": [1.0], "angle_step": 360, "require": "none"})
+    edit_board(board, """
+sig=pcbnew.NETINFO_ITEM(b,'SIG'); b.Add(sig)
+t=pcbnew.PCB_TRACK(b); t.SetNet(sig); t.SetLayer(pcbnew.F_Cu)
+t.SetWidth(pcbnew.FromMM(0.3))
+t.SetStart(pcbnew.VECTOR2I_MM(15.75,8.0))
+t.SetEnd(pcbnew.VECTOR2I_MM(15.75,12.0)); b.Add(t)
+""")
+    must_pass(stitch(p), "pad rescue with a blocked compound candidate")
+    eq(via_nets(board).get("GND", 0), 0,
+       "a rejected via+stub candidate left an orphan via")
 
 
 # ======================================================== KNOWN-BAD =====

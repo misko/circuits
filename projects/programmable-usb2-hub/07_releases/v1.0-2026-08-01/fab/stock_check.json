@@ -1,0 +1,547 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "projects/programmable-usb2-hub/06_build/fab/bom.csv",
+ "min_stock_per_board": 5,
+ "verdict": "FAIL",
+ "stock_source": "lcsc_catalog_stockCount",
+ "predicts_jlc_assembly_allocation": false,
+ "pass_means": "catalog stock >= min_stock x qty at query time; NOT that JLC will allocate the line -- see F-ECHO",
+ "graded_lines": 59,
+ "total_lines": 59,
+ "zero_coverage": null,
+ "failures": 1,
+ "uncoded_lines": 0,
+ "lines": [
+  {
+   "lcsc": "C21189",
+   "designators": "R108,R109,R2,R208,R209",
+   "qty": 5,
+   "status": "OK",
+   "stock": 13194533,
+   "type": "base",
+   "mpn": "0603WAF0000T5E"
+  },
+  {
+   "lcsc": "C5126242",
+   "designators": "R103,R203",
+   "qty": 2,
+   "status": "OK",
+   "stock": 31623,
+   "type": "expand",
+   "mpn": "FRC0603F1211TS"
+  },
+  {
+   "lcsc": "C25803",
+   "designators": "R107,R207,R32,R33,R410,R416,R420,R426,R430,R436,R440,R446",
+   "qty": 12,
+   "status": "OK",
+   "stock": 9330222,
+   "type": "base",
+   "mpn": "0603WAF1003T5E"
+  },
+  {
+   "lcsc": "C14663",
+   "designators": "C111,C211,C22,C32,C33,C34,C35,C38,C39,C412,C414,C415,C42,C422,C424,C425,C432,C434,C435,C44,C442,C444,C445,C45",
+   "qty": 24,
+   "status": "OK",
+   "stock": 33235169,
+   "type": "base",
+   "mpn": "CC0603KRX7R9BB104"
+  },
+  {
+   "lcsc": "C24497",
+   "designators": "C2,C3",
+   "qty": 2,
+   "status": "OK",
+   "stock": 3162549,
+   "type": "base",
+   "mpn": "CL31B104KBCNNNC"
+  },
+  {
+   "lcsc": "C14858",
+   "designators": "C103,C203",
+   "qty": 2,
+   "status": "OK",
+   "stock": 7126589,
+   "type": "base",
+   "mpn": "CL10C101JB8NNNC"
+  },
+  {
+   "lcsc": "C23742",
+   "designators": "C112,C113,C114,C115,C212,C213,C214,C215",
+   "qty": 8,
+   "status": "OK",
+   "stock": 78211,
+   "type": "expand",
+   "mpn": "CL32A107MPVNNNE"
+  },
+  {
+   "lcsc": "C25804",
+   "designators": "R36,R37,R412,R413,R419,R422,R423,R429,R432,R433,R439,R442,R443,R449",
+   "qty": 14,
+   "status": "OK",
+   "stock": 2118849,
+   "type": "base",
+   "mpn": "0603WAF1002T5E"
+  },
+  {
+   "lcsc": "C844901",
+   "designators": "RS1,RS2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 13216,
+   "type": "expand",
+   "mpn": "WSL2512R0100FEA"
+  },
+  {
+   "lcsc": "C57112",
+   "designators": "C104,C204",
+   "qty": 2,
+   "status": "OK",
+   "stock": 11676780,
+   "type": "base",
+   "mpn": "0603B103K500NT"
+  },
+  {
+   "lcsc": "C13585",
+   "designators": "C21",
+   "qty": 1,
+   "status": "OK",
+   "stock": 4098407,
+   "type": "base",
+   "mpn": "CL31A106KBHNNNE"
+  },
+  {
+   "lcsc": "C3844168",
+   "designators": "C107,C108,C109,C110,C207,C208,C209,C210",
+   "qty": 8,
+   "status": "OK",
+   "stock": 533,
+   "type": "expand",
+   "mpn": "CL32B106KBJNNWE"
+  },
+  {
+   "lcsc": "C2930057",
+   "designators": "R5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 77403,
+   "type": "expand",
+   "mpn": "FRC0603F1152TS"
+  },
+  {
+   "lcsc": "C22865",
+   "designators": "R101,R201",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1961,
+   "type": "expand",
+   "mpn": "0603WAF1242T5E"
+  },
+  {
+   "lcsc": "C22790",
+   "designators": "R31",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1620819,
+   "type": "base",
+   "mpn": "0603WAF1202T5E"
+  },
+  {
+   "lcsc": "C25810",
+   "designators": "R104,R204",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1331705,
+   "type": "base",
+   "mpn": "0603WAF1802T5E"
+  },
+  {
+   "lcsc": "C1647",
+   "designators": "C30,C31",
+   "qty": 2,
+   "status": "OK",
+   "stock": 558823,
+   "type": "base",
+   "mpn": "CL10C180JB8NNNC"
+  },
+  {
+   "lcsc": "C3819953",
+   "designators": "J1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1127,
+   "type": "expand",
+   "mpn": "1935161"
+  },
+  {
+   "lcsc": "C22935",
+   "designators": "R30",
+   "qty": 1,
+   "status": "OK",
+   "stock": 2913791,
+   "type": "base",
+   "mpn": "0603WAF1004T5E"
+  },
+  {
+   "lcsc": "C2128",
+   "designators": "D2,D3",
+   "qty": 2,
+   "status": "OK",
+   "stock": 820072,
+   "type": "base",
+   "mpn": "1N4148WS"
+  },
+  {
+   "lcsc": "C21190",
+   "designators": "R415,R418,R425,R428,R435,R438,R445,R448",
+   "qty": 8,
+   "status": "OK",
+   "stock": 17137574,
+   "type": "base",
+   "mpn": "0603WAF1001T5E"
+  },
+  {
+   "lcsc": "C62774",
+   "designators": "C116,C216",
+   "qty": 2,
+   "status": "OK",
+   "stock": 637376,
+   "type": "expand",
+   "mpn": "CC0805JRNPO9BN102"
+  },
+  {
+   "lcsc": "C15849",
+   "designators": "C105,C106,C205,C206,C36,C37,C40,C41",
+   "qty": 8,
+   "status": "OK",
+   "stock": 14255882,
+   "type": "base",
+   "mpn": "CL10A105KB8NNNC"
+  },
+  {
+   "lcsc": "C1604",
+   "designators": "C411,C421,C431,C441",
+   "qty": 4,
+   "status": "OK",
+   "stock": 1790939,
+   "type": "base",
+   "mpn": "0603B222K500NT"
+  },
+  {
+   "lcsc": "C137327",
+   "designators": "R110,R210",
+   "qty": 2,
+   "status": "OK",
+   "stock": 25659,
+   "type": "expand",
+   "mpn": "RC1206FR-072R2L"
+  },
+  {
+   "lcsc": "C21120",
+   "designators": "C1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1446466,
+   "type": "base",
+   "mpn": "CL10B224KA8NNNC"
+  },
+  {
+   "lcsc": "C12891",
+   "designators": "C23,C24",
+   "qty": 2,
+   "status": "OK",
+   "stock": 964788,
+   "type": "base",
+   "mpn": "CL31A226KAHNNNE"
+  },
+  {
+   "lcsc": "C309062",
+   "designators": "C413,C423,C433,C443",
+   "qty": 4,
+   "status": "OK",
+   "stock": 332461,
+   "type": "expand",
+   "mpn": "CL32B226KAJNNNE"
+  },
+  {
+   "lcsc": "C86462",
+   "designators": "J2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 13341,
+   "type": "expand",
+   "mpn": "292304-1"
+  },
+  {
+   "lcsc": "C1613",
+   "designators": "C102,C202,C410,C420,C430,C440",
+   "qty": 6,
+   "status": "OK",
+   "stock": 471425,
+   "type": "base",
+   "mpn": "CL10B332KB8NNNC"
+  },
+  {
+   "lcsc": "C728591",
+   "designators": "R102,R202",
+   "qty": 2,
+   "status": "OK",
+   "stock": 5632,
+   "type": "expand",
+   "mpn": "RT0603BRD073K92L"
+  },
+  {
+   "lcsc": "C1664",
+   "designators": "C101,C201",
+   "qty": 2,
+   "status": "OK",
+   "stock": 990831,
+   "type": "base",
+   "mpn": "CL10C331JB8NNNC"
+  },
+  {
+   "lcsc": "C2930095",
+   "designators": "R411,R421,R431,R441",
+   "qty": 4,
+   "status": "OK",
+   "stock": 123703,
+   "type": "expand",
+   "mpn": "FRC0603F3652TS"
+  },
+  {
+   "lcsc": "C25972",
+   "designators": "R3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 24382,
+   "type": "expand",
+   "mpn": "0603WAF4751T5E"
+  },
+  {
+   "lcsc": "C23162",
+   "designators": "R34,R35",
+   "qty": 2,
+   "status": "OK",
+   "stock": 3518256,
+   "type": "base",
+   "mpn": "0603WAF4701T5E"
+  },
+  {
+   "lcsc": "C19666",
+   "designators": "C43",
+   "qty": 1,
+   "status": "OK",
+   "stock": 6437678,
+   "type": "base",
+   "mpn": "CL10A475KO8NNNC"
+  },
+  {
+   "lcsc": "C23184",
+   "designators": "R105,R205",
+   "qty": 2,
+   "status": "OK",
+   "stock": 501954,
+   "type": "base",
+   "mpn": "0603WAF4992T5E"
+  },
+  {
+   "lcsc": "C23215",
+   "designators": "R106,R206",
+   "qty": 2,
+   "status": "OK",
+   "stock": 36195,
+   "type": "expand",
+   "mpn": "0603WAF6981T5E"
+  },
+  {
+   "lcsc": "C23231",
+   "designators": "R417,R427,R437,R447",
+   "qty": 4,
+   "status": "OK",
+   "stock": 1993778,
+   "type": "base",
+   "mpn": "0603WAF6802T5E"
+  },
+  {
+   "lcsc": "C6053",
+   "designators": "U8",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1575,
+   "type": "expand",
+   "mpn": "74LVC08APW,118"
+  },
+  {
+   "lcsc": "C2999456",
+   "designators": "R1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 50133,
+   "type": "expand",
+   "mpn": "FRC0603F8872TS"
+  },
+  {
+   "lcsc": "C2930136",
+   "designators": "R4",
+   "qty": 1,
+   "status": "OK",
+   "stock": 56693,
+   "type": "expand",
+   "mpn": "FRC0603F9092TS"
+  },
+  {
+   "lcsc": "C5126196",
+   "designators": "R414,R424,R434,R444",
+   "qty": 4,
+   "status": "OK",
+   "stock": 4353,
+   "type": "expand",
+   "mpn": "FRC0603F9760TS"
+  },
+  {
+   "lcsc": "C404363",
+   "designators": "Q3,Q4,Q5,Q6",
+   "qty": 4,
+   "status": "OK",
+   "stock": 4730,
+   "type": "expand",
+   "mpn": "AON6354"
+  },
+  {
+   "lcsc": "C5248536",
+   "designators": "U4",
+   "qty": 1,
+   "status": "LOW_STOCK(0)",
+   "stock": 0,
+   "type": "expand",
+   "mpn": "AP63203QWU-7"
+  },
+  {
+   "lcsc": "C85098",
+   "designators": "D4,D5,D6,D7",
+   "qty": 4,
+   "status": "OK",
+   "stock": 305161,
+   "type": "expand",
+   "mpn": "B340A-13-F"
+  },
+  {
+   "lcsc": "C454269",
+   "designators": "Q1,Q2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 18711,
+   "type": "expand",
+   "mpn": "BSC016N06NS"
+  },
+  {
+   "lcsc": "C1985204",
+   "designators": "Y1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 19,
+   "type": "expand",
+   "mpn": "CX3225SB24000H0FLJCC"
+  },
+  {
+   "lcsc": "C11355",
+   "designators": "U13,U14,U15,U16",
+   "qty": 4,
+   "status": "OK",
+   "stock": 64283,
+   "type": "expand",
+   "mpn": "FSUSB42MUX"
+  },
+  {
+   "lcsc": "C19191796",
+   "designators": "J7",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1371,
+   "type": "expand",
+   "mpn": "FTSH-105-01-L-D-K"
+  },
+  {
+   "lcsc": "C13755",
+   "designators": "U2,U3",
+   "qty": 2,
+   "status": "OK",
+   "stock": 6360,
+   "type": "expand",
+   "mpn": "LM5116MHX/NOPB"
+  },
+  {
+   "lcsc": "C3215601",
+   "designators": "U1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 374,
+   "type": "expand",
+   "mpn": "LM74810QDRRRQ1"
+  },
+  {
+   "lcsc": "C408523",
+   "designators": "L1,L2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 378,
+   "type": "expand",
+   "mpn": "MWSA1206S-6R8MT"
+  },
+  {
+   "lcsc": "C315992",
+   "designators": "D1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 11876,
+   "type": "expand",
+   "mpn": "SMBJ26A"
+  },
+  {
+   "lcsc": "C2847904",
+   "designators": "U7",
+   "qty": 1,
+   "status": "OK",
+   "stock": 221,
+   "type": "expand",
+   "mpn": "STM32G0B1CBT6"
+  },
+  {
+   "lcsc": "C3662799",
+   "designators": "U10,U11,U12,U9",
+   "qty": 4,
+   "status": "OK",
+   "stock": 1736,
+   "type": "expand",
+   "mpn": "TPS259470ARPWR"
+  },
+  {
+   "lcsc": "C478081",
+   "designators": "U6",
+   "qty": 1,
+   "status": "OK",
+   "stock": 5407,
+   "type": "expand",
+   "mpn": "USB2517I-JZX"
+  },
+  {
+   "lcsc": "C7519",
+   "designators": "U17,U18,U19,U20,U5",
+   "qty": 5,
+   "status": "OK",
+   "stock": 20548,
+   "type": "expand",
+   "mpn": "USBLC6-2SC6"
+  },
+  {
+   "lcsc": "C307880",
+   "designators": "L3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 8756,
+   "type": "expand",
+   "mpn": "VLS6045EX-4R7M"
+  }
+ ]
+}

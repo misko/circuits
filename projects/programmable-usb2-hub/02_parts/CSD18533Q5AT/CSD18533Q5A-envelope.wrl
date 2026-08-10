@@ -1,0 +1,19 @@
+#VRML V2.0 utf8
+# TI CSD18533Q5A DQJ/Q5A mechanical envelope.
+# KiCad VRML units are 2.54 mm. Nominal body dimensions come from TI
+# SLPS388B section 7.1: 4.90 x 6.00 x 1.00 mm.
+DEF BODY Appearance {
+  material Material { diffuseColor 0.055 0.055 0.06 specularColor 0.12 0.12 0.12 shininess 0.25 }
+}
+DEF MARK Appearance {
+  material Material { diffuseColor 0.72 0.72 0.68 specularColor 0.2 0.2 0.2 shininess 0.15 }
+}
+Transform {
+  translation 0 0 0.196850
+  children [ Shape { appearance USE BODY geometry Box { size 1.929134 2.362205 0.393701 } } ]
+}
+# Pin-1 orientation witness on the top face.
+Transform {
+  translation -0.720472 -0.917323 0.399606
+  children [ Shape { appearance USE MARK geometry Cylinder { radius 0.078740 height 0.011811 } } ]
+}

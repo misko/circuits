@@ -11,7 +11,7 @@
     - Q5
     - Q6
     - 04_kicad/programmable_usb2_hub.kicad_pcb
-    - 02_parts/BSC016N06NS/part.yaml
+    - 02_parts/CSD18533Q5AT/part.yaml
   why: >-
     R-THERM combines two checker-adjacent cases, neither of which is an
     unserved exposed pad.  U6.65 is the USB2517 ground EP and its footprint
@@ -28,14 +28,13 @@
     would not create a thermal path; it would add high-dV/dt copper and EMI.
     Their primary heat spreaders are the 18.95 mm2-or-larger top copper lands
     and the broad routed power copper required by their dossiers.  For the
-    input pair, BSC016N06NS/part.yaml independently bounds each device at about
-    0.063 W at the 6.25 A design point using its 10 V Rds(on) limit. For the
-    switching set, the deliberately conservative impossible bound of 7 A
-    continuously through one device uses the guaranteed 6 V limit plus TI's
-    1.3 hot-resistance factor: 7^2 x 2.4 mOhm x 1.3 = 0.153 W; the synchronous
-    devices have lower RMS conduction than that bound. This calculation does
-    not close the separate 26.75 mA gate-charge/startup blocker recorded in
-    the dossiers and detailed design. The
+    input pair, CSD18533Q5AT/part.yaml bounds each device using the guaranteed
+    5.9 mOhm at 10 V plus temperature derating. For the switching set, the
+    deliberately conservative impossible bound of the 8.283 A worst-high
+    current-limit corner continuously through one device uses the 8.5 mOhm
+    6.1-6.5 V drive budget and a 1.6 hot-resistance factor:
+    8.283^2 x 8.5 mOhm x 1.6 = 0.933 W. Actual high/low-side RMS conduction is
+    lower and switching loss is graded separately in power_stages.yaml. The
     required four-port rated-load thermal bench test remains explicit in the
     design documentation; this waiver addresses only the false requirement
     for vias into planes which do not exist.
