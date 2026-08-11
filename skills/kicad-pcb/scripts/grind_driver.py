@@ -50,7 +50,6 @@ import datetime
 import json
 import re
 import shlex
-import subprocess
 import sys
 from pathlib import Path
 
@@ -60,6 +59,8 @@ except ImportError:                                          # pragma: no cover
     sys.exit("grind_driver needs pyyaml")
 
 SCRIPTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPTS))
+from process_runner import run_bounded  # noqa: E402
 FIXES_DEFAULT = SCRIPTS.parent / "references" / "grind_fixes.yaml"
 KPY = "/usr/bin/python3"
 EXIT_CLEAN, EXIT_INFRA, EXIT_ESCALATE, EXIT_NOVEL, EXIT_DBACK = 0, 1, 2, 3, 4
@@ -142,13 +143,16 @@ def total_of(findings):
 
 
 # ------------------------------------------------------------- measure --
-def run_check_cmd(cmd, root, out_path):
+def run_check_cmd(cmd, root, out_path, args):
     real = cmd.replace("{out}", str(out_path))
-    r = subprocess.run(real, shell=True, cwd=str(root),
-                       capture_output=True, text=True)
+    r = run_bounded(
+        ["/bin/bash", "-lc", real], cwd=root,
+        timeout_s=args.check_timeout_s, heartbeat_s=args.heartbeat_s,
+        label="grind-check", state_path=out_path.parent / "check_state.json",
+        echo=False)
     if not out_path.is_file():
         sys.exit(f"grind_driver: --check-cmd wrote no {out_path} "
-                 f"(exit {r.returncode}): {(r.stderr or r.stdout)[-400:]}")
+                 f"(exit {r.returncode}): {r.output[-400:]}")
     return json.loads(out_path.read_text(encoding="utf-8-sig"))
 
 
@@ -157,16 +161,18 @@ def measure(args, root, cfg_path, board, state_dir):
     scratch = state_dir / "grind"
     scratch.mkdir(parents=True, exist_ok=True)
     if args.check_cmd:
-        g = run_check_cmd(args.check_cmd, root, scratch / "check.json")
+        g = run_check_cmd(args.check_cmd, root, scratch / "check.json", args)
         return "check-cmd", classify_gate(g, args.fab_floor)
     qjson = scratch / "quick.json"
-    rq = subprocess.run([KPY, str(SCRIPTS / "route_and_stitch_generic.py"),
-                         "quick", str(cfg_path), "--root", str(root),
-                         "--json", str(qjson)],
-                        cwd=str(root), capture_output=True, text=True)
+    rq = run_bounded(
+        [KPY, str(SCRIPTS / "route_and_stitch_generic.py"), "quick",
+         str(cfg_path), "--root", str(root), "--json", str(qjson)],
+        cwd=root, timeout_s=args.check_timeout_s,
+        heartbeat_s=args.heartbeat_s, label="grind-quick",
+        state_path=scratch / "quick_state.json", echo=False)
     if not qjson.is_file():
         sys.exit(f"grind_driver: quick produced no JSON (exit "
-                 f"{rq.returncode}): {(rq.stderr or rq.stdout)[-400:]}")
+                 f"{rq.returncode}): {rq.output[-400:]}")
     q = json.loads(qjson.read_text(encoding="utf-8-sig"))
     if q["verdict"] == "DIRTY":
         findings = {}
@@ -181,10 +187,12 @@ def measure(args, root, cfg_path, board, state_dir):
                             for n, c in list(ru["routed"].items())[:3]]}
         return "quick", findings
     gj = scratch / "gate.json"
-    subprocess.run(["kicad-cli", "pcb", "drc", "--severity-all",
-                    "--refill-zones", "--schematic-parity", "--format",
-                    "json", "-o", str(gj), str(board)],
-                   cwd=str(root), capture_output=True, text=True)
+    run_bounded(
+        ["kicad-cli", "pcb", "drc", "--severity-all", "--refill-zones",
+         "--schematic-parity", "--format", "json", "-o", str(gj),
+         str(board)], cwd=root, timeout_s=args.check_timeout_s,
+        heartbeat_s=args.heartbeat_s, label="grind-full-drc",
+        state_path=scratch / "full_drc_state.json", echo=False)
     if not gj.is_file():
         sys.exit("grind_driver: full DRC wrote no gate.json")
     return "full", classify_gate(json.loads(gj.read_text(encoding="utf-8-sig")), args.fab_floor)
@@ -300,6 +308,12 @@ def main(argv=None):
     ap.add_argument("--rebuild-cmd", default=None,
                     help="auto-fix chain override (default: bash "
                          "03_src/rebuild_all.sh)")
+    ap.add_argument("--stage-timeout-s", type=float, default=1200,
+                    help="hard deadline for each rebuild attempt")
+    ap.add_argument("--check-timeout-s", type=float, default=180,
+                    help="hard deadline for each quick/full/check measurement")
+    ap.add_argument("--heartbeat-s", type=float, default=10,
+                    help="progress heartbeat interval for quiet children")
     args = ap.parse_args(argv)
 
     root = Path(args.root).resolve()
@@ -328,6 +342,8 @@ def main(argv=None):
     rebuild_cmd = args.rebuild_cmd or f"bash {shlex.quote(str(rebuild_path))}"
     if args.max_cycles < 1:
         sys.exit("grind_driver: --max-cycles must be >= 1")
+    if min(args.stage_timeout_s, args.check_timeout_s, args.heartbeat_s) <= 0:
+        sys.exit("grind_driver: timeout and heartbeat values must be positive")
 
     best, stall, history = None, 0, []
     u_prev, u_stall = None, 0
@@ -414,8 +430,11 @@ def main(argv=None):
                              history)
             return EXIT_ESCALATE
         print(f"  auto-fix ({', '.join(autos)}): {rebuild_cmd}")
-        r = subprocess.run(rebuild_cmd, shell=True, cwd=str(root),
-                           capture_output=True, text=True)
+        r = run_bounded(
+            ["/bin/bash", "-lc", rebuild_cmd], cwd=root,
+            timeout_s=args.stage_timeout_s, heartbeat_s=args.heartbeat_s,
+            label=f"grind-rebuild-{n}",
+            state_path=state_dir / "grind" / "rebuild_state.json")
         journal(journal_path, n, mode, findings, best, stall,
                 f"auto-fix rebuild for {autos} (exit {r.returncode})")
         if r.returncode != 0:

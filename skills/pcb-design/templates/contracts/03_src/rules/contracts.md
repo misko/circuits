@@ -26,6 +26,7 @@ belongs here.
 | `passives_lcsc.yaml` | passives BOM-comment -> LCSC seed map (bom_seed input; usb-hub-3s) |
 | `policy_waivers.yaml` | policy_audit waivers accepted WITH measurement evidence (canon M4/M-WAIV): a YAML list, each entry naming the WAIVED S-/P-/R-/M-/E- policy ID + `why:` + the measurement that justifies it; P-ADJ net-span over-budget dispositions land here with the measured span + why. An entry without evidence is itself a FAIL. **A LOAD-BEARING NUMBER CARRIES A COMMAND, NOT A DIGIT** — see "Structure: `policy_waivers.yaml` — the `evidence:` block" below |
 | `policy_audit.json` | OPTIONAL `policy_audit.py` config (`--config 03_src/rules/policy_audit.json`, its default path): thresholds + HUMAN-item verdict pointers (S5/S6/S7) |
+| `critical_parts.yaml` | selective accepted facts for catastrophic part/footprint identities and geometry; graded by `critical_part_facts.py` before routing |
 | `contracts.md` | this file |
 
 When `ir_budget_mohm` is derived from several physical elements, add optional
@@ -583,6 +584,30 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `paths` | `early_design_check.py` | complete set of surge-exposed input paths |
 | `paths[].*` | `early_design_check.py` | source maximum, suppressor ratings, downstream limits, margin, and transient qualification |
 | `no_surge_exposed_paths` | `early_design_check.py` | explicit evidenced applicability decision when no paths exist |
+
+### keys: 03_src/rules/critical_parts.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `critical_part_facts.py` | accepted-facts manifest schema version |
+| `board` | `critical_part_facts.py` | exact realised board under grade |
+| `parts[].id` | `critical_part_facts.py` | stable accepted-fact group identity |
+| `parts[].ref` | `critical_part_facts.py` | one exact footprint reference to grade |
+| `parts[].refs` | `critical_part_facts.py` | explicit footprint reference set to grade |
+| `parts[].ref_glob` | `critical_part_facts.py` | bounded footprint-reference pattern to grade |
+| `parts[].value` | `critical_part_facts.py` | expected order-code/value identity on the footprint |
+| `parts[].dossier` | `critical_part_facts.py` | required in-tree accepted source dossier |
+| `parts[].source` | `critical_part_facts.py` | substantive package/pin evidence citation |
+| `parts[].numbered_pads` | `critical_part_facts.py` | complete expected numbered-pad multiset |
+| `parts[].unnumbered_smd` | `critical_part_facts.py` | expected unnumbered SMT-pad count |
+| `parts[].pad_counts.<ATTR>` | `critical_part_facts.py` | expected SMD/PTH/NPTH population by pad attribute |
+| `parts[].pad_nets.<PAD>` | `critical_part_facts.py` | selected catastrophic pad-to-net accepted facts |
+| `parts[].drills[].attribute` | `critical_part_facts.py` | pad class whose drill geometry is graded |
+| `parts[].drills[].count` | `critical_part_facts.py` | expected drill-bearing pad count |
+| `parts[].drills[].diameter_mm` | `critical_part_facts.py` | expected accepted drill diameter |
+| `parts[].drills[].tolerance_mm` | `critical_part_facts.py` | declared comparison tolerance for drill diameter |
+| `parts[].pad_sizes.<PAD>` | `critical_part_facts.py` | selected exact land sizes whose mutation must block |
+| `parts[].size_tolerance_mm` | `critical_part_facts.py` | declared comparison tolerance for land dimensions |
 
 ### keys: 03_src/rules/policy_waivers.yaml
 

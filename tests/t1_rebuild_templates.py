@@ -331,7 +331,8 @@ def t_no_tsci():
       "reuse path only AFTER DRC passes")
 def t_all_promotes_pinned_schematic_last():
     txt = ALL.read_text()
-    drc = re.search(r'^\s*kicad-cli pcb drc', txt, re.M)
+    drc = re.search(r'^\s*(?:run_stage\s+layout_drc\s+)?kicad-cli pcb drc',
+                    txt, re.M)
     cp = re.search(
         r'^\s*cp\s+"04_kicad/\$BOARD\.kicad_sch"\s+'
         r'"03_tscircuit/kicad/\$BOARD\.kicad_sch"', txt, re.M)

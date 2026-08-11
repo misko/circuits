@@ -426,6 +426,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `project.board` | `route_and_stitch_generic.py` | the board to route |
 | `project.build_dir` | `route_and_stitch_generic.py` | working directory |
 | `prep.out` | `route_and_stitch_generic.py` | the track-free r0 written |
+| `prep.pad_rescue` | `route_and_stitch_generic.py` | optional deterministic plane-pad rescue before KRT; accepts true or a scoped override mapping |
 | `prep.seed_stubs` | `route_and_stitch_generic.py` | deterministic pre-route copper seeding configuration |
 | `prep.seed_stubs.*` | `route_and_stitch_generic.py` | clearance, via geometry, and stub recipes passed to the deterministic seed-stub pass |
 | `prep.keepouts.*` | `route_and_stitch_generic.py` | per-layer router keepouts; their PRESENCE is one of the homes `policy_audit.py` accepts for P-KEEP |
@@ -434,6 +435,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `route.kicad_python` | `route_and_stitch_generic.py` | interpreter for KRT |
 | `route.race` | `route_and_stitch_generic.py` | parallel candidate count |
 | `route.final` | `route_and_stitch_generic.py` | the chain file promoted |
+| `route.import_source` | `route_and_stitch_generic.py` | explicit build/promoted lineage selected for route import; targets must not depend on stale-file precedence |
 | `route.common.*` | `route_and_stitch_generic.py` | per-run KRT geometry defaults |
 | `route.preflight_critical_pairs` | `critical_route_check.py` | critical-pair inventory cross-checked for completeness against independent `nets.yaml length_match` intent before routing and on realized copper; route/prep/import/stitch entry points enforce it directly |
 | `route.preflight_critical_pairs[].*` | `critical_route_check.py` | pair identity, P/N nets, routing wave, allowed layers, and via policy |

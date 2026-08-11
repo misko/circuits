@@ -23,6 +23,7 @@ belongs here.
 | `passives_lcsc.yaml` | passives BOM-comment -> LCSC seed map (bom_seed input; usb-hub-3s) |
 | `policy_waivers.yaml` | policy_audit waivers accepted WITH measurement evidence (canon M4/M-WAIV): a YAML list, each entry naming the WAIVED S-/P-/R-/M-/E- policy ID + `why:` + the measurement that justifies it; P-ADJ net-span over-budget dispositions land here with the measured span + why. An entry without evidence is itself a FAIL. **A LOAD-BEARING NUMBER CARRIES A COMMAND, NOT A DIGIT** — see "Structure: `policy_waivers.yaml` — the `evidence:` block" below |
 | `policy_audit.json` | OPTIONAL `policy_audit.py` config (`--config 03_src/rules/policy_audit.json`, its default path): thresholds + HUMAN-item verdict pointers (S5/S6/S7) |
+| `critical_parts.yaml` | selective accepted facts for catastrophic part/footprint identities and geometry; graded by `critical_part_facts.py` before routing |
 | `contracts.md` | this file |
 
 ## The rule that makes this folder worth existing

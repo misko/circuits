@@ -658,6 +658,9 @@ against the `side: bottom` features) are the cheapest first bite.
 | `layout_refs[].artifact` | `policy_audit.py` | P-PREC: the thing itself (URL / document + figure + page / design-file name). An unnamed precedent is not a precedent, and `tier: 2, reached: true` with nothing named is an unfalsifiable claim to have done the most valuable half of the search |
 | `layout_refs[].reached` | `policy_audit.py` | P-PREC: CONSULTED (`true`) vs merely KNOWN-OF (`false`). This is the whole distinction the gate exists to make — the pluto-rx2-8way RP2040 dossier drew it correctly in PROSE and no machine could see it |
 | `layout_refs[].why` | `policy_audit.py` | P-PREC: REQUIRED (>=20 chars) on a `reached: false` entry. An unreached tier is a DEBT, and a debt without a reason is the waiver-without-evidence shape (canon M-WAIV) |
+| `layout_refs[].url` | ADVISORY | retrieval link for the named precedent; `artifact` is the machine-graded identity and this URL is human provenance |
+| `layout_refs[].fetched` | ADVISORY | date a precedent was retrieved; useful staleness context, not a physical design fact |
+| `layout_refs[].note` | ADVISORY | human transfer/measurement notes for the precedent; executable constraints belong in `layout` |
 | `datasheet.url` | `pin_audit.py` | the datasheet under review |
 | `datasheet.local` | OWED | the in-tree PDF path. M-DEPEND grades that a sealed release carries its dossiers; nothing grades that this path RESOLVES, so a moved PDF is silent |
 | `datasheet.sha256` | OWED | the fetched PDF's digest — an M-IMPORT provenance grade nothing recomputes, so a re-fetched or substituted revision cannot be detected |
@@ -705,6 +708,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `layout.keep_short[].net` | `policy_audit.py, net_reference_audit.py` | P-ADJ span budget subject (E-NETREF K7) |
 | `layout.keep_short[].max_span_mm` | `policy_audit.py` | P-ADJ budget; a non-numeric value is a FAIL, not a skip |
 | `layout.keep_short[].anchor_pins` | `policy_audit.py` | P-ADJ anchor override — an unstated anchor is a hidden assumption |
+| `layout.keep_short[].partner_refs` | `policy_audit.py` | P-ADJ restricts the nearest-partner search to the explicitly named reference designators |
 | `layout.keep_short[].why` | `policy_audit.py` | the datasheet requirement being honoured |
 | `layout.adjacency[].refdes` | `policy_audit.py` | P-ADJ refdes-pair budget (the incident: read by nothing until 2026-07-29) |
 | `layout.adjacency[].a` | `policy_audit.py` | P-ADJ pair member |
@@ -729,6 +733,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `electrical.*` | OWED | the rest of the block is per-part datasheet numbers with no consumer: coil pull-in/resistance over temperature, Vce(sat)/Vds points, r_on corners, dropout, tempco, `t_op`. Each is the kind of number a `part_value`/`node_level` invariant SHOULD cite, and the cooksense relay coil at 70 C is the worked case for why (it was checked by hand) |
 | `limits.*` | ADVISORY | the open per-part absolute-maximum/rating fact bag. The EXECUTABLE channel for anything in here is an `asserts:` entry or an `electrical_invariants.yaml` `part_value`/`node_level` that cites it; the bag itself is a human's datasheet transcription and forcing a schema on it would only push the facts out of the tree |
 | `land_pattern.*` | ADVISORY | the human derivation record for a vendored footprint — pad sizes, fillet balance, datums, the datasheet figure they came from. Its CONSEQUENCE is graded, hard, by `jlc_twin` against JLC's own CAD model (canon M1), which is a stronger check than reading this back would be |
+| `recommended_land.*` | ADVISORY | manufacturer recommended-land provenance used by a human footprint review; accepted geometry must be re-measured on the realised footprint/board |
 | `twin_body.*` | `jlc_twin.py` | installed-product body authority for a deliberately non-CPL part: `source`, project model path or retained board model, exact `identity`, and the evidence/limitation surfaced in each `LOCAL-BODY` report row |
 | `ratings.*` | OWED | per-part electrical ratings (`i_sat`, `dcr_max`, `impedance_100mhz`, `voltage`, `dielectric`, ...). Unlike `limits:` these are the SELECTION criteria the part was chosen on, so they are assertable — an inductor's `i_sat` against the rail's `iout_max_A` is arithmetic nothing does |
 | `power_pins.<NAME>.*` | OWED | a per-rail pin grouping on the one 128-pin MCU dossier. `pins:` is graded; this parallel structure is a second home for the same map and read by nobody |

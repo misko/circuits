@@ -19,6 +19,11 @@ S="$SKROOT/kicad-pcb/scripts"
 FS="$SKROOT/jlcpcb-fab/scripts"                # fab-skill checkers (bom_source_check)
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 
+run_stage() {
+    local stage="$1"; shift
+    "$PY" "$S/pcb_flow.py" run . --stage "$stage" -- "$@"
+}
+
 # [0a] P-MOD before generation spend: every complex subsystem is a module, or
 # an evidence-backed bare-IC exception with an ADR and rejected module set.
 $PY "$S/module_first_check.py" . \
@@ -154,6 +159,13 @@ $PY "$S/pre_route_review_check.py" . --phase schematic \
     || { echo "GATE FAILED [2a] PR-REVIEW: topology must be SOUND before placement/routing spend"; exit 1; }
 
 # [3] board (placement + zones) from floorplan.yaml  [SHARED]
+$PY "$S/artifact_provenance.py" begin . --stage pcb_layout \
+    --input 03_src/floorplan.yaml --input 03_src/route.yaml \
+    --input "04_kicad/$BOARD.kicad_sch" \
+    --output "04_kicad/$BOARD.kicad_pcb" \
+    --output "04_kicad/$BOARD.kicad_pro" \
+    --output "04_kicad/$BOARD.kicad_dru" \
+    --output 06_build/drc/gate.json
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
 $PY "$S/count_parity.py" . \
     || { echo "GATE FAILED [3] S-COUNT (count_parity.py): generated PCB refdes differ from schematic intent"; exit 1; }
@@ -164,6 +176,11 @@ $PY "$S/count_parity.py" . \
 $PY "$S/pin_map_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
     --circuit-json 03_tscircuit/build/circuit.json \
     || { echo "GATE FAILED [3a] P-PINMAP: reconcile physical, schematic, and footprint pins before placement/routing work"; exit 1; }
+if [ -f 03_src/rules/critical_parts.yaml ]; then
+    $PY "$S/critical_part_facts.py" .
+else
+    echo "[3b] no critical_parts.yaml — no selective catastrophic part facts declared"
+fi
 
 # [4] placement/pad invariants  [per-board gate + SHARED placement gates]
 # `03_src/audit_board.py` is the ONLY per-board emitter this pipeline still
@@ -227,9 +244,9 @@ $PY "$S/tier_preflight.py" . \
     || { echo "GATE FAILED [5b] R-PREFLIGHT (tier_preflight.py): a routing/stitch parameter disagrees with the declared fab tier"; exit 1; }
 
 # [6-8] route + stitch from route.yaml  [SHARED]
-$PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml   # replay promoted route/ chain (M3)
-$PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
+run_stage route_prep   $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
+run_stage route_import $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml --route-source promoted
+run_stage stitch       $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \
     || { echo "GATE FAILED [8a] R-CRITESC: critical pairs are open, on forbidden layers, or use forbidden vias"; exit 1; }
 
@@ -237,9 +254,10 @@ $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require
 $PY "$S/generate_rules_generic.py" .
 
 # [10] DRC gate — must be 0 / 0 / 0 at full severity
-kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
+run_stage layout_drc kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
+$PY "$S/artifact_provenance.py" finish . --stage pcb_layout
 
 # [10c] GG-*: OBSERVED grading — canon M-COVER's observation arm.  [SHARED]
 # Every gate above printed `N graded / M total`. This one RE-RUNS a derived
@@ -278,3 +296,8 @@ mkdir -p 03_tscircuit/kicad
 cp "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch"
 cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
     || { echo "GATE FAILED [11] M-PIN: promoted schematic differs from the full-build subject"; exit 1; }
+if [ -f 01_docs/findings.yaml ]; then
+    $PY "$S/project_state.py" .
+else
+    echo "[11b] no findings.yaml — maturity remains undeclared"
+fi

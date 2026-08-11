@@ -70,6 +70,7 @@ project:
   build_dir: 06_build/route
 
 flow:
+  heartbeat_s: 10
   owner:
     stage: routing
     files: [03_src/route.yaml, 03_src/floorplan.yaml]
@@ -84,6 +85,15 @@ flow:
     grind: 900
     rebuild: 1200
     layout_drc: 120
+  timeouts_s:
+    default: 600
+    route_wave: 900
+    route_race: 2400
+    route_evaluate: 180
+    route_import: 300
+    stitch: 900
+    rebuild: 1500
+    layout_drc: 180
   blockers: []
   inputs:
     include: [03_src, 03_tscircuit/src/pluto_rx2_8way_v4.tsx,
@@ -259,6 +269,7 @@ prep:
       sig:  rest        # LED_STAT, LED_STAT_A
 
 route:
+  import_source: promoted    # canonical rebuild replays reviewed deterministic copper
   krt: ~/gits/KiCadRoutingTools
   common:
     layers: [F.Cu, In2.Cu]   # In1.Cu POURED, NEVER ROUTED — invariant 1

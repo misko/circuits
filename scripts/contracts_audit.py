@@ -152,6 +152,7 @@ DEBT_CEILING = {
     "projects/crow-mic-pod-v2": 1,
     "projects/crow-recorder-central-v2": 9,
     "projects/pluto-rx2-8way-v2": 2,
+    "projects/programmable-usb2-hub": 35,
     "projects/smc0985-cooksense": 79,
     "projects/usb-hub-3s-v3": 16,
 }

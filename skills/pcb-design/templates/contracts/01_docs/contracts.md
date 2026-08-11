@@ -15,6 +15,7 @@ one that is unrecoverable if lost.
 | `DETAIL_DESIGN.md` | the math: ripple, compensation, ampacity, thermal, tolerance | every number that a component value depends on, with its equation |
 | `CHANGELOG.md` | one entry per revision | see structure below |
 | `CHECKLIST.md` | the gate a revision must pass before release | |
+| `findings.yaml` | single machine-readable findings/gates ledger; `project_state.py` derives maturity from it | hand-edited; every row names owner, closure condition and maturity boundary |
 | `PUBLISH_MANIFEST.md` | the current publication inventory and validation snapshot; descriptive only, never release authority | must name the live sealed release or explicitly say none |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
@@ -217,6 +218,26 @@ binding exception unless the commission locked a production-cost or size cap.
 - Original prompt lost or known only as a paraphrase → mark the section
   `UNVERIFIED (reconstructed)`, drop `prompt_sha256`, and ask the user to
   confirm the wording at the next contact. Never hash a reconstruction.
+
+### keys: 01_docs/findings.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `project_state.py` | findings-ledger schema version |
+| `target` | `project_state.py` | declared maturity target cross-checked against the derived state |
+| `gates[].id` | `project_state.py` | unique gate/control identity |
+| `gates[].required_for` | `project_state.py` | first maturity rung that requires the gate |
+| `gates[].state` | `project_state.py` | closed pass/pending vocabulary used in derivation |
+| `gates[].owner` | `project_state.py` | accountable closure owner |
+| `gates[].closes_when` | `project_state.py` | objective closure condition required on every row |
+| `gates[].evidence` | `project_state.py` | existing evidence paths required for a passed gate |
+| `findings[].id` | `project_state.py` | unique finding/control identity |
+| `findings[].state` | `project_state.py` | open/closed/waived vocabulary used in derivation |
+| `findings[].blocks_at_or_above` | `project_state.py` | earliest maturity rung the open finding blocks |
+| `findings[].owner` | `project_state.py` | accountable closure owner |
+| `findings[].finding` | ADVISORY | concise human description; maturity derives from state and boundary, not prose interpretation |
+| `findings[].closes_when` | `project_state.py` | objective closure condition required on every row |
+| `findings[].evidence` | `project_state.py` | existing evidence paths required for closed or waived findings |
 - A requirement found in ARCHITECTURE/code with no P/D/Q/A trace → someone
   invented it. Add an `A#` entry declaring it retroactively and flag it for
   the user, or remove the feature.

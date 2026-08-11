@@ -29,6 +29,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from process_runner import run_bounded
+
 try:
     import yaml
 except ImportError:  # pragma: no cover - the KiCad interpreter carries yaml
@@ -60,7 +63,8 @@ DEFAULT_TOOL_FILES = (
     "grind_driver.py",
     "generate_board_generic.py", "generate_rules_generic.py",
     "route_and_stitch_generic.py", "circuit_json_to_kicad_sch.py",
-    "build_provenance.py",
+    "build_provenance.py", "process_runner.py", "artifact_provenance.py",
+    "critical_part_facts.py", "project_state.py",
 )
 
 
@@ -165,7 +169,7 @@ def flow_cfg(cfg: dict[str, Any], root: Path | None = None) -> dict[str, Any]:
     flow = cfg.get("flow") or {}
     if not isinstance(flow, dict):
         raise FlowError("route.yaml flow must be a mapping")
-    for key in ("owner", "copper", "budgets_s", "paths", "inputs"):
+    for key in ("owner", "copper", "budgets_s", "timeouts_s", "paths", "inputs"):
         if key in flow and not isinstance(flow[key], dict):
             raise FlowError(f"flow.{key} must be a mapping")
     copper = flow.get("copper") or {}
@@ -575,7 +579,8 @@ def load_perf(ctx: FlowContext) -> dict[str, Any]:
 
 
 def record_perf(ctx: FlowContext, stage: str, command: list[str], elapsed: float,
-                rc: int, budget_s: float | None = None) -> None:
+                rc: int, budget_s: float | None = None,
+                timeout_s: float | None = None) -> None:
     data = load_perf(ctx)
     run = {
         "at": utc_now(), "stage": stage, "seconds": round(elapsed, 3),
@@ -584,30 +589,67 @@ def record_perf(ctx: FlowContext, stage: str, command: list[str], elapsed: float
     if budget_s is not None:
         run["budget_s"] = budget_s
         run["over_budget"] = elapsed > budget_s
+    if timeout_s is not None:
+        run["timeout_s"] = timeout_s
+        run["timed_out"] = rc == 124
     data["runs"].append(run)
     data["runs"] = data["runs"][-200:]
     _atomic_write(ctx.performance, json.dumps(data, indent=2) + "\n")
 
 
 def run_timed(ctx: FlowContext, stage: str, command: list[str],
-              budget_s: float | None = None) -> int:
+              budget_s: float | None = None,
+              timeout_s: float | None = None) -> int:
     print(f"[{stage}] $ {shlex.join(command)}", flush=True)
-    start = time.monotonic()
-    proc = subprocess.run(command, cwd=ctx.root)
-    elapsed = time.monotonic() - start
-    record_perf(ctx, stage, command, elapsed, proc.returncode, budget_s)
+    timeout_s = configured_timeout(ctx.cfg, stage) if timeout_s is None else timeout_s
+    if timeout_s is not None and timeout_s <= 0:
+        raise FlowError("stage timeout must be positive")
+    heartbeat_s = configured_heartbeat(ctx.cfg)
+    safe_stage = re.sub(r"[^A-Za-z0-9_.-]+", "_", stage)
+    result = run_bounded(
+        command, cwd=ctx.root, timeout_s=timeout_s, heartbeat_s=heartbeat_s,
+        label=stage, state_path=ctx.state_dir / "pipeline_state" /
+        f"{safe_stage}.json")
+    elapsed = result.elapsed_s
+    record_perf(ctx, stage, command, elapsed, result.returncode, budget_s,
+                timeout_s)
     budget = f" / budget {budget_s:g}s" if budget_s is not None else ""
-    print(f"[{stage}] rc={proc.returncode}, {elapsed:.3f}s{budget}")
-    if proc.returncode == 0 and budget_s is not None and elapsed > budget_s:
+    timeout = f" / timeout {timeout_s:g}s" if timeout_s is not None else ""
+    print(f"[{stage}] rc={result.returncode}, {elapsed:.3f}s{budget}{timeout}")
+    if result.returncode == 0 and budget_s is not None and elapsed > budget_s:
         print(f"BUDGET EXCEEDED: {stage} took {elapsed:.3f}s > {budget_s:g}s")
         return EXIT_BUDGET
-    return proc.returncode
+    return result.returncode
 
 
 def configured_budget(cfg: dict[str, Any], stage: str) -> float | None:
     budgets = ((cfg.get("flow") or {}).get("budgets_s") or {})
     value = budgets.get(stage)
     return float(value) if value is not None else None
+
+
+def configured_timeout(cfg: dict[str, Any], stage: str) -> float | None:
+    """Return a hard deadline, distinct from a performance budget."""
+    timeouts = ((cfg.get("flow") or {}).get("timeouts_s") or {})
+    value = timeouts.get(stage, timeouts.get("default"))
+    try:
+        value = float(value) if value is not None else None
+    except (TypeError, ValueError) as exc:
+        raise FlowError(f"flow.timeouts_s.{stage} must be numeric") from exc
+    if value is not None and value <= 0:
+        raise FlowError(f"flow.timeouts_s.{stage} must be positive")
+    return value
+
+
+def configured_heartbeat(cfg: dict[str, Any]) -> float:
+    value = (cfg.get("flow") or {}).get("heartbeat_s", 10)
+    try:
+        value = float(value)
+    except (TypeError, ValueError) as exc:
+        raise FlowError("flow.heartbeat_s must be numeric") from exc
+    if value <= 0:
+        raise FlowError("flow.heartbeat_s must be positive")
+    return value
 
 
 def preflight_commands(ctx: FlowContext, include_land: bool = True
@@ -669,20 +711,27 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
             KPY, str(SCRIPTS / "pin_map_check.py"), str(ctx.root),
             "--board", str(ctx.board), "--circuit-json",
             str(ctx.root / "03_tscircuit/build/circuit.json")]))
-        commands.insert(first_board + 1, ("placement_clearance", [
+        critical_facts = ctx.route_path.parent / "rules" / "critical_parts.yaml"
+        offset = 1
+        if critical_facts.is_file():
+            commands.insert(first_board + offset, ("critical_part_facts", [
+                KPY, str(SCRIPTS / "critical_part_facts.py"), str(ctx.root),
+                "--board", str(ctx.board), "--facts", str(critical_facts)]))
+            offset += 1
+        commands.insert(first_board + offset, ("placement_clearance", [
             KPY, str(SCRIPTS / "placement_gates.py"), str(ctx.board),
             "--config", str(ctx.root / "03_src/placement_gates.json")]))
-        commands.insert(first_board + 2, ("critical_pair_map", [
+        commands.insert(first_board + offset + 1, ("critical_pair_map", [
             KPY, str(SCRIPTS / "critical_route_check.py"), str(ctx.root),
             "--board", str(ctx.board)]))
-        commands.insert(first_board + 3, ("escape_lands",
+        commands.insert(first_board + offset + 2, ("escape_lands",
                             [KPY, str(SCRIPTS / "escape_check.py"),
                              "--board", str(ctx.board)]))
         nets = ctx.route_path.parent / "rules" / "nets.yaml"
-        commands.insert(first_board + 4, ("pad_separation", [
+        commands.insert(first_board + offset + 3, ("pad_separation", [
             KPY, str(SCRIPTS / "pad_separation.py"), str(ctx.board),
             "--project", str(ctx.root), "--nets", str(nets)]))
-        commands.insert(first_board + 5, ("placement_policy", [
+        commands.insert(first_board + offset + 4, ("placement_policy", [
             KPY, str(SCRIPTS / "policy_audit.py"), str(ctx.root),
             "--board", ctx.board_id, "--skip-drc", "--phase", "placement"]))
         placement_index = next(i for i, row in enumerate(commands)
@@ -960,6 +1009,8 @@ def parser() -> argparse.ArgumentParser:
     common(p)
     p.add_argument("--stage", required=True)
     p.add_argument("--budget-s", type=float)
+    p.add_argument("--timeout-s", type=float,
+                   help="hard deadline; kills the command's process group")
     return ap
 
 
@@ -988,7 +1039,8 @@ def main(argv: list[str] | None = None) -> int:
             return cmd_layout_seal(ctx, args.dry_run, args.reviewed_commit)
         if not remainder:
             raise FlowError("run needs a command after --")
-        return run_timed(ctx, args.stage, remainder, args.budget_s)
+        return run_timed(ctx, args.stage, remainder, args.budget_s,
+                         args.timeout_s)
     except FlowError as exc:
         print(f"pcb_flow: {exc}", file=sys.stderr)
         return EXIT_CONFIG

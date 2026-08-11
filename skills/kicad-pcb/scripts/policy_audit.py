@@ -130,18 +130,18 @@ GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A", "UNGRADED")
 # never been measured cannot have regressed — and picks up a bound the first
 # time someone records one. That declared gap is the honest price of never
 # failing a board for existing.
-PREC_GRADED_FLOOR = 14   # in-scope parts carrying a TIER-GRADED precedent
-                         # record, FLEET-WIDE. RAISED 1 -> 14 on 2026-07-31:
-                         # read-only fleet sweep measured 14 graded / 113
-                         # in-scope after the v4 and programmable-hub dossiers
-                         # landed. A numerator advance raises this floor in the
-                         # same change; it may never be lowered.
+PREC_GRADED_FLOOR = 17   # in-scope parts carrying a TIER-GRADED precedent
+                         # record, FLEET-WIDE. Raised 14 -> 17 on 2026-08-10:
+                         # the programmable-hub source handoff increased the
+                         # measured fleet to 17 graded / 120 in scope. A
+                         # numerator advance raises this floor in the same
+                         # change; it may never be lowered.
 #
 # PER-BOARD owed ceilings: in-scope parts with NO tier-graded record. Each may
 # only FALL, and each is TIGHT (the test asserts equality, so a board that
 # improves must lower its own row in the same commit and cannot bank slack).
-# MEASURED 2026-07-31, read-only sweep of `projects/*/02_parts/`: 113 in scope
-# across 9 boards, 14 GRADED and 99 OWED. The per-board rows below are exact;
+# MEASURED 2026-08-10, read-only sweep of `projects/*/02_parts/`: 120 in scope
+# across 9 boards, 17 GRADED and 103 OWED. The per-board rows below are exact;
 # `tests/t1_layout_precedent.py` independently recomputes every denominator.
 PREC_OWED_CEILING = {
     "crow-mic-pod-v2": 4,
@@ -150,7 +150,7 @@ PREC_OWED_CEILING = {
     "pluto-rx2-8way": 8,
     "pluto-rx2-8way-v2": 2,        # 3 in scope, 1 of them GRADED
     "pluto-rx2-8way-v4": 2,
-    "programmable-usb2-hub": 6,
+    "programmable-usb2-hub": 10,
     "smc0985-cooksense": 35,
     "usb-hub-3s-v3": 12,
 }

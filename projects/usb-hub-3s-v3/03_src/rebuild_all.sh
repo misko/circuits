@@ -13,18 +13,35 @@ S="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || echo ../../..)" && pwd)/
 [ -f "$S/generate_board_generic.py" ] || S="$HOME/.claude/skills/kicad-pcb/scripts"
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 
+run_stage() {
+    local stage="$1"; shift
+    "$PY" "$S/pcb_flow.py" run . --stage "$stage" -- "$@"
+}
+
+# One receipt for the meaningful layout stage. If the driver stops, the
+# pending witness remains in 06_build/provenance instead of looking complete.
+$PY "$S/artifact_provenance.py" begin . --stage pcb_layout \
+    --input 03_src/floorplan.yaml --input 03_src/route.yaml \
+    --input "03_tscircuit/kicad/$BOARD.kicad_sch" \
+    --output "04_kicad/$BOARD.kicad_pcb" \
+    --output "04_kicad/$BOARD.kicad_pro" \
+    --output "04_kicad/$BOARD.kicad_dru" \
+    --output 06_build/drc/gate.json
+
 # [1] board (placement + zones) from floorplan.yaml  [SHARED]
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
 # [2] placement/pad invariants  [per-board gate]
 $PY 03_src/audit_board.py
+# Critical connector identity/pads are independent of schematic/DRC agreement.
+$PY "$S/critical_part_facts.py" .
 # [3] netclasses BEFORE route-prep (canon R1)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 # [4-7] route + stitch from route.yaml  [SHARED]
-$PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" route  03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
+run_stage route_prep   $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
+run_stage route        $PY "$S/route_and_stitch_generic.py" route  03_src/route.yaml
+run_stage route_import $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml --route-source build
+run_stage route_taps   $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
+run_stage stitch       $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 # [7b] v1.1 post-stitch geometry fixes (EP thermal vias, VBAT_F F<->B stitch, drill/width floors, GND-island bond)
 $PY 03_src/post_stitch_fixes.py
 # [7c] M-SHIP READ-BACK: prove the pour SURVIVED the last board write.
@@ -58,6 +75,8 @@ PYEOF
 # actually RUNS (else kicad-cli skips it and reports a hollow 0).
 mkdir -p 06_build/drc
 cp "03_tscircuit/kicad/$BOARD.kicad_sch" "04_kicad/$BOARD.kicad_sch" 2>/dev/null || true
-kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
+run_stage layout_drc kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
+$PY "$S/artifact_provenance.py" finish . --stage pcb_layout
+$PY "$S/project_state.py" . --expect FIRST_ARTICLE_ORDERABLE

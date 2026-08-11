@@ -272,15 +272,16 @@ FAMILY_RE = re.compile(r"^###\s+keys:\s+(\S+)\s*$", re.M)
 #: registry: these are DIRECTORY globs over a project, and any file they find
 #: that no declared family matches is reported UNGOVERNED. `06_build`,
 #: `04_kicad` and `07_releases` are generated or sealed and are not source.
-SOURCE_GLOBS = ("03_src/*.yaml", "03_src/rules/*.yaml", "02_parts/*/part.yaml")
+SOURCE_GLOBS = ("01_docs/*.yaml", "03_src/*.yaml", "03_src/rules/*.yaml",
+                "02_parts/*/part.yaml")
 
 #: reader-cell keywords. Anything else is read as a comma-separated script list.
 ADVISORY, OWED = "ADVISORY", "OWED"
 
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
-GOVERNED_FLOOR = 11
-PROVEN_FLOOR = 345
+GOVERNED_FLOOR = 13
+PROVEN_FLOOR = 381
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
@@ -331,6 +332,11 @@ PROVEN_FLOOR = 345
 #: 321 -> 323 on 2026-08-01: the USB interface-standard provenance row and
 #: `part.yaml` `twin_body.*` installed-product model authority, the latter
 #: consumed by jlc_twin for non-CPL same-camera evidence.
+#: 345 -> 381 and 11 -> 13 governed families on 2026-08-10: the findings-ledger
+#: maturity controls and selective critical-part accepted facts gained explicit
+#: readers; route source selection, pre-route pad rescue and newly landed
+#: programmable-hub dossier fields were governed in the same sweep. Measured
+#: `--root .`: 461/461 declared rows, 381 PROVEN and 0 orphan.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.

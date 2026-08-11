@@ -10,6 +10,7 @@ BACKEND GAP to report, not a bespoke script to write here.
 |---|---|
 | `*.py` | generators, checkers, converters — run with `/usr/bin/python3` (pcbnew) |
 | `*.sh` | drivers (e.g. `tsx_to_board.sh`) |
+| `tests/**` | narrow checker-local regression tests retained beside their implementation |
 | `contracts.md` | this file |
 
 ## Audit
@@ -19,6 +20,14 @@ BACKEND GAP to report, not a bespoke script to write here.
   (contracts_audit C-ISO).
 - Checkers: clean + known-bad tests in `tests/` (see tests/README.md — the
   known-bad count is the number that matters).
+- Long-running children use `process_runner.run_bounded`: streamed output,
+  periodic heartbeat, a declared hard timeout, and whole-process-group
+  termination. Performance budgets remain a separate signal.
+- Major producer stages bracket outputs with `artifact_provenance.py`; route
+  import additionally records the selected `build` or `promoted` lineage.
+- Project maturity is derived from `01_docs/findings.yaml` by
+  `project_state.py`; an orderable first article is never relabelled tested or
+  production-ready by prose.
 - Generators emit artifacts that downstream gates re-measure independently
   (canon M1: checker and checked share no method).
 - **The GATE family (canon G-*) — the checkers are themselves governed

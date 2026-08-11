@@ -1069,6 +1069,43 @@ def t_kb_race_all_fail():
               "race with all candidates failing", "all 2 race candidates")
 
 
+@test("route --resume continues only an authenticated contiguous wave prefix")
+def t_route_resume_authenticated():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["race"] = 1
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "initial route")
+    progress_path = d / "06_build" / "route" / "route_progress.json"
+    progress = json.loads(progress_path.read_text())
+    check(len(progress["waves"]) >= 2, "fixture needs multiple waves")
+    removed = progress["waves"].pop()
+    progress_path.write_text(json.dumps(progress))
+    (d / "06_build" / "route" / removed["output"]).unlink()
+    before = len(krt_calls(d / "krt"))
+    r = must_pass(run([sys.executable, RS, "route", p, "--resume"]),
+                  "authenticated resume")
+    contains(r.out, "authenticated wave(s)", "resume provenance")
+    eq(len(krt_calls(d / "krt")), before + 1,
+       "resume should rerun only the missing suffix")
+
+
+@test("route --resume rejects a mutated intermediate instead of trusting rN",
+      kind="known_bad")
+def t_route_resume_rejects_mutation():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["race"] = 1
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "initial route")
+    r1 = d / "06_build" / "route" / "r1.kicad_pcb"
+    r1.write_bytes(r1.read_bytes() + b"\n# planted post-route mutation\n")
+    must_fail(run([sys.executable, RS, "route", p, "--resume"]),
+              "resume over mutated wave", "missing or changed")
+
+
 # ============================================= QUICK (loop cheapener) ====
 def quick_scratch():
     """A scratch tree whose 04_kicad board is a COPY of the sealed
@@ -2419,6 +2456,22 @@ def zone_fill(board):
             "print('@@'+json.dumps(o))\n")
     r = must_pass(run([KPY, "-c", code, str(board)]), "zone_fill")
     return json.loads(r.out.split("@@", 1)[1].strip())
+
+
+@test("import --route-source promoted ignores a leftover build FINAL and "
+      "records the selected lineage")
+def t_import_source_is_explicit():
+    d, p, _board, promoted, _pristine = seed_pipeline([])
+    stale = d / "03_src" / "stale_build_chain.kicad_pcb"
+    stale.write_text('(kicad_pcb\n  (net 0 "")\n)\n')
+    marker = d / "06_build" / "FINAL"
+    marker.write_text(str(stale) + "\n")
+    must_pass(run([KPY, RS, "import", p, "--route-source", "promoted"]),
+              "explicit promoted import")
+    receipt = json.loads((d / "06_build" / "import_provenance.json").read_text())
+    eq(receipt["selected_source"], "promoted", "selected route lineage")
+    eq(receipt["chain_sha256"], __import__("hashlib").sha256(
+        promoted.read_bytes()).hexdigest(), "receipt chain hash")
 
 
 def _uuid_blind(b):

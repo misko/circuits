@@ -1,0 +1,47 @@
+schema: 1
+target: FIRST_ARTICLE_ORDERABLE
+gates:
+  - id: usb_design_contract
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: electrical
+    closes_when: Schematic, topology, placement and routed-layout reviews agree.
+    evidence: [08_reviews/2026-07-27_v1.11_redteam_adversarial-full.md,
+               08_reviews/2026-07-28_v1.12_fresh-lens_staged.md]
+  - id: usb_release_gate
+    required_for: FIRST_ARTICLE_ORDERABLE
+    state: pass
+    owner: fabrication
+    closes_when: A sealed, DRC-clean, independently reviewed fabrication package exists.
+    evidence: [07_releases/v1.12-2026-07-28/MANIFEST.txt,
+               07_releases/v1.12-2026-07-28/verification/drc.json,
+               07_releases/v1.12-2026-07-28/verification/j5_geometry_gate.txt]
+  - id: usb_first_article_test
+    required_for: FIRST_ARTICLE_TESTED
+    state: pending
+    owner: lab
+    closes_when: A fabricated unit passes current-limit, thermal, transient and USB tests.
+  - id: usb_production_validation
+    required_for: PRODUCTION_RELEASED
+    state: pending
+    owner: manufacturing
+    closes_when: Tested BOM lot, assembly process and production acceptance plan are approved.
+findings:
+  - id: USB-F1-Q9-operating-margin
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: Confirm Q9/transient protection margin on hardware over the full input envelope.
+    closes_when: Oscilloscope captures and a signed worst-case margin calculation are attached.
+  - id: USB-F2-feed-and-thermal
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: Validate connector/feed temperature rise and sustained multi-port load sharing.
+    closes_when: Worst-case thermal soak and voltage-drop measurements pass the acceptance limits.
+  - id: USB-F3-field-history
+    state: open
+    blocks_at_or_above: PRODUCTION_RELEASED
+    owner: manufacturing
+    finding: No production-lot or field reliability evidence exists yet.
+    closes_when: A controlled pilot lot and production test record exist.

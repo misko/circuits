@@ -26,6 +26,7 @@ project:
 # ignore this block.  It makes stage ownership, deterministic/stochastic
 # copper, and wall-time expectations explicit before an expensive route begins.
 flow:
+  heartbeat_s: 10
   # Fail-closed independent evidence before the first route. The initial
   # schematic/placement build stops until these exact-artifact witnesses exist.
   pre_route_reviews:
@@ -65,6 +66,17 @@ flow:
     grind: 900
     rebuild: 1200
     layout_drc: 120
+  # Hard stop conditions are separate from performance budgets. A timed stage
+  # is killed as a process group and leaves its last heartbeat in 06_build/.
+  timeouts_s:
+    default: 600
+    route_wave: 900
+    route_race: 2400
+    route_evaluate: 180
+    route_import: 300
+    stitch: 900
+    rebuild: 1500
+    layout_drc: 180
   blockers: []
 
 prep:
@@ -88,6 +100,9 @@ prep:
       sig: rest
 
 route:
+  # Canonical template rebuilds replay reviewed deterministic copper. A board
+  # that routes afresh in rebuild_all.sh must change this to `build`.
+  import_source: promoted
   krt: ~/gits/KiCadRoutingTools
   # REQUIRED decision. Fill one row per USB/RF/timing-critical pair, or leave
   # [] and replace no_critical_routes with a specific true reason.

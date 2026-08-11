@@ -13,6 +13,20 @@ project:
   board: 04_kicad/usb_hub_3s_v2.kicad_pcb
   build_dir: 06_build/route
 
+flow:
+  # Budgets describe expected performance; timeouts are hard stop conditions.
+  # Every bounded child streams output and emits a heartbeat while quiet.
+  heartbeat_s: 10
+  timeouts_s:
+    default: 600
+    route_wave: 600
+    route_race: 1800
+    route: 1900
+    route_evaluate: 180
+    route_import: 300
+    rebuild: 2400
+    layout_drc: 180
+
 prep:
   out: r0.kicad_pcb
   keepouts:
@@ -52,6 +66,7 @@ route:
   # no fresh build/FINAL marker exists, `import` uses this. rebuild_all.sh runs
   # `route` (fresh KRT) which supersedes it; re-promote after a good roll.
   final: 03_src/route/final_chain.kicad_pcb
+  import_source: build       # full rebuild routes afresh; never consume stale FINAL implicitly
   krt: ~/gits/KiCadRoutingTools
   # race N concurrent KRT chains, keep the best — beats per-roll variance
   # (usb-hub-3s-v2 handoff: KRT is stochastic; race the roll).
@@ -66,18 +81,18 @@ route:
     keepout_layer: User.2
     clearance: 0.18
   waves:
-    - {name: gate,  group: gate,  track_width: 0.3, clearance: 0.15,
+    - {name: gate,  group: gate,  track_width: 0.3, clearance: 0.18,
        via_size: 0.45, via_drill: 0.3, max_iterations: 500000}
-    - {name: sense, group: sense, track_width: 0.2, clearance: 0.15,
+    - {name: sense, group: sense, track_width: 0.2, clearance: 0.18,
        via_size: 0.45, via_drill: 0.3, max_iterations: 500000}
-    - {name: dataa, group: dataa, track_width: 0.2, clearance: 0.15,
+    - {name: dataa, group: dataa, track_width: 0.2, clearance: 0.18,
        via_size: 0.45, via_drill: 0.3, max_iterations: 500000}
-    - {name: sig,   group: sig,   track_width: 0.2, clearance: 0.15,
+    - {name: sig,   group: sig,   track_width: 0.2, clearance: 0.18,
        via_size: 0.45, via_drill: 0.3,
        max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 30}
 
 taps:
-  clearance: 0.13   # >= STANDARD tier min_space 0.127; USB_DATA short paired escapes
+  clearance: 0.18   # match the Default DRC clearance; USB-C lands retain 0.20 mm gap
   via: {size: 0.45, drill: 0.3}   # STANDARD tier (jlc_4layer_standard)
   connections:
     # --- 5VA / 5VC output-sense taps (FB divider top + VOUT sense pin) ---
@@ -157,7 +172,7 @@ taps:
     - {net: DMC, from: J5.B7, to: U12.4, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
 
 stitch:
-  clearance: 0.15
+  clearance: 0.18
   via: {size: 0.45, drill: 0.3, spacing: 0.85, pth_margin: 0.3}   # STANDARD tier 0.45/0.3
   keepin: {inset: 0.8}
   passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,

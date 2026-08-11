@@ -35,6 +35,9 @@ via an explicit pattern (see the coverage rule below).
 | `.gitignore` | build/cache exclusions |
 | `.github/` | repository automation and publication checks (own contract) |
 | `resume_state.md` | session-resume snapshot (superseded by commits as they land) |
+| `fix_pcb_design.md` | retained PCB workflow review and repair notes |
+| `fix_routing_to_industry_standards.md` | retained routing standards review notes |
+| `routing_readme.md` | retained router usage and investigation notes |
 | `skills/` | the product: pcb-design, kicad-pcb, jlcpcb-fab, shopping-list (own contract) |
 | `docs/` | repo-level canon: ADRs + proof docs (own contract) |
 | `examples/` | frozen evidence snapshots skills may cite (own contract) |

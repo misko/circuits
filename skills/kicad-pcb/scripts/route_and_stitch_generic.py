@@ -75,9 +75,15 @@ so the commands work from any cwd. Top-level keys:
   prep:     out, keepouts {layers, mounting_holes, npth_pads, edge_band,
             rects[]}, waves {exclude[], groups{}, rest}
   route:    krt, python, race (N concurrent chains, quick-measured best
-            wins; CLI --race overrides), kicad_python (race import+quick
-            interpreter), common{...}, waves[] {name, nets|group, + any
-            KRT flag override}
+            wins; CLI --race overrides), import_source (build|promoted),
+            kicad_python (race import+quick interpreter), common{...}, waves[]
+            {name, nets|group, + any KRT flag override}
+  flow:     heartbeat_s, timeouts_s {route_wave, route_race,
+            route_evaluate, route_import}; performance budgets are separate
+
+`route --resume` is intentionally single-chain only. It accepts only the
+contiguous prefix in route_progress.json whose route.yaml, r0, per-wave input
+and output hashes still agree. Bare rN files are never treated as evidence.
   taps:     clearance, via{}, connections[] {net, from, to, width,
             layer/hop_layer, plane} — see cmd_taps
   stitch:   via{}, keepin{}, passes[] (the ORDER — this is the axis the
@@ -89,16 +95,21 @@ boards, and it matters (the grid consumes via-exclusion zones that later
 rescues must dodge).
 """
 import argparse
+import hashlib
+import json
 import math
 import os
 import re
 import shutil
-import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from process_runner import run_bounded
 
 
 # ---------------------------------------------------------------- errors
@@ -370,7 +381,11 @@ def _critical_route_gate(cfg, require_connected=False):
     cmd = [sys.executable, str(checker), str(root), "--board", str(board)]
     if require_connected:
         cmd.append("--require-connected")
-    result = subprocess.run(cmd)
+    result = run_bounded(
+        cmd, timeout_s=_timeout_s(cfg, "route_preflight", 180),
+        heartbeat_s=_heartbeat_s(cfg), label="critical-route-preflight",
+        state_path=rel(cfg, get(cfg, "project.build_dir", "06_build/route")) /
+        "critical_route_state.json")
     if result.returncode:
         phase = "R-CRITESC" if require_connected else "R-PAIRMAP"
         die(f"{phase} failed — direct route/import/stitch entry cannot bypass "
@@ -666,12 +681,14 @@ def _krt_args(d, extra_flags=None):
 
 
 def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
-                tag=""):
+                tag="", start_wave=1, progress=None, cancel_event=None):
     """Run the chained KRT waves rN -> rN+1 inside `workdir`, starting from
     board `cur`. Returns the final chain file. `env` extends the subprocess
     environment (race candidates get ROUTE_RACE_CANDIDATE)."""
     sub_env = dict(os.environ, **(env or {}))
     for i, wv in enumerate(waves, 1):
+        if i < start_wave:
+            continue
         name = wv.get("name", f"w{i}")
         nets = wv.get("nets")
         if nets is None:
@@ -711,18 +728,21 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
                + _krt_args(opts, diff_flags) + ["--nets"] + list(nets))
         print(f"\n=== {tag}wave {name} ({engine}): {len(nets)} nets ===\n  "
               + " ".join(cmd[:2] + ["..."] + cmd[-min(6, len(nets) + 1):]))
-        wave_start = time.perf_counter()
-        r = subprocess.run(cmd, env=sub_env)
+        result = run_bounded(
+            cmd, env=sub_env, timeout_s=_timeout_s(cfg, "route_wave", 900),
+            heartbeat_s=_heartbeat_s(cfg), label=f"{tag}route:{name}".strip(),
+            state_path=workdir / f"wave_{i}_state.json",
+            cancel_event=cancel_event)
         # Race lanes are concurrent and have their own race_log.json; avoid
         # concurrent writers to the shared performance file.  The normal
         # single chain records each wave here.
         if not tag:
             record_pass_timing(cfg, "route", name,
-                               time.perf_counter() - wave_start,
-                               rc=r.returncode,
+                               result.elapsed_s,
+                               rc=result.returncode,
                                counters={"nets": len(nets), "wave": i})
-        if r.returncode != 0:
-            die(f"KRT wave {name!r} exited {r.returncode}")
+        if result.returncode != 0:
+            die(f"KRT wave {name!r} exited {result.returncode}")
         if not nxt.is_file():
             die(f"KRT wave {name!r} produced no {nxt}")
         # KRT preserves the .kicad_pro today, but it does not consistently
@@ -737,11 +757,56 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
             src_rules = cur.with_suffix(ext)
             if src_rules.is_file():
                 shutil.copy2(src_rules, nxt.with_suffix(ext))
+        if progress is not None:
+            progress.setdefault("waves", []).append({
+                "index": i, "name": name,
+                "input": os.path.relpath(cur, workdir),
+                "input_sha256": _sha256(cur),
+                "output": os.path.relpath(nxt, workdir),
+                "output_sha256": _sha256(nxt),
+                "elapsed_s": round(result.elapsed_s, 3),
+            })
+            _atomic_json(workdir / "route_progress.json", progress)
         cur = nxt
     return cur
 
 
-def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _atomic_json(path, value):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temp.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+    os.replace(temp, path)
+
+
+def _heartbeat_s(cfg):
+    value = float(get(cfg, "flow.heartbeat_s", 10))
+    if value <= 0:
+        die("flow.heartbeat_s must be positive")
+    return value
+
+
+def _timeout_s(cfg, stage, default=None):
+    value = get(cfg, f"flow.timeouts_s.{stage}",
+                get(cfg, "flow.timeouts_s.default", default))
+    if value is None:
+        return None
+    value = float(value)
+    if value <= 0:
+        die(f"flow.timeouts_s.{stage} must be positive")
+    return value
+
+
+def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results,
+                    cancel_event):
     """One race lane: private copy of the prep outputs -> wave chain ->
     import into a copy of the track-free target -> quick numbers."""
     tag = f"[c{i}] "
@@ -759,7 +824,8 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
             shutil.copy(f, cdir / f.name)
         chain = _wave_chain(cfg, py, krt, waves, tier, dict(common), cdir,
                             cdir / r0.name,
-                            env={"ROUTE_RACE_CANDIDATE": str(i)}, tag=tag)
+                            env={"ROUTE_RACE_CANDIDATE": str(i)}, tag=tag,
+                            cancel_event=cancel_event)
         # evaluate: import into a COPY of the track-free target, then quick.
         # Needs pcbnew, so both steps shell out to the KiCad interpreter —
         # cmd_route itself stays runnable on the KRT venv python.
@@ -772,20 +838,27 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
                 shutil.copy(target.with_suffix(ext),
                             ev.with_suffix(ext))
         imp = Path(__file__).resolve().parent / "import_krt.py"
-        r = subprocess.run([kpy, str(imp), str(chain), str(ev), str(ev)],
-                           capture_output=True, text=True)
+        r = run_bounded(
+            [kpy, str(imp), str(chain), str(ev), str(ev)],
+            timeout_s=_timeout_s(cfg, "route_evaluate", 180),
+            heartbeat_s=_heartbeat_s(cfg), label=f"c{i}:import",
+            state_path=cdir / "import_state.json", cancel_event=cancel_event,
+            echo=False)
         if r.returncode != 0:
             die(f"candidate {i}: import_krt exited {r.returncode}: "
-                f"{(r.stderr or r.stdout)[-300:]}")
+                f"{r.output[-300:]}")
         qj = cdir / "quick.json"
-        r = subprocess.run([kpy, os.path.abspath(__file__), "quick",
-                            str(cfg["_path"]), "--root", str(cfg["_root"]),
-                            "--board", str(ev), "--json", str(qj)],
-                           capture_output=True, text=True)
+        r = run_bounded(
+            [kpy, os.path.abspath(__file__), "quick", str(cfg["_path"]),
+             "--root", str(cfg["_root"]), "--board", str(ev),
+             "--json", str(qj)],
+            timeout_s=_timeout_s(cfg, "route_evaluate", 180),
+            heartbeat_s=_heartbeat_s(cfg), label=f"c{i}:quick",
+            state_path=cdir / "quick_state.json", cancel_event=cancel_event,
+            echo=False)
         if not qj.is_file():
             die(f"candidate {i}: quick wrote no JSON (exit {r.returncode}): "
-                f"{(r.stderr or r.stdout)[-300:]}")
-        import json
+                f"{r.output[-300:]}")
         q = json.loads(qj.read_text(encoding="utf-8-sig"))
         results[i] = {
             "chain": str(chain),
@@ -798,7 +871,47 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
         results[i] = {"error": str(e)}
 
 
-def cmd_route(cfg, race=None, skip_preflight=False):
+def _new_route_progress(cfg, r0):
+    return {
+        "schema": 1, "config": str(cfg["_path"]),
+        "config_sha256": _sha256(cfg["_path"]),
+        "r0_sha256": _sha256(r0), "waves": [],
+    }
+
+
+def _resume_route(cfg, build, waves, r0):
+    """Return (next wave index, current board, progress), fail closed on drift."""
+    path = build / "route_progress.json"
+    if not path.is_file():
+        die("--resume requested but route_progress.json is missing — existing "
+            "rN files have no provenance and cannot be trusted")
+    try:
+        progress = json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception as exc:
+        die(f"cannot resume: unreadable {path}: {exc}")
+    if progress.get("schema") != 1:
+        die(f"cannot resume: unsupported progress schema in {path}")
+    if progress.get("config_sha256") != _sha256(cfg["_path"]):
+        die("cannot resume: route.yaml changed since the recorded waves")
+    if progress.get("r0_sha256") != _sha256(r0):
+        die("cannot resume: prep r0 changed since the recorded waves")
+    cur = r0
+    records = progress.get("waves") or []
+    for expected, rec in enumerate(records, 1):
+        if rec.get("index") != expected or expected > len(waves):
+            die("cannot resume: progress waves are not a contiguous prefix")
+        if rec.get("name") != waves[expected - 1].get("name", f"w{expected}"):
+            die(f"cannot resume: wave {expected} identity changed")
+        output = build / rec.get("output", "")
+        if not output.is_file() or _sha256(output) != rec.get("output_sha256"):
+            die(f"cannot resume: recorded wave {expected} output is missing or changed")
+        if _sha256(cur) != rec.get("input_sha256"):
+            die(f"cannot resume: wave {expected} input hash no longer chains")
+        cur = output
+    return len(records) + 1, cur, progress
+
+
+def cmd_route(cfg, race=None, skip_preflight=False, resume=False):
     _critical_route_gate(cfg)
     # TIER PREFLIGHT FIRST (refuse-to-route). Four measured crow-rv2 defects
     # (2026-07-23) were tool defaults disagreeing with the declared fab tier
@@ -849,9 +962,20 @@ def cmd_route(cfg, race=None, skip_preflight=False):
 
     n = int(race if race is not None else get(cfg, "route.race", 1) or 1)
     if n > 1:
+        if resume:
+            die("--resume is only defined for one deterministic wave-chain; "
+                "a stochastic race must restart its candidate set")
         return _cmd_route_race(cfg, py, krt, waves, tier, common, build, n)
 
-    cur = _wave_chain(cfg, py, krt, waves, tier, common, build, cur)
+    if resume:
+        start_wave, cur, progress = _resume_route(cfg, build, waves, cur)
+        print(f"resume: {start_wave - 1}/{len(waves)} authenticated wave(s); "
+              f"continuing from {cur}")
+    else:
+        start_wave, progress = 1, _new_route_progress(cfg, cur)
+        _atomic_json(build / "route_progress.json", progress)
+    cur = _wave_chain(cfg, py, krt, waves, tier, common, build, cur,
+                      start_wave=start_wave, progress=progress)
     print(f"\nwaves done -> {cur}")
     (build / "FINAL").write_text(str(cur) + "\n")
     return 0
@@ -865,18 +989,39 @@ def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
     tie-broken by fewest copper violations, then lowest index (quick is
     the ruler). The per-candidate numbers land in the route log
     (race_log.json) so the choice is auditable, never vibes."""
-    import json
-    import threading
     print(f"race: {n} candidate wave-chains, concurrent")
     results = {}
+    cancel_event = threading.Event()
     threads = [threading.Thread(target=_race_candidate,
                                 args=(cfg, py, krt, waves, tier, common,
-                                      build, i, results))
+                                      build, i, results, cancel_event),
+                                name=f"route-race-c{i}", daemon=True)
                for i in range(n)]
     for t in threads:
         t.start()
-    for t in threads:
-        t.join()
+    timeout_s = _timeout_s(
+        cfg, "route_race",
+        (_timeout_s(cfg, "route_wave", 900) or 900) * len(waves) + 360)
+    started = time.monotonic()
+    heartbeat = _heartbeat_s(cfg)
+    next_heartbeat = started + heartbeat
+    while any(t.is_alive() for t in threads):
+        now = time.monotonic()
+        if timeout_s is not None and now - started >= timeout_s:
+            cancel_event.set()
+            for t in threads:
+                t.join(timeout=3)
+            alive = [t.name for t in threads if t.is_alive()]
+            die(f"route race timed out after {now - started:.1f}s "
+                f"(limit {timeout_s:g}s); cancelled all candidates"
+                + (f"; threads still unwinding: {alive}" if alive else ""))
+        if now >= next_heartbeat:
+            done = sum(not t.is_alive() for t in threads)
+            print(f"[route-race] heartbeat: {done}/{n} candidates finished, "
+                  f"{now - started:.1f}s elapsed")
+            next_heartbeat = now + heartbeat
+        for t in threads:
+            t.join(timeout=0.1)
 
     ok = {i: r for i, r in results.items() if "error" not in r}
     for i in sorted(results):
@@ -951,21 +1096,45 @@ def _import_may_fill(cfg):
     return True
 
 
-def cmd_import(cfg):
+def cmd_import(cfg, route_source=None):
     """Import the final chain file ONCE into the track-free base."""
     _critical_route_gate(cfg)
     import pcbnew
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
-    # A fresh route in the build dir WINS over the promoted chain file, the
-    # same precedence every rebuild_all.sh used ("[ -f 06_build/... ] || cp").
+    # Selection is a declared policy, not filesystem precedence.  A stale
+    # build/FINAL must never silently override the reviewed promoted route.
+    route_source = route_source or get(cfg, "route.import_source", "auto")
+    if route_source not in ("auto", "build", "promoted"):
+        die("route import source must be auto, build or promoted")
     final = get(cfg, "route.final")
-    if (build / "FINAL").is_file():
-        chain = Path((build / "FINAL").read_text(encoding="utf-8-sig").strip())
-    elif final:
-        chain = rel(cfg, final)
+    build_chain = None
+    marker = build / "FINAL"
+    if marker.is_file():
+        build_chain = Path(marker.read_text(encoding="utf-8-sig").strip())
+    promoted_chain = rel(cfg, final) if final else None
+    if route_source == "build":
+        if build_chain is None:
+            die("route source is build but no build/FINAL marker exists — run `route`")
+        chain = build_chain
+    elif route_source == "promoted":
+        if promoted_chain is None:
+            die("route source is promoted but route.final is not configured")
+        chain = promoted_chain
     else:
-        die("no route.final in the config and no build FINAL marker — "
-            "run `route`, or point route.final at the promoted chain file")
+        available = [("build", build_chain), ("promoted", promoted_chain)]
+        available = [(name, path) for name, path in available
+                     if path is not None and path.is_file()]
+        if not available:
+            die("route source not found: no usable build FINAL or promoted "
+                "route.final")
+        if len(available) > 1:
+            print("import source auto: both build and promoted routes exist; "
+                  "retaining legacy build precedence. Set route.import_source "
+                  "or --route-source to make this provenance explicit.")
+            chain = build_chain
+            route_source = "build(auto)"
+        else:
+            route_source, chain = available[0]
     if not chain.is_file():
         die(f"chain file {chain} not found")
     target = rel(cfg, cfg["project"]["board"])
@@ -984,9 +1153,29 @@ def cmd_import(cfg):
         cmd.append("--no-fill")
         print("import: --no-fill (the stitch plan places explicit copper "
               "before its `fill` — see _import_may_fill)")
-    r = subprocess.run(cmd)
+    before_sha = _sha256(target)
+    started_ns = time.time_ns()
+    r = run_bounded(
+        cmd, timeout_s=_timeout_s(cfg, "route_import", 300),
+        heartbeat_s=_heartbeat_s(cfg), label="route-import",
+        state_path=build / "import_state.json")
     if r.returncode != 0:
         die(f"import_krt exited {r.returncode}")
+    receipt = {
+        "schema": 1, "selected_source": route_source,
+        "chain": os.path.relpath(chain, cfg["_root"]),
+        "chain_sha256": _sha256(chain),
+        "target": os.path.relpath(target, cfg["_root"]),
+        "target_before_sha256": before_sha,
+        "target_after_sha256": _sha256(target),
+        "config": os.path.relpath(cfg["_path"], cfg["_root"]),
+        "config_sha256": _sha256(cfg["_path"]),
+        "started_ns": started_ns, "finished_ns": time.time_ns(),
+        "elapsed_s": round(r.elapsed_s, 3),
+    }
+    _atomic_json(build / "import_provenance.json", receipt)
+    print(f"import provenance -> {build / 'import_provenance.json'} "
+          f"(source={route_source}, sha256={receipt['chain_sha256'][:12]})")
     return 0
 
 
@@ -1275,12 +1464,15 @@ def cmd_quick(cfg, board=None, json_out=None):
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     build.mkdir(parents=True, exist_ok=True)
     rpt = build / f"quick_drc.{os.getpid()}.json"
-    r = subprocess.run(["kicad-cli", "pcb", "drc", "--severity-all",
-                        "--format", "json", "-o", str(rpt), str(target)],
-                       capture_output=True, text=True)
+    r = run_bounded(
+        ["kicad-cli", "pcb", "drc", "--severity-all", "--format", "json",
+         "-o", str(rpt), str(target)],
+        timeout_s=_timeout_s(cfg, "quick_drc", 180),
+        heartbeat_s=_heartbeat_s(cfg), label="quick-drc",
+        state_path=build / "quick_drc_state.json", echo=False)
     if not rpt.is_file():
         die(f"quick: kicad-cli drc wrote no report "
-            f"(exit {r.returncode}): {(r.stderr or r.stdout)[-500:]}")
+            f"(exit {r.returncode}): {r.output[-500:]}")
     g = jsonlib.loads(rpt.read_text(encoding="utf-8-sig"))
     rpt.unlink()
 
@@ -3806,6 +3998,12 @@ def main(argv=None):
                     help="route: skip the tier-consistency preflight gate "
                          "(LOUD escape hatch — every mismatch it would have "
                          "caught surfaces as post-stitch DRC findings)")
+    ap.add_argument("--resume", action="store_true",
+                    help="route: continue an authenticated single-chain prefix; "
+                         "refuses stale/unproven rN files and route races")
+    ap.add_argument("--route-source", choices=["auto", "build", "promoted"],
+                    help="import: select route lineage explicitly (overrides "
+                         "route.import_source)")
     a = ap.parse_args(argv)
     cfg = load_cfg(a.config, a.root)
     try:
@@ -3813,9 +4011,9 @@ def main(argv=None):
             return cmd_prep(cfg)
         if a.command == "route":
             return cmd_route(cfg, race=a.race,
-                             skip_preflight=a.skip_preflight)
+                             skip_preflight=a.skip_preflight, resume=a.resume)
         if a.command == "import":
-            return cmd_import(cfg)
+            return cmd_import(cfg, a.route_source)
         if a.command == "taps":
             return cmd_taps(cfg)
         if a.command == "quick":
@@ -3831,7 +4029,14 @@ def main(argv=None):
             # refilled before its save, and it holds the LAST save in the
             # chain. A guard that runs before the last writer guards nothing.
             return verify_saved_fill(rel(cfg, cfg["project"]["board"]))
-        for fn in (cmd_prep, cmd_route, cmd_import, cmd_taps, cmd_stitch):
+        for fn in (cmd_prep, cmd_route):
+            rc = fn(cfg)
+            if rc:
+                return rc
+        rc = cmd_import(cfg, "build")
+        if rc:
+            return rc
+        for fn in (cmd_taps, cmd_stitch):
             rc = fn(cfg)
             if rc:
                 return rc

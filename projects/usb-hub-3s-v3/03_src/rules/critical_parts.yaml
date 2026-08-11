@@ -1,0 +1,19 @@
+schema: 1
+board: 04_kicad/usb_hub_3s_v2.kicad_pcb
+parts:
+  - id: usb_c_receptacle_j5
+    ref: J5
+    value: C5337088
+    dossier: 02_parts/TYPE-C-31-M-12A/part.yaml
+    source: >-
+      HRO TYPE-C-31-M-12A package drawing and pin table, cross-checked in the
+      v1.12 J5 geometry review; the previous footprint was the paid incident.
+    numbered_pads: [A1, A4, A5, A6, A7, A8, A9, A12,
+                    B1, B4, B5, B6, B7, B8, B9, B12, SH, SH, SH, SH]
+    pad_counts: {smd: 16, pth: 4, npth: 2}
+    drills:
+      - {attribute: npth, count: 2, diameter_mm: 0.60, tolerance_mm: 0.01}
+    pad_nets: {A1: GND, A4: VBUSC, A5: CC1, A6: DPC, A7: DMC,
+               B5: CC2, B6: DPC, B7: DMC, B9: VBUSC, B12: GND, SH: GND}
+    pad_sizes: {A1: [0.60, 1.14], A5: [0.30, 1.14]}
+    size_tolerance_mm: 0.01
