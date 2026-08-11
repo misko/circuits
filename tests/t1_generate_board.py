@@ -16,6 +16,7 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains, eq,  # no
 
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
+HUB4 = ROOT / "projects" / "usb-hub-3s-v4"
 
 
 def gen(cfg, out, cwd=LC, expect_ok=True):
@@ -1049,6 +1050,76 @@ def t_kb_via_protection_value():
     r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
     must_fail(r, "invalid via-protection value",
               "board.via_protection.capping must be a boolean (yes/no)")
+
+
+@test("marked footprint heatsink holes promote to real board vias with exact "
+      "geometry and net")
+def t_promote_heatsink_pads_to_vias():
+    d = tmpdir("gbg_thermal_")
+    out = d / "usb_hub_3s_v4.kicad_pcb"
+    r = gen(HUB4 / "03_src" / "floorplan.yaml", out, cwd=HUB4)
+    contains(r.out, "thermal vias: emitted 40 explicit + promoted 0 marked "
+             "heatsink pad(s) across 6 footprint(s)", "promotion coverage")
+    code = (
+        "import pcbnew,sys,collections\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "refs={'U1','U2','U3','U4','U5','U6'}\n"
+        "marked=sum(1 for f in b.GetFootprints() if f.GetReference() in refs "
+        "for p in f.Pads() if p.GetProperty()==pcbnew.PAD_PROP_HEATSINK "
+        "and p.GetDrillSize().x>0)\n"
+        "v=[t for t in b.GetTracks() if t.GetClass()=='PCB_VIA']\n"
+        "linked=[f for f in b.GetFootprints() if f.GetReference() in refs "
+        "and f.GetFPIDAsString() and 'generated thermal-via promotion' "
+        "not in f.GetLibDescription()]\n"
+        "geo=collections.Counter((round(t.GetWidth(pcbnew.F_Cu)/1e6,3),"
+        "round(t.GetDrill()/1e6,3),t.GetNetname()) for t in v)\n"
+        "print('@@%d|%d|%d|%r' % (marked,len(v),len(linked),sorted(geo.items())))\n")
+    rr = must_pass(run([KPY, "-c", code, out]), "probe promoted thermal vias")
+    result = rr.out.split("@@", 1)[1].strip()
+    check(result.startswith("0|40|6|"),
+          f"expected zero drilled heatsink pads, 40 true vias and six "
+          f"library-linked parity-safe footprints, got {result}")
+    contains(result, "(0.5, 0.2, 'GND'), 24", "0.20mm thermal via family")
+    contains(result, "(0.6, 0.3, 'GND'), 16", "0.30mm module via family")
+
+
+@test("thermal-via promotion refuses a named footprint with no marked holes",
+      kind="known_bad")
+def t_kb_promote_heatsink_empty_match():
+    def mutate(c):
+        c["thermal_vias"] = {"promote_heatsink_pads": ["U1"]}
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "empty heatsink-pad promotion", "has no drilled "
+              "pad_prop_heatsink pads")
+
+
+@test("an explicit thermal-via field refuses an unknown footprint",
+      kind="known_bad")
+def t_kb_thermal_field_unknown_ref():
+    def mutate(c):
+        c["thermal_vias"] = {"fields": [{"ref": "U_DOES_NOT_EXIST",
+                                           "pad": 1, "size": 0.5,
+                                           "drill": 0.2,
+                                           "at": [[0, 0]]}]}
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "unknown explicit thermal field", "unknown ref")
+
+
+@test("a self-intersecting zone polygon fails before KiCad can discard its "
+      "power-cell fill", kind="known_bad")
+def t_kb_zone_polygon_self_intersection():
+    def mutate(c):
+        z = c["zones"][0]
+        z.pop("rect", None)
+        z.pop("region", None)
+        # Crossed quadrilateral with NONZERO signed area, so this exercises
+        # the segment-intersection guard rather than only the area guard.
+        z["points"] = [[25, 25], [35, 25], [25, 35], [33, 35]]
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "self-intersecting zone", "self-intersection/overlap")
 
 
 @test("M-REPRO: two runs from identical source are BYTE-IDENTICAL, and no "

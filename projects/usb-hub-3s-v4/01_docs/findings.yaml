@@ -1,5 +1,5 @@
 schema: 1
-target: DRAFT
+target: DESIGN_CLEAN
 
 gates:
   - id: v4_commission_contract
@@ -19,24 +19,45 @@ gates:
     state: pass
     owner: electrical
     closes_when: Every selected part has a cited dossier, sourcing identity and verified application calculation; P-MOD, D-SPEC, E-PATH, E-TOPO, E-MARGIN, E-OFF, E-SWDRV and E-SURGE pass.
+    evidence:
+      - 01_docs/ARCHITECTURE.md
+      - 01_docs/DETAIL_DESIGN.md
+      - 01_docs/journal/parts.md
+      - 01_docs/sourcing/parts-selection-2026-08-10.md
+      - 03_src/rules/power_tree.yaml
+      - 03_src/rules/protection_paths.yaml
 
   - id: v4_schematic
     required_for: DESIGN_CLEAN
-    state: pending
+    state: pass
     owner: electrical
     closes_when: The generated schematic has zero ERC errors, complete parity/invariants, and an independent exact-netlist topology review reports SOUND.
+    evidence:
+      - 01_docs/journal/03_schematic.md
+      - 03_tscircuit/kicad/usb_hub_3s_v4.kicad_sch
+      - 08_reviews/pre-route_topology.md
 
   - id: v4_placement
     required_for: DESIGN_CLEAN
-    state: pending
+    state: pass
     owner: layout
     closes_when: The exact board placement passes the shared placement gates plus independent pin, layout and render reviews.
+    evidence:
+      - 01_docs/journal/placement.md
+      - 08_reviews/pre-route_pin.md
+      - 08_reviews/pre-route_layout.md
+      - 08_reviews/pre-route_render.md
 
   - id: v4_routing
     required_for: DESIGN_CLEAN
-    state: pending
+    state: pass
     owner: layout
     closes_when: The bounded route/import/stitch flow finishes with reproducible provenance and PCB DRC 0/0/0.
+    evidence:
+      - 01_docs/journal/routing.md
+      - 03_src/route.yaml
+      - 03_src/route/r4.kicad_pcb
+      - 04_kicad/usb_hub_3s_v4.kicad_pcb
 
   - id: v4_release_package
     required_for: FIRST_ARTICLE_ORDERABLE
@@ -72,7 +93,7 @@ findings:
       - 03_src/rules/protection_paths.yaml
 
   - id: V4-F4-advanced-tier-decision
-    state: open
+    state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: user
     finding: >-
@@ -82,6 +103,7 @@ findings:
       The Stage 1 pause accepts ADR-0004, or the architecture is backtracked to
       parts and geometry that are honestly manufacturable at standard tier.
     evidence:
+      - 01_docs/BRIEF.md
       - 01_docs/decisions/0004-jlc-advanced-via-in-pad.md
       - 03_src/rules/nets.yaml
 
@@ -110,7 +132,7 @@ findings:
       review for quantity five.
 
   - id: V4-F7-input-polarity-marking
-    state: open
+    state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: electrical
     finding: >-

@@ -140,7 +140,7 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.09,
+        "min_clearance": 0.1,
         "min_connection": 0.0,
         "min_copper_edge_clearance": 0.3,
         "min_groove_width": 0.0,
@@ -152,10 +152,10 @@
         "min_silk_clearance": 0.0,
         "min_text_height": 0.45,
         "min_text_thickness": 0.1125,
-        "min_through_hole_diameter": 0.3,
+        "min_through_hole_diameter": 0.2,
         "min_track_width": 0.09,
         "min_via_annular_width": 0.15,
-        "min_via_diameter": 0.6,
+        "min_via_diameter": 0.5,
         "solder_mask_to_copper_clearance": 0.0,
         "use_height_for_length_calcs": true
       },
@@ -271,7 +271,7 @@
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.2,
+        "clearance": 0.18,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -287,6 +287,159 @@
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "name": "VIN_TRUNK",
+        "clearance": 0.18,
+        "track_width": 1.0,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 1.0,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "PWR_5VA",
+        "clearance": 0.18,
+        "track_width": 1.0,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 1.0,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "PWR_5VC",
+        "clearance": 0.18,
+        "track_width": 1.0,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 1.0,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "PWR_PORT",
+        "clearance": 0.18,
+        "track_width": 0.8,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.8,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "SW_LOCAL",
+        "clearance": 0.18,
+        "track_width": 0.3,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.3,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "SENSE",
+        "clearance": 0.18,
+        "track_width": 0.18,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.18,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "USB_CHARGE_SIG",
+        "clearance": 0.18,
+        "track_width": 0.18,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.18,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "TYPEC_CC",
+        "clearance": 0.18,
+        "track_width": 0.18,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.18,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "CONTROL",
+        "clearance": 0.18,
+        "track_width": 0.18,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.18,
+        "diff_pair_via_gap": 0.25,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
       }
     ],
     "meta": {
@@ -294,7 +447,136 @@
     },
     "net_colors": null,
     "netclass_assignments": null,
-    "netclass_patterns": []
+    "netclass_patterns": [
+      {
+        "netclass": "VIN_TRUNK",
+        "pattern": "VBAT_FUSED"
+      },
+      {
+        "netclass": "VIN_TRUNK",
+        "pattern": "VIN"
+      },
+      {
+        "netclass": "PWR_5VA",
+        "pattern": "5VA"
+      },
+      {
+        "netclass": "PWR_5VC",
+        "pattern": "5VC_RAW"
+      },
+      {
+        "netclass": "PWR_5VC",
+        "pattern": "VBUSC"
+      },
+      {
+        "netclass": "PWR_PORT",
+        "pattern": "VBUSA1"
+      },
+      {
+        "netclass": "PWR_PORT",
+        "pattern": "VBUSA2"
+      },
+      {
+        "netclass": "PWR_PORT",
+        "pattern": "VBUSA3"
+      },
+      {
+        "netclass": "SW_LOCAL",
+        "pattern": "BOOT_A_R"
+      },
+      {
+        "netclass": "SW_LOCAL",
+        "pattern": "BOOT_A_C"
+      },
+      {
+        "netclass": "SW_LOCAL",
+        "pattern": "BOOT_C_R"
+      },
+      {
+        "netclass": "SW_LOCAL",
+        "pattern": "BOOT_C_C"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "FB_A"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "FB_C"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "ILIM_A1"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "ILIM_A2"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "ILIM_A3"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "PG_A"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "PG_C"
+      },
+      {
+        "netclass": "USB_CHARGE_SIG",
+        "pattern": "DM_A1"
+      },
+      {
+        "netclass": "USB_CHARGE_SIG",
+        "pattern": "DP_A1"
+      },
+      {
+        "netclass": "USB_CHARGE_SIG",
+        "pattern": "DM_A2"
+      },
+      {
+        "netclass": "USB_CHARGE_SIG",
+        "pattern": "DP_A2"
+      },
+      {
+        "netclass": "USB_CHARGE_SIG",
+        "pattern": "DM_A3"
+      },
+      {
+        "netclass": "USB_CHARGE_SIG",
+        "pattern": "DP_A3"
+      },
+      {
+        "netclass": "TYPEC_CC",
+        "pattern": "CC1"
+      },
+      {
+        "netclass": "TYPEC_CC",
+        "pattern": "CC2"
+      },
+      {
+        "netclass": "CONTROL",
+        "pattern": "EN_BUS"
+      },
+      {
+        "netclass": "CONTROL",
+        "pattern": "FAULT_C"
+      },
+      {
+        "netclass": "CONTROL",
+        "pattern": "FAULT_A1"
+      },
+      {
+        "netclass": "CONTROL",
+        "pattern": "FAULT_A2"
+      },
+      {
+        "netclass": "CONTROL",
+        "pattern": "FAULT_A3"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {
@@ -310,7 +592,13 @@
     "bus_aliases": {},
     "legacy_lib_dir": "",
     "legacy_lib_list": [],
-    "top_level_sheets": []
+    "top_level_sheets": [
+      {
+        "filename": "usb_hub_3s_v4.kicad_sch",
+        "name": "usb_hub_3s_v4",
+        "uuid": "00000000-0000-0000-0000-000000000000"
+      }
+    ]
   },
   "sheets": [],
   "text_variables": {},

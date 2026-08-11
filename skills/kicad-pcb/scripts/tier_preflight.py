@@ -736,22 +736,68 @@ class Preflight:
                               f"screen but can fail DRC hole_clearance",
                               fix=f"stitch.via.tiers: [{{..., "
                                   f"hole_to_copper: {want}}}]")
-        # Paths with NO config knob (via_site_ok default assumes a 0.20
-        # floor): flag as a generator gap when this board's floor differs.
+        # Paths outside Ctx.try_via must forward their own effective screen.
+        # Taps expose taps.via.hole_to_copper; A* accepts an explicit pin or
+        # inherits a matching stitch-via tier. Grade those values in BOTH
+        # directions, then report only a genuinely unresolved path.
+        def grade_path(param, value, source):
+            if value is None:
+                return False
+            eff = float(value)
+            self.note(f"{param}: effective {eff} [{source}] vs hole floor "
+                      f"{H} [{hsrc}]")
+            if eff > H + D["htc_slack"] + 1e-9:
+                self.fail("PF-HTC", param,
+                          f"effective {eff} is stricter than the board "
+                          f"hole_clearance floor {H} by "
+                          f"{round(eff - H, 3)}mm — a FALSE placement wall",
+                          fix=f"hole_to_copper: {want}")
+            elif eff < H - 1e-9:
+                self.fail("PF-HTC", param,
+                          f"explicit {eff} < board hole_clearance floor {H} "
+                          f"[{hsrc}] — this emitter can place vias the DRC "
+                          "hole_clearance check rejects",
+                          fix=f"hole_to_copper: {want}")
+            return True
+
+        taps_ok = True
+        if self.get("taps.connections"):
+            taps_ok = grade_path(
+                "taps.via.hole_to_copper",
+                self.get("taps.via.hole_to_copper"), "explicit")
+
+        astar_ok = True
+        if "astar_fallback" in (self.get("stitch.passes") or []):
+            av = self.get("stitch.astar_fallback.via") or {}
+            ahtc = av.get("hole_to_copper") if isinstance(av, dict) else None
+            asrc = "explicit"
+            if ahtc is None:
+                avs = float(av.get("size", self.tier["min_via_diameter"]))
+                avd = float(av.get("drill", self.tier["min_via_drill"]))
+                for te in self.get("stitch.via.tiers", []) or []:
+                    if (abs(float(te.get("size", -1)) - avs) < 1e-9
+                            and abs(float(te.get("drill", -1)) - avd) < 1e-9
+                            and "hole_to_copper" in te):
+                        ahtc = te["hole_to_copper"]
+                        asrc = "matching stitch.via.tiers entry"
+                        break
+            astar_ok = grade_path(
+                "stitch.astar_fallback.via.hole_to_copper", ahtc, asrc)
+
         if abs(D["via_site_htc"] - (H + 0.005)) > D["htc_slack"]:
-            users = [p for p, on in (
-                ("taps", bool(self.get("taps.connections"))),
-                ("stitch.seed_stubs", bool(self.get("stitch.seed_stubs.stubs"))),
-                ("stitch.astar_fallback",
-                 "astar_fallback" in (self.get("stitch.passes") or []))) if on]
+            users = []
+            if not taps_ok:
+                users.append("taps")
+            if not astar_ok:
+                users.append("stitch.astar_fallback")
             if users:
                 self.warn(
                     "PF-HTC", "+".join(users),
-                    f"these paths call via_site_ok with NO hole_to_copper "
-                    f"knob (hardcoded default {D['via_site_htc']}, assumes a "
-                    f"0.20 floor) but this board's floor is {H} — generator "
-                    f"gap, no config fix exists; expect false "
-                    f"refusals/DRC findings at the margin")
+                    f"these paths have no resolved hole_to_copper screen and "
+                    f"fall back to {D['via_site_htc']} (assumes a 0.20 floor), "
+                    f"but this board's floor is {H}; set "
+                    f"taps.via.hole_to_copper or "
+                    f"stitch.astar_fallback.via.hole_to_copper")
 
     def check_hole_to_hole(self):
         """PF-H2H: drill-edge spacing config vs the tier hole-to-hole floor."""

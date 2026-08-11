@@ -9,9 +9,9 @@ after it stayed bespoke. Surveying six shipped boards (usb-power-3s,
 ble-bus-bar, crow-array-pod, cook-loadcell, crowsync-recorder, cook-hub)
 showed the same pipeline every time, with different constants:
 
-    route-prep (track-free + unfilled + keepouts + rules ride along)
+    route-prep (segment-free + unfilled + keepouts + rules ride along)
       -> KRT waves, hardest-first, chained rN -> rN+1
-      -> import ONCE into the track-free base
+      -> import ONCE into the segment-free base (source vias preserved)
       -> taps (optional): collision-checked NAMED connections KRT cannot
          thread — pour-fed sense pins, boxed-in pads, plane drops
       -> stitch: clean KRT artifacts -> rescue pads -> stitch grid
@@ -38,14 +38,15 @@ LOAD-BEARING ORDER (each deviation reintroduces a debugged failure):
   * netclasses/ampacity floors exist BEFORE routing, and the route input
     carries its own .kicad_pro/.kicad_dru (canon R1) — `prep` refuses to
     run if the source .kicad_pro has no netclass patterns.
-  * the route input is TRACK-FREE and UNFILLED — KRT routes straight
-    through pre-existing copper otherwise (400+ silent crossings, twice).
-  * KRT output is imported ONCE, into the track-free base, never into a
-    board that already carries tracks (that doubles everything).
-  * `import` REFILLS the pours it imported into — EXCEPT when the stitch plan
-    places explicit copper before its own `fill` (`stitch.seed_stubs`), where
-    it must hand `import_krt.py --no-fill` or that pass cannot run at all
-    (see `_import_may_fill`).
+  * the route input is SEGMENT-FREE and UNFILLED — KRT routes straight
+    through pre-existing segments otherwise (400+ silent crossings, twice).
+    Source-owned vias remain as routing obstacles.
+  * KRT output is imported ONCE, into the segment-free base, never into a
+    board that already carries routed segments (that doubles everything).
+  * `import` REFILLS the pours it imported into — EXCEPT when a following
+    pipeline step places explicit copper before stitch's `fill` (`taps` or
+    `stitch.seed_stubs`), where it must hand `import_krt.py --no-fill` so the
+    later fill flows around that copper (see `_import_may_fill`).
   * `generate_rules` runs LAST, after the final pcbnew save. This script
     never writes .kicad_pro, so it cannot clobber netclasses — but the
     caller still has to re-run its rules generator afterwards, and
@@ -401,11 +402,16 @@ def cmd_prep(cfg):
     out.parent.mkdir(parents=True, exist_ok=True)
 
     b = pcbnew.LoadBoard(str(src))
-    tracks = list(b.GetTracks())
-    if tracks:
-        die(f"route-prep expects a TRACK-FREE board, found {len(tracks)} "
-            f"tracks in {src.name} — KRT routes straight through existing "
-            f"copper (400+ silent crossings, observed twice)")
+    copper = list(b.GetTracks())
+    segments = [item for item in copper if item.GetClass() != "PCB_VIA"]
+    source_vias = [item for item in copper if item.GetClass() == "PCB_VIA"]
+    if segments:
+        die(f"route-prep expects a SEGMENT-FREE board, found {len(segments)} "
+            f"routed copper item(s) in {src.name} — KRT routes straight "
+            f"through existing segments (400+ silent crossings, observed "
+            f"twice)")
+    if source_vias:
+        print(f"source-owned vias: {len(source_vias)} preserved as KRT obstacles")
     nfilled = 0
     for z in b.Zones():
         if z.IsFilled():
@@ -990,6 +996,9 @@ def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
     the ruler). The per-candidate numbers land in the route log
     (race_log.json) so the choice is auditable, never vibes."""
     print(f"race: {n} candidate wave-chains, concurrent")
+    # A marker from an earlier race must never survive a failed rerun and be
+    # mistaken for this run's winner by `import --route-source build`.
+    (build / "FINAL").unlink(missing_ok=True)
     results = {}
     cancel_event = threading.Event()
     threads = [threading.Thread(target=_race_candidate,
@@ -1035,13 +1044,19 @@ def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
         die(f"all {n} race candidates failed: "
             + "; ".join(f"c{i}: {r['error'][:80]}"
                         for i, r in sorted(results.items())))
-    best = min(ok, key=lambda i: (ok[i]["unconnected"],
-                                  ok[i]["violations"], i))
+    clean = {i: r for i, r in ok.items()
+             if str(r.get("verdict", "")).upper() == "CLEAN"}
+    best = (min(clean, key=lambda i: (clean[i]["unconnected"],
+                                      clean[i]["violations"], i))
+            if clean else None)
     log = {"candidates": {str(i): results[i] for i in sorted(results)},
            "chosen": best,
-           "rule": "min routed-net unconnected, then min copper violations,"
-                   " then lowest index"}
+           "rule": "CLEAN candidates only; then min routed-net unconnected, "
+                   "min copper violations, then lowest index"}
     (build / "race_log.json").write_text(json.dumps(log, indent=1) + "\n")
+    if best is None:
+        die(f"all {n} completed race candidates are DIRTY — refusing to "
+            f"promote a least-bad route; inspect {build / 'race_log.json'}")
     chain = Path(ok[best]["chain"])
     print(f"race winner: c{best} ({ok[best]['unconnected']} unconnected, "
           f"{ok[best]['violations']} violations) -> {chain}")
@@ -1076,6 +1091,12 @@ def _import_may_fill(cfg):
     the chain: a recipe not expressible in `route.yaml` is a canon-M3 violation
     wearing a green gate.
 
+    Named `taps.connections` also place explicit copper between import and
+    stitch. A pre-filled zone does not flow around their new segments/vias;
+    the stale fill then reports zero-clearance and zero-hole-clearance noise
+    until a later refill. Keep it unfilled so quick measures the copper that
+    actually exists and stitch's declared `fill` owns the first pour.
+
     DERIVED, NOT DECLARED — deliberately no new config key. An opt-in
     `import.fill: false` would leave the failure mode alive (configure
     seed_stubs, forget the key, die at stitch); and the fact is already
@@ -1085,6 +1106,8 @@ def _import_may_fill(cfg):
     Every other board keeps the old post-import filled state byte-for-byte,
     because the pre-`fill` stitch passes were debugged against it.
     """
+    if get(cfg, "taps.connections") or []:
+        return False
     order = list(get(cfg, "stitch.passes", DEFAULT_PASSES) or [])
     if not (get(cfg, "stitch.seed_stubs.stubs") or []):
         return True
@@ -1097,7 +1120,7 @@ def _import_may_fill(cfg):
 
 
 def cmd_import(cfg, route_source=None):
-    """Import the final chain file ONCE into the track-free base."""
+    """Import the final chain file ONCE into the segment-free base."""
     _critical_route_gate(cfg)
     import pcbnew
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
@@ -1139,11 +1162,16 @@ def cmd_import(cfg, route_source=None):
         die(f"chain file {chain} not found")
     target = rel(cfg, cfg["project"]["board"])
     b = pcbnew.LoadBoard(str(target))
-    n = len(list(b.GetTracks()))
-    if n:
-        die(f"import target {target.name} already has {n} tracks — "
+    copper = list(b.GetTracks())
+    segments = [item for item in copper if item.GetClass() != "PCB_VIA"]
+    source_vias = [item for item in copper if item.GetClass() == "PCB_VIA"]
+    if segments:
+        die(f"import target {target.name} already has {len(segments)} routed "
+            f"copper item(s) — "
             f"re-importing DOUBLES everything (holes_co_located x69, "
             f"observed 2026-07). Regenerate the board first.")
+    if source_vias:
+        print(f"import base: {len(source_vias)} source-owned vias preserved")
     stale = Path(str(target) + Ctx.STATE_SUFFIX)
     if stale.is_file():
         stale.unlink()          # a fresh import invalidates any resume point
@@ -1210,7 +1238,7 @@ def _tap_point(board, spec, netname, what):
     die(f"{what}: endpoint must be 'REF.PAD' or [x, y], got {spec!r}")
 
 
-def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd):
+def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd, htc=None):
     """A collision-checked via site near p, reachable from p by a clear stub
     on `layer` (the escape-from-a-dense-pin-row move).
 
@@ -1231,11 +1259,17 @@ def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd):
     the stitch moved the HO_A via 0.6mm east; that is the right answer, and
     it needs a repair pass, not a stricter placer. Every OTHER constraint
     (copper clearance, hole-to-copper, the stub's own path) stays hard —
-    nothing downstream repairs those."""
+    nothing downstream repairs those.
+
+    Preserve the exact pad coordinate for the zero-offset site. Rounding a
+    half-micron pad centre to the millimetre grid made `p1 != v1` and emitted
+    a 0.0005mm full-width stub beside an adjacent fine-pitch signal pad."""
     for dx, dy in TAP_OFFS:
-        v = (round(p[0] + dx, 3), round(p[1] + dy, 3))
+        v = p if dx == 0 and dy == 0 else \
+            (round(p[0] + dx, 3), round(p[1] + dy, 3))
+        kw = {"hole_to_copper": htc} if htc is not None else {}
         if not tk.via_site_ok(v[0], v[1], nc, size=vs, drill=vd,
-                              hole_to_hole=0):
+                              hole_to_hole=0, **kw):
             continue
         if (dx == 0 and dy == 0) or \
                 tk.collides(p[0], p[1], v[0], v[1], stub_w, nc, layer) is None:
@@ -1243,7 +1277,7 @@ def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd):
     return None
 
 
-def _route_one_tap(pcbnew, tk, t, i, vs, vd):
+def _route_one_tap(pcbnew, tk, t, i, vs, vd, htc=None):
     """One tap, cheapest strategy first; every emitted segment/via is
     verified against the live board's exact copper (pcb_toolkit collides /
     via_site_ok / joinpath). Returns how it routed, or None."""
@@ -1257,15 +1291,31 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd):
     hop = _layer_id(pcbnew, t.get("hop_layer", "B.Cu"))
     what = f"taps.connections[{i}] ({netname})"
     p1 = _tap_point(tk.board, t.get("from"), netname, what + " from")
-    p2 = _tap_point(tk.board, t.get("to"), netname, what + " to")
+    drop = bool(t.get("drop"))
+    if drop and not t.get("plane"):
+        die(f"{what}: `drop: true` requires `plane: true`")
+    p2 = p1 if drop else \
+        _tap_point(tk.board, t.get("to"), netname, what + " to")
 
     if t.get("plane"):
         # plane tap: stub -> via near `from` -> hop-layer join -> via AT `to`
         # (a point where the net's inner plane exists, so the fill merges it)
-        v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd)
-        if not v1 or not tk.via_site_ok(p2[0], p2[1], nc, size=vs, drill=vd):
+        v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd, htc)
+        if not v1:
             return None
-        if tk.joinpath(netname, v1, p2, w, layer=hop) is None:
+        if drop:
+            # The declared plane already lies under the source pad. One
+            # collision-checked via is the complete connection; a second via
+            # and track merely create a needless neck inside the same pour.
+            if p1 != v1:
+                tk.add_seg(*p1, *v1, nobj, lay, w)
+            tk.add_via(*v1, nobj, size=vs, drill=vd)
+            return "plane_drop"
+        kw = {"hole_to_copper": htc} if htc is not None else {}
+        if not tk.via_site_ok(p2[0], p2[1], nc, size=vs, drill=vd, **kw):
+            return None
+        if tk.joinpath(netname, v1, p2, w, layer=hop,
+                       widths_fallback=()) is None:
             return None
         if p1 != v1:
             tk.add_seg(*p1, *v1, nobj, lay, w)
@@ -1283,7 +1333,8 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd):
         # rescue this: measured on usb-hub-3s-v2 TPS25740A, a 2.5mm part shift
         # moved the haul only 7.0->6.2mm because the channel y-gap dominates and
         # cannot shrink (the gate nets need it). `to` is a point inside the pour.
-        if not tk.via_site_ok(p1[0], p1[1], nc, size=vs, drill=vd):
+        kw = {"hole_to_copper": htc} if htc is not None else {}
+        if not tk.via_site_ok(p1[0], p1[1], nc, size=vs, drill=vd, **kw):
             print(f"       {what}: via-in-pad site blocked at {p1}")
             return None
         # vs/vd, NOT the toolkit's 0.45/0.2 default: the escape's layer-change
@@ -1295,17 +1346,20 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd):
                              window=float(t.get("escape_window", 4.0)),
                              viacost=int(t.get("escape_viacost", 8)),
                              attempts=int(t.get("escape_attempts", 14)),
-                             via_size=vs, via_drill=vd):
+                             via_size=vs, via_drill=vd,
+                             hole_to_copper=htc):
             return "escape"
         return None
 
     # strategy 1: same-layer join (direct / L / Z scan), no vias
-    if tk.joinpath(netname, p1, p2, w, layer=lay) is not None:
+    if tk.joinpath(netname, p1, p2, w, layer=lay,
+                   widths_fallback=()) is not None:
         return "joinpath"
     # strategy 2: via hop — stub -> via -> hop-layer join -> via -> stub
-    v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd)
-    v2 = _tap_via_near(tk, p2, nc, w, lay, vs, vd)
-    if v1 and v2 and tk.joinpath(netname, v1, v2, w, layer=hop) is not None:
+    v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd, htc)
+    v2 = _tap_via_near(tk, p2, nc, w, lay, vs, vd, htc)
+    if v1 and v2 and tk.joinpath(netname, v1, v2, w, layer=hop,
+                                 widths_fallback=()) is not None:
         if p1 != v1:
             tk.add_seg(*p1, *v1, nobj, lay, w)
         tk.add_via(*v1, nobj, size=vs, drill=vd)
@@ -1325,13 +1379,17 @@ def cmd_taps(cfg):
 
       taps:
         clearance: 0.15
-        via: {size: 0.6, drill: 0.3}   # tier-derived when omitted
+        via: {size: 0.6, drill: 0.3, hole_to_copper: 0.255}
+                                            # size/drill tier-derived; the
+                                            # drilled-hole screen is explicit
         connections:
           - {net: VCC,  from: U1.4,  to: C8.1,        width: 0.3}
           - {net: CC1,  from: J5.A5, to: R10.2,       width: 0.25,
              layer: F.Cu, hop_layer: B.Cu}
           - {net: 5V,   from: R6.1,  to: [41.0, 46.5], width: 0.3,
              plane: true}    # `to` = a point inside the net's plane
+          - {net: 5V,   from: U2.4, width: 0.3, plane: true,
+             drop: true}     # plane is already directly under the pad
     """
     import pcbnew
     sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -1343,6 +1401,8 @@ def cmd_taps(cfg):
     via = dict(get(cfg, "taps.via", {}) or {})
     tier_geometry(via, fab_tier(cfg), "taps.via", keymap=_VIA_KEYMAP)
     vs, vd = float(via.get("size", 0.6)), float(via.get("drill", 0.3))
+    htc = float(via["hole_to_copper"]) \
+        if "hole_to_copper" in via else None
     target = rel(cfg, cfg["project"]["board"])
     clr = float(get(cfg, "taps.clearance", 0.15))
     bref = pcbnew.LoadBoard(str(target))   # read-only, for endpoint geometry
@@ -1358,7 +1418,7 @@ def cmd_taps(cfg):
         failed = []
         for idx in order:
             t = taps[idx]
-            how = _route_one_tap(pcbnew, tkk, t, idx, vs, vd)
+            how = _route_one_tap(pcbnew, tkk, t, idx, vs, vd, htc)
             print(f"  {tag}tap {t.get('net', '?'):8} {t.get('from')} -> "
                   f"{t.get('to')}  w={t.get('width', 0.3)}  "
                   f"{'OK ' + how if how else 'FAIL'}")
@@ -1777,7 +1837,8 @@ def p_normalize_vias(ctx, c):
     size, drill = float(c.get("size", 0.6)), float(c.get("drill", 0.3))
     n = 0
     for t in ctx.board.GetTracks():
-        if t.GetClass() == "PCB_VIA" and t.GetWidth() / 1e6 < lo:
+        if (t.GetClass() == "PCB_VIA"
+                and t.GetWidth(ctx.pcbnew.F_Cu) / 1e6 < lo):
             t.SetWidth(int(size * 1e6))
             t.SetDrill(int(drill * 1e6))
             n += 1
@@ -2115,7 +2176,7 @@ def p_hole_to_hole(ctx, c):
         0.72mm away, leaving the B.Cu chain floating -> 1 unconnected + 1
         track_dangling at the FULL DRC gate, on a chain that raced 0/0."""
         vx, vy = vxy(v)
-        r = v.GetWidth() / 2e6
+        r = v.GetWidth(pcbnew.F_Cu) / 2e6
         for t in tracks_by_net.get(v.GetNetCode(), []):
             (ax, ay), (bx, by) = _ends_mm(t)
             if (abs(ax - vx) < 0.05 and abs(ay - vy) < 0.05) or \
@@ -2186,7 +2247,7 @@ def p_hole_to_hole(ctx, c):
                     # the first ring is 0.25mm — well inside the h2h floor, so
                     # without the skip a via could never step off its own site.
                     if not ctx.tk.via_site_ok(nx, ny, vm.GetNetCode(),
-                                              size=vm.GetWidth() / 1e6,
+                                              size=vm.GetWidth(pcbnew.F_Cu) / 1e6,
                                               drill=vm.GetDrill() / 1e6,
                                               skip=[vm]):
                         continue
@@ -2825,7 +2886,7 @@ def p_janitor(ctx, c):
     for v in [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"]:
         nn = v.GetNetname()
         vx, vy = v.GetPosition().x / 1e6, v.GetPosition().y / 1e6
-        r2 = (v.GetWidth() / 2e6) ** 2
+        r2 = (v.GetWidth(pcbnew.F_Cu) / 2e6) ** 2
         attach = set()
         for t in ctx.board.GetTracks():
             if t.GetClass() == "PCB_VIA" or t.GetNetCode() != v.GetNetCode():
@@ -2842,7 +2903,7 @@ def p_janitor(ctx, c):
                         or abs(pp.y / 1e6 - vy) > pad_win):
                     continue
                 bb = p.GetBoundingBox()
-                bb.Inflate(v.GetWidth() // 2)
+                bb.Inflate(v.GetWidth(pcbnew.F_Cu) // 2)
                 if bb.Contains(v.GetPosition()):
                     for lay in (pcbnew.F_Cu, pcbnew.B_Cu):
                         if p.IsOnLayer(lay):
@@ -2898,7 +2959,7 @@ def p_prune_stitch_dangling(ctx, c):
         if not any(abs(vx - ex) <= tol and abs(vy - ey) <= tol
                    for ex, ey in emitted):
             continue                        # not ours — never touch it
-        r2 = (v.GetWidth() / 2e6) ** 2
+        r2 = (v.GetWidth(pcbnew.F_Cu) / 2e6) ** 2
         attach = set()
         for t in ctx.board.GetTracks():
             if t.GetClass() == "PCB_VIA" or t.GetNetCode() != v.GetNetCode():
@@ -2911,7 +2972,7 @@ def p_prune_stitch_dangling(ctx, c):
                 if p.GetNetCode() != v.GetNetCode():
                     continue
                 bb = p.GetBoundingBox()
-                bb.Inflate(v.GetWidth() // 2)
+                bb.Inflate(v.GetWidth(pcbnew.F_Cu) // 2)
                 if bb.Contains(v.GetPosition()):
                     for lay in (pcbnew.F_Cu, pcbnew.B_Cu):
                         if p.IsOnLayer(lay):

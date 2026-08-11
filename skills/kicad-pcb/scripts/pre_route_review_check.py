@@ -6,9 +6,14 @@ exists so datasheet authority, topology, placement, and render defects do not
 first appear after routing.  Review files are data: each carries a closed
 ``design_verdict`` and hashes of the exact artifact(s) it reviewed.  KiCad's
 legacy netlist exporter rewrites its export clock and schematic-instance UUIDs
-on every invocation.  Those fields carry no electrical meaning, so the
-topology hash normalizes only that volatile metadata; every component, value,
-footprint, property, net, node, and pin byte remains bound by the review.
+on every invocation.  Exporting the byte-identical pinned schematic from its
+canonical reuse directory also rewrites the design source path and generated
+``Sheetname``/``Sheetfile`` properties and project-derived netclass labels.
+Those fields carry no electrical connectivity meaning (the separately bound
+design-rule digest owns the netclass policy), so the topology hash normalizes
+that presentation metadata; every
+component identity, value, footprint, non-sheet property, net, node, physical
+pin and no-connect byte remains bound by the review.
 
 VACUITY: this checker can prove that named review bytes are current and say
 SOUND; it cannot prove the reviewer was genuinely independent or competent.
@@ -53,6 +58,29 @@ def netlist_digest(path: Path) -> str:
     if dates != 1:
         raise ValueError(
             f"expected exactly one KiCad export date in {path}, found {dates}")
+    text, sources = re.subn(
+        r'(\(source\s+")[^"]*("\))',
+        r'\1<KICAD_SCHEMATIC_SOURCE>\2',
+        text,
+        count=1,
+    )
+    if sources != 1:
+        raise ValueError(
+            f"expected exactly one KiCad schematic source in {path}, found {sources}")
+    # KiCad derives these two component properties from the path used for the
+    # export.  The full driver exports 04_kicad/<board>.kicad_sch while the
+    # deterministic driver exports the byte-identical pinned copy under
+    # 03_tscircuit/kicad/.  Binding either value would make the two canonical
+    # drivers mutually incompatible without protecting an electrical fact.
+    for name in ("Sheetname", "Sheetfile"):
+        text = re.sub(
+            r'\(property\s+\(name\s+"' + name +
+            r'"\)\s+\(value\s+"[^"]*"\)\s*\)',
+            f'(property (name "{name}") (value "<KICAD_{name.upper()}>") )',
+            text,
+        )
+    text = re.sub(r'(\(class\s+")[^"]*("\))',
+                  r'\1<KICAD_PROJECT_NETCLASS>\2', text)
     return hashlib.sha256(text.encode()).hexdigest()
 
 

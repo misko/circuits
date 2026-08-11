@@ -1,4 +1,4 @@
-subject: usb-hub-3s-v4 canonical schematic normalized-netlist a05e2e137168
+subject: usb-hub-3s-v4 canonical schematic electrical-netlist 56259186049e
 date: 2026-08-11
 reviewer: Codex root, separate hash-bound topology/ratings pass using generated-netlist inspection and vendor-source re-derivation
 independence_limit: same task owns the design and this review; exact-byte and second-parser checks are independent instruments, but external-human independence remains a declared G-VACUOUS process boundary
@@ -6,20 +6,23 @@ review_stage: pre-route
 review_kind: topology
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-netlist_sha256: a05e2e137168339f0d0980dce58edd4503c6dd49e79950cc43dd89007c07b27e
-parts_sha256: 61b5e8c654c88512b75d139c4fd3caff4a17dafec9cbc3b0e32c028742b25c8f
-design_rules_sha256: 44e0cf9caa8eb833647413b7f8af90907852b9fcee18efbc54081117af9e5cd6
-raw_netlist_sha256: 41b7a04e51426ae18ec11a7a3c13322776be599af3e74692c894fee71c98078e
-schematic_sha256: 6fe3f84f1176ee100811c2e21ef6c213c49676e31135d8c6dcb202e455a40c6b
-circuit_json_sha256: b40a3c9f3ad9e15108c98eec1026861c4351c6104ba889acc9d4647e16b959a4
+netlist_sha256: 56259186049e0344119d4862f1fc3cf52709924f0298b36098cb8ca141737597
+parts_sha256: d2c061e3ea7d3ed1ed57410d6ef4cf551384ed02440339c8fcee0207b7f4fd3d
+design_rules_sha256: d527db4303161f3501ebcdcff57e3314318bf79599a4915bec429f4cd0d887dd
+raw_netlist_sha256: bfaec338e4598ee29ed395e46563380e264db568a824d90e0fe5f2759a9e2ad8
+schematic_sha256: 71b598821511a220c2a59204ca199489956578f169efa246416866a4d85e9559
+circuit_json_sha256: 954da1f76f9894f61478451a1fa0d48dcc50eb47f5d43e035540c31ae18d4dba
 tsx_sha256: d76cfde91a7bac158ad50e1a4a7c34fa9653a844ed73a02057b0dbd4356204a8
 manifest_sha256: 5fc11998c0872b092b060dcac19416504e17210d32479bed8904360926907f61
-human_schematic_pdf_sha256: 9efafd26b9b3379db7a253902e186045efab6c40cfafe8b02a4457fa299ca1f8
+human_schematic_pdf_sha256: a85b912f51c6b3df56c87a39a7a1ce5509fc5d3b2beec1d2d3adf1b7876f45ab
 
-The checker-defined `netlist_sha256` normalizes only KiCad's export time and
-UUID-shaped instance stamps. Component identities, values, footprints, nets,
-nodes, physical pin names and no-connects remain byte-bound. This review is a
-permission to spend on placement, not a fabrication or safety approval.
+The checker-defined `netlist_sha256` normalizes KiCad's export time,
+UUID-shaped instance stamps, schematic source path, generated Sheetname/
+Sheetfile properties and project-derived netclass labels. The separately bound
+rules digest owns netclass policy. Component identities, values, footprints,
+non-sheet properties, nets, nodes, physical pin names and no-connects remain
+byte-bound. This review is a permission to spend on placement, not a
+fabrication or safety approval.
 
 # Pre-route topology review
 
@@ -34,14 +37,38 @@ fiducial additions only. The normalized netlist remains exactly
 `a05e2e137168...`; no component, value, connection or no-connect changed, so
 the topology conclusions are not reopened.
 
+The Stage 4 pre-route rebind covers only the routing recipe, measured
+pad-launch scopes and associated rule-area/zone declarations. The normalized
+netlist remains byte-identical, so no topology conclusion changed.
+
+The final pre-route rebind additionally records J5's fab-local locator-corner
+relief, parity-safe explicit thermal vias, simple-zone validation, rail-test
+point locations and hole-clearance-aware tap/via settings. The from-source
+rebuild changed generated schematic/netlist serialization, so the witness was
+not copied forward: the exact regenerated netlist was traversed again. Its
+semantic projection remains 60 nets and 270 nodes, the critical rail traces
+below are unchanged, and all independent semantic gates pass; the current
+electrical artifact was re-reviewed and is now bound as `56259186049e...`.
+
+The routed-replay rebind changes only `flow.budgets_s.tscircuit_build` and
+`flow.timeouts_s.tscircuit_build`, adding observability/deadline metadata to
+the foreign producer. It changes no electrical rule, route geometry or board
+artifact; the broad design-rules digest nevertheless includes all route YAML.
+
+The deterministic-replay rebind additionally removes only the exporter path,
+generated sheet metadata and project-derived netclass labels from the topology
+digest. Direct diffing proved these were the complete differences between
+netlists exported from the byte-identical full-build and pinned schematics.
+Clean/known-bad tests retain value, footprint, connection and pin sensitivity.
+
 The review used three paths: direct netlist traversal of every critical rail,
 the repository's independently implemented semantic gates, and a new reading
 of the exact manufacturer application/pin tables. The final generated state is
 76/76 refdes in source, manifest, circuit JSON, KiCad schematic and netlist;
 60 nets and 270 connected nodes. TSX-DIAG reports zero embedded errors. ERC is
-zero errors. The 562 recorded ERC warnings are 336 generated off-grid geometry,
-149 synthetic-library lookup, 76 footprint-library lookup and one generated
-wire-end warning; the exact netlist still passes 39/39 label-survival and 43/43
+zero errors. The 486 recorded ERC warnings are 336 generated off-grid geometry,
+149 synthetic-library lookup and one generated wire-end warning; the exact
+netlist still passes 39/39 label-survival and 43/43
 pin assertions, so none is an electrical orphan.
 
 The one-page human schematic is electrically coherent and readable when

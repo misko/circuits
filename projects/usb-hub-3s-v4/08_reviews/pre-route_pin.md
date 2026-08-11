@@ -1,4 +1,4 @@
-subject: usb-hub-3s-v4 exact placed board a8404ae41e79
+subject: usb-hub-3s-v4 exact placed board 0245323bcef5
 date: 2026-08-11
 reviewer: Codex root, adversarial physical-pin/package-land pass over exact board, circuit JSON, dossiers and manufacturer lands
 independence_limit: same task owns design and review; P-PINMAP and direct pcbnew inspection are independent instruments, but external-human independence remains a declared process boundary
@@ -6,9 +6,9 @@ review_stage: pre-route
 review_kind: pin
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-board_sha256: a8404ae41e79fb12a9428e40100be15e66aa58a752e795845e6920c0d083160b
-parts_sha256: 61b5e8c654c88512b75d139c4fd3caff4a17dafec9cbc3b0e32c028742b25c8f
-design_rules_sha256: 44e0cf9caa8eb833647413b7f8af90907852b9fcee18efbc54081117af9e5cd6
+board_sha256: 0245323bcef57d6d4327ae8ce5b545bee50512851d02c08ed59ac8ace8707137
+parts_sha256: d2c061e3ea7d3ed1ed57410d6ef4cf551384ed02440339c8fcee0207b7f4fd3d
+design_rules_sha256: d527db4303161f3501ebcdcff57e3314318bf79599a4915bec429f4cd0d887dd
 circuit_json_sha256: b40a3c9f3ad9e15108c98eec1026861c4351c6104ba889acc9d4647e16b959a4
 
 # Pre-route physical-pin and package-land review
@@ -18,6 +18,19 @@ circuit_json_sha256: b40a3c9f3ad9e15108c98eec1026861c4351c6104ba889acc9d4647e16b
 No P0/P1 physical-pin, pad-order, package-land, polarity or fused-land finding
 remains. The exact placed board is SOUND to proceed to routing under this
 lens. It is unrouted and not an order candidate.
+
+Stage 4 regenerated this track-free board with routing-owned rule areas,
+local power-island zones and 40 explicitly declared board-level thermal vias.
+The U1-U6 SMD lands and all physical pin identities remain unchanged. Their
+footprints remain library-linked, so schematic parity and footprint provenance
+survive the via transformation instead of being hidden by a blank board FPID.
+J5's four duplicated GND lands keep the manufacturer centre and 0.60 x 1.15 mm
+envelope while only the locator-facing corner is relieved. The exact hashes
+above bind this re-review.
+
+The routed-replay hash rebind adds only the TSX producer's heartbeat budget
+and hard timeout under `flow`; it changes no pin, land, fabrication rule or
+board byte.
 
 P-PINMAP passes 16 multi-pin references and 160 declared physical pin
 identities. S-COUNT passes all four generated representations over 76 refdes.
@@ -56,8 +69,11 @@ The board generator independently passes 18 named pad/net assertions.
   D1 and D5 retain their cathode/anode assignments. F1's duplicated physical
   holder clips are explicit same-net aliases rather than lost pins.
 
-The project-local aliases for GCT, TI and the frozen `SOT-9X3` name all load in
-KiCad and their actual pad sets—not library labels—are what P-PINMAP grades.
+The project-local aliases for GCT, TI, the frozen `SOT-9X3` name and vendored
+`SOT-23-6` all load in KiCad. P-PINMAP grades the actual remaining pad sets,
+not library labels; the explicit thermal primitives are separately graded as
+40 true GND vias by the generator test. A full-severity, refill and
+schematic-parity pre-route DRC reports zero parity findings.
 
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER

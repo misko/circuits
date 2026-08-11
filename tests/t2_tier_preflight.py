@@ -175,6 +175,35 @@ def t_htc_explicit_underfloor():
     contains(r.out, "DRC hole_clearance check rejects", "direction named")
 
 
+@test("PF-HTC accepts explicit tap and A-star hole screens")
+def t_htc_taps_astar_explicit():
+    def add_paths(r):
+        r["taps"] = {"via": {"size": 0.30, "drill": 0.15,
+                               "hole_to_copper": 0.155},
+                     "connections": [{"net": "A", "from": "U1.1",
+                                      "to": [1, 1]}]}
+        r["stitch"]["passes"].insert(0, "astar_fallback")
+        r["stitch"]["astar_fallback"] = {
+            "via": {"size": 0.30, "drill": 0.15,
+                    "hole_to_copper": 0.155}}
+    r = must_pass(preflight(scratch(mut_route=add_paths)),
+                  "explicit tap/A-star screens")
+    not_contains(r.out, "no resolved hole_to_copper", "resolved paths warned")
+
+
+@test("PF-HTC FAILS an explicit tap hole screen below the board floor",
+      kind="known_bad")
+def t_htc_tap_underfloor():
+    def add_bad_tap(r):
+        r["taps"] = {"via": {"size": 0.30, "drill": 0.15,
+                               "hole_to_copper": 0.10},
+                     "connections": [{"net": "A", "from": "U1.1",
+                                      "to": [1, 1]}]}
+    r = must_fail(preflight(scratch(mut_route=add_bad_tap)),
+                  "under-floor tap screen", "PF-HTC")
+    contains(r.out, "taps.via.hole_to_copper", "tap path named")
+
+
 @test("PF-LAYER FAILS wrong via-site/rescue layer coverage: island_rescue "
       "blind to a declared In4.Cu plane", kind="known_bad")
 def t_layer_cover():

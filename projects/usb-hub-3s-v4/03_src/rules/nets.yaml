@@ -3,6 +3,47 @@
 fab_tier: jlc_4layer_advanced
 default_clearance: 0.18mm
 
+# The high-current classes describe the widened track/pour outside component
+# lands. Four IC land families cannot physically emit those trunk widths at
+# 0.20 mm local clearance, measured by P-LAND on the v0.4.0 exact placement.
+# Each relaxation is bounded to a permissive F.Cu rule area covering only the
+# named land and <=1.5 mm of launch; the route must widen immediately outside.
+scoped_floors:
+  - zone: u1_5va_launch
+    nets: [5VA]
+    min_width: 0.50mm
+    why: >-
+      MEASURED 2026-08-11: TPSM63610 U1.5 is a 1.20 x 0.25 mm auxiliary VOUT
+      land on 0.65 mm pitch and can launch at most 0.650 mm versus the 1.0 mm
+      PWR_5VA floor. Pins 9/10 and the adjacent output pour carry the trunk;
+      this <=1.5 mm pin-local 0.50 mm taper is shorter than its own pad and
+      widens immediately into the 5VA pour.
+  - zone: u2_5vc_launch
+    nets: [5VC_RAW]
+    min_width: 0.30mm
+    why: >-
+      MEASURED 2026-08-11: TPSM63604 U2.5 is a 0.90 x 0.25 mm auxiliary VOUT
+      land on 0.50 mm pitch and can launch at most 0.350 mm versus the 1.0 mm
+      PWR_5VC floor. Pins 8/9 and the output-capacitor pour carry the 3.64 A
+      path; this measured 2.60 mm 0.30 mm auxiliary-land branch terminates
+      directly in that pour and carries no trunk-current claim.
+  - zone: usba_switch_in_launch
+    nets: [5VA]
+    min_width: 0.80mm
+    why: >-
+      MEASURED 2026-08-11: each TPS2557 IN bank has three parallel 0.85 x
+      0.35 mm lands and P-LAND measures 0.900 mm maximum at pin 2 versus the
+      1.0 mm shared-rail floor. The three repeated <=1.5 mm launch areas permit
+      0.80 mm only across the parallel pin bank before the full 5VA pour.
+  - zone: charge_signature_supply_launch
+    nets: [5VA]
+    min_width: 0.80mm
+    why: >-
+      MEASURED 2026-08-11: TPS2513 U7/U8 pin 5 can launch at most 0.900 mm
+      against the inherited 1.0 mm 5VA trunk floor. These controllers draw
+      only signal-level supply current; the two <=1.5 mm areas allow a bounded
+      0.80 mm branch without relaxing any high-current trunk segment.
+
 # Input fuse: user-installed 10 A MINI blade in Keystone 3568 holder.
 classes:
   VIN_TRUNK:
@@ -10,6 +51,7 @@ classes:
     nets: [VBAT_FUSED, VIN]
     current: "7.2 A design trunk; 6.74 A calculated coincident output peak at 9V/90% plus routing allowance"
     min_width: 1.0mm
+    clearance: 0.18mm
     routing: "plane/pour fed; track width is only a connectivity floor"
     verify: "filled-copper extraction, via cross-section and first-article thermal rise"
 
@@ -18,6 +60,7 @@ classes:
     nets: [5VA]
     current: "8 A rated module / 7.5 A claimed coincident peak"
     min_width: 1.0mm
+    clearance: 0.18mm
     routing: "short symmetric pour from U1 output capacitors to U4-U6"
     verify: "A-AMP copper extraction and loaded-port symmetry measurement"
 
@@ -26,6 +69,7 @@ classes:
     nets: [5VC_RAW, VBUSC]
     current: "3.64 A worst-high TPS25810 current limit"
     min_width: 1.0mm
+    clearance: 0.18mm
     routing: "short pour; preserve four parallel Type-C VBUS and GND contacts"
     verify: "A-AMP plus hot four-wire path measurement"
 
@@ -34,6 +78,7 @@ classes:
     nets: [VBUSA1, VBUSA2, VBUSA3]
     current: "3.06 A worst-high TPS2557 current limit"
     min_width: 0.8mm
+    clearance: 0.18mm
     routing: "short top/bottom pour to each edge connector"
     verify: "A-AMP and per-port four-wire resistance"
 
@@ -42,6 +87,7 @@ classes:
     nets: [BOOT_A_R, BOOT_A_C, BOOT_C_R, BOOT_C_C]
     current: "bootstrap charge pulse only; no external power path"
     min_width: 0.30mm
+    clearance: 0.18mm
     routing: "manufacturer-example geometry entirely inside each converter cell"
     verify: "placement review before routing"
 
@@ -50,6 +96,7 @@ classes:
     nets: [FB_A, FB_C, ILIM_A1, ILIM_A2, ILIM_A3, PG_A, PG_C]
     current: "<1 mA"
     min_width: 0.18mm
+    clearance: 0.18mm
     routing: "short, quiet, away from SW_LOCAL and connector transients"
     verify: "return-path and exact-net review"
 
@@ -58,6 +105,7 @@ classes:
     nets: [DM_A1, DP_A1, DM_A2, DP_A2, DM_A3, DP_A3]
     current: "signal only"
     min_width: 0.18mm
+    clearance: 0.18mm
     routing: "controller-to-ESD-to-receptacle locally; no upstream/downstream data connectivity"
     verify: "exact-net review proves no USB data topology"
 
@@ -66,6 +114,7 @@ classes:
     nets: [CC1, CC2]
     current: "signal (Type-C configuration channel)"
     min_width: 0.18mm
+    clearance: 0.18mm
     routing: "short and separate; J5 reaches connector-side D6 before either CC line branches to U3"
     verify: "Type-C source topology review"
 
@@ -74,5 +123,6 @@ classes:
     nets: [EN_BUS, FAULT_C, FAULT_A1, FAULT_A2, FAULT_A3]
     current: "<20 mA"
     min_width: 0.18mm
+    clearance: 0.18mm
     routing: "ordinary low-energy control"
     verify: "ERC and exact-net review"

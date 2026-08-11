@@ -276,6 +276,20 @@ def t_syntax():
         check(r.rc == 0, f"bash -n {f.name} failed:\n{r.out[-1500:]}")
 
 
+@test("the full driver runs tsci through the bounded heartbeat/timeout runner")
+def t_full_build_bounds_tsci():
+    txt = ALL.read_text()
+    call = re.search(
+        r'^\s*run_stage\s+tscircuit_build\s+env\s+--chdir=03_tscircuit\s+'
+        r'tsci\s+build\s+"src/\$TSX\.tsx"', txt, re.M)
+    check(call is not None,
+          "rebuild_all.sh must run tsci build as the tscircuit_build stage")
+    direct = re.search(r'^\s*\(\s*cd\s+03_tscircuit\s+&&\s+tsci\s+build',
+                       txt, re.M)
+    check(direct is None,
+          "rebuild_all.sh must not retain an unbounded direct tsci build")
+
+
 @test("both rebuild drivers run the authoritative placement-policy subset "
       "before any route import")
 def t_placement_policy_before_route():
@@ -636,7 +650,10 @@ def t_kb_audit_board_guard_teeth():
 def t_mfresh_ordering():
     t = ALL.read_text()
     stamp = re.search(r'build_provenance\.py"?\s+stamp', t)
-    build = re.search(r'^\s*\(\s*cd 03_tscircuit && tsci build', t, re.M)
+    build = re.search(
+        r'^\s*(?:\(\s*cd 03_tscircuit && tsci build|'
+        r'run_stage\s+tscircuit_build\s+env\s+--chdir=03_tscircuit\s+'
+        r'tsci\s+build)', t, re.M)
     verify = re.search(r'build_provenance\.py"?\s+verify', t)
     conv = re.search(r'circuit_json_to_kicad_sch\.py', t)
     check(stamp and build and verify and conv,
@@ -1098,6 +1115,18 @@ def t_new_stage_gate_ordering():
         stitch = txt.index("route_and_stitch_generic.py\" stitch")
         check(stitch < connected,
               f"{path.name}: R-CRITESC must grade realized post-stitch copper")
+
+
+@test("both rebuild drivers replay configured taps between route import and stitch")
+def t_route_taps_stage_ordering():
+    for path in (ALL, REUSE):
+        txt = path.read_text()
+        route_import = txt.index("route_and_stitch_generic.py\" import")
+        taps = txt.index("route_and_stitch_generic.py\" taps")
+        stitch = txt.index("route_and_stitch_generic.py\" stitch")
+        check(route_import < taps < stitch,
+              f"{path.name}: deterministic taps must replay after import and "
+              "before zone fill/stitch")
 
 
 @test("rebuild_all.sh: the human schematic is DELETED then regenerated, and the "

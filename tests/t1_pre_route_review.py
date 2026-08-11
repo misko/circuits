@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """T1: fail-closed, exact-artifact pre-route review boundary."""
 import hashlib
+import re
 import sys
 from pathlib import Path
 
@@ -27,6 +28,17 @@ def netlist_sha(path):
     text = path.read_text(encoding="utf-8-sig")
     text = text.replace('(date "2026-01-01T00:00:00")',
                         '(date "<KICAD_EXPORT_DATE>")')
+    text = re.sub(r'(\(source\s+")[^"]*("\))',
+                  r'\1<KICAD_SCHEMATIC_SOURCE>\2', text, count=1)
+    for name in ("Sheetname", "Sheetfile"):
+        text = re.sub(
+            r'\(property\s+\(name\s+"' + name +
+            r'"\)\s+\(value\s+"[^"]*"\)\s*\)',
+            f'(property (name "{name}") (value "<KICAD_{name.upper()}>") )',
+            text,
+        )
+    text = re.sub(r'(\(class\s+")[^"]*("\))',
+                  r'\1<KICAD_PROJECT_NETCLASS>\2', text)
     return hashlib.sha256(text.encode()).hexdigest()
 
 
@@ -42,8 +54,14 @@ def fixture():
     # normalizes exactly one and refuses a file with none — a fixture without
     # it exercises the error path, not the canonicalization the gate ships.
     netlist.write_text(
-        '(export (design (date "2026-01-01T00:00:00"))'
-        " (nets (net (code 1) (name GND))))\n")
+        '(export (design (source "/work/04_kicad/demo.kicad_sch") '
+        '(date "2026-01-01T00:00:00")) '
+        '(components (comp (ref "U1") (value "DEMO") '
+        '(footprint "Demo:Part") '
+        '(property (name "Sheetname") (value "demo")) '
+        '(property (name "Sheetfile") (value "demo.kicad_sch")))) '
+        '(nets (net (code 1) (name GND) (class "Power") '
+        '(node (ref "U1") (pin "1")))))\n')
     parts_hash = hashlib.sha256(
         b"02_parts/X/part.yaml\0" + (d / "02_parts/X/part.yaml").read_bytes() + b"\0"
     ).hexdigest()
@@ -118,6 +136,32 @@ def t_stale_netlist():
     p.write_text(p.read_text() + "(net (code 2) (name VIN))\n")
     must_fail(run([KPY, GATE, d, "--phase", "schematic"]),
               "stale topology", "netlist_sha256 is stale")
+
+
+@test("PR-REVIEW treats pinned-path Sheetname/Sheetfile churn as presentation metadata")
+def t_pinned_export_path_is_stable():
+    d, _ = fixture()
+    p = d / "04_kicad/demo.net"
+    text = p.read_text()
+    text = text.replace('/work/04_kicad/demo.kicad_sch',
+                        '/work/03_tscircuit/kicad/demo.kicad_sch')
+    text = text.replace('(value "demo"))', '(value "Root"))')
+    text = text.replace('(value "demo.kicad_sch"))',
+                        '(value "03_tscircuit/kicad/demo.kicad_sch"))')
+    text = text.replace('(class "Power")', '(class "Default")')
+    p.write_text(text)
+    must_pass(run([KPY, GATE, d, "--phase", "schematic"]),
+              "byte-identical schematic exported from pinned path")
+
+
+@test("PR-REVIEW still invalidates topology evidence after a component value changes",
+      kind="known_bad")
+def t_component_value_remains_bound():
+    d, _ = fixture()
+    p = d / "04_kicad/demo.net"
+    p.write_text(p.read_text().replace('(value "DEMO")', '(value "CHANGED")'))
+    must_fail(run([KPY, GATE, d, "--phase", "schematic"]),
+              "changed component value", "netlist_sha256 is stale")
 
 
 @test("PR-REVIEW invalidates schematic and placement evidence after an adopted "

@@ -58,7 +58,11 @@ $PY "$S/build_provenance.py" stamp . --board "$BOARD" --tsx "$TSX" \
 # went green against an obsolete pad-numbering scheme. No checker was wrong.
 # They graded exactly what they were handed.
 CJ=03_tscircuit/build/circuit.json             # the ONE name for the converter input
-( cd 03_tscircuit && tsci build "src/$TSX.tsx" )
+# Keep the foreign producer inside the same bounded runner as routing and DRC.
+# It can be quiet while resolving supplier data or under host I/O pressure; a
+# heartbeat distinguishes that from a dead pipeline, and the configured hard
+# deadline terminates the complete process group instead of leaving a child.
+run_stage tscircuit_build env --chdir=03_tscircuit tsci build "src/$TSX.tsx"
 mkdir -p 03_tscircuit/build
 cp "03_tscircuit/dist/src/$TSX/circuit.json" "$CJ"
 
@@ -252,6 +256,7 @@ $PY "$S/tier_preflight.py" . \
 # [6-8] route + stitch from route.yaml  [SHARED]
 run_stage route_prep   $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
 run_stage route_import $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml --route-source promoted
+run_stage route_taps   $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
 run_stage stitch       $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \
     || { echo "GATE FAILED [8a] R-CRITESC: critical pairs are open, on forbidden layers, or use forbidden vias"; exit 1; }

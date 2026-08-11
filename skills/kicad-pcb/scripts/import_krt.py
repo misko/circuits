@@ -9,11 +9,14 @@ dedupe is same-net only. If the KRT via syntax gains attributes between
 (layers ...) and (net ...), the via regex stops matching — the import
 count will drop; compare counts against KRT's summary.
 
-BASE should be the track-free pcbnew board the KRT chain started from
-(import the COMPLETE final chain file in one shot — partial merges of
-multiple passes create duplicate/conflicting copper). --nets restricts the
-import to specific nets (for the repair workflow). Zones are refilled and
-the result saved to OUT; run classified_drc.py on it as the green check.
+BASE should be the segment-free pcbnew board the KRT chain started from.
+Source-owned vias (for example thermal via-in-pad arrays) may already exist
+and are preserved; matching copies inherited by the KRT chain are deduped
+against them. Import the COMPLETE final chain file in one shot — partial
+merges of multiple passes create duplicate/conflicting copper. --nets
+restricts the import to specific nets (for the repair workflow). Zones are
+refilled and the result saved to OUT; run classified_drc.py on it as the
+green check.
 """
 import argparse
 import re
@@ -38,7 +41,20 @@ LAY = {"F.Cu": pcbnew.F_Cu, "B.Cu": pcbnew.B_Cu,
        "In3.Cu": pcbnew.In3_Cu, "In4.Cu": pcbnew.In4_Cu}
 want = set(args.nets) if args.nets else None
 nseg = nvia = 0
+# pcbnew exposes both routed segments and vias through GetTracks().  The base
+# is deliberately allowed to contain source-owned vias (thermal arrays are
+# geometry, not router output). Seed the dedupe table from those vias so a
+# KRT chain that inherited the base cannot add a second barrel on top.
 seen = []
+base_seen = []
+for item in board.GetTracks():
+    if item.GetClass() != "PCB_VIA":
+        continue
+    pos = item.GetPosition()
+    row = (pos.x, pos.y, item.GetNetCode(),
+           item.GetWidth(pcbnew.F_Cu), item.GetDrill())
+    seen.append(row[:3])
+    base_seen.append(row)
 for m in re.finditer(
         r'\(segment\s+\(start ([\d.-]+) ([\d.-]+)\)\s+\(end ([\d.-]+) '
         r'([\d.-]+)\)\s+\(width ([\d.]+)\)\s+\(layer "([^"]+)"\)\s+'
@@ -74,14 +90,27 @@ for m in re.finditer(
     net = board.FindNet(name)
     if net is None or net.GetNetCode() <= 0:
         continue
+    size, drill = pcbnew.FromMM(float(s)), pcbnew.FromMM(float(dr))
+    inherited = [v for v in base_seen
+                 if abs(v[0] - px) <= 1000 and abs(v[1] - py) <= 1000
+                 and v[2] == net.GetNetCode()]
+    if inherited:
+        if any(abs(v[3] - size) > 1000 or abs(v[4] - drill) > 1000
+               for v in inherited):
+            raise SystemExit(
+                f"KRT/base via geometry disagrees at ({float(x):.6f}, "
+                f"{float(y):.6f}) on {name}: KRT {float(s):.3f}/"
+                f"{float(dr):.3f} mm versus source-owned "
+                f"{inherited[0][3] / 1e6:.3f}/{inherited[0][4] / 1e6:.3f} mm")
+        continue
     if any(abs(v[0] - px) < 100000 and abs(v[1] - py) < 100000
            and v[2] == net.GetNetCode() for v in seen):
         continue  # same-net duplicate only — different nets colliding is
                   # a REAL problem the DRC green check must surface
     v = pcbnew.PCB_VIA(board)
     v.SetPosition(pcbnew.VECTOR2I(px, py))
-    v.SetWidth(pcbnew.FromMM(float(s)))
-    v.SetDrill(pcbnew.FromMM(float(dr)))
+    v.SetWidth(size)
+    v.SetDrill(drill)
     v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
     v.SetNet(net)
     board.Add(v)

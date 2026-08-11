@@ -13,7 +13,7 @@ board:
   edge_width: 0.1
   layers: 4
   # JLC advanced POFV: resin fill plus copper cap for exposed-land vias.
-  # The 1.2 mm stack makes each 0.30 mm drill a conservative 4:1 aspect ratio.
+  # The 1.2 mm stack gives 4:1 at 0.30 mm and 6:1 at 0.20 mm drills.
   via_protection: {capping: yes, filling: yes}
   stackup:
     nominal_thickness_mm: 1.2
@@ -29,16 +29,47 @@ board:
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
     refdes_prefix: H
-    at: [[25.0, 25.0], [145.0, 25.0], [25.0, 105.0], [145.0, 105.0]]
+    at: [[25.0, 25.0], [134.8, 25.0], [25.0, 105.0], [145.0, 105.0]]
   # Three non-collinear global fiducials for U3/J5's 0.50 mm placement.
   fiducials:
     footprint: Fiducial:Fiducial_1mm_Mask2mm
     refdes_prefix: FID
-    at: [[32.0, 25.0], [138.0, 25.0], [32.0, 103.0]]
+    at: [[32.0, 25.0], [122.0, 25.0], [32.0, 103.0]]
+
+# Thermal fields are explicit board-level via primitives, relative to their
+# owning footprints.  The footprint libraries retain only the manufacturer SMD
+# lands, so the live board footprint stays byte-comparable with its library and
+# schematic while JLC's fill/cap process sees real vias rather than PTH pads.
+thermal_vias:
+  fields:
+    - {ref: U1, pad: 19, size: 0.60, drill: 0.30,
+       at: [[-0.75, -2.25], [0.75, -2.25]]}
+    - {ref: U1, pad: 20, size: 0.60, drill: 0.30,
+       at: [[-0.75, -0.75], [0.75, -0.75]]}
+    - {ref: U1, pad: 21, size: 0.60, drill: 0.30,
+       at: [[-0.75, 0.75], [0.75, 0.75]]}
+    - {ref: U1, pad: 22, size: 0.60, drill: 0.30,
+       at: [[-0.75, 2.25], [0.75, 2.25]]}
+    - {ref: U2, pad: 17, size: 0.60, drill: 0.30,
+       at: [[-0.45, -1.613], [0.45, -1.613]]}
+    - {ref: U2, pad: 18, size: 0.60, drill: 0.30,
+       at: [[-0.45, -0.538], [0.45, -0.538]]}
+    - {ref: U2, pad: 19, size: 0.60, drill: 0.30,
+       at: [[-0.45, 0.538], [0.45, 0.538]]}
+    - {ref: U2, pad: 20, size: 0.60, drill: 0.30,
+       at: [[-0.45, 1.613], [0.45, 1.613]]}
+    - {ref: U3, pad: 21, size: 0.50, drill: 0.20,
+       at: [[-0.50, -1.00], [-0.50, 0.00], [-0.50, 1.00],
+            [0.50, -1.00], [0.50, 0.00], [0.50, 1.00]]}
+    - {refs: [U4, U5, U6], pad: 9, size: 0.50, drill: 0.20,
+       at: [[-0.575, -0.95], [-0.575, 0.00], [-0.575, 0.95],
+            [0.575, -0.95], [0.575, 0.00], [0.575, 0.95]]}
 
 libraries:
   - {lib: usb_hub_3s_v4, path: 03_src/lib/usb_hub_3s_v4.pretty}
   - {lib: Package_TO_SOT_SMD, path: 03_src/lib/Package_TO_SOT_SMD.pretty}
+  - {lib: Package_DFN_QFN, path: 03_src/lib/Package_DFN_QFN.pretty}
+  - {lib: Package_SON, path: 03_src/lib/Package_SON.pretty}
   - /usr/share/kicad/footprints
 
 placement:
@@ -116,10 +147,10 @@ placement:
     J5: [115.0, 106.0, 0]
 
     # Slow first-article access points, outside high-current loops.
-    TP1: [86.0, 41.0, 0]
+    TP1: [57.5, 43.5, 0]
     TP2: [91.0, 41.0, 0]
-    TP3: [96.0, 41.0, 0]
-    TP4: [101.0, 41.0, 0]
+    TP3: [96.0, 100.0, 0]
+    TP4: [120.0, 96.0, 0]
     TP5: [86.0, 46.0, 0]
     TP6: [91.0, 46.0, 0]
     TP7: [96.0, 46.0, 0]
@@ -129,7 +160,7 @@ placement:
     TP11: [96.0, 51.0, 0]
     TP12: [101.0, 51.0, 0]
 
-  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 80}
+  legalize: {enable: true, clearance: 0.65, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 80}
 
 design_rules:
   track_min_width: 0.09
@@ -138,8 +169,8 @@ design_rules:
   hole_clearance: 0.25
   hole_to_hole: 0.25
   copper_edge_clearance: 0.3
-  via_min_size: 0.6
-  min_through_drill: 0.3
+  via_min_size: 0.5
+  min_through_drill: 0.2
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
 
@@ -147,25 +178,42 @@ zones:
   # Two uninterrupted internal GND planes implement TI module guidance.
   - {net: GND, layers: [In1.Cu, In2.Cu], priority: 0, min_thickness: 0.25, clearance: 0.2, connect: full}
   - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.25, clearance: 0.25, connect: full}
-  - {net: BAT_POS, layers: [F.Cu, B.Cu], priority: 3, rect: [25.0, 33.0, 36.0, 43.0], connect: full}
+  - {net: BAT_POS, layers: [F.Cu, B.Cu], priority: 3, rect: [25.0, 33.0, 42.0, 43.0], connect: full}
   - {net: VBAT_FUSED, layers: [F.Cu, B.Cu], priority: 3, rect: [44.0, 33.0, 57.0, 43.0], connect: full}
   - net: VIN
     layers: [F.Cu, B.Cu]
     priority: 2
     connect: full
-    points: [[51.0, 35.0], [64.0, 35.0], [64.0, 48.0], [68.0, 48.0],
-             [68.0, 62.0], [64.0, 62.0], [64.0, 101.0], [85.0, 101.0],
-             [85.0, 84.0], [78.0, 84.0], [78.0, 96.0], [71.0, 96.0],
-             [71.0, 62.0], [60.0, 62.0], [60.0, 48.0], [51.0, 48.0]]
-  - {net: 5VA, layers: [F.Cu, B.Cu], priority: 2, rect: [76.0, 48.0, 103.0, 62.0], connect: full}
+    points: [[51.0, 31.0], [64.0, 31.0], [64.0, 48.0], [69.0, 48.0],
+             [69.0, 62.0], [71.0, 62.0], [71.0, 96.0], [78.0, 96.0],
+             [78.0, 84.0], [86.5, 84.0], [86.5, 101.0], [64.0, 101.0],
+             [64.0, 62.0], [60.0, 62.0], [60.0, 55.0], [51.0, 55.0]]
+  - {net: 5VA, layers: [F.Cu, B.Cu], priority: 2, rect: [73.5, 48.0, 103.0, 62.0], connect: full}
   - {net: 5VA, layers: [B.Cu], priority: 3, rect: [88.0, 27.0, 112.0, 85.0], connect: full}
-  - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 3, rect: [112.0, 25.0, 142.0, 39.0], connect: full}
-  - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 3, rect: [112.0, 49.0, 142.0, 63.0], connect: full}
-  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 3, rect: [112.0, 73.0, 142.0, 87.0], connect: full}
-  - {net: 5VC_RAW, layers: [F.Cu, B.Cu], priority: 2, rect: [91.0, 85.0, 109.0, 102.0], connect: full}
+  # F.Cu switch/controller islands via-bond into the B.Cu 5VA distributor.
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [106.8, 30.5, 109.1, 33.6], connect: full}
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [106.8, 54.5, 109.1, 57.6], connect: full}
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [106.8, 78.5, 109.1, 81.6], connect: full}
+  - {net: 5VA, layers: [B.Cu], priority: 4, rect: [108.0, 41.0, 131.0, 47.0], connect: full}
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [122.5, 42.5, 130.5, 45.5], connect: full}
+  - {net: 5VA, layers: [B.Cu], priority: 4, rect: [108.0, 69.0, 131.0, 75.0], connect: full}
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [122.5, 70.5, 130.5, 73.5], connect: full}
+  - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 3, rect: [110.8, 25.0, 149.0, 42.0], connect: full}
+  - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 3, rect: [110.8, 49.0, 149.0, 66.0], connect: full}
+  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 3, rect: [110.8, 73.0, 149.0, 90.0], connect: full}
+  - {net: 5VC_RAW, layers: [F.Cu, B.Cu], priority: 2, rect: [89.5, 85.0, 109.0, 102.0], connect: full}
   - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 3, rect: [105.0, 94.0, 126.0, 108.0], connect: full}
 
 keepouts:
+  # Permissive F.Cu rule-area anchors for measured pad-local width tapers.
+  # deny: [] forbids nothing; matching scoped_floors remain the authority.
+  - {name: u1_5va_launch, deny: [], layers: [F.Cu], rect: [70.35, 57.35, 71.65, 59.00]}
+  - {name: u2_5vc_launch, deny: [], layers: [F.Cu], rect: [87.80, 91.90, 90.00, 94.35]}
+  - {name: usba_switch_in_launch, deny: [], layers: [F.Cu], rect: [108.05, 31.20, 109.10, 33.50]}
+  - {name: usba_switch_in_launch, deny: [], layers: [F.Cu], rect: [108.05, 55.20, 109.10, 57.50]}
+  - {name: usba_switch_in_launch, deny: [], layers: [F.Cu], rect: [108.05, 79.20, 109.10, 81.50]}
+  - {name: charge_signature_supply_launch, deny: [], layers: [F.Cu], rect: [128.30, 43.55, 130.55, 44.45]}
+  - {name: charge_signature_supply_launch, deny: [], layers: [F.Cu], rect: [128.30, 71.55, 130.55, 72.45]}
   - {name: u1_feedback, deny: [pours], layers: [F.Cu], rect: [74.0, 47.5, 78.0, 53.0]}
   - {name: u2_feedback, deny: [pours], layers: [F.Cu], rect: [91.0, 84.0, 96.0, 90.5]}
   - {name: u3_reference, deny: [pours], layers: [F.Cu], rect: [103.0, 99.0, 108.0, 103.0]}

@@ -23,10 +23,10 @@ evidence.
 
 | # | Criterion | Source | Status |
 |---|---|---|---|
-| G1 | The product carries USB power only and no USB data. | D1 | unmet |
-| G2 | It provides the inherited v3 service: three charge-only USB-A outputs and one USB-C power output for a Raspberry Pi 4 from a 3S LiPo pack. | A1 | unmet |
-| G3 | No claim of active fail-high overvoltage cutoff is made; the resulting safety boundary is explicit. | D1 | unmet |
-| G4 | The manufacturing package targets JLCPCB PCBA. | D1 | unmet |
+| G1 | The product carries USB power only and no USB data. | D1 | met through routed-board checkpoint |
+| G2 | It provides the inherited v3 service: three charge-only USB-A outputs and one USB-C power output for a Raspberry Pi 4 from a 3S LiPo pack. | A1 | met through routed-board checkpoint |
+| G3 | No claim of active fail-high overvoltage cutoff is made; the resulting safety boundary is explicit. | D1 | met through routed-board checkpoint |
+| G4 | The manufacturing package targets JLCPCB PCBA. | D1 | met through routed-board checkpoint; package not yet sealed |
 | G5 | The complete bounded pipeline reaches an independently reviewed, reproducible, DRC-clean release package. | P | unmet |
 | G6 | Each completed stage has a pause report with measured time and harvestable process learning. | P | unmet |
 

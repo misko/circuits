@@ -266,6 +266,63 @@ def match_any(ref, patterns):
     return any(fnmatch.fnmatchcase(ref, p) for p in patterns)
 
 
+def _validate_simple_polygon(points, what):
+    """Refuse degenerate or self-intersecting authored polygons.
+
+    KiCad accepts a crossed/overlapping ZONE outline and can then fill only a
+    seemingly unrelated tail of it.  That failure is especially expensive:
+    placement and routing remain legal, while the first authoritative refill
+    reports an entire power cell disconnected.  Validate the inexpensive
+    source geometry before a board object is emitted.
+    """
+    eps = 1e-9
+    if len(points) < 3:
+        die(f"{what}: polygon needs at least 3 vertices, got {len(points)}")
+    if points[0] == points[-1]:
+        die(f"{what}: repeat of the first vertex at the end is not allowed "
+            "(the generator closes polygons itself)")
+    for i, (a, b) in enumerate(zip(points, points[1:] + points[:1])):
+        if abs(a[0] - b[0]) <= eps and abs(a[1] - b[1]) <= eps:
+            die(f"{what}: zero-length edge at vertex {i}: {a}")
+    area2 = sum(a[0] * b[1] - b[0] * a[1]
+                for a, b in zip(points, points[1:] + points[:1]))
+    if abs(area2) <= eps:
+        die(f"{what}: polygon has zero signed area")
+
+    def orient(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) \
+            - (b[1] - a[1]) * (c[0] - a[0])
+
+    def on_segment(a, b, p):
+        return (min(a[0], b[0]) - eps <= p[0] <= max(a[0], b[0]) + eps
+                and min(a[1], b[1]) - eps <= p[1] <= max(a[1], b[1]) + eps
+                and abs(orient(a, b, p)) <= eps)
+
+    def intersects(a, b, c, d):
+        o1, o2, o3, o4 = (orient(a, b, c), orient(a, b, d),
+                          orient(c, d, a), orient(c, d, b))
+        if ((o1 > eps and o2 < -eps) or (o1 < -eps and o2 > eps)) and \
+                ((o3 > eps and o4 < -eps) or (o3 < -eps and o4 > eps)):
+            return True
+        return ((abs(o1) <= eps and on_segment(a, b, c))
+                or (abs(o2) <= eps and on_segment(a, b, d))
+                or (abs(o3) <= eps and on_segment(c, d, a))
+                or (abs(o4) <= eps and on_segment(c, d, b)))
+
+    n = len(points)
+    edges = list(zip(points, points[1:] + points[:1]))
+    for i, (a, b) in enumerate(edges):
+        for j in range(i + 1, n):
+            # Adjacent edges share exactly their authored vertex; that is the
+            # only legal intersection.  First/last are adjacent as well.
+            if j == i + 1 or (i == 0 and j == n - 1):
+                continue
+            c, d = edges[j]
+            if intersects(a, b, c, d):
+                die(f"{what}: self-intersection/overlap between edges "
+                    f"{i} {a}->{b} and {j} {c}->{d}")
+
+
 # ---------------------------------------------------------------- builder
 class BoardBuilder:
     def __init__(self, cfg, base, out_override=None):
@@ -442,6 +499,7 @@ class BoardBuilder:
         self.add_fiducials()
         placed = self.place_parts()
         self.check_pads_present()
+        self.promote_heatsink_pads_to_vias()
         self.run_asserts()
         self.legalize()
         self.apply_post_anchors()
@@ -947,6 +1005,134 @@ class BoardBuilder:
         self.fps = {f.GetReference(): f for f in self.board.GetFootprints()}
         self.say(f"placed {placed} footprints ({len(self.pinned)} anchored)")
         return placed
+
+    def promote_heatsink_pads_to_vias(self):
+        """Turn explicitly marked footprint thermal holes into real vias.
+
+        KiCad library footprints commonly model an exposed-pad via field as
+        duplicate PTH pads carrying ``pad_prop_heatsink``. Electrically that
+        works, but fabrication processes distinguish component pad holes from
+        vias: a via-fill/cap order applies to vias, not ordinary PTH pads.
+        Boards opting in through ``thermal_vias.promote_heatsink_pads`` keep
+        the exact library land geometry while promoting only those marked
+        drilled subpads to board-level ``PCB_VIA`` objects at the same
+        position, net, diameter and drill.
+
+        Refusal is deliberate: an unknown reference, a reference with no
+        marked drilled pad, a slot/oval, or an unnetted marked pad is an
+        authoring error. The generator never guesses which ordinary hole was
+        intended to receive an advanced fill/cap process.
+        """
+        cfg = self.cfg.get("thermal_vias") or {}
+        fields = cfg.get("fields") or []
+        refs = cfg.get("promote_heatsink_pads") or []
+        if not fields and not refs:
+            return
+        if fields and not isinstance(fields, list):
+            die("thermal_vias.fields must be a list")
+        emitted = 0
+        for i, field in enumerate(fields):
+            if not isinstance(field, dict):
+                die(f"thermal_vias.fields[{i}] must be a mapping")
+            frefs = field.get("refs")
+            if frefs is None and field.get("ref"):
+                frefs = [field["ref"]]
+            if (not isinstance(frefs, list) or not frefs
+                    or any(not isinstance(r, str) for r in frefs)):
+                die(f"thermal_vias.fields[{i}].refs must be a non-empty "
+                    "list of refdes")
+            padnum = str(field.get("pad", ""))
+            if not padnum:
+                die(f"thermal_vias.fields[{i}] has no pad number")
+            at = field.get("at") or []
+            if (not isinstance(at, list) or not at
+                    or any(not isinstance(p, (list, tuple)) or len(p) != 2
+                           for p in at)):
+                die(f"thermal_vias.fields[{i}].at must be a non-empty list "
+                    "of footprint-relative [x,y] positions")
+            size = float(field.get("size", 0))
+            drill = float(field.get("drill", 0))
+            if size <= 0 or drill <= 0 or drill >= size:
+                die(f"thermal_vias.fields[{i}] needs size > drill > 0")
+            for ref in frefs:
+                fp = self.fps.get(ref)
+                if fp is None:
+                    die(f"thermal_vias.fields[{i}]: unknown ref {ref!r}")
+                target = [p for p in fp.Pads()
+                          if p.GetNumber() == padnum and p.GetNetCode() > 0]
+                codes = {p.GetNetCode() for p in target}
+                if len(codes) != 1:
+                    die(f"thermal_vias.fields[{i}]: {ref}.{padnum} must "
+                        "resolve to exactly one nonzero net")
+                net = target[0].GetNet()
+                theta = math.radians(fp.GetOrientationDegrees())
+                ct, st = math.cos(theta), math.sin(theta)
+                origin = fp.GetPosition()
+                for dx, dy in at:
+                    dx, dy = float(dx), float(dy)
+                    x = origin.x / 1e6 + dx * ct - dy * st
+                    y = origin.y / 1e6 + dx * st + dy * ct
+                    via = pcbnew.PCB_VIA(self.board)
+                    via.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+                    via.SetWidth(pcbnew.FromMM(size))
+                    via.SetDrill(pcbnew.FromMM(drill))
+                    via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                    via.SetNet(net)
+                    self.board.Add(via)
+                    emitted += 1
+        if not isinstance(refs, list) or any(not isinstance(r, str) for r in refs):
+            die("thermal_vias.promote_heatsink_pads must be a list of refdes")
+        if len(refs) != len(set(refs)):
+            die("thermal_vias.promote_heatsink_pads contains duplicate refdes")
+
+        promoted = 0
+        for ref in refs:
+            fp = self.fps.get(ref)
+            if fp is None:
+                die(f"thermal_vias.promote_heatsink_pads: unknown ref {ref!r}")
+            pads = [p for p in fp.Pads()
+                    if p.GetProperty() == pcbnew.PAD_PROP_HEATSINK
+                    and p.GetDrillSize().x > 0]
+            if not pads:
+                die(f"thermal_vias.promote_heatsink_pads: {ref} has no drilled "
+                    "pad_prop_heatsink pads")
+            source_fpid = fp.GetFPIDAsString()
+            for pad in pads:
+                size, drill = pad.GetSize(), pad.GetDrillSize()
+                if size.x != size.y or drill.x != drill.y:
+                    die(f"thermal_vias.promote_heatsink_pads: {ref}."
+                        f"{pad.GetNumber()} is not a circular pad/drill")
+                if pad.GetNetCode() <= 0:
+                    die(f"thermal_vias.promote_heatsink_pads: {ref}."
+                        f"{pad.GetNumber()} is unnetted")
+                via = pcbnew.PCB_VIA(self.board)
+                via.SetPosition(pad.GetPosition())
+                via.SetWidth(size.x)
+                via.SetDrill(drill.x)
+                via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                via.SetNet(pad.GetNet())
+                fp.Remove(pad)
+                self.board.Add(via)
+                promoted += 1
+            # The generated footprint intentionally no longer matches its
+            # library copy: its marked holes are now true board vias. An
+            # unchanged FPID would make KiCad report a permanent
+            # lib_footprint_mismatch; clearing it declares an embedded,
+            # board-local generated footprint. Preserve the exact authority
+            # in its embedded description so traceability is not traded for a
+            # quiet DRC report.
+            desc = fp.GetLibDescription() or ""
+            fp.SetLibDescription(
+                (desc + " " if desc else "")
+                + f"[generated thermal-via promotion from {source_fpid}]")
+            fp.SetFPID(pcbnew.LIB_ID())
+        total_refs = {r for field in fields
+                      for r in ((field.get("refs") or [field.get("ref")])
+                                if isinstance(field, dict) else []) if r}
+        total_refs.update(refs)
+        self.say(f"thermal vias: emitted {emitted} explicit + promoted "
+                 f"{promoted} marked heatsink pad(s) across {len(total_refs)} "
+                 "footprint(s) as board-level vias")
 
     # ------------------------------------------------- P-COLLIDE (placement)
     def _pad_poly(self, pad):
@@ -1470,11 +1656,13 @@ class BoardBuilder:
                 (self.X1, self.Y1), (self.X0, self.Y1)]
 
     def add_zones(self):
-        for z in self.cfg.get("zones") or []:
+        for zi, z in enumerate(self.cfg.get("zones") or []):
             net = z.get("net")
             if net and net not in self.netmap:
                 die(f"zone on unknown net {net!r} (netlist has no such net)")
             pts = self.zone_points(z)
+            _validate_simple_polygon(pts,
+                                     f"zones[{zi}] net {net!r} outline")
             for lname in z.get("layers") or ["F.Cu", "B.Cu"]:
                 lid = self.check_layer(lname, f"zone on net {net!r}")
                 zone = pcbnew.ZONE(self.board)
@@ -1547,6 +1735,8 @@ class BoardBuilder:
             })
         for k in self.cfg.get("keepouts") or []:
             pts = self.zone_points(k)
+            _validate_simple_polygon(
+                pts, f"keepout {k.get('name', '?')!r} outline")
             deny = set(k.get("deny", ["tracks", "vias", "pours"]) or [])
             unknown = deny - {"tracks", "vias", "pours", "pads", "footprints"}
             if unknown:
