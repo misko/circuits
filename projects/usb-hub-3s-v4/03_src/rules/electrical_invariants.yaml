@@ -1,0 +1,5 @@
+invariants: []
+
+# Stage 2 must emit assertions from ADR-0001 after real refdes and net names
+# exist. Keeping this empty at commission prevents invented schematic facts.
+label_survival: {}

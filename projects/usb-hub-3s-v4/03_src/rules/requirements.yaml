@@ -1,0 +1,30 @@
+schema: 1
+
+# Commission-level claims only. Stage 1 must replace inherited assumptions with
+# cited interface limits and close the peak-duration and IR-budget details.
+power_claims:
+  - id: usb_a_charge_ports
+    rails: [VBUSA1, VBUSA2, VBUSA3]
+    count: 3
+    simultaneous_count: 3
+    current_A: 2.0
+    voltage_min_V: 4.75
+    voltage_max_V: 5.25
+    duty: continuous
+    measurement_plane: board_connector
+    boundary_evidence: "BRIEF A1; provisional USB-A receptacle plane pending Stage 1 standards citation"
+    included_elements: [protection_switch, pcb_copper_vias_joints, connector_contacts]
+    excluded_elements: [mated_power_contacts, cable, appliance]
+
+  - id: pi4_usb_c_power
+    rails: [VBUSC]
+    count: 1
+    simultaneous_count: 1
+    current_A: 3.0
+    voltage_min_V: 4.75
+    voltage_max_V: 5.25
+    duty: continuous
+    measurement_plane: load
+    boundary_evidence: "BRIEF A1; Raspberry Pi 4 input after a nominated cable, primary citation owed in Stage 1"
+    included_elements: [protection_switch, pcb_copper_vias_joints, mated_power_contacts, cable]
+    excluded_elements: []

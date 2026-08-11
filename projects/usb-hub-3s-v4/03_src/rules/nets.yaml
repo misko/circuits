@@ -1,0 +1,4 @@
+# Provisional D-TIER choice from BRIEF A3. Netclasses are derived only after
+# Stage 1 selects packages, currents, topology and the shared input trunk.
+fab_tier: jlc_4layer_standard
+classes: {}

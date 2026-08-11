@@ -1,0 +1,8 @@
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
+
+# A6 locks the module-first posture. Selections remain empty so P-MOD blocks
+# generation until Stage 1 compares a suitable power module with a bare
+# switching-controller implementation using cited complexity and sourcing data.
+selections: []

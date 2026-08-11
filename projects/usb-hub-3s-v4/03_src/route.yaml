@@ -1,0 +1,73 @@
+# Commission-stage route contract. It names the bounded execution machinery
+# and exact-artifact witnesses without pretending that a route exists.
+project:
+  name: usb_hub_3s_v4
+  board: 04_kicad/usb_hub_3s_v4.kicad_pcb
+  build_dir: 06_build/route
+
+flow:
+  heartbeat_s: 10
+  pre_route_reviews:
+    board: 04_kicad/usb_hub_3s_v4.kicad_pcb
+    netlist: 06_build/netlists/usb_hub_3s_v4.net
+    topology: 08_reviews/pre-route_topology.md
+    pin: 08_reviews/pre-route_pin.md
+    layout: 08_reviews/pre-route_layout.md
+    render: 08_reviews/pre-route_render.md
+    a_render: 06_build/pre_route/twin_overlay.md
+  owner:
+    stage: routing
+    files: [03_src/route.yaml, 03_src/floorplan.yaml]
+  copper:
+    deterministic: [prep.seed_stubs, taps.connections, stitch.seed_stubs, route.final]
+    stochastic: [route.waves]
+  budgets_s:
+    escape_packages: 30
+    escape_lands: 120
+    tier_preflight: 15
+    grind: 900
+    rebuild: 1200
+    layout_drc: 120
+  timeouts_s:
+    default: 600
+    route_wave: 900
+    route_race: 2400
+    route_evaluate: 180
+    route_import: 300
+    stitch: 900
+    rebuild: 1500
+    layout_drc: 180
+  blockers:
+    - "Stage 1 part selection and dossiers incomplete"
+    - "Stage 2 schematic and exact-netlist review incomplete"
+    - "Stage 3 floorplan outline and placement incomplete"
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2, User.3]
+    mounting_holes: {radius: 3.0}
+    edge_band: 0.7
+    rects: []
+  waves:
+    exclude: [GND, "unconnected-*"]
+    groups: {}
+
+route:
+  import_source: build
+  krt: ~/gits/KiCadRoutingTools
+  preflight_critical_pairs: []
+  no_critical_routes: "D1 excludes USB data and RF; no timing-, impedance-, or phase-critical signal route is commissioned"
+  common:
+    layers: [F.Cu, B.Cu]
+    fab_tier: standard
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+  waves: []
+
+stitch:
+  clearance: 0.15
+  via: {size: 0.45, drill: 0.3, spacing: 0.85, pth_margin: 0.3}
+  keepin: {inset: 0.8}
+  passes: [fill, gate]

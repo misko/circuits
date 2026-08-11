@@ -1,0 +1,11 @@
+service: standard
+sides: [top]
+fiducials: none
+build_quantity: 5
+
+# Population and exceptions cannot exist before the schematic/board. These
+# empty declarations are authoritative until later stages add measured rows.
+not_assembled: []
+consigned: []
+sourcing_plan: []
+exempt_prefixes: [H, TP, FID, MH]

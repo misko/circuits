@@ -1,0 +1,86 @@
+schema: 1
+target: DRAFT
+
+gates:
+  - id: v4_commission_contract
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: systems
+    closes_when: The verbatim prompt, user directives, assumptions, fact-lock, safety boundary and manufacturing target are committed and machine-readable.
+    evidence:
+      - 01_docs/BRIEF.md
+      - 01_docs/decisions/0001-power-only-supervised-prototype.md
+      - 03_src/rules/requirements.yaml
+      - 03_src/rules/power_tree.yaml
+      - 03_src/rules/rf.yaml
+
+  - id: v4_parts_and_architecture
+    required_for: DESIGN_CLEAN
+    state: pending
+    owner: electrical
+    closes_when: Every selected part has a cited dossier, sourcing identity and verified application calculation; P-MOD, D-SPEC, E-PATH, E-TOPO, E-MARGIN, E-OFF, E-SWDRV and E-SURGE pass.
+
+  - id: v4_schematic
+    required_for: DESIGN_CLEAN
+    state: pending
+    owner: electrical
+    closes_when: The generated schematic has zero ERC errors, complete parity/invariants, and an independent exact-netlist topology review reports SOUND.
+
+  - id: v4_placement
+    required_for: DESIGN_CLEAN
+    state: pending
+    owner: layout
+    closes_when: The exact board placement passes the shared placement gates plus independent pin, layout and render reviews.
+
+  - id: v4_routing
+    required_for: DESIGN_CLEAN
+    state: pending
+    owner: layout
+    closes_when: The bounded route/import/stitch flow finishes with reproducible provenance and PCB DRC 0/0/0.
+
+  - id: v4_release_package
+    required_for: FIRST_ARTICLE_ORDERABLE
+    state: pending
+    owner: fabrication
+    closes_when: Current JLCPCB capability/stock evidence, full review battery and a sealed reproducible fabrication/assembly package all pass.
+
+  - id: v4_first_article_test
+    required_for: FIRST_ARTICLE_TESTED
+    state: pending
+    owner: lab
+    closes_when: A fabricated unit passes the signed bring-up, protection, load, voltage-drop and thermal test plan.
+
+  - id: v4_production_validation
+    required_for: PRODUCTION_RELEASED
+    state: pending
+    owner: manufacturing
+    closes_when: A controlled pilot lot, production test process and reliability evidence are approved.
+
+findings:
+  - id: V4-F0-parts-unselected
+    state: open
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: electrical
+    finding: Converter, protection, connector and passive populations are intentionally unselected at commission.
+    closes_when: Stage 1 selects cited, sourceable parts and all early-design gates pass.
+
+  - id: V4-F1-inherited-service-unconfirmed
+    state: open
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: systems
+    finding: Port count, currents, 3S envelope, Pi 4 target, stored-current budget and build quantity are inherited assumptions A1-A3 rather than direct user values.
+    closes_when: The user confirms them or later directives supersede them before schematic generation.
+
+  - id: V4-F2-supervised-only
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: Without active fail-high cutoff, the design is limited to supervised prototype use and must not claim deterministic load protection from sustained converter failure.
+    closes_when: First-article documentation and tests explicitly enforce that boundary, or a later ADR adds and verifies active cutoff.
+
+  - id: V4-F3-no-hardware-evidence
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: No v4 hardware or measured electrical/thermal evidence exists.
+    closes_when: A first article completes the approved bench plan with retained evidence.

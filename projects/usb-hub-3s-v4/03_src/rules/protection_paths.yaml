@@ -1,0 +1,7 @@
+schema: 1
+
+# Intentionally unresolved at commission. D1 removes active sustained-OV
+# cutoff as a requirement; it does not remove ordinary source/transient stress
+# coordination. Stage 1 must populate the actual exposed path and part ratings.
+paths: []
+no_surge_exposed_paths: null

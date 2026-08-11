@@ -1,0 +1,6 @@
+schema: 2
+
+# Intentionally unresolved at commission. A 3S-to-5V converter is applicable,
+# but its controller, switches and current-limit proof belong to Stage 1.
+stages: []
+no_external_gate_drive_stages: null

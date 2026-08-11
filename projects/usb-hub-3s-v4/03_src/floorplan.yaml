@@ -1,0 +1,53 @@
+# Commission-stage generic-backend config. `outline: null` is a deliberate
+# hard stop: Stage 3 may not generate a board before mechanical requirements,
+# packages and placement constraints are reviewed.
+project:
+  name: usb_hub_3s_v4
+  netlist: 06_build/netlists/usb_hub_3s_v4.net
+  output: 04_kicad/usb_hub_3s_v4.kicad_pcb
+  parts_dir: 02_parts
+
+board:
+  outline: null
+  edge_width: 0.1
+  layers: 4
+
+libraries: [/usr/share/kicad/footprints]
+
+placement:
+  anchors: {}
+  seeds: {}
+  legalize:
+    enable: true
+    clearance: 0.25
+    edge_margin: 1.0
+    hole_keepout: 2.6
+    ring_max: 40
+
+design_rules:
+  track_min_width: 0.127
+  min_clearance: 0.127
+  via_min_annulus: 0.15
+  hole_clearance: 0.25
+  hole_to_hole: 0.5
+  copper_edge_clearance: 0.3
+  via_min_size: 0.45
+  min_through_drill: 0.3
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones: []
+
+silk:
+  min_text_height: 0.45
+  refdes:
+    size: 0.6
+    min_size: 0.45
+    fab_copy: true
+    clearance: 0.16
+    priority_prefixes: UJQ
+  labels: []
+  captions: []
+
+asserts:
+  pad_net: []
