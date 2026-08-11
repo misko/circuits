@@ -9,10 +9,12 @@ folder existed, the review that forced usb-hub-3s v1.1 lived only in a chat
 window (2026-07-21) — the knowledge-evaporation failure mode, review
 edition.
 
-**Mutability** — review files are APPEND-ONLY EVIDENCE (verbatim, never
+**Mutability** — dated review files are APPEND-ONLY EVIDENCE (verbatim, never
 paraphrased or edited — same discipline as BRIEF prompts; a wrong review is
-dispositioned as refuted, not rewritten). `DISPOSITIONS.md` is the mutable
-index.
+dispositioned as refuted, not rewritten). Canonical `pre-route_*.md` files are
+stage-gate evidence: when their exact artifact/rules hash becomes stale they
+are replaced by a fresh review before work continues. `DISPOSITIONS.md` is the
+mutable index.
 
 ## Allowed
 
@@ -20,9 +22,13 @@ index.
 |---|---|
 | `contracts.md` | this file |
 | `DISPOSITIONS.md` | the living findings ledger — REQUIRED once any review exists |
+| `pre-route_topology.md` | schematic-phase PR-REVIEW witness bound to exact normalized netlist, parts and adopted design-rule hashes |
+| `pre-route_pin.md` | placement-phase physical-pin review bound to exact board, parts and adopted design-rule hashes |
+| `pre-route_layout.md` | placement-phase layout review bound to exact board and adopted design-rule hashes |
+| `pre-route_render.md` | placement-phase render review bound to exact board and adopted design-rule hashes |
 | `<date>_<subject>_<source>_<lens>.md` | one review, verbatim (e.g. `2026-07-21_v1.0_redteam_topology.md`, `2026-07-21_v1.0_external-llm_full.md`) |
 
-## Review file structure
+## Dated/release review file structure
 
 Header block, REQUIRED:
 
@@ -37,6 +43,17 @@ Header block, REQUIRED:
 
 Then the review body VERBATIM. For external reviews received through a
 person, note the transmission path; never edit the content.
+
+## Canonical pre-route review structure
+
+`pre_route_review_check.py` owns these fail-closed fields. Every file carries
+`review_stage: pre-route`, its exact `review_kind`, and
+`design_verdict: SOUND|DEFECTIVE`. Schematic topology binds
+`netlist_sha256`, `parts_sha256`, and (when adopted) `design_rules_sha256`.
+Placement pin/layout/render bind `board_sha256`; pin also binds `parts_sha256`,
+and all three bind adopted `design_rules_sha256`. These are permissions to
+spend on the next design stage, never order verdicts; an adjacent artifact or
+rules edit makes the witness stale automatically.
 
 ### TWO verdict keys, because a seal makes TWO claims (canon M-REV)
 

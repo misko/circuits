@@ -1,7 +1,7 @@
-# USB Hub 3S v4 — Stage 1 design calculations
+# USB Hub 3S v4 — design calculations and schematic closure
 
-Status: architecture/parts calculation. Component-level schematic values not
-listed here remain Stage 2 obligations.
+Status: Stage 2 schematic values are closed and machine-checked. Physical
+land-pattern, placement, copper, thermal and assembly claims remain downstream.
 
 ## Load and input trunk
 
@@ -12,13 +12,13 @@ Pcontinuous = 3 * 5V * 2A + 5V * 3A = 45W
 Ppeak       = 3 * 5V * 2.5A + 5V * 3A = 52.5W
 ```
 
-The gate uses the conservative high regulation corners, 5.180V and 5.241V:
+The gate uses the conservative high regulation corners, 5.180V and 5.231V:
 
 ```text
-Pcontract = 3 * 5.180V * 2A + 5.241V * 3A = 46.803W
-Iin,max   = 46.803W / (0.90 * 9.0V) = 5.78A continuous
-Ppeak,wc  = 3 * 5.180V * 2.5A + 5.241V * 3A = 54.573W
-Iin,peak  = 54.573W / (0.90 * 9.0V) = 6.74A
+Pcontract = 3 * 5.180V * 2A + 5.231V * 3A = 46.773W
+Iin,max   = 46.773W / (0.90 * 9.0V) = 5.77A continuous
+Ppeak,wc  = 3 * 5.180V * 2.5A + 5.231V * 3A = 54.543W
+Iin,peak  = 54.543W / (0.90 * 9.0V) = 6.73A
 ```
 
 The VIN_TRUNK contract is 7.2A and the user-installed fuse is 10A. The 17.5A
@@ -28,7 +28,7 @@ not a port-current regulator; TPS2557 and TPS25810 provide the local limits.
 First article must measure fuse-holder, FET and copper temperature at low-pack
 voltage and coincident load.
 
-At the 6.74A calculated peak, Q1 dissipates 0.432W using the DMP3013SFV-7
+At the 6.73A calculated peak, Q1 dissipates 0.430W using the DMP3013SFV-7
 9.5mohm maximum at -10V gate drive. This is a room-temperature bound, not a hot
 guarantee: Stage 2/placement must provide the manufacturer's thermal copper and
 first article must measure the FET hot because RDS(on) rises with temperature.
@@ -48,11 +48,11 @@ With 1.000V +/-1% reference and 0.1% divider resistors:
 | rail | Rtop | Rbottom | computed worst low | computed worst high | declared envelope |
 |---|---:|---:|---:|---:|---:|
 | 5VA | 41.2k | 10.0k | 5.060651V | 5.179531V | 5.060–5.180V |
-| 5VC_RAW | 41.8k | 10.0k | 5.119932V | 5.240252V | 5.119–5.241V |
+| 5VC_RAW | 41.7k | 10.0k | 5.110052V | 5.230132V | 5.110–5.231V |
 
-These exact inputs are machine-checked in `rules/power_tree.yaml`. Stage 2 must
-also apply the module's recommended RT, bootstrap/slew, mode, input and output
-parts; no generic values are inherited from v3.
+These exact inputs and the module's recommended RT, bootstrap/slew, mode,
+input, and output parts are machine-checked in `rules/power_tree.yaml` and
+`rules/electrical_invariants.yaml`; no generic values are inherited from v3.
 
 ## Delivery-path margin
 
@@ -78,16 +78,18 @@ and [Raspberry Pi power documentation](https://www.raspberrypi.com/documentation
 
 ## USB-A current limit
 
-Stage 2 uses 39.4k 0.1% from each TPS2557 ILIM pin to GND. TI's worst-case
+Stage 2 uses the live-JLC-orderable 39.2k 0.1% part from each TPS2557 ILIM pin
+to GND. TI's worst-case
 equations, including resistor tolerance, give:
 
 ```text
-IOS,min = 127981 / (39.4k * 1.001)^1.0708 = 2.502A
-IOS,max =  99038 / (39.4k * 0.999)^0.947  = 3.057A
+IOS,min = 127981 / (39.2 * 1.001)^1.0708 = 2.515A
+IOS,max =  99038 / (39.2 * 0.999)^0.947  = 3.072A
 ```
 
 Thus a 2.5A peak is not clipped at the worst-low threshold, while the worst-high
-limit remains close to the GCT connector's 3A contact rating. This is a narrow
+limit remains close to the GCT connector's 3A contact rating. The 3.072A figure
+is a fault-limit corner, not a continuous connector claim. This is a narrow
 thermal boundary, not permission to claim 2.5A continuous; first-article tests
 must establish peak duration and connector/switch temperature. The resistor
 must be adjacent to ILIM because trace resistance changes the threshold. Source:
@@ -96,11 +98,13 @@ must be adjacent to ILIM because trace resistance changes the threshold. Source:
 ## Shutdown budget
 
 SW1 grounds a common EN_BUS in OFF. With U1/U2 disabled, the USB controllers and
-port switches are unpowered. The provisional 250uA ceiling includes both module
-shutdown currents, UVLO/enable dividers, TVS/zener leakage and the 35V aluminum
-capacitor leakage with engineering allowance. Stage 2 must replace this top-
-down allocation with exact maximum-temperature terms; the locked acceptance
-limit remains <=1mA at a 12.6V pack.
+port switches are unpowered. The 250uA design ceiling includes the 12.6uA
+enable pull-up, TPSM63610's 7.5uA maximum shutdown current, TPSM63604's 1uA
+specified 25C value, TVS/zener and 35V aluminum-capacitor leakage, and
+temperature allowance. TI does not publish a guaranteed hot maximum for every
+term, so paper analysis cannot close the locked <=1mA acceptance limit. The
+schematic minimizes all intentional paths; first article must measure OFF
+current at 12.6V over the qualified temperature range.
 
 ## Protection coordination
 
@@ -112,15 +116,41 @@ part survival under the stated pulse envelope; it does not establish the energy
 of an arbitrary LiPo wiring event. First article must capture the exact hot-plug
 waveform and the release must keep the no-sustained-OV claim.
 
-## Schematic obligations still open
+## Stage 2 component closure
 
-- Exact module frequency/mode, input/output capacitor effective capacitance,
-  ripple-current and stability checks against each datasheet application table.
-- Exact EN/UVLO divider and every OFF-state maximum/leakage term.
-- TPS25810 REF/IN/AUX/OUT capacitors, CC/strap state and Type-C functional test
-  points following the vendor application.
-- TPS2513A/TPS2557/USBLC6 support values, TPD2EUSB30 CC protection and per-port fault behavior.
-- LED/fault indicators, if any, without violating the storage budget.
-- Every passive MPN, tolerance, voltage/temp derating and live JLC identity.
-- Filled/capped via construction, stencil windows and thermal-pad land patterns
-  checked against TI and JLC before placement is frozen.
+The schematic follows the two TI module application circuits at 1MHz: U1 uses
+15.8k RT, auto mode, 20k spread-spectrum tone correction, two 10uF/50V X7R
+inputs and three 47uF/10V X7R outputs; U2 uses 13k RT, two identical inputs and
+three identical outputs. Both bootstrap slew connections are populated as 0R
+for the documented highest-efficiency state and both VLDOIN pins return to the
+regulated output. Feed-forward capacitors are omitted because each output bank
+is materially above the datasheet minimum; they are optional only when the
+output bank is close to that minimum. The custom feedback ratios remain a
+deliberate delivery-drop compensation, not a claim that the TI reference
+application used those values.
+
+U3 follows the TPS25810 minimal 3A DFP circuit: IN1/IN2/AUX/EN/CHG/CHG_HI share
+5VC_RAW, 100k 0.1% connects REF to its isolated REF_RTN, three 47uF capacitors
+provide the >=120uF cold-socket input bank, 100nF is local at IN/AUX and 10uF
+is at the connector-side OUT rail. D6 shunts both exposed CC contacts to a
+short ground return. The Type-C D+/D- and SBU contacts are no-connects.
+
+Each TPS2557 has 100nF local input bypass, 39.2k 0.1% ILIM programming, a
+pulled-up fault test point and 150uF/10V post-switch hold-up at its receptacle.
+Each TPS2513A has 100nF local bypass. USBLC6 devices are wired flow-through on
+both charging-signature contacts with their VBUS reference on the individual
+post-switch port rail. No LEDs are fitted, avoiding storage current and light-
+load clutter.
+
+The OFF circuit uses one 1M VIN-to-EN_BUS pull-up and SW1 hard-grounding the
+bus. At 12.6V the intentional divider current is 12.6uA. Adding both converter
+maximum shutdown currents (7.5uA + engineering allowance for U2's specified
+1uA typical), the gate network, TVS/zener and capacitor leakage still remains
+subject to a maximum-temperature first-article measurement; the schematic has
+removed the earlier 100k/126uA enable allocation and stays well below the
+locked 1mA acceptance ceiling by design.
+
+Still open for placement/fabrication: manufacturer-exact land patterns,
+filled/capped via construction, stencil windows, MLCC effective-capacitance
+confirmation, and thermal/current qualification on the actual four-layer
+board.

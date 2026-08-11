@@ -38,9 +38,9 @@ classes:
     verify: "A-AMP and per-port four-wire resistance"
 
   SW_LOCAL:
-    intent: "module bootstrap/switch-pin copper; high-dV/dt but not an external power stage"
-    nets: [SW_A, SW_C]
-    current: "signal (bootstrap charge pulse only; no external power path)"
+    intent: "module bootstrap slew-control loops; physical SW lands have no external net by TI requirement"
+    nets: [BOOT_A_R, BOOT_A_C, BOOT_C_R, BOOT_C_C]
+    current: "bootstrap charge pulse only; no external power path"
     min_width: 0.30mm
     routing: "manufacturer-example geometry entirely inside each converter cell"
     verify: "placement review before routing"

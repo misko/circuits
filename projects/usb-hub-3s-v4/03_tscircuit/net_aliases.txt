@@ -1,0 +1,5 @@
+# tscircuit cannot author a net whose first character is a digit. The leading
+# N is authoring syntax only; KiCad, rules and release artifacts use the names
+# on the right.
+N5VA 5VA
+N5VC_RAW 5VC_RAW

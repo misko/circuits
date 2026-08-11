@@ -861,6 +861,15 @@ UNREACHED and prints **NOTHING GRADED ... This is NOT a pass** when nothing
 stamps. **A board whose driver predates this is reseeded from
 `templates/03_src/rebuild_all.sh` at its next revision — never retro-edited.**
 
+**A ZERO EXIT FROM `tsci build` IS NOT A ZERO-DIAGNOSTIC BUILD.** The tool can
+write `circuit.json`, print “completed with errors,” and still return success.
+Run `circuit_json_diagnostics.py` immediately after copying the fresh artifact:
+any embedded `*_error` is a hard **TSX-DIAG** stop; embedded `*_warning` records
+remain visible counts because supplier-fetch and source-style advisories are
+not electrical failures. This boundary precedes M-FRESH and semantic parity:
+those gates can correctly certify the identity and connectivity of an artifact
+whose own producer has already rejected its pad geometry.
+
 **A WAIVER'S NUMBER IS REGENERATED, NOT TYPED** (canon M4). Load-bearing numbers
 carry `evidence: {command:, output:}` and `waiver_provenance.py` re-runs and
 diffs them. Measured: 16 of 22 fleet waivers rest on a typed number and ONE

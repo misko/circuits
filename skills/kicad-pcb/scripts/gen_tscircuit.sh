@@ -76,6 +76,7 @@ if [ ! -s "$PRODUCED" ] || [ ! "$PRODUCED" -nt build/.tsci_build_marker ]; then
 fi
 cp "$PRODUCED" "build/circuit.json"
 rm -f build/.tsci_build_marker
+python3 "$SKILLDIR/circuit_json_diagnostics.py" "build/circuit.json" || exit 5
 # DELETE BEFORE RE-EXPORTING, for the same reason the marker above exists. This
 # script has no `set -e`, so a swallowed `tsci export` or `rsvg-convert` failure
 # used to leave the PREVIOUS run's schematic.svg/.pdf in place — and the

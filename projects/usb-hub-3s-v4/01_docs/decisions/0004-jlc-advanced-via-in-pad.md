@@ -1,7 +1,7 @@
 ---
 id: 0004
 date: 2026-08-10
-status: proposed
+status: accepted
 ---
 # 0004 — Escalate to JLC four-layer advanced via-in-pad
 
@@ -37,3 +37,13 @@ and stencil options in the JLC uploader before ordering.
 The board costs more than A3's provisional tier and order documentation must
 name the paid process. This ADR remains proposed until accepted at the Stage 1
 pause; Stage 2 must not start if the user rejects the escalation.
+
+## Acceptance — 2026-08-11
+
+Accepted by the user after the stage-pause comparison: use advanced when it
+makes the selected board easier or technically sound; avoid it if the board is
+simple enough not to require it. The selected design meets the first condition:
+the TPSM63610/TPSM63604 layouts require direct exposed-land thermal via fields,
+and TPS25810's 0.50 mm WQFN independently computes as
+`jlc_4layer_advanced`. Standard processing would require an architecture or
+package backtrack, not merely a simpler layout of the same circuit.

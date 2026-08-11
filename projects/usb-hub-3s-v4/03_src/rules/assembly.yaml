@@ -2,6 +2,7 @@ service: standard
 sides: [top]
 fiducials: none
 build_quantity: 5
+pcb_process: "JLC four-layer advanced; resin-filled and copper-capped via-in-pad under exposed thermal lands"
 
 # Population and exceptions cannot exist before the schematic/board. These
 # empty declarations are authoritative until later stages add measured rows.

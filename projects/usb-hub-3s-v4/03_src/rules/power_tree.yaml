@@ -58,8 +58,8 @@ rails:
   - name: VBUSC
     vin_min: 9.0
     vin_max: 12.6
-    vout_min: 5.119
-    vout_max: 5.241
+    vout_min: 5.110
+    vout_max: 5.231
     iout_max_A: 3.0
     converter: TPSM63604RDLR
     eff: 0.90
@@ -88,14 +88,14 @@ rails:
     feedback:
       vref: 1.0
       vref_tol_pct: 1.0
-      r_top_ohm: 41800
+      r_top_ohm: 41700
       r_top_tol_pct: 0.1
       r_bottom_ohm: 10000
       r_bottom_tol_pct: 0.1
 
 # Worst-case divider corners are 5.060651-5.179531V for 5VA and
-# 5.119932-5.240252V for 5VC. The declared envelopes conservatively contain
+# 5.110052-5.230132V for 5VC. The declared envelopes conservatively contain
 # those computed values. At the specified planes and 20% residual margin,
-# 5VA retains 106mV beyond its 2A IR allowance and 5VC retains about 28mV.
+# 5VA retains 106mV beyond its 2A IR allowance and 5VC retains about 18mV.
 # Peak USB-A service (3 x 2.5A) is separately bounded by the 8A-rated module,
 # 3A connector contacts and Stage-2 TPS2557 current-limit proof.

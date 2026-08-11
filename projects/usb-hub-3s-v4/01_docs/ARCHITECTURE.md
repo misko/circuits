@@ -1,7 +1,8 @@
 # USB Hub 3S v4 — selected Stage 1 architecture
 
-Status: Stage 1 selected; schematic not started. The JLC advanced-tier
-escalation in ADR-0004 is awaiting the stage-pause decision.
+Status: Stage 2 schematic closed; placement and physical implementation remain
+unapproved. The JLC advanced-tier escalation in ADR-0004 was accepted by D3 on
+2026-08-11.
 
 ## Execution/power stack
 
@@ -35,9 +36,9 @@ and protection; USB-C D+/D− contacts are explicit no-connects.
 ## Why two modules
 
 All continuous loads consume 45W nominal at the connectors; the tolerance-
-corner power-tree contract is 46.803W. At 9V and 90% efficiency, the contract
+corner power-tree contract is 46.773W. At 9V and 90% efficiency, the contract
 therefore derives 5.8A at the input. Coincident 2.5A USB-A peaks raise worst-
-corner output power to 54.573W and estimated input current to 6.74A.
+corner output power to 54.543W and estimated input current to 6.73A.
 
 One TPSM63610 is rated 8A continuous/10A peak, but the output ports together
 need 9A continuous and 10.5A peak. Splitting the board gives the USB-A bank an

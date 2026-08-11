@@ -9,7 +9,7 @@ pins: {1: GND, 2: IN, 3: IN, 4: EN, 5: ILIM, 6: OUT, 7: OUT, 8: FAULT, 9: {name:
 limits: {vin: "2.5-6.5V", continuous_current_max: 5A, rds_on_max_125C: 35mOhm, standby_supply_max: 2uA}
 gotchas:
   - "TPS2557 EN is active high; TPS2556 is the pin-compatible active-low variant."
-  - "39.4k 0.1% ILIM resistor is selected in Stage 2 so the datasheet equations guarantee approximately 2.50A minimum and 3.06A maximum including resistor tolerance."
+  - "39.2k 0.1% ILIM resistor is selected in Stage 2 so the datasheet equations guarantee approximately 2.515A minimum and 3.072A maximum including resistor tolerance."
   - "ILIM resistor must be adjacent to pin 5; its trace resistance changes the limit."
 verified: "pin functions, electrical table and section 10.2 current-limit equations independently read 2026-08-10"
 sourcing: {lcsc: C130056, alternates: [{lcsc: C2150199, mpn: TPS2557DRBT}], note: "DRBR large reel preferred; stock evidence is volatile"}

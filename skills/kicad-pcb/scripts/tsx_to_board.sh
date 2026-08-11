@@ -138,6 +138,8 @@ mkdir -p "$T/build"
 ( cd "$T" && timeout 300 tsci build "src/$TSCBASE.tsx" >/dev/null 2>&1 \
     && cp "dist/src/$TSCBASE/circuit.json" "build/circuit.json" )
 [ -s "$T/build/circuit.json" ] || fail "tsci build produced no circuit.json"
+python3 "$SKILLDIR/circuit_json_diagnostics.py" "$T/build/circuit.json" \
+  || fail "tsci build embedded hard error diagnostics in circuit.json"
 
 # ---- [2] converter: circuit.json -> backend-ready .kicad_sch ----
 gate "[2] circuit_json_to_kicad_sch -> $BOARD.kicad_sch"

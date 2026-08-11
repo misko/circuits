@@ -62,6 +62,12 @@ CJ=03_tscircuit/build/circuit.json             # the ONE name for the converter 
 mkdir -p 03_tscircuit/build
 cp "03_tscircuit/dist/src/$TSX/circuit.json" "$CJ"
 
+# [1d] tsci can exit zero while embedding hard geometry/component errors in
+# circuit.json. Freshness and electrical parity correctly grade the artifact
+# they receive, but do not own tscircuit's diagnostic vocabulary.
+$PY "$S/circuit_json_diagnostics.py" "$CJ" \
+    || { echo "GATE FAILED [1d] TSX-DIAG: tsci returned a circuit artifact containing hard error diagnostics"; exit 1; }
+
 # [1r] THE HUMAN SCHEMATIC — regenerated, and DELETED FIRST so that a failure
 # leaves ABSENCE rather than the previous revision.
 #

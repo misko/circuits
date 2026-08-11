@@ -38,9 +38,8 @@ flow:
     rebuild: 1500
     layout_drc: 180
   blockers:
-    - "Stage 1 part selection and dossiers incomplete"
-    - "Stage 2 schematic and exact-netlist review incomplete"
-    - "Stage 3 floorplan outline and placement incomplete"
+    - "Stage 3 floorplan outline, thermal-via fields and placement incomplete"
+    - "Placement-phase pin/layout/render reviews incomplete"
 
 prep:
   out: r0.kicad_pcb
@@ -60,7 +59,7 @@ route:
   no_critical_routes: "D1 excludes USB data and RF; no timing-, impedance-, or phase-critical signal route is commissioned"
   common:
     layers: [F.Cu, B.Cu]
-    fab_tier: standard
+    fab_tier: advanced
     no_stub_layer_swap: true
     keepout: true
     keepout_layer: User.2

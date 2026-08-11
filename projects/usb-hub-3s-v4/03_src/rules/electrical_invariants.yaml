@@ -1,5 +1,100 @@
-invariants: []
+# Machine-checkable electrical intent for the authored Stage 2 schematic.
+# Values are asserted in addition to topology because a correctly wired wrong
+# resistor is still a wrong power supply/current limiter.
 
-# Stage 2 must emit assertions from ADR-0001 after real refdes and net names
-# exist. Keeping this empty at commission prevents invented schematic facts.
-label_survival: {}
+invariants:
+  # ADR-0005: terminal -> fuse -> reverse-polarity FET -> protected VIN. The
+  # TVS is deliberately on the protected side and the source-gate zener is not
+  # interchangeable with it.
+  - assert: series_chain
+    chain: [BAT_POS, F1, VBAT_FUSED, Q1, VIN]
+    through: {Q1: [5, 1]}
+    adr: "0005"
+    why: "fuse precedes the series reverse-polarity FET; VIN is the protected module trunk"
+  - {assert: pin_on_net, pin: D1.1, net: VIN, adr: "0005", why: "unidirectional TVS cathode is after reverse blocking"}
+  - {assert: pin_on_net, pin: D1.2, net: GND, adr: "0005", why: "TVS anode returns to ground"}
+  - {assert: pin_on_net, pin: D5.1, net: VIN, adr: "0005", why: "gate-clamp cathode is at Q1 source"}
+  - {assert: pin_on_net, pin: D5.2, net: RPP_GATE, adr: "0005", why: "gate-clamp anode is at Q1 gate"}
+  - {assert: part_value, part: R1, equals: 1M, tolerance_pct: 1, adr: "0005", why: "Q1 gate pull-down limits clamp current and storage drain"}
+  - {assert: pin_on_net, pin: SW1.1, net: GND, adr: "0005", why: "OFF throw hard-grounds enable"}
+  - {assert: pin_on_net, pin: SW1.2, net: EN_BUS, adr: "0005", why: "switch common owns both converter enables"}
+  - {assert: part_value, part: R2, equals: 1M, tolerance_pct: 1, adr: "0005", why: "one high-value enable pull-up meets the storage-current budget"}
+
+  # ADR-0002: two independent integrated converters, each after protection.
+  - {assert: pin_on_net, pin: U1.1, net: VIN, adr: "0002", why: "USB-A module input is protected VIN"}
+  - {assert: pin_on_net, pin: U1.9, net: 5VA, adr: "0002", why: "USB-A module output owns only the A bank"}
+  - {assert: pin_on_net, pin: U1.17, net: EN_BUS, adr: "0002", why: "USB-A module participates in common shutdown"}
+  - {assert: part_value, part: R4, equals: 15.8k, tolerance_pct: 1, adr: "0002", why: "TPSM63610 operates at 1MHz"}
+  - {assert: part_value, part: R5, equals: 41.2k, tolerance_pct: 0.1, adr: "0002", why: "5VA custom delivery-drop setpoint top leg"}
+  - {assert: part_value, part: R6, equals: 10k, tolerance_pct: 0.1, adr: "0002", why: "5VA feedback bottom leg"}
+  - {assert: pin_on_net, pin: U2.1, net: VIN, adr: "0002", why: "Pi module input is protected VIN"}
+  - {assert: pin_on_net, pin: U2.8, net: 5VC_RAW, adr: "0002", why: "Pi module output owns only the Type-C rail"}
+  - {assert: pin_on_net, pin: U2.14, net: EN_BUS, adr: "0002", why: "Pi module participates in common shutdown"}
+  - {assert: part_value, part: R10, equals: 13k, tolerance_pct: 1, adr: "0002", why: "TPSM63604 operates at 1MHz"}
+  - {assert: part_value, part: R11, equals: 41.7k, tolerance_pct: 0.1, adr: "0002", why: "5VC_RAW custom delivery-drop setpoint top leg"}
+  - {assert: part_value, part: R12, equals: 10k, tolerance_pct: 0.1, adr: "0002", why: "5VC_RAW feedback bottom leg"}
+
+  # ADR-0003: Type-C is attach controlled and advertises 3A; it is neither a
+  # permanently-live Rp socket nor a USB-PD port.
+  - {assert: pin_on_net, pin: U3.6, net: 5VC_RAW, adr: "0003", why: "TPS25810 enable is powered only with its local buck"}
+  - {assert: pin_on_net, pin: U3.7, net: 5VC_RAW, adr: "0003", why: "CHG high selects Type-C current advertisement"}
+  - {assert: pin_on_net, pin: U3.8, net: 5VC_RAW, adr: "0003", why: "CHG_HI high selects 3A advertisement and 3.4A nominal limit"}
+  - {assert: pin_on_net, pin: U3.11, net: CC1, adr: "0003", why: "CC1 remains a separate attach line"}
+  - {assert: pin_on_net, pin: U3.13, net: CC2, adr: "0003", why: "CC2 remains a separate attach line"}
+  - {assert: pin_on_net, pin: U3.14, net: VBUSC, adr: "0003", why: "connector VBUS is after the attach-controlled switch"}
+  - {assert: part_value, part: R14, equals: 100k, tolerance_pct: 0.1, adr: "0003", why: "TPS25810 REF-to-REF_RTN reference resistor"}
+  - {assert: pin_on_net, pin: D6.1, net: CC1, adr: "0003", why: "exposed CC1 has connector-side ESD protection"}
+  - {assert: pin_on_net, pin: D6.2, net: CC2, adr: "0003", why: "exposed CC2 has connector-side ESD protection"}
+  - {assert: pin_on_net, pin: D6.3, net: GND, adr: "0003", why: "CC clamp has a ground return"}
+  - {assert: pin_on_net, pin: J5.A4, net: VBUSC, adr: "0001", why: "power-only Type-C VBUS comes only from TPS25810 OUT"}
+  - {assert: pin_on_net, pin: J5.A5, net: CC1, adr: "0003", why: "receptacle CC1 is not statically shorted to CC2"}
+  - {assert: pin_on_net, pin: J5.B5, net: CC2, adr: "0003", why: "receptacle CC2 is not statically shorted to CC1"}
+
+  # USB-A power and charge-signature cells, asserted per port so one swapped
+  # connector or one wrong limiter cannot hide behind two correct siblings.
+  - {assert: pin_on_net, pin: U4.2, net: 5VA, adr: "0003", why: "port 1 switch input"}
+  - {assert: pin_on_net, pin: U4.6, net: VBUSA1, adr: "0003", why: "port 1 connector is post-switch"}
+  - {assert: part_value, part: R16, equals: 39.2k, tolerance_pct: 0.1, adr: "0003", why: "port 1 2.515A-min current-limit program"}
+  - {assert: pin_on_net, pin: J2.1, net: VBUSA1, adr: "0003", why: "port 1 VBUS cannot bypass its switch"}
+  - {assert: pin_on_net, pin: U5.2, net: 5VA, adr: "0003", why: "port 2 switch input"}
+  - {assert: pin_on_net, pin: U5.6, net: VBUSA2, adr: "0003", why: "port 2 connector is post-switch"}
+  - {assert: part_value, part: R18, equals: 39.2k, tolerance_pct: 0.1, adr: "0003", why: "port 2 2.515A-min current-limit program"}
+  - {assert: pin_on_net, pin: J3.1, net: VBUSA2, adr: "0003", why: "port 2 VBUS cannot bypass its switch"}
+  - {assert: pin_on_net, pin: U6.2, net: 5VA, adr: "0003", why: "port 3 switch input"}
+  - {assert: pin_on_net, pin: U6.6, net: VBUSA3, adr: "0003", why: "port 3 connector is post-switch"}
+  - {assert: part_value, part: R20, equals: 39.2k, tolerance_pct: 0.1, adr: "0003", why: "port 3 2.515A-min current-limit program"}
+  - {assert: pin_on_net, pin: J4.1, net: VBUSA3, adr: "0003", why: "port 3 VBUS cannot bypass its switch"}
+  - {assert: pin_on_net, pin: U7.1, net: DP_A1, adr: "0003", why: "signature channel 1 terminates only port 1 D+"}
+  - {assert: pin_on_net, pin: U7.3, net: DP_A2, adr: "0003", why: "signature channel 2 terminates only port 2 D+"}
+  - {assert: pin_on_net, pin: U8.1, net: DP_A3, adr: "0003", why: "second controller terminates only port 3 D+"}
+
+  # ADR-0004: exposed thermal pads must be electrically grounded before their
+  # filled/capped via fields can provide the intended heat path.
+  - {assert: pin_on_net, pin: U3.21, net: GND, adr: "0004", why: "TPS25810 exposed pad is grounded"}
+  - {assert: pin_on_net, pin: U4.9, net: GND, adr: "0004", why: "port 1 TPS2557 exposed pad is grounded"}
+  - {assert: pin_on_net, pin: U5.9, net: GND, adr: "0004", why: "port 2 TPS2557 exposed pad is grounded"}
+  - {assert: pin_on_net, pin: U6.9, net: GND, adr: "0004", why: "port 3 TPS2557 exposed pad is grounded"}
+
+label_survival:
+  pin_map:
+    - refs: [J2, J3, J4]
+      n_start: 1
+      pins: {"1": "VBUSA{n}", "2": "DM_A{n}", "3": "DP_A{n}", "4": GND, SH: GND}
+    - refs: [J5]
+      pins: {A1: GND, A4: VBUSC, A5: CC1, A9: VBUSC, A12: GND, B1: GND, B4: VBUSC, B5: CC2, B9: VBUSC, B12: GND, SH: GND}
+      unconnected: [A6, A7, A8, B6, B7, B8]
+    - refs: [SW1]
+      pins: {"1": GND, "2": EN_BUS}
+      unconnected: ["3"]
+    - refs: [U1]
+      pins: {"1": VIN, "9": 5VA, "17": EN_BUS}
+      unconnected: ["4", "6", "16"]
+    - refs: [U2]
+      pins: {"1": VIN, "8": 5VC_RAW, "14": EN_BUS}
+      unconnected: ["2", "7", "15"]
+    - refs: [U3]
+      pins: {"6": 5VC_RAW, "11": CC1, "13": CC2, "14": VBUSC, "21": GND}
+      unconnected: ["16", "17", "18", "19", "20"]
+    - refs: [U8]
+      pins: {"1": DP_A3, "2": GND, "5": 5VA, "6": DM_A3}
+      unconnected: ["3", "4"]

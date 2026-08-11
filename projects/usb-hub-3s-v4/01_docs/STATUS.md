@@ -1,7 +1,7 @@
-stage: parts
-step: "Stage 1 engineering candidate complete; paused at the manufacturing-tier decision"
-measure: "composed Q2 16/16; JLC 16/16; escape 16/16; rules-source 9/9; early 3/3; topology 4/4; module-first 4/4; margin 8; off-state 250uA"
-state: blocked
-next: "accept ADR-0004 JLC advanced via-in-pad processing, or backtrack the converter architecture before schematic generation"
+stage: schematic
+step: "Stage 2 complete; exact-hash topology review is SOUND and the pipeline is paused before placement"
+measure: "run 2afa66dd752e: TSX-DIAG 0 errors; M-FRESH 9/9; 76/76 components; E-INV 53/53; ERC 0 errors; PR-REVIEW 1/1"
+state: paused
+next: "after user continuation, execute Stage 3 manufacturer-led placement and stop again after exact-board pin/layout/render review"
 op_pid: none
-updated: 2026-08-10T21:10:00-07:00
+updated: 2026-08-11T08:34:00-07:00

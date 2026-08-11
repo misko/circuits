@@ -297,3 +297,16 @@ C5126196: {mpn: FRC0603F9760TS, value: "976", verified: "2026-07-31 JLC catalog 
 C1604: {mpn: 0603B222K500NT, value: "2.2nF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 2.2nF 50V X7R ±10% 0603. MPN capacitance field 222 independently decodes to 2200pF = 2.2nF."}
 C309062: {mpn: CL32B226KAJNNNE, value: "22uF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 22uF 25V X7R ±10% 1210. MPN capacitance field 226 independently decodes to 22000000pF = 22uF."}
 C23231: {mpn: 0603WAF6802T5E, value: "68k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 68kOhm ±1% 0603. MPN field 6802 independently decodes to 680 x 10^2 ohm = 68kOhm."}
+
+# --- usb-hub-3s-v4 schematic capture, 2026-08-11 --------------------------
+# Live exact-code JLC catalog reads, with ordering-field/value decode as the
+# independent check. Stock is deliberately not frozen in this append-only
+# identity ledger; A-STOCK re-reads it for the actual order quantity.
+C855851: {mpn: AT0603BRD0741K2L, value: "41.2k", verified: "2026-08-11 JLC exact-code catalog row: 41.2kΩ ±0.1% ±25ppm/℃ 0603. Yageo field 41K2 independently decodes to 41.2kΩ; USB-A module custom feedback top."}
+C861394: {mpn: RT0603BRD0741K7L, value: "41.7k", verified: "2026-08-11 JLC exact-code catalog row: 41.7kΩ ±0.1% ±25ppm/℃ 0603. Yageo field 41K7 independently decodes to 41.7kΩ; Pi module custom feedback top."}
+C95204: {mpn: RT0603BRD0710KL, value: "10k", verified: "2026-08-11 JLC exact-code catalog row: 10kΩ ±0.1% ±25ppm/℃ 0603. Yageo field 10K independently agrees; both feedback bottom legs."}
+C861871: {mpn: RT0603BRE0739K2L, value: "39.2k", verified: "2026-08-11 JLC exact-code catalog row: 39.2kΩ ±0.1% ±50ppm/℃ 0603. Yageo field 39K2 independently decodes to 39.2kΩ; TPS2557 current-limit programming."}
+C22880: {mpn: 0603WAF1582T5E, value: "15.8k", verified: "2026-08-11 JLC exact-code catalog row: 15.8kΩ ±1% 0603. Ordering field 1582 independently decodes to 15.8kΩ; TPSM63610 1MHz RT."}
+C22797: {mpn: 0603WAF1302T5E, value: "13k", verified: "2026-08-11 JLC exact-code catalog row: 13kΩ ±1% 0603. Ordering field 1302 independently decodes to 13kΩ; TPSM63604 1MHz RT."}
+C23692991: {mpn: CGA1210X7R476K100RT, value: "47uF", verified: "2026-08-11 JLC exact-code catalog row: 47uF 10V X7R ±10% 1210. Capacitance field 476 independently decodes to 47uF; module output/TPS25810 input banks."}
+C264054: {mpn: EEEFK1A151P, value: "150uF", verified: "2026-08-11 JLC exact-code catalog row: Panasonic 150uF 10V D6.3x5.8 aluminum electrolytic. Panasonic exact series/value/package row independently agrees; USB-A receptacle hold-up."}

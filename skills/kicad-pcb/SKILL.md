@@ -119,7 +119,13 @@ credits, or debugging time — check provenance notes before assuming staleness.
     them back — it catches defects the author is blind to (8 classes on first
     use). Red/green every fix; netlist parity (node-for-node) after any
     schematic regeneration.
-12. **Separate source / generated / build / releases; extract datasheets
+12. **Treat successful generation and clean generation as separate facts.**
+    `tsci build` can return zero while embedding `*_error` diagnostics in
+    `circuit.json`. Run `circuit_json_diagnostics.py` immediately after the
+    build/copy boundary; error records block, while warning records are counted
+    for review. Freshness, ERC, and parity do not replace this producer-owned
+    diagnostic check.
+13. **Separate source / generated / build / releases; extract datasheets
     once.** Every fab order freezes into an immutable `releases/<ver>-<date>/`
     with a MANIFEST (git SHA + tool versions) — a single mutable `fab/` dir
     silently mixed KiCad 7 and 10 gerbers and cannot answer "what did we

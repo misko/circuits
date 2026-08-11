@@ -54,6 +54,7 @@ TPL_DIR = ROOT / "skills" / "pcb-design" / "templates" / "03_src"
 REUSE = TPL_DIR / "rebuild_reuse.sh"
 ALL = TPL_DIR / "rebuild_all.sh"
 PROV = SCRIPTS / "build_provenance.py"
+DIAG = SCRIPTS / "circuit_json_diagnostics.py"
 
 
 def drc_gate_ok(txt):
@@ -110,6 +111,23 @@ def erc_gate_ok(txt):
                        "to be baselined, and a baseline nobody writes down "
                        "cannot be reviewed")
     return True, ""
+
+
+@test("TSX-DIAG reports its coverage and FAILS an embedded producer error",
+      kind="known_bad")
+def t_kb_tsx_diag_embedded_error_is_loud():
+    d = tmpdir("tsx-diag-")
+    artifact = d / "circuit.json"
+    artifact.write_text(json.dumps([
+        {"type": "source_component"},
+        {"type": "pcb_port_clearance_error", "message": "pads overlap"},
+        {"type": "source_part_not_found_warning", "message": "advisory"},
+    ]))
+    r = must_fail(run([KPY, DIAG, artifact]),
+                  "circuit_json_diagnostics.py on an embedded error",
+                  expect="TSX-DIAG FAIL")
+    contains(r.out, "2 diagnostic record(s) graded / 3 circuit JSON element(s)",
+             "TSX-DIAG coverage")
 
 
 def pre_route_land_gate_ok(txt):
@@ -207,6 +225,19 @@ def circuit_json_wiring(txt):
         produced.add(m.group(2).strip('"\''))
     produced |= {c for c in consumed if "dist/" in c}   # reading dist/ directly is fine
     return consumed, produced
+
+
+def tsx_diagnostic_wiring_ok(txt):
+    """TSX-DIAG must grade the copied producer artifact before conversion."""
+    t = _expand(txt)
+    copied = re.search(
+        r'^\s*cp\s+"?\S*dist/\S*circuit\.json"?\s+"?\S*circuit\.json"?',
+        t, re.M)
+    diagnostic = re.search(
+        r'circuit_json_diagnostics\.py"?\s+"?\S*circuit\.json"?', t)
+    converter = re.search(r'circuit_json_to_kicad_sch\.py', t)
+    return bool(copied and diagnostic and converter and
+                copied.start() < diagnostic.start() < converter.start())
 
 
 #: the template as it stood BEFORE the human schematic was rendered or graded.
@@ -438,6 +469,26 @@ def t_kb_wiring_teeth():
     check(consumed - produced,
           "the wiring check ACCEPTED a driver that grades a circuit.json its "
           "builder never wrote — it is blind to the exact defect it exists for")
+
+
+@test("rebuild_all.sh: TSX-DIAG grades the fresh circuit.json before the "
+      "converter can certify it")
+def t_tsx_diagnostic_boundary():
+    check(tsx_diagnostic_wiring_ok(ALL.read_text()),
+          "circuit_json_diagnostics.py must run after the dist/ producer copy "
+          "and before circuit_json_to_kicad_sch.py")
+
+
+@test("the TSX-DIAG wiring assertion has TEETH: removing the checker is "
+      "rejected", kind="known_bad")
+def t_kb_tsx_diagnostic_boundary_teeth():
+    txt = ALL.read_text()
+    mutated = re.sub(
+        r'^\$PY\s+"\$S/circuit_json_diagnostics\.py".*?^\s*\|\|.*?\n',
+        "", txt, flags=re.M | re.S)
+    check(mutated != txt, "mutation did not remove the TSX-DIAG invocation")
+    check(not tsx_diagnostic_wiring_ok(mutated),
+          "TSX-DIAG wiring check accepted a build with no producer-diagnostic gate")
 
 
 # ================================================ the ERC gate + the [4] guard
