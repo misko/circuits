@@ -15,3 +15,9 @@
 - generalized: Freshness, parity and ERC can all be correct while the foreign producer has rejected its own geometry. Added shared `circuit_json_diagnostics.py`, wired it into all TSX entry points and the canonical rebuild template, documented the boundary in both PCB skills/contracts, and added clean/known-bad coverage; the template suite is 40/40 and the checker unit suite is 3/3. Future projects now stop on embedded `*_error` records even when `tsci` exits zero.
 - instruction-change candidate: Run rule/config schema lint before the expensive TSX build, not after netlist export; the label-map schema failure spent a full generation cycle without needing circuit bytes. Also add an explicit human-render readability lens: this one-page auto-layout is electrically coherent and zoom-readable but less conventional than a sectioned left-to-right schematic, a distinction no connectivity gate measures.
 - next: PAUSE. On user continuation, begin Stage 3 placement from the exact reviewed netlist. Preserve JLC advanced processing, manufacturer module example geometry, filled/capped thermal-via fields, a continuous layer-2 ground plane, connector-edge ESD, short high-current paths and quiet feedback takeoffs. Do not route until the exact placed board passes pin/layout/render/A-RENDER review.
+
+## 2026-08-11 08:51 — handoff
+
+- did: Promoted the two Stage 2 instruction-change candidates into the governed repository-level `improvements.md` ledger as IMP-001 and IMP-002.
+- result: MEASURED both items now have explicit `proposed` status, source evidence, intended canonical landing points and executable completion criteria; neither is represented as already implemented.
+- next: Keep the items visible through later stage harvests and change status only when implementation plus tests land, or when a dated rejection rationale is recorded.
