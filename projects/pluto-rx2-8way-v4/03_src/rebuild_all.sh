@@ -271,4 +271,4 @@ mkdir -p 03_tscircuit/kicad
 cp "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch"
 cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
     || { echo "GATE FAILED [11] M-PIN: promoted schematic differs from the full-build subject"; exit 1; }
-$PY "$S/project_state.py" . --expect FIRST_ARTICLE_ORDERABLE
+$PY "$S/project_state.py" . --expect DESIGN_CLEAN

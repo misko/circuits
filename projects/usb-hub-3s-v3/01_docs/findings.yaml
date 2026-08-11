@@ -1,5 +1,5 @@
 schema: 1
-target: FIRST_ARTICLE_ORDERABLE
+target: DESIGN_CLEAN
 gates:
   - id: usb_design_contract
     required_for: DESIGN_CLEAN
@@ -10,12 +10,9 @@ gates:
                08_reviews/2026-07-28_v1.12_fresh-lens_staged.md]
   - id: usb_release_gate
     required_for: FIRST_ARTICLE_ORDERABLE
-    state: pass
+    state: pending
     owner: fabrication
-    closes_when: A sealed, DRC-clean, independently reviewed fabrication package exists.
-    evidence: [07_releases/v1.12-2026-07-28/MANIFEST.txt,
-               07_releases/v1.12-2026-07-28/verification/drc.json,
-               07_releases/v1.12-2026-07-28/verification/j5_geometry_gate.txt]
+    closes_when: The changed pipeline/config source is rebuilt, independently reviewed and sealed in a new fabrication package.
   - id: usb_first_article_test
     required_for: FIRST_ARTICLE_TESTED
     state: pending
@@ -27,6 +24,12 @@ gates:
     owner: manufacturing
     closes_when: Tested BOM lot, assembly process and production acceptance plan are approved.
 findings:
+  - id: USB-F0-current-source-unsealed
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_ORDERABLE
+    owner: fabrication
+    finding: v1.12 remains historical evidence but predates the bounded-pipeline and route-clearance source changes.
+    closes_when: A clean canonical rebuild and exact-artifact reviews are sealed against the current source commit.
   - id: USB-F1-Q9-operating-margin
     state: open
     blocks_at_or_above: FIRST_ARTICLE_TESTED

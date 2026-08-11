@@ -54,13 +54,14 @@ def t_claim_only_diff_selects_project():
               f"claim-only path escaped the publication denominator: {path}")
 
 
-@test("the real sealed RX2 v4 project clears the publication gate")
-def t_real_sealed_reviewed_project_passes():
-    r = must_pass(run([sys.executable, PUB, "--project",
+@test("the real RX2 v4 release is explicitly stale after material pipeline "
+      "source changed", kind="known_bad")
+def t_real_release_stales_after_pipeline_adoption():
+    r = must_fail(run([sys.executable, PUB, "--project",
                        "projects/pluto-rx2-8way-v4"]),
-                  "sealed reviewed RX2 publication")
+                  "stale reviewed RX2 publication", "STALE-RELEASE")
     contains(r.out, "1 project(s), 1 board(s) graded", "coverage denominator")
-    contains(r.out, "P-PUBLISH PASS", "publication verdict")
+    contains(r.out, "03_src/route.yaml", "material source diagnosis")
 
 
 @test("an unsealed board cannot be published even when DRC/parity are green",

@@ -79,4 +79,4 @@ run_stage layout_drc kicad-cli pcb drc --severity-all --refill-zones --schematic
     --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
 $PY "$S/artifact_provenance.py" finish . --stage pcb_layout
-$PY "$S/project_state.py" . --expect FIRST_ARTICLE_ORDERABLE
+$PY "$S/project_state.py" . --expect DESIGN_CLEAN

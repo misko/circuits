@@ -56,9 +56,10 @@ accepted sources / design intent
 ```
 
 An open finding blocks the level named by `blocks_at_or_above`, not every
-earlier level. This is why both boards can honestly be first-article orderable
-while their VNA/thermal/transient work remains visibly open, and why neither is
-labelled tested or production-released.
+earlier level. Both boards currently derive `DESIGN_CLEAN`: their prior sealed
+releases remain immutable historical evidence, but material pipeline/config
+source now differs and therefore requires a fresh canonical rebuild, review
+and seal before either current project is called first-article orderable.
 
 ## What this changes for the two boards
 
@@ -71,8 +72,10 @@ labelled tested or production-released.
   SMD/PTH/NPTH counts, locator drill size, key pad sizes, and key nets before
   routing. This directly targets the wrong-J5-footprint incident class that
   self-consistent schematic/PCB connectivity cannot detect.
-- The v1.12 sealed package supports `FIRST_ARTICLE_ORDERABLE`; Q9/transient and
-  sustained-load/thermal findings explicitly block `FIRST_ARTICLE_TESTED`.
+- v1.12 remains historical release evidence. Current source is `DESIGN_CLEAN`
+  until the bounded pipeline and corrected route-clearance config are rebuilt,
+  independently reviewed and sealed; Q9/transient and sustained-load/thermal
+  work still blocks `FIRST_ARTICLE_TESTED` after that.
 
 ### Pluto RX2 8-way v4
 
@@ -82,8 +85,10 @@ labelled tested or production-released.
   major-stage receipt extends lineage through board generation and final DRC.
 - U_SW, the RP2040-Zero module and all ten SMA footprints are checked for
   order-code identity, pad set/count, critical nets, land sizes and drills.
-- The v1.1 sealed package supports `FIRST_ARTICLE_ORDERABLE`; free-running
-  timing, VNA/POFV, rail and thermal validation block `FIRST_ARTICLE_TESTED`.
+- v1.1 remains historical release evidence. Current source is `DESIGN_CLEAN`
+  until the explicit promoted-route lineage and bounded pipeline are rebuilt,
+  independently reviewed and sealed; free-running timing, VNA/POFV, rail and
+  thermal validation then remain the `FIRST_ARTICLE_TESTED` boundary.
 
 ## Negative controls
 

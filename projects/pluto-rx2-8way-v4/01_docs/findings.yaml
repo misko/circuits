@@ -1,5 +1,5 @@
 schema: 1
-target: FIRST_ARTICLE_ORDERABLE
+target: DESIGN_CLEAN
 gates:
   - id: pluto_design_contract
     required_for: DESIGN_CLEAN
@@ -11,12 +11,9 @@ gates:
                08_reviews/2026-08-01_v1.1_rf_pcb.md]
   - id: pluto_release_gate
     required_for: FIRST_ARTICLE_ORDERABLE
-    state: pass
+    state: pending
     owner: fabrication
-    closes_when: A sealed DRC-clean fabrication package with RF evidence exists.
-    evidence: [07_releases/v1.1-2026-08-01/MANIFEST.txt,
-               07_releases/v1.1-2026-08-01/verification/drc.json,
-               07_releases/v1.1-2026-08-01/verification/cpwg_field.json]
+    closes_when: The changed pipeline/config source is rebuilt, independently reviewed and sealed with fresh RF evidence.
   - id: pluto_first_article_test
     required_for: FIRST_ARTICLE_TESTED
     state: pending
@@ -28,6 +25,12 @@ gates:
     owner: manufacturing
     closes_when: Pilot-lot yield and a repeatable RF calibration/test procedure are approved.
 findings:
+  - id: PLUTO-F0-current-source-unsealed
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_ORDERABLE
+    owner: fabrication
+    finding: v1.1 remains historical evidence but predates the bounded-pipeline and explicit route-lineage source changes.
+    closes_when: A clean canonical rebuild and exact-artifact/RF reviews are sealed against the current source commit.
   - id: PLUTO-F1-free-running-timing
     state: open
     blocks_at_or_above: FIRST_ARTICLE_TESTED
