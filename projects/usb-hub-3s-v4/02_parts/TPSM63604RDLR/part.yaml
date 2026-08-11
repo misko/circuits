@@ -32,6 +32,11 @@ gotchas:
   - "Exposed thermal lands must be soldered and tied to plane copper with filled/capped thermal vias."
 verified: "pin table 6-1, limits tables 7-1 and 7-5, and layout section 11 independently read 2026-08-10"
 sourcing: {lcsc: C5219289, alternates: [], note: "JLC/LCSC catalog candidate; volatile stock evidence is kept in 06_build/cache"}
+layout:
+  source: "TI SLVSGJ5 sec.11 plus pin-compatible TPSM63606EVM BSR175A editable Altium design files (SLVRBI7)"
+  reviewed: "2026-08-11"
+  notes: "Use the exact RDL0020A EVM land, symmetric local VIN and VOUT capacitors, uninterrupted inner GND planes and filled/capped 0.30mm vias inside PGND lands; keep feedback, RT and BOOT components adjacent to their pins."
 layout_refs:
   - {tier: 1, reached: true, artifact: "TI SLVSGJ5 sec.11 layout guidelines and example", why: "manufacturer layout defines switching loop, feedback and thermal geometry"}
-  - {tier: 2, reached: false, artifact: "TPSM63604 evaluation-module design files", why: "EVM copper will be consulted before placement is frozen"}
+  - {tier: 2, reached: true, artifact: "TI TPSM63606EVM BSR175A editable Altium PCB design, SLVRBI7; TPSM63606 is package/pin compatible", why: "manufacturer EVM land and surrounding via/capacitor geometry were imported and measured before placement froze"}
+  - {tier: 3, reached: false, artifact: "OSHWLab/LCSC routed TPSM63604 precedent", why: "not needed after the pin-compatible manufacturer editable EVM was reached; third-party authority would be weaker"}

@@ -12,3 +12,10 @@ gotchas:
   - "BC1.2 itself defines a 1.5A DCP. The board's 2A/2.5A service is a clearly labelled proprietary charge-only extension, not a USB-IF BC1.2 current-compliance claim."
 verified: "pin figure, device-options table and DCP functional modes independently read 2026-08-10"
 sourcing: {lcsc: C473910, alternates: [], note: "volatile stock evidence is kept in 06_build/cache"}
+layout:
+  source: "TI SLVSBY8D application circuit and DBV package pin arrangement"
+  reviewed: "2026-08-11"
+  notes: "Keep each DP/DM charging-signature branch local to its USB-A connector cells and behind the connector-side USBLC6 clamps; place the 100nF supply bypass at IN/GND."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSBY8D application circuit and package pin figure", why: "manufacturer topology fixes local DCP signature connections and supply bypass"}
+  - {tier: 2, reached: false, artifact: "TI TPS2513A evaluation-board editable design files", why: "no manufacturer editable evaluation-board layout was identified; this low-speed local signature function is fully constrained by the datasheet circuit"}

@@ -7,8 +7,8 @@ review_kind: topology
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 netlist_sha256: a05e2e137168339f0d0980dce58edd4503c6dd49e79950cc43dd89007c07b27e
-parts_sha256: 489acc5734a1133f4656ac2136a40fce883f1c935341dbb8151f8732a240921e
-design_rules_sha256: 6ad7729dc81e83def84290c837ce5ac3d6c36598403cff5304b795d0f5975586
+parts_sha256: 61b5e8c654c88512b75d139c4fd3caff4a17dafec9cbc3b0e32c028742b25c8f
+design_rules_sha256: 44e0cf9caa8eb833647413b7f8af90907852b9fcee18efbc54081117af9e5cd6
 raw_netlist_sha256: 41b7a04e51426ae18ec11a7a3c13322776be599af3e74692c894fee71c98078e
 schematic_sha256: 6fe3f84f1176ee100811c2e21ef6c213c49676e31135d8c6dcb202e455a40c6b
 circuit_json_sha256: b40a3c9f3ad9e15108c98eec1026861c4351c6104ba889acc9d4647e16b959a4
@@ -28,6 +28,11 @@ permission to spend on placement, not a fabrication or safety approval.
 No P0/P1 source-to-netlist, pin-identity, protection-order, converter-topology,
 port-policy, ratings or rule-tier defect remains in the exact state above. The
 schematic is SOUND to proceed to placement and deliberately DO-NOT-ORDER.
+
+The Stage 3 hash rebind above covers layout-evidence, pin-alias and assembly-
+fiducial additions only. The normalized netlist remains exactly
+`a05e2e137168...`; no component, value, connection or no-connect changed, so
+the topology conclusions are not reopened.
 
 The review used three paths: direct netlist traversal of every critical rail,
 the repository's independently implemented semantic gates, and a new reading

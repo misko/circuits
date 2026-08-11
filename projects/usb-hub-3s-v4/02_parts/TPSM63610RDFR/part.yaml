@@ -35,6 +35,11 @@ gotchas:
   - "Use 68-100uF aluminum electrolytic input damping with 0.1-0.4ohm ESR when connected through battery leads; ceramics plus cable inductance can otherwise ring on hot plug."
 verified: "pin table 5-1, limits tables 4 and 6-1, input damping sec.8.3, and layout sec.8.4 independently read 2026-08-10"
 sourcing: {lcsc: C7125816, alternates: [], note: "JLC/LCSC catalog candidate; volatile stock evidence is kept in 06_build/cache"}
+layout:
+  source: "TI SLVSGU1A sec.8.4 plus TPSM63610EVM BSR234A editable Altium design files (SLVRBM6)"
+  reviewed: "2026-08-11"
+  notes: "Use the exact EVM RDF0022A land, symmetric VIN and VOUT capacitor banks, uninterrupted inner GND planes and filled/capped 0.30mm thermal vias in all four ground lands; keep BOOT, FB and RT parts pin-local and out of the power path."
 layout_refs:
   - {tier: 1, reached: true, artifact: "TI SLVSGU1A sec.8.4 and RDF0022A example board/stencil layouts", why: "manufacturer layout defines capacitor symmetry, ground plane, thermal lands and via field"}
-  - {tier: 2, reached: false, artifact: "TPSM63610EVM design files", why: "datasheet layout is sufficient for selection; EVM copper will be reviewed before placement is frozen"}
+  - {tier: 2, reached: true, artifact: "TI TPSM63610EVM BSR234A editable Altium PCB design, SLVRBM6", why: "exact manufacturer EVM land and surrounding via/capacitor geometry were imported and measured before placement froze"}
+  - {tier: 3, reached: false, artifact: "OSHWLab/LCSC routed TPSM63610 precedent", why: "not needed after the exact manufacturer editable EVM was reached; third-party authority would be weaker"}

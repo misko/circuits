@@ -13,6 +13,10 @@ gotchas:
   - "A 12V source-to-gate zener and gate pulldown limit VGS during hot plug."
 verified: "bottom-view pin map, limits, RDS(on), thermal test conditions and ordering suffix independently read from Diodes DS40141 2026-08-10"
 sourcing: {lcsc: C264098, alternates: [], note: "exact Diodes MPN; dated JLC/LCSC and authorized-distributor evidence is kept in 01_docs/sourcing and 06_build/cache"}
+layout:
+  source: "Diodes DS40141 PowerDI3333-8 Type UX suggested pad layout and thermal test-board notes"
+  reviewed: "2026-08-11"
+  notes: "Preserve the continuous recommended drain copper while retaining physical pins 5-8 in the CAD model; put the fused input to the drain side, protected VIN on the source side, and keep the zener/pulldown gate loop adjacent."
 layout_refs:
   - {tier: 1, reached: true, artifact: "Diodes PowerDI3333-8 Type UX package drawing", why: "manufacturer drawing fixes source/gate lands, the four drain lands and thermal copper"}
   - {tier: 4, reached: false, artifact: "independent routed reverse-polarity board", why: "v4 will rederive copper and thermal geometry rather than import predecessor copper"}

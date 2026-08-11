@@ -12,5 +12,10 @@ gotchas:
   - "Place at J5 with a direct ground-via return; route connector-to-clamp before branching to TPS25810."
 verified: "DRT top-view pin map, 6V I/O absolute maximum, IEC rating and layout guidance independently read from TI SLVSAC2G 2026-08-10"
 sourcing: {lcsc: C97502, alternates: [], note: "exact TI order code; do not accept same-looking third-party parts using the TI MPN as a descriptor"}
+layout:
+  source: "TI SLVSAC2G Figure 10-1 and layout guidelines"
+  reviewed: "2026-08-11"
+  notes: "Place D6 at J5 before either CC trace branches toward U3; use straight connector-to-clamp segments and a ground via immediately beside the GND pad."
 layout_refs:
   - {tier: 1, reached: true, artifact: "TI SLVSAC2G Figure 10-1 and layout guidance", why: "manufacturer source requires the exposed connector to reach the clamp before protected circuitry with a short ground path"}
+  - {tier: 2, reached: false, artifact: "TI evaluation-board editable design for TPD2EUSB30 in a TPS25810 Type-C source", why: "TPS25810EVM user guide was reached but no separately downloadable editable clamp-cell design was identified; Figure 10-1 remains authoritative"}

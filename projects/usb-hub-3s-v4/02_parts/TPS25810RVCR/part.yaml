@@ -34,6 +34,10 @@ gotchas:
   - "D+/D- are not used; the controller does not implement BC1.2 and v4 carries no USB data."
 verified: "pin table, electrical characteristics, table 3 and application sec.8.1 independently read 2026-08-10"
 sourcing: {lcsc: C473913, alternates: [], note: "RVCR large-reel order code; volatile stock evidence is kept in 06_build/cache"}
+layout:
+  source: "TI SLVSCR1C layout section plus TPS25810EVM-745 user guide SLVUAI0A"
+  reviewed: "2026-08-11"
+  notes: "Place U3 directly between the >=120uF cold-socket input bank and J5; keep input/output paths short and wide; place 100k 1% REF resistor directly between REF and isolated REF_RTN; route CC1/CC2 separately, similarly and connector-to-D6 first."
 layout_refs:
   - {tier: 1, reached: true, artifact: "TI SLVSCR1C Figure 20 and layout section", why: "manufacturer source application fixes CC, VBUS switch, REF and output-capacitor topology"}
   - {tier: 2, reached: false, artifact: "TPS25810EVM-745 user guide/design files", why: "EVM copper will be consulted before placement is frozen"}

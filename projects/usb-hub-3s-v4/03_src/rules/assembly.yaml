@@ -1,6 +1,6 @@
 service: standard
 sides: [top]
-fiducials: none
+fiducials: 3
 build_quantity: 5
 pcb_process: "JLC four-layer advanced; resin-filled and copper-capped via-in-pad under exposed thermal lands"
 

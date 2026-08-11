@@ -1,53 +1,206 @@
-# Commission-stage generic-backend config. `outline: null` is a deliberate
-# hard stop: Stage 3 may not generate a board before mechanical requirements,
-# packages and placement constraints are reviewed.
+# USB Hub 3S v4 placement source — intentionally unrouted.
+# Protected input at west; two TI module cells centrally; three charge-only
+# USB-A cells on the east edge; attach-controlled power-only Type-C at south.
 project:
   name: usb_hub_3s_v4
   netlist: 06_build/netlists/usb_hub_3s_v4.net
   output: 04_kicad/usb_hub_3s_v4.kicad_pcb
   parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
 
 board:
-  outline: null
+  outline: {x0: 20.0, y0: 20.0, x1: 150.0, y1: 110.0}
   edge_width: 0.1
   layers: 4
+  # JLC advanced POFV: resin fill plus copper cap for exposed-land vias.
+  # The 1.2 mm stack makes each 0.30 mm drill a conservative 4:1 aspect ratio.
+  via_protection: {capping: yes, filling: yes}
+  stackup:
+    nominal_thickness_mm: 1.2
+    thickness_tolerance_mm: 0.10
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.01
+    copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
+    dielectrics:
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 0.6000, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    refdes_prefix: H
+    at: [[25.0, 25.0], [145.0, 25.0], [25.0, 105.0], [145.0, 105.0]]
+  # Three non-collinear global fiducials for U3/J5's 0.50 mm placement.
+  fiducials:
+    footprint: Fiducial:Fiducial_1mm_Mask2mm
+    refdes_prefix: FID
+    at: [[32.0, 25.0], [138.0, 25.0], [32.0, 103.0]]
 
-libraries: [/usr/share/kicad/footprints]
+libraries:
+  - {lib: usb_hub_3s_v4, path: 03_src/lib/usb_hub_3s_v4.pretty}
+  - {lib: Package_TO_SOT_SMD, path: 03_src/lib/Package_TO_SOT_SMD.pretty}
+  - /usr/share/kicad/footprints
 
 placement:
-  anchors: {}
-  seeds: {}
-  legalize:
-    enable: true
-    clearance: 0.25
-    edge_margin: 1.0
-    hole_keepout: 2.6
-    ring_max: 40
+  anchors:
+    # Protected input chain; the 10 A blade is fitted by the user.
+    J1: [27.0, 38.0, 90]
+    F1: [40.0, 38.0, 0]
+    Q1: [57.0, 38.0, 180]
+    D5: [61.0, 33.0, 0]
+    R1: [57.0, 33.0, 0]
+    D1: [63.0, 43.0, 0]
+    C1: [54.0, 50.0, 90]
+    R2: [61.0, 48.0, 0]
+    SW1: [42.0, 27.0, 0]
+
+    # U1 USB-A bank. Rot90 puts VIN west and VOUT east.
+    U1: [71.0, 55.0, 90]
+    C2: [64.25, 52.5, 180]
+    C3: [64.25, 57.5, 180]
+    R3: [69.4, 60.5, 0]
+    R4: [71.5, 49.5, 90]
+    R5: [75.0, 59.5, 180]
+    R6: [75.0, 61.5, 0]
+    R7: [74.0, 49.5, 270]
+    R8: [69.0, 49.5, 90]
+    C6: [80.0, 51.0, 0]
+    C7: [80.0, 55.0, 0]
+    C8: [80.0, 59.0, 0]
+
+    # USB-A connector-first protection cells; J2-J4's edge datum is x=149.9.
+    J2: [144.2, 32.0, 270]
+    U4: [110.0, 32.0, 0]
+    C14: [106.0, 32.0, 180]
+    R16: [112.0, 35.5, 90]
+    R17: [108.5, 36.5, 0]
+    C17: [118.0, 32.0, 0]
+    D2: [146.0, 42.0, 90]
+    J3: [144.2, 56.0, 270]
+    U5: [110.0, 56.0, 0]
+    C15: [106.0, 56.0, 180]
+    R18: [112.0, 59.5, 90]
+    R19: [108.5, 60.5, 0]
+    C18: [118.0, 56.0, 0]
+    D3: [146.0, 66.0, 90]
+    J4: [144.2, 80.0, 270]
+    U6: [110.0, 80.0, 0]
+    C16: [106.0, 80.0, 180]
+    R20: [112.0, 83.5, 90]
+    R21: [108.5, 84.5, 0]
+    C19: [118.0, 80.0, 0]
+    D4: [146.0, 90.0, 90]
+    U7: [128.0, 44.0, 0]
+    C20: [124.0, 44.0, 0]
+    U8: [128.0, 72.0, 0]
+    C21: [124.0, 72.0, 0]
+
+    # U2/U3 Type-C source cell; >=120 uF bank directly feeds TPS25810.
+    U2: [88.0, 91.0, 90]
+    C4: [82.75, 89.0, 180]
+    C5: [82.75, 93.0, 180]
+    R9: [87.5, 95.5, 0]
+    R10: [87.5, 86.0, 90]
+    R11: [92.0, 86.5, 270]
+    R12: [92.0, 90.0, 90]
+    R13: [93.0, 99.0, 0]
+    C9: [98.5, 87.0, 180]
+    C10: [98.5, 92.0, 180]
+    C11: [98.5, 97.0, 180]
+    U3: [105.0, 97.0, 0]
+    C12: [101.0, 94.5, 180]
+    C13: [111.0, 97.0, 0]
+    R14: [105.5, 101.5, 0]
+    R15: [101.0, 89.5, 0]
+    D6: [115.25, 99.5, 0]
+    J5: [115.0, 106.0, 0]
+
+    # Slow first-article access points, outside high-current loops.
+    TP1: [86.0, 41.0, 0]
+    TP2: [91.0, 41.0, 0]
+    TP3: [96.0, 41.0, 0]
+    TP4: [101.0, 41.0, 0]
+    TP5: [86.0, 46.0, 0]
+    TP6: [91.0, 46.0, 0]
+    TP7: [96.0, 46.0, 0]
+    TP8: [101.0, 46.0, 0]
+    TP9: [86.0, 51.0, 0]
+    TP10: [91.0, 51.0, 0]
+    TP11: [96.0, 51.0, 0]
+    TP12: [101.0, 51.0, 0]
+
+  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 80}
 
 design_rules:
-  track_min_width: 0.127
-  min_clearance: 0.127
+  track_min_width: 0.09
+  min_clearance: 0.09
   via_min_annulus: 0.15
   hole_clearance: 0.25
-  hole_to_hole: 0.5
+  hole_to_hole: 0.25
   copper_edge_clearance: 0.3
-  via_min_size: 0.45
+  via_min_size: 0.6
   min_through_drill: 0.3
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
 
-zones: []
+zones:
+  # Two uninterrupted internal GND planes implement TI module guidance.
+  - {net: GND, layers: [In1.Cu, In2.Cu], priority: 0, min_thickness: 0.25, clearance: 0.2, connect: full}
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.25, clearance: 0.25, connect: full}
+  - {net: BAT_POS, layers: [F.Cu, B.Cu], priority: 3, rect: [25.0, 33.0, 36.0, 43.0], connect: full}
+  - {net: VBAT_FUSED, layers: [F.Cu, B.Cu], priority: 3, rect: [44.0, 33.0, 57.0, 43.0], connect: full}
+  - net: VIN
+    layers: [F.Cu, B.Cu]
+    priority: 2
+    connect: full
+    points: [[51.0, 35.0], [64.0, 35.0], [64.0, 48.0], [68.0, 48.0],
+             [68.0, 62.0], [64.0, 62.0], [64.0, 101.0], [85.0, 101.0],
+             [85.0, 84.0], [78.0, 84.0], [78.0, 96.0], [71.0, 96.0],
+             [71.0, 62.0], [60.0, 62.0], [60.0, 48.0], [51.0, 48.0]]
+  - {net: 5VA, layers: [F.Cu, B.Cu], priority: 2, rect: [76.0, 48.0, 103.0, 62.0], connect: full}
+  - {net: 5VA, layers: [B.Cu], priority: 3, rect: [88.0, 27.0, 112.0, 85.0], connect: full}
+  - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 3, rect: [112.0, 25.0, 142.0, 39.0], connect: full}
+  - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 3, rect: [112.0, 49.0, 142.0, 63.0], connect: full}
+  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 3, rect: [112.0, 73.0, 142.0, 87.0], connect: full}
+  - {net: 5VC_RAW, layers: [F.Cu, B.Cu], priority: 2, rect: [91.0, 85.0, 109.0, 102.0], connect: full}
+  - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 3, rect: [105.0, 94.0, 126.0, 108.0], connect: full}
+
+keepouts:
+  - {name: u1_feedback, deny: [pours], layers: [F.Cu], rect: [74.0, 47.5, 78.0, 53.0]}
+  - {name: u2_feedback, deny: [pours], layers: [F.Cu], rect: [91.0, 84.0, 96.0, 90.5]}
+  - {name: u3_reference, deny: [pours], layers: [F.Cu], rect: [103.0, 99.0, 108.0, 103.0]}
 
 silk:
-  min_text_height: 0.45
-  refdes:
-    size: 0.6
-    min_size: 0.45
-    fab_copy: true
-    clearance: 0.16
-    priority_prefixes: UJQ
-  labels: []
-  captions: []
+  min_text_height: 0.6
+  refdes: {size: 0.65, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQF"}
+  captions:
+    - ["3S INPUT  +  -", 29.0, 49.5, 0.7]
+    - ["MASTER  OFF / ON", 42.0, 23.0, 0.7]
+    - ["FIT 10A MINI FUSE", 40.0, 45.0, 0.7]
+    - ["USB-A1  5V / 2A", 132.0, 23.0, 0.7]
+    - ["USB-A2  5V / 2A", 132.0, 47.0, 0.7]
+    - ["USB-A3  5V / 2A", 132.0, 71.0, 0.7]
+    - ["USB-C  5V / 3A  NO PD", 120.0, 93.0, 0.65]
+    - ["POWER ONLY — NO USB DATA", 80.0, 23.0, 0.75]
+    - ["USB HUB 3S V4  REV A", 65.0, 108.5, 0.75]
 
 asserts:
-  pad_net: []
+  pad_net:
+    - {ref: J1, pad: 1, net: BAT_POS}
+    - {ref: J1, pad: 2, net: GND}
+    - {ref: F1, pad: 1, net: BAT_POS}
+    - {ref: F1, pad: 2, net: VBAT_FUSED}
+    - {ref: Q1, pad: 4, net: RPP_GATE}
+    - {ref: Q1, pad: 5, net: VBAT_FUSED}
+    - {ref: Q1, pad: 1, net: VIN}
+    - {ref: D1, pad: 1, net: VIN}
+    - {ref: U1, pad: 1, net: VIN}
+    - {ref: U1, pad: 9, net: 5VA}
+    - {ref: U2, pad: 1, net: VIN}
+    - {ref: U2, pad: 8, net: 5VC_RAW}
+    - {ref: U3, pad: 11, net: CC1}
+    - {ref: U3, pad: 13, net: CC2}
+    - {ref: J5, pad: A4, net: VBUSC}
+    - {ref: J5, pad: A5, net: CC1}
+    - {ref: J5, pad: B5, net: CC2}
+    - {ref: J5, pad: A6, net: unconnected-(J5-DPA6-PadA6)}

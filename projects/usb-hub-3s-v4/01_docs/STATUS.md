@@ -1,7 +1,7 @@
-stage: schematic
-step: "Stage 2 complete; exact-hash topology review is SOUND and the pipeline is paused before placement"
-measure: "run 2afa66dd752e: TSX-DIAG 0 errors; M-FRESH 9/9; 76/76 components; E-INV 53/53; ERC 0 errors; PR-REVIEW 1/1"
+stage: placement
+step: "Stage 3 complete at the exact placed, unrouted v0.4.0 checkpoint"
+measure: "76/76 placed; 335 pads; P-PINMAP 160 identities; zero overlaps; placement/pad/policy gates PASS; pin/layout/render/A-RENDER SOUND; board a8404ae41e79"
 state: paused
-next: "after user continuation, execute Stage 3 manufacturer-led placement and stop again after exact-board pin/layout/render review"
+next: "PAUSE before Stage 4; on user continuation generate netclasses and run routing preflights, then route high-current/quiet/control nets without changing the reviewed placement unless a loud backtrack is recorded"
 op_pid: none
-updated: 2026-08-11T08:34:00-07:00
+updated: 2026-08-11T09:51:00-07:00

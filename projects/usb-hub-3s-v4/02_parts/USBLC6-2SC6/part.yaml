@@ -11,6 +11,10 @@ gotchas:
   - "Route the USB-A charging-signature lines through pairs 1-6 and 3-4; place the array at the connector before the controller branch."
 verified: "pin configuration and application layout independently read 2026-08-10"
 sourcing: {lcsc: C7519, alternates: [{lcsc: C2687116, mpn: USBLC6-2SC6}], note: "volatile stock evidence is kept in 06_build/cache"}
+layout:
+  source: "ST DS11265 application and layout guidance"
+  reviewed: "2026-08-11"
+  notes: "Place D2-D4 directly behind their exposed USB-A contacts; route connector to clamp before branching to the charging-signature controller; keep pin 2 ground return short with an adjacent via."
 layout_refs:
   - {tier: 1, reached: true, artifact: "ST DS11265 application/layout guidance", why: "manufacturer source requires the clamp first in the exposed line path with a short ground return"}
   - {tier: 4, reached: false, artifact: "independent routed USBLC6-2SC6 board", why: "not required for selection; fresh placement review will grade the realised stub and ground path"}

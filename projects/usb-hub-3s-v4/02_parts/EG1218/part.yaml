@@ -12,5 +12,10 @@ gotchas:
   - "Stage 2 must make OFF a hard EN_BUS-to-GND state and label the physical actuator direction from the exact schematic connectivity."
 verified: "exact EG1218 configured drawing, SPDT common pin, rating and mounting geometry independently read from E-Switch sources 2026-08-10"
 sourcing: {lcsc: C273394, alternates: [], note: "volatile stock evidence is kept in dated sourcing artifacts"}
+layout:
+  source: "E-Switch EG1218 configured drawing P040040 and recommended 2.50mm-pitch PCB layout"
+  reviewed: "2026-08-11"
+  notes: "Mount where the actuator is enclosure-accessible; oversized silk must identify OFF; pin 2 is the EN_BUS common, pin 1 hard-grounds OFF and pin 3 remains unconnected."
 layout_refs:
   - {tier: 1, reached: true, artifact: "E-Switch EG1218 configured 2D drawing", why: "manufacturer drawing fixes pin order, holes and actuator envelope"}
+  - {tier: 2, reached: false, artifact: "E-Switch EG1218 manufacturer evaluation-board or editable reference design", why: "a passive panel switch has no manufacturer routed evaluation board; the exact configured mechanical drawing is the highest applicable authority"}
