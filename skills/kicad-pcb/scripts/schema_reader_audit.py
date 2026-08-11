@@ -281,7 +281,7 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 13
-PROVEN_FLOOR = 381
+PROVEN_FLOOR = 384
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
@@ -337,6 +337,10 @@ PROVEN_FLOOR = 381
 #: readers; route source selection, pre-route pad rescue and newly landed
 #: programmable-hub dossier fields were governed in the same sweep. Measured
 #: `--root .`: 461/461 declared rows, 381 PROVEN and 0 orphan.
+#: 381 -> 384 on 2026-08-10: the pre-artifact rules source phase reads and
+#: readability-grades classes.<C>.intent/routing/verify. Its first real run on
+#: USB hub v4 found two malformed current declarations before schematic work.
+#: Measured `--root .`: 461/461 declared rows, 384 PROVEN and 0 orphan.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.

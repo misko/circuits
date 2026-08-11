@@ -31,16 +31,19 @@ Verdict: **PASS 16/16** by the composed two-pool policy.
 
 ## Evidence and interpretation
 
-- JLC/LCSC values: `06_build/cache/stage1_stock_check_final.{txt,json}`, exact
-  component-code lookup, stock floor ten.
-- Mouser values: `06_build/cache/stage1_supplier_report_final.{md,json}`, exact
-  plus broad API search with exact-MPN adjudication.
+- Canonical composed gate: `06_build/cache/stage1_composed_supplier_report.{md,json}`,
+  which joins every candidate-BOM row to a fresh JLC snapshot and an
+  independent Mouser/DigiKey observation by exact manufacturer plus full MPN.
+  It reports **COMPOSED-POOLS PASS 16/16** at two authorized pools per row.
+- JLC/LCSC input: `06_build/cache/stage1_stock_check_composed.{txt,json}`, exact
+  component-code lookup, dated UTC, stock floor ten and manufacturer identity.
+- Mouser input: API observations retained in the gitignored session cache,
+  using exact plus broad search with exact-MPN and manufacturer adjudication.
 - DigiKey USBLC6 value: direct product-page observation in
   `01_docs/sourcing/manual_quotes.yaml`, consumed by the same shopping report.
-- The shopping-list command itself reports FAIL because it answers a different
-  question: whether each single named distributor covers every line, including
-  Amazon. Its 15/16 Mouser plus 1/16 DigiKey rows are therefore evidence inputs,
-  not this composed gate's verdict.
+- Per-distributor gaps remain visible and do not falsify the composed verdict:
+  Mouser contributes 15 rows and DigiKey the remaining USBLC6 row; Amazon is
+  marketplace evidence and never counts as an authorized source pool.
 
 ## Backtrack evidence
 

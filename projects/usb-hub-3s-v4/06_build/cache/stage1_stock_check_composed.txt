@@ -1,0 +1,17 @@
+Comment,Designator,Footprint,LCSC,qty,status,code,type,stock,mpn,manufacturer,pkg,price
+8A 36V power module,U1,B3QFN-22,C7125816,1,OK,C7125816,expand,203,TPSM63610RDFR,Texas Instruments,B3QFN-22(6.5x7.5),16.0062
+4A 36V power module,U2,B3QFN-20,C5219289,1,OK,C5219289,expand,54,TPSM63604RDLR,Texas Instruments,B3QFN-20(5x5.5),13.5982
+USB-C source controller,U3,WQFN-20,C473913,1,OK,C473913,expand,307,TPS25810RVCR,Texas Instruments,WQFN-20-EP(3x4),0.64
+USB-A current-limited switch,"U4,U5,U6",VSON-8,C130056,3,OK,C130056,expand,2875,TPS2557DRBR,Texas Instruments,SON-8(3x3),1.2396
+Dual USB-A charging signature controller,"U7,U8",SOT-23-6,C473910,2,OK,C473910,expand,60,TPS2513ADBVR,Texas Instruments,SOT-23-6,0.3136
+USB data-line ESD array,"D2,D3,D4",SOT-23-6,C7519,3,OK,C7519,expand,26984,USBLC6-2SC6,STMicroelectronics,SOT-23-6L,0.1812
+USB-C CC ESD clamp,D6,SOT-9X3,C97502,1,OK,C97502,expand,7252,TPD2EUSB30DRTR,Texas Instruments,SOT(9x3),0.6013
+P-channel reverse-polarity MOSFET,Q1,PowerDI3333-8,C264098,1,OK,C264098,expand,630,DMP3013SFV-7,Diodes Incorporated,PowerDI3333-8,2.2125
+12V MOSFET gate clamp,D5,SOD-123,C124196,1,OK,C124196,expand,18766,BZT52C12-7-F,Diodes Incorporated,SOD-123,0.0568
+15V input TVS,D1,SMB,C83846,1,OK,C83846,expand,31916,SMBJ15A,Littelfuse,DO-214AA,0.1301
+100uF 35V input damping capacitor,C1,SMD-D6.3x8,C88744,1,OK,C88744,expand,61172,35TZV100M6.3X8,Rubycon,"SMD,D6.3xL8mm",0.131
+USB-C receptacle,J5,USB-C-16P,C3020560,1,OK,C3020560,expand,11367,USB4105-GF-A,Global Connector Technology,SMD,1.0554
+3A USB-A receptacle,"J2,J3,J4",USB-A-THT,C5815149,3,OK,C5815149,expand,143,USB1130-15-A,Global Connector Technology,Plugin,1.0812
+Two-position input terminal,J1,THT-P5.0,C3817933,1,OK,C3817933,expand,926,1715022,Phoenix Contact,"Plugin,P=5mm",0.514
+Mini blade fuse holder,F1,Keystone-3568,C5249699,1,OK,C5249699,expand,233,3568,Keystone,Plugin,1.5031
+Master slide switch,SW1,THT-SPDT,C273394,1,OK,C273394,expand,429,EG1218,E-Switch,Plugin,1.4982

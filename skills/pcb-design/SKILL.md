@@ -502,11 +502,26 @@ remain incomplete.
    `stock > 10` and enough stock for five board sets at **two independent
    authorized supplier pools**. JLCPCB/LCSC, Mouser, and DigiKey are separate
    pools; multiple listings or packaging records at one distributor count once,
-   and marketplace sellers do not count. Run `shopping_list.py` with the
-   Mouser API plus exact DigiKey product-page quotes and join those results to
-   the JLC stock snapshot. Fewer than two qualifying pools rejects the part;
+   and marketplace sellers do not count. Run one composed gate so a
+   per-distributor gap cannot be mistaken for the policy verdict:
+
+       shopping_list.py PROJECT_DIR --scope all --boards 5 \
+         --bom CANDIDATE.csv --required-pools 2 \
+         --jlc-stock-json STOCK.json --out REPORT.md --json REPORT.json
+
+   The candidate BOM fixes prerelease multiplicities; the fresh JLC sidecar is
+   joined by LCSC, full MPN and manufacturer; exact DigiKey product-page quotes
+   include `manufacturer:`. Fewer than two qualifying pools rejects the part;
    it is not a release-time waiver. Repeat the same gate on order day because
    stock is volatile.
+   Before closing the parts/rules checkpoint, run
+   `python3 skills/kicad-pcb/scripts/rules_audit.py PROJECT_DIR --phase source`.
+   This entry grades every authored `nets.yaml` class for non-empty
+   intent/routing/verification, a real net list, positive width, readable
+   current or explicit signal exemption, and evidenced `pour_fed` geometry.
+   It deliberately does not open future `.kicad_pro`, `.kicad_dru` or board
+   artifacts. The full rules audit remains mandatory after generation; source
+   PASS is an early contract check, not generated-rule evidence.
    **FAN OUT the research (parts are independent):** ledger hits
    (`references/proven-parts.yaml`) need no research — copy the verified
    block. Partition the REMAINING multi-pin parts into groups of ~4 and

@@ -40,7 +40,7 @@ classes:
   SW_LOCAL:
     intent: "module bootstrap/switch-pin copper; high-dV/dt but not an external power stage"
     nets: [SW_A, SW_C]
-    current: "bootstrap pulse only"
+    current: "signal (bootstrap charge pulse only; no external power path)"
     min_width: 0.30mm
     routing: "manufacturer-example geometry entirely inside each converter cell"
     verify: "placement review before routing"
@@ -64,7 +64,7 @@ classes:
   TYPEC_CC:
     intent: "separate Type-C attach/orientation pins"
     nets: [CC1, CC2]
-    current: "configuration-channel signal"
+    current: "signal (Type-C configuration channel)"
     min_width: 0.18mm
     routing: "short and separate; J5 reaches connector-side D6 before either CC line branches to U3"
     verify: "Type-C source topology review"

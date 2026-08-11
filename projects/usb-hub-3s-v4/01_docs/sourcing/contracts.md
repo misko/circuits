@@ -28,7 +28,9 @@ mutable file: it is an INPUT, and a re-read replaces the entry it re-reads.
 |---|---|---|
 | `shopping-list-<YYYY-MM-DD>.md` | the generated per-distributor list: MPN, distributor part number, stock, min/multiple, lifecycle, unit price at the needed break, extended price, direct product URL; every catalog record seen; a CANNOT-SOURCE section naming every failed line with its reason; and the coverage denominator | GENERATED — never hand-edited. Regenerate with `shopping_list.py PROJECT_DIR --out ...` and add a NEW dated file |
 | `shopping-list-<YYYY-MM-DD>.json` | the machine sidecar for the same run, carrying an explicit `verdict` | GENERATED. A missing or unparseable verdict is a FAIL, never a skip |
-| `manual_quotes.yaml` | every DigiKey / Amazon number, because neither has a usable API here. One entry per `{mpn, distributor}`: `source:` (`product_page` \| `search_snippet` \| `catalog_absence`), `url:`, `read_on:` (ISO date), then `stock:`, `min:`, `mult:`, `lifecycle:`, `unit_price_usd:` or `price_breaks: [{qty, usd}]`, `note:` | HAND-WRITTEN, and every field is evidence. **`source: search_snippet` is REFUSED as a stock figure** (Q-SNIPPET): GHR-10V-S was reported available on a snippet reading "available to order today with same-day shipping" while the product page said In Stock: 0. **`source: catalog_absence`** is the ONE admissible use of a search page — absence IS a property of the search — and requires `listed: false` plus a `note:` saying what the catalog returned instead. A quote with no `url:`/`read_on:`, or an absent `source:`, is QUOTE-INVALID (Q-GRADE): an ungraded fact reads as ESTIMATED and a machine may not quietly promote it |
+| `parts-selection-<YYYY-MM-DD>.md` | dated architecture/selection evidence and the candidate BOM it qualifies | HAND-WRITTEN review record; exact identities remain authoritative in `02_parts/` and the candidate BOM |
+| `two-source-qualification-<YYYY-MM-DD>.md` | dated interpretation of the machine-composed Q-2SOURCE evidence | HAND-WRITTEN review record; it must name the machine report and may not replace its verdict |
+| `manual_quotes.yaml` | every DigiKey / Amazon number. One entry per `{manufacturer, mpn, distributor}` with source, URL, read date and stock/price fields | HAND-WRITTEN evidence. `manufacturer:` plus full `mpn:` is Q-MFR-IDENT and is required for a quote to count toward Q-2SOURCE. Search snippets are refused; catalog absence is the only admissible search-page use |
 | `contracts.md` | this file | |
 
 ## Forbidden
@@ -54,10 +56,12 @@ mutable file: it is an INPUT, and a re-read replaces the entry it re-reads.
   the count. Fewer than two qualifying pools rejects the selection rather than
   creating a release-time waiver. Run this before schematic completion and
   repeat it on order day.
-- `shopping_list.py PROJECT_DIR` = the gate: **Q-COVER** (`N/M` per
+- `shopping_list.py PROJECT_DIR --scope all --boards N --bom CANDIDATE.csv
+  --required-pools 2 --jlc-stock-json STOCK.json` = the gate: **Q-2SOURCE**
+  per exact manufacturer/MPN row and **Q-COVER** (`N/M` per
   distributor; a part it could not look up is a FAIL, never an omission),
-  **Q-WIDE**, **Q-IDENT**, **Q-STOCK** (`stock > 10` AND `>= qty`),
-  **Q-SNIPPET**, **Q-GRADE**.
+  **Q-WIDE**, **Q-IDENT**, **Q-MFR-IDENT**, **Q-STOCK** (`stock > 10` AND
+  `>= qty`), **Q-SNIPPET**, **Q-GRADE**.
 - Known-bads: `tests/t1_shopping_list.py`.
 - **Re-run on order day regardless.** Stock moves; a committed list is a record
   of a past answer, not a current one.

@@ -55,6 +55,7 @@ input the checker RESOLVES must be pinned. Tests whose premise is "this
 release sealed with no assembly.yaml" now pass `no_asm()`, making that
 historical fact explicit instead of inheriting today's working tree.
 """
+import ast
 import csv
 import json
 import shutil
@@ -1098,6 +1099,26 @@ def t_stock_sidecar_declares_its_own_limit():
         r = run([KPY, FAB_SCRIPTS / "jlc_stock_check.py", str(bom)])
         contains(r.out, "necessary and not sufficient",
                  "the printed verdict states its own limit")
+
+
+@test("the JLC catalog probe flushes each row instead of looking hung")
+def t_jlc_row_progress_is_unbuffered():
+    src = (FAB_SCRIPTS / "jlc_stock_check.py").read_text()
+    tree = ast.parse(src)
+    row_prints = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name) \
+                or node.func.id != "print":
+            continue
+        rendered = ast.unparse(node.args[0]) if node.args else ""
+        if "status" in rendered and "stock" in rendered:
+            row_prints.append(node)
+    check(len(row_prints) == 1,
+          f"expected one per-coded-row progress print, found {len(row_prints)}")
+    flush = next((kw.value for kw in row_prints[0].keywords
+                  if kw.arg == "flush"), None)
+    check(isinstance(flush, ast.Constant) and flush.value is True,
+          "the row print must use flush=True for pipes and CI logs")
 
 
 if __name__ == "__main__":

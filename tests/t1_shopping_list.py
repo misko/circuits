@@ -44,7 +44,8 @@ byte-identical afterwards).
       -> 16 passed, 1 FAILED — t_a_neighbouring_mpn_is_never_substituted. The
          tool sourced B5B-XH-A-GU, a different connector, against B5B-XH-A.
 
-  Restored byte-identical after each: 17 passed, 0 failed, 11 known-bad.
+  Current suite after the candidate-BOM/composed-pool and progress-ledger
+  additions: 26 passed, 0 failed, 14 known-bad.
 """
 import json
 import shutil
@@ -103,6 +104,50 @@ def write_payload(d, name, parts):
                                          "Parts": parts}}, indent=1))
 
 
+def write_jlc_snapshot(d, lines, generated_at="2026-01-02T12:00:00+00:00"):
+    p = d / "jlc-stock.json"
+    p.write_text(json.dumps({
+        "tool": "jlc_stock_check.py",
+        "generated_at": generated_at,
+        "min_stock_per_board": 10,
+        "verdict": "PASS",
+        "stock_source": "lcsc_catalog_stockCount",
+        "predicts_jlc_assembly_allocation": False,
+        "graded_lines": len(lines),
+        "total_lines": len(lines),
+        "failures": 0,
+        "uncoded_lines": 0,
+        "lines": lines,
+    }, indent=1) + "\n")
+    return p
+
+
+@test("catalog manufacturer aliases normalize spelling, not identity")
+def t_manufacturer_aliases_are_narrow():
+    import importlib
+    sys.path.insert(0, str(ROOT / "skills" / "shopping-list" / "scripts"))
+    sl = importlib.import_module("shopping_list")
+    check(sl.same_manufacturer("Keystone", "Keystone Electronics"),
+          "JLC's Keystone abbreviation is the same manufacturer")
+    check(not sl.same_manufacturer("Keystone", "Phoenix Contact"),
+          "the alias must not become fuzzy manufacturer matching")
+
+
+@test("the live catalog calendar is UTC, matching its snapshot timestamps")
+def t_snapshot_calendar_is_utc():
+    import importlib
+    from datetime import datetime, timezone
+    sys.path.insert(0, str(ROOT / "skills" / "shopping-list" / "scripts"))
+    sl = importlib.import_module("shopping_list")
+    before = datetime.now(timezone.utc).date()
+    observed = sl.observation_date()
+    after = datetime.now(timezone.utc).date()
+    check(observed in {before, after},
+          f"default observation date {observed} did not follow UTC")
+    check(sl.observation_date("2026-01-02").isoformat() == "2026-01-02",
+          "the deterministic test/replay override must remain exact")
+
+
 FDZ_PART = """\
 mpn: 10FDZ-BT(S)(LF)(SN)
 manufacturer: JST
@@ -116,6 +161,98 @@ FDZ_BOM = ['10FDZ-BT,"J_A,J_B",JST_10FDZ_ZIF,,']
 
 def fdz_project(**kw):
     return project({"10FDZ-BT": FDZ_PART}, FDZ_BOM, **kw)
+
+
+# --------------------------------------------------------- composed Q-2SOURCE
+POOL_PART = """\
+mpn: ACME-1
+manufacturer: Acme Devices
+type: test_component
+sourcing:
+  lcsc: C123456
+"""
+
+
+def pool_project(distributor="digikey", quote_manufacturer="Acme Devices"):
+    return project({"ACME-1": POOL_PART},
+                   ["ACME-1,U1,QFN,ACME-1,C123456"], quotes=f"""\
+quotes:
+  - mpn: ACME-1
+    manufacturer: {quote_manufacturer}
+    distributor: {distributor}
+    source: product_page
+    url: https://example.invalid/authorized/acme-1
+    read_on: 2026-01-02
+    stock: 1000
+    unit_price_usd: 1.0
+""")
+
+
+@test("Q-2SOURCE composes JLC plus DigiKey per exact row even when Mouser and "
+      "Amazon have gaps")
+def t_composed_authorized_pools_are_the_gate():
+    d = pool_project()
+    candidate = d / "candidate.csv"
+    candidate.write_text(
+        "Comment,Designator,Footprint,MPN,LCSC\n"
+        'ACME-1,"U1,U2,U3",QFN,ACME-1,C123456\n')
+    jlc = write_jlc_snapshot(d, [{
+        "lcsc": "C123456", "designators": "U1,U2,U3", "qty": 3,
+        "status": "OK", "stock": 1000, "type": "expand",
+        "mpn": "ACME-1", "manufacturer": "Acme Devices",
+    }])
+    replay = tmpdir("pool_no_mouser_")
+    out, js = d / "pool.md", d / "pool.json"
+    r = must_pass(run([
+        KPY, SHOP, d, "--scope", "all", "--boards", "5", "--bom", candidate,
+        "--required-pools", "2", "--jlc-stock-json", jlc,
+        "--today", "2026-01-02", "--replay", replay, "--no-cache",
+        "--out", out, "--json", js,
+    ], env=NO_NET), "composed JLC+DigiKey qualification")
+    body = json.loads(js.read_text())
+    check(body["verdict"] == "PASS", f"composed JSON verdict: {body['verdict']}")
+    check(body["rows"][0]["qty"] == 15,
+          f"candidate BOM 3/board x 5 boards must be 15: {body['rows'][0]['qty']}")
+    check(body["rows"][0]["authorized_pools"] == ["jlc", "digikey"],
+          f"wrong composed pools: {body['rows'][0]['authorized_pools']}")
+    contains(r.out, "COMPOSED-POOLS PASS", "the gate verdict")
+    contains(out.read_text(), "PASS 2/2", "row-level pool denominator")
+
+
+@test("Amazon never counts as an authorized independent pool", kind="known_bad")
+def t_amazon_does_not_clear_q2source():
+    d = pool_project(distributor="amazon")
+    jlc = write_jlc_snapshot(d, [{
+        "lcsc": "C123456", "designators": "U1", "qty": 1,
+        "status": "OK", "stock": 1000, "type": "expand",
+        "mpn": "ACME-1", "manufacturer": "Acme Devices",
+    }])
+    replay = tmpdir("pool_amazon_")
+    r = must_fail(run([
+        KPY, SHOP, d, "--scope", "all", "--required-pools", "2",
+        "--jlc-stock-json", jlc, "--today", "2026-01-02",
+        "--replay", replay, "--no-cache",
+    ], env=NO_NET), "JLC plus marketplace-only evidence", "Q-2SOURCE")
+    contains(r.out, "only 1 qualifying pool(s): jlc",
+             "Amazon must be visible but ineligible")
+
+
+@test("matching MPN text from the wrong manufacturer cannot clear Q-2SOURCE",
+      kind="known_bad")
+def t_manufacturer_is_part_of_pool_identity():
+    d = pool_project(quote_manufacturer="Other Semiconductor")
+    jlc = write_jlc_snapshot(d, [{
+        "lcsc": "C123456", "designators": "U1", "qty": 1,
+        "status": "OK", "stock": 1000, "type": "expand",
+        "mpn": "ACME-1", "manufacturer": "Other Semiconductor",
+    }])
+    replay = tmpdir("pool_wrong_mfr_")
+    r = must_fail(run([
+        KPY, SHOP, d, "--scope", "all", "--required-pools", "2",
+        "--jlc-stock-json", jlc, "--today", "2026-01-02",
+        "--replay", replay, "--no-cache",
+    ], env=NO_NET), "generic MPN from another manufacturer", "Q-2SOURCE")
+    contains(r.out, "Q-MFR-IDENT", "the rejected identity must name why")
 
 
 @test("a quoted hash in an orderable MPN is data, not a YAML comment")
@@ -388,6 +525,18 @@ def t_absent_key_degrades_loudly():
     contains(r.out, "mouser key: ABSENT", "the absence must be stated")
     contains(r.out, "this list is NOT sourced", "and its consequence named")
     contains(r.out, "mouser    graded 0/1", "graded nothing, and says so")
+
+
+@test("sourcing prints a per-row start/done ledger so a slow lookup is visible")
+def t_sourcing_progress_is_visible():
+    d = fdz_project()
+    rp = replay_dir(["10FDZ_BT_S_LF_SN_Exact", "10FDZ_BT_None"])
+    r = run([KPY, SHOP, d, "--replay", rp, "--no-cache"], env=NO_NET)
+    contains(r.out, "progress sourcing 1/1: 10FDZ-BT(S)(LF)(SN) START",
+             "the currently blocking row and denominator")
+    contains(r.out, "progress sourcing 1/1: 10FDZ-BT(S)(LF)(SN) DONE",
+             "a terminal row event, including elapsed time")
+    contains(r.out, "sourcing elapsed:", "a whole-stage timing ledger")
 
 
 @test("the API key never reaches stdout, the report, the json or the cache")

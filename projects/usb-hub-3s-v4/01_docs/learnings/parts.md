@@ -48,3 +48,10 @@
 - root cause: Package escape feasibility and exposed-pad thermal-process intent were compressed into the same field despite having different evidence and checkers.
 - avoid next time: Keep `escape.tier_required` strictly equal to the geometric computation, and add a separately graded process requirement for via-in-pad fill/cap, paste treatment and inspection.
 - candidate-canon: yes — P-PROCESS, a per-part manufacturing-process block joined to board tier and order instructions without overloading P-ESC.
+
+## Stage 1 harvest result
+
+- implemented: Q-2SOURCE-JOIN now machine-grades 16/16 v4 candidate rows by exact manufacturer/MPN across two authorized pools; Amazon cannot count and per-distributor gaps remain diagnostic rather than becoming the wrong verdict.
+- implemented: M-STAGE-ENTRY now has a real pre-KiCad `rules_audit.py --phase source` entry. Its first v4 run found two unreadable declarations at 7/9 and the corrected contract passes 9/9; the full artifact audit was not weakened.
+- implemented: M-PROGRESS-LEDGER now emits per-row START/DONE/elapsed events in the sourcing join and flushes each JLC catalog result. The live validation also corrected UTC/local snapshot dating, showing why the real-board replay must remain part of each stage reflection.
+- still owed: D-EXPOSED-PIN automation and the separately graded P-PROCESS manufacturing block are good carry-over candidates, but neither should be rushed into the paused design decision or mistaken for completed evidence.

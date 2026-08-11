@@ -10,6 +10,8 @@ description: Produce a per-distributor shopping list for a board's self-supplied
 
     skills/shopping-list/scripts/shopping_list.py PROJECT_DIR \
         [--scope self_supplied|all] [--boards N] [--min-stock 10] \
+        [--bom CANDIDATE.csv] \
+        [--required-pools 2 --jlc-stock-json stock.json] \
         [--out list.md] [--json list.json]
 
 Answers one question — **what do I have to buy, from whom, and can I actually
@@ -198,17 +200,23 @@ unsourced list that looks sourced.
 | `02_parts/<dir>/part.yaml` | **the MPN**, from the `mpn:` FIELD. The directory name is a *sanitised rendering* — real MPNs contain `/` (`MCP23017-E/SS`) and `*` (`2.54-2*20PPC104`). A path is not an MPN |
 | the newest sealed `07_releases/*/fab/bom.csv` per board | which refdes exist, and therefore the quantity. Opened **read-only** — releases are immutable |
 | `03_src/**/rules/assembly.yaml` | `not_assembled:` / `consigned:` — the refs the fab will not place, i.e. the ones you buy |
-| `01_docs/sourcing/manual_quotes.yaml` | every DigiKey / Amazon number, each with its page URL and read date |
+| `--bom CANDIDATE.csv` | pre-release refdes/quantity authority; replaces sealed-release discovery so three parts per board times five boards is 15, not a guessed 5 |
+| `--jlc-stock-json stock.json` | fresh, timestamped `jlc_stock_check.py` sidecar; joined by LCSC, full MPN, manufacturer and per-board quantity |
+| `01_docs/sourcing/manual_quotes.yaml` | every DigiKey / Amazon number, each with manufacturer, page URL and read date |
 
 Scope defaults to `self_supplied`: a part is selected if its `sourcing.lcsc` is
 empty, or it asserts `not_on_assembly_bom`, or its BOM row has a blank LCSC, or
 any of its refs is in an `assembly.yaml` `not_assembled`/`consigned` block.
 `--scope all` prices the whole tree.
 
-**Out** — `--out list.md` (per-distributor tables, every catalog record seen, a
-CANNOT-SOURCE section, and the DigiKey enablement steps) and `--json list.json`
+**Out** — `--out list.md` (per-distributor tables, every catalog record seen,
+distributor gaps, a row-level composed-pool verdict and DigiKey enablement)
+and `--json list.json`
 (the same with an explicit `verdict`). The committed home is
 `01_docs/sourcing/shopping-list-<date>.md` — a dated observation, never truth.
+The terminal is also an operational output: each selected MPN emits
+`START`/`DONE`, `current/total`, elapsed seconds and the pools reached, so a
+slow external lookup cannot look like a stalled pipeline.
 
 ---
 
@@ -219,9 +227,11 @@ CANNOT-SOURCE section, and the DigiKey enablement steps) and `--json list.json`
 | **Q-COVER** | passing while grading nothing. `N/M` per distributor; a part the tool could not look up is a FAIL, never an omission; a zero denominator is a FAIL |
 | **Q-WIDE** | calling a part unsourceable before the broad search has run. Enforced structurally, not by comment |
 | **Q-IDENT** | substituting. A record whose MPN is not the authoritative one (modulo packaging suffixes) is a proposal, never a source |
+| **Q-MFR-IDENT** | treating a generic/base MPN from a different manufacturer as the selected part; manufacturer plus full orderable MPN is the source key |
 | **Q-STOCK** | sourcing below the floor. `stock > --min-stock` (default 10, the user's standing bar) **and** `stock >= qty needed`. A failing line is REPORTED, never dropped |
 | **Q-SNIPPET** | a search snippet, or a stale read, as a stock figure. A quote names its page and its read date or it is invalid |
 | **Q-GRADE** | an ungraded number. Absent is a FAIL — an ungraded fact reads as ESTIMATED and a machine may not quietly promote it |
+| **Q-2SOURCE** | judging each distributor in isolation when the policy is a composed pool. With `--required-pools 2`, every exact row must qualify at two of JLC/LCSC, Mouser and DigiKey; Amazon never counts |
 
 `source: catalog_absence` is the **one** case where a search page is legitimate
 evidence: the property *"this catalog does not list the part"* **is** a property
@@ -229,6 +239,13 @@ of the search. Reading PRESENCE off a search page is the GHR-10V-S error;
 reading ABSENCE off one is not. It requires `listed: false` and a `note:` saying
 what the catalog returned instead — *"no results"* and *"only pack-quantity
 variants"* are different findings.
+
+The pre-selection invocation is one command, so the composed verdict cannot
+drift into a hand-written join:
+
+    shopping_list.py PROJECT_DIR --scope all --boards 5 \
+      --bom CANDIDATE.csv --required-pools 2 \
+      --jlc-stock-json STOCK.json --out REPORT.md --json REPORT.json
 
 ## Reading the output honestly
 
@@ -245,7 +262,7 @@ variants"* are different findings.
 
 ## Tests
 
-`tests/t1_shopping_list.py` — 17 tests, 11 known-bad. The two headline fixtures
+`tests/t1_shopping_list.py` — 26 tests, 14 known-bad. The two headline fixtures
 are the real recorded responses from incidents 1 and 2, and all three checks
 (Q-WIDE, Q-SNIPPET, Q-IDENT) are RED-verified against a deliberately neutered
 checker with the measurements written into the suite docstring. `--replay`

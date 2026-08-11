@@ -388,14 +388,12 @@ absent) are DECLARED states and both REQUIRE a reason.
 
 TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 
-* **`nets.yaml` `classes.<C>.intent` / `routing` / `verify` are read by NOTHING
-  — not even their PRESENCE.** "Each class requires: `intent`, `nets`,
-  `min_width`, `routing`, `verify`" has been in the *Structure: `nets.yaml`*
-  section since this folder was created, and 38 classes fleet-wide fill all
-  three in; `rules_audit.py` names `intent` only in its own module docstring.
-  This is the `current:` lesson repeated one column over — that field got a
-  gate (A-AMP) and a "silence is not a declaration" rule, and its three
-  neighbours in the same required list got neither. They are declared OWED.
+* **Closed 2026-08-10: `nets.yaml` `classes.<C>.intent` / `routing` / `verify`
+  are presence/readability-graded by `rules_audit.py --phase source`.** The
+  source phase runs before KiCad artifacts exist and also checks `nets`,
+  `min_width`, `current` and `pour_fed`; the later full phase still proves
+  generated A-CLASS/A-AGREE/A-FIRE. USB hub v4 immediately found two unreadable
+  current declarations at 7/9 coverage, then passed 9/9 after correction.
 * **`power_tree.yaml` `linear_rails[]` numeric envelopes are read by NOTHING**
   — five rails on smc0985-cooksense with `vin_min`/`vin_max`/`vout_min`/
   `vout_max`/`iout_max_A` filled in, and `power_topology.py` names
@@ -455,9 +453,9 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `classes.<C>.diff_pair.gap` | `generate_rules_generic.py` | controlled-impedance geometry |
 | `classes.<C>.diff_pair.via_gap` | `generate_rules_generic.py` | controlled-impedance geometry |
 | `classes.<C>.diff_pair.max_uncoupled` | `generate_rules_generic.py` | `.kicad_dru` uncoupled-length max |
-| `classes.<C>.intent` | OWED | the *Structure* section above makes it REQUIRED per class and NOTHING reads it — not the text, not its presence. `rules_audit.py` names `intent` only in its own docstring. Owed: the same presence-plus-readability gate `current:` got as A-AMP |
-| `classes.<C>.routing` | OWED | REQUIRED per class ("pour vs track, and the strategy") and read by nothing, though it states which conductor actually carries the current that A-AMP grades as a track width |
-| `classes.<C>.verify` | OWED | REQUIRED per class ("how to prove it") and read by nothing; a declared verification method that no gate resolves is the R-LEN shape |
+| `classes.<C>.intent` | `rules_audit.py` | required non-empty design intent in source phase |
+| `classes.<C>.routing` | `rules_audit.py` | required non-empty routing/conductor strategy in source phase |
+| `classes.<C>.verify` | `rules_audit.py` | required non-empty verification method in source phase |
 | `classes.<C>.exemptions` | OWED | *Validate* above says "every `exemptions[].area` names a rule area that exists on the board" — a sentence a human was supposed to check, and nothing does. Not declared by any board today |
 | `scoped_floors[].zone` | `generate_rules_generic.py` | the named rule area the relaxation is scoped to |
 | `scoped_floors[].nets` | `generate_rules_generic.py, net_reference_audit.py` | insideArea clause nets (E-NETREF K2) |

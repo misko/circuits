@@ -3,6 +3,7 @@
 produced them (`03_src/rules/nets.yaml`).
 
     python3 rules_audit.py PROJECT_DIR
+    python3 rules_audit.py PROJECT_DIR --phase source
     python3 rules_audit.py --nets rules/nets.yaml --pro b.kicad_pro --dru b.kicad_dru
 
 WHY. `generate_rules.py` is a pure generator: it reads nets.yaml and writes
@@ -63,6 +64,11 @@ simulation. Declare `delta_t:` / `copper_oz:` / `layer: internal` per class
 to move it.
 
 Exit 0 when every check passes, 1 on any FAIL.
+
+`--phase source` is the parts/architecture-stage entry. It grades the authored
+`nets.yaml` contract before a `.kicad_pro`, `.kicad_dru` or board is allowed to
+exist. Full mode remains artifact-based and unchanged. A future artifact is a
+stage boundary, not an undifferentiated failure.
 """
 import argparse
 import json
@@ -155,6 +161,63 @@ def parse_amps(v):
     elif mult in ("u", "µ"):
         n /= 1e6
     return n, "number"
+
+
+def source_contract_audit(spec, nets_path):
+    """Grade authored net-class intent without claiming generated evidence."""
+    classes = spec.get("classes")
+    if not isinstance(classes, dict) or not classes:
+        print(f"FAIL A-SOURCE: {nets_path} has 0 net classes; source-phase "
+              f"coverage is 0/0")
+        print("RULES SOURCE AUDIT: FAIL (1 fails, 0/0 classes graded)")
+        return 1
+    fails, oks, graded = [], [], 0
+    for name, raw_class in classes.items():
+        if not isinstance(raw_class, dict):
+            fails.append(f"A-SOURCE {name}: class body is not a mapping")
+            continue
+        c, local = raw_class, []
+        required_text = {"intent": c.get("intent"),
+                         "routing": c.get("routing"),
+                         "verify": c.get("verify")}
+        for key, value in required_text.items():
+            if not isinstance(value, str) or not value.strip():
+                local.append(f"`{key}:` is missing or empty")
+        nets = c.get("nets")
+        if not isinstance(nets, list) or not nets \
+                or any(not isinstance(n, str) or not n.strip() for n in nets):
+            local.append("`nets:` must be a non-empty list of net names")
+        width = parse_mm(c.get("min_width"))
+        if width is None or width <= 0:
+            local.append(f"`min_width: {c.get('min_width')!r}` is not a "
+                         f"positive mm value")
+        current, kind = parse_amps(c.get("current"))
+        if kind == "absent":
+            local.append("`current:` is absent; declare a magnitude or signal")
+        elif kind == "unparsed":
+            local.append(f"`current: {c.get('current')!r}` has no readable "
+                         f"amp magnitude and is not an explicit signal exemption")
+        elif kind == "number" and (current is None or current <= 0):
+            local.append("`current:` magnitude must be positive")
+        if "pour_fed" in c and (not isinstance(c["pour_fed"], str)
+                                or not c["pour_fed"].strip()):
+            local.append("`pour_fed:` must carry non-empty geometry evidence")
+        if local:
+            fails.extend(f"A-SOURCE {name}: {msg}" for msg in local)
+        else:
+            graded += 1
+            current_label = "signal" if kind == "signal" else f"{current:g}A"
+            oks.append(f"A-SOURCE {name}: {len(nets)} net(s), "
+                       f"min_width {width:g}mm, current {current_label}, "
+                       f"intent/routing/verify readable")
+    for row in oks:
+        print("  ok  ", row)
+    for row in fails:
+        print("FAIL ", row)
+    print(f"  coverage A-SOURCE: {graded}/{len(classes)} net classes graded")
+    print("RULES SOURCE AUDIT:", "FAIL" if fails else "PASS",
+          f"({len(fails)} fails, {graded}/{len(classes)} classes graded)")
+    return 1 if fails else 0
 
 
 def dru_widths(text):
@@ -300,6 +363,9 @@ def main(argv=None):
     ap.add_argument("--dru")
     ap.add_argument("--board", help=".kicad_pcb — supplies the rule-area "
                                     "names A-FIRE resolves insideArea() against")
+    ap.add_argument("--phase", choices=("source", "full"), default="full",
+                    help="source grades nets.yaml before generated KiCad "
+                         "artifacts exist; full is the artifact audit")
     ap.add_argument("--delta-t", type=float, default=10.0)
     # RED-VERIFY hook (tests only): neuter A-FIRE so a known-bad fixture is
     # shown to pass when — and only when — that family is disabled.
@@ -323,11 +389,16 @@ def main(argv=None):
     if not nets or not nets.is_file():
         print(f"FAIL A-SRC: nets.yaml not found at {nets}")
         return 1
+    spec = yaml.safe_load(nets.read_text(encoding="utf-8-sig")) or {}
+    if a.phase == "source":
+        print(f"  input: nets = {nets}")
+        print("  applicability: source phase; .kicad_pro/.kicad_dru/.kicad_pcb "
+              "are future artifacts and are not opened")
+        return source_contract_audit(spec, nets)
     if not pro or not pro.is_file():
         print(f"FAIL A-SRC: .kicad_pro not found at {pro}")
         return 1
 
-    spec = yaml.safe_load(nets.read_text(encoding="utf-8-sig")) or {}
     classes = spec.get("classes") or {}
     proj = json.loads(pro.read_text(encoding="utf-8-sig"))
     ns = proj.get("net_settings") or {}

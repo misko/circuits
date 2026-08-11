@@ -39,7 +39,53 @@ def set_nets_yaml(proj, mutate):
     return proj
 
 
+def source_only_rules(current="signal"):
+    d = tmpdir("rules_source_")
+    rules = d / "03_src" / "rules"
+    rules.mkdir(parents=True)
+    (rules / "nets.yaml").write_text(f"""\
+fab_tier: jlc_4layer_standard
+classes:
+  TEST:
+    intent: source-stage test class
+    nets: [TEST_NET]
+    current: {current}
+    min_width: 0.2mm
+    routing: short authored route
+    verify: generated-artifact audit later
+""")
+    return d
+
+
 # ---------------------------------------------------------- clean cases
+@test("rules_audit source phase grades intent before a .kicad_pro exists")
+def t_rules_source_phase_has_real_coverage_without_future_artifacts():
+    proj = source_only_rules()
+    r = must_pass(run([PY, RULES_AUDIT, proj, "--phase", "source"]),
+                  "rules source audit before schematic")
+    contains(r.out, "RULES SOURCE AUDIT: PASS", "stage-applicable verdict")
+    contains(r.out, "1/1 net classes graded", "non-vacuous denominator")
+    contains(r.out, "future artifacts and are not opened",
+             "the applicability boundary must be explicit")
+
+
+@test("rules_audit source phase rejects unreadable current before generation",
+      kind="known_bad")
+def t_rules_source_phase_catches_unreadable_current():
+    proj = source_only_rules("bootstrap pulse only")
+    r = must_fail(run([PY, RULES_AUDIT, proj, "--phase", "source"]),
+                  "source audit with no amp magnitude", "A-SOURCE TEST")
+    contains(r.out, "0/1 net classes graded", "the failed row stays in scope")
+
+
+@test("rules_audit full phase still requires generated KiCad artifacts",
+      kind="known_bad")
+def t_rules_full_phase_does_not_weaken_artifact_gate():
+    proj = source_only_rules()
+    must_fail(run([PY, RULES_AUDIT, proj]),
+              "full rules audit without .kicad_pro", ".kicad_pro not found")
+
+
 @test("generate_rules writes every nets.yaml class into .kicad_pro AND .kicad_dru")
 def t_rules_written():
     proj = rules_project()
