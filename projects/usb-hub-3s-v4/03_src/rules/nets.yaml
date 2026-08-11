@@ -1,4 +1,78 @@
-# Provisional D-TIER choice from BRIEF A3. Netclasses are derived only after
-# Stage 1 selects packages, currents, topology and the shared input trunk.
-fab_tier: jlc_4layer_standard
-classes: {}
+# JLC advanced option is required for resin-filled/copper-capped thermal
+# via-in-pad fields under the TI power modules and thermal-pad source devices.
+fab_tier: jlc_4layer_advanced
+default_clearance: 0.18mm
+
+# Input fuse: user-installed 10 A MINI blade in Keystone 3568 holder.
+classes:
+  VIN_TRUNK:
+    intent: "fused/reverse-protected 3S feed shared by both buck modules"
+    nets: [VBAT_FUSED, VIN]
+    current: "7.2 A design trunk; 6.74 A calculated coincident output peak at 9V/90% plus routing allowance"
+    min_width: 1.0mm
+    routing: "plane/pour fed; track width is only a connectivity floor"
+    verify: "filled-copper extraction, via cross-section and first-article thermal rise"
+
+  PWR_5VA:
+    intent: "shared regulated rail feeding three independent USB-A switches"
+    nets: [5VA]
+    current: "8 A rated module / 7.5 A claimed coincident peak"
+    min_width: 1.0mm
+    routing: "short symmetric pour from U1 output capacitors to U4-U6"
+    verify: "A-AMP copper extraction and loaded-port symmetry measurement"
+
+  PWR_5VC:
+    intent: "regulated Pi source rail before and after TPS25810 attach switch"
+    nets: [5VC_RAW, VBUSC]
+    current: "3.64 A worst-high TPS25810 current limit"
+    min_width: 1.0mm
+    routing: "short pour; preserve four parallel Type-C VBUS and GND contacts"
+    verify: "A-AMP plus hot four-wire path measurement"
+
+  PWR_PORT:
+    intent: "individually protected USB-A VBUS outputs"
+    nets: [VBUSA1, VBUSA2, VBUSA3]
+    current: "3.06 A worst-high TPS2557 current limit"
+    min_width: 0.8mm
+    routing: "short top/bottom pour to each edge connector"
+    verify: "A-AMP and per-port four-wire resistance"
+
+  SW_LOCAL:
+    intent: "module bootstrap/switch-pin copper; high-dV/dt but not an external power stage"
+    nets: [SW_A, SW_C]
+    current: "bootstrap pulse only"
+    min_width: 0.30mm
+    routing: "manufacturer-example geometry entirely inside each converter cell"
+    verify: "placement review before routing"
+
+  SENSE:
+    intent: "feedback, current-program and power-good nodes"
+    nets: [FB_A, FB_C, ILIM_A1, ILIM_A2, ILIM_A3, PG_A, PG_C]
+    current: "<1 mA"
+    min_width: 0.18mm
+    routing: "short, quiet, away from SW_LOCAL and connector transients"
+    verify: "return-path and exact-net review"
+
+  USB_CHARGE_SIG:
+    intent: "local USB-A charging signatures only; these are not functional USB data paths"
+    nets: [DM_A1, DP_A1, DM_A2, DP_A2, DM_A3, DP_A3]
+    current: "signal only"
+    min_width: 0.18mm
+    routing: "controller-to-ESD-to-receptacle locally; no upstream/downstream data connectivity"
+    verify: "exact-net review proves no USB data topology"
+
+  TYPEC_CC:
+    intent: "separate Type-C attach/orientation pins"
+    nets: [CC1, CC2]
+    current: "configuration-channel signal"
+    min_width: 0.18mm
+    routing: "short and separate; J5 reaches connector-side D6 before either CC line branches to U3"
+    verify: "Type-C source topology review"
+
+  CONTROL:
+    intent: "common enable, source-controller straps, faults and indicators"
+    nets: [EN_BUS, FAULT_C, FAULT_A1, FAULT_A2, FAULT_A3]
+    current: "<20 mA"
+    min_width: 0.18mm
+    routing: "ordinary low-energy control"
+    verify: "ERC and exact-net review"

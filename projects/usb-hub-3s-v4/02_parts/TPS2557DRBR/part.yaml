@@ -1,0 +1,18 @@
+mpn: TPS2557DRBR
+manufacturer: Texas Instruments
+type: precision_current_limited_power_switch
+datasheet: {doc_id: SLVS931, revision: SLVS931B, url: "https://www.ti.com/lit/ds/symlink/tps2557.pdf", sha256: cb02f29b8943f2234cc28b7c894d2322a8dc1879b80f9490927f47acc78b11ef, fetched: 2026-08-10}
+package: VSON-8 DRB 3x3mm P0.65, exposed pad
+footprint: Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm_ThermalVias
+escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard, checked: "escape_check geometry review 2026-08-10; exposed-pad thermal process is a separate layout/fab obligation"}
+pins: {1: GND, 2: IN, 3: IN, 4: EN, 5: ILIM, 6: OUT, 7: OUT, 8: FAULT, 9: {name: EP, tie: GND}}
+limits: {vin: "2.5-6.5V", continuous_current_max: 5A, rds_on_max_125C: 35mOhm, standby_supply_max: 2uA}
+gotchas:
+  - "TPS2557 EN is active high; TPS2556 is the pin-compatible active-low variant."
+  - "39.4k 0.1% ILIM resistor is selected in Stage 2 so the datasheet equations guarantee approximately 2.50A minimum and 3.06A maximum including resistor tolerance."
+  - "ILIM resistor must be adjacent to pin 5; its trace resistance changes the limit."
+verified: "pin functions, electrical table and section 10.2 current-limit equations independently read 2026-08-10"
+sourcing: {lcsc: C130056, alternates: [{lcsc: C2150199, mpn: TPS2557DRBT}], note: "DRBR large reel preferred; stock evidence is volatile"}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVS931B sec.10.2.2 layout guidelines and Figure 39", why: "manufacturer layout defines IN/OUT capacitor, ILIM and exposed-pad adjacency"}
+  - {tier: 2, reached: false, artifact: "TPS2557EVM-423 design files", why: "datasheet layout is reached; EVM copper remains a placement-stage cross-check"}

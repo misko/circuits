@@ -1,0 +1,16 @@
+mpn: USBLC6-2SC6
+manufacturer: STMicroelectronics
+type: esd_protection_array
+datasheet: {doc_id: USBLC6-2, revision: DS11265, url: "https://www.st.com/resource/en/datasheet/usblc6-2.pdf", sha256: 8ba7ab4ec1781b7f6052f5999a2304bd611c0ed2b5e8f36ffa5092552932a42e, fetched: 2026-08-10}
+package: SOT-23-6
+footprint: Package_TO_SOT_SMD:SOT-23-6
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "escape_check 2026-08-10"}
+pins: {1: IO1, 2: GND, 3: IO2, 4: IO2b, 5: VBUS, 6: IO1b}
+limits: {vbus_max: 5.25V, esd: "15kV air / 8kV contact IEC61000-4-2"}
+gotchas:
+  - "Route the USB-A charging-signature lines through pairs 1-6 and 3-4; place the array at the connector before the controller branch."
+verified: "pin configuration and application layout independently read 2026-08-10"
+sourcing: {lcsc: C7519, alternates: [{lcsc: C2687116, mpn: USBLC6-2SC6}], note: "volatile stock evidence is kept in 06_build/cache"}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "ST DS11265 application/layout guidance", why: "manufacturer source requires the clamp first in the exposed line path with a short ground return"}
+  - {tier: 4, reached: false, artifact: "independent routed USBLC6-2SC6 board", why: "not required for selection; fresh placement review will grade the realised stub and ground path"}

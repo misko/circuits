@@ -16,7 +16,7 @@ gates:
 
   - id: v4_parts_and_architecture
     required_for: DESIGN_CLEAN
-    state: pending
+    state: pass
     owner: electrical
     closes_when: Every selected part has a cited dossier, sourcing identity and verified application calculation; P-MOD, D-SPEC, E-PATH, E-TOPO, E-MARGIN, E-OFF, E-SWDRV and E-SURGE pass.
 
@@ -58,18 +58,80 @@ gates:
 
 findings:
   - id: V4-F0-parts-unselected
-    state: open
+    state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: electrical
     finding: Converter, protection, connector and passive populations are intentionally unselected at commission.
     closes_when: Stage 1 selects cited, sourceable parts and all early-design gates pass.
+    evidence:
+      - 01_docs/ARCHITECTURE.md
+      - 01_docs/DETAIL_DESIGN.md
+      - 01_docs/sourcing/parts-selection-2026-08-10.md
+      - 01_docs/sourcing/two-source-qualification-2026-08-10.md
+      - 03_src/rules/power_tree.yaml
+      - 03_src/rules/protection_paths.yaml
+
+  - id: V4-F4-advanced-tier-decision
+    state: open
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: user
+    finding: >-
+      The selected modules require resin-filled/copper-capped thermal
+      via-in-pad, escalating A3's provisional JLC standard tier to advanced.
+    closes_when: >-
+      The Stage 1 pause accepts ADR-0004, or the architecture is backtracked to
+      parts and geometry that are honestly manufacturable at standard tier.
+    evidence:
+      - 01_docs/decisions/0004-jlc-advanced-via-in-pad.md
+      - 03_src/rules/nets.yaml
+
+  - id: V4-F5-pi-cable-qualification
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: >-
+      The load-plane Pi voltage claim budgets only 20mOhm for the nominated
+      cable and 15mOhm for the mated contacts; no exact cable has been measured.
+    closes_when: >-
+      An exact short heavy-gauge cable and plug/receptacle pair are four-wire
+      measured hot and the complete load plane passes at 3A.
+
+  - id: V4-F6-order-day-sourcing
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_ORDERABLE
+    owner: fabrication
+    finding: >-
+      Selection-time catalog stock passed 16/16 and independent authorized
+      pool coverage passed 16/16, but both are volatile and do not prove JLC
+      assembly allocation; TPSM63604, TPS2513A and the USB-A connector were
+      comparatively shallow at JLC/LCSC.
+    closes_when: >-
+      The final BOM/CPL passes the JLC uploader and a same-day stock/substitution
+      review for quantity five.
+
+  - id: V4-F7-input-polarity-marking
+    state: open
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: electrical
+    finding: >-
+      The selected two-position input terminal is not keyed; safe use depends
+      on Q1 reverse-polarity protection plus unambiguous BAT+/GND markings.
+    closes_when: >-
+      Schematic and board reviews prove pin 1 BAT+, pin 2 GND, polarity silk is
+      visible at the terminal, and the first-article plan includes reverse-input
+      verification.
+    evidence:
+      - 01_docs/decisions/0005-input-protection-and-shutdown.md
+      - 02_parts/1715022/part.yaml
 
   - id: V4-F1-inherited-service-unconfirmed
-    state: open
+    state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: systems
     finding: Port count, currents, 3S envelope, Pi 4 target, stored-current budget and build quantity are inherited assumptions A1-A3 rather than direct user values.
     closes_when: The user confirms them or later directives supersede them before schematic generation.
+    evidence:
+      - 01_docs/BRIEF.md
 
   - id: V4-F2-supervised-only
     state: open

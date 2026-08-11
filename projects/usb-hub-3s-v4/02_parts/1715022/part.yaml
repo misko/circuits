@@ -1,0 +1,17 @@
+mpn: "1715022"
+manufacturer: Phoenix Contact
+type: two_position_battery_input_terminal
+datasheet: {doc_id: "1715022 online catalog", revision: "catalog read 2026-08-10", url: "https://www.phoenixcontact.com/en-gb/products/printed-circuit-board-terminal-mkds-15-2-1715022", sha256: null, fetched: 2026-08-10}
+package: two-position 5.00mm horizontal-entry through-hole screw terminal
+footprint: usb_hub_3s_v4:Phoenix_MKDS_1.5_2_1715022
+escape: {style: connector, pitch: 5.00, tier_required: jlc_2layer_default, checked: "manufacturer dimensions and 1.3mm hole review 2026-08-10"}
+pins: {1: POS, 2: NEG}
+limits: {nominal_current: 17.5A, distributor_current: 15A, conductor: "14-30AWG", nominal_voltage: 400V, operating_temperature: "-40 to 105C derating-dependent"}
+gotchas:
+  - "The terminal is not keyed. Lock pin 1 as BAT+ and pin 2 as BAT- in copper and oversize polarity silk on both sides."
+  - "Accepts bare or ferruled leads from a user-supplied XT60 pigtail; no XT60 connector is assembled directly to the PCB."
+  - "Phoenix requires the terminal block to be mechanically supported while tightening conductors; torque is not transferred into the PCB unsupported."
+verified: "two-position identity, current, conductor range, 5mm spacing, 1.3mm drill and mechanical-use warning independently read from Phoenix Contact's exact product record 2026-08-10"
+sourcing: {lcsc: C3817933, alternates: [], note: "exact Phoenix Contact MPN; manufacturer PDF endpoint rejected the automated fetch, recorded in 02_parts/README.md"}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Phoenix Contact 1715022 online dimensional record", why: "manufacturer record fixes 5mm pin spacing, 1.3mm hole and enclosure dimensions"}

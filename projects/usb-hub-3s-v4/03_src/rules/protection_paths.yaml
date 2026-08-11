@@ -1,7 +1,32 @@
 schema: 1
 
-# Intentionally unresolved at commission. D1 removes active sustained-OV
-# cutoff as a requirement; it does not remove ordinary source/transient stress
-# coordination. Stage 1 must populate the actual exposed path and part ratings.
-paths: []
-no_surge_exposed_paths: null
+paths:
+  - name: VIN_PROTECTED
+    source_operating_max_V: 12.6
+    source_tolerance_included: true
+    source_boundary_evidence: >-
+      Locked 3S LiPo operating ceiling including pack charge termination; a
+      charger, alternator, bench supply above 12.6V, automotive load dump and
+      a sustained source overvoltage are outside the product boundary.
+    voltage_margin_pct: 20
+    admitted_transient:
+      claim: >-
+        SMBJ15A is a secondary clamp for hot-plug/wiring transients only. No
+        sustained-overvoltage or automotive-surge protection claim is made;
+        the exact battery-lead hot-plug waveform must be captured on the first
+        article and remain within the TVS pulse envelope.
+      input_damping: "35TZV100M6.3X8 100uF, 340mOhm maximum at 100kHz"
+    tvs:
+      part: SMBJ15A
+      standoff_V: 15.0
+      clamp_max_V: 24.4
+      waveform_duration_ms: 1.0
+      waveform: 10/1000 us
+      peak_current_max_A: 24.6
+      peak_power_max_W: 600
+      evidence: "Littelfuse SMBJ 2025 series sheet, exact SMBJ15A row"
+    exposed:
+      - {ref: Q1, part: DMP3013SFV-7, domain: series_input_path, bounded_max_V: 24.4, recommended_max_V: 30, absolute_max_V: 30}
+      - {ref: C1, part: 35TZV100M6.3X8, domain: tvs_clamped_protected_rail, bounded_max_V: 24.4, recommended_max_V: 35, absolute_max_V: 35}
+      - {ref: U1, part: TPSM63610RDFR, domain: tvs_clamped_protected_rail, bounded_max_V: 24.4, recommended_max_V: 36, absolute_max_V: 42}
+      - {ref: U2, part: TPSM63604RDLR, domain: tvs_clamped_protected_rail, bounded_max_V: 24.4, recommended_max_V: 36, absolute_max_V: 42}

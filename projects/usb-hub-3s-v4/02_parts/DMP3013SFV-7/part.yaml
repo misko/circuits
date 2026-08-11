@@ -1,0 +1,18 @@
+mpn: DMP3013SFV-7
+manufacturer: Diodes Incorporated
+type: p_channel_reverse_polarity_mosfet
+datasheet: {doc_id: DS40141, revision: "Rev. 5-2", url: "https://www.diodes.com/_files/datasheets/DMP3013SFV.pdf", sha256: 8dfc21deac77532d9490acc5331dc7039a64783c391ba04509dc8f13fa52ee1a, fetched: 2026-08-10}
+package: PowerDI3333-8 Type UX
+footprint: usb_hub_3s_v4:Diodes_PowerDI3333-8_Type_UX
+escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard, checked: "escape_check geometry review 2026-08-10; thermal copper requirements remain in gotchas/layout_refs"}
+pins: {1: S, 2: S, 3: S, 4: G, 5: D, 6: D, 7: D, 8: D}
+limits: {vds: -30V, vgs: "+/-25V", rds_10V_max: 9.5mOhm, rds_4V5_max: 17mOhm, id_steady_70C_on_test_board: -10A, tj_max: 150C}
+gotchas:
+  - "Reverse-polarity use has the drain on fused battery positive and the source on protected VIN; the body diode initially conducts battery-to-load and blocks a reversed source."
+  - "Use the 9.5mOhm maximum because the 12V source-to-gate clamp establishes approximately -12V drive; first article still measures the device hot because RDS(on) rises with junction temperature."
+  - "A 12V source-to-gate zener and gate pulldown limit VGS during hot plug."
+verified: "bottom-view pin map, limits, RDS(on), thermal test conditions and ordering suffix independently read from Diodes DS40141 2026-08-10"
+sourcing: {lcsc: C264098, alternates: [], note: "exact Diodes MPN; dated JLC/LCSC and authorized-distributor evidence is kept in 01_docs/sourcing and 06_build/cache"}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Diodes PowerDI3333-8 Type UX package drawing", why: "manufacturer drawing fixes source/gate lands, the four drain lands and thermal copper"}
+  - {tier: 4, reached: false, artifact: "independent routed reverse-polarity board", why: "v4 will rederive copper and thermal geometry rather than import predecessor copper"}

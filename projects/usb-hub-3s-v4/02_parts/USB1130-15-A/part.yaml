@@ -1,0 +1,17 @@
+mpn: USB1130-15-A
+manufacturer: GCT
+type: usb_type_a_receptacle_charge_only
+mates: receptacle
+datasheet: {doc_id: USB1130, revision: "Revision E", url: "https://gct.co/files/drawings/usb1130.pdf", sha256: 8890b46ce2c8a0b4022c3dfb2fbc39e6d4a20cbca99200d70ea89682cbb023e0, fetched: 2026-08-10}
+package: right-angle through-hole USB Type-A receptacle
+footprint: usb_hub_3s_v4:USB_A_GCT_USB1130-15-A_Horizontal
+escape: {style: connector, pitch: 2.0, tier_required: jlc_2layer_default, checked: "manufacturer land-pattern review 2026-08-10"}
+pins: {1: VBUS, 2: DM, 3: DP, 4: GND, SH: SHIELD}
+limits: {current_per_contact: 3A, contact_resistance_max_initial: 30mOhm, durability: 1500_cycles}
+gotchas:
+  - "The 3A contact rating, rather than legacy USB-A assumptions, is binding for the 2A continuous/2.5A peak service."
+  - "Pins 2/3 carry charging signatures only; no data pair leaves the board."
+verified: "pin order, board cutout, 3A current rating and 30mOhm maximum initial contact resistance independently read from GCT drawing 2026-08-10"
+sourcing: {lcsc: C5815149, alternates: [], note: "JLC plugin/through-hole candidate; volatile stock evidence is kept in 06_build/cache"}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "GCT USB1130-15-A recommended PCB layout", why: "manufacturer drawing fixes holes, shell pegs and board-edge datum"}

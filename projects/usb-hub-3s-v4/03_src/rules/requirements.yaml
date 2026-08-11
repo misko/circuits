@@ -11,8 +11,13 @@ power_claims:
     voltage_min_V: 4.75
     voltage_max_V: 5.25
     duty: continuous
+    peak_current_A: 2.5
+    peak_scope: "all three ports may peak together; duration remains a first-article thermal qualification and is not a 2.5A continuous claim"
     measurement_plane: board_connector
-    boundary_evidence: "BRIEF A1; provisional USB-A receptacle plane pending Stage 1 standards citation"
+    boundary_evidence: >-
+      BRIEF A1/D2 and GCT USB1130 drawing. BC1.2 defines a 1.5A DCP;
+      2A continuous/2.5A peak is intentionally a proprietary charge-only
+      extension and is not represented as USB-IF BC1.2 current compliance.
     included_elements: [protection_switch, pcb_copper_vias_joints, connector_contacts]
     excluded_elements: [mated_power_contacts, cable, appliance]
 
@@ -25,6 +30,9 @@ power_claims:
     voltage_max_V: 5.25
     duty: continuous
     measurement_plane: load
-    boundary_evidence: "BRIEF A1; Raspberry Pi 4 input after a nominated cable, primary citation owed in Stage 1"
+    boundary_evidence: >-
+      BRIEF A1/D2 and Raspberry Pi official documentation recommending a 5V/3A
+      supply for Pi 4; the measurement is at the Pi after a specifically
+      resistance-qualified short cable, not merely at the board receptacle.
     included_elements: [protection_switch, pcb_copper_vias_joints, mated_power_contacts, cable]
     excluded_elements: []

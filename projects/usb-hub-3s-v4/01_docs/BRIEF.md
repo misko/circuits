@@ -85,6 +85,16 @@ study establishes a lower-complexity bare-IC implementation. Authority: the
 repository's commission default. Escalate if: a binding size, unit-cost, supply,
 or performance requirement rules out modules.
 
+### D2 — 2026-08-10 — user directive
+
+> Great! you got this , go for it!
+
+Impact: Authorizes Stage 1 after the immediately preceding handoff explicitly
+listed A1–A3 (3S LiPo, three 2 A/2.5 A-peak USB-A ports, Pi 4 at 3 A, all
+simultaneous, five top-assembled JLCPCB boards and ≤1 mA shutdown draw) and
+asked for correction or “continue.” Proceed using those values; later user
+directives still supersede them.
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -95,6 +105,11 @@ or performance requirement rules out modules.
 | A3 | Start at JLCPCB standard four-layer, top-side PCBA, quantity five. | agent (A3 / D1) | Log A3 |
 | A5 | No rigid external mating geometry is currently in scope. | agent (A5 / P-delegation) | Log A5 |
 | A6 | Apply the repository module-first default. | agent (A6 / P-delegation) | Log A6 |
+| D2 | Proceed to Stage 1 using the explicitly restated A1–A3 values. | user (D2) | Log D2 |
+| E1 | Split the load across TPSM63610 (USB-A) and TPSM63604 (Pi). | engineering derivation | `decisions/0002-dual-integrated-buck-modules.md` |
+| E2 | Use attach-controlled Type-C and explicit USB-A charge-signature/current-limit cells. | standards/part derivation | `decisions/0003-power-only-usb-port-policy.md` |
+| P1 | Escalate A3 to JLC advanced filled/capped via-in-pad. | proposed at Stage 1 pause | `decisions/0004-jlc-advanced-via-in-pad.md` |
+| E3 | Use fused/reverse-protected/passively clamped input and enable-gated shutdown. | engineering derivation | `decisions/0005-input-protection-and-shutdown.md` |
 
 ## Spec tensions
 
@@ -102,7 +117,9 @@ or performance requirement rules out modules.
 |---|---|---|---|---|---|
 | T1 | Product name says “USB hub”; D1 says no USB data. | A USB data hub requires upstream/downstream data paths and hub control; this product provides only power/charging ports. | Describe and verify it as a power distributor. No USB data nets or data-function compliance claim may appear. | `decisions/0001-power-only-supervised-prototype.md` | yes |
 | T2 | No active overvoltage cutoff. | Passive clamps/current protection cannot guarantee prompt disconnection for every sustained converter fail-high fault. | Explicit supervised-prototype boundary; retain overload, reverse-feed and transient protections where justified, but make no fail-high protection claim. | `decisions/0001-power-only-supervised-prototype.md` | yes |
-| T3 | USB-C powers a Pi 4 without USB-PD. | Raspberry Pi 4 takes fixed 5 V power and does not need a USB-PD source; Type-C source-current advertisement still needs correct CC termination. | Stage 1 must cite the Pi and USB Type-C primary sources; Stage 2 must implement power and CC only, with no data or PD controller. | `decisions/0001-power-only-supervised-prototype.md` | inherited; confirmation owed |
+| T3 | USB-C powers a Pi 4 without USB-PD. | Raspberry Pi 4 takes fixed 5 V power and does not need a USB-PD source; Type-C still requires CC attach behavior and current advertisement. | TPS25810 detects Rd, advertises 3 A, applies VBUS only after attach and discharges it after detach; D+/D− are NC. | `decisions/0003-power-only-usb-port-policy.md` | inherited, resolved by cited architecture |
+| T4 | Each USB-A port provides 2 A continuous/2.5 A peak. | USB BC1.2 DCP service is standardized at 1.5 A, not 2–2.5 A. | Provide BC1.2/legacy charge recognition and a 3 A-rated electrical path, but label the higher available current as a proprietary charge-only extension; make no USB-IF BC1.2 current-compliance claim. | `decisions/0003-power-only-usb-port-policy.md` | yes |
+| T5 | A3 provisionally selects JLC standard four-layer. | Selected power modules require thermal via-in-pad; JLC's appropriate process is filled/capped and repository tier is advanced. | Propose `jlc_4layer_advanced`; pause before Stage 2 for acceptance or architecture backtrack. | `decisions/0004-jlc-advanced-via-in-pad.md` | pending user decision |
 
 ## Mating fact-lock
 
@@ -120,12 +137,14 @@ be revisited if a fixed enclosure/panel interface is introduced.
 | Output measurement boundary | USB-A at each board receptacle; USB-C at the load after the nominated cable | A1 |
 | Protection posture | No active sustained-overvoltage cutoff required; supervised-prototype limitation is mandatory | D1, A4 |
 | Off/storage posture | Enable-gated master shutdown; ≤1 mA stored-state draw; no hard disconnect required | A2 |
-| Manufacturing | JLCPCB standard four-layer, top-side PCBA, quantity five | D1, A3 |
+| Manufacturing | JLCPCB four-layer, top-side PCBA, quantity five; advanced filled/capped via-in-pad proposed by P1 | D1, A3, P1 |
 | Mating | No rigid foreign mating geometry | A5 |
 | Integration posture | Modules preferred; any bare-IC hard cell requires a cited comparison and ADR | A6 |
 | Sourcing classes | JLC-assembled catalog parts preferred; consigned/user-fit exceptions must be measured and declared | D1, A3 |
 
-Exact voltage tolerance, delivery-path IR budgets, peak duration, converter
-selection, protection-part coordination, and sourceability remain Stage 1
-obligations. The machine contracts fail closed where those facts are not yet
-proved.
+Exact voltage tolerance, delivery-path IR budgets, converter selection,
+protection coordination and selection-time sourceability are proved in the
+Stage 1 contracts and dossiers. Peak-current electrical support is proved, but
+the permitted 2.5A duration remains a first-article thermal qualification rather
+than a continuous-current claim. P1 must be accepted or backtracked before the
+schematic stage.

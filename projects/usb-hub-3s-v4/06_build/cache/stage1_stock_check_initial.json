@@ -1,0 +1,151 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "projects/usb-hub-3s-v4/06_build/cache/stage1_candidate_bom.csv",
+ "min_stock_per_board": 5,
+ "verdict": "PASS",
+ "stock_source": "lcsc_catalog_stockCount",
+ "predicts_jlc_assembly_allocation": false,
+ "pass_means": "catalog stock >= min_stock x qty at query time; NOT that JLC will allocate the line -- see F-ECHO",
+ "graded_lines": 15,
+ "total_lines": 15,
+ "zero_coverage": null,
+ "failures": 0,
+ "uncoded_lines": 0,
+ "lines": [
+  {
+   "lcsc": "C7125816",
+   "designators": "U1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 203,
+   "type": "expand",
+   "mpn": "TPSM63610RDFR"
+  },
+  {
+   "lcsc": "C5219289",
+   "designators": "U2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 54,
+   "type": "expand",
+   "mpn": "TPSM63604RDLR"
+  },
+  {
+   "lcsc": "C473913",
+   "designators": "U3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 307,
+   "type": "expand",
+   "mpn": "TPS25810RVCR"
+  },
+  {
+   "lcsc": "C130056",
+   "designators": "U4,U5,U6",
+   "qty": 3,
+   "status": "OK",
+   "stock": 2875,
+   "type": "expand",
+   "mpn": "TPS2557DRBR"
+  },
+  {
+   "lcsc": "C473910",
+   "designators": "U7,U8",
+   "qty": 2,
+   "status": "OK",
+   "stock": 60,
+   "type": "expand",
+   "mpn": "TPS2513ADBVR"
+  },
+  {
+   "lcsc": "C7519",
+   "designators": "D2,D3,D4",
+   "qty": 3,
+   "status": "OK",
+   "stock": 27049,
+   "type": "expand",
+   "mpn": "USBLC6-2SC6"
+  },
+  {
+   "lcsc": "C2760089",
+   "designators": "Q1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 2248,
+   "type": "expand",
+   "mpn": "AON6403"
+  },
+  {
+   "lcsc": "C173429",
+   "designators": "D5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 366214,
+   "type": "expand",
+   "mpn": "BZT52C12"
+  },
+  {
+   "lcsc": "C83846",
+   "designators": "D1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 31854,
+   "type": "expand",
+   "mpn": "SMBJ15A"
+  },
+  {
+   "lcsc": "C128462",
+   "designators": "C1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 2112,
+   "type": "expand",
+   "mpn": "EEEFK1V101P"
+  },
+  {
+   "lcsc": "C5337088",
+   "designators": "J5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1662,
+   "type": "expand",
+   "mpn": "TYPE-C-31-M-12A"
+  },
+  {
+   "lcsc": "C5815149",
+   "designators": "J2,J3,J4",
+   "qty": 3,
+   "status": "OK",
+   "stock": 143,
+   "type": "expand",
+   "mpn": "USB1130-15-A"
+  },
+  {
+   "lcsc": "C98732",
+   "designators": "J1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 8155,
+   "type": "expand",
+   "mpn": "XT60PW-M"
+  },
+  {
+   "lcsc": "C5249699",
+   "designators": "F1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 233,
+   "type": "expand",
+   "mpn": "3568"
+  },
+  {
+   "lcsc": "C2939728",
+   "designators": "SW1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 52854,
+   "type": "expand",
+   "mpn": "SS12D07VG6 087"
+  }
+ ]
+}

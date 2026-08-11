@@ -1,0 +1,13 @@
+mpn: SMBJ15A
+manufacturer: Littelfuse
+type: unidirectional_tvs_diode
+datasheet: {doc_id: SMBJ, revision: "JC.03/21/25 v2", url: "https://www.littelfuse.com/assetdocs/littelfuse_tvs_diode_smbj_datasheet.pdf", sha256: null, fetched: 2026-08-10}
+package: DO-214AA SMB
+footprint: Diode_SMD:D_SMB
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: "escape_check 2026-08-10"}
+pins: {1: K, 2: A}
+limits: {standoff: 15V, breakdown: "16.7-18.5V at 1mA", clamp_max: "24.4V at 24.6A", pulse_power: "600W at 10/1000us"}
+gotchas:
+  - "Place after the reverse-polarity MOSFET: cathode/pad 1 to protected VIN and anode/pad 2 to GND. On the battery side it would be forward-biased by a reversed pack."
+verified: "exact SMBJ15A row and unidirectional polarity independently read from Littelfuse's 2025 series sheet 2026-08-10"
+sourcing: {lcsc: C83846, alternates: [{lcsc: C188412, mpn: SMBJ15A}, {lcsc: C113988, mpn: SMBJ15A}], note: "volatile stock evidence is kept in 06_build/cache; manufacturer PDF fetch is recorded as a deviation in 02_parts/README.md"}

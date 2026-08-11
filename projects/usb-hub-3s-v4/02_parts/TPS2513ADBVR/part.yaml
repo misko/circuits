@@ -1,0 +1,14 @@
+mpn: TPS2513ADBVR
+manufacturer: Texas Instruments
+type: dual_usb_dedicated_charging_port_controller
+datasheet: {doc_id: SLVSBY8, revision: SLVSBY8D, url: "https://www.ti.com/lit/ds/symlink/tps2513a.pdf", sha256: a4873a12d3aaa6d66e5d006c45faca81ad1b98de3e0e1e1628e949ec11cf541d, fetched: 2026-08-10}
+package: SOT-23-6 DBV
+footprint: Package_TO_SOT_SMD:SOT-23-6
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "escape_check 2026-08-10"}
+pins: {1: DP1, 2: GND, 3: DP2, 4: DM2, 5: IN, 6: DM1}
+limits: {vin: "4.5-5.5V"}
+gotchas:
+  - "The A variant provides BC1.2 DCP short mode plus legacy 2.7V/2.7V and 1.2V signatures; do not substitute the non-A part without regrading device compatibility."
+  - "BC1.2 itself defines a 1.5A DCP. The board's 2A/2.5A service is a clearly labelled proprietary charge-only extension, not a USB-IF BC1.2 current-compliance claim."
+verified: "pin figure, device-options table and DCP functional modes independently read 2026-08-10"
+sourcing: {lcsc: C473910, alternates: [], note: "volatile stock evidence is kept in 06_build/cache"}

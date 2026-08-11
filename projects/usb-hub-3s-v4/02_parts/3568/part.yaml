@@ -1,0 +1,15 @@
+mpn: "3568"
+manufacturer: Keystone Electronics
+type: automotive_blade_fuse_holder
+datasheet: {doc_id: M65p42, revision: 2024 catalog drawing, url: "https://www.keyelco.com/product.cfm/product_id/306", sha256: caa141ea51ac68cf80ab6e14ad2075fcfc76206451f4bfe45330005c0deaf395, fetched: 2026-08-10}
+package: horizontal through-hole MINI blade fuse holder
+footprint: usb_hub_3s_v4:Keystone_3568_Mini_Blade_Fuse_Holder
+escape: {style: connector, pitch: 7.62, tier_required: jlc_2layer_default, checked: "manufacturer land-pattern review 2026-08-10"}
+pins: {1: FUSE_A, 2: FUSE_B}
+limits: {holder_current: 30A, fuse_series: "MINI blade 297/ATM"}
+gotchas:
+  - "The 10A fuse element is user-installed after assembly; the JLC BOM contains the holder, not the replaceable blade."
+verified: "drawing, hole spacing, material and current rating independently read from Keystone source 2026-08-10"
+sourcing: {lcsc: C5249699, alternates: [], note: "JLC through-hole candidate; volatile stock evidence is kept in 06_build/cache"}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Keystone drawing M65", why: "manufacturer drawing fixes terminal holes and fuse keepout"}

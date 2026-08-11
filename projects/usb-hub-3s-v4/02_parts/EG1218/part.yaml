@@ -1,0 +1,16 @@
+mpn: EG1218
+manufacturer: E-Switch
+type: spdt_slide_switch
+datasheet: {doc_id: EG1218, revision: "configured product drawing", url: "https://configured-product-images.s3.amazonaws.com/2D/specs/EG1218.pdf", sha256: 708a4b4d860ebf095b5c1b25ff4126f4f09dd66bf7d945731fac7458fc4b2c8c, fetched: 2026-08-10}
+package: vertical-actuation through-hole SPDT slide switch
+footprint: usb_hub_3s_v4:E_Switch_EG1218
+escape: {style: connector, pitch: 2.0, tier_required: jlc_2layer_default, checked: "manufacturer configured drawing review 2026-08-10"}
+pins: {1: THROW_A, 2: COMMON, 3: THROW_B}
+limits: {contact_rating: "200mA at 30VDC", operating_temperature: "-20 to 70C", endurance_min: 10000_cycles, role: "logic-level enable switch only"}
+gotchas:
+  - "Use only on the low-energy common enable bus; this switch does not interrupt battery current."
+  - "Stage 2 must make OFF a hard EN_BUS-to-GND state and label the physical actuator direction from the exact schematic connectivity."
+verified: "exact EG1218 configured drawing, SPDT common pin, rating and mounting geometry independently read from E-Switch sources 2026-08-10"
+sourcing: {lcsc: C273394, alternates: [], note: "volatile stock evidence is kept in dated sourcing artifacts"}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "E-Switch EG1218 configured 2D drawing", why: "manufacturer drawing fixes pin order, holes and actuator envelope"}

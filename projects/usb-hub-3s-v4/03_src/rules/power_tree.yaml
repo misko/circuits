@@ -1,82 +1,101 @@
 schema: 1
 
 source_type: 3S-LiPo pack
-off_control: "enable-gated master shutdown controlling every converter; implementation pending Stage 2 (BRIEF A2)"
-quiescent_ua: 1000
+off_control: >-
+  SW1 shorts the common active-high EN_BUS to GND in OFF; both buck modules
+  are disabled and every downstream USB controller/switch is unpowered
+quiescent_ua: 250
+pack_capacity_mah: 5000
+input_trunk_class: VIN_TRUNK
 ir_floor_mohm: 100
 
-# `pending_selection` is deliberately unresolved. It makes E-TOPO fail closed
-# until Stage 1 creates cited part dossiers and selects the architecture.
 rails:
-  - name: VBUSA1
+  - &usb_a_port
+    name: VBUSA1
     vin_min: 9.0
     vin_max: 12.6
-    vout_min: 5.05
-    vout_max: 5.25
+    vout_min: 5.060
+    vout_max: 5.180
     iout_max_A: 2.0
-    converter: pending_selection
-    eff: 0.9
+    converter: TPSM63610RDFR
+    eff: 0.90
     external_output: true
     claim_id: usb_a_charge_ports
     load_uv_threshold: 4.75
-    ir_budget_mohm: 100
-    ir_budget_components_mohm:
-      protection_switch: {value: 15, basis: budgeted_max, evidence: "Commission budget; Stage 1 must replace with selected-part worst case"}
-      pcb_copper_vias_joints: {value: 50, basis: budgeted_max, evidence: "Commission budget; Stage 1 must derive from stackup and geometry"}
-      connector_contacts: {value: 35, basis: budgeted_max, evidence: "Commission budget; Stage 1 must cite selected connector rating/data"}
-    margin: 0.2
+    ir_budget_mohm: 85
+    margin: 0.20
+    ir_budget_components_mohm: &usb_a_path
+      protection_switch:
+        value: 35
+        basis: maximum
+        evidence: "TPS2557 SLVS931B maximum RON through 125C"
+      pcb_copper_vias_joints:
+        value: 20
+        basis: budgeted_max
+        evidence: "allocated four-layer pour/via/solder budget; confirm by extraction and hot four-wire first-article measurement"
+      connector_contacts:
+        value: 30
+        basis: maximum
+        evidence: "GCT USB1130 drawing maximum initial contact resistance"
+    feedback: &usb_a_feedback
+      vref: 1.0
+      vref_tol_pct: 1.0
+      r_top_ohm: 41200
+      r_top_tol_pct: 0.1
+      r_bottom_ohm: 10000
+      r_bottom_tol_pct: 0.1
 
-  - name: VBUSA2
-    vin_min: 9.0
-    vin_max: 12.6
-    vout_min: 5.05
-    vout_max: 5.25
-    iout_max_A: 2.0
-    converter: pending_selection
-    eff: 0.9
-    external_output: true
-    claim_id: usb_a_charge_ports
-    load_uv_threshold: 4.75
-    ir_budget_mohm: 100
-    ir_budget_components_mohm:
-      protection_switch: {value: 15, basis: budgeted_max, evidence: "Commission budget; Stage 1 must replace with selected-part worst case"}
-      pcb_copper_vias_joints: {value: 50, basis: budgeted_max, evidence: "Commission budget; Stage 1 must derive from stackup and geometry"}
-      connector_contacts: {value: 35, basis: budgeted_max, evidence: "Commission budget; Stage 1 must cite selected connector rating/data"}
-    margin: 0.2
+  - <<: *usb_a_port
+    name: VBUSA2
+    ir_budget_components_mohm: *usb_a_path
+    feedback: *usb_a_feedback
 
-  - name: VBUSA3
-    vin_min: 9.0
-    vin_max: 12.6
-    vout_min: 5.05
-    vout_max: 5.25
-    iout_max_A: 2.0
-    converter: pending_selection
-    eff: 0.9
-    external_output: true
-    claim_id: usb_a_charge_ports
-    load_uv_threshold: 4.75
-    ir_budget_mohm: 100
-    ir_budget_components_mohm:
-      protection_switch: {value: 15, basis: budgeted_max, evidence: "Commission budget; Stage 1 must replace with selected-part worst case"}
-      pcb_copper_vias_joints: {value: 50, basis: budgeted_max, evidence: "Commission budget; Stage 1 must derive from stackup and geometry"}
-      connector_contacts: {value: 35, basis: budgeted_max, evidence: "Commission budget; Stage 1 must cite selected connector rating/data"}
-    margin: 0.2
+  - <<: *usb_a_port
+    name: VBUSA3
+    ir_budget_components_mohm: *usb_a_path
+    feedback: *usb_a_feedback
 
   - name: VBUSC
     vin_min: 9.0
     vin_max: 12.6
-    vout_min: 5.15
-    vout_max: 5.25
+    vout_min: 5.119
+    vout_max: 5.241
     iout_max_A: 3.0
-    converter: pending_selection
-    eff: 0.9
+    converter: TPSM63604RDLR
+    eff: 0.90
     external_output: true
     claim_id: pi4_usb_c_power
     load_uv_threshold: 4.75
-    ir_budget_mohm: 100
+    ir_budget_mohm: 95
+    margin: 0.20
     ir_budget_components_mohm:
-      protection_switch: {value: 15, basis: budgeted_max, evidence: "Commission budget; Stage 1 must replace with selected-part worst case"}
-      pcb_copper_vias_joints: {value: 35, basis: budgeted_max, evidence: "Commission budget; Stage 1 must derive from stackup and geometry"}
-      mated_power_contacts: {value: 20, basis: budgeted_max, evidence: "Commission budget; Stage 1 must cite receptacle and plug contact data"}
-      cable: {value: 30, basis: budgeted_max, evidence: "Commission budget; Stage 1 must define and qualify the nominated cable"}
-    margin: 0.2
+      protection_switch:
+        value: 55
+        basis: maximum
+        evidence: "TPS25810 SLVSCR1C maximum source-switch RON through 125C"
+      pcb_copper_vias_joints:
+        value: 5
+        basis: budgeted_max
+        evidence: "short 3A top-layer pour/via/solder budget; confirm by extraction and hot four-wire first-article measurement"
+      mated_power_contacts:
+        value: 15
+        basis: qualified_max
+        evidence: "allocated across four parallel Type-C VBUS and four GND contacts; first article must measure the exact receptacle/plug pair"
+      cable:
+        value: 20
+        basis: qualified_max
+        evidence: "nominated short heavy-gauge Pi cable must measure <=20mOhm round-trip at operating temperature before the load-plane claim is accepted"
+    feedback:
+      vref: 1.0
+      vref_tol_pct: 1.0
+      r_top_ohm: 41800
+      r_top_tol_pct: 0.1
+      r_bottom_ohm: 10000
+      r_bottom_tol_pct: 0.1
+
+# Worst-case divider corners are 5.060651-5.179531V for 5VA and
+# 5.119932-5.240252V for 5VC. The declared envelopes conservatively contain
+# those computed values. At the specified planes and 20% residual margin,
+# 5VA retains 106mV beyond its 2A IR allowance and 5VC retains about 28mV.
+# Peak USB-A service (3 x 2.5A) is separately bounded by the 8A-rated module,
+# 3A connector contacts and Stage-2 TPS2557 current-limit proof.
