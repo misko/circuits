@@ -1,0 +1,89 @@
+{
+  "board": "/home/mouse9911/gits/circuits/projects/usb-hub-3s-v4/04_kicad/usb_hub_3s_v4.kicad_pcb",
+  "board_sha256": "9888b1267744b8f659ce3f57dd0cbdd037e208440781bd1c80da88b2b1966dfb",
+  "capacity_by_finished_hole_mm": {
+    "0.2": 0.55,
+    "0.3": 0.84
+  },
+  "failures": [],
+  "gate": "A-VIA",
+  "method": "sum published 10 C-rise capacity by finished hole; no credit for fill material",
+  "route_contract": "/home/mouse9911/gits/circuits/projects/usb-hub-3s-v4/03_src/route.yaml",
+  "schema": 1,
+  "source": "Texas Instruments SLVA959B Rev B, Table 3-1 (IPC-2152): https://www.ti.com/lit/an/slva959b/slva959b.pdf",
+  "temperature_rise_c": 10.0,
+  "transfers": [
+    {
+      "credited_capacity_a": 11.76,
+      "finished_hole_census_mm": {
+        "0.300": 14
+      },
+      "name": "u9_out_to_5va_distributor",
+      "net": "5VA",
+      "rect_mm": [
+        95.7,
+        51.4,
+        102.3,
+        53.05
+      ],
+      "required_continuous_a": 8.0,
+      "via_count": 14,
+      "why": "all protected aggregate current must cross this F.Cu collector to B.Cu distributor bank"
+    },
+    {
+      "credited_capacity_a": 3.91,
+      "finished_hole_census_mm": {
+        "0.200": 1,
+        "0.300": 4
+      },
+      "name": "u4_5va_input",
+      "net": "5VA",
+      "rect_mm": [
+        106.75,
+        30.8,
+        108.91,
+        33.5
+      ],
+      "required_continuous_a": 2.849,
+      "via_count": 5,
+      "why": "U4 input island is isolated on F.Cu and fed by the B.Cu distributor"
+    },
+    {
+      "credited_capacity_a": 3.91,
+      "finished_hole_census_mm": {
+        "0.200": 1,
+        "0.300": 4
+      },
+      "name": "u5_5va_input",
+      "net": "5VA",
+      "rect_mm": [
+        106.75,
+        54.8,
+        108.91,
+        57.5
+      ],
+      "required_continuous_a": 2.849,
+      "via_count": 5,
+      "why": "U5 input island is isolated on F.Cu and fed by the B.Cu distributor"
+    },
+    {
+      "credited_capacity_a": 3.91,
+      "finished_hole_census_mm": {
+        "0.200": 1,
+        "0.300": 4
+      },
+      "name": "u6_5va_input",
+      "net": "5VA",
+      "rect_mm": [
+        106.75,
+        78.8,
+        108.91,
+        81.5
+      ],
+      "required_continuous_a": 2.849,
+      "via_count": 5,
+      "why": "U6 input island is isolated on F.Cu and fed by the B.Cu distributor"
+    }
+  ],
+  "verdict": "PASS"
+}

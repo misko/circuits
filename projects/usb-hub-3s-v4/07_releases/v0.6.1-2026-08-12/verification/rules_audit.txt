@@ -1,0 +1,31 @@
+  ok   A-CLASS VIN_TRUNK present (track_width 1.0mm)
+  ok   A-AGREE VIN_TRUNK pro/dru agree at 1.0mm
+  ok   A-CLASS PWR_5VA present (track_width 1.0mm)
+  ok   A-AGREE PWR_5VA pro/dru agree at 1.0mm
+  ok   A-CLASS PWR_5VC present (track_width 1.0mm)
+  ok   A-AGREE PWR_5VC pro/dru agree at 1.0mm
+  ok   A-CLASS PWR_PORT present (track_width 0.8mm)
+  ok   A-AGREE PWR_PORT pro/dru agree at 0.8mm
+  ok   A-CLASS SW_LOCAL present (track_width 0.3mm)
+  ok   A-AGREE SW_LOCAL pro/dru agree at 0.3mm
+  ok   A-CLASS SENSE present (track_width 0.18mm)
+  ok   A-AGREE SENSE pro/dru agree at 0.18mm
+  ok   A-AMP SENSE 0.001A ok at 0.18mm (need 0.000mm)
+  ok   A-CLASS USB_CHARGE_SIG present (track_width 0.18mm)
+  ok   A-AGREE USB_CHARGE_SIG pro/dru agree at 0.18mm
+  ok   A-AMP USB_CHARGE_SIG exempt by declaration ('signal only')
+  ok   A-CLASS TYPEC_CC present (track_width 0.18mm)
+  ok   A-AGREE TYPEC_CC pro/dru agree at 0.18mm
+  ok   A-AMP TYPEC_CC exempt by declaration ('signal (Type-C configuration channel)')
+  ok   A-CLASS CONTROL present (track_width 0.18mm)
+  ok   A-AGREE CONTROL pro/dru agree at 0.18mm
+  ok   A-AMP CONTROL 0.02A ok at 0.18mm (need 0.001mm)
+  ok   A-FIRE all 17 usb_hub_3s_v4.kicad_dru rule(s) can fire (netclass conditions only — no --board, so insideArea() was NOT graded)
+  ok   A-ORDER generate_rules runs last before the DRC gate
+FAIL  A-AMP PWR_5VA: carries 8.0A but the narrowest enforced width is 1.0mm; IPC-2221 needs >= 5.288mm (dT=10.0C, 1.0oz, external)
+FAIL  A-AMP PWR_5VC: carries 3.64A but the narrowest enforced width is 1.0mm; IPC-2221 needs >= 1.785mm (dT=10.0C, 1.0oz, external)
+FAIL  A-AMP PWR_PORT: carries 2.849A but the narrowest enforced width is 0.8mm; IPC-2221 needs >= 1.273mm (dT=10.0C, 1.0oz, external)
+FAIL  A-AMP SW_LOCAL: `current: 'bootstrap charge pulse only; no external power path'` declares a value this gate cannot read, so its width was NEVER CHECKED. An unreadable declaration is a FAIL, not an exemption — write the magnitude as a number with a unit (`7 A worst case`), or declare the class exempt (`signal`)
+FAIL  A-AMP VIN_TRUNK: carries 7.2A but the narrowest enforced width is 1.0mm; IPC-2221 needs >= 4.573mm (dT=10.0C, 1.0oz, external)
+  coverage A-AMP: 8/9 net-class current declarations graded
+RULES AUDIT: FAIL (5 fails, 24 checks)

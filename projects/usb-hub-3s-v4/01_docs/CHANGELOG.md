@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.6.1 — 2026-08-12  [release: v0.6.1-2026-08-12]
+
+- Superseded v0.6.0 with a docs-only archive after the publication parser found
+  that three independent routed reviews used the human display name
+  `USB Hub 3S v4` instead of the canonical project slug `usb-hub-3s-v4` in
+  their structured `subject:` field.
+- Added fresh append-only render, topology and layout publication reseals on
+  the unchanged PCB SHA-256 `9888b1267744b8f659ce3f57dd0cbdd037e208440781bd1c80da88b2b1966dfb`.
+  Each closes `SOUND / DO-NOT-ORDER` and is archived verbatim.
+- Asserted `fab/`, `source/` and `3d/` byte-identical to v0.6.0. No schematic,
+  PCB, BOM, CPL, Gerber, drill, model or order option changed.
+
+Released: docs-only design archive correction; not ordered
+
 ## v0.6.0 — 2026-08-12  [release: v0.6.0-2026-08-12]
 
 - Sealed the first complete USB Hub 3S v4 design archive from routed-board

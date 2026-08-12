@@ -1,0 +1,303 @@
+schema: 1
+
+source_type: protected 3S-LiPo pack with external BMS low-voltage disconnect
+source_voltage_boundary:
+  minimum_operating_V: 9.0
+  enforcement: external_required
+  required_device: "pack-integrated BMS or independent disconnect that opens at or above 9.0V under load"
+  evidence: >-
+    The board has no pack-voltage supervisor. Its 9.0V service calculations
+    are valid only with the named external undervoltage disconnect; a bare
+    unprotected 3S pack is outside the interface contract.
+off_control: >-
+  SW1 shorts the common active-high EN_BUS to GND in OFF; both buck modules
+  are disabled and every downstream USB controller/switch is unpowered
+quiescent_ua: 250
+pack_capacity_mah: 5000
+input_trunk_class: VIN_TRUNK
+ir_floor_mohm: 100
+
+# Effective capacitance is computed multiplicatively from the exact fitted
+# parts.  Every derating term is explicit so nominal/nameplate capacitance can
+# never stand in for the value the IC sees at its operating corner.
+effective_capacitance_banks:
+  - name: U1 5VA control-loop ceramic bank
+    requirement_uF: 75
+    requirement_evidence: "TI TPSM63610 SLVSGU1A Table 8-1: 75uF minimum effective ceramic output capacitance at 5V/1MHz"
+    accepted_dielectrics: [ceramic]
+    contributors:
+      - part: C3225X7R1C226KT000N
+        refs: [C6, C7, C8, C24, C25, C26]
+        nominal_each_uF: 22
+        dielectric: ceramic
+        tolerance_minus_pct: 10
+        dc_bias_derating_pct: 20
+        temperature_derating_pct: 15
+        lifecycle_derating_pct: 0
+        basis: engineering_bound
+        evidence: "TDK exact-part voltage-characteristic graph is about -8% near 5.25V; 20% is the adopted conservative DC-bias bound, with full X7R temperature allowance"
+
+  - name: U2 5VC control-loop ceramic bank
+    requirement_uF: 30
+    requirement_evidence: "TI TPSM63604 SLVSGJ5 Table 8-1: 30uF minimum effective ceramic output capacitance at 5V/1MHz"
+    accepted_dielectrics: [ceramic]
+    contributors:
+      - part: C3225X7R1C226KT000N
+        refs: [C9, C10, C11]
+        nominal_each_uF: 22
+        dielectric: ceramic
+        tolerance_minus_pct: 10
+        dc_bias_derating_pct: 20
+        temperature_derating_pct: 15
+        lifecycle_derating_pct: 0
+        basis: engineering_bound
+        evidence: "TDK exact-part voltage-characteristic graph is about -8% near 5.25V; 20% is the adopted conservative DC-bias bound, with full X7R temperature allowance"
+
+  - name: U3 TPS25810 cold-socket input bank
+    requirement_uF: 120
+    requirement_evidence: "TI TPS25810 SLVSCR1C requires at least 120uF at IN for cold-socket USB Type-C source operation"
+    accepted_dielectrics: [ceramic, polymer]
+    contributors:
+      - part: C3225X7R1C226KT000N
+        refs: [C9, C10, C11]
+        nominal_each_uF: 22
+        dielectric: ceramic
+        tolerance_minus_pct: 10
+        dc_bias_derating_pct: 20
+        temperature_derating_pct: 15
+        lifecycle_derating_pct: 0
+        basis: engineering_bound
+        evidence: "TDK exact-part voltage-characteristic graph plus conservative 20% DC-bias and full X7R temperature bounds"
+      - part: 16SVPF180M
+        refs: [C23]
+        nominal_each_uF: 180
+        dielectric: polymer
+        tolerance_minus_pct: 20
+        dc_bias_derating_pct: 0
+        temperature_derating_pct: 0
+        lifecycle_derating_pct: 20
+        basis: manufacturer_limits
+        evidence: "Panasonic exact SVPF row: -20% initial tolerance and <=20% endurance capacitance change after 5000h at 105C; both are charged independently"
+
+# One executable envelope binds the three independently limited ports to the
+# shared U1 path.  It deliberately charges every capacitor corner and the TI
+# startup relation; nominal capacitance or one isolated threshold is not a
+# safety proof for a persistent three-port fault.
+fault_envelopes:
+  - name: USB-A shared regulator and aggregate breaker
+    normal_continuous_A: 6.0
+    service_peak_A: 7.5
+    service_peak_max_ms: 10
+    downstream_limits:
+      - name: three TPS2559 output switches
+        count: 3
+        simultaneous_count: 3
+        worst_high_each_A: 2.849
+        programmer_refs: [R16, R18, R20]
+        evidence: >-
+          TI TPS2559 SLVSCL5A current-limit equation and electrical-table
+          coefficient corners, applied to exact 43.2k 0.1% resistors plus
+          25ppm/C over 100C, give 2.849A worst-high per output.
+    upstream:
+      continuous_rating_A: 8.0
+      peak_rating_A: 10.0
+      evidence: >-
+        TI TPSM63610 SLVSGU1A rates 8A continuous output and 10A peak output;
+        the board's commissioned continuous service remains 6A.
+      overload_qualification_max_ms: 50
+      overload_qualification_evidence: >-
+        The 10A manufacturer peak rating covers the 8.066419A breaker
+        worst-high corner. Board acceptance limits operation above 8A to
+        50ms and requires a hot first-article transient/thermal measurement;
+        C29 independently enforces a 45.962ms worst-high interrupt time.
+    aggregate_breaker:
+      programmer_ref: R26
+      threshold_model:
+        equation: inverse_resistance_with_offset
+        coefficient_worst_low_A_ohm: 1275
+        coefficient_worst_high_A_ohm: 1665
+        current_offset_A: 0.11
+        programmer_tcr_ppm_per_C: 25
+        programmer_temperature_excursion_C: 100
+      expected_threshold_worst_low_A: 6.160253
+      expected_threshold_worst_high_A: 8.066419
+      threshold_calculation_tolerance_A: 0.000001
+      minimum_normal_margin_A: 0.1
+      minimum_fault_coordination_margin_A: 0.1
+      response: latch_off
+      threshold_evidence: >-
+        TI TPS25982 SLVSEI3D Equation 4 is ILIM=1460/RILIM+0.11A.
+        Applying its offset before scaling the adverse full-temperature
+        300ohm row gives 1275 and 1665 A-ohm coefficients. Exact 210ohm
+        0.1% R26 plus 25ppm/C over 100C produces the machine-derived
+        6.160253..8.066419A breaker band.
+      reset_evidence: >-
+        TPS259827O RETRY_DLY is grounded for latch-off. Cycling SW1 disables
+        U1 and removes U9 input power, providing the documented manual reset.
+      timer:
+        capacitor_ref: C29
+        capacitance_nominal_nF: 47
+        tolerance_pct: 5
+        temperature_minus_pct: 0.3
+        temperature_plus_pct: 0.3
+        dc_bias_minus_pct: 0
+        aging_minus_pct: 0
+        comparator_delta_min_V: 0.7
+        comparator_delta_max_V: 1.3
+        discharge_current_min_uA: 1.4
+        discharge_current_max_uA: 2.8
+        evidence: >-
+          Exact Holy Stone C1206N473J050T C0G capacitor plus its 5%
+          tolerance and a conservative 30ppm/C over 100C; TI TPS25982
+          electrical-table ITIMER voltage and current extrema.
+        startup:
+          capacitor_ref: C30
+          capacitance_nominal_nF: 3.3
+          tolerance_pct: 5
+          temperature_minus_pct: 0.3
+          temperature_plus_pct: 0.3
+          dc_bias_minus_pct: 0
+          aging_minus_pct: 0
+          vin_min_V: 5.014892
+          gate_overdrive_V: 3.6
+          dvdt_current_max_uA: 6.33
+          itimer_divisor: 53000
+          evidence: >-
+            Exact Murata GRM1885C1H332JA01D C0G capacitor, TPS25982 maximum
+            dVdt-source current and TI C_ITIMER < t_GHI/53000 startup relation.
+
+rails:
+  - &usb_a_port
+    name: VBUSA1
+    vin_min: 9.0
+    vin_max: 12.6
+    vout_min: 5.014
+    vout_max: 5.229
+    iout_max_A: 2.0
+    converter: TPSM63610RDFR
+    eff: 0.90
+    external_output: true
+    claim_id: usb_a_charge_ports
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 105.5
+    margin: 0.20
+    ir_budget_components_mohm: &usb_a_path
+      protection_switch:
+        value: 21
+        basis: maximum
+        evidence: "TPS2559 SLVSCL5A maximum RON through 125C"
+      aggregate_circuit_breaker:
+        value: 4.5
+        basis: maximum
+        evidence: "TPS259827O SLVSEI3D maximum RON through 125C"
+      pcb_copper_vias_joints:
+        value: 20
+        basis: budgeted_max
+        evidence: "allocated four-layer pour/via/solder budget; confirm by extraction and hot four-wire first-article measurement"
+      connector_contacts:
+        value: 60
+        basis: maximum
+        evidence: "GCT USB1130 drawing maximum 30mOhm initial resistance per contact; the load loop includes one VBUS and one GND contact"
+    steady_state_variation_high_mV: 15
+    steady_state_ceiling_V: 5.25
+    steady_state_variation_basis: engineering_qualification_bound
+    steady_state_variation_evidence: >-
+      Reserve for switching ripple plus steady line/load movement beyond the
+      computed divider/reference corner. The exact populated board must remain
+      within this band over input, load and temperature before release.
+    transient_voltage_qualification: "load-step/startup excursions are a separate first-article test and must remain below 5.5V; 5.25V is the steady-state service ceiling"
+    feedback: &usb_a_feedback
+      vref: 1.0
+      vref_tol_pct: 1.5
+      fb_bias_current_min_nA: 0
+      fb_bias_current_max_nA: 50
+      fb_bias_current_basis: datasheet_maximum
+      fb_bias_current_evidence: "TI TPSM63610 SLVSGU1A electrical table maximum IFB=50nA"
+      r_top_ohm: 41200
+      r_top_tol_pct: 0.1
+      r_top_tcr_ppm_per_C: 25
+      r_bottom_ohm: 10000
+      r_bottom_tol_pct: 0.1
+      r_bottom_tcr_ppm_per_C: 25
+      resistor_temperature_delta_C: 100
+
+  - <<: *usb_a_port
+    name: VBUSA2
+    ir_budget_components_mohm: *usb_a_path
+    feedback: *usb_a_feedback
+
+  - <<: *usb_a_port
+    name: VBUSA3
+    ir_budget_components_mohm: *usb_a_path
+    feedback: *usb_a_feedback
+
+  - name: VBUSC
+    vin_min: 9.0
+    vin_max: 12.6
+    vout_min: 5.064
+    vout_max: 5.228
+    iout_max_A: 3.0
+    converter: TPSM63604RDLR
+    eff: 0.90
+    external_output: true
+    claim_id: pi4_usb_c_power
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 98
+    margin: 0.05
+    ir_budget_components_mohm:
+      protection_switch:
+        value: 55
+        basis: maximum
+        evidence: "TPS25810 SLVSCR1C maximum source-switch RON through 125C"
+      pcb_copper_vias_joints:
+        value: 4
+        basis: budgeted_max
+        evidence: "short 3A top-layer pour/via/solder budget; confirm by extraction and hot four-wire first-article measurement"
+      complete_type_c_interconnect:
+        value: 39
+        basis: qualified_max
+        evidence: "hot four-wire acceptance bound from the J5 PCB-side VBUS/GND lands to the Raspberry Pi 4 load-plane sense points, including both plug/receptacle mated pairs, cable plug paddle cards/terminations and conductors, and the Pi receptacle/entry path; <=39mOhm is a measured qualification target for the exact Amphenol 10165794-Z0030YBLF cable and Pi, not a manufacturer maximum"
+    margin_basis: qualified_component_residual
+    margin_evidence: >-
+      The 5% residual is applied after the TPS25810 hot maximum, the
+      board-copper maximum budget and a hot four-wire complete-interconnect
+      acceptance limit. It is not substituted for those component limits;
+      exact-board and complete-path measurements remain first-article release
+      obligations.
+    steady_state_variation_high_mV: 15
+    steady_state_ceiling_V: 5.25
+    steady_state_variation_basis: engineering_qualification_bound
+    steady_state_variation_evidence: >-
+      Reserve for switching ripple plus steady line/load movement beyond the
+      computed divider/reference corner. The exact populated board must remain
+      within this band over input, load and temperature before release.
+    transient_voltage_qualification: "load-step/startup excursions are a separate first-article test and must remain below 5.5V; 5.25V is the steady-state service ceiling"
+    feedback:
+      vref: 1.0
+      vref_tol_pct: 1.0
+      fb_bias_current_min_nA: 0
+      fb_bias_current_max_nA: 500
+      fb_bias_current_basis: engineering_qualification_bound
+      fb_bias_current_evidence: "TI TPSM63604 SLVSGJ5 lists 10nA typical only; 500nA (50x typical) is an analytical stress-screen, not a guaranteed maximum. The divider is reduced 10x and exact-board steady-state voltage remains a release measurement."
+      r_top_ohm: 4144.3
+      r_top_tol_pct: 0.1
+      r_top_tcr_ppm_per_C: 25
+      r_bottom_ohm: 1000
+      r_bottom_tol_pct: 0.1
+      r_bottom_tcr_ppm_per_C: 25
+      resistor_temperature_delta_C: 100
+
+# Worst-case divider corners are 5.014892-5.228243V for 5VA_RAW and
+# 5.064237-5.227226V for 5VC. They include reference accuracy, independent
+# +/-0.1% divider tolerance, independent +/-25ppm/C TCR over a 100C excursion,
+# 0..50nA FB bias for U1 and a 0..500nA analytical stress screen for U2. At the
+# specified planes, 5VA retains about 12mV beyond its 2A/105.5mOhm allowance
+# with 20% residual margin. 5VC retains about 5.5mV beyond its 3A/98mOhm
+# qualified-component allowance with 5% residual margin. Both reserve another
+# explicit 15mV below the 5.25V steady-state ceiling for ripple plus line/load
+# movement. Type-C depends on a <=39mOhm hot four-wire limit for the complete
+# two-mated-pair cable/Pi interconnect and on first article confirming the
+# engineering IFB/variation bounds. The 2.5A USB-A peak is
+# a short, non-continuous qualification case: without the 20% continuous
+# residual it retains 12mV at the board connector. It is not a 2.5A continuous
+# claim. The exact 43.2k TPS2559 setting and 3A receptacle bound it separately.

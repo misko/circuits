@@ -1,0 +1,117 @@
+MANIFEST — USB Hub 3S v4 v0.6.1-2026-08-12
+
+board:        usb_hub_3s_v4, 130 x 90 mm, 4 layer
+version:      v0.6.1
+ordered:      not ordered — docs-only design archive sealed 2026-08-12
+git_sha:      7f451d67b68fca98a34f5164f501265f8b4001d3
+git_dirty:    false                   # scope verified before seal output
+kicad:        10.0.4
+tools:        repository kicad-pcb/jlcpcb-fab skills; Python 3.12.3
+fab:          JLCPCB, 4 layer, advanced item-specific Type-VII via-in-pad
+quantity:     5
+gates:        DRC 0/0/0; ERC 0 errors / 555 warnings; policy_audit FAIL=0;
+              bom_source_check PASS (40 lines, 76 coded source refs);
+              strict CPL rotation 70/70; twin CPL bodies 70/70;
+              schematic reviews SOUND/SOUND; routed redteam SOUND/SOUND
+DESIGN:       PASS
+SOURCING:     CLEAR
+order:        DO-NOT-ORDER — JLC preview/process acknowledgement and physical
+              first-article acceptance are not complete
+release_mode: docs-only
+supersedes:   v0.6.0-2026-08-12
+change:       canonical publication review subjects only; fab/source/3d are
+              asserted byte-identical
+3d:           board-only STEP present; installed bodies documented by twin;
+              J1-J4 exact manual-install bodies absent
+assembly:     JLC top-side SMT, quantity 5, three global fiducials
+not_assembled: F1, J1, J2, J3, J4, SW1
+msl:          no consigned parts; follow JLC handling for exposed-pad modules
+
+sha256:
+  3d/usb_hub_3s_v4.step  517d31a7f0935973917ce9d6a8d91ab51af072cc63ea620fba96c846294dff67
+  ORDER_README.md  30f08c0a85f7f815e6c05349bfd5c71d7fd21d85ab67436bd4b8950e72b3a95d
+  fab/bom.csv  3c9c7f77efa5fe145dfb16229064c9bcc894f15790a0b3132b086f332ca52b4f
+  fab/bom_echo_gate.txt  681ab325d7c58b4d86ddff2d83658cb56cdddc84864d1f194f77fc50558d9264
+  fab/cpl.csv  67c9ab62e23f07d4a0e06fa425be23aba20c3787016e278072028ed8686490b2
+  fab/order_notes.txt  95ae7541319c36ba5d01267027c7e3e05f0c292316631df8fe512c1ce2bb652b
+  fab/rotation_human_gate.txt  035950f76ebbadc3c397973e476e114c94079554128e9e80b757d3facbca1b6c
+  fab/usb_hub_3s_v4-B_Cu.gbl  28f61184337f88b37d7888a6fecaecf883dae815ff03c4722990fc14da67d98f
+  fab/usb_hub_3s_v4-B_Mask.gbs  23476f7f0c707e860c73e4c53b95900198eef524c5421c1487659af1578c416a
+  fab/usb_hub_3s_v4-B_Paste.gbp  7511a84658f2a9ca3b044733e0586fe2dc75341890f07e6061dda213f2af3d79
+  fab/usb_hub_3s_v4-B_Silkscreen.gbo  01f7d8ee70191baafe2f680eb36074e6323be019807010e4f733c578bfa36187
+  fab/usb_hub_3s_v4-Edge_Cuts.gm1  7bfcd0f3a765414a197fe557029ad8688c47152c985ebadfd1c5a3deffc9267f
+  fab/usb_hub_3s_v4-F_Cu.gtl  280f46473222e8a46105e0580c768a5556520d0ae18185428ac55446bf1147d3
+  fab/usb_hub_3s_v4-F_Mask.gts  9f25520fd35577a61b25591f240b0a8b1b669556f25b814a2badc31267e7113c
+  fab/usb_hub_3s_v4-F_Paste.gtp  65c7292fe0f290c83650347fd4daf2388c90c09c66e03f736e8f3ffea94ef919
+  fab/usb_hub_3s_v4-F_Silkscreen.gto  9f17f4ed93fa43b503e333f8660bd7a11bd7aef822af903c0c11907185e8ec25
+  fab/usb_hub_3s_v4-In1_Cu.g1  41d4f27fc146ae5fc269416589f17618ea09feb8692585e584c07ca9f1812cab
+  fab/usb_hub_3s_v4-In2_Cu.g2  d0494a28b25b6825ea421d0106186c173b17e98e539c1c5333a9a8ad4fc0ea10
+  fab/usb_hub_3s_v4-NPTH.drl  7af288758cc5bd5a64716dd3679cffc3c264ba9a45d6367bca6b63b01cf0f550
+  fab/usb_hub_3s_v4-PTH.drl  6c9691a6a30dc793bf45fbbd0af39aa02056b4f6a8b5f11a6af2c9e98c6ab0ae
+  fab/usb_hub_3s_v4_gerbers.zip  e20aabda61fc980af8cdb7645f3749a50c10a29681eabc0d93f57f37c61fdf18
+  pdf/assembly.pdf  878460e8f96e0656f40e7fbc9c32e39756c0c52abaaa1e0e25e678eca7f93e6d
+  pdf/pcb_layers.pdf  b5ed9d474f648a321405f4300f69cf79786dafd275038abfee1b87e968294a90
+  pdf/schematic.pdf  1f108b7080a20a4c704e58bfcab9ee3f275ba53b480c526750f9f82df6be99d1
+  source/Package_DFN_QFN.pretty/Texas_RVC0020A_WQFN-20-1EP_3x4mm_P0.5mm_EP1.6x2.6mm_ThermalVias.kicad_mod  4e76bfdfe85b5330fb6c9005031d54d2847cf2dbd1c8e41963ddb0963825aafd
+  source/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod  f341c73aac9dcb553456f68bf3fee3d26eb14acf6d8a1cae82b50418fe1d71ca
+  source/Package_TO_SOT_SMD.pretty/SOT-9X3.kicad_mod  3af2ab06594f17eabeeb38f23ab8de1da1f34fb10b7e058c82d4cc9510caa2ef
+  source/fp-lib-table  fd73c0b16177237f82a76883e97f50e87a47c98fa599e6e8906e64a1e21ea2c5
+  source/usb_hub_3s_v4.kicad_dru  60c1c293ae71bcf78abd963d4030f9fc3d7945fd2c7dff8c3f43dcc07f2222a4
+  source/usb_hub_3s_v4.kicad_pcb  9888b1267744b8f659ce3f57dd0cbdd037e208440781bd1c80da88b2b1966dfb
+  source/usb_hub_3s_v4.kicad_pro  466127235888f01815e25eec1e8ccaa2019498e95736ea4f95c67cb8daba9669
+  source/usb_hub_3s_v4.kicad_sch  114ba1ca14f8cf4bef649c6962bc011cbaebdb0ec494cff31fa8385d587bad43
+  source/usb_hub_3s_v4.net  222667931a0147368cac49ea1b0799e78826ef64f0282dc33907a8287af2612f
+  source/usb_hub_3s_v4.pretty/Diodes_PowerDI3333-8_Type_UX.kicad_mod  69d3f2412e5d30eaba2aa0e59c4c89de09dc48ac38fe6c60cd3fe89db0d2966e
+  source/usb_hub_3s_v4.pretty/E_Switch_EG1218.kicad_mod  a850b051d518f41f706563da821c06b201bc64a97f3a8fbf74e1d365c4307321
+  source/usb_hub_3s_v4.pretty/GCT_USB4105_GF_A.kicad_mod  cc1cdb722a404ea2589587e74c4e5ed0f56caf810a3001b00b2b538d17a930fa
+  source/usb_hub_3s_v4.pretty/Keystone_3568_Mini_Blade_Fuse_Holder.kicad_mod  65b85628c76cfa4dd4288c46d79153f22dc891f8b86a45ac11e433cefe8b6e4f
+  source/usb_hub_3s_v4.pretty/Phoenix_MKDS_1.5_2_1715022.kicad_mod  5c1e61545340dfefa53f3b9b1a634fcd7149dd78db9bf1744135c595c51c0e88
+  source/usb_hub_3s_v4.pretty/Rubycon_TZV_D6.3x8.kicad_mod  29b6eef24e392c10840a9ce413b531a6065bad8cf67480177144dba62a37ea37
+  source/usb_hub_3s_v4.pretty/TI_TPS25982_RGE0024_SplitPad_ThermalVias.kicad_mod  465e558249187d77e669589d277508a69b80e4a2dabfaca65393894e3dbf3791
+  source/usb_hub_3s_v4.pretty/Texas_RDF0022A_B3QFN-22_6.5x7.5mm_ThermalVias.kicad_mod  70078ab503e767291e8a8bc2b7111332ece48625b540c63156c258e2a04ef7e7
+  source/usb_hub_3s_v4.pretty/Texas_RDL0020A_B3QFN-20_5x5.5mm_ThermalVias.kicad_mod  f22456776fd7ad873d7a7da22ef6cd47d05b3bb3451cbf715c379c10e601618a
+  source/usb_hub_3s_v4.pretty/USB_A_GCT_USB1130-15-A_Horizontal.kicad_mod  a48e32ac3bcd05f3e3e9d44930e0e891f16dc0f975c44329586ea61e0f9b4b55
+  source/usb_hub_3s_v4.tsx  941fd90b246140a61b57c8c1f9abe2dcee8cf289a4b832015846e8a4dc638b7d
+  verification/DISPOSITIONS.md  98373b155fdadabbd5d862728002771d34e1a3dc918545fcd044534deb73f612
+  verification/FIRST_ARTICLE_TEST_PLAN.md  bcaa103a011e1be88f9ab816b842ed535ab8fb1464916a85f2c2f20b7eb0d506
+  verification/assembly.yaml  e27bad9fbb6337124bbd524b415cde4a784325f5afbc962ad0bc57d0e91c9753
+  verification/assembly_coverage.txt  fdf357b626f288044084ca1c0ab65dab4ef67b05d585f23f797eca74922fb6df
+  verification/audit.txt  3a0c576ec14ef2f102ac728d51db5cc13eeb8ec1702da8b1b4b37c9b2d2b4289
+  verification/bom_echo_gate.txt  681ab325d7c58b4d86ddff2d83658cb56cdddc84864d1f194f77fc50558d9264
+  verification/bom_legibility.txt  18b35bce5f740e7a639615d856aa56667b2dccad15a46c788217b966e67c9a9d
+  verification/bom_source_check.txt  13d4eaa23b4a7601ccdb6e2ba3a295f0c999d93b3e7a079e67310dcf75dd086f
+  verification/design_math.md  f483ffa2425d1dbd1f1211dc79538a793054a2d06b2156c6c376274beb3f56c2
+  verification/drc.json  b8ffe3ce8e5a9f3471fb2c772b85f1d36159e3cdc2d2cdf0e10e162767b8cee5
+  verification/erc.json  2f0bb5476959b349e017594b39ed87cbc12a9e0e1a26b4940cd907d48f102bbf
+  verification/fab_payload_census.txt  c465542e8e950849ed45071464f17dbb4b35a4b85ab73fd3e4ce23d4bdf95052
+  verification/jlc_twin_render_review.md  c02dab47bd8e07508f1091fd04494af239bd87d49df3488ee8f6aebc1fc1a10a
+  verification/missing_models.txt  ffe2362c6e7082c279fbdcd616d3cfe7f82af0049cbec439b0a3fd1c34530ebc
+  verification/nets.yaml  2401f744752f79316ce6fdf25916ca629583b3402745674f85cf23721b56b8a0
+  verification/parity.md  9758d7ce6d3d7f805bd434e55c951bc9549d3d8a83fa73d91727c86ea74cda5f
+  verification/pin_review.md  7685cbfac6c54a2984c9fdb9881c43901240a3d80ad6891d142cfac0f49fc82b
+  verification/policy_audit.md  379e2a657f7325951bce20ff2deff52f8dc02bbcf50b3e8737148f052253ce1c
+  verification/power_tree.yaml  ab16a35c1164214d9bae363918de089eae744d15c9bb94009d39372c97516348
+  verification/redteam_layout.md  89c905dde972ca7fda1ff3c762b4cdef71b33f9b8c3df36114c7d906c90e186b
+  verification/redteam_topology.md  36e0f3e079cc3ee2192e2f37305cee1e0a70e129cf1bc05bfd2dce43d1d63657
+  verification/render_bottom_bare.png  2109230ca4f692eb58b2d2908a4103ea58cf336473bb04f3d8c5511cda4da11f
+  verification/render_review.md  73974bee6fe0b5740d8ea7fe3e2d59a026a4d7723eced99d8f5be8f88e9ae110
+  verification/render_top_bare.png  896173dba7a3e535323ead8b7f294df10c6fb0b7a3928a508f3b505aac6110af
+  verification/rotation_human_gate.txt  035950f76ebbadc3c397973e476e114c94079554128e9e80b757d3facbca1b6c
+  verification/rules_audit.txt  4bc47651b61e5247159aeca1c48fa80095d2f7a6df11bea3befe062d521fc764
+  verification/standalone_archive_drc.json  19c1a90ecd27ef27bb7c3210455f8037bb0e3642e5c678a2157fd74a1426a788
+  verification/stock_check.csv  d38a27a65861ac07b87f7f2dc74adb1404d9de25a7700cfcf4b8589a6775151d
+  verification/stock_check.json  0a59a9eeb7b2bd53d5f3d939ae3e3e47339c4594be4e6acec369fe4cfc8db81d
+  verification/stock_check.txt  955f89817af9d015555b5c31a197e29fdc5473ddb8bdd89059d4997eb852eaef
+  verification/twin_adjudications.yaml  61f14ba3313907449a1655309230b39d05b77062175712d7be87464cb95041e3
+  verification/twin_bottom.png  d32aabec7124bc110f13eaa7750cf4f994d1ca01e166c97dfd39806f19114bc9
+  verification/twin_edge_east.png  547e369619923e5fe84d9cfcf07f3a4c238584641f4c058644070eef6092f084
+  verification/twin_edge_west.png  c6f1ac0ca1156daa3ad78bddcc252cb40a24253814c4ced0ade58a6305719723
+  verification/twin_iso_nw.png  507342eb7ba84c0f559bd030878fd6e9dedbac49429fe4d759a2b4e023465f3c
+  verification/twin_iso_se.png  9e89a13591cde6769bfa168915f131b6f1ccab320b52cc1b9eac0ee36ca56b76
+  verification/twin_overlay_top.md  2acad9df2097f77528ce2ed20e9977c9d08bef09008a35a98954e1390e51bf25
+  verification/twin_report.csv  33c31581a8a67fdb5daa36036070fd386a4b285fcd052c2309a3863349190f1c
+  verification/twin_report.txt  33c31581a8a67fdb5daa36036070fd386a4b285fcd052c2309a3863349190f1c
+  verification/twin_top.png  755356fca7b4d11afd92d3363db51ff8883201cb2afcc2699830a55685a3a62d
+  verification/twin_top_courtyard_overlay.png  c319b5648f344c2c268325f434aa8c0e6495c2eeb9dc47133596d55b40f519c2
+  verification/via_ampacity.json  653b23a195964d33e7168927b8a16093838bde9ed74e68c46ad5a14988492ab6
+  verification/via_process.json  afb11ddc257b4235b2402e42dedf60a6d1c962e565ee05b602d8a74f61c1258f
