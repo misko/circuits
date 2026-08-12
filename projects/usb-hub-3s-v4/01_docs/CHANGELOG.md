@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.6.0 — 2026-08-12  [release: v0.6.0-2026-08-12]
+
+- Sealed the first complete USB Hub 3S v4 design archive from routed-board
+  SHA-256 `9888b1267744b8f659ce3f57dd0cbdd037e208440781bd1c80da88b2b1966dfb`:
+  strict JLC fabrication output, 40 BOM lines, 70 CPL placements, all 70
+  rotations sourced, 70/70 CPL bodies modeled and exact DRC 0/0/0.
+- Requalified the final capacitor substitutions against current manufacturer
+  and JLC evidence, added a controlled first-article plan, split automated and
+  manual 3D-population denominators, and closed fresh schematic, pin, render,
+  topology and layout reviews on the exact archived design.
+- Added bounded catalog-fetch progress/resume behavior, explicit fact-over-
+  heuristic precedence, final-state twin serialization, relocated-release DRC
+  read-back and cross-format stock-evidence checking. The standalone archive
+  independently reproduces DRC 0/0/0 and retains the frozen PCB hash.
+- `DESIGN: PASS`; `SOURCING: CLEAR`; order verdict remains `DO-NOT-ORDER` until
+  the JLC uploader preview and item-specific Type-VII process acknowledgement
+  are reviewed and a physical first article passes the supplied electrical,
+  thermal and mechanical procedure.
+
+Released: design archive only; not ordered
+
 ## v0.5.0 — 2026-08-11  [tag: usb-hub-3s-v4-v0.5.0]
 
 - Completed the routed-board checkpoint from the exact reviewed placement.

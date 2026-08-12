@@ -1,0 +1,19 @@
+{
+  "board": "/home/mouse9911/gits/circuits/projects/usb-hub-3s-v4/04_kicad/usb_hub_3s_v4.kicad_pcb",
+  "assembly": "/home/mouse9911/gits/circuits/projects/usb-hub-3s-v4/03_src/rules/assembly.yaml",
+  "fails": [],
+  "oks": [
+    "V-PROCESS 65 protected / 118 ordinary / 0 partial; process families are drill-disjoint",
+    "V-ORDER exact generated order remark is complete"
+  ],
+  "coverage": {
+    "V-FLAGS": "183/183 vias graded",
+    "V-SELECT": "183/183 vias compared with drill families"
+  },
+  "na": null,
+  "census": {
+    "0.600/0.300;cap=0;fill=0": 104,
+    "0.500/0.200;cap=1;fill=1": 65,
+    "0.700/0.300;cap=0;fill=0": 14
+  }
+}

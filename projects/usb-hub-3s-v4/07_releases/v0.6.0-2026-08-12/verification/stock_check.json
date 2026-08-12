@@ -1,0 +1,417 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "projects/usb-hub-3s-v4/06_build/fab/bom.csv",
+ "generated_at": "2026-08-12T14:24:44.305166+00:00",
+ "min_stock_per_board": 5,
+ "verdict": "PASS",
+ "stock_source": "lcsc_catalog_stockCount",
+ "predicts_jlc_assembly_allocation": false,
+ "pass_means": "catalog stock >= min_stock x qty at query time; NOT that JLC will allocate the line -- see F-ECHO",
+ "graded_lines": 40,
+ "total_lines": 40,
+ "zero_coverage": null,
+ "failures": 0,
+ "uncoded_lines": 0,
+ "lines": [
+  {
+   "lcsc": "C21189",
+   "designators": "R3,R9",
+   "qty": 2,
+   "status": "OK",
+   "stock": 17905660,
+   "type": "base",
+   "mpn": "0603WAF0000T5E",
+   "manufacturer": "UNI-ROYAL(Uniroyal Elec)"
+  },
+  {
+   "lcsc": "C25803",
+   "designators": "R1,R13,R15,R17,R19,R21,R22,R23,R7",
+   "qty": 9,
+   "status": "OK",
+   "stock": 22803339,
+   "type": "base",
+   "mpn": "0603WAF1003T5E",
+   "manufacturer": "UNI-ROYAL(Uniroyal Elec)"
+  },
+  {
+   "lcsc": "C844888",
+   "designators": "R14",
+   "qty": 1,
+   "status": "OK",
+   "stock": 32958,
+   "type": "expand",
+   "mpn": "TNPW0603100KBEEA",
+   "manufacturer": "Vishay Intertech"
+  },
+  {
+   "lcsc": "C1525",
+   "designators": "C12,C14,C15,C16,C20,C21",
+   "qty": 6,
+   "status": "OK",
+   "stock": 40819544,
+   "type": "base",
+   "mpn": "CL05B104KO5NNNC",
+   "manufacturer": "Samsung Electro-Mechanics"
+  },
+  {
+   "lcsc": "C2919856",
+   "designators": "C22",
+   "qty": 1,
+   "status": "OK",
+   "stock": 436,
+   "type": "expand",
+   "mpn": "160AV5K101M0606C",
+   "manufacturer": "APAQ Tech"
+  },
+  {
+   "lcsc": "C95204",
+   "designators": "R6",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1249215,
+   "type": "expand",
+   "mpn": "RT0603BRD0710KL",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C39232",
+   "designators": "C13",
+   "qty": 1,
+   "status": "OK",
+   "stock": 121428,
+   "type": "expand",
+   "mpn": "CL32B106KAJNNNE",
+   "manufacturer": "Samsung Electro-Mechanics"
+  },
+  {
+   "lcsc": "C77102",
+   "designators": "C2,C3,C4,C5",
+   "qty": 4,
+   "status": "OK",
+   "stock": 116857,
+   "type": "expand",
+   "mpn": "GRM32ER71H106KA12L",
+   "manufacturer": "Murata Electronics"
+  },
+  {
+   "lcsc": "C22797",
+   "designators": "R10",
+   "qty": 1,
+   "status": "OK",
+   "stock": 607622,
+   "type": "base",
+   "mpn": "0603WAF1302T5E",
+   "manufacturer": "UNI-ROYAL(Uniroyal Elec)"
+  },
+  {
+   "lcsc": "C22880",
+   "designators": "R4",
+   "qty": 1,
+   "status": "OK",
+   "stock": 52694,
+   "type": "expand",
+   "mpn": "0603WAF1582T5E",
+   "manufacturer": "UNI-ROYAL(Uniroyal Elec)"
+  },
+  {
+   "lcsc": "C3817933",
+   "designators": "J1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 780,
+   "type": "expand",
+   "mpn": "1715022",
+   "manufacturer": "Phoenix Contact"
+  },
+  {
+   "lcsc": "C136277",
+   "designators": "C23",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1052,
+   "type": "expand",
+   "mpn": "16SVPF180M",
+   "manufacturer": "PANASONIC"
+  },
+  {
+   "lcsc": "C22935",
+   "designators": "R2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 5049596,
+   "type": "base",
+   "mpn": "0603WAF1004T5E",
+   "manufacturer": "UNI-ROYAL(Uniroyal Elec)"
+  },
+  {
+   "lcsc": "C110776",
+   "designators": "R12",
+   "qty": 1,
+   "status": "OK",
+   "stock": 982952,
+   "type": "expand",
+   "mpn": "RT0603BRD071KL",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C4184",
+   "designators": "R8",
+   "qty": 1,
+   "status": "OK",
+   "stock": 4171177,
+   "type": "base",
+   "mpn": "0603WAF2002T5E",
+   "manufacturer": "UNI-ROYAL(Uniroyal Elec)"
+  },
+  {
+   "lcsc": "C478880",
+   "designators": "R26",
+   "qty": 1,
+   "status": "OK",
+   "stock": 444,
+   "type": "expand",
+   "mpn": "PTFR0603B210RP9",
+   "manufacturer": "RESI"
+  },
+  {
+   "lcsc": "C342660",
+   "designators": "C10,C11,C24,C25,C26,C6,C7,C8,C9",
+   "qty": 9,
+   "status": "OK",
+   "stock": 3075,
+   "type": "expand",
+   "mpn": "C3225X7R1C226KT000N",
+   "manufacturer": "TDK"
+  },
+  {
+   "lcsc": "C861251",
+   "designators": "R24",
+   "qty": 1,
+   "status": "OK",
+   "stock": 4989,
+   "type": "expand",
+   "mpn": "RT0603BRD0724R3L",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C77036",
+   "designators": "C30",
+   "qty": 1,
+   "status": "OK",
+   "stock": 66476,
+   "type": "expand",
+   "mpn": "GRM1885C1H332JA01D",
+   "manufacturer": "Murata Electronics"
+  },
+  {
+   "lcsc": "C5249699",
+   "designators": "F1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 208,
+   "type": "expand",
+   "mpn": "3568",
+   "manufacturer": "Keystone"
+  },
+  {
+   "lcsc": "C88744",
+   "designators": "C1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 59415,
+   "type": "expand",
+   "mpn": "35TZV100M6.3X8",
+   "manufacturer": "Rubycon"
+  },
+  {
+   "lcsc": "C861436",
+   "designators": "R11",
+   "qty": 1,
+   "status": "OK",
+   "stock": 4678,
+   "type": "expand",
+   "mpn": "RT0603BRD074K12L",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C855851",
+   "designators": "R5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 3923,
+   "type": "expand",
+   "mpn": "AT0603BRD0741K2L",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C861404",
+   "designators": "R16,R18,R20",
+   "qty": 3,
+   "status": "OK",
+   "stock": 4936,
+   "type": "expand",
+   "mpn": "RT0603BRD0743K2L",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C5451690",
+   "designators": "C29",
+   "qty": 1,
+   "status": "OK",
+   "stock": 217,
+   "type": "expand",
+   "mpn": "C1206N473J050T",
+   "manufacturer": "IHHEC(HOLY STONE ENTERPRISE CO., LTD)"
+  },
+  {
+   "lcsc": "C124196",
+   "designators": "D5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 18723,
+   "type": "expand",
+   "mpn": "BZT52C12-7-F",
+   "manufacturer": "Diodes Incorporated"
+  },
+  {
+   "lcsc": "C264098",
+   "designators": "Q1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 612,
+   "type": "expand",
+   "mpn": "DMP3013SFV-7",
+   "manufacturer": "Diodes Incorporated"
+  },
+  {
+   "lcsc": "C264054",
+   "designators": "C17,C18,C19",
+   "qty": 3,
+   "status": "OK",
+   "stock": 1796,
+   "type": "expand",
+   "mpn": "EEEFK1A151P",
+   "manufacturer": "PANASONIC"
+  },
+  {
+   "lcsc": "C273394",
+   "designators": "SW1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 433,
+   "type": "expand",
+   "mpn": "EG1218",
+   "manufacturer": "E-Switch"
+  },
+  {
+   "lcsc": "C83846",
+   "designators": "D1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 31810,
+   "type": "expand",
+   "mpn": "SMBJ15A",
+   "manufacturer": "Littelfuse"
+  },
+  {
+   "lcsc": "C97502",
+   "designators": "D6",
+   "qty": 1,
+   "status": "OK",
+   "stock": 7781,
+   "type": "expand",
+   "mpn": "TPD2EUSB30DRTR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C473910",
+   "designators": "U7,U8",
+   "qty": 2,
+   "status": "OK",
+   "stock": 60,
+   "type": "expand",
+   "mpn": "TPS2513ADBVR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C206199",
+   "designators": "U4,U5,U6",
+   "qty": 3,
+   "status": "OK",
+   "stock": 248,
+   "type": "expand",
+   "mpn": "TPS2559DRCR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C473913",
+   "designators": "U3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 305,
+   "type": "expand",
+   "mpn": "TPS25810RVCR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C2155765",
+   "designators": "U9",
+   "qty": 1,
+   "status": "OK",
+   "stock": 9,
+   "type": "expand",
+   "mpn": "TPS259827ONRGET",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C5219289",
+   "designators": "U2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 54,
+   "type": "expand",
+   "mpn": "TPSM63604RDLR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C7125816",
+   "designators": "U1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 204,
+   "type": "expand",
+   "mpn": "TPSM63610RDFR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C5815149",
+   "designators": "J2,J3,J4",
+   "qty": 3,
+   "status": "OK",
+   "stock": 143,
+   "type": "expand",
+   "mpn": "USB1130-15-A",
+   "manufacturer": "Global Connector Technology"
+  },
+  {
+   "lcsc": "C3020560",
+   "designators": "J5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 11018,
+   "type": "expand",
+   "mpn": "USB4105-GF-A",
+   "manufacturer": "Global Connector Technology"
+  },
+  {
+   "lcsc": "C7519",
+   "designators": "D2,D3,D4",
+   "qty": 3,
+   "status": "OK",
+   "stock": 30604,
+   "type": "expand",
+   "mpn": "USBLC6-2SC6",
+   "manufacturer": "STMicroelectronics"
+  }
+ ]
+}
