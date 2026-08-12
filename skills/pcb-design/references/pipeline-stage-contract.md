@@ -64,6 +64,7 @@ subject:
   semantic_sha256: <64 hex>
   raw_sha256: <64 hex>
 applicability: APPLIES
+applicability_reason: null
 status: PASS
 started_at: 2026-08-12T17:00:00Z
 finished_at: 2026-08-12T17:00:01Z
@@ -84,7 +85,8 @@ Closed vocabularies:
 Rules:
 
 - `PASS` requires `APPLIES`, `total > 0`, and `graded == total`.
-- `NOT_APPLICABLE` requires a non-empty reason and zero graded/total.
+- `NOT_APPLICABLE` requires a non-empty `applicability_reason` and zero
+  graded/total. `APPLIES` requires it to be null or empty.
 - timeouts and incomplete reviews never become admissible PASS evidence.
 - the result names output symbols; the artifact bundle binds their paths and
   bytes.
