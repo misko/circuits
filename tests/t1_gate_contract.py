@@ -91,6 +91,23 @@ def t_covered_gate_passes():
     must_pass(run([KPY, TOOL, "--root", d]), "fully compliant gate")
 
 
+@test("gca does not mistake typed pipeline verdict data for an executable gate")
+def t_typed_pipeline_library_is_not_gate():
+    library = '''\
+STATUSES = frozenset({"PASS", "FAIL", "INCOMPLETE"})
+
+def parse_status(value):
+    if value not in STATUSES:
+        raise ValueError(value)
+    return value
+'''
+    d = _root({"pipeline_contract.py": library})
+    r = must_pass(run([KPY, TOOL, "--root", d]),
+                  "typed pipeline library inventory")
+    contains(r.out, "0/0 verdict-printing scripts audited",
+             "library exclusion denominator")
+
+
 @test("gca_unnamed_input_is_flagged", kind="known_bad")
 def t_unnamed_input_is_flagged():
     """G-INPUT / canon M6: policy_audit graded a `06_build` shadow tree and

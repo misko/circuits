@@ -29,6 +29,7 @@ mutable index.
 | `pre-route_layout.md` | placement-phase layout review bound to exact board and adopted design-rule hashes |
 | `pre-route_render.md` | placement-phase render review bound to exact board and adopted design-rule hashes |
 | `<date>_<subject>_<source>_<lens>.md` | one review, verbatim (e.g. `2026-07-21_v1.0_redteam_topology.md`, `2026-07-21_v1.0_external-llm_full.md`) |
+| `<date>_jlc-twin-render-review*.md` | bounded manufacturing-twin/render witness and exact-subject delta rechecks; each still carries the dated-review header and immutable artifact hashes |
 
 ## Early first-picture checkpoint
 
