@@ -101,7 +101,12 @@ def parse_status(value):
         raise ValueError(value)
     return value
 '''
-    d = _root({"pipeline_contract.py": library})
+    d = _root({name: library for name in (
+        "pipeline_catalog.py",
+        "pipeline_contract.py",
+        "pipeline_shadow.py",
+        "pipeline_xtrace.py",
+    )})
     r = must_pass(run([KPY, TOOL, "--root", d]),
                   "typed pipeline library inventory")
     contains(r.out, "0/0 verdict-printing scripts audited",

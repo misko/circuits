@@ -203,8 +203,22 @@ The schema-1 foundation is available under `skills/pcb-design/scripts/`:
   late authority;
 - `pipeline_timing.py` — work-class totals and dependency critical-path
   summaries kept distinct from the observed wall envelope.
+- `pipeline_catalog.py` — strict, canonical, exact-driver-hash-bound catalogs
+  that keep legacy argv/cwd/applicability/accepted evidence separate from typed
+  stage semantics;
+- `pipeline_shadow.py` — a pure observer that records legacy completion and
+  projects typed results without executing, retrying or promoting;
+- `pipeline_xtrace.py` — a dedicated-channel Bash trace parser that maps only
+  declared source-line commands and preserves unmapped executable evidence.
 
 These modules are shadow infrastructure, not permission to bypass an existing
 gate or publication path. A producer is migrated only after its adapter has a
 clean and known-bad fixture and its observed plan/result/artifacts agree on
 both canary projects.
+
+The first disposable reuse-driver observation on 2026-08-12 did not agree:
+USB Hub 3S v4 stopped after about 11.4 seconds at stale/missing pre-route review
+evidence, while legacy Pluto RX2 8-way stopped after about 2.0 seconds at seven
+anchored courtyard overlaps.  Both failures were prompt and diagnostic, but
+neither is a complete trace.  The latter is not the separate Pluto RX2 8-way
+v4 sealed canary required above.  See `docs/pipeline-shadow-canaries.md`.

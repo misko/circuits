@@ -2025,6 +2025,24 @@ rationale.
   dependency-duration critical path, with separate local/network/backoff/
   review/operator totals and cache/status counts. Real-stage span adapters and
   USB Hub/Pluto shadow traces remain open, so this entry is not complete.
+- history: 2026-08-12 — the first real legacy adapters landed in
+  non-authoritative form: exact-driver-hash-bound stage catalogs, a pure
+  completion observer and a dedicated-channel xtrace mapper. A detached
+  disposable-worktree exercise measured USB Hub 3S v4 reuse failing
+  diagnostically at pre-route review after about 11.4 seconds (41 trace
+  records) and legacy Pluto RX2 8-way reuse failing at seven anchored courtyard
+  overlaps after about 2.0 seconds (20 records). Neither run hung, but neither
+  completed, so equivalence and any authority migration remain open. This
+  legacy Pluto observation is not the Pluto RX2 8-way v4 sealed canary required
+  by ADR-0008.
+- history: 2026-08-12 — a repeat with absolute Bash source identities exercised
+  the strict source-line adapter itself. USB produced a fully mapped 23-stage
+  failure prefix (36 top-level trace records, no unmapped executable command)
+  at the same review gate after about 14.3 seconds; Pluto produced a fully
+  mapped three-stage failure prefix (15 top-level records, no unmapped command)
+  at the same board-generation collision after about 1.3 seconds. This closes
+  trace-map plumbing, not canary equivalence: the not-reached tails and both
+  design blockers remain explicit.
 
 ## 2026-08-12 nine-hour retrospective traceability
 

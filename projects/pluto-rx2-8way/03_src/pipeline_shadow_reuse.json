@@ -1,0 +1,420 @@
+{
+  "schema": 1,
+  "project_slug": "pluto-rx2-8way",
+  "driver_relative_path": "03_src/rebuild_reuse.sh",
+  "driver_sha256": "ff2c79b35beade80787b0f8bbebd6b2946a04163ad372075d905f57b7e49ead0",
+  "entrypoint": "rebuild_reuse",
+  "mode": "reuse",
+  "bindings": [
+    {
+      "schema": 1,
+      "sequence": 1,
+      "legacy_key": "prepare-promoted-reuse",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-PREPARE",
+        "owner": "pcb-design",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": [],
+        "produces": ["promoted_route_selection_forced"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [],
+      "argv": null,
+      "shell_builtin": "derive_verify_remove_build_final",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["promoted_route_selection_forced"],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 2,
+      "legacy_key": "pinned-netlist",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-NETLIST",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": ["promoted_route_selection_forced"],
+        "produces": ["reuse_netlist"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-PREPARE"],
+      "argv": [
+        "kicad-cli",
+        "sch",
+        "export",
+        "netlist",
+        "--format",
+        "kicadsexpr",
+        "-o",
+        "{project}/06_build/netlists/pluto_rx2_8way.net",
+        "{project}/03_tscircuit/kicad/pluto_rx2_8way.kicad_sch"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_netlist"],
+      "accepted_output_paths": ["06_build/netlists/pluto_rx2_8way.net"]
+    },
+    {
+      "schema": 1,
+      "sequence": 3,
+      "legacy_key": "board-generate",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-BOARD",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 300,
+        "requires": ["reuse_netlist"],
+        "produces": ["reuse_board"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-NETLIST"],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_board_generic.py",
+        "{project}/03_src/floorplan.yaml",
+        "-o",
+        "{project}/04_kicad/pluto_rx2_8way.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_board"],
+      "accepted_output_paths": [
+        "04_kicad/fp-lib-table",
+        "04_kicad/pluto_rx2_8way.kicad_pcb",
+        "04_kicad/refdes_waiver.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 4,
+      "legacy_key": "board-audit",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-AUDIT",
+        "owner": "pcb-design",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": ["reuse_board"],
+        "produces": ["reuse_board_audited"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-BOARD"],
+      "argv": [
+        "/usr/bin/python3",
+        "{project}/03_src/audit_board.py"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_board_audited"],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 5,
+      "legacy_key": "rules-pre-import",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-RULES-PRE",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": ["reuse_board_audited"],
+        "produces": ["reuse_rules_pre"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-AUDIT"],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_rules_pre"],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way.kicad_dru",
+        "04_kicad/pluto_rx2_8way.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 6,
+      "legacy_key": "promoted-route-import",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-IMPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 360,
+        "requires": ["reuse_rules_pre"],
+        "produces": ["reuse_route_imported"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-RULES-PRE"],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "import",
+        "{project}/03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_route_imported"],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way.kicad_pcb",
+        "06_build/route/import_provenance.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 7,
+      "legacy_key": "route-taps",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-TAPS",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": ["reuse_route_imported"],
+        "produces": ["reuse_taps_complete"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-IMPORT"],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "taps",
+        "{project}/03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_taps_complete"],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 8,
+      "legacy_key": "route-stitch",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-STITCH",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 1800,
+        "requires": ["reuse_taps_complete"],
+        "produces": ["reuse_stitched_board"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-TAPS"],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "stitch",
+        "{project}/03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_stitched_board"],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way.kicad_pcb",
+        "06_build/performance.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 9,
+      "legacy_key": "rules-post-stitch",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-RULES-POST",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": ["reuse_stitched_board"],
+        "produces": ["reuse_rules_post"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-STITCH"],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_rules_post"],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way.kicad_dru",
+        "04_kicad/pluto_rx2_8way.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 10,
+      "legacy_key": "copy-pinned-schematic",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-SCHEMATIC-COPY",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": ["reuse_rules_post"],
+        "produces": ["reuse_parity_ready"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-RULES-POST"],
+      "argv": [
+        "cp",
+        "{project}/03_tscircuit/kicad/pluto_rx2_8way.kicad_sch",
+        "{project}/04_kicad/pluto_rx2_8way.kicad_sch"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_parity_ready"],
+      "accepted_output_paths": ["04_kicad/pluto_rx2_8way.kicad_sch"]
+    },
+    {
+      "schema": 1,
+      "sequence": 11,
+      "legacy_key": "pcb-drc-report",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-DRC",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 900,
+        "requires": ["reuse_parity_ready"],
+        "produces": ["reuse_drc_report"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-SCHEMATIC-COPY"],
+      "argv": [
+        "kicad-cli",
+        "pcb",
+        "drc",
+        "--severity-all",
+        "--refill-zones",
+        "--schematic-parity",
+        "--format",
+        "json",
+        "-o",
+        "{project}/06_build/route/gate.json",
+        "{project}/04_kicad/pluto_rx2_8way.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "postcheck",
+      "authority_binding": "routing-count-verdict",
+      "accepted_output_symbols": ["reuse_drc_report"],
+      "accepted_output_paths": ["06_build/route/gate.json"]
+    },
+    {
+      "schema": 1,
+      "sequence": 12,
+      "legacy_key": "routing-count-verdict",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTO-RX2-REUSE-VERDICT",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": ["reuse_drc_report"],
+        "produces": ["reuse_gate_pass"],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": ["PLUTO-RX2-REUSE-DRC"],
+      "argv": null,
+      "shell_builtin": "python_heredoc_postcheck",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": ["reuse_gate_pass"],
+      "accepted_output_paths": []
+    }
+  ]
+}
