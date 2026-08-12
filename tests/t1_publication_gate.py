@@ -129,5 +129,36 @@ def t_review_binding_mismatch_is_refused():
     contains(joined, "REVIEW-ARCHIVE", "unarchived-review finding")
 
 
+@test("publication replays a declared docs-only predecessor through the "
+      "strong freshness mode")
+def t_docs_only_freshness_mode_is_composed():
+    d = tmpdir("pub_docs_only_")
+    releases = d / "07_releases"
+    prior = releases / "v1.0-2026-08-01"
+    current = releases / "v1.1-2026-08-02"
+    prior.mkdir(parents=True)
+    current.mkdir()
+    errors, args = pg._freshness_args(
+        {"release_mode": "docs-only", "supersedes": prior.name}, current)
+    check(not errors, f"valid docs-only declaration refused: {errors}")
+    check(args[:3] == ["--claim", "design", "--docs-only-supersede"],
+          f"wrong freshness mode argv: {args}")
+    check(Path(args[3]) == prior, f"wrong predecessor path: {args[3]}")
+
+
+@test("publication fails closed on a docs-only declaration with no existing "
+      "predecessor", kind="known_bad")
+def t_docs_only_missing_predecessor_is_refused():
+    d = tmpdir("pub_docs_only_bad_")
+    current = d / "07_releases" / "v1.1-2026-08-02"
+    current.mkdir(parents=True)
+    errors, args = pg._freshness_args(
+        {"release_mode": "docs-only", "supersedes": "v1.0-2026-08-01"},
+        current)
+    check(not args, f"bad declaration still produced gate argv: {args}")
+    contains("\n".join(errors), "FRESHNESS-PREDECESSOR",
+             "missing predecessor diagnosis")
+
+
 if __name__ == "__main__":
     sys.exit(main())

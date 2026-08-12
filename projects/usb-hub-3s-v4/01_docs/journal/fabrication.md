@@ -205,3 +205,23 @@
   reseals over the same PCB hash, commit them as source evidence, then cut a
   docs-only v0.6.1 whose fabrication, source and 3D trees are asserted byte-
   identical. Re-run v4's explicit publication audit before pushing.
+
+## 2026-08-12 08:48 — docs-only publication composition
+
+- did: Staged v0.6.1 from v0.6.0, replaced only the three publication review
+  records, and ran the docs-only identity path. Inspection found that the
+  publication wrapper always called ordinary freshness and discarded the
+  release's predecessor/mode, making the valid docs-only shape impossible to
+  publish. Added structured `release_mode`/`supersedes` manifest fields and
+  composed the existing stronger freshness mode in the wrapper.
+- result: publication regression coverage passes 8/8, including a known-bad
+  missing-predecessor case. Unknown modes and path-shaped, missing or self
+  predecessors fail closed. Ordinary releases retain ordinary freshness; no
+  file-identity logic was duplicated. IMP-060 records the completed shared
+  correction.
+- reflection: A wrapper can weaken a good gate simply by omitting its mode.
+  Orchestration tests must assert the exact child arguments, not just that the
+  child executable's name appears somewhere in the flow.
+- next: Commit this shared input, restamp v0.6.1, rerun policy/freshness/
+  publication gates over the exact staging bytes, then seal v0.6.1 plus the
+  v0.6.0 supersession pointer and refresh the beacon.

@@ -1784,3 +1784,30 @@ rationale.
   import one parser and return the same finding IDs.
 - history: 2026-08-12 — narrow independent publication reseals commissioned;
   docs-only v0.6.1 correction in progress, shared pre-seal parser still open.
+
+## IMP-060 — publication must replay the release's declared freshness mode
+
+- status: completed
+- observed: USB Hub 3S v4 v0.6.1 docs-only staging, 2026-08-12
+- evidence: `release_freshness_check.py` already had the correct strong mode
+  for this correction: `--docs-only-supersede` asserts that every file under
+  `fab/`, `source/` and `3d/` is byte-identical to the named predecessor while
+  requiring release documents to differ. `pcb_publication_gate.py` discarded
+  that release shape and always invoked ordinary freshness, where identical
+  fabrication/PDF artifacts are deliberately treated as stale. Therefore a
+  legitimate docs-only release could pass its normative seal gate and be
+  structurally unable to pass publication.
+- implemented: a superseding MANIFEST now declares `release_mode: docs-only`
+  and an exact sibling directory in `supersedes:`. The publication wrapper
+  parses those fields and composes the existing docs-only freshness mode. It
+  fails closed on an unknown mode, a path-shaped predecessor, a missing
+  predecessor or self-reference; a release with no mode retains ordinary
+  freshness. The wrapper does not reimplement the identity comparison.
+- completion evidence: `tests/t1_publication_gate.py` now proves the clean
+  composition and the known-bad missing-predecessor refusal; 8/8 publication
+  tests pass. V4's v0.6.1 gate additionally asserts the real 20-file fab,
+  17-file source and one-file 3D trees against v0.6.0.
+- general rule: an orchestration layer that composes a parameterized gate must
+  preserve the subject's declared mode. Calling the same executable with
+  weaker/default arguments is not composition; it is a different predicate.
+- history: 2026-08-12 — completed before v0.6.1 seal.
