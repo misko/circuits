@@ -957,7 +957,11 @@ proximity, plane-clean, refdes-on-silk) + `placement_gates.py
 P-OUT pads-inside-outline-polygon, P-CAP corridor crossing-demand vs
 capacity, P-BODYCLR positive courtyard/body clearance — run BEFORE any
 routing attempt; a corridor or collision FAIL is a
-placement/topology decision, not a router tuning problem)
+placement/topology decision, not a router tuning problem). Geometry gates may
+use axis-aligned bounding boxes only as a cheap broad-phase filter; a reported
+courtyard/body collision MUST be confirmed against KiCad's transformed native
+polygons. A rotated part whose boxes intersect but polygons do not is clear and
+must not be moved to satisfy the approximation.
 + `critical_route_check.py .` (R-PAIRMAP: inventory completeness derived from
 independent `nets.yaml length_match` intent, differential/seed source, layers
 and via policy; direct route/prep/import entry points invoke the same gate)

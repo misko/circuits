@@ -1,0 +1,1963 @@
+{
+  "schema": 1,
+  "project_slug": "pluto-rx2-8way-v4",
+  "driver_relative_path": "03_src/rebuild_all.sh",
+  "driver_sha256": "dd8125412ec597c6bcdc371b74462115db3ddc01904b1849c75b8e8c2e83f8fe",
+  "entrypoint": "rebuild_all",
+  "mode": "full",
+  "bindings": [
+    {
+      "schema": 1,
+      "sequence": 1,
+      "legacy_key": "module-first",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-MODULE-FIRST",
+        "owner": "pcb-design",
+        "lifecycle": "architecture",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [],
+        "produces": [
+          "plutov4_full_module_first"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/module_first_check.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_module_first"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 2,
+      "legacy_key": "rf-contract",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-RF-CONTRACT",
+        "owner": "pcb-design",
+        "lifecycle": "architecture",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_module_first"
+        ],
+        "produces": [
+          "plutov4_full_rf_contract"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-MODULE-FIRST"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/rf_contract_check.py",
+        ".",
+        "--require-applicability"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_rf_contract"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 3,
+      "legacy_key": "tsx-preflight",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-TSX-PREFLIGHT",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_rf_contract"
+        ],
+        "produces": [
+          "plutov4_full_tsx_preflight"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-RF-CONTRACT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/tsx_preflight.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_tsx_preflight"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 4,
+      "legacy_key": "build-provenance-stamp",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-BUILD-PROVENANCE-STAMP",
+        "owner": "pcb-design",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_tsx_preflight"
+        ],
+        "produces": [
+          "plutov4_full_build_provenance_stamp"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-TSX-PREFLIGHT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/build_provenance.py",
+        "stamp",
+        ".",
+        "--board",
+        "pluto_rx2_8way_v4",
+        "--tsx",
+        "pluto_rx2_8way_v4"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_build_provenance_stamp"
+      ],
+      "accepted_output_paths": [
+        "06_build/build_provenance.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 5,
+      "legacy_key": "tscircuit-build",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-TSCIRCUIT-BUILD",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 600,
+        "requires": [
+          "plutov4_full_build_provenance_stamp"
+        ],
+        "produces": [
+          "plutov4_full_tscircuit_build"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-BUILD-PROVENANCE-STAMP"
+      ],
+      "argv": [
+        "tsci",
+        "build",
+        "src/pluto_rx2_8way_v4.tsx"
+      ],
+      "shell_builtin": null,
+      "cwd": "03_tscircuit",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_tscircuit_build"
+      ],
+      "accepted_output_paths": [
+        "03_tscircuit/dist/src/pluto_rx2_8way_v4/circuit.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 6,
+      "legacy_key": "circuit-json-bridge",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-CIRCUIT-JSON-BRIDGE",
+        "owner": "pcb-design",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_tscircuit_build"
+        ],
+        "produces": [
+          "plutov4_full_circuit_json_bridge"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-TSCIRCUIT-BUILD"
+      ],
+      "argv": null,
+      "shell_builtin": "mkdir_copy_circuit_json",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_circuit_json_bridge"
+      ],
+      "accepted_output_paths": [
+        "03_tscircuit/build/circuit.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 7,
+      "legacy_key": "render-invalidation",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-RENDER-INVALIDATION",
+        "owner": "pcb-design",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_circuit_json_bridge"
+        ],
+        "produces": [
+          "plutov4_full_render_invalidation"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-CIRCUIT-JSON-BRIDGE"
+      ],
+      "argv": null,
+      "shell_builtin": "remove_stale_schematic_render",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_render_invalidation"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 8,
+      "legacy_key": "schematic-svg-export",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-SCHEMATIC-SVG-EXPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 600,
+        "requires": [
+          "plutov4_full_render_invalidation"
+        ],
+        "produces": [
+          "plutov4_full_schematic_svg_export"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-RENDER-INVALIDATION"
+      ],
+      "argv": [
+        "tsci",
+        "export",
+        "src/pluto_rx2_8way_v4.tsx",
+        "-f",
+        "schematic-svg",
+        "-o",
+        "../build/schematic.svg"
+      ],
+      "shell_builtin": null,
+      "cwd": "03_tscircuit",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "ignored_until",
+      "authority_binding": "build-provenance-verify",
+      "accepted_output_symbols": [
+        "plutov4_full_schematic_svg_export"
+      ],
+      "accepted_output_paths": [
+        "03_tscircuit/build/schematic.svg"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 9,
+      "legacy_key": "schematic-pdf-render",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-SCHEMATIC-PDF-RENDER",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_full_schematic_svg_export"
+        ],
+        "produces": [
+          "plutov4_full_schematic_pdf_render"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-SCHEMATIC-SVG-EXPORT"
+      ],
+      "argv": [
+        "rsvg-convert",
+        "-f",
+        "pdf",
+        "-o",
+        "03_tscircuit/build/schematic.pdf",
+        "03_tscircuit/build/schematic.svg"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "ignored_until",
+      "authority_binding": "build-provenance-verify",
+      "accepted_output_symbols": [
+        "plutov4_full_schematic_pdf_render"
+      ],
+      "accepted_output_paths": [
+        "03_tscircuit/build/schematic.pdf"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 10,
+      "legacy_key": "build-provenance-verify",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-BUILD-PROVENANCE-VERIFY",
+        "owner": "pcb-design",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_schematic_pdf_render"
+        ],
+        "produces": [
+          "plutov4_full_build_provenance_verify"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-SCHEMATIC-PDF-RENDER"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/build_provenance.py",
+        "verify",
+        ".",
+        "--board",
+        "pluto_rx2_8way_v4",
+        "--tsx",
+        "pluto_rx2_8way_v4",
+        "--artifact",
+        "03_tscircuit/build/circuit.json",
+        "--render",
+        "03_tscircuit/build/schematic.pdf"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_build_provenance_verify"
+      ],
+      "accepted_output_paths": [
+        "06_build/build_provenance.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 11,
+      "legacy_key": "schematic-convert",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-SCHEMATIC-CONVERT",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 300,
+        "requires": [
+          "plutov4_full_build_provenance_verify"
+        ],
+        "produces": [
+          "plutov4_full_schematic_convert"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-BUILD-PROVENANCE-VERIFY"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py",
+        "03_tscircuit/build/circuit.json",
+        "-o",
+        "04_kicad/pluto_rx2_8way_v4.kicad_sch",
+        "--parts",
+        "02_parts"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_schematic_convert"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_sch"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 12,
+      "legacy_key": "netlist-export",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-NETLIST-EXPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_full_schematic_convert"
+        ],
+        "produces": [
+          "plutov4_full_netlist_export"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-SCHEMATIC-CONVERT"
+      ],
+      "argv": [
+        "kicad-cli",
+        "sch",
+        "export",
+        "netlist",
+        "--output",
+        "06_build/netlists/pluto_rx2_8way_v4.net",
+        "04_kicad/pluto_rx2_8way_v4.kicad_sch"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_netlist_export"
+      ],
+      "accepted_output_paths": [
+        "06_build/netlists/pluto_rx2_8way_v4.net"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 13,
+      "legacy_key": "net-label-survival",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-NET-LABEL-SURVIVAL",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_netlist_export"
+        ],
+        "produces": [
+          "plutov4_full_net_label_survival"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-NETLIST-EXPORT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/net_label_survival.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_net_label_survival"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 14,
+      "legacy_key": "electrical-invariants",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-ELECTRICAL-INVARIANTS",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_net_label_survival"
+        ],
+        "produces": [
+          "plutov4_full_electrical_invariants"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-NET-LABEL-SURVIVAL"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/electrical_invariants.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_electrical_invariants"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 15,
+      "legacy_key": "adr-coverage",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-ADR-COVERAGE",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_electrical_invariants"
+        ],
+        "produces": [
+          "plutov4_full_adr_coverage"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-ELECTRICAL-INVARIANTS"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/electrical_invariants.py",
+        ".",
+        "--adr-coverage"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_adr_coverage"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 16,
+      "legacy_key": "power-topology",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-POWER-TOPOLOGY",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_adr_coverage"
+        ],
+        "produces": [
+          "plutov4_full_power_topology"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-ADR-COVERAGE"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/power_topology.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_power_topology"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 17,
+      "legacy_key": "power-margin",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-POWER-MARGIN",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_power_topology"
+        ],
+        "produces": [
+          "plutov4_full_power_margin"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-POWER-TOPOLOGY"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/power_topology.py",
+        ".",
+        "--margin"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_power_margin"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 18,
+      "legacy_key": "off-control",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-OFF-CONTROL",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_power_margin"
+        ],
+        "produces": [
+          "plutov4_full_off_control"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-POWER-MARGIN"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/power_topology.py",
+        ".",
+        "--off-control"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_off_control"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 19,
+      "legacy_key": "count-parity",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-COUNT-PARITY",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_off_control"
+        ],
+        "produces": [
+          "plutov4_full_count_parity"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-OFF-CONTROL"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/count_parity.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_count_parity"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 20,
+      "legacy_key": "circuit-bom",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-CIRCUIT-BOM",
+        "owner": "jlcpcb-fab",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_count_parity"
+        ],
+        "produces": [
+          "plutov4_full_circuit_bom"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-COUNT-PARITY"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/jlcpcb-fab/scripts/bom_source_check.py",
+        "--circuit-only",
+        "03_tscircuit/build/circuit.json",
+        "--parts",
+        "02_parts"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_circuit_bom"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 21,
+      "legacy_key": "erc-baseline",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-ERC-BASELINE",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_full_circuit_bom"
+        ],
+        "produces": [
+          "plutov4_full_erc_baseline"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-CIRCUIT-BOM"
+      ],
+      "argv": [
+        "kicad-cli",
+        "sch",
+        "erc",
+        "--severity-all",
+        "04_kicad/pluto_rx2_8way_v4.kicad_sch",
+        "-o",
+        "06_build/erc.rpt"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_erc_baseline"
+      ],
+      "accepted_output_paths": [
+        "06_build/erc.rpt"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 22,
+      "legacy_key": "erc-error-verdict",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-ERC-ERROR-VERDICT",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_full_erc_baseline"
+        ],
+        "produces": [
+          "plutov4_full_erc_error_verdict"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-ERC-BASELINE"
+      ],
+      "argv": [
+        "kicad-cli",
+        "sch",
+        "erc",
+        "--severity-error",
+        "--exit-code-violations",
+        "04_kicad/pluto_rx2_8way_v4.kicad_sch",
+        "-o",
+        "06_build/erc_errors.rpt"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_erc_error_verdict"
+      ],
+      "accepted_output_paths": [
+        "06_build/erc_errors.rpt"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 23,
+      "legacy_key": "layout-provenance-begin",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-LAYOUT-PROVENANCE-BEGIN",
+        "owner": "pcb-design",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_erc_error_verdict"
+        ],
+        "produces": [
+          "plutov4_full_layout_provenance_begin"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-ERC-ERROR-VERDICT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/artifact_provenance.py",
+        "begin",
+        ".",
+        "--stage",
+        "pcb_layout",
+        "--input",
+        "03_src/floorplan.yaml",
+        "--input",
+        "03_src/route.yaml",
+        "--input",
+        "04_kicad/pluto_rx2_8way_v4.kicad_sch",
+        "--output",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb",
+        "--output",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pro",
+        "--output",
+        "04_kicad/pluto_rx2_8way_v4.kicad_dru",
+        "--output",
+        "06_build/drc/gate.json"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_layout_provenance_begin"
+      ],
+      "accepted_output_paths": [
+        "06_build/provenance/pcb_layout.pending.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 24,
+      "legacy_key": "board",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-BOARD",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 300,
+        "requires": [
+          "plutov4_full_layout_provenance_begin"
+        ],
+        "produces": [
+          "plutov4_full_board"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-LAYOUT-PROVENANCE-BEGIN"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_board_generic.py",
+        "03_src/floorplan.yaml",
+        "-o",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_board"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/fp-lib-table",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb",
+        "04_kicad/refdes_waiver.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 25,
+      "legacy_key": "board-audit-placement",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-BOARD-AUDIT-PLACEMENT",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "plutov4_full_board"
+        ],
+        "produces": [
+          "plutov4_full_board_audit_placement"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-BOARD"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "03_src/audit_board.py"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_board_audit_placement"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 26,
+      "legacy_key": "critical-part-facts",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-CRITICAL-PART-FACTS",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_board_audit_placement"
+        ],
+        "produces": [
+          "plutov4_full_critical_part_facts"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-BOARD-AUDIT-PLACEMENT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/critical_part_facts.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_critical_part_facts"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 27,
+      "legacy_key": "placement-gates",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-PLACEMENT-GATES",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_critical_part_facts"
+        ],
+        "produces": [
+          "plutov4_full_placement_gates"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-CRITICAL-PART-FACTS"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/placement_gates.py",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb",
+        "--config",
+        "03_src/placement_gates.json"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_placement_gates"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 28,
+      "legacy_key": "pad-separation",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-PAD-SEPARATION",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_placement_gates"
+        ],
+        "produces": [
+          "plutov4_full_pad_separation"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-PLACEMENT-GATES"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/pad_separation.py",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb",
+        "--project",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_pad_separation"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 29,
+      "legacy_key": "rules-pre-route",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-RULES-PRE-ROUTE",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_pad_separation"
+        ],
+        "produces": [
+          "plutov4_full_rules_pre_route"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-PAD-SEPARATION"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_rules_pre_route"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_dru",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 30,
+      "legacy_key": "pad-escape",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-PAD-ESCAPE",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_rules_pre_route"
+        ],
+        "produces": [
+          "plutov4_full_pad_escape"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-RULES-PRE-ROUTE"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/escape_check.py",
+        "--board",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_pad_escape"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 31,
+      "legacy_key": "tier-preflight",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-TIER-PREFLIGHT",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_pad_escape"
+        ],
+        "produces": [
+          "plutov4_full_tier_preflight"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-PAD-ESCAPE"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/tier_preflight.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_tier_preflight"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 32,
+      "legacy_key": "route-prep",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-ROUTE-PREP",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 600,
+        "requires": [
+          "plutov4_full_tier_preflight"
+        ],
+        "produces": [
+          "plutov4_full_route_prep"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-TIER-PREFLIGHT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "prep",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_route_prep"
+      ],
+      "accepted_output_paths": [
+        "06_build/route/r0.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 33,
+      "legacy_key": "route-import",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-ROUTE-IMPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 300,
+        "requires": [
+          "plutov4_full_route_prep"
+        ],
+        "produces": [
+          "plutov4_full_route_import"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-ROUTE-PREP"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "import",
+        "03_src/route.yaml",
+        "--route-source",
+        "promoted"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_route_import"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 34,
+      "legacy_key": "route-stitch",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-ROUTE-STITCH",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 900,
+        "requires": [
+          "plutov4_full_route_import"
+        ],
+        "produces": [
+          "plutov4_full_route_stitch"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-ROUTE-IMPORT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "stitch",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_route_stitch"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 35,
+      "legacy_key": "board-audit-routed",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-BOARD-AUDIT-ROUTED",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "plutov4_full_route_stitch"
+        ],
+        "produces": [
+          "plutov4_full_board_audit_routed"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-ROUTE-STITCH"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "03_src/audit_board.py",
+        "--routed"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_board_audit_routed"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 36,
+      "legacy_key": "rules-post-stitch",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-RULES-POST-STITCH",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_board_audit_routed"
+        ],
+        "produces": [
+          "plutov4_full_rules_post_stitch"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-BOARD-AUDIT-ROUTED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_rules_post_stitch"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_dru",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 37,
+      "legacy_key": "layout-drc-report",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-LAYOUT-DRC-REPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_full_rules_post_stitch"
+        ],
+        "produces": [
+          "plutov4_full_layout_drc_report"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-RULES-POST-STITCH"
+      ],
+      "argv": [
+        "kicad-cli",
+        "pcb",
+        "drc",
+        "--severity-all",
+        "--refill-zones",
+        "--schematic-parity",
+        "--format",
+        "json",
+        "-o",
+        "06_build/drc/gate.json",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "postcheck",
+      "authority_binding": "layout-drc-verdict",
+      "accepted_output_symbols": [
+        "plutov4_full_layout_drc_report"
+      ],
+      "accepted_output_paths": [
+        "06_build/drc/gate.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 38,
+      "legacy_key": "layout-drc-verdict",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-LAYOUT-DRC-VERDICT",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_layout_drc_report"
+        ],
+        "produces": [
+          "plutov4_full_layout_drc_verdict"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-LAYOUT-DRC-REPORT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "-c",
+        "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_layout_drc_verdict"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 39,
+      "legacy_key": "layout-provenance-finish",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-LAYOUT-PROVENANCE-FINISH",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_layout_drc_verdict"
+        ],
+        "produces": [
+          "plutov4_full_layout_provenance_finish"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-LAYOUT-DRC-VERDICT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/artifact_provenance.py",
+        "finish",
+        ".",
+        "--stage",
+        "pcb_layout"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_layout_provenance_finish"
+      ],
+      "accepted_output_paths": [
+        "06_build/artifact_provenance.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 40,
+      "legacy_key": "rf-solver-prerequisite",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-RF-SOLVER-PREREQUISITE",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_layout_provenance_finish"
+        ],
+        "produces": [
+          "plutov4_full_rf_solver_prerequisite"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-LAYOUT-PROVENANCE-FINISH"
+      ],
+      "argv": null,
+      "shell_builtin": "verify_krt_python",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_rf_solver_prerequisite"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 41,
+      "legacy_key": "fence-pitch",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-FENCE-PITCH",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_rf_solver_prerequisite"
+        ],
+        "produces": [
+          "plutov4_full_fence_pitch"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-RF-SOLVER-PREREQUISITE"
+      ],
+      "argv": null,
+      "shell_builtin": "fence_pitch_pipe_tee",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_fence_pitch"
+      ],
+      "accepted_output_paths": [
+        "06_build/verify/fence_pitch.txt"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 42,
+      "legacy_key": "cpwg-field-solve",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-CPWG-FIELD-SOLVE",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_fence_pitch"
+        ],
+        "produces": [
+          "plutov4_full_cpwg_field_solve"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-FENCE-PITCH"
+      ],
+      "argv": [
+        "{home}/gits/KiCadRoutingTools/.venv/bin/python",
+        "03_src/cpwg_field_solver.py",
+        "--output",
+        "06_build/verify/cpwg_field.json"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_cpwg_field_solve"
+      ],
+      "accepted_output_paths": [
+        "06_build/verify/cpwg_field.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 43,
+      "legacy_key": "copper-length-verdict",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-COPPER-LENGTH-VERDICT",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_full_cpwg_field_solve"
+        ],
+        "produces": [
+          "plutov4_full_copper_length_verdict"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-CPWG-FIELD-SOLVE"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/copper_length_audit.py",
+        ".",
+        "--strict"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_copper_length_verdict"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 44,
+      "legacy_key": "trace-audit-advisory",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-TRACE-AUDIT-ADVISORY",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 600,
+        "requires": [
+          "plutov4_full_copper_length_verdict"
+        ],
+        "produces": [
+          "plutov4_full_trace_audit_advisory"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-COPPER-LENGTH-VERDICT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/trace_audit.py",
+        "--subject",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "ignored_until",
+      "authority_binding": "pinned-schematic-promotion",
+      "accepted_output_symbols": [
+        "plutov4_full_trace_audit_advisory"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 45,
+      "legacy_key": "pinned-schematic-promotion",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-PINNED-SCHEMATIC-PROMOTION",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_trace_audit_advisory"
+        ],
+        "produces": [
+          "plutov4_full_pinned_schematic_promotion"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-TRACE-AUDIT-ADVISORY"
+      ],
+      "argv": null,
+      "shell_builtin": "mkdir_copy_cmp_pinned_schematic",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_pinned_schematic_promotion"
+      ],
+      "accepted_output_paths": [
+        "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 46,
+      "legacy_key": "project-state",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-F-PROJECT-STATE",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_full_pinned_schematic_promotion"
+        ],
+        "produces": [
+          "plutov4_full_project_state"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-F-PINNED-SCHEMATIC-PROMOTION"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/project_state.py",
+        ".",
+        "--expect",
+        "DESIGN_CLEAN"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_full_project_state"
+      ],
+      "accepted_output_paths": []
+    }
+  ]
+}

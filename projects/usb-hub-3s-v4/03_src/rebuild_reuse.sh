@@ -120,9 +120,17 @@ $PY "$S/tier_preflight.py" . \
     || { echo "GATE FAILED [4b] R-PREFLIGHT: route geometry disagrees with the fab tier"; exit 1; }
 $PY "$S/route_and_stitch_generic.py" prep 03_src/route.yaml
 
+# [4c] A stale exact-artifact witness is an expected deliberate pause, not an
+# opaque gate failure.  Prepare immutable current-board renders plus a
+# machine-readable INCOMPLETE commission before asking the unchanged human
+# gate. pcb_flow supplies visible heartbeats and a process-group deadline;
+# the adapter additionally bounds each foreign renderer invocation.
+$PY "$S/pcb_flow.py" run . --stage placement_review_prepare -- \
+    03_src/prepare_placement_review.sh
+
 $PY "$S/pre_route_review_check.py" . --phase placement \
     --board "04_kicad/$BOARD.kicad_pcb" \
-    || { echo "GATE FAILED [4c] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence missing, stale, or defective"; exit 1; }
+    || { echo "GATE FAILED [4d] P-ROUTEBASE/PR-REVIEW: complete the exact-subject placement commission; prepared-route compatibility or placement evidence is missing, stale, or defective"; exit 1; }
 
 # [5] import the PROMOTED KRT chain once into the track-free board  [SHARED]
 $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml

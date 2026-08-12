@@ -340,6 +340,37 @@ def t_budget_timing():
           "evidence distinguishes a good command from a slow command")
 
 
+@test("ad-hoc run inherits its stage budget and deadline from route config")
+def t_run_configured_bounds():
+    root = scratch()
+    route_path = root / "03_src/route.yaml"
+    route = yaml.safe_load(route_path.read_text())
+    route["flow"]["budgets_s"]["unit_probe"] = 10
+    route["flow"]["timeouts_s"] = {"unit_probe": 20}
+    route_path.write_text(yaml.safe_dump(route, sort_keys=False))
+    r = must_pass(run([KPY, FLOW, "run", root, "--stage", "unit_probe",
+                       "--", KPY, "-c", "pass"]),
+                  "configured bounded run")
+    contains(r.out, "/ budget 10s / timeout 20s", "configured bounds")
+    row = json.loads((root / "06_build/performance.json").read_text())["runs"][-1]
+    eq((row["budget_s"], row["timeout_s"]), (10.0, 20.0),
+       "persisted configured bounds")
+
+
+@test("ad-hoc run refuses a configured stage budget regression",
+      kind="known_bad")
+def t_kb_run_configured_budget():
+    root = scratch()
+    route_path = root / "03_src/route.yaml"
+    route = yaml.safe_load(route_path.read_text())
+    route["flow"]["budgets_s"]["unit_probe"] = 0
+    route_path.write_text(yaml.safe_dump(route, sort_keys=False))
+    r = must_fail(run([KPY, FLOW, "run", root, "--stage", "unit_probe",
+                       "--", KPY, "-c", "pass"]),
+                  "configured budget regression", "BUDGET EXCEEDED")
+    eq(r.rc, 6, "configured budget exit")
+
+
 @test("router pass timing composes with the single-board flow log")
 def t_router_pass_timing():
     root = scratch()

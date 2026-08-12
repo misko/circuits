@@ -1311,12 +1311,22 @@ class BoardBuilder:
         pin = [f for f in self.board.GetFootprints()
                if f.GetReference() in self.pinned]
         for i, fa in enumerate(pin):
-            ba = fa.GetCourtyard(pcbnew.F_CrtYd).BBox()
+            pa = fa.GetCourtyard(pcbnew.F_CrtYd)
+            ba = pa.BBox()
             if ba.GetWidth() == 0:
                 continue
             for fb in pin[i + 1:]:
-                bb = fb.GetCourtyard(pcbnew.F_CrtYd).BBox()
-                if bb.GetWidth() == 0 or not ba.Intersects(bb):
+                pb = fb.GetCourtyard(pcbnew.F_CrtYd)
+                bb = pb.BBox()
+                # The bbox is a sweep/filter only. Rotated rectangular
+                # courtyards routinely have intersecting axis-aligned boxes
+                # while their actual assembly polygons are disjoint (the
+                # Pluto RX2 radial SMA ring exposed seven such false fails).
+                # KiCad DRC grades the polygons, so make the source gate ask
+                # the same geometric question rather than moving an
+                # electrically-derived placement to satisfy its bounding box.
+                if (bb.GetWidth() == 0 or not ba.Intersects(bb)
+                        or not pa.Collide(pb)):
                     continue
                 laps.append((fa.GetReference(), fb.GetReference(),
                              pcbnew.ToMM(min(ba.GetRight(), bb.GetRight())
@@ -1324,8 +1334,9 @@ class BoardBuilder:
                              pcbnew.ToMM(min(ba.GetBottom(), bb.GetBottom())
                                          - max(ba.GetTop(), bb.GetTop()))))
         for a, b, ox, oy in sorted(laps):
-            print(f"FAIL P-COLLIDE PINNED-LAP {a} <-> {b}: courtyards overlap "
-                  f"by {ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
+            print(f"FAIL P-COLLIDE PINNED-LAP {a} <-> {b}: courtyard polygons "
+                  f"overlap/touch (bbox window {ox:.3f} x {oy:.3f} mm) — "
+                  f"both are ANCHORED, so the "
                   f"legalizer cannot fix it; fix placement.anchors "
                   f"(full-severity DRC will fail this as courtyards_overlap)")
         if overlaps or laps:
@@ -1335,8 +1346,9 @@ class BoardBuilder:
                            f"[{n2}]  pad copper overlaps "
                            f"(bbox {ox:.3f} x {oy:.3f} mm)")
             for a, b, ox, oy in sorted(laps):
-                msg.append(f"  PINNED-LAP {a} <-> {b}  courtyards overlap by "
-                           f"{ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
+                msg.append(f"  PINNED-LAP {a} <-> {b}  courtyard polygons "
+                           f"overlap/touch (bbox window {ox:.3f} x {oy:.3f} "
+                           f"mm) — both are ANCHORED, so the "
                            f"legalizer cannot fix it: fix placement.anchors")
             die("\n".join(msg))
         self.say(f"P-COLLIDE: 0 inter-footprint pad overlaps/shorts, "

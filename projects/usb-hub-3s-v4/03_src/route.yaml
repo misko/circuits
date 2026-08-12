@@ -32,6 +32,7 @@ flow:
     escape_packages: 30
     escape_lands: 120
     tier_preflight: 15
+    placement_review_prepare: 45
     grind: 900
     rebuild: 1200
     layout_drc: 120
@@ -46,6 +47,10 @@ flow:
     route_wave: 900
     route_race: 2400
     route_evaluate: 180
+    # Two native renders are independently capped at 90 s and the promoted-
+    # route compatibility check at 60 s. The outer process-group deadline is
+    # intentionally slightly larger than those worst-case child budgets.
+    placement_review_prepare: 270
     route_import: 300
     stitch: 900
     rebuild: 1500

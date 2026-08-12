@@ -79,6 +79,7 @@ rationale.
 | IMP-063 | Rehearse the complete release and publication-internal contract before seal | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-064 | Pair early warning gates with late authoritative rechecks | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-065 | Measure pipeline critical path by work class and order cheap gates first | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-066 | Confirm broad-phase geometry findings with native transformed polygons | completed | Pluto RX2 8-way legacy canary replay |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -1529,6 +1530,15 @@ rationale.
   partial witnesses remain inadmissible, while a complete DEFECTIVE witness
   remains valid blocking evidence. A launcher/legacy-Markdown adapter and
   real-review adoption remain open, so this entry is not complete.
+- history: 2026-08-12 — USB Hub 3S v4 now exercises a project-local real
+  placement commission at the exact route-prep boundary. It emits either an
+  atomic `ALREADY_ADMISSIBLE` pointer or an immutable content-addressed
+  `INCOMPLETE` request with top/isometric renders; it never writes the human
+  witnesses or acceptance token. The unchanged review gate still reported all
+  eight stale findings. First preparation measured 19.77--21.15 seconds and a
+  semantic rerun 1.06--1.07 seconds, so no placement-resume flag was added.
+  Promotion of the adapter and direct schema-1 review-service integration
+  remain open.
 
 ## IMP-050 — generated evidence must prove fresh output, not exit zero
 
@@ -1597,6 +1607,13 @@ rationale.
 - history: 2026-08-12 — the JLC twin implementation and deterministic silent-
   child/cache-replay tests landed; 33/33 twin tests pass, including a fixture
   that heartbeats, times out in 0.25 seconds and emits the resumable command.
+- history: 2026-08-12 — the Pluto RX2 8-way v4 canary isolated the same
+  symptom in local compute: `cpwg_field_solver.py` used about 24 CPU cores but
+  emitted no progress for its measured 35.724-second solve. The design result
+  was clean; the observability contract was not. The stage is now assigned a
+  measured 45-second performance budget and a 60-second process-group deadline
+  through the bounded runner so silence produces heartbeats instead of an
+  indefinite-looking shell.
 
 ## IMP-052 — preflight mutable catalog clients and distinguish compatibility from rate limits
 
@@ -2043,6 +2060,55 @@ rationale.
   at the same board-generation collision after about 1.3 seconds. This closes
   trace-map plumbing, not canary equivalence: the not-reached tails and both
   design blockers remain explicit.
+- history: 2026-08-12 — after replacing the legacy Pluto bbox-only courtyard
+  false positive with native polygon confirmation (IMP-066), a disposable
+  reuse run observed all 12 catalog stages in 7.29 seconds. Stitch/fill was the
+  longest stage at 3.798 seconds; the first honest stop is now the final
+  postcheck at 45 DRC violations / 15 unconnected / 0 parity. This closes the
+  legacy trace tail but not a green canary or shadow equivalence.
+- history: 2026-08-12 — the distinct sealed-project Pluto RX2 8-way v4 reuse
+  canary first exposed two cheap source-contract debts (explicit zero
+  differential-pair applicability and provenance on 26 non-pin seed-via
+  banks), then completed all 22 declared stages green in 139.91 seconds:
+  DRC 0/0/0, fence coverage 22/22 and RF length coverage 8/8. During that run,
+  stitch/fill reported useful pass progress while the 35.724-second CPWG solve
+  was silent despite about 24-core utilization; that measured stage now owns a
+  budget, deadline and heartbeat. This establishes one complete v4 legacy
+  observation, not shadow-plan/result equivalence or authority migration.
+- history: 2026-08-12 — after the bounded solver adapter landed, a final
+  disposable reuse run completed all 22 stages green in 94.94 seconds with no
+  unmapped command. The solver recorded 6.579 seconds, the configured 45/60
+  second budget/deadline and a durable terminal state; the earlier 35.724-
+  second measurement remains the conservative sizing observation.
+
+## IMP-066 — native geometry must confirm broad-phase findings
+
+- status: completed
+- observed: legacy Pluto RX2 8-way reuse-canary replay, 2026-08-12
+- evidence: the generator's anchored-courtyard gate reported seven collisions,
+  but KiCad DRC reported zero courtyard violations. All seven transformed
+  courtyard polygons are disjoint: the six radial SMA pairs have about
+  1.140 mm clearance and `R_T2`/`R_T1` has about 0.350 mm, even though their
+  axis-aligned bounding boxes intersect. Moving these reviewed anchors would
+  have damaged an electrically-derived RF floorplan to appease an
+  approximation.
+- general rule: bounding boxes, raster extents and convex envelopes are useful
+  broad-phase filters, never final collision evidence. A geometry gate may
+  reject only after the authoritative tool's transformed native shapes confirm
+  overlap or touch; diagnostics may still report the bounding-box window for
+  localization. The same principle applies to rotated bodies, board outlines,
+  keepouts, apertures and model-registration checks.
+- implementation: `skills/kicad-pcb/scripts/generate_board_generic.py` now
+  filters anchored pairs by bounding box and then grades KiCad courtyard
+  polygons with `SHAPE_POLY_SET.Collide`. The PCB-design authoring guidance
+  makes exact confirmation normative.
+- completion evidence: `tests/t1_generate_board.py` regenerates the real Pluto
+  floorplan and proves the exact seven pairs have intersecting boxes but
+  non-colliding polygons. Existing known-bad fixtures still prove that a true
+  same-coordinate or anchored-courtyard overlap fails loudly.
+- history: 2026-08-12 — completed during the legacy canary blocker-removal
+  wave; fresh board generation and the 13-measurement project audit both pass
+  without a Pluto source edit.
 
 ## 2026-08-12 nine-hour retrospective traceability
 

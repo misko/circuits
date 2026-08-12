@@ -76,6 +76,23 @@ def t_contract_clean():
     contains(r.out, "1 critical pair(s) contracted", "contract denominator")
 
 
+@test("R-PAIRMAP reports an explicit no-differential-pair disposition with a zero denominator")
+def t_no_critical_routes_clean():
+    d, board = fixture()
+    route = d / "03_src/route.yaml"
+    route.write_text(
+        "project: {name: test, board: b.kicad_pcb}\n"
+        "route:\n"
+        "  preflight_critical_pairs: []\n"
+        "  no_critical_routes: Independent single-ended RF paths are graded elsewhere.\n"
+    )
+    r = must_pass(run([KPY, CR, d, "--board", board]),
+                  "explicit no-critical-routes contract")
+    contains(r.out, "no critical routes: Independent single-ended RF paths",
+             "applicability reason")
+    contains(r.out, "0 critical pair(s) contracted", "zero denominator")
+
+
 @test("R-PAIRMAP rejects reversed P/N declarations", kind="known_bad")
 def t_reversed():
     d, board = fixture(reversed_pair=True)

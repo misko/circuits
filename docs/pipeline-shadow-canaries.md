@@ -35,22 +35,71 @@ The Pluto observation above is the legacy `pluto-rx2-8way` project requested
 for comparison.  It is not the separate `pluto-rx2-8way-v4` sealed canary
 required by ADR-0008 before orchestration authority may move.
 
+## 2026-08-12 legacy Pluto blocker correction
+
+The seven legacy Pluto `P-COLLIDE` findings were axis-aligned-bounding-box
+false positives, not placement defects.  KiCad's transformed courtyard
+polygons are disjoint (about 1.140 mm for the six radial SMA pairs and
+0.350 mm for `R_T2`/`R_T1`), and KiCad DRC reports no courtyard violation.
+The shared generator now uses bounding boxes only to shortlist pairs and
+confirms a failure with the native polygon collision predicate.  True-overlap
+negative controls still fail; no RF anchor was moved.
+
+With that exact checker correction applied in a disposable worktree, the
+legacy reuse driver exercised all 12 catalog stages in 7.29 seconds.  The
+largest observed stages were stitch/fill (3.798 s), board generation (1.151 s)
+and KiCad DRC (1.044 s); no stage was silent or locked.  The first honest stop
+moved to the final routing-count verdict: 45 violations, 15 unconnected and
+zero parity findings.  The DRC process correctly writes its report and the
+separate postcheck owns the failing verdict.  This is a complete mapped legacy
+trace, not a green design canary and not orchestration equivalence.
+
+## 2026-08-12 distinct canary progression
+
+USB Hub 3S v4 now has an explicit bounded preparation stage between route prep
+and the unchanged placement-review authority.  When evidence is stale it
+atomically publishes exact-subject top/isometric renders plus an `INCOMPLETE`
+commission; when evidence is current it writes an `ALREADY_ADMISSIBLE` pointer.
+It never writes a human witness or acceptance token.  First preparation took
+19.77--21.15 seconds and an unchanged semantic rerun 1.06--1.07 seconds.  The
+gate still failed closed with the eight existing stale findings, so this makes
+the pause observable and actionable without manufacturing a pass.
+
+The distinct `pluto-rx2-8way-v4` full and deterministic-reuse catalogs contain
+46 and 22 stages respectively.  Disposable reuse first caught missing explicit
+applicability for its single-ended RF arms, then caught anonymous ownership on
+26 non-pin seed-via banks.  After those source contracts were stated without
+changing geometry, all 22 reuse stages completed green in 139.91 seconds:
+KiCad DRC was 0 violations / 0 unconnected / 0 parity, the fence audit graded
+22/22 configured arm-sides and RF length audit graded 8/8 paths.
+
+That run also reproduced the original operator experience in a controlled way.
+Stitch/fill printed its passes while processing 3,405 grid vias, but the CPWG
+field solver used about 24 CPU cores without output for 35.724 seconds.  The
+result was productive, not stuck; the missing heartbeat was nevertheless a
+pipeline defect.  The v4 driver now runs that stage through the bounded runner
+with a measured 45-second budget and a 60-second process-group deadline.  A
+final disposable run then completed all 22 mapped stages green in 94.94 seconds
+with zero unmapped commands; the solver recorded 6.579 seconds, budget/timeout
+45/60, and a durable terminal state.  The runtime variation is why the budget
+comes from the slower 35.724-second observation rather than the final fast run.
+
 ## Driver-map findings
 
 - USB reuse has a modern sequence, but several direct Python/KiCad commands
   still have no stage-level outer deadline or heartbeat.  Failure is visible;
   a genuinely quiet long child would still look stuck until the shell exits.
-- Pluto reuse calls every stage directly from Bash without a shared runtime
+- Legacy Pluto reuse calls every stage directly from Bash without a shared runtime
   budget or heartbeat.  Its current early failure is useful evidence, not proof
   that later stages cannot become silent.
-- Pluto full rebuild imports with the default `auto` source.  A stale
+- Legacy Pluto full rebuild imports with the default `auto` source.  A stale
   `06_build/route/FINAL` can therefore outrank the promoted committed route;
   reuse deletes that marker first and chooses the promoted route.  The two
   entry points do not currently make the same source-selection guarantee.
-- Pluto full-rebuild comments still describe a schematic-only state, although
+- Legacy Pluto full-rebuild comments still describe a schematic-only state, although
   the script now runs board generation, board audit, route import/stitch, DRC
   and postcheck.  Comments cannot be used as the executable stage map.
-- Pluto full rebuild performs one parity check before regenerating the board,
+- Legacy Pluto full rebuild performs one parity check before regenerating the board,
   so it can grade prior build output.  Any migration must bind observations to
   the exact producer subject rather than infer freshness from path names.
 
@@ -62,8 +111,8 @@ delete, promote or publish.  A catalog mismatch, unmapped executable command,
 truncated trace, subject drift or legacy failure is an incomplete/failed
 canary, never a pass.
 
-Next evidence should close the two present blockers, capture complete reuse
-traces, compare ordered applicability/identity/output/result observations, and
-then repeat on the sealed USB Hub 3S v4 and Pluto RX2 8-way v4 canaries.  Bounds
-and heartbeats for live driver stages are a separate, regression-tested
-migration after observation agrees.
+Next evidence should complete the commissioned USB human reviews, correct the
+legacy Pluto routed-design violations separately from the collision checker,
+and compare ordered applicability/identity/output/result observations against
+both complete canary catalogs.  The legacy drivers remain authoritative until
+that comparison passes and an ADR amendment explicitly moves authority.

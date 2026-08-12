@@ -2,7 +2,7 @@
   "schema": 1,
   "project_slug": "usb-hub-3s-v4",
   "driver_relative_path": "03_src/rebuild_reuse.sh",
-  "driver_sha256": "bfe2630390266b0b442c52a94d734e568ae6cb89a3acf1de480aad4ca6a7f317",
+  "driver_sha256": "b5a29d9ba23817a376f7589b0c400493de219d9818b2683f9883fe7b58a573b1",
   "entrypoint": "rebuild_reuse",
   "mode": "deterministic_reuse",
   "bindings": [
@@ -938,6 +938,53 @@
     {
       "schema": 1,
       "sequence": 23,
+      "legacy_key": "placement-review-prepare",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PLACEMENT-REVIEW-BOUNDARY-PREPARED",
+        "owner": "pcb-design",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 270,
+        "requires": [
+          "usbv4_r_route_prep_produced"
+        ],
+        "produces": [
+          "usbv4_r_placement_review_boundary_prepared"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-ROUTE-PREP-PRODUCED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/pcb_flow.py",
+        "run",
+        "{project}",
+        "--stage",
+        "placement_review_prepare",
+        "--",
+        "03_src/prepare_placement_review.sh"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_placement_review_boundary_prepared"
+      ],
+      "accepted_output_paths": [
+        "06_build/pre_route/placement_review_current.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 24,
       "legacy_key": "placement-review",
       "spec": {
         "schema": 1,
@@ -948,7 +995,7 @@
         "work_class": "local",
         "timeout_s": 30,
         "requires": [
-          "usbv4_r_route_prep_produced"
+          "usbv4_r_placement_review_boundary_prepared"
         ],
         "produces": [
           "usbv4_r_placement_reviews_admissible"
@@ -957,7 +1004,7 @@
         "invalidated_by": []
       },
       "dependencies": [
-        "USBV4-R-ROUTE-PREP-PRODUCED"
+        "USBV4-R-PLACEMENT-REVIEW-BOUNDARY-PREPARED"
       ],
       "argv": [
         "/usr/bin/python3",
@@ -981,7 +1028,7 @@
     },
     {
       "schema": 1,
-      "sequence": 24,
+      "sequence": 25,
       "legacy_key": "route-import",
       "spec": {
         "schema": 1,
@@ -1025,7 +1072,7 @@
     },
     {
       "schema": 1,
-      "sequence": 25,
+      "sequence": 26,
       "legacy_key": "route-taps",
       "spec": {
         "schema": 1,
@@ -1068,7 +1115,7 @@
     },
     {
       "schema": 1,
-      "sequence": 26,
+      "sequence": 27,
       "legacy_key": "stitch",
       "spec": {
         "schema": 1,
@@ -1111,7 +1158,7 @@
     },
     {
       "schema": 1,
-      "sequence": 27,
+      "sequence": 28,
       "legacy_key": "critical-routes-connected",
       "spec": {
         "schema": 1,
@@ -1154,7 +1201,7 @@
     },
     {
       "schema": 1,
-      "sequence": 28,
+      "sequence": 29,
       "legacy_key": "rules-post-stitch",
       "spec": {
         "schema": 1,
@@ -1197,7 +1244,7 @@
     },
     {
       "schema": 1,
-      "sequence": 29,
+      "sequence": 30,
       "legacy_key": "realized-rules",
       "spec": {
         "schema": 1,
@@ -1239,7 +1286,7 @@
     },
     {
       "schema": 1,
-      "sequence": 30,
+      "sequence": 31,
       "legacy_key": "via-ampacity",
       "spec": {
         "schema": 1,
@@ -1284,7 +1331,7 @@
     },
     {
       "schema": 1,
-      "sequence": 31,
+      "sequence": 32,
       "legacy_key": "layout-drc-report",
       "spec": {
         "schema": 1,
@@ -1334,7 +1381,7 @@
     },
     {
       "schema": 1,
-      "sequence": 32,
+      "sequence": 33,
       "legacy_key": "layout-drc-verdict",
       "spec": {
         "schema": 1,

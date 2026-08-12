@@ -28,7 +28,7 @@ from pipeline_xtrace import parse_xtrace  # noqa: E402
 
 
 EXPECTED_DRIVER_SHA256 = (
-    "bfe2630390266b0b442c52a94d734e568ae6cb89a3acf1de480aad4ca6a7f317"
+    "b5a29d9ba23817a376f7589b0c400493de219d9818b2683f9883fe7b58a573b1"
 )
 EXPECTED_STAGE_IDS = (
     "USBV4-R-MODULE-FIRST-VALID",
@@ -53,6 +53,7 @@ EXPECTED_STAGE_IDS = (
     "USBV4-R-PAD-ESCAPE-VALID",
     "USBV4-R-TIER-PREFLIGHT-VALID",
     "USBV4-R-ROUTE-PREP-PRODUCED",
+    "USBV4-R-PLACEMENT-REVIEW-BOUNDARY-PREPARED",
     "USBV4-R-PLACEMENT-REVIEWS-ADMISSIBLE",
     "USBV4-R-PROMOTED-ROUTE-IMPORTED",
     "USBV4-R-ROUTE-TAPS-PRODUCED",
@@ -81,12 +82,12 @@ TRACE_STAGE_LINES = {
     103: EXPECTED_STAGE_IDS[15], 104: EXPECTED_STAGE_IDS[16],
     106: EXPECTED_STAGE_IDS[17], 112: EXPECTED_STAGE_IDS[18],
     116: EXPECTED_STAGE_IDS[19], 119: EXPECTED_STAGE_IDS[20],
-    121: EXPECTED_STAGE_IDS[21], 123: EXPECTED_STAGE_IDS[22],
-    128: EXPECTED_STAGE_IDS[23], 130: EXPECTED_STAGE_IDS[24],
-    133: EXPECTED_STAGE_IDS[25], 134: EXPECTED_STAGE_IDS[26],
-    138: EXPECTED_STAGE_IDS[27], 139: EXPECTED_STAGE_IDS[28],
-    141: EXPECTED_STAGE_IDS[29], 148: EXPECTED_STAGE_IDS[30],
-    157: EXPECTED_STAGE_IDS[31],
+    121: EXPECTED_STAGE_IDS[21], 128: EXPECTED_STAGE_IDS[22],
+    131: EXPECTED_STAGE_IDS[23], 136: EXPECTED_STAGE_IDS[24],
+    138: EXPECTED_STAGE_IDS[25], 141: EXPECTED_STAGE_IDS[26],
+    142: EXPECTED_STAGE_IDS[27], 146: EXPECTED_STAGE_IDS[28],
+    147: EXPECTED_STAGE_IDS[29], 149: EXPECTED_STAGE_IDS[30],
+    156: EXPECTED_STAGE_IDS[31], 158: EXPECTED_STAGE_IDS[32],
 }
 TRACE_FAILURE_LINES = {
     49: EXPECTED_STAGE_IDS[0], 51: EXPECTED_STAGE_IDS[1],
@@ -94,11 +95,11 @@ TRACE_FAILURE_LINES = {
     88: EXPECTED_STAGE_IDS[9], 94: EXPECTED_STAGE_IDS[12],
     96: EXPECTED_STAGE_IDS[13], 101: EXPECTED_STAGE_IDS[14],
     107: EXPECTED_STAGE_IDS[17], 117: EXPECTED_STAGE_IDS[19],
-    120: EXPECTED_STAGE_IDS[20], 125: EXPECTED_STAGE_IDS[22],
-    135: EXPECTED_STAGE_IDS[26], 140: EXPECTED_STAGE_IDS[28],
-    143: EXPECTED_STAGE_IDS[29],
+    120: EXPECTED_STAGE_IDS[20], 133: EXPECTED_STAGE_IDS[23],
+    143: EXPECTED_STAGE_IDS[27], 148: EXPECTED_STAGE_IDS[29],
+    151: EXPECTED_STAGE_IDS[30],
 }
-TRACE_IGNORED_LINES = (37, 38, 40, 42, 43, 44, 70, 147, 158)
+TRACE_IGNORED_LINES = (37, 38, 40, 42, 43, 44, 70, 155, 166)
 
 
 def source_mapping():
@@ -130,10 +131,10 @@ def t_exact_files_and_driver():
           "mutated driver bytes matched the catalog")
 
 
-@test("USB reuse catalog preserves all 32 observed stages in exact order")
+@test("USB reuse catalog preserves all 33 observed stages in exact order")
 def t_order_and_denominator():
     value = catalog()
-    eq(len(value.bindings), 32, "catalog denominator")
+    eq(len(value.bindings), 33, "catalog denominator")
     eq(value.observed_stage_ids(), EXPECTED_STAGE_IDS, "legacy order")
     plan = value.stage_registry().resolve(
         available=("usbv4_reuse_source_tree",))
@@ -172,7 +173,7 @@ def t_repeated_rules_distinct():
     value = catalog()
     rows = tuple(by_key(value, key) for key in (
         "rules-pre-placement-drc", "rules-pre-route-prep", "rules-post-stitch"))
-    eq(tuple(row.sequence for row in rows), (16, 19, 28), "rule positions")
+    eq(tuple(row.sequence for row in rows), (16, 19, 29), "rule positions")
     eq(tuple(row.spec.id for row in rows), (
         "USBV4-R-RULES-PRE-PLACEMENT-DRC",
         "USBV4-R-RULES-PRE-ROUTE-PREP",
@@ -207,7 +208,7 @@ def t_promoted_import():
     eq(route["route"]["final"], "03_src/route/r8.kicad_pcb",
        "promoted route subject")
     row = by_key(value, "route-import")
-    eq(row.sequence, 24, "route import position")
+    eq(row.sequence, 25, "route import position")
     eq(row.argv, (
         "/usr/bin/python3",
         "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",

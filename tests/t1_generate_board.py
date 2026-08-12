@@ -17,6 +17,7 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains, eq,  # no
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 HUB4 = ROOT / "projects" / "usb-hub-3s-v4"
+PLUTO_RX2 = ROOT / "projects" / "pluto-rx2-8way"
 
 
 def gen(cfg, out, cwd=LC, expect_ok=True):
@@ -879,6 +880,40 @@ def t_collide_pinned_lap_fails():
     r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
     must_fail(r, "anchored courtyard overlap", "P-COLLIDE")
     contains(r.out, "FAIL P-COLLIDE PINNED-LAP", "generator stdout")
+
+
+@test("P-COLLIDE uses rotated courtyard polygons, not intersecting bboxes")
+def t_rotated_courtyard_bbox_is_not_overlap():
+    """The Pluto RX2 radial SMA ring has six rotated-jack pairs, plus its
+    radial R_T1/R_T2 pair, whose axis-aligned courtyard boxes intersect while
+    KiCad's actual polygons are separated.  The pre-fix generator called all
+    seven PINNED-LAP and aborted before writing the board.  Preserve those
+    electrically-derived anchors and prove the exact predicate on real output.
+    """
+    d = tmpdir("gbg_pluto_rotated_")
+    out = d / "pluto_rx2_8way.kicad_pcb"
+    r = gen(PLUTO_RX2 / "03_src" / "floorplan.yaml", out,
+            cwd=PLUTO_RX2)
+    contains(r.out,
+             "P-COLLIDE: 0 inter-footprint pad overlaps/shorts, 0 anchored courtyard overlap",
+             "rotated-courtyard generator result")
+    code = (
+        "import pcbnew,sys\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "f={x.GetReference():x for x in b.GetFootprints()}\n"
+        "pairs=[('J_ANT2','J_ANT1'),('J_ANT4','J_ANT3'),"
+        "('J_ANT6','J_ANT5'),('J_RX1','J_ANT7'),('J_RX1','J_ANT8'),"
+        "('J_RX2','J_ANT1'),('R_T2','R_T1')]\n"
+        "n=0\n"
+        "for a,c in pairs:\n"
+        " p=f[a].GetCourtyard(pcbnew.F_CrtYd);q=f[c].GetCourtyard(pcbnew.F_CrtYd)\n"
+        " assert p.BBox().Intersects(q.BBox()) and not p.Collide(q),(a,c)\n"
+        " n+=1\n"
+        "print('@@%d' % n)\n")
+    rr = must_pass(run([KPY, "-c", code, out]),
+                   "probe rotated courtyard bbox false positives")
+    eq(rr.out.split("@@", 1)[1].strip(), "7",
+       "rotated bbox-only false-positive denominator")
 
 
 # ------------------------------------------------------- edge-reaching notch

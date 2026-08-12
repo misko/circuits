@@ -1086,7 +1086,9 @@ def main(argv: list[str] | None = None) -> int:
             return cmd_layout_seal(ctx, args.dry_run, args.reviewed_commit)
         if not remainder:
             raise FlowError("run needs a command after --")
-        return run_timed(ctx, args.stage, remainder, args.budget_s,
+        budget_s = (args.budget_s if args.budget_s is not None
+                    else configured_budget(ctx.cfg, args.stage))
+        return run_timed(ctx, args.stage, remainder, budget_s,
                          args.timeout_s)
     except FlowError as exc:
         print(f"pcb_flow: {exc}", file=sys.stderr)

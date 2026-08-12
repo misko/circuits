@@ -85,6 +85,7 @@ flow:
     grind: 900
     rebuild: 1200
     layout_drc: 120
+    rf_field_solver: 45
   timeouts_s:
     default: 600
     route_wave: 900
@@ -94,6 +95,7 @@ flow:
     stitch: 900
     rebuild: 1500
     layout_drc: 180
+    rf_field_solver: 60
   blockers: []
   inputs:
     include: [03_src, 03_tscircuit/src/pluto_rx2_8way_v4.tsx,
@@ -270,6 +272,11 @@ prep:
 
 route:
   import_source: promoted    # canonical rebuild replays reviewed deterministic copper
+  preflight_critical_pairs: []
+  no_critical_routes: >
+    RF_ARMS is eight independent single-ended nets (ANT1 through ANT7 and
+    RX2_OUT), not P/N differential pairs; rules/nets.yaml length_match.RF_ARMS
+    and copper_length_audit.py own their realized matching and no-via contract.
   krt: ~/gits/KiCadRoutingTools
   common:
     layers: [F.Cu, In2.Cu]   # In1.Cu POURED, NEVER ROUTED — invariant 1
@@ -532,24 +539,37 @@ stitch:
       # AGAINST. They are a function of where the control copper landed; a
       # re-race of the ctrl wave moves that copper and these must be
       # re-derived, not carried. Re-run fence_sites.py after any route change.
-      - {net: GND, vias: [[39.610, 56.460]]}     # ANT4     W
+      - {net: GND, why: "Measured per-arm fence closure: ANT4 west flank",
+         vias: [[39.610, 56.460]]}                # ANT4     W
       # The fresh v4 route occupies both the former (41.560, 58.150) site and,
       # after the 2026-08-01 module-pad separation reroute, (41.060, 59.300).
       # The stitcher's exact collision gate refused each stale site.  The
       # replacement below is the nearest legal 0.25/0.15 site on the rerouted
       # artifact, 0.300 mm west, and remains outside the 0.5 mm dedupe box.
-      - {net: GND, vias: [[40.760, 59.300]]}     # ANT4     W
-      - {net: GND, vias: [[40.860, 60.450]]}     # ANT4     W
-      - {net: GND, vias: [[44.647, 52.860]]}     # ANT5     E
-      - {net: GND, vias: [[56.150, 23.640]]}     # RX1_MAIN W
-      - {net: GND, vias: [[51.500, 25.510]]}     # RX1_MAIN E
-      - {net: GND, vias: [[52.650, 27.260]]}     # RX1_MAIN E
-      - {net: GND, vias: [[56.150, 26.460]]}     # RX1_MAIN E
-      - {net: GND, vias: [[46.739, 41.749]]}     # RX1_TAP  W
-      - {net: GND, vias: [[48.300, 28.390]]}     # RX1_TAP  W
-      - {net: GND, vias: [[51.050, 28.390]]}     # RX1_TAP  W
-      - {net: GND, vias: [[44.870, 45.343]]}     # RX1_TAP  E
-      - {net: GND, vias: [[48.043, 29.660]]}     # RX1_TAP  E
+      - {net: GND, why: "Measured per-arm fence closure: ANT4 west reroute replacement",
+         vias: [[40.760, 59.300]]}                # ANT4     W
+      - {net: GND, why: "Measured per-arm fence closure: ANT4 west flank",
+         vias: [[40.860, 60.450]]}                # ANT4     W
+      - {net: GND, why: "Measured per-arm fence closure: ANT5 east flank",
+         vias: [[44.647, 52.860]]}                # ANT5     E
+      - {net: GND, why: "Measured per-arm fence closure: RX1_MAIN west flank",
+         vias: [[56.150, 23.640]]}                # RX1_MAIN W
+      - {net: GND, why: "Measured per-arm fence closure: RX1_MAIN east flank",
+         vias: [[51.500, 25.510]]}                # RX1_MAIN E
+      - {net: GND, why: "Measured per-arm fence closure: RX1_MAIN east flank",
+         vias: [[52.650, 27.260]]}                # RX1_MAIN E
+      - {net: GND, why: "Measured per-arm fence closure: RX1_MAIN east flank",
+         vias: [[56.150, 26.460]]}                # RX1_MAIN E
+      - {net: GND, why: "Measured per-arm fence closure: RX1_TAP west flank",
+         vias: [[46.739, 41.749]]}                # RX1_TAP  W
+      - {net: GND, why: "Measured per-arm fence closure: RX1_TAP west flank",
+         vias: [[48.300, 28.390]]}                # RX1_TAP  W
+      - {net: GND, why: "Measured per-arm fence closure: RX1_TAP west flank",
+         vias: [[51.050, 28.390]]}                # RX1_TAP  W
+      - {net: GND, why: "Measured per-arm fence closure: RX1_TAP east flank",
+         vias: [[44.870, 45.343]]}                # RX1_TAP  E
+      - {net: GND, why: "Measured per-arm fence closure: RX1_TAP east flank",
+         vias: [[48.043, 29.660]]}                # RX1_TAP  E
       # ROUND 2 -- TWO MORE, AND THE SECOND ROUND IS STRUCTURAL, NOT SLOPPY.
       # `seed_stubs` runs BEFORE `stitch_grid` (it has to: the pin-serving
       # entries above must claim their barrels first -- see the note on
@@ -567,15 +587,18 @@ stitch:
       # from a round-1 barrel, `seed_stubs` placed both reporting "0 refused",
       # `dedupe_vias` deleted one, and the aperture RE-OPENED at 2.1071 mm --
       # an iteration that went backwards while every gate stayed green.
-      - {net: GND, vias: [[56.900, 27.260]]}     # RX1_MAIN E
-      - {net: GND, vias: [[48.060, 30.200]]}     # RX1_TAP  E
+      - {net: GND, why: "Measured round-2 fence continuation: RX1_MAIN east flank",
+         vias: [[56.900, 27.260]]}                # RX1_MAIN E
+      - {net: GND, why: "Measured round-2 fence continuation: RX1_TAP east flank",
+         vias: [[48.060, 30.200]]}                # RX1_TAP  E
       # ROUND 3 -- ONE, AND THE SEQUENCE 11 -> 2 -> 1 -> 0 IS THE EVIDENCE THAT
       # THIS CONVERGES RATHER THAN OSCILLATES. Every round of this iteration
       # closed strictly more than it opened, and each round's survivor was a
       # displaced lattice site in the SAME dense corner (RX1_TAP's east flank
       # where the tap detour crosses the jack field), never a new location and
       # never a widening number: 3.6000 -> 1.9769 -> 1.9802 -> re-measure.
-      - {net: GND, vias: [[48.584, 30.131]]}     # RX1_TAP  E
+      - {net: GND, why: "Measured round-3 fence continuation: RX1_TAP east flank",
+         vias: [[48.584, 30.131]]}                # RX1_TAP  E
       # FINAL-REVIEW CLOSURE. The frozen-board fence gate independently found
       # two residual apertures after the ANT3/ANT7 endpoint correction. These
       # sites are the one-via minimum covers returned by the continuum search;
@@ -586,8 +609,10 @@ stitch:
       # This is the nearest exact-collision-legal replacement outside the
       # stitcher's 0.5 mm dedupe box; the saved-board fence gate remains the
       # authority on the resulting aperture.
-      - {net: GND, vias: [[41.010, 57.475]]}     # ANT4 W; remeasure below
-      - {net: GND, vias: [[46.312, 42.281]]}     # ANT7 W; 1.830 -> 1.150 max
+      - {net: GND, why: "Final-review fence closure: ANT4 west reroute replacement",
+         vias: [[41.010, 57.475]]}                # ANT4 W; remeasure below
+      - {net: GND, why: "Final-review fence closure: ANT7 west flank",
+         vias: [[46.312, 42.281]]}                # ANT7 W; 1.830 -> 1.150 max
       # ============ LAUNCH RELIEF, 8 BARRELS: THE HOLE CLASS ============
       # THESE EIGHT ARE NOT FENCE REPAIRS. They are the SAME lattice sites the
       # grid would place anyway, DISPLACED 0.035 mm radially outward from the
@@ -669,14 +694,22 @@ stitch:
       # LIKE THE FENCE ABOVE, THESE COORDINATES ARE ROUTE-DEPENDENT and must
       # be re-derived, never carried, after any route change.
       #      resulting gap nominal / max-material, per site:
-      - {net: GND, vias: [[29.4065, 63.8344]]}   # ANT3 J_ANT3.3  0.3366/0.2716
-      - {net: GND, vias: [[52.5935, 43.0344]]}   # ANT7 J_ANT7.3  0.3366/0.2716
-      - {net: GND, vias: [[28.6312, 46.2159]]}   # ANT2 J_ANT2.5  0.3378/0.2728
-      - {net: GND, vias: [[59.7923, 28.6341]]}   # RX1  J_RX1.4   0.3468/0.2818
-      - {net: GND, vias: [[43.8164, 36.6309]]}   # RX2  J_RX2.4   0.3470/0.2820
-      - {net: GND, vias: [[53.3691, 46.1836]]}   # ANT6 J_ANT6.2  0.3470/0.2820
-      - {net: GND, vias: [[29.3855, 39.7681]]}   # ANT1 J_ANT1.3  0.3494/0.2844
-      - {net: GND, vias: [[50.2319, 60.6145]]}   # ANT5 J_ANT5.2  0.3494/0.2844
+      - {net: GND, why: "Measured launch-relief displacement: ANT3 J_ANT3.3 hole class",
+         vias: [[29.4065, 63.8344]]}              # 0.3366/0.2716
+      - {net: GND, why: "Measured launch-relief displacement: ANT7 J_ANT7.3 hole class",
+         vias: [[52.5935, 43.0344]]}              # 0.3366/0.2716
+      - {net: GND, why: "Measured launch-relief displacement: ANT2 J_ANT2.5 hole class",
+         vias: [[28.6312, 46.2159]]}              # 0.3378/0.2728
+      - {net: GND, why: "Measured launch-relief displacement: RX1 J_RX1.4 hole class",
+         vias: [[59.7923, 28.6341]]}              # 0.3468/0.2818
+      - {net: GND, why: "Measured launch-relief displacement: RX2 J_RX2.4 hole class",
+         vias: [[43.8164, 36.6309]]}              # 0.3470/0.2820
+      - {net: GND, why: "Measured launch-relief displacement: ANT6 J_ANT6.2 hole class",
+         vias: [[53.3691, 46.1836]]}              # 0.3470/0.2820
+      - {net: GND, why: "Measured launch-relief displacement: ANT1 J_ANT1.3 hole class",
+         vias: [[29.3855, 39.7681]]}              # 0.3494/0.2844
+      - {net: GND, why: "Measured launch-relief displacement: ANT5 J_ANT5.2 hole class",
+         vias: [[50.2319, 60.6145]]}              # 0.3494/0.2844
   # `seed_stubs` RUNS FIRST, AND THE ALTERNATIVE WAS TRIED AND REFUTED.
   #
   # The pass places DECLARED geometry, and this board declares two unrelated

@@ -72,7 +72,9 @@ SUITES=(
   t1_pipeline_shadow.py
   t1_pipeline_xtrace.py
   t1_pipeline_canary_usb.py
+  t1_usb_placement_review_prepare.py
   t1_pipeline_canary_pluto.py
+  t1_pipeline_canary_pluto_v4.py
   t1_counting.py
   t1_module_first.py
   t1_escape_tier.py

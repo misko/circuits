@@ -216,7 +216,11 @@ def main(argv=None):
         return 1
     for note in notes:
         print("  PASS", note)
-    print(f"R-PAIRMAP/R-CRITESC PASS: {len(notes)} critical pair(s) "
+    # An explicit no-critical-routes disposition is evidence and therefore a
+    # printable note, but it is not a phantom differential-pair denominator.
+    pair_count = sum(not note.startswith("no critical routes:")
+                     for note in notes)
+    print(f"R-PAIRMAP/R-CRITESC PASS: {pair_count} critical pair(s) "
           f"{'connected' if args.require_connected else 'contracted'}")
     return 0
 

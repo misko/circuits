@@ -335,11 +335,17 @@ $PY "$S/tier_preflight.py" . \
 # review cycle and then disappear at import.
 run_stage route_prep   $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
 
-# [5d] Exact pre-route pin/layout/render reviews plus the preliminary
+# [5d] Convert expected stale evidence into a bounded, explicit review pause.
+# The adapter preserves every prior human witness and prepares immutable
+# current-board renders plus an INCOMPLETE commission; it cannot grant review
+# authority. pcb_flow provides the visible heartbeat/deadline around it.
+run_stage placement_review_prepare 03_src/prepare_placement_review.sh
+
+# [5e] Exact pre-route pin/layout/render reviews plus the preliminary
 # same-camera A-RENDER report. Final staged reviews still run after routing.
 $PY "$S/pre_route_review_check.py" . --phase placement \
     --board "04_kicad/$BOARD.kicad_pcb" \
-    || { echo "GATE FAILED [5d] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence is missing, stale, or defective"; exit 1; }
+    || { echo "GATE FAILED [5e] P-ROUTEBASE/PR-REVIEW: complete the exact-subject placement commission; prepared-route compatibility or placement evidence is missing, stale, or defective"; exit 1; }
 
 # [6-8] import + stitch from route.yaml  [SHARED]
 run_stage route_import $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml --route-source promoted
