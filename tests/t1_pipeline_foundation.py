@@ -26,6 +26,11 @@ def manifest_field(path: Path, key: str) -> str:
     raise AssertionError(f"{path}: missing {key}")
 
 
+def exact_commit(value: str) -> bool:
+    """Return true only for a complete, lowercase Git object identity."""
+    return re.fullmatch(r"[0-9a-f]{40}", value) is not None
+
+
 @test("Wave-0 contract freezes all public schema and verdict vocabularies")
 def t_contract_surface():
     text = CONTRACT.read_text(encoding="utf-8")
@@ -76,7 +81,7 @@ def t_pluto_canary():
     contains(manifest, "order_verdict: ORDER", "Pluto order baseline")
 
 
-@test("canary manifests REFUSE abbreviated source commits", kind="known_bad")
+@test("canary manifests carry exact source commits")
 def t_canary_source_commits():
     manifests = (
         ROOT / "projects/usb-hub-3s-v4/07_releases/v0.6.1-2026-08-12/MANIFEST.txt",
@@ -84,8 +89,17 @@ def t_canary_source_commits():
     )
     for manifest in manifests:
         value = manifest_field(manifest, "git_sha").split()[0]
-        check(re.fullmatch(r"[0-9a-f]{40}", value) is not None,
+        check(exact_commit(value),
               f"{manifest}: source commit is not exact")
+
+
+@test("exact source-commit predicate REFUSES an abbreviation", kind="known_bad")
+def t_canary_source_commit_abbreviation():
+    manifest = (ROOT /
+        "projects/usb-hub-3s-v4/07_releases/v0.6.1-2026-08-12/MANIFEST.txt")
+    exact = manifest_field(manifest, "git_sha").split()[0]
+    check(not exact_commit(exact[:12]),
+          "abbreviated source commit was incorrectly accepted")
 
 
 if __name__ == "__main__":
