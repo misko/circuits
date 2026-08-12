@@ -57,7 +57,8 @@ SOURCE_IGNORES = {
 DEFAULT_TOOL_FILES = (
     "pcb_flow.py", "module_first_check.py", "escape_check.py",
     "tier_preflight.py", "pad_separation.py", "pin_map_check.py",
-    "pre_route_review_check.py", "early_design_check.py",
+    "pre_route_review_check.py", "promoted_route_check.py", "early_design_check.py",
+    "via_ampacity_check.py",
     "critical_route_check.py", "placement_gates.py",
     "policy_audit.py", "rf_contract_check.py",
     "grind_driver.py",
@@ -66,6 +67,7 @@ DEFAULT_TOOL_FILES = (
     "build_provenance.py", "process_runner.py", "artifact_provenance.py",
     "critical_part_facts.py", "project_state.py",
 )
+DEFAULT_FAB_TOOL_FILES = ("via_process_check.py",)
 
 
 class FlowError(RuntimeError):
@@ -172,6 +174,11 @@ def flow_cfg(cfg: dict[str, Any], root: Path | None = None) -> dict[str, Any]:
     for key in ("owner", "copper", "budgets_s", "timeouts_s", "paths", "inputs"):
         if key in flow and not isinstance(flow[key], dict):
             raise FlowError(f"flow.{key} must be a mapping")
+    rebuild_args = flow.get("rebuild_args", [])
+    if (not isinstance(rebuild_args, list)
+            or any(not isinstance(value, str) or not value
+                   for value in rebuild_args)):
+        raise FlowError("flow.rebuild_args must be a list of non-empty strings")
     copper = flow.get("copper") or {}
     deterministic = set(copper.get("deterministic") or [])
     stochastic = set(copper.get("stochastic") or [])
@@ -316,6 +323,25 @@ def _review_field(text: str, name: str) -> str:
     return match.group(1) if match else ""
 
 
+def _rf_enabled_for_review_provenance(ctx: FlowContext) -> bool:
+    """Read the explicit RF applicability decision; malformed is never false."""
+    path = ctx.root / "03_src/rules/rf.yaml"
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
+    except (OSError, UnicodeError, yaml.YAMLError) as exc:
+        raise FlowError(f"cannot read RF applicability contract {path}: {exc}") from exc
+    rf = data.get("rf") if isinstance(data, dict) and data.get("schema") == 1 else None
+    if not isinstance(rf, dict) or not isinstance(rf.get("enabled"), bool):
+        raise FlowError(
+            "reviewed-commit provenance requires schema-1 rf.yaml with "
+            "rf.enabled true or false")
+    rationale = rf.get("rationale")
+    if not isinstance(rationale, str) or not rationale.strip():
+        raise FlowError(
+            "reviewed-commit provenance requires a substantive rf.rationale")
+    return rf["enabled"]
+
+
 def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
     """Fail closed unless signed layout bytes and their producers equal COMMIT."""
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
@@ -407,9 +433,12 @@ def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
         "render": ("*_render_review.md", "board_sha256", board_hash),
         "topology": ("*_redteam_topology.md", "board_sha256", board_hash),
         "layout": ("*_redteam_layout.md", "board_sha256", board_hash),
-        "rf schematic": ("*_rf_schematic.md", "artifact_sha256", schematic_hash),
-        "rf pcb": ("*_rf_pcb.md", "artifact_sha256", board_hash),
     }
+    if _rf_enabled_for_review_provenance(ctx):
+        required.update({
+            "rf schematic": ("*_rf_schematic.md", "artifact_sha256", schematic_hash),
+            "rf pcb": ("*_rf_pcb.md", "artifact_sha256", board_hash),
+        })
     review_root = ctx.root / "08_reviews"
     bound: list[str] = []
     for label, (pattern, hash_field, expected_hash) in required.items():
@@ -434,6 +463,7 @@ def tool_files(ctx: FlowContext) -> list[Path]:
     if not isinstance(extra, list):
         raise FlowError("flow.inputs.tools must be a list")
     files = {SCRIPTS / name for name in DEFAULT_TOOL_FILES}
+    files.update(FAB_SCRIPTS / name for name in DEFAULT_FAB_TOOL_FILES)
     for value in extra:
         path = Path(os.path.expanduser(str(value)))
         path = path.resolve() if path.is_absolute() else (ctx.root / path).resolve()
@@ -662,11 +692,11 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
         ("rf_contract", [KPY, str(SCRIPTS / "rf_contract_check.py"),
                          str(ctx.root), "--contract", str(rf_contract),
                          "--require-applicability"]),
-        ("escape_packages", [KPY, str(SCRIPTS / "escape_check.py"),
-                             *map(str, part_files(ctx))]),
         ("tier_preflight", [KPY, str(SCRIPTS / "tier_preflight.py"),
                             str(ctx.root), "--route-config", str(ctx.route_path),
                             "--board", ctx.board_id]),
+        ("escape_packages", [KPY, str(SCRIPTS / "escape_check.py"),
+                             *map(str, part_files(ctx))]),
     ]
     # Legacy projects remain explicit/unmigrated. Adopted source contracts are
     # hard architecture gates and cannot be bypassed through direct pcb_flow.
@@ -736,7 +766,10 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
             "--board", ctx.board_id, "--skip-drc", "--phase", "placement"]))
         placement_index = next(i for i, row in enumerate(commands)
                                if row[0] == "placement_policy") + 1
-        commands.insert(placement_index, ("pre_route_placement", [
+        commands.insert(placement_index, ("route_prep", [
+            KPY, str(SCRIPTS / "route_and_stitch_generic.py"), "prep",
+            str(ctx.route_path)]))
+        commands.insert(placement_index + 1, ("pre_route_placement", [
             KPY, str(SCRIPTS / "pre_route_review_check.py"), str(ctx.root),
             "--phase", "placement", "--board", str(ctx.board)]))
     return commands
@@ -899,7 +932,7 @@ def _failure_handoff(ctx: FlowContext, blocker: str, stage: str | None = None) -
 def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
                     reviewed_commit: str | None = None) -> int:
     # Validate every declarative contract before deleting or writing evidence.
-    flow_cfg(ctx.cfg, ctx.root)
+    flow = flow_cfg(ctx.cfg, ctx.root)
     source_files(ctx)
     tool_files(ctx)
     if not ctx.rebuild.is_file():
@@ -908,10 +941,23 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
     after = preflight_commands(ctx, include_land=True)
     post_board = [row for row in after if row[0] in (
         "placement_clearance", "critical_pair_map", "escape_lands",
-        "pad_separation", "placement_policy", "pre_route_placement")]
+        "pad_separation", "placement_policy")]
+    # PR-REVIEW's placement witness is intentionally bound to the exact
+    # track-free board. The canonical rebuild grades it before route import.
+    # Re-running that checker here, after the driver has added routed copper,
+    # compares two different lifecycle artifacts and can never pass. The
+    # post-route seal revalidates geometry/policy against the routed board;
+    # reviewed-commit recovery separately proves exact final review files.
     post_board.append(("critical_route_connected", [
         KPY, str(SCRIPTS / "critical_route_check.py"), str(ctx.root),
         "--board", str(ctx.board), "--require-connected"]))
+    post_board.append(("via_ampacity", [
+        KPY, str(SCRIPTS / "via_ampacity_check.py"), str(ctx.board),
+        str(ctx.route_path), "--json",
+        str(ctx.root / "06_build/verification/via_ampacity.json")]))
+    post_board.append(("via_process", [
+        KPY, str(FAB_SCRIPTS / "via_process_check.py"), str(ctx.board),
+        "--json", str(ctx.root / "06_build/verification/via_process.json")]))
     # Recovery for an already-reviewed immutable commit is intentionally
     # narrower than a generic "skip rebuild" switch. It proves every board
     # producer input and six independent review lenses against an explicit
@@ -920,7 +966,8 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
     if reviewed_commit and not dry_run:
         provenance = reviewed_commit_provenance(ctx, reviewed_commit)
     build = [] if reviewed_commit else [
-        ("rebuild", ["bash", str(ctx.rebuild)]),
+        ("rebuild", ["bash", str(ctx.rebuild),
+                     *flow.get("rebuild_args", [])]),
     ]
     commands = before + build + [
         *post_board,

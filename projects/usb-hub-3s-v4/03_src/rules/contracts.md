@@ -29,13 +29,42 @@ belongs here.
 | `critical_parts.yaml` | selective accepted facts for catastrophic part/footprint identities and geometry; graded by `critical_part_facts.py` before routing |
 | `contracts.md` | this file |
 
+`power_tree.yaml` also owns **E-CAP**. `effective_capacitance_banks[]`
+declares each IC requirement and the exact fitted contributors; every
+contributor names refdes, nominal capacitance, dielectric, negative tolerance,
+DC-bias, temperature and lifecycle derating, plus its evidence/basis. The gate
+multiplies every loss term and refuses nominal/nameplate capacitance as an
+effective value. A board with no such requirement says why in
+`no_effective_capacitance_requirements`; silence is not an exemption.
+
+`power_tree.yaml` also owns adopted **E-FAULT** envelopes whenever several
+independently limited outputs share an upstream current path. Each envelope
+states normal and time-bounded service peaks, downstream worst-high limits and
+simultaneity, upstream continuous/peak ratings, and the aggregate breaker
+threshold, response/reset, timer and startup-ramp corners. Breaker thresholds
+are recomputed from the exact programmer invariant, explicit inverse-resistance
+equation coefficients, affine current offset, initial tolerance and TCR; the
+published expected corners must agree with that independent calculation.
+Explicit normal/fault coordination margins are mandatory. A threshold above
+the upstream continuous rating is accepted only below its peak rating and only
+when the worst-high timer fits an evidenced overload-qualification window.
+Timer capacitor nominal/tolerance and every programmer ref must agree with
+exact `electrical_invariants.yaml` `part_value` rows. The gate charges
+tolerance, temperature, DC bias and aging independently; isolated nominal
+arithmetic is not evidence for the multi-device fault combination.
+
 When `ir_budget_mohm` is derived from several physical elements, add optional
 `rails[].ir_budget_components_mohm: {path_element: worst_case_mohm, ...}`.
 `power_topology.py` requires a non-empty, non-negative mapping whose sum equals
 the scalar it grades and prints the whole path in E-MARGIN evidence. For an
-external load, name board/switch copper, solder joints, both mated contacts,
-and any bounded plug/cable separately; omitting an element is a requirements
-defect even when the remaining arithmetic sums correctly.
+external load, name board/switch copper, solder joints, both mated pairs and
+any bounded plug/cable separately only when their measurement endpoints do not
+overlap. When standards limits exclude plug/receptacle internals or the path
+cannot otherwise be partitioned honestly, use one qualified
+`complete_type_c_interconnect` term covering the declared board-to-load
+endpoints. D-SPEC accepts either decomposition at `measurement_plane: load`
+and rejects a mixture of the two; omitting an element is a requirements defect
+even when the remaining arithmetic sums correctly.
 
 Every external claim also carries machine-readable `included_elements` and
 `excluded_elements` beside `measurement_plane`; `boundary_evidence` alone is
@@ -514,8 +543,31 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | key | reader | why |
 |---|---|---|
 | `schema` | `early_design_check.py` | adopted external-power schema version |
+| `effective_capacitance_banks` | `early_design_check.py` | E-CAP non-empty set of device minimum-effective-capacitance obligations |
+| `effective_capacitance_banks[].*` | `early_design_check.py` | requirement/evidence, accepted dielectrics, and exact fitted contributor populations with multiplicative tolerance/DC-bias/temperature/lifecycle derating |
+| `no_effective_capacitance_requirements` | `early_design_check.py` | explicit evidenced applicability decision when no device has an effective-capacitance minimum |
+| `fault_envelopes` | `early_design_check.py` | E-FAULT non-empty set of shared-upstream overload/fault obligations |
+| `fault_envelopes[].downstream_limits` | `early_design_check.py` | exact programmer refs, worst-high per-output current limits, counts, simultaneity and evidence |
+| `fault_envelopes[].upstream` | `early_design_check.py` | continuous/peak current ratings, evidence, and any maximum qualified overload interval above continuous rating |
+| `fault_envelopes[].aggregate_breaker` | `early_design_check.py` | independently derived and expected breaker threshold corners, explicit margins, response/reset behavior, exact programmer ref and evidence |
+| `fault_envelopes[].aggregate_breaker.threshold_model` | `early_design_check.py` | inverse-resistance equation coefficients, affine current offset, programmer TCR and temperature excursion used with the exact invariant value/tolerance |
+| `fault_envelopes[].aggregate_breaker.timer` | `early_design_check.py` | exact timer-cap ref/value, every tolerance/temperature/bias/aging corner, comparator/current extrema and evidence |
+| `fault_envelopes[].aggregate_breaker.timer.startup` | `early_design_check.py` | exact dV/dt-cap ref/value and full-corner startup-to-maximum-timer-cap relation |
+| `fault_envelopes[].name` | `early_design_check.py` | unique human-readable envelope identity |
+| `fault_envelopes[].normal_continuous_A` | `early_design_check.py` | commissioned normal continuous load below the breaker worst-low threshold |
+| `fault_envelopes[].service_peak_A` | `early_design_check.py` | permitted short service peak below the upstream peak rating |
+| `fault_envelopes[].service_peak_max_ms` | `early_design_check.py` | maximum permitted service-peak duration below the charged timer worst-low |
+| `fault_envelopes[].downstream_limits[].*` | `early_design_check.py` | closed per-output population used to calculate simultaneous worst-high fault current |
+| `fault_envelopes[].upstream.*` | `early_design_check.py` | shared-path continuous/peak ratings and evidence |
+| `fault_envelopes[].aggregate_breaker.*` | `early_design_check.py` | breaker threshold, programmer, reset/response, timer and startup proof subtree |
+| `no_fault_envelope_requirements` | `early_design_check.py` | explicit evidenced applicability decision when independently limited outputs do not share an upstream path |
 | `input_trunk_class` | `power_topology.py` | which netclass carries the trunk current |
 | `source_type` | `power_topology.py` | E-OFF: battery vs mains-derived |
+| `source_voltage_boundary` | `power_topology.py` | assigns a battery design's admitted minimum operating voltage to an enforceable owner |
+| `source_voltage_boundary.minimum_operating_V` | `power_topology.py` | must equal the lowest admitted rail input voltage |
+| `source_voltage_boundary.enforcement` | `power_topology.py` | closed ownership choice: on-board or external-required |
+| `source_voltage_boundary.required_device` | `power_topology.py` | names the external BMS/disconnect when enforcement is external-required |
+| `source_voltage_boundary.evidence` | `power_topology.py` | substantive boundary/owner evidence |
 | `off_control` | `power_topology.py` | E-OFF: the de-energization path |
 | `quiescent_ua` | `power_topology.py` | E-OFF: stored draw when off |
 | `pack_capacity_mah` | `power_topology.py` | E-OFF: shelf life arithmetic |
@@ -537,6 +589,8 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rails[].ir_budget_mohm` | `power_topology.py` | E-MARGIN: board+connector+cable series R |
 | `rails[].ir_budget_components_mohm.*` | `power_topology.py` | E-MARGIN: labeled worst-case path elements; non-negative sum must equal `ir_budget_mohm` and is printed in evidence |
 | `rails[].margin` | `power_topology.py` | E-MARGIN declared headroom |
+| `rails[].margin_basis` | `power_topology.py` | provenance class for a non-default delivery-path residual margin |
+| `rails[].margin_evidence` | `power_topology.py` | evidence explaining what the declared residual margin is applied after and which physical qualifications remain open |
 | `rails[].feedback` | `power_topology.py` | the FB-divider tolerance window |
 | `rails[].feedback.vref` | `power_topology.py` | nominal feedback-reference voltage used in the worst-case output window |
 | `rails[].feedback.vref_tol_pct` | `power_topology.py` | feedback-reference tolerance used in both worst-case bounds |
@@ -544,6 +598,18 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rails[].feedback.r_top_tol_pct` | `power_topology.py` | upper-divider tolerance used in both worst-case bounds |
 | `rails[].feedback.r_bottom_ohm` | `power_topology.py` | lower divider resistance used in the worst-case output window |
 | `rails[].feedback.r_bottom_tol_pct` | `power_topology.py` | lower-divider tolerance used in both worst-case bounds |
+| `rails[].feedback.r_top_tcr_ppm_per_C` | `power_topology.py` | upper-divider temperature coefficient charged over the declared excursion |
+| `rails[].feedback.r_bottom_tcr_ppm_per_C` | `power_topology.py` | lower-divider temperature coefficient charged over the declared excursion |
+| `rails[].feedback.resistor_temperature_delta_C` | `power_topology.py` | temperature excursion applied to both divider TCRs |
+| `rails[].feedback.fb_bias_current_min_nA` | `power_topology.py` | minimum feedback-input current used in the worst-low setpoint corner |
+| `rails[].feedback.fb_bias_current_max_nA` | `power_topology.py` | maximum feedback-input current used in the worst-high setpoint corner |
+| `rails[].feedback.fb_bias_current_basis` | `power_topology.py` | provenance class required for a non-zero bias-current range |
+| `rails[].feedback.fb_bias_current_evidence` | `power_topology.py` | evidence required for a non-zero bias-current range |
+| `rails[].steady_state_ceiling_V` | `power_topology.py` | service ceiling above the computed feedback worst-high plus explicit variation reserve |
+| `rails[].steady_state_variation_high_mV` | `power_topology.py` | reserved ripple/line/load movement beyond the computed divider/reference corner |
+| `rails[].steady_state_variation_basis` | `power_topology.py` | provenance class for the variation reserve |
+| `rails[].steady_state_variation_evidence` | `power_topology.py` | evidence supporting the variation reserve |
+| `rails[].transient_voltage_qualification` | ADVISORY | human-readable first-article load-step/startup obligation; the steady-state arithmetic is machine-graded, while oscilloscope evidence is accepted at first article rather than inferred from prose |
 | `rails[].note` | ADVISORY | per-rail prose for a reviewer; the graded facts are the numbers beside it, and no gate resolves the sentence |
 | `linear_rails[].name` | `net_reference_audit.py` | E-NETREF K6 resolves it (and reports it UNREACHED by construction) |
 | `linear_rails[].kind` | OWED | the closed-ish vocabulary (`protection_pass`, load switch, link) that would decide WHICH bound applies, read by nothing |

@@ -1058,12 +1058,12 @@ def t_promote_heatsink_pads_to_vias():
     d = tmpdir("gbg_thermal_")
     out = d / "usb_hub_3s_v4.kicad_pcb"
     r = gen(HUB4 / "03_src" / "floorplan.yaml", out, cwd=HUB4)
-    contains(r.out, "thermal vias: emitted 40 explicit + promoted 0 marked "
-             "heatsink pad(s) across 6 footprint(s)", "promotion coverage")
+    contains(r.out, "thermal vias: emitted 48 explicit + promoted 0 marked "
+             "heatsink pad(s) across 8 footprint(s)", "promotion coverage")
     code = (
         "import pcbnew,sys,collections\n"
         "b=pcbnew.LoadBoard(sys.argv[1])\n"
-        "refs={'U1','U2','U3','U4','U5','U6'}\n"
+        "refs={'U1','U2','U3','U4','U5','U6','U9'}\n"
         "marked=sum(1 for f in b.GetFootprints() if f.GetReference() in refs "
         "for p in f.Pads() if p.GetProperty()==pcbnew.PAD_PROP_HEATSINK "
         "and p.GetDrillSize().x>0)\n"
@@ -1073,14 +1073,34 @@ def t_promote_heatsink_pads_to_vias():
         "not in f.GetLibDescription()]\n"
         "geo=collections.Counter((round(t.GetWidth(pcbnew.F_Cu)/1e6,3),"
         "round(t.GetDrill()/1e6,3),t.GetNetname()) for t in v)\n"
-        "print('@@%d|%d|%d|%r' % (marked,len(v),len(linked),sorted(geo.items())))\n")
+        "prot=collections.Counter((t.GetCappingMode(),t.GetFillingMode()) "
+        "for t in v)\n"
+        "owned=[]\n"
+        "for f in b.GetFootprints():\n"
+        "  for p in f.Pads():\n"
+        "    if p.GetNumber() in ('17','18','19','20','21','22','25','26','11','2'):\n"
+        "      for t in v:\n"
+        "        if t.GetNetCode()==p.GetNetCode() and p.HitTest(t.GetPosition(),0,pcbnew.F_Cu):\n"
+        "          owned.append((f.GetReference(),p.GetNumber(),t.GetNetname()))\n"
+        "print('@@%d|%d|%d|%r|%r|%r' % (marked,len(v),len(linked),"
+        "sorted(geo.items()),sorted(owned),sorted(prot.items())))\n")
     rr = must_pass(run([KPY, "-c", code, out]), "probe promoted thermal vias")
     result = rr.out.split("@@", 1)[1].strip()
-    check(result.startswith("0|40|6|"),
-          f"expected zero drilled heatsink pads, 40 true vias and six "
+    check(result.startswith("0|48|7|"),
+          f"expected zero drilled heatsink pads, 48 true vias and seven "
           f"library-linked parity-safe footprints, got {result}")
-    contains(result, "(0.5, 0.2, 'GND'), 24", "0.20mm thermal via family")
-    contains(result, "(0.6, 0.3, 'GND'), 16", "0.30mm module via family")
+    contains(result, "(0.5, 0.2, '5VA_RAW'), 4",
+             "0.20mm eFuse input thermal via family")
+    contains(result, "(0.5, 0.2, 'GND'), 44",
+             "JLC-compatible 0.20mm ground thermal via family")
+    contains(result, "((1, 1), 48)",
+             "every explicit thermal via carries item-level Type VII intent")
+    contains(result, "('U9', '25', '5VA_RAW')",
+             "rotated split input field remains inside U9 pad 25")
+    contains(result, "('U9', '26', 'GND')",
+             "rotated split ground field remains inside U9 pad 26")
+    contains(result, "('C23', '2', 'GND')",
+             "cold-socket ground vias remain inside C23 pad 2")
 
 
 @test("thermal-via promotion refuses a named footprint with no marked holes",
@@ -1105,6 +1125,21 @@ def t_kb_thermal_field_unknown_ref():
     d, cfg = scratch_config(mutate)
     r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
     must_fail(r, "unknown explicit thermal field", "unknown ref")
+
+
+@test("an invalid item-level thermal-via process is a hard error",
+      kind="known_bad")
+def t_kb_thermal_field_bad_protection():
+    code = (
+        "import pcbnew,sys\n"
+        f"sys.path.insert(0,{str(SCRIPTS)!r})\n"
+        "from pcb_toolkit import apply_via_protection\n"
+        "b=pcbnew.BOARD(); v=pcbnew.PCB_VIA(b)\n"
+        "apply_via_protection(v,{'capping':'perhaps'},"
+        "'thermal_vias.fields[0].protection')\n")
+    r = run([KPY, "-c", code])
+    must_fail(r, "invalid item-level via protection",
+              "thermal_vias.fields[0].protection.capping must be a boolean")
 
 
 @test("a self-intersecting zone polygon fails before KiCad can discard its "

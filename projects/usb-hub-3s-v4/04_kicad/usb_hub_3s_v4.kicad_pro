@@ -458,6 +458,10 @@
       },
       {
         "netclass": "PWR_5VA",
+        "pattern": "5VA_RAW"
+      },
+      {
+        "netclass": "PWR_5VA",
         "pattern": "5VA"
       },
       {
@@ -502,6 +506,10 @@
       },
       {
         "netclass": "SENSE",
+        "pattern": "FB_C_TOP"
+      },
+      {
+        "netclass": "SENSE",
         "pattern": "FB_C"
       },
       {
@@ -515,6 +523,18 @@
       {
         "netclass": "SENSE",
         "pattern": "ILIM_A3"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "ILIM_BANK"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "ITIMER_A"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "DVDT_BANK"
       },
       {
         "netclass": "SENSE",
@@ -559,6 +579,14 @@
       {
         "netclass": "CONTROL",
         "pattern": "EN_BUS"
+      },
+      {
+        "netclass": "CONTROL",
+        "pattern": "RPP_DIV"
+      },
+      {
+        "netclass": "CONTROL",
+        "pattern": "RPP_GATE"
       },
       {
         "netclass": "CONTROL",

@@ -24,7 +24,7 @@ evidence.
 | # | Criterion | Source | Status |
 |---|---|---|---|
 | G1 | The product carries USB power only and no USB data. | D1 | met through routed-board checkpoint |
-| G2 | It provides the inherited v3 service: three charge-only USB-A outputs and one USB-C power output for a Raspberry Pi 4 from a 3S LiPo pack. | A1 | met through routed-board checkpoint |
+| G2 | It provides the inherited v3 service: three charge-only USB-A outputs and one USB-C power output for a Raspberry Pi 4 from a protected 3S LiPo pack whose external BMS disconnects at/above 9.0V. | A1, E5 | met through schematic checkpoint; physical backtrack pending |
 | G3 | No claim of active fail-high overvoltage cutoff is made; the resulting safety boundary is explicit. | D1 | met through routed-board checkpoint |
 | G4 | The manufacturing package targets JLCPCB PCBA. | D1 | met through routed-board checkpoint; package not yet sealed |
 | G5 | The complete bounded pipeline reaches an independently reviewed, reproducible, DRC-clean release package. | P | unmet |
@@ -120,6 +120,10 @@ package backtrack.
 | E2 | Use attach-controlled Type-C and explicit USB-A charge-signature/current-limit cells. | standards/part derivation | `decisions/0003-power-only-usb-port-policy.md` |
 | D3 | Escalate A3 to JLC advanced filled/capped via-in-pad. | user (D3) | `decisions/0004-jlc-advanced-via-in-pad.md` |
 | E3 | Use fused/reverse-protected/passively clamped input and enable-gated shutdown. | engineering derivation | `decisions/0005-input-protection-and-shutdown.md` |
+| E4 | Close the exact USB-A switch, effective-capacitance, FET-gate, feedback and fuse-element corners found by Stage 5 red-team review. | independent review + engineering derivation | `decisions/0006-stage5-electrical-corner-closures.md` |
+| E5 | Bind the 9V floor to external pack protection, add a no-OVLO aggregate USB-A circuit breaker and reserve high-side rail variation. | exact pre-route review + engineering derivation | `decisions/0007-pre-route-boundary-and-fault-closures.md` |
+| E6 | Omit CFF on the characterized mixed ceramic/polymer output banks and retain loop response as a measured first-article obligation. | exact topology review + engineering derivation | `decisions/0008-mixed-output-bank-cff-policy.md` |
+| E7 | Lower and rebalance the Type-C feedback divider and bind the load claim to a hot four-wire limit for the complete two-mated-pair cable/Pi interconnect. | exact routed topology review + USB-IF boundary correction | `decisions/0009-type-c-divider-and-delivery-qualification.md` |
 
 ## Spec tensions
 
@@ -130,6 +134,7 @@ package backtrack.
 | T3 | USB-C powers a Pi 4 without USB-PD. | Raspberry Pi 4 takes fixed 5 V power and does not need a USB-PD source; Type-C still requires CC attach behavior and current advertisement. | TPS25810 detects Rd, advertises 3 A, applies VBUS only after attach and discharges it after detach; D+/D− are NC. | `decisions/0003-power-only-usb-port-policy.md` | inherited, resolved by cited architecture |
 | T4 | Each USB-A port provides 2 A continuous/2.5 A peak. | USB BC1.2 DCP service is standardized at 1.5 A, not 2–2.5 A. | Provide BC1.2/legacy charge recognition and a 3 A-rated electrical path, but label the higher available current as a proprietary charge-only extension; make no USB-IF BC1.2 current-compliance claim. | `decisions/0003-power-only-usb-port-policy.md` | yes |
 | T5 | A3 provisionally selects JLC standard four-layer. | Selected power modules require thermal via-in-pad; JLC's appropriate process is filled/capped and repository tier is advanced. | Use `jlc_4layer_advanced`; D3 accepts the necessary process for the selected architecture. | `decisions/0004-jlc-advanced-via-in-pad.md` | resolved by D3 |
+| T6 | The service math begins at 9.0V, but the board has no battery supervisor. | The buck modules continue operating well below 9.0V and cannot protect a bare pack from over-discharge. | Require a protected pack/BMS that disconnects at or above 9.0V; a bare pack is outside the interface. | `decisions/0007-pre-route-boundary-and-fault-closures.md` | no |
 
 ## Mating fact-lock
 
@@ -141,8 +146,8 @@ be revisited if a fixed enclosure/panel interface is introduced.
 | Fact | Locked value | Locked by |
 |---|---|---|
 | Product/interface class | Power distribution and charge-only ports; no USB data | D1 |
-| Input | 3S LiPo pack, 9.0–12.6 V operating envelope | A1 |
-| USB-A service | 3 ports, all simultaneous, 5 V nominal, 2 A continuous per port, 2.5 A short peak per port | A1 |
+| Input | Protected 3S LiPo pack, 9.0–12.6 V operating envelope; external disconnect at/above 9.0V required | A1, E5 |
+| USB-A service | 3 ports, all simultaneous, 5 V nominal, 2 A continuous per port, 2.5 A peak per port for <=10ms | A1, E5 |
 | USB-C service | 1 power-only port for Raspberry Pi 4, 5 V nominal, 3 A continuous | A1 |
 | Output measurement boundary | USB-A at each board receptacle; USB-C at the load after the nominated cable | A1 |
 | Protection posture | No active sustained-overvoltage cutoff required; supervised-prototype limitation is mandatory | D1, A4 |

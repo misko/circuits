@@ -19,13 +19,13 @@ than the requested 2A continuous/2.5A peak service.
 - USB-PD controller — rejected as unnecessary complexity for fixed 5V Pi power.
 - TPS25810 attach-controlled source — selected for USB-C.
 - No USB-A signature or only a passive D+/D− short — simple but less compatible.
-- TPS2513A signatures plus separate TPS2557 port switches — selected for USB-A.
+- TPS2513A signatures plus separate precision port switches — selected for USB-A.
 
 ## Decision
 
 Use TPS25810 for Type-C Rd detection, 3A advertisement, VBUS switching and
 discharge. Use two TPS2513A devices for three local USB-A charge signatures,
-with one TPS2557 per port for current limiting. Use TPD2EUSB30 at the Type-C
+with one TPS2559 per port for current limiting. Use TPD2EUSB30 at the Type-C
 receptacle for the exposed CC contacts and USBLC6 at each USB-A receptacle for
 the exposed charging-signature contacts. Carry no USB data or PD traffic.
 
@@ -37,3 +37,12 @@ USB-A can be described as charge-only with BC1.2/legacy recognition, but the
 presented as USB-IF BC1.2 current compliance. USB-C D+/D− and SBU remain
 no-connect; CC1/CC2 remain separate protected attach lines. USB-A D+/D− exist
 only as short local charging-signature networks.
+
+## Stage 5 amendment
+
+TPS2557 was superseded by TPS2559 under ADR-0006. The former part's 39.2k
+programming window reached approximately 3.072A at its high corner, above the
+exact USB1130 3.0A rating. TPS2559 with 43.2k +/-0.1%, +/-25ppm/C closes both
+sides of the 2.5A-to-3.0A window at approximately 2.554-2.849A after a 100C
+resistor excursion. The 2.5A value remains a short qualified peak, not a
+continuous or USB-IF BC1.2 claim.

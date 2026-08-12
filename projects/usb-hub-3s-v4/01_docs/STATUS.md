@@ -1,7 +1,7 @@
-stage: routing
-step: "Stage 4 complete and paused at the routed-board checkpoint"
-measure: "promoted route c1cfade37cc5 replays through both full and pinned drivers; authoritative KiCad DRC is 0 violations / 0 unconnected / 0 parity; focused regression battery 230 passed / 0 failed / 2 slow skipped"
-state: paused
-next: "on user continuation, begin Stage 5 exact routed-board pin/layout/render and adversarial power-integrity review; remain DO-NOT-ORDER until fabrication/assembly review and release sealing"
+stage: routed_review
+step: "Transactional r8 replay is layout-sealed and its corrected fresh review package is ready for final pin/render/topology/layout lenses"
+measure: "Promoted r8 imported 423 segments and 22 vias; 41/41 deterministic taps and all 19 stitch passes completed. Rules 29/29, A-VIA 4/4, V-PROCESS 183/183 (65 protected + 118 ordinary, drill-disjoint), exact DRC 0/0/0, M-STATE 9/9 DESIGN_CLEAN. Sealed board SHA-256 is 9888b1267744...; nine routed review outputs were regenerated under delete-before-produce/non-empty postconditions after a stale isometric artifact was detected and rejected."
+state: active
+next: "Commit and push the reproducible routed checkpoint, obtain four fresh exact-board routed reviews, then stage and grade the JLC fabrication/assembly package"
 op_pid: none
-updated: 2026-08-11T12:29:00-07:00
+updated: 2026-08-12T05:26:00-07:00

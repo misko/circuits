@@ -2,7 +2,24 @@ service: standard
 sides: [top]
 fiducials: 3
 build_quantity: 5
-pcb_process: "JLC four-layer advanced; resin-filled and copper-capped via-in-pad under exposed thermal lands"
+pcb_process: "JLC four-layer advanced; copper-paste-filled and copper-capped via-in-pad only at explicitly protected vias"
+via_process:
+  ipc_4761: type_vii_filled_and_capped
+  fill_material: copper_paste
+  selection: item_level_only
+  source: "03_src/floorplan.yaml thermal_vias.protection and route.yaml taps.connections[].via_protection"
+  protected_geometry: {via_diameter_mm: 0.50, drill_mm: 0.20}
+  fabricator_selector:
+    kind: drill_family
+    protected_drill_mm: 0.20
+    ordinary_drill_mm: [0.30]
+  ordinary_vias: "0.30 mm drill only; inherit board defaults; no fill/cap requirement"
+  order_remark: >-
+    Copper-paste fill and copper cap only the 0.50/0.20 mm vias explicitly
+    marked Type VII in the KiCad board. This is the complete 0.20 mm drill
+    family. Do not fill/cap any 0.30 mm drill routing, seed, stitching, or
+    plane-transfer via (0.60/0.30 and 0.70/0.30 mm finished geometry).
+  uploader_confirmation_required: true
 
 # Population and exceptions cannot exist before the schematic/board. These
 # empty declarations are authoritative until later stages add measured rows.

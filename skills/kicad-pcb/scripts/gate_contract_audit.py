@@ -497,7 +497,7 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: test. The declaration landed WITH its fixture, which reproduces the vacuous
 #: pass on every run instead of asserting it in prose. Raised in the same commit
 #: that earns it, never ahead of one.
-VACUITY_FLOOR = 13
+VACUITY_FLOOR = 14
 
 
 def vacuity_declaration(text):

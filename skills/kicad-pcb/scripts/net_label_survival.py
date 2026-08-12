@@ -48,6 +48,8 @@ USAGE
       `label_survival:` block of 03_src/rules/electrical_invariants.yaml
       (absent block -> check 1 still runs, check 2 is N-A).
   --schematic / --netlist / --config PATH   override auto-location.
+  --schema-only                             validate label_survival YAML only;
+                                            no generated artifacts are read.
 
 Exit 0 = pass, 1 = findings (LABEL-LOST / PIN-MAP), 2 = load/config error.
 No pcbnew import — runs on any python3 (PyYAML only needed for the config).
@@ -164,8 +166,22 @@ def main(argv=None):
     ap.add_argument("--schematic", default="")
     ap.add_argument("--netlist", default="")
     ap.add_argument("--config", default="")
+    ap.add_argument("--schema-only", action="store_true")
     a = ap.parse_args(argv)
     proj = Path(a.project).resolve()
+
+    config_path = a.config or proj / "03_src/rules/electrical_invariants.yaml"
+    if a.schema_only:
+        try:
+            cfg = load_config(config_path)
+        except LoadError as e:
+            print(f"S-NETMERGE-SCHEMA: LOAD ERROR — {e}")
+            return 2
+        pin_rows = len(cfg.get("pin_map") or [])
+        exemptions = len(cfg.get("exempt") or [])
+        print(f"S-NETMERGE-SCHEMA PASS: label_survival has {pin_rows} pin-map "
+              f"row(s), {exemptions} evidenced exemption(s)")
+        return 0
 
     sch = a.schematic or _first([str(proj / "04_kicad" / "*.kicad_sch"),
                                  str(proj / "03_tscircuit" / "kicad" / "*.kicad_sch")])
@@ -178,8 +194,7 @@ def main(argv=None):
         print(f"S-NETMERGE: LOAD ERROR — no exported netlist found in {proj}")
         return 2
     try:
-        cfg = load_config(a.config or
-                          proj / "03_src" / "rules" / "electrical_invariants.yaml")
+        cfg = load_config(config_path)
     except LoadError as e:
         print(f"S-NETMERGE: LOAD ERROR — {e}")
         return 2

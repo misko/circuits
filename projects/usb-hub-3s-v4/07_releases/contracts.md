@@ -46,7 +46,7 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
 |---|---|
 | `contracts.md` | this file |
 | `<version>-<date>/MANIFEST.txt` `<version>-<date>/ORDER_README.md` `<version>-<date>/SUPERSEDED.md` | release root documents |
-| `<version>-<date>/fab/**` | gerber zip, drill, bom.csv, cpl.csv |
+| `<version>-<date>/fab/**` | gerber zip, drill, bom.csv, cpl.csv, and fabricator order notes when declared |
 | `<version>-<date>/pdf/**` | schematic (tscircuit's own render), pcb_layers, assembly |
 | `<version>-<date>/source/**` | the EXACT source artifacts incl. fp-lib-table + vendored `.pretty` (V-REL-FPLIB, usb-hub-3s 2026-07-21: without them a standalone archive re-measure raises lib_footprint_issues — the archive must re-measure DRC clean) |
 | `<version>-<date>/3d/**` | STEP/GLTF |
@@ -97,6 +97,9 @@ the only thing that says which board a sealed archive belongs to.
     │   │                           so the archive is readable without unzipping)
     │   ├── bom.csv                 JLC format — assembly step
     │   └── cpl.csv                 JLC format — assembly step
+    │   └── order_notes.txt         REQUIRED when assembly.yaml declares a
+    │                               special fabrication process; paste into the
+    │                               manufacturer's order remarks and confirm it
     ├── pdf/                        REQUIRED — the human-readable board documents
     │   ├── schematic.pdf           for a tscircuit board this is tscircuit's OWN
     │   │                           render (03_tscircuit/build/schematic.pdf),

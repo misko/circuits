@@ -661,9 +661,9 @@ against the `side: bottom` features) are the cheapest first bite.
 | `layout_refs[].url` | ADVISORY | retrieval link for the named precedent; `artifact` is the machine-graded identity and this URL is human provenance |
 | `layout_refs[].fetched` | ADVISORY | date a precedent was retrieved; useful staleness context, not a physical design fact |
 | `layout_refs[].note` | ADVISORY | human transfer/measurement notes for the precedent; executable constraints belong in `layout` |
-| `datasheet.url` | `pin_audit.py` | the datasheet under review |
+| `datasheet.url` | ADVISORY | retrieval provenance for a human; P-AUTH selects review bytes only by the declared digest of a local PDF, never by a mutable URL |
 | `datasheet.local` | OWED | the in-tree PDF path. M-DEPEND grades that a sealed release carries its dossiers; nothing grades that this path RESOLVES, so a moved PDF is silent |
-| `datasheet.sha256` | OWED | the fetched PDF's digest — an M-IMPORT provenance grade nothing recomputes, so a re-fetched or substituted revision cannot be detected |
+| `datasheet.sha256` | `pin_audit.py` | P-AUTH: a valid digest whose bytes match one local PDF. A URL, a sole unbound PDF, or an adjacent-family document is not fresh pin-review authority. |
 | `datasheet.revision` | OWED | the revision the pin map and limits were read from; a datasheet revving under a sealed release is exactly M-DEPEND's class and this field is where it would be caught |
 | `datasheet.doc_id` | ADVISORY | the vendor document number, for a human re-fetching it |
 | `datasheet.fetched` | ADVISORY | the date the PDF was pulled, for a human judging staleness |

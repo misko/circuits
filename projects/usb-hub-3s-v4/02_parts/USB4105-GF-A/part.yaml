@@ -46,7 +46,7 @@ limits: {current_vbus_collective: 5A, current_gnd_collective: 6.25A, contact_res
 gotchas:
   - "A6/B6, A7/B7 and A8/B8 receive explicit no-connect flags: v4 has neither USB data nor alternate-mode signaling."
   - "CC1 and CC2 route separately through the connector-side ESD clamp to TPS25810; do not short them or replace attach control with static Rp resistors."
-  - "The 40mOhm connector figure is a maximum initial contact-resistance requirement; the Pi cable/mated-pair budget remains a first-article qualification item."
+  - "The 40mOhm initial/50mOhm post-test figures bound one plug/receptacle mated contact under USB Type-C Release 2.0 section 3.7.8.1 and exclude internal paddle cards/substrates; the two-pair cable/Pi path is a separate end-to-end first-article qualification item."
   - "The four duplicated outer GND lands retain GCT's 0.60 x 1.15 mm envelope but use a 50% chamfer only on the locator-peg-facing corner: the drawing's datum leaves only 0.1944 mm to the original rounded corner, below JLC's 0.20 mm NPTH-to-copper floor and the project's 0.25 mm floor; the relief removes no copper under the terminal and is exact-DRC graded without moving or narrowing the contact land."
 verified: "contact table, recommended PCB layout, VBUS/GND collective current, resistance and durability independently read from GCT drawing and product specification 2026-08-10"
 sourcing: {lcsc: C3020560, alternates: [], note: "exact GCT gold-flash/no-suffix stake option; volatile stock evidence is kept in dated sourcing artifacts"}

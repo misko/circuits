@@ -28,12 +28,16 @@ pins:
   20: {name: PGND, tie: GND}
   21: {name: AGND, tie: GND}
   22: {name: AGND, tie: GND}
-limits: {vin_recommended_max: 36V, vin_transient_abs: "42V <=100ms, <=0.01% duty", iout_rated: 8A, iout_peak: 10A, shutdown_iq_typ: 0.6uA, vref_accuracy: "+/-1%"}
+limits: {vin_recommended_max: 36V, vin_transient_abs: "42V <=100ms, <=0.01% duty", iout_rated: 8A, iout_peak: 10A, shutdown_iq_typ: 0.6uA, vref_accuracy_full_temperature: "+/-1.5%"}
 gotchas:
   - "A single module cannot supply the board's 9A continuous/10.5A coincident peak; this part is dedicated to the 6A continuous/7.5A USB-A rail."
   - "Full-current thermal performance depends on exposed-land soldering, an uninterrupted layer-2 ground plane, and numerous 0.3mm thermal vias; v4 orders filled/capped via-in-pad rather than relying on paste over open holes."
+  - "SW pin 4 is intentionally left without an external net: TI SLVSGU1A Table 5-1 says not to place an external component or connect a signal and to minimize copper on this pin."
+  - "VCC pin 6 is intentionally left without an external net: it is the internal-LDO output with an internal 1uF capacitor and TI says not to connect external loads."
   - "Use 68-100uF aluminum electrolytic input damping with 0.1-0.4ohm ESR when connected through battery leads; ceramics plus cable inductance can otherwise ring on hot plug."
-verified: "pin table 5-1, limits tables 4 and 6-1, input damping sec.8.3, and layout sec.8.4 independently read 2026-08-10"
+  - "At 5V and 1MHz Table 7-1 requires at least 75uF effective ceramic output capacitance. C6-C8/C24-C26 provide a machine-checked 80.784uF effective; C22 is additional low-frequency polymer bulk, not a substitute for that ceramic minimum."
+  - "Table 7-1 recommends 22pF CFF only when the output bank is close to minimum. Section 8.2.1.2.6 explicitly says not to use CFF when an output-capacitor ESR zero is below 200kHz. C22 permits 100uF at 24mohm, about 66kHz, so v4 fits no U1 CFF/RFF branch."
+verified: "pin table 5-1, limits tables 4 and 6-1, Table 7-1 effective-capacitance/CFF row, explicit below-200kHz CFF prohibition, input damping sec.8.3, and layout sec.8.4 independently read 2026-08-11"
 sourcing: {lcsc: C7125816, alternates: [], note: "JLC/LCSC catalog candidate; volatile stock evidence is kept in 06_build/cache"}
 layout:
   source: "TI SLVSGU1A sec.8.4 plus TPSM63610EVM BSR234A editable Altium design files (SLVRBM6)"

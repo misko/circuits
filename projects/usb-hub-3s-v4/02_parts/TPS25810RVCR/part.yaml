@@ -32,6 +32,7 @@ gotchas:
   - "CHG=1 and CHG_HI=1 advertise Type-C 3A and select the 3.4A nominal limit."
   - "This is attach-controlled Type-C sourcing, not USB-PD: it applies VBUS only after Rd detection and discharges VBUS on detach."
   - "D+/D- are not used; the controller does not implement BC1.2 and v4 carries no USB data."
+  - "TI's cold-socket application requires at least 120uF close to IN. C23 is 115.2uF at the combined initial-tolerance/endurance corner; with C9-C11's machine-derated 40.392uF effective ceramic value the exact bank is 155.592uF."
 verified: "pin table, electrical characteristics, table 3 and application sec.8.1 independently read 2026-08-10"
 sourcing: {lcsc: C473913, alternates: [], note: "RVCR large-reel order code; volatile stock evidence is kept in 06_build/cache"}
 layout:

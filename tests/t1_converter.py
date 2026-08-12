@@ -159,6 +159,20 @@ def t_fpid_present():
           f"02_parts FPID override did not reach the sheet: {sorted(real)}")
 
 
+@test("converter: old and pinned-new capacitor tokens resolve to the same FPID")
+def t_capacitor_token_compatibility():
+    """tscircuit 0.0.2300 prefixes commodity capacitor tokens with ``cap``;
+    older generated inputs use the bare package token.  Both are accepted so a
+    producer upgrade cannot emit a valid schematic with blank PCB footprints."""
+    sys.path.insert(0, str(SCRIPTS))
+    import circuit_json_to_kicad_sch as C          # noqa: E402
+    for size in ("0402", "0603", "0805", "1206", "1210"):
+        old = C.resolve_fpid(size, [], {})
+        new = C.resolve_fpid(f"cap{size}", [], {})
+        check(old != "", f"legacy capacitor token {size} is unmapped")
+        eq(new, old, f"pinned producer capacitor token cap{size}")
+
+
 @test("converter: an embedded # in an exact MPN is data, not a YAML comment")
 def t_hash_suffix_mpn_override():
     """Analog Devices orderable suffixes commonly contain ``#``.  YAML only

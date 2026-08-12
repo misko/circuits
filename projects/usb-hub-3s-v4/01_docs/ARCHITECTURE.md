@@ -7,7 +7,7 @@ unapproved. The JLC advanced-tier escalation in ADR-0004 was accepted by D3 on
 ## Execution/power stack
 
 ```text
-3S LiPo, 9.0–12.6V
+protected 3S LiPo, 9.0–12.6V; external BMS disconnects at/above 9.0V
   -> J1 Phoenix 1715022 two-position input terminal
        user cable: XT60-to-bare-wire pigtail, polarity-labelled
   -> F1 Keystone 3568 + user-installed 10A MINI fuse
@@ -16,10 +16,11 @@ unapproved. The JLC advanced-tier escalation in ADR-0004 was accepted by D3 on
   -> VIN protected trunk
        transient clamp: D1 SMBJ15A to GND
        lead damping: C1 35TZV100M6.3X8, 100uF / 35V / <=340mOhm
-  -> U1 TPSM63610 8A buck module -> 5VA
-       -> U4 TPS2557 -> J2 USB-A1, 2A continuous / 2.5A peak
-       -> U5 TPS2557 -> J3 USB-A2, 2A continuous / 2.5A peak
-       -> U6 TPS2557 -> J4 USB-A3, 2A continuous / 2.5A peak
+  -> U1 TPSM63610 8A buck module -> 5VA_RAW
+       -> U9 TPS259827O no-OVLO circuit breaker -> 5VA
+       -> U4 TPS2559 -> J2 USB-A1, 2A continuous / 2.5A peak
+       -> U5 TPS2559 -> J3 USB-A2, 2A continuous / 2.5A peak
+       -> U6 TPS2559 -> J4 USB-A3, 2A continuous / 2.5A peak
        -> U7/U8 TPS2513A provide local charge signatures only
        -> D2-D4 USBLC6 protect the exposed charging-signature pairs
   -> U2 TPSM63604 4A buck module -> 5VC_RAW
@@ -35,10 +36,10 @@ and protection; USB-C D+/D− contacts are explicit no-connects.
 
 ## Why two modules
 
-All continuous loads consume 45W nominal at the connectors; the tolerance-
-corner power-tree contract is 46.773W. At 9V and 90% efficiency, the contract
-therefore derives 5.8A at the input. Coincident 2.5A USB-A peaks raise worst-
-corner output power to 54.543W and estimated input current to 6.73A.
+All continuous loads consume 45W nominal at the connectors; the declared-high
+power-tree contract is 47.058W. At 9V and 90% efficiency, the contract therefore
+derives 5.81A at the input. Coincident 2.5A USB-A peaks raise worst-corner
+output power to 54.902W and estimated input current to 6.78A.
 
 One TPSM63610 is rated 8A continuous/10A peak, but the output ports together
 need 9A continuous and 10.5A peak. Splitting the board gives the USB-A bank an
@@ -65,7 +66,10 @@ and the [TPS2513A datasheet](https://www.ti.com/lit/ds/symlink/tps2513a.pdf).
 The order is intentional: fuse first, reverse-polarity FET second, TVS and
 damping capacitor on the protected side. Putting an ordinary unidirectional
 TVS before reverse-polarity blocking would forward-bias it under a reversed
-pack. SMBJ15A is a transient clamp, not active overvoltage cutoff. A sustained
+pack. SMBJ15A is a transient clamp, not active overvoltage cutoff. The 9.0V
+lower service boundary is assigned to the required protected pack/BMS; a bare
+pack has no board-level undervoltage disconnect and is outside the interface.
+A sustained
 source above 12.6V, automotive load dump, or converter fail-high is outside the
 claim and the board remains a supervised prototype.
 
@@ -78,11 +82,12 @@ and [Rubycon TZV data](https://www.rubycon.co.jp/wp-content/uploads/catalog-alum
 ## Board and manufacturing architecture
 
 Four layers remain appropriate: F.Cu holds components and short local power
-geometry; In1.Cu is uninterrupted GND; In2.Cu distributes VIN/regulated power;
-B.Cu provides low-density escape and supporting pours. No controlled-impedance
-USB data routing exists.
+geometry; In1.Cu and In2.Cu are both GND planes in the sealed implementation;
+B.Cu provides low-density escape and supporting pours. Regulated power and VIN
+use bounded outer-layer pours and explicit layer-transfer banks. No
+controlled-impedance USB data routing exists.
 
-The power-module exposed lands and the TPS25810/TPS2557 thermal pads require
+The power-module exposed lands and the TPS25810/TPS2559 thermal pads require
 via-in-pad heat transfer. JLC states that vias in/near pads are not ordinary
 ink-plug candidates; the selected process is resin fill plus copper cap. That
 requires `jlc_4layer_advanced`, not A3's provisional standard tier. See
@@ -97,7 +102,8 @@ JLC's mixed SMT/THT assembly flow; the 10A fuse blade itself is user-installed.
 - Filled/capped thermal-via fields whose production option is explicit.
 - Input terminal -> fuse -> reverse-FET -> clamp/damping ordering visible in both schematic and
   placement, with a short TVS ground return.
-- Short 5VA fanout with independently current-limited port paths.
+- Short 5VA_RAW -> U9 -> 5VA fanout with independently current-limited port
+  paths and electrically separate U9 IN/GND thermal lands.
 - TPS25810 and its output capacitance adjacent to the Type-C receptacle; CC1 and
   CC2 stay separate and reach their connector-side D6 clamp before U3.
 - Charge-signature ESD arrays are the first devices reached from each USB-A

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """T1: fail-closed, exact-artifact pre-route review boundary."""
 import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -42,9 +43,38 @@ def netlist_sha(path):
     return hashlib.sha256(text.encode()).hexdigest()
 
 
+def design_rules_sha(root):
+    """Independently reproduce the documented design-v1 projection."""
+    entries = []
+    for path in sorted((root / "03_src/rules").glob("*.yaml")):
+        entries.append({
+            "path": path.relative_to(root).as_posix(),
+            "value": yaml.safe_load(path.read_text()),
+        })
+    route = yaml.safe_load((root / "03_src/route.yaml").read_text()) or {}
+    projection = {key: value for key, value in route.items()
+                  if key not in ("project", "flow")}
+    prep = dict(projection.get("prep") or {})
+    prep.pop("out", None)
+    if prep:
+        projection["prep"] = prep
+    routing = dict(projection.get("route") or {})
+    for key in ("final", "import_source", "krt", "race"):
+        routing.pop(key, None)
+    if routing:
+        projection["route"] = routing
+    entries.append({"path": "03_src/route.yaml#design-v1",
+                    "value": projection})
+    payload = json.dumps(
+        {"schema": 1, "entries": entries}, sort_keys=True,
+        separators=(",", ":"), ensure_ascii=False,
+    ).encode()
+    return hashlib.sha256(payload).hexdigest()
+
+
 def fixture():
     d = tmpdir("prreview_")
-    for rel in ("02_parts/X", "03_src/rules", "04_kicad", "06_build/pre_route"):
+    for rel in ("02_parts/X", "03_src/rules", "03_tscircuit/build", "04_kicad", "06_build/pre_route"):
         (d / rel).mkdir(parents=True, exist_ok=True)
     (d / "02_parts/X/part.yaml").write_text("mpn: X\npins: {1: A, 2: B}\n")
     board = d / "04_kicad/demo.kicad_pcb"
@@ -62,6 +92,8 @@ def fixture():
         '(property (name "Sheetfile") (value "demo.kicad_sch")))) '
         '(nets (net (code 1) (name GND) (class "Power") '
         '(node (ref "U1") (pin "1")))))\n')
+    schematic_pdf = d / "03_tscircuit/build/schematic.pdf"
+    schematic_pdf.write_bytes(b"%PDF-1.4\nfixture readable schematic\n")
     parts_hash = hashlib.sha256(
         b"02_parts/X/part.yaml\0" + (d / "02_parts/X/part.yaml").read_bytes() + b"\0"
     ).hexdigest()
@@ -71,15 +103,14 @@ def fixture():
            "flow": {"pre_route_reviews": {
                **paths, "board": "04_kicad/demo.kicad_pcb",
                "netlist": "04_kicad/demo.net",
+               "schematic_pdf": "03_tscircuit/build/schematic.pdf",
+               "schematic_render": "06_build/pre_route/schematic_render.md",
                "a_render": "06_build/pre_route/a_render.md"}}}
     (d / "03_src/route.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False))
     (d / "03_src/rules/requirements.yaml").write_text(
         "schema: 1\npower_claims: []\n"
         "no_external_power_outputs: Fixture has none.\n")
-    rule_files = sorted((d / "03_src/rules").glob("*.yaml")) + [d / "03_src/route.yaml"]
-    rules_hash = hashlib.sha256(b"".join(
-        p.relative_to(d).as_posix().encode() + b"\0" + p.read_bytes() + b"\0"
-        for p in rule_files)).hexdigest()
+    rules_hash = design_rules_sha(d)
     for kind, rel in paths.items():
         binding = (f"netlist_sha256: {netlist_sha(netlist)}\nparts_sha256: {parts_hash}\n"
                    if kind == "topology" else f"board_sha256: {sha(board)}\n")
@@ -89,6 +120,13 @@ def fixture():
         (d / rel).write_text(
             f"review_stage: pre-route\nreview_kind: {kind}\n"
             "design_verdict: SOUND\n" + binding)
+    (d / "06_build/pre_route/schematic_render.md").write_text(
+        "review_stage: pre-route\nreview_kind: schematic_render\n"
+        "design_verdict: SOUND\n"
+        f"schematic_pdf_sha256: {sha(schematic_pdf)}\n"
+        f"netlist_sha256: {netlist_sha(netlist)}\n"
+        f"parts_sha256: {parts_hash}\n"
+        f"design_rules_sha256: {rules_hash}\n")
     (d / "06_build/pre_route/a_render.md").write_text(
         f"a-render_verdict: PASS\nboard_sha256: {sha(board)}\n")
     return d, board
@@ -138,6 +176,16 @@ def t_stale_netlist():
               "stale topology", "netlist_sha256 is stale")
 
 
+@test("PR-REVIEW invalidates human-readability evidence after the PDF changes",
+      kind="known_bad")
+def t_stale_schematic_pdf():
+    d, _ = fixture()
+    p = d / "03_tscircuit/build/schematic.pdf"
+    p.write_bytes(p.read_bytes() + b"changed")
+    must_fail(run([KPY, GATE, d, "--phase", "schematic"]),
+              "stale schematic PDF review", "schematic_pdf_sha256 is stale")
+
+
 @test("PR-REVIEW treats pinned-path Sheetname/Sheetfile churn as presentation metadata")
 def t_pinned_export_path_is_stable():
     d, _ = fixture()
@@ -174,6 +222,57 @@ def t_stale_design_rules():
               "stale topology rule binding", "design_rules_sha256 is stale")
     must_fail(run([KPY, GATE, d, "--phase", "placement"]),
               "stale placement rule binding", "design_rules_sha256 is stale")
+
+
+@test("PR-REVIEW ignores orchestration-only route controls")
+def t_orchestration_controls_are_not_design_rules():
+    d, _ = fixture()
+    path = d / "03_src/route.yaml"
+    doc = yaml.safe_load(path.read_text())
+    doc["flow"].update({
+        "heartbeat_s": 10,
+        "rebuild_args": ["--resume-after-schematic-review"],
+        "budgets_s": {"rebuild": 1200},
+        "blockers": ["manufacturing review pending"],
+    })
+    doc["project"]["build_dir"] = "06_build/another-path"
+    doc.setdefault("prep", {})["out"] = "another-placement-name.kicad_pcb"
+    doc.setdefault("route", {}).update({
+        "final": "03_src/route/r99.kicad_pcb",
+        "import_source": "promoted",
+        "krt": "/another/tool/checkout",
+        "race": 8,
+    })
+    path.write_text(yaml.safe_dump(doc, sort_keys=False))
+    must_pass(run([KPY, GATE, d, "--phase", "schematic"]),
+              "process-only schematic review stability")
+    must_pass(run([KPY, GATE, d, "--phase", "placement"]),
+              "process-only placement review stability")
+
+
+@test("PR-REVIEW binds authored route geometry", kind="known_bad")
+def t_route_geometry_is_a_design_rule():
+    d, _ = fixture()
+    path = d / "03_src/route.yaml"
+    doc = yaml.safe_load(path.read_text())
+    doc["taps"] = {"connections": [{"net": "VIN", "pin": "U1.1"}]}
+    path.write_text(yaml.safe_dump(doc, sort_keys=False))
+    must_fail(run([KPY, GATE, d, "--phase", "placement"]),
+              "changed deterministic copper", "design_rules_sha256 is stale")
+
+
+@test("PR-REVIEW invalidates both topology and readability evidence after a part changes",
+      kind="known_bad")
+def t_stale_parts_bind_both_schematic_reviews():
+    d, _ = fixture()
+    part = d / "02_parts/X/part.yaml"
+    part.write_text(part.read_text() + "rating: changed\n")
+    result = must_fail(run([KPY, GATE, d, "--phase", "schematic"]),
+                       "stale parts bindings", "parts_sha256 is stale")
+    contains(result.out, "topology: parts_sha256 is stale",
+             "topology part binding")
+    contains(result.out, "schematic_render: parts_sha256 is stale",
+             "readability part binding")
 
 
 @test("PR-REVIEW refuses an absent adoption block instead of silently passing",

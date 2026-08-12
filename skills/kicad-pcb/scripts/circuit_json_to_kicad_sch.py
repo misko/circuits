@@ -82,8 +82,10 @@ LIB = "elt"
 # ------------------------------------------------------------------ FPID map
 # Commodity tscircuit-footprinter TOKEN -> canonical KiCad FPID ("lib:name").
 # circuit.json (cad_component.footprinter_string) class-disambiguates passives:
-# a resistor emits `res0603`, a capacitor the bare `0603` — so R-vs-C is decided
-# by the token itself, no per-class table needed. Specialty parts (connectors,
+# a resistor emits `res0603`; tscircuit releases through 0.0.1658 emitted the
+# bare capacitor token `0603`, while 0.0.2300 emits `cap0603`.  Accept both
+# producer dialects so a pinned upgrade cannot silently blank commodity FPIDs.
+# Specialty parts (connectors,
 # ICs) are NOT here; they resolve from the project's 02_parts/*/part.yaml
 # override (MPN/LCSC -> footprint), which takes precedence over this map.
 COMMODITY_FP = {
@@ -99,6 +101,11 @@ COMMODITY_FP = {
     "0805": "Capacitor_SMD:C_0805_2012Metric",
     "1206": "Capacitor_SMD:C_1206_3216Metric",
     "1210": "Capacitor_SMD:C_1210_3225Metric",
+    "cap0402": "Capacitor_SMD:C_0402_1005Metric",
+    "cap0603": "Capacitor_SMD:C_0603_1608Metric",
+    "cap0805": "Capacitor_SMD:C_0805_2012Metric",
+    "cap1206": "Capacitor_SMD:C_1206_3216Metric",
+    "cap1210": "Capacitor_SMD:C_1210_3225Metric",
     # discrete semiconductors / SOT-SOD packages
     "sot23": "Package_TO_SOT_SMD:SOT-23",
     "sot23_3": "Package_TO_SOT_SMD:SOT-23",

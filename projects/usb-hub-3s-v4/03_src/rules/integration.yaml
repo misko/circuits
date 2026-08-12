@@ -27,7 +27,7 @@ selections:
       The controller is the smallest standards-aware implementation: it detects
       Rd on either CC pin, applies VBUS only after attach, removes and discharges
       VBUS after detach, advertises 3A, and integrates the source power switch.
-    support_refs: [C9, C10, C11, C12, C13, R14, R15]
+    support_refs: [C9, C10, C11, C12, C13, C23, R14, R15]
 
   - function: charge-signature control for three power-only USB-A receptacles
     part: TPS2513ADBVR

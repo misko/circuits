@@ -6,7 +6,7 @@ package: SOT-23-6
 footprint: Package_TO_SOT_SMD:SOT-23-6
 escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "escape_check 2026-08-10"}
 pins: {1: IO1, 2: GND, 3: IO2, 4: IO2b, 5: VBUS, 6: IO1b}
-limits: {vbus_max: 5.25V, esd: "15kV air / 8kV contact IEC61000-4-2"}
+limits: {vbus_reverse_leakage_test: "5.25V", vbus_gnd_breakdown_min: 6V, esd: "15kV air / 8kV contact IEC61000-4-2"}
 gotchas:
   - "Route the USB-A charging-signature lines through pairs 1-6 and 3-4; place the array at the connector before the controller branch."
 verified: "pin configuration and application layout independently read 2026-08-10"

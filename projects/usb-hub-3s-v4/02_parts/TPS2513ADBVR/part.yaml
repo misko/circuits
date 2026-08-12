@@ -10,7 +10,8 @@ limits: {vin: "4.5-5.5V"}
 gotchas:
   - "The A variant provides BC1.2 DCP short mode plus legacy 2.7V/2.7V and 1.2V signatures; do not substitute the non-A part without regrading device compatibility."
   - "BC1.2 itself defines a 1.5A DCP. The board's 2A/2.5A service is a clearly labelled proprietary charge-only extension, not a USB-IF BC1.2 current-compliance claim."
-verified: "pin figure, device-options table and DCP functional modes independently read 2026-08-10"
+  - "U8 uses channel 1 only. Its channel-2 DP2/DM2 I/O pins are deliberately open-circuit, not reclassified as NC: TI SLVSBY8D Table 1 p.3 and pin table p.4 identify a dual controller, while the electrical table p.6 specifies internally driven, finite-impedance port nodes. With no connector or load, an open node draws no external current and violates no pin limit."
+verified: "TI SLVSBY8D Table 1 p.3, DBV Top View and Pin Functions table p.4, and DCP Auto-Detect Figure 15 p.12 independently confirm device option, pin map and both channel functions; unused U8 channel-2 open-circuit disposition re-derived from the I/O type and p.6 output-voltage/impedance limits on 2026-08-11"
 sourcing: {lcsc: C473910, alternates: [], note: "volatile stock evidence is kept in 06_build/cache"}
 layout:
   source: "TI SLVSBY8D application circuit and DBV package pin arrangement"

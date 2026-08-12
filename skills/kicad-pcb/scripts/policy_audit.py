@@ -130,18 +130,19 @@ GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A", "UNGRADED")
 # never been measured cannot have regressed — and picks up a bound the first
 # time someone records one. That declared gap is the honest price of never
 # failing a board for existing.
-PREC_GRADED_FLOOR = 17   # in-scope parts carrying a TIER-GRADED precedent
-                         # record, FLEET-WIDE. Raised 14 -> 17 on 2026-08-10:
-                         # the programmable-hub source handoff increased the
-                         # measured fleet to 17 graded / 120 in scope. A
+PREC_GRADED_FLOOR = 30   # in-scope parts carrying a TIER-GRADED precedent
+                         # record, FLEET-WIDE. Raised 17 -> 30 on 2026-08-11:
+                         # usb-hub-3s-v4 added 13 in-scope dossiers and every
+                         # one carries a tier-graded precedent, increasing the
+                         # measured fleet to 30 graded / 133 in scope. A
                          # numerator advance raises this floor in the same
                          # change; it may never be lowered.
 #
 # PER-BOARD owed ceilings: in-scope parts with NO tier-graded record. Each may
 # only FALL, and each is TIGHT (the test asserts equality, so a board that
 # improves must lower its own row in the same commit and cannot bank slack).
-# MEASURED 2026-08-10, read-only sweep of `projects/*/02_parts/`: 120 in scope
-# across 9 boards, 17 GRADED and 103 OWED. The per-board rows below are exact;
+# MEASURED 2026-08-11, read-only sweep of `projects/*/02_parts/`: 133 in scope
+# across 10 boards, 30 GRADED and 103 OWED. The per-board rows below are exact;
 # `tests/t1_layout_precedent.py` independently recomputes every denominator.
 PREC_OWED_CEILING = {
     "crow-mic-pod-v2": 4,
@@ -153,6 +154,7 @@ PREC_OWED_CEILING = {
     "programmable-usb2-hub": 10,
     "smc0985-cooksense": 35,
     "usb-hub-3s-v3": 12,
+    "usb-hub-3s-v4": 0,
 }
 
 
@@ -220,9 +222,11 @@ def main():
                     help="which board of a MULTI-BOARD project to grade "
                          "(04_kicad stem, e.g. 'interposer'); default is the "
                          "first, which is what the release scope follows")
-    ap.add_argument("--phase", choices=("full", "placement"), default="full",
-                    help="full release audit (default), or the placement-only "
-                         "P-LAYOUT/P-PREC/P-ADJ gate used before routing")
+    ap.add_argument("--phase", choices=("full", "source", "placement"),
+                    default="full",
+                    help="full release audit (default), the source-only "
+                         "P-LAYOUT/P-PREC gate used before generation, or the "
+                         "placement P-LAYOUT/P-PREC/P-ADJ gate before routing")
     args = ap.parse_args()
     proj = Path(args.project).resolve()
     cfgp = Path(args.config) if args.config else proj / "03_src/rules/policy_audit.json"
@@ -251,6 +255,12 @@ def main():
     board_p = boards[0] if boards else None
     sch_p = schs[0] if schs else None
     board_name = Path(board_p).stem if board_p else None
+    if args.phase == "source":
+        # Source phase exists specifically before a realized board is needed.
+        # Do not let a stale prior board add load time or accidental evidence.
+        board_p = None
+        sch_p = None
+        board_name = None
 
     waivers = []
     wp = proj / "03_src/rules/policy_waivers.yaml"
@@ -2023,17 +2033,20 @@ def main():
     # them until after routing.  Filtering only after every source row has
     # been evaluated preserves one definition of the metric while moving the
     # decision to the post-floorplan / pre-route boundary.
-    phase_ids = {
+    placement_phase_ids = {
         "P-LAYOUT", "P-PREC", "P-ADJ", "P-ADJ-PAIR",
         "P-ADJ-UNREACHED",
     }
-    if args.phase == "placement":
+    source_phase_ids = {"P-LAYOUT", "P-PREC"}
+    if args.phase in {"source", "placement"}:
+        phase_ids = (source_phase_ids if args.phase == "source"
+                     else placement_phase_ids)
         rows = [row for row in rows if row[0] in phase_ids]
         present = {cid for cid, _, _ in rows}
         missing = sorted(phase_ids - present)
         if missing:
             rows.append(("M-COVER", "FAIL",
-                         f"placement phase did not produce required rows: "
+                         f"{args.phase} phase did not produce required rows: "
                          f"{missing}"))
     counts = {}
     for _, g, _ in rows:
@@ -2047,8 +2060,9 @@ def main():
                       f"{', '.join(sorted(Path(b).stem for b in boards))}; "
                       f"select with --board)" if len(boards) > 1 else "")
                    ) if board_name else "Board graded: none (no 04_kicad board)"
-    title = ("Placement policy audit" if args.phase == "placement"
-             else "Policy audit")
+    title = ({"source": "Source policy audit",
+              "placement": "Placement policy audit"}.get(
+                  args.phase, "Policy audit"))
     lines = [f"# {title} — {proj.name}", "",
              f"Generated by policy_audit.py; canon: design-policies.md", "",
              f"Phase: {args.phase}", "",
@@ -2079,8 +2093,9 @@ def main():
     # old one cannot reach the published file no matter when it flushes.
     sys.stdout.flush()
     sys.stderr.flush()
-    dest = build / ("placement_policy_audit.md"
-                    if args.phase == "placement" else "policy_audit.md")
+    dest = build / ({"source": "source_policy_audit.md",
+                     "placement": "placement_policy_audit.md"}.get(
+                         args.phase, "policy_audit.md"))
     tmp = dest.with_suffix(".md.tmp")
     tmp.write_text(text)
     os.replace(tmp, dest)

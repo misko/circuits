@@ -10,6 +10,7 @@ BACKEND GAP to report, not a bespoke script to write here.
 |---|---|
 | `*.py` | generators, checkers, converters — run with `/usr/bin/python3` (pcbnew) |
 | `*.sh` | drivers (e.g. `tsx_to_board.sh`) |
+| `*.mjs` | narrow Node-based artifact renderers invoked by the canonical drivers |
 | `tests/**` | narrow checker-local regression tests retained beside their implementation |
 | `contracts.md` | this file |
 
@@ -30,6 +31,24 @@ BACKEND GAP to report, not a bespoke script to write here.
   production-ready by prose.
 - Generators emit artifacts that downstream gates re-measure independently
   (canon M1: checker and checked share no method).
+- `placement_drc_check.py REPORT.json` is the fail-closed P-DRC boundary after
+  a fresh KiCad `--refill-zones --schematic-parity` JSON report and before any
+  human placement review. It observes unrouted items, permits only the fixed
+  preliminary `isolated_copper` class, and blocks every other violation plus
+  parity. There is deliberately no caller-supplied violation allowlist.
+- `promoted_route_check.py BOARD ROUTE.yaml` is P-ROUTEBASE: before placement
+  review can be credited, route prep must be fresh and an existing explicitly
+  selected promoted route must match the exact regenerated base's footprint
+  placement, pad/net identity, every source/prepared via's position, geometry
+  and IPC-4761 process bits, and every deterministic prepared segment. A
+  missing promoted artifact is explicit N-A only for a first route; the route
+  importer keeps its independent refusal.
+- `via_ampacity_check.py BOARD ROUTE.yaml` is A-VIA: after final board saves and
+  before DRC, grade named tight series-transition rectangles against a cited
+  finished-hole current table. Fill material receives zero credit. The gate
+  explicitly declares that geometric same-net membership cannot prove current
+  crosses the boundary, so topology/path review and loaded testing remain
+  independent obligations.
 - **The GATE family (canon G-*) — the checkers are themselves governed
   (ADR-0004).** `gate_contract_audit.py [--root DIR]` walks every
   `skills/*/scripts/*.py` that prints a PASS/FAIL verdict and requires three

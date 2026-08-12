@@ -1,5 +1,9 @@
 # Stage 1 exact-MPN two-source qualification — 2026-08-10
 
+> Historical Stage 1 evidence: ADR-0006 later supersedes TPS2557 and adds two
+> polymer capacitors plus an exact user-fit fuse. This dated matrix must not be
+> treated as current release qualification until those new lines are refreshed.
+
 Policy: every selected complex/polarity-sensitive line must have more than ten
 units visible in the JLC/LCSC catalog and more than ten units at one independent
 authorized distributor. Counts are dated observations for quantity-five

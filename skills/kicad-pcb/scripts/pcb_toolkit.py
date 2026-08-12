@@ -37,6 +37,43 @@ def _vec(x, y):
     return pcbnew.VECTOR2I_MM(float(x), float(y))
 
 
+def apply_via_protection(via, protection, path="via_protection"):
+    """Apply explicit per-via IPC-4761 fill/cap intent.
+
+    KiCad's board setup values are only defaults. Via-in-pad work needs an
+    item-level declaration so ordinary routing/stitch vias do not inherit an
+    expensive or fabricator-incompatible Type VII process. ``None`` means
+    inherit the board default; an explicit false value means opt this via out.
+    """
+    if protection is None:
+        return via
+    if not isinstance(protection, dict):
+        raise ValueError(f"{path} must be a mapping")
+    unknown = sorted(set(protection) - {"capping", "filling"})
+    if unknown:
+        raise ValueError(f"{path} has unknown key(s): {unknown}; "
+                         "known: ['capping', 'filling']")
+    if not protection:
+        raise ValueError(f"{path} must declare capping and/or filling")
+
+    def enabled(value, item_path):
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str) and value.strip().lower() in ("yes", "no"):
+            return value.strip().lower() == "yes"
+        raise ValueError(f"{item_path} must be a boolean (yes/no)")
+
+    if "capping" in protection:
+        cap = enabled(protection["capping"], f"{path}.capping")
+        via.SetCappingMode(pcbnew.CAPPING_MODE_CAPPED if cap
+                           else pcbnew.CAPPING_MODE_NOT_CAPPED)
+    if "filling" in protection:
+        fill = enabled(protection["filling"], f"{path}.filling")
+        via.SetFillingMode(pcbnew.FILLING_MODE_FILLED if fill
+                           else pcbnew.FILLING_MODE_NOT_FILLED)
+    return via
+
+
 class Toolkit:
     def __init__(self, board, clearance_mm=0.11, hole_to_hole_mm=None):
         self.board = board
@@ -238,12 +275,15 @@ class Toolkit:
         t.SetWidth(pcbnew.FromMM(width)); t.SetLayer(layer); t.SetNet(net)
         self.board.Add(t)
 
-    def add_via(self, x, y, net, size=0.45, drill=0.2):
+    def add_via(self, x, y, net, size=0.45, drill=0.2, protection=None,
+                protection_path="via_protection"):
         v = pcbnew.PCB_VIA(self.board)
         v.SetPosition(_vec(x, y))
         v.SetWidth(pcbnew.FromMM(size)); v.SetDrill(pcbnew.FromMM(drill))
         v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetNet(net)
+        apply_via_protection(v, protection, protection_path)
         self.board.Add(v)
+        return v
 
     def joinpath(self, netname, p1, p2, width, layer=pcbnew.F_Cu,
                  widths_fallback=(0.2, 0.15)):

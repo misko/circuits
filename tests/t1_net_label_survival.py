@@ -109,6 +109,16 @@ def t_clean_exempt():
     must_pass(run([KPY, GATE, d]), "survival with an evidenced exemption")
 
 
+@test("schema-only validates label_survival without generated artifacts")
+def t_schema_only_clean():
+    d = project(CLEAN_LABELS, CLEAN_NETS, PIN_CFG)
+    (d / "03_tscircuit/kicad/b.kicad_sch").unlink()
+    (d / "06_build/netlists/b.net").unlink()
+    r = must_pass(run([KPY, GATE, d, "--schema-only"]),
+                  "source-only label schema")
+    contains(r.out, "S-NETMERGE-SCHEMA PASS", "source-only verdict")
+
+
 # ----------------------------------------------------------- known-bad cases
 @test("survival FAILS the P5VA_4->AUDIO4M merge: label swallowed at export",
       kind="known_bad")
@@ -163,6 +173,16 @@ def t_exempt_needs_evidence():
     check(r.rc == 2, f"config error must exit 2, got {r.rc}")
 
 
+@test("schema-only rejects malformed label_survival before generation",
+      kind="known_bad")
+def t_schema_only_malformed():
+    d = project(CLEAN_LABELS, CLEAN_NETS,
+                "label_survival:\n  pin_map:\n    - refs: [J6]\n")
+    r = must_fail(run([KPY, GATE, d, "--schema-only"]),
+                  "malformed source-only schema", "needs 'refs:'")
+    check(r.rc == 2, f"schema load error must exit 2, got {r.rc}")
+
+
 @test("a netlist that parses to ZERO nets is a hard error, never a pass",
       kind="known_bad")
 def t_zero_nets_guard():
@@ -210,10 +230,17 @@ def t_template_wiring_order():
         return i
 
     preflight = pos("tsx_preflight.py")
-    build = pos("cd 03_tscircuit && tsci build")   # the INVOCATION, not a comment
+    # The canonical driver runs the producer through pcb_flow's bounded
+    # heartbeat/timeout wrapper.  Match that live invocation rather than the
+    # pre-IMP-013 unbounded shell spelling.
+    build = pos("run_stage tscircuit_build env --chdir=03_tscircuit "
+                "./node_modules/.bin/tsci build")
     export = pos("sch export netlist")
     erc = pos("sch erc")
-    battery = [pos("net_label_survival.py"),
+    schema = pos("--schema-only")
+    post_label = txt.find("net_label_survival.py", schema + len("--schema-only"))
+    check(post_label >= 0, "template needs the post-export S-NETMERGE gate too")
+    battery = [post_label,
                pos("electrical_invariants.py"),
                pos("--adr-coverage"),
                pos("power_topology.py"),
@@ -223,6 +250,10 @@ def t_template_wiring_order():
                pos("--circuit-only")]
     check(preflight < build, "tsx_preflight must run BEFORE tsci build "
                              "(tscircuit drops unmapped parts silently)")
+    check(preflight < schema < build,
+          "label_survival schema validation must run before tsci build")
+    check(txt.find("early_design_check.py") < build,
+          "source-only electrical schema validation must run before tsci build")
     check(export < min(battery), "the semantic battery must run AFTER the "
                                  "netlist export it grades")
     check(max(battery) < erc,

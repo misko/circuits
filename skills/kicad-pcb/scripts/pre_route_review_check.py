@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -85,17 +86,52 @@ def netlist_digest(path: Path) -> str:
 
 
 def design_rules_digest(project: Path) -> str | None:
-    """Bind reviews to adopted requirement/rule bytes, not just artifacts."""
+    """Bind reviews to semantic design policy, excluding flow-only controls."""
     requirements = project / "03_src/rules/requirements.yaml"
     if not requirements.is_file():
         return None
-    files = sorted((project / "03_src/rules").glob("*.yaml"))
+    entries: list[dict] = []
+    for path in sorted((project / "03_src/rules").glob("*.yaml")):
+        entries.append({
+            "path": path.relative_to(project).as_posix(),
+            "value": yaml.safe_load(path.read_text(encoding="utf-8-sig")),
+        })
+
     route = project / "03_src/route.yaml"
     if route.is_file():
-        files.append(route)
-    return hashlib.sha256(b"".join(
-        p.relative_to(project).as_posix().encode() + b"\0" + p.read_bytes() + b"\0"
-        for p in files)).hexdigest()
+        source = yaml.safe_load(route.read_text(encoding="utf-8-sig")) or {}
+        # The exact board is bound independently. This projection owns the
+        # authored geometry/routing semantics, not where an artifact is
+        # written, which router checkout executes, how many candidates race,
+        # or how a reviewed producer checkpoint is resumed.
+        projection = {
+            key: value for key, value in source.items()
+            if key not in ("project", "flow")
+        }
+        prep = projection.get("prep")
+        if isinstance(prep, dict):
+            prep = dict(prep)
+            prep.pop("out", None)
+            if prep:
+                projection["prep"] = prep
+            else:
+                projection.pop("prep", None)
+        routing = projection.get("route")
+        if isinstance(routing, dict):
+            routing = dict(routing)
+            for key in ("final", "import_source", "krt", "race"):
+                routing.pop(key, None)
+            if routing:
+                projection["route"] = routing
+            else:
+                projection.pop("route", None)
+        entries.append({"path": "03_src/route.yaml#design-v1",
+                        "value": projection})
+    payload = json.dumps(
+        {"schema": 1, "entries": entries}, sort_keys=True,
+        separators=(",", ":"), ensure_ascii=False,
+    ).encode()
+    return hashlib.sha256(payload).hexdigest()
 
 
 def fields(path: Path) -> dict[str, str]:
@@ -146,13 +182,13 @@ def main(argv=None) -> int:
     project = Path(args.project).resolve()
     cfg = config(project)
     if not cfg:
-        print(f"PR-REVIEW coverage: 0/{1 if args.phase == 'schematic' else 4} "
+        print(f"PR-REVIEW coverage: 0/{2 if args.phase == 'schematic' else 4} "
               "required review artifact(s) graded")
         print("PR-REVIEW UNMIGRATED: flow.pre_route_reviews is absent; this is not a pass")
         return 2
 
     errors: list[str] = []
-    expected_reviews = 1 if args.phase == "schematic" else 4
+    expected_reviews = 2 if args.phase == "schematic" else 4
     graded_reviews = 0
     parts = sorted((project / "02_parts").glob("*/part.yaml"))
     if not parts:
@@ -164,6 +200,7 @@ def main(argv=None) -> int:
 
     if args.phase == "schematic":
         netlist = resolve(project, args.netlist or cfg.get("netlist", ""))
+        netlist_hash = ""
         if not netlist.is_file():
             errors.append(f"missing netlist {netlist}")
         else:
@@ -182,11 +219,43 @@ def main(argv=None) -> int:
             else:
                 graded_reviews += check_review(
                     "topology", resolve(project, value), expected, errors)
+
+            render_value = cfg.get("schematic_render")
+            render_artifact_value = cfg.get("schematic_pdf")
+            if not render_value:
+                errors.append("flow.pre_route_reviews.schematic_render is missing")
+            elif not render_artifact_value:
+                errors.append("flow.pre_route_reviews.schematic_pdf is missing")
+            else:
+                render_artifact = resolve(project, render_artifact_value)
+                if not render_artifact.is_file():
+                    errors.append(f"schematic_render: missing PDF {render_artifact}")
+                else:
+                    render_expected = {
+                        "schematic_pdf_sha256": digest(render_artifact),
+                        "netlist_sha256": netlist_hash,
+                        "parts_sha256": parts_hash,
+                    }
+                    if rules_hash:
+                        render_expected["design_rules_sha256"] = rules_hash
+                    graded_reviews += check_review(
+                        "schematic_render", resolve(project, render_value),
+                        render_expected, errors)
     else:
         board = resolve(project, args.board or cfg.get("board", ""))
         if not board.is_file():
             errors.append(f"missing board {board}")
         else:
+            from promoted_route_check import check as check_promoted_route
+            route_errors, route_note, route_footprints, route_vias, route_tracks = \
+                check_promoted_route(board, project / "03_src/route.yaml")
+            if route_note:
+                print(route_note)
+            else:
+                print(f"P-ROUTEBASE coverage: {route_footprints} footprints / "
+                      f"{route_vias} base/prepared vias / {route_tracks} "
+                      "prepared segments compared")
+            errors.extend(route_errors)
             board_hash = digest(board)
             for kind in ("pin", "layout", "render"):
                 value = cfg.get(kind)

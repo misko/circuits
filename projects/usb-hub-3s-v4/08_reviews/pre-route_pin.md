@@ -1,79 +1,53 @@
-subject: usb-hub-3s-v4 exact placed board 0245323bcef5
-date: 2026-08-11
-reviewer: Codex root, adversarial physical-pin/package-land pass over exact board, circuit JSON, dossiers and manufacturer lands
-independence_limit: same task owns design and review; P-PINMAP and direct pcbnew inspection are independent instruments, but external-human independence remains a declared process boundary
+subject: USB Hub 3S v4 exact track-free placement
+date: 2026-08-12
+reviewer: Codex fresh-context pin/package reviewer r19
 review_stage: pre-route
 review_kind: pin
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-board_sha256: 0245323bcef57d6d4327ae8ce5b545bee50512851d02c08ed59ac8ace8707137
-parts_sha256: d2c061e3ea7d3ed1ed57410d6ef4cf551384ed02440339c8fcee0207b7f4fd3d
-design_rules_sha256: d527db4303161f3501ebcdcff57e3314318bf79599a4915bec429f4cd0d887dd
-circuit_json_sha256: b40a3c9f3ad9e15108c98eec1026861c4351c6104ba889acc9d4647e16b959a4
+board_sha256: e0c6e592f5063d0e7af710c3682f05cfb2f577adff22e79132ac9a84c7f8621e
+parts_sha256: 07da71701403799d279677f0a50f5817940c5a0b2cf15cdb2521b0860d563d97
+design_rules_sha256: 1836747093e3a866efaae089ac787a6db42133ead8d09d0dc948c9b35a20af21
 
-# Pre-route physical-pin and package-land review
+# Fresh pre-route pin/package review
 
-## Verdict
+The exact board, normalized netlist, circuit JSON, local `part.yaml` dossiers,
+and vendored manufacturer PDFs were reviewed. P-PINMAP independently passes all
+192 declared physical identities across 17 multipart references. The board is
+intentionally track-free: its 48 copper items are the 48 authored thermal vias,
+not routing.
 
-No P0/P1 physical-pin, pad-order, package-land, polarity or fused-land finding
-remains. The exact placed board is SOUND to proceed to routing under this
-lens. It is unrouted and not an order candidate.
+- **U9:** PASS. RGE0024 perimeter pads retain the TI top-view winding: IN
+  1/2/3/16 and distinct IN PowerPAD 25 are `5VA_RAW`; GND 4/5/14 and distinct
+  GND PowerPAD 26 are GND; OUT 17-24 are `5VA`. Pad 25 owns four `5VA_RAW`
+  0.50/0.20 mm filled/capped vias and pad 26 owns two GND vias. No split-pad
+  bridge or foreign-net via was found.
+- **Polarity:** PASS. D1 pad 1/cathode is `VIN` and pad 2/anode GND; D5 pad
+  1/cathode is `VIN` and pad 2/anode `RPP_GATE`. C1, C17-C19, C22 and C23 each
+  put pad 1 on the positive rail and pad 2 on GND.
+- **Active packages:** PASS. U1 RDF0022A, U2 RDL0020A, U3 RVC0020A/EP21 and
+  U4-U6 DRC0010J/PowerPAD11 match their local dossiers and manufacturer top-view
+  pin maps. Every repeated VIN/VOUT/GND land is present; SW/VCC/NC or mode pins
+  that are required open remain explicit unconnected nets. U1/U2/U3/U4-U6
+  exposed-ground lands own the declared GND via fields.
+- **Input and connectors:** PASS. J1 is BAT+/GND; F1 preserves its explicitly
+  fused duplicate lands from `BAT_POS` to `VBAT_FUSED`; SW1 has pin 2 common on
+  `EN_BUS`, pin 1 OFF on GND and pin 3 explicitly open. J2-J4 retain
+  1=VBUS, 2=D-, 3=D+, 4=GND plus grounded shells. J5 retains all sixteen GCT
+  alphanumeric contacts and grounded shell stakes: four VBUS contacts are
+  `VBUSC`, four GND contacts are GND, A5/B5 are separate CC1/CC2, and all six
+  D+/D-/SBU contacts are explicit no-connects.
+- **Other active mappings:** PASS. D2-D4 retain IO1 1/6, IO2 3/4, GND 2 and
+  local VBUS 5; D6 has separate CC1/CC2 at pins 1/2 and GND at pin 3. U7 and
+  U8 match the TPS2513A DBV winding; U8's unused second channel is explicitly
+  open rather than merged.
+- **Physical-land completeness:** PASS. No required pad is absent, no distinct
+  manufacturer contact is collapsed, and every duplicate/fused physical land
+  is declared by the dossiers. The exact board contains 48 protected vias:
+  U1 8, U2 8, U3 6, U4/U5/U6 6 each, U9 pad25 4, U9 pad26 2, and C23 pad2 2.
 
-Stage 4 regenerated this track-free board with routing-owned rule areas,
-local power-island zones and 40 explicitly declared board-level thermal vias.
-The U1-U6 SMD lands and all physical pin identities remain unchanged. Their
-footprints remain library-linked, so schematic parity and footprint provenance
-survive the via transformation instead of being hidden by a blank board FPID.
-J5's four duplicated GND lands keep the manufacturer centre and 0.60 x 1.15 mm
-envelope while only the locator-facing corner is relieved. The exact hashes
-above bind this re-review.
-
-The routed-replay hash rebind adds only the TSX producer's heartbeat budget
-and hard timeout under `flow`; it changes no pin, land, fabrication rule or
-board byte.
-
-P-PINMAP passes 16 multi-pin references and 160 declared physical pin
-identities. S-COUNT passes all four generated representations over 76 refdes.
-The board generator independently passes 18 named pad/net assertions.
-
-## Critical sweep
-
-- U1 TPSM63610 uses the exact 22-position RDF0022A perimeter/ground-land
-  pattern measured from TI's TPSM63610EVM editable board. VIN is physically on
-  the west after rotation 90, VOUT on the east, and all four split ground lands
-  retain their identities and via fields. SW, VCC and NC are explicit
-  no-connects as required by the module pin table.
-- U2 TPSM63604 uses the exact 20-position RDL0020A land measured from TI's
-  pin-compatible TPSM63606EVM. Rotation 90 likewise places VIN west and VOUT
-  east. SW, VCC and NC remain explicit no-connects; every split ground land is
-  present.
-- U3 TPS25810 retains pins 1-20 plus the grounded exposed pad: input pins 2-8
-  are `5VC_RAW`, output pins 14/15 are `VBUSC`, pins 11/13 are separate CC1/CC2,
-  and REF/REF_RTN are distinct pins 10/9. Debug/audio/polarity/UFP/LD_DET are
-  explicit no-connects, not silently omitted.
-- U4-U6 TPS2557 instances preserve GND, three IN lands, ILIM, two OUT lands,
-  FAULT and exposed GND. The three cells are exact structural repetitions;
-  no port net crosses into another port.
-- U7/U8 TPS2513 and D2-D4 USBLC arrays preserve each USB-A D-/D+ identity.
-  Those nets terminate in their local charging-signature cells; they are not
-  board-wide USB data pairs.
-- J2-J4 GCT USB1130 lands preserve VBUS=1, D-=2, D+=3, GND=4 and both grounded
-  shell stakes. Their horizontal mouths face the east board edge. The exact
-  2.26 mm shell holes and 0.92 mm contact holes come from GCT's drawing.
-- J5 GCT USB4105 preserves all 17 logical contact/shell identities. All four
-  VBUS contacts share `VBUSC`, all four GND contacts and shell stakes share
-  GND, A5/B5 remain separate CC1/CC2, and every D+/D-/SBU contact is an
-  explicit no-connect. The connector is power-only and cannot carry USB data.
-- D6 TPD2EUSB maps CC1/CC2/GND in the manufacturer order. Q1's three source
-  and four drain lands preserve the P-channel reverse-polarity orientation;
-  D1 and D5 retain their cathode/anode assignments. F1's duplicated physical
-  holder clips are explicit same-net aliases rather than lost pins.
-
-The project-local aliases for GCT, TI, the frozen `SOT-9X3` name and vendored
-`SOT-23-6` all load in KiCad. P-PINMAP grades the actual remaining pad sets,
-not library labels; the explicit thermal primitives are separately graded as
-40 true GND vias by the generator test. A full-severity, refill and
-schematic-parity pre-route DRC reports zero parity findings.
-
-design_verdict: SOUND
-order_verdict: DO-NOT-ORDER
+No pin winding, polarity, exposed-pad, connector-contact, missing-land or
+merged-land defect was found. `SOUND` applies only to this exact track-free
+pin/package realization. `DO-NOT-ORDER` remains mandatory because routing,
+filled-zone connectivity, routed reviews and manufacturing release are outside
+this pre-route review.

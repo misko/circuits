@@ -48,10 +48,13 @@ graded against corners the board cannot hold. The OPTIONAL per-rail
 `feedback:` block makes the corners COMPUTED, not declared:
 
   feedback: {vref, vref_tol_pct, r_top_ohm, r_top_tol_pct,
-             r_bottom_ohm, r_bottom_tol_pct}
+             r_bottom_ohm, r_bottom_tol_pct,
+             r_top_tcr_ppm_per_C, r_bottom_tcr_ppm_per_C,
+             resistor_temperature_delta_C}
   vout = vref * (1 + r_top/r_bottom)
-  computed low  = vref_min * (1 + r_top_min / r_bottom_max)
-  computed high = vref_max * (1 + r_top_max / r_bottom_min)
+  total resistor tolerance = initial tolerance + |TCR| * |delta temperature|
+  computed low  = vref_min * (1 + r_top_min / r_bottom_max) + Ifb_min*Rtop_min
+  computed high = vref_max * (1 + r_top_max / r_bottom_min) + Ifb_max*Rtop_max
 
 When present: a DECLARED window NARROWER than the computed one is a FAIL in
 both E-TOPO and E-MARGIN (the author under-stated the corners), and E-MARGIN
@@ -350,6 +353,8 @@ def _num_opt(v, field, name):
 # (`vref_min` + `vref_max`) range. Divider fields are always required.
 FEEDBACK_DIVIDER_FIELDS = ("r_top_ohm", "r_top_tol_pct",
                            "r_bottom_ohm", "r_bottom_tol_pct")
+FEEDBACK_TCR_FIELDS = ("r_top_tcr_ppm_per_C", "r_bottom_tcr_ppm_per_C",
+                       "resistor_temperature_delta_C")
 
 
 def _load_feedback(raw, name):
@@ -399,10 +404,37 @@ def _load_feedback(raw, name):
                             f"percentage in [0, 100)")
     if fb["vref_min"] <= 0 or fb["r_top_ohm"] <= 0 or fb["r_bottom_ohm"] <= 0:
         raise LoadError(f"rail {name!r} feedback reference and divider resistances must be positive")
+    tcr_present = [raw.get(f) is not None for f in FEEDBACK_TCR_FIELDS]
+    if any(tcr_present) and not all(tcr_present):
+        raise LoadError(
+            f"rail {name!r} feedback TCR stack needs ALL of "
+            f"{FEEDBACK_TCR_FIELDS}; a partial temperature stack under-states "
+            "the divider corners")
+    for f in FEEDBACK_TCR_FIELDS:
+        fb[f] = _num(raw.get(f, 0), f"feedback.{f}", name)
+        if fb[f] < 0:
+            raise LoadError(f"rail {name!r} feedback: {f} must be nonnegative")
+    for side in ("top", "bottom"):
+        total_pct = (fb[f"r_{side}_tol_pct"] +
+                     fb[f"r_{side}_tcr_ppm_per_C"] *
+                     fb["resistor_temperature_delta_C"] / 10000.0)
+        if total_pct >= 100:
+            raise LoadError(
+                f"rail {name!r} feedback: R{side} initial+TCR tolerance "
+                f"{total_pct:g}% must be below 100%")
+        fb[f"r_{side}_total_tol_pct"] = total_pct
     for f in ("fb_bias_current_min_nA", "fb_bias_current_max_nA"):
         fb[f] = _num(raw.get(f, 0), f"feedback.{f}", name)
     if fb["fb_bias_current_max_nA"] < fb["fb_bias_current_min_nA"]:
         raise LoadError(f"rail {name!r} feedback bias-current range must be ordered")
+    if fb["fb_bias_current_min_nA"] or fb["fb_bias_current_max_nA"]:
+        for f in ("fb_bias_current_basis", "fb_bias_current_evidence"):
+            value = str(raw.get(f, "")).strip()
+            if not value:
+                raise LoadError(
+                    f"rail {name!r} feedback nonzero bias-current range "
+                    f"requires {f!r}")
+            fb[f] = value
     return fb
 
 
@@ -411,8 +443,8 @@ def feedback_window(fb):
     vout = vref*(1 + r_top/r_bottom) + i_fb*r_top:
       low  = vref_min * (1 + r_top_min / r_bottom_max)
       high = vref_max * (1 + r_top_max / r_bottom_min)"""
-    tt = fb["r_top_tol_pct"] / 100.0
-    bt = fb["r_bottom_tol_pct"] / 100.0
+    tt = fb["r_top_total_tol_pct"] / 100.0
+    bt = fb["r_bottom_total_tol_pct"] / 100.0
     rt_lo = fb["r_top_ohm"] * (1 - tt)
     rt_hi = fb["r_top_ohm"] * (1 + tt)
     lo = fb["vref_min"] * (1 + rt_lo / (fb["r_bottom_ohm"] * (1 + bt))) \
@@ -498,8 +530,10 @@ def grade_feedback_window(rail):
            f"Vref {fb['vref_min']:g}-{fb['vref_max']:g} V")
     hdr = (f"rail {rail['name']!r} feedback window: {ref}, "
            f"Ibias {fb['fb_bias_current_min_nA']:g}-{fb['fb_bias_current_max_nA']:g} nA, Rtop {fb['r_top_ohm']:g} "
-           f"+/-{fb['r_top_tol_pct']:g}%, Rbot {fb['r_bottom_ohm']:g} "
-           f"+/-{fb['r_bottom_tol_pct']:g}% => computed worst-case "
+           f"+/-{fb['r_top_total_tol_pct']:g}% total, Rbot {fb['r_bottom_ohm']:g} "
+           f"+/-{fb['r_bottom_total_tol_pct']:g}% total "
+           f"(initial tolerance + {fb['resistor_temperature_delta_C']:g} C TCR excursion) "
+           f"=> computed worst-case "
            f"{lo:.3f}-{hi:.3f} V vs declared {rail['vout_min']:g}-"
            f"{rail['vout_max']:g} V")
     probs = []
@@ -537,6 +571,7 @@ def load_rails(path):
            "off_control": data.get("off_control"),
            "quiescent_ua": data.get("quiescent_ua"),
            "pack_capacity_mah": data.get("pack_capacity_mah"),
+           "source_voltage_boundary": data.get("source_voltage_boundary"),
            # E-MARGIN floor used for a rail that declares no ir_budget_mohm:
            "ir_floor_mohm": data.get("ir_floor_mohm")}
 
@@ -576,6 +611,30 @@ def load_rails(path):
         ir_components = _load_ir_components(
             r.get("ir_budget_components_mohm"), ir_budget, name)
         rmargin = _num_opt(r.get("margin"), "margin", name)
+        margin_basis = str(r.get("margin_basis", "")).strip()
+        margin_evidence = str(r.get("margin_evidence", "")).strip()
+        if bool(margin_basis) != bool(margin_evidence):
+            raise LoadError(
+                f"rail {name!r} delivery margin provenance needs BOTH "
+                "margin_basis and margin_evidence")
+        if margin_basis and rmargin is None:
+            raise LoadError(
+                f"rail {name!r} declares delivery margin provenance but no "
+                "numeric margin")
+        ss_ceiling = _num_opt(r.get("steady_state_ceiling_V"),
+                              "steady_state_ceiling_V", name)
+        ss_high_mv = _num_opt(r.get("steady_state_variation_high_mV"),
+                              "steady_state_variation_high_mV", name)
+        ss_basis = str(r.get("steady_state_variation_basis", "")).strip()
+        ss_evidence = str(r.get("steady_state_variation_evidence", "")).strip()
+        ss_fields = (ss_ceiling, ss_high_mv, ss_basis, ss_evidence)
+        if any(v not in (None, "") for v in ss_fields) and \
+                any(v in (None, "") for v in ss_fields):
+            raise LoadError(
+                f"rail {name!r} steady-state high-side budget needs ALL of "
+                "steady_state_ceiling_V, steady_state_variation_high_mV, "
+                "steady_state_variation_basis and "
+                "steady_state_variation_evidence")
         fb = _load_feedback(r.get("feedback"), name)
         fb_low = fb_high = None
         if fb is not None:
@@ -592,7 +651,13 @@ def load_rails(path):
                              if r.get("input_parent") else None),
             "load_uv": load_uv, "ir_budget_mohm": ir_budget,
             "ir_budget_components_mohm": ir_components, "margin": rmargin,
+            "margin_basis": margin_basis,
+            "margin_evidence": margin_evidence,
             "feedback": fb, "fb_low": fb_low, "fb_high": fb_high,
+            "steady_state_ceiling_V": ss_ceiling,
+            "steady_state_variation_high_mV": ss_high_mv,
+            "steady_state_variation_basis": ss_basis,
+            "steady_state_variation_evidence": ss_evidence,
             # OPTIONAL LINEAR overrides: the part.yaml number is the package /
             # datasheet figure; a rail may state a board-specific derating (a
             # hot ambient, no copper under the part) or the dropout at ITS own
@@ -920,6 +985,10 @@ def grade_margin(rail, ir_floor_mohm):
     ir_budget = rail.get("ir_budget_mohm")
     margin = rail.get("margin")
     margin = DEFAULT_MARGIN if margin is None else margin
+    margin_provenance = ""
+    if rail.get("margin_basis"):
+        margin_provenance = (
+            f" ({rail['margin_basis']}: {rail['margin_evidence']})")
     if ir_budget is not None:
         components = rail.get("ir_budget_components_mohm")
         breakdown = ("; path " + " + ".join(
@@ -931,12 +1000,13 @@ def grade_margin(rail, ir_floor_mohm):
             return "FAIL", (
                 f"{hdr} -> FAIL: setpoint headroom {headroom * 1000:.0f} mV < IR "
                 f"drop {drop_v * 1000:.0f} mV ({ir_budget:g} mOhm{breakdown} x {iout:g} A) x "
-                f"{1 + margin:.2f} margin = {need_v * 1000:.0f} mV - the load "
+                f"{1 + margin:.2f} margin{margin_provenance} = "
+                f"{need_v * 1000:.0f} mV - the load "
                 f"browns out under IR drop; raise the setpoint or cut delivery "
                 f"resistance")
         return "PASS", (f"{hdr} -> PASS: clears IR drop {drop_v * 1000:.0f} mV "
                         f"({ir_budget:g} mOhm{breakdown} x {iout:g} A) x {1 + margin:.2f} "
-                        f"margin")
+                        f"margin{margin_provenance}")
     # No declared IR budget: the budget must at least clear the floor (a bare
     # realistic delivery path). This is the (Vout-UV)-below-a-margin-floor form.
     if budget_mohm < ir_floor_mohm:
@@ -947,6 +1017,33 @@ def grade_margin(rail, ir_floor_mohm):
             f"justify ir_budget_mohm for this rail")
     return "PASS", (f"{hdr} -> PASS: {budget_mohm:.0f} mOhm budget clears the "
                     f"{ir_floor_mohm:g} mOhm floor")
+
+
+def grade_high_side_margin(rail):
+    """Grade an explicitly adopted steady-state high-side variation budget.
+
+    Divider/reference corners are not a complete output-voltage maximum:
+    switching ripple and line/load movement are nonzero.  This optional block
+    makes that reserved band a number and prevents a computed high corner from
+    sitting a few millivolts below an external ceiling while prose calls it
+    closed.  Startup/load-step excursions remain a separate transient claim.
+    """
+    ceiling = rail.get("steady_state_ceiling_V")
+    variation_mv = rail.get("steady_state_variation_high_mV")
+    if ceiling is None:
+        return "N-A", None
+    high = rail["fb_high"] if rail.get("fb_high") is not None else rail["vout_max"]
+    total = high + variation_mv / 1000.0
+    hdr = (f"rail {rail['name']!r} high-side reserve: setpoint corner "
+           f"{high:.3f} V + {variation_mv:g} mV steady-state variation = "
+           f"{total:.3f} V vs {ceiling:g} V ceiling "
+           f"({rail['steady_state_variation_basis']}: "
+           f"{rail['steady_state_variation_evidence']})")
+    if total > ceiling + 1e-9:
+        return "FAIL", (f"{hdr} -> FAIL: no bounded allowance remains for "
+                        "ripple/line/load movement; lower the setpoint or "
+                        "increase the justified ceiling")
+    return "PASS", f"{hdr} -> PASS"
 
 
 def run_margin_check(proj, ptp, nets_override=None):
@@ -960,6 +1057,7 @@ def run_margin_check(proj, ptp, nets_override=None):
     # a declared-vs-computed feedback window that under-states its corners is
     # an E-MARGIN defect too: the headroom everyone reasons from is fiction.
     graded += [grade_feedback_window(r) for r in rails]
+    graded += [grade_high_side_margin(r) for r in rails]
     checked = [(v, m) for (v, m) in graded if v != "N-A"]
     if not checked:
         return 0, ["E-MARGIN N-A: no rail declares load_uv_threshold - no "
@@ -1054,6 +1152,46 @@ def grade_off_control(top):
     return fails, notes
 
 
+def grade_source_voltage_boundary(top, rails):
+    """A battery rail's admitted lower voltage must have an owner.
+
+    Converter UVLO well below a project Vin floor does not protect the pack.
+    The boundary may be enforced on-board or assigned to a named external BMS,
+    but it may not exist only as a calculation input.
+    """
+    raw = top.get("source_voltage_boundary")
+    if not isinstance(raw, dict):
+        return [
+            "no source_voltage_boundary declared - a battery design must "
+            "assign its minimum operating voltage to an on-board supervisor "
+            "or a named external BMS/disconnect"
+        ], []
+    fails, notes = [], []
+    try:
+        floor = float(raw.get("minimum_operating_V"))
+    except (TypeError, ValueError):
+        floor = 0.0
+        fails.append("source_voltage_boundary.minimum_operating_V must be a positive number")
+    enforcement = str(raw.get("enforcement", "")).strip()
+    evidence = str(raw.get("evidence", "")).strip()
+    if enforcement not in {"on_board", "external_required"}:
+        fails.append("source_voltage_boundary.enforcement must be on_board or external_required")
+    if not evidence:
+        fails.append("source_voltage_boundary.evidence is required")
+    if enforcement == "external_required" and not str(raw.get("required_device", "")).strip():
+        fails.append("external_required source boundary must name required_device")
+    if floor > 0 and rails:
+        rail_floor = min(r["vin_min"] for r in rails)
+        if abs(floor - rail_floor) > 1e-6:
+            fails.append(
+                f"source boundary {floor:g} V differs from the lowest rail "
+                f"vin_min {rail_floor:g} V")
+    if not fails:
+        owner = str(raw.get("required_device", "")).strip() or "on-board circuit"
+        notes.append(f"source minimum: {floor:g} V, {enforcement}, owner={owner!r}")
+    return fails, notes
+
+
 def run_off_check(proj, ptp, nets_override=None):
     """E-OFF. Returns (exit_code, lines). Pure - main() prints and exits."""
     rails, top = load_rails(ptp)
@@ -1063,6 +1201,9 @@ def run_off_check(proj, ptp, nets_override=None):
                    f"({reason}) - de-energization is by unplugging the input"]
     lines = [f"E-OFF: self-contained energy source detected ({reason})"]
     fails, notes = grade_off_control(top)
+    boundary_fails, boundary_notes = grade_source_voltage_boundary(top, rails)
+    fails += boundary_fails
+    notes += boundary_notes
     for n in notes:
         lines.append(f"  {n}")
     q = top.get("quiescent_ua")

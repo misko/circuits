@@ -49,6 +49,8 @@ $PY "$S/module_first_check.py" . \
     || { echo "GATE FAILED P-MOD: module-first architecture contract"; exit 1; }
 $PY "$S/early_design_check.py" . \
     || { echo "GATE FAILED D-SPEC/E-PATH/E-SWDRV/E-SURGE: upstream design contract is red; deterministic replay may not bypass architecture"; exit 1; }
+$PY "$S/rules_audit.py" . --phase source \
+    || { echo "GATE FAILED A-SOURCE: net-class current/width/pour intent is malformed before deterministic replay"; exit 1; }
 
 # derive the board name from the SAME config the generic backend reads
 BOARD=$($PY - <<'PYEOF'
@@ -75,6 +77,9 @@ $PY "$S/pre_route_review_check.py" . --phase schematic \
 
 # [2] board (placement + zones) from committed floorplan.yaml  [SHARED]
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
+# KiCad parity discovers the comparison schematic only beside the board.  Put
+# the pinned canonical copy in place before the preliminary and final DRC runs.
+cp "$SCH" "04_kicad/$BOARD.kicad_sch"
 
 # [2a] Physical/schematic/footprint pin identity, before any placement review
 # or promoted-route import.
@@ -95,9 +100,11 @@ $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
 $PY "$S/policy_audit.py" . --board "$BOARD" --skip-drc --phase placement \
     || { echo "GATE FAILED [3a] P-ADJ: datasheet placement budget violated before routing"; exit 1; }
 
-$PY "$S/pre_route_review_check.py" . --phase placement \
-    --board "04_kicad/$BOARD.kicad_pcb" \
-    || { echo "GATE FAILED [3b] PR-REVIEW: placement evidence missing, stale, or defective"; exit 1; }
+$PY "$S/generate_rules_generic.py" .
+kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
+    --format json -o 06_build/drc/pre_route.json "04_kicad/$BOARD.kicad_pcb"
+$PY "$S/placement_drc_check.py" 06_build/drc/pre_route.json \
+    || { echo "GATE FAILED [3b] P-DRC: exact placement has a short, clearance, library, hole, or parity defect before human review"; exit 1; }
 
 # [4] netclasses + .kicad_dru BEFORE import (canon R1: rules ride into the route)  [SHARED]
 #     (generate_rules_generic itself purges kicad-cli's stray
@@ -108,6 +115,14 @@ $PY "$S/generate_rules_generic.py" .
 # wall while the board is still track-free, not after replaying/stitching it.
 $PY "$S/escape_check.py" --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [4a] P-LAND: a placed pad cannot launch its declared width"; exit 1; }
+
+$PY "$S/tier_preflight.py" . \
+    || { echo "GATE FAILED [4b] R-PREFLIGHT: route geometry disagrees with the fab tier"; exit 1; }
+$PY "$S/route_and_stitch_generic.py" prep 03_src/route.yaml
+
+$PY "$S/pre_route_review_check.py" . --phase placement \
+    --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [4c] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence missing, stale, or defective"; exit 1; }
 
 # [5] import the PROMOTED KRT chain once into the track-free board  [SHARED]
 $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml
@@ -121,11 +136,15 @@ $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require
 
 # [7] generate_rules LAST — pcbnew saves in the chain clobber netclasses  [SHARED]
 $PY "$S/generate_rules_generic.py" .
+$PY "$S/rules_audit.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [7a] A-CLASS/A-AGREE/A-AMP/A-FIRE/A-ORDER: generated rules do not enforce authored copper intent"; exit 1; }
+$PY "$S/via_ampacity_check.py" "04_kicad/$BOARD.kicad_pcb" 03_src/route.yaml \
+    --json 06_build/verification/via_ampacity.json \
+    || { echo "GATE FAILED [7b] A-VIA: a declared series transfer bank lacks current capacity"; exit 1; }
 
 # [8] routing gate: full-severity DRC, zones refilled, schematic parity.
 #     The pinned sch must sit beside the board or --schematic-parity silently skips.
 mkdir -p 06_build/route
-cp "$SCH" "04_kicad/$BOARD.kicad_sch"
 kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     --format json -o 06_build/route/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY - <<'PYEOF'

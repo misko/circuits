@@ -36,6 +36,8 @@ gates:
       - 01_docs/journal/03_schematic.md
       - 03_tscircuit/kicad/usb_hub_3s_v4.kicad_sch
       - 08_reviews/pre-route_topology.md
+      - 08_reviews/pre-route_schematic_render.md
+      - 06_build/erc_errors.rpt
 
   - id: v4_placement
     required_for: DESIGN_CLEAN
@@ -47,6 +49,8 @@ gates:
       - 08_reviews/pre-route_pin.md
       - 08_reviews/pre-route_layout.md
       - 08_reviews/pre-route_render.md
+      - 06_build/pre_route/twin_overlay.md
+      - 06_build/drc/pre_route.json
 
   - id: v4_routing
     required_for: DESIGN_CLEAN
@@ -56,8 +60,10 @@ gates:
     evidence:
       - 01_docs/journal/routing.md
       - 03_src/route.yaml
-      - 03_src/route/r4.kicad_pcb
+      - 03_src/route/r8.kicad_pcb
       - 04_kicad/usb_hub_3s_v4.kicad_pcb
+      - 06_build/route/import_provenance.json
+      - 06_build/drc/gate.json
 
   - id: v4_release_package
     required_for: FIRST_ARTICLE_ORDERABLE
@@ -107,16 +113,20 @@ findings:
       - 01_docs/decisions/0004-jlc-advanced-via-in-pad.md
       - 03_src/rules/nets.yaml
 
-  - id: V4-F5-pi-cable-qualification
+  - id: V4-F5-pi-interconnect-qualification
     state: open
     blocks_at_or_above: FIRST_ARTICLE_TESTED
     owner: lab
     finding: >-
-      The load-plane Pi voltage claim budgets only 20mOhm for the nominated
-      cable and 15mOhm for the mated contacts; no exact cable has been measured.
+      The load-plane Pi voltage claim budgets 39mOhm for the complete
+      interconnect from J5's PCB-side power lands to Pi load-plane sense
+      points. That path includes two mated pairs, cable plug internals,
+      conductors/terminations and the Pi receptacle/entry path; no manufacturer
+      guarantees the combined resistance.
     closes_when: >-
-      An exact short heavy-gauge cable and plug/receptacle pair are four-wire
-      measured hot and the complete load plane passes at 3A.
+      The exact board, named 10165794-Z0030YBLF cable and target Pi are
+      four-wire measured hot from the declared endpoints, the complete
+      interconnect is <=39mOhm, and the load plane passes continuously at 3A.
 
   - id: V4-F6-order-day-sourcing
     state: open

@@ -26,6 +26,7 @@ import argparse
 import csv
 import hashlib
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -99,15 +100,22 @@ def datasheet_path(part_dir, declared):
 
     A dossier once selected the older non-automotive PDF merely because it
     sorted first beside the exact Q-grade authority. Fresh review must see
-    the bytes whose digest part.yaml actually asserts.
+    the bytes whose digest part.yaml actually asserts. A URL, a sole PDF, or
+    an adjacent family document is not review evidence: fail before dossiers
+    are commissioned if the authority is absent or its bytes do not match.
     """
-    want = str((declared or {}).get("sha256", "")).lower()
+    want = str((declared or {}).get("sha256") or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", want):
+        raise RuntimeError(
+            f"P-AUTH {part_dir}: datasheet.sha256 is missing or malformed; "
+            "fresh pin review requires a digest-selected local PDF")
     pdfs = sorted(part_dir.glob("*.pdf"))
-    if want:
-        for pdf in pdfs:
-            if hashlib.sha256(pdf.read_bytes()).hexdigest().lower() == want:
-                return str(pdf)
-    return str(pdfs[0]) if len(pdfs) == 1 else (declared or {}).get("url", "(none)")
+    for pdf in pdfs:
+        if hashlib.sha256(pdf.read_bytes()).hexdigest().lower() == want:
+            return str(pdf)
+    raise RuntimeError(
+        f"P-AUTH {part_dir}: no local PDF matches declared SHA-256 {want}; "
+        f"found {len(pdfs)} PDF(s)")
 
 
 def main():

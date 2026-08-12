@@ -27,14 +27,20 @@
   (condition "A.NetClass == 'CONTROL'")
   (constraint track_width (min 0.18mm)))
 (rule "scoped_u1_5va_launch"
-  (condition "A.insideArea('u1_5va_launch') && (A.NetName == '5VA')")
+  (condition "A.insideArea('u1_5va_launch') && (A.NetName == '5VA_RAW')")
   (constraint track_width (min 0.5mm)))
 (rule "scoped_u2_5vc_launch"
   (condition "A.insideArea('u2_5vc_launch') && (A.NetName == '5VC_RAW')")
   (constraint track_width (min 0.3mm)))
+(rule "scoped_u9_aux_input_launch"
+  (condition "A.insideArea('u9_aux_input_launch') && (A.NetName == '5VA_RAW')")
+  (constraint track_width (min 0.3mm)))
 (rule "scoped_usba_switch_in_launch"
   (condition "A.insideArea('usba_switch_in_launch') && (A.NetName == '5VA')")
   (constraint track_width (min 0.8mm)))
+(rule "scoped_usba_switch_out_launch"
+  (condition "A.insideArea('usba_switch_out_launch') && (A.NetName == 'VBUSA2' || A.NetName == 'VBUSA3')")
+  (constraint track_width (min 0.3mm)))
 (rule "scoped_charge_signature_supply_launch"
   (condition "A.insideArea('charge_signature_supply_launch') && (A.NetName == '5VA')")
   (constraint track_width (min 0.8mm)))

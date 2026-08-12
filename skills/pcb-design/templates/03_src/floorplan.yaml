@@ -23,6 +23,8 @@ board:
   # Optional, board-wide fabrication intent. Enable only when the order calls
   # for every via to use the corresponding process; separately identify all
   # via-in-pad sites and require fabricator/assembly DFM acceptance.
+  # Board-default via treatment; every via left "From rules" inherits it.
+  # Prefer selective thermal_vias.protection for via-in-pad work.
   # via_protection: {capping: yes, filling: yes}
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3

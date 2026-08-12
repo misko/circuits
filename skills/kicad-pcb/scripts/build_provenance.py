@@ -114,8 +114,14 @@ from pathlib import Path
 
 RECORD = "06_build/build_provenance.json"   # 06_build/*.json — disposable by contract
 
-#: files whose bytes decide what `tsci build` emits into circuit.json.
-SRC_GLOBS = ("src/**/*.tsx", "src/**/*.ts", "package.json", "tsconfig.json")
+#: files whose bytes decide what `tsci build` emits into circuit.json.  A
+#: package manifest without its resolved lock graph is not reproducible: Bun
+#: can otherwise combine a newly resolved core with a different global/cache
+#: dependency tree while every electrical source byte remains unchanged.
+SRC_GLOBS = (
+    "src/**/*.tsx", "src/**/*.ts", "package.json", "tsconfig.json",
+    "bun.lock", "bun.lockb", "package-lock.json", "pnpm-lock.yaml", "yarn.lock",
+)
 
 #: template sentinel knobs. A board still carrying these has never run the
 #: driver — pluto-rx2-8way-v2 carried them from commission through 4 commits.

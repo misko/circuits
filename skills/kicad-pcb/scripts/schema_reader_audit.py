@@ -281,10 +281,17 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 13
-PROVEN_FLOOR = 384
+PROVEN_FLOOR = 424
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
+#: 422 -> 424 on 2026-08-12: E-MARGIN reads and reports the typed residual
+#: margin basis/evidence pair introduced by USB Hub v4; two new observed keys,
+#: both PROVEN. Measured `--root .`: 502/502 declared, 424 PROVEN, 0 orphan.
+#: 419 -> 422 on 2026-08-12: P-AUTH binds `datasheet.sha256` to the
+#: digest-selected local review PDF, and the formerly malformed combined
+#: tap-via contract row is split into the two keys the stitcher actually reads:
+#: `taps.connections[].via` and `.via_protection`.
 #: 242 -> 246 on 2026-07-30: nets.yaml `scoped_clearances[]`
 #: {zone, nets, clearance, why} bound to generate_rules_generic.py
 #: (canon R-SCOPE). This constant is the ONLY line the R-SCOPE change

@@ -66,8 +66,7 @@ re-commit the sch as the new pin.
     <board>.tsx             # THE BOARD authored in tscircuit
   build/                    # (generated) renders
     circuit.json            # [DEFAULT] tscircuit's canonical intermediate
-    schematic.svg           # [DEFAULT]
-    schematic.pdf           # [DEFAULT] HUMAN schematic doc = tscircuit's own render (SHIP in release)
+    schematic.pdf           # [DEFAULT] HUMAN doc, exact JSON, one fitted page/sheet (SHIP)
     pcb.svg                 # [--study only]
     assembly.svg            # [--study only]
     board.gltf              # [--study only] 3D
@@ -99,7 +98,7 @@ bash <kicad-pcb skill>/scripts/gen_tscircuit.sh <project_dir> --study    # + tsc
 
 **DEFAULT = the BRIDGE ONLY (ADR-0002 Phase D).** With no flag the script emits
 only what the KiCad backend consumes + the gates that certify it: `circuit.json`,
-the human `schematic.svg`/`schematic.pdf`, the converter `kicad/<board>.kicad_sch`,
+the exact-Circuit-JSON human `schematic.pdf`, the converter `kicad/<board>.kicad_sch`,
 the readable netlist, and the ERC + netlist-parity gates (`parity_converter.md`,
 `parity.md`). It does NOT render tscircuit's own PCB/gerbers/3D — those are never a
 fab source (KRT + the KiCad backend own the fab route — the two hard lines), so
@@ -137,6 +136,11 @@ to one pin). Nets resolve via `subcircuit_connectivity_map_key` with propagation
 `internally_connected_source_port_ids`; GND pins render as ground power symbols + one
 `PWR_FLAG`; explicit no-connects get `no_connect` flags. The sheet is annotated, so
 netlist export builds real nets.
+
+Commodity capacitor footprint tokens are producer-versioned input data. Older
+Circuit JSON uses bare `0402`--`1210` tokens, while pinned tscircuit 0.0.2300
+uses `cap0402`--`cap1210`; the bridge deliberately accepts both spellings and
+tests that they resolve to identical KiCad FPIDs.
 
 **The converter has two modes (`--mode`, ADR-0002 Phase A, DONE 2026-07-20):**
 - **`layout` (DEFAULT, WIRED)** — consumes tscircuit's OWN schematic layout that

@@ -26,11 +26,16 @@ pins:
   18: {name: PGND, tie: GND}
   19: {name: PGND, tie: GND}
   20: {name: PGND, tie: GND}
-limits: {vin_recommended_max: 36V, vin_abs_max: 42V, iout_rated: 4A, shutdown_iq_typ: 1uA, vref_accuracy: "+/-1%"}
+limits: {vin_recommended_max: 36V, vin_abs_max: 42V, iout_rated: 4A, shutdown_iq_typ: 1uA, vref_accuracy_full_temperature: "+/-1.0%", fb_input_current_typ: 10nA}
 gotchas:
   - "Dedicated to the Raspberry Pi rail: 3A continuous leaves 1A rated-current headroom."
   - "Exposed thermal lands must be soldered and tied to plane copper with filled/capped thermal vias."
-verified: "pin table 6-1, limits tables 7-1 and 7-5, and layout section 11 independently read 2026-08-10"
+  - "SW pin 2 is intentionally left without an external net: TI SLVSGJ5 Table 6-1 says not to place an external component or connect a signal and to minimize copper on this pin."
+  - "VCC pin 7 is intentionally left without an external net: it is the internal-LDO output with an internal 1uF capacitor and TI says not to connect external loads."
+  - "At 5V and 1MHz, Table 8-1 requires 30uF minimum effective ceramic output capacitance and recommends 22pF CFF when the output capacitance is close to minimum. C9-C11 provide a machine-checked 40.392uF effective and C23 adds polymer bulk, so v4 omits CFF pending exact mixed-bank loop qualification."
+  - "C23 is allowed additional low-ESR polymer capacitance, but does not replace the minimum ceramic bank."
+  - "The electrical table gives 10nA typical IFB without a maximum; ADR-0009 uses 0..500nA (50x typical) only as an analytical stress screen, not a manufacturer guarantee. Exact-board steady-state voltage remains a first-article qualification obligation."
+verified: "pin table 6-1, full-temperature +/-1% feedback-system statement and electrical table, Table 8-1 capacitance/CFF row, output-capacitor section, limits and layout section 11 independently read 2026-08-11"
 sourcing: {lcsc: C5219289, alternates: [], note: "JLC/LCSC catalog candidate; volatile stock evidence is kept in 06_build/cache"}
 layout:
   source: "TI SLVSGJ5 sec.11 plus pin-compatible TPSM63606EVM BSR175A editable Altium design files (SLVRBI7)"

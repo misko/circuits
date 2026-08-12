@@ -33,6 +33,8 @@ flow:
     board: 04_kicad/cook_loadcell.kicad_pcb
     netlist: 06_build/netlists/cook_loadcell.net
     topology: 08_reviews/pre-route_topology.md
+    schematic_pdf: 03_tscircuit/build/schematic.pdf
+    schematic_render: 08_reviews/pre-route_schematic_render.md
     pin: 08_reviews/pre-route_pin.md
     layout: 08_reviews/pre-route_layout.md
     render: 08_reviews/pre-route_render.md
@@ -60,6 +62,8 @@ flow:
                     route.final]
     stochastic: [route.waves]
   budgets_s:
+    tscircuit_deps: 30
+    tscircuit_build: 60
     escape_packages: 30
     escape_lands: 120
     tier_preflight: 15
@@ -70,6 +74,12 @@ flow:
   # is killed as a process group and leaves its last heartbeat in 06_build/.
   timeouts_s:
     default: 600
+    source_schema_governance: 60
+    adr_bound_governance: 60
+    # Schematic autorouting can become combinatorial. Projects may raise this
+    # with measured evidence, but the canonical starting point is bounded.
+    tscircuit_deps: 120
+    tscircuit_build: 180
     route_wave: 900
     route_race: 2400
     route_evaluate: 180
@@ -175,6 +185,22 @@ route:
   # canon M3: the shipped board imports the PROMOTED chain file, not a
   # fresh stochastic route. Delete this to re-route from scratch.
   final: 03_src/route/r2.kicad_pcb
+
+# OPTIONAL A-VIA contract for a board whose power path is forced through a
+# layer-transition bank. Rectangles must tightly bound the physical series
+# boundary; arbitrary same-net stitching is not proof that current crosses it.
+# Use a published finished-hole basis, give fill material zero credit, and
+# retain loaded first-article thermal validation.
+# via_ampacity:
+#   source: "Manufacturer application note / IPC-2152 basis URL"
+#   method: "sum published 10 C-rise capacity by finished hole; no fill credit"
+#   temperature_rise_c: 10
+#   capacity_by_finished_hole_mm: {0.20: 0.55, 0.30: 0.84}
+#   transfers:
+#     - {name: regulator_out_to_plane, net: VOUT,
+#        rect: [10.0, 20.0, 14.0, 22.0], minimum_vias: 4,
+#        required_continuous_a: 2.0,
+#        why: "all load current must cross this F.Cu-to-B.Cu boundary"}
 
 # TAPS (canon M8 promotion: cook-hub u7 taps, then usb-pwr-hub-3s
 # route_taps.py). NAMED connections KRT cannot thread — pour-fed sense pins,

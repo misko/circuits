@@ -3,6 +3,6 @@ schema: 2
 stages: []
 no_external_gate_drive_stages: >-
   TPSM63610RDFR and TPSM63604RDLR integrate their controllers, gate drivers,
-  power MOSFETs, current protection and inductors; TPS25810 and TPS2557 also
+  power MOSFETs, current protection and inductors; TPS25810 and TPS2559 also
   integrate their port power switches. There is no external MOSFET gate-drive
   stage or external inductor-current sense cell to grade.

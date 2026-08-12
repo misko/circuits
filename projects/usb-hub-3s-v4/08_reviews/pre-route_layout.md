@@ -1,100 +1,123 @@
-subject: usb-hub-3s-v4 exact placed board 0245323bcef5
-date: 2026-08-11
-reviewer: Codex root, layout/thermal/power-integrity pass using exact pad coordinates and official TI/GCT layout sources
-independence_limit: same task owns design and review; mechanical gates and direct pad-distance reconstruction are separate instruments, but external-human independence remains a declared process boundary
+subject: USB Hub 3S v4 exact track-free placement
+date: 2026-08-12
+reviewer: Codex fresh-context independent pre-route layout lens
 review_stage: pre-route
 review_kind: layout
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-board_sha256: 0245323bcef57d6d4327ae8ce5b545bee50512851d02c08ed59ac8ace8707137
-design_rules_sha256: d527db4303161f3501ebcdcff57e3314318bf79599a4915bec429f4cd0d887dd
+board_sha256: e0c6e592f5063d0e7af710c3682f05cfb2f577adff22e79132ac9a84c7f8621e
+design_rules_sha256: 1836747093e3a866efaae089ac787a6db42133ead8d09d0dc948c9b35a20af21
+floorplan_sha256: bc08b2c6fd2cdd80c259a358d2788a1c5a99637d5727cd4264f8f40d5787d4ad
+route_yaml_sha256: 8fd03f968e4f86403ae60b2e050d6b033f827b3ce1b8d737d19a0dbd827f3874
+prepared_r0_sha256: 805308ae35a3042c43a533fed3bfa1777437ee766848d5b1696a5b58af11d94c
+promoted_r8_sha256: 8ea0f50681d48c34c6e5f300cc8842f144937cd92fb118cad6a546d19acf173f
+placement_drc_sha256: adc06f14e3b19c7aa3856d0926c45a2d7362fff4681b61c57d2e4a3dfd7bebaa
+top_render_sha256: 14991062778cee2e4888696c7effa0c9ade3ed3edcf3109bf9dc5fe00be23560
+iso_render_sha256: 98f313e57998b6f4e5b17612cb7bea6124f2173a3f60e2c199ad299c89140f3c
 
-# Pre-route layout review
+# Independent pre-route layout review
 
-## Verdict and construction
+## Scope and method
 
-The exact track-free board is SOUND to proceed to routing. It measures 130 x
-90 mm, has four copper layers, four M3 holes, three non-collinear global
-fiducials and a 1.2 mm ENIG JLC advanced stack. Board-level via intent requires
-resin filling and copper capping. U1/U2 contribute sixteen 0.30 mm drills at
-4:1 nominal aspect ratio; U3/U4-U6 contribute twenty-four 0.20 mm drills at
-6:1. All 40 are true board vias, not footprint PTH holes. Two internal
-uninterrupted GND zones are declared. These are manufacturing/layout contracts,
-not proof of filled routed copper.
+I independently parsed the exact board with pcbnew, inspected the exact native
+top and isometric renders at full resolution, reran the placement/body,
+pad-separation and land-escape gates, read the current placement-policy report,
+and compared the realized component relationships with the vendored
+manufacturer layout guidance for the two power modules, TPS25982, TPS2559,
+TPS2513A, TPS25810 and the connector-side ESD devices. I did not use a prior
+layout verdict as evidence and did not require completed routing.
 
-Stage 4 regenerated the placement with bounded launch-rule areas, explicit
-power islands and validated simple zone polygons. TP1, TP3 and TP4 moved onto
-their VIN, 5VC_RAW and VBUSC copper respectively; TP2 remains on the 5VA
-back-plane island. In-memory refill confirms those four test lands are inside
-their intended copper. All measured critical component adjacencies remain
-unchanged; the new exact board/rule hashes bind them.
+The subject contains 95 footprints, 48 zones, zero track segments and 48
+placement-owned 0.50/0.20 mm filled/capped vias. The current exact refilled
+placement DRC (`06_build/drc/pre_route.json`, generated after the board) reports
+seven permitted preliminary `isolated_copper` findings, 118 expected unrouted
+connections, and zero schematic-parity findings. The older
+`pre_route_exact.json` count is stale and receives no credit.
 
-The pre-route full-severity DRC found and closed the top J2/H2/FID2 courtyard
-collision, two silk contacts, 24 drill-floor contradictions, five library
-resolution warnings and J5's 0.1944 mm locator-hole corner. H2 now clears J2
-by 0.10 mm in x, FID2 is unobstructed, and J5's exact relieved corner exceeds
-the project 0.25 mm hole-clearance floor. The earlier self-intersecting VIN
-polygon was rejected by the new simple-polygon gate and replaced by a simple
-outline that fills across the protected input cell. Only seven unbonded
-power-zone islands remain before the explicit tap stage; no other violation
-class and no schematic-parity finding remains.
+## Findings
 
-The advanced tier is justified by U3's 0.50 mm WQFN pitch and direct
-filled/capped thermal-via fields, not by routing density or USB data. Ordinary
-process would make the exposed-land via-in-pad/stencil result unnecessarily
-risky.
+- **Functional floorplan and power flow — sound.** The physical story reads
+  west to east: J1 -> F1 -> Q1 -> VIN; U1 feeds the protected USB-A aggregate
+  path through U9, while U2 feeds the independent attach-controlled Type-C path
+  through U3. The three USB-A cells repeat at 24 mm pitch and face outward on
+  the east edge. J5 faces outward on the south edge. The fuse, master switch,
+  battery terminal and every receptacle remain unobstructed.
+- **Converter modules — sound.** U1 and U2 have symmetric input capacitors at
+  2.35/2.36 mm and 1.60/1.60 mm pad-centre distance respectively. Their nearest
+  output ceramics are 2.07 mm (U1) and 3.45 mm (U2); the remaining bank fans
+  outward without blocking escape. BOOT resistors are 2.4--2.7 mm from their
+  pin pairs, RT parts about 2.0 mm away, and the first FB parts 1.91 mm (U1) and
+  3.21 mm (U2) away. The four ground lands on each module own two same-net
+  Type-VII vias each, and both inner layers are uninterrupted GND planes. This
+  is consistent with TI's symmetric capacitor, short feedback/BOOT/RT and
+  thermal-land guidance.
+- **U9 aggregate eFuse — sound with a route-preservation condition.** R26
+  (ILIM), C29 (ITIMER) and C30 (dV/dt) are on the corresponding outward-facing
+  pin sides at 2.03, 2.38 and 1.43 mm respectively; none must cross the package.
+  PowerPAD 25 owns four 0.50/0.20 mm raw-rail vias and GND PowerPAD 26 owns two,
+  with no accidental bridge between the split pads. The OUT lands face the
+  protected distributor and the prepared contract reserves a 2.10 mm-deep
+  collector plus fourteen ordinary transfer vias. The nearest 5VA_RAW ceramic
+  bank is 11.28 mm from an IN land, not pin-adjacent. TI recommends the bypass
+  closest to IN/GND but permits it to be minimized or omitted when input-path
+  inductance is negligible; this short same-board module-to-eFuse plane path is
+  acceptable at placement. Final copper must preserve a broad direct return
+  with no neck/noisy coupling, and first-article input/output transient evidence
+  remains mandatory.
+- **USB-A cells — sound.** U4/U5/U6 each place the 100 nF input bypass 2.12 mm
+  from an IN land, ILIM resistor 4.07 mm from the ILIM pin, and output bulk
+  capacitor 3.90 mm from an OUT land. Each exposed pad owns six Type-VII ground
+  vias. Their power sides face the B.Cu distributor and their output sides face
+  separate broad VBUSA zones. D2/D3/D4 lie connector-side of the charge-
+  signature branches; the approximately 8 mm exposed-contact-to-clamp runs are
+  short, repeated and routeable for charge-only D+/D- lines. U7/U8 and their
+  100 nF bypass capacitors remain local to the signature branches.
+- **Type-C cell — sound.** U3 sits between the cold-socket capacitor bank and
+  J5. C12 input bypass is 2.75 mm from IN; C13 output bulk is 3.14 mm from OUT;
+  the REF/REF_RTN resistor is 2.81 mm from both pins. D6 is 2.95 mm from each
+  connector CC land and precedes the controller; the prepared CC1/CC2 seed
+  launches preserve separate, symmetric connector escapes. U3's ground pad
+  owns six physical Type-VII vias and C23 owns two local GND return vias.
+  No USB data or RF routing is commissioned.
+- **Mechanical and assembly geometry — sound.** Fresh P-OUT measured a 1.55 mm
+  tightest pad/outline margin. P-BODYCLR graded 88 assembled envelopes with zero
+  close/overlap or envelope-to-foreign-pad findings at the positive 0.10 mm
+  floor. P-PADSEP graded 346 pads, 57,771 inter-footprint pairs and 94,480
+  paste-to-foreign-copper pairs at the 0.09 mm advanced-tier floor with zero
+  failures. J5's intentional body/courtyard overhang follows its manufacturer
+  PCB-edge datum; its copper remains inside. All four M3 holes have usable
+  approach space, and the three top fiducials are non-collinear and clear.
+- **Route feasibility — sound.** P-CAP's worst board cut is three demanded nets
+  against 216-track estimated capacity. P-LAND grades 100 applicable lands,
+  including three scoped launches, with zero unreachable lands. The exact
+  prepared r0 preserves the 48 placement vias and adds the reviewed connector
+  escapes and series-transfer reservations without changing placement. These
+  facts establish credible routing corridors; they do not claim routed copper.
+- **Test and silkscreen access — sound.** TP1--TP12 expose VIN, both regulated
+  paths, VBUSC, EN, both PG nodes, four fault nodes and GND in open central
+  areas. Every assembled electrical component has a visible F.Silkscreen
+  reference. Functional legends identify battery polarity, fuse rating,
+  hard-off switch, power-only/no-data behavior, each port rating and no-PD
+  Type-C behavior. Mounting-hole and fiducial references are intentionally
+  hidden; their geometry is unambiguous.
 
-The post-tap cheap check also measured the two auxiliary module launches. U1.5
-can drop immediately to a collision-clear 1.0 mm B.Cu branch; U2.5 is boxed in
-by its adjacent 0.50 mm-pitch lands and therefore retains a 0.30 mm, 2.60 mm
-F.Cu branch wholly inside its named scoped rule area before joining the
-5VC_RAW pour. Neither is treated as the rail's trunk conductor.
+The placement-policy gate passes, but its P-ADJ and P-ADJ-PAIR rows are N-A
+because the dossiers carry narrative layout constraints rather than numeric
+`keep_short`/adjacency budgets. The measurements above are therefore human
+review evidence, not a claim that the machine gate checked those distances.
 
-U5/U6 output-pad escapes are likewise explicit source geometry: each affected
-2 A port uses two parallel 0.50/0.20 mm filled/capped via-in-pad drops and
-0.8 mm B.Cu joins from pins 6/7 into its port plane. Seeding them before KRT
-prevents control traces from consuming the only inter-layer path.
+## Disposition and limits
 
-## Measured critical adjacency
+P0: None.
 
-- U1 TPSM63610: both VIN capacitor lands are 2.35/2.36 mm from the matching VIN
-  lands; BOOT resistor ends are 2.69/2.70 mm from their pins; RT is 1.99 mm;
-  SPSP is 2.71 mm; the high feedback leg is 2.06 mm from FB and the low leg is
-  3.85 mm. The output capacitor bank is on the physical VOUT side. These
-  replace the first legal-but-electrically-poor arrangement found by render and
-  pad-coordinate review.
-- U2 TPSM63604: both VIN bypass lands are 1.60 mm from their matching VIN
-  lands; BOOT ends are 2.49 mm; RT is 2.07 mm; feedback legs are 3.10/3.45 mm.
-  The three 47 uF `5VC_RAW` capacitors form the bridge from U2's VOUT side into
-  the U3 input side.
-- U3 TPS25810: the nearest 47 uF bank land is 3.70 mm from an input land and
-  the 100 nF bypass is 2.75 mm away. The 100 k 0.1% REF resistor is symmetric
-  at 2.81 mm from both REF and REF_RTN and lies inside the quiet reference
-  keepout. The output bulk capacitor is on the VBUS side.
-- J5/D6: connector-to-clamp distances are exactly 2.657 mm on both CC1 and CC2.
-  The paths are therefore symmetric at placement and reach the clamp before
-  U3. Actual routed length/ground-via quality remains a Stage 4 obligation.
-- U4-U6 repeated USB-A switches: input bypass is 2.10 mm, ILIM 3.40 mm and
-  output bulk 3.86 mm from the corresponding switch land in each cell. The
-  passive receptacle body forces each D2-D4 clamp just below its connector
-  courtyard; connector-to-clamp D+/D- spans are about 8-10 mm and still precede
-  the local signature controller. They are charging-identification nets, not
-  high-speed USB routes.
+P1: None.
 
-## Feasibility gates
+P2: Preserve the U9 short/broad input path and split-pad ownership, its full
+OUT collector/transfer bank, both converter capacitor/feedback corridors, the
+three repeated USB-A transfer cells, U3 REF keepout, connector-first CC and
+charge-line clamps, test-point access and all functional silk during routing.
 
-Placement gates pass with the tightest pad-to-outline margin 2.03 mm at J5.SH,
-worst cut demand 6 nets versus capacity 200 tracks, and zero courtyard/body or
-envelope-to-foreign-pad findings across all 76 assembled components.
-P-PADSEP passes 295 component copper pads and 41,136 inter-footprint pad pairs
-at the 0.09 mm advanced floor; the 40 thermal primitives are correctly counted
-as vias instead of package pads. Placement policy passes all three applicable
-layout/precedent/adjacency rows; RF and critical signal routing are explicitly
-not applicable because the board carries no USB data.
-
-No routed copper, current-density, neckdown, feedback-takeoff, thermal-spread,
-zone-island or DRC conclusion is claimed here. Those are Stage 4/5 gates, so
-the order verdict remains DO-NOT-ORDER.
-
-design_verdict: SOUND
-order_verdict: DO-NOT-ORDER
+The exact track-free placement is **SOUND** for routing. It is **DO-NOT-ORDER**:
+this review does not grade completed copper, filled-zone current sharing,
+thermal rise, JLC catalog-body registration/rotation, production files,
+assembly coverage, stock, or first-article electrical qualification.

@@ -13,7 +13,7 @@
 | `netlists/**` | exported netlists | regenerate |
 | `drc/**` | DRC/ERC/audit reports (`gate.json` = the current gate result) | regenerate |
 | `route/**` | KRT routing chain inputs/outputs (`r0..rN`, `taps_*.kicad_pcb`) | regenerate (needs KiCadRoutingTools) |
-| `fab/**` | JLC export: gerbers, `bom.csv` (carries LCSC codes between runs), `cpl.csv`, zip — the CONTRACT's names, so a seal COPIES rather than renames (07_releases/contracts.md requires `fab/bom.csv` + `fab/cpl.csv`) | regenerate; bom LCSC column is the seed store |
+| `fab/**` | JLC export: gerbers, `bom.csv` (carries LCSC codes between runs), `cpl.csv`, `order_notes.txt` generated from the exact assembly contract, zip — the CONTRACT's names, so a seal COPIES rather than renames (07_releases/contracts.md requires `fab/bom.csv` + `fab/cpl.csv`) | regenerate; bom LCSC column is the seed store |
 | `pdf/**` | release PDF set + PNG verification renders | regenerate |
 | `cache/**` | **volatile market data**: stock, price, distributor attrs | hours |
 | `proof/**` | regenerated candidate boards for comparison against the sealed `04_kicad` (never written back) | regenerate |

@@ -1,0 +1,13 @@
+mpn: CGA1210X7R476K100RT
+manufacturer: HRE
+type: mlcc_x7r
+datasheet: {doc_id: HRE-CGA, revision: "catalog PDF retrieved 2026-08-11", url: "https://atta.szlcsc.com/upload/public/pdf/source/20240628/717BDB67ECC6F0AC43DC1CBFE7C6D1C3.pdf", sha256: 71b13d9b0d890171b40a80c1449ed4a22b3571172e3394fdee4912fbdd553ce9, fetched: 2026-08-11}
+package: "1210 (3225 metric)"
+footprint: Capacitor_SMD:C_1210_3225Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: "exact package review 2026-08-11"}
+pins: {1: A, 2: B}
+limits: {capacitance: "47uF +/-10%", voltage: 10V, dielectric: X7R, temperature: "-55 to 125C"}
+gotchas:
+  - "The exact 14-page manufacturer sheet supplies no DC-bias capacitance curve. C6-C11 are retained for high-frequency decoupling, but no minimum effective capacitance is credited to them in either regulator or TPS25810 proof."
+verified: "exact HRE model, value, tolerance, voltage, X7R dielectric, 1210 package and temperature range independently read 2026-08-11; absence of a DC-bias curve was explicitly checked"
+sourcing: {lcsc: C23692991, alternates: [], note: "JLC catalog identity; stock is volatile and is refreshed at release/order time"}

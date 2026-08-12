@@ -10,14 +10,14 @@ default_clearance: 0.18mm
 # named land and <=1.5 mm of launch; the route must widen immediately outside.
 scoped_floors:
   - zone: u1_5va_launch
-    nets: [5VA]
+    nets: [5VA_RAW]
     min_width: 0.50mm
     why: >-
       MEASURED 2026-08-11: TPSM63610 U1.5 is a 1.20 x 0.25 mm auxiliary VOUT
       land on 0.65 mm pitch and can launch at most 0.650 mm versus the 1.0 mm
       PWR_5VA floor. Pins 9/10 and the adjacent output pour carry the trunk;
       this <=1.5 mm pin-local 0.50 mm taper is shorter than its own pad and
-      widens immediately into the 5VA pour.
+      widens immediately into the 5VA_RAW pour.
   - zone: u2_5vc_launch
     nets: [5VC_RAW]
     min_width: 0.30mm
@@ -27,14 +27,38 @@ scoped_floors:
       PWR_5VC floor. Pins 8/9 and the output-capacitor pour carry the 3.64 A
       path; this measured 2.60 mm 0.30 mm auxiliary-land branch terminates
       directly in that pour and carries no trunk-current claim.
+  - zone: u9_aux_input_launch
+    nets: [5VA_RAW]
+    min_width: 0.30mm
+    why: >-
+      MEASURED 2026-08-11: TPS25982 U9.16 is its fourth 0.25 x 0.80 mm Power
+      Input perimeter land, between dVdt and OUT on 0.50 mm pitch. At 0.18 mm
+      clearance it can launch at most 0.390 mm versus the 1.0 mm PWR_5VA floor.
+      The 0.80 mm centreline, 0.30 mm pin-local bridge terminates directly
+      inside same-net IN PowerPAD 25; pins 1/2/3/6 and PowerPAD 25 provide the
+      parallel trunk interface. Pin 16 is not assumed current-free: routed
+      current sharing, neck resistance and thermal rise remain verification
+      obligations for the complete copper artifact.
   - zone: usba_switch_in_launch
     nets: [5VA]
     min_width: 0.80mm
     why: >-
-      MEASURED 2026-08-11: each TPS2557 IN bank has three parallel 0.85 x
-      0.35 mm lands and P-LAND measures 0.900 mm maximum at pin 2 versus the
-      1.0 mm shared-rail floor. The three repeated <=1.5 mm launch areas permit
-      0.80 mm only across the parallel pin bank before the full 5VA pour.
+      REQUIRES RE-MEASUREMENT after Stage-5 regeneration: each TPS2559 IN bank
+      has three parallel manufacturer lands versus the 1.0 mm shared-rail
+      floor. The repeated <=1.5 mm launch areas permit 0.80 mm only across the
+      parallel pin bank before the full 5VA pour; P-LAND must prove the exact
+      regenerated placement before this relaxation can be promoted.
+  - zone: usba_switch_out_launch
+    nets: [VBUSA2, VBUSA3]
+    min_width: 0.30mm
+    why: >-
+      MEASURED 2026-08-11: each TPS2559 output land is 0.60 x 0.24 mm on
+      0.50 mm pitch. The full 0.80 mm PWR_PORT width cannot leave the land at
+      0.18 mm clearance. Each bounded 0.60 mm-long F.Cu launch uses 0.30 mm,
+      reaches a standard 0.60/0.30 mm off-pad via, and widens immediately
+      to a 0.80 mm B.Cu join inside the matching full-width output pour. Two
+      parallel launches share each 2 A nominal port path; final copper
+      extraction, via cross-section and loaded thermal rise remain required.
   - zone: charge_signature_supply_launch
     nets: [5VA]
     min_width: 0.80mm
@@ -44,23 +68,37 @@ scoped_floors:
       only signal-level supply current; the two <=1.5 mm areas allow a bounded
       0.80 mm branch without relaxing any high-current trunk segment.
 
-# Input fuse: user-installed 10 A MINI blade in Keystone 3568 holder.
+# Input fuse: user-installed Littelfuse 0297010.WXNV 10 A MINI blade in
+# Keystone 3568 holder; prospective pack fault current must be <1000 A.
 classes:
   VIN_TRUNK:
     intent: "fused/reverse-protected 3S feed shared by both buck modules"
     nets: [VBAT_FUSED, VIN]
-    current: "7.2 A design trunk; 6.74 A calculated coincident output peak at 9V/90% plus routing allowance"
+    current: "7.2 A design trunk; 6.77 A calculated coincident output peak at 9V/90% plus routing allowance"
     min_width: 1.0mm
     clearance: 0.18mm
+    pour_fed: >-
+      F.Cu+B.Cu source polygons: VBAT_FUSED 13.0 x 10.0 mm and VIN branched
+      outline 51.0..86.5 x 31.0..101.0 mm; 1.0 mm tracks are only local
+      plane taps. Exact filled-copper extraction and first-article rise remain
+      required because nominal zone outline is not a thermal measurement.
     routing: "plane/pour fed; track width is only a connectivity floor"
     verify: "filled-copper extraction, via cross-section and first-article thermal rise"
 
   PWR_5VA:
-    intent: "shared regulated rail feeding three independent USB-A switches"
-    nets: [5VA]
-    current: "8 A rated module / 7.5 A claimed coincident peak"
+    intent: "U1 raw output and U9-protected shared rail feeding three independent USB-A switches"
+    nets: [5VA_RAW, 5VA]
+    current: "8 A rated module; 6 A continuous / 7.5 A <=10ms peak; U9 disconnects persistent aggregate overload below 8 A worst-high"
     min_width: 1.0mm
     clearance: 0.18mm
+    pour_fed: >-
+      5VA_RAW is a 21.3 x 22.0 mm F.Cu+B.Cu source zone. Protected 5VA uses
+      an 8.0 x 14.0 mm F.Cu+B.Cu source zone, a 16.0 x 58.0 mm B.Cu
+      distributor, and a 4.2 x 2.1 mm priority F.Cu U9 OUT collector with
+      fourteen distributed 0.70/0.30 mm plane transfers; each U4-U6 input
+      island has four ordinary 0.60/0.30 mm transfers plus its protected
+      0.50/0.20 mm pad drop. Post-refill extraction and loaded
+      symmetry/temperature tests remain required.
     routing: "short symmetric pour from U1 output capacitors to U4-U6"
     verify: "A-AMP copper extraction and loaded-port symmetry measurement"
 
@@ -70,22 +108,31 @@ classes:
     current: "3.64 A worst-high TPS25810 current limit"
     min_width: 1.0mm
     clearance: 0.18mm
+    pour_fed: >-
+      5VC_RAW is a 19.5 x 24.0 mm F.Cu+B.Cu zone and VBUSC a 21.0 x 14.0 mm
+      F.Cu+B.Cu zone; 1.0 mm tracks are local plane/test taps. Exact filled-
+      copper extraction and four-wire hot testing remain required.
     routing: "short pour; preserve four parallel Type-C VBUS and GND contacts"
     verify: "A-AMP plus hot four-wire path measurement"
 
   PWR_PORT:
     intent: "individually protected USB-A VBUS outputs"
     nets: [VBUSA1, VBUSA2, VBUSA3]
-    current: "3.06 A worst-high TPS2557 current limit"
+    current: "2.849 A worst-high TPS2559 current limit with 43.2k, 0.1% initial tolerance and 25ppm/C over 100C"
     min_width: 0.8mm
     clearance: 0.18mm
+    pour_fed: >-
+      Each VBUSA1/2/3 output uses a 38.2 x 17.0 mm F.Cu+B.Cu connector zone;
+      the 0.30 mm segments are paired 0.60 mm package-local TPS2559 land
+      launches, not trunk conductors. Post-refill extraction, barrel census,
+      per-port four-wire resistance and loaded rise remain required.
     routing: "short top/bottom pour to each edge connector"
     verify: "A-AMP and per-port four-wire resistance"
 
   SW_LOCAL:
     intent: "module bootstrap slew-control loops; physical SW lands have no external net by TI requirement"
     nets: [BOOT_A_R, BOOT_A_C, BOOT_C_R, BOOT_C_C]
-    current: "bootstrap charge pulse only; no external power path"
+    current: "signal — bootstrap charge pulse only; no external power path"
     min_width: 0.30mm
     clearance: 0.18mm
     routing: "manufacturer-example geometry entirely inside each converter cell"
@@ -93,7 +140,7 @@ classes:
 
   SENSE:
     intent: "feedback, current-program and power-good nodes"
-    nets: [FB_A, FB_C, ILIM_A1, ILIM_A2, ILIM_A3, PG_A, PG_C]
+    nets: [FB_A, FB_C_TOP, FB_C, ILIM_A1, ILIM_A2, ILIM_A3, ILIM_BANK, ITIMER_A, DVDT_BANK, PG_A, PG_C]
     current: "<1 mA"
     min_width: 0.18mm
     clearance: 0.18mm
@@ -120,7 +167,7 @@ classes:
 
   CONTROL:
     intent: "common enable, source-controller straps, faults and indicators"
-    nets: [EN_BUS, FAULT_C, FAULT_A1, FAULT_A2, FAULT_A3]
+    nets: [EN_BUS, RPP_DIV, RPP_GATE, FAULT_C, FAULT_A1, FAULT_A2, FAULT_A3]
     current: "<20 mA"
     min_width: 0.18mm
     clearance: 0.18mm

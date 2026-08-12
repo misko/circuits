@@ -8,7 +8,7 @@ escape: {style: connector, pitch: 7.62, tier_required: jlc_2layer_default, check
 pins: {1: FUSE_A, 2: FUSE_B}
 limits: {holder_current: 30A, fuse_series: "MINI blade 297/ATM"}
 gotchas:
-  - "The 10A fuse element is user-installed after assembly; the JLC BOM contains the holder, not the replaceable blade."
+  - "The exact Littelfuse 0297010.WXNV 10A/32V/1000A-interrupt fuse element is user-installed after assembly; the JLC BOM contains the holder, not the replaceable blade."
 verified: "drawing, hole spacing, material and current rating independently read from Keystone source 2026-08-10"
 sourcing: {lcsc: C5249699, alternates: [], note: "JLC through-hole candidate; volatile stock evidence is kept in 06_build/cache"}
 layout_refs:

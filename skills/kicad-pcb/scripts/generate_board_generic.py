@@ -35,8 +35,9 @@ NOT read another project's config). Top-level keys:
                 copper_finish, dielectric_constraints, mask_thickness_mm,
                 copper_thickness_mm[], dielectrics[]},
               optional via_protection {capping, filling}; each boolean emits
-                the matching board-level KiCad setup token after the final
-                pcbnew save (required for filled/capped via-in-pad orders),
+                the matching BOARD-DEFAULT KiCad setup token after the final
+                pcbnew save (prefer item-level thermal_vias.protection for
+                selective filled/capped via-in-pad orders),
               mounting_holes {footprint, refdes_prefix, at[]},
               fiducials {footprint, refdes_prefix, at[]} — board-only
                 optical alignment targets; BOM- and CPL-excluded
@@ -63,6 +64,9 @@ NOT read another project's config). Top-level keys:
                 faces (catches a 180 flip pad_order cannot see),
               pad_beyond_edge[] {ref, pad, offset, edge} — an edge-launch
                 clearing must hang OFF the board
+  thermal_vias: fields[] and/or promote_heatsink_pads[], plus optional
+                protection {capping, filling} applied to only those vias;
+                a field-level protection mapping overrides the shared value
 
 Everything not supplied falls back to a documented default, so a plain
 rectangular 2-layer board with a GND pour needs ~25 lines of YAML.
@@ -89,6 +93,7 @@ try:
 except Exception:                                            # pragma: no cover
     def load_part_overrides(parts_dir):
         return {}
+from pcb_toolkit import apply_via_protection
 
 MM = pcbnew.ToMM
 STD_FP_ROOT = "/usr/share/kicad/footprints"
@@ -637,7 +642,7 @@ class BoardBuilder:
 
     # --------------------------------------------------- via protection
     def write_via_protection(self):
-        """Emit board-level filled/capped-via fabrication intent.
+        """Emit board-level filled/capped-via fabrication defaults.
 
         KiCad 10 writes ``(capping no)`` / ``(filling no)`` when pcbnew saves
         a board, and its Python binding exposes no supported setters for these
@@ -646,9 +651,10 @@ class BoardBuilder:
         patch the native s-expression, then parse it back with pcbnew so a
         format drift is a generation failure rather than a malformed board.
 
-        These flags are BOARD-WIDE.  They express process intent for every via,
-        not a selective via list; order documentation must still identify the
-        via-in-pad sites and obtain fabricator/assembly DFM acceptance.
+        These flags are BOARD-WIDE DEFAULTS. Via-in-pad fields should normally
+        use ``thermal_vias.protection`` instead, which writes item-level
+        IPC-4761 overrides and leaves ordinary routing/stitch vias on the
+        board default.
         """
         cfg = self.board_cfg.get("via_protection")
         if cfg is None:
@@ -1026,6 +1032,7 @@ class BoardBuilder:
         cfg = self.cfg.get("thermal_vias") or {}
         fields = cfg.get("fields") or []
         refs = cfg.get("promote_heatsink_pads") or []
+        default_protection = cfg.get("protection")
         if not fields and not refs:
             return
         if fields and not isinstance(fields, list):
@@ -1070,14 +1077,44 @@ class BoardBuilder:
                 origin = fp.GetPosition()
                 for dx, dy in at:
                     dx, dy = float(dx), float(dy)
-                    x = origin.x / 1e6 + dx * ct - dy * st
-                    y = origin.y / 1e6 + dx * st + dy * ct
+                    # KiCad board coordinates have +Y downward.  A positive
+                    # footprint rotation therefore maps local (dx, dy) as
+                    # (dx*cos + dy*sin, -dx*sin + dy*cos), not the ordinary
+                    # Cartesian transform.  The opposite sign was electrically
+                    # invisible on all-GND fields but put U9's split IN/GND
+                    # vias under the wrong exposed land at rot90.
+                    x = origin.x / 1e6 + dx * ct + dy * st
+                    y = origin.y / 1e6 - dx * st + dy * ct
                     via = pcbnew.PCB_VIA(self.board)
                     via.SetPosition(pcbnew.VECTOR2I_MM(x, y))
                     via.SetWidth(pcbnew.FromMM(size))
                     via.SetDrill(pcbnew.FromMM(drill))
                     via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
                     via.SetNet(net)
+                    try:
+                        apply_via_protection(
+                            via, field.get("protection", default_protection),
+                            f"thermal_vias.fields[{i}].protection")
+                    except ValueError as exc:
+                        die(str(exc))
+                    if not any(p.HitTest(via.GetPosition(), 0, pcbnew.F_Cu)
+                               for p in target):
+                        die(f"thermal_vias.fields[{i}]: emitted {ref}.{padnum} "
+                            f"via at ({x:.3f},{y:.3f}) outside its named pad")
+                    via_shape = via.GetEffectiveShape(pcbnew.F_Cu)
+                    for other_fp in self.fps.values():
+                        for other in other_fp.Pads():
+                            if (other.GetNetCode() <= 0
+                                    or other.GetNetCode() == net.GetNetCode()
+                                    or not other.IsOnLayer(pcbnew.F_Cu)):
+                                continue
+                            if other.GetEffectiveShape(pcbnew.F_Cu).Collide(
+                                    via_shape, 0):
+                                die(f"thermal_vias.fields[{i}]: emitted "
+                                    f"{ref}.{padnum} via at ({x:.3f},{y:.3f}) "
+                                    f"intersects different-net pad "
+                                    f"{other_fp.GetReference()}."
+                                    f"{other.GetNumber()}")
                     self.board.Add(via)
                     emitted += 1
         if not isinstance(refs, list) or any(not isinstance(r, str) for r in refs):
@@ -1111,6 +1148,11 @@ class BoardBuilder:
                 via.SetDrill(drill.x)
                 via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
                 via.SetNet(pad.GetNet())
+                try:
+                    apply_via_protection(via, default_protection,
+                                         "thermal_vias.protection")
+                except ValueError as exc:
+                    die(str(exc))
                 fp.Remove(pad)
                 self.board.Add(via)
                 promoted += 1

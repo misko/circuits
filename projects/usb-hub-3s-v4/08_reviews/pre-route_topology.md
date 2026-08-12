@@ -1,185 +1,179 @@
-subject: usb-hub-3s-v4 canonical schematic electrical-netlist 56259186049e
-date: 2026-08-11
-reviewer: Codex root, separate hash-bound topology/ratings pass using generated-netlist inspection and vendor-source re-derivation
-independence_limit: same task owns the design and this review; exact-byte and second-parser checks are independent instruments, but external-human independence remains a declared G-VACUOUS process boundary
+subject: USB Hub 3S v4 final schematic topology and physical-pin design
+date: 2026-08-12
+reviewer: Codex fresh-context topology/pin/datasheet reviewer
+context-given: exact schematic/netlist, project contracts/rules/parts dossiers, and locally vendored authoritative datasheets
+source_commit: cc8368ffbb7b93cf8f4b567534e8537df792d638
 review_stage: pre-route
 review_kind: topology
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-netlist_sha256: 56259186049e0344119d4862f1fc3cf52709924f0298b36098cb8ca141737597
-parts_sha256: d2c061e3ea7d3ed1ed57410d6ef4cf551384ed02440339c8fcee0207b7f4fd3d
-design_rules_sha256: d527db4303161f3501ebcdcff57e3314318bf79599a4915bec429f4cd0d887dd
-raw_netlist_sha256: bfaec338e4598ee29ed395e46563380e264db568a824d90e0fe5f2759a9e2ad8
-schematic_sha256: 71b598821511a220c2a59204ca199489956578f169efa246416866a4d85e9559
-circuit_json_sha256: 954da1f76f9894f61478451a1fa0d48dcc50eb47f5d43e035540c31ae18d4dba
-tsx_sha256: d76cfde91a7bac158ad50e1a4a7c34fa9653a844ed73a02057b0dbd4356204a8
-manifest_sha256: 5fc11998c0872b092b060dcac19416504e17210d32479bed8904360926907f61
-human_schematic_pdf_sha256: a85b912f51c6b3df56c87a39a7a1ce5509fc5d3b2beec1d2d3adf1b7876f45ab
+schematic_pdf_sha256: df1e051f99d22590e4989e06b041d921cab43e8b8e359c0615f885dc55db9379
+netlist_sha256: ed689c7d75719a3c7955511a2b1311fb0438443cb2ef6da58280ed97a4461763
+exact_netlist_sha256: cdfe6036d270e6e030a363d3e756aaebc80ea5cafc320dadc7652f1c345e9265
+parts_sha256: 07da71701403799d279677f0a50f5817940c5a0b2cf15cdb2521b0860d563d97
+design_rules_sha256: 1836747093e3a866efaae089ac787a6db42133ead8d09d0dc948c9b35a20af21
 
-The checker-defined `netlist_sha256` normalizes KiCad's export time,
-UUID-shaped instance stamps, schematic source path, generated Sheetname/
-Sheetfile properties and project-derived netclass labels. The separately bound
-rules digest owns netclass policy. Component identities, values, footprints,
-non-sheet properties, nets, nodes, physical pin names and no-connects remain
-byte-bound. This review is a permission to spend on placement, not a
-fabrication or safety approval.
+# Independent pre-route topology review
 
-# Pre-route topology review
+## Scope and method
 
-## Verdict and method
+I independently reviewed the exact ten-page schematic PDF and electrical
+netlist named above, all active `02_parts/*/part.yaml` records, the authored
+requirements/power/protection/invariant contracts, and the locally vendored
+manufacturer datasheets. I did not take a machine-gate result or an earlier
+review verdict as evidence that the design is correct. I reconstructed the
+net membership directly: 88 components, 69 named nets and 324 connected
+physical pins, then compared every multi-pin active/connector/diode pin with
+the manufacturer's pin figure and pin-functions table. Exact hashes were
+rechecked at entry and immediately before this review was written.
 
-No P0/P1 source-to-netlist, pin-identity, protection-order, converter-topology,
-port-policy, ratings or rule-tier defect remains in the exact state above. The
-schematic is SOUND to proceed to placement and deliberately DO-NOT-ORDER.
+The intended product boundary is power distribution only: three charge-only
+USB-A receptacles and one fixed-5-V Type-C source. There is no upstream USB
+connector, USB hub/PHY, USB Power Delivery controller, or USB data path. The
+input is a protected 3S pack whose external BMS/disconnect owns the 9.0-V
+lower service boundary. The board deliberately has no active sustained-input
+or converter-fail-high overvoltage cutoff and is a supervised prototype.
 
-The Stage 3 hash rebind above covers layout-evidence, pin-alias and assembly-
-fiducial additions only. The normalized netlist remains exactly
-`a05e2e137168...`; no component, value, connection or no-connect changed, so
-the topology conclusions are not reopened.
+## End-to-end path trace
 
-The Stage 4 pre-route rebind covers only the routing recipe, measured
-pad-launch scopes and associated rule-area/zone declarations. The normalized
-netlist remains byte-identical, so no topology conclusion changed.
+The exact netlist implements the complete input chain
+`J1.1 BAT_POS -> F1 -> VBAT_FUSED -> Q1.D(5..8) -> Q1.S(1..3) -> VIN`.
+Q1 is a P-channel DMP3013SFV-7 in the correct ideal-diode orientation: its
+body diode permits positive start-up from fused battery drain to protected
+source and blocks a reversed pack. R22+R23 provide 200 kohm from source to
+gate and R1 provides 100 kohm gate-to-ground. D5's cathode is at VIN and its
+anode at the gate. D1 SMBJ15A is cathode-to-VIN/anode-to-GND and is correctly
+placed after reverse blocking, so a reversed pack does not forward-bias the
+rail TVS. C1 polarity is VIN-positive/GND-negative.
 
-The final pre-route rebind additionally records J5's fab-local locator-corner
-relief, parity-safe explicit thermal vias, simple-zone validation, rail-test
-point locations and hole-clearance-aware tap/via settings. The from-source
-rebuild changed generated schematic/netlist serialization, so the witness was
-not copied forward: the exact regenerated netlist was traversed again. Its
-semantic projection remains 60 nets and 270 nodes, the critical rail traces
-below are unchanged, and all independent semantic gates pass; the current
-electrical artifact was re-reviewed and is now bound as `56259186049e...`.
+VIN feeds two independent buck modules. U1 TPSM63610 supplies `5VA_RAW`; U9
+TPS259827ONRGET is the sole series bridge to `5VA`; U4/U5/U6 TPS2559 then
+independently feed `VBUSA1/2/3` and J2/J3/J4. U2 TPSM63604 supplies
+`5VC_RAW`; U3 TPS25810 is the sole series attach-controlled bridge to `VBUSC`
+and all four J5 VBUS contacts. No output receptacle bypasses its intended
+switch. Ground, exposed-pad and parallel input/output lands are all on the
+expected nets.
 
-The routed-replay rebind changes only `flow.budgets_s.tscircuit_build` and
-`flow.timeouts_s.tscircuit_build`, adding observability/deadline metadata to
-the foreign producer. It changes no electrical rule, route geometry or board
-artifact; the broad design-rules digest nevertheless includes all route YAML.
+SW1 common is EN_BUS, its OFF throw is GND and its ON throw is explicitly
+open. R2 is the only VIN pull-up, so OFF hard-disables both buck modules and
+therefore removes power from every downstream source IC. This is enable-gated
+shutdown, not a galvanic battery disconnect.
 
-The deterministic-replay rebind additionally removes only the exporter path,
-generated sheet metadata and project-derived netclass labels from the topology
-digest. Direct diffing proved these were the complete differences between
-netlists exported from the byte-identical full-build and pinned schematics.
-Clean/known-bad tests retain value, footprint, connection and pin sensitivity.
+## USB-A power-only cells
 
-The review used three paths: direct netlist traversal of every critical rail,
-the repository's independently implemented semantic gates, and a new reading
-of the exact manufacturer application/pin tables. The final generated state is
-76/76 refdes in source, manifest, circuit JSON, KiCad schematic and netlist;
-60 nets and 270 connected nodes. TSX-DIAG reports zero embedded errors. ERC is
-zero errors. The 486 recorded ERC warnings are 336 generated off-grid geometry,
-149 synthetic-library lookup and one generated wire-end warning; the exact
-netlist still passes 39/39 label-survival and 43/43
-pin assertions, so none is an electrical orphan.
+Each TPS2559 has pins 2/3/4 and active-high EN pin 5 on 5VA, pins 7/8/9 on its
+own VBUSA rail, pin 6 on an exact 43.2-kohm ILIM resistor to GND, FAULT pulled
+up locally, and both GND and PowerPAD on GND. TI SLVSCL5A gives the applicable
+current-limit equations and the characterized 44.2-kohm row. Charging the
+declared resistor tolerance/TCR gives approximately 2.554--2.849 A: above the
+2.5-A short-peak requirement and below the GCT USB1130 3.0-A contact rating.
+That remains a short-peak/fault threshold, not permission for 2.5-A continuous
+service.
 
-The one-page human schematic is electrically coherent and readable when
-zoomed, but its auto-layout is denser and less conventionally left-to-right
-than a hand-sectioned production schematic. That is a documentation-quality
-debt to grade again at release, not evidence of a different netlist.
+Each USBLC6-2SC6 has pin 5 on the matching post-switch VBUS, pin 2 on GND and
+the two flow-through pairs on only that receptacle's D+/D- charging-signature
+nets. U7 serves ports 1/2; U8 channel 1 serves port 3. Every USB-A data contact
+terminates locally at a TPS2513A and its clamp. No such net reaches another
+receptacle, an upstream port, a PHY, or a hub controller. U8 pins 3/4 are
+unused driven I/O, not falsely called NC; leaving them unloaded is within the
+TI SLVSBY8D pin/electrical limits. The design's 2-A/2.5-A behavior is correctly
+bounded as a proprietary charge-only extension rather than a USB-IF BC1.2
+current-compliance claim.
 
-## Execution trace reconstructed from the netlist
+U9 is the exact `TPS259827O` no-OVLO circuit-breaker variant in TI SLVSEI3D's
+device table. IN pins 1/2/3/16, IN pad 25 and EN_UVLO are on 5VA_RAW; all eight
+OUT pins are on 5VA; RETRY_DLY and LDSTRT are grounded; R26=210 ohm programs
+the aggregate limit; C29=47 nF owns ITIMER and C30=3.3 nF owns dVdt. IMON, PG
+and NRETRY are sanctioned opens. RETRY_DLY-to-GND selects latch-off and
+cycling SW1 removes U9 input power to reset it. Applying TI's Equation 4 and
+full-temperature characterized coefficient corners gives the declared
+6.160253--8.066419-A band. Its low corner clears 6-A service, its high corner
+is below the three-port 8.547-A worst-high sum, and C29's 11.129--45.962-ms
+timer passes every <=10-ms service peak while bounding operation above U1's
+8-A continuous rating inside U1's documented 10-A peak envelope.
 
-```text
-BAT+ J1.1
-  -> F1.1 -- 10 A user-fit fuse -- F1.2
-  -> Q1 drain pads 5..8 -- P-FET/body-diode polarity -- source pads 1..3
-  -> VIN
-       -> D1 cathode; D1 anode -> GND                 transient clamp
-       -> C1 100 uF / 35 V -> GND                    lead damping
-       -> R2 1 M -> EN_BUS; SW1 common -> GND in OFF shutdown
-       -> U1 TPSM63610 -> 5VA
-            -> U4/U5/U6 TPS2557 -> VBUSA1/2/3 -> J2/J3/J4 VBUS
-            -> U7/U8 TPS2513A -> local DP_Ax/DM_Ax charge signatures
-       -> U2 TPSM63604 -> 5VC_RAW
-            -> U3 TPS25810 attach switch -> VBUSC -> all four J5 VBUS contacts
-            -> U3 CC1/CC2 -> D6 connector clamp -> J5 A5/B5
-```
+## Type-C source and no-data/no-PD intent
 
-The Type-C D+/D- and SBU contacts are explicit independent no-connects. USB-A
-D+/D- stop locally at their TPS2513A signature controller and USBLC device;
-there is no upstream connector, hub IC, USB PHY, PD controller or board-wide
-data pair. This is a four-port power distributor, not a USB data hub.
+U3 TPS25810 pins IN1, IN2, AUX, EN, CHG and CHG_HI are all on 5VC_RAW.
+According to TI SLVSCR1C Table 3 this selects Type-C 3-A Rp advertisement and
+the 3.16--3.64-A current-limit range. OUT pins 14/15 alone feed VBUSC. R14 is
+100 kohm from REF to REF_RTN as required. CC1 and CC2 remain separate from U3
+through the connector-side D6 channels to J5 A5/B5. D6 is the 5.5-V
+TPD2EUSB30 variant, which is compatible with the CC operating range. U3's
+unused open-drain DEBUG/AUDIO/POL/UFP/LD_DET pins are explicitly open, a state
+TI permits; FAULT alone is pulled up for observation.
 
-## Protection and shutdown
+J5 A4/A9/B4/B9 are VBUSC; A1/A12/B1/B12 and shell are GND. A6/A7/B6/B7
+(D+/D-) and A8/B8 (SBU) are explicit no-connects. Thus U3 detects Rd on either
+CC pin, applies/discharges VBUS according to attach state and advertises
+fixed-5-V Type-C current. It does not negotiate USB-PD and it carries no USB
+data or alternate-mode signal.
 
-The exact input order implements ADR-0005. Q1's drain is on `VBAT_FUSED` and
-source is on `VIN`, so its body diode initially passes a correct source toward
-the load and blocks a reversed pack. D5 is a separate 12 V source-to-gate
-zener, cathode on VIN; D1 is the SMBJ15A transient suppressor after reverse
-blocking, cathode on VIN and anode on GND. This avoids forward-biasing an
-upstream unidirectional TVS during reverse connection.
+The 5VC_RAW cold-socket bank also closes structurally: C9/C10/C11 and C23 are
+on U3 IN, while C13 is on OUT. The declared worst-corner combined input bank
+is 155.592 uF versus TI's 120-uF cold-socket requirement, and the 10-uF OUT
+capacitor follows TI's recommendation.
 
-SMBJ15A's 15 V stand-off is above the 12.6 V operating ceiling. Its cited
-24.4 V 10/1000 us clamp, with the project's 20% coordination factor, remains
-below the 30 V P-FET, 35 V electrolytic and 42 V module transient ratings. This
-is not active sustained-overvoltage cutoff and no converter fail-high claim is
-made, matching the user's boundary.
+## Regulator and physical-pin disposition
 
-SW1 grounds the common active-high EN bus in OFF; its third throw is NC. The
-intentional 1 M pull-up draws 12.6 uA at a full pack, and the downstream port
-devices are then unpowered. The 250 uA stored-state design allocation is well
-below the locked 1 mA acceptance limit, but TPSM63604 and several leakage terms
-do not all carry guaranteed hot maxima. OFF current over temperature remains a
-mandatory first-article measurement rather than a falsely closed paper claim.
+Both modules have every VIN/VOUT, VLDOIN, feedback, RT, PG, enable/mode,
+bootstrap and ground land on the required net. U1 SW4, VCC6 and NC16 and U2
+SW2, VCC7 and NC15 are explicitly open exactly as their TI pin tables direct.
+All exposed/thermal ground lands are GND. U1's six exact 22-uF ceramic outputs
+derive to 80.784 uF effective against 75 uF required; U2's three derive to
+40.392 uF against 30 uF. The omitted CFF networks are intentional: U1's
+admitted polymer ESR zero can fall below the datasheet's 200-kHz no-CFF
+boundary, and U2's mixed bank is not the close-to-minimum table case.
 
-## Converter cells and output margin
+The revised U2 divider is implemented exactly as R11=4.12 kohm, R24=24.3 ohm
+and R12=1 kohm. The declared 0--500-nA FB-current term is explicitly an
+engineering qualification screen because TI publishes only 10 nA typical; it
+is not misrepresented as a manufacturer guarantee. The resulting exact-board
+voltage, frequency response and load-step behavior are therefore release
+measurements rather than claims silently inferred from nominal arithmetic.
 
-U1 and U2 are plain bucks because 9 V minimum input exceeds every output.
-Their physical SW lands are no-connects exactly as TI requires; their VCC and
-NC pins are also explicit no-connects. Each module has two 10 uF / 50 V input
-MLCCs, a 0 ohm RBOOT-CBOOT link, the documented 1 MHz RT value, and VLDOIN tied
-to its output. U1 uses auto mode plus 20 k spread-spectrum tone correction and
-three 47 uF outputs. U2 uses three 47 uF outputs. These cells follow TI's
-[TPSM63610](https://www.ti.com/lit/ds/symlink/tpsm63610.pdf) and
-[TPSM63604](https://www.ti.com/lit/ds/symlink/tpsm63604.pdf) application and
-layout requirements, apart from the intentional custom feedback ratios.
+Every other intentional open is explicit in the netlist: SW1.3; U8.3/4;
+U9.9/11/13; U3.16--20; and the J5 data/SBU contacts. J1's manufacturer-neutral
+contacts are deliberately assigned pad 1 BAT+ and pad 2 GND by the board
+contract. F1 represents the Keystone holder; the replaceable Littelfuse
+0297010.WXNV 10-A fuse is correctly an explicit user-fitted element rather
+than a fictitious assembled component.
 
-The exact 0.1% dividers and 1% references recompute to 5.060651–5.179531 V for
-5VA and 5.110052–5.230132 V for 5VC_RAW. With 20% residual path margin, all
-three USB-A ports retain 106 mV beyond their complete 2 A path allocation and
-the Pi path retains about 18 mV beyond its complete 3 A board/contact/cable
-allocation. E-TOPO passes 4/4 rails and E-MARGIN passes all four delivery
-paths plus their four feedback-window assertions. The input contract is
-46.773 W and 5.8 A at 9 V/90% versus the declared 7.2 A trunk class.
+## Findings and release boundary
 
-## Port policy
+P0: None.
 
-U3 implements TI's minimal fixed-5 V/3 A DFP circuit: IN1, IN2, AUX, EN, CHG
-and CHG_HI share 5VC_RAW; 100 k 0.1% connects REF to REF_RTN; three 47 uF
-capacitors provide the cold-socket input bank; 100 nF is local and 10 uF is on
-VBUSC. CC1 and CC2 remain separate and reach TPD2EUSB30. The topology matches
-the [TPS25810 3 A application](https://www.ti.com/lit/ds/symlink/tps25810.pdf)
-and is attach-controlled fixed-5 V Type-C, not USB-PD.
+P1: None. No schematic or netlist correction is required before placement.
 
-Each USB-A port has a separate TPS2557, local 100 nF input bypass, 150 uF
-post-switch capacitor, fault pull-up/test point and 39.2 k 0.1% ILIM resistor.
-TI's equations give 2.515 A minimum and 3.072 A maximum current-limit corners.
-The lower corner preserves the commissioned 2.5 A short peak; the upper is a
-fault limit, not a continuous-current claim. GCT rates each USB1130 power
-contact at 3 A, so 2 A continuous remains the stated service and 2.5 A peak
-duration remains a thermal qualification. TPS2513A provides BC1.2/legacy
-recognition, while the higher available current is explicitly proprietary and
-not represented as USB-IF BC1.2 compliance.
+P2 / preserved qualifications:
 
-Raspberry Pi's official material calls for a 5 V/3 A supply for Pi 4 and warns
-about cable voltage loss; the project therefore binds its load-plane claim to
-a nominated short cable measured at no more than 20 mOhm round trip, not an
-arbitrary Type-C cable. See the [Pi 4 datasheet](https://datasheets.raspberrypi.com/rpi4/raspberry-pi-4-datasheet.pdf).
+1. The Type-C load-plane service is conditional on a hot four-wire result of
+   <=39 milliohm for the complete nominated J5-to-Pi interconnect. This
+   includes both mated pairs, plug substrates/terminations, cable conductors,
+   the Pi receptacle and Pi entry path. A single contact's USB-IF/GCT LLCR is
+   not substituted for that complete-path result.
+2. First article must measure both rails over input, load and temperature,
+   including the U2 FB-current uncertainty, <=15-mV steady variation reserve,
+   startup/load-step ceiling and mixed-bank loop response. These are explicit
+   qualification bounds, not unresolved schematic connectivity.
+3. First article must measure USB-A and Type-C path resistance/current sharing,
+   Q1/U1/U2/U3/U4-U6/U9/fuse-holder temperature, U9 <=50-ms overload behavior,
+   OFF current <=1 mA over the qualified temperature range, and the actual
+   battery-lead hot-plug waveform.
+4. The selected fuse provides catastrophic wiring/trunk protection only.
+   Installation must confirm prospective pack fault current below its 1000-A
+   interrupt rating; no semiconductor-protection or sustained-overvoltage
+   claim is created.
+5. This remains a supervised prototype with a required external >=9.0-V pack
+   disconnect and no active sustained-overvoltage/fail-high cutoff. That is the
+   commissioned boundary, not a missing implementation claim.
 
-## Manufacturing boundary and blockers
+## Closed verdict
 
-The adopted rules are consistently advanced: `nets.yaml` selects
-`jlc_4layer_advanced`, `route.yaml` selects `fab_tier: advanced`, and assembly
-requires JLC four-layer resin-filled/copper-capped via-in-pad. This is justified
-by TPS25810's 0.50 mm WQFN and the direct exposed-land thermal-via fields, not
-by USB data density. JLC's own [via-covering guidance](https://jlcpcb.com/help/article/pcb-via-covering)
-identifies epoxy/copper fill plus copper cap as suitable for via-in-pad and
-warns that ordinary ink plugging is not suitable there.
-
-Ordering remains blocked on manufacturer-exact placement, thermal-via and
-stencil implementation; placement-phase pin/layout/render review; routing and
-full DRC/parity; live JLC BOM/CPL stock and assembly verification; uploader
-confirmation of the fill/cap process; and first-article OFF-current, rail,
-load-step, fault-limit, cable-drop, hot-plug and thermal qualification.
-
-design_verdict: SOUND
-order_verdict: DO-NOT-ORDER
+The exact schematic/netlist topology is SOUND for its commissioned power-only,
+fixed-5-V, no-PD, no-active-OVP prototype boundary. The power paths, physical
+pins, polarities, enable/current-limit/configuration networks and intentional
+opens are complete and datasheet-consistent. `DO-NOT-ORDER` remains mandatory:
+placement/routing, JLC fabrication/assembly evidence and the enumerated
+first-article electrical/thermal/interconnect qualifications are not supplied
+by this schematic-stage review.

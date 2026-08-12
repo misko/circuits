@@ -158,7 +158,11 @@ part, state, and journal paths. See the kicad-pcb reference
   stage as `03_src/`, hence the same number. `03_src/` = the KiCad-side
   generators + promoted route; `03_tscircuit/` = the TSX the board is
   authored in. The shared module library `tscircuit_modules/` at the REPO
-  ROOT is not a project stage and stays unnumbered.
+  ROOT is not a project stage and stays unnumbered. Pin the project's
+  `tscircuit` dependency to an exact version, commit the package-manager lock,
+  and install from that lock before building. `*` plus a global/cache-only
+  install is not a reproducible producer; M-FRESH fingerprints both manifest
+  and lock so dependency movement invalidates the artifact and its reviews.
 - Write `01_docs/BRIEF.md`: the user's prompt VERBATIM between
   `<!-- prompt-verbatim-begin/end -->` markers with its sha256; then the
   parsed requirements (P#), your clarifying questions (Q#) and the user's
@@ -462,6 +466,7 @@ remain incomplete.
 | TVS / surge / downstream absolute-maximum compatibility | **Parts + architecture.** `DETAIL_DESIGN.md` carries one rail-wide rating table with source operating maximum and tolerance, TVS standoff/breakdown/clamp, disconnect delay, and every directly exposed part's recommended and absolute maximum. The worst protected-rail waveform must remain below every exposed limit with stated margin; a nominal-input comparison is not evidence. | Fresh topology/protection/ratings review before seal. |
 | Controller-to-MOSFET gate-drive compatibility | **Parts + schematic architecture.** `power_stages.yaml` uses maximum or explicitly qualified-maximum Qg, switching frequency, all driven FETs, controller minimum drive/current limit, bias, and thermal assumptions. Typical-only Qg is not proof. Run E-SWDRV before placement. | Switching-node waveform/startup test and controller temperature. |
 | UVLO, OVLO, enable, current-limit, and feedback thresholds | **Schematic math.** Derive guaranteed-low and guaranteed-high trip/output corners from IC threshold, resistor tolerance, bias/leakage, and temperature limits. Assert the fitted component values in `electrical_invariants.yaml`; nominal-only arithmetic is incomplete. | E-INV/E-MARGIN plus fresh schematic/topology review. |
+| Converter output bank and CFF/feed-forward network | **One control-loop decision.** Before copying a table CFF, reconcile every fitted ceramic/polymer output capacitor, effective-capacitance corner, permitted ESR zero, datasheet CFF zero/pole limits or prohibitions, switching frequency, and placement parasitics. “Recommended when close to minimum” is not permission for an enlarged mixed bank; an explicit “do not use below this ESR-zero frequency” is binding. | E-CAP for the minimum bank, fresh topology review for the full mixed-bank/CFF decision, then first-article frequency-response and load-step validation. |
 | Reset, brownout, debugger-halt, or unpowered safe state | **Schematic topology.** Every safety-relevant CMOS input has a physical pull/default path and a `node_level` or equivalent invariant proving the restrictive state; firmware reset behavior is not a resistor. | Fresh topology review and first-power/reset test. |
 | Sustained-current protection part | **Parts/BOM.** Fuse/breaker is an exact MPN with voltage, interrupt, and time-current evidence and an unambiguous holder/assembly quantity; a holder rating or silk value is not the protective part. | Sourcing/assembly gate and incoming inspection. |
 | End-to-end voltage drop | **Requirements + power tree.** `ir_budget_mohm` covers the entire bounded path named by the requirement: converter/switch, board copper and vias, solder joints, both mated contacts, and any claimed cable/plug. Exclusions must narrow the user-visible claim rather than silently shrink the model. | PCB resistance extraction, E-MARGIN, and simultaneous full-load qualification. |
@@ -780,7 +785,8 @@ chain either driver runs: `tsci build` → converter
 `.kicad_sch` → placement → generate_rules → KRT (reuses the promoted route chain)
 → stitch_and_fill → generate_rules LAST → DRC 0/0/0. For schematic-only render
 use `gen_tscircuit.sh <project>` (default = the BRIDGE ONLY: circuit.json,
-schematic.svg/.pdf, converter `.kicad_sch`, ERC + netlist-parity gate; pass
+an exact-Circuit-JSON `schematic.pdf`, converter `.kicad_sch`, ERC +
+netlist-parity gate; pass
 `--study` for tscircuit's own PCB/gerber/3D second-opinion render, which is never
 a fab source). The converter (`circuit_json_to_kicad_sch.py`, default `--mode
 layout` = WIRED, retires S6) folds canonical nets + FPIDs from `02_parts` in with
@@ -879,8 +885,9 @@ the margin it lives inside, or it cannot distinguish pass from fail.
 
 `kicad-pcb/scripts/count_parity.py <project>` — generated artifacts all agree
 with each other after a silent drop; only declared intent disagrees.
-**Two audiences (ADR-0002 Phase A):** the human schematic document = tscircuit's
-OWN render (`build/schematic.pdf`, shipped in the release); the converter
+**Two audiences (ADR-0002 Phase A):** the human schematic document is rendered
+from the exact generated Circuit JSON (`build/schematic.pdf`, one independently
+fitted page per declared sheet, shipped in the release); the converter
 `.kicad_sch` is the machine artifact only (ERC/netlist/parity, need not be pretty).
 Compose proven subcircuits from the module library (`tscircuit_modules/`) where one
 exists (ADR-0002 Phase C). (2) **schwriter2 declarations** are RETAINED as the
@@ -888,24 +895,51 @@ FALLBACK for footprints tscircuit can't yet express (structure-only;
 path/subcircuit/net-object API — canon S-DSL); not deleted, still valid, but no
 longer the co-standard. EITHER path feeds the SAME downstream: generate_schematic
 (or the converter) with no_connect flags for every sanctioned float; wire the
-story-critical paths per canon S6 →
+story-critical paths per canon S6. **FIRST-PICTURE GATE:** as soon as the
+functional skeleton exists, render the actual PDF before detailed sourcing or
+PCB work. At normal viewing size a fresh reader must see left-to-right power or
+signal flow, functional headings, locally grouped critical support circuits,
+important active-part identities, explained intentional NCs, and useful page
+occupancy. Source metadata, a zoom-readable plot, and a promise to tidy the
+release drawing are not substitutes. Record the verdict in the project
+schematic journal; a rejected first picture is a schematic-stage correction →
+**LAYOUT IT IN THIS ORDER:** split the story into functional sheets with
+explicit titles first; group dense mixed-role IC pins by electrical function
+(input, output, control, ground, intentional NC) second; fit each exact sheet
+to portrait or landscape third; add only a small measured set of absolute
+`schX`/`schY` constraints last. Never start by pinning every component. That
+turns the schematic autorouter's search graph combinatorial and couples human
+presentation to the electrical source. Every experiment remains inside the
+configured `tscircuit_build` heartbeat/deadline; if it exceeds the established
+build envelope, revert the constraints and simplify the hierarchy. Functional
+pin grouping is selective: retain it only when the rendered support circuit is
+clearer, not as a blanket transformation. →
 **ERC gate** (`kicad-cli sch erc --severity-all` = 0 errors) →
 netlist-parity gate → **CHEAP SEMANTIC BATTERY at the SCHEMATIC gate** —
 seconds each, run HERE and not first at seal (a defect authored at this
 stage and caught at seal costs a superseded release; R12/R30 shipped in
 2 sealed BOMs before the check ran, 2026-07-23): `early_design_check.py`
-(D-SPEC/E-PATH/E-SWDRV/E-SURGE) first, then `net_label_survival.py`
+(D-SPEC/E-PATH/E-SWDRV/E-SURGE plus adopted E-CAP/E-FAULT) first, then
+`net_label_survival.py`
 (S-NETMERGE — every schematic global_label survives to the exported netlist;
 the crow net-merge class) + `electrical_invariants.py`
 (E-INV, + `--adr-coverage` E-ADR) + `power_topology.py` (E-TOPO/E-MARGIN/
 E-OFF) + `count_parity.py` (S-COUNT) + `bom_source_check.py --circuit-only`
 at the SCHEMATIC gate (no BOM needed — the R12/R30 class dies when the tsx
-builds) + `pre_route_review_check.py . --phase schematic` (PR-REVIEW: an
-independent topology review says `SOUND` and binds the exact electrical netlist
-and aggregate parts bytes before placement or routing spend; the netlist digest normalizes
+builds) + `pre_route_review_check.py . --phase schematic` (PR-REVIEW: independent
+topology and delivered-schematic readability reviews both say `SOUND`; together
+they bind the exact PDF, electrical netlist, aggregate parts bytes and adopted
+design rules before placement or routing spend; the netlist digest normalizes
 only KiCad's volatile export clock and instance UUIDs so a no-change re-export
-does not invalidate the review; missing, DEFECTIVE, stale, and
-unadopted evidence all stop), then legs A+C again at the FIRST fab-BOM export (early, never
+does not invalidate the review; the PDF digest is byte-exact. Each commissioned
+fresh-context lens declares a review budget, rechecks its bound hashes at entry
+and exit, and returns a closed verdict by that deadline; any check still
+unresolved at the budget becomes a material finding instead of extending the
+review indefinitely. Partial or interrupted review prose is not evidence. The normal build
+records a schematic-stage content checkpoint and intentionally stops for these
+reviews; continue with `rebuild_all.sh --resume-after-schematic-review`, which
+verifies the checkpoint without rerunning nondeterministic TSX. Missing,
+DEFECTIVE, stale, and unadopted evidence all stop), then legs A+C again at the FIRST fab-BOM export (early, never
 seal-first) — per-refdes LCSC
 identity vs circuit.json AND decoded-MPN-catalog-value vs the BOM label →
 generate_board — placement is hand-coded OR
@@ -925,28 +959,38 @@ and via policy; direct route/prep/import entry points invoke the same gate)
 (SHARED: the authoritative P-LAYOUT/P-PREC/P-ADJ/P-ADJ-PAIR/
 P-ADJ-UNREACHED subset; it MUST pass here, after placement and before
 generate_rules or route import)
++ **exact placement DRC before human review**: generate adopted rules, run
+`kicad-cli pcb drc --severity-all --refill-zones --schematic-parity --format
+json`, then `placement_drc_check.py REPORT.json` (**P-DRC**). Unrouted
+ratsnest and preliminary `isolated_copper` islands are observed but may remain;
+shorts, clearance/hole/library defects and parity findings block. The island
+allowance is fixed in the checker, not caller-configurable, so a driver cannot
+silence a real defect class.
++ generate_rules BEFORE route-prep (the route-input `.kicad_pro` must carry
+the netclasses — canon R1) → **tier_preflight (R-PREFLIGHT)**: route-stage
+entry runs `tier_preflight.py` automatically (`route` refuses on FAIL;
+`--skip-preflight` is loud and discouraged) — run `tier_preflight.py
+<project> --explain` when authoring route.yaml, the fix lines are copy-paste
+→ `route_and_stitch_generic.py prep` to emit the exact deterministic r0.
 + `pre_route_review_check.py . --phase placement --board <board>`
-(PR-REVIEW: the schematic-side topology witness already bound the exact
-netlist+parts before placement; now independent pin/layout/render reviews and
-same-camera A-RENDER bind the exact placed board before routing. Missing,
-DEFECTIVE, or stale evidence blocks. These early lenses do not replace the
-fresh routed-release lenses.)
+(**P-ROUTEBASE + PR-REVIEW**: first compare footprint/pad identity, every
+source/prepared via and every deterministic prepared segment with the selected
+promoted chain; then independent pin/layout/render reviews and same-camera
+A-RENDER bind the exact track-free board. Missing, incompatible, DEFECTIVE or
+stale evidence blocks. These early lenses do not replace fresh routed-release
+lenses.)
 + `import_provenance_check.py <project>` if the board carries
 `03_src/rules/mates.yaml` (canon D-MATE: the floorplan is where a foreign
 dimension becomes copper, so its grade is re-checked at the moment it is
 spent — an ESTIMATED number with no error bar may not anchor a connector)
-→ generate_rules
-BEFORE route-prep
-(the route-input .kicad_pro must carry the netclasses — canon R1) →
-**tier_preflight (R-PREFLIGHT)**: route-stage entry runs `tier_preflight.py`
-automatically (`route` refuses on FAIL; `--skip-preflight` is loud and
-discouraged) — run `tier_preflight.py <project> --explain` when authoring
-route.yaml, the fix lines are copy-paste → KRT
-routing chain (fanout-first, track-free board, import once; promote the
+→ KRT routing chain (fanout-first, track-free board, import once; promote the
 final chain file to 03_src/route/ and commit it — canon M3) →
 stitch_and_fill (pours + thermal vias) → `critical_route_check.py . --board
 04_kicad/<board>.kicad_pcb --require-connected` (R-CRITESC) →
-**generate_rules LAST** (pcbnew saves clobber netclasses) → DRC gate:
+**generate_rules LAST** (pcbnew saves clobber netclasses) → full rules audit →
+`via_ampacity_check.py BOARD 03_src/route.yaml` (**A-VIA**: every named tight
+series-transition bank meets its cited finished-hole current basis; fill gets
+zero electrical credit and topology/path review remains independent) → DRC gate:
 `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
 must report **0 violations / 0 unconnected / 0 parity** at FULL severity.
 At route entry run `pcb_flow.py preflight <project>`: on adopted projects it
@@ -1190,7 +1234,8 @@ who owes the consumer.
   part group following `kicad-pcb/references/pin-review-protocol.md`.
   Dossiers expose `pin_aliases`/`fused` declarations and select the vendored
   PDF whose bytes match `datasheet.sha256`; a neighboring variant selected by
-  filename or directory order is not authority. Zero FAILs to proceed.
+  filename or directory order is not authority (**P-AUTH**). Zero FAILs to
+  proceed.
 - Fresh-context RENDER REVIEW: a new agent reviews the twin renders +
   PDFs with no design context; triage every finding (fix or ADR-documented
   disposition).
@@ -1366,7 +1411,7 @@ schematic, check mechanical fit, see every gate's evidence, and re-plot the
 gerbers. Six required parts:
 
 - `fab/` — JLC order set: gerber zip, drill files, `bom.csv`, `cpl.csv`
-- `pdf/` — schematic (on a tscircuit board = tscircuit's OWN render,
+- `pdf/` — schematic (on a tscircuit board = the exact-Circuit-JSON human render,
   `03_tscircuit/build/schematic.pdf`), pcb_layers, assembly
 - `source/` — the EXACT artifacts the fab files came from:
   `<board>.kicad_sch`, `<board>.kicad_pcb`, the authoring `<board>.tsx`,

@@ -22,11 +22,24 @@ mutable index.
 |---|---|
 | `contracts.md` | this file |
 | `DISPOSITIONS.md` | the living findings ledger — REQUIRED once any review exists |
+| `first-picture_<date>.md` | early functional-skeleton readability record, created before detailed sourcing or PCB work; it binds the prototype PDF hash but is not a placement permission |
 | `pre-route_topology.md` | schematic-phase PR-REVIEW witness bound to exact normalized netlist, parts and adopted design-rule hashes |
+| `pre-route_schematic_render.md` | schematic-phase human-readability witness bound to the exact delivered PDF, normalized netlist, parts and adopted design-rule hashes |
 | `pre-route_pin.md` | placement-phase physical-pin review bound to exact board, parts and adopted design-rule hashes |
 | `pre-route_layout.md` | placement-phase layout review bound to exact board and adopted design-rule hashes |
 | `pre-route_render.md` | placement-phase render review bound to exact board and adopted design-rule hashes |
 | `<date>_<subject>_<source>_<lens>.md` | one review, verbatim (e.g. `2026-07-21_v1.0_redteam_topology.md`, `2026-07-21_v1.0_external-llm_full.md`) |
+
+## Early first-picture checkpoint
+
+As soon as the functional skeleton exists, render the actual human PDF and
+review it at normal viewing size before detailed sourcing or any PCB work. The
+record names the PDF SHA-256, reviewer/context, and `SOUND|DEFECTIVE` verdict,
+then comments on left-to-right functional flow, visible block headings, local
+critical support circuits, important active-part identities, explained
+intentional NCs, and page occupancy. Source section names and a drawing that is
+readable only after deep zoom do not pass. This checkpoint prevents late
+presentation backtracks; it does not replace the exact freeze review below.
 
 ## Dated/release review file structure
 
@@ -50,8 +63,10 @@ person, note the transmission path; never edit the content.
 `review_stage: pre-route`, its exact `review_kind`, and
 `design_verdict: SOUND|DEFECTIVE`. Schematic topology binds
 `netlist_sha256`, `parts_sha256`, and (when adopted) `design_rules_sha256`.
-Placement pin/layout/render bind `board_sha256`; pin also binds `parts_sha256`,
-and all three bind adopted `design_rules_sha256`. These are permissions to
+Schematic render binds `schematic_pdf_sha256` plus the same normalized netlist,
+parts and adopted-rule hashes as topology. Placement pin/layout/render bind
+`board_sha256`; pin also binds `parts_sha256`, and all three bind adopted
+`design_rules_sha256`. These are permissions to
 spend on the next design stage, never order verdicts; an adjacent artifact or
 rules edit makes the witness stale automatically.
 

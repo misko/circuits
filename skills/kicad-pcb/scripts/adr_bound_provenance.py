@@ -276,14 +276,13 @@ from waiver_provenance import (MUTATING, last_line_number,  # noqa: E402
 #   CITED may only RISE, OWED may only FALL.
 # Edit one of these only in the same commit that earns it, and say which run
 # produced the number.
-CITED_FLOOR = 10       # regenerated and agreeing blocks, MEASURED 2026-07-31
-                       # by the independent ratchet test after making repo ADR
-                       # 0007's board-silk threshold executable. May only rise.
+CITED_FLOOR = 13       # regenerated and agreeing blocks, MEASURED 2026-08-12
+                       # after USB Hub v4 made its exact cable-resistance bound
+                       # executable instead of increasing OWED. May only rise.
 OWED_CEILING = 37      # ADRs that publish a numeric inequality bound and
-                       # declare no `bound:` block. Still TIGHT at 37 of 45
-                       # bound-publishing ADRs across 92 total ADRs after the
-                       # new v4 numeric ADR and the repo-level closure cancel
-                       # one-for-one. Deliberately NOT loosened to 38.
+                       # declare no `bound:` block. Still TIGHT at 37 of 48
+                       # bound-publishing ADRs across 105 total ADRs after the
+                       # new v4 bound gained its block. Never loosened to 38.
 
 ADR_GLOBS = ("docs/decisions/[0-9]*.md", "*/01_docs/decisions/[0-9]*.md",
              "projects/*/01_docs/decisions/[0-9]*.md")

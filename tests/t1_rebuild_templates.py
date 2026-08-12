@@ -24,8 +24,9 @@ The properties pinned here are each a paid-for incident:
   * rebuild_all.sh hands the converter the artifact `tsci build` ACTUALLY
     WROTE (M-FRESH, 2026-07-30 — see below).
   * rebuild_all.sh promotes its generated schematic to the pinned reuse path
-    only AFTER the DRC/full-build gate passes. Otherwise rebuild_reuse.sh can
-    silently replay the topology from before the latest TSX edit.
+    only AFTER the schematic checkpoint and both exact reviews pass, but
+    BEFORE placement. Otherwise a deliberate placement-review pause leaves
+    rebuild_reuse.sh silently replaying the topology from before the TSX edit.
 
 M-FRESH (2026-07-30, pluto-rx2-8way-v2). `tsci build` writes
 `03_tscircuit/dist/src/<TSX>/circuit.json`; this template read
@@ -53,8 +54,11 @@ from harness import (ROOT, SCRIPTS, KPY, check, contains, main,  # noqa: E402
 TPL_DIR = ROOT / "skills" / "pcb-design" / "templates" / "03_src"
 REUSE = TPL_DIR / "rebuild_reuse.sh"
 ALL = TPL_DIR / "rebuild_all.sh"
+ROUTE = TPL_DIR / "route.yaml"
 PROV = SCRIPTS / "build_provenance.py"
 DIAG = SCRIPTS / "circuit_json_diagnostics.py"
+GEN_TSCIRCUIT = SCRIPTS / "gen_tscircuit.sh"
+TSX_TO_BOARD = SCRIPTS / "tsx_to_board.sh"
 
 
 def drc_gate_ok(txt):
@@ -184,6 +188,52 @@ def rules_last_after_stitch(txt):
     return rules[-1] > stitch[-1] and rules[0] < imp[0]
 
 
+def ampacity_audits_stage_ordered(txt, has_tsci):
+    """Cheap source audit precedes producer spend; full audit grades the
+    final generated rules and realized board before the final DRC."""
+    source = txt.find('rules_audit.py" . --phase source')
+    full = txt.find('rules_audit.py" . --board')
+    rules = [m.start() for m in re.finditer(r'generate_rules_generic', txt)]
+    drcs = [m.start() for m in re.finditer(r'kicad-cli\s+pcb\s+drc', txt)]
+    if source < 0 or full < 0 or not rules or not drcs:
+        return False
+    producer_boundary = txt.find("run_stage tscircuit_build") if has_tsci \
+        else txt.find("kicad-cli sch export netlist")
+    return (producer_boundary >= 0 and source < producer_boundary
+            and rules[-1] < full < drcs[-1])
+
+
+def via_ampacity_stage_ordered(txt):
+    """A-VIA grades the final saved board after stitch/rules and before DRC."""
+    stitch = txt.rfind('route_and_stitch_generic.py" stitch')
+    rules = txt.rfind("generate_rules_generic.py")
+    audit = txt.rfind('rules_audit.py" . --board')
+    via = txt.rfind('via_ampacity_check.py"')
+    drc = txt.rfind("kicad-cli pcb drc")
+    return 0 <= stitch < rules < audit < via < drc
+
+
+def schematic_resume_ok(txt):
+    """The resume arm verifies pinned bytes and cannot run the TSX producer."""
+    flag = txt.find("--resume-after-schematic-review")
+    branch = txt.find('if [ "$RESUME_AFTER_SCHEMATIC_REVIEW" = false ]')
+    producer = txt.find("run_stage tscircuit_build", branch)
+    record = txt.find('stage_checkpoint.py" record . schematic', producer)
+    alternate = txt.find("\nelse\n", record)
+    provenance = txt.find('build_provenance.py" audit .', alternate)
+    verify = txt.find('stage_checkpoint.py" verify . schematic', provenance)
+    close = txt.find("\nfi\n", verify)
+    review = txt.find('pre_route_review_check.py" . --phase schematic', close)
+    positions = (flag, branch, producer, record, alternate, provenance, verify,
+                 close, review)
+    if min(positions) < 0 or not (
+            flag < branch < producer < record < alternate < provenance < verify
+            < close < review):
+        return False
+    resumed_arm = txt[alternate:close]
+    return "tsci build" not in resumed_arm and "tscircuit_build" not in resumed_arm
+
+
 # ------------------------------------------------------------------ M-FRESH
 def _expand(txt):
     """Expand the driver's own top-level `NAME=value` assignments.
@@ -261,7 +311,7 @@ def _render_wiring_ok(txt):
     # a per-line regex would read `--render` as belonging to a different command.
     t = re.sub(r'\\\n\s*', ' ', _expand(txt))
     rm = re.search(r'^\s*rm\s+-f\b[^\n]*schematic\.pdf', t, re.M)
-    render = re.search(r'rsvg-convert[^\n]*schematic', t)
+    render = re.search(r'render_schematic_pdf\.mjs[^\n]*schematic', t)
     verify = re.search(r'build_provenance\.py"?\s+verify[^\n]*--render', t)
     if not (rm and render and verify):
         return False
@@ -281,13 +331,59 @@ def t_full_build_bounds_tsci():
     txt = ALL.read_text()
     call = re.search(
         r'^\s*run_stage\s+tscircuit_build\s+env\s+--chdir=03_tscircuit\s+'
-        r'tsci\s+build\s+"src/\$TSX\.tsx"', txt, re.M)
+        r'\./node_modules/\.bin/tsci\s+build\s+"src/\$TSX\.tsx"', txt, re.M)
     check(call is not None,
           "rebuild_all.sh must run tsci build as the tscircuit_build stage")
     direct = re.search(r'^\s*\(\s*cd\s+03_tscircuit\s+&&\s+tsci\s+build',
                        txt, re.M)
     check(direct is None,
           "rebuild_all.sh must not retain an unbounded direct tsci build")
+
+
+@test("full rebuild rejects orphan schema fields and unproven ADR bounds before TSX")
+def t_source_governance_before_producer():
+    txt = ALL.read_text()
+    schema = txt.find("run_stage source_schema_governance")
+    bounds = txt.find("run_stage adr_bound_governance")
+    stamp = txt.find('build_provenance.py" stamp')
+    producer = txt.find("run_stage tscircuit_build")
+    check(min(schema, bounds, stamp, producer) >= 0,
+          "full driver omits source-governance or producer boundary")
+    check(schema < bounds < stamp < producer,
+          "source governance must fail before provenance stamp and TSX spend")
+    check("--timeout 30" in txt[bounds:producer],
+          "ADR commands have no per-bound hard deadline")
+
+
+@test("source-governance ordering check rejects a post-TSX schema audit",
+      kind="known_bad")
+def t_source_governance_ordering_bites():
+    txt = ALL.read_text()
+    line = next(row for row in txt.splitlines(True)
+                if "run_stage source_schema_governance" in row)
+    broken = txt.replace(line, "", 1) + "\n" + line
+    check(not (broken.find("run_stage source_schema_governance") <
+               broken.find("run_stage adr_bound_governance") <
+               broken.find('build_provenance.py" stamp') <
+               broken.find("run_stage tscircuit_build")),
+          "known-bad fixture failed to violate source-governance ordering")
+
+
+@test("the canonical route template gives TSX both a budget and hard deadline")
+def t_route_template_bounds_tsci():
+    txt = ROUTE.read_text()
+    budget = re.search(
+        r"(?ms)^\s{2}budgets_s:\s*$.*?^\s{4}tscircuit_build:\s*([0-9.]+)\s*$",
+        txt,
+    )
+    timeout = re.search(
+        r"(?ms)^\s{2}timeouts_s:\s*$.*?^\s{4}tscircuit_build:\s*([0-9.]+)\s*$",
+        txt,
+    )
+    check(budget is not None, "route template omits TSX performance budget")
+    check(timeout is not None, "route template omits TSX hard deadline")
+    check(float(timeout.group(1)) >= float(budget.group(1)),
+          "TSX hard deadline must not be shorter than its normal budget")
 
 
 @test("both rebuild drivers run the authoritative placement-policy subset "
@@ -326,14 +422,54 @@ def t_pre_route_reviews_before_route():
         txt = path.read_text()
         schematic = txt.find('pre_route_review_check.py" . --phase schematic')
         placement = txt.find('pre_route_review_check.py" . --phase placement')
-        route = min((p for p in (txt.find('route_and_stitch_generic.py" prep'),
-                                 txt.find('route_and_stitch_generic.py" import'))
-                     if p >= 0), default=-1)
-        check(schematic >= 0 and placement > schematic and route > placement,
+        prep = txt.find('route_and_stitch_generic.py" prep')
+        route = txt.find('route_and_stitch_generic.py" import')
+        check(schematic >= 0 and prep > schematic and placement > prep
+              and route > placement,
               f"{path.name}: schematic then placement PR-REVIEW must both "
-              "precede the first route operation")
+              "bound a fresh prep before route import")
         check(txt.count('"$S/pre_route_review_check.py"') == 2,
               f"{path.name}: expected exactly two executable PR-REVIEW calls")
+
+
+@test("both rebuild drivers run exact refill/parity placement DRC before human placement review")
+def t_placement_drc_before_review():
+    for path in (REUSE, ALL):
+        txt = path.read_text()
+        board = txt.find("generate_board_generic.py")
+        drc = txt.find("kicad-cli pcb drc", board)
+        gate = txt.find("placement_drc_check.py", drc)
+        review = txt.find('pre_route_review_check.py" . --phase placement', gate)
+        check(board >= 0 and drc > board and gate > drc and review > gate,
+              f"{path.name}: exact placement DRC must run after board generation "
+              "and before placement review")
+        window = txt[drc:review]
+        for flag in ("--severity-all", "--refill-zones", "--schematic-parity"):
+            contains(window, flag, f"{path.name} placement DRC flags")
+        contains(window, "06_build/drc/pre_route.json",
+                 f"{path.name} placement DRC report")
+        check("--allow" not in window,
+              f"{path.name}: P-DRC must not expose a generic defect allowlist")
+
+
+@test("rebuild_all.sh resumes the exact reviewed schematic checkpoint without rerunning TSX")
+def t_schematic_review_checkpoint_resume():
+    txt = ALL.read_text()
+    check(schematic_resume_ok(txt),
+          "full driver must build+record on the normal arm, audit+verify without "
+          "TSX on the resume arm, and only then consume exact human reviews")
+
+
+@test("the schematic resume ordering check has teeth: removing checkpoint verification is rejected",
+      kind="known_bad")
+def t_kb_schematic_review_checkpoint_resume():
+    txt = ALL.read_text()
+    mutated = re.sub(
+        r'^\s*\$PY\s+"\$S/stage_checkpoint\.py"\s+verify\s+\.\s+schematic.*?^\s*\|\|.*?\n',
+        "", txt, flags=re.M | re.S)
+    check(mutated != txt, "mutation did not remove checkpoint verification")
+    check(not schematic_resume_ok(mutated),
+          "resume ordering check accepted an arm with no checkpoint verification")
 
 
 @test("rebuild_reuse.sh: ONE DRC invocation carries --severity-all "
@@ -349,6 +485,48 @@ def t_rules_ordering():
     check(rules_last_after_stitch(REUSE.read_text()),
           "generate_rules ordering violated: need one call before import and "
           "the final call after stitch")
+
+
+@test("both rebuild drivers run cheap and full ampacity/rules audits at the "
+      "stage boundaries")
+def t_ampacity_audits_stage_ordered():
+    for path, has_tsci in ((ALL, True), (REUSE, False)):
+        check(ampacity_audits_stage_ordered(path.read_text(), has_tsci),
+              f"{path.name}: source A-AMP must precede producer work and full "
+              "A-AMP/A-FIRE must follow final generate_rules before final DRC")
+
+
+@test("the ampacity wiring check rejects a driver that drops full A-AMP",
+      kind="known_bad")
+def t_kb_ampacity_audit_missing():
+    txt = REUSE.read_text()
+    bad = re.sub(
+        r'^\$PY "\$S/rules_audit\.py" \. --board.*\n'
+        r'^\s*\|\| \{ echo "GATE FAILED \[7a\].*\n',
+        '', txt, flags=re.M)
+    check(bad != txt, "fixture failed to remove full rules audit")
+    check(not ampacity_audits_stage_ordered(bad, False),
+          "driver without full A-AMP was accepted")
+
+
+@test("both rebuild drivers grade series-transition via ampacity after final "
+      "board construction and before DRC")
+def t_via_ampacity_stage_ordered():
+    for path in (ALL, REUSE):
+        check(via_ampacity_stage_ordered(path.read_text()),
+              f"{path.name}: A-VIA must follow stitch/final rules audit and "
+              "precede final DRC")
+
+
+@test("the A-VIA wiring check rejects a driver with the gate removed",
+      kind="known_bad")
+def t_kb_via_ampacity_missing():
+    txt = REUSE.read_text()
+    bad = txt.replace('via_ampacity_check.py"',
+                      'via_ampacity_check_REMOVED.py"', 1)
+    check(bad != txt, "fixture failed to remove the A-VIA call site")
+    check(not via_ampacity_stage_ordered(bad),
+          "driver without A-VIA was accepted")
 
 
 @test("rebuild_reuse.sh: pinned .kicad_sch is copied beside the board BEFORE "
@@ -372,21 +550,31 @@ def t_no_tsci():
     contains(txt, "rebuild_all.sh", "header (must say when to use which driver)")
 
 
-@test("rebuild_all.sh: the full-build schematic is promoted to the pinned "
-      "reuse path only AFTER DRC passes")
-def t_all_promotes_pinned_schematic_last():
+@test("rebuild_all.sh: the reviewed schematic is promoted before placement "
+      "and the final stage only verifies that pin")
+def t_all_promotes_pinned_schematic_at_stage_boundary():
     txt = ALL.read_text()
+    review = re.search(
+        r'^\s*\$PY\s+"\$S/pre_route_review_check\.py"\s+\.\s+--phase\s+schematic',
+        txt, re.M)
+    board = re.search(r'^\s*\$PY\s+"\$S/generate_board_generic\.py"',
+                      txt, re.M)
     drc = re.search(r'^\s*(?:run_stage\s+layout_drc\s+)?kicad-cli pcb drc',
                     txt, re.M)
-    cp = re.search(
+    copies = list(re.finditer(
         r'^\s*cp\s+"04_kicad/\$BOARD\.kicad_sch"\s+'
-        r'"03_tscircuit/kicad/\$BOARD\.kicad_sch"', txt, re.M)
-    verify = re.search(
+        r'"03_tscircuit/kicad/\$BOARD\.kicad_sch"', txt, re.M))
+    verifies = list(re.finditer(
         r'^\s*cmp\s+-s\s+"04_kicad/\$BOARD\.kicad_sch"\s+'
-        r'"03_tscircuit/kicad/\$BOARD\.kicad_sch"', txt, re.M)
-    check(drc and cp and verify and drc.start() < cp.start() < verify.start(),
-          "full rebuild must copy+verify the generated schematic into the "
-          "pinned reuse path only after the DRC gate")
+        r'"03_tscircuit/kicad/\$BOARD\.kicad_sch"', txt, re.M))
+    check(review and board and drc and len(copies) == 1 and len(verifies) == 2,
+          "expected one review-gated promotion and two pin verifications")
+    cp = copies[0]
+    check(review.start() < cp.start() < board.start() < drc.start(),
+          "the schematic pin must occur after schematic review and before "
+          "board generation/DRC so staged deterministic iteration is current")
+    check(verifies[0].start() > cp.start() and verifies[-1].start() > drc.start(),
+          "promotion must be checked immediately and again after PCB stages")
 
 
 @test("rebuild_reuse.sh: board name is DERIVED from floorplan.yaml project.name "
@@ -491,6 +679,69 @@ def t_tsx_diagnostic_boundary():
     check(tsx_diagnostic_wiring_ok(ALL.read_text()),
           "circuit_json_diagnostics.py must run after the dist/ producer copy "
           "and before circuit_json_to_kicad_sch.py")
+
+
+@test("rebuild_all.sh: installs the committed Bun graph before tsci build")
+def t_locked_tscircuit_install():
+    txt = ALL.read_text()
+    install = re.search(
+        r'run_stage\s+tscircuit_deps\s+env\s+--chdir=03_tscircuit\s+'
+        r'bun\s+install\s+--frozen-lockfile\s+--ignore-scripts', txt)
+    build = re.search(
+        r'run_stage\s+tscircuit_build\s+env\s+--chdir=03_tscircuit\s+'
+        r'\./node_modules/\.bin/tsci\s+build', txt)
+    check(install and build and install.start() < build.start(),
+          "the driver must restore the committed dependency graph with a "
+          "frozen, lifecycle-script-free install before invoking tsci")
+
+
+@test("the locked-install assertion has TEETH: an ambient tsci build is rejected",
+      kind="known_bad")
+def t_kb_locked_tscircuit_install_teeth():
+    txt = ALL.read_text()
+    mutated = re.sub(r'^run_stage\s+tscircuit_deps[^\n]*\n', "", txt,
+                     count=1, flags=re.M)
+    check(mutated != txt, "mutation did not remove the dependency install")
+    install = re.search(r'bun\s+install\s+--frozen-lockfile', mutated)
+    build = re.search(r'run_stage\s+tscircuit_build', mutated)
+    check(not (install and build and install.start() < build.start()),
+          "a driver that invokes tsci from ambient dependency state was accepted")
+
+
+@test("the local-producer assertion has TEETH: a global tsci invocation is rejected",
+      kind="known_bad")
+def t_kb_local_tscircuit_binary_teeth():
+    txt = ALL.read_text()
+    mutated = txt.replace("./node_modules/.bin/tsci build", "tsci build", 1)
+    check(mutated != txt, "mutation did not replace the project-local producer")
+    local = re.search(
+        r'run_stage\s+tscircuit_build.*?\./node_modules/\.bin/tsci\s+build',
+        mutated)
+    check(not local,
+          "a driver that restored a local graph but invoked global tsci was accepted")
+
+
+@test("all shared TSX entry points restore the lock and invoke its local producer")
+def t_shared_tscircuit_entry_points_are_local():
+    for path in (GEN_TSCIRCUIT, TSX_TO_BOARD):
+        txt = path.read_text()
+        contains(txt, "bun install --frozen-lockfile --ignore-scripts",
+                 f"{path.name} frozen install")
+        contains(txt, "./node_modules/.bin/tsci",
+                 f"{path.name} project-local producer")
+        check(not re.search(r'timeout\s+\d+\s+tsci\s+build', txt),
+              f"{path.name} retains a direct global tsci build")
+
+
+@test("the shared-entry assertion has TEETH: restoring a lock but using global "
+      "tsci is rejected", kind="known_bad")
+def t_kb_shared_tscircuit_entry_points_are_local_teeth():
+    txt = GEN_TSCIRCUIT.read_text().replace(
+        'TSCI=./node_modules/.bin/tsci', 'TSCI=tsci', 1)
+    check("bun install --frozen-lockfile --ignore-scripts" in txt,
+          "mutation accidentally removed the frozen install")
+    check("TSCI=./node_modules/.bin/tsci" not in txt,
+          "mutation did not remove the local producer binding")
 
 
 @test("the TSX-DIAG wiring assertion has TEETH: removing the checker is "
@@ -653,7 +904,7 @@ def t_mfresh_ordering():
     build = re.search(
         r'^\s*(?:\(\s*cd 03_tscircuit && tsci build|'
         r'run_stage\s+tscircuit_build\s+env\s+--chdir=03_tscircuit\s+'
-        r'tsci\s+build)', t, re.M)
+        r'(?:\./node_modules/\.bin/)?tsci\s+build)', t, re.M)
     verify = re.search(r'build_provenance\.py"?\s+verify', t)
     conv = re.search(r'circuit_json_to_kicad_sch\.py', t)
     check(stamp and build and verify and conv,
@@ -676,6 +927,7 @@ def _scratch(name="pluto_x", board=None, tsx=None):
     (d / "03_tscircuit" / "src").mkdir(parents=True)
     (d / "03_tscircuit" / "src" / f"{name}.tsx").write_text("export default 1\n")
     (d / "03_tscircuit" / "package.json").write_text('{"name":"scratch"}\n')
+    (d / "03_tscircuit" / "bun.lock").write_text('lockfileVersion = 1\n')
     (d / "04_kicad").mkdir()
     (d / "06_build").mkdir()
     # an ADOPTED driver: it calls the checker, so its runs leave evidence and
@@ -854,6 +1106,23 @@ def t_kb_mfresh_audit_stale_sources():
               "M-FRESH audit after the sources moved", expect="F-STALE")
 
 
+@test("M-FRESH binds the resolved TSX dependency lock, not only package.json",
+      kind="known_bad")
+def t_kb_mfresh_audit_stale_lockfile():
+    d = _scratch()
+    must_pass(_stamp(d, "pluto_x"), "M-FRESH stamp")
+    time.sleep(0.01)
+    src = _produce(d, "pluto_x", {"pads": "vendor-order"})
+    dst = d / "03_tscircuit" / "build" / "circuit.json"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(src.read_bytes())
+    must_pass(_verify(d, "pluto_x", dst), "M-FRESH verify")
+    (d / "03_tscircuit" / "bun.lock").write_text(
+        'lockfileVersion = 1\n[packages]\n"tscircuit" = "new"\n')
+    must_fail(run([KPY, PROV, "audit", d]),
+              "M-FRESH audit after dependency graph moved", expect="F-STALE")
+
+
 @test("M-FRESH audit NAMES what it cannot grade, and an empty denominator "
       "never reads as a pass", kind="known_bad")
 def t_kb_mfresh_audit_never_silent():
@@ -1016,7 +1285,7 @@ def t_kb_mfresh_render_is_the_schematic_incident():
       "before rendering, so absence is the loud failure mode", kind="known_bad")
 def t_kb_mfresh_render_missing_is_loud():
     """Why the template does `rm -f` FIRST. A render step that fails or is
-    skipped (no `rsvg-convert` on this machine) must not be able to leave the
+    skipped (for example, a missing PDF converter) must not be able to leave the
     previous revision's PDF sitting where the seal will copy it. Deleting first
     converts the failure from STALENESS, which is silent and shipped, into
     ABSENCE, which this finding names. A gate that only checked mtime ordering
@@ -1117,6 +1386,21 @@ def t_new_stage_gate_ordering():
               f"{path.name}: R-CRITESC must grade realized post-stitch copper")
 
 
+@test("rebuild_all fails source-only schemas before invoking tscircuit")
+def t_source_schema_precedes_tsci():
+    txt = ALL.read_text()
+    build = txt.index('run_stage tscircuit_build')
+    check(txt.index('--schema-only') < build,
+          "label_survival schema gate must precede tscircuit")
+    check(txt.index('early_design_check.py') < build,
+          "electrical source-schema gate must precede tscircuit")
+    source_prec = txt.index('--phase source')
+    check(source_prec < build,
+          "part layout/precedent source gate must precede tscircuit")
+    check(source_prec < txt.index('pre_route_review_check.py'),
+          "part layout/precedent source gate must precede hash-bound reviews")
+
+
 @test("both rebuild drivers replay configured taps between route import and stitch")
 def t_route_taps_stage_ordering():
     for path in (ALL, REUSE):
@@ -1135,10 +1419,10 @@ def t_template_render_wiring():
     """The template half of the fix, and the `rm -f` is the load-bearing line.
 
     Rendering into a path that already holds last revision's PDF cannot fail
-    safely: if the export or `rsvg-convert` does not run, the old file survives
+    safely: if the exact-Circuit-JSON renderer does not run, the old file survives
     and the seal copies it. Deleting first makes the failure mode ABSENCE,
-    which F-RENDER names. The two producers therefore carry `|| true` on
-    purpose — the GATE must report the outcome, not `set -e`, or the operator
+    which F-RENDER names. The renderer therefore carries `|| true` on purpose
+    — the GATE must report the outcome, not `set -e`, or the operator
     gets a bare non-zero exit with no finding.
 
     GIT-SWAP RED-VERIFIED against the pre-fix template (`git show HEAD:` at the

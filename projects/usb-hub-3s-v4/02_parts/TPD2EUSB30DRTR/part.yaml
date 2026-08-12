@@ -10,7 +10,7 @@ limits: {io_absolute_max: 6V, breakdown_min: 7V, iec_esd_contact: 8kV, surge_8_2
 gotchas:
   - "D6 protects Type-C CC1 and CC2 only. It is required because those connector contacts are exposed even though v4 carries no USB data."
   - "Place at J5 with a direct ground-via return; route connector-to-clamp before branching to TPS25810."
-verified: "DRT top-view pin map, 6V I/O absolute maximum, IEC rating and layout guidance independently read from TI SLVSAC2G 2026-08-10"
+verified: "TI SLVSAC2G Figure 5-1 and Table 5-1 p.3 independently confirm the DRT top-view pin map (pin 1 D1+, pin 2 D1-, pin 3 GND); 6V I/O absolute maximum, IEC rating and layout guidance re-read 2026-08-10"
 sourcing: {lcsc: C97502, alternates: [], note: "exact TI order code; do not accept same-looking third-party parts using the TI MPN as a descriptor"}
 layout:
   source: "TI SLVSAC2G Figure 10-1 and layout guidelines"

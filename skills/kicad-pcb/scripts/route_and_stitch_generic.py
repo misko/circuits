@@ -86,7 +86,8 @@ so the commands work from any cwd. Top-level keys:
 contiguous prefix in route_progress.json whose route.yaml, r0, per-wave input
 and output hashes still agree. Bare rN files are never treated as evidence.
   taps:     clearance, via{}, connections[] {net, from, to, width,
-            layer/hop_layer, plane} — see cmd_taps
+            layer/hop_layer, plane, optional via{} geometry override and
+            via_protection{capping,filling}} — see cmd_taps
   stitch:   via{}, keepin{}, passes[] (the ORDER — this is the axis the
             six boards actually disagree on), plus one block per pass
 
@@ -1290,17 +1291,48 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd, htc=None):
     lay = _layer_id(pcbnew, t.get("layer", "F.Cu"))
     hop = _layer_id(pcbnew, t.get("hop_layer", "B.Cu"))
     what = f"taps.connections[{i}] ({netname})"
+    local_via = t.get("via") or {}
+    if not isinstance(local_via, dict):
+        die(f"{what}: `via:` must be a mapping")
+    unknown_via = sorted(set(local_via) - {"size", "drill",
+                                           "hole_to_copper", "exact"})
+    if unknown_via:
+        die(f"{what}: `via:` has unknown key(s) {unknown_via}")
+    tvs = float(local_via.get("size", vs))
+    tvd = float(local_via.get("drill", vd))
+    thtc = float(local_via["hole_to_copper"]) \
+        if "hole_to_copper" in local_via else htc
+    if tvs <= 0 or tvd <= 0 or tvd >= tvs:
+        die(f"{what}: `via:` needs size > drill > 0")
+    exact_via = bool(local_via.get("exact", False))
+    protection = t.get("via_protection")
+
+    def add_tap_via(point):
+        try:
+            return tk.add_via(
+                *point, nobj, size=tvs, drill=tvd, protection=protection,
+                protection_path=f"taps.connections[{i}].via_protection")
+        except ValueError as exc:
+            die(str(exc))
+
     p1 = _tap_point(tk.board, t.get("from"), netname, what + " from")
     drop = bool(t.get("drop"))
     if drop and not t.get("plane"):
         die(f"{what}: `drop: true` requires `plane: true`")
+    if exact_via and not drop:
+        die(f"{what}: `via.exact: true` requires a plane drop")
     p2 = p1 if drop else \
         _tap_point(tk.board, t.get("to"), netname, what + " to")
 
     if t.get("plane"):
         # plane tap: stub -> via near `from` -> hop-layer join -> via AT `to`
         # (a point where the net's inner plane exists, so the fill merges it)
-        v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd, htc)
+        if exact_via:
+            kw = {"hole_to_copper": thtc} if thtc is not None else {}
+            v1 = p1 if tk.via_site_ok(p1[0], p1[1], nc, size=tvs,
+                                      drill=tvd, **kw) else None
+        else:
+            v1 = _tap_via_near(tk, p1, nc, w, lay, tvs, tvd, thtc)
         if not v1:
             return None
         if drop:
@@ -1309,18 +1341,18 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd, htc=None):
             # and track merely create a needless neck inside the same pour.
             if p1 != v1:
                 tk.add_seg(*p1, *v1, nobj, lay, w)
-            tk.add_via(*v1, nobj, size=vs, drill=vd)
+            add_tap_via(v1)
             return "plane_drop"
-        kw = {"hole_to_copper": htc} if htc is not None else {}
-        if not tk.via_site_ok(p2[0], p2[1], nc, size=vs, drill=vd, **kw):
+        kw = {"hole_to_copper": thtc} if thtc is not None else {}
+        if not tk.via_site_ok(p2[0], p2[1], nc, size=tvs, drill=tvd, **kw):
             return None
         if tk.joinpath(netname, v1, p2, w, layer=hop,
                        widths_fallback=()) is None:
             return None
         if p1 != v1:
             tk.add_seg(*p1, *v1, nobj, lay, w)
-        tk.add_via(*v1, nobj, size=vs, drill=vd)
-        tk.add_via(*p2, nobj, size=vs, drill=vd)
+        add_tap_via(v1)
+        add_tap_via(p2)
         return "plane_tap"
 
     if t.get("escape"):
@@ -1333,8 +1365,11 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd, htc=None):
         # rescue this: measured on usb-hub-3s-v2 TPS25740A, a 2.5mm part shift
         # moved the haul only 7.0->6.2mm because the channel y-gap dominates and
         # cannot shrink (the gate nets need it). `to` is a point inside the pour.
-        kw = {"hole_to_copper": htc} if htc is not None else {}
-        if not tk.via_site_ok(p1[0], p1[1], nc, size=vs, drill=vd, **kw):
+        if protection is not None:
+            die(f"{what}: `via_protection:` is not supported with `escape:`; "
+                "declare a deterministic plane drop or hop")
+        kw = {"hole_to_copper": thtc} if thtc is not None else {}
+        if not tk.via_site_ok(p1[0], p1[1], nc, size=tvs, drill=tvd, **kw):
             print(f"       {what}: via-in-pad site blocked at {p1}")
             return None
         # vs/vd, NOT the toolkit's 0.45/0.2 default: the escape's layer-change
@@ -1346,8 +1381,8 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd, htc=None):
                              window=float(t.get("escape_window", 4.0)),
                              viacost=int(t.get("escape_viacost", 8)),
                              attempts=int(t.get("escape_attempts", 14)),
-                             via_size=vs, via_drill=vd,
-                             hole_to_copper=htc):
+                             via_size=tvs, via_drill=tvd,
+                             hole_to_copper=thtc):
             return "escape"
         return None
 
@@ -1356,14 +1391,14 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd, htc=None):
                    widths_fallback=()) is not None:
         return "joinpath"
     # strategy 2: via hop — stub -> via -> hop-layer join -> via -> stub
-    v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd, htc)
-    v2 = _tap_via_near(tk, p2, nc, w, lay, vs, vd, htc)
+    v1 = _tap_via_near(tk, p1, nc, w, lay, tvs, tvd, thtc)
+    v2 = _tap_via_near(tk, p2, nc, w, lay, tvs, tvd, thtc)
     if v1 and v2 and tk.joinpath(netname, v1, v2, w, layer=hop,
                                  widths_fallback=()) is not None:
         if p1 != v1:
             tk.add_seg(*p1, *v1, nobj, lay, w)
-        tk.add_via(*v1, nobj, size=vs, drill=vd)
-        tk.add_via(*v2, nobj, size=vs, drill=vd)
+        add_tap_via(v1)
+        add_tap_via(v2)
         if p2 != v2:
             tk.add_seg(*v2, *p2, nobj, lay, w)
         return "via_hop"
@@ -1388,8 +1423,10 @@ def cmd_taps(cfg):
              layer: F.Cu, hop_layer: B.Cu}
           - {net: 5V,   from: R6.1,  to: [41.0, 46.5], width: 0.3,
              plane: true}    # `to` = a point inside the net's plane
-          - {net: 5V,   from: U2.4, width: 0.3, plane: true,
-             drop: true}     # plane is already directly under the pad
+          - {net: 5V,   from: U2.4, width: 0.3, plane: true, drop: true,
+             via: {size: 0.5, drill: 0.2, exact: true},
+             via_protection: {capping: yes, filling: yes}}
+                              # item-level Type VII via in the source pad
     """
     import pcbnew
     sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -3644,6 +3681,10 @@ def p_seed_stubs(ctx, c):
         net = ctx.net(netname)
         code = net.GetNetCode()
         pin = stub.get("pin")
+        if not pin and not str(stub.get("why", "")).strip():
+            die(f"seed_stubs.stubs[{i}]: a via/segment bank without `pin` "
+                "must declare `why` so its current/connectivity ownership is "
+                "not anonymous")
         pinpad = None
         if pin:
             ref, num = str(pin).split(".", 1)
@@ -3712,7 +3753,7 @@ def p_seed_stubs(ctx, c):
                     f"first segment starts at the pad)")
         served += 1
     ctx.bump("seed_stubs", placed)
-    print(f"seed_stubs: {served} pin(s) served ({placed} segments/vias "
+    print(f"seed_stubs: {served} bank(s) served ({placed} segments/vias "
           f"placed, {skipped} idempotent-skip), {refused} refused")
 
 

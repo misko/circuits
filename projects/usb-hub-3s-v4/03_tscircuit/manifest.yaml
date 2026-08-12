@@ -24,6 +24,7 @@ components:
   - U6
   - U7
   - U8
+  - U9
   - C1
   - C2
   - C3
@@ -45,6 +46,13 @@ components:
   - C19
   - C20
   - C21
+  - C22
+  - C23
+  - C24
+  - C25
+  - C26
+  - C29
+  - C30
   - R1
   - R2
   - R3
@@ -66,6 +74,10 @@ components:
   - R19
   - R20
   - R21
+  - R22
+  - R23
+  - R24
+  - R26
   - TP1
   - TP2
   - TP3

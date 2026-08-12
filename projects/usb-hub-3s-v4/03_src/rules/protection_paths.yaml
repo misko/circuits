@@ -30,3 +30,19 @@ paths:
       - {ref: C1, part: 35TZV100M6.3X8, domain: tvs_clamped_protected_rail, bounded_max_V: 24.4, recommended_max_V: 35, absolute_max_V: 35}
       - {ref: U1, part: TPSM63610RDFR, domain: tvs_clamped_protected_rail, bounded_max_V: 24.4, recommended_max_V: 36, absolute_max_V: 42}
       - {ref: U2, part: TPSM63604RDLR, domain: tvs_clamped_protected_rail, bounded_max_V: 24.4, recommended_max_V: 36, absolute_max_V: 42}
+    gate_biases:
+      - ref: Q1
+        polarity: p_channel_source_upper_gate_lower_ground
+        upper_resistors:
+          - {ref: R22, ohm: 100000, tolerance_pct: 1}
+          - {ref: R23, ohm: 100000, tolerance_pct: 1}
+        lower_resistor: {ref: R1, ohm: 100000, tolerance_pct: 1}
+        gate_leakage_abs_uA: 10
+        drive_source_min_V: 9.0
+        required_vgs_magnitude_min_V: 4.5
+        transient_source_max_V: 29.28
+        absolute_vgs_max_V: 25
+        evidence: >-
+          Diodes DMP3013SFV-7 specifies +/-10uA gate leakage and guarantees
+          RDS(on) at -4.5V; resistor limits include each 1% tolerance and the
+          transient corner includes the rail clamp's 20% coordination margin.

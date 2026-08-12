@@ -1444,11 +1444,44 @@ def t_tap_plane_drop():
     contains(got.out, "SEGS 0", "plane drop emitted a redundant neck")
 
 
+@test("a plane drop can carry exact per-via geometry and Type VII protection")
+def t_tap_plane_drop_process():
+    d, p, board = tap_scratch([], [{
+        "net": "SIG", "from": "U1.1", "width": 0.3,
+        "plane": True, "drop": True,
+        "via": {"size": 0.5, "drill": 0.2, "exact": True},
+        "via_protection": {"capping": True, "filling": True},
+    }])
+    must_pass(taps_cmd(p), "item-level Type VII plane drop")
+    code = (
+        "import pcbnew,sys\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "v=next(t for t in b.GetTracks() if t.GetClass()=='PCB_VIA')\n"
+        "p=b.FindFootprintByReference('U1').FindPadByNumber('1').GetPosition()\n"
+        "print('@@',v.GetPosition()==p,round(v.GetWidth(pcbnew.F_Cu)/1e6,3),"
+        "round(v.GetDrill()/1e6,3),v.GetCappingMode(),v.GetFillingMode())\n")
+    got = must_pass(run([KPY, "-c", code, board]),
+                    "inspect item-level Type VII drop")
+    contains(got.out, "@@ True 0.5 0.2 1 1",
+             "exact via geometry/protection did not survive save")
+
+
 @test("drop without a declared plane is a hard config error", kind="known_bad")
 def t_kb_tap_drop_without_plane():
     d, p, _board = tap_scratch([], [{"net": "SIG", "from": "U1.1",
                                      "width": 0.3, "drop": True}])
     must_fail(taps_cmd(p), "unowned via drop", "requires `plane: true`")
+
+
+@test("exact tap-via placement is legal only for a deterministic plane drop",
+      kind="known_bad")
+def t_kb_tap_exact_without_drop():
+    d, p, _board = tap_scratch([], [{
+        "net": "SIG", "from": "U1.1", "to": "U2.1", "width": 0.3,
+        "via": {"size": 0.5, "drill": 0.2, "exact": True},
+    }])
+    must_fail(taps_cmd(p), "exact via outside a plane drop",
+              "`via.exact: true` requires a plane drop")
 
 
 @test("a named tap REFUSES silent width fallback", kind="known_bad")
@@ -2549,7 +2582,7 @@ def t_seed_stubs_serves():
     d, p, board = seed_scratch([{"net": "PWR", "pin": "U1.1",
                                  "vias": [[15, 10]]}])
     r = must_pass(stitch(p), "stitch with seed_stubs")
-    contains(r.out, "seed_stubs: 1 pin(s) served", "the pass served the pin")
+    contains(r.out, "seed_stubs: 1 bank(s) served", "the pass served the pin")
     eq(drc_counts(board)["unconnected"], 0,
        "the seed stub did not bond the pour-fed pin")
 
@@ -2730,7 +2763,7 @@ def t_seed_stubs_reachable_through_import():
 
     with 0 vias on the board and DRC unconnected=1. The pass could not run AT
     ALL. Post-fix the same fixture measures [['PWR', False, 0]] out of import,
-    "1 pin(s) served", {'PWR': 1} vias, and unconnected=0.
+    "1 bank(s) served", {'PWR': 1} vias, and unconnected=0.
     """
     d, p, board, chain, pristine = seed_pipeline(
         [{"net": "PWR", "pin": "U1.1", "vias": [[15, 10]]}])
@@ -2742,7 +2775,7 @@ def t_seed_stubs_reachable_through_import():
        "the pour must arrive at stitch UNFILLED or seed_stubs cannot run "
        "(net, IsFilled, filled area nm^2)")
     rs = must_pass(run([KPY, RS, "stitch", p]), "stitch after a piped import")
-    contains(rs.out, "seed_stubs: 1 pin(s) served", "the pass must RUN")
+    contains(rs.out, "seed_stubs: 1 bank(s) served", "the pass must RUN")
     eq(via_nets(board).get("PWR", 0), 1,
        "the stub via did not LAND in the saved copper")
     eq(drc_counts(board)["unconnected"], 0,
