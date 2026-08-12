@@ -59,6 +59,26 @@ rationale.
 | IMP-043 | Propagate typical-only and accessory-qualified bounds into release blockers | implementing | USB Hub 3S v4, routed topology review |
 | IMP-044 | Prove rendered symbol terminals coincide with authoritative trace endpoints | completed | USB Hub 3S v4, schematic readability re-review |
 | IMP-045 | Run repository schema and bound-provenance ratchets before producer or reviewer spend | completed | USB Hub 3S v4, schematic regression replay |
+| IMP-046 | Preflight rendered reference/value occlusion before human review | proposed | USB Hub 3S v4, schematic readability review |
+| IMP-047 | Give IR-budget terms non-overlapping measurement endpoints | implementing | USB Hub 3S v4, Type-C topology review |
+| IMP-048 | Compare visible schematic paths with authoritative electrical nets | proposed | USB Hub 3S v4, schematic readability review |
+| IMP-049 | Bound independent-review briefs and enforce closure deadlines | proposed | USB Hub 3S v4, exact placement review |
+| IMP-050 | Prove fresh generated outputs instead of trusting exit zero | implementing | USB Hub 3S v4, routed-review export |
+| IMP-051 | Give long external stages progress and bounded retry budgets | implementing | USB Hub 3S v4, JLC digital-twin fetch |
+| IMP-052 | Preflight mutable catalog clients and distinguish compatibility from throttling | implementing | USB Hub 3S v4, JLC digital-twin fetch |
+| IMP-053 | Prefer explicit catalog facts over MPN-shape heuristics | completed | USB Hub 3S v4, C23 source substitution |
+| IMP-054 | Persist the final adjudicated state in generated reports | completed | USB Hub 3S v4, JLC digital twin |
+| IMP-055 | Preflight exact body/model availability before placement freeze | proposed | USB Hub 3S v4, JLC digital twin |
+| IMP-056 | Separate automated and manual population denominators | completed | USB Hub 3S v4, release audit |
+| IMP-057 | Validate relocated release archives in their own dependency context | implementing | USB Hub 3S v4, release staging |
+| IMP-058 | Treat multi-format evidence as one atomic result | proposed | USB Hub 3S v4, release staging |
+| IMP-059 | Preflight publication review identity before immutable seal | implementing | USB Hub 3S v4, publication gate |
+| IMP-060 | Replay a release's declared freshness mode at publication | completed | USB Hub 3S v4, docs-only publication correction |
+| IMP-061 | Close exact-code manufacturing readiness before part freeze | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-062 | Provide one transactional primitive for generated artifact bundles | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-063 | Rehearse the complete release and publication-internal contract before seal | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-064 | Pair early warning gates with late authoritative rechecks | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-065 | Measure pipeline critical path by work class and order cheap gates first | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -1811,3 +1831,210 @@ rationale.
   preserve the subject's declared mode. Calling the same executable with
   weaker/default arguments is not composition; it is a different predicate.
 - history: 2026-08-12 — completed before v0.6.1 seal.
+
+## IMP-061 — exact-code manufacturing readiness before part freeze
+
+- status: proposed
+- observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
+- evidence: fabrication entry found four classes of fact after routing that
+  were already properties of the selected exact LCSC codes. F1, J1-J4 and SW1
+  were in the SMT CPL despite having drilled pads, no paste and catalog
+  `assemblyComponentFlag=false`; C29 and C30 needed current-stock substitutes;
+  C23's selected code had no usable supplier CAD record; and the first strict
+  export lacked rotation authority for 22 placements over 16 codes. The board
+  could remain copper-identical, but each late discovery forced source,
+  evidence, schematic or review replay.
+- intended landing point: after electrical qualification of a candidate and
+  before the part is frozen into the schematic, run one bounded exact-code
+  manufacturing-readiness gate. For every fitted ref/code it records:
+  exact-code resolution and observation date; current stock evidence;
+  JLC assembly eligibility; population class (`jlc_smt`, `manual`,
+  `consigned`, or `dnp`) and its `assembly.yaml` disposition; supplier
+  symbol/footprint/body state (`AVAILABLE`, `ABSENT`, or `TRANSIENT`);
+  polarity; and rotation-authority readiness for every automatically placed
+  package. No field may silently default from pad shape, package family or a
+  neighbouring catalog code.
+- pass semantics: mutable stock is a dated risk observation, not a permanent
+  design fact. A genuine model absence or non-JLC part may pass only with an
+  explicit mechanical envelope/local-model fallback and manual/first-article
+  obligation. `TRANSIENT` never becomes `ABSENT`, and an automatically placed
+  part without exact rotation authority remains unready.
+- relationship: this composes the early portions of IMP-052 and IMP-055 with
+  population and rotation readiness. It does not replace the final placed-
+  board twin, same-day stock check or JLC uploader allocation check.
+- completion evidence required: fixtures for stocked SMT/model-present,
+  manual THT, genuine no-model with approved fallback, throttled catalog,
+  missing rotation, and a code changed after preflight; both schematic and
+  placement entry must refuse a stale or incomplete readiness record.
+- history: 2026-08-12 — proposed from the nine-hour retrospective because the
+  05:31-07:22 fabrication backtracks were cheaper to prevent at part freeze.
+
+## IMP-062 — transactional generated-artifact bundles
+
+- status: proposed
+- observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
+- evidence: a KiCad render printed usage, exited zero and left an old PNG in
+  place; stock JSON/TXT described C136277 while the adjacent CSV still
+  described rejected C369910; and the twin CSV was initially written before
+  adjudication even though the final in-memory verdict passed. These are one
+  failure family: directory presence and process exit were mistaken for a
+  coherent result.
+- intended landing point: provide one shared producer transaction used by
+  review exporters, catalog evidence, twins and release staging. It receives
+  an input hash, producer command/version and declared expected outputs;
+  writes into a new temporary result directory; requires every output to be
+  newly created, non-empty and parseable; applies normalization/adjudication;
+  reopens the durable files; compares key fields across representations; and
+  atomically promotes the whole bundle with one run ID and completion time.
+  Partial or failed attempts remain diagnostic workspaces and can never
+  replace the current accepted bundle.
+- relationship: this is the reusable mechanism needed to finish IMP-050 and
+  IMP-058 and generalize IMP-054. Those incident-specific entries remain the
+  acceptance cases; this entry owns the common transaction boundary.
+- completion evidence required: known-bads for usage-plus-exit-zero with an
+  old file, zero-byte output, missing bundle member, mixed-generation CSV/JSON,
+  post-write adjudication and interrupted promotion; a clean fixture must
+  prove atomic replacement and identical run/input identity in every member.
+- history: 2026-08-12 — proposed from the nine-hour retrospective as the
+  common fix for three apparently different release-evidence defects.
+
+## IMP-063 — complete pre-seal release rehearsal
+
+- status: proposed
+- observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
+- evidence: mutable staging exposed an incomplete `Package_SON` library only
+  when DRC ran in the relocated archive; cross-format read-back then exposed a
+  stale stock CSV; after v0.6.0 was immutable, publication rejected three
+  human display-name subjects that did not carry the canonical project slug;
+  and the v0.6.1 attempt showed that the publication wrapper discarded the
+  declared docs-only freshness mode. The first two were caught before seal,
+  while the latter two unnecessarily required a superseding release.
+- intended landing point: add one canonical rehearsal command over the fully
+  populated but still mutable release staging directory. It must run from the
+  relocated `source/` dependency context; resolve every used footprint;
+  reopen DRC/parity and every generated report; cross-check BOM, CPL,
+  population and stock code sets; validate expected-output/hash manifests;
+  parse review identity, verdict, commit, board hash, lens coverage and archive
+  byte identity with the exact parser imported by publication; and replay
+  freshness using the MANIFEST's declared release mode and predecessor.
+- boundary: the rehearsal exercises every publication predicate that can be
+  known from project and staging bytes. The final diff-aware repository
+  publication gate still runs after the seal because source ancestry,
+  candidate-head selection and branch protection are genuinely post-seal
+  facts. Passing rehearsal is not permission to skip that boundary.
+- relationship: this composes the shared completion work in IMP-057,
+  IMP-058 and IMP-059 and consumes the mode preservation completed by
+  IMP-060. It must reuse their readers rather than reimplement them.
+- completion evidence required: replay the original v0.6.0 display-name
+  mismatch as a pre-seal known-bad; fixtures for footprint-library shadowing,
+  stale secondary evidence, malformed review identity, wrong board hash,
+  missing predecessor and unsupported release mode; a clean staged initial
+  release and docs-only successor must both pass before a seal commit exists.
+- history: 2026-08-12 — proposed from the nine-hour retrospective to make
+  inexpensive metadata and packaging findings cost a staging edit, not an
+  immutable supersede.
+
+## IMP-064 — early warning plus late authoritative recheck
+
+- status: proposed
+- observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
+- evidence: moving every check earlier would reduce rework but would be unsafe
+  if the early observation were treated as permanent authority. Supplier
+  stock and APIs change; placement changes body interactions; routing changes
+  realized via/copper capacity; release copying changes dependency resolution;
+  and publication depends on the final repository delta.
+- intended landing point: declare lifecycle pairs for mutable or realized
+  facts. The early member prevents expensive downstream work; the late member
+  authorizes the final claim. At minimum:
+  - exact-code stock at part selection, then same-day uploader/allocation check;
+  - model availability before placement, then full placed-board twin;
+  - declared via/process/current boundaries before routing, then exact-board
+    process census and series-transition measurement;
+  - generated-output postconditions at production, then release-bundle
+    manifest/read-back;
+  - canonical review headers at commission and staging, then the final
+    repository publication gate;
+  - live-project DRC during design, then relocated-archive DRC before seal.
+- schema requirement: each pair names the fact owner, observation timestamp or
+  immutable subject hash, maximum useful age where applicable, the stage it
+  blocks and the later authoritative recheck. An early pass cannot satisfy a
+  later claim; a late failure points back to the earliest causal stage.
+- completion evidence required: orchestration fixtures prove all early checks
+  precede expensive consumers and all late checks remain present; a stale
+  stock observation, post-placement model mismatch, realized via shortfall and
+  post-seal publication mismatch must each fail at their proper boundary.
+- history: 2026-08-12 — proposed from the retrospective to codify "shift
+  left, do not weaken the final gate."
+
+## IMP-065 — critical-path telemetry and cheap-first scheduling
+
+- status: proposed
+- observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
+- evidence: measured route races took about 9-10 seconds, canonical layout
+  seals about 33-39 seconds and strict JLC export about 0.3 seconds. Human
+  review dominated elapsed time, one review broadened scope without producing
+  a witness, and the first digital-twin fetch took roughly eleven mostly
+  silent minutes. The pipeline felt locked even though routing and local
+  producers were healthy.
+- intended landing point: every orchestration stage emits machine-readable
+  spans with stage/gate name, immutable subject, work class (`local`,
+  `network`, `backoff`, `review_wait`, or `operator_wait`), start/finish,
+  elapsed time, cache hit/miss, result and resumable command. A stage summary
+  reports the actual critical path separately from aggregate subprocess time.
+  Within dependency constraints, schedule cheap static and deterministic gates
+  before network work and human review. Never reorder a weaker check to stand
+  in for a later authoritative one.
+- relationship: IMP-049 owns reviewer closure, IMP-051 owns heartbeat/retry
+  behavior inside long external operations, and IMP-014 owns progress-channel
+  noise. This entry owns cross-stage timing and gate-order feedback so future
+  boards can see where time was actually spent.
+- completion evidence required: a deterministic orchestration fixture with
+  overlapping local/network/review spans computes the right critical path;
+  summaries distinguish productive fetch from backoff and reviewer wait; a
+  template-order test proves source-only gates precede TSX, external fetch and
+  independent review where their inputs permit.
+- history: 2026-08-12 — proposed from the retrospective after measured timing
+  showed that optimizing the router would not address the experienced delay.
+
+## 2026-08-12 nine-hour retrospective traceability
+
+This table records the complete shift-left review so the recommendations are
+not recoverable only from chat or one project's journal. “Early” is the first
+stage with enough information to reject or disposition the issue; the final
+authoritative recheck remains governed by IMP-064.
+
+| Observed issue | Earliest useful boundary | Canonical improvement |
+|---|---|---|
+| Manual/THT parts entered the SMT CPL | exact-code part freeze | IMP-061, with population reporting in IMP-056 |
+| C23/C29/C30 stock or CAD suitability was discovered after routing | exact-code part freeze | IMP-052, IMP-055, IMP-061 |
+| Rotation authority was first demanded by strict export | exact-code part freeze, confirm after placement | IMP-061 |
+| Exact connector bodies were unavailable after routing | before placement freeze | IMP-055, IMP-061 |
+| A promoted route inherited stale placement/via-process geometry | before placement review | IMP-040 |
+| DRC-clean forced via banks lacked current capacity | architecture declaration, then realized route | IMP-041, IMP-064 |
+| Type-VII intent was board-wide or not Gerber-addressable | manufacturing architecture before routing | IMP-039 |
+| A generic MPN decoder overruled exact catalog value | static source preflight | IMP-053 |
+| A renderer exited zero but left a stale PNG | artifact producer transaction | IMP-050, IMP-062 |
+| Stock CSV disagreed with JSON/TXT | atomic evidence production and staging read-back | IMP-058, IMP-062 |
+| Twin CSV disagreed with the final adjudicated verdict | final-state serialization before exit | IMP-054, IMP-062 |
+| An independent reviewer widened scope for hours and wrote nothing | externally bounded review commission | IMP-026, IMP-049 |
+| Release-only footprint-table shadowing broke standalone resolution | mutable relocated staging | IMP-057, IMP-063 |
+| Human display name failed canonical publication identity | review commission and mutable staging | IMP-059, IMP-063 |
+| Publication discarded docs-only freshness semantics | orchestration mode tests before seal | IMP-060, IMP-063 |
+| Healthy stages appeared locked because work class was invisible | every orchestration boundary | IMP-051, IMP-065 |
+
+Recommended execution order for future boards:
+
+1. Commission the product, manufacturing and qualification boundaries.
+2. Close exact-code manufacturing readiness before part freeze (IMP-061).
+3. Run source-only schema, bound and authority gates before TSX or reviewers
+   (IMP-001, IMP-042, IMP-045, IMP-053).
+4. Generate and electrically grade the schematic, then run presentation
+   preflights before bounded human readability review (IMP-044, IMP-046,
+   IMP-048, IMP-049).
+5. Generate placement, prove promoted-route/model compatibility, then run
+   bounded placement review (IMP-040, IMP-055).
+6. Route and remeasure realized copper, via process and ampacity; generate
+   review evidence transactionally (IMP-039, IMP-041, IMP-062).
+7. Build complete mutable staging and run the pre-seal rehearsal (IMP-063).
+8. Seal immutably, refresh the beacon, then run the final repository-level
+   publication gate and retain the external JLC/first-article order holds.
