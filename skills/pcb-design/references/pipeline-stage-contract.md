@@ -184,3 +184,21 @@ identity.
 Parallel implementers own new modules and focused tests only. The integration
 coordinator exclusively edits `SKILL.md`, `rebuild_all.sh`, `pcb_flow.py`, the
 central registry/test runner and `improvements.md`.
+
+## Shadow implementation status
+
+The schema-1 foundation is available under `skills/pcb-design/scripts/`:
+
+- `pipeline_contract.py` — strict `StageSpec` and `StageResult` readers;
+- `pipeline_identity.py` — versioned typed semantic/raw subject identities;
+- `pipeline_registry.py` — dependency validation, cheap-first resolution and
+  comparison with an observed legacy plan;
+- `pipeline_runtime.py` — bounded process-group execution, lossless logs and
+  work-class telemetry;
+- `pipeline_artifacts.py` — fresh validated bundle staging and atomic
+  manifest-last promotion.
+
+These modules are shadow infrastructure, not permission to bypass an existing
+gate or publication path. A producer is migrated only after its adapter has a
+clean and known-bad fixture and its observed plan/result/artifacts agree on
+both canary projects.

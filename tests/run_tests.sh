@@ -60,6 +60,11 @@ SUITES=(
   t1_pad_separation.py
   t1_rf_contract.py
   t1_contracts.py
+  t1_pipeline_foundation.py
+  t1_pipeline_contract.py
+  t1_pipeline_registry.py
+  t1_pipeline_runtime.py
+  t1_pipeline_artifacts.py
   t1_counting.py
   t1_module_first.py
   t1_escape_tier.py

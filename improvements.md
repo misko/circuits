@@ -75,10 +75,10 @@ rationale.
 | IMP-059 | Preflight publication review identity before immutable seal | implementing | USB Hub 3S v4, publication gate |
 | IMP-060 | Replay a release's declared freshness mode at publication | completed | USB Hub 3S v4, docs-only publication correction |
 | IMP-061 | Close exact-code manufacturing readiness before part freeze | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
-| IMP-062 | Provide one transactional primitive for generated artifact bundles | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-062 | Provide one transactional primitive for generated artifact bundles | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-063 | Rehearse the complete release and publication-internal contract before seal | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-064 | Pair early warning gates with late authoritative rechecks | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
-| IMP-065 | Measure pipeline critical path by work class and order cheap gates first | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-065 | Measure pipeline critical path by work class and order cheap gates first | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -1871,7 +1871,7 @@ rationale.
 
 ## IMP-062 — transactional generated-artifact bundles
 
-- status: proposed
+- status: implementing
 - observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
 - evidence: a KiCad render printed usage, exited zero and left an old PNG in
   place; stock JSON/TXT described C136277 while the adjacent CSV still
@@ -1897,6 +1897,12 @@ rationale.
   prove atomic replacement and identical run/input identity in every member.
 - history: 2026-08-12 — proposed from the nine-hour retrospective as the
   common fix for three apparently different release-evidence defects.
+- history: 2026-08-12 — the shared schema-1 primitive and focused clean/bad
+  fixtures landed in shadow form. It uses fresh sibling staging, a strict
+  declared-output census, durable parse/read-back, manifest-last serialization
+  and atomic directory promotion while preserving any accepted bundle on
+  failure. Adoption by real producers and retained failed diagnostic
+  workspaces remain open, so this entry is not complete.
 
 ## IMP-063 — complete pre-seal release rehearsal
 
@@ -1968,7 +1974,7 @@ rationale.
 
 ## IMP-065 — critical-path telemetry and cheap-first scheduling
 
-- status: proposed
+- status: implementing
 - observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
 - evidence: measured route races took about 9-10 seconds, canonical layout
   seals about 33-39 seconds and strict JLC export about 0.3 seconds. Human
@@ -1995,6 +2001,12 @@ rationale.
   independent review where their inputs permit.
 - history: 2026-08-12 — proposed from the retrospective after measured timing
   showed that optimizing the router would not address the experienced delay.
+- history: 2026-08-12 — schema-1 shadow infrastructure now records bounded
+  stage execution with work-class/start/finish/elapsed/log evidence, and a
+  dependency registry recomputes after each choice so newly unblocked cheap
+  work precedes already-runnable network/review work. Real-stage declarations,
+  cross-stage critical-path aggregation and canary shadow equivalence remain
+  open, so this entry is not complete.
 
 ## 2026-08-12 nine-hour retrospective traceability
 
