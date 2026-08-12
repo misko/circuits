@@ -87,6 +87,17 @@ def t_missing_requirement():
         raise AssertionError("unresolved external fact entered the plan")
 
 
+@test("registry REFUSES unused or misspelled available facts", kind="known_bad")
+def t_unknown_available_fact():
+    registry = fixture_registry()
+    try:
+        registry.resolve(available=("part_codes", "part/codes"))
+    except RegistryValidationError as exc:
+        check("not required" in str(exc), "unused available-fact diagnosis")
+    else:
+        raise AssertionError("unused path-shaped available fact was accepted")
+
+
 @test("registry REFUSES multiple producers for one fact", kind="known_bad")
 def t_duplicate_producer():
     try:

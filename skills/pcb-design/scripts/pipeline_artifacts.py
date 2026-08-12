@@ -464,6 +464,10 @@ class ArtifactBundleTransaction:
                 producer_value = produce(staging)
             except Exception as exc:
                 raise ArtifactProducerError(f"producer raised: {exc}") from exc
+            if isinstance(producer_value, bool):
+                raise ArtifactProducerError(
+                    "producer returned a boolean; use integer zero, non-zero "
+                    "status, None, or an explicit state object")
             returncode = (producer_value if isinstance(producer_value, int)
                           and not isinstance(producer_value, bool)
                           else getattr(producer_value, "returncode", None))

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import io
 import json
-import os
 import sys
 import time
 from dataclasses import dataclass
@@ -39,13 +38,15 @@ def execute(code: str, *, spec: Spec | None = None, **kwargs):
 
 @test("runtime returns PASS telemetry and a schema-1 StageResult projection")
 def t_clean():
-    result, console, directory = execute("print('clean output', flush=True)")
+    result, console, directory = execute(
+        "print('clean output', flush=True)", outputs=("runtime_report",))
     check(isinstance(result, RuntimeOutcome), "typed runtime result")
     eq(result.status, "PASS", "runtime status")
     eq(result.returncode, 0, "return code")
     eq(result.work_timing.work_class, "local", "work class")
     eq(result.log_path, (directory / "run.log").resolve(), "lossless log path")
     eq(result.log_path.read_bytes(), b"clean output\n", "lossless log bytes")
+    eq(result.outputs, ("runtime_report",), "accepted output symbols")
     contains(console, "[P-RUNTIME] START", "start telemetry")
     contains(console, "[P-RUNTIME] PASS", "finish telemetry")
 
@@ -69,7 +70,7 @@ def t_clean():
     real_spec = StageSpec(
         id="P-RUNTIME", owner="pcb-design", lifecycle="schematic",
         cost="cheap", work_class="local", timeout_s=2,
-        produces=(), requires=(), blocks=(), invalidated_by=())
+        produces=("runtime_report",), requires=(), blocks=(), invalidated_by=())
     real_result = result.to_stage_result(
         real_spec,
         {"semantic_sha256": "a" * 64, "raw_sha256": "b" * 64})
@@ -197,7 +198,8 @@ def t_timeout_closed_pipe():
       kind="known_bad")
 def t_exit_failure():
     result, console, _ = execute(
-        "import sys; print('specific failure', flush=True); sys.exit(7)")
+        "import sys; print('specific failure', flush=True); sys.exit(7)",
+        outputs=("must_not_publish",))
     eq(result.status, "FAIL", "failed child status")
     eq(result.returncode, 7, "failed child return code")
     eq(result.findings, ("command exited 7",), "failure finding")
@@ -209,6 +211,24 @@ def t_exit_failure():
     stage = result.to_stage_result(Spec(), object(), result_factory=factory)
     eq((stage["graded"], stage["total"]), (0, 1), "failed denominator")
     eq(stage["outputs"], (), "failed stages publish no outputs")
+
+
+@test("runtime REFUSES an output absent from the StageSpec", kind="known_bad")
+def t_undeclared_output():
+    directory = tmpdir("pipeline_runtime_output_")
+    spec = StageSpec(
+        id="P-RUNTIME", owner="pcb-design", lifecycle="schematic",
+        cost="cheap", work_class="local", timeout_s=2,
+        produces=("declared_report",), requires=(), blocks=(),
+        invalidated_by=())
+    try:
+        run_stage(
+            spec, [sys.executable, "-c", "pass"],
+            log_path=directory / "run.log", outputs=("other_report",))
+    except ValueError as exc:
+        check("not declared" in str(exc), "undeclared-output diagnosis")
+    else:
+        raise AssertionError("runtime accepted an output absent from StageSpec")
 
 
 if __name__ == "__main__":

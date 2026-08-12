@@ -76,10 +76,12 @@ class StageRegistry:
 
         self._by_id: dict[str, StageSpec] = {}
         self._producer: dict[str, str] = {}
+        self._required_symbols: set[str] = set()
         for spec in material:
             if spec.id in self._by_id:
                 raise RegistryValidationError(f"duplicate stage id: {spec.id}")
             self._by_id[spec.id] = spec
+            self._required_symbols.update(spec.requires)
             overlap = set(spec.requires) & set(spec.produces)
             if overlap:
                 raise RegistryValidationError(
@@ -194,6 +196,11 @@ class StageRegistry:
         if any(not isinstance(item, str) or not item for item in facts):
             raise RegistryValidationError(
                 "available facts must be non-empty symbolic strings")
+        unused = facts - self._required_symbols
+        if unused:
+            raise RegistryValidationError(
+                "available fact(s) are not required by this registry: "
+                + ", ".join(sorted(unused)))
         targets = (set(self._by_id) if target_stage_ids is None
                    else set(target_stage_ids))
         if not targets:

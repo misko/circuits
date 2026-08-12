@@ -253,6 +253,18 @@ def t_failed_producer():
     eq(accepted_bytes(accepted), before, "accepted bundle after producer failure")
 
 
+@test("boolean producer result cannot masquerade as status zero", kind="known_bad")
+def t_boolean_producer_result():
+    _root, source, accepted = fixture()
+    try:
+        transaction(source, accepted).publish(lambda _staging: False)
+    except artifacts.ArtifactProducerError as exc:
+        check("boolean" in str(exc), "boolean producer-result diagnosis")
+    else:
+        raise AssertionError("False producer result was accepted as success")
+    check(not accepted.exists(), "boolean producer result published a bundle")
+
+
 @test("failed atomic promotion preserves the accepted bundle", kind="known_bad")
 def t_failed_promotion():
     _root, source, accepted = fixture()

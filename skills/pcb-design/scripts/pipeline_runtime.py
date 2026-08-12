@@ -26,6 +26,7 @@ import codecs
 import math
 import os
 import queue
+import re
 import signal
 import subprocess
 import sys
@@ -45,6 +46,7 @@ EXIT_CANCELLED = 125
 WORK_CLASSES = frozenset({
     "local", "network", "backoff", "review_wait", "operator_wait",
 })
+SYMBOL_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 
 
 def _utc_now() -> str:
@@ -344,8 +346,20 @@ def run_stage(
     if not argv:
         raise ValueError("command must not be empty")
     accepted_outputs = tuple(sorted(set(str(item) for item in outputs)))
-    if any(not item for item in accepted_outputs):
-        raise ValueError("output symbols must be non-empty")
+    if any(SYMBOL_RE.fullmatch(item) is None for item in accepted_outputs):
+        raise ValueError("outputs must be symbolic names")
+    try:
+        declared_outputs = frozenset(_field(spec, "produces"))
+        has_output_declaration = True
+    except (AttributeError, KeyError):
+        declared_outputs = frozenset()
+        has_output_declaration = False
+    if accepted_outputs and has_output_declaration and not (
+            set(accepted_outputs) <= declared_outputs):
+        undeclared = sorted(set(accepted_outputs) - declared_outputs)
+        raise ValueError(
+            "accepted outputs are not declared by the stage: "
+            + ", ".join(undeclared))
 
     log = Path(log_path).resolve()
     log.parent.mkdir(parents=True, exist_ok=True)
@@ -455,7 +469,7 @@ def run_stage(
                         decoder.feed(extra)
 
                 now = time.monotonic()
-                if proc.poll() is None and now >= next_heartbeat:
+                if (proc.poll() is None or not reader_done) and now >= next_heartbeat:
                     remaining = max(0.0, timeout_s - (now - started))
                     _write(console, f"[{stage_id}] HEARTBEAT "
                            f"work_class={work_class} elapsed={now-started:.3f}s "
