@@ -74,6 +74,12 @@ report a violation but cannot undo publication.
 
 ## The execution model — a LOOP, not a line
 
+Pipeline-refactor work uses the typed stage, artifact, review and lifecycle
+interfaces in `references/pipeline-stage-contract.md`. Read that reference
+before adding orchestration mechanics; domain predicates remain owned by the
+KiCad and JLCPCB skills, and the existing pipeline stays authoritative until
+shadow canaries agree.
+
 The stages below are numbered, but the pipeline is not a one-way march:
 every stage is `(enter → work → gate → EITHER pass forward OR iterate,
 bounded)`, and getting stuck at a stage is an EXPECTED transition, not a
