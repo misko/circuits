@@ -1755,3 +1755,32 @@ rationale.
   verdict before promotion.
 - history: 2026-08-12 — v4 archive corrected before seal; shared atomic-bundle
   writer and cross-format release gate remain open.
+
+## IMP-059 — preflight the publication parser's review identity before seal
+
+- status: implementing
+- observed: USB Hub 3S v4 publication gate after v0.6.0 seal, 2026-08-12
+- evidence: all four routed reviews were exact-board/hash-bound and SOUND, and
+  release freshness graded both required red-team verdicts. Publication still
+  rejected three reviews because their `subject:` values said `USB Hub 3S v4`
+  rather than containing the repository's exact slug `usb-hub-3s-v4`. The pin
+  review happened to use the slug and passed. Review quality was not the
+  defect; a machine identity field had been left encoded as human prose and no
+  pre-seal gate exercised the downstream parser.
+- project correction: preserve immutable v0.6.0 and obtain three append-only,
+  independent exact-board publication reseals with canonical subjects. Seal a
+  docs-only v0.6.1 successor whose fab/source/3d trees are byte-identical and
+  whose named review files are verbatim copies of those append-only records.
+- intended landing point: add a pre-seal review-header gate shared with
+  `pcb_publication_gate.py`. Require a dedicated canonical `project:` slug or,
+  until that schema lands, require the exact project slug inside `subject:`.
+  It must also grade verdict vocabulary, full source-commit syntax, board hash,
+  required lens coverage and archive byte identity against the staging release
+  before immutability begins. Review commissions should receive the exact
+  header block as structured input rather than translating a display name.
+- completion evidence required: spaced-display-name/slug mismatch,
+  wrong-neighbour project, missing subject, malformed commit, stale board hash
+  and untracked-review fixtures; the pre-seal and publication readers must
+  import one parser and return the same finding IDs.
+- history: 2026-08-12 — narrow independent publication reseals commissioned;
+  docs-only v0.6.1 correction in progress, shared pre-seal parser still open.

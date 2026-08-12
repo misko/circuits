@@ -185,3 +185,23 @@
 - next: Take a new source commit containing this learning, restamp the staging
   manifest, rerun M-REL, M-DEPEND, design freshness and archive hashes, then
   seal only if the shipped bytes pass again.
+
+## 2026-08-12 08:34 — post-seal publication identity finding
+
+- did: Ran the repository publication boundary after v0.6.0 was sealed and the
+  status beacon passed. The gate graded exact live/sealed board identity,
+  source ancestry, release completeness/freshness and archived review bytes.
+- result: v0.6.0's design remains green, but publication refused three review
+  subjects that use the human display name `USB Hub 3S v4` rather than the
+  exact repository slug `usb-hub-3s-v4`; the pin review uses the slug and
+  passes that property. The branch-wide diff also exposes unrelated existing
+  publication failures in three other projects, which are not v4 inputs and
+  are not being changed here.
+- reflection: A downstream publication parser belongs in the pre-seal battery
+  when its findings require immutable release bytes to change. Human titles
+  are not stable machine identity. IMP-059 records the shared parser/preflight
+  correction.
+- next: Leave v0.6.0 immutable. Obtain append-only independent publication
+  reseals over the same PCB hash, commit them as source evidence, then cut a
+  docs-only v0.6.1 whose fabrication, source and 3D trees are asserted byte-
+  identical. Re-run v4's explicit publication audit before pushing.
