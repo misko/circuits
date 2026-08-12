@@ -1724,3 +1724,34 @@ rationale.
   identity and zero standalone findings.
 - history: 2026-08-12 — project-level read-back landed during v4 staging;
   shared release-contract promotion and hermetic fixtures remain open.
+
+## IMP-058 — multi-format evidence is one atomic result, not adjacent files
+
+- status: proposed
+- observed: USB Hub 3S v4 release staging, 2026-08-12
+- evidence: the staged `stock_check.json` and `stock_check.txt` carried the
+  accepted C23 substitution C136277 / 16SVPF180M, but `stock_check.csv` still
+  carried rejected C369910 / 160AV5K181M0606C. A-STOCK passed because release
+  freshness correctly reads the canonical JSON; M-DEPEND then exposed that
+  C136277 had no release-internal CSV resolver and was passing only through
+  the mutable live `02_parts/16SVPF180M` dossier. Each file looked valid in
+  isolation and all three shared a basename, which made adjacency appear to be
+  provenance.
+- project correction: reran `jlc_stock_check.py` once against the current
+  strict 40-line BOM with `--out` and `--json` in the same process, capturing
+  stdout as the text form. The new CSV/JSON/text set agrees on every code; live
+  stock remains PASS 40/40 and C136277 reports 1052 catalog units.
+- intended landing point: every producer that emits several representations
+  writes them into a temporary result directory with one run ID and one input
+  hash, validates pairwise key-field equality, then atomically promotes the
+  complete set. Release staging copies the declared bundle, never three
+  independent globs. A release gate must cross-check the exact LCSC set and
+  core facts across BOM, stock JSON, stock CSV and text; a canonical form may
+  decide the verdict, but disagreement in a secondary form still fails the
+  archive.
+- completion evidence required: known-bad mixed-generation JSON/CSV, missing
+  member, duplicate code and current-code/old-MPN fixtures; a clean producer
+  run must reopen all written files and prove the same input hash, row set and
+  verdict before promotion.
+- history: 2026-08-12 — v4 archive corrected before seal; shared atomic-bundle
+  writer and cross-format release gate remain open.

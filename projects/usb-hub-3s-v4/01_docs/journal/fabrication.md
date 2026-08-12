@@ -166,3 +166,22 @@
   the release directory and changelog. Preserve `DO-NOT-ORDER` until the JLC
   uploader and physical first article supply the evidence that cannot exist
   locally.
+
+## 2026-08-12 08:24 — cross-format stock read-back
+
+- did: Ran M-DEPEND after the ordinary release gates passed and inspected its
+  one reported release-internal-map fragility instead of accepting the zero-
+  failure summary alone.
+- result: The JSON and text evidence named current C23 code C136277, but the
+  adjacent CSV was from an earlier C369910 run. Regenerated all three outputs
+  atomically from the current strict BOM. They now agree on C136277 / Panasonic
+  16SVPF180M; the same-day live query passes 40/40 coded lines and reports 1052
+  catalog units for C136277. IMP-058 records the missing shared cross-format
+  identity gate.
+- reflection: A zero-failure summary can still contain a useful coverage
+  warning. Multiple files from one logical measurement need a shared run
+  identity and field-level comparison; a basename and directory are not
+  provenance.
+- next: Take a new source commit containing this learning, restamp the staging
+  manifest, rerun M-REL, M-DEPEND, design freshness and archive hashes, then
+  seal only if the shipped bytes pass again.
