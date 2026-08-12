@@ -84,6 +84,14 @@ libraries:
   - /usr/share/kicad/footprints
 
 placement:
+  # These exact catalog selections are wanted on the finished assembly but
+  # are not eligible JLC machine-assembly lines (catalog API measurement in
+  # rules/assembly.yaml).  Keep the population decision in assembly.yaml and
+  # encode its native KiCad consequence here so every regenerated board keeps
+  # them off the pick-and-place file.
+  patterns:
+    - {match: [F1, J1, J2, J3, J4, SW1], attrs: [exclude_from_pos_files]}
+
   anchors:
     # Protected input chain; the 10 A blade is fitted by the user.
     J1: [27.0, 38.0, 90]

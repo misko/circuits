@@ -92,8 +92,10 @@ via-in-pad heat transfer. JLC states that vias in/near pads are not ordinary
 ink-plug candidates; the selected process is resin fill plus copper cap. That
 requires `jlc_4layer_advanced`, not A3's provisional standard tier. See
 [JLCPCB via covering guidance](https://jlcpcb.com/help/article/pcb-via-covering)
-and ADR-0004. Through-hole USB/battery/fuse connectors remain compatible with
-JLC's mixed SMT/THT assembly flow; the 10A fuse blade itself is user-installed.
+and ADR-0004. The selected through-hole USB/battery/fuse connectors and switch
+are not assembly-eligible JLC catalog lines: all six references are excluded
+from the CPL and hand-soldered after PCBA. The 10 A fuse blade is then
+user-installed in the hand-fitted holder.
 
 ## Geometry that Stage 2/placement must preserve
 

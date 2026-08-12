@@ -68,7 +68,7 @@ effective_capacitance_banks:
         lifecycle_derating_pct: 0
         basis: engineering_bound
         evidence: "TDK exact-part voltage-characteristic graph plus conservative 20% DC-bias and full X7R temperature bounds"
-      - part: 160AV5K181M0606C
+      - part: 16SVPF180M
         refs: [C23]
         nominal_each_uF: 180
         dielectric: polymer
@@ -77,7 +77,7 @@ effective_capacitance_banks:
         temperature_derating_pct: 0
         lifecycle_derating_pct: 20
         basis: manufacturer_limits
-        evidence: "APAQ exact AV5K row: -20% initial tolerance and <=20% endurance capacitance change; both are charged independently"
+        evidence: "Panasonic exact SVPF row: -20% initial tolerance and <=20% endurance capacitance change after 5000h at 105C; both are charged independently"
 
 # One executable envelope binds the three independently limited ports to the
 # shared U1 path.  It deliberately charges every capacitor corner and the TI
@@ -147,13 +147,13 @@ fault_envelopes:
         discharge_current_min_uA: 1.4
         discharge_current_max_uA: 2.8
         evidence: >-
-          Exact KEMET C1206C473J5GECAUTO7210 C0G capacitor plus its 5%
+          Exact Holy Stone C1206N473J050T C0G capacitor plus its 5%
           tolerance and a conservative 30ppm/C over 100C; TI TPS25982
           electrical-table ITIMER voltage and current extrema.
         startup:
           capacitor_ref: C30
           capacitance_nominal_nF: 3.3
-          tolerance_pct: 2
+          tolerance_pct: 5
           temperature_minus_pct: 0.3
           temperature_plus_pct: 0.3
           dc_bias_minus_pct: 0
@@ -163,7 +163,7 @@ fault_envelopes:
           dvdt_current_max_uA: 6.33
           itimer_divisor: 53000
           evidence: >-
-            Exact KEMET C0603X332G5GECAUTO C0G capacitor, TPS25982 maximum
+            Exact Murata GRM1885C1H332JA01D C0G capacitor, TPS25982 maximum
             dVdt-source current and TI C_ITIMER < t_GHI/53000 startup relation.
 
 rails:

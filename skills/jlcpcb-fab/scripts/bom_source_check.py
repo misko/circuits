@@ -318,6 +318,12 @@ def mpn_capacitance(mpn, footprint=""):
     0 regressions and 0 disagreements.
     """
     s = _strip_package(mpn, footprint)
+    # This decoder is for ceramic EIA value codes. Panasonic OS-CON family
+    # names such as 16SVPF180M use ``180M`` as a product-family/capacitance
+    # token, not the ceramic ``180`` + tolerance-M encoding (18 pF). Refuse the
+    # electrochemical family and let an exact catalog-ledger value resolve it.
+    if re.match(r"\d+(?:SVP[A-Z]|SEP[A-Z])\d", s):
+        return None
     cands = set()
     for pat in (r"(?<![0-9])(\d{2})([0-8])[JKMDFGZ](?![0-9])",
                 r"(?<![0-9])(\d{2})([0-8])[JKMDFGZ]\d{3}(?=[A-Z]|$)"):
@@ -355,10 +361,15 @@ def value_findings(bom_rows, vendored=None, ledger=None, stats=None):
     """Leg C: catalog value vs LABELED value for every R/C row.
 
     Resolution order (first source that yields a value wins):
-      1. the BOM's own MPN column                  (decode the MPN)
-      2. the vendored part.yaml directory name     (the dir IS the MPN)
-      3. the vetted LCSC ledger                    (explicit catalog value,
-                                                    else decode its MPN)
+      1. the vetted LCSC ledger's explicit value   (catalog-verified fact)
+      2. the BOM's own MPN column                  (heuristic MPN decode)
+      3. the vendored part.yaml directory name     (heuristic MPN decode)
+      4. the vetted ledger MPN                     (heuristic fallback)
+
+    The explicit ledger value must precede every MPN decoder. Numeric product
+    families such as Panasonic ``16SVPF180M`` are valid names but can look like
+    EIA capacitance tokens (18 pF) to a heuristic; the exact-code catalog fact
+    is stronger evidence than that parse.
     An R/C row with an LCSC code (or an MPN) that NO source resolves is
     UNVERIFIABLE-VALUE — flagged for review, never a silent pass; catalog-
     verify the code once and append it to the ledger. The real fab BOMs ship a
@@ -412,8 +423,15 @@ def value_findings(bom_rows, vendored=None, ledger=None, stats=None):
             continue                    # 0Ω jumper — no meaningful value to encode
         # --- resolve, in trust order; remember what was tried for the flag ---
         derived, via, tried = None, "", []
+        if led and led.get("value"):
+            tried.append(f"ledger {lcsc} explicit value")
+            v = parse_label(str(led["value"]))
+            if v is not None:
+                derived, via = v, f"ledger {lcsc} explicit value"
         for src, mpn in (("BOM MPN", bom_mpn),
                          ("part.yaml", lcsc_to_mpn.get(lcsc, ""))):
+            if derived is not None:
+                break
             if mpn:
                 tried.append(f"{src} '{mpn}'")
                 v = decode_mpn(mpn, footprint)
@@ -422,9 +440,7 @@ def value_findings(bom_rows, vendored=None, ledger=None, stats=None):
                     break
         if derived is None and led:
             tried.append(f"ledger {lcsc}")
-            v = parse_label(str(led.get("value", ""))) if led.get("value") else None
-            if v is None and led.get("mpn"):
-                v = decode_mpn(str(led["mpn"]), footprint)
+            v = decode_mpn(str(led["mpn"]), footprint) if led.get("mpn") else None
             if v is not None:
                 derived = v
                 via = f"ledger {lcsc} = '{led.get('mpn', '?')}'"
@@ -461,7 +477,8 @@ def circuit_value_findings(circuit_json, vendored=None, ledger=None):
                  (authoritative — it IS the tsx declaration; the display
                  string is only a fallback because RKM parsing cannot tell
                  display 'mΩ' milli from 'M' mega, the numeric can)
-      derived  = the code's catalog value via part.yaml MPN dir -> ledger
+      derived  = the code's explicit catalog-ledger value, else heuristically
+                 decoded from the part.yaml MPN dir or ledger MPN
                  (no BOM MPN column exists at this stage)
     derived vs labeled > 1.5% -> VALUE-MISMATCH; nothing resolves the code ->
     UNVERIFIABLE-VALUE (never a silent pass). Uncoded R/C components are out
@@ -502,18 +519,21 @@ def circuit_value_findings(circuit_json, vendored=None, ledger=None):
         if not labeled:                 # no declared value, or 0Ω jumper
             continue
         derived, via, tried = None, "", []
+        led = ledger.get(lcsc)
+        if led and led.get("value"):
+            tried.append(f"ledger {lcsc} explicit value")
+            v = parse_label(str(led["value"]))
+            if v is not None:
+                derived, via = v, f"ledger {lcsc} explicit value"
         mpn = lcsc_to_mpn.get(lcsc, "")
-        if mpn:
+        if derived is None and mpn:
             tried.append(f"part.yaml '{mpn}'")
             v = decode_mpn(mpn)
             if v is not None:
                 derived, via = v, f"part.yaml '{mpn}'"
-        led = ledger.get(lcsc)
         if derived is None and led:
             tried.append(f"ledger {lcsc}")
-            v = parse_label(str(led.get("value", ""))) if led.get("value") else None
-            if v is None and led.get("mpn"):
-                v = decode_mpn(str(led["mpn"]))
+            v = decode_mpn(str(led["mpn"])) if led.get("mpn") else None
             if v is not None:
                 derived = v
                 via = f"ledger {lcsc} = '{led.get('mpn', '?')}'"

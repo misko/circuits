@@ -133,10 +133,10 @@ aggregate fault exceeds even U9's 8.066419A worst-high threshold by 0.481A and
 therefore starts the interrupt timer. U9 may regulate 0.066A above U1's 8A
 continuous rating during that bounded interval, but remains below U1's
 documented 10A peak capability; the exact board must pass the adopted hot
-<=50ms transient qualification. C30=3.3nF +/-2% C0G controls U9 dVdt: including the same
+<=50ms transient qualification. C30=3.3nF +/-5% C0G controls U9 dVdt: including the same
 30ppm/C over 100C bound, TI's 6.33uA maximum charging current and the 5.015V
-rail floor, its capacitor term alone keeps tGHI above 4.388ms and therefore
-permits 82.795nF ITIMER capacitance, above C29's 49.498nF maximum, even before
+rail floor, its capacitor term alone keeps tGHI above 4.253ms and therefore
+permits 80.260nF ITIMER capacitance, above C29's 49.498nF maximum, even before
 turn-on delay is credited. Cycling SW1
 collapses U1 and resets U9. This is overcurrent coordination, not the active
 overvoltage cutoff excluded by D1.

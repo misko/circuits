@@ -166,7 +166,7 @@ export default () => (
         footprint, component, pin or connection.  The exact Circuit JSON is
         fitted one page at a time by render_schematic_pdf.mjs. */}
     <schematicsheet name="input"
-      displayName="BATTERY INPUT — JLC fits 3568 holder only / USER FIT F1 0297010.WXNV 10 A, 32 VDC, 1 kA interrupt / external UV disconnect >=9.0 V / no active OVP" sheetIndex={1} />
+      displayName="BATTERY INPUT — HAND FIT 3568 HOLDER AFTER PCBA / USER FIT 0297010.WXNV 10 A, 32 VDC, 1 kA interrupt / external UV disconnect >=9.0 V / no active OVP" sheetIndex={1} />
     <schematicsheet name="input_enable"
       displayName="POWER ENABLE — SW1 hard-off control / OFF-state and ground test points" sheetIndex={2} />
     <schematicsheet name="usba_supply"
@@ -322,8 +322,8 @@ export default () => (
         pin24: N("N5VA"), pin25: N("N5VA_RAW"), pin26: N("GND"),
       }} footprint={<TwoSided pins={26} pitch={0.5} span={4} />} />
     <R2 name="R26" value="210" a="ILIM_BANK" b="GND" jlc="C478880" section="USB-A aggregate protection" />
-    <C2 name="C29" value="47nF" a="ITIMER_A" b="GND" jlc="C2220670" fp="1206" section="USB-A aggregate protection" />
-    <C2 name="C30" value="3.3nF" a="DVDT_BANK" b="GND" jlc="C2239978" fp="0603" section="USB-A aggregate protection" />
+    <C2 name="C29" value="47nF" a="ITIMER_A" b="GND" jlc="C5451690" fp="1206" section="USB-A aggregate protection" />
+    <C2 name="C30" value="3.3nF" a="DVDT_BANK" b="GND" jlc="C77036" fp="0603" section="USB-A aggregate protection" />
 
     {/* U2: independent Pi rail. Three characterized 22 uF/16 V X7R parts
         clear the module's 30 uF effective-ceramic minimum after derating.
@@ -364,8 +364,8 @@ export default () => (
     <R2 name="R12" value="1k" a="FB_C" b="GND" jlc="C110776" section="USB-C regulated supply" />
     <R2 name="R13" value="100k" a="N5VC_RAW" b="PG_C" jlc="C25803" section="USB-C regulated supply" />
     {[9, 10, 11].map((c) => <C2 key={`cc${c}`} name={`C${c}`} value="22uF" a="N5VC_RAW" b="GND" jlc="C342660" fp="1210" section="USB-C regulated supply" />)}
-    <capacitor name="C23" capacitance="180uF" supplierPartNumbers={{ jlcpcb: ["C369910"] }}
-      manufacturerPartNumber="160AV5K181M0606C"
+    <capacitor name="C23" capacitance="180uF" supplierPartNumbers={{ jlcpcb: ["C136277"] }}
+      manufacturerPartNumber="16SVPF180M"
       polarized
       schSectionName="USB-C regulated supply" schSheetName="usbc_supply"
       connections={{ pin1: N("N5VC_RAW"), pin2: N("GND") }}

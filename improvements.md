@@ -1528,3 +1528,199 @@ rationale.
   wrapper.
 - history: 2026-08-12 — project repair landed immediately; shared helper and
   executable known-bad coverage remain open.
+
+## IMP-051 — long external stages must expose progress and a bounded retry budget
+
+- status: implementing
+- observed: USB Hub 3S v4 JLC digital-twin fetch, 2026-08-12
+- evidence: after its one setup line, `jlc_twin.py` produced no console output
+  for more than 90 seconds while fetching and retrying catalog CAD. The process
+  was alive and measurable only by inspecting its cache: 16/40 unique codes had
+  completed at roughly two minutes, then 19 code directories existed with eight
+  still empty during backoff. To an operator this is indistinguishable from the
+  historical pipeline lock-up unless they know how to inspect processes and
+  cache timestamps.
+- intended landing point: every network or otherwise long-running stage prints
+  a periodic machine-readable heartbeat containing `completed/total`, current
+  item, attempt/max-attempts, retry/backoff seconds, elapsed time and a rolling
+  ETA. The orchestrator must declare a wall-clock budget before launch and end
+  with a distinct `TIMED-OUT` result plus a resumable command; completed
+  content-addressed cache entries must survive the stop. Silence longer than a
+  configured heartbeat interval is itself a process finding, not permission to
+  wait indefinitely. Consumers such as `jlc_rotation_measure.py` should index
+  the cache tree once, not run a recursive repository-wide glob independently
+  for every requested code, and should emit a per-code progress/result line.
+- implementation progress: `jlc_twin.py` now fetches each unique LCSC code only
+  once per run, prints `completed/total`, current code, state, attempt budget,
+  elapsed time, rolling ETA, backoff and whole-run budget, heartbeats while a
+  child is silent, bounds every child and the complete batch, preserves the
+  per-code cache, and prints a distinct resumable `TIMED-OUT` result. The live
+  v4 rerun is the first production exercise; rotation-measure cache indexing
+  and shared orchestration remain open.
+- completion evidence required: deterministic fixtures for steady progress,
+  transient retry recovery, a permanently failing item, a silent child process
+  and resume from partial cache; journals report productive fetch time,
+  backoff time and final coverage separately.
+- history: 2026-08-12 — recorded during the first v4 manufacturing-twin run;
+  the active process was left unchanged because its cache showed forward
+  progress, but the missing telemetry was visible immediately. The first
+  16-code rotation batch then spent 36 seconds CPU-searching cache roots in
+  silence before reporting that only two requested models were available,
+  confirming the same observability problem outside the network fetcher.
+- history: 2026-08-12 — the JLC twin implementation and deterministic silent-
+  child/cache-replay tests landed; 33/33 twin tests pass, including a fixture
+  that heartbeats, times out in 0.25 seconds and emits the resumable command.
+
+## IMP-052 — preflight mutable catalog clients and distinguish compatibility from rate limits
+
+- status: implementing
+- observed: USB Hub 3S v4 JLC digital-twin fetch, 2026-08-12
+- evidence: installed `easyeda2kicad` 1.0.1 sent its pinned Chrome/120
+  User-Agent and EasyEDA's CloudFront returned HTTP 403. The same exact product
+  endpoint returned HTTP 200 with Chrome/146. After twelve successful model
+  fetches the newer identity also received 403, demonstrating a second state:
+  burst/rate enforcement. Treating both as a generic retry consumed minutes
+  and could never tell the operator whether waiting or upgrading was useful.
+- intended landing point: before a batch, issue one bounded capability probe
+  against the exact endpoint/client headers and classify incompatible client,
+  transient service failure and mid-batch throttling separately. Keep the
+  User-Agent/configuration repository-owned and overrideable; print the tested
+  client identity. Apply a rate budget and adaptive backoff after a successful
+  preflight rather than mistaking the first burst 403 for a permanent client
+  failure. Never relabel any 403 as `NO-CAD`.
+- implementation progress: a repository-owned compatibility wrapper patches
+  only the upstream HTTP User-Agent (default Chrome/146, configurable through
+  `JLC_TWIN_USER_AGENT`) without editing the installed package; `jlc_twin.py`
+  selects it only for the real `easyeda2kicad` entry point, leaving test stubs
+  untouched. Hermetic tests prove both behaviors. The separate one-request
+  capability probe and explicit throttle classification remain open.
+- completion evidence required: mocked old-UA 403/new-UA 200, mid-batch 403
+  after successful fetches, recovery after declared cooldown, permanent 403
+  and cache-only replay; production journal reports compatibility failures,
+  throttled time and useful fetch time separately.
+- history: 2026-08-12 — compatibility wrapper and selection tests landed after
+  upstream issue #191/PR #190 identified the same User-Agent failure class;
+  live C124196 then fetched successfully through the wrapper before burst
+  throttling reappeared.
+
+## IMP-053 — explicit catalog values outrank MPN-shape heuristics
+
+- status: completed
+- observed: USB Hub 3S v4 C23 source substitution, 2026-08-12
+- evidence: the cheap source gate interpreted Panasonic MPN `16SVPF180M` as
+  18 pF before consulting the repository's exact LCSC-code ledger, which
+  correctly records C136277 as 180 uF. The rebuild stopped safely in 16.6
+  seconds before TSX/KiCad generation, but the finding was false: a generic
+  ceramic-value decoder had claimed authority over an electrolytic family.
+- implemented: `bom_source_check.py` now gives an exact LCSC-code ledger value
+  precedence over a value guessed from an MPN. Its ceramic decoder explicitly
+  refuses Panasonic OS-CON `SVP*`/`SEP*` families rather than inventing a
+  capacitance. A regression fixture proves `16SVPF180M` resolves to 180 uF and
+  not 18 pF; the focused source suite passes 29/29 with two environment skips.
+- general rule: measured, part-specific and code-specific records outrank
+  syntax heuristics. A heuristic may fill an otherwise unknown field; it may
+  never override an explicit authority, and an unrecognized family must be
+  `UNKNOWN` rather than a plausible-looking number.
+- history: 2026-08-12 — fixed at the first false pre-generation stop and
+  replayed through the complete v4 source/electrical gate set.
+
+## IMP-054 — generated reports must persist the final adjudicated state
+
+- status: completed
+- observed: USB Hub 3S v4 JLC digital twin, 2026-08-12
+- evidence: `jlc_twin.py` correctly applied two evidence-backed library-absence
+  adjudications in memory and exited zero, but had already written
+  `twin_report.csv`. The durable CSV therefore retained transient
+  `FETCH-FAILED` rows while the console reported success, and its footer still
+  told the operator to retry absences already proven genuine.
+- implemented: the report is now written only after adjudications have been
+  applied. Its rows carry `ADJUDICATED-FETCH-FAILED`; resumable/retry guidance
+  is printed only for still-unresolved statuses, while genuine library
+  absences receive a distinct non-retry explanation. A regression fixture
+  reads the emitted CSV, not merely the process exit code; the twin suite
+  passes 34/34.
+- general rule: every durable artifact is a serialization of the final state
+  consumed by the verdict. If normalization, waivers or adjudication happen
+  after collection, report generation must be the last pure step and tests
+  must reopen the report from disk.
+- history: 2026-08-12 — fixed before release staging; the v4 twin report was
+  regenerated and now agrees with its successful console verdict.
+
+## IMP-055 — preflight exact body/model availability before placement freeze
+
+- status: proposed
+- observed: USB Hub 3S v4 JLC digital twin, 2026-08-12
+- evidence: the final twin mounts 71 of 75 placed bodies. JLC's current library
+  has no usable exact 3D body for four deliberately hand-soldered connectors:
+  the upstream USB-C power input and three USB-A outputs. Their footprints,
+  mechanical drawings, pin identities and courtyards are independently
+  reviewed, but the digital twin cannot prove their shell height or enclosure
+  interference. Discovering this only after routing makes a package swap
+  disproportionately expensive.
+- intended landing point: after part selection and before placement, probe the
+  exact supplier CAD endpoint for every height-, polarity- or enclosure-
+  critical code. Record `MODEL`, `NO-MODEL` or `TRANSIENT` with the tested
+  endpoint and date; never turn `TRANSIENT` into `NO-MODEL`. A genuine absence
+  requires a datasheet-derived body envelope or a reviewed local STEP model,
+  plus an explicit first-article/mechanical-fit obligation in the buyer file.
+- completion evidence required: known-present, genuine-absent, throttled and
+  wrong-body fixtures; a board-stage gate that closes before placement review;
+  and a release check proving every placed body is either modeled or has a
+  named mechanical fallback and first-article disposition.
+- history: 2026-08-12 — recorded after the v4 twin made exact model coverage
+  measurable; project-level dossier review exists, shared preflight remains
+  open.
+
+## IMP-056 — population evidence must separate automated and manual bodies
+
+- status: completed
+- observed: USB Hub 3S v4 release audit, 2026-08-12
+- evidence: the twin correctly broadened its mechanical population from 70 JLC
+  CPL placements to 75 total installed bodies by adding five declared manual-
+  install parts. Four manual connector models were genuinely absent, so its
+  honest aggregate was 71/75. `policy_audit.py` then called that aggregate
+  "CPL placements" and failed A-BODY, even though the actual JLC population was
+  70/70. The producer and consumer were each locally reasonable but disagreed
+  about the denominator's meaning.
+- implemented: `missing_models.txt` now persists three counters: aggregate
+  bodies, `CPL bodies mounted`, and `manual bodies mounted`. A-BODY grades the
+  contractual CPL counter when present while the aggregate/manual deficits
+  stay visible for mechanical review and first-article disposition. Historical
+  reports fall back to the old aggregate format. Twin and policy known-bad
+  fixtures prove an empty-CPL/manual-body case and a 2/2-CPL plus 0/1-manual
+  case independently.
+- general rule: when a verification population is a union of sets owned by
+  different processes, persist every constituent denominator. Never make a
+  consumer infer "placed", "assembled" or "installed" from one aggregate.
+- history: 2026-08-12 — completed before v4 release staging; current evidence
+  states aggregate 71/75, JLC CPL 70/70, manual 1/5.
+
+## IMP-057 — validate a relocated release archive in its own dependency context
+
+- status: implementing
+- observed: USB Hub 3S v4 release staging, 2026-08-12
+- evidence: the live project passed exact KiCad DRC at 0 violations,
+  0 unconnected items and 0 schematic-parity findings. The first DRC run over
+  the copied `07_releases/.../source/` board instead reported three
+  `lib_footprint_issues`: its release-only `fp-lib-table` shadowed KiCad's
+  complete `Package_SON` library with an incomplete one-footprint directory,
+  so U4-U6 could not resolve `Texas_DRC0010J`. A live-project validation could
+  never expose that packaging defect because it resolved the system library.
+- implementation progress: the v4 staging archive now maps `Package_SON` the
+  same way as the live project and reruns DRC from the relocated source tree.
+  The archived board passes 0/0/0 and its SHA-256 is byte-identical to the
+  frozen routed board. The result is shipped as
+  `verification/standalone_archive_drc.json`.
+- intended landing point: promote relocated-source validation into the shared
+  release gate. After copying source and rewriting any project-local library
+  paths, run KiCad DRC/parity from inside the staged archive, reopen the JSON,
+  require all three finding sets to be empty, and check the staged board hash
+  against the live frozen board. Also enumerate every `lib_id` used by the
+  board and prove its footprint resolves under the staged `fp-lib-table`;
+  copied but unused libraries must not create false confidence.
+- completion evidence required: known-bad fixtures for an absent library, an
+  incomplete same-name library that shadows a valid system library, and a
+  relocated custom-library path; a clean fixture must prove both exact board
+  identity and zero standalone findings.
+- history: 2026-08-12 — project-level read-back landed during v4 staging;
+  shared release-contract promotion and hermetic fixtures remain open.

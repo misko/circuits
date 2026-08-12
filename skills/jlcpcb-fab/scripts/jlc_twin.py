@@ -135,6 +135,7 @@ E2K_CANDIDATES = [os.environ.get("EASYEDA2KICAD", ""),
                   os.path.expanduser("~/virtual-envs/spf/bin/easyeda2kicad"),
                   os.path.expanduser("~/.local/bin/easyeda2kicad")]
 E2K = next((c for c in E2K_CANDIDATES if c and os.path.exists(c)), None)
+E2K_COMPAT = Path(__file__).resolve().with_name("easyeda2kicad_compat.py")
 
 RIGHT_ANGLES = (0, 90, 180, 270)
 FIT_TOL = 0.5      # mm max per-pad error for a "fit"
@@ -163,7 +164,69 @@ NOCAD_PAT = re.compile(
     re.I)
 
 
-def fetch(lcsc, cachedir, attempts=None):
+def easyeda2kicad_command(executable):
+    """Return the fetcher command, using our UA compatibility shim only for
+    the real ``easyeda2kicad`` entry point.
+
+    EasyEDA's CloudFront User-Agent policy changed twice in 2026. Upstream
+    issue #191 fixed the first HTTP 403 by pinning a newer browser UA, but
+    easyeda2kicad 1.0.1's Chrome/120 string was refused again on 2026-08-12
+    while Chrome/146 returned 200 for the same endpoint. The installed package
+    is an external, mutable dependency, so do not edit it in place. Instead run
+    the tiny repository-owned shim with the entry point's own interpreter.
+
+    Test stubs intentionally use a different basename and remain an exact
+    subprocess seam; arbitrary/non-text executables fall back unchanged.
+    """
+    path = Path(executable)
+    if path.name != "easyeda2kicad" or not E2K_COMPAT.is_file():
+        return [str(path)]
+    try:
+        first = path.read_text(encoding="utf-8", errors="replace").splitlines()[0]
+    except (OSError, IndexError):
+        return [str(path)]
+    if not first.startswith("#!"):
+        return [str(path)]
+    interpreter = first[2:].strip()
+    if not interpreter or not os.path.isfile(interpreter):
+        return [str(path)]
+    return [interpreter, str(E2K_COMPAT)]
+
+
+def run_fetch_command(cmd, timeout_s, heartbeat_s, heartbeat):
+    """Run one external fetch with visible liveness and a hard deadline.
+
+    ``subprocess.run`` can be silent for an unbounded child.  Polling through
+    ``communicate(timeout=...)`` keeps stdout/stderr capture while giving the
+    parent a heartbeat seam and a deterministic timeout result.
+    """
+    import time
+    started = time.monotonic()
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True)
+    while True:
+        elapsed = time.monotonic() - started
+        remaining = timeout_s - elapsed
+        if remaining <= 0:
+            proc.terminate()
+            try:
+                stdout, stderr = proc.communicate(timeout=2)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                stdout, stderr = proc.communicate()
+            stderr = (stderr or "") + (
+                f"\nTIMED-OUT: fetch child exceeded {timeout_s:.1f}s")
+            return subprocess.CompletedProcess(cmd, 124, stdout, stderr)
+        try:
+            stdout, stderr = proc.communicate(
+                timeout=max(0.01, min(heartbeat_s, remaining)))
+            return subprocess.CompletedProcess(
+                cmd, proc.returncode, stdout, stderr)
+        except subprocess.TimeoutExpired:
+            heartbeat(round(time.monotonic() - started, 1))
+
+
+def fetch(lcsc, cachedir, attempts=None, progress=None, deadline=None):
     """easyeda2kicad --full into a per-code dir.
     Returns (fp_path, None, None) on success, else (None, reason, kind) where
     kind is 'transient' (network/API — NOT checked, must block) or
@@ -171,19 +234,54 @@ def fetch(lcsc, cachedir, attempts=None):
     import time
     if attempts is None:
         attempts = int(os.environ.get("JLC_TWIN_FETCH_ATTEMPTS", "4"))
+    child_timeout = float(os.environ.get("JLC_TWIN_FETCH_TIMEOUT_S", "45"))
+    heartbeat_s = float(os.environ.get("JLC_TWIN_HEARTBEAT_S", "10"))
+    progress = progress or (lambda **_kwargs: None)
     d = Path(cachedir) / lcsc
     mods = glob.glob(str(d / "jlc.pretty" / "*.kicad_mod"))
+    if mods:
+        progress(state="cached", attempt=0, max_attempts=attempts)
+        return mods[0], None, None
     r = None
     for attempt in range(attempts):
         if mods:
             return mods[0], None, None
+        if deadline is not None and time.monotonic() >= deadline:
+            return (None,
+                    ["TIMED-OUT: JLC twin whole-run wall-clock budget "
+                     "exhausted before this code; re-run to resume from cache"],
+                    "transient")
         d.mkdir(parents=True, exist_ok=True)
-        r = subprocess.run([E2K, "--full", "--lcsc_id", lcsc, "--output",
-                            str(d / "jlc.kicad_sym"), "--use-cache"],
-                           capture_output=True, text=True)
+        per_attempt = child_timeout
+        if deadline is not None:
+            per_attempt = min(per_attempt,
+                              max(0.01, deadline - time.monotonic()))
+        progress(state="start", attempt=attempt + 1,
+                 max_attempts=attempts)
+        cmd = [*easyeda2kicad_command(E2K), "--full",
+               "--lcsc_id", lcsc, "--output",
+               str(d / "jlc.kicad_sym"), "--use-cache"]
+        r = run_fetch_command(
+            cmd, per_attempt, heartbeat_s,
+            lambda child_elapsed: progress(
+                state="running", attempt=attempt + 1,
+                max_attempts=attempts, child_elapsed_s=child_elapsed))
         mods = glob.glob(str(d / "jlc.pretty" / "*.kicad_mod"))
         if not mods and attempt < attempts - 1:
-            time.sleep(4 * (attempt + 1))   # 4s, 8s, 12s … EasyEDA rate-limits bursts
+            backoff = 4 * (attempt + 1)   # 4s, 8s, 12s … EasyEDA rate-limits bursts
+            left = float(backoff)
+            while left > 0:
+                if deadline is not None and time.monotonic() >= deadline:
+                    break
+                progress(state="backoff", attempt=attempt + 1,
+                         max_attempts=attempts, backoff_s=round(left, 1))
+                nap = min(heartbeat_s, left)
+                if deadline is not None:
+                    nap = min(nap, max(0, deadline - time.monotonic()))
+                if nap <= 0:
+                    break
+                time.sleep(nap)
+                left -= nap
     if mods:
         return mods[0], None, None
     msg = (((r.stderr or r.stdout).strip().splitlines()[-1:]) if r else []) or ["no CAD data"]
@@ -906,9 +1004,52 @@ def main():
         for _d in _r["Designator"].split(","):
             ref_lcsc.setdefault(_d.strip(), _r["LCSC"])
     fetch_failed = set()
+    import time as _time
+    fetch_started = _time.monotonic()
+    wall_budget_s = float(os.environ.get("JLC_TWIN_WALL_TIMEOUT_S", "600"))
+    fetch_deadline = fetch_started + wall_budget_s
+    unique_codes = list(dict.fromkeys(r["LCSC"] for r in lines))
+    fetch_results = {}
+    fetched_done = 0
+
+    def fetch_progress(code, **event):
+        elapsed = _time.monotonic() - fetch_started
+        eta = ((elapsed / fetched_done) * (len(unique_codes) - fetched_done)
+               if fetched_done else None)
+        fields = [
+            "JLC-TWIN-FETCH",
+            f"completed={fetched_done}/{len(unique_codes)}",
+            f"current={code}",
+            f"state={event.get('state', '?')}",
+            f"attempt={event.get('attempt', 0)}/{event.get('max_attempts', 0)}",
+            f"elapsed_s={elapsed:.1f}",
+            f"eta_s={'?' if eta is None else f'{eta:.1f}'}",
+            f"wall_budget_s={wall_budget_s:.1f}",
+        ]
+        if event.get("child_elapsed_s") is not None:
+            fields.append(f"child_elapsed_s={event['child_elapsed_s']}")
+        if event.get("backoff_s") is not None:
+            fields.append(f"backoff_s={event['backoff_s']}")
+        print(" ".join(fields), flush=True)
+
+    print(f"JLC-TWIN-FETCH plan: {len(unique_codes)} unique code(s), "
+          f"attempts={os.environ.get('JLC_TWIN_FETCH_ATTEMPTS', '4')}, "
+          f"child_timeout_s={os.environ.get('JLC_TWIN_FETCH_TIMEOUT_S', '45')}, "
+          f"heartbeat_s={os.environ.get('JLC_TWIN_HEARTBEAT_S', '10')}, "
+          f"wall_budget_s={wall_budget_s:.1f}", flush=True)
     for r in lines:
         lcsc = r["LCSC"]
-        fp_path, err, kind = fetch(lcsc, out / "easyeda")
+        if lcsc not in fetch_results:
+            fetch_results[lcsc] = fetch(
+                lcsc, out / "easyeda",
+                progress=lambda **event: fetch_progress(lcsc, **event),
+                deadline=fetch_deadline)
+            fetched_done += 1
+            result_state = "done" if fetch_results[lcsc][0] else "failed"
+            fetch_progress(lcsc, state=result_state, attempt=0,
+                           max_attempts=int(os.environ.get(
+                               "JLC_TWIN_FETCH_ATTEMPTS", "4")))
+        fp_path, err, kind = fetch_results[lcsc]
         if err:
             # transient = the part was NEVER CHECKED -> blocking, not a disposition
             status = "FETCH-FAILED" if kind == "transient" else "NO-CAD"
@@ -1284,6 +1425,8 @@ def main():
 
         # ---- NO-BODY: the terminal, fit-independent population gate
         cpl_refs = []
+        placed_refs = []
+        manual_refs = []
         if args.cpl and os.path.exists(args.cpl):
             with open(args.cpl, encoding="utf-8-sig") as f:
                 for row in csv.DictReader(f):
@@ -1291,9 +1434,11 @@ def main():
                     if d:
                         cpl_refs.append(d)
             placed_count = len(cpl_refs)
-            cpl_refs = sorted(set(cpl_refs) | set(local_bodies))
+            placed_refs = sorted(set(cpl_refs))
+            manual_refs = sorted(set(local_bodies) - set(placed_refs))
+            cpl_refs = sorted(set(placed_refs) | set(manual_refs))
             src_desc = (f"{placed_count} CPL placements ({args.cpl}) + "
-                        f"{len(local_bodies)} declared manual-install bodies "
+                        f"{len(manual_refs)} declared manual-install bodies "
                         f"({args.assembly})")
         else:
             cpl_refs = sorted({d.strip() for r in lines
@@ -1303,6 +1448,13 @@ def main():
                         f"fab/cpl.csv for the population denominator)")
         mounted, missing = no_body_pass(tb, cpl_refs, args.board)
         bodies_line = f"bodies mounted: {len(mounted)}/{len(cpl_refs)}"
+        mounted_set = set(mounted)
+        cpl_bodies_line = (f"CPL bodies mounted: "
+                           f"{len(mounted_set & set(placed_refs))}/"
+                           f"{len(placed_refs)}") if placed_refs or args.cpl else ""
+        manual_bodies_line = (f"manual bodies mounted: "
+                              f"{len(mounted_set & set(manual_refs))}/"
+                              f"{len(manual_refs)}") if args.cpl else ""
         for ref, why in missing:
             findings.append((ref_lcsc.get(ref, ""), ref, "NO-BODY", why))
             criticals.append(ref)
@@ -1313,6 +1465,9 @@ def main():
             f.write("# GENERATED by jlc_twin.py NO-BODY pass — do not edit.\n"
                     f"# source of the population set: {src_desc}\n"
                     f"# {bodies_line}\n")
+            if cpl_bodies_line:
+                f.write(f"# {cpl_bodies_line}\n"
+                        f"# {manual_bodies_line}\n")
             if not missing:
                 f.write("\n(none — every CPL designator resolves a 3D body)\n")
             for ref, why in missing:
@@ -1355,10 +1510,6 @@ def main():
                                 str(out / "twin_bare.kicad_pcb")],
                                capture_output=True)
 
-    with open(out / "twin_report.csv", "w", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["LCSC", "Ref", "Status", "Detail"])
-        w.writerows(findings)
     # apply the adjudication register: reviewed findings become non-fatal
     out_f = []
     for lcsc, ref, status, detail in findings:
@@ -1384,6 +1535,14 @@ def main():
         else:
             out_f.append((lcsc, ref, status, detail))
     findings = out_f
+    # The shipped report is the FINAL verdict, not the pre-adjudication
+    # worklist. Writing this before the register was applied made a successful
+    # run's machine evidence still claim raw FETCH-FAILED/PAD-MISMATCH rows and
+    # forced every downstream consumer to reconstruct state from two files.
+    with open(out / "twin_report.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["LCSC", "Ref", "Status", "Detail"])
+        w.writerows(findings)
     order = {"FETCH-FAILED": -1, "NO-BODY": -1, "MIRRORED": 0,
              "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3,
              "MODEL-REG": 3, "POLARITY-FIT": 1, "MOUNT-FALLBACK": 1,
@@ -1406,8 +1565,21 @@ def main():
           f"rotation-fitted refs: {n_fit}")
     print(bodies_line)
     print(f"report + renders -> {out}")
-    if fetch_failed:
-        print(f"\nTRANSIENT FETCH FAILURES ({len(fetch_failed)}): {sorted(fetch_failed)}")
+    unresolved_fetch_failed = {
+        f[0] for f in findings if f[2] == "FETCH-FAILED"
+    }
+    adjudicated_fetch_failed = {
+        f[0] for f in findings if f[2] == "ADJUDICATED-FETCH-FAILED"
+    }
+    if adjudicated_fetch_failed:
+        print(f"\nADJUDICATED LIBRARY ABSENCES "
+              f"({len(adjudicated_fetch_failed)}): "
+              f"{sorted(adjudicated_fetch_failed)}")
+        print("  Same-run controls plus exact-part land evidence are recorded in the")
+        print("  adjudication register; these are not retried as transient failures.")
+    if unresolved_fetch_failed:
+        print(f"\nTRANSIENT FETCH FAILURES ({len(unresolved_fetch_failed)}): "
+              f"{sorted(unresolved_fetch_failed)}")
         print("  These are NETWORK/API errors, NOT 'no CAD' — these parts were never checked,")
         print("  so this run does NOT constitute twin verification for them.")
         print("  The per-code cache keeps everything already fetched, so simply RE-RUNNING")
@@ -1415,6 +1587,10 @@ def main():
         print("    " + " ".join(sys.argv))
         print("  If the API is flaky, be more patient:")
         print("    JLC_TWIN_FETCH_ATTEMPTS=8 " + " ".join(sys.argv))
+        if any("TIMED-OUT" in str(f[3]) for f in findings
+               if f[2] == "FETCH-FAILED"):
+            print("  TIMED-OUT: a per-child or whole-run deadline stopped the "
+                  "batch; completed cache entries are intact.")
         print("  Only adjudicate FETCH-FAILED if the part is genuinely absent from the")
         print("  library (verify the land pattern against the datasheet + flag order-time preview).")
     if criticals:

@@ -37,9 +37,9 @@ C29=47nF +/-5% C0G, C0G's +/-30ppm/C class bound over
 the 100C design excursion, TI's 0.7-1.3V comparator delta and 1.4-2.8uA
 discharge-current limits give a charged 11.129-45.962ms blanking window, so
 the declared <=10ms coincident peak passes at every listed corner. C30=3.3nF
-+/-2% C0G on dVdt also closes TI's maximum-ITIMER-capacitance startup
++/-5% C0G on dVdt also closes TI's maximum-ITIMER-capacitance startup
 relation: even omitting turn-on delay, its shortest charged contribution is
-4.388ms, permitting 82.795nF versus C29's 49.498nF maximum. RETRY_DLY is
+4.253ms, permitting 80.260nF versus C29's 49.498nF maximum. RETRY_DLY is
 grounded for latch-off, LDSTRT is grounded because handshake is unused, and
 cycling SW1 resets the fault.
 
@@ -73,18 +73,18 @@ claim: >-
   Largest ITIMER capacitance permitted by TPS25982's startup relation at the
   exact C30 worst-low ramp and adopted voltage/current corners.
 relation: "<="
-value: 82.795
+value: 80.260
 unit: nF
 corner: worst_case
 command: /usr/bin/python3 -c "import yaml;p=yaml.safe_load(open('projects/usb-hub-3s-v4/03_src/rules/power_tree.yaml'));s=p['fault_envelopes'][0]['aggregate_breaker']['timer']['startup'];c=s['capacitance_nominal_nF']*(1-s['tolerance_pct']/100)*(1-s['temperature_minus_pct']/100)*(1-s['dc_bias_minus_pct']/100)*(1-s['aging_minus_pct']/100);print(round(c*(s['vin_min_V']+s['gate_overdrive_V'])/s['dvdt_current_max_uA']*1000000/s['itimer_divisor'],6))"
 governs:
-  evaluate: /usr/bin/python3 -c "print(82.79525185792721-{value})"
+  evaluate: /usr/bin/python3 -c "print(80.26070333166412-{value})"
   budget: ">= 0"
   unit: nF
 tolerance: 0.001
 tolerance_why: >-
   One unit in the last published decimal place; it is over thirty thousand
-  times smaller than the 33.297 nF margin to C29's charged 49.498 nF maximum.
+  times smaller than the 30.762 nF margin to C29's charged 49.498 nF maximum.
 grade: CITED
 requires:
   - projects/usb-hub-3s-v4/03_src/rules/power_tree.yaml

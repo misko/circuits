@@ -56,7 +56,7 @@ invariants:
   - {assert: pin_on_net, pin: U9.26, net: GND, adr: "0007", why: "split ground thermal land is grounded"}
   - {assert: part_value, part: R26, equals: 210, tolerance_pct: 0.1, adr: "0007", why: "machine-derived aggregate breaker threshold retains >=0.1A normal margin and >=0.1A three-port fault-coordination margin"}
   - {assert: part_value, part: C29, equals: 47nF, tolerance_pct: 5, adr: "0007", why: "11.129ms full C0G tolerance/temperature corner passes the <=10ms coincident peak"}
-  - {assert: part_value, part: C30, equals: 3.3nF, tolerance_pct: 2, adr: "0007", why: "C0G dVdt ramp keeps TI's maximum-ITIMER-capacitance startup relation valid at the full charged corner"}
+  - {assert: part_value, part: C30, equals: 3.3nF, tolerance_pct: 5, adr: "0007", why: "C0G dVdt ramp keeps TI's maximum-ITIMER-capacitance startup relation valid at the full charged corner"}
   - {assert: part_value, part: R12, equals: 1k, tolerance_pct: 0.1, adr: "0009", why: "low-impedance 5VC_RAW feedback bottom leg suppresses typical-only FB-bias sensitivity"}
 
   # ADR-0003: Type-C is attach controlled and advertises 3A; it is neither a

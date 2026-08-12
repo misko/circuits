@@ -635,6 +635,36 @@ def t_conly_partyaml_source():
               "--circuit-only via part.yaml MPN")
 
 
+@test("an explicit exact-code ledger value outranks a misleading numeric MPN "
+      "heuristic in both authoring and fab checks", kind="known_bad")
+def t_explicit_ledger_value_precedes_mpn_heuristic():
+    """USB Hub v4 C23 exposed this ordering bug: Panasonic 16SVPF180M is
+    exactly 180 uF, but the generic MPN decoder can read the embedded ``180M``
+    family token as 18 pF. The catalog-verified LCSC ledger row is direct
+    evidence and must therefore win over both BOM and part-directory guesses.
+    """
+    ledger = {"C136277": {
+        "mpn": "16SVPF180M", "value": "180uF", "verified": "2026-08-12"}}
+    vendored = {"C136277": "16SVPF180M"}
+    rows = [bsc.BomRow(["C23"], "C136277", "180uF", "16SVPF180M",
+                       "CP_Elec_6.3x5.8")]
+    eq(bsc.value_findings(rows, vendored=vendored, ledger=ledger), [],
+       "fab row trusts the explicit catalog value")
+
+    d = tmpdir("bomconly_precedence_")
+    cj = d / "circuit.json"
+    cj.write_text(circuit_rc([
+        ("C23", "C136277", "capacitance", 180e-6)]))
+    eq(bsc.circuit_value_findings(cj, vendored=vendored, ledger=ledger), [],
+       "authoring row trusts the explicit catalog value")
+
+    heuristic_only = bsc.circuit_value_findings(
+        cj, vendored=vendored, ledger={})
+    check(any("UNVERIFIABLE-VALUE" in finding for finding in heuristic_only),
+          "without the catalog fact this non-ceramic family must stay "
+          "unverifiable, never be guessed from a ceramic-value heuristic")
+
+
 @test("legacy two-positional CLI is unchanged by the --circuit-only addition")
 def t_conly_backward_compat():
     d = write_case(tmpdir("bomsrc_"), SRC, [

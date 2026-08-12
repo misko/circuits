@@ -23,12 +23,12 @@
 | master enable switch | EG1218 | C273394 | exact E-Switch SPDT for the low-energy enable bus |
 | effective ceramic banks | C3225X7R1C226KT000N x9 | C342660 | exact TDK bias characterization; 80.784uF U1 and 40.392uF U2 derated effective |
 | U1 additional bulk | 160AV5K101M0606C | C2919856 | additional low-frequency polymer; not credited toward the ceramic minimum |
-| Type-C cold-socket bulk | 160AV5K181M0606C | C369910 | 115.2uF life corner; 155.592uF combined with C9-C11 |
+| Type-C cold-socket bulk | 16SVPF180M | C136277 | 115.2uF life corner; 155.592uF combined with C9-C11; exact JLC CAD closes polarity/rotation evidence |
 | USB-A current program | RT0603BRD0743K2L x3 | C861404 | 43.2k +/-0.1%, +/-25ppm/C closes peak/connector window |
 | Type-C feedback network | RT0603BRD074K12L / RT0603BRD0724R3L / RT0603BRD071KL | C861436 / C861251 / C110776 | 4.12k + 24.3ohm over 1k, all +/-0.1% and +/-25ppm/C; low impedance suppresses TPSM63604 typical-only FB-bias sensitivity |
 | aggregate current program | PTFR0603B210RP9 | C478880 | 210ohm +/-0.1%, 25ppm/C programs U9 to a derived 6.160253-8.066419A full-corner band |
-| aggregate fault timer | C1206C473J5GECAUTO7210 | C2220670 | 47nF +/-5% C0G; full tolerance and 30ppm/C temperature corner guarantees 11.129ms minimum blanking |
-| aggregate startup slew | C0603X332G5GECAUTO | C2239978 | 3.3nF +/-2% C0G on dVdt; full tolerance and temperature corner closes TI's maximum-ITIMER-capacitance startup relation |
+| aggregate fault timer | C1206N473J050T | C5451690 | 47nF +/-5% C0G; full tolerance and 30ppm/C temperature corner guarantees 11.129ms minimum blanking; selected after the prior line reached catalog stock 0 |
+| aggregate startup slew | GRM1885C1H332JA01D | C77036 | 3.3nF +/-5% C0G on dVdt; re-derived full tolerance and temperature corner closes TI's maximum-ITIMER-capacitance startup relation; selected after no stocked +/-2% line remained |
 | user-fit fuse element | Littelfuse 0297010.WXNV | user-fit | exact 10A/32V/1000A-interrupt MINI blade |
 
 The first dated catalog probe reported JLC/LCSC PASS 15/15, but the required

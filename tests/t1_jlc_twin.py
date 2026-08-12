@@ -38,9 +38,60 @@ from jlc_rotation_resolve import (load_lcsc_rotations,  # noqa: E402
                                   resolve_rotation)
 
 TWIN = FAB_SCRIPTS / "jlc_twin.py"
+E2K_COMPAT = FAB_SCRIPTS / "easyeda2kicad_compat.py"
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 CODE = "C22775"          # a real code on cook-loadcell's BOM (R7, 100R 0603)
+
+
+@test("easyeda2kicad compatibility shim overrides only the HTTP User-Agent")
+def t_easyeda_compat_user_agent():
+    """The shim must remain independent of the installed network package.
+    A tiny fake upstream module proves delegation and the configurable UA
+    override without making a live HTTP request."""
+    d = tmpdir("e2k_compat_")
+    pkg = d / "easyeda2kicad"
+    api = pkg / "easyeda"
+    api.mkdir(parents=True)
+    (pkg / "__init__.py").write_text("")
+    (api / "__init__.py").write_text("")
+    (api / "easyeda_api.py").write_text(
+        "class EasyedaApi:\n"
+        "    def __init__(self, use_cache=False):\n"
+        "        self.headers = {'User-Agent': 'stale-upstream'}\n")
+    (pkg / "__main__.py").write_text(
+        "from .easyeda.easyeda_api import EasyedaApi\n"
+        "def main():\n"
+        "    print(EasyedaApi().headers['User-Agent'])\n"
+        "    return 0\n")
+    sentinel = "fixture-browser/999"
+    r = must_pass(run([KPY, E2K_COMPAT], cwd=d,
+                      env={"PYTHONPATH": str(d),
+                           "JLC_TWIN_USER_AGENT": sentinel}),
+                  "easyeda2kicad compatibility shim")
+    contains(r.out, sentinel, "compatibility User-Agent")
+    not_contains(r.out, "stale-upstream", "compatibility User-Agent")
+
+
+@test("jlc_twin wraps the real easyeda2kicad entry point but not test stubs")
+def t_easyeda_compat_command_selection():
+    d = tmpdir("e2k_command_")
+    real = d / "easyeda2kicad"
+    real.write_text(f"#!{KPY}\n")
+    real.chmod(real.stat().st_mode | stat.S_IEXEC)
+    stub = d / "easyeda2kicad_stub"
+    stub.write_text(f"#!{KPY}\n")
+    stub.chmod(stub.stat().st_mode | stat.S_IEXEC)
+    code = (
+        "import json,sys\n"
+        f"sys.path.insert(0,{str(FAB_SCRIPTS)!r})\n"
+        "from jlc_twin import easyeda2kicad_command\n"
+        "print('@@'+json.dumps(easyeda2kicad_command(sys.argv[1])))\n")
+    wrapped = must_pass(run([KPY, "-c", code, real]), "real fetcher command")
+    contains(wrapped.out, str(E2K_COMPAT), "real fetcher wrapper")
+    direct = must_pass(run([KPY, "-c", code, stub]), "stub fetcher command")
+    contains(direct.out, f'"{stub}"', "stub direct command")
+    not_contains(direct.out, str(E2K_COMPAT), "stub direct command")
 
 
 def stub_e2k(d, stderr="", stdout="", rc=1, emit_mod_for=None):
@@ -139,6 +190,33 @@ def t_fetch_crash_blocks():
     must_fail(r, "jlc_twin on a fetcher crash", "FETCH-FAILED")
 
 
+@test("an evidence-bound FETCH-FAILED adjudication is persisted in the CSV "
+      "and is not reported as a transient retry")
+def t_fetch_failed_adjudication_is_final_evidence():
+    """The pre-fix tool applied adjudications only after writing the CSV, then
+    printed an unconditional TRANSIENT footer from the raw fetch set. It exited
+    zero while its shipped report still said FETCH-FAILED and its prose said
+    the run was not verification. Final evidence must describe one state.
+    """
+    d = tmpdir("twin_")
+    board, bom = fixture(d, [f"100R shield bond,R7,R_0603_1608Metric,,{CODE}"])
+    e2k = stub_e2k(d, stderr="HTTP Error 403: Forbidden\n", rc=1)
+    adj = d / "adjudications.yaml"
+    adj.write_text(
+        f"- lcsc: {CODE}\n"
+        "  refs: [R7]\n"
+        "  status: FETCH-FAILED\n"
+        "  why: same-run controls succeeded and exact unpolarized land was verified\n")
+    r = twin(d, board, bom, e2k, extra=("--adjudications", str(adj)))
+    must_pass(r, "jlc_twin with an explicit library-absence adjudication")
+    rpt = d / "twin" / "twin_report.csv"
+    contains(rpt.read_text(), "ADJUDICATED-FETCH-FAILED",
+             "final machine report")
+    contains(r.out, "ADJUDICATED LIBRARY ABSENCES", "final console verdict")
+    check("does NOT constitute twin verification" not in r.out,
+          "an adjudicated absence must not retain the unresolved footer")
+
+
 @test("a genuine timeout is still classified FETCH-FAILED and BLOCKS",
       kind="known_bad")
 def t_timeout_blocks():
@@ -193,6 +271,32 @@ def t_cache_replay():
           f"cache miss: the fetcher was invoked despite a seeded cache\n"
           f"{r.out[-1500:]}")
     contains(r.out, "R7", "twin output should mention the checked ref")
+    contains(r.out, "state=cached", "cache replay progress state")
+    contains(r.out, "completed=1/1", "cache replay coverage heartbeat")
+
+
+@test("a silent fetch child emits heartbeats, times out, and leaves a resume path")
+def t_fetch_timeout_is_visible_and_bounded():
+    d = tmpdir("twin_timeout_")
+    board, bom = fixture(d, [f"100R shield bond,R7,R_0603_1608Metric,,{CODE}"])
+    e2k = d / "easyeda2kicad_stub"
+    e2k.write_text(
+        "#!/usr/bin/env python3\n"
+        "import time\n"
+        "time.sleep(5)\n")
+    e2k.chmod(e2k.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    out = d / "twin"
+    r = run([KPY, TWIN, board, bom, out, "--no-render"], cwd=d, env={
+        "EASYEDA2KICAD": str(e2k),
+        "JLC_TWIN_FETCH_ATTEMPTS": "1",
+        "JLC_TWIN_FETCH_TIMEOUT_S": "0.25",
+        "JLC_TWIN_HEARTBEAT_S": "0.05",
+        "JLC_TWIN_WALL_TIMEOUT_S": "2",
+    })
+    must_fail(r, "silent fetch child", "TIMED-OUT")
+    contains(r.out, "state=running", "periodic fetch heartbeat")
+    contains(r.out, "completed=0/1", "in-progress coverage")
+    contains(r.out, "simply RE-RUNNING", "resumable timeout instruction")
 
 
 @test("a BOM with no LCSC codes reports 0 checked rather than a silent pass")
@@ -780,6 +884,8 @@ def t_manual_connector_body_not_dropped_by_cpl_denominator():
     mm = (d / "twin" / "missing_models.txt").read_text()
     contains(mm, "0 CPL placements", "the deliberately empty CPL")
     contains(mm, "1 declared manual-install bodies", "manual body source")
+    contains(mm, "CPL bodies mounted: 0/0", "contractual CPL denominator")
+    contains(mm, "manual bodies mounted: 1/1", "separate manual denominator")
     mounts = read_mount(d / "twin" / "twin.kicad_pcb", "J3")
     eq(len(mounts), 1, "J3 model count")
     eq(Path(mounts[0]["f"]), body.resolve(), "J3 project model")
