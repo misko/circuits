@@ -62,7 +62,7 @@ rationale.
 | IMP-046 | Preflight rendered reference/value occlusion before human review | proposed | USB Hub 3S v4, schematic readability review |
 | IMP-047 | Give IR-budget terms non-overlapping measurement endpoints | implementing | USB Hub 3S v4, Type-C topology review |
 | IMP-048 | Compare visible schematic paths with authoritative electrical nets | proposed | USB Hub 3S v4, schematic readability review |
-| IMP-049 | Bound independent-review briefs and enforce closure deadlines | proposed | USB Hub 3S v4, exact placement review |
+| IMP-049 | Bound independent-review briefs and enforce closure deadlines | implementing | USB Hub 3S v4, exact placement review |
 | IMP-050 | Prove fresh generated outputs instead of trusting exit zero | implementing | USB Hub 3S v4, routed-review export |
 | IMP-051 | Give long external stages progress and bounded retry budgets | implementing | USB Hub 3S v4, JLC digital-twin fetch |
 | IMP-052 | Preflight mutable catalog clients and distinguish compatibility from throttling | implementing | USB Hub 3S v4, JLC digital-twin fetch |
@@ -77,7 +77,7 @@ rationale.
 | IMP-061 | Close exact-code manufacturing readiness before part freeze | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-062 | Provide one transactional primitive for generated artifact bundles | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-063 | Rehearse the complete release and publication-internal contract before seal | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
-| IMP-064 | Pair early warning gates with late authoritative rechecks | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-064 | Pair early warning gates with late authoritative rechecks | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-065 | Measure pipeline critical path by work class and order cheap gates first | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 
 ## IMP-001 — pre-build rule/config schema validation
@@ -1501,7 +1501,7 @@ rationale.
 
 ## IMP-049 — bounded independent-review briefs and closure deadlines
 
-- status: proposed
+- status: implementing
 - observed: USB Hub 3S v4 exact placement review, 2026-08-12
 - evidence: pin, layout and render reviews began on the same frozen board.
   Render and layout closed normally, but the first pin reviewer kept widening
@@ -1522,6 +1522,13 @@ rationale.
   report discarded attempts without treating them as design failures.
 - history: 2026-08-12 — proposed after the placement pin lens became the only
   long-running activity despite all producer and gate commands being bounded.
+- history: 2026-08-12 — the strict schema-1 commission/witness core landed in
+  shadow form. It binds one lens, exact subject/commit/artifacts, a non-zero
+  checklist, explicit exclusions, one output and a UTC deadline; durable
+  output/input hashes are independently supplied at admission. Late and
+  partial witnesses remain inadmissible, while a complete DEFECTIVE witness
+  remains valid blocking evidence. A launcher/legacy-Markdown adapter and
+  real-review adoption remain open, so this entry is not complete.
 
 ## IMP-050 — generated evidence must prove fresh output, not exit zero
 
@@ -1942,7 +1949,7 @@ rationale.
 
 ## IMP-064 — early warning plus late authoritative recheck
 
-- status: proposed
+- status: implementing
 - observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
 - evidence: moving every check earlier would reduce rework but would be unsafe
   if the early observation were treated as permanent authority. Supplier
@@ -1971,6 +1978,12 @@ rationale.
   post-seal publication mismatch must each fail at their proper boundary.
 - history: 2026-08-12 — proposed from the retrospective to codify "shift
   left, do not weaken the final gate."
+- history: 2026-08-12 — the schema-1 fact-pair core landed with semantic/raw
+  identities, exact invalidator census, optional early freshness and explicit
+  prevention/authority roles. Early PASS is structurally unable to authorize
+  a final claim; late evaluation accepts no early result and only the declared
+  current authority can authorize. Real stock/model/via/release adapters and
+  orchestration placement remain open, so this entry is not complete.
 
 ## IMP-065 — critical-path telemetry and cheap-first scheduling
 
@@ -2007,6 +2020,11 @@ rationale.
   work precedes already-runnable network/review work. Real-stage declarations,
   cross-stage critical-path aggregation and canary shadow equivalence remain
   open, so this entry is not complete.
+- history: 2026-08-12 — cross-stage aggregation now distinguishes observed
+  wall envelope, summed stage work, subprocess work and the deterministic
+  dependency-duration critical path, with separate local/network/backoff/
+  review/operator totals and cache/status counts. Real-stage span adapters and
+  USB Hub/Pluto shadow traces remain open, so this entry is not complete.
 
 ## 2026-08-12 nine-hour retrospective traceability
 

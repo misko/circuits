@@ -65,6 +65,9 @@ SUITES=(
   t1_pipeline_registry.py
   t1_pipeline_runtime.py
   t1_pipeline_artifacts.py
+  t1_pipeline_review.py
+  t1_pipeline_facts.py
+  t1_pipeline_timing.py
   t1_counting.py
   t1_module_first.py
   t1_escape_tier.py

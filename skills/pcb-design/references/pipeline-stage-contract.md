@@ -197,6 +197,12 @@ The schema-1 foundation is available under `skills/pcb-design/scripts/`:
   work-class telemetry;
 - `pipeline_artifacts.py` — fresh validated bundle staging and atomic
   manifest-last promotion.
+- `pipeline_review.py` — bounded commissions and exact durable-witness
+  admissibility;
+- `pipeline_facts.py` — early prevention observations paired with independent
+  late authority;
+- `pipeline_timing.py` — work-class totals and dependency critical-path
+  summaries kept distinct from the observed wall envelope.
 
 These modules are shadow infrastructure, not permission to bypass an existing
 gate or publication path. A producer is migrated only after its adapter has a
