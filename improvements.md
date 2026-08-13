@@ -80,6 +80,12 @@ rationale.
 | IMP-064 | Pair early warning gates with late authoritative rechecks | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-065 | Measure pipeline critical path by work class and order cheap gates first | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-066 | Confirm broad-phase geometry findings with native transformed polygons | completed | Pluto RX2 8-way legacy canary replay |
+| IMP-067 | Prevent executable example values from entering new-project scaffolds | proposed | Pluto RX2 8-way v5 commission |
+| IMP-068 | Coordinate protection before freezing downstream voltage ratings | proposed | Pluto RX2 8-way v5 exact-parts stage |
+| IMP-069 | Derive stage readiness from canonical gate receipts | proposed | Pluto RX2 8-way v5 pre-schematic audit |
+| IMP-070 | Mechanically scope clean-room filesystem discovery | proposed | Pluto RX2 8-way v5 clean-room audit |
+| IMP-071 | Derive observable timing from executable state schedules | proposed | Pluto RX2 8-way v5 control-protocol audit |
+| IMP-072 | Classify committed binary evidence in the canonical scaffold | proposed | Pluto RX2 8-way v5 checkpoint commit |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -108,6 +114,21 @@ rationale.
   `tests/t1_net_label_survival.py` and `tests/t1_rebuild_templates.py`. The
   broader all-rule schema inventory and source-only findings-ledger validation
   remain outstanding, so this item is not complete.
+- follow-up evidence: Pluto RX2 8-way v5 parsed 25/25 YAML files and passed the
+  selected package, topology, netclass and surge checks, yet four canonical
+  readers disagreed at the same pre-schematic boundary on 2026-08-13:
+  `electrical_invariants.py` rejected the prose-only invariant shape;
+  `rf_contract_check.py` rejected `rf.ports[0]` without a `nets` list;
+  `assembly_coverage.py --emit-manifest-line` raised an `AttributeError` on
+  scalar `not_assembled` rows instead of issuing a bounded schema failure; and
+  `net_label_survival.py --schema-only` reported PASS while interpreting zero
+  of the thirteen intended pin-map rows. Parse success and a zero-row schema
+  pass are both M-COVER failures when authored declarations were expected.
+- completion evidence extension: the canonical pre-build command must invoke
+  every source-readable rule-family reader, require an expected non-zero
+  denominator when that family is authored, convert malformed input to a
+  concise failure rather than a traceback, and refuse TSX when any family is
+  ungraded. The four v5 shapes above become executable known-bads.
 - history:
   - 2026-08-11 — proposed and promoted from the schematic journal.
   - 2026-08-11 — implementation started with pre-producer label-survival and
@@ -1343,12 +1364,23 @@ rationale.
   executable rule used 500nA. The exact-bound human comparison caught the
   contradiction, but a typed shared qualification obligation would give this
   fact one machine-readable owner instead of duplicating it across prose.
+- additional evidence: Pluto RX2 8-way v5 set the TPS7A2433 dossier's
+  `pdiss_max_mw` to 66 and explicitly described it as a 30mA analysis ceiling,
+  while the field contract defines it as a package rating or board/ambient
+  derating. `power_topology.py` correctly proved 44.825mW < 66mW but could not
+  detect that the compared ceiling had the wrong semantic authority. Correct
+  arithmetic over a self-selected design budget is not a component-rating
+  proof.
 - intended landing point: extend the shared design/release schema so every
   `engineering_qualification_bound`, `qualified_max`, or other non-datasheet
   basis creates a typed validation obligation with an owner, acceptance test
   and latest release stage it blocks. A gate must reject a production claim if
   any such obligation is open, and report distinctly whether it blocks design,
   first-article ordering, first-article acceptance or production.
+  Numeric rating fields additionally need a typed `{value, basis, source,
+  conditions}` record; a package rating, board/ambient derating, engineering
+  screen and design operating budget are distinct closed-vocabulary bases and
+  may not substitute for one another merely because their units match.
 - completion evidence required: clean fixtures for a controlled prototype and
   a fully qualified production release; known-bads for a typical-only maximum,
   unnamed interconnect and missing acceptance test; USB Hub v4 reports its
@@ -1892,6 +1924,22 @@ rationale.
   placement entry must refuse a stale or incomplete readiness record.
 - history: 2026-08-12 — proposed from the nine-hour retrospective because the
   05:31-07:22 fabrication backtracks were cheaper to prevent at part freeze.
+- follow-up evidence: Pluto RX2 8-way v5 independently checked all 13 JLC/LCSC
+  codes and recorded distributor observations, but did not produce the
+  contract-required composed Q-2SOURCE verdict before declaring exact-part
+  closure. The 10V 4.7uF capacitor's recorded independent pool had zero local
+  stock, and the 16V input capacitor recorded an exact listing without a
+  qualifying stock count; neither prose entry can prove two active/orderable
+  pools. The dossiers also committed `jlc_observed_stock` and second-source
+  stock prose even though the parts contract assigns volatile stock/price only
+  to TTL cache and dated generated sourcing evidence.
+- completion evidence extension: schematic entry must consume one generated,
+  parseable Q-2SOURCE/Q-COVER verdict for the exact candidate-BOM hash and
+  board count. A dossier linter rejects volatile quantity/price fields, and a
+  second-source identity with absent or insufficient stock remains a FAIL, not
+  a narrative qualification. Candidate-BOM, assembly population and dossier
+  code sets must be derived or checked for exact identity rather than maintained
+  as three ungoverned lists.
 
 ## IMP-062 — transactional generated-artifact bundles
 
@@ -2001,6 +2049,18 @@ rationale.
   a final claim; late evaluation accepts no early result and only the declared
   current authority can authorize. Real stock/model/via/release adapters and
   orchestration placement remain open, so this entry is not complete.
+- follow-up evidence: Pluto RX2 8-way v5 had two honest source-authority
+  exceptions at part freeze: Amphenol's current drawing endpoint returned HTTP
+  403, and the locally cached STM32 data sheet was Rev 4 while current online
+  facts were cross-checked against Rev 5. Prose correctly deferred footprint
+  and release authority, but no typed lifecycle record made those precise
+  future blockers visible to orchestration.
+- lifecycle extension: manufacturer-document authority uses an early/late
+  pair too. Part selection may record `CURRENT`, `STALE`, or `DEFERRED` with
+  exact document identity, retry budget, fallback grade and first blocked
+  stage; footprint approval and pin review require hash-bound local authority,
+  and release rechecks the current revision. Repeated fetch failure is a
+  visible bounded state, never an unbounded retry and never an implicit pass.
 
 ## IMP-065 — critical-path telemetry and cheap-first scheduling
 
@@ -2167,13 +2227,24 @@ authoritative recheck remains governed by IMP-064.
 | Human display name failed canonical publication identity | review commission and mutable staging | IMP-059, IMP-063 |
 | Publication discarded docs-only freshness semantics | orchestration mode tests before seal | IMP-060, IMP-063 |
 | Healthy stages appeared locked because work class was invisible | every orchestration boundary | IMP-051, IMP-065 |
+| Parseable rule files failed canonical readers or passed with zero graded rows | source-only preflight before generation | IMP-001, IMP-045, IMP-069 |
+| Hand-maintained stage booleans claimed completion without fresh gate receipts | every stage transition | IMP-069 |
+| Two-source proof was distributed across prose and volatile stock was committed in dossiers | exact-code part freeze | IMP-061, IMP-064 |
+| A broad clean-room search surfaced explicitly excluded legacy design material | commission and every discovery command | IMP-070 |
+| A 500 ms marker followed by the same state for 5 ms is observably 505 ms | control-protocol lock before firmware and analysis | IMP-071 |
+| Generated PDF evidence was treated as text because it contained no NUL byte | project scaffold and staging preflight | IMP-072 |
+| A regulator calculation passed against a locally chosen operating ceiling mislabeled as a package limit | source-bound capture before power analysis | IMP-043, IMP-045 |
+| Manufacturer documents were inaccessible or a locally cached revision was stale | source authority at part freeze, then final recheck | IMP-042, IMP-051, IMP-064 |
 
 Recommended execution order for future boards:
 
-1. Commission the product, manufacturing and qualification boundaries.
-2. Close exact-code manufacturing readiness before part freeze (IMP-061).
-3. Run source-only schema, bound and authority gates before TSX or reviewers
-   (IMP-001, IMP-042, IMP-045, IMP-053).
+1. Commission the product, manufacturing, qualification and clean-room
+   boundaries; enforce the allowed discovery scope mechanically (IMP-070).
+2. Close exact-code manufacturing readiness—including the composed
+   two-source gate—before part freeze (IMP-061, IMP-064).
+3. Run every applicable canonical source-only schema, bound and authority
+   gate before TSX or reviewers, then derive stage readiness from their fresh
+   receipts (IMP-001, IMP-042, IMP-045, IMP-053, IMP-069).
 4. Generate and electrically grade the schematic, then run presentation
    preflights before bounded human readability review (IMP-044, IMP-046,
    IMP-048, IMP-049).
@@ -2211,3 +2282,104 @@ Recommended execution order for future boards:
 - recommendation: generic process change soon; no v5 repair is pending because
   the existing early gate caught and corrected this instance before schematic
   entry.
+
+## IMP-069 — derive stage readiness from canonical gate receipts
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 pre-schematic audit, 2026-08-13
+- evidence: `requirements.yaml` and the project status described architecture,
+  interface and exact-parts work as complete, while the canonical electrical-
+  invariant and RF-contract readers rejected their files, the assembly reader
+  raised an exception, the label-survival check passed vacuously with zero
+  graded pin-map rows, and the project-state reader could not find the required
+  findings ledger. The selected commands that had been run were green, but the
+  declared stage was not green under all applicable canonical consumers.
+- general rule: a stage-complete boolean records desired state, not evidence.
+  Readiness must be derived from fresh, subject-bound receipts for every
+  applicable canonical gate. A pass with an unexpected zero denominator,
+  an uninvoked rule family, a missing ledger, an exception or a stale subject
+  leaves the stage ungraded and blocks its consumers.
+- intended landing point: define a stage registry that enumerates applicable
+  rule families, canonical reader commands and expected minimum coverage. Each
+  reader emits a bounded result with the input hash, validator version,
+  numerator/denominator, evidence paths and terminal state. `project_state.py`
+  derives maturity only from those receipts, and generation refuses `FAIL`,
+  `ERROR`, `STALE` and `UNGRADED` alike.
+- completion evidence required: orchestration fixtures must reject an omitted
+  reader, a manually true completion flag, a missing findings ledger, a stale
+  receipt and a nominal pass with zero rows; a clean fixture with all expected
+  families and nonzero coverage must advance exactly one declared boundary.
+- recommendation: address before resuming v5 schematic generation. This is the
+  umbrella fix that prevents several individually cheap contract mismatches
+  from becoming a misleading stage-level green claim.
+
+## IMP-070 — mechanically scope clean-room filesystem discovery
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 clean-room research, 2026-08-13
+- evidence: a repository-wide search surfaced filenames and text snippets from
+  explicitly excluded earlier Pluto projects. No legacy design artifact was
+  intentionally opened or copied and the provenance record was corrected, but
+  the breach showed that a prose instruction cannot constrain an otherwise
+  broad discovery command.
+- general rule: clean-room scope is a command-boundary property. Allowed roots,
+  denied roots and permitted reusable process material must be machine-readable
+  and enforced for filesystem discovery and reads; prompt wording and operator
+  memory are not controls.
+- intended landing point: commission an allowlist of new-project and generic
+  skill/process roots plus explicit deny patterns for legacy subjects. Route
+  searches through a wrapper that validates working directory and arguments,
+  rejects repository-wide expansion and path traversal, and emits an auditable
+  discovery receipt. Any breach stops the stage and records exactly what became
+  visible before work continues.
+- completion evidence required: fixtures must permit the commissioned project
+  and reusable skills, reject an older project, a symlink escape, a traversal
+  path and a broad repository search, and produce a stable incident record for
+  each denied attempt.
+- recommendation: implement before the next clean-room project; for v5, retain
+  the disclosed provenance incident and avoid any further broad searches.
+
+## IMP-071 — derive observable protocol timing from executable state schedules
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 dwell-protocol review, 2026-08-13
+- evidence: the declared 500 ms marker body was immediately followed by a 5 ms
+  guard in the same switch state, so a downstream observer sees one contiguous
+  505 ms interval. Cycle duration, capture requirements and distinguishability
+  were then checked manually from prose and duplicated derived values.
+- general rule: a receiver observes merged state runs, not semantic labels such
+  as `marker`, `dwell` or `guard`. Observable windows, unique dwell signatures,
+  cycle time and minimum capture must be derived from one atomic state schedule;
+  the decoder must treat any unmatched or incomplete observation as unknown.
+- intended landing point: add a conditional control-protocol checker for boards
+  using timing-coded switching. It merges adjacent identical states, applies
+  controller and estimator error bounds, computes observation windows and
+  cycle/capture limits, and rejects handwritten derived-value drift, ambiguous
+  merged intervals, overlapping windows and insufficient capture duration.
+- completion evidence required: fixtures must cover the corrected v5 schedule,
+  the original 500+5 ms adjacent-state ambiguity, overlapping tolerance
+  windows, a truncated capture and a no-signal/reset interval; only the fully
+  distinguishable schedule may pass.
+- recommendation: land before firmware generation or downstream decoder work.
+  It is conditional process machinery, not a burden for boards without an
+  observable timing protocol.
+
+## IMP-072 — classify committed binary evidence in the canonical scaffold
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 source-evidence staging, 2026-08-13
+- evidence: two valid generated Yageo PDF files contained no NUL byte, so Git's
+  heuristic treated them as text and `git diff --check` emitted thousands of
+  whitespace diagnostics. A project-local `.gitattributes` entry declaring
+  `*.pdf binary` restored bounded, useful review output.
+- general rule: the repository must declare the representation of committed
+  evidence formats whose bytes are not meaningfully line-reviewable. Tool
+  heuristics are not a stable content contract.
+- intended landing point: include a canonical `.gitattributes` file in the
+  project scaffold and initializer copy list with `*.pdf binary`. Add other
+  evidence types only when their review/merge behavior is explicitly known;
+  continue to verify content with hashes and purpose-specific readers.
+- completion evidence required: initialize a fixture, stage a valid PDF with no
+  NUL byte and prove diff/check output remains bounded with no text-whitespace
+  diagnostics; prove the file hash survives scaffold, copy and archive steps.
+- recommendation: low-risk and inexpensive; land in the next scaffold update.
