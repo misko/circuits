@@ -32,9 +32,17 @@ gates:
 
   - id: V5-schematic
     required_for: DESIGN_CLEAN
-    state: pending
+    state: pass
     owner: electrical
     closes_when: The generated schematic passes schema, ERC, exact netlist and pin-map parity, topology, RF and explicit human-readability reviews.
+    evidence:
+      - 03_tscircuit/src/pluto_rx2_8way_v5.tsx
+      - 03_tscircuit/build/schematic.pdf
+      - 04_kicad/pluto_rx2_8way_v5.kicad_sch
+      - 06_build/checkpoints/schematic.json
+      - 08_reviews/pre-route_topology.md
+      - 08_reviews/pre-route_schematic_render.md
+      - 08_reviews/rf_schematic.md
 
   - id: V5-firmware
     required_for: DESIGN_CLEAN

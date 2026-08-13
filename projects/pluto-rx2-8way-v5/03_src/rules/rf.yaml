@@ -81,15 +81,15 @@ rf:
   reviews:
     schematic:
       path: 08_reviews/rf_schematic.md
-      artifact: 04_kicad/pluto-rx2-8way-v5.kicad_sch
+      artifact: 04_kicad/pluto_rx2_8way_v5.kicad_sch
       requirements: [RF-SCH-TOPOLOGY, RF-SCH-PINMAP, RF-SCH-DC, RF-SCH-DEFAULT]
     pcb:
       path: 08_reviews/rf_pcb.md
-      artifact: 04_kicad/pluto-rx2-8way-v5.kicad_pcb
+      artifact: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
       requirements: [RF-PCB-STACKUP, RF-PCB-IMPEDANCE, RF-PCB-LAUNCHES, RF-PCB-RETURN, RF-PCB-COUPLING]
     fab:
       path: 08_reviews/rf_fab.md
-      artifact: 06_build/fab/pluto-rx2-8way-v5-gerbers.zip
+      artifact: 06_build/fab/pluto_rx2_8way_v5-gerbers.zip
       requirements: [RF-FAB-STACKUP, RF-FAB-COPPER, RF-FAB-DRILLS, RF-FAB-FIRST-ARTICLE]
 
   switch_interface:

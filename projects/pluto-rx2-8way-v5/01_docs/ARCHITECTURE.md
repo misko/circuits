@@ -54,17 +54,26 @@ operating target.
 ## Autonomous control protocol
 
 `STM32C011F4P6` runs from 3.3 V, using HSI48, a hardware timer, BOR level 4 and
-the independent watchdog. SWD test pads expose target-sense 3V3, GND, SWDIO,
-SWCLK and NRST; an external programmer may sense but not source board power.
+the independent watchdog. Bare pads TP1..TP5 expose target-sense 3V3, GND,
+SWDIO, SWCLK and NRST respectively. The board is powered through its own
+USB-C input; neither a Raspberry Pi nor an ST-LINK may source board power.
 
-The repeating frame uses ANT1..ANT8 active dwells of
-80/105/135/170/210/255/305/360 ms, with 5 ms ALL_OFF guards and a nominal
-500 ms ALL_OFF marker body; its contiguous pre-ANT1 guard makes the nominal
-observable ALL_OFF interval 505 ms. A decoder accepts +/-5% dwell windows only
-in valid order after an ALL_OFF interval of at least 475 ms. It returns `unknown` for absent RF,
+The primary update path uses a Raspberry Pi as the SWD adapter directly:
+GPIO11/physical pin 23 drives SWCLK, GPIO8/physical pin 24 is SWDIO, GPIO24/
+physical pin 18 may drive NRST, and a Pi ground joins TP2. OpenOCD uses
+`raspberrypi-native.cfg` on Pi 1–4 and `raspberrypi5-gpiod.cfg` on Pi 5.
+The same pads remain compatible with a conventional ST-LINK recovery probe.
+There is no live configuration/data link; changing a profile means generate,
+validate, build, flash, verify and reset.
+
+The initial generated `fast20-v1` frame uses ANT1..ANT8 active dwells of
+20/23/26/30/34/39/44/50 ms, with 5 ms ALL_OFF guards and an 80 ms ALL_OFF
+marker body; its contiguous pre-ANT1 guard makes the nominal observable
+ALL_OFF interval 85 ms. A decoder accepts +/-5% dwell windows only in valid
+order after an ALL_OFF interval of at least 76 ms. It returns `unknown` for absent RF,
 truncated capture, ambiguous duration, missed/extra transitions, invalid order,
-or reset recovery. A cycle is 2160 ms; 4320 ms is the minimum guaranteed full
-frame capture and 4500 ms is recommended. The executable definition is
+or reset recovery. A cycle is 386 ms; 772 ms is the minimum guaranteed full
+frame capture and 850 ms is recommended. The executable definition is
 [`control_protocol.yaml`](../03_src/rules/control_protocol.yaml).
 
 ## Independent power path

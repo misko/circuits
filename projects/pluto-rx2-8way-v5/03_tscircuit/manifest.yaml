@@ -1,0 +1,36 @@
+# Independent, hand-authored S-COUNT intent.  Generated artifacts may not
+# define their own expected set because that would conceal a silent TSX drop.
+components:
+  - J1
+  - J2
+  - J3
+  - J4
+  - J5
+  - J6
+  - J7
+  - J8
+  - J9
+  - J10
+  - F1
+  - D1
+  - U1
+  - U2
+  - U3
+  - U4
+  - R1
+  - R2
+  - R3
+  - R4
+  - R5
+  - R6
+  - C1
+  - C2
+  - C3
+  - C4
+  - C5
+  - C6
+  - TP1
+  - TP2
+  - TP3
+  - TP4
+  - TP5

@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import KPY, SCRIPTS, contains, main, must_fail, must_pass, run, test, tmpdir  # noqa: E402
 
 GATE = SCRIPTS / "control_protocol_check.py"
+CODEGEN = SCRIPTS / "control_profile_codegen.py"
 
 
 def clean_data():
@@ -52,6 +53,20 @@ def project(data=None):
     (rules / "control_protocol.yaml").write_text(
         yaml.safe_dump(data or clean_data(), sort_keys=False))
     return d
+
+
+def profile_data():
+    data = clean_data()
+    data["schema"] = 2
+    data["profile"] = {
+        "id": "fast-test",
+        "revision": 1,
+        "source_of_truth": "03_src/rules/control_protocol.yaml",
+        "firmware_header": "05_firmware/include/control_profile.h",
+        "decoder_json": "05_firmware/host/control_profile.json",
+        "change_method": "regenerate_validate_build_flash",
+    }
+    return data
 
 
 @test("observable marker, windows, cycle and capture derive cleanly")
@@ -108,6 +123,54 @@ def t_unknown_key_is_a_schema_error():
                        "unknown protocol key", "unknown key(s): protcol")
     if "Traceback" in result.out:
         raise AssertionError(f"schema failure leaked a traceback:\n{result.out}")
+
+
+@test("schema-2 profile generates exact MCU and decoder artifacts")
+def t_profile_codegen():
+    d = project(profile_data())
+    must_pass(run([KPY, CODEGEN, d, "--write"]), "write profile artifacts")
+    r = must_pass(run([KPY, CODEGEN, d, "--check"]), "check profile artifacts")
+    contains(r.out, "2/2 artifacts exact", "both consumers are pinned")
+    contains((d / "05_firmware/include/control_profile.h").read_text(),
+             "CONTROL_PROFILE_ID \"fast-test\"", "firmware profile identity")
+
+
+@test("a changed dwell makes generated timing artifacts stale", kind="known_bad")
+def t_profile_stale_after_dwell_change():
+    d = project(profile_data())
+    must_pass(run([KPY, CODEGEN, d, "--write"]), "initial profile generation")
+    path = d / "03_src/rules/control_protocol.yaml"
+    data = yaml.safe_load(path.read_text())
+    data["states"]["ANT1"]["dwell_ms"] = 81
+    data["states"]["ANT1"]["window_ms"] = [76.95, 85.05]
+    data["frame"]["nominal_cycle_ms"] = 711
+    data["frame"]["minimum_capture_for_guaranteed_complete_frame_ms"] = 1422
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    must_fail(run([KPY, CODEGEN, d, "--check"]), "stale profile", "STALE")
+
+
+@test("profile consumers cannot collide with or overwrite their authority", kind="known_bad")
+def t_profile_output_collision():
+    data = profile_data()
+    d = project(data)
+    authority = d / "03_src/rules/control_protocol.yaml"
+    header = d / data["profile"]["firmware_header"]
+    header.parent.mkdir(parents=True)
+    header.hardlink_to(authority)
+    before = authority.read_bytes()
+    result = must_fail(
+        run([KPY, CODEGEN, d, "--write"]),
+        "profile output collision", "must not overwrite")
+    if authority.read_bytes() != before:
+        raise AssertionError(f"failed codegen changed its authority:\n{result.out}")
+
+
+@test("profile source-of-truth spelling is canonical", kind="known_bad")
+def t_profile_source_path():
+    data = profile_data()
+    data["profile"]["source_of_truth"] = "control_protocol.yaml"
+    must_fail(run([KPY, GATE, project(data)]),
+              "noncanonical profile authority", "canonical project path")
 
 
 if __name__ == "__main__":

@@ -1,15 +1,18 @@
 # Revision checklist
 
-## Current pre-schematic checkpoint — 2026-08-13
+## Current schematic checkpoint — 2026-08-13
 
 - [x] architecture ADRs accepted and exact part codes selected
 - [x] exact-code manufacturer facts and dated two-source/JLC checks recorded
 - [x] power, surge/capacitor, module-first, package-escape and source-rule gates pass
 - [x] fail-safe RF truth table and framed dwell decoder contract are executable
 - [x] JLC four-layer stackup selected; RF width/gap intentionally unsolved until PCB stage
-- [x] no TSX, schematic, PCB, route, fab or release artifact generated before pause
+- [x] generated four-page schematic agrees 33/33 across source and exports
+- [x] pin-map 129/129, electrical invariants 30/30, ERC errors 0 and checkpoint 7/7 pass
+- [x] exact-PDF topology/readability reviews and independent RF schematic review are SOUND
+- [x] no PCB, route, fab or release artifact generated before this pause
 - [ ] confirm or revise D9: all nine SMA connectors are female right-angle THT
-- [ ] next stage: generate schematic and pass schema/ERC/netlist/pin-map/readability review
+- [ ] next stage: close mechanics/drawing lifecycle, solve JLC impedance, then commission floorplan and placement
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.

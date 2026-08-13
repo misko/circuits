@@ -1,10 +1,10 @@
-# STATUS beacon — exact-parts and interface checkpoint
+# STATUS beacon — reviewed schematic checkpoint
 
 <!-- reader parses from here down -->
-stage:   exact-parts-and-interfaces
-step:    "architecture, 12 retained exact BOM codes, fail-safe control protocol, protected 3V3 path and JLC stackup basis closed; all applicable pre-schematic source gates pass and generation remains paused"
-measure: "12/12 JLC catalog-stock and 12/12 composed two-source rows pass; E-INV 17/17, label map 11, control 8/8, P-MOD 1/1, E-TOPO 1/1, A-SOURCE 6/6, EARLY-DESIGN 4/4, P-LAYOUT/P-PREC and G-ORPHAN 604/604 pass; checkpoint 50/50; 0 schematic/PCB artifacts"
+stage:   schematic-reviewed
+step:    "the clean-room four-page schematic and generated fast20-v1 profile are complete and independently reviewed; PCB mechanics, impedance, placement, routing and firmware implementation have not started"
+measure: "33/33 components agree across source and exports; pin map 129/129, E-INV 30/30, ERC errors 0, pre-route reviews 2/2, independent RF schematic review 4/4 and checkpoint 7/7 pass; final TSX 3.314s and full review-stop run about 9-10s"
 state:   working
-next:    "after user continuation: generate the schematic, then run schema, ERC, netlist/pin-map and human-readability reviews before any PCB work"
+next:    "pause and reflect; after continuation, confirm or revise D9 SMA mechanics, capture current drawings, solve official JLC impedance geometry, then commission floorplan and placement"
 op_pid:
-updated: 2026-08-13T10:14:03-07:00
+updated: 2026-08-13T12:07:25-07:00

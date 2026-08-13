@@ -1,0 +1,35 @@
+{
+  "files": {
+    "03_src/rebuild_all.sh": {
+      "sha256": "4faba45f7898d1062abae17f9f76a76c90c8fe4eb696ad13dd7d35ba5a7cc660",
+      "size": 26222
+    },
+    "03_tscircuit/build/circuit.json": {
+      "sha256": "37c7a0083c4736f9ee5e63f3891537d3c187ccd01384c7002db584576c63cfd3",
+      "size": 652667
+    },
+    "03_tscircuit/build/schematic.pdf": {
+      "sha256": "9f2778643675c639b5026482a8624ce2373c41b05425572ba60dd800999e6cf3",
+      "size": 106686
+    },
+    "03_tscircuit/manifest.yaml": {
+      "sha256": "d5879051868ae50205c18496805d669c5ed7c94e6a1da16b38f2754cda660a16",
+      "size": 401
+    },
+    "04_kicad/pluto_rx2_8way_v5.kicad_sch": {
+      "sha256": "572849a8ea53b9fc3ef4d92d6dba5bb692d0779e9a4002090b3cfaacaacd517a",
+      "size": 130195
+    },
+    "06_build/build_provenance.json": {
+      "sha256": "f113246ce68ffa5ff3edd8878e96fb04825e3587a79139afb3e8192fdc9b9315",
+      "size": 804
+    },
+    "06_build/netlists/pluto_rx2_8way_v5.net": {
+      "sha256": "12e7039b3e2d185b53187ecdd53acec655969aa1b19b32cdc53c2af2d16ecf21",
+      "size": 65820
+    }
+  },
+  "name": "schematic",
+  "project": "pluto-rx2-8way-v5",
+  "schema": 1
+}

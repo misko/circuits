@@ -1394,6 +1394,10 @@ def t_source_schema_precedes_tsci():
           "label_survival schema gate must precede tscircuit")
     check(txt.index('early_design_check.py') < build,
           "electrical source-schema gate must precede tscircuit")
+    check(txt.index('control_protocol_check.py') < build,
+          "control timing validation must precede tscircuit")
+    check(txt.index('control_profile_codegen.py') < build,
+          "generated timing-consumer parity must precede tscircuit")
     source_prec = txt.index('--phase source')
     check(source_prec < build,
           "part layout/precedent source gate must precede tscircuit")

@@ -638,6 +638,12 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 |---|---|---|
 | `schema` | `control_protocol_check.py` | timing-protocol schema version; unknown keys are rejected before TSX |
 | `protocol` | `control_protocol_check.py` | non-empty protocol identity printed with the source-bound result |
+| `profile.id` | `control_protocol_check.py` | versioned profile identity embedded in both generated consumers |
+| `profile.revision` | `control_protocol_check.py` | positive revision embedded in firmware and decoder outputs |
+| `profile.source_of_truth` | `control_protocol_check.py` | exact canonical project-relative contract path recorded in the decoder artifact |
+| `profile.firmware_header` | `control_profile_codegen.py` | project-confined `.h` destination, distinct from the decoder and authority file |
+| `profile.decoder_json` | `control_profile_codegen.py` | project-confined `.json` destination, distinct from the firmware and authority file |
+| `profile.change_method` | `control_protocol_check.py` | non-empty controlled update procedure; exact generated parity is separately enforced |
 | `clock.source` | `control_protocol_check.py` | non-empty controller clock identity used by the timing contract |
 | `clock.manufacturer_error_full_temperature_pct` | `control_protocol_check.py` | ordered low/high clock-error interval that the decoder window must exceed |
 | `clock.decoder_window_pct` | `control_protocol_check.py` | derives every active dwell window and must retain clock-error margin |

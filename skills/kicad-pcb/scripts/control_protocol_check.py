@@ -63,18 +63,43 @@ def load(path: Path):
         raise ProtocolError(f"cannot read {path}: {exc}") from exc
     root = mapping(data, "control protocol root")
     reject_unknown(root, {
-        "schema", "protocol", "clock", "states", "frame",
+        "schema", "protocol", "profile", "clock", "states", "frame",
         "firmware_sequence", "decoder",
     }, "control protocol root")
-    if root.get("schema") != 1:
-        raise ProtocolError("control protocol schema must be integer 1")
+    if root.get("schema") not in (1, 2):
+        raise ProtocolError("control protocol schema must be integer 1 or 2")
     if not isinstance(root.get("protocol"), str) or not root["protocol"].strip():
         raise ProtocolError("protocol must be a non-empty identifier")
+    if root["schema"] == 2 and "profile" not in root:
+        raise ProtocolError("schema 2 requires profile")
     return root
 
 
 def grade(data):
     failures = []
+    profile = data.get("profile")
+    profile_id = "legacy-inline"
+    profile_revision = 0
+    if profile is not None:
+        profile = mapping(profile, "profile")
+        reject_unknown(profile, {
+            "id", "revision", "source_of_truth", "firmware_header",
+            "decoder_json", "change_method",
+        }, "profile")
+        for key in ("id", "source_of_truth", "firmware_header",
+                    "decoder_json", "change_method"):
+            value = profile.get(key)
+            if not isinstance(value, str) or not value.strip():
+                raise ProtocolError(f"profile.{key} must be a non-empty string")
+        if profile["source_of_truth"] != "03_src/rules/control_protocol.yaml":
+            raise ProtocolError(
+                "profile.source_of_truth must be the canonical project path "
+                "03_src/rules/control_protocol.yaml")
+        profile_id = profile["id"].strip()
+        profile_revision = profile.get("revision")
+        if isinstance(profile_revision, bool) or not isinstance(
+                profile_revision, int) or profile_revision < 1:
+            raise ProtocolError("profile.revision must be an integer >= 1")
     clock = mapping(data.get("clock"), "clock")
     reject_unknown(clock, {
         "source", "manufacturer_error_full_temperature_pct",
@@ -258,6 +283,8 @@ def grade(data):
             raise ProtocolError(f"decoder.{key} must be a non-empty string")
 
     return failures, {
+        "profile_id": profile_id,
+        "profile_revision": profile_revision,
         "active_states": len(order),
         "windows": len(windows),
         "observable_marker_ms": observable,
@@ -292,7 +319,8 @@ def main(argv=None):
         for failure in failures:
             print(f"  {failure}")
         return 1
-    print(f"CONTROL-PROTOCOL PASS: {summary['active_states']}/"
+    print(f"CONTROL-PROTOCOL PASS: profile {summary['profile_id']} r"
+          f"{summary['profile_revision']}; {summary['active_states']}/"
           f"{summary['active_states']} active states and {summary['windows']}/"
           f"{summary['windows']} windows graded; observable marker "
           f"{summary['observable_marker_ms']:g}ms; cycle "

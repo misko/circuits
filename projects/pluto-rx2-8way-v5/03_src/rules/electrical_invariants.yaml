@@ -16,16 +16,29 @@ invariants:
   - {assert: part_value, part: R5, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V2 must be pulled low so reset and tri-state produce the documented ALL_OFF word"}
   - {assert: part_value, part: R6, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V3 must be pulled low so reset and tri-state produce the documented ALL_OFF word"}
   - {assert: net_has_part, net: 3V3, part_type: capacitor, min: 4, adr: "0003", why: "the LDO, RF switch and MCU rail require their approved output, bulk and local bypass capacitors"}
+  - {assert: pin_on_net, pin: U2.4, net: 3V3, adr: "0002", why: "the preprogrammed STM32 must be powered from the protected internal rail"}
+  - {assert: pin_on_net, pin: U2.5, net: GND, adr: "0002", why: "the STM32 supply return must share the switch control reference"}
+  - {assert: pin_on_net, pin: U2.7, net: SW_V1, adr: "0002", why: "the first MCU output owns the PE42482 V1 bit"}
+  - {assert: pin_on_net, pin: U2.8, net: SW_V2, adr: "0002", why: "the second MCU output owns the PE42482 V2 bit"}
+  - {assert: pin_on_net, pin: U2.9, net: SW_V3, adr: "0002", why: "the third MCU output owns the PE42482 V3 bit"}
+  - {assert: pin_on_net, pin: U2.10, net: SW_V4, adr: "0002", why: "the fourth MCU output owns the PE42482 V4 bit"}
+  - {assert: pin_on_net, pin: U2.18, net: SWDIO, adr: "0002", why: "direct Raspberry Pi or ST-LINK programming requires an exposed SWDIO path"}
+  - {assert: pin_on_net, pin: U2.19, net: SWCLK, adr: "0002", why: "direct Raspberry Pi or ST-LINK programming requires an exposed SWCLK path"}
+  - {assert: pin_on_net, pin: TP1.1, net: 3V3, adr: "0002", why: "the programming fixture requires a target-voltage sense point"}
+  - {assert: pin_on_net, pin: TP2.1, net: GND, adr: "0002", why: "the programming fixture requires a common signal reference"}
+  - {assert: pin_on_net, pin: TP3.1, net: SWDIO, adr: "0002", why: "the programming fixture must reach SWDIO without a board-resident programmer"}
+  - {assert: pin_on_net, pin: TP4.1, net: SWCLK, adr: "0002", why: "the programming fixture must reach SWCLK without a board-resident programmer"}
+  - {assert: pin_on_net, pin: TP5.1, net: NRST, adr: "0002", why: "the programming fixture needs reset for reliable attach and recovery"}
 
 label_survival:
   pin_map:
     - refs: [J2]
-      pins: {"1": RF_COMMON}
+      pins: {"1": RF_COMMON, "2": GND, "3": GND, "4": GND, "5": GND}
     - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
       n_start: 1
-      pins: {"1": "RF_ANT{n}"}
+      pins: {"1": "RF_ANT{n}", "2": GND, "3": GND, "4": GND, "5": GND}
     - refs: [J1]
-      pins: {A4: VBUS_RAW, A5: USB_CC1, A9: VBUS_RAW, B4: VBUS_RAW, B5: USB_CC2, B9: VBUS_RAW}
+      pins: {A1: GND, A4: VBUS_RAW, A5: USB_CC1, A9: VBUS_RAW, A12: GND, B1: GND, B4: VBUS_RAW, B5: USB_CC2, B9: VBUS_RAW, B12: GND, SH: GND}
       unconnected: [A6, A7, A8, B6, B7, B8]
     - refs: [U1]
       pins: {"1": GND, "2": RF_ANT2, "3": GND, "4": RF_ANT3, "5": GND, "6": RF_ANT4, "7": GND, "8": 3V3, "9": SW_V1, "10": SW_V2, "11": SW_V3, "12": SW_V4, "13": RF_ANT5, "14": GND, "15": RF_ANT6, "16": GND, "17": RF_ANT7, "18": GND, "19": RF_ANT8, "21": GND, "22": RF_COMMON, "23": GND, "24": RF_ANT1, "25": GND}
@@ -36,9 +49,17 @@ label_survival:
     - refs: [U4]
       pins: {"3": USB_CC1, "4": GND, "5": USB_CC2}
       unconnected: ["1", "2"]
+    - refs: [U2]
+      pins: {"4": 3V3, "5": GND, "6": NRST, "7": SW_V1, "8": SW_V2, "9": SW_V3, "10": SW_V4, "18": SWDIO, "19": SWCLK}
+      unconnected: ["1", "2", "3", "11", "12", "13", "14", "15", "16", "17", "20"]
     - refs: [R1, R2]
       n_start: 1
       pins: {"1": "USB_CC{n}", "2": GND}
+    - refs: [R3]
+      pins: {"1": 3V3, "2": SW_V4}
+    - refs: [R4, R5, R6]
+      n_start: 1
+      pins: {"1": "SW_V{n}", "2": GND}
     - refs: [F1]
       pins: {"1": VBUS_RAW, "2": VBUS_PROTECTED}
     - refs: [D1, C1]
@@ -47,3 +68,13 @@ label_survival:
       pins: {"1": 3V3, "2": GND}
     - refs: [C6]
       pins: {"1": NRST, "2": GND}
+    - refs: [TP1]
+      pins: {"1": 3V3}
+    - refs: [TP2]
+      pins: {"1": GND}
+    - refs: [TP3]
+      pins: {"1": SWDIO}
+    - refs: [TP4]
+      pins: {"1": SWCLK}
+    - refs: [TP5]
+      pins: {"1": NRST}

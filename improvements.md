@@ -2411,12 +2411,21 @@ Recommended execution order for future boards:
   overlapping windows and decoder contracts without explicit unknown outcomes.
   The canonical rebuild template runs it before TSX and executable fixtures
   cover a clean v5 contract, the original 500+5 marker mismatch, overlap,
-  derived drift and no-signal decoder behavior. Firmware/decoder integration
+  derived drift and no-signal decoder behavior. Schema 2 now adds one versioned
+  profile identity and project-confined consumer paths;
+  `control_profile_codegen.py` generates the STM32 header and decoder JSON from
+  that same contract and `--check` rejects either consumer when stale. The v5
+  `fast20-v1` revision-1 profile proves disjoint 20/23/26/30/34/39/44/50 ms
+  dwell windows, an 85 ms observable marker, a 386 ms frame and a 772 ms
+  arbitrary-phase guaranteed-capture minimum. Actual firmware/decoder behavior
   and an explicit truncated-capture end-to-end fixture remain before closure.
 - history:
   - 2026-08-13 — proposed from the adjacent ALL_OFF marker/guard ambiguity.
   - 2026-08-13 — implementation began with a generic source checker, template
     gate and regression suite; v5 passes at marker 505 ms/cycle 2160 ms.
+  - 2026-08-13 — added versioned two-consumer code generation and moved v5 to
+    the user-requested fast20-v1 profile; source, header and decoder now fail
+    closed on any one-sided timing edit.
 
 ## IMP-072 — classify committed binary evidence in the canonical scaffold
 
@@ -2437,3 +2446,61 @@ Recommended execution order for future boards:
   NUL byte and prove diff/check output remains bounded with no text-whitespace
   diagnostics; prove the file hash survives scaffold, copy and archive steps.
 - recommendation: low-risk and inexpensive; land in the next scaffold update.
+
+## IMP-073 — grade human symbol pin functions, including unused pins
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 schematic readability review, 2026-08-13
+- evidence: the first generated schematic connected every used STM32 pin to
+  the correct net and passed 129/129 pin-map assertions, 30/30 electrical
+  invariants, 33/33 component parity and zero-error ERC. It nevertheless gave
+  several unused U2 pins the wrong human function names: PC14/PC15, PA8,
+  PA11/PA9, PA12/PA10 and PB6 were mislabelled. The fresh visual/datasheet
+  review caught the defect; the checkpoint was discarded, corrected against
+  ST DS13866, regenerated and re-reviewed before PCB work.
+- general rule: connectivity parity proves physical pad-to-net identity, not
+  that the delivered schematic tells a human the truth about each pad. A pin-
+  function check must cover connected and intentionally unused pins alike and
+  compare the generated symbol's visible function to the exact part dossier or
+  an explicit reviewed alias. Unconnected does not mean unimportant.
+- intended landing point: before rendering and review, compare every generated
+  symbol pin number/function with `02_parts/*/part.yaml pins:`. Require exact
+  normalized identity or a board-local alias row that names its evidence and
+  purpose suffix (`_NC`, role alias, alternate-function choice). Report the
+  refdes, physical pin, visible text and dossier text for each mismatch.
+- completion evidence required: a fixture with correct connected nets but the
+  v5-style wrong unused labels must fail; correct exact labels must pass;
+  intentional aliases and alternate-function abbreviations must fail unless
+  explicitly declared and then pass without weakening physical-pin parity.
+- recommendation: implement before the next new schematic. The v5 instance is
+  repaired and hash-bound, so no current project fix remains.
+- history: 2026-08-13 — proposed from the first v5 human-review rejection.
+
+## IMP-074 — ADR gate applicability must be typed, not inferred from prose
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 schematic gate, 2026-08-13
+- evidence: `electrical_invariants.py --adr-coverage` reported `E-ADR OK: 0/0`
+  even though ADR-0001 selects the complete RF topology, ADR-0002 selects the
+  controller/control topology, ADR-0003 selects the protected power topology,
+  and 30 executable invariants cite those decisions. The gate discovers
+  protection/topology ADRs by keywords in titles/tags; the accepted v5 titles
+  use descriptive names that do not match its regex.
+- general rule: whether an ADR must emit executable assertions is schema, not
+  natural-language classification. A zero denominator is meaningful only when
+  the commissioned ADR set explicitly says that none is applicable.
+- intended landing point: add closed front-matter metadata such as
+  `assertion_domains: [topology, protection, control]` to the ADR contract and
+  make E-ADR consume it. New ADRs must declare at least one domain or explicit
+  `none` with a reason. Retain the title heuristic temporarily as a migration
+  warning, never as the authoritative denominator.
+- completion evidence required: fixtures must classify descriptive titles
+  without keywords, reject a missing domain, reject an applicable ADR with no
+  invariant, accept a cited applicable ADR, and accept explicit `none` only
+  with substantive rationale. A migrated v5 run must report a nonzero cited
+  denominator.
+- recommendation: implement as a schema migration before relying on E-ADR for
+  another newly commissioned board. V5's direct 30-invariant and independent
+  topology reviews close the local risk, so changing accepted ADR metadata is
+  not required inside this schematic checkpoint.
+- history: 2026-08-13 — proposed from the v5 gate's misleading 0/0 coverage.

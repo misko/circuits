@@ -68,14 +68,18 @@ both must be rechecked before selection/order.
 
 D8 continued after the leading controller/protocol recommendation was
 presented. Select **STM32C011F4P6 / JLC C5452432** at 3.3V and the repeating
-fixed-order framed protocol recorded in `03_src/rules/control_protocol.yaml`:
-ANT1..ANT8 use 80/105/135/170/210/255/305/360ms active dwells, a 5ms ALL_OFF
-guard separates active states, and a 500ms ALL_OFF marker body marks a frame.
-The contiguous pre-ANT1 guard makes its nominal observable interval 505ms.
-Acceptance windows are +/-5%; a decoder returns `unknown` for
-incomplete, ambiguous, unordered or unframed observations.
+fixed-order framed protocol recorded in `03_src/rules/control_protocol.yaml`.
+D10 subsequently replaces the initial slow timing parameters with generated
+profile `fast20-v1`: ANT1..ANT8 use 20/23/26/30/34/39/44/50ms active dwells,
+a 5ms ALL_OFF guard separates active states, and an 80ms ALL_OFF marker body
+marks a frame. The contiguous pre-ANT1 guard makes its nominal observable
+interval 85ms. Acceptance windows are +/-5%; a decoder returns `unknown` for
+incomplete, ambiguous, unordered or unframed observations. The profile source
+generates both the MCU header and downstream decoder JSON; stale copies fail.
 
-Use HSI48, hardware timers, BOR level 4, IWDG and SWD test pads. External
+Use HSI48, hardware timers, BOR level 4, IWDG and SWD test pads. D11 makes
+direct Raspberry Pi GPIO SWD the primary reflash path and keeps conventional
+ST-LINK compatibility as recovery; the target remains self-powered. External
 pulls own ALL_OFF until firmware atomically preloads `PA3..PA0=1000` and only
 then enables the GPIO outputs. The accepted ADR authorizes schematic work
 after the stage pause, not firmware release or PCB generation.
@@ -93,7 +97,7 @@ The selected protocol solves these parameters together. Adjacent +/-5%
 duration windows remain disjoint while covering the documented full-temperature
 HSI48 error and reserving estimator margin. The 5-ms guard exceeds the switch's
 1.4-us settling ceiling by more than three orders of magnitude. Captures shorter
-than the 4320-ms guaranteed full-frame window remain explicitly ambiguous.
+than the 772-ms guaranteed full-frame window remain explicitly ambiguous.
 
 First-article control verification must observe real switch-control or RF-state
 edges with an independent timebase over multiple superframes and approved

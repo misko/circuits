@@ -60,6 +60,8 @@ $PY "$S/electrical_invariants.py" . --schema-only \
     || { echo "GATE FAILED [0d] E-INV-SCHEMA: malformed electrical invariants before tsci build"; exit 1; }
 $PY "$S/control_protocol_check.py" . \
     || { echo "GATE FAILED [0d] CONTROL-PROTOCOL: observable timing contract is inconsistent before tsci build"; exit 1; }
+$PY "$S/control_profile_codegen.py" . --check \
+    || { echo "GATE FAILED [0d] CONTROL-PROFILE: generated firmware/decoder timing artifacts are missing or stale"; exit 1; }
 $PY "$S/early_design_check.py" . \
     || { echo "GATE FAILED [0d] D-SPEC/E-PATH/E-SWDRV/E-SURGE/E-CAP/E-FAULT: authored electrical schemas are invalid before tsci build"; exit 1; }
 $PY "$S/rules_audit.py" . --phase source \

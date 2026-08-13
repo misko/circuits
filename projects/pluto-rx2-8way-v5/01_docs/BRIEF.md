@@ -190,6 +190,31 @@ this stage pause.
 Escalate if: the desired cables require male board connectors, vertical/end-
 launch geometry, direct mating, or a constrained enclosure/edge arrangement.
 
+### D10 — 2026-08-13 — programmable 20-ms-class dwell directive
+
+> can we programatically change the dwell times? can we have shorter 20ms dwells?
+
+Impact: make the timing profile a generated firmware/decoder input rather than
+duplicated constants. Lock the initial `fast20-v1` profile to unique
+20/23/26/30/34/39/44/50 ms active dwells, 5 ms ALL_OFF guards, an 80 ms
+marker body, +/-5% disjoint decoder windows, a 386 ms cycle and an 850 ms
+recommended capture. Equal 20 ms dwells are not authorized because they would
+remove duration-coded antenna identity. Profile changes require regeneration,
+validation, firmware build and reflash; this board has no live data interface.
+
+### D11 — 2026-08-13 — direct Raspberry Pi SWD programming
+
+> is there a way to directly program without a programmer?
+
+Context: the immediately preceding answer proposed using the Raspberry Pi as
+the SWD adapter through GPIO, with an ST-LINK-compatible recovery fallback.
+The user continued with “Wonderful! lets keep going”.
+
+Impact: retain five bare test pads for target-sense 3V3, GND, SWDIO, SWCLK and
+NRST. The board remains powered by its own USB-C input. A Raspberry Pi may
+directly drive the 3.3 V SWD signals using OpenOCD; no programming IC or
+populated connector is added. A conventional ST-LINK may use the same pads.
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -199,6 +224,8 @@ launch geometry, direct mating, or a constrained enclosure/edge arrangement.
 | COM-003 | Accept physical AD9363 operation under an AD9361 software profile outside the AD9363 official band without representing it as ADI-guaranteed coverage. | user (D5) | [D5](#d5--2026-08-12--user-acceptance-of-ad9363-extended-operation) |
 | COM-004 | Select eight antenna ports and an independent USB-C nominal-5 V input; leave their exact implementations open. | user (D7) | [D7](#d7--2026-08-12--eight-ports-and-independent-usb-c-power-approved) |
 | COM-005 | Continue through exact-part and interface closure using the presented leading architecture, while preserving stage pauses. | user (D8) | [D8](#d8--2026-08-13--continue-with-presented-exact-architecture) |
+| COM-006 | Use a generated, versioned 20-ms-class dwell profile while retaining unique duration-coded antenna identity. | user (D10) / agent derived schedule | [D10](#d10--2026-08-13--programmable-20-ms-class-dwell-directive) |
+| COM-007 | Expose bare SWD pads so a Raspberry Pi can directly reflash profiles; retain ST-LINK compatibility only as fallback. | user (D11) | [D11](#d11--2026-08-13--direct-raspberry-pi-swd-programming) |
 | 0001 | Select PE42482A-X as one true absorptive solid-state SP8T. | user D8 / agent exact-code proof | [accepted ADR](decisions/0001-one-of-eight-absorptive-sp8t.md) |
 | 0002 | Select STM32C011F4P6 and the fixed-order, guarded, framed dwell protocol. | user D8 / agent parameter lock | [accepted ADR](decisions/0002-autonomous-dwell-coded-control.md) |
 | 0003 | Select the exact protected power-only USB-C sink and TPS7A2433DBVR 3.3 V rail. | user D8 / agent exact-code proof | [accepted ADR](decisions/0003-usb-c-5v-to-protected-3v3.md) |
@@ -227,7 +254,8 @@ The complete evidence and consequences are in accepted
 | Fabricator | LOCKED D4/D8 — JLCPCB advanced four-layer, JLC04161H-7628; RF solver/order echo OPEN |
 | Receiver silicon/profile | LOCKED D5 — physical AD9363 using AD9361 software profile; extended-band risk accepted |
 | Control architecture | LOCKED D6 — onboard preprogrammable controller, autonomous cycling, unique dwell duration per populated antenna; no live Pluto GPIO link assumed |
-| Control parameters | LOCKED D8/A3 — STM32C011F4P6, 80–360 ms unique dwells, 5 ms guard, ≥475 ms marker, ±5% windows, BOR4/IWDG/SWD, passive ALL_OFF |
+| Control parameters | LOCKED D10 — generated `fast20-v1`, 20–50 ms unique dwells, 5 ms guard, ≥76 ms marker detection, ±5% windows, BOR4/IWDG/SWD, passive ALL_OFF |
+| Reprogramming | LOCKED D11 — direct Raspberry Pi GPIO SWD on five bare pads; board self-powered by USB-C; ST-LINK-compatible fallback; no live runtime data interface |
 | Power | LOCKED D7/D8 — power-only Type-C 4.75–5.5 V, 20 mA; exact passive protection and TPS7A2433DBVR; no active OVP/eFuse/data/PD |
 | RF limits | PROVISIONAL — 0 dBm operating limit and first-article loss/isolation/return-loss targets; final evidence requires VNA |
 | Timing/state | LOCKED — ALL_OFF guards and reset state; 1.4 µs switch-settling ceiling is far below the 5 ms guard |
@@ -296,7 +324,8 @@ dimensions.
 | Control function | Onboard preprogrammable IC autonomously cycles populated antennas; each has a predetermined unique dwell; downstream analysis infers state from timing; no live Pluto control link assumed | D6 |
 | Integration posture | One PE42482A-X bare SP8T; module trade rejected on total system complexity | D8 / ADR-0001 accepted |
 | RF performance/measurement boundary | Provisional numeric targets at SMA mating planes; VNA evidence required | A3 |
-| Control/default/switching | STM32C011F4P6, exact truth table, framed dwell protocol, passive ALL_OFF/BOR4/IWDG | D8 / ADR-0002 accepted |
+| Control/default/switching | STM32C011F4P6, exact truth table, generated `fast20-v1` framed profile, passive ALL_OFF/BOR4/IWDG | D8 / D10 / ADR-0002 accepted |
+| Programming | Five bare 3V3/GND/SWDIO/SWCLK/NRST pads; direct Raspberry Pi GPIO SWD with ST-LINK-compatible fallback; target power remains USB-C | D11 |
 | Power source | Independent USB-C nominal 5 V input | D7 |
 | Power implementation | Exact passive protection and TPS7A2433DBVR; 4.75–5.5 V/20 mA; no active OVP/data/PD/backfeed path | D8 / ADR-0003 accepted |
 | Mechanics/cabling | Nine female right-angle SMA provisionally selected; outline, mounting, edge order and cable loss remain OPEN | A3 / D9 |

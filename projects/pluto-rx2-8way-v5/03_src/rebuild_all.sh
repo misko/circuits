@@ -7,9 +7,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
 
 # --- board-specific knobs (the ONLY things to edit) -------------------------
-BOARD=power3s                                  # <board> stem for 04_kicad/<board>.*
-TSX=power3s                                    # 03_tscircuit/src/<TSX>.tsx basename
-SCHEMATIC_TITLE=POWER3S                        # human PDF title
+BOARD=pluto_rx2_8way_v5                        # <board> stem for 04_kicad/<board>.*
+TSX=pluto_rx2_8way_v5                          # 03_tscircuit/src/<TSX>.tsx basename
+SCHEMATIC_TITLE="PLUTO RX2 8-WAY v5"          # human PDF title
 # ----------------------------------------------------------------------------
 
 PY=/usr/bin/python3
@@ -56,6 +56,12 @@ $PY "$S/tsx_preflight.py" . \
 # deliberately unavailable here.
 $PY "$S/net_label_survival.py" . --schema-only \
     || { echo "GATE FAILED [0d] S-SCHEMA: malformed label_survival contract before tsci build"; exit 1; }
+$PY "$S/electrical_invariants.py" . --schema-only \
+    || { echo "GATE FAILED [0d] E-INV-SCHEMA: malformed electrical invariants before tsci build"; exit 1; }
+$PY "$S/control_protocol_check.py" . \
+    || { echo "GATE FAILED [0d] CONTROL-PROTOCOL: observable timing contract is inconsistent before tsci build"; exit 1; }
+$PY "$S/control_profile_codegen.py" . --check \
+    || { echo "GATE FAILED [0d] CONTROL-PROFILE: generated firmware/decoder timing artifacts are missing or stale"; exit 1; }
 $PY "$S/early_design_check.py" . \
     || { echo "GATE FAILED [0d] D-SPEC/E-PATH/E-SWDRV/E-SURGE/E-CAP/E-FAULT: authored electrical schemas are invalid before tsci build"; exit 1; }
 $PY "$S/rules_audit.py" . --phase source \
