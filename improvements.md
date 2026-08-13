@@ -2110,6 +2110,38 @@ rationale.
   wave; fresh board generation and the 13-measurement project audit both pass
   without a Pluto source edit.
 
+## IMP-067 — scaffolds must never copy executable example values
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 clean-room commission, 2026-08-12
+- evidence: before any schematic existed, the new project's live rule files
+  contained plausible executable examples for another board: a 3S-LiPo/
+  LM5116 power tree, cook/load-cell netclasses and route target, a five-board
+  assembly declaration, and unrelated electrical invariants. YAML parsing
+  could not distinguish these examples from project decisions. A downstream
+  command could therefore grade or act on coherent but foreign intent.
+- general rule: examples belong in contracts, references, fixtures or files
+  explicitly marked non-executable. A project initializer must emit only
+  project identity plus null/empty fail-closed sentinels until commission or
+  part selection supplies each value. No copied example row may become a live
+  project declaration merely because it parses.
+- intended landing point: refactor project scaffolding so each generated live
+  YAML is produced from a minimal sentinel template; add a cheap pre-TSX
+  provenance/content gate that rejects foreign project names, example markers,
+  undeclared non-null design values and active rows without a local decision
+  source. Keep full annotated examples in skill-owned reference files.
+- completion evidence required: initialize two unrelated fixture projects and
+  prove their live rule files contain no example MPN, net, board path,
+  population quantity or invariant; inject one foreign active row in each
+  rule family and prove the pre-TSX gate names it and fails; prove an explicitly
+  source-linked local decision passes.
+- recommendation: fix the initializer/process before the next new board. The
+  v5 instance was cleaned immediately because leaving it in place could have
+  contaminated later generation; no TSX/KiCad artifact had yet been created.
+- history: 2026-08-12 — v5 power, protection, invariant, netclass, assembly and
+  route files were replaced with project-specific fail-closed sentinels. The
+  reusable initializer and generic rejection gate remain open.
+
 ## 2026-08-12 nine-hour retrospective traceability
 
 This table records the complete shift-left review so the recommendations are
@@ -2152,3 +2184,30 @@ Recommended execution order for future boards:
 7. Build complete mutable staging and run the pre-seal rehearsal (IMP-063).
 8. Seal immutably, refresh the beacon, then run the final repository-level
    publication gate and retain the external JLC/first-article order holds.
+
+## IMP-068 — coordinate protection before freezing downstream voltage ratings
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 exact-parts stage, 2026-08-13
+- evidence: the initially selected protected-input capacitor was rated 10 V,
+  while the exact SMBJ6.0A maximum clamp is 10.3 V before the required 20%
+  coordination margin. The source-stage surge gate rejected it before TSX or
+  schematic generation; replacing it with the exact 16-V code made the path
+  pass with unchanged topology.
+- general rule: a TVS selection and every part exposed behind it form one
+  interface proof. Before an exact-code freeze, compare the source envelope,
+  admitted waveform, series impedance/current limiting, TVS standoff and
+  maximum clamp, PCB overshoot allowance, and every downstream recommended/
+  absolute voltage rating—including capacitors. Nominal source voltage and TVS
+  part name alone are insufficient.
+- intended landing point: make the early protection-path gate a mandatory
+  dependency of exact-code freeze, before TSX/symbol/footprint work. Diagnostics
+  should name the weakest exposed part and show `clamp x margin` against its
+  rating, then rerun automatically when that exact code changes.
+- completion evidence required: fixtures proving rejection of a capacitor
+  below clamp, a regulator below clamp, a waveform mismatch, and an omitted
+  exposed part; a coordinated 16-V-capacitor path must pass. The same proof must
+  remain mandatory in the later authoritative schematic/release rechecks.
+- recommendation: generic process change soon; no v5 repair is pending because
+  the existing early gate caught and corrected this instance before schematic
+  entry.

@@ -1,0 +1,82 @@
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
+
+selections:
+  - function: autonomous_dwell_controller
+    part: STM32C011F4P6
+    implementation: bare_ic
+    support_refs: [C3, C4, C6]
+    rationale: >-
+      A small TSSOP-20 MCU implements deterministic timing, BOR, watchdog and
+      SWD with only two supply capacitors and one reset capacitor. A radio or
+      processor module adds a clocked RF subsystem, current, keep-out and
+      coupling risk without reducing the control problem.
+
+architecture_status:
+  approved: true
+  approval_basis: D8_user_continue_after_presented_recommendation
+  selected_part: PE42482A-X
+  selected_implementation: bare_ic
+  port_count: 8
+  implementation: bare_ic
+  switch_class: true_absorptive_solid_state_sp8t
+  adr: 01_docs/decisions/0001-one-of-eight-absorptive-sp8t.md
+
+control_architecture:
+  approved: true
+  approval_basis: D8_user_continue_after_presented_recommendation
+  selected_part: STM32C011F4P6
+  selected_implementation: bare_ic
+  protocol: framed_guarded_fixed_order_unique_dwell
+  adr: 01_docs/decisions/0002-autonomous-dwell-coded-control.md
+  required_capabilities:
+    nonvolatile_program: true
+    autonomous_operation: true
+    gpio_for_switch_control_plus_program_debug: true
+    deterministic_hardware_timer: true
+    independent_watchdog: true
+    programmable_brownout_reset: true
+    characterized_clock_error: true
+    passive_all_off_before_gpio_configuration: true
+
+power_architecture:
+  approved: true
+  approval_basis: D8_user_continue_after_presented_recommendation
+  input: power_only_USB_C_4.75V_to_5.5V
+  selected_connector: USB4105-GF-A-120
+  type_c_attach: two_independent_5.1k_CC_Rd_no_PD
+  selected_protection_parts: [0603L010YR, SMBJ6.0A, TPD2E2U06DRLR]
+  selected_regulator: TPS7A2433DBVR
+  active_efuse_inrush_reverse_block: not_required_by_20mA_budget_and_single_source_topology
+  adr: 01_docs/decisions/0003-usb-c-5v-to-protected-3v3.md
+
+module_first_trade_study:
+  - function: one_of_eight_rf_selection
+    part: USB-1SP8T-852H
+    implementation: commercial_module
+    disposition: rejected_for_baseline
+    rationale: >-
+      A characterized finished switch reduces board-RF work, but its size,
+      cost, USB control and replacement of almost the entire custom-board
+      scope outweigh that benefit here.
+  - function: one_of_eight_rf_selection
+    part: RCM-1SP8T-12
+    implementation: commercial_module
+    disposition: rejected_for_baseline
+    rationale: >-
+      The mechanical test-system module is physically large and slow and does
+      not suit a compact autonomous JLCPCB selector.
+  - function: one_of_eight_rf_selection
+    part: PE42482A-X
+    implementation: bare_ic
+    disposition: selected
+    rationale: >-
+      One IC supplies all eight absorptive throws and an all-off code across
+      10MHz-8GHz, minimizing RF stages and illegal control states.
+
+stage_boundary:
+  exact_parts_and_interfaces_complete: true
+  schematic_generation_permitted_after_pause: true
+  pcb_generation_permitted: false
+  blocker: exact schematic and custom-footprint review must precede PCB generation

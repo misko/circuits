@@ -1,0 +1,42 @@
+schema: 1
+protocol: framed_guarded_unique_dwell_v1
+clock:
+  source: STM32C011_HSI48
+  manufacturer_error_full_temperature_pct: [-2.5, 2.0]
+  decoder_window_pct: 5
+  rationale: "5% windows cover characterized full-temperature controller error and reserve at least 2.5% for timer/capture estimation"
+
+states:
+  ALL_OFF: {gpio_PA3_PA2_PA1_PA0: "1000", u1_V4_V3_V2_V1: "1000"}
+  ANT1: {gpio_PA3_PA2_PA1_PA0: "0000", dwell_ms: 80, window_ms: [76, 84]}
+  ANT2: {gpio_PA3_PA2_PA1_PA0: "0100", dwell_ms: 105, window_ms: [99.75, 110.25]}
+  ANT3: {gpio_PA3_PA2_PA1_PA0: "0010", dwell_ms: 135, window_ms: [128.25, 141.75]}
+  ANT4: {gpio_PA3_PA2_PA1_PA0: "0110", dwell_ms: 170, window_ms: [161.5, 178.5]}
+  ANT5: {gpio_PA3_PA2_PA1_PA0: "0001", dwell_ms: 210, window_ms: [199.5, 220.5]}
+  ANT6: {gpio_PA3_PA2_PA1_PA0: "0101", dwell_ms: 255, window_ms: [242.25, 267.75]}
+  ANT7: {gpio_PA3_PA2_PA1_PA0: "0011", dwell_ms: 305, window_ms: [289.75, 320.25]}
+  ANT8: {gpio_PA3_PA2_PA1_PA0: "0111", dwell_ms: 360, window_ms: [342, 378]}
+
+frame:
+  order: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, ANT8]
+  all_off_guard_ms: 5
+  guards_per_cycle: 8
+  marker: {state: ALL_OFF, body_nominal_ms: 500, contiguous_pre_ANT1_guard_ms: 5, observable_nominal_ms: 505, decoder_min_ms: 475}
+  nominal_cycle_ms: 2160
+  recommended_capture_ms: 4500
+  minimum_capture_for_guaranteed_complete_frame_ms: 4320
+
+firmware_sequence:
+  - "on reset, external pulls hold ALL_OFF"
+  - "atomically preload GPIO PA3..PA0 output data to 1000 while pins remain inputs"
+  - "enable BOR level 4 and independent watchdog policy"
+  - "configure PA0..PA3 as outputs; verify ALL_OFF remains asserted"
+  - "hold/emit a 500ms ALL_OFF marker body"
+  - "for each antenna: hold ALL_OFF 5ms, then atomically write its approved code for its dwell"
+  - "after ANT8 return to ALL_OFF; the next marker begins the next cycle"
+
+decoder:
+  sync: "continuous ALL_OFF interval >=475ms (nominally 505ms: 500ms marker body plus 5ms pre-ANT1 guard) followed by ANT1 and valid ordered durations"
+  accept: "duration lies in its disjoint 5% window and order/framing are consistent"
+  reject_to_unknown: [no_observable_signal, truncated_capture, ambiguous_duration, missed_or_extra_transition, invalid_order, no_valid_marker, reset_or_watchdog_recovery]
+  fundamental_limit: "RF-only state inference is impossible when no usable signal is present or antenna intervals are statistically indistinguishable"

@@ -1,0 +1,12 @@
+mpn: RC0402FR-075K1L
+manufacturer: Yageo
+type: thick_film_resistor
+datasheet: {doc_id: RC0402FR-075K1L, revision: "generated 2026-08", url: "https://yageogroup.com/component-documentation/download/specsheet/RC0402FR-075K1L", sha256: 0bcbc957e8dbe626207e05a781770b902d29455d7e1774084d60452b5477d575, fetched: 2026-08-13}
+package: 0402 1005 metric
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+limits: {resistance: 5.1kOhm, tolerance: 1pct, power_70C: 62.5mW, voltage: 50V, temperature_coefficient: 100ppm_per_C, operating_temperature: -55C_to_155C}
+asserts:
+  - {assert: value, equals: 5.1k, tolerance_pct: 1, why: "each USB Type-C sink CC pin requires its own 5.1k Rd and the selected exact code is 1 percent"}
+verified: "exact generated Yageo specsheet checked for value, tolerance, power, voltage, dimensions and temperature on 2026-08-13"
+sourcing: {lcsc: C105872, jlc_observed_stock: 2354572, jlc_observed: 2026-08-13, second_source: "DigiKey 311-5.10KLRCT-ND, 192824 observed in stock 2026-08-13"}

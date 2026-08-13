@@ -1,0 +1,12 @@
+mpn: CL05B104KO5NNNC
+manufacturer: Samsung Electro-Mechanics
+type: ceramic_capacitor
+datasheet: {doc_id: CL05B104KO5NNNC-SPEC, revision: current_generated, url: "https://product.samsungsem.com/mlcc/CL05B104KO5NNNC.do", sha256: 4f5a2dcf3dcb4c183cd55320ac4b1b050bbc89f066a0ce86353ece3e56294afd, fetched: 2026-08-13}
+package: 0402 1005 metric
+footprint: Capacitor_SMD:C_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+limits: {capacitance: 100nF, tolerance: 10pct, rated_voltage: 16V, dielectric: X7R, dimensions_mm: [1.0, 0.5]}
+asserts:
+  - {assert: value, equals: 100n, tolerance_pct: 10, why: "selected local bypass and NRST capacitor exact code"}
+verified: "exact Samsung generated product specification checked for MPN, 100nF, 16V, X7R, tolerance and 0402 dimensions on 2026-08-13"
+sourcing: {lcsc: C1525, jlc_observed_stock: 40353888, jlc_observed: 2026-08-13, second_source: "Mouser observed 4792569 in stock for exact MPN 2026-08-13"}

@@ -1,0 +1,15 @@
+mpn: CL10A475KO8NNNC
+manufacturer: Samsung Electro-Mechanics
+type: ceramic_capacitor
+datasheet: {doc_id: Samsung-MLCC-Catalog, revision: current, url: "https://product.samsungsem.com/mlcc/CL10A475KO8NNN.do", sha256: 96baebe4bd0ce363e87be28b5b003f511f1502e084a6fc4f02333ded56c808f6, fetched: 2026-08-13}
+package: 0603 1608 metric
+footprint: Capacitor_SMD:C_0603_1608Metric
+escape: {style: passive, pitch: 0.8, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+limits: {capacitance: 4.7uF, tolerance: 10pct, rated_voltage: 16V, dielectric: X5R, operating_temperature: -55C_to_85C, dimensions_mm: [1.6, 0.8]}
+gotchas:
+  - "This 16V exact code is required at U3 IN. The initially proposed 10V C1705 was rejected because SMBJ6.0A can clamp at 10.3V before coordination margin."
+  - "TPS7A24 requires at least 1uF effective. A conservative 50% DC-bias derating plus -10% tolerance leaves 2.115uF."
+asserts:
+  - {assert: value, equals: 4.7u, tolerance_pct: 10, why: "selected 16V LDO input capacitor exact code"}
+verified: "exact Samsung current product page and LCSC/JLC exact-code record checked for MPN, 4.7uF, 16V, X5R, tolerance and 0603 package on 2026-08-13; local manufacturer catalog supports order-code decoding"
+sourcing: {lcsc: C19666, jlc_basic: true, jlc_observed_stock: 5805451, jlc_observed: 2026-08-13, second_source: "Mouser 187-CL10A475KO8NNNC, current exact listing observed 2026-08-13"}

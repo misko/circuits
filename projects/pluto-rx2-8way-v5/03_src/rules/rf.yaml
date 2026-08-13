@@ -1,0 +1,81 @@
+schema: 1
+rf:
+  enabled: true
+  rationale: "receive-only one-of-eight 50ohm selector, 100MHz-5.9GHz"
+  risk_tier: microwave
+  risk_basis: "5.9GHz performance depends on the QFN escape, nine SMA launches, stackup, return paths and coupling"
+
+  topology:
+    direction: receive_only
+    common_ports: 1
+    selected_throws: 8
+    maximum_active_throws: 1
+    legal_selected_count: [0, 1]
+    switch_part: PE42482A-X
+    class: true_absorptive_solid_state_sp8t
+    status: approved_D8
+
+  ports:
+    - {id: PLUTO_RX_COMMON, ref: J2, role: cable_to_one_Pluto_Plus_RX_port, connector_part: 901-143-6RFX, gender: female_jack, orientation: right_angle, band_hz: [100000000, 5900000000], z0_ohm: 50, reference_plane: SMA_mating_plane}
+    - {id: ANTENNA_THROWS, refs: [J3, J4, J5, J6, J7, J8, J9, J10], role: selectable_receive_inputs, count: 8, connector_part: 901-143-6RFX, gender: female_jack, orientation: right_angle, band_hz: [100000000, 5900000000], z0_ohm: 50, reference_plane: SMA_mating_planes}
+
+  performance_requirements:
+    grade: provisional_first_article_acceptance
+    insertion_loss_db_max: {at_or_below_1GHz: 2.0, at_5_9GHz: 3.5}
+    path_balance_db_max: 1.5
+    common_to_off_isolation_db_min: {at_or_below_4GHz: 30, at_5_9GHz: 25}
+    active_return_loss_db_min: 10
+    operating_input_power_dbm_max: 0
+    survival_input_power_dbm_max: 2.5
+    switching_time_s_max: 0.0000014
+    break_before_make_required: true
+    board_performance_claim_before_measurement: forbidden
+
+  switch_interface:
+    mode: binary_LS_low
+    mcu_mapping: {PA0: V1, PA1: V2, PA2: V3, PA3: V4}
+    gpio_nibble_order: PA3_PA2_PA1_PA0_equals_V4_V3_V2_V1
+    passive_default: {V4: pull_up_10k, V3: pull_down_10k, V2: pull_down_10k, V1: pull_down_10k, result: ALL_OFF_1000}
+    transition: "write ALL_OFF, wait 5ms guard, write exactly one approved antenna code"
+    caveat: "passive ALL_OFF is guaranteed only while U1 VDD remains inside 2.3V-5.5V"
+
+  receiver_rating_tension:
+    physical_transceiver_silicon: AD9363
+    software_profile: AD9361
+    official_ad9363_rating_hz: [325000000, 3800000000]
+    desired_selector_band_hz: [100000000, 5900000000]
+    official_ad9363_rx_absolute_max_dbm: 2.5
+    out_of_official_ad9363_band_operation: user_accepted_D5
+    prior_5_8GHz_use: user_reported_inherited_not_independently_measured
+    complete_system_ADI_guarantee_claim: forbidden
+
+  stackup:
+    vendor: JLCPCB
+    option: JLC04161H-7628
+    layers: 4
+    finished_thickness_mm: 1.6
+    F_Cu_um: 35
+    F_Cu_to_L2_GND_mm: 0.2104
+    nominal_Dk: 4.4
+    order_echo_required: true
+
+  cross_sections:
+    - name: RF_50R_top_microstrip
+      status: pending_official_JLC_impedance_solver_before_routing
+      conductor_layer: F.Cu
+      reference_layer: In1.Cu_L2_solid_GND
+      target_ohm: 50
+      locked_inputs: {stackup: JLC04161H-7628, top_copper_um: 35, dielectric_height_mm: 0.2104, nominal_Dk: 4.4}
+      width_mm: null
+      gap_to_coplanar_ground_mm: null
+
+  first_article:
+    required_instrument: VNA_covering_at_least_100MHz_to_6GHz
+    fixtures: [known_good_SMA_cables, 50ohm_terminations, appropriate_SOLT_or_ECal_kit]
+    calibration_reference_planes: SMA_mating_planes
+    measurements: [S21_every_selected_path, S11_and_S22_every_selected_path, common_to_off_isolation_all_required_states, antenna_to_antenna_spot_checks, path_balance, control_timing_with_independent_timebase]
+    retained_data: Touchstone_and_machine_readable_control_timestamps
+    acceptance: performance_requirements_above
+    status: mandatory_not_yet_executed
+
+  reviews: {schematic: pending_next_stage, pcb: blocked_until_solver_and_floorplan, fab: blocked_until_first_article_plan_and_order_echo}

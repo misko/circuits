@@ -1,0 +1,23 @@
+mpn: TPS7A2433DBVR
+manufacturer: Texas Instruments
+type: linear_ldo_regulator
+dropout_mv: 250
+pdiss_max_mw: 66
+datasheet: {doc_id: SBVS395, revision: E, url: "https://www.ti.com/lit/ds/symlink/tps7a24.pdf", sha256: 0f541739607b324fb0527c8da73234c8b65ec8a0631d0b06eca7aadfaa36d50f, fetched: 2026-08-13}
+package: SOT-23-5 DBV
+footprint: Package_TO_SOT_SMD:SOT-23-5
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+pins: {1: IN, 2: GND, 3: EN, 4: NC, 5: OUT}
+limits: {vin_recommended: 2.4V-18V, vin_absolute_max: 20V, vout: 3.3V, accuracy_full_temperature: 1.25pct, iout_max: 200mA, dropout_max_at_200mA: 250mV, theta_ja: 167.8C_per_W}
+gotchas:
+  - "Tie EN to IN for always-on operation; leave NC floating as permitted by the data sheet."
+  - "The design budgets only 20mA. At 5.5V input and 3.25875V worst-low output the conservative dissipation is 44.825mW and estimated rise is 7.6C; pdiss_max_mw includes a 30mA analysis ceiling, not package maximum."
+  - "Effective input capacitance must be at least 1uF and effective output capacitance must remain within 1uF-100uF after bias/tolerance."
+verified: "fixed-output pin map, input/output ranges, dropout, capacitive stability, thermals and layout read from TI SBVS395E on 2026-08-13"
+sourcing: {lcsc: C2866134, jlc_observed_stock: 20000, jlc_observed: 2026-08-13, second_source: "Mouser 595-TPS7A2433DBVR, 366 observed in stock 2026-08-13"}
+layout:
+  source: "TI SBVS395E layout section and Figure 8-2"
+  reviewed: 2026-08-13
+  notes: "Put 4.7uF input and output capacitors directly at pins 1/5 with short ground returns to pin 2; keep the protected VBUS path compact and away from RF."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SBVS395E Figure 8-2", why: "manufacturer layout fixes capacitor adjacency and ground-return intent"}

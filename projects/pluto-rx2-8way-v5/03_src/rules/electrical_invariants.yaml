@@ -1,0 +1,47 @@
+schema: 1
+
+invariant_status:
+  project: pluto-rx2-8way-v5
+  implementation_selected: true
+  netlist_exists: false
+  gate: interface_proof_complete_schematic_assertions_owed_at_next_stage
+
+invariants:
+  - id: E-ONEHOT
+    requirement: "U1 control word may select zero or one RF throw, never more than one"
+    enforcement: "PE42482 binary truth table plus firmware state table; transitions pass through ALL_OFF"
+  - id: E-RESET-SAFE
+    requirement: "U1 is ALL_OFF while U2 is reset, unpowered, brownout-reset, watchdog-reset, programming or tri-stated"
+    enforcement: "R3 pulls V4 high; R4-R6 pull V1-V3 low; LS is hard-tied GND; BOR4 resets U2 above U1's 2.3V minimum"
+    caveat: "switch state below 2.3V VDD is not guaranteed and no RF performance is claimed while unpowered"
+  - id: E-GPIO-ORDER
+    requirement: "firmware preloads PA3..PA0=1000 before those pins become outputs"
+    enforcement: firmware_review_and_logic_analyzer_test
+  - id: E-TYPEC-SINK
+    requirement: "CC1 and CC2 each have one independent 5.1k Rd to GND"
+    enforcement: schematic_exact_net_assertion
+  - id: E-NO-USB-DATA
+    requirement: "J1 D+, D-, SBU1 and SBU2 contacts are no-connect"
+    enforcement: schematic_explicit_no_connect_and_netlist_review
+  - id: E-NO-BACKFEED
+    requirement: "No board net carries power to or from Pluto; SWD cannot inject operating power"
+    enforcement: interface_and_connector_review
+  - id: E-RF-DC
+    requirement: "every U1 RF pin and external SMA center is 0V DC"
+    enforcement: schematic_connectivity_and_bringup_DMM_check
+
+label_survival:
+  RF_COMMON: [J2.1, U1.22]
+  RF_ANT1: [J3.1, U1.24]
+  RF_ANT2: [J4.1, U1.2]
+  RF_ANT3: [J5.1, U1.4]
+  RF_ANT4: [J6.1, U1.6]
+  RF_ANT5: [J7.1, U1.13]
+  RF_ANT6: [J8.1, U1.15]
+  RF_ANT7: [J9.1, U1.17]
+  RF_ANT8: [J10.1, U1.19]
+  USB_CC1: [J1.A5, U4.3, R1.1]
+  USB_CC2: [J1.B5, U4.5, R2.1]
+  VBUS_RAW: [J1.A4, J1.A9, J1.B4, J1.B9, F1.1]
+  VBUS_PROTECTED: [F1.2, D1.1, C1.1, U3.1, U3.3]
+  3V3: [U3.5, C2.1, C3.1, C4.1, C5.1, U2.4, U1.8]

@@ -1,0 +1,30 @@
+mpn: STM32C011F4P6
+manufacturer: STMicroelectronics
+type: 32_bit_microcontroller
+datasheet: {doc_id: DS13866, revision: "Rev 4 local; Rev 5 current online", url: "https://www.st.com/resource/en/datasheet/stm32c011f4.pdf", sha256: f9e1deb5c1e14f969c662326b700252bd69f93f404c68adba978f44455395509, fetched: 2026-08-13}
+package: TSSOP-20, 0.65mm pitch
+footprint: Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm
+escape: {style: leaded, pitch: 0.65, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13; the board as a whole is advanced only because U1 requires it"}
+pins: {1: PB7, 2: PC14-OSCX_IN, 3: PC15-OSCX_OUT, 4: VDD-VDDA, 5: VSS-VSSA, 6: PF2-NRST, 7: PA0, 8: PA1, 9: PA2, 10: PA3, 11: PA4, 12: PA5, 13: PA6, 14: PA7, 15: PA8, 16: "PA11[PA9]", 17: "PA12[PA10]", 18: PA13-SWDIO, 19: PA14-BOOT0-SWCLK, 20: PB6}
+limits:
+  supply: 2.0V-3.6V
+  flash: 16KiB
+  ram: 6KiB
+  max_clock: 48MHz
+  hsi48_error_0_to_85C: -1pct_to_+1pct
+  hsi48_error_full_temperature: -2.5pct_to_+2pct
+  bor4_falling: 2.70V-2.90V
+  bor4_rising: 2.80V-3.00V
+gotchas:
+  - "Configure BOR level 4 and the independent watchdog in firmware/options; these are requirements, not reset defaults."
+  - "Before changing PA0-PA3 to outputs, preload the atomic GPIO output word for U1 ALL_OFF; external pulls own the state while pins are inputs."
+  - "PA13/PA14 are retained for SWD. Provide 3V3, GND, SWDIO, SWCLK and NRST test pads; the programmer must sense target power and must not power the board."
+  - "The current manufacturer document is Rev 5; see 02_parts/README.md for the local Rev 4 cache deviation."
+verified: "TSSOP-20 pin map, supply, memory, timers/watchdogs, BOR thresholds, HSI48 error and reset-state pulls cross-checked against current ST DS13866 Rev 5 online on 2026-08-13"
+sourcing: {lcsc: C5452432, jlc_observed_stock: 1394, jlc_observed: 2026-08-13, second_source: "Mouser 511-STM32C011F4P6, 12794 observed in stock 2026-08-13"}
+layout:
+  source: "ST DS13866 power-supply scheme and package drawing"
+  reviewed: 2026-08-13
+  notes: "Place one 100nF and one 4.7uF capacitor at combined VDD/VDDA pin 4; return directly to pin 5/plane. Place 100nF at NRST. Keep SWD pads accessible and digital/control copper out of the RF fanout."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "ST DS13866 power-supply scheme", why: "manufacturer source fixes decoupling and reset/programming requirements"}

@@ -1,0 +1,20 @@
+mpn: TPD2E2U06DRLR
+manufacturer: Texas Instruments
+type: dual_channel_esd_protection
+datasheet: {doc_id: SLLSEG9, revision: C, url: "https://www.ti.com/lit/ds/symlink/tpd2e2u06.pdf", sha256: a133b86ea3d3c3d34667339b92d3b5e98d541d10e9775d63e7cdfa153794f4ed, fetched: 2026-08-13}
+package: DRL SOT-553, 0.5mm pitch
+footprint: Package_TO_SOT_SMD:SOT-553
+escape: {style: leaded, pitch: 0.5, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+pins: {1: NC, 2: NC, 3: IO1, 4: GND, 5: IO2}
+limits: {working_voltage: 5.5V, line_capacitance_typ: 1.5pF, esd_contact: +/-25kV, esd_air: +/-30kV, peak_pulse_8_20us: 5.5A, clamp: "9.7V at 1A"}
+gotchas:
+  - "Protect CC1 and CC2 only. USB D+/D-/SBU remain no-connect and do not acquire routes merely because the connector exposes contacts."
+  - "Pins 1 and 2 are internally NC; leave them floating."
+verified: "DRL pin table, ratings and layout guidance read from TI SLLSEG9C pp.3, 5-6 and 11-12 on 2026-08-13"
+sourcing: {lcsc: C1972959, jlc_observed_stock: 10694, jlc_observed: 2026-08-13, second_source: "Mouser 595-TPD2E2U06DRLR, 81630 observed in stock 2026-08-13"}
+layout:
+  source: "TI SLLSEG9C section 10 and Figure 12"
+  reviewed: 2026-08-13
+  notes: "Place immediately behind J1; route CC1/CC2 connector-to-clamp first and straight, keep the unprotected stubs minimal, and add a direct GND via at pin 4."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLLSEG9C Figure 12", why: "manufacturer example fixes connector-first routing and adjacent ground via"}

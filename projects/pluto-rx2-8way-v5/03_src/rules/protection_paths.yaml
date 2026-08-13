@@ -1,0 +1,53 @@
+schema: 1
+
+paths:
+  - name: VBUS_PROTECTED
+    source_operating_max_V: 5.5
+    source_tolerance_included: true
+    source_boundary_evidence: >-
+      This power-only sink accepts normal USB-C 5V service from 4.75V through
+      5.5V. Sustained overvoltage and non-USB supplies are outside the product
+      boundary; the user explicitly declined active overvoltage cutoff.
+    voltage_margin_pct: 20
+    admitted_transient:
+      claim: "SMBJ6.0A is a shunt clamp for connector transients; it is not sustained-overvoltage protection"
+      series_fault_element: "0603L010YR between J1 and protected node"
+    tvs:
+      part: SMBJ6.0A
+      standoff_V: 6.0
+      clamp_max_V: 10.3
+      waveform_duration_ms: 1.0
+      waveform: 10/1000us
+      peak_current_max_A: 58.3
+      peak_power_max_W: 600
+      evidence: "Littelfuse 2025 SMBJ series data sheet exact SMBJ6.0A row"
+    exposed:
+      - {ref: F1, part: 0603L010YR, domain: series_input_path, bounded_max_V: 12.36, recommended_max_V: 15, absolute_max_V: 15}
+      - {ref: C1, part: CL10A475KO8NNNC, domain: tvs_clamped_protected_rail, bounded_max_V: 12.36, recommended_max_V: 16, absolute_max_V: 16}
+      - {ref: U3, part: TPS7A2433DBVR, domain: tvs_clamped_protected_rail, bounded_max_V: 12.36, recommended_max_V: 18, absolute_max_V: 20}
+
+  - name: TYPEC_CC_ESD
+    source_operating_max_V: 5.5
+    source_tolerance_included: true
+    source_boundary_evidence: "CC1/CC2 are exposed Type-C pins terminated independently by 5.1k Rd; no PD voltage negotiation exists"
+    voltage_margin_pct: 20
+    admitted_transient:
+      claim: "TPD2E2U06 provides connector-side IEC ESD protection; PCB inductive overshoot remains a layout and first-article concern"
+    tvs:
+      part: TPD2E2U06DRLR
+      standoff_V: 5.5
+      clamp_max_V: 12.4
+      waveform_duration_ms: 0.02
+      waveform: 8/20us_peak_pulse_bound
+      peak_current_max_A: 5.5
+      evidence: "TI SLLSEG9C working-voltage, TLP clamp and 8/20us peak-current ratings"
+    exposed:
+      - {ref: R1, part: RC0402FR-075K1L, domain: CC1_termination, bounded_max_V: 14.88, recommended_max_V: 50, absolute_max_V: 50}
+      - {ref: R2, part: RC0402FR-075K1L, domain: CC2_termination, bounded_max_V: 14.88, recommended_max_V: 50, absolute_max_V: 50}
+      - {ref: J1, part: USB4105-GF-A-120, domain: exposed_connector, bounded_max_V: 14.88, recommended_max_V: 48, absolute_max_V: 48}
+
+protection_posture:
+  active_overvoltage_cutoff: false_by_user_requirement
+  active_current_limit: false_not_required_by_20mA_load
+  reverse_blocking: false_no_alternate_power_injection
+  backfeed_prevention: "no electrical power connection to Pluto; SWD programmer senses target 3V3 and may not source it"

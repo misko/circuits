@@ -1,0 +1,15 @@
+mpn: CL10A475KP8NNNC
+manufacturer: Samsung Electro-Mechanics
+type: ceramic_capacitor
+datasheet: {doc_id: CL10A475KP8NNNC-SPEC, revision: current_generated, url: "https://product.samsungsem.com/mlcc/CL10A475KP8NNNC.do", sha256: b8c7c90d78e5789ecf92622d6b1671d8f4b4befb39f9b45fc82dd91ef8ae7ce2, fetched: 2026-08-13}
+package: 0603 1608 metric
+footprint: Capacitor_SMD:C_0603_1608Metric
+escape: {style: passive, pitch: 0.8, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+limits: {capacitance: 4.7uF, tolerance: 10pct, rated_voltage: 10V, dielectric: X5R, operating_temperature: -55C_to_85C, dimensions_mm: [1.6, 0.8]}
+gotchas:
+  - "Use only on 3V3 (U3 output and MCU bulk). The 10V rating is intentionally not exposed to the SMBJ6.0A 10.3V clamp."
+  - "TPS7A24 requires at least 1uF effective. Even a conservative 50% DC-bias derating plus -10% tolerance leaves 2.115uF; this is a design bound, not a Samsung measured bias curve."
+asserts:
+  - {assert: value, equals: 4.7u, tolerance_pct: 10, why: "selected LDO output and MCU bulk capacitor exact code"}
+verified: "exact Samsung generated product specification checked for MPN, 4.7uF, 10V, X5R, tolerance and 0603 dimensions on 2026-08-13"
+sourcing: {lcsc: C1705, jlc_observed_stock: 2030539, jlc_observed: 2026-08-13, second_source: "DigiKey 1276-1044 series exact MPN listed active; local stock 0, JLC stock is ample as of 2026-08-13"}

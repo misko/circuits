@@ -1,0 +1,22 @@
+mpn: USB4105-GF-A-120
+manufacturer: GCT
+type: usb_type_c_receptacle_power_only
+mates: receptacle
+datasheet: {doc_id: USB4105, revision: "B 2023-12-18", url: "https://gct.co/files/drawings/usb4105.pdf", sha256: fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5, fetched: 2026-08-13}
+package: right-angle top-mount Type-C receptacle, 16 active contacts, 1.20mm shell stakes
+footprint: pluto_rx2_8way_v5:GCT_USB4105_GF_A_120
+escape: {style: connector, pitch: 0.5, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+pins: {A1: GND, A4: VBUS, A5: CC1, A6: DP, A7: DM, A8: SBU1, A9: VBUS, A12: GND, B1: GND, B4: VBUS, B5: CC2, B6: DP, B7: DM, B8: SBU2, B9: VBUS, B12: GND, SH: SHIELD}
+limits: {vbus_collective_current: 5A, gnd_collective_current: 6.25A, voltage_rating: 48VDC, contact_resistance_initial_max: 40mOhm, durability: 20000_cycles, operating_temperature: -40C_to_85C}
+gotchas:
+  - "This board is a sink-only power consumer: use separate 5.1k Rd resistors on CC1 and CC2; never short the two CC pins."
+  - "A6/B6, A7/B7 and A8/B8 remain explicit no-connects because v5 has no USB data or alternate mode."
+  - "Retain all duplicated VBUS/GND contacts and all shell stakes in the custom footprint."
+verified: "contact table, recommended PCB layout, ratings, suffix/stake option and mating-cycle rating read from GCT USB4105 Rev B on 2026-08-13"
+sourcing: {lcsc: C5184243, jlc_observed_stock: 3660, jlc_observed: 2026-08-13, second_source: "Mouser 640-USB4105-GF-A-120, 96749 observed in stock 2026-08-13"}
+layout:
+  source: "GCT USB4105 Revision B recommended PCB layout"
+  reviewed: 2026-08-13
+  notes: "Mount at a board edge; route all VBUS contacts together into F1, all grounds/shell to the ground structure, and route CC1/CC2 independently through U4 to their own Rd."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "GCT USB4105 Revision B recommended PCB layout", why: "manufacturer drawing fixes contacts, stakes, peg and edge datum"}
