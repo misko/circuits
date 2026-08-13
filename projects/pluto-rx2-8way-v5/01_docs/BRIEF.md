@@ -250,6 +250,25 @@ first render came from a misregistered converted WRL model; the native exact-
 code STEP aligns the bodies over the same unchanged copper and shows only the
 expected annular-ring crescents.
 
+### D14 — 2026-08-13 — compact five-top, two-per-side mechanics
+
+> is there a reason the board is so big? can we put 5 SMA on the top, and two
+> on each side?
+>
+> how small can we comfortabley go?
+>
+> Great lets do it!
+
+Impact: replace the conservative 100 x 100 mm four-edge RF ring with a
+90 x 65 mm open-bottom U perimeter. The top edge carries ANT2, ANT1, PLUTO RX,
+ANT8 and ANT7 at 15-mm centres; the left edge carries ANT3/ANT4 and the right
+edge ANT6/ANT5 at 18-mm centres. This is the PE42482 cyclic order cut between
+ANT4 and ANT5, so it retains crossing-free single-layer RF fan-out while
+freeing the bottom edge for keyed SWD and power-only USB-C. Four M3 holes and
+three fiducials remain. The 90 x 65 mm outline is the comfortable target, not
+the absolute geometric minimum; cable/tool access and route realization still
+receive exact-board review before layout approval.
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -263,6 +282,7 @@ expected annular-ring crescents.
 | COM-007 | Expose bare SWD pads so a Raspberry Pi can directly reflash profiles; retain ST-LINK compatibility only as fallback. | user (D11) | [D11](#d11--2026-08-13--direct-raspberry-pi-swd-programming) |
 | COM-008 | Use Amphenol RF 901-143-6RFX female right-angle THT SMA connectors for J2–J10. | user (D12) | [D12](#d12--2026-08-13--exact-sma-connector-confirmed) |
 | COM-009 | Replace loose SWD pads with a proper keyed 10-pin Cortex connector while retaining direct-Pi and ST-LINK programming. | user (D13) | [D13](#d13--2026-08-13--proper-keyed-programming-connector) |
+| COM-010 | Compact the board to a comfortable 90 x 65 mm outline with five top SMAs and two on each side while preserving cyclic RF order. | user (D14) | [D14](#d14--2026-08-13--compact-five-top-two-per-side-mechanics) |
 | 0001 | Select PE42482A-X as one true absorptive solid-state SP8T. | user D8 / agent exact-code proof | [accepted ADR](decisions/0001-one-of-eight-absorptive-sp8t.md) |
 | 0002 | Select STM32C011F4P6 and the fixed-order, guarded, framed dwell protocol. | user D8 / agent parameter lock | [accepted ADR](decisions/0002-autonomous-dwell-coded-control.md) |
 | 0003 | Select the exact protected power-only USB-C sink and TPS7A2433DBVR 3.3 V rail. | user D8 / agent exact-code proof | [accepted ADR](decisions/0003-usb-c-5v-to-protected-3v3.md) |
@@ -297,7 +317,7 @@ The complete evidence and consequences are in accepted
 | Power | LOCKED D7/D8 — power-only Type-C 4.75–5.5 V, 20 mA; exact passive protection and TPS7A2433DBVR; no active OVP/eFuse/data/PD |
 | RF limits | PROVISIONAL — 0 dBm operating limit and first-article loss/isolation/return-loss targets; final evidence requires VNA |
 | Timing/state | LOCKED — ALL_OFF guards and reset state; 1.4 µs switch-settling ceiling is far below the 5 ms guard |
-| Mechanics | PARTIAL — D12 exact SMA plus 100x100-mm outline, four M3 holes, three fiducials and cyclic edge placement are realized; human connector/render approval remains OPEN; no rigid Pluto or enclosure mate is specified |
+| Mechanics | PARTIAL — D14 compact 90x65-mm outline, five-top/two-per-side exact SMAs, four M3 holes, three fiducials and cyclic U-perimeter placement are realized; final human connector/render approval remains OPEN; no rigid Pluto or enclosure mate is specified |
 | Assembly | PROVISIONAL — five JLC first articles, top-side SMT plus nine wave-solder SMA; uploader echo required |
 | Test | METHOD LOCKED / AVAILABILITY OPEN — ≥6 GHz VNA, SMA-plane calibration, all paths/states and retained Touchstone data |
 
@@ -347,7 +367,7 @@ dimensions.
 | Physical transceiver silicon and software profile | USER-REPORTED/INHERITED — D5 | Electrical rating/risk boundary | LOCKED — AD9363 silicon, AD9361 profile; extended-band risk accepted |
 | Exact Pluto Plus hardware revision and RX port | OWED | Common-port identity | OPEN |
 | Common-port SMA gender/orientation and cable | USER D12 / cable still OWED | Launch and system loss budget | 901-143-6RFX female/right-angle LOCKED; mating face is realized on the north edge; cable and final placement approval OPEN |
-| Enclosure/mounting/antenna SMA geometry | no enclosure supplied / layout-derived | Board boundary and placement | 100x100-mm board, four M3 holes and nine accessible edge SMAs realized; enclosure compatibility is not claimed |
+| Enclosure/mounting/antenna SMA geometry | no enclosure supplied / layout-derived | Board boundary and placement | 90x65-mm board, four M3 holes and nine accessible edge SMAs realized; enclosure compatibility is not claimed |
 
 ## Commission fact-lock
 
@@ -366,18 +386,18 @@ dimensions.
 | Programming | Exact keyed 10-pin Cortex J11 carries VTref/GND/SWDIO/SWCLK/NRST; direct Raspberry Pi GPIO SWD needs a breakout harness; standard-probe fallback; target power remains USB-C | D11/D13 |
 | Power source | Independent USB-C nominal 5 V input | D7 |
 | Power implementation | Exact passive protection and TPS7A2433DBVR; 4.75–5.5 V/20 mA; no active OVP/data/PD/backfeed path | D8 / ADR-0003 accepted |
-| Mechanics/cabling | Nine exact 901-143-6RFX female right-angle SMA connectors locked; 100x100-mm outline, mounting and cyclic edge order realized; complete placement review and cable loss remain OPEN | D12 + current track-free board |
+| Mechanics/cabling | Nine exact 901-143-6RFX female right-angle SMA connectors locked; D14 90x65-mm outline, mounting and cyclic open-U edge order realized; complete placement review and cable loss remain OPEN | D12/D14 + current track-free board |
 | Assembly/test | Five JLC first articles proposed; uploader allocation and instrument availability remain OPEN | A3 |
 
 ## Exact-parts and interface gate
 
-The architecture and electrical method are closed, and the D13 programming-
-connector change has now been regenerated through the exact schematic and
-track-free placement. J11 is present in the BOM, netlist and board with the
-standard target-powered Cortex mapping; the RF cross-section and SMA copper/
-edge anchors remain unchanged. Current placement DRC is clean, but route
-preflight has stopped on clearance and via-aspect inputs that must be corrected
-before route preparation. No fab-ready claim exists.
+The architecture and electrical method are closed, and the D14 compact
+mechanics have now been regenerated from source as an exact track-free
+placement. J11 remains present with the standard target-powered Cortex
+mapping; the RF cross-section and exact SMA copper/datum geometry are
+unchanged. The 90 x 65 mm board passes placement DRC and route preflight, and
+the cyclic U-perimeter has no straight RF-corridor crossings. Routing remains
+unstarted pending exact-board placement approval. No fab-ready claim exists.
 
 Before routing, approve the exact connector access, RF corridors and render
 readability against the board hash. Before fabrication, provide/confirm the

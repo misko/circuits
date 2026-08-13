@@ -20,7 +20,9 @@ invariant: selected_count in {0, 1}; reset/unpowered-controller state = ALL_OFF
 ```
 
 All nine RF connectors are the user-confirmed female, right-angle,
-through-hole Amphenol RF `901-143-6RFX` (D12). No rigid Pluto mating, enclosure
+through-hole Amphenol RF `901-143-6RFX` (D12). D14 places five along the north
+edge and two along each side of a 90 x 65 mm board, preserving the switch's
+cyclic pin order as an open-bottom U. No rigid Pluto mating, enclosure
 interface, or Pluto mechanical geometry is authorized; ordinary cable access
 and independently reviewed edge placement remain required.
 
@@ -122,6 +124,15 @@ current written guide instead states 1.2 mil; a 0.296/0.200-mm cross-check at
 that value returns 49.6434 ohms. This small source discrepancy is explicit and
 the order-time impedance/stackup echo remains a mandatory recheck.
 
+The current track-free mechanics use a 90 x 65 mm outline, five north-edge
+ports at 15-mm centres and two ports per side at 18-mm centres. The RF boundary
+order is ANT4, ANT3, ANT2, ANT1, COMMON, ANT8, ANT7, ANT6, ANT5: the original
+cycle cut between ANT4 and ANT5. Straight pad-to-port segments have no proper
+crossings; the common span is 14.502 mm and the eight throw spans are
+19.983–35.676 mm before routed-shape constraints. A conservative straight-
+corridor-to-foreign-courtyard bounding-box screen has 1.535 mm minimum
+clearance. These are placement metrics, not route-length or phase claims.
+
 Provisional first-article targets at SMA mating planes are:
 
 - insertion loss no more than 2.0 dB through 1 GHz and 3.5 dB at 5.9 GHz;
@@ -140,9 +151,9 @@ render review of the exact machine-clean track-free board.
 The architecture, exact BOM, pin maps, control truth table, timing protocol,
 power budget, protection coordination, stackup, assembly intent and
 first-article measurement method produced the reviewed schematic checkpoint.
-D12 mechanics, exact footprints, impedance source geometry and the unrouted
-placement are now realized and machine-clean. No routed copper, fab package or
-release artifact exists yet.
+D14 mechanics, exact footprints, impedance source geometry and the compact
+unrouted placement are now realized and machine-clean. No routed copper, fab
+package or release artifact exists yet.
 
 Primary evidence and comparison notes are indexed in
 [`research/exact-parts-and-interfaces.md`](research/exact-parts-and-interfaces.md),

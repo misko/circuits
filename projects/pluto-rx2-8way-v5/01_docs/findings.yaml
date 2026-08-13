@@ -86,7 +86,7 @@ findings:
       - 01_docs/ARCHITECTURE.md
       - 02_parts/901-143-6RFX/part.yaml
       - 03_src/lib/pluto_rx2_8way_v5.pretty/Amphenol_901_143_6RFX.kicad_mod
-      - 01_docs/renders/v0.0-D13-placement-top.png
+      - 01_docs/renders/v0.0-D15-compact-placement-top.png
 
   - id: V5-F2-source-document-lifecycle
     state: open
@@ -103,15 +103,15 @@ findings:
     state: open
     blocks_at_or_above: DESIGN_CLEAN
     owner: layout
-    finding: The cross-section, exact footprints, 100x100mm mechanics, edge order and connector datums are realized and machine-clean; human/fresh-context connector, RF-corridor and render review remains open at the intentional placement pause. JLC assembly DFM must also disposition the 0.10mm SMA drill delta before order.
+    finding: The cross-section, exact footprints, compact 90x65mm mechanics, five-top/two-per-side cyclic U edge order and connector datums are realized and machine-clean; human/fresh-context connector, RF-corridor and render review remains open at the intentional placement pause. JLC assembly DFM must also disposition the 0.10mm SMA drill delta before order.
     closes_when: The exact board hash receives connector/RF/render approval and the order-stage DFM obligation is carried into the fab checklist.
     evidence:
       - 03_src/floorplan.yaml
       - 06_build/placement/mechanics.json
       - 06_build/placement/footprint_comparison.json
       - 06_build/drc/placement.json
-      - 01_docs/renders/v0.0-D13-placement-top.png
-      - 01_docs/renders/v0.0-D13-placement-iso.png
+      - 01_docs/renders/v0.0-D15-compact-placement-top.png
+      - 01_docs/renders/v0.0-D15-compact-placement-iso.png
       - 06_build/checkpoints/placement-pre-D13.json
 
   - id: V5-F4-order-day-sourcing-and-allocation

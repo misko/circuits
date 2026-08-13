@@ -212,3 +212,42 @@ legalization input produced the identical `8429ce851ed4` board. The process
 lesson remains IMP-078: these were source-known facts and should be checked
 before TSX and human review. The current late check did its job before copper,
 but still later than economically necessary.
+
+## D15 compact five-top/two-per-side placement
+
+The original 100 x 100 mm ring was a conservative topology proof, not a
+component-density limit. D14 requested five SMAs on the north edge and two on
+each side, then accepted 90 x 65 mm as the comfortable target. The existing
+PE42482 cycle was cut between ANT4 and ANT5 and laid onto an open-bottom U:
+ANT4, ANT3, ANT2, ANT1, COMMON, ANT8, ANT7, ANT6, ANT5. This preserves boundary
+order and gives zero proper intersections between the nine straight
+pad-to-port corridors without consuming the south edge.
+
+The exact `901-143-6RFX` body is 7.0 mm wide. North-edge centres are 15 mm
+apart, leaving 8 mm nominal body-to-body space; the two side pairs are 18 mm
+apart. Four M3 holes, three fiducials, keyed SWD and the USB-C datum remain.
+The board area falls from 10,000 to 5,850 mm2 (41.5%). The common straight span
+falls from 36.501 to 14.502 mm; the eight throw spans are 19.983–35.676 mm and
+the former maximum was 46.580 mm. These values are topology/placement evidence,
+not routed length, loss, phase or matching claims. A conservative screen of
+each straight RF corridor against every foreign courtyard bounding box finds
+1.535 mm minimum clearance (ANT4 versus C4), leaving visible route/fence
+planning margin without claiming final routed geometry.
+
+The first compact generation completed in 1.46 s. All pin/placement/model/pad/
+policy/DRC/escape/tier checks completed in 4.7 s, and the first full top,
+oblique and edge evidence set took about 21.5 s. That render exposed one
+minor automatic-silk ownership warning: J1's reference was 0.32 mm closer to
+F1 than to its own anchor. Moving F1 1 mm north preserved the power topology,
+cleared the warning, and the final board regenerated in 0.56 s with 29/29
+owned reference labels. Fresh final 3D evidence took 19.3 s. The expensive
+part of this stage was engineering judgement and evidence updates, not board
+generation or verification.
+
+General lesson: derive a first floorplan from both the electrical boundary
+order and operational connector envelopes. A closed radial ring proved
+routability but silently selected a large square. Testing whether the same
+cycle can be cut into an open perimeter exposed a much smaller embedding.
+Report a geometric minimum separately from a comfortable target, using mating
+hardware/tool access, mounting torque paths and routing/fence space—not KiCad
+courtyards alone. This is recorded as IMP-079.

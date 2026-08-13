@@ -92,6 +92,7 @@ rationale.
 | IMP-076 | Reconcile exact package geometry and logical pin identity in the first-board preflight | proposed | Pluto RX2 8-way v5 placement grind |
 | IMP-077 | Reconcile footprint and symbol metadata before schematic-parity DRC | proposed | Pluto RX2 8-way v5 keyed-SWD placement |
 | IMP-078 | Run the source-resolvable tier/routing preflight before schematic and placement spend | proposed | Pluto RX2 8-way v5 keyed-SWD placement |
+| IMP-079 | Derive compact floorplans from topology and operational connector envelopes before placement freeze | proposed | Pluto RX2 8-way v5 compact placement |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -2684,9 +2685,9 @@ Recommended execution order for future boards:
   deferred explicitly and fail at the exact-board recheck; clean designs must
   pass both phases without weakening the late authority.
 - recommendation: implement early because it saves review cycles without
-  changing any electrical or manufacturing rule. V5 still needs the local
-  routing inputs corrected before route preparation; this improvement changes
-  when the conflict is discovered, not what values are acceptable.
+  changing any electrical or manufacturing rule. V5's local inputs are now
+  corrected; this improvement changes when the conflict is discovered, not
+  what values are acceptable.
 - v5 disposition: explicitly selected the strictest adopted 0.20-mm class
   clearance for every router wave and JLC's preferred 0.45/0.20-mm ordinary
   via. Nominal aspect is 8:1 and remains 8.8:1 at JLC's published +10% board-
@@ -2695,3 +2696,43 @@ Recommended execution order for future boards:
   merely accepting the checker's tier-minimum 0.53-mm warning threshold.
   R-PREFLIGHT now reports 0 FAIL / 0 WARN without changing the track-free
   board hash. The early source-phase implementation remains open.
+
+## IMP-079 — derive compact floorplans from topology and operational connector envelopes
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 compact placement, 2026-08-13
+- evidence: the first board used a 100 x 100 mm four-edge ring because mapping
+  the PE42482 cyclic pin order directly around the complete perimeter made
+  crossing-free RF fan-out obvious. It passed every placement gate, but the
+  square was not a component-density requirement. Before routing, the same
+  cycle was cut between ANT4 and ANT5 and mapped onto a five-top/two-per-side
+  open U. The resulting 90 x 65 mm board retains zero proper straight RF-
+  corridor crossings, four M3 holes, three fiducials, keyed SWD and USB-C,
+  while reducing area by 41.5%, the common straight span from 36.501 to
+  14.502 mm and the maximum throw span from 46.580 to 35.676 mm. All exact-
+  board placement, model, pad, DRC, escape and tier gates remain green.
+- general rule: floorplanning must distinguish a topology proof, a geometric
+  packing minimum and a comfortable operational target. Before freezing the
+  first outline, test whether each cyclic/radial net order can be cut or folded
+  onto an open boundary without crossings. Size connector banks from mating
+  bodies, installed cable nuts, tool approach, mounting torque paths, RF
+  launch/fence space and labelling—not courtyard non-overlap alone.
+- intended landing point: add a pre-placement floorplan worksheet/checker that
+  consumes exact connector body width/datum, requested edge grouping, minimum
+  service/tool pitch, mounting-hole envelopes and ordered critical endpoints.
+  It should emit at least two candidates: `geometric_minimum` and
+  `comfortable_target`, plus board area, endpoint order, straight-corridor
+  crossing count, connector/body gaps and any unmodelled service envelope.
+  The human brief must select the target before detailed placement review.
+- completion evidence required: a cyclic nine-port fixture must show the
+  closed-ring and open-U embeddings, reject a smaller courtyard-clean layout
+  whose declared tool envelope overlaps, and reproduce the v5 90 x 65 mm
+  comfortable candidate with zero crossings. A non-cyclic connector bank and
+  an enclosure-locked board must demonstrate that the checker reports no
+  unjustified compaction opportunity.
+- recommendation: implement before the next connector-heavy RF or power board.
+  V5 is already compacted before routing, so no immediate corrective work is
+  owed; the remaining exact-route and human placement reviews are unchanged.
+- history: 2026-08-13 — proposed after the user challenged the conservative
+  square and the open-U remap removed 41.5% of board area without weakening a
+  placement gate.

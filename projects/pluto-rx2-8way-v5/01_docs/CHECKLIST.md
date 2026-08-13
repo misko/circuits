@@ -14,13 +14,15 @@
 - [x] D12 confirms all nine SMA connectors as Amphenol RF 901-143-6RFX female right-angle THT
 - [x] exact Amphenol Rev-C drawing and no-form/fit-change PCN retained; stale drawing association and wrong ground-hole diameter corrected
 - [x] exact Amphenol, pSemi and GCT footprints realized and compared with fresh exact-code JLC CAD
-- [x] 100 x 100 mm outline, four M3 holes, three fiducials and cyclic non-crossing RF edge order commissioned
+- [x] D14 90 x 65 mm outline, four M3 holes, three fiducials and cyclic
+      non-crossing open-U RF edge order commissioned
 - [x] all nine SMA mating-face datums and the USB PCB-edge datum measure exactly on the outline
 - [x] generated board places 29/29 parts and nine selective U1 EP POFV vias; P-COLLIDE and P-PADSEP pass
 - [x] placement DRC: 0 violations, 39 expected track-free unconnected items, 0 schematic-parity findings
 - [x] physical pin-map gate passes 127 declared identities across 15 multi-pin refs
 - [x] critical-pair gate explicitly grades 0 differential pairs with a single-ended RF reason
-- [x] D14 top, oblique and edge placement review renders generated; U2, U3,
+- [x] D15 compact top, oblique and edge placement review renders generated;
+      the five-top/two-per-side SMA arrangement is visibly clear and U2, U3,
       U4, D1, F1 and every fitted R/C package are now visibly populated
 - [x] `model_coverage_check.py` independently reopens the saved board and
       resolves 29/29 fitted bodies from project-owned paths
@@ -30,8 +32,10 @@
 - [x] R-PREFLIGHT source-known correction: common clearance 0.20 mm,
       ordinary via 0.45/0.20 mm (8:1 nominal aspect), and 0.58-mm legalizer
       pocket; 0 FAIL / 0 WARN and track-free board hash unchanged
-- [ ] current pause: complete and review the route-wave/prep contract
-- [ ] next stage: prepare deterministic route copper, then
+- [ ] current pause: obtain final human/fresh-context approval of the exact D15
+      compact connector access, RF corridors and operational silk
+- [ ] next stage: complete the route-wave/prep contract, prepare deterministic
+      route copper, then
       obtain fresh pin/layout/render and A-RENDER placement witnesses
 - [ ] sign a new canonical placement checkpoint only after the complete
       placement review; the superseded pre-D13 certificate is retained as

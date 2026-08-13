@@ -82,4 +82,21 @@ day and fab exactly one of them.
   legalizer reserves the actual 0.58-mm drill-plus-hole-clearance pocket.
   R-PREFLIGHT is 0 FAIL / 0 WARN and regeneration remains byte-identical at
   board SHA-256 `8429ce851ed4`.
+- Accepted D14 and replaced the conservative four-edge 100 x 100 mm ring with
+  a 90 x 65 mm open-bottom U: ANT2/ANT1/PLUTO RX/ANT8/ANT7 across the north
+  edge, ANT3/ANT4 west and ANT6/ANT5 east. This cuts board area by 41.5% while
+  preserving the PE42482 cyclic order and zero proper straight RF-corridor
+  crossings.
+- Shortened the common straight placement span from 36.501 to 14.502 mm and
+  the longest throw span from 46.580 to 35.676 mm. The resulting throw spans
+  are 19.983–35.676 mm placement metrics, not routed length or phase claims.
+- Regenerated the exact track-free board and moved only F1 by 1 mm after the
+  first compact pass exposed a degraded J1 reference-designator ownership
+  warning. The final generator reports 29/29 owned silk labels; P-PINMAP,
+  P-OUT/P-CAP/P-BODYCLR, P-MODEL, P-PADSEP, P-LAND, placement DRC and
+  R-PREFLIGHT all pass.
+- Promoted fresh D15 top, oblique and edge renders of board SHA-256
+  `3fffbc690051`; all nine exact SMA bodies face outward with visible gaps,
+  corner mounting access remains open, and keyed SWD plus power-only USB-C
+  remain unobstructed. Routing is still deliberately unstarted.
 Released: no
