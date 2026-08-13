@@ -12,4 +12,4 @@ gotchas:
 asserts:
   - {assert: value, equals: 4.7u, tolerance_pct: 10, why: "selected 16V LDO input capacitor exact code"}
 verified: "exact Samsung current product page and LCSC/JLC exact-code record checked for MPN, 4.7uF, 16V, X5R, tolerance and 0603 package on 2026-08-13; local manufacturer catalog supports order-code decoding"
-sourcing: {lcsc: C19666, jlc_basic: true, jlc_observed_stock: 5805451, jlc_observed: 2026-08-13, second_source: "Mouser 187-CL10A475KO8NNNC, current exact listing observed 2026-08-13"}
+sourcing: {lcsc: C19666, jlc_basic: true}

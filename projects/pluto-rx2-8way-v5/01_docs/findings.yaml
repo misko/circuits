@@ -1,0 +1,121 @@
+schema: 1
+target: DRAFT
+
+gates:
+  - id: V5-commission-and-architecture
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: systems
+    closes_when: User directives, risk acceptance, architecture, manufacturing target and clean-room provenance are explicit and traceable.
+    evidence:
+      - 01_docs/BRIEF.md
+      - 01_docs/ARCHITECTURE.md
+      - 01_docs/CLEANROOM_PROVENANCE.md
+      - 01_docs/decisions/0001-one-of-eight-absorptive-sp8t.md
+      - 01_docs/decisions/0002-autonomous-dwell-coded-control.md
+      - 01_docs/decisions/0003-usb-c-5v-to-protected-3v3.md
+
+  - id: V5-exact-parts-and-interfaces
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: electrical
+    closes_when: The exact candidate BOM, part dossiers, interface contracts and every applicable pre-schematic source gate pass without generated design artifacts.
+    evidence:
+      - 01_docs/journal/exact-parts-and-interfaces.md
+      - 01_docs/journal/source-audit-2026-08-13.md
+      - 01_docs/sourcing/exact-parts.csv
+      - 01_docs/sourcing/shopping-list-2026-08-13.json
+      - 06_build/checkpoints/exact-parts-and-interfaces.json
+      - 03_src/rules/electrical_invariants.yaml
+      - 03_src/rules/control_protocol.yaml
+      - 03_src/rules/rf.yaml
+
+  - id: V5-schematic
+    required_for: DESIGN_CLEAN
+    state: pending
+    owner: electrical
+    closes_when: The generated schematic passes schema, ERC, exact netlist and pin-map parity, topology, RF and explicit human-readability reviews.
+
+  - id: V5-firmware
+    required_for: DESIGN_CLEAN
+    state: pending
+    owner: embedded
+    closes_when: Reproducible STM32 firmware implements the accepted atomic schedule, reset-safe GPIO handoff, BOR/watchdog behavior and a versioned programming procedure with executable tests.
+
+  - id: V5-placement-and-routing
+    required_for: DESIGN_CLEAN
+    state: pending
+    owner: layout
+    closes_when: Exact placement and routed PCB pass geometry, RF, impedance, connectivity, DRC, render and fresh-context review gates for the selected JLC process.
+
+  - id: V5-release-package
+    required_for: FIRST_ARTICLE_ORDERABLE
+    state: pending
+    owner: fabrication
+    closes_when: A fresh reviewed BOM/CPL/fabrication package passes JLC uploader allocation and population checks, same-day sourcing, release rehearsal and immutable seal gates.
+
+  - id: V5-first-article-test
+    required_for: FIRST_ARTICLE_TESTED
+    state: pending
+    owner: lab
+    closes_when: A fabricated article passes VNA path/loss/isolation/return-loss, reset/timing, power, protection and thermal tests with retained raw evidence.
+
+  - id: V5-production-validation
+    required_for: PRODUCTION_RELEASED
+    state: pending
+    owner: manufacturing
+    closes_when: A controlled pilot lot, production programming/test process and reliability evidence are approved.
+
+findings:
+  - id: V5-F1-provisional-sma-mechanics
+    state: open
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: systems
+    finding: All nine connectors are provisionally the same female right-angle THT SMA under agent assumption D9; gender, orientation, edge order, cable and enclosure fit are not user-confirmed.
+    closes_when: D9 is confirmed or superseded and the exact connector/cable/enclosure interfaces are reflected in schematic, footprint and mechanical reviews.
+
+  - id: V5-F2-source-document-lifecycle
+    state: open
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: electrical
+    finding: The current Amphenol drawing could not be downloaded locally and the committed STM32 data sheet is Rev 4 while Rev 5 is current online.
+    closes_when: The current exact Amphenol drawing is locally captured before custom-footprint approval and current ST Rev 5 is locally captured and rechecked before design freeze.
+
+  - id: V5-F3-rf-geometry-and-mechanics
+    state: open
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: layout
+    finding: RF width/gap, outline, mounting holes, edge order and exact launch geometry remain intentionally unresolved at the source checkpoint.
+    closes_when: The official JLC impedance tool and selected stackup produce recorded geometry, mechanics are fixed, and independent connector/RF placement reviews approve the exact board.
+
+  - id: V5-F4-order-day-sourcing-and-allocation
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_ORDERABLE
+    owner: fabrication
+    finding: Selection-time JLC stock and two-source evidence pass, but mutable stock does not prove JLC assembly eligibility, allocation or uploader interpretation on order day.
+    closes_when: The sealed BOM/CPL passes a same-day stock/substitution review and the JLC uploader echoes the intended population, quantities and allocation for the build.
+
+  - id: V5-F5-no-hardware-evidence
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: No v5 hardware, RF measurement, timing capture, power measurement or thermal evidence exists.
+    closes_when: A first article completes the approved test plan with retained calibration, Touchstone, oscilloscope, voltage/current and thermal evidence.
+
+  - id: V5-F6-observation-channel-limits
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: systems
+    finding: Unique dwell windows are internally consistent, but downstream inference still depends on observable RF transitions and must return unknown for no-signal, truncated or reset intervals.
+    closes_when: Firmware and downstream analysis tests demonstrate correct antenna inference for every state and deterministic unknown behavior for no-signal, truncated capture, startup, reset and watchdog recovery.
+
+  - id: V5-F7-extended-ad9363-operation
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: user
+    finding: Physical AD9363 silicon is intentionally operated under an AD9361 profile outside the official AD9363 frequency range.
+    closes_when: The user accepts the risk, the design keeps its selector claim separate from ADI-guaranteed receiver coverage, and first-article qualification measures the assembled RF path.
+    evidence:
+      - 01_docs/BRIEF.md
+      - 01_docs/decisions/0001-one-of-eight-absorptive-sp8t.md
+      - 03_src/rules/rf.yaml

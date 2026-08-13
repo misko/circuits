@@ -124,6 +124,41 @@ def t_enabled_contract_is_complete():
              "requirements census")
 
 
+@test("a solver-pending cross-section is allowed before PCB work")
+def t_pending_cross_section_is_explicit_pre_pcb_state():
+    d = project()
+    path = d / "03_src/rules/rf.yaml"
+    data = yaml.safe_load(path.read_text())
+    section = data["rf"]["cross_sections"][0]
+    section.update({
+        "status": "pending_solver",
+        "width_mm": None,
+        "gap_mm": None,
+        "deferred_until": "before PCB routing",
+        "reason": "Final ground topology and vendor solver inputs are not locked.",
+    })
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    must_pass(gate(d), "explicit pre-PCB solver deferral")
+
+
+@test("a solver-pending cross-section blocks PCB review", kind="known_bad")
+def t_pending_cross_section_blocks_pcb_review():
+    d = project()
+    path = d / "03_src/rules/rf.yaml"
+    data = yaml.safe_load(path.read_text())
+    section = data["rf"]["cross_sections"][0]
+    section.update({
+        "status": "pending_solver",
+        "width_mm": None,
+        "gap_mm": None,
+        "deferred_until": "before PCB routing",
+        "reason": "Final ground topology and vendor solver inputs are not locked.",
+    })
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    must_fail(gate(d, "pcb"), "PCB review with unresolved geometry",
+              "solver remains pending")
+
+
 @test("RF review phases bind exact artifacts and grade every requirement")
 def t_three_exact_reviews_pass():
     d = project()

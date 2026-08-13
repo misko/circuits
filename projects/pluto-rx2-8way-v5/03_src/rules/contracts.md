@@ -631,6 +631,124 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `power_claims[].*` | `early_design_check.py` | ID, rail, connector count, simultaneous count, current, voltage, duty, measurement plane, and included/excluded boundary elements |
 | `no_external_power_outputs` | `early_design_check.py` | explicit evidenced applicability decision when no claims exist |
 
+### keys: 03_src/rules/control_protocol.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `control_protocol_check.py` | timing-protocol schema version; unknown keys are rejected before TSX |
+| `protocol` | `control_protocol_check.py` | non-empty protocol identity printed with the source-bound result |
+| `clock.source` | `control_protocol_check.py` | non-empty controller clock identity used by the timing contract |
+| `clock.manufacturer_error_full_temperature_pct` | `control_protocol_check.py` | ordered low/high clock-error interval that the decoder window must exceed |
+| `clock.decoder_window_pct` | `control_protocol_check.py` | derives every active dwell window and must retain clock-error margin |
+| `clock.rationale` | `control_protocol_check.py` | non-empty explanation accompanying the numeric clock/window proof |
+| `states.<STATE>.gpio_PA3_PA2_PA1_PA0` | `control_protocol_check.py` | binary observable word; duplicates and malformed words fail |
+| `states.<STATE>.u1_V4_V3_V2_V1` | ADVISORY | human cross-label between MCU and switch-pin order; electrical invariants and schematic pin-map parity own the connection |
+| `states.<STATE>.dwell_ms` | `control_protocol_check.py` | nominal active dwell used to derive its acceptable window and cycle |
+| `states.<STATE>.window_ms` | `control_protocol_check.py` | declared interval must equal the clock-derived window and remain disjoint |
+| `frame.order` | `control_protocol_check.py` | unique active-state order and denominator |
+| `frame.all_off_guard_ms` | `control_protocol_check.py` | atomic guard duration included in every cycle and merged marker run |
+| `frame.guards_per_cycle` | `control_protocol_check.py` | must equal the active-state count derived from `frame.order` |
+| `frame.marker.state` | `control_protocol_check.py` | marker must be the explicit ALL_OFF state |
+| `frame.marker.body_nominal_ms` | `control_protocol_check.py` | marker body term in the observable contiguous run and cycle |
+| `frame.marker.contiguous_pre_ANT1_guard_ms` | `control_protocol_check.py` | must equal the frame guard because the observer merges the two ALL_OFF intervals |
+| `frame.marker.observable_nominal_ms` | `control_protocol_check.py` | must equal marker body plus adjacent same-state guard |
+| `frame.marker.decoder_min_ms` | `control_protocol_check.py` | must sit above all active windows and below the worst-low marker duration |
+| `frame.nominal_cycle_ms` | `control_protocol_check.py` | must equal marker body plus all guards and active dwells |
+| `frame.recommended_capture_ms` | `control_protocol_check.py` | must be no shorter than the derived guaranteed-capture minimum |
+| `frame.minimum_capture_for_guaranteed_complete_frame_ms` | `control_protocol_check.py` | must equal two complete cycles for arbitrary capture phase |
+| `firmware_sequence` | `control_protocol_check.py` | optional non-empty ordered implementation handoff; firmware tests own behavior |
+| `decoder.sync` | `control_protocol_check.py` | non-empty human handoff; numeric sync bounds are graded from `frame.marker` |
+| `decoder.accept` | `control_protocol_check.py` | non-empty human handoff; executable windows come from `states` and `clock` |
+| `decoder.reject_to_unknown` | `control_protocol_check.py` | must include no-signal, truncated, ambiguous, invalid-order and no-marker outcomes |
+| `decoder.fundamental_limit` | `control_protocol_check.py` | non-empty statement of the RF-observability limit retained for review |
+
+
+### keys: 03_src/rules/rf.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `rf_contract_check.py` | RF contract schema version |
+| `rf.enabled` | `rf_contract_check.py` | explicit applicability decision; no missing file can masquerade as RF review |
+| `rf.rationale` | `rf_contract_check.py` | non-empty applicability rationale |
+| `rf.risk_tier` | `rf_contract_check.py` | closed RF review tier when RF is enabled |
+| `rf.risk_basis` | `rf_contract_check.py` | substantive reason for the selected RF risk tier |
+| `rf.topology.*` | ADVISORY | human architecture summary; exact connectivity is owned by electrical invariants, pin-map parity and port nets |
+| `rf.ports[].id` | `rf_contract_check.py` | unique RF port-group identity |
+| `rf.ports[].nets` | `rf_contract_check.py` | non-empty exact net denominator for the port group |
+| `rf.ports[].band_hz` | `rf_contract_check.py` | ordered positive frequency interval |
+| `rf.ports[].z0_ohm` | `rf_contract_check.py` | bounded target impedance |
+| `rf.ports[].launch` | `rf_contract_check.py` | non-empty physical launch description |
+| `rf.ports[].termination` | `rf_contract_check.py` | non-empty termination/loading description |
+| `rf.ports[].reference_layer` | `rf_contract_check.py` | non-empty RF return-reference declaration |
+| `rf.ports[].reference_plane` | ADVISORY | human measurement-plane label; claim evidence owns the executable test boundary |
+| `rf.cross_sections[].id` | `rf_contract_check.py` | unique controlled-impedance cross-section identity |
+| `rf.cross_sections[].status` | `rf_contract_check.py` | closed locked/pending-solver state; pending blocks PCB/fab review |
+| `rf.cross_sections[].deferred_until` | `rf_contract_check.py` | substantive closure boundary while solver work is pending |
+| `rf.cross_sections[].reason` | `rf_contract_check.py` | substantive reason while solver work is pending |
+| `rf.cross_sections[].stackup_source` | `rf_contract_check.py` | non-empty stackup authority |
+| `rf.cross_sections[].solver` | `rf_contract_check.py` | non-empty solver authority |
+| `rf.cross_sections[].copper_layer` | `rf_contract_check.py` | routed copper layer |
+| `rf.cross_sections[].reference_layer` | `rf_contract_check.py` | exact return-reference layer |
+| `rf.cross_sections[].dielectric_height_mm` | `rf_contract_check.py` | positive dielectric height |
+| `rf.cross_sections[].dk` | `rf_contract_check.py` | positive dielectric constant input |
+| `rf.cross_sections[].target_z0_ohm` | `rf_contract_check.py` | positive target impedance |
+| `rf.cross_sections[].width_mm` | `rf_contract_check.py` | positive when locked and null while pending |
+| `rf.cross_sections[].gap_mm` | `rf_contract_check.py` | positive when locked and null while pending |
+| `rf.performance_claims[].id` | `rf_contract_check.py` | unique first-article RF claim identity |
+| `rf.performance_claims[].claim` | `rf_contract_check.py` | substantive claim text |
+| `rf.performance_claims[].acceptance` | `rf_contract_check.py` | substantive acceptance criterion |
+| `rf.performance_claims[].evidence` | `rf_contract_check.py` | substantive evidence method |
+| `rf.first_article.measurements` | `rf_contract_check.py` | non-empty measurement denominator |
+| `rf.first_article.acceptance` | `rf_contract_check.py` | non-empty acceptance denominator |
+| `rf.reviews.<PHASE>.path` | `rf_contract_check.py` | in-project review path for schematic, PCB and fab phases |
+| `rf.reviews.<PHASE>.artifact` | `rf_contract_check.py` | exact in-project artifact bound by the phase review |
+| `rf.reviews.<PHASE>.requirements` | `rf_contract_check.py` | non-empty unique requirement-ID denominator checked by the review |
+| `rf.switch_interface.*` | ADVISORY | human control summary; schedule, invariants and schematic parity own executable behavior |
+| `rf.receiver_rating_tension.*` | ADVISORY | human risk summary; the user directive, ADR and first-article claims are authoritative |
+
+### keys: 03_src/rules/assembly.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `assembly_coverage.py` | optional assembly-contract version; when declared it must be integer 1 |
+| `service` | `assembly_coverage.py` | ordered assembly service used when grading whether CPL parts are process-placeable |
+| `sides` | `assembly_coverage.py` | ordered population side set used by the process-placeability gate |
+| `build_quantity` | `release_freshness_check.py` | quantity multiplier for order-time stock sufficiency |
+| `not_assembled[].refs` | `assembly_coverage.py` | non-empty exact DNP population set, compared with board and CPL |
+| `not_assembled[].reason` | `assembly_coverage.py` | closed DNP reason vocabulary |
+| `not_assembled[].evidence` | `assembly_coverage.py` | substantive dated evidence for the population decision |
+| `not_assembled[].disposition` | `assembly_coverage.py` | required non-empty statement of what happens to the unplaced function |
+| `consigned[].refs` | `assembly_coverage.py` | exact refs supplied by the buyer but still placed by the assembler |
+| `consigned[].evidence` | `assembly_coverage.py` | substantive dated sourcing/handling record required for every consigned set |
+| `consigned[].disposition` | `assembly_coverage.py` | required statement of how the consigned part reaches and is handled by assembly |
+| `consigned[].lcsc` | ADVISORY | catalog identity for human consignment logistics; BOM/dossier identity gates own the fitted exact code |
+| `consigned[].msl` | ADVISORY | human moisture-handling warning; an order/package handling gate is still needed before this can be release authority |
+| `not_assembled[].lcsc` | ADVISORY | catalog identity retained for human DNP evidence; fitted-code identity excludes these refs from the CPL |
+| `not_assembled[].msl` | ADVISORY | human handling note for a part not placed by JLC; downstream manual-assembly procedure owns execution |
+| `not_assembled[].on_bom` | `export_jlc_package.py` | explicit assembly-BOM inclusion decision, never inferred from the DNP reason |
+| `not_assembled[].twin_body.*` | `jlc_twin.py` | alternate exact body/model authority for a deliberately unplaced part |
+| `exempt_prefixes` | `assembly_coverage.py` | board-feature prefixes excluded from the component population denominator |
+| `through_hole.process` | `assembly_coverage.py` | substantive purchased THT process declaration |
+| `through_hole.refs` | `assembly_coverage.py` | exact drilled parts covered by the purchased THT process |
+| `through_hole.evidence` | `assembly_coverage.py` | evidence that the THT process was actually selected |
+| `board_attr_plan[].refs` | `assembly_coverage.py` | exact DNP refs whose board exclusion attribute is deferred |
+| `board_attr_plan[].measured_on` | `assembly_coverage.py` | dated deferral observation |
+| `board_attr_plan[].plan` | `assembly_coverage.py` | substantive next-revision plan required for an attribute deferral |
+| `sourcing_plan[].lcsc` | `release_freshness_check.py` | exact catalog code keyed to order-time stock evidence |
+| `sourcing_plan[].measured_stock` | `release_freshness_check.py` | measured stock compared with BOM quantity times build quantity |
+| `sourcing_plan[].measured_on` | `release_freshness_check.py` | observation date for mutable stock evidence |
+| `sourcing_plan[].order_status` | `release_freshness_check.py` | closed PLANNED/BLOCKED disposition when measured stock is insufficient |
+| `sourcing_plan[].plan` | ADVISORY | human fulfillment plan; measured stock/date and the closed order status own the release verdict |
+| `sourcing_plan[].function` | ADVISORY | human-readable function label; exact BOM/CPL ref and code identity are graded elsewhere |
+| `sourcing_plan[].part` | ADVISORY | human-readable MPN label; exact BOM/dossier identity is graded elsewhere |
+| `sourcing_plan[].refs` | ADVISORY | planning label only; population identity comes from board/BOM/CPL and `not_assembled` |
+| `fiducials` | ADVISORY | human PCBA planning summary; realised fiducials are owned and graded in the floorplan/board |
+| `fiducials.*` | ADVISORY | children of the human PCBA fiducial summary |
+| `assembly_scope.*` | ADVISORY | human service-scope summary; CPL/BOM/board set identity and bought-process declarations are executable |
+| `order_time_requirements` | ADVISORY | human order checklist; release and JLC uploader gates own the executable obligations |
+| `pcb_process` | ADVISORY | human process summary; exact capability declarations and the realised board own executable process selection |
+| `via_process.*` | `via_process_check.py` | selective via-fill/cap geometry, selector, ordinary-via exclusion and order-remark contract |
+
 ### keys: 03_src/rules/power_stages.yaml
 
 | key | reader | why |

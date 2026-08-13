@@ -1,0 +1,207 @@
+{
+  "files": {
+    "01_docs/ARCHITECTURE.md": {
+      "sha256": "dbd095ff70c21be6918d8d8a213062780ad6893b16470859e5feddb824a6de55",
+      "size": 5942
+    },
+    "01_docs/BRIEF.md": {
+      "sha256": "c4ab75f6eae95ffb997856ce9e3f97e538977bc74ba5c838d80f45604463039f",
+      "size": 20181
+    },
+    "01_docs/CLEANROOM_PROVENANCE.md": {
+      "sha256": "3fef0b00acafa01979e45d996d47b387ab0450c69674fd24c99313c08f389ab2",
+      "size": 4125
+    },
+    "01_docs/decisions/0001-one-of-eight-absorptive-sp8t.md": {
+      "sha256": "d18b249e38e5c8248a3eed9c9db1790cd2c5f9306af8c5a4b701a4b47984c732",
+      "size": 5051
+    },
+    "01_docs/decisions/0002-autonomous-dwell-coded-control.md": {
+      "sha256": "d4a9bab4ad8ecaaa766cf0df8e31cdc0038ef708942805c5e10cecbcbb23ea4c",
+      "size": 6778
+    },
+    "01_docs/decisions/0003-usb-c-5v-to-protected-3v3.md": {
+      "sha256": "3bc9ee5e25ad7e5b5537ca27c69ad19dfb8172abf57829f3f271c0d78181a6bd",
+      "size": 7553
+    },
+    "01_docs/decisions/contracts.md": {
+      "sha256": "54e33e3f0782d2b1eedf31ad30f217517949dfdd6489817a44c1fcd29e5c48d5",
+      "size": 9729
+    },
+    "01_docs/findings.yaml": {
+      "sha256": "b97364145f8e6baf6431b13dd6e09c3e4046f9175574ae5a8420232f648dcd73",
+      "size": 6169
+    },
+    "01_docs/research/exact-parts-and-interfaces.md": {
+      "sha256": "9389b63442605ec4fec6736f1ebda3749cee57cd03213e359cec1c895c521134",
+      "size": 8273
+    },
+    "01_docs/sourcing/contracts.md": {
+      "sha256": "98a3b316f6faa35f669886c5321c54a6c25a0a260d39c5d207d43dd874c3961f",
+      "size": 4701
+    },
+    "01_docs/sourcing/exact-parts.csv": {
+      "sha256": "e54aaa22a975197db461cb4d3eb94bc1f421cb2d85b2eb6e03c95cbfbf21a96f",
+      "size": 733
+    },
+    "01_docs/sourcing/manual_quotes.yaml": {
+      "sha256": "ada8aabb832320108277ed638f95de15f641901efd3a0ee8bb8ef68e10aade9d",
+      "size": 1121
+    },
+    "01_docs/sourcing/shopping-list-2026-08-13.json": {
+      "sha256": "cc84c7de3f9d532cdc8c02f463ff0158fdebfa95a8645ef7f51540f856caaf72",
+      "size": 123762
+    },
+    "01_docs/sourcing/shopping-list-2026-08-13.md": {
+      "sha256": "6b5e5a7f44eb43fdc5b81bcc40640878f358e2a69f83c4b77edf1dba37bd338c",
+      "size": 28344
+    },
+    "02_parts/0603L010YR/0603L-Series-2017-03-22.pdf": {
+      "sha256": "64bb6c9d39cb226b80865367fcaddcd85b5f4e318894b794e3f42570ee84f1d8",
+      "size": 925990
+    },
+    "02_parts/0603L010YR/part.yaml": {
+      "sha256": "3b17e75ccdad7d1cf48577c7cfb168fcb03b614cdde138e940e31c1fbac5f6a4",
+      "size": 1395
+    },
+    "02_parts/901-143-6RFX/part.yaml": {
+      "sha256": "5ec868e0622173491b4e7bbc9f54b27a525475e2b17843fcca63bf57214bec79",
+      "size": 2461
+    },
+    "02_parts/CL05B104KO5NNNC/CL05B104KO5NNNC-spec.pdf": {
+      "sha256": "4f5a2dcf3dcb4c183cd55320ac4b1b050bbc89f066a0ce86353ece3e56294afd",
+      "size": 3011164
+    },
+    "02_parts/CL05B104KO5NNNC/part.yaml": {
+      "sha256": "e9b8ab287d2cb62f46ec71e2ab5f46a739e2bcce1cb43e46bf9ac52dc1d15760",
+      "size": 887
+    },
+    "02_parts/CL10A475KO8NNNC/Samsung-MLCC-Catalog.pdf": {
+      "sha256": "96baebe4bd0ce363e87be28b5b003f511f1502e084a6fc4f02333ded56c808f6",
+      "size": 7856403
+    },
+    "02_parts/CL10A475KO8NNNC/part.yaml": {
+      "sha256": "646cb01ceac9376afafd89fdb201373c5dd5cb273f1f258008b1568bee544192",
+      "size": 1282
+    },
+    "02_parts/PE42482A-X/DOC-75785-4.pdf": {
+      "sha256": "794579f2973d31c9d8bbe44bfd3656ae95027ff13ab79a0ceaede2a680cc9ec1",
+      "size": 810820
+    },
+    "02_parts/PE42482A-X/part.yaml": {
+      "sha256": "39bc027437e319defcff99bed00b70ec7d9f0dbad8165aad5d7782639a397d38",
+      "size": 2826
+    },
+    "02_parts/RC0402FR-0710KL/RC0402FR-0710KL-2026-08.pdf": {
+      "sha256": "6586171912c40da3bbcebb313aec376b4779fb205991152900bdd7105d422321",
+      "size": 56287
+    },
+    "02_parts/RC0402FR-0710KL/part.yaml": {
+      "sha256": "fe166148b8838059c564b2db824540d47cece1c2b46ea8e516e7a93ff5cefb20",
+      "size": 951
+    },
+    "02_parts/RC0402FR-075K1L/RC0402FR-075K1L-2026-08.pdf": {
+      "sha256": "0bcbc957e8dbe626207e05a781770b902d29455d7e1774084d60452b5477d575",
+      "size": 56402
+    },
+    "02_parts/RC0402FR-075K1L/part.yaml": {
+      "sha256": "40ddbd9c4c2facc2d99803cf364004eae3bd29601a5eac784c3f7edde0e461f7",
+      "size": 975
+    },
+    "02_parts/README.md": {
+      "sha256": "54136d84897f74b291445e2f671502624a28fabed457e282ddc0e86dc25f814f",
+      "size": 1130
+    },
+    "02_parts/SMBJ6.0A/SMBJ-Series-2025.pdf": {
+      "sha256": "d7df155be4b1f612085401e8c946f065e284d65a0e7de22b9225a7b73946e51b",
+      "size": 947504
+    },
+    "02_parts/SMBJ6.0A/part.yaml": {
+      "sha256": "3e87d35c135557dd19683e2dfbb5940723df64d5cf7ae258271ebaefd6abe279",
+      "size": 1610
+    },
+    "02_parts/STM32C011F4P6/DS13866-Rev4.pdf": {
+      "sha256": "f9e1deb5c1e14f969c662326b700252bd69f93f404c68adba978f44455395509",
+      "size": 1356316
+    },
+    "02_parts/STM32C011F4P6/part.yaml": {
+      "sha256": "a09316912514de08e3b8d6fcd263f5b413e3e06fc54c8f421c5d52c5779a3688",
+      "size": 2540
+    },
+    "02_parts/TPD2E2U06DRLR/SLLSEG9C.pdf": {
+      "sha256": "a133b86ea3d3c3d34667339b92d3b5e98d541d10e9775d63e7cdfa153794f4ed",
+      "size": 785929
+    },
+    "02_parts/TPD2E2U06DRLR/part.yaml": {
+      "sha256": "0c094e9215000606996a57208398d99c386a5dd85f3c959128fc27a20270b885",
+      "size": 1712
+    },
+    "02_parts/TPS7A2433DBVR/SBVS395E.pdf": {
+      "sha256": "0f541739607b324fb0527c8da73234c8b65ec8a0631d0b06eca7aadfaa36d50f",
+      "size": 1396457
+    },
+    "02_parts/TPS7A2433DBVR/part.yaml": {
+      "sha256": "f307779efa49f2fc082fde44a02b5a9974757f1c69db529b84d8ecd5456062b4",
+      "size": 2048
+    },
+    "02_parts/USB4105-GF-A-120/USB4105-RevB.pdf": {
+      "sha256": "fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5",
+      "size": 164547
+    },
+    "02_parts/USB4105-GF-A-120/part.yaml": {
+      "sha256": "d57777d1659af4b74ff9cba81d386581c475cb72d93237a454b7c40584ff4844",
+      "size": 2143
+    },
+    "02_parts/contracts.md": {
+      "sha256": "6d6f9586c168f9879c0d33a23a762532e608e43349701c4cd0cfb0286b591e23",
+      "size": 61225
+    },
+    "03_src/rules/assembly.yaml": {
+      "sha256": "2b512964915910013b9a8a5e2df92485a2880b4197314b22717dda6a1cd9509f",
+      "size": 2166
+    },
+    "03_src/rules/contracts.md": {
+      "sha256": "cfb1893e8d90f6f7aab637d022e305f138f30e356cd9b91dd666ff02959b263e",
+      "size": 80486
+    },
+    "03_src/rules/control_protocol.yaml": {
+      "sha256": "d8dcb416c7bc95fe7104ba5e6f3229fcbac763af923e9272a0ff71dda0bae032",
+      "size": 2428
+    },
+    "03_src/rules/electrical_invariants.yaml": {
+      "sha256": "50004cc887e85e7b191e47f54ac943758916ccc119f478f4ffc7012f7b717f69",
+      "size": 3894
+    },
+    "03_src/rules/integration.yaml": {
+      "sha256": "7dc5f7388948c603cae6c0db617db8b48b9313c1cfb4540bc05c26a29b0046d1",
+      "size": 512
+    },
+    "03_src/rules/nets.yaml": {
+      "sha256": "812dda4266a4496b2eec2fbaef931c8ead37f3a00535d7c9d29dc55bf4700617",
+      "size": 2366
+    },
+    "03_src/rules/power_stages.yaml": {
+      "sha256": "4319d8ff7e72f3200e71df01088e3eedbabcbcb24c56e7dfb40fed5f1532a849",
+      "size": 342
+    },
+    "03_src/rules/power_tree.yaml": {
+      "sha256": "e616bad11e09c424cd85492415a550be051bbed2b9412bfc8ab30a9ea76c1193",
+      "size": 2132
+    },
+    "03_src/rules/protection_paths.yaml": {
+      "sha256": "dd173b555644e044d068d74f2654075e120883b869c8e20b4e53c4e420527189",
+      "size": 2392
+    },
+    "03_src/rules/requirements.yaml": {
+      "sha256": "b97f54160c948ef4a52a53081ac60013a3f01569f890687753a51c58499a0339",
+      "size": 60
+    },
+    "03_src/rules/rf.yaml": {
+      "sha256": "ca74177ec1adf0f77311f88b6343e9fa387de0d5d9b311370a2c89125c1d6a7d",
+      "size": 5378
+    }
+  },
+  "name": "exact-parts-and-interfaces",
+  "project": "pluto-rx2-8way-v5",
+  "schema": 1
+}

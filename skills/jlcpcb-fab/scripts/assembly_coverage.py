@@ -342,10 +342,46 @@ def discover(target):
     return board, cpl, bom, root
 
 
+class AssemblyConfigError(ValueError):
+    """An assembly declaration shape the gate cannot grade."""
+
+
 def load_assembly(path):
     if not path or not Path(path).is_file() or not yaml:
         return {}
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8-sig")) or {}
+    try:
+        data = yaml.safe_load(Path(path).read_text(encoding="utf-8-sig")) or {}
+    except (OSError, yaml.YAMLError) as exc:
+        raise AssemblyConfigError(f"cannot parse {path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise AssemblyConfigError("assembly.yaml root must be a mapping")
+    if data.get("schema") not in (None, 1):
+        raise AssemblyConfigError(
+            "assembly.yaml schema must be integer 1 when declared")
+    for field in ("not_assembled", "consigned"):
+        rows = data.get(field) or []
+        if not isinstance(rows, list):
+            raise AssemblyConfigError(f"assembly.yaml {field}: must be a list")
+        for index, row in enumerate(rows):
+            if not isinstance(row, dict):
+                raise AssemblyConfigError(
+                    f"assembly.yaml {field}[{index}] must be a mapping with "
+                    "a refs: list; scalar refdes entries are not gradeable")
+            refs = row.get("refs")
+            if not isinstance(refs, list) or not refs:
+                raise AssemblyConfigError(
+                    f"assembly.yaml {field}[{index}].refs must be a non-empty "
+                    "list")
+            if field == "consigned":
+                if len(str(row.get("evidence") or "")) < 20:
+                    raise AssemblyConfigError(
+                        f"assembly.yaml consigned[{index}].evidence must be "
+                        "a substantive dated sourcing/handling record")
+                if not str(row.get("disposition") or "").strip():
+                    raise AssemblyConfigError(
+                        f"assembly.yaml consigned[{index}].disposition must "
+                        "state how the part reaches and is handled by assembly")
+    return data
 
 
 def manifest_line(asm):
@@ -798,7 +834,13 @@ def main(argv=None):
         if not Path(asm_p).is_file():
             print(f"FATAL: no assembly.yaml at {asm_p}", file=sys.stderr)
             return 2
-        print(manifest_line(load_assembly(asm_p)))
+        try:
+            asm = load_assembly(asm_p)
+        except AssemblyConfigError as exc:
+            print(f"A-POP-SCHEMA FAIL: 0/1 assembly declarations graded; "
+                  f"input={asm_p}; {exc}", file=sys.stderr)
+            return 2
+        print(manifest_line(asm))
         return 0
 
     print(f"== A-POP assembly_coverage: {Path(args.target).name} ==")
@@ -812,7 +854,12 @@ def main(argv=None):
         print("FATAL: no bom.csv found (pass --bom)", file=sys.stderr)
         return 2
 
-    asm = load_assembly(asm_p)
+    try:
+        asm = load_assembly(asm_p)
+    except AssemblyConfigError as exc:
+        print(f"A-POP-SCHEMA FAIL: 0/1 assembly declarations graded; "
+              f"input={asm_p}; {exc}", file=sys.stderr)
+        return 2
     fails, notes, summary = check(
         read_footprints(board), read_cpl(cpl), read_bom_rows(bom), asm,
         manifest_not_assembled(man_p)[0], Path(asm_p).is_file(),

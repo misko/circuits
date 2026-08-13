@@ -45,9 +45,3 @@ paths:
       - {ref: R1, part: RC0402FR-075K1L, domain: CC1_termination, bounded_max_V: 14.88, recommended_max_V: 50, absolute_max_V: 50}
       - {ref: R2, part: RC0402FR-075K1L, domain: CC2_termination, bounded_max_V: 14.88, recommended_max_V: 50, absolute_max_V: 50}
       - {ref: J1, part: USB4105-GF-A-120, domain: exposed_connector, bounded_max_V: 14.88, recommended_max_V: 48, absolute_max_V: 48}
-
-protection_posture:
-  active_overvoltage_cutoff: false_by_user_requirement
-  active_current_limit: false_not_required_by_20mA_load
-  reverse_blocking: false_no_alternate_power_injection
-  backfeed_prevention: "no electrical power connection to Pluto; SWD programmer senses target 3V3 and may not source it"

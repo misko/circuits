@@ -13,10 +13,11 @@ gotchas:
   - "A6/B6, A7/B7 and A8/B8 remain explicit no-connects because v5 has no USB data or alternate mode."
   - "Retain all duplicated VBUS/GND contacts and all shell stakes in the custom footprint."
 verified: "contact table, recommended PCB layout, ratings, suffix/stake option and mating-cycle rating read from GCT USB4105 Rev B on 2026-08-13"
-sourcing: {lcsc: C5184243, jlc_observed_stock: 3660, jlc_observed: 2026-08-13, second_source: "Mouser 640-USB4105-GF-A-120, 96749 observed in stock 2026-08-13"}
+sourcing: {lcsc: C5184243}
 layout:
   source: "GCT USB4105 Revision B recommended PCB layout"
   reviewed: 2026-08-13
   notes: "Mount at a board edge; route all VBUS contacts together into F1, all grounds/shell to the ground structure, and route CC1/CC2 independently through U4 to their own Rd."
 layout_refs:
   - {tier: 1, reached: true, artifact: "GCT USB4105 Revision B recommended PCB layout", why: "manufacturer drawing fixes contacts, stakes, peg and edge datum"}
+  - {tier: 2, reached: false, artifact: "an open-hardware USB4105-GF-A-120 board with published copper and fabrication outputs", why: "no exact-part routed reference was captured during the source-stage search; placement must retain the manufacturer edge datum and re-derive local copper"}

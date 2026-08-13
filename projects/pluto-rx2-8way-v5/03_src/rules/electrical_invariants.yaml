@@ -1,47 +1,49 @@
-schema: 1
-
-invariant_status:
-  project: pluto-rx2-8way-v5
-  implementation_selected: true
-  netlist_exists: false
-  gate: interface_proof_complete_schematic_assertions_owed_at_next_stage
-
 invariants:
-  - id: E-ONEHOT
-    requirement: "U1 control word may select zero or one RF throw, never more than one"
-    enforcement: "PE42482 binary truth table plus firmware state table; transitions pass through ALL_OFF"
-  - id: E-RESET-SAFE
-    requirement: "U1 is ALL_OFF while U2 is reset, unpowered, brownout-reset, watchdog-reset, programming or tri-stated"
-    enforcement: "R3 pulls V4 high; R4-R6 pull V1-V3 low; LS is hard-tied GND; BOR4 resets U2 above U1's 2.3V minimum"
-    caveat: "switch state below 2.3V VDD is not guaranteed and no RF performance is claimed while unpowered"
-  - id: E-GPIO-ORDER
-    requirement: "firmware preloads PA3..PA0=1000 before those pins become outputs"
-    enforcement: firmware_review_and_logic_analyzer_test
-  - id: E-TYPEC-SINK
-    requirement: "CC1 and CC2 each have one independent 5.1k Rd to GND"
-    enforcement: schematic_exact_net_assertion
-  - id: E-NO-USB-DATA
-    requirement: "J1 D+, D-, SBU1 and SBU2 contacts are no-connect"
-    enforcement: schematic_explicit_no_connect_and_netlist_review
-  - id: E-NO-BACKFEED
-    requirement: "No board net carries power to or from Pluto; SWD cannot inject operating power"
-    enforcement: interface_and_connector_review
-  - id: E-RF-DC
-    requirement: "every U1 RF pin and external SMA center is 0V DC"
-    enforcement: schematic_connectivity_and_bringup_DMM_check
+  - {assert: pin_on_net, pin: U1.1, net: GND, adr: "0001", why: "LS must be tied low to select the documented four-bit binary truth table"}
+  - {assert: pin_on_net, pin: U1.9, net: SW_V1, adr: "0001", why: "the least-significant switch input must receive the approved V1 control bit"}
+  - {assert: pin_on_net, pin: U1.10, net: SW_V2, adr: "0001", why: "the second switch input must receive the approved V2 control bit"}
+  - {assert: pin_on_net, pin: U1.11, net: SW_V3, adr: "0001", why: "the third switch input must receive the approved V3 control bit"}
+  - {assert: pin_on_net, pin: U1.12, net: SW_V4, adr: "0001", why: "the most-significant switch input must receive the passively high V4 control bit"}
+  - {assert: pin_on_net, pin: J1.A5, net: USB_CC1, adr: "0003", why: "a reversible Type-C sink requires an independent Rd path on CC1"}
+  - {assert: pin_on_net, pin: J1.B5, net: USB_CC2, adr: "0003", why: "a reversible Type-C sink requires an independent Rd path on CC2"}
+  - {assert: series_chain, chain: [VBUS_RAW, F1, VBUS_PROTECTED, U3, 3V3], through: {U3: [1, 5]}, adr: "0003", why: "USB VBUS must pass through the resettable fuse and protected LDO before reaching the internal 3V3 rail"}
+  - {assert: pin_on_net, pin: D1.1, net: VBUS_PROTECTED, adr: "0003", why: "the SMBJ6.0A cathode must face the protected positive rail rather than forward-clamping normal VBUS"}
+  - {assert: pin_on_net, pin: D1.2, net: GND, adr: "0003", why: "the SMBJ6.0A anode must return directly to ground"}
+  - {assert: part_value, part: R1, equals: 5.1k, tolerance_pct: 1, adr: "0003", why: "CC1 requires the selected exact 5.1k one-percent sink termination"}
+  - {assert: part_value, part: R2, equals: 5.1k, tolerance_pct: 1, adr: "0003", why: "CC2 requires its own selected exact 5.1k one-percent sink termination"}
+  - {assert: part_value, part: R3, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V4 must be pulled high so reset and tri-state produce the documented ALL_OFF word"}
+  - {assert: part_value, part: R4, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V1 must be pulled low so reset and tri-state produce the documented ALL_OFF word"}
+  - {assert: part_value, part: R5, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V2 must be pulled low so reset and tri-state produce the documented ALL_OFF word"}
+  - {assert: part_value, part: R6, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V3 must be pulled low so reset and tri-state produce the documented ALL_OFF word"}
+  - {assert: net_has_part, net: 3V3, part_type: capacitor, min: 4, adr: "0003", why: "the LDO, RF switch and MCU rail require their approved output, bulk and local bypass capacitors"}
 
 label_survival:
-  RF_COMMON: [J2.1, U1.22]
-  RF_ANT1: [J3.1, U1.24]
-  RF_ANT2: [J4.1, U1.2]
-  RF_ANT3: [J5.1, U1.4]
-  RF_ANT4: [J6.1, U1.6]
-  RF_ANT5: [J7.1, U1.13]
-  RF_ANT6: [J8.1, U1.15]
-  RF_ANT7: [J9.1, U1.17]
-  RF_ANT8: [J10.1, U1.19]
-  USB_CC1: [J1.A5, U4.3, R1.1]
-  USB_CC2: [J1.B5, U4.5, R2.1]
-  VBUS_RAW: [J1.A4, J1.A9, J1.B4, J1.B9, F1.1]
-  VBUS_PROTECTED: [F1.2, D1.1, C1.1, U3.1, U3.3]
-  3V3: [U3.5, C2.1, C3.1, C4.1, C5.1, U2.4, U1.8]
+  pin_map:
+    - refs: [J2]
+      pins: {"1": RF_COMMON}
+    - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
+      n_start: 1
+      pins: {"1": "RF_ANT{n}"}
+    - refs: [J1]
+      pins: {A4: VBUS_RAW, A5: USB_CC1, A9: VBUS_RAW, B4: VBUS_RAW, B5: USB_CC2, B9: VBUS_RAW}
+      unconnected: [A6, A7, A8, B6, B7, B8]
+    - refs: [U1]
+      pins: {"1": GND, "2": RF_ANT2, "3": GND, "4": RF_ANT3, "5": GND, "6": RF_ANT4, "7": GND, "8": 3V3, "9": SW_V1, "10": SW_V2, "11": SW_V3, "12": SW_V4, "13": RF_ANT5, "14": GND, "15": RF_ANT6, "16": GND, "17": RF_ANT7, "18": GND, "19": RF_ANT8, "21": GND, "22": RF_COMMON, "23": GND, "24": RF_ANT1, "25": GND}
+      unconnected: ["20"]
+    - refs: [U3]
+      pins: {"1": VBUS_PROTECTED, "2": GND, "3": VBUS_PROTECTED, "5": 3V3}
+      unconnected: ["4"]
+    - refs: [U4]
+      pins: {"3": USB_CC1, "4": GND, "5": USB_CC2}
+      unconnected: ["1", "2"]
+    - refs: [R1, R2]
+      n_start: 1
+      pins: {"1": "USB_CC{n}", "2": GND}
+    - refs: [F1]
+      pins: {"1": VBUS_RAW, "2": VBUS_PROTECTED}
+    - refs: [D1, C1]
+      pins: {"1": VBUS_PROTECTED, "2": GND}
+    - refs: [C2, C3, C4, C5]
+      pins: {"1": 3V3, "2": GND}
+    - refs: [C6]
+      pins: {"1": NRST, "2": GND}

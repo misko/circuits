@@ -394,7 +394,7 @@ def t_the_precedent_ratchet_is_pinned_to_the_fleet():
     never falls, and a new board arriving with a graded dossier costs one
     number raised in the same commit.
 
-    MEASURED 2026-08-11: 133 in-scope parts across 10 boards, 30 with a
+    MEASURED 2026-08-13: 139 in-scope parts across 11 boards, 36 with a
     tier-graded record and 103 OWED."""
     floor, _ = _read_bounds()
     graded, _owed, scoped = _sweep_the_fleet()

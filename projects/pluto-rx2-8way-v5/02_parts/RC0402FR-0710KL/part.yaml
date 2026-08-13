@@ -9,4 +9,4 @@ limits: {resistance: 10kOhm, tolerance: 1pct, power_70C: 62.5mW, voltage: 50V, t
 asserts:
   - {assert: value, equals: 10k, tolerance_pct: 1, why: "U1 control-bias network must implement the approved passive ALL_OFF word"}
 verified: "exact generated Yageo specsheet checked for value, tolerance, power, voltage, dimensions and temperature on 2026-08-13"
-sourcing: {lcsc: C60490, jlc_observed_stock: 9608140, jlc_observed: 2026-08-13, second_source: "Mouser 603-RC0402FR-0710KL, multimillion observed in stock 2026-08-13"}
+sourcing: {lcsc: C60490}

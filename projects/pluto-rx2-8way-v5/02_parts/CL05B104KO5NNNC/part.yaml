@@ -9,4 +9,4 @@ limits: {capacitance: 100nF, tolerance: 10pct, rated_voltage: 16V, dielectric: X
 asserts:
   - {assert: value, equals: 100n, tolerance_pct: 10, why: "selected local bypass and NRST capacitor exact code"}
 verified: "exact Samsung generated product specification checked for MPN, 100nF, 16V, X7R, tolerance and 0402 dimensions on 2026-08-13"
-sourcing: {lcsc: C1525, jlc_observed_stock: 40353888, jlc_observed: 2026-08-13, second_source: "Mouser observed 4792569 in stock for exact MPN 2026-08-13"}
+sourcing: {lcsc: C1525}

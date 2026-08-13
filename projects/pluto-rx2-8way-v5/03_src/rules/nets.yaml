@@ -1,16 +1,4 @@
-schema: 1
-project: pluto-rx2-8way-v5
 fab_tier: jlc_4layer_advanced
-
-stackup:
-  vendor: JLCPCB
-  option: JLC04161H-7628
-  layers: 4
-  finished_thickness_mm: 1.6
-  top_copper_um: 35
-  top_to_L2_dielectric_mm: 0.2104
-  dielectric_nominal_Dk: 4.4
-  note: "order-time stackup echo is mandatory; RF width/gap remains pending the official JLC impedance solver"
 
 classes:
   RF_50R:

@@ -2,8 +2,7 @@ mpn: 901-143-6RFX
 manufacturer: Amphenol RF
 type: sma_right_angle_through_hole_jack
 mates: receptacle
-datasheet: {doc_id: 901-40129, revision: A, url: "https://www.amphenolrf.com/en-us/assets/file/4073477239/", sha256: null, fetched: 2026-08-13, local_copy: blocked_HTTP_403_see_02_parts_README}
-product_page: "https://www.amphenolrf.com/en-us/part/901-143-6rfx/3961/"
+datasheet: {doc_id: 901-40129, revision: A, url: "https://www.amphenolrf.com/en-us/assets/file/4073477239/", product_page: "https://www.amphenolrf.com/en-us/part/901-143-6rfx/3961/", sha256: null, fetched: 2026-08-13, note: "local copy blocked by HTTP 403; see 02_parts/README.md"}
 package: right-angle PCB through-hole SMA jack with four ground legs
 footprint: pluto_rx2_8way_v5:Amphenol_901_143_6RFX
 escape: {style: connector, pitch: 5.08, tier_required: jlc_2layer_default, checked: "manufacturer mounting-hole review 2026-08-13"}
@@ -24,10 +23,11 @@ gotchas:
   - "The footprint is custom and remains unapproved until the current Amphenol drawing is re-fetched or visually rechecked at footprint authoring; see 02_parts/README.md."
   - "J2-J10 are all female/jack right-angle SMA interfaces by explicit agent assumption D9; the common-port cable must mate to a jack."
 verified: "active status, jack/right-angle/THT/50ohm/18GHz and current customer drawing 901-40129 Rev A dimensions independently read on Amphenol's product page and browser-rendered PDF on 2026-08-13"
-sourcing: {lcsc: C429844, jlc_observed_stock: 951, jlc_observed: 2026-08-13, second_source: "Mouser 523-901-143-6RFX, 4535 observed in stock 2026-08-13"}
+sourcing: {lcsc: C429844, digikey: ARFX1232-ND}
 layout:
   source: "Amphenol 901-40129 Rev A customer drawing and product page"
   reviewed: 2026-08-13
   notes: "Place each jack at a board edge; surround the center launch with the four soldered ground legs and nearby ground stitching; tune the launch only for the selected stackup and actual plated-hole geometry."
 layout_refs:
   - {tier: 1, reached: true, artifact: "Amphenol 901-40129 Rev A customer drawing", why: "manufacturer source fixes the five-hole launch geometry and connector envelope"}
+  - {tier: 2, reached: false, artifact: "an open-hardware 901-143-6RFX board with published copper and fabrication outputs", why: "no exact-part routed reference was captured during the source-stage search; placement must re-derive the launch from the manufacturer drawing and the selected stackup"}

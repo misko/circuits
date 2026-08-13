@@ -13,7 +13,7 @@ gotchas:
 asserts:
   - {assert: pad1_net_polarity, pad: 1, polarity: positive, why: "Littelfuse SMBJ unidirectional polarity note and KiCad D_SMB convention; cathode is the high-potential side"}
 verified: "SMBJ6.0A exact electrical row, waveform, polarity and DO-214AA outline read from Littelfuse 2025 SMBJ series data sheet on 2026-08-13"
-sourcing: {lcsc: C83270, jlc_observed_stock: 9093, jlc_observed: 2026-08-13, second_source: "Mouser 576-SMBJ6.0A, 9464 observed in stock 2026-08-13"}
+sourcing: {lcsc: C83270}
 layout:
   source: "Littelfuse SMBJ series data sheet and standard shunt-clamp topology"
   reviewed: 2026-08-13

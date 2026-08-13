@@ -108,7 +108,8 @@ def load_contract(path: Path) -> dict:
     return root
 
 
-def validate_enabled(project: Path, contract: dict) -> dict[str, dict]:
+def validate_enabled(project: Path, contract: dict,
+                     required_phases=()) -> dict[str, dict]:
     rf = contract["rf"]
     tier = _nonempty(rf.get("risk_tier"), "rf.risk_tier")
     if tier not in RISK_TIERS:
@@ -141,6 +142,7 @@ def validate_enabled(project: Path, contract: dict) -> dict[str, dict]:
 
     sections = _list(rf.get("cross_sections"), "rf.cross_sections")
     section_ids = set()
+    pending_sections = []
     for index, raw in enumerate(sections):
         section = _mapping(raw, f"rf.cross_sections[{index}]")
         ident = _nonempty(section.get("id"), f"rf.cross_sections[{index}].id")
@@ -150,12 +152,35 @@ def validate_enabled(project: Path, contract: dict) -> dict[str, dict]:
         for key in ("stackup_source", "solver", "copper_layer",
                     "reference_layer"):
             _nonempty(section.get(key), f"rf.cross_sections[{index}].{key}")
-        for key in ("dielectric_height_mm", "dk", "target_z0_ohm",
-                    "width_mm", "gap_mm"):
+        for key in ("dielectric_height_mm", "dk", "target_z0_ohm"):
             if not isinstance(section.get(key), (int, float)) \
                     or float(section[key]) <= 0:
                 raise ContractError(
                     f"rf.cross_sections[{index}].{key} must be > 0")
+        status = section.get("status", "locked")
+        if status not in ("locked", "pending_solver"):
+            raise ContractError(
+                f"rf.cross_sections[{index}].status must be locked or "
+                "pending_solver")
+        if status == "pending_solver":
+            _substantive(section.get("deferred_until"),
+                         f"rf.cross_sections[{index}].deferred_until")
+            _substantive(section.get("reason"),
+                         f"rf.cross_sections[{index}].reason")
+            for key in ("width_mm", "gap_mm"):
+                if section.get(key) is not None:
+                    raise ContractError(
+                        f"rf.cross_sections[{index}].{key} must be null while "
+                        "status is pending_solver; do not publish an "
+                        "unapproved geometry")
+            pending_sections.append(ident)
+        else:
+            for key in ("width_mm", "gap_mm"):
+                if not isinstance(section.get(key), (int, float)) \
+                        or float(section[key]) <= 0:
+                    raise ContractError(
+                        f"rf.cross_sections[{index}].{key} must be > 0 when "
+                        "status is locked")
 
     claims = _list(rf.get("performance_claims"), "rf.performance_claims")
     claim_ids = set()
@@ -205,6 +230,12 @@ def validate_enabled(project: Path, contract: dict) -> dict[str, dict]:
             "path": review_path, "artifact": artifact,
             "requirements": cleaned,
         }
+    if pending_sections and any(
+            phase in ("pcb", "fab") for phase in required_phases):
+        raise ContractError(
+            "RF cross-section solver remains pending for "
+            f"{pending_sections}; PCB/fab review cannot proceed until every "
+            "width/gap is locked")
     return normalized
 
 
@@ -310,8 +341,8 @@ def main(argv=None) -> int:
             print("RF-CONTRACT PASS: applicability 1/1; RF disabled with rationale; "
                   "dedicated RF reviews are N-A")
             return 0
-        reviews = validate_enabled(project, contract)
         phases = list(dict.fromkeys(args.require_review))
+        reviews = validate_enabled(project, contract, phases)
         errors = []
         for phase in phases:
             phase_errors = review_errors(project, phase, reviews[phase])

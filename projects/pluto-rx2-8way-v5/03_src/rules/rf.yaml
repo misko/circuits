@@ -1,7 +1,7 @@
 schema: 1
 rf:
   enabled: true
-  rationale: "receive-only one-of-eight 50ohm selector, 100MHz-5.9GHz"
+  rationale: "receive-only one-of-eight 50ohm selector covering the requested 100MHz-5.9GHz band"
   risk_tier: microwave
   risk_basis: "5.9GHz performance depends on the QFN escape, nine SMA launches, stackup, return paths and coupling"
 
@@ -16,20 +16,81 @@ rf:
     status: approved_D8
 
   ports:
-    - {id: PLUTO_RX_COMMON, ref: J2, role: cable_to_one_Pluto_Plus_RX_port, connector_part: 901-143-6RFX, gender: female_jack, orientation: right_angle, band_hz: [100000000, 5900000000], z0_ohm: 50, reference_plane: SMA_mating_plane}
-    - {id: ANTENNA_THROWS, refs: [J3, J4, J5, J6, J7, J8, J9, J10], role: selectable_receive_inputs, count: 8, connector_part: 901-143-6RFX, gender: female_jack, orientation: right_angle, band_hz: [100000000, 5900000000], z0_ohm: 50, reference_plane: SMA_mating_planes}
+    - id: PLUTO_RX_COMMON
+      nets: [RF_COMMON]
+      band_hz: [100000000, 5900000000]
+      z0_ohm: 50
+      launch: "901-143-6RFX right-angle through-hole SMA launch at J2"
+      termination: "selected PE42482 RFC path into the external 50ohm Pluto RX interface"
+      reference_layer: "solid In1.Cu L2 ground"
+      reference_plane: SMA_mating_plane
+    - id: ANTENNA_THROWS
+      nets: [RF_ANT1, RF_ANT2, RF_ANT3, RF_ANT4, RF_ANT5, RF_ANT6, RF_ANT7, RF_ANT8]
+      band_hz: [100000000, 5900000000]
+      z0_ohm: 50
+      launch: "identical 901-143-6RFX right-angle through-hole SMA launches at J3-J10"
+      termination: "one selected PE42482 absorptive throw; seven off-state ports terminated internally by the switch"
+      reference_layer: "solid In1.Cu L2 ground"
+      reference_plane: SMA_mating_planes
 
-  performance_requirements:
-    grade: provisional_first_article_acceptance
-    insertion_loss_db_max: {at_or_below_1GHz: 2.0, at_5_9GHz: 3.5}
-    path_balance_db_max: 1.5
-    common_to_off_isolation_db_min: {at_or_below_4GHz: 30, at_5_9GHz: 25}
-    active_return_loss_db_min: 10
-    operating_input_power_dbm_max: 0
-    survival_input_power_dbm_max: 2.5
-    switching_time_s_max: 0.0000014
-    break_before_make_required: true
-    board_performance_claim_before_measurement: forbidden
+  cross_sections:
+    - id: RF_50R_TOP_CPWG
+      status: pending_solver
+      deferred_until: "before PCB routing and RF PCB review"
+      reason: "Width and gap must come from the official JLC impedance solver after the exact top-ground copper topology is frozen."
+      stackup_source: "JLCPCB JLC04161H-7628 published four-layer stackup and order-time stackup echo"
+      solver: "official JLCPCB impedance calculator, with order-time field-solver confirmation"
+      copper_layer: F.Cu
+      reference_layer: In1.Cu
+      dielectric_height_mm: 0.2104
+      dk: 4.4
+      target_z0_ohm: 50
+      width_mm: null
+      gap_mm: null
+
+  performance_claims:
+    - id: RF-IL
+      claim: "each assembled selected path meets the provisional insertion-loss envelope"
+      acceptance: "S21 loss <=2.0dB through 1GHz and <=3.5dB at 5.9GHz"
+      evidence: "first-article calibrated VNA S21 measurement for all eight selected paths at SMA mating planes"
+    - id: RF-BALANCE
+      claim: "selected-path loss remains sufficiently balanced for downstream comparison"
+      acceptance: "maximum insertion-loss spread across the eight paths <=1.5dB at each retained test frequency"
+      evidence: "first-article all-path VNA sweep and machine-readable path-balance calculation"
+    - id: RF-ISOLATION
+      claim: "off-state coupling remains below the provisional receiver-analysis limit"
+      acceptance: "common-to-off isolation >=30dB through 4GHz and >=25dB at 5.9GHz in every required state"
+      evidence: "first-article calibrated VNA isolation sweeps with unused ports terminated in 50ohm"
+    - id: RF-RETURN
+      claim: "every active assembled signal path has an acceptable impedance match"
+      acceptance: "active-path input and output return loss >=10dB across 100MHz-5.9GHz"
+      evidence: "first-article calibrated VNA S11 and S22 sweeps for all eight paths"
+
+  first_article:
+    measurements:
+      - "calibrated S21 for every selected path from 100MHz through 5.9GHz"
+      - "calibrated S11 and S22 for every selected path"
+      - "common-to-off isolation for all required switch states and antenna-to-antenna spot checks"
+      - "path-balance calculation from retained Touchstone data"
+      - "control-state timing captured with an independent timebase"
+    acceptance:
+      - "all four performance_claims pass at the SMA mating-plane reference planes"
+      - "no unmeasured path or required off state may be inferred from another path"
+      - "results outside the official AD9363 band are article-specific and never described as ADI-guaranteed"
+
+  reviews:
+    schematic:
+      path: 08_reviews/rf_schematic.md
+      artifact: 04_kicad/pluto-rx2-8way-v5.kicad_sch
+      requirements: [RF-SCH-TOPOLOGY, RF-SCH-PINMAP, RF-SCH-DC, RF-SCH-DEFAULT]
+    pcb:
+      path: 08_reviews/rf_pcb.md
+      artifact: 04_kicad/pluto-rx2-8way-v5.kicad_pcb
+      requirements: [RF-PCB-STACKUP, RF-PCB-IMPEDANCE, RF-PCB-LAUNCHES, RF-PCB-RETURN, RF-PCB-COUPLING]
+    fab:
+      path: 08_reviews/rf_fab.md
+      artifact: 06_build/fab/pluto-rx2-8way-v5-gerbers.zip
+      requirements: [RF-FAB-STACKUP, RF-FAB-COPPER, RF-FAB-DRILLS, RF-FAB-FIRST-ARTICLE]
 
   switch_interface:
     mode: binary_LS_low
@@ -48,34 +109,3 @@ rf:
     out_of_official_ad9363_band_operation: user_accepted_D5
     prior_5_8GHz_use: user_reported_inherited_not_independently_measured
     complete_system_ADI_guarantee_claim: forbidden
-
-  stackup:
-    vendor: JLCPCB
-    option: JLC04161H-7628
-    layers: 4
-    finished_thickness_mm: 1.6
-    F_Cu_um: 35
-    F_Cu_to_L2_GND_mm: 0.2104
-    nominal_Dk: 4.4
-    order_echo_required: true
-
-  cross_sections:
-    - name: RF_50R_top_microstrip
-      status: pending_official_JLC_impedance_solver_before_routing
-      conductor_layer: F.Cu
-      reference_layer: In1.Cu_L2_solid_GND
-      target_ohm: 50
-      locked_inputs: {stackup: JLC04161H-7628, top_copper_um: 35, dielectric_height_mm: 0.2104, nominal_Dk: 4.4}
-      width_mm: null
-      gap_to_coplanar_ground_mm: null
-
-  first_article:
-    required_instrument: VNA_covering_at_least_100MHz_to_6GHz
-    fixtures: [known_good_SMA_cables, 50ohm_terminations, appropriate_SOLT_or_ECal_kit]
-    calibration_reference_planes: SMA_mating_planes
-    measurements: [S21_every_selected_path, S11_and_S22_every_selected_path, common_to_off_isolation_all_required_states, antenna_to_antenna_spot_checks, path_balance, control_timing_with_independent_timebase]
-    retained_data: Touchstone_and_machine_readable_control_timestamps
-    acceptance: performance_requirements_above
-    status: mandatory_not_yet_executed
-
-  reviews: {schematic: pending_next_stage, pcb: blocked_until_solver_and_floorplan, fab: blocked_until_first_article_plan_and_order_echo}

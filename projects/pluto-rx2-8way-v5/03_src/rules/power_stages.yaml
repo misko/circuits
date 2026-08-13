@@ -5,11 +5,3 @@
 schema: 2
 stages: []
 no_external_gate_drive_stages: true
-
-project_stage_status:
-  source: D7
-  state: active_switching_or_gate_drive_stage_not_required
-  selected_converter: TPS7A2433DBVR_linear_ldo
-  selected_protection_controller: none
-  selected_external_mosfet: null
-  downstream_design_permitted: true_after_exact_parts_pause

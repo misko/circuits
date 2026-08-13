@@ -1,0 +1,4618 @@
+{
+ "project": "pluto-rx2-8way-v5",
+ "scope": "all",
+ "boards": 5,
+ "min_stock": 10,
+ "total_parts": 12,
+ "selected": 12,
+ "coverage": {
+  "mouser": {
+   "graded": 12,
+   "ok": 11,
+   "total": 12
+  },
+  "digikey": {
+   "graded": 2,
+   "ok": 2,
+   "total": 12
+  },
+  "amazon": {
+   "graded": 0,
+   "ok": 0,
+   "total": 12
+  }
+ },
+ "totals": {
+  "mouser": {
+   "usd": 421.59,
+   "priced": 11
+  },
+  "digikey": {
+   "usd": 368.822,
+   "priced": 2
+  },
+  "amazon": {
+   "usd": 0.0,
+   "priced": 0
+  }
+ },
+ "rows": [
+  {
+   "mpn": "0603L010YR",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Littelfuse",
+   "type": "resettable_pptc_fuse",
+   "lcsc": "C207010",
+   "qty": 5,
+   "refs": "candidate: F1",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 4702 is the whole near-term supply: FactoryStock 0, lead 91 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "0603L010YR",
+      "mouser_pn": "576-0603L010YR",
+      "manufacturer": "Littelfuse",
+      "stock": 4702,
+      "stock_raw": "4702 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "91 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/Littelfuse/0603L010YR?qs=n5MbhIql%252BRkr%252BdaX3F6IAA%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$1.43",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 5,
+        "Price": "$1.34",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 4000,
+        "Price": "$1.34",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 1,
+     "unit_price": 1.34,
+     "break_qty": 5,
+     "below_first_break": false,
+     "ext_price": 6.7,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "0603L010YR",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "0603L010YR",
+       "opt": "None",
+       "hits": 1,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "0603L010YR",
+       "mouser_pn": "576-0603L010YR",
+       "manufacturer": "Littelfuse",
+       "stock": 4702,
+       "stock_raw": "4702 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "91 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Littelfuse/0603L010YR?qs=n5MbhIql%252BRkr%252BdaX3F6IAA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$1.43",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5,
+         "Price": "$1.34",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4000,
+         "Price": "$1.34",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 8727,
+     "record": {
+      "lcsc": "C207010",
+      "designators": "F1",
+      "qty": 1,
+      "status": "OK",
+      "stock": 8727,
+      "type": "expand",
+      "mpn": "0603L010YR",
+      "manufacturer": "Littelfuse"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C207010"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "901-143-6RFX",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Amphenol RF",
+   "type": "sma_right_angle_through_hole_jack",
+   "lcsc": "C429844",
+   "qty": 45,
+   "refs": "candidate: J2, J3, J4, J5, J6, J7, J8, J9, J10",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 1220 is the whole near-term supply: FactoryStock 0, lead 98 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "901-143-6RFX",
+      "mouser_pn": "523-901-143-6RFX",
+      "manufacturer": "Amphenol RF",
+      "stock": 1220,
+      "stock_raw": "1220 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "98 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/Amphenol-RF/901-143-6RFX?qs=Kdyc7Q8pFhpGGXyYYV%2FtdA%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$10.20",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$8.67",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 25,
+        "Price": "$8.12",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 50,
+        "Price": "$7.73",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$7.37",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 250,
+        "Price": "$6.82",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 500,
+        "Price": "$6.57",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$6.27",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 1,
+     "unit_price": 8.12,
+     "break_qty": 25,
+     "below_first_break": false,
+     "ext_price": 365.4,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "901-143-6RFX",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "901-143-6RFX",
+       "opt": "None",
+       "hits": 1,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "901-143-6RFX",
+       "mouser_pn": "523-901-143-6RFX",
+       "manufacturer": "Amphenol RF",
+       "stock": 1220,
+       "stock_raw": "1220 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "98 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Amphenol-RF/901-143-6RFX?qs=Kdyc7Q8pFhpGGXyYYV%2FtdA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$10.20",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$8.67",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$8.12",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 50,
+         "Price": "$7.73",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$7.37",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$6.82",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$6.57",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$6.27",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "distributor": "digikey",
+     "url": "https://www.digikey.com/en/products/detail/amphenol-rf/901-143-6RFX/272190",
+     "dpn": "ARFX1232-ND",
+     "read_on": "2026-08-13",
+     "manufacturer": "Amphenol RF",
+     "manufacturer_match": true,
+     "status": "OK",
+     "grade": "CITED",
+     "stock": 4206,
+     "unit_price": 8.1216,
+     "break_qty": 25,
+     "min": null,
+     "mult": null,
+     "ext_price": 365.472,
+     "lifecycle": "Active",
+     "why": "note: Exact manufacturer and exact orderable MPN on the DigiKey product page; stock is a dated observation and must be refreshed before ordering."
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "MANUFACTURER-MISMATCH",
+     "grade": "CITED",
+     "manufacturer_match": false,
+     "record": {
+      "lcsc": "C429844",
+      "designators": "J2,J3,J4,J5,J6,J7,J8,J9,J10",
+      "qty": 9,
+      "status": "OK",
+      "stock": 951,
+      "type": "expand",
+      "mpn": "901-143-6RFX",
+      "manufacturer": "Amphenol ICC"
+     },
+     "why": "Q-MFR-IDENT: C429844 snapshot manufacturer 'Amphenol ICC' != dossier 'Amphenol RF'"
+    }
+   },
+   "authorized_pools": [
+    "mouser",
+    "digikey"
+   ],
+   "rejected_pools": {
+    "jlc": "Q-MFR-IDENT: C429844 snapshot manufacturer 'Amphenol ICC' != dossier 'Amphenol RF'"
+   }
+  },
+  {
+   "mpn": "CL05B104KO5NNNC",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Samsung Electro-Mechanics",
+   "type": "ceramic_capacitor",
+   "lcsc": "C1525",
+   "qty": 15,
+   "refs": "candidate: C4, C5, C6",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 3518801 is the whole near-term supply: FactoryStock 0, lead 210 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "CL05B104KO5NNNC",
+      "mouser_pn": "187-CL05B104KO5NNNC",
+      "manufacturer": "Samsung Electro-Mechanics",
+      "stock": 3518801,
+      "stock_raw": "3518801 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "210 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/Samsung-Electro-Mechanics/CL05B104KO5NNNC?qs=hqM3L16%252BxlfT2SKOuAUq6Q%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.16",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.024",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.013",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 500,
+        "Price": "$0.01",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$0.008",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2500,
+        "Price": "$0.007",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 5000,
+        "Price": "$0.006",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10000,
+        "Price": "$0.004",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 1,
+     "unit_price": 0.024,
+     "break_qty": 10,
+     "below_first_break": false,
+     "ext_price": 0.36,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "CL05B104KO5NNNC",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "CL05B104KO5NNNC",
+       "opt": "None",
+       "hits": 1,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "CL05B104KO5NNNC",
+       "mouser_pn": "187-CL05B104KO5NNNC",
+       "manufacturer": "Samsung Electro-Mechanics",
+       "stock": 3518801,
+       "stock_raw": "3518801 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "210 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Samsung-Electro-Mechanics/CL05B104KO5NNNC?qs=hqM3L16%252BxlfT2SKOuAUq6Q%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.16",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.024",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.013",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.01",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.008",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.007",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$0.006",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.004",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 45210848,
+     "record": {
+      "lcsc": "C1525",
+      "designators": "C4,C5,C6",
+      "qty": 3,
+      "status": "OK",
+      "stock": 45210848,
+      "type": "base",
+      "mpn": "CL05B104KO5NNNC",
+      "manufacturer": "Samsung Electro-Mechanics"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C1525"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "CL10A475KO8NNNC",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Samsung Electro-Mechanics",
+   "type": "ceramic_capacitor",
+   "lcsc": "C19666",
+   "qty": 15,
+   "refs": "candidate: C1, C2, C3",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 182301 is the whole near-term supply: FactoryStock 0, lead 210 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "CL10A475KO8NNNC",
+      "mouser_pn": "187-CL10A475KO8NNNC",
+      "manufacturer": "Samsung Electro-Mechanics",
+      "stock": 182301,
+      "stock_raw": "182301 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "210 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/Samsung-Electro-Mechanics/CL10A475KO8NNNC?qs=X6jEic%2FHinAbIjmLnFfqqQ%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.15",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.084",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.051",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 500,
+        "Price": "$0.04",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$0.037",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2000,
+        "Price": "$0.033",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 4000,
+        "Price": "$0.024",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 1,
+     "unit_price": 0.084,
+     "break_qty": 10,
+     "below_first_break": false,
+     "ext_price": 1.26,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "CL10A475KO8NNNC",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "CL10A475KO8NNNC",
+       "opt": "None",
+       "hits": 1,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "CL10A475KO8NNNC",
+       "mouser_pn": "187-CL10A475KO8NNNC",
+       "manufacturer": "Samsung Electro-Mechanics",
+       "stock": 182301,
+       "stock_raw": "182301 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "210 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Samsung-Electro-Mechanics/CL10A475KO8NNNC?qs=X6jEic%2FHinAbIjmLnFfqqQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.15",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.084",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.051",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.04",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.037",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2000,
+         "Price": "$0.033",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4000,
+         "Price": "$0.024",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 5787767,
+     "record": {
+      "lcsc": "C19666",
+      "designators": "C1,C2,C3",
+      "qty": 3,
+      "status": "OK",
+      "stock": 5787767,
+      "type": "base",
+      "mpn": "CL10A475KO8NNNC",
+      "manufacturer": "Samsung Electro-Mechanics"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C19666"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "PE42482A-X",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "pSemi",
+   "type": "absorptive_sp8t_rf_switch",
+   "lcsc": "C5121458",
+   "qty": 5,
+   "refs": "candidate: U1",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 8554 is the whole near-term supply: FactoryStock 0, lead 112 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "PE42482A-X",
+      "mouser_pn": "81-PE42482A-X",
+      "manufacturer": "pSemi",
+      "stock": 8554,
+      "stock_raw": "8554 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "112 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/pSemi/PE42482A-X?qs=5aG0NVq1C4xJoz2XWx4XXA%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$5.97",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$4.56",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 25,
+        "Price": "$4.21",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$3.82",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 250,
+        "Price": "$3.67",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 500,
+        "Price": "$3.52",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$3.41",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2500,
+        "Price": "$3.36",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 1,
+     "unit_price": 5.97,
+     "break_qty": 1,
+     "below_first_break": false,
+     "ext_price": 29.85,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "PE42482A-X",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "PE42482A-X",
+       "opt": "None",
+       "hits": 1,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "PE42482A-X",
+       "mouser_pn": "81-PE42482A-X",
+       "manufacturer": "pSemi",
+       "stock": 8554,
+       "stock_raw": "8554 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/pSemi/PE42482A-X?qs=5aG0NVq1C4xJoz2XWx4XXA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$5.97",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$4.56",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$4.21",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$3.82",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$3.67",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$3.52",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$3.41",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$3.36",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 1199,
+     "record": {
+      "lcsc": "C5121458",
+      "designators": "U1",
+      "qty": 1,
+      "status": "OK",
+      "stock": 1199,
+      "type": "expand",
+      "mpn": "PE42482A-X",
+      "manufacturer": "pSemi"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C5121458"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "RC0402FR-0710KL",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Yageo",
+   "type": "thick_film_resistor",
+   "lcsc": "C60490",
+   "qty": 20,
+   "refs": "candidate: R3, R4, R5, R6",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 19737190 is the whole near-term supply: FactoryStock 0, lead 56 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "RC0402FR-0710KL",
+      "mouser_pn": "603-RC0402FR-0710KL",
+      "manufacturer": "YAGEO",
+      "stock": 19737190,
+      "stock_raw": "19737190 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "56 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/YAGEO/RC0402FR-0710KL?qs=I1mnnYJTTsxUoNwrUsQExA%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.10",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.009",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.006",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2500,
+        "Price": "$0.004",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10000,
+        "Price": "$0.002",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 1,
+     "unit_price": 0.009,
+     "break_qty": 10,
+     "below_first_break": false,
+     "ext_price": 0.18,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "RC0402FR-0710KL",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "RC0402FR-0710KL",
+       "opt": "None",
+       "hits": 1,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "RC0402FR-0710KL",
+       "mouser_pn": "603-RC0402FR-0710KL",
+       "manufacturer": "YAGEO",
+       "stock": 19737190,
+       "stock_raw": "19737190 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "56 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/YAGEO/RC0402FR-0710KL?qs=I1mnnYJTTsxUoNwrUsQExA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.10",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.009",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.006",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.004",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.002",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 9580584,
+     "record": {
+      "lcsc": "C60490",
+      "designators": "R3,R4,R5,R6",
+      "qty": 4,
+      "status": "OK",
+      "stock": 9580584,
+      "type": "expand",
+      "mpn": "RC0402FR-0710KL",
+      "manufacturer": "YAGEO"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C60490"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "RC0402FR-075K1L",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Yageo",
+   "type": "thick_film_resistor",
+   "lcsc": "C105872",
+   "qty": 10,
+   "refs": "candidate: R1, R2",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 24 is the whole near-term supply: FactoryStock 0, lead 56 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "RC0402FR-075K1L",
+      "mouser_pn": "603-RC0402FR-075K1L",
+      "manufacturer": "YAGEO",
+      "stock": 24,
+      "stock_raw": "24 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "56 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/YAGEO/RC0402FR-075K1L?qs=YUgVZYePFqCSmQuaha43RA%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.10",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.009",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.007",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$0.006",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2500,
+        "Price": "$0.004",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10000,
+        "Price": "$0.002",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 2,
+     "unit_price": 0.009,
+     "break_qty": 10,
+     "below_first_break": false,
+     "ext_price": 0.09,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "RC0402FR-075K1L",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "RC0402FR-075K1L",
+       "opt": "None",
+       "hits": 2,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "RC0402FR-075K1L",
+       "mouser_pn": "603-RC0402FR-075K1L",
+       "manufacturer": "YAGEO",
+       "stock": 24,
+       "stock_raw": "24 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "56 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/YAGEO/RC0402FR-075K1L?qs=YUgVZYePFqCSmQuaha43RA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.10",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.009",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.007",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.006",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.004",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.002",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "RC0402FR-135K1L",
+       "mouser_pn": "603-RC0402FR-135K1L",
+       "manufacturer": "YAGEO",
+       "stock": 63602,
+       "stock_raw": "63602 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "56 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/YAGEO/RC0402FR-135K1L?qs=UOUeRUa%252B8WnRzYm33re19Q%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.10",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.009",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.006",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.004",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.003",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 50000,
+         "Price": "$0.002",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 2354602,
+     "record": {
+      "lcsc": "C105872",
+      "designators": "R1,R2",
+      "qty": 2,
+      "status": "OK",
+      "stock": 2354602,
+      "type": "expand",
+      "mpn": "RC0402FR-075K1L",
+      "manufacturer": "YAGEO"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C105872"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "SMBJ6.0A",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Littelfuse",
+   "type": "unidirectional_tvs_diode",
+   "lcsc": "C83270",
+   "qty": 5,
+   "refs": "candidate: D1",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 8384 is the whole near-term supply: FactoryStock 0, lead 210 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "SMBJ6.0A",
+      "mouser_pn": "576-SMBJ6.0A",
+      "manufacturer": "Littelfuse",
+      "stock": 8384,
+      "stock_raw": "8384 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "210 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/Littelfuse/SMBJ6.0A?qs=HR2RnyOI4E4ONaBgNaR6Ig%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.47",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.224",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.182",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 500,
+        "Price": "$0.143",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$0.121",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 3000,
+        "Price": "$0.088",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 9000,
+        "Price": "$0.079",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 47,
+     "unit_price": 0.47,
+     "break_qty": 1,
+     "below_first_break": false,
+     "ext_price": 2.35,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "SMBJ6.0A",
+       "opt": "Exact",
+       "hits": 12,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "SMBJ6.0A",
+       "opt": "None",
+       "hits": 50,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "SMBJ6.0A",
+       "mouser_pn": "78-SMBJ6.0A",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 849,
+       "stock_raw": "849 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "47 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0A?qs=%252BA9HMDDz5Ka4ackbQ3goXQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.53",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.328",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.208",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.163",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 750,
+         "Price": "$0.139",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2250,
+         "Price": "$0.118",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4500,
+         "Price": "$0.107",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9750,
+         "Price": "$0.101",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24750,
+         "Price": "$0.091",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A",
+       "mouser_pn": "504-SMBJE6X0A",
+       "manufacturer": "Eaton Electronics",
+       "stock": 116171,
+       "stock_raw": "116171 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "128 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Eaton-Electronics/SMBJ6.0A?qs=Tc%252BHE9vUsnsUYPYLps5UPQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.49",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.334",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.189",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.149",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.126",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.107",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.102",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.091",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.082",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A",
+       "mouser_pn": "652-SMBJ6.0A",
+       "manufacturer": "Bourns",
+       "stock": 2044,
+       "stock_raw": "2044 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "140 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Bourns/SMBJ6.0A?qs=%252Bf8Cd6aE5bzVVliO5CBQSQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.51",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.275",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.215",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.175",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.147",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.114",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.098",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.091",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.089",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A",
+       "mouser_pn": "821-SMBJ6.0A",
+       "manufacturer": "Taiwan Semiconductor",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "161 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Taiwan-Semiconductor/SMBJ6.0A?qs=tHU%2FlV7kTyRCBU6PO0Fllw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.59",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.36",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.23",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.191",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.156",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.112",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.103",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.10",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A",
+       "mouser_pn": "947-SMBJ6.0A",
+       "manufacturer": "Semtech",
+       "stock": 2954,
+       "stock_raw": "2954 In Stock",
+       "lifecycle": "New Product",
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Semtech/SMBJ6.0A?qs=jcD%2FCkGBYeMrOmQOrpYf0w%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.73",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.453",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.292",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.222",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.20",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.167",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.154",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.144",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A",
+       "mouser_pn": "576-SMBJ6.0A",
+       "manufacturer": "Littelfuse",
+       "stock": 8384,
+       "stock_raw": "8384 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "210 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Littelfuse/SMBJ6.0A?qs=HR2RnyOI4E4ONaBgNaR6Ig%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.47",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.224",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.182",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.143",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.121",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.088",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.079",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A",
+       "mouser_pn": "N/A",
+       "manufacturer": "KYOCERA AVX",
+       "stock": null,
+       "stock_raw": "null",
+       "lifecycle": null,
+       "factory_stock": null,
+       "lead_time": "0 Days",
+       "min": "0",
+       "mult": "0",
+       "url": "https://www.mouser.com/en/ProductDetail/KYOCERA-AVX/SMBJ6.0A?qs=cobBaiGw8GP7pfnJ98tBnA%3D%3D",
+       "breaks": [],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A",
+       "mouser_pn": "558-SMBJ6.0A",
+       "manufacturer": "Crydom",
+       "stock": null,
+       "stock_raw": "null",
+       "lifecycle": "Obsolete",
+       "factory_stock": null,
+       "lead_time": "0 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Crydom/SMBJ6.0A?qs=iP%252BIbwRug4GWPaMYgC5xBg%3D%3D",
+       "breaks": [],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-TP",
+       "mouser_pn": "833-SMBJ6.0A-TP",
+       "manufacturer": "Micro Commercial Components (MCC)",
+       "stock": null,
+       "stock_raw": "null",
+       "lifecycle": null,
+       "factory_stock": null,
+       "lead_time": "126 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Micro-Commercial-Components-MCC/SMBJ6.0A-TP?qs=ZNK0BnemlqHUs670MAQspg%3D%3D",
+       "breaks": [],
+       "found_by": "exact",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A/TR13",
+       "mouser_pn": "603-SMBJ6.0A/TR13",
+       "manufacturer": "YAGEO",
+       "stock": 33,
+       "stock_raw": "33 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "114 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/YAGEO/SMBJ6.0A-TR13?qs=PzGy0jfpSMvdyUbPHmZPUw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.40",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.247",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.156",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.116",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.098",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.081",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.077",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.065",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.061",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A/TR7",
+       "mouser_pn": "603-SMBJ6.0A/TR7",
+       "manufacturer": "YAGEO",
+       "stock": 360,
+       "stock_raw": "360 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "114 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/YAGEO/SMBJ6.0A-TR7?qs=UkDUCjYnTB2OelrnZXFC4A%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.37",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.165",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.144",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.106",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.067",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.06",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-W",
+       "mouser_pn": "583-SMBJ6.0A-W",
+       "manufacturer": "Rectron",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "12000",
+       "mult": "3000",
+       "url": "https://www.mouser.com/en/ProductDetail/Rectron/SMBJ6.0A-W?qs=w%2Fv1CP2dgqpYq5sU4hO80g%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 12000,
+         "Price": "$0.092",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.083",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "824520600",
+       "mouser_pn": "710-824520600",
+       "manufacturer": "Wurth Elektronik",
+       "stock": 390,
+       "stock_raw": "390 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "154 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Wurth-Elektronik/824520600?qs=16w8nSHsg3vYKDXdaWEC1w%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.34",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.32",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.286",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.25",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.213",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-E3/5B",
+       "mouser_pn": "625-SMBJ6.0A-E3/5B",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 1701,
+       "stock_raw": "1701 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0A-E3-5B?qs=%252BKsK5HlK7GG8Q56NGH3unw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.54",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.331",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3200,
+         "Price": "$0.116",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6400,
+         "Price": "$0.099",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 22400,
+         "Price": "$0.091",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-HR",
+       "mouser_pn": "576-SMBJ6.0A-HR",
+       "manufacturer": "Littelfuse",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "147 Days",
+       "min": "3000",
+       "mult": "3000",
+       "url": "https://www.mouser.com/en/ProductDetail/Littelfuse/SMBJ6.0A-HR?qs=Lj1LZLjqIN0GD3NMAxQnLQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 3000,
+         "Price": "$15.36",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "P6SMBJ6.0A_R3_00001",
+       "mouser_pn": "241-P6SMBJ60AR300001",
+       "manufacturer": "Panjit",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "182 Days",
+       "min": "800",
+       "mult": "800",
+       "url": "https://www.mouser.com/en/ProductDetail/Panjit/P6SMBJ6.0A_R3_00001?qs=sPbYRqrBIVmqv6eTB1Ij8Q%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 800,
+         "Price": "$0.114",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-HF",
+       "mouser_pn": "750-SMBJ6.0A-HF",
+       "manufacturer": "Comchip Technology",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Comchip-Technology/SMBJ6.0A-HF?qs=T3oQrply3y8Ez6PqT7J4EA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.55",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.338",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.215",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.172",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.145",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.121",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.11",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.104",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.095",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-M3/5B",
+       "mouser_pn": "78-SMBJ6.0A-M35B",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "9600",
+       "mult": "3200",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0A-M3-5B?qs=u%252Bh7cTrMUz%2FEUg11KoKsVQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 9600,
+         "Price": "$0.156",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 22400,
+         "Price": "$0.152",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0AHE3_A/H",
+       "mouser_pn": "78-SMBJ6.0AHE3_A/H",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "7500",
+       "mult": "750",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0AHE3_A-H?qs=wnTfsH77Xs7H9EuaxhjcWA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 7500,
+         "Price": "$0.181",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9750,
+         "Price": "$0.166",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24750,
+         "Price": "$0.153",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "P6SMBJ6.0A-AU_R1_000A1",
+       "mouser_pn": "241-P6SMBJ60AAUR100",
+       "manufacturer": "Panjit",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": "Not Recommended for New Designs",
+       "factory_stock": "0",
+       "lead_time": "182 Days",
+       "min": "800",
+       "mult": "800",
+       "url": "https://www.mouser.com/en/ProductDetail/Panjit/P6SMBJ6.0A-AU_R1_000A1?qs=sPbYRqrBIVkilyDpjD4Siw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 800,
+         "Price": "$0.126",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-H",
+       "mouser_pn": "652-SMBJ6.0A-H",
+       "manufacturer": "Bourns",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Bourns/SMBJ6.0A-H?qs=cnAQGvEIVkL1FSKpd%2FlnqQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.43",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.291",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.168",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.13",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.112",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2000,
+         "Price": "$0.094",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4000,
+         "Price": "$0.088",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.08",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.072",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "MSMBJ6.0A",
+       "mouser_pn": "494-MSMBJ6.0A",
+       "manufacturer": "Microchip Technology",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "245 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Microchip-Technology/MSMBJ6.0A?qs=TXMzd3F6EykQ%252BKLQrlkTPA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$1.26",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "MSMBJ6.0Ae3",
+       "mouser_pn": "494-MSMBJ6.0AE3",
+       "manufacturer": "Microchip Technology",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "259 Days",
+       "min": "900",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Microchip-Technology/MSMBJ6.0Ae3?qs=TXMzd3F6EylMSSlYkBClvQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 900,
+         "Price": "$1.04",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-M3/52",
+       "mouser_pn": "78-SMBJ6.0A-M352",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 9326,
+       "stock_raw": "9326 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0A-M3-52?qs=9h5moqLwYqRMIBn1xql5vw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.75",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.367",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.297",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.227",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 750,
+         "Price": "$0.197",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2250,
+         "Price": "$0.174",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4500,
+         "Price": "$0.16",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9750,
+         "Price": "$0.152",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24750,
+         "Price": "$0.142",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "P6SMBJ6.0A",
+       "mouser_pn": "637-P6SMBJ6.0A",
+       "manufacturer": "Diotec Semiconductor",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "70 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Diotec-Semiconductor/P6SMBJ6.0A?qs=OlC7AqGiEDn01DUp3EFM2g%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.36",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.255",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.178",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.156",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.145",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.074",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 45000,
+         "Price": "$0.066",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-AT/TR13",
+       "mouser_pn": "603-SMBJ6.0A-AT/TR13",
+       "manufacturer": "YAGEO",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "165 Days",
+       "min": "30000",
+       "mult": "3000",
+       "url": "https://www.mouser.com/en/ProductDetail/YAGEO/SMBJ6.0A-AT-TR13?qs=PzGy0jfpSMuakEpfl1%2Fo%2Fw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 30000,
+         "Price": "$0.079",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-T7",
+       "mouser_pn": "576-SMBJ6.0A-T7",
+       "manufacturer": "Littelfuse",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "210 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Littelfuse/SMBJ6.0A-T7?qs=cIziFXvMxOWB5uTVF%252BUw4g%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.35",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.254",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.167",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.136",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "MXSMBJ6.0A/TR",
+       "mouser_pn": "494-MXSMBJ6.0A/TR",
+       "manufacturer": "Microchip Technology",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "259 Days",
+       "min": "100",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Microchip-Technology/MXSMBJ6.0A-TR?qs=T3oQrply3y89ZxiQ9SKf5g%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 100,
+         "Price": "$26.36",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-Q",
+       "mouser_pn": "652-SMBJ6.0A-Q",
+       "manufacturer": "Bourns",
+       "stock": 4824,
+       "stock_raw": "4824 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "140 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Bourns/SMBJ6.0A-Q?qs=T94vaHKWudSvL5MQnNzCxA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.62",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.304",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.241",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.198",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.163",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.138",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.126",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.119",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.113",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-QH",
+       "mouser_pn": "652-SMBJ6.0A-QH",
+       "manufacturer": "Bourns",
+       "stock": 5685,
+       "stock_raw": "5685 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "140 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Bourns/SMBJ6.0A-QH?qs=T94vaHKWudTqUYGX7ijO9A%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.62",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.379",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.242",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.191",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.164",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2000,
+         "Price": "$0.142",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4000,
+         "Price": "$0.122",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.114",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.11",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-AT/TR7",
+       "mouser_pn": "603-SMBJ6.0A-AT/TR7",
+       "manufacturer": "YAGEO",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "165 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/YAGEO/SMBJ6.0A-AT-TR7?qs=PzGy0jfpSMu6JjHKYr%252BgoQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.47",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.317",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.184",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.141",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.121",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.102",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$0.091",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.088",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25000,
+         "Price": "$0.079",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-E3/52",
+       "mouser_pn": "625-SMBJ6.0A-E3",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 3048,
+       "stock_raw": "3048 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "51 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0A-E3-52?qs=%252BKsK5HlK7GG2onVgNe39eA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.50",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.252",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.206",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.115",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 750,
+         "Price": "$0.094",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2250,
+         "Price": "$0.088",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4500,
+         "Price": "$0.086",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0AH",
+       "mouser_pn": "821-SMBJ6.0AH",
+       "manufacturer": "Taiwan Semiconductor",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "161 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Taiwan-Semiconductor/SMBJ6.0AH?qs=lc2O%252BfHJPVarkjaIiP%252B9TA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.59",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.36",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.23",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.191",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.156",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.131",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.12",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.114",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.11",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "ASMBJ6.0A-HF",
+       "mouser_pn": "750-ASMBJ6.0A-HF",
+       "manufacturer": "Comchip Technology",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Comchip-Technology/ASMBJ6.0A-HF?qs=0lSvoLzn4L9720QX98tTfQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.66",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.409",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.263",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.199",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.179",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.152",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.139",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9000,
+         "Price": "$0.135",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.128",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0AHE3_B/H",
+       "mouser_pn": "78-SMBJ6.0AHE3BH",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "7500",
+       "mult": "750",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0AHE3_B-H?qs=amGC7iS6iy9aPEhlGRE2JQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 7500,
+         "Price": "$0.188",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9750,
+         "Price": "$0.18",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24750,
+         "Price": "$0.168",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0AE3/TR13",
+       "mouser_pn": "494-SMBJ6.0AE3/TR13",
+       "manufacturer": "Microchip Technology",
+       "stock": 1010,
+       "stock_raw": "1010 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "168 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Microchip-Technology/SMBJ6.0AE3-TR13?qs=6jAvgNDGUA%252BI2Tl%2FMgtvew%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.25",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.25",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0AQ-13-F",
+       "mouser_pn": "621-SMBJ6.0AQ-13-F",
+       "manufacturer": "Diodes Incorporated",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "224 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Diodes-Incorporated/SMBJ6.0AQ-13-F?qs=Imq1NPwxi74t5sB%252BGggZdg%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.71",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.438",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.282",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.215",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.194",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.169",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "MASMBJ6.0Ae3",
+       "mouser_pn": "494-MASMBJ6.0AE3",
+       "manufacturer": "Microchip Technology",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "294 Days",
+       "min": "200",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Microchip-Technology/MASMBJ6.0Ae3?qs=TXMzd3F6EynwQorUt%252BJQUA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 200,
+         "Price": "$5.39",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "MSMBJ6.0A/TR",
+       "mouser_pn": "494-MSMBJ6.0A/TR",
+       "manufacturer": "Microchip Technology",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "245 Days",
+       "min": "700",
+       "mult": "700",
+       "url": "https://www.mouser.com/en/ProductDetail/Microchip-Technology/MSMBJ6.0A-TR?qs=MLItCLRbWszNaml1epDCrw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 700,
+         "Price": "$1.38",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "P6SMBJ6.0AJ",
+       "mouser_pn": "771-P6SMBJ6.0AJ",
+       "manufacturer": "WeEn Semiconductors",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "196 Days",
+       "min": "24000",
+       "mult": "6000",
+       "url": "https://www.mouser.com/en/ProductDetail/WeEn-Semiconductors/P6SMBJ6.0AJ?qs=T%252BzbugeAwjjERXKT78zR%252BQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 24000,
+         "Price": "$0.048",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-E",
+       "mouser_pn": "576-SMBJ6.0AE",
+       "manufacturer": "Littelfuse",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": "New Product",
+       "factory_stock": "0",
+       "lead_time": "154 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Littelfuse/SMBJ6.0A-E?qs=4dK74SdgGty%252BSkq1jtkJeA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.47",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.31",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.182",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.143",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.121",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.08",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.079",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "SMBJ6.0A-HRA",
+       "mouser_pn": "576-SMBJ6.0A-HRA",
+       "manufacturer": "Littelfuse",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "147 Days",
+       "min": "3000",
+       "mult": "3000",
+       "url": "https://www.mouser.com/en/ProductDetail/Littelfuse/SMBJ6.0A-HRA?qs=Lj1LZLjqIN34Omu3HqVuyA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 3000,
+         "Price": "$12.93",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "P6SMBJ6.0A_R1_00001",
+       "mouser_pn": "241-P6SMBJ60AR10000",
+       "manufacturer": "Panjit",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "84 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Panjit/P6SMBJ6.0A_R1_00001?qs=sPbYRqrBIVlLHzCWeN7ahQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.49",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.312",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.19",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.168",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 800,
+         "Price": "$0.155",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2400,
+         "Price": "$0.089",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4800,
+         "Price": "$0.088",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9600,
+         "Price": "$0.084",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24800,
+         "Price": "$0.08",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "P6SMBJ6.0A_R2_00001",
+       "mouser_pn": "241-P6SMBJ60AR20000",
+       "manufacturer": "Panjit",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "182 Days",
+       "min": "3000",
+       "mult": "3000",
+       "url": "https://www.mouser.com/en/ProductDetail/Panjit/P6SMBJ6.0A_R2_00001?qs=sPbYRqrBIVme2FO6UPRprQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 3000,
+         "Price": "$0.111",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0AHM3_B/H",
+       "mouser_pn": "78-SMBJ6.0AHM3BH",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "7500",
+       "mult": "750",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0AHM3_B-H?qs=amGC7iS6iy8lplnnWnQ5Gw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 7500,
+         "Price": "$0.204",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9750,
+         "Price": "$0.194",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24750,
+         "Price": "$0.181",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0AHM3_B/I",
+       "mouser_pn": "78-SMBJ6.0AHM3BI",
+       "manufacturer": "Vishay Semiconductors",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "0 Days",
+       "min": "6400",
+       "mult": "3200",
+       "url": "https://www.mouser.com/en/ProductDetail/Vishay-Semiconductors/SMBJ6.0AHM3_B-I?qs=amGC7iS6iy%252BXjDzhMxqLZA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 6400,
+         "Price": "$0.204",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9600,
+         "Price": "$0.194",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 22400,
+         "Price": "$0.181",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      },
+      {
+       "mfr_mpn": "SMBJ6.0AJ",
+       "mouser_pn": "771-SMBJ6.0AJ",
+       "manufacturer": "WeEn Semiconductors",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "196 Days",
+       "min": "24000",
+       "mult": "6000",
+       "url": "https://www.mouser.com/en/ProductDetail/WeEn-Semiconductors/SMBJ6.0AJ?qs=aP1CjGhiNiHUQM9HtxR7VQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 24000,
+         "Price": "$0.06",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": false
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 9093,
+     "record": {
+      "lcsc": "C83270",
+      "designators": "D1",
+      "qty": 1,
+      "status": "OK",
+      "stock": 9093,
+      "type": "expand",
+      "mpn": "SMBJ6.0A",
+      "manufacturer": "Littelfuse"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C83270"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "STM32C011F4P6",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "STMicroelectronics",
+   "type": "32_bit_microcontroller",
+   "lcsc": "C5452432",
+   "qty": 5,
+   "refs": "candidate: U2",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 12996 is the whole near-term supply: FactoryStock 0, lead 364 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "STM32C011F4P6",
+      "mouser_pn": "511-STM32C011F4P6",
+      "manufacturer": "STMicroelectronics",
+      "stock": 12996,
+      "stock_raw": "12996 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "364 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/STMicroelectronics/STM32C011F4P6?qs=IPgv5n7u5Qbo1GzhbgPEPw%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$1.18",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.853",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 25,
+        "Price": "$0.698",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.662",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 250,
+        "Price": "$0.65",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 500,
+        "Price": "$0.584",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$0.552",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2960,
+        "Price": "$0.497",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 5920,
+        "Price": "$0.454",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 3,
+     "unit_price": 1.18,
+     "break_qty": 1,
+     "below_first_break": false,
+     "ext_price": 5.9,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "STM32C011F4P6",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "STM32C011F4P6",
+       "opt": "None",
+       "hits": 3,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "STM32C011F4P6",
+       "mouser_pn": "511-STM32C011F4P6",
+       "manufacturer": "STMicroelectronics",
+       "stock": 12996,
+       "stock_raw": "12996 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "364 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/STMicroelectronics/STM32C011F4P6?qs=IPgv5n7u5Qbo1GzhbgPEPw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$1.18",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.853",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.698",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.662",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.65",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.584",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.552",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2960,
+         "Price": "$0.497",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5920,
+         "Price": "$0.454",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "STM32C011F4P6TR",
+       "mouser_pn": "511-STM32C011F4P6TR",
+       "manufacturer": "STMicroelectronics",
+       "stock": null,
+       "stock_raw": "null",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "364 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/STMicroelectronics/STM32C011F4P6TR?qs=rQFj71Wb1eU48EtEP%2Fi%2F4A%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$1.49",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.952",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.80",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.653",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.598",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.529",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.497",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.45",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "STM32C011F4U6TR",
+       "mouser_pn": "511-STM32C011F4U6TR",
+       "manufacturer": "STMicroelectronics",
+       "stock": null,
+       "stock_raw": "null",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "364 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/STMicroelectronics/STM32C011F4U6TR?qs=IPgv5n7u5Qao9K%252BX0pScKA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$1.26",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.836",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.702",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.605",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.575",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.511",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.497",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.447",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 1394,
+     "record": {
+      "lcsc": "C5452432",
+      "designators": "U2",
+      "qty": 1,
+      "status": "OK",
+      "stock": 1394,
+      "type": "expand",
+      "mpn": "STM32C011F4P6",
+      "manufacturer": "STMicroelectronics"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C5452432"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "TPD2E2U06DRLR",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Texas Instruments",
+   "type": "dual_channel_esd_protection",
+   "lcsc": "C1972959",
+   "qty": 5,
+   "refs": "candidate: U4",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 73918 is the whole near-term supply: FactoryStock 0, lead 112 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "TPD2E2U06DRLR",
+      "mouser_pn": "595-TPD2E2U06DRLR",
+      "manufacturer": "Texas Instruments",
+      "stock": 73918,
+      "stock_raw": "73918 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "112 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/Texas-Instruments/TPD2E2U06DRLR?qs=1MXlzafEN39QPVHZrdAIIQ%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.97",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.456",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.392",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 500,
+        "Price": "$0.301",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$0.285",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2000,
+        "Price": "$0.262",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 4000,
+        "Price": "$0.219",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 8000,
+        "Price": "$0.202",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 24000,
+        "Price": "$0.194",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 2,
+     "unit_price": 0.97,
+     "break_qty": 1,
+     "below_first_break": false,
+     "ext_price": 4.85,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "TPD2E2U06DRLR",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "TPD2E2U06DRLR",
+       "opt": "None",
+       "hits": 2,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "TPD2E2U06DRLR",
+       "mouser_pn": "595-TPD2E2U06DRLR",
+       "manufacturer": "Texas Instruments",
+       "stock": 73918,
+       "stock_raw": "73918 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Texas-Instruments/TPD2E2U06DRLR?qs=1MXlzafEN39QPVHZrdAIIQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.97",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.456",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.392",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.301",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.285",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2000,
+         "Price": "$0.262",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4000,
+         "Price": "$0.219",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 8000,
+         "Price": "$0.202",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.194",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "TPD2E2U06DRLRG4",
+       "mouser_pn": "595-TPD2E2U06DRLRG4",
+       "manufacturer": "Texas Instruments",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": "New Product",
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "4000",
+       "mult": "4000",
+       "url": "https://www.mouser.com/en/ProductDetail/Texas-Instruments/TPD2E2U06DRLRG4?qs=2FehpBK1j97%252B75RoKIUB1Q%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 4000,
+         "Price": "$0.289",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 8000,
+         "Price": "$0.277",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 24000,
+         "Price": "$0.272",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 10694,
+     "record": {
+      "lcsc": "C1972959",
+      "designators": "U4",
+      "qty": 1,
+      "status": "OK",
+      "stock": 10694,
+      "type": "expand",
+      "mpn": "TPD2E2U06DRLR",
+      "manufacturer": "Texas Instruments"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C1972959"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  },
+  {
+   "mpn": "TPS7A2433DBVR",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Texas Instruments",
+   "type": "linear_ldo_regulator",
+   "lcsc": "C2866134",
+   "qty": 5,
+   "refs": "candidate: U3",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "SUBSTITUTE-ONLY",
+     "grade": "CITED",
+     "records": 3,
+     "why": "Q-IDENT: nothing in stock under the authoritative MPN. In stock under NEIGHBOURING part numbers: TPS78833DBVT (16495 in stock), TPS71433DRVR (11865 in stock). A near MPN is a PROPOSAL for a human, never a sourced line \u2014 this tool will not substitute",
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "TPS7A2433DBVR",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "TPS7A2433DBVR",
+       "opt": "None",
+       "hits": 3,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "TPS7A2433DBVR",
+       "mouser_pn": "595-TPS7A2433DBVR",
+       "manufacturer": "Texas Instruments",
+       "stock": null,
+       "stock_raw": "null",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Texas-Instruments/TPS7A2433DBVR?qs=wnTfsH77Xs7ROpwa%2Fm0jWA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.68",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.476",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.427",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.373",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.347",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.332",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.319",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.304",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.296",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "TPS78833DBVT",
+       "mouser_pn": "595-TPS78833DBVT",
+       "manufacturer": "Texas Instruments",
+       "stock": 16495,
+       "stock_raw": "16495 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Texas-Instruments/TPS78833DBVT?qs=0O%2FZFlpUpJXT5NukC%2F9fFQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$2.90",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$1.49",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$1.39",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$1.35",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$1.34",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$1.31",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "TPS71433DRVR",
+       "mouser_pn": "595-TPS71433DRVR",
+       "manufacturer": "Texas Instruments",
+       "stock": 11865,
+       "stock_raw": "11865 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/Texas-Instruments/TPS71433DRVR?qs=7IaIRco65pmI%2F414prCZ6Q%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$1.12",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.806",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.728",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.642",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.601",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$0.577",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.564",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 3000,
+         "Price": "$0.479",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 6000,
+         "Price": "$0.475",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "distributor": "digikey",
+     "url": "https://www.digikey.com/en/products/detail/texas-instruments/TPS7A2433DBVR/11502221",
+     "dpn": "296-TPS7A2433DBVRCT-ND",
+     "read_on": "2026-08-13",
+     "manufacturer": "Texas Instruments",
+     "manufacturer_match": true,
+     "status": "OK",
+     "grade": "CITED",
+     "stock": 23268,
+     "unit_price": 0.67,
+     "break_qty": 1,
+     "min": null,
+     "mult": null,
+     "ext_price": 3.35,
+     "lifecycle": "Active",
+     "why": "note: Exact TI orderable MPN on the DigiKey product page; TI separately reports the part active. Stock is a dated observation and must be refreshed before ordering."
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 20000,
+     "record": {
+      "lcsc": "C2866134",
+      "designators": "U3",
+      "qty": 1,
+      "status": "OK",
+      "stock": 20000,
+      "type": "expand",
+      "mpn": "TPS7A2433DBVR",
+      "manufacturer": "Texas Instruments"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C2866134"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "digikey"
+   ],
+   "rejected_pools": {
+    "mouser": "Q-IDENT: nothing in stock under the authoritative MPN. In stock under NEIGHBOURING part numbers: TPS78833DBVT (16495 in stock), TPS71433DRVR (11865 in stock). A near MPN is a PROPOSAL for a human, never a sourced line \u2014 this tool will not substitute"
+   }
+  },
+  {
+   "mpn": "USB4105-GF-A-120",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "GCT",
+   "type": "usb_type_c_receptacle_power_only",
+   "lcsc": "C5184243",
+   "qty": 5,
+   "refs": "candidate: J1",
+   "reasons": [],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 95421 is the whole near-term supply: FactoryStock 0, lead 49 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "USB4105-GF-A-120",
+      "mouser_pn": "640-USB4105-GF-A-120",
+      "manufacturer": "GCT",
+      "stock": 95421,
+      "stock_raw": "95421 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "49 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/GCT/USB4105-GF-A-120?qs=QNEnbhJQKva%252Bjxw%2FpEjDhQ%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.93",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.81",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 25,
+        "Price": "$0.741",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.668",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 250,
+        "Price": "$0.61",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 800,
+        "Price": "$0.505",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2400,
+        "Price": "$0.474",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 4800,
+        "Price": "$0.451",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 9600,
+        "Price": "$0.43",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true,
+      "is_same_manufacturer": true
+     },
+     "records": 2,
+     "unit_price": 0.93,
+     "break_qty": 1,
+     "below_first_break": false,
+     "ext_price": 4.65,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "USB4105-GF-A-120",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "USB4105-GF-A-120",
+       "opt": "None",
+       "hits": 2,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "USB4105-GF-A-120",
+       "mouser_pn": "640-USB4105-GF-A-120",
+       "manufacturer": "GCT",
+       "stock": 95421,
+       "stock_raw": "95421 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "49 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/GCT/USB4105-GF-A-120?qs=QNEnbhJQKva%252Bjxw%2FpEjDhQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.93",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.81",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.741",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.668",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.61",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 800,
+         "Price": "$0.505",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2400,
+         "Price": "$0.474",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 4800,
+         "Price": "$0.451",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 9600,
+         "Price": "$0.43",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true,
+       "is_same_manufacturer": true
+      },
+      {
+       "mfr_mpn": "USB4105-15-A-120",
+       "mouser_pn": "640-USB410515A120",
+       "manufacturer": "GCT",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "35 Days",
+       "min": "21600",
+       "mult": "800",
+       "url": "https://www.mouser.com/en/ProductDetail/GCT/USB4105-15-A-120?qs=Li%252BoUPsLEnvmAzMIJvmFxA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 21600,
+         "Price": "$0.484",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false,
+       "is_same_manufacturer": true
+      }
+     ]
+    },
+    "digikey": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    },
+    "jlc": {
+     "status": "OK",
+     "grade": "CITED",
+     "manufacturer_match": true,
+     "stock": 3655,
+     "record": {
+      "lcsc": "C5184243",
+      "designators": "J1",
+      "qty": 1,
+      "status": "OK",
+      "stock": 3655,
+      "type": "expand",
+      "mpn": "USB4105-GF-A-120",
+      "manufacturer": "Global Connector Technology"
+     },
+     "why": "",
+     "url": "https://jlcpcb.com/parts/componentSearch?searchTxt=C5184243"
+    }
+   },
+   "authorized_pools": [
+    "jlc",
+    "mouser"
+   ],
+   "rejected_pools": {
+    "digikey": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+   }
+  }
+ ],
+ "failures": [
+  {
+   "mpn": "0603L010YR",
+   "qty": 5,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "0603L010YR",
+   "qty": 5,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "901-143-6RFX",
+   "qty": 45,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "CL05B104KO5NNNC",
+   "qty": 15,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "CL05B104KO5NNNC",
+   "qty": 15,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "CL10A475KO8NNNC",
+   "qty": 15,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "CL10A475KO8NNNC",
+   "qty": 15,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "PE42482A-X",
+   "qty": 5,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "PE42482A-X",
+   "qty": 5,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "RC0402FR-0710KL",
+   "qty": 20,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "RC0402FR-0710KL",
+   "qty": 20,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "RC0402FR-075K1L",
+   "qty": 10,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "RC0402FR-075K1L",
+   "qty": 10,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "SMBJ6.0A",
+   "qty": 5,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "SMBJ6.0A",
+   "qty": 5,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "STM32C011F4P6",
+   "qty": 5,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "STM32C011F4P6",
+   "qty": 5,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "TPD2E2U06DRLR",
+   "qty": 5,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "TPD2E2U06DRLR",
+   "qty": 5,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "TPS7A2433DBVR",
+   "qty": 5,
+   "distributor": "mouser",
+   "status": "SUBSTITUTE-ONLY",
+   "why": "Q-IDENT: nothing in stock under the authoritative MPN. In stock under NEIGHBOURING part numbers: TPS78833DBVT (16495 in stock), TPS71433DRVR (11865 in stock). A near MPN is a PROPOSAL for a human, never a sourced line \u2014 this tool will not substitute"
+  },
+  {
+   "mpn": "TPS7A2433DBVR",
+   "qty": 5,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "USB4105-GF-A-120",
+   "qty": 5,
+   "distributor": "digikey",
+   "status": "NO-QUOTE",
+   "why": "no digikey quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; the DigiKey API would replace this \u2014 see the enablement steps at the end of the report"
+  },
+  {
+   "mpn": "USB4105-GF-A-120",
+   "qty": 5,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  }
+ ],
+ "single_source": [],
+ "methods": {
+  "mouser": "Mouser Search API (search/partnumber). TWO searches per part: `Exact` on the authoritative MPN, then `None` on the suffix-stripped MPN \u2014 one part has several catalog records and they disagree. CITED.",
+  "digikey": "PRODUCT PAGE read by a human and recorded in 01_docs/sourcing/manual_quotes.yaml. No API key available (OAuth client credentials not provided). CITED from a product page; a search snippet is REFUSED.",
+  "amazon": "Direct product links only, hand-recorded. No usable API (PA-API needs an affiliate account). ESTIMATED, always \u2014 stock and price are volatile and unverifiable."
+ },
+ "unparsed": [],
+ "required_pools": 2,
+ "eligible_pools": [
+  "jlc",
+  "mouser",
+  "digikey"
+ ],
+ "pool_failures": [],
+ "jlc_coverage": {
+  "graded": 12,
+  "ok": 11,
+  "total": 12
+ },
+ "generated": "2026-08-13 17:13 UTC",
+ "mouser_calls": 0,
+ "key_provenance": "<repo>/.secrets/mouser.env",
+ "verdict": "PASS"
+}

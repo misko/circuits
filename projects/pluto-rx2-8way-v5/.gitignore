@@ -1,5 +1,7 @@
 06_build/*
 !06_build/contracts.md
+!06_build/checkpoints/
+!06_build/checkpoints/*.json
 
 *.kicad_pcb-bak
 *.kicad_sch-bak

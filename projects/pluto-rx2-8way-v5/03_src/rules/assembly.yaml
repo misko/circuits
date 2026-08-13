@@ -3,9 +3,13 @@ service: JLCPCB_PCBA
 sides: [top]
 fiducials: {global_top: 3, local_required_for_0_5mm_QFN: true}
 build_quantity: 5_first_articles
-not_assembled: [TP1, TP2, TP3, TP4, TP5]
+not_assembled:
+  - refs: [TP1, TP2, TP3, TP4, TP5]
+    reason: test_point
+    evidence: "2026-08-13 design declaration: TP1-TP5 are exposed copper programming/test pads, not purchased components and therefore have no placement line"
+    disposition: "fabricated as bare board pads; probe during programming and bring-up"
 consigned: []
-exempt_prefixes: [TP, FID, MH]
+exempt_prefixes: [FID, MH]
 
 assembly_scope:
   smt: turnkey_JLC
@@ -24,8 +28,7 @@ sourcing_plan:
   - {function: VBUS_TVS, part: SMBJ6.0A, lcsc: C83270, refs: [D1]}
   - {function: Type_C_Rd, part: RC0402FR-075K1L, lcsc: C105872, refs: [R1, R2]}
   - {function: switch_bias, part: RC0402FR-0710KL, lcsc: C60490, refs: [R3, R4, R5, R6]}
-  - {function: protected_input_cap, part: CL10A475KO8NNNC, lcsc: C19666, refs: [C1]}
-  - {function: rail_bulk_caps, part: CL10A475KP8NNNC, lcsc: C1705, refs: [C2, C3]}
+  - {function: protected_input_and_rail_bulk_caps, part: CL10A475KO8NNNC, lcsc: C19666, refs: [C1, C2, C3]}
   - {function: bypass_and_reset_caps, part: CL05B104KO5NNNC, lcsc: C1525, refs: [C4, C5, C6]}
 
 order_time_requirements:

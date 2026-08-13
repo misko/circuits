@@ -9,4 +9,4 @@ limits: {resistance: 5.1kOhm, tolerance: 1pct, power_70C: 62.5mW, voltage: 50V, 
 asserts:
   - {assert: value, equals: 5.1k, tolerance_pct: 1, why: "each USB Type-C sink CC pin requires its own 5.1k Rd and the selected exact code is 1 percent"}
 verified: "exact generated Yageo specsheet checked for value, tolerance, power, voltage, dimensions and temperature on 2026-08-13"
-sourcing: {lcsc: C105872, jlc_observed_stock: 2354572, jlc_observed: 2026-08-13, second_source: "DigiKey 311-5.10KLRCT-ND, 192824 observed in stock 2026-08-13"}
+sourcing: {lcsc: C105872}

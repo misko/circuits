@@ -82,9 +82,9 @@ rationale.
 | IMP-066 | Confirm broad-phase geometry findings with native transformed polygons | completed | Pluto RX2 8-way legacy canary replay |
 | IMP-067 | Prevent executable example values from entering new-project scaffolds | proposed | Pluto RX2 8-way v5 commission |
 | IMP-068 | Coordinate protection before freezing downstream voltage ratings | proposed | Pluto RX2 8-way v5 exact-parts stage |
-| IMP-069 | Derive stage readiness from canonical gate receipts | proposed | Pluto RX2 8-way v5 pre-schematic audit |
+| IMP-069 | Derive stage readiness from canonical gate receipts | implementing | Pluto RX2 8-way v5 pre-schematic audit |
 | IMP-070 | Mechanically scope clean-room filesystem discovery | proposed | Pluto RX2 8-way v5 clean-room audit |
-| IMP-071 | Derive observable timing from executable state schedules | proposed | Pluto RX2 8-way v5 control-protocol audit |
+| IMP-071 | Derive observable timing from executable state schedules | implementing | Pluto RX2 8-way v5 control-protocol audit |
 | IMP-072 | Classify committed binary evidence in the canonical scaffold | proposed | Pluto RX2 8-way v5 checkpoint commit |
 
 ## IMP-001 — pre-build rule/config schema validation
@@ -129,10 +129,24 @@ rationale.
   denominator when that family is authored, convert malformed input to a
   concise failure rather than a traceback, and refuse TSX when any family is
   ungraded. The four v5 shapes above become executable known-bads.
+- implementation progress: the electrical-invariant reader now has an
+  explicit source-only mode and configurable non-zero minimum; label survival
+  rejects unknown keys and empty pin-map declarations; assembly projection
+  shape failures are bounded diagnostics rather than tracebacks; and the RF
+  reader accepts an explicitly evidenced `pending_solver` cross-section before
+  PCB work while refusing it at PCB/fab review. The canonical full-build
+  template invokes the new source checks before TSX. Focused clean/known-bad
+  regressions for these readers and control timing pass 108 tests. Assembly,
+  control-protocol and RF now have canonical key/reader tables; the repository
+  ratchet reports 604/604 declared keys, 508 proven, zero orphan and zero
+  unread. `mates.yaml`, `twin_adjudications.yaml`, a complete stage registry
+  and preflight of the findings ledger remain open.
 - history:
   - 2026-08-11 — proposed and promoted from the schematic journal.
   - 2026-08-11 — implementation started with pre-producer label-survival and
     electrical schema gates; V4 passed before its 9.1-second TSX invocation.
+  - 2026-08-13 — v5's four source-reader failures were converted into bounded,
+    non-vacuous pre-TSX checks and executable regression fixtures.
 
 ## IMP-003 — pre-generation footprint resolution
 
@@ -1940,6 +1954,17 @@ rationale.
   a narrative qualification. Candidate-BOM, assembly population and dossier
   code sets must be derived or checked for exact identity rather than maintained
   as three ungoverned lists.
+- follow-up result: v5's first composed run failed 3/13. Removing the already
+  rejected 10-V capacitor dossier, consolidating C1-C3 on the qualified 16-V
+  code and adding current exact DigiKey product-page observations produced a
+  parseable 12/12 Q-2SOURCE pass. Volatile stock prose was removed from all
+  retained dossiers. This repairs v5 but does not yet implement the generic
+  candidate-BOM hash/set-identity gate.
+- diagnostic follow-up: in composed-pool mode the shopping tool still prints
+  `FAIL NO-QUOTE` for non-required distributors (especially Amazon) before its
+  final 12/12 PASS. Preserve each pool's coverage details, but label unavailable
+  optional pools as diagnostics rather than gate failures so a successful
+  composite verdict is not visually contradictory.
 
 ## IMP-062 — transactional generated-artifact bundles
 
@@ -2285,7 +2310,7 @@ Recommended execution order for future boards:
 
 ## IMP-069 — derive stage readiness from canonical gate receipts
 
-- status: proposed
+- status: implementing
 - observed: Pluto RX2 8-way v5 pre-schematic audit, 2026-08-13
 - evidence: `requirements.yaml` and the project status described architecture,
   interface and exact-parts work as complete, while the canonical electrical-
@@ -2312,6 +2337,23 @@ Recommended execution order for future boards:
 - recommendation: address before resuming v5 schematic generation. This is the
   umbrella fix that prevents several individually cheap contract mismatches
   from becoming a misleading stage-level green claim.
+- implementation progress: v5 now has a canonical `findings.yaml`, a dated
+  source-audit receipt with coverage and timing, a 50-file byte-identity
+  checkpoint, and a derived `DRAFT` maturity
+  instead of relying on the old completion booleans. Generic readers now emit
+  bounded/non-vacuous source verdicts for the failures that exposed this gap,
+  and the rebuild template invokes them before TSX. The generic stage registry,
+  subject hashes, freshness checking and receipt-to-`project_state.py`
+  composition remain outstanding; therefore this is not complete.
+- implementation note: source-phase policy currently imports PCB machinery and
+  emits KiCad property assertions even though its two source rows pass. A stage
+  registry should phase-lazy-load dependencies so source receipts are quiet,
+  fast and free of irrelevant PCB initialization.
+- history:
+  - 2026-08-13 — proposed from the v5 false-green checkpoint.
+  - 2026-08-13 — implementation began with bounded source readers, a v5
+    findings ledger, a dated source receipt and a 50-file checkpoint; three
+    rule families were promoted into the schema/reader ratchet.
 
 ## IMP-070 — mechanically scope clean-room filesystem discovery
 
@@ -2341,7 +2383,7 @@ Recommended execution order for future boards:
 
 ## IMP-071 — derive observable protocol timing from executable state schedules
 
-- status: proposed
+- status: implementing
 - observed: Pluto RX2 8-way v5 dwell-protocol review, 2026-08-13
 - evidence: the declared 500 ms marker body was immediately followed by a 5 ms
   guard in the same switch state, so a downstream observer sees one contiguous
@@ -2363,6 +2405,18 @@ Recommended execution order for future boards:
 - recommendation: land before firmware generation or downstream decoder work.
   It is conditional process machinery, not a burden for boards without an
   observable timing protocol.
+- implementation progress: `control_protocol_check.py` now derives contiguous
+  observable runs, active-state windows, marker duration, cycle time and
+  guaranteed capture from the atomic schedule; it rejects derived-value drift,
+  overlapping windows and decoder contracts without explicit unknown outcomes.
+  The canonical rebuild template runs it before TSX and executable fixtures
+  cover a clean v5 contract, the original 500+5 marker mismatch, overlap,
+  derived drift and no-signal decoder behavior. Firmware/decoder integration
+  and an explicit truncated-capture end-to-end fixture remain before closure.
+- history:
+  - 2026-08-13 — proposed from the adjacent ALL_OFF marker/guard ambiguity.
+  - 2026-08-13 — implementation began with a generic source checker, template
+    gate and regression suite; v5 passes at marker 505 ms/cycle 2160 ms.
 
 ## IMP-072 — classify committed binary evidence in the canonical scaffold
 

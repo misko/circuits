@@ -15,6 +15,7 @@ belongs here.
 | `rf.yaml` | RF applicability and exact-artifact review contract, schema 1. REQUIRED on new projects even when `rf.enabled: false` (with rationale). When true it declares risk basis, ports/bands/Z0, solved cross-sections, numeric performance claims, first-article measurements/acceptance, and non-empty requirement-ID sets plus artifact/review paths for the independent RF schematic, PCB, and plotted-fab phases. Graded by `rf_contract_check.py`; zero/partial review coverage and stale artifact hashes fail. |
 | `nets.yaml` | net classes: nets, current, intent, min_width, routing strategy, verify, scoped exemptions; `fab_tier` (capability floors for the generic backend); `scoped_floors` (insideArea width relaxations, `why` REQUIRED); `scoped_clearances` (insideArea ISOLATION relaxations, `nets` + `why` REQUIRED, bounded on BOTH sides of the pair); **`length_match`** (canon R-LEN: REALIZED-COPPER matched groups, the ONE machine-readable home for "these paths must have the same length and here is why" — see `## Structure: nets.yaml length_match` below) |
 | `electrical_invariants.yaml` | design-INTENT assertions the netlist must satisfy (canon E-INV): `pin_on_net`, `series_chain`, `net_has_part`, **`part_value`**, **`node_level`**. Each REQUIRES `adr:` (the ADR that emitted it) + `why:`. **`adr:` MUST BE QUOTED — `adr: "0011"`, or unpadded `adr: 11`.** A bare zero-padded reference is a YAML 1.1 OCTAL literal and the loader REJECTS it: `adr: 0011` becomes the integer 9 and re-pads to `"0009"`, `adr: 0012` -> `"0010"`, `adr: 0010` -> `"0008"`, `adr: 0020` -> `"0016"`, while `adr: 0008`/`0009` survive as strings only because 8 and 9 are not octal digits. That is not a SKIP — the invariant silently satisfies the WRONG ADR and E-ADR credits a document that emitted nothing. The rejection is written at the width of the class (canon M-WIDTH): every unquoted zero-padded `adr:` is refused, including the ones that happen to survive, because which are safe is a fact about the digits and not about the schema. It is a REJECTION rather than a coercion because coercion is impossible after the fact — by the time `yaml.safe_load()` returns, `adr: 0011` and `adr: 9` are the same object and the padding is gone; the check runs on the composed NODE, which still carries the scalar's quoting style. Measured 2026-07-27: this template itself and the board seeded from it both wrote `adr: 0011` and both resolved it to `0009`. **`part_value` `{part, min\|max\|equals (+tolerance_pct), adr, why}` pins a PARAMETER, which the other three cannot** — they pin TOPOLOGY, and an invariant that pins a component's EXISTENCE does not pin its VALUE. smc0985-cooksense 2026-07-25: the WD_PET safety fix landed a 100k watchdog pull-down where TI SLVS165O bounds it at 5.2k (I_IL 190uA max x R < V_IL 0.99V), silently disabling the supervisor on a cooking-contactor interlock — and ALL THREE assertions that shipped with that fix (one `net_has_part`, two `pin_on_net`) PASS on the 100k netlist, because the resistor does exist, on the right nets. Values are read from the netlist's own `(comp (value ...))` and decoded as SI, so `1k`/`1kOhm`/`1kΩ`/`4k7`/`0R1` are one number — note `m` is MILLI and `M` is MEGA, and an UNDECODABLE value is a FAIL, never a skip. At least one bound is REQUIRED: an assertion naming a part and bounding nothing is the exact gap this kind closes. **`node_level` `{net, receiver: REF.PIN, driver_state: released\|contended, must_be: logic_high\|logic_low, adr, why}` pins the OUTCOME, which `part_value` still cannot** — a value that is RIGHT can leave the node DEAD. smc0985-cooksense v1.7 2026-07-29: a divider taking `U_EXP.1` off a 5 V node was sized as if `EFUSE_FLT_N` were a stiff 5 V source; it is OPEN-DRAIN behind `R_PG` 100k, so the chain is 100k+10k over 22k and the pin sat at **0.833 V against a 2.640 V threshold** — the fault readback was dead, and **E-INV passed 136/136** because the assertions said the resistors EXISTED at the right values. Resolves the DC path through RESISTORS ONLY (a first run crossed a 220uF cap and printed a confident wrong 2.500 V); needs a top-level `supplies: {NET: volts}` map and an `electrical:` block on the RECEIVER's `02_parts` dossier. **Every net named in `supplies:` MUST EXIST in the netlist and the loader REJECTS one that does not, naming the near-miss.** cooksense 2026-07-29: `supplies: {N3V3: 3.3}` declared the tsx AUTHOR-PREFIX form of a net the netlist calls `3V3`, the grader filters supplies to nets it can see, and so the 3V3 rail was INVISIBLE to every `node_level` grade on the board. A misnamed rail does not announce itself — it either downgrades the verdict to UNREACHED for the WRONG REASON (the pre-fix message read "no supply rail voltages declared — add `supplies:`" on a board that had declared it, sending the author to write a block they had already written), or, when a second rail does resolve, lets that one win the shortest-path search and reports a CONFIDENT WRONG VOLTAGE with nothing in the output to distinguish it from a correct board. Graded whenever `supplies:` is present at all, not only when a grade comes up short (canon M-WIDTH); no path to GND means PULLED TO THE RAIL, no path to a rail is UNREACHED, a receiver with no thresholds is UNREACHED — never a default (M-COVER). Emitted by protection/topology ADRs; graded by `electrical_invariants.py`. OPTIONAL top-level `label_survival:` block (canon S-NETMERGE, graded by `net_label_survival.py` — the schematic net-merge gate; the generic every-global-label-survives-to-the-netlist check is ALWAYS ON with or without this block): `exempt:` labels allowed to be absent, each REQUIRES `why:` evidence (canon M4); `pin_map:` board-specific pin-for-pin net assertions `{refs, n_start, pins: {pin: pattern-with-{n}}, unconnected}` — the crow-recorder net-merge class (P5VA_4→AUDIO4M, MID2P→5V: two DO-NOT-ORDER defects, every self-consistent gate green, 2026-07-23) |
+| `control_protocol.yaml` | OPTIONAL timing-coded state protocol. `control_protocol_check.py` derives active windows, merged observable marker duration, cycle time and minimum guaranteed capture from one atomic schedule; it rejects overlapping windows, handwritten derived-value drift, a marker body adjacent to the same-state guard but counted separately, and decoders that do not return `unknown` for absent/ambiguous/incomplete observations. Run source-only before firmware, TSX or downstream decoder work. |
 | `power_tree.yaml` | per-rail voltage ENVELOPES + converter selection, graded by `power_topology.py` for E-TOPO / E-MARGIN / E-OFF. REQUIRED per rail: `{name, vin_min, vin_max, vout_min, vout_max, iout_max_A, converter, eff}` — topology DERIVED from Vin-vs-Vout (buck/boost/buck_boost) asserted against the converter part.yaml `type:`, over-capable = over-engineering FAIL (E-TOPO). **THIS FILE IS NOT OPTIONAL WHEN THE BOARD HAS A CONVERTER.** E-TOPO takes its N-A only when `02_parts` declares NO buck/boost/buck_boost/linear part — an independent artifact written by a different stage (canon M1), because until 2026-07-27 the gate asked the power tree whether there was anything to grade and believed it. An ABSENT file, or `rails: []`, with a converter present is `0/N converters graded` and a FAIL; a rails list that omits SOME of `02_parts`' converters is reported as `UNGRADED CONVERTERS: k of N` and fails too. Measured on landing: usb-hub-3s — the board whose IP6559 buck-boost MOTIVATED E-TOPO — had no power_tree.yaml and had never been graded by it. **LINEAR CONVERTERS.** A linear regulator (part.yaml `type:` matching `ldo`/`linear`/`low-dropout`) is NOT a fourth topology; it is one IMPLEMENTATION of a step-down requirement, so the derivation is unchanged: required BUCK is MET, required BOOST or BUCK_BOOST is a cannot-meet FAIL (it cannot step up, and an overlapping Vin envelope means it drops out somewhere in the range). It is then graded on the two failure modes the derivation cannot see — `vin_min - vout_max >= dropout_mv` and `(vin_max - vout_min) * iout_max_A <= pdiss_max_mw`, both REQUIRED from the converter's part.yaml (see the 02_parts contract) or overridden per rail as OPTIONAL `dropout_mv:` / `pdiss_max_mw:`. A linear rail's INPUT CURRENT is `iout`, not `Pout/eff/Vin`: the pass element is in series with the load, so `eff` does not enter the trunk-current sum for it. OPTIONAL per rail: `load_uv_threshold`, `ir_budget_mohm`, `margin`, and `feedback:`. Feedback always declares divider values/tolerances and uses exactly one reference form: symmetric `{vref, vref_tol_pct}` or exact asymmetric `{vref_min, vref_max}`; optional `{fb_bias_current_min_nA, fb_bias_current_max_nA}` adds the datasheet input-bias corners. The checker computes `Vout=Vref*(1+Rtop/Rbottom)+Ibias*Rtop`, rejects understated declared windows, and grades E-MARGIN from computed worst-low. OPTIONAL top-level: `source_type` / `off_control` / `quiescent_ua` / `pack_capacity_mah`, `ir_floor_mohm`. |
 | `requirements.yaml` | D-SPEC/E-PATH external-output contract: connector count, simultaneous load, current, voltage window, duty, measurement plane, included/excluded path elements, and linked `power_tree.yaml` claim. Empty boards explicitly state `no_external_power_outputs`. Graded by `early_design_check.py` before schematic review. |
 | `power_stages.yaml` | E-SWDRV switching-stage compatibility: controller minimum gate-drive capability, bias, frequency, MOSFET population, maximum/qualified-maximum gate charge, and schema-2 worst-case cycle-by-cycle current-limit/ripple/path-rating proof. Empty boards explicitly state `no_external_gate_drive_stages`. Graded before layout. |
@@ -630,6 +631,124 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `power_claims` | `early_design_check.py` | complete set of external power-output promises |
 | `power_claims[].*` | `early_design_check.py` | ID, rail, connector count, simultaneous count, current, voltage, duty, measurement plane, and included/excluded boundary elements |
 | `no_external_power_outputs` | `early_design_check.py` | explicit evidenced applicability decision when no claims exist |
+
+### keys: 03_src/rules/control_protocol.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `control_protocol_check.py` | timing-protocol schema version; unknown keys are rejected before TSX |
+| `protocol` | `control_protocol_check.py` | non-empty protocol identity printed with the source-bound result |
+| `clock.source` | `control_protocol_check.py` | non-empty controller clock identity used by the timing contract |
+| `clock.manufacturer_error_full_temperature_pct` | `control_protocol_check.py` | ordered low/high clock-error interval that the decoder window must exceed |
+| `clock.decoder_window_pct` | `control_protocol_check.py` | derives every active dwell window and must retain clock-error margin |
+| `clock.rationale` | `control_protocol_check.py` | non-empty explanation accompanying the numeric clock/window proof |
+| `states.<STATE>.gpio_PA3_PA2_PA1_PA0` | `control_protocol_check.py` | binary observable word; duplicates and malformed words fail |
+| `states.<STATE>.u1_V4_V3_V2_V1` | ADVISORY | human cross-label between MCU and switch-pin order; electrical invariants and schematic pin-map parity own the connection |
+| `states.<STATE>.dwell_ms` | `control_protocol_check.py` | nominal active dwell used to derive its acceptable window and cycle |
+| `states.<STATE>.window_ms` | `control_protocol_check.py` | declared interval must equal the clock-derived window and remain disjoint |
+| `frame.order` | `control_protocol_check.py` | unique active-state order and denominator |
+| `frame.all_off_guard_ms` | `control_protocol_check.py` | atomic guard duration included in every cycle and merged marker run |
+| `frame.guards_per_cycle` | `control_protocol_check.py` | must equal the active-state count derived from `frame.order` |
+| `frame.marker.state` | `control_protocol_check.py` | marker must be the explicit ALL_OFF state |
+| `frame.marker.body_nominal_ms` | `control_protocol_check.py` | marker body term in the observable contiguous run and cycle |
+| `frame.marker.contiguous_pre_ANT1_guard_ms` | `control_protocol_check.py` | must equal the frame guard because the observer merges the two ALL_OFF intervals |
+| `frame.marker.observable_nominal_ms` | `control_protocol_check.py` | must equal marker body plus adjacent same-state guard |
+| `frame.marker.decoder_min_ms` | `control_protocol_check.py` | must sit above all active windows and below the worst-low marker duration |
+| `frame.nominal_cycle_ms` | `control_protocol_check.py` | must equal marker body plus all guards and active dwells |
+| `frame.recommended_capture_ms` | `control_protocol_check.py` | must be no shorter than the derived guaranteed-capture minimum |
+| `frame.minimum_capture_for_guaranteed_complete_frame_ms` | `control_protocol_check.py` | must equal two complete cycles for arbitrary capture phase |
+| `firmware_sequence` | `control_protocol_check.py` | optional non-empty ordered implementation handoff; firmware tests own behavior |
+| `decoder.sync` | `control_protocol_check.py` | non-empty human handoff; numeric sync bounds are graded from `frame.marker` |
+| `decoder.accept` | `control_protocol_check.py` | non-empty human handoff; executable windows come from `states` and `clock` |
+| `decoder.reject_to_unknown` | `control_protocol_check.py` | must include no-signal, truncated, ambiguous, invalid-order and no-marker outcomes |
+| `decoder.fundamental_limit` | `control_protocol_check.py` | non-empty statement of the RF-observability limit retained for review |
+
+
+### keys: 03_src/rules/rf.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `rf_contract_check.py` | RF contract schema version |
+| `rf.enabled` | `rf_contract_check.py` | explicit applicability decision; no missing file can masquerade as RF review |
+| `rf.rationale` | `rf_contract_check.py` | non-empty applicability rationale |
+| `rf.risk_tier` | `rf_contract_check.py` | closed RF review tier when RF is enabled |
+| `rf.risk_basis` | `rf_contract_check.py` | substantive reason for the selected RF risk tier |
+| `rf.topology.*` | ADVISORY | human architecture summary; exact connectivity is owned by electrical invariants, pin-map parity and port nets |
+| `rf.ports[].id` | `rf_contract_check.py` | unique RF port-group identity |
+| `rf.ports[].nets` | `rf_contract_check.py` | non-empty exact net denominator for the port group |
+| `rf.ports[].band_hz` | `rf_contract_check.py` | ordered positive frequency interval |
+| `rf.ports[].z0_ohm` | `rf_contract_check.py` | bounded target impedance |
+| `rf.ports[].launch` | `rf_contract_check.py` | non-empty physical launch description |
+| `rf.ports[].termination` | `rf_contract_check.py` | non-empty termination/loading description |
+| `rf.ports[].reference_layer` | `rf_contract_check.py` | non-empty RF return-reference declaration |
+| `rf.ports[].reference_plane` | ADVISORY | human measurement-plane label; claim evidence owns the executable test boundary |
+| `rf.cross_sections[].id` | `rf_contract_check.py` | unique controlled-impedance cross-section identity |
+| `rf.cross_sections[].status` | `rf_contract_check.py` | closed locked/pending-solver state; pending blocks PCB/fab review |
+| `rf.cross_sections[].deferred_until` | `rf_contract_check.py` | substantive closure boundary while solver work is pending |
+| `rf.cross_sections[].reason` | `rf_contract_check.py` | substantive reason while solver work is pending |
+| `rf.cross_sections[].stackup_source` | `rf_contract_check.py` | non-empty stackup authority |
+| `rf.cross_sections[].solver` | `rf_contract_check.py` | non-empty solver authority |
+| `rf.cross_sections[].copper_layer` | `rf_contract_check.py` | routed copper layer |
+| `rf.cross_sections[].reference_layer` | `rf_contract_check.py` | exact return-reference layer |
+| `rf.cross_sections[].dielectric_height_mm` | `rf_contract_check.py` | positive dielectric height |
+| `rf.cross_sections[].dk` | `rf_contract_check.py` | positive dielectric constant input |
+| `rf.cross_sections[].target_z0_ohm` | `rf_contract_check.py` | positive target impedance |
+| `rf.cross_sections[].width_mm` | `rf_contract_check.py` | positive when locked and null while pending |
+| `rf.cross_sections[].gap_mm` | `rf_contract_check.py` | positive when locked and null while pending |
+| `rf.performance_claims[].id` | `rf_contract_check.py` | unique first-article RF claim identity |
+| `rf.performance_claims[].claim` | `rf_contract_check.py` | substantive claim text |
+| `rf.performance_claims[].acceptance` | `rf_contract_check.py` | substantive acceptance criterion |
+| `rf.performance_claims[].evidence` | `rf_contract_check.py` | substantive evidence method |
+| `rf.first_article.measurements` | `rf_contract_check.py` | non-empty measurement denominator |
+| `rf.first_article.acceptance` | `rf_contract_check.py` | non-empty acceptance denominator |
+| `rf.reviews.<PHASE>.path` | `rf_contract_check.py` | in-project review path for schematic, PCB and fab phases |
+| `rf.reviews.<PHASE>.artifact` | `rf_contract_check.py` | exact in-project artifact bound by the phase review |
+| `rf.reviews.<PHASE>.requirements` | `rf_contract_check.py` | non-empty unique requirement-ID denominator checked by the review |
+| `rf.switch_interface.*` | ADVISORY | human control summary; schedule, invariants and schematic parity own executable behavior |
+| `rf.receiver_rating_tension.*` | ADVISORY | human risk summary; the user directive, ADR and first-article claims are authoritative |
+
+### keys: 03_src/rules/assembly.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `assembly_coverage.py` | optional assembly-contract version; when declared it must be integer 1 |
+| `service` | `assembly_coverage.py` | ordered assembly service used when grading whether CPL parts are process-placeable |
+| `sides` | `assembly_coverage.py` | ordered population side set used by the process-placeability gate |
+| `build_quantity` | `release_freshness_check.py` | quantity multiplier for order-time stock sufficiency |
+| `not_assembled[].refs` | `assembly_coverage.py` | non-empty exact DNP population set, compared with board and CPL |
+| `not_assembled[].reason` | `assembly_coverage.py` | closed DNP reason vocabulary |
+| `not_assembled[].evidence` | `assembly_coverage.py` | substantive dated evidence for the population decision |
+| `not_assembled[].disposition` | `assembly_coverage.py` | required non-empty statement of what happens to the unplaced function |
+| `consigned[].refs` | `assembly_coverage.py` | exact refs supplied by the buyer but still placed by the assembler |
+| `consigned[].evidence` | `assembly_coverage.py` | substantive dated sourcing/handling record required for every consigned set |
+| `consigned[].disposition` | `assembly_coverage.py` | required statement of how the consigned part reaches and is handled by assembly |
+| `consigned[].lcsc` | ADVISORY | catalog identity for human consignment logistics; BOM/dossier identity gates own the fitted exact code |
+| `consigned[].msl` | ADVISORY | human moisture-handling warning; an order/package handling gate is still needed before this can be release authority |
+| `not_assembled[].lcsc` | ADVISORY | catalog identity retained for human DNP evidence; fitted-code identity excludes these refs from the CPL |
+| `not_assembled[].msl` | ADVISORY | human handling note for a part not placed by JLC; downstream manual-assembly procedure owns execution |
+| `not_assembled[].on_bom` | `export_jlc_package.py` | explicit assembly-BOM inclusion decision, never inferred from the DNP reason |
+| `not_assembled[].twin_body.*` | `jlc_twin.py` | alternate exact body/model authority for a deliberately unplaced part |
+| `exempt_prefixes` | `assembly_coverage.py` | board-feature prefixes excluded from the component population denominator |
+| `through_hole.process` | `assembly_coverage.py` | substantive purchased THT process declaration |
+| `through_hole.refs` | `assembly_coverage.py` | exact drilled parts covered by the purchased THT process |
+| `through_hole.evidence` | `assembly_coverage.py` | evidence that the THT process was actually selected |
+| `board_attr_plan[].refs` | `assembly_coverage.py` | exact DNP refs whose board exclusion attribute is deferred |
+| `board_attr_plan[].measured_on` | `assembly_coverage.py` | dated deferral observation |
+| `board_attr_plan[].plan` | `assembly_coverage.py` | substantive next-revision plan required for an attribute deferral |
+| `sourcing_plan[].lcsc` | `release_freshness_check.py` | exact catalog code keyed to order-time stock evidence |
+| `sourcing_plan[].measured_stock` | `release_freshness_check.py` | measured stock compared with BOM quantity times build quantity |
+| `sourcing_plan[].measured_on` | `release_freshness_check.py` | observation date for mutable stock evidence |
+| `sourcing_plan[].order_status` | `release_freshness_check.py` | closed PLANNED/BLOCKED disposition when measured stock is insufficient |
+| `sourcing_plan[].plan` | ADVISORY | human fulfillment plan; measured stock/date and the closed order status own the release verdict |
+| `sourcing_plan[].function` | ADVISORY | human-readable function label; exact BOM/CPL ref and code identity are graded elsewhere |
+| `sourcing_plan[].part` | ADVISORY | human-readable MPN label; exact BOM/dossier identity is graded elsewhere |
+| `sourcing_plan[].refs` | ADVISORY | planning label only; population identity comes from board/BOM/CPL and `not_assembled` |
+| `fiducials` | ADVISORY | human PCBA planning summary; realised fiducials are owned and graded in the floorplan/board |
+| `fiducials.*` | ADVISORY | children of the human PCBA fiducial summary |
+| `assembly_scope.*` | ADVISORY | human service-scope summary; CPL/BOM/board set identity and bought-process declarations are executable |
+| `order_time_requirements` | ADVISORY | human order checklist; release and JLC uploader gates own the executable obligations |
+| `pcb_process` | ADVISORY | human process summary; exact capability declarations and the realised board own executable process selection |
+| `via_process.*` | `via_process_check.py` | selective via-fill/cap geometry, selector, ordinary-via exclusion and order-remark contract |
 
 ### keys: 03_src/rules/power_stages.yaml
 

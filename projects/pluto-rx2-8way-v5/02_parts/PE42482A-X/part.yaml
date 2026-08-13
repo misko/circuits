@@ -41,28 +41,17 @@ limits:
   switching_time_max: 290ns
   settling_time_max: 1.4us
   operating_temperature: -40C_to_105C
-truth_table_binary_mode:
-  LS_tie: GND
-  bit_order: [V4, V3, V2, V1]
-  RF1: [0, 0, 0, 0]
-  RF2: [0, 1, 0, 0]
-  RF3: [0, 0, 1, 0]
-  RF4: [0, 1, 1, 0]
-  RF5: [0, 0, 0, 1]
-  RF6: [0, 1, 0, 1]
-  RF7: [0, 0, 1, 1]
-  RF8: [0, 1, 1, 1]
-  ALL_OFF: [1, 0, 0, 0]
 gotchas:
   - "RF pins require 0 VDC. No blocking capacitors are required only because this receive-only board deliberately supplies 0 VDC at every RF port."
   - "LS has an internal 1Mohm pull-up; tie LS directly to GND for the four-bit binary truth table."
   - "Use an external V4 pull-up and V1/V2/V3 pull-downs so tri-stated controls produce ALL_OFF. The passive guarantee applies only while switch VDD is within 2.3V-5.5V."
   - "At 4-6GHz the data-sheet maximum insertion loss is path-dependent and reaches 2.3dB; board launches and traces add to it."
 verified: "pin map, binary truth table, supply/logic/RF limits, switching/settling and QFN land pattern read from DOC-75785-4 pp.3-10 and 20-22 on 2026-08-13"
-sourcing: {lcsc: C5121458, jlc_observed_stock: 1199, jlc_observed: 2026-08-13, second_source: "Mouser 81-PE42482A-X, 941 observed in stock 2026-08-13"}
+sourcing: {lcsc: C5121458}
 layout:
   source: "pSemi DOC-75785-4 application and evaluation-board layout, especially Figure 21"
   reviewed: 2026-08-13
   notes: "Place EP on uninterrupted RF ground with a dense via array; keep all nine RF routes on top over solid L2 GND, short, stub-free and fenced; place VDD bypass at pin 8 with the shortest return; isolate control routes from RF launches."
 layout_refs:
   - {tier: 1, reached: true, artifact: "pSemi DOC-75785-4 Figure 21 evaluation-board layout", why: "manufacturer layout establishes ground, bypass and RF-launch intent; geometry must be re-derived for the selected JLC stackup"}
+  - {tier: 2, reached: false, artifact: "PE42482 evaluation-board editable design files or fabrication outputs beyond DOC-75785-4 Figure 21", why: "no downloadable editable implementation was identified during the source-stage search; the published manufacturer layout remains the strongest consulted precedent"}

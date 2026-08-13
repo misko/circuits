@@ -11,10 +11,11 @@ gotchas:
   - "Protect CC1 and CC2 only. USB D+/D-/SBU remain no-connect and do not acquire routes merely because the connector exposes contacts."
   - "Pins 1 and 2 are internally NC; leave them floating."
 verified: "DRL pin table, ratings and layout guidance read from TI SLLSEG9C pp.3, 5-6 and 11-12 on 2026-08-13"
-sourcing: {lcsc: C1972959, jlc_observed_stock: 10694, jlc_observed: 2026-08-13, second_source: "Mouser 595-TPD2E2U06DRLR, 81630 observed in stock 2026-08-13"}
+sourcing: {lcsc: C1972959}
 layout:
   source: "TI SLLSEG9C section 10 and Figure 12"
   reviewed: 2026-08-13
   notes: "Place immediately behind J1; route CC1/CC2 connector-to-clamp first and straight, keep the unprotected stubs minimal, and add a direct GND via at pin 4."
 layout_refs:
   - {tier: 1, reached: true, artifact: "TI SLLSEG9C Figure 12", why: "manufacturer example fixes connector-first routing and adjacent ground via"}
+  - {tier: 2, reached: false, artifact: "an open-hardware TPD2E2U06DRLR DRL-package board with published copper and fabrication outputs", why: "the available TI evaluation-board material does not establish an exact DRL-package routed instance, so it was not promoted above the exact-package datasheet precedent"}

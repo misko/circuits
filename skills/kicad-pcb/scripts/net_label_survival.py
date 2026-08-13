@@ -103,6 +103,12 @@ def load_config(path):
         return {}
     if not isinstance(blk, dict):
         raise LoadError("label_survival: must be a mapping")
+    unknown = sorted(set(blk) - {"exempt", "pin_map"})
+    if unknown:
+        raise LoadError(
+            "label_survival: unknown key(s) " + ", ".join(unknown) +
+            "; expected only 'exempt:' and/or 'pin_map:'. A board-name/net "
+            "mapping is not a pin_map and would otherwise pass as 0 rows")
     for i, ex in enumerate(blk.get("exempt") or []):
         if not isinstance(ex, dict) or not ex.get("label"):
             raise LoadError(f"label_survival.exempt[{i}] needs 'label:'")
@@ -112,10 +118,12 @@ def load_config(path):
                 f"substantive 'why:' — an exemption without evidence is "
                 f"itself a defect (canon M4)")
     for i, pm in enumerate(blk.get("pin_map") or []):
-        if not isinstance(pm, dict) or not pm.get("refs") \
-                or not isinstance(pm.get("pins"), dict):
+        if not isinstance(pm, dict) or not isinstance(pm.get("refs"), list) \
+                or not pm.get("refs") or not isinstance(pm.get("pins"), dict) \
+                or not pm.get("pins"):
             raise LoadError(f"label_survival.pin_map[{i}] needs 'refs:' "
-                            f"(list) and 'pins:' (pin -> net pattern map)")
+                            f"(non-empty list) and 'pins:' (non-empty pin -> "
+                            f"net pattern map)")
     return blk
 
 

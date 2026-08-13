@@ -183,6 +183,17 @@ def t_schema_only_malformed():
     check(r.rc == 2, f"schema load error must exit 2, got {r.rc}")
 
 
+@test("schema-only rejects board-specific labels at the wrong schema level",
+      kind="known_bad")
+def t_schema_only_rejects_unknown_keys_instead_of_passing_zero_rows():
+    d = project(CLEAN_LABELS, CLEAN_NETS,
+                "label_survival:\n  RF_COMMON: [J2.1, U1.22]\n")
+    r = must_fail(run([KPY, GATE, d, "--schema-only"]),
+                  "wrong-shape label map", "unknown key")
+    contains(r.out, "not a pin_map", "diagnosis names the vacuous-pass trap")
+    check(r.rc == 2, f"schema load error must exit 2, got {r.rc}")
+
+
 @test("a netlist that parses to ZERO nets is a hard error, never a pass",
       kind="known_bad")
 def t_zero_nets_guard():
@@ -240,8 +251,10 @@ def t_template_wiring_order():
     schema = pos("--schema-only")
     post_label = txt.find("net_label_survival.py", schema + len("--schema-only"))
     check(post_label >= 0, "template needs the post-export S-NETMERGE gate too")
+    pre_einv = txt.find("electrical_invariants.py", schema)
+    post_einv = txt.find("electrical_invariants.py", build)
     battery = [post_label,
-               pos("electrical_invariants.py"),
+               post_einv,
                pos("--adr-coverage"),
                pos("power_topology.py"),
                pos("--margin"),
@@ -252,6 +265,8 @@ def t_template_wiring_order():
                              "(tscircuit drops unmapped parts silently)")
     check(preflight < schema < build,
           "label_survival schema validation must run before tsci build")
+    check(schema < pre_einv < build,
+          "electrical invariant schema validation must run before tsci build")
     check(txt.find("early_design_check.py") < build,
           "source-only electrical schema validation must run before tsci build")
     check(export < min(battery), "the semantic battery must run AFTER the "

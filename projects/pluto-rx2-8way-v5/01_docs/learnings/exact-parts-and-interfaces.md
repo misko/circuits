@@ -21,3 +21,23 @@
 8. Sourcing has two different gates: dated catalog/stock confidence now and
    the JLC uploader allocation/population echo at order time. Passing the first
    cannot waive the second.
+9. YAML parse success is not schema success. Every authored rule family needs
+   its canonical reader before generation, with a non-zero expected
+   denominator and a bounded diagnostic instead of a traceback.
+10. Stage readiness is a derived claim. A hand-maintained `true` flag cannot
+    substitute for fresh receipts from every applicable reader and a findings
+    ledger that names later-stage blockers.
+11. Exact-code evidence should describe stable identity and ratings; volatile
+    stock and price belong in dated generated evidence. A composed two-source
+    verdict must grade the exact candidate-BOM hash, not prose scattered among
+    dossiers.
+12. A timing observer sees contiguous electrical states, so a 500-ms ALL_OFF
+    marker followed by a 5-ms ALL_OFF guard is 505 ms. Derive windows, cycle
+    length and capture time from the atomic schedule and make incomplete or
+    signal-free observations decode to `unknown`.
+13. Manufacturer examples are useful precedent but do not prove that the
+    search ladder was completed. Record the strongest artifact consulted and
+    name the next stronger routed artifact that was unavailable or unreached.
+14. A source-only gate should not initialize PCB machinery. The current policy
+    audit passes, but KiCad property assertions in its output are needless
+    noise and should be removed by phase-lazy imports.

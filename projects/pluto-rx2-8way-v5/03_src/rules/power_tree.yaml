@@ -3,7 +3,6 @@ schema: 1
 source_type: USB_Type_C_sink_only_default_5V
 source_voltage_boundary:
   minimum_operating_V: 4.75
-  maximum_operating_V: 5.5
   evidence: "USB Type-C 5V sink boundary selected for this power-only product; supplies outside it are not authorized"
 off_control: unplug_USB_C_input
 quiescent_ua: 3
@@ -31,7 +30,7 @@ effective_capacitance_banks:
     requirement_evidence: "TI SBVS395E requires 1uF-100uF effective output capacitance"
     accepted_dielectrics: [ceramic]
     contributors:
-      - part: CL10A475KP8NNNC
+      - part: CL10A475KO8NNNC
         refs: [C2]
         nominal_each_uF: 4.7
         dielectric: ceramic
@@ -40,7 +39,7 @@ effective_capacitance_banks:
         temperature_derating_pct: 15
         lifecycle_derating_pct: 0
         basis: conservative_engineering_bound
-        evidence: "Exact 10V X5R code at 3.3V; conservative 50% DC-bias bound leaves 1.798uF effective"
+        evidence: "Exact 16V X5R code at 3.3V; conservative 50% DC-bias bound leaves 1.798uF effective and consolidates the BOM on a two-source-qualified part"
 
 rails:
   - name: 3V3
@@ -51,20 +50,11 @@ rails:
     iout_max_A: 0.020
     converter: TPS7A2433DBVR
     dropout_mv: 250
-    pdiss_max_mw: 66
+    pdiss_max_mw: 238
     external_output: false
     eff: 0.60
-    load_budget:
-      MCU_typical_max_run_mA: 5
-      RF_switch_max_mA: 0.2
-      passive_and_margin_mA: 14.8
-    thermal:
-      worst_operating_case_mW: 44.825
-      calculation: "(5.5V - 3.25875V worst-low output) * 0.020A"
-      estimated_rise_C: 7.6
-      evidence: "TPS7A24 thetaJA 167.8C/W; board value is an estimate requiring first-article confirmation"
-
-no_active_fault_envelope: >-
-  The board load is limited by design to 20mA and has no external power output.
-  F1 is a resettable input fuse rather than a precision active breaker; its
-  30mA hold rating at 85C remains above the load budget.
+    note: >-
+      The 20mA bound includes 5mA MCU, 0.2mA RF switch and 14.8mA passive/design
+      margin. Worst-case dissipation is 44.825mW with about 7.6C estimated rise;
+      the 238mW 85C-ambient ceiling is board-dependent and requires first-article
+      thermal confirmation.

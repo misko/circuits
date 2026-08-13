@@ -10,7 +10,7 @@ gotchas:
   - "The board's 20mA maximum design load remains below the 30mA hold rating at 85C; this is not a precise current limiter and its cold/trip behavior is not an active eFuse."
   - "A USB source capable of fault current above the part's 40A interrupt rating is outside the proven envelope."
 verified: "ordering code, electrical table and temperature derating table read from Littelfuse 0603L series data sheet on 2026-08-13"
-sourcing: {lcsc: C207010, jlc_observed_stock: 8727, jlc_observed: 2026-08-13, second_source: "Mouser 576-0603L010YR, 5522 observed in stock 2026-08-13"}
+sourcing: {lcsc: C207010}
 layout:
   source: "Littelfuse 0603L series data sheet"
   reviewed: 2026-08-13

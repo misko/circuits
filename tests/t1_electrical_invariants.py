@@ -99,6 +99,25 @@ def t_clean():
     contains(r.out, "3 invariants hold", "clean E-INV report")
 
 
+@test("E-INV schema-only validates intent before a netlist exists")
+def t_schema_only_before_generation():
+    d = project(CLEAN_NETS, CLEAN_INV)
+    (d / "06_build" / "netlists" / "board.net").unlink()
+    r = must_pass(einv(d, "--schema-only", "--min-invariants", "1"),
+                  "source-only E-INV schema")
+    contains(r.out, "3/3 invariant row(s)", "source-only denominator")
+
+
+@test("E-INV schema-only rejects an expected but empty invariant set",
+      kind="known_bad")
+def t_schema_only_minimum_is_non_vacuous():
+    d = project(CLEAN_NETS, "invariants: []\n")
+    (d / "06_build" / "netlists" / "board.net").unlink()
+    r = must_fail(einv(d, "--schema-only", "--min-invariants", "1"),
+                  "empty expected E-INV schema", "0/1")
+    contains(r.out, "minimum invariant", "why the empty set failed")
+
+
 @test("E-INV is N-A (exit 0) when there is no electrical_invariants.yaml")
 def t_na_no_file():
     d = project(CLEAN_NETS, None)
