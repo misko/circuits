@@ -106,6 +106,7 @@ import shutil
 import sys
 import threading
 import time
+import zlib
 from pathlib import Path
 
 import yaml
@@ -401,6 +402,19 @@ def cmd_prep(cfg):
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     out = build / get(cfg, "prep.out", "r0.kicad_pcb")
     out.parent.mkdir(parents=True, exist_ok=True)
+
+    # M-REPRO: prep adds keepout shapes and can add deterministic seed/rescue
+    # copper. KiCad otherwise assigns every one a fresh random UUID, so two
+    # geometrically identical prep runs have different r0 hashes. That is not
+    # cosmetic here: route_progress authenticates the exact r0 SHA and a fresh
+    # prep then makes a valid bounded route impossible to resume. Reuse KiCad's
+    # own QA seed hook, namespaced by the source board just as the board
+    # generator does. Creation order is deterministic and the source board's
+    # existing objects retain their identities.
+    uuid_seed = zlib.crc32(f"{src.stem}:route-prep".encode())
+    pcbnew.KIID.SeedGenerator(uuid_seed)
+    print(f"UUID generator seeded: crc32('{src.stem}:route-prep') = "
+          f"{uuid_seed} (M-REPRO r0)")
 
     b = pcbnew.LoadBoard(str(src))
     copper = list(b.GetTracks())

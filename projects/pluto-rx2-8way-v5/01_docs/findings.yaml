@@ -100,10 +100,10 @@ findings:
       - 02_parts/901-143-6RFX/part.yaml
 
   - id: V5-F3-rf-geometry-and-mechanics
-    state: open
+    state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: layout
-    finding: The cross-section, exact footprints, compact 90x65mm mechanics, five-top/two-per-side cyclic U edge order and connector datums are realized and machine-clean; human/fresh-context connector, RF-corridor and render review remains open at the intentional placement pause. JLC assembly DFM must also disposition the 0.10mm SMA drill delta before order.
+    finding: The cross-section, exact footprints, compact 90x65mm mechanics, five-top/two-per-side cyclic U edge order and connector datums are realized and machine-clean. D15 approves connector access, straight RF planning corridors and render readability on exact board SHA 3fffbc690051. The explicit release checklist retains JLC assembly DFM disposition of the 0.10mm SMA drill delta before order; routed RF geometry remains separately gated by V5-placement-and-routing.
     closes_when: The exact board hash receives connector/RF/render approval and the order-stage DFM obligation is carried into the fab checklist.
     evidence:
       - 03_src/floorplan.yaml
@@ -113,6 +113,7 @@ findings:
       - 01_docs/renders/v0.0-D15-compact-placement-top.png
       - 01_docs/renders/v0.0-D15-compact-placement-iso.png
       - 06_build/checkpoints/placement-pre-D13.json
+      - 01_docs/CHECKLIST.md
 
   - id: V5-F4-order-day-sourcing-and-allocation
     state: open

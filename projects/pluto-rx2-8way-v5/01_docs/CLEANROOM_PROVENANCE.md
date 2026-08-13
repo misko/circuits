@@ -39,16 +39,27 @@ stackup/solver result, and the generic generator's project-independent schema.
 Subsequent PCB searches remain scoped to v5, exact external evidence, or
 project-independent process sources.
 
+During D16 route-tool capability discovery, a repository-wide search for a
+generic route-following fence implementation again surfaced legacy Pluto
+filenames and short review/config snippets. Those results are excluded. No
+legacy coordinate, route, via pattern, pitch, impedance model or review value
+was copied into v5. The v5 RF polylines are exact-collision-derived from its
+own D15 board; its 1.40 mm fence requirement is independently derived from the
+retained v5 JLC effective dielectric constant and current Analog Devices
+layout guidance. Subsequent route searches were restricted to v5 and shared
+backend implementation.
+
 No legacy schematic, PCB, route, fab, assembly, review, or release artifact is
 present in v5. The v5 schematic, exact footprints and unrouted placement were
-generated independently. A track-free PCB and its render/measurement evidence
-now exist; no routed copper, fab package or release artifact exists.
+generated independently. The canonical PCB remains segment-free; D16 now also
+has a derived, deterministic r0 containing reviewed RF/GND preparation copper.
+No KRT route, promoted route, fab package or release artifact exists.
 
 ## Fresh evidence used
 
 | Authority | What it establishes | Boundary |
 |---|---|---|
-| User D1–D13 | 1-of-8 receive selection, 100 MHz–5.9 GHz, SMA, JLCPCB, accepted AD9363 extended-range risk, autonomous unique dwell control, independent USB-C 5 V, fast programmable dwell profile, direct Raspberry Pi SWD, exact 901-143-6RFX confirmation, and a proper programming connector instead of loose pads | Product authority |
+| User D1–D15 | 1-of-8 receive selection, 100 MHz–5.9 GHz, SMA, JLCPCB, accepted AD9363 extended-range risk, autonomous unique dwell control, independent USB-C 5 V, fast programmable dwell profile, direct Raspberry Pi SWD, exact 901-143-6RFX confirmation, a proper programming connector, compact mechanics and exact D15 placement approval | Product authority |
 | pSemi DOC-75785-4 | PE42482A-X pinout, truth table, 10 MHz–8 GHz device range, absorptive/all-off behavior, supply/logic limits, RF DC condition, package and switching figures | Device facts, not board performance |
 | ST DS13866 Rev 4 local / Rev 5 online | STM32C011F4P6 TSSOP-20 pinout, supply, HSI48 error, BOR, watchdog, SWD and decoupling | Exact controller interface; local revision deviation recorded |
 | TI SBVS395E / SLLSEG9C | TPS7A2433 input/output/thermal bounds and TPD2E2U06 ESD bounds/layout guidance | Exact power/protection interfaces |
@@ -69,5 +80,8 @@ evidence live under `02_parts/<MPN>/`.
 The schematic checkpoint validates ERC, exact connectivity, pin-map parity and
 human/RF schematic intent. The current track-free placement additionally
 validates realized footprint identity, connector datums, package separation,
-placement-stage DRC and renderability. It does not claim route connectivity,
-Gerber correctness, assembly-uploader acceptance or measured RF success.
+placement-stage DRC and renderability. D16's derived r0 validates deterministic
+RF geometry, zero RF vias, early ground service and the exact remaining route
+denominator. It does not claim completion of the control/power route, RF-fence
+closure, Gerber correctness, assembly-uploader acceptance or measured RF
+success.

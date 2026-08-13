@@ -142,9 +142,10 @@ the tool whose save behaviour is under test (canon M1).
    `violations: 0`, `unconnected: 0`, `parity: 0` — this exercises the shared
    generics + the per-board config end-to-end.
 2. after the rebuild, `04_kicad/*.kicad_dru` is byte-identical to the committed
-   version (fully deterministic). The `.kicad_sch`/`.kicad_pcb` are NOT
-   byte-stable (fresh UUIDs, KRT is stochastic) — for those the invariant is the
-   GATE result, not the bytes; commit the regenerated files.
+   version and repeated route preparation yields a byte-identical r0 (both are
+   deterministic). KRT route search remains stochastic, so routed final-board
+   bytes are promoted and gate-checked rather than assumed stable; commit the
+   regenerated source-owned artifacts.
 3. `03_src/` contains NO retired bespoke generator (`generate_board.py`,
    `route_prep.py`, `route_waves.sh`, `stitch_and_fill.py`) — grep confirms.
 4. every remaining `*.py`/`*.sh` in `03_src/` is either in the Allowed table

@@ -93,6 +93,8 @@ rationale.
 | IMP-077 | Reconcile footprint and symbol metadata before schematic-parity DRC | proposed | Pluto RX2 8-way v5 keyed-SWD placement |
 | IMP-078 | Run the source-resolvable tier/routing preflight before schematic and placement spend | proposed | Pluto RX2 8-way v5 keyed-SWD placement |
 | IMP-079 | Derive compact floorplans from topology and operational connector envelopes before placement freeze | proposed | Pluto RX2 8-way v5 compact placement |
+| IMP-080 | Emit and measure RF fences from routed centrelines, not a rectangular lattice declaration | proposed | Pluto RX2 8-way v5 route preparation |
+| IMP-081 | Seed route-prep UUID generation so identical source yields byte-identical r0 | completed | Pluto RX2 8-way v5 route preparation |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -1134,6 +1136,14 @@ rationale.
   validation as future work; bounded prep plus exact DRC remain safe backstops.
 - history: 2026-08-11 — proposed after the first corrected-placement prep run
   stopped before KRT and exposed stale, electrically impossible via geometry.
+- follow-up evidence: Pluto RX2 8-way v5's D15 floorplan proved zero proper
+  straight-corridor/courtyard intersections, but the first exact seed attempt
+  still refused 7/9 RF centreline segments in 0.41 s: each hit an adjacent U1
+  or SMA ground pad at an oblique endpoint. Package-normal and launch-normal
+  escape sections made all nine polylines collision-clean. A read-only exact
+  seed validation before the D15 human review would have exposed the distinction
+  between a body-clear floorplan proof and legal copper without regenerating a
+  review checkpoint.
 
 ## IMP-035 — static pour-service coverage for router-excluded nets
 
@@ -1167,6 +1177,13 @@ rationale.
   spends a route/review cycle discovering deterministic opens at the end.
 - history: 2026-08-11 — proposed when the first corrected route was clean for
   every routed net but failed 0/0/0 exclusively on excluded pour-net service.
+- follow-up evidence: Pluto RX2 8-way v5's first successful RF prep served only
+  26/32 SMD GND pads. The six uncovered pads were precisely U1's interleaved
+  RF-ground perimeter lands; adding short deterministic links into the exposed
+  pad and its existing filled/capped field made the next pre-route denominator
+  32/32 before KRT. Coverage must be evaluated after deterministic critical
+  copper exists, because that copper both supplies connections and consumes
+  legal rescue space.
 
 ## IMP-036 — checkpoint-aware canonical rebuild at layout seal
 
@@ -2736,3 +2753,67 @@ Recommended execution order for future boards:
 - history: 2026-08-13 — proposed after the user challenged the conservative
   square and the open-U remap removed 41.5% of board area without weakening a
   placement gate.
+
+## IMP-080 — emit and measure RF fences from routed centrelines
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 deterministic route preparation, 2026-08-13
+- evidence: the generic stitch backend's `stitch_grid` accepts only orthogonal
+  `x`/`y` lattice axes. It can provide ordinary plane stitching but cannot
+  intentionally follow the nine straight/diagonal/bent RF polylines. The
+  shared `fence_pitch.py` correctly measures saved geometry rather than
+  trusting requested sites, but its RF net list is hard-coded to one legacy
+  naming scheme and therefore cannot grade v5's `RF_COMMON`/`RF_ANT1..8`
+  routes. Calling either mechanism an RF-fence proof would be a false green.
+- general rule: an RF fence is a relationship to realized transmission-line
+  geometry. The source must name the RF nets, flank band, lateral target,
+  maximum along-route aperture, endpoint return structures and via geometry.
+  Emission must sample the actual saved centreline, collision-check both
+  flanks, and refuse uncovered apertures; an independent gate must then measure
+  the surviving vias/PTH returns from the saved board.
+- intended landing point: add a generic `stitch.route_fence` pass whose config
+  is derived from `rules/rf.yaml`, and make `fence_pitch.py` accept an explicit
+  net list or the same RF-rule source while preserving its legacy CLI. Keep
+  general `stitch_grid` separate and never let attempted-site count satisfy the
+  fence gate.
+- completion evidence required: fixtures cover horizontal, diagonal and bent
+  polylines; both flanks; connector/package PTH return elements; endpoint
+  exclusion; collision-rejected sites that open an aperture; a declared tight
+  grid whose realized flank spacing fails; and a complete route-following
+  fence that passes. Existing callers retain byte-for-byte default net
+  selection when no new option is supplied.
+- recommendation: implement before v5 RF PCB approval and layout seal. It does
+  not block the present deterministic route preparation or the next stochastic
+  control/power route, because correct fence placement must consume the actual
+  final RF centrelines. The current board-wide 5 mm lattice is explicitly
+  non-authoritative for RF.
+- sources: Analog Devices' MMIC layout note recommends CPWG ground holes at
+  `lambda/20` or less; its RF/mixed-signal PCB guidance recommends fences on
+  both CPWG sides and an unbroken underlying plane. V5 derives a conservative
+  1.40 mm maximum from its retained JLC effective dielectric constant at
+  5.9 GHz and records the calculation in `03_src/rules/rf.yaml`.
+
+## IMP-081 — deterministic UUIDs for route preparation
+
+- status: completed
+- observed: Pluto RX2 8-way v5 D16 repeatability check, 2026-08-13
+- evidence: two consecutive preparations from identical source reported the
+  same 14 keepouts, 29 seed segments and 44 plane-rescue items, yet produced
+  different r0 SHA-256 values. A text diff showed only fresh KiCad UUIDs. The
+  route progress contract authenticates the exact r0 hash, so rerunning prep
+  would make a valid bounded route unresumable even though no geometry moved.
+- general rule: every deterministic stage that creates KiCad objects must seed
+  KiCad's UUID generator from a stable artifact namespace before the first
+  object is minted. Deterministic values with random identities are not a
+  reproducible input to hash-bound downstream work.
+- implementation: `route_and_stitch_generic.py cmd_prep` now seeds
+  `pcbnew.KIID.SeedGenerator` from CRC32 of `<source-board>:route-prep` before
+  creating keepouts, seed copper or rescue copper. Existing source objects
+  retain their identities. `tests/t2_route_stitch.py` prepares a fixture with
+  keepouts, deterministic seed copper and early pad rescue twice and requires
+  byte equality.
+- completion evidence: the focused regression passes; two v5 preparations
+  complete in 0.56 s and 0.53 s and are byte-identical at SHA-256
+  `d598d305f5d75dd5bcebdd8320ef0949ca787bd0f5c7e53a573c66c995e726de`.
+- history: 2026-08-13 — discovered and completed at the D16 reflection pause,
+  before KRT or route-progress provenance existed.

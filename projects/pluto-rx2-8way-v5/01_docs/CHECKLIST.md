@@ -32,11 +32,13 @@
 - [x] R-PREFLIGHT source-known correction: common clearance 0.20 mm,
       ordinary via 0.45/0.20 mm (8:1 nominal aspect), and 0.58-mm legalizer
       pocket; 0 FAIL / 0 WARN and track-free board hash unchanged
-- [ ] current pause: obtain final human/fresh-context approval of the exact D15
-      compact connector access, RF corridors and operational silk
-- [ ] next stage: complete the route-wave/prep contract, prepare deterministic
-      route copper, then
-      obtain fresh pin/layout/render and A-RENDER placement witnesses
+- [x] D15 user approval binds compact connector access, RF planning corridors
+      and operational silk to board SHA-256 `3fffbc690051998618880c63afcc559ddd37370e516f4869f670cf51288f2c42`
+- [x] D16 route-wave/prep contract is complete; exact prep emits 23 RF
+      segments with zero RF vias, six U1 ground-to-EP links and 22 ordinary
+      rescue vias; all 32/32 SMD GND pads are served before KRT
+- [ ] obtain fresh pin/layout/render and A-RENDER placement witnesses against
+      the exact D15 board and D16 prepared-route contract
 - [ ] sign a new canonical placement checkpoint only after the complete
       placement review; the superseded pre-D13 certificate is retained as
       `06_build/checkpoints/placement-pre-D13.json`
@@ -71,6 +73,9 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] `03_src/rules/rf.yaml` explicitly records RF applicability. If enabled:
       independent RF schematic review is SOUND before placement; independent
       exact-board RF PCB review is SOUND before layout seal
+- [ ] order-stage JLC assembly DFM explicitly accepts the manufacturer-land
+      SMA drills (1.50/1.70 mm) against JLC C429844 CAD (1.60/1.80 mm); do not
+      silently replace the Amphenol Rev-C footprint
 
 ## Release and publication gate
 

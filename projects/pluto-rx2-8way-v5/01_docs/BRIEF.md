@@ -269,6 +269,21 @@ three fiducials remain. The 90 x 65 mm outline is the comfortable target, not
 the absolute geometric minimum; cable/tool access and route realization still
 receive exact-board review before layout approval.
 
+### D15 — 2026-08-13 — exact compact placement approved
+
+> yes , Great means its approved. Please continue
+
+Context: the approval answers the intentional D15 pause after presentation of
+the exact 90 x 65 mm top, oblique and edge renders and the clarification that
+the board still contained zero routed segments.
+
+Impact: approve connector access, operational-silk readability and the nine
+crossing-free straight RF planning corridors on exact board SHA-256
+`3fffbc690051998618880c63afcc559ddd37370e516f4869f670cf51288f2c42`.
+This authorizes deterministic route preparation and routing. It does not
+approve routed RF launch/fence geometry, declare the PCB fabrication-ready, or
+waive the order-stage JLC assembly review of the 0.10 mm SMA drill delta.
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -283,6 +298,7 @@ receive exact-board review before layout approval.
 | COM-008 | Use Amphenol RF 901-143-6RFX female right-angle THT SMA connectors for J2–J10. | user (D12) | [D12](#d12--2026-08-13--exact-sma-connector-confirmed) |
 | COM-009 | Replace loose SWD pads with a proper keyed 10-pin Cortex connector while retaining direct-Pi and ST-LINK programming. | user (D13) | [D13](#d13--2026-08-13--proper-keyed-programming-connector) |
 | COM-010 | Compact the board to a comfortable 90 x 65 mm outline with five top SMAs and two on each side while preserving cyclic RF order. | user (D14) | [D14](#d14--2026-08-13--compact-five-top-two-per-side-mechanics) |
+| COM-011 | Approve the exact D15 compact connector/access/render placement and authorize routing to continue. | user (D15) | [D15](#d15--2026-08-13--exact-compact-placement-approved) |
 | 0001 | Select PE42482A-X as one true absorptive solid-state SP8T. | user D8 / agent exact-code proof | [accepted ADR](decisions/0001-one-of-eight-absorptive-sp8t.md) |
 | 0002 | Select STM32C011F4P6 and the fixed-order, guarded, framed dwell protocol. | user D8 / agent parameter lock | [accepted ADR](decisions/0002-autonomous-dwell-coded-control.md) |
 | 0003 | Select the exact protected power-only USB-C sink and TPS7A2433DBVR 3.3 V rail. | user D8 / agent exact-code proof | [accepted ADR](decisions/0003-usb-c-5v-to-protected-3v3.md) |
@@ -308,7 +324,7 @@ The complete evidence and consequences are in accepted
 | Function/direction | LOCKED D1 — receive-only one-of-N; at most one antenna selected |
 | Port count | LOCKED D7 — eight antenna ports |
 | RF band | LOCKED D2 — 100 MHz to approximately 5.9 GHz |
-| Connectors | LOCKED D12 — nine Amphenol RF 901-143-6RFX female right-angle THT SMA; exact lands/datums are machine-clean and accessible; human placement review OPEN |
+| Connectors | LOCKED D12/D15 — nine Amphenol RF 901-143-6RFX female right-angle THT SMA; exact lands/datums and outward access on board SHA `3fffbc690051` are human-approved; routed launches remain OPEN |
 | Fabricator | LOCKED D4/D8 — JLCPCB advanced four-layer, JLC04161H-7628; 0.295/0.200-mm CPWG source geometry solved; order echo OPEN |
 | Receiver silicon/profile | LOCKED D5 — physical AD9363 using AD9361 software profile; extended-band risk accepted |
 | Control architecture | LOCKED D6 — onboard preprogrammable controller, autonomous cycling, unique dwell duration per populated antenna; no live Pluto GPIO link assumed |
@@ -317,7 +333,7 @@ The complete evidence and consequences are in accepted
 | Power | LOCKED D7/D8 — power-only Type-C 4.75–5.5 V, 20 mA; exact passive protection and TPS7A2433DBVR; no active OVP/eFuse/data/PD |
 | RF limits | PROVISIONAL — 0 dBm operating limit and first-article loss/isolation/return-loss targets; final evidence requires VNA |
 | Timing/state | LOCKED — ALL_OFF guards and reset state; 1.4 µs switch-settling ceiling is far below the 5 ms guard |
-| Mechanics | PARTIAL — D14 compact 90x65-mm outline, five-top/two-per-side exact SMAs, four M3 holes, three fiducials and cyclic U-perimeter placement are realized; final human connector/render approval remains OPEN; no rigid Pluto or enclosure mate is specified |
+| Mechanics | LOCKED D14/D15 for the current no-enclosure scope — compact 90x65-mm outline, five-top/two-per-side exact SMAs, four M3 holes, three fiducials and cyclic U-perimeter placement are realized and human-approved on SHA `3fffbc690051`; no rigid Pluto or enclosure mate is specified |
 | Assembly | PROVISIONAL — five JLC first articles, top-side SMT plus nine wave-solder SMA; uploader echo required |
 | Test | METHOD LOCKED / AVAILABILITY OPEN — ≥6 GHz VNA, SMA-plane calibration, all paths/states and retained Touchstone data |
 
@@ -366,7 +382,7 @@ dimensions.
 |---|---|---|---|
 | Physical transceiver silicon and software profile | USER-REPORTED/INHERITED — D5 | Electrical rating/risk boundary | LOCKED — AD9363 silicon, AD9361 profile; extended-band risk accepted |
 | Exact Pluto Plus hardware revision and RX port | OWED | Common-port identity | OPEN |
-| Common-port SMA gender/orientation and cable | USER D12 / cable still OWED | Launch and system loss budget | 901-143-6RFX female/right-angle LOCKED; mating face is realized on the north edge; cable and final placement approval OPEN |
+| Common-port SMA gender/orientation and cable | USER D12/D15 / cable still OWED | Launch and system loss budget | 901-143-6RFX female/right-angle LOCKED; north-edge mating face and placement approved; cable and routed launch remain OPEN |
 | Enclosure/mounting/antenna SMA geometry | no enclosure supplied / layout-derived | Board boundary and placement | 90x65-mm board, four M3 holes and nine accessible edge SMAs realized; enclosure compatibility is not claimed |
 
 ## Commission fact-lock
@@ -386,7 +402,7 @@ dimensions.
 | Programming | Exact keyed 10-pin Cortex J11 carries VTref/GND/SWDIO/SWCLK/NRST; direct Raspberry Pi GPIO SWD needs a breakout harness; standard-probe fallback; target power remains USB-C | D11/D13 |
 | Power source | Independent USB-C nominal 5 V input | D7 |
 | Power implementation | Exact passive protection and TPS7A2433DBVR; 4.75–5.5 V/20 mA; no active OVP/data/PD/backfeed path | D8 / ADR-0003 accepted |
-| Mechanics/cabling | Nine exact 901-143-6RFX female right-angle SMA connectors locked; D14 90x65-mm outline, mounting and cyclic open-U edge order realized; complete placement review and cable loss remain OPEN | D12/D14 + current track-free board |
+| Mechanics/cabling | Nine exact 901-143-6RFX female right-angle SMA connectors locked; D14 90x65-mm outline, mounting and cyclic open-U edge order realized; exact compact placement approved; cable loss and routed geometry remain OPEN | D12–D15 + board SHA `3fffbc690051` |
 | Assembly/test | Five JLC first articles proposed; uploader allocation and instrument availability remain OPEN | A3 |
 
 ## Exact-parts and interface gate
@@ -396,11 +412,10 @@ mechanics have now been regenerated from source as an exact track-free
 placement. J11 remains present with the standard target-powered Cortex
 mapping; the RF cross-section and exact SMA copper/datum geometry are
 unchanged. The 90 x 65 mm board passes placement DRC and route preflight, and
-the cyclic U-perimeter has no straight RF-corridor crossings. Routing remains
-unstarted pending exact-board placement approval. No fab-ready claim exists.
+the cyclic U-perimeter has no straight RF-corridor crossings. D15 approves the
+exact track-free placement and authorizes routing; routed copper remains
+unstarted. No fab-ready claim exists.
 
-Before routing, approve the exact connector access, RF corridors and render
-readability against the board hash. Before fabrication, provide/confirm the
-at-least-6 GHz VNA and calibration fixtures, pass the JLC uploader echo, and
-approve the complete first-article test plan plus the exact SMA drill delta in
-JLC assembly DFM.
+Before fabrication, provide/confirm the at-least-6 GHz VNA and calibration
+fixtures, pass the JLC uploader echo, and approve the complete first-article
+test plan plus the exact SMA drill delta in JLC assembly DFM.

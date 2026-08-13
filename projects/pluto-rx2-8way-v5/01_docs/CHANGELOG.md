@@ -98,5 +98,22 @@ day and fab exactly one of them.
 - Promoted fresh D15 top, oblique and edge renders of board SHA-256
   `3fffbc690051`; all nine exact SMA bodies face outward with visible gaps,
   corner mounting access remains open, and keyed SWD plus power-only USB-C
-  remain unobstructed. Routing is still deliberately unstarted.
+  remain unobstructed. D15 user approval now binds that exact placement.
+- Authored the D16 route contract with five bounded non-RF waves and exact
+  deterministic RF geometry. The first 0.41-second preparation correctly
+  refused seven naive oblique endpoint approaches that crossed U1/SMA ground
+  pads; package-normal and launch-normal corrections pass exact collision
+  checks without weakening clearance.
+- Prepared derived r0 SHA-256 `d598d305f5d7`: 23 RF segments at 0.295 mm on
+  F.Cu, zero RF vias, six short U1 ground-to-exposed-pad links, 32/32 SMD GND
+  pads pre-served, and zero quick copper violations. The only 30 non-deferred
+  open items are exactly the five declared stochastic control/power waves;
+  KRT has not run yet.
+- Separated ordinary 5 mm whole-board stitching from the RF-fence contract.
+  The final RF fence must follow and be measured against saved RF centrelines
+  at <=1.40 mm along-route pitch before RF PCB approval (IMP-080).
+- Fixed shared route-prep UUID nondeterminism before route progress existed.
+  Two identical v5 preparations are now byte-identical at r0 SHA-256
+  `d598d305f5d7`; the new regression exercises keepouts, seed copper and early
+  plane rescue (IMP-081).
 Released: no

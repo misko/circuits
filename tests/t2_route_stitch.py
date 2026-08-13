@@ -122,6 +122,31 @@ def t_prep():
     check(sig, "the rest-group is empty")
 
 
+@test("identical route-prep source produces a byte-identical r0")
+def t_prep_deterministic_bytes():
+    """Prepared copper is deterministic input to a possibly stochastic KRT
+    run. Fresh random UUIDs on identical keepouts/seeds changed the r0 SHA and
+    invalidated route_progress resume even when no geometry moved."""
+    def mutate(cfg, _d):
+        cfg.setdefault("prep", {})["seed_stubs"] = {
+            "clearance": 0.15,
+            "via": {"size": 0.6, "drill": 0.3},
+            "stubs": [{"net": "E_PLUS", "pin": "U1.3",
+                       "vias": [[35.525, 40.095]]}],
+        }
+        cfg.setdefault("prep", {})["pad_rescue"] = True
+        cfg.setdefault("stitch", {}).setdefault(
+            "pad_rescue", {})["require"] = "none"
+
+    d, p = scratch(mutate)
+    must_pass(prep(p), "first deterministic prep")
+    r0 = d / "06_build" / "route" / "r0.kicad_pcb"
+    first = r0.read_bytes()
+    must_pass(prep(p), "second deterministic prep")
+    check(first == r0.read_bytes(),
+          "identical route-prep minted different UUIDs / bytes")
+
+
 @test("route-prep preserves source-owned vias as KRT obstacles")
 def t_prep_source_vias():
     """A generated thermal via array is source geometry, not a partial route.

@@ -251,3 +251,11 @@ cycle can be cut into an open perimeter exposed a much smaller embedding.
 Report a geometric minimum separately from a comfortable target, using mating
 hardware/tool access, mounting torque paths and routing/fence space—not KiCad
 courtyards alone. This is recorded as IMP-079.
+
+The user then made “Great means its approved” explicit. D15 binds that approval
+to exact board SHA-256
+`3fffbc690051998618880c63afcc559ddd37370e516f4869f670cf51288f2c42`
+and the retained top/oblique/edge renders. This closes the human placement
+pause and authorizes route preparation. It does not approve copper that does
+not yet exist; routed launch, return-path and fence geometry still require an
+exact-board RF PCB review.

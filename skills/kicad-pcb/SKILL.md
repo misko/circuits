@@ -85,6 +85,11 @@ credits, or debugging time — check provenance notes before assuming staleness.
    larger flank apertures. Run `scripts/fence_pitch.py BOARD BAND_MM BOUND_MM`
    after stitching and make its nonzero exit block the rebuild before a field
    solver consumes the claimed maximum pitch.
+3k. **Deterministic route preparation is byte-reproducible.** `prep` seeds
+   KiCad's UUID generator before it creates keepouts, reviewed seed copper or
+   early plane rescue. Identical source/config must yield the same r0 SHA;
+   `route_progress.json` authenticates that exact hash for bounded resume.
+   KRT routing remains stochastic and is promoted/measured separately.
 4. **Fanout before routing, hardest nets first.** Escape lanes are claimed
    by whoever routes first. `bga_fanout.py` on fine-pitch ICs, then a thin
    pass (0.15/0.13, 0.45/0.2 vias) for escape-bound nets, then the standard

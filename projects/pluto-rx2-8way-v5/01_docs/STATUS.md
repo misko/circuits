@@ -1,10 +1,10 @@
-# STATUS beacon — compact placement review pause
+# STATUS beacon — deterministic route-preparation reflection pause
 
 <!-- reader parses from here down -->
-stage:   placement-review
-step:    "D15 realizes the user-approved 90x65-mm five-top/two-per-side compact mechanics; model-complete exact-board renders exist and routing remains unstarted"
-measure: "board sha256 3fffbc690051; 41.5% area reduction; P-MODEL 29/29; 29/29 parts anchored; 167 copper pads; 9 U1 EP POFV vias; 0 proper straight RF-corridor crossings; DRC 0 violations / 39 expected unconnected / 0 parity; R-PREFLIGHT 0 FAIL / 0 WARN; 0 routed segments; canonical placement checkpoint intentionally unsigned"
+stage:   route-preparation
+step:    "D15 placement approval is recorded; D16 exact route prep owns RF and GND prerequisites while stochastic control/power routing remains unstarted"
+measure: "source board sha256 3fffbc690051 unchanged; deterministic r0 sha256 d598d305f5d7 (2/2 byte-identical); R-PREFLIGHT 0 FAIL / 0 WARN; 23 RF segments at 0.295mm F.Cu / 0 RF vias; 6 U1 ground-to-EP links; 32/32 SMD GND pads served; quick 0 copper violations / 30 expected route-wave opens / 60 GND deferred; KRT 0 waves run"
 state:   working
-next:    "approve the exact D15 connector/access/RF-corridor placement, then complete the RF/control/power route-wave contract and deterministic route preparation before any stochastic copper"
+next:    "reflect on D16, obtain exact-board placement witnesses/checkpoint, then run the five bounded KRT waves and stop again before import/stitch"
 op_pid:
-updated: 2026-08-13T15:57:04-07:00
+updated: 2026-08-13T16:27:32-07:00

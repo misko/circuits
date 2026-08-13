@@ -701,6 +701,8 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.cross_sections[].target_z0_ohm` | `rf_contract_check.py` | positive target impedance |
 | `rf.cross_sections[].width_mm` | `rf_contract_check.py` | positive when locked and null while pending |
 | `rf.cross_sections[].gap_mm` | `rf_contract_check.py` | positive when locked and null while pending |
+| `rf.layout_constraints` | OWED | container for PCB-route and RF-fence intent; exact route.yaml/saved-board checks are authoritative today, while IMP-080 owns the missing shared reader/emitter |
+| `rf.layout_constraints.*` | OWED | route/fence geometry and derived bound subtree awaiting the route-aware IMP-080 emitter plus independent saved-board fence gate; must not be treated as presently enforced |
 | `rf.performance_claims[].id` | `rf_contract_check.py` | unique first-article RF claim identity |
 | `rf.performance_claims[].claim` | `rf_contract_check.py` | substantive claim text |
 | `rf.performance_claims[].acceptance` | `rf_contract_check.py` | substantive acceptance criterion |

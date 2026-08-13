@@ -1,16 +1,98 @@
-# Commission-stage execution contract.  Placement, stackup and copper are
-# deliberately absent until the exact schematic receives its hash-bound human
-# review; this file must not imply that a PCB route already exists.
+# Routing execution contract for the D15-approved compact placement.  Critical
+# RF copper is deterministic source geometry; the generic router owns only the
+# remaining control and power nets.  No promoted stochastic route exists yet.
 project:
   name: pluto_rx2_8way_v5
   board: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
   build_dir: 06_build/route
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2]
+    # The router has no inherent board-edge/tool-envelope model.  Preserve the
+    # M3 head/service envelope, every non-plated locating hole and a copper-to-
+    # edge band before it is allowed to claim an escape lane.
+    mounting_holes: {radius: 3.5, refdes_prefix: H}
+    npth_pads: {margin: 0.60}
+    edge_band: 0.50
+    rects: []
+
+  # Plane drops are route inputs.  Rescue GND SMD pads before stochastic
+  # routing consumes their legal adjacent-via sites.  Ordinary vias are never
+  # placed in component lands; U1's separately authored 3x3 filled/capped EP
+  # field is the only via-in-pad construction on this board.
+  pad_rescue: true
+
+  # The nine approved corridors are mutually non-crossing and clear every
+  # foreign courtyard.  Realize each as one exact 0.295-mm F.Cu polyline from
+  # the PE42482 RF land centre to its SMA centre land: package/launch-normal,
+  # stub-free, zero RF vias, no stochastic doglegs and no invented phase
+  # matching.
+  seed_stubs:
+    clearance: 0.20
+    via: {size: 0.45, drill: 0.20}
+    stubs:
+      - net: RF_COMMON
+        pin: U1.22
+        segments: [{layer: F.Cu, width: 0.295, pts: [[64.75, 46.10], [64.75, 44.50], [65.00, 36.50], [65.00, 31.60]]}]
+      - net: RF_ANT1
+        pin: U1.24
+        segments: [{layer: F.Cu, width: 0.295, pts: [[63.75, 46.10], [63.75, 44.50], [50.00, 36.50], [50.00, 31.60]]}]
+      - net: RF_ANT2
+        pin: U1.2
+        segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 47.25], [61.50, 47.25], [35.00, 36.50], [35.00, 31.60]]}]
+      - net: RF_ANT3
+        pin: U1.4
+        segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 48.25], [31.60, 48.00]]}]
+      - net: RF_ANT4
+        pin: U1.6
+        segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 49.25], [61.50, 49.25], [36.50, 66.00], [31.60, 66.00]]}]
+      - net: RF_ANT5
+        pin: U1.13
+        segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 49.25], [68.50, 49.25], [93.50, 66.00], [98.40, 66.00]]}]
+      - net: RF_ANT6
+        pin: U1.15
+        segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 48.25], [98.40, 48.00]]}]
+      - net: RF_ANT7
+        pin: U1.17
+        segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 47.25], [68.50, 47.25], [95.00, 36.50], [95.00, 31.60]]}]
+      - net: RF_ANT8
+        pin: U1.19
+        segments: [{layer: F.Cu, width: 0.295, pts: [[66.25, 46.10], [66.25, 44.50], [80.00, 36.50], [80.00, 31.60]]}]
+      # The six RF-ground perimeter lands cannot accept ordinary unfilled
+      # via-in-pad.  Join them under the package directly into the exposed-pad
+      # copper and its already-authored filled/capped 3x3 ground-via field.
+      - {net: GND, pin: U1.3,  segments: [{layer: F.Cu, width: 0.30, pts: [[63.10, 47.75], [63.70, 47.75]]}]}
+      - {net: GND, pin: U1.5,  segments: [{layer: F.Cu, width: 0.30, pts: [[63.10, 48.75], [63.70, 48.75]]}]}
+      - {net: GND, pin: U1.14, segments: [{layer: F.Cu, width: 0.30, pts: [[66.90, 48.75], [66.30, 48.75]]}]}
+      - {net: GND, pin: U1.16, segments: [{layer: F.Cu, width: 0.30, pts: [[66.90, 47.75], [66.30, 47.75]]}]}
+      - {net: GND, pin: U1.21, segments: [{layer: F.Cu, width: 0.30, pts: [[65.25, 46.10], [65.25, 46.70]]}]}
+      - {net: GND, pin: U1.23, segments: [{layer: F.Cu, width: 0.30, pts: [[64.25, 46.10], [64.25, 46.70]]}]}
+
+  waves:
+    # GND is pour-fed, RF is deterministic above, and sanctioned unconnected
+    # pins are never router work.  Every remaining net is named exactly once.
+    exclude: ["GND", "RF_*", "unconnected-*"]
+    groups:
+      switch: [SW_V1, SW_V2, SW_V3, SW_V4]
+      typec: [USB_CC1, USB_CC2]
+      vbus: [VBUS_RAW, VBUS_PROTECTED]
+      rail: [3V3]
+      debug: [NRST, SWDIO, SWCLK]
 
 # This is a single-ended RF design. The pre-route critical-pair denominator is
 # explicitly zero rather than absent, so the shared gate grades that fact.
 route:
   preflight_critical_pairs: []
   no_critical_routes: "All nine controlled-impedance RF nets are single-ended; there are no differential or polarity-paired critical routes."
+  krt: ~/gits/KiCadRoutingTools
+  kicad_python: /usr/bin/python3
+  import_source: build
+  # Start with one bounded candidate.  A measured dirty/incomplete result may
+  # justify a small race; paying for several silent stochastic runs before the
+  # first quick verdict repeats the pipeline-lockup failure mode.
+  race: 1
   common:
     layers: [F.Cu, B.Cu]
     # Use the strictest adopted class clearance globally. KRT otherwise
@@ -23,6 +105,80 @@ route:
     via_size: 0.45
     via_drill: 0.20
     no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+  waves:
+    # Hardest/most local escapes first; each wave is small enough to yield a
+    # useful progress boundary. Widths are explicit at their adopted class
+    # floors and every override retains the strictest 0.20-mm clearance.
+    - {name: switch, group: switch, layers: [F.Cu, B.Cu], track_width: 0.18,
+       clearance: 0.20, max_iterations: 300000, max_probe_iterations: 30000,
+       max_ripup: 20}
+    - {name: typec, group: typec, layers: [F.Cu, B.Cu], track_width: 0.18,
+       clearance: 0.20, max_iterations: 300000, max_probe_iterations: 30000,
+       max_ripup: 20}
+    - {name: vbus, group: vbus, layers: [F.Cu, B.Cu], track_width: 0.30,
+       clearance: 0.20, max_iterations: 300000, max_probe_iterations: 30000,
+       max_ripup: 20}
+    - {name: rail, group: rail, layers: [F.Cu, B.Cu], track_width: 0.25,
+       clearance: 0.20, max_iterations: 500000, max_probe_iterations: 50000,
+       max_ripup: 30}
+    - {name: debug, group: debug, layers: [F.Cu, B.Cu], track_width: 0.18,
+       clearance: 0.20, max_iterations: 500000, max_probe_iterations: 50000,
+       max_ripup: 30}
+
+stitch:
+  clearance: 0.20
+  via:
+    size: 0.45
+    drill: 0.20
+    spacing: 0.70
+    pth_margin: 0.20
+    tiers: [{size: 0.45, drill: 0.20, hole_to_copper: 0.19}]
+  keepin: {inset: 0.80}
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, pad_rescue,
+           stub_fallback, astar_fallback, stitch_grid, fill, island_rescue,
+           dedupe_vias, hole_to_hole, fill, fresh_reload, heal_islands, gate]
+  dedupe_vias: {radius: 0.35, metric: box}
+  # Repair only impossible sub-tier geometry; do not inflate valid advanced-
+  # tier vias collision-unchecked. All project emitters still prefer 0.45/0.20.
+  normalize_vias: {below_width: 0.24, size: 0.25, drill: 0.15}
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    nets: [{net: GND, layer: In1.Cu}]
+    via_in_pad: false
+    served_within: 1.60
+    rings: [0.75, 0.95, 1.20, 1.60, 2.10, 2.70]
+    angle_step: 30
+    stub_width: 0.30
+    stub_scope: false
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.20, max_dist: 8.0, width: 0.30}
+  astar_fallback:
+    net: GND
+    width: 0.25
+    layers: [F.Cu]
+    window: 3.0
+    attempts: 3
+    targets: 8
+    max_dist: 10.0
+    via: {size: 0.45, drill: 0.20, hole_to_copper: 0.19}
+  # This 5-mm lattice provides ordinary whole-board plane stitching only.  It
+  # is NOT credited as the 5.9-GHz CPWG fence.  Route-following fence rows are
+  # realized and measured from actual RF centrelines before layout approval.
+  stitch_grid:
+    net: GND
+    x: [22.5, 108.0, 5.0]
+    y: [22.5, 84.0, 5.0]
+    min: 80
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu], require: all}
+  heal_islands: {min_bbox: 0.1, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu],
+                 sample_step: 0.05, max_gap_candidates: 2000,
+                 clear_rescue_failures: true}
 
 flow:
   heartbeat_s: 10
@@ -39,10 +195,7 @@ flow:
     a_render: 06_build/pre_route/twin_overlay.md
   owner:
     stage: routing
-    # The floorplan is not an authored source until the post-schematic PCB
-    # mechanics stage.  Listing a future file here would make source governance
-    # fail before the deliberate schematic pause.
-    files: [03_src/route.yaml]
+    files: [03_src/floorplan.yaml, 03_src/route.yaml]
   copper:
     deterministic: [prep.seed_stubs, taps.connections, stitch.seed_stubs, route.final]
     stochastic: [route.waves]
@@ -66,4 +219,5 @@ flow:
     rebuild: 1500
     layout_drc: 180
   blockers:
-    - "Placement review and routing witnesses remain pending; no copper has been prepared or promoted"
+    - "D15 placement is approved; deterministic route preparation, fresh placement witnesses and stochastic route promotion remain pending"
+    - "The generic rectangular stitch lattice is not an RF-fence proof; route-following fence realization and saved-board aperture measurement are required before RF PCB approval"
