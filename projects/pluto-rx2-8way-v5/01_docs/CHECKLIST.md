@@ -22,7 +22,8 @@
 - [x] critical-pair gate explicitly grades 0 differential pairs with a single-ended RF reason
 - [x] top, oblique, edge and 2D placement review renders generated
 - [x] exact GCT USB body resolves in the headless render; placement subject is
-      pinned 30/30 at board SHA-256 `4b2dfca2353b4b02dd34fcd85e72edd62d9f891a989681348aa9a5af80249d42`
+      pinned 32/32 at board SHA-256 `4b2dfca2353b4b02dd34fcd85e72edd62d9f891a989681348aa9a5af80249d42`,
+      including the committed bare/modelled top-view pair
 - [ ] current pause: human/fresh-context connector, RF-corridor and render-readability approval
 - [ ] next stage after approval: contract and route critical RF copper first
 

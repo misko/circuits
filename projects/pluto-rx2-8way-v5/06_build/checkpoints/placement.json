@@ -1,5 +1,13 @@
 {
   "files": {
+    "01_docs/renders/v0.0-placement-bare-top.png": {
+      "sha256": "b69c2b5850d7d1f87b6d911121ef89518639fe387f48a231accf5c80831c7245",
+      "size": 172040
+    },
+    "01_docs/renders/v0.0-placement-modeled-top.png": {
+      "sha256": "a72f4d46c86497c791413046c0ba08f5240364e93c47043fe2189cd64d27a0e3",
+      "size": 532636
+    },
     "02_parts/901-143-6RFX/PCN-031726.pdf": {
       "sha256": "71fc62b07f98bccf90a1bff6839013509a18234c289951dcdef502d189825992",
       "size": 185089

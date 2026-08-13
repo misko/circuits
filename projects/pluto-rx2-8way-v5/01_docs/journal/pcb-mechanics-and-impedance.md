@@ -157,7 +157,9 @@ process. This was an evidence failure, not a pad or orientation failure, but it
 would have made the connector-edge judgement vacuous. The exact KiCad model was
 copied into the project, hash-bound, and referenced through `${KIPRJMOD}`; the
 board and all gates were regenerated. The final top, oblique and edge renders
-now show the USB shell and mouth, including its exact south-edge alignment.
+now show the USB shell and mouth, including its exact south-edge alignment. A
+bare/modelled top-view pair is promoted into `01_docs/renders/` so the visual
+subject survives beyond the ignored build cache.
 
 General lesson: render exit zero does not prove body coverage. Before a visual
 review, enumerate every mechanically significant assembled ref, resolve its

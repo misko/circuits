@@ -1,3 +1,4 @@
 *.pdf binary
+*.png binary
 *.step binary
 *.wrl binary
