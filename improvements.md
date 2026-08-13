@@ -86,6 +86,10 @@ rationale.
 | IMP-070 | Mechanically scope clean-room filesystem discovery | proposed | Pluto RX2 8-way v5 clean-room audit |
 | IMP-071 | Derive observable timing from executable state schedules | implementing | Pluto RX2 8-way v5 control-protocol audit |
 | IMP-072 | Classify committed binary evidence in the canonical scaffold | proposed | Pluto RX2 8-way v5 checkpoint commit |
+| IMP-073 | Grade human symbol pin functions, including unused pins | proposed | Pluto RX2 8-way v5 schematic readability review |
+| IMP-074 | Type ADR gate applicability instead of inferring it from prose | proposed | Pluto RX2 8-way v5 schematic gate |
+| IMP-075 | Bind mechanical dimensions to exact document identity and feature role | proposed | Pluto RX2 8-way v5 connector review |
+| IMP-076 | Reconcile exact package geometry and logical pin identity in the first-board preflight | proposed | Pluto RX2 8-way v5 placement grind |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -1747,6 +1751,13 @@ rationale.
   reviewed, but the digital twin cannot prove their shell height or enclosure
   interference. Discovering this only after routing makes a package swap
   disproportionately expensive.
+- follow-up evidence: Pluto RX2 8-way v5 named KiCad 10's exact GCT USB4105
+  STEP in J1's footprint and `kicad-cli pcb render` exited successfully, yet the
+  resulting image contained bare J1 lands because `${KICAD10_3DMODEL_DIR}` did
+  not resolve in that headless process. Visual inspection caught the missing
+  body before routing; a project-local hash-bound copy referenced through
+  `${KIPRJMOD}` rendered correctly. Availability on disk and a plausible model
+  path therefore do not prove render-time body coverage.
 - intended landing point: after part selection and before placement, probe the
   exact supplier CAD endpoint for every height-, polarity- or enclosure-
   critical code. Record `MODEL`, `NO-MODEL` or `TRANSIENT` with the tested
@@ -1757,9 +1768,16 @@ rationale.
   wrong-body fixtures; a board-stage gate that closes before placement review;
   and a release check proving every placed body is either modeled or has a
   named mechanical fallback and first-article disposition.
-- history: 2026-08-12 — recorded after the v4 twin made exact model coverage
-  measurable; project-level dossier review exists, shared preflight remains
-  open.
+- completion evidence extension: run the resolver in the same environment as
+  the headless renderer, emit expected-versus-rendered body counts by refdes,
+  and fail a mechanically significant part whose model token is unresolved
+  even when the renderer itself exits zero.
+- history:
+  - 2026-08-12 — recorded after the v4 twin made exact model coverage
+    measurable; project-level dossier review exists, shared preflight remains
+    open.
+  - 2026-08-13 — extended after v5 proved render exit zero can coexist with an
+    unresolved exact-model token and a missing connector body.
 
 ## IMP-056 — population evidence must separate automated and manual bodies
 
@@ -2504,3 +2522,69 @@ Recommended execution order for future boards:
   topology reviews close the local risk, so changing accepted ADR metadata is
   not required inside this schematic checkpoint.
 - history: 2026-08-13 — proposed from the v5 gate's misleading 0/0 coverage.
+
+## IMP-075 — bind mechanical dimensions to exact document identity and feature role
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 pre-placement connector review, 2026-08-13
+- evidence: the `901-143-6RFX` dossier named a plausible Amphenol asset but the
+  asset was drawing `901-40129`, not the selected MPN. The resulting draft
+  geometry mixed a 1.50-mm RF-contact hole with a 1.52-mm value from the wrong
+  part. The exact current drawing `SMA6252A2-3GT50G-50` Rev C instead requires
+  one 1.50-mm centre hole and four 1.70-mm ground holes. This was caught before
+  footprint or PCB generation; the dossier and evidence were corrected.
+- general rule: an authoritative domain is not enough. Before any dimension is
+  transcribed, resolve the exact product page to an exact document identity,
+  verify visible MPN/document/revision, retain or explicitly qualify hash-bound
+  bytes, and check current PCNs. Mechanical facts must be keyed by physical
+  feature role and datum (`rf_contact_hole`, `ground_leg_holes`, mating face),
+  never stored only as an unlabeled list of dimensions.
+- intended landing point: add a pre-footprint document-identity gate that
+  compares selected MPN, product-page drawing title, local PDF visible identity,
+  dossier `doc_id`/revision/hash and applicable PCNs. Add a typed footprint
+  contract whose role-labelled source dimensions are measured against realized
+  pads, drills, courtyard, board-edge datum and mating direction before
+  placement generation.
+- completion evidence required: fixtures must reject a correct-vendor/wrong-
+  part drawing, swapped centre/ground hole sizes, an unlabeled diameter list,
+  an unmatched local hash, and a geometry-changing PCN without reapproval; an
+  exact drawing plus no-form/fit-change origin PCN and matching realized
+  footprint must pass with a nonzero feature count.
+- recommendation: implement before the next custom connector footprint. The v5
+  instance is corrected, but its realized-footprint measurement and render
+  review remain mandatory before placement approval.
+- history: 2026-08-13 — proposed after D12 triggered the exact drawing audit.
+
+## IMP-076 — reconcile exact package geometry and logical pin identity in the first-board preflight
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 first unrouted placement, 2026-08-13
+- evidence: the first board generated in under one second and was mechanically
+  collision-free, but the immediate placement DRC exposed four
+  0.1944-mm GCT land-to-NPTH gaps against a provisional 0.200-mm generic hole
+  rule, two 0.150-mm SOT-553 land gaps against a 0.200-mm default netclass, and
+  decorative SMA silk crossing its own pads/edge. In the same cheap pass,
+  P-PINMAP exposed that TSX's numeric USB logical ports had not yet been
+  explicitly reconciled with GCT's alphanumeric physical contacts. All were
+  source-only corrections; the next board passed 0 placement violations and
+  117/117 declared physical identities before any routing work began.
+- general rule: immediately after the first exact-footprint board exists, run
+  one bounded preflight that (1) measures each package's own copper-to-copper,
+  copper-to-hole and silk-to-mask/edge minima, (2) compares those minima with
+  the adopted board/netclass rules, and (3) reconciles dossier logical pins,
+  producer pins and realized pad identities. A manufacturer land below a
+  generic rule must require an exact-package local override with evidence; it
+  must not emerge later as unexplained route-grind noise.
+- intended landing point: make the canonical placement stage run
+  `pin_map_check.py`, exact intra-footprint geometry census and placement DRC
+  as one first-board bundle before route config/rule preparation or human
+  rendering. Emit a machine-readable report naming the package, exact feature
+  pair, measured gap, controlling rule, local override and evidence path.
+- completion evidence required: fixtures must reproduce the GCT NPTH gap, the
+  SOT-553 0.150-mm land gap, an unjustified blanket rule relaxation, missing
+  numeric-to-alphanumeric aliases, and self-clipping connector silk. The first
+  four must fail with exact feature identities; evidence-backed package-local
+  overrides and complete aliases must pass without weakening unrelated nets.
+- recommendation: implement before the next custom-footprint project. V5 has
+  already run the bundle manually and is clean, so no route-stage fix remains.
+- history: 2026-08-13 — proposed from the bounded v5 placement grind.

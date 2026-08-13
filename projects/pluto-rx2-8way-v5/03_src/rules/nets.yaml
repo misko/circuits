@@ -1,11 +1,16 @@
 fab_tier: jlc_4layer_advanced
 
+# Unclassified device-pad escapes use conservative 0.15 mm geometry; every
+# named signal class below remains stricter where its own clearance says so.
+default_clearance: 0.15mm
+default_track_width: 0.18mm
+
 classes:
   RF_50R:
     intent: "nine single-ended 50ohm receive-only paths over 100MHz-5.9GHz"
     nets: [RF_COMMON, RF_ANT1, RF_ANT2, RF_ANT3, RF_ANT4, RF_ANT5, RF_ANT6, RF_ANT7, RF_ANT8]
     current: "signal only"
-    min_width: 0.20mm
+    min_width: 0.295mm
     clearance: 0.20mm
     routing: "F.Cu only above uninterrupted L2 GND; actual width/gap comes from the JLC solver, with no layer changes or stubs"
     verify: "official impedance calculation, returned stackup echo, coupon/TDR if ordered, then VNA at SMA reference planes"

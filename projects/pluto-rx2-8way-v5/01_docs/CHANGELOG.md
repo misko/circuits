@@ -27,6 +27,32 @@ day and fab exactly one of them.
   replaced it with the exact 16-V code.
 - Selected the JLC04161H-7628 four-layer basis; exact RF geometry remains
   intentionally pending the official calculator at PCB stage.
+- Promoted all nine Amphenol RF 901-143-6RFX female right-angle THT SMA
+  connectors from provisional D9 to user-confirmed D12.
+- Rejected the stale 901-40129 drawing association before footprint generation;
+  retained and hash-bound exact drawing SMA6252A2-3GT50G-50 Rev C plus
+  PCN-031726, and corrected the ground-hole requirement from 1.52 to 1.70 mm.
+- Solved the JLC04161H-7628 coated CPWG source geometry with JLC's live
+  calculator: 0.295-mm width, 0.200-mm ground gap, 49.9719-ohm result; retained
+  the exact model inputs and the live-versus-written mask-parameter discrepancy.
 - Closed a discovered project-slug versus board-stem mismatch in all three RF
   artifact contracts before advancing the stage.
+- Authored exact manufacturer lands for the Amphenol SMA, pSemi QFN and GCT
+  USB-C connector, retaining fresh exact-code JLC CAD as an independent
+  assembly comparator and explicitly recording every dimensional delta.
+- Commissioned a 100 x 100 mm four-layer unrouted placement with nine outward
+  right-angle SMAs in the PE42482's cyclic package order, four M3 torque
+  points, three fiducials and an exact south-edge power-only USB-C datum.
+- Justified the advanced JLC option solely by the nine filled/capped 0.45/0.20
+  mm RF-ground vias in U1's exposed pad; ordinary routing does not depend on
+  advanced-width traces or small vias.
+- Closed the first placement grind before routing: exact-package clearance,
+  SMA silk, numeric-to-alphanumeric USB pin identity and explicit zero critical
+  pair denominator. Final placement DRC is 0 violations / 39 expected unrouted
+  items / 0 parity findings; P-OUT, P-CAP, P-BODYCLR, P-PADSEP and 117-identity
+  P-PINMAP all pass.
+- Rejected the first apparently successful final render because the USB-C
+  body was absent under an unresolved headless KiCad model token; vendored and
+  hash-bound the exact GCT STEP model, then regenerated the board, gates and
+  complete top/oblique/edge evidence before pausing for review.
 Released: no

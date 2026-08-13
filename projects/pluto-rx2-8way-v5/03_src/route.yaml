@@ -6,6 +6,12 @@ project:
   board: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
   build_dir: 06_build/route
 
+# This is a single-ended RF design. The pre-route critical-pair denominator is
+# explicitly zero rather than absent, so the shared gate grades that fact.
+route:
+  preflight_critical_pairs: []
+  no_critical_routes: "All nine controlled-impedance RF nets are single-ended; there are no differential or polarity-paired critical routes."
+
 flow:
   heartbeat_s: 10
   rebuild_args: [--resume-after-schematic-review]

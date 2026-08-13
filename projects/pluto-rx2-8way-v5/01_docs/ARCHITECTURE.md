@@ -19,10 +19,10 @@ USB-C 5 V -- protection -- 3V3+-- STM32C011F4P6 autonomous dwell controller
 invariant: selected_count in {0, 1}; reset/unpowered-controller state = ALL_OFF
 ```
 
-All nine RF connectors are provisionally the same female, right-angle,
-through-hole `901-143-6RFX`. This is agent assumption D9, not a user-confirmed
-mechanical requirement. No rigid Pluto mating or Pluto mechanical geometry is
-authorized.
+All nine RF connectors are the user-confirmed female, right-angle,
+through-hole Amphenol RF `901-143-6RFX` (D12). No rigid Pluto mating, enclosure
+interface, or Pluto mechanical geometry is authorized; ordinary cable access
+and independently reviewed edge placement remain required.
 
 ## RF signal path
 
@@ -103,12 +103,20 @@ transient protection, not sustained-overvoltage protection.
 
 ## PCB and verification boundary
 
-The PE42482 0.5-mm QFN, with three escapes on the worst side, is the sole
-reason the board requires the advanced tier. The MCU and every other selected
-part pass the default JLC escape tier. The selected PCB basis is four-layer,
+The PE42482 RF exposed-pad return is the sole reason the board requires the
+advanced tier: the realized design uses nine selectively filled and
+copper-capped 0.45/0.20-mm vias inside pad 25. Its perimeter escape does not
+otherwise depend on sub-standard traces or tiny vias; the MCU and every other
+selected part pass the default JLC escape tier. Removing advanced would require
+accepting a different, weaker exposed-pad assembly/ground strategy, which is
+not reasonable for this 5.9-GHz first article. The selected PCB basis is four-layer,
 1.6-mm `JLC04161H-7628`, with 35-um outer copper, 0.2104-mm 7628 prepreg to a
-solid L2 ground plane, and nominal Dk 4.4. Exact 50-ohm width and coplanar gap
-remain deliberately null until solved in JLC's current impedance calculator.
+solid L2 ground plane, and nominal Dk 4.4. The retained JLC calculator solution
+is 0.295-mm finished top-copper width with a 0.200-mm coplanar gap over L2,
+returning 49.9719 ohms with the live calculator's 1.0-mil coating input. The
+current written guide instead states 1.2 mil; a 0.296/0.200-mm cross-check at
+that value returns 49.6434 ohms. This small source discrepancy is explicit and
+the order-time impedance/stackup echo remains a mandatory recheck.
 
 Provisional first-article targets at SMA mating planes are:
 
@@ -120,16 +128,17 @@ Provisional first-article targets at SMA mating planes are:
 These are engineering acceptance targets, not data-sheet promises. A VNA
 covering at least 100 MHz–6 GHz must measure every selected path and required
 off state at the SMA mating planes, retaining Touchstone data. PCB routing is
-blocked until the impedance solution, outline, mounting, edge order, and SMA
-footprint review are closed.
+blocked only on the current human/fresh-context connector, RF-corridor and
+render review of the exact machine-clean track-free board.
 
 ## Stage handoff
 
 The architecture, exact BOM, pin maps, control truth table, timing protocol,
-power budget, protection coordination, stackup family, assembly intent, and
-first-article measurement method are sufficient for schematic entry. The
-current pause is intentional. No `.tsx`, KiCad schematic, PCB, route, fab, or
-release artifact exists.
+power budget, protection coordination, stackup, assembly intent and
+first-article measurement method produced the reviewed schematic checkpoint.
+D12 mechanics, exact footprints, impedance source geometry and the unrouted
+placement are now realized and machine-clean. No routed copper, fab package or
+release artifact exists yet.
 
 Primary evidence and comparison notes are indexed in
 [`research/exact-parts-and-interfaces.md`](research/exact-parts-and-interfaces.md),

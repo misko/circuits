@@ -1,0 +1,202 @@
+# Pluto RX2 8-way v5 source floorplan — intentionally UNROUTED at this stage.
+#
+# The nine RF pad-1 centres follow the PE42482's cyclic package order around a
+# 100 x 100 mm board: ANT1, COMMON, ANT8, ANT7, ANT6, ANT5, ANT4, ANT3, ANT2.
+# This preserves cyclic order from switch to edge and makes every throw route
+# non-crossing on F.Cu.  Every SMA local +Y axis points out of its board edge;
+# its Rev-C 11.6 mm pin-to-mating-face datum lands exactly on the outline.
+project:
+  name: pluto_rx2_8way_v5
+  netlist: 06_build/netlists/pluto_rx2_8way_v5.net
+  output: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
+  parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
+
+board:
+  outline: {x0: 20.0, y0: 20.0, x1: 120.0, y1: 120.0}
+  edge_width: 0.1
+  layers: 4
+  stackup:
+    nominal_thickness_mm: 1.6
+    thickness_tolerance_mm: 0.10
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.0254
+    copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
+    dielectrics:
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 1.0650, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    refdes_prefix: H
+    at: [[25.0, 25.0], [115.0, 25.0], [25.0, 115.0], [115.0, 115.0]]
+  fiducials:
+    footprint: Fiducial:Fiducial_1mm_Mask2mm
+    refdes_prefix: FID
+    at: [[26.5, 35.0], [113.5, 35.0], [26.5, 105.0]]
+
+# The only paid advanced feature is deliberate, not an escape convenience:
+# U1's exposed pad is the RF return for a 5.9 GHz switch and receives a filled,
+# copper-capped 3 x 3 via-in-pad field.  Ordinary route/stitch vias stay at
+# 0.45/0.20 mm and receive no fill/cap treatment.
+thermal_vias:
+  protection: {capping: yes, filling: yes}
+  fields:
+    - ref: U1
+      pad: 25
+      size: 0.45
+      drill: 0.20
+      at: [[-0.75, -0.75], [0.0, -0.75], [0.75, -0.75],
+           [-0.75, 0.0], [0.0, 0.0], [0.75, 0.0],
+           [-0.75, 0.75], [0.0, 0.75], [0.75, 0.75]]
+
+libraries:
+  - {lib: pluto_rx2_8way_v5, path: 03_src/lib/pluto_rx2_8way_v5.pretty}
+  - /usr/share/kicad/footprints
+
+placement:
+  require_anchor: true
+  patterns:
+    - match: "U1"
+      pad_overrides:
+        - {pads: [3, 5, 7, 14, 16, 18, 21, 23, 25], zone_connection: full}
+    - match: "J[2-9]"
+      pad_overrides:
+        - {pads: [2, 3, 4, 5], zone_connection: full}
+    - match: "J10"
+      pad_overrides:
+        - {pads: [2, 3, 4, 5], zone_connection: full}
+    - match: "J1"
+      pad_overrides:
+        - {pads: [A1, A12, B1, B12, SH], zone_connection: full}
+    - match: "U4"
+      pad_overrides:
+        - {pads: [4], zone_connection: full}
+        # TI's exact SOT-553 land has 0.150 mm between adjacent lands. Keep
+        # that manufacturer geometry explicit at the package boundary while
+        # TYPEC_CC retains 0.18 mm everywhere beyond the escape.
+        - {pads: [1, 2, 3, 4, 5], clearance: 0.15}
+
+  anchors:
+    # RF core and cyclic, non-crossing edge order.
+    U1:  [70.0, 70.0, 0]
+    J3:  [40.0, 31.6, 180]   # ANT1, local +Y -> north edge
+    J2:  [70.0, 31.6, 180]   # PLUTO RX common
+    J10: [100.0, 31.6, 180]  # ANT8
+    J9:  [108.4, 50.0, 90]   # ANT7, local +Y -> east edge
+    J8:  [108.4, 90.0, 90]   # ANT6
+    J7:  [100.0, 108.4, 0]   # ANT5, local +Y -> south edge
+    J6:  [40.0, 108.4, 0]    # ANT4
+    J5:  [31.6, 90.0, 270]   # ANT3, local +Y -> west edge
+    J4:  [31.6, 50.0, 270]   # ANT2
+
+    # RF supply and passive all-off bias live immediately south of U1; no part
+    # enters any of the nine direct pad-1-to-pad RF corridors.
+    C4: [69.25, 73.6, 270]
+    R4: [65.5, 78.5, 270]
+    R5: [68.0, 79.0, 270]
+    R6: [70.5, 79.0, 270]
+    R3: [73.0, 78.5, 90]
+
+    # Rot270 presents U2 pins 4-10 toward U1 and pins 18/19 toward the SWD row.
+    U2: [70.0, 87.0, 270]
+    C3: [75.5, 82.0, 180]
+    C5: [72.5, 81.8, 90]
+    C6: [66.5, 81.8, 90]
+    TP1: [60.0, 96.0, 0]
+    TP2: [65.0, 96.0, 0]
+    TP3: [70.0, 96.0, 0]
+    TP4: [75.0, 96.0, 0]
+    TP5: [80.0, 96.0, 0]
+
+    # GCT's drawing and KiCad's exact manufacturer footprint put the local PCB
+    # edge at +3.675 mm Y; 116.325 + 3.675 = the y=120 outline exactly.
+    J1: [70.0, 116.325, 0]
+    U4: [70.0, 108.0, 0]
+    R1: [66.0, 105.5, 0]
+    R2: [73.5, 105.5, 0]
+    F1: [77.0, 110.5, 90]
+    D1: [82.5, 109.5, 0]
+    C1: [86.5, 105.5, 0]
+    U3: [89.5, 108.5, 90]
+    C2: [93.0, 105.5, 0]
+
+  legalize: {enable: true, clearance: 0.50, edge_margin: 0.30, hole_keepout: 2.6, ring_max: 40}
+
+design_rules:
+  track_min_width: 0.09
+  min_clearance: 0.09
+  via_min_annulus: 0.10
+  # GCT's manufacturer land leaves 0.1944 mm from its paired GND lands to the
+  # two locating NPTHs. 0.19 retains a positive floor without contradicting
+  # the exact drawing; this is still above the advanced-tier copper spacing.
+  hole_clearance: 0.19
+  hole_to_hole: 0.25
+  copper_edge_clearance: 0.30
+  via_min_size: 0.45
+  min_through_drill: 0.20
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  # In1 is the invariant RF reference. In2 is also continuous ground; all
+  # non-RF routing is confined to F/B unless a later reviewed change says so.
+  - {net: GND, layers: [In1.Cu, In2.Cu], priority: 0, min_thickness: 0.20, clearance: 0.20, connect: full}
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.20, clearance: 0.20, connect: thermal}
+
+silk:
+  min_text_height: 0.60
+  caption_nudge: true
+  refdes: {size: 0.60, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "JUDF"}
+  captions:
+    - {text: "ANT1", at: [45.0, 39.0], size: 0.95}
+    - {text: "PLUTO RX", at: [76.0, 39.0], size: 0.95}
+    - {text: "ANT8", at: [105.0, 39.0], size: 0.95}
+    - {text: "ANT2", at: [39.0, 45.0], size: 0.95, rot: 90}
+    - {text: "ANT3", at: [39.0, 85.0], size: 0.95, rot: 90}
+    - {text: "ANT7", at: [101.0, 45.0], size: 0.95, rot: 90}
+    - {text: "ANT6", at: [101.0, 85.0], size: 0.95, rot: 90}
+    - {text: "ANT4", at: [45.0, 101.0], size: 0.95}
+    - {text: "ANT5", at: [105.0, 101.0], size: 0.95}
+    - {text: "USB-C POWER ONLY", at: [70.0, 102.0], size: 0.95}
+    - {text: "pluto-rx2-8way-v5  100MHz-5.9GHz", at: [70.0, 59.0], size: 0.70}
+    - {text: "SWD 3V3 GND IO CLK RST", at: [70.0, 99.5], size: 0.70}
+
+asserts:
+  pad_net:
+    - {ref: J1, pad: A4, net: VBUS_RAW}
+    - {ref: J1, pad: B9, net: VBUS_RAW}
+    - {ref: J1, pad: A5, net: USB_CC1}
+    - {ref: J1, pad: B5, net: USB_CC2}
+    - {ref: J1, pad: SH, net: GND}
+    - {ref: D1, pad: 1, net: VBUS_PROTECTED}
+    - {ref: U1, pad: 24, net: RF_ANT1}
+    - {ref: U1, pad: 22, net: RF_COMMON}
+    - {ref: U1, pad: 19, net: RF_ANT8}
+    - {ref: U1, pad: 25, net: GND}
+    - {ref: J2, pad: 1, net: RF_COMMON}
+    - {ref: J3, pad: 1, net: RF_ANT1}
+    - {ref: J4, pad: 1, net: RF_ANT2}
+    - {ref: J5, pad: 1, net: RF_ANT3}
+    - {ref: J6, pad: 1, net: RF_ANT4}
+    - {ref: J7, pad: 1, net: RF_ANT5}
+    - {ref: J8, pad: 1, net: RF_ANT6}
+    - {ref: J9, pad: 1, net: RF_ANT7}
+    - {ref: J10, pad: 1, net: RF_ANT8}
+    - {ref: U2, pad: 18, net: SWDIO}
+    - {ref: U2, pad: 19, net: SWCLK}
+  pad_order:
+    - {ref: U1, pads: [24, 23, 22, 21, 20, 19], axis: x}
+    - {ref: J1, pads: [A1, A4, B8, A5, B7, A6, A7, B6, A8, B5, B4, B1], axis: x}
+  body_offset:
+    - {ref: J2, axis: y, sign: "-"}
+    - {ref: J3, axis: y, sign: "-"}
+    - {ref: J10, axis: y, sign: "-"}
+    - {ref: J9, axis: x, sign: "+"}
+    - {ref: J8, axis: x, sign: "+"}
+    - {ref: J7, axis: y, sign: "+"}
+    - {ref: J6, axis: y, sign: "+"}
+    - {ref: J5, axis: x, sign: "-"}
+    - {ref: J4, axis: x, sign: "-"}
+    - {ref: J1, axis: y, sign: "+"}

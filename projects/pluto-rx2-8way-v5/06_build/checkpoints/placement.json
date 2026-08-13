@@ -1,0 +1,127 @@
+{
+  "files": {
+    "02_parts/901-143-6RFX/PCN-031726.pdf": {
+      "sha256": "71fc62b07f98bccf90a1bff6839013509a18234c289951dcdef502d189825992",
+      "size": 185089
+    },
+    "02_parts/901-143-6RFX/SMA6252A2-3GT50G-50-RevC.pdf": {
+      "sha256": "96328d8531223f0d92326083352695388c91ad059df4511804d82d7b1b156cec",
+      "size": 125596
+    },
+    "02_parts/901-143-6RFX/part.yaml": {
+      "sha256": "a588556e4555bd6c417eb2888306dbc647c74321f942ef9ef1bd02c965022c70",
+      "size": 3940
+    },
+    "02_parts/PE42482A-X/DOC-75785-4.pdf": {
+      "sha256": "794579f2973d31c9d8bbe44bfd3656ae95027ff13ab79a0ceaede2a680cc9ec1",
+      "size": 810820
+    },
+    "02_parts/PE42482A-X/part.yaml": {
+      "sha256": "19f8e4013e29856d415d3b5767159764f78c92b9d5377dbb4ecae8e7375658dd",
+      "size": 3150
+    },
+    "02_parts/USB4105-GF-A-120/USB4105-RevB.pdf": {
+      "sha256": "fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5",
+      "size": 164547
+    },
+    "02_parts/USB4105-GF-A-120/part.yaml": {
+      "sha256": "0e6a1616ee4772f1994bd714586406fa06ef9133a75020c9f085fd9b79e8fb12",
+      "size": 7103
+    },
+    "03_src/floorplan.yaml": {
+      "sha256": "5f4d72ee50202f4335905844d5fe7123fcf35ee28c45fd4efd07009813d31b19",
+      "size": 7756
+    },
+    "03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.wrl": {
+      "sha256": "983aafa89b4aff89d30dfcdeac276708bf5e7bf6800ccdfebc1542440aae5d50",
+      "size": 426826
+    },
+    "03_src/lib/3dmodels/GCT_USB4105-GF-A-120-JLC-C5184243.wrl": {
+      "sha256": "f1af91209c9419f3d74778c101b597f17fa86e102658ba8b7806107762e74ec4",
+      "size": 461993
+    },
+    "03_src/lib/3dmodels/Psemi_PE42482A-X-JLC-C5121458.wrl": {
+      "sha256": "8a9eed9f4892ddda6ef6c122f7c94afd6e472516e4e60bfb08a6052e14b87f13",
+      "size": 100161
+    },
+    "03_src/lib/3dmodels/USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.step": {
+      "sha256": "6338ce740fa231c2d3dcc6384e0576994a47240a312a21413cb85d76990a69a0",
+      "size": 1059856
+    },
+    "03_src/lib/pluto_rx2_8way_v5.pretty/Amphenol_901_143_6RFX.kicad_mod": {
+      "sha256": "dee626664c0a2dac33c81cad8e4a0579744a60e59ac267505061210608cfd23a",
+      "size": 4651
+    },
+    "03_src/lib/pluto_rx2_8way_v5.pretty/GCT_USB4105_GF_A_120.kicad_mod": {
+      "sha256": "c8961d2548bf3828f3fd51aa11911c9feff66ac866e3721a92501a0e2630dc43",
+      "size": 7352
+    },
+    "03_src/lib/pluto_rx2_8way_v5.pretty/Psemi_PE42482_QFN24_4x4_P0.5.kicad_mod": {
+      "sha256": "d47c4c6ebc51cf57d7e148f2bc1edbccf5381e8e40820ea19c110d26490a6419",
+      "size": 8432
+    },
+    "03_src/route.yaml": {
+      "sha256": "a95765f1d2567347044d5655b913ff95281cf07f7acb84b023fb4c07fc25fe48",
+      "size": 2110
+    },
+    "03_src/rules/nets.yaml": {
+      "sha256": "cbcf195900f9edc9b26ce45dcc851c71c8be91c72ab622512022e295a1833054",
+      "size": 2574
+    },
+    "03_src/rules/rf.yaml": {
+      "sha256": "ac80b678f1e61918d5421948fb46b36ce26a3f69aa6289bd071f5498407f2732",
+      "size": 5390
+    },
+    "04_kicad/pluto_rx2_8way_v5.kicad_dru": {
+      "sha256": "d3c913948acfe3e7170c6b04b6c3c7c1bbb0eff4366fad61040b85ce033ab759",
+      "size": 630
+    },
+    "04_kicad/pluto_rx2_8way_v5.kicad_pcb": {
+      "sha256": "4b2dfca2353b4b02dd34fcd85e72edd62d9f891a989681348aa9a5af80249d42",
+      "size": 169557
+    },
+    "04_kicad/pluto_rx2_8way_v5.kicad_pro": {
+      "sha256": "dd4cb36c687e3f70d0953b452bc661f651deca944b9e84b9777f34b3a347dd78",
+      "size": 14211
+    },
+    "06_build/drc/placement.json": {
+      "sha256": "b75b88beb50294f7dda291ae9dd77475b9ff4be1bed1655ac9dc85872579ae45",
+      "size": 31628
+    },
+    "06_build/impedance/jlc04161h-7628-rf-50r-cpwg.json": {
+      "sha256": "84312fb41c24d44e432914f762833dd2133ca8d5699b50ac004423ad973de075",
+      "size": 2356
+    },
+    "06_build/placement/footprint_comparison.json": {
+      "sha256": "15219f9897406fd170d00f1011a7bb56e9adf6c549991ebeaeb547f1a5f91568",
+      "size": 2754
+    },
+    "06_build/placement/mechanics.json": {
+      "sha256": "63092478bc22f480910cffbafb2b1127591a7d50ad31ea37154ea3a0651f24b9",
+      "size": 1597
+    },
+    "06_build/review_images/placement-front-3d.png": {
+      "sha256": "3ea9a83772b9c66404a244f627999c4f15735f2c27e6a08811f69d9341b5d552",
+      "size": 107261
+    },
+    "06_build/review_images/placement-iso-3d.png": {
+      "sha256": "ff573fa215c7282b47e6c33720a25a1b9f43deeb2d6bfcaa7d0d021cebe8a41d",
+      "size": 960201
+    },
+    "06_build/review_images/placement-top-2d.png": {
+      "sha256": "b69c2b5850d7d1f87b6d911121ef89518639fe387f48a231accf5c80831c7245",
+      "size": 172040
+    },
+    "06_build/review_images/placement-top-3d.png": {
+      "sha256": "a72f4d46c86497c791413046c0ba08f5240364e93c47043fe2189cd64d27a0e3",
+      "size": 532636
+    },
+    "06_build/review_images/placement-top.svg": {
+      "sha256": "d3de91f42679fd6f049d392a49a6485ddba44248b67df8080f8e39bacd087ec2",
+      "size": 167690
+    }
+  },
+  "name": "placement",
+  "project": "pluto-rx2-8way-v5",
+  "schema": 1
+}

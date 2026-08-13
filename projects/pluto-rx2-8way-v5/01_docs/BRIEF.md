@@ -215,6 +215,17 @@ NRST. The board remains powered by its own USB-C input. A Raspberry Pi may
 directly drive the 3.3 V SWD signals using OpenOCD; no programming IC or
 populated connector is added. A conventional ST-LINK may use the same pads.
 
+### D12 — 2026-08-13 — exact SMA connector confirmed
+
+> This looks great! 901-143-6RFX works!
+
+Impact: promote the provisional D9 connector choice to user-confirmed product
+authority. J2–J10 are all Amphenol RF `901-143-6RFX` female/jack, right-angle,
+through-hole SMA connectors. No rigid direct-mating relationship to the Pluto
+or enclosure-driven edge order has been specified; placement remains free to
+minimize RF path length and coupling while keeping every mating interface
+accessible.
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -226,6 +237,7 @@ populated connector is added. A conventional ST-LINK may use the same pads.
 | COM-005 | Continue through exact-part and interface closure using the presented leading architecture, while preserving stage pauses. | user (D8) | [D8](#d8--2026-08-13--continue-with-presented-exact-architecture) |
 | COM-006 | Use a generated, versioned 20-ms-class dwell profile while retaining unique duration-coded antenna identity. | user (D10) / agent derived schedule | [D10](#d10--2026-08-13--programmable-20-ms-class-dwell-directive) |
 | COM-007 | Expose bare SWD pads so a Raspberry Pi can directly reflash profiles; retain ST-LINK compatibility only as fallback. | user (D11) | [D11](#d11--2026-08-13--direct-raspberry-pi-swd-programming) |
+| COM-008 | Use Amphenol RF 901-143-6RFX female right-angle THT SMA connectors for J2–J10. | user (D12) | [D12](#d12--2026-08-13--exact-sma-connector-confirmed) |
 | 0001 | Select PE42482A-X as one true absorptive solid-state SP8T. | user D8 / agent exact-code proof | [accepted ADR](decisions/0001-one-of-eight-absorptive-sp8t.md) |
 | 0002 | Select STM32C011F4P6 and the fixed-order, guarded, framed dwell protocol. | user D8 / agent parameter lock | [accepted ADR](decisions/0002-autonomous-dwell-coded-control.md) |
 | 0003 | Select the exact protected power-only USB-C sink and TPS7A2433DBVR 3.3 V rail. | user D8 / agent exact-code proof | [accepted ADR](decisions/0003-usb-c-5v-to-protected-3v3.md) |
@@ -250,8 +262,8 @@ The complete evidence and consequences are in accepted
 | Function/direction | LOCKED D1 — receive-only one-of-N; at most one antenna selected |
 | Port count | LOCKED D7 — eight antenna ports |
 | RF band | LOCKED D2 — 100 MHz to approximately 5.9 GHz |
-| Connectors | LOCKED D3 SMA family / PROVISIONAL D9 exact connector — nine female right-angle THT SMA; edge order/cable/enclosure review OPEN |
-| Fabricator | LOCKED D4/D8 — JLCPCB advanced four-layer, JLC04161H-7628; RF solver/order echo OPEN |
+| Connectors | LOCKED D12 — nine Amphenol RF 901-143-6RFX female right-angle THT SMA; exact lands/datums are machine-clean and accessible; human placement review OPEN |
+| Fabricator | LOCKED D4/D8 — JLCPCB advanced four-layer, JLC04161H-7628; 0.295/0.200-mm CPWG source geometry solved; order echo OPEN |
 | Receiver silicon/profile | LOCKED D5 — physical AD9363 using AD9361 software profile; extended-band risk accepted |
 | Control architecture | LOCKED D6 — onboard preprogrammable controller, autonomous cycling, unique dwell duration per populated antenna; no live Pluto GPIO link assumed |
 | Control parameters | LOCKED D10 — generated `fast20-v1`, 20–50 ms unique dwells, 5 ms guard, ≥76 ms marker detection, ±5% windows, BOR4/IWDG/SWD, passive ALL_OFF |
@@ -259,7 +271,7 @@ The complete evidence and consequences are in accepted
 | Power | LOCKED D7/D8 — power-only Type-C 4.75–5.5 V, 20 mA; exact passive protection and TPS7A2433DBVR; no active OVP/eFuse/data/PD |
 | RF limits | PROVISIONAL — 0 dBm operating limit and first-article loss/isolation/return-loss targets; final evidence requires VNA |
 | Timing/state | LOCKED — ALL_OFF guards and reset state; 1.4 µs switch-settling ceiling is far below the 5 ms guard |
-| Mechanics | PARTIAL — D9 provisionally selects female right-angle THT SMA; outline, mounting, edge order, enclosure and cabling remain OPEN |
+| Mechanics | PARTIAL — D12 exact SMA plus 100x100-mm outline, four M3 holes, three fiducials and cyclic edge placement are realized; human connector/render approval remains OPEN; no rigid Pluto or enclosure mate is specified |
 | Assembly | PROVISIONAL — five JLC first articles, top-side SMT plus nine wave-solder SMA; uploader echo required |
 | Test | METHOD LOCKED / AVAILABILITY OPEN — ≥6 GHz VNA, SMA-plane calibration, all paths/states and retained Touchstone data |
 
@@ -289,7 +301,7 @@ officially rated for the band).
 |---|---|---|---|---|---|
 | T1 — ACCEPTED D-SPEC TENSION | 100 MHz–5.9 GHz at a Pluto Plus RX port | Physical silicon is AD9363, officially 325 MHz–3.8 GHz; it runs an AD9361 software profile, whose physical device is officially rated 70 MHz–6 GHz. D5 reports reliable prior 5.8 GHz use and accepts the risk of AD9363 out-of-range operation. | Keep the selector requirement independent at 100 MHz–5.9 GHz; characterize the assembled path, label prior use USER-REPORTED/INHERITED, and never claim ADI-guaranteed complete-system extended-band coverage. | [0001](decisions/0001-one-of-eight-absorptive-sp8t.md) | yes — accepted by D5 |
 | T2 | Receive-only antenna input versus +2.5 dBm receiver damage ceiling | ADI states AD9363 RF inputs have a +2.5 dBm absolute maximum. | Set 0 dBm operator limit; retain +2.5 dBm only as survival ceiling; no transmitter/high-power protection claim. | [0001](decisions/0001-one-of-eight-absorptive-sp8t.md) | yes |
-| T3 | JLCPCB fabrication over 5.9 GHz | JLCPCB publishes exact controlled-impedance multilayer stackups and calculator inputs. | Select advanced four-layer JLC04161H-7628; solve the exact route/launch at PCB stage and validate every path on the first article. | [0001](decisions/0001-one-of-eight-absorptive-sp8t.md) | yes |
+| T3 | JLCPCB fabrication over 5.9 GHz | JLCPCB publishes exact controlled-impedance multilayer stackups and calculator inputs. | Use advanced four-layer JLC04161H-7628 and the retained 0.295/0.200-mm CPWG source geometry; realize/audit each launch during routing and validate every path on the first article. | [0001](decisions/0001-one-of-eight-absorptive-sp8t.md) | yes |
 
 Sources: [Pluto+ maintainer](https://github.com/plutoplus/plutoplus),
 [AD9363 product page](https://www.analog.com/en/products/ad9363.html),
@@ -308,8 +320,8 @@ dimensions.
 |---|---|---|---|
 | Physical transceiver silicon and software profile | USER-REPORTED/INHERITED — D5 | Electrical rating/risk boundary | LOCKED — AD9363 silicon, AD9361 profile; extended-band risk accepted |
 | Exact Pluto Plus hardware revision and RX port | OWED | Common-port identity | OPEN |
-| Common-port SMA gender/orientation and cable | AGENT ASSUMPTION D9 | Launch and system loss budget | female/right-angle provisional for schematic; cable and final mechanical approval OPEN |
-| Enclosure/mounting/antenna SMA geometry | OWED | Board boundary and placement | OPEN |
+| Common-port SMA gender/orientation and cable | USER D12 / cable still OWED | Launch and system loss budget | 901-143-6RFX female/right-angle LOCKED; mating face is realized on the north edge; cable and final placement approval OPEN |
+| Enclosure/mounting/antenna SMA geometry | no enclosure supplied / layout-derived | Board boundary and placement | 100x100-mm board, four M3 holes and nine accessible edge SMAs realized; enclosure compatibility is not claimed |
 
 ## Commission fact-lock
 
@@ -328,19 +340,18 @@ dimensions.
 | Programming | Five bare 3V3/GND/SWDIO/SWCLK/NRST pads; direct Raspberry Pi GPIO SWD with ST-LINK-compatible fallback; target power remains USB-C | D11 |
 | Power source | Independent USB-C nominal 5 V input | D7 |
 | Power implementation | Exact passive protection and TPS7A2433DBVR; 4.75–5.5 V/20 mA; no active OVP/data/PD/backfeed path | D8 / ADR-0003 accepted |
-| Mechanics/cabling | Nine female right-angle SMA provisionally selected; outline, mounting, edge order and cable loss remain OPEN | A3 / D9 |
+| Mechanics/cabling | Nine exact 901-143-6RFX female right-angle SMA connectors locked; 100x100-mm outline, mounting and cyclic edge order realized; human review and cable loss remain OPEN | D12 + current placement checkpoint |
 | Assembly/test | Five JLC first articles proposed; uploader allocation and instrument availability remain OPEN | A3 |
 
 ## Exact-parts and interface gate
 
-The architecture, exact BOM and electrical interfaces are closed for
-schematic entry. `03_src/floorplan.yaml` remains fail-closed only for the
-requested stage pause and because RF solver geometry, board mechanics and
-custom-footprint reviews belong to later stages. No schematic, PCB, route,
-fab or release artifact exists yet.
+The architecture, exact BOM, electrical interfaces, reviewed schematic,
+source-solved RF cross-section and machine-validated track-free placement are
+closed for the current human placement pause. A PCB exists, but it has no
+routed signal copper and makes no fab-ready claim.
 
-Before PCB generation, review D9's all-female/right-angle SMA assumption,
-solve the 50-ohm geometry with JLC's current calculator, and lock board
-outline, edge order and mounting. Before fabrication, provide/confirm the
+Before routing, approve the exact connector access, RF corridors and render
+readability against the board hash. Before fabrication, provide/confirm the
 at-least-6 GHz VNA and calibration fixtures, pass the JLC uploader echo, and
-approve the complete first-article test plan.
+approve the complete first-article test plan plus the exact SMA drill delta in
+JLC assembly DFM.

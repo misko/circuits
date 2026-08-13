@@ -35,18 +35,21 @@ rf:
 
   cross_sections:
     - id: RF_50R_TOP_CPWG
-      status: pending_solver
-      deferred_until: "before PCB routing and RF PCB review"
-      reason: "Width and gap must come from the official JLC impedance solver after the exact top-ground copper topology is frozen."
+      status: solved_source_geometry
       stackup_source: "JLCPCB JLC04161H-7628 published four-layer stackup and order-time stackup echo"
       solver: "official JLCPCB impedance calculator, with order-time field-solver confirmation"
+      evidence: 06_build/impedance/jlc04161h-7628-rf-50r-cpwg.json
       copper_layer: F.Cu
       reference_layer: In1.Cu
       dielectric_height_mm: 0.2104
       dk: 4.4
       target_z0_ohm: 50
-      width_mm: null
-      gap_mm: null
+      width_mm: 0.295
+      gap_mm: 0.2
+      calculator_result_ohm: 49.971863887
+      solder_mask: present
+      top_ground: required
+      order_time_recheck: required
 
   performance_claims:
     - id: RF-IL

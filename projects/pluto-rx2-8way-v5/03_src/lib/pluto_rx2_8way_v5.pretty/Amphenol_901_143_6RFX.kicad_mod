@@ -1,0 +1,260 @@
+(footprint "Amphenol_901_143_6RFX"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Amphenol 901-143-6RFX right-angle THT SMA jack; SMA6252A2-3GT50G-50 Rev C")
+	(tags "SMA jack right-angle THT Amphenol 901-143-6RFX C429844")
+	(property "Reference" "REF**"
+		(at 0 -5.2 0)
+		(layer "F.SilkS")
+		(uuid "3cb0d9b7-3e07-4af3-815b-843428d76a46")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Amphenol_901_143_6RFX"
+		(at 0 12.8 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "93e3e855-99a6-449f-95d9-e29393d5b7f5")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "cbc9709b-d6b9-46ac-a8cb-16ea3ec23679")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "9297fe31-0019-4594-834a-dc24f6bcb452")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -3.95 -3.95)
+		(end 3.95 -3.95)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "7250a640-234d-40ad-bd63-36bfdbf2a23c")
+	)
+	(fp_line
+		(start -3.95 11.75)
+		(end -3.95 -3.95)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "b7bd9fea-1a37-48f1-8f1e-db407540fb51")
+	)
+	(fp_line
+		(start 3.95 -3.95)
+		(end 3.95 11.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "4bea8223-d349-4946-9e7f-a999ccce6c6a")
+	)
+	(fp_line
+		(start 3.95 11.75)
+		(end -3.95 11.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "f2825cfe-9b5a-4ee6-b26a-b6c8ee3ade58")
+	)
+	(fp_line
+		(start -3.5 -3.5)
+		(end 3.5 -3.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "897a9c69-ea9e-4431-bb5b-a620a8ff88d4")
+	)
+	(fp_line
+		(start -3.5 4)
+		(end -3.5 -3.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "c7906407-23a8-45d1-aded-e4605eee51fb")
+	)
+	(fp_line
+		(start -3.2 4)
+		(end -3.5 4)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "fb5e63de-524d-4da1-8189-7d3876226cf6")
+	)
+	(fp_line
+		(start -3.2 11.6)
+		(end -3.2 4)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "31e4b7f5-c1f6-4ac3-be17-a5f51bae9254")
+	)
+	(fp_line
+		(start 3.2 4)
+		(end 3.2 11.6)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "bd62973a-ab17-4841-9e49-38e395712edc")
+	)
+	(fp_line
+		(start 3.2 11.6)
+		(end -3.2 11.6)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "2c585aee-50e9-4b06-9ac9-05c794e0c535")
+	)
+	(fp_line
+		(start 3.5 -3.5)
+		(end 3.5 4)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "f2f1a316-12a9-4357-838d-a647dc308199")
+	)
+	(fp_line
+		(start 3.5 4)
+		(end 3.2 4)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "db431fb0-bc78-4ad2-8d2e-13f0012d0429")
+	)
+	(fp_text user "MATING FACE"
+		(at 0 10.8 0)
+		(layer "Dwgs.User")
+		(uuid "28ad9bf0-8ad1-4f9c-926f-9c2087af79b7")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.12)
+			)
+		)
+	)
+	(fp_text user "PCB EDGE"
+		(at 0 11.6 0)
+		(layer "Dwgs.User")
+		(uuid "0fc4279b-e9c1-403c-b8b7-61b5ad04c471")
+		(effects
+			(font
+				(size 0.65 0.65)
+				(thickness 0.11)
+			)
+		)
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "3b0b1054-9aec-417f-a19f-725c38586345")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2.4 2.4)
+		(drill 1.5)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "d4bcc539-1d86-4a7a-b3dd-9376dd33388e")
+	)
+	(pad "2" thru_hole circle
+		(at -2.54 -2.54)
+		(size 2.8 2.8)
+		(drill 1.7)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "ec8628a8-267f-48ec-ba7b-0e64c7544ef0")
+	)
+	(pad "3" thru_hole circle
+		(at 2.54 -2.54)
+		(size 2.8 2.8)
+		(drill 1.7)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "57a88e58-c598-4162-b3b7-bbb3f2b9018e")
+	)
+	(pad "4" thru_hole circle
+		(at -2.54 2.54)
+		(size 2.8 2.8)
+		(drill 1.7)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "dcc4caf9-2d31-42ec-a46f-8fc6a400b729")
+	)
+	(pad "5" thru_hole circle
+		(at 2.54 2.54)
+		(size 2.8 2.8)
+		(drill 1.7)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "08a32170-7929-4252-9fb5-3cc992b96e2d")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.wrl"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 270)
+		)
+	)
+)

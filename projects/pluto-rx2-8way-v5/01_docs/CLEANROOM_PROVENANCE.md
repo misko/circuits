@@ -28,20 +28,34 @@ facts below were independently re-derived from current external evidence and
 the exact local manufacturer dossiers. This disclosure replaces the earlier,
 over-broad claim that excluded names had never even been listed or searched.
 
+During the PCB-mechanics stage, two generic searches were also too broad. One
+displayed a legacy Pluto-specific rotation-evidence row and another displayed
+short legacy floorplan snippets while locating the shared floorplan schema.
+Those results are excluded: no coordinate, rotation, outline, footprint,
+launch, route, or review value from them is used here. The v5 mechanics are
+instead derived from the exact current Amphenol/GCT/pSemi documents, fresh
+exact-code JLC CAD used only as an independent comparator, the selected JLC
+stackup/solver result, and the generic generator's project-independent schema.
+Subsequent PCB searches remain scoped to v5, exact external evidence, or
+project-independent process sources.
+
 No legacy schematic, PCB, route, fab, assembly, review, or release artifact is
-present in v5. No schematic, PCB, or fab artifact has yet been generated.
+present in v5. The v5 schematic, exact footprints and unrouted placement were
+generated independently. A track-free PCB and its render/measurement evidence
+now exist; no routed copper, fab package or release artifact exists.
 
 ## Fresh evidence used
 
 | Authority | What it establishes | Boundary |
 |---|---|---|
-| User D1–D8 | 1-of-8 receive selection, 100 MHz–5.9 GHz, SMA, JLCPCB, accepted AD9363 extended-range risk, autonomous unique dwell control, independent USB-C 5 V, and continuation with the presented exact architecture | Product authority |
+| User D1–D12 | 1-of-8 receive selection, 100 MHz–5.9 GHz, SMA, JLCPCB, accepted AD9363 extended-range risk, autonomous unique dwell control, independent USB-C 5 V, fast programmable dwell profile, direct Raspberry Pi SWD, and exact 901-143-6RFX connector confirmation | Product authority |
 | pSemi DOC-75785-4 | PE42482A-X pinout, truth table, 10 MHz–8 GHz device range, absorptive/all-off behavior, supply/logic limits, RF DC condition, package and switching figures | Device facts, not board performance |
 | ST DS13866 Rev 4 local / Rev 5 online | STM32C011F4P6 TSSOP-20 pinout, supply, HSI48 error, BOR, watchdog, SWD and decoupling | Exact controller interface; local revision deviation recorded |
 | TI SBVS395E / SLLSEG9C | TPS7A2433 input/output/thermal bounds and TPD2E2U06 ESD bounds/layout guidance | Exact power/protection interfaces |
-| GCT USB4105 Rev B, Littelfuse, Samsung, Yageo, Amphenol exact documents | Connector layouts and passive ratings/polarities/packages | Exact code facts; Amphenol PDF download deviation recorded |
+| GCT USB4105 Rev B, Littelfuse, Samsung, Yageo, Amphenol exact documents | Connector layouts and passive ratings/polarities/packages | Exact code facts; exact Amphenol Rev-C drawing capture and 2026 no-form/fit-change PCN retained with hashes |
+| KiCad 10 exact GCT USB4105 footprint/model and fresh JLC exact-code CAD | Independent package/model comparison and a reproducible project-local USB render body | Manufacturer drawing remains dimensional authority; catalog/stock CAD does not override it |
 | USB-IF Type-C Release 2.5 and TI Type-C guide | Current Type-C authority and two independent 5.1-kohm Rd implementation for the simple 5-V sink | Power-only attach; no data or PD claim |
-| JLCPCB capability, stackup and impedance calculator pages | JLC04161H-7628 layer build and calculator inputs; current controlled-impedance order process | Does not establish unsolved trace geometry or order allocation |
+| JLCPCB capability, stackup and impedance calculator pages | JLC04161H-7628 layer build, retained 0.295/0.200-mm CPWG solution and current controlled-impedance order process | Live 1.0-mil coating input differs from the written guide's 1.2 mil; order echo and allocation remain mandatory |
 | JLC/LCSC plus independent distributor checks dated 2026-08-13 | Exact-code catalog identity and dated stock observations | Volatile; uploader/order echo still mandatory |
 | ADI AD9363/AD9361 pages and CN0534 | Official device bands and AD9363 RF-input damage ceiling | User accepts physical AD9363 operation outside its official band |
 
@@ -52,7 +66,8 @@ evidence live under `02_parts/<MPN>/`.
 
 ## Validation boundary
 
-This checkpoint validates source declarations only. It does not claim ERC,
-footprint, layout, DRC, Gerber, assembly-uploader, or measured RF success.
-Those gates require artifacts that do not yet exist. A green source gate
-authorizes schematic entry after the requested pause, not PCB generation.
+The schematic checkpoint validates ERC, exact connectivity, pin-map parity and
+human/RF schematic intent. The current track-free placement additionally
+validates realized footprint identity, connector datums, package separation,
+placement-stage DRC and renderability. It does not claim route connectivity,
+Gerber correctness, assembly-uploader acceptance or measured RF success.

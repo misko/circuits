@@ -1,18 +1,30 @@
 # Revision checklist
 
-## Current schematic checkpoint — 2026-08-13
+## Current unrouted-placement checkpoint — 2026-08-13
 
 - [x] architecture ADRs accepted and exact part codes selected
 - [x] exact-code manufacturer facts and dated two-source/JLC checks recorded
 - [x] power, surge/capacitor, module-first, package-escape and source-rule gates pass
 - [x] fail-safe RF truth table and framed dwell decoder contract are executable
-- [x] JLC four-layer stackup selected; RF width/gap intentionally unsolved until PCB stage
+- [x] JLC four-layer stackup and live-calculator RF source geometry retained: 0.295-mm width / 0.200-mm CPWG gap / 49.972 ohm
 - [x] generated four-page schematic agrees 33/33 across source and exports
 - [x] pin-map 129/129, electrical invariants 30/30, ERC errors 0 and checkpoint 7/7 pass
 - [x] exact-PDF topology/readability reviews and independent RF schematic review are SOUND
-- [x] no PCB, route, fab or release artifact generated before this pause
-- [ ] confirm or revise D9: all nine SMA connectors are female right-angle THT
-- [ ] next stage: close mechanics/drawing lifecycle, solve JLC impedance, then commission floorplan and placement
+- [x] schematic pause completed before any PCB artifact was generated
+- [x] D12 confirms all nine SMA connectors as Amphenol RF 901-143-6RFX female right-angle THT
+- [x] exact Amphenol Rev-C drawing and no-form/fit-change PCN retained; stale drawing association and wrong ground-hole diameter corrected
+- [x] exact Amphenol, pSemi and GCT footprints realized and compared with fresh exact-code JLC CAD
+- [x] 100 x 100 mm outline, four M3 holes, three fiducials and cyclic non-crossing RF edge order commissioned
+- [x] all nine SMA mating-face datums and the USB PCB-edge datum measure exactly on the outline
+- [x] generated board places 33/33 parts and nine selective U1 EP POFV vias; P-COLLIDE and P-PADSEP pass
+- [x] placement DRC: 0 violations, 39 expected track-free unconnected items, 0 schematic-parity findings
+- [x] physical pin-map gate passes 117 declared identities across 14 multi-pin refs
+- [x] critical-pair gate explicitly grades 0 differential pairs with a single-ended RF reason
+- [x] top, oblique, edge and 2D placement review renders generated
+- [x] exact GCT USB body resolves in the headless render; placement subject is
+      pinned 30/30 at board SHA-256 `4b2dfca2353b4b02dd34fcd85e72edd62d9f891a989681348aa9a5af80249d42`
+- [ ] current pause: human/fresh-context connector, RF-corridor and render-readability approval
+- [ ] next stage after approval: contract and route critical RF copper first
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.
@@ -20,15 +32,15 @@ RELEASED must additionally pass the release gate at the bottom.
 ## Gates (mechanical — no judgement)
 - [ ] `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
       → 0 violations, 0 unconnected, 0 missing footprints
-- [ ] `03_src/audit_board.py` → PASS (placement/pad invariants)
-- [ ] `pad_separation.py 04_kicad/<board>.kicad_pcb --project .` → P-PADSEP
+- [x] shared `placement_gates.py` → PASS (P-OUT/P-CAP/P-BODYCLR)
+- [x] `pad_separation.py 04_kicad/<board>.kicad_pcb --project .` → P-PADSEP
       PASS: separate-footprint copper clears the fab-tier gap and paste does
       not intrude on foreign lands
-- [ ] rules regenerate byte-identical from `03_src/rules/nets.yaml` (no hand-edits)
+- [x] rules regenerate byte-identical from `03_src/rules/nets.yaml` (no hand-edits)
 - [ ] BOM ↔ `02_parts/` parity (every used part has a datasheet + facts on file)
 - [ ] `module_first_check.py .` → P-MOD PASS; every complex subsystem uses a
       proven module or carries an evidence-backed bare-IC exception ADR
-- [ ] netlist node-for-node parity after any schematic regeneration
+- [x] placement-stage schematic parity → 0 findings
 
 ## Judgement (a human or a fresh-context agent)
 - [ ] every net >1A walked end-to-end for copper cross-section

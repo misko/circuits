@@ -4,7 +4,7 @@ type: absorptive_sp8t_rf_switch
 datasheet: {doc_id: DOC-75785-4, revision: "09/2023", url: "https://www.psemi.com/pdf/datasheets/pe42482ds.pdf", sha256: 794579f2973d31c9d8bbe44bfd3656ae95027ff13ab79a0ceaede2a680cc9ec1, fetched: 2026-08-13}
 package: 24-lead 4x4mm QFN, 0.5mm pitch, exposed ground pad
 footprint: pluto_rx2_8way_v5:Psemi_PE42482_QFN24_4x4_P0.5
-escape: {style: qfn, pitch: 0.5, escapes_worst_side: 3, tier_required: jlc_4layer_advanced, checked: "escape_check.py ad-hoc proof 2026-08-13"}
+escape: {style: qfn, pitch: 0.5, escapes_worst_side: 3, tier_required: jlc_4layer_advanced, checked: "perimeter escape plus RF exposed-pad grounding review 2026-08-13; advanced is required by selective filled/capped via-in-pad, not by sub-0.127mm perimeter tracks"}
 pins:
   1: LS
   2: RF2
@@ -46,6 +46,7 @@ gotchas:
   - "LS has an internal 1Mohm pull-up; tie LS directly to GND for the four-bit binary truth table."
   - "Use an external V4 pull-up and V1/V2/V3 pull-downs so tri-stated controls produce ALL_OFF. The passive guarantee applies only while switch VDD is within 2.3V-5.5V."
   - "At 4-6GHz the data-sheet maximum insertion loss is path-dependent and reaches 2.3dB; board launches and traces add to it."
+  - "The realized 2.75mm exposed land uses nine 0.45/0.20mm filled and copper-capped GND vias. This RF return/assembly decision, not the perimeter pitch alone, is the sole advanced-tier justification."
 verified: "pin map, binary truth table, supply/logic/RF limits, switching/settling and QFN land pattern read from DOC-75785-4 pp.3-10 and 20-22 on 2026-08-13"
 sourcing: {lcsc: C5121458}
 layout:
