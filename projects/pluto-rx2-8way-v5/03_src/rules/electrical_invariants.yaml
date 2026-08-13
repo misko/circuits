@@ -24,11 +24,13 @@ invariants:
   - {assert: pin_on_net, pin: U2.10, net: SW_V4, adr: "0002", why: "the fourth MCU output owns the PE42482 V4 bit"}
   - {assert: pin_on_net, pin: U2.18, net: SWDIO, adr: "0002", why: "direct Raspberry Pi or ST-LINK programming requires an exposed SWDIO path"}
   - {assert: pin_on_net, pin: U2.19, net: SWCLK, adr: "0002", why: "direct Raspberry Pi or ST-LINK programming requires an exposed SWCLK path"}
-  - {assert: pin_on_net, pin: TP1.1, net: 3V3, adr: "0002", why: "the programming fixture requires a target-voltage sense point"}
-  - {assert: pin_on_net, pin: TP2.1, net: GND, adr: "0002", why: "the programming fixture requires a common signal reference"}
-  - {assert: pin_on_net, pin: TP3.1, net: SWDIO, adr: "0002", why: "the programming fixture must reach SWDIO without a board-resident programmer"}
-  - {assert: pin_on_net, pin: TP4.1, net: SWCLK, adr: "0002", why: "the programming fixture must reach SWCLK without a board-resident programmer"}
-  - {assert: pin_on_net, pin: TP5.1, net: NRST, adr: "0002", why: "the programming fixture needs reset for reliable attach and recovery"}
+  - {assert: pin_on_net, pin: J11.1, net: 3V3, adr: "0004", why: "MIPI10 pin 1 is target-powered VTref and must not be a programmer power input"}
+  - {assert: pin_on_net, pin: J11.2, net: SWDIO, adr: "0004", why: "MIPI10 pin 2 carries SWDIO"}
+  - {assert: pin_on_net, pin: J11.3, net: GND, adr: "0004", why: "MIPI10 pin 3 is a signal return"}
+  - {assert: pin_on_net, pin: J11.4, net: SWCLK, adr: "0004", why: "MIPI10 pin 4 carries SWCLK"}
+  - {assert: pin_on_net, pin: J11.5, net: GND, adr: "0004", why: "MIPI10 pin 5 is a signal return"}
+  - {assert: pin_on_net, pin: J11.9, net: GND, adr: "0004", why: "MIPI10 pin 9 provides GNDDetect compatibility"}
+  - {assert: pin_on_net, pin: J11.10, net: NRST, adr: "0004", why: "MIPI10 pin 10 carries target reset for reliable attach and recovery"}
 
 label_survival:
   pin_map:
@@ -68,13 +70,6 @@ label_survival:
       pins: {"1": 3V3, "2": GND}
     - refs: [C6]
       pins: {"1": NRST, "2": GND}
-    - refs: [TP1]
-      pins: {"1": 3V3}
-    - refs: [TP2]
-      pins: {"1": GND}
-    - refs: [TP3]
-      pins: {"1": SWDIO}
-    - refs: [TP4]
-      pins: {"1": SWCLK}
-    - refs: [TP5]
-      pins: {"1": NRST}
+    - refs: [J11]
+      pins: {"1": 3V3, "2": SWDIO, "3": GND, "4": SWCLK, "5": GND, "9": GND, "10": NRST}
+      unconnected: ["6", "7", "8"]

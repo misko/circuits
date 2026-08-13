@@ -3,11 +3,7 @@ service: JLCPCB_PCBA
 sides: [top]
 fiducials: {global_top: 3, local_required_for_0_5mm_QFN: true}
 build_quantity: 5_first_articles
-not_assembled:
-  - refs: [TP1, TP2, TP3, TP4, TP5]
-    reason: test_point
-    evidence: "2026-08-13 design declaration: TP1-TP5 are exposed copper programming/test pads, not purchased components and therefore have no placement line"
-    disposition: "fabricated as bare board pads; probe during programming and bring-up"
+not_assembled: []
 consigned: []
 exempt_prefixes: [FID, MH]
 
@@ -23,6 +19,7 @@ sourcing_plan:
   - {function: regulator, part: TPS7A2433DBVR, lcsc: C2866134, refs: [U3]}
   - {function: CC_ESD, part: TPD2E2U06DRLR, lcsc: C1972959, refs: [U4]}
   - {function: USB_C_input, part: USB4105-GF-A-120, lcsc: C5184243, refs: [J1]}
+  - {function: keyed_Cortex_SWD, part: FTSH-105-01-L-DV-K-P-TR, lcsc: C2932107, refs: [J11]}
   - {function: SMA_interfaces, part: 901-143-6RFX, lcsc: C429844, refs: [J2, J3, J4, J5, J6, J7, J8, J9, J10]}
   - {function: input_PPTC, part: 0603L010YR, lcsc: C207010, refs: [F1]}
   - {function: VBUS_TVS, part: SMBJ6.0A, lcsc: C83270, refs: [D1]}
@@ -35,5 +32,6 @@ order_time_requirements:
   - upload BOM and CPL and obtain a line-by-line placement/allocation echo
   - select four-layer 1.6mm JLC04161H-7628 and controlled impedance
   - confirm U1 MSL handling and assembly profile against actual JLC listing
+  - confirm J11 pin-1 orientation and keyed-cable compatibility in the JLC placement preview
   - confirm nine SMA connectors are accepted for wave soldering and inspect their joint fillets
   - approve polarity/orientation render for D1, J1, U1 and every SMA before payment

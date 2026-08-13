@@ -48,12 +48,12 @@ now exist; no routed copper, fab package or release artifact exists.
 
 | Authority | What it establishes | Boundary |
 |---|---|---|
-| User D1–D12 | 1-of-8 receive selection, 100 MHz–5.9 GHz, SMA, JLCPCB, accepted AD9363 extended-range risk, autonomous unique dwell control, independent USB-C 5 V, fast programmable dwell profile, direct Raspberry Pi SWD, and exact 901-143-6RFX connector confirmation | Product authority |
+| User D1–D13 | 1-of-8 receive selection, 100 MHz–5.9 GHz, SMA, JLCPCB, accepted AD9363 extended-range risk, autonomous unique dwell control, independent USB-C 5 V, fast programmable dwell profile, direct Raspberry Pi SWD, exact 901-143-6RFX confirmation, and a proper programming connector instead of loose pads | Product authority |
 | pSemi DOC-75785-4 | PE42482A-X pinout, truth table, 10 MHz–8 GHz device range, absorptive/all-off behavior, supply/logic limits, RF DC condition, package and switching figures | Device facts, not board performance |
 | ST DS13866 Rev 4 local / Rev 5 online | STM32C011F4P6 TSSOP-20 pinout, supply, HSI48 error, BOR, watchdog, SWD and decoupling | Exact controller interface; local revision deviation recorded |
 | TI SBVS395E / SLLSEG9C | TPS7A2433 input/output/thermal bounds and TPD2E2U06 ESD bounds/layout guidance | Exact power/protection interfaces |
-| GCT USB4105 Rev B, Littelfuse, Samsung, Yageo, Amphenol exact documents | Connector layouts and passive ratings/polarities/packages | Exact code facts; exact Amphenol Rev-C drawing capture and 2026 no-form/fit-change PCN retained with hashes |
-| KiCad 10 exact GCT USB4105 footprint/model and fresh JLC exact-code CAD | Independent package/model comparison and a reproducible project-local USB render body | Manufacturer drawing remains dimensional authority; catalog/stock CAD does not override it |
+| GCT USB4105 Rev B, Littelfuse, Samsung, Yageo, Amphenol and Samtec exact documents | Connector layouts and passive ratings/polarities/packages | Exact code facts; exact Amphenol Rev-C drawing/PCN and Samtec FTSH series/footprint prints retained with hashes |
+| KiCad 10 exact GCT USB4105 footprint/model and fresh JLC exact-code CAD | Independent package/model comparison and reproducible project-local connector render bodies | Manufacturer drawings remain dimensional authority; catalog/stock CAD does not override them. Native C429844 STEP corrects the visibly misregistered converted-WRL SMA render without changing copper. |
 | USB-IF Type-C Release 2.5 and TI Type-C guide | Current Type-C authority and two independent 5.1-kohm Rd implementation for the simple 5-V sink | Power-only attach; no data or PD claim |
 | JLCPCB capability, stackup and impedance calculator pages | JLC04161H-7628 layer build, retained 0.295/0.200-mm CPWG solution and current controlled-impedance order process | Live 1.0-mil coating input differs from the written guide's 1.2 mil; order echo and allocation remain mandatory |
 | JLC/LCSC plus independent distributor checks dated 2026-08-13 | Exact-code catalog identity and dated stock observations | Volatile; uploader/order echo still mandatory |

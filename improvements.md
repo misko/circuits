@@ -90,6 +90,8 @@ rationale.
 | IMP-074 | Type ADR gate applicability instead of inferring it from prose | proposed | Pluto RX2 8-way v5 schematic gate |
 | IMP-075 | Bind mechanical dimensions to exact document identity and feature role | proposed | Pluto RX2 8-way v5 connector review |
 | IMP-076 | Reconcile exact package geometry and logical pin identity in the first-board preflight | proposed | Pluto RX2 8-way v5 placement grind |
+| IMP-077 | Reconcile footprint and symbol metadata before schematic-parity DRC | proposed | Pluto RX2 8-way v5 keyed-SWD placement |
+| IMP-078 | Run the source-resolvable tier/routing preflight before schematic and placement spend | proposed | Pluto RX2 8-way v5 keyed-SWD placement |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -1758,6 +1760,13 @@ rationale.
   body before routing; a project-local hash-bound copy referenced through
   `${KIPRJMOD}` rendered correctly. Availability on disk and a plausible model
   path therefore do not prove render-time body coverage.
+- follow-up evidence: Pluto RX2 8-way v5's first SMA render showed complete
+  plated holes beside every connector even though the exact Amphenol footprint
+  and all nine mating-face datums were dimensionally correct. The converted
+  EasyEDA WRL had lost the native model's XY registration; swapping only to the
+  native exact-code STEP put all four legs under the body without changing one
+  pad or anchor. A rendered body count would still have passed this defect: the
+  body existed, but it was in the wrong coordinate frame.
 - intended landing point: after part selection and before placement, probe the
   exact supplier CAD endpoint for every height-, polarity- or enclosure-
   critical code. Record `MODEL`, `NO-MODEL` or `TRANSIENT` with the tested
@@ -1772,12 +1781,20 @@ rationale.
   the headless renderer, emit expected-versus-rendered body counts by refdes,
   and fail a mechanically significant part whose model token is unresolved
   even when the renderer itself exits zero.
+- completion evidence extension: project each connector model envelope/known
+  attachment features into board coordinates and compare them with the exact
+  footprint pads, drills and manufacturer body datum. Require an explicit
+  review when a body exists but does not cover its own attachment field; test
+  native STEP and converted WRL separately because format conversion can alter
+  registration while preserving a visually plausible body.
 - history:
   - 2026-08-12 — recorded after the v4 twin made exact model coverage
     measurable; project-level dossier review exists, shared preflight remains
     open.
   - 2026-08-13 — extended after v5 proved render exit zero can coexist with an
     unresolved exact-model token and a missing connector body.
+  - 2026-08-13 — extended after the v5 SMA image proved body presence alone
+    does not catch a format-conversion registration error.
 
 ## IMP-056 — population evidence must separate automated and manual bodies
 
@@ -2588,3 +2605,66 @@ Recommended execution order for future boards:
 - recommendation: implement before the next custom-footprint project. V5 has
   already run the bundle manually and is clean, so no route-stage fix remains.
 - history: 2026-08-13 — proposed from the bounded v5 placement grind.
+
+## IMP-077 — reconcile footprint and symbol metadata before schematic-parity DRC
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 keyed-SWD placement, 2026-08-13
+- evidence: the exact J11 custom footprint initially carried non-empty KiCad
+  `Datasheet` and `Description` properties while the generated schematic
+  symbol carried empty values. Connectivity, physical-pin mapping, pad
+  separation and placement geometry all passed, but immediate pre-route KiCad
+  schematic-parity DRC correctly stopped first on `Datasheet` and then on
+  `Description`. Two otherwise identical one-second placement regenerations
+  were needed to expose the fields serially. The searchable human description
+  remains in the footprint `descr` and the authoritative provenance remains in
+  the part dossier, so clearing the duplicate instance properties repaired the
+  exact board without losing evidence.
+- general rule: symbol/footprint standard fields are parity-bearing design
+  data, even when they are not electrical. A project footprint template must
+  either inherit the exact generated-symbol value or leave the field empty;
+  it must not independently author a second value that is expected to survive
+  schematic-to-PCB parity.
+- intended landing point: add a source/first-board lint that compares
+  `Reference`, `Value`, `Datasheet`, `Description` and other parity-bearing
+  footprint properties with the generated symbol contract before full DRC.
+  Report every divergent field in one invocation. Keep descriptive search text
+  in `descr`/`tags` and document authority in `part.yaml` unless the producer
+  has one explicit, shared field source.
+- completion evidence required: fixtures with two simultaneous divergent
+  fields must report both at once; inherited-identical and deliberately empty
+  properties must pass; the check must not erase or weaken dossier evidence.
+- recommendation: low-cost lint before the next custom footprint. The v5
+  instance is repaired and now reports zero schematic-parity findings.
+
+## IMP-078 — run source-resolvable tier/routing preflight before expensive stages
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 keyed-SWD placement, 2026-08-13
+- evidence: after the exact schematic had been generated and reviewed and the
+  placement had passed geometry, pin-map, landability and DRC checks,
+  `tier_preflight.py` stopped before routing because
+  `route.common.clearance=0.09 mm` was below the applicable 0.20 mm DRC floor
+  and a 0.15 mm drill through the declared 1.6 mm board gives 10.667:1, above
+  the selected JLC advanced-tier 10:1 PTH aspect limit. It also warned that the
+  0.50 mm legalization clearance is below the derived 0.53 mm rescue-via
+  requirement. All three facts were derivable from already-authored
+  `route.yaml`, net rules, stackup and fab-tier data before TSX generation or
+  human schematic review.
+- general rule: split routing preflight into a source-resolvable phase and an
+  exact-board phase. Run the source phase with other cheap schema/electrical
+  gates before foreign producers and reviewers; repeat the full phase after
+  placement for facts that genuinely require realized pads and board setup.
+- intended landing point: add `tier_preflight.py --phase source` (or an
+  equivalent pure checker), invoke it before the TSX build in the canonical
+  drivers, and retain the present pre-route invocation as the authoritative
+  exact-board recheck. Diagnostics must distinguish source-known failures from
+  placement-dependent checks and preserve the same effective-rule derivation.
+- completion evidence required: the v5 clearance/aspect fixture must fail
+  before a producer is called; a placement-dependent seed-via fixture must be
+  deferred explicitly and fail at the exact-board recheck; clean designs must
+  pass both phases without weakening the late authority.
+- recommendation: implement early because it saves review cycles without
+  changing any electrical or manufacturing rule. V5 still needs the local
+  routing inputs corrected before route preparation; this improvement changes
+  when the conflict is discovered, not what values are acceptable.

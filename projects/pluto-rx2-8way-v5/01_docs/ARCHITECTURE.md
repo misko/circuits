@@ -54,15 +54,19 @@ operating target.
 ## Autonomous control protocol
 
 `STM32C011F4P6` runs from 3.3 V, using HSI48, a hardware timer, BOR level 4 and
-the independent watchdog. Bare pads TP1..TP5 expose target-sense 3V3, GND,
-SWDIO, SWCLK and NRST respectively. The board is powered through its own
-USB-C input; neither a Raspberry Pi nor an ST-LINK may source board power.
+the independent watchdog. Keyed Cortex debug header J11 is the exact Samtec
+`FTSH-105-01-L-DV-K-P-TR`: pin 1 is target-powered 3V3/VTref, pins 2/4 are
+SWDIO/SWCLK, pins 3/5/9 are ground, pin 10 is NRST, and pins 6/7/8 are explicit
+no-connects. The board is powered through its own USB-C input; neither a
+Raspberry Pi nor an ST-LINK may source board power.
 
-The primary update path uses a Raspberry Pi as the SWD adapter directly:
-GPIO11/physical pin 23 drives SWCLK, GPIO8/physical pin 24 is SWDIO, GPIO24/
-physical pin 18 may drive NRST, and a Pi ground joins TP2. OpenOCD uses
+The primary update path uses a Raspberry Pi as the SWD adapter directly through
+a keyed 10-pin Cortex cable and Pi GPIO breakout: GPIO11/physical pin 23 drives
+J11.4/SWCLK, GPIO8/physical pin 24 is J11.2/SWDIO, GPIO24/physical pin 18 may
+drive J11.10/NRST, and a Pi ground joins J11.3, J11.5 or J11.9. J11.1 is target
+voltage sense only and must not be tied to Pi 3V3. OpenOCD uses
 `raspberrypi-native.cfg` on Pi 1–4 and `raspberrypi5-gpiod.cfg` on Pi 5.
-The same pads remain compatible with a conventional ST-LINK recovery probe.
+The same standard header remains compatible with a conventional ST-LINK probe.
 There is no live configuration/data link; changing a profile means generate,
 validate, build, flash, verify and reset.
 

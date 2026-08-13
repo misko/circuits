@@ -76,15 +76,17 @@ gates:
 
 findings:
   - id: V5-F1-provisional-sma-mechanics
-    state: open
+    state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: systems
-    finding: D12 confirms all nine connectors as Amphenol RF 901-143-6RFX female right-angle THT SMA, but their exact footprint, accessible edge placement and mechanical review are not yet complete.
+    finding: D12 confirms all nine connectors as Amphenol RF 901-143-6RFX female right-angle THT SMA. The exact Rev-C five-hole footprint, native exact-code STEP, accessible outward edge placement and body-to-leg registration have now been reviewed and agree.
     closes_when: The current manufacturer drawing is captured, the exact footprint is dimensionally approved, and mechanical/render reviews confirm accessible mating and non-interference for J2-J10.
     evidence:
       - 01_docs/BRIEF.md
       - 01_docs/ARCHITECTURE.md
       - 02_parts/901-143-6RFX/part.yaml
+      - 03_src/lib/pluto_rx2_8way_v5.pretty/Amphenol_901_143_6RFX.kicad_mod
+      - 01_docs/renders/v0.0-D13-placement-top.png
 
   - id: V5-F2-source-document-lifecycle
     state: open
@@ -108,8 +110,9 @@ findings:
       - 06_build/placement/mechanics.json
       - 06_build/placement/footprint_comparison.json
       - 06_build/drc/placement.json
-      - 06_build/review_images/placement-top-3d.png
-      - 06_build/checkpoints/placement.json
+      - 01_docs/renders/v0.0-D13-placement-top.png
+      - 01_docs/renders/v0.0-D13-placement-iso.png
+      - 06_build/checkpoints/placement-pre-D13.json
 
   - id: V5-F4-order-day-sourcing-and-allocation
     state: open

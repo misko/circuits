@@ -8,17 +8,26 @@ Most revisions never ship. That is normal: a board can go v4.4 → v4.10 in a
 day and fab exactly one of them.
 
 ## v0.0 — 2026-08-13  [untagged checkpoint]
+- Accepted D13 and backtracked before routing: replaced five loose SWD pads
+  with exact keyed Samtec FTSH-105-01-L-DV-K-P-TR / JLC C2932107 header J11,
+  using the standard Cortex/MIPI10 target pinout and preserving target-only
+  USB-C power.
+- Rechecked the suspicious SMA render against the exact Amphenol drawing. The
+  five-hole copper and all nine edge anchors were correct; replacing only the
+  misregistered converted WRL with its native STEP restores correct body-to-
+  hole alignment in render evidence.
 - Accepted the clean-room one-of-eight SP8T, autonomous dwell controller and
   independent power-only USB-C architectures.
-- Selected 12 exact BOM codes and closed their source, package, pin, power,
+- Selected 13 exact BOM codes and closed their source, package, pin, power,
   protection and JLC evidence before schematic generation.
 - Replaced the initial slow timing with generated `fast20-v1`: unique
   20–50 ms antenna dwells, 5 ms guards, 80 ms marker and a 386 ms cycle.
-- Selected direct Raspberry Pi GPIO SWD on five bare pads as the normal
-  profile-update path, retaining ST-LINK compatibility as a fallback.
-- Generated and hash-bound the clean-room four-page, 33-component schematic;
-  manifest/Circuit JSON/KiCad/netlist agree 33/33, 129/129 pin mappings and
-  30/30 electrical invariants pass, ERC has zero errors, and independent RF
+- Selected direct Raspberry Pi GPIO SWD through the keyed Cortex J11 header as
+  the normal profile-update path, retaining ST-LINK compatibility as a
+  fallback and prohibiting programmer power into target VTref.
+- Generated and hash-bound the clean-room four-page, 29-component schematic;
+  manifest/Circuit JSON/KiCad/netlist agree 29/29, 131/131 source pin mappings
+  and 32/32 electrical invariants pass, ERC has zero errors, and independent RF
   schematic review passes all four exact-artifact-bound requirements.
 - Rejected the first otherwise-green human PDF for incorrect unused-STM32 pin
   function labels, corrected it against DS13866 and regenerated the complete
@@ -47,12 +56,19 @@ day and fab exactly one of them.
   mm RF-ground vias in U1's exposed pad; ordinary routing does not depend on
   advanced-width traces or small vias.
 - Closed the first placement grind before routing: exact-package clearance,
-  SMA silk, numeric-to-alphanumeric USB pin identity and explicit zero critical
-  pair denominator. Final placement DRC is 0 violations / 39 expected unrouted
-  items / 0 parity findings; P-OUT, P-CAP, P-BODYCLR, P-PADSEP and 117-identity
-  P-PINMAP all pass.
+  SMA silk, numeric-to-alphanumeric USB pin identity, keyed J11 pin identity
+  and explicit zero critical-pair denominator. Current placement DRC is 0
+  violations / 39 expected unrouted items / 0 parity findings; P-OUT, P-CAP,
+  P-BODYCLR, P-PADSEP and 127-identity P-PINMAP all pass.
 - Rejected the first apparently successful final render because the USB-C
   body was absent under an unresolved headless KiCad model token; vendored and
   hash-bound the exact GCT STEP model, then regenerated the board, gates and
   complete top/oblique/edge evidence before pausing for review.
+- Rejected the first SMA visual evidence because a converted JLC WRL body was
+  offset from the exact Amphenol five-hole footprint. The native exact-code
+  STEP aligns all nine bodies, legs and edge mating datums; J11's exact body is
+  also present in the regenerated top/oblique/edge evidence.
+- Stopped before route preparation when tier preflight exposed a 0.09-mm
+  router-clearance setting below the applicable 0.20-mm DRC floor and a
+  0.15-mm drill at 1.6-mm thickness above the declared 10:1 PTH aspect limit.
 Released: no

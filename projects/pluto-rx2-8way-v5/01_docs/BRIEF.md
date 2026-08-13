@@ -215,6 +215,11 @@ NRST. The board remains powered by its own USB-C input. A Raspberry Pi may
 directly drive the 3.3 V SWD signals using OpenOCD; no programming IC or
 populated connector is added. A conventional ST-LINK may use the same pads.
 
+Superseded interface detail: D13 retains the direct-Pi/ST-LINK SWD method and
+self-powered target, but replaces these five loose pads with keyed connector
+J11. D11 remains the authority for the programming method, not the final
+physical connector.
+
 ### D12 — 2026-08-13 — exact SMA connector confirmed
 
 > This looks great! 901-143-6RFX works!
@@ -225,6 +230,25 @@ through-hole SMA connectors. No rigid direct-mating relationship to the Pluto
 or enclosure-driven edge order has been specified; placement remains free to
 minimize RF path length and coupling while keeping every mating interface
 accessible.
+
+### D13 — 2026-08-13 — proper keyed programming connector
+
+> Lets not have pads but a proper connector please.
+
+Impact: replace TP1–TP5 with J11, exact Samtec
+`FTSH-105-01-L-DV-K-P-TR` / JLC `C2932107`, using the standard 10-pin Cortex
+Debug/MIPI10 SWD mapping. Pin 1 is target-powered 3V3/VTref, pins 2/4 are
+SWDIO/SWCLK, pins 3/5/9 are ground, pin 10 is NRST, and pins 6/7/8 remain
+explicit no-connects. A Pi connects through a keyed 10-pin cable and GPIO
+breakout; its 40-pin header is not directly pin-compatible. The board remains
+self-powered from USB-C and must not be powered through J11.
+
+The accompanying image question triggered a recheck of every SMA against
+Amphenol drawing `SMA6252A2-3GT50G-50` Rev C. The five-hole patterns and edge
+anchors are correct. The complete holes visible beside connector bodies in the
+first render came from a misregistered converted WRL model; the native exact-
+code STEP aligns the bodies over the same unchanged copper and shows only the
+expected annular-ring crescents.
 
 ## Decision register
 
@@ -238,9 +262,11 @@ accessible.
 | COM-006 | Use a generated, versioned 20-ms-class dwell profile while retaining unique duration-coded antenna identity. | user (D10) / agent derived schedule | [D10](#d10--2026-08-13--programmable-20-ms-class-dwell-directive) |
 | COM-007 | Expose bare SWD pads so a Raspberry Pi can directly reflash profiles; retain ST-LINK compatibility only as fallback. | user (D11) | [D11](#d11--2026-08-13--direct-raspberry-pi-swd-programming) |
 | COM-008 | Use Amphenol RF 901-143-6RFX female right-angle THT SMA connectors for J2–J10. | user (D12) | [D12](#d12--2026-08-13--exact-sma-connector-confirmed) |
+| COM-009 | Replace loose SWD pads with a proper keyed 10-pin Cortex connector while retaining direct-Pi and ST-LINK programming. | user (D13) | [D13](#d13--2026-08-13--proper-keyed-programming-connector) |
 | 0001 | Select PE42482A-X as one true absorptive solid-state SP8T. | user D8 / agent exact-code proof | [accepted ADR](decisions/0001-one-of-eight-absorptive-sp8t.md) |
 | 0002 | Select STM32C011F4P6 and the fixed-order, guarded, framed dwell protocol. | user D8 / agent parameter lock | [accepted ADR](decisions/0002-autonomous-dwell-coded-control.md) |
 | 0003 | Select the exact protected power-only USB-C sink and TPS7A2433DBVR 3.3 V rail. | user D8 / agent exact-code proof | [accepted ADR](decisions/0003-usb-c-5v-to-protected-3v3.md) |
+| 0004 | Replace the loose programming pads with exact keyed Cortex SWD header J11 and the standard MIPI10 mapping. | user D13 / standards and exact-part proof | [accepted ADR](decisions/0004-keyed-cortex-swd-connector.md) |
 
 ## Architecture comparison
 
@@ -267,7 +293,7 @@ The complete evidence and consequences are in accepted
 | Receiver silicon/profile | LOCKED D5 — physical AD9363 using AD9361 software profile; extended-band risk accepted |
 | Control architecture | LOCKED D6 — onboard preprogrammable controller, autonomous cycling, unique dwell duration per populated antenna; no live Pluto GPIO link assumed |
 | Control parameters | LOCKED D10 — generated `fast20-v1`, 20–50 ms unique dwells, 5 ms guard, ≥76 ms marker detection, ±5% windows, BOR4/IWDG/SWD, passive ALL_OFF |
-| Reprogramming | LOCKED D11 — direct Raspberry Pi GPIO SWD on five bare pads; board self-powered by USB-C; ST-LINK-compatible fallback; no live runtime data interface |
+| Reprogramming | LOCKED D11/D13 — direct Raspberry Pi GPIO SWD through exact keyed J11 and a Pi breakout harness; board self-powered by USB-C; standard-probe fallback; no live runtime data interface |
 | Power | LOCKED D7/D8 — power-only Type-C 4.75–5.5 V, 20 mA; exact passive protection and TPS7A2433DBVR; no active OVP/eFuse/data/PD |
 | RF limits | PROVISIONAL — 0 dBm operating limit and first-article loss/isolation/return-loss targets; final evidence requires VNA |
 | Timing/state | LOCKED — ALL_OFF guards and reset state; 1.4 µs switch-settling ceiling is far below the 5 ms guard |
@@ -337,18 +363,21 @@ dimensions.
 | Integration posture | One PE42482A-X bare SP8T; module trade rejected on total system complexity | D8 / ADR-0001 accepted |
 | RF performance/measurement boundary | Provisional numeric targets at SMA mating planes; VNA evidence required | A3 |
 | Control/default/switching | STM32C011F4P6, exact truth table, generated `fast20-v1` framed profile, passive ALL_OFF/BOR4/IWDG | D8 / D10 / ADR-0002 accepted |
-| Programming | Five bare 3V3/GND/SWDIO/SWCLK/NRST pads; direct Raspberry Pi GPIO SWD with ST-LINK-compatible fallback; target power remains USB-C | D11 |
+| Programming | Exact keyed 10-pin Cortex J11 carries VTref/GND/SWDIO/SWCLK/NRST; direct Raspberry Pi GPIO SWD needs a breakout harness; standard-probe fallback; target power remains USB-C | D11/D13 |
 | Power source | Independent USB-C nominal 5 V input | D7 |
 | Power implementation | Exact passive protection and TPS7A2433DBVR; 4.75–5.5 V/20 mA; no active OVP/data/PD/backfeed path | D8 / ADR-0003 accepted |
-| Mechanics/cabling | Nine exact 901-143-6RFX female right-angle SMA connectors locked; 100x100-mm outline, mounting and cyclic edge order realized; human review and cable loss remain OPEN | D12 + current placement checkpoint |
+| Mechanics/cabling | Nine exact 901-143-6RFX female right-angle SMA connectors locked; 100x100-mm outline, mounting and cyclic edge order realized; complete placement review and cable loss remain OPEN | D12 + current track-free board |
 | Assembly/test | Five JLC first articles proposed; uploader allocation and instrument availability remain OPEN | A3 |
 
 ## Exact-parts and interface gate
 
-The architecture, exact BOM, electrical interfaces, reviewed schematic,
-source-solved RF cross-section and machine-validated track-free placement are
-closed for the current human placement pause. A PCB exists, but it has no
-routed signal copper and makes no fab-ready claim.
+The architecture and electrical method are closed, and the D13 programming-
+connector change has now been regenerated through the exact schematic and
+track-free placement. J11 is present in the BOM, netlist and board with the
+standard target-powered Cortex mapping; the RF cross-section and SMA copper/
+edge anchors remain unchanged. Current placement DRC is clean, but route
+preflight has stopped on clearance and via-aspect inputs that must be corrected
+before route preparation. No fab-ready claim exists.
 
 Before routing, approve the exact connector access, RF corridors and render
 readability against the board hash. Before fabrication, provide/confirm the

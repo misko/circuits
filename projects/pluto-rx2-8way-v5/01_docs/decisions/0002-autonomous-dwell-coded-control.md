@@ -77,9 +77,11 @@ interval 85ms. Acceptance windows are +/-5%; a decoder returns `unknown` for
 incomplete, ambiguous, unordered or unframed observations. The profile source
 generates both the MCU header and downstream decoder JSON; stale copies fail.
 
-Use HSI48, hardware timers, BOR level 4, IWDG and SWD test pads. D11 makes
-direct Raspberry Pi GPIO SWD the primary reflash path and keeps conventional
-ST-LINK compatibility as recovery; the target remains self-powered. External
+Use HSI48, hardware timers, BOR level 4, IWDG and SWD. D11 makes direct
+Raspberry Pi GPIO SWD the primary reflash path and keeps conventional ST-LINK
+compatibility as recovery; ADR-0004 supersedes only the earlier bare-pad
+physical interface with a keyed Cortex connector. The target remains
+self-powered. External
 pulls own ALL_OFF until firmware atomically preloads `PA3..PA0=1000` and only
 then enables the GPIO outputs. The accepted ADR authorizes schematic work
 after the stage pause, not firmware release or PCB generation.

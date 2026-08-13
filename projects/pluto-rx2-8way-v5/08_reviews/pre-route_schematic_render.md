@@ -1,62 +1,45 @@
-subject: Pluto RX2 8-Way v5 delivered schematic readability
+subject: Pluto RX2 8-Way v5 delivered schematic readability after D13
 date: 2026-08-13
 reviewer: Codex exact-PDF human readability review
 review_stage: pre-route
 review_kind: schematic_render
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-schematic_pdf_sha256: 9f2778643675c639b5026482a8624ce2373c41b05425572ba60dd800999e6cf3
-netlist_sha256: 51d52ddd49ab551677b656a7593c6fd0162ec5595a6c26ac6bfdbdda12c22ced
-exact_netlist_sha256: 12e7039b3e2d185b53187ecdd53acec655969aa1b19b32cdc53c2af2d16ecf21
-parts_sha256: af89e5d5be339883a97cdef1d523433c4ccda1cf6b645d0935b0498ef83f1b40
-design_rules_sha256: 426089542e30284dddd34c08b222e3402510bcb7612a2c4f65b6bcf20e4094f2
-circuit_json_sha256: 37c7a0083c4736f9ee5e63f3891537d3c187ccd01384c7002db584576c63cfd3
-kicad_schematic_sha256: 572849a8ea53b9fc3ef4d92d6dba5bb692d0779e9a4002090b3cfaacaacd517a
-schematic_checkpoint_sha256: 0130a38cd1d074450eb5e3a8a087550fc6698900d21ec75282c5e58cb005707e
-authoring_source_sha256: 873f6598254556541fef9be544c0b88ca0628fa011834ff4940601ba771f711b
+schematic_pdf_sha256: 9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759f5d955
+netlist_sha256: 817a6cea93afa2ee3e387cf861702dfe4e06c9a8fa7af192f7f9d53cea1f2ecd
+exact_netlist_sha256: e39508799698657495d058021a990f9e02c0ff7f526efbf44939f0cf13bbb795
+parts_sha256: 52ef55614f80065bf7fb9499342435a54ffd41f7d8bab28e1c80affa63059cd6
+design_rules_sha256: 20f0a262d60bc780b8e764076e39bef06ee28721eb203ab77cfd0a853a4e28bc
+circuit_json_sha256: c66c3e1a242d03f9312fa4fc03ac90634af704041461446e9e955232c3163f63
+kicad_schematic_sha256: 1abd0c209be27ac602f55f8e81cf25e4e98bb3a99a2fb76494fc8bbfcf20603b
+schematic_checkpoint_sha256: 6f6506b1a405ac8fa0e753b4987183abd9f91c108b15e5c009645f36c77f8b24
+authoring_source_sha256: 4959ed7107a3dae3969df2b8306b591187bda34f79720c9b410676f7908ef53b
 
-# Pre-route human schematic render review
+# Pre-route human schematic render review after D13
 
 ## Verdict
 
-**SOUND / DO-NOT-ORDER.**  I rendered and visually inspected all four pages of
-the exact PDF bound above at 180 dpi, and inspected the corrected MCU page
-again at 200 dpi.  All 33 components are present.  Every page title, component
-identity, value, connected endpoint, intentional open and safety boundary
-needed to understand the schematic is visible and legible.  No blocking
-overlap, clipping, false connection or misleading pin label remains.
+**SOUND / DO-NOT-ORDER.** I rendered and visually inspected all four pages of
+the exact PDF bound above. Every page is present, legible and free from
+blocking overlap, clipping, false junction or misleading pin label. The only
+material schematic change since the retained pre-D13 review is the replacement
+of TP1-TP5 by keyed connector J11 on page 4.
 
-The first candidate PDF failed this human review because U2's unused pin
-function names did not match ST DS13866 even though all connected nets and
-machine pin-map assertions passed.  That PDF was discarded.  The exact PDF
-named here was fully regenerated after correcting the source labels.
+## Page review
 
-## Page-by-page inspection
+- **Page 1 — USB-C power only:** The separate CC resistors, explicit USB data
+  no-connects, fuse, transient shunt, LDO and decoupling remain readable.
+- **Page 2 — RF switch core:** RFC/RF1-RF8, ground/EP, control inputs, pulls
+  and bypassing remain unambiguous.
+- **Page 3 — RF interfaces:** J2 is visibly the common port and J3-J10 are the
+  eight numbered antennas; center and four shell pins are separately visible.
+- **Page 4 — autonomous control:** J11 is clearly identified by exact Samtec
+  part number. Pin 1 is labelled `VTREF_3V3`; pins 2/4/10 are
+  `SWDIO`/`SWCLK`/`NRST`; pins 3/5/9 are ground/GNDDetect; and pins 6/7/8 are
+  visibly `SWO_NC`/`KEY_NC`/`TDI_NC`. U2 and C3/C5/C6 remain legible.
 
-- **Page 1 — USB-C power only:** J1 visibly keeps CC1 and CC2 separate, marks
-  all six D+/D-/SBU contacts as NC, and joins all VBUS and ground/shell
-  contacts correctly.  U4, the independent 5.1 kOhm Rd resistors, the
-  `VBUS_RAW -> F1 -> VBUS_PROTECTED` path, D1 polarity, C1, U3, C2 and `3V3`
-  are readable.  The heading explicitly says 5 V sink and no USB data.
-- **Page 2 — RF switch core:** U1's RFC/RF1-RF8, ground/EP, VDD, LS, V1-V4
-  names and physical pin numbers are visible.  The all-off bias is traceable:
-  R3 goes from `3V3` to `SW_V4`, while R4-R6 take `SW_V1/SW_V2/SW_V3` to GND.
-  C4 is separately visible.  The long net runs do not cross another signal or
-  create an ambiguous junction.  The heading openly states receive-only and
-  user-accepted extended 5.9 GHz operation.
-- **Page 3 — RF interfaces:** J2 is distinctly labelled `RF_COMMON`.  J3-J10
-  are labelled `RF_ANT1` through `RF_ANT8` in numeric order.  For every SMA,
-  RF pin 1 and four separately numbered ground pins are readable.  The sparse
-  arrangement makes the one-common/eight-throw boundary immediately clear.
-- **Page 4 — autonomous control:** U2 is legibly identified as
-  STM32C011F4P6.  The final symbol shows the correct DS13866 pin functions,
-  including PC14/PC15, PA8, PA11/PA9, PA12/PA10 and PB6 on the unused pins.
-  `VDD_VDDA`, `VSS_VSSA`, `PF2_NRST`, PA0-V1 through PA3-V4, PA13-SWDIO and
-  PA14-BOOT0-SWCLK are readable with their physical numbers.  TP1-TP5,
-  C3/C5/C6 and their net labels are unambiguous.  The heading identifies the
-  generated fast20-v1 profile and direct Raspberry Pi/ST-LINK SWD boundary.
-
-No page is missing.  The exact Circuit JSON digest prefix printed on every
-page agrees across the document.  The PDF is a human topology view, not proof
-of future PCB geometry or assembled behavior, so the order verdict remains
-DO-NOT-ORDER.  Blocking readability findings: none.
+The drawing therefore communicates the target-powered standard Cortex SWD
+boundary without relying on a private pin list. The earlier pre-D13 render
+certificate is retained separately for audit history. The PDF remains a
+topology document, not fabrication or assembly proof. Blocking readability
+findings: none.

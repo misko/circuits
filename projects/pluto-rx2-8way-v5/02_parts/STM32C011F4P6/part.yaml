@@ -18,14 +18,14 @@ limits:
 gotchas:
   - "Configure BOR level 4 and the independent watchdog in firmware/options; these are requirements, not reset defaults."
   - "Before changing PA0-PA3 to outputs, preload the atomic GPIO output word for U1 ALL_OFF; external pulls own the state while pins are inputs."
-  - "PA13/PA14 are retained for SWD. Provide 3V3, GND, SWDIO, SWCLK and NRST test pads; the programmer must sense target power and must not power the board."
+  - "PA13/PA14 are retained for SWD. J11 exposes target-powered VTref, GND, SWDIO, SWCLK and NRST on a keyed Cortex connector; the programmer must sense target power and must not power the board."
   - "The current manufacturer document is Rev 5; see 02_parts/README.md for the local Rev 4 cache deviation."
 verified: "TSSOP-20 pin map, supply, memory, timers/watchdogs, BOR thresholds, HSI48 error and reset-state pulls cross-checked against current ST DS13866 Rev 5 online on 2026-08-13"
 sourcing: {lcsc: C5452432}
 layout:
   source: "ST DS13866 power-supply scheme and package drawing"
   reviewed: 2026-08-13
-  notes: "Place one 100nF and one 4.7uF capacitor at combined VDD/VDDA pin 4; return directly to pin 5/plane. Place 100nF at NRST. Keep SWD pads accessible and digital/control copper out of the RF fanout."
+  notes: "Place one 100nF and one 4.7uF capacitor at combined VDD/VDDA pin 4; return directly to pin 5/plane. Place 100nF at NRST. Keep keyed SWD header J11 accessible and digital/control copper out of the RF fanout."
 layout_refs:
   - {tier: 1, reached: true, artifact: "ST DS13866 power-supply scheme", why: "manufacturer source fixes decoupling and reset/programming requirements"}
   - {tier: 2, reached: false, artifact: "an open-hardware STM32C011F4P6 TSSOP-20 board with published routed design files", why: "no exact-device and exact-package routed implementation was captured during the source-stage search; schematic requirements remain anchored to DS13866"}

@@ -1,14 +1,14 @@
 # Revision checklist
 
-## Current unrouted-placement checkpoint — 2026-08-13
+## Current unrouted-placement candidate — 2026-08-13
 
 - [x] architecture ADRs accepted and exact part codes selected
 - [x] exact-code manufacturer facts and dated two-source/JLC checks recorded
 - [x] power, surge/capacitor, module-first, package-escape and source-rule gates pass
 - [x] fail-safe RF truth table and framed dwell decoder contract are executable
 - [x] JLC four-layer stackup and live-calculator RF source geometry retained: 0.295-mm width / 0.200-mm CPWG gap / 49.972 ohm
-- [x] generated four-page schematic agrees 33/33 across source and exports
-- [x] pin-map 129/129, electrical invariants 30/30, ERC errors 0 and checkpoint 7/7 pass
+- [x] generated four-page schematic agrees 29/29 across source and exports
+- [x] source pin-map 131/131, electrical invariants 32/32, ERC errors 0 and checkpoint 7/7 pass
 - [x] exact-PDF topology/readability reviews and independent RF schematic review are SOUND
 - [x] schematic pause completed before any PCB artifact was generated
 - [x] D12 confirms all nine SMA connectors as Amphenol RF 901-143-6RFX female right-angle THT
@@ -16,16 +16,22 @@
 - [x] exact Amphenol, pSemi and GCT footprints realized and compared with fresh exact-code JLC CAD
 - [x] 100 x 100 mm outline, four M3 holes, three fiducials and cyclic non-crossing RF edge order commissioned
 - [x] all nine SMA mating-face datums and the USB PCB-edge datum measure exactly on the outline
-- [x] generated board places 33/33 parts and nine selective U1 EP POFV vias; P-COLLIDE and P-PADSEP pass
+- [x] generated board places 29/29 parts and nine selective U1 EP POFV vias; P-COLLIDE and P-PADSEP pass
 - [x] placement DRC: 0 violations, 39 expected track-free unconnected items, 0 schematic-parity findings
-- [x] physical pin-map gate passes 117 declared identities across 14 multi-pin refs
+- [x] physical pin-map gate passes 127 declared identities across 15 multi-pin refs
 - [x] critical-pair gate explicitly grades 0 differential pairs with a single-ended RF reason
-- [x] top, oblique, edge and 2D placement review renders generated
-- [x] exact GCT USB body resolves in the headless render; placement subject is
-      pinned 32/32 at board SHA-256 `4b2dfca2353b4b02dd34fcd85e72edd62d9f891a989681348aa9a5af80249d42`,
-      including the committed bare/modelled top-view pair
-- [ ] current pause: human/fresh-context connector, RF-corridor and render-readability approval
-- [ ] next stage after approval: contract and route critical RF copper first
+- [x] current top, oblique and edge placement review renders generated
+- [x] exact GCT USB, Samtec J11 and native exact-code SMA bodies resolve in the
+      headless render; SMA legs align with the five-hole manufacturer pattern
+      and all nine mating directions face outward at their board edges
+- [ ] current pause: approve connector result and correct R-PREFLIGHT's two
+      source-known blockers (0.09-vs-0.20-mm clearance and 10.667:1-vs-10:1
+      via aspect); retain the 0.53-mm legalization recommendation
+- [ ] next stage after correction: prepare deterministic route copper, then
+      obtain fresh pin/layout/render and A-RENDER placement witnesses
+- [ ] sign a new canonical placement checkpoint only after the complete
+      placement review; the superseded pre-D13 certificate is retained as
+      `06_build/checkpoints/placement-pre-D13.json`
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.
@@ -47,7 +53,9 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] every net >1A walked end-to-end for copper cross-section
 - [ ] every 2-pad polarized part: pad 1's net checked against `02_parts/*/part.yaml`
       (diodes, LEDs, electrolytics, AND connectors — this is invisible to DRC)
-- [ ] 3D/render review: connector bodies vs mounting holes, silk collisions
+- [x] targeted 3D/render review: J11 body/keying and SMA body/leg/edge alignment
+- [ ] complete placement review: RF spoke corridors, all body clearances and
+      operational silk readability
 - [ ] `01_docs/CHANGELOG.md` entry written
 - [ ] anything surprising captured as an ADR in `01_docs/decisions/`
 - [ ] `03_src/rules/rf.yaml` explicitly records RF applicability. If enabled:

@@ -77,6 +77,9 @@ placement:
         # that manufacturer geometry explicit at the package boundary while
         # TYPEC_CC retains 0.18 mm everywhere beyond the escape.
         - {pads: [1, 2, 3, 4, 5], clearance: 0.15}
+    - match: "J11"
+      pad_overrides:
+        - {pads: [3, 5, 9], zone_connection: full}
 
   anchors:
     # RF core and cyclic, non-crossing edge order.
@@ -99,16 +102,13 @@ placement:
     R6: [70.5, 79.0, 270]
     R3: [73.0, 78.5, 90]
 
-    # Rot270 presents U2 pins 4-10 toward U1 and pins 18/19 toward the SWD row.
+    # Rot270 presents U2 pins 4-10 toward U1 and pins 18/19 toward the keyed
+    # Cortex SWD header. J11 pin 1 is at local upper-left as viewed from top.
     U2: [70.0, 87.0, 270]
     C3: [75.5, 82.0, 180]
     C5: [72.5, 81.8, 90]
     C6: [66.5, 81.8, 90]
-    TP1: [60.0, 96.0, 0]
-    TP2: [65.0, 96.0, 0]
-    TP3: [70.0, 96.0, 0]
-    TP4: [75.0, 96.0, 0]
-    TP5: [80.0, 96.0, 0]
+    J11: [70.0, 96.0, 0]
 
     # GCT's drawing and KiCad's exact manufacturer footprint put the local PCB
     # edge at +3.675 mm Y; 116.325 + 3.675 = the y=120 outline exactly.
@@ -161,7 +161,7 @@ silk:
     - {text: "ANT5", at: [105.0, 101.0], size: 0.95}
     - {text: "USB-C POWER ONLY", at: [70.0, 102.0], size: 0.95}
     - {text: "pluto-rx2-8way-v5  100MHz-5.9GHz", at: [70.0, 59.0], size: 0.70}
-    - {text: "SWD 3V3 GND IO CLK RST", at: [70.0, 99.5], size: 0.70}
+    - {text: "KEYED SWD J11", at: [59.5, 96.0], size: 0.70}
 
 asserts:
   pad_net:
@@ -186,6 +186,13 @@ asserts:
     - {ref: J10, pad: 1, net: RF_ANT8}
     - {ref: U2, pad: 18, net: SWDIO}
     - {ref: U2, pad: 19, net: SWCLK}
+    - {ref: J11, pad: 1, net: 3V3}
+    - {ref: J11, pad: 2, net: SWDIO}
+    - {ref: J11, pad: 3, net: GND}
+    - {ref: J11, pad: 4, net: SWCLK}
+    - {ref: J11, pad: 5, net: GND}
+    - {ref: J11, pad: 9, net: GND}
+    - {ref: J11, pad: 10, net: NRST}
   pad_order:
     - {ref: U1, pads: [24, 23, 22, 21, 20, 19], axis: x}
     - {ref: J1, pads: [A1, A4, B8, A5, B7, A6, A7, B6, A8, B5, B4, B1], axis: x}

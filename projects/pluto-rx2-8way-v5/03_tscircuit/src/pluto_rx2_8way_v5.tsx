@@ -7,8 +7,8 @@
 // AD9361-profile risk through 5.9 GHz; no ADI out-of-rating guarantee is made.
 //
 // USB-C supplies 5 V only.  There is no USB data or runtime control path.  U2
-// runs a preprogrammed, versioned dwell profile and is reflashed over TP1–TP5
-// by direct Raspberry Pi GPIO SWD or an external ST-LINK.
+// runs a preprogrammed, versioned dwell profile and is reflashed over keyed
+// Cortex SWD header J11 by direct Raspberry Pi GPIO SWD or an external ST-LINK.
 
 // tscircuit rejects a net token beginning with a digit.  The shared converter
 // canonically removes this transport-only N prefix (N3V3 -> 3V3), which the
@@ -104,6 +104,24 @@ const UsbC = () => (
   </footprint>
 )
 
+// Samtec's recommended FTSH-DV land pattern: five 1.27 mm-pitch pads per
+// row, 4.065 mm row-centre spacing, 0.74 x 2.79 mm lands.  The exact KiCad
+// footprint is project-owned and selected through the J11 part dossier.
+const CortexSwd = () => (
+  <footprint>
+    {Array.from({ length: 5 }, (_, i) => (
+      <smtpad key={`odd${i}`} portHints={[`${i * 2 + 1}`]}
+        pcbX={`${(i - 2) * 1.27}mm`} pcbY="2.0325mm"
+        width="0.74mm" height="2.79mm" shape="rect" />
+    ))}
+    {Array.from({ length: 5 }, (_, i) => (
+      <smtpad key={`even${i}`} portHints={[`${i * 2 + 2}`]}
+        pcbX={`${(i - 2) * 1.27}mm`} pcbY="-2.0325mm"
+        width="0.74mm" height="2.79mm" shape="rect" />
+    ))}
+  </footprint>
+)
+
 const RF = ({ name, net, x, y }: any) => (
   <chip name={name} supplierPartNumbers={{ jlcpcb: ["C429844"] }}
     manufacturerPartNumber="901-143-6RFX"
@@ -112,11 +130,6 @@ const RF = ({ name, net, x, y }: any) => (
     connections={{ pin1: N(net), pin2: N("GND"), pin3: N("GND"), pin4: N("GND"), pin5: N("GND") }}
     footprint={<Sma />} />
 )
-
-const TEST_POINTS = [
-  ["TP1", "3V3", -8, 7], ["TP2", "GND", -4, 7], ["TP3", "SWDIO", 0, 7],
-  ["TP4", "SWCLK", 4, 7], ["TP5", "NRST", 8, 7],
-] as const
 
 export default () => (
   <board width="100mm" height="80mm" routingDisabled>
@@ -127,7 +140,7 @@ export default () => (
     <schematicsheet name="rf_ports"
       displayName="RF INTERFACES — one Pluto RX common SMA and eight antenna SMAs / one selected throw maximum" sheetIndex={3} />
     <schematicsheet name="control"
-      displayName="AUTONOMOUS CONTROL — STM32C011 / generated fast20-v1 dwell profile / direct Raspberry Pi or ST-LINK SWD" sheetIndex={4} />
+      displayName="AUTONOMOUS CONTROL — STM32C011 / generated fast20-v1 dwell profile / keyed Cortex SWD connector" sheetIndex={4} />
 
     <chip name="J1" supplierPartNumbers={{ jlcpcb: ["C5184243"] }}
       manufacturerPartNumber="USB4105-GF-A-120"
@@ -217,10 +230,18 @@ export default () => (
     <C2 name="C3" value="4.7uF" a="3V3" b="GND" jlc="C19666" mpn="CL10A475KO8NNNC" footprint="0603" section="Autonomous control and SWD" schX="-12mm" schY="-6mm" />
     <C2 name="C5" value="100nF" a="3V3" b="GND" jlc="C1525" mpn="CL05B104KO5NNNC" section="Autonomous control and SWD" schX="-7mm" schY="-6mm" />
     <C2 name="C6" value="100nF" a="NRST" b="GND" jlc="C1525" mpn="CL05B104KO5NNNC" section="Autonomous control and SWD" schX="9mm" schY="-6mm" />
-    {TEST_POINTS.map(([name, net, x, y]) => (
-      <testpoint key={name} name={name} footprintVariant="pad" padShape="circle" padDiameter="1.5mm"
-        schSectionName="Autonomous control and SWD" schSheetName="control" schX={`${x}mm`} schY={`${y}mm`}
-        connections={{ pin1: N(net) }} />
-    ))}
+    <chip name="J11" supplierPartNumbers={{ jlcpcb: ["C2932107"] }}
+      manufacturerPartNumber="FTSH-105-01-L-DV-K-P-TR"
+      schSectionName="Autonomous control and SWD" schSheetName="control" schX="0mm" schY="7mm"
+      pinLabels={{
+        pin1: "VTREF_3V3", pin2: "SWDIO", pin3: "GND", pin4: "SWCLK",
+        pin5: "GND", pin6: "SWO_NC", pin7: "KEY_NC", pin8: "TDI_NC",
+        pin9: "GNDDETECT", pin10: "NRST",
+      }}
+      schPinArrangement={{ leftSide: [1, 3, 5, 7, 9], rightSide: [2, 4, 6, 8, 10] }}
+      connections={{
+        pin1: N("3V3"), pin2: N("SWDIO"), pin3: N("GND"), pin4: N("SWCLK"),
+        pin5: N("GND"), pin9: N("GND"), pin10: N("NRST"),
+      }} footprint={<CortexSwd />} />
   </board>
 )

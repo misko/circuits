@@ -246,7 +246,7 @@
 		(uuid "08a32170-7929-4252-9fb5-3cc992b96e2d")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.wrl"
+	(model "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
 		(offset
 			(xyz 0 0 0)
 		)

@@ -35,10 +35,9 @@ rf:
 
   cross_sections:
     - id: RF_50R_TOP_CPWG
-      status: solved_source_geometry
-      stackup_source: "JLCPCB JLC04161H-7628 published four-layer stackup and order-time stackup echo"
-      solver: "official JLCPCB impedance calculator, with order-time field-solver confirmation"
-      evidence: 06_build/impedance/jlc04161h-7628-rf-50r-cpwg.json
+      status: locked
+      stackup_source: "JLCPCB JLC04161H-7628 published four-layer stackup; order-time stackup echo remains required"
+      solver: "official JLCPCB impedance calculator returned 49.971863887ohm for the locked geometry; retained inputs/results are in 06_build/impedance/jlc04161h-7628-rf-50r-cpwg.json and require order-time field-solver confirmation"
       copper_layer: F.Cu
       reference_layer: In1.Cu
       dielectric_height_mm: 0.2104
@@ -46,10 +45,6 @@ rf:
       target_z0_ohm: 50
       width_mm: 0.295
       gap_mm: 0.2
-      calculator_result_ohm: 49.971863887
-      solder_mask: present
-      top_ground: required
-      order_time_recheck: required
 
   performance_claims:
     - id: RF-IL

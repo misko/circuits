@@ -20,22 +20,28 @@ different: the downstream decoder identifies the selected antenna by measured
 dwell duration.  A requested change therefore means a new synchronized profile
 revision, not a runtime command sent to the board.
 
-## Direct Raspberry Pi SWD programming
+## Direct Raspberry Pi SWD programming through J11
 
-No programmer IC is required on the PCB.  A Raspberry Pi can drive the STM32
-SWD signals directly through OpenOCD.  Power the target normally through its
-USB-C connector; the Pi supplies logic signals and a common ground only.
+No programmer IC is required on the PCB. A Raspberry Pi can drive the STM32
+SWD signals directly through OpenOCD using a keyed 10-pin Cortex cable plus a
+small Pi GPIO breakout/adapter harness. The Cortex cable does not plug directly
+onto the Pi's 40-pin header because the two connector pinouts differ. Power the
+target normally through its USB-C connector; the Pi supplies logic signals and
+a common ground only.
 
-| Raspberry Pi | Physical pin | Target pad | Signal |
+| Raspberry Pi | Physical pin | J11 pin | Signal |
 |---|---:|---|---|
-| GPIO11 | 23 | TP4 | SWCLK |
-| GPIO8 | 24 | TP3 | SWDIO |
-| GPIO24 | 18 | TP5 | NRST (recommended) |
-| GND | 20 | TP2 | GND |
-| 3V3 sense | — | TP1 | Target voltage reference/test only |
+| GPIO11 | 23 | 4 | SWCLK |
+| GPIO8 | 24 | 2 | SWDIO |
+| GPIO24 | 18 | 10 | NRST (recommended) |
+| GND | 20 | 3, 5 or 9 | GND |
+| no Pi power connection | — | 1 | Target-powered VTref/3V3 sense only |
 
-Do **not** connect Raspberry Pi 5 V to the board.  TP1 is a target-powered 3V3
-test/reference point, not a supply input.
+Do **not** connect Raspberry Pi 5 V or Pi 3V3 to J11 pin 1. Pin 1 is a
+target-powered VTref/test point, not a supply input. A conventional debug probe
+uses it to sense I/O voltage; a direct Pi harness may leave it open after
+independently verifying that the USB-C-powered target rail is 3.3 V. J11 pins
+6, 7 and 8 remain unconnected on this SWD-only target.
 
 For Raspberry Pi 1–4, a typical OpenOCD invocation is:
 
@@ -48,8 +54,8 @@ sudo openocd \
 
 For Raspberry Pi 5, use `interface/raspberrypi5-gpiod.cfg`.  Exact GPIO-chip
 numbering and permissions remain host-image dependent and must be verified on
-the programming Pi.  An external ST-LINK remains the recovery and production
-fixture fallback on the same TP1–TP5 interface.
+the programming Pi. An external ST-LINK remains the recovery and production
+fixture fallback through the same standard J11 interface.
 
 There is intentionally no runtime control protocol in v5.  Timing changes are
 made by generating a new profile revision, rebuilding the firmware and decoder,
