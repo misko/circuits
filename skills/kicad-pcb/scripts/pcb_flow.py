@@ -57,6 +57,7 @@ SOURCE_IGNORES = {
 DEFAULT_TOOL_FILES = (
     "pcb_flow.py", "module_first_check.py", "escape_check.py",
     "tier_preflight.py", "pad_separation.py", "pin_map_check.py",
+    "model_coverage_check.py",
     "pre_route_review_check.py", "promoted_route_check.py", "early_design_check.py",
     "via_ampacity_check.py",
     "critical_route_check.py", "placement_gates.py",

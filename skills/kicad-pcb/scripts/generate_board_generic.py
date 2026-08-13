@@ -46,7 +46,8 @@ NOT read another project's config). Top-level keys:
               binds one library name to one explicit .pretty dir
   placement:  anchors {REF: [x,y,rot]}, post_anchors {REF: [x,y,rot]},
               seeds {REF: [x,y]}, regions,
-              patterns[] (glob -> region/near/attrs/pad_overrides),
+              patterns[] (glob -> region/near/attrs/model_override/
+                pad_overrides),
               repeat[] (array primitive; caption-only blocks allowed),
               bbox_override {REF: [x0,y0,x1,y1]} for modules whose footprint
                 bbox includes an off-board antenna keepout (pinned refs only),
@@ -966,6 +967,7 @@ class BoardBuilder:
     def place_parts(self):
         self.pinned = set()
         placed = 0
+        model_overrides = 0
         for ref, (fpid, val) in sorted(self.comps.items()):
             fp = self.res.load(ref, fpid, val)
             fp.SetReference(ref)
@@ -985,6 +987,15 @@ class BoardBuilder:
                     if a not in self.ATTR_FLAGS:
                         die(f"unknown clear_attr {a!r}")
                     fp.SetAttributes(fp.GetAttributes() & ~self.ATTR_FLAGS[a])
+            overrides = [pat["model_override"]
+                         for pat in self.patterns_for(ref)
+                         if "model_override" in pat]
+            if len(overrides) > 1:
+                die(f"{ref}: multiple placement patterns specify "
+                    "model_override; make the model source unambiguous")
+            if overrides:
+                self.apply_model_override(fp, ref, overrides[0])
+                model_overrides += 1
             for pad in fp.Pads():
                 key = (ref, pad.GetNumber())
                 if key in self.pad_net:
@@ -1010,7 +1021,49 @@ class BoardBuilder:
             placed += 1
         self.fps = {f.GetReference(): f for f in self.board.GetFootprints()}
         self.say(f"placed {placed} footprints ({len(self.pinned)} anchored)")
+        if model_overrides:
+            self.say(f"3D model overrides: {model_overrides} footprints "
+                     f"source-bound to resolvable files")
         return placed
+
+    def apply_model_override(self, fp, ref, filename):
+        """Replace a library footprint's model path with source-owned CAD.
+
+        The original model transform is preserved because a package model can
+        legitimately need a footprint-specific offset or rotation.  A missing
+        source file is fatal at generation time: KiCad's renderer otherwise
+        exits zero while silently omitting the body.
+        """
+        filename = str(filename or "").strip()
+        if not filename:
+            die(f"{ref}: placement model_override must be a non-empty path")
+        expanded = filename.replace("${KIPRJMOD}",
+                                    str(self.out.resolve().parent))
+        if "${" in expanded or "$(" in expanded:
+            die(f"{ref}: placement model_override contains an unresolved "
+                f"variable: {filename!r}")
+        candidate = Path(os.path.expanduser(expanded))
+        if not candidate.is_absolute():
+            candidate = self.out.resolve().parent / candidate
+        if not candidate.is_file() or candidate.stat().st_size == 0:
+            die(f"{ref}: placement model_override does not resolve to a "
+                f"non-empty file: {filename!r} -> {candidate}")
+
+        old = list(fp.Models())
+        model = pcbnew.FP_3DMODEL()
+        model.m_Filename = filename
+        if old:
+            # Never mutate an item returned from the SWIG vector in place: the
+            # assignment is made on a temporary and is lost on save.  Copy the
+            # transform into a new object, then replace the vector atomically.
+            for dst, src in ((model.m_Offset, old[0].m_Offset),
+                             (model.m_Scale, old[0].m_Scale),
+                             (model.m_Rotation, old[0].m_Rotation)):
+                dst.x, dst.y, dst.z = src.x, src.y, src.z
+            model.m_Show = old[0].m_Show
+            model.m_Opacity = old[0].m_Opacity
+        fp.Models().clear()
+        fp.Models().push_back(model)
 
     def promote_heatsink_pads_to_vias(self):
         """Turn explicitly marked footprint thermal holes into real vias.

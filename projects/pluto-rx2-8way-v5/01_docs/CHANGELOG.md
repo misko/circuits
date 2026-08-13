@@ -68,7 +68,18 @@ day and fab exactly one of them.
   offset from the exact Amphenol five-hole footprint. The native exact-code
   STEP aligns all nine bodies, legs and edge mating datums; J11's exact body is
   also present in the regenerated top/oblique/edge evidence.
+- Closed the remaining modeled-placement population gap before routing: pinned
+  the eight official KiCad 10.0.4 package-model files used by 17 R/C/U/D/F
+  references into project source with upstream licence and SHA-256 provenance,
+  regenerated without geometry movement, and promoted complete D14 top,
+  oblique and edge renders. The new independent P-MODEL gate passes 29/29 and
+  is wired into canonical full and reuse rebuilds with a red fixture.
 - Stopped before route preparation when tier preflight exposed a 0.09-mm
   router-clearance setting below the applicable 0.20-mm DRC floor and a
   0.15-mm drill at 1.6-mm thickness above the declared 10:1 PTH aspect limit.
+- Corrected those source-known route constraints before copper: every wave now
+  inherits 0.20-mm clearance and 0.45/0.20-mm ordinary vias, while the
+  legalizer reserves the actual 0.58-mm drill-plus-hole-clearance pocket.
+  R-PREFLIGHT is 0 FAIL / 0 WARN and regeneration remains byte-identical at
+  board SHA-256 `8429ce851ed4`.
 Released: no

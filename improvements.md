@@ -68,7 +68,7 @@ rationale.
 | IMP-052 | Preflight mutable catalog clients and distinguish compatibility from throttling | implementing | USB Hub 3S v4, JLC digital-twin fetch |
 | IMP-053 | Prefer explicit catalog facts over MPN-shape heuristics | completed | USB Hub 3S v4, C23 source substitution |
 | IMP-054 | Persist the final adjudicated state in generated reports | completed | USB Hub 3S v4, JLC digital twin |
-| IMP-055 | Preflight exact body/model availability before placement freeze | proposed | USB Hub 3S v4, JLC digital twin |
+| IMP-055 | Preflight exact body/model availability before placement freeze | implementing | USB Hub 3S v4, JLC digital twin |
 | IMP-056 | Separate automated and manual population denominators | completed | USB Hub 3S v4, release audit |
 | IMP-057 | Validate relocated release archives in their own dependency context | implementing | USB Hub 3S v4, release staging |
 | IMP-058 | Treat multi-format evidence as one atomic result | proposed | USB Hub 3S v4, release staging |
@@ -1744,7 +1744,7 @@ rationale.
 
 ## IMP-055 — preflight exact body/model availability before placement freeze
 
-- status: proposed
+- status: implementing
 - observed: USB Hub 3S v4 JLC digital twin, 2026-08-12
 - evidence: the final twin mounts 71 of 75 placed bodies. JLC's current library
   has no usable exact 3D body for four deliberately hand-soldered connectors:
@@ -1787,6 +1787,21 @@ rationale.
   review when a body exists but does not cover its own attachment field; test
   native STEP and converted WRL separately because format conversion can alter
   registration while preserving a visually plausible body.
+- partial implementation: `model_coverage_check.py` now independently reopens
+  the saved board before modeled placement review and requires a renderer-
+  resolvable non-empty body for every fitted, non-DNP, non-board-only
+  footprint. The canonical full/reuse rebuild templates run it and persist the
+  deterministic `model_coverage.json` report. `floorplan.yaml` may source-bind
+  a package-correct file through `placement.patterns[].model_override`; the
+  generator preserves the library model transform and refuses missing or
+  ambiguous overrides. The clean fixture passes 22/22 and the known-bad
+  removes its model after generation and fails 0/22. Pluto RX2 8-way v5 passes
+  29/29 with eight provenance- and digest-pinned official KiCad package-model
+  files covering 17 fitted refs.
+- remaining: automated attachment-field/body registration and polarity-marker
+  projection are not implemented. The native-STEP-versus-converted-WRL SMA
+  failure therefore remains an explicit visual/mechanical review obligation;
+  body coverage alone must never close it.
 - history:
   - 2026-08-12 — recorded after the v4 twin made exact model coverage
     measurable; project-level dossier review exists, shared preflight remains
@@ -1795,6 +1810,9 @@ rationale.
     unresolved exact-model token and a missing connector body.
   - 2026-08-13 — extended after the v5 SMA image proved body presence alone
     does not catch a format-conversion registration error.
+  - 2026-08-13 — implemented the independent fitted-body resolver gate,
+    source-bound override, canonical stage wiring and red fixture; retained
+    `implementing` because automated model registration is still open.
 
 ## IMP-056 — population evidence must separate automated and manual bodies
 
@@ -2644,8 +2662,9 @@ Recommended execution order for future boards:
 - evidence: after the exact schematic had been generated and reviewed and the
   placement had passed geometry, pin-map, landability and DRC checks,
   `tier_preflight.py` stopped before routing because
-  `route.common.clearance=0.09 mm` was below the applicable 0.20 mm DRC floor
-  and a 0.15 mm drill through the declared 1.6 mm board gives 10.667:1, above
+  the tier-derived effective `route.common.clearance=0.09 mm` was below the
+  applicable 0.20 mm DRC floor and the tier-derived 0.15 mm drill through the
+  declared 1.6 mm board gives 10.667:1, above
   the selected JLC advanced-tier 10:1 PTH aspect limit. It also warned that the
   0.50 mm legalization clearance is below the derived 0.53 mm rescue-via
   requirement. All three facts were derivable from already-authored
@@ -2668,3 +2687,11 @@ Recommended execution order for future boards:
   changing any electrical or manufacturing rule. V5 still needs the local
   routing inputs corrected before route preparation; this improvement changes
   when the conflict is discovered, not what values are acceptable.
+- v5 disposition: explicitly selected the strictest adopted 0.20-mm class
+  clearance for every router wave and JLC's preferred 0.45/0.20-mm ordinary
+  via. Nominal aspect is 8:1 and remains 8.8:1 at JLC's published +10% board-
+  thickness tolerance. Legalization clearance is 0.58 mm, derived from the
+  actual 0.20-mm route drill plus twice the 0.19-mm hole clearance rather than
+  merely accepting the checker's tier-minimum 0.53-mm warning threshold.
+  R-PREFLIGHT now reports 0 FAIL / 0 WARN without changing the track-free
+  board hash. The early source-phase implementation remains open.

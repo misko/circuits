@@ -30,6 +30,7 @@ mutable file: it is an INPUT, and a re-read replaces the entry it re-reads.
 | `shopping-list-<YYYY-MM-DD>.json` | the machine sidecar for the same run, carrying an explicit `verdict` | GENERATED. A missing or unparseable verdict is a FAIL, never a skip |
 | `parts-selection-<YYYY-MM-DD>.md` | dated architecture/selection evidence and the candidate BOM it qualifies | HAND-WRITTEN review record; exact identities remain authoritative in `02_parts/` and the candidate BOM |
 | `two-source-qualification-<YYYY-MM-DD>.md` | dated interpretation of the machine-composed Q-2SOURCE evidence | HAND-WRITTEN review record; it must name the machine report and may not replace its verdict |
+| `exact-parts.csv` | frozen pre-schematic candidate identity/quantity set consumed by sourcing qualification; final BOM authority remains the generated board BOM and dossiers | HAND-WRITTEN selection input; no volatile stock/price claims |
 | `manual_quotes.yaml` | every DigiKey / Amazon number. One entry per `{manufacturer, mpn, distributor}` with source, URL, read date and stock/price fields | HAND-WRITTEN evidence. `manufacturer:` plus full `mpn:` is Q-MFR-IDENT and is required for a quote to count toward Q-2SOURCE. Search snippets are refused; catalog absence is the only admissible search-page use |
 | `contracts.md` | this file | |
 

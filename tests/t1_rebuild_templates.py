@@ -452,6 +452,36 @@ def t_placement_drc_before_review():
               f"{path.name}: P-DRC must not expose a generic defect allowlist")
 
 
+def model_coverage_before_review(txt):
+    generated = txt.find("generate_board_generic.py")
+    coverage = txt.find('"$S/model_coverage_check.py"', generated)
+    review = txt.find('pre_route_review_check.py" . --phase placement',
+                      coverage)
+    return generated >= 0 and coverage > generated and review > coverage
+
+
+@test("both rebuild drivers require fitted-body model coverage before modeled placement review")
+def t_model_coverage_before_review():
+    for path in (REUSE, ALL):
+        txt = path.read_text()
+        check(model_coverage_before_review(txt),
+              f"{path.name}: P-MODEL must independently reopen the generated "
+              "board before placement review")
+        check(txt.count('"$S/model_coverage_check.py"') == 1,
+              f"{path.name}: expected exactly one executable P-MODEL call")
+
+
+@test("the fitted-body wiring check rejects a driver that drops P-MODEL",
+      kind="known_bad")
+def t_kb_model_coverage_before_review():
+    txt = ALL.read_text()
+    mutated = txt.replace('"$S/model_coverage_check.py"',
+                          '"$S/model_gate_removed.py"', 1)
+    check(mutated != txt, "mutation did not remove the P-MODEL call")
+    check(not model_coverage_before_review(mutated),
+          "driver without P-MODEL was accepted before modeled review")
+
+
 @test("rebuild_all.sh resumes the exact reviewed schematic checkpoint without rerunning TSX")
 def t_schematic_review_checkpoint_resume():
     txt = ALL.read_text()

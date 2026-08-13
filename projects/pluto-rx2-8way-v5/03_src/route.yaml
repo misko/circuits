@@ -11,6 +11,18 @@ project:
 route:
   preflight_critical_pairs: []
   no_critical_routes: "All nine controlled-impedance RF nets are single-ended; there are no differential or polarity-paired critical routes."
+  common:
+    layers: [F.Cu, B.Cu]
+    # Use the strictest adopted class clearance globally. KRT otherwise
+    # inherits the tier's 0.09-mm manufacturing floor and can legally pack
+    # copper below RF_50R/USB_VBUS/PWR_3V3's 0.20-mm DRC requirement.
+    clearance: 0.20
+    # JLC currently prefers a 0.20-mm via hole. At 1.6-mm nominal thickness
+    # this is 8:1 (8.8:1 at +10% thickness), below the declared 10:1 PTH
+    # limit; 0.45/0.20 also avoids the extra-cost <0.45-mm annulus case.
+    via_size: 0.45
+    via_drill: 0.20
+    no_stub_layer_swap: true
 
 flow:
   heartbeat_s: 10
@@ -54,4 +66,4 @@ flow:
     rebuild: 1500
     layout_drc: 180
   blockers:
-    - "PCB mechanics, impedance solution, placement and routing reviews intentionally pending"
+    - "Placement review and routing witnesses remain pending; no copper has been prepared or promoted"

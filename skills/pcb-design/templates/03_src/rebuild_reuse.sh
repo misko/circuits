@@ -90,6 +90,9 @@ $PY "$S/pin_map_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
 # [3] placement/pad invariants, if the board defines them  [per-board gate]
 if [ -f 03_src/audit_board.py ]; then $PY 03_src/audit_board.py; fi
 $PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
+$PY "$S/model_coverage_check.py" "04_kicad/$BOARD.kicad_pcb" \
+    -o 06_build/verification/model_coverage.json \
+    || { echo "GATE FAILED [3m] P-MODEL: every fitted footprint needs a renderer-resolvable 3D body before placement review"; exit 1; }
 $PY "$S/pad_separation.py" "04_kicad/$BOARD.kicad_pcb" --project . \
     || { echo "GATE FAILED [3] P-PADSEP: separate-footprint copper clearance"; exit 1; }
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \

@@ -169,3 +169,46 @@ creating another overlapping process item.
 
 Next: pause for the connector/RF/render judgement review. Routing remains
 blocked until that review signs the exact board hash.
+
+## D14 fitted-body closure
+
+The connector-specific repairs still left the host-dependent stock package
+models invisible in the promoted image: U2 was bare TSSOP lands and the small
+U3/U4/D1/F1/R/C bodies were absent or visually ambiguous. The footprints had
+valid `${KICAD10_3DMODEL_DIR}` entries, but a model token plus renderer exit
+zero was again weaker evidence than the human-visible result.
+
+Eight unmodified official KiCad 10.0.4 model files cover the 17 affected
+references. They are now retained below `03_src/lib/3dmodels/`, bound through
+`${KIPRJMOD}`, licensed and SHA-256 inventoried. Regeneration changed exactly
+17 model path lines and no placement, pad, via, net or copper geometry. The
+independent saved-board resolver reports 29/29 fitted bodies; placement gates,
+pad separation and fresh placement DRC remain green at 0 violations, 39
+expected unrouted connections and 0 schematic-parity findings. D14 top,
+oblique and edge images visibly show every affected package, with U2 leads and
+the smaller package bodies registered to their stock KiCad lands.
+
+This was a cheap early correction once the denominator existed: generation
+took under one second and the three complete renders under fifteen seconds.
+The general process change is P-MODEL immediately after board generation and
+before modeled human review. It closes missing/unresolved files; it does not
+close body registration, which remains a separate mechanical visual review
+until IMP-055's attachment-field projection is implemented.
+
+## Route-preflight correction
+
+The three preflight findings were corrected in source before any route prep.
+The common router clearance is now the strictest adopted class value,
+0.20 mm, rather than the advanced tier's merely manufacturable 0.09-mm floor.
+Ordinary routing uses JLC's preferred 0.45/0.20-mm via: 8:1 at nominal 1.6-mm
+thickness and 8.8:1 at JLC's published +10% thickness corner, beneath the
+declared 10:1 PTH limit. The legalizer pocket is 0.58 mm—the actual 0.20-mm
+route drill plus twice the board's 0.19-mm hole clearance—not only the
+0.53-mm threshold the tier-minimum warning requested.
+
+R-PREFLIGHT changed from 2 FAIL / 1 WARN to 0 / 0 in about one tenth of a
+second. Because all fitted parts are anchored, regenerating with the larger
+legalization input produced the identical `8429ce851ed4` board. The process
+lesson remains IMP-078: these were source-known facts and should be checked
+before TSX and human review. The current late check did its job before copper,
+but still later than economically necessary.

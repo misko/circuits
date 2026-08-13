@@ -24,6 +24,7 @@ re-order it.
 | `README.md` | what the board is, status, current release, how to build |
 | `contracts.md` | this file |
 | `.gitignore` | must ignore `06_build/`; must NOT ignore `01_docs/decisions/` or `02_parts/` |
+| `.gitattributes` | optional repository handling for review-critical binary artifacts such as PDFs and 3D CAD |
 | `01_docs/ 03_src/ 03_tscircuit/ 02_parts/ 04_kicad/ 05_firmware/ 06_build/ 07_releases/ 08_reviews/` | see each folder's contract (`03_tscircuit/` only on TSX-authored boards) |
 
 ## Forbidden at root

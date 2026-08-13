@@ -20,14 +20,18 @@
 - [x] placement DRC: 0 violations, 39 expected track-free unconnected items, 0 schematic-parity findings
 - [x] physical pin-map gate passes 127 declared identities across 15 multi-pin refs
 - [x] critical-pair gate explicitly grades 0 differential pairs with a single-ended RF reason
-- [x] current top, oblique and edge placement review renders generated
+- [x] D14 top, oblique and edge placement review renders generated; U2, U3,
+      U4, D1, F1 and every fitted R/C package are now visibly populated
+- [x] `model_coverage_check.py` independently reopens the saved board and
+      resolves 29/29 fitted bodies from project-owned paths
 - [x] exact GCT USB, Samtec J11 and native exact-code SMA bodies resolve in the
       headless render; SMA legs align with the five-hole manufacturer pattern
       and all nine mating directions face outward at their board edges
-- [ ] current pause: approve connector result and correct R-PREFLIGHT's two
-      source-known blockers (0.09-vs-0.20-mm clearance and 10.667:1-vs-10:1
-      via aspect); retain the 0.53-mm legalization recommendation
-- [ ] next stage after correction: prepare deterministic route copper, then
+- [x] R-PREFLIGHT source-known correction: common clearance 0.20 mm,
+      ordinary via 0.45/0.20 mm (8:1 nominal aspect), and 0.58-mm legalizer
+      pocket; 0 FAIL / 0 WARN and track-free board hash unchanged
+- [ ] current pause: complete and review the route-wave/prep contract
+- [ ] next stage: prepare deterministic route copper, then
       obtain fresh pin/layout/render and A-RENDER placement witnesses
 - [ ] sign a new canonical placement checkpoint only after the complete
       placement review; the superseded pre-D13 certificate is retained as
@@ -40,6 +44,8 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
       → 0 violations, 0 unconnected, 0 missing footprints
 - [x] shared `placement_gates.py` → PASS (P-OUT/P-CAP/P-BODYCLR)
+- [x] `model_coverage_check.py 04_kicad/<board>.kicad_pcb` → P-MODEL
+      PASS: 29/29 fitted footprints have renderer-resolvable bodies
 - [x] `pad_separation.py 04_kicad/<board>.kicad_pcb --project .` → P-PADSEP
       PASS: separate-footprint copper clears the fab-tier gap and paste does
       not intrude on foreign lands

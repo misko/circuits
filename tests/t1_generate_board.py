@@ -15,6 +15,7 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains, eq,  # no
                      main, must_fail, must_pass, run, test, tmpdir)
 
 GEN = SCRIPTS / "generate_board_generic.py"
+MODEL_COVERAGE = SCRIPTS / "model_coverage_check.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 HUB4 = ROOT / "projects" / "usb-hub-3s-v4"
 PLUTO_RX2 = ROOT / "projects" / "pluto-rx2-8way"
@@ -61,6 +62,38 @@ def t_places():
     check(abs(x - 38.0) < 0.001 and abs(y - 42.0) < 0.001,
           f"anchored U1 moved: ({x},{y}) != (38.0,42.0)")
     check(len(nodes) == 77, f"expected 77 netted pads, got {len(nodes)}")
+
+
+@test("model_override is source-bound and the independent model coverage gate "
+      "fails after that body disappears", kind="known_bad")
+def t_model_override_and_coverage():
+    import yaml
+    d = tmpdir("gbg_model_")
+    body = d / "body.step"
+    body.write_text("ISO-10303-21;\nEND-ISO-10303-21;\n")
+    cfg = yaml.safe_load((LC / "03_src" / "floorplan.yaml").read_text())
+    cfg["project"]["netlist"] = str(LC / cfg["project"]["netlist"])
+    if cfg["project"].get("parts_dir"):
+        cfg["project"]["parts_dir"] = str(LC / cfg["project"]["parts_dir"])
+    cfg["placement"].setdefault("patterns", []).append({
+        "match": "*", "model_override": "${KIPRJMOD}/body.step"})
+    floorplan = d / "floorplan.yaml"
+    floorplan.write_text(yaml.safe_dump(cfg))
+    board = d / "board.kicad_pcb"
+    built = gen(floorplan, board)
+    contains(built.out, "3D model overrides: 29 footprints",
+             "generator model-override coverage")
+
+    clean = run([KPY, MODEL_COVERAGE, board])
+    must_pass(clean, "model coverage on resolvable local bodies")
+    # The cook-loadcell fixture has 29 generated component footprints, seven
+    # deliberately excluded from its fitted BOM population.
+    contains(clean.out, "PASS MODEL-COVERAGE: 22/22", "coverage verdict")
+
+    body.unlink()
+    broken = run([KPY, MODEL_COVERAGE, board])
+    must_fail(broken, "model coverage after its source body is removed",
+              "FAIL MODEL-COVERAGE: 0/22")
 
 
 @test("generate_board_generic writes an F.Fab refdes copy for every part")

@@ -12,13 +12,18 @@ libraries.
 |---|---|
 | `<name>.pretty/**` | KiCad footprint library owned by this project (all .kicad_mod inside) |
 | `*.kicad_mod` | inside a `.pretty/` only |
-| `3dmodels/*.{step,wrl}` | 3D models for owned footprints |
+| `3dmodels/*.step|3dmodels/*.wrl` | flat source-owned or provenance-pinned 3D models |
+| `3dmodels/**/*.step|3dmodels/**/*.wrl` | versioned or package-grouped source-owned/provenance-pinned 3D models |
+| `3dmodels/**/*.md` | model provenance and retained upstream licensing |
+| `3dmodels/**/SHA256SUMS` | machine-verifiable digests for a vendored model subset and its licence |
 | `contracts.md` | this file |
 
 ## Rules
 
 - Reference these with `${KIPRJMOD}` in `fp-lib-table`, never an absolute
   path — the project must clone-and-open anywhere.
+- An unmodified vendored model records its upstream repository, immutable tag
+  or commit, source URL, licence and SHA-256 digest beside the files.
 - Vendor a stock KiCad footprint into here ONLY if you modify it. An
   unmodified copy is drift waiting to happen; reference the stock library.
 - A footprint's polarity / pin-1 marker is a FACT other tooling depends on.

@@ -36,6 +36,11 @@ BACKEND GAP to report, not a bespoke script to write here.
   human placement review. It observes unrouted items, permits only the fixed
   preliminary `isolated_copper` class, and blocks every other violation plus
   parity. There is deliberately no caller-supplied violation allowlist.
+- `model_coverage_check.py BOARD [-o REPORT.json]` is P-MODEL, the independent
+  saved-board gate before modeled placement review. Every fitted, non-DNP,
+  non-board-only footprint must carry at least one non-empty model file that
+  resolves in the headless renderer environment; renderer exit zero alone is
+  never body-coverage evidence.
 - `promoted_route_check.py BOARD ROUTE.yaml` is P-ROUTEBASE: before placement
   review can be credited, route prep must be fresh and an existing explicitly
   selected promoted route must match the exact regenerated base's footprint

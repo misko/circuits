@@ -301,6 +301,9 @@ fi
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL
 # (missing file = defaults); waivers live inside it, evidence required.
 $PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
+$PY "$S/model_coverage_check.py" "04_kicad/$BOARD.kicad_pcb" \
+    -o 06_build/verification/model_coverage.json \
+    || { echo "GATE FAILED [4m] P-MODEL: every fitted footprint needs a renderer-resolvable 3D body before placement review"; exit 1; }
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [4a] R-PAIRMAP: critical pair polarity/wave/layer contract is incomplete"; exit 1; }
 

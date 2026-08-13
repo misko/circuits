@@ -28,6 +28,8 @@ mutable index.
 | `pre-route_pin.md` | placement-phase physical-pin review bound to exact board, parts and adopted design-rule hashes |
 | `pre-route_layout.md` | placement-phase layout review bound to exact board and adopted design-rule hashes |
 | `pre-route_render.md` | placement-phase render review bound to exact board and adopted design-rule hashes |
+| `rf_schematic.md` `rf_pcb.md` `rf_fab.md` | canonical independent RF witnesses bound to the exact schematic, board, or plotted-fab subject required by `rf.yaml` |
+| `<date>_pre-D*.md` | immutable decision-delta review retained when a later directive supersedes the canonical witness |
 | `<date>_<subject>_<source>_<lens>.md` | one review, verbatim (e.g. `2026-07-21_v1.0_redteam_topology.md`, `2026-07-21_v1.0_external-llm_full.md`) |
 | `<date>_jlc-twin-render-review*.md` | bounded manufacturing-twin/render witness and exact-subject delta rechecks; each still carries the dated-review header and immutable artifact hashes |
 

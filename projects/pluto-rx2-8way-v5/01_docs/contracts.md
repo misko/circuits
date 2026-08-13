@@ -18,6 +18,8 @@ one that is unrecoverable if lost.
 | `FIRST_ARTICLE_TEST_PLAN.md` | controlled bring-up, inspection and measurement procedure for the first manufactured article | source-side plan copied into sealed release verification; never evidence that hardware passed |
 | `findings.yaml` | single machine-readable findings/gates ledger; `project_state.py` derives maturity from it | hand-edited; every row names owner, closure condition and maturity boundary |
 | `PUBLISH_MANIFEST.md` | the current publication inventory and validation snapshot; descriptive only, never release authority | must name the live sealed release or explicitly say none |
+| `CLEANROOM_PROVENANCE.md` | clean-room run boundary, allowed toolchain inputs, and evidence that prior design outputs were not consumed | required only for a commissioned clean-room run |
+| `research/*.md` | dated architecture/part/interface research retained before it is distilled into dossiers, rules and decisions | evidence, never a second source of executable values |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
 | `STATUS*.md` | the live STATUS beacon — the coordinator's between-gates progress signal, OVERWRITTEN at every transition | `STATUS.md` (single-board) or `STATUS-<board>.md` (multi-board, mirroring `journal/<stage>_<board>.md`); schema + audit below; read by `skills/kicad-pcb/scripts/pcb_status.py` |
