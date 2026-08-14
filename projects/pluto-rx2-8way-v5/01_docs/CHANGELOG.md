@@ -210,4 +210,15 @@ day and fab exactly one of them.
   ZIP name to the strict exporter's actual underscore name before dispatching
   the exact-Gerber review. IMP-093 and IMP-094 record the repeated-pad matcher
   and generated-artifact-index improvements exposed by this stage.
+- Bound the independent RF_FAB verdict to source commit `9706143a`, board
+  `39251c24d4b3` and Gerber ZIP `97ffb613eae9`. All four fabrication
+  requirements pass and the local package is READY for JLC upload review;
+  physical RF remains explicitly NOT_YET_MEASURED and all stackup, impedance,
+  selective-via, THT-allocation and first-article stop gates remain intact.
+- Replaced a mechanically valid but poor generic PDF dump with a visually
+  checked seven-page PCB-layer packet and three-page top-side assembly packet,
+  and generated a full component-bearing 5.43-MB STEP from a disposable board
+  copy so the exact PE42482 JLC STEP could substitute for its render-only WRL.
+  The canonical board did not move; IMP-095/096 capture review dispatch and
+  purpose-derived release-document improvements.
 Released: no

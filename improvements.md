@@ -106,6 +106,10 @@ rationale.
 | IMP-090 | Bind review freshness to declared stage dependencies, not monolithic source bags | proposed | Pluto RX2 8-way v5 corrected layout seal |
 | IMP-091 | Freeze executable assembly-process ownership before placement export | proposed | Pluto RX2 8-way v5 layout-seal entry |
 | IMP-092 | Make provenance source discovery honor declared source boundaries and ignore policy | proposed | Pluto RX2 8-way v5 layout seal |
+| IMP-093 | Compare repeated-pad catalog lands as geometry, not merged labels | proposed | Pluto RX2 8-way v5 final JLC twin |
+| IMP-094 | Bind review contracts to the exporter artifact index | proposed | Pluto RX2 8-way v5 fabrication entry |
+| IMP-095 | Dispatch exact-artifact reviews from a machine-written envelope | proposed | Pluto RX2 8-way v5 RF fabrication review |
+| IMP-096 | Derive release PDF pages from populated sides and document purpose | proposed | Pluto RX2 8-way v5 release-asset export |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -3304,3 +3308,73 @@ Recommended execution order for future boards:
   fabrication stage.
 - history: 2026-08-13 — proposed after exact-artifact review setup found the
   hyphen-versus-underscore path mismatch before any release was sealed.
+
+## IMP-095 — dispatch exact-artifact reviews from a machine-written envelope
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 RF fabrication review dispatch, 2026-08-13
+- evidence: after source commit `9706143a`, the coordinator sent the reviewer
+  a manually expanded 40-character SHA that did not exist. The reviewer
+  independently ran `git rev-parse HEAD`, found the disagreement, and refused
+  to bind the review until the exact
+  `9706143aea030b4e4ddddcd72e5e55293f3b19e8` value was confirmed. No review or
+  release was misbound, but correctness depended on reviewer suspicion rather
+  than a dispatch mechanism.
+- general rule: exact commit IDs, artifact paths and digests are machine data.
+  They must travel to a reviewer as one generated, immutable envelope; prose
+  may explain the task but must not restate or expand identifiers by hand. The
+  reviewer must verify the envelope against local bytes before writing a
+  verdict.
+- intended landing point: add a small review-dispatch producer that records
+  schema version, project/board, exact `git rev-parse` commit, scoped dirty
+  result, artifact path/role/SHA-256, contract path/SHA-256 and requested
+  requirement IDs. Make review freshness validate the copied header against
+  that envelope. Where IMP-094's exporter index exists, consume it rather than
+  rediscovering the fab path.
+- completion evidence required: a nonexistent expanded SHA, a one-character
+  artifact digest error, a dirty consumed input and a path selecting a sibling
+  artifact must all fail before review text is accepted. A clean envelope must
+  round-trip its exact identifiers into the archived review without manual
+  copy/paste.
+- recommendation: implement with IMP-094, before the next exact-artifact review
+  fan-out. V5's reviewer caught and corrected the dispatch before finalizing,
+  so its present review can bind safely to the machine-read commit and is not
+  blocked.
+- history: 2026-08-13 — proposed after the independent reviewer detected the
+  coordinator's invalid hand-expanded commit ID.
+
+## IMP-096 — derive release PDF pages from populated sides and document purpose
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 release-asset export, 2026-08-13
+- evidence: the generic assembly command plotted
+  `F.Silkscreen,B.Silkscreen,F.Fab,B.Fab,F.Courtyard,B.Courtyard,Edge.Cuts`
+  as seven separate pages on a top-only board. Four pages were blank or only a
+  title block/outline, while the F.Fab page overlaid values and catalog-like
+  text densely enough to weaken its locator purpose. A purpose-derived export
+  instead produced three nonblank pages: top silk, top fab with pad numbers and
+  reference designators but values excluded, and top courtyard, each with the
+  board edge as a common layer. The PCB layer packet similarly fell from nine
+  pages to seven by dropping the empty bottom-silk page and making Edge.Cuts a
+  common reference rather than a near-empty standalone page.
+- general rule: a release PDF is a human verification artifact, not a dump of
+  every possible layer name. Its page denominator must be derived from actual
+  populated sides, nonempty layer content and the document's purpose. Edge
+  geometry should appear as a common registration reference; assembly pages
+  should prioritize refdes/pin/polarity legibility over repeating BOM values.
+- intended landing point: replace ad-hoc `kicad-cli pcb export pdf` invocations
+  with a shared release-PDF producer. It should inspect the board, select only
+  meaningful top/bottom assembly layers, emit a page manifest naming each
+  page's role, rasterize every page, and reject blank/near-blank pages or pages
+  whose critical identifiers are missing/occluded. Preserve an explicit
+  diagnostic mode that can still dump every layer when needed.
+- completion evidence required: a top-only board produces no bottom assembly
+  pages; a populated two-sided board produces both; Edge.Cuts is visible on
+  every page; a known blank layer and a deliberately obscured polarity/refdes
+  fixture both fail. The producer must prove fresh nonempty output rather than
+  accepting a stale PDF after a CLI parse warning.
+- recommendation: implement before the next release asset stage. V5's current
+  generated 7-page PCB and 3-page assembly packets have been visually checked,
+  so the shared producer is not a blocker for this board.
+- history: 2026-08-13 — proposed after the first mechanically successful PDF
+  export was visibly poor as a human assembly packet.
