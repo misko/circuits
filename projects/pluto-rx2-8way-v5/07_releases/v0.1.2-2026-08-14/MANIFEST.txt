@@ -2,7 +2,7 @@ MANIFEST — Pluto RX2 eight-way v5 v0.1.2-2026-08-14
 
 board:        pluto_rx2_8way_v5, 90 x 65 mm, 4 layer
 version:      v0.1.2
-ordered:      not ordered — verification-only twin correction sealed 2026-08-14
+ordered:      not ordered — verification-only native-model PNG correction 2026-08-14
 git_sha:      ba42fc9dba7f149f4187f50ef4fff697f0ed2a7a
 git_dirty:    false
 kicad:        10.0.4
@@ -11,8 +11,9 @@ fab:          JLCPCB, 4 layer, advanced selective via-in-pad and controlled impe
 quantity:     5
 gates:        DRC 0/0/0; standalone DRC 0/0/0; ERC 0 errors / 176 warnings;
               parity 22 nets / 131 nodes / 0 discrepancies; F-PAYLOAD 6/6;
-              BOM 13/13; CPL 29/29; stock 13/13; twin bodies 29/29;
-              A-RENDER 14/14 measurable bodies;
+              BOM 13/13; CPL 29/29; stock 13/13; catalog twin bodies 29/29;
+              native STEP registration overlay 45/45 SMA hole centres;
+              converted-WRL A-RENDER withdrawn as physical-registration proof;
               RF fence 18/18; via process 638/638; reviews SOUND/SOUND
 DESIGN:       PASS
 SOURCING:     CLEAR
@@ -20,7 +21,7 @@ order:        DO-NOT-ORDER — JLC uploader/process acknowledgement and physical
               first-article RF acceptance are not complete
 release_mode: docs-only
 supersedes:   v0.1.1-2026-08-14
-scope:        hardware-only design archive; verification evidence correction only
+scope:        hardware-only design archive; native-model PNG/evidence correction only
 3d:           component-bearing STEP present; glTF absent
 assembly:     JLC top SMT plus required J2-J10 through-hole connector service
 not_assembled:
@@ -28,7 +29,7 @@ msl:          no consigned parts; follow JLC handling for exposed-pad U1
 
 sha256:
   3d/pluto_rx2_8way_v5.step  646b00ffa7a942f281896cbc20987fb7e91dc68d429ef167676c27a37af29329
-  ORDER_README.md  92a241943c4a362e08ab3a9fa5b148067b95af7c35bf2ca0338db32c029a9fdc
+  ORDER_README.md  b51eb7675aa9840b88025fe0d093780adc81b7d52e562b55af7f11c04c30ff50
   fab/bom.csv  7b01a6d1fa70ae7187c5ada14a963894acca97fa4a7c893df6eba447d8a06c65
   fab/bom_echo_gate.txt  f3de775e3d3606f3f5d0b6ec866680658954f8ada9b23382ba3435a75cabab63
   fab/cpl.csv  33c429cbfda70c7b6e2be0a67165eb51a715e312737fc7648be0b5371ca44d54
@@ -89,7 +90,7 @@ sha256:
   verification/redteam_layout.md  ff3ac364115167fc644c517391d63a5f2ce9728f2c791e81e08dbf6481b289eb
   verification/redteam_topology.md  c1e58238af707673f7fe332eaf6d381f5ca75d76fbdc73719b4aa722bb9a9535
   verification/render_bottom_bare.png  6d1a235d807a52a64f6a2962313b1b47e54fa76848cea8d941605a1b32e19fb8
-  verification/render_review.md  105131ff82f64ebe5bbcb5f08e38d6ec9d830d4d6a4cfbe982bd50ae4df9b602
+  verification/render_review.md  7561a3adf6935d4685109f9f30ae4659401224435eec996c2d1c7af5698deb71
   verification/render_top_bare.png  b49d029c03350a93ab738210e636c98e9f1dc9a943cbbda71cbf7d554a353d76
   verification/rf.yaml  101112345ca8b3f6e004b793badb92ae4891da3f54a83a6c42ecb8ddcd37d1c1
   verification/rf_contract.txt  2fc94774a320f05c3e2118a4e30864483e40c2385e3c070af567c580926a5e25
@@ -106,14 +107,14 @@ sha256:
   verification/twin_adjudications.yaml  1f35ebdc041d138f1d9c9ef106fd1423c4abc3e54f8dfc6ef34f4a6338f0803a
   verification/twin_bare_bottom.png  6d1a235d807a52a64f6a2962313b1b47e54fa76848cea8d941605a1b32e19fb8
   verification/twin_bare_top.png  b49d029c03350a93ab738210e636c98e9f1dc9a943cbbda71cbf7d554a353d76
-  verification/twin_bottom.png  65be61903611a66ea9809b2c53adb6125af7c9ec39117917d4ec9414fb19df00
-  verification/twin_edge_east.png  d705332b9d464b3afd14aa2a693a72f42375be2e560931389a99e3be8db64da6
-  verification/twin_edge_west.png  7b23709c5cf518f0e935b9faef0047618d07a7a5a57851a5bd7e175a986383ca
-  verification/twin_iso_nw.png  8eb130fe80a0909abd8db027ddf92e20c99593ca132ae1f31b042e5f9f20ce66
-  verification/twin_iso_se.png  9f61a9926694d1188672898a1407de91800d73b318c1c1f1a719dcb3ac203c4c
-  verification/twin_overlay_top.md  221e287734ec575fc61a40fa2377fd9e8a1f1a306ee2d1c2eac95eecc7ba73b3
+  verification/twin_bottom.png  4c7b0c3f337de96a48fa5f5646d7f297362080335aa7fa510e281727c0ffe4ba
+  verification/twin_edge_east.png  4bfb81859d54436c56a1fa3776970bba483dab208fe8235fbaf052186b05051f
+  verification/twin_edge_west.png  ea867a72a5b4bda0e7d1b8c77580bda7c01f0dcf57dfefcd8c7b37cac9df5d72
+  verification/twin_iso_nw.png  d6ea652058c48c9febfc1aae3976a2731c086bb5d7083086a1e64084fe544472
+  verification/twin_iso_se.png  140e9b894b58da121b585eb2e7d9ca13582dad64f773dd2ad02ffdc5e66aa578
+  verification/twin_overlay_top.md  99e127e954d50941907488fff1129727b09af858835786ceab78751396592c51
   verification/twin_report.csv  8a6dfcab6521fa87dbd74f8b7af6c6e083c81c53138959945ff83729e32297b7
   verification/twin_report.txt  8a6dfcab6521fa87dbd74f8b7af6c6e083c81c53138959945ff83729e32297b7
-  verification/twin_top.png  9126106cef392be3e0b1e9cfedc046af44389c8c5d68c097852550351e8d0308
-  verification/twin_top_courtyard_overlay.png  8538d77442caf34c3ed349ea45673a4394b1c78fe30b5eac52ef39fc98769e5d
+  verification/twin_top.png  88856e26aab5bdf0bafbfba613cbeab4b1b08ea792bdac09713cb30df3bfb1e7
+  verification/twin_top_courtyard_overlay.png  933ebcdca69d0efed17ed36621facd4a14b290423c98b96fbfa3e5bf57a48905
   verification/via_process.json  3e9f6b194a39c5142cc050529774ae1c24fdcee0ef04b77ccaaca8022ff58d78

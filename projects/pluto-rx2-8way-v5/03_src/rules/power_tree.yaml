@@ -1,10 +1,10 @@
 schema: 1
 
-source_type: USB_Type_C_sink_only_default_5V
+source_type: USB_Type_C_sink_or_nonisolated_bench_header_5V_one_at_a_time
 source_voltage_boundary:
   minimum_operating_V: 4.75
-  evidence: "USB Type-C 5V sink boundary selected for this power-only product; supplies outside it are not authorized"
-off_control: unplug_USB_C_input
+  evidence: "USB Type-C or J12 bench input is nominal 5V; either source must remain within 4.75V-5.5V and the two non-isolated sources may not be energized together"
+off_control: unplug_USB_C_and_disconnect_J12_bench_input
 quiescent_ua: 3
 input_trunk_class: USB_VBUS
 

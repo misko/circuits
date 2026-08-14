@@ -1,20 +1,20 @@
-subject: Pluto RX2 8-Way v5 clean-room schematic topology after D13
-date: 2026-08-13
+subject: Pluto RX2 8-Way v5 schematic topology after D18 bench-power input
+date: 2026-08-14
 reviewer: Codex exact-artifact topology and datasheet review
 review_stage: pre-route
 review_kind: topology
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-checkpoint_sha256: 6f6506b1a405ac8fa0e753b4987183abd9f91c108b15e5c009645f36c77f8b24
-circuit_json_sha256: c66c3e1a242d03f9312fa4fc03ac90634af704041461446e9e955232c3163f63
-kicad_schematic_path: 03_tscircuit/kicad/pluto_rx2_8way_v5.kicad_sch
-kicad_schematic_sha256: 4cd8d314261059a73af7dfe5aa6d019c5c4160e75f09144bafd9e29a4d815f7f
-schematic_pdf_sha256: 9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759f5d955
-netlist_sha256: 817a6cea93afa2ee3e387cf861702dfe4e06c9a8fa7af192f7f9d53cea1f2ecd
-exact_netlist_sha256: 400f19623b6523b6cc4808af85b7153d65301e472ce908d830452096f5ad1505
-parts_sha256: 7b857f4e6641e01996ef5b8a41758751a8ba0e21fa782a180670997fb5cb617f
-design_rules_sha256: 36859a430335ab340763e1dec7161129bb95973d8ba2fd008ee94ecd2cb649b1
-authoring_source_sha256: 4959ed7107a3dae3969df2b8306b591187bda34f79720c9b410676f7908ef53b
+checkpoint_sha256: 4aa02bd4e5192377a4297164e3e28b270f0fa9073b092fa825d1bf9c6120b8f1
+circuit_json_sha256: 3ba4cf6381822872ac295705c5bab3479b1fe75fc5337b4b05eeb09d7c3a1ac8
+kicad_schematic_path: 04_kicad/pluto_rx2_8way_v5.kicad_sch
+kicad_schematic_sha256: 9f373e13e6eb008e96d0d90521d585e8e2f17e17d0aa3561ab36ec3c03b32b45
+schematic_pdf_sha256: 1dd0e60e507f9b276cbaeebba8d6865673b8cec90193a35ac0e1057917382da6
+netlist_sha256: 72bea8142a167c10d90c2ad1f5a5cac519e564bbb16755808a1fcd2675200021
+exact_netlist_sha256: 3331343401272b4636763e70030fff14f65c54d71337b1c763410628c0b2befd
+parts_sha256: e275db04f5e06b63d92714a9bb6f3c609f447e41d74a042001161ed2cc9bf6cb
+design_rules_sha256: f5837640a458d8dfeb85e076ae7b501c87a30d3c880be0e44efe480d303299d8
+authoring_source_sha256: d7780efb61bf5f3f1577aef4776a7f32484847a4fd121f88ebbbf11b07b52d73
 
 # Pre-route topology review after programming-connector decision D13
 
@@ -156,3 +156,28 @@ rating or state word. The pending `floorplan.yaml` changes move the
 `USB-C POWER ONLY` silk caption and add `FUSE`; they require board replay and
 board review, but do not alter this schematic verdict. P0/P1/P2 schematic
 defects remain 0/0/0; **SOUND / DO-NOT-ORDER**.
+
+The D18 renewal adds only J12 to the electrical topology: exact CJT
+`A2541WV-2P` / LCSC `C225477`, pin 1 on `VBUS_RAW` and pin 2 on GND. I traced
+both allowed source stacks independently:
+
+```text
+J1 VBUS -> VBUS_RAW -> F1 -> VBUS_PROTECTED -> U3 -> 3V3
+J12.1  -> VBUS_RAW -> F1 -> VBUS_PROTECTED -> U3 -> 3V3
+J12.2  -> GND
+```
+
+The new header does not bypass F1, the shunt TVS or the LDO. The important
+limitation is explicit and accepted as a bench-use contract: J1 and J12 are
+directly joined at `VBUS_RAW`, have no reverse isolation, and may not be
+connected or energized together. The schematic page title, exact-part
+dossier, power/protection rules and planned silk all repeat that rule. A
+reverse-input mux or ideal-diode stage would be required to make simultaneous
+or hot-plug use safe; it is not silently implied here.
+
+Fresh generated evidence reports 30/30 component parity, 133/133 pin-map
+assertions, 34/34 electrical invariants, 21/21 surviving labels and zero ERC
+errors. The 4.75-5.5 V envelope, 20 mA design load, USB data no-connects,
+independent CC resistors and RF/control topology are unchanged. P0/P1/P2
+schematic defects remain 0/0/0; **SOUND / DO-NOT-ORDER** pending PCB replay,
+route, assembly preview and first-article tests.

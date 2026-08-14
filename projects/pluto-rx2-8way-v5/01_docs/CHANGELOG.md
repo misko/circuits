@@ -7,18 +7,46 @@ One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 Most revisions never ship. That is normal: a board can go v4.4 → v4.10 in a
 day and fab exactly one of them.
 
+## v0.2.0 — 2026-08-14  [in progress — bench-power hardware revision]
+- Added J12, exact CJT A2541WV-2P / LCSC C225477, as a populated vertical
+  1x2 2.54-mm through-hole bench-power header beside USB-C.
+- Connected J12 pin 1 (+5V) to `VBUS_RAW` and pin 2 to GND, so either input
+  traverses the existing common F1, protected-node TVS and 3.3-V LDO path.
+- Kept the 4.75–5.5 V input contract and made the non-isolated source rule
+  explicit in schematic, invariants, power/protection schemas and board silk:
+  `USB OR J12 - NOT BOTH`.
+- No v0.1.2 fabrication payload is changed by this source revision. A new
+  release may be sealed only after regenerated schematic, PCB, routing, DRC,
+  assembly and render evidence pass.
+- The exact v0.2.0 candidate now has a fresh layout-only seal over board
+  SHA-256 `e47f366f5faa`: 30/30 component parity and 3D model coverage,
+  34/34 electrical invariants, pre-route review 4/4, final DRC 0/0/0,
+  18/18 RF fence flanks, 9 protected + 628 ordinary vias, and exact-artifact
+  RF schematic/PCB reviews all pass. It remains **not release-sealed** and
+  **DO-NOT-ORDER** until the new fabrication/BOM/CPL package and JLC previews
+  are completed.
+
+Released: no
+
 ## v0.1.2 — 2026-08-14  [verification-only twin correction]
 - Superseded v0.1.1 without changing fabrication, source, PDF or 3D payload.
-- Corrected the digital-twin fallback that compared our single SMA ground pad
-  2 with JLC's four pad-2 instances and displaced all nine catalog models by
-  1.796 mm despite identical five-hole centres.
-- Added an evidence-bound unique-pad `mount_anchor` contract. Both the twin
-  renderer and independent A-RENDER gate require exactly one named pad on each
-  side; C429844 uses signal pad 1 to pad 1 at zero degrees and produces zero
-  model translation without a free-form nudge.
-- Regenerated all six populated twin views, both bare references, reports and
-  overlay. A-RENDER passes 14/14 measurable bodies; J2/J3/J5-J10 are directly
-  measured and J4 is explicitly excluded because H1/FID1 merge its crop.
+- Corrected the first digital-twin fallback that compared our single SMA
+  ground pad 2 with JLC's four pad-2 instances and displaced all nine catalog
+  models by 1.796 mm despite identical five-hole centres. The evidence-bound
+  unique-pad `mount_anchor` remains useful for catalog-to-footprint alignment.
+- Rejected the resulting apparent A-RENDER pass as physical-registration
+  evidence. The renderer drew JLC's internally misregistered converted WRL
+  while the analytic expectation came from that same WRL; agreement proved
+  renderer self-consistency, not model-to-footprint correctness.
+- Regenerated all six populated final views directly from the unchanged exact
+  board and its native 901-143-6RFX STEP. A simplified embedded-legend overlay
+  compares the saved courtyards and plated-hole centres with independently
+  measured populated-minus-bare model pixels: all 45/45 SMA hole centres lie
+  inside their own rendered envelope, with 0.524 mm minimum margin.
+- Retained the JLC twin report only for catalog code, land-pattern and drill
+  comparison. Its C429844 converted-WRL model-registration adjudication and
+  the earlier 14/14 A-RENDER claim are superseded for physical registration;
+  IMP-055 now owns the reusable independent registration-receipt refactor.
 - Retained the raw 1.796-mm failed-fit finding, real 0.10-mm drill delta, JLC
   DFM/uploader obligations and `DO-NOT-ORDER` first-article hold.
 

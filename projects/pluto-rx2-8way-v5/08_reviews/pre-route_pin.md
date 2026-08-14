@@ -1,18 +1,18 @@
-subject: Pluto RX2 8-Way v5 corrected exact-board physical-pin renewal
-date: 2026-08-13
+subject: Pluto RX2 8-Way v5 exact-board physical-pin renewal with J12 bench power
+date: 2026-08-14
 reviewer: Codex fresh-context physical-pin reviewer
 context-given: current v5 exact artifacts only
 review_stage: pre-route
 review_kind: pin
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-board_sha256: 3c11d72b004dad1d293f2774b2f90d193f3619de41e9a79997e46733bfda8393
-parts_sha256: 7b857f4e6641e01996ef5b8a41758751a8ba0e21fa782a180670997fb5cb617f
-design_rules_sha256: 36859a430335ab340763e1dec7161129bb95973d8ba2fd008ee94ecd2cb649b1
-circuit_json_sha256: c66c3e1a242d03f9312fa4fc03ac90634af704041461446e9e955232c3163f63
-kicad_schematic_sha256: 4cd8d314261059a73af7dfe5aa6d019c5c4160e75f09144bafd9e29a4d815f7f
-bom_sha256: 7b01a6d1fa70ae7187c5ada14a963894acca97fa4a7c893df6eba447d8a06c65
-cpl_sha256: 0eab823cfe6eaa8c087d7cc429334f524a9d6e60f3751d02567c3b340d3415e1
+board_sha256: 3fc9efc86e75025084e7b0a4555e7417adfa6f3a07c22129de7ca7fc6b6ff9dd
+parts_sha256: e275db04f5e06b63d92714a9bb6f3c609f447e41d74a042001161ed2cc9bf6cb
+design_rules_sha256: f5837640a458d8dfeb85e076ae7b501c87a30d3c880be0e44efe480d303299d8
+circuit_json_sha256: 3ba4cf6381822872ac295705c5bab3479b1fe75fc5337b4b05eeb09d7c3a1ac8
+kicad_schematic_sha256: 9f373e13e6eb008e96d0d90521d585e8e2f17e17d0aa3561ab36ec3c03b32b45
+bom_sha256: 6583037303ee74a7d569563c11034ad375e4c351c9f5f503b8dd206abaca5523
+cpl_sha256: ae54c2d6efd0e6d2a8b4b792d56307ba197d9dbb87b8709c319a17e0d10c9ff0
 
 # Fresh physical-pin renewal
 
@@ -83,3 +83,19 @@ The final R3.1 renewal retains R3.1=3V3 and R3.2=SW_V4, ends the source-owned
 3V3 dogbone at an assembly-safe via outside the resistor land, and changes no
 pin or net identity. The post-route bridge is same-net and wholly contained in
 the existing via copper envelope. P0/P1/P2: none; **SOUND**.
+
+## 2026-08-14 focused J12 bench-power renewal
+
+Fresh inspection of the exact artifacts bound above confirms J12 is exact CJT
+`A2541WV-2P` / LCSC `C225477`. Pin 1 is the square 1.00-mm drilled land at
+`(54.00,77.00)` on `VBUS_RAW`; pin 2 is the round 1.00-mm drilled land at
+`(51.46,77.00)` on GND. The 2.54-mm pitch, 1.00-mm drills and body geometry
+agree with the retained manufacturer recommendation of 1.02 +/- 0.05 mm holes.
+The netlist, schematic, board and dossier agree on both pins, and the generated
+BOM/CPL carry J12 as `C225477` with its measured part-specific JLC rotation.
+
+J12 joins J1 only at `VBUS_RAW`, upstream of the existing F1 fuse, D1 clamp and
+U3 regulator. It therefore does not bypass the board's existing passive input
+protection. It also has no reverse isolation: the explicit operating contract
+is one 4.75--5.5 V source at a time, with polarity checked before energizing.
+P0/P1/P2 findings: none; **SOUND / DO-NOT-ORDER** remains the verdict.

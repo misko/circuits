@@ -7,14 +7,16 @@ does not authorize PCB routing, fabrication, or a performance claim.
 
 The board is a receive-only 50-ohm selector between one cable-connected Pluto
 Plus RX SMA and eight antenna SMAs. Zero or one antenna may be connected; two
-or more selected throws are illegal. It has its own power-only USB-C input and
-no power, data, or control connection to the Pluto.
+or more selected throws are illegal. It has alternative power-only USB-C and
+two-pin bench inputs and no power, data, or control connection to the Pluto.
 
 ```text
 J3..J10 antenna SMA -- PE42482A-X SP8T -- J2 common SMA -- cable -- Pluto RX
                               ^
                               | V1..V4
-USB-C 5 V -- protection -- 3V3+-- STM32C011F4P6 autonomous dwell controller
+USB-C 5 V --+
+             +-- common protection -- 3V3+-- STM32C011F4P6 autonomous controller
+J12 5 V/GND -+
 
 invariant: selected_count in {0, 1}; reset/unpowered-controller state = ALL_OFF
 ```
@@ -59,8 +61,8 @@ operating target.
 the independent watchdog. Keyed Cortex debug header J11 is the exact Samtec
 `FTSH-105-01-L-DV-K-P-TR`: pin 1 is target-powered 3V3/VTref, pins 2/4 are
 SWDIO/SWCLK, pins 3/5/9 are ground, pin 10 is NRST, and pins 6/7/8 are explicit
-no-connects. The board is powered through its own USB-C input; neither a
-Raspberry Pi nor an ST-LINK may source board power.
+no-connects. The board is powered through exactly one of its own USB-C or J12
+bench inputs; neither a Raspberry Pi nor an ST-LINK may source board power.
 
 The primary update path uses a Raspberry Pi as the SWD adapter directly through
 a keyed 10-pin Cortex cable and Pi GPIO breakout: GPIO11/physical pin 23 drives
@@ -85,20 +87,23 @@ frame capture and 850 ms is recommended. The executable definition is
 ## Independent power path
 
 ```text
-USB4105 VBUS -- 0603L010YR -- VBUS_PROTECTED -- TPS7A2433DBVR -- 3V3
-                                      |
-                                  SMBJ6.0A
-                                      |
-                                     GND
+USB4105 VBUS ---+
+                 +-- VBUS_RAW -- 0603L010YR -- VBUS_PROTECTED -- TPS7A2433DBVR -- 3V3
+J12 pin 1 +5V --+                                |
+J12 pin 2 GND -------------------------------- SMBJ6.0A
+                                                  |
+                                                 GND
 
 CC1 -- TPD2E2U06 -- 5.1k Rd -- GND
 CC2 -- TPD2E2U06 -- 5.1k Rd -- GND
 D+/D-/SBU: explicit no-connects
 ```
 
-The contract is 4.75–5.5 V and no more than 20 mA. There is no USB data, PD,
-active overvoltage cutoff, eFuse, switching converter, reverse-power source,
-or Pluto backfeed path. The 3.3-V LDO worst-case dissipation is 44.825 mW and
+The contract is 4.75–5.5 V and no more than 20 mA at either input. J1 and J12
+are non-isolated alternatives, so exactly one may be connected and energized
+at a time. There is no USB data, PD, active overvoltage cutoff, eFuse,
+switching converter, reverse-isolation stage, or Pluto backfeed path. The
+3.3-V LDO worst-case dissipation is 44.825 mW and
 the estimated temperature rise is 7.6 C. Its input and output capacitor banks each
 retain a conservative 1.798 uF effective value against a 1 uF minimum.
 

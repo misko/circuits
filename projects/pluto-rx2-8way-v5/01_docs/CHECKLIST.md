@@ -1,5 +1,38 @@
 # Revision checklist
 
+## v0.2.0 bench-power candidate — layout sealed 2026-08-14
+
+- [x] J12 is exact CJT `A2541WV-2P` / LCSC `C225477`, vertical 1x2 THT at
+      2.54-mm pitch; manufacturer drawing, dossier and project-local 3D model
+      are retained
+- [x] J12.1 is `VBUS_RAW` (+5 V) and J12.2 is GND; square pad, `+5V`, `GND`,
+      `BENCH 5V` and `USB OR J12 - NOT BOTH` markings are visible
+- [x] either J1 or J12 traverses the common F1, D1 and U3 protection/regulation
+      path; the two non-isolated inputs are explicitly limited to one energized
+      4.75--5.5 V source at a time
+- [x] generated schematic/board/Circuit JSON/manifest agree 30/30; label/pin
+      assertions pass 133/133, electrical invariants 34/34 and ERC has zero
+      error-severity findings
+- [x] placement passes 42 assertions, zero pad/courtyard collisions, P-PADSEP,
+      30/30 model coverage and pre-route reviews/A-RENDER 4/4
+- [x] exact JLC twin includes J12; 30/30 bodies mount and J12 measures 0.172-mm
+      centre delta / 0.176-mm outward excursion against the 1.00-mm limit
+- [x] the promoted route preserves all earlier tracks/vias and adds only two
+      0.30-mm `VBUS_RAW` segments; final saved-board DRC is 0/0/0
+- [x] all nine RF routes remain unchanged; route fence passes 18/18 flanks and
+      via process grades 9 filled/capped + 628 ordinary vias
+- [x] fresh layout-only seal binds board SHA-256
+      `e47f366f5faa1991f1eed963dc882b436cc84e02e463e270e7d6f6d995f3f183`
+- [x] firmware was not generated or modified
+- [ ] commit the exact source/layout/review snapshot
+- [ ] generate and independently review a distinct v0.2.0 fabrication,
+      BOM/CPL and final-render staging package; do not alter v0.1.2 fab bytes
+- [ ] obtain JLC controlled-impedance, selective-via, C429844/C225477 THT,
+      BOM-allocation, rotation and placement-preview echoes before ordering
+
+Current order verdict: **DO-NOT-ORDER**. The board is layout-sealed, not
+release-sealed.
+
 ## Layout-sealed candidate — 2026-08-13
 
 - [x] architecture ADRs accepted and exact part codes selected

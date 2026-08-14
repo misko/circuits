@@ -68,7 +68,7 @@ rationale.
 | IMP-052 | Preflight mutable catalog clients and distinguish compatibility from throttling | implementing | USB Hub 3S v4, JLC digital-twin fetch |
 | IMP-053 | Prefer explicit catalog facts over MPN-shape heuristics | completed | USB Hub 3S v4, C23 source substitution |
 | IMP-054 | Persist the final adjudicated state in generated reports | completed | USB Hub 3S v4, JLC digital twin |
-| IMP-055 | Preflight exact body/model availability before placement freeze | implementing | USB Hub 3S v4, JLC digital twin |
+| IMP-055 | Register exact 3D model attachment geometry before placement freeze | implementing | USB Hub 3S v4 and Pluto RX2 8-way v5 twins |
 | IMP-056 | Separate automated and manual population denominators | completed | USB Hub 3S v4, release audit |
 | IMP-057 | Validate relocated release archives in their own dependency context | implementing | USB Hub 3S v4, release staging |
 | IMP-058 | Treat multi-format evidence as one atomic result | proposed | USB Hub 3S v4, release staging |
@@ -1775,10 +1775,11 @@ rationale.
 - history: 2026-08-12 — fixed before release staging; the v4 twin report was
   regenerated and now agrees with its successful console verdict.
 
-## IMP-055 — preflight exact body/model availability before placement freeze
+## IMP-055 — register exact 3D model attachment geometry before placement freeze
 
 - status: implementing
-- observed: USB Hub 3S v4 JLC digital twin, 2026-08-12
+- observed: USB Hub 3S v4 and Pluto RX2 8-way v5 JLC digital twins,
+  2026-08-12 through 2026-08-14
 - evidence: the final twin mounts 71 of 75 placed bodies. JLC's current library
   has no usable exact 3D body for four deliberately hand-soldered connectors:
   the upstream USB-C power input and three USB-A outputs. Their footprints,
@@ -1800,26 +1801,83 @@ rationale.
   native exact-code STEP put all four legs under the body without changing one
   pad or anchor. A rendered body count would still have passed this defect: the
   body existed, but it was in the wrong coordinate frame.
-- intended landing point: after part selection and before placement, probe the
-  exact supplier CAD endpoint for every height-, polarity- or enclosure-
-  critical code. Record `MODEL`, `NO-MODEL` or `TRANSIENT` with the tested
-  endpoint and date; never turn `TRANSIENT` into `NO-MODEL`. A genuine absence
-  requires a datasheet-derived body envelope or a reviewed local STEP model,
-  plus an explicit first-article/mechanical-fit obligation in the buyer file.
-- completion evidence required: known-present, genuine-absent, throttled and
-  wrong-body fixtures; a board-stage gate that closes before placement review;
-  and a release check proving every placed body is either modeled or has a
-  named mechanical fallback and first-article disposition.
-- completion evidence extension: run the resolver in the same environment as
-  the headless renderer, emit expected-versus-rendered body counts by refdes,
-  and fail a mechanically significant part whose model token is unresolved
-  even when the renderer itself exits zero.
-- completion evidence extension: project each connector model envelope/known
-  attachment features into board coordinates and compare them with the exact
-  footprint pads, drills and manufacturer body datum. Require an explicit
-  review when a body exists but does not cover its own attachment field; test
-  native STEP and converted WRL separately because format conversion can alter
-  registration while preserving a visually plausible body.
+- decisive evidence: the v0.1.2 Pluto twin then produced a visually plausible
+  green/magenta overlay after `mount_anchor` removed the 1.796-mm repeated-pad
+  centroid error. That result was still not physical registration evidence:
+  the renderer drew the internally misregistered converted JLC WRL and the
+  analytic expectation was derived from that same WRL. They agreed with each
+  other while disagreeing with the footprint and native exact-code STEP. An
+  independent native-STEP render disagreed with the WRL-derived expectation by
+  about 4.05--4.10 mm in body centre and 1.54 mm in outward extent. For J2,
+  the converted-WRL body also missed the signal-pad centre and protruded about
+  3.4 mm beyond two non-mating courtyard edges. The current v0.1.2 overlay is
+  therefore a renderer self-consistency witness, not an approved mechanical-
+  registration witness, and must be superseded before release evidence relies
+  on it.
+- root cause: the pipeline treated three distinct claims as one. `P-MODEL`
+  proves that a model token resolves and produces a non-empty body.
+  `A-RENDER` proves that final pixels agree with the mounted model and camera.
+  Neither proves that the model's internal mechanical frame agrees with the
+  footprint, physical attachment field or manufacturer datum. The existing
+  catalog `MODEL-REG` bounding-box comparison is not sufficient for
+  asymmetric or edge-mounted bodies, and a subjective asymmetry waiver can
+  hide an origin error.
+- refactor decision: retain `P-MODEL` as the model-availability gate and
+  narrow `A-RENDER` to renderer fidelity. Add an independent
+  `P-MODEL-REG` gate for physical model-to-footprint registration. The
+  authority used to form the registration expectation must not be the same
+  converted mesh under test. A pass in one gate must not be described as a
+  pass in either of the other two.
+- registration authority order: prefer the exact manufacturer's native STEP
+  plus mechanical drawing; then a provenance-bound, previously registered
+  package model; then a datasheet-derived body envelope and attachment datums.
+  A catalog or converted WRL is a candidate/comparator, not the authority when
+  it conflicts with native CAD or the drawing. Native STEP and converted WRL
+  must receive separate hashes and separate receipts because conversion may
+  change the internal origin while preserving a plausible body.
+- intended landing point: after exact part selection and before placement,
+  create one disposable origin-centred coupon for every unique
+  `(footprint hash, model hash, transform)` tuple. Render bare top, populated
+  top, front, side and isometric views with standardized scale and colours.
+  Overlay pad copper, drill centres, courtyard/fabrication outline, model
+  silhouette and declared physical landmarks. Emit numerical residuals and a
+  human-readable registration card; approve it once and cache it by the tuple
+  hash. Repeated instances on a board reuse that receipt, while any footprint,
+  model or transform change invalidates it automatically.
+- landmark contract: mechanically significant parts declare semantic anchors
+  appropriate to the package, such as unique signal/reference pad, required
+  attachment holes or lead centres, mating axis, body datum, polarity marker
+  and permitted mating-edge overhang. Courtyard containment is the default;
+  exceptions name the permitted edge and limit rather than waiving the whole
+  comparison. Simple SMD packages may use body/lead overlap defaults, while
+  asymmetric connectors require explicit drawing- or native-CAD-derived
+  landmarks.
+- diagnostic contract: every failure prints the complete transform stack
+  (`model internal -> model scale/rotation/offset -> footprint local -> board
+  -> camera`), the first failing landmark and its signed delta. Classify the
+  result as `MODEL-MISSING`, `MODEL-WRONG-SOURCE`, `MODEL-INTERNAL-ORIGIN`,
+  `MODEL-TRANSFORM`, `FOOTPRINT-DRAWING-MISMATCH` or `RENDER-CAMERA`; produce
+  one focused coupon image and report instead of repeatedly rerendering the
+  complete board.
+- pipeline ownership: part freeze resolves and registers each unique critical
+  model; placement permits only approved registration tuples; whole-board
+  rendering checks instance rotation, mating direction and camera fidelity;
+  the JLC twin compares manufacturing catalog geometry without overriding the
+  approved mechanical model. Release requires registration receipts for all
+  height-, polarity-, mating- or enclosure-critical references in addition to
+  `P-MODEL` and `A-RENDER` receipts.
+- relation to other improvements: IMP-093 remains responsible for retaining
+  repeated physical pads and comparing their numbering-free geometry. Its
+  `mount_anchor` can establish a rigid catalog-to-footprint transform, but it
+  cannot certify a mesh's internal model origin. IMP-029 remains responsible
+  for bounded catalog-model acquisition and caching; it must feed, not close,
+  `P-MODEL-REG`.
+- minimal implementation: a `pcb_model_register`-style command may initially
+  use 2D silhouettes plus explicit human-authored attachment landmarks; full
+  STEP feature recognition is not required. It writes a Markdown/HTML index
+  with one row per unique tuple, source and hashes, transform, landmark/body/
+  courtyard deltas, verdict and links to the standardized images. A single
+  human approval is reusable only while all tuple hashes remain unchanged.
 - partial implementation: `model_coverage_check.py` now independently reopens
   the saved board before modeled placement review and requires a renderer-
   resolvable non-empty body for every fitted, non-DNP, non-board-only
@@ -1832,9 +1890,19 @@ rationale.
   29/29 with eight provenance- and digest-pinned official KiCad package-model
   files covering 17 fitted refs.
 - remaining: automated attachment-field/body registration and polarity-marker
-  projection are not implemented. The native-STEP-versus-converted-WRL SMA
-  failure therefore remains an explicit visual/mechanical review obligation;
-  body coverage alone must never close it.
+  projection, coupon/receipt production, independent authority binding and
+  hash-cache invalidation are not implemented. The native-STEP-versus-
+  converted-WRL SMA failure therefore remains an explicit visual/mechanical
+  review obligation; body coverage, `mount_anchor`, catalog bounding boxes and
+  same-mesh pixel agreement must never close it.
+- completion evidence required: known-present, genuine-absent and transient
+  model-resolution fixtures; correct body with wrong internal XY origin; right
+  XY with wrong rotation; correct body with wrong footprint drills; repeated
+  pad labels; a symmetric body with wrong polarity; a conversion that changes
+  origin; and the shared-source self-consistency false pass reproduced by the
+  Pluto WRL/native-STEP pair. The clean fixture must prove the receipt is
+  reused for repeated refs, and any footprint/model/transform hash change must
+  invalidate it before placement or release.
 - history:
   - 2026-08-12 — recorded after the v4 twin made exact model coverage
     measurable; project-level dossier review exists, shared preflight remains
@@ -1846,6 +1914,10 @@ rationale.
   - 2026-08-13 — implemented the independent fitted-body resolver gate,
     source-bound override, canonical stage wiring and red fixture; retained
     `implementing` because automated model registration is still open.
+  - 2026-08-14 — refactored availability, renderer fidelity and physical
+    registration into separate claims after the corrected Pluto twin exposed
+    a shared-source false pass. Defined an independent, hash-cached per-part
+    registration receipt as the remaining implementation target.
 
 ## IMP-056 — population evidence must separate automated and manual bodies
 
@@ -3468,6 +3540,16 @@ Recommended execution order for future boards:
   blocker for its hardware release.
 - history: 2026-08-13 — proposed after the first genuinely clean v5 release
   replay exposed a hidden dependency on an ignored prior-run artifact.
+- follow-up: the 2026-08-14 J12 renewal confirmed that this producer also needs
+  a role-scoped output namespace. Writing a preliminary package under
+  `06_build/pre_route/fab/` created valid `bom.csv`, `cpl.csv` and Gerber bytes,
+  but the observation audit correctly reported an unresolved selection because
+  canonical consumers select `06_build/fab/<basename>` while a second copy of
+  the same basename existed elsewhere under the project. The temporary package
+  was moved outside the subject and only uniquely named pre-route BOM/CPL
+  witnesses were retained. The intended producer should emit a role-indexed
+  artifact bundle (IMP-094), not introduce plausible same-basename alternatives
+  into a tree whose consumers still resolve by path convention.
 
 ## IMP-099 — seed every late KiCad writer, not only board and route preparation
 
@@ -3537,3 +3619,42 @@ Recommended execution order for future boards:
   not a blocker for its present hardware archive.
 - history: 2026-08-13 — recorded after the first shipped-byte freshness run
   exposed both schema/semantic defects despite a passing live stock report.
+
+## IMP-101 — make local PCB ECO routing preserve the validated copper baseline
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 J12 bench-power renewal, 2026-08-14
+- evidence: adding one two-pin connector outside the RF core required only two
+  deterministic `VBUS_RAW` segments. A fresh whole-board stochastic route ran
+  quickly but attempted a new via inside R6.1 and was correctly rejected by the
+  via-in-pad guard. Importing the already validated promoted route onto the new
+  exact base, then importing only the two J12 segments, produced a clean board.
+  Exact comparison proved all 236 earlier tracks and 57 earlier vias unchanged
+  to the nanometre limit; stitch, RF-fence, via-process and DRC gates then
+  passed. The useful result came from treating the change as a bounded ECO, not
+  from reopening a solved global search.
+- general rule: when a placement-compatible promoted route exists and the
+  design change has a small declared copper boundary, prefer an explicit ECO
+  transaction: authenticate the old route against the new base, import it,
+  add only declared deterministic delta copper, prove the protected baseline
+  geometry is unchanged, then rerun every downstream connectivity, plane,
+  process, RF and DRC gate. Never preserve old copper merely because it loads;
+  P-ROUTEBASE and the post-import diff are both mandatory.
+- intended landing point: extend the shared route orchestrator with an `eco`
+  mode and a small YAML contract naming allowed added/removed refs, nets and
+  copper-object budgets. Emit a machine-readable before/after geometry report
+  and reject any undeclared track/via movement before stitch. If compatibility
+  or the declared delta proof fails, fall back to a bounded fresh route rather
+  than weakening the comparison.
+- completion evidence required: fixtures for a clean one-connector/two-track
+  ECO, a moved old track, an undeclared removed via, a changed pad/net, and a
+  legitimate placement-incompatible change that must request a fresh route.
+  The clean fixture must reproduce identical protected-baseline geometry across
+  two runs and finish with the normal saved-board gates.
+- recommendation: implement before the next local connector, test-point or
+  protection-component PCB revision. The Pluto candidate itself is already
+  covered by an exact manual migration/diff and full downstream replay, so this
+  is a pipeline generalization rather than a blocker for the current board.
+- relationship: IMP-040 proves that promoted copper is compatible with the new
+  base before review; IMP-083 rejects unsafe router vias; this improvement adds
+  an explicit minimal-change execution path between those two controls.

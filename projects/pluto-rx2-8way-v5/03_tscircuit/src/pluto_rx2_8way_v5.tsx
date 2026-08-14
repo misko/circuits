@@ -6,9 +6,11 @@
 // The physical receiver is AD9363 silicon operated under the user's accepted
 // AD9361-profile risk through 5.9 GHz; no ADI out-of-rating guarantee is made.
 //
-// USB-C supplies 5 V only.  There is no USB data or runtime control path.  U2
-// runs a preprogrammed, versioned dwell profile and is reflashed over keyed
-// Cortex SWD header J11 by direct Raspberry Pi GPIO SWD or an external ST-LINK.
+// USB-C or bench header J12 supplies 5 V only; the two inputs are a non-isolated
+// alternative pair and must never be energized together.  There is no USB data
+// or runtime control path.  U2 runs a preprogrammed, versioned dwell profile
+// and is reflashed over keyed Cortex SWD header J11 by direct Raspberry Pi GPIO
+// SWD or an external ST-LINK.
 
 // tscircuit rejects a net token beginning with a digit.  The shared converter
 // canonically removes this transport-only N prefix (N3V3 -> 3V3), which the
@@ -122,6 +124,18 @@ const CortexSwd = () => (
   </footprint>
 )
 
+// CJT A2541WV-2P: 1x2 vertical 2.54-mm THT header.  The realized KiCad
+// footprint is selected through the J12 exact-part dossier; this source shape
+// preserves the manufacturer's pin pitch and nominal 1.02-mm PCB-hole intent.
+const BenchPower = () => (
+  <footprint>
+    <platedhole portHints={["1"]} pcbX="0mm" pcbY="0mm"
+      outerDiameter="1.7mm" holeDiameter="1mm" shape="circle" />
+    <platedhole portHints={["2"]} pcbX="0mm" pcbY="2.54mm"
+      outerDiameter="1.7mm" holeDiameter="1mm" shape="circle" />
+  </footprint>
+)
+
 const RF = ({ name, net, x, y }: any) => (
   <chip name={name} supplierPartNumbers={{ jlcpcb: ["C429844"] }}
     manufacturerPartNumber="901-143-6RFX"
@@ -134,7 +148,7 @@ const RF = ({ name, net, x, y }: any) => (
 export default () => (
   <board width="100mm" height="80mm" routingDisabled>
     <schematicsheet name="power"
-      displayName="USB-C POWER ONLY — 5 V sink / independent CC1+CC2 Rd / fuse, TVS and 3.3 V LDO / NO USB DATA" sheetIndex={1} />
+      displayName="USB-C OR J12 BENCH 5 V — one input only / common fuse, TVS and 3.3 V LDO / NO USB DATA" sheetIndex={1} />
     <schematicsheet name="rf_core"
       displayName="RF SWITCH CORE — PE42482 true absorptive SP8T / receive only / 100 MHz–5.9 GHz user-accepted extended operation" sheetIndex={2} />
     <schematicsheet name="rf_ports"
@@ -157,6 +171,13 @@ export default () => (
         pin10: N("VBUS_RAW"), pin11: N("USB_CC2"), pin15: N("VBUS_RAW"),
         pin16: N("GND"), pin17: N("GND"),
       }} footprint={<UsbC />} />
+
+    <chip name="J12" supplierPartNumbers={{ jlcpcb: ["C225477"] }}
+      manufacturerPartNumber="A2541WV-2P"
+      schSectionName="USB-C power and protection" schSheetName="power" schX="-8mm" schY="-7mm"
+      pinLabels={{ pin1: "BENCH_5V", pin2: "GND" }}
+      connections={{ pin1: N("VBUS_RAW"), pin2: N("GND") }}
+      footprint={<BenchPower />} />
 
     <chip name="U4" supplierPartNumbers={{ jlcpcb: ["C1972959"] }}
       manufacturerPartNumber="TPD2E2U06DRLR"

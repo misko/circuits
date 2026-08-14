@@ -58,12 +58,14 @@ gates:
     evidence:
       - 04_kicad/pluto_rx2_8way_v5.kicad_pcb
       - 06_build/layout_seal.json
-      - 08_reviews/2026-08-13_4cf5c818_pin_review.md
-      - 08_reviews/2026-08-13_4cf5c818_render_review.md
-      - 08_reviews/2026-08-13_4cf5c818_redteam_topology.md
-      - 08_reviews/2026-08-13_4cf5c818_redteam_layout.md
-      - 08_reviews/2026-08-13_4cf5c818_rf_schematic.md
-      - 08_reviews/2026-08-13_4cf5c818_rf_pcb.md
+      - 08_reviews/pre-route_pin.md
+      - 08_reviews/pre-route_layout.md
+      - 08_reviews/pre-route_render.md
+      - 08_reviews/pre-route_topology.md
+      - 08_reviews/rf_schematic.md
+      - 08_reviews/rf_pcb.md
+      - 01_docs/renders/v0.2.0-candidate-bench-power-top.png
+      - 01_docs/renders/v0.2.0-candidate-bench-power-iso.png
       - 01_docs/journal/routing.md
 
   - id: V5-release-package
@@ -116,15 +118,16 @@ findings:
     state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: layout
-    finding: The cross-section, exact footprints, compact 90x65mm mechanics, five-top/two-per-side cyclic U edge order and connector datums are realized and machine-clean. D15 approves connector access, straight RF planning corridors and render readability on exact board SHA 3fffbc690051. The explicit release checklist retains JLC assembly DFM disposition of the 0.10mm SMA drill delta before order; routed RF geometry remains separately gated by V5-placement-and-routing.
+    finding: The cross-section, exact footprints, compact 90x65mm mechanics, five-top/two-per-side cyclic U edge order, bench-power header and connector datums are realized and machine-clean. The current placement/render reviews approve connector access, straight RF planning corridors and render readability on exact routed board SHA e47f366f5faa. The explicit release checklist retains JLC assembly DFM disposition of the 0.10mm SMA drill delta and both C429844/C225477 THT processes before order; routed RF geometry remains separately gated by V5-placement-and-routing.
     closes_when: The exact board hash receives connector/RF/render approval and the order-stage DFM obligation is carried into the fab checklist.
     evidence:
       - 03_src/floorplan.yaml
-      - 06_build/placement/mechanics.json
-      - 06_build/placement/footprint_comparison.json
-      - 06_build/drc/placement.json
-      - 01_docs/renders/v0.0-D15-compact-placement-top.png
-      - 01_docs/renders/v0.0-D15-compact-placement-iso.png
+      - 04_kicad/pluto_rx2_8way_v5.kicad_pcb
+      - 08_reviews/pre-route_layout.md
+      - 08_reviews/pre-route_render.md
+      - 08_reviews/rf_pcb.md
+      - 01_docs/renders/v0.2.0-candidate-bench-power-top.png
+      - 01_docs/renders/v0.2.0-candidate-bench-power-iso.png
       - 06_build/checkpoints/placement-pre-D13.json
       - 01_docs/CHECKLIST.md
 

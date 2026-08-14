@@ -11,10 +11,15 @@ DESIGN VERDICT: SOUND
 This v0.1.2 verification-only archive supersedes `v0.1.1-2026-08-14` to
 correct the JLC digital-twin placement of J2-J10. The earlier fallback averaged
 incompatible repeated-pad number groups and shifted every SMA model 1.796 mm;
-it did not indicate a PCB, drill or CPL defect. The corrected renderer anchors
-the unique signal hole, pad 1 to pad 1 at zero degrees, and the independent
-A-RENDER overlay passes. The `fab/`, `source/`, `pdf/` and `3d/` payloads are
-byte-identical to v0.1.1. No schematic, PCB, footprint, part, placement,
+it did not indicate a PCB, drill or CPL defect. A unique signal-hole anchor
+removed that centroid error, but subsequent review proved the converted JLC
+WRL itself had a wrong internal XY origin. Its former A-RENDER pass was
+self-consistency against the same wrong mesh and is withdrawn as physical-
+registration evidence. The final populated PNGs now render the unchanged
+exact board with the approved native 901-143-6RFX STEP; their embedded-legend
+overlay places all 45/45 SMA plated-hole centres inside the corresponding
+native-model pixel envelopes. The `fab/`, `source/`, `pdf/` and `3d/` payloads
+are byte-identical to v0.1.1. No schematic, PCB, footprint, part, placement,
 Gerber, drill, BOM, CPL, 3D model or order verdict changed.
 
 This is a hardware-only design archive. Local schematic, PCB, fabrication,

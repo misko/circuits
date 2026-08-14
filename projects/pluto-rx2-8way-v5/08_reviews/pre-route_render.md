@@ -1,17 +1,17 @@
-subject: Pluto RX2 8-Way v5 corrected exact-board manufacturing-twin renewal
-date: 2026-08-13
+subject: Pluto RX2 8-Way v5 exact-board manufacturing-twin renewal with J12
+date: 2026-08-14
 reviewer: Codex fresh-context placement-render reviewer
 context-given: current corrected v5 board and manufacturing twin only
 review_stage: pre-route
 review_kind: render
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-board_sha256: 3c11d72b004dad1d293f2774b2f90d193f3619de41e9a79997e46733bfda8393
-design_rules_sha256: 36859a430335ab340763e1dec7161129bb95973d8ba2fd008ee94ecd2cb649b1
-bom_sha256: 7b01a6d1fa70ae7187c5ada14a963894acca97fa4a7c893df6eba447d8a06c65
-cpl_sha256: 0eab823cfe6eaa8c087d7cc429334f524a9d6e60f3751d02567c3b340d3415e1
-twin_top_sha256: be7642e39dcea07fd6dac8b0452069758478d92f4c138ddae6b059d79237c1e8
-a_render_report_sha256: e5a2c94eb3b4b0df49ba04dd05bcd4f05b348bf212d802deaa7bb5403d0ee4be
+board_sha256: 3fc9efc86e75025084e7b0a4555e7417adfa6f3a07c22129de7ca7fc6b6ff9dd
+design_rules_sha256: f5837640a458d8dfeb85e076ae7b501c87a30d3c880be0e44efe480d303299d8
+bom_sha256: 6583037303ee74a7d569563c11034ad375e4c351c9f5f503b8dd206abaca5523
+cpl_sha256: ae54c2d6efd0e6d2a8b4b792d56307ba197d9dbb87b8709c319a17e0d10c9ff0
+twin_top_sha256: d297f016fa636fba0ed30c81cff37152c8519762d41dc58cde26b36413fa0efe
+a_render_report_sha256: cd8a7c57d6d56bb070f04b984bd54733effd9cde810da2a06a686d9a492df16d
 
 # Fresh exact manufacturing-twin review
 
@@ -67,3 +67,21 @@ P0/P1/P2 = 0/0/0; placement/render remains **SOUND**.
 
 The final same-net via-contained bridge is derived copper only and changes no
 component/render subject. P0/P1/P2: none; **SOUND**.
+
+## 2026-08-14 focused J12 manufacturing-twin renewal
+
+The exact-code JLC twin mounts all 30/30 populated bodies. J12 is a visible
+vertical two-pin header seated over its two plated holes between J11 and J1;
+the top and isometric views show clear probe/lead access and no body collision.
+The same-camera A-RENDER independently measures J12 at 0.172 mm centre delta
+and 0.176 mm outward excursion, both below its 1.00-mm limit, and reports
+`MODEL-REG-OK` at the footprint courtyard. The full overlay passes with 15/15
+resolvable bodies measured, 15 smaller bodies explicitly named below the
+pixel-resolution floor, and no resolvable-but-unmeasured or no-model refs.
+
+The measured exact-part rotation row is now present for `C225477`; the BOM and
+CPL are complete at 14 coded lines / 30 placements without an unsourced-
+rotation escape. J12's plastic body and identical square posts are physically
+180-degree symmetric, so the JLC preview must still confirm its placement and
+the board's +5V/GND silk before first power. P0/P1/P2 findings: none;
+**SOUND / DO-NOT-ORDER** remains the verdict.

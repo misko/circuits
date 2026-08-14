@@ -1,14 +1,14 @@
-subject: Pluto RX2 8-Way v5 corrected exact-board placement and route-base renewal
-date: 2026-08-13
+subject: Pluto RX2 8-Way v5 exact-board placement and route-base renewal with J12
+date: 2026-08-14
 reviewer: Codex fresh-context layout reviewer
 context-given: current corrected v5 board and prepared route only
 review_stage: pre-route
 review_kind: layout
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-board_sha256: 3c11d72b004dad1d293f2774b2f90d193f3619de41e9a79997e46733bfda8393
-design_rules_sha256: 36859a430335ab340763e1dec7161129bb95973d8ba2fd008ee94ecd2cb649b1
-route_prep_sha256: b88e7388011cd2ef29484b6a586514e5b2f41a83d731c189e1db327ba1386b25
+board_sha256: 3fc9efc86e75025084e7b0a4555e7417adfa6f3a07c22129de7ca7fc6b6ff9dd
+design_rules_sha256: f5837640a458d8dfeb85e076ae7b501c87a30d3c880be0e44efe480d303299d8
+route_prep_sha256: 4995336f67cf4b418b136f70dd411539d09ee82c3a81a576ff1801692b99440b
 
 # Fresh corrected placement/layout renewal
 
@@ -103,3 +103,19 @@ bridge distance plus 0.125-mm track radius fits exactly inside the existing
 barrel while the bridge and dogbone retain an explicit shared endpoint. The
 focused fixture also refuses a 0.15-mm move that would enlarge copper. Final
 saved-board evidence remains required after replay before fabrication.
+
+## 2026-08-14 focused J12 placement renewal
+
+J12 is anchored at `(54.00,77.00)`, rotation 270 degrees, between keyed SWD
+header J11 and power-only USB-C J1. The generated placement passes all 42
+floorplan assertions, has zero inter-footprint pad collisions, zero anchored
+courtyard overlaps and zero body-to-foreign-pad findings. The connector is
+accessible from the top, its two leads do not obstruct J11 or J1, and the
+`GND`, `+5V`, `BENCH 5V` and `USB OR J12 - NOT BOTH` silk is visible.
+
+The only new signal copper in the promoted route is the deterministic 0.30-mm
+`VBUS_RAW` connection from J12.1 to the existing raw-input node. A full
+geometry comparison preserves every earlier route track and via exactly; the
+new connector lies in the low-frequency power/service area and does not enter
+the RF switch or any of the nine 50-ohm paths. P0/P1/P2 findings: none;
+**SOUND / DO-NOT-ORDER** remains the verdict.

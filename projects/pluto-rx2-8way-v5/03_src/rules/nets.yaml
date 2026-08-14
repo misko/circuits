@@ -16,7 +16,7 @@ classes:
     verify: "official impedance calculation, returned stackup echo, coupon/TDR if ordered, then VNA at SMA reference planes"
 
   USB_VBUS:
-    intent: "5V connector input before and after F1, limited to the board's 20mA service load"
+    intent: "5V from either USB-C J1 or non-isolated bench header J12 before and after common F1, one source at a time, limited to the board's 20mA service load"
     nets: [VBUS_RAW, VBUS_PROTECTED]
     current: "100 mA PPTC hold-rating class at 20C"
     min_width: 0.30mm

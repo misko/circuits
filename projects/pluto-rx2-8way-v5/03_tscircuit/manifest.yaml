@@ -2,6 +2,7 @@
 # define their own expected set because that would conceal a silent TSX drop.
 components:
   - J1
+  - J12
   - J2
   - J3
   - J4

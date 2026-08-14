@@ -5,13 +5,15 @@ paths:
     source_operating_max_V: 5.5
     source_tolerance_included: true
     source_boundary_evidence: >-
-      This power-only sink accepts normal USB-C 5V service from 4.75V through
-      5.5V. Sustained overvoltage and non-USB supplies are outside the product
-      boundary; the user explicitly declined active overvoltage cutoff.
+      This power-only board accepts either normal USB-C 5V service or a
+      current-limited J12 bench supply from 4.75V through 5.5V. J1 and J12 are
+      not reverse-isolated and may not be energized together. Sustained
+      overvoltage is outside the product boundary; the user explicitly declined
+      active overvoltage cutoff.
     voltage_margin_pct: 20
     admitted_transient:
       claim: "SMBJ6.0A is a shunt clamp for connector transients; it is not sustained-overvoltage protection"
-      series_fault_element: "0603L010YR between J1 and protected node"
+      series_fault_element: "0603L010YR between the shared J1/J12 raw-input node and protected node"
     tvs:
       part: SMBJ6.0A
       standoff_V: 6.0
@@ -23,6 +25,7 @@ paths:
       evidence: "Littelfuse 2025 SMBJ series data sheet exact SMBJ6.0A row"
     exposed:
       - {ref: F1, part: 0603L010YR, domain: series_input_path, bounded_max_V: 12.36, recommended_max_V: 15, absolute_max_V: 15}
+      - {ref: J12, part: A2541WV-2P, domain: exposed_bench_connector, bounded_max_V: 12.36, recommended_max_V: 250, absolute_max_V: 250}
       - {ref: C1, part: CL10A475KO8NNNC, domain: tvs_clamped_protected_rail, bounded_max_V: 12.36, recommended_max_V: 16, absolute_max_V: 16}
       - {ref: U3, part: TPS7A2433DBVR, domain: tvs_clamped_protected_rail, bounded_max_V: 12.36, recommended_max_V: 18, absolute_max_V: 20}
 

@@ -6,7 +6,9 @@ invariants:
   - {assert: pin_on_net, pin: U1.12, net: SW_V4, adr: "0001", why: "the most-significant switch input must receive the passively high V4 control bit"}
   - {assert: pin_on_net, pin: J1.A5, net: USB_CC1, adr: "0003", why: "a reversible Type-C sink requires an independent Rd path on CC1"}
   - {assert: pin_on_net, pin: J1.B5, net: USB_CC2, adr: "0003", why: "a reversible Type-C sink requires an independent Rd path on CC2"}
-  - {assert: series_chain, chain: [VBUS_RAW, F1, VBUS_PROTECTED, U3, 3V3], through: {U3: [1, 5]}, adr: "0003", why: "USB VBUS must pass through the resettable fuse and protected LDO before reaching the internal 3V3 rail"}
+  - {assert: pin_on_net, pin: J12.1, net: VBUS_RAW, adr: "0003", why: "the bench +5V pin must join the raw input before the common resettable fuse"}
+  - {assert: pin_on_net, pin: J12.2, net: GND, adr: "0003", why: "the bench return pin must join board ground"}
+  - {assert: series_chain, chain: [VBUS_RAW, F1, VBUS_PROTECTED, U3, 3V3], through: {U3: [1, 5]}, adr: "0003", why: "either approved 5V input must pass through the common resettable fuse and protected LDO before reaching the internal 3V3 rail"}
   - {assert: pin_on_net, pin: D1.1, net: VBUS_PROTECTED, adr: "0003", why: "the SMBJ6.0A cathode must face the protected positive rail rather than forward-clamping normal VBUS"}
   - {assert: pin_on_net, pin: D1.2, net: GND, adr: "0003", why: "the SMBJ6.0A anode must return directly to ground"}
   - {assert: part_value, part: R1, equals: 5.1k, tolerance_pct: 1, adr: "0003", why: "CC1 requires the selected exact 5.1k one-percent sink termination"}
@@ -42,6 +44,8 @@ label_survival:
     - refs: [J1]
       pins: {A1: GND, A4: VBUS_RAW, A5: USB_CC1, A9: VBUS_RAW, A12: GND, B1: GND, B4: VBUS_RAW, B5: USB_CC2, B9: VBUS_RAW, B12: GND, SH: GND}
       unconnected: [A6, A7, A8, B6, B7, B8]
+    - refs: [J12]
+      pins: {"1": VBUS_RAW, "2": GND}
     - refs: [U1]
       pins: {"1": GND, "2": RF_ANT2, "3": GND, "4": RF_ANT3, "5": GND, "6": RF_ANT4, "7": GND, "8": 3V3, "9": SW_V1, "10": SW_V2, "11": SW_V3, "12": SW_V4, "13": RF_ANT5, "14": GND, "15": RF_ANT6, "16": GND, "17": RF_ANT7, "18": GND, "19": RF_ANT8, "21": GND, "22": RF_COMMON, "23": GND, "24": RF_ANT1, "25": GND}
       unconnected: ["20"]

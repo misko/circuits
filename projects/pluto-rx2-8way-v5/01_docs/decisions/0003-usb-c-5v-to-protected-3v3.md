@@ -3,11 +3,12 @@ id: 0003
 date: 2026-08-12
 status: accepted
 ---
-# 0003 — Simple independent USB-C 5 V input and quiet 3.3 V rail
+# 0003 — Alternative USB-C or bench 5 V input and quiet 3.3 V rail
 
 ## Context
 
-D7 approves only an independent USB-C 5 V input. The RF selector must not take
+D7 originally approved an independent USB-C 5 V input. D18 later requires a
+separate pair of easy bench-power pins. The RF selector must not take
 its operating power from, or back-power, the Pluto Plus. The candidate onboard
 controller and RF switch are low-current 3.3 V-compatible loads, but the exact
 parts, total worst-case current, input tolerance/transient envelope, rail
@@ -24,14 +25,15 @@ board load and source-current entitlement must be proved first.
 ## Proposed architecture
 
 ```text
-USB-C receptacle
-  CC1 -- independent Rd to GND [ESD only if part-level proof requires it]
-  CC2 -- independent Rd to GND [ESD only if part-level proof requires it]
-  D+/D- -- no connect (power-only proposal)
-  VBUS -- connector-side TVS + optional passive resettable fuse
-          -> wide-input-tolerant fixed 3.3 V LDO
-          -> filtering only where justified by calculation/measurement
-          -> RF-switch and MCU local decoupling branches
+USB-C receptacle ----+
+                     +-- VBUS_RAW -- passive resettable fuse
+J12 +5V/GND header --+                  |
+                                       +-- protected-node TVS to GND
+                                       +-- fixed 3.3 V LDO
+                                           -> RF switch and MCU
+USB-C CC1 -- independent Rd to GND [with connector-side ESD]
+USB-C CC2 -- independent Rd to GND [with connector-side ESD]
+USB-C D+/D-/SBU -- explicit no-connects
 ```
 
 The connector shell/ground treatment and exact passive protection order remain
@@ -41,9 +43,10 @@ merely appear in the BOM. The load is expected to remain far below default USB
 current, and the input capacitance is expected to be small. Therefore a PD
 controller, active eFuse, dedicated inrush controller and active reverse-
 blocking stage are rejected unless the completed load/fault calculation proves
-one necessary. Backfeed is instead prevented structurally: there is no Pluto
+one necessary. Pluto backfeed is prevented structurally: there is no Pluto
 power connection and the programming interface senses target VDD but does not
-inject operating power.
+inject operating power. J1-to-J12 backfeed is prevented operationally by the
+one-input-only contract, not by reverse-blocking hardware.
 
 ## Trade study
 
@@ -68,9 +71,11 @@ D8 continued after this class and leading parts were presented. Select a
 power-only **USB4105-GF-A-120** sink with two independent 5.1k 1% Rd parts,
 **TPD2E2U06DRLR** on CC, **0603L010YR** in series with VBUS,
 **SMBJ6.0A** as the protected-node shunt clamp, and
-**TPS7A2433DBVR** for 3.3V. Normal input is 4.75V-5.5V and total design load
-is limited to 20mA. There is no PD, USB data, active eFuse, active overvoltage
-cutoff or alternate power-injection path.
+**TPS7A2433DBVR** for 3.3V. D18 adds **A2541WV-2P** / JLC C225477 as J12:
+pin 1 is bench +5V on `VBUS_RAW`, pin 2 is GND. Normal input at either J1 or
+J12 is 4.75V-5.5V and total design load is limited to 20mA. Both inputs share
+F1, the protected-node TVS and U3. There is no PD, USB data, active eFuse,
+active overvoltage cutoff or reverse-isolation stage.
 
 Use a 16V C1 on the clamped input; the initially considered 10V part was
 rejected when the executable surge proof showed it could not cover the
@@ -88,6 +93,9 @@ The total-current, voltage, clamp, capacitor and thermal source checks now
 pass. USB D+/D-/SBU remain explicit no-connects. Sustained overvoltage remains
 outside the interface contract by user requirement; clamp overshoot, shell
 implementation and assembled behavior remain first-article/layout checks.
+J1 and J12 are deliberately non-isolated and therefore must never be
+energized together. The schematic, silk and operating instructions all state
+one input at a time; reverse-current blocking remains outside this revision.
 
 Primary sources:
 [USB-IF Type-C specification page](https://www.usb.org/usb-type-cr-cable-and-connector-specification),

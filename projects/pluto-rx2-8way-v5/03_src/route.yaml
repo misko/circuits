@@ -130,6 +130,10 @@ prep:
          segments: [{layer: F.Cu, width: 0.18, pts: [[63.75, 77.645], [63.75, 76.60], [63.40, 76.30], [63.40, 75.80], [64.2875, 75.80]]}]}
       - {net: USB_CC2, pin: J1.B5,
          segments: [{layer: F.Cu, width: 0.18, pts: [[66.75, 77.645], [66.75, 74.80], [65.7125, 74.80]]}]}
+      # J12 is an alternate source on VBUS_RAW, not another protected-node
+      # load. Join it to the existing J1/F1 trunk with a short visible stub.
+      - {net: VBUS_RAW, pin: J12.1,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[54.00, 77.00], [57.50, 77.00], [59.70, 77.30]]}]}
       - {net: NRST, pin: C6.1,
          segments: [{layer: F.Cu, width: 0.18, pts: [[61.50, 60.28], [60.70, 60.28]]}],
          vias: [[60.70, 60.28]]}

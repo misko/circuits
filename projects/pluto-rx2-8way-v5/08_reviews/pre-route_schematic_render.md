@@ -1,20 +1,20 @@
-subject: Pluto RX2 8-Way v5 delivered schematic readability after D13
-date: 2026-08-13
+subject: Pluto RX2 8-Way v5 delivered schematic readability after D18 bench-power input
+date: 2026-08-14
 reviewer: Codex exact-PDF human readability review
 review_stage: pre-route
 review_kind: schematic_render
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-schematic_pdf_sha256: 9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759f5d955
-netlist_sha256: 817a6cea93afa2ee3e387cf861702dfe4e06c9a8fa7af192f7f9d53cea1f2ecd
-exact_netlist_sha256: 400f19623b6523b6cc4808af85b7153d65301e472ce908d830452096f5ad1505
-parts_sha256: 7b857f4e6641e01996ef5b8a41758751a8ba0e21fa782a180670997fb5cb617f
-design_rules_sha256: 36859a430335ab340763e1dec7161129bb95973d8ba2fd008ee94ecd2cb649b1
-circuit_json_sha256: c66c3e1a242d03f9312fa4fc03ac90634af704041461446e9e955232c3163f63
-kicad_schematic_path: 03_tscircuit/kicad/pluto_rx2_8way_v5.kicad_sch
-kicad_schematic_sha256: 4cd8d314261059a73af7dfe5aa6d019c5c4160e75f09144bafd9e29a4d815f7f
-schematic_checkpoint_sha256: 6f6506b1a405ac8fa0e753b4987183abd9f91c108b15e5c009645f36c77f8b24
-authoring_source_sha256: 4959ed7107a3dae3969df2b8306b591187bda34f79720c9b410676f7908ef53b
+schematic_pdf_sha256: 1dd0e60e507f9b276cbaeebba8d6865673b8cec90193a35ac0e1057917382da6
+netlist_sha256: 72bea8142a167c10d90c2ad1f5a5cac519e564bbb16755808a1fcd2675200021
+exact_netlist_sha256: 3331343401272b4636763e70030fff14f65c54d71337b1c763410628c0b2befd
+parts_sha256: e275db04f5e06b63d92714a9bb6f3c609f447e41d74a042001161ed2cc9bf6cb
+design_rules_sha256: f5837640a458d8dfeb85e076ae7b501c87a30d3c880be0e44efe480d303299d8
+circuit_json_sha256: 3ba4cf6381822872ac295705c5bab3479b1fe75fc5337b4b05eeb09d7c3a1ac8
+kicad_schematic_path: 04_kicad/pluto_rx2_8way_v5.kicad_sch
+kicad_schematic_sha256: 9f373e13e6eb008e96d0d90521d585e8e2f17e17d0aa3561ab36ec3c03b32b45
+schematic_checkpoint_sha256: 4aa02bd4e5192377a4297164e3e28b270f0fa9073b092fa825d1bf9c6120b8f1
+authoring_source_sha256: d7780efb61bf5f3f1577aef4776a7f32484847a4fd121f88ebbbf11b07b52d73
 
 # Pre-route human schematic render review after D13
 
@@ -115,3 +115,12 @@ their retained manufacturer pages/sheets/drawings and are supported. The two
 pending floorplan silk-caption edits have no schematic-render consequence and
 remain subject to later board replay/review. P0/P1/P2 readability defects are
 0/0/0; **SOUND / DO-NOT-ORDER**.
+
+For D18 I rasterized and inspected all four pages of the regenerated exact
+PDF. Page 1 now has ten components and clearly shows J12 below the
+`VBUS_RAW` input trunk: pin 1 is labelled `BENCH_5V`, pin 2 is labelled GND,
+and the page title states `USB-C OR J12 BENCH 5 V — one input only`. J12 does
+not overlap J1/F1, no pin label is clipped, and the long input trunk has no
+false junction. Pages 2-4 are visually unchanged and remain readable at
+normal zoom. P0/P1/P2 readability defects are 0/0/0; **SOUND /
+DO-NOT-ORDER** pending physical placement and routing review.

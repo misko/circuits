@@ -1,5 +1,5 @@
 status: in-progress
-current_release: 07_releases/v0.1.1-2026-08-14
+current_release: 07_releases/v0.1.2-2026-08-14
 commission_basis: clean-room reconstruction with eight user-authoritative decisions
 
 # Commission brief — pluto-rx2-8way-v5
@@ -22,7 +22,8 @@ authoritative.
 Design a JLCPCB-manufactured receive-only RF
 selector that connects one Pluto Plus RX port to at most one of eight external
 SMA antenna ports at a time over 100 MHz through approximately 5.9 GHz. D7
-locks N=8 and an independent USB-C 5 V input. D8 accepts the presented
+locks N=8 and an independent USB-C 5 V input. D18 adds an alternative two-pin
+bench 5 V input on the same protected path. D8 accepts the presented
 direction: PE42482A-X, STM32C011F4P6, the framed dwell protocol and the
 protected TPS7A2433 3.3 V architecture are selected for schematic entry.
 
@@ -33,7 +34,7 @@ protected TPS7A2433 3.3 V architecture are selected for schematic entry.
 | G3 | Unselected paths meet user-approved common-to-off and antenna-to-antenna isolation limits across the full band. | D1 / D2 | partial — topology and test limits sealed; first-article VNA evidence owed |
 | G4 | The selector and Pluto RX input survive the user-approved RF input envelope and meet approved compression/intermodulation limits. | D1 | unmet |
 | G5 | An onboard preprogrammed controller autonomously cycles populated antenna states using approved predetermined unique dwell durations; downstream analysis can unambiguously infer state from timing, and reset/power/fault behavior meets approved limits. | D1 / D6 | partial — controller and keyed SWD hardware sealed; firmware and behavioral qualification excluded by D16/D17 |
-| G6 | The board operates from an independent USB-C 5 V input without taking operating power from or back-powering the Pluto Plus; its remaining input envelope and protection limits are approved. | D1 / D7 | partial — power-only architecture reviewed; first-article power test owed |
+| G6 | The board operates from either USB-C or a two-pin bench 5 V input without taking operating power from or back-powering the Pluto Plus; the non-isolated inputs are used one at a time. | D1 / D7 / D18 | partial — power-only architecture reviewed; first-article power and misuse tests owed |
 | G7 | Common and antenna RF interfaces use SMA, with gender, edge/vertical orientation, cable/stacking arrangement and mechanical envelope approved before floorplanning. | D3 | met — D12/D14 lock exact connector and approved edge arrangement |
 | G8 | PCB fabrication and the approved assembly scope pass JLCPCB DFM using a selected controlled-impedance stackup and verified order-time component availability. | D4 / D8 | partial — stackup/tier selected; order echo owed |
 | G9 | A first article passes a user-approved VNA/RF test plan covering all populated paths and required states with defined calibration planes, instruments and retained results. | D1–D4 | unmet |
@@ -303,6 +304,18 @@ retains U2 and keyed SWD connector J11 as hardware interfaces, but this release
 does not claim that U2 is programmed or that autonomous dwell switching has
 been qualified. Any future firmware work requires a new explicit user request.
 
+### D18 — 2026-08-14 — separate two-pin bench-power input
+
+> Can you also please provide a separate way to get power to the board, can we
+> provide two easy pins that we can connect power directly to when at the bench
+
+Impact: add J12, an assembled vertical 1x2 2.54-mm through-hole header beside
+USB-C. Pin 1 is nominal +5V on `VBUS_RAW`; pin 2 is GND. Bench power therefore
+passes through the same F1, protected-node TVS and U3 path as USB-C. The input
+contract remains 4.75V-5.5V. J1 and J12 are not reverse-isolated: connect and
+energize exactly one source at a time. The square pin-1 pad and silk identify
+polarity, and the board carries an explicit `USB OR J12 - NOT BOTH` warning.
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -319,9 +332,10 @@ been qualified. Any future firmware work requires a new explicit user request.
 | COM-010 | Compact the board to a comfortable 90 x 65 mm outline with five top SMAs and two on each side while preserving cyclic RF order. | user (D14) | [D14](#d14--2026-08-13--compact-five-top-two-per-side-mechanics) |
 | COM-011 | Approve the exact D15 compact connector/access/render placement and authorize routing to continue. | user (D15) | [D15](#d15--2026-08-13--exact-compact-placement-approved) |
 | COM-012 | Make firmware generation opt-in across PCB projects and stop all firmware work for Pluto v5; seal only a hardware archive. | user (D16/D17) | [D17](#d17--2026-08-13--stop-pluto-v5-firmware-work) |
+| COM-013 | Add an easy two-pin 5 V/GND bench input on the common protected power path; USB-C and bench power are non-isolated alternatives used one at a time. | user (D18) | [D18](#d18--2026-08-14--separate-two-pin-bench-power-input) |
 | 0001 | Select PE42482A-X as one true absorptive solid-state SP8T. | user D8 / agent exact-code proof | [accepted ADR](decisions/0001-one-of-eight-absorptive-sp8t.md) |
 | 0002 | Select STM32C011F4P6 and the fixed-order, guarded, framed dwell protocol. | user D8 / agent parameter lock | [accepted ADR](decisions/0002-autonomous-dwell-coded-control.md) |
-| 0003 | Select the exact protected power-only USB-C sink and TPS7A2433DBVR 3.3 V rail. | user D8 / agent exact-code proof | [accepted ADR](decisions/0003-usb-c-5v-to-protected-3v3.md) |
+| 0003 | Select the protected power-only USB-C/J12 alternative inputs and TPS7A2433DBVR 3.3 V rail. | user D8/D18 / agent exact-code proof | [accepted ADR](decisions/0003-usb-c-5v-to-protected-3v3.md) |
 | 0004 | Replace the loose programming pads with exact keyed Cortex SWD header J11 and the standard MIPI10 mapping. | user D13 / standards and exact-part proof | [accepted ADR](decisions/0004-keyed-cortex-swd-connector.md) |
 
 ## Architecture comparison
@@ -349,8 +363,8 @@ The complete evidence and consequences are in accepted
 | Receiver silicon/profile | LOCKED D5 — physical AD9363 using AD9361 software profile; extended-band risk accepted |
 | Control architecture | LOCKED D6 — onboard preprogrammable controller, autonomous cycling, unique dwell duration per populated antenna; no live Pluto GPIO link assumed |
 | Control parameters | LOCKED D10 — generated `fast20-v1`, 20–50 ms unique dwells, 5 ms guard, ≥76 ms marker detection, ±5% windows, BOR4/IWDG/SWD, passive ALL_OFF |
-| Reprogramming | LOCKED D11/D13 — direct Raspberry Pi GPIO SWD through exact keyed J11 and a Pi breakout harness; board self-powered by USB-C; standard-probe fallback; no live runtime data interface |
-| Power | LOCKED D7/D8 — power-only Type-C 4.75–5.5 V, 20 mA; exact passive protection and TPS7A2433DBVR; no active OVP/eFuse/data/PD |
+| Reprogramming | LOCKED D11/D13/D18 — direct Raspberry Pi GPIO SWD through exact keyed J11 and a Pi breakout harness; board powered by exactly one of USB-C or J12; standard-probe fallback; no live runtime data interface |
+| Power | LOCKED D7/D8/D18 — power-only Type-C or J12 bench input, 4.75–5.5 V, 20 mA; common passive protection and TPS7A2433DBVR; non-isolated inputs used one at a time; no active OVP/eFuse/data/PD |
 | RF limits | PROVISIONAL — 0 dBm operating limit and first-article loss/isolation/return-loss targets; final evidence requires VNA |
 | Timing/state | LOCKED — ALL_OFF guards and reset state; 1.4 µs switch-settling ceiling is far below the 5 ms guard |
 | Mechanics | LOCKED D14/D15 for the current no-enclosure scope — compact 90x65-mm outline, five-top/two-per-side exact SMAs, four M3 holes, three fiducials and cyclic U-perimeter placement are realized and human-approved on SHA `3fffbc690051`; no rigid Pluto or enclosure mate is specified |
@@ -419,9 +433,9 @@ dimensions.
 | Integration posture | One PE42482A-X bare SP8T; module trade rejected on total system complexity | D8 / ADR-0001 accepted |
 | RF performance/measurement boundary | Provisional numeric targets at SMA mating planes; VNA evidence required | A3 |
 | Control/default/switching | STM32C011F4P6, exact truth table, generated `fast20-v1` framed profile, passive ALL_OFF/BOR4/IWDG | D8 / D10 / ADR-0002 accepted |
-| Programming | Exact keyed 10-pin Cortex J11 carries VTref/GND/SWDIO/SWCLK/NRST; direct Raspberry Pi GPIO SWD needs a breakout harness; standard-probe fallback; target power remains USB-C | D11/D13 |
-| Power source | Independent USB-C nominal 5 V input | D7 |
-| Power implementation | Exact passive protection and TPS7A2433DBVR; 4.75–5.5 V/20 mA; no active OVP/data/PD/backfeed path | D8 / ADR-0003 accepted |
+| Programming | Exact keyed 10-pin Cortex J11 carries VTref/GND/SWDIO/SWCLK/NRST; direct Raspberry Pi GPIO SWD needs a breakout harness; standard-probe fallback; target power comes from exactly one of J1/J12 | D11/D13/D18 |
+| Power source | Independent USB-C nominal 5 V input or J12 two-pin bench 5 V input, one at a time | D7/D18 |
+| Power implementation | Exact passive protection and TPS7A2433DBVR; 4.75–5.5 V/20 mA; no active OVP/data/PD/reverse isolation; explicit no-simultaneous-input warning | D8/D18 / ADR-0003 accepted |
 | Mechanics/cabling | Nine exact 901-143-6RFX female right-angle SMA connectors locked; D14 90x65-mm outline, mounting and cyclic open-U edge order realized; exact compact placement approved; cable loss and routed geometry remain OPEN | D12–D15 + board SHA `3fffbc690051` |
 | Assembly/test | Five JLC first articles proposed; uploader allocation and instrument availability remain OPEN | A3 |
 
