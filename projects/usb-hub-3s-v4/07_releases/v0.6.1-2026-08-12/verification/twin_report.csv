@@ -1,0 +1,171 @@
+LCSC,Ref,Status,Detail
+C21189,R3,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21189,R9,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R1,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R13,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R15,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R17,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R19,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R21,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R22,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R23,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R7,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C844888,R14,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1525,C12,OK,fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525,C14,OK,fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525,C15,OK,fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525,C16,OK,fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525,C20,OK,fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1525,C21,OK,fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C2919856,C22,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C2919856,C22,POLARITY-FIT-OK,marking channel agrees with the pad fit (both at pad 1; margins 1.03/0.27mm)
+C2919856,C22,OK,fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C95204,R6,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C39232,C13,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C77102,C2,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C77102,C3,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C77102,C4,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C77102,C5,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C22797,R10,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C22880,R4,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C136277,C23,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C136277,C23,POLARITY-FIT-OK,marking channel agrees with the pad fit (both at pad 1; margins 1.03/0.25mm)
+C136277,C23,OK,fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C22935,R2,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C110776,R12,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C4184,R8,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C478880,R26,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C10,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C11,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C24,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C25,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C26,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C6,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C7,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C8,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C342660,C9,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C861251,R24,ADJUDICATED-FETCH-FAILED,"Genuine EasyEDA-library absence measured 2026-08-12 in a controlled 3.5-second sequence: fresh C1525 and C110776 controls fetched footprints and 3D models, while both the component endpoint and direct SVG endpoint returned no drawn library for C861251. JLC/LCSC exact-code evidence identifies Yageo RT0603BRD0724R3L, 24.3ohm +/-0.1%, +/-25ppm/C, 0603. The unpolarized standard 0603 board land and retained KiCad body are independently sufficient; there is no orientation-sensitive function to waive."
+C77036,C30,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C88744,C1,OK,fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C861436,R11,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C855851,R5,ADJUDICATED-FETCH-FAILED,"Genuine EasyEDA-library absence measured 2026-08-12 in the same controlled sequence: fresh C1525 and C110776 controls fetched footprints and 3D models, while both the component endpoint and direct SVG endpoint returned no drawn library for C855851. JLC exact-code evidence and Yageo's ordering decode identify AT0603BRD0741K2L, 41.2kohm +/-0.1%, +/-25ppm/C, 0603. The unpolarized standard 0603 board land and retained KiCad body are independently sufficient; there is no orientation-sensitive function to waive."
+C861404,R16,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C861404,R18,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C861404,R20,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C5451690,C29,OK,fit=0.12mm jlc_offset=0 db=0.0 src=name-DB
+C124196,D5,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C124196,D5,POLARITY-FIT-OK,marking channel agrees with the pad fit (both at pad 1; margins 0.71/0.47mm)
+C124196,D5,OK,fit=0.01mm jlc_offset=0 db=0.0 src=lcsc
+C264098,Q1,PAD-MULTIPLICITY,"pad number(s) 5,6,7 appear a different number of times on the two footprints (ours {'5': 2, '6': 2, '7': 2} vs JLC {'5': 1, '6': 1, '7': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C264098,Q1,ADJUDICATED-PAD-GEOM,"Measured 2026-08-12: JLC's generic POWERPAK centroids make pad 2-to-7 3.00 mm versus 2.52 mm on the board (0.48 mm delta). Pinned manufacturer DS40141 p.6 specifies 0.65 mm pitch, 0.42 x 0.70 mm perimeter lands and the X3/Y3 continuous drain land implemented by the project footprint. This is an exact-manufacturer-land versus generic-catalog-CAD preference, not an unevidenced waiver; the order preview must still confirm Q1 rotation."
+C264098,Q1,ADJUDICATED-PAD-MISMATCH,"Measured 2026-08-12 against pinned Diodes DS40141 Rev. 5-2 p.6. The board implements the exact PowerDI3333-8 Type UX suggested land: four 0.42 x 0.70 mm source/gate lands on 0.65 mm pitch and the manufacturer X3/Y3 continuous drain copper with physical identities 5-8 retained. JLC's POWERPAK-1212 CAD instead assigns its generic 2.60 x 2.20 mm paddle to pad 8, producing 0.892 mm twin residual. The independently pcbnew-verified terminal fit is unambiguous at 270 (0.4991 mm vs 2.2701 mm next), and the function-tied drain-paddle side agrees with DS40141 Bottom View. Rotate the visual body 270; do not substitute JLC's generic land for the manufacturer land."
+C264098,Q1,MOUNT-FALLBACK,"best 0.89mm at 270deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay"
+C264054,C17,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C264054,C17,POLARITY-FIT-OK,marking channel agrees with the pad fit (both at pad 1; margins 1.03/0.25mm)
+C264054,C17,OK,fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C264054,C18,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C264054,C18,POLARITY-FIT-OK,marking channel agrees with the pad fit (both at pad 1; margins 1.03/0.25mm)
+C264054,C18,OK,fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C264054,C19,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C264054,C19,POLARITY-FIT-OK,marking channel agrees with the pad fit (both at pad 1; margins 1.03/0.25mm)
+C264054,C19,OK,fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C273394,SW1,OK,fit=0.00mm jlc_offset=0 db=0.0 src=name-DB
+C83846,D1,ADJUDICATED-PAD-GEOM,"Measured 2026-08-12: exact SMBJ15A in DO-214AA/SMB, with locally pinned Littelfuse JC.07/04/25 v4 series sheet SHA-256 d7df155be4b1f612085401e8c946f065e284d65a0e7de22b9225a7b73946e51b. The reported 0.42 mm pad-1-to-pad-2 span delta is a fillet/land-extent preference on the same DO-214AA end caps; cathode pad 1 remains VIN and anode pad 2 GND. Confirm the cathode band in the JLC order preview."
+C83846,D1,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C83846,D1,POLARITY-FIT-BLIND,"no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal"
+C83846,D1,OK,fit=0.21mm jlc_offset=0 db=0.0 src=lcsc
+C97502,D6,OK,fit=0.10mm jlc_offset=270 db=270.0 src=lcsc
+C473910,U7,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C473910,U8,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C206199,U4,OK,fit=0.11mm jlc_offset=270 db=270.0 src=lcsc
+C206199,U5,OK,fit=0.11mm jlc_offset=270 db=270.0 src=lcsc
+C206199,U6,OK,fit=0.11mm jlc_offset=270 db=270.0 src=lcsc
+C473913,U3,PAD-MULTIPLICITY,"pad number(s) 21 appear a different number of times on the two footprints (ours {'21': 2} vs JLC {'21': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C473913,U3,OK,fit=0.10mm jlc_offset=270 db=270.0 src=lcsc
+C2155765,U9,OK,fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C5219289,U2,OK,fit=0.01mm jlc_offset=0 db=0.0 src=lcsc
+C7125816,U1,ADJUDICATED-PAD-GEOM,"Measured 2026-08-12 against TI's official TPSM63610EVM design archive SLVRBM6.zip (download SHA-256 18ab70a0bf3283c87f86ea359f08dd906483224ffb882bf54997180dce9b6405). Its ODB++ BSR234A U1 terminal coordinates independently reproduce the board land: relative to U1 centre and normalized for the 270-degree EVM placement, pads 1/9 are at x=-2.925mm,y=+/-2.688mm and pads 10/18 at x=+2.925mm,y=+/-2.504mm. JLC's generic catalog CAD instead places the four corners at +/-2.75mm, yielding the reported 0.31mm pad-1-to-pad-18 span delta. The board follows TI's exact functioning EVM land; this row accepts that source-specific land difference, not a rotation guess. The independently measured offset-0 rotation remains on the JLC order-preview human gate."
+C7125816,U1,OK,fit=0.23mm jlc_offset=0 db=0.0 src=lcsc
+C3020560,J5,ADJUDICATED-PAD-GEOM,"Measured 2026-08-12 against the pinned GCT USB4105 Revision B drawing, local SHA-256 fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5. Its exact recommended PCB layout places the coincident A/B ground lands at x=+/-3.20mm and the coincident A/B VBUS lands at x=+/-2.40mm, so B4-to-B9 is 4.80mm exactly as implemented. JLC's catalog CAD is the generic SBC-160S1A-20-S412 land and separates those paired contacts at x=+/-2.25mm, producing the reported 0.30mm span delta. Preserve the GCT exact-part land; the independently measured offset-0 placement remains subject to the JLC order-preview body-registration check."
+C3020560,J5,OK,fit=0.15mm jlc_offset=0 db=0.0 src=lcsc
+C7519,D2,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C7519,D3,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C7519,D4,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+,F1,LOCAL-BODY,source=board; JLC CAD replacement suppressed; resolved paths=1/1; scale/offset/rotation retained; identity=complete Keystone 3568 four-terminal MINI fuse holder; authority=Keystone M65 p.42 exact mechanical drawing and KiCad exact-part body; limitation=visual envelope only; never a JLC placement-transform authority
+,J1,LOCAL-BODY,source=board; JLC CAD replacement suppressed; resolved paths=0/0; scale/offset/rotation retained; identity=Phoenix Contact 1715022 two-position terminal block; authority=pinned Phoenix Contact exact-part dimensional record and KiCad exact-part body; limitation=finished-product envelope only; J1 is not a JLC placement instruction
+,J2,LOCAL-BODY,source=board; JLC CAD replacement suppressed; resolved paths=0/0; scale/offset/rotation retained; identity=GCT USB1130-15-A through-hole USB Type-A receptacle; authority=pinned GCT USB1130 Revision E exact recommended PCB layout and KiCad exact-part body; limitation=finished-product envelope only; J2-J4 are not JLC placement instructions
+,J3,LOCAL-BODY,source=board; JLC CAD replacement suppressed; resolved paths=0/0; scale/offset/rotation retained; identity=GCT USB1130-15-A through-hole USB Type-A receptacle; authority=pinned GCT USB1130 Revision E exact recommended PCB layout and KiCad exact-part body; limitation=finished-product envelope only; J2-J4 are not JLC placement instructions
+,J4,LOCAL-BODY,source=board; JLC CAD replacement suppressed; resolved paths=0/0; scale/offset/rotation retained; identity=GCT USB1130-15-A through-hole USB Type-A receptacle; authority=pinned GCT USB1130 Revision E exact recommended PCB layout and KiCad exact-part body; limitation=finished-product envelope only; J2-J4 are not JLC placement instructions
+C21189,R3,MODEL-REG-OK,body on courtyard (0.00mm)
+C21189,R9,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R1,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R13,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R15,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R17,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R19,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R21,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R22,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R23,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R7,MODEL-REG-OK,body on courtyard (0.00mm)
+C844888,R14,MODEL-REG-OK,body on courtyard (0.00mm)
+C1525,C12,MODEL-REG-OK,body on courtyard (0.00mm)
+C1525,C14,MODEL-REG-OK,body on courtyard (0.00mm)
+C1525,C15,MODEL-REG-OK,body on courtyard (0.00mm)
+C1525,C16,MODEL-REG-OK,body on courtyard (0.00mm)
+C1525,C20,MODEL-REG-OK,body on courtyard (0.00mm)
+C1525,C21,MODEL-REG-OK,body on courtyard (0.00mm)
+C2919856,C22,MODEL-REG-OK,body on courtyard (0.00mm)
+C95204,R6,MODEL-REG-OK,body on courtyard (0.00mm)
+C39232,C13,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,C2,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,C3,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,C4,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,C5,MODEL-REG-OK,body on courtyard (0.00mm)
+C22797,R10,MODEL-REG-OK,body on courtyard (0.00mm)
+C22880,R4,MODEL-REG-OK,body on courtyard (0.00mm)
+C136277,C23,MODEL-REG-OK,body on courtyard (0.00mm)
+C22935,R2,MODEL-REG-OK,body on courtyard (0.00mm)
+C110776,R12,MODEL-REG-OK,body on courtyard (0.00mm)
+C4184,R8,MODEL-REG-OK,body on courtyard (0.00mm)
+C478880,R26,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C10,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C11,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C24,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C25,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C26,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C6,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C7,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C8,MODEL-REG-OK,body on courtyard (0.00mm)
+C342660,C9,MODEL-REG-OK,body on courtyard (0.00mm)
+C77036,C30,MODEL-REG-OK,body on courtyard (0.00mm)
+C88744,C1,MODEL-REG-OK,body on courtyard (0.00mm)
+C861436,R11,MODEL-REG-OK,body on courtyard (0.00mm)
+C861404,R16,MODEL-REG-OK,body on courtyard (0.00mm)
+C861404,R18,MODEL-REG-OK,body on courtyard (0.00mm)
+C861404,R20,MODEL-REG-OK,body on courtyard (0.00mm)
+C5451690,C29,MODEL-REG-OK,body on courtyard (0.00mm)
+C124196,D5,MODEL-REG-OK,body on courtyard (0.00mm)
+C264098,Q1,MODEL-REG-OK,body on courtyard (0.18mm)
+C264054,C17,MODEL-REG-OK,body on courtyard (0.00mm)
+C264054,C18,MODEL-REG-OK,body on courtyard (0.00mm)
+C264054,C19,MODEL-REG-OK,body on courtyard (0.00mm)
+C273394,SW1,MODEL-REG-OK,body on courtyard (0.00mm)
+C83846,D1,MODEL-REG-OK,body on courtyard (0.00mm)
+C97502,D6,MODEL-REG-OK,body on courtyard (0.03mm)
+C473910,U7,MODEL-REG-OK,body on courtyard (0.00mm)
+C473910,U8,MODEL-REG-OK,body on courtyard (0.00mm)
+C206199,U4,MODEL-REG-OK,body on courtyard (0.01mm)
+C206199,U5,MODEL-REG-OK,body on courtyard (0.01mm)
+C206199,U6,MODEL-REG-OK,body on courtyard (0.01mm)
+C473913,U3,MODEL-REG-OK,body on courtyard (0.00mm)
+C2155765,U9,MODEL-REG-OK,body on courtyard (0.00mm)
+C5219289,U2,MODEL-REG-OK,body on courtyard (0.02mm)
+C7125816,U1,MODEL-REG-OK,body on courtyard (0.02mm)
+C3020560,J5,MODEL-REG-OK,body on courtyard (0.13mm)
+C7519,D2,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,D3,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,D4,MODEL-REG-OK,body on courtyard (0.00mm)
+,J1,ADJUDICATED-NO-BODY,"J1 is excluded from the CPL and hand-soldered. The frozen board footprint has no 3D model entry, so the twin cannot render this manual body; it does not silently claim otherwise. The pinned Phoenix Contact 1715022 catalog PDF, SHA-256 4c8f9467344303bc2e7f5e408ba30aafa3e427ba5cac847113229d474ee7614e, fixes the 9.8mm length, 5.0mm pitch, 13.8mm housing height and 1.3mm holes, all independently checked against the board footprint/courtyard. Physical seating, edge access and terminal retention remain first-article gates."
+,J2,ADJUDICATED-NO-BODY,"J2-J4 are excluded from the CPL and hand-soldered. No exact USB1130 3D body is present in either the frozen footprint or C5815149 EasyEDA data, so the twin honestly leaves these three report rows open to this named exception. GCT USB1130 Revision E, SHA-256 8890b46ce2c8a0b4022c3dfb2fbc39e6d4a20cbca99200d70ea89682cbb023e0, fixes the 13.8mm shell width, 15.6mm maximum body length, 6.99mm height, PCB-edge datum and exact holes; the sealed placement/render reviews grade those 2D envelopes and edge exits. Exact seating and mating access remain first-article gates."
+,J3,ADJUDICATED-NO-BODY,"J2-J4 are excluded from the CPL and hand-soldered. No exact USB1130 3D body is present in either the frozen footprint or C5815149 EasyEDA data, so the twin honestly leaves these three report rows open to this named exception. GCT USB1130 Revision E, SHA-256 8890b46ce2c8a0b4022c3dfb2fbc39e6d4a20cbca99200d70ea89682cbb023e0, fixes the 13.8mm shell width, 15.6mm maximum body length, 6.99mm height, PCB-edge datum and exact holes; the sealed placement/render reviews grade those 2D envelopes and edge exits. Exact seating and mating access remain first-article gates."
+,J4,ADJUDICATED-NO-BODY,"J2-J4 are excluded from the CPL and hand-soldered. No exact USB1130 3D body is present in either the frozen footprint or C5815149 EasyEDA data, so the twin honestly leaves these three report rows open to this named exception. GCT USB1130 Revision E, SHA-256 8890b46ce2c8a0b4022c3dfb2fbc39e6d4a20cbca99200d70ea89682cbb023e0, fixes the 13.8mm shell width, 15.6mm maximum body length, 6.99mm height, PCB-edge datum and exact holes; the sealed placement/render reviews grade those 2D envelopes and edge exits. Exact seating and mating access remain first-article gates."

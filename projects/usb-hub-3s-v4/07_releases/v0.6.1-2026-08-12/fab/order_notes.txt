@@ -1,0 +1,4 @@
+JLCPCB VIA PROCESS — GENERATED; DO NOT RE-TYPE
+Source: /home/mouse9911/gits/circuits/projects/usb-hub-3s-v4/03_src/rules/assembly.yaml
+Order remark: Copper-paste fill and copper cap only the 0.50/0.20 mm vias explicitly marked Type VII in the KiCad board. This is the complete 0.20 mm drill family. Do not fill/cap any 0.30 mm drill routing, seed, stitching, or plane-transfer via (0.60/0.30 and 0.70/0.30 mm finished geometry).
+Uploader confirmation required: YES

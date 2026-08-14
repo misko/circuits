@@ -1,6 +1,6 @@
 #!/bin/bash
 # TEMPLATE rebuild_all.sh — the canonical generic pipeline (skill-owned).
-# Copy into a new board's 03_src/ and set BOARD + TSX below. ZERO board-specific
+# Copy into a new board's 03_src/ and set BOARD + TSX + title below. ZERO board-specific
 # generation Python: board + route + rules all run on the SHARED skill scripts.
 # See 03_src/contracts.md for the authoritative step order.
 set -euo pipefail
@@ -9,15 +9,33 @@ cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
 # --- board-specific knobs (the ONLY things to edit) -------------------------
 BOARD=power3s                                  # <board> stem for 04_kicad/<board>.*
 TSX=power3s                                    # 03_tscircuit/src/<TSX>.tsx basename
+SCHEMATIC_TITLE=POWER3S                        # human PDF title
 # ----------------------------------------------------------------------------
 
 PY=/usr/bin/python3
 # resolve the shared skill scripts (repo-relative first, ~/.claude fallback)
-SKROOT="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || echo ../../..)" && pwd)/skills"
+REPO_ROOT="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || echo ../../..)" && pwd)"
+SKROOT="$REPO_ROOT/skills"
 S="$SKROOT/kicad-pcb/scripts"
 [ -f "$S/generate_board_generic.py" ] || { SKROOT="$HOME/.claude/skills"; S="$SKROOT/kicad-pcb/scripts"; }
 FS="$SKROOT/jlcpcb-fab/scripts"                # fab-skill checkers (bom_source_check)
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
+
+run_stage() {
+    local stage="$1"; shift
+    "$PY" "$S/pcb_flow.py" run . --stage "$stage" -- "$@"
+}
+
+RESUME_AFTER_SCHEMATIC_REVIEW=false
+case "${1:-}" in
+    "") ;;
+    --resume-after-schematic-review) RESUME_AFTER_SCHEMATIC_REVIEW=true ;;
+    *) echo "usage: $0 [--resume-after-schematic-review]"; exit 2 ;;
+esac
+CJ=03_tscircuit/build/circuit.json
+SCHPDF=03_tscircuit/build/schematic.pdf
+
+if [ "$RESUME_AFTER_SCHEMATIC_REVIEW" = false ]; then
 
 # [0a] P-MOD before generation spend: every complex subsystem is a module, or
 # an evidence-backed bare-IC exception with an ADR and rejected module set.
@@ -32,6 +50,38 @@ $PY "$S/rf_contract_check.py" . --require-applicability \
 # tscircuit DROPS an unmapped part silently (ERC still 0, 2026-07-21 incident)
 $PY "$S/tsx_preflight.py" . \
     || { echo "GATE FAILED [0] TSX-PRE (tsx_preflight.py): map alphanumeric pads in 03_tscircuit/parity_padmap.txt BEFORE tsci build"; exit 1; }
+
+# [0d] Source-only schemas before the expensive foreign producer. These gates
+# read authored YAML/part dossiers only; generated schematic/netlist bytes are
+# deliberately unavailable here.
+$PY "$S/net_label_survival.py" . --schema-only \
+    || { echo "GATE FAILED [0d] S-SCHEMA: malformed label_survival contract before tsci build"; exit 1; }
+$PY "$S/electrical_invariants.py" . --schema-only \
+    || { echo "GATE FAILED [0d] E-INV-SCHEMA: malformed electrical invariants before tsci build"; exit 1; }
+$PY "$S/control_protocol_check.py" . \
+    || { echo "GATE FAILED [0d] CONTROL-PROTOCOL: observable timing contract is inconsistent before tsci build"; exit 1; }
+$PY "$S/control_profile_codegen.py" . --check \
+    || { echo "GATE FAILED [0d] CONTROL-PROFILE: generated firmware/decoder timing artifacts are missing or stale"; exit 1; }
+$PY "$S/early_design_check.py" . \
+    || { echo "GATE FAILED [0d] D-SPEC/E-PATH/E-SWDRV/E-SURGE/E-CAP/E-FAULT: authored electrical schemas are invalid before tsci build"; exit 1; }
+$PY "$S/rules_audit.py" . --phase source \
+    || { echo "GATE FAILED [0d] A-SOURCE: net-class current/width/pour intent is malformed before tsci build"; exit 1; }
+
+# [0e] Layout sections and the precedent ladder are part-dossier facts. Grade
+# them before TSX and before any hash-bound review; placement repeats the same
+# implementation later and adds realized adjacency checks.
+$PY "$S/policy_audit.py" . --skip-drc --phase source \
+    || { echo "GATE FAILED [0e] P-LAYOUT/P-PREC: close source layout guidance and precedent ladders before tsci build or human review"; exit 1; }
+
+# [0f] Repository schema/bound ratchets are also source-only. Run them before
+# producer or reviewer spend: a new field read by nothing and a typed numeric
+# ADR bound with no executable provenance are knowable from authored bytes.
+# pcb_flow supplies streamed output, heartbeat and a hard timeout.
+run_stage source_schema_governance "$PY" "$S/schema_reader_audit.py" --root "$REPO_ROOT" \
+    || { echo "GATE FAILED [0f] G-ORPHAN: declare a proven reader or an honest ADVISORY/OWED disposition for every new schema field"; exit 1; }
+run_stage adr_bound_governance "$PY" "$S/adr_bound_provenance.py" "$REPO_ROOT" \
+    --repo-root "$REPO_ROOT" --timeout 30 \
+    || { echo "GATE FAILED [0f] M-BOUND: make every new published inequality executable before build or review"; exit 1; }
 
 # [0b] M-FRESH stamp — BEFORE the build, so the run has a witness that is not
 # the build. Refuses on the spot if BOARD=/TSX= above are still the TEMPLATE
@@ -52,10 +102,22 @@ $PY "$S/build_provenance.py" stamp . --board "$BOARD" --tsx "$TSX" \
 # S-NETMERGE, E-INV, E-ADR, E-TOPO, E-MARGIN, S-COUNT, E-NETREF and M-BOM all
 # went green against an obsolete pad-numbering scheme. No checker was wrong.
 # They graded exactly what they were handed.
-CJ=03_tscircuit/build/circuit.json             # the ONE name for the converter input
-( cd 03_tscircuit && tsci build "src/$TSX.tsx" )
+# The ONE name for the converter input is $CJ, declared above so the exact
+# artifact can also be named by the resume path without rebuilding it.
+# Keep the foreign producer inside the same bounded runner as routing and DRC.
+# It can be quiet while resolving supplier data or under host I/O pressure; a
+# heartbeat distinguishes that from a dead pipeline, and the configured hard
+# deadline terminates the complete process group instead of leaving a child.
+run_stage tscircuit_deps env --chdir=03_tscircuit bun install --frozen-lockfile --ignore-scripts
+run_stage tscircuit_build env --chdir=03_tscircuit ./node_modules/.bin/tsci build "src/$TSX.tsx"
 mkdir -p 03_tscircuit/build
 cp "03_tscircuit/dist/src/$TSX/circuit.json" "$CJ"
+
+# [1d] tsci can exit zero while embedding hard geometry/component errors in
+# circuit.json. Freshness and electrical parity correctly grade the artifact
+# they receive, but do not own tscircuit's diagnostic vocabulary.
+$PY "$S/circuit_json_diagnostics.py" "$CJ" \
+    || { echo "GATE FAILED [1d] TSX-DIAG: tsci returned a circuit artifact containing hard error diagnostics"; exit 1; }
 
 # [1r] THE HUMAN SCHEMATIC — regenerated, and DELETED FIRST so that a failure
 # leaves ABSENCE rather than the previous revision.
@@ -70,16 +132,18 @@ cp "03_tscircuit/dist/src/$TSX/circuit.json" "$CJ"
 # document that does not match its own netlist, with every gate green.
 #
 # The `rm -f` is the load-bearing line, not the render. A render step that
-# fails or is skipped (no rsvg-convert on this machine) must not be able to
+# fails or is skipped must not be able to
 # leave a stale PDF sitting where the seal will copy it: absence is loud and
 # staleness is silent, so we make the failure mode absence and let M-FRESH
-# below say so by name. Hence `|| true` on the two producers — the GATE
-# reports, not `set -e`.
-SCHPDF=03_tscircuit/build/schematic.pdf
+# below say so by name. The renderer consumes the exact circuit.json already
+# graded above; it does not re-evaluate TSX. Hence `|| true` — the GATE reports
+# the missing output by name rather than `set -e` stopping without context.
 rm -f 03_tscircuit/build/schematic.svg "$SCHPDF"
-( cd 03_tscircuit && tsci export "src/$TSX.tsx" -f schematic-svg -o "../build/schematic.svg" ) || true
-[ -s 03_tscircuit/build/schematic.svg ] \
-    && rsvg-convert -f pdf -o "$SCHPDF" 03_tscircuit/build/schematic.svg || true
+NET_ALIAS_ARGS=()
+[ -f 03_tscircuit/net_aliases.txt ] \
+    && NET_ALIAS_ARGS=(--net-aliases 03_tscircuit/net_aliases.txt)
+node "$S/render_schematic_pdf.mjs" "$CJ" "$SCHPDF" \
+    --title "$SCHEMATIC_TITLE" "${NET_ALIAS_ARGS[@]}" || true
 
 # [1a] M-FRESH verify — the pipeline asserts the artifacts it is about to grade
 # and to SHIP are the ones it just built. build_provenance.py finds the producer
@@ -92,6 +156,7 @@ $PY "$S/build_provenance.py" verify . --board "$BOARD" --tsx "$TSX" \
     --artifact "$CJ" --render "$SCHPDF" \
     || { echo "GATE FAILED [1a] M-FRESH (build_provenance.py verify): the artifact the converter would read is NOT the one this build produced, or the human schematic the release ships is missing/older than it — every gate below would be green against stale content"; exit 1; }
 
+mkdir -p 04_kicad 06_build/netlists
 $PY "$S/circuit_json_to_kicad_sch.py" "$CJ" \
     -o "04_kicad/$BOARD.kicad_sch" --parts 02_parts
 kicad-cli sch export netlist --output "06_build/netlists/$BOARD.net" "04_kicad/$BOARD.kicad_sch"
@@ -106,13 +171,15 @@ $PY "$S/electrical_invariants.py" . \
     || { echo "GATE FAILED [1b] E-INV (electrical_invariants.py): netlist violates a design-intent assertion"; exit 1; }
 $PY "$S/electrical_invariants.py" . --adr-coverage \
     || { echo "GATE FAILED [1b] E-ADR (electrical_invariants.py --adr-coverage): a protection/topology ADR emitted no invariant"; exit 1; }
+$PY "$S/early_design_check.py" . \
+    || { echo "GATE FAILED [1b] D-SPEC/E-PATH/E-SWDRV/E-SURGE: commission boundary, complete delivery path, switching drive, or surge coordination is not proven"; exit 1; }
 $PY "$S/power_topology.py" . \
     || { echo "GATE FAILED [1b] E-TOPO (power_topology.py): converter topology does not match the derived Vin-vs-Vout"; exit 1; }
 $PY "$S/power_topology.py" . --margin \
     || { echo "GATE FAILED [1b] E-MARGIN (power_topology.py --margin): output setpoint headroom below the delivery IR drop"; exit 1; }
 $PY "$S/power_topology.py" . --off-control \
     || { echo "GATE FAILED [1b] E-OFF (power_topology.py --off-control): battery source without a declared de-energization path"; exit 1; }
-$PY "$S/count_parity.py" . \
+$PY "$S/count_parity.py" . --pre-board \
     || { echo "GATE FAILED [1b] S-COUNT (count_parity.py): refdes sets disagree across intent/artifacts (silent drop)"; exit 1; }
 $PY "$FS/bom_source_check.py" --circuit-only "$CJ" --parts 02_parts \
     || { echo "GATE FAILED [1b] M-BOM leg C (bom_source_check.py --circuit-only): a coded R/C's catalog value != its tsx value prop (the R12/R30 class)"; exit 1; }
@@ -143,8 +210,70 @@ kicad-cli sch erc --severity-error --exit-code-violations \
     "04_kicad/$BOARD.kicad_sch" -o 06_build/erc_errors.rpt \
     || { echo "GATE FAILED [2] ERC: the schematic carries ERC ERRORS (warnings are baselined in 06_build/erc.rpt; errors are not baselinable)"; exit 1; }
 
+# [2c] Pin the exact bytes at the deliberate human-review pause. A resume must
+# continue these bytes, not rerun the nondeterministic schematic producer and
+# silently change the PDF/netlist that received approval.
+$PY "$S/stage_checkpoint.py" record . schematic \
+    --input "$CJ" \
+    --input "$SCHPDF" \
+    --input "04_kicad/$BOARD.kicad_sch" \
+    --input "06_build/netlists/$BOARD.net" \
+    --input 03_tscircuit/manifest.yaml \
+    --input 06_build/build_provenance.json \
+    --input 03_src/rebuild_all.sh \
+    || { echo "GATE FAILED [2c] CHECKPOINT: could not pin the exact schematic review subject"; exit 1; }
+else
+    echo "[resume] verify the exact schematic-stage checkpoint; do not rebuild TSX"
+    $PY "$S/build_provenance.py" audit . \
+        || { echo "GATE FAILED [resume] M-FRESH: schematic sources or generated human/machine artifacts changed; run the full pipeline"; exit 1; }
+    $PY "$S/stage_checkpoint.py" verify . schematic \
+        || { echo "GATE FAILED [resume] CHECKPOINT: the reviewed schematic-stage bytes changed; run the full pipeline"; exit 1; }
+fi
+
+# [2a] Independent topology/ratings and human-readability reviews of the exact
+# netlist/PDF. The first run intentionally stops here until fresh reviewers
+# write both hash-bound witnesses configured in route.yaml. Continue with
+# `rebuild_all.sh --resume-after-schematic-review`; rerunning the producer would
+# replace the exact reviewed PDF and is therefore forbidden at this boundary.
+$PY "$S/pre_route_review_check.py" . --phase schematic \
+    --netlist "06_build/netlists/$BOARD.net" \
+    || { echo "GATE FAILED [2a] PR-REVIEW: topology and delivered-schematic readability must both be SOUND before placement/routing spend"; exit 1; }
+
+# [2b] Promote the exact schematic as soon as its own stage is complete and
+# independently reviewed.  rebuild_reuse.sh is the deterministic iteration
+# driver for the placement/routing stages; delaying this copy until the final
+# PCB DRC made it silently consume the previous topology whenever the full
+# driver paused (as designed) on a placement review.  A failed schematic stage
+# still cannot promote anything: every producer, semantic, ERC, checkpoint and
+# human-review gate above must pass first.
+mkdir -p 03_tscircuit/kicad
+cp "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch"
+cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
+    || { echo "GATE FAILED [2b] M-PIN: promoted schematic differs from the reviewed schematic-stage subject"; exit 1; }
+
 # [3] board (placement + zones) from floorplan.yaml  [SHARED]
+$PY "$S/artifact_provenance.py" begin . --stage pcb_layout \
+    --input 03_src/floorplan.yaml --input 03_src/route.yaml \
+    --input "04_kicad/$BOARD.kicad_sch" \
+    --output "04_kicad/$BOARD.kicad_pcb" \
+    --output "04_kicad/$BOARD.kicad_pro" \
+    --output "04_kicad/$BOARD.kicad_dru" \
+    --output 06_build/drc/gate.json
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
+$PY "$S/count_parity.py" . \
+    || { echo "GATE FAILED [3] S-COUNT (count_parity.py): generated PCB refdes differ from schematic intent"; exit 1; }
+
+# [3a] P-PINMAP — run as soon as both producer artifacts exist. The dossier's
+# physical pin set must reach the generated schematic and the real footprint;
+# intentional manufacturer-fused lands require explicit evidence.
+$PY "$S/pin_map_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    --circuit-json 03_tscircuit/build/circuit.json \
+    || { echo "GATE FAILED [3a] P-PINMAP: reconcile physical, schematic, and footprint pins before placement/routing work"; exit 1; }
+if [ -f 03_src/rules/critical_parts.yaml ]; then
+    $PY "$S/critical_part_facts.py" .
+else
+    echo "[3b] no critical_parts.yaml — no selective catastrophic part facts declared"
+fi
 
 # [4] placement/pad invariants  [per-board gate + SHARED placement gates]
 # `03_src/audit_board.py` is the ONLY per-board emitter this pipeline still
@@ -172,12 +301,28 @@ fi
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL
 # (missing file = defaults); waivers live inside it, evidence required.
 $PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
+$PY "$S/model_coverage_check.py" "04_kicad/$BOARD.kicad_pcb" \
+    -o 06_build/verification/model_coverage.json \
+    || { echo "GATE FAILED [4m] P-MODEL: every fitted footprint needs a renderer-resolvable 3D body before placement review"; exit 1; }
+$PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [4a] R-PAIRMAP: critical pair polarity/wave/layer contract is incomplete"; exit 1; }
 
 # P-PADSEP — separate-footprint pads must clear the fab-tier floor even on the
 # same net; joining is explicit track/zone copper. Also catches paste over a
 # foreign land, which ordinary connectivity DRC does not consider a short.
 $PY "$S/pad_separation.py" "04_kicad/$BOARD.kicad_pcb" --project . \
     || { echo "GATE FAILED [4b] P-PADSEP: move footprints apart and route the connection explicitly"; exit 1; }
+
+# P-LAYOUT/P-PREC/P-ADJ: the SAME policy implementation used at release,
+# narrowed to placement rows and run while rerouting is still avoidable.
+$PY "$S/policy_audit.py" . --board "$BOARD" --skip-drc --phase placement \
+    || { echo "GATE FAILED [4c] P-ADJ: datasheet placement budget violated before routing"; exit 1; }
+
+$PY "$S/generate_rules_generic.py" .
+kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
+    --format json -o 06_build/drc/pre_route.json "04_kicad/$BOARD.kicad_pcb"
+$PY "$S/placement_drc_check.py" 06_build/drc/pre_route.json \
+    || { echo "GATE FAILED [4c2] P-DRC: exact placement has a short, clearance, library, hole, or parity defect before human review"; exit 1; }
 
 # [5] netclasses BEFORE route-prep (canon R1)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
@@ -194,18 +339,37 @@ $PY "$S/escape_check.py" --board "04_kicad/$BOARD.kicad_pcb" \
 $PY "$S/tier_preflight.py" . \
     || { echo "GATE FAILED [5b] R-PREFLIGHT (tier_preflight.py): a routing/stitch parameter disagrees with the declared fab tier"; exit 1; }
 
-# [6-8] route + stitch from route.yaml  [SHARED]
-$PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml   # replay promoted route/ chain (M3)
-$PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
+# [5c] Prepare deterministic seed copper before review. P-ROUTEBASE compares
+# this exact r0 with the promoted chain, so stale prep cannot consume a human
+# review cycle and then disappear at import.
+run_stage route_prep   $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
+
+# [5d] Exact pre-route pin/layout/render reviews plus the preliminary
+# same-camera A-RENDER report. Final staged reviews still run after routing.
+$PY "$S/pre_route_review_check.py" . --phase placement \
+    --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [5d] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence is missing, stale, or defective"; exit 1; }
+
+# [6-8] import + stitch from route.yaml  [SHARED]
+run_stage route_import $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml --route-source promoted
+run_stage route_taps   $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
+run_stage stitch       $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
+$PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \
+    || { echo "GATE FAILED [8a] R-CRITESC: critical pairs are open, on forbidden layers, or use forbidden vias"; exit 1; }
 
 # [9] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
+$PY "$S/rules_audit.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [9a] A-CLASS/A-AGREE/A-AMP/A-FIRE/A-ORDER: generated rules do not enforce authored copper intent"; exit 1; }
+$PY "$S/via_ampacity_check.py" "04_kicad/$BOARD.kicad_pcb" 03_src/route.yaml \
+    --json 06_build/verification/via_ampacity.json \
+    || { echo "GATE FAILED [9b] A-VIA: a declared series transfer bank lacks current capacity"; exit 1; }
 
 # [10] DRC gate — must be 0 / 0 / 0 at full severity
-kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
+run_stage layout_drc kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
+$PY "$S/artifact_provenance.py" finish . --stage pcb_layout
 
 # [10c] GG-*: OBSERVED grading — canon M-COVER's observation arm.  [SHARED]
 # Every gate above printed `N graded / M total`. This one RE-RUNS a derived
@@ -234,13 +398,14 @@ $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['vio
 # not resolve, 5 = UNOBSERVABLE. `--explain` prints the legend.
 $PY "$S/trace_audit.py" --subject . || true
 
-# [11] PROMOTE the exact schematic that survived the complete from-source
-# build. rebuild_reuse.sh deliberately consumes only this committed/pinned
-# copy; without this final promotion it can silently replay a superseded
-# topology after a TSX change even though rebuild_all.sh itself just passed.
-# Keep this LAST: a failed full build must not bless its partial schematic as
-# the deterministic reuse subject.
-mkdir -p 03_tscircuit/kicad
-cp "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch"
+# [11] Verify the schematic-stage pin survived the later PCB stages unchanged.
+# Promotion happens at [2b], where the independently reviewed schematic stage
+# closes, so deterministic iteration is usable during deliberate placement and
+# routing pauses.  Nothing after that boundary may silently replace it.
 cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
-    || { echo "GATE FAILED [11] M-PIN: promoted schematic differs from the full-build subject"; exit 1; }
+    || { echo "GATE FAILED [11] M-PIN: PCB stages changed the reviewed pinned schematic"; exit 1; }
+if [ -f 01_docs/findings.yaml ]; then
+    $PY "$S/project_state.py" .
+else
+    echo "[11b] no findings.yaml — maturity remains undeclared"
+fi

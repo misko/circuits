@@ -1,0 +1,15 @@
+mpn: 16SVPF180M
+manufacturer: Panasonic Industry
+type: conductive_polymer_aluminum_typec_input_capacitor
+datasheet: {doc_id: AAB8000C177, revision: "SVPF series, 28-Jun-2019 with 20-Aug-2025 safety pages", url: "https://industrial.panasonic.com/cdbs/www-data/pdf/AAB8000/AAB8000C177.pdf", sha256: d9884e348623832afb8cbb12bbe979e4972fe4463f332ccbd3c0d173e2b03861, fetched: 2026-08-12}
+package: SMD aluminum polymer can, D6.3x5.9mm, size C6
+footprint: Capacitor_SMD:CP_Elec_6.3x5.8
+escape: {style: passive, pitch: 4.6, tier_required: jlc_2layer_default, checked: "Panasonic C6 dimensions/polarity plus exact-code JLC land fit 0.0300mm and body registration 0.00mm on 2026-08-12"}
+pins: {1: POS, 2: NEG}
+limits: {voltage: 16V, capacitance: "180uF +/-20%", capacitance_min: 144uF, esr_100kHz_max: 22mOhm, ripple_100kHz_105C: 3.3Arms, leakage_max: 576uA, temperature: "-55 to 105C", endurance: "5000h at 105C; capacitance change within +/-20% of initial"}
+gotchas:
+  - "C23 is on 5VC_RAW at TPS25810 IN. Initial -20% tolerance and a separate allowed 20% endurance change give a 115.2uF life-corner value, so C23 does not independently clear TI's 120uF cold-socket requirement. Together with the 40.392uF effective C9-C11 bank, the machine-checked total is 155.592uF."
+  - "It is additional low-ESR polymer output capacitance allowed by TPSM63604; C9-C11 remain the pin-local ceramic high-frequency bank."
+  - "Pad 1 is positive and must connect to 5VC_RAW. Exact-code JLC CAD fit and the independent polarity-mark channel both resolve CPL offset 0, but the JLC order preview still remains the final allocation/visual check."
+verified: "Panasonic exact product page and SVPF-series sheet independently fix 16V, 180uF +/-20%, 22mOhm max ESR, 3.3A at 100kHz/105C, 576uA leakage, D6.3x5.9mm, -55 to 105C and 5000h endurance with capacitance change within +/-20%; JLC exact C136277 record confirms SMT/economic+standard assembly and EasyEDA CAD"
+sourcing: {lcsc: C136277, alternates: [], note: "JLC extended SMT part; 1052 LCSC catalog units measured 2026-08-12, while JLC's assembly pool remains order-preview authority"}

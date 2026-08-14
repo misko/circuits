@@ -38,9 +38,60 @@ from jlc_rotation_resolve import (load_lcsc_rotations,  # noqa: E402
                                   resolve_rotation)
 
 TWIN = FAB_SCRIPTS / "jlc_twin.py"
+E2K_COMPAT = FAB_SCRIPTS / "easyeda2kicad_compat.py"
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 CODE = "C22775"          # a real code on cook-loadcell's BOM (R7, 100R 0603)
+
+
+@test("easyeda2kicad compatibility shim overrides only the HTTP User-Agent")
+def t_easyeda_compat_user_agent():
+    """The shim must remain independent of the installed network package.
+    A tiny fake upstream module proves delegation and the configurable UA
+    override without making a live HTTP request."""
+    d = tmpdir("e2k_compat_")
+    pkg = d / "easyeda2kicad"
+    api = pkg / "easyeda"
+    api.mkdir(parents=True)
+    (pkg / "__init__.py").write_text("")
+    (api / "__init__.py").write_text("")
+    (api / "easyeda_api.py").write_text(
+        "class EasyedaApi:\n"
+        "    def __init__(self, use_cache=False):\n"
+        "        self.headers = {'User-Agent': 'stale-upstream'}\n")
+    (pkg / "__main__.py").write_text(
+        "from .easyeda.easyeda_api import EasyedaApi\n"
+        "def main():\n"
+        "    print(EasyedaApi().headers['User-Agent'])\n"
+        "    return 0\n")
+    sentinel = "fixture-browser/999"
+    r = must_pass(run([KPY, E2K_COMPAT], cwd=d,
+                      env={"PYTHONPATH": str(d),
+                           "JLC_TWIN_USER_AGENT": sentinel}),
+                  "easyeda2kicad compatibility shim")
+    contains(r.out, sentinel, "compatibility User-Agent")
+    not_contains(r.out, "stale-upstream", "compatibility User-Agent")
+
+
+@test("jlc_twin wraps the real easyeda2kicad entry point but not test stubs")
+def t_easyeda_compat_command_selection():
+    d = tmpdir("e2k_command_")
+    real = d / "easyeda2kicad"
+    real.write_text(f"#!{KPY}\n")
+    real.chmod(real.stat().st_mode | stat.S_IEXEC)
+    stub = d / "easyeda2kicad_stub"
+    stub.write_text(f"#!{KPY}\n")
+    stub.chmod(stub.stat().st_mode | stat.S_IEXEC)
+    code = (
+        "import json,sys\n"
+        f"sys.path.insert(0,{str(FAB_SCRIPTS)!r})\n"
+        "from jlc_twin import easyeda2kicad_command\n"
+        "print('@@'+json.dumps(easyeda2kicad_command(sys.argv[1])))\n")
+    wrapped = must_pass(run([KPY, "-c", code, real]), "real fetcher command")
+    contains(wrapped.out, str(E2K_COMPAT), "real fetcher wrapper")
+    direct = must_pass(run([KPY, "-c", code, stub]), "stub fetcher command")
+    contains(direct.out, f'"{stub}"', "stub direct command")
+    not_contains(direct.out, str(E2K_COMPAT), "stub direct command")
 
 
 def stub_e2k(d, stderr="", stdout="", rc=1, emit_mod_for=None):
@@ -96,6 +147,21 @@ def twin(d, board, bom, e2k, extra=()):
                            "JLC_TWIN_FETCH_ATTEMPTS": "1"})
 
 
+@test("JLC twin canonicalizes EasyEDA pad labels 01..09 to KiCad 1..9",
+      kind="known_bad")
+def t_leading_zero_pad_labels_are_same_identity():
+    """Samtec J7's JLC CAD uses 01..09 while the board uses 1..9. Before the
+    fix only pad 10 intersected, so the twin accepted a vacuous one-point fit
+    at offset 0 against the independently measured 270-degree rotation row."""
+    code = ("import sys\n"
+            f"sys.path.insert(0, {str(FAB_SCRIPTS)!r})\n"
+            "from jlc_twin import canonical_pad_number\n"
+            "print(','.join(canonical_pad_number(x) "
+            "for x in ('01','08','10','A1')))\n")
+    r = must_pass(run([KPY, "-c", code]), "pad-number canonicalization")
+    contains(r.out, "1,8,10,A1", "formatting zeros are not pin identity")
+
+
 # ------------------------------------------------------------- known-bad
 @test("REGRESSION: an unrecognised fetch failure is FETCH-FAILED and BLOCKS",
       kind="known_bad")
@@ -122,6 +188,33 @@ def t_fetch_crash_blocks():
                              "KeyError: 'result'\n", rc=1)
     r = twin(d, board, bom, e2k)
     must_fail(r, "jlc_twin on a fetcher crash", "FETCH-FAILED")
+
+
+@test("an evidence-bound FETCH-FAILED adjudication is persisted in the CSV "
+      "and is not reported as a transient retry")
+def t_fetch_failed_adjudication_is_final_evidence():
+    """The pre-fix tool applied adjudications only after writing the CSV, then
+    printed an unconditional TRANSIENT footer from the raw fetch set. It exited
+    zero while its shipped report still said FETCH-FAILED and its prose said
+    the run was not verification. Final evidence must describe one state.
+    """
+    d = tmpdir("twin_")
+    board, bom = fixture(d, [f"100R shield bond,R7,R_0603_1608Metric,,{CODE}"])
+    e2k = stub_e2k(d, stderr="HTTP Error 403: Forbidden\n", rc=1)
+    adj = d / "adjudications.yaml"
+    adj.write_text(
+        f"- lcsc: {CODE}\n"
+        "  refs: [R7]\n"
+        "  status: FETCH-FAILED\n"
+        "  why: same-run controls succeeded and exact unpolarized land was verified\n")
+    r = twin(d, board, bom, e2k, extra=("--adjudications", str(adj)))
+    must_pass(r, "jlc_twin with an explicit library-absence adjudication")
+    rpt = d / "twin" / "twin_report.csv"
+    contains(rpt.read_text(), "ADJUDICATED-FETCH-FAILED",
+             "final machine report")
+    contains(r.out, "ADJUDICATED LIBRARY ABSENCES", "final console verdict")
+    check("does NOT constitute twin verification" not in r.out,
+          "an adjudicated absence must not retain the unresolved footer")
 
 
 @test("a genuine timeout is still classified FETCH-FAILED and BLOCKS",
@@ -178,6 +271,32 @@ def t_cache_replay():
           f"cache miss: the fetcher was invoked despite a seeded cache\n"
           f"{r.out[-1500:]}")
     contains(r.out, "R7", "twin output should mention the checked ref")
+    contains(r.out, "state=cached", "cache replay progress state")
+    contains(r.out, "completed=1/1", "cache replay coverage heartbeat")
+
+
+@test("a silent fetch child emits heartbeats, times out, and leaves a resume path")
+def t_fetch_timeout_is_visible_and_bounded():
+    d = tmpdir("twin_timeout_")
+    board, bom = fixture(d, [f"100R shield bond,R7,R_0603_1608Metric,,{CODE}"])
+    e2k = d / "easyeda2kicad_stub"
+    e2k.write_text(
+        "#!/usr/bin/env python3\n"
+        "import time\n"
+        "time.sleep(5)\n")
+    e2k.chmod(e2k.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    out = d / "twin"
+    r = run([KPY, TWIN, board, bom, out, "--no-render"], cwd=d, env={
+        "EASYEDA2KICAD": str(e2k),
+        "JLC_TWIN_FETCH_ATTEMPTS": "1",
+        "JLC_TWIN_FETCH_TIMEOUT_S": "0.25",
+        "JLC_TWIN_HEARTBEAT_S": "0.05",
+        "JLC_TWIN_WALL_TIMEOUT_S": "2",
+    })
+    must_fail(r, "silent fetch child", "TIMED-OUT")
+    contains(r.out, "state=running", "periodic fetch heartbeat")
+    contains(r.out, "completed=0/1", "in-progress coverage")
+    contains(r.out, "simply RE-RUNNING", "resumable timeout instruction")
 
 
 @test("a BOM with no LCSC codes reports 0 checked rather than a silent pass")
@@ -705,6 +824,135 @@ def read_mount(board, ref="U9"):
                   "read mounted model").out.split("@@", 1)[1])
 
 
+def set_fixture_ref_model(board, ref, model=None):
+    """Rename U9 and optionally install one exact board-owned model."""
+    code = (
+        "import pcbnew,sys\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "fp=b.FindFootprintByReference('U9')\n"
+        "fp.SetReference(sys.argv[2])\n"
+        "fp.Models().clear()\n"
+        "if len(sys.argv) > 3:\n"
+        " m=pcbnew.FP_3DMODEL(); m.m_Filename=sys.argv[3]; "
+        "fp.Models().push_back(m)\n"
+        "b.Save(sys.argv[1])\n")
+    args = [KPY, "-c", code, str(board), ref]
+    if model is not None:
+        args.append(str(model))
+    must_pass(run(args), "prepare manual-body fixture")
+
+
+@test("REGRESSION: a manual connector absent from the CPL is injected from "
+      "assembly twin_body and counted by NO-BODY", kind="known_bad")
+def t_manual_connector_body_not_dropped_by_cpl_denominator():
+    """The released hub claimed 194/194 bodies while J3-J6 were four empty
+    connector land patterns: NO-BODY walked only the CPL, and the manual
+    connectors were excluded from it by design. This fixture has an EMPTY
+    CPL and one post-installed J3, so the pre-fix denominator is exactly 0/0.
+    The fixed run must inject the project model and grade 1/1.
+    """
+    d = tmpdir("manualbody_")
+    board, _ = synth_board(d, 0)
+    set_fixture_ref_model(board, "J3")
+    body = d / "usb1130.wrl"
+    bar_wrl(body)
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n")
+    cpl = d / "cpl.csv"
+    cpl.write_text("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n")
+    asm = d / "project" / "03_src" / "rules" / "assembly.yaml"
+    asm.parent.mkdir(parents=True)
+    part_dir = d / "project" / "02_parts" / "USB1130"
+    part_dir.mkdir(parents=True)
+    (part_dir / "part.yaml").write_text(
+        "mpn: USB1130\ntwin_body:\n  source: file\n"
+        f"  model: {body}\n  identity: exact manual USB-A body\n")
+    asm.write_text(
+        "service: standard\nsides: [top]\nfiducials: none\n"
+        "build_quantity: 1\nnot_assembled:\n"
+        "  - refs: [J3]\n    reason: not_in_catalog\n"
+        "    on_bom: false\n"
+        "    twin_body:\n      source: part\n"
+        "      dossier: USB1130\n"
+        "    evidence: dated fixture\n    disposition: install manually\n")
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    r = twin(d, board, bom, e2k,
+             extra=("--assembly", str(asm), "--cpl", str(cpl)))
+    must_pass(r, "manual connector twin")
+    check("NETWORK WAS CALLED" not in r.out, "a local body triggered a fetch")
+    contains(r.out, "bodies mounted: 1/1", "manual-inclusive denominator")
+    mm = (d / "twin" / "missing_models.txt").read_text()
+    contains(mm, "0 CPL placements", "the deliberately empty CPL")
+    contains(mm, "1 declared manual-install bodies", "manual body source")
+    contains(mm, "CPL bodies mounted: 0/0", "contractual CPL denominator")
+    contains(mm, "manual bodies mounted: 1/1", "separate manual denominator")
+    mounts = read_mount(d / "twin" / "twin.kicad_pcb", "J3")
+    eq(len(mounts), 1, "J3 model count")
+    eq(Path(mounts[0]["f"]), body.resolve(), "J3 project model")
+
+
+@test("REGRESSION: F1 board body overrides a catalog near-match and keeps "
+      "its original registration", kind="known_bad")
+def t_board_body_suppresses_wrong_catalog_twin():
+    """The hub's F1 is a four-hole complete Keystone 3568 holder. Its old
+    assembly entry named C5249699, one loose clip, so jlc_twin cleared the
+    correctly registered board model and mounted the clip at a rejected
+    3.26 mm fallback fit. Keep a deliberately wrong code in this fixture:
+    `source: board` must suppress fetching it and preserve the exact path and
+    zero transform byte-for-byte.
+    """
+    d = tmpdir("boardbody_")
+    board, _ = synth_board(d, 0)
+    holder = d / "complete-holder.wrl"
+    bar_wrl(holder)
+    symbolic = "${KICAD10_3DMODEL_DIR}/complete-holder.wrl"
+    set_fixture_ref_model(board, "F1", symbolic)
+    before = read_mount(board, "F1")
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n")
+    cpl = d / "cpl.csv"
+    cpl.write_text("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n")
+    asm = d / "project" / "03_src" / "rules" / "assembly.yaml"
+    asm.parent.mkdir(parents=True)
+    part_dir = d / "project" / "02_parts" / "3568"
+    part_dir.mkdir(parents=True)
+    (part_dir / "part.yaml").write_text(
+        "mpn: 3568\ntwin_body:\n  source: board\n"
+        "  identity: complete four-hole holder\n")
+    asm.write_text(
+        "service: standard\nsides: [top]\nfiducials: none\n"
+        "build_quantity: 1\nnot_assembled:\n"
+        "  - refs: [F1]\n    reason: process_incompatible\n"
+        "    lcsc: C_WRONG_LOOSE_CLIP\n    on_bom: false\n"
+        "    twin_body:\n      source: part\n"
+        "      dossier: 3568\n"
+        "    evidence: dated fixture\n    disposition: install manually\n")
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    old_3d = os.environ.get("KICAD10_3DMODEL_DIR")
+    os.environ["KICAD10_3DMODEL_DIR"] = str(d)
+    try:
+        r = twin(d, board, bom, e2k,
+                 extra=("--assembly", str(asm), "--cpl", str(cpl)))
+    finally:
+        if old_3d is None:
+            os.environ.pop("KICAD10_3DMODEL_DIR", None)
+        else:
+            os.environ["KICAD10_3DMODEL_DIR"] = old_3d
+    must_pass(r, "board-owned holder twin")
+    check("NETWORK WAS CALLED" not in r.out,
+          "the forbidden loose-clip catalog body was fetched")
+    after = read_mount(d / "twin" / "twin.kicad_pcb", "F1")
+    eq(len(after), 1, "F1 model count")
+    eq(Path(after[0]["f"]), holder.resolve(), "resolved F1 model path")
+    eq({k: v for k, v in after[0].items() if k != "f"},
+       {k: v for k, v in before[0].items() if k != "f"},
+       "F1 scale, offset, and rotation")
+    report = (d / "twin" / "twin_report.csv").read_text()
+    contains(report, "JLC CAD replacement suppressed", "local-body semantics")
+    not_contains(report, "C_WRONG_LOOSE_CLIP", "false catalog identity")
+    not_contains(report, "MOUNT-FALLBACK", "wrong catalog registration")
+
+
 @test("INVARIANT: a mounted body's pose is JLC's pose turned by the fitted "
       "angle — at 0/90/180/270, covering xform, the mount offset, the mount "
       "z-rotation and reg_check in one assertion", kind="known_bad")
@@ -1060,6 +1308,7 @@ _POL_BOARD = (
     "import json, sys\n"
     "import pcbnew\n"
     "out = sys.argv[1]; mark_pad = sys.argv[2]\n"
+    "rotation = float(sys.argv[3]) if len(sys.argv) > 3 else 0.0\n"
     "b = pcbnew.NewBoard(out)\n"
     "for (x1,y1),(x2,y2) in (((0,0),(40,0)),((40,0),(40,40)),\n"
     "                        ((40,40),(0,40)),((0,40),(0,0))):\n"
@@ -1086,14 +1335,15 @@ _POL_BOARD = (
     "sh.SetStart(pcbnew.VECTOR2I(int((POS[0]+ov)*1e6), int((POS[1]-0.9)*1e6)))\n"
     "sh.SetEnd(pcbnew.VECTOR2I(int((POS[0]+ov)*1e6), int((POS[1]+0.9)*1e6)))\n"
     "sh.SetLayer(pcbnew.F_Fab); sh.SetWidth(120000); fp.Add(sh)\n"
-    "b.Add(fp); b.Save(out)\n"
+    "b.Add(fp); fp.SetOrientationDegrees(rotation); b.Save(out)\n"
     "print('@@ok')\n")
 
 
-def pol_board(d, mark_pad, name="pol.kicad_pcb"):
+def pol_board(d, mark_pad, name="pol.kicad_pcb", rotation=0):
     """OUR footprint: pad 1 WEST, pad 2 EAST, marking overhanging `mark_pad`."""
     board = d / name
-    must_pass(run([KPY, "-c", _POL_BOARD, str(board), mark_pad]),
+    must_pass(run([KPY, "-c", _POL_BOARD, str(board), mark_pad,
+                   str(rotation)]),
               "build polarized fixture (mark at pad %s)" % mark_pad)
     return board
 
@@ -1194,6 +1444,27 @@ def t_polarity_fit_agrees():
     check("POLARITY-FIT " not in r.out.replace("POLARITY-FIT-OK", "PFOK"),
           "POLARITY-FIT cried wolf on an agreeing part:\n%s" % r.out[-1500:])
     check(r.rc == 0, "an agreeing polarized part should exit 0:\n%s"
+                     % r.out[-1500:])
+
+
+@test("POLARITY-FIT compares graphics and pads in one local frame on a "
+      "180-degree board instance")
+def t_polarity_fit_agrees_rotated_180():
+    """The board rotation is placement, not terminal identity. The historical
+    implementation zeroed the pad cloud, restored the board rotation, and only
+    then measured the graphics; that mixed coordinate frames and made the same
+    footprint pass at 0 degrees but fail at 180 degrees (programmable USB hub
+    D2/D3, C2128)."""
+    d = tmpdir("polok180_")
+    code = "C900013"
+    pol_jlc(d, code, mark_pad="1")
+    board = pol_board(d, mark_pad="1", rotation=180)
+    r = pol_run(d, board, code)
+    contains(r.out, "POLARITY-FIT-OK", "the rotated agreeing verdict")
+    check("POLARITY-FIT " not in r.out.replace("POLARITY-FIT-OK", "PFOK"),
+          "POLARITY-FIT mixed local/global frames at 180 degrees:\n%s"
+          % r.out[-1500:])
+    check(r.rc == 0, "a rotated agreeing polarized part should exit 0:\n%s"
                      % r.out[-1500:])
 
 

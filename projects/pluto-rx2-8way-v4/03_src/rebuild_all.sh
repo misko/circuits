@@ -19,6 +19,11 @@ S="$SKROOT/kicad-pcb/scripts"
 FS="$SKROOT/jlcpcb-fab/scripts"                # fab-skill checkers (bom_source_check)
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 
+run_stage() {
+    local stage="$1"; shift
+    "$PY" "$S/pcb_flow.py" run . --stage "$stage" -- "$@"
+}
+
 # [0a] P-MOD — module-first architecture is graded before generation spend.
 $PY "$S/module_first_check.py" . \
     || { echo "GATE FAILED [0a] P-MOD: module-first architecture contract"; exit 1; }
@@ -142,6 +147,13 @@ kicad-cli sch erc --severity-error --exit-code-violations \
     || { echo "GATE FAILED [2] ERC: the schematic carries ERC ERRORS (warnings are baselined in 06_build/erc.rpt; errors are not baselinable)"; exit 1; }
 
 # [3] board (placement + zones) from floorplan.yaml  [SHARED]
+$PY "$S/artifact_provenance.py" begin . --stage pcb_layout \
+    --input 03_src/floorplan.yaml --input 03_src/route.yaml \
+    --input "04_kicad/$BOARD.kicad_sch" \
+    --output "04_kicad/$BOARD.kicad_pcb" \
+    --output "04_kicad/$BOARD.kicad_pro" \
+    --output "04_kicad/$BOARD.kicad_dru" \
+    --output 06_build/drc/gate.json
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
 
 # [4] placement/pad invariants  [per-board gate + SHARED placement gates]
@@ -165,6 +177,7 @@ if [ -f 03_src/audit_board.py ]; then
 else
     echo "[4] no 03_src/audit_board.py (generic-backend board) — shared placement gates below"
 fi
+$PY "$S/critical_part_facts.py" .
 # P-OUT pads-inside-outline + P-CAP corridor crossing-demand vs capacity —
 # the two checks the cooksense routing D-BACK (2026-07-23, ~13h) proved were
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL
@@ -189,9 +202,9 @@ $PY "$S/tier_preflight.py" . \
     || { echo "GATE FAILED [5b] R-PREFLIGHT (tier_preflight.py): a routing/stitch parameter disagrees with the declared fab tier"; exit 1; }
 
 # [6-8] route + stitch from route.yaml  [SHARED]
-$PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml   # replay promoted route/ chain (M3)
-$PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
+run_stage route_prep   $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
+run_stage route_import $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml --route-source promoted
+run_stage stitch       $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 
 # Re-run the project geometry audit on the routed board. The pre-import pass
 # proves the physical rule area exists; this pass gives the assertion teeth by
@@ -203,9 +216,10 @@ if [ -f 03_src/audit_board.py ]; then $PY 03_src/audit_board.py --routed; fi
 $PY "$S/generate_rules_generic.py" .
 
 # [10] DRC gate — must be 0 / 0 / 0 at full severity
-kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
+run_stage layout_drc kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
+$PY "$S/artifact_provenance.py" finish . --stage pcb_layout
 
 # [10a] RF field evidence and single-source phase check.  The periodic 3-D
 # solve includes the actual mask and conservative via-fence unit cell; R-LEN
@@ -216,7 +230,7 @@ KRT_PY="$HOME/gits/KiCadRoutingTools/.venv/bin/python"
 mkdir -p 06_build/verify
 $PY "$S/fence_pitch.py" "04_kicad/$BOARD.kicad_pcb" 2.5 1.1910 \
     | tee 06_build/verify/fence_pitch.txt
-"$KRT_PY" 03_src/cpwg_field_solver.py --output 06_build/verify/cpwg_field.json
+run_stage rf_field_solver "$KRT_PY" 03_src/cpwg_field_solver.py --output 06_build/verify/cpwg_field.json
 $PY "$S/copper_length_audit.py" . --strict \
     || { echo "GATE FAILED [10a] R-LEN: realized phase geometry/constants"; exit 1; }
 
@@ -257,3 +271,4 @@ mkdir -p 03_tscircuit/kicad
 cp "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch"
 cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
     || { echo "GATE FAILED [11] M-PIN: promoted schematic differs from the full-build subject"; exit 1; }
+$PY "$S/project_state.py" . --expect DESIGN_CLEAN

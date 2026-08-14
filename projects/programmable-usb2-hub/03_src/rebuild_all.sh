@@ -19,6 +19,11 @@ S="$SKROOT/kicad-pcb/scripts"
 FS="$SKROOT/jlcpcb-fab/scripts"                # fab-skill checkers (bom_source_check)
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 
+# [0a] P-MOD architecture gate: modules are the default for complex
+# subsystems; every bare-IC choice needs a measured/cited exception ADR.
+$PY "$S/module_first_check.py" . \
+    || { echo "GATE FAILED [0a] P-MOD (module_first_check.py): account for every complex subsystem before generation"; exit 1; }
+
 # [0] S-COUNT pre-gate: alphanumeric pads mapped BEFORE the first tsci build —
 # tscircuit DROPS an unmapped part silently (ERC still 0, 2026-07-21 incident)
 $PY "$S/tsx_preflight.py" . \
@@ -83,8 +88,9 @@ $PY "$S/build_provenance.py" verify . --board "$BOARD" --tsx "$TSX" \
     --artifact "$CJ" --render "$SCHPDF" \
     || { echo "GATE FAILED [1a] M-FRESH (build_provenance.py verify): the artifact the converter would read is NOT the one this build produced, or the human schematic the release ships is missing/older than it — every gate below would be green against stale content"; exit 1; }
 
+mkdir -p 04_kicad 06_build/netlists
 $PY "$S/circuit_json_to_kicad_sch.py" "$CJ" \
-    -o "04_kicad/$BOARD.kicad_sch" --parts 02_parts --mode grid
+    -o "04_kicad/$BOARD.kicad_sch" --parts-dir 02_parts --mode grid
 kicad-cli sch export netlist --output "06_build/netlists/$BOARD.net" "04_kicad/$BOARD.kicad_sch"
 
 # [1b] CHEAP SEMANTIC BATTERY at the schematic gate — seconds each, run HERE
@@ -97,13 +103,15 @@ $PY "$S/electrical_invariants.py" . \
     || { echo "GATE FAILED [1b] E-INV (electrical_invariants.py): netlist violates a design-intent assertion"; exit 1; }
 $PY "$S/electrical_invariants.py" . --adr-coverage \
     || { echo "GATE FAILED [1b] E-ADR (electrical_invariants.py --adr-coverage): a protection/topology ADR emitted no invariant"; exit 1; }
+$PY "$S/early_design_check.py" . \
+    || { echo "GATE FAILED [1b] D-SPEC/E-PATH/E-SWDRV/E-SURGE: commission boundary, complete delivery path, switching drive, or surge coordination is not proven"; exit 1; }
 $PY "$S/power_topology.py" . \
     || { echo "GATE FAILED [1b] E-TOPO (power_topology.py): converter topology does not match the derived Vin-vs-Vout"; exit 1; }
 $PY "$S/power_topology.py" . --margin \
     || { echo "GATE FAILED [1b] E-MARGIN (power_topology.py --margin): output setpoint headroom below the delivery IR drop"; exit 1; }
 $PY "$S/power_topology.py" . --off-control \
     || { echo "GATE FAILED [1b] E-OFF (power_topology.py --off-control): battery source without a declared de-energization path"; exit 1; }
-$PY "$S/count_parity.py" . \
+$PY "$S/count_parity.py" . --pre-board \
     || { echo "GATE FAILED [1b] S-COUNT (count_parity.py): refdes sets disagree across intent/artifacts (silent drop)"; exit 1; }
 $PY "$FS/bom_source_check.py" --circuit-only "$CJ" --parts 02_parts \
     || { echo "GATE FAILED [1b] M-BOM leg C (bom_source_check.py --circuit-only): a coded R/C's catalog value != its tsx value prop (the R12/R30 class)"; exit 1; }
@@ -134,8 +142,21 @@ kicad-cli sch erc --severity-error --exit-code-violations \
     "04_kicad/$BOARD.kicad_sch" -o 06_build/erc_errors.rpt \
     || { echo "GATE FAILED [2] ERC: the schematic carries ERC ERRORS (warnings are baselined in 06_build/erc.rpt; errors are not baselinable)"; exit 1; }
 
+$PY "$S/pre_route_review_check.py" . --phase schematic \
+    --netlist "06_build/netlists/$BOARD.net" \
+    || { echo "GATE FAILED [2a] PR-REVIEW: topology must be SOUND before placement/routing spend"; exit 1; }
+
 # [3] board (placement + zones) from floorplan.yaml  [SHARED]
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
+$PY "$S/count_parity.py" . \
+    || { echo "GATE FAILED [3] S-COUNT (count_parity.py): generated PCB refdes differ from schematic intent"; exit 1; }
+
+# [3a] P-PINMAP — run as soon as both producer artifacts exist. The dossier's
+# physical pin set must reach the generated schematic and the real footprint;
+# intentional manufacturer-fused lands require explicit evidence.
+$PY "$S/pin_map_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    --circuit-json 03_tscircuit/build/circuit.json \
+    || { echo "GATE FAILED [3a] P-PINMAP: reconcile physical, schematic, and footprint pins before placement/routing work"; exit 1; }
 
 # [4] placement/pad invariants  [per-board gate + SHARED placement gates]
 # `03_src/audit_board.py` is the ONLY per-board emitter this pipeline still
@@ -163,7 +184,18 @@ fi
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL
 # (missing file = defaults); waivers live inside it, evidence required.
 $PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
+$PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [4a] R-PAIRMAP: critical pair polarity/wave/layer contract is incomplete"; exit 1; }
 
+# Separate-footprint pads clear the fab floor; then the authoritative policy
+# engine grades datasheet placement budgets BEFORE any promoted route replay.
+$PY "$S/pad_separation.py" "04_kicad/$BOARD.kicad_pcb" --project . \
+    || { echo "GATE FAILED [4b] P-PADSEP: move footprints apart and route the connection explicitly"; exit 1; }
+$PY "$S/policy_audit.py" . --board "$BOARD" --skip-drc --phase placement \
+    || { echo "GATE FAILED [4c] P-ADJ: datasheet placement budget violated before routing"; exit 1; }
+$PY "$S/pre_route_review_check.py" . --phase placement \
+    --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [4d] PR-REVIEW: placement evidence is missing, stale, or defective"; exit 1; }
 # [5] netclasses BEFORE route-prep (canon R1)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 
@@ -181,8 +213,11 @@ $PY "$S/tier_preflight.py" . \
 
 # [6-8] route + stitch from route.yaml  [SHARED]
 $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml   # replay promoted route/ chain (M3)
+$PY "$S/route_and_stitch_generic.py" route  03_src/route.yaml
+$PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
+$PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \
+    || { echo "GATE FAILED [8a] R-CRITESC: critical pairs are open, on forbidden layers, or use forbidden vias"; exit 1; }
 
 # [9] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
@@ -218,3 +253,11 @@ $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['vio
 # Exit codes are a VOCABULARY: 3 = GRADED NOTHING (never a pass), 4 = a path did
 # not resolve, 5 = UNOBSERVABLE. `--explain` prints the legend.
 $PY "$S/trace_audit.py" --subject . || true
+
+# [11] Promote only the exact schematic that survived the complete from-source
+# build. A failed build must not bless a partial schematic as the deterministic
+# reuse subject.
+mkdir -p 03_tscircuit/kicad
+cp "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch"
+cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
+    || { echo "GATE FAILED [11] M-PIN: promoted schematic differs from the full-build subject"; exit 1; }

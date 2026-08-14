@@ -1,0 +1,34 @@
+# Pluto RX2 8-Way v5 — foreign facts this design consumes across its SMA
+# cable boundary. Canon D-MATE / M-IMPORT (ADR-0005), graded by
+# import_provenance_check.py. Values live only in spf/plutoplus_hardware/;
+# this board names the fact and the exact place it is used.
+
+device: plutoplus_hardware
+
+why: >-
+  The selector does not stack or rigidly mate to a Pluto Plus and therefore
+  consumes none of its dimensions. It does, however, connect by an SMA cable
+  to one Pluto Plus receive port, so the cable gender, operator hookup and
+  receiver survival boundary still depend on facts about foreign hardware.
+
+consumes:
+  - fact: sma_gender
+    use: informational
+    where: >-
+      System cabling boundary in BRIEF D12/D15: the Pluto Plus panel and this
+      board both expose SMA jacks, so the eventual cable must present a mating
+      male end at each board. This fact does not set PCB placement or geometry.
+
+  - fact: port_order
+    use: informational
+    where: >-
+      Commissioning hookup only: the operator must identify which adjacent
+      Pluto Plus receive jack is the selected RX input before connecting J2.
+      The PCB is deliberately independent of that unresolved RX1/RX2 choice.
+
+  - fact: ad936x_rx_abs_max_input
+    use: informational
+    where: >-
+      BRIEF T2 and the operating boundary: +2.5 dBm is retained only as the
+      receiver absolute-maximum survival ceiling; the normal operator limit
+      remains 0 dBm and the selector makes no high-power protection claim.

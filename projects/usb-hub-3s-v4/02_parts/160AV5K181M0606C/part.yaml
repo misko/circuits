@@ -1,0 +1,15 @@
+mpn: 160AV5K181M0606C
+manufacturer: APAQ Technology
+type: conductive_polymer_aluminum_typec_input_capacitor
+datasheet: {doc_id: AV5K, revision: "CAT AV5K 2026 V1", url: "https://www.apaq.com.tw/Templates/att/AV5K_20260306.pdf", sha256: a3a8b8cfc9c54498361bb5694fda5b0d6a7828c1b715171ff84815e6ce3826c7, fetched: 2026-08-11}
+package: SMD aluminum polymer can, D6.3x5.8mm
+footprint: Capacitor_SMD:CP_Elec_6.3x5.8
+escape: {style: passive, pitch: 4.6, tier_required: jlc_2layer_default, checked: "manufacturer dimensions, polarity and KiCad land review 2026-08-11"}
+pins: {1: POS, 2: NEG}
+limits: {voltage: 16V, surge_voltage_105C: 18.4V, capacitance: "180uF +/-20%", capacitance_min: 144uF, esr_100kHz_max: 21mOhm, ripple_100kHz_105C: 3.3Arms, leakage_max: 576uA, temperature: "-55 to 105C", endurance: "5000h at 105C"}
+gotchas:
+  - "C23 is on 5VC_RAW at TPS25810 IN. Initial -20% tolerance and a separate allowed 20% endurance change give a 115.2uF life-corner value, so C23 does not independently clear TI's 120uF cold-socket requirement. Together with the 40.392uF effective C9-C11 bank, the machine-checked total is 155.592uF."
+  - "It is additional low-ESR polymer output capacitance allowed by TPSM63604; C9-C11 remain the pin-local ceramic high-frequency bank."
+  - "Pad 1 is positive and must connect to 5VC_RAW; preserve the manufacturer can polarity mark in assembly review."
+verified: "exact 16V/180uF/0606 row, tolerance, ESR, ripple, leakage, dimensions, temperature and endurance capacitance-change limit independently read from APAQ AV5K 2026 V1 on 2026-08-11"
+sourcing: {lcsc: C369910, alternates: [], note: "JLC extended SMT part; 743 catalog units observed 2026-08-11, but stock is volatile"}

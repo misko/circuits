@@ -61,17 +61,22 @@ TWIN_REPORT = REL / "verification/twin_report.csv"
 EDGE = (9.95, 9.95, 180.05, 130.05)
 
 
-def gate(*extra, out=None, png=TOP, board=BOARD, side="top", bom=BOM):
+def gate(*extra, out=None, png=TOP, board=BOARD, side="top", bom=BOM,
+         bare=None, adjudications=None):
     d = out or tmpdir("ovl_")
     args = [KPY, OVL, board, png, "--side", side,
             "--twin-dir", FIX, "--out", d / "ov", "--report", d / "r.md"]
     if bom:
         args += ["--bom", bom, "--assembly", ASSY]
+    if bare:
+        args += ["--bare", bare]
+    if adjudications:
+        args += ["--adjudications", adjudications]
     return run(args + [str(a) for a in extra]), d
 
 
 def synth_render(path, px_box=(100, 150, 700, 573), size=(800, 600),
-                 bodies=(), edge=EDGE):
+                 bodies=(), edge=EDGE, body_color=(90, 90, 90)):
     """A minimal stand-in for a kicad-cli render: a SATURATED green rectangle
     for the board (which is all the calibrator needs) plus DESATURATED grey
     rectangles for bodies, in mm, projected with the caller's own arithmetic.
@@ -95,7 +100,7 @@ def synth_render(path, px_box=(100, 150, 700, 573), size=(800, 600),
             for x in range(int(x0 + (bx0 - edge[0]) * sx),
                            int(x0 + (bx1 - edge[0]) * sx) + 1):
                 if 0 <= x < W and 0 <= y < H:
-                    p[x, y] = (90, 90, 90)   # sat 0.00 -> "body"
+                    p[x, y] = body_color
     im.save(path)
     return sx, sy
 
@@ -214,6 +219,39 @@ def t_j1_model_defect_is_reported_not_gated():
     eq(cells[5], "0.000", "J1 outward excursion mm")
     eq(cells[8], "5.686", "J1 courtyard excursion mm (reported, not gated)")
     not_contains(r.out, "unfaithful ref(s): J1", "J1 must not be gated")
+
+
+@test("A-RENDER's same-camera bare channel measures saturated coloured "
+      "bodies the legacy grey-pixel channel cannot see")
+def t_same_camera_bare_delta_measures_coloured_bodies():
+    """Regression for programmable-usb2-hub's false-failure set: tan 1210
+    capacitors were reduced to one silver end cap and the green terminal block
+    to one screw because saturation<0.12 was treated as the body definition.
+    The populated-minus-bare observation must see body COLOUR, not assume it."""
+    d = tmpdir("ovl_bare_")
+    bare = d / "twin_bare_top.png"
+    pop = d / "twin_top.png"
+    synth_render(bare)
+    synth_render(pop, bodies=[(16.000, 96.050, 30.400, 105.350),
+                              (83.755, 119.408, 92.695, 126.963)],
+                 body_color=(165, 112, 22))  # saturation 0.87: legacy rejects
+    r, out = gate(png=pop, bare=bare, out=d)
+    must_pass(r, "A-RENDER populated-minus-bare on coloured bodies")
+    contains((out / "r.md").read_text(),
+             "populated-minus-same-camera-bare RGB delta",
+             "the report must name the independent measurement channel")
+
+
+@test("A-RENDER canonicalizes EasyEDA pad labels 01..09 to KiCad 1..9",
+      kind="known_bad")
+def t_leading_zero_pad_labels_are_same_identity():
+    """J7's ten-pin header shared all ten physical identities, but without
+    normalization the checker saw only pad 10 and formed an invalid one-point
+    anchor. RED on the old code: canonical_pad_number did not exist."""
+    sys.path.insert(0, str(FAB_SCRIPTS))
+    from twin_overlay import canonical_pad_number
+    eq([canonical_pad_number(x) for x in ("01", "08", "10", "A1")],
+       ["1", "8", "10", "A1"], "pad identity normalization")
 
 
 @test("A-RENDER's rotation operator matches pcbnew, and the fixture can tell "
@@ -385,6 +423,21 @@ def t_perspective_refused():
     r, _ = gate(png=ISO)
     eq(r.rc, 2, "exit code for a refusal")
     contains(r.out, "OVERLAY REFUSED: anisotropy", "the refusal")
+
+
+@test("A-RENDER REFUSES a bare render made at a different resolution",
+      kind="known_bad")
+def t_bare_size_mismatch_refused():
+    """A pixel delta is meaningful only when both observations share a camera
+    and pixel grid. Silently resizing would manufacture edges and could either
+    hide or invent a displacement."""
+    from PIL import Image
+    d = tmpdir("ovl_baresize_")
+    bare = d / "twin_bare_top.png"
+    Image.new("RGB", (32, 32), (0, 0, 0)).save(bare)
+    r, _ = gate(bare=bare, out=d)
+    eq(r.rc, 2, "exit code for a refusal")
+    contains(r.out, "--bare image size", "the named mismatch")
 
 
 @test("A-RENDER REFUSES --side top on a file named twin_bottom.png",

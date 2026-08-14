@@ -1,0 +1,6 @@
+{
+  "name": "usb-hub-3s-v4",
+  "main": "src/usb_hub_3s_v4.tsx",
+  "type": "module",
+  "dependencies": { "tscircuit": "0.0.2300" }
+}

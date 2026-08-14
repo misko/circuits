@@ -1,0 +1,59 @@
+mpn: USB4105-GF-A
+manufacturer: GCT
+type: usb_type_c_receptacle_power_only
+mates: receptacle
+datasheet: {doc_id: USB4105, revision: "Revision B 2023-12-18", url: "https://gct.co/files/drawings/usb4105.pdf", sha256: fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5, fetched: 2026-08-10}
+package: right-angle top-mount USB Type-C receptacle, 16 contacts and four shell stakes
+footprint: usb_hub_3s_v4:GCT_USB4105_GF_A
+escape: {style: connector, pitch: 0.50, tier_required: jlc_2layer_default, checked: "manufacturer connector escape review 2026-08-10"}
+pins:
+  A1: GND
+  A4: VBUS
+  A5: CC1
+  A6: DP
+  A7: DM
+  A8: SBU1
+  A9: VBUS
+  A12: GND
+  B1: GND
+  B4: VBUS
+  B5: CC2
+  B6: DP
+  B7: DM
+  B8: SBU2
+  B9: VBUS
+  B12: GND
+  SH: SHIELD
+pin_aliases:
+  A1:  {schematic: "1",  footprint: A1,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  A4:  {schematic: "2",  footprint: A4,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  A5:  {schematic: "3",  footprint: A5,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  A6:  {schematic: "4",  footprint: A6,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  A7:  {schematic: "5",  footprint: A7,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  A8:  {schematic: "6",  footprint: A8,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  A9:  {schematic: "7",  footprint: A9,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  A12: {schematic: "8",  footprint: A12, fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  B1:  {schematic: "9",  footprint: B1,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  B4:  {schematic: "10", footprint: B4,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  B5:  {schematic: "11", footprint: B5,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  B6:  {schematic: "12", footprint: B6,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  B7:  {schematic: "13", footprint: B7,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  B8:  {schematic: "14", footprint: B8,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  B9:  {schematic: "15", footprint: B9,  fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  B12: {schematic: "16", footprint: B12, fused: false, why: "tscircuit numeric source port maps to the exact GCT alphanumeric contact", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+  SH:  {schematic: "17", footprint: SH,  fused: false, why: "tscircuit numeric source port maps to the exact GCT shell land", evidence: "USB4105 Revision B contact table and TSX J5 pinLabels"}
+limits: {current_vbus_collective: 5A, current_gnd_collective: 6.25A, contact_resistance_max_initial: 40mOhm, voltage: 48V, durability: 20000_cycles}
+gotchas:
+  - "A6/B6, A7/B7 and A8/B8 receive explicit no-connect flags: v4 has neither USB data nor alternate-mode signaling."
+  - "CC1 and CC2 route separately through the connector-side ESD clamp to TPS25810; do not short them or replace attach control with static Rp resistors."
+  - "The 40mOhm initial/50mOhm post-test figures bound one plug/receptacle mated contact under USB Type-C Release 2.0 section 3.7.8.1 and exclude internal paddle cards/substrates; the two-pair cable/Pi path is a separate end-to-end first-article qualification item."
+  - "The four duplicated outer GND lands retain GCT's 0.60 x 1.15 mm envelope but use a 50% chamfer only on the locator-peg-facing corner: the drawing's datum leaves only 0.1944 mm to the original rounded corner, below JLC's 0.20 mm NPTH-to-copper floor and the project's 0.25 mm floor; the relief removes no copper under the terminal and is exact-DRC graded without moving or narrowing the contact land."
+verified: "contact table, recommended PCB layout, VBUS/GND collective current, resistance and durability independently read from GCT drawing and product specification 2026-08-10"
+sourcing: {lcsc: C3020560, alternates: [], note: "exact GCT gold-flash/no-suffix stake option; volatile stock evidence is kept in dated sourcing artifacts"}
+layout:
+  source: "GCT USB4105 Revision B recommended PCB layout plus TI TPS25810EVM-745 SLVUAI0A layout guidance"
+  reviewed: "2026-08-11"
+  notes: "Mount at the south edge; retain all four VBUS/GND contacts and shell stakes; keep CC1/CC2 separate and similar in length; connector reaches D6 before TPS25810; A6/B6, A7/B7 and A8/B8 remain explicit no-connects."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "GCT USB4105 Revision B recommended PCB layout", why: "manufacturer drawing fixes contact, peg, shell-stake and board-edge datums"}
+  - {tier: 4, reached: false, artifact: "independent routed power-only Type-C source", why: "datasheet and TPS25810 application are authoritative; board render is independently reviewed before routing"}

@@ -99,6 +99,13 @@ Checks beyond the fit itself:
     list is a second home for the population set and drifts from the first
     (cooksense v1.1's MANIFEST and CPL disagreed on 12 refs for exactly that
     reason). `--also` still works for an ad-hoc probe.
+    A not-assembled entry may instead declare `twin_body: {source: board}`
+    to retain the board footprint's exact local model, or
+    `twin_body: {source: file, model: PATH}` to mount a project-owned model.
+    These manual-install bodies are included in the NO-BODY denominator even
+    though they are deliberately absent from the CPL. A declared local body
+    always wins over an LCSC code: a catalog near-match must never replace the
+    intended mechanical body merely because it can be fetched.
   - --also REF=LCSC[,REF=LCSC..]: include hand-solder/uncoded parts with
     known LCSC codes so their bodies render too (connector overhang and
     orientation checks otherwise never run for exactly the parts a human
@@ -128,6 +135,7 @@ E2K_CANDIDATES = [os.environ.get("EASYEDA2KICAD", ""),
                   os.path.expanduser("~/virtual-envs/spf/bin/easyeda2kicad"),
                   os.path.expanduser("~/.local/bin/easyeda2kicad")]
 E2K = next((c for c in E2K_CANDIDATES if c and os.path.exists(c)), None)
+E2K_COMPAT = Path(__file__).resolve().with_name("easyeda2kicad_compat.py")
 
 RIGHT_ANGLES = (0, 90, 180, 270)
 FIT_TOL = 0.5      # mm max per-pad error for a "fit"
@@ -156,7 +164,69 @@ NOCAD_PAT = re.compile(
     re.I)
 
 
-def fetch(lcsc, cachedir, attempts=None):
+def easyeda2kicad_command(executable):
+    """Return the fetcher command, using our UA compatibility shim only for
+    the real ``easyeda2kicad`` entry point.
+
+    EasyEDA's CloudFront User-Agent policy changed twice in 2026. Upstream
+    issue #191 fixed the first HTTP 403 by pinning a newer browser UA, but
+    easyeda2kicad 1.0.1's Chrome/120 string was refused again on 2026-08-12
+    while Chrome/146 returned 200 for the same endpoint. The installed package
+    is an external, mutable dependency, so do not edit it in place. Instead run
+    the tiny repository-owned shim with the entry point's own interpreter.
+
+    Test stubs intentionally use a different basename and remain an exact
+    subprocess seam; arbitrary/non-text executables fall back unchanged.
+    """
+    path = Path(executable)
+    if path.name != "easyeda2kicad" or not E2K_COMPAT.is_file():
+        return [str(path)]
+    try:
+        first = path.read_text(encoding="utf-8", errors="replace").splitlines()[0]
+    except (OSError, IndexError):
+        return [str(path)]
+    if not first.startswith("#!"):
+        return [str(path)]
+    interpreter = first[2:].strip()
+    if not interpreter or not os.path.isfile(interpreter):
+        return [str(path)]
+    return [interpreter, str(E2K_COMPAT)]
+
+
+def run_fetch_command(cmd, timeout_s, heartbeat_s, heartbeat):
+    """Run one external fetch with visible liveness and a hard deadline.
+
+    ``subprocess.run`` can be silent for an unbounded child.  Polling through
+    ``communicate(timeout=...)`` keeps stdout/stderr capture while giving the
+    parent a heartbeat seam and a deterministic timeout result.
+    """
+    import time
+    started = time.monotonic()
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True)
+    while True:
+        elapsed = time.monotonic() - started
+        remaining = timeout_s - elapsed
+        if remaining <= 0:
+            proc.terminate()
+            try:
+                stdout, stderr = proc.communicate(timeout=2)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                stdout, stderr = proc.communicate()
+            stderr = (stderr or "") + (
+                f"\nTIMED-OUT: fetch child exceeded {timeout_s:.1f}s")
+            return subprocess.CompletedProcess(cmd, 124, stdout, stderr)
+        try:
+            stdout, stderr = proc.communicate(
+                timeout=max(0.01, min(heartbeat_s, remaining)))
+            return subprocess.CompletedProcess(
+                cmd, proc.returncode, stdout, stderr)
+        except subprocess.TimeoutExpired:
+            heartbeat(round(time.monotonic() - started, 1))
+
+
+def fetch(lcsc, cachedir, attempts=None, progress=None, deadline=None):
     """easyeda2kicad --full into a per-code dir.
     Returns (fp_path, None, None) on success, else (None, reason, kind) where
     kind is 'transient' (network/API — NOT checked, must block) or
@@ -164,19 +234,54 @@ def fetch(lcsc, cachedir, attempts=None):
     import time
     if attempts is None:
         attempts = int(os.environ.get("JLC_TWIN_FETCH_ATTEMPTS", "4"))
+    child_timeout = float(os.environ.get("JLC_TWIN_FETCH_TIMEOUT_S", "45"))
+    heartbeat_s = float(os.environ.get("JLC_TWIN_HEARTBEAT_S", "10"))
+    progress = progress or (lambda **_kwargs: None)
     d = Path(cachedir) / lcsc
     mods = glob.glob(str(d / "jlc.pretty" / "*.kicad_mod"))
+    if mods:
+        progress(state="cached", attempt=0, max_attempts=attempts)
+        return mods[0], None, None
     r = None
     for attempt in range(attempts):
         if mods:
             return mods[0], None, None
+        if deadline is not None and time.monotonic() >= deadline:
+            return (None,
+                    ["TIMED-OUT: JLC twin whole-run wall-clock budget "
+                     "exhausted before this code; re-run to resume from cache"],
+                    "transient")
         d.mkdir(parents=True, exist_ok=True)
-        r = subprocess.run([E2K, "--full", "--lcsc_id", lcsc, "--output",
-                            str(d / "jlc.kicad_sym"), "--use-cache"],
-                           capture_output=True, text=True)
+        per_attempt = child_timeout
+        if deadline is not None:
+            per_attempt = min(per_attempt,
+                              max(0.01, deadline - time.monotonic()))
+        progress(state="start", attempt=attempt + 1,
+                 max_attempts=attempts)
+        cmd = [*easyeda2kicad_command(E2K), "--full",
+               "--lcsc_id", lcsc, "--output",
+               str(d / "jlc.kicad_sym"), "--use-cache"]
+        r = run_fetch_command(
+            cmd, per_attempt, heartbeat_s,
+            lambda child_elapsed: progress(
+                state="running", attempt=attempt + 1,
+                max_attempts=attempts, child_elapsed_s=child_elapsed))
         mods = glob.glob(str(d / "jlc.pretty" / "*.kicad_mod"))
         if not mods and attempt < attempts - 1:
-            time.sleep(4 * (attempt + 1))   # 4s, 8s, 12s … EasyEDA rate-limits bursts
+            backoff = 4 * (attempt + 1)   # 4s, 8s, 12s … EasyEDA rate-limits bursts
+            left = float(backoff)
+            while left > 0:
+                if deadline is not None and time.monotonic() >= deadline:
+                    break
+                progress(state="backoff", attempt=attempt + 1,
+                         max_attempts=attempts, backoff_s=round(left, 1))
+                nap = min(heartbeat_s, left)
+                if deadline is not None:
+                    nap = min(nap, max(0, deadline - time.monotonic()))
+                if nap <= 0:
+                    break
+                time.sleep(nap)
+                left -= nap
     if mods:
         return mods[0], None, None
     msg = (((r.stderr or r.stdout).strip().splitlines()[-1:]) if r else []) or ["no CAD data"]
@@ -201,10 +306,23 @@ def fetch(lcsc, cachedir, attempts=None):
     return None, msg, kind
 
 
+def canonical_pad_number(value):
+    """Normalize formatting-only decimal zeros, preserve alphanumeric pins.
+
+    EasyEDA/JLC connector CAD commonly names pads ``01``..``09`` while the
+    KiCad footprint names the same physical identities ``1``..``9``. Without
+    normalization J7's ten-pin header appeared to share only pad 10, so a
+    one-point 'fit' falsely reported offset 0 against the independently
+    measured 270-degree authority row.
+    """
+    value = str(value).strip().strip('"')
+    return str(int(value)) if value.isdigit() else value
+
+
 def pads_of(fp):
     d = {}
     for p in fp.Pads():
-        n = str(p.GetNumber())
+        n = canonical_pad_number(p.GetNumber())
         if n:
             d.setdefault(n, []).append((p.GetPosition().x / 1e6,
                                         p.GetPosition().y / 1e6))
@@ -510,10 +628,13 @@ def kicad_env(board_path):
             except Exception:
                 pass
     env.update({k: v for k, v in os.environ.items() if k.startswith("KICAD")})
-    for var, dflt in (("KICAD10_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
+    user_3d = Path.home() / ".local" / "share" / "kicad" / "10.0" / "3dmodels"
+    system_3d = Path("/usr/share/kicad/3dmodels")
+    dflt_3d = str(user_3d if user_3d.is_dir() else system_3d)
+    for var, dflt in (("KICAD10_3DMODEL_DIR", dflt_3d),
                       ("KICAD9_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
                       ("KICAD8_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
-                      ("KISYS3DMOD", "/usr/share/kicad/3dmodels")):
+                      ("KISYS3DMOD", dflt_3d)):
         env.setdefault(var, dflt)
     env["KIPRJMOD"] = str(Path(board_path).resolve().parent)
     return env
@@ -577,6 +698,125 @@ def no_body_pass(tb, refs, board_path):
             missing.append((ref, "; ".join(
                 f"unresolved model path {f!r}" for f, _ in hits)))
     return mounted, missing
+
+
+def declared_twin_bodies(assembly, assembly_path=""):
+    """Return REF -> twin_body declarations from assembly intent.
+
+    The assembly manifest is the population authority, so it is also the
+    only safe place to say that a deliberately non-CPL part is nevertheless
+    installed in the finished-product render. Keep this parser independent
+    of model mounting so its population result is easy to regression-test.
+    """
+    bodies = {}
+    for key in ("not_assembled", "consigned"):
+        for entry in (assembly.get(key) or []):
+            body = entry.get("twin_body")
+            if not body:
+                continue
+            if not isinstance(body, dict):
+                raise ValueError(f"{key} twin_body must be a mapping")
+            source = str(body.get("source") or "").strip()
+            if source not in ("board", "file", "part"):
+                raise ValueError(
+                    f"{key} twin_body.source must be board, file, or part, "
+                    f"got {source!r}")
+            if source == "file" and not str(body.get("model") or "").strip():
+                raise ValueError(f"{key} twin_body source=file requires model")
+            if source == "part":
+                dossier = str(body.get("dossier") or "").strip()
+                if not dossier or not assembly_path:
+                    raise ValueError(
+                        f"{key} twin_body source=part requires dossier and "
+                        f"an assembly path")
+                project = Path(assembly_path).resolve().parents[2]
+                part_path = project / "02_parts" / dossier / "part.yaml"
+                if not part_path.is_file():
+                    raise ValueError(f"twin_body dossier not found: {part_path}")
+                import yaml
+                part = yaml.safe_load(open(part_path, encoding="utf-8-sig")) or {}
+                part_body = part.get("twin_body")
+                if not isinstance(part_body, dict):
+                    raise ValueError(f"{part_path} has no twin_body mapping")
+                body = dict(part_body)
+                source = str(body.get("source") or "").strip()
+                if source not in ("board", "file"):
+                    raise ValueError(
+                        f"{part_path} twin_body.source must be board or file")
+                if source == "file":
+                    raw_model = str(body.get("model") or "").strip()
+                    if not raw_model:
+                        raise ValueError(f"{part_path} twin_body requires model")
+                    model = Path(os.path.expanduser(raw_model))
+                    if not model.is_absolute():
+                        model = (part_path.parent / model).resolve()
+                    body["model"] = str(model)
+                body["dossier"] = str(part_path)
+            for ref in (entry.get("refs") or []):
+                ref = str(ref).strip()
+                if ref in bodies:
+                    raise ValueError(f"duplicate twin_body declaration for {ref}")
+                bodies[ref] = dict(body)
+    return bodies
+
+
+def install_declared_twin_bodies(board, bodies, assembly_path, board_path):
+    """Apply manual-install body policy and return auditable report rows."""
+    rows = []
+    base = Path(assembly_path).resolve().parent
+    for ref, body in sorted(bodies.items()):
+        fp = board.FindFootprintByReference(ref)
+        identity = str(body.get("identity") or "installed manual part").strip()
+        authority = str(body.get("authority") or "").strip()
+        limitation = str(body.get("limitation") or "").strip()
+        source = body["source"]
+        if fp is None:
+            rows.append(("", ref, "LOCAL-BODY",
+                         f"source={source}; identity={identity}; footprint missing"))
+            continue
+        if source == "file":
+            model_path = Path(os.path.expanduser(str(body["model"])))
+            if not model_path.is_absolute():
+                model_path = (base / model_path).resolve()
+            model = pcbnew.FP_3DMODEL()
+            model.m_Filename = str(model_path)
+            fp.Models().clear()
+            fp.Models().push_back(model)
+            detail = f"source=file model={model_path}"
+        else:
+            # Deliberately do not clear or re-register the board's model.
+            # This branch exists for exact library bodies such as the complete
+            # Keystone 3568 holder; a catalog code for one loose clip is not a
+            # valid transform authority for the four-hole holder footprint.
+            # Headless kicad-cli does not necessarily inherit the GUI's 3D
+            # search-path variables. Resolve the filename now, but copy every
+            # registration field unchanged: path normalization is not a new
+            # mount transform.
+            env = kicad_env(board_path)
+            base_board = Path(board_path).resolve().parent
+            old_models = list(fp.Models())
+            fp.Models().clear()
+            resolved_count = 0
+            for old in old_models:
+                model = pcbnew.FP_3DMODEL()
+                resolved = resolve_model(old.m_Filename, env, base_board)
+                model.m_Filename = resolved or old.m_Filename
+                model.m_Scale = old.m_Scale
+                model.m_Offset = old.m_Offset
+                model.m_Rotation = old.m_Rotation
+                fp.Models().push_back(model)
+                resolved_count += bool(resolved)
+            detail = ("source=board; JLC CAD replacement suppressed; "
+                      f"resolved paths={resolved_count}/{len(old_models)}; "
+                      "scale/offset/rotation retained")
+        provenance = "; ".join(x for x in (
+            f"identity={identity}",
+            f"authority={authority}" if authority else "",
+            f"limitation={limitation}" if limitation else "",
+            f"dossier={body.get('dossier')}" if body.get("dossier") else "",
+        ) if x)
+        rows.append(("", ref, "LOCAL-BODY", f"{detail}; {provenance}"))
+    return rows
 
 
 def marker_side(fp, pads, layers=None):
@@ -715,22 +955,42 @@ def main():
     lines = [r for r in csv.DictReader(open(args.bom, encoding="utf-8-sig"))
              if r.get("LCSC")]
     extra = []          # (ref, lcsc) pairs from --assembly / --also
+    assembly = {}
+    local_bodies = {}
     if args.assembly and os.path.exists(args.assembly):
         import yaml as _yaml
-        _asm = _yaml.safe_load(open(args.assembly)) or {}
+        assembly = _yaml.safe_load(open(args.assembly)) or {}
+        try:
+            local_bodies = declared_twin_bodies(assembly, args.assembly)
+        except ValueError as exc:
+            sys.exit(f"assembly twin_body schema: {exc}")
         for _key in ("not_assembled", "consigned"):
-            for _e in (_asm.get(_key) or []):
+            for _e in (assembly.get(_key) or []):
                 _code = str(_e.get("lcsc") or "").strip()
                 for _r in (_e.get("refs") or []):
-                    if _code:
+                    # An explicit installed-product body is mechanical
+                    # authority. Never fetch a catalog near-match for it.
+                    if _code and str(_r).strip() not in local_bodies:
                         extra.append((str(_r).strip(), _code))
         print(f"assembly: {len(extra)} coded not-assembled/consigned ref(s) "
+              f"and {len(local_bodies)} declared local body ref(s) "
               f"from {args.assembly}")
     for pair in [p for p in args.also.split(",") if p.strip()]:
         ref, _, code = pair.partition("=")
         if not code:
             sys.exit(f"--also expects REF=LCSC, got: {pair}")
         extra.append((ref.strip(), code.strip()))
+    # Local-body policy also wins over a code already present on the BOM.
+    # Split grouped rows so one manual ref cannot suppress its coded siblings.
+    filtered = []
+    for row in lines:
+        refs = [d.strip() for d in row["Designator"].split(",")
+                if d.strip() and d.strip() not in local_bodies]
+        if refs:
+            copy = dict(row)
+            copy["Designator"] = ",".join(refs)
+            filtered.append(copy)
+    lines = filtered
     on_bom = {d.strip() for r in lines for d in r["Designator"].split(",")}
     for ref, code in extra:
         if ref not in on_bom:       # never double-check a ref already on the BOM
@@ -744,9 +1004,52 @@ def main():
         for _d in _r["Designator"].split(","):
             ref_lcsc.setdefault(_d.strip(), _r["LCSC"])
     fetch_failed = set()
+    import time as _time
+    fetch_started = _time.monotonic()
+    wall_budget_s = float(os.environ.get("JLC_TWIN_WALL_TIMEOUT_S", "600"))
+    fetch_deadline = fetch_started + wall_budget_s
+    unique_codes = list(dict.fromkeys(r["LCSC"] for r in lines))
+    fetch_results = {}
+    fetched_done = 0
+
+    def fetch_progress(code, **event):
+        elapsed = _time.monotonic() - fetch_started
+        eta = ((elapsed / fetched_done) * (len(unique_codes) - fetched_done)
+               if fetched_done else None)
+        fields = [
+            "JLC-TWIN-FETCH",
+            f"completed={fetched_done}/{len(unique_codes)}",
+            f"current={code}",
+            f"state={event.get('state', '?')}",
+            f"attempt={event.get('attempt', 0)}/{event.get('max_attempts', 0)}",
+            f"elapsed_s={elapsed:.1f}",
+            f"eta_s={'?' if eta is None else f'{eta:.1f}'}",
+            f"wall_budget_s={wall_budget_s:.1f}",
+        ]
+        if event.get("child_elapsed_s") is not None:
+            fields.append(f"child_elapsed_s={event['child_elapsed_s']}")
+        if event.get("backoff_s") is not None:
+            fields.append(f"backoff_s={event['backoff_s']}")
+        print(" ".join(fields), flush=True)
+
+    print(f"JLC-TWIN-FETCH plan: {len(unique_codes)} unique code(s), "
+          f"attempts={os.environ.get('JLC_TWIN_FETCH_ATTEMPTS', '4')}, "
+          f"child_timeout_s={os.environ.get('JLC_TWIN_FETCH_TIMEOUT_S', '45')}, "
+          f"heartbeat_s={os.environ.get('JLC_TWIN_HEARTBEAT_S', '10')}, "
+          f"wall_budget_s={wall_budget_s:.1f}", flush=True)
     for r in lines:
         lcsc = r["LCSC"]
-        fp_path, err, kind = fetch(lcsc, out / "easyeda")
+        if lcsc not in fetch_results:
+            fetch_results[lcsc] = fetch(
+                lcsc, out / "easyeda",
+                progress=lambda **event: fetch_progress(lcsc, **event),
+                deadline=fetch_deadline)
+            fetched_done += 1
+            result_state = "done" if fetch_results[lcsc][0] else "failed"
+            fetch_progress(lcsc, state=result_state, attempt=0,
+                           max_attempts=int(os.environ.get(
+                               "JLC_TWIN_FETCH_ATTEMPTS", "4")))
+        fp_path, err, kind = fetch_results[lcsc]
         if err:
             # transient = the part was NEVER CHECKED -> blocking, not a disposition
             status = "FETCH-FAILED" if kind == "transient" else "NO-CAD"
@@ -767,6 +1070,13 @@ def main():
             rot = fp.GetOrientationDegrees()
             fp.SetOrientationDegrees(0)
             opads_raw = pads_of(fp)
+            # Cache the numbering-free marking in the SAME footprint-local
+            # frame as opads_raw.  Restoring the board rotation before calling
+            # marker_side mixed global graphics with zero-rotation pad
+            # coordinates, so every 180-degree instance of an otherwise
+            # identical polarized footprint could report the opposite end
+            # (programmable-usb2-hub D2 PASS / D3 FAIL on the same C2128).
+            ours_mark_local = marker_side(fp, opads_raw)
             fp.SetOrientationDegrees(rot)
             # center BOTH sets on the COMMON numbered pads only: centering
             # each on its own full set biases the fit/mount whenever one side
@@ -914,7 +1224,7 @@ def main():
                 # LED_0805_2012Metric chamfers its F.Fab at pin 1. Both draw
                 # the cathode at the WEST end, so the PHYSICAL parts already
                 # align: the correct CPL offset is 0, not 180.
-                ours_mark = marker_side(fp, opads_raw)
+                ours_mark = ours_mark_local
                 jlc_mark = marker_side(jfp, jraw)
                 if ours_mark and jlc_mark:
                     if ours_mark[0] != jlc_mark[0]:
@@ -978,8 +1288,10 @@ def main():
             twin[ref] = (jfp, ang, oc, _jca, lcsc)
 
     # ---- twin render: JLC models mounted on OUR board
-    if twin:
+    if twin or local_bodies:
         tb = pcbnew.LoadBoard(args.board)
+        findings.extend(install_declared_twin_bodies(
+            tb, local_bodies, args.assembly, args.board))
         mrotz = {}
         for ref, (jfp, ang, oc, jc_common, lcsc) in twin.items():
             if lcsc in model_rot_override:
@@ -1113,21 +1425,36 @@ def main():
 
         # ---- NO-BODY: the terminal, fit-independent population gate
         cpl_refs = []
+        placed_refs = []
+        manual_refs = []
         if args.cpl and os.path.exists(args.cpl):
             with open(args.cpl, encoding="utf-8-sig") as f:
                 for row in csv.DictReader(f):
                     d = (row.get("Designator") or "").strip()
                     if d:
                         cpl_refs.append(d)
-            src_desc = f"{len(cpl_refs)} CPL placements ({args.cpl})"
+            placed_count = len(cpl_refs)
+            placed_refs = sorted(set(cpl_refs))
+            manual_refs = sorted(set(local_bodies) - set(placed_refs))
+            cpl_refs = sorted(set(placed_refs) | set(manual_refs))
+            src_desc = (f"{placed_count} CPL placements ({args.cpl}) + "
+                        f"{len(manual_refs)} declared manual-install bodies "
+                        f"({args.assembly})")
         else:
             cpl_refs = sorted({d.strip() for r in lines
                                for d in r["Designator"].split(",")
-                               if d.strip() in by_ref})
-            src_desc = (f"{len(cpl_refs)} checked refs (no --cpl given; pass "
+                               if d.strip() in by_ref} | set(local_bodies))
+            src_desc = (f"{len(cpl_refs)} checked/manual refs (no --cpl given; pass "
                         f"fab/cpl.csv for the population denominator)")
         mounted, missing = no_body_pass(tb, cpl_refs, args.board)
         bodies_line = f"bodies mounted: {len(mounted)}/{len(cpl_refs)}"
+        mounted_set = set(mounted)
+        cpl_bodies_line = (f"CPL bodies mounted: "
+                           f"{len(mounted_set & set(placed_refs))}/"
+                           f"{len(placed_refs)}") if placed_refs or args.cpl else ""
+        manual_bodies_line = (f"manual bodies mounted: "
+                              f"{len(mounted_set & set(manual_refs))}/"
+                              f"{len(manual_refs)}") if args.cpl else ""
         for ref, why in missing:
             findings.append((ref_lcsc.get(ref, ""), ref, "NO-BODY", why))
             criticals.append(ref)
@@ -1138,6 +1465,9 @@ def main():
             f.write("# GENERATED by jlc_twin.py NO-BODY pass — do not edit.\n"
                     f"# source of the population set: {src_desc}\n"
                     f"# {bodies_line}\n")
+            if cpl_bodies_line:
+                f.write(f"# {cpl_bodies_line}\n"
+                        f"# {manual_bodies_line}\n")
             if not missing:
                 f.write("\n(none — every CPL designator resolves a 3D body)\n")
             for ref, why in missing:
@@ -1145,6 +1475,16 @@ def main():
         print(f"\n{bodies_line}  ->  {out / 'missing_models.txt'}")
 
         tb.Save(str(out / "twin.kicad_pcb"))
+        # A-RENDER's independent pixel channel needs the SAME board, camera,
+        # lighting and resolution with one controlled difference: no component
+        # models. Comparing the populated render to a separately exported SVG
+        # is not valid because its projection and renderer differ. Keep this
+        # board beside the twin as reproducible evidence; it is generated from
+        # a fresh load so clearing models cannot mutate the populated twin.
+        bare = pcbnew.LoadBoard(str(out / "twin.kicad_pcb"))
+        for fp in bare.GetFootprints():
+            fp.Models().clear()
+        bare.Save(str(out / "twin_bare.kicad_pcb"))
         VIEWS = [  # (name, extra kicad-cli render args)
             ("top",      ["--side", "top"]),
             ("bottom",   ["--side", "bottom"]),
@@ -1159,13 +1499,17 @@ def main():
             subprocess.run(["kicad-cli", "pcb", "render",
                             "--width", "1600", "--height", "1000",
                             "-o", str(out / f"twin_{name}.png"),
-                            *extra, str(out / "twin.kicad_pcb")],
+                           *extra, str(out / "twin.kicad_pcb")],
                            capture_output=True)
+        if not args.no_render:
+            for side in ("top", "bottom"):
+                subprocess.run(["kicad-cli", "pcb", "render",
+                                "--width", "1600", "--height", "1000",
+                                "-o", str(out / f"twin_bare_{side}.png"),
+                                "--side", side,
+                                str(out / "twin_bare.kicad_pcb")],
+                               capture_output=True)
 
-    with open(out / "twin_report.csv", "w", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["LCSC", "Ref", "Status", "Detail"])
-        w.writerows(findings)
     # apply the adjudication register: reviewed findings become non-fatal
     out_f = []
     for lcsc, ref, status, detail in findings:
@@ -1191,6 +1535,14 @@ def main():
         else:
             out_f.append((lcsc, ref, status, detail))
     findings = out_f
+    # The shipped report is the FINAL verdict, not the pre-adjudication
+    # worklist. Writing this before the register was applied made a successful
+    # run's machine evidence still claim raw FETCH-FAILED/PAD-MISMATCH rows and
+    # forced every downstream consumer to reconstruct state from two files.
+    with open(out / "twin_report.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["LCSC", "Ref", "Status", "Detail"])
+        w.writerows(findings)
     order = {"FETCH-FAILED": -1, "NO-BODY": -1, "MIRRORED": 0,
              "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3,
              "MODEL-REG": 3, "POLARITY-FIT": 1, "MOUNT-FALLBACK": 1,
@@ -1213,8 +1565,21 @@ def main():
           f"rotation-fitted refs: {n_fit}")
     print(bodies_line)
     print(f"report + renders -> {out}")
-    if fetch_failed:
-        print(f"\nTRANSIENT FETCH FAILURES ({len(fetch_failed)}): {sorted(fetch_failed)}")
+    unresolved_fetch_failed = {
+        f[0] for f in findings if f[2] == "FETCH-FAILED"
+    }
+    adjudicated_fetch_failed = {
+        f[0] for f in findings if f[2] == "ADJUDICATED-FETCH-FAILED"
+    }
+    if adjudicated_fetch_failed:
+        print(f"\nADJUDICATED LIBRARY ABSENCES "
+              f"({len(adjudicated_fetch_failed)}): "
+              f"{sorted(adjudicated_fetch_failed)}")
+        print("  Same-run controls plus exact-part land evidence are recorded in the")
+        print("  adjudication register; these are not retried as transient failures.")
+    if unresolved_fetch_failed:
+        print(f"\nTRANSIENT FETCH FAILURES ({len(unresolved_fetch_failed)}): "
+              f"{sorted(unresolved_fetch_failed)}")
         print("  These are NETWORK/API errors, NOT 'no CAD' — these parts were never checked,")
         print("  so this run does NOT constitute twin verification for them.")
         print("  The per-code cache keeps everything already fetched, so simply RE-RUNNING")
@@ -1222,6 +1587,10 @@ def main():
         print("    " + " ".join(sys.argv))
         print("  If the API is flaky, be more patient:")
         print("    JLC_TWIN_FETCH_ATTEMPTS=8 " + " ".join(sys.argv))
+        if any("TIMED-OUT" in str(f[3]) for f in findings
+               if f[2] == "FETCH-FAILED"):
+            print("  TIMED-OUT: a per-child or whole-run deadline stopped the "
+                  "batch; completed cache entries are intact.")
         print("  Only adjudicate FETCH-FAILED if the part is genuinely absent from the")
         print("  library (verify the land pattern against the datasheet + flag order-time preview).")
     if criticals:

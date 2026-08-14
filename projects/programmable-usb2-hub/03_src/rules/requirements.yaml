@@ -1,0 +1,18 @@
+schema: 1
+power_claims:
+  - id: usb_downstream_ports
+    rails: [USB_PORT_1, USB_PORT_2, USB_PORT_3, USB_PORT_4]
+    count: 4
+    simultaneous_count: 4
+    current_A: 2.0
+    voltage_min_V: 4.75
+    voltage_max_V: 5.25
+    duty: continuous
+    measurement_plane: mated_test_plug
+    boundary_evidence: >-
+      Commissioned board-level claim: thermally settled VBUS-to-GND voltage at
+      a qualified test plug inserted into each USB-A receptacle; detachable
+      cable and appliance are outside the board claim.
+    included_elements:
+      [protection_switch, pcb_copper_vias_joints, mated_power_contacts]
+    excluded_elements: [cable, appliance]

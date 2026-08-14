@@ -1,0 +1,72 @@
+#VRML V2.0 utf8
+# GCT USB1130-15-A mechanical evidence model.
+# Dimensions are in KiCad VRML units (1 unit = 2.54 mm) and follow GCT
+# drawing USB1130 rev A2. This is a clearance/orientation envelope, not a
+# claim that the part exists in the JLC/LCSC catalog.
+
+DEF METAL Appearance {
+  material Material {
+    diffuseColor 0.72 0.74 0.76
+    specularColor 0.85 0.85 0.85
+    shininess 0.7
+  }
+}
+DEF BLACK Appearance {
+  material Material {
+    diffuseColor 0.035 0.035 0.04
+    specularColor 0.08 0.08 0.08
+    shininess 0.25
+  }
+}
+DEF GOLD Appearance {
+  material Material {
+    diffuseColor 0.82 0.55 0.08
+    specularColor 0.9 0.72 0.25
+    shininess 0.65
+  }
+}
+
+# 14.16 mm wide x 9.62 mm footprint-aligned depth x 6.99 mm profile.
+Transform {
+  translation 0 0.358268 2.692913
+  children [ Shape { appearance USE METAL geometry Box { size 5.574803 3.787402 0.118110 } } ]
+}
+Transform {
+  translation -2.728346 0.358268 1.318898
+  children [ Shape { appearance USE METAL geometry Box { size 0.118110 3.787402 2.637795 } } ]
+}
+Transform {
+  translation 2.728346 0.358268 1.318898
+  children [ Shape { appearance USE METAL geometry Box { size 0.118110 3.787402 2.637795 } } ]
+}
+Transform {
+  translation 0 0.358268 0.049213
+  children [ Shape { appearance USE METAL geometry Box { size 5.574803 3.787402 0.098425 } } ]
+}
+Transform {
+  translation 0 2.192913 1.376000
+  children [ Shape { appearance USE METAL geometry Box { size 5.574803 0.118110 2.751969 } } ]
+}
+
+# Black receptacle tongue and four visible contact strips establish mating-face
+# orientation in the same-camera twin views.
+Transform {
+  translation 0 -0.393701 0.866142
+  children [ Shape { appearance USE BLACK geometry Box { size 4.645669 2.362205 0.472441 } } ]
+}
+Transform {
+  translation -1.181102 -0.393701 1.125984
+  children [ Shape { appearance USE GOLD geometry Box { size 0.137795 2.362205 0.047244 } } ]
+}
+Transform {
+  translation -0.393701 -0.393701 1.125984
+  children [ Shape { appearance USE GOLD geometry Box { size 0.137795 2.362205 0.047244 } } ]
+}
+Transform {
+  translation 0.393701 -0.393701 1.125984
+  children [ Shape { appearance USE GOLD geometry Box { size 0.137795 2.362205 0.047244 } } ]
+}
+Transform {
+  translation 1.181102 -0.393701 1.125984
+  children [ Shape { appearance USE GOLD geometry Box { size 0.137795 2.362205 0.047244 } } ]
+}

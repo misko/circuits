@@ -1,0 +1,20 @@
+# Human-read distributor evidence for lines the configured API cannot grade.
+# Stock and price are dated observations; re-read the product page on order day.
+quotes:
+  - mpn: USBLC6-2SC6
+    manufacturer: STMicroelectronics
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/stmicroelectronics/USBLC6-2SC6/1040559"
+    read_on: 2026-08-10
+    dpn: 497-5235-1-ND
+    stock: 53630
+    min: 1
+    mult: 1
+    lifecycle: Active
+    price_breaks:
+      - {qty: 1, usd: 0.54}
+      - {qty: 10, usd: 0.329}
+    note: >-
+      Exact STMicroelectronics manufacturer MPN and cut-tape order code read
+      directly from the DigiKey product page; search snippets were not used.

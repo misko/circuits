@@ -41,12 +41,15 @@ TWO CHECKS, both against the exported netlist:
 USAGE
 -----
   net_label_survival.py PROJECT_DIR
-      Auto-locates: schematic = 03_tscircuit/kicad/*.kicad_sch (the committed
-      pinned artifact) else 04_kicad/*.kicad_sch; netlist =
+      Auto-locates: schematic = 04_kicad/*.kicad_sch (the current full-build
+      subject) else 03_tscircuit/kicad/*.kicad_sch (the committed pinned
+      reuse artifact); netlist =
       06_build/netlists/*.net else 06_build/*.net; config = the
       `label_survival:` block of 03_src/rules/electrical_invariants.yaml
       (absent block -> check 1 still runs, check 2 is N-A).
   --schematic / --netlist / --config PATH   override auto-location.
+  --schema-only                             validate label_survival YAML only;
+                                            no generated artifacts are read.
 
 Exit 0 = pass, 1 = findings (LABEL-LOST / PIN-MAP), 2 = load/config error.
 No pcbnew import — runs on any python3 (PyYAML only needed for the config).
@@ -100,6 +103,12 @@ def load_config(path):
         return {}
     if not isinstance(blk, dict):
         raise LoadError("label_survival: must be a mapping")
+    unknown = sorted(set(blk) - {"exempt", "pin_map"})
+    if unknown:
+        raise LoadError(
+            "label_survival: unknown key(s) " + ", ".join(unknown) +
+            "; expected only 'exempt:' and/or 'pin_map:'. A board-name/net "
+            "mapping is not a pin_map and would otherwise pass as 0 rows")
     for i, ex in enumerate(blk.get("exempt") or []):
         if not isinstance(ex, dict) or not ex.get("label"):
             raise LoadError(f"label_survival.exempt[{i}] needs 'label:'")
@@ -109,10 +118,12 @@ def load_config(path):
                 f"substantive 'why:' — an exemption without evidence is "
                 f"itself a defect (canon M4)")
     for i, pm in enumerate(blk.get("pin_map") or []):
-        if not isinstance(pm, dict) or not pm.get("refs") \
-                or not isinstance(pm.get("pins"), dict):
+        if not isinstance(pm, dict) or not isinstance(pm.get("refs"), list) \
+                or not pm.get("refs") or not isinstance(pm.get("pins"), dict) \
+                or not pm.get("pins"):
             raise LoadError(f"label_survival.pin_map[{i}] needs 'refs:' "
-                            f"(list) and 'pins:' (pin -> net pattern map)")
+                            f"(non-empty list) and 'pins:' (non-empty pin -> "
+                            f"net pattern map)")
     return blk
 
 
@@ -163,11 +174,25 @@ def main(argv=None):
     ap.add_argument("--schematic", default="")
     ap.add_argument("--netlist", default="")
     ap.add_argument("--config", default="")
+    ap.add_argument("--schema-only", action="store_true")
     a = ap.parse_args(argv)
     proj = Path(a.project).resolve()
 
-    sch = a.schematic or _first([str(proj / "03_tscircuit" / "kicad" / "*.kicad_sch"),
-                                 str(proj / "04_kicad" / "*.kicad_sch")])
+    config_path = a.config or proj / "03_src/rules/electrical_invariants.yaml"
+    if a.schema_only:
+        try:
+            cfg = load_config(config_path)
+        except LoadError as e:
+            print(f"S-NETMERGE-SCHEMA: LOAD ERROR — {e}")
+            return 2
+        pin_rows = len(cfg.get("pin_map") or [])
+        exemptions = len(cfg.get("exempt") or [])
+        print(f"S-NETMERGE-SCHEMA PASS: label_survival has {pin_rows} pin-map "
+              f"row(s), {exemptions} evidenced exemption(s)")
+        return 0
+
+    sch = a.schematic or _first([str(proj / "04_kicad" / "*.kicad_sch"),
+                                 str(proj / "03_tscircuit" / "kicad" / "*.kicad_sch")])
     net = a.netlist or _first([str(proj / "06_build" / "netlists" / "*.net"),
                                str(proj / "06_build" / "*.net")])
     if not sch or not Path(sch).is_file():
@@ -177,8 +202,7 @@ def main(argv=None):
         print(f"S-NETMERGE: LOAD ERROR — no exported netlist found in {proj}")
         return 2
     try:
-        cfg = load_config(a.config or
-                          proj / "03_src" / "rules" / "electrical_invariants.yaml")
+        cfg = load_config(config_path)
     except LoadError as e:
         print(f"S-NETMERGE: LOAD ERROR — {e}")
         return 2

@@ -1,0 +1,234 @@
+# Pluto RX2 8-way v5 source floorplan — intentionally UNROUTED at this stage.
+#
+# The nine RF pad-1 centres follow the PE42482's cyclic package order around a
+# compact, open-bottom U perimeter: ANT4, ANT3, ANT2, ANT1, COMMON, ANT8, ANT7,
+# ANT6, ANT5. This is the same cyclic order as the former four-edge ring, cut
+# between ANT4 and ANT5 so all nine launches remain non-crossing on F.Cu while
+# the bottom edge is freed for power and programming. Every SMA local +Y axis
+# points out of its board edge; its Rev-C 11.6 mm pin-to-mating-face datum lands
+# exactly on the outline.
+project:
+  name: pluto_rx2_8way_v5
+  netlist: 06_build/netlists/pluto_rx2_8way_v5.net
+  output: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
+  parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
+
+board:
+  outline: {x0: 20.0, y0: 20.0, x1: 110.0, y1: 85.0}
+  edge_width: 0.1
+  layers: 4
+  stackup:
+    nominal_thickness_mm: 1.6
+    thickness_tolerance_mm: 0.10
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.0254
+    copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
+    dielectrics:
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 1.0650, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    refdes_prefix: H
+    at: [[25.0, 25.0], [105.0, 25.0], [25.0, 80.0], [105.0, 80.0]]
+  fiducials:
+    footprint: Fiducial:Fiducial_1mm_Mask2mm
+    refdes_prefix: FID
+    at: [[26.5, 37.0], [103.5, 37.0], [38.0, 80.0]]
+
+# The only paid advanced feature is deliberate, not an escape convenience:
+# U1's exposed pad is the RF return for a 5.9 GHz switch and receives a filled,
+# copper-capped 3 x 3 via-in-pad field.  Ordinary route/stitch vias stay at
+# 0.45/0.20 mm and receive no fill/cap treatment.  The protected U1 family
+# uses a distinct 0.25-mm drill so JLC can select it unambiguously from the
+# Gerber/drill package; native KiCad item flags alone are not an order format.
+thermal_vias:
+  protection: {capping: yes, filling: yes}
+  fields:
+    - ref: U1
+      pad: 25
+      size: 0.45
+      drill: 0.25
+      at: [[-0.75, -0.75], [0.0, -0.75], [0.75, -0.75],
+           [-0.75, 0.0], [0.0, 0.0], [0.75, 0.0],
+           [-0.75, 0.75], [0.0, 0.75], [0.75, 0.75]]
+
+libraries:
+  - {lib: pluto_rx2_8way_v5, path: 03_src/lib/pluto_rx2_8way_v5.pretty}
+  - /usr/share/kicad/footprints
+
+placement:
+  require_anchor: true
+  patterns:
+    - match: "U1"
+      pad_overrides:
+        - {pads: [3, 5, 7, 14, 16, 18, 21, 23, 25], zone_connection: full}
+    - match: "J[2-9]"
+      pad_overrides:
+        - {pads: [2, 3, 4, 5], zone_connection: full}
+    - match: "J10"
+      pad_overrides:
+        - {pads: [2, 3, 4, 5], zone_connection: full}
+    - match: "J1"
+      pad_overrides:
+        - {pads: [A1, A12, B1, B12, SH], zone_connection: full}
+    - match: "U4"
+      model_override: "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Package_TO_SOT_SMD.3dshapes/SOT-553.step"
+      pad_overrides:
+        - {pads: [4], zone_connection: full}
+        # TI's exact SOT-553 land has 0.150 mm between adjacent lands. Keep
+        # that manufacturer geometry explicit at the package boundary while
+        # TYPEC_CC retains 0.18 mm everywhere beyond the escape.
+        - {pads: [1, 2, 3, 4, 5], clearance: 0.15}
+    - match: "J11"
+      pad_overrides:
+        - {pads: [3, 5, 9], zone_connection: full}
+    # Pin the official KiCad 10.0.4 package bodies into the project rather
+    # than relying on an optional 3.3 GB host library.  The generator refuses
+    # an unresolved override and MODEL-COVERAGE independently reopens the
+    # saved board before any modeled placement review.
+    - {match: "C[1-3]", model_override: "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0603_1608Metric.step"}
+    - {match: "C[4-6]", model_override: "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"}
+    - {match: "R[1-6]", model_override: "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step"}
+    - {match: "U2", model_override: "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Package_SO.3dshapes/TSSOP-20_4.4x6.5mm_P0.65mm.step"}
+    - {match: "U3", model_override: "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Package_TO_SOT_SMD.3dshapes/SOT-23-5.step"}
+    - {match: "D1", model_override: "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Diode_SMD.3dshapes/D_SMB.step"}
+    - {match: "F1", model_override: "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Fuse.3dshapes/Fuse_0603_1608Metric.step"}
+
+  anchors:
+    # RF core and cyclic, non-crossing U-perimeter order. The five north-edge
+    # ports use 15-mm pitch; the two ports on each side use 18-mm pitch.
+    U1:  [65.0, 48.0, 0]
+    J4:  [35.0, 31.6, 180]   # ANT2, local +Y -> north edge
+    J3:  [50.0, 31.6, 180]   # ANT1
+    J2:  [65.0, 31.6, 180]   # PLUTO RX common
+    J10: [80.0, 31.6, 180]   # ANT8
+    J9:  [95.0, 31.6, 180]   # ANT7
+    J5:  [31.6, 48.0, 270]   # ANT3, local +Y -> west edge
+    J6:  [31.6, 66.0, 270]   # ANT4
+    J8:  [98.4, 48.0, 90]    # ANT6, local +Y -> east edge
+    J7:  [98.4, 66.0, 90]    # ANT5
+
+    # RF supply and passive all-off bias live immediately south of U1; no part
+    # enters any of the nine direct pad-1-to-pad RF corridors.
+    C4: [64.25, 51.6, 270]
+    R4: [60.5, 56.5, 270]
+    R5: [63.0, 57.0, 270]
+    R6: [65.5, 57.0, 270]
+    R3: [68.0, 56.5, 90]
+
+    # Rot270 presents U2 pins 4-10 toward U1 and pins 18/19 toward the keyed
+    # Cortex SWD header. J11 pin 1 is at local upper-left as viewed from top.
+    U2: [65.0, 65.0, 270]
+    C3: [70.5, 60.0, 180]
+    C5: [67.5, 59.8, 90]
+    C6: [61.5, 59.8, 90]
+    J11: [44.0, 76.0, 0]
+
+    # GCT's drawing and KiCad's exact manufacturer footprint put the local PCB
+    # edge at +3.675 mm Y; 81.325 + 3.675 = the y=85 outline exactly. The
+    # exposed CC clamp sits immediately behind the contact row.  The LDO is
+    # shifted east so its two 4.7-uF capacitors can sit directly against pins
+    # 1 and 5 without colliding with the SMB TVS courtyard.  These positions
+    # are independently enforced by the partner-specific part-dossier budgets.
+    J1: [65.0, 81.325, 0]
+    U4: [65.0, 75.3, 0]
+    R1: [61.0, 70.5, 0]
+    R2: [68.5, 70.5, 0]
+    F1: [72.0, 74.5, 90]
+    D1: [77.5, 74.5, 0]
+    C1: [85.4, 74.64, 180]
+    U3: [89.0, 73.5, 90]
+    C2: [85.4, 72.36, 180]
+
+  # Leave one legal 0.20-mm rescue-via pocket between movable bodies even
+  # though this revision anchors every fitted part: drill + 2*hole clearance.
+  legalize: {enable: true, clearance: 0.58, edge_margin: 0.30, hole_keepout: 2.6, ring_max: 40}
+
+design_rules:
+  track_min_width: 0.09
+  min_clearance: 0.09
+  via_min_annulus: 0.10
+  # GCT's manufacturer land leaves 0.1944 mm from its paired GND lands to the
+  # two locating NPTHs. 0.19 retains a positive floor without contradicting
+  # the exact drawing; this is still above the advanced-tier copper spacing.
+  hole_clearance: 0.19
+  hole_to_hole: 0.25
+  copper_edge_clearance: 0.30
+  via_min_size: 0.45
+  min_through_drill: 0.20
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  # In1 is the invariant RF reference. In2 is also continuous ground; all
+  # non-RF routing is confined to F/B unless a later reviewed change says so.
+  - {net: GND, layers: [In1.Cu, In2.Cu], priority: 0, min_thickness: 0.20, clearance: 0.20, connect: full}
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.20, clearance: 0.20, connect: thermal}
+
+silk:
+  min_text_height: 0.60
+  caption_nudge: true
+  refdes: {size: 0.60, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "JUDF"}
+  captions:
+    - {text: "ANT2", at: [35.0, 38.5], size: 0.95}
+    - {text: "ANT1", at: [50.0, 38.5], size: 0.95}
+    - {text: "PLUTO RX", at: [65.0, 38.5], size: 0.95}
+    - {text: "ANT8", at: [80.0, 38.5], size: 0.95}
+    - {text: "ANT7", at: [95.0, 38.5], size: 0.95}
+    - {text: "ANT3", at: [38.5, 48.0], size: 0.95, rot: 90}
+    - {text: "ANT4", at: [38.5, 66.0], size: 0.95, rot: 90}
+    - {text: "ANT6", at: [91.5, 48.0], size: 0.95, rot: 90}
+    - {text: "ANT5", at: [91.5, 66.0], size: 0.95, rot: 90}
+    - {text: "USB-C", at: [56.5, 84.2], size: 0.80}
+    - {text: "POWER ONLY", at: [75.0, 84.2], size: 0.80}
+    - {text: "FUSE", at: [76.5, 70.5], size: 0.60}
+    - {text: "pluto-rx2-8way-v5  100MHz-5.9GHz", at: [65.0, 42.5], size: 0.70}
+    - {text: "KEYED SWD J11", at: [44.0, 70.5], size: 0.70}
+
+asserts:
+  pad_net:
+    - {ref: J1, pad: A4, net: VBUS_RAW}
+    - {ref: J1, pad: B9, net: VBUS_RAW}
+    - {ref: J1, pad: A5, net: USB_CC1}
+    - {ref: J1, pad: B5, net: USB_CC2}
+    - {ref: J1, pad: SH, net: GND}
+    - {ref: D1, pad: 1, net: VBUS_PROTECTED}
+    - {ref: U1, pad: 24, net: RF_ANT1}
+    - {ref: U1, pad: 22, net: RF_COMMON}
+    - {ref: U1, pad: 19, net: RF_ANT8}
+    - {ref: U1, pad: 25, net: GND}
+    - {ref: J2, pad: 1, net: RF_COMMON}
+    - {ref: J3, pad: 1, net: RF_ANT1}
+    - {ref: J4, pad: 1, net: RF_ANT2}
+    - {ref: J5, pad: 1, net: RF_ANT3}
+    - {ref: J6, pad: 1, net: RF_ANT4}
+    - {ref: J7, pad: 1, net: RF_ANT5}
+    - {ref: J8, pad: 1, net: RF_ANT6}
+    - {ref: J9, pad: 1, net: RF_ANT7}
+    - {ref: J10, pad: 1, net: RF_ANT8}
+    - {ref: U2, pad: 18, net: SWDIO}
+    - {ref: U2, pad: 19, net: SWCLK}
+    - {ref: J11, pad: 1, net: 3V3}
+    - {ref: J11, pad: 2, net: SWDIO}
+    - {ref: J11, pad: 3, net: GND}
+    - {ref: J11, pad: 4, net: SWCLK}
+    - {ref: J11, pad: 5, net: GND}
+    - {ref: J11, pad: 9, net: GND}
+    - {ref: J11, pad: 10, net: NRST}
+  pad_order:
+    - {ref: U1, pads: [24, 23, 22, 21, 20, 19], axis: x}
+    - {ref: J1, pads: [A1, A4, B8, A5, B7, A6, A7, B6, A8, B5, B4, B1], axis: x}
+  body_offset:
+    - {ref: J2, axis: y, sign: "-"}
+    - {ref: J3, axis: y, sign: "-"}
+    - {ref: J10, axis: y, sign: "-"}
+    - {ref: J9, axis: y, sign: "-"}
+    - {ref: J8, axis: x, sign: "+"}
+    - {ref: J7, axis: x, sign: "+"}
+    - {ref: J6, axis: x, sign: "-"}
+    - {ref: J5, axis: x, sign: "-"}
+    - {ref: J4, axis: y, sign: "-"}
+    - {ref: J1, axis: y, sign: "+"}

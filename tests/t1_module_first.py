@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """T1: P-MOD module-first architecture selection contract."""
+import json
 import sys
 from pathlib import Path
 
@@ -32,13 +33,23 @@ def project(part_type="microcontroller", style="qfn", *, config=True):
     return root
 
 
-def write_policy(root, selections=None, **extra):
-    doc = {"schema": 1, "default": "prefer_module"}
+def write_policy(root, selections=None, *, schema=1, **extra):
+    doc = {"schema": schema,
+           "default": "prefer_module" if schema == 1 else "complexity_weighted"}
+    if schema == 2:
+        doc["module_support_threshold"] = 10
     if selections is not None:
         doc["selections"] = selections
     doc.update(extra)
     (root / "03_src/rules/integration.yaml").write_text(
         yaml.safe_dump(doc, sort_keys=False))
+
+
+def source_refs(root, refs):
+    (root / "03_tscircuit/build").mkdir(parents=True, exist_ok=True)
+    (root / "03_tscircuit/build/circuit.json").write_text(json.dumps([
+        {"type": "source_component", "name": ref} for ref in refs
+    ]))
 
 
 def exception(root):
@@ -71,6 +82,66 @@ def t_bare_exception_green():
     data["selections"][0]["exception"] = exception(root)
     write_policy(root, data["selections"])
     must_pass(run([KPY, GATE, root]), "evidenced bare-IC exception")
+
+
+@test("P-MOD v2 accepts a low-support bare IC without an exception ritual")
+def t_simple_bare_green():
+    root = project()
+    refs = ["C1", "C2", "R1", "R2"]
+    source_refs(root, refs)
+    data = yaml.safe_load((root / "03_src/rules/integration.yaml").read_text())
+    data["selections"][0]["support_refs"] = refs
+    write_policy(root, data["selections"], schema=2)
+    r = must_pass(run([KPY, GATE, root]), "simple bare IC")
+    contains(r.out, "simple_bare=1", "simple-bare coverage")
+
+
+@test("P-MOD v2 requires a trade study at the support threshold", kind="known_bad")
+def t_complex_bare_without_trade_study_red():
+    root = project()
+    refs = [f"C{i}" for i in range(1, 11)]
+    source_refs(root, refs)
+    data = yaml.safe_load((root / "03_src/rules/integration.yaml").read_text())
+    data["selections"][0]["support_refs"] = refs
+    write_policy(root, data["selections"], schema=2)
+    must_fail(run([KPY, GATE, root]), "complex bare IC", "exception")
+
+
+@test("P-MOD v2 accepts an evidenced high-support bare-IC trade study")
+def t_complex_bare_trade_study_green():
+    root = project()
+    refs = [f"C{i}" for i in range(1, 11)]
+    source_refs(root, refs)
+    data = yaml.safe_load((root / "03_src/rules/integration.yaml").read_text())
+    data["selections"][0]["support_refs"] = refs
+    trade = exception(root)
+    trade["decision_rationale"] = trade.pop("binding_requirement")
+    data["selections"][0]["exception"] = trade
+    write_policy(root, data["selections"], schema=2)
+    must_pass(run([KPY, GATE, root]), "complex bare-IC trade study")
+
+
+@test("P-MOD v2 cross-checks claimed support references", kind="known_bad")
+def t_fake_support_ref_red():
+    root = project()
+    source_refs(root, ["C1"])
+    data = yaml.safe_load((root / "03_src/rules/integration.yaml").read_text())
+    data["selections"][0]["support_refs"] = ["C1", "C_FAKE"]
+    write_policy(root, data["selections"], schema=2)
+    must_fail(run([KPY, GATE, root]), "fake support reference", "absent from circuit.json")
+
+
+@test("P-MOD v2 does not let a stale build block a newly authored support ref")
+def t_stale_build_bootstrap_green():
+    root = project()
+    source_refs(root, ["C1"])
+    (root / "03_tscircuit/src").mkdir(parents=True)
+    (root / "03_tscircuit/src/board.tsx").write_text(
+        '<capacitor name="C2" capacitance="100nF" />\n')
+    data = yaml.safe_load((root / "03_src/rules/integration.yaml").read_text())
+    data["selections"][0]["support_refs"] = ["C1", "C2"]
+    write_policy(root, data["selections"], schema=2)
+    must_pass(run([KPY, GATE, root]), "stale circuit bootstrap")
 
 
 @test("P-MOD rejects an unexplained bare MCU", kind="known_bad")
@@ -108,6 +179,39 @@ def t_omitted_controller_red():
     must_fail(run([KPY, GATE, root]), "omitted controller", "not selected")
 
 
+@test("P-MOD permits a retained historical dossier only when absent from live source")
+def t_historical_dossier_green():
+    root = project()
+    write_policy(root, [], historical_dossiers=[{
+        "part": "CTRL",
+        "reason": "Retained solely to resolve an immutable earlier release archive.",
+    }])
+    r = must_pass(run([KPY, GATE, root]), "historical dossier")
+    contains(r.out, "historical=1", "historical coverage")
+
+
+@test("P-MOD rejects calling a part historical while exact identity remains live",
+      kind="known_bad")
+def t_false_historical_red():
+    root = project()
+    (root / "03_tscircuit/src").mkdir(parents=True)
+    (root / "03_tscircuit/src/board.tsx").write_text(
+        '<chip name="U1" supplierPartNumbers={{jlcpcb:["CTRL"]}} />\n')
+    write_policy(root, [], historical_dossiers=[{
+        "part": "CTRL",
+        "reason": "Retained solely to resolve an immutable earlier release archive.",
+    }])
+    must_fail(run([KPY, GATE, root]), "false historical dossier", "still present")
+
+
+@test("P-MOD recognizes descriptive USB hub-controller type strings",
+      kind="known_bad")
+def t_usb_hub_controller_scope_red():
+    root = project("usb_2_high_speed_hub_controller", "qfn")
+    write_policy(root, [])
+    must_fail(run([KPY, GATE, root]), "omitted USB hub controller", "not selected")
+
+
 @test("P-MOD accepts an explicit no-applicable-functions declaration")
 def t_passive_board_green():
     root = project("passive", "passive")
@@ -142,8 +246,9 @@ def t_templates_are_wired():
     template = REPO / "skills/pcb-design/templates"
     policy = yaml.safe_load(
         (template / "03_src/rules/integration.yaml").read_text())
-    eq(policy["schema"], 1, "template schema")
-    eq(policy["default"], "prefer_module", "template default")
+    eq(policy["schema"], 2, "template schema")
+    eq(policy["default"], "complexity_weighted", "template default")
+    eq(policy["module_support_threshold"], 10, "template threshold")
     for driver in ("rebuild_all.sh", "rebuild_reuse.sh"):
         text = (template / f"03_src/{driver}").read_text()
         contains(text, "module_first_check.py", f"{driver} P-MOD wiring")

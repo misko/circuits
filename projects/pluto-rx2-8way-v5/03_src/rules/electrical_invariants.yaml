@@ -1,0 +1,75 @@
+invariants:
+  - {assert: pin_on_net, pin: U1.1, net: GND, adr: "0001", why: "LS must be tied low to select the documented four-bit binary truth table"}
+  - {assert: pin_on_net, pin: U1.9, net: SW_V1, adr: "0001", why: "the least-significant switch input must receive the approved V1 control bit"}
+  - {assert: pin_on_net, pin: U1.10, net: SW_V2, adr: "0001", why: "the second switch input must receive the approved V2 control bit"}
+  - {assert: pin_on_net, pin: U1.11, net: SW_V3, adr: "0001", why: "the third switch input must receive the approved V3 control bit"}
+  - {assert: pin_on_net, pin: U1.12, net: SW_V4, adr: "0001", why: "the most-significant switch input must receive the passively high V4 control bit"}
+  - {assert: pin_on_net, pin: J1.A5, net: USB_CC1, adr: "0003", why: "a reversible Type-C sink requires an independent Rd path on CC1"}
+  - {assert: pin_on_net, pin: J1.B5, net: USB_CC2, adr: "0003", why: "a reversible Type-C sink requires an independent Rd path on CC2"}
+  - {assert: series_chain, chain: [VBUS_RAW, F1, VBUS_PROTECTED, U3, 3V3], through: {U3: [1, 5]}, adr: "0003", why: "USB VBUS must pass through the resettable fuse and protected LDO before reaching the internal 3V3 rail"}
+  - {assert: pin_on_net, pin: D1.1, net: VBUS_PROTECTED, adr: "0003", why: "the SMBJ6.0A cathode must face the protected positive rail rather than forward-clamping normal VBUS"}
+  - {assert: pin_on_net, pin: D1.2, net: GND, adr: "0003", why: "the SMBJ6.0A anode must return directly to ground"}
+  - {assert: part_value, part: R1, equals: 5.1k, tolerance_pct: 1, adr: "0003", why: "CC1 requires the selected exact 5.1k one-percent sink termination"}
+  - {assert: part_value, part: R2, equals: 5.1k, tolerance_pct: 1, adr: "0003", why: "CC2 requires its own selected exact 5.1k one-percent sink termination"}
+  - {assert: part_value, part: R3, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V4 must be pulled high so reset and tri-state produce the documented ALL_OFF word"}
+  - {assert: part_value, part: R4, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V1 must be pulled low so reset and tri-state produce the documented ALL_OFF word"}
+  - {assert: part_value, part: R5, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V2 must be pulled low so reset and tri-state produce the documented ALL_OFF word"}
+  - {assert: part_value, part: R6, equals: 10k, tolerance_pct: 1, adr: "0001", why: "V3 must be pulled low so reset and tri-state produce the documented ALL_OFF word"}
+  - {assert: net_has_part, net: 3V3, part_type: capacitor, min: 4, adr: "0003", why: "the LDO, RF switch and MCU rail require their approved output, bulk and local bypass capacitors"}
+  - {assert: pin_on_net, pin: U2.4, net: 3V3, adr: "0002", why: "the preprogrammed STM32 must be powered from the protected internal rail"}
+  - {assert: pin_on_net, pin: U2.5, net: GND, adr: "0002", why: "the STM32 supply return must share the switch control reference"}
+  - {assert: pin_on_net, pin: U2.7, net: SW_V1, adr: "0002", why: "the first MCU output owns the PE42482 V1 bit"}
+  - {assert: pin_on_net, pin: U2.8, net: SW_V2, adr: "0002", why: "the second MCU output owns the PE42482 V2 bit"}
+  - {assert: pin_on_net, pin: U2.9, net: SW_V3, adr: "0002", why: "the third MCU output owns the PE42482 V3 bit"}
+  - {assert: pin_on_net, pin: U2.10, net: SW_V4, adr: "0002", why: "the fourth MCU output owns the PE42482 V4 bit"}
+  - {assert: pin_on_net, pin: U2.18, net: SWDIO, adr: "0002", why: "direct Raspberry Pi or ST-LINK programming requires an exposed SWDIO path"}
+  - {assert: pin_on_net, pin: U2.19, net: SWCLK, adr: "0002", why: "direct Raspberry Pi or ST-LINK programming requires an exposed SWCLK path"}
+  - {assert: pin_on_net, pin: J11.1, net: 3V3, adr: "0004", why: "MIPI10 pin 1 is target-powered VTref and must not be a programmer power input"}
+  - {assert: pin_on_net, pin: J11.2, net: SWDIO, adr: "0004", why: "MIPI10 pin 2 carries SWDIO"}
+  - {assert: pin_on_net, pin: J11.3, net: GND, adr: "0004", why: "MIPI10 pin 3 is a signal return"}
+  - {assert: pin_on_net, pin: J11.4, net: SWCLK, adr: "0004", why: "MIPI10 pin 4 carries SWCLK"}
+  - {assert: pin_on_net, pin: J11.5, net: GND, adr: "0004", why: "MIPI10 pin 5 is a signal return"}
+  - {assert: pin_on_net, pin: J11.9, net: GND, adr: "0004", why: "MIPI10 pin 9 provides GNDDetect compatibility"}
+  - {assert: pin_on_net, pin: J11.10, net: NRST, adr: "0004", why: "MIPI10 pin 10 carries target reset for reliable attach and recovery"}
+
+label_survival:
+  pin_map:
+    - refs: [J2]
+      pins: {"1": RF_COMMON, "2": GND, "3": GND, "4": GND, "5": GND}
+    - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
+      n_start: 1
+      pins: {"1": "RF_ANT{n}", "2": GND, "3": GND, "4": GND, "5": GND}
+    - refs: [J1]
+      pins: {A1: GND, A4: VBUS_RAW, A5: USB_CC1, A9: VBUS_RAW, A12: GND, B1: GND, B4: VBUS_RAW, B5: USB_CC2, B9: VBUS_RAW, B12: GND, SH: GND}
+      unconnected: [A6, A7, A8, B6, B7, B8]
+    - refs: [U1]
+      pins: {"1": GND, "2": RF_ANT2, "3": GND, "4": RF_ANT3, "5": GND, "6": RF_ANT4, "7": GND, "8": 3V3, "9": SW_V1, "10": SW_V2, "11": SW_V3, "12": SW_V4, "13": RF_ANT5, "14": GND, "15": RF_ANT6, "16": GND, "17": RF_ANT7, "18": GND, "19": RF_ANT8, "21": GND, "22": RF_COMMON, "23": GND, "24": RF_ANT1, "25": GND}
+      unconnected: ["20"]
+    - refs: [U3]
+      pins: {"1": VBUS_PROTECTED, "2": GND, "3": VBUS_PROTECTED, "5": 3V3}
+      unconnected: ["4"]
+    - refs: [U4]
+      pins: {"3": USB_CC1, "4": GND, "5": USB_CC2}
+      unconnected: ["1", "2"]
+    - refs: [U2]
+      pins: {"4": 3V3, "5": GND, "6": NRST, "7": SW_V1, "8": SW_V2, "9": SW_V3, "10": SW_V4, "18": SWDIO, "19": SWCLK}
+      unconnected: ["1", "2", "3", "11", "12", "13", "14", "15", "16", "17", "20"]
+    - refs: [R1, R2]
+      n_start: 1
+      pins: {"1": "USB_CC{n}", "2": GND}
+    - refs: [R3]
+      pins: {"1": 3V3, "2": SW_V4}
+    - refs: [R4, R5, R6]
+      n_start: 1
+      pins: {"1": "SW_V{n}", "2": GND}
+    - refs: [F1]
+      pins: {"1": VBUS_RAW, "2": VBUS_PROTECTED}
+    - refs: [D1, C1]
+      pins: {"1": VBUS_PROTECTED, "2": GND}
+    - refs: [C2, C3, C4, C5]
+      pins: {"1": 3V3, "2": GND}
+    - refs: [C6]
+      pins: {"1": NRST, "2": GND}
+    - refs: [J11]
+      pins: {"1": 3V3, "2": SWDIO, "3": GND, "4": SWCLK, "5": GND, "9": GND, "10": NRST}
+      unconnected: ["6", "7", "8"]

@@ -1,0 +1,20 @@
+mpn: SMBJ6.0A
+manufacturer: Littelfuse
+type: unidirectional_tvs_diode
+datasheet: {doc_id: SMBJ-Series, revision: "2025", url: "https://www.littelfuse.com/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smbj_datasheet.pdf.pdf", sha256: d7df155be4b1f612085401e8c946f065e284d65a0e7de22b9225a7b73946e51b, fetched: 2026-08-13}
+package: DO-214AA SMB
+footprint: Diode_SMD:D_SMB
+escape: {style: passive, pitch: 4.7, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+pins: {1: K, 2: A}
+limits: {reverse_standoff: 6.0V, breakdown: 6.67V-7.37V_at_10mA, clamp: 10.3V_at_58.3A_10_1000us, peak_pulse_power: 600W, operating_junction: -65C_to_150C}
+gotchas:
+  - "Cathode/pad 1 goes to protected VBUS and anode/pad 2 to GND. Reversal would forward-clamp normal VBUS."
+  - "6.0V standoff gives margin over the defined 5.5V normal maximum; 10.3V rated-waveform clamp remains below U3's 20V absolute maximum. Real ESD overshoot/inductance still requires first-article testing."
+asserts:
+  - {assert: pad1_net_polarity, pad: 1, polarity: positive, why: "Littelfuse SMBJ unidirectional polarity note and KiCad D_SMB convention; cathode is the high-potential side"}
+verified: "SMBJ6.0A exact electrical row, waveform, polarity and DO-214AA outline read from Littelfuse 2025 SMBJ series data sheet on 2026-08-13"
+sourcing: {lcsc: C83270}
+layout:
+  source: "Littelfuse SMBJ series data sheet and standard shunt-clamp topology"
+  reviewed: 2026-08-13
+  notes: "Place immediately after F1 at the connector boundary; minimize the protected-VBUS-to-D1-to-ground loop and use adjacent ground via(s)."

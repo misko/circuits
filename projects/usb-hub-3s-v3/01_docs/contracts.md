@@ -15,6 +15,7 @@ one that is unrecoverable if lost.
 | `DETAIL_DESIGN.md` | the math: ripple, compensation, ampacity, thermal, tolerance | every number that a component value depends on, with its equation |
 | `CHANGELOG.md` | one entry per revision | see structure below |
 | `CHECKLIST.md` | the gate a revision must pass before release | |
+| `findings.yaml` | single machine-readable findings/gates ledger; `project_state.py` derives maturity from it | hand-edited; every row names owner, closure condition and maturity boundary |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |

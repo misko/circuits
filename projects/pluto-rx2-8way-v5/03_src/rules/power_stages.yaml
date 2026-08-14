@@ -1,0 +1,7 @@
+# No external switching-controller/MOSFET gate-drive stage is selected or
+# authorized. ADR-0003 rejects an active protection/gate-drive stage for the
+# baseline unless later load/fault calculations require one; the selected LDO
+# is declared and graded separately in power_tree.yaml.
+schema: 2
+stages: []
+no_external_gate_drive_stages: true

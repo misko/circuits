@@ -1,5 +1,12 @@
 # Publish manifest
 
+> **Historical source-handoff inventory — not release authority.** This file
+> was assembled from mechanical build metrics before the required independent
+> pin/render/topology/layout review and seal. It must not be used to claim that
+> the board is released, publishable, or orderable. `Current release: none` is
+> authoritative until `07_releases/` contains a gate-clean sealed archive and
+> `pcb_publication_gate.py` passes.
+
 ## Hub-specific files
 
 Publish the complete non-ignored `projects/programmable-usb2-hub/` tree. Its
@@ -12,7 +19,8 @@ evidence, firmware, documentation, and contracts.
 The diagnostic `06_build/jlc_preflight/` and `06_build/jlc_release_check/`
 directories are evidence for this handoff, not files to publish.
 
-Exact non-ignored hub-specific set (122 files):
+Exact non-ignored hub-specific source/review set (131 files), excluding the
+explicitly failed mutable `07_releases/v1.0-2026-08-01/` staging directory:
 
 ```text
 .gitignore
@@ -39,8 +47,11 @@ Exact non-ignored hub-specific set (122 files):
 01_docs/sourcing/manual_quotes.yaml
 01_docs/sourcing/shopping-list-2026-07-31.json
 01_docs/sourcing/shopping-list-2026-07-31.md
+01_docs/sourcing/shopping-list-2026-08-01.json
+01_docs/sourcing/shopping-list-2026-08-01.md
 02_parts/1935161/KANGNEX-WJ126V-drawing-revA.pdf
 02_parts/1935161/part.yaml
+02_parts/0297010.H/part.yaml
 02_parts/1N4148WS/part.yaml
 02_parts/292304-1/TE-292304-drawing-revD4.pdf
 02_parts/292304-1/part.yaml
@@ -48,8 +59,6 @@ Exact non-ignored hub-specific set (122 files):
 02_parts/3568/part.yaml
 02_parts/74LVC08APW-118/74LVC08A.pdf
 02_parts/74LVC08APW-118/part.yaml
-02_parts/AON6354/AON6354_rev.pdf
-02_parts/AON6354/part.yaml
 02_parts/AP63203QWU-7/AP63200-AP63205.pdf
 02_parts/AP63203QWU-7/part.yaml
 02_parts/B340A-13-F/part.yaml
@@ -58,22 +67,26 @@ Exact non-ignored hub-specific set (122 files):
 02_parts/CL32A107MPVNNNE/part.yaml
 02_parts/CL32B106KBJNNWE/part.yaml
 02_parts/CX3225SB24000H0FLJCC/part.yaml
+02_parts/CX3225SB24000H0FLJCC/cx3225sb_e.pdf
 02_parts/FSUSB42MUX/FSUSB42-D_Rev3.pdf
 02_parts/FSUSB42MUX/part.yaml
 02_parts/FTSH-105-01-L-D-K/part.yaml
+02_parts/FTSH-105-01-L-D-K/ftsh-1xx-xx-xxx-d-xxx-xx-mkt.pdf
 02_parts/LM5116MHX-NOPB/SNVS499I.pdf
 02_parts/LM5116MHX-NOPB/part.yaml
 02_parts/LM74810QDRRRQ1/TI-LM7481-Q1-SNOSD98A.pdf
 02_parts/LM74810QDRRRQ1/part.yaml
 02_parts/MWSA1206S-6R8MT/part.yaml
 02_parts/RT0603BRD073K92L/part.yaml
-02_parts/SMBJ26A/Littelfuse-SMBJ-series-v4-2025-07-04.pdf
-02_parts/SMBJ26A/part.yaml
+02_parts/RT0603BRB071K21L/part.yaml
+02_parts/SMBJ24A/Littelfuse-SMBJ-series-v4-2025-07-04.pdf
+02_parts/SMBJ24A/part.yaml
 02_parts/STM32G0B1CBT6/DS13560Rev6.pdf
 02_parts/STM32G0B1CBT6/part.yaml
 02_parts/TPS259470ARPWR/SLVSFC9C.pdf
 02_parts/TPS259470ARPWR/SLVUC01.pdf
 02_parts/TPS259470ARPWR/part.yaml
+02_parts/TNPW06034K64BEEA/part.yaml
 02_parts/USB1130-15-A/GCT-USB1130-drawing-revA2.pdf
 02_parts/USB1130-15-A/GCT-USB1130-spec-revA1.pdf
 02_parts/USB1130-15-A/part.yaml
@@ -102,6 +115,7 @@ Exact non-ignored hub-specific set (122 files):
 03_src/rules/electrical_invariants.yaml
 03_src/rules/nets.yaml
 03_src/rules/power_tree.yaml
+03_src/rules/policy_waivers.yaml
 03_src/rules/twin_adjudications.yaml
 03_tscircuit/GENERATE.md
 03_tscircuit/build/circuit.json
@@ -134,6 +148,10 @@ Exact non-ignored hub-specific set (122 files):
 06_build/contracts.md
 07_releases/contracts.md
 08_reviews/DISPOSITIONS.md
+08_reviews/2026-08-01_v1.0-staging_pin-review_connectors-clock.md
+08_reviews/2026-08-01_v1.0-staging_pin-review_power-control.md
+08_reviews/2026-08-01_v1.0-staging_pin-review_protection-switches.md
+08_reviews/2026-08-01_v1.0-staging_tool_render-faithfulness.md
 08_reviews/contracts.md
 README.md
 contracts.md
@@ -143,15 +161,24 @@ contracts.md
 
 - `skills/kicad-pcb/scripts/pcb_toolkit.py`
 - `skills/kicad-pcb/scripts/route_and_stitch_generic.py`
+- `skills/kicad-pcb/SKILL.md`
+- `skills/kicad-pcb/scripts/pcb_flow.py`
+- `skills/kicad-pcb/scripts/policy_audit.py`
 - `skills/jlcpcb-fab/references/lcsc_passives_ledger.yaml`
 - `skills/jlcpcb-fab/scripts/assembly_coverage.py`
 - `skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv`
 - `skills/jlcpcb-fab/scripts/jlc_rotation_measure.py`
 - `skills/pcb-design/SKILL.md` — publish the Q-2SOURCE hunk; other dirty-tree
   changes in this same file are unrelated to this project
+- `skills/pcb-design/templates/03_src/rebuild_all.sh`
+- `skills/pcb-design/templates/03_src/rebuild_reuse.sh`
+- `skills/pcb-design/templates/contracts/03_src/contracts.md`
 - `skills/pcb-design/templates/contracts/01_docs/sourcing/contracts.md`
 - `tests/t1_assembly_gates.py`
+- `tests/t1_escape_tier.py`
+- `tests/t1_rebuild_templates.py`
 - `tests/t1_rotation_authority.py`
+- `tests/t2_pcb_flow.py`
 
 Do not include any other dirty-tree file merely because it is modified in this
 checkout. Isolate this manifest onto a clean branch based on `origin/main`.
@@ -174,16 +201,28 @@ checkout. Isolate this manifest onto a clean branch based on `origin/main`.
   zero-stock line is C5248536 / AP63203QWU-7 at U4, explicitly PLANNED as a
   consigned part with qualifying Mouser and DigiKey stock.
 - Assembly process: J1/J2/J7 are declared for JLC post-through-hole assembly;
-  F1 is excluded from BOM/CPL and requires two exact Keystone 3568 clips per
-  board installed after PCBA; J3-J6 remain exact post-PCBA receptacles.
+  F1 is excluded from BOM/CPL and requires one complete exact Keystone 3568
+  holder plus one exact Littelfuse 0297010.H red 10 A fuse installed after
+  PCBA; J3-J6 remain exact post-PCBA receptacles.
 - Exact-code twin: 194/194 placed bodies resolve and all 21 prior critical refs
   are closed by manufacturer-datasheet-backed entries in
   `03_src/rules/twin_adjudications.yaml`; twin exits 0 with zero unadjudicated
   critical refs. The twin regression suite passes 26/26, including all 16
   known-bad fixtures.
-- Publish handoff is technically green. It is not an order-day release: 15
-  exact codes still require the mandatory first-order JLC placement-preview
-  human gate, Q-2SOURCE must be refreshed, and JLC allocation must be confirmed
-  immediately before payment.
+- P-ADJ is now resolved in declarative source: all 27/27 keep-short and 2/2
+  pairwise budgets pass, including the four TPS25947 cells; canonical DRC and
+  parity remain 0/0/0.
+- Mutable `07_releases/v1.0-2026-08-01/` staging is **DESIGN: FAIL / DO-NOT-ORDER**.
+  Fresh-context review found Q1-Q6 do not preserve datasheet drain pin numbers
+  6-8, J3-J6 lack independent contact-number/function authority, and A-RENDER
+  fails 29 modeled-body measurements. The topology/layout/render lenses were
+  correctly not launched after those cheaper blockers.
+- Do not publish the staging directory as a release and do not create a seal
+  commit yet. The source/process changes may be isolated for continued repair;
+  the release archive becomes publishable only after the blockers are fixed,
+  all four reviews pass, hashes are stamped from a clean source commit, and the
+  two-commit seal completes. Fifteen exact codes retain the mandatory first-
+  order JLC placement-preview gate, and supplier/allocation checks remain due
+  again on payment day.
 
 not_assembled: F1, J3, J4, J5, J6

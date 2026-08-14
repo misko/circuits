@@ -79,13 +79,11 @@ gotchas:
     why the part was chosen over TPS2559-Q1, whose guaranteed reverse blocking
     is only specified while disabled.
   - >
-    Current-limit target for this board is RILM=976 ohm, 1 percent. Equation 5
-    gives 3334/976 = 3.416 A nominal. Combining the datasheet's +/-10 percent
-    limit accuracy above 1 A with resistor tolerance gives approximately
-    3.044 A minimum and 3.795 A maximum. This is the narrowest practical E96
-    setting found that still guarantees the requested 3.0 A continuous load.
-    One currently catalogued 0603 implementation is RM06FTN9760 / C162979;
-    release sourcing must recheck it or use an equivalent exact-value part.
+    Current-limit target for this board is RILM=1.47 kOhm, 1 percent. Equation
+    5 gives 3334/1470 = 2.268 A nominal. Combining the datasheet's +/-10 percent
+    accuracy above 1 A with resistor tolerance gives approximately 2.021 A
+    minimum and 2.519 A maximum, guaranteeing the commissioned 2.0 A load.
+    The implemented exact catalog value is 0603WAF1471T5E / C22841.
   - >
     Recommended repeated-cell values are CITIMER=2.2 nF (about 1.85 ms typical
     overload blanking, roughly 1.0-3.5 ms including datasheet and 10 percent
@@ -95,8 +93,8 @@ gotchas:
     pull-ups on FLT and AUXOFF if AUXOFF is populated, a 100k EN pull-down,
     at least 100 nF at IN, and at least 1 uF at OUT, all local to the device.
   - >
-    RILM also generates the current-monitor voltage. At 3.0 A and 182 uA/A typ,
-    976 ohm produces about 0.533 V. Do not add a normal ADC filter capacitor:
+    RILM also generates the current-monitor voltage. At 2.0 A and 182 uA/A typ,
+    1.47 kOhm produces about 0.535 V. Do not add a normal ADC filter capacitor:
     Section 8.4 requires ILM parasitic capacitance below 50 pF for stability.
   - >
     FLT is active low and indicates persistent current limiting after ITIMER,
@@ -120,9 +118,9 @@ gotchas:
     require an explicit host clear/power-cycle. This improves behavior but does
     not replace the hardware current limiter.
   - >
-    Worst-case steady dissipation at 3 A is 3^2*45mOhm = 0.405 W. With TI's
-    eight-via four-layer thermal example that is about 17 C rise; without the
-    via field the published theta-JA is 74.5 C/W (about 30 C rise). The custom
+    Worst-case steady dissipation at 2 A is 2^2*45mOhm = 0.180 W. With TI's
+    eight-via four-layer thermal example that is about 8 C rise; without the
+    via field the published theta-JA is 74.5 C/W (about 14 C rise). The custom
     footprint and layout must include the via-assisted IN/OUT copper geometry.
 layout:
   source: >
@@ -134,10 +132,10 @@ layout:
   keep_short:
     - {net: 5V_A, max_span_mm: 4, anchor_pins: ["5"], why: "Sec.8.4: input bypass capacitor closest to IN and GND, minimum loop area"}
     - {net: 5V_B, max_span_mm: 4, anchor_pins: ["5"], why: "Sec.8.4: input bypass capacitor closest to IN and GND, minimum loop area"}
-    - {net: P1_VBUS, max_span_mm: 4, anchor_pins: ["6"], why: "Sec.8.4: >=1uF OUT bypass physically close to OUT and GND"}
-    - {net: P2_VBUS, max_span_mm: 4, anchor_pins: ["6"], why: "Sec.8.4: >=1uF OUT bypass physically close to OUT and GND"}
-    - {net: P3_VBUS, max_span_mm: 4, anchor_pins: ["6"], why: "Sec.8.4: >=1uF OUT bypass physically close to OUT and GND"}
-    - {net: P4_VBUS, max_span_mm: 4, anchor_pins: ["6"], why: "Sec.8.4: >=1uF OUT bypass physically close to OUT and GND"}
+    - {net: P1_VBUS, max_span_mm: 5, anchor_pins: ["6"], partner_refs: [C423], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
+    - {net: P2_VBUS, max_span_mm: 5, anchor_pins: ["6"], partner_refs: [C443], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
+    - {net: P3_VBUS, max_span_mm: 5, anchor_pins: ["6"], partner_refs: [C463], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
+    - {net: P4_VBUS, max_span_mm: 5, anchor_pins: ["6"], partner_refs: [C483], why: "DERIVED from Sec.8.4: a 5 mm maximum keeps the >=1uF OUT bypass physically close to OUT/GND without entering the USB fanout"}
     - {net: P1_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
     - {net: P2_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
     - {net: P3_ILIM, max_span_mm: 3, anchor_pins: ["9"], why: "Sec.8.4: RILM close; ILM below 50pF and away from switching nodes"}
@@ -154,8 +152,10 @@ sourcing:
   lcsc: C3662799
   alternates: []
   note: >
-    JLCPCB catalog observation on 2026-07-31 identified C3662799 as an Extended
-    SMT-assembly part; live availability must be rechecked by the release gate.
+    Q-2SOURCE MEASURED 2026-08-01: exact manufacturer MPN had Mouser API stock
+    9,831 and exact JLC/LCSC C3662799 catalog stock 1,736. Both supplier pools
+    independently satisfy five-board demand; live availability must be
+    rechecked by the release gate on order day.
 asserts:
   - assert: value
     equals: TPS259470ARPWR

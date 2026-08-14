@@ -1,0 +1,14 @@
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
+
+selections:
+  - function: autonomous_dwell_controller
+    part: STM32C011F4P6
+    implementation: bare_ic
+    support_refs: [C3, C4, C6]
+    rationale: >-
+      A small TSSOP-20 MCU implements deterministic timing, BOR, watchdog and
+      SWD with only two supply capacitors and one reset capacitor. A radio or
+      processor module adds a clocked RF subsystem, current, keep-out and
+      coupling risk without reducing the control problem.

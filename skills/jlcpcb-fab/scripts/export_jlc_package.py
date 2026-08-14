@@ -17,6 +17,10 @@ Run only AFTER the audit gate and classified DRC pass (kicad-pcb skill).
   bom.csv is only a per-refdes FALLBACK for parts the source does not code.
 - Bottom-side CPL coordinates are NOT mirrored (JLC handles that), but
   bottom ROTATIONS are the classic failure — check the assembly preview.
+- A declared selective ``via_process.order_remark`` is emitted verbatim as
+  ``order_notes.txt`` beside the upload files.  Gerber does not carry KiCad's
+  per-item fill/cap attributes, so this generated instruction is part of the
+  manufacturing package even though it is not inside the PCB upload zip.
 - The BOM is graded as its RECIPIENT parses it (canon F-LEGIBLE, ADR-0006):
   the MPN comes from `02_parts/<MPN>/part.yaml` (the dossier's `mpn:` field,
   then the vetted passives ledger) and a coded row resolving NO MPN BLOCKS;
@@ -73,6 +77,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from jlc_footprint_symmetry import symmetry
 from jlc_rotation_resolve import (SRC_UNSOURCED, load_lcsc_rows,  # noqa: E402
                                   load_name_db, resolve)
+from via_process_check import load_assembly, via_order_note  # noqa: E402
 
 # ONE loader, shared with jlc_rotation_audit.py, so the exporter and the
 # auditor cannot disagree about what the files say. (It also catches ValueError
@@ -272,6 +277,9 @@ board = pcbnew.LoadBoard(args.board)
 out = Path(args.outdir).resolve()
 out.mkdir(parents=True, exist_ok=True)
 stem = Path(args.board).stem
+order_notes_path = out / "order_notes.txt"
+# A failed or changed export must not leave a plausible stale instruction.
+order_notes_path.unlink(missing_ok=True)
 
 pc = pcbnew.PLOT_CONTROLLER(board)
 po = pc.GetPlotOptions()
@@ -701,6 +709,17 @@ if _contradiction:
           f"appear on the CPL — JLC would be told to place a part with no BOM "
           f"line to source it from")
     sys.exit(4)
+
+# The exact fabricator-facing selective-via instruction is generated from the
+# same assembly.yaml that population/export decisions consume.  It is written
+# only after the assembly half has passed its blocking gates; a failed run
+# leaves absence, not yesterday's order note.
+_assembly_data, _assembly_source = load_assembly(Path(args.board))
+_order_note = via_order_note(_assembly_data, _assembly_source)
+if _order_note:
+    order_notes_path.write_text(_order_note, encoding="utf-8")
+    print(f"  V-ORDER generated: {order_notes_path.name} "
+          f"({_assembly_source})")
 
 # Upload zip: gerbers + drills (+ job file when present) — no BOM/CPL inside.
 # Inner-layer Protel extensions are VERSION-DEPENDENT: KiCad 7 wrote

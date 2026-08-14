@@ -109,6 +109,11 @@ USAGE
       01_docs/decisions/ must have at least one invariant citing its number.
       Exit 1 naming any protection ADR that emitted no invariant.
 
+  electrical_invariants.py PROJECT_DIR --schema-only [--min-invariants N]
+      Validate the authored invariant schema without requiring a generated
+      netlist.  This is the inexpensive pre-TSX form of the gate; an optional
+      minimum makes an expected declaration non-vacuous.
+
   --netlist PATH / --invariants PATH   override the auto-located files.
 
 Netlist-only: no pcbnew import, runs on any python3 with PyYAML.
@@ -1112,8 +1117,24 @@ def main(argv=None):
     ap.add_argument("--invariants", default="")
     ap.add_argument("--adr-coverage", action="store_true",
                     help="grade E-ADR (protection ADRs must emit an invariant)")
+    ap.add_argument("--schema-only", action="store_true",
+                    help="validate authored invariant schema without a netlist")
+    ap.add_argument("--min-invariants", type=int, default=0,
+                    help="with --schema-only, require at least this many rows")
     args = ap.parse_args(argv)
     proj = Path(args.project)
+
+    if args.min_invariants < 0:
+        print("E-INV-SCHEMA LOAD ERROR: --min-invariants must be >= 0")
+        return 2
+    if args.min_invariants and not args.schema_only:
+        print("E-INV-SCHEMA LOAD ERROR: --min-invariants requires "
+              "--schema-only")
+        return 2
+    if args.schema_only and args.adr_coverage:
+        print("E-INV-SCHEMA LOAD ERROR: --schema-only and --adr-coverage "
+              "are separate source gates")
+        return 2
 
     if args.adr_coverage:
         try:
@@ -1154,6 +1175,14 @@ def main(argv=None):
     except LoadError as e:
         print(f"E-INV LOAD ERROR: {e}")
         return 2
+    if args.schema_only:
+        if len(invs) < args.min_invariants:
+            print(f"E-INV-SCHEMA FAIL: {len(invs)}/{args.min_invariants} "
+                  f"minimum invariant row(s) present in {invp}")
+            return 1
+        print(f"E-INV-SCHEMA PASS: {len(invs)}/{len(invs)} invariant row(s) "
+              f"are schema-valid in {invp}")
+        return 0
     for _iv in invs:                       # ADR-0007: dossiers hold the facts
         if _iv.get("_parts_dir") is None:
             _iv["_parts_dir"] = str(Path(proj) / "02_parts")

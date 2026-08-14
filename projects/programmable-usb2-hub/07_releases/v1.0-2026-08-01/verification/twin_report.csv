@@ -1,0 +1,443 @@
+LCSC,Ref,Status,Detail
+C21189,R108,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21189,R109,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21189,R2,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21189,R208,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21189,R209,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C5126242,R103,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C5126242,R203,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R107,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R207,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R32,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R33,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R410,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R416,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R420,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R426,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R430,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R436,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R440,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25803,R446,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C111,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C211,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C22,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C32,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C33,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C34,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C35,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C38,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C39,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C412,OK,fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C414,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C415,OK,fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C42,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C422,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C424,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C425,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C432,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C434,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C435,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C44,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C442,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C444,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C445,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663,C45,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C24497,C2,OK,fit=0.11mm jlc_offset=0 db=0.0 src=name-DB
+C24497,C3,OK,fit=0.11mm jlc_offset=0 db=0.0 src=name-DB
+C14858,C103,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14858,C203,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23742,C112,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C23742,C113,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C23742,C114,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C23742,C115,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C23742,C212,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C23742,C213,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C23742,C214,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C23742,C215,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R36,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R37,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R412,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R413,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R419,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R422,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R423,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R429,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R432,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R433,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R439,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R442,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R443,OK,fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C25804,R449,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C844901,RS1,OK,fit=0.11mm jlc_offset=0 db=0.0 src=name-DB
+C844901,RS2,OK,fit=0.11mm jlc_offset=0 db=0.0 src=name-DB
+C57112,C104,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C57112,C204,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C13585,C21,OK,fit=0.12mm jlc_offset=0 db=0.0 src=name-DB
+C3844168,C107,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C3844168,C108,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C3844168,C109,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C3844168,C110,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C3844168,C207,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C3844168,C208,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C3844168,C209,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C3844168,C210,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C2930057,R5,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C22865,R101,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C22865,R201,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C22790,R31,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25810,R104,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25810,R204,OK,fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C1647,C30,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1647,C31,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C3819953,J1,OK,fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C22935,R30,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C2128,D2,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C2128,D2,POLARITY-FIT-OK,marking channel agrees with the pad fit (both at pad 1; margins 0.56/0.33mm)
+C2128,D2,OK,fit=0.12mm jlc_offset=0 db=0.0 src=lcsc
+C2128,D3,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C2128,D3,POLARITY-FIT-OK,marking channel agrees with the pad fit (both at pad 1; margins 0.56/0.33mm)
+C2128,D3,OK,fit=0.12mm jlc_offset=0 db=0.0 src=lcsc
+C21190,R415,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21190,R418,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21190,R425,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21190,R428,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21190,R435,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21190,R438,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21190,R445,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21190,R448,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C62774,C116,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C62774,C216,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15849,C105,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849,C106,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849,C205,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849,C206,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849,C36,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849,C37,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849,C40,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15849,C41,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1604,C411,OK,fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C1604,C421,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1604,C431,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1604,C441,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C137327,R110,OK,fit=0.02mm jlc_offset=0 db=0.0 src=name-DB
+C137327,R210,OK,fit=0.02mm jlc_offset=0 db=0.0 src=name-DB
+C21120,C1,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C12891,C23,OK,fit=0.12mm jlc_offset=0 db=0.0 src=name-DB
+C12891,C24,OK,fit=0.12mm jlc_offset=0 db=0.0 src=name-DB
+C309062,C413,OK,fit=0.04mm jlc_offset=0 db=0.0 src=name-DB
+C309062,C423,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C309062,C433,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C309062,C443,OK,fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C86462,J2,OK,fit=0.17mm jlc_offset=0 db=0.0 src=lcsc
+C1613,C102,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1613,C202,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1613,C410,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1613,C420,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1613,C430,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1613,C440,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C728591,R102,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C728591,R202,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1664,C101,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1664,C201,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C2930095,R411,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C2930095,R421,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C2930095,R431,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C2930095,R441,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25972,R3,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23162,R34,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23162,R35,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C19666,C43,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23184,R105,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23184,R205,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23215,R106,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23215,R206,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23231,R417,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23231,R427,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23231,R437,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23231,R447,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C6053,U8,OK,fit=0.06mm jlc_offset=270 db=270.0 src=lcsc
+C2999456,R1,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C2930136,R4,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C5126196,R414,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C5126196,R424,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C5126196,R434,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C5126196,R444,OK,fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C404363,Q3,PAD-MULTIPLICITY,"pad number(s) 5 appear a different number of times on the two footprints (ours {'5': 2} vs JLC {'5': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C404363,Q3,PAD-GEOM,pad 1<->5 ours 5.25mm vs JLC 6.97mm (d1.72mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C404363,Q3,PAD-MISMATCH,"best=(1.6443216217270307, False, 270)"
+C404363,Q3,MOUNT-FALLBACK,"best 1.64mm at 270deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay"
+C404363,Q4,PAD-MULTIPLICITY,"pad number(s) 5 appear a different number of times on the two footprints (ours {'5': 2} vs JLC {'5': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C404363,Q4,PAD-GEOM,pad 1<->5 ours 5.25mm vs JLC 6.97mm (d1.72mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C404363,Q4,PAD-MISMATCH,"best=(1.6443216217270307, False, 270)"
+C404363,Q4,MOUNT-FALLBACK,"best 1.64mm at 270deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay"
+C404363,Q5,PAD-MULTIPLICITY,"pad number(s) 5 appear a different number of times on the two footprints (ours {'5': 2} vs JLC {'5': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C404363,Q5,PAD-GEOM,pad 1<->5 ours 5.25mm vs JLC 6.97mm (d1.72mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C404363,Q5,PAD-MISMATCH,"best=(1.6443216217270307, False, 270)"
+C404363,Q5,MOUNT-FALLBACK,"best 1.64mm at 270deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay"
+C404363,Q6,PAD-MULTIPLICITY,"pad number(s) 5 appear a different number of times on the two footprints (ours {'5': 2} vs JLC {'5': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C404363,Q6,PAD-GEOM,pad 1<->5 ours 5.25mm vs JLC 6.97mm (d1.72mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C404363,Q6,PAD-MISMATCH,"best=(1.6443216217270307, False, 270)"
+C404363,Q6,MOUNT-FALLBACK,"best 1.64mm at 270deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay"
+C5248536,U4,OK,fit=0.06mm jlc_offset=270 db=270.0 src=lcsc
+C85098,D4,PAD-GEOM,pad 1<->2 ours 4.00mm vs JLC 4.38mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C85098,D4,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C85098,D4,POLARITY-FIT-BLIND,"no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal"
+C85098,D4,OK,fit=0.19mm jlc_offset=0 db=0.0 src=lcsc
+C85098,D5,PAD-GEOM,pad 1<->2 ours 4.00mm vs JLC 4.38mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C85098,D5,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C85098,D5,POLARITY-FIT-BLIND,"no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal"
+C85098,D5,OK,fit=0.19mm jlc_offset=0 db=0.0 src=lcsc
+C85098,D6,PAD-GEOM,pad 1<->2 ours 4.00mm vs JLC 4.38mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C85098,D6,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C85098,D6,POLARITY-FIT-BLIND,"no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal"
+C85098,D6,OK,fit=0.19mm jlc_offset=0 db=0.0 src=lcsc
+C85098,D7,PAD-GEOM,pad 1<->2 ours 4.00mm vs JLC 4.38mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C85098,D7,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C85098,D7,POLARITY-FIT-BLIND,"no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal"
+C85098,D7,OK,fit=0.19mm jlc_offset=0 db=0.0 src=lcsc
+C454269,Q1,PAD-MULTIPLICITY,"pad number(s) 3,8 appear a different number of times on the two footprints (ours {'3': 1, '8': 1} vs JLC {'3': 2, '8': 2}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C454269,Q1,PAD-GEOM,pad 3<->5 ours 4.08mm vs JLC 5.78mm (d1.70mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C454269,Q1,PAD-MISMATCH,"best=(1.089891307654121, False, 270)"
+C454269,Q1,MOUNT-FALLBACK,"best 1.09mm at 270deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay"
+C454269,Q2,PAD-MULTIPLICITY,"pad number(s) 3,8 appear a different number of times on the two footprints (ours {'3': 1, '8': 1} vs JLC {'3': 2, '8': 2}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C454269,Q2,PAD-GEOM,pad 3<->5 ours 4.08mm vs JLC 5.78mm (d1.70mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C454269,Q2,PAD-MISMATCH,"best=(1.089891307654121, False, 270)"
+C454269,Q2,MOUNT-FALLBACK,"best 1.09mm at 270deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay"
+C1985204,Y1,OK,fit=0.05mm jlc_offset=0 db=0.0 src=lcsc
+C11355,U13,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C11355,U14,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C11355,U15,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C11355,U16,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C19191796,J7,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C13755,U2,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C13755,U3,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C3215601,U1,OK,fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C408523,L1,PAD-GEOM,pad 1<->2 ours 11.25mm vs JLC 12.00mm (d0.75mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C408523,L1,OK,fit=0.38mm jlc_offset=0 db=0.0 src=name-DB
+C408523,L2,PAD-GEOM,pad 1<->2 ours 11.25mm vs JLC 12.00mm (d0.75mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C408523,L2,OK,fit=0.38mm jlc_offset=0 db=0.0 src=name-DB
+C315992,D1,PAD-GEOM,pad 1<->2 ours 4.30mm vs JLC 4.72mm (d0.42mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C315992,D1,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C315992,D1,POLARITY-FIT-BLIND,"no usable polarity marking on our footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal"
+C315992,D1,OK,fit=0.21mm jlc_offset=0 db=0.0 src=lcsc
+C2847904,U7,OK,fit=0.09mm jlc_offset=270 db=270.0 src=lcsc
+C3662799,U10,PAD-MULTIPLICITY,"pad number(s) 5,6 appear a different number of times on the two footprints (ours {'5': 5, '6': 5} vs JLC {'5': 1, '6': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C3662799,U10,PAD-GEOM,pad 1<->4 ours 1.42mm vs JLC 1.80mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C3662799,U10,OK,fit=0.28mm jlc_offset=0 db=0.0 src=lcsc
+C3662799,U11,PAD-MULTIPLICITY,"pad number(s) 5,6 appear a different number of times on the two footprints (ours {'5': 5, '6': 5} vs JLC {'5': 1, '6': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C3662799,U11,PAD-GEOM,pad 1<->4 ours 1.42mm vs JLC 1.80mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C3662799,U11,OK,fit=0.28mm jlc_offset=0 db=0.0 src=lcsc
+C3662799,U12,PAD-MULTIPLICITY,"pad number(s) 5,6 appear a different number of times on the two footprints (ours {'5': 5, '6': 5} vs JLC {'5': 1, '6': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C3662799,U12,PAD-GEOM,pad 1<->4 ours 1.42mm vs JLC 1.80mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C3662799,U12,OK,fit=0.28mm jlc_offset=0 db=0.0 src=lcsc
+C3662799,U9,PAD-MULTIPLICITY,"pad number(s) 5,6 appear a different number of times on the two footprints (ours {'5': 5, '6': 5} vs JLC {'5': 1, '6': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C3662799,U9,PAD-GEOM,pad 1<->4 ours 1.42mm vs JLC 1.80mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C3662799,U9,OK,fit=0.28mm jlc_offset=0 db=0.0 src=lcsc
+C478081,U6,PAD-MULTIPLICITY,"pad number(s) 65 appear a different number of times on the two footprints (ours {'65': 18} vs JLC {'65': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C478081,U6,OK,fit=0.04mm jlc_offset=0 db=0.0 src=lcsc
+C7519,U17,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C7519,U18,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C7519,U19,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C7519,U20,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C7519,U5,OK,fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C307880,L3,PAD-GEOM,pad 1<->2 ours 4.20mm vs JLC 5.00mm (d0.80mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C307880,L3,OK,fit=0.40mm jlc_offset=0 db=0.0 src=name-DB
+C5249699,F1,PAD-MULTIPLICITY,"pad number(s) 1,2 appear a different number of times on the two footprints (ours {'1': 2, '2': 2} vs JLC {'1': 1, '2': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead"
+C5249699,F1,PAD-GEOM,pad 1<->2 ours 9.92mm vs JLC 3.40mm (d6.52mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C5249699,F1,PAD-MISMATCH,"best=(3.2600000000000007, False, 90)"
+C5249699,F1,MOUNT-FALLBACK,"best 3.26mm at 90deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay"
+C21189,R108,MODEL-REG-OK,body on courtyard (0.00mm)
+C21189,R109,MODEL-REG-OK,body on courtyard (0.00mm)
+C21189,R2,MODEL-REG-OK,body on courtyard (0.00mm)
+C21189,R208,MODEL-REG-OK,body on courtyard (0.00mm)
+C21189,R209,MODEL-REG-OK,body on courtyard (0.00mm)
+C5126242,R103,MODEL-REG-OK,body on courtyard (0.00mm)
+C5126242,R203,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R107,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R207,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R32,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R33,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R410,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R416,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R420,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R426,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R430,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R436,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R440,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R446,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C111,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C211,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C22,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C32,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C33,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C34,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C35,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C38,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C39,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C412,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C414,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C415,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C42,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C422,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C424,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C425,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C432,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C434,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C435,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C44,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C442,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C444,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C445,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C45,MODEL-REG-OK,body on courtyard (0.00mm)
+C24497,C2,MODEL-REG-OK,body on courtyard (0.00mm)
+C24497,C3,MODEL-REG-OK,body on courtyard (0.00mm)
+C14858,C103,MODEL-REG-OK,body on courtyard (0.00mm)
+C14858,C203,MODEL-REG-OK,body on courtyard (0.00mm)
+C23742,C112,MODEL-REG-OK,body on courtyard (0.00mm)
+C23742,C113,MODEL-REG-OK,body on courtyard (0.00mm)
+C23742,C114,MODEL-REG-OK,body on courtyard (0.00mm)
+C23742,C115,MODEL-REG-OK,body on courtyard (0.00mm)
+C23742,C212,MODEL-REG-OK,body on courtyard (0.00mm)
+C23742,C213,MODEL-REG-OK,body on courtyard (0.00mm)
+C23742,C214,MODEL-REG-OK,body on courtyard (0.00mm)
+C23742,C215,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R36,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R37,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R412,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R413,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R419,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R422,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R423,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R429,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R432,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R433,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R439,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R442,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R443,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R449,MODEL-REG-OK,body on courtyard (0.00mm)
+C844901,RS1,MODEL-REG-OK,body on courtyard (0.07mm)
+C844901,RS2,MODEL-REG-OK,body on courtyard (0.07mm)
+C57112,C104,MODEL-REG-OK,body on courtyard (0.00mm)
+C57112,C204,MODEL-REG-OK,body on courtyard (0.00mm)
+C13585,C21,MODEL-REG-OK,body on courtyard (0.00mm)
+C3844168,C107,MODEL-REG-OK,body on courtyard (0.00mm)
+C3844168,C108,MODEL-REG-OK,body on courtyard (0.00mm)
+C3844168,C109,MODEL-REG-OK,body on courtyard (0.00mm)
+C3844168,C110,MODEL-REG-OK,body on courtyard (0.00mm)
+C3844168,C207,MODEL-REG-OK,body on courtyard (0.00mm)
+C3844168,C208,MODEL-REG-OK,body on courtyard (0.00mm)
+C3844168,C209,MODEL-REG-OK,body on courtyard (0.00mm)
+C3844168,C210,MODEL-REG-OK,body on courtyard (0.00mm)
+C2930057,R5,MODEL-REG-OK,body on courtyard (0.00mm)
+C22865,R101,MODEL-REG-OK,body on courtyard (0.00mm)
+C22865,R201,MODEL-REG-OK,body on courtyard (0.00mm)
+C22790,R31,MODEL-REG-OK,body on courtyard (0.00mm)
+C25810,R104,MODEL-REG-OK,body on courtyard (0.00mm)
+C25810,R204,MODEL-REG-OK,body on courtyard (0.00mm)
+C1647,C30,MODEL-REG-OK,body on courtyard (0.00mm)
+C1647,C31,MODEL-REG-OK,body on courtyard (0.00mm)
+C3819953,J1,MODEL-REG-OK,body on courtyard (0.55mm)
+C22935,R30,MODEL-REG-OK,body on courtyard (0.00mm)
+C2128,D2,MODEL-REG-OK,body on courtyard (0.00mm)
+C2128,D3,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R415,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R418,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R425,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R428,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R435,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R438,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R445,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R448,MODEL-REG-OK,body on courtyard (0.00mm)
+C62774,C116,MODEL-REG-OK,body on courtyard (0.00mm)
+C62774,C216,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C105,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C106,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C205,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C206,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C36,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C37,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C40,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C41,MODEL-REG-OK,body on courtyard (0.00mm)
+C1604,C411,MODEL-REG-OK,body on courtyard (0.00mm)
+C1604,C421,MODEL-REG-OK,body on courtyard (0.00mm)
+C1604,C431,MODEL-REG-OK,body on courtyard (0.00mm)
+C1604,C441,MODEL-REG-OK,body on courtyard (0.00mm)
+C137327,R110,MODEL-REG-OK,body on courtyard (0.00mm)
+C137327,R210,MODEL-REG-OK,body on courtyard (0.00mm)
+C21120,C1,MODEL-REG-OK,body on courtyard (0.00mm)
+C12891,C23,MODEL-REG-OK,body on courtyard (0.00mm)
+C12891,C24,MODEL-REG-OK,body on courtyard (0.00mm)
+C309062,C413,MODEL-REG-OK,body on courtyard (0.00mm)
+C309062,C423,MODEL-REG-OK,body on courtyard (0.00mm)
+C309062,C433,MODEL-REG-OK,body on courtyard (0.00mm)
+C309062,C443,MODEL-REG-OK,body on courtyard (0.00mm)
+C86462,J2,MODEL-REG,"body center 4.1mm off courtyard, area ratio 1.91, incl. pad_geom_delta=0.20mm -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (4.3mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override"
+C1613,C102,MODEL-REG-OK,body on courtyard (0.00mm)
+C1613,C202,MODEL-REG-OK,body on courtyard (0.00mm)
+C1613,C410,MODEL-REG-OK,body on courtyard (0.00mm)
+C1613,C420,MODEL-REG-OK,body on courtyard (0.00mm)
+C1613,C430,MODEL-REG-OK,body on courtyard (0.00mm)
+C1613,C440,MODEL-REG-OK,body on courtyard (0.00mm)
+C728591,R102,MODEL-REG-OK,body on courtyard (0.00mm)
+C728591,R202,MODEL-REG-OK,body on courtyard (0.00mm)
+C1664,C101,MODEL-REG-OK,body on courtyard (0.00mm)
+C1664,C201,MODEL-REG-OK,body on courtyard (0.00mm)
+C2930095,R411,MODEL-REG-OK,body on courtyard (0.00mm)
+C2930095,R421,MODEL-REG-OK,body on courtyard (0.00mm)
+C2930095,R431,MODEL-REG-OK,body on courtyard (0.00mm)
+C2930095,R441,MODEL-REG-OK,body on courtyard (0.00mm)
+C25972,R3,MODEL-REG-OK,body on courtyard (0.00mm)
+C23162,R34,MODEL-REG-OK,body on courtyard (0.00mm)
+C23162,R35,MODEL-REG-OK,body on courtyard (0.00mm)
+C19666,C43,MODEL-REG-OK,body on courtyard (0.00mm)
+C23184,R105,MODEL-REG-OK,body on courtyard (0.00mm)
+C23184,R205,MODEL-REG-OK,body on courtyard (0.00mm)
+C23215,R106,MODEL-REG-OK,body on courtyard (0.00mm)
+C23215,R206,MODEL-REG-OK,body on courtyard (0.00mm)
+C23231,R417,MODEL-REG-OK,body on courtyard (0.00mm)
+C23231,R427,MODEL-REG-OK,body on courtyard (0.00mm)
+C23231,R437,MODEL-REG-OK,body on courtyard (0.00mm)
+C23231,R447,MODEL-REG-OK,body on courtyard (0.00mm)
+C6053,U8,MODEL-REG-OK,body on courtyard (0.00mm)
+C2999456,R1,MODEL-REG-OK,body on courtyard (0.00mm)
+C2930136,R4,MODEL-REG-OK,body on courtyard (0.00mm)
+C5126196,R414,MODEL-REG-OK,body on courtyard (0.00mm)
+C5126196,R424,MODEL-REG-OK,body on courtyard (0.00mm)
+C5126196,R434,MODEL-REG-OK,body on courtyard (0.00mm)
+C5126196,R444,MODEL-REG-OK,body on courtyard (0.00mm)
+C404363,Q3,MODEL-REG-OK,body on courtyard (0.03mm)
+C404363,Q4,MODEL-REG-OK,body on courtyard (0.03mm)
+C404363,Q5,MODEL-REG-OK,body on courtyard (0.03mm)
+C404363,Q6,MODEL-REG-OK,body on courtyard (0.03mm)
+C5248536,U4,MODEL-REG-OK,body on courtyard (0.00mm)
+C85098,D4,MODEL-REG-OK,body on courtyard (0.00mm)
+C85098,D5,MODEL-REG-OK,body on courtyard (0.00mm)
+C85098,D6,MODEL-REG-OK,body on courtyard (0.00mm)
+C85098,D7,MODEL-REG-OK,body on courtyard (0.00mm)
+C454269,Q1,MODEL-REG-OK,body on courtyard (0.89mm)
+C454269,Q2,MODEL-REG-OK,body on courtyard (0.89mm)
+C1985204,Y1,MODEL-REG-OK,body on courtyard (0.00mm)
+C11355,U13,MODEL-REG-OK,body on courtyard (0.00mm)
+C11355,U14,MODEL-REG-OK,body on courtyard (0.00mm)
+C11355,U15,MODEL-REG-OK,body on courtyard (0.00mm)
+C11355,U16,MODEL-REG-OK,body on courtyard (0.00mm)
+C19191796,J7,MODEL-REG,"body center 2.6mm off courtyard, area ratio 0.96 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.0mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override"
+C13755,U2,MODEL-REG-OK,body on courtyard (0.00mm)
+C13755,U3,MODEL-REG-OK,body on courtyard (0.00mm)
+C3215601,U1,MODEL-REG-OK,body on courtyard (0.00mm)
+C408523,L1,MODEL-REG-OK,body on courtyard (0.00mm)
+C408523,L2,MODEL-REG-OK,body on courtyard (0.00mm)
+C315992,D1,MODEL-REG-OK,body on courtyard (0.00mm)
+C2847904,U7,MODEL-REG-OK,body on courtyard (0.00mm)
+C3662799,U10,MODEL-REG-OK,body on courtyard (0.10mm)
+C3662799,U11,MODEL-REG-OK,body on courtyard (0.10mm)
+C3662799,U12,MODEL-REG-OK,body on courtyard (0.10mm)
+C3662799,U9,MODEL-REG-OK,body on courtyard (0.10mm)
+C478081,U6,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,U17,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,U18,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,U19,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,U20,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,U5,MODEL-REG-OK,body on courtyard (0.00mm)
+C307880,L3,MODEL-REG-OK,body on courtyard (0.00mm)
+C5249699,F1,MODEL-REG,"body center 5.0mm off courtyard, area ratio 0.89, incl. pad_geom_delta=6.52mm -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.0mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override [MOUNT-FALLBACK: no pad correspondence exists, so this body is at JLC's OWN transform and the leads CANNOT be expected to sit on our pads — the render answers 'what does JLC's CAD look like on our board', not 'do the leads land'. Settle the land pattern against the datasheet; the picture cannot]"

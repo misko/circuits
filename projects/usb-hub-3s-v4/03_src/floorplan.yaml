@@ -1,0 +1,330 @@
+# USB Hub 3S v4 placement source — intentionally unrouted.
+# Protected input at west; two TI module cells centrally; three charge-only
+# USB-A cells on the east edge; attach-controlled power-only Type-C at south.
+project:
+  name: usb_hub_3s_v4
+  netlist: 06_build/netlists/usb_hub_3s_v4.net
+  output: 04_kicad/usb_hub_3s_v4.kicad_pcb
+  parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
+
+board:
+  outline: {x0: 20.0, y0: 20.0, x1: 150.0, y1: 110.0}
+  edge_width: 0.1
+  layers: 4
+  stackup:
+    nominal_thickness_mm: 1.2
+    thickness_tolerance_mm: 0.10
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.01
+    copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
+    dielectrics:
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 0.6000, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    refdes_prefix: H
+    at: [[25.0, 25.0], [134.8, 25.0], [25.0, 105.0], [145.0, 105.0]]
+  # Three non-collinear global fiducials for U3/J5's 0.50 mm placement.
+  fiducials:
+    footprint: Fiducial:Fiducial_1mm_Mask2mm
+    refdes_prefix: FID
+    at: [[32.0, 25.0], [122.0, 25.0], [32.0, 103.0]]
+
+# Thermal fields are explicit board-level via primitives, relative to their
+# owning footprints.  The footprint libraries retain only the manufacturer SMD
+# lands, so the live board footprint stays byte-comparable with its library and
+# schematic while JLC's fill/cap process sees real vias rather than PTH pads.
+thermal_vias:
+  # JLC advanced POFV / IPC-4761 Type VII is item-specific: only these
+  # 0.50/0.20 mm holes embedded in SMD lands are filled and copper-capped.
+  # Ordinary off-pad route/stitch/transfer vias remain on board defaults. The
+  # 1.2 mm stack gives a conservative 6:1 aspect ratio at the 0.20 mm drill.
+  protection: {capping: yes, filling: yes}
+  fields:
+    - {ref: U1, pad: 19, size: 0.50, drill: 0.20,
+       at: [[-0.75, -2.25], [0.75, -2.25]]}
+    - {ref: U1, pad: 20, size: 0.50, drill: 0.20,
+       at: [[-0.75, -0.75], [0.75, -0.75]]}
+    - {ref: U1, pad: 21, size: 0.50, drill: 0.20,
+       at: [[-0.75, 0.75], [0.75, 0.75]]}
+    - {ref: U1, pad: 22, size: 0.50, drill: 0.20,
+       at: [[-0.75, 2.25], [0.75, 2.25]]}
+    - {ref: U2, pad: 17, size: 0.50, drill: 0.20,
+       at: [[-0.45, -1.613], [0.45, -1.613]]}
+    - {ref: U2, pad: 18, size: 0.50, drill: 0.20,
+       at: [[-0.45, -0.538], [0.45, -0.538]]}
+    - {ref: U2, pad: 19, size: 0.50, drill: 0.20,
+       at: [[-0.45, 0.538], [0.45, 0.538]]}
+    - {ref: U2, pad: 20, size: 0.50, drill: 0.20,
+       at: [[-0.45, 1.613], [0.45, 1.613]]}
+    - {ref: U3, pad: 21, size: 0.50, drill: 0.20,
+       at: [[-0.50, -1.00], [-0.50, 0.00], [-0.50, 1.00],
+            [0.50, -1.00], [0.50, 0.00], [0.50, 1.00]]}
+    - {refs: [U4, U5, U6], pad: 11, size: 0.50, drill: 0.20,
+       at: [[-0.30, -1.00], [-0.30, 0.00], [-0.30, 1.00],
+            [0.30, -1.00], [0.30, 0.00], [0.30, 1.00]]}
+    - {ref: U9, pad: 25, size: 0.50, drill: 0.20,
+       at: [[-0.90, -0.55], [-0.90, 0.55], [-0.35, -0.55], [-0.35, 0.55]]}
+    - {ref: U9, pad: 26, size: 0.50, drill: 0.20,
+       at: [[0.92, -0.55], [0.92, 0.55]]}
+    # C23 is the TPS25810 cold-socket bulk.  Its local ground vias close the
+    # high-current return directly into the internal planes beside U3 rather
+    # than carrying that loop across the surface placement.
+    - {ref: C23, pad: 2, size: 0.50, drill: 0.20,
+       at: [[2.70, -0.40], [2.70, 0.40]]}
+
+libraries:
+  - {lib: usb_hub_3s_v4, path: 03_src/lib/usb_hub_3s_v4.pretty}
+  - {lib: Package_TO_SOT_SMD, path: 03_src/lib/Package_TO_SOT_SMD.pretty}
+  - {lib: Package_DFN_QFN, path: 03_src/lib/Package_DFN_QFN.pretty}
+  - {lib: Package_SON, path: /usr/share/kicad/footprints/Package_SON.pretty}
+  - /usr/share/kicad/footprints
+
+placement:
+  # These exact catalog selections are wanted on the finished assembly but
+  # are not eligible JLC machine-assembly lines (catalog API measurement in
+  # rules/assembly.yaml).  Keep the population decision in assembly.yaml and
+  # encode its native KiCad consequence here so every regenerated board keeps
+  # them off the pick-and-place file.
+  patterns:
+    - {match: [F1, J1, J2, J3, J4, SW1], attrs: [exclude_from_pos_files]}
+
+  anchors:
+    # Protected input chain; the 10 A blade is fitted by the user.
+    J1: [27.0, 38.0, 90]
+    F1: [40.0, 38.0, 0]
+    Q1: [57.0, 38.0, 180]
+    D5: [61.0, 33.0, 0]
+    R22: [50.8, 33.0, 0]
+    R23: [54.0, 33.0, 0]
+    R1: [57.2, 29.5, 0]
+    D1: [63.0, 43.0, 0]
+    C1: [54.0, 50.0, 90]
+    R2: [61.0, 48.0, 0]
+    SW1: [42.0, 27.0, 0]
+
+    # U1 USB-A bank. Rot90 puts VIN west and VOUT east.
+    U1: [71.0, 55.0, 90]
+    C2: [64.25, 52.5, 180]
+    C3: [64.25, 57.5, 180]
+    R3: [69.4, 60.5, 0]
+    R4: [71.5, 49.5, 90]
+    R5: [73.5, 60.5, 90]
+    R6: [75.0, 63.0, 0]
+    R7: [74.0, 49.5, 270]
+    R8: [69.0, 49.5, 90]
+    # First ceramic row is one courtyard floor from U1 and about 2.1 mm from
+    # its VOUT lands; the second row supplies the remaining effective bank.
+    C6: [77.45, 50.0, 0]
+    C7: [77.45, 54.0, 0]
+    C8: [77.45, 58.0, 0]
+    C24: [82.20, 50.0, 0]
+    C25: [82.20, 54.0, 0]
+    C26: [82.20, 58.0, 0]
+    C22: [84.0, 66.5, 0]
+    # Rot270 puts the IN edge toward U1/5VA_RAW and OUT toward the protected
+    # distributor, matching the physical left-to-right power flow.
+    U9: [94.0, 55.0, 270]
+    # TI's EVM keeps ILIM/ITIMER/dVdt support outside the package perimeter.
+    # These orientations put each net-side pad toward its owning U9 pin.
+    R26: [94.7, 59.25, 270]
+    C29: [91.5, 60.5, 270]
+    C30: [98.2, 55.25, 0]
+
+    # USB-A connector-first protection cells; J2-J4's edge datum is x=149.9.
+    J2: [144.2, 32.0, 270]
+    U4: [110.0, 32.0, 0]
+    C14: [106.0, 32.0, 180]
+    R16: [112.0, 36.2, 90]
+    R17: [108.5, 36.5, 0]
+    C17: [118.0, 32.0, 0]
+    D2: [146.0, 42.0, 90]
+    J3: [144.2, 56.0, 270]
+    U5: [110.0, 56.0, 0]
+    C15: [106.0, 56.0, 180]
+    R18: [112.0, 60.2, 90]
+    R19: [108.5, 60.5, 0]
+    C18: [118.0, 56.0, 0]
+    D3: [146.0, 66.0, 90]
+    J4: [144.2, 80.0, 270]
+    U6: [110.0, 80.0, 0]
+    C16: [106.0, 80.0, 180]
+    R20: [112.0, 84.2, 90]
+    R21: [108.5, 84.5, 0]
+    C19: [118.0, 80.0, 0]
+    D4: [146.0, 90.0, 90]
+    U7: [128.0, 44.0, 0]
+    C20: [124.0, 44.0, 0]
+    U8: [128.0, 72.0, 0]
+    C21: [124.0, 72.0, 0]
+
+    # U2/U3 Type-C source cell; >=120 uF bank directly feeds TPS25810.
+    U2: [87.8, 91.0, 90]
+    C4: [82.55, 89.0, 180]
+    C5: [82.55, 93.0, 180]
+    R9: [87.5, 95.5, 0]
+    R10: [87.5, 86.0, 90]
+    R11: [92.0, 84.5, 270]
+    R24: [94.0, 84.5, 270]
+    R12: [91.5, 90.0, 90]
+    R13: [90.75, 97.0, 0]
+    # Manufacturer-style local VOUT row: positive lands face U2 and sit
+    # about 3.3--4.4 mm from the two physical output lands.
+    C9: [94.7, 88.0, 0]
+    C10: [94.7, 92.0, 0]
+    C11: [94.7, 96.0, 0]
+    # The bulk positive land is now local to U3 IN; pad-2 via-in-pad drops
+    # immediately into the ground planes for the cold-socket return.
+    C23: [97.0, 101.5, 180]
+    U3: [105.0, 97.0, 0]
+    C12: [101.0, 94.5, 180]
+    C13: [111.0, 97.0, 0]
+    R14: [105.5, 101.5, 0]
+    R15: [101.0, 89.5, 0]
+    D6: [115.25, 99.5, 0]
+    # GCT's footprint-local `PCB Edge` datum is +3.675 mm in Y. The 106.325
+    # centre therefore places that manufacturer datum exactly on y=110.000.
+    J5: [115.0, 106.325, 0]
+
+    # Slow first-article access points, outside high-current loops.
+    TP1: [57.5, 43.5, 0]
+    TP2: [101.0, 41.0, 0]
+    TP3: [82.0, 104.0, 0]
+    TP4: [120.0, 96.0, 0]
+    TP5: [75.0, 74.0, 0]
+    TP6: [82.0, 74.0, 0]
+    TP7: [89.0, 74.0, 0]
+    TP8: [96.0, 74.0, 0]
+    TP9: [75.0, 80.0, 0]
+    TP10: [82.0, 80.0, 0]
+    TP11: [89.0, 80.0, 0]
+    TP12: [96.0, 80.0, 0]
+
+  legalize: {enable: true, clearance: 0.65, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 80}
+
+design_rules:
+  track_min_width: 0.09
+  min_clearance: 0.09
+  via_min_annulus: 0.15
+  hole_clearance: 0.25
+  hole_to_hole: 0.25
+  copper_edge_clearance: 0.3
+  via_min_size: 0.5
+  min_through_drill: 0.2
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  # Two uninterrupted internal GND planes implement TI module guidance.
+  - {net: GND, layers: [In1.Cu, In2.Cu], priority: 0, min_thickness: 0.25, clearance: 0.2, connect: full}
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.25, clearance: 0.25, connect: full}
+  - {net: BAT_POS, layers: [F.Cu, B.Cu], priority: 3, rect: [25.0, 33.0, 42.0, 43.0], connect: full}
+  - {net: VBAT_FUSED, layers: [F.Cu, B.Cu], priority: 3, rect: [44.0, 33.0, 57.0, 43.0], connect: full}
+  - net: VIN
+    layers: [F.Cu, B.Cu]
+    priority: 2
+    connect: full
+    points: [[51.0, 31.0], [64.0, 31.0], [64.0, 48.0], [69.0, 48.0],
+             [69.0, 62.0], [71.0, 62.0], [71.0, 96.0], [78.0, 96.0],
+             [78.0, 84.0], [86.5, 84.0], [86.5, 101.0], [64.0, 101.0],
+             [64.0, 62.0], [60.0, 62.0], [60.0, 55.0], [51.0, 55.0]]
+  # The regulator-side and protected USB-A rails are physically separate.
+  # U9 is the only electrical bridge; the small gap prevents an overlapping
+  # same-shape pour from accidentally recreating the bypass this stage added.
+  - {net: 5VA_RAW, layers: [F.Cu, B.Cu], priority: 2, rect: [73.5, 48.0, 94.8, 70.0], connect: full}
+  - {net: 5VA, layers: [F.Cu, B.Cu], priority: 2, rect: [95.0, 48.0, 103.0, 62.0], connect: full}
+  # TI TPS25982 requires a >=50 mil OUT path. This 2.10 mm-deep F.Cu
+  # collector overlaps every OUT19-24 land by 0.50 mm, overlaps the existing
+  # protected-rail zone by 1.50 mm, and removes the former 0.30 mm bank bar.
+  # OUT17/18 already land directly in the existing 5VA F.Cu zone.
+  - {net: 5VA, layers: [F.Cu], priority: 5, rect: [92.3, 51.0, 96.5, 53.1], connect: full}
+  - {net: 5VA, layers: [B.Cu], priority: 3, rect: [96.0, 27.0, 112.0, 85.0], connect: full}
+  # F.Cu switch/controller islands via-bond into the B.Cu 5VA distributor.
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [106.8, 30.5, 109.1, 33.6], connect: full}
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [106.8, 54.5, 109.1, 57.6], connect: full}
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [106.8, 78.5, 109.1, 81.6], connect: full}
+  - {net: 5VA, layers: [B.Cu], priority: 4, rect: [108.0, 41.0, 131.0, 47.0], connect: full}
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [122.5, 42.5, 130.5, 45.5], connect: full}
+  - {net: 5VA, layers: [B.Cu], priority: 4, rect: [108.0, 69.0, 131.0, 75.0], connect: full}
+  - {net: 5VA, layers: [F.Cu], priority: 4, rect: [122.5, 70.5, 130.5, 73.5], connect: full}
+  - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 3, rect: [110.8, 25.0, 149.0, 42.0], connect: full}
+  - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 3, rect: [110.8, 49.0, 149.0, 66.0], connect: full}
+  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 3, rect: [110.8, 73.0, 149.0, 90.0], connect: full}
+  - {net: 5VC_RAW, layers: [F.Cu, B.Cu], priority: 2, rect: [89.5, 85.0, 109.0, 109.0], connect: full}
+  - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 3, rect: [105.0, 94.0, 126.0, 108.0], connect: full}
+
+keepouts:
+  # Permissive F.Cu rule-area anchors for measured pad-local width tapers.
+  # deny: [] forbids nothing; matching scoped_floors remain the authority.
+  - {name: u1_5va_launch, deny: [], layers: [F.Cu], rect: [70.35, 57.35, 71.65, 59.00]}
+  - {name: u2_5vc_launch, deny: [], layers: [F.Cu], rect: [87.80, 91.90, 90.00, 94.35]}
+  - {name: u9_aux_input_launch, deny: [], layers: [F.Cu], rect: [95.15, 54.50, 96.45, 55.00]}
+  - {name: usba_switch_in_launch, deny: [], layers: [F.Cu], rect: [108.05, 31.20, 109.10, 33.50]}
+  - {name: usba_switch_in_launch, deny: [], layers: [F.Cu], rect: [108.05, 55.20, 109.10, 57.50]}
+  - {name: usba_switch_in_launch, deny: [], layers: [F.Cu], rect: [108.05, 79.20, 109.10, 81.50]}
+  # Four 0.60 mm pad-local output launches reach conservative off-pad vias;
+  # separate rectangles keep the 0.30 mm exception off the intervening pins.
+  - {name: usba_switch_out_launch, deny: [], layers: [F.Cu], rect: [111.20, 55.30, 112.20, 55.70]}
+  - {name: usba_switch_out_launch, deny: [], layers: [F.Cu], rect: [111.20, 56.30, 112.20, 56.70]}
+  - {name: usba_switch_out_launch, deny: [], layers: [F.Cu], rect: [111.20, 79.30, 112.20, 79.70]}
+  - {name: usba_switch_out_launch, deny: [], layers: [F.Cu], rect: [111.20, 80.30, 112.20, 80.70]}
+  - {name: charge_signature_supply_launch, deny: [], layers: [F.Cu], rect: [128.30, 43.55, 130.55, 44.45]}
+  - {name: charge_signature_supply_launch, deny: [], layers: [F.Cu], rect: [128.30, 71.55, 130.55, 72.45]}
+  - {name: u1_feedback, deny: [pours], layers: [F.Cu], rect: [74.0, 47.5, 78.0, 53.0]}
+  - {name: u2_feedback, deny: [pours], layers: [F.Cu], rect: [91.0, 84.0, 96.0, 90.5]}
+  - {name: u3_reference, deny: [pours], layers: [F.Cu], rect: [103.0, 99.0, 108.0, 103.0]}
+
+silk:
+  # JLC's published legend envelope says text below 1.0 mm or strokes below
+  # 0.15 mm may be unidentifiable.  Safety/function legends and refdes meet
+  # that published boundary instead of relying on smaller fleet empirics.
+  min_text_height: 1.0
+  refdes: {size: 1.0, min_size: 1.0, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQF"}
+  captions:
+    - ["3S INPUT", 29.0, 49.5, 1.0]
+    - ["+ BAT", 32.0, 38.0, 1.0]
+    - ["- GND", 32.0, 33.0, 1.0]
+    - ["MASTER  OFF / ON", 42.0, 23.0, 1.0]
+    - ["FIT 10A MINI FUSE", 40.0, 45.0, 1.0]
+    - ["USB-A1  5V / 2A", 138.0, 25.0, 1.0]
+    - ["USB-A2  5V / 2A", 132.0, 47.0, 1.0]
+    - ["USB-A3  5V / 2A", 132.0, 71.0, 1.0]
+    - ["USB-C  5V / 3A  NO PD", 136.0, 108.5, 1.0]
+    - ["POWER ONLY — NO USB DATA", 80.0, 23.0, 1.0]
+    - ["USB HUB 3S V4  REV A", 65.0, 108.5, 1.0]
+
+asserts:
+  pad_net:
+    - {ref: J1, pad: 1, net: BAT_POS}
+    - {ref: J1, pad: 2, net: GND}
+    - {ref: F1, pad: 1, net: BAT_POS}
+    - {ref: F1, pad: 2, net: VBAT_FUSED}
+    - {ref: Q1, pad: 4, net: RPP_GATE}
+    - {ref: Q1, pad: 5, net: VBAT_FUSED}
+    - {ref: Q1, pad: 1, net: VIN}
+    - {ref: D1, pad: 1, net: VIN}
+    - {ref: C22, pad: 1, net: 5VA_RAW}
+    - {ref: C23, pad: 1, net: 5VC_RAW}
+    - {ref: U1, pad: 1, net: VIN}
+    - {ref: U1, pad: 5, net: 5VA_RAW}
+    - {ref: U1, pad: 9, net: 5VA_RAW}
+    - {ref: U2, pad: 1, net: VIN}
+    - {ref: U2, pad: 8, net: 5VC_RAW}
+    - {ref: U3, pad: 11, net: CC1}
+    - {ref: U3, pad: 13, net: CC2}
+    - {ref: U4, pad: 2, net: 5VA}
+    - {ref: U4, pad: 7, net: VBUSA1}
+    - {ref: U4, pad: 11, net: GND}
+    - {ref: U9, pad: 1, net: 5VA_RAW}
+    - {ref: U9, pad: 17, net: 5VA}
+    - {ref: U9, pad: 15, net: DVDT_BANK}
+    - {ref: U9, pad: 25, net: 5VA_RAW}
+    - {ref: U9, pad: 26, net: GND}
+    - {ref: C30, pad: 1, net: DVDT_BANK}
+    - {ref: J5, pad: A4, net: VBUSC}
+    - {ref: J5, pad: A5, net: CC1}
+    - {ref: J5, pad: B5, net: CC2}
+    - {ref: J5, pad: A6, net: unconnected-(J5-DPA6-PadA6)}

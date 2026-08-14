@@ -1,0 +1,44 @@
+mpn: TPS25810RVCR
+manufacturer: Texas Instruments
+type: usb_type_c_source_controller_power_switch
+datasheet: {doc_id: SLVSCR1, revision: SLVSCR1C, url: "https://www.ti.com/lit/ds/symlink/tps25810.pdf", sha256: 1b4fae0a0747dfccf9a0ad8c747bbd3b7dcf831f4203209ba476ec6f7ca372ff, fetched: 2026-08-10}
+package: WQFN-20 RVC 3x4mm P0.5, exposed pad
+footprint: Package_DFN_QFN:Texas_RVC0020A_WQFN-20-1EP_3x4mm_P0.5mm_EP1.6x2.6mm_ThermalVias
+escape: {style: qfn, pitch: 0.5, tier_required: jlc_4layer_advanced, checked: "escape_check plus thermal-via process review 2026-08-10"}
+pins:
+  1: FAULT
+  2: IN1
+  3: IN1
+  4: IN2
+  5: AUX
+  6: EN
+  7: CHG
+  8: CHG_HI
+  9: REF_RTN
+  10: REF
+  11: CC1
+  12: GND
+  13: CC2
+  14: OUT
+  15: OUT
+  16: DEBUG
+  17: AUDIO
+  18: POL
+  19: UFP
+  20: LD_DET
+  21: {name: EP, tie: GND}
+limits: {in1: "4.5-6.5V", in2_aux: "<=5.5V", source_current: 3A, current_limit: "3.16A min / 3.4A typ / 3.64A max", rds_on_max_125C: 55mOhm, reverse_leakage_max_85C: 3uA}
+gotchas:
+  - "CHG=1 and CHG_HI=1 advertise Type-C 3A and select the 3.4A nominal limit."
+  - "This is attach-controlled Type-C sourcing, not USB-PD: it applies VBUS only after Rd detection and discharges VBUS on detach."
+  - "D+/D- are not used; the controller does not implement BC1.2 and v4 carries no USB data."
+  - "TI's cold-socket application requires at least 120uF close to IN. C23 is 115.2uF at the combined initial-tolerance/endurance corner; with C9-C11's machine-derated 40.392uF effective ceramic value the exact bank is 155.592uF."
+verified: "pin table, electrical characteristics, table 3 and application sec.8.1 independently read 2026-08-10"
+sourcing: {lcsc: C473913, alternates: [], note: "RVCR large-reel order code; volatile stock evidence is kept in 06_build/cache"}
+layout:
+  source: "TI SLVSCR1C layout section plus TPS25810EVM-745 user guide SLVUAI0A"
+  reviewed: "2026-08-11"
+  notes: "Place U3 directly between the >=120uF cold-socket input bank and J5; keep input/output paths short and wide; place 100k 1% REF resistor directly between REF and isolated REF_RTN; route CC1/CC2 separately, similarly and connector-to-D6 first."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSCR1C Figure 20 and layout section", why: "manufacturer source application fixes CC, VBUS switch, REF and output-capacitor topology"}
+  - {tier: 2, reached: false, artifact: "TPS25810EVM-745 user guide/design files", why: "EVM copper will be consulted before placement is frozen"}

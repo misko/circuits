@@ -1,0 +1,138 @@
+mpn: LTC3889IUKG#PBF
+manufacturer: Analog Devices
+type: dual_buck_controller
+note_dirname: "directory omits # because it is awkward in shell paths"
+datasheet:
+  doc_id: LTC3889 Rev A
+  revision: "Rev. A, 2018-11-16"
+  url: https://www.analog.com/media/en/technical-documentation/data-sheets/ltc3889.pdf
+  sha256: 92e90cb66a98989544747b43fb7df58b509904bace9c66de6b0cc8fe7a8bbdce
+  fetched: 2026-08-01
+package: "UKG52(46), 52-lead 7x8 mm QFN with 46 populated leads and exposed pad"
+footprint: programmable_usb2_hub:Analog_UKG52_46_LTC3889
+escape:
+  style: qfn
+  pitch: 0.5
+  escapes_worst_side: 12
+  tier_required: jlc_4layer_advanced
+  checked: "exact UKG52(46) body, missing-lead pattern and EP compared with datasheet package drawing; advanced tier required"
+pins:
+  1: SW0
+  2: TG0
+  4: ISENSE0+
+  5: ISENSE0-
+  6: TSNS0
+  7: VSENSE0+
+  8: VSENSE0-
+  9: ISENSE1+
+  10: ISENSE1-
+  11: ITHR0
+  12: ITH0
+  13: SYNC
+  14: SCL
+  15: SDA
+  16: ALERT
+  17: FAULT0
+  18: FAULT1
+  19: RUN0
+  20: RUN1
+  21: ASEL0
+  22: ASEL1
+  23: VOUT0_CFG
+  24: VOUT1_CFG
+  25: FREQ_CFG
+  26: PHAS_CFG
+  27: VDD25
+  28: WP
+  29: SHARE_CLK
+  30: VDD33
+  31: ITH1
+  32: ITHR1
+  33: PGOOD1
+  34: PGOOD0
+  35: VSENSE1+
+  36: TSNS1
+  38: TG1
+  39: SW1
+  40: BOOST1
+  42: BG1
+  43: EXTVCC
+  44: DRVCC
+  46: IIN-
+  47: IIN+
+  48: VIN
+  50: BG0
+  52: BOOST0
+  53: {name: GND, note: "exposed pad; solder to the ground plane"}
+limits:
+  vin_operating: "5 to 60 V"
+  vout_range: "1 to 40 V"
+  output_error: "less than +/-0.5% over temperature"
+  frequency: "85 to 500 kHz"
+  extvcc: "5.6 V maximum takeover threshold; 14 V maximum"
+  drvcc: "programmed 6.1 to 6.5 V"
+configuration:
+  device_address: {value_7bit: "0x4F", selection: "ASEL0 and ASEL1 open; firmware also forces MFR_ADDRESS through global 0x5A before readback"}
+  vout_command_linear16: {word_hex: "0x14DC", value_V: 5.21484375}
+  frequency_hz: 250000
+  phase: "channel 0 = 0 degrees; channel 1 = 180 degrees"
+  current_sense_mohm: 10.0
+  iout_cal_gain_linear11: {word_hex: "0xD280", value_mohm: 10.0}
+  current_limit_tier_mV: 75.0
+  iout_oc_fault_limit_linear11: {word_hex: "0xCBC0", value_A: 7.5}
+  vout_cfg: open
+  startup: "hardware RUN pull-downs hold both outputs off until MCU RAM programming and readback pass"
+gotchas:
+  - "Do not ground ASEL0/ASEL1: Table 6 maps that selection to address bits 000/0000, producing reserved address 0x00. Both pins are deliberately open so MFR_ADDRESS controls the full address; startup forces 0x4F through write-only global address 0x5A before any device read."
+  - "Factory OPERATION is PWM off, but release safety also requires hardware RUN0/RUN1 inhibition; EEPROM state is not the sole safety control."
+  - "5.215 V is not exactly representable: encode and verify Linear16 word 0x14DC = 5.21484375 V."
+  - "AUX_6V must supply EXTVCC above the 5.6 V maximum takeover threshold; do not credit takeover at the 5.215 V output."
+  - "Each 4 A rail uses one 6.8 uH inductor. At the -20% inductance corner, 24 V input and 250 kHz, ripple is 3.001 A peak-to-peak and the full-load peak is 5.501 A."
+  - "Program and read back IOUT_CAL_GAIN Linear11 0xD280 = 10 mOhm and IOUT_OC_FAULT_LIMIT Linear11 0xCBC0 = 7.5 A, selecting the datasheet's explicit 75 mV full-scale tier rather than an interpolated threshold."
+  - "At the guaranteed 68/82 mV threshold and +/-1% shunt corners the peak limit spans 6.733-8.283 A. The low corner exceeds the 5.501 A load-plus-ripple peak by 22.4%; the high corner remains below the inductor's 15.2 A Isat(-20%) rating."
+  - "At the high threshold corner the 10 mOhm shunt dissipates 0.686 W, below its 1 W rating; qualify temperature at 4 A continuous load."
+  - "Use the 30 ohm/1 nF differential current-sense filters shown in the LTC3889 application circuit and true Kelvin routing to each 10 mOhm shunt."
+  - "Bootstrap capacitance is at least 330 nF per phase and each external bootstrap diode is rated at least 60 V."
+  - "Unused TSNS pins go to ground; unused input-current-sense pins IIN+/IIN- are shorted to VIN as specified."
+verified: "complete physical pin map transcribed from the UKG top view and pin-functions table; configuration values checked against Rev. A, 2026-08-01"
+twin_body:
+  source: file
+  model: LTC3889-UKG52-envelope.wrl
+  identity: "LTC3889 UKG52(46) datasheet mechanical envelope"
+  authority: "Analog Devices LTC3889 Rev. A package drawing 05-08-1947 Rev A: 7.00 x 8.00 x 0.75 mm nominal and pin-1 top mark"
+  limitation: "Mechanical body and orientation witness for clearance/render review; it does not model mold or terminal cosmetic detail."
+sourcing:
+  lcsc: null
+  alternates: []
+  note: "Q-2SOURCE 2026-08-01: Mouser 47 and DigiKey 629; planned consignment"
+layout_refs:
+  - {tier: 1, reached: true, artifact: "LTC3889 Rev. A PCB Layout Checklist, p.59"}
+  - {tier: 2, reached: true, artifact: "Analog Devices DC2595A official editable PADS design files", url: "https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/dc2595a.html", fetched: 2026-08-02, note: "The official U1 origin and component placements were read from DC2595A2.ASC; its pin-local 0603 centres are typically about 7-8 mm from U1 centre and its external FET centres span roughly 14-27 mm from U1, so this board's tighter pad-level bounds below are conservative rather than invented from courtyard proximity."}
+  - {tier: 3, reached: false, artifact: "OSHWLab/EasyEDA open-board search", why: "The manufacturer's exact editable DC2595A design was reached and measured, so lower-authority community layouts were not used."}
+layout:
+  source: "LTC3889 Rev. A layout checklist and DC2595A"
+  notes:
+    - "minimize each VIN/high-side/low-side/ground hot loop and keep SW copper compact"
+    - "place DRVCC, VDD25, VDD33, EXTVCC and bootstrap capacitors directly at their pins"
+    - "route both shunt sense pairs as Kelvin pairs, isolated from gate and SW copper"
+    - "keep PMBus, configuration and compensation nodes outside both power-stage islands"
+  keep_short:
+    - {net: DRVCC, max_span_mm: 3.0, anchor_pins: ["44"], partner_refs: [C13], why: "DERIVED tighter than the DC2595A editable placement while satisfying the Rev. A pin-local DRVCC bypass instruction"}
+    - {net: VDD25, max_span_mm: 3.5, anchor_pins: ["27"], partner_refs: [C15], why: "DERIVED pin-local bypass bound from the Rev. A checklist and exact package geometry"}
+    - {net: LTC_VDD33, max_span_mm: 3.5, anchor_pins: ["30"], partner_refs: [C16], why: "DERIVED pin-local bypass bound from the Rev. A checklist and exact package geometry"}
+    - {net: BOOST_A, max_span_mm: 3.5, anchor_pins: ["52"], partner_refs: [C7], why: "DERIVED compact bootstrap-loop bound; named partner prevents another same-net device satisfying the obligation"}
+    - {net: SW_A, max_span_mm: 2.5, anchor_pins: ["1"], partner_refs: [C7], why: "DERIVED compact bootstrap-loop bound"}
+    - {net: BOOST_B, max_span_mm: 3.0, anchor_pins: ["40"], partner_refs: [C8], why: "DERIVED compact bootstrap-loop bound"}
+    - {net: SW_B, max_span_mm: 4.5, anchor_pins: ["39"], partner_refs: [C8], why: "DERIVED compact bootstrap-loop bound within the exact QFN/FET packing constraint"}
+    - {net: ISNS_A_PF, max_span_mm: 2.5, anchor_pins: ["4"], partner_refs: [R6], why: "Rev. A requires the 30 ohm/1 nF differential filter at the IC, followed by a paired Kelvin run"}
+    - {net: ISNS_A_NF, max_span_mm: 2.5, anchor_pins: ["5"], partner_refs: [R7], why: "Rev. A requires the 30 ohm/1 nF differential filter at the IC, followed by a paired Kelvin run"}
+    - {net: ISNS_B_PF, max_span_mm: 2.5, anchor_pins: ["9"], partner_refs: [R8], why: "Rev. A requires the 30 ohm/1 nF differential filter at the IC, followed by a paired Kelvin run"}
+    - {net: ISNS_B_NF, max_span_mm: 2.5, anchor_pins: ["10"], partner_refs: [R9], why: "Rev. A requires the 30 ohm/1 nF differential filter at the IC, followed by a paired Kelvin run"}
+    - {net: ITH_A, max_span_mm: 4.5, anchor_pins: ["12"], partner_refs: [C17], why: "DERIVED short quiet-node bound from the Rev. A checklist and DC2595A placement"}
+    - {net: ITHR_A, max_span_mm: 4.0, anchor_pins: ["11"], partner_refs: [C18], why: "DERIVED short quiet-node bound from the Rev. A checklist and DC2595A placement"}
+    - {net: ITH_B, max_span_mm: 2.5, anchor_pins: ["31"], partner_refs: [C19], why: "DERIVED short quiet-node bound from the Rev. A checklist and DC2595A placement"}
+    - {net: ITHR_B, max_span_mm: 2.0, anchor_pins: ["32"], partner_refs: [C20], why: "DERIVED short quiet-node bound from the Rev. A checklist and DC2595A placement"}
+    - {net: TG_A, max_span_mm: 12.0, anchor_pins: ["2"], partner_refs: [Q3], why: "DERIVED direct gate-run ceiling, materially tighter than the official DC2595A controller-to-FET placement span"}
+    - {net: BG_A, max_span_mm: 7.0, anchor_pins: ["50"], partner_refs: [Q4], why: "DERIVED direct gate-run ceiling"}
+    - {net: TG_B, max_span_mm: 12.0, anchor_pins: ["38"], partner_refs: [Q5], why: "DERIVED direct gate-run ceiling, materially tighter than the official DC2595A controller-to-FET placement span"}
+    - {net: BG_B, max_span_mm: 7.0, anchor_pins: ["42"], partner_refs: [Q6], why: "DERIVED direct gate-run ceiling"}

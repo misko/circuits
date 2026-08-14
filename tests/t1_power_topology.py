@@ -81,6 +81,14 @@ def ptree(*rails, top=""):
     return top + "rails:\n" + "".join(rails)
 
 
+SOURCE_BOUNDARY = (
+    "source_voltage_boundary:\n"
+    "  minimum_operating_V: 9.0\n"
+    "  enforcement: external_required\n"
+    "  required_device: protected 3S pack BMS with 9V disconnect\n"
+    "  evidence: pack interface contract\n")
+
+
 def etopo(d, *extra):
     return run([KPY, PTOP, d, *extra])
 
@@ -96,6 +104,34 @@ def t_lm5116_buck_pass():
     contains(r.out, "required=BUCK", "derives buck")
     contains(r.out, "declared=BUCK", "reads the LM5116 as buck")
     contains(r.out, "E-TOPO OK", "clean report")
+
+
+@test("E-TOPO matches punctuated exact MPNs to filesystem-safe dossier names")
+def t_punctuated_exact_mpn_is_covered():
+    d = project(ptree(rail("USB-A", 12, 24, 5.18, 5.25, 3,
+                           "LTC3889IUKG#PBF")),
+                parts={"LTC3889IUKG-PBF": {
+                    "mpn": "LTC3889IUKG#PBF",
+                    "type": "dual_buck_controller",
+                }})
+    r = must_pass(etopo(d), "punctuated MPN coverage")
+    contains(r.out, "covering 1/1 converter", "M-COVER uses normalized identity")
+    not_contains(r.out, "UNGRADED CONVERTERS", "no false ungraded dossier")
+
+
+@test("E-TOPO grades cascaded rails without double-counting the child at the trunk")
+def t_cascaded_child_not_double_counted():
+    tree = ("input_trunk_class: PWR_IN\nrails:\n" +
+            rail("AUX", 12, 24, 5.9, 6.1, 1, "WIDE-BUCK", 0.9) +
+            rail("LOGIC", 5.9, 6.1, 3.27, 3.33, 0.8, "LOGIC-BUCK", 0.85)
+            .replace("    converter: LOGIC-BUCK\n",
+                     "    converter: LOGIC-BUCK\n    input_parent: AUX\n"))
+    nets = "classes:\n  PWR_IN:\n    current: 1 A\n    nets: [VIN]\n"
+    d = project(tree, parts={"WIDE-BUCK": "buck_converter",
+                             "LOGIC-BUCK": "buck_converter"}, nets=nets)
+    r = must_pass(etopo(d), "cascaded input current")
+    contains(r.out, "0.565 A at Vin_min 12 V", "only parent load reaches trunk")
+    not_contains(r.out, "UNDER-BUILT", "child is not charged twice")
 
 
 @test("E-TOPO PASSES a full-PD rail (5-20V out overlaps Vin) with a buck_boost")
@@ -251,6 +287,46 @@ def t_margin_pass():
     contains(r.out, "E-MARGIN OK", "clean report")
 
 
+@test("E-MARGIN prints and grades the same auditable end-to-end IR path")
+def t_margin_component_breakdown_pass():
+    """The scalar remains the arithmetic input, but its connector/cable/board
+    denominator is visible and mechanically tied to that scalar."""
+    breakdown = (
+        "    ir_budget_components_mohm:\n"
+        "      board_and_efuse: 70\n"
+        "      mated_vbus_and_gnd_contacts: 60\n"
+        "      bounded_cable_loop: 40\n")
+    d = project(ptree(railx("USB_DEVICE", 12.0, 24.0, 5.10, 5.10, 3,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.40,
+                            ir_budget_mohm=170) + breakdown),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(margin(d), "E-MARGIN with a complete IR breakdown")
+    contains(r.out, "board_and_efuse=70", "prints the board/switch term")
+    contains(r.out, "mated_vbus_and_gnd_contacts=60",
+             "prints the contact term")
+    contains(r.out, "bounded_cable_loop=40", "prints the bounded cable term")
+
+
+@test("E-MARGIN rejects a displayed IR breakdown whose sum differs from the "
+      "graded scalar", kind="known_bad")
+def t_margin_component_breakdown_mismatch():
+    """A reviewer must not see 170 mOhm of components while the checker grades
+    70 mOhm.  This is the same adjacent-property failure as a stale manifest."""
+    breakdown = (
+        "    ir_budget_components_mohm:\n"
+        "      board_and_efuse: 70\n"
+        "      mated_vbus_and_gnd_contacts: 60\n"
+        "      bounded_cable_loop: 40\n")
+    d = project(ptree(railx("USB_DEVICE", 12.0, 24.0, 5.10, 5.10, 3,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.40,
+                            ir_budget_mohm=70) + breakdown),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "E-MARGIN with divergent path totals",
+                  "LOAD ERROR")
+    contains(r.out, "sums to 170 mOhm", "names the visible sum")
+    contains(r.out, "ir_budget_mohm is 70", "names the graded scalar")
+
+
 @test("E-MARGIN FAILS THE INCIDENT (floor mode): 4.97V into a Pi5 at 5A = 68mOhm",
       kind="known_bad")
 def t_margin_incident_floor():
@@ -295,6 +371,64 @@ def t_margin_dead_on_arrival():
                   "dead on arrival")
 
 
+@test("E-MARGIN grades a bounded high-side variation reserve")
+def t_margin_high_side_reserve_pass():
+    extra = (
+        "    steady_state_ceiling_V: 5.25\n"
+        "    steady_state_variation_high_mV: 20\n"
+        "    steady_state_variation_basis: manufacturer_maximum\n"
+        "    steady_state_variation_evidence: regulator production limit\n")
+    d = project(ptree(railx("USB", 9, 13, 5.00, 5.22, 2,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.75,
+                            ir_budget_mohm=80) + extra),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(margin(d), "bounded high-side reserve")
+    contains(r.out, "5.220 V + 20 mV", "prints the charged high-side budget")
+    contains(r.out, "vs 5.25 V ceiling", "prints the adopted ceiling")
+
+
+@test("E-MARGIN rejects a setpoint corner with too little high-side reserve",
+      kind="known_bad")
+def t_margin_high_side_reserve_fail():
+    extra = (
+        "    steady_state_ceiling_V: 5.25\n"
+        "    steady_state_variation_high_mV: 20\n"
+        "    steady_state_variation_basis: engineering_bound\n"
+        "    steady_state_variation_evidence: exact-board qualification\n")
+    d = project(ptree(railx("USB", 9, 13, 5.00, 5.245, 2,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.75,
+                            ir_budget_mohm=80) + extra),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "missing high-side reserve", "no bounded allowance")
+    contains(r.out, "5.265 V", "charges the nonzero variation above the corner")
+
+
+@test("E-MARGIN reads and reports an exact delivery-margin evidence pair")
+def t_margin_provenance_pass():
+    extra = (
+        "    margin_basis: qualified_component_residual\n"
+        "    margin_evidence: hot maxima plus first-article cable limit\n")
+    d = project(ptree(railx("USB", 9, 13, 5.10, 5.20, 2,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.75,
+                            ir_budget_mohm=80, margin=0.05) + extra),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(margin(d), "typed delivery-margin provenance")
+    contains(r.out, "qualified_component_residual", "margin provenance class")
+    contains(r.out, "first-article cable limit", "margin evidence")
+
+
+@test("E-MARGIN rejects partial or provenance-only delivery margins",
+      kind="known_bad")
+def t_margin_provenance_partial_fails():
+    extra = "    margin_basis: qualified_component_residual\n"
+    d = project(ptree(railx("USB", 9, 13, 5.10, 5.20, 2,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.75,
+                            ir_budget_mohm=80) + extra),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    must_fail(margin(d), "partial delivery-margin provenance",
+              "needs BOTH margin_basis and margin_evidence")
+
+
 # ==================== feedback: TOLERANCE WINDOW ===========================
 # usb-hub-3s-v3 (2026-07-23, external review): E-MARGIN/E-TOPO accepted
 # AUTHOR-DECLARED vout_min/vout_max, and the author computed them from ONLY the
@@ -317,6 +451,29 @@ def fbblock(vref=1.215, vref_tol=1.5, rt=4120, rt_tol=0.1,
               ("r_bottom_ohm", rb), ("r_bottom_tol_pct", rb_tol)]
     body = "".join(f"      {k}: {v}\n" for k, v in fields if k != omit)
     return "    feedback:\n" + body
+
+
+def fbblock_exact(vref_min=1.195, vref_max=1.231, rt=3931, rt_tol=0.1026,
+                  rb=1210, rb_tol=0.1, ib_min=0, ib_max=500):
+    fields = [("vref_min", vref_min), ("vref_max", vref_max),
+              ("fb_bias_current_min_nA", ib_min),
+              ("fb_bias_current_max_nA", ib_max),
+              ("fb_bias_current_basis", "datasheet_maximum"),
+              ("fb_bias_current_evidence", "exact_datasheet_table"),
+              ("r_top_ohm", rt), ("r_top_tol_pct", rt_tol),
+              ("r_bottom_ohm", rb), ("r_bottom_tol_pct", rb_tol)]
+    return "    feedback:\n" + "".join(f"      {k}: {v}\n" for k, v in fields)
+
+
+@test("E-MARGIN uses exact asymmetric reference and FB-bias corners", kind="known_bad")
+def t_feedback_exact_reference_catches_false_margin():
+    d = project(ptree(railx("USB-A", 12, 24, 5.069, 5.241, 2,
+                            "LM5116MHX-NOPB", load_uv_threshold=4.75,
+                            ir_budget_mohm=135) + fbblock_exact()),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "exact LM5116 reference corners", "IR drop")
+    contains(r.out, "5.069", "uses datasheet minimum rather than symmetric approximation")
+    contains(r.out, "500 nA", "prints the FB-bias maximum")
 
 
 @test("E-TOPO/E-MARGIN PASS an HONEST declared window covering the computed "
@@ -394,6 +551,31 @@ def t_feedback_partial_block():
     contains(r.out, "r_bottom_tol_pct", "names the missing field")
 
 
+@test("E-TOPO includes resistor TCR over the declared temperature excursion")
+def t_feedback_tcr_is_computed():
+    fb = (fbblock(vref=1.0, vref_tol=1.0, rt=40000, rt_tol=0.1,
+                  rb=10000, rb_tol=0.1)
+          + "      r_top_tcr_ppm_per_C: 25\n"
+            "      r_bottom_tcr_ppm_per_C: 25\n"
+            "      resistor_temperature_delta_C: 60\n")
+    d = project(ptree(railx("USB", 9, 13, 4.92, 5.09, 2,
+                            "LM5116MHX-NOPB") + fb),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(etopo(d), "TCR-aware feedback window")
+    contains(r.out, "+/-0.25% total", "prints initial plus TCR tolerance")
+    contains(r.out, "60 C TCR excursion", "prints qualified excursion")
+
+
+@test("E-TOPO refuses a partial feedback TCR stack", kind="known_bad")
+def t_feedback_partial_tcr_stack():
+    d = project(ptree(railx("USB", 9, 13, 4.9, 5.1, 2,
+                            "LM5116MHX-NOPB") + fbblock()
+                      + "      r_top_tcr_ppm_per_C: 25\n"),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(etopo(d), "partial TCR stack", "LOAD ERROR")
+    contains(r.out, "needs ALL", "fails closed on a partial TCR stack")
+
+
 # ============================== E-OFF ======================================
 # A self-contained energy source (battery/cell/pack) must document its
 # de-energization path (off_control) + stored quiescent draw (quiescent_ua).
@@ -414,7 +596,7 @@ def t_off_pass():
     disconnect, quiescent_ua is a number."""
     top = ('source_type: 3S-LiPo pack\n'
            'off_control: "SW1 master slide switch in series with VBAT"\n'
-           'quiescent_ua: 60\n')
+           'quiescent_ua: 60\n' + SOURCE_BOUNDARY)
     d = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB"), top=top),
                 parts={"LM5116MHX-NOPB": LM5116_TYPE})
     r = must_pass(offctl(d), "E-OFF on a switched battery board")
@@ -434,6 +616,20 @@ def t_off_incident():
     r = must_fail(offctl(d), "E-OFF on the 3S-LiPo incident", "no off_control")
     contains(r.out, "idle-drain", "explains the pack self-drains")
     contains(r.out, "no quiescent_ua", "also flags the undeclared stored draw")
+
+
+@test("E-OFF rejects a battery voltage floor with no enforcement owner",
+      kind="known_bad")
+def t_off_source_floor_unassigned():
+    top = ('source_type: 3S-LiPo pack\n'
+           'off_control: "SW1 master disconnect"\n'
+           'quiescent_ua: 60\n')
+    d = project(ptree(rail("OUT", 9.0, 12.6, 5, 5, 1,
+                            "LM5116MHX-NOPB"), top=top),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(offctl(d), "unassigned battery floor",
+                  "no source_voltage_boundary")
+    contains(r.out, "external BMS", "names the acceptable external owner")
 
 
 @test("E-OFF detects the battery via VBAT nets even with no source_type",
@@ -527,7 +723,7 @@ def t_off_alwayson_with_adr():
     top = ('source_type: 3S-LiPo pack\n'
            'off_control: "always-on; storage self-drain accepted (ADR-0009)"\n'
            'quiescent_ua: 1200\n'
-           'pack_capacity_mah: 5000\n')
+           'pack_capacity_mah: 5000\n' + SOURCE_BOUNDARY)
     d = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB"), top=top),
                 parts={"LM5116MHX-NOPB": LM5116_TYPE})
     r = must_pass(offctl(d), "E-OFF on ADR-justified always-on")

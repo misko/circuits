@@ -1,6 +1,8 @@
-# P-MOD module-first architecture contract. Fill at commission/architecture.
-schema: 1
-default: prefer_module
+# P-MOD complexity-weighted module architecture contract. Fill at
+# commission/architecture, before parts are locked.
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
 
 # One row for every used complex subsystem dossier (compute/control, radio,
 # interface or switching-power controller, precision AFE/transceiver).
@@ -15,16 +17,27 @@ selections:
 # no_applicable_functions: This passive board has no programmable, radio,
 #   interface-control, switching-power-control, or complex sensing subsystem.
 
-# Bare-IC exception form (modules are the default; cost/area alone is not proof):
+# Every bare IC lists the external parts needed to make its subsystem work.
+# Below module_support_threshold, this inventory plus the rationale is enough.
+# At or above the threshold, add the evidenced module trade study shown here.
 #  - function: <subsystem function>
 #    part: <bare IC MPN>
 #    implementation: bare_ic
 #    rationale: <total-system rationale>
+#    support_refs: [C1, C2, R1, Y1]
 #    exception:
-#      binding_requirement: <requirement no considered module meets>
-#      evidence: <measured/cited comparison>
+#      decision_rationale: <why bare IC has lower total project complexity here>
+#      evidence: <support-count, layout, firmware, sourcing, assembly comparison>
 #      modules_considered:
 #        - part: <module MPN>
-#          rejected_because: <specific binding mismatch>
+#          rejected_because: <specific total-complexity or requirement tradeoff>
 #          evidence: <vendor artifact / measurement / dated sourcing result>
 #      adr: 01_docs/decisions/NNNN-bare-ic-exception.md
+
+# A dossier required only to resolve an immutable historical release may be
+# retained without pretending it is selected in the live design. The gate
+# accepts this only when the dossier's exact MPN and primary LCSC identity are
+# absent from every live 03_tscircuit/src/*.tsx file.
+# historical_dossiers:
+#   - part: <exact 02_parts directory or part.yaml mpn>
+#     reason: <why immutable release dependency requires retaining this dossier>

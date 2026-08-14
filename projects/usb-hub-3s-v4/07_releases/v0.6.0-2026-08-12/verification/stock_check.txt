@@ -1,0 +1,52 @@
+input: bom = projects/usb-hub-3s-v4/06_build/fab/bom.csv
+40 BOM lines: 40 with LCSC, 0 without
+
+  OK               C21189     x2   0Ω                                     base   stock=17905660
+  OK               C25803     x9   100kΩ                                  base   stock=22803339
+  OK               C844888    x1   100kΩ                                  expand stock=32958
+  OK               C1525      x6   100nF                                  base   stock=40819544
+  OK               C2919856   x1   100uF                                  expand stock=436
+  OK               C95204     x1   10kΩ                                   expand stock=1249215
+  OK               C39232     x1   10uF                                   expand stock=121428
+  OK               C77102     x4   10uF                                   expand stock=116857
+  OK               C22797     x1   13kΩ                                   base   stock=607622
+  OK               C22880     x1   15.8kΩ                                 expand stock=52694
+  OK               C3817933   x1   1715022                                expand stock=780
+  OK               C136277    x1   180uF                                  expand stock=1052
+  OK               C22935     x1   1MΩ                                    base   stock=5049596
+  OK               C110776    x1   1kΩ                                    expand stock=982952
+  OK               C4184      x1   20kΩ                                   base   stock=4171177
+  OK               C478880    x1   210Ω                                   expand stock=444
+  OK               C342660    x9   22uF                                   expand stock=3075
+  OK               C861251    x1   24.3Ω                                  expand stock=4989
+  OK               C77036     x1   3.3nF                                  expand stock=66476
+  OK               C5249699   x1   3568                                   expand stock=208
+  OK               C88744     x1   35TZV100M6.3X8                         expand stock=59415
+  OK               C861436    x1   4.12kΩ                                 expand stock=4678
+  OK               C855851    x1   41.2kΩ                                 expand stock=3923
+  OK               C861404    x3   43.2kΩ                                 expand stock=4936
+  OK               C5451690   x1   47nF                                   expand stock=217
+  OK               C124196    x1   BZT52C12-7-F                           expand stock=18723
+  OK               C264098    x1   DMP3013SFV-7                           expand stock=612
+  OK               C264054    x3   EEEFK1A151P                            expand stock=1796
+  OK               C273394    x1   EG1218                                 expand stock=433
+  OK               C83846     x1   SMBJ15A                                expand stock=31810
+  OK               C97502     x1   TPD2EUSB30DRTR                         expand stock=7781
+  OK               C473910    x2   TPS2513ADBVR                           expand stock=60
+  OK               C206199    x3   TPS2559DRCR                            expand stock=248
+  OK               C473913    x1   TPS25810RVCR                           expand stock=305
+  OK               C2155765   x1   TPS259827ONRGET                        expand stock=9
+  OK               C5219289   x1   TPSM63604RDLR                          expand stock=54
+  OK               C7125816   x1   TPSM63610RDFR                          expand stock=204
+  OK               C5815149   x3   USB1130-15-A                           expand stock=143
+  OK               C3020560   x1   USB4105-GF-A                           expand stock=11018
+  OK               C7519      x3   USBLC6-2SC6                            expand stock=30604
+
+report -> projects/usb-hub-3s-v4/06_build/verification/stock_check.csv
+json -> projects/usb-hub-3s-v4/06_build/verification/stock_check.json
+
+PASS: 40/40 coded BOM lines have stock >= 5 x qty (0 with problems); 0/40 lines carry NO LCSC and were NOT graded by this tool
+  SCOPE: graded against LCSC CATALOG stock (stockCount). JLC's assembly uploader
+  allocates from a DIFFERENT pool, so a PASS here does NOT mean the line will
+  clear at order time. A FAIL is real; a PASS is necessary and not sufficient.
+  The only instrument that answers 'will it clear' is the uploader itself — F-ECHO.

@@ -1,0 +1,32 @@
+# MANIFEST — programmable USB 2.0 hub v1.0-2026-08-01
+
+stage:        MUTABLE PRE-SEAL STAGING — NOT AN IMMUTABLE RELEASE
+board:        programmable_usb2_hub
+version:      v1.0
+date:         2026-08-01
+git_sha:      UNSTAMPED — source commit required by the two-commit seal
+git_dirty:    true             # scope: projects/programmable-usb2-hub/ + skills/
+kicad:        10.0.4
+tools:        kicad-cli 10.0.4, export_jlc_package.py, /usr/bin/python3
+authoring:    tscircuit plus declarative KiCad floorplan/route chain
+fab:          JLCPCB, 4 layers, 130 x 90 mm, quantity 5
+assembly:     standard top-side SMT plus JLC post-through-hole for J1, J2, J7
+
+DESIGN:       FAIL — pin identity and render-faithfulness review blockers
+SOURCING:     PLANNED-1 (C5248536; consigned U4)
+
+not_assembled: F1, J3, J4, J5, J6
+consigned:    U4 C5248536 (AP63203QWU-7), MSL 1; procure exact MPN from Mouser or DigiKey
+
+pre_order_human_gates:
+  - Upload fab/bom.csv and compare JLC's resolved table against verification/bom_echo_gate.txt.
+  - Inspect the 15 exact LCSC codes in verification/rotation_human_gate.txt in JLC's first-order placement preview.
+  - Re-run Q-2SOURCE and JLC allocation checks on payment day.
+
+gates:        DRC 0/0/0; parity 0; ERC 0 errors; BOM-source PASS; F-LEGIBLE PASS;
+              A-POP PASS; twin 194/194; PIN REVIEW FAIL on Q1-Q6 physical pin
+              identity plus QUESTION on J3-J6 contact numbering; A-RENDER FAIL
+              on 29 modeled-body measurements. Topology/layout/render lenses
+              intentionally not launched after the cheap mechanical/review
+              blockers, per the verification-stage ordering rule.
+sha256:       PENDING final stamp; MANIFEST.txt is excluded from its own table

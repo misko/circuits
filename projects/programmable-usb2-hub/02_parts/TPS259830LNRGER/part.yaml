@@ -1,0 +1,75 @@
+mpn: TPS259830LNRGER
+manufacturer: Texas Instruments
+type: efuse_power_switch
+datasheet:
+  doc_id: SLVSHH5C
+  revision: "Rev. C, May 2026"
+  url: https://www.ti.com/lit/ds/symlink/tps25983.pdf
+  sha256: 1330709a5d2225c1acc5fcfb7e91f0d8dca43c63725bf11bc5c77c57d95a6818
+  fetched: 2026-08-01
+package: "TI RGE0024M VQFN-24 4x4 mm, split exposed pads 25/26"
+footprint: programmable_usb2_hub:Texas_RGE0024M_2EP
+escape:
+  style: qfn
+  pitch: 0.5
+  escapes_worst_side: 6
+  tier_required: jlc_4layer_advanced
+  checked: "RGE0024M split-pad package and TI land pattern; advanced filled-via thermal/current escape"
+pins:
+  1: IN
+  2: IN
+  3: IN
+  4: GND
+  5: GND
+  6: EN_UVLO
+  7: ITIMER
+  8: ILIM
+  9: IMON
+  10: RETRY_DLY
+  11: NRETRY
+  12: OVLO
+  13: PG
+  14: GND
+  15: DVDT_BGATE
+  16: IN
+  17: OUT
+  18: OUT
+  19: OUT
+  20: OUT
+  21: OUT
+  22: OUT
+  23: OUT
+  24: OUT
+  25: {name: IN, note: "input power/thermal exposed pad"}
+  26: {name: GND, note: "ground exposed pad"}
+limits:
+  vin_operating: "2.7 to 26 V"
+  vin_absolute: 30 V
+  ron_max: "4.5 mOhm, -40 to 125 C"
+  current_limit_300ohm: "4.36 to 5.66 A"
+  current_monitor_gain: "235.29 to 249.63 uA/A for 3 A and above"
+  output_current: 18 A
+configuration:
+  rilim_ohm: 300
+  response: active_current_limit
+  retry: latch_off
+  blocking_fet: AON6354
+gotchas:
+  - "Use the exact L variant. The O variant is a circuit breaker and is not the adopted response."
+  - "dVdt/BGATE drives the external common-source AON6354 fully on in steady state and low whenever the eFuse turns off; this is the specified disabled reverse-block path."
+  - "The eFuse without the external blocking FET does not guarantee output-to-input isolation."
+  - "RETRY_DLY is grounded for latch-off; ILIM and OVLO must never float."
+  - "The RGE package has separate IN pad 25 and GND pad 26; a one-EP generic RGE footprint is electrically wrong."
+verified: "complete 1-26 physical map and reverse-block behavior transcribed from SLVSHH5C pin table and section 7.3.7, 2026-08-01"
+sourcing:
+  lcsc: C20607218
+  alternates: []
+  note: "Q-2SOURCE 2026-08-01: Mouser 3555, DigiKey 4531, exact LCSC 3005"
+layout:
+  source: "SLVSHH5C sections 8.5 and RGE0024M land-pattern drawing"
+  notes:
+    - "use broad symmetric copper at pins/pad 25 IN and pins 17-24 OUT; preserve current sharing"
+    - "place the AON6354 immediately beside OUT/common-source and keep BGATE short"
+    - "keep ILIM, ITIMER, IMON and OVLO quiet and away from the port power path"
+    - "filled/plated thermal vias are required under both exposed pads for the advanced JLC tier"
+

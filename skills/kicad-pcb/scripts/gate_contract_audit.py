@@ -9,12 +9,29 @@ a five-release fleet audit (2026-07-26/27) found two boards not orderable with
 every gate green. Measured on this repo at the time of writing:
 
   * A-AMP graded **10 of 57** declared net-class currents fleet-wide. Any
-    qualifier ("7 A worst case", "6 A / 5 A", "~1.5A pulsed") makes `parse_amps`
-    return None, and rules_audit.py:336 then files it under OKS with the text
+    qualifier ("7 A worst case", "6 A / 5 A", "~1.5A pulsed") made `parse_amps`
+    return None, and rules_audit.py then filed it under OKS with the text
     "n/a (no current: declared)". ZERO net classes actually declare no current,
-    so that message is wrong 100% of the times it fires. usb-hub-3s-v3 ships
+    so that message was wrong 100% of the times it fired. usb-hub-3s-v3 ships
     PWR_IN 7 A, PWR_RAIL 6 A and SWITCH_NODE 7 A — all silenced; the one class
-    it does grade, VBUS, FAILS.
+    it did grade, VBUS, FAILED.
+
+    **REPAIRED 2026-07-27 (`rules_audit.py:120-140`), AND THIS PARAGRAPH WENT ON
+    ASSERTING THE DEFECT FOR SIX DAYS.** Probe, and the reason every negative
+    claim below now carries one (canon G-STALE-NEG):
+
+        /usr/bin/python3 -c "import sys; sys.path.insert(0, \
+          'skills/kicad-pcb/scripts'); from rules_audit import parse_amps; \
+          print([parse_amps(s) for s in ('7 A worst case', '6 A / 5 A', \
+          '~1.5A pulsed')])"
+        # 2026-08-02 -> [(7.0, 'number'), (6.0, 'number'), (1.5, 'number')]
+
+    MEASURED COST OF LEAVING IT: an agent planning the R-POUR repair read this
+    paragraph, concluded the prose `current:` field "is not machine-readable",
+    and built a contract obligation on that premise. One command refutes it. A
+    stale negative claim in a gate's own docstring is not documentation debt —
+    it is an instrument reporting a defect that no longer exists, and it
+    propagates into whatever reads it.
   * `bom_source_check.row_kind()` classifies by the whole leading-alpha run, so
     `RS1/RS2` (the 10 mOhm shunts setting BOTH buck current limits) and `CE1`
     (the only electrolytic, which shipped REVERSED in v1.0/v1.1) exit leg C
@@ -123,6 +140,13 @@ SKIP_BASENAMES = {
     "generate_rules_generic.py", "route_and_stitch_generic.py",
     "import_krt.py", "export_fab_jlc.py", "export_jlc_package.py",
     "pcb_status.py", "jlc_rotation_measure.py", "jlc_rotation_resolve.py",
+    # Typed pipeline libraries carry PASS/FAIL as schema data but expose no
+    # CLI and print no verdict.  The lexical inventory otherwise mistakes
+    # their closed vocabularies for executable gates.
+    "pipeline_artifacts.py", "pipeline_catalog.py", "pipeline_contract.py",
+    "pipeline_facts.py", "pipeline_identity.py", "pipeline_registry.py",
+    "pipeline_review.py", "pipeline_runtime.py", "pipeline_shadow.py",
+    "pipeline_timing.py", "pipeline_xtrace.py",
 }
 
 
@@ -480,7 +504,7 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: test. The declaration landed WITH its fixture, which reproduces the vacuous
 #: pass on every run instead of asserting it in prose. Raised in the same commit
 #: that earns it, never ahead of one.
-VACUITY_FLOOR = 11
+VACUITY_FLOOR = 14
 
 
 def vacuity_declaration(text):

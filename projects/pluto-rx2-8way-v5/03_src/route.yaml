@@ -1,0 +1,332 @@
+# Routing execution contract for the D15-approved compact placement.  Critical
+# RF copper is deterministic source geometry; the generic router owns only the
+# remaining control and power nets. The exact five-wave chain below is the
+# first quick-clean, per-wave-via-in-pad-clean promoted stochastic route.
+project:
+  name: pluto_rx2_8way_v5
+  board: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
+  build_dir: 06_build/route
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2]
+    # The router has no inherent board-edge/tool-envelope model.  Preserve the
+    # M3 head/service envelope, every non-plated locating hole and a copper-to-
+    # edge band before it is allowed to claim an escape lane.
+    mounting_holes: {radius: 3.5, refdes_prefix: H}
+    npth_pads: {margin: 0.60}
+    edge_band: 0.50
+    rects: []
+
+  # Plane drops are route inputs.  Rescue GND SMD pads before stochastic
+  # routing consumes their legal adjacent-via sites.  Ordinary vias are never
+  # placed in component lands; U1's separately authored 3x3 filled/capped EP
+  # field is the only via-in-pad construction on this board.
+  pad_rescue:
+    # J11's long, closely-spaced SMD lands made the generic adjacent-via
+    # search for one GND pin land in another GND land.  Its three plane drops
+    # are explicit dogbones below, so automatic rescue must not reinterpret
+    # `via_in_pad: false` at this connector.
+    skip_refs: [J11]
+
+  # The nine approved corridors are mutually non-crossing and clear every
+  # foreign courtyard.  Realize each as one exact 0.295-mm F.Cu polyline from
+  # the PE42482 RF land centre to its SMA centre land: package/launch-normal,
+  # stub-free, zero RF vias, no stochastic doglegs and no invented phase
+  # matching.
+  seed_stubs:
+    clearance: 0.20
+    via: {size: 0.45, drill: 0.20}
+    stubs:
+      - net: RF_COMMON
+        pin: U1.22
+        segments: [{layer: F.Cu, width: 0.295, pts: [[64.75, 46.10], [64.75, 44.50], [65.00, 36.50], [65.00, 31.60]]}]
+      - net: RF_ANT1
+        pin: U1.24
+        segments: [{layer: F.Cu, width: 0.295, pts: [[63.75, 46.10], [63.75, 44.50], [50.00, 36.50], [50.00, 31.60]]}]
+      - net: RF_ANT2
+        pin: U1.2
+        segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 47.25], [61.50, 47.25], [35.00, 36.50], [35.00, 31.60]]}]
+      - net: RF_ANT3
+        pin: U1.4
+        segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 48.25], [31.60, 48.00]]}]
+      - net: RF_ANT4
+        pin: U1.6
+        segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 49.25], [61.50, 49.25], [36.50, 66.00], [31.60, 66.00]]}]
+      - net: RF_ANT5
+        pin: U1.13
+        segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 49.25], [68.50, 49.25], [93.50, 66.00], [98.40, 66.00]]}]
+      - net: RF_ANT6
+        pin: U1.15
+        segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 48.25], [98.40, 48.00]]}]
+      - net: RF_ANT7
+        pin: U1.17
+        segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 47.25], [68.50, 47.25], [95.00, 36.50], [95.00, 31.60]]}]
+      - net: RF_ANT8
+        pin: U1.19
+        segments: [{layer: F.Cu, width: 0.295, pts: [[66.25, 46.10], [66.25, 44.50], [80.00, 36.50], [80.00, 31.60]]}]
+      # The six RF-ground perimeter lands cannot accept ordinary unfilled
+      # via-in-pad.  Join them under the package directly into the exposed-pad
+      # copper and its already-authored filled/capped 3x3 ground-via field.
+      - {net: GND, pin: U1.3,  segments: [{layer: F.Cu, width: 0.30, pts: [[63.10, 47.75], [63.70, 47.75]]}]}
+      - {net: GND, pin: U1.5,  segments: [{layer: F.Cu, width: 0.30, pts: [[63.10, 48.75], [63.70, 48.75]]}]}
+      - {net: GND, pin: U1.14, segments: [{layer: F.Cu, width: 0.30, pts: [[66.90, 48.75], [66.30, 48.75]]}]}
+      - {net: GND, pin: U1.16, segments: [{layer: F.Cu, width: 0.30, pts: [[66.90, 47.75], [66.30, 47.75]]}]}
+      - {net: GND, pin: U1.21, segments: [{layer: F.Cu, width: 0.30, pts: [[65.25, 46.10], [65.25, 46.70]]}]}
+      - {net: GND, pin: U1.23, segments: [{layer: F.Cu, width: 0.30, pts: [[64.25, 46.10], [64.25, 46.70]]}]}
+
+      # Deterministic endpoint escapes.  The first bounded five-wave run and
+      # a three-candidate race all converged on the same SW_V1 open and used
+      # ordinary via-in-pad at other boxed endpoints.  These short dogbones
+      # own only the package escape; KRT still owns the remaining net trunks.
+      - {net: 3V3, pin: U1.8,
+         segments: [{layer: F.Cu, width: 0.25, pts: [[64.25, 49.90], [64.25, 51.12]]}]}
+      - {net: SW_V1, pin: U1.9,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[64.75, 49.90], [64.75, 50.50], [64.86, 50.50], [64.86, 52.85], [65.00, 52.85]]}],
+         vias: [[65.00, 52.85]]}
+      - {net: SW_V2, pin: U1.10,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[65.25, 49.90], [65.25, 50.50], [65.80, 52.00]]}],
+         vias: [[65.80, 52.00]]}
+      - {net: SW_V3, pin: U1.11,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[65.75, 49.90], [65.75, 50.50], [66.60, 52.00]]}],
+         vias: [[66.60, 52.00]]}
+      - {net: SW_V4, pin: U1.12,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[66.25, 49.90], [66.25, 50.50], [67.40, 52.00]]}],
+         vias: [[67.40, 52.00]]}
+      - {net: SW_V1, pin: U2.7,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[64.025, 62.1375], [64.025, 61.00], [65.40, 59.70]]}],
+         vias: [[65.40, 59.70]]}
+      - {net: SW_V2, pin: U2.8,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[63.375, 62.1375], [63.375, 61.00], [64.40, 59.20]]}],
+         vias: [[64.40, 59.20]]}
+      - {net: SW_V3, pin: U2.9,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[62.725, 62.1375], [62.725, 61.00], [63.40, 58.80]]}],
+         vias: [[63.40, 58.80]]}
+      - {net: SW_V4, pin: U2.10,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[62.075, 62.1375], [62.075, 61.00], [62.40, 58.50]]}],
+         vias: [[62.40, 58.50]]}
+      - {net: SW_V1, pin: R4.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[60.50, 55.99], [59.50, 55.99]]}],
+         vias: [[59.50, 55.99]]}
+      - {net: SW_V2, pin: R5.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[63.00, 56.49], [62.20, 56.49]]}],
+         vias: [[62.20, 56.49]]}
+      - {net: SW_V3, pin: R6.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[65.50, 56.49], [66.30, 56.49]]}],
+         vias: [[66.30, 56.49]]}
+      - {net: SW_V4, pin: R3.2,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[68.00, 55.99], [69.00, 55.99]]}],
+         vias: [[69.00, 55.99]]}
+      - {net: 3V3, pin: R3.1,
+         # End on KRT's 0.1-mm grid beyond the R3.1 copper/clearance envelope.
+         # The source-owned transition prevents the router from inventing a
+         # layer swap inside the resistor land; an all-F.Cu result may later
+         # let via_janitor remove the unused barrel without breaking the exact
+         # centreline endpoint shared at (68.80, 57.00).
+         segments: [{layer: F.Cu, width: 0.25, pts: [[68.00, 57.01], [68.80, 57.00]]}],
+         vias: [[68.80, 57.00]]}
+      - {net: USB_CC1, pin: J1.A5,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[63.75, 77.645], [63.75, 76.60], [63.40, 76.30], [63.40, 75.80], [64.2875, 75.80]]}]}
+      - {net: USB_CC2, pin: J1.B5,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[66.75, 77.645], [66.75, 74.80], [65.7125, 74.80]]}]}
+      - {net: NRST, pin: C6.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[61.50, 60.28], [60.70, 60.28]]}],
+         vias: [[60.70, 60.28]]}
+      - {net: GND, pin: J11.3,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[42.73, 78.0325], [42.73, 80.00]]}],
+         vias: [[42.73, 80.00]]}
+      - {net: GND, pin: J11.5,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[44.00, 78.0325], [44.00, 80.00]]}],
+         vias: [[44.00, 80.00]]}
+      - {net: GND, pin: J11.9,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[46.54, 78.0325], [46.54, 80.00]]}],
+         vias: [[46.54, 80.00]]}
+
+  waves:
+    # GND is pour-fed, RF is deterministic above, and sanctioned unconnected
+    # pins are never router work.  Every remaining net is named exactly once.
+    exclude: ["GND", "RF_*", "unconnected-*"]
+    groups:
+      switch: [SW_V1, SW_V2, SW_V3, SW_V4]
+      typec: [USB_CC1, USB_CC2]
+      vbus: [VBUS_RAW, VBUS_PROTECTED]
+      rail: [3V3]
+      debug: [NRST, SWDIO, SWCLK]
+
+# This is a single-ended RF design. The pre-route critical-pair denominator is
+# explicitly zero rather than absent, so the shared gate grades that fact.
+route:
+  preflight_critical_pairs: []
+  no_critical_routes: "All nine controlled-impedance RF nets are single-ended; there are no differential or polarity-paired critical routes."
+  # Stop after the exact wave that attempts an ordinary via in any component
+  # land.  The only allowed via-in-pad geometry is U1's source-owned 3x3
+  # filled/capped EP field, which is already present in each wave input.
+  forbid_new_via_in_pad: true
+  krt: ~/gits/KiCadRoutingTools
+  kicad_python: /usr/bin/python3
+  final: 03_src/route/final_chain.kicad_pcb
+  import_source: promoted
+  # Start with one bounded candidate.  A measured dirty/incomplete result may
+  # justify a small race; paying for several silent stochastic runs before the
+  # first quick verdict repeats the pipeline-lockup failure mode.
+  race: 1
+  common:
+    layers: [F.Cu, B.Cu]
+    # Use the strictest adopted class clearance globally. KRT otherwise
+    # inherits the tier's 0.09-mm manufacturing floor and can legally pack
+    # copper below RF_50R/USB_VBUS/PWR_3V3's 0.20-mm DRC requirement.
+    clearance: 0.20
+    # JLC currently prefers a 0.20-mm via hole. At 1.6-mm nominal thickness
+    # this is 8:1 (8.8:1 at +10% thickness), below the declared 10:1 PTH
+    # limit; 0.45/0.20 also avoids the extra-cost <0.45-mm annulus case.
+    via_size: 0.45
+    via_drill: 0.20
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+  waves:
+    # Hardest/most local escapes first; each wave is small enough to yield a
+    # useful progress boundary. Widths are explicit at their adopted class
+    # floors and every override retains the strictest 0.20-mm clearance.
+    - {name: switch, group: switch, layers: [F.Cu, B.Cu], track_width: 0.18,
+       clearance: 0.20, max_iterations: 300000, max_probe_iterations: 30000,
+       max_ripup: 20}
+    - {name: typec, group: typec, layers: [F.Cu, B.Cu], track_width: 0.18,
+       clearance: 0.20, max_iterations: 300000, max_probe_iterations: 30000,
+       max_ripup: 20}
+    - {name: vbus, group: vbus, layers: [F.Cu, B.Cu], track_width: 0.30,
+       clearance: 0.20, max_iterations: 300000, max_probe_iterations: 30000,
+       max_ripup: 20}
+    - {name: rail, group: rail, layers: [F.Cu, B.Cu], track_width: 0.25,
+       clearance: 0.20, max_iterations: 500000, max_probe_iterations: 50000,
+       max_ripup: 30}
+    - {name: debug, group: debug, layers: [F.Cu, B.Cu], track_width: 0.18,
+       clearance: 0.20, max_iterations: 500000, max_probe_iterations: 50000,
+       max_ripup: 30}
+
+stitch:
+  clearance: 0.20
+  via:
+    size: 0.45
+    drill: 0.20
+    spacing: 0.70
+    pth_margin: 0.20
+    tiers: [{size: 0.45, drill: 0.20, hole_to_copper: 0.19}]
+  keepin: {inset: 0.80}
+  passes: [dedupe_vias, normalize_vias, bridge_via_endpoints, drop_micro_fragments,
+           drop_dangling, split_t_junctions, reload,
+           hole_to_hole, pad_rescue,
+           stub_fallback, astar_fallback, via_janitor, stitch_grid,
+           route_fence, fill,
+           island_rescue,
+           dedupe_vias, hole_to_hole, fill, fresh_reload, heal_islands, gate]
+  dedupe_vias: {radius: 0.35, metric: box}
+  # Repair only impossible sub-tier geometry; do not inflate valid advanced-
+  # tier vias collision-unchecked. All project emitters still prefer 0.45/0.20.
+  normalize_vias: {below_width: 0.24, size: 0.25, drill: 0.15}
+  bridge_via_endpoints: {tol: 0.01, max_move: 0.20}
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    nets: [{net: GND, layer: In1.Cu}]
+    via_in_pad: false
+    served_within: 1.60
+    rings: [0.75, 0.95, 1.20, 1.60, 2.10, 2.70]
+    angle_step: 30
+    stub_width: 0.30
+    stub_scope: false
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.20, max_dist: 8.0, width: 0.30}
+  astar_fallback:
+    net: GND
+    width: 0.25
+    layers: [F.Cu]
+    window: 3.0
+    attempts: 3
+    targets: 8
+    max_dist: 10.0
+    via: {size: 0.45, drill: 0.20, hole_to_copper: 0.19}
+  # Remove imported/prepared vias that the promoted all-F.Cu trunks did not
+  # use as layer transitions.  The janitor requires same-net attachment on at
+  # least two copper layers; the twelve deterministic endpoint barrels are
+  # therefore deleted while their used F.Cu trunk copper remains intact.
+  via_janitor: {min_layers: 2, pad_window: 2.0}
+  # This 5-mm lattice provides ordinary whole-board plane stitching only.  It
+  # is NOT credited as the 5.9-GHz CPWG fence.  Route-following fence rows are
+  # realized and measured from actual RF centrelines before layout approval.
+  stitch_grid:
+    net: GND
+    x: [22.5, 108.0, 5.0]
+    y: [22.5, 84.0, 5.0]
+    min: 80
+  # The requirement denominator/layer/maximum aperture come from rf.yaml,
+  # not a copied second authority.  The emitter measures the saved RF chains
+  # and existing plated returns, then fills only realized along-route gaps.
+  # 0.70 mm is the solver-contract nominal centre offset; wider searches are
+  # collision fallbacks and remain inside the independently graded 1.10-mm
+  # lateral band.  Every accepted barrel still uses stitch.via's JLC tier.
+  route_fence:
+    contract: 03_src/rules/rf.yaml
+    net: GND
+    nominal_pitch: 1.00
+    band: 1.10
+    lateral_offsets: [0.70, 0.80, 0.90, 1.00, 1.10]
+    longitudinal_jitter: [0.00, -0.10, 0.10, -0.20, 0.20, -0.30, 0.30,
+                          -0.40, 0.40]
+    longitudinal_step: 0.05
+    # Adjacent RF rows may use separate same-net barrels at 0.50mm centres.
+    # With 0.20mm drills this leaves 0.30mm hole-to-hole, above the declared
+    # 0.25mm JLC advanced floor.  Copper disks may approach/overlap because
+    # both are GND; the independent full DRC still owns the realized result.
+    via_spacing: 0.50
+    max_new_vias: 2000
+    require: all
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu], require: all}
+  heal_islands: {min_bbox: 0.1, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu],
+                 sample_step: 0.05, max_gap_candidates: 2000,
+                 clear_rescue_failures: true}
+
+flow:
+  heartbeat_s: 10
+  rebuild_args: [--resume-after-schematic-review]
+  pre_route_reviews:
+    board: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
+    netlist: 06_build/netlists/pluto_rx2_8way_v5.net
+    topology: 08_reviews/pre-route_topology.md
+    schematic_pdf: 03_tscircuit/build/schematic.pdf
+    schematic_render: 08_reviews/pre-route_schematic_render.md
+    pin: 08_reviews/pre-route_pin.md
+    layout: 08_reviews/pre-route_layout.md
+    render: 08_reviews/pre-route_render.md
+    a_render: 06_build/pre_route/twin_overlay.md
+  owner:
+    stage: routing
+    files: [03_src/floorplan.yaml, 03_src/route.yaml]
+  copper:
+    deterministic: [prep.seed_stubs, taps.connections, stitch.seed_stubs, route.final]
+    stochastic: [route.waves]
+  budgets_s:
+    tscircuit_build: 120
+    placement_review_prepare: 60
+    grind: 900
+    rebuild: 1200
+    layout_drc: 120
+  timeouts_s:
+    default: 600
+    source_schema_governance: 60
+    adr_bound_governance: 60
+    tscircuit_build: 180
+    route_wave: 900
+    route_race: 2400
+    route_evaluate: 180
+    placement_review_prepare: 270
+    route_import: 300
+    stitch: 900
+    rebuild: 1500
+    layout_drc: 180
+  blockers:
+    - "The exact routed/stitch/fence board is mechanically clean; independent exact-board RF PCB review remains required before layout seal"
+    - "RF fab plotting/review and first-article VNA/TDR acceptance remain later prototype/order boundaries"

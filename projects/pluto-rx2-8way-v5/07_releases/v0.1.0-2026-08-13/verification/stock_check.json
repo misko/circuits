@@ -1,0 +1,147 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "projects/pluto-rx2-8way-v5/07_releases/v0.1.0-2026-08-13/fab/bom.csv",
+ "generated_at": "2026-08-14T06:45:41.716836+00:00",
+ "min_stock_per_board": 5,
+ "verdict": "PASS",
+ "stock_source": "lcsc_catalog_stockCount",
+ "predicts_jlc_assembly_allocation": false,
+ "pass_means": "catalog stock >= min_stock x qty at query time; NOT that JLC will allocate the line -- see F-ECHO",
+ "graded_lines": 13,
+ "total_lines": 13,
+ "zero_coverage": null,
+ "failures": 0,
+ "uncoded_lines": 0,
+ "lines": [
+  {
+   "lcsc": "C207010",
+   "designators": "F1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 13425,
+   "type": "expand",
+   "mpn": "0603L010YR",
+   "manufacturer": "Littelfuse"
+  },
+  {
+   "lcsc": "C1525",
+   "designators": "C4,C5,C6",
+   "qty": 3,
+   "status": "OK",
+   "stock": 37408658,
+   "type": "base",
+   "mpn": "CL05B104KO5NNNC",
+   "manufacturer": "Samsung Electro-Mechanics"
+  },
+  {
+   "lcsc": "C60490",
+   "designators": "R3,R4,R5,R6",
+   "qty": 4,
+   "status": "OK",
+   "stock": 9322327,
+   "type": "expand",
+   "mpn": "RC0402FR-0710KL",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C19666",
+   "designators": "C1,C2,C3",
+   "qty": 3,
+   "status": "OK",
+   "stock": 5754873,
+   "type": "base",
+   "mpn": "CL10A475KO8NNNC",
+   "manufacturer": "Samsung Electro-Mechanics"
+  },
+  {
+   "lcsc": "C105872",
+   "designators": "R1,R2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 2337297,
+   "type": "expand",
+   "mpn": "RC0402FR-075K1L",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C429844",
+   "designators": "J10,J2,J3,J4,J5,J6,J7,J8,J9",
+   "qty": 9,
+   "status": "OK",
+   "stock": 630,
+   "type": "expand",
+   "mpn": "901-143-6RFX",
+   "manufacturer": "Amphenol ICC"
+  },
+  {
+   "lcsc": "C2932107",
+   "designators": "J11",
+   "qty": 1,
+   "status": "OK",
+   "stock": 12070,
+   "type": "expand",
+   "mpn": "FTSH-105-01-L-DV-K-P-TR",
+   "manufacturer": "Samtec"
+  },
+  {
+   "lcsc": "C5121458",
+   "designators": "U1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1199,
+   "type": "expand",
+   "mpn": "PE42482A-X",
+   "manufacturer": "pSemi"
+  },
+  {
+   "lcsc": "C83270",
+   "designators": "D1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 9071,
+   "type": "expand",
+   "mpn": "SMBJ6.0A",
+   "manufacturer": "Littelfuse"
+  },
+  {
+   "lcsc": "C5452432",
+   "designators": "U2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1392,
+   "type": "expand",
+   "mpn": "STM32C011F4P6",
+   "manufacturer": "STMicroelectronics"
+  },
+  {
+   "lcsc": "C1972959",
+   "designators": "U4",
+   "qty": 1,
+   "status": "OK",
+   "stock": 10694,
+   "type": "expand",
+   "mpn": "TPD2E2U06DRLR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C2866134",
+   "designators": "U3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 19940,
+   "type": "expand",
+   "mpn": "TPS7A2433DBVR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C5184243",
+   "designators": "J1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 3618,
+   "type": "expand",
+   "mpn": "USB4105-GF-A-120",
+   "manufacturer": "Global Connector Technology"
+  }
+ ]
+}

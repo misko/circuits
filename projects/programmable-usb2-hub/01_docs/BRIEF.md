@@ -23,7 +23,7 @@ and a complete JLCPCB PCBA release.
 | # | Criterion | Source | Status |
 |---|---|---|---|
 | G1 | Four downstream USB-A sockets | P, Q1 | unmet |
-| G2 | Each downstream socket can continuously deliver 5 V at 3 A subject to an explicit current limit and thermal design | P, Q1 | unmet |
+| G2 | Each downstream socket can continuously deliver 5 V at 2 A at the mated test plug, subject to an explicit current limit and thermal design | Q2 | in verification |
 | G3 | USB 2.0 high-speed hub connectivity to the upstream host | P | unmet |
 | G4 | Host can power-cycle each port independently | P | unmet |
 | G5 | Host receives per-port commanded power state, power-present state, and fault/overcurrent status | P | unmet |
@@ -98,6 +98,19 @@ budget, while the original 3 A-per-socket requirement remains the hardware
 design envelope for cable-drop, startup, and other loads.
 Source: https://github.com/plutoplus/plutoplus, read 2026-07-31.
 
+### Q2 — 2026-08-01 — current and module-policy revision
+
+Answer:
+
+> Module-first policy: LM5116, STM32, and USB2517 need explicit module-vs-chip decisions. dont need to be too strict, if its only a few support components its file. If its an PI chip with 10+ components supporting it, thats a different call.
+>
+> 3A lets lower to 2A would that help?
+
+Impact: Replaces the 3 A guarantee with 2 A continuous at each mated USB-A
+receptacle and adopts a complexity-weighted module policy. Bare ICs with fewer
+than ten external support parts need a rationale; integrations at or above ten
+need an evidenced module trade study. The connector remains rated for 3 A.
+
 ## Decision register
 
 | id | decision (one line) | decided by | depth |
@@ -110,16 +123,21 @@ Source: https://github.com/plutoplus/plutoplus, read 2026-07-31.
 | C6 | External-feed removal is whole-board de-energization | agent (A2 / Q1-delegation) | A2 |
 | C7 | USB-B upstream connector | agent (A3 / P-delegation) | A3 |
 | C8 | Internal management MCU behind a fifth hub port | agent (A4 / P-delegation) | A4 |
-| C9 | Keep 3 A/port hardware envelope although the target Pluto+ supply rating is 2 A | user prompt + measured A5 | A5 |
-| 0001 | Treat USB-A 3 A as a proprietary high-current port with explicit connector and protocol limits | agent (A1 / P-delegation) | [ADR-0001](decisions/0001-usb-a-3a-spec-tension.md) |
-| 0002 | Use two independent 5.15 V / 7 A LM5116 buck cells, two ports per rail | agent (P-delegation) | [ADR-0002](decisions/0002-dual-seven-amp-bucks.md) |
+| C9 | Guarantee 2 A continuously per port at the mated test plug | user (Q2) | Q2 |
+| C10 | Use complexity-weighted module decisions with a default ten-support-part trade-study threshold | user (Q2) | Q2 |
+| 0001 | Treat USB-A 2 A as a proprietary high-current capability with explicit connector and protocol limits | agent (Q2 implementation) | [ADR-0001](decisions/0001-usb-a-3a-spec-tension.md) |
+| 0002 | Retain two independent 5.16 V / 4 A LM5116 rails, two ports per rail | agent (Q2 implementation) | [ADR-0002](decisions/0002-dual-seven-amp-bucks.md) |
 | 0003 | Put the management MCU on internal hub port 5 and combine vendor telemetry with standard host hub status | agent (A4 / P-delegation) | [ADR-0003](decisions/0003-control-and-status-plane.md) |
+| 0004 | Retain the reviewed LM5116 cells using maximum-Qg AON6266E switches, a 110 kHz bounded high corner, and a 2 A complete-path margin | agent (Q2 implementation) | [ADR-0004](decisions/0004-power-architecture-backtrack.md) |
+| 0005 | Use bare LTC3889, STM32G0B1, and USB2517 integrations only where module trade studies show lower total integration risk | agent (Q2 implementation) | [ADR-0005](decisions/0005-module-first-control-plane.md) |
+| 0006 | Attempted restoration of 3 A; superseded because no user directive authorized it | agent error found by exact-hash review | [ADR-0006](decisions/0006-four-port-3a-power-architecture.md) |
+| 0007 | Honor the locked 2 A requirement using 4 A LTC3889 rails and coordinated true-reverse-blocking TPS259470 port protection | agent (Q2 correction) | [ADR-0007](decisions/0007-authoritative-2a-power-and-protection.md) |
 
 ## Spec tensions
 
 | id | requirement | standard/part cap | how honoured | ADR | user-flagged |
 |---|---|---|---|---|---|
-| T1 | 5 V / 3 A from a USB-A downstream port | USB 2.0 unit loads and BC 1.2 charging currents are below 3 A; USB-A has no Type-C-style 3 A advertisement | Proprietary high-current capability, strict 3 A current limiting, no USB-IF-compliance claim for the 3 A mode, and a receptacle with a cited >=3 A continuous contact rating | [0001](decisions/0001-usb-a-3a-spec-tension.md) | yes |
+| T1 | 5 V / 2 A from a USB-A downstream port | USB 2.0 unit loads and BC 1.2 do not advertise a generic 2 A entitlement | Proprietary high-current capability, hardware current limiting, no USB-IF-compliance claim for the 2 A power mode, and a receptacle cited for >=3 A continuous | [0001](decisions/0001-usb-a-3a-spec-tension.md) | yes |
 
 ## Mating fact-lock
 
@@ -129,13 +147,13 @@ none — this board does not mate to hardware this repo did not design.
 
 | Fact | Locked value | Locked by |
 |---|---|---|
-| Downstream rail envelope | Four independent ports, 4.75–5.25 V at connector, 3.0 A continuous per port | P, Q1, A1 |
-| Aggregate downstream load | 60 W maximum delivered load, excluding conversion and hub overhead | P, Q1 |
+| Downstream rail envelope | Four independent ports, 4.75–5.25 V at mated test plug, 2.0 A continuous per port | Q2 |
+| Aggregate downstream load | 40 W maximum delivered load, excluding conversion and hub overhead | Q2 |
 | Input envelope and source type | 12–24 V DC, external SELV supply, at least 75 W | Q1 |
 | Protection posture | Input fuse/reverse/TVS/UVLO/OVLO; per-port current limit, fault, switched-voltage sense, and backfeed prevention | A1 |
 | Off control | Remove/switch external feed for full off; host may independently disable every downstream power/data path while logic remains alive | A2 |
 | Upstream interface | Self-powered USB 2.0 over USB-B; VBUS sense only and no upstream backfeed | A3 |
 | Host control plane | Internal native-USB MCU behind hub port 5; versioned control protocol plus host-side hub enumeration query | A4 |
-| USB-A 3 A hard-cell sourcing class | Must be sourceable with >=3 A cited continuous rating; consignment permitted only with an assembly record | A1, ADR-0001; sourcing spike pending |
+| USB-A connector sourcing class | Must retain >=3 A cited continuous contact rating for 2 A use; consignment permitted with an assembly record | Q2, ADR-0001 |
 | Hub/control silicon sourcing class | At least five downstream hub ports plus native-USB MCU, both JLC-placeable or explicitly consigned | A4; sourcing spike pending |
 | Component availability | Every selected component has the exact MPN, or an approved dossier alternate, active and orderable from at least two independent authorized supplier pools with stock sufficient for five boards | Q-2SOURCE; verify before schematic completion and again on order day |

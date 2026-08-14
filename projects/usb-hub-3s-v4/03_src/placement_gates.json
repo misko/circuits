@@ -1,0 +1,12 @@
+{
+  "outline_margin": 0.15,
+  "courtyard": true,
+  "out_ok": ["J5"],
+  "out_ok_evidence": {
+    "J5": "GCT USB4105 edge receptacle: the footprint PCB Edge datum is aligned exactly to Edge.Cuts y=110.000 mm; the mechanical courtyard/body intentionally overhangs 0.500 mm while the tightest copper pad remains 1.700 mm inside the outline."
+  },
+  "body_clearance": {
+    "min_courtyard_gap": 0.10,
+    "min_envelope_to_pad": 0.10
+  }
+}

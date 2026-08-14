@@ -1,0 +1,40 @@
+mpn: TPS2559DRCR
+manufacturer: Texas Instruments
+type: precision_adjustable_current_limit_power_switch
+datasheet: {doc_id: SLVSCL5, revision: SLVSCL5A, url: "https://www.ti.com/lit/ds/symlink/tps2559.pdf", sha256: d1b12fdac16692d26b326940f9d34e6827ac11061e2badc1c8003d8419c57707, fetched: 2026-08-11}
+package: DRC0010J 10-pin VSON 3x3mm plus PowerPAD
+footprint: Package_SON:Texas_DRC0010J
+escape: {style: qfn, pitch: 0.5, tier_required: jlc_4layer_advanced, checked: "manufacturer DRC0010J land and escape_check review 2026-08-11"}
+pins:
+  1: GND
+  2: IN
+  3: IN
+  4: IN
+  5: EN
+  6: ILIM
+  7: OUT
+  8: OUT
+  9: OUT
+  10: FAULT
+  11: {name: PowerPAD, tie: GND}
+limits: {vin: "2.5-6.5V", continuous_current_max: 5.5A, rds_on_max_125C: 21mOhm, standby_supply_max: 2uA, current_limit_with_43k2: "2.554-2.849A including +/-0.1% initial and +/-25ppm/C over a 100C resistor excursion"}
+gotchas:
+  - "EN is active high and is tied to the local 5VA input; FAULT is active-low open drain."
+  - "Use all three IN and all three OUT lands for the current path. Connect the PowerPAD externally to GND and to the specified filled/capped board-via field."
+  - "RILIM must be adjacent to pin 6. Scaling TI's characterized 44.2k current-limit row to exact 43.2k, then charging independent +/-0.1% initial tolerance and +/-25ppm/C over 100C, gives 2.554-2.849A: above the 2.5A short peak and below the USB1130 3.0A connector rating."
+verified: "top-view pin table, recommended/electrical limits, current-limit equations and DRC0010J package drawing independently read from TI SLVSCL5A 2026-08-11"
+sourcing: {lcsc: C206199, alternates: [], note: "JLC/LCSC catalog candidate; stock evidence is volatile and must be refreshed at release/order time"}
+layout:
+  source: "TI SLVSCL5A sec.11 layout guidelines and Figure 11-1"
+  reviewed: "2026-08-11"
+  notes: "Place 100nF at IN/GND, exact 43.2k at ILIM/GND, route the six power lands with wide copper and connect PowerPAD to the ground plane with filled/capped vias."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSCL5A sec.11 and DRC0010J package drawing", why: "manufacturer sources define bypass, ILIM, power-copper and PowerPAD geometry"}
+  - tier: 2
+    reached: true
+    artifact: "TI TPS2559EVM-624 user's guide SLUUB15, Figures 3-5: top placement, top routing and bottom routing for the exact TPS2559DRC device; https://www.ti.com/lit/pdf/SLUUB15"
+    why: "TI describes the EVM as fully assembled and tested; the published routing shows the exact package's short ILIM branch, full-width IN/OUT copper and grounded exposed-pad treatment. The current TI tool page publishes raster layout figures, not an editable PCB database."
+  - tier: 3
+    reached: false
+    artifact: "OSHWLab search by exact LCSC C206199 with published copper"
+    why: "Not searched at this stage because the exact-device, assembled-and-tested TI EVM publishes both copper layers and is the higher-authority local layout precedent."

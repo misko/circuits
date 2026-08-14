@@ -1,0 +1,22 @@
+  ok   A-CLASS RF_50R present (track_width 0.295mm)
+  ok   A-AGREE RF_50R pro/dru agree at 0.295mm
+  ok   A-AMP RF_50R exempt by declaration ('signal only')
+  ok   A-CLASS USB_VBUS present (track_width 0.3mm)
+  ok   A-AGREE USB_VBUS pro/dru agree at 0.3mm
+  ok   A-AMP USB_VBUS 0.1A ok at 0.3mm (need 0.013mm)
+  ok   A-CLASS PWR_3V3 present (track_width 0.25mm)
+  ok   A-AGREE PWR_3V3 pro/dru agree at 0.25mm
+  ok   A-AMP PWR_3V3 0.02A ok at 0.25mm (need 0.001mm)
+  ok   A-CLASS TYPEC_CC present (track_width 0.18mm)
+  ok   A-AGREE TYPEC_CC pro/dru agree at 0.18mm
+  ok   A-AMP TYPEC_CC exempt by declaration ('signal only')
+  ok   A-CLASS CONTROL present (track_width 0.18mm)
+  ok   A-AGREE CONTROL pro/dru agree at 0.18mm
+  ok   A-AMP CONTROL exempt by declaration ('signal only')
+  ok   A-CLASS GROUND present (track_width 0.25mm)
+  ok   A-AGREE GROUND pro/dru agree at 0.25mm
+  ok   A-AMP GROUND exempt by declaration ('return plane')
+  ok   A-FIRE all 6 pluto_rx2_8way_v5.kicad_dru rule(s) can fire
+  ok   A-ORDER generate_rules runs last before the DRC gate
+  coverage A-AMP: 6/6 net-class current declarations graded
+RULES AUDIT: PASS (0 fails, 20 checks)

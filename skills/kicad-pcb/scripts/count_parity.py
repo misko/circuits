@@ -13,7 +13,8 @@ Sources compared (any that exist in the project):
                 source that catches a silent drop (all generated artifacts
                 agree with each other after a drop; only intent disagrees).
   circuit.json  03_tscircuit/build/circuit.json source_component names
-  kicad_sch     03_tscircuit/kicad/*.kicad_sch symbol Reference properties
+  kicad_sch     04_kicad/*.kicad_sch (current full-build subject), falling
+                back to 03_tscircuit/kicad/*.kicad_sch (pinned reuse subject)
   board         04_kicad/*.kicad_pcb footprint refs
   netlist       06_build/netlists/*.net or 06_build/*.net (comp (ref X))
 
@@ -36,7 +37,12 @@ shape — a verdict that did not say what it had looked at:
     truncated list is retained (a 200-ref dump helps nobody) but it now states
     the full count beside it.
 
-usage: count_parity.py PROJECT_DIR
+usage: count_parity.py PROJECT_DIR [--board STEM] [--pre-board]
+
+`--pre-board` deliberately excludes the PCB representation. Use it after a
+schematic regeneration and before board generation; otherwise a correctly
+stale PCB makes the pipeline unable to reach the stage that replaces it. The
+normal invocation still requires full schematic-to-PCB parity.
 """
 import glob
 import json
@@ -103,6 +109,7 @@ def pick(paths, want, kind):
 def main():
     proj = Path(sys.argv[1]).resolve()
     want = ""
+    pre_board = "--pre-board" in sys.argv
     if "--board" in sys.argv:
         i = sys.argv.index("--board")
         if i + 1 >= len(sys.argv):
@@ -129,7 +136,9 @@ def main():
             origin["circuit.json"] = str(cj)
             break
 
-    sch = pick(glob.glob(str(ts / "kicad" / "*.kicad_sch")), want, "kicad_sch")
+    live_sch = glob.glob(str(proj / "04_kicad" / "*.kicad_sch"))
+    sch = pick(live_sch or glob.glob(str(ts / "kicad" / "*.kicad_sch")),
+               want, "kicad_sch")
     if sch:
         txt = Path(sch).read_text(encoding="utf-8-sig")
         refs = set()
@@ -140,13 +149,14 @@ def main():
         sources["kicad_sch"] = keep(refs)
         origin["kicad_sch"] = sch
 
-    board = pick(glob.glob(str(proj / "04_kicad" / "*.kicad_pcb")), want, "board")
-    if board:
-        txt = Path(board).read_text(errors="replace")
-        refs = set(re.findall(
-            r'\(property "Reference" "([^"]+)"', txt))
-        sources["board"] = keep(refs)
-        origin["board"] = board
+    if not pre_board:
+        board = pick(glob.glob(str(proj / "04_kicad" / "*.kicad_pcb")), want, "board")
+        if board:
+            txt = Path(board).read_text(errors="replace")
+            refs = set(re.findall(
+                r'\(property "Reference" "([^"]+)"', txt))
+            sources["board"] = keep(refs)
+            origin["board"] = board
 
     net = pick(glob.glob(str(proj / "06_build" / "netlists" / "*.net"))
                + glob.glob(str(proj / "06_build" / "*.net")), want, "netlist")

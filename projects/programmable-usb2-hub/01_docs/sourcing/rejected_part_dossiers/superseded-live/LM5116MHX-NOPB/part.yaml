@@ -1,0 +1,71 @@
+mpn: LM5116MHX/NOPB
+manufacturer: Texas Instruments
+type: historical_power_controller
+historical_type: buck_controller
+status: superseded_by_LTC3889_architecture_backtrack
+note_dirname: "directory LM5116MHX-NOPB; '/' in MPN not usable in a path"
+datasheet:
+  doc_id: SNVS499
+  revision: SNVS499I
+  url: https://www.ti.com/lit/ds/symlink/lm5116.pdf
+  sha256: db7d7871e4634126634c2a2e10319a1d9c2de243557df3e05b3e51943575413f
+  fetched: 2026-07-21
+package: HTSSOP-20 PWP 4.4x6.5 P0.65 EP
+footprint: Package_SO:HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.75x3.43mm
+escape:
+  style: leaded
+  pitch: 0.65
+  escapes_worst_side: 10
+  tier_required: jlc_4layer_advanced
+  checked: "escape_check 2026-07-31; west side pins 1-10 = 10 escapes;
+    advanced-tier vias provide unconditional corridor capacity"
+pins:
+  1: VIN
+  2: UVLO
+  3: RT_SYNC
+  4: EN
+  5: RAMP
+  6: AGND
+  7: SS
+  8: FB
+  9: COMP
+  10: VOUT
+  11: DEMB
+  12: CS
+  13: CSG
+  14: PGND
+  15: LO
+  16: VCC
+  17: VCCX
+  18: HB
+  19: HO
+  20: SW
+  21: {name: EP, tie: PGND, note: "exposed pad; AGND joins PGND here (DS pin table)"}
+limits:
+  vin_max: 100 V
+  vcc: 7.4 V internal
+  vcc_regulator_current_limit_min: 15 mA
+  operating_input_current_max_48v: 7 mA
+  rtheta_ja: 40.6 C/W
+  tj_max: 125 C
+gotchas:
+  - "NO internal boot diode - external VCC->HB diode REQUIRED (ledger)"
+  - "VCCX unused -> tie to GND, never open (DS + ledger)"
+  - "UVLO pin: 1.215V rising, 0.1V pin hysteresis + 5uA pull-up; the reused
+     49.9k/6.98k divider gives about 9.65V rise / 8.84V fall"
+  - "RT resistor and CRAMP must sit hard against RT/AGND and RAMP/AGND pins (DS)"
+  - "hiccup: UVLO pin internally pulled to 200mV after 256-cycle current fault"
+  - "OPEN BLOCKER with Q3-Q6 = BSC016N06NS and RT = 12.4 kOhm (250 kHz): conservative 10 V gate charges total 107 nC, so IGC is 26.75 mA, above the 15 mA minimum internal-VCC startup limit while VCCX is grounded. Gate-drive power is 0.198 W at 7.4 V; 24 V x (26.75+7) mA bounds controller input dissipation at 0.810 W, about 33 C rise at theta-JA 40.6 C/W. Lower-Qg 60 V FETs or a compliant external VCC/VCCX startup source are required before release."
+verified: "pin map read from Figure 4-1 (PWP top view), SNVS499I p.3 - 2026-07-21"
+sourcing: {lcsc: C13755, alternates: [C1519427], note: "C13755 stock 7902 on 2026-07-21"}
+layout_refs:
+  - "SNVS499I Figure 7-1 + Table 7-1 5V/7A worked design (pp.21-22) - adopted per M6"
+  - "SNVS499I sec.11 Layout: RT/CRAMP at pins, CS/CSG kelvin to Rs"
+layout:
+  source: "SNVS499I sec.11 Layout Considerations + Fig 7-1/Table 7-1 (5V/7A worked design, pp.21-22)"
+  notes:
+    - "Cin (C13 HF + C9-C12 bulk) hard against the HS-FET drain (VIN) and PGND -> smallest possible high-di/dt input loop"
+    - "VCC cap (C8) at pin16; boot diode (D3) + boot cap (C7) between VCC and HB/SW"
+    - "RT and CRAMP sit hard against RT(3)/RAMP(5) pins to AGND"
+    - "CS(12)/CSG(13) are a Kelvin pair to the shunt Rs -> route as a tight differential pair, no shared trunk copper"
+    - "SW node (pin20) copper minimized (dV/dt); PGND(14)/EP(21) and AGND(6) join at a single point under the EP"

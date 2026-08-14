@@ -1,0 +1,35 @@
+mpn: B82477G4333M000
+manufacturer: TDK Electronics
+type: fixed_power_inductor
+datasheet:
+  doc_id: B82477G4
+  revision: "June 2012"
+  url: https://www.tdk-electronics.tdk.com/inf/30/db/ind_2008/b82477g4.pdf
+  sha256: 237d4767bf558f38bdaeffda2cedf203aa5ce3e208bb5c708acf175002f25127
+  fetched: 2026-08-01
+package: "shielded SMD 12.8x12.8x8.0 mm"
+footprint: programmable_usb2_hub:TDK_B82477G4_12p8x12p8
+escape:
+  style: leaded
+  pitch: 10.1
+  tier_required: jlc_2layer_default
+  checked: "TDK IND0493-B exact recommendation: 13.2 mm total span, 7.0 mm inner gap and 5.6 mm land height; therefore 3.1 x 5.6 mm lands at 10.1 mm center span"
+pins: {1: winding, 2: winding}
+limits:
+  inductance: "33 uH +/-20% at 100 kHz"
+  current_rating: "3.0 A at 40 C rise"
+  saturation_current: "3.5 A at approximately 10% inductance reduction"
+  dcr_max: 53 mOhm
+  temperature: "-55 to 125 C including self rise"
+gotchas:
+  - "The 3 A row is a thermal rating and 3.5 A is the 10% saturation point; both exceed the LMR36510 auxiliary peak-current bound."
+  - "Keep at least the full 13.2 x 12.8 mm package courtyard and away from USB pairs."
+verified: "exact 33 uH ordering row and recommended land drawing read from B82477G4 datasheet, 2026-08-01"
+sourcing:
+  lcsc: C2045462
+  alternates: []
+  note: "Q-2SOURCE 2026-08-01: DigiKey 5744 and exact LCSC 219"
+layout:
+  source: "B82477G4 dimensional drawing and LMR36510 layout guidance"
+  notes:
+    - "place beside LMR36510 SW while keeping its magnetic body away from USB and feedback routing"

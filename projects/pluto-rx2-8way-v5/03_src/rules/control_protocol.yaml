@@ -1,0 +1,49 @@
+schema: 2
+protocol: framed_guarded_unique_dwell_v1
+profile:
+  id: fast20-v1
+  revision: 1
+  source_of_truth: 03_src/rules/control_protocol.yaml
+  firmware_header: 05_firmware/include/control_profile.h
+  decoder_json: 05_firmware/host/control_profile.json
+  change_method: regenerate_validate_build_flash
+clock:
+  source: STM32C011_HSI48
+  manufacturer_error_full_temperature_pct: [-2.5, 2.0]
+  decoder_window_pct: 5
+  rationale: "5% windows cover characterized full-temperature controller error and reserve at least 2.5% for timer/capture estimation"
+
+states:
+  ALL_OFF: {gpio_PA3_PA2_PA1_PA0: "1000", u1_V4_V3_V2_V1: "1000"}
+  ANT1: {gpio_PA3_PA2_PA1_PA0: "0000", dwell_ms: 20, window_ms: [19, 21]}
+  ANT2: {gpio_PA3_PA2_PA1_PA0: "0100", dwell_ms: 23, window_ms: [21.85, 24.15]}
+  ANT3: {gpio_PA3_PA2_PA1_PA0: "0010", dwell_ms: 26, window_ms: [24.7, 27.3]}
+  ANT4: {gpio_PA3_PA2_PA1_PA0: "0110", dwell_ms: 30, window_ms: [28.5, 31.5]}
+  ANT5: {gpio_PA3_PA2_PA1_PA0: "0001", dwell_ms: 34, window_ms: [32.3, 35.7]}
+  ANT6: {gpio_PA3_PA2_PA1_PA0: "0101", dwell_ms: 39, window_ms: [37.05, 40.95]}
+  ANT7: {gpio_PA3_PA2_PA1_PA0: "0011", dwell_ms: 44, window_ms: [41.8, 46.2]}
+  ANT8: {gpio_PA3_PA2_PA1_PA0: "0111", dwell_ms: 50, window_ms: [47.5, 52.5]}
+
+frame:
+  order: [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7, ANT8]
+  all_off_guard_ms: 5
+  guards_per_cycle: 8
+  marker: {state: ALL_OFF, body_nominal_ms: 80, contiguous_pre_ANT1_guard_ms: 5, observable_nominal_ms: 85, decoder_min_ms: 76}
+  nominal_cycle_ms: 386
+  recommended_capture_ms: 850
+  minimum_capture_for_guaranteed_complete_frame_ms: 772
+
+firmware_sequence:
+  - "on reset, external pulls hold ALL_OFF"
+  - "atomically preload GPIO PA3..PA0 output data to 1000 while pins remain inputs"
+  - "enable BOR level 4 and independent watchdog policy"
+  - "configure PA0..PA3 as outputs; verify ALL_OFF remains asserted"
+  - "hold/emit the generated profile's ALL_OFF marker body"
+  - "for each antenna: hold ALL_OFF 5ms, then atomically write its approved code for its dwell"
+  - "after ANT8 return to ALL_OFF; the next marker begins the next cycle"
+
+decoder:
+  sync: "continuous ALL_OFF interval >=76ms (nominally 85ms: 80ms marker body plus 5ms pre-ANT1 guard) followed by ANT1 and valid ordered durations"
+  accept: "duration lies in its disjoint 5% window and order/framing are consistent"
+  reject_to_unknown: [no_observable_signal, truncated_capture, ambiguous_duration, missed_or_extra_transition, invalid_order, no_valid_marker, reset_or_watchdog_recovery]
+  fundamental_limit: "RF-only state inference is impossible when no usable signal is present or antenna intervals are statistically indistinguishable"

@@ -80,6 +80,16 @@ def audit_rows(d):
     return rows
 
 
+def placement_audit_rows(d):
+    """Run the post-placement/pre-route subset and return its rows + result."""
+    result = run([KPY, POLICY, d, "--skip-drc", "--phase", "placement"])
+    md = (d / "06_build" / "placement_policy_audit.md").read_text()
+    rows = {}
+    for m in re.finditer(r"^\| (\S+) \| (\S+) \| (.*) \|$", md, re.M):
+        rows[m.group(1)] = (m.group(2), m.group(3))
+    return result, rows
+
+
 LM5116_PART = """mpn: LM5116MHX
 manufacturer: Texas Instruments
 type: buck_controller
@@ -807,6 +817,23 @@ def t_padj_unreached_adjacent_property():
     contains(r2["P-ADJ"][1], "SW_NODE", "names the over-budget net")
     eq(r2["P-ADJ-UNREACHED"][0], "PASS",
        "a span violation is not an unreached budget")
+
+
+@test("placement policy phase runs P-ADJ before routing, rejects an exceeded "
+      "budget, and cannot clobber the full release report", kind="known_bad")
+def t_padj_placement_phase_is_a_real_early_gate():
+    d = padj_project([KS_REAL], sw_span=25.0)
+    full = d / "06_build" / "policy_audit.md"
+    full.parent.mkdir(parents=True, exist_ok=True)
+    full.write_text("full-release-report-sentinel\n")
+    result, rows = placement_audit_rows(d)
+    must_fail(result, "over-budget placement phase", "FAIL P-ADJ")
+    eq(rows["P-ADJ"][0], "FAIL", "early P-ADJ verdict")
+    rows.pop("ID", None)  # Markdown table header, matched by the tiny parser.
+    eq(set(rows), {"P-LAYOUT", "P-PREC", "P-ADJ", "P-ADJ-PAIR",
+                   "P-ADJ-UNREACHED"}, "placement phase row coverage")
+    eq(full.read_text(), "full-release-report-sentinel\n",
+       "placement phase must not overwrite the release audit")
 
 
 # ===== P-ADJ measured the WRONG DISTANCE, and ignored half its schema =======

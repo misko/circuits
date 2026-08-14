@@ -1,0 +1,12 @@
+mpn: RC0402FR-0710KL
+manufacturer: Yageo
+type: thick_film_resistor
+datasheet: {doc_id: RC0402FR-0710KL, revision: "generated 2026-08", url: "https://yageogroup.com/component-documentation/download/specsheet/RC0402FR-0710KL", sha256: 6586171912c40da3bbcebb313aec376b4779fb205991152900bdd7105d422321, fetched: 2026-08-13}
+package: 0402 1005 metric
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+limits: {resistance: 10kOhm, tolerance: 1pct, power_70C: 62.5mW, voltage: 50V, temperature_coefficient: 100ppm_per_C, operating_temperature: -55C_to_155C}
+asserts:
+  - {assert: value, equals: 10k, tolerance_pct: 1, why: "U1 control-bias network must implement the approved passive ALL_OFF word"}
+verified: "exact generated Yageo one-page specsheet page 1 checked for value, tolerance, power, voltage, dimensions and temperature on 2026-08-13"
+sourcing: {lcsc: C60490}

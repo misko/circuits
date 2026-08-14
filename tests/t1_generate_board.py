@@ -15,7 +15,10 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains, eq,  # no
                      main, must_fail, must_pass, run, test, tmpdir)
 
 GEN = SCRIPTS / "generate_board_generic.py"
+MODEL_COVERAGE = SCRIPTS / "model_coverage_check.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
+HUB4 = ROOT / "projects" / "usb-hub-3s-v4"
+PLUTO_RX2 = ROOT / "projects" / "pluto-rx2-8way"
 
 
 def gen(cfg, out, cwd=LC, expect_ok=True):
@@ -59,6 +62,38 @@ def t_places():
     check(abs(x - 38.0) < 0.001 and abs(y - 42.0) < 0.001,
           f"anchored U1 moved: ({x},{y}) != (38.0,42.0)")
     check(len(nodes) == 77, f"expected 77 netted pads, got {len(nodes)}")
+
+
+@test("model_override is source-bound and the independent model coverage gate "
+      "fails after that body disappears", kind="known_bad")
+def t_model_override_and_coverage():
+    import yaml
+    d = tmpdir("gbg_model_")
+    body = d / "body.step"
+    body.write_text("ISO-10303-21;\nEND-ISO-10303-21;\n")
+    cfg = yaml.safe_load((LC / "03_src" / "floorplan.yaml").read_text())
+    cfg["project"]["netlist"] = str(LC / cfg["project"]["netlist"])
+    if cfg["project"].get("parts_dir"):
+        cfg["project"]["parts_dir"] = str(LC / cfg["project"]["parts_dir"])
+    cfg["placement"].setdefault("patterns", []).append({
+        "match": "*", "model_override": "${KIPRJMOD}/body.step"})
+    floorplan = d / "floorplan.yaml"
+    floorplan.write_text(yaml.safe_dump(cfg))
+    board = d / "board.kicad_pcb"
+    built = gen(floorplan, board)
+    contains(built.out, "3D model overrides: 29 footprints",
+             "generator model-override coverage")
+
+    clean = run([KPY, MODEL_COVERAGE, board])
+    must_pass(clean, "model coverage on resolvable local bodies")
+    # The cook-loadcell fixture has 29 generated component footprints, seven
+    # deliberately excluded from its fitted BOM population.
+    contains(clean.out, "PASS MODEL-COVERAGE: 22/22", "coverage verdict")
+
+    body.unlink()
+    broken = run([KPY, MODEL_COVERAGE, board])
+    must_fail(broken, "model coverage after its source body is removed",
+              "FAIL MODEL-COVERAGE: 0/22")
 
 
 @test("generate_board_generic writes an F.Fab refdes copy for every part")
@@ -862,26 +897,56 @@ def t_collide_names_the_nets():
         contains(txt, want, "P-COLLIDE names the colliding refs")
 
 
-@test("P-COLLIDE WARNS on an anchored courtyard overlap with no pad short, "
-      "and still builds")
-def t_collide_pinned_lap_warns():
-    """Calibration lock. Courtyard overlap is canon P1/P-CRT's, enforced at
-    full-severity DRC on every board; duplicating it as a generator FAILURE
-    would retro-break boards that legitimately pack anchored parts tight
-    (MEASURED 2026-07-25: usb-hub-3s-v2 RS3<->Q6 0.470 x 3.950 mm, and the
-    cooksense interposer's test-point array, 18 pairs at 0.053 x 2.592 mm —
-    neither has a pad short). The FATAL half is the SHORT."""
+@test("P-COLLIDE FAILS an anchored courtyard overlap with no pad short",
+      kind="known_bad")
+def t_collide_pinned_lap_fails():
+    """Placement owns assembly clearance. Deferring an anchored overlap to
+    final DRC allowed the programmable USB hub's resistor/module interference
+    to survive until render review. Archived boards remain immutable; every
+    newly generated or materially revised board must move the anchors."""
     # slide J2 into J1's courtyard, but not far enough for pads to touch:
     # B3B-XH courtyard is 10.99 wide on an 11.1mm pitch, pads at 2.5mm pitch.
     def mutate(c):
         a = c["placement"]["anchors"]
         a["J2"] = [a["J1"][0] + 10.6, a["J1"][1], a["J1"][2]]
     d, cfg = scratch_config(mutate)
-    r = gen(cfg, d / "b.kicad_pcb")            # must SUCCEED
-    contains(r.out, "WARN P-COLLIDE PINNED-LAP", "generator stdout")
-    contains(r.out, "0 inter-footprint pad overlaps/shorts", "generator stdout")
-    check("this placement has inter-footprint pad overlap" not in r.out,
-          f"a courtyard overlap with no short must not be fatal: {r.out}")
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "anchored courtyard overlap", "P-COLLIDE")
+    contains(r.out, "FAIL P-COLLIDE PINNED-LAP", "generator stdout")
+
+
+@test("P-COLLIDE uses rotated courtyard polygons, not intersecting bboxes")
+def t_rotated_courtyard_bbox_is_not_overlap():
+    """The Pluto RX2 radial SMA ring has six rotated-jack pairs, plus its
+    radial R_T1/R_T2 pair, whose axis-aligned courtyard boxes intersect while
+    KiCad's actual polygons are separated.  The pre-fix generator called all
+    seven PINNED-LAP and aborted before writing the board.  Preserve those
+    electrically-derived anchors and prove the exact predicate on real output.
+    """
+    d = tmpdir("gbg_pluto_rotated_")
+    out = d / "pluto_rx2_8way.kicad_pcb"
+    r = gen(PLUTO_RX2 / "03_src" / "floorplan.yaml", out,
+            cwd=PLUTO_RX2)
+    contains(r.out,
+             "P-COLLIDE: 0 inter-footprint pad overlaps/shorts, 0 anchored courtyard overlap",
+             "rotated-courtyard generator result")
+    code = (
+        "import pcbnew,sys\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "f={x.GetReference():x for x in b.GetFootprints()}\n"
+        "pairs=[('J_ANT2','J_ANT1'),('J_ANT4','J_ANT3'),"
+        "('J_ANT6','J_ANT5'),('J_RX1','J_ANT7'),('J_RX1','J_ANT8'),"
+        "('J_RX2','J_ANT1'),('R_T2','R_T1')]\n"
+        "n=0\n"
+        "for a,c in pairs:\n"
+        " p=f[a].GetCourtyard(pcbnew.F_CrtYd);q=f[c].GetCourtyard(pcbnew.F_CrtYd)\n"
+        " assert p.BBox().Intersects(q.BBox()) and not p.Collide(q),(a,c)\n"
+        " n+=1\n"
+        "print('@@%d' % n)\n")
+    rr = must_pass(run([KPY, "-c", code, out]),
+                   "probe rotated courtyard bbox false positives")
+    eq(rr.out.split("@@", 1)[1].strip(), "7",
+       "rotated bbox-only false-positive denominator")
 
 
 # ------------------------------------------------------- edge-reaching notch
@@ -1053,6 +1118,111 @@ def t_kb_via_protection_value():
     r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
     must_fail(r, "invalid via-protection value",
               "board.via_protection.capping must be a boolean (yes/no)")
+
+
+@test("marked footprint heatsink holes promote to real board vias with exact "
+      "geometry and net")
+def t_promote_heatsink_pads_to_vias():
+    d = tmpdir("gbg_thermal_")
+    out = d / "usb_hub_3s_v4.kicad_pcb"
+    r = gen(HUB4 / "03_src" / "floorplan.yaml", out, cwd=HUB4)
+    contains(r.out, "thermal vias: emitted 48 explicit + promoted 0 marked "
+             "heatsink pad(s) across 8 footprint(s)", "promotion coverage")
+    code = (
+        "import pcbnew,sys,collections\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "refs={'U1','U2','U3','U4','U5','U6','U9'}\n"
+        "marked=sum(1 for f in b.GetFootprints() if f.GetReference() in refs "
+        "for p in f.Pads() if p.GetProperty()==pcbnew.PAD_PROP_HEATSINK "
+        "and p.GetDrillSize().x>0)\n"
+        "v=[t for t in b.GetTracks() if t.GetClass()=='PCB_VIA']\n"
+        "linked=[f for f in b.GetFootprints() if f.GetReference() in refs "
+        "and f.GetFPIDAsString() and 'generated thermal-via promotion' "
+        "not in f.GetLibDescription()]\n"
+        "geo=collections.Counter((round(t.GetWidth(pcbnew.F_Cu)/1e6,3),"
+        "round(t.GetDrill()/1e6,3),t.GetNetname()) for t in v)\n"
+        "prot=collections.Counter((t.GetCappingMode(),t.GetFillingMode()) "
+        "for t in v)\n"
+        "owned=[]\n"
+        "for f in b.GetFootprints():\n"
+        "  for p in f.Pads():\n"
+        "    if p.GetNumber() in ('17','18','19','20','21','22','25','26','11','2'):\n"
+        "      for t in v:\n"
+        "        if t.GetNetCode()==p.GetNetCode() and p.HitTest(t.GetPosition(),0,pcbnew.F_Cu):\n"
+        "          owned.append((f.GetReference(),p.GetNumber(),t.GetNetname()))\n"
+        "print('@@%d|%d|%d|%r|%r|%r' % (marked,len(v),len(linked),"
+        "sorted(geo.items()),sorted(owned),sorted(prot.items())))\n")
+    rr = must_pass(run([KPY, "-c", code, out]), "probe promoted thermal vias")
+    result = rr.out.split("@@", 1)[1].strip()
+    check(result.startswith("0|48|7|"),
+          f"expected zero drilled heatsink pads, 48 true vias and seven "
+          f"library-linked parity-safe footprints, got {result}")
+    contains(result, "(0.5, 0.2, '5VA_RAW'), 4",
+             "0.20mm eFuse input thermal via family")
+    contains(result, "(0.5, 0.2, 'GND'), 44",
+             "JLC-compatible 0.20mm ground thermal via family")
+    contains(result, "((1, 1), 48)",
+             "every explicit thermal via carries item-level Type VII intent")
+    contains(result, "('U9', '25', '5VA_RAW')",
+             "rotated split input field remains inside U9 pad 25")
+    contains(result, "('U9', '26', 'GND')",
+             "rotated split ground field remains inside U9 pad 26")
+    contains(result, "('C23', '2', 'GND')",
+             "cold-socket ground vias remain inside C23 pad 2")
+
+
+@test("thermal-via promotion refuses a named footprint with no marked holes",
+      kind="known_bad")
+def t_kb_promote_heatsink_empty_match():
+    def mutate(c):
+        c["thermal_vias"] = {"promote_heatsink_pads": ["U1"]}
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "empty heatsink-pad promotion", "has no drilled "
+              "pad_prop_heatsink pads")
+
+
+@test("an explicit thermal-via field refuses an unknown footprint",
+      kind="known_bad")
+def t_kb_thermal_field_unknown_ref():
+    def mutate(c):
+        c["thermal_vias"] = {"fields": [{"ref": "U_DOES_NOT_EXIST",
+                                           "pad": 1, "size": 0.5,
+                                           "drill": 0.2,
+                                           "at": [[0, 0]]}]}
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "unknown explicit thermal field", "unknown ref")
+
+
+@test("an invalid item-level thermal-via process is a hard error",
+      kind="known_bad")
+def t_kb_thermal_field_bad_protection():
+    code = (
+        "import pcbnew,sys\n"
+        f"sys.path.insert(0,{str(SCRIPTS)!r})\n"
+        "from pcb_toolkit import apply_via_protection\n"
+        "b=pcbnew.BOARD(); v=pcbnew.PCB_VIA(b)\n"
+        "apply_via_protection(v,{'capping':'perhaps'},"
+        "'thermal_vias.fields[0].protection')\n")
+    r = run([KPY, "-c", code])
+    must_fail(r, "invalid item-level via protection",
+              "thermal_vias.fields[0].protection.capping must be a boolean")
+
+
+@test("a self-intersecting zone polygon fails before KiCad can discard its "
+      "power-cell fill", kind="known_bad")
+def t_kb_zone_polygon_self_intersection():
+    def mutate(c):
+        z = c["zones"][0]
+        z.pop("rect", None)
+        z.pop("region", None)
+        # Crossed quadrilateral with NONZERO signed area, so this exercises
+        # the segment-intersection guard rather than only the area guard.
+        z["points"] = [[25, 25], [35, 25], [25, 35], [33, 35]]
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "self-intersecting zone", "self-intersection/overlap")
 
 
 @test("M-REPRO: two runs from identical source are BYTE-IDENTICAL, and no "

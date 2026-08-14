@@ -1,0 +1,91 @@
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
+
+selections:
+  - function: two independent 12-24 V to tightly regulated 5.215 V / 4 A USB rails
+    part: LTC3889IUKG#PBF
+    implementation: bare_ic
+    rationale: >-
+      One dual controller provides two independently commanded 4 A rails with
+      the output accuracy needed to keep every 2 A receptacle inside the
+      locked 4.75-5.25 V mated-plug window.
+    support_refs: [Q3, Q4, Q5, Q6, L1, L4, R6, R7, R8, R9, R14, R16, D2, D3, C4, C5, C7, C8, C9, C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20, C25, C26, Q7, Q8, Q21, Q22]
+    exception:
+      decision_rationale: >-
+        The stocked 6 A module candidate cannot preserve the commissioned
+        connector-voltage window after the complete 2 A delivery path and 20%
+        margin are included; the LTC3889's tighter regulation can.
+      evidence: >-
+        The architecture-backtrack calculation bounds LTC3889 at
+        5.183925-5.246075 V and the complete path at 135 mOhm, leaving
+        4.860 V at the plug. The dual controller also provides hardware-held
+        safe-off outputs and machine-readable current/voltage telemetry.
+      modules_considered:
+        - part: TPSM64406RCHR
+          rejected_because: >-
+            Its full-temperature feedback-reference window consumes too much
+            of the allowed source range to retain the required 2 A path margin
+            with the selected reverse-blocking eFuse.
+          evidence: "01_docs/sourcing/dual-source-2026-08-01-backtrack.md"
+        - part: TPSM63606RDLR
+          rejected_because: >-
+            It fails the two-authorized-supplier selection rule and offers no
+            electrical advantage that repairs the connector-voltage window.
+          evidence: "01_docs/sourcing/dual-source-2026-08-01-backtrack.md"
+      adr: 01_docs/decisions/0005-module-first-control-plane.md
+
+  - function: management USB device, telemetry ADC and port control
+    part: STM32G0B1CBT6
+    implementation: bare_ic
+    rationale: >-
+      The MCU exposes native USB, eight ADC channels and all concurrent control
+      GPIO without ADC or GPIO expanders.
+    support_refs: [C42, C43, C44, R37, R38, R39, R40, R41, J7, U8, C45]
+    exception:
+      decision_rationale: >-
+        Bare STM32 is lower total complexity than a module plus ADC and GPIO
+        expansion for the locked eight analog and fifteen digital bindings.
+      evidence: >-
+        The binding uses eight ADC and fifteen digital functions concurrently;
+        the reviewed Pico 2 and XIAO RP2040 module pinouts cannot expose both.
+      modules_considered:
+        - part: Raspberry Pi Pico 2
+          rejected_because: >-
+            Only three exposed ADC channels require at least five additional
+            analog channels and associated control/interface circuitry.
+          evidence: "Raspberry Pi Pico 2 official pinout reviewed 2026-08-01."
+        - part: Seeed Studio XIAO RP2040
+          rejected_because: >-
+            Four analog and eleven digital pins require both ADC and GPIO
+            expansion, increasing hardware and firmware integration work.
+          evidence: "Seeed XIAO RP2040 official pinout reviewed 2026-08-01."
+      adr: 01_docs/decisions/0005-module-first-control-plane.md
+
+  - function: seven-port USB 2.0 high-speed hub and per-port policy interface
+    part: USB2517I-JZX
+    implementation: bare_ic
+    rationale: >-
+      The hub exposes raw downstream pairs, seven PRT_PWR/OCS groups, SMBus,
+      and reset so this board can own four inline data and power switches.
+    support_refs: [Y1, R30, R31, R32, R33, R34, R35, R36, C30, C31, C32, C33, C34, C35, C36, C37, C38, C39, C40, C41]
+    exception:
+      decision_rationale: >-
+        Available evaluation modules terminate the downstream pairs in fixed
+        connectors or expose too few ports, defeating inline isolation and the
+        internal management port.
+      evidence: >-
+        EVB-USB2517 owns its connector/power topology; EVB-USB2514BC exposes
+        only four downstream ports while this board needs five active ports.
+      modules_considered:
+        - part: Microchip EVB-USB2517
+          rejected_because: >-
+            It does not expose four raw high-speed pairs plus their complete
+            board-owned power-policy interfaces for inline integration.
+          evidence: "Microchip EVB-USB2517 guide and schematic reviewed 2026-08-01."
+        - part: Microchip EVB-USB2514BC
+          rejected_because: >-
+            Four downstream ports cannot serve four receptacles plus the
+            internal management USB device at the same time.
+          evidence: "Microchip product documentation specifies four downstream ports."
+      adr: 01_docs/decisions/0005-module-first-control-plane.md

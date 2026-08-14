@@ -24,7 +24,9 @@ Run with the KiCad-bundled python (/usr/bin/python3).
 """
 import argparse
 import csv
+import hashlib
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -93,6 +95,29 @@ def winding(pads):
     return "CW (top view)" if total > 0 else "CCW (top view)"
 
 
+def datasheet_path(part_dir, declared):
+    """Resolve the vendored PDF by its declared digest, never directory order.
+
+    A dossier once selected the older non-automotive PDF merely because it
+    sorted first beside the exact Q-grade authority. Fresh review must see
+    the bytes whose digest part.yaml actually asserts. A URL, a sole PDF, or
+    an adjacent family document is not review evidence: fail before dossiers
+    are commissioned if the authority is absent or its bytes do not match.
+    """
+    want = str((declared or {}).get("sha256") or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", want):
+        raise RuntimeError(
+            f"P-AUTH {part_dir}: datasheet.sha256 is missing or malformed; "
+            "fresh pin review requires a digest-selected local PDF")
+    pdfs = sorted(part_dir.glob("*.pdf"))
+    for pdf in pdfs:
+        if hashlib.sha256(pdf.read_bytes()).hexdigest().lower() == want:
+            return str(pdf)
+    raise RuntimeError(
+        f"P-AUTH {part_dir}: no local PDF matches declared SHA-256 {want}; "
+        f"found {len(pdfs)} PDF(s)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("board")
@@ -126,21 +151,33 @@ def main():
         for p in pads:
             p["side"] = side_of(p, numbered)
         mpn = ref_mpn.get(ref, "")
-        ymap, ds, verified = {}, "(none)", ""
+        ymap, aliases, ds, verified = {}, {}, "(none)", ""
         ypath = parts / mpn / "part.yaml"
         if mpn and ypath.exists() and yaml:
             y = yaml.safe_load(open(ypath))
             ymap = {str(k): v for k, v in (y.get("pins") or {}).items()}
+            aliases = {str(k): v for k, v in (y.get("pin_aliases") or {}).items()}
             d = y.get("datasheet") or {}
-            pdfs = list((parts / mpn).glob("*.pdf"))
-            ds = str(pdfs[0]) if pdfs else d.get("url", "(none)")
+            ds = datasheet_path(parts / mpn, d)
             verified = y.get("verified", "")
+        physical_map = dict(ymap)
+        semantic_seen = set()
+        alias_targets = set()
+        for semantic, spec in aliases.items():
+            if not isinstance(spec, dict) or not spec.get("footprint"):
+                continue
+            target = str(spec["footprint"])
+            alias_targets.add(target)
+            if semantic in ymap:
+                physical_map[target] = ymap[semantic]
+        winding_pads = [p for p in numbered
+                        if p["num"] in physical_map and p["num"] not in alias_targets]
         lines = [
             f"# pin dossier: {ref}  ({mpn or 'MPN unknown'})",
             "",
             f"- footprint: {fp.GetFPID().GetUniStringLibId()}",
             f"- board position: ({fp.GetPosition().x/1e6:.1f}, {fp.GetPosition().y/1e6:.1f}) rot {fp.GetOrientationDegrees():.0f}",
-            f"- computed winding of pins 1..N: **{winding(numbered)}**",
+            f"- computed winding of pins 1..N: **{winding(winding_pads)}**",
             f"- datasheet: {ds}",
             f"- part.yaml verification note: {verified or '(none)'}",
             "",
@@ -152,13 +189,26 @@ def main():
         ]
         seen = set()
         for p in sorted(numbered, key=lambda q: (len(q["num"]), q["num"])):
-            fn = ymap.get(p["num"], "(not in yaml)")
+            fn = physical_map.get(p["num"], "(not in yaml)")
             if isinstance(fn, dict):
                 fn = fn.get("name", str(fn))
             seen.add(p["num"])
+            for semantic, spec in aliases.items():
+                if isinstance(spec, dict) and str(spec.get("footprint", "")) == p["num"]:
+                    semantic_seen.add(semantic)
             lines.append(f"| {p['num']} | ({p['x']:+.2f},{p['y']:+.2f}) | {p['side']} "
                          f"| {p['w']}x{p['h']}{' THT' if p['tht'] else ''} | {fn} | {p['net']} |")
-        missing = [k for k in ymap if k not in seen]
+        if aliases:
+            lines += ["", "Declared pin aliases (review these against the manufacturer drawing):"]
+            for semantic, spec in sorted(aliases.items()):
+                if isinstance(spec, dict):
+                    lines.append(
+                        f"- `{semantic}`: schematic `{spec.get('schematic', '')}`, "
+                        f"footprint `{spec.get('footprint', '')}`, "
+                        f"fused: `{str(bool(spec.get('fused', False))).lower()}`; "
+                        f"why: {spec.get('why', '(none)')}; evidence: {spec.get('evidence', '(none)')}"
+                    )
+        missing = [k for k in ymap if k not in seen and k not in semantic_seen]
         if missing:
             lines += ["", f"part.yaml pins with NO pad on the footprint: {missing}"]
         anon = sum(1 for p in pads if not p["num"])

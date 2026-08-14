@@ -1,0 +1,20 @@
+# Commission-stage user-visible power contract. Replace the null decision;
+# silence intentionally fails early_design_check.py.
+schema: 1
+power_claims: []
+no_external_power_outputs: null
+
+# Example:
+# power_claims:
+#   - id: downstream_ports
+#     rails: [PORT_1, PORT_2]
+#     count: 2
+#     simultaneous_count: 2
+#     current_A: 3.0
+#     voltage_min_V: 4.75
+#     voltage_max_V: 5.25
+#     duty: continuous
+#     measurement_plane: mated_test_plug
+#     boundary_evidence: "standard section / qualified fixture and test plane"
+#     included_elements: [protection_switch, pcb_copper_vias_joints, mated_power_contacts]
+#     excluded_elements: [cable, appliance]

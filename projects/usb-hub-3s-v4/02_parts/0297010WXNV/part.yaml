@@ -1,0 +1,24 @@
+mpn: 0297010.WXNV
+manufacturer: Littelfuse
+type: user_installed_automotive_blade_fuse
+datasheet: {doc_id: LF297, revision: "MINI series 2024", url: "https://www.littelfuse.com/assetdocs/littelfuse-datasheet-297-mini32v?assetguid=42c9dd21-a88e-4328-8e67-2f832444faf1", sha256: null, fetched: 2026-08-11}
+package: MINI blade fuse, plugs into Keystone 3568 holder after PCBA
+footprint: null
+escape: {style: none, pitch: 0, tier_required: jlc_2layer_default, checked: "not a PCB footprint; user-fitted into F1 holder"}
+pins: {1: blade, 2: blade}
+limits:
+  current: 10A
+  voltage: 32VDC
+  interrupting: 1000A@32VDC
+  i2t_melt_typ: 122A2s
+  cold_resistance_typ: 7.42mOhm
+  voltage_drop_typ: 108mV
+  time_current: "110% -> no open for at least 360000s; 135% -> 0.75-600s; 200% -> 0.15-5s; 350% -> 0.08-0.5s; 600% -> 0.03-0.1s"
+  ambient_derating: "allowed continuous load 9.2A at 20C, 8.6A at 40C, 8.0A at 60C, 7.3A at 80C"
+gotchas:
+  - "The fuse element is a user-fitted consumable, not the F1 PCB/BOM holder. Release and assembly instructions must name this exact 10A element."
+  - "The 5.812A worst-case continuous input and 6.780A coincident peak are below the 8.0A allowed load at a maximum 60C local fuse/holder ambient. First article must measure holder/fuse/copper temperatures and validate non-nuisance behavior."
+  - "No time-current or I2t evidence proves coordination with Q1 or either power module. This fuse is only catastrophic pack-wiring/trunk protection unless supervised fault testing establishes a narrower claim; it is not semiconductor protection."
+  - "Prospective LiPo fault current and pack/wiring impedance are installation variables. The 1000A/32V interrupt rating bounds the admitted source only if the selected pack's prospective short current is confirmed below it."
+verified: "exact 10A 297-series row, 32V/1000A ratings, 122A2s typical melting integral, cold resistance, opening-time table and ambient derating read from Littelfuse 2024 manufacturer sheet 2026-08-11"
+sourcing: {lcsc: null, alternates: [], note: "purchase as exact user-installed consumable from an authorized distributor; never let the JLC matcher substitute the blade rating"}

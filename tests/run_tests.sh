@@ -13,6 +13,8 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KPY=/usr/bin/python3          # the interpreter with pcbnew
+SUITE_TIMEOUT_S="${CIRCUITS_TEST_SUITE_TIMEOUT_S:-300}"
+HEARTBEAT_S="${CIRCUITS_TEST_HEARTBEAT_S:-20}"
 
 SLOW=0; NET=0; ARGS=()
 for a in "$@"; do
@@ -31,6 +33,13 @@ if ! "$KPY" -c 'import pcbnew' 2>/dev/null; then
   echo "FATAL: $KPY cannot import pcbnew" >&2
   exit 2
 fi
+if ! command -v timeout >/dev/null 2>&1; then
+  echo "FATAL: coreutils timeout not found — suite deadlines cannot be enforced" >&2
+  exit 2
+fi
+case "$SUITE_TIMEOUT_S:$HEARTBEAT_S" in
+  *[!0-9:]*|0:*|*:0) echo "FATAL: test timeout/heartbeat must be positive integer seconds" >&2; exit 2 ;;
+esac
 
 # T1 suites, in rough dependency order (converter -> board -> checkers),
 # then T4 — the regression corpus, one named test per incident this project
@@ -41,9 +50,31 @@ SUITES=(
   t1_generate_board.py
   t1_audit.py
   t1_placement_gates.py
+  t1_pin_map.py
+  t1_pin_audit.py
+  t1_pre_route_review.py
+  t1_promoted_route.py
+  t1_placement_drc.py
+  t1_schematic_render.py
+  t1_stage_checkpoint.py
   t1_pad_separation.py
   t1_rf_contract.py
   t1_contracts.py
+  t1_pipeline_foundation.py
+  t1_pipeline_contract.py
+  t1_pipeline_registry.py
+  t1_pipeline_runtime.py
+  t1_pipeline_artifacts.py
+  t1_pipeline_review.py
+  t1_pipeline_facts.py
+  t1_pipeline_timing.py
+  t1_pipeline_catalog.py
+  t1_pipeline_shadow.py
+  t1_pipeline_xtrace.py
+  t1_pipeline_canary_usb.py
+  t1_usb_placement_review_prepare.py
+  t1_pipeline_canary_pluto.py
+  t1_pipeline_canary_pluto_v4.py
   t1_counting.py
   t1_module_first.py
   t1_escape_tier.py
@@ -54,12 +85,14 @@ SUITES=(
   t1_net_label_survival.py
   t1_tsx_to_board.py
   t1_electrical_invariants.py
+  t1_early_design.py
   t1_net_reference.py
   t1_waiver_evidence.py
   t1_adr_bounds.py
   t1_schema_reader.py
   t1_copper_length.py
   t1_power_topology.py
+  t1_critical_route.py
   t1_release_git_dirty.py
   t1_release_index.py
   t1_release_freshness.py
@@ -70,6 +103,8 @@ SUITES=(
   t1_jlc_twin.py
   t1_twin_overlay.py
   t1_fab_payload.py
+  t1_via_process.py
+  t1_via_ampacity.py
   t1_bom_legibility.py
   t1_sealed_dependency.py
   t1_gate_contract.py
@@ -78,6 +113,7 @@ SUITES=(
   t1_rotation_authority.py
   t1_rotation_fixtures.py
   t1_part_facts.py
+  t1_pipeline_reliability.py
   t1_import_provenance.py
   t1_shopping_list.py
   t2_route_stitch.py
@@ -95,9 +131,34 @@ for s in "${SUITES[@]}"; do
   [ -f "$HERE/$s" ] || { echo "  (skipping missing $s)"; continue; }
   echo
   echo "=== $s ==="
-  out="$("$KPY" "$HERE/$s" "${ARGS[@]+"${ARGS[@]}"}" 2>&1)"
+  suite_log="$(mktemp "${TMPDIR:-/tmp}/circuits-test-${s%.py}.XXXXXX")" || exit 2
+  start_s=$SECONDS
+  # Keep the suite's native output live while teeing the same bytes for the
+  # summary parser. The subshell preserves pipefail, so `wait` receives the
+  # suite/timeout status instead of tee's status.
+  ( set -o pipefail
+    timeout --foreground --signal=TERM --kill-after=10s "$SUITE_TIMEOUT_S" \
+      "$KPY" "$HERE/$s" "${ARGS[@]+"${ARGS[@]}"}" 2>&1 | tee "$suite_log"
+  ) &
+  suite_pid=$!
+  (
+    sleep "$HEARTBEAT_S"
+    while kill -0 "$suite_pid" 2>/dev/null; do
+      printf '[heartbeat] %s still running — %ds elapsed, hard deadline %ss\n' \
+        "$s" "$((SECONDS - start_s))" "$SUITE_TIMEOUT_S"
+      sleep "$HEARTBEAT_S"
+    done
+  ) &
+  heartbeat_pid=$!
+  wait "$suite_pid"
   srh=$?
-  echo "$out"
+  kill "$heartbeat_pid" 2>/dev/null || true
+  wait "$heartbeat_pid" 2>/dev/null || true
+  out="$(<"$suite_log")"
+  rm -f "$suite_log"
+  if [ "$srh" -eq 124 ] || [ "$srh" -eq 137 ]; then
+    echo "[timeout] $s exceeded ${SUITE_TIMEOUT_S}s and was terminated"
+  fi
   [ $srh -ne 0 ] && rc=1
   line="$(printf '%s\n' "$out" | grep -E '^[[:space:]]+[0-9]+ passed' | tail -1)"
   p=$(printf '%s\n' "$line" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || echo 0)

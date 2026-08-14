@@ -1,0 +1,14 @@
+mpn: 35TZV100M6.3X8
+manufacturer: Rubycon Corporation
+type: aluminum_electrolytic_capacitor
+datasheet: {doc_id: TZV, revision: "2026 catalog", url: "https://www.rubycon.co.jp/wp-content/uploads/catalog-aluminum/TZV.pdf", sha256: 134938e6529bd1f730c05bed65a370121bc5d5094f8fd84f321fedb07f11360b, fetched: 2026-08-10}
+package: SMD aluminum can, D6.3x8mm
+footprint: usb_hub_3s_v4:Rubycon_TZV_D6.3x8
+escape: {style: passive, pitch: 1.8, tier_required: jlc_2layer_default, checked: "manufacturer dimensions and land-pattern review 2026-08-10"}
+pins: {1: POS, 2: NEG}
+limits: {voltage: 35V, capacitance: "100uF +/-20%", impedance_100kHz_max: 340mOhm, ripple_100kHz_105C: 300mArms, leakage_max_after_2min: 35uA, temperature: "-55 to 105C", endurance: "2000h at 105C"}
+gotchas:
+  - "This is deliberately lossy input damping, not a substitute for the local module ceramics; its 0.34ohm maximum remains inside TI's 0.1-0.4ohm damping range."
+  - "Observe the can's negative stripe and the custom 6.3x8mm land pattern; do not reuse an 8mm Panasonic footprint."
+verified: "exact 35V/100uF/6.3x8 standard-size row, impedance, ripple, leakage equation and polarity marking independently read from Rubycon TZV sheet 2026-08-10"
+sourcing: {lcsc: C88744, alternates: [], note: "volatile stock evidence is kept in dated sourcing artifacts"}

@@ -1,8 +1,20 @@
-# DigiKey product-page observations for the 2026-07-31 Q-2SOURCE audit.
+# DigiKey product-page observations for the dated Q-2SOURCE audits.
 # These figures are volatile and must be re-read on order day. Search-result
 # snippets were not used as stock evidence.
 
 quotes:
+  - mpn: "CC1206KKX7R0BB104"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/yageo/CC1206KKX7R0BB104/2833794"
+    read_on: 2026-08-01
+    dpn: "311-1488-1-ND"
+    stock: 83505
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 100nF, 100V, X7R, +-10%, 1206 manufacturer MPN; DigiKey product page."
+
   - mpn: "AON6354"
     distributor: digikey
     source: product_page
@@ -169,3 +181,100 @@ quotes:
     mult: 1
     lifecycle: "Active"
     note: "Exact STMicroelectronics manufacturer MPN; marketplace substitutes were not counted."
+
+  - mpn: "CSD18533Q5AT"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/texas-instruments/CSD18533Q5AT/5226516"
+    read_on: 2026-08-01
+    dpn: "296-41959-1-ND"
+    stock: 950
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 60 V NexFET tape MPN; cut-tape distributor code recorded."
+
+  - mpn: "LTC3889IUKG#PBF"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/analog-devices-inc/LTC3889IUKG-PBF/9808854"
+    read_on: 2026-08-01
+    dpn: "505-LTC3889IUKG#PBF-ND"
+    stock: 629
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact I-grade 60 V dual-output controller MPN, not the E-grade variant."
+
+  - mpn: "LTC4372IMS8#PBF"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/analog-devices-inc/LTC4372IMS8-PBF/13547748"
+    read_on: 2026-08-01
+    dpn: "505-LTC4372IMS8#PBF-ND"
+    stock: 181
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact I-grade MSOP-8 ideal-diode controller MPN."
+
+  - mpn: "TPS259823ONRGET"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/texas-instruments/TPS259823ONRGET/10273220"
+    read_on: 2026-08-01
+    dpn: "296-53578-1-ND"
+    stock: 71
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact O-variant circuit-breaker eFuse MPN; suffix is functional."
+
+  - mpn: "LMR36510FADDAR"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/texas-instruments/LMR36510FADDAR/11635675"
+    read_on: 2026-08-01
+    dpn: "296-LMR36510FADDARCT-ND"
+    stock: 1366
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact 65 V, 1 A, FPWM adjustable logic-rail buck MPN."
+
+  - mpn: "TPSM64406RCHR"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/texas-instruments/TPSM64406RCHR/22116896"
+    read_on: 2026-08-01
+    dpn: "296-TPSM64406RCHRCT-ND"
+    stock: 1208
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Module-first comparison candidate. Sourceable, but rejected for the locked connector-voltage margin; not selected into the schematic."
+
+  - mpn: "MMBT3906LT1G"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/onsemi/MMBT3906LT1G/919605"
+    read_on: 2026-08-01
+    dpn: "MMBT3906LT1GOSCT-ND"
+    stock: 974247
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    note: "Exact onsemi PNP used as the LTC3889 remote junction sensor."
+
+  - mpn: "TNPW06034K64BEEA"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/vishay-dale/TNPW06034K64BEEA/1606842"
+    read_on: 2026-08-02
+    dpn: "541-3687-1-ND"
+    stock: 8323
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    unit_price_usd: 0.26
+    note: "Exact Vishay 4.64 kOhm, 0.1%, 25 ppm/C, 0603 MPN; product page, not a search snippet."

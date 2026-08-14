@@ -1,0 +1,177 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "projects/usb-hub-3s-v4/06_build/cache/stage1_candidate_bom.csv",
+ "generated_at": "2026-08-11T04:07:46.147297+00:00",
+ "min_stock_per_board": 10,
+ "verdict": "PASS",
+ "stock_source": "lcsc_catalog_stockCount",
+ "predicts_jlc_assembly_allocation": false,
+ "pass_means": "catalog stock >= min_stock x qty at query time; NOT that JLC will allocate the line -- see F-ECHO",
+ "graded_lines": 16,
+ "total_lines": 16,
+ "zero_coverage": null,
+ "failures": 0,
+ "uncoded_lines": 0,
+ "lines": [
+  {
+   "lcsc": "C7125816",
+   "designators": "U1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 203,
+   "type": "expand",
+   "mpn": "TPSM63610RDFR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C5219289",
+   "designators": "U2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 54,
+   "type": "expand",
+   "mpn": "TPSM63604RDLR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C473913",
+   "designators": "U3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 307,
+   "type": "expand",
+   "mpn": "TPS25810RVCR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C130056",
+   "designators": "U4,U5,U6",
+   "qty": 3,
+   "status": "OK",
+   "stock": 2875,
+   "type": "expand",
+   "mpn": "TPS2557DRBR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C473910",
+   "designators": "U7,U8",
+   "qty": 2,
+   "status": "OK",
+   "stock": 60,
+   "type": "expand",
+   "mpn": "TPS2513ADBVR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C7519",
+   "designators": "D2,D3,D4",
+   "qty": 3,
+   "status": "OK",
+   "stock": 26984,
+   "type": "expand",
+   "mpn": "USBLC6-2SC6",
+   "manufacturer": "STMicroelectronics"
+  },
+  {
+   "lcsc": "C97502",
+   "designators": "D6",
+   "qty": 1,
+   "status": "OK",
+   "stock": 7252,
+   "type": "expand",
+   "mpn": "TPD2EUSB30DRTR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C264098",
+   "designators": "Q1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 630,
+   "type": "expand",
+   "mpn": "DMP3013SFV-7",
+   "manufacturer": "Diodes Incorporated"
+  },
+  {
+   "lcsc": "C124196",
+   "designators": "D5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 18766,
+   "type": "expand",
+   "mpn": "BZT52C12-7-F",
+   "manufacturer": "Diodes Incorporated"
+  },
+  {
+   "lcsc": "C83846",
+   "designators": "D1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 31916,
+   "type": "expand",
+   "mpn": "SMBJ15A",
+   "manufacturer": "Littelfuse"
+  },
+  {
+   "lcsc": "C88744",
+   "designators": "C1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 61172,
+   "type": "expand",
+   "mpn": "35TZV100M6.3X8",
+   "manufacturer": "Rubycon"
+  },
+  {
+   "lcsc": "C3020560",
+   "designators": "J5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 11367,
+   "type": "expand",
+   "mpn": "USB4105-GF-A",
+   "manufacturer": "Global Connector Technology"
+  },
+  {
+   "lcsc": "C5815149",
+   "designators": "J2,J3,J4",
+   "qty": 3,
+   "status": "OK",
+   "stock": 143,
+   "type": "expand",
+   "mpn": "USB1130-15-A",
+   "manufacturer": "Global Connector Technology"
+  },
+  {
+   "lcsc": "C3817933",
+   "designators": "J1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 926,
+   "type": "expand",
+   "mpn": "1715022",
+   "manufacturer": "Phoenix Contact"
+  },
+  {
+   "lcsc": "C5249699",
+   "designators": "F1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 233,
+   "type": "expand",
+   "mpn": "3568",
+   "manufacturer": "Keystone"
+  },
+  {
+   "lcsc": "C273394",
+   "designators": "SW1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 429,
+   "type": "expand",
+   "mpn": "EG1218",
+   "manufacturer": "E-Switch"
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+schema: 1
+quotes:
+  - mpn: 901-143-6RFX
+    manufacturer: Amphenol RF
+    distributor: digikey
+    source: product_page
+    url: https://www.digikey.com/en/products/detail/amphenol-rf/901-143-6RFX/272190
+    read_on: 2026-08-13
+    dpn: ARFX1232-ND
+    stock: 4206
+    lifecycle: Active
+    price_breaks:
+      - {qty: 1, usd: 10.20}
+      - {qty: 10, usd: 8.665}
+      - {qty: 25, usd: 8.1216}
+    note: "Exact manufacturer and exact orderable MPN on the DigiKey product page; stock is a dated observation and must be refreshed before ordering."
+  - mpn: TPS7A2433DBVR
+    manufacturer: Texas Instruments
+    distributor: digikey
+    source: product_page
+    url: https://www.digikey.com/en/products/detail/texas-instruments/TPS7A2433DBVR/11502221
+    read_on: 2026-08-13
+    dpn: 296-TPS7A2433DBVRCT-ND
+    stock: 23268
+    lifecycle: Active
+    price_breaks:
+      - {qty: 1, usd: 0.67}
+      - {qty: 10, usd: 0.475}
+      - {qty: 25, usd: 0.426}
+    note: "Exact TI orderable MPN on the DigiKey product page; TI separately reports the part active. Stock is a dated observation and must be refreshed before ordering."

@@ -8,7 +8,7 @@ recorded responses so the suite never makes one.
 
 | Pattern | What |
 |---|---|
-| `shopping_list.py` | `PROJECT_DIR -> per-distributor list + verdict`. Derives the part set from `02_parts/<dir>/part.yaml` (the `mpn:` FIELD is the authority — a directory name is a sanitised rendering and real MPNs contain `/` and `*`), the newest sealed `07_releases/*/fab/bom.csv` per board (read-only; releases are immutable), `03_src/**/rules/assembly.yaml` (`not_assembled`/`consigned` = the refs you buy) and `01_docs/sourcing/manual_quotes.yaml` (every hand-read DigiKey/Amazon number, with its page URL and read date). Emits **Q-COVER** (`N/M` per distributor; an un-looked-up part is a FAIL, never an omission; zero denominator is a FAIL), **Q-WIDE** (an unsourceable verdict is unreachable until the broad suffix-stripped search has run — enforced by an assertion on `RecordSet.broad_done`, not by a comment), **Q-IDENT** (a record whose manufacturer MPN is not the authoritative one modulo packaging suffixes is a PROPOSAL, never a source — the broad search widens the QUERY, not the PART), **Q-STOCK** (`stock > --min-stock`, default 10, AND `stock >= qty`; a failing line is REPORTED, never dropped or substituted), **Q-SNIPPET** (a quote must name its page and read date; `source: search_snippet` and a stale read are both REFUSED as stock figures) and **Q-GRADE** (every number carries CITED / ESTIMATED / OWED; absent is a FAIL, never a quiet promotion). `source: catalog_absence` is the one admissible use of a search page — absence IS a property of the search, presence is not |
+| `shopping_list.py` | `PROJECT_DIR -> per-distributor list + verdict`. Derives exact dossier identity plus quantities from a candidate `--bom` or newest sealed BOM. `--required-pools N --jlc-stock-json FILE` enables **Q-2SOURCE**: every exact `(manufacturer, full MPN)` row must qualify at N independent authorized pools among JLC/LCSC, Mouser and DigiKey; Amazon never counts. The fresh JLC sidecar is joined by LCSC, MPN, manufacturer and per-board quantity. Emits **Q-COVER**, **Q-WIDE**, **Q-IDENT**, **Q-MFR-IDENT**, **Q-STOCK**, **Q-SNIPPET**, **Q-GRADE** and **Q-2SOURCE**. A missing/mismatched candidate-BOM row is a failure, never a guessed quantity. Terminal progress carries row/total, START/DONE and elapsed time |
 | `*.py` | further buying tools, same rules |
 | `contracts.md` | this file |
 
@@ -42,7 +42,7 @@ recorded responses so the suite never makes one.
 
 - `gate_contract_audit.py` — G-INPUT / G-COVER / G-RED (`shopping_list.py`
   prints a verdict).
-- `tests/t1_shopping_list.py` — 19 tests, 12 known-bad, hermetic via
+- `tests/t1_shopping_list.py` — 26 tests, 14 known-bad, hermetic via
   `--replay tests/fixtures/shopping_list/mouser/`. Q-WIDE, Q-SNIPPET and
   Q-IDENT are each RED-verified against a neutered checker, with the measured
   pass/fail counts recorded in the suite docstring.

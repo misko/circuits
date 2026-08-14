@@ -1,0 +1,48 @@
+mpn: FTSH-105-01-L-DV-K-P-TR
+manufacturer: Samtec
+type: keyed_cortex_debug_header
+mates: plug
+datasheet:
+  doc_id: FTSH-1XX-XX-XXX-DV-XXX-XXX-X-XX
+  revision: FX
+  url: "https://suddendocs.samtec.com/prints/ftsh-1xx-xx-xxx-dv-xxx-xxx-x-xx-mkt.pdf"
+  local: 02_parts/FTSH-105-01-L-DV-K-P-TR/FTSH-DV-series-print.pdf
+  sha256: ef2961377445b9ad10762ea27519e7b59e5cbb5847dc0058d8e35c0d97c446a3
+  fetched: 2026-08-13
+package: 2x5 1.27mm pitch vertical surface mount header with keyed cap and pick-and-place pad
+footprint: pluto_rx2_8way_v5:Samtec_FTSH_105_01_L_DV_K_P_TR
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: "Samtec recommended FTSH-DV land pattern 2026-08-13"}
+pins:
+  1: VTREF_3V3
+  2: SWDIO
+  3: {name: GND, tie: GND}
+  4: SWCLK
+  5: {name: GND, tie: GND}
+  6: SWO_NC
+  7: KEY_NC
+  8: TDI_NC
+  9: {name: GNDDETECT, tie: GND}
+  10: NRST
+limits: {temperature: -55C_to_125C, contact_pitch_mm: 1.27, positions: 10, rows: 2, post_length_mm: 3.05}
+mechanical:
+  manufacturer_land_mm: [0.74, 2.79]
+  row_center_spacing_mm: 4.065
+  column_pitch_mm: 1.27
+  body_length_mm: 6.35
+  keyed_body_width_reference_mm: 5.84
+gotchas:
+  - "Pin 1 is target-powered VTref, not a power input. A Raspberry Pi or ST-LINK must never source the board through J11."
+  - "Pins 6, 7 and 8 are explicit no-connects because this STM32C011 implementation uses SWD only; pin 9 is grounded for GNDDetect compatibility."
+  - "This board-side male header is the plug under the connector-role schema; it mates to a keyed 1.27-mm FFSD-family cable receptacle."
+  - "The exact-code JLC/EasyEDA CAD uses 0.574x2.000mm lands on 5.08mm row centres, which does not match Samtec's 0.74x2.79mm recommended layout on 4.065mm row centres. The project-owned footprint follows Samtec; JLC's model is visual evidence only and the manufacturer land must be preserved in upload DFM."
+verified: "Samtec exact product page identifies 10 pins, 2 rows, 1.27mm pitch, vertical SMT, -01 3.05mm posts, -K keying notch and -P pick-and-place; official series manufacturer drawing Rev FX sha256 ef2961377445b9ad10762ea27519e7b59e5cbb5847dc0058d8e35c0d97c446a3 and recommended-footprint drawing Rev H sha256 caa205b92560423f3b0aea9c69d6c38340d1b7f01b0655092994450e935edcb3 captured 2026-08-13; JLC exact C2932107 identity, SMT eligibility, MSL1 and stock observed 2026-08-13; retained exact-code comparison STEP sha256 202b53981543840448164e71c79b46adf77ee6bb5e65a3cbe0e2673df80bb3c1"
+sourcing: {lcsc: C2932107}
+layout:
+  source: "Samtec FTSH vertical-SMT series print Rev FX and recommended footprint Rev H"
+  reviewed: 2026-08-13
+  notes: "Use the manufacturer 0.74x2.79mm lands, orient pin 1 visibly, keep the keyed mating volume accessible, and keep SWD copper away from the RF fanout."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Samtec FTSH vertical-SMT series print and recommended PCB layout", why: "manufacturer documents fix exact option meanings, body configuration and recommended SMT land geometry"}
+  - {tier: 2, reached: false, artifact: "open-hardware reference design with exact FTSH-105-01-L-DV-K-P-TR editable PCB layout", why: "no exact-order-code editable open-hardware board was captured; Arm and ST connector documents establish interface identity but are not PCB precedents"}
+  - {tier: 3, reached: true, artifact: "fresh EasyEDA/JLC C2932107 footprint and STEP", why: "exact catalog CAD was fetched and dimensionally compared, revealing that its generic land pattern must not override Samtec"}
+  - {tier: 4, reached: false, artifact: "independent open KiCad project using exact C2932107", why: "no exact-code independent KiCad implementation was captured; manufacturer geometry plus the measured catalog delta are stronger than a near-match"}

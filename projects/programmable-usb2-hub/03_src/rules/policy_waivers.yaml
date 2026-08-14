@@ -1,0 +1,62 @@
+# programmable-usb2-hub policy waivers.  These dispositions are specific to
+# this board and carry re-runnable measurements (canon M4/M-WAIV).
+
+- id: R-THERM
+  refs:
+    - U6
+    - Q1
+    - Q2
+    - Q3
+    - Q4
+    - Q5
+    - Q6
+    - 04_kicad/programmable_usb2_hub.kicad_pcb
+    - 02_parts/CSD18533Q5AT/part.yaml
+  why: >-
+    R-THERM combines two checker-adjacent cases, neither of which is an
+    unserved exposed pad.  U6.65 is the USB2517 ground EP and its footprint
+    embeds sixteen co-numbered plated through-hole pads inside the EP.  The
+    checker counts only free PCB_VIA objects, so it reports both duplicate EP
+    shapes as zero even though the footprint already provides a 4 x 4 plated
+    thermal-hole grid to the solid GND planes.
+
+    The other findings are the large fused drain lands Q1.5/Q2.5 (FET_MID),
+    Q3.5/Q4.5 (VIN_PROTECTED/SW_A), and Q5.5/Q6.5
+    (VIN_PROTECTED/SW_B). This board deliberately
+    has only GND zones: none of those switching/power nets has a same-net inner
+    plane for a barrel to reach.  Adding isolated through barrels therefore
+    would not create a thermal path; it would add high-dV/dt copper and EMI.
+    Their primary heat spreaders are the 18.95 mm2-or-larger top copper lands
+    and the broad routed power copper required by their dossiers.  For the
+    input pair, CSD18533Q5AT/part.yaml bounds each device using the guaranteed
+    5.9 mOhm at 10 V plus temperature derating. For the switching set, the
+    deliberately conservative impossible bound of the 8.283 A worst-high
+    current-limit corner continuously through one device uses the 8.5 mOhm
+    6.1-6.5 V drive budget and a 1.6 hot-resistance factor:
+    8.283^2 x 8.5 mOhm x 1.6 = 0.933 W. Actual high/low-side RMS conduction is
+    lower and switching loss is graded separately in power_stages.yaml. The
+    required four-port rated-load thermal bench test remains explicit in the
+    design documentation; this waiver addresses only the false requirement
+    for vias into planes which do not exist.
+  evidence:
+    - claim: U6 pad 65 contains sixteen plated thermal holes inside the EP
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/programmable-usb2-hub/04_kicad/programmable_usb2_hub.kicad_pcb'); f=next(x for x in b.GetFootprints() if x.GetReference()=='U6'); print(sum(p.GetNumber()=='65' and p.GetAttribute()==pcbnew.PAD_ATTRIB_PTH for p in f.Pads()))"
+      output: "16"
+      budget: ">= 16"
+      requires: [projects/programmable-usb2-hub/04_kicad/programmable_usb2_hub.kicad_pcb]
+      grade: CITED
+    - claim: the board has no non-GND copper zones for the flagged power lands to reach
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/programmable-usb2-hub/04_kicad/programmable_usb2_hub.kicad_pcb'); print(sum(bool(z.GetNetname()) and z.GetNetname()!='GND' for z in b.Zones()))"
+      output: "0"
+      budget: "<= 0"
+      requires: [projects/programmable-usb2-hub/04_kicad/programmable_usb2_hub.kicad_pcb]
+      grade: CITED
+    - claim: every flagged MOSFET drain land has at least 18 mm2 of top copper
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/programmable-usb2-hub/04_kicad/programmable_usb2_hub.kicad_pcb'); fs={f.GetReference():f for f in b.GetFootprints()}; print(f'{min(next(p for p in fs[r].Pads() if p.GetNumber()==\"5\").GetSize().x*next(p for p in fs[r].Pads() if p.GetNumber()==\"5\").GetSize().y/1e12 for r in [\"Q1\",\"Q2\",\"Q3\",\"Q4\",\"Q5\",\"Q6\"]):.3f}')"
+      output: "18.952"
+      budget: ">= 18.0"
+      requires: [projects/programmable-usb2-hub/04_kicad/programmable_usb2_hub.kicad_pcb]
+      grade: CITED

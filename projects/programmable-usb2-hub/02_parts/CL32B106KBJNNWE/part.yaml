@@ -8,12 +8,12 @@ escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked:
 pins: {1: A, 2: B}
 limits: {cap: "10uF", tol: "K +-10%", voltage: 50V, dielectric: X7R, tc: "+-15% -55..125C"}
 gotchas:
-  - "VIN input cap on the 3S rail (Vin_max = 12.6V full charge). Rating raised
-     25V -> 50V for margin/reliability (12.6V = 25% of 50V; a 25V part sat at
-     50% Vr with poorer bias behaviour)."
-  - "EFFECTIVE-C AT 12.6V DC BIAS ~= 8 uF (roughly -15..-20% from 10uF nominal;
-     50V X7R 1210 has a gentle bias slope at 25% of rated V). ESTIMATE - confirm
-     on Murata SimSurfing for the exact lot curve. Size parallel count from the
-     DERATED value, not the 10uF marking."
+  - "VIN_PROTECTED is a 24 V nominal rail behind a qualified 38.9 V transient
+     clamp. The 50 V rating clears both conditions; the rejected 25 V C39232
+     did not clear even the continuous rail. Do not substitute a 25 V row."
+  - "DC-bias capacitance at 24 V is not established by the nominal 10 uF
+     marking. Four parts are fitted in parallel and the order-day engineering
+     check must use Samsung's exact-part bias curve, not an adjacent-family
+     estimate, if the required effective input capacitance changes."
 verified: "CITED: exact Samsung/DigiKey line is 10uF, 50V, X7R, +/-10 percent, 1210; checked 2026-07-31."
-sourcing: {lcsc: C3844168, alternates: [], note: "Q-2SOURCE: JLC catalog stock 533 and DigiKey stock 130,022 observed 2026-07-31; order-day recheck required."}
+sourcing: {lcsc: C3844168, alternates: [], note: "Q-2SOURCE 2026-08-01: exact JLC catalog stock 533 and exact Mouser API stock 110,682; DigiKey product-page stock 130,022 was also observed 2026-07-31. Order-day recheck required."}

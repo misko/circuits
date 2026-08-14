@@ -1,0 +1,39 @@
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
+
+selections:
+  - function: 3S-to-5V conversion for all three USB-A charge ports
+    part: TPSM63610RDFR
+    implementation: module
+    rationale: >-
+      The 8A/10A-peak integrated power module covers the 6A continuous and
+      7.5A coincident-peak USB-A load while eliminating the external controller,
+      gate drive, two MOSFETs, inductor, current shunt and compensation cell
+      that repeatedly consumed review and routing time on v3.
+
+  - function: independent 3S-to-5V conversion for the Raspberry Pi USB-C port
+    part: TPSM63604RDLR
+    implementation: module
+    rationale: >-
+      A dedicated 4A integrated module supplies the 3A Pi rail with one ampere
+      of rated-current headroom and isolates a Pi load step from the three-port
+      USB-A rail without recreating another discrete switching cell.
+
+  - function: USB Type-C source attach detection, 3A advertisement and VBUS switching
+    part: TPS25810RVCR
+    implementation: bare_ic
+    rationale: >-
+      The controller is the smallest standards-aware implementation: it detects
+      Rd on either CC pin, applies VBUS only after attach, removes and discharges
+      VBUS after detach, advertises 3A, and integrates the source power switch.
+    support_refs: [C9, C10, C11, C12, C13, C23, R14, R15]
+
+  - function: charge-signature control for three power-only USB-A receptacles
+    part: TPS2513ADBVR
+    implementation: bare_ic
+    rationale: >-
+      Two dual-port controllers need only local bypass capacitors and directly
+      provide BC1.2 DCP plus common legacy charging signatures; a module would
+      add connectors and fixed power paths that cannot serve this board.
+    support_refs: [C20, C21]

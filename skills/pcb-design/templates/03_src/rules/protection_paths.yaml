@@ -1,0 +1,12 @@
+# Normal-input and transient protection coordination. Replace the null
+# decision; use paths: [] only when the stated reason is true.
+schema: 1
+paths: []
+no_surge_exposed_paths: null
+
+# A path records the source operating maximum including tolerance, the exact
+# TVS standoff/clamp/waveform, voltage margin, and every exposed part's
+# recommended/absolute maximum. Reliance above recommended maximum requires a
+# measured or cited transient qualification covering voltage and duration.
+# The TVS and every exposed row carry `part:` resolving to 02_parts; `ref:` is
+# the board population/range using that exact dossier.

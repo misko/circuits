@@ -8,7 +8,7 @@ datasheet:
   sha256: aa0a9bca851693347d502711a3b46028352cf29903244b8425b7c224363dbd56
   fetched: 2026-07-31
 package: Infineon PG-TDSON-8-U04 / SuperSO8 FL, 5 x 6 mm class, 1.27 mm lead pitch
-footprint: Package_TO_SOT_SMD:TDSON-8-1
+footprint: programmable_usb2_hub:TDSON-8-1_PhysicalPins
 escape:
   style: qfn
   pitch: 1.27
@@ -28,15 +28,20 @@ limits:
   vds: 60 V
   vgs: +/-20 V
   rds_on_max_10v: 1.6 mOhm
+  rds_on_max_6v: 2.4 mOhm
+  gate_charge_total_10v_high_side: 58 nC typical
+  gate_charge_total_10v_sync: 49 nC typical
   continuous_drain_current_board_example: 31 A at 25 C and RthetaJA 50 K/W
   junction_temperature: -55 to +175 C
   msl: 1
 gotchas:
-  - "KiCad's verified TDSON-8-1 land consolidates datasheet drain terminals 5-8 into one physical copper pad numbered 5. The schematic therefore carries D_COMMON pad 5; the complete silicon/package pin map above remains the authority."
-  - "Use two identical devices in the LM74810 back-to-back topology. At 6.25 A, each dissipates about 0.063 W using the 25 C 1.6 mOhm maximum; hot resistance and shared copper heating still require thermal validation."
+  - "The project-local TDSON-8-1_PhysicalPins footprint tiles the same continuous 4.55 x 4.41 mm Infineon drain copper into touching logical pads 5-8. The copper union is unchanged while P-PINMAP can prove every package identity."
+  - "Use two identical devices in the LM74810 back-to-back topology and four more as the Q3-Q6 LM5116 synchronous switches. At 6.25 A, each input-stage FET dissipates about 0.063 W using the 25 C 1.6 mOhm maximum; hot resistance and shared copper heating still require thermal validation."
   - "The headline 234 A is case-temperature limited. The vendor's actual board example is 31 A at 25 C on 6 cm2 of 70 um drain copper and RthetaJA=50 K/W; board copper, not the package current headline, governs this design."
-  - "60 V VDS has only 17.9 V static margin above SMBJ26A's 42.1 V specified clamp. The TVS and short low-inductance loop are mandatory; no automotive load-dump capability is claimed."
-verified: "Infineon rev 2.6 p.1 pin diagram: pins 1-3 Source, 4 Gate, 5-8 Drain; maximum ratings p.3; and PG-TDSON-8 package outline plus Figure 2 Boardpads & Apertures pp.11-13. KiCad TDSON-8-1 implements the Figure 2 fused-drain land (4.55 x 4.41 mm copper, 1.27 mm source pitch); checked 2026-07-31."
+  - "60 V VDS has 21.1 V static margin above SMBJ24A's 38.9 V specified clamp. The TVS and short low-inductance loop are mandatory; no automotive load-dump capability is claimed."
+  - "LM5116 VCC gate drive is 7.4 V while the exact RDS(on) maximum is specified at 10 V. The transfer/output graphs support enhancement below 10 V but do not create a 7.4 V resistance guarantee; first-board switch loss, temperature and ringing at 12 V / 6 A and 24 V / 6 A remain mandatory qualification gates."
+  - "OPEN BLOCKER — the present 12.4 kOhm RT sets 250 kHz. Conservatively using the datasheet's 10 V charges gives Qgh+Qgl = 58+49 = 107 nC and IGC = 107 nC x 250 kHz = 26.75 mA per LM5116. That exceeds the controller's 15 mA minimum internal-VCC current limit during startup with VCCX grounded. Gate-drive power alone is 7.4 V x 26.75 mA = 0.198 W; a conservative 24 V internal-bias input bound including the LM5116's 7 mA maximum operating current is 24 V x (26.75+7) mA = 0.810 W, about 33 C rise at 40.6 C/W before board/environment derating. Select lower-Qg 60 V switches or add a datasheet-compliant external VCC/VCCX startup supply and re-run loss/thermal calculations before release."
+verified: "Infineon rev 2.6 p.1 pin diagram: pins 1-3 Source, 4 Gate, 5-8 Drain; maximum ratings p.3; and PG-TDSON-8 package outline plus Figure 2 Boardpads & Apertures pp.11-13. The project footprint preserves pins 5-8 while their touching pad union exactly equals KiCad TDSON-8-1's verified 4.55 x 4.41 mm fused drain copper; checked 2026-08-01."
 sourcing:
   lcsc: C454269
   alternates: []

@@ -54,21 +54,30 @@ def t_claim_only_diff_selects_project():
               f"claim-only path escaped the publication denominator: {path}")
 
 
-@test("the real sealed RX2 v4 project clears the publication gate")
-def t_real_sealed_reviewed_project_passes():
-    r = must_pass(run([sys.executable, PUB, "--project",
+@test("the real RX2 v4 release is explicitly stale after material pipeline "
+      "source changed", kind="known_bad")
+def t_real_release_stales_after_pipeline_adoption():
+    r = must_fail(run([sys.executable, PUB, "--project",
                        "projects/pluto-rx2-8way-v4"]),
-                  "sealed reviewed RX2 publication")
+                  "stale reviewed RX2 publication", "STALE-RELEASE")
     contains(r.out, "1 project(s), 1 board(s) graded", "coverage denominator")
-    contains(r.out, "P-PUBLISH PASS", "publication verdict")
+    contains(r.out, "03_src/route.yaml", "material source diagnosis")
 
 
 @test("an unsealed board cannot be published even when DRC/parity are green",
       kind="known_bad")
 def t_unsealed_hub_is_refused():
-    r = must_fail(run([sys.executable, PUB, "--project",
-                       "projects/programmable-usb2-hub"]),
-                  "unsealed programmable USB hub", expect="NO-RELEASE")
+    # The real programmable hub eventually seals; pin this property to a
+    # deliberately release-less project so success cannot make the regression
+    # fixture stale. The gate exits at NO-RELEASE before invoking child tools.
+    d = tmpdir("pub_unsealed_")
+    (d / ".git").mkdir()
+    board_dir = d / "projects" / "unsealed-demo" / "04_kicad"
+    board_dir.mkdir(parents=True)
+    (board_dir / "unsealed_demo.kicad_pcb").write_text("(kicad_pcb)\n")
+    r = must_fail(run([sys.executable, PUB, "--root", d, "--project",
+                       "projects/unsealed-demo"]),
+                  "deliberately unsealed board", expect="NO-RELEASE")
     contains(r.out, "1 project(s), 1 board(s) graded", "coverage denominator")
 
 
@@ -118,6 +127,37 @@ def t_review_binding_mismatch_is_refused():
     joined = "\n".join(errors)
     contains(joined, "REVIEW-BINDING", "wrong-artifact finding")
     contains(joined, "REVIEW-ARCHIVE", "unarchived-review finding")
+
+
+@test("publication replays a declared docs-only predecessor through the "
+      "strong freshness mode")
+def t_docs_only_freshness_mode_is_composed():
+    d = tmpdir("pub_docs_only_")
+    releases = d / "07_releases"
+    prior = releases / "v1.0-2026-08-01"
+    current = releases / "v1.1-2026-08-02"
+    prior.mkdir(parents=True)
+    current.mkdir()
+    errors, args = pg._freshness_args(
+        {"release_mode": "docs-only", "supersedes": prior.name}, current)
+    check(not errors, f"valid docs-only declaration refused: {errors}")
+    check(args[:3] == ["--claim", "design", "--docs-only-supersede"],
+          f"wrong freshness mode argv: {args}")
+    check(Path(args[3]) == prior, f"wrong predecessor path: {args[3]}")
+
+
+@test("publication fails closed on a docs-only declaration with no existing "
+      "predecessor", kind="known_bad")
+def t_docs_only_missing_predecessor_is_refused():
+    d = tmpdir("pub_docs_only_bad_")
+    current = d / "07_releases" / "v1.1-2026-08-02"
+    current.mkdir(parents=True)
+    errors, args = pg._freshness_args(
+        {"release_mode": "docs-only", "supersedes": "v1.0-2026-08-01"},
+        current)
+    check(not args, f"bad declaration still produced gate argv: {args}")
+    contains("\n".join(errors), "FRESHNESS-PREDECESSOR",
+             "missing predecessor diagnosis")
 
 
 if __name__ == "__main__":

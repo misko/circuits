@@ -9,9 +9,9 @@ after it stayed bespoke. Surveying six shipped boards (usb-power-3s,
 ble-bus-bar, crow-array-pod, cook-loadcell, crowsync-recorder, cook-hub)
 showed the same pipeline every time, with different constants:
 
-    route-prep (track-free + unfilled + keepouts + rules ride along)
+    route-prep (segment-free + unfilled + keepouts + rules ride along)
       -> KRT waves, hardest-first, chained rN -> rN+1
-      -> import ONCE into the track-free base
+      -> import ONCE into the segment-free base (source vias preserved)
       -> taps (optional): collision-checked NAMED connections KRT cannot
          thread — pour-fed sense pins, boxed-in pads, plane drops
       -> stitch: clean KRT artifacts -> rescue pads -> stitch grid
@@ -38,14 +38,15 @@ LOAD-BEARING ORDER (each deviation reintroduces a debugged failure):
   * netclasses/ampacity floors exist BEFORE routing, and the route input
     carries its own .kicad_pro/.kicad_dru (canon R1) — `prep` refuses to
     run if the source .kicad_pro has no netclass patterns.
-  * the route input is TRACK-FREE and UNFILLED — KRT routes straight
-    through pre-existing copper otherwise (400+ silent crossings, twice).
-  * KRT output is imported ONCE, into the track-free base, never into a
-    board that already carries tracks (that doubles everything).
-  * `import` REFILLS the pours it imported into — EXCEPT when the stitch plan
-    places explicit copper before its own `fill` (`stitch.seed_stubs`), where
-    it must hand `import_krt.py --no-fill` or that pass cannot run at all
-    (see `_import_may_fill`).
+  * the route input is SEGMENT-FREE and UNFILLED — KRT routes straight
+    through pre-existing segments otherwise (400+ silent crossings, twice).
+    Source-owned vias remain as routing obstacles.
+  * KRT output is imported ONCE, into the segment-free base, never into a
+    board that already carries routed segments (that doubles everything).
+  * `import` REFILLS the pours it imported into — EXCEPT when a following
+    pipeline step places explicit copper before stitch's `fill` (`taps` or
+    `stitch.seed_stubs`), where it must hand `import_krt.py --no-fill` so the
+    later fill flows around that copper (see `_import_may_fill`).
   * `generate_rules` runs LAST, after the final pcbnew save. This script
     never writes .kicad_pro, so it cannot clobber netclasses — but the
     caller still has to re-run its rules generator afterwards, and
@@ -75,11 +76,20 @@ so the commands work from any cwd. Top-level keys:
   prep:     out, keepouts {layers, mounting_holes, npth_pads, edge_band,
             rects[]}, waves {exclude[], groups{}, rest}
   route:    krt, python, race (N concurrent chains, quick-measured best
-            wins; CLI --race overrides), kicad_python (race import+quick
-            interpreter), common{...}, waves[] {name, nets|group, + any
-            KRT flag override}
+            wins; CLI --race overrides), import_source (build|promoted),
+            kicad_python (KiCad interpreter), forbid_new_via_in_pad (compare
+            every wave output with its input and refuse router-created vias
+            in SMD lands), common{...}, waves[]
+            {name, nets|group, + any KRT flag override}
+  flow:     heartbeat_s, timeouts_s {route_wave, route_race,
+            route_evaluate, route_import}; performance budgets are separate
+
+`route --resume` is intentionally single-chain only. It accepts only the
+contiguous prefix in route_progress.json whose route.yaml, r0, per-wave input
+and output hashes still agree. Bare rN files are never treated as evidence.
   taps:     clearance, via{}, connections[] {net, from, to, width,
-            layer/hop_layer, plane} — see cmd_taps
+            layer/hop_layer, plane, optional via{} geometry override and
+            via_protection{capping,filling}} — see cmd_taps
   stitch:   via{}, keepin{}, passes[] (the ORDER — this is the axis the
             six boards actually disagree on), plus one block per pass
 
@@ -89,16 +99,22 @@ boards, and it matters (the grid consumes via-exclusion zones that later
 rescues must dodge).
 """
 import argparse
+import hashlib
+import json
 import math
 import os
 import re
 import shutil
-import subprocess
 import sys
+import threading
 import time
+import zlib
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from process_runner import run_bounded
 
 
 # ---------------------------------------------------------------- errors
@@ -356,19 +372,63 @@ def _rules_ride_along(cfg, src_pcb, out_pcb):
           f"{len(pats)} patterns)")
 
 
+def _critical_route_gate(cfg, require_connected=False):
+    """Make the shared route entry points enforce the adopted pair contract."""
+    root = Path(cfg["_root"])
+    route = get(cfg, "route", {}) or {}
+    adopted = any((root / "03_src/rules" / name).is_file()
+                  for name in ("requirements.yaml", "integration.yaml"))
+    if "preflight_critical_pairs" not in route and not adopted:
+        print("R-PAIRMAP: legacy/unadopted route config — not graded")
+        return
+    checker = Path(__file__).resolve().parent / "critical_route_check.py"
+    board = rel(cfg, cfg["project"]["board"])
+    cmd = [sys.executable, str(checker), str(root), "--board", str(board)]
+    if require_connected:
+        cmd.append("--require-connected")
+    result = run_bounded(
+        cmd, timeout_s=_timeout_s(cfg, "route_preflight", 180),
+        heartbeat_s=_heartbeat_s(cfg), label="critical-route-preflight",
+        state_path=rel(cfg, get(cfg, "project.build_dir", "06_build/route")) /
+        "critical_route_state.json")
+    if result.returncode:
+        phase = "R-CRITESC" if require_connected else "R-PAIRMAP"
+        die(f"{phase} failed — direct route/import/stitch entry cannot bypass "
+            "the adopted critical-pair contract")
+
+
 def cmd_prep(cfg):
+    _critical_route_gate(cfg)
     import pcbnew
     src = rel(cfg, cfg["project"]["board"])
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     out = build / get(cfg, "prep.out", "r0.kicad_pcb")
     out.parent.mkdir(parents=True, exist_ok=True)
 
+    # M-REPRO: prep adds keepout shapes and can add deterministic seed/rescue
+    # copper. KiCad otherwise assigns every one a fresh random UUID, so two
+    # geometrically identical prep runs have different r0 hashes. That is not
+    # cosmetic here: route_progress authenticates the exact r0 SHA and a fresh
+    # prep then makes a valid bounded route impossible to resume. Reuse KiCad's
+    # own QA seed hook, namespaced by the source board just as the board
+    # generator does. Creation order is deterministic and the source board's
+    # existing objects retain their identities.
+    uuid_seed = zlib.crc32(f"{src.stem}:route-prep".encode())
+    pcbnew.KIID.SeedGenerator(uuid_seed)
+    print(f"UUID generator seeded: crc32('{src.stem}:route-prep') = "
+          f"{uuid_seed} (M-REPRO r0)")
+
     b = pcbnew.LoadBoard(str(src))
-    tracks = list(b.GetTracks())
-    if tracks:
-        die(f"route-prep expects a TRACK-FREE board, found {len(tracks)} "
-            f"tracks in {src.name} — KRT routes straight through existing "
-            f"copper (400+ silent crossings, observed twice)")
+    copper = list(b.GetTracks())
+    segments = [item for item in copper if item.GetClass() != "PCB_VIA"]
+    source_vias = [item for item in copper if item.GetClass() == "PCB_VIA"]
+    if segments:
+        die(f"route-prep expects a SEGMENT-FREE board, found {len(segments)} "
+            f"routed copper item(s) in {src.name} — KRT routes straight "
+            f"through existing segments (400+ silent crossings, observed "
+            f"twice)")
+    if source_vias:
+        print(f"source-owned vias: {len(source_vias)} preserved as KRT obstacles")
     nfilled = 0
     for z in b.Zones():
         if z.IsFilled():
@@ -445,6 +505,7 @@ def cmd_prep(cfg):
     # Keeping this config-backed avoids a per-board Python pre-router and makes
     # the exact geometry part of the reproducible route recipe.
     preseed = get(cfg, "prep.seed_stubs") or {}
+    ctx = None
     if preseed.get("stubs"):
         ctx = Ctx(cfg, out)
         p_seed_stubs(ctx, preseed)
@@ -454,6 +515,38 @@ def cmd_prep(cfg):
         ctx.board.Save(str(out))
         print(f"prep seed_stubs: {ctx.counts.get('seed_stubs', 0)} "
               "segments/vias placed before KRT")
+
+    # Plane drops are routing INPUTS, not post-route cleanup.  Running the
+    # collision-checked pad rescue only after KRT lets dense signal/power waves
+    # consume the last legal via+stub sites around small GND/plane pads; the
+    # subsequent pour then isolates those pads and every reroute can expose a
+    # different weakest island.  `prep.pad_rescue: true` reuses the exact
+    # stitch.pad_rescue policy on the track-free r0 so KRT sees every accepted
+    # barrel/stub as an obstacle.  A mapping overlays the stitch policy when a
+    # board needs an early-only override.  This remains declarative and the
+    # normal post-route pad_rescue stays as the verification/safety net.
+    early = get(cfg, "prep.pad_rescue")
+    if early:
+        if early is True:
+            early_cfg = dict(get(cfg, "stitch.pad_rescue", {}) or {})
+        elif isinstance(early, dict):
+            early_cfg = dict(get(cfg, "stitch.pad_rescue", {}) or {})
+            early_cfg.update(early)
+        else:
+            die("prep.pad_rescue must be true or a mapping of "
+                "stitch.pad_rescue overrides")
+        _stitch_tier_geometry(cfg)
+        if ctx is None:
+            ctx = Ctx(cfg, out)
+        before = len(list(ctx.board.GetTracks()))
+        p_pad_rescue(ctx, early_cfg)
+        if ctx.failures:
+            die("prep.pad_rescue refused deterministic pre-route copper:\n  "
+                + "\n  ".join(ctx.failures))
+        ctx.board.Save(str(out))
+        added = len(list(ctx.board.GetTracks())) - before
+        print(f"prep pad_rescue: {added} copper items placed before KRT; "
+              f"{len(ctx.pending)} pad(s) left for the post-route fallback")
 
     groups = wave_nets(cfg, board_nets(b))
     # wave widths vs netclass floors, HERE — a sub-floor wave must fail
@@ -611,12 +704,14 @@ def _krt_args(d, extra_flags=None):
 
 
 def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
-                tag=""):
+                tag="", start_wave=1, progress=None, cancel_event=None):
     """Run the chained KRT waves rN -> rN+1 inside `workdir`, starting from
     board `cur`. Returns the final chain file. `env` extends the subprocess
     environment (race candidates get ROUTE_RACE_CANDIDATE)."""
     sub_env = dict(os.environ, **(env or {}))
     for i, wv in enumerate(waves, 1):
+        if i < start_wave:
+            continue
         name = wv.get("name", f"w{i}")
         nets = wv.get("nets")
         if nets is None:
@@ -656,20 +751,45 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
                + _krt_args(opts, diff_flags) + ["--nets"] + list(nets))
         print(f"\n=== {tag}wave {name} ({engine}): {len(nets)} nets ===\n  "
               + " ".join(cmd[:2] + ["..."] + cmd[-min(6, len(nets) + 1):]))
-        wave_start = time.perf_counter()
-        r = subprocess.run(cmd, env=sub_env)
+        result = run_bounded(
+            cmd, env=sub_env, timeout_s=_timeout_s(cfg, "route_wave", 900),
+            heartbeat_s=_heartbeat_s(cfg), label=f"{tag}route:{name}".strip(),
+            state_path=workdir / f"wave_{i}_state.json",
+            cancel_event=cancel_event)
         # Race lanes are concurrent and have their own race_log.json; avoid
         # concurrent writers to the shared performance file.  The normal
         # single chain records each wave here.
         if not tag:
             record_pass_timing(cfg, "route", name,
-                               time.perf_counter() - wave_start,
-                               rc=r.returncode,
+                               result.elapsed_s,
+                               rc=result.returncode,
                                counters={"nets": len(nets), "wave": i})
-        if r.returncode != 0:
-            die(f"KRT wave {name!r} exited {r.returncode}")
+        if result.returncode != 0:
+            die(f"KRT wave {name!r} exited {result.returncode}")
         if not nxt.is_file():
             die(f"KRT wave {name!r} produced no {nxt}")
+        # Some routers escape a boxed SMD endpoint by dropping an ordinary
+        # via directly in its land.  That can look connected while violating
+        # the board's assembly/reliability contract (solder wicking, uncapped
+        # hole).  When enabled, compare EACH wave to its exact input and stop
+        # at the first newly-created via-in-pad.  Source-owned vias present in
+        # `cur` remain allowed, so an explicitly authored filled/capped EP
+        # field is not confused with an autorouter shortcut.
+        if get(cfg, "route.forbid_new_via_in_pad", False):
+            guard = Path(__file__).resolve().parent / "via_in_pad_guard.py"
+            report = workdir / f"wave_{i}_via_in_pad.json"
+            kpy = get(cfg, "route.kicad_python", "/usr/bin/python3")
+            checked = run_bounded(
+                [kpy, str(guard), str(cur), str(nxt), "--json", str(report)],
+                timeout_s=_timeout_s(cfg, "route_wave_gate", 60),
+                heartbeat_s=_heartbeat_s(cfg),
+                label=f"{tag}route:{name}:via-in-pad".strip(),
+                state_path=workdir / f"wave_{i}_via_in_pad_state.json",
+                cancel_event=cancel_event, echo=False)
+            if checked.returncode != 0:
+                detail = checked.output[-1200:].strip()
+                die(f"KRT wave {name!r} added forbidden via-in-pad geometry; "
+                    f"report: {report}" + (f"\n{detail}" if detail else ""))
         # KRT preserves the .kicad_pro today, but it does not consistently
         # carry the custom .kicad_dru beside each output.  KiCad resolves a
         # board's custom rules by BASENAME, so quick DRC on rN.kicad_pcb
@@ -682,11 +802,74 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
             src_rules = cur.with_suffix(ext)
             if src_rules.is_file():
                 shutil.copy2(src_rules, nxt.with_suffix(ext))
+        if progress is not None:
+            progress.setdefault("waves", []).append({
+                "index": i, "name": name,
+                "input": os.path.relpath(cur, workdir),
+                "input_sha256": _sha256(cur),
+                "output": os.path.relpath(nxt, workdir),
+                "output_sha256": _sha256(nxt),
+                "elapsed_s": round(result.elapsed_s, 3),
+            })
+            _atomic_json(workdir / "route_progress.json", progress)
         cur = nxt
     return cur
 
 
-def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _seed_uuid_stream(pcbnew, board_stem, phase):
+    """Seed KiCad object identities for one deterministic pipeline phase.
+
+    Board generation and route preparation already seed their UUID streams,
+    but imported KRT copper, optional taps and stitch/fence vias are created
+    by later processes.  Leaving any of those streams random changes KiCad's
+    save order and can perturb filled-zone tessellation, so a clean replay no
+    longer reproduces its own board/fabrication bytes.  A phase namespace also
+    prevents separate writers from drawing the same UUID sequence.
+    """
+    namespace = f"{board_stem}:{phase}"
+    seed = zlib.crc32(namespace.encode())
+    pcbnew.KIID.SeedGenerator(seed)
+    print(f"UUID generator seeded: crc32('{namespace}') = {seed} "
+          f"(M-REPRO {phase})")
+    return seed
+
+
+def _atomic_json(path, value):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temp.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+    os.replace(temp, path)
+
+
+def _heartbeat_s(cfg):
+    value = float(get(cfg, "flow.heartbeat_s", 10))
+    if value <= 0:
+        die("flow.heartbeat_s must be positive")
+    return value
+
+
+def _timeout_s(cfg, stage, default=None):
+    value = get(cfg, f"flow.timeouts_s.{stage}",
+                get(cfg, "flow.timeouts_s.default", default))
+    if value is None:
+        return None
+    value = float(value)
+    if value <= 0:
+        die(f"flow.timeouts_s.{stage} must be positive")
+    return value
+
+
+def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results,
+                    cancel_event):
     """One race lane: private copy of the prep outputs -> wave chain ->
     import into a copy of the track-free target -> quick numbers."""
     tag = f"[c{i}] "
@@ -704,7 +887,8 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
             shutil.copy(f, cdir / f.name)
         chain = _wave_chain(cfg, py, krt, waves, tier, dict(common), cdir,
                             cdir / r0.name,
-                            env={"ROUTE_RACE_CANDIDATE": str(i)}, tag=tag)
+                            env={"ROUTE_RACE_CANDIDATE": str(i)}, tag=tag,
+                            cancel_event=cancel_event)
         # evaluate: import into a COPY of the track-free target, then quick.
         # Needs pcbnew, so both steps shell out to the KiCad interpreter —
         # cmd_route itself stays runnable on the KRT venv python.
@@ -717,20 +901,27 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
                 shutil.copy(target.with_suffix(ext),
                             ev.with_suffix(ext))
         imp = Path(__file__).resolve().parent / "import_krt.py"
-        r = subprocess.run([kpy, str(imp), str(chain), str(ev), str(ev)],
-                           capture_output=True, text=True)
+        r = run_bounded(
+            [kpy, str(imp), str(chain), str(ev), str(ev)],
+            timeout_s=_timeout_s(cfg, "route_evaluate", 180),
+            heartbeat_s=_heartbeat_s(cfg), label=f"c{i}:import",
+            state_path=cdir / "import_state.json", cancel_event=cancel_event,
+            echo=False)
         if r.returncode != 0:
             die(f"candidate {i}: import_krt exited {r.returncode}: "
-                f"{(r.stderr or r.stdout)[-300:]}")
+                f"{r.output[-300:]}")
         qj = cdir / "quick.json"
-        r = subprocess.run([kpy, os.path.abspath(__file__), "quick",
-                            str(cfg["_path"]), "--root", str(cfg["_root"]),
-                            "--board", str(ev), "--json", str(qj)],
-                           capture_output=True, text=True)
+        r = run_bounded(
+            [kpy, os.path.abspath(__file__), "quick", str(cfg["_path"]),
+             "--root", str(cfg["_root"]), "--board", str(ev),
+             "--json", str(qj)],
+            timeout_s=_timeout_s(cfg, "route_evaluate", 180),
+            heartbeat_s=_heartbeat_s(cfg), label=f"c{i}:quick",
+            state_path=cdir / "quick_state.json", cancel_event=cancel_event,
+            echo=False)
         if not qj.is_file():
             die(f"candidate {i}: quick wrote no JSON (exit {r.returncode}): "
-                f"{(r.stderr or r.stdout)[-300:]}")
-        import json
+                f"{r.output[-300:]}")
         q = json.loads(qj.read_text(encoding="utf-8-sig"))
         results[i] = {
             "chain": str(chain),
@@ -743,7 +934,54 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
         results[i] = {"error": str(e)}
 
 
-def cmd_route(cfg, race=None, skip_preflight=False):
+def _new_route_progress(cfg, r0):
+    return {
+        "schema": 1, "config": str(cfg["_path"]),
+        "config_sha256": _sha256(cfg["_path"]),
+        "r0_sha256": _sha256(r0), "waves": [],
+    }
+
+
+def _resume_route(cfg, build, waves, r0):
+    """Return (next wave index, current board, progress), fail closed on drift."""
+    path = build / "route_progress.json"
+    if not path.is_file():
+        die("--resume requested but route_progress.json is missing — existing "
+            "rN files have no provenance and cannot be trusted")
+    try:
+        progress = json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception as exc:
+        die(f"cannot resume: unreadable {path}: {exc}")
+    if progress.get("schema") != 1:
+        die(f"cannot resume: unsupported progress schema in {path}")
+    if progress.get("config_sha256") != _sha256(cfg["_path"]):
+        die("cannot resume: route.yaml changed since the recorded waves")
+    if progress.get("r0_sha256") != _sha256(r0):
+        die("cannot resume: prep r0 changed since the recorded waves")
+    cur = r0
+    records = progress.get("waves") or []
+    for expected, rec in enumerate(records, 1):
+        if rec.get("index") != expected or expected > len(waves):
+            die("cannot resume: progress waves are not a contiguous prefix")
+        if rec.get("name") != waves[expected - 1].get("name", f"w{expected}"):
+            die(f"cannot resume: wave {expected} identity changed")
+        output = build / rec.get("output", "")
+        if not output.is_file() or _sha256(output) != rec.get("output_sha256"):
+            die(f"cannot resume: recorded wave {expected} output is missing or changed")
+        if _sha256(cur) != rec.get("input_sha256"):
+            die(f"cannot resume: wave {expected} input hash no longer chains")
+        cur = output
+    return len(records) + 1, cur, progress
+
+
+def cmd_route(cfg, race=None, skip_preflight=False, resume=False):
+    # Invalidate build-lineage promotion at the FIRST route-command boundary,
+    # before critical-pair, tier, KRT, wave or r0 validation.  Any failed rerun
+    # means the build lineage has no current winner; retaining an old FINAL
+    # would let a later `import --route-source build` consume stale copper.
+    build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
+    (build / "FINAL").unlink(missing_ok=True)
+    _critical_route_gate(cfg)
     # TIER PREFLIGHT FIRST (refuse-to-route). Four measured crow-rv2 defects
     # (2026-07-23) were tool defaults disagreeing with the declared fab tier
     # — 500+158 phantom clearance findings, 200 shorting + 501 clearance
@@ -772,7 +1010,6 @@ def cmd_route(cfg, race=None, skip_preflight=False):
                 "tier_preflight.py <project> --explain). Refusing to spend "
                 "KRT cycles on a config the DRC gate already rejects. "
                 "Escape hatch: route --skip-preflight (loud, discouraged)")
-    build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     krt = Path(os.path.expanduser(get(cfg, "route.krt", "~/gits/KiCadRoutingTools")))
     py = get(cfg, "route.python") or str(krt / ".venv" / "bin" / "python")
     if not (krt / "route.py").is_file():
@@ -793,9 +1030,20 @@ def cmd_route(cfg, race=None, skip_preflight=False):
 
     n = int(race if race is not None else get(cfg, "route.race", 1) or 1)
     if n > 1:
+        if resume:
+            die("--resume is only defined for one deterministic wave-chain; "
+                "a stochastic race must restart its candidate set")
         return _cmd_route_race(cfg, py, krt, waves, tier, common, build, n)
 
-    cur = _wave_chain(cfg, py, krt, waves, tier, common, build, cur)
+    if resume:
+        start_wave, cur, progress = _resume_route(cfg, build, waves, cur)
+        print(f"resume: {start_wave - 1}/{len(waves)} authenticated wave(s); "
+              f"continuing from {cur}")
+    else:
+        start_wave, progress = 1, _new_route_progress(cfg, cur)
+        _atomic_json(build / "route_progress.json", progress)
+    cur = _wave_chain(cfg, py, krt, waves, tier, common, build, cur,
+                      start_wave=start_wave, progress=progress)
     print(f"\nwaves done -> {cur}")
     (build / "FINAL").write_text(str(cur) + "\n")
     return 0
@@ -809,18 +1057,42 @@ def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
     tie-broken by fewest copper violations, then lowest index (quick is
     the ruler). The per-candidate numbers land in the route log
     (race_log.json) so the choice is auditable, never vibes."""
-    import json
-    import threading
     print(f"race: {n} candidate wave-chains, concurrent")
+    # A marker from an earlier race must never survive a failed rerun and be
+    # mistaken for this run's winner by `import --route-source build`.
+    (build / "FINAL").unlink(missing_ok=True)
     results = {}
+    cancel_event = threading.Event()
     threads = [threading.Thread(target=_race_candidate,
                                 args=(cfg, py, krt, waves, tier, common,
-                                      build, i, results))
+                                      build, i, results, cancel_event),
+                                name=f"route-race-c{i}", daemon=True)
                for i in range(n)]
     for t in threads:
         t.start()
-    for t in threads:
-        t.join()
+    timeout_s = _timeout_s(
+        cfg, "route_race",
+        (_timeout_s(cfg, "route_wave", 900) or 900) * len(waves) + 360)
+    started = time.monotonic()
+    heartbeat = _heartbeat_s(cfg)
+    next_heartbeat = started + heartbeat
+    while any(t.is_alive() for t in threads):
+        now = time.monotonic()
+        if timeout_s is not None and now - started >= timeout_s:
+            cancel_event.set()
+            for t in threads:
+                t.join(timeout=3)
+            alive = [t.name for t in threads if t.is_alive()]
+            die(f"route race timed out after {now - started:.1f}s "
+                f"(limit {timeout_s:g}s); cancelled all candidates"
+                + (f"; threads still unwinding: {alive}" if alive else ""))
+        if now >= next_heartbeat:
+            done = sum(not t.is_alive() for t in threads)
+            print(f"[route-race] heartbeat: {done}/{n} candidates finished, "
+                  f"{now - started:.1f}s elapsed")
+            next_heartbeat = now + heartbeat
+        for t in threads:
+            t.join(timeout=0.1)
 
     ok = {i: r for i, r in results.items() if "error" not in r}
     for i in sorted(results):
@@ -834,13 +1106,19 @@ def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
         die(f"all {n} race candidates failed: "
             + "; ".join(f"c{i}: {r['error'][:80]}"
                         for i, r in sorted(results.items())))
-    best = min(ok, key=lambda i: (ok[i]["unconnected"],
-                                  ok[i]["violations"], i))
+    clean = {i: r for i, r in ok.items()
+             if str(r.get("verdict", "")).upper() == "CLEAN"}
+    best = (min(clean, key=lambda i: (clean[i]["unconnected"],
+                                      clean[i]["violations"], i))
+            if clean else None)
     log = {"candidates": {str(i): results[i] for i in sorted(results)},
            "chosen": best,
-           "rule": "min routed-net unconnected, then min copper violations,"
-                   " then lowest index"}
+           "rule": "CLEAN candidates only; then min routed-net unconnected, "
+                   "min copper violations, then lowest index"}
     (build / "race_log.json").write_text(json.dumps(log, indent=1) + "\n")
+    if best is None:
+        die(f"all {n} completed race candidates are DIRTY — refusing to "
+            f"promote a least-bad route; inspect {build / 'race_log.json'}")
     chain = Path(ok[best]["chain"])
     print(f"race winner: c{best} ({ok[best]['unconnected']} unconnected, "
           f"{ok[best]['violations']} violations) -> {chain}")
@@ -875,6 +1153,12 @@ def _import_may_fill(cfg):
     the chain: a recipe not expressible in `route.yaml` is a canon-M3 violation
     wearing a green gate.
 
+    Named `taps.connections` also place explicit copper between import and
+    stitch. A pre-filled zone does not flow around their new segments/vias;
+    the stale fill then reports zero-clearance and zero-hole-clearance noise
+    until a later refill. Keep it unfilled so quick measures the copper that
+    actually exists and stitch's declared `fill` owns the first pour.
+
     DERIVED, NOT DECLARED — deliberately no new config key. An opt-in
     `import.fill: false` would leave the failure mode alive (configure
     seed_stubs, forget the key, die at stitch); and the fact is already
@@ -884,6 +1168,8 @@ def _import_may_fill(cfg):
     Every other board keeps the old post-import filled state byte-for-byte,
     because the pre-`fill` stitch passes were debugged against it.
     """
+    if get(cfg, "taps.connections") or []:
+        return False
     order = list(get(cfg, "stitch.passes", DEFAULT_PASSES) or [])
     if not (get(cfg, "stitch.seed_stubs.stubs") or []):
         return True
@@ -895,29 +1181,59 @@ def _import_may_fill(cfg):
     return True
 
 
-def cmd_import(cfg):
-    """Import the final chain file ONCE into the track-free base."""
+def cmd_import(cfg, route_source=None):
+    """Import the final chain file ONCE into the segment-free base."""
+    _critical_route_gate(cfg)
     import pcbnew
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
-    # A fresh route in the build dir WINS over the promoted chain file, the
-    # same precedence every rebuild_all.sh used ("[ -f 06_build/... ] || cp").
+    # Selection is a declared policy, not filesystem precedence.  A stale
+    # build/FINAL must never silently override the reviewed promoted route.
+    route_source = route_source or get(cfg, "route.import_source", "auto")
+    if route_source not in ("auto", "build", "promoted"):
+        die("route import source must be auto, build or promoted")
     final = get(cfg, "route.final")
-    if (build / "FINAL").is_file():
-        chain = Path((build / "FINAL").read_text(encoding="utf-8-sig").strip())
-    elif final:
-        chain = rel(cfg, final)
+    build_chain = None
+    marker = build / "FINAL"
+    if marker.is_file():
+        build_chain = Path(marker.read_text(encoding="utf-8-sig").strip())
+    promoted_chain = rel(cfg, final) if final else None
+    if route_source == "build":
+        if build_chain is None:
+            die("route source is build but no build/FINAL marker exists — run `route`")
+        chain = build_chain
+    elif route_source == "promoted":
+        if promoted_chain is None:
+            die("route source is promoted but route.final is not configured")
+        chain = promoted_chain
     else:
-        die("no route.final in the config and no build FINAL marker — "
-            "run `route`, or point route.final at the promoted chain file")
+        available = [("build", build_chain), ("promoted", promoted_chain)]
+        available = [(name, path) for name, path in available
+                     if path is not None and path.is_file()]
+        if not available:
+            die("route source not found: no usable build FINAL or promoted "
+                "route.final")
+        if len(available) > 1:
+            print("import source auto: both build and promoted routes exist; "
+                  "retaining legacy build precedence. Set route.import_source "
+                  "or --route-source to make this provenance explicit.")
+            chain = build_chain
+            route_source = "build(auto)"
+        else:
+            route_source, chain = available[0]
     if not chain.is_file():
         die(f"chain file {chain} not found")
     target = rel(cfg, cfg["project"]["board"])
     b = pcbnew.LoadBoard(str(target))
-    n = len(list(b.GetTracks()))
-    if n:
-        die(f"import target {target.name} already has {n} tracks — "
+    copper = list(b.GetTracks())
+    segments = [item for item in copper if item.GetClass() != "PCB_VIA"]
+    source_vias = [item for item in copper if item.GetClass() == "PCB_VIA"]
+    if segments:
+        die(f"import target {target.name} already has {len(segments)} routed "
+            f"copper item(s) — "
             f"re-importing DOUBLES everything (holes_co_located x69, "
             f"observed 2026-07). Regenerate the board first.")
+    if source_vias:
+        print(f"import base: {len(source_vias)} source-owned vias preserved")
     stale = Path(str(target) + Ctx.STATE_SUFFIX)
     if stale.is_file():
         stale.unlink()          # a fresh import invalidates any resume point
@@ -927,9 +1243,29 @@ def cmd_import(cfg):
         cmd.append("--no-fill")
         print("import: --no-fill (the stitch plan places explicit copper "
               "before its `fill` — see _import_may_fill)")
-    r = subprocess.run(cmd)
+    before_sha = _sha256(target)
+    started_ns = time.time_ns()
+    r = run_bounded(
+        cmd, timeout_s=_timeout_s(cfg, "route_import", 300),
+        heartbeat_s=_heartbeat_s(cfg), label="route-import",
+        state_path=build / "import_state.json")
     if r.returncode != 0:
         die(f"import_krt exited {r.returncode}")
+    receipt = {
+        "schema": 1, "selected_source": route_source,
+        "chain": os.path.relpath(chain, cfg["_root"]),
+        "chain_sha256": _sha256(chain),
+        "target": os.path.relpath(target, cfg["_root"]),
+        "target_before_sha256": before_sha,
+        "target_after_sha256": _sha256(target),
+        "config": os.path.relpath(cfg["_path"], cfg["_root"]),
+        "config_sha256": _sha256(cfg["_path"]),
+        "started_ns": started_ns, "finished_ns": time.time_ns(),
+        "elapsed_s": round(r.elapsed_s, 3),
+    }
+    _atomic_json(build / "import_provenance.json", receipt)
+    print(f"import provenance -> {build / 'import_provenance.json'} "
+          f"(source={route_source}, sha256={receipt['chain_sha256'][:12]})")
     return 0
 
 
@@ -964,7 +1300,7 @@ def _tap_point(board, spec, netname, what):
     die(f"{what}: endpoint must be 'REF.PAD' or [x, y], got {spec!r}")
 
 
-def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd):
+def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd, htc=None):
     """A collision-checked via site near p, reachable from p by a clear stub
     on `layer` (the escape-from-a-dense-pin-row move).
 
@@ -985,11 +1321,17 @@ def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd):
     the stitch moved the HO_A via 0.6mm east; that is the right answer, and
     it needs a repair pass, not a stricter placer. Every OTHER constraint
     (copper clearance, hole-to-copper, the stub's own path) stays hard —
-    nothing downstream repairs those."""
+    nothing downstream repairs those.
+
+    Preserve the exact pad coordinate for the zero-offset site. Rounding a
+    half-micron pad centre to the millimetre grid made `p1 != v1` and emitted
+    a 0.0005mm full-width stub beside an adjacent fine-pitch signal pad."""
     for dx, dy in TAP_OFFS:
-        v = (round(p[0] + dx, 3), round(p[1] + dy, 3))
+        v = p if dx == 0 and dy == 0 else \
+            (round(p[0] + dx, 3), round(p[1] + dy, 3))
+        kw = {"hole_to_copper": htc} if htc is not None else {}
         if not tk.via_site_ok(v[0], v[1], nc, size=vs, drill=vd,
-                              hole_to_hole=0):
+                              hole_to_hole=0, **kw):
             continue
         if (dx == 0 and dy == 0) or \
                 tk.collides(p[0], p[1], v[0], v[1], stub_w, nc, layer) is None:
@@ -997,7 +1339,7 @@ def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd):
     return None
 
 
-def _route_one_tap(pcbnew, tk, t, i, vs, vd):
+def _route_one_tap(pcbnew, tk, t, i, vs, vd, htc=None):
     """One tap, cheapest strategy first; every emitted segment/via is
     verified against the live board's exact copper (pcb_toolkit collides /
     via_site_ok / joinpath). Returns how it routed, or None."""
@@ -1010,21 +1352,68 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd):
     lay = _layer_id(pcbnew, t.get("layer", "F.Cu"))
     hop = _layer_id(pcbnew, t.get("hop_layer", "B.Cu"))
     what = f"taps.connections[{i}] ({netname})"
+    local_via = t.get("via") or {}
+    if not isinstance(local_via, dict):
+        die(f"{what}: `via:` must be a mapping")
+    unknown_via = sorted(set(local_via) - {"size", "drill",
+                                           "hole_to_copper", "exact"})
+    if unknown_via:
+        die(f"{what}: `via:` has unknown key(s) {unknown_via}")
+    tvs = float(local_via.get("size", vs))
+    tvd = float(local_via.get("drill", vd))
+    thtc = float(local_via["hole_to_copper"]) \
+        if "hole_to_copper" in local_via else htc
+    if tvs <= 0 or tvd <= 0 or tvd >= tvs:
+        die(f"{what}: `via:` needs size > drill > 0")
+    exact_via = bool(local_via.get("exact", False))
+    protection = t.get("via_protection")
+
+    def add_tap_via(point):
+        try:
+            return tk.add_via(
+                *point, nobj, size=tvs, drill=tvd, protection=protection,
+                protection_path=f"taps.connections[{i}].via_protection")
+        except ValueError as exc:
+            die(str(exc))
+
     p1 = _tap_point(tk.board, t.get("from"), netname, what + " from")
-    p2 = _tap_point(tk.board, t.get("to"), netname, what + " to")
+    drop = bool(t.get("drop"))
+    if drop and not t.get("plane"):
+        die(f"{what}: `drop: true` requires `plane: true`")
+    if exact_via and not drop:
+        die(f"{what}: `via.exact: true` requires a plane drop")
+    p2 = p1 if drop else \
+        _tap_point(tk.board, t.get("to"), netname, what + " to")
 
     if t.get("plane"):
         # plane tap: stub -> via near `from` -> hop-layer join -> via AT `to`
         # (a point where the net's inner plane exists, so the fill merges it)
-        v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd)
-        if not v1 or not tk.via_site_ok(p2[0], p2[1], nc, size=vs, drill=vd):
+        if exact_via:
+            kw = {"hole_to_copper": thtc} if thtc is not None else {}
+            v1 = p1 if tk.via_site_ok(p1[0], p1[1], nc, size=tvs,
+                                      drill=tvd, **kw) else None
+        else:
+            v1 = _tap_via_near(tk, p1, nc, w, lay, tvs, tvd, thtc)
+        if not v1:
             return None
-        if tk.joinpath(netname, v1, p2, w, layer=hop) is None:
+        if drop:
+            # The declared plane already lies under the source pad. One
+            # collision-checked via is the complete connection; a second via
+            # and track merely create a needless neck inside the same pour.
+            if p1 != v1:
+                tk.add_seg(*p1, *v1, nobj, lay, w)
+            add_tap_via(v1)
+            return "plane_drop"
+        kw = {"hole_to_copper": thtc} if thtc is not None else {}
+        if not tk.via_site_ok(p2[0], p2[1], nc, size=tvs, drill=tvd, **kw):
+            return None
+        if tk.joinpath(netname, v1, p2, w, layer=hop,
+                       widths_fallback=()) is None:
             return None
         if p1 != v1:
             tk.add_seg(*p1, *v1, nobj, lay, w)
-        tk.add_via(*v1, nobj, size=vs, drill=vd)
-        tk.add_via(*p2, nobj, size=vs, drill=vd)
+        add_tap_via(v1)
+        add_tap_via(p2)
         return "plane_tap"
 
     if t.get("escape"):
@@ -1037,7 +1426,11 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd):
         # rescue this: measured on usb-hub-3s-v2 TPS25740A, a 2.5mm part shift
         # moved the haul only 7.0->6.2mm because the channel y-gap dominates and
         # cannot shrink (the gate nets need it). `to` is a point inside the pour.
-        if not tk.via_site_ok(p1[0], p1[1], nc, size=vs, drill=vd):
+        if protection is not None:
+            die(f"{what}: `via_protection:` is not supported with `escape:`; "
+                "declare a deterministic plane drop or hop")
+        kw = {"hole_to_copper": thtc} if thtc is not None else {}
+        if not tk.via_site_ok(p1[0], p1[1], nc, size=tvs, drill=tvd, **kw):
             print(f"       {what}: via-in-pad site blocked at {p1}")
             return None
         # vs/vd, NOT the toolkit's 0.45/0.2 default: the escape's layer-change
@@ -1049,21 +1442,24 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd):
                              window=float(t.get("escape_window", 4.0)),
                              viacost=int(t.get("escape_viacost", 8)),
                              attempts=int(t.get("escape_attempts", 14)),
-                             via_size=vs, via_drill=vd):
+                             via_size=tvs, via_drill=tvd,
+                             hole_to_copper=thtc):
             return "escape"
         return None
 
     # strategy 1: same-layer join (direct / L / Z scan), no vias
-    if tk.joinpath(netname, p1, p2, w, layer=lay) is not None:
+    if tk.joinpath(netname, p1, p2, w, layer=lay,
+                   widths_fallback=()) is not None:
         return "joinpath"
     # strategy 2: via hop — stub -> via -> hop-layer join -> via -> stub
-    v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd)
-    v2 = _tap_via_near(tk, p2, nc, w, lay, vs, vd)
-    if v1 and v2 and tk.joinpath(netname, v1, v2, w, layer=hop) is not None:
+    v1 = _tap_via_near(tk, p1, nc, w, lay, tvs, tvd, thtc)
+    v2 = _tap_via_near(tk, p2, nc, w, lay, tvs, tvd, thtc)
+    if v1 and v2 and tk.joinpath(netname, v1, v2, w, layer=hop,
+                                 widths_fallback=()) is not None:
         if p1 != v1:
             tk.add_seg(*p1, *v1, nobj, lay, w)
-        tk.add_via(*v1, nobj, size=vs, drill=vd)
-        tk.add_via(*v2, nobj, size=vs, drill=vd)
+        add_tap_via(v1)
+        add_tap_via(v2)
         if p2 != v2:
             tk.add_seg(*v2, *p2, nobj, lay, w)
         return "via_hop"
@@ -1079,13 +1475,19 @@ def cmd_taps(cfg):
 
       taps:
         clearance: 0.15
-        via: {size: 0.6, drill: 0.3}   # tier-derived when omitted
+        via: {size: 0.6, drill: 0.3, hole_to_copper: 0.255}
+                                            # size/drill tier-derived; the
+                                            # drilled-hole screen is explicit
         connections:
           - {net: VCC,  from: U1.4,  to: C8.1,        width: 0.3}
           - {net: CC1,  from: J5.A5, to: R10.2,       width: 0.25,
              layer: F.Cu, hop_layer: B.Cu}
           - {net: 5V,   from: R6.1,  to: [41.0, 46.5], width: 0.3,
              plane: true}    # `to` = a point inside the net's plane
+          - {net: 5V,   from: U2.4, width: 0.3, plane: true, drop: true,
+             via: {size: 0.5, drill: 0.2, exact: true},
+             via_protection: {capping: yes, filling: yes}}
+                              # item-level Type VII via in the source pad
     """
     import pcbnew
     sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -1097,6 +1499,8 @@ def cmd_taps(cfg):
     via = dict(get(cfg, "taps.via", {}) or {})
     tier_geometry(via, fab_tier(cfg), "taps.via", keymap=_VIA_KEYMAP)
     vs, vd = float(via.get("size", 0.6)), float(via.get("drill", 0.3))
+    htc = float(via["hole_to_copper"]) \
+        if "hole_to_copper" in via else None
     target = rel(cfg, cfg["project"]["board"])
     clr = float(get(cfg, "taps.clearance", 0.15))
     bref = pcbnew.LoadBoard(str(target))   # read-only, for endpoint geometry
@@ -1107,12 +1511,14 @@ def cmd_taps(cfg):
         reattempt is a clean re-route in a new ORDER — not a partial retry
         that keeps an earlier tap's blocking copper. Returns (board, failed
         indices)."""
+        attempt = "retry" if tag else "primary"
+        _seed_uuid_stream(pcbnew, target.stem, f"route-taps-{attempt}")
         bb = pcbnew.LoadBoard(str(target))
         tkk = Toolkit(bb, clr)
         failed = []
         for idx in order:
             t = taps[idx]
-            how = _route_one_tap(pcbnew, tkk, t, idx, vs, vd)
+            how = _route_one_tap(pcbnew, tkk, t, idx, vs, vd, htc)
             print(f"  {tag}tap {t.get('net', '?'):8} {t.get('from')} -> "
                   f"{t.get('to')}  w={t.get('width', 0.3)}  "
                   f"{'OK ' + how if how else 'FAIL'}")
@@ -1218,12 +1624,15 @@ def cmd_quick(cfg, board=None, json_out=None):
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     build.mkdir(parents=True, exist_ok=True)
     rpt = build / f"quick_drc.{os.getpid()}.json"
-    r = subprocess.run(["kicad-cli", "pcb", "drc", "--severity-all",
-                        "--format", "json", "-o", str(rpt), str(target)],
-                       capture_output=True, text=True)
+    r = run_bounded(
+        ["kicad-cli", "pcb", "drc", "--severity-all", "--format", "json",
+         "-o", str(rpt), str(target)],
+        timeout_s=_timeout_s(cfg, "quick_drc", 180),
+        heartbeat_s=_heartbeat_s(cfg), label="quick-drc",
+        state_path=build / "quick_drc_state.json", echo=False)
     if not rpt.is_file():
         die(f"quick: kicad-cli drc wrote no report "
-            f"(exit {r.returncode}): {(r.stderr or r.stdout)[-500:]}")
+            f"(exit {r.returncode}): {r.output[-500:]}")
     g = jsonlib.loads(rpt.read_text(encoding="utf-8-sig"))
     rpt.unlink()
 
@@ -1310,6 +1719,7 @@ class Ctx:
         self.dirty = False         # a Remove() happened -> barrier required
         self._used = None
         self._pth = None
+        self._copper_smd_pads = None
 
     def remove(self, item):
         """EVERY removal goes through here. board.Remove() poisons the
@@ -1382,6 +1792,33 @@ class Ctx:
                          if p.GetDrillSize().x > 0]
         return self._pth
 
+    @property
+    def copper_smd_pads(self):
+        """Undrilled component copper lands that ordinary vias must avoid.
+
+        KiCad correctly permits same-net copper overlap, so the geometric
+        collision checker cannot distinguish a useful same-net join from an
+        undeclared via-in-pad process.  Cache the exact pad shapes here and
+        make that assembly decision explicit at the shared stitch-via seam.
+        """
+        if self._copper_smd_pads is None:
+            layers = [layer for layer in self.board.GetEnabledLayers().Seq()
+                      if self.pcbnew.IsCopperLayer(layer)]
+            self._copper_smd_pads = [
+                (pad, pad.GetBoundingBox())
+                for footprint in self.board.GetFootprints()
+                for pad in footprint.Pads()
+                if pad.GetDrillSize().x <= 0
+                and any(pad.IsOnLayer(layer) for layer in layers)
+            ]
+        return self._copper_smd_pads
+
+    def lands_in_smd_pad(self, x, y):
+        """Whether a proposed via centre lies in any exact SMD copper land."""
+        pos = self.pcbnew.VECTOR2I_MM(x, y)
+        return any(bbox.Contains(pos) and pad.HitTest(pos)
+                   for pad, bbox in self.copper_smd_pads)
+
     def bump(self, k, n=1):
         self.counts[k] = self.counts.get(k, 0) + n
 
@@ -1403,24 +1840,38 @@ class Ctx:
                 return False
         return True
 
-    def try_via(self, net, x, y, avoid=()):
-        """Place one collide-checked via. THE shared primitive: every via
-        this script adds goes through here, so the spacing/PTH/keepin
-        guards can never be bypassed by a new pass."""
+    def via_choice(self, net, x, y, avoid=(), spacing_override=None,
+                   allow_via_in_pad=False):
+        """Return the first legal ``(x, y, size, drill)`` without emitting it.
+
+        Some callers need to validate copper that must reach the proposed via
+        before committing the barrel.  Keeping that probe here preserves the
+        same keep-in, spacing, PTH and hole-to-copper guards as ``try_via``;
+        a rejected compound candidate must not leave an orphan via behind and
+        consume the next candidate's spacing window."""
         v = get(self.cfg, "stitch.via", {}) or {}
-        spacing = float(v.get("spacing", 0.62))
+        spacing = (float(spacing_override) if spacing_override is not None
+                   else float(v.get("spacing", 0.62)))
         pth_margin = float(v.get("pth_margin", 0.3))
         x, y = round(x, 2), round(y, 2)
         if not self.keepin(x, y):
-            return False
+            return None
+        # DRC intentionally allows same-net copper to overlap.  An ordinary
+        # stitch via in an SMD land is nevertheless a fabrication decision:
+        # without declared fill/cap it can wick solder and starve the joint.
+        # Refuse it at the one primitive used by grid, fence and rescue
+        # emitters.  Only a caller that explicitly owns via-in-pad processing
+        # may opt in (currently pad_rescue with via_in_pad: true).
+        if not allow_via_in_pad and self.lands_in_smd_pad(x, y):
+            return None
         for r in avoid:
             m = float(r.get("margin", 0.0))
             if (float(r["x0"]) - m < x < float(r["x1"]) + m
                     and float(r["y0"]) - m < y < float(r["y1"]) + m):
-                return False
+                return None
         if any((x - ux) ** 2 + (y - uy) ** 2 < spacing ** 2
                for ux, uy in self.used):
-            return False
+            return None
         tiers = v.get("tiers") or [{"size": v.get("size", 0.6),
                                     "drill": v.get("drill", 0.3)}]
         for t in tiers:
@@ -1433,11 +1884,24 @@ class Ctx:
                 kw["hole_to_copper"] = float(t["hole_to_copper"])
             if self.tk.via_site_ok(x, y, net.GetNetCode(), size=size,
                                    drill=drill, **kw):
-                self.tk.add_via(x, y, net, size=size, drill=drill)
-                self.used.add((x, y))
-                self.emitted.append((x, y))
-                return True
-        return False
+                return x, y, size, drill
+        return None
+
+    def try_via(self, net, x, y, avoid=(), spacing_override=None,
+                allow_via_in_pad=False):
+        """Place one collide-checked via. THE shared primitive: every via
+        this script adds goes through here, so the spacing/PTH/keepin
+        guards can never be bypassed by a new pass."""
+        choice = self.via_choice(
+            net, x, y, avoid, spacing_override=spacing_override,
+            allow_via_in_pad=allow_via_in_pad)
+        if choice is None:
+            return False
+        x, y, size, drill = choice
+        self.tk.add_via(x, y, net, size=size, drill=drill)
+        self.used.add((x, y))
+        self.emitted.append((x, y))
+        return True
 
     def net(self, name):
         n = self.board.FindNet(name)
@@ -1514,12 +1978,85 @@ def p_normalize_vias(ctx, c):
     size, drill = float(c.get("size", 0.6)), float(c.get("drill", 0.3))
     n = 0
     for t in ctx.board.GetTracks():
-        if t.GetClass() == "PCB_VIA" and t.GetWidth() / 1e6 < lo:
+        if (t.GetClass() == "PCB_VIA"
+                and t.GetWidth(ctx.pcbnew.F_Cu) / 1e6 < lo):
             t.SetWidth(int(size * 1e6))
             t.SetDrill(int(drill * 1e6))
             n += 1
     ctx.bump("normalized_vias", n)
     print(f"normalized {n} sub-spec vias to {size}/{drill}")
+
+
+@stitch_pass("bridge_via_endpoints")
+def p_bridge_via_endpoints(ctx, c):
+    """Make a copper-overlap-only track/via join an explicit centreline join.
+
+    Grid routers may stop a track one cell short of an existing same-net via
+    once the two copper shapes touch.  KiCad accepts that electrical overlap,
+    but a later via janitor can legitimately remove a single-layer transition
+    barrel and leave two tracks joined only by rounded-end copper.  Add a
+    short bridge only from a *free* endpoint to the via centre and only when
+    the entire bridge, including its track radius, remains inside the via's
+    existing copper disk.  The original route segment is not moved or
+    pivoted.  This changes topology, not the copper envelope, so it cannot
+    create a new clearance or assembly conflict.
+    """
+    pcbnew = ctx.pcbnew
+    tol = float(c.get("tol", 0.01))
+    max_move = float(c.get("max_move", 0.20))
+    tracks = [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_TRACK"]
+    vias = [v for v in ctx.board.GetTracks() if v.GetClass() == "PCB_VIA"]
+    pads = [p for fp in ctx.board.GetFootprints() for p in fp.Pads()]
+
+    def otherwise_anchored(t, ex, ey):
+        uid = t.m_Uuid.AsString()
+        for o in tracks:
+            if (o.m_Uuid.AsString() == uid or o.GetNetCode() != t.GetNetCode()
+                    or o.GetLayer() != t.GetLayer()):
+                continue
+            if any(math.hypot(ex - ox, ey - oy) <= tol
+                   for ox, oy in _ends_mm(o)):
+                return True
+        pt = pcbnew.VECTOR2I_MM(ex, ey)
+        for p in pads:
+            if (p.GetNetCode() == t.GetNetCode() and p.IsOnLayer(t.GetLayer())
+                    and p.GetBoundingBox().Contains(pt)):
+                return True
+        return False
+
+    added = 0
+    for t in tracks:
+        for which in ("start", "end"):
+            pos = t.GetStart() if which == "start" else t.GetEnd()
+            ex, ey = pos.x / 1e6, pos.y / 1e6
+            if otherwise_anchored(t, ex, ey):
+                continue
+            tr = t.GetWidth() / 2e6
+            best = None
+            for v in vias:
+                if v.GetNetCode() != t.GetNetCode() or not v.IsOnLayer(t.GetLayer()):
+                    continue
+                vx, vy = v.GetPosition().x / 1e6, v.GetPosition().y / 1e6
+                d = math.hypot(ex - vx, ey - vy)
+                vr = v.GetWidth(t.GetLayer()) / 2e6
+                # The swept track cap stays wholly inside copper that the via
+                # already owns.  No enlargement of the realized copper union.
+                if tol < d <= max_move and d + tr <= vr:
+                    cand = (d, vx, vy)
+                    if best is None or cand < best:
+                        best = cand
+            if best:
+                _, vx, vy = best
+                bridge = pcbnew.PCB_TRACK(ctx.board)
+                bridge.SetStart(pcbnew.VECTOR2I_MM(round(ex, 4), round(ey, 4)))
+                bridge.SetEnd(pcbnew.VECTOR2I_MM(round(vx, 4), round(vy, 4)))
+                bridge.SetWidth(t.GetWidth())
+                bridge.SetLayer(t.GetLayer())
+                bridge.SetNetCode(t.GetNetCode())
+                ctx.board.Add(bridge)
+                added += 1
+    ctx.bump("via_endpoint_bridges", added)
+    print(f"bridged {added} copper-contained track endpoint(s) to via centres")
 
 
 @stitch_pass("drop_micro_fragments")
@@ -1852,7 +2389,7 @@ def p_hole_to_hole(ctx, c):
         0.72mm away, leaving the B.Cu chain floating -> 1 unconnected + 1
         track_dangling at the FULL DRC gate, on a chain that raced 0/0."""
         vx, vy = vxy(v)
-        r = v.GetWidth() / 2e6
+        r = v.GetWidth(pcbnew.F_Cu) / 2e6
         for t in tracks_by_net.get(v.GetNetCode(), []):
             (ax, ay), (bx, by) = _ends_mm(t)
             if (abs(ax - vx) < 0.05 and abs(ay - vy) < 0.05) or \
@@ -1923,7 +2460,7 @@ def p_hole_to_hole(ctx, c):
                     # the first ring is 0.25mm — well inside the h2h floor, so
                     # without the skip a via could never step off its own site.
                     if not ctx.tk.via_site_ok(nx, ny, vm.GetNetCode(),
-                                              size=vm.GetWidth() / 1e6,
+                                              size=vm.GetWidth(pcbnew.F_Cu) / 1e6,
                                               drill=vm.GetDrill() / 1e6,
                                               skip=[vm]):
                         continue
@@ -2024,16 +2561,485 @@ def _grid_axis(spec, axis):
 def p_stitch_grid(ctx, c):
     net = ctx.net(c.get("net", "GND"))
     avoid = c.get("avoid", []) or []
-    n = 0
-    for x in _grid_axis(c["x"], "x"):
-        for y in _grid_axis(c["y"], "y"):
-            if ctx.try_via(net, x, y, avoid=avoid):
-                n += 1
-    ctx.bump("grid_vias", n)
-    print(f"stitch grid: {n} vias")
+    xs, ys = _grid_axis(c["x"], "x"), _grid_axis(c["y"], "y")
+    sites = [(x, y) for x in xs for y in ys]
+    added = 0
+    for x, y in sites:
+        if ctx.try_via(net, x, y, avoid=avoid):
+            added += 1
+
+    # `min` is a saved-result requirement, not a first-run work counter.  On
+    # a deterministic rerun every complete site is already occupied, so
+    # try_via correctly emits zero; grading only `added` then reports an
+    # existing healthy grid as `0 < min`.  Credit realized same-net plated
+    # returns within the same spacing window that prevented a duplicate.
+    spacing = float((get(ctx.cfg, "stitch.via", {}) or {}).get(
+        "spacing", 0.62))
+    elements = _plated_ground_elements(ctx, net.GetNetCode())
+    served = sum(any(math.hypot(x - vx, y - vy) <= spacing + 1e-9
+                     for vx, vy in elements)
+                 for x, y in sites)
+    ctx.bump("grid_vias", added)
+    ctx.counts["grid_sites_total"] = len(sites)
+    ctx.counts["grid_sites_served"] = served
+    print(f"stitch grid: {added} vias added; {served}/{len(sites)} "
+          "declared sites served by realized same-net plated returns")
     lo = c.get("min")
-    if lo is not None and n < int(lo):
-        ctx.failures.append(f"stitch grid too sparse: {n} < {lo}")
+    if lo is not None and served < int(lo):
+        ctx.failures.append(f"stitch grid too sparse: {served} < {lo} "
+                            "realized served sites")
+
+
+def _simple_track_chain(ctx, netname, layer_name):
+    """Return one ordered, branch-free saved-track centreline in millimetres.
+
+    A route-following fence cannot be derived honestly from an unordered bag
+    of segments: a disconnected fragment, branch or arc changes the along-line
+    denominator.  Refuse those shapes here and leave their deliberate handling
+    to a future emitter rather than silently fencing only the first component.
+    Integer KiCad coordinates are the graph keys, so no geometric tolerance
+    can join two endpoints that the saved board itself keeps separate.
+    """
+    pcbnew = ctx.pcbnew
+    layer = _layer_id(pcbnew, layer_name)
+    tracks = []
+    unsupported = []
+    for item in ctx.board.GetTracks():
+        if item.GetNetname() != netname or item.GetLayer() != layer:
+            continue
+        if item.GetClass() == "PCB_TRACK":
+            tracks.append(item)
+        elif item.GetClass() != "PCB_VIA":
+            unsupported.append(item.GetClass())
+    if unsupported:
+        die(f"route_fence net {netname!r} has unsupported {layer_name} "
+            f"copper {sorted(set(unsupported))}; only straight PCB_TRACK "
+            "segments have a defined route-following fence")
+    if not tracks:
+        die(f"route_fence net {netname!r} has no {layer_name} PCB_TRACK "
+            "centreline")
+
+    def key(p):
+        return int(p.x), int(p.y)
+
+    points, adj = {}, {}
+    for i, t in enumerate(tracks):
+        a, b = key(t.GetStart()), key(t.GetEnd())
+        if a == b:
+            die(f"route_fence net {netname!r} contains a zero-length track")
+        points[a], points[b] = t.GetStart(), t.GetEnd()
+        adj.setdefault(a, []).append((i, b))
+        adj.setdefault(b, []).append((i, a))
+    branches = [p for p, edges in adj.items() if len(edges) > 2]
+    ends = sorted(p for p, edges in adj.items() if len(edges) == 1)
+    if branches or len(ends) != 2:
+        die(f"route_fence net {netname!r} is not one simple chain: "
+            f"{len(branches)} branch node(s), {len(ends)} endpoint(s)")
+
+    chain, used, cur = [ends[0]], set(), ends[0]
+    while True:
+        nxt = next(((i, other) for i, other in adj[cur] if i not in used),
+                   None)
+        if nxt is None:
+            break
+        i, cur = nxt
+        used.add(i)
+        chain.append(cur)
+    if len(used) != len(tracks) or chain[-1] != ends[1]:
+        die(f"route_fence net {netname!r} has disconnected {layer_name} "
+            f"copper ({len(used)}/{len(tracks)} segments reached)")
+    return [(points[p].x / 1e6, points[p].y / 1e6) for p in chain]
+
+
+def _route_point(chain, wanted_s):
+    """Point and left normal at arclength ``wanted_s`` on ``chain``."""
+    walked = 0.0
+    for a, b in zip(chain, chain[1:]):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        length = math.hypot(dx, dy)
+        if length <= 1e-12:
+            continue
+        if wanted_s <= walked + length + 1e-9:
+            t = max(0.0, min(1.0, (wanted_s - walked) / length))
+            return (a[0] + t * dx, a[1] + t * dy,
+                    -dy / length, dx / length)
+        walked += length
+    a, b = chain[-2], chain[-1]
+    length = math.hypot(b[0] - a[0], b[1] - a[1])
+    return b[0], b[1], -(b[1] - a[1]) / length, (b[0] - a[0]) / length
+
+
+def _route_corner_sites(chain, side, offsets, band):
+    """Yield offset-path miter sites at each internal polyline vertex.
+
+    Greedily filling only the longest current aperture can put one via just
+    before a bend and another just after it.  Both are locally legal, yet
+    their projections leave an over-pitch aperture *through* the corner that
+    no later via can occupy because the two barrels now consume its spacing
+    window.  Anchor the bends first at the intersection of their two offset
+    centrelines; the ordinary aperture loop can then fill the straight spans
+    on either side without that order-dependent trap.
+
+    The returned site is checked against the finite saved polyline, not only
+    its infinite supporting lines.  That matters on the outside of a turn,
+    where the miter's nearest route point is the vertex and its radial offset
+    is larger than the perpendicular offset used to construct it.
+    """
+    walked = 0.0
+    for i, (a, b, c) in enumerate(zip(chain, chain[1:], chain[2:]), 1):
+        in_dx, in_dy = b[0] - a[0], b[1] - a[1]
+        out_dx, out_dy = c[0] - b[0], c[1] - b[1]
+        in_len, out_len = math.hypot(in_dx, in_dy), math.hypot(out_dx, out_dy)
+        walked += in_len
+        if in_len <= 1e-12 or out_len <= 1e-12:
+            continue
+        in_u = in_dx / in_len, in_dy / in_len
+        out_u = out_dx / out_len, out_dy / out_len
+        # Collinear vertices have no corner aperture to anchor.  A U-turn is
+        # not a simple routable offset path and is refused by yielding none;
+        # the independent fence gate will still expose its unclosed aperture.
+        turn_cross = in_u[0] * out_u[1] - in_u[1] * out_u[0]
+        turn_dot = in_u[0] * out_u[0] + in_u[1] * out_u[1]
+        if abs(turn_cross) <= 1e-9 and turn_dot > 0.0:
+            continue
+        n1 = side * -in_u[1], side * in_u[0]
+        n2 = side * -out_u[1], side * out_u[0]
+        mx, my = n1[0] + n2[0], n1[1] + n2[1]
+        mlen = math.hypot(mx, my)
+        if mlen <= 1e-9:
+            continue
+        mx, my = mx / mlen, my / mlen
+        denominator = mx * n1[0] + my * n1[1]
+        if denominator <= 1e-9:
+            continue
+        for offset in offsets:
+            radial = offset / denominator
+            x, y = b[0] + mx * radial, b[1] + my * radial
+            hits = [(distance, s) for distance, s, projected_side
+                    in _project_to_chain_all(chain, x, y)
+                    if projected_side == side and distance <= band + 1e-9]
+            # A real corner anchor must serve the saved route on BOTH sides
+            # of the vertex.  On the inside of a bend the offset centrelines
+            # intersect between the arms, so its two finite-segment
+            # projections deliberately bracket the vertex rather than both
+            # landing exactly on it.
+            if (not any(s <= walked + 0.02 for _distance, s in hits)
+                    or not any(s >= walked - 0.02
+                               for _distance, s in hits)):
+                continue
+            yield i, walked, x, y, offset
+
+
+def _project_to_chain_all(chain, px, py):
+    """Every finite-segment ``(distance, arclength, side)`` projection.
+
+    A plated hole beside a bend may physically return current for both arms.
+    Keeping only its single nearest polyline point creates a fictitious fence
+    aperture through the corner and makes the result depend on segment order.
+    Each segment therefore gets its own bounded projection; callers select
+    the distance band and side they grade.
+    """
+    hits, walked = [], 0.0
+    for a, b in zip(chain, chain[1:]):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        length = math.hypot(dx, dy)
+        if length <= 1e-12:
+            continue
+        raw = ((px - a[0]) * dx + (py - a[1]) * dy) / (length * length)
+        t = max(0.0, min(1.0, raw))
+        qx, qy = a[0] + t * dx, a[1] + t * dy
+        distance = math.hypot(px - qx, py - qy)
+        cross = (dx * (py - a[1]) - dy * (px - a[0])) / length
+        hits.append((distance, walked + t * length,
+                     1 if cross >= 0.0 else -1))
+        walked += length
+    return hits
+
+
+def _project_to_chain(chain, px, py):
+    """Nearest ``(distance, arclength, side)`` on a simple polyline."""
+    hits = _project_to_chain_all(chain, px, py)
+    return min(hits, key=lambda hit: hit[0]) if hits else None
+
+
+def _plated_ground_elements(ctx, netcode):
+    """Centres of saved GND vias and drilled GND footprint posts/pads."""
+    out = []
+    for item in ctx.board.GetTracks():
+        if item.GetClass() == "PCB_VIA" and item.GetNetCode() == netcode:
+            p = item.GetPosition()
+            out.append((p.x / 1e6, p.y / 1e6))
+    for fp in ctx.board.GetFootprints():
+        for pad in fp.Pads():
+            if pad.GetNetCode() != netcode or pad.GetDrillSizeX() <= 0:
+                continue
+            p = pad.GetPosition()
+            out.append((p.x / 1e6, p.y / 1e6))
+    return out
+
+
+def _route_endpoint_refs(ctx, netname, chain):
+    """Exact footprint-pad owner at each saved-chain endpoint."""
+    refs = []
+    for x, y in (chain[0], chain[-1]):
+        point = ctx.pcbnew.VECTOR2I_MM(x, y)
+        matches = []
+        for fp in ctx.board.GetFootprints():
+            for pad in fp.Pads():
+                if (pad.GetNetname() == netname
+                        and pad.GetBoundingBox().Contains(point)):
+                    matches.append(fp.GetReference())
+        matches = sorted(set(matches))
+        if len(matches) != 1:
+            die(f"route_fence net {netname!r} endpoint ({x:.4f},{y:.4f}) "
+                f"belongs to {matches or 'no exact net pad'}; exactly one "
+                "package/launch owner is required")
+        refs.append(matches[0])
+    return tuple(refs)
+
+
+def _endpoint_span_map(fence_contract):
+    """Refdes -> geometry-proven route span owned by its package/launch."""
+    out = {}
+    for i, row in enumerate(fence_contract.get("endpoint_structures") or []):
+        if not isinstance(row, dict):
+            die(f"ground_fence.endpoint_structures[{i}] must be a mapping")
+        span = float(row.get("maximum_along_route_span_mm", 0.0))
+        if span < 0:
+            die("ground_fence.endpoint_structures maximum span cannot be "
+                "negative")
+        for ref in row.get("refs") or []:
+            if str(ref) in out:
+                die(f"ground_fence.endpoint_structures repeats ref {ref!r}")
+            out[str(ref)] = span
+    return out
+
+
+def _fence_side_gaps(chain, elements, side, band, start_span=0.0,
+                     end_span=0.0):
+    """Along-route apertures outside proven package/launch endpoint spans."""
+    length = sum(math.hypot(b[0] - a[0], b[1] - a[1])
+                 for a, b in zip(chain, chain[1:]))
+    start, stop = float(start_span), length - float(end_span)
+    if start >= stop - 1e-9:
+        die(f"route_fence endpoint structures consume the complete "
+            f"{length:.4f}mm route span ({start_span}+{end_span}mm)")
+    points = []
+    for x, y in elements:
+        for distance, s, projected_side in _project_to_chain_all(
+                chain, x, y):
+            if distance <= band + 1e-9 and projected_side == side:
+                points.append(max(start, min(stop, s)))
+    points = sorted({round(s, 4) for s in points})
+    boundaries = ([start]
+                  + [s for s in points if start + 1e-6 < s < stop - 1e-6]
+                  + [stop])
+    gaps = [(boundaries[i], boundaries[i + 1])
+            for i in range(len(boundaries) - 1)]
+    return length, start, stop, points, gaps
+
+
+@stitch_pass("route_fence")
+def p_route_fence(ctx, c):
+    """Realize a collision-clean plated-GND fence along both RF flanks.
+
+    The pass consumes the *saved RF centrelines*, not a rectangular attempt
+    lattice.  Existing GND vias and drilled launch posts are measured first;
+    each new site is accepted only through ``Ctx.try_via`` and the complete
+    side is remeasured after every addition.  One via may therefore serve two
+    adjacent arms, while a collision-rejected attempted site earns no credit.
+
+    This in-process measurement is an early refusal, not the release verdict.
+    ``fence_pitch.py`` independently reopens the final saved board and grades
+    the realized aperture, including lead-in and run-out at both endpoints.
+    """
+    contract = None
+    if c.get("contract"):
+        contract_path = rel(ctx.cfg, c["contract"])
+        try:
+            contract = yaml.safe_load(
+                contract_path.read_text(encoding="utf-8-sig")) or {}
+            contract = contract["rf"]["layout_constraints"]
+        except (OSError, KeyError, TypeError, yaml.YAMLError) as exc:
+            die(f"stitch.route_fence.contract cannot provide "
+                f"rf.layout_constraints from {contract_path}: {exc}")
+    route_contract = (contract or {}).get("route") or {}
+    fence_contract = (contract or {}).get("ground_fence") or {}
+
+    nets = [str(n) for n in
+            (c.get("nets") or route_contract.get("nets") or [])]
+    if not nets:
+        die("stitch.route_fence.nets must name at least one routed net")
+    if c.get("nets") and route_contract.get("nets") \
+            and nets != [str(n) for n in route_contract["nets"]]:
+        die("stitch.route_fence.nets disagrees with the exact RF-contract "
+            "route-net denominator")
+    ground = ctx.net(c.get("net", "GND"))
+    layer = str(c.get("layer") or route_contract.get("layer") or "F.Cu")
+    if c.get("layer") and route_contract.get("layer") \
+            and str(c["layer"]) != str(route_contract["layer"]):
+        die("stitch.route_fence.layer disagrees with the RF-contract route "
+            "layer")
+    maximum = float(c.get("maximum_pitch") or
+                    fence_contract.get("maximum_along_route_pitch_mm") or 0.0)
+    if c.get("maximum_pitch") is not None \
+            and fence_contract.get("maximum_along_route_pitch_mm") is not None \
+            and abs(float(c["maximum_pitch"]) - float(
+                fence_contract["maximum_along_route_pitch_mm"])) > 1e-9:
+        die("stitch.route_fence.maximum_pitch disagrees with the RF-contract "
+            "maximum_along_route_pitch_mm")
+    nominal = float(c.get("nominal_pitch", maximum))
+    band = float(c.get("band", 0.0))
+    contract_offset = fence_contract.get("nominal_lateral_center_offset_mm")
+    offsets = [float(v) for v in
+               (c.get("lateral_offsets") or
+                ([contract_offset] if contract_offset is not None else []))]
+    if contract_offset is not None and offsets \
+            and abs(offsets[0] - float(contract_offset)) > 1e-9:
+        die("stitch.route_fence.lateral_offsets[0] must equal the RF-contract "
+            "nominal_lateral_center_offset_mm")
+    jitters = [float(v) for v in
+               (c.get("longitudinal_jitter") or
+                [0.0, -0.10, 0.10, -0.20, 0.20, -0.30, 0.30])]
+    if maximum <= 0 or nominal <= 0 or nominal > maximum + 1e-9:
+        die("stitch.route_fence needs 0 < nominal_pitch <= maximum_pitch")
+    if band <= 0 or not offsets or any(v <= 0 or v > band for v in offsets):
+        die("stitch.route_fence lateral_offsets must be positive and no "
+            "larger than band")
+    search_step = float(c.get("longitudinal_step", 0.05))
+    if search_step <= 0:
+        die("stitch.route_fence.longitudinal_step must be positive")
+    max_add = int(c.get("max_new_vias", 5000))
+    require_all = str(c.get("require", "all")).lower() == "all"
+    via_spacing = c.get("via_spacing")
+    if via_spacing is not None:
+        via_spacing = float(via_spacing)
+        via = get(ctx.cfg, "stitch.via", {}) or {}
+        largest_drill = max(float(t.get("drill", via.get("drill", 0.2)))
+                            for t in (via.get("tiers") or [via]))
+        minimum = largest_drill + float(ctx.tk.h2h)
+        if via_spacing + 1e-9 < minimum:
+            die(f"stitch.route_fence.via_spacing {via_spacing}mm is below "
+                f"drill + saved-board hole-to-hole floor {minimum:.3f}mm")
+
+    processing = [str(n) for n in (c.get("processing_order") or nets)]
+    if len(processing) != len(nets) or set(processing) != set(nets):
+        die("stitch.route_fence.processing_order must be an exact "
+            "permutation of the RF-contract route-net denominator")
+    chains = {net: _simple_track_chain(ctx, net, layer) for net in processing}
+    span_map = _endpoint_span_map(fence_contract)
+    endpoint_spans = {}
+    for net, chain in chains.items():
+        if fence_contract.get("endpoint_structures"):
+            refs = _route_endpoint_refs(ctx, net, chain)
+            missing = [ref for ref in refs if ref not in span_map]
+            if missing:
+                die(f"route_fence net {net!r} endpoint ref(s) {missing} have "
+                    "no geometry-proven ground_fence.endpoint_structures row")
+        else:
+            refs = ("route-start", "route-end")
+        endpoint_spans[net] = (span_map.get(refs[0], 0.0),
+                               span_map.get(refs[1], 0.0), refs)
+    added, corner_added, passed, total = 0, 0, 0, 2 * len(chains)
+    unresolved = []
+
+    # Reserve the scarce bend sites before the greedy straight-span filler
+    # can consume their via-spacing windows.  This is deliberately a separate
+    # first phase across every RF net: changing `processing_order` must not
+    # decide whether a later net's corner is physically realizable.
+    for net, chain in chains.items():
+        for side in (-1, 1):
+            for _index, _s, x, y, _offset in _route_corner_sites(
+                    chain, side, offsets, band):
+                if added >= max_add:
+                    break
+                if ctx.try_via(ground, x, y,
+                               spacing_override=via_spacing):
+                    added += 1
+                    corner_added += 1
+
+    for net, chain in chains.items():
+        for side in (-1, 1):
+            tag = "right" if side < 0 else "left"
+            start_span, end_span, refs = endpoint_spans[net]
+            while True:
+                elements = _plated_ground_elements(ctx, ground.GetNetCode())
+                length, start, stop, points, gaps = _fence_side_gaps(
+                    chain, elements, side, band, start_span, end_span)
+                worst = max(gaps, key=lambda pair: pair[1] - pair[0])
+                aperture = worst[1] - worst[0]
+                if aperture <= maximum + 1e-9:
+                    passed += 1
+                    print(f"route fence {net} {tag}: {len(points)} element(s), "
+                          f"worst aperture {aperture:.4f}mm / {maximum:.4f}mm; "
+                          f"graded s={start:.2f}..{stop:.2f} after "
+                          f"{refs[0]}={start_span:.2f}mm, "
+                          f"{refs[1]}={end_span:.2f}mm endpoint structures")
+                    break
+                if added >= max_add:
+                    unresolved.append(
+                        f"{net} {tag}: maximum new-via budget {max_add} "
+                        f"reached with {aperture:.4f}mm aperture")
+                    break
+
+                a, b = worst
+                # Seed long empty spans at the nominal cadence.  Once a span
+                # is within two maximum pitches, its midpoint maximizes the
+                # clearance to both neighbours and is the most repairable site.
+                target = ((a + b) / 2.0 if b - a <= 2.0 * maximum
+                          else a + nominal)
+                # Search EVERY arclength position that could close the gap,
+                # not merely +/- a few nominal jitters.  For a long endpoint
+                # span the first new element must be no farther than `maximum`
+                # from `a`; for a span shorter than 2*maximum it must also be
+                # within `maximum` of `b`.  Exhausting this closed interval is
+                # what makes "no legal site" evidence about geometry rather
+                # than about one unlucky seed (the first v5 trial abandoned
+                # whole 14-31mm flanks after probing only s=0.6..1.4mm).
+                low = a + search_step
+                high = min(b - search_step, a + maximum)
+                if b - a <= 2.0 * maximum:
+                    low = max(low, b - maximum)
+                candidates = [target + jitter for jitter in jitters]
+                if high >= low - 1e-9:
+                    count = int(math.floor((high - low) / search_step))
+                    candidates.extend(low + i * search_step
+                                      for i in range(count + 1))
+                    candidates.append(high)
+                candidates = sorted(
+                    {round(s, 4) for s in candidates
+                     if a + 1e-6 < s < b - 1e-6 and low - 1e-9 <= s <= high + 1e-9},
+                    key=lambda s: (abs(s - target), s))
+                placed = False
+                for s in candidates:
+                    x, y, nx, ny = _route_point(chain, s)
+                    for offset in offsets:
+                        vx = x + side * nx * offset
+                        vy = y + side * ny * offset
+                        if ctx.try_via(ground, vx, vy,
+                                       spacing_override=via_spacing):
+                            added += 1
+                            placed = True
+                            break
+                    if placed:
+                        break
+                if not placed:
+                    unresolved.append(
+                        f"{net} {tag}: no legal site can split saved-board "
+                        f"aperture s={a:.3f}..{b:.3f}mm ({aperture:.4f}mm)")
+                    break
+
+    ctx.bump("rf_fence_vias", added)
+    ctx.bump("rf_fence_corner_vias", corner_added)
+    ctx.bump("rf_fence_sides_ok", passed)
+    ctx.counts["rf_fence_sides_total"] = total
+    print(f"route fence: {added} new via(s) ({corner_added} corner anchor(s)), "
+          f"{passed}/{total} flank(s) inside the in-process aperture bound")
+    if unresolved:
+        for finding in unresolved:
+            print(f"  RF FENCE UNRESOLVED: {finding}")
+        if require_all:
+            ctx.failures.extend("route fence: " + f for f in unresolved)
 
 
 def _rescue_targets(ctx, c):
@@ -2105,6 +3111,29 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
     stub_w = float(c.get("stub_width", 0.3))
     vip = bool(c.get("via_in_pad", True))
     skip = set(c.get("skip_refs", []) or [])
+
+    copper_layers = [layer for layer in ctx.board.GetEnabledLayers().Seq()
+                     if pcbnew.IsCopperLayer(layer)]
+    # This check runs inside the rings/angles candidate loop. Build the set
+    # once per rescued net rather than scanning every footprint for every
+    # candidate (the latter scales as targets*candidates*all-board-pads).
+    copper_smd_pads = [
+        (p2, p2.GetBoundingBox())
+        for fp2 in ctx.board.GetFootprints() for p2 in fp2.Pads()
+        if p2.GetDrillSize().x <= 0
+        and any(p2.IsOnLayer(layer) for layer in copper_layers)
+    ]
+
+    def lands_in_smd_pad(x, y):
+        """True when an adjacent-via candidate is actually via-in-pad.
+
+        `via_site_ok` deliberately permits same-net copper, so without this
+        semantic guard a rescue for one long/nearby pad can land in another
+        same-net SMD land even though `via_in_pad: false` was requested.
+        """
+        pos = pcbnew.VECTOR2I_MM(x, y)
+        return any(bbox.Contains(pos) and pad.HitTest(pos)
+                   for pad, bbox in copper_smd_pads)
     # `seed_stubs` runs before this pass and may deliberately reach a legal
     # barrel outside the small local pad search box.  Fresh/reloaded boards
     # have authoritative endpoint connectivity here, so credit a pad whose
@@ -2161,7 +3190,8 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
                 ok += 1
                 continue
             px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
-            if vip and ctx.try_via(net_obj, px, py):
+            if vip and ctx.try_via(net_obj, px, py,
+                                   allow_via_in_pad=True):
                 ok += 1
                 continue
             bb = p.GetBoundingBox()
@@ -2173,10 +3203,19 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
                 for ang in range(0, 360, astep):
                     vx = round(px + (w2 + r) * math.cos(math.radians(ang)), 2)
                     vy = round(py + (h2 + r) * math.sin(math.radians(ang)), 2)
-                    if not ctx.try_via(net_obj, vx, vy):
+                    if not vip and lands_in_smd_pad(vx, vy):
+                        continue
+                    # Probe the complete via+stub candidate before committing
+                    # either item.  The former order called try_via first;
+                    # when the stub then collided, the rejected via remained
+                    # on the board and consumed the spacing window needed by
+                    # later candidates (programmable-usb2-hub, 2026-08-02).
+                    if ctx.via_choice(net_obj, vx, vy) is None:
                         continue
                     if ctx.tk.collides(px, py, vx, vy, stub_w,
                                        p.GetNetCode(), lay) is not None:
+                        continue
+                    if not ctx.try_via(net_obj, vx, vy):
                         continue
                     ctx.tk.add_seg(px, py, vx, vy, p.GetNet(), lay, stub_w)
                     # GAP B: this <stub_w> drop rides `netname`, whose trunk
@@ -2555,7 +3594,7 @@ def p_janitor(ctx, c):
     for v in [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"]:
         nn = v.GetNetname()
         vx, vy = v.GetPosition().x / 1e6, v.GetPosition().y / 1e6
-        r2 = (v.GetWidth() / 2e6) ** 2
+        r2 = (v.GetWidth(pcbnew.F_Cu) / 2e6) ** 2
         attach = set()
         for t in ctx.board.GetTracks():
             if t.GetClass() == "PCB_VIA" or t.GetNetCode() != v.GetNetCode():
@@ -2572,7 +3611,7 @@ def p_janitor(ctx, c):
                         or abs(pp.y / 1e6 - vy) > pad_win):
                     continue
                 bb = p.GetBoundingBox()
-                bb.Inflate(v.GetWidth() // 2)
+                bb.Inflate(v.GetWidth(pcbnew.F_Cu) // 2)
                 if bb.Contains(v.GetPosition()):
                     for lay in (pcbnew.F_Cu, pcbnew.B_Cu):
                         if p.IsOnLayer(lay):
@@ -2628,7 +3667,7 @@ def p_prune_stitch_dangling(ctx, c):
         if not any(abs(vx - ex) <= tol and abs(vy - ey) <= tol
                    for ex, ey in emitted):
             continue                        # not ours — never touch it
-        r2 = (v.GetWidth() / 2e6) ** 2
+        r2 = (v.GetWidth(pcbnew.F_Cu) / 2e6) ** 2
         attach = set()
         for t in ctx.board.GetTracks():
             if t.GetClass() == "PCB_VIA" or t.GetNetCode() != v.GetNetCode():
@@ -2641,7 +3680,7 @@ def p_prune_stitch_dangling(ctx, c):
                 if p.GetNetCode() != v.GetNetCode():
                     continue
                 bb = p.GetBoundingBox()
-                bb.Inflate(v.GetWidth() // 2)
+                bb.Inflate(v.GetWidth(pcbnew.F_Cu) // 2)
                 if bb.Contains(v.GetPosition()):
                     for lay in (pcbnew.F_Cu, pcbnew.B_Cu):
                         if p.IsOnLayer(lay):
@@ -3082,6 +4121,20 @@ def _heal_net(ctx, c, netname, groups):
     return n
 
 
+def _heal_snapshot_path(ctx):
+    """Diagnostic snapshots belong in the build tree, never beside canon.
+
+    A ``*.heal_failed.kicad_pcb`` in ``04_kicad`` makes KiCad synthesize a
+    matching ``.kicad_pro`` when the snapshot is inspected.  That creates a
+    second project basename and correctly trips the repository's one-board /
+    one-project contract on the next rules generation.  Keep the evidence,
+    but keep it in the configured build directory where it cannot masquerade
+    as another canonical board project."""
+    build = rel(ctx.cfg, get(ctx.cfg, "project.build_dir", "06_build/route"))
+    build.mkdir(parents=True, exist_ok=True)
+    return build / (ctx.path.stem + ".heal_failed" + ctx.path.suffix)
+
+
 @stitch_pass("heal_islands")
 def p_heal_islands(ctx, c):
     """AUTO-HEAL same-net pour splits: a zone that FILLS as two or more
@@ -3142,8 +4195,7 @@ def p_heal_islands(ctx, c):
             # exact islands that need inspection.  Preserve a clearly named
             # diagnostic snapshot (never the canonical board) so the caller
             # can distinguish a genuine split from a grouping false positive.
-            snap = ctx.path.with_name(ctx.path.stem + ".heal_failed"
-                                      + ctx.path.suffix)
+            snap = _heal_snapshot_path(ctx)
             ctx.board.Save(str(snap))
             die(f"heal_islands: net {netname!r} still shows {now} "
                 f"disconnected island group(s) after healing (was {was}) — "
@@ -3152,8 +4204,7 @@ def p_heal_islands(ctx, c):
                 f"diagnostic snapshot saved to {snap}")
     left = sorted(n for n, g in after.items() if len(g) > 1)
     if left:
-        snap = ctx.path.with_name(ctx.path.stem + ".heal_failed"
-                                  + ctx.path.suffix)
+        snap = _heal_snapshot_path(ctx)
         ctx.board.Save(str(snap))
         die(f"heal_islands: net(s) {left} split after heal+refill (a "
             f"bridge for another net can re-slice a pour it crosses) — "
@@ -3301,6 +4352,10 @@ def p_seed_stubs(ctx, c):
         net = ctx.net(netname)
         code = net.GetNetCode()
         pin = stub.get("pin")
+        if not pin and not str(stub.get("why", "")).strip():
+            die(f"seed_stubs.stubs[{i}]: a via/segment bank without `pin` "
+                "must declare `why` so its current/connectivity ownership is "
+                "not anonymous")
         pinpad = None
         if pin:
             ref, num = str(pin).split(".", 1)
@@ -3369,7 +4424,7 @@ def p_seed_stubs(ctx, c):
                     f"first segment starts at the pad)")
         served += 1
     ctx.bump("seed_stubs", placed)
-    print(f"seed_stubs: {served} pin(s) served ({placed} segments/vias "
+    print(f"seed_stubs: {served} bank(s) served ({placed} segments/vias "
           f"placed, {skipped} idempotent-skip), {refused} refused")
 
 
@@ -3552,6 +4607,18 @@ def cmd_stitch(cfg):
     MM = pcbnew.ToMM
     _stitch_tier_geometry(cfg)     # tier floors BEFORE any via is emitted
     target = rel(cfg, cfg["project"]["board"])
+
+    # Stitch can cross explicit fresh-interpreter barriers after removals.
+    # Each process must have a stable but DISJOINT UUID stream: reseeding every
+    # process with one constant would collide with objects emitted before the
+    # barrier, while leaving the stream random makes a clean replay unstable.
+    # The authenticated resume index is the deterministic phase namespace.
+    state_path = Path(str(target) + Ctx.STATE_SUFFIX)
+    resume_hint = 0
+    if state_path.is_file():
+        resume_hint = int(json.loads(
+            state_path.read_text(encoding="utf-8-sig")).get("resume", 0))
+    _seed_uuid_stream(pcbnew, target.stem, f"route-stitch-{resume_hint}")
     ctx = Ctx(cfg, target)
     order = get(cfg, "stitch.passes", DEFAULT_PASSES)
     unknown = [p for p in order if p not in PASSES]
@@ -3573,6 +4640,9 @@ def cmd_stitch(cfg):
                   str(cfg["_path"]), "--root", str(cfg["_root"])])
 
     start = ctx.load_state()
+    if start != resume_hint:
+        die(f"stitch resume state changed while loading: expected "
+            f"{resume_hint}, got {start}")
     for i in range(start, len(order)):
         name = order[i]
         if name in ("reload", "fresh_reload"):
@@ -3613,6 +4683,8 @@ def cmd_stitch(cfg):
         ctx.state_path().unlink()
     print(f"\nsaved {ctx.path}")
     rc = verify_saved_fill(ctx.path)
+    if rc == 0:
+        _critical_route_gate(cfg, require_connected=True)
     print("NEXT: run your rules generator LAST — this save did not touch "
           ".kicad_pro, but any pcbnew save in the chain clobbers netclasses.")
     return rc
@@ -3681,6 +4753,19 @@ def verify_saved_fill(path):
 
 # =============================================================== MAIN ====
 def main(argv=None):
+    # LINE-BUFFER OUR OWN STDOUT, ONCE, HERE.
+    # KRT is a subprocess writing straight to the inherited fd while this
+    # driver's own prints sit in a block buffer, so on a long chain every
+    # wave header lands AFTER all of the router output it was announcing.
+    # MEASURED on programmable-usb2-hub 2026-08-02: 24 `=== wave` headers at
+    # lines 10,087-10,156 of a 10,159-line log — wave 1's header arriving
+    # 10,041 lines after wave 1's router output. The agent driving this
+    # pipeline has no other real-time feedback channel, so an unreadable
+    # progress log is a blind operator, not untidy output.
+    # Done at the stream, not as `flush=True` on each call: there are 74
+    # print() sites here, and a convention that must be remembered rots at
+    # print 75.
+    sys.stdout.reconfigure(line_buffering=True)
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("command",
                     choices=["prep", "route", "import", "taps", "quick",
@@ -3701,6 +4786,12 @@ def main(argv=None):
                     help="route: skip the tier-consistency preflight gate "
                          "(LOUD escape hatch — every mismatch it would have "
                          "caught surfaces as post-stitch DRC findings)")
+    ap.add_argument("--resume", action="store_true",
+                    help="route: continue an authenticated single-chain prefix; "
+                         "refuses stale/unproven rN files and route races")
+    ap.add_argument("--route-source", choices=["auto", "build", "promoted"],
+                    help="import: select route lineage explicitly (overrides "
+                         "route.import_source)")
     a = ap.parse_args(argv)
     cfg = load_cfg(a.config, a.root)
     try:
@@ -3708,9 +4799,9 @@ def main(argv=None):
             return cmd_prep(cfg)
         if a.command == "route":
             return cmd_route(cfg, race=a.race,
-                             skip_preflight=a.skip_preflight)
+                             skip_preflight=a.skip_preflight, resume=a.resume)
         if a.command == "import":
-            return cmd_import(cfg)
+            return cmd_import(cfg, a.route_source)
         if a.command == "taps":
             return cmd_taps(cfg)
         if a.command == "quick":
@@ -3726,7 +4817,14 @@ def main(argv=None):
             # refilled before its save, and it holds the LAST save in the
             # chain. A guard that runs before the last writer guards nothing.
             return verify_saved_fill(rel(cfg, cfg["project"]["board"]))
-        for fn in (cmd_prep, cmd_route, cmd_import, cmd_taps, cmd_stitch):
+        for fn in (cmd_prep, cmd_route):
+            rc = fn(cfg)
+            if rc:
+                return rc
+        rc = cmd_import(cfg, "build")
+        if rc:
+            return rc
+        for fn in (cmd_taps, cmd_stitch):
             rc = fn(cfg)
             if rc:
                 return rc

@@ -1,0 +1,6 @@
+BOM-vs-source: projects/usb-hub-3s-v4/07_releases/v0.6.0-2026-08-12/fab/bom.csv
+  source: projects/usb-hub-3s-v4/03_tscircuit/build/circuit.json (76 coded refdes); vendored: 24 part.yaml codes; ledger: 217 vetted passive codes; not_assembled: 6 declared refdes (F1, J1, J2, J3...)
+  coverage leg C: 22/24 R/C rows value-graded (40 BOM rows seen)
+  COVERAGE-GAP leg C read no value from label: 35TZV100M6.3X8 [C1] = '35TZV100M6.3X8'
+  COVERAGE-GAP leg C read no value from label: EEEFK1A151P [C17,C18,C19] = 'EEEFK1A151P'
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

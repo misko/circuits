@@ -43,6 +43,10 @@ flow:
     state_dir: 06_build
     rebuild: 03_src/rebuild_all.sh
     journal: 01_docs/journal/routing.md
+  # Optional arguments are part of the canonical rebuild command. A board
+  # with a content-addressed human-review pause can use its verified resume
+  # arm here; this is not a skip-rebuild switch.
+  rebuild_args: [--resume-after-schematic-review]
   inputs:
     # Optional on a single-board project. REQUIRED for a multi-board project:
     # hash and preflight only this board's consumed inputs and dossiers.
@@ -73,6 +77,14 @@ handoff names the current owner and owned files so parallel agents do not edit
 the same routing surface. Owned source/control files must exist; a promoted
 `.kicad_pcb` may be reserved before the first routing run creates it.
 
+Pre-route reviews bind a versioned semantic digest of `03_src/rules/*.yaml`
+and the design-bearing portions of `route.yaml`. YAML formatting plus
+`project`, `flow`, placement-output path, route-output/tool/import path, and
+race-count controls are provenance and orchestration, not adopted design
+rules; changing them does not manufacture a new human review subject. Seed
+copper, keepouts, route waves/common policy, taps, stitch policy, critical-path
+declarations, and every rules YAML remain review-invalidating.
+
 For a multi-board project, keep one config at `03_src/<board>/route.yaml` and
 select it with `--board <board>`. The conductor refuses an ambiguous root and
 refuses a nested config without explicit `flow.inputs.include` and
@@ -102,10 +114,20 @@ $PY "$F" run PROJECT --stage render --budget-s 30 -- COMMAND ARG...
 `preflight` runs package escape, P-LAND, and tier consistency before routing.
 `grind` delegates to the existing classified, D-BACK-bounded driver.
 `layout-seal` validates the complete flow contract before mutating evidence,
-runs package/tier preflight, the canonical rebuild driver, **P-LAND against the
-newly rebuilt board**, then fresh DRC. It prepares the bounded handoff before
-publishing the seal witness; failure cannot leave a valid-looking witness.
-There is deliberately no reuse/stale-board shortcut.
+runs package/tier preflight, the canonical rebuild driver (plus any declared
+`flow.rebuild_args`), **P-LAND against the newly rebuilt board**, then fresh
+DRC. A resume argument is valid only when the rebuild driver itself verifies a
+content-addressed review checkpoint and still regenerates the board. It
+prepares the bounded handoff before publishing the seal witness; failure
+cannot leave a valid-looking witness. There is deliberately no stale-board
+shortcut.
+
+The canonical rebuild owns the track-free placement review and runs it before
+route import. The seal conductor must not rerun that hash check after copper is
+present: a routed board is a different lifecycle artifact. It instead repeats
+placement clearances, landing, separation and policy checks on the routed
+board, requires connected critical paths and fresh 0/0/0 DRC; final routed
+human reviews remain the release-stage boundary.
 
 ## Handoff contract
 

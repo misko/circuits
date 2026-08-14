@@ -1,0 +1,131 @@
+{
+  "clock": {
+    "decoder_window_pct": 5,
+    "manufacturer_error_full_temperature_pct": [
+      -2.5,
+      2.0
+    ],
+    "rationale": "5% windows cover characterized full-temperature controller error and reserve at least 2.5% for timer/capture estimation",
+    "source": "STM32C011_HSI48"
+  },
+  "contract_sha256": "25b2bd0769687cc255d5e6926312e7e827672dc4567d64aecd85e8078acb4258",
+  "decoder": {
+    "accept": "duration lies in its disjoint 5% window and order/framing are consistent",
+    "fundamental_limit": "RF-only state inference is impossible when no usable signal is present or antenna intervals are statistically indistinguishable",
+    "reject_to_unknown": [
+      "no_observable_signal",
+      "truncated_capture",
+      "ambiguous_duration",
+      "missed_or_extra_transition",
+      "invalid_order",
+      "no_valid_marker",
+      "reset_or_watchdog_recovery"
+    ],
+    "sync": "continuous ALL_OFF interval >=76ms (nominally 85ms: 80ms marker body plus 5ms pre-ANT1 guard) followed by ANT1 and valid ordered durations"
+  },
+  "frame": {
+    "all_off_guard_ms": 5,
+    "guards_per_cycle": 8,
+    "marker": {
+      "body_nominal_ms": 80,
+      "contiguous_pre_ANT1_guard_ms": 5,
+      "decoder_min_ms": 76,
+      "observable_nominal_ms": 85,
+      "state": "ALL_OFF"
+    },
+    "minimum_capture_for_guaranteed_complete_frame_ms": 772,
+    "nominal_cycle_ms": 386,
+    "order": [
+      "ANT1",
+      "ANT2",
+      "ANT3",
+      "ANT4",
+      "ANT5",
+      "ANT6",
+      "ANT7",
+      "ANT8"
+    ],
+    "recommended_capture_ms": 850
+  },
+  "generated_from": "03_src/rules/control_protocol.yaml",
+  "profile": {
+    "id": "fast20-v1",
+    "revision": 1
+  },
+  "protocol": "framed_guarded_unique_dwell_v1",
+  "schema": 1,
+  "states": [
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0000",
+      "name": "ANT1",
+      "window_ms": [
+        19,
+        21
+      ]
+    },
+    {
+      "dwell_ms": 23,
+      "gpio_code_pa3_pa0": "0100",
+      "name": "ANT2",
+      "window_ms": [
+        21.85,
+        24.15
+      ]
+    },
+    {
+      "dwell_ms": 26,
+      "gpio_code_pa3_pa0": "0010",
+      "name": "ANT3",
+      "window_ms": [
+        24.7,
+        27.3
+      ]
+    },
+    {
+      "dwell_ms": 30,
+      "gpio_code_pa3_pa0": "0110",
+      "name": "ANT4",
+      "window_ms": [
+        28.5,
+        31.5
+      ]
+    },
+    {
+      "dwell_ms": 34,
+      "gpio_code_pa3_pa0": "0001",
+      "name": "ANT5",
+      "window_ms": [
+        32.3,
+        35.7
+      ]
+    },
+    {
+      "dwell_ms": 39,
+      "gpio_code_pa3_pa0": "0101",
+      "name": "ANT6",
+      "window_ms": [
+        37.05,
+        40.95
+      ]
+    },
+    {
+      "dwell_ms": 44,
+      "gpio_code_pa3_pa0": "0011",
+      "name": "ANT7",
+      "window_ms": [
+        41.8,
+        46.2
+      ]
+    },
+    {
+      "dwell_ms": 50,
+      "gpio_code_pa3_pa0": "0111",
+      "name": "ANT8",
+      "window_ms": [
+        47.5,
+        52.5
+      ]
+    }
+  ]
+}

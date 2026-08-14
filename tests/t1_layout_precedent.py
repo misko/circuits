@@ -109,6 +109,42 @@ def prec(d):
     return rows.get("P-PREC", ("MISSING", ""))
 
 
+def source_audit(d):
+    """Run the pre-generation subset and return its process plus rows."""
+    result = run([KPY, str(POLICY), str(d), "--skip-drc", "--phase", "source"])
+    md = (d / "06_build" / "source_policy_audit.md").read_text()
+    rows = {m.group(1): (m.group(2), m.group(3))
+            for m in re.finditer(r"^\| (\S+) \| (\S+) \| (.*) \|$", md, re.M)
+            if m.group(1) != "ID"}
+    return result, rows
+
+
+@test("P-PREC source phase grades only source-owned layout and precedent "
+      "facts before a board exists")
+def t_source_phase_without_board():
+    d = scratch(RP2040_HONEST)
+    result, rows = source_audit(d)
+    eq(result.rc, 0, "source-only layout/precedent phase")
+    eq(set(rows), {"P-LAYOUT", "P-PREC"},
+       "source phase has no realized-board adjacency rows")
+    eq(rows["P-LAYOUT"][0], "PASS", "source layout guidance")
+    eq(rows["P-PREC"][0], "PASS", "source precedent ladder")
+
+
+@test("P-PREC source phase fails an unclosed ladder before generation",
+      kind="known_bad")
+def t_source_phase_rejects_unclosed_ladder():
+    d = scratch("layout_refs:\n"
+                "  - tier: 1\n"
+                "    artifact: \"datasheet Figure 6\"\n"
+                "    reached: true\n")
+    result, rows = source_audit(d)
+    eq(result.rc, 1, "unclosed source precedent exits nonzero")
+    eq(rows["P-PREC"][0], "FAIL", "unclosed source precedent verdict")
+    contains(rows["P-PREC"][1], "NAME ITS CEILING",
+             "source phase explains the missing stronger tier")
+
+
 # =================================================== the known-bad half ======
 @test("P-PREC FAILS a record that stops at tier 1 and names NO stronger tier "
       "— the ladder must NAME ITS CEILING", kind="known_bad")
@@ -242,7 +278,7 @@ def t_strongest_tier_reached_passes():
 
 
 @test("the BARE-STRING form stays legal and is counted OWED, never failed — "
-      "47 of the fleet's 113 in-scope parts are real searches recorded as prose")
+      "legacy prose searches remain visible in the 120-part fleet denominator")
 def t_bare_string_is_owed_not_failed():
     """A gate that reds every existing part on day one gets switched off
     (G-VACUOUS's and schema_reader_audit's shared lesson). The bare-string list
@@ -358,8 +394,8 @@ def t_the_precedent_ratchet_is_pinned_to_the_fleet():
     never falls, and a new board arriving with a graded dossier costs one
     number raised in the same commit.
 
-    MEASURED 2026-07-31: 113 in-scope parts across 9 boards, 14 with a
-    tier-graded record and 99 OWED."""
+    MEASURED 2026-08-13: 139 in-scope parts across 11 boards, 36 with a
+    tier-graded record and 103 OWED."""
     floor, _ = _read_bounds()
     graded, _owed, scoped = _sweep_the_fleet()
     check(scoped > 0, "the fleet sweep found no in-scope parts — a zero "

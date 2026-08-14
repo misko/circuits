@@ -1,0 +1,50 @@
+# RF applicability and review contract. Keep this file even for a non-RF
+# board: an explicit false is evidence that applicability was considered.
+schema: 1
+rf:
+  enabled: false
+  rationale: "D1 locks a power-only product with no USB data and no intentional RF or controlled-impedance signal path."
+
+  # When enabled=true, replace the example below with real, cited values.
+  # risk_tier: controlled-impedance  # ordinary-high-speed | controlled-impedance | phase-coherent | microwave
+  # risk_basis: "<electrical length, highest harmonic/band, and performance claim>"
+  # ports:
+  #   - id: RF1
+  #     nets: [RF1]
+  #     band_hz: [1000000, 6000000000]
+  #     z0_ohm: 50
+  #     launch: "J_RF1 + cited footprint/model"
+  #     termination: "50 ohm source/load"
+  #     reference_layer: In1.Cu
+  # cross_sections:
+  #   - id: CPWG_TOP
+  #     stackup_source: "<fab stackup name + revision/date>"
+  #     solver: "<tool/version + evidence path>"
+  #     copper_layer: F.Cu
+  #     reference_layer: In1.Cu
+  #     dielectric_height_mm: 0.2104
+  #     dk: 4.4
+  #     target_z0_ohm: 50
+  #     width_mm: 0.36
+  #     gap_mm: 0.20
+  # performance_claims:
+  #   - id: RF-CLAIM-LOSS
+  #     claim: "Insertion loss remains within the system budget."
+  #     acceptance: "<numeric limit and band>"
+  #     evidence: "<calculation/simulation path>"
+  # first_article:
+  #   measurements: ["VNA S11/S21 with named calibration plane"]
+  #   acceptance: ["<numeric first-article limit and band>"]
+  # reviews:
+  #   schematic:
+  #     path: 08_reviews/<date>_<subject>_rf_schematic.md
+  #     artifact: 04_kicad/<board>.kicad_sch
+  #     requirements: [RF-SCH-TOPOLOGY, RF-SCH-RATINGS, RF-SCH-CLAIMS]
+  #   pcb:
+  #     path: 08_reviews/<date>_<subject>_rf_pcb.md
+  #     artifact: 04_kicad/<board>.kicad_pcb
+  #     requirements: [RF-PCB-STACKUP, RF-PCB-LAUNCH, RF-PCB-RETURN, RF-PCB-COUPLING]
+  #   fab:
+  #     path: 08_reviews/<date>_<subject>_rf_fab.md
+  #     artifact: 07_releases/<release>/fab/<gerbers>.zip
+  #     requirements: [RF-FAB-STACKUP, RF-FAB-MASK, RF-FAB-GEOMETRY]

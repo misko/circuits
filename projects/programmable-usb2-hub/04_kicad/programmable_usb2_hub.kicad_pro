@@ -146,7 +146,7 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.1,
+        "min_clearance": 0.09,
         "min_connection": 0.0,
         "min_copper_edge_clearance": 0.3,
         "min_groove_width": 0.0,
@@ -470,11 +470,15 @@
       },
       {
         "netclass": "SWITCH_POWER",
-        "pattern": "CS_A"
+        "pattern": "SENSE_A"
       },
       {
         "netclass": "SWITCH_POWER",
-        "pattern": "CS_B"
+        "pattern": "SENSE_B"
+      },
+      {
+        "netclass": "SWITCH_POWER",
+        "pattern": "AUX_SW"
       },
       {
         "netclass": "SWITCH_POWER",
@@ -634,6 +638,22 @@
       },
       {
         "netclass": "QUIET_ANALOG",
+        "pattern": "P1_DVDT"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "P2_DVDT"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "P3_DVDT"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "P4_DVDT"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
         "pattern": "ADC_P1_IMON"
       },
       {
@@ -675,6 +695,50 @@
       {
         "netclass": "QUIET_ANALOG",
         "pattern": "XTAL2"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "ISNS_A_PF"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "ISNS_A_NF"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "ISNS_B_PF"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "ISNS_B_NF"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "ITH_A"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "ITHR_A"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "ITH_B"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "ITHR_B"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "TSNS_A"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "TSNS_B"
+      },
+      {
+        "netclass": "QUIET_ANALOG",
+        "pattern": "AUX_FB"
       },
       {
         "netclass": "LOGIC",
@@ -779,6 +843,46 @@
       {
         "netclass": "LOGIC",
         "pattern": "P4_FLT_N"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "RUN_A"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "RUN_B"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "RUN_A_HOLD"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "RUN_B_HOLD"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "PGOOD_A_N"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "PGOOD_B_N"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "LTC_ALERT_N"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "LTC_FAULT_N"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "AUX_PG_N"
+      },
+      {
+        "netclass": "LOGIC",
+        "pattern": "LTC_VDD33"
       }
     ]
   },
@@ -796,13 +900,7 @@
     "bus_aliases": {},
     "legacy_lib_dir": "",
     "legacy_lib_list": [],
-    "top_level_sheets": [
-      {
-        "filename": "programmable_usb2_hub.kicad_sch",
-        "name": "programmable_usb2_hub",
-        "uuid": "00000000-0000-0000-0000-000000000000"
-      }
-    ]
+    "top_level_sheets": []
   },
   "sheets": [],
   "text_variables": {},

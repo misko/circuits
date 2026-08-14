@@ -8,10 +8,16 @@ artifacts against each other; this review compares them against the world.
 
 ## The setup — independence is the whole point
 
+- Run `pin_map_check.py` immediately after the first generated board exists,
+  before placement review or routing. It catches a dossier pin that vanished
+  from either producer artifact and rejects unexplained identity collapse at
+  the cheapest possible stage.
 - The reviewer is a NEW agent with no context from the design session, no
   access to the authors' reasoning, and no stake in the answer.
 - Input per part: the `pin_audit.py` dossier (pad positions, sides, computed
-  winding, part.yaml functions, actual board nets) + the datasheet PDF path.
+  winding, part.yaml functions, actual board nets, declared aliases) + the
+  datasheet PDF selected by the `part.yaml` SHA-256. A neighboring-family or
+  non-automotive PDF beside it is not an acceptable substitute.
 - The reviewer's job is to independently derive what SHOULD be true from the
   datasheet, then compare. Never start from the dossier's data and
   rationalize it.
@@ -26,7 +32,11 @@ artifacts against each other; this review compares them against the world.
    ROTATION of the figure — rotation is fine, MIRROR is a dead board.
 2. **Pin count and exposed pad.** Every datasheet pin exists as a pad; the
    EP is present and on the net the datasheet demands (usually GND or a
-   specific plane).
+   specific plane). One physical copper land may represent several pins only
+   when the manufacturer drawing explicitly fuses them; the dossier must keep
+   every physical identity and declare the artifact mapping under
+   `pin_aliases` with `fused: true`, `why`, and evidence. Same-net equivalence
+   is not evidence for collapsing identities.
 3. **Function ↔ net electrical sanity.** For each pin, ask: given this
    function, what kind of net must be here? Power-in pins see a rail net;
    switch nodes see the inductor net; FB sees a divider net, not a rail;
@@ -47,6 +57,9 @@ the order. Do not soften: "probably fine" is a QUESTION.
 
 ## Orchestration (the main agent's side)
 
+- Treat P-PINMAP as the early authoring review and run it after every pin-map,
+  symbol, or footprint change. It is a machine consistency check, not the
+  independent review.
 - Generate dossiers: `pin_audit.py BOARD bom.csv 02_parts 06_build/pin_audit`
 - Spawn one fresh agent per PART GROUP (controllers; power switches;
   connectors) so no single review exceeds a few parts — attention dilutes.
@@ -54,6 +67,9 @@ the order. Do not soften: "probably fine" is a QUESTION.
   paths. Not the schematic, not the session history.
 - Record verdicts + findings in the release's `verification/pin_review.md`;
   any FAIL reopens the design before ordering.
+- Repeat both P-PINMAP and the fresh-context review against the exact staged
+  release artifacts before sealing. Early review saves rework; pre-seal review
+  proves the bytes being published.
 
 ## Render-review additions (canon S5/S6/S7 — human-graded policy items)
 

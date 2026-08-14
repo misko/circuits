@@ -1,0 +1,47 @@
+mpn: TPSM63604RDLR
+manufacturer: Texas Instruments
+type: synchronous_buck_power_module
+datasheet: {doc_id: SLVSGJ5, revision: SLVSGJ5, url: "https://www.ti.com/lit/ds/symlink/tpsm63604.pdf", sha256: 8a1ecc4f73911e21326b6bee8b7355c1a0ae2ae1572d6a91421d9c82d516c8bb, fetched: 2026-08-10}
+package: B3QFN-20 RDL, 5x5.5mm, exposed thermal lands
+footprint: usb_hub_3s_v4:Texas_RDL0020A_B3QFN-20_5x5.5mm_ThermalVias
+escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard, checked: "escape_check geometry review 2026-08-10; filled/capped thermal-via processing is separately required by gotchas and ADR-0004"}
+pins:
+  1: VIN1
+  2: SW
+  3: CBOOT
+  4: RBOOT
+  5: VLDOIN
+  6: {name: AGND, tie: GND}
+  7: VCC
+  8: VOUT1
+  9: VOUT2
+  10: FB
+  11: {name: AGND, tie: GND}
+  12: RT
+  13: PG
+  14: EN_SYNC
+  15: NC
+  16: VIN2
+  17: {name: PGND, tie: GND}
+  18: {name: PGND, tie: GND}
+  19: {name: PGND, tie: GND}
+  20: {name: PGND, tie: GND}
+limits: {vin_recommended_max: 36V, vin_abs_max: 42V, iout_rated: 4A, shutdown_iq_typ: 1uA, vref_accuracy_full_temperature: "+/-1.0%", fb_input_current_typ: 10nA}
+gotchas:
+  - "Dedicated to the Raspberry Pi rail: 3A continuous leaves 1A rated-current headroom."
+  - "Exposed thermal lands must be soldered and tied to plane copper with filled/capped thermal vias."
+  - "SW pin 2 is intentionally left without an external net: TI SLVSGJ5 Table 6-1 says not to place an external component or connect a signal and to minimize copper on this pin."
+  - "VCC pin 7 is intentionally left without an external net: it is the internal-LDO output with an internal 1uF capacitor and TI says not to connect external loads."
+  - "At 5V and 1MHz, Table 8-1 requires 30uF minimum effective ceramic output capacitance and recommends 22pF CFF when the output capacitance is close to minimum. C9-C11 provide a machine-checked 40.392uF effective and C23 adds polymer bulk, so v4 omits CFF pending exact mixed-bank loop qualification."
+  - "C23 is allowed additional low-ESR polymer capacitance, but does not replace the minimum ceramic bank."
+  - "The electrical table gives 10nA typical IFB without a maximum; ADR-0009 uses 0..500nA (50x typical) only as an analytical stress screen, not a manufacturer guarantee. Exact-board steady-state voltage remains a first-article qualification obligation."
+verified: "pin table 6-1, full-temperature +/-1% feedback-system statement and electrical table, Table 8-1 capacitance/CFF row, output-capacitor section, limits and layout section 11 independently read 2026-08-11"
+sourcing: {lcsc: C5219289, alternates: [], note: "JLC/LCSC catalog candidate; volatile stock evidence is kept in 06_build/cache"}
+layout:
+  source: "TI SLVSGJ5 sec.11 plus pin-compatible TPSM63606EVM BSR175A editable Altium design files (SLVRBI7)"
+  reviewed: "2026-08-11"
+  notes: "Use the exact RDL0020A EVM land, symmetric local VIN and VOUT capacitors, uninterrupted inner GND planes and filled/capped 0.30mm vias inside PGND lands; keep feedback, RT and BOOT components adjacent to their pins."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSGJ5 sec.11 layout guidelines and example", why: "manufacturer layout defines switching loop, feedback and thermal geometry"}
+  - {tier: 2, reached: true, artifact: "TI TPSM63606EVM BSR175A editable Altium PCB design, SLVRBI7; TPSM63606 is package/pin compatible", why: "manufacturer EVM land and surrounding via/capacitor geometry were imported and measured before placement froze"}
+  - {tier: 3, reached: false, artifact: "OSHWLab/LCSC routed TPSM63604 precedent", why: "not needed after the pin-compatible manufacturer editable EVM was reached; third-party authority would be weaker"}

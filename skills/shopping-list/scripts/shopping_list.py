@@ -3,6 +3,8 @@
 
     shopping_list.py PROJECT_DIR [--scope self_supplied|all] [--boards N]
                      [--min-stock 10] [--out FILE.md] [--json FILE.json]
+                     [--bom CANDIDATE_BOM.csv]
+                     [--required-pools 2 --jlc-stock-json STOCK.json]
                      [--replay DIR] [--offline] [--no-cache]
                      [--quote-max-age-days 7] [--call-budget 200]
 
@@ -60,6 +62,10 @@ THE CHECK IDS (design-policies.md, row M-QUOTE):
             ESTIMATED (anything volatile and unverifiable: Amazon, always), or
             OWED (nobody has this fact yet; here is how to obtain it). An
             absent grade is a FAIL, never a quiet promotion.
+  Q-2SOURCE when --required-pools is set, each exact manufacturer/MPN row must
+            be sourceable from that many independent authorized pools. JLC,
+            Mouser and DigiKey qualify; Amazon never does. Per-distributor gaps
+            remain visible but no longer falsify a green composed-pool verdict.
 
 THE CREDENTIAL. Never embedded, never printed, never logged, never written into
 a cache file or a URL this tool emits. Resolution order:
@@ -115,7 +121,45 @@ DISTRIBUTORS = ("mouser", "digikey", "amazon")
 #: field, a quote that was never recorded) is UNGRADED and therefore a FAIL,
 #: never an omission: `bom_source_check` dropped 87 of 673 rows and exited 0.
 GRADED_STATUSES = ("OK", "LOW-STOCK", "NO-STOCK", "NOT-IN-CATALOG",
-                   "SUBSTITUTE-ONLY", "REFUSED-SNIPPET", "STALE")
+                   "SUBSTITUTE-ONLY", "MANUFACTURER-MISMATCH",
+                   "REFUSED-SNIPPET", "STALE")
+
+AUTHORIZED_POOLS = ("jlc", "mouser", "digikey")
+
+
+def normalize_manufacturer(value):
+    """Normalize an exact manufacturer identity without accepting a near MPN.
+
+    Corporate suffixes and punctuation are spelling, not identity. A small
+    alias table covers catalog abbreviations that are unambiguous; substring
+    matching is deliberately refused because `ST` and `Diodes` are not safe
+    fuzzy keys.
+    """
+    s = re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+    for suffix in ("incorporated", "corporation", "commercial", "company", "limited",
+                   "electronicscorp", "inc", "corp", "ltd", "co"):
+        if s.endswith(suffix):
+            s = s[:-len(suffix)]
+    aliases = {
+        "ti": "texasinstruments",
+        "st": "stmicroelectronics",
+        "gctglobalconnectortechnology": "gct",
+        "globalconnectortechnology": "gct",
+        "keystone": "keystoneelectronics",
+        "diodes": "diodes",
+    }
+    return aliases.get(s, s)
+
+
+def same_manufacturer(found, authoritative):
+    return bool(normalize_manufacturer(found)) and \
+        normalize_manufacturer(found) == normalize_manufacturer(authoritative)
+
+
+def observation_date(override=""):
+    """Calendar used for UTC-stamped catalog snapshots and dated quotes."""
+    return (date.fromisoformat(override) if override
+            else datetime.now(timezone.utc).date())
 
 
 # ------------------------------------------------------------------ helpers
@@ -299,8 +343,12 @@ def read_parts(project):
             continue
         raw = y.get("mpn")
         if isinstance(raw, str) and raw.strip():
-            # trailing `# comment` survives yaml when the value is unquoted
-            mpn, src = raw.split("#")[0].strip(), "part.yaml mpn:"
+            # PyYAML has already removed YAML comments.  A `#` that survives
+            # safe_load is therefore data from a quoted scalar and is common
+            # in exact Analog Devices orderable MPNs (for example #TRPBF).
+            # Splitting it here silently changed the selected part and made
+            # Q-IDENT reject the distributor's exact catalog record.
+            mpn, src = raw.strip(), "part.yaml mpn:"
         else:
             mpn, src = d.name, "directory name (no mpn: field)"
         p = Part(mpn, src, d.name)
@@ -382,10 +430,16 @@ def attach_bom(project, parts, boms):
             p = (by_lcsc.get(code) if code else None) or by_mpn.get(mpn) \
                 or by_mpn.get(com) or by_dir.get(com)
             if p is None:
-                if not code:
-                    unmatched.append(
-                        f"{label} ({reldir}): BOM row {com!r} refs={len(refs)} "
-                        f"has NO LCSC and matches no 02_parts dossier")
+                unmatched.append(
+                    f"{label} ({reldir}): BOM row {com!r} refs={len(refs)} "
+                    f"LCSC={code or '<blank>'} MPN={mpn or '<blank>'} matches "
+                    f"no 02_parts dossier")
+                continue
+            if mpn and not same_part(mpn, p.mpn):
+                unmatched.append(
+                    f"{label} ({reldir}): BOM row LCSC={code or '<blank>'} "
+                    f"MPN={mpn!r} resolves dossier {p.mpn!r}; exact identity "
+                    f"join failed")
                 continue
             p.refs.setdefault(label, []).extend(refs)
             if not code:
@@ -414,6 +468,106 @@ def attach_assembly(project, parts):
                             f"assembly.yaml {key}: {', '.join(hit)} "
                             f"({reason}) — hand-soldered, you supply it")
     return notes
+
+
+# ----------------------------------------------------------- JLC source pool
+def read_jlc_snapshot(path, today, max_age_days):
+    """Read the machine sidecar emitted by jlc_stock_check.py.
+
+    The sidecar is a dated catalog observation, never an assembly-allocation
+    promise. It qualifies as one independent pool only while fresh and only
+    when every row can be joined by exact LCSC code, MPN and manufacturer.
+    """
+    if not path:
+        return None, []
+    p = Path(path).resolve()
+    if not p.is_file():
+        return None, [f"JLC snapshot does not exist: {p}"]
+    try:
+        data = json.loads(p.read_text(encoding="utf-8-sig"))
+    except Exception as exc:                         # noqa: BLE001
+        return None, [f"JLC snapshot is unparseable: {p}: {exc}"]
+    errors = []
+    if data.get("tool") != "jlc_stock_check.py":
+        errors.append("JLC snapshot `tool` is not jlc_stock_check.py")
+    if data.get("stock_source") != "lcsc_catalog_stockCount":
+        errors.append("JLC snapshot does not identify lcsc_catalog_stockCount")
+    stamp = str(data.get("generated_at") or "")
+    if not stamp:
+        errors.append("JLC snapshot has no generated_at timestamp; re-run the "
+                      "current jlc_stock_check.py instead of trusting an old "
+                      "undated observation")
+    else:
+        try:
+            observed = datetime.fromisoformat(stamp.replace("Z", "+00:00")).date()
+            age = (today - observed).days
+            if age < 0 or age > max_age_days:
+                errors.append(f"JLC snapshot age is {age} day(s), outside the "
+                              f"0..{max_age_days} day window")
+        except ValueError:
+            errors.append(f"JLC snapshot generated_at is not ISO-8601: {stamp!r}")
+    lines = data.get("lines")
+    if not isinstance(lines, list) or not lines:
+        errors.append("JLC snapshot has no non-empty `lines` list")
+    if data.get("graded_lines") != data.get("total_lines"):
+        errors.append("JLC snapshot did not grade every BOM line")
+    return (data if not errors else None), errors
+
+
+def grade_jlc_snapshot(part, qty, boards, min_stock, snapshot):
+    if snapshot is None:
+        return {"status": "NO-SNAPSHOT", "grade": OWED,
+                "manufacturer_match": False,
+                "why": "no fresh jlc_stock_check.py JSON was supplied with "
+                       "--jlc-stock-json"}
+    if not part.lcsc:
+        return {"status": "NO-LCSC", "grade": OWED,
+                "manufacturer_match": False,
+                "why": "part.yaml has no sourcing.lcsc identity"}
+    matches = [line for line in snapshot.get("lines", [])
+               if str(line.get("lcsc") or "").strip() == part.lcsc]
+    if len(matches) != 1:
+        return {"status": "JLC-IDENTITY-ERROR", "grade": OWED,
+                "manufacturer_match": False,
+                "why": f"Q-IDENT: expected exactly one snapshot row for "
+                       f"{part.lcsc}, found {len(matches)}"}
+    line = matches[0]
+    if not same_part(str(line.get("mpn") or ""), part.mpn):
+        return {"status": "JLC-IDENTITY-ERROR", "grade": CITED,
+                "manufacturer_match": False, "record": line,
+                "why": f"Q-IDENT: {part.lcsc} snapshot MPN "
+                       f"{line.get('mpn')!r} != dossier {part.mpn!r}"}
+    mfr_ok = same_manufacturer(line.get("manufacturer"), part.manufacturer)
+    if not part.manufacturer or not mfr_ok:
+        return {"status": "MANUFACTURER-MISMATCH", "grade": CITED,
+                "manufacturer_match": False, "record": line,
+                "why": f"Q-MFR-IDENT: {part.lcsc} snapshot manufacturer "
+                       f"{line.get('manufacturer')!r} != dossier "
+                       f"{part.manufacturer!r}"}
+    per_board = line.get("qty")
+    expected = qty / boards if boards else qty
+    if not isinstance(per_board, int) or abs(per_board - expected) > 1e-9:
+        return {"status": "QTY-MISMATCH", "grade": CITED,
+                "manufacturer_match": True, "record": line,
+                "why": f"snapshot says {per_board!r}/board but the selected "
+                       f"BOM resolves {expected:g}/board; pass --bom for the "
+                       f"current candidate and regenerate the snapshot"}
+    stock = line.get("stock")
+    if line.get("status") != "OK" or not isinstance(stock, (int, float)):
+        return {"status": "JLC-NOT-SOURCEABLE", "grade": CITED,
+                "manufacturer_match": True, "record": line,
+                "why": f"snapshot status={line.get('status')!r}, "
+                       f"stock={stock!r}"}
+    ok = stock > min_stock and stock >= qty
+    why = ""
+    if not ok:
+        why = (f"Q-STOCK: stock {stock} must be > {min_stock} and >= "
+               f"the {qty} needed")
+    return {"status": "OK" if ok else "LOW-STOCK", "grade": CITED,
+            "manufacturer_match": True, "stock": int(stock),
+            "record": line, "why": why,
+            "url": "https://jlcpcb.com/parts/componentSearch?searchTxt="
+                   + part.lcsc}
 
 
 # ------------------------------------------------------------------- Mouser
@@ -575,15 +729,20 @@ def same_part(candidate_mpn, authoritative_mpn):
         norm(authoritative_mpn)
 
 
-def grade_mouser(rs, qty, min_stock):
-    """-> line dict. Q-WIDE and Q-IDENT are enforced HERE, structurally."""
+def grade_mouser(rs, qty, min_stock, authoritative_manufacturer=""):
+    """-> line dict. Q-WIDE, Q-IDENT and Q-MFR-IDENT are structural."""
     if rs.error:
         return {"status": "LOOKUP-FAILED", "grade": OWED, "why": rs.error}
 
     for r in rs.records:
         r["is_same_part"] = same_part(r["mfr_mpn"], rs.mpn)
+        r["is_same_manufacturer"] = (
+            same_manufacturer(r.get("manufacturer"),
+                              authoritative_manufacturer)
+            if authoritative_manufacturer else True)
     live = [r for r in rs.records if (r["stock"] or 0) > 0]
-    same = [r for r in live if r["is_same_part"]]
+    same_mpn = [r for r in live if r["is_same_part"]]
+    same = [r for r in same_mpn if r["is_same_manufacturer"]]
     best = None
     if same:
         best = sorted(same, key=lambda r: (
@@ -605,6 +764,16 @@ def grade_mouser(rs, qty, min_stock):
                            f"{strip_packaging_suffixes(rs.mpn)[0]!r} (broad). "
                            f"This distributor does not list the part at all — "
                            f"which is a FINDING, not a stock figure"}
+        if same_mpn and authoritative_manufacturer:
+            seen = ", ".join(sorted({str(r.get("manufacturer") or "<missing>")
+                                     for r in same_mpn}))
+            return {"status": "MANUFACTURER-MISMATCH", "grade": CITED,
+                    "records": len(rs.records),
+                    "why": "Q-MFR-IDENT: the orderable MPN text matches, but "
+                           f"the authorized catalog records identify {seen}; "
+                           f"the dossier authority is "
+                           f"{authoritative_manufacturer}. A generic base MPN "
+                           f"from another manufacturer is a different part"}
         unparsed = [r for r in rs.records if r["stock"] is None]
         if live and not same:
             alts = ", ".join(f"{r['mfr_mpn']} ({r['stock']} in stock)"
@@ -680,11 +849,18 @@ def read_manual_quotes(project):
     return list(y.get("quotes") or []), []
 
 
-def grade_quote(q, qty, min_stock, max_age_days, today):
+def grade_quote(q, qty, min_stock, max_age_days, today,
+                authoritative_manufacturer=""):
     """Q-SNIPPET + Q-GRADE over one hand-recorded quote."""
     dist = str(q.get("distributor", "")).lower()
+    quoted_manufacturer = str(q.get("manufacturer") or "").strip()
     base = {"distributor": dist, "url": q.get("url"),
-            "dpn": q.get("dpn"), "read_on": str(q.get("read_on") or "")}
+            "dpn": q.get("dpn"), "read_on": str(q.get("read_on") or ""),
+            "manufacturer": quoted_manufacturer,
+            "manufacturer_match": (
+                same_manufacturer(quoted_manufacturer,
+                                  authoritative_manufacturer)
+                if authoritative_manufacturer else True)}
     src = q.get("source")
     if src not in QUOTE_SOURCES:
         return {**base, "status": "QUOTE-INVALID", "grade": OWED,
@@ -827,6 +1003,10 @@ def render_markdown(ctx):
         c = ctx["coverage"][d]
         a(f"- **{d}**: graded **{c['graded']}/{c['total']}**, "
           f"sourceable **{c['ok']}/{c['total']}**")
+    if ctx["required_pools"]:
+        c = ctx["jlc_coverage"]
+        a(f"- **jlc/lcsc snapshot**: graded **{c['graded']}/{c['total']}**, "
+          f"sourceable **{c['ok']}/{c['total']}**")
     if ctx["unparsed"]:
         a("")
         a("**Inputs this tool could not parse — these are FAILURES, not "
@@ -834,6 +1014,32 @@ def render_markdown(ctx):
         for u in ctx["unparsed"]:
             a(f"- `{u}`")
     a("")
+    if ctx["required_pools"]:
+        a("## Composed authorized-pool gate (Q-2SOURCE)")
+        a("")
+        a(f"Each exact manufacturer/MPN row must clear **"
+          f"{ctx['required_pools']}** of these independent authorized pools: "
+          f"{', '.join(ctx['eligible_pools'])}. Amazon is marketplace evidence "
+          f"and never counts. A JLC/LCSC catalog PASS is selection evidence, "
+          f"not proof that the assembly uploader will allocate stock.")
+        a("")
+        a("| exact manufacturer / MPN | needed | qualifying pools | result |")
+        a("|---|---:|---|---|")
+        for row in ctx["rows"]:
+            pools = row.get("authorized_pools") or []
+            ok = len(pools) >= ctx["required_pools"]
+            a(f"| {row['manufacturer'] or '**MISSING**'} / `{row['mpn']}` | "
+              f"{row['qty']} | {', '.join(pools) or 'none'} | "
+              f"**{'PASS' if ok else 'FAIL'} "
+              f"{len(pools)}/{ctx['required_pools']}** |")
+        a("")
+        if ctx["pool_failures"]:
+            a(f"**COMPOSED-POOLS FAIL:** {len(ctx['pool_failures'])} of "
+              f"{ctx['selected']} exact rows do not meet the pool requirement.")
+        else:
+            a(f"**COMPOSED-POOLS PASS:** {ctx['selected']}/{ctx['selected']} "
+              f"exact rows meet the {ctx['required_pools']}-pool requirement.")
+        a("")
     a("## Is there one distributor that has everything?")
     a("")
     if ctx["single_source"]:
@@ -930,11 +1136,10 @@ def render_markdown(ctx):
             a(f"- `{mpn}` — {c}")
         a("")
 
-    a("## CANNOT SOURCE — every line that failed, and why")
+    a("## Distributor gaps — every unavailable line and why")
     a("")
     if not ctx["failures"]:
-        a("None. Every selected line cleared the stock floor at some "
-          "distributor.")
+        a("None. Every queried distributor line cleared its stock floor.")
     else:
         a("| MPN | qty | distributor | status | why |")
         a("|---|---:|---|---|---|")
@@ -956,7 +1161,7 @@ def render_markdown(ctx):
     a(DIGIKEY_ENABLEMENT)
     a("```")
     a("")
-    return "\n".join(L) + "\n"
+    return "\n".join(L).rstrip() + "\n"
 
 
 # ---------------------------------------------------------------------- main
@@ -974,6 +1179,17 @@ def main(argv=None):
                     help="a line is sourceable only at stock > this (default 10)")
     ap.add_argument("--quote-max-age-days", type=int, default=7)
     ap.add_argument("--call-budget", type=int, default=200)
+    ap.add_argument("--bom", default="",
+                    help="current candidate BOM; when supplied it replaces "
+                         "sealed-release BOM discovery for quantity/refdes")
+    ap.add_argument("--required-pools", type=int, default=0,
+                    help="Q-2SOURCE: require each exact row at this many of "
+                         "JLC, Mouser and DigiKey; 0 preserves the legacy "
+                         "per-distributor shopping verdict")
+    ap.add_argument("--jlc-stock-json", default="",
+                    help="fresh jlc_stock_check.py JSON sidecar, counted as "
+                         "one authorized source pool")
+    ap.add_argument("--jlc-max-age-days", type=int, default=7)
     ap.add_argument("--out", default="")
     ap.add_argument("--json", default="")
     ap.add_argument("--replay", default="",
@@ -983,6 +1199,11 @@ def main(argv=None):
     ap.add_argument("--today", default="", help="override today (tests)")
     a = ap.parse_args(argv)
 
+    if a.required_pools < 0 or a.required_pools > len(AUTHORIZED_POOLS):
+        print(f"FAIL Q-2SOURCE: --required-pools must be 0.."
+              f"{len(AUTHORIZED_POOLS)}, got {a.required_pools}")
+        return 2
+
     project = Path(a.project).resolve()
     if not project.is_dir():
         print(f"FAIL Q-COVER: project dir does not exist: {project}")
@@ -990,14 +1211,21 @@ def main(argv=None):
     print(f"  input: {project}")
 
     parts, unparsed = read_parts(project)
-    boms = newest_release_boms(project)
+    if a.bom:
+        candidate_bom = Path(a.bom).resolve()
+        if not candidate_bom.is_file():
+            print(f"FAIL Q-COVER: --bom does not exist: {candidate_bom}")
+            return 2
+        boms = {"candidate": ("candidate", candidate_bom)}
+    else:
+        boms = newest_release_boms(project)
     unparsed += attach_bom(project, parts, boms)
     unparsed += attach_assembly(project, parts)
     quotes, qerr = read_manual_quotes(project)
     unparsed += qerr
 
     for label, (reldir, bom) in sorted(boms.items()):
-        print(f"  release BOM: {reldir}/fab/{bom.name} (read-only)")
+        print(f"  BOM input ({label}): {bom} (read-only)")
     if not parts:
         print(f"FAIL Q-COVER: 0 parts under {project.name}/02_parts — a zero "
               f"denominator is a FAIL, never a pass (canon M-COVER)")
@@ -1025,16 +1253,27 @@ def main(argv=None):
     mouser = Mouser(key, cache, Path(a.replay).resolve() if a.replay else None,
                     a.offline, a.call_budget, use_cache=not a.no_cache)
 
-    today = date.fromisoformat(a.today) if a.today else date.today()
+    # Snapshot timestamps are UTC. Using the workstation's local calendar date
+    # makes a fresh evening run in the Americas appear one day "in the future"
+    # after UTC midnight. Test overrides stay calendar-based and deterministic.
+    today = observation_date(a.today)
+    jlc_snapshot, jlc_errors = read_jlc_snapshot(
+        a.jlc_stock_json, today, a.jlc_max_age_days)
+    unparsed += jlc_errors
     qmap = {}
     for q in quotes:
         qmap.setdefault(str(q.get("mpn", "")).strip(), []).append(q)
 
-    rows, failures = [], []
+    rows, failures, pool_failures = [], [], []
     coverage = {d: {"graded": 0, "ok": 0, "total": sel} for d in DISTRIBUTORS}
+    jlc_coverage = {"graded": 0, "ok": 0, "total": sel}
     totals = {d: {"usd": 0.0, "priced": 0} for d in DISTRIBUTORS}
 
-    for p in selected:
+    sourcing_started = time.monotonic()
+    for source_index, p in enumerate(selected, 1):
+        row_started = time.monotonic()
+        print(f"  progress sourcing {source_index}/{sel}: {p.mpn} START",
+              flush=True)
         qty = max(1, p.ref_count) * a.boards
         row = {"mpn": p.mpn, "mpn_source": p.mpn_source,
                "manufacturer": p.manufacturer, "type": p.type,
@@ -1044,7 +1283,7 @@ def main(argv=None):
                "reasons": sorted(set(p.reasons)), "dist": {}}
 
         rs = mouser.lookup(p.mpn)
-        m = grade_mouser(rs, qty, a.min_stock)
+        m = grade_mouser(rs, qty, a.min_stock, p.manufacturer)
         m["searches"] = rs.searches
         m["all_records"] = rs.records
         row["dist"]["mouser"] = m
@@ -1067,10 +1306,18 @@ def main(argv=None):
                                "even once recorded"))}
             else:
                 graded = [grade_quote(q, qty, a.min_stock,
-                                      a.quote_max_age_days, today)
+                                      a.quote_max_age_days, today,
+                                      p.manufacturer)
                           for q in cand]
                 good = [g for g in graded if g["status"] == "OK"]
                 row["dist"][d] = good[0] if good else graded[0]
+
+        jlc = grade_jlc_snapshot(p, qty, a.boards, a.min_stock, jlc_snapshot)
+        row["dist"]["jlc"] = jlc
+        if jlc["status"] in GRADED_STATUSES:
+            jlc_coverage["graded"] += 1
+        if jlc["status"] == "OK":
+            jlc_coverage["ok"] += 1
 
         for d in DISTRIBUTORS:
             r = row["dist"][d]
@@ -1088,7 +1335,45 @@ def main(argv=None):
             if r["status"] != "OK":
                 failures.append({"mpn": p.mpn, "qty": qty, "distributor": d,
                                  "status": r["status"], "why": r.get("why", "")})
+
+        pools, rejected_pools = [], {}
+        if p.manufacturer and jlc["status"] == "OK" \
+                and jlc.get("manufacturer_match"):
+            pools.append("jlc")
+        else:
+            rejected_pools["jlc"] = jlc.get("why") or jlc["status"]
+        if p.manufacturer and m["status"] == "OK" and m["grade"] == CITED:
+            rec = m.get("record") or {}
+            if rec.get("is_same_manufacturer"):
+                pools.append("mouser")
+            else:
+                rejected_pools["mouser"] = "Q-MFR-IDENT mismatch or missing"
+        else:
+            rejected_pools["mouser"] = m.get("why") or m["status"]
+        dk = row["dist"]["digikey"]
+        if p.manufacturer and dk["status"] == "OK" and dk["grade"] == CITED \
+                and dk.get("manufacturer_match"):
+            pools.append("digikey")
+        else:
+            rejected_pools["digikey"] = (
+                "Q-MFR-IDENT mismatch or missing on product-page quote"
+                if dk["status"] == "OK" and not dk.get("manufacturer_match")
+                else dk.get("why") or dk["status"])
+        row["authorized_pools"] = pools
+        row["rejected_pools"] = rejected_pools
+        if a.required_pools and len(pools) < a.required_pools:
+            pool_failures.append({
+                "mpn": p.mpn, "manufacturer": p.manufacturer,
+                "qty": qty, "pools": pools,
+                "why": ("part.yaml manufacturer is missing" if not p.manufacturer
+                        else f"only {len(pools)} qualifying pool(s): "
+                             f"{', '.join(pools) or 'none'}; rejected: "
+                             + "; ".join(f"{k}={v}" for k, v in
+                                         rejected_pools.items()))})
         rows.append(row)
+        print(f"  progress sourcing {source_index}/{sel}: {p.mpn} DONE "
+              f"in {time.monotonic() - row_started:.1f}s; authorized pools "
+              f"{','.join(pools) or 'none'}", flush=True)
 
     single = [d for d in DISTRIBUTORS if coverage[d]["ok"] == sel]
     methods = {
@@ -1108,7 +1393,9 @@ def main(argv=None):
            "min_stock": a.min_stock, "total_parts": total, "selected": sel,
            "coverage": coverage, "totals": totals, "rows": rows,
            "failures": failures, "single_source": single, "methods": methods,
-           "unparsed": unparsed,
+           "unparsed": unparsed, "required_pools": a.required_pools,
+           "eligible_pools": list(AUTHORIZED_POOLS),
+           "pool_failures": pool_failures, "jlc_coverage": jlc_coverage,
            "generated": datetime.now(timezone.utc).strftime(
                "%Y-%m-%d %H:%M UTC"),
            "mouser_calls": mouser.calls, "key_provenance": key_prov}
@@ -1118,8 +1405,10 @@ def main(argv=None):
         print(f"  report -> {a.out}")
     if a.json:
         Path(a.json).write_text(json.dumps(
-            {**ctx, "verdict": "PASS" if (not unparsed and not failures)
-             else "FAIL"}, indent=1, default=str) + "\n")
+            {**ctx, "verdict": "PASS" if (
+                not unparsed and not (pool_failures if a.required_pools
+                                      else failures)) else "FAIL"},
+            indent=1, default=str) + "\n")
         print(f"  json   -> {a.json}")
 
     for d in DISTRIBUTORS:
@@ -1133,14 +1422,37 @@ def main(argv=None):
               f"{f['why']}")
     print(f"  single distributor covering all {sel}: "
           f"{', '.join(single) if single else 'NONE'}")
+    if a.required_pools:
+        print(f"  jlc       graded {jlc_coverage['graded']}/{sel}, "
+              f"sourceable {jlc_coverage['ok']}/{sel}")
+        for f in pool_failures:
+            print(f"  FAIL Q-2SOURCE {f['manufacturer']} {f['mpn']}: "
+                  f"{f['why']}")
+        print(f"  composed authorized pools: "
+              f"{sel - len(pool_failures)}/{sel} rows meet "
+              f"{a.required_pools} independent pool(s)")
     print(f"  mouser API calls this run: {mouser.calls}")
+    print(f"  sourcing elapsed: {time.monotonic() - sourcing_started:.1f}s "
+          f"for {sel}/{total} selected parts")
 
-    bad = len(failures) + len(unparsed)
+    gate_failures = pool_failures if a.required_pools else failures
+    bad = len(gate_failures) + len(unparsed)
     if bad:
-        print(f"SHOPPING-LIST FAIL: {sel}/{total} parts selected, "
-              f"{len(failures)} distributor line(s) not sourceable and "
-              f"{len(unparsed)} unparseable input(s)")
+        if a.required_pools:
+            print(f"COMPOSED-POOLS FAIL: {sel}/{total} parts selected, "
+                  f"{len(pool_failures)} exact row(s) below the "
+                  f"{a.required_pools}-pool requirement and "
+                  f"{len(unparsed)} unparseable input(s)")
+        else:
+            print(f"SHOPPING-LIST FAIL: {sel}/{total} parts selected, "
+                  f"{len(failures)} distributor line(s) not sourceable and "
+                  f"{len(unparsed)} unparseable input(s)")
         return 1
+    if a.required_pools:
+        print(f"COMPOSED-POOLS PASS: {sel}/{total} parts selected, every "
+              f"exact manufacturer/MPN row sourceable from at least "
+              f"{a.required_pools} authorized pools")
+        return 0
     print(f"SHOPPING-LIST PASS: {sel}/{total} parts selected, every line "
           f"sourceable at stock > {a.min_stock}")
     return 0

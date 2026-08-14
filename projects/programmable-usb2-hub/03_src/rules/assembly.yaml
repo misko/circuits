@@ -19,22 +19,30 @@ through_hole:
 not_assembled:
   - refs: [F1]
     reason: process_incompatible
-    lcsc: C5249699
     on_bom: false
+    twin_body:
+      source: part
+      dossier: "3568"
     evidence: >
-      F1 is one electrical reference with four plated pads that represents a
-      two-clip MINI blade-fuse holder. Exact JLC code C5249699 is one physical
-      Keystone 3568 clip (live catalog stock 1,025 on 2026-07-31), so its one
-      model and one CPL centroid cannot place both clips. The generated F1
-      footprint is therefore excluded from position files and the misleading
-      one-piece BOM row is suppressed.
+      F1 is one electrical reference with four plated pads for the complete
+      insulated Keystone 3568 MINI blade-fuse holder. JLC code C5249699 was
+      visually rechecked and is a single loose clip, not the complete holder;
+      it is therefore a near-match with no authority over this footprint or
+      twin. The generated F1 footprint is excluded from position files and
+      its assembly BOM row is suppressed.
     disposition: >
-      Procure and hand-solder two exact Keystone 3568 clips per board after
-      PCBA, then install the separately specified MINI blade fuse. Do not
-      substitute a one-piece holder without a reviewed footprint change.
+      Procure and hand-solder one exact complete Keystone 3568 holder per
+      board after PCBA, then install one exact Littelfuse 0297010.H red 10 A,
+      32 V MINI blade fuse. Do not substitute loose clips, a 20 A fuse, a wire
+      link, or another fuse family without a reviewed footprint/protection
+      change. F1 remains one electrical reference for the complete holder;
+      the replaceable fuse element is a manually installed consumable.
   - refs: [J3, J4, J5, J6]
     reason: not_in_catalog
     on_bom: false
+    twin_body:
+      source: part
+      dossier: "USB1130-15-A"
     evidence: >
       Exact GCT USB1130-15-A search in LCSC/JLC catalog on 2026-07-31 found
       no code; common catalog USB-A receptacles were not accepted because their
@@ -45,6 +53,21 @@ not_assembled:
       consigned before release. No substitution is authorized.
 
 consigned:
+  - refs: [Q1, Q2, Q3, Q4, Q5, Q6]
+    lcsc: null
+    msl: >
+      Level-1-260C-UNLIM (TI SLPS399 packaging-information row for exact
+      CSD18533Q5AT, read 2026-08-02).
+    evidence: >
+      CSD18533Q5AT has no credited exact JLC catalog line. The 2026-08-01
+      dual-source recheck found 124 exact parts at Mouser and 950 at DigiKey,
+      satisfying Q-2SOURCE independently of the assembler.
+    disposition: >
+      Buy six exact CSD18533Q5AT per board plus process/yield spares from
+      Mouser or DigiKey, retain the manufacturer reel/traceability and ship
+      them dry/ESD protected with the PCBA order. JLC places Q1-Q6 using the
+      exact TI DQJ/Q5A land and local body witness; no Infineon BSC016 or
+      generic PowerPAK substitution is authorized.
   - refs: [U4]
     lcsc: C5248536
     msl: >

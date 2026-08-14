@@ -4,14 +4,21 @@ project:
   build_dir: 06_build/route
 
 flow:
+  pre_route_reviews:
+    board: 04_kicad/programmable_usb2_hub.kicad_pcb
+    netlist: 06_build/netlists/programmable_usb2_hub.net
+    topology: 08_reviews/pre-route_topology.md
+    pin: 08_reviews/pre-route_pin.md
+    layout: 08_reviews/pre-route_layout.md
+    render: 08_reviews/pre-route_render.md
+    a_render: 06_build/pre_route/twin_overlay.md
   owner:
     stage: routing
-    files: [03_src/route.yaml, 03_src/floorplan.yaml,
-            03_src/route/final_chain.kicad_pcb]
+    files: [03_src/route.yaml, 03_src/floorplan.yaml]
   copper:
     # Reviewed USB geometry, pour-fed escapes, and the promoted route are
     # replayable source.  Only a deliberate re-route of waves is stochastic.
-    deterministic: [prep.seed_stubs, stitch.seed_stubs, route.final]
+    deterministic: [prep.seed_stubs]
     stochastic: [route.waves]
   budgets_s:
     escape_packages: 60
@@ -26,6 +33,10 @@ flow:
 
 prep:
   out: r0.kicad_pcb
+  # Reserve every collision-legal plane drop on the track-free board.  The
+  # post-route pad_rescue remains a safety net, but routing must not consume
+  # the only via/stub sites of small GND pads before their plane bond exists.
+  pad_rescue: true
   keepouts:
     layers: [User.2, User.3]
     mounting_holes: {radius: 3.0}
@@ -38,87 +49,145 @@ prep:
       # ILIM/DVDT/USB routes occupy the only legal 0.25/0.15 mm via sites and
       # the fill leaves real pad-bearing GND islands.
       - {x0: 46.68, y0: 37.20, x1: 47.65, y1: 37.85} # U13.2
+      - {x0: 46.98, y0: 44.78, x1: 47.58, y1: 45.42} # C426.2
       - {x0: 51.15, y0: 44.92, x1: 51.72, y1: 45.56} # U9.8
       - {x0: 75.50, y0: 38.68, x1: 76.10, y1: 39.32} # C422.2
       - {x0: 76.68, y0: 37.20, x1: 77.65, y1: 37.85} # U14.2
       - {x0: 81.15, y0: 44.92, x1: 81.72, y1: 45.56} # U10.8
       - {x0: 87.40, y0: 56.93, x1: 88.00, y1: 57.57} # C32.2
-      - {x0: 92.18, y0: 64.80, x1: 92.82, y1: 65.40} # C34.2
+      - {x0: 92.18, y0: 65.30, x1: 92.82, y1: 65.95} # C34.2
+      - {x0: 100.30, y0: 57.95, x1: 101.85, y1: 58.55} # U6.42
       - {x0: 106.68, y0: 37.20, x1: 107.65, y1: 37.85} # U15.2
+      - {x0: 111.15, y0: 44.92, x1: 111.72, y1: 45.56} # U11.8
       - {x0: 116.50, y0: 38.68, x1: 117.10, y1: 39.32} # C432.2
       - {x0: 133.00, y0: 95.68, x1: 133.60, y1: 96.32} # C201.2
       - {x0: 137.15, y0: 44.92, x1: 137.72, y1: 45.56} # U12.8
       - {x0: 133.40, y0: 101.98, x1: 134.00, y1: 102.62} # C207.2
       - {x0: 124.50, y0: 80.88, x1: 125.10, y1: 81.52} # C211.2
-  # The four hub-to-data-switch pairs share a dense fanout.  Reviewed pair
-  # routes are preseeded so KRT sees them as obstacles from wave 1.  P1/P3
-  # use F.Cu and P2/P4 use B.Cu; this two-bank assignment is DRC-clean and
-  # avoids the pair rip-up loop that otherwise leaves two pairs uncoupled.
+  # Short switch-to-ESD pairs are deterministic F.Cu copper.  They remain on
+  # the outer layer with no through-vias, and the P conductor skirts the ESD
+  # ground land instead of crossing it.
   seed_stubs:
-    # 1 um arithmetic epsilon for the toolkit's inclusive collision test at
-    # an exact 0.150 mm pair edge gap; KiCad's 0.150 mm DRC remains the gate.
     clearance: 0.149
-    via: {size: 0.25, drill: 0.15}
+    via: {size: 0.30, drill: 0.20}
     stubs:
-      - net: P1_HUB_P
-        pin: U6.2
-        segments: [{layer: F.Cu, width: 0.25, pts: [[91.259, 55.75], [90.8, 55.7], [73.417, 55.7], [60.617, 42.9], [60.383, 42.9], [59.883, 43.4], [52.117, 43.4], [51.217, 42.5], [49.417, 42.5], [46.4, 39.483], [46.4, 38.417], [46.817, 38.0], [47.0, 38.0], [47.275, 38.0]]}]
-      - net: P1_HUB_N
-        pin: U6.1
-        segments: [{layer: F.Cu, width: 0.25, pts: [[91.259, 55.25], [90.8, 55.3], [73.583, 55.3], [60.783, 42.5], [60.217, 42.5], [59.717, 43.0], [52.283, 43.0], [51.383, 42.1], [49.583, 42.1], [46.8, 39.317], [46.8, 38.583], [46.983, 38.4], [47.0, 38.4], [47.275, 38.5]]}]
-      - net: P3_HUB_P
-        pin: U6.7
-        segments: [{layer: F.Cu, width: 0.25, pts: [[91.259, 58.25], [90.979, 58.25], [90.82, 58.3], [90.783, 58.3], [90.5, 58.583], [90.5, 60.383], [89.9, 60.983], [89.9, 62.117], [92.183, 64.4], [93.183, 64.4], [93.983, 65.2], [98.417, 65.2], [99.317, 64.3], [99.917, 64.3], [101.4, 62.817], [101.4, 59.117], [103.417, 57.1], [104.617, 57.1], [110.3, 51.417], [110.3, 51.283], [108.217, 49.2], [107.017, 49.2], [104.2, 46.383], [104.2, 45.717], [104.5, 45.417], [104.5, 43.483], [104.2, 43.183], [104.2, 41.517], [105.017, 40.7], [105.617, 40.7], [106.1, 40.217], [106.1, 38.617], [106.717, 38.0], [107.0, 38.0], [107.275, 38.0]]}]
-      - net: P3_HUB_N
-        pin: U6.6
-        segments: [{layer: F.Cu, width: 0.25, pts: [[91.259, 57.75], [90.78, 57.75], [90.617, 57.9], [90.1, 58.417], [90.1, 60.217], [89.5, 60.817], [89.5, 62.283], [92.017, 64.8], [93.017, 64.8], [93.817, 65.6], [98.583, 65.6], [99.483, 64.7], [100.083, 64.7], [101.8, 62.983], [101.8, 59.283], [103.583, 57.5], [104.783, 57.5], [110.7, 51.583], [110.7, 51.117], [108.383, 48.8], [107.183, 48.8], [104.6, 46.217], [104.6, 45.883], [104.9, 45.583], [104.9, 43.317], [104.6, 43.017], [104.6, 41.683], [105.183, 41.1], [105.783, 41.1], [106.5, 40.383], [106.5, 38.783], [106.883, 38.4], [107.0, 38.4], [107.275, 38.5]]}]
-      - net: P2_HUB_P
-        pin: U6.4
-        segments: [{layer: B.Cu, width: 0.25, pts: [[91.259, 56.75], [90.78, 56.6], [90.617, 56.6], [89.7, 55.683], [89.7, 54.517], [91.0, 53.217], [91.0, 53.083], [85.5, 47.583], [85.5, 45.983], [84.717, 45.2], [82.717, 45.2], [80.617, 43.1], [80.017, 43.1], [76.4, 39.483], [76.4, 38.417], [76.817, 38.0], [77.0, 38.0], [77.275, 38.0]]}]
-        vias: [[77.275, 38.0], [91.259, 56.75]]
-      - net: P2_HUB_N
-        pin: U6.3
-        segments: [{layer: B.Cu, width: 0.25, pts: [[91.259, 56.15], [90.95, 56.1], [90.11, 55.26], [90.11, 54.683], [91.4, 53.383], [91.4, 52.917], [85.9, 47.417], [85.9, 45.817], [84.883, 44.8], [82.883, 44.8], [80.783, 42.7], [80.183, 42.7], [76.8, 39.317], [76.8, 38.583], [76.983, 38.4], [77.0, 38.4], [77.275, 38.5]]}]
-        vias: [[77.275, 38.5], [91.259, 56.25]]
-      - net: P4_HUB_P
-        pin: U6.9
-        segments: [{layer: B.Cu, width: 0.25, pts: [[91.259, 59.25], [90.8, 59.2], [90.783, 59.2], [90.5, 59.483], [90.5, 60.383], [89.9, 60.983], [89.9, 62.117], [92.183, 64.4], [93.183, 64.4], [93.483, 64.7], [116.517, 64.7], [132.2, 49.017], [132.2, 48.883], [131.8, 48.483], [131.8, 47.583], [130.3, 46.083], [130.3, 45.283], [130.0, 44.983], [130.0, 43.183], [129.7, 42.883], [129.7, 41.517], [131.317, 39.9], [131.717, 39.9], [132.1, 39.517], [132.1, 38.717], [132.817, 38.0], [133.0, 38.0], [133.275, 38.0]]}]
-        vias: [[91.259, 59.25], [133.275, 38.0]]
-      - net: P4_HUB_N
-        pin: U6.8
-        segments: [{layer: B.Cu, width: 0.25, pts: [[91.259, 58.75], [90.8, 58.8], [90.617, 58.8], [90.1, 59.317], [90.1, 60.217], [89.5, 60.817], [89.5, 62.283], [92.017, 64.8], [93.017, 64.8], [93.317, 65.1], [116.683, 65.1], [132.6, 49.183], [132.6, 48.717], [132.2, 48.317], [132.2, 47.417], [130.7, 45.917], [130.7, 45.117], [130.4, 44.817], [130.4, 43.017], [130.1, 42.717], [130.1, 41.683], [131.483, 40.3], [131.883, 40.3], [132.5, 39.683], [132.5, 38.883], [132.983, 38.4], [133.0, 38.4], [133.275, 38.5]]}]
-        vias: [[91.259, 58.75], [133.275, 38.5]]
-      # The four short switch-to-ESD pairs use an offset-polyline B.Cu
-      # corridor.  The final fan separates before the ESD ground land, so the
-      # complete geometry passes clearance, hole-clearance and uncoupled
-      # length rules without the single-ended recovery's 17--18 mm launches.
-      - {net: P1_PORT_P, pin: U13.7, segments: [{layer: B.Cu, width: 0.25, pts: [[52.1, 38.5], [52.1, 38.55], [53.0, 38.55], [53.0, 35.619], [49.3, 33.619], [47.8, 33.619], [47.8, 31.05], [48.8625, 31.05]]}], vias: [[52.1, 38.5], [48.8625, 31.05]]}
-      - {net: P1_PORT_N, pin: U13.6, segments: [{layer: B.Cu, width: 0.25, pts: [[52.1, 39.0], [52.1, 38.95], [53.4, 38.95], [53.4, 35.381], [49.7, 33.381], [49.7, 32.95], [48.8625, 32.95]]}], vias: [[52.1, 39.0], [48.8625, 32.95]]}
-      - {net: P2_PORT_P, pin: U14.7, segments: [{layer: B.Cu, width: 0.25, pts: [[82.1, 38.5], [82.1, 38.55], [83.0, 38.55], [83.0, 35.619], [79.3, 33.619], [77.8, 33.619], [77.8, 31.05], [78.8625, 31.05]]}], vias: [[82.1, 38.5], [78.8625, 31.05]]}
-      - {net: P2_PORT_N, pin: U14.6, segments: [{layer: B.Cu, width: 0.25, pts: [[82.1, 39.0], [82.1, 38.95], [83.4, 38.95], [83.4, 35.381], [79.7, 33.381], [79.7, 32.95], [78.8625, 32.95]]}], vias: [[82.1, 39.0], [78.8625, 32.95]]}
-      - {net: P3_PORT_P, pin: U15.7, segments: [{layer: B.Cu, width: 0.25, pts: [[112.1, 38.5], [112.1, 38.55], [113.0, 38.55], [113.0, 35.619], [109.3, 33.619], [107.8, 33.619], [107.8, 31.05], [108.8625, 31.05]]}], vias: [[112.1, 38.5], [108.8625, 31.05]]}
-      - {net: P3_PORT_N, pin: U15.6, segments: [{layer: B.Cu, width: 0.25, pts: [[112.1, 39.0], [112.1, 38.95], [113.4, 38.95], [113.4, 35.381], [109.7, 33.381], [109.7, 32.95], [108.8625, 32.95]]}], vias: [[112.1, 39.0], [108.8625, 32.95]]}
-      - {net: P4_PORT_P, pin: U16.7, segments: [{layer: B.Cu, width: 0.25, pts: [[138.1, 38.5], [138.1, 38.55], [139.0, 38.55], [139.0, 35.619], [135.3, 33.619], [133.8, 33.619], [133.8, 31.05], [134.8625, 31.05]]}], vias: [[138.1, 38.5], [134.8625, 31.05]]}
-      - {net: P4_PORT_N, pin: U16.6, segments: [{layer: B.Cu, width: 0.25, pts: [[138.1, 39.0], [138.1, 38.95], [139.4, 38.95], [139.4, 35.381], [135.7, 33.381], [135.7, 32.95], [134.8625, 32.95]]}], vias: [[138.1, 39.0], [134.8625, 32.95]]}
-      # The internal management pair has opposite pad order at the MCU and
-      # hub.  Its long section stays coupled on In2.Cu; only a short P-side
-      # loop passes around the N endpoint and the preseeded hub vias.
-      - {net: MGMT_P, pin: U7.34, segments: [{layer: In2.Cu, width: 0.25, pts: [[72.1625, 57.25], [73.0, 57.3], [88.0, 57.3], [88.5, 55.75], [92.5, 55.75], [92.5, 60.75], [91.259, 60.75]]}], vias: [[72.1625, 57.25], [91.259, 60.75]]}
-      - {net: MGMT_N, pin: U7.33, segments: [{layer: In2.Cu, width: 0.25, pts: [[72.1625, 57.75], [73.0, 57.7], [88.4, 57.7], [90.5, 59.8], [91.259, 60.25]]}], vias: [[72.1625, 57.75], [91.259, 60.25]]}
+      - {net: P1_PORT_P, pin: U13.7, segments: [{layer: F.Cu, width: 0.25, pts: [[52.1, 38.5], [52.1, 38.55], [53.4, 38.55], [53.4, 35.619], [49.7, 33.619], [47.5, 33.619], [47.5, 29.8], [48.8625, 29.8], [48.8625, 31.05]]}]}
+      - {net: P1_PORT_N, pin: U13.6, segments: [{layer: F.Cu, width: 0.25, pts: [[52.1, 39.0], [52.1, 38.95], [53.8, 38.95], [53.8, 35.381], [50.1, 33.381], [50.1, 32.95], [48.8625, 32.95]]}]}
+      - {net: P2_PORT_P, pin: U14.7, segments: [{layer: F.Cu, width: 0.25, pts: [[82.1, 38.5], [82.1, 38.55], [83.4, 38.55], [83.4, 35.619], [79.7, 33.619], [77.5, 33.619], [77.5, 29.8], [78.8625, 29.8], [78.8625, 31.05]]}]}
+      - {net: P2_PORT_N, pin: U14.6, segments: [{layer: F.Cu, width: 0.25, pts: [[82.1, 39.0], [82.1, 38.95], [83.8, 38.95], [83.8, 35.381], [80.1, 33.381], [80.1, 32.95], [78.8625, 32.95]]}]}
+      - {net: P3_PORT_P, pin: U15.7, segments: [{layer: F.Cu, width: 0.25, pts: [[112.1, 38.5], [112.1, 38.55], [113.4, 38.55], [113.4, 35.619], [109.7, 33.619], [107.5, 33.619], [107.5, 29.8], [108.8625, 29.8], [108.8625, 31.05]]}]}
+      - {net: P3_PORT_N, pin: U15.6, segments: [{layer: F.Cu, width: 0.25, pts: [[112.1, 39.0], [112.1, 38.95], [113.8, 38.95], [113.8, 35.381], [110.1, 33.381], [110.1, 32.95], [108.8625, 32.95]]}]}
+      - {net: P4_PORT_P, pin: U16.7, segments: [{layer: F.Cu, width: 0.25, pts: [[138.1, 38.5], [138.1, 38.55], [139.4, 38.55], [139.4, 35.619], [135.7, 33.619], [133.5, 33.619], [133.5, 29.8], [134.8625, 29.8], [134.8625, 31.05]]}]}
+      - {net: P4_PORT_N, pin: U16.6, segments: [{layer: F.Cu, width: 0.25, pts: [[138.1, 39.0], [138.1, 38.95], [139.8, 38.95], [139.8, 35.381], [136.1, 33.381], [136.1, 32.95], [134.8625, 32.95]]}]}
+      # Launch every hub-side pair clear of U6's 0.50 mm-pitch perimeter
+      # before plane rescue places nearby GND drops.  Equal-length straight
+      # F.Cu stubs preserve polarity and give the coupled router open starts.
+      - {net: P1_HUB_N, pin: U6.1, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 55.2500], [90.3000, 55.2500]]}]}
+      - {net: P1_HUB_P, pin: U6.2, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 55.7500], [90.3000, 55.7500]]}]}
+      - {net: P2_HUB_N, pin: U6.3, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 56.2500], [90.3000, 56.2500]]}]}
+      - {net: P2_HUB_P, pin: U6.4, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 56.7500], [90.3000, 56.7500]]}]}
+      - {net: P3_HUB_N, pin: U6.6, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 57.7500], [90.3000, 57.7500]]}]}
+      - {net: P3_HUB_P, pin: U6.7, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 58.2500], [90.3000, 58.2500]]}]}
+      - {net: P4_HUB_N, pin: U6.8, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 58.7500], [90.3000, 58.7500]]}]}
+      - {net: P4_HUB_P, pin: U6.9, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 59.2500], [90.3000, 59.2500]]}]}
+      - {net: MGMT_N, pin: U6.11, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 60.2500], [90.3000, 60.2500]]}]}
+      - {net: MGMT_P, pin: U6.12, segments: [{layer: F.Cu, width: 0.25, pts: [[91.5875, 60.7500], [90.3000, 60.7500]]}]}
+      # The connector-side ESD lands get the same deterministic outward
+      # launch.  This removes pad-boxing variation without adding any vias.
+      - {net: P1_CONN_P, pin: U17.6, segments: [{layer: F.Cu, width: 0.25, pts: [[51.1375, 31.0500], [52.1000, 31.0500]]}]}
+      - {net: P1_CONN_N, pin: U17.4, segments: [{layer: F.Cu, width: 0.25, pts: [[51.1375, 32.9500], [52.1000, 32.9500]]}]}
+      - {net: P2_CONN_P, pin: U18.6, segments: [{layer: F.Cu, width: 0.25, pts: [[81.1375, 31.0500], [82.1000, 31.0500]]}]}
+      - {net: P2_CONN_N, pin: U18.4, segments: [{layer: F.Cu, width: 0.25, pts: [[81.1375, 32.9500], [82.1000, 32.9500]]}]}
+      - {net: P3_CONN_P, pin: U19.6, segments: [{layer: F.Cu, width: 0.25, pts: [[111.1375, 31.0500], [112.1000, 31.0500]]}]}
+      - {net: P3_CONN_N, pin: U19.4, segments: [{layer: F.Cu, width: 0.25, pts: [[111.1375, 32.9500], [112.1000, 32.9500]]}]}
+      - {net: P4_CONN_P, pin: U20.6, segments: [{layer: F.Cu, width: 0.25, pts: [[137.1375, 31.0500], [138.1000, 31.0500]]}]}
+      - {net: P4_CONN_N, pin: U20.4, segments: [{layer: F.Cu, width: 0.25, pts: [[137.1375, 32.9500], [138.1000, 32.9500]]}]}
+      # Reserve the fine-pitch controller launches that the completed broad
+      # route repeatedly leaves boxed.  These are bounded pad-local neckdowns;
+      # their class-width cleanup waves widen immediately after the launch.
+      - {net: SW_A, pin: U2.1, segments: [{layer: F.Cu, width: 0.25, pts: [[100.6000, 84.7500], [99.9000, 84.7500]]}, {layer: B.Cu, width: 0.25, pts: [[99.9000, 84.7500], [98.7000, 84.7500]]}], vias: [[99.9000, 84.7500]]}
+      - {net: TG_A, pin: U2.2, segments: [{layer: F.Cu, width: 0.18, pts: [[100.6000, 85.2500], [99.9000, 85.2500]]}, {layer: B.Cu, width: 0.18, pts: [[99.9000, 85.2500], [98.7000, 85.2500], [89.1000, 83.5950]]}], vias: [[99.9000, 85.2500], [89.1000, 83.5950]]}
+      - {net: 5V_A, pin: U2.7, segments: [{layer: F.Cu, width: 0.25, pts: [[100.6000, 87.7500], [99.9000, 87.7500]]}, {layer: B.Cu, width: 0.25, pts: [[99.9000, 87.7500], [98.7000, 87.7500]]}], vias: [[99.9000, 87.7500]]}
+      - {net: ISNS_B_PF, pin: U2.9, segments: [{layer: F.Cu, width: 0.18, pts: [[100.6000, 88.7500], [99.9000, 88.7500]]}, {layer: B.Cu, width: 0.18, pts: [[99.9000, 88.7500], [98.7000, 88.7500]]}], vias: [[99.9000, 88.7500]]}
+      - {net: ITHR_A, pin: U2.11, segments: [{layer: F.Cu, width: 0.18, pts: [[100.6000, 89.7500], [99.9000, 89.7500]]}, {layer: B.Cu, width: 0.18, pts: [[99.9000, 89.7500], [98.7000, 89.7500]]}], vias: [[99.9000, 89.7500]]}
+      - {net: ITH_A, pin: U2.12, segments: [{layer: F.Cu, width: 0.18, pts: [[100.6000, 90.2500], [99.9000, 90.2500]]}, {layer: B.Cu, width: 0.18, pts: [[99.9000, 90.2500], [98.7000, 90.2500]]}], vias: [[99.9000, 90.2500]]}
+      - {net: LTC_FAULT_N, pin: U2.17, segments: [{layer: F.Cu, width: 0.18, pts: [[102.2500, 91.9000], [102.2500, 92.6000]]}]}
+      - {net: LTC_FAULT_N, pin: U2.18, segments: [{layer: F.Cu, width: 0.18, pts: [[102.7500, 91.9000], [102.7500, 92.6000], [102.2500, 92.6000]]}]}
+      - {net: ITHR_B, pin: U2.32, segments: [{layer: F.Cu, width: 0.18, pts: [[107.4000, 88.7500], [108.1000, 88.7500]]}, {layer: B.Cu, width: 0.18, pts: [[108.1000, 88.7500], [109.3000, 88.7500]]}], vias: [[108.1000, 88.7500]]}
+      - {net: PGOOD_A_N, pin: U2.34, segments: [{layer: F.Cu, width: 0.18, pts: [[107.4000, 87.7500], [108.1000, 87.7500]]}, {layer: B.Cu, width: 0.18, pts: [[108.1000, 87.7500], [109.3000, 87.7500]]}], vias: [[108.1000, 87.7500]]}
+      - {net: 5V_B, pin: U2.35, segments: [{layer: F.Cu, width: 0.25, pts: [[107.4000, 87.2500], [108.1000, 87.2500]]}, {layer: B.Cu, width: 0.25, pts: [[108.1000, 87.2500], [109.3000, 87.2500]]}], vias: [[108.1000, 87.2500]]}
+      - {net: TSNS_B, pin: U2.36, segments: [{layer: F.Cu, width: 0.18, pts: [[107.4000, 86.7500], [108.1000, 86.7500]]}, {layer: B.Cu, width: 0.18, pts: [[108.1000, 86.7500], [109.3000, 86.7500]]}], vias: [[108.1000, 86.7500]]}
+      - {net: SW_B, pin: U2.39, segments: [{layer: F.Cu, width: 0.25, pts: [[107.4000, 85.2500], [108.1000, 85.2500]]}, {layer: B.Cu, width: 0.25, pts: [[108.1000, 85.2500], [109.3000, 85.2500]]}], vias: [[108.1000, 85.2500]]}
+      - {net: HUB_SDA, pin: U2.15, segments: [{layer: F.Cu, width: 0.18, pts: [[101.2500, 91.9000], [101.2500, 92.6000]]}, {layer: B.Cu, width: 0.18, pts: [[101.2500, 92.6000], [101.2500, 93.8000]]}], vias: [[101.2500, 92.6000]]}
+      - {net: SW_3V3, pin: U4.5, segments: [{layer: F.Cu, width: 0.25, pts: [[68.1375, 82.0000], [68.8375, 82.0000]]}]}
+      - {net: FET_MID, pin: U1.10, segments: [{layer: F.Cu, width: 0.25, pts: [[60.4375, 90.7500], [61.1375, 90.7500]]}, {layer: B.Cu, width: 0.25, pts: [[61.1375, 90.7500], [62.3375, 90.7500]]}], vias: [[61.1375, 90.7500]]}
+      - {net: FET_MID, pin: U1.12, segments: [{layer: F.Cu, width: 0.25, pts: [[60.4375, 89.7500], [61.1375, 89.7500]]}, {layer: B.Cu, width: 0.25, pts: [[61.1375, 89.7500], [62.3375, 89.7500]]}], vias: [[61.1375, 89.7500]]}
+      - {net: VIN_PROTECTED, pin: U1.9, segments: [{layer: F.Cu, width: 0.25, pts: [[60.4375, 91.2500], [61.1375, 91.2500]]}, {layer: B.Cu, width: 0.25, pts: [[61.1375, 91.2500], [62.3375, 91.2500], [65.8000, 98.3650]]}], vias: [[61.1375, 91.2500], [65.8000, 98.3650]]}
+      - {net: FET_MID, pin: U1.10, segments: [{layer: B.Cu, width: 0.25, pts: [[62.3375, 90.7500], [62.3375, 89.7500], [63.6000, 88.4000]]}], vias: [[63.6000, 88.4000]]}
+      # Launch both ends of the repeated logic/management tail before the
+      # general signal field can consume their only legal escape direction.
+      - {net: P1_FLT_N, pin: U7.27, segments: [{layer: F.Cu, width: 0.18, pts: [[63.8375, 57.2500], [63.1375, 57.2500]]}]}
+      - {net: P2_FLT_N, pin: U7.28, segments: [{layer: F.Cu, width: 0.18, pts: [[63.8375, 57.7500], [63.1375, 57.7500]]}, {layer: B.Cu, width: 0.18, pts: [[63.1375, 57.7500], [61.9375, 57.7500]]}], vias: [[63.1375, 57.7500]]}
+      - {net: P3_FLT_N, pin: U7.29, segments: [{layer: F.Cu, width: 0.18, pts: [[63.8375, 58.2500], [63.1375, 58.2500]]}]}
+      - {net: P4_FLT_N, pin: U7.30, segments: [{layer: F.Cu, width: 0.18, pts: [[63.8375, 58.7500], [63.1375, 58.7500]]}]}
+      - {net: MGMT_N, pin: U7.33, segments: [{layer: F.Cu, width: 0.25, pts: [[63.8375, 60.2500], [62.5500, 60.2500]]}]}
+      - {net: MGMT_P, pin: U7.34, segments: [{layer: F.Cu, width: 0.25, pts: [[63.8375, 60.7500], [62.5500, 60.7500]]}]}
+      - {net: P4_FLT_N, pin: U6.21, segments: [{layer: F.Cu, width: 0.18, pts: [[94.2500, 63.4125], [94.2500, 64.1125]]}]}
+      - {net: P3_FLT_N, pin: U6.22, segments: [{layer: F.Cu, width: 0.18, pts: [[94.7500, 63.4125], [94.7500, 64.1125]]}]}
+      - {net: P2_FLT_N, pin: U6.27, segments: [{layer: F.Cu, width: 0.18, pts: [[97.2500, 63.4125], [97.2500, 64.1125]]}, {layer: B.Cu, width: 0.18, pts: [[97.2500, 64.1125], [97.2500, 65.3125]]}], vias: [[97.2500, 64.1125]]}
+      - {net: P1_FLT_N, pin: U6.28, segments: [{layer: F.Cu, width: 0.18, pts: [[97.7500, 63.4125], [97.7500, 64.1125]]}]}
+      # The receptacle data barrels are the other end of the already-reviewed
+      # connector-side ESD launches.  Equal F.Cu stubs preserve pair symmetry.
+      - {net: P1_CONN_P, pin: J3.3, segments: [{layer: F.Cu, width: 0.25, pts: [[51.0000, 21.2900], [51.0000, 28.5000], [54.0500, 28.5000], [54.0500, 31.0500], [52.1000, 31.0500]]}]}
+      - {net: P2_CONN_P, pin: J4.3, segments: [{layer: F.Cu, width: 0.25, pts: [[81.0000, 21.2900], [81.0000, 28.5000], [84.0500, 28.5000], [84.0500, 31.0500], [82.1000, 31.0500]]}]}
+      - {net: P3_CONN_P, pin: J5.3, segments: [{layer: F.Cu, width: 0.25, pts: [[111.0000, 21.2900], [111.0000, 28.5000], [114.0500, 28.5000], [114.0500, 31.0500], [112.1000, 31.0500]]}]}
+      # Plane drops are part of route preparation, not a post-route rescue.
+      # Each site is a legal 0.30/0.20 mm POFV on the track-free board.  KRT
+      # must see the barrels before routing so it cannot occupy them on In2/B
+      # and strand the pad from the solid In1 GND plane.
+      - {net: GND, pin: U19.2, vias: [[108.8625, 32.0000]]}
+      - {net: GND, pin: U6.42,
+         segments: [{layer: F.Cu, width: 0.25,
+                     pts: [[100.4125, 58.2500], [101.5500, 58.2500]]}],
+         vias: [[101.5500, 58.2500]]}
+      - {net: GND, pin: C34.2, vias: [[92.5000, 65.6250]]}
+      - {net: GND, pin: C426.2, vias: [[47.2750, 45.1000]]}
+      - {net: GND, pin: C446.2, vias: [[77.2750, 45.1000]]}
+      - {net: GND, pin: C44.2, vias: [[78.4750, 59.6000]]}
+      - {net: GND, pin: Q21.1, vias: [[84.8625, 59.6500]]}
+      - {net: GND, pin: Q8.2, vias: [[85.6000, 57.1000]]}
+      - {net: GND, pin: R33.2, vias: [[77.0250, 51.2000]]}
+      - {net: GND, pin: R36.2, vias: [[72.6250, 52.3000]]}
+      - {net: GND, pin: R5.2, vias: [[62.6000, 93.1750]]}
+      - {net: GND, pin: C25.2, vias: [[97.2750, 81.5000]]}
+      - {net: GND, pin: U9.8,
+         segments: [{layer: F.Cu, width: 0.25,
+                     pts: [[50.9000, 45.2375], [51.3800, 45.2375]]}],
+         vias: [[51.3800, 45.2375]]}
+      - {net: GND, pin: U10.8,
+         segments: [{layer: F.Cu, width: 0.25,
+                     pts: [[80.9000, 45.2375], [81.3800, 45.2375]]}],
+         vias: [[81.3800, 45.2375]]}
+      - {net: GND, pin: U11.8,
+         segments: [{layer: F.Cu, width: 0.25,
+                     pts: [[110.9000, 45.2375], [111.3800, 45.2375]]}],
+         vias: [[111.3800, 45.2375]]}
+      - {net: GND, pin: U12.8,
+         segments: [{layer: F.Cu, width: 0.25,
+                     pts: [[136.9000, 45.2375], [137.3800, 45.2375]]}],
+         vias: [[137.3800, 45.2375]]}
+      - {net: GND, pin: C18.2, vias: [[99.0750, 91.4000]]}
+      - {net: GND, pin: C17.2, vias: [[99.0750, 93.1000]]}
+      - {net: GND, pin: R40.2, vias: [[78.8250, 74.5000]]}
+      - {net: GND, pin: R31.2, vias: [[70.4250, 67.2000]]}
+      - {net: GND, pin: U7.7, vias: [[72.1625, 58.7500]]}
+      - {net: GND, pin: R422.2, vias: [[46.0000, 47.1750]]}
+      - {net: GND, pin: U17.2, vias: [[48.8625, 32.0000]]}
+      - {net: GND, pin: C43.2, vias: [[82.8750, 68.0500]]}
   waves:
     exclude: ["GND", "unconnected-*"]
     groups:
-      # Claimed here (with no route wave) so the `signal: rest` group cannot
-      # re-route the deterministic copper emitted by prep.seed_stubs.
       preseeded_usb:
-        - P1_HUB_P
-        - P1_HUB_N
-        - P2_HUB_P
-        - P2_HUB_N
-        - P3_HUB_P
-        - P3_HUB_N
-        - P4_HUB_P
-        - P4_HUB_N
         - P1_PORT_P
         - P1_PORT_N
         - P2_PORT_P
@@ -127,13 +196,18 @@ prep:
         - P3_PORT_N
         - P4_PORT_P
         - P4_PORT_N
+      # Solve every hub/MCU-side pair together on the same reference layer.
+      usb_internal:
+        - P1_HUB_P
+        - P1_HUB_N
+        - P2_HUB_P
+        - P2_HUB_N
+        - P3_HUB_P
+        - P3_HUB_N
+        - P4_HUB_P
+        - P4_HUB_N
         - MGMT_P
         - MGMT_N
-      # Route the hub-side upstream pair before the downstream forest.  When
-      # all external pairs shared one wave, later pair rip-up could send this
-      # short pair around the board perimeter (157.7 mm uncoupled).  Alone it
-      # follows the intended direct corridor with about 12.4 mm of unavoidable
-      # breakout at the ESD switch and hub pins.
       usb_upstream:
         - UP_HUB_P
         - UP_HUB_N
@@ -148,9 +222,6 @@ prep:
         - P3_CONN_N
         - P4_CONN_P
         - P4_CONN_N
-      # A final single-ended recovery pass only sees any endpoints that the
-      # coupled router could not escape.  It is intentionally limited to USB
-      # nets and runs before every power/signal wave.
       usb_recover:
         - UP_CONN_P
         - UP_CONN_N
@@ -164,16 +235,78 @@ prep:
         - P3_CONN_N
         - P4_CONN_P
         - P4_CONN_N
-      switch: [SW_A, SW_B, CS_A, CS_B, SW_3V3]
+      switch: [SW_A, SW_B, SENSE_A, SENSE_B, AUX_SW, SW_3V3]
       port_power: [P1_VBUS, P2_VBUS, P3_VBUS, P4_VBUS]
       rail_power: [5V_A, 5V_B]
       vin_protected_pre: [VIN_PROTECTED]
       input_control_pre: [CAP, HGATE]
       input_power: [VIN_RAW, VIN_FUSED, FET_MID]
       input_recover: [VIN_RAW, VIN_FUSED, FET_MID, VIN_PROTECTED]
-      final_recover: [CAP, COMP_B, FB_B, HGATE, XTAL1]
-      uvlo_tail: [UVLO_B]
-      cs_tail: [CS_B]
+      final_recover: [CAP, HGATE, XTAL1]
+      # Final electrical cleanup is deliberately split by net class.  A
+      # mixed-width recovery wave either violates the 0.18 mm quiet-analog
+      # floor or routes the 2.5/3.0 mm power rails as signal copper.  These
+      # groups replay the measured quick-DRC tail after the broad waves.
+      cleanup_signal:
+        - LTC_FAULT_N
+        - P1_FLT_N
+        - P3_FLT_N
+        - P4_FLT_N
+        - PGOOD_A_N
+        - TG_A
+      cleanup_analog: [ISNS_B_PF, ITHR_A, ITHR_B, ITH_A]
+      cleanup_switch: [SW_A, SW_B, SW_3V3]
+      cleanup_port_power: [P1_VBUS, P2_VBUS, P3_VBUS, P4_VBUS]
+      cleanup_rail_power: [5V_A, 5V_B]
+      cleanup_input_power: [FET_MID, VIN_PROTECTED]
+      cleanup_logic_power: [3V3_LOGIC]
+      cleanup_usb:
+        - MGMT_P
+        - MGMT_N
+        - P1_CONN_P
+        - P1_CONN_N
+        - P2_CONN_P
+        - P2_CONN_N
+      final_signal_reconcile:
+        - HUB_RESET_N
+        - HUB_SCL
+        - HUB_SDA
+        - HUB_VBUS_DET
+        - ISNS_B_PF
+        - ITHR_A
+        - ITH_A
+        - P1_DATA_ISO
+        - P1_PWR_EN
+        - P2_DATA_ISO
+        - P2_FLT_N
+        - P3_DATA_ISO
+        - P3_PWR_EN
+        - P4_DATA_ISO
+        - P4_PWR_EN
+        - PGOOD_A_N
+        - TG_A
+        - TSNS_B
+      # Exact post-reconcile tail observed by the non-refilled KiCad quick
+      # check.  Keep these class-specific so the last pass cannot turn power
+      # or USB conductors into generic 0.18 mm signal routes.
+      tail_signal_reconcile:
+        - ADC_P3_VBUS
+        - ADC_P4_VBUS
+        - HUB_SCL
+        - ITHR_A
+        - P1_DATA_ISO
+        - P2_PWR_EN
+        - P4_DATA_ISO
+      tail_switch: [SW_A]
+      tail_rail_power: [5V_B]
+      tail_logic_power: [3V3_LOGIC]
+      tail_usb_internal:
+        - MGMT_P
+        - MGMT_N
+        - P1_HUB_P
+        - P1_HUB_N
+        - P4_HUB_P
+        - P4_HUB_N
       analog:
         - P1_ILIM
         - P2_ILIM
@@ -200,7 +333,22 @@ prep:
 route:
   krt: ~/gits/KiCadRoutingTools
   kicad_python: /usr/bin/python3
-  final: 03_src/route/final_chain.kicad_pcb
+  preflight_critical_pairs:
+    - {name: P1_PORT, p: P1_PORT_P, n: P1_PORT_N, source: seed_stubs, group: preseeded_usb, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P2_PORT, p: P2_PORT_P, n: P2_PORT_N, source: seed_stubs, group: preseeded_usb, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P3_PORT, p: P3_PORT_P, n: P3_PORT_N, source: seed_stubs, group: preseeded_usb, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P4_PORT, p: P4_PORT_P, n: P4_PORT_N, source: seed_stubs, group: preseeded_usb, allowed_layers: [F.Cu], no_vias: true}
+    - {name: MGMT, p: MGMT_P, n: MGMT_N, wave: usb_internal, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P1_HUB, p: P1_HUB_P, n: P1_HUB_N, wave: usb_internal, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P2_HUB, p: P2_HUB_P, n: P2_HUB_N, wave: usb_internal, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P3_HUB, p: P3_HUB_P, n: P3_HUB_N, wave: usb_internal, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P4_HUB, p: P4_HUB_P, n: P4_HUB_N, wave: usb_internal, allowed_layers: [F.Cu], no_vias: true}
+    - {name: UP_HUB, p: UP_HUB_P, n: UP_HUB_N, wave: usb_upstream, allowed_layers: [F.Cu], no_vias: true}
+    - {name: UP_CONN, p: UP_CONN_P, n: UP_CONN_N, wave: usb_external, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P1_CONN, p: P1_CONN_P, n: P1_CONN_N, wave: usb_external, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P2_CONN, p: P2_CONN_P, n: P2_CONN_N, wave: usb_external, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P3_CONN, p: P3_CONN_P, n: P3_CONN_N, wave: usb_external, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P4_CONN, p: P4_CONN_P, n: P4_CONN_N, wave: usb_external, allowed_layers: [F.Cu], no_vias: true}
   common:
     layers: [F.Cu, In2.Cu, B.Cu]
     via_size: 0.45
@@ -211,6 +359,29 @@ route:
     keepout: true
     keepout_layer: User.2
   waves:
+    - name: usb_internal
+      engine: diff
+      group: usb_internal
+      track_width: 0.25
+      clearance: 0.15
+      diff_pair_gap: 0.15
+      layers: [F.Cu]
+      keepout_layer: User.3
+      length_match_group:
+        - [P1_HUB_P, P1_HUB_N]
+        - [P1_PORT_P, P1_PORT_N]
+        - [P2_HUB_P, P2_HUB_N]
+        - [P2_PORT_P, P2_PORT_N]
+        - [P3_HUB_P, P3_HUB_N]
+        - [P3_PORT_P, P3_PORT_N]
+        - [P4_HUB_P, P4_HUB_N]
+        - [P4_PORT_P, P4_PORT_N]
+        - [MGMT_P, MGMT_N]
+      length_match_tolerance: 0.5
+      meander_amplitude: 0.3
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 50
     - name: usb_upstream
       engine: diff
       group: usb_upstream
@@ -219,6 +390,9 @@ route:
       diff_pair_gap: 0.15
       layers: [F.Cu]
       keepout_layer: User.3
+      length_match_group: [[UP_HUB_P, UP_HUB_N]]
+      length_match_tolerance: 0.5
+      meander_amplitude: 0.3
       max_iterations: 1200000
       max_probe_iterations: 80000
       max_ripup: 10
@@ -226,62 +400,66 @@ route:
       engine: diff
       group: usb_external
       track_width: 0.25
-      # Keep the foreign-net clearance consistent with the declared coupled
-      # P/N gap.  A 0.25 mm general clearance makes each polarity regard its
-      # 0.15 mm-spaced partner as an obstacle at the terminal and KRT then
-      # necks otherwise impedance-width copper to the fab floor.
       clearance: 0.15
       diff_pair_gap: 0.15
       layers: [F.Cu]
       keepout_layer: User.3
-      # route_diff already constructs and length-balances the two conductors
-      # as one coupled object.  Feeding each pair through the generic
-      # post-route matcher a second time made UP_HUB_P/N take opposite loops
-      # (114/185 mm and 157.7 mm reported uncoupled).  Leave intra-pair
-      # matching to the differential engine and audit the resulting copper.
+      length_match_group:
+        - [UP_CONN_P, UP_CONN_N]
+        - [P1_CONN_P, P1_CONN_N]
+        - [P2_CONN_P, P2_CONN_N]
+        - [P3_CONN_P, P3_CONN_N]
+        - [P4_CONN_P, P4_CONN_N]
+      length_match_tolerance: 0.5
+      meander_amplitude: 0.3
       max_iterations: 1200000
       max_probe_iterations: 80000
       max_ripup: 50
+    # Single-ended recovery is F.Cu-only: it may complete a failed launch but
+    # may not conceal an unreferenced layer transition.
     - {name: usb_recover, group: usb_recover, track_width: 0.25,
-       clearance: 0.15, layers: [F.Cu, B.Cu], max_iterations: 900000,
+       clearance: 0.15, layers: [F.Cu], max_iterations: 900000,
        max_probe_iterations: 80000, max_ripup: 40}
     - {name: switch, group: switch, track_width: 0.25,
-       power_nets: [SW_A, SW_B, CS_A, CS_B, SW_3V3],
-       power_nets_widths: [1.0, 1.0, 1.0, 1.0, 1.0],
-       neckdown_length: 2.0, neckdown_taper_length: 0.5,
+       via_size: 0.80, via_drill: 0.40,
+       power_nets: [SW_A, SW_B, SENSE_A, SENSE_B, AUX_SW, SW_3V3],
+       power_nets_widths: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+       neckdown_length: 0.5, neckdown_taper_length: 0.5,
+       no_power_tap_neckdown: true,
        layers: [F.Cu], max_iterations: 500000}
     - {name: port_power, group: port_power, track_width: 0.25,
+       via_size: 0.70, via_drill: 0.35,
        power_nets: [P1_VBUS, P2_VBUS, P3_VBUS, P4_VBUS],
        power_nets_widths: [1.5, 1.5, 1.5, 1.5],
-       neckdown_length: 2.0, neckdown_taper_length: 0.5,
-       max_iterations: 600000}
+       neckdown_length: 0.5, neckdown_taper_length: 0.5,
+       no_power_tap_neckdown: true, max_iterations: 600000}
     - {name: rail_power, group: rail_power, track_width: 0.25,
+       via_size: 0.80, via_drill: 0.40,
        power_nets: [5V_A, 5V_B], power_nets_widths: [2.5, 2.5],
-       neckdown_length: 2.0, neckdown_taper_length: 0.5,
-       max_iterations: 700000}
-    # U1.9 lies between FET_MID and HGATE; escape it before either adjacent
-    # net is present so later copper must respect this connection.
+       neckdown_length: 0.5, neckdown_taper_length: 0.5,
+       no_power_tap_neckdown: true, max_iterations: 700000}
     - {name: vin_protected_pre, group: vin_protected_pre, track_width: 0.25,
+       via_size: 0.80, via_drill: 0.40,
        power_nets: [VIN_PROTECTED], power_nets_widths: [3.0],
-       neckdown_length: 2.0, neckdown_taper_length: 0.5,
+       neckdown_length: 0.5, neckdown_taper_length: 0.5,
+       no_power_tap_neckdown: true,
        max_iterations: 900000, max_probe_iterations: 80000, max_ripup: 10}
-    # CAP/HGATE must escape U1 before the wide FET_MID input trunk is laid.
     - {name: input_control_pre, group: input_control_pre, track_width: 0.18,
        max_iterations: 700000, max_probe_iterations: 80000, max_ripup: 5}
     - {name: input_power, group: input_power, track_width: 0.25,
+       via_size: 0.80, via_drill: 0.40,
        power_nets: [VIN_RAW, VIN_FUSED, FET_MID],
        power_nets_widths: [3.0, 3.0, 3.0],
-       neckdown_length: 2.0, neckdown_taper_length: 0.5,
-       max_iterations: 500000}
-    - {name: analog, group: analog, track_width: 0.18, max_iterations: 700000, max_ripup: 35}
+       neckdown_length: 0.5, neckdown_taper_length: 0.5,
+       no_power_tap_neckdown: true, max_iterations: 500000}
+    - {name: analog, group: analog, track_width: 0.18,
+       max_iterations: 700000, max_ripup: 35}
     - name: signal
       group: signal
       track_width: 0.18
       max_iterations: 1200000
       max_probe_iterations: 80000
       max_ripup: 20
-      # Permit slow-signal reconciliation to revisit earlier slow/analog
-      # copper, while explicitly excluding USB and every power trunk.
       rip_existing_nets:
         - HUB_*
         - P?_DATA_ISO
@@ -293,17 +471,17 @@ route:
         - CAP
         - UV_SENSE
         - OV_TOP
-        - FB_B
         - SWDIO
-        - CSF_A
-        - BOOT_A
     - name: input_recover
       group: input_recover
       track_width: 0.25
+      via_size: 0.80
+      via_drill: 0.40
       power_nets: [VIN_RAW, VIN_FUSED, FET_MID, VIN_PROTECTED]
       power_nets_widths: [3.0, 3.0, 3.0, 3.0]
-      neckdown_length: 2.0
+      neckdown_length: 0.5
       neckdown_taper_length: 0.5
+      no_power_tap_neckdown: true
       max_iterations: 900000
       max_probe_iterations: 80000
       max_ripup: 25
@@ -314,134 +492,194 @@ route:
       max_probe_iterations: 80000
       max_ripup: 40
       rip_existing_nets:
-        - COMP_B
-        - EN_B
-        - HO_B
-        - CSGF_B
-        - LO_B
-        - CMZ_B
         - RT_B
-        - CSF_B
-        - SNUB_B
-        - SS_B
-        - RAMP_B
         - CAP
         - HGATE
         - XTAL1
-    # Logic power runs last because the input recovery pass can revisit the
-    # AP63203 input region and temporarily split the existing 3V3 island.
     - name: logic_power
       group: logic_power
       track_width: 0.18
       power_nets: [3V3_LOGIC]
       power_nets_widths: [0.50]
-      neckdown_length: 1.5
+      neckdown_length: 0.5
       neckdown_taper_length: 0.3
+      no_power_tap_neckdown: true
       max_iterations: 1200000
       max_probe_iterations: 80000
-      max_ripup: 5
+      max_ripup: 0
       rip_existing_nets: [ADC_*]
-    # The B-channel current-sense trace is allowed to move only after all
-    # other nets are committed.  This leaves a legal exit from U3.2, then
-    # re-routes CS_B around the completed board in the same bounded pass.
-    - name: uvlo_tail
-      group: uvlo_tail
+    - name: cleanup_signal
+      group: cleanup_signal
       track_width: 0.18
       max_iterations: 1200000
       max_probe_iterations: 80000
-      max_ripup: 40
-      rip_existing_nets: [CS_B]
-    # UVLO's bounded rip-up deliberately invalidates the earlier CS_B tree.
-    # Rebuild that five-pad current path last and retain the 1.0 mm trunk.
-    - name: cs_tail
-      group: cs_tail
+      max_ripup: 0
+    - name: cleanup_analog
+      group: cleanup_analog
+      track_width: 0.18
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: cleanup_switch
+      group: cleanup_switch
       track_width: 0.25
-      power_nets: [CS_B]
-      power_nets_widths: [1.0]
-      neckdown_length: 2.0
+      via_size: 0.80
+      via_drill: 0.40
+      power_nets: [SW_A, SW_B, SW_3V3]
+      power_nets_widths: [1.0, 1.0, 1.0]
+      neckdown_length: 0.5
       neckdown_taper_length: 0.5
       max_iterations: 1200000
       max_probe_iterations: 80000
-      max_ripup: 40
-      rip_existing_nets: [CS_B]
-
+      max_ripup: 0
+    - name: cleanup_port_power
+      group: cleanup_port_power
+      track_width: 0.25
+      via_size: 0.70
+      via_drill: 0.35
+      power_nets: [P1_VBUS, P2_VBUS, P3_VBUS, P4_VBUS]
+      power_nets_widths: [1.5, 1.5, 1.5, 1.5]
+      neckdown_length: 0.5
+      neckdown_taper_length: 0.5
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: cleanup_rail_power
+      group: cleanup_rail_power
+      track_width: 0.25
+      via_size: 0.80
+      via_drill: 0.40
+      power_nets: [5V_A, 5V_B]
+      power_nets_widths: [2.5, 2.5]
+      neckdown_length: 0.5
+      neckdown_taper_length: 0.5
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: cleanup_input_power
+      group: cleanup_input_power
+      track_width: 0.25
+      via_size: 0.80
+      via_drill: 0.40
+      power_nets: [FET_MID, VIN_PROTECTED]
+      power_nets_widths: [3.0, 3.0]
+      neckdown_length: 0.5
+      neckdown_taper_length: 0.5
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: cleanup_logic_power
+      group: cleanup_logic_power
+      track_width: 0.18
+      power_nets: [3V3_LOGIC]
+      power_nets_widths: [0.50]
+      neckdown_length: 0.5
+      neckdown_taper_length: 0.3
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: cleanup_usb
+      engine: diff
+      group: cleanup_usb
+      track_width: 0.25
+      clearance: 0.15
+      diff_pair_gap: 0.15
+      layers: [F.Cu]
+      keepout_layer: User.3
+      length_match_group:
+        - [MGMT_P, MGMT_N]
+        - [P1_CONN_P, P1_CONN_N]
+        - [P2_CONN_P, P2_CONN_N]
+      length_match_tolerance: 0.5
+      meander_amplitude: 0.3
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: final_signal_reconcile
+      group: final_signal_reconcile
+      track_width: 0.18
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: tail_switch
+      group: tail_switch
+      track_width: 0.25
+      via_size: 0.80
+      via_drill: 0.40
+      power_nets: [SW_A]
+      power_nets_widths: [1.0]
+      neckdown_length: 0.5
+      neckdown_taper_length: 0.5
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: tail_rail_power
+      group: tail_rail_power
+      track_width: 0.25
+      via_size: 0.80
+      via_drill: 0.40
+      power_nets: [5V_B]
+      power_nets_widths: [2.5]
+      neckdown_length: 0.5
+      neckdown_taper_length: 0.5
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: tail_logic_power
+      group: tail_logic_power
+      track_width: 0.18
+      power_nets: [3V3_LOGIC]
+      power_nets_widths: [0.50]
+      neckdown_length: 0.5
+      neckdown_taper_length: 0.3
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: tail_signal_reconcile
+      group: tail_signal_reconcile
+      track_width: 0.18
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
+    - name: tail_usb_internal
+      engine: diff
+      group: tail_usb_internal
+      track_width: 0.25
+      clearance: 0.15
+      diff_pair_gap: 0.15
+      layers: [F.Cu]
+      keepout_layer: User.3
+      length_match_group:
+        - [MGMT_P, MGMT_N]
+        - [P1_HUB_P, P1_HUB_N]
+        - [P4_HUB_P, P4_HUB_N]
+      length_match_tolerance: 0.5
+      meander_amplitude: 0.3
+      max_iterations: 1200000
+      max_probe_iterations: 80000
+      max_ripup: 0
 stitch:
-  # Copper uses the board's authoritative 0.15 mm clearance.  Drill clearance
-  # is checked independently by the explicit 0.255 mm hole_to_copper tier
-  # below, so dense 0.50 mm-pitch ground pins are not rejected by applying a
-  # second, unnecessarily conservative 0.25 mm copper gap to the via annulus.
   clearance: 0.15
+  # A 0.20 mm finished drill respects the 8:1 aspect-ratio floor on the
+  # nominal 1.6 mm JLC stackup.  Stitch and rescue vias share one geometry.
   via:
-    # Ground plane drops use the same paid advanced-tier 0.25/0.15 POFV
-    # geometry already required by the eFuse thermal lands.  The former
-    # 0.45/0.20 rescue barrel could not fit 39 dense SMD ground pads and left
-    # the filled plane split into nine electrically separate groups.
-    size: 0.25
-    drill: 0.15
-    spacing: 0.45
+    size: 0.30
+    drill: 0.20
+    spacing: 0.50
     pth_margin: 0.25
     tiers:
-      - {size: 0.25, drill: 0.15, hole_to_copper: 0.255}
+      - {size: 0.30, drill: 0.20, hole_to_copper: 0.255}
   keepin: {inset: 0.8}
-  # final_chain is a fully stitched, DRC-proven promoted conductor, not a
-  # pre-stitch autorouter candidate.  Re-running the old rescue stack over it
-  # duplicated reviewed escapes, refused six idempotent seed stubs, and then
-  # re-sliced already-connected GND copper.  Canonical replay therefore keeps
-  # only normalization, an authoritative refill/reload, and the final gate.
-  passes: [dedupe_vias, normalize_vias, fill, fresh_reload,
-           unify_zone_priorities, prune_stitch_dangling, gate]
+  # This source now owns a fresh autorouter candidate, so run the complete
+  # rescue/refill chain.  Obsolete promoted-route seed escapes are omitted.
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
+           astar_fallback, stitch_grid, fill, island_rescue, fill,
+           fresh_reload, unify_zone_priorities, heal_islands,
+           prune_stitch_dangling, gate]
   unify_zone_priorities: {min_bbox: 0.8}
   dedupe_vias: {radius: 0.4, metric: box}
-  normalize_vias: {below_width: 0.24, size: 0.25, drill: 0.15}
-  seed_stubs:
-    # Collision-check deterministic escapes at the same copper clearance the
-    # final KiCad DRC applies; there must be no looser rescue-only geometry.
-    clearance: 0.15
-    via: {size: 0.25, drill: 0.15}
-    stubs:
-      # U6.5 lies exactly between the P2/P3 USB pairs.  A straight 0.18 mm
-      # escape has 0.16 mm copper clearance to both neighbours, but the
-      # 0.10 mm router grid has no legal center cell.  The stitch backend
-      # collision-checks this explicit segment before placing it.
-      - net: 3V3_LOGIC
-        pin: U6.5
-        segments:
-          - {layer: F.Cu, width: 0.18, pts: [[91.5875, 57.25], [89.775, 57.25]]}
-      # Dense low-current ground pins and local bypass parts receive a short
-      # explicit escape into a paid POFV barrel.  The matching prep keepouts
-      # above reserve these sites before any routed signal can consume them.
-      - {net: GND, pin: U13.2, segments: [{layer: F.Cu, width: 0.18, pts: [[47.9, 37.5], [47.0, 37.53]]}], vias: [[47.0, 37.53]]}
-      - {net: GND, pin: C422.2, segments: [{layer: F.Cu, width: 0.18, pts: [[75.275, 39.0], [75.78, 39.0]]}], vias: [[75.78, 39.0]]}
-      - {net: GND, pin: U14.2, segments: [{layer: F.Cu, width: 0.18, pts: [[77.9, 37.5], [77.0, 37.53]]}], vias: [[77.0, 37.53]]}
-      # U14.5 must escape east inside its own land.  Letting the generic A*
-      # join it to U14.2 sends a 0.18 mm trace between the P2_HUB_P/N barrels
-      # and creates ten real hole-clearance errors.
-      - {net: GND, pin: U14.5, segments: [{layer: F.Cu, width: 0.18, pts: [[77.9, 39.0], [78.5, 39.02]]}], vias: [[78.5, 39.02]]}
-      - {net: GND, pin: U10.8, segments: [{layer: F.Cu, width: 0.18, pts: [[80.9, 45.2375], [81.4, 45.24]]}], vias: [[81.4, 45.24]]}
-      - {net: GND, pin: U15.2, segments: [{layer: F.Cu, width: 0.18, pts: [[107.9, 37.5], [107.0, 37.53]]}], vias: [[107.0, 37.53]]}
-      - {net: GND, pin: C432.2, segments: [{layer: F.Cu, width: 0.18, pts: [[116.275, 39.0], [116.78, 39.0]]}], vias: [[116.78, 39.0]]}
-      - {net: GND, pin: C201.2, segments: [{layer: F.Cu, width: 0.18, pts: [[132.775, 96.0], [133.28, 96.0]]}], vias: [[133.28, 96.0]]}
-      - {net: GND, pin: C207.2, segments: [{layer: F.Cu, width: 0.18, pts: [[133.175, 102.3], [133.67, 102.3]]}], vias: [[133.67, 102.3]]}
-      # Three sub-3.2 mm pad-bearing F.Cu islands remain after the broad
-      # rescue passes.  These exact, DRC-proven escapes bond each one to the
-      # solid In1.Cu ground plane without consuming a signal corridor.
-      - {net: GND, pin: R3.2, segments: [{layer: F.Cu, width: 0.18, pts: [[54.825, 92.2], [55.23, 92.3]]}], vias: [[55.23, 92.3]]}
-      - {net: GND, pin: U12.8, segments: [{layer: F.Cu, width: 0.18, pts: [[136.9, 45.2375], [138.4, 45.24]]}], vias: [[138.4, 45.24]]}
-      # U6.13 is boxed in by the 0.5 mm-pitch hub pins and the MGMT_P via.
-      # This path was found with a 0.20 mm obstacle clearance so its 0.18 mm
-      # copper also satisfies the stricter 0.25 mm track-to-hole rule.
-      - net: GND
-        pin: U6.13
-        segments:
-          - {layer: F.Cu, width: 0.18, pts: [[91.5875, 61.25], [91.565, 61.225], [91.49, 61.15], [91.39, 61.15], [91.34, 61.2], [91.29, 61.2], [91.265, 61.175], [91.165, 61.175], [91.14, 61.15], [91.09, 61.15], [91.065, 61.125], [91.04, 61.125], [90.79, 60.875], [90.79, 60.85]]}
-        vias: [[90.79, 60.85]]
-      # R36 is restored to the promoted route's original position, so its
-      # HUB_RESET_N pad already lands on routed copper and its GND pad joins
-      # the solid F.Cu plane without a conflict-prone eastward stub.
-      # R422 is rotated 90 degrees in floorplan.yaml.  These two reviewed
-      # escapes retain the existing P2_OVLO route and ground-plane barrel.
-      - {net: P2_OVLO, pin: R422.1, segments: [{layer: F.Cu, width: 0.18, pts: [[85.5, 40.625], [86.675, 41.7]]}]}
-      - {net: GND, pin: R422.2, segments: [{layer: F.Cu, width: 0.18, pts: [[85.5, 38.975], [86.525, 38.975], [86.525, 36.8], [86.88, 36.8]]}], vias: [[86.88, 36.8]]}
+  normalize_vias: {below_width: 0.24, size: 0.30, drill: 0.20}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
   split_t_junctions: {tol: 0.05}
@@ -468,7 +706,7 @@ stitch:
     # plane.  Constrain the graph to that layer: a through-via transition is
     # unnecessary here and doubles the state space on this dense board.
     layers: [F.Cu]
-    via: {size: 0.25, drill: 0.15, hole_to_copper: 0.255}
+    via: {size: 0.30, drill: 0.20, hole_to_copper: 0.255}
     # Dense ground pads often cannot reach the single nearest barrel because
     # a signal escape lies between them.  Search several independent plane
     # barrels before declaring the pad stranded.

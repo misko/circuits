@@ -1,0 +1,2 @@
+# No aliases are required.  Net names here intentionally match the authored
+# electrical contracts exactly.

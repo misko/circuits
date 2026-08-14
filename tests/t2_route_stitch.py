@@ -25,6 +25,8 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains,  # noqa: 
                      not_contains, run, test, tmpdir)
 
 RS = SCRIPTS / "route_and_stitch_generic.py"
+FENCE = SCRIPTS / "fence_pitch.py"
+VIP_GUARD = SCRIPTS / "via_in_pad_guard.py"
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 STEM = "cook_loadcell"
@@ -84,6 +86,25 @@ def stub_krt(d, exit_code=0, write_output=True):
     return k
 
 
+def stub_krt_via_in_pad(d):
+    """Fake router that exits 0 after taking the via-in-pad shortcut."""
+    k = d / "krt"
+    k.mkdir(exist_ok=True)
+    body = (
+        "import pcbnew, sys, pathlib\n"
+        "a=sys.argv[1:]; src=a[0]; out=a[a.index('--output')+1]\n"
+        "b=pcbnew.LoadBoard(src)\n"
+        "p=next(p for f in b.GetFootprints() for p in f.Pads() "
+        "if p.GetDrillSize().x<=0 and p.GetNetname())\n"
+        "v=pcbnew.PCB_VIA(b); v.SetPosition(p.GetPosition())\n"
+        "v.SetWidth(pcbnew.FromMM(0.6)); v.SetDrill(pcbnew.FromMM(0.3))\n"
+        "v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(p.GetNet())\n"
+        "b.Add(v); b.Save(out)\n")
+    (k / "route.py").write_text(body)
+    (k / "route_diff.py").write_text(body)
+    return k
+
+
 def krt_calls(k):
     f = k / "calls.jsonl"
     return [json.loads(l) for l in f.read_text().splitlines()] if f.is_file() else []
@@ -104,7 +125,7 @@ def stitch(p):
 
 
 # =========================================================== CLEAN ======
-@test("route-prep writes a track-free r0 with keepouts and wave net lists")
+@test("route-prep writes a segment-free r0 with keepouts and wave net lists")
 def t_prep():
     d, p = scratch()
     r = must_pass(prep(p), "prep")
@@ -120,6 +141,52 @@ def t_prep():
     sig = (d / "06_build" / "route" / "nets_sig.txt").read_text().split()
     check("GND" not in sig, "GND leaked into a routed wave — GND is pours")
     check(sig, "the rest-group is empty")
+
+
+@test("identical route-prep source produces a byte-identical r0")
+def t_prep_deterministic_bytes():
+    """Prepared copper is deterministic input to a possibly stochastic KRT
+    run. Fresh random UUIDs on identical keepouts/seeds changed the r0 SHA and
+    invalidated route_progress resume even when no geometry moved."""
+    def mutate(cfg, _d):
+        cfg.setdefault("prep", {})["seed_stubs"] = {
+            "clearance": 0.15,
+            "via": {"size": 0.6, "drill": 0.3},
+            "stubs": [{"net": "E_PLUS", "pin": "U1.3",
+                       "vias": [[35.525, 40.095]]}],
+        }
+        cfg.setdefault("prep", {})["pad_rescue"] = True
+        cfg.setdefault("stitch", {}).setdefault(
+            "pad_rescue", {})["require"] = "none"
+
+    d, p = scratch(mutate)
+    must_pass(prep(p), "first deterministic prep")
+    r0 = d / "06_build" / "route" / "r0.kicad_pcb"
+    first = r0.read_bytes()
+    must_pass(prep(p), "second deterministic prep")
+    check(first == r0.read_bytes(),
+          "identical route-prep minted different UUIDs / bytes")
+
+
+@test("route-prep preserves source-owned vias as KRT obstacles")
+def t_prep_source_vias():
+    """A generated thermal via array is source geometry, not a partial route.
+    pcbnew nevertheless returns it from GetTracks(); prep must preserve it and
+    continue rejecting actual pre-existing routed segments."""
+    d, p = scratch()
+    board = d / "04_kicad" / f"{STEM}.kicad_pcb"
+    edit_board(board,
+               "v=pcbnew.PCB_VIA(b)\n"
+               "v.SetPosition(pcbnew.VECTOR2I_MM(60.0,55.0))\n"
+               "v.SetWidth(pcbnew.FromMM(0.5))\n"
+               "v.SetDrill(pcbnew.FromMM(0.2))\n"
+               "v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu)\n"
+               "v.SetNet(b.FindNet('GND'))\nb.Add(v)\n")
+    r = must_pass(prep(p), "prep with a source-owned via")
+    contains(r.out, "source-owned vias: 1 preserved", "prep via ownership")
+    r0 = d / "06_build" / "route" / "r0.kicad_pcb"
+    eq(via_nets(r0).get("GND", 0), 1,
+       "the source-owned via did not survive into the KRT input")
 
 
 @test("route-prep draws keepouts on every configured layer")
@@ -164,6 +231,30 @@ def t_prep_seed_stubs():
     got = must_pass(run([KPY, "-c", code, r0]), "inspect preseeded r0")
     eq(int(got.out.split("@@", 1)[1].strip()), 1,
        "the deterministic via did not ride into r0")
+
+
+@test("prep.pad_rescue places collision-checked plane drops before KRT")
+def t_prep_pad_rescue():
+    """Plane-pad rescue belongs before routing: later waves must treat every
+    legal barrel/stub as an obstacle rather than consume its only site and
+    leave a post-fill pad island.  The normal stitch pass remains the safety
+    net for sites that genuinely require routed copper to exist first."""
+    def mutate(cfg, _d):
+        cfg.setdefault("prep", {})["pad_rescue"] = True
+        cfg.setdefault("stitch", {}).setdefault("pad_rescue", {})["require"] = "none"
+
+    d, p = scratch(mutate)
+    r = must_pass(prep(p), "prep with early plane-pad rescue")
+    contains(r.out, "prep pad_rescue:",
+             "prep did not report the early plane-drop pass")
+    r0 = d / "06_build" / "route" / "r0.kicad_pcb"
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1]); n=b.FindNet('GND').GetNetCode()\n"
+            "print('@@'+str(sum(1 for t in b.GetTracks() "
+            "if t.GetClass()=='PCB_VIA' and t.GetNetCode()==n)))\n")
+    got = must_pass(run([KPY, "-c", code, r0]), "inspect early-rescued r0")
+    check(int(got.out.split("@@", 1)[1].strip()) > 0,
+          "early pad_rescue placed no GND barrels on r0")
 
 
 @test("the KRT command line carries the geometry, keepouts and per-wave overrides")
@@ -224,6 +315,130 @@ def t_krt_chaining():
           f"unexpected chain outputs {outs}")
 
 
+@test("the per-wave gate refuses a router-created via in an SMD land",
+      kind="known_bad")
+def t_kb_route_new_via_in_pad():
+    """A router can report success by drilling an ordinary via into a boxed
+    endpoint.  A reviewed source-owned EP via field is allowed because it is
+    present in the wave input; newly-added via-in-pad geometry must stop the
+    exact wave before it becomes resumable or promotable."""
+    def mutate(cfg, d):
+        cfg["route"]["krt"] = str(stub_krt_via_in_pad(d))
+        cfg["route"]["python"] = KPY
+        cfg["route"]["kicad_python"] = KPY
+        cfg["route"]["forbid_new_via_in_pad"] = True
+        cfg["route"].pop("final", None)
+
+    d, p = scratch(mutate)
+    source = d / "04_kicad" / f"{STEM}.kicad_pcb"
+    # A reviewed source-owned via-in-pad is already in the wave input and must
+    # remain allowed. The fake router adds a SECOND via at the same net+site;
+    # multiset subtraction must identify exactly that new item.
+    edit_board(source, """
+p=next(p for f in b.GetFootprints() for p in f.Pads()
+       if p.GetDrillSize().x<=0 and p.GetNetname())
+v=pcbnew.PCB_VIA(b); v.SetPosition(p.GetPosition())
+v.SetWidth(pcbnew.FromMM(0.6)); v.SetDrill(pcbnew.FromMM(0.3))
+v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(p.GetNet()); b.Add(v)
+""")
+    must_pass(prep(p), "prep")
+    final = d / "06_build" / "route" / "FINAL"
+    final.write_text("stale-success.kicad_pcb\n")
+    must_fail(run([sys.executable, RS, "route", p]),
+              "route whose first wave adds via-in-pad", "forbidden via-in-pad")
+    check(not final.exists(), "failed per-wave gate retained a stale FINAL")
+    report = json.loads(
+        (d / "06_build" / "route" / "wave_1_via_in_pad.json").read_text())
+    eq(report["verdict"], "FAIL", "via-in-pad wave verdict")
+    eq(len(report["new_via_in_pad"]), 1,
+       "source-owned via must be allowed; only the router addition is new")
+    progress = json.loads(
+        (d / "06_build" / "route" / "route_progress.json").read_text())
+    eq(progress["waves"], [],
+       "a rejected wave became an authenticated/resumable prefix")
+
+
+@test("the opt-in via-in-pad wave gate passes a clean copied chain")
+def t_route_via_in_pad_guard_clean():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["kicad_python"] = KPY
+        cfg["route"]["forbid_new_via_in_pad"] = True
+
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    r = must_pass(run([sys.executable, RS, "route", p]),
+                  "clean route with per-wave via-in-pad guard")
+    contains(r.out, "waves done", "clean guarded route")
+    for i in range(1, 4):
+        report = json.loads(
+            (d / "06_build" / "route" / f"wave_{i}_via_in_pad.json").read_text())
+        eq(report["verdict"], "PASS", f"clean wave {i} guard verdict")
+
+
+@test("all race lanes independently apply the via-in-pad wave gate",
+      kind="known_bad")
+def t_kb_race_via_in_pad_guard():
+    def mutate(cfg, d):
+        cfg["route"]["krt"] = str(stub_krt_via_in_pad(d))
+        cfg["route"]["python"] = KPY
+        cfg["route"]["kicad_python"] = KPY
+        cfg["route"]["forbid_new_via_in_pad"] = True
+        cfg["route"].pop("final", None)
+
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_fail(run([sys.executable, RS, "route", p, "--race", "2"]),
+              "race whose lanes add via-in-pad", "all 2 race candidates")
+    for lane in ("c0", "c1"):
+        report = json.loads(
+            (d / "06_build" / "route" / "race" / lane /
+             "wave_1_via_in_pad.json").read_text())
+        eq(report["verdict"], "FAIL", f"{lane} via-in-pad verdict")
+
+
+@test("an early route validation failure invalidates stale build FINAL",
+      kind="known_bad")
+def t_kb_route_early_failure_invalidates_final():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["waves"] = []
+
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    final = d / "06_build" / "route" / "FINAL"
+    final.write_text("stale-success.kicad_pcb\n")
+    must_fail(run([sys.executable, RS, "route", p]),
+              "route with invalid empty wave contract", "route.waves is empty")
+    check(not final.exists(),
+          "early route validation failure retained a stale promotable FINAL")
+
+
+@test("via-in-pad guard ignores undrilled mask-only apertures")
+def t_route_via_in_pad_guard_ignores_mask_only_pad():
+    d = tmpdir("t2_vip_mask_")
+    before = d / "before.kicad_pcb"
+    after = d / "after.kicad_pcb"
+    shutil.copy(_cached_board(), before)
+    shutil.copy(before, after)
+    edit_board(after, """
+fp=pcbnew.FOOTPRINT(b); fp.SetReference('MASK1')
+fp.SetPosition(pcbnew.VECTOR2I_MM(80,70))
+p=pcbnew.PAD(fp); p.SetNumber('1'); p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+p.SetShape(pcbnew.PAD_SHAPE_RECT); p.SetSize(pcbnew.VECTOR2I_MM(1,1))
+ls=pcbnew.LSET(); ls.AddLayer(pcbnew.F_Mask); p.SetLayerSet(ls)
+p.SetPosition(pcbnew.VECTOR2I_MM(80,70)); fp.Add(p); b.Add(fp)
+v=pcbnew.PCB_VIA(b); v.SetPosition(p.GetPosition())
+v.SetWidth(pcbnew.FromMM(0.6)); v.SetDrill(pcbnew.FromMM(0.3))
+v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(b.FindNet('GND')); b.Add(v)
+""")
+    report = d / "report.json"
+    must_pass(run([KPY, VIP_GUARD, before, after, "--json", report]),
+              "guard over a mask-only aperture")
+    eq(json.loads(report.read_text())["new_via_in_pad"], [],
+       "mask-only aperture was misclassified as an SMD copper land")
+
+
 @test("stitch runs the passes in the CONFIGURED order and gates clean")
 def t_stitch_order():
     d, p = scratch()
@@ -251,14 +466,19 @@ def t_stitch_preserves_nodes():
           f"{sorted(set(before.items()) ^ set(after.items()))[:10]}")
 
 
-@test("stitching twice agrees on CONNECTIVITY, not on bytes")
+@test("stitching twice reproduces byte-identical boards and connectivity")
 def t_stitch_determinism():
-    outs = []
+    boards, nodes = [], []
     for _ in (1, 2):
         d, p = scratch()
         must_pass(stitch(p), "stitch")
-        outs.append(board_nodes(d / "04_kicad" / f"{STEM}.kicad_pcb"))
-    check(outs[0] == outs[1], "two stitch runs produced different connectivity")
+        board = d / "04_kicad" / f"{STEM}.kicad_pcb"
+        boards.append(board.read_bytes())
+        nodes.append(board_nodes(board))
+    check(nodes[0] == nodes[1],
+          "two stitch runs produced different connectivity")
+    eq(boards[0], boards[1],
+       "identical stitch inputs did not reproduce byte-identical boards")
 
 
 @test("a removal pass is followed by a fresh-interpreter barrier")
@@ -306,8 +526,54 @@ def t_fresh_reload_barrier():
           "fresh_reload changed electrical connectivity")
 
 
+@test("bridge_via_endpoints makes a copper-contained overlap an explicit "
+      "centreline join without enlarging copper")
+def t_bridge_via_endpoints():
+    """KRT stops one 0.1-mm cell short when a 0.25-mm track already touches
+    a 0.45-mm via.  The overlap is electrically conductive, but deleting an
+    unused transition via later leaves an implicit cap-to-cap join.  Snapping
+    a micro-segment from the endpoint to the via centre is geometry-preserving
+    only when the whole bridge remains inside the via's existing copper disk.
+    """
+    d = tmpdir("t2_snapvia_")
+    board = d / "snap.kicad_pcb"
+    script = d / "probe.py"
+    script.write_text(
+        "import sys\n"
+        f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
+        "import pcbnew, route_and_stitch_generic as rs\n"
+        "b=pcbnew.BOARD(); b.SetCopperLayerCount(2)\n"
+        "n=pcbnew.NETINFO_ITEM(b,'SIG'); b.Add(n)\n"
+        "def pair(y,gap):\n"
+        " t=pcbnew.PCB_TRACK(b); t.SetStart(pcbnew.VECTOR2I_MM(10,y))\n"
+        " t.SetEnd(pcbnew.VECTOR2I_MM(11,y)); t.SetWidth(pcbnew.FromMM(0.25))\n"
+        " t.SetLayer(pcbnew.F_Cu); t.SetNet(n); b.Add(t)\n"
+        " v=pcbnew.PCB_VIA(b); v.SetPosition(pcbnew.VECTOR2I_MM(11+gap,y))\n"
+        " v.SetWidth(pcbnew.FromMM(0.45)); v.SetDrill(pcbnew.FromMM(0.20))\n"
+        " v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(n); b.Add(v)\n"
+        "pair(10,0.10); pair(20,0.101)\n"
+        f"b.Save({str(board)!r})\n"
+        f"ctx=rs.Ctx({{'stitch':{{'clearance':0.20}}}}, {str(board)!r})\n"
+        "rs.MM=pcbnew.ToMM\n"
+        "rs.p_bridge_via_endpoints(ctx,{'tol':0.01,'max_move':0.20})\n"
+        "bridges=[]\n"
+        "for t in ctx.board.GetTracks():\n"
+        " if t.GetClass()=='PCB_TRACK':\n"
+        "  a=(round(pcbnew.ToMM(t.GetStart().x),2),round(pcbnew.ToMM(t.GetStart().y),2))\n"
+        "  z=(round(pcbnew.ToMM(t.GetEnd().x),2),round(pcbnew.ToMM(t.GetEnd().y),2))\n"
+        "  bridges.append((a,z))\n"
+        "print('BRIDGES',sorted(bridges))\n"
+        "print('COUNT',ctx.counts.get('via_endpoint_bridges'))\n")
+    r = must_pass(run([KPY, script]), "via endpoint normalization probe")
+    contains(r.out, "((11.0, 10.0), (11.1, 10.0))",
+             "contained track/via overlap got no explicit bridge")
+    not_contains(r.out, "((11.0, 20.0), (11.1, 20.0))",
+                 "normalizer accepted a just-over-boundary copper capsule")
+    contains(r.out, "COUNT 1", "unexpected via endpoint snap denominator")
+
+
 # ======================================================== KNOWN-BAD =====
-@test("route-prep REFUSES a board that still has tracks", kind="known_bad")
+@test("route-prep REFUSES a board that still has routed segments", kind="known_bad")
 def t_kb_tracked_input():
     """KRT re-parses pcbnew tracks wrong and routes straight through them
     (400+ silent crossings, observed twice). The router reports success."""
@@ -318,7 +584,7 @@ def t_kb_tracked_input():
                "t.SetEnd(pcbnew.VECTOR2I_MM(32.0,30.0))\n"
                "t.SetWidth(pcbnew.FromMM(0.25))\nt.SetLayer(pcbnew.F_Cu)\n"
                "b.Add(t)\n")
-    must_fail(prep(p), "prep on a tracked board", "TRACK-FREE")
+    must_fail(prep(p), "prep on a tracked board", "SEGMENT-FREE")
 
 
 @test("route-prep REFUSES to hand KRT a netclass-less project (canon R1)",
@@ -414,6 +680,92 @@ def t_kb_double_import():
     p.write_text(yaml.safe_dump(cfg))
     must_fail(run([KPY, RS, "import", p]), "import onto a tracked board",
               "DOUBLES")
+
+
+@test("import preserves and dedupes source-owned vias inherited by KRT")
+def t_import_source_vias():
+    """The final KRT board inherits source vias from r0. Importing that chain
+    into the source board must retain one barrel, not reject the base as
+    tracked and not place a duplicate barrel on top."""
+    d, p = scratch()
+    board = d / "04_kicad" / f"{STEM}.kicad_pcb"
+    edit_board(board,
+               "v=pcbnew.PCB_VIA(b)\n"
+               "v.SetPosition(pcbnew.VECTOR2I_MM(60.0,55.0))\n"
+               "v.SetWidth(pcbnew.FromMM(0.5))\n"
+               "v.SetDrill(pcbnew.FromMM(0.2))\n"
+               "v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu)\n"
+               "v.SetNet(b.FindNet('GND'))\nb.Add(v)\n")
+    chain = d / "03_src" / "source-via-chain.kicad_pcb"
+    shutil.copy(board, chain)
+    import yaml
+    cfg = yaml.safe_load(p.read_text())
+    cfg["route"]["final"] = str(chain)
+    p.write_text(yaml.safe_dump(cfg))
+    r = must_pass(run([KPY, RS, "import", p, "--route-source", "promoted"]),
+                  "import a chain carrying an inherited source via")
+    contains(r.out, "import base: 1 source-owned vias preserved",
+             "import via ownership")
+    contains(r.out, "imported 0 segments, 0 vias", "source-via dedupe")
+    eq(via_nets(board).get("GND", 0), 1,
+       "the inherited source via was duplicated or removed")
+
+
+@test("import_krt is byte-deterministic and mints no duplicate UUIDs")
+def t_import_krt_uuid_determinism():
+    """Imported copper used KiCad's process-random UUID stream.  Two clean
+    imports had identical coordinates/nets but different save order; that in
+    turn perturbed zone-fill tessellation and changed fabrication bytes.
+    Identical base + chain inputs must now produce byte-identical boards."""
+    d = tmpdir("t2_import_repro_")
+    base = _cached_board()
+    chain = d / "chain.kicad_pcb"
+    chain.write_text(
+        '(kicad_pcb\n'
+        '  (net 0 "")\n'
+        '  (net 1 "GND")\n'
+        '  (segment (start 40.0 40.0) (end 41.0 40.0) (width 0.2) '
+        '(layer "F.Cu") (net "GND"))\n'
+        '  (segment (start 41.0 40.0) (end 41.0 41.0) (width 0.2) '
+        '(layer "F.Cu") (net "GND"))\n'
+        '  (via (at 41.0 41.0) (size 0.5) (drill 0.2) '
+        '(layers "F.Cu" "B.Cu") (net "GND"))\n'
+        ')\n')
+    outs = [d / "first.kicad_pcb", d / "second.kicad_pcb"]
+    for out in outs:
+        must_pass(run([KPY, SCRIPTS / "import_krt.py", chain, base, out,
+                       "--no-fill"]), "deterministic import_krt replay")
+    eq(outs[0].read_bytes(), outs[1].read_bytes(),
+       "identical import inputs did not reproduce byte-identical boards")
+    uuids = re.findall(r'\(uuid "([0-9a-f-]+)"\)',
+                       outs[0].read_text(encoding="utf-8-sig"))
+    eq(len(uuids), len(set(uuids)),
+       "deterministic import created duplicate KiCad UUIDs")
+
+
+@test("import_krt REFUSES inherited source-via geometry drift",
+      kind="known_bad")
+def t_kb_import_source_via_geometry_drift():
+    """Same position/net is only a duplicate if its manufactured geometry
+    agrees. Silently accepting a changed drill would make the source recipe
+    and routed board describe different thermal structures."""
+    d, _p = scratch()
+    board = d / "04_kicad" / f"{STEM}.kicad_pcb"
+    edit_board(board,
+               "v=pcbnew.PCB_VIA(b)\n"
+               "v.SetPosition(pcbnew.VECTOR2I_MM(60.0,55.0))\n"
+               "v.SetWidth(pcbnew.FromMM(0.5))\n"
+               "v.SetDrill(pcbnew.FromMM(0.2))\n"
+               "v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu)\n"
+               "v.SetNet(b.FindNet('GND'))\nb.Add(v)\n")
+    chain = d / "03_src" / "drifted-via-chain.kicad_pcb"
+    chain.write_text('(kicad_pcb\n  (net 0 "")\n  (net 1 "GND")\n'
+                     '  (via (at 60.0 55.0) (size 0.6) (drill 0.3) '
+                     '(layers "F.Cu" "B.Cu") (net "GND"))\n)\n')
+    out = d / "out.kicad_pcb"
+    must_fail(run([KPY, SCRIPTS / "import_krt.py", chain, board, out,
+                   "--no-fill"]), "import drifted source via",
+              "geometry disagrees")
 
 
 @test("import REFUSES a chain file that does not exist", kind="known_bad")
@@ -659,6 +1011,53 @@ def t_via_site_full_custack():
              "an F/B-only default misses it")
 
 
+@test("via_site_ok honours a pad's local copper and solder-mask clearance",
+      kind="known_bad")
+def t_kb_via_site_pad_local_clearance():
+    """A whole-board stitch-grid point landed 1.118 mm from a 1-mm
+    fiducial.  Common 0.20-mm copper clearance approved it, while the pad's
+    authored 0.60-mm clearance required 1.325 mm centre distance and its
+    0.50-mm mask expansion also overlapped the via aperture.  Full DRC then
+    reported clearance, hole_clearance and solder_mask_bridge for each of two
+    fiducials.  The site predicate must consume the realized pad overrides so
+    the invalid vias are never emitted.
+    """
+    d = tmpdir("t2_padclr_")
+    script = d / "probe.py"
+    script.write_text(
+        "import sys\n"
+        f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
+        "import pcbnew\n"
+        "from pcb_toolkit import Toolkit\n"
+        "b=pcbnew.BOARD(); b.SetCopperLayerCount(2)\n"
+        "g=pcbnew.NETINFO_ITEM(b,'GND'); b.Add(g)\n"
+        "def pad(ref,x,clearance,mask):\n"
+        " fp=pcbnew.FOOTPRINT(b); fp.SetReference(ref)\n"
+        " p=pcbnew.PAD(fp); p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)\n"
+        " p.SetShape(pcbnew.PAD_SHAPE_CIRCLE)\n"
+        " p.SetSize(pcbnew.VECTOR2I_MM(1.0,1.0))\n"
+        " p.SetLayerSet(pcbnew.PAD.SMDMask())\n"
+        " p.SetPosition(pcbnew.VECTOR2I_MM(x,10.0))\n"
+        " p.SetLocalClearance(pcbnew.FromMM(clearance))\n"
+        " p.SetLocalSolderMaskMargin(pcbnew.FromMM(mask))\n"
+        " fp.Add(p); b.Add(fp)\n"
+        "pad('FID_LOCAL',10.0,0.60,0.10)\n"
+        "pad('FID_MASK',20.0,0.20,0.50)\n"
+        "tk=Toolkit(b,clearance_mm=0.20)\n"
+        "print('COMMON_ONLY_GAP_MM',round((1.0**2+0.5**2)**0.5-0.5-0.225,3))\n"
+        "print('LOCAL_VIA_OK',tk.via_site_ok(11.0,10.5,g.GetNetCode(),"
+        "size=0.45,drill=0.20,hole_to_copper=0.19))\n"
+        "print('MASK_VIA_OK',tk.via_site_ok(21.0,10.5,g.GetNetCode(),"
+        "size=0.45,drill=0.20,hole_to_copper=0.19))\n")
+    r = must_pass(run([KPY, script]), "local-pad-clearance via probe")
+    contains(r.out, "COMMON_ONLY_GAP_MM 0.393",
+             "fixture no longer reproduces the measured fiducial geometry")
+    contains(r.out, "LOCAL_VIA_OK False",
+             "via_site_ok ignored the pad-local copper clearance")
+    contains(r.out, "MASK_VIA_OK False",
+             "via_site_ok ignored the pad-local solder-mask expansion")
+
+
 @test("verified_astar accepts a one-layer corridor and forwards the declared "
       "hole-to-copper rule to every transition-via probe")
 def t_astar_layer_and_hole_constraints():
@@ -713,6 +1112,30 @@ def t_astar_layer_and_hole_constraints():
     not_contains(r.out, "STRICT_CALLS 0", "two-layer A* made no transition probes")
     contains(r.out, "STRICT_ALL True",
              "A* did not forward the strict hole-to-copper value")
+
+
+@test("tap via-site probes forward the declared fabrication hole-to-copper "
+      "screen")
+def t_tap_hole_to_copper_forwarded():
+    d = tmpdir("t2_tap_htc_")
+    script = d / "probe.py"
+    script.write_text(
+        "import importlib.util, pathlib\n"
+        f"p=pathlib.Path({str(RS)!r})\n"
+        "s=importlib.util.spec_from_file_location('rs',p)\n"
+        "m=importlib.util.module_from_spec(s); s.loader.exec_module(m)\n"
+        "class TK:\n"
+        " def __init__(self): self.calls=[]\n"
+        " def via_site_ok(self,*a,**kw): self.calls.append(kw); return True\n"
+        " def collides(self,*a,**kw): return None\n"
+        "t=TK(); q=m._tap_via_near(t,(10.0,10.0),1,0.3,0,0.6,0.3,0.255)\n"
+        "print('POINT',q)\n"
+        "print('FORWARDED',bool(t.calls) and "
+        "all(c.get('hole_to_copper')==0.255 for c in t.calls))\n")
+    r = must_pass(run([KPY, script]), "tap hole-to-copper forwarding probe")
+    contains(r.out, "POINT (10.0, 10.0)", "tap probe did not accept pad site")
+    contains(r.out, "FORWARDED True",
+             "tap via-site probe dropped the declared hole-to-copper value")
 
 
 @test("an unknown stitch pass name is a hard error, not a skipped pass",
@@ -965,7 +1388,7 @@ def t_kb_wave_width_below_class():
 # ======================================= ROUTE RACE (stochastic router) ==
 def stub_krt_race(d):
     """A stub router with per-candidate QUALITY: candidate 1 'routes' by
-    connecting two 5V pads on its first wave (via the KiCad interpreter);
+    connecting all 5V pads on its first wave (via the KiCad interpreter);
     candidate 0 copies input through unchanged. The measurable difference
     quick must see: candidate 1 has strictly fewer routed-net unconnected."""
     k = d / "krt"
@@ -984,13 +1407,15 @@ def stub_krt_race(d):
         "            'n=b.FindNet(\"5V\")\\n'\n"
         "            'pads=[p for f in b.GetFootprints() for p in f.Pads()'\n"
         "            ' if p.GetNetname()==\"5V\"]\\n'\n"
-        "            't=pcbnew.PCB_TRACK(b)\\n'\n"
-        "            't.SetStart(pads[0].GetPosition())\\n'\n"
-        "            't.SetEnd(pads[1].GetPosition())\\n'\n"
-        "            't.SetWidth(pcbnew.FromMM(0.5))\\n'\n"
-        "            't.SetLayer(pcbnew.F_Cu)\\n'\n"
-        "            't.SetNetCode(n.GetNetCode())\\n'\n"
-        "            'b.Add(t)\\nb.Save(sys.argv[1])\\n')\n"
+        "            'for p in pads[1:]:\\n'\n"
+        "            ' t=pcbnew.PCB_TRACK(b)\\n'\n"
+        "            ' t.SetStart(pads[0].GetPosition())\\n'\n"
+        "            ' t.SetEnd(p.GetPosition())\\n'\n"
+        "            ' t.SetWidth(pcbnew.FromMM(0.5))\\n'\n"
+        "            ' t.SetLayer(pcbnew.F_Cu)\\n'\n"
+        "            ' t.SetNetCode(n.GetNetCode())\\n'\n"
+        "            ' b.Add(t)\\n'\n"
+        "            'b.Save(sys.argv[1])\\n')\n"
         f"    subprocess.run(['{KPY}', '-c', code, out], check=True)\n"
         "sys.exit(0)\n")
     return k
@@ -1001,7 +1426,7 @@ def t_race_picks_better():
     """KRT is stochastic, so N concurrent attempts differ; the race must
     keep the quick-measured best (fewest routed-net unconnected), record
     every candidate's numbers in race_log.json, and point FINAL at the
-    winner's chain. Candidate 1's stub connects two 5V pads; candidate 0
+    winner's chain. Candidate 1's stub connects all 5V pads; candidate 0
     routes nothing — race must choose 1 for a measured reason, not by
     position (0 wins ties, so a tie would expose a broken comparison).
     RED-verified against the pre-race router (git show HEAD swap,
@@ -1010,6 +1435,15 @@ def t_race_picks_better():
         cfg["route"]["krt"] = str(stub_krt_race(d))
         cfg["route"]["python"] = sys.executable
         cfg["route"].pop("final", None)
+        # Scope this fixture's routing obligation to the one net the stub can
+        # deliberately complete. The test is about measured race selection,
+        # not the cook-loadcell fixture's unrelated signal routes.
+        cfg["prep"]["waves"]["exclude"] = [
+            "GND", "3V3", "CLK", "DAT", "RATE_SEL", "SH", "E_PLUS",
+            "S_PLUS", "S_MINUS", "RING_12", "RING_23", "RING_34",
+            "RING_41", "AVDD_FB", "BASE",
+            "unconnected-*",
+        ]
     d, p = scratch(mutate)
     must_pass(prep(p), "prep")
     r = must_pass(run([sys.executable, RS, "route", p, "--race", "2"]),
@@ -1043,6 +1477,67 @@ def t_kb_race_all_fail():
     must_pass(prep(p), "prep")
     must_fail(run([sys.executable, RS, "route", p, "--race", "2"]),
               "race with all candidates failing", "all 2 race candidates")
+
+
+@test("a race where every completed candidate is DIRTY fails closed and "
+      "records the measurements", kind="known_bad")
+def t_kb_race_all_dirty():
+    """A least-bad route is not a routing success. Earlier USB Hub v4 races
+    returned zero even when both quick verdicts still had routed opens; that
+    deferred a router failure into the much more expensive stitch/full-DRC
+    phase. The race must retain its evidence but write no promotable FINAL."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["race"] = 2
+        cfg["route"].pop("final", None)
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    final = d / "06_build" / "route" / "FINAL"
+    final.write_text("stale-route.kicad_pcb\n")
+    must_fail(run([sys.executable, RS, "route", p, "--race", "2"]),
+              "race with all candidates dirty", "all 2 completed race candidates are DIRTY")
+    check(not final.exists(), "a failed dirty race retained a stale FINAL marker")
+    log = json.loads((d / "06_build" / "route" / "race_log.json").read_text())
+    eq(log["chosen"], None, "dirty race must have no chosen candidate")
+    check(all(v.get("verdict") == "DIRTY" for v in log["candidates"].values()),
+          f"fixture did not produce all-DIRTY candidates: {log}")
+
+
+@test("route --resume continues only an authenticated contiguous wave prefix")
+def t_route_resume_authenticated():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["race"] = 1
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "initial route")
+    progress_path = d / "06_build" / "route" / "route_progress.json"
+    progress = json.loads(progress_path.read_text())
+    check(len(progress["waves"]) >= 2, "fixture needs multiple waves")
+    removed = progress["waves"].pop()
+    progress_path.write_text(json.dumps(progress))
+    (d / "06_build" / "route" / removed["output"]).unlink()
+    before = len(krt_calls(d / "krt"))
+    r = must_pass(run([sys.executable, RS, "route", p, "--resume"]),
+                  "authenticated resume")
+    contains(r.out, "authenticated wave(s)", "resume provenance")
+    eq(len(krt_calls(d / "krt")), before + 1,
+       "resume should rerun only the missing suffix")
+
+
+@test("route --resume rejects a mutated intermediate instead of trusting rN",
+      kind="known_bad")
+def t_route_resume_rejects_mutation():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["race"] = 1
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "initial route")
+    r1 = d / "06_build" / "route" / "r1.kicad_pcb"
+    r1.write_bytes(r1.read_bytes() + b"\n# planted post-route mutation\n")
+    must_fail(run([sys.executable, RS, "route", p, "--resume"]),
+              "resume over mutated wave", "missing or changed")
 
 
 # ============================================= QUICK (loop cheapener) ====
@@ -1207,6 +1702,105 @@ def t_tap_direct():
     check("SEGS 0" not in r.out, "no tap copper was emitted")
 
 
+@test("a pad-centred tap via emits no half-micron rounding stub")
+def t_tap_exact_pad_site():
+    """KiCad footprints may place a pad on a half-micron coordinate. The
+    zero-offset via site is that exact coordinate; rounding it to 0.001 mm
+    created a 0.0005 mm full-width segment and a false adjacent-pad conflict."""
+    d, p, board = tap_scratch([], [{"net": "SIG", "from": "U1.1",
+                                    "to": [10.0, 7.5], "width": 0.3,
+                                    "plane": True}])
+    edit_board(board,
+               "f=b.FindFootprintByReference('U1')\n"
+               "p=next(x for x in f.Pads() if x.GetNumber()=='1')\n"
+               "p.SetPosition(pcbnew.VECTOR2I_MM(5.0005,7.5))\n")
+    must_pass(taps_cmd(p), "pad-centred plane tap")
+    code = ("import pcbnew,sys,math\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "tiny=[]\nfor t in b.GetTracks():\n"
+            "  if t.GetClass()=='PCB_TRACK':\n"
+            "    a=t.GetStart(); z=t.GetEnd()\n"
+            "    if math.hypot(a.x-z.x,a.y-z.y)<1000: tiny.append(t)\n"
+            "print('TINY',len(tiny))\n")
+    r = must_pass(run([KPY, "-c", code, board]), "inspect tap microsegments")
+    contains(r.out, "TINY 0", "tap pad-site rounding emitted dead copper")
+
+
+@test("a plane drop places one via and no redundant in-pour neck")
+def t_tap_plane_drop():
+    """When the declared plane is already under a pad, the complete bond is
+    one via. The generic mode must not require a fake target, add a second
+    barrel, or draw a track that the same-net pour will replace."""
+    d, p, board = tap_scratch([], [{"net": "SIG", "from": "U1.1",
+                                    "width": 0.3, "plane": True,
+                                    "drop": True}])
+    r = must_pass(taps_cmd(p), "single-via plane drop")
+    contains(r.out, "OK plane_drop", "plane-drop strategy verdict")
+    eq(via_nets(board).get("SIG", 0), 1,
+       "a plane drop must spend exactly one via")
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "print('SEGS',sum(1 for t in b.GetTracks() "
+            "if t.GetClass()=='PCB_TRACK' and t.GetNetname()=='SIG'))\n")
+    got = must_pass(run([KPY, "-c", code, board]), "inspect plane drop")
+    contains(got.out, "SEGS 0", "plane drop emitted a redundant neck")
+
+
+@test("a plane drop can carry exact per-via geometry and Type VII protection")
+def t_tap_plane_drop_process():
+    d, p, board = tap_scratch([], [{
+        "net": "SIG", "from": "U1.1", "width": 0.3,
+        "plane": True, "drop": True,
+        "via": {"size": 0.5, "drill": 0.2, "exact": True},
+        "via_protection": {"capping": True, "filling": True},
+    }])
+    must_pass(taps_cmd(p), "item-level Type VII plane drop")
+    code = (
+        "import pcbnew,sys\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "v=next(t for t in b.GetTracks() if t.GetClass()=='PCB_VIA')\n"
+        "p=b.FindFootprintByReference('U1').FindPadByNumber('1').GetPosition()\n"
+        "print('@@',v.GetPosition()==p,round(v.GetWidth(pcbnew.F_Cu)/1e6,3),"
+        "round(v.GetDrill()/1e6,3),v.GetCappingMode(),v.GetFillingMode())\n")
+    got = must_pass(run([KPY, "-c", code, board]),
+                    "inspect item-level Type VII drop")
+    contains(got.out, "@@ True 0.5 0.2 1 1",
+             "exact via geometry/protection did not survive save")
+
+
+@test("drop without a declared plane is a hard config error", kind="known_bad")
+def t_kb_tap_drop_without_plane():
+    d, p, _board = tap_scratch([], [{"net": "SIG", "from": "U1.1",
+                                     "width": 0.3, "drop": True}])
+    must_fail(taps_cmd(p), "unowned via drop", "requires `plane: true`")
+
+
+@test("exact tap-via placement is legal only for a deterministic plane drop",
+      kind="known_bad")
+def t_kb_tap_exact_without_drop():
+    d, p, _board = tap_scratch([], [{
+        "net": "SIG", "from": "U1.1", "to": "U2.1", "width": 0.3,
+        "via": {"size": 0.5, "drill": 0.2, "exact": True},
+    }])
+    must_fail(taps_cmd(p), "exact via outside a plane drop",
+              "`via.exact: true` requires a plane drop")
+
+
+@test("a named tap REFUSES silent width fallback", kind="known_bad")
+def t_kb_tap_width_fallback():
+    """A declared 1.2 mm power tap cannot quietly become the toolkit's
+    generic 0.2 mm fallback. The fixture leaves a legal narrow corridor: old
+    behavior routed it at 0.2 mm; the named tap must now refuse instead."""
+    blockers = []
+    for layer in ("F.Cu", "B.Cu"):
+        for y in (6.7, 8.3):
+            blockers.append({"x1": 0.0, "y1": y, "x2": 30.0, "y2": y,
+                             "w": 0.2, "layer": layer})
+    d, p, _board = tap_scratch(
+        blockers, [{"net": "SIG", "from": "U1.1", "to": "U2.1",
+                    "width": 1.2}])
+    must_fail(taps_cmd(p), "tap whose declared width cannot fit",
+              "unrouted taps")
+
+
 @test("a blocked tap hops through vias to the hop layer (strategy 2)")
 def t_tap_via_hop():
     """An other-net F.Cu wall blocks every same-layer candidate; the tap must
@@ -1361,6 +1955,22 @@ def via_nets(board):
     return json.loads(r.out.split("@@", 1)[1].strip())
 
 
+def vias_in_smd_pads(board):
+    """Descriptions of ordinary vias whose centres land in any SMD pad."""
+    code = (
+        "import pcbnew,sys,json\n"
+        "b=pcbnew.LoadBoard(sys.argv[1]); o=[]\n"
+        "for t in b.GetTracks():\n"
+        " if t.GetClass()!='PCB_VIA': continue\n"
+        " hits=[f'{f.GetReference()}.{p.GetNumber()}' "
+        "for f in b.GetFootprints() for p in f.Pads() "
+        "if p.GetDrillSize().x<=0 and p.HitTest(t.GetPosition())]\n"
+        " if hits: o.append([t.GetNetname(),t.GetPosition().x,t.GetPosition().y,hits])\n"
+        "print('@@'+json.dumps(o))\n")
+    r = must_pass(run([KPY, "-c", code, str(board)]), "vias_in_smd_pads")
+    return json.loads(r.out.split("@@", 1)[1].strip())
+
+
 @test("pad_rescue via-bonds EVERY configured plane net (GAP A: two inner planes)")
 def t_pad_rescue_multiplane():
     """A 4-layer board with In1=GND and In2=VIN needs BOTH plane-nets rescued
@@ -1380,6 +1990,46 @@ def t_pad_rescue_multiplane():
     counts = drc_counts(board)
     check(counts["unconnected"] == 0,
           f"multi-plane rescue left {counts['unconnected']} unconnected: {counts}")
+
+
+@test("pad_rescue rejects a blocked via+stub atomically (no orphan via)")
+def t_pad_rescue_rejected_stub_leaves_no_via():
+    """A legal via site beyond a foreign-net wall is not a legal pad rescue:
+    the required same-net stub crosses the wall.  The candidate must be
+    rejected as one transaction.  Pre-fix, pad_rescue committed the via,
+    discovered the stub collision afterwards, and left that orphan barrel on
+    the board; repeated candidates consumed every nearby spacing window."""
+    d, p, board = four_layer_scratch(
+        {"GND": [[15, 10]]},
+        {"net": "GND", "via_in_pad": False, "stub_width": 0.3,
+         "rings": [1.0], "angle_step": 360, "require": "none"})
+    edit_board(board, """
+sig=pcbnew.NETINFO_ITEM(b,'SIG'); b.Add(sig)
+t=pcbnew.PCB_TRACK(b); t.SetNet(sig); t.SetLayer(pcbnew.F_Cu)
+t.SetWidth(pcbnew.FromMM(0.3))
+t.SetStart(pcbnew.VECTOR2I_MM(15.75,8.0))
+t.SetEnd(pcbnew.VECTOR2I_MM(15.75,12.0)); b.Add(t)
+""")
+    must_pass(stitch(p), "pad rescue with a blocked compound candidate")
+    eq(via_nets(board).get("GND", 0), 0,
+       "a rejected via+stub candidate left an orphan via")
+
+
+@test("pad_rescue via_in_pad:false also rejects another same-net SMD land")
+def t_pad_rescue_no_foreign_same_net_pad_landing():
+    """Same-net copper is legal to `via_site_ok`, but it is not permission to
+    reinterpret `via_in_pad:false`.  A rescue candidate for the first pad is
+    placed exactly at the second pad centre; the pass must skip that site and
+    may use a genuinely adjacent site for the second pad."""
+    d, p, board = four_layer_scratch(
+        {"GND": [[15.0, 10.0], [16.6, 10.0]]},
+        {"net": "GND", "via_in_pad": False, "stub_width": 0.3,
+         "rings": [1.0], "angle_step": 360, "require": "none"})
+    must_pass(stitch(p), "pad rescue beside another same-net SMD pad")
+    check(via_nets(board).get("GND", 0) >= 1,
+          "fixture placed no adjacent rescue via; the assertion is vacuous")
+    eq(vias_in_smd_pads(board), [],
+       "via_in_pad:false still placed a rescue via in an SMD land")
 
 
 # ======================================================== KNOWN-BAD =====
@@ -1506,6 +2156,55 @@ def pour_scratch(layers, passes):
     return d, p, board
 
 
+@test("route_fence closes both saved-centreline flanks, including endpoint "
+      "spans, and is idempotent")
+def t_route_fence_saved_centreline():
+    """The emitter must follow realized copper, not a declared lattice, and
+    the independent gate must include the launch/package lead-in and run-out.
+    A second run proves existing plated elements are remeasured and credited
+    instead of receiving a duplicate row of vias.
+    """
+    import yaml
+    _d, config, board = pour_scratch(["F.Cu", "B.Cu"],
+                                     ["route_fence", "fill", "gate"])
+    edit_board(
+        board,
+        "rf=pcbnew.NETINFO_ITEM(b,'RF_TEST'); b.Add(rf)\n"
+        "for a,z in [((6.0,10.0),(14.0,10.0)),"
+        "            ((14.0,10.0),(18.0,14.0)),"
+        "            ((18.0,14.0),(26.0,14.0))]:\n"
+        " t=pcbnew.PCB_TRACK(b)\n"
+        " t.SetStart(pcbnew.VECTOR2I_MM(*a))\n"
+        " t.SetEnd(pcbnew.VECTOR2I_MM(*z))\n"
+        " t.SetWidth(pcbnew.FromMM(0.30)); t.SetLayer(pcbnew.F_Cu)\n"
+        " t.SetNet(rf); b.Add(t)\n")
+    cfg = yaml.safe_load(config.read_text())
+    cfg["stitch"]["route_fence"] = {
+        "net": "GND", "nets": ["RF_TEST"], "layer": "F.Cu",
+        "nominal_pitch": 1.0, "maximum_pitch": 1.4, "band": 1.0,
+        "lateral_offsets": [0.70, 0.80, 0.90], "require": "all",
+    }
+    config.write_text(yaml.safe_dump(cfg))
+
+    first = must_pass(stitch(config), "first route-following fence run")
+    contains(first.out, "2/2 flank(s)", "in-process fence denominator")
+    contains(first.out, "corner anchor(s)",
+             "bends are reserved before greedy straight-span filling")
+    count = via_nets(board).get("GND", 0)
+    check(count >= 20, f"implausibly few realized fence vias: {count}")
+    measured = must_pass(
+        run([KPY, FENCE, board, "1.0", "1.4", "--nets", "RF_TEST"]),
+        "independent saved-board fence measurement")
+    contains(measured.out, "2/2 configured arm-sides graded; 2/2 pass",
+             "saved-board endpoint-inclusive denominator")
+
+    second = must_pass(stitch(config), "idempotent fence rerun")
+    contains(second.out, "route fence: 0 new via(s)",
+             "rerun did not credit existing realized sites")
+    eq(via_nets(board).get("GND", 0), count,
+       "idempotent fence rerun duplicated plated sites")
+
+
 def via_xy(board):
     """[(x_mm, y_mm)] of every via on the board, sorted."""
     code = ("import pcbnew,sys,json\nb=pcbnew.LoadBoard(sys.argv[1])\no=[]\n"
@@ -1588,6 +2287,55 @@ def t_grid_fractional_pitch():
           "genuinely fractional")
 
 
+@test("stitch_grid refuses an ordinary same-net via centred in an SMD land")
+def t_grid_no_undeclared_via_in_pad():
+    """Same-net overlap is DRC-legal but not process-neutral.
+
+    Pluto RX2 8-way v5's 5-mm GND lattice placed an unfilled 0.45/0.20-mm
+    barrel at (42.50,77.50), inside keyed SWD connector J11.3.  DRC stayed
+    clean because both objects were GND, but the undeclared via-in-pad could
+    wick solder from the 0.74 x 2.79-mm SMT land.  Every ordinary stitch
+    emitter shares ``try_via``; the common site seam must reject the exact
+    SMD shape unless its caller explicitly owns via-in-pad processing.
+    """
+    _d, config, board = pour_scratch(
+        ["F.Cu", "B.Cu"], ["stitch_grid", "fill", "gate"])
+    edit_board(
+        board,
+        "fp=pcbnew.FOOTPRINT(b); fp.SetReference('J11')\n"
+        "pad=pcbnew.PAD(fp); pad.SetNumber('3')\n"
+        "pad.SetShape(pcbnew.PAD_SHAPE_ROUNDRECT)\n"
+        "pad.SetRoundRectRadiusRatio(0.15)\n"
+        "pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)\n"
+        "pad.SetSize(pcbnew.VECTOR2I_MM(0.74,2.79))\n"
+        "pad.SetLayerSet(pcbnew.PAD.SMDMask())\n"
+        "pad.SetPosition(pcbnew.VECTOR2I_MM(8.0,5.0))\n"
+        "pad.SetNet(b.FindNet('GND')); fp.Add(pad); b.Add(fp)\n")
+    must_pass(stitch(config), "stitch grid beside same-net SMD copper")
+    check((8.0, 5.0) not in via_xy(board),
+          "ordinary stitch via landed in J11.3 despite no via-in-pad owner")
+
+
+@test("stitch_grid minimum grades the realized saved grid on an idempotent "
+      "rerun, not only newly emitted vias")
+def t_grid_min_idempotent():
+    """A completed grid makes every second-run `try_via` a correct no-op.
+    Its density contract must stay green by measuring the plated result;
+    otherwise every resumed/post-review stitch run falsely reports `0 < min`.
+    """
+    import yaml
+    _d, p, _board = _grid_pitch_scratch(2.0)
+    cfg = yaml.safe_load(p.read_text())
+    cfg["stitch"]["stitch_grid"]["min"] = 20
+    p.write_text(yaml.safe_dump(cfg))
+    must_pass(stitch(p), "initial stitch-grid realization")
+    second = must_pass(stitch(p), "idempotent stitch-grid rerun")
+    contains(second.out, "stitch grid: 0 vias added",
+             "rerun unexpectedly duplicated the existing grid")
+    contains(second.out, "declared sites served",
+             "rerun did not grade the saved plated result")
+
+
 @test("a NON-POSITIVE stitch pitch is a hard error — pre-fix it placed ZERO "
       "vias and said nothing", kind="known_bad")
 def t_kb_grid_nonpositive_pitch():
@@ -1624,11 +2372,31 @@ def t_kb_grid_nonpositive_pitch():
 _PRUNE_PASSES = ("stitch_grid", "fill", "prune_stitch_dangling", "gate")
 
 
+@test("normalize_vias uses KiCad 10's layer-aware via diameter API")
+def t_normalize_vias_layer_width():
+    d, p, board = pour_scratch(
+        ["F.Cu", "B.Cu"], ("normalize_vias", "fill", "gate"))
+    edit_board(board,
+               "n=b.FindNet('GND')\n"
+               "v=pcbnew.PCB_VIA(b)\n"
+               "v.SetPosition(pcbnew.VECTOR2I_MM(26.0,16.0))\n"
+               "v.SetWidth(pcbnew.FromMM(0.3))\n"
+               "v.SetDrill(pcbnew.FromMM(0.2))\n"
+               "v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu)\n"
+               "v.SetNetCode(n.GetNetCode())\nb.Add(v)\n")
+    r = must_pass(stitch(p), "normalize a sub-floor via")
+    contains(r.out, "normalized 1 sub-spec via", "normalize pass did not run")
+    not_contains(r.out, "GetWidth called without a layer argument",
+                 "normalize used KiCad 10's deprecated via-width API")
+
+
 @test("prune_stitch_dangling keeps vias that bond two filled pours (control)")
 def t_prune_keeps_bonded():
     d, p, board = pour_scratch(["F.Cu", "B.Cu"], _PRUNE_PASSES)
     r = must_pass(stitch(p), "stitch on a two-pour board")
     contains(r.out, "pruned 0 dangling", "nothing should be pruned")
+    not_contains(r.out, "GetWidth called without a layer argument",
+                 "pruner used KiCad 10's deprecated via-width API")
     check(via_nets(board).get("GND", 0) > 0, "grid placed no vias to keep")
 
 
@@ -2245,7 +3013,7 @@ def t_seed_stubs_serves():
     d, p, board = seed_scratch([{"net": "PWR", "pin": "U1.1",
                                  "vias": [[15, 10]]}])
     r = must_pass(stitch(p), "stitch with seed_stubs")
-    contains(r.out, "seed_stubs: 1 pin(s) served", "the pass served the pin")
+    contains(r.out, "seed_stubs: 1 bank(s) served", "the pass served the pin")
     eq(drc_counts(board)["unconnected"], 0,
        "the seed stub did not bond the pour-fed pin")
 
@@ -2374,6 +3142,22 @@ def zone_fill(board):
     return json.loads(r.out.split("@@", 1)[1].strip())
 
 
+@test("import --route-source promoted ignores a leftover build FINAL and "
+      "records the selected lineage")
+def t_import_source_is_explicit():
+    d, p, _board, promoted, _pristine = seed_pipeline([])
+    stale = d / "03_src" / "stale_build_chain.kicad_pcb"
+    stale.write_text('(kicad_pcb\n  (net 0 "")\n)\n')
+    marker = d / "06_build" / "FINAL"
+    marker.write_text(str(stale) + "\n")
+    must_pass(run([KPY, RS, "import", p, "--route-source", "promoted"]),
+              "explicit promoted import")
+    receipt = json.loads((d / "06_build" / "import_provenance.json").read_text())
+    eq(receipt["selected_source"], "promoted", "selected route lineage")
+    eq(receipt["chain_sha256"], __import__("hashlib").sha256(
+        promoted.read_bytes()).hexdigest(), "receipt chain hash")
+
+
 def _uuid_blind(b):
     """pcbnew mints a fresh uuid for every object it creates, so two imports
     of the same chain into the same base differ by exactly those uuids and
@@ -2410,7 +3194,7 @@ def t_seed_stubs_reachable_through_import():
 
     with 0 vias on the board and DRC unconnected=1. The pass could not run AT
     ALL. Post-fix the same fixture measures [['PWR', False, 0]] out of import,
-    "1 pin(s) served", {'PWR': 1} vias, and unconnected=0.
+    "1 bank(s) served", {'PWR': 1} vias, and unconnected=0.
     """
     d, p, board, chain, pristine = seed_pipeline(
         [{"net": "PWR", "pin": "U1.1", "vias": [[15, 10]]}])
@@ -2422,12 +3206,37 @@ def t_seed_stubs_reachable_through_import():
        "the pour must arrive at stitch UNFILLED or seed_stubs cannot run "
        "(net, IsFilled, filled area nm^2)")
     rs = must_pass(run([KPY, RS, "stitch", p]), "stitch after a piped import")
-    contains(rs.out, "seed_stubs: 1 pin(s) served", "the pass must RUN")
+    contains(rs.out, "seed_stubs: 1 bank(s) served", "the pass must RUN")
     eq(via_nets(board).get("PWR", 0), 1,
        "the stub via did not LAND in the saved copper")
     eq(drc_counts(board)["unconnected"], 0,
        "the piped seed stub did not bond the pour-fed pin")
     contains(r.out, "--no-fill", "import must announce why it did not fill")
+
+
+@test("a named taps plan keeps pours unfilled until stitch owns the fill")
+def t_taps_reachable_through_import():
+    """Taps run after import and add collision-checked segments/vias. If
+    import fills first, that copper lands in stale zone geometry and quick
+    reports zero-clearance/zero-hole-clearance artifacts. The plan itself is
+    sufficient to derive --no-fill; no second opt-in key may be required."""
+    import yaml
+    d, p, board, _chain, _pristine = seed_pipeline([])
+    cfg = yaml.safe_load(p.read_text())
+    cfg["taps"] = {
+        "clearance": 0.15,
+        "via": {"size": 0.6, "drill": 0.3},
+        "connections": [{"net": "PWR", "from": "U1.1",
+                         "to": [15.0, 10.0], "width": 0.3,
+                         "layer": "F.Cu", "hop_layer": "B.Cu",
+                         "plane": True}],
+    }
+    p.write_text(yaml.safe_dump(cfg))
+    r = must_pass(run([KPY, RS, "import", p]), "import with a taps plan")
+    z = zone_fill(board)
+    eq([[n, f, a] for n, f, a in z], [["PWR", False, 0]],
+       "a taps plan must arrive at its pass with unfilled pours")
+    contains(r.out, "--no-fill", "import must announce the taps-derived state")
 
 
 @test("a route.yaml with NO seed_stubs still fills at `import` — byte-for-byte "

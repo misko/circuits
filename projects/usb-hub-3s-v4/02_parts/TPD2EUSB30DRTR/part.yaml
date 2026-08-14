@@ -1,0 +1,21 @@
+mpn: TPD2EUSB30DRTR
+manufacturer: Texas Instruments
+type: dual_channel_esd_protection
+datasheet: {doc_id: SLVSAC2, revision: SLVSAC2G, url: "https://www.ti.com/lit/ds/symlink/tpd2eusb30.pdf", sha256: a2c0dd845043a5bbfe610f673879c29e38649544385dea51dbe0a4c49df39136, fetched: 2026-08-10}
+package: SOT-9X3 DRT, 1.0x0.8mm
+footprint: Package_TO_SOT_SMD:SOT-9X3
+escape: {style: leaded, pitch: 0.50, tier_required: jlc_2layer_default, checked: "manufacturer escape and connector-first routing review 2026-08-10"}
+pins: {1: IO1, 2: IO2, 3: GND}
+limits: {io_absolute_max: 6V, breakdown_min: 7V, iec_esd_contact: 8kV, surge_8_20us: 5A, capacitance_typ: 0.7pF}
+gotchas:
+  - "D6 protects Type-C CC1 and CC2 only. It is required because those connector contacts are exposed even though v4 carries no USB data."
+  - "Place at J5 with a direct ground-via return; route connector-to-clamp before branching to TPS25810."
+verified: "TI SLVSAC2G Figure 5-1 and Table 5-1 p.3 independently confirm the DRT top-view pin map (pin 1 D1+, pin 2 D1-, pin 3 GND); 6V I/O absolute maximum, IEC rating and layout guidance re-read 2026-08-10"
+sourcing: {lcsc: C97502, alternates: [], note: "exact TI order code; do not accept same-looking third-party parts using the TI MPN as a descriptor"}
+layout:
+  source: "TI SLVSAC2G Figure 10-1 and layout guidelines"
+  reviewed: "2026-08-11"
+  notes: "Place D6 at J5 before either CC trace branches toward U3; use straight connector-to-clamp segments and a ground via immediately beside the GND pad."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSAC2G Figure 10-1 and layout guidance", why: "manufacturer source requires the exposed connector to reach the clamp before protected circuitry with a short ground path"}
+  - {tier: 2, reached: false, artifact: "TI evaluation-board editable design for TPD2EUSB30 in a TPS25810 Type-C source", why: "TPS25810EVM user guide was reached but no separately downloadable editable clamp-cell design was identified; Figure 10-1 remains authoritative"}

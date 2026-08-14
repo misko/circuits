@@ -1,0 +1,114 @@
+service: "JLCPCB standard top-side SMT assembly; the six exact THT selections
+  declared below are excluded and hand-soldered after PCBA"
+sides: [top]
+fiducials: 3
+build_quantity: 5
+pcb_process: "JLC four-layer advanced; copper-paste-filled and copper-capped via-in-pad only at explicitly protected vias"
+via_process:
+  ipc_4761: type_vii_filled_and_capped
+  fill_material: copper_paste
+  selection: item_level_only
+  source: "03_src/floorplan.yaml thermal_vias.protection and route.yaml taps.connections[].via_protection"
+  protected_geometry: {via_diameter_mm: 0.50, drill_mm: 0.20}
+  fabricator_selector:
+    kind: drill_family
+    protected_drill_mm: 0.20
+    ordinary_drill_mm: [0.30]
+  ordinary_vias: "0.30 mm drill only; inherit board defaults; no fill/cap requirement"
+  order_remark: >-
+    Copper-paste fill and copper cap only the 0.50/0.20 mm vias explicitly
+    marked Type VII in the KiCad board. This is the complete 0.20 mm drill
+    family. Do not fill/cap any 0.30 mm drill routing, seed, stitching, or
+    plane-transfer via (0.60/0.30 and 0.70/0.30 mm finished geometry).
+  uploader_confirmation_required: true
+
+# Population was measured only after the routed board and first strict export
+# existed.  Each entry stays on the BOM so the exact catalog identity remains
+# visible, but is excluded from the CPL.  `assemblyComponentFlag: false` is the
+# exact-code result from JLC's overseas parts-library API, not an inference from
+# package style; JLC's 2025 FAQ says THT is supported only for parts marked for
+# wave soldering.  None of these selections carries that eligibility.
+not_assembled:
+  - refs: [F1]
+    reason: process_incompatible
+    lcsc: C5249699
+    evidence: >-
+      Measured 2026-08-12: JLC exact-code query C5249699 returned Keystone 3568,
+      Plugin, stock 223, assemblyComponentFlag=false. The cached EasyEDA CAD is
+      a 3.40 mm two-pad single-clip representation and does not match the exact
+      four-hole complete-holder land. Keystone M65 p.42, locally pinned at
+      02_parts/3568/M65p42.pdf SHA-256
+      caa141ea51ac68cf80ab6e14ad2075fcfc76206451f4bfe45330005c0deaf395,
+      specifies Cat. No. 3568 as one complete MINI fuse holder with four 1.60 mm
+      holes and 9.9 mm terminal spacing; the routed board matches that drawing.
+    disposition: >-
+      Exclude F1 from JLC placement. Procure one complete Keystone 3568 holder
+      per board and hand-solder its four terminals after PCBA; then user-fit one
+      Littelfuse 0297010.WXNV 10 A MINI blade fuse. Inspect all four solder
+      joints and continuity before applying a battery.
+    twin_body:
+      source: board
+      identity: "complete Keystone 3568 four-terminal MINI fuse holder"
+      authority: "Keystone M65 p.42 exact mechanical drawing and KiCad exact-part body"
+      limitation: "visual envelope only; never a JLC placement-transform authority"
+  - refs: [J1]
+    reason: process_incompatible
+    lcsc: C3817933
+    evidence: >-
+      Measured 2026-08-12: JLC exact-code query C3817933 returned Phoenix
+      Contact 1715022, Through Hole, stock 780, assemblyComponentFlag=false.
+      The routed footprint has two plated 1.30 mm drilled pads and no F.Paste,
+      so the ordered top-side SMT reflow process cannot solder it.
+    disposition: >-
+      Exclude J1 from JLC placement and hand-solder the exact 1715022 terminal
+      block after PCBA. Verify +BAT/GND silkscreen orientation, both joints and
+      terminal retention before the first powered test.
+    twin_body:
+      source: board
+      identity: "Phoenix Contact 1715022 two-position terminal block"
+      authority: "pinned Phoenix Contact exact-part dimensional record and KiCad exact-part body"
+      limitation: "finished-product envelope only; J1 is not a JLC placement instruction"
+  - refs: [J2, J3, J4]
+    reason: process_incompatible
+    lcsc: C5815149
+    evidence: >-
+      Measured 2026-08-12: JLC exact-code query C5815149 returned GCT
+      USB1130-15-A, Plugin/right-angle, stock 143,
+      assemblyComponentFlag=false. Each routed connector has four plated signal
+      holes plus two plated shell holes and no F.Paste on any of them, so the
+      ordered top-side SMT reflow process cannot solder these refs.
+    disposition: >-
+      Exclude J2-J4 from JLC placement and hand-solder the three exact GCT
+      connectors after PCBA. Inspect every signal and shell joint, connector
+      seating and edge alignment; continuity/short-test all four contacts before
+      load testing.
+    twin_body:
+      source: board
+      identity: "GCT USB1130-15-A through-hole USB Type-A receptacle"
+      authority: "pinned GCT USB1130 Revision E exact recommended PCB layout and KiCad exact-part body"
+      limitation: "finished-product envelope only; J2-J4 are not JLC placement instructions"
+  - refs: [SW1]
+    reason: process_incompatible
+    lcsc: C273394
+    evidence: >-
+      Measured 2026-08-12: JLC exact-code query C273394 returned E-Switch
+      EG1218, Through Hole, stock 431, assemblyComponentFlag=false. The routed
+      footprint has three plated 0.90 mm drilled pads and no F.Paste, so the
+      ordered top-side SMT reflow process cannot solder it.
+    disposition: >-
+      Exclude SW1 from JLC placement and hand-solder the exact EG1218 after
+      PCBA. Verify common/OFF pin identity, actuator direction, mechanical
+      seating and OFF-state EN_BUS-to-GND continuity before applying a battery.
+consigned: []
+sourcing_plan: []
+board_attr_plan:
+  - refs: [F1, J1, J2, J3, J4, SW1]
+    measured_on: "2026-08-12, routed board SHA-256 9888b1267744b8f659ce3f57dd0cbdd037e208440781bd1c80da88b2b1966dfb"
+    plan: >-
+      The source floorplan now applies FP_EXCLUDE_FROM_POS_FILES to all six
+      refs. Keep the already reviewed routed board byte-for-byte frozen for this
+      data-only CPL correction; assembly.yaml makes the current exporter omit
+      them. The native attributes take effect automatically at the next board
+      regeneration/copper revision, at which point exact-board reviews are
+      repeated and this deferral is removed.
+exempt_prefixes: [H, TP, FID, MH]

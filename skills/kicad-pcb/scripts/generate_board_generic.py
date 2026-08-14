@@ -35,8 +35,9 @@ NOT read another project's config). Top-level keys:
                 copper_finish, dielectric_constraints, mask_thickness_mm,
                 copper_thickness_mm[], dielectrics[]},
               optional via_protection {capping, filling}; each boolean emits
-                the matching board-level KiCad setup token after the final
-                pcbnew save (required for filled/capped via-in-pad orders),
+                the matching BOARD-DEFAULT KiCad setup token after the final
+                pcbnew save (prefer item-level thermal_vias.protection for
+                selective filled/capped via-in-pad orders),
               mounting_holes {footprint, refdes_prefix, at[]},
               fiducials {footprint, refdes_prefix, at[]} — board-only
                 optical alignment targets; BOM- and CPL-excluded
@@ -45,7 +46,8 @@ NOT read another project's config). Top-level keys:
               binds one library name to one explicit .pretty dir
   placement:  anchors {REF: [x,y,rot]}, post_anchors {REF: [x,y,rot]},
               seeds {REF: [x,y]}, regions,
-              patterns[] (glob -> region/near/attrs/pad_overrides),
+              patterns[] (glob -> region/near/attrs/model_override/
+                pad_overrides),
               repeat[] (array primitive; caption-only blocks allowed),
               bbox_override {REF: [x0,y0,x1,y1]} for modules whose footprint
                 bbox includes an off-board antenna keepout (pinned refs only),
@@ -63,6 +65,9 @@ NOT read another project's config). Top-level keys:
                 faces (catches a 180 flip pad_order cannot see),
               pad_beyond_edge[] {ref, pad, offset, edge} — an edge-launch
                 clearing must hang OFF the board
+  thermal_vias: fields[] and/or promote_heatsink_pads[], plus optional
+                protection {capping, filling} applied to only those vias;
+                a field-level protection mapping overrides the shared value
 
 Everything not supplied falls back to a documented default, so a plain
 rectangular 2-layer board with a GND pour needs ~25 lines of YAML.
@@ -89,6 +94,7 @@ try:
 except Exception:                                            # pragma: no cover
     def load_part_overrides(parts_dir):
         return {}
+from pcb_toolkit import apply_via_protection
 
 MM = pcbnew.ToMM
 STD_FP_ROOT = "/usr/share/kicad/footprints"
@@ -264,6 +270,63 @@ def hit(a, b):
 
 def match_any(ref, patterns):
     return any(fnmatch.fnmatchcase(ref, p) for p in patterns)
+
+
+def _validate_simple_polygon(points, what):
+    """Refuse degenerate or self-intersecting authored polygons.
+
+    KiCad accepts a crossed/overlapping ZONE outline and can then fill only a
+    seemingly unrelated tail of it.  That failure is especially expensive:
+    placement and routing remain legal, while the first authoritative refill
+    reports an entire power cell disconnected.  Validate the inexpensive
+    source geometry before a board object is emitted.
+    """
+    eps = 1e-9
+    if len(points) < 3:
+        die(f"{what}: polygon needs at least 3 vertices, got {len(points)}")
+    if points[0] == points[-1]:
+        die(f"{what}: repeat of the first vertex at the end is not allowed "
+            "(the generator closes polygons itself)")
+    for i, (a, b) in enumerate(zip(points, points[1:] + points[:1])):
+        if abs(a[0] - b[0]) <= eps and abs(a[1] - b[1]) <= eps:
+            die(f"{what}: zero-length edge at vertex {i}: {a}")
+    area2 = sum(a[0] * b[1] - b[0] * a[1]
+                for a, b in zip(points, points[1:] + points[:1]))
+    if abs(area2) <= eps:
+        die(f"{what}: polygon has zero signed area")
+
+    def orient(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) \
+            - (b[1] - a[1]) * (c[0] - a[0])
+
+    def on_segment(a, b, p):
+        return (min(a[0], b[0]) - eps <= p[0] <= max(a[0], b[0]) + eps
+                and min(a[1], b[1]) - eps <= p[1] <= max(a[1], b[1]) + eps
+                and abs(orient(a, b, p)) <= eps)
+
+    def intersects(a, b, c, d):
+        o1, o2, o3, o4 = (orient(a, b, c), orient(a, b, d),
+                          orient(c, d, a), orient(c, d, b))
+        if ((o1 > eps and o2 < -eps) or (o1 < -eps and o2 > eps)) and \
+                ((o3 > eps and o4 < -eps) or (o3 < -eps and o4 > eps)):
+            return True
+        return ((abs(o1) <= eps and on_segment(a, b, c))
+                or (abs(o2) <= eps and on_segment(a, b, d))
+                or (abs(o3) <= eps and on_segment(c, d, a))
+                or (abs(o4) <= eps and on_segment(c, d, b)))
+
+    n = len(points)
+    edges = list(zip(points, points[1:] + points[:1]))
+    for i, (a, b) in enumerate(edges):
+        for j in range(i + 1, n):
+            # Adjacent edges share exactly their authored vertex; that is the
+            # only legal intersection.  First/last are adjacent as well.
+            if j == i + 1 or (i == 0 and j == n - 1):
+                continue
+            c, d = edges[j]
+            if intersects(a, b, c, d):
+                die(f"{what}: self-intersection/overlap between edges "
+                    f"{i} {a}->{b} and {j} {c}->{d}")
 
 
 # ---------------------------------------------------------------- builder
@@ -442,6 +505,7 @@ class BoardBuilder:
         self.add_fiducials()
         placed = self.place_parts()
         self.check_pads_present()
+        self.promote_heatsink_pads_to_vias()
         self.run_asserts()
         self.legalize()
         self.apply_post_anchors()
@@ -579,7 +643,7 @@ class BoardBuilder:
 
     # --------------------------------------------------- via protection
     def write_via_protection(self):
-        """Emit board-level filled/capped-via fabrication intent.
+        """Emit board-level filled/capped-via fabrication defaults.
 
         KiCad 10 writes ``(capping no)`` / ``(filling no)`` when pcbnew saves
         a board, and its Python binding exposes no supported setters for these
@@ -588,9 +652,10 @@ class BoardBuilder:
         patch the native s-expression, then parse it back with pcbnew so a
         format drift is a generation failure rather than a malformed board.
 
-        These flags are BOARD-WIDE.  They express process intent for every via,
-        not a selective via list; order documentation must still identify the
-        via-in-pad sites and obtain fabricator/assembly DFM acceptance.
+        These flags are BOARD-WIDE DEFAULTS. Via-in-pad fields should normally
+        use ``thermal_vias.protection`` instead, which writes item-level
+        IPC-4761 overrides and leaves ordinary routing/stitch vias on the
+        board default.
         """
         cfg = self.board_cfg.get("via_protection")
         if cfg is None:
@@ -902,6 +967,7 @@ class BoardBuilder:
     def place_parts(self):
         self.pinned = set()
         placed = 0
+        model_overrides = 0
         for ref, (fpid, val) in sorted(self.comps.items()):
             fp = self.res.load(ref, fpid, val)
             fp.SetReference(ref)
@@ -921,6 +987,15 @@ class BoardBuilder:
                     if a not in self.ATTR_FLAGS:
                         die(f"unknown clear_attr {a!r}")
                     fp.SetAttributes(fp.GetAttributes() & ~self.ATTR_FLAGS[a])
+            overrides = [pat["model_override"]
+                         for pat in self.patterns_for(ref)
+                         if "model_override" in pat]
+            if len(overrides) > 1:
+                die(f"{ref}: multiple placement patterns specify "
+                    "model_override; make the model source unambiguous")
+            if overrides:
+                self.apply_model_override(fp, ref, overrides[0])
+                model_overrides += 1
             for pad in fp.Pads():
                 key = (ref, pad.GetNumber())
                 if key in self.pad_net:
@@ -946,7 +1021,213 @@ class BoardBuilder:
             placed += 1
         self.fps = {f.GetReference(): f for f in self.board.GetFootprints()}
         self.say(f"placed {placed} footprints ({len(self.pinned)} anchored)")
+        if model_overrides:
+            self.say(f"3D model overrides: {model_overrides} footprints "
+                     f"source-bound to resolvable files")
         return placed
+
+    def apply_model_override(self, fp, ref, filename):
+        """Replace a library footprint's model path with source-owned CAD.
+
+        The original model transform is preserved because a package model can
+        legitimately need a footprint-specific offset or rotation.  A missing
+        source file is fatal at generation time: KiCad's renderer otherwise
+        exits zero while silently omitting the body.
+        """
+        filename = str(filename or "").strip()
+        if not filename:
+            die(f"{ref}: placement model_override must be a non-empty path")
+        expanded = filename.replace("${KIPRJMOD}",
+                                    str(self.out.resolve().parent))
+        if "${" in expanded or "$(" in expanded:
+            die(f"{ref}: placement model_override contains an unresolved "
+                f"variable: {filename!r}")
+        candidate = Path(os.path.expanduser(expanded))
+        if not candidate.is_absolute():
+            candidate = self.out.resolve().parent / candidate
+        if not candidate.is_file() or candidate.stat().st_size == 0:
+            die(f"{ref}: placement model_override does not resolve to a "
+                f"non-empty file: {filename!r} -> {candidate}")
+
+        old = list(fp.Models())
+        model = pcbnew.FP_3DMODEL()
+        model.m_Filename = filename
+        if old:
+            # Never mutate an item returned from the SWIG vector in place: the
+            # assignment is made on a temporary and is lost on save.  Copy the
+            # transform into a new object, then replace the vector atomically.
+            for dst, src in ((model.m_Offset, old[0].m_Offset),
+                             (model.m_Scale, old[0].m_Scale),
+                             (model.m_Rotation, old[0].m_Rotation)):
+                dst.x, dst.y, dst.z = src.x, src.y, src.z
+            model.m_Show = old[0].m_Show
+            model.m_Opacity = old[0].m_Opacity
+        fp.Models().clear()
+        fp.Models().push_back(model)
+
+    def promote_heatsink_pads_to_vias(self):
+        """Turn explicitly marked footprint thermal holes into real vias.
+
+        KiCad library footprints commonly model an exposed-pad via field as
+        duplicate PTH pads carrying ``pad_prop_heatsink``. Electrically that
+        works, but fabrication processes distinguish component pad holes from
+        vias: a via-fill/cap order applies to vias, not ordinary PTH pads.
+        Boards opting in through ``thermal_vias.promote_heatsink_pads`` keep
+        the exact library land geometry while promoting only those marked
+        drilled subpads to board-level ``PCB_VIA`` objects at the same
+        position, net, diameter and drill.
+
+        Refusal is deliberate: an unknown reference, a reference with no
+        marked drilled pad, a slot/oval, or an unnetted marked pad is an
+        authoring error. The generator never guesses which ordinary hole was
+        intended to receive an advanced fill/cap process.
+        """
+        cfg = self.cfg.get("thermal_vias") or {}
+        fields = cfg.get("fields") or []
+        refs = cfg.get("promote_heatsink_pads") or []
+        default_protection = cfg.get("protection")
+        if not fields and not refs:
+            return
+        if fields and not isinstance(fields, list):
+            die("thermal_vias.fields must be a list")
+        emitted = 0
+        for i, field in enumerate(fields):
+            if not isinstance(field, dict):
+                die(f"thermal_vias.fields[{i}] must be a mapping")
+            frefs = field.get("refs")
+            if frefs is None and field.get("ref"):
+                frefs = [field["ref"]]
+            if (not isinstance(frefs, list) or not frefs
+                    or any(not isinstance(r, str) for r in frefs)):
+                die(f"thermal_vias.fields[{i}].refs must be a non-empty "
+                    "list of refdes")
+            padnum = str(field.get("pad", ""))
+            if not padnum:
+                die(f"thermal_vias.fields[{i}] has no pad number")
+            at = field.get("at") or []
+            if (not isinstance(at, list) or not at
+                    or any(not isinstance(p, (list, tuple)) or len(p) != 2
+                           for p in at)):
+                die(f"thermal_vias.fields[{i}].at must be a non-empty list "
+                    "of footprint-relative [x,y] positions")
+            size = float(field.get("size", 0))
+            drill = float(field.get("drill", 0))
+            if size <= 0 or drill <= 0 or drill >= size:
+                die(f"thermal_vias.fields[{i}] needs size > drill > 0")
+            for ref in frefs:
+                fp = self.fps.get(ref)
+                if fp is None:
+                    die(f"thermal_vias.fields[{i}]: unknown ref {ref!r}")
+                target = [p for p in fp.Pads()
+                          if p.GetNumber() == padnum and p.GetNetCode() > 0]
+                codes = {p.GetNetCode() for p in target}
+                if len(codes) != 1:
+                    die(f"thermal_vias.fields[{i}]: {ref}.{padnum} must "
+                        "resolve to exactly one nonzero net")
+                net = target[0].GetNet()
+                theta = math.radians(fp.GetOrientationDegrees())
+                ct, st = math.cos(theta), math.sin(theta)
+                origin = fp.GetPosition()
+                for dx, dy in at:
+                    dx, dy = float(dx), float(dy)
+                    # KiCad board coordinates have +Y downward.  A positive
+                    # footprint rotation therefore maps local (dx, dy) as
+                    # (dx*cos + dy*sin, -dx*sin + dy*cos), not the ordinary
+                    # Cartesian transform.  The opposite sign was electrically
+                    # invisible on all-GND fields but put U9's split IN/GND
+                    # vias under the wrong exposed land at rot90.
+                    x = origin.x / 1e6 + dx * ct + dy * st
+                    y = origin.y / 1e6 - dx * st + dy * ct
+                    via = pcbnew.PCB_VIA(self.board)
+                    via.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+                    via.SetWidth(pcbnew.FromMM(size))
+                    via.SetDrill(pcbnew.FromMM(drill))
+                    via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                    via.SetNet(net)
+                    try:
+                        apply_via_protection(
+                            via, field.get("protection", default_protection),
+                            f"thermal_vias.fields[{i}].protection")
+                    except ValueError as exc:
+                        die(str(exc))
+                    if not any(p.HitTest(via.GetPosition(), 0, pcbnew.F_Cu)
+                               for p in target):
+                        die(f"thermal_vias.fields[{i}]: emitted {ref}.{padnum} "
+                            f"via at ({x:.3f},{y:.3f}) outside its named pad")
+                    via_shape = via.GetEffectiveShape(pcbnew.F_Cu)
+                    for other_fp in self.fps.values():
+                        for other in other_fp.Pads():
+                            if (other.GetNetCode() <= 0
+                                    or other.GetNetCode() == net.GetNetCode()
+                                    or not other.IsOnLayer(pcbnew.F_Cu)):
+                                continue
+                            if other.GetEffectiveShape(pcbnew.F_Cu).Collide(
+                                    via_shape, 0):
+                                die(f"thermal_vias.fields[{i}]: emitted "
+                                    f"{ref}.{padnum} via at ({x:.3f},{y:.3f}) "
+                                    f"intersects different-net pad "
+                                    f"{other_fp.GetReference()}."
+                                    f"{other.GetNumber()}")
+                    self.board.Add(via)
+                    emitted += 1
+        if not isinstance(refs, list) or any(not isinstance(r, str) for r in refs):
+            die("thermal_vias.promote_heatsink_pads must be a list of refdes")
+        if len(refs) != len(set(refs)):
+            die("thermal_vias.promote_heatsink_pads contains duplicate refdes")
+
+        promoted = 0
+        for ref in refs:
+            fp = self.fps.get(ref)
+            if fp is None:
+                die(f"thermal_vias.promote_heatsink_pads: unknown ref {ref!r}")
+            pads = [p for p in fp.Pads()
+                    if p.GetProperty() == pcbnew.PAD_PROP_HEATSINK
+                    and p.GetDrillSize().x > 0]
+            if not pads:
+                die(f"thermal_vias.promote_heatsink_pads: {ref} has no drilled "
+                    "pad_prop_heatsink pads")
+            source_fpid = fp.GetFPIDAsString()
+            for pad in pads:
+                size, drill = pad.GetSize(), pad.GetDrillSize()
+                if size.x != size.y or drill.x != drill.y:
+                    die(f"thermal_vias.promote_heatsink_pads: {ref}."
+                        f"{pad.GetNumber()} is not a circular pad/drill")
+                if pad.GetNetCode() <= 0:
+                    die(f"thermal_vias.promote_heatsink_pads: {ref}."
+                        f"{pad.GetNumber()} is unnetted")
+                via = pcbnew.PCB_VIA(self.board)
+                via.SetPosition(pad.GetPosition())
+                via.SetWidth(size.x)
+                via.SetDrill(drill.x)
+                via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                via.SetNet(pad.GetNet())
+                try:
+                    apply_via_protection(via, default_protection,
+                                         "thermal_vias.protection")
+                except ValueError as exc:
+                    die(str(exc))
+                fp.Remove(pad)
+                self.board.Add(via)
+                promoted += 1
+            # The generated footprint intentionally no longer matches its
+            # library copy: its marked holes are now true board vias. An
+            # unchanged FPID would make KiCad report a permanent
+            # lib_footprint_mismatch; clearing it declares an embedded,
+            # board-local generated footprint. Preserve the exact authority
+            # in its embedded description so traceability is not traded for a
+            # quiet DRC report.
+            desc = fp.GetLibDescription() or ""
+            fp.SetLibDescription(
+                (desc + " " if desc else "")
+                + f"[generated thermal-via promotion from {source_fpid}]")
+            fp.SetFPID(pcbnew.LIB_ID())
+        total_refs = {r for field in fields
+                      for r in ((field.get("refs") or [field.get("ref")])
+                                if isinstance(field, dict) else []) if r}
+        total_refs.update(refs)
+        self.say(f"thermal vias: emitted {emitted} explicit + promoted "
+                 f"{promoted} marked heatsink pad(s) across {len(total_refs)} "
+                 "footprint(s) as board-level vias")
 
     # ------------------------------------------------- P-COLLIDE (placement)
     def _pad_poly(self, pad):
@@ -1036,23 +1317,18 @@ class BoardBuilder:
                               geometry. Same-footprint composite pads remain
                               legal. The post-build P-PADSEP gate additionally
                               enforces the fab-tier positive-gap floor + paste.
-          * PINNED-LAP (WARN) — two ANCHORED footprints' courtyards overlap.
+          * PINNED-LAP (FATAL) — two ANCHORED footprints' courtyards overlap
+                              or touch. Zero assembly distance is not a valid
+                              placement; move the anchors before routing.
                               The legalizer cannot resolve this one, so it is a
                               source defect in floorplan.yaml rather than a
                               density accident, and naming the two ANCHORS is
                               diagnosis that DRC's `courtyards_overlap` does not
-                              give you. It is a warning and not a build failure
-                              because canon P1/P-CRT ALREADY owns courtyard
-                              overlap at full-severity DRC, which every board
-                              must pass — and because MEASURED against the fleet
-                              on 2026-07-25 two existing boards carry anchored
-                              courtyard overlap with NO pad short: usb-hub-3s-v2
-                              RS3<->Q6 (0.470 x 3.950 mm) and the cooksense
-                              interposer's deliberately-packed test-point array
-                              (18 pairs at 0.053 x 2.592 mm). Making it fatal
-                              here would retro-break two boards to duplicate a
-                              gate that already exists. The capability no gate
-                              had is the SHORT.
+                              give you. This used to warn and defer to final
+                              DRC; programmable-usb2-hub then reached render
+                              review with resistors against module lands. New
+                              and materially revised boards fail here. Archived
+                              boards are not regenerated to preserve history.
         Floating-vs-anything courtyard overlap is NOT reported at all: resolving
         that is the legalizer's job and it is allowed to leave tight packing."""
         pads = []
@@ -1088,12 +1364,22 @@ class BoardBuilder:
         pin = [f for f in self.board.GetFootprints()
                if f.GetReference() in self.pinned]
         for i, fa in enumerate(pin):
-            ba = fa.GetCourtyard(pcbnew.F_CrtYd).BBox()
+            pa = fa.GetCourtyard(pcbnew.F_CrtYd)
+            ba = pa.BBox()
             if ba.GetWidth() == 0:
                 continue
             for fb in pin[i + 1:]:
-                bb = fb.GetCourtyard(pcbnew.F_CrtYd).BBox()
-                if bb.GetWidth() == 0 or not ba.Intersects(bb):
+                pb = fb.GetCourtyard(pcbnew.F_CrtYd)
+                bb = pb.BBox()
+                # The bbox is a sweep/filter only. Rotated rectangular
+                # courtyards routinely have intersecting axis-aligned boxes
+                # while their actual assembly polygons are disjoint (the
+                # Pluto RX2 radial SMA ring exposed seven such false fails).
+                # KiCad DRC grades the polygons, so make the source gate ask
+                # the same geometric question rather than moving an
+                # electrically-derived placement to satisfy its bounding box.
+                if (bb.GetWidth() == 0 or not ba.Intersects(bb)
+                        or not pa.Collide(pb)):
                     continue
                 laps.append((fa.GetReference(), fb.GetReference(),
                              pcbnew.ToMM(min(ba.GetRight(), bb.GetRight())
@@ -1101,19 +1387,21 @@ class BoardBuilder:
                              pcbnew.ToMM(min(ba.GetBottom(), bb.GetBottom())
                                          - max(ba.GetTop(), bb.GetTop()))))
         for a, b, ox, oy in sorted(laps):
-            print(f"WARN P-COLLIDE PINNED-LAP {a} <-> {b}: courtyards overlap "
-                  f"by {ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
+            print(f"FAIL P-COLLIDE PINNED-LAP {a} <-> {b}: courtyard polygons "
+                  f"overlap/touch (bbox window {ox:.3f} x {oy:.3f} mm) — "
+                  f"both are ANCHORED, so the "
                   f"legalizer cannot fix it; fix placement.anchors "
                   f"(full-severity DRC will fail this as courtyards_overlap)")
-        if overlaps:
+        if overlaps or laps:
             msg = ["P-COLLIDE: this placement has inter-footprint pad overlap."]
             for kind, r1, pn1, n1, r2, pn2, n2, ox, oy in sorted(overlaps):
                 msg.append(f"  {kind:<10} {r1}.{pn1} [{n1}] <-> {r2}.{pn2} "
                            f"[{n2}]  pad copper overlaps "
                            f"(bbox {ox:.3f} x {oy:.3f} mm)")
             for a, b, ox, oy in sorted(laps):
-                msg.append(f"  PINNED-LAP {a} <-> {b}  courtyards overlap by "
-                           f"{ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
+                msg.append(f"  PINNED-LAP {a} <-> {b}  courtyard polygons "
+                           f"overlap/touch (bbox window {ox:.3f} x {oy:.3f} "
+                           f"mm) — both are ANCHORED, so the "
                            f"legalizer cannot fix it: fix placement.anchors")
             die("\n".join(msg))
         self.say(f"P-COLLIDE: 0 inter-footprint pad overlaps/shorts, "
@@ -1475,11 +1763,13 @@ class BoardBuilder:
                 (self.X1, self.Y1), (self.X0, self.Y1)]
 
     def add_zones(self):
-        for z in self.cfg.get("zones") or []:
+        for zi, z in enumerate(self.cfg.get("zones") or []):
             net = z.get("net")
             if net and net not in self.netmap:
                 die(f"zone on unknown net {net!r} (netlist has no such net)")
             pts = self.zone_points(z)
+            _validate_simple_polygon(pts,
+                                     f"zones[{zi}] net {net!r} outline")
             for lname in z.get("layers") or ["F.Cu", "B.Cu"]:
                 lid = self.check_layer(lname, f"zone on net {net!r}")
                 zone = pcbnew.ZONE(self.board)
@@ -1552,6 +1842,8 @@ class BoardBuilder:
             })
         for k in self.cfg.get("keepouts") or []:
             pts = self.zone_points(k)
+            _validate_simple_polygon(
+                pts, f"keepout {k.get('name', '?')!r} outline")
             deny = set(k.get("deny", ["tracks", "vias", "pours"]) or [])
             unknown = deny - {"tracks", "vias", "pours", "pads", "footprints"}
             if unknown:

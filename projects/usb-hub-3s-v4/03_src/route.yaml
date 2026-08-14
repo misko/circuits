@@ -1,0 +1,416 @@
+# Commission-stage route contract. It names the bounded execution machinery
+# and exact-artifact witnesses without pretending that a route exists.
+project:
+  name: usb_hub_3s_v4
+  board: 04_kicad/usb_hub_3s_v4.kicad_pcb
+  build_dir: 06_build/route
+
+flow:
+  heartbeat_s: 10
+  # Layout sealing must rebuild the board from the already reviewed,
+  # content-addressed schematic checkpoint. The resume arm verifies those
+  # exact bytes before regeneration; it does not reuse the current board.
+  rebuild_args: [--resume-after-schematic-review]
+  pre_route_reviews:
+    board: 04_kicad/usb_hub_3s_v4.kicad_pcb
+    netlist: 06_build/netlists/usb_hub_3s_v4.net
+    topology: 08_reviews/pre-route_topology.md
+    schematic_pdf: 03_tscircuit/build/schematic.pdf
+    schematic_render: 08_reviews/pre-route_schematic_render.md
+    pin: 08_reviews/pre-route_pin.md
+    layout: 08_reviews/pre-route_layout.md
+    render: 08_reviews/pre-route_render.md
+    a_render: 06_build/pre_route/twin_overlay.md
+  owner:
+    stage: routing
+    files: [03_src/route.yaml, 03_src/floorplan.yaml]
+  copper:
+    deterministic: [prep.seed_stubs, taps.connections, stitch.seed_stubs, route.final]
+    stochastic: [route.waves]
+  budgets_s:
+    tscircuit_build: 60
+    escape_packages: 30
+    escape_lands: 120
+    tier_preflight: 15
+    placement_review_prepare: 45
+    grind: 900
+    rebuild: 1200
+    layout_drc: 120
+  timeouts_s:
+    default: 600
+    source_schema_governance: 60
+    adr_bound_governance: 60
+    # Normal builds take about 9--15 s.  A manual schematic-placement graph
+    # once drove the autorouter past two minutes at 100% CPU, so fail closed
+    # after 60 s and simplify/revert the authored constraint graph.
+    tscircuit_build: 60
+    route_wave: 900
+    route_race: 2400
+    route_evaluate: 180
+    # Two native renders are independently capped at 90 s and the promoted-
+    # route compatibility check at 60 s. The outer process-group deadline is
+    # intentionally slightly larger than those worst-case child budgets.
+    placement_review_prepare: 270
+    route_import: 300
+    stitch: 900
+    rebuild: 1500
+    layout_drc: 180
+  blockers:
+    - "Final routed pin/layout/render and manufacturing reviews incomplete"
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2, User.3]
+    mounting_holes: {radius: 3.0}
+    edge_band: 0.7
+    rects: []
+  # The 0.30 mm-wide USB-C CC lands are boxed in by the adjacent 0.50 mm-pitch
+  # connector row. KRT reaches the controller and ESD lands but cannot leave
+  # J5.A5/J5.B5 (both candidates stopped with all eight start cells blocked).
+  # These reviewed, collision-checked F.Cu launches own the short connections
+  # from the connector lands to the ESD device; KRT sees the completed pad
+  # pairs before every routing wave and owns the remaining U3-to-D6 routes.
+  seed_stubs:
+    clearance: 0.18
+    via: {size: 0.60, drill: 0.30}
+    stubs:
+      - {net: CC1, pin: J5.A5,
+         segments: [{layer: F.Cu, width: 0.18,
+                     pts: [[113.75, 102.645], [113.75, 101.30],
+                           [114.90, 99.925]]}]}
+      - {net: CC2, pin: J5.B5,
+         segments: [{layer: F.Cu, width: 0.18,
+                     pts: [[116.75, 102.645], [116.75, 101.30],
+                           [115.60, 99.925]]}]}
+      # U5/U6 output lands sit behind their control-pin escape fields. Two
+      # parallel ordinary off-pad via drops per 2 A port establish the
+      # B.Cu plane path before KRT can consume that corridor. On the exact
+      # 0.50 mm-pitch TPS2559 row, any via centred in the pad is illegal at the
+      # adopted 0.18 mm clearance. Move a standard 0.60/0.30 mm via 0.60 mm
+      # outward: a 0.30 mm F.Cu pad launch reaches it and the 0.80 mm B.Cu
+      # segment then enters the pour. The larger drill also keeps JLC's order
+      # instruction unambiguous: every 0.20 mm drill is Type VII, while every
+      # ordinary route/seed/transfer via has a 0.30 mm drill. The exact geometry
+      # is collision-checked by the generic seed emitter. Two ordinary vias
+      # share each port load; final cross-section and loaded thermal-rise
+      # verification remain required.
+      - {net: VBUSA2, pin: U5.7,
+         segments: [{layer: F.Cu, width: 0.30,
+                     pts: [[111.40, 56.50], [112.00, 56.50]]},
+                    {layer: B.Cu, width: 0.80,
+                     pts: [[112.00, 56.50], [112.50, 56.50]]}],
+         vias: [[112.00, 56.50]]}
+      - {net: VBUSA2, pin: U5.9,
+         segments: [{layer: F.Cu, width: 0.30,
+                     pts: [[111.40, 55.50], [112.00, 55.50]]},
+                    {layer: B.Cu, width: 0.80,
+                     pts: [[112.00, 55.50], [112.50, 55.50]]}],
+         vias: [[112.00, 55.50]]}
+      - {net: VBUSA3, pin: U6.7,
+         segments: [{layer: F.Cu, width: 0.30,
+                     pts: [[111.40, 80.50], [112.00, 80.50]]},
+                    {layer: B.Cu, width: 0.80,
+                     pts: [[112.00, 80.50], [112.50, 80.50]]}],
+         vias: [[112.00, 80.50]]}
+      - {net: VBUSA3, pin: U6.9,
+         segments: [{layer: F.Cu, width: 0.30,
+                     pts: [[111.40, 79.50], [112.00, 79.50]]},
+                    {layer: B.Cu, width: 0.80,
+                     pts: [[112.00, 79.50], [112.50, 79.50]]}],
+         vias: [[112.00, 79.50]]}
+      # A-VIA series banks: every switch input island is fed from the B.Cu 5VA
+      # distributor. Four ordinary 0.60/0.30 barrels are present before KRT so
+      # signal routing cannot consume them; the exact 0.50/0.20 pad drop added
+      # below supplies a fifth parallel path. TI SLVA959B Table 3-1 credits a
+      # 12 mil finished hole at 0.84 A and an 8 mil hole at 0.55 A for a 10 C
+      # rise, giving 3.91 A per bank versus 2.849 A worst-high current limit.
+      - {net: 5VA,
+         why: "U4 input island is a forced B.Cu-to-F.Cu series boundary",
+         vias: [[107.10, 31.40], [107.10, 32.00],
+                [107.10, 32.60], [107.10, 33.20]]}
+      - {net: 5VA,
+         why: "U5 input island is a forced B.Cu-to-F.Cu series boundary",
+         vias: [[107.10, 55.40], [107.10, 56.00],
+                [107.10, 56.60], [107.10, 57.20]]}
+      - {net: 5VA,
+         why: "U6 input island is a forced B.Cu-to-F.Cu series boundary",
+         vias: [[107.10, 79.40], [107.10, 80.00],
+                [107.10, 80.60], [107.10, 81.20]]}
+  waves:
+    # Pours/planes own every high-current rail. KRT routes only the named
+    # local signal nets; deterministic taps below bond the isolated raw and
+    # U9-protected USB-A rail islands.
+    exclude: [GND, BAT_POS, VBAT_FUSED, VIN, 5VA_RAW, 5VA, 5VC_RAW,
+              VBUSA1, VBUSA2, VBUSA3, VBUSC, "unconnected-*"]
+    groups:
+      typec: [CC1, CC2, REF_C, REF_RTN_C]
+      module: [BOOT_A_R, BOOT_A_C, BOOT_C_R, BOOT_C_C,
+               FB_A, FB_C, RT_A, RT_C, SPSP_A]
+      charge: [DM_A1, DP_A1, DM_A2, DP_A2, DM_A3, DP_A3]
+      control: rest
+
+route:
+  import_source: promoted
+  # r4 is intentionally superseded by ADR-0006. r5 inherited stale source-via
+  # geometry. r6 corrected those vias but retained four ordinary 0.50/0.20 mm
+  # port-output seed vias, making diameter-based JLC processing ambiguous.
+  # r7 is generated directly from the process-disjoint source: every 0.20 mm
+  # drill is Type VII and every ordinary via uses a 0.30 mm drill.
+  # r8 additionally carries the reviewed, deterministic U4-U6 input-transfer
+  # banks that the A-VIA series-boundary check requires before routing.
+  final: 03_src/route/r8.kicad_pcb
+  krt: ~/gits/KiCadRoutingTools
+  preflight_critical_pairs: []
+  no_critical_routes: "D1 excludes USB data and RF; no timing-, impedance-, or phase-critical signal route is commissioned"
+  race: 2
+  common:
+    layers: [F.Cu, B.Cu]
+    fab_tier: advanced
+    via_size: 0.60
+    via_drill: 0.30
+    clearance: 0.18
+    grid_step: 0.05
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+  waves:
+    - {name: typec, group: typec, track_width: 0.18,
+       max_iterations: 250000, max_probe_iterations: 30000, max_ripup: 10}
+    - {name: module, group: module, track_width: 0.30,
+       max_iterations: 300000, max_probe_iterations: 30000, max_ripup: 10}
+    - {name: charge, group: charge, track_width: 0.18,
+       max_iterations: 300000, max_probe_iterations: 30000, max_ripup: 15}
+    - {name: control, group: control, track_width: 0.18,
+       max_iterations: 500000, max_probe_iterations: 60000, max_ripup: 30}
+
+# IPC-2152-based via capacity is a separate obligation from DRC connectivity.
+# The rectangles are deliberately tight series boundaries: counting arbitrary
+# same-net stitching elsewhere would be a vacuous proof. Filled copper paste is
+# credited as zero; only TI's published finished-hole barrel capacity counts.
+via_ampacity:
+  source: "Texas Instruments SLVA959B Rev B, Table 3-1 (IPC-2152): https://www.ti.com/lit/an/slva959b/slva959b.pdf"
+  method: "sum published 10 C-rise capacity by finished hole; no credit for fill material"
+  temperature_rise_c: 10
+  capacity_by_finished_hole_mm: {0.20: 0.55, 0.30: 0.84}
+  transfers:
+    - {name: u9_out_to_5va_distributor, net: 5VA,
+       rect: [95.70, 51.40, 102.30, 53.05], minimum_vias: 14,
+       required_continuous_a: 8.0,
+       why: "all protected aggregate current must cross this F.Cu collector to B.Cu distributor bank"}
+    - {name: u4_5va_input, net: 5VA,
+       rect: [106.75, 30.80, 108.91, 33.50], minimum_vias: 5,
+       required_continuous_a: 2.849,
+       why: "U4 input island is isolated on F.Cu and fed by the B.Cu distributor"}
+    - {name: u5_5va_input, net: 5VA,
+       rect: [106.75, 54.80, 108.91, 57.50], minimum_vias: 5,
+       required_continuous_a: 2.849,
+       why: "U5 input island is isolated on F.Cu and fed by the B.Cu distributor"}
+    - {name: u6_5va_input, net: 5VA,
+       rect: [106.75, 78.80, 108.91, 81.50], minimum_vias: 5,
+       required_continuous_a: 2.849,
+       why: "U6 input island is isolated on F.Cu and fed by the B.Cu distributor"}
+
+taps:
+  clearance: 0.18
+  via: {size: 0.60, drill: 0.30, hole_to_copper: 0.255}
+  connections:
+    # Source-side drops make each dual-layer regulator/output pour a real
+    # path rather than two same-net islands that only appear connected.
+    - {net: VIN, from: Q1.1, to: [60.00, 39.00], width: 1.00,
+       layer: F.Cu, hop_layer: B.Cu, plane: true}
+    - {net: 5VA_RAW, from: U1.9, to: [75.00, 57.70], width: 1.00,
+       layer: F.Cu, hop_layer: B.Cu, plane: true}
+    - {net: 5VC_RAW, from: U2.8, to: [91.50, 93.00], width: 1.00,
+       layer: F.Cu, hop_layer: B.Cu, plane: true}
+    - {net: VBUSC, from: C13.1, to: [108.00, 97.00], width: 1.00,
+       layer: F.Cu, hop_layer: B.Cu, plane: true}
+    # R22 sits just outside the VIN polygon and its direct F.Cu path is crossed
+    # by RPP_DIV. A full-width B.Cu plane tap makes the divider supply explicit
+    # without relaxing the VIN trunk rule.
+    - {net: VIN, from: R22.1, to: [52.00, 32.00], width: 1.00,
+       layer: F.Cu, hop_layer: B.Cu, plane: true}
+    # The modules' auxiliary output lands are intentionally narrow, local
+    # branches; the named DRU areas own their measured tapers into the full
+    # output pours.  Leaving them to the pour cannot work because their pad
+    # centres sit just outside the main zone outline.
+    - {net: 5VA_RAW, from: U1.5, to: [73.75, 57.85], width: 1.00,
+       layer: F.Cu}
+    - {net: 5VC_RAW, from: U2.5, to: [89.75, 93.25], width: 0.30,
+       layer: F.Cu}
+    # Pin 16 is the TPS25982 package's fourth Power Input perimeter land. A
+    # short 0.30 mm bridge joins it directly to same-net split PowerPAD 25;
+    # the named DRU area bounds this package-local neck. It is not treated as
+    # current-free: final current-sharing/thermal evidence must include it and
+    # the parallel pins 1/2/3/6 plus PowerPAD 25.
+    - {net: 5VA_RAW, from: U9.16, to: [95.20, 54.75], width: 0.30,
+       layer: F.Cu}
+    # U9's priority F.Cu collector (floorplan.yaml) joins OUT19-24 over a
+    # 2.10 mm depth, overlaps the existing 5VA zone feeding OUT17/18, and
+    # satisfies TI's >=50 mil continuous OUT-path minimum without a 0.30 mm
+    # series bar. Fourteen deterministic 0.70/0.30 mm off-pad barrels distribute
+    # that collector into the B.Cu rail. At TI's published 10 C-rise screening
+    # value they total 11.76 A versus the 8 A requirement; their 0.20 mm annulus
+    # follows JLC's multilayer recommendation. They are ordinary tented
+    # transfers, not VIP, and loaded first-article thermal test remains required.
+    - {net: 5VA, from: [96.00, 51.80], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [97.00, 51.80], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [96.00, 52.70], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [97.00, 52.70], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [98.00, 51.80], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [99.00, 51.80], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [100.00, 51.80], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [101.00, 51.80], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [102.00, 51.80], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [98.00, 52.70], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [99.00, 52.70], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [100.00, 52.70], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [101.00, 52.70], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    - {net: 5VA, from: [102.00, 52.70], width: 1.00, layer: F.Cu,
+       plane: true, drop: true,
+       via: {size: 0.70, drill: 0.30, hole_to_copper: 0.255, exact: true}}
+    # Three TPS2559 input islands and two TPS2513 supply islands bond to the
+    # B.Cu protected-5VA distributor at one explicit, collision-checked via each.
+    # These lands already sit directly over the continuous B.Cu 5VA
+    # distributor. A single filled/capped, collision-checked pad drop is the
+    # complete bond; adding a second via plus a short neck only spent copper
+    # and holes inside the same pour. The 0.80 mm width is used only if the
+    # via ladder must leave a pad; all five exact pad sites currently pass.
+    - {net: 5VA, from: U4.4, width: 0.80, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: U5.4, width: 0.80, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: U6.4, width: 0.80, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: U7.5, width: 0.80, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: U8.5, width: 0.80, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    # These low-current supply/test lands lie over their B.Cu distributors
+    # but are SMD-only.  A filled/capped via at the exact clear pad site makes
+    # the electrical bond explicit; relying on copper underneath an SMD pad
+    # produced nine real ratsnest opens after the authoritative refill.
+    - {net: 5VA_RAW, from: R7.1, width: 0.50, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: TP2.1, width: 0.50, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: C14.1, width: 0.50, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: R17.1, width: 0.50, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: C15.1, width: 0.50, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: R19.1, width: 0.50, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: C16.1, width: 0.50, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA, from: R21.1, width: 0.50, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    # R11 and TP3 moved outside the 5VC_RAW pour during placement. R11 uses a
+    # full-width B.Cu plane tap; TP3 is a low-current test branch that reaches
+    # the F.Cu pour directly. Declaring the geometry avoids a one-layer
+    # dangling via at R11 and an unowned test-point ratsnest.
+    - {net: 5VC_RAW, from: R11.1, to: [93.00, 87.00], width: 1.00,
+       layer: F.Cu, hop_layer: B.Cu, plane: true}
+    - {net: 5VC_RAW, from: TP3.1, to: [89.80, 104.00], width: 1.00,
+       layer: F.Cu}
+    # These bulk-cap lands lie inside their named F/B pours but authoritative
+    # refill can isolate the F.Cu thermal island after signal routing. An exact
+    # filled/capped plane drop makes their B.Cu bond deterministic.
+    - {net: 5VA_RAW, from: C6.1, width: 1.00, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VC_RAW, from: C9.1, width: 1.00, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VA_RAW, from: C22.1, width: 1.00, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+    - {net: 5VC_RAW, from: C23.1, width: 1.00, layer: F.Cu,
+       plane: true, drop: true, via: {size: 0.50, drill: 0.20, exact: true},
+       via_protection: {capping: yes, filling: yes}}
+
+stitch:
+  clearance: 0.18
+  via:
+    size: 0.60
+    drill: 0.30
+    spacing: 0.85
+    pth_margin: 0.30
+    tiers: [{size: 0.60, drill: 0.30, hole_to_copper: 0.255}]
+  keepin: {inset: 0.8}
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, pad_rescue,
+           stub_fallback, astar_fallback, fill, island_rescue, dedupe_vias,
+           hole_to_hole, fill, fresh_reload, heal_islands,
+           prune_stitch_dangling, gate]
+  dedupe_vias: {radius: 0.35, metric: box}
+  # Only repair geometry below the advanced-tier via floor. KRT and all
+  # project-owned emitters already place the preferred 0.60/0.30 mm vias.
+  normalize_vias: {below_width: 0.24, size: 0.25, drill: 0.15}
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    nets:
+      - {net: GND, layer: In1.Cu}
+    via_in_pad: true
+    served_within: 1.6
+    rings: [0.75, 0.95, 1.20, 1.60, 2.10]
+    stub_width: 0.30
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.20, max_dist: 8.0, width: 0.30}
+  astar_fallback:
+    net: GND
+    width: 0.30
+    window: 3.0
+    attempts: 3
+    via: {size: 0.60, drill: 0.30, hole_to_copper: 0.255}
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu], require: all}
+  # The final fresh-process grouping is authoritative for same-net pour
+  # fragments.  Include sub-millimetre USB-switch slivers because KiCad's DRC
+  # reports them as real opens; every bridge is collision-checked and the pass
+  # refills/re-verifies before it can claim success.
+  heal_islands: {min_bbox: 0.1, layers: [F.Cu, B.Cu], sample_step: 0.05,
+                 max_gap_candidates: 2000, clear_rescue_failures: true}
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2}

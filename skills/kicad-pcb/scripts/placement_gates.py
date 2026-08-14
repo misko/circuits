@@ -2,7 +2,7 @@
 
     /usr/bin/python3 placement_gates.py BOARD.kicad_pcb [--config placement_gates.json]
 
-Two checks, both born from the smc0985-cooksense routing D-BACK of 2026-07-23
+Three checks, born from placement defects that were otherwise found downstream
 (journal: 01_docs/journal/routing_cooksense.md), where a placement that PASSED
 every existing audit cost ~13 hours of routing before the defects surfaced:
 
@@ -30,11 +30,22 @@ every existing audit cost ~13 hours of routing before the defects surfaced:
          estimate: coarse by construction (bbox blockage, straight-line
          demand), a smoke alarm for corridor starvation, not a router.
 
+  P-BODYCLR  positive assembly-envelope clearance. Courtyard-to-courtyard and
+         assembly-envelope-to-foreign-pad distance are checked with KiCad's
+         polygon collision engine. Touching is a failure: connectivity belongs
+         in tracks/zones, never coincident lands or zero-distance placement.
+         Missing courtyards on assembled parts fail because an absent envelope
+         cannot prove a mechanical clearance.
+
 Config (JSON, ALL optional — a missing file or missing key = defaults):
 {
   "outline_margin": 0.15,        // mm, min pad-copper-to-Edge.Cuts distance
   "courtyard": false,            // stricter: courtyard polygons inside too
   "out_ok": ["J9"],              // refs waived from P-OUT (castellated etc.)
+  "body_clearance": {
+    "min_courtyard_gap": 0.10,
+    "min_envelope_to_pad": 0.10
+  },
   "cap": {
     "track": 0.25, "clearance": 0.2,   // pitch = track+clearance
     "layers": 2,                 // routable copper layers (inner planes DON'T route)
@@ -168,6 +179,114 @@ def check_out(board, cfg, fails, notes):
     if warg is not None:
         notes.append(f"P-OUT tightest pad-to-outline margin {worst:.2f}mm ({warg}) "
                      f"[min {margin}]")
+
+
+# ----------------------------------------------------------- P-BODYCLR
+def _poly_gap_mm(a, b, ceiling_mm):
+    """Exact polygon gap to 1 um within ceiling; <=0 means touch/overlap."""
+    if a.Collide(b, 0):
+        return 0.0
+    lo, hi = 0, pcbnew.FromMM(float(ceiling_mm))
+    if not a.Collide(b, hi):
+        return float(ceiling_mm)
+    while hi - lo > pcbnew.FromMM(0.001):
+        mid = (lo + hi) // 2
+        if a.Collide(b, mid):
+            hi = mid
+        else:
+            lo = mid
+    return MM(hi)
+
+
+def _assembled_footprint(f):
+    attrs = f.GetAttributes()
+    board_only = getattr(pcbnew, "FP_BOARD_ONLY", 0)
+    return not (board_only and attrs & board_only)
+
+
+def check_body_clearance(board, cfg, fails, notes):
+    bc = cfg.get("body_clearance", {}) or {}
+    cg = float(bc.get("min_courtyard_gap", 0.10))
+    pg = float(bc.get("min_envelope_to_pad", 0.10))
+    if cg <= 0 or pg <= 0:
+        fails.append("P-BODYCLR minimum clearances must both be > 0 mm")
+        return
+    if bc.get("ignore_refs") or bc.get("ignore_prefixes"):
+        fails.append("P-BODYCLR is non-waivable: ignore_refs/ignore_prefixes "
+                     "are forbidden; mark true board-only features with "
+                     "FP_BOARD_ONLY instead")
+        return
+    entries, missing = [], []
+    for f in board.GetFootprints():
+        ref = f.GetReference()
+        if not _assembled_footprint(f):
+            continue
+        side = "B" if f.IsFlipped() else "F"
+        lay = pcbnew.B_CrtYd if side == "B" else pcbnew.F_CrtYd
+        poly = f.GetCourtyard(lay)
+        if not poly or not poly.OutlineCount():
+            missing.append(ref)
+            continue
+        entries.append((ref, side, poly, f))
+    if missing:
+        fails.append(
+            f"P-BODYCLR {len(missing)} assembled footprint(s) have no "
+            f"same-side courtyard: {sorted(missing)[:20]}")
+
+    pair_fails, pad_fails = [], []
+    tightest = None
+    for i, (ra, sa, pa, fa) in enumerate(entries):
+        for rb, sb, pb, fb in entries[i + 1:]:
+            if sa != sb:
+                continue
+            gap = _poly_gap_mm(pa, pb, cg)
+            if tightest is None or gap < tightest[0]:
+                tightest = (gap, ra, rb)
+            if pa.Collide(pb, pcbnew.FromMM(cg)):
+                pair_fails.append((ra, rb, gap))
+
+            # A malformed foreign courtyard can fail to enclose its own pad.
+            # Check the assembly envelope directly against the other part's
+            # copper as an independent body/pad backstop.
+            for env_ref, env, foreign_ref, foreign in (
+                    (ra, pa, rb, fb), (rb, pb, ra, fa)):
+                copper_layer = pcbnew.F_Cu if sa == "F" else pcbnew.B_Cu
+                for pad in foreign.Pads():
+                    if pad.IsOnLayer(copper_layer):
+                        shape = pad.GetEffectiveShape(copper_layer)
+                    else:
+                        continue
+                    if env.Collide(shape, pcbnew.FromMM(pg)):
+                        gap2 = _poly_gap_mm(env, shape, pg)
+                        pad_fails.append(
+                            (env_ref, foreign_ref, pad.GetNumber(), gap2))
+    for ra, rb, gap in pair_fails[:30]:
+        fails.append(
+            f"P-BODYCLR {ra}<->{rb} courtyard gap {gap:.3f} mm "
+            f"(< {cg:.3f} mm; touching/overlap is forbidden)")
+    # Do not duplicate a body/pad report when the pair already has the more
+    # authoritative courtyard finding.
+    bad_pairs = {frozenset((a, b)) for a, b, _ in pair_fails}
+    emitted = 0
+    for env, foreign, pad, gap in pad_fails:
+        if frozenset((env, foreign)) in bad_pairs:
+            continue
+        fails.append(
+            f"P-BODYCLR {env} assembly envelope to {foreign}.{pad} copper "
+            f"gap {gap:.3f} mm (< {pg:.3f} mm)")
+        emitted += 1
+        if emitted >= 30:
+            break
+    if tightest:
+        relation = ">=" if tightest[0] >= cg else ""
+        notes.append(
+            f"P-BODYCLR minimum reported courtyard gap {relation}"
+            f"{tightest[0]:.3f} mm ({tightest[1]}<->{tightest[2]}; "
+            f"search ceiling {cg:.3f} mm)")
+    notes.append(
+        f"P-BODYCLR denominator {len(entries)} assembled footprint envelopes; "
+        f"{len(pair_fails)} close/overlapping pair(s), "
+        f"{len(pad_fails)} envelope-to-foreign-pad finding(s)")
 
 
 # ----------------------------------------------------------------- P-CAP
@@ -402,6 +521,11 @@ def main(argv=None):
         notes.append(f"P-CAP WAIVED: {waive['P-CAP']}")
     else:
         check_cap(board, cfg, fails, warns, notes)
+    if "P-BODYCLR" in waive:
+        fails.append("P-BODYCLR is non-waivable; move the parts or provide "
+                     "correct mechanical geometry")
+    else:
+        check_body_clearance(board, cfg, fails, notes)
 
     for n in notes:
         print("  note:", n)

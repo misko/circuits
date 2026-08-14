@@ -24,13 +24,18 @@ limits:
   operating_temperature: -50 to +145 C
 gotchas:
   - "3568 is a complete insulated MINI fuse holder, not a single loose clip. The exact KiCad footprint correctly has four holes grouped into pad numbers 1 and 2 on 9.9 mm contact spacing."
-  - "Fit a separately procured 10 A MINI blade fuse for the 75 W/12 V worst-case trunk; the holder's 20 A rating is not the fuse trip rating. The fuse element is a user-replaceable non-PCBA item."
-  - "JLC's C5249699 catalog item and through-hole assembly eligibility must be visually rechecked against the complete holder at order time; do not accept a loose-clip substitution."
-verified: "Keystone catalog M65 p.42, MINI FUSE HOLDER Cat. No. 3568 drawing and mounting detail; footprint geometry read from KiCad Fuseholder_Blade_Mini_Keystone_3568; checked 2026-07-31."
+  - "Fit exact Littelfuse 0297010.H, a red 10 A / 32 V MINI blade fuse, for the 75 W/12 V worst-case trunk. The holder's 20 A rating is not the fuse trip rating. The fuse element is a user-replaceable non-PCBA item."
+  - "JLC C5249699 is a single loose fuse clip, not Keystone's complete insulated 3568 holder. It is forbidden as footprint, twin-model, and sourcing identity for F1."
+verified: "Keystone catalog M65 p.42, MINI FUSE HOLDER Cat. No. 3568 drawing and mounting detail; footprint geometry and complete-holder 3D identity read from KiCad Fuseholder_Blade_Mini_Keystone_3568; JLC C5249699 visually rejected as a loose-clip near-match; checked 2026-08-01."
 sourcing:
-  lcsc: C5249699
+  lcsc: null
   alternates: []
-  note: "Catalog-coded exact MPN; JLC THT assembly/packaging allocation requires order-day verification. The 10 A MINI fuse element is sourced and installed separately."
+  note: "Procure the exact complete Keystone 3568 holder outside JLC and hand-solder it. C5249699 is one loose clip and is not an exact-MPN source. Exact Littelfuse 0297010.H is sourced and installed separately."
+twin_body:
+  source: board
+  identity: "Keystone 3568 complete insulated four-hole MINI blade-fuse holder"
+  authority: "KiCad Fuseholder_Blade_Mini_Keystone_3568 exact library model, checked against Keystone M65 p.42"
+  limitation: "C5249699 is explicitly rejected as a single loose-clip near-match and has no model-registration authority."
 layout:
   source: "Keystone M65 p.42 Cat. No. 3568 mounting detail and 20 A UL holder rating."
   notes:

@@ -1,0 +1,49 @@
+mpn: TPSM63610RDFR
+manufacturer: Texas Instruments
+type: synchronous_buck_power_module
+datasheet: {doc_id: SLVSGU1, revision: SLVSGU1A, url: "https://www.ti.com/lit/ds/symlink/tpsm63610.pdf", sha256: 066151993e2f4034daee8ada50e714c078a864e3c42ad26bc72b209c53742d10, fetched: 2026-08-10}
+package: B3QFN-22 RDF, 6.5x7.5mm, four exposed thermal lands
+footprint: usb_hub_3s_v4:Texas_RDF0022A_B3QFN-22_6.5x7.5mm_ThermalVias
+escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard, checked: "escape_check geometry review 2026-08-10; filled/capped thermal-via processing is separately required by gotchas and ADR-0004"}
+pins:
+  1: VIN1
+  2: RBOOT
+  3: CBOOT
+  4: SW
+  5: VLDOIN
+  6: VCC
+  7: {name: AGND, tie: GND}
+  8: FB
+  9: VOUT1
+  10: VOUT2
+  11: {name: AGND, tie: GND}
+  12: RT
+  13: PG
+  14: SPSP
+  15: SYNC_MODE
+  16: NC
+  17: EN
+  18: VIN2
+  19: {name: PGND, tie: GND}
+  20: {name: PGND, tie: GND}
+  21: {name: AGND, tie: GND}
+  22: {name: AGND, tie: GND}
+limits: {vin_recommended_max: 36V, vin_transient_abs: "42V <=100ms, <=0.01% duty", iout_rated: 8A, iout_peak: 10A, shutdown_iq_typ: 0.6uA, vref_accuracy_full_temperature: "+/-1.5%"}
+gotchas:
+  - "A single module cannot supply the board's 9A continuous/10.5A coincident peak; this part is dedicated to the 6A continuous/7.5A USB-A rail."
+  - "Full-current thermal performance depends on exposed-land soldering, an uninterrupted layer-2 ground plane, and numerous 0.3mm thermal vias; v4 orders filled/capped via-in-pad rather than relying on paste over open holes."
+  - "SW pin 4 is intentionally left without an external net: TI SLVSGU1A Table 5-1 says not to place an external component or connect a signal and to minimize copper on this pin."
+  - "VCC pin 6 is intentionally left without an external net: it is the internal-LDO output with an internal 1uF capacitor and TI says not to connect external loads."
+  - "Use 68-100uF aluminum electrolytic input damping with 0.1-0.4ohm ESR when connected through battery leads; ceramics plus cable inductance can otherwise ring on hot plug."
+  - "At 5V and 1MHz Table 7-1 requires at least 75uF effective ceramic output capacitance. C6-C8/C24-C26 provide a machine-checked 80.784uF effective; C22 is additional low-frequency polymer bulk, not a substitute for that ceramic minimum."
+  - "Table 7-1 recommends 22pF CFF only when the output bank is close to minimum. Section 8.2.1.2.6 explicitly says not to use CFF when an output-capacitor ESR zero is below 200kHz. C22 permits 100uF at 24mohm, about 66kHz, so v4 fits no U1 CFF/RFF branch."
+verified: "pin table 5-1, limits tables 4 and 6-1, Table 7-1 effective-capacitance/CFF row, explicit below-200kHz CFF prohibition, input damping sec.8.3, and layout sec.8.4 independently read 2026-08-11"
+sourcing: {lcsc: C7125816, alternates: [], note: "JLC/LCSC catalog candidate; volatile stock evidence is kept in 06_build/cache"}
+layout:
+  source: "TI SLVSGU1A sec.8.4 plus TPSM63610EVM BSR234A editable Altium design files (SLVRBM6)"
+  reviewed: "2026-08-11"
+  notes: "Use the exact EVM RDF0022A land, symmetric VIN and VOUT capacitor banks, uninterrupted inner GND planes and filled/capped 0.30mm thermal vias in all four ground lands; keep BOOT, FB and RT parts pin-local and out of the power path."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSGU1A sec.8.4 and RDF0022A example board/stencil layouts", why: "manufacturer layout defines capacitor symmetry, ground plane, thermal lands and via field"}
+  - {tier: 2, reached: true, artifact: "TI TPSM63610EVM BSR234A editable Altium PCB design, SLVRBM6", why: "exact manufacturer EVM land and surrounding via/capacitor geometry were imported and measured before placement froze"}
+  - {tier: 3, reached: false, artifact: "OSHWLab/LCSC routed TPSM63610 precedent", why: "not needed after the exact manufacturer editable EVM was reached; third-party authority would be weaker"}

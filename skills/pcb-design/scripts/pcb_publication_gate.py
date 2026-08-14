@@ -12,6 +12,11 @@ The gate is intentionally pcbnew-free.  It composes the existing release gates
 and adds the publication-only properties they cannot infer from an isolated
 release directory: live-source identity, review archive identity, review
 artifact binding, and source-commit freshness.
+
+A superseding release declares its freshness shape as structured MANIFEST
+data.  Publication must replay that same stronger mode: invoking ordinary
+freshness on a legitimate docs-only successor rejects the byte identity that
+``--docs-only-supersede`` is specifically designed to prove.
 """
 from __future__ import annotations
 
@@ -184,6 +189,34 @@ def _child_gate(script, release, root, *extra):
     return [f"{Path(script).name} failed for {release}:\n{tail}"]
 
 
+def _freshness_args(fields, release):
+    """Return ``(errors, argv)`` for the release's declared freshness shape.
+
+    No declaration means an ordinary material release.  A docs-only release
+    must name one existing sibling predecessor by directory name; accepting a
+    path, a missing predecessor, or an unknown mode would turn the stronger
+    identity assertion into a silent ordinary check.
+    """
+    mode = fields.get("release_mode", "").strip().lower()
+    if not mode:
+        return [], ["--claim", "design"]
+    if mode != "docs-only":
+        return [f"FRESHNESS-MODE: unsupported release_mode {mode!r}"], []
+    prior_name = fields.get("supersedes", "").strip()
+    if not prior_name or Path(prior_name).name != prior_name:
+        return [
+            "FRESHNESS-PREDECESSOR: docs-only release must name one sibling "
+            "release directory in `supersedes:`"
+        ], []
+    prior = release.parent / prior_name
+    if not prior.is_dir() or prior.resolve() == release.resolve():
+        return [
+            f"FRESHNESS-PREDECESSOR: declared predecessor {prior_name!r} "
+            "does not resolve to a different sibling release directory"
+        ], []
+    return [], ["--claim", "design", "--docs-only-supersede", prior]
+
+
 def review_binding_errors(project, release, board_hash, head, root):
     errors = []
     archive = project / "08_reviews"
@@ -306,9 +339,12 @@ def grade_board(project, board, head, root, check_worktree):
 
     errors.extend(_child_gate(
         "skills/kicad-pcb/scripts/release_required_check.py", release, root))
-    errors.extend(_child_gate(
-        "skills/jlcpcb-fab/scripts/release_freshness_check.py", release, root,
-        "--claim", "design"))
+    mode_errors, freshness_args = _freshness_args(fields, release)
+    errors.extend(mode_errors)
+    if not mode_errors:
+        errors.extend(_child_gate(
+            "skills/jlcpcb-fab/scripts/release_freshness_check.py", release,
+            root, *freshness_args))
     errors.extend(_child_gate(
         "skills/kicad-pcb/scripts/rf_contract_check.py", project, root,
         "--require-applicability",

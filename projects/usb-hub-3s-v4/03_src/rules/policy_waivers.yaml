@@ -1,0 +1,38 @@
+# USB Hub 3S v4 evidence-backed policy dispositions.
+# These accept bounded documentation/usability findings; they do not alter
+# electrical topology, routed copper, or the order/first-article boundary.
+- id: S-OCCL
+  refs: ["04_kicad/usb_hub_3s_v4.kicad_sch"]
+  why: >-
+    Measured 2026-08-12 on 04_kicad/usb_hub_3s_v4.kicad_sch SHA-256
+    114ba1ca14f8cf4bef649c6962bc011cbaebdb0ec494cff31fa8385d587bad43:
+    sch_occlusion.py placed 740/740 drawable objects, found zero S-WNET merged-
+    net conductors, and reported three converter-artifact text intersections:
+    R24 reference versus #PWR44 glyph, one 22uF value versus R24 body, and one
+    4.12k value versus a wire. The human schematic is the native tscircuit PDF,
+    not this machine/parity artifact (ADR-0002). Fresh independent review
+    08_reviews/pre-route_schematic_render.md inspected all ten current PDF pages
+    at normal scale plus the affected USB-C page at 180 dpi and found no clipped,
+    overlapped, ambiguous or unreadable value, identity, polarity or connection;
+    design_verdict SOUND. ERC errors are zero, S-WNET is zero and exact
+    schematic parity is zero. This waives only the three machine-artifact text
+    intersections; human schematic readability remains independently gated.
+
+- id: P-SILK-FN
+  refs: [TP3, TP4, TP5, TP6, TP7, TP8, TP9, TP10, TP11, TP12]
+  why: >-
+    Measured 2026-08-12 on routed board SHA-256
+    9888b1267744b8f659ce3f57dd0cbdd037e208440781bd1c80da88b2b1966dfb:
+    policy_audit graded all 18 connector/fuse/test-point touchpoints and found
+    functional captions for 13/18 but no separate net-name caption within its
+    geometric radius for ten test points (TP3-TP12; bank captions can serve more
+    than one point, hence the counts differ). Every TP1-TP12 reference remains
+    visible on F.SilkS, exact pad/net identity is machine-checked 12/12, and the
+    fresh independent routed render/layout reviews found all test points visible,
+    probe-accessible and unambiguous by reference. 01_docs/FIRST_ARTICLE_TEST_PLAN.md
+    carries the exact TP1-TP12-to-net map and requires the technician to use that
+    controlled map; the same map must be copied onto the bench sheet/ORDER_README.
+    This is accepted for the supervised five-board prototype only. Add short net-
+    function legends beside TP3-TP12 at the next copper/silkscreen revision and
+    rerun ownership/legibility review; absence of those legends is not accepted
+    for a production release.

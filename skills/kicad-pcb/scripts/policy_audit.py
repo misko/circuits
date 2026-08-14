@@ -73,7 +73,17 @@ def cell(text):
     return str(text).replace("\r", " ").replace("\n", " ").replace("|", "\\|")
 
 
-GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A")
+def keep_short_partner_refs(value):
+    """Return the optional closed set of refdes a keep-short rule may use."""
+    if value is None:
+        return None
+    if not isinstance(value, list) or not value or any(
+            not isinstance(ref, str) or not ref.strip() for ref in value):
+        raise ValueError("partner_refs must be a non-empty list of refdes")
+    return {ref.strip() for ref in value}
+
+
+GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A", "UNGRADED")
 
 # ------------------------------------------- P-PREC: the precedent ratchet
 # MEASURED read-only over `projects/*/02_parts/*/part.yaml` on 2026-07-30 at
@@ -120,18 +130,19 @@ GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A")
 # never been measured cannot have regressed — and picks up a bound the first
 # time someone records one. That declared gap is the honest price of never
 # failing a board for existing.
-PREC_GRADED_FLOOR = 14   # in-scope parts carrying a TIER-GRADED precedent
-                         # record, FLEET-WIDE. RAISED 1 -> 14 on 2026-07-31:
-                         # read-only fleet sweep measured 14 graded / 113
-                         # in-scope after the v4 and programmable-hub dossiers
-                         # landed. A numerator advance raises this floor in the
+PREC_GRADED_FLOOR = 36   # in-scope parts carrying a TIER-GRADED precedent
+                         # record, FLEET-WIDE. Raised 30 -> 36 on 2026-08-13:
+                         # pluto-rx2-8way-v5 added six in-scope dossiers and
+                         # every one carries a closed tier-graded search record,
+                         # increasing the measured fleet to 36 graded / 139 in
+                         # scope. A numerator advance raises this floor in the
                          # same change; it may never be lowered.
 #
 # PER-BOARD owed ceilings: in-scope parts with NO tier-graded record. Each may
 # only FALL, and each is TIGHT (the test asserts equality, so a board that
 # improves must lower its own row in the same commit and cannot bank slack).
-# MEASURED 2026-07-31, read-only sweep of `projects/*/02_parts/`: 113 in scope
-# across 9 boards, 14 GRADED and 99 OWED. The per-board rows below are exact;
+# MEASURED 2026-08-13, read-only sweep of `projects/*/02_parts/`: 139 in scope
+# across 11 boards, 36 GRADED and 103 OWED. The per-board rows below are exact;
 # `tests/t1_layout_precedent.py` independently recomputes every denominator.
 PREC_OWED_CEILING = {
     "crow-mic-pod-v2": 4,
@@ -140,9 +151,11 @@ PREC_OWED_CEILING = {
     "pluto-rx2-8way": 8,
     "pluto-rx2-8way-v2": 2,        # 3 in scope, 1 of them GRADED
     "pluto-rx2-8way-v4": 2,
-    "programmable-usb2-hub": 6,
+    "pluto-rx2-8way-v5": 0,
+    "programmable-usb2-hub": 10,
     "smc0985-cooksense": 35,
     "usb-hub-3s-v3": 12,
+    "usb-hub-3s-v4": 0,
 }
 
 
@@ -210,6 +223,11 @@ def main():
                     help="which board of a MULTI-BOARD project to grade "
                          "(04_kicad stem, e.g. 'interposer'); default is the "
                          "first, which is what the release scope follows")
+    ap.add_argument("--phase", choices=("full", "source", "placement"),
+                    default="full",
+                    help="full release audit (default), the source-only "
+                         "P-LAYOUT/P-PREC gate used before generation, or the "
+                         "placement P-LAYOUT/P-PREC/P-ADJ gate before routing")
     args = ap.parse_args()
     proj = Path(args.project).resolve()
     cfgp = Path(args.config) if args.config else proj / "03_src/rules/policy_audit.json"
@@ -238,6 +256,12 @@ def main():
     board_p = boards[0] if boards else None
     sch_p = schs[0] if schs else None
     board_name = Path(board_p).stem if board_p else None
+    if args.phase == "source":
+        # Source phase exists specifically before a realized board is needed.
+        # Do not let a stale prior board add load time or accidental evidence.
+        board_p = None
+        sch_p = None
+        board_name = None
 
     waivers = []
     wp = proj / "03_src/rules/policy_waivers.yaml"
@@ -250,7 +274,21 @@ def main():
 
     rows = []  # (id, grade, detail)
 
-    def grade(cid, ok, detail_pass, detail_fail):
+    def grade(cid, ok, detail_pass, detail_fail, pop=None, pop_name=None):
+        # AN EMPTY POPULATION IS UNGRADED, NEVER PASS (canon M-COVER).
+        # `pop` is the collection this verdict is ABOUT. When it is empty the
+        # check did not run on anything, and "ok" is true only because there
+        # was nothing to be wrong — the zero-denominator shape.
+        # MEASURED 2026-08-02: `R-POUR PASS (0 nets)` on 6 of 9 fleet boards,
+        # one of them declaring 10 A fused / 6.4 A continuous on its input
+        # trunk. The oracle for which IDs convert is docs/denominator-census.md
+        # §1a, and ONLY the IDs it names may convert — a conversion it does not
+        # name is a regression by that document's own rule.
+        if pop is not None and len(pop) == 0:
+            rows.append((cid, "UNGRADED",
+                         f"population is EMPTY ({pop_name or 'subject'}: 0) — "
+                         f"nothing was graded, so this is not a pass"))
+            return
         if ok:
             rows.append((cid, "PASS", detail_pass))
         elif cid in waived_ids:
@@ -718,6 +756,15 @@ def main():
                     net = ks.get("net")
                     pts = netpads.get(net) or []
                     want = [str(p) for p in (ks.get("anchor_pins") or [])]
+                    try:
+                        partner_refs = keep_short_partner_refs(
+                            ks.get("partner_refs"))
+                    except ValueError as exc:
+                        unreached.append(
+                            f"{pname}: keep_short net {net!r} has malformed "
+                            f"partner_refs {ks.get('partner_refs')!r}: {exc}; "
+                            f"budget {mx}mm graded NOTHING")
+                        continue
                     if len(pts) < 2:
                         # ---- UNREACHED, not skipped (canon M-COVER) --------
                         # A declared budget whose net carries fewer than two
@@ -763,7 +810,9 @@ def main():
                     worst = None
                     for p, f in anchors:
                         cand = [(q, g) for q, g in pts
-                                if g.GetReference() != f.GetReference()]
+                                if g.GetReference() != f.GetReference()
+                                and (partner_refs is None or
+                                     g.GetReference() in partner_refs)]
                         if not cand:
                             continue
                         # key=, not a tuple: a tie would otherwise fall
@@ -776,8 +825,11 @@ def main():
                         unreached.append(
                             f"{pname}: keep_short net {net!r} has pads ONLY on "
                             f"the declaring part "
-                            f"({[f.GetReference() for f in own]}) — there is no "
-                            f"partner pin to be near; budget {mx}mm graded "
+                            f"({[f.GetReference() for f in own]})"
+                            + (f" or outside required partner_refs "
+                               f"{sorted(partner_refs)}" if partner_refs
+                               else "") + " — there is no partner pin to be "
+                            f"near; budget {mx}mm graded "
                             f"NOTHING")
                         continue
                     d, a_ref, b_ref = worst
@@ -1276,7 +1328,8 @@ def main():
         nopour = sorted(pwr - znets)
         grade("R-POUR", not nopour,
               f"high-current-class nets all poured ({len(pwr)} nets)",
-              f"high-current-class nets with no pour: {nopour[:6]}")
+              f"high-current-class nets with no pour: {nopour[:6]}",
+              pop=pwr, pop_name="high-current-class nets")
 
         # R-THERM: only meaningful where an internal plane exists to sink
         # into (>=4 layers), and only for multi-pin parts (a 2-pad
@@ -1918,7 +1971,17 @@ def main():
         rows.append(("A-BODY", "N-A", "no twin run / missing_models.txt yet"))
     else:
         _t = _mm.read_text(encoding="utf-8-sig")
-        _m = re.search(r"bodies mounted:\s*(\d+)\s*/\s*(\d+)", _t)
+        # New reports split the contractual JLC-placement population from
+        # optional manual-install bodies. A-BODY's contract is explicitly CPL
+        # coverage; a missing hand-solder model remains visible in the overall
+        # and manual counters without being mislabeled as an unmodeled JLC
+        # placement. Fall back to the historical aggregate counter so sealed
+        # releases remain gradeable.
+        _m = re.search(r"CPL bodies mounted:\s*(\d+)\s*/\s*(\d+)", _t)
+        _counter = "CPL bodies mounted"
+        if not _m:
+            _m = re.search(r"(?<!CPL )bodies mounted:\s*(\d+)\s*/\s*(\d+)", _t)
+            _counter = "bodies mounted"
         if "GENERATED by jlc_twin" not in _t or not _m:
             grade("A-BODY", False, "",
                   f"{_mm.parent.parent.name}/{_mm.name} carries no generated "
@@ -1927,11 +1990,13 @@ def main():
         else:
             _got, _want = int(_m.group(1)), int(_m.group(2))
             grade("A-BODY", _got == _want,
-                  f"{_mm.parent.parent.name}: bodies mounted {_got}/{_want} "
-                  f"(generated)",
-                  f"{_want - _got} of {_want} CPL placements have NO 3D body: "
-                  + ", ".join(l.split("\t")[0] for l in _t.splitlines()
-                              if l and not l.startswith("#"))[:200])
+                      f"{_mm.parent.parent.name}: {_counter} {_got}/{_want} "
+                      f"(generated)",
+                      f"{_want - _got} of {_want} CPL placements have NO 3D body"
+                      + ((": " + ", ".join(
+                          l.split("\t")[0] for l in _t.splitlines()
+                          if l and not l.startswith("#"))[:200])
+                         if _counter == "bodies mounted" else ""))
 
     # M-JRNL / M-LEARN: per-stage diary + harvest sources (canon M9). Scoped
     # to commissioned projects (01_docs exists) — scratch/test trees exempt.
@@ -1974,7 +2039,28 @@ def main():
     rows.append(("M1", "HUMAN", "independent-reference coverage — release review"))
     rows.append(("M6", "HUMAN", "authoritative-source discipline — encoded in protocols"))
 
-    # ---------------- report ----------------
+    # ---------------- phase selection + report ----------------
+    # The placement subset is deliberately produced by THIS evaluator, not a
+    # second adjacency implementation.  The motivating usb2-hub incident had
+    # valid P-ADJ rows in the final policy report but rebuild_all did not read
+    # them until after routing.  Filtering only after every source row has
+    # been evaluated preserves one definition of the metric while moving the
+    # decision to the post-floorplan / pre-route boundary.
+    placement_phase_ids = {
+        "P-LAYOUT", "P-PREC", "P-ADJ", "P-ADJ-PAIR",
+        "P-ADJ-UNREACHED",
+    }
+    source_phase_ids = {"P-LAYOUT", "P-PREC"}
+    if args.phase in {"source", "placement"}:
+        phase_ids = (source_phase_ids if args.phase == "source"
+                     else placement_phase_ids)
+        rows = [row for row in rows if row[0] in phase_ids]
+        present = {cid for cid, _, _ in rows}
+        missing = sorted(phase_ids - present)
+        if missing:
+            rows.append(("M-COVER", "FAIL",
+                         f"{args.phase} phase did not produce required rows: "
+                         f"{missing}"))
     counts = {}
     for _, g, _ in rows:
         counts[g] = counts.get(g, 0) + 1
@@ -1987,8 +2073,12 @@ def main():
                       f"{', '.join(sorted(Path(b).stem for b in boards))}; "
                       f"select with --board)" if len(boards) > 1 else "")
                    ) if board_name else "Board graded: none (no 04_kicad board)"
-    lines = [f"# Policy audit — {proj.name}", "",
+    title = ({"source": "Source policy audit",
+              "placement": "Placement policy audit"}.get(
+                  args.phase, "Policy audit"))
+    lines = [f"# {title} — {proj.name}", "",
              f"Generated by policy_audit.py; canon: design-policies.md", "",
+             f"Phase: {args.phase}", "",
              _board_line, "",
              "| ID | Grade | Detail |", "|---|---|---|"]
     for cid, g, det in rows:
@@ -2016,7 +2106,9 @@ def main():
     # old one cannot reach the published file no matter when it flushes.
     sys.stdout.flush()
     sys.stderr.flush()
-    dest = build / "policy_audit.md"
+    dest = build / ({"source": "source_policy_audit.md",
+                     "placement": "placement_policy_audit.md"}.get(
+                         args.phase, "policy_audit.md"))
     tmp = dest.with_suffix(".md.tmp")
     tmp.write_text(text)
     os.replace(tmp, dest)

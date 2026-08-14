@@ -1,0 +1,10 @@
+F-LEGIBLE release BOM audit — 2026-08-01
+
+graded: fab/bom.csv (4,088 bytes; 59 rows)
+authority: 31 vendored part codes + 167 vetted-passive codes + the sealed
+verification/stock_check.csv release-local LCSC-to-MPN map
+coverage F-ENCODE: 1/1 file decoded; UTF-8 BOM present
+coverage F-MPN: 59/59 coded rows independently resolved; 0 ungradeable
+coverage F-WORDS: 59/59 comments are human-readable values/MPNs
+
+F-LEGIBLE OK: 61 checks passed

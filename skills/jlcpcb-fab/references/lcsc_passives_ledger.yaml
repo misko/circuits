@@ -77,6 +77,10 @@ C22843: {mpn: 0603WAF1501T5E, value: "1.5k", verified: "2026-07-23 JLC catalog (
 C22859: {mpn: 0603WAF100JT5E, value: "10", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C22864: {mpn: 0603WAF1212T5E, value: "12.1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C22865: {mpn: 0603WAF1242T5E, value: "12.4k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23008: {mpn: 0603WAF3402T5E, value: "34k", verified: "2026-08-01 JLC catalog selectSmtComponentList exact search: 34k 1% 0603, stock 50025"}
+C25184: {mpn: 0603WAF110JT5E, value: "11", verified: "2026-08-01 JLC catalog selectSmtComponentList exact search: 11Ohm 1% 0603, stock 32309"}
+C22830: {mpn: 0603WAF180JT5E, value: "18", verified: "2026-08-01 JLC catalog selectSmtComponentList exact search: 18Ohm 1% 0603, stock 136745"}
+C22841: {mpn: 0603WAF1471T5E, value: "1.47k", verified: "2026-08-01 JLC catalog selectSmtComponentList exact search: 1.47k 1% 0603, stock 7913"}
 C22935: {mpn: 0603WAF1004T5E, value: "1M", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C22977: {mpn: 0603WAF200KT5E, value: "2", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C22978: {mpn: 0603WAF3301T5E, value: "3.3k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
@@ -216,6 +220,28 @@ C25915: {mpn: 0402WGF6201TCE, value: "6.2k", verified: "2026-07-26 JLC catalog (
 # ALL THREE were 6.2k (C25915, C137946 RC0402FR-076K2L, C2909371 FRC0402F6201TS),
 # apparently reading "62k" as RKM "6k2".
 C37825: {mpn: 0402WGF6202TCE, value: "62k", verified: "2026-07-26 JLC catalog (selectSmtComponentList describe; 62kΩ ±1% 0402 50V 62.5mW, stock 127526) — cooksense R_OPENT, the open-thermistor detect threshold; replaces C25915 which is 6.2k"}
+
+# --- programmable-usb2-hub 3 A architecture backtrack, 2026-08-01 --------
+# Exact component-code reads from JLC's selectSmtComponentList endpoint.  Each
+# ordering code independently decodes to the same value; stock is deliberately
+# not frozen here because A-STOCK refreshes it at release/order time.
+C128060: {mpn: RC0603FR-0730RL, value: "30", verified: "2026-08-01 JLC exact-code catalog row: 30Ω ±1% 0603; Yageo 30R ordering field independently agrees"}
+C282682: {mpn: TCC0603X7R334K500CT, value: "330nF", verified: "2026-08-01 JLC exact-code catalog row: 330nF 50V X7R ±10% 0603; 334 capacitance field independently agrees"}
+C39232: {mpn: CL32B106KAJNNNE, value: "10uF", verified: "2026-08-01 JLC exact-code catalog row: 10uF 25V X7R ±10% 1210; 106 capacitance field independently agrees"}
+C53987: {mpn: 0603B472K500NT, value: "4.7nF", verified: "2026-08-01 JLC exact-code catalog row: 4.7nF 50V X7R ±10% 0603; 472 capacitance field independently agrees"}
+C2930080: {mpn: FRC0603F2492TS, value: "24.9k", verified: "2026-08-01 JLC exact-code catalog row: 24.9kΩ ±1% 0603; 2492 resistance field independently agrees"}
+C2930134: {mpn: FRC0603F9091TS, value: "9.09k", verified: "2026-08-01 JLC exact-code catalog row: 9.09kΩ ±1% 0603; 9091 resistance field independently agrees"}
+C166926: {mpn: RTT035001FTP, value: "5k", verified: "2026-08-01 JLC exact-code catalog row: 5kΩ ±1% 0603; 5001 resistance field independently agrees"}
+C153036: {mpn: FS32X225K101EGG, value: "2.2uF", verified: "2026-08-01 JLC exact-code catalog row: 2.2uF 100V X7R ±10% 1210; 225 capacitance field independently agrees"}
+C23025: {mpn: 0603WAF3000T5E, value: "300", verified: "2026-08-01 JLC exact-code catalog row: 300Ω ±1% 0603; 3000 resistance field independently agrees"}
+C2960889: {mpn: FRC0603F2151TS, value: "2.15k", verified: "2026-08-01 JLC exact-code catalog row: 2.15kΩ ±1% 0603; 2151 resistance field independently agrees"}
+C3844168: {mpn: CL32B106KBJNNWE, value: "10uF", verified: "2026-08-01 JLC exact-code catalog row: 10uF 50V X7R ±10% 1210, stock 533; Samsung 106 capacitance field independently agrees. Selected for VIN_PROTECTED; do not substitute the 25V C39232."}
+C2169715: {mpn: HMK107C7224KAHTE, value: "220nF", verified: "2026-08-01 JLC exact-code catalog row: 220nF 100V X7S ±10% 0603, stock 45038; TAIYO YUDEN TY-COMPAS exact previous-MPN record independently agrees."}
+C107181: {mpn: CC1206KKX7R0BB104, value: "100nF", verified: "2026-08-01 JLC exact-code catalog row: 100nF 100V X7R ±10% 1206, stock 225916; exact DigiKey/YAGEO product record independently agrees. Selected for LM74810 VS and VIN_FUSED bypass; do not substitute 50V C24497."}
+C23742: {mpn: CL32A107MPVNNNE, value: "100uF", verified: "2026-08-01 JLC exact-code catalog row: 100uF 10V X5R ±20% 1210, stock 78186; exact Samsung/DigiKey product record independently agrees. Selected for 5.215V rail bulk; do not substitute the 6.3V C49066/C88154 candidates."}
+C844888: {mpn: TNPW0603100KBEEA, value: "100k", verified: "2026-08-01 JLC exact-code catalog row: 100kΩ ±0.1% ±25ppm/℃ 0603, stock 37138; exact Vishay/Mouser identity independently agrees."}
+C844676: {mpn: TNPW060320K0BEEA, value: "20k", verified: "2026-08-01 JLC exact-code catalog row: 20kΩ ±0.1% ±25ppm/℃ 0603, stock 20548; exact Vishay/Mouser identity independently agrees."}
+C844160: {mpn: CRCW060336K5FKEA, value: "36.5k", verified: "2026-08-01 JLC selectSmtComponentList exact code/model: 36.5kΩ ±1% 0603, stock 1572; exact Mouser API identity independently agreed with stock 139858. MPN field 36K5 independently decodes to 36.5kΩ."}
 # ---------------------------------------------------------------------------
 # crow-recorder-central-v2 Y1, the ONE coded row on that board whose MPN lives
 # in NEITHER authority. The other four F-MPN misses of 2026-07-27 (C237284,
@@ -271,3 +297,39 @@ C5126196: {mpn: FRC0603F9760TS, value: "976", verified: "2026-07-31 JLC catalog 
 C1604: {mpn: 0603B222K500NT, value: "2.2nF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 2.2nF 50V X7R ±10% 0603. MPN capacitance field 222 independently decodes to 2200pF = 2.2nF."}
 C309062: {mpn: CL32B226KAJNNNE, value: "22uF", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 22uF 25V X7R ±10% 1210. MPN capacitance field 226 independently decodes to 22000000pF = 22uF."}
 C23231: {mpn: 0603WAF6802T5E, value: "68k", verified: "2026-07-31 JLC catalog selectSmtComponentList exact-code describe: 68kOhm ±1% 0603. MPN field 6802 independently decodes to 680 x 10^2 ohm = 68kOhm."}
+
+# --- usb-hub-3s-v4 schematic capture, 2026-08-11 --------------------------
+# Live exact-code JLC catalog reads, with ordering-field/value decode as the
+# independent check. Stock is deliberately not frozen in this append-only
+# identity ledger; A-STOCK re-reads it for the actual order quantity.
+C855851: {mpn: AT0603BRD0741K2L, value: "41.2k", verified: "2026-08-11 JLC exact-code catalog row: 41.2kΩ ±0.1% ±25ppm/℃ 0603. Yageo field 41K2 independently decodes to 41.2kΩ; USB-A module custom feedback top."}
+C861394: {mpn: RT0603BRD0741K7L, value: "41.7k", verified: "2026-08-11 JLC exact-code catalog row: 41.7kΩ ±0.1% ±25ppm/℃ 0603. Yageo field 41K7 independently decodes to 41.7kΩ; Pi module custom feedback top."}
+C95204: {mpn: RT0603BRD0710KL, value: "10k", verified: "2026-08-11 JLC exact-code catalog row: 10kΩ ±0.1% ±25ppm/℃ 0603. Yageo field 10K independently agrees; both feedback bottom legs."}
+C861871: {mpn: RT0603BRE0739K2L, value: "39.2k", verified: "2026-08-11 JLC exact-code catalog row: 39.2kΩ ±0.1% ±50ppm/℃ 0603. Yageo field 39K2 independently decodes to 39.2kΩ; TPS2557 current-limit programming."}
+C22880: {mpn: 0603WAF1582T5E, value: "15.8k", verified: "2026-08-11 JLC exact-code catalog row: 15.8kΩ ±1% 0603. Ordering field 1582 independently decodes to 15.8kΩ; TPSM63610 1MHz RT."}
+C22797: {mpn: 0603WAF1302T5E, value: "13k", verified: "2026-08-11 JLC exact-code catalog row: 13kΩ ±1% 0603. Ordering field 1302 independently decodes to 13kΩ; TPSM63604 1MHz RT."}
+C23692991: {mpn: CGA1210X7R476K100RT, value: "47uF", verified: "2026-08-11 JLC exact-code catalog row: 47uF 10V X7R ±10% 1210. Capacitance field 476 independently decodes to 47uF; module output/TPS25810 input banks."}
+C264054: {mpn: EEEFK1A151P, value: "150uF", verified: "2026-08-11 JLC exact-code catalog row: Panasonic 150uF 10V D6.3x5.8 aluminum electrolytic. Panasonic exact series/value/package row independently agrees; USB-A receptacle hold-up."}
+C861410: {mpn: RT0603BRD0744K2L, value: "44.2k", verified: "2026-08-11 LCSC exact-code catalog row and Yageo RT-series ordering decode independently agree: 44.2kOhm +/-0.1% 0603; TPS2559 ILIM programming."}
+C914799: {mpn: AT0603BRD07430RL, value: "430", verified: "2026-08-11 LCSC exact-code catalog row: 430Ohm +/-0.1% 0603, with 20 units observed. Yageo field 430R independently decodes to 430Ohm; Type-C feedback trim."}
+C705763: {mpn: RT0603BRD07300RL, value: "300", verified: "2026-08-11 JLC/LCSC exact-code catalog row: Yageo 300Ohm +/-0.1% 0603, 23067 units observed; Type-C feedback trim."}
+C47115872: {mpn: PTFR0603B215RP9, value: "215", verified: "2026-08-11 JLC/LCSC exact-code catalog row: 215Ohm +/-0.1% 0603 precision resistor, 3898 units observed; TPS259827O ILIM programming."}
+C478880: {mpn: PTFR0603B210RP9, value: "210", verified: "2026-08-11 JLC/LCSC exact-code catalog row and active JLC assembly pricing: 210Ohm +/-0.1%, +/-25ppm/C 0603 precision resistor; TPS259827O ILIM programming. Stock remains a release-time refresh obligation."}
+C106862: {mpn: CC0402KRX7R9BB333, value: "33nF", verified: "2026-08-11 JLC/LCSC exact-code catalog row: Yageo 33nF +/-10% X7R 0402, 476894 units observed; TPS259827O ITIMER."}
+C82219: {mpn: 0402B473K500NT, value: "47nF", verified: "2026-08-11 JLC exact-code part page: FH 47nF 50V X7R +/-10% 0402; not sufficient for the USB Hub v4 guaranteed timer after X7R temperature variation."}
+C2220670: {mpn: C1206C473J5GECAUTO7210, value: "47nF", verified: "2026-08-11 JLC exact-code part page and KEMET ordering code: 47nF 50V C0G +/-5% 1206; USB Hub v4 ITIMER replacement."}
+C2239978: {mpn: C0603X332G5GECAUTO, value: "3.3nF", verified: "2026-08-11 JLC exact-code part page: KEMET 3.3nF 50V C0G +/-2% 0603; USB Hub v4 dVdt capacitor."}
+C5451690: {mpn: C1206N473J050T, value: "47nF", verified: "2026-08-12 JLC exact-code API row: Holy Stone C1206N473J050T, 1206, stock 217. Holy Stone NCC ordering code and current manufacturer catalog independently specify NP0/C0G, 47nF, +/-5%, 50V, 1206 and <=+/-30ppm/C."}
+C77036: {mpn: GRM1885C1H332JA01D, value: "3.3nF", verified: "2026-08-12 JLC exact-code API row: Murata GRM1885C1H332JA01D, 0603, stock 66476. Murata's current official part-number list independently specifies 3300pF, 50Vdc, C0G, +/-5%, 0603 and 0+/-30ppm/C."}
+C2919856: {mpn: 160AV5K101M0606C, value: "100uF", verified: "2026-08-11 JLC/LCSC exact-code row and APAQ AV5K 2026 V1 exact 160AV5K101M0606C row independently agree: 100uF +/-20%, 16V, D6.3x5.8 polymer."}
+C369910: {mpn: 160AV5K181M0606C, value: "180uF", verified: "2026-08-11 JLC/LCSC exact-code row and APAQ AV5K 2026 V1 exact 160AV5K181M0606C row independently agree: 180uF +/-20%, 16V, D6.3x5.8 polymer."}
+C136277: {mpn: 16SVPF180M, value: "180uF", verified: "2026-08-12 JLC exact-code row and Panasonic exact product/SVPF-series data independently agree: 180uF +/-20%, 16V, 22mOhm max, 3.3A at 100kHz/105C, D6.3x5.9 polymer, 5000h at 105C."}
+C861436: {mpn: RT0603BRD074K12L, value: "4.12k", verified: "2026-08-12 LCSC exact-code page and Yageo RT-series ordering decode independently agree: 4.12kOhm +/-0.1%, +/-25ppm/C, 0603; USB Hub v4 low-impedance Type-C feedback top segment."}
+C861251: {mpn: RT0603BRD0724R3L, value: "24.3", verified: "2026-08-12 LCSC exact-code page and Yageo RT-series ordering decode independently agree: 24.3Ohm +/-0.1%, +/-25ppm/C, 0603; USB Hub v4 Type-C feedback trim."}
+C110776: {mpn: RT0603BRD071KL, value: "1k", verified: "2026-08-12 LCSC exact-code page and Yageo RT-series ordering decode independently agree: 1kOhm +/-0.1%, +/-25ppm/C, 0603; USB Hub v4 low-impedance Type-C feedback bottom leg."}
+# Stage-5 topology-review repair. These supersede C23692991 and C861410 in
+# USB Hub v4; the older identity rows remain valid catalog facts for history.
+C342660: {mpn: C3225X7R1C226KT000N, value: "22uF", verified: "2026-08-11 JLC/LCSC exact-code row: TDK 22uF 16V X7R +/-10% 1210. TDK C3225X7R1C226K series product/characteristic record and 226 capacitance field independently agree; effective-capacitance banks use a separate conservative DC-bias model."}
+C1555: {mpn: 0402CG220J500NT, value: "22pF", verified: "2026-08-11 JLC/LCSC exact-code row: FH 22pF 50V C0G +/-5% 0402. Ordering field 220 independently decodes to 22pF; both module feed-forward branches."}
+C173338: {mpn: RK73H1ETTP4991F, value: "4.99k", verified: "2026-08-11 JLC/LCSC exact-code row: KOA Speer 4.99kOhm +/-1% 0402. Ordering field 4991 independently decodes to 4.99kOhm; TPSM63610 RFF."}
+C861404: {mpn: RT0603BRD0743K2L, value: "43.2k", verified: "2026-08-11 JLC/LCSC exact-code row: Yageo 43.2kOhm +/-0.1% +/-25ppm/C 0603. Ordering field 43K2 independently decodes to 43.2kOhm; TPS2559 ILIM programming."}

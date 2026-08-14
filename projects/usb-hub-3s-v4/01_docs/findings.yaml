@@ -1,0 +1,180 @@
+schema: 1
+target: DESIGN_CLEAN
+
+gates:
+  - id: v4_commission_contract
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: systems
+    closes_when: The verbatim prompt, user directives, assumptions, fact-lock, safety boundary and manufacturing target are committed and machine-readable.
+    evidence:
+      - 01_docs/BRIEF.md
+      - 01_docs/decisions/0001-power-only-supervised-prototype.md
+      - 03_src/rules/requirements.yaml
+      - 03_src/rules/power_tree.yaml
+      - 03_src/rules/rf.yaml
+
+  - id: v4_parts_and_architecture
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: electrical
+    closes_when: Every selected part has a cited dossier, sourcing identity and verified application calculation; P-MOD, D-SPEC, E-PATH, E-TOPO, E-MARGIN, E-OFF, E-SWDRV and E-SURGE pass.
+    evidence:
+      - 01_docs/ARCHITECTURE.md
+      - 01_docs/DETAIL_DESIGN.md
+      - 01_docs/journal/parts.md
+      - 01_docs/sourcing/parts-selection-2026-08-10.md
+      - 03_src/rules/power_tree.yaml
+      - 03_src/rules/protection_paths.yaml
+
+  - id: v4_schematic
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: electrical
+    closes_when: The generated schematic has zero ERC errors, complete parity/invariants, and an independent exact-netlist topology review reports SOUND.
+    evidence:
+      - 01_docs/journal/03_schematic.md
+      - 03_tscircuit/kicad/usb_hub_3s_v4.kicad_sch
+      - 08_reviews/pre-route_topology.md
+      - 08_reviews/pre-route_schematic_render.md
+      - 06_build/erc_errors.rpt
+
+  - id: v4_placement
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: layout
+    closes_when: The exact board placement passes the shared placement gates plus independent pin, layout and render reviews.
+    evidence:
+      - 01_docs/journal/placement.md
+      - 08_reviews/pre-route_pin.md
+      - 08_reviews/pre-route_layout.md
+      - 08_reviews/pre-route_render.md
+      - 06_build/pre_route/twin_overlay.md
+      - 06_build/drc/pre_route.json
+
+  - id: v4_routing
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: layout
+    closes_when: The bounded route/import/stitch flow finishes with reproducible provenance and PCB DRC 0/0/0.
+    evidence:
+      - 01_docs/journal/routing.md
+      - 03_src/route.yaml
+      - 03_src/route/r8.kicad_pcb
+      - 04_kicad/usb_hub_3s_v4.kicad_pcb
+      - 06_build/route/import_provenance.json
+      - 06_build/drc/gate.json
+
+  - id: v4_release_package
+    required_for: FIRST_ARTICLE_ORDERABLE
+    state: pending
+    owner: fabrication
+    closes_when: Current JLCPCB capability/stock evidence, full review battery and a sealed reproducible fabrication/assembly package all pass.
+
+  - id: v4_first_article_test
+    required_for: FIRST_ARTICLE_TESTED
+    state: pending
+    owner: lab
+    closes_when: A fabricated unit passes the signed bring-up, protection, load, voltage-drop and thermal test plan.
+
+  - id: v4_production_validation
+    required_for: PRODUCTION_RELEASED
+    state: pending
+    owner: manufacturing
+    closes_when: A controlled pilot lot, production test process and reliability evidence are approved.
+
+findings:
+  - id: V4-F0-parts-unselected
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: electrical
+    finding: Converter, protection, connector and passive populations are intentionally unselected at commission.
+    closes_when: Stage 1 selects cited, sourceable parts and all early-design gates pass.
+    evidence:
+      - 01_docs/ARCHITECTURE.md
+      - 01_docs/DETAIL_DESIGN.md
+      - 01_docs/sourcing/parts-selection-2026-08-10.md
+      - 01_docs/sourcing/two-source-qualification-2026-08-10.md
+      - 03_src/rules/power_tree.yaml
+      - 03_src/rules/protection_paths.yaml
+
+  - id: V4-F4-advanced-tier-decision
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: user
+    finding: >-
+      The selected modules require resin-filled/copper-capped thermal
+      via-in-pad, escalating A3's provisional JLC standard tier to advanced.
+    closes_when: >-
+      The Stage 1 pause accepts ADR-0004, or the architecture is backtracked to
+      parts and geometry that are honestly manufacturable at standard tier.
+    evidence:
+      - 01_docs/BRIEF.md
+      - 01_docs/decisions/0004-jlc-advanced-via-in-pad.md
+      - 03_src/rules/nets.yaml
+
+  - id: V4-F5-pi-interconnect-qualification
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: >-
+      The load-plane Pi voltage claim budgets 39mOhm for the complete
+      interconnect from J5's PCB-side power lands to Pi load-plane sense
+      points. That path includes two mated pairs, cable plug internals,
+      conductors/terminations and the Pi receptacle/entry path; no manufacturer
+      guarantees the combined resistance.
+    closes_when: >-
+      The exact board, named 10165794-Z0030YBLF cable and target Pi are
+      four-wire measured hot from the declared endpoints, the complete
+      interconnect is <=39mOhm, and the load plane passes continuously at 3A.
+
+  - id: V4-F6-order-day-sourcing
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_ORDERABLE
+    owner: fabrication
+    finding: >-
+      Selection-time catalog stock passed 16/16 and independent authorized
+      pool coverage passed 16/16, but both are volatile and do not prove JLC
+      assembly allocation; TPSM63604, TPS2513A and the USB-A connector were
+      comparatively shallow at JLC/LCSC.
+    closes_when: >-
+      The final BOM/CPL passes the JLC uploader and a same-day stock/substitution
+      review for quantity five.
+
+  - id: V4-F7-input-polarity-marking
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: electrical
+    finding: >-
+      The selected two-position input terminal is not keyed; safe use depends
+      on Q1 reverse-polarity protection plus unambiguous BAT+/GND markings.
+    closes_when: >-
+      Schematic and board reviews prove pin 1 BAT+, pin 2 GND, polarity silk is
+      visible at the terminal, and the first-article plan includes reverse-input
+      verification.
+    evidence:
+      - 01_docs/decisions/0005-input-protection-and-shutdown.md
+      - 02_parts/1715022/part.yaml
+
+  - id: V4-F1-inherited-service-unconfirmed
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: systems
+    finding: Port count, currents, 3S envelope, Pi 4 target, stored-current budget and build quantity are inherited assumptions A1-A3 rather than direct user values.
+    closes_when: The user confirms them or later directives supersede them before schematic generation.
+    evidence:
+      - 01_docs/BRIEF.md
+
+  - id: V4-F2-supervised-only
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: Without active fail-high cutoff, the design is limited to supervised prototype use and must not claim deterministic load protection from sustained converter failure.
+    closes_when: First-article documentation and tests explicitly enforce that boundary, or a later ADR adds and verifies active cutoff.
+
+  - id: V4-F3-no-hardware-evidence
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: No v4 hardware or measured electrical/thermal evidence exists.
+    closes_when: A first article completes the approved bench plan with retained evidence.

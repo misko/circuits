@@ -1,0 +1,22 @@
+mpn: CSD18533Q5AT
+manufacturer: Texas Instruments
+type: nfet_power
+datasheet: {doc_id: SLPS399, revision: "SLPS399, Q5A package", url: "https://www.ti.com/lit/gpn/CSD18533Q5A", sha256: 3a08d20a9d2f859dd368e63a2e2410a10cae232522cb183a6b0ef6adb4e19569, fetched: 2026-08-01}
+package: "TI DQJ Q5A VSONP 5x6 mm"
+footprint: programmable_usb2_hub:Texas_DQJ_Q5A_PhysicalPins
+escape: {style: qfn, pitch: 1.27, tier_required: jlc_2layer_default, checked: "TI Q5A package and land pattern; custom footprint preserves physical pins"}
+pins: {1: S, 2: S, 3: S, 4: G, 5: D, 6: D, 7: D, 8: D, 9: {name: D, note: "exposed drain paddle"}}
+limits: {vds: 60 V, vgs: "+/-20 V", qg_10V_typ: 29 nC, qg_10V_max: 36 nC, rds_10V_max: 5.9 mOhm, rds_6V5_budget: 8.5 mOhm, tj: "-55 to 150 C"}
+gotchas:
+  - "Use the exact TI DQJ Q5A land pattern, not a generic PowerPAK by nickname."
+  - "The loss model uses the specified 36 nC maximum gate charge at 10 V and budgets 8.5 mOhm at 6.1-6.5 V drive."
+  - "Q1-Q6 require 60 V because they see the input clamp or switching overshoot."
+verified: "pins 1-3 source, 4 gate, 5-8 and paddle drain read from TI drawing, 2026-08-01"
+twin_body:
+  source: file
+  model: CSD18533Q5A-envelope.wrl
+  identity: "TI CSD18533Q5A DQJ/Q5A datasheet mechanical envelope"
+  authority: "TI SLPS388B section 7.1 nominal body dimensions 4.90 x 6.00 x 1.00 mm and package pin-1 orientation"
+  limitation: "Mechanical body and orientation witness for clearance/render review; terminal and mold cosmetic detail are omitted."
+sourcing: {lcsc: null, alternates: [], note: "Q-2SOURCE 2026-08-01: Mouser 124 and DigiKey 950; consigned"}
+layout: {source: "SLPS399 Q5A drawing plus LTC3889 checklist", notes: ["place synchronous pairs beside driver pins and VIN bypass", "keep gates short and SW copper compact", "use drain paddle for current and heat"]}

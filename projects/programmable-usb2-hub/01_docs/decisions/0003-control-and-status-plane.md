@@ -28,7 +28,9 @@ standard hub-class/operating-system port connection and enumeration state.
 Hub-controller port-power outputs are ANDed with MCU power commands, so normal
 USB hub power sequencing remains authoritative and the MCU can independently
 cycle a port. Each power-switch fault feeds both the hub overcurrent input and
-the MCU.
+the MCU. Four independent 100 kOhm hardware pulldowns (R38-R41) hold the MCU
+command inputs to the AND gate low while the MCU pins are released during
+reset, unpowered or unprogrammed; firmware is not credited for this safe state.
 
 ## Status semantics
 
@@ -54,5 +56,7 @@ No firmware field is allowed to label a command bit as measured attachment.
 
 - Netlist invariants bind external hub ports 1–4 through data switches and the
   MCU to internal port 5.
+- Netlist/value/node-level invariants bind R38-R41 from each `P*_PWR_CMD` net
+  to GND and prove the released 74LVC08 input is logic low.
 - Firmware protocol tests distinguish commanded, electrical, connected, and
   enumerated state fields.

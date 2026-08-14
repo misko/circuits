@@ -1,0 +1,24 @@
+{
+ "target": "projects/programmable-usb2-hub",
+ "summary": {
+  "board": 206,
+  "cpl": 194,
+  "datum_max_mm": 0.00025,
+  "datum_max_ref": "U9",
+  "datum_graded": 194,
+  "unpopulated": 12,
+  "declared": 5,
+  "consigned": 1,
+  "exempt_prefixes": [
+   "H",
+   "TP",
+   "FID",
+   "MH"
+  ],
+  "sides": {
+   "top": 194
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

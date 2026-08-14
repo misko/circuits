@@ -1,0 +1,14 @@
+mpn: EEEFK1A151P
+manufacturer: Panasonic Industry
+type: aluminum_electrolytic_output_capacitor
+datasheet: {doc_id: FK series, revision: catalog read 2026-08-11, url: "https://industrial.panasonic.com/cdbs/www-data/pdf/RDE0000/ABA0000C1209.pdf", sha256: null, fetched: 2026-08-11}
+package: SMD aluminum can, D6.3x5.8mm
+footprint: Capacitor_SMD:CP_Elec_6.3x5.8
+escape: {style: passive, pitch: 2.2, tier_required: jlc_2layer_default, checked: "exact package and polarity review 2026-08-11"}
+pins: {1: POS, 2: NEG}
+limits: {voltage: 10V, capacitance: "150uF +/-20%", ripple_120Hz_105C: 180mArms, temperature: "-55 to 105C", endurance: "2000h at 105C"}
+gotchas:
+  - "C17-C19 are post-switch USB-A hold-up capacitors; pad 1 is positive and must connect to the individual VBUSA rail."
+  - "This is not part of either buck control loop. Keep it at the receptacle/switch output and retain each TPS2559 local 100nF input bypass."
+verified: "exact Panasonic FK-series 10V/150uF/D6.3 package row and polarity independently matched to the JLC exact-code record 2026-08-11"
+sourcing: {lcsc: C264054, alternates: [{lcsc: C433263, mpn: UCL1A151MCL1GS}], note: "JLC stock is volatile and is rechecked at release/order time"}

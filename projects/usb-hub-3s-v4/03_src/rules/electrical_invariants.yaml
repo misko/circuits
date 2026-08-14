@@ -1,0 +1,149 @@
+# Machine-checkable electrical intent for the authored Stage 2 schematic.
+# Values are asserted in addition to topology because a correctly wired wrong
+# resistor is still a wrong power supply/current limiter.
+
+invariants:
+  # ADR-0005: terminal -> fuse -> reverse-polarity FET -> protected VIN. The
+  # TVS is deliberately on the protected side. The resistive gate divider is
+  # the steady-state VGS control; the source-gate zener is only a secondary
+  # transient clamp and is not interchangeable with the rail TVS.
+  - assert: series_chain
+    chain: [BAT_POS, F1, VBAT_FUSED, Q1, VIN]
+    through: {Q1: [5, 1]}
+    adr: "0005"
+    why: "fuse precedes the series reverse-polarity FET; VIN is the protected module trunk"
+  - {assert: pin_on_net, pin: D1.1, net: VIN, adr: "0005", why: "unidirectional TVS cathode is after reverse blocking"}
+  - {assert: pin_on_net, pin: D1.2, net: GND, adr: "0005", why: "TVS anode returns to ground"}
+  - {assert: pin_on_net, pin: D5.1, net: VIN, adr: "0005", why: "gate-clamp cathode is at Q1 source"}
+  - {assert: pin_on_net, pin: D5.2, net: RPP_GATE, adr: "0005", why: "gate-clamp anode is at Q1 gate"}
+  - {assert: pin_on_net, pin: R22.1, net: VIN, adr: "0006", why: "gate divider begins at protected source rail"}
+  - {assert: pin_on_net, pin: R22.2, net: RPP_DIV, adr: "0006", why: "first series divider resistor cannot be bypassed"}
+  - {assert: pin_on_net, pin: R23.1, net: RPP_DIV, adr: "0006", why: "second series divider resistor follows R22"}
+  - {assert: pin_on_net, pin: R23.2, net: RPP_GATE, adr: "0006", why: "divider midpoint drives Q1 gate through both upper resistors"}
+  - {assert: part_value, part: R22, equals: 100k, tolerance_pct: 1, adr: "0006", why: "first half of leakage-tolerant 200k upper gate leg"}
+  - {assert: part_value, part: R23, equals: 100k, tolerance_pct: 1, adr: "0006", why: "second half of leakage-tolerant 200k upper gate leg"}
+  - {assert: part_value, part: R1, equals: 100k, tolerance_pct: 1, adr: "0006", why: "gate pull-down completes the leakage-tolerant 2:1 divider"}
+  - {assert: pin_on_net, pin: SW1.1, net: GND, adr: "0005", why: "OFF throw hard-grounds enable"}
+  - {assert: pin_on_net, pin: SW1.2, net: EN_BUS, adr: "0005", why: "switch common owns both converter enables"}
+  - {assert: part_value, part: R2, equals: 1M, tolerance_pct: 1, adr: "0005", why: "one high-value enable pull-up meets the storage-current budget"}
+
+  # ADR-0002: two independent integrated converters, each after protection.
+  - {assert: pin_on_net, pin: U1.1, net: VIN, adr: "0002", why: "USB-A module input is protected VIN"}
+  - {assert: pin_on_net, pin: U1.9, net: 5VA_RAW, adr: "0002", why: "USB-A module output reaches the bank only through U9"}
+  - {assert: pin_on_net, pin: U1.17, net: EN_BUS, adr: "0002", why: "USB-A module participates in common shutdown"}
+  - {assert: part_value, part: R4, equals: 15.8k, tolerance_pct: 1, adr: "0002", why: "TPSM63610 operates at 1MHz"}
+  - {assert: part_value, part: R5, equals: 41.2k, tolerance_pct: 0.1, adr: "0002", why: "5VA custom delivery-drop setpoint top leg"}
+  - {assert: part_value, part: R6, equals: 10k, tolerance_pct: 0.1, adr: "0002", why: "5VA feedback bottom leg"}
+  - {assert: pin_on_net, pin: U2.1, net: VIN, adr: "0002", why: "Pi module input is protected VIN"}
+  - {assert: pin_on_net, pin: U2.8, net: 5VC_RAW, adr: "0002", why: "Pi module output owns only the Type-C rail"}
+  - {assert: pin_on_net, pin: U2.14, net: EN_BUS, adr: "0002", why: "Pi module participates in common shutdown"}
+  - {assert: part_value, part: R10, equals: 13k, tolerance_pct: 1, adr: "0002", why: "TPSM63604 operates at 1MHz"}
+  - {assert: part_value, part: R11, equals: 4.12k, tolerance_pct: 0.1, adr: "0009", why: "low-impedance first segment suppresses sensitivity to TPSM63604's typical-only FB bias current"}
+  - {assert: part_value, part: R24, equals: 24.3, tolerance_pct: 0.1, adr: "0009", why: "second precision segment makes 4.1443k total and balances the Type-C low/high corner margins"}
+  - {assert: pin_on_net, pin: R11.2, net: FB_C_TOP, adr: "0006", why: "series feedback top leg cannot bypass R24"}
+  - {assert: pin_on_net, pin: R24.1, net: FB_C_TOP, adr: "0006", why: "R24 follows R11 in the feedback top leg"}
+  - {assert: pin_on_net, pin: R24.2, net: FB_C, adr: "0009", why: "complete 4.1443k top leg reaches the feedback pin"}
+
+  # ADR-0007: no-OVLO aggregate circuit breaker keeps three persistent port
+  # faults inside U1's 10A peak rating for the timer-bounded interval while
+  # passing a short 7.5A service peak.
+  - {assert: pin_on_net, pin: U9.1, net: 5VA_RAW, adr: "0007", why: "aggregate breaker input is the U1 regulator-side rail"}
+  - {assert: pin_on_net, pin: U9.17, net: 5VA, adr: "0007", why: "all USB-A loads are downstream of the aggregate breaker"}
+  - {assert: pin_on_net, pin: U9.6, net: 5VA_RAW, adr: "0007", why: "no-OVLO eFuse is enabled whenever U1 is on"}
+  - {assert: pin_on_net, pin: U9.10, net: GND, adr: "0007", why: "persistent aggregate faults latch off until SW1 is cycled"}
+  - {assert: pin_on_net, pin: U9.12, net: GND, adr: "0007", why: "unused load-handshake input must not float"}
+  - {assert: pin_on_net, pin: U9.25, net: 5VA_RAW, adr: "0007", why: "split input thermal land is not mistaken for ground"}
+  - {assert: pin_on_net, pin: U9.26, net: GND, adr: "0007", why: "split ground thermal land is grounded"}
+  - {assert: part_value, part: R26, equals: 210, tolerance_pct: 0.1, adr: "0007", why: "machine-derived aggregate breaker threshold retains >=0.1A normal margin and >=0.1A three-port fault-coordination margin"}
+  - {assert: part_value, part: C29, equals: 47nF, tolerance_pct: 5, adr: "0007", why: "11.129ms full C0G tolerance/temperature corner passes the <=10ms coincident peak"}
+  - {assert: part_value, part: C30, equals: 3.3nF, tolerance_pct: 5, adr: "0007", why: "C0G dVdt ramp keeps TI's maximum-ITIMER-capacitance startup relation valid at the full charged corner"}
+  - {assert: part_value, part: R12, equals: 1k, tolerance_pct: 0.1, adr: "0009", why: "low-impedance 5VC_RAW feedback bottom leg suppresses typical-only FB-bias sensitivity"}
+
+  # ADR-0003: Type-C is attach controlled and advertises 3A; it is neither a
+  # permanently-live Rp socket nor a USB-PD port.
+  - {assert: pin_on_net, pin: U3.6, net: 5VC_RAW, adr: "0003", why: "TPS25810 enable is powered only with its local buck"}
+  - {assert: pin_on_net, pin: U3.7, net: 5VC_RAW, adr: "0003", why: "CHG high selects Type-C current advertisement"}
+  - {assert: pin_on_net, pin: U3.8, net: 5VC_RAW, adr: "0003", why: "CHG_HI high selects 3A advertisement and 3.4A nominal limit"}
+  - {assert: pin_on_net, pin: U3.11, net: CC1, adr: "0003", why: "CC1 remains a separate attach line"}
+  - {assert: pin_on_net, pin: U3.13, net: CC2, adr: "0003", why: "CC2 remains a separate attach line"}
+  - {assert: pin_on_net, pin: U3.14, net: VBUSC, adr: "0003", why: "connector VBUS is after the attach-controlled switch"}
+  - {assert: part_value, part: R14, equals: 100k, tolerance_pct: 0.1, adr: "0003", why: "TPS25810 REF-to-REF_RTN reference resistor"}
+  - {assert: pin_on_net, pin: D6.1, net: CC1, adr: "0003", why: "exposed CC1 has connector-side ESD protection"}
+  - {assert: pin_on_net, pin: D6.2, net: CC2, adr: "0003", why: "exposed CC2 has connector-side ESD protection"}
+  - {assert: pin_on_net, pin: D6.3, net: GND, adr: "0003", why: "CC clamp has a ground return"}
+  - {assert: pin_on_net, pin: J5.A4, net: VBUSC, adr: "0001", why: "power-only Type-C VBUS comes only from TPS25810 OUT"}
+  - {assert: pin_on_net, pin: J5.A5, net: CC1, adr: "0003", why: "receptacle CC1 is not statically shorted to CC2"}
+  - {assert: pin_on_net, pin: J5.B5, net: CC2, adr: "0003", why: "receptacle CC2 is not statically shorted to CC1"}
+
+  # USB-A power and charge-signature cells, asserted per port so one swapped
+  # connector or one wrong limiter cannot hide behind two correct siblings.
+  - {assert: pin_on_net, pin: U4.2, net: 5VA, adr: "0006", why: "port 1 TPS2559 input bank"}
+  - {assert: pin_on_net, pin: U4.7, net: VBUSA1, adr: "0006", why: "port 1 connector is post-switch"}
+  - {assert: part_value, part: R16, equals: 43.2k, tolerance_pct: 0.1, adr: "0006", why: "port 1 TPS2559 2.554A-min current-limit program including 100C TCR"}
+  - {assert: pin_on_net, pin: J2.1, net: VBUSA1, adr: "0003", why: "port 1 VBUS cannot bypass its switch"}
+  - {assert: pin_on_net, pin: U5.2, net: 5VA, adr: "0006", why: "port 2 TPS2559 input bank"}
+  - {assert: pin_on_net, pin: U5.7, net: VBUSA2, adr: "0006", why: "port 2 connector is post-switch"}
+  - {assert: part_value, part: R18, equals: 43.2k, tolerance_pct: 0.1, adr: "0006", why: "port 2 TPS2559 2.554A-min current-limit program including 100C TCR"}
+  - {assert: pin_on_net, pin: J3.1, net: VBUSA2, adr: "0003", why: "port 2 VBUS cannot bypass its switch"}
+  - {assert: pin_on_net, pin: U6.2, net: 5VA, adr: "0006", why: "port 3 TPS2559 input bank"}
+  - {assert: pin_on_net, pin: U6.7, net: VBUSA3, adr: "0006", why: "port 3 connector is post-switch"}
+  - {assert: part_value, part: R20, equals: 43.2k, tolerance_pct: 0.1, adr: "0006", why: "port 3 TPS2559 2.554A-min current-limit program including 100C TCR"}
+  - {assert: pin_on_net, pin: J4.1, net: VBUSA3, adr: "0003", why: "port 3 VBUS cannot bypass its switch"}
+  - {assert: pin_on_net, pin: U7.1, net: DP_A1, adr: "0003", why: "signature channel 1 terminates only port 1 D+"}
+  - {assert: pin_on_net, pin: U7.3, net: DP_A2, adr: "0003", why: "signature channel 2 terminates only port 2 D+"}
+  - {assert: pin_on_net, pin: U8.1, net: DP_A3, adr: "0003", why: "second controller terminates only port 3 D+"}
+
+  # ADR-0004: exposed thermal pads must be electrically grounded before their
+  # filled/capped via fields can provide the intended heat path.
+  - {assert: pin_on_net, pin: U3.21, net: GND, adr: "0004", why: "TPS25810 exposed pad is grounded"}
+  - {assert: pin_on_net, pin: U4.11, net: GND, adr: "0006", why: "port 1 TPS2559 exposed pad is grounded"}
+  - {assert: pin_on_net, pin: U5.11, net: GND, adr: "0006", why: "port 2 TPS2559 exposed pad is grounded"}
+  - {assert: pin_on_net, pin: U6.11, net: GND, adr: "0006", why: "port 3 TPS2559 exposed pad is grounded"}
+  - {assert: pin_on_net, pin: C22.1, net: 5VA_RAW, adr: "0006", why: "100uF polymer is additional U1 low-frequency bulk before U9, not the minimum ceramic bank"}
+  - {assert: pin_on_net, pin: C22.2, net: GND, adr: "0006", why: "U1 polymer bank has direct power return"}
+  - {assert: part_value, part: C22, equals: 100uF, tolerance_pct: 20, adr: "0006", why: "exact additional U1 polymer bulk; E-CAP separately grades the ceramic stability bank"}
+  - {assert: pin_on_net, pin: C23.1, net: 5VC_RAW, adr: "0006", why: "180uF polymer contributes its 115.2uF life corner to the combined TPS25810 input bank"}
+  - {assert: pin_on_net, pin: C23.2, net: GND, adr: "0006", why: "Type-C cold-socket bank has direct power return"}
+  - {assert: part_value, part: C23, equals: 180uF, tolerance_pct: 20, adr: "0006", why: "exact polymer; E-CAP separately applies the additional 20% lifecycle allowance"}
+  - {assert: part_value, part: C6, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U1 exact 16V X7R effective-capacitance bank"}
+  - {assert: part_value, part: C7, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U1 exact 16V X7R effective-capacitance bank"}
+  - {assert: part_value, part: C8, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U1 exact 16V X7R effective-capacitance bank"}
+  - {assert: part_value, part: C24, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U1 exact 16V X7R effective-capacitance bank"}
+  - {assert: part_value, part: C25, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U1 exact 16V X7R effective-capacitance bank"}
+  - {assert: part_value, part: C26, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U1 exact 16V X7R effective-capacitance bank"}
+  - {assert: pin_on_net, pin: C24.1, net: 5VA_RAW, adr: "0006", why: "added U1 effective ceramic bank is on the regulator-side output"}
+  - {assert: pin_on_net, pin: C25.1, net: 5VA_RAW, adr: "0006", why: "added U1 effective ceramic bank is on the regulator-side output"}
+  - {assert: pin_on_net, pin: C26.1, net: 5VA_RAW, adr: "0006", why: "added U1 effective ceramic bank is on the regulator-side output"}
+  - {assert: part_value, part: C9, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U2 exact 16V X7R effective-capacitance bank"}
+  - {assert: part_value, part: C10, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U2 exact 16V X7R effective-capacitance bank"}
+  - {assert: part_value, part: C11, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "U2 exact 16V X7R effective-capacitance bank"}
+
+label_survival:
+  pin_map:
+    - refs: [J2, J3, J4]
+      n_start: 1
+      pins: {"1": "VBUSA{n}", "2": "DM_A{n}", "3": "DP_A{n}", "4": GND, SH: GND}
+    - refs: [J5]
+      pins: {A1: GND, A4: VBUSC, A5: CC1, A9: VBUSC, A12: GND, B1: GND, B4: VBUSC, B5: CC2, B9: VBUSC, B12: GND, SH: GND}
+      unconnected: [A6, A7, A8, B6, B7, B8]
+    - refs: [SW1]
+      pins: {"1": GND, "2": EN_BUS}
+      unconnected: ["3"]
+    - refs: [U1]
+      pins: {"1": VIN, "9": 5VA_RAW, "17": EN_BUS}
+      unconnected: ["4", "6", "16"]
+    - refs: [U2]
+      pins: {"1": VIN, "8": 5VC_RAW, "14": EN_BUS}
+      unconnected: ["2", "7", "15"]
+    - refs: [U3]
+      pins: {"6": 5VC_RAW, "11": CC1, "13": CC2, "14": VBUSC, "21": GND}
+      unconnected: ["16", "17", "18", "19", "20"]
+    - refs: [U9]
+      pins: {"1": 5VA_RAW, "2": 5VA_RAW, "3": 5VA_RAW, "4": GND, "5": GND, "6": 5VA_RAW, "7": ITIMER_A, "8": ILIM_BANK, "10": GND, "12": GND, "14": GND, "15": DVDT_BANK, "16": 5VA_RAW, "17": 5VA, "18": 5VA, "19": 5VA, "20": 5VA, "21": 5VA, "22": 5VA, "23": 5VA, "24": 5VA, "25": 5VA_RAW, "26": GND}
+      unconnected: ["9", "11", "13"]
+    - refs: [U4, U5, U6]
+      n_start: 1
+      pins: {"1": GND, "2": 5VA, "3": 5VA, "4": 5VA, "5": 5VA, "6": "ILIM_A{n}", "7": "VBUSA{n}", "8": "VBUSA{n}", "9": "VBUSA{n}", "10": "FAULT_A{n}", "11": GND}
+    - refs: [U8]
+      pins: {"1": DP_A3, "2": GND, "5": 5VA, "6": DM_A3}
+      unconnected: ["3", "4"]

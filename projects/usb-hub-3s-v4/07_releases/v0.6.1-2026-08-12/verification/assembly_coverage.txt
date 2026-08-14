@@ -1,0 +1,24 @@
+{
+ "target": "projects/usb-hub-3s-v4/07_releases/v0.6.0-2026-08-12",
+ "summary": {
+  "board": 95,
+  "cpl": 70,
+  "datum_max_mm": 0.0005,
+  "datum_max_ref": "J5",
+  "datum_graded": 70,
+  "unpopulated": 25,
+  "declared": 6,
+  "consigned": 0,
+  "exempt_prefixes": [
+   "H",
+   "TP",
+   "FID",
+   "MH"
+  ],
+  "sides": {
+   "top": 70
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

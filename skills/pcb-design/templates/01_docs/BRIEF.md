@@ -35,12 +35,16 @@ The load-derived facts that pick topology and protection. Every row is
 user-confirmed (Q#/A#) or an explicit conservative assumption (D#/A#) —
 never inferred silently. Two unlocked rows (output V range, protection
 posture) cost one family two generation restarts (usb-hub-3s, 2026-07-23).
-Mirrors `03_src/rules/power_tree.yaml` (the E-TOPO/E-MARGIN/E-OFF input) —
-this table is the USER-FACING lock; the yaml is the machine copy.
+Mirrors `03_src/rules/requirements.yaml` and `power_tree.yaml` — this table is
+the USER-FACING lock; YAML is the machine copy graded by D-SPEC/E-PATH and
+E-TOPO/E-MARGIN/E-OFF.
 
 | Fact | Value | Locked by |
 |---|---|---|
 | Output rail(s): Vout min-max @ Imax | ... | Q#/A#/D# |
+| External outputs: connector count + simultaneous count | ... | Q#/A#/D# |
+| Duty: continuous and peak current/time | ... | Q#/A#/D# |
+| Measurement plane + included/excluded path elements | ... | Q#/A#/D# |
 | Input envelope: Vin min-max, source type | ... | Q#/A#/D# |
 | Protection posture (defended failures + escalation boundary) | ... | Q#/A#/D# |
 | Off-control / storage (how it de-energizes; quiescent budget) | ... | Q#/A#/D# |

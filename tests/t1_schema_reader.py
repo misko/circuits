@@ -424,12 +424,12 @@ def t_ungoverned_family_is_named_not_failed():
 
 
 # --------------------------------------------------------------- real bytes
-@test("the REAL fleet denominator: 8 governed families over the real projects, "
+@test("the REAL fleet denominator: 17 governed families over the real projects, "
       "with the observed-key count and the blanket count both printed")
 def t_real_fleet_denominator():
     r = run([KPY, str(SRA), "--root", str(ROOT)])
     must_pass(r, "G-ORPHAN on the real repo")
-    contains(r.out, "8 governed famil")
+    contains(r.out, "17 governed famil")
     contains(r.out, "0 ORPHAN key(s) in source with no row")
     m = re.search(r"declares (\d+) distinct schema key\(s\) under those rows; "
                   r"(\d+) row\(s\) are", r.out)
@@ -437,8 +437,8 @@ def t_real_fleet_denominator():
     check(int(m.group(1)) > 900,
           f"the fleet's observed schema shrank to {m.group(1)} keys — if that "
           f"is real, re-measure; if not, the walker stopped covering something")
-    # the three families with no `### keys:` block are named, not silent
-    for fam in ("assembly.yaml", "mates.yaml", "twin_adjudications.yaml"):
+    # the families with no `### keys:` block are named, not silent
+    for fam in ("twin_adjudications.yaml",):
         contains(r.out, fam)
 
 
@@ -520,24 +520,24 @@ def t_real_finding_linear_rails_envelope_is_unread():
     contains(r.out, "OWED — a gate is INTENDED and absent")
 
 
-@test("REAL FINDING — `nets.yaml` classes.<C>.intent/routing/verify are "
-      "REQUIRED per class by this folder's own contract, filled in fleet-wide, "
-      "and read by nothing — not even their presence")
-def t_real_finding_class_intent_is_unread():
+@test("REAL FINDING CLOSED — `nets.yaml` classes.<C>.intent/routing/verify "
+      "are read by the source-stage rules audit before KiCad artifacts exist")
+def t_real_finding_class_intent_is_read():
     sys.path.insert(0, str(SCRIPTS))
     import ast
     import schema_reader_audit as g
     uses = g.read_positions(ast.parse(
         (SCRIPTS / "rules_audit.py").read_text(encoding="utf-8-sig")))
     for k in ("intent", "routing", "verify"):
-        check(uses.get(k, (None,))[0] in (None, g.MENTION),
-              f"rules_audit.py now reads {k!r} — close the OWED row")
-    # the contrast: the fourth member of the same REQUIRED list DID get a gate
+        eq(uses.get(k, (None,))[0], g.READ,
+           f"{k!r} must be a real AST read, not a docstring mention")
     eq(uses.get("current", (None,))[0], g.READ, "'current' in rules_audit.py")
-    r = run([KPY, str(SRA), "--root", str(ROOT)])
+    r = run([KPY, str(SRA), "--root", str(ROOT), "--families"])
     for k in ("classes.<C>.intent", "classes.<C>.routing",
               "classes.<C>.verify"):
         contains(r.out, k)
+    contains(r.out, "rules_audit.py",
+             "the governed rows name the reader that closes the finding")
 
 
 @test("REAL FINDING — `pins.<N>.tie` names a net on 84 pins across 43 real "

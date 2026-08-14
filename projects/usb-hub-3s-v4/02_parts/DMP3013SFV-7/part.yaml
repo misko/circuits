@@ -1,0 +1,22 @@
+mpn: DMP3013SFV-7
+manufacturer: Diodes Incorporated
+type: p_channel_reverse_polarity_mosfet
+datasheet: {doc_id: DS40141, revision: "Rev. 5-2", url: "https://www.diodes.com/_files/datasheets/DMP3013SFV.pdf", sha256: 8dfc21deac77532d9490acc5331dc7039a64783c391ba04509dc8f13fa52ee1a, fetched: 2026-08-10}
+package: PowerDI3333-8 Type UX
+footprint: usb_hub_3s_v4:Diodes_PowerDI3333-8_Type_UX
+escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard, checked: "escape_check geometry review 2026-08-10; thermal copper requirements remain in gotchas/layout_refs"}
+pins: {1: S, 2: S, 3: S, 4: G, 5: D, 6: D, 7: D, 8: D}
+limits: {vds: -30V, vgs: "+/-25V", rds_10V_max: 9.5mOhm, rds_4V5_max: 17mOhm, id_steady_70C_on_test_board: -10A, tj_max: 150C}
+gotchas:
+  - "Reverse-polarity use has the drain on fused battery positive and the source on protected VIN; the body diode initially conducts battery-to-load and blocks a reversed source."
+  - "Use the 17mOhm maximum guaranteed at VGS=-4.5V: the leakage-tolerant divider guarantees only 5.29V magnitude at the 9V input corner. First article must measure the device hot because RDS(on) rises with junction temperature."
+  - "R22+R23=200k from source to gate and R1=100k gate-to-ground bound steady-state VGS with the full +/-10uA gate-leakage limit. At the 29.28V rail transient proof corner the computed worst magnitude is 20.31V, below the +/-25V absolute maximum; D5 is secondary transient clamping only."
+verified: "Diodes DS40141 Rev. 5-2 p.1 terminal-connections Bottom View drawing independently confirms pins 1-3 source, pin 4 gate and pins 5-8 drain; limits, RDS(on), thermal test conditions and ordering suffix re-read 2026-08-10"
+sourcing: {lcsc: C264098, alternates: [], note: "exact Diodes MPN; dated JLC/LCSC and authorized-distributor evidence is kept in 01_docs/sourcing and 06_build/cache"}
+layout:
+  source: "Diodes DS40141 PowerDI3333-8 Type UX suggested pad layout and thermal test-board notes"
+  reviewed: "2026-08-11"
+  notes: "Preserve the continuous recommended drain copper while retaining physical pins 5-8 in the CAD model; put fused input on the drain side and protected VIN on the source side; keep R22/R23/R1 and the secondary D5 clamp adjacent. Budget 0.78W at the 6.77A peak using the 17mOhm guaranteed resistance, then verify hot."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Diodes PowerDI3333-8 Type UX package drawing", why: "manufacturer drawing fixes source/gate lands, the four drain lands and thermal copper"}
+  - {tier: 4, reached: false, artifact: "independent routed reverse-polarity board", why: "v4 will rederive copper and thermal geometry rather than import predecessor copper"}

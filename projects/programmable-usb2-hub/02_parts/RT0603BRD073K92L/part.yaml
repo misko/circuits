@@ -1,6 +1,6 @@
 mpn: RT0603BRD073K92L
 manufacturer: Yageo
-type: resistor_thinfilm_precision   # LM5116 FB-top resistor (R3 5VA / R12 5VC), 3.74k->3.92k @0.1%
+type: resistor_thinfilm_precision   # LM5116 FB-top resistor R102/R202
 datasheet: {doc_id: RT_series, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C728591.html", sha256: null, fetched: 2026-07-23}
 package: "0603 (1608 metric)"
 footprint: Resistor_SMD:R_0603_1608Metric
@@ -8,18 +8,12 @@ escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked:
 pins: {1: A, 2: B}
 limits: {R: "3.92k ohm", tol: "B +-0.1%", tcr: "+-25ppm/C", power: "0.1W (0603)"}
 gotchas:
-  - "REPLACES the v1.0 3.74k FB-top (R3 on 5VA, R12 on 5VC; v1.0 part C304743).
-     LM5116 Vref = 1.215V, FB-bot R4/R13 = 1.21k (UNCHANGED). Vout = 1.215 x
-     (1 + Rtop/1210). 3.74k -> 4.97V (v1.0). 3.92k -> 5.15V (v1.1)."
+  - "R102/R202 use this exact 3.92 kOhm top leg; R103/R203 use exact 1.21 kOhm 0.1% RT0603BRB071K21L bottoms. Vout = 1.215 x (1 + Rtop/Rbottom)."
   - "WHY 3.92k not the nominal 3.87k: exact 3.87k 0.1% 0603 is NOT in JLC's
      library (Yageo RT0603BRD073K87L / Panasonic ERA-3AEB3871V both absent).
      Nearest stocked 0.1% are 3.92k (this part, C728591) and 3.83k (C861384).
-     3.92k is preferred: buck-C 5.15V - eFuse+FET drop ~190mV at 5A = ~4.96V VBUS
-     (vs 3.83k -> 5.06V -> ~4.87V); no-load 5.15V < USB 5.25V max. On 5VA the
-     bump offsets the 3x TPS2557 switch drop (~43mOhm) so USB-A ports hold ~5V."
-  - "0.1% (not 1%) tightens the divider spread so the raised 5.15V no-load setpoint
-     stays under 5.25V. For full benefit R4/R13 (1.21k bot) should ALSO go 0.1%
-     (currently 1%, C137779) - flagged; Vref +-1.5% still dominates absolute accuracy."
-  - "qty 2/board (R3 + R12). ALT 3.83k C861384 (stock 1701) if a lower VBUS wanted."
+     3.92k is preferred because its nominal setpoint is 5.151 V."
+  - "Both divider legs are 0.1%; with LM5116 Vref +/-1.5%, the computed range is 5.0662 to 5.2365 V. Vref still dominates absolute accuracy."
+  - "qty 2/board (R102 + R202). ALT 3.83k C861384 requires a complete voltage-margin recheck."
 verified: "value part (3.92k 0.1% 25ppm 0603); 2-pad passive - 2026-07-23"
 sourcing: {lcsc: C728591, alternates: [C861384], note: "JLCPCB, stock 751 on 2026-07-23 (RT0603BRD073K92L). alt C861384 = RT0603BRD073K83L (3.83k 0.1%, stock 1701). Nominal 3.87k 0.1% NOT JLC-stocked."}

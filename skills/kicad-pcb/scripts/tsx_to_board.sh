@@ -135,9 +135,20 @@ PRO
 # ---- [1] tsci build: TSX -> circuit.json ----
 gate "[1] tsci build -> circuit.json"
 mkdir -p "$T/build"
-( cd "$T" && timeout 300 tsci build "src/$TSCBASE.tsx" >/dev/null 2>&1 \
+( cd "$T" && \
+    if [ -f bun.lock ]; then
+      bun install --frozen-lockfile --ignore-scripts >/dev/null 2>&1
+      TSCI=./node_modules/.bin/tsci
+      [ -x "$TSCI" ]
+    else
+      echo "WARNING: no bun.lock; using ambient tsci (legacy/unmigrated project)" >&2
+      TSCI=tsci
+    fi && \
+    timeout 300 "$TSCI" build "src/$TSCBASE.tsx" >/dev/null 2>&1 \
     && cp "dist/src/$TSCBASE/circuit.json" "build/circuit.json" )
 [ -s "$T/build/circuit.json" ] || fail "tsci build produced no circuit.json"
+python3 "$SKILLDIR/circuit_json_diagnostics.py" "$T/build/circuit.json" \
+  || fail "tsci build embedded hard error diagnostics in circuit.json"
 
 # ---- [2] converter: circuit.json -> backend-ready .kicad_sch ----
 gate "[2] circuit_json_to_kicad_sch -> $BOARD.kicad_sch"

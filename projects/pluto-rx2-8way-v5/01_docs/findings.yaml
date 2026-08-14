@@ -1,0 +1,161 @@
+schema: 1
+target: DRAFT
+
+gates:
+  - id: V5-commission-and-architecture
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: systems
+    closes_when: User directives, risk acceptance, architecture, manufacturing target and clean-room provenance are explicit and traceable.
+    evidence:
+      - 01_docs/BRIEF.md
+      - 01_docs/ARCHITECTURE.md
+      - 01_docs/CLEANROOM_PROVENANCE.md
+      - 01_docs/decisions/0001-one-of-eight-absorptive-sp8t.md
+      - 01_docs/decisions/0002-autonomous-dwell-coded-control.md
+      - 01_docs/decisions/0003-usb-c-5v-to-protected-3v3.md
+
+  - id: V5-exact-parts-and-interfaces
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: electrical
+    closes_when: The exact candidate BOM, part dossiers, interface contracts and every applicable pre-schematic source gate pass without generated design artifacts.
+    evidence:
+      - 01_docs/journal/exact-parts-and-interfaces.md
+      - 01_docs/journal/source-audit-2026-08-13.md
+      - 01_docs/sourcing/exact-parts.csv
+      - 01_docs/sourcing/shopping-list-2026-08-13.json
+      - 06_build/checkpoints/exact-parts-and-interfaces.json
+      - 03_src/rules/electrical_invariants.yaml
+      - 03_src/rules/control_protocol.yaml
+      - 03_src/rules/rf.yaml
+
+  - id: V5-schematic
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: electrical
+    closes_when: The generated schematic passes schema, ERC, exact netlist and pin-map parity, topology, RF and explicit human-readability reviews.
+    evidence:
+      - 03_tscircuit/src/pluto_rx2_8way_v5.tsx
+      - 03_tscircuit/build/schematic.pdf
+      - 04_kicad/pluto_rx2_8way_v5.kicad_sch
+      - 06_build/checkpoints/schematic.json
+      - 08_reviews/pre-route_topology.md
+      - 08_reviews/pre-route_schematic_render.md
+      - 08_reviews/rf_schematic.md
+
+  - id: V5-firmware
+    required_for: DESIGN_CLEAN
+    state: pending
+    owner: embedded
+    closes_when: Reproducible STM32 firmware implements the accepted atomic schedule, reset-safe GPIO handoff, BOR/watchdog behavior and a versioned programming procedure with executable tests.
+
+  - id: V5-placement-and-routing
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: layout
+    closes_when: Exact placement and routed PCB pass geometry, RF, impedance, connectivity, DRC, render and fresh-context review gates for the selected JLC process.
+    evidence:
+      - 04_kicad/pluto_rx2_8way_v5.kicad_pcb
+      - 06_build/layout_seal.json
+      - 08_reviews/2026-08-13_4cf5c818_pin_review.md
+      - 08_reviews/2026-08-13_4cf5c818_render_review.md
+      - 08_reviews/2026-08-13_4cf5c818_redteam_topology.md
+      - 08_reviews/2026-08-13_4cf5c818_redteam_layout.md
+      - 08_reviews/2026-08-13_4cf5c818_rf_schematic.md
+      - 08_reviews/2026-08-13_4cf5c818_rf_pcb.md
+      - 01_docs/journal/routing.md
+
+  - id: V5-release-package
+    required_for: FIRST_ARTICLE_ORDERABLE
+    state: pending
+    owner: fabrication
+    closes_when: A fresh reviewed BOM/CPL/fabrication package passes JLC uploader allocation and population checks, same-day sourcing, release rehearsal and immutable seal gates.
+
+  - id: V5-first-article-test
+    required_for: FIRST_ARTICLE_TESTED
+    state: pending
+    owner: lab
+    closes_when: A fabricated article passes VNA path/loss/isolation/return-loss, reset/timing, power, protection and thermal tests with retained raw evidence.
+
+  - id: V5-production-validation
+    required_for: PRODUCTION_RELEASED
+    state: pending
+    owner: manufacturing
+    closes_when: A controlled pilot lot, production programming/test process and reliability evidence are approved.
+
+findings:
+  - id: V5-F1-provisional-sma-mechanics
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: systems
+    finding: D12 confirms all nine connectors as Amphenol RF 901-143-6RFX female right-angle THT SMA. The exact Rev-C five-hole footprint, native exact-code STEP, accessible outward edge placement and body-to-leg registration have now been reviewed and agree.
+    closes_when: The current manufacturer drawing is captured, the exact footprint is dimensionally approved, and mechanical/render reviews confirm accessible mating and non-interference for J2-J10.
+    evidence:
+      - 01_docs/BRIEF.md
+      - 01_docs/ARCHITECTURE.md
+      - 02_parts/901-143-6RFX/part.yaml
+      - 03_src/lib/pluto_rx2_8way_v5.pretty/Amphenol_901_143_6RFX.kicad_mod
+      - 01_docs/renders/v0.0-D15-compact-placement-top.png
+
+  - id: V5-F2-source-document-lifecycle
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: electrical
+    finding: The exact Amphenol drawing is locally captured, hash-bound and qualified against the current product page plus PCN-031726. ST's official DS13866 Rev 5 is now the digest-selected local STM32 authority; the prior misnamed file is correctly retained as Rev 3 history, and a focused comparison found no change to the TSSOP-20 pin sequence, BOR4, HSI48 or package facts consumed by this design.
+    closes_when: Current ST Rev 5 is locally captured and rechecked before design freeze.
+    evidence:
+      - 02_parts/901-143-6RFX/SMA6252A2-3GT50G-50-RevC.pdf
+      - 02_parts/901-143-6RFX/PCN-031726.pdf
+      - 02_parts/901-143-6RFX/part.yaml
+      - 02_parts/STM32C011F4P6/DS13866-Rev5.pdf
+      - 02_parts/STM32C011F4P6/part.yaml
+      - 02_parts/README.md
+
+  - id: V5-F3-rf-geometry-and-mechanics
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: layout
+    finding: The cross-section, exact footprints, compact 90x65mm mechanics, five-top/two-per-side cyclic U edge order and connector datums are realized and machine-clean. D15 approves connector access, straight RF planning corridors and render readability on exact board SHA 3fffbc690051. The explicit release checklist retains JLC assembly DFM disposition of the 0.10mm SMA drill delta before order; routed RF geometry remains separately gated by V5-placement-and-routing.
+    closes_when: The exact board hash receives connector/RF/render approval and the order-stage DFM obligation is carried into the fab checklist.
+    evidence:
+      - 03_src/floorplan.yaml
+      - 06_build/placement/mechanics.json
+      - 06_build/placement/footprint_comparison.json
+      - 06_build/drc/placement.json
+      - 01_docs/renders/v0.0-D15-compact-placement-top.png
+      - 01_docs/renders/v0.0-D15-compact-placement-iso.png
+      - 06_build/checkpoints/placement-pre-D13.json
+      - 01_docs/CHECKLIST.md
+
+  - id: V5-F4-order-day-sourcing-and-allocation
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_ORDERABLE
+    owner: fabrication
+    finding: Selection-time JLC stock and two-source evidence pass, but mutable stock does not prove JLC assembly eligibility, allocation or uploader interpretation on order day.
+    closes_when: The sealed BOM/CPL passes a same-day stock/substitution review and the JLC uploader echoes the intended population, quantities and allocation for the build.
+
+  - id: V5-F5-no-hardware-evidence
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: No v5 hardware, RF measurement, timing capture, power measurement or thermal evidence exists.
+    closes_when: A first article completes the approved test plan with retained calibration, Touchstone, oscilloscope, voltage/current and thermal evidence.
+
+  - id: V5-F6-observation-channel-limits
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: systems
+    finding: Unique dwell windows are internally consistent, but downstream inference still depends on observable RF transitions and must return unknown for no-signal, truncated or reset intervals.
+    closes_when: Firmware and downstream analysis tests demonstrate correct antenna inference for every state and deterministic unknown behavior for no-signal, truncated capture, startup, reset and watchdog recovery.
+
+  - id: V5-F7-extended-ad9363-operation
+    state: closed
+    blocks_at_or_above: DESIGN_CLEAN
+    owner: user
+    finding: Physical AD9363 silicon is intentionally operated under an AD9361 profile outside the official AD9363 frequency range.
+    closes_when: The user accepts the risk, the design keeps its selector claim separate from ADI-guaranteed receiver coverage, and first-article qualification measures the assembled RF path.
+    evidence:
+      - 01_docs/BRIEF.md
+      - 01_docs/decisions/0001-one-of-eight-absorptive-sp8t.md
+      - 03_src/rules/rf.yaml

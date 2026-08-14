@@ -1,0 +1,916 @@
+{
+  "schema": 1,
+  "project_slug": "pluto-rx2-8way-v4",
+  "driver_relative_path": "03_src/rebuild_reuse.sh",
+  "driver_sha256": "a91f6709c4677fcef0c4c5b655eefad760657291664bca26e8401b5264421cb1",
+  "entrypoint": "rebuild_reuse",
+  "mode": "reuse",
+  "bindings": [
+    {
+      "schema": 1,
+      "sequence": 1,
+      "legacy_key": "module-first",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-MODULE-FIRST",
+        "owner": "pcb-design",
+        "lifecycle": "architecture",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [],
+        "produces": [
+          "plutov4_reuse_module_first"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/module_first_check.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_module_first"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 2,
+      "legacy_key": "rf-contract",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-RF-CONTRACT",
+        "owner": "pcb-design",
+        "lifecycle": "architecture",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_module_first"
+        ],
+        "produces": [
+          "plutov4_reuse_rf_contract"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-MODULE-FIRST"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/rf_contract_check.py",
+        ".",
+        "--require-applicability"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_rf_contract"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 3,
+      "legacy_key": "pinned-subject",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-PINNED-SUBJECT",
+        "owner": "pcb-design",
+        "lifecycle": "schematic",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_rf_contract"
+        ],
+        "produces": [
+          "plutov4_reuse_pinned_subject"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-RF-CONTRACT"
+      ],
+      "argv": null,
+      "shell_builtin": "derive_board_and_verify_pinned_schematic",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_pinned_subject"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 4,
+      "legacy_key": "route-marker-reset",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-ROUTE-MARKER-RESET",
+        "owner": "pcb-design",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_pinned_subject"
+        ],
+        "produces": [
+          "plutov4_reuse_route_marker_reset"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-PINNED-SUBJECT"
+      ],
+      "argv": null,
+      "shell_builtin": "remove_build_route_marker",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "ignored_until",
+      "authority_binding": "route-import",
+      "accepted_output_symbols": [
+        "plutov4_reuse_route_marker_reset"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 5,
+      "legacy_key": "netlist",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-NETLIST",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_reuse_route_marker_reset"
+        ],
+        "produces": [
+          "plutov4_reuse_netlist"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-ROUTE-MARKER-RESET"
+      ],
+      "argv": [
+        "kicad-cli",
+        "sch",
+        "export",
+        "netlist",
+        "--format",
+        "kicadsexpr",
+        "-o",
+        "06_build/netlists/pluto_rx2_8way_v4.net",
+        "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_netlist"
+      ],
+      "accepted_output_paths": [
+        "06_build/netlists/pluto_rx2_8way_v4.net"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 6,
+      "legacy_key": "board",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-BOARD",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 300,
+        "requires": [
+          "plutov4_reuse_netlist"
+        ],
+        "produces": [
+          "plutov4_reuse_board"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-NETLIST"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_board_generic.py",
+        "03_src/floorplan.yaml",
+        "-o",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_board"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/fp-lib-table",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb",
+        "04_kicad/refdes_waiver.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 7,
+      "legacy_key": "pad-separation",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-PAD-SEPARATION",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_board"
+        ],
+        "produces": [
+          "plutov4_reuse_pad_separation"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-BOARD"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/pad_separation.py",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb",
+        "--project",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_pad_separation"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 8,
+      "legacy_key": "board-audit-placement",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-BOARD-AUDIT-PLACEMENT",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "plutov4_reuse_pad_separation"
+        ],
+        "produces": [
+          "plutov4_reuse_board_audit_placement"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-PAD-SEPARATION"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "03_src/audit_board.py"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_board_audit_placement"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 9,
+      "legacy_key": "rules-pre-import",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-RULES-PRE-IMPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_board_audit_placement"
+        ],
+        "produces": [
+          "plutov4_reuse_rules_pre_import"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-BOARD-AUDIT-PLACEMENT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_rules_pre_import"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_dru",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 10,
+      "legacy_key": "pad-escape",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-PAD-ESCAPE",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_rules_pre_import"
+        ],
+        "produces": [
+          "plutov4_reuse_pad_escape"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-RULES-PRE-IMPORT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/escape_check.py",
+        "--board",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_pad_escape"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 11,
+      "legacy_key": "route-import",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-ROUTE-IMPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 300,
+        "requires": [
+          "plutov4_reuse_pad_escape"
+        ],
+        "produces": [
+          "plutov4_reuse_route_import"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-PAD-ESCAPE"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "import",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_route_import"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 12,
+      "legacy_key": "route-taps",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-ROUTE-TAPS",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 600,
+        "requires": [
+          "plutov4_reuse_route_import"
+        ],
+        "produces": [
+          "plutov4_reuse_route_taps"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-ROUTE-IMPORT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "taps",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_route_taps"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 13,
+      "legacy_key": "route-stitch",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-ROUTE-STITCH",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 900,
+        "requires": [
+          "plutov4_reuse_route_taps"
+        ],
+        "produces": [
+          "plutov4_reuse_route_stitch"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-ROUTE-TAPS"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "stitch",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_route_stitch"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 14,
+      "legacy_key": "board-audit-routed",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-BOARD-AUDIT-ROUTED",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "plutov4_reuse_route_stitch"
+        ],
+        "produces": [
+          "plutov4_reuse_board_audit_routed"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-ROUTE-STITCH"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "03_src/audit_board.py",
+        "--routed"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_board_audit_routed"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 15,
+      "legacy_key": "rules-post-stitch",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-RULES-POST-STITCH",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_board_audit_routed"
+        ],
+        "produces": [
+          "plutov4_reuse_rules_post_stitch"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-BOARD-AUDIT-ROUTED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "."
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_rules_post_stitch"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_dru",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 16,
+      "legacy_key": "parity-schematic-copy",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-PARITY-SCHEMATIC-COPY",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_rules_post_stitch"
+        ],
+        "produces": [
+          "plutov4_reuse_parity_schematic_copy"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-RULES-POST-STITCH"
+      ],
+      "argv": [
+        "cp",
+        "03_tscircuit/kicad/pluto_rx2_8way_v4.kicad_sch",
+        "04_kicad/pluto_rx2_8way_v4.kicad_sch"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_parity_schematic_copy"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/pluto_rx2_8way_v4.kicad_sch"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 17,
+      "legacy_key": "layout-drc-report",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-LAYOUT-DRC-REPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_reuse_parity_schematic_copy"
+        ],
+        "produces": [
+          "plutov4_reuse_layout_drc_report"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-PARITY-SCHEMATIC-COPY"
+      ],
+      "argv": [
+        "kicad-cli",
+        "pcb",
+        "drc",
+        "--severity-all",
+        "--refill-zones",
+        "--schematic-parity",
+        "--format",
+        "json",
+        "-o",
+        "06_build/route/gate.json",
+        "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "postcheck",
+      "authority_binding": "layout-drc-verdict",
+      "accepted_output_symbols": [
+        "plutov4_reuse_layout_drc_report"
+      ],
+      "accepted_output_paths": [
+        "06_build/route/gate.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 18,
+      "legacy_key": "layout-drc-verdict",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-LAYOUT-DRC-VERDICT",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_layout_drc_report"
+        ],
+        "produces": [
+          "plutov4_reuse_layout_drc_verdict"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-LAYOUT-DRC-REPORT"
+      ],
+      "argv": null,
+      "shell_builtin": "python_heredoc_drc_postcheck",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_layout_drc_verdict"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 19,
+      "legacy_key": "rf-solver-prerequisite",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-RF-SOLVER-PREREQUISITE",
+        "owner": "pcb-design",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_layout_drc_verdict"
+        ],
+        "produces": [
+          "plutov4_reuse_rf_solver_prerequisite"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-LAYOUT-DRC-VERDICT"
+      ],
+      "argv": null,
+      "shell_builtin": "verify_krt_python",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_rf_solver_prerequisite"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 20,
+      "legacy_key": "fence-pitch",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-FENCE-PITCH",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_rf_solver_prerequisite"
+        ],
+        "produces": [
+          "plutov4_reuse_fence_pitch"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-RF-SOLVER-PREREQUISITE"
+      ],
+      "argv": null,
+      "shell_builtin": "fence_pitch_pipe_tee",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_fence_pitch"
+      ],
+      "accepted_output_paths": [
+        "06_build/verify/fence_pitch.txt"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 21,
+      "legacy_key": "cpwg-field-solve",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-CPWG-FIELD-SOLVE",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "plutov4_reuse_fence_pitch"
+        ],
+        "produces": [
+          "plutov4_reuse_cpwg_field_solve"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-FENCE-PITCH"
+      ],
+      "argv": [
+        "{home}/gits/KiCadRoutingTools/.venv/bin/python",
+        "03_src/cpwg_field_solver.py",
+        "--output",
+        "06_build/verify/cpwg_field.json"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_cpwg_field_solve"
+      ],
+      "accepted_output_paths": [
+        "06_build/verify/cpwg_field.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 22,
+      "legacy_key": "copper-length-verdict",
+      "spec": {
+        "schema": 1,
+        "id": "PLUTOV4-R-COPPER-LENGTH-VERDICT",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "plutov4_reuse_cpwg_field_solve"
+        ],
+        "produces": [
+          "plutov4_reuse_copper_length_verdict"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "PLUTOV4-R-CPWG-FIELD-SOLVE"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/copper_length_audit.py",
+        ".",
+        "--strict"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "plutov4_reuse_copper_length_verdict"
+      ],
+      "accepted_output_paths": []
+    }
+  ]
+}

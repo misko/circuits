@@ -81,8 +81,14 @@ def load_flow_module():
     return module
 
 
-def reviewed_repo(*, scoped=False):
+def reviewed_repo(*, scoped=False, rf_enabled=False):
     root = scratch()
+    (root / "03_src/rules/rf.yaml").write_text(yaml.safe_dump({
+        "schema": 1,
+        "rf": {"enabled": rf_enabled,
+               "rationale": "RF review is enabled for this fixture."
+               if rf_enabled else "This fixture has no RF paths."},
+    }, sort_keys=False))
     if scoped:
         (root / "03_src/a").mkdir()
         (root / "03_src/b").mkdir()
@@ -106,9 +112,12 @@ def reviewed_repo(*, scoped=False):
         "x_render_review.md": ("board_sha256", board_hash),
         "x_redteam_topology.md": ("board_sha256", board_hash),
         "x_redteam_layout.md": ("board_sha256", board_hash),
-        "x_rf_schematic.md": ("artifact_sha256", schematic_hash),
-        "x_rf_pcb.md": ("artifact_sha256", board_hash),
     }
+    if rf_enabled:
+        specs.update({
+            "x_rf_schematic.md": ("artifact_sha256", schematic_hash),
+            "x_rf_pcb.md": ("artifact_sha256", board_hash),
+        })
     for name, (field, digest) in specs.items():
         (reviews / name).write_text(
             "source_commit: COMMIT\n"
@@ -331,6 +340,37 @@ def t_budget_timing():
           "evidence distinguishes a good command from a slow command")
 
 
+@test("ad-hoc run inherits its stage budget and deadline from route config")
+def t_run_configured_bounds():
+    root = scratch()
+    route_path = root / "03_src/route.yaml"
+    route = yaml.safe_load(route_path.read_text())
+    route["flow"]["budgets_s"]["unit_probe"] = 10
+    route["flow"]["timeouts_s"] = {"unit_probe": 20}
+    route_path.write_text(yaml.safe_dump(route, sort_keys=False))
+    r = must_pass(run([KPY, FLOW, "run", root, "--stage", "unit_probe",
+                       "--", KPY, "-c", "pass"]),
+                  "configured bounded run")
+    contains(r.out, "/ budget 10s / timeout 20s", "configured bounds")
+    row = json.loads((root / "06_build/performance.json").read_text())["runs"][-1]
+    eq((row["budget_s"], row["timeout_s"]), (10.0, 20.0),
+       "persisted configured bounds")
+
+
+@test("ad-hoc run refuses a configured stage budget regression",
+      kind="known_bad")
+def t_kb_run_configured_budget():
+    root = scratch()
+    route_path = root / "03_src/route.yaml"
+    route = yaml.safe_load(route_path.read_text())
+    route["flow"]["budgets_s"]["unit_probe"] = 0
+    route_path.write_text(yaml.safe_dump(route, sort_keys=False))
+    r = must_fail(run([KPY, FLOW, "run", root, "--stage", "unit_probe",
+                       "--", KPY, "-c", "pass"]),
+                  "configured budget regression", "BUDGET EXCEEDED")
+    eq(r.rc, 6, "configured budget exit")
+
+
 @test("router pass timing composes with the single-board flow log")
 def t_router_pass_timing():
     root = scratch()
@@ -365,6 +405,31 @@ def t_layout_seal_dry_run():
           "dry-run must not claim a handoff or seal")
 
 
+@test("layout-seal passes declared checkpoint-resume arguments to rebuild")
+def t_layout_seal_rebuild_args():
+    root = scratch()
+    route_path = root / "03_src/route.yaml"
+    route = yaml.safe_load(route_path.read_text())
+    route["flow"]["rebuild_args"] = ["--resume-after-schematic-review"]
+    route_path.write_text(yaml.safe_dump(route, sort_keys=False))
+    r = must_pass(run([KPY, FLOW, "layout-seal", root, "--dry-run"]),
+                  "checkpoint-resume seal plan")
+    contains(r.out,
+             "rebuild_all.sh --resume-after-schematic-review",
+             "declared canonical rebuild arguments")
+
+
+@test("layout-seal rejects malformed rebuild arguments", kind="known_bad")
+def t_kb_layout_seal_rebuild_args_schema():
+    root = scratch()
+    route_path = root / "03_src/route.yaml"
+    route = yaml.safe_load(route_path.read_text())
+    route["flow"]["rebuild_args"] = "--resume-after-schematic-review"
+    route_path.write_text(yaml.safe_dump(route, sort_keys=False))
+    must_fail(run([KPY, FLOW, "layout-seal", root, "--dry-run"]),
+              "malformed rebuild arguments", "list of non-empty strings")
+
+
 @test("reviewed-commit seal plan does not rebuild signed bytes")
 def t_reviewed_commit_seal_dry_run():
     root = scratch()
@@ -373,8 +438,30 @@ def t_reviewed_commit_seal_dry_run():
                   "reviewed commit seal dry run")
     not_contains(r.out, "[rebuild]", "signed artifact must not be rebuilt")
     contains(r.out, "[escape_lands]", "landability is revalidated")
+    contains(r.out, "[placement_clearance]", "P-BODYCLR is revalidated")
+    contains(r.out, "[critical_pair_map]", "R-PAIRMAP is revalidated")
+    contains(r.out, "[critical_route_connected]", "R-CRITESC is revalidated")
+    not_contains(r.out, "[pre_route_placement]",
+                 "track-free review must not be applied to routed bytes")
     contains(r.out, "[rf_reviews]", "exact RF reviews are revalidated")
     contains(r.out, "--schematic-parity", "exact DRC is revalidated")
+
+
+@test("layout-seal never applies a track-free review to the routed artifact")
+def t_layout_seal_stage_typed_review():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "layout-seal", root, "--dry-run"]),
+                     "stage-typed layout seal plan")
+    not_contains(plan.out, "[pre_route_placement]",
+                 "routed board is not a pre-route review subject")
+    contains(plan.out, "[placement_clearance]",
+             "routed geometry is still revalidated")
+    contains(plan.out, "[critical_route_connected]",
+             "routed connectivity is still revalidated")
+    contains(plan.out, "[via_process]",
+             "selective via fabrication intent is revalidated")
+    contains(plan.out, "[via_ampacity]",
+             "declared series transfer banks are revalidated")
 
 
 @test("reviewed-commit recovery is commit-, input-, and review-bound")
@@ -385,6 +472,11 @@ def t_reviewed_commit_provenance():
     proof = module.reviewed_commit_provenance(module.resolve_context(root), source)
     eq(proof["method"], "reviewed_commit", "witness method")
     eq(proof["source_commit"], source, "explicit source commit")
+
+    rf, rf_source = reviewed_repo(rf_enabled=True)
+    module.reviewed_commit_provenance(module.resolve_context(rf), rf_source)
+    (rf / "08_reviews/x_rf_pcb.md").unlink()
+    provenance_fails(module, rf, rf_source, "rf pcb review coverage")
 
     dirty, dirty_source = reviewed_repo()
     (dirty / "03_src/floorplan.yaml").write_text("board: changed\n")
@@ -453,6 +545,89 @@ def t_module_first_preflight():
     contains(adopted.out, "[module_first]", "P-MOD stage")
     check(adopted.out.index("module_first_check.py") <
           adopted.out.index("escape_check.py"), "P-MOD must run first")
+
+
+@test("pcb-flow preflight places the authoritative P-ADJ policy phase before "
+      "router spend")
+def t_placement_policy_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "preflight plan")
+    contains(plan.out, "[placement_policy]", "placement policy stage")
+    contains(plan.out, "--phase placement", "authoritative policy subset")
+    check(plan.out.index("[placement_policy]") < plan.out.index("[route_prep]"),
+          "P-ADJ must run before deterministic route preparation/spend")
+
+
+@test("adopted pcb-flow runs early electrical design before every schematic, "
+      "placement, and routing gate")
+def t_early_design_preflight():
+    root = scratch()
+    rules = root / "03_src/rules"
+    rules.mkdir(parents=True, exist_ok=True)
+    (rules / "requirements.yaml").write_text(
+        "schema: 1\npower_claims: []\n"
+        "no_external_power_outputs: Fixture has no external power output.\n")
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "adopted preflight plan")
+    contains(plan.out, "[early_design]", "early electrical stage")
+    check(plan.out.index("[early_design]") <
+          plan.out.index("[pre_route_schematic]") <
+          plan.out.index("[tier_preflight]") <
+          plan.out.index("[pin_map]") <
+          plan.out.index("[critical_pair_map]") <
+          plan.out.index("[route_prep]"),
+          "early electrical and critical-pair gates must follow stage ownership")
+    for stage in ("build_freshness", "net_label_survival",
+                  "electrical_invariants", "adr_coverage", "power_topology",
+                  "power_margin", "off_control", "count_parity", "circuit_bom"):
+        contains(plan.out, f"[{stage}]", "complete authoring semantic battery")
+
+
+@test("pcb-flow preflight runs P-PINMAP as its first board-artifact gate")
+def t_pin_map_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "preflight plan")
+    contains(plan.out, "[pin_map]", "pin-map stage")
+    contains(plan.out, "pin_map_check.py", "shared pin-map checker")
+    check(plan.out.index("[tier_preflight]") < plan.out.index("[pin_map]")
+          < plan.out.index("[escape_lands]")
+          < plan.out.index("[placement_policy]"),
+          "P-PINMAP must precede land, placement, and routing checks")
+
+
+@test("pcb-flow preflight makes both exact-artifact review boundaries blocking")
+def t_pre_route_review_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "preflight plan")
+    contains(plan.out, "[pre_route_schematic]", "schematic review stage")
+    contains(plan.out, "[pre_route_placement]", "placement review stage")
+    check(plan.out.count("pre_route_review_check.py") == 2,
+          "preflight must run each PR-REVIEW phase exactly once")
+    check(plan.out.index("[pre_route_schematic]") <
+          plan.out.index("[tier_preflight]") <
+          plan.out.index("[route_prep]") <
+          plan.out.index("[pre_route_placement]"),
+          "routing preflight and exact prep must precede placement review")
+
+
+@test("pcb-flow direct preflight cannot bypass either exact pre-route review "
+      "boundary")
+def t_pre_route_reviews_in_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "preflight plan")
+    contains(plan.out, "[pre_route_schematic]", "schematic review stage")
+    contains(plan.out, "[pre_route_placement]", "placement review stage")
+    check(plan.out.index("[pre_route_schematic]") <
+          plan.out.index("[tier_preflight]") <
+          plan.out.index("[placement_policy]") <
+          plan.out.index("[route_prep]") <
+          plan.out.index("[pre_route_placement]"),
+          "topology and tier checks must precede placement policy; exact prep "
+          "must then be compatibility-checked before review is credited")
 
 
 @test("successful seal is transactional and every bound class can stale it")

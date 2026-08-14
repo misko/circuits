@@ -29,6 +29,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from process_runner import run_bounded
+
 try:
     import yaml
 except ImportError:  # pragma: no cover - the KiCad interpreter carries yaml
@@ -36,6 +39,7 @@ except ImportError:  # pragma: no cover - the KiCad interpreter carries yaml
 
 
 SCRIPTS = Path(__file__).resolve().parent
+FAB_SCRIPTS = SCRIPTS.parent.parent / "jlcpcb-fab" / "scripts"
 KPY = "/usr/bin/python3"
 MAX_HANDOFF_BYTES = 16 * 1024
 EXIT_CONFIG, EXIT_STALE, EXIT_BUDGET = 1, 2, 6
@@ -52,12 +56,19 @@ SOURCE_IGNORES = {
 }
 DEFAULT_TOOL_FILES = (
     "pcb_flow.py", "module_first_check.py", "escape_check.py",
-    "tier_preflight.py", "pad_separation.py", "rf_contract_check.py",
+    "tier_preflight.py", "pad_separation.py", "pin_map_check.py",
+    "model_coverage_check.py",
+    "pre_route_review_check.py", "promoted_route_check.py", "early_design_check.py",
+    "via_ampacity_check.py",
+    "critical_route_check.py", "placement_gates.py",
+    "policy_audit.py", "rf_contract_check.py",
     "grind_driver.py",
     "generate_board_generic.py", "generate_rules_generic.py",
     "route_and_stitch_generic.py", "circuit_json_to_kicad_sch.py",
-    "build_provenance.py",
+    "build_provenance.py", "process_runner.py", "artifact_provenance.py",
+    "critical_part_facts.py", "project_state.py",
 )
+DEFAULT_FAB_TOOL_FILES = ("via_process_check.py",)
 
 
 class FlowError(RuntimeError):
@@ -161,9 +172,14 @@ def flow_cfg(cfg: dict[str, Any], root: Path | None = None) -> dict[str, Any]:
     flow = cfg.get("flow") or {}
     if not isinstance(flow, dict):
         raise FlowError("route.yaml flow must be a mapping")
-    for key in ("owner", "copper", "budgets_s", "paths", "inputs"):
+    for key in ("owner", "copper", "budgets_s", "timeouts_s", "paths", "inputs"):
         if key in flow and not isinstance(flow[key], dict):
             raise FlowError(f"flow.{key} must be a mapping")
+    rebuild_args = flow.get("rebuild_args", [])
+    if (not isinstance(rebuild_args, list)
+            or any(not isinstance(value, str) or not value
+                   for value in rebuild_args)):
+        raise FlowError("flow.rebuild_args must be a list of non-empty strings")
     copper = flow.get("copper") or {}
     deterministic = set(copper.get("deterministic") or [])
     stochastic = set(copper.get("stochastic") or [])
@@ -308,6 +324,25 @@ def _review_field(text: str, name: str) -> str:
     return match.group(1) if match else ""
 
 
+def _rf_enabled_for_review_provenance(ctx: FlowContext) -> bool:
+    """Read the explicit RF applicability decision; malformed is never false."""
+    path = ctx.root / "03_src/rules/rf.yaml"
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
+    except (OSError, UnicodeError, yaml.YAMLError) as exc:
+        raise FlowError(f"cannot read RF applicability contract {path}: {exc}") from exc
+    rf = data.get("rf") if isinstance(data, dict) and data.get("schema") == 1 else None
+    if not isinstance(rf, dict) or not isinstance(rf.get("enabled"), bool):
+        raise FlowError(
+            "reviewed-commit provenance requires schema-1 rf.yaml with "
+            "rf.enabled true or false")
+    rationale = rf.get("rationale")
+    if not isinstance(rationale, str) or not rationale.strip():
+        raise FlowError(
+            "reviewed-commit provenance requires a substantive rf.rationale")
+    return rf["enabled"]
+
+
 def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
     """Fail closed unless signed layout bytes and their producers equal COMMIT."""
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
@@ -399,9 +434,12 @@ def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
         "render": ("*_render_review.md", "board_sha256", board_hash),
         "topology": ("*_redteam_topology.md", "board_sha256", board_hash),
         "layout": ("*_redteam_layout.md", "board_sha256", board_hash),
-        "rf schematic": ("*_rf_schematic.md", "artifact_sha256", schematic_hash),
-        "rf pcb": ("*_rf_pcb.md", "artifact_sha256", board_hash),
     }
+    if _rf_enabled_for_review_provenance(ctx):
+        required.update({
+            "rf schematic": ("*_rf_schematic.md", "artifact_sha256", schematic_hash),
+            "rf pcb": ("*_rf_pcb.md", "artifact_sha256", board_hash),
+        })
     review_root = ctx.root / "08_reviews"
     bound: list[str] = []
     for label, (pattern, hash_field, expected_hash) in required.items():
@@ -426,6 +464,7 @@ def tool_files(ctx: FlowContext) -> list[Path]:
     if not isinstance(extra, list):
         raise FlowError("flow.inputs.tools must be a list")
     files = {SCRIPTS / name for name in DEFAULT_TOOL_FILES}
+    files.update(FAB_SCRIPTS / name for name in DEFAULT_FAB_TOOL_FILES)
     for value in extra:
         path = Path(os.path.expanduser(str(value)))
         path = path.resolve() if path.is_absolute() else (ctx.root / path).resolve()
@@ -571,7 +610,8 @@ def load_perf(ctx: FlowContext) -> dict[str, Any]:
 
 
 def record_perf(ctx: FlowContext, stage: str, command: list[str], elapsed: float,
-                rc: int, budget_s: float | None = None) -> None:
+                rc: int, budget_s: float | None = None,
+                timeout_s: float | None = None) -> None:
     data = load_perf(ctx)
     run = {
         "at": utc_now(), "stage": stage, "seconds": round(elapsed, 3),
@@ -580,24 +620,37 @@ def record_perf(ctx: FlowContext, stage: str, command: list[str], elapsed: float
     if budget_s is not None:
         run["budget_s"] = budget_s
         run["over_budget"] = elapsed > budget_s
+    if timeout_s is not None:
+        run["timeout_s"] = timeout_s
+        run["timed_out"] = rc == 124
     data["runs"].append(run)
     data["runs"] = data["runs"][-200:]
     _atomic_write(ctx.performance, json.dumps(data, indent=2) + "\n")
 
 
 def run_timed(ctx: FlowContext, stage: str, command: list[str],
-              budget_s: float | None = None) -> int:
+              budget_s: float | None = None,
+              timeout_s: float | None = None) -> int:
     print(f"[{stage}] $ {shlex.join(command)}", flush=True)
-    start = time.monotonic()
-    proc = subprocess.run(command, cwd=ctx.root)
-    elapsed = time.monotonic() - start
-    record_perf(ctx, stage, command, elapsed, proc.returncode, budget_s)
+    timeout_s = configured_timeout(ctx.cfg, stage) if timeout_s is None else timeout_s
+    if timeout_s is not None and timeout_s <= 0:
+        raise FlowError("stage timeout must be positive")
+    heartbeat_s = configured_heartbeat(ctx.cfg)
+    safe_stage = re.sub(r"[^A-Za-z0-9_.-]+", "_", stage)
+    result = run_bounded(
+        command, cwd=ctx.root, timeout_s=timeout_s, heartbeat_s=heartbeat_s,
+        label=stage, state_path=ctx.state_dir / "pipeline_state" /
+        f"{safe_stage}.json")
+    elapsed = result.elapsed_s
+    record_perf(ctx, stage, command, elapsed, result.returncode, budget_s,
+                timeout_s)
     budget = f" / budget {budget_s:g}s" if budget_s is not None else ""
-    print(f"[{stage}] rc={proc.returncode}, {elapsed:.3f}s{budget}")
-    if proc.returncode == 0 and budget_s is not None and elapsed > budget_s:
+    timeout = f" / timeout {timeout_s:g}s" if timeout_s is not None else ""
+    print(f"[{stage}] rc={result.returncode}, {elapsed:.3f}s{budget}{timeout}")
+    if result.returncode == 0 and budget_s is not None and elapsed > budget_s:
         print(f"BUDGET EXCEEDED: {stage} took {elapsed:.3f}s > {budget_s:g}s")
         return EXIT_BUDGET
-    return proc.returncode
+    return result.returncode
 
 
 def configured_budget(cfg: dict[str, Any], stage: str) -> float | None:
@@ -606,33 +659,120 @@ def configured_budget(cfg: dict[str, Any], stage: str) -> float | None:
     return float(value) if value is not None else None
 
 
+def configured_timeout(cfg: dict[str, Any], stage: str) -> float | None:
+    """Return a hard deadline, distinct from a performance budget."""
+    timeouts = ((cfg.get("flow") or {}).get("timeouts_s") or {})
+    value = timeouts.get(stage, timeouts.get("default"))
+    try:
+        value = float(value) if value is not None else None
+    except (TypeError, ValueError) as exc:
+        raise FlowError(f"flow.timeouts_s.{stage} must be numeric") from exc
+    if value is not None and value <= 0:
+        raise FlowError(f"flow.timeouts_s.{stage} must be positive")
+    return value
+
+
+def configured_heartbeat(cfg: dict[str, Any]) -> float:
+    value = (cfg.get("flow") or {}).get("heartbeat_s", 10)
+    try:
+        value = float(value)
+    except (TypeError, ValueError) as exc:
+        raise FlowError("flow.heartbeat_s must be numeric") from exc
+    if value <= 0:
+        raise FlowError("flow.heartbeat_s must be positive")
+    return value
+
+
 def preflight_commands(ctx: FlowContext, include_land: bool = True
                        ) -> list[tuple[str, list[str]]]:
     rf_contract = ctx.route_path.parent / "rules" / "rf.yaml"
     commands = [
+        ("pre_route_schematic", [
+            KPY, str(SCRIPTS / "pre_route_review_check.py"), str(ctx.root),
+            "--phase", "schematic"]),
         ("rf_contract", [KPY, str(SCRIPTS / "rf_contract_check.py"),
                          str(ctx.root), "--contract", str(rf_contract),
                          "--require-applicability"]),
-        ("escape_packages", [KPY, str(SCRIPTS / "escape_check.py"),
-                             *map(str, part_files(ctx))]),
         ("tier_preflight", [KPY, str(SCRIPTS / "tier_preflight.py"),
                             str(ctx.root), "--route-config", str(ctx.route_path),
                             "--board", ctx.board_id]),
+        ("escape_packages", [KPY, str(SCRIPTS / "escape_check.py"),
+                             *map(str, part_files(ctx))]),
     ]
-    # Legacy projects remain explicit/unmigrated in policy_audit. Once the
-    # source contract is adopted, P-MOD is the first preflight and cannot be
-    # bypassed by invoking pcb_flow directly instead of a rebuild template.
-    if (ctx.root / "03_src/rules/integration.yaml").is_file():
-        commands.insert(0, ("module_first", [
-            KPY, str(SCRIPTS / "module_first_check.py"), str(ctx.root)]))
+    # Legacy projects remain explicit/unmigrated. Adopted source contracts are
+    # hard architecture gates and cannot be bypassed through direct pcb_flow.
+    prefix = []
+    adopted = any((ctx.root / "03_src/rules" / name).is_file()
+                  for name in ("requirements.yaml", "integration.yaml"))
+    if adopted:
+        circuit = ctx.root / "03_tscircuit/build/circuit.json"
+        prefix.extend([
+            ("module_first", [KPY, str(SCRIPTS / "module_first_check.py"),
+                              str(ctx.root)]),
+            ("build_freshness", [KPY, str(SCRIPTS / "build_provenance.py"),
+                                 "audit", str(ctx.root)]),
+            ("early_design", [KPY, str(SCRIPTS / "early_design_check.py"),
+                              str(ctx.root)]),
+            ("net_label_survival", [KPY, str(SCRIPTS / "net_label_survival.py"),
+                                    str(ctx.root)]),
+            ("electrical_invariants", [KPY, str(SCRIPTS / "electrical_invariants.py"),
+                                       str(ctx.root)]),
+            ("adr_coverage", [KPY, str(SCRIPTS / "electrical_invariants.py"),
+                              str(ctx.root), "--adr-coverage"]),
+            ("power_topology", [KPY, str(SCRIPTS / "power_topology.py"),
+                                str(ctx.root)]),
+            ("power_margin", [KPY, str(SCRIPTS / "power_topology.py"),
+                              str(ctx.root), "--margin"]),
+            ("off_control", [KPY, str(SCRIPTS / "power_topology.py"),
+                             str(ctx.root), "--off-control"]),
+            ("count_parity", [KPY, str(SCRIPTS / "count_parity.py"),
+                              str(ctx.root)]),
+            ("circuit_bom", [KPY, str(FAB_SCRIPTS / "bom_source_check.py"),
+                             "--circuit-only", str(circuit), "--parts",
+                             str(ctx.root / "02_parts")]),
+        ])
+    commands[0:0] = prefix
     if include_land:
-        commands.insert(1, ("escape_lands",
+        # Schematic review owns the topology boundary and must remain before
+        # any board-artifact/placement gate. Insert the board checks just
+        # before package/tier routing preflight, not merely after the prefix.
+        first_board = next(i for i, row in enumerate(commands)
+                           if row[0] == "escape_packages")
+        commands.insert(first_board, ("pin_map", [
+            KPY, str(SCRIPTS / "pin_map_check.py"), str(ctx.root),
+            "--board", str(ctx.board), "--circuit-json",
+            str(ctx.root / "03_tscircuit/build/circuit.json")]))
+        critical_facts = ctx.route_path.parent / "rules" / "critical_parts.yaml"
+        offset = 1
+        if critical_facts.is_file():
+            commands.insert(first_board + offset, ("critical_part_facts", [
+                KPY, str(SCRIPTS / "critical_part_facts.py"), str(ctx.root),
+                "--board", str(ctx.board), "--facts", str(critical_facts)]))
+            offset += 1
+        commands.insert(first_board + offset, ("placement_clearance", [
+            KPY, str(SCRIPTS / "placement_gates.py"), str(ctx.board),
+            "--config", str(ctx.root / "03_src/placement_gates.json")]))
+        commands.insert(first_board + offset + 1, ("critical_pair_map", [
+            KPY, str(SCRIPTS / "critical_route_check.py"), str(ctx.root),
+            "--board", str(ctx.board)]))
+        commands.insert(first_board + offset + 2, ("escape_lands",
                             [KPY, str(SCRIPTS / "escape_check.py"),
                              "--board", str(ctx.board)]))
         nets = ctx.route_path.parent / "rules" / "nets.yaml"
-        commands.insert(2, ("pad_separation", [
+        commands.insert(first_board + offset + 3, ("pad_separation", [
             KPY, str(SCRIPTS / "pad_separation.py"), str(ctx.board),
             "--project", str(ctx.root), "--nets", str(nets)]))
+        commands.insert(first_board + offset + 4, ("placement_policy", [
+            KPY, str(SCRIPTS / "policy_audit.py"), str(ctx.root),
+            "--board", ctx.board_id, "--skip-drc", "--phase", "placement"]))
+        placement_index = next(i for i, row in enumerate(commands)
+                               if row[0] == "placement_policy") + 1
+        commands.insert(placement_index, ("route_prep", [
+            KPY, str(SCRIPTS / "route_and_stitch_generic.py"), "prep",
+            str(ctx.route_path)]))
+        commands.insert(placement_index + 1, ("pre_route_placement", [
+            KPY, str(SCRIPTS / "pre_route_review_check.py"), str(ctx.root),
+            "--phase", "placement", "--board", str(ctx.board)]))
     return commands
 
 
@@ -793,15 +933,32 @@ def _failure_handoff(ctx: FlowContext, blocker: str, stage: str | None = None) -
 def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
                     reviewed_commit: str | None = None) -> int:
     # Validate every declarative contract before deleting or writing evidence.
-    flow_cfg(ctx.cfg, ctx.root)
+    flow = flow_cfg(ctx.cfg, ctx.root)
     source_files(ctx)
     tool_files(ctx)
     if not ctx.rebuild.is_file():
         raise FlowError(f"layout-seal requires canonical rebuild driver {ctx.rebuild}")
     before = preflight_commands(ctx, include_land=False)
     after = preflight_commands(ctx, include_land=True)
-    land = [row for row in after
-            if row[0] in ("escape_lands", "pad_separation")]
+    post_board = [row for row in after if row[0] in (
+        "placement_clearance", "critical_pair_map", "escape_lands",
+        "pad_separation", "placement_policy")]
+    # PR-REVIEW's placement witness is intentionally bound to the exact
+    # track-free board. The canonical rebuild grades it before route import.
+    # Re-running that checker here, after the driver has added routed copper,
+    # compares two different lifecycle artifacts and can never pass. The
+    # post-route seal revalidates geometry/policy against the routed board;
+    # reviewed-commit recovery separately proves exact final review files.
+    post_board.append(("critical_route_connected", [
+        KPY, str(SCRIPTS / "critical_route_check.py"), str(ctx.root),
+        "--board", str(ctx.board), "--require-connected"]))
+    post_board.append(("via_ampacity", [
+        KPY, str(SCRIPTS / "via_ampacity_check.py"), str(ctx.board),
+        str(ctx.route_path), "--json",
+        str(ctx.root / "06_build/verification/via_ampacity.json")]))
+    post_board.append(("via_process", [
+        KPY, str(FAB_SCRIPTS / "via_process_check.py"), str(ctx.board),
+        "--json", str(ctx.root / "06_build/verification/via_process.json")]))
     # Recovery for an already-reviewed immutable commit is intentionally
     # narrower than a generic "skip rebuild" switch. It proves every board
     # producer input and six independent review lenses against an explicit
@@ -810,10 +967,11 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
     if reviewed_commit and not dry_run:
         provenance = reviewed_commit_provenance(ctx, reviewed_commit)
     build = [] if reviewed_commit else [
-        ("rebuild", ["bash", str(ctx.rebuild)]),
+        ("rebuild", ["bash", str(ctx.rebuild),
+                     *flow.get("rebuild_args", [])]),
     ]
     commands = before + build + [
-        *land,
+        *post_board,
         ("rf_reviews", [
             KPY, str(SCRIPTS / "rf_contract_check.py"), str(ctx.root),
             "--contract", str(ctx.route_path.parent / "rules" / "rf.yaml"),
@@ -859,7 +1017,8 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
           f"stage {hdoc['stage']})")
     method = (f"exact reviewed commit {reviewed_commit}" if reviewed_commit
               else "fresh canonical rebuild")
-    print(f"LAYOUT SEALED: {method} + P-LAND + P-PADSEP + DRC 0/0/0")
+    print(f"LAYOUT SEALED: {method} + P-BODYCLR + R-PAIRMAP/R-CRITESC + "
+          "P-LAND + P-PADSEP + placement review + DRC 0/0/0")
     print("NOT RELEASE SEALED: run the jlcpcb-fab fabrication, assembly, stock, "
           "model, polarity, and staged-release gates before ordering")
     return 0
@@ -898,6 +1057,8 @@ def parser() -> argparse.ArgumentParser:
     common(p)
     p.add_argument("--stage", required=True)
     p.add_argument("--budget-s", type=float)
+    p.add_argument("--timeout-s", type=float,
+                   help="hard deadline; kills the command's process group")
     return ap
 
 
@@ -926,7 +1087,10 @@ def main(argv: list[str] | None = None) -> int:
             return cmd_layout_seal(ctx, args.dry_run, args.reviewed_commit)
         if not remainder:
             raise FlowError("run needs a command after --")
-        return run_timed(ctx, args.stage, remainder, args.budget_s)
+        budget_s = (args.budget_s if args.budget_s is not None
+                    else configured_budget(ctx.cfg, args.stage))
+        return run_timed(ctx, args.stage, remainder, budget_s,
+                         args.timeout_s)
     except FlowError as exc:
         print(f"pcb_flow: {exc}", file=sys.stderr)
         return EXIT_CONFIG

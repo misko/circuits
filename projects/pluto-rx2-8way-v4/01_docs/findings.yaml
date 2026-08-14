@@ -1,0 +1,57 @@
+schema: 1
+target: DESIGN_CLEAN
+gates:
+  - id: pluto_design_contract
+    required_for: DESIGN_CLEAN
+    state: pass
+    owner: rf-electrical
+    closes_when: Schematic, layout, pin, render and RF reviews agree on the sealed design.
+    evidence: [08_reviews/2026-08-01_v1.1_redteam_topology.md,
+               08_reviews/2026-08-01_v1.1_redteam_layout.md,
+               08_reviews/2026-08-01_v1.1_rf_pcb.md]
+  - id: pluto_release_gate
+    required_for: FIRST_ARTICLE_ORDERABLE
+    state: pending
+    owner: fabrication
+    closes_when: The changed pipeline/config source is rebuilt, independently reviewed and sealed with fresh RF evidence.
+  - id: pluto_first_article_test
+    required_for: FIRST_ARTICLE_TESTED
+    state: pending
+    owner: rf-lab
+    closes_when: VNA, switching, timing, supply and thermal tests pass on assembled hardware.
+  - id: pluto_production_validation
+    required_for: PRODUCTION_RELEASED
+    state: pending
+    owner: manufacturing
+    closes_when: Pilot-lot yield and a repeatable RF calibration/test procedure are approved.
+findings:
+  - id: PLUTO-F0-current-source-unsealed
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_ORDERABLE
+    owner: fabrication
+    finding: v1.1 remains historical evidence but predates the bounded-pipeline and explicit route-lineage source changes.
+    closes_when: A clean canonical rebuild and exact-artifact/RF reviews are sealed against the current source commit.
+  - id: PLUTO-F1-free-running-timing
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: firmware-rf
+    finding: FREE_RUNNING switching timing and Pluto synchronization remain unverified on hardware.
+    closes_when: Captured timing proves the intended dwell/settling relationship across all states.
+  - id: PLUTO-F2-vna-pofv
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: rf-lab
+    finding: Insertion loss, isolation, phase repeatability and POFV need VNA confirmation.
+    closes_when: Calibrated VNA sweeps and POFV results meet the documented limits.
+  - id: PLUTO-F3-thermal-supply
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: Module/switch supply integrity and temperature rise need first-article measurement.
+    closes_when: Worst-case rail droop, ripple and component temperatures pass.
+  - id: PLUTO-F4-field-history
+    state: open
+    blocks_at_or_above: PRODUCTION_RELEASED
+    owner: manufacturing
+    finding: No pilot-lot RF yield or field evidence exists yet.
+    closes_when: A controlled pilot lot and production RF test record exist.

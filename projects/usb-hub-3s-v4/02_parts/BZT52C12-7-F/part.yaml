@@ -1,0 +1,13 @@
+mpn: BZT52C12-7-F
+manufacturer: Diodes Incorporated
+type: zener_diode
+datasheet: {doc_id: DS18004, revision: "Rev. 38-2", url: "https://www.diodes.com/_files/datasheets/ds18004.pdf", sha256: 0fbd7d137524820f0160594065cbceb8c6b3188757c328416d08fceb7418202f, fetched: 2026-08-10}
+package: SOD-123
+footprint: Diode_SMD:D_SOD-123
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: "escape_check 2026-08-10"}
+pins: {1: K, 2: A}
+limits: {vz_nominal: 12V, vz_min_5mA: 11.4V, vz_max_5mA: 12.7V, vgs_clamp_role: 12V, power_at_75C_lead: 500mW}
+gotchas:
+  - "Pad 1/cathode goes to Q1 source (protected VIN); pad 2/anode goes to Q1 gate."
+verified: "exact -7-F ordering row, polarity and BZT52C12 electrical row independently read from Diodes DS18004 2026-08-10"
+sourcing: {lcsc: C124196, alternates: [], note: "exact Diodes ordering suffix; do not accept a generic BZT52C12 record from another manufacturer"}

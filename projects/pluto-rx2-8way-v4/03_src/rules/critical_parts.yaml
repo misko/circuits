@@ -1,0 +1,48 @@
+schema: 1
+board: 04_kicad/pluto_rx2_8way_v4.kicad_pcb
+parts:
+  - id: rf_switch
+    ref: U_SW
+    value: C5121458
+    dossier: 02_parts/PE42482A-X/part.yaml
+    source: >-
+      pSemi PE42482A-X datasheet pin table and 24-lead LGA land pattern; exposed
+      pad 25 and the nine unnumbered thermal paste apertures are intentional.
+    numbered_pads: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+                    14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+    unnumbered_smd: 9
+    pad_counts: {smd: 34}
+    pad_nets: {1: GND, 2: ANT2, 8: 3V3, 9: SW_V1, 10: SW_V2,
+               11: SW_V3, 12: SW_V4, 19: RX1_TAP, 22: RX2_OUT,
+               24: ANT1, 25: GND}
+    pad_sizes: {1: [0.60, 0.30], 25: [2.75, 2.75]}
+    size_tolerance_mm: 0.01
+
+  - id: controller_module
+    ref: U_MCU
+    value: C9900173620
+    dossier: 02_parts/RP2040-Zero/part.yaml
+    source: >-
+      Waveshare RP2040-Zero module drawing and bottom-view pinout, with carrier
+      pad geometry independently measured from the vendor STEP archive.
+    numbered_pads: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                    13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    pad_counts: {smd: 23}
+    pad_nets: {1: SEL_V1, 2: SEL_V2, 3: SEL_V3, 4: SEL_V4,
+               21: 3V3_MOD, 22: GND}
+    pad_sizes: {1: [2.60, 1.20], 10: [1.20, 2.60]}
+    size_tolerance_mm: 0.01
+
+  - id: rf_sma_family
+    refs: [J_RX1, J_RX2, J_ANT1, J_ANT2, J_ANT3, J_ANT4,
+           J_ANT5, J_ANT6, J_ANT7, J_ANT8]
+    value: C504007
+    dossier: 02_parts/KH-SMA-KE-Z/part.yaml
+    source: >-
+      Kinghelm KH-SMA-KE-Z mechanical drawing: one centre conductor and four
+      grounded 1.4 mm plated legs; all ten RF ports use the same order code.
+    numbered_pads: [1, 2, 3, 4, 5]
+    pad_counts: {pth: 5}
+    drills:
+      - {attribute: pth, count: 5, diameter_mm: 1.40, tolerance_mm: 0.01}
+    pad_nets: {2: GND, 3: GND, 4: GND, 5: GND}

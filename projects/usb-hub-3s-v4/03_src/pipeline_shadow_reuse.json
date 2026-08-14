@@ -1,0 +1,1419 @@
+{
+  "schema": 1,
+  "project_slug": "usb-hub-3s-v4",
+  "driver_relative_path": "03_src/rebuild_reuse.sh",
+  "driver_sha256": "b5a29d9ba23817a376f7589b0c400493de219d9818b2683f9883fe7b58a573b1",
+  "entrypoint": "rebuild_reuse",
+  "mode": "deterministic_reuse",
+  "bindings": [
+    {
+      "schema": 1,
+      "sequence": 1,
+      "legacy_key": "module-first",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-MODULE-FIRST-VALID",
+        "owner": "pcb-design",
+        "lifecycle": "architecture",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": [
+          "usbv4_reuse_source_tree"
+        ],
+        "produces": [
+          "usbv4_r_module_first_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/module_first_check.py",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_module_first_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 2,
+      "legacy_key": "design-schema",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-DESIGN-SCHEMA-VALID",
+        "owner": "pcb-design",
+        "lifecycle": "architecture",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "usbv4_r_module_first_valid"
+        ],
+        "produces": [
+          "usbv4_r_design_schema_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-MODULE-FIRST-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/early_design_check.py",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_design_schema_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 3,
+      "legacy_key": "source-rules",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-SOURCE-RULES-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "usbv4_r_design_schema_valid"
+        ],
+        "produces": [
+          "usbv4_r_source_rules_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-DESIGN-SCHEMA-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/rules_audit.py",
+        "{project}",
+        "--phase",
+        "source"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_source_rules_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 4,
+      "legacy_key": "pinned-subject",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PINNED-SUBJECT-RESOLVED",
+        "owner": "pcb-design",
+        "lifecycle": "commission",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 15,
+        "requires": [
+          "usbv4_r_source_rules_valid"
+        ],
+        "produces": [
+          "usbv4_r_pinned_subject_resolved"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-SOURCE-RULES-VALID"
+      ],
+      "argv": null,
+      "shell_builtin": "resolve_pinned_subject",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_pinned_subject_resolved"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 5,
+      "legacy_key": "route-marker-reset",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-BUILD-ROUTE-MARKER-INVALIDATED",
+        "owner": "pcb-design",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 5,
+        "requires": [
+          "usbv4_r_pinned_subject_resolved"
+        ],
+        "produces": [
+          "usbv4_r_build_route_marker_invalidated"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PINNED-SUBJECT-RESOLVED"
+      ],
+      "argv": [
+        "rm",
+        "-f",
+        "06_build/route/FINAL"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "ignored_until",
+      "authority_binding": "route-import",
+      "accepted_output_symbols": [
+        "usbv4_r_build_route_marker_invalidated"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 6,
+      "legacy_key": "netlist",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-NETLIST-PRODUCED",
+        "owner": "kicad-pcb",
+        "lifecycle": "schematic",
+        "cost": "external",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "usbv4_r_build_route_marker_invalidated"
+        ],
+        "produces": [
+          "usbv4_r_netlist_produced"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-BUILD-ROUTE-MARKER-INVALIDATED"
+      ],
+      "argv": [
+        "kicad-cli",
+        "sch",
+        "export",
+        "netlist",
+        "--format",
+        "kicadsexpr",
+        "-o",
+        "06_build/netlists/usb_hub_3s_v4.net",
+        "03_tscircuit/kicad/usb_hub_3s_v4.kicad_sch"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_netlist_produced"
+      ],
+      "accepted_output_paths": [
+        "06_build/netlists/usb_hub_3s_v4.net"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 7,
+      "legacy_key": "schematic-review",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-SCHEMATIC-REVIEWS-ADMISSIBLE",
+        "owner": "pcb-design",
+        "lifecycle": "schematic",
+        "cost": "review",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": [
+          "usbv4_r_netlist_produced"
+        ],
+        "produces": [
+          "usbv4_r_schematic_reviews_admissible"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-NETLIST-PRODUCED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/pre_route_review_check.py",
+        "{project}",
+        "--phase",
+        "schematic",
+        "--netlist",
+        "06_build/netlists/usb_hub_3s_v4.net"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_schematic_reviews_admissible"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 8,
+      "legacy_key": "board",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-BOARD-PRODUCED",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 300,
+        "requires": [
+          "usbv4_r_schematic_reviews_admissible"
+        ],
+        "produces": [
+          "usbv4_r_board_produced"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-SCHEMATIC-REVIEWS-ADMISSIBLE"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_board_generic.py",
+        "03_src/floorplan.yaml",
+        "-o",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_board_produced"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/fp-lib-table",
+        "04_kicad/refdes_waiver.json",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 9,
+      "legacy_key": "parity-schematic",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PARITY-SCHEMATIC-COPIED",
+        "owner": "pcb-design",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 15,
+        "requires": [
+          "usbv4_r_board_produced"
+        ],
+        "produces": [
+          "usbv4_r_parity_schematic_copied"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-BOARD-PRODUCED"
+      ],
+      "argv": [
+        "cp",
+        "03_tscircuit/kicad/usb_hub_3s_v4.kicad_sch",
+        "04_kicad/usb_hub_3s_v4.kicad_sch"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_parity_schematic_copied"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/usb_hub_3s_v4.kicad_sch"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 10,
+      "legacy_key": "pin-map",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PIN-MAP-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "usbv4_r_parity_schematic_copied"
+        ],
+        "produces": [
+          "usbv4_r_pin_map_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PARITY-SCHEMATIC-COPIED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/pin_map_check.py",
+        "{project}",
+        "--board",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb",
+        "--circuit-json",
+        "03_tscircuit/build/circuit.json"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_pin_map_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 11,
+      "legacy_key": "board-audit-na",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-BOARD-AUDIT-DISPOSITION",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 5,
+        "requires": [
+          "usbv4_r_pin_map_valid"
+        ],
+        "produces": [
+          "usbv4_r_board_audit_disposition"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PIN-MAP-VALID"
+      ],
+      "argv": null,
+      "shell_builtin": "not_applicable",
+      "cwd": ".",
+      "applicability": "NOT_APPLICABLE",
+      "applicability_reason": "generic-backend board has no 03_src/audit_board.py",
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 12,
+      "legacy_key": "placement-gates",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PLACEMENT-GATES-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "usbv4_r_board_audit_disposition"
+        ],
+        "produces": [
+          "usbv4_r_placement_gates_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-BOARD-AUDIT-DISPOSITION"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/placement_gates.py",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb",
+        "--config",
+        "03_src/placement_gates.json"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_placement_gates_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 13,
+      "legacy_key": "pad-separation",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PAD-SEPARATION-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "usbv4_r_placement_gates_valid"
+        ],
+        "produces": [
+          "usbv4_r_pad_separation_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PLACEMENT-GATES-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/pad_separation.py",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb",
+        "--project",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_pad_separation_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 14,
+      "legacy_key": "critical-pair-map",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-CRITICAL-PAIR-MAP-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "usbv4_r_pad_separation_valid"
+        ],
+        "produces": [
+          "usbv4_r_critical_pair_map_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PAD-SEPARATION-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/critical_route_check.py",
+        "{project}",
+        "--board",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_critical_pair_map_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 15,
+      "legacy_key": "placement-policy",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PLACEMENT-POLICY-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "usbv4_r_critical_pair_map_valid"
+        ],
+        "produces": [
+          "usbv4_r_placement_policy_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-CRITICAL-PAIR-MAP-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/policy_audit.py",
+        "{project}",
+        "--board",
+        "usb_hub_3s_v4",
+        "--skip-drc",
+        "--phase",
+        "placement"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_placement_policy_valid"
+      ],
+      "accepted_output_paths": [
+        "06_build/placement_policy_audit.md"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 16,
+      "legacy_key": "rules-pre-placement-drc",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-RULES-PRE-PLACEMENT-DRC",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "usbv4_r_placement_policy_valid"
+        ],
+        "produces": [
+          "usbv4_r_rules_pre_placement_drc"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PLACEMENT-POLICY-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_rules_pre_placement_drc"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/usb_hub_3s_v4.kicad_dru",
+        "04_kicad/usb_hub_3s_v4.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 17,
+      "legacy_key": "placement-drc-report",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PLACEMENT-DRC-REPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "external",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "usbv4_r_rules_pre_placement_drc"
+        ],
+        "produces": [
+          "usbv4_r_placement_drc_report"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-RULES-PRE-PLACEMENT-DRC"
+      ],
+      "argv": [
+        "kicad-cli",
+        "pcb",
+        "drc",
+        "--severity-all",
+        "--refill-zones",
+        "--schematic-parity",
+        "--format",
+        "json",
+        "-o",
+        "06_build/drc/pre_route.json",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "postcheck",
+      "authority_binding": "placement-drc-verdict",
+      "accepted_output_symbols": [
+        "usbv4_r_placement_drc_report"
+      ],
+      "accepted_output_paths": [
+        "06_build/drc/pre_route.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 18,
+      "legacy_key": "placement-drc-verdict",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PLACEMENT-DRC-CLEAN",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": [
+          "usbv4_r_placement_drc_report"
+        ],
+        "produces": [
+          "usbv4_r_placement_drc_clean"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PLACEMENT-DRC-REPORT"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/placement_drc_check.py",
+        "06_build/drc/pre_route.json"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_placement_drc_clean"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 19,
+      "legacy_key": "rules-pre-route-prep",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-RULES-PRE-ROUTE-PREP",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "usbv4_r_placement_drc_clean"
+        ],
+        "produces": [
+          "usbv4_r_rules_pre_route_prep"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PLACEMENT-DRC-CLEAN"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_rules_pre_route_prep"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/usb_hub_3s_v4.kicad_dru",
+        "04_kicad/usb_hub_3s_v4.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 20,
+      "legacy_key": "pad-escape",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PAD-ESCAPE-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "usbv4_r_rules_pre_route_prep"
+        ],
+        "produces": [
+          "usbv4_r_pad_escape_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-RULES-PRE-ROUTE-PREP"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/escape_check.py",
+        "--board",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_pad_escape_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 21,
+      "legacy_key": "tier-preflight",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-TIER-PREFLIGHT-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": [
+          "usbv4_r_pad_escape_valid"
+        ],
+        "produces": [
+          "usbv4_r_tier_preflight_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PAD-ESCAPE-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/tier_preflight.py",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_tier_preflight_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 22,
+      "legacy_key": "route-prep",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-ROUTE-PREP-PRODUCED",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 600,
+        "requires": [
+          "usbv4_r_tier_preflight_valid"
+        ],
+        "produces": [
+          "usbv4_r_route_prep_produced"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-TIER-PREFLIGHT-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "prep",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_route_prep_produced"
+      ],
+      "accepted_output_paths": [
+        "06_build/route/r0.kicad_dru",
+        "06_build/route/r0.kicad_pcb",
+        "06_build/route/r0.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 23,
+      "legacy_key": "placement-review-prepare",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PLACEMENT-REVIEW-BOUNDARY-PREPARED",
+        "owner": "pcb-design",
+        "lifecycle": "placement",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 270,
+        "requires": [
+          "usbv4_r_route_prep_produced"
+        ],
+        "produces": [
+          "usbv4_r_placement_review_boundary_prepared"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-ROUTE-PREP-PRODUCED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/pcb_flow.py",
+        "run",
+        "{project}",
+        "--stage",
+        "placement_review_prepare",
+        "--",
+        "03_src/prepare_placement_review.sh"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_placement_review_boundary_prepared"
+      ],
+      "accepted_output_paths": [
+        "06_build/pre_route/placement_review_current.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 24,
+      "legacy_key": "placement-review",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PLACEMENT-REVIEWS-ADMISSIBLE",
+        "owner": "pcb-design",
+        "lifecycle": "placement",
+        "cost": "review",
+        "work_class": "local",
+        "timeout_s": 30,
+        "requires": [
+          "usbv4_r_placement_review_boundary_prepared"
+        ],
+        "produces": [
+          "usbv4_r_placement_reviews_admissible"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PLACEMENT-REVIEW-BOUNDARY-PREPARED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/pre_route_review_check.py",
+        "{project}",
+        "--phase",
+        "placement",
+        "--board",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_placement_reviews_admissible"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 25,
+      "legacy_key": "route-import",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-PROMOTED-ROUTE-IMPORTED",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 600,
+        "requires": [
+          "usbv4_r_placement_reviews_admissible"
+        ],
+        "produces": [
+          "usbv4_r_promoted_route_imported"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PLACEMENT-REVIEWS-ADMISSIBLE"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "import",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_promoted_route_imported"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/usb_hub_3s_v4.kicad_pcb",
+        "06_build/route/import_provenance.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 26,
+      "legacy_key": "route-taps",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-ROUTE-TAPS-PRODUCED",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 600,
+        "requires": [
+          "usbv4_r_promoted_route_imported"
+        ],
+        "produces": [
+          "usbv4_r_route_taps_produced"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-PROMOTED-ROUTE-IMPORTED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "taps",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_route_taps_produced"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 27,
+      "legacy_key": "stitch",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-STITCH-PRODUCED",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 900,
+        "requires": [
+          "usbv4_r_route_taps_produced"
+        ],
+        "produces": [
+          "usbv4_r_stitch_produced"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-ROUTE-TAPS-PRODUCED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+        "stitch",
+        "03_src/route.yaml"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_stitch_produced"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 28,
+      "legacy_key": "critical-routes-connected",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-CRITICAL-ROUTES-CONNECTED",
+        "owner": "kicad-pcb",
+        "lifecycle": "routing",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "usbv4_r_stitch_produced"
+        ],
+        "produces": [
+          "usbv4_r_critical_routes_connected"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-STITCH-PRODUCED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/critical_route_check.py",
+        "{project}",
+        "--board",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb",
+        "--require-connected"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_critical_routes_connected"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 29,
+      "legacy_key": "rules-post-stitch",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-RULES-POST-STITCH",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 60,
+        "requires": [
+          "usbv4_r_critical_routes_connected"
+        ],
+        "produces": [
+          "usbv4_r_rules_post_stitch"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-CRITICAL-ROUTES-CONNECTED"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/generate_rules_generic.py",
+        "{project}"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_rules_post_stitch"
+      ],
+      "accepted_output_paths": [
+        "04_kicad/usb_hub_3s_v4.kicad_dru",
+        "04_kicad/usb_hub_3s_v4.kicad_pro"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 30,
+      "legacy_key": "realized-rules",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-REALIZED-RULES-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "usbv4_r_rules_post_stitch"
+        ],
+        "produces": [
+          "usbv4_r_realized_rules_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-RULES-POST-STITCH"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/rules_audit.py",
+        "{project}",
+        "--board",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_realized_rules_valid"
+      ],
+      "accepted_output_paths": []
+    },
+    {
+      "schema": 1,
+      "sequence": 31,
+      "legacy_key": "via-ampacity",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-VIA-AMPACITY-VALID",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "bounded",
+        "work_class": "local",
+        "timeout_s": 120,
+        "requires": [
+          "usbv4_r_realized_rules_valid"
+        ],
+        "produces": [
+          "usbv4_r_via_ampacity_valid"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-REALIZED-RULES-VALID"
+      ],
+      "argv": [
+        "/usr/bin/python3",
+        "{repo}/skills/kicad-pcb/scripts/via_ampacity_check.py",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb",
+        "03_src/route.yaml",
+        "--json",
+        "06_build/verification/via_ampacity.json"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_via_ampacity_valid"
+      ],
+      "accepted_output_paths": [
+        "06_build/verification/via_ampacity.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 32,
+      "legacy_key": "layout-drc-report",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-LAYOUT-DRC-REPORT",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "external",
+        "work_class": "local",
+        "timeout_s": 180,
+        "requires": [
+          "usbv4_r_via_ampacity_valid"
+        ],
+        "produces": [
+          "usbv4_r_layout_drc_report"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-VIA-AMPACITY-VALID"
+      ],
+      "argv": [
+        "kicad-cli",
+        "pcb",
+        "drc",
+        "--severity-all",
+        "--refill-zones",
+        "--schematic-parity",
+        "--format",
+        "json",
+        "-o",
+        "06_build/route/gate.json",
+        "04_kicad/usb_hub_3s_v4.kicad_pcb"
+      ],
+      "shell_builtin": null,
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "postcheck",
+      "authority_binding": "layout-drc-verdict",
+      "accepted_output_symbols": [
+        "usbv4_r_layout_drc_report"
+      ],
+      "accepted_output_paths": [
+        "06_build/route/gate.json"
+      ]
+    },
+    {
+      "schema": 1,
+      "sequence": 33,
+      "legacy_key": "layout-drc-verdict",
+      "spec": {
+        "schema": 1,
+        "id": "USBV4-R-LAYOUT-DRC-CLEAN",
+        "owner": "kicad-pcb",
+        "lifecycle": "layout_seal",
+        "cost": "cheap",
+        "work_class": "local",
+        "timeout_s": 15,
+        "requires": [
+          "usbv4_r_layout_drc_report"
+        ],
+        "produces": [
+          "usbv4_r_layout_drc_clean"
+        ],
+        "blocks": [],
+        "invalidated_by": []
+      },
+      "dependencies": [
+        "USBV4-R-LAYOUT-DRC-REPORT"
+      ],
+      "argv": null,
+      "shell_builtin": "grade_layout_drc_json",
+      "cwd": ".",
+      "applicability": "APPLIES",
+      "applicability_reason": null,
+      "authority": "exit",
+      "authority_binding": null,
+      "accepted_output_symbols": [
+        "usbv4_r_layout_drc_clean"
+      ],
+      "accepted_output_paths": []
+    }
+  ]
+}

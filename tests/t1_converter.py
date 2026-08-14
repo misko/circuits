@@ -9,6 +9,7 @@ with an empty footprinter_string. The clean case asserts 41 and 24. The
 known-bad case proves the assertion has teeth by running it against a sheet
 that really does have the collapsed symbol.
 """
+import json
 import re
 import subprocess
 import sys
@@ -81,6 +82,58 @@ def t_two_resistors():
     eq(sorted(set(nodes.values())), ["GND", "MID", "VIN"], "net names")
     # annotated => no unannotated '?' references anywhere
     check("R?" not in sheet.read_text(), "sheet has unannotated references")
+
+
+@test("converter: separate tscircuit sheets cannot collapse onto one KiCad coordinate plane")
+def t_multisheet_geometry_is_separated():
+    d = tmpdir("conv_multisheet_")
+    src = json.loads((T0 / "two_resistors" / "circuit.json").read_text())
+    comps = [e for e in src if e.get("type") == "schematic_component"]
+    check(len(comps) == 2, "two_resistors fixture shape changed")
+    a, b = comps
+    ax, ay = a["center"]["x"], a["center"]["y"]
+    bx, by = b["center"]["x"], b["center"]["y"]
+    # Make both authored pages use the exact same local coordinates. Before
+    # the per-sheet transform this put both bodies and their properties on top
+    # of one another even though tscircuit explicitly named different sheets.
+    b["center"] = dict(a["center"])
+    for e in src:
+        if e.get("type") == "schematic_component":
+            e["schematic_sheet_id"] = ("schematic_sheet_0" if e is a
+                                         else "schematic_sheet_1")
+        elif e.get("type") == "schematic_port":
+            if e.get("schematic_component_id") == b["schematic_component_id"]:
+                e["center"]["x"] += ax - bx
+                e["center"]["y"] += ay - by
+                e["schematic_sheet_id"] = "schematic_sheet_1"
+            else:
+                e["schematic_sheet_id"] = "schematic_sheet_0"
+    # Let the converter's safety labels name each independent pin root; traces
+    # from the original one-page fixture intentionally do not cross pages.
+    src = [e for e in src if e.get("type") not in
+           ("schematic_trace", "schematic_net_label")]
+    src += [
+        {"type": "schematic_sheet", "schematic_sheet_id": "schematic_sheet_0",
+         "name": "a", "sheet_index": 1},
+        {"type": "schematic_sheet", "schematic_sheet_id": "schematic_sheet_1",
+         "name": "b", "sheet_index": 2},
+    ]
+    cj = d / "circuit.json"
+    cj.write_text(json.dumps(src))
+    out = d / "multi.kicad_sch"
+    must_pass(run([PY, CONV, cj, "-o", out, "--project", "multi"]),
+              "convert overlapping local sheet coordinates")
+    text = out.read_text()
+    pos = {}
+    for ref in ("R1", "R2"):
+        m = re.search(rf'\(property "Reference" "{ref}" \(at ([\d.]+) ([\d.]+)',
+                      text)
+        check(m is not None, f"{ref} property position missing")
+        pos[ref] = (float(m.group(1)), float(m.group(2)))
+    check(pos["R1"] != pos["R2"], f"separate sheets overlap at {pos['R1']}")
+    eq(len(netlist_of(out)), 4, "multisheet node count")
+    must_pass(run([PY, SCRIPTS / "sch_occlusion.py", out]),
+              "multisheet schematic occlusion gate")
 
 
 @test("converter: every refdes gets its OWN lib_symbol (no Device:U_chip collision)")
@@ -157,6 +210,46 @@ def t_fpid_present():
           "the two chips share one FPID")
     check(any("BIGCHIP" in f for f in real) and any("MIDCHIP" in f for f in real),
           f"02_parts FPID override did not reach the sheet: {sorted(real)}")
+
+
+@test("converter: old and pinned-new capacitor tokens resolve to the same FPID")
+def t_capacitor_token_compatibility():
+    """tscircuit 0.0.2300 prefixes commodity capacitor tokens with ``cap``;
+    older generated inputs use the bare package token.  Both are accepted so a
+    producer upgrade cannot emit a valid schematic with blank PCB footprints."""
+    sys.path.insert(0, str(SCRIPTS))
+    import circuit_json_to_kicad_sch as C          # noqa: E402
+    for size in ("0402", "0603", "0805", "1206", "1210"):
+        old = C.resolve_fpid(size, [], {})
+        new = C.resolve_fpid(f"cap{size}", [], {})
+        check(old != "", f"legacy capacitor token {size} is unmapped")
+        eq(new, old, f"pinned producer capacitor token cap{size}")
+
+
+@test("converter: an embedded # in an exact MPN is data, not a YAML comment")
+def t_hash_suffix_mpn_override():
+    """Analog Devices orderable suffixes commonly contain ``#``.  YAML only
+    starts a comment when that character is separated by whitespace, so the
+    exact MPN must remain a usable footprint/tie lookup key."""
+    sys.path.insert(0, str(SCRIPTS))
+    import circuit_json_to_kicad_sch as C          # noqa: E402
+    d = tmpdir("hash_mpn_")
+    part = d / "LTC3889IUKG-PBF"
+    part.mkdir(parents=True)
+    (part / "part.yaml").write_text(
+        "mpn: LTC3889IUKG#PBF\n"
+        "footprint: Package_DFN_QFN:Linear_UGK52_QFN-46-52\n"
+        "pins:\n"
+        "  53: {name: GND, tie: GND}\n"
+    )
+    ov = C.load_part_overrides(d)
+    ties = C.load_part_ties(d)
+    eq(ov.get("LTC3889IUKG#PBF"),
+       "Package_DFN_QFN:Linear_UGK52_QFN-46-52", "exact # suffix FPID key")
+    eq(ties.get("LTC3889IUKG#PBF"), [("53", "GND", "GND")],
+       "exact # suffix tie key")
+    check("LTC3889IUKG" not in ov and "LTC3889IUKG" not in ties,
+          "parser silently truncated the exact MPN at #")
 
 
 @test("converter: a 02_parts `tie:` EP pad absent from circuit.json reaches the netlist on its net")

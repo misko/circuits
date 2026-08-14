@@ -1,0 +1,53 @@
+mpn: 901-143-6RFX
+manufacturer: Amphenol RF
+type: sma_right_angle_through_hole_jack
+mates: receptacle
+datasheet:
+  doc_id: SMA6252A2-3GT50G-50
+  revision: C
+  url: "https://www.amphenolrf.com/en-us/assets/file/4065788874/"
+  product_page: "https://www.amphenolrf.com/en-us/part/901-143-6rfx/3961/"
+  local: 02_parts/901-143-6RFX/SMA6252A2-3GT50G-50-RevC.pdf
+  sha256: 96328d8531223f0d92326083352695388c91ad059df4511804d82d7b1b156cec
+  fetched: 2026-08-13
+  provenance: "The current Amphenol product page identifies this exact customer drawing but its asset endpoint returned HTTP 403 to the local client. The retained byte copy came from https://www.ic-components.com/files/0a/901-143-6RFX.pdf; its visible title, orderable part, drawing number and Rev C match the current official link identity. PCN-031726 is retained beside it and states that the 2026 CN-to-VN transfer changes no form, fit, function, specification, material or process."
+package: right-angle PCB through-hole SMA jack with four ground legs
+footprint: pluto_rx2_8way_v5:Amphenol_901_143_6RFX
+escape: {style: connector, pitch: 5.08, tier_required: jlc_2layer_default, checked: "manufacturer mounting-hole review 2026-08-13"}
+pins:
+  1: RF
+  2: {name: GND, tie: GND}
+  3: {name: GND, tie: GND}
+  4: {name: GND, tie: GND}
+  5: {name: GND, tie: GND}
+limits: {impedance: 50ohm, frequency: DC-18GHz, dielectric_withstanding: 1000Vrms_min, durability_design_min: 100_cycles, operating_temperature: -65C_to_165C}
+mechanical:
+  orientation: right_angle
+  body_width_mm: 7.0
+  body_height_above_pcb_mm: 13.8
+  overall_length_mm_reference: 15.1
+  body_datum_to_mating_end_mm: 11.6
+  rf_centerline_above_pcb_mm: 10.3
+  leg_length_below_body_mm: 3.94
+  ground_leg_grid_mm: [5.08, 5.08]
+  center_contact_diameter_mm: 1.27
+  recommended_finished_holes_mm: {center_contact: 1.5, ground_legs: 1.7}
+  hole_centres_from_rf_contact_mm:
+    - [-2.54, -2.54]
+    - [2.54, -2.54]
+    - [-2.54, 2.54]
+    - [2.54, 2.54]
+gotchas:
+  - "The custom footprint's realized centres, 1.50/1.70mm holes and 11.6mm mating-face datum now machine-match SMA6252A2-3GT50G-50 Rev C; human connector/render approval remains required before routing."
+  - "Fresh JLC C429844 CAD uses 1.60/1.80mm drills while Amphenol recommends 1.50/1.70mm holes. Keep the manufacturer land and obtain explicit JLC assembly DFM confirmation before ordering."
+  - "J2-J10 are all user-confirmed D12 female/jack right-angle SMA interfaces; every external cable must mate to a jack."
+  - "The Rev C drawing states 500 mating cycles while the current exact product page states 100 minimum; use the conservative current-page value of 100 for design claims."
+verified: "active status, jack/right-angle/THT/50ohm/18GHz/100-cycle current-page limit read on the exact Amphenol product page; five-hole geometry, envelope and tolerances read from the one-page SMA6252A2-3GT50G-50 Rev C manufacturer drawing; PCN-031726 confirms the 2026 origin transfer does not change form, fit or function; checked 2026-08-13"
+sourcing: {lcsc: C429844, digikey: ARFX1232-ND}
+layout:
+  source: "Amphenol SMA6252A2-3GT50G-50 Rev C customer drawing, exact product page and PCN-031726"
+  reviewed: 2026-08-13
+  notes: "Place each jack at a board edge; surround the center launch with the four soldered ground legs and nearby ground stitching; tune the launch only for the selected stackup and actual plated-hole geometry."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Amphenol SMA6252A2-3GT50G-50 Rev C customer drawing and PCN-031726", why: "manufacturer source fixes the five-hole launch geometry and connector envelope; the PCN confirms current VN production retains form and fit"}
+  - {tier: 2, reached: false, artifact: "an open-hardware 901-143-6RFX board with published copper and fabrication outputs", why: "no exact-part routed reference was captured during the source-stage search; placement must re-derive the launch from the manufacturer drawing and the selected stackup"}

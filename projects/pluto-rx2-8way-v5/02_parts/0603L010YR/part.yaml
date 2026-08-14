@@ -1,0 +1,17 @@
+mpn: 0603L010YR
+manufacturer: Littelfuse
+type: resettable_pptc_fuse
+datasheet: {doc_id: 0603L-Series, revision: "2017-03-22", url: "https://www.littelfuse.com/media?resourcetype=datasheets&itemid=45e8fd20-02a2-4f4a-a3cc-296368d000c8&filename=littelfuse-ptc-0603l-datasheet", sha256: 64bb6c9d39cb226b80865367fcaddcd85b5f4e318894b794e3f42570ee84f1d8, fetched: 2026-08-13}
+package: 0603 resettable PTC
+footprint: Fuse:Fuse_0603_1608Metric
+escape: {style: passive, pitch: 0.8, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+limits: {hold_current_20C: 100mA, trip_current_20C: 300mA, maximum_voltage: 15V, maximum_fault_current: 40A, r_min: 0.9ohm, r_1max: 6ohm, hold_current_85C: 30mA}
+gotchas:
+  - "The board's 20mA maximum design load remains below the 30mA hold rating at 85C; this is not a precise current limiter and its cold/trip behavior is not an active eFuse."
+  - "A USB source capable of fault current above the part's 40A interrupt rating is outside the proven envelope."
+verified: "Littelfuse 0603L series data sheet page 1 electrical/derating table and page 4 dimensions, solder-pad layout and ordering table read on 2026-08-13"
+sourcing: {lcsc: C207010}
+layout:
+  source: "Littelfuse 0603L series data sheet"
+  reviewed: 2026-08-13
+  notes: "Place in series directly after combined J1 VBUS contacts, with enough local clearance for thermal expansion and no heat source beneath it."

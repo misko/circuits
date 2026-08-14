@@ -1,0 +1,7 @@
+# Numeric TSX port -> real manufacturer pad. Dual portHints in the source make
+# the converter emit the real pad name; this file is the independent declared
+# mapping that tsx_preflight/count parity grade.
+J2: SH
+J3: SH
+J4: SH
+J5: A1 A4 A5 A6 A7 A8 A9 A12 B1 B4 B5 B6 B7 B8 B9 B12 SH

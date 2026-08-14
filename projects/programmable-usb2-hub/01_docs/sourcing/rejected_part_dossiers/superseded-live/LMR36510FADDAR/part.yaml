@@ -1,0 +1,18 @@
+mpn: LMR36510FADDAR
+manufacturer: Texas Instruments
+type: synchronous_buck_converter
+datasheet: {doc_id: SNVSBD7B, revision: "Rev. B, November 2025", url: "https://www.ti.com/lit/ds/symlink/lmr36510.pdf", sha256: c423b995448edb1e20c5457c840e8ae3c0fd67f66fa368153691b2eaf54cd652, fetched: 2026-08-01}
+package: "DDA HSOIC-8 PowerPAD, 3.9x4.9 mm, 1.27 mm pitch"
+footprint: Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.29x3mm_ThermalVias
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: "DDA0008B and 2.29 x 2.87 mm recommended exposed land compared with KiCad footprint"}
+pins: {1: PGND, 2: VIN, 3: EN, 4: PG, 5: FB, 6: VCC, 7: BOOT, 8: SW, 9: {name: THERMAL_PAD, tie: GND, note: "thermal ground land, not another signal"}}
+limits: {vin_operating: "4.2 to 65 V", transient: 70 V, iout: 1 A, frequency: 400 kHz, feedback_reference: "0.98 to 1.02 V"}
+configuration: {vout_nominal: 6.0 V, feedback_top: "100 kOhm 0.1%", feedback_bottom: "20.0 kOhm 0.1%", output_range: "approximately 5.87 to 6.13 V", inductor: B82477G4333M000}
+gotchas:
+  - "EN must not float; connect to VIN_PROTECTED for automatic auxiliary startup."
+  - "VCC requires 1 uF and must not power another load; BOOT requires 100 nF to SW."
+  - "AUX_6V supplies LTC3889 EXTVCC and the downstream AP63203, not logic directly."
+verified: "pin map read from DDA top view; 6 V divider/corners recomputed 2026-08-01"
+sourcing: {lcsc: C1858394, alternates: [], note: "Q-2SOURCE 2026-08-01: Mouser 946, DigiKey 1366, JLC 2304"}
+layout: {source: "SNVSBD7B Figure 8-24", notes: ["input bypass at VIN/PGND", "BOOT and VCC caps at pins", "short SW-to-inductor path", "FB divider beside FB and away from SW"]}
+

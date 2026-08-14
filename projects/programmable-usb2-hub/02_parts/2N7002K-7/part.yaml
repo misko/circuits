@@ -1,0 +1,20 @@
+mpn: 2N7002K-7
+manufacturer: Diodes Incorporated
+type: small_signal_nfet
+datasheet:
+  doc_id: 2N7002K
+  revision: "Rev. 9-2"
+  url: https://www.diodes.com/datasheet/download/2N7002K.pdf
+  sha256: 669e5d68d6458e0879d7396416bdcdb3ef9966ea60f054773d4c891d735aa818
+  fetched: 2026-08-01
+package: SOT-23
+footprint: programmable_usb2_hub:Diodes_SOT23_2N7002K
+escape: {style: leaded, pitch: 0.915, tier_required: jlc_2layer_default, checked: "Diodes DS30896 Rev. 20-2 exact suggested pad layout: C=2.0, X=0.8, X1=1.35, Y=0.9, Y1=2.9 mm; pin map checked 2026-08-01"}
+pins: {1: G, 2: S, 3: D}
+limits: {vds: 60 V, vgs: "+/-20 V", id: 300 mA}
+gotchas:
+  - "Q7/Q8 are fail-safe RUN pull-downs, not power-path switches."
+  - "The gate pull-up makes the transistor hold RUN low throughout MCU reset; firmware must drive the gate low to release a rail."
+verified: "pin 1 gate, pin 2 source, pin 3 drain from Diodes top view, 2026-08-01"
+sourcing: {lcsc: C85047, alternates: [], note: "Q-2SOURCE 2026-08-01: stocked by Mouser and exact LCSC C85047; DigiKey was not credited"}
+layout: {source: "Diodes suggested pad layout", notes: ["place beside LTC3889 RUN pins and keep the default-off pull-down loop short"]}

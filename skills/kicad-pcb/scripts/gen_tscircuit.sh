@@ -4,7 +4,7 @@
 # ADR-0002 Phase D (2026-07-20): the DEFAULT is now the BRIDGE ONLY — the
 # minimal set the KiCad backend actually consumes + the gates that certify it:
 #   build/circuit.json                 tscircuit's canonical intermediate (tsci build)
-#   build/schematic.svg + .pdf         the HUMAN schematic document (tscircuit's own render)
+#   build/schematic.pdf               the HUMAN schematic document (exact Circuit JSON render)
 #   kicad/<board>.kicad_sch            OUR converter output (AUTHORITATIVE machine bridge)
 #   verification/tsc_netlist.txt       tscircuit readable-netlist (first-order parity signal)
 #   verification/erc_converter.rpt     kicad-cli sch ERC on the converter sch (0 errors = bar)
@@ -55,6 +55,20 @@ step(){ echo "  [$1] $2"; }
 # land at the 03_tscircuit/ root. All tsci commands run from $T.
 cd "$T" || exit 2
 
+# A committed Bun lock selects the project-local producer. Restoring a locked
+# graph and then invoking a global `tsci` is still ambient execution (USB Hub
+# v4 exposed global 0.0.2112 beside locked local 0.0.2300).
+TSCI=tsci
+if [ -f bun.lock ]; then
+  step deps "restore locked producer graph"
+  bun install --frozen-lockfile --ignore-scripts >/dev/null 2>&1 || {
+    echo "    FATAL: frozen Bun dependency restore failed"; exit 6; }
+  TSCI=./node_modules/.bin/tsci
+  [ -x "$TSCI" ] || { echo "    FATAL: locked graph has no local tsci"; exit 6; }
+else
+  echo "    WARNING: no bun.lock; using ambient tsci (legacy/unmigrated project)"
+fi
+
 # --- BRIDGE (DEFAULT): circuit.json + human schematic doc ---
 # `tsci build` writes dist/src/<BASE>/circuit.json; build/circuit.json is OURS.
 # This script has no `set -e`, so a swallowed build failure used to leave the
@@ -65,7 +79,7 @@ cd "$T" || exit 2
 # marker dropped immediately before the build, or nothing downstream may run.
 step build "circuit-json"
 : > build/.tsci_build_marker
-timeout 240 tsci build "src/$BASE.tsx" >/dev/null 2>&1
+timeout 240 "$TSCI" build "src/$BASE.tsx" >/dev/null 2>&1
 PRODUCED="dist/src/$BASE/circuit.json"
 if [ ! -s "$PRODUCED" ] || [ ! "$PRODUCED" -nt build/.tsci_build_marker ]; then
   echo "    FATAL: tsci build produced no fresh $PRODUCED — REFUSING to run the"
@@ -76,9 +90,10 @@ if [ ! -s "$PRODUCED" ] || [ ! "$PRODUCED" -nt build/.tsci_build_marker ]; then
 fi
 cp "$PRODUCED" "build/circuit.json"
 rm -f build/.tsci_build_marker
-# DELETE BEFORE RE-EXPORTING, for the same reason the marker above exists. This
-# script has no `set -e`, so a swallowed `tsci export` or `rsvg-convert` failure
-# used to leave the PREVIOUS run's schematic.svg/.pdf in place — and the
+python3 "$SKILLDIR/circuit_json_diagnostics.py" "build/circuit.json" || exit 5
+# DELETE BEFORE RENDERING, for the same reason the marker above exists. This
+# script has no `set -e`, so a swallowed renderer failure used to leave the
+# PREVIOUS run's schematic.pdf in place — and the
 # 07_releases contract copies that PDF into the release as `pdf/schematic.pdf`.
 # MEASURED on pluto-rx2-8way-v2 2026-07-30: schematic.pdf stamped 14:47:14
 # beside an 18:42:05 circuit.json in the same directory, i.e. a release would
@@ -86,25 +101,27 @@ rm -f build/.tsci_build_marker
 # gate green. Absence is loud; staleness is silent and shipped (canon M-FRESH
 # F-RENDER, which is what grades this on the template-driver path).
 rm -f build/schematic.svg build/schematic.pdf
-step export "schematic-svg";    timeout 240 tsci export "src/$BASE.tsx" -f schematic-svg -o "../build/schematic.svg" >/dev/null 2>&1
-step export netlist;            timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
+step render "exact circuit.json -> fitted human schematic PDF"
+NET_ALIAS_ARGS=()
+[ -f net_aliases.txt ] && NET_ALIAS_ARGS=(--net-aliases net_aliases.txt)
+node "$SKILLDIR/render_schematic_pdf.mjs" "build/circuit.json" \
+  "build/schematic.pdf" --title "${BASE^^}" "${NET_ALIAS_ARGS[@]}" || true
+step export netlist;            timeout 240 "$TSCI" export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
 
-# --- HUMAN-FACING schematic document = tscircuit's OWN render (ADR-0002) ---
-# The two audiences are split: humans read tscircuit's clean native schematic
-# (no collisions); the machine reads kicad/<board>.kicad_sch (correctness only,
-# ERC/netlist/parity). We do NOT re-render our KiCad rebuild for the human PDF.
-# tscircuit exports schematic-svg; rsvg-convert makes the PDF the release ships.
-if [ -s "build/schematic.svg" ] && command -v rsvg-convert >/dev/null; then
-  step render "schematic.svg -> schematic.pdf (tscircuit render = the human schematic)"
-  rsvg-convert -f pdf -o "build/schematic.pdf" "build/schematic.svg" 2>/dev/null \
-    && echo "    build/schematic.pdf (SHIP THIS as the release schematic document)"
-fi
+# --- HUMAN-FACING schematic document = tscircuit's exact render (ADR-0002) ---
+# The two audiences are split: humans read the clean schematic fitted directly
+# from this run's circuit.json; the machine reads kicad/<board>.kicad_sch
+# (correctness only, ERC/netlist/parity). We do not re-evaluate TSX or render the
+# KiCad bridge to make the human PDF. Multi-sheet sources become one fitted PDF
+# page per declared sheet; single-sheet legacy inputs remain supported.
+[ -s "build/schematic.pdf" ] \
+  && echo "    build/schematic.pdf (SHIP THIS as the release schematic document)"
 # SAY SO when the human schematic could not be made. Silence here is what let a
 # release ship the previous revision's PDF: with the delete above, a failure now
 # leaves NOTHING, and nothing that is not announced reads as nothing that was
 # needed (canon M-COVER, in a driver).
 [ -s "build/schematic.pdf" ] || echo \
-  "    WARNING: no build/schematic.pdf this run (svg export or rsvg-convert did not produce one). The release's pdf/schematic.pdf CANNOT be filled from this run — do not copy an older PDF into it."
+  "    WARNING: no build/schematic.pdf this run (exact Circuit JSON renderer failed). The release's pdf/schematic.pdf CANNOT be filled from this run — do not copy an older PDF into it."
 
 # --- STUDY-ONLY (gated behind --study, DEFAULT OFF): tscircuit's own PCB/gerbers/3D ---
 # These are a SECOND-OPINION render of tscircuit's OWN layout. They are never a fab
@@ -114,15 +131,15 @@ if [ "$STUDY" = 1 ]; then
   echo "  --study: rendering tscircuit's own PCB/gerbers/3D + DRC-on-export (second opinion)"
   for spec in "pcb-svg:build/pcb.svg" "assembly-svg:build/assembly.svg" "gltf:build/board.gltf"; do
     f=${spec%%:*}; out=${spec#*:}
-    step export "$f"; timeout 240 tsci export "src/$BASE.tsx" -f "$f" -o "../$out" >/dev/null 2>&1
+    step export "$f"; timeout 240 "$TSCI" export "src/$BASE.tsx" -f "$f" -o "../$out" >/dev/null 2>&1
   done
-  step export gerbers;  timeout 240 tsci export "src/$BASE.tsx" -f gerbers -o "../fab/gerbers.zip" >/dev/null 2>&1
-  step export kicad_pcb;timeout 240 tsci export "src/$BASE.tsx" -f kicad_pcb -o "../kicad/$BASE.kicad_pcb" >/dev/null 2>&1
+  step export gerbers;  timeout 240 "$TSCI" export "src/$BASE.tsx" -f gerbers -o "../fab/gerbers.zip" >/dev/null 2>&1
+  step export kicad_pcb;timeout 240 "$TSCI" export "src/$BASE.tsx" -f kicad_pcb -o "../kicad/$BASE.kicad_pcb" >/dev/null 2>&1
   # tscircuit's OWN native kicad_sch export is kept for reference only (ADR-0001
   # Phase-2: it has two proven bugs — the Device:U_chip_<footprint> symbol-id
   # collision that truncates 2+ many-pin custom-footprint chips to 2 pins, and no
   # symbol annotation so `sch export netlist` builds 0 nets). It is NOT authoritative.
-  step export kicad_sch_native; timeout 240 tsci export "src/$BASE.tsx" -f kicad_sch -o "../kicad/$BASE.native.kicad_sch" >/dev/null 2>&1
+  step export kicad_sch_native; timeout 240 "$TSCI" export "src/$BASE.tsx" -f kicad_sch -o "../kicad/$BASE.native.kicad_sch" >/dev/null 2>&1
   # verification: run OUR gate on tscircuit's KiCad export
   KPCB="$T/kicad/$BASE.kicad_pcb"
   if [ -s "$KPCB" ]; then

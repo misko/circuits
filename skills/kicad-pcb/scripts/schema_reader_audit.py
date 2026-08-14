@@ -139,9 +139,9 @@ this follows it. Two levels:
 MEASURED ON LANDING (2026-07-29, `--root .` over 6 projects, 176 hand-authored
 source files; reproduced every run by `t_real_fleet_denominator`):
 
-  8 governed families, 3 UNGOVERNED and named (`assembly.yaml`, `mates.yaml`,
-  `twin_adjudications.yaml`). 377 declared rows: **304 PROVEN, 23 ADVISORY,
-  50 OWED**, 0 UNREAD, 0 UNPROVABLE, 0 ORPHAN. Those rows cover **1205 distinct
+  11 governed families, 4 UNGOVERNED and named (`assembly.yaml`, `mates.yaml`,
+  `rf.yaml`, `twin_adjudications.yaml`). 420 declared rows include **345
+  PROVEN** readers, with 0 ORPHAN. Those rows cover more than 1205 distinct
   schema keys** the fleet's source actually declares, 881 of them under 39 `*`
   SUBTREE claims (`limits.*`, `land_pattern.*`, `stitch.<pass>.*`), which is
   why both numbers are printed: 293/293 alone would overstate it.
@@ -272,18 +272,34 @@ FAMILY_RE = re.compile(r"^###\s+keys:\s+(\S+)\s*$", re.M)
 #: registry: these are DIRECTORY globs over a project, and any file they find
 #: that no declared family matches is reported UNGOVERNED. `06_build`,
 #: `04_kicad` and `07_releases` are generated or sealed and are not source.
-SOURCE_GLOBS = ("03_src/*.yaml", "03_src/rules/*.yaml", "02_parts/*/part.yaml")
+SOURCE_GLOBS = ("01_docs/*.yaml", "03_src/*.yaml", "03_src/rules/*.yaml",
+                "02_parts/*/part.yaml")
 
 #: reader-cell keywords. Anything else is read as a comma-separated script list.
 ADVISORY, OWED = "ADVISORY", "OWED"
 
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
-GOVERNED_FLOOR = 8
-PROVEN_FLOOR = 313   # 239 -> 241 on 2026-07-29: route.yaml's
+GOVERNED_FLOOR = 17
+PROVEN_FLOOR = 551
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
+#: 16 -> 17 families and 514 -> 551 PROVEN on 2026-08-13: the RF contract's
+#: exact route/fence geometry and imported mating-fact schema acquired real
+#: readers. Measured `--root .`: 648/648 declared, 551 PROVEN, 0 orphan.
+#: 508 -> 514 on 2026-08-13: schema-2 control profiles bind profile identity,
+#: revision, canonical source and both generated consumer paths to the
+#: canonical control-protocol reader. Measured `--root .`: 610/610 declared,
+#: 514 PROVEN, 0 orphan.
+#: 424 -> 508 on 2026-08-13: assembly, control-protocol and RF contracts became
+#: governed families. Their canonical readers prove 84 additional keys while
+#: human-only transfer notes remain explicitly ADVISORY. Measured `--root .`:
+#: 604/604 declared, 508 PROVEN, 0 orphan.
+#: 419 -> 422 on 2026-08-12: P-AUTH binds `datasheet.sha256` to the
+#: digest-selected local review PDF, and the formerly malformed combined
+#: tap-via contract row is split into the two keys the stitcher actually reads:
+#: `taps.connections[].via` and `.via_protection`.
 #: 242 -> 246 on 2026-07-30: nets.yaml `scoped_clearances[]`
 #: {zone, nets, clearance, why} bound to generate_rules_generic.py
 #: (canon R-SCOPE). This constant is the ONLY line the R-SCOPE change
@@ -316,6 +332,30 @@ PROVEN_FLOOR = 313   # 239 -> 241 on 2026-07-29: route.yaml's
 #: 304 -> 306 on 2026-08-01: `board.via_protection.{capping,filling}`
 #: 306 -> 313 on 2026-08-01: the complete solver-bound phase tuple
 #: bound to the generic generator's post-save KiCad setup-token emitter.
+#: 323 -> 341 and 8 -> 11 governed families on 2026-08-01: adopted the
+#: external-power requirements, switching-stage, and surge-path schemas plus
+#: critical-pair mapping. Their readers are early_design_check.py and
+#: critical_route_check.py; the pipeline runs both before irreversible layout
+#: or routing spend and rechecks realized critical copper after stitch.
+#: 341 -> 345 on 2026-08-01: bound schema-2 module support threshold,
+#: support-ref inventory and decision rationale to module_first_check.py, and
+#: cascaded power-rail input_parent to power_topology.py. The new free-form
+#: part.yaml configuration block is explicitly ADVISORY; its load-bearing
+#: values must be duplicated into a machine-read rule or firmware gate.
+#: 313 -> 321 on 2026-08-01: P-PINMAP `pin_aliases` and executable
+#: policy-waiver evidence schema readers.
+#: 321 -> 323 on 2026-08-01: the USB interface-standard provenance row and
+#: `part.yaml` `twin_body.*` installed-product model authority, the latter
+#: consumed by jlc_twin for non-CPL same-camera evidence.
+#: 345 -> 381 and 11 -> 13 governed families on 2026-08-10: the findings-ledger
+#: maturity controls and selective critical-part accepted facts gained explicit
+#: readers; route source selection, pre-route pad rescue and newly landed
+#: programmable-hub dossier fields were governed in the same sweep. Measured
+#: `--root .`: 461/461 declared rows, 381 PROVEN and 0 orphan.
+#: 381 -> 384 on 2026-08-10: the pre-artifact rules source phase reads and
+#: readability-grades classes.<C>.intent/routing/verify. Its first real run on
+#: USB hub v4 found two malformed current declarations before schematic work.
+#: Measured `--root .`: 461/461 declared rows, 384 PROVEN and 0 orphan.
 
 #: how a string constant was used. Ordered weakest-first; only READ and WEAK
 #: count as a read.

@@ -12,6 +12,12 @@ datasheet:
     revision: A2
     url: https://gct.co/files/drawings/usb1130.pdf
     sha256: 8890b46ce2c8a0b4022c3dfb2fbc39e6d4a20cbca99200d70ea89682cbb023e0
+  interface_standard:
+    title: Universal Serial Bus Specification Revision 2.0
+    url: https://www.usb.org/sites/default/files/usb_20_20250603.zip
+    local: usb_20.pdf
+    sha256: d39698a33486c399124af92bd02e4f978fd9a836b5cf4e52e6e4633eb1d89f61
+    section: "6.5.1 and Figure 6-7 / Table 6-1 — Standard-A receptacle contact numbering and signal assignment"
 package: USB 2.0 Type-A receptacle, right-angle THT, top mount, board-lock shell stakes
 footprint: programmable_usb2_hub:USB_A_GCT_USB1130_Horizontal
 escape:
@@ -26,6 +32,8 @@ pins:
   3: {name: D+, note: "USB 2.0 data plus."}
   4: {name: GND, note: "USB power return."}
   SH: {name: SHIELD, note: "Two board-lock shell stakes; chassis/ground treatment is a board-level EMC decision."}
+pin_aliases:
+  SH: {schematic: "5", footprint: "5", why: "tscircuit requires a numeric fifth port while the part dossier names the non-signal shell contact SH", evidence: "GCT USB1130 rev A2 sheet 1 shell stakes plus 03_tscircuit/parity_padmap.txt pin5-to-SH mapping"}
 limits:
   contact_current: 3.0 A
   voltage: 30 V
@@ -38,11 +46,17 @@ gotchas:
   - "No current LCSC/JLC catalog code was found in the bounded 2026-07-31 search. Exact-MPN consignment must be accepted by JLC before release, or the connector must be deliberately moved to post-assembly. Do not substitute a common 1.0/1.5 A USB-A receptacle."
   - "The custom footprint must be redrawn from GCT drawing A2: four 0.92 mm contact holes, 2.00 mm contact pitch, two 2.26 mm shell holes on 7.00 mm centers, and the stated PCB-edge datum."
   - "The vendor drawing specifies the shell-hole diameter but not a copper-land diameter. The footprint uses a 3.30 mm shell land (0.52 mm radial annulus) so the adjacent VBUS land clears the advanced-tier 0.09 mm copper rule with margin."
-verified: "GCT drawing USB1130 rev A2 sheet 1/2, mating view and Recommended PCB Layout, plus USB Type-A standard contact numbering; electrical limits from GCT USB1130 product specification rev A1 sections 3 and 5; checked 2026-07-31."
+verified: "GCT drawing USB1130 rev A2 sheet 1/2 fixes the mating and PCB views; USB-IF Universal Serial Bus Specification rev 2.0 sections 6.5.1, Figure 6-7 and Table 6-1 independently assign Standard-A receptacle contacts 1=VBUS, 2=D-, 3=D+, 4=GND. Electrical limits are from GCT USB1130 product specification rev A1 sections 4 and 6; checked 2026-08-01."
 sourcing:
   lcsc: null
   alternates: []
   note: "Exact USB1130-15-A is distributor-stocked but not JLC/LCSC-coded; planned assembly route is customer-supplied consignment, subject to JLC acceptance and order-day feeder/packaging review."
+twin_body:
+  source: file
+  model: USB1130-15-A-envelope.wrl
+  identity: "GCT USB1130-15-A dimensional envelope"
+  authority: "GCT drawing USB1130 rev A2: 14.16 mm shell width, 6.99 mm profile, footprint-aligned board edge/body depth and exact pin/stake datums"
+  limitation: "Mechanical render envelope for access, orientation, and clearance review; not a catalog or assembly-source identity."
 layout:
   source: "GCT USB1130 drawing rev A2 Recommended PCB Layout and product specification rev A1 rated-current temperature-rise requirement."
   notes:

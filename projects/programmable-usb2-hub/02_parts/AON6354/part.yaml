@@ -20,7 +20,10 @@ pins:
   2: S
   3: S
   4: G
-  5: {name: D, note: "single merged drain paddle - KiCad PowerPAK_SO-8_Single names ALL drain pads '5' (verified from footprint file); symbol pin 5 = D"}
+  5: {name: D, note: "drain lead 5 plus the electrically common exposed drain paddle"}
+  6: D
+  7: D
+  8: D
 limits: {vds: 30V, vgs: "±20V", id_25C: 83A, rds_10V: 3.3mOhm_max, rds_4V5: 5.2mOhm_max, vspike_10us: 36V}
 gotchas:
   - "logic-level: Rds(on) is specified at 4.5 V, matching the LM5116's
@@ -32,16 +35,16 @@ verified: >
   Pin map read from the AON6354 DFN5x6 top/bottom-view and schematic diagram.
   Land pattern read independently from Alpha & Omega package drawing PO-00044
   version I: 6.15 mm total lead span, 0.55 x 0.50 mm source lands,
-  0.65 x 0.50 mm drain lands, and 4.12 x 4.60 mm exposed drain; checked
-  2026-07-31 and encoded in the vendored footprint.
+  0.65 x 0.50 mm drain lands, and 4.12 x 4.60 mm exposed drain. Physical
+  terminals 5-8 are preserved as numbered pads while the exposed paddle is
+  electrically common with pad 5; checked 2026-08-01.
 sourcing: {lcsc: C404363, alternates: [C51908846], note: "stock 5445 on 2026-07-21; 7 pcs/board"}
 layout_refs:
   - "LM5116 SNVS499I sec.11 hot-loop rules govern both synchronous buck cells"
 layout:
   source: "AON6354 electrical datasheet + AOS PO-00044 DFN5x6_8L_EP1_P package drawing + LM5116 SNVS499I sec.11 SW-loop guidance"
-  adjacency:
+  notes:
     - "HS FET drain (pad5) to the input caps (VIN); LS FET drain to the SW node / inductor"
     - "LS FET source to the current-sense shunt Rs (CS node)"
-  notes:
     - "minimize SW-node copper area between HS source / LS drain / inductor (radiated dV/dt)"
     - "gate (pad4) trace short + direct to the LM5116 HO/LO driver pin (few-A gate pulses)"

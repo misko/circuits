@@ -6,6 +6,7 @@ BOARD? Draws the courtyards too, but the drawing is the by-product.
                     [--twin-dir DIR] [--bom fab/bom.csv]
                     [--assembly 03_src/rules/assembly.yaml]
                     [--out DIR] [--twin-report twin_report.csv]
+                    [--bare SAME_CAMERA_BARE.png]
                     [--crop-flagged] [--report MD] [--tol MM] [--draw-only]
 
 WHAT THIS FILE USED TO BE, AND WHY THAT WAS WORSE THAN NOTHING (2026-07-26).
@@ -23,7 +24,9 @@ THE PROPERTY THIS GATES, and the two constraints that decide it:
 
     expected = mesh bbox x JLC's OWN footprint model transform x our board
                placement                                          (GEOMETRY)
-    measured = connected-component bbox of the body in the PNG     (PIXELS)
+    measured = connected-component bbox of the populated-minus-bare
+               image delta, or the legacy body-colour classifier when no
+               same-camera bare render is supplied                       (PIXELS)
     FAIL if the two disagree by more than --tol
 
 (A) CANON M1 — the checker and the checked must not share a method. The
@@ -31,9 +34,15 @@ THE PROPERTY THIS GATES, and the two constraints that decide it:
     analytically from the mesh plus the mount transform, it would share a
     method with `jlc_twin`'s mount and would AGREE WITH A WRONG MOUNT — which
     is precisely the defect that shipped (J2 below). So `measured` comes from
-    PIXELS: a saturation-classified connected component in the rendered image,
-    seeded at the expected centre. Nothing on the measured side reads
-    twin.kicad_pcb, twin_report.csv, or any jlc_twin output.
+    PIXELS: preferably the changed-pixel component between TWO renders made
+    with the same camera and board (models present vs every model removed),
+    seeded at the expected centre. This sees green terminal blocks, tan
+    capacitors, black moulding and disconnected metal alike; the old
+    saturation classifier saw only grey/metal and therefore measured one
+    capacitor end cap or one terminal screw as the complete body. Nothing on
+    the measured side reads twin.kicad_pcb, twin_report.csv, or any jlc_twin
+    geometry output. The bare image is an observation of the renderer, not an
+    analytic body expectation.
 
 (B) THE REFERENCE IS THE EXPECTED POSITION, NOT THE COURTYARD. Gating
     body-vs-courtyard makes J1 fail on every run forever — JLC's barrel-jack
@@ -138,6 +147,7 @@ because the two were reported as one thing and are not.
 import argparse
 import csv
 import glob
+import hashlib
 import math
 import re
 import sys
@@ -168,6 +178,7 @@ CLEAR_MM = 0.5
 # tight distribution); moulded/metal bodies measure sat 0.00. 0.12 sits in the
 # empty middle.
 SAT_THRESHOLD = 0.12
+DIFF_THRESHOLD = 12    # max per-channel RGB delta; same-camera renders are exact
 EROSION = 2          # px; removes the 1-3 px silver tendrils of adjacent pads
 MIN_BODY_PX = 20     # a component smaller than this cannot define a bbox
 
@@ -200,13 +211,19 @@ def rot_ydown(x, y, deg):
     return (x * c + y * s, -x * s + y * c)
 
 
+def canonical_pad_number(value):
+    """Normalize formatting-only decimal zeros, preserve alphanumeric pins."""
+    value = str(value).strip().strip('"')
+    return str(int(value)) if value.isdigit() else value
+
+
 def parse_jlc_footprint(path):
     """(pads {number: [(x,y)...]}, model {file, off, scale, rotz}) from JLC's
     cached .kicad_mod TEXT."""
     txt = Path(path).read_text(errors="ignore")
     pads = {}
     for n, x, y in PAD_RE.findall(txt):
-        pads.setdefault(n, []).append((float(x), float(y)))
+        pads.setdefault(canonical_pad_number(n), []).append((float(x), float(y)))
     m = MODEL_RE.search(txt)
     model = None
     if m:
@@ -312,7 +329,8 @@ def board_extent_px(im, step=1):
 
 
 def extract_body(px, size, win, seed_px, blocked=(), protect=None,
-                 ero=EROSION, thr=SAT_THRESHOLD):
+                 ero=EROSION, thr=SAT_THRESHOLD, bare_px=None,
+                 diff_thr=DIFF_THRESHOLD):
     """Connected component of body pixels inside `win`, nearest `seed_px`.
 
     `blocked` is a list of pixel rectangles where a DIFFERENT part's body is
@@ -334,7 +352,12 @@ def extract_body(px, size, win, seed_px, blocked=(), protect=None,
     mask = {}
     for y in range(y0, y1 + 1):
         for x in range(x0, x1 + 1):
-            v = saturation(px[x, y]) < thr
+            if bare_px is None:
+                v = saturation(px[x, y]) < thr
+            else:
+                here = px[x, y][:3]
+                bare = bare_px[x, y][:3]
+                v = max(abs(here[i] - bare[i]) for i in range(3)) > diff_thr
             if v and not (protect and protect[0] <= x <= protect[2]
                           and protect[1] <= y <= protect[3]):
                 for bx0, by0, bx1, by1 in blocked:
@@ -418,7 +441,7 @@ def collect(board, side):
         fp.SetOrientationDegrees(0)
         pads = {}
         for p in fp.Pads():
-            n = str(p.GetNumber())
+            n = canonical_pad_number(p.GetNumber())
             if n:
                 pads.setdefault(n, []).append((p.GetPosition().x / 1e6,
                                                p.GetPosition().y / 1e6))
@@ -527,6 +550,51 @@ def gap_mm(a, b):
     return math.hypot(dx, dy)
 
 
+def read_model_adjudications(path):
+    """Per-LCSC display-model transforms from the evidence register.
+
+    These are part of the EXPECTED mount contract, not measurements copied
+    from the rendered artifact. `jlc_twin` consumes the same source but the
+    frame conversion is intentionally reimplemented here (canon M1).
+    """
+    if not path:
+        return {}
+    try:
+        import yaml
+        rows = yaml.safe_load(Path(path).read_text()) or []
+    except Exception as exc:
+        raise ValueError(f"cannot read --adjudications {path}: {exc}") from exc
+    out = {}
+    for row in rows:
+        if not isinstance(row, dict) or not row.get("lcsc"):
+            continue
+        dst = out.setdefault(str(row["lcsc"]), {})
+        for key in ("model_dx", "model_dy", "board_dx", "board_dy",
+                    "model_rot_z", "pad_alias"):
+            if row.get(key) is not None:
+                dst[key] = (dict(row[key]) if key == "pad_alias"
+                            else float(row[key]))
+    return out
+
+
+def board_to_local(bdx, bdy, rot_deg):
+    """Inverse of KiCad's footprint-local -> board y-down rotation."""
+    th = math.radians(rot_deg)
+    return (bdx * math.cos(th) - bdy * math.sin(th),
+            bdx * math.sin(th) + bdy * math.cos(th))
+
+
+def apply_pad_alias(pads, alias):
+    """Rename JLC pad identities exactly as the source adjudication states."""
+    out = {str(k): list(v) for k, v in pads.items()}
+    for src, dst in (alias or {}).items():
+        src, dst = str(src), str(dst)
+        if src in out and src != dst:
+            out.setdefault(dst, []).extend(out.pop(src))
+            out[dst] = sorted(out[dst])
+    return out
+
+
 # --------------------------------------------------------------------------
 
 def main(argv=None):
@@ -548,6 +616,15 @@ def main(argv=None):
     ap.add_argument("--assembly", default=None,
                     help="03_src/rules/assembly.yaml — the coded "
                          "not-assembled/consigned refs (canon A-POP)")
+    ap.add_argument("--adjudications", default=None,
+                    help="evidence-backed twin_adjudications.yaml; display-"
+                         "model nudges/rotations become part of the expected "
+                         "mount geometry")
+    ap.add_argument("--bare", default=None,
+                    help="same-camera/same-resolution render of the identical "
+                         "board with every 3D model removed. When supplied, "
+                         "body pixels are measured from populated-minus-bare "
+                         "RGB differences instead of body colour")
     ap.add_argument("--crop-flagged", action="store_true")
     ap.add_argument("--report", default=None, help="write a markdown report here")
     ap.add_argument("--aniso-tol", type=float, default=0.02)
@@ -570,6 +647,14 @@ def main(argv=None):
             return 2
 
     im = Image.open(png).convert("RGB")
+    bare_im = None
+    if a.bare:
+        bare_im = Image.open(a.bare).convert("RGB")
+        if bare_im.size != im.size:
+            print(f"OVERLAY REFUSED: --bare image size {bare_im.size} does not "
+                  f"match populated render size {im.size}. The two renders "
+                  "must use the same camera and resolution.", file=sys.stderr)
+            return 2
     ext = board_extent_px(im)
     if ext is None:
         print("OVERLAY REFUSED: no green board region found — is this a twin "
@@ -619,6 +704,11 @@ def main(argv=None):
 
     board_refs = {p["ref"] for p in parts}
     findings, orphans = read_twin_findings(a.twin_report, board_refs)
+    try:
+        model_adjudications = read_model_adjudications(a.adjudications)
+    except ValueError as exc:
+        print(f"OVERLAY REFUSED: {exc}", file=sys.stderr)
+        return 2
     no_courtyard = [p["ref"] for p in parts
                     if p["cy"] is None and not p["has_other"]]
 
@@ -667,6 +757,8 @@ def main(argv=None):
         if not mesh:
             no_model[ref] = f"{code}: mesh {Path(model['file']).name} unreadable"
             continue
+        adj = model_adjudications.get(code, {})
+        jpads = apply_pad_alias(jpads, adj.get("pad_alias"))
         common = set(p["pads"]) & set(jpads)
         if not common:
             no_model[ref] = f"{code}: no common pad numbers — no anchor exists"
@@ -684,9 +776,22 @@ def main(argv=None):
         fits = pad_fit(ours_c, jlc_c)
         fitted = bool(fits and fits[0][0] <= 0.5)
         ang = fits[0][1] if fitted else 0
-        exp = expected_bbox(mesh, model, jc, oc, ang, p["rot"], p["pos"])
+        ldx = adj.get("model_dx", 0.0)
+        ldy = adj.get("model_dy", 0.0)
+        if adj.get("board_dx") is not None or adj.get("board_dy") is not None:
+            cdx, cdy = board_to_local(adj.get("board_dx", 0.0),
+                                      adj.get("board_dy", 0.0), p["rot"])
+            ldx += cdx
+            ldy += cdy
+        oc = (oc[0] + ldx, oc[1] + ldy)
+        model_expected = dict(model)
+        model_expected["rotz"] = (model_expected["rotz"]
+                                   + adj.get("model_rot_z", 0.0)) % 360
+        exp = expected_bbox(mesh, model_expected, jc, oc, ang,
+                            p["rot"], p["pos"])
         expected[ref] = dict(exp=exp, ang=ang, fitted=fitted, code=code,
-                             fit_err=fits[0][0] if fits else None)
+                             fit_err=fits[0][0] if fits else None,
+                             adjudicated=bool(adj))
 
     # ---------------- resolvability, then measurement ---------------------
     # A ref whose body has no expected box (no JLC model) cannot be masked out
@@ -732,7 +837,25 @@ def main(argv=None):
         own = (int(round(own_xs[0])), int(round(Y(exp[1]))),
                int(round(own_xs[1])), int(round(Y(exp[3]))))
         got = extract_body(im.load(), im.size, win, seed,
-                           blocked=blocked, protect=own)
+                           blocked=blocked, protect=own,
+                           bare_px=bare_im.load() if bare_im else None)
+        # A same-colour occlusion can vanish from an RGB difference (a white
+        # connector shell over white silkscreen). Union the independently
+        # colour-classified component with the delta component. On capacitors
+        # the delta supplies the tan body the old channel missed; on white
+        # shells the legacy channel supplies the coincident edge the delta
+        # necessarily cannot see.
+        if bare_im is not None:
+            legacy = extract_body(im.load(), im.size, win, seed,
+                                  blocked=blocked, protect=own)
+            if got and legacy:
+                gb, gn, gt = got
+                lb, ln, lt = legacy
+                got = ((min(gb[0], lb[0]), min(gb[1], lb[1]),
+                        max(gb[2], lb[2]), max(gb[3], lb[3])),
+                       gn + ln, gt or lt)
+            elif legacy:
+                got = legacy
         if got is None:
             unmeasured[ref] = ("no body pixels anywhere in the expected "
                                "window — the render shows bare board where a "
@@ -762,7 +885,7 @@ def main(argv=None):
         graded[ref] = dict(exp=exp, meas=meas, ctr=ctr, out=out, npx=npx,
                            touched=touched, **{k: e[k] for k in
                                                ("ang", "fitted", "code",
-                                                "fit_err")})
+                                                "fit_err", "adjudicated")})
 
     fails = {r: g for r, g in graded.items()
              if g["ctr"] > a.tol or g["out"] > a.tol}
@@ -831,8 +954,13 @@ def main(argv=None):
 
     # ---------------- report ----------------------------------------------
     n_expect = len(expected)
+    report_fail = bool(fails or unmeasured or orphans or no_courtyard
+                       or (n_expect and not graded)
+                       or (a.bom and not n_expect))
     L = []
     L.append(f"# Twin render faithfulness — {png.name} (`--side {a.side}`)\n")
+    L.append(f"board_sha256: {hashlib.sha256(Path(a.board).read_bytes()).hexdigest()}")
+    L.append(f"a-render_verdict: {'FAIL' if report_fail else 'PASS'}")
     L.append(f"- calibration: **{sx:.4f} px/mm** x, **{sy:.4f} px/mm** y, "
              f"anisotropy **{aniso:.4f}** (tol {a.aniso_tol}) — orthographic, "
              f"projection valid" + ("; X-MIRRORED (bottom side)" if mirror else ""))
@@ -846,6 +974,14 @@ def main(argv=None):
              f"but NOT measured, {len(no_model)} with no JLC model at all)")
     L.append(f"- tolerance: **{a.tol:.2f} mm** on both the centre delta and the "
              f"outward excursion")
+    L.append("- pixel measurement: **populated-minus-same-camera-bare RGB "
+             f"delta** (threshold {DIFF_THRESHOLD})" if bare_im else
+             "- pixel measurement: **legacy low-saturation component** "
+             "(--bare not supplied)")
+    if model_adjudications:
+        L.append(f"- expected-model register: `{Path(a.adjudications).name}` "
+                 f"({len(model_adjudications)} LCSC transform entr"
+                 f"{'y' if len(model_adjudications) == 1 else 'ies'})")
     L.append(f"- overlay: `{ov.name}`\n")
     L.append("**Red** = footprint courtyard (what gets fabricated). "
              "**Amber** = a ref jlc_twin flagged. **Green** = EXPECTED body "

@@ -1,0 +1,60 @@
+schema: 1
+
+source_type: USB_Type_C_sink_only_default_5V
+source_voltage_boundary:
+  minimum_operating_V: 4.75
+  evidence: "USB Type-C 5V sink boundary selected for this power-only product; supplies outside it are not authorized"
+off_control: unplug_USB_C_input
+quiescent_ua: 3
+input_trunk_class: USB_VBUS
+
+effective_capacitance_banks:
+  - name: U3 TPS7A24 input capacitor
+    requirement_uF: 1
+    requirement_evidence: "TI SBVS386E requires at least 1uF effective input capacitance"
+    accepted_dielectrics: [ceramic]
+    contributors:
+      - part: CL10A475KO8NNNC
+        refs: [C1]
+        nominal_each_uF: 4.7
+        dielectric: ceramic
+        tolerance_minus_pct: 10
+        dc_bias_derating_pct: 50
+        temperature_derating_pct: 15
+        lifecycle_derating_pct: 0
+        basis: conservative_engineering_bound
+        evidence: "Exact 16V X5R code; 50% DC-bias bound is deliberately more conservative than nameplate and leaves 1.798uF effective"
+
+  - name: U3 TPS7A24 output capacitor
+    requirement_uF: 1
+    requirement_evidence: "TI SBVS386E requires 1uF-100uF effective output capacitance"
+    accepted_dielectrics: [ceramic]
+    contributors:
+      - part: CL10A475KO8NNNC
+        refs: [C2]
+        nominal_each_uF: 4.7
+        dielectric: ceramic
+        tolerance_minus_pct: 10
+        dc_bias_derating_pct: 50
+        temperature_derating_pct: 15
+        lifecycle_derating_pct: 0
+        basis: conservative_engineering_bound
+        evidence: "Exact 16V X5R code at 3.3V; conservative 50% DC-bias bound leaves 1.798uF effective and consolidates the BOM on a two-source-qualified part"
+
+rails:
+  - name: 3V3
+    vin_min: 4.75
+    vin_max: 5.5
+    vout_min: 3.25875
+    vout_max: 3.34125
+    iout_max_A: 0.020
+    converter: TPS7A2433DBVR
+    dropout_mv: 250
+    pdiss_max_mw: 238
+    external_output: false
+    eff: 0.60
+    note: >-
+      The 20mA bound includes 5mA MCU, 0.2mA RF switch and 14.8mA passive/design
+      margin. Worst-case dissipation is 44.825mW with about 7.6C estimated rise;
+      the 238mW 85C-ambient ceiling is board-dependent and requires first-article
+      thermal confirmation.

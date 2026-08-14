@@ -31,6 +31,7 @@ import re
 import sys
 import time
 import urllib.request
+from datetime import datetime, timezone
 
 URL = ("https://jlcpcb.com/api/overseas-pcb-order/v1/"
        "shoppingCart/smtGood/selectSmtComponentList")
@@ -82,6 +83,7 @@ def fields(c):
             "type": c.get("componentLibraryType", ""),
             "stock": c.get("stockCount", 0),
             "mpn": c.get("componentModelEn", ""),
+            "manufacturer": c.get("componentBrandEn", ""),
             "pkg": c.get("componentSpecificationEn", ""),
             "price": (c.get("componentPrices") or [{}])[0].get("productPrice", "")}
 
@@ -102,8 +104,9 @@ args = ap.parse_args()
 rows = list(csv.DictReader(open(args.bom, encoding="utf-8-sig")))
 coded = [r for r in rows if r.get("LCSC", "").strip()]
 uncoded = [r for r in rows if not r.get("LCSC", "").strip()]
-print(f"input: bom = {args.bom}")
-print(f"{len(rows)} BOM lines: {len(coded)} with LCSC, {len(uncoded)} without\n")
+print(f"input: bom = {args.bom}", flush=True)
+print(f"{len(rows)} BOM lines: {len(coded)} with LCSC, {len(uncoded)} without\n",
+      flush=True)
 
 # G-COVER (canon M-COVER, 2026-07-27). The verdict counted PROBLEMS, never what
 # it had looked at, so an EMPTY BOM — a wrong path, a header-only CSV, a
@@ -142,7 +145,7 @@ for r in coded:
         status = "OK"
     e = exact or {}
     print(f"  {status:16} {code:10} x{qty:<3} {r['Comment'][:36]:38} "
-          f"{e.get('type', ''):6} stock={e.get('stock', '-')}")
+          f"{e.get('type', ''):6} stock={e.get('stock', '-')}", flush=True)
     report.append({**r, "qty": qty, "status": status, **e})
 
 if args.search_missing and uncoded:
@@ -174,7 +177,7 @@ if args.search_missing and uncoded:
 
 if args.out:
     keys = ["Comment", "Designator", "Footprint", "LCSC", "qty", "status",
-            "code", "type", "stock", "mpn", "pkg", "price"]
+            "code", "type", "stock", "mpn", "manufacturer", "pkg", "price"]
     with open(args.out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=keys, extrasaction="ignore")
         w.writeheader()
@@ -187,6 +190,7 @@ if args.json:
     with open(args.json, "w") as f:
         json.dump({"tool": "jlc_stock_check.py",
                    "bom": str(args.bom),
+                   "generated_at": datetime.now(timezone.utc).isoformat(),
                    "min_stock_per_board": args.min_stock,
                    "verdict": "FAIL" if (failures or nothing_graded) else "PASS",
                    # THE LIMIT TRAVELS WITH THE VERDICT (canon M-QUOTE,
@@ -221,7 +225,8 @@ if args.json:
                               "status": r.get("status"),
                               "stock": r.get("stock"),
                               "type": r.get("type", ""),
-                              "mpn": r.get("mpn", "")}
+                              "mpn": r.get("mpn", ""),
+                              "manufacturer": r.get("manufacturer", "")}
                              for r in report]}, f, indent=1)
     print(f"json -> {args.json}")
 

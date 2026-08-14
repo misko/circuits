@@ -1,0 +1,18 @@
+Canonical placement, identity, and routing audit — 2026-08-01
+
+Board: source/programmable_usb2_hub.kicad_pcb
+KiCad 10.0.4 DRC: 0 violations, 0 unconnected, 0 schematic-parity issues.
+Board parity: 0 differences; 699/699 netted pads identical to the declarative
+route-chain board.
+P-PINMAP: PASS; 33 multi-pin references and 385 physical pin identities
+agree across part.yaml, tscircuit ports, and footprint pads.
+P-PADSEP: PASS; 784 pads and 299,899 pad pairs checked with zero overlap or
+zero-distance findings.
+P-LAND: PASS; 411/780 routable pads graded and zero failures.
+P-ADJ: PASS; 27/27 keep-short budgets measured.
+P-ADJ-PAIR: PASS; 2/2 adjacency budgets measured; tightest U4-C21 gap is
+1.05 mm against a 1.50 mm maximum.
+P-CRT: PASS; zero courtyard findings.
+A-RENDER: PASS; all 57 resolvable same-camera populated-minus-bare body
+measurements are within the 1.00 mm tolerance, 138 sub-resolution bodies are
+explicitly named, and 0 resolvable bodies are unmeasured.

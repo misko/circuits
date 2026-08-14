@@ -1,0 +1,58 @@
+mpn: PE42482A-X
+manufacturer: pSemi
+type: absorptive_sp8t_rf_switch
+datasheet: {doc_id: DOC-75785-4, revision: "09/2023", url: "https://www.psemi.com/pdf/datasheets/pe42482ds.pdf", sha256: 794579f2973d31c9d8bbe44bfd3656ae95027ff13ab79a0ceaede2a680cc9ec1, fetched: 2026-08-13}
+package: 24-lead 4x4mm QFN, 0.5mm pitch, exposed ground pad
+footprint: pluto_rx2_8way_v5:Psemi_PE42482_QFN24_4x4_P0.5
+escape: {style: qfn, pitch: 0.5, escapes_worst_side: 3, tier_required: jlc_4layer_advanced, checked: "perimeter escape plus RF exposed-pad grounding review 2026-08-13; advanced is required by selective filled/capped via-in-pad, not by sub-0.127mm perimeter tracks"}
+pins:
+  1: LS
+  2: RF2
+  3: {name: GND, tie: GND}
+  4: RF3
+  5: {name: GND, tie: GND}
+  6: RF4
+  7: {name: GND, tie: GND}
+  8: VDD
+  9: V1
+  10: V2
+  11: V3
+  12: V4
+  13: RF5
+  14: {name: GND, tie: GND}
+  15: RF6
+  16: {name: GND, tie: GND}
+  17: RF7
+  18: {name: GND, tie: GND}
+  19: RF8
+  20: NC
+  21: {name: GND, tie: GND}
+  22: RFC
+  23: {name: GND, tie: GND}
+  24: RF1
+  25: {name: EP, tie: GND}
+limits:
+  rf_band: 10MHz-8GHz
+  vdd: 2.3V-5.5V
+  vih_min: 1.17V
+  vil_max: 0.6V
+  logic_input_max: 3.6V
+  supply_current_max: 200uA
+  switching_time_max: 290ns
+  settling_time_max: 1.4us
+  operating_temperature: -40C_to_105C
+gotchas:
+  - "RF pins require 0 VDC. No blocking capacitors are required only because this receive-only board deliberately supplies 0 VDC at every RF port."
+  - "LS has an internal 1Mohm pull-up; tie LS directly to GND for the four-bit binary truth table."
+  - "Use an external V4 pull-up and V1/V2/V3 pull-downs so tri-stated controls produce ALL_OFF. The passive guarantee applies only while switch VDD is within 2.3V-5.5V."
+  - "At 4-6GHz the data-sheet maximum insertion loss is path-dependent and reaches 2.3dB; board launches and traces add to it."
+  - "The realized 2.75mm exposed land uses nine 0.45/0.25mm filled and copper-capped GND vias. The protected 0.25mm drill family is deliberately distinct from ordinary 0.20mm route/stitch vias so the fabrication selector is unambiguous. This RF return/assembly decision, not the perimeter pitch alone, is the sole advanced-tier justification."
+verified: "pin map, binary truth table, supply/logic/RF limits, switching/settling and QFN land pattern read from DOC-75785-4 pp.3-10 and 20-22 on 2026-08-13"
+sourcing: {lcsc: C5121458}
+layout:
+  source: "pSemi DOC-75785-4 application and evaluation-board layout, especially Figure 21"
+  reviewed: 2026-08-13
+  notes: "Place EP on uninterrupted RF ground with a dense via array; keep all nine RF routes on top over solid L2 GND, short, stub-free and fenced; place VDD bypass at pin 8 with the shortest return; isolate control routes from RF launches."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "pSemi DOC-75785-4 Figure 21 evaluation-board layout", why: "manufacturer layout establishes ground, bypass and RF-launch intent; geometry must be re-derived for the selected JLC stackup"}
+  - {tier: 2, reached: false, artifact: "PE42482 evaluation-board editable design files or fabrication outputs beyond DOC-75785-4 Figure 21", why: "no downloadable editable implementation was identified during the source-stage search; the published manufacturer layout remains the strongest consulted precedent"}
