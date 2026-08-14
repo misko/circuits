@@ -439,13 +439,16 @@ two cannot drift apart without the router failing to find its own pass.
 | `project.build_dir` | `route_and_stitch_generic.py` | working directory |
 | `prep.out` | `route_and_stitch_generic.py` | the track-free r0 written |
 | `prep.pad_rescue` | `route_and_stitch_generic.py` | optional deterministic plane-pad rescue before KRT; accepts true or a scoped override mapping |
+| `prep.pad_rescue.*` | `route_and_stitch_generic.py` | early-only overrides layered onto `stitch.pad_rescue`, including connector/refdes exclusions whose drops are supplied by explicit seed stubs |
 | `prep.seed_stubs` | `route_and_stitch_generic.py` | deterministic pre-route copper seeding configuration |
 | `prep.seed_stubs.*` | `route_and_stitch_generic.py` | clearance, via geometry, and stub recipes passed to the deterministic seed-stub pass |
 | `prep.keepouts.*` | `route_and_stitch_generic.py` | per-layer router keepouts; their PRESENCE is one of the homes `policy_audit.py` accepts for P-KEEP |
 | `prep.waves.*` | `route_and_stitch_generic.py` | wave net groups + exclusions |
 | `route.krt` | `route_and_stitch_generic.py` | the KRT entry point |
-| `route.kicad_python` | `route_and_stitch_generic.py` | interpreter for KRT |
+| `route.python` | `route_and_stitch_generic.py` | interpreter for KRT; defaults to the selected KRT checkout's `.venv/bin/python` |
+| `route.kicad_python` | `route_and_stitch_generic.py` | pcbnew-capable interpreter for route-wave geometry guards and race import/quick evaluation; KRT itself uses `route.python` or its own venv |
 | `route.race` | `route_and_stitch_generic.py` | parallel candidate count |
+| `route.forbid_new_via_in_pad` | `route_and_stitch_generic.py, via_in_pad_guard.py` | opt-in per-wave comparison that refuses router-created vias whose centres land in SMD copper while allowing reviewed source-owned vias already present in the wave input |
 | `route.final` | `route_and_stitch_generic.py` | the chain file promoted |
 | `route.import_source` | `route_and_stitch_generic.py` | explicit build/promoted lineage selected for route import; targets must not depend on stale-file precedence |
 | `route.common.*` | `route_and_stitch_generic.py` | per-run KRT geometry defaults |

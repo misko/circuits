@@ -8,8 +8,8 @@ order_verdict: DO-NOT-ORDER
 schematic_pdf_sha256: 9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759f5d955
 netlist_sha256: 817a6cea93afa2ee3e387cf861702dfe4e06c9a8fa7af192f7f9d53cea1f2ecd
 exact_netlist_sha256: e39508799698657495d058021a990f9e02c0ff7f526efbf44939f0cf13bbb795
-parts_sha256: 52ef55614f80065bf7fb9499342435a54ffd41f7d8bab28e1c80affa63059cd6
-design_rules_sha256: 20f0a262d60bc780b8e764076e39bef06ee28721eb203ab77cfd0a853a4e28bc
+parts_sha256: 879aa0b01010b253ad07989de128d0035d4cf4a01266eaa37b18b21a27dc1ce8
+design_rules_sha256: 143e06eb066dea445db05c3985ed2f6758f603c07ae3c2fb41f8a71083c0fd3a
 circuit_json_sha256: c66c3e1a242d03f9312fa4fc03ac90634af704041461446e9e955232c3163f63
 kicad_schematic_sha256: 1abd0c209be27ac602f55f8e81cf25e4e98bb3a99a2fb76494fc8bbfcf20603b
 schematic_checkpoint_sha256: 6f6506b1a405ac8fa0e753b4987183abd9f91c108b15e5c009645f36c77f8b24
@@ -43,3 +43,9 @@ boundary without relying on a private pin list. The earlier pre-D13 render
 certificate is retained separately for audit history. The PDF remains a
 topology document, not fabrication or assembly proof. Blocking readability
 findings: none.
+
+The exact PDF was renewed after the placement-policy metadata repair. A direct
+180-dpi raster of page 2 confirms that the long RF title is fully inside the
+page and that its gray metadata is a separate unobscured line; an apparent
+overlap in one scaled viewer was withdrawn as a display artifact. The PDF
+bytes and normalized electrical netlist remain unchanged.

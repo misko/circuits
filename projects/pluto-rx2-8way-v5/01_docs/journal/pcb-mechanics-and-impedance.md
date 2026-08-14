@@ -259,3 +259,28 @@ and the retained top/oblique/edge renders. This closes the human placement
 pause and authorizes route preparation. It does not approve copper that does
 not yet exist; routed launch, return-path and fence geometry still require an
 exact-board RF PCB review.
+
+## 2026-08-13 17:02 — corrected adjacency renewal finish
+
+- did: stopped before KRT when a fresh layout reviewer measured prose-only U4
+  and U3 bypass obligations outside their intended adjacency; converted all
+  four obligations into partner-specific numeric budgets, corrected the
+  placement, regenerated the exact board/BOM/CPL/twin/r0, and commissioned
+  fresh pin, layout and render renewals.
+- result: the corrected board is SHA-256 `bdb0df87886c`; P-ADJ grades 4/4 at
+  1.922, 3.028, 1.875 and 1.875 mm; placement DRC is 0 violations / 39 expected
+  track-free opens / 0 parity; A-RENDER is PASS with 14/14 resolvable bodies
+  measured and 15 explicitly below the optical floor; all three human lenses
+  are SOUND with no P0/P1; PR-REVIEW is 4/4; the placement checkpoint pins
+  23/23 files. Two deterministic prep runs are byte-identical at r0 SHA-256
+  `0c30127da9b0`.
+- next: run the five bounded KRT waves and stop before import/stitch. Solid
+  plane fill, direct local returns and realized route-following RF fences stay
+  mandatory later-stage work.
+
+Reflection: the expensive risk was not geometry generation—it was allowing
+manufacturer words such as “immediately” and “directly at” to live only in
+notes, which made P-ADJ legitimately report N-A. The repair itself rebuilt and
+re-reviewed quickly once the four denominators existed. IMP-082 records the
+general source lint: critical short/close prose must become an executable
+budget or an explicit human-only gate before board generation.

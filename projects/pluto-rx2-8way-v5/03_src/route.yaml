@@ -1,6 +1,7 @@
 # Routing execution contract for the D15-approved compact placement.  Critical
 # RF copper is deterministic source geometry; the generic router owns only the
-# remaining control and power nets.  No promoted stochastic route exists yet.
+# remaining control and power nets. The exact five-wave chain below is the
+# first quick-clean, per-wave-via-in-pad-clean promoted stochastic route.
 project:
   name: pluto_rx2_8way_v5
   board: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
@@ -22,7 +23,12 @@ prep:
   # routing consumes their legal adjacent-via sites.  Ordinary vias are never
   # placed in component lands; U1's separately authored 3x3 filled/capped EP
   # field is the only via-in-pad construction on this board.
-  pad_rescue: true
+  pad_rescue:
+    # J11's long, closely-spaced SMD lands made the generic adjacent-via
+    # search for one GND pin land in another GND land.  Its three plane drops
+    # are explicit dogbones below, so automatic rescue must not reinterpret
+    # `via_in_pad: false` at this connector.
+    skip_refs: [J11]
 
   # The nine approved corridors are mutually non-crossing and clear every
   # foreign courtyard.  Realize each as one exact 0.295-mm F.Cu polyline from
@@ -70,6 +76,68 @@ prep:
       - {net: GND, pin: U1.21, segments: [{layer: F.Cu, width: 0.30, pts: [[65.25, 46.10], [65.25, 46.70]]}]}
       - {net: GND, pin: U1.23, segments: [{layer: F.Cu, width: 0.30, pts: [[64.25, 46.10], [64.25, 46.70]]}]}
 
+      # Deterministic endpoint escapes.  The first bounded five-wave run and
+      # a three-candidate race all converged on the same SW_V1 open and used
+      # ordinary via-in-pad at other boxed endpoints.  These short dogbones
+      # own only the package escape; KRT still owns the remaining net trunks.
+      - {net: 3V3, pin: U1.8,
+         segments: [{layer: F.Cu, width: 0.25, pts: [[64.25, 49.90], [64.25, 51.12]]}]}
+      - {net: SW_V1, pin: U1.9,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[64.75, 49.90], [64.75, 50.50], [64.86, 50.50], [64.86, 52.85], [65.00, 52.85]]}],
+         vias: [[65.00, 52.85]]}
+      - {net: SW_V2, pin: U1.10,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[65.25, 49.90], [65.25, 50.50], [65.80, 52.00]]}],
+         vias: [[65.80, 52.00]]}
+      - {net: SW_V3, pin: U1.11,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[65.75, 49.90], [65.75, 50.50], [66.60, 52.00]]}],
+         vias: [[66.60, 52.00]]}
+      - {net: SW_V4, pin: U1.12,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[66.25, 49.90], [66.25, 50.50], [67.40, 52.00]]}],
+         vias: [[67.40, 52.00]]}
+      - {net: SW_V1, pin: U2.7,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[64.025, 62.1375], [64.025, 61.00], [65.40, 59.70]]}],
+         vias: [[65.40, 59.70]]}
+      - {net: SW_V2, pin: U2.8,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[63.375, 62.1375], [63.375, 61.00], [64.40, 59.20]]}],
+         vias: [[64.40, 59.20]]}
+      - {net: SW_V3, pin: U2.9,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[62.725, 62.1375], [62.725, 61.00], [63.40, 58.80]]}],
+         vias: [[63.40, 58.80]]}
+      - {net: SW_V4, pin: U2.10,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[62.075, 62.1375], [62.075, 61.00], [62.40, 58.50]]}],
+         vias: [[62.40, 58.50]]}
+      - {net: SW_V1, pin: R4.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[60.50, 55.99], [59.50, 55.99]]}],
+         vias: [[59.50, 55.99]]}
+      - {net: SW_V2, pin: R5.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[63.00, 56.49], [62.20, 56.49]]}],
+         vias: [[62.20, 56.49]]}
+      - {net: SW_V3, pin: R6.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[65.50, 56.49], [66.30, 56.49]]}],
+         vias: [[66.30, 56.49]]}
+      - {net: SW_V4, pin: R3.2,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[68.00, 55.99], [69.00, 55.99]]}],
+         vias: [[69.00, 55.99]]}
+      - {net: 3V3, pin: R3.1,
+         segments: [{layer: F.Cu, width: 0.25, pts: [[68.00, 57.01], [69.00, 57.01]]}],
+         vias: [[69.00, 57.01]]}
+      - {net: USB_CC1, pin: J1.A5,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[63.75, 77.645], [63.75, 76.60], [63.40, 76.30], [63.40, 75.80], [64.2875, 75.80]]}]}
+      - {net: USB_CC2, pin: J1.B5,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[66.75, 77.645], [66.75, 74.80], [65.7125, 74.80]]}]}
+      - {net: NRST, pin: C6.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[61.50, 60.28], [60.70, 60.28]]}],
+         vias: [[60.70, 60.28]]}
+      - {net: GND, pin: J11.3,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[42.73, 78.0325], [42.73, 80.00]]}],
+         vias: [[42.73, 80.00]]}
+      - {net: GND, pin: J11.5,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[44.00, 78.0325], [44.00, 80.00]]}],
+         vias: [[44.00, 80.00]]}
+      - {net: GND, pin: J11.9,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[46.54, 78.0325], [46.54, 80.00]]}],
+         vias: [[46.54, 80.00]]}
+
   waves:
     # GND is pour-fed, RF is deterministic above, and sanctioned unconnected
     # pins are never router work.  Every remaining net is named exactly once.
@@ -86,9 +154,14 @@ prep:
 route:
   preflight_critical_pairs: []
   no_critical_routes: "All nine controlled-impedance RF nets are single-ended; there are no differential or polarity-paired critical routes."
+  # Stop after the exact wave that attempts an ordinary via in any component
+  # land.  The only allowed via-in-pad geometry is U1's source-owned 3x3
+  # filled/capped EP field, which is already present in each wave input.
+  forbid_new_via_in_pad: true
   krt: ~/gits/KiCadRoutingTools
   kicad_python: /usr/bin/python3
-  import_source: build
+  final: 03_src/route/final_chain.kicad_pcb
+  import_source: promoted
   # Start with one bounded candidate.  A measured dirty/incomplete result may
   # justify a small race; paying for several silent stochastic runs before the
   # first quick verdict repeats the pipeline-lockup failure mode.
@@ -219,5 +292,5 @@ flow:
     rebuild: 1500
     layout_drc: 180
   blockers:
-    - "D15 placement is approved; deterministic route preparation, fresh placement witnesses and stochastic route promotion remain pending"
+    - "The five control/power waves are promoted and quick-clean; import, plane stitch/fill and final saved-board gates remain pending"
     - "The generic rectangular stitch lattice is not an RF-fence proof; route-following fence realization and saved-board aperture measurement are required before RF PCB approval"

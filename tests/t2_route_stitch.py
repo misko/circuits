@@ -25,6 +25,7 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains,  # noqa: 
                      not_contains, run, test, tmpdir)
 
 RS = SCRIPTS / "route_and_stitch_generic.py"
+VIP_GUARD = SCRIPTS / "via_in_pad_guard.py"
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 STEM = "cook_loadcell"
@@ -79,6 +80,25 @@ def stub_krt(d, exit_code=0, write_output=True):
         "    o = a[a.index('--output') + 1]\n"
         "    shutil.copy(a[0], o)\n"
         f"sys.exit({exit_code})\n")
+    (k / "route.py").write_text(body)
+    (k / "route_diff.py").write_text(body)
+    return k
+
+
+def stub_krt_via_in_pad(d):
+    """Fake router that exits 0 after taking the via-in-pad shortcut."""
+    k = d / "krt"
+    k.mkdir(exist_ok=True)
+    body = (
+        "import pcbnew, sys, pathlib\n"
+        "a=sys.argv[1:]; src=a[0]; out=a[a.index('--output')+1]\n"
+        "b=pcbnew.LoadBoard(src)\n"
+        "p=next(p for f in b.GetFootprints() for p in f.Pads() "
+        "if p.GetDrillSize().x<=0 and p.GetNetname())\n"
+        "v=pcbnew.PCB_VIA(b); v.SetPosition(p.GetPosition())\n"
+        "v.SetWidth(pcbnew.FromMM(0.6)); v.SetDrill(pcbnew.FromMM(0.3))\n"
+        "v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(p.GetNet())\n"
+        "b.Add(v); b.Save(out)\n")
     (k / "route.py").write_text(body)
     (k / "route_diff.py").write_text(body)
     return k
@@ -292,6 +312,130 @@ def t_krt_chaining():
           f"waves not chained: inputs were {ins}")
     check(outs == ["r1.kicad_pcb", "r2.kicad_pcb", "r3.kicad_pcb"],
           f"unexpected chain outputs {outs}")
+
+
+@test("the per-wave gate refuses a router-created via in an SMD land",
+      kind="known_bad")
+def t_kb_route_new_via_in_pad():
+    """A router can report success by drilling an ordinary via into a boxed
+    endpoint.  A reviewed source-owned EP via field is allowed because it is
+    present in the wave input; newly-added via-in-pad geometry must stop the
+    exact wave before it becomes resumable or promotable."""
+    def mutate(cfg, d):
+        cfg["route"]["krt"] = str(stub_krt_via_in_pad(d))
+        cfg["route"]["python"] = KPY
+        cfg["route"]["kicad_python"] = KPY
+        cfg["route"]["forbid_new_via_in_pad"] = True
+        cfg["route"].pop("final", None)
+
+    d, p = scratch(mutate)
+    source = d / "04_kicad" / f"{STEM}.kicad_pcb"
+    # A reviewed source-owned via-in-pad is already in the wave input and must
+    # remain allowed. The fake router adds a SECOND via at the same net+site;
+    # multiset subtraction must identify exactly that new item.
+    edit_board(source, """
+p=next(p for f in b.GetFootprints() for p in f.Pads()
+       if p.GetDrillSize().x<=0 and p.GetNetname())
+v=pcbnew.PCB_VIA(b); v.SetPosition(p.GetPosition())
+v.SetWidth(pcbnew.FromMM(0.6)); v.SetDrill(pcbnew.FromMM(0.3))
+v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(p.GetNet()); b.Add(v)
+""")
+    must_pass(prep(p), "prep")
+    final = d / "06_build" / "route" / "FINAL"
+    final.write_text("stale-success.kicad_pcb\n")
+    must_fail(run([sys.executable, RS, "route", p]),
+              "route whose first wave adds via-in-pad", "forbidden via-in-pad")
+    check(not final.exists(), "failed per-wave gate retained a stale FINAL")
+    report = json.loads(
+        (d / "06_build" / "route" / "wave_1_via_in_pad.json").read_text())
+    eq(report["verdict"], "FAIL", "via-in-pad wave verdict")
+    eq(len(report["new_via_in_pad"]), 1,
+       "source-owned via must be allowed; only the router addition is new")
+    progress = json.loads(
+        (d / "06_build" / "route" / "route_progress.json").read_text())
+    eq(progress["waves"], [],
+       "a rejected wave became an authenticated/resumable prefix")
+
+
+@test("the opt-in via-in-pad wave gate passes a clean copied chain")
+def t_route_via_in_pad_guard_clean():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["kicad_python"] = KPY
+        cfg["route"]["forbid_new_via_in_pad"] = True
+
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    r = must_pass(run([sys.executable, RS, "route", p]),
+                  "clean route with per-wave via-in-pad guard")
+    contains(r.out, "waves done", "clean guarded route")
+    for i in range(1, 4):
+        report = json.loads(
+            (d / "06_build" / "route" / f"wave_{i}_via_in_pad.json").read_text())
+        eq(report["verdict"], "PASS", f"clean wave {i} guard verdict")
+
+
+@test("all race lanes independently apply the via-in-pad wave gate",
+      kind="known_bad")
+def t_kb_race_via_in_pad_guard():
+    def mutate(cfg, d):
+        cfg["route"]["krt"] = str(stub_krt_via_in_pad(d))
+        cfg["route"]["python"] = KPY
+        cfg["route"]["kicad_python"] = KPY
+        cfg["route"]["forbid_new_via_in_pad"] = True
+        cfg["route"].pop("final", None)
+
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_fail(run([sys.executable, RS, "route", p, "--race", "2"]),
+              "race whose lanes add via-in-pad", "all 2 race candidates")
+    for lane in ("c0", "c1"):
+        report = json.loads(
+            (d / "06_build" / "route" / "race" / lane /
+             "wave_1_via_in_pad.json").read_text())
+        eq(report["verdict"], "FAIL", f"{lane} via-in-pad verdict")
+
+
+@test("an early route validation failure invalidates stale build FINAL",
+      kind="known_bad")
+def t_kb_route_early_failure_invalidates_final():
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["waves"] = []
+
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    final = d / "06_build" / "route" / "FINAL"
+    final.write_text("stale-success.kicad_pcb\n")
+    must_fail(run([sys.executable, RS, "route", p]),
+              "route with invalid empty wave contract", "route.waves is empty")
+    check(not final.exists(),
+          "early route validation failure retained a stale promotable FINAL")
+
+
+@test("via-in-pad guard ignores undrilled mask-only apertures")
+def t_route_via_in_pad_guard_ignores_mask_only_pad():
+    d = tmpdir("t2_vip_mask_")
+    before = d / "before.kicad_pcb"
+    after = d / "after.kicad_pcb"
+    shutil.copy(_cached_board(), before)
+    shutil.copy(before, after)
+    edit_board(after, """
+fp=pcbnew.FOOTPRINT(b); fp.SetReference('MASK1')
+fp.SetPosition(pcbnew.VECTOR2I_MM(80,70))
+p=pcbnew.PAD(fp); p.SetNumber('1'); p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+p.SetShape(pcbnew.PAD_SHAPE_RECT); p.SetSize(pcbnew.VECTOR2I_MM(1,1))
+ls=pcbnew.LSET(); ls.AddLayer(pcbnew.F_Mask); p.SetLayerSet(ls)
+p.SetPosition(pcbnew.VECTOR2I_MM(80,70)); fp.Add(p); b.Add(fp)
+v=pcbnew.PCB_VIA(b); v.SetPosition(p.GetPosition())
+v.SetWidth(pcbnew.FromMM(0.6)); v.SetDrill(pcbnew.FromMM(0.3))
+v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(b.FindNet('GND')); b.Add(v)
+""")
+    report = d / "report.json"
+    must_pass(run([KPY, VIP_GUARD, before, after, "--json", report]),
+              "guard over a mask-only aperture")
+    eq(json.loads(report.read_text())["new_via_in_pad"], [],
+       "mask-only aperture was misclassified as an SMD copper land")
 
 
 @test("stitch runs the passes in the CONFIGURED order and gates clean")
@@ -1680,6 +1824,22 @@ def via_nets(board):
     return json.loads(r.out.split("@@", 1)[1].strip())
 
 
+def vias_in_smd_pads(board):
+    """Descriptions of ordinary vias whose centres land in any SMD pad."""
+    code = (
+        "import pcbnew,sys,json\n"
+        "b=pcbnew.LoadBoard(sys.argv[1]); o=[]\n"
+        "for t in b.GetTracks():\n"
+        " if t.GetClass()!='PCB_VIA': continue\n"
+        " hits=[f'{f.GetReference()}.{p.GetNumber()}' "
+        "for f in b.GetFootprints() for p in f.Pads() "
+        "if p.GetDrillSize().x<=0 and p.HitTest(t.GetPosition())]\n"
+        " if hits: o.append([t.GetNetname(),t.GetPosition().x,t.GetPosition().y,hits])\n"
+        "print('@@'+json.dumps(o))\n")
+    r = must_pass(run([KPY, "-c", code, str(board)]), "vias_in_smd_pads")
+    return json.loads(r.out.split("@@", 1)[1].strip())
+
+
 @test("pad_rescue via-bonds EVERY configured plane net (GAP A: two inner planes)")
 def t_pad_rescue_multiplane():
     """A 4-layer board with In1=GND and In2=VIN needs BOTH plane-nets rescued
@@ -1722,6 +1882,23 @@ t.SetEnd(pcbnew.VECTOR2I_MM(15.75,12.0)); b.Add(t)
     must_pass(stitch(p), "pad rescue with a blocked compound candidate")
     eq(via_nets(board).get("GND", 0), 0,
        "a rejected via+stub candidate left an orphan via")
+
+
+@test("pad_rescue via_in_pad:false also rejects another same-net SMD land")
+def t_pad_rescue_no_foreign_same_net_pad_landing():
+    """Same-net copper is legal to `via_site_ok`, but it is not permission to
+    reinterpret `via_in_pad:false`.  A rescue candidate for the first pad is
+    placed exactly at the second pad centre; the pass must skip that site and
+    may use a genuinely adjacent site for the second pad."""
+    d, p, board = four_layer_scratch(
+        {"GND": [[15.0, 10.0], [16.6, 10.0]]},
+        {"net": "GND", "via_in_pad": False, "stub_width": 0.3,
+         "rings": [1.0], "angle_step": 360, "require": "none"})
+    must_pass(stitch(p), "pad rescue beside another same-net SMD pad")
+    check(via_nets(board).get("GND", 0) >= 1,
+          "fixture placed no adjacent rescue via; the assertion is vacuous")
+    eq(vias_in_smd_pads(board), [],
+       "via_in_pad:false still placed a rescue via in an SMD land")
 
 
 # ======================================================== KNOWN-BAD =====

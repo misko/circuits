@@ -3,7 +3,7 @@ manufacturer: Texas Instruments
 type: linear_ldo_regulator
 dropout_mv: 250
 pdiss_max_mw: 238
-datasheet: {doc_id: SBVS395, revision: E, url: "https://www.ti.com/lit/ds/symlink/tps7a24.pdf", sha256: 0f541739607b324fb0527c8da73234c8b65ec8a0631d0b06eca7aadfaa36d50f, fetched: 2026-08-13}
+datasheet: {doc_id: SBVS386, revision: E, url: "https://www.ti.com/lit/ds/symlink/tps7a24.pdf", sha256: 0f541739607b324fb0527c8da73234c8b65ec8a0631d0b06eca7aadfaa36d50f, fetched: 2026-08-13}
 package: SOT-23-5 DBV
 footprint: Package_TO_SOT_SMD:SOT-23-5
 escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
@@ -13,12 +13,15 @@ gotchas:
   - "Tie EN to IN for always-on operation; leave NC floating as permitted by the data sheet."
   - "The design budgets only 20mA. At 5.5V input and 3.25875V worst-low output the conservative dissipation is 44.825mW and estimated rise is 7.6C; the 238mW limit is a board-dependent 85C-ambient derating, not a package absolute rating."
   - "Effective input capacitance must be at least 1uF and effective output capacitance must remain within 1uF-100uF after bias/tolerance."
-verified: "fixed-output pin map, input/output ranges, dropout, capacitive stability, thermals and layout read from TI SBVS395E on 2026-08-13"
+verified: "fixed-output pin map, input/output ranges, dropout, capacitive stability, thermals and layout read from digest-selected TI SBVS386E on 2026-08-13; the retained local PDF filename is legacy and not its authority"
 sourcing: {lcsc: C2866134, digikey: 296-TPS7A2433DBVRCT-ND}
 layout:
-  source: "TI SBVS395E layout section and Figure 8-2"
+  source: "TI SBVS386E layout section and Figure 8-7"
   reviewed: 2026-08-13
   notes: "Put 4.7uF input and output capacitors directly at pins 1/5 with short ground returns to pin 2; keep the protected VBUS path compact and away from RF."
+  keep_short:
+    - {net: VBUS_PROTECTED, max_span_mm: 2.5, anchor_pins: ["1"], partner_refs: [C1], why: "TI SBVS386E Figure 8-7: input capacitor directly at IN; partner-specific bound prevents D1 or EN from satisfying the bypass obligation"}
+    - {net: 3V3, max_span_mm: 2.5, anchor_pins: ["5"], partner_refs: [C2], why: "TI SBVS386E Figure 8-7: output capacitor directly at OUT; partner-specific bound prevents another 3V3 capacitor from satisfying the obligation"}
 layout_refs:
-  - {tier: 1, reached: true, artifact: "TI SBVS395E Figure 8-2", why: "manufacturer layout fixes capacitor adjacency and ground-return intent"}
+  - {tier: 1, reached: true, artifact: "TI SBVS386E Figure 8-7", why: "manufacturer layout fixes capacitor adjacency and ground-return intent"}
   - {tier: 2, reached: false, artifact: "TI MULTIPKGLDOEVM-823 editable DBV-layout or fabrication files", why: "the official product record confirms the evaluation module but editable copper or fabrication outputs were not captured during this source-stage search"}

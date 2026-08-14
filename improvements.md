@@ -95,6 +95,7 @@ rationale.
 | IMP-079 | Derive compact floorplans from topology and operational connector envelopes before placement freeze | proposed | Pluto RX2 8-way v5 compact placement |
 | IMP-080 | Emit and measure RF fences from routed centrelines, not a rectangular lattice declaration | proposed | Pluto RX2 8-way v5 route preparation |
 | IMP-081 | Seed route-prep UUID generation so identical source yields byte-identical r0 | completed | Pluto RX2 8-way v5 route preparation |
+| IMP-082 | Require executable budgets for datasheet `short`/`close` layout obligations before placement review | proposed | Pluto RX2 8-way v5 pre-route placement renewal |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -2817,3 +2818,103 @@ Recommended execution order for future boards:
   `d598d305f5d75dd5bcebdd8320ef0949ca787bd0f5c7e53a573c66c995e726de`.
 - history: 2026-08-13 — discovered and completed at the D16 reflection pause,
   before KRT or route-progress provenance existed.
+
+## IMP-082 — require executable budgets for datasheet short/close layout obligations
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 exact pre-route placement renewal, 2026-08-13
+- evidence: the TPD2E2U06 dossier said to place the clamp "immediately behind"
+  J1 and the TPS7A24 dossier said to put both 4.7-uF capacitors "directly at"
+  the LDO pins. The generated board passed collision, courtyard, pad-separation,
+  escape and placement DRC, while `policy_audit --phase placement` reported
+  P-ADJ N-A because neither prose sentence supplied a machine-readable
+  denominator. A fresh layout reviewer then measured U4 about 8.33 mm from J1
+  and C1/C2 about 4.24/4.61 mm from U3 and correctly blocked routing. After the
+  source repair, four partner-specific budgets are all graded: U4.3→J1.A5
+  1.922 mm of 4.0, U4.5→J1.B5 3.028 mm of 4.0, U3.1→C1.1 1.875 mm of 2.5,
+  and U3.5→C2.1 1.875 mm of 2.5. Placement DRC remains 0 violations / 39
+  expected unrouted items / 0 parity findings.
+- general rule: a manufacturer layout statement containing `short`, `close`,
+  `near`, `immediately`, `directly at`, or an equivalent critical-placement
+  obligation must not be satisfied by `layout.notes` alone. Before board
+  generation it must become a typed `keep_short` or `adjacency` budget with an
+  explicit anchor pin, partner ref/role, numeric limit, measurement definition
+  and source citation. If no defensible number exists, record an explicit
+  HUMAN obligation that prevents the automated row from appearing applicable
+  or complete; never let the constraint disappear into an N-A denominator.
+- intended landing point: extend the part-schema/source preflight to classify
+  critical-layout language and reject prose-only obligations unless paired
+  with an executable budget or explicit human-gate record. Make the placement
+  summary surface `declared/graded/unreached` counts prominently and treat an
+  all-N-A P-ADJ result as a review warning whenever in-scope dossiers contain
+  critical-layout language. Keep the exact-board P-ADJ evaluator as the late
+  authoritative measurement.
+- completion evidence required: fixtures must reject prose-only ESD-clamp and
+  regulator-bypass instructions, a budget with no anchor, a broad-rail nearest-
+  any-part false pass, and a partner name that resolves to nothing. They must
+  accept the four v5 partner-specific budgets with a 4/4 denominator, accept a
+  properly typed human-only obligation without claiming a machine pass, and
+  preserve current boards whose layout notes contain no critical adjacency
+  instruction.
+- recommendation: implement before the next exact-placement project. The v5
+  instance is repaired now, so the generic lint is not a blocker for its
+  bounded control/power route; the fresh board-bound layout review remains the
+  authority for this revision.
+- history: 2026-08-13 — proposed after a fresh reviewer caught a real layout
+  defect that every existing geometric gate passed because the datasheet intent
+  existed only as prose.
+
+## IMP-083 — make no-via-in-pad intent executable at every routing wave
+
+- status: completed
+- observed: Pluto RX2 8-way v5 first control/power routing attempt,
+  2026-08-13
+- evidence: one bounded five-wave KRT chain completed quickly but left the
+  same `SW_V1` endpoint open that all three subsequent race candidates left
+  open. The candidates also escaped boxed component lands with seven new
+  ordinary vias directly in U1/U2/J1/C6 SMD pads, including 0.30/0.15-mm
+  geometry below the board's authored 0.45/0.20-mm ordinary-via contract. The
+  prepared route independently exposed a second form of the same semantic
+  defect: with `via_in_pad: false`, plane-pad rescue for one J11 GND land put
+  its adjacent same-net via in another long J11 GND land. KRT exited zero in
+  every case; only the later quick/census work rejected the chain.
+- general rule: `via_in_pad: false` is a geometry invariant, not a suggestion
+  to an emitter. Each stochastic wave must compare its output with its exact
+  input and refuse every newly-created via whose centre lies in any SMD land.
+  Vias already present in the input remain source-owned, so a separately
+  reviewed filled/capped exposed-pad field is allowed without weakening the
+  rule. A deterministic adjacent-via placer must likewise reject all SMD-pad
+  landing sites, including foreign pads on the same net. When a legal escape
+  is topologically boxed, own the minimum package dogbone in source and leave
+  only the unobstructed trunk to the router.
+- implementation: `via_in_pad_guard.py` performs the exact input/output via
+  comparison and records the offending via, pad, net, coordinate, size and
+  drill. `route.forbid_new_via_in_pad: true` runs it after every successful
+  KRT wave and before progress authentication or the next wave. The route
+  driver now removes a stale `FINAL` marker before both single-chain and race
+  attempts. `pad_rescue` rejects adjacent sites inside any SMD pad whenever
+  `via_in_pad` is false. The schema contract names both new reader paths.
+- completion evidence: the hermetic KRT fixture exits zero after creating a
+  via in an SMD pad and the wave gate fails, records the exact finding and
+  removes a planted stale `FINAL`; an independent review then found that an
+  earlier preflight/config failure could still retain `FINAL`, so invalidation
+  moved to the first `cmd_route` operation and a separate early-failure fixture
+  now proves it. Fixtures also prove that source-owned vias already in the
+  input are allowed, rejected waves do not enter authenticated progress, clean
+  waves and both race lanes execute the guard, mask-only apertures are not
+  mistaken for copper, and a two-pad same-net rescue emits an adjacent legal
+  via without landing in either pad. The complete non-slow routing/stitch suite
+  passes 108/108, including 47 known-bad fixtures. Schema-reader governance
+  passes 616/616 with zero orphans and gate-contract audit passes 59/59.
+  On v5, deterministic package/connector dogbones plus explicit J11 drops
+  prepare byte-identically at SHA-256
+  `cab54a0b9f9d304bdd9cf68c0d4ed756e8e93814dfe845db9de4e923756ca695`;
+  the prep comparison reports zero newly-created via-in-pad and its DRC has
+  zero copper/clearance/edge findings.
+- recommendation: enable the wave guard on every new board whose assembly
+  contract does not explicitly authorize router-created via-in-pad. Keep it
+  opt-in for existing designs until their intentional source vias can be
+  distinguished and reviewed; do not silently reinterpret legacy geometry.
+- history: 2026-08-13 — completed before retrying v5 routing. The failed
+  single chain and identical three-way race were retained as evidence rather
+  than promoted or retried again.

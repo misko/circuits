@@ -32,16 +32,29 @@
 - [x] R-PREFLIGHT source-known correction: common clearance 0.20 mm,
       ordinary via 0.45/0.20 mm (8:1 nominal aspect), and 0.58-mm legalizer
       pocket; 0 FAIL / 0 WARN and track-free board hash unchanged
-- [x] D15 user approval binds compact connector access, RF planning corridors
-      and operational silk to board SHA-256 `3fffbc690051998618880c63afcc559ddd37370e516f4869f670cf51288f2c42`
-- [x] D16 route-wave/prep contract is complete; exact prep emits 23 RF
-      segments with zero RF vias, six U1 ground-to-EP links and 22 ordinary
-      rescue vias; all 32/32 SMD GND pads are served before KRT
-- [ ] obtain fresh pin/layout/render and A-RENDER placement witnesses against
-      the exact D15 board and D16 prepared-route contract
-- [ ] sign a new canonical placement checkpoint only after the complete
-      placement review; the superseded pre-D13 certificate is retained as
+- [x] user approval plus the fresh corrected-board renewals bind compact
+      connector access, RF planning corridors and operational silk to board
+      SHA-256 `bdb0df87886cc15ed8a3ae2aee53c97f4a4cfd49734558967240816c5c73a22e`
+- [x] D16 route-wave/prep contract is complete; exact prep retains 23 RF
+      segments with zero RF vias, six U1 ground-to-EP links, explicit boxed-
+      endpoint dogbones and 29 automatic + 3 J11 explicit SMD GND drops
+- [x] fresh pin/layout/render and A-RENDER placement witnesses are SOUND
+      against the exact corrected board and deterministic prepared-route input
+- [x] canonical placement checkpoint pins 24/24 exact inputs at SHA-256
+      `ff882e7bc4923f97f1d747a3d30a86a2ac2ca61ddd4953cf8a4811d1ab01b86a`;
+      the superseded pre-D13 certificate is retained as
       `06_build/checkpoints/placement-pre-D13.json`
+- [x] deterministic endpoint escapes own boxed U1/U2/J1/C6/R3--R6 lands;
+      35/35 seed banks prepare collision-clean with no ordinary via-in-pad
+- [x] shared per-wave no-new-via-in-pad gate is executable and all five
+      promoted waves pass it; rejected attempts never entered progress/FINAL
+- [x] promoted chain SHA-256 `2e8c4a1fa9909391778244080a22387cf0ac38a56bb5dd1fc336c9c57aa40896`
+      authenticates 5/5 waves and passes P-ROUTEBASE against exact r0
+- [x] post-route quick verdict is CLEAN: zero routed-net opens and zero copper
+      violations; 61 GND connections are explicitly deferred to plane fill
+- [x] routing-stage checkpoint pins 19/19 source, prepared, intermediate,
+      guard and quick-verdict artifacts at SHA-256
+      `8c61f08ee72ae6468f9c0ad83b2425197623ece2817bd695912497f2e51cd5e3`
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.

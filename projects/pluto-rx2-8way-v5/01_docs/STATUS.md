@@ -1,10 +1,10 @@
-# STATUS beacon — deterministic route-preparation reflection pause
+# STATUS beacon — post-route reflection pause
 
 <!-- reader parses from here down -->
-stage:   route-preparation
-step:    "D15 placement approval is recorded; D16 exact route prep owns RF and GND prerequisites while stochastic control/power routing remains unstarted"
-measure: "source board sha256 3fffbc690051 unchanged; deterministic r0 sha256 d598d305f5d7 (2/2 byte-identical); R-PREFLIGHT 0 FAIL / 0 WARN; 23 RF segments at 0.295mm F.Cu / 0 RF vias; 6 U1 ground-to-EP links; 32/32 SMD GND pads served; quick 0 copper violations / 30 expected route-wave opens / 60 GND deferred; KRT 0 waves run"
-state:   working
-next:    "reflect on D16, obtain exact-board placement witnesses/checkpoint, then run the five bounded KRT waves and stop again before import/stitch"
+stage:   routing
+step:    "five bounded control/power waves are promoted and quick-clean; reflect before any import, plane fill/stitch or canonical-board mutation"
+measure: "source board bdb0df87886c; r0 31594a8e2941; promoted r5 2e8c4a1fa990; 5/5 per-wave via-in-pad gates PASS; route progress 5/5 authenticated; quick 0 routed-net opens / 61 GND deferred / 0 copper violations; P-ROUTEBASE PASS 36 footprints / 46 base vias / 83 prepared segments; routing checkpoint 19/19 at 8c61f08ee72a"
+state:   waiting
+next:    "after reflection approval, import the promoted chain exactly once, then run stitch/fill and stop at the post-stitch verdict before RF-fence realization"
 op_pid:
-updated: 2026-08-13T16:27:32-07:00
+updated: 2026-08-13T17:52:29-07:00

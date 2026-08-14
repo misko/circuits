@@ -1,7 +1,7 @@
 mpn: STM32C011F4P6
 manufacturer: STMicroelectronics
 type: 32_bit_microcontroller
-datasheet: {doc_id: DS13866, revision: "Rev 4 local; Rev 5 current online", url: "https://www.st.com/resource/en/datasheet/stm32c011f4.pdf", sha256: f9e1deb5c1e14f969c662326b700252bd69f93f404c68adba978f44455395509, fetched: 2026-08-13}
+datasheet: {doc_id: DS13866, revision: "Rev 3 local; Rev 5 current online", url: "https://www.st.com/resource/en/datasheet/stm32c011f4.pdf", sha256: f9e1deb5c1e14f969c662326b700252bd69f93f404c68adba978f44455395509, fetched: 2026-08-13}
 package: TSSOP-20, 0.65mm pitch
 footprint: Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm
 escape: {style: leaded, pitch: 0.65, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13; the board as a whole is advanced only because U1 requires it"}
@@ -19,7 +19,7 @@ gotchas:
   - "Configure BOR level 4 and the independent watchdog in firmware/options; these are requirements, not reset defaults."
   - "Before changing PA0-PA3 to outputs, preload the atomic GPIO output word for U1 ALL_OFF; external pulls own the state while pins are inputs."
   - "PA13/PA14 are retained for SWD. J11 exposes target-powered VTref, GND, SWDIO, SWCLK and NRST on a keyed Cortex connector; the programmer must sense target power and must not power the board."
-  - "The current manufacturer document is Rev 5; see 02_parts/README.md for the local Rev 4 cache deviation."
+  - "The current manufacturer document is Rev 5; the digest-selected local file identifies itself as Rev 3 despite its legacy Rev4 filename. See 02_parts/README.md for the cache deviation."
 verified: "TSSOP-20 pin map, supply, memory, timers/watchdogs, BOR thresholds, HSI48 error and reset-state pulls cross-checked against current ST DS13866 Rev 5 online on 2026-08-13"
 sourcing: {lcsc: C5452432}
 layout:

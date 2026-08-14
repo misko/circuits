@@ -11,7 +11,7 @@ input_trunk_class: USB_VBUS
 effective_capacitance_banks:
   - name: U3 TPS7A24 input capacitor
     requirement_uF: 1
-    requirement_evidence: "TI SBVS395E requires at least 1uF effective input capacitance"
+    requirement_evidence: "TI SBVS386E requires at least 1uF effective input capacitance"
     accepted_dielectrics: [ceramic]
     contributors:
       - part: CL10A475KO8NNNC
@@ -27,7 +27,7 @@ effective_capacitance_banks:
 
   - name: U3 TPS7A24 output capacitor
     requirement_uF: 1
-    requirement_evidence: "TI SBVS395E requires 1uF-100uF effective output capacitance"
+    requirement_evidence: "TI SBVS386E requires 1uF-100uF effective output capacitance"
     accepted_dielectrics: [ceramic]
     contributors:
       - part: CL10A475KO8NNNC

@@ -77,7 +77,9 @@ so the commands work from any cwd. Top-level keys:
             rects[]}, waves {exclude[], groups{}, rest}
   route:    krt, python, race (N concurrent chains, quick-measured best
             wins; CLI --race overrides), import_source (build|promoted),
-            kicad_python (race import+quick interpreter), common{...}, waves[]
+            kicad_python (KiCad interpreter), forbid_new_via_in_pad (compare
+            every wave output with its input and refuse router-created vias
+            in SMD lands), common{...}, waves[]
             {name, nets|group, + any KRT flag override}
   flow:     heartbeat_s, timeouts_s {route_wave, route_race,
             route_evaluate, route_import}; performance budgets are separate
@@ -766,6 +768,28 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
             die(f"KRT wave {name!r} exited {result.returncode}")
         if not nxt.is_file():
             die(f"KRT wave {name!r} produced no {nxt}")
+        # Some routers escape a boxed SMD endpoint by dropping an ordinary
+        # via directly in its land.  That can look connected while violating
+        # the board's assembly/reliability contract (solder wicking, uncapped
+        # hole).  When enabled, compare EACH wave to its exact input and stop
+        # at the first newly-created via-in-pad.  Source-owned vias present in
+        # `cur` remain allowed, so an explicitly authored filled/capped EP
+        # field is not confused with an autorouter shortcut.
+        if get(cfg, "route.forbid_new_via_in_pad", False):
+            guard = Path(__file__).resolve().parent / "via_in_pad_guard.py"
+            report = workdir / f"wave_{i}_via_in_pad.json"
+            kpy = get(cfg, "route.kicad_python", "/usr/bin/python3")
+            checked = run_bounded(
+                [kpy, str(guard), str(cur), str(nxt), "--json", str(report)],
+                timeout_s=_timeout_s(cfg, "route_wave_gate", 60),
+                heartbeat_s=_heartbeat_s(cfg),
+                label=f"{tag}route:{name}:via-in-pad".strip(),
+                state_path=workdir / f"wave_{i}_via_in_pad_state.json",
+                cancel_event=cancel_event, echo=False)
+            if checked.returncode != 0:
+                detail = checked.output[-1200:].strip()
+                die(f"KRT wave {name!r} added forbidden via-in-pad geometry; "
+                    f"report: {report}" + (f"\n{detail}" if detail else ""))
         # KRT preserves the .kicad_pro today, but it does not consistently
         # carry the custom .kicad_dru beside each output.  KiCad resolves a
         # board's custom rules by BASENAME, so quick DRC on rN.kicad_pcb
@@ -933,6 +957,12 @@ def _resume_route(cfg, build, waves, r0):
 
 
 def cmd_route(cfg, race=None, skip_preflight=False, resume=False):
+    # Invalidate build-lineage promotion at the FIRST route-command boundary,
+    # before critical-pair, tier, KRT, wave or r0 validation.  Any failed rerun
+    # means the build lineage has no current winner; retaining an old FINAL
+    # would let a later `import --route-source build` consume stale copper.
+    build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
+    (build / "FINAL").unlink(missing_ok=True)
     _critical_route_gate(cfg)
     # TIER PREFLIGHT FIRST (refuse-to-route). Four measured crow-rv2 defects
     # (2026-07-23) were tool defaults disagreeing with the declared fab tier
@@ -962,7 +992,6 @@ def cmd_route(cfg, race=None, skip_preflight=False, resume=False):
                 "tier_preflight.py <project> --explain). Refusing to spend "
                 "KRT cycles on a config the DRC gate already rejects. "
                 "Escape hatch: route --skip-preflight (loud, discouraged)")
-    build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     krt = Path(os.path.expanduser(get(cfg, "route.krt", "~/gits/KiCadRoutingTools")))
     py = get(cfg, "route.python") or str(krt / ".venv" / "bin" / "python")
     if not (krt / "route.py").is_file():
@@ -2480,6 +2509,29 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
     stub_w = float(c.get("stub_width", 0.3))
     vip = bool(c.get("via_in_pad", True))
     skip = set(c.get("skip_refs", []) or [])
+
+    copper_layers = [layer for layer in ctx.board.GetEnabledLayers().Seq()
+                     if pcbnew.IsCopperLayer(layer)]
+    # This check runs inside the rings/angles candidate loop. Build the set
+    # once per rescued net rather than scanning every footprint for every
+    # candidate (the latter scales as targets*candidates*all-board-pads).
+    copper_smd_pads = [
+        (p2, p2.GetBoundingBox())
+        for fp2 in ctx.board.GetFootprints() for p2 in fp2.Pads()
+        if p2.GetDrillSize().x <= 0
+        and any(p2.IsOnLayer(layer) for layer in copper_layers)
+    ]
+
+    def lands_in_smd_pad(x, y):
+        """True when an adjacent-via candidate is actually via-in-pad.
+
+        `via_site_ok` deliberately permits same-net copper, so without this
+        semantic guard a rescue for one long/nearby pad can land in another
+        same-net SMD land even though `via_in_pad: false` was requested.
+        """
+        pos = pcbnew.VECTOR2I_MM(x, y)
+        return any(bbox.Contains(pos) and pad.HitTest(pos)
+                   for pad, bbox in copper_smd_pads)
     # `seed_stubs` runs before this pass and may deliberately reach a legal
     # barrel outside the small local pad search box.  Fresh/reloaded boards
     # have authoritative endpoint connectivity here, so credit a pad whose
@@ -2548,6 +2600,8 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
                 for ang in range(0, 360, astep):
                     vx = round(px + (w2 + r) * math.cos(math.radians(ang)), 2)
                     vy = round(py + (h2 + r) * math.sin(math.radians(ang)), 2)
+                    if not vip and lands_in_smd_pad(vx, vy):
+                        continue
                     # Probe the complete via+stub candidate before committing
                     # either item.  The former order called try_via first;
                     # when the stub then collided, the rejected via remained

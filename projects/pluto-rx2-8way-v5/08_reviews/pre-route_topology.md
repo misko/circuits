@@ -11,8 +11,8 @@ kicad_schematic_sha256: 1abd0c209be27ac602f55f8e81cf25e4e98bb3a99a2fb76494fc8bbf
 schematic_pdf_sha256: 9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759f5d955
 netlist_sha256: 817a6cea93afa2ee3e387cf861702dfe4e06c9a8fa7af192f7f9d53cea1f2ecd
 exact_netlist_sha256: e39508799698657495d058021a990f9e02c0ff7f526efbf44939f0cf13bbb795
-parts_sha256: 52ef55614f80065bf7fb9499342435a54ffd41f7d8bab28e1c80affa63059cd6
-design_rules_sha256: 20f0a262d60bc780b8e764076e39bef06ee28721eb203ab77cfd0a853a4e28bc
+parts_sha256: 879aa0b01010b253ad07989de128d0035d4cf4a01266eaa37b18b21a27dc1ce8
+design_rules_sha256: 143e06eb066dea445db05c3985ed2f6758f603c07ae3c2fb41f8a71083c0fd3a
 authoring_source_sha256: 4959ed7107a3dae3969df2b8306b591187bda34f79720c9b410676f7908ef53b
 
 # Pre-route topology review after programming-connector decision D13
@@ -62,6 +62,12 @@ The complete source gates report 29/29 component parity, 131/131 declared pin
 maps and 32/32 electrical invariants. KiCad ERC reports zero errors; the
 remaining warnings are known generated-symbol presentation warnings and do
 not override this human exact-artifact review.
+
+A fresh exact-hash renewal after the placement-policy repair confirmed that
+the USB fused-contact declarations, U4/J1 and U3/capacitor distance budgets,
+and corrected DS13866/SBVS386E document labels do not alter connectivity,
+ratings, or pin semantics. The digest-selected TPS7A24 document is SBVS386E
+and its fixed-output layout example is Figure 8-7. P0/P1/P2 blockers: none.
 
 The earlier pre-D13 topology certificate is retained separately for audit
 history. Blocking findings in this review: none.

@@ -1,0 +1,83 @@
+{
+  "files": {
+    "03_src/route.yaml": {
+      "sha256": "866eaa5737bb6981788867664cd1fcd6bd842bf8c91d92aa3f49758abcdf66cc",
+      "size": 14169
+    },
+    "03_src/route/final_chain.kicad_pcb": {
+      "sha256": "2e8c4a1fa9909391778244080a22387cf0ac38a56bb5dd1fc336c9c57aa40896",
+      "size": 213499
+    },
+    "04_kicad/pluto_rx2_8way_v5.kicad_pcb": {
+      "sha256": "bdb0df87886cc15ed8a3ae2aee53c97f4a4cfd49734558967240816c5c73a22e",
+      "size": 165117
+    },
+    "06_build/checkpoints/placement.json": {
+      "sha256": "ff882e7bc4923f97f1d747a3d30a86a2ac2ca61ddd4953cf8a4811d1ab01b86a",
+      "size": 3749
+    },
+    "06_build/route/prep_via_in_pad.json": {
+      "sha256": "2122bcf02ad71501057701279a8fafcfd7916c5fba236f77cfe9289717f4b3b3",
+      "size": 211
+    },
+    "06_build/route/quick_r5_guarded.json": {
+      "sha256": "6eadee9eefbead67dbe6e5c333a5cdbf95a811124d855f8717b552ab1d21f90d",
+      "size": 378
+    },
+    "06_build/route/r0.kicad_pcb": {
+      "sha256": "31594a8e29417cf6b5a1a374918b1d6979329c38a8f9d4c84182d17a46d7c872",
+      "size": 185786
+    },
+    "06_build/route/r0_drc.json": {
+      "sha256": "c1bae72e5bcd6794e8c18e91b1f316ad3e240fec956cc2f0496855f46d51dd20",
+      "size": 111945
+    },
+    "06_build/route/r1.kicad_pcb": {
+      "sha256": "0068fac4e90285d1b27b6152c05645fca8a63ea8ac58d2fff7284a64b4f1add8",
+      "size": 193241
+    },
+    "06_build/route/r2.kicad_pcb": {
+      "sha256": "9ff2c2b454673d5cc1dad62d9731237aea3469ee794a174888d04e0dda5cac1e",
+      "size": 194088
+    },
+    "06_build/route/r3.kicad_pcb": {
+      "sha256": "0ce1e2364a927ffde22d5c7b282be5c653800b768c4831afb21e879c130e74fb",
+      "size": 199763
+    },
+    "06_build/route/r4.kicad_pcb": {
+      "sha256": "59eb8a35aadfa05c1a2e6ddad338cf9d8409024b67a82ff152d26150f373a157",
+      "size": 205540
+    },
+    "06_build/route/r5.kicad_pcb": {
+      "sha256": "2e8c4a1fa9909391778244080a22387cf0ac38a56bb5dd1fc336c9c57aa40896",
+      "size": 213499
+    },
+    "06_build/route/route_progress.json": {
+      "sha256": "b4443944cc73aa5d37ef2b1a99ae4d6ef6ec031e1ae02b619e7628a3333169f3",
+      "size": 1908
+    },
+    "06_build/route/wave_1_via_in_pad.json": {
+      "sha256": "543da62fcac05a44c34d55a1d87774c8db704802d128df146896fe10f6ecb985",
+      "size": 262
+    },
+    "06_build/route/wave_2_via_in_pad.json": {
+      "sha256": "9b41b053d1b8c4a5d0fcec4f3815cb7dc37601eb734136c5a357c610d69f92f5",
+      "size": 262
+    },
+    "06_build/route/wave_3_via_in_pad.json": {
+      "sha256": "c19b1da0d5ea9df4c2e01c255c749b2c1c7ace86b64bf99f3a822307dd5ec535",
+      "size": 262
+    },
+    "06_build/route/wave_4_via_in_pad.json": {
+      "sha256": "2b952f70413dcebff36babf0918b88b87a7b7ededfecd5cd4ee7d49c3a791607",
+      "size": 262
+    },
+    "06_build/route/wave_5_via_in_pad.json": {
+      "sha256": "ff82cca8169a63d1facf3bcf621207308d479443318250eb46c52afa86b25d66",
+      "size": 262
+    }
+  },
+  "name": "routing",
+  "project": "pluto-rx2-8way-v5",
+  "schema": 1
+}

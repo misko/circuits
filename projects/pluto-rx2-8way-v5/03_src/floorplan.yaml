@@ -127,16 +127,19 @@ placement:
 
     # GCT's drawing and KiCad's exact manufacturer footprint put the local PCB
     # edge at +3.675 mm Y; 81.325 + 3.675 = the y=85 outline exactly. The
-    # complete power cluster retains its previously reviewed relative spacing.
+    # exposed CC clamp sits immediately behind the contact row.  The LDO is
+    # shifted east so its two 4.7-uF capacitors can sit directly against pins
+    # 1 and 5 without colliding with the SMB TVS courtyard.  These positions
+    # are independently enforced by the partner-specific part-dossier budgets.
     J1: [65.0, 81.325, 0]
-    U4: [65.0, 73.0, 0]
+    U4: [65.0, 75.3, 0]
     R1: [61.0, 70.5, 0]
     R2: [68.5, 70.5, 0]
     F1: [72.0, 74.5, 90]
     D1: [77.5, 74.5, 0]
-    C1: [81.5, 70.5, 0]
-    U3: [84.5, 73.5, 90]
-    C2: [88.0, 70.5, 0]
+    C1: [85.4, 74.64, 180]
+    U3: [89.0, 73.5, 90]
+    C2: [85.4, 72.36, 180]
 
   # Leave one legal 0.20-mm rescue-via pocket between movable bodies even
   # though this revision anchors every fitted part: drill + 2*hole clearance.

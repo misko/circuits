@@ -1,0 +1,103 @@
+{
+  "files": {
+    "02_parts/STM32C011F4P6/part.yaml": {
+      "sha256": "57d24f56a48423e5136b997c0965157f0292a474a56a6d6ac364527f9d3b63ac",
+      "size": 2671
+    },
+    "02_parts/TPD2E2U06DRLR/part.yaml": {
+      "sha256": "a8977c7bb1d4e606a6f8b0202ed627c930b6f6d5143eedc3eacd0feecbe49f6f",
+      "size": 2260
+    },
+    "02_parts/TPS7A2433DBVR/part.yaml": {
+      "sha256": "9ec0ec49372fe3ff0a89beee194a6065afa1830338e29138c56f943a2453f12a",
+      "size": 2598
+    },
+    "02_parts/USB4105-GF-A-120/part.yaml": {
+      "sha256": "3951a82e3a8131a70c10536d22ddbc7adfb65e770054bfffe06191232e42c090",
+      "size": 7582
+    },
+    "03_src/floorplan.yaml": {
+      "sha256": "87a1d428071fff9c5deaf4858b8004b28a1cb614b57d265e6a76986b52b72f26",
+      "size": 10019
+    },
+    "03_src/route.yaml": {
+      "sha256": "866eaa5737bb6981788867664cd1fcd6bd842bf8c91d92aa3f49758abcdf66cc",
+      "size": 14169
+    },
+    "04_kicad/pluto_rx2_8way_v5.kicad_pcb": {
+      "sha256": "bdb0df87886cc15ed8a3ae2aee53c97f4a4cfd49734558967240816c5c73a22e",
+      "size": 165117
+    },
+    "06_build/drc/pre_route.json": {
+      "sha256": "c820aa04870aac565813f35cc94e76fb8377fa91ea5f8aaaa63c0a2f7a0cc067",
+      "size": 31614
+    },
+    "06_build/placement_policy_audit.md": {
+      "sha256": "8b7fec83f32eae3cd2d6794e26e064a49a9a5b1b1be09fb7a078db888bdf0a43",
+      "size": 840
+    },
+    "06_build/pre_route/fab/bom.csv": {
+      "sha256": "7b01a6d1fa70ae7187c5ada14a963894acca97fa4a7c893df6eba447d8a06c65",
+      "size": 848
+    },
+    "06_build/pre_route/fab/cpl.csv": {
+      "sha256": "0eab823cfe6eaa8c087d7cc429334f524a9d6e60f3751d02567c3b340d3415e1",
+      "size": 1543
+    },
+    "06_build/pre_route/twin/twin_bare_top.png": {
+      "sha256": "fbab561ce335a0a453744280e8340d722046d48f94cd917a0f68fbba30bc4e37",
+      "size": 50371
+    },
+    "06_build/pre_route/twin/twin_top.png": {
+      "sha256": "be7642e39dcea07fd6dac8b0452069758478d92f4c138ddae6b059d79237c1e8",
+      "size": 124222
+    },
+    "06_build/pre_route/twin/twin_top_courtyard_overlay.png": {
+      "sha256": "203ee608f0bd943e3fb9f3ea89241f6c2ed5f581ac0bcc3ce26310b0b346eea5",
+      "size": 111516
+    },
+    "06_build/pre_route/twin_overlay.md": {
+      "sha256": "e5a2c94eb3b4b0df49ba04dd05bcd4f05b348bf212d802deaa7bb5403d0ee4be",
+      "size": 14050
+    },
+    "06_build/route/prep_via_in_pad.json": {
+      "sha256": "2122bcf02ad71501057701279a8fafcfd7916c5fba236f77cfe9289717f4b3b3",
+      "size": 211
+    },
+    "06_build/route/quick_r0.json": {
+      "sha256": "f0ff0702ebf02b9473bd1192d22ee15fae8bad4667e67159b783df9a6ebf307f",
+      "size": 574
+    },
+    "06_build/route/r0.kicad_pcb": {
+      "sha256": "31594a8e29417cf6b5a1a374918b1d6979329c38a8f9d4c84182d17a46d7c872",
+      "size": 185786
+    },
+    "06_build/route/r0_drc.json": {
+      "sha256": "c1bae72e5bcd6794e8c18e91b1f316ad3e240fec956cc2f0496855f46d51dd20",
+      "size": 111945
+    },
+    "08_reviews/pre-route_layout.md": {
+      "sha256": "de2d56a0506af86e5a12a32d5f5ded42a7fa5371d8cef457b276a91350d2b7c3",
+      "size": 4537
+    },
+    "08_reviews/pre-route_pin.md": {
+      "sha256": "9e526fa677bf6f7ec9ab6e0a81ad94f6131ccee122bc49b697cd21f2218f3d23",
+      "size": 3988
+    },
+    "08_reviews/pre-route_render.md": {
+      "sha256": "9e89051be4b0a478d260302b72a339da2f20628be9cf971145ba100c465aef89",
+      "size": 3264
+    },
+    "08_reviews/pre-route_schematic_render.md": {
+      "sha256": "cbe7c3192cf49a75dde29b91dc438c8b6ca55f04f39b0c99a0090e948212ecb5",
+      "size": 2849
+    },
+    "08_reviews/pre-route_topology.md": {
+      "sha256": "a031a00c578be23d674947fb702bfed941867205eb8128e75e075c1ed2dd1011",
+      "size": 3972
+    }
+  },
+  "name": "placement",
+  "project": "pluto-rx2-8way-v5",
+  "schema": 1
+}
