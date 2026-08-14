@@ -1,0 +1,49 @@
+{
+  "finished_at": "2026-08-14T21:47:13.276558Z",
+  "inputs": {
+    "board.kicad_pcb": {
+      "sha256": "21322eb7d5546e24deef9e309206edc8c9e9191e9f9326486904851dc2678782",
+      "size": 529047
+    },
+    "rf.yaml": {
+      "sha256": "625acbc4c6f40b1a521c011399c0617fa5ec02817a3bccac31f2b149918b00bb",
+      "size": 8887
+    },
+    "route.yaml": {
+      "sha256": "8f698f5e1d0301448df7b512c24bc7431eca9919505b93c5a0d25abe64a4782c",
+      "size": 18833
+    }
+  },
+  "outputs": {
+    "fence.json": {
+      "sha256": "0ceb1ad2b46949ac67a4464ce24e2b8657424f35e408c7574894c33368480d0e",
+      "size": 9840
+    },
+    "fence.txt": {
+      "sha256": "6c3b37a139e0b8d3299a855e17267675d72d0b15e45c62ab3e7b80bff9e24ea2",
+      "size": 2971
+    },
+    "fence_process.json": {
+      "sha256": "d2739e6f87c239c4856369af639fc0f8bff2f7fcd469ed903313c36d82ea77cb",
+      "size": 686
+    },
+    "report.json": {
+      "sha256": "364b2fd8f94173166079b8ac440025d49c200ffd06d00f6c0d99a809a944fb0f",
+      "size": 5112
+    },
+    "report.txt": {
+      "sha256": "f9ea49ecaa1a121a79bea23c8b0347de4be017573a28e2ffb64982acaefb932b",
+      "size": 201
+    }
+  },
+  "producer": "rf_check.py realized",
+  "producer_version": "1",
+  "run_id": "20260814T214712Z-b31f2c6d",
+  "schema": 1,
+  "started_at": "2026-08-14T21:47:12.597037Z",
+  "status": "PASS",
+  "subject": {
+    "raw_sha256": "39a9f5b82c7d72f78498c6ce01e0022a900401ebec3fd6792c314bd579898b07",
+    "semantic_sha256": "52a375dcacee5f60cb16a61d583ccea12d268cdec01ddb7583365ecfe617eef9"
+  }
+}

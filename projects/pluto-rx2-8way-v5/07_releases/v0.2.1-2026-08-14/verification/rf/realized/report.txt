@@ -1,0 +1,6 @@
+input: /tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/04_kicad/pluto_rx2_8way_v5.kicad_pcb
+mode: realized
+geometry_policy: blocking
+coverage: 9/9 RF nets graded
+bend_findings: 14
+VERDICT: PASS

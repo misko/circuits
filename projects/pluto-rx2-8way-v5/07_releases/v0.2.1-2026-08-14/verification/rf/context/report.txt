@@ -1,0 +1,9 @@
+input: /tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/rules/rf.yaml
+status: ACTIVE
+policy: clean_room
+features: bend_geometry, connector_launch, controlled_impedance, cpwg, jlcpcb, microwave, multiport, rf_intent, via_fence
+sources: 9
+coverage: 3/3 required topics
+network: disabled
+review_wait: none
+VERDICT: PASS

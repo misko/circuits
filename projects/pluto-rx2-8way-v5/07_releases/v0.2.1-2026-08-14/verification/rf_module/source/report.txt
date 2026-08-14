@@ -1,0 +1,6 @@
+input: /tmp/pluto-rf-strict.HYLCbA/projects/pluto-rx2-8way-v5/03_src/route.yaml
+mode: source
+geometry_policy: blocking
+coverage: 9/9 RF nets graded
+bend_findings: 14
+VERDICT: PASS

@@ -1,0 +1,264 @@
+{
+  "advisories": [],
+  "bend_findings": [
+    {
+      "at_mm": [
+        64.752,
+        44.5
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_COMMON",
+      "radius_mm": 16.231749823387734,
+      "radius_width_multiple": 55.02288075724656
+    },
+    {
+      "at_mm": [
+        64.998,
+        36.5
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_COMMON",
+      "radius_mm": 16.23174982356132,
+      "radius_width_multiple": 55.02288075783498
+    },
+    {
+      "at_mm": [
+        63.617,
+        44.577
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT1",
+      "radius_mm": 1.0000707127963904,
+      "radius_width_multiple": 3.3900702128691202
+    },
+    {
+      "at_mm": [
+        50.133,
+        36.423
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT1",
+      "radius_mm": 1.0000707128007345,
+      "radius_width_multiple": 3.390070212883846
+    },
+    {
+      "at_mm": [
+        61.504,
+        47.232
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT2",
+      "radius_mm": 0.9882961564359375,
+      "radius_width_multiple": 3.3501564624947036
+    },
+    {
+      "at_mm": [
+        35.171,
+        36.385
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT2",
+      "radius_mm": 1.0017166110870062,
+      "radius_width_multiple": 3.395649529108496
+    },
+    {
+      "at_mm": [
+        61.513,
+        49.293
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT4",
+      "radius_mm": 0.9988213439166644,
+      "radius_width_multiple": 3.3858350641242865
+    },
+    {
+      "at_mm": [
+        36.487,
+        65.957
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT4",
+      "radius_mm": 0.9988213439221925,
+      "radius_width_multiple": 3.3858350641430253
+    },
+    {
+      "at_mm": [
+        68.487,
+        49.293
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT5",
+      "radius_mm": 0.9988213439184276,
+      "radius_width_multiple": 3.385835064130263
+    },
+    {
+      "at_mm": [
+        93.513,
+        65.957
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT5",
+      "radius_mm": 0.9988213439160176,
+      "radius_width_multiple": 3.385835064122094
+    },
+    {
+      "at_mm": [
+        68.496,
+        47.232
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT7",
+      "radius_mm": 0.9882961564330621,
+      "radius_width_multiple": 3.3501564624849567
+    },
+    {
+      "at_mm": [
+        94.829,
+        36.385
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT7",
+      "radius_mm": 1.0017166110870972,
+      "radius_width_multiple": 3.395649529108804
+    },
+    {
+      "at_mm": [
+        66.383,
+        44.577
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT8",
+      "radius_mm": 1.000070712800298,
+      "radius_width_multiple": 3.390070212882366
+    },
+    {
+      "at_mm": [
+        79.867,
+        36.423
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT8",
+      "radius_mm": 1.000070712807133,
+      "radius_width_multiple": 3.390070212905536
+    }
+  ],
+  "coverage": {
+    "graded": 9,
+    "total": 9
+  },
+  "errors": [],
+  "fence_band_authority": "rf.yaml",
+  "fence_band_mm": 1.1,
+  "geometry_policy": "blocking",
+  "mode": "source",
+  "nets": [
+    "RF_COMMON",
+    "RF_ANT1",
+    "RF_ANT2",
+    "RF_ANT3",
+    "RF_ANT4",
+    "RF_ANT5",
+    "RF_ANT6",
+    "RF_ANT7",
+    "RF_ANT8"
+  ],
+  "routes": [
+    {
+      "arcs": 2,
+      "banks": 1,
+      "bends": 2,
+      "net": "RF_COMMON",
+      "primitives": 5,
+      "stubs": 0,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "banks": 1,
+      "bends": 2,
+      "net": "RF_ANT1",
+      "primitives": 5,
+      "stubs": 0,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "banks": 1,
+      "bends": 2,
+      "net": "RF_ANT2",
+      "primitives": 5,
+      "stubs": 0,
+      "vias": 0
+    },
+    {
+      "arcs": 0,
+      "banks": 1,
+      "bends": 0,
+      "net": "RF_ANT3",
+      "primitives": 1,
+      "stubs": 0,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "banks": 1,
+      "bends": 2,
+      "net": "RF_ANT4",
+      "primitives": 5,
+      "stubs": 0,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "banks": 1,
+      "bends": 2,
+      "net": "RF_ANT5",
+      "primitives": 5,
+      "stubs": 0,
+      "vias": 0
+    },
+    {
+      "arcs": 0,
+      "banks": 1,
+      "bends": 0,
+      "net": "RF_ANT6",
+      "primitives": 1,
+      "stubs": 0,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "banks": 1,
+      "bends": 2,
+      "net": "RF_ANT7",
+      "primitives": 5,
+      "stubs": 0,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "banks": 1,
+      "bends": 2,
+      "net": "RF_ANT8",
+      "primitives": 5,
+      "stubs": 0,
+      "vias": 0
+    }
+  ],
+  "schema": 1,
+  "verdict": "PASS"
+}

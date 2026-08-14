@@ -1,0 +1,5 @@
+RF-REVIEW schematic: PASS 4/4 requirements; exact artifact /tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/04_kicad/pluto_rx2_8way_v5.kicad_sch
+RF-REVIEW pcb: PASS 5/5 requirements; exact artifact /tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/04_kicad/pluto_rx2_8way_v5.kicad_pcb
+RF-REVIEW fab: PASS 4/4 requirements; exact artifact /tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/06_build/fab/pluto_rx2_8way_v5_gerbers.zip
+RF-CONTRACT coverage: 1 applicability decision; 2 port(s), 1 cross-section(s), 4 claim(s); 3/3 review phase(s) requested
+RF-CONTRACT PASS: RF intent is complete and requested reviews are exact-artifact-bound

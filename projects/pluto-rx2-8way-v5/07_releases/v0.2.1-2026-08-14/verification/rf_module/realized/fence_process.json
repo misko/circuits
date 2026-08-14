@@ -1,0 +1,22 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/pluto-rf-strict.HYLCbA/skills/kicad-pcb/scripts/fence_pitch.py",
+    "/tmp/pluto-rf-strict.HYLCbA/projects/pluto-rx2-8way-v5/04_kicad/pluto_rx2_8way_v5.kicad_pcb",
+    "1.1",
+    "--contract",
+    "/tmp/pluto-rf-strict.HYLCbA/projects/pluto-rx2-8way-v5/03_src/rules/rf.yaml",
+    "--json",
+    "/tmp/pluto-rf-strict.HYLCbA/projects/pluto-rx2-8way-v5/06_build/rf/.realized.txn-xfs2t6py/fence.json"
+  ],
+  "elapsed_s": 0.659,
+  "finished_at": 1786744033.256816,
+  "heartbeat_s": 5,
+  "label": "rf-fence",
+  "pid": 3203471,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786744032.5980947,
+  "status": "finished",
+  "timeout_s": 30
+}

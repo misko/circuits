@@ -1,0 +1,22 @@
+  graded: sealed release BOM /tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/fab/bom.csv
+  authority: 14 code(s) from /tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/02_parts + 217 from the vetted passives ledger + 14 from the release's own sealed verification/stock_check.csv
+  coverage F-ENCODE: 1/1 file decoded (915 bytes)
+  coverage F-MPN: 14/14 coded rows cross-checked against a HAND-VERIFIED authority; 0 not re-derivable from the shipped bytes (0 corroborated by the release's own sealed verification/stock_check.csv, 0 ungradeable) (14 BOM rows total)
+  coverage F-WORDS: 14/14 rows legible
+  ok   F-ENCODE bom.csv: UTF-8 byte-order-mark present — the reader is told
+  ok   F-MPN row 1 (F1): C207010 = 0603L010YR (02_parts/0603L010YR)
+  ok   F-MPN row 2 (C4,C5,C6): C1525 = CL05B104KO5NNNC (02_parts/CL05B104KO5NNNC)
+  ok   F-MPN row 3 (R3,R4,R5,R6): C60490 = RC0402FR-0710KL (02_parts/RC0402FR-0710KL)
+  ok   F-MPN row 4 (C1,C2,C3): C19666 = CL10A475KO8NNNC (02_parts/CL10A475KO8NNNC)
+  ok   F-MPN row 5 (R1,R2): C105872 = RC0402FR-075K1L (02_parts/RC0402FR-075K1L)
+  ok   F-MPN row 6 (J10,J2,J3,J4,J5,J6,J7,J8,J9): C429844 = 901-143-6RFX (02_parts/901-143-6RFX)
+  ok   F-MPN row 7 (J12): C225477 = A2541WV-2P (02_parts/A2541WV-2P)
+  ok   F-MPN row 8 (J11): C2932107 = FTSH-105-01-L-DV-K-P-TR (02_parts/FTSH-105-01-L-DV-K-P-TR)
+  ok   F-MPN row 9 (U1): C5121458 = PE42482A-X (02_parts/PE42482A-X)
+  ok   F-MPN row 10 (D1): C83270 = SMBJ6.0A (02_parts/SMBJ6.0A)
+  ok   F-MPN row 11 (U2): C5452432 = STM32C011F4P6 (02_parts/STM32C011F4P6)
+  ok   F-MPN row 12 (U4): C1972959 = TPD2E2U06DRLR (02_parts/TPD2E2U06DRLR)
+  ok   F-MPN row 13 (U3): C2866134 = TPS7A2433DBVR (02_parts/TPS7A2433DBVR)
+  ok   F-MPN row 14 (J1): C5184243 = USB4105-GF-A-120 (02_parts/USB4105-GF-A-120)
+  ok   F-WORDS all 14 Comment(s) human-readable
+F-LEGIBLE OK: 16 check(s) passed

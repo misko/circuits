@@ -1,0 +1,355 @@
+{
+  "schema": 1,
+  "board": "/tmp/pluto-rf-strict.HYLCbA/projects/pluto-rx2-8way-v5/04_kicad/pluto_rx2_8way_v5.kicad_pcb",
+  "layer": "F.Cu",
+  "ground_net": "GND",
+  "contract": "/tmp/pluto-rf-strict.HYLCbA/projects/pluto-rx2-8way-v5/03_src/rules/rf.yaml",
+  "nets": [
+    "RF_COMMON",
+    "RF_ANT1",
+    "RF_ANT2",
+    "RF_ANT3",
+    "RF_ANT4",
+    "RF_ANT5",
+    "RF_ANT6",
+    "RF_ANT7",
+    "RF_ANT8"
+  ],
+  "band_mm": 1.1,
+  "maximum_aperture_mm": 1.4,
+  "coverage": {
+    "graded": 18,
+    "total": 18,
+    "passed": 18
+  },
+  "worst_aperture_mm": 1.3979,
+  "worst_where": "RF_ANT4 L at s=32.158..33.556",
+  "errors": [],
+  "results": [
+    {
+      "net": "RF_COMMON",
+      "side": "R",
+      "length_mm": 14.503822193059673,
+      "elements": 9,
+      "maximum_aperture_mm": 1.2721221930596727,
+      "lead_in_mm": 0.3120999999999998,
+      "run_out_mm": 1.2721221930596727,
+      "endpoint_refs": [
+        "U1",
+        "J2"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9399999999999995,
+      "minimum_offset_mm": 0.6952852031423169,
+      "maximum_offset_mm": 0.982152737612637,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_COMMON",
+      "side": "L",
+      "length_mm": 14.503822193059673,
+      "elements": 9,
+      "maximum_aperture_mm": 1.2721221930596727,
+      "lead_in_mm": 0.3120999999999998,
+      "run_out_mm": 1.2721221930596727,
+      "endpoint_refs": [
+        "U1",
+        "J2"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9399999999999995,
+      "minimum_offset_mm": 0.6952852031423169,
+      "maximum_offset_mm": 0.9821515584468082,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT1",
+      "side": "R",
+      "length_mm": 22.194973483002528,
+      "elements": 19,
+      "maximum_aperture_mm": 1.003499999999999,
+      "lead_in_mm": 0.38500000000000023,
+      "run_out_mm": 0.30057348300252684,
+      "endpoint_refs": [
+        "J3",
+        "U1"
+      ],
+      "start_endpoint_span_mm": 3.94,
+      "end_endpoint_span_mm": 1.6000000000000014,
+      "minimum_offset_mm": 0.6943188855205836,
+      "maximum_offset_mm": 1.0963986501268577,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT1",
+      "side": "L",
+      "length_mm": 22.194973483002528,
+      "elements": 18,
+      "maximum_aperture_mm": 1.1250999999999998,
+      "lead_in_mm": 0.38500000000000023,
+      "run_out_mm": 0.46837348300252657,
+      "endpoint_refs": [
+        "J3",
+        "U1"
+      ],
+      "start_endpoint_span_mm": 3.94,
+      "end_endpoint_span_mm": 1.6000000000000014,
+      "minimum_offset_mm": 0.69692491141709,
+      "maximum_offset_mm": 1.059398414195528,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT2",
+      "side": "R",
+      "length_mm": 34.9307824944231,
+      "elements": 30,
+      "maximum_aperture_mm": 1.3930000000000007,
+      "lead_in_mm": 0.28700000000000037,
+      "run_out_mm": 1.0571824944230954,
+      "endpoint_refs": [
+        "J4",
+        "U1"
+      ],
+      "start_endpoint_span_mm": 3.94,
+      "end_endpoint_span_mm": 1.6000000000000014,
+      "minimum_offset_mm": 0.6967805293219397,
+      "maximum_offset_mm": 1.0186571541719587,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT2",
+      "side": "L",
+      "length_mm": 34.9307824944231,
+      "elements": 31,
+      "maximum_aperture_mm": 1.3722999999999992,
+      "lead_in_mm": 1.0023000000000004,
+      "run_out_mm": 0.19048249442309384,
+      "endpoint_refs": [
+        "J4",
+        "U1"
+      ],
+      "start_endpoint_span_mm": 3.94,
+      "end_endpoint_span_mm": 1.6000000000000014,
+      "minimum_offset_mm": 0.5748421903187152,
+      "maximum_offset_mm": 1.0722056705688552,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT3",
+      "side": "R",
+      "length_mm": 31.500992047870493,
+      "elements": 25,
+      "maximum_aperture_mm": 1.2301000000000002,
+      "lead_in_mm": 1.0046000000000004,
+      "run_out_mm": 0.8455920478704932,
+      "endpoint_refs": [
+        "J5",
+        "U1"
+      ],
+      "start_endpoint_span_mm": 3.94,
+      "end_endpoint_span_mm": 1.6000000000000014,
+      "minimum_offset_mm": 0.5864894658531556,
+      "maximum_offset_mm": 0.8450527513402407,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT3",
+      "side": "L",
+      "length_mm": 31.500992047870493,
+      "elements": 25,
+      "maximum_aperture_mm": 1.0001000000000007,
+      "lead_in_mm": 0.9956999999999998,
+      "run_out_mm": 0.9844920478704928,
+      "endpoint_refs": [
+        "J5",
+        "U1"
+      ],
+      "start_endpoint_span_mm": 3.94,
+      "end_endpoint_span_mm": 1.6000000000000014,
+      "minimum_offset_mm": 0.6952955629688025,
+      "maximum_offset_mm": 0.7049777977230803,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT4",
+      "side": "R",
+      "length_mm": 36.557344671124774,
+      "elements": 32,
+      "maximum_aperture_mm": 1.2979999999999983,
+      "lead_in_mm": 0.6560000000000001,
+      "run_out_mm": 0.2866446711247761,
+      "endpoint_refs": [
+        "J6",
+        "U1"
+      ],
+      "start_endpoint_span_mm": 3.94,
+      "end_endpoint_span_mm": 1.6000000000000014,
+      "minimum_offset_mm": 0.6970983699833401,
+      "maximum_offset_mm": 0.9388038901093838,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT4",
+      "side": "L",
+      "length_mm": 36.557344671124774,
+      "elements": 33,
+      "maximum_aperture_mm": 1.3979,
+      "lead_in_mm": 0.6560000000000001,
+      "run_out_mm": 0.2866446711247761,
+      "endpoint_refs": [
+        "J6",
+        "U1"
+      ],
+      "start_endpoint_span_mm": 3.94,
+      "end_endpoint_span_mm": 1.6000000000000014,
+      "minimum_offset_mm": 0.694891753915977,
+      "maximum_offset_mm": 0.8303461928623519,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT5",
+      "side": "R",
+      "length_mm": 36.557344671124774,
+      "elements": 31,
+      "maximum_aperture_mm": 1.246644671124777,
+      "lead_in_mm": 0.28659999999999997,
+      "run_out_mm": 1.246644671124777,
+      "endpoint_refs": [
+        "U1",
+        "J7"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9399999999999977,
+      "minimum_offset_mm": 0.6949861945738283,
+      "maximum_offset_mm": 1.0049293852824215,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT5",
+      "side": "L",
+      "length_mm": 36.557344671124774,
+      "elements": 31,
+      "maximum_aperture_mm": 1.246644671124777,
+      "lead_in_mm": 0.28659999999999997,
+      "run_out_mm": 1.246644671124777,
+      "endpoint_refs": [
+        "U1",
+        "J7"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9399999999999977,
+      "minimum_offset_mm": 0.6969504934685222,
+      "maximum_offset_mm": 1.0561865365549745,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT6",
+      "side": "R",
+      "length_mm": 31.500992047870493,
+      "elements": 25,
+      "maximum_aperture_mm": 1.0101000000000004,
+      "lead_in_mm": 0.9956,
+      "run_out_mm": 0.974592047870491,
+      "endpoint_refs": [
+        "U1",
+        "J8"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9400000000000013,
+      "minimum_offset_mm": 0.5864894658531555,
+      "maximum_offset_mm": 0.7055333357827538,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT6",
+      "side": "L",
+      "length_mm": 31.500992047870493,
+      "elements": 24,
+      "maximum_aperture_mm": 1.3656920478704926,
+      "lead_in_mm": 1.2321,
+      "run_out_mm": 1.3656920478704926,
+      "endpoint_refs": [
+        "U1",
+        "J8"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9400000000000013,
+      "minimum_offset_mm": 0.6953749255487619,
+      "maximum_offset_mm": 1.00250810996712,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT7",
+      "side": "R",
+      "length_mm": 34.930818924403106,
+      "elements": 31,
+      "maximum_aperture_mm": 1.0563000000000002,
+      "lead_in_mm": 0.1904999999999999,
+      "run_out_mm": 0.28701892440310317,
+      "endpoint_refs": [
+        "U1",
+        "J9"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9400000000000013,
+      "minimum_offset_mm": 0.6944847309850862,
+      "maximum_offset_mm": 1.0746930589595356,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT7",
+      "side": "L",
+      "length_mm": 34.930818924403106,
+      "elements": 30,
+      "maximum_aperture_mm": 1.3079189244031042,
+      "lead_in_mm": 0.1904999999999999,
+      "run_out_mm": 1.3079189244031042,
+      "endpoint_refs": [
+        "U1",
+        "J9"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9400000000000013,
+      "minimum_offset_mm": 0.6312309788752191,
+      "maximum_offset_mm": 0.997889736033966,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT8",
+      "side": "R",
+      "length_mm": 22.194973483002528,
+      "elements": 18,
+      "maximum_aperture_mm": 1.295,
+      "lead_in_mm": 0.4684999999999997,
+      "run_out_mm": 0.38497348300252554,
+      "endpoint_refs": [
+        "U1",
+        "J10"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9400000000000013,
+      "minimum_offset_mm": 0.6972664187108748,
+      "maximum_offset_mm": 0.8770384986379194,
+      "verdict": "PASS"
+    },
+    {
+      "net": "RF_ANT8",
+      "side": "L",
+      "length_mm": 22.194973483002528,
+      "elements": 18,
+      "maximum_aperture_mm": 1.3561734830025252,
+      "lead_in_mm": 0.4684999999999997,
+      "run_out_mm": 1.3561734830025252,
+      "endpoint_refs": [
+        "U1",
+        "J10"
+      ],
+      "start_endpoint_span_mm": 1.6,
+      "end_endpoint_span_mm": 3.9400000000000013,
+      "minimum_offset_mm": 0.6500000000000057,
+      "maximum_offset_mm": 0.880876465333263,
+      "verdict": "PASS"
+    }
+  ],
+  "verdict": "PASS"
+}

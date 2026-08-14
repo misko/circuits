@@ -1,0 +1,11 @@
+schema: 1
+groups:
+  - id: sma_901_143_6rfx
+    refs: [J2, J3, J4, J5, J6, J7, J8, J9, J10]
+    authority: "Amphenol native exact-code STEP plus Rev C F.Fab/courtyard and five-hole attachment field"
+    model_sha256: 17cbdea22e6ca94e56fb0facf4c7642df6b57fb94bc9835af2bbe51b7e712aba
+    fit_tolerance_mm: 1.0
+    courtyard_containment_tolerance_mm: 0.25
+    search_margin_mm: 8.0
+    render_width: 2400
+    render_height: 1600

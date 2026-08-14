@@ -1,0 +1,37 @@
+{
+  "finished_at": "2026-08-14T21:41:28.959688Z",
+  "inputs": {
+    "rf.yaml": {
+      "sha256": "625acbc4c6f40b1a521c011399c0617fa5ec02817a3bccac31f2b149918b00bb",
+      "size": 8887
+    },
+    "rf_context_bundle.json": {
+      "sha256": "0aa791ae9d54864e2c12abe28ee4e2e51367a1f5948b1853b2ae774337949766",
+      "size": 990
+    },
+    "route.yaml": {
+      "sha256": "8f698f5e1d0301448df7b512c24bc7431eca9919505b93c5a0d25abe64a4782c",
+      "size": 18833
+    }
+  },
+  "outputs": {
+    "report.json": {
+      "sha256": "d13009ad5068c1d1203a9373c92e6435cb7f05786ba99d33892af096f004a498",
+      "size": 4957
+    },
+    "report.txt": {
+      "sha256": "b45eb01d3a137a8f1d5f8796c8e3e15491a464861757329fef4760b9991a2693",
+      "size": 180
+    }
+  },
+  "producer": "rf_check.py source",
+  "producer_version": "1",
+  "run_id": "20260814T214128Z-82389083",
+  "schema": 1,
+  "started_at": "2026-08-14T21:41:28.947185Z",
+  "status": "PASS",
+  "subject": {
+    "raw_sha256": "dcab66d7a9e1080433b39447d11dc1ee76bc3e5744a5614f2b8e5286d8d551bf",
+    "semantic_sha256": "cea1725e094235b8c47a1ef042aa02b8a050c11de6528bfe603c1dff69713de2"
+  }
+}

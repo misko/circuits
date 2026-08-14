@@ -1,0 +1,62 @@
+fab_tier: jlc_4layer_advanced
+
+# Unclassified device-pad escapes use conservative 0.15 mm geometry; every
+# named signal class below remains stricter where its own clearance says so.
+default_clearance: 0.15mm
+default_track_width: 0.18mm
+
+classes:
+  RF_50R:
+    intent: "nine single-ended 50ohm receive-only paths over 100MHz-5.9GHz"
+    nets: [RF_COMMON, RF_ANT1, RF_ANT2, RF_ANT3, RF_ANT4, RF_ANT5, RF_ANT6, RF_ANT7, RF_ANT8]
+    current: "signal only"
+    min_width: 0.295mm
+    clearance: 0.20mm
+    routing: "F.Cu only above uninterrupted L2 GND; actual width/gap comes from the JLC solver, with no layer changes or stubs"
+    verify: "official impedance calculation, returned stackup echo, coupon/TDR if ordered, then VNA at SMA reference planes"
+
+  USB_VBUS:
+    intent: "5V from either USB-C J1 or non-isolated bench header J12 before and after common F1, one source at a time, limited to the board's 20mA service load"
+    nets: [VBUS_RAW, VBUS_PROTECTED]
+    current: "100 mA PPTC hold-rating class at 20C"
+    min_width: 0.30mm
+    clearance: 0.20mm
+    routing: "short connector-to-fuse-to-clamp-to-LDO path; minimize D1 shunt loop"
+    verify: "continuity, loaded voltage, clamp polarity and first-article transient capture"
+
+  PWR_3V3:
+    intent: "quiet internal rail for U1 and U2 only"
+    nets: [3V3]
+    current: "20 mA maximum design load"
+    min_width: 0.25mm
+    clearance: 0.20mm
+    routing: "short local branches from U3; bypass each IC directly to the ground plane"
+    verify: "loaded rail, startup/brownout and ripple measurement"
+
+  TYPEC_CC:
+    intent: "two independent Type-C sink attach channels"
+    nets: [USB_CC1, USB_CC2]
+    current: "signal only"
+    min_width: 0.18mm
+    clearance: 0.18mm
+    routing: "J1-to-U4 first, then separate 5.1k Rd terminations; never short CC1 and CC2"
+    verify: "exact-net review and reversible-plug attach test"
+
+  CONTROL:
+    intent: "U2-to-U1 binary control, reset and SWD"
+    nets: [SW_V1, SW_V2, SW_V3, SW_V4, NRST, SWDIO, SWCLK]
+    current: "signal only"
+    min_width: 0.18mm
+    clearance: 0.18mm
+    routing: "short, referenced and outside RF launch/fanout corridors"
+    verify: "logic-analyzer truth-table, reset and transition test"
+
+  GROUND:
+    intent: "continuous RF, power, ESD and connector return structure"
+    nets: [GND]
+    current: "return plane"
+    min_width: 0.25mm
+    clearance: 0.18mm
+    pour_fed: "solid L2 ground plus top/bottom pours and local stitching; no split beneath RF"
+    routing: "plane-first with direct U1 EP, connector-ground and ESD-return vias"
+    verify: "plane continuity, stitch census, return-path review and DRC"

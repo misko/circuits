@@ -1,0 +1,23 @@
+{
+ "target": "projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14",
+ "summary": {
+  "board": 37,
+  "cpl": 30,
+  "datum_max_mm": 0.0005,
+  "datum_max_ref": "J1",
+  "datum_graded": 30,
+  "unpopulated": 7,
+  "declared": 0,
+  "consigned": 0,
+  "exempt_prefixes": [
+   "FID",
+   "H",
+   "MH"
+  ],
+  "sides": {
+   "top": 30
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

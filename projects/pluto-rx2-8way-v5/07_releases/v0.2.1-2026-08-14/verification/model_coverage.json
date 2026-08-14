@@ -1,0 +1,340 @@
+{
+  "board": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/04_kicad/pluto_rx2_8way_v5.kicad_pcb",
+  "footprints": [
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0603_1608Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0603_1608Metric.step"
+        }
+      ],
+      "ref": "C1",
+      "resolved": true,
+      "value": "4.7uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0603_1608Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0603_1608Metric.step"
+        }
+      ],
+      "ref": "C2",
+      "resolved": true,
+      "value": "4.7uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0603_1608Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0603_1608Metric.step"
+        }
+      ],
+      "ref": "C3",
+      "resolved": true,
+      "value": "4.7uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C4",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C5",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C6",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Diode_SMD.3dshapes/D_SMB.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Diode_SMD.3dshapes/D_SMB.step"
+        }
+      ],
+      "ref": "D1",
+      "resolved": true,
+      "value": "C83270"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Fuse.3dshapes/Fuse_0603_1608Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Fuse.3dshapes/Fuse_0603_1608Metric.step"
+        }
+      ],
+      "ref": "F1",
+      "resolved": true,
+      "value": "C207010"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.step"
+        }
+      ],
+      "ref": "J1",
+      "resolved": true,
+      "value": "C5184243"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J10",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Samtec_FTSH_105_01_L_DV_K_P_TR-JLC-C2932107.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Samtec_FTSH_105_01_L_DV_K_P_TR-JLC-C2932107.step"
+        }
+      ],
+      "ref": "J11",
+      "resolved": true,
+      "value": "C2932107"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.step"
+        }
+      ],
+      "ref": "J12",
+      "resolved": true,
+      "value": "C225477"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J2",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J3",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J4",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J5",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J6",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J7",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J8",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step"
+        }
+      ],
+      "ref": "J9",
+      "resolved": true,
+      "value": "C429844"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R1",
+      "resolved": true,
+      "value": "5.1k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R2",
+      "resolved": true,
+      "value": "5.1k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R3",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R4",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R5",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R6",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/Psemi_PE42482A-X-JLC-C5121458.wrl",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/Psemi_PE42482A-X-JLC-C5121458.wrl"
+        }
+      ],
+      "ref": "U1",
+      "resolved": true,
+      "value": "C5121458"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Package_SO.3dshapes/TSSOP-20_4.4x6.5mm_P0.65mm.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Package_SO.3dshapes/TSSOP-20_4.4x6.5mm_P0.65mm.step"
+        }
+      ],
+      "ref": "U2",
+      "resolved": true,
+      "value": "C5452432"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Package_TO_SOT_SMD.3dshapes/SOT-23-5.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Package_TO_SOT_SMD.3dshapes/SOT-23-5.step"
+        }
+      ],
+      "ref": "U3",
+      "resolved": true,
+      "value": "C2866134"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3dmodels/kicad-10.0.4/Package_TO_SOT_SMD.3dshapes/SOT-553.step",
+          "resolved": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/03_src/lib/3dmodels/kicad-10.0.4/Package_TO_SOT_SMD.3dshapes/SOT-553.step"
+        }
+      ],
+      "ref": "U4",
+      "resolved": true,
+      "value": "C1972959"
+    }
+  ],
+  "gate": "MODEL-COVERAGE",
+  "missing": [],
+  "population": "fitted footprints (BOM, non-DNP, non-board-only)",
+  "resolved": 30,
+  "total": 30
+}

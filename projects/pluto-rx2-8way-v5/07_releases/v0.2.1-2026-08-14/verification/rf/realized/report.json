@@ -1,0 +1,254 @@
+{
+  "bend_findings": [
+    {
+      "at_mm": [
+        64.751999,
+        44.5
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_COMMON",
+      "radius_mm": 16.226383321307303,
+      "radius_width_multiple": 55.00468922477052
+    },
+    {
+      "at_mm": [
+        64.998,
+        36.5
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_COMMON",
+      "radius_mm": 16.229082308066616,
+      "radius_width_multiple": 55.01383833242921
+    },
+    {
+      "at_mm": [
+        50.133,
+        36.423
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT1",
+      "radius_mm": 1.0001000449955026,
+      "radius_width_multiple": 3.3901696440525515
+    },
+    {
+      "at_mm": [
+        63.617,
+        44.577
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT1",
+      "radius_mm": 1.00006204807502,
+      "radius_width_multiple": 3.3900408409322713
+    },
+    {
+      "at_mm": [
+        35.171,
+        36.385
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT2",
+      "radius_mm": 1.001701617249368,
+      "radius_width_multiple": 3.3955987025402306
+    },
+    {
+      "at_mm": [
+        61.504,
+        47.232
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT2",
+      "radius_mm": 0.9883086208265119,
+      "radius_width_multiple": 3.3501987146661425
+    },
+    {
+      "at_mm": [
+        36.487,
+        65.956999
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT4",
+      "radius_mm": 0.9988006057266914,
+      "radius_width_multiple": 3.3857647651752254
+    },
+    {
+      "at_mm": [
+        61.513,
+        49.293
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT4",
+      "radius_mm": 0.9987956998305565,
+      "radius_width_multiple": 3.3857481350188356
+    },
+    {
+      "at_mm": [
+        68.487,
+        49.293
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT5",
+      "radius_mm": 0.9988006057266914,
+      "radius_width_multiple": 3.3857647651752254
+    },
+    {
+      "at_mm": [
+        93.513,
+        65.956999
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT5",
+      "radius_mm": 0.9987956998305525,
+      "radius_width_multiple": 3.3857481350188223
+    },
+    {
+      "at_mm": [
+        68.496,
+        47.232
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT7",
+      "radius_mm": 0.9883051805995984,
+      "radius_width_multiple": 3.3501870528799946
+    },
+    {
+      "at_mm": [
+        94.829,
+        36.385
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT7",
+      "radius_mm": 1.0017335623807355,
+      "radius_width_multiple": 3.3957069911211377
+    },
+    {
+      "at_mm": [
+        66.382999,
+        44.577
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT8",
+      "radius_mm": 1.0001000449955026,
+      "radius_width_multiple": 3.3901696440525515
+    },
+    {
+      "at_mm": [
+        79.867,
+        36.423
+      ],
+      "exception": null,
+      "kind": "arc",
+      "net": "RF_ANT8",
+      "radius_mm": 1.00006204807502,
+      "radius_width_multiple": 3.3900408409322713
+    }
+  ],
+  "board": "/tmp/pluto-main-integration-20260814/projects/pluto-rx2-8way-v5/04_kicad/pluto_rx2_8way_v5.kicad_pcb",
+  "board_sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+  "coverage": {
+    "graded": 9,
+    "total": 9
+  },
+  "errors": [],
+  "geometry_policy": "blocking",
+  "mode": "realized",
+  "nets": [
+    "RF_COMMON",
+    "RF_ANT1",
+    "RF_ANT2",
+    "RF_ANT3",
+    "RF_ANT4",
+    "RF_ANT5",
+    "RF_ANT6",
+    "RF_ANT7",
+    "RF_ANT8"
+  ],
+  "routes": [
+    {
+      "arcs": 2,
+      "bends": 2,
+      "length_mm": 14.503822193059673,
+      "net": "RF_COMMON",
+      "primitives": 5,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "bends": 2,
+      "length_mm": 22.194973483002528,
+      "net": "RF_ANT1",
+      "primitives": 5,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "bends": 2,
+      "length_mm": 34.9307824944231,
+      "net": "RF_ANT2",
+      "primitives": 5,
+      "vias": 0
+    },
+    {
+      "arcs": 0,
+      "bends": 0,
+      "length_mm": 31.500992047870493,
+      "net": "RF_ANT3",
+      "primitives": 1,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "bends": 2,
+      "length_mm": 36.557344671124774,
+      "net": "RF_ANT4",
+      "primitives": 5,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "bends": 2,
+      "length_mm": 36.557344671124774,
+      "net": "RF_ANT5",
+      "primitives": 5,
+      "vias": 0
+    },
+    {
+      "arcs": 0,
+      "bends": 0,
+      "length_mm": 31.500992047870493,
+      "net": "RF_ANT6",
+      "primitives": 1,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "bends": 2,
+      "length_mm": 34.930818924403106,
+      "net": "RF_ANT7",
+      "primitives": 5,
+      "vias": 0
+    },
+    {
+      "arcs": 2,
+      "bends": 2,
+      "length_mm": 22.194973483002528,
+      "net": "RF_ANT8",
+      "primitives": 5,
+      "vias": 0
+    }
+  ],
+  "schema": 1,
+  "verdict": "PASS"
+}

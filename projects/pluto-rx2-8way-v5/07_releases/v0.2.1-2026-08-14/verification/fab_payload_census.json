@@ -1,0 +1,17 @@
+{
+  "release": "projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14",
+  "fails": [],
+  "oks": [
+    "F-POUR B.Cu 1 zone(s) -> 1 G36 region(s)",
+    "F-POUR F.Cu 1 zone(s) -> 8 G36 region(s)",
+    "F-POUR In1.Cu 1 zone(s) -> 1 G36 region(s)",
+    "F-POUR In2.Cu 1 zone(s) -> 1 G36 region(s)",
+    "F-IDENT In2.Cu == In1.Cu at 71726B, but both carry pour (1/1 G36) \u2014 symmetric planes, not a lost pour",
+    "F-IDENT 4 copper gerbers all distinct"
+  ],
+  "coverage": {
+    "F-POUR": "4/4 zone-bearing copper layers",
+    "F-IDENT": "4/4 copper gerbers compared"
+  },
+  "na": null
+}

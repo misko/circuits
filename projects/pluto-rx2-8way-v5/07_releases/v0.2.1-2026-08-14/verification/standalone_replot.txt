@@ -1,0 +1,25 @@
+Standalone replot comparison — Pluto RX2 eight-way v5 v0.2.1
+source: release source/pluto_rx2_8way_v5.kicad_pcb
+reference: release fab/pluto_rx2_8way_v5_gerbers.zip
+normalization: KiCad CreationDate and human Created-by timestamps only
+PASS bom.csv byte-identical
+PASS bom_echo_gate.txt byte-identical
+PASS cpl.csv byte-identical
+PASS order_notes.txt byte-identical
+PASS rotation_human_gate.txt byte-identical
+PASS pluto_rx2_8way_v5-B_Cu.gbl timestamp-stripped
+PASS pluto_rx2_8way_v5-B_Mask.gbs timestamp-stripped
+PASS pluto_rx2_8way_v5-B_Paste.gbp timestamp-stripped
+PASS pluto_rx2_8way_v5-B_Silkscreen.gbo timestamp-stripped
+PASS pluto_rx2_8way_v5-Edge_Cuts.gm1 timestamp-stripped
+PASS pluto_rx2_8way_v5-F_Cu.gtl timestamp-stripped
+PASS pluto_rx2_8way_v5-F_Mask.gts timestamp-stripped
+PASS pluto_rx2_8way_v5-F_Paste.gtp timestamp-stripped
+PASS pluto_rx2_8way_v5-F_Silkscreen.gto timestamp-stripped
+PASS pluto_rx2_8way_v5-In1_Cu.g1 timestamp-stripped
+PASS pluto_rx2_8way_v5-In2_Cu.g2 timestamp-stripped
+PASS pluto_rx2_8way_v5-NPTH.drl timestamp-stripped
+PASS pluto_rx2_8way_v5-PTH.drl timestamp-stripped
+PASS pluto_rx2_8way_v5_gerbers.zip 13/13 normalized members
+result: failures=0
+PASS fabrication package replay
