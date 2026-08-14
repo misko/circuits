@@ -20,6 +20,7 @@ green check.
 """
 import argparse
 import re
+import zlib
 from pathlib import Path
 
 import pcbnew
@@ -35,6 +36,18 @@ args = ap.parse_args()
 
 src = Path(args.krt_file).read_text(encoding="utf-8-sig")
 netname = dict(re.findall(r'\(net (\d+) "([^"]+)"\)', src))
+# M-REPRO: every imported track/via receives a KiCad UUID.  Without an
+# explicit seed, two imports of the same promoted KRT chain mint different
+# identities; KiCad then serialises the copper in a different order and the
+# zone filler can choose a different (though geometrically equivalent)
+# tessellation.  That made clean replays of Pluto v5 differ in all four copper
+# Gerbers and by six nanometre-scale F.Cu polygon vertices.  Namespace the
+# deterministic stream by the base board, independently from board generation
+# and route preparation.
+uuid_seed = zlib.crc32(f"{Path(args.base).stem}:route-import".encode())
+pcbnew.KIID.SeedGenerator(uuid_seed)
+print(f"UUID generator seeded: crc32('{Path(args.base).stem}:route-import') = "
+      f"{uuid_seed} (M-REPRO import)")
 board = pcbnew.LoadBoard(args.base)
 LAY = {"F.Cu": pcbnew.F_Cu, "B.Cu": pcbnew.B_Cu,
        "In1.Cu": pcbnew.In1_Cu, "In2.Cu": pcbnew.In2_Cu,

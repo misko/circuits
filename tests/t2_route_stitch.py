@@ -466,14 +466,19 @@ def t_stitch_preserves_nodes():
           f"{sorted(set(before.items()) ^ set(after.items()))[:10]}")
 
 
-@test("stitching twice agrees on CONNECTIVITY, not on bytes")
+@test("stitching twice reproduces byte-identical boards and connectivity")
 def t_stitch_determinism():
-    outs = []
+    boards, nodes = [], []
     for _ in (1, 2):
         d, p = scratch()
         must_pass(stitch(p), "stitch")
-        outs.append(board_nodes(d / "04_kicad" / f"{STEM}.kicad_pcb"))
-    check(outs[0] == outs[1], "two stitch runs produced different connectivity")
+        board = d / "04_kicad" / f"{STEM}.kicad_pcb"
+        boards.append(board.read_bytes())
+        nodes.append(board_nodes(board))
+    check(nodes[0] == nodes[1],
+          "two stitch runs produced different connectivity")
+    eq(boards[0], boards[1],
+       "identical stitch inputs did not reproduce byte-identical boards")
 
 
 @test("a removal pass is followed by a fresh-interpreter barrier")
@@ -704,6 +709,38 @@ def t_import_source_vias():
     contains(r.out, "imported 0 segments, 0 vias", "source-via dedupe")
     eq(via_nets(board).get("GND", 0), 1,
        "the inherited source via was duplicated or removed")
+
+
+@test("import_krt is byte-deterministic and mints no duplicate UUIDs")
+def t_import_krt_uuid_determinism():
+    """Imported copper used KiCad's process-random UUID stream.  Two clean
+    imports had identical coordinates/nets but different save order; that in
+    turn perturbed zone-fill tessellation and changed fabrication bytes.
+    Identical base + chain inputs must now produce byte-identical boards."""
+    d = tmpdir("t2_import_repro_")
+    base = _cached_board()
+    chain = d / "chain.kicad_pcb"
+    chain.write_text(
+        '(kicad_pcb\n'
+        '  (net 0 "")\n'
+        '  (net 1 "GND")\n'
+        '  (segment (start 40.0 40.0) (end 41.0 40.0) (width 0.2) '
+        '(layer "F.Cu") (net "GND"))\n'
+        '  (segment (start 41.0 40.0) (end 41.0 41.0) (width 0.2) '
+        '(layer "F.Cu") (net "GND"))\n'
+        '  (via (at 41.0 41.0) (size 0.5) (drill 0.2) '
+        '(layers "F.Cu" "B.Cu") (net "GND"))\n'
+        ')\n')
+    outs = [d / "first.kicad_pcb", d / "second.kicad_pcb"]
+    for out in outs:
+        must_pass(run([KPY, SCRIPTS / "import_krt.py", chain, base, out,
+                       "--no-fill"]), "deterministic import_krt replay")
+    eq(outs[0].read_bytes(), outs[1].read_bytes(),
+       "identical import inputs did not reproduce byte-identical boards")
+    uuids = re.findall(r'\(uuid "([0-9a-f-]+)"\)',
+                       outs[0].read_text(encoding="utf-8-sig"))
+    eq(len(uuids), len(set(uuids)),
+       "deterministic import created duplicate KiCad UUIDs")
 
 
 @test("import_krt REFUSES inherited source-via geometry drift",

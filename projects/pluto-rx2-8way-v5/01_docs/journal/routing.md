@@ -534,3 +534,29 @@ while never permitting an ignore rule to hide an explicitly declared input.
 - Fabrication must begin from the sealed identity, create a staged release,
   and stop again for exact Gerber/RF, BOM/CPL/rotation, JLC process and uploader
   review. The layout seal is a permission to prepare that package, not to buy it.
+
+## 2026-08-13 — final clean-replay UUID closure
+
+A genuinely clean hardware-release worktree exposed two reproducibility gaps.
+First, `rebuild_reuse.sh` consumed the ignored
+`06_build/pre_route/twin_overlay.md` without producing it. The strict pre-route
+fab, JLC twin and overlay producers recreated the exact subject and the review
+gate then passed 4/4; IMP-098 records the missing dependency edge.
+
+Second, the first full replay reached DRC 0/0/0 but did not reproduce the
+committed PCB bytes. An independent semantic census proved exact equality of
+all 880 copper objects, 36 footprint placements and 171 pad/net geometries.
+However, the PCB hashes differed and only 9/13 replotted fabrication members
+were timestamp-normalized byte-identical. The four copper Gerbers differed in
+object order, and F.Cu contained six extra nanometre-scale fill vertices.
+
+The base generator and r0 preparation were already seeded, but the KRT import
+and the multi-interpreter stitch passes still minted random UUIDs. The shared
+pipeline now uses disjoint deterministic streams for route import, optional
+tap attempts, and every stitch resume index. A focused regression requires two
+identical imports to be byte-identical with no duplicate UUIDs. Two complete
+post-fix v5 replays both passed DRC 0/0/0 and produced byte-identical canonical
+PCB SHA-256
+`43689fe44daa2bd437979c573e78da39a51aacd9d4664a24e7e29bc1c22ea0b3`.
+IMP-099 records the general rule: determinism must reach the final object-
+creating writer, not stop at the first generator.

@@ -3411,3 +3411,70 @@ Recommended execution order for future boards:
   other.
 - history: 2026-08-13 — found and fixed during hardware-only release audit;
   firmware was not read or invoked.
+
+## IMP-098 — make clean replay produce every ignored review prerequisite it consumes
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 hardware-release clean replay, 2026-08-13
+- evidence: a fresh worktree at committed source stopped at placement review
+  because `06_build/pre_route/twin_overlay.md` was absent. The replay driver
+  requires and freshness-checks that derived report, but neither the driver nor
+  an earlier declared stage produced it; the report is correctly ignored as a
+  build artifact. Running the strict pre-route fab exporter, JLC twin producer
+  and overlay grader created it, after which the unchanged replay passed all
+  four placement-review bindings and continued to DRC 0/0/0.
+- general rule: a clean-build driver may consume an ignored artifact only when
+  its dependency graph contains a deterministic producer edge before the first
+  consumer. A freshness check is not a producer, and a file left behind by a
+  prior interactive run is not reproducibility evidence.
+- intended landing point: express the pre-route twin and overlay as an explicit
+  pipeline stage with declared source/config/model inputs, bounded execution,
+  outputs and review invalidators. `rebuild_reuse.sh` should run that stage—or
+  invoke one checkpoint-aware producer—before `pre_route_review_check.py`.
+  Keep the review itself human-authored and committed; only its derived subject
+  and machine report are regenerated.
+- completion evidence required: delete or use a clean checkout with no
+  `06_build/pre_route`; one command must reproduce the twin/report and reach
+  the placement gate. A missing model, stale board hash, or failed overlay must
+  still stop before route import. A stale ignored report must never satisfy the
+  gate without its producer running or authenticating its inputs.
+- recommendation: implement before the next board's placement-review replay.
+  V5's exact prerequisite was regenerated and verified, so this is no longer a
+  blocker for its hardware release.
+- history: 2026-08-13 — proposed after the first genuinely clean v5 release
+  replay exposed a hidden dependency on an ignored prior-run artifact.
+
+## IMP-099 — seed every late KiCad writer, not only board and route preparation
+
+- status: implemented
+- observed: Pluto RX2 8-way v5 hardware-release reproducibility proof,
+  2026-08-13
+- evidence: the committed and first clean-replayed boards had identical
+  electrical copper multisets (880/880 items), footprint placements (36/36)
+  and pad geometry/net assignments (171/171), yet their PCB SHA-256 digests
+  differed. Replotting showed 9/13 fabrication members identical after timestamp
+  normalization; all four copper Gerbers differed. The cause was unseeded UUID
+  creation in KRT import and multi-process stitch writers. KiCad save order
+  changed, and F.Cu fill differed by six nanometre-scale tessellation vertices.
+- general rule: deterministic generation ends at the last object-creating
+  writer. Seeding only the base-board generator or route-prep stage is
+  insufficient when import, taps, stitching, fencing, island healing, or
+  barrier-resumed processes can mint tracks/vias. Each writer needs a stable,
+  disjoint namespace; barrier resumptions must include the authenticated pass
+  index so they neither randomize nor reuse a prior writer's UUID stream.
+- landed at: `import_krt.py` now seeds a board-namespaced `route-import` UUID
+  stream. `route_and_stitch_generic.py` provides phase-namespaced seeding for
+  optional tap attempts and each stitch interpreter/resume index. A regression
+  imports the same chain twice and requires byte-identical boards with no
+  duplicate UUIDs.
+- completion evidence: two complete v5 clean replays both passed DRC 0/0/0 and
+  produced byte-identical PCB SHA-256
+  `43689fe44daa2bd437979c573e78da39a51aacd9d4664a24e7e29bc1c22ea0b3`.
+  The focused import regression passes. Final release export will recheck all
+  Gerber/drill members from this canonical board.
+- recommendation: carry immediately; implemented for the shared pipeline and
+  exercised by v5 before sealing. Retain semantic copper comparison as a useful
+  diagnostic, but do not treat it as a substitute for deterministic source and
+  fabrication bytes.
+- history: 2026-08-13 — found, generalized, fixed and double-replay verified
+  before the v5 hardware release was assembled.

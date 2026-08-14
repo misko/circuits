@@ -824,6 +824,24 @@ def _sha256(path):
     return h.hexdigest()
 
 
+def _seed_uuid_stream(pcbnew, board_stem, phase):
+    """Seed KiCad object identities for one deterministic pipeline phase.
+
+    Board generation and route preparation already seed their UUID streams,
+    but imported KRT copper, optional taps and stitch/fence vias are created
+    by later processes.  Leaving any of those streams random changes KiCad's
+    save order and can perturb filled-zone tessellation, so a clean replay no
+    longer reproduces its own board/fabrication bytes.  A phase namespace also
+    prevents separate writers from drawing the same UUID sequence.
+    """
+    namespace = f"{board_stem}:{phase}"
+    seed = zlib.crc32(namespace.encode())
+    pcbnew.KIID.SeedGenerator(seed)
+    print(f"UUID generator seeded: crc32('{namespace}') = {seed} "
+          f"(M-REPRO {phase})")
+    return seed
+
+
 def _atomic_json(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -1493,6 +1511,8 @@ def cmd_taps(cfg):
         reattempt is a clean re-route in a new ORDER — not a partial retry
         that keeps an earlier tap's blocking copper. Returns (board, failed
         indices)."""
+        attempt = "retry" if tag else "primary"
+        _seed_uuid_stream(pcbnew, target.stem, f"route-taps-{attempt}")
         bb = pcbnew.LoadBoard(str(target))
         tkk = Toolkit(bb, clr)
         failed = []
@@ -4587,6 +4607,18 @@ def cmd_stitch(cfg):
     MM = pcbnew.ToMM
     _stitch_tier_geometry(cfg)     # tier floors BEFORE any via is emitted
     target = rel(cfg, cfg["project"]["board"])
+
+    # Stitch can cross explicit fresh-interpreter barriers after removals.
+    # Each process must have a stable but DISJOINT UUID stream: reseeding every
+    # process with one constant would collide with objects emitted before the
+    # barrier, while leaving the stream random makes a clean replay unstable.
+    # The authenticated resume index is the deterministic phase namespace.
+    state_path = Path(str(target) + Ctx.STATE_SUFFIX)
+    resume_hint = 0
+    if state_path.is_file():
+        resume_hint = int(json.loads(
+            state_path.read_text(encoding="utf-8-sig")).get("resume", 0))
+    _seed_uuid_stream(pcbnew, target.stem, f"route-stitch-{resume_hint}")
     ctx = Ctx(cfg, target)
     order = get(cfg, "stitch.passes", DEFAULT_PASSES)
     unknown = [p for p in order if p not in PASSES]
@@ -4608,6 +4640,9 @@ def cmd_stitch(cfg):
                   str(cfg["_path"]), "--root", str(cfg["_root"])])
 
     start = ctx.load_state()
+    if start != resume_hint:
+        die(f"stitch resume state changed while loading: expected "
+            f"{resume_hint}, got {start}")
     for i in range(start, len(order)):
         name = order[i]
         if name in ("reload", "fresh_reload"):

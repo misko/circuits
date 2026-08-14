@@ -221,4 +221,14 @@ day and fab exactly one of them.
   copy so the exact PE42482 JLC STEP could substitute for its render-only WRL.
   The canonical board did not move; IMP-095/096 capture review dispatch and
   purpose-derived release-document improvements.
+- Exposed and recorded a clean-checkout dependency gap: the reuse driver
+  required an ignored pre-route twin-overlay report that it did not produce.
+  Regenerating the strict twin/report restored the 4/4 placement review gate;
+  IMP-098 carries the general producer-edge fix.
+- Closed final-board byte nondeterminism in the shared KRT import and stitch
+  writers. Semantic comparison had already proved identical copper,
+  footprints and pads, but random late UUIDs changed copper-Gerber ordering
+  and six nanometre-scale F.Cu fill vertices. Phase/resume-namespaced UUID
+  streams plus a regression now make two full v5 replays byte-identical at PCB
+  SHA-256 `43689fe44daa`; both replays finish DRC 0/0/0 (IMP-099).
 Released: no
