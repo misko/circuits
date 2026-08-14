@@ -1,5 +1,5 @@
 status: in-progress
-current_release: no
+current_release: 07_releases/v0.1.0-2026-08-13
 commission_basis: clean-room reconstruction with eight user-authoritative decisions
 
 # Commission brief — pluto-rx2-8way-v5
@@ -28,13 +28,13 @@ protected TPS7A2433 3.3 V architecture are selected for schematic entry.
 
 | # | Criterion | Source | Status |
 |---|---|---|---|
-| G1 | Exactly one Pluto Plus RX port can be connected to no more than one selected antenna among eight ports. | D1 / D7 | unmet |
-| G2 | Every selected path operates from 100 MHz through 5.9 GHz at user-approved insertion-loss, flatness and return-loss limits, measured at approved SMA reference planes. | D2 / D3 | unmet |
-| G3 | Unselected paths meet user-approved common-to-off and antenna-to-antenna isolation limits across the full band. | D1 / D2 | unmet |
+| G1 | Exactly one Pluto Plus RX port can be connected to no more than one selected antenna among eight ports. | D1 / D7 | met in the sealed hardware design |
+| G2 | Every selected path operates from 100 MHz through 5.9 GHz at user-approved insertion-loss, flatness and return-loss limits, measured at approved SMA reference planes. | D2 / D3 | partial — design targets and test plan sealed; first-article VNA evidence owed |
+| G3 | Unselected paths meet user-approved common-to-off and antenna-to-antenna isolation limits across the full band. | D1 / D2 | partial — topology and test limits sealed; first-article VNA evidence owed |
 | G4 | The selector and Pluto RX input survive the user-approved RF input envelope and meet approved compression/intermodulation limits. | D1 | unmet |
-| G5 | An onboard preprogrammed controller autonomously cycles populated antenna states using approved predetermined unique dwell durations; downstream analysis can unambiguously infer state from timing, and reset/power/fault behavior meets approved limits. | D1 / D6 | unmet |
-| G6 | The board operates from an independent USB-C 5 V input without taking operating power from or back-powering the Pluto Plus; its remaining input envelope and protection limits are approved. | D1 / D7 | unmet |
-| G7 | Common and antenna RF interfaces use SMA, with gender, edge/vertical orientation, cable/stacking arrangement and mechanical envelope approved before floorplanning. | D3 | unmet |
+| G5 | An onboard preprogrammed controller autonomously cycles populated antenna states using approved predetermined unique dwell durations; downstream analysis can unambiguously infer state from timing, and reset/power/fault behavior meets approved limits. | D1 / D6 | partial — controller and keyed SWD hardware sealed; firmware and behavioral qualification excluded by D16/D17 |
+| G6 | The board operates from an independent USB-C 5 V input without taking operating power from or back-powering the Pluto Plus; its remaining input envelope and protection limits are approved. | D1 / D7 | partial — power-only architecture reviewed; first-article power test owed |
+| G7 | Common and antenna RF interfaces use SMA, with gender, edge/vertical orientation, cable/stacking arrangement and mechanical envelope approved before floorplanning. | D3 | met — D12/D14 lock exact connector and approved edge arrangement |
 | G8 | PCB fabrication and the approved assembly scope pass JLCPCB DFM using a selected controlled-impedance stackup and verified order-time component availability. | D4 / D8 | partial — stackup/tier selected; order echo owed |
 | G9 | A first article passes a user-approved VNA/RF test plan covering all populated paths and required states with defined calibration planes, instruments and retained results. | D1–D4 | unmet |
 
