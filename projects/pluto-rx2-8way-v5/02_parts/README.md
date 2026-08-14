@@ -2,7 +2,7 @@
 
 The selected BOM has one directory per exact orderable MPN. Manufacturer PDFs
 or explicitly qualified exact-document captures are committed beside the
-extracted facts except for the remaining explicit case below.
+extracted facts. The one non-origin byte source is explicit below.
 
 - `901-143-6RFX`: the current exact Amphenol product page identifies customer
   drawing `SMA6252A2-3GT50G-50`; the official asset endpoint returned HTTP 403
@@ -13,12 +13,9 @@ extracted facts except for the remaining explicit case below.
   transfer changes no form, fit, function, specification, material or process.
   This closes drawing availability for footprint authoring without claiming
   that the mirror bytes came from Amphenol's server.
-- `STM32C011F4P6`: the committed ST document is DS13866 Rev 4 obtained from the
-  JLC listing because ST's Rev 5 download endpoint rejected the local client.
-  Pinout, supply, HSI48 error, BOR and decoupling facts used here were
-  independently cross-checked against ST's current DS13866 Rev 5 online on
-  2026-08-13. Replace the local copy with Rev 5 before release; no relevant
-  TSSOP-20 pin or package change was observed.
-
-The remaining ST deviation is a visible blocker at design freeze. It does not
-authorize release from weaker evidence.
+- `STM32C011F4P6`: ST's current official DS13866 Rev 5, February 2026, is the
+  digest-selected local authority. The earlier file obtained through the JLC
+  listing identified itself as Rev 3 despite its legacy `Rev4` filename; it is
+  retained as `DS13866-Rev3.pdf` for audit history only. A focused comparison
+  found no change to the TSSOP-20 pin sequence, BOR4 thresholds, HSI48 bounds
+  or package dimensions consumed by this design.

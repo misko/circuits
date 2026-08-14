@@ -170,4 +170,8 @@ day and fab exactly one of them.
   uploader refusal stops this release and requires a separately generated
   hand-solder population contract/CPL. A-POP's nine THT-placeability findings
   are closed; only the expected not-yet-generated release MANIFEST remains.
+- Replaced the misleading local `DS13866-Rev4.pdf` (internally Rev 3) with
+  correctly named Rev 3 history plus ST's current official DS13866 Rev 5 bytes.
+  The current digest is now dossier authority; a focused comparison confirms
+  no change to the TSSOP-20 pin map, BOR4, HSI48 or package facts used here.
 Released: no

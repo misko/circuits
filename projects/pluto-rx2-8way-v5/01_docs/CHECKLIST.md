@@ -4,6 +4,8 @@
 
 - [x] architecture ADRs accepted and exact part codes selected
 - [x] exact-code manufacturer facts and dated two-source/JLC checks recorded
+- [x] current official ST DS13866 Rev 5 is retained and digest-selected; the
+      prior misnamed Rev 3 is historical only, with consumed facts rechecked
 - [x] power, surge/capacitor, module-first, package-escape and source-rule gates pass
 - [x] fail-safe RF truth table and framed dwell decoder contract are executable
 - [x] JLC four-layer stackup and live-calculator RF source geometry retained: 0.295-mm width / 0.200-mm CPWG gap / 49.972 ohm
