@@ -1,0 +1,4 @@
+JLCPCB VIA PROCESS — GENERATED; DO NOT RE-TYPE
+Source: /tmp/pluto-v5-hardware-seal-ea0b8488/projects/pluto-rx2-8way-v5/03_src/rules/assembly.yaml
+Order remark: Copper-paste fill and copper cap the complete 0.25 mm drill family only: these are the nine 0.45/0.25 mm U1 exposed-pad vias. Do not fill or cap the ordinary 0.20 mm drill routing, stitching, fence, or plane-return vias.
+Uploader confirmation required: YES

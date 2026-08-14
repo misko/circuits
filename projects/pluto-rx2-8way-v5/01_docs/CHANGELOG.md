@@ -7,6 +7,19 @@ One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 Most revisions never ship. That is normal: a board can go v4.4 → v4.10 in a
 day and fab exactly one of them.
 
+## v0.1.1 — 2026-08-14  [docs-only publication correction]
+- Superseded v0.1.0 without changing any fabrication, source or 3D payload.
+- Replaced the prose-only reserved `release_mode` value with the structured
+  `docs-only` mode and named the exact v0.1.0 predecessor so publication can
+  replay the strong byte-identity assertion.
+- Reissued the two exact-board render/layout review records with the canonical
+  `pluto-rx2-8way-v5` project slug in `subject:`. Their reviewed board hash,
+  findings and order hold are unchanged.
+- Retained `DESIGN: PASS`, `SOURCING: CLEAR` and `DO-NOT-ORDER`; JLC uploader
+  confirmation and physical first-article testing remain mandatory.
+
+Released: 07_releases/v0.1.1-2026-08-14
+
 ## v0.1.0 — 2026-08-13  [hardware-only design archive]
 - Entered hardware-only release staging after D16/D17 explicitly stopped
   firmware generation. The archive retains the STM32 and keyed SWD hardware
