@@ -25,9 +25,30 @@ via_process:
     the ordinary 0.20 mm drill routing, stitching, fence, or plane-return vias.
   uploader_confirmation_required: true
 
+# J2-J10 are true paste-free THT connectors and therefore cannot be executed
+# by the top-side SMT/reflow line represented by the CPL alone.  They remain on
+# the CPL because this release explicitly buys JLCPCB's connector through-hole
+# service.  If the uploader does not mark exact C429844 as wave/manual assembly,
+# this release must stop: the fallback is a separately generated hand-solder
+# release with J2-J10 declared not_assembled and removed from its CPL.
+through_hole:
+  process: >-
+    JLCPCB through-hole connector assembly (wave/manual assembly), required for
+    this release and selected at order time for every J2-J10 placement
+  refs: [J2, J3, J4, J5, J6, J7, J8, J9, J10]
+  evidence: >-
+    2026-08-13 exact JLC catalog query: C429844 = Amphenol 901-143-6RFX,
+    componentSpecificationEn Plugin, extended library, stockCount 951 for nine
+    required. JLCPCB PCB Assembly FAQs (last updated 2025-11-24) state that
+    through-hole connectors are supported and parts marked for wave soldering
+    are manually assembled. Catalog stock and Plugin classification do not
+    prove order allocation: the uploader must echo exact C429844 as accepted
+    wave/manual assembly before payment, otherwise stop and create a distinct
+    hand-solder release rather than silently dropping these connectors.
+
 assembly_scope:
   smt: turnkey_JLC
-  tht: "J2-J10 wave solder through JLC if the uploader confirms C429844; otherwise exact connectors become controlled hand-solder items"
+  tht: "J2-J10 use the required JLCPCB through-hole wave/manual assembly line; uploader refusal stops this release"
   bottom_population: none
   connectors: all_populated
 
@@ -52,4 +73,5 @@ order_time_requirements:
   - confirm U1 MSL handling and assembly profile against actual JLC listing
   - confirm J11 pin-1 orientation and keyed-cable compatibility in the JLC placement preview
   - confirm nine SMA connectors are accepted for wave soldering and inspect their joint fillets
+  - if exact C429844 is not echoed as wave/manual assembly, stop this release and generate a separate hand-solder population contract and CPL
   - approve polarity/orientation render for D1, J1, U1 and every SMA before payment

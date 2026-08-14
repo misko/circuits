@@ -52,7 +52,7 @@ day and fab exactly one of them.
 - Commissioned a 100 x 100 mm four-layer unrouted placement with nine outward
   right-angle SMAs in the PE42482's cyclic package order, four M3 torque
   points, three fiducials and an exact south-edge power-only USB-C datum.
-- Justified the advanced JLC option solely by the nine filled/capped 0.45/0.20
+- Justified the advanced JLC option solely by the nine filled/capped 0.45/0.25
   mm RF-ground vias in U1's exposed pad; ordinary routing does not depend on
   advanced-width traces or small vias.
 - Closed the first placement grind before routing: exact-package clearance,
@@ -164,4 +164,10 @@ day and fab exactly one of them.
   0.45/0.25 mm while all 629 ordinary vias remain 0.45/0.20 mm. The complete
   replay removes exactly the J11 via, keeps RF fence 18/18 at 1.3979 mm worst,
   and finishes DRC 0/0/0 on corrected board SHA-256 `39251c24d4b3`.
+- Rejected a final-review assembly-process ambiguity before layout seal. J2-J10
+  remain on the CPL under an explicit required JLCPCB through-hole connector
+  process; exact C429844 is currently catalogued as a stocked Plugin part, but
+  uploader refusal stops this release and requires a separately generated
+  hand-solder population contract/CPL. A-POP's nine THT-placeability findings
+  are closed; only the expected not-yet-generated release MANIFEST remains.
 Released: no

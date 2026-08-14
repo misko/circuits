@@ -466,3 +466,28 @@ post-route via-in-pad additions. Corrected board SHA-256 is
 `39251c24d4b3cc878824f26c48178cbc4a4d418fa528045c6c13f2308e017acd`.
 Every earlier exact-board review is intentionally stale; all six final lenses
 must renew against the corrected source commit and board hash before sealing.
+
+## 2026-08-13 — assembly ownership caught before layout seal
+
+The first renewed exact-board reviews were physically SOUND, but their order
+lenses correctly refused another source-level ambiguity. J2-J10 are real
+paste-free THT connectors and were still on the CPL, while `assembly.yaml`
+only said JLC would wave-solder them *if* the uploader accepted C429844 and
+otherwise they would be hand-soldered. That prose assigned neither executable
+owner: no `through_hole: {process, refs, evidence}` declaration bought the THT
+line, and no `not_assembled` declaration removed the refs from placement.
+
+The source now makes JLCPCB's connector THT wave/manual service required for
+all nine refs. A fresh 2026-08-13 exact catalog query returns C429844 as
+Amphenol 901-143-6RFX, `Plugin`, extended, stock 951; JLC's current assembly
+FAQ says through-hole connectors are supported. Neither observation predicts
+the uploader allocation, so its exact-code process echo remains a hard
+pre-payment gate. Refusal does not mutate this release: it creates a distinct
+hand-solder population contract and regenerated CPL.
+
+A-POP consequently moves from ten findings to one: all nine
+`CPL-NOT-SMT-PLACEABLE` findings close, while the release MANIFEST line remains
+correctly absent until a release is actually staged. The board bytes are
+unchanged. The lesson is stage ordering: run A-POP/A-POS on the first candidate
+BOM/CPL before routing, because assembly ownership is source architecture even
+when the final allocation echo is necessarily order-time evidence (IMP-091).

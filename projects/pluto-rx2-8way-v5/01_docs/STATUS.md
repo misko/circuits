@@ -1,10 +1,10 @@
-# STATUS beacon — final-review P1 corrected; exact-board reviews must renew
+# STATUS beacon — layout is clean; assembly ownership fixed before final seal
 
 <!-- reader parses from here down -->
 stage:   layout_review
-step:    "independent final lenses rejected one ordinary via in J11.3; the shared admission and final process gate are fixed, the board fully replayed, and renewed exact-board reviews are required"
-measure: "corrected board 39251c24d4b3; post-route via-in-pad 0; V-PROCESS 9 protected 0.45/0.25mm + 629 ordinary 0.45/0.20mm; RF route denominator 9/9 at 0.295mm F.Cu with 0 RF vias/stubs; ordinary grid 199/234 served; RF fence 394 new vias including 22 corner anchors; tightened saved-board aperture 18/18 PASS, worst 1.3979mm <=1.4000mm; DRC 0 violations / 0 unconnected / 0 parity; saved pours 4/4"
-state:   waiting
-next:    "complete the generic regression and project gate battery, commit the corrected exact subject, renew all six independent final lenses, then seal/checkpoint layout before fabrication entry"
+step:    "corrected board and all six dae8320d lenses are SOUND; final review exposed and fixed the source-level J2-J10 assembly-owner omission before seal, so one bounded review renewal remains"
+measure: "board unchanged at 39251c24d4b3; DRC 0/0/0; V-PROCESS 9 protected 0.45/0.25mm + 629 ordinary 0.45/0.20mm; RF fence 18/18 worst 1.3979mm; exact C429844 Plugin stock 951; A-POP THT findings 9 -> 0, with only the pre-release MANIFEST line pending"
+state:   working
+next:    "commit the now-unambiguous assembly source, renew only source-sensitive exact lenses and pre-route broad-hash witnesses, then mint the reviewed-commit layout seal and pause before fabrication"
 op_pid:
-updated: 2026-08-13T20:24:30-07:00
+updated: 2026-08-13T20:44:06-07:00

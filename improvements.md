@@ -103,6 +103,8 @@ rationale.
 | IMP-087 | Grade rerunnable density gates against realized saved geometry | completed | Pluto RX2 8-way v5 RF-fence rerun |
 | IMP-088 | Seed deterministic identities across import and stitch, not only route prep | proposed | Pluto RX2 8-way v5 layout-seal entry |
 | IMP-089 | Treat same-net via-in-pad as a fabrication process, not a DRC clearance | completed | Pluto RX2 8-way v5 final layout red team |
+| IMP-090 | Bind review freshness to declared stage dependencies, not monolithic source bags | proposed | Pluto RX2 8-way v5 corrected layout seal |
+| IMP-091 | Freeze executable assembly-process ownership before placement export | proposed | Pluto RX2 8-way v5 layout-seal entry |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -3130,3 +3132,74 @@ Recommended execution order for future boards:
   0.45/0.25-mm family is within that published geometry and drill-distinct.
 - history: 2026-08-13 — completed before layout seal after independent final
   pin and layout lenses both refused the otherwise-green exact board.
+
+## IMP-090 — bind review freshness to declared stage dependencies
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 corrected layout seal, 2026-08-13
+- evidence: changing U1's final fabrication-via drill family in
+  `floorplan.yaml`, its human dossier note, and `assembly.yaml` correctly
+  invalidated layout/fabrication review. It also invalidated the pre-route
+  schematic topology and PDF-readability witnesses solely because those
+  witnesses hash the complete `02_parts` and design-rules bags. The schematic,
+  netlist and PDF bytes were unchanged; the changed assembly/process fields
+  are not inputs to either schematic lens. The gate failed loudly, which is
+  safe, but required two unrelated review renewals and makes future users more
+  likely to resent or bypass freshness checks.
+- general rule: every review witness should declare the artifact and semantic
+  source families its conclusion actually consumes. Freshness must fail on any
+  consumed dependency change, but not on unrelated downstream fields. A broad
+  whole-directory hash is a safe bootstrap, not a scalable final dependency
+  model.
+- intended landing point: add a versioned `review_dependencies` contract for
+  each review kind. Build deterministic projections such as schematic
+  topology = netlist + pin/electrical dossier fields + electrical/RF rules;
+  schematic readability = PDF + net-label/pin-identity inputs; PCB layout =
+  board + floorplan/routing/fab constraints; fabrication = exact outputs +
+  assembly/process/source evidence. Store both the projection hash and its
+  enumerated input list in the review.
+- safety condition: unknown keys, an undeclared review kind, or a dependency
+  extractor that cannot prove full coverage must fall back to the current
+  broad hash, never silently narrow freshness. Regression fixtures must change
+  one consumed and one unrelated field and require respectively STALE and
+  STILL-CURRENT outcomes.
+- recommendation: implement before the next board with frequent post-schematic
+  sourcing/layout iterations. Do not refactor this during v5 final review; the
+  bounded broad-hash renewal is safer than changing provenance semantics under
+  an active seal.
+- history: 2026-08-13 — proposed after the exact via-process correction made
+  the stage-mismatch visible before layout seal.
+
+## IMP-091 — freeze executable assembly-process ownership before placement export
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 layout-seal entry, 2026-08-13
+- evidence: `assembly.yaml` said J2-J10 would be wave-soldered by JLC *if* the
+  uploader accepted C429844, otherwise hand-soldered. That advisory either/or
+  left all nine paste-free THT connectors on the SMT CPL but declared neither
+  the gate's executable `through_hole: {process, refs, evidence}` path nor a
+  `not_assembled` hand-solder path. A-POP therefore found nine
+  `CPL-NOT-SMT-PLACEABLE` defects only at final review, after routing and exact
+  artifact reviews had already run.
+- general rule: population ownership is a source decision, not an order-note
+  afterthought. Before the first BOM/CPL export, every fitted paste-free drilled
+  part must be assigned to a named purchased THT process, or declared
+  `not_assembled` with its disposition and excluded from placement. Conditional
+  prose must not allow one CPL to mean two mutually exclusive process plans.
+- intended landing point: run A-POP/A-POS immediately after the first board and
+  BOM/CPL candidate exist, before placement freeze and routing. Add an early
+  source gate that rejects a drilled/paste-free fitted ref unless exactly one
+  executable owner covers it. Treat an uploader-dependent fallback as a new
+  release branch whose population set and CPL are regenerated, never as an
+  in-place order-time edit.
+- completion evidence required: a fixture with a THT connector on an SMT CPL
+  and only conditional prose must stop before routing; the same fixture must
+  pass with a complete purchased-process declaration, and independently pass
+  when declared unassembled and absent from the CPL. A ref covered by both
+  paths must fail as ambiguous.
+- recommendation: implement before the next PCB. V5 now selects JLCPCB THT
+  connector assembly as the required path; exact C429844 still needs the normal
+  uploader allocation/process echo before payment, and refusal creates a
+  separate hand-solder release.
+- history: 2026-08-13 — proposed and corrected at v5 layout-seal entry, before
+  the seal was minted.

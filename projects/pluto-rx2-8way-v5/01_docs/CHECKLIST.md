@@ -73,6 +73,10 @@
       lands in J11.3; exact final scan reports zero post-route via-in-pad,
       while V-PROCESS proves all 9 intentional U1 sites filled/capped in the
       drill-distinct 0.45/0.25-mm family and 629 ordinary 0.45/0.20-mm vias
+- [x] paste-free J2-J10 have one executable assembly owner before seal: the
+      required JLCPCB through-hole connector process names all nine refs and
+      carries dated exact-code evidence; uploader refusal is a hard stop and a
+      separately generated hand-solder release, never an in-place CPL edit
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.
@@ -112,6 +116,8 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] order-stage JLC assembly DFM explicitly accepts the manufacturer-land
       SMA drills (1.50/1.70 mm) against JLC C429844 CAD (1.60/1.80 mm); do not
       silently replace the Amphenol Rev-C footprint
+- [ ] uploader echoes exact C429844 for J2-J10 as wave/manual assembly before
+      payment; a refusal stops this release rather than silently dropping them
 
 ## Release and publication gate
 

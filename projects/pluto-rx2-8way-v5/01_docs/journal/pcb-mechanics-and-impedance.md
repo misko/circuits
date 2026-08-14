@@ -101,8 +101,11 @@ unrouted-placement execution stack
                     -> human/fresh-context approval (this pause)
 ```
 
-The generated board has 33/33 anchored parts, 162 copper pads, nine selective
-0.45/0.20-mm filled/capped vias in U1 pad 25, no inter-footprint pad or
+The board at this historical placement pause had 33/33 anchored parts,
+162 copper pads and nine selective 0.45/0.20-mm filled/capped vias in U1 pad
+25. Final layout review later made that protected family 0.45/0.25 mm so it is
+drill-disjoint from ordinary 0.45/0.20-mm vias; see `journal/routing.md`. At
+this pause there was no inter-footprint pad or
 courtyard collision, and no placement-stage DRC or schematic-parity finding.
 The 39 unconnected items are the expected track-free ratsnest. Straight-line
 switch-to-throw spans are 41.265–46.580 mm, a 5.315-mm spread; these are

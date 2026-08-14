@@ -111,7 +111,9 @@ transient protection, not sustained-overvoltage protection.
 
 The PE42482 RF exposed-pad return is the sole reason the board requires the
 advanced tier: the realized design uses nine selectively filled and
-copper-capped 0.45/0.20-mm vias inside pad 25. Its perimeter escape does not
+copper-capped 0.45/0.25-mm vias inside pad 25. This protected drill family is
+distinct from ordinary 0.45/0.20-mm route/stitch vias so JLC's order selector
+cannot accidentally fill/cap the entire board. Its perimeter escape does not
 otherwise depend on sub-standard traces or tiny vias; the MCU and every other
 selected part pass the default JLC escape tier. Removing advanced would require
 accepting a different, weaker exposed-pad assembly/ground strategy, which is
