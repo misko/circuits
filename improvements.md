@@ -2918,3 +2918,80 @@ Recommended execution order for future boards:
 - history: 2026-08-13 — completed before retrying v5 routing. The failed
   single chain and identical three-way race were retained as evidence rather
   than promoted or retried again.
+
+## IMP-084 — site admission must honor realized pad-local copper and mask rules
+
+- status: completed
+- observed: Pluto RX2 8-way v5 first post-stitch full DRC, 2026-08-13
+- evidence: two 0.45/0.20-mm GND grid vias were admitted 1.118 mm from 1-mm
+  fiducials because `via_site_ok` used only the common 0.20-mm clearance. Each
+  fiducial authored 0.60-mm local copper clearance and 0.50-mm solder-mask
+  expansion. Full DRC reported two clearance, two hole-clearance and two
+  solder-mask-bridge findings; the realized copper requirement was 1.325 mm.
+- general rule: a geometry emitter's site predicate must evaluate the rules of
+  every object it approaches, including per-pad copper clearance and mask
+  expansion on each affected outer layer. Board/netclass defaults are only a
+  floor, never permission to ignore an object's stricter local rule.
+- implementation: `pcb_toolkit.py` caches each pad's local clearance and front/
+  back realized mask expansion and applies them in copper, drill and via-mask
+  collision probes. Bounding-box margins are per object rather than global.
+- completion evidence: a known-bad fixture independently proves rejection by
+  local copper clearance and by mask expansion. The final v5 lattice admits
+  200 sites, rejects both fiducial-adjacent sites, and saved-board DRC is 0.
+- recommendation: keep this in the shared toolkit and require every new via,
+  tap, rescue and fence emitter to use the same predicate rather than a private
+  board-default-only collision approximation.
+- history: 2026-08-13 — completed before accepting the v5 post-stitch stage.
+
+## IMP-085 — normalize overlap-only track/via joints before deleting barrels
+
+- status: completed
+- observed: Pluto RX2 8-way v5 R3.1 cleanup, 2026-08-13
+- evidence: KRT stopped a 0.25-mm 3V3 track 0.100 mm from the centre of an
+  existing 0.45-mm same-net via because the copper caps already overlapped.
+  Removing that unused single-layer barrel would leave a cap-overlap-only
+  joint rather than an explicit centreline node. A first endpoint-moving draft
+  was rejected because pivoting a complete segment can change its whole copper
+  envelope even when the moved cap stays contained.
+- general rule: cleanup may remove an anchoring via only after every surviving
+  connection is explicit. A normalizer may add a bridge only when the endpoint
+  is otherwise free, net/layer agree, and the complete bridge capsule is
+  contained inside copper that already exists. Do not pivot existing routes.
+- implementation: `bridge_via_endpoints` adds a short same-net track from the
+  free endpoint to the via centre under strict `distance + track_radius <=
+  via_radius`; no geometric tolerance is allowed. `via_janitor` then removes
+  only barrels attached on fewer than two copper layers.
+- completion evidence: the focused fixture accepts a 0.100-mm exactly-contained
+  bridge and refuses a 0.101-mm just-over-boundary bridge. Independent replay
+  adds two bridges, removes 12 barrels and leaves R3.1 with two tracks sharing
+  `(68.80,57.00)`, no via, zero opens and zero DRC findings. The routing/stitch
+  suite passes 110/110 non-slow tests, including 48 known-bad fixtures.
+- recommendation: retain this as a narrowly ordered pre-janitor normalization;
+  do not generalize it into arbitrary endpoint snapping or gap healing.
+- history: 2026-08-13 — completed and independently renewed P0/P1/P2=0/0/0.
+
+## IMP-086 — run external mating-fact provenance before PCB generation
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 post-stitch gate, 2026-08-13
+- evidence: `BRIEF.md` had a `Mating fact-lock` describing the SMA cable
+  boundary, but `03_src/rules/mates.yaml` was absent. `import_provenance_check`
+  correctly failed D-MATE only after routing and stitch work had completed.
+  The repaired machine copy references SMA gender, port order and RX absolute
+  maximum from their single `spf/plutoplus_hardware` home and passes 3/3; it
+  consumes no Pluto dimension and changes no copper.
+- general rule: when the brief declares a foreign-hardware mating boundary,
+  D-MATE/M-IMPORT is source governance and must run before schematic freeze or
+  PCB generation. A late gate is still useful, but it should verify an already
+  pinned fact-lock rather than discover the first missing declaration.
+- intended landing point: add `import_provenance_check.py PROJECT` to the early
+  source-governance stage and include `mates.yaml` plus the referenced SPF fact
+  index/record hashes in the schematic checkpoint whenever the denominator is
+  nonzero. Retain the final rerun for drift detection.
+- completion evidence required: a project with a Mating fact-lock and no
+  machine copy must stop before TSX/PCB generation; a board explicitly saying
+  it does not mate remains a visible zero-denominator N-A; a valid informational
+  cable boundary passes early and again at final layout without restating data.
+- recommendation: implement before the next board that interfaces with
+  externally designed hardware. V5's instance is fixed and not blocked.
+- history: 2026-08-13 — proposed after the right gate ran at the wrong stage.

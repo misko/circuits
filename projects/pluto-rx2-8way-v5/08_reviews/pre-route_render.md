@@ -7,7 +7,7 @@ review_kind: render
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 board_sha256: bdb0df87886cc15ed8a3ae2aee53c97f4a4cfd49734558967240816c5c73a22e
-design_rules_sha256: 6e1a3d39e0600855e690a001bfaeb55ac205940686e79215721a1096347266e7
+design_rules_sha256: 442edd6040f0b990f94a76f0f21d702503c0ba365fe6c5464d55f1842ab6999e
 bom_sha256: 7b01a6d1fa70ae7187c5ada14a963894acca97fa4a7c893df6eba447d8a06c65
 cpl_sha256: 0eab823cfe6eaa8c087d7cc429334f524a9d6e60f3751d02567c3b340d3415e1
 twin_top_sha256: be7642e39dcea07fd6dac8b0452069758478d92f4c138ddae6b059d79237c1e8
@@ -58,3 +58,12 @@ The final R3.1 rail dogbone is likewise derived copper outside the resistor
 land; it changes no component, placement, rotation, body or access envelope.
 Fresh exact prep/DRC finds no assembly or collision defect. P0/P1/P2: none;
 placement/render remains **SOUND**.
+
+The post-route-cleanup digest changes neither the track-free board nor any
+body, model, position, rotation, connector access, BOM/CPL or render subject.
+It removes unused derived barrels and prevents two stitch vias from entering
+the authored fiducial copper/mask envelopes. Fresh targeted review reports
+P0/P1/P2 = 0/0/0; placement/render remains **SOUND**.
+
+The final same-net via-contained bridge is derived copper only and changes no
+component/render subject. P0/P1/P2: none; **SOUND**.

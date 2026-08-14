@@ -8,7 +8,7 @@ design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 board_sha256: bdb0df87886cc15ed8a3ae2aee53c97f4a4cfd49734558967240816c5c73a22e
 parts_sha256: 879aa0b01010b253ad07989de128d0035d4cf4a01266eaa37b18b21a27dc1ce8
-design_rules_sha256: 6e1a3d39e0600855e690a001bfaeb55ac205940686e79215721a1096347266e7
+design_rules_sha256: 442edd6040f0b990f94a76f0f21d702503c0ba365fe6c5464d55f1842ab6999e
 circuit_json_sha256: c66c3e1a242d03f9312fa4fc03ac90634af704041461446e9e955232c3163f63
 kicad_schematic_sha256: 1abd0c209be27ac602f55f8e81cf25e4e98bb3a99a2fb76494fc8bbfcf20603b
 bom_sha256: 7b01a6d1fa70ae7187c5ada14a963894acca97fa4a7c893df6eba447d8a06c65
@@ -69,3 +69,17 @@ The rail-wave gate then localized one remaining router via-in-pad to R3.1.
 The exact recipe now gives R3.1 its own 3V3 dogbone while R3.2 retains SW_V4;
 the two physical pin identities and nets are unchanged and independently
 separate. P0/P1/P2: none; **SOUND** under the current digest.
+
+## Targeted post-route-cleanup renewal
+
+A fresh current-worktree-only review verified that the only rule-digest delta
+is post-route cleanup and stricter stitch-via site screening. It changes no
+pin, net, footprint, placement, BOM/CPL identity or prepared/promoted route
+copper. Exact replay identifies twelve unused single-layer barrels and retains
+every barrel that the routed NRST/SW_V3 paths, U1 exposed-pad field or GND
+plane drops actually use. P0/P1/P2: none; **SOUND** under the digest above.
+
+The final R3.1 renewal retains R3.1=3V3 and R3.2=SW_V4, ends the source-owned
+3V3 dogbone at an assembly-safe via outside the resistor land, and changes no
+pin or net identity. The post-route bridge is same-net and wholly contained in
+the existing via copper envelope. P0/P1/P2: none; **SOUND**.

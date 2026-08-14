@@ -119,8 +119,13 @@ prep:
          segments: [{layer: F.Cu, width: 0.18, pts: [[68.00, 55.99], [69.00, 55.99]]}],
          vias: [[69.00, 55.99]]}
       - {net: 3V3, pin: R3.1,
-         segments: [{layer: F.Cu, width: 0.25, pts: [[68.00, 57.01], [69.00, 57.01]]}],
-         vias: [[69.00, 57.01]]}
+         # End on KRT's 0.1-mm grid beyond the R3.1 copper/clearance envelope.
+         # The source-owned transition prevents the router from inventing a
+         # layer swap inside the resistor land; an all-F.Cu result may later
+         # let via_janitor remove the unused barrel without breaking the exact
+         # centreline endpoint shared at (68.80, 57.00).
+         segments: [{layer: F.Cu, width: 0.25, pts: [[68.00, 57.01], [68.80, 57.00]]}],
+         vias: [[68.80, 57.00]]}
       - {net: USB_CC1, pin: J1.A5,
          segments: [{layer: F.Cu, width: 0.18, pts: [[63.75, 77.645], [63.75, 76.60], [63.40, 76.30], [63.40, 75.80], [64.2875, 75.80]]}]}
       - {net: USB_CC2, pin: J1.B5,
@@ -209,14 +214,17 @@ stitch:
     pth_margin: 0.20
     tiers: [{size: 0.45, drill: 0.20, hole_to_copper: 0.19}]
   keepin: {inset: 0.80}
-  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
-           split_t_junctions, reload, hole_to_hole, pad_rescue,
-           stub_fallback, astar_fallback, stitch_grid, fill, island_rescue,
+  passes: [dedupe_vias, normalize_vias, bridge_via_endpoints, drop_micro_fragments,
+           drop_dangling, split_t_junctions, reload,
+           hole_to_hole, pad_rescue,
+           stub_fallback, astar_fallback, via_janitor, stitch_grid, fill,
+           island_rescue,
            dedupe_vias, hole_to_hole, fill, fresh_reload, heal_islands, gate]
   dedupe_vias: {radius: 0.35, metric: box}
   # Repair only impossible sub-tier geometry; do not inflate valid advanced-
   # tier vias collision-unchecked. All project emitters still prefer 0.45/0.20.
   normalize_vias: {below_width: 0.24, size: 0.25, drill: 0.15}
+  bridge_via_endpoints: {tol: 0.01, max_move: 0.20}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
   split_t_junctions: {tol: 0.05}
@@ -240,6 +248,11 @@ stitch:
     targets: 8
     max_dist: 10.0
     via: {size: 0.45, drill: 0.20, hole_to_copper: 0.19}
+  # Remove imported/prepared vias that the promoted all-F.Cu trunks did not
+  # use as layer transitions.  The janitor requires same-net attachment on at
+  # least two copper layers; the twelve deterministic endpoint barrels are
+  # therefore deleted while their used F.Cu trunk copper remains intact.
+  via_janitor: {min_layers: 2, pad_window: 2.0}
   # This 5-mm lattice provides ordinary whole-board plane stitching only.  It
   # is NOT credited as the 5.9-GHz CPWG fence.  Route-following fence rows are
   # realized and measured from actual RF centrelines before layout approval.

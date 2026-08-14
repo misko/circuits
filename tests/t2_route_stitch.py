@@ -520,6 +520,52 @@ def t_fresh_reload_barrier():
           "fresh_reload changed electrical connectivity")
 
 
+@test("bridge_via_endpoints makes a copper-contained overlap an explicit "
+      "centreline join without enlarging copper")
+def t_bridge_via_endpoints():
+    """KRT stops one 0.1-mm cell short when a 0.25-mm track already touches
+    a 0.45-mm via.  The overlap is electrically conductive, but deleting an
+    unused transition via later leaves an implicit cap-to-cap join.  Snapping
+    a micro-segment from the endpoint to the via centre is geometry-preserving
+    only when the whole bridge remains inside the via's existing copper disk.
+    """
+    d = tmpdir("t2_snapvia_")
+    board = d / "snap.kicad_pcb"
+    script = d / "probe.py"
+    script.write_text(
+        "import sys\n"
+        f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
+        "import pcbnew, route_and_stitch_generic as rs\n"
+        "b=pcbnew.BOARD(); b.SetCopperLayerCount(2)\n"
+        "n=pcbnew.NETINFO_ITEM(b,'SIG'); b.Add(n)\n"
+        "def pair(y,gap):\n"
+        " t=pcbnew.PCB_TRACK(b); t.SetStart(pcbnew.VECTOR2I_MM(10,y))\n"
+        " t.SetEnd(pcbnew.VECTOR2I_MM(11,y)); t.SetWidth(pcbnew.FromMM(0.25))\n"
+        " t.SetLayer(pcbnew.F_Cu); t.SetNet(n); b.Add(t)\n"
+        " v=pcbnew.PCB_VIA(b); v.SetPosition(pcbnew.VECTOR2I_MM(11+gap,y))\n"
+        " v.SetWidth(pcbnew.FromMM(0.45)); v.SetDrill(pcbnew.FromMM(0.20))\n"
+        " v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(n); b.Add(v)\n"
+        "pair(10,0.10); pair(20,0.101)\n"
+        f"b.Save({str(board)!r})\n"
+        f"ctx=rs.Ctx({{'stitch':{{'clearance':0.20}}}}, {str(board)!r})\n"
+        "rs.MM=pcbnew.ToMM\n"
+        "rs.p_bridge_via_endpoints(ctx,{'tol':0.01,'max_move':0.20})\n"
+        "bridges=[]\n"
+        "for t in ctx.board.GetTracks():\n"
+        " if t.GetClass()=='PCB_TRACK':\n"
+        "  a=(round(pcbnew.ToMM(t.GetStart().x),2),round(pcbnew.ToMM(t.GetStart().y),2))\n"
+        "  z=(round(pcbnew.ToMM(t.GetEnd().x),2),round(pcbnew.ToMM(t.GetEnd().y),2))\n"
+        "  bridges.append((a,z))\n"
+        "print('BRIDGES',sorted(bridges))\n"
+        "print('COUNT',ctx.counts.get('via_endpoint_bridges'))\n")
+    r = must_pass(run([KPY, script]), "via endpoint normalization probe")
+    contains(r.out, "((11.0, 10.0), (11.1, 10.0))",
+             "contained track/via overlap got no explicit bridge")
+    not_contains(r.out, "((11.0, 20.0), (11.1, 20.0))",
+                 "normalizer accepted a just-over-boundary copper capsule")
+    contains(r.out, "COUNT 1", "unexpected via endpoint snap denominator")
+
+
 # ======================================================== KNOWN-BAD =====
 @test("route-prep REFUSES a board that still has routed segments", kind="known_bad")
 def t_kb_tracked_input():
@@ -925,6 +971,53 @@ def t_via_site_full_custack():
     contains(r.out, "VIA_OK False",
              "a via on top of an In2.Cu foreign-net track must be REJECTED — "
              "an F/B-only default misses it")
+
+
+@test("via_site_ok honours a pad's local copper and solder-mask clearance",
+      kind="known_bad")
+def t_kb_via_site_pad_local_clearance():
+    """A whole-board stitch-grid point landed 1.118 mm from a 1-mm
+    fiducial.  Common 0.20-mm copper clearance approved it, while the pad's
+    authored 0.60-mm clearance required 1.325 mm centre distance and its
+    0.50-mm mask expansion also overlapped the via aperture.  Full DRC then
+    reported clearance, hole_clearance and solder_mask_bridge for each of two
+    fiducials.  The site predicate must consume the realized pad overrides so
+    the invalid vias are never emitted.
+    """
+    d = tmpdir("t2_padclr_")
+    script = d / "probe.py"
+    script.write_text(
+        "import sys\n"
+        f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
+        "import pcbnew\n"
+        "from pcb_toolkit import Toolkit\n"
+        "b=pcbnew.BOARD(); b.SetCopperLayerCount(2)\n"
+        "g=pcbnew.NETINFO_ITEM(b,'GND'); b.Add(g)\n"
+        "def pad(ref,x,clearance,mask):\n"
+        " fp=pcbnew.FOOTPRINT(b); fp.SetReference(ref)\n"
+        " p=pcbnew.PAD(fp); p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)\n"
+        " p.SetShape(pcbnew.PAD_SHAPE_CIRCLE)\n"
+        " p.SetSize(pcbnew.VECTOR2I_MM(1.0,1.0))\n"
+        " p.SetLayerSet(pcbnew.PAD.SMDMask())\n"
+        " p.SetPosition(pcbnew.VECTOR2I_MM(x,10.0))\n"
+        " p.SetLocalClearance(pcbnew.FromMM(clearance))\n"
+        " p.SetLocalSolderMaskMargin(pcbnew.FromMM(mask))\n"
+        " fp.Add(p); b.Add(fp)\n"
+        "pad('FID_LOCAL',10.0,0.60,0.10)\n"
+        "pad('FID_MASK',20.0,0.20,0.50)\n"
+        "tk=Toolkit(b,clearance_mm=0.20)\n"
+        "print('COMMON_ONLY_GAP_MM',round((1.0**2+0.5**2)**0.5-0.5-0.225,3))\n"
+        "print('LOCAL_VIA_OK',tk.via_site_ok(11.0,10.5,g.GetNetCode(),"
+        "size=0.45,drill=0.20,hole_to_copper=0.19))\n"
+        "print('MASK_VIA_OK',tk.via_site_ok(21.0,10.5,g.GetNetCode(),"
+        "size=0.45,drill=0.20,hole_to_copper=0.19))\n")
+    r = must_pass(run([KPY, script]), "local-pad-clearance via probe")
+    contains(r.out, "COMMON_ONLY_GAP_MM 0.393",
+             "fixture no longer reproduces the measured fiducial geometry")
+    contains(r.out, "LOCAL_VIA_OK False",
+             "via_site_ok ignored the pad-local copper clearance")
+    contains(r.out, "MASK_VIA_OK False",
+             "via_site_ok ignored the pad-local solder-mask expansion")
 
 
 @test("verified_astar accepts a one-layer corridor and forwards the declared "

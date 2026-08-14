@@ -12,7 +12,7 @@ schematic_pdf_sha256: 9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759
 netlist_sha256: 817a6cea93afa2ee3e387cf861702dfe4e06c9a8fa7af192f7f9d53cea1f2ecd
 exact_netlist_sha256: e39508799698657495d058021a990f9e02c0ff7f526efbf44939f0cf13bbb795
 parts_sha256: 879aa0b01010b253ad07989de128d0035d4cf4a01266eaa37b18b21a27dc1ce8
-design_rules_sha256: 143e06eb066dea445db05c3985ed2f6758f603c07ae3c2fb41f8a71083c0fd3a
+design_rules_sha256: 442edd6040f0b990f94a76f0f21d702503c0ba365fe6c5464d55f1842ab6999e
 authoring_source_sha256: 4959ed7107a3dae3969df2b8306b591187bda34f79720c9b410676f7908ef53b
 
 # Pre-route topology review after programming-connector decision D13
@@ -71,3 +71,16 @@ and its fixed-output layout example is Figure 8-7. P0/P1/P2 blockers: none.
 
 The earlier pre-D13 topology certificate is retained separately for audit
 history. Blocking findings in this review: none.
+
+The current rule-digest renewal changes only post-route via cleanup and
+stitch-via collision screening. It changes no schematic, component, pin, net,
+power path, state truth table or RF topology. Fresh exact-artifact review finds
+P0/P1/P2 = 0/0/0; the topology verdict remains **SOUND**.
+
+The final same-net via-contained bridge changes no schematic connectivity or
+topology. P0/P1/P2: none; **SOUND**.
+
+The D-MATE renewal makes the existing cable boundary machine-readable without
+restating values: Pluto Plus SMA gender, port order and the receiver absolute
+maximum are referenced to their single `spf/plutoplus_hardware` evidence home
+and graded 3/3. No dimension is consumed and no topology changes. **SOUND**.

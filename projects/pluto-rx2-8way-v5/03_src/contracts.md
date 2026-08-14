@@ -467,6 +467,8 @@ two cannot drift apart without the router failing to find its own pass.
 | `stitch.heal_islands.*` | `route_and_stitch_generic.py` | same-net pour bridge pass |
 | `stitch.unify_zone_priorities.*` | `route_and_stitch_generic.py` | zone-priority pass |
 | `stitch.normalize_vias.*` | `route_and_stitch_generic.py` | via normalisation pass |
+| `stitch.bridge_via_endpoints.*` | `route_and_stitch_generic.py` | strictly copper-contained same-net endpoint-to-via topology bridge, run before any barrel cleanup |
+| `stitch.via_janitor.*` | `route_and_stitch_generic.py` | minimum attached-layer count and local pad-search window for removing unused single-layer barrels |
 | `stitch.dedupe_vias.*` | `route_and_stitch_generic.py` | via de-duplication pass |
 | `stitch.drop_dangling.*` | `route_and_stitch_generic.py` | dangling-track pass |
 | `stitch.drop_micro_fragments.*` | `route_and_stitch_generic.py` | micro-fragment pass |

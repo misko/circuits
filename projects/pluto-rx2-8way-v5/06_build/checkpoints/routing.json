@@ -1,19 +1,19 @@
 {
   "files": {
     "03_src/route.yaml": {
-      "sha256": "866eaa5737bb6981788867664cd1fcd6bd842bf8c91d92aa3f49758abcdf66cc",
-      "size": 14169
+      "sha256": "b57da82d8759ca862ad3d98d89b8aba75dca1ad8a01fe3f53b76737b0f7ba522",
+      "size": 14996
     },
     "03_src/route/final_chain.kicad_pcb": {
-      "sha256": "2e8c4a1fa9909391778244080a22387cf0ac38a56bb5dd1fc336c9c57aa40896",
-      "size": 213499
+      "sha256": "ddb5b901d9d8b4666dc99df9d1de29e46f63315d4440e43af9dcc686668ad622",
+      "size": 213497
     },
     "04_kicad/pluto_rx2_8way_v5.kicad_pcb": {
       "sha256": "bdb0df87886cc15ed8a3ae2aee53c97f4a4cfd49734558967240816c5c73a22e",
       "size": 165117
     },
     "06_build/checkpoints/placement.json": {
-      "sha256": "ff882e7bc4923f97f1d747a3d30a86a2ac2ca61ddd4953cf8a4811d1ab01b86a",
+      "sha256": "f0fa1e83a1e00d020cced7f677a8ba198259f7e325278e18d273a8f5be496b39",
       "size": 3749
     },
     "06_build/route/prep_via_in_pad.json": {
@@ -21,39 +21,39 @@
       "size": 211
     },
     "06_build/route/quick_r5_guarded.json": {
-      "sha256": "6eadee9eefbead67dbe6e5c333a5cdbf95a811124d855f8717b552ab1d21f90d",
+      "sha256": "b2a4c9fc09676784f9460d451235d1c0a9bb67a1c201db369a79546363e29dcb",
       "size": 378
     },
     "06_build/route/r0.kicad_pcb": {
-      "sha256": "31594a8e29417cf6b5a1a374918b1d6979329c38a8f9d4c84182d17a46d7c872",
-      "size": 185786
+      "sha256": "b88e7388011cd2ef29484b6a586514e5b2f41a83d731c189e1db327ba1386b25",
+      "size": 185784
     },
     "06_build/route/r0_drc.json": {
-      "sha256": "c1bae72e5bcd6794e8c18e91b1f316ad3e240fec956cc2f0496855f46d51dd20",
-      "size": 111945
+      "sha256": "920ed52b5eefaa1b1fe9ba1f019ae259aa83960567d96756aa9382113f186d06",
+      "size": 111934
     },
     "06_build/route/r1.kicad_pcb": {
-      "sha256": "0068fac4e90285d1b27b6152c05645fca8a63ea8ac58d2fff7284a64b4f1add8",
-      "size": 193241
+      "sha256": "063116d1ba6ccf539ad487b2db27575bd9518ea35b7294274d9ab6af6313d4e8",
+      "size": 193239
     },
     "06_build/route/r2.kicad_pcb": {
-      "sha256": "9ff2c2b454673d5cc1dad62d9731237aea3469ee794a174888d04e0dda5cac1e",
-      "size": 194088
+      "sha256": "dd8552358d6fac38347162d3716df8090e9258e8c10260d0e125ccdd8c0cef78",
+      "size": 194086
     },
     "06_build/route/r3.kicad_pcb": {
-      "sha256": "0ce1e2364a927ffde22d5c7b282be5c653800b768c4831afb21e879c130e74fb",
-      "size": 199763
+      "sha256": "761738a13ff146f27e769762beaaedae6bd39bfccb43e9c2618b805f38d730cc",
+      "size": 199761
     },
     "06_build/route/r4.kicad_pcb": {
-      "sha256": "59eb8a35aadfa05c1a2e6ddad338cf9d8409024b67a82ff152d26150f373a157",
-      "size": 205540
+      "sha256": "033e4db59eda1b6d315ed40f6fedaecb7eb5b11c16e1ed194efae7b7c27dddbc",
+      "size": 205538
     },
     "06_build/route/r5.kicad_pcb": {
-      "sha256": "2e8c4a1fa9909391778244080a22387cf0ac38a56bb5dd1fc336c9c57aa40896",
-      "size": 213499
+      "sha256": "ddb5b901d9d8b4666dc99df9d1de29e46f63315d4440e43af9dcc686668ad622",
+      "size": 213497
     },
     "06_build/route/route_progress.json": {
-      "sha256": "b4443944cc73aa5d37ef2b1a99ae4d6ef6ec031e1ae02b619e7628a3333169f3",
+      "sha256": "c9862c162cdfbddbd3e116cc8097fb916c098a4884403e67f37ce5a4de001f30",
       "size": 1908
     },
     "06_build/route/wave_1_via_in_pad.json": {

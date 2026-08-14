@@ -1926,6 +1926,78 @@ def p_normalize_vias(ctx, c):
     print(f"normalized {n} sub-spec vias to {size}/{drill}")
 
 
+@stitch_pass("bridge_via_endpoints")
+def p_bridge_via_endpoints(ctx, c):
+    """Make a copper-overlap-only track/via join an explicit centreline join.
+
+    Grid routers may stop a track one cell short of an existing same-net via
+    once the two copper shapes touch.  KiCad accepts that electrical overlap,
+    but a later via janitor can legitimately remove a single-layer transition
+    barrel and leave two tracks joined only by rounded-end copper.  Add a
+    short bridge only from a *free* endpoint to the via centre and only when
+    the entire bridge, including its track radius, remains inside the via's
+    existing copper disk.  The original route segment is not moved or
+    pivoted.  This changes topology, not the copper envelope, so it cannot
+    create a new clearance or assembly conflict.
+    """
+    pcbnew = ctx.pcbnew
+    tol = float(c.get("tol", 0.01))
+    max_move = float(c.get("max_move", 0.20))
+    tracks = [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_TRACK"]
+    vias = [v for v in ctx.board.GetTracks() if v.GetClass() == "PCB_VIA"]
+    pads = [p for fp in ctx.board.GetFootprints() for p in fp.Pads()]
+
+    def otherwise_anchored(t, ex, ey):
+        uid = t.m_Uuid.AsString()
+        for o in tracks:
+            if (o.m_Uuid.AsString() == uid or o.GetNetCode() != t.GetNetCode()
+                    or o.GetLayer() != t.GetLayer()):
+                continue
+            if any(math.hypot(ex - ox, ey - oy) <= tol
+                   for ox, oy in _ends_mm(o)):
+                return True
+        pt = pcbnew.VECTOR2I_MM(ex, ey)
+        for p in pads:
+            if (p.GetNetCode() == t.GetNetCode() and p.IsOnLayer(t.GetLayer())
+                    and p.GetBoundingBox().Contains(pt)):
+                return True
+        return False
+
+    added = 0
+    for t in tracks:
+        for which in ("start", "end"):
+            pos = t.GetStart() if which == "start" else t.GetEnd()
+            ex, ey = pos.x / 1e6, pos.y / 1e6
+            if otherwise_anchored(t, ex, ey):
+                continue
+            tr = t.GetWidth() / 2e6
+            best = None
+            for v in vias:
+                if v.GetNetCode() != t.GetNetCode() or not v.IsOnLayer(t.GetLayer()):
+                    continue
+                vx, vy = v.GetPosition().x / 1e6, v.GetPosition().y / 1e6
+                d = math.hypot(ex - vx, ey - vy)
+                vr = v.GetWidth(t.GetLayer()) / 2e6
+                # The swept track cap stays wholly inside copper that the via
+                # already owns.  No enlargement of the realized copper union.
+                if tol < d <= max_move and d + tr <= vr:
+                    cand = (d, vx, vy)
+                    if best is None or cand < best:
+                        best = cand
+            if best:
+                _, vx, vy = best
+                bridge = pcbnew.PCB_TRACK(ctx.board)
+                bridge.SetStart(pcbnew.VECTOR2I_MM(round(ex, 4), round(ey, 4)))
+                bridge.SetEnd(pcbnew.VECTOR2I_MM(round(vx, 4), round(vy, 4)))
+                bridge.SetWidth(t.GetWidth())
+                bridge.SetLayer(t.GetLayer())
+                bridge.SetNetCode(t.GetNetCode())
+                ctx.board.Add(bridge)
+                added += 1
+    ctx.bump("via_endpoint_bridges", added)
+    print(f"bridged {added} copper-contained track endpoint(s) to via centres")
+
+
 @stitch_pass("drop_micro_fragments")
 def p_micro(ctx, c):
     """KRT leaves sub-grid whiskers at pass joins. Removing one with BOTH

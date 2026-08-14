@@ -114,26 +114,63 @@ class Toolkit:
             return self._index
         sig = self._sig()
         if self._index is None or sig != self._index_sig:
-            self._index = (
-                [(t.GetBoundingBox(), t, True)
-                 for t in self.board.GetTracks()] +
-                [(p.GetBoundingBox(), p, False)
-                 for f in self.board.GetFootprints() for p in f.Pads()])
+            def pad_limits(p):
+                local = p.GetLocalClearance()
+                try:
+                    mask_f = (p.GetSolderMaskExpansion(pcbnew.F_Cu)
+                              if p.IsOnLayer(pcbnew.F_Mask) else 0)
+                    mask_b = (p.GetSolderMaskExpansion(pcbnew.B_Cu)
+                              if p.IsOnLayer(pcbnew.B_Mask) else 0)
+                except TypeError:
+                    local_mask = p.GetLocalSolderMaskMargin()
+                    mask_f = local_mask if p.IsOnLayer(pcbnew.F_Mask) else 0
+                    mask_b = local_mask if p.IsOnLayer(pcbnew.B_Mask) else 0
+                return (int(local or 0), int(mask_f or 0), int(mask_b or 0))
+
+            self._index = [
+                (t.GetBoundingBox(), t, True, 0, 0, 0)
+                for t in self.board.GetTracks()
+            ]
+            for f in self.board.GetFootprints():
+                for p in f.Pads():
+                    local, mask_f, mask_b = pad_limits(p)
+                    self._index.append(
+                        (p.GetBoundingBox(), p, False,
+                         local, mask_f, mask_b))
             self._index_sig = sig
         return self._index
 
     # ---------------------------------------------------------------- checks
-    def collides(self, x1, y1, x2, y2, width, netcode, layer, clr=None):
-        """First colliding item (exact shapes) for a segment probe, or None."""
+    def collides(self, x1, y1, x2, y2, width, netcode, layer, clr=None,
+                 respect_pad_mask=False):
+        """First colliding item (exact shapes) for a segment probe, or None.
+
+        A pad's local clearance is part of its realized geometry contract, not
+        a DRC-only annotation.  The stitcher used to probe every foreign pad
+        at only the caller's common clearance, so a grid via could pass this
+        predicate and then fail KiCad against a fiducial's wider local copper
+        keepout.  Via probes may additionally request the realized solder-mask
+        expansion on outer layers; traces remain free to run beneath mask.
+        """
         probe = pcbnew.SHAPE_SEGMENT(_vec(x1, y1), _vec(x2, y2),
                                      pcbnew.FromMM(width))
         clr = self.clr if clr is None else pcbnew.FromMM(clr)
-        pad = int(pcbnew.FromMM(width) / 2) + clr + pcbnew.FromMM(0.05)
-        lox = min(pcbnew.FromMM(x1), pcbnew.FromMM(x2)) - pad
-        hix = max(pcbnew.FromMM(x1), pcbnew.FromMM(x2)) + pad
-        loy = min(pcbnew.FromMM(y1), pcbnew.FromMM(y2)) - pad
-        hiy = max(pcbnew.FromMM(y1), pcbnew.FromMM(y2)) + pad
-        for bb, item, is_track in self._get_index():
+        xlo = min(pcbnew.FromMM(x1), pcbnew.FromMM(x2))
+        xhi = max(pcbnew.FromMM(x1), pcbnew.FromMM(x2))
+        ylo = min(pcbnew.FromMM(y1), pcbnew.FromMM(y2))
+        yhi = max(pcbnew.FromMM(y1), pcbnew.FromMM(y2))
+        for bb, item, is_track, local_clearance, mask_f, mask_b in self._get_index():
+            item_clr = clr
+            if not is_track:
+                item_clr = max(item_clr, local_clearance)
+                if respect_pad_mask and layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+                    item_clr = max(
+                        item_clr,
+                        mask_f if layer == pcbnew.F_Cu else mask_b)
+            margin = (int(pcbnew.FromMM(width) / 2) + item_clr
+                      + pcbnew.FromMM(0.05))
+            lox, hix = xlo - margin, xhi + margin
+            loy, hiy = ylo - margin, yhi + margin
             if (bb.GetRight() < lox or bb.GetLeft() > hix or
                     bb.GetBottom() < loy or bb.GetTop() > hiy):
                 continue
@@ -147,7 +184,7 @@ class Toolkit:
                     return item
             else:
                 if item.FlashLayer(layer) and \
-                        probe.Collide(item.GetEffectiveShape(layer), clr):
+                        probe.Collide(item.GetEffectiveShape(layer), item_clr):
                     return item
                 # unflashed pads still have HOLES (review finding: a trace
                 # could be routed over an unflashed THT hole unchecked).
@@ -158,7 +195,7 @@ class Toolkit:
                 # (usb-hub-3s, 2026-07-21 — twice, on both alignment holes).
                 if item.GetDrillSizeX() > 0 and \
                         probe.Collide(item.GetEffectiveHoleShape(),
-                                      max(clr, pcbnew.FromMM(0.2))):
+                                      max(item_clr, pcbnew.FromMM(0.2))):
                     return item
         return None
 
@@ -172,7 +209,7 @@ class Toolkit:
         stale box must not decide a spacing question)."""
         dead = {i.m_Uuid.AsString() for i in skip}
         out = []
-        for _bb, item, is_track in self._get_index():
+        for _bb, item, is_track, _local, _mask_f, _mask_b in self._get_index():
             if is_track:
                 if type(item).__name__ != "PCB_VIA":
                     continue
@@ -240,7 +277,9 @@ class Toolkit:
         if layers is None:
             layers = tuple(self.board.GetEnabledLayers().CuStack())
         for lay in layers:
-            if self.collides(x, y, x, y, size, netcode, lay):
+            if self.collides(
+                    x, y, x, y, size, netcode, lay,
+                    respect_pad_mask=(lay in (pcbnew.F_Cu, pcbnew.B_Cu))):
                 return False
             if self.collides(x, y, x, y, drill, netcode, lay,
                              clr=hole_to_copper):

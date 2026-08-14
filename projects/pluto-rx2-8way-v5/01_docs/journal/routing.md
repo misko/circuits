@@ -293,3 +293,75 @@ The routing pause checkpoint pins 19/19 source, prepared, intermediate,
 per-wave guard and quick-verdict artifacts at SHA-256
 `8c61f08ee72ae6468f9c0ad83b2425197623ece2817bd695912497f2e51cd5e3`.
 No import, stitch, fill or canonical-board mutation is included in this stage.
+
+## 2026-08-13 — promoted import and post-stitch gate
+
+The first promoted replay was intentionally rejected after the full DRC found
+18 items. Twelve were `via_dangling` findings on deterministic endpoint
+barrels whose promoted trunks remained entirely on F.Cu. The other six were
+two each of clearance, drilled-hole clearance and solder-mask bridge at GND
+grid vias beside FID1/FID2. The common 0.20-mm screen had ignored each
+fiducial pad's 0.60-mm local copper clearance and 0.50-mm mask expansion; the
+1.118-mm site spacing was below the realized 1.325-mm copper requirement.
+
+The shared site predicate now indexes pad-local copper clearance and realized
+front/back mask expansion. A known-bad fixture independently exercises both
+properties. `via_janitor` runs before the grid and removes only vias attached
+on fewer than two copper layers. The final grid admits 200 rather than 202
+sites; the two invalid fiducial-adjacent sites are never emitted.
+
+Removing the unused R3.1 transition exposed a second, more subtle issue: the
+router had stopped its 3V3 trunk at `(68.70,57.00)` because its 0.25-mm rounded
+cap already overlapped the 0.45-mm via at `(68.80,57.00)`. That electrical
+overlap was too fragile to retain as topology after janitor. The final source
+dogbone ends at the assembly-safe via and `bridge_via_endpoints` adds the
+0.10-mm same-net micro-segment to its centre before cleanup. Its admissibility
+proof is strict: `0.100-mm distance + 0.125-mm track radius = 0.225-mm via
+radius`. No tolerance is allowed; a 0.101-mm fixture is refused. After janitor,
+two F.Cu tracks explicitly share `(68.80,57.00)` and the via is absent.
+
+The final exact chain is SHA-256
+`ddb5b901d9d8b4666dc99df9d1de29e46f63315d4440e43af9dcc686668ad622`
+from r0 `b88e7388011c`. All five per-wave guards pass and P-ROUTEBASE covers 36
+footprints, 46 base/prepared vias and 83 prepared segments. Promoted quick is
+clean with 61 GND-only deferred connections.
+
+Final replay results:
+
+| operation | result |
+|---|---|
+| promoted import | 236 segments / 48 vias, exact provenance recorded |
+| topology normalization | 2 via-contained bridges; 4 T-junction segments split |
+| unused-via cleanup | 12 single-layer barrels removed |
+| ground service | 32/32 SMD pads served; no fallback required |
+| ordinary stitch/fill | 200 grid vias; 4 zones; 0 island bridges |
+| saved-board rule audit | 20/20 PASS |
+| external-fact provenance | 3/3 PASS; no Pluto dimensions consumed |
+| authoritative DRC | 0 violations / 0 unconnected / 0 schematic parity |
+
+A representative exact stitch replay took 8.06 seconds. The long engineering
+time was not silent routing or fill; it was rejecting the first full-DRC
+result, classifying its two root causes, proving geometry-preserving cleanup,
+renewing exact-artifact review and replaying the whole boundary. The routing
+and stitch tools themselves remained bounded and observable.
+
+### Post-stitch reflection
+
+- Full DRC immediately after the cheapest complete fill boundary was valuable:
+  quick correctly deferred dangling barrels and mask interactions, while the
+  authoritative gate exposed both within seconds.
+- A generic site-admission function must consume realized object-local rules,
+  not only board defaults. Otherwise an emitter can create geometry the final
+  DRC is guaranteed to reject.
+- Copper overlap is not a durable machine-owned topology contract. Before a
+  cleanup pass removes an anchoring via, any surviving joint must become an
+  explicit same-net centreline node under a proof that does not enlarge copper.
+- Foreign-fact provenance belongs before layout spend. The existing D-MATE
+  gate correctly stopped on the missing machine copy, but running it for the
+  first time after stitch made the feedback unnecessarily late.
+
+The placement, routing and post-stitch checkpoints are respectively SHA-256
+`f0fa1e83a1e0`, `d7f828aad6b7` and `888c17bc703d`. This pause does not approve
+fabrication: the 5-mm whole-board lattice is ordinary plane stitching only.
+The next stage must realize and measure the <=1.40-mm route-following RF fence,
+then rerun the saved-board gates and obtain exact RF PCB review.

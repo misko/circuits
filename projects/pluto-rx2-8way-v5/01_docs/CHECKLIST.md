@@ -1,6 +1,6 @@
 # Revision checklist
 
-## Current unrouted-placement candidate — 2026-08-13
+## Current post-stitch candidate — 2026-08-13
 
 - [x] architecture ADRs accepted and exact part codes selected
 - [x] exact-code manufacturer facts and dated two-source/JLC checks recorded
@@ -41,26 +41,38 @@
 - [x] fresh pin/layout/render and A-RENDER placement witnesses are SOUND
       against the exact corrected board and deterministic prepared-route input
 - [x] canonical placement checkpoint pins 24/24 exact inputs at SHA-256
-      `ff882e7bc4923f97f1d747a3d30a86a2ac2ca61ddd4953cf8a4811d1ab01b86a`;
+      `f0fa1e83a1e00d020cced7f677a8ba198259f7e325278e18d273a8f5be496b39`;
       the superseded pre-D13 certificate is retained as
       `06_build/checkpoints/placement-pre-D13.json`
 - [x] deterministic endpoint escapes own boxed U1/U2/J1/C6/R3--R6 lands;
       35/35 seed banks prepare collision-clean with no ordinary via-in-pad
 - [x] shared per-wave no-new-via-in-pad gate is executable and all five
       promoted waves pass it; rejected attempts never entered progress/FINAL
-- [x] promoted chain SHA-256 `2e8c4a1fa9909391778244080a22387cf0ac38a56bb5dd1fc336c9c57aa40896`
+- [x] promoted chain SHA-256 `ddb5b901d9d8b4666dc99df9d1de29e46f63315d4440e43af9dcc686668ad622`
       authenticates 5/5 waves and passes P-ROUTEBASE against exact r0
 - [x] post-route quick verdict is CLEAN: zero routed-net opens and zero copper
       violations; 61 GND connections are explicitly deferred to plane fill
 - [x] routing-stage checkpoint pins 19/19 source, prepared, intermediate,
       guard and quick-verdict artifacts at SHA-256
-      `8c61f08ee72ae6468f9c0ad83b2425197623ece2817bd695912497f2e51cd5e3`
+      `d7f828aad6b738290c8a324c5a7b15f0404ba4908b67cf7da2cf8c5929b032ca`
+- [x] promoted import provenance binds exact chain `ddb5b901d9d8`; pre-fill
+      quick is clean and the stitch gate serves 32/32 GND SMD pads
+- [x] post-route cleanup adds two copper-contained endpoint bridges, removes
+      twelve unused single-layer barrels, places 200 safe ordinary GND stitch
+      vias and fills all four zones with no split island to heal
+- [x] saved-board DRC is 0 violations / 0 unconnected / 0 schematic-parity;
+      rules audit passes 20/20 and imported Pluto cable-boundary facts 3/3
+- [x] post-stitch checkpoint pins 23/23 exact route, review, provenance, rule,
+      DRC and saved-board artifacts at SHA-256
+      `888c17bc703d324d18947fa704423eafe4054893497ee211c3b0f958a68d45c2`
+- [ ] route-following RF fence realized and measured at <=1.40-mm along-route
+      pitch; the current 5-mm rectangular lattice is not credited as RF fence
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.
 
 ## Gates (mechanical — no judgement)
-- [ ] `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
+- [x] `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
       → 0 violations, 0 unconnected, 0 missing footprints
 - [x] shared `placement_gates.py` → PASS (P-OUT/P-CAP/P-BODYCLR)
 - [x] `model_coverage_check.py 04_kicad/<board>.kicad_pcb` → P-MODEL

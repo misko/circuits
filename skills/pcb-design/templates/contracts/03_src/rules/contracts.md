@@ -810,3 +810,14 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `[].derived_from` | `waiver_provenance.py` | W-COPY/W-FOREIGN: which board this rationale was inherited from |
 | `[].evidence` | `waiver_provenance.py` | M-WAIV executable evidence list; W-SCHEMA rejects an empty or non-list value |
 | `[].evidence[].*` | `waiver_provenance.py` | W-SCHEMA/W-GRADE/W-CMD/W-REGEN/W-FLIP: the closed evidence vocabulary (`claim`, `command`, `output`, `budget`, `tolerance`, `tolerance_why`, `grade`, `requires`, `why_not_rerunnable`, `note`) is validated and, when declared runnable, regenerated |
+
+### keys: 03_src/rules/mates.yaml
+
+| key | reader | why |
+|---|---|---|
+| `device` | `import_provenance_check.py` | exact `spf/<device>/` fact-record identity; a missing record is M-EXIST |
+| `why` | ADVISORY | human explanation of why this board consumes foreign facts; executable identity and uses are the rows below |
+| `consumes` | `import_provenance_check.py` | non-empty imported-fact denominator; an empty list is M-COVER |
+| `consumes[].fact` | `import_provenance_check.py` | fact id that must exist and remain quote-bound in the selected SPF record |
+| `consumes[].use` | `import_provenance_check.py` | closed dimensional/informational/owed use class driving M-BAR and M-OWED |
+| `consumes[].where` | `import_provenance_check.py` | exact design site where the foreign fact is spent; absence is D-MATE |

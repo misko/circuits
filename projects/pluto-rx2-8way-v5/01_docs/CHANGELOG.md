@@ -116,4 +116,26 @@ day and fab exactly one of them.
   Two identical v5 preparations are now byte-identical at r0 SHA-256
   `d598d305f5d7`; the new regression exercises keepouts, seed copper and early
   plane rescue (IMP-081).
+- Promoted the final five-wave chain at SHA-256 `ddb5b901d9d8`; all five
+  no-new-via-in-pad guards pass, P-ROUTEBASE covers 36 footprints / 46
+  base-prepared vias / 83 prepared segments, and quick reports zero routed-net
+  opens or copper violations.
+- Rejected the first post-stitch result rather than accepting 18 DRC findings:
+  twelve unused endpoint barrels were dangling and two grid vias violated the
+  authored fiducial copper/mask envelopes. Shared site admission now consumes
+  pad-local clearance and mask expansion, with a known-bad regression.
+- Replaced R3.1's fragile cap-overlap-only join with an assembly-safe source
+  via and a strictly via-contained 0.10-mm topology bridge. The bridge and
+  dogbone share `(68.80,57.00)` after the unused barrel is removed; the strict
+  boundary fixture accepts 0.100 mm and refuses 0.101 mm.
+- Replayed import and stitching from the exact promoted source: 32/32 GND SMD
+  pads served, 200 ordinary stitch vias, four zones filled, no split islands,
+  and clean stitch gate. Final saved-board DRC is 0 violations / 0 opens / 0
+  parity findings; rules audit is 20/20.
+- Made the existing no-rigid-Pluto, SMA-cable boundary machine-readable.
+  D-MATE now grades SMA gender, port order and AD936x RX absolute maximum 3/3
+  from their single external-fact home; no Pluto dimension is consumed.
+- Pinned the exact post-stitch pause in a 23/23 checkpoint. This is not a fab
+  release: the <=1.40-mm route-following 5.9-GHz RF fence and exact RF PCB
+  review remain open.
 Released: no

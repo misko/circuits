@@ -7,8 +7,8 @@ review_kind: layout
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 board_sha256: bdb0df87886cc15ed8a3ae2aee53c97f4a4cfd49734558967240816c5c73a22e
-design_rules_sha256: 6e1a3d39e0600855e690a001bfaeb55ac205940686e79215721a1096347266e7
-route_prep_sha256: 31594a8e29417cf6b5a1a374918b1d6979329c38a8f9d4c84182d17a46d7c872
+design_rules_sha256: 442edd6040f0b990f94a76f0f21d702503c0ba365fe6c5464d55f1842ab6999e
+route_prep_sha256: b88e7388011cd2ef29484b6a586514e5b2f41a83d731c189e1db327ba1386b25
 
 # Fresh corrected placement/layout renewal
 
@@ -81,3 +81,25 @@ R3.2/SW_V4 companion via. The exact emitter accepts 35/35 banks / 80 items;
 fresh prep reports zero added vias in SMD lands and fresh DRC has no copper,
 clearance, hole, annular or parity findings. RF and source placement remain
 unchanged. P0/P1/P2: none; **SOUND** for one bounded restart.
+
+## Targeted post-route-cleanup renewal
+
+Fresh review of the current rule digest replays `via_janitor` over the exact
+promoted chain and finds exactly twelve candidate barrels, each attached on
+F.Cu only. Removing them leaves the routed-net open count unchanged at zero
+and preserves every F.Cu dogbone/trunk. The shared via-site screen now honors
+realized pad-local copper and solder-mask expansion: it correctly rejects the
+5-mm grid points beside FID1/FID2, whose 1.118-mm centre spacing is below the
+1.325-mm copper requirement. Source board, r0, promoted chain, RF geometry and
+all placement measurements above are unchanged. P0/P1/P2: none; **SOUND**.
+
+The earlier exact-chain review correctly rejected a mere 0.060-mm cap overlap
+at R3.1 as too fragile. The renewed source dogbone terminates on KRT's grid at
+an assembly-safe 0.45/0.20-mm via centred `(68.80,57.00)`. KRT terminates its
+F.Cu trunk one cell away at `(68.70,57.00)`. The generic normalization does not
+pivot either route: it adds only that 0.10-mm same-net bridge, and only because
+bridge distance plus 0.125-mm track radius fits exactly inside the existing
+0.225-mm via radius, with no geometric tolerance. `via_janitor` may then remove the unused single-layer
+barrel while the bridge and dogbone retain an explicit shared endpoint. The
+focused fixture also refuses a 0.15-mm move that would enlarge copper. Final
+saved-board evidence remains required after replay before fabrication.
