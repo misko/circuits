@@ -1,0 +1,17 @@
+# policy_audit waivers — pluto-rx2-8way-v5. Each entry requires measured
+# evidence in `why`; read by skills/kicad-pcb/scripts/policy_audit.py.
+
+- id: P-SILK-OWN
+  why: >-
+    One reported ownership finding is a false positive from the gate's
+    footprint-origin-to-text-centre metric: J1 / `USB-C` measures 8.750 mm
+    from J1's origin and 6.871 mm from J12's origin. Re-measured 2026-08-14
+    on 04_kicad/pluto_rx2_8way_v5.kicad_pcb using text-bounding-box to
+    footprint-bounding-box edge distance, the visible legend is 0.945 mm
+    from its actual J1 USB-C receptacle body and 3.909 mm from the J12 bench
+    power header body, so J1 owns it by 2.964 mm. `BENCH 5V` independently
+    labels J12: its text centre is 4.200 mm from J12 and 11.001 mm from J1,
+    while its body-edge gaps are 1.767 mm to J12 and 2.880 mm to J1. Moving
+    `USB-C` closer to J1's footprint origin would place the legend under the
+    connector body and reduce fabricated-board readability. This waiver
+    covers only the single measured J1/J12 finding on this board revision.
