@@ -1,4 +1,4 @@
-status: draft
+status: in-progress
 current_release: no
 commission_basis: clean-room reconstruction with eight user-authoritative decisions
 
@@ -284,6 +284,25 @@ This authorizes deterministic route preparation and routing. It does not
 approve routed RF launch/fence geometry, declare the PCB fabrication-ready, or
 waive the order-stage JLC assembly review of the 0.10 mm SMA drill delta.
 
+### D16 — 2026-08-13 — firmware is opt-in, never a default deliverable
+
+> please do not generate firmware by default for a project only if specifically requested
+
+Impact: firmware generation is outside the default PCB-design pipeline. The
+hardware design may retain a programmable controller and programming
+interface, but no firmware source, binary, test result or behavioral claim may
+be created or included unless the user separately and explicitly requests it.
+
+### D17 — 2026-08-13 — stop Pluto v5 firmware work
+
+> please stop generating firmware
+
+Impact: stop all firmware work for this project immediately. The Pluto v5
+release scope is hardware-only and excludes `05_firmware/` in full. The board
+retains U2 and keyed SWD connector J11 as hardware interfaces, but this release
+does not claim that U2 is programmed or that autonomous dwell switching has
+been qualified. Any future firmware work requires a new explicit user request.
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -299,6 +318,7 @@ waive the order-stage JLC assembly review of the 0.10 mm SMA drill delta.
 | COM-009 | Replace loose SWD pads with a proper keyed 10-pin Cortex connector while retaining direct-Pi and ST-LINK programming. | user (D13) | [D13](#d13--2026-08-13--proper-keyed-programming-connector) |
 | COM-010 | Compact the board to a comfortable 90 x 65 mm outline with five top SMAs and two on each side while preserving cyclic RF order. | user (D14) | [D14](#d14--2026-08-13--compact-five-top-two-per-side-mechanics) |
 | COM-011 | Approve the exact D15 compact connector/access/render placement and authorize routing to continue. | user (D15) | [D15](#d15--2026-08-13--exact-compact-placement-approved) |
+| COM-012 | Make firmware generation opt-in across PCB projects and stop all firmware work for Pluto v5; seal only a hardware archive. | user (D16/D17) | [D17](#d17--2026-08-13--stop-pluto-v5-firmware-work) |
 | 0001 | Select PE42482A-X as one true absorptive solid-state SP8T. | user D8 / agent exact-code proof | [accepted ADR](decisions/0001-one-of-eight-absorptive-sp8t.md) |
 | 0002 | Select STM32C011F4P6 and the fixed-order, guarded, framed dwell protocol. | user D8 / agent parameter lock | [accepted ADR](decisions/0002-autonomous-dwell-coded-control.md) |
 | 0003 | Select the exact protected power-only USB-C sink and TPS7A2433DBVR 3.3 V rail. | user D8 / agent exact-code proof | [accepted ADR](decisions/0003-usb-c-5v-to-protected-3v3.md) |

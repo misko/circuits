@@ -1,10 +1,10 @@
-# STATUS beacon — fabrication package verified; paused before firmware
+# STATUS beacon — hardware-only release staging
 
 <!-- reader parses from here down -->
-stage:   fabrication
-step:    "strict JLC package and exact-Gerber RF_FAB review completed against source commit 9706143a and unchanged board 39251c24d4b3"
-measure: "13/13 archive members valid and normalized-reexport-identical; BOM 13/13; CPL/A-POP 29/29; stock 13/13; twin bodies 29/29; A-RENDER 14/14 resolvable; F-PAYLOAD 4/4; V-PROCESS 638/638; RF_FAB 4/4 READY; physical RF NOT_YET_MEASURED"
-state:   done
-next:    "after the stage pause, implement and verify STM32 dwell firmware, generated-profile parity, decoder tests and Raspberry Pi SWD programming; JLC uploader echoes and first-article VNA/timing remain later external gates"
+stage:   release_staging
+step:    "assemble a standalone hardware-only v0.1.0 design archive from deterministic board 43689fe44daa and regenerated JLC/PDF/STEP evidence"
+measure: "two clean full replays byte-identical; DRC 0/0/0; ERC 0 errors; 13 BOM rows; 29 CPL placements; 29/29 bodies; RF fence 18/18; via process 638/638; firmware excluded by D16/D17"
+state:   running
+next:    "stage source/fab/pdf/3d/verification, renew exact-artifact hardware reviews, stamp the source commit and seal; JLC uploader/process echo and first-article VNA remain external stop gates"
 op_pid:
-updated: 2026-08-13T21:51:00-07:00
+updated: 2026-08-13T23:52:00-07:00

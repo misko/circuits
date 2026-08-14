@@ -7,7 +7,10 @@ One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 Most revisions never ship. That is normal: a board can go v4.4 → v4.10 in a
 day and fab exactly one of them.
 
-## v0.0 — 2026-08-13  [untagged checkpoint]
+## v0.1.0 — 2026-08-13  [hardware-only design archive]
+- Entered hardware-only release staging after D16/D17 explicitly stopped
+  firmware generation. The archive retains the STM32 and keyed SWD hardware
+  but excludes `05_firmware/` and makes no programmed-behavior claim.
 - Accepted D13 and backtracked before routing: replaced five loose SWD pads
   with exact keyed Samtec FTSH-105-01-L-DV-K-P-TR / JLC C2932107 header J11,
   using the standard Cortex/MIPI10 target pinout and preserving target-only
@@ -231,4 +234,4 @@ day and fab exactly one of them.
   and six nanometre-scale F.Cu fill vertices. Phase/resume-namespaced UUID
   streams plus a regression now make two full v5 replays byte-identical at PCB
   SHA-256 `43689fe44daa`; both replays finish DRC 0/0/0 (IMP-099).
-Released: no
+Released: 07_releases/v0.1.0-2026-08-13

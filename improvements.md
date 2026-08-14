@@ -3478,3 +3478,37 @@ Recommended execution order for future boards:
   fabrication bytes.
 - history: 2026-08-13 — found, generalized, fixed and double-replay verified
   before the v5 hardware release was assembled.
+
+## IMP-100 — validate assembly semantics before release staging
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 hardware-release staging, 2026-08-13
+- evidence: `assembly.yaml` used the descriptive scalar
+  `build_quantity: 5_first_articles`, which reached
+  `release_freshness_check.py` and raised an uncaught integer-conversion
+  exception instead of producing a gate result. The same file also used
+  `sourcing_plan:` as a convenient complete BOM/function map. The release gate
+  correctly interprets that field as an exception plan for a stock shortfall,
+  so all 13 otherwise-stocked BOM lines became incomplete plans with no
+  measured stock/date. The current board was repaired to numeric
+  `build_quantity: 5` and `sourcing_plan: []`; exact BOM mapping remains in
+  its proper circuit/dossier authorities.
+- general rule: validate configuration by semantic role at the earliest
+  schema boundary. `build_quantity` is a positive integer, not a display
+  label. `sourcing_plan` contains only measured exception/disposition records,
+  never the normal BOM population or a shopping list. A consumer must report a
+  schema failure rather than crash on a malformed value.
+- intended landing point: add an assembly-schema validator to commission/source
+  preflight and reuse it from the exporter, stock gate and release gate. Give
+  ordinary part mapping its existing authoritative homes rather than adding a
+  second assembly-side map. Harden `release_freshness_check.py` so invalid
+  types return a named fail-closed finding with path and field.
+- completion evidence required: fixtures for a descriptive quantity, zero or
+  negative quantity, a normal BOM row misfiled as `sourcing_plan`, and a valid
+  measured stock-shortfall plan. Every malformed fixture must fail before PCB
+  generation or market queries and none may raise a traceback.
+- recommendation: implement before the next project reaches sourcing or
+  release staging. Pluto v5's source and sealed copy are corrected, so this is
+  not a blocker for its present hardware archive.
+- history: 2026-08-13 — recorded after the first shipped-byte freshness run
+  exposed both schema/semantic defects despite a passing live stock report.
