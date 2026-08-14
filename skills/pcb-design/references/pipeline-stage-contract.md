@@ -171,6 +171,24 @@ Required first pairs are stock, supplier model availability, via/current
 capacity, generated evidence, live/relocated DRC and review/publication
 identity.
 
+## Conditional RF adapter
+
+RF specialization is an adapter inside the existing lifecycle, not a fourth
+pipeline owner and not a review-wait stage:
+
+1. `rf_contract_check.py` resolves explicit applicability.
+2. `rf_context.py` selects local source cards with no network or reviewer.
+3. `rf_solver.py` runs only declared `pending_solver` work as bounded,
+   heartbeat-visible, cached local jobs; locked sections are immediate N-A.
+4. `rf_check.py source` grades authored geometry before producer spend.
+5. `rf_check.py realized` reopens the saved board and emits exact evidence
+   before the existing RF PCB review.
+
+Exact cached bundle reuse is load-bearing: a no-op run must keep its manifest
+hash stable or it needlessly invalidates a human review. RF schematic/PCB/fab
+review remains owned by the existing review contract; this adapter launches no
+reviewer and creates no additional polling boundary.
+
 ## Migration
 
 1. Wrap existing commands without changing predicates.

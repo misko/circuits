@@ -9,6 +9,7 @@ trace geometry or fabrication output.
 Use a fresh-context reviewer who did not author the circuit. Give only:
 
 - `03_src/rules/rf.yaml`;
+- the exact `rf_source_bundle` manifest declared by an adopted RF module;
 - BRIEF/ARCHITECTURE/DETAIL_DESIGN and relevant ADRs;
 - exact schematic/netlist artifact named by `rf.reviews.schematic.artifact`;
 - cited part dossiers/datasheets and reference designs.
@@ -42,6 +43,7 @@ Archive the review verbatim in `08_reviews/` at the path declared in
     independence: independent-from-design-author
     source_commit: <full 40-character SHA>
     artifact_sha256: <SHA256 of exact schematic/netlist artifact>
+    evidence_sha256: rf_source_bundle <SHA256 of exact bundle.json>
     design_verdict: SOUND | DEFECTIVE
 
 Then include exactly one line for every declared schematic requirement ID:
@@ -49,5 +51,6 @@ Then include exactly one line for every declared schematic requirement ID:
     requirement: RF-SCH-... PASS | FAIL
 
 `rf_contract_check.py --require-review schematic` derives the denominator from
-`rf.yaml`, rejects zero/partial/duplicate coverage, and verifies the artifact
-hash. Any FAIL or `DEFECTIVE` returns the design to schematic work.
+`rf.yaml`, rejects zero/partial/duplicate coverage, and verifies artifact and
+declared evidence hashes. Legacy contracts omit the evidence row. Any FAIL or
+`DEFECTIVE` returns the design to schematic work.

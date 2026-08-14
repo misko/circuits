@@ -45,6 +45,12 @@ $PY "$S/module_first_check.py" . \
 # [0c] RF applicability/requirements are decided before schematic/layout spend.
 $PY "$S/rf_contract_check.py" . --require-applicability \
     || { echo "GATE FAILED [0c] RF-CONTRACT: fix 03_src/rules/rf.yaml before continuing"; exit 1; }
+run_stage rf_context "$PY" "$S/rf_context.py" . \
+    || { echo "GATE FAILED [0c] RF-CONTEXT: local RF source-card selection is incomplete"; exit 1; }
+run_stage rf_solver "$PY" "$S/rf_solver.py" . \
+    || { echo "GATE FAILED [0c] RF-SOLVER: a declared local solver job failed or exceeded its deadline"; exit 1; }
+run_stage rf_source "$PY" "$S/rf_check.py" source . \
+    || { echo "GATE FAILED [0c] RF-SOURCE: authored RF geometry/authority is inconsistent"; exit 1; }
 
 # [0] S-COUNT pre-gate: alphanumeric pads mapped BEFORE the first tsci build —
 # tscircuit DROPS an unmapped part silently (ERC still 0, 2026-07-21 incident)
@@ -364,6 +370,8 @@ $PY "$S/rules_audit.py" . --board "04_kicad/$BOARD.kicad_pcb" \
 $PY "$S/via_ampacity_check.py" "04_kicad/$BOARD.kicad_pcb" 03_src/route.yaml \
     --json 06_build/verification/via_ampacity.json \
     || { echo "GATE FAILED [9b] A-VIA: a declared series transfer bank lacks current capacity"; exit 1; }
+run_stage rf_realized "$PY" "$S/rf_check.py" realized . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [9c] RF-REALIZED: saved RF copper/fence evidence is incomplete"; exit 1; }
 
 # [10] DRC gate — must be 0 / 0 / 0 at full severity
 run_stage layout_drc kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \

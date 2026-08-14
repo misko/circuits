@@ -110,6 +110,12 @@ rationale.
 | IMP-094 | Bind review contracts to the exporter artifact index | proposed | Pluto RX2 8-way v5 fabrication entry |
 | IMP-095 | Dispatch exact-artifact reviews from a machine-written envelope | proposed | Pluto RX2 8-way v5 RF fabrication review |
 | IMP-096 | Derive release PDF pages from populated sides and document purpose | proposed | Pluto RX2 8-way v5 release-asset export |
+| IMP-097 | Preserve schematic-sheet coordinate domains in native conversion | completed | Pluto RX2 8-way v5 schematic archive |
+| IMP-098 | Make clean replay produce every ignored review prerequisite it consumes | proposed | Pluto RX2 8-way v5 clean replay |
+| IMP-099 | Seed every late KiCad writer, not only board and route preparation | completed | Pluto RX2 8-way v5 release reproducibility |
+| IMP-100 | Validate assembly semantics before release staging | proposed | Pluto RX2 8-way v5 release staging |
+| IMP-101 | Make local PCB ECO routing preserve the validated copper baseline | proposed | Pluto RX2 8-way v5 J12 bench-power renewal |
+| IMP-102 | Make RF expertise a conditional, bounded evidence module | completed | Pluto RX2 8-way v5 RF module audit |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -3658,3 +3664,59 @@ Recommended execution order for future boards:
 - relationship: IMP-040 proves that promoted copper is compatible with the new
   base before review; IMP-083 rejects unsafe router vias; this improvement adds
   an explicit minimal-change execution path between those two controls.
+
+## IMP-102 — make RF expertise a conditional, bounded evidence module
+
+- status: implemented
+- observed: Pluto RX2 8-way v5 RF routing/fence audit, 2026-08-14
+- evidence: the board has nine declared 50-ohm CPWG paths and a passing
+  18/18 saved-board fence result, but the retained invocation graded a default
+  +/-2.5 mm lateral band while the route emitter actually searched +/-1.10 mm.
+  Its authored RF polylines also contain 14 direction changes (12 above 20
+  degrees, maximum 67.92 degrees), while the shared fence emitter and checker
+  previously rejected native track arcs. Adding a generic RF reviewer or live
+  research step would have added another quiet wait boundary; one earlier
+  local field-solver run had already been silent for 35.724 seconds.
+- general rule: RF specialization is conditional data and executable geometry
+  inside the existing schematic/routing/seal lifecycle. It must not create a
+  fourth pipeline owner, a new agent wait, or runtime web research. Separate
+  normative/background/tool-capability/precedent voices; default clean-room
+  context excludes prior-board results. Grade authored geometry before
+  generation and independently reopen realized board bytes before PCB review.
+- landed at: `references/rf/` contains validated local source cards and the
+  bounded procedure. `rf_context.py` selects them offline. `rf_solver.py` runs
+  only declared pending local jobs with direct argv, input/output manifests,
+  streamed output, heartbeat, hard deadline, process-group termination and
+  exact cache reuse. `rf_check.py` emits source/realized atomic bundles and
+  binds the realized fence report to the exact board. `rf_contract_check.py`
+  validates opt-in `rf-module-v1`, bend policy, one fence-band authority and
+  review evidence hashes. `pcb_flow.py` and both rebuild templates place these
+  operations in the existing bounded stages, without launching reviewers.
+- geometry capability: deterministic seed routes and the independent fence
+  gate now retain native KiCad `PCB_ARC` primitives and measure their true
+  arclength. Bend policy begins advisory; blocking requires an explicit
+  radius/width threshold and measured-site exceptions. This avoids requiring
+  arcs before emission, collision checking, idempotency, fence projection and
+  saved-board audit all understand them.
+- Pluto result: the legacy board remains unchanged and passes source coverage
+  9/9 plus realized coverage 9/9 and fence coverage 18/18 at the actual
+  +/-1.10 mm band. It reports the 14 bends and route-only band authority as
+  advisories. A future source revision can adopt `rf-module-v1`, promote
+  `maximum_lateral_center_offset_mm: 1.10` into `rf.yaml`, choose which bends
+  to round, and then request fresh exact-evidence reviews. Existing release
+  bytes are not silently reclassified.
+- completion evidence: focused clean/known-bad tests cover clean-room source
+  selection, advisory versus blocking bends, exact stable bundle reuse,
+  solver timeout termination, review-to-realized-board binding, contract/route
+  band disagreement, missing bundle outputs, native arc emission/idempotency,
+  independent arc fence measurement, YAML segment-boundary corners, and
+  non-tangent line/arc joins. The Pluto v5 pipeline canaries pass 11/11 and
+  7/7 for its two supported rebuild paths, the USB/non-RF canary passes 9/9,
+  and the full `pcb_flow` regression passes 40/40. The non-RF source and
+  realized gates also prove an immediate N-A path without loading a route
+  contract or board.
+- recommendation: carry immediately for new RF boards in advisory mode; adopt
+  blocking geometry only after the board deliberately updates its source
+  contract and reviews. Keep non-RF projects on the immediate N-A path.
+- history: 2026-08-14 — audited, modularized and integrated after the Pluto
+  board exposed both an authority gap and an end-to-end arc capability gap.

@@ -93,6 +93,81 @@ def _requirements(text: str) -> list[tuple[str, str]]:
         r"(PASS|FAIL)\s*$", text)]
 
 
+def _evidence_bindings(text: str) -> list[tuple[str, str]]:
+    return [(m.group(1), m.group(2).lower()) for m in re.finditer(
+        r"(?im)^\s*evidence_sha256:\s*([A-Za-z0-9_.-]+)\s+"
+        r"([0-9a-f]{64})\s*$", text)]
+
+
+def _bundle_error(path: Path, role: str, artifact: Path,
+                  contract_path: Path | None = None) -> str:
+    """Validate an RF evidence manifest and its exact primary subject."""
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
+    except (OSError, TypeError, ValueError, yaml.YAMLError) as exc:
+        return f"cannot parse evidence bundle {path}: {exc}"
+    if (not isinstance(data, dict) or data.get("schema") != 1
+            or data.get("status") != "PASS"):
+        return f"evidence bundle {path} is not a schema-1 PASS manifest"
+    outputs = data.get("outputs") or {}
+    if not isinstance(outputs, dict) or "report.json" not in outputs:
+        return f"evidence bundle {path} does not declare report.json"
+    for name, facts in outputs.items():
+        candidate = Path(str(name))
+        if (candidate.is_absolute() or not candidate.parts
+                or any(part in ("", ".", "..") for part in candidate.parts)):
+            return f"evidence bundle {path} has unsafe output name {name!r}"
+        output_path = path.parent / candidate
+        if not output_path.is_file() or output_path.is_symlink():
+            return f"evidence bundle output is missing or unsafe: {output_path}"
+        if not isinstance(facts, dict):
+            return f"evidence bundle output metadata is invalid for {name}"
+        try:
+            recorded_size = int(facts.get("size"))
+        except (TypeError, ValueError):
+            return f"evidence bundle output size is invalid for {name}"
+        if (recorded_size != output_path.stat().st_size
+                or facts.get("sha256") != _sha256(output_path)):
+            return f"evidence bundle output hash/size is stale for {name}"
+    expected_producer = {"rf_source_bundle": "rf_check.py source",
+                         "rf_realized_bundle": "rf_check.py realized"}.get(role)
+    if expected_producer and data.get("producer") != expected_producer:
+        return (f"evidence producer is {data.get('producer') or 'UNSTATED'}, "
+                f"expected {expected_producer}")
+    try:
+        report = yaml.safe_load(
+            (path.parent / "report.json").read_text(encoding="utf-8-sig")) or {}
+    except (OSError, TypeError, ValueError, yaml.YAMLError) as exc:
+        return f"cannot parse evidence report.json: {exc}"
+    expected_mode = {"rf_source_bundle": "source",
+                     "rf_realized_bundle": "realized"}.get(role)
+    if (not isinstance(report, dict) or report.get("schema") != 1
+            or report.get("verdict") != "PASS"
+            or (expected_mode and report.get("mode") != expected_mode)):
+        return (f"evidence report.json is not a schema-1 PASS "
+                f"{expected_mode or 'RF'} report")
+    if contract_path is not None:
+        expected_contract = _sha256(contract_path)
+        actual_contract = ((data.get("inputs") or {}).get("rf.yaml") or {}).get(
+            "sha256")
+        if actual_contract != expected_contract:
+            return (f"evidence RF-contract hash is "
+                    f"{actual_contract or 'UNSTATED'}, expected current "
+                    f"contract {expected_contract}")
+    if role == "rf_realized_bundle":
+        expected = _sha256(artifact)
+        actual = ((data.get("inputs") or {}).get("board.kicad_pcb") or {}).get(
+            "sha256")
+        if actual != expected:
+            return (f"realized evidence board hash is {actual or 'UNSTATED'}, "
+                    f"expected exact artifact {expected}")
+        if report.get("board_sha256") != expected:
+            return (f"realized report board hash is "
+                    f"{report.get('board_sha256') or 'UNSTATED'}, expected "
+                    f"exact artifact {expected}")
+    return ""
+
+
 def load_contract(path: Path) -> dict:
     try:
         data = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
@@ -109,8 +184,22 @@ def load_contract(path: Path) -> dict:
 
 
 def validate_enabled(project: Path, contract: dict,
-                     required_phases=()) -> dict[str, dict]:
+                     required_phases=(), contract_path: Path | None = None
+                     ) -> dict[str, dict]:
     rf = contract["rf"]
+    process = rf.get("process")
+    adopted_rf_module = process is not None
+    if adopted_rf_module:
+        process = _mapping(process, "rf.process")
+        if process.get("profile") != "rf-module-v1":
+            raise ContractError("rf.process.profile must be rf-module-v1")
+        if process.get("context_policy") not in (
+                "clean_room", "allow_precedent"):
+            raise ContractError(
+                "rf.process.context_policy must be clean_room or allow_precedent")
+        if process.get("geometry_policy") not in ("advisory", "blocking"):
+            raise ContractError(
+                "rf.process.geometry_policy must be advisory or blocking")
     tier = _nonempty(rf.get("risk_tier"), "rf.risk_tier")
     if tier not in RISK_TIERS:
         raise ContractError(
@@ -182,6 +271,71 @@ def validate_enabled(project: Path, contract: dict,
                         f"rf.cross_sections[{index}].{key} must be > 0 when "
                         "status is locked")
 
+    analysis = rf.get("analysis")
+    if analysis is not None:
+        analysis = _mapping(analysis, "rf.analysis")
+        jobs = analysis.get("solver_jobs") or []
+        if not isinstance(jobs, list):
+            raise ContractError("rf.analysis.solver_jobs must be a list")
+        job_ids, covered_sections = set(), []
+        for i, raw in enumerate(jobs):
+            job = _mapping(raw, f"rf.analysis.solver_jobs[{i}]")
+            ident = _nonempty(job.get("id"), f"rf.analysis.solver_jobs[{i}].id")
+            if ident in job_ids:
+                raise ContractError(f"duplicate RF solver job {ident!r}")
+            job_ids.add(ident)
+            if job.get("work_class") != "local_compute":
+                raise ContractError(
+                    f"rf.analysis.solver_jobs[{i}].work_class must be local_compute")
+            if job.get("network") is not False:
+                raise ContractError(
+                    f"rf.analysis.solver_jobs[{i}].network must be false")
+            section_refs = _list(
+                job.get("cross_section_ids"),
+                f"rf.analysis.solver_jobs[{i}].cross_section_ids")
+            for j, section_id in enumerate(section_refs):
+                section_id = _nonempty(
+                    section_id,
+                    f"rf.analysis.solver_jobs[{i}].cross_section_ids[{j}]")
+                if section_id not in section_ids:
+                    raise ContractError(
+                        f"RF solver job {ident!r} names unknown cross-section "
+                        f"{section_id!r}")
+                covered_sections.append(section_id)
+            command = _list(job.get("command"),
+                            f"rf.analysis.solver_jobs[{i}].command")
+            for j, value in enumerate(command):
+                _nonempty(value, f"rf.analysis.solver_jobs[{i}].command[{j}]")
+            for key in ("inputs", "outputs"):
+                values = _list(job.get(key),
+                               f"rf.analysis.solver_jobs[{i}].{key}")
+                for j, value in enumerate(values):
+                    _nonempty(value,
+                              f"rf.analysis.solver_jobs[{i}].{key}[{j}]")
+            timeout = job.get("timeout_s")
+            heartbeat = job.get("heartbeat_s")
+            if (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)
+                    or not 1 <= float(timeout) <= 300):
+                raise ContractError("RF solver timeout_s must be within 1..300")
+            if (not isinstance(heartbeat, (int, float))
+                    or isinstance(heartbeat, bool)
+                    or not 1 <= float(heartbeat) <= min(30, float(timeout))):
+                raise ContractError(
+                    "RF solver heartbeat_s must be within 1..min(30, timeout_s)")
+        duplicate_coverage = sorted({value for value in covered_sections
+                                     if covered_sections.count(value) > 1})
+        if duplicate_coverage:
+            raise ContractError(
+                f"RF solver jobs duplicate cross-section coverage {duplicate_coverage}")
+        if adopted_rf_module and set(covered_sections) != set(pending_sections):
+            raise ContractError(
+                "rf-module-v1 solver jobs must cover exactly the pending "
+                f"cross-sections; jobs={sorted(covered_sections)}, "
+                f"pending={sorted(pending_sections)}")
+    elif adopted_rf_module and pending_sections:
+        raise ContractError(
+            "rf-module-v1 pending cross-sections require rf.analysis.solver_jobs")
+
     # RF layout is optional before geometry work begins, but once declared it
     # is executable authority: the route-following emitter and the independent
     # saved-board fence gate both consume it.  Validate the complete block and
@@ -226,6 +380,50 @@ def validate_enabled(project: Path, contract: dict,
         for key in ("length_matching", "geometry"):
             _substantive(route.get(key),
                          f"rf.layout_constraints.route.{key}")
+        bend_policy = route.get("bend_policy")
+        if bend_policy is not None:
+            bend_policy = _mapping(
+                bend_policy, "rf.layout_constraints.route.bend_policy")
+            multiple = bend_policy.get("minimum_radius_width_multiple")
+            if not isinstance(multiple, (int, float)) or float(multiple) <= 0:
+                raise ContractError(
+                    "rf.layout_constraints.route.bend_policy."
+                    "minimum_radius_width_multiple must be > 0")
+            sources = _list(
+                bend_policy.get("source_claim_ids"),
+                "rf.layout_constraints.route.bend_policy.source_claim_ids")
+            for i, source in enumerate(sources):
+                _nonempty(source, "rf.layout_constraints.route.bend_policy."
+                          f"source_claim_ids[{i}]")
+            exceptions = bend_policy.get("exceptions") or []
+            if not isinstance(exceptions, list):
+                raise ContractError(
+                    "rf.layout_constraints.route.bend_policy.exceptions "
+                    "must be a list")
+            exception_ids = set()
+            for i, raw in enumerate(exceptions):
+                row = _mapping(raw, "rf.layout_constraints.route."
+                               f"bend_policy.exceptions[{i}]")
+                ident = _nonempty(row.get("id"), "rf.layout_constraints."
+                                  f"route.bend_policy.exceptions[{i}].id")
+                if ident in exception_ids:
+                    raise ContractError(f"duplicate RF bend exception {ident!r}")
+                exception_ids.add(ident)
+                _nonempty(row.get("net"), "rf.layout_constraints.route."
+                          f"bend_policy.exceptions[{i}].net")
+                at = row.get("at_mm")
+                if (not isinstance(at, list) or len(at) != 2
+                        or not all(isinstance(v, (int, float)) for v in at)):
+                    raise ContractError("RF bend exception at_mm must be [x, y]")
+                tolerance = row.get("tolerance_mm")
+                if not isinstance(tolerance, (int, float)) or tolerance <= 0:
+                    raise ContractError(
+                        "RF bend exception tolerance_mm must be > 0")
+                _substantive(row.get("reason"), "RF bend exception reason")
+                _substantive(row.get("evidence"), "RF bend exception evidence")
+        if adopted_rf_module and bend_policy is None:
+            raise ContractError(
+                "rf-module-v1 requires rf.layout_constraints.route.bend_policy")
         matching_sections = [s for s in sections
                              if s.get("status", "locked") == "locked"
                              and s.get("copper_layer") == route_layer
@@ -257,11 +455,25 @@ def validate_enabled(project: Path, contract: dict,
                     f"https URLs, got {value!r}")
         maximum_pitch = fence.get("maximum_along_route_pitch_mm")
         lateral_offset = fence.get("nominal_lateral_center_offset_mm")
+        maximum_band = fence.get("maximum_lateral_center_offset_mm")
         for key, value in (("maximum_along_route_pitch_mm", maximum_pitch),
                            ("nominal_lateral_center_offset_mm", lateral_offset)):
             if not isinstance(value, (int, float)) or float(value) <= 0:
                 raise ContractError(
                     f"rf.layout_constraints.ground_fence.{key} must be > 0")
+        if maximum_band is not None:
+            if not isinstance(maximum_band, (int, float)) or maximum_band <= 0:
+                raise ContractError(
+                    "rf.layout_constraints.ground_fence."
+                    "maximum_lateral_center_offset_mm must be > 0")
+            if float(maximum_band) + 1e-9 < float(lateral_offset):
+                raise ContractError(
+                    "ground_fence maximum lateral offset cannot be below "
+                    "the nominal lateral offset")
+        elif adopted_rf_module:
+            raise ContractError(
+                "rf-module-v1 requires ground_fence."
+                "maximum_lateral_center_offset_mm")
         nominal_via = _mapping(
             fence.get("nominal_via_mm"),
             "rf.layout_constraints.ground_fence.nominal_via_mm")
@@ -359,9 +571,35 @@ def validate_enabled(project: Path, contract: dict,
                     f"RF requirement id {ident!r} is reused across phases")
             cleaned.append(ident)
             all_requirement_ids.add(ident)
+        evidence = []
+        evidence_roles = set()
+        raw_evidence = spec.get("evidence") or []
+        if not isinstance(raw_evidence, list):
+            raise ContractError(f"rf.reviews.{phase}.evidence must be a list")
+        for index, raw in enumerate(raw_evidence):
+            row = _mapping(raw, f"rf.reviews.{phase}.evidence[{index}]")
+            role = _nonempty(row.get("role"),
+                             f"rf.reviews.{phase}.evidence[{index}].role")
+            if not re.fullmatch(r"[A-Za-z0-9_.-]+", role):
+                raise ContractError(f"invalid RF evidence role {role!r}")
+            if role in evidence_roles:
+                raise ContractError(f"duplicate RF evidence role {role!r}")
+            evidence_roles.add(role)
+            evidence.append({
+                "role": role,
+                "path": _inside(project, row.get("path"),
+                                f"rf.reviews.{phase}.evidence[{index}].path"),
+            })
+        required_role = {"schematic": "rf_source_bundle",
+                         "pcb": "rf_realized_bundle"}.get(phase)
+        if adopted_rf_module and required_role and required_role not in evidence_roles:
+            raise ContractError(
+                f"rf-module-v1 requires rf.reviews.{phase}.evidence role "
+                f"{required_role}")
         normalized[phase] = {
             "path": review_path, "artifact": artifact,
-            "requirements": cleaned,
+            "requirements": cleaned, "evidence": evidence,
+            "contract_path": contract_path,
         }
     if pending_sections and any(
             phase in ("pcb", "fab") for phase in required_phases):
@@ -422,6 +660,34 @@ def review_errors(project: Path, phase: str, spec: dict) -> list[str]:
         errors.append(
             f"RF-{phase.upper()}-BINDING: artifact_sha256 is "
             f"{bound_hash or 'UNSTATED'}, expected {actual_hash}")
+    evidence_rows = _evidence_bindings(text)
+    evidence_seen = [role for role, _digest in evidence_rows]
+    duplicates = sorted({role for role in evidence_seen
+                         if evidence_seen.count(role) > 1})
+    expected_roles = [row["role"] for row in spec.get("evidence") or []]
+    missing_roles = sorted(set(expected_roles) - set(evidence_seen))
+    extra_roles = sorted(set(evidence_seen) - set(expected_roles))
+    if duplicates or missing_roles or extra_roles \
+            or len(evidence_rows) != len(expected_roles):
+        errors.append(
+            f"RF-{phase.upper()}-EVIDENCE-COVERAGE: bound "
+            f"{len(evidence_rows)}/{len(expected_roles)}; missing={missing_roles}, "
+            f"extra={extra_roles}, duplicate={duplicates}")
+    bound_evidence = dict(evidence_rows)
+    for row in spec.get("evidence") or []:
+        role, path = row["role"], row["path"]
+        if not path.is_file():
+            errors.append(f"RF-{phase.upper()}-EVIDENCE: {role} missing {path}")
+            continue
+        expected_hash = _sha256(path)
+        if bound_evidence.get(role) != expected_hash:
+            errors.append(
+                f"RF-{phase.upper()}-EVIDENCE-BINDING: {role} is "
+                f"{bound_evidence.get(role, 'UNSTATED')}, expected {expected_hash}")
+        bundle_error = _bundle_error(
+            path, role, artifact, spec.get("contract_path"))
+        if bundle_error:
+            errors.append(f"RF-{phase.upper()}-EVIDENCE: {role}: {bundle_error}")
     verdict_key = "fab_package_verdict" if phase == "fab" else "design_verdict"
     verdict_want = "READY" if phase == "fab" else "SOUND"
     if _field(text, verdict_key).upper() != verdict_want:
@@ -475,7 +741,7 @@ def main(argv=None) -> int:
                   "dedicated RF reviews are N-A")
             return 0
         phases = list(dict.fromkeys(args.require_review))
-        reviews = validate_enabled(project, contract, phases)
+        reviews = validate_enabled(project, contract, phases, contract_path)
         errors = []
         for phase in phases:
             phase_errors = review_errors(project, phase, reviews[phase])

@@ -177,7 +177,7 @@ class Toolkit:
             if item.GetNetCode() == netcode:
                 continue
             if is_track:
-                if (type(item).__name__ == "PCB_TRACK" and
+                if (item.GetClass() in ("PCB_TRACK", "PCB_ARC") and
                         item.GetLayer() != layer):
                     continue
                 if probe.Collide(item.GetEffectiveShape(), clr):
@@ -193,6 +193,49 @@ class Toolkit:
                 # the routing clearance, and probing at track clearance let
                 # a tap pass 0.14mm from a J5 NPTH that DRC then rejected
                 # (usb-hub-3s, 2026-07-21 — twice, on both alignment holes).
+                if item.GetDrillSizeX() > 0 and \
+                        probe.Collide(item.GetEffectiveHoleShape(),
+                                      max(item_clr, pcbnew.FromMM(0.2))):
+                    return item
+        return None
+
+    def collides_item(self, candidate, netcode, layer, clr=None,
+                      respect_pad_mask=False):
+        """First foreign item colliding with a prepared track/arc candidate.
+
+        Unlike a chord approximation, ``candidate.GetEffectiveShape()`` keeps
+        the complete swept copper of a native ``PCB_ARC``. The candidate is
+        not added to the board, so the saved-board index remains authoritative.
+        """
+        probe = candidate.GetEffectiveShape()
+        clr = self.clr if clr is None else pcbnew.FromMM(clr)
+        cbb = candidate.GetBoundingBox()
+        margin = clr + pcbnew.FromMM(0.05)
+        lox, hix = cbb.GetLeft() - margin, cbb.GetRight() + margin
+        loy, hiy = cbb.GetTop() - margin, cbb.GetBottom() + margin
+        for bb, item, is_track, local_clearance, mask_f, mask_b in self._get_index():
+            item_clr = clr
+            if not is_track:
+                item_clr = max(item_clr, local_clearance)
+                if respect_pad_mask and layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+                    item_clr = max(
+                        item_clr,
+                        mask_f if layer == pcbnew.F_Cu else mask_b)
+            if (bb.GetRight() < lox or bb.GetLeft() > hix or
+                    bb.GetBottom() < loy or bb.GetTop() > hiy):
+                continue
+            if item.GetNetCode() == netcode:
+                continue
+            if is_track:
+                if (item.GetClass() in ("PCB_TRACK", "PCB_ARC")
+                        and item.GetLayer() != layer):
+                    continue
+                if probe.Collide(item.GetEffectiveShape(), clr):
+                    return item
+            else:
+                if item.FlashLayer(layer) and \
+                        probe.Collide(item.GetEffectiveShape(layer), item_clr):
+                    return item
                 if item.GetDrillSizeX() > 0 and \
                         probe.Collide(item.GetEffectiveHoleShape(),
                                       max(item_clr, pcbnew.FromMM(0.2))):
@@ -313,6 +356,18 @@ class Toolkit:
         t.SetStart(_vec(x1, y1)); t.SetEnd(_vec(x2, y2))
         t.SetWidth(pcbnew.FromMM(width)); t.SetLayer(layer); t.SetNet(net)
         self.board.Add(t)
+        return t
+
+    def make_arc(self, start, mid, end, net, layer, width):
+        arc = pcbnew.PCB_ARC(self.board)
+        arc.SetStart(_vec(*start)); arc.SetMid(_vec(*mid)); arc.SetEnd(_vec(*end))
+        arc.SetWidth(pcbnew.FromMM(width)); arc.SetLayer(layer); arc.SetNet(net)
+        return arc
+
+    def add_arc(self, start, mid, end, net, layer, width):
+        arc = self.make_arc(start, mid, end, net, layer, width)
+        self.board.Add(arc)
+        return arc
 
     def add_via(self, x, y, net, size=0.45, drill=0.2, protection=None,
                 protection_path="via_protection"):

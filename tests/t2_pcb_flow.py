@@ -462,6 +462,9 @@ def t_layout_seal_stage_typed_review():
              "selective via fabrication intent is revalidated")
     contains(plan.out, "[via_ampacity]",
              "declared series transfer banks are revalidated")
+    contains(plan.out, "[rf_realized]", "saved-board RF evidence stage")
+    check(plan.out.index("[rf_realized]") < plan.out.index("[rf_reviews]"),
+          "realized RF evidence must exist before its human review is credited")
 
 
 @test("reviewed-commit recovery is commit-, input-, and review-bound")
@@ -545,6 +548,20 @@ def t_module_first_preflight():
     contains(adopted.out, "[module_first]", "P-MOD stage")
     check(adopted.out.index("module_first_check.py") <
           adopted.out.index("escape_check.py"), "P-MOD must run first")
+
+
+@test("pcb-flow RF adapter is local, bounded, and precedes schematic review")
+def t_rf_adapter_preflight():
+    root = scratch()
+    plan = must_pass(run([KPY, FLOW, "preflight", root, "--dry-run"]),
+                     "RF adapter preflight plan")
+    for stage in ("rf_contract", "rf_context", "rf_solver", "rf_source"):
+        contains(plan.out, f"[{stage}]", "conditional RF adapter stage")
+    check(plan.out.index("[rf_contract]") < plan.out.index("[rf_context]")
+          < plan.out.index("[rf_solver]") < plan.out.index("[rf_source]")
+          < plan.out.index("[pre_route_schematic]"),
+          "RF adapter must fail fast before review/generation spend")
+    not_contains(plan.out, "pipeline_review.py", "RF adapter review wait")
 
 
 @test("pcb-flow preflight places the authoritative P-ADJ policy phase before "

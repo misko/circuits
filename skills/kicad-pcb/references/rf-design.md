@@ -1,5 +1,12 @@
 # RF / radio board design
 
+> **Legacy incident/background archive.** The executable entry point is now
+> `rf/rf-context.md`, with machine-selected summaries in
+> `rf/source_cards.yaml`. Use this file for historical failure modes and deeper
+> explanation; do not copy a project constant or precedent from it into a
+> clean-room run. Numeric authority lives in `rf.yaml`, the named fabricator
+> stackup, exact evidence bundles, and first-article measurement.
+
 Canon for boards whose deliverable is a **radio property** — impedance, phase,
 isolation — rather than connectivity plus DRC. Two boards in this fleet are of
 that kind and both found the pipeline had no gate for the thing they sell.

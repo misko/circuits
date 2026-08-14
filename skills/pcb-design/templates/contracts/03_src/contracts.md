@@ -49,6 +49,7 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | Step | Command | Interpreter |
 |---|---|---|
 | 0a | `$S/module_first_check.py .` — P-MOD before generation spend: module by default; a bare complex IC requires an evidenced exception ADR | any python3 |
+| 0c | RF conditional adapter: `rf_contract_check.py` → `rf_context.py` → `rf_solver.py` → `rf_check.py source`. Non-RF and locked-solver work exits immediately; selected context is local/offline; pending solver jobs are declared, cached, heartbeat-visible and hard-bounded; authored geometry is graded before TSX generation. No stage launches a reviewer. | any python3 (`/usr/bin/python3` when a declared solver needs it) |
 | 0 | `$S/tsx_preflight.py .` — S-COUNT PRE-gate: alphanumeric pads mapped in `03_tscircuit/parity_padmap.txt` BEFORE the first tsci build (tscircuit DROPS an unmapped part silently, ERC still 0) | any python3 |
 | 0b | `$S/build_provenance.py stamp . --board "$BOARD" --tsx "$TSX"` — canon **M-FRESH**, BEFORE the build, so the run's witness is not written BY the build (canon M1). Refuses on the spot (`F-KNOB`) if the driver's `BOARD=`/`TSX=` are still the TEMPLATE knobs or do not resolve in this project: pluto-rx2-8way-v2 carried `BOARD=power3s` from commission through four commits, so its full driver had NEVER RUN while its stage gates reported green one at a time | any python3 |
 | 0e | `$S/policy_audit.py . --skip-drc --phase source` — **P-LAYOUT/P-PREC before generation**: grade source-owned layout guidance and the tiered precedent ladder before TSX and before any parts-digest-bound human review. The placement phase repeats these two rows and adds realized P-ADJ geometry. | any python3 + pcbnew |
@@ -75,6 +76,7 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | 8a | `$S/critical_route_check.py . --board 04_kicad/<board>.kicad_pcb --require-connected` — R-CRITESC verifies every declared critical P/N net is physically joined, routed on allowed layers, and obeys its via policy on the realized board | `/usr/bin/python3` |
 | 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (see the SAVE-DROPS list below). It rewrites the `.kicad_dru` wholesale and PRESERVES rules it does not own (stitch's `pad_rescue_stubs` sub-floor), but **preservation is no longer one-way**: each run re-derives whether a preserved rule's subject still exists on the saved board and RETIRES one that matches zero items, naming it and the count on stdout. A rule that comes back is a rule whose owning pass must re-run (step 8's `pad_rescue.stub_scope`) — not a rule to hand-edit back in. Needs the `04_kicad/<board>.kicad_pcb` to be present; with no board it preserves everything unretired and says so | any python3 |
 | 9a | `$S/rules_audit.py` then `$S/via_ampacity_check.py BOARD 03_src/route.yaml` — A-CLASS/A-AGREE/A-AMP and **A-VIA** grade the exact saved board before DRC. A-VIA counts only named tight series boundaries, requires a cited finished-hole capacity basis, and gives fill material no electrical credit; same-net vias elsewhere are not proof that current crosses the declared boundary. | `/usr/bin/python3` |
+| 9c | `$S/rf_check.py realized . --board BOARD` — conditional saved-board RF line/arc, width/layer, via/stub, bend and two-flank fence inventory. The fence child streams, heartbeats and times out; exact no-op evidence is cached so review hashes remain stable. Legacy bend findings are advisory; only an explicit `rf-module-v1` blocking policy turns them into a geometry refusal. | `/usr/bin/python3` |
 
 **WHAT A pcbnew SAVE DROPS — the list, not the instance (canon M-WIDTH).**
 This rule used to read "pcbnew saves clobber netclasses", written at the width
@@ -442,6 +444,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `prep.pad_rescue.*` | `route_and_stitch_generic.py` | early-only overrides layered onto `stitch.pad_rescue`, including connector/refdes exclusions whose drops are supplied by explicit seed stubs |
 | `prep.seed_stubs` | `route_and_stitch_generic.py` | deterministic pre-route copper seeding configuration |
 | `prep.seed_stubs.*` | `route_and_stitch_generic.py` | clearance, via geometry, and stub recipes passed to the deterministic seed-stub pass |
+| `prep.seed_stubs.stubs[].arcs[]` | `route_and_stitch_generic.py, rf_check.py` | native KiCad RF arc with layer, width, and numeric start/mid/end points; retained as an arc through emission and independent saved-board measurement |
 | `prep.keepouts.*` | `route_and_stitch_generic.py` | per-layer router keepouts; their PRESENCE is one of the homes `policy_audit.py` accepts for P-KEEP |
 | `prep.waves.*` | `route_and_stitch_generic.py` | wave net groups + exclusions |
 | `route.krt` | `route_and_stitch_generic.py` | the KRT entry point |
@@ -462,7 +465,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `stitch.keepin.*` | `route_and_stitch_generic.py` | stitch keep-in inset |
 | `stitch.via.*` | `route_and_stitch_generic.py` | stitch via geometry + tiers |
 | `stitch.stitch_grid.*` | `route_and_stitch_generic.py` | plane stitch grid; `x`/`y` are `[start, stop, pitch]` in mm and the PITCH MAY BE FRACTIONAL (see below) |
-| `stitch.route_fence.*` | `route_and_stitch_generic.py` | RF-contract path plus optional exact-consistency pins, ground net, nominal pitch, accepted lateral band/offset search, bounded longitudinal search, new-via ceiling and required-side policy; contract-owned net/layer/maximum pitch are consumed when pins are absent, and independent saved-board proof remains `fence_pitch.py` |
+| `stitch.route_fence.*` | `route_and_stitch_generic.py, rf_check.py` | RF-contract path plus optional exact-consistency pins, ground net, nominal pitch, accepted lateral band/offset search, bounded longitudinal search, new-via ceiling and required-side policy; adopted projects derive/pin the lateral band from rf.yaml, and independent saved-board proof remains `fence_pitch.py` |
 | `stitch.pad_rescue.*` | `route_and_stitch_generic.py` | pad-rescue pass |
 | `stitch.island_rescue.*` | `route_and_stitch_generic.py` | island-rescue pass |
 | `stitch.heal_islands.*` | `route_and_stitch_generic.py` | same-net pour bridge pass |

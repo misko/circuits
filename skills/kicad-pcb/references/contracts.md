@@ -9,6 +9,7 @@ hard-won empirics agents must not rediscover. Nothing here is advisory.
 |---|---|
 | `*.md` | canon documents (design-policies, drc-discipline, routing empirics, tscircuit-folder, ...) |
 | `*.yaml` | machine-consumed data models (e.g. `fab_tiers.yaml`) |
+| `rf/` | modular RF source cards and the bounded RF design procedure |
 | `contracts.md` | this file |
 
 ## Audit

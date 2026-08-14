@@ -140,6 +140,7 @@ SKIP_BASENAMES = {
     "generate_rules_generic.py", "route_and_stitch_generic.py",
     "import_krt.py", "export_fab_jlc.py", "export_jlc_package.py",
     "pcb_status.py", "jlc_rotation_measure.py", "jlc_rotation_resolve.py",
+    "rf_bundle.py",
     # Typed pipeline libraries carry PASS/FAIL as schema data but expose no
     # CLI and print no verdict.  The lexical inventory otherwise mistakes
     # their closed vocabularies for executable gates.

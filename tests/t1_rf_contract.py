@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """T1: RF applicability, requirements, exact artifact and review coverage."""
 import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -66,7 +67,7 @@ def project(enabled=True):
 
 
 def write_review(project_dir, phase, requirements, *, artifact=None,
-                 bound_hash=None, verdict="PASS"):
+                 bound_hash=None, verdict="PASS", evidence=None):
     kinds = {"schematic": "RF_SCHEMATIC", "pcb": "RF_PCB", "fab": "RF_FAB"}
     names = {"schematic": "rf_schematic.md", "pcb": "rf_pcb.md",
              "fab": "rf_fab.md"}
@@ -84,6 +85,9 @@ def write_review(project_dir, phase, requirements, *, artifact=None,
             f"source_commit: {HEAD}\n"
             f"artifact_sha256: {digest}\n"
             f"{verdict_line}\n\n")
+    for role, path in (evidence or {}).items():
+        text += (f"evidence_sha256: {role} "
+                 f"{hashlib.sha256(path.read_bytes()).hexdigest()}\n")
     text += "".join(f"requirement: {req} {verdict}\n" for req in requirements)
     (project_dir / "08_reviews" / names[phase]).write_text(text)
 
@@ -130,6 +134,49 @@ def add_layout_contract(d):
     return path
 
 
+def adopt_rf_module(d):
+    path = add_layout_contract(d)
+    data = yaml.safe_load(path.read_text())
+    data["rf"]["process"] = {
+        "profile": "rf-module-v1", "context_policy": "clean_room",
+        "geometry_policy": "advisory",
+    }
+    data["rf"]["layout_constraints"]["route"]["bend_policy"] = {
+        "minimum_radius_width_multiple": 3.0,
+        "source_claim_ids": ["ADI-RF-BEND-RADIUS-3W"],
+        "exceptions": [],
+    }
+    data["rf"]["layout_constraints"]["ground_fence"][
+        "maximum_lateral_center_offset_mm"] = 1.1
+    data["rf"]["reviews"]["schematic"]["evidence"] = [{
+        "role": "rf_source_bundle", "path": "06_build/rf/source/bundle.json"}]
+    data["rf"]["reviews"]["pcb"]["evidence"] = [{
+        "role": "rf_realized_bundle", "path": "06_build/rf/realized/bundle.json"}]
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    return path
+
+
+def evidence_bundle(d, mode, *, board_hash=None):
+    path = d / f"06_build/rf/{mode}/bundle.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    report = {"schema": 1, "mode": mode, "verdict": "PASS"}
+    if board_hash is not None:
+        report["board_sha256"] = board_hash
+    report_path = path.parent / "report.json"
+    report_path.write_text(json.dumps(report, sort_keys=True) + "\n")
+    value = {"schema": 1, "status": "PASS",
+             "producer": f"rf_check.py {mode}", "producer_version": "1",
+             "inputs": {"rf.yaml": {"sha256": hashlib.sha256(
+                 (d / "03_src/rules/rf.yaml").read_bytes()).hexdigest()}},
+             "outputs": {"report.json": {
+                 "sha256": hashlib.sha256(report_path.read_bytes()).hexdigest(),
+                 "size": report_path.stat().st_size}}}
+    if board_hash is not None:
+        value["inputs"]["board.kicad_pcb"] = {"sha256": board_hash}
+    path.write_text(yaml.safe_dump(value, sort_keys=False))
+    return path
+
+
 @test("legacy inspection may report unmigrated without claiming RF review")
 def t_missing_contract_is_visible_legacy_state():
     d = tmpdir("rfcontract_missing_") / "demo"
@@ -165,6 +212,65 @@ def t_layout_contract_is_executable():
     d = project()
     add_layout_contract(d)
     must_pass(gate(d), "executable RF layout contract")
+
+
+@test("rf-module-v1 adopts bend/band authority and evidence roles")
+def t_rf_module_contract_is_executable():
+    d = project()
+    adopt_rf_module(d)
+    must_pass(gate(d), "adopted RF module contract")
+
+
+@test("rf-module-v1 refuses a route-only fence grading band", kind="known_bad")
+def t_rf_module_requires_contract_band():
+    d = project()
+    path = adopt_rf_module(d)
+    data = yaml.safe_load(path.read_text())
+    del data["rf"]["layout_constraints"]["ground_fence"][
+        "maximum_lateral_center_offset_mm"]
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    must_fail(gate(d), "adopted route-only fence band",
+              "maximum_lateral_center_offset_mm")
+
+
+@test("RF PCB review binds a PASS evidence bundle to the exact board")
+def t_rf_pcb_evidence_binding():
+    d = project()
+    adopt_rf_module(d)
+    board = d / "04_kicad/demo.kicad_pcb"
+    source = evidence_bundle(d, "source")
+    realized = evidence_bundle(
+        d, "realized", board_hash=hashlib.sha256(board.read_bytes()).hexdigest())
+    write_review(d, "pcb", ["RF-PCB-RETURN", "RF-PCB-LAUNCH"],
+                 evidence={"rf_realized_bundle": realized})
+    must_pass(gate(d, "pcb"), "exact RF realized evidence binding")
+
+
+@test("RF PCB evidence cannot describe different board bytes", kind="known_bad")
+def t_rf_pcb_evidence_wrong_subject():
+    d = project()
+    adopt_rf_module(d)
+    evidence_bundle(d, "source")
+    realized = evidence_bundle(d, "realized", board_hash="f" * 64)
+    write_review(d, "pcb", ["RF-PCB-RETURN", "RF-PCB-LAUNCH"],
+                 evidence={"rf_realized_bundle": realized})
+    must_fail(gate(d, "pcb"), "wrong-board RF realized bundle",
+              "expected exact artifact")
+
+
+@test("RF review cannot credit a manifest whose report disappeared",
+      kind="known_bad")
+def t_rf_pcb_evidence_missing_output():
+    d = project()
+    adopt_rf_module(d)
+    board = d / "04_kicad/demo.kicad_pcb"
+    realized = evidence_bundle(
+        d, "realized", board_hash=hashlib.sha256(board.read_bytes()).hexdigest())
+    write_review(d, "pcb", ["RF-PCB-RETURN", "RF-PCB-LAUNCH"],
+                 evidence={"rf_realized_bundle": realized})
+    (realized.parent / "report.json").unlink()
+    must_fail(gate(d, "pcb"), "missing realized report",
+              "output is missing")
 
 
 @test("RF layout net denominator cannot drift from the port contract",

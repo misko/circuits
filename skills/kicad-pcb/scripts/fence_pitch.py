@@ -15,8 +15,9 @@ The graded aperture includes all three spans a travelling wave encounters:
 The former checker graded only interior spans, silently passed a board whose
 entire far end had no fence, and hard-coded one historical board's 11 net
 names.  This version accepts an exact net denominator or discovers the RF
-nets that actually carry saved F.Cu tracks.  Missing, branched, disconnected,
-arc-only and zero-length subjects are explicit coverage failures.
+nets that actually carry saved F.Cu tracks or track arcs. Missing, branched,
+disconnected, unsupported, and zero-length subjects are explicit coverage
+failures.
 
 Why along-route rather than nearest-neighbour distance: the wall aperture is
 what the wave sees while travelling along the line.  On an angled arm a
@@ -66,37 +67,72 @@ def xy(point):
 
 
 def discover_nets(board, layer):
-    """RF-looking nets with realized straight copper on the graded layer."""
+    """RF-looking nets with realized line/arc copper on the graded layer."""
     names = set()
     pattern = re.compile(r"^(?:RF(?:_|$)|ANT(?:ENNA)?\d|RX\d)", re.I)
     for item in board.GetTracks():
-        if (item.GetClass() == "PCB_TRACK" and item.GetLayer() == layer
+        if (item.GetClass() in ("PCB_TRACK", "PCB_ARC")
+                and item.GetLayer() == layer
                 and pattern.match(item.GetNetname() or "")):
             names.add(item.GetNetname())
     return sorted(names)
 
 
-def polyline(board, net, layer):
-    """Return ``(ordered_points_mm, error)`` for one exact simple chain."""
+def _point_key(point):
+    return int(point.x), int(point.y)
+
+
+def _angle_on_sweep(angle, start, sweep, tolerance=1e-9):
+    """Whether ``angle`` lies on the signed start/sweep interval."""
+    tau = 2.0 * math.pi
+    if sweep >= 0:
+        return (angle - start) % tau <= sweep + tolerance
+    return (start - angle) % tau <= -sweep + tolerance
+
+
+def _oriented_primitive(item, reverse=False):
+    """Independent saved-board line/arc geometry in millimetres."""
+    start = xy(item.GetEnd() if reverse else item.GetStart())
+    end = xy(item.GetStart() if reverse else item.GetEnd())
+    if item.GetClass() == "PCB_TRACK":
+        length = math.hypot(end[0] - start[0], end[1] - start[1])
+        return {"kind": "line", "start": start, "end": end,
+                "length": length}
+    mid = xy(item.GetMid())
+    center = xy(item.GetCenter())
+    radius = math.hypot(start[0] - center[0], start[1] - center[1])
+    if radius <= 1e-12:
+        return {"kind": "invalid", "start": start, "end": end,
+                "length": 0.0}
+    a0 = math.atan2(start[1] - center[1], start[0] - center[0])
+    am = math.atan2(mid[1] - center[1], mid[0] - center[0])
+    a1 = math.atan2(end[1] - center[1], end[0] - center[0])
+    ccw = (a1 - a0) % (2.0 * math.pi)
+    sweep = ccw if (am - a0) % (2.0 * math.pi) <= ccw + 1e-9 \
+        else -((a0 - a1) % (2.0 * math.pi))
+    return {"kind": "arc", "start": start, "mid": mid, "end": end,
+            "center": center, "radius": radius, "start_angle": a0,
+            "sweep": sweep, "length": abs(sweep) * radius}
+
+
+def route_chain(board, net, layer):
+    """Return ``(ordered_primitives, error)`` for one exact simple chain."""
     tracks, unsupported = [], []
     for item in board.GetTracks():
         if item.GetNetname() != net or item.GetLayer() != layer:
             continue
-        if item.GetClass() == "PCB_TRACK":
+        if item.GetClass() in ("PCB_TRACK", "PCB_ARC"):
             tracks.append(item)
         elif item.GetClass() != "PCB_VIA":
             unsupported.append(item.GetClass())
     if unsupported:
         return [], f"unsupported copper {sorted(set(unsupported))}"
     if not tracks:
-        return [], "no saved straight-track centreline"
-
-    def key(p):
-        return int(p.x), int(p.y)
+        return [], "no saved track/arc centreline"
 
     points, adjacency = {}, {}
     for index, track in enumerate(tracks):
-        a, b = key(track.GetStart()), key(track.GetEnd())
+        a, b = _point_key(track.GetStart()), _point_key(track.GetEnd())
         if a == b:
             return [], "zero-length track"
         points[a], points[b] = track.GetStart(), track.GetEnd()
@@ -107,23 +143,27 @@ def polyline(board, net, layer):
     if branches or len(ends) != 2:
         return [], (f"not one simple chain: {len(branches)} branch node(s), "
                     f"{len(ends)} endpoint(s)")
-    ordered, used, current = [ends[0]], set(), ends[0]
+    ordered_items, used, current = [], set(), ends[0]
     while True:
         nxt = next(((i, other) for i, other in adjacency[current]
                     if i not in used), None)
         if nxt is None:
             break
-        index, current = nxt
+        index, other = nxt
         used.add(index)
-        ordered.append(current)
-    if len(used) != len(tracks) or ordered[-1] != ends[1]:
+        item = tracks[index]
+        reverse = _point_key(item.GetEnd()) == current
+        ordered_items.append(_oriented_primitive(item, reverse))
+        current = other
+    if len(used) != len(tracks) or current != ends[1]:
         return [], f"disconnected: reached {len(used)}/{len(tracks)} segments"
-    return [xy(points[p]) for p in ordered], None
+    if any(item["length"] <= 1e-12 for item in ordered_items):
+        return [], "zero-length or invalid track/arc"
+    return ordered_items, None
 
 
 def total_length(chain):
-    return sum(math.hypot(b[0] - a[0], b[1] - a[1])
-               for a, b in zip(chain, chain[1:]))
+    return sum(item["length"] for item in chain)
 
 
 def projections(chain, px, py):
@@ -131,22 +171,52 @@ def projections(chain, px, py):
 
     A plated return beside a bend can serve both adjacent arms.  Crediting
     only its nearest point invents an aperture through the vertex and makes
-    the verdict depend on which segment happened to win a floating-point
-    tie.  Keep one bounded projection per realized straight segment; the
+    the verdict depend on which primitive happened to win a floating-point
+    tie. Keep one bounded projection per realized line or arc; the
     grading band and side filters below remain unchanged.
     """
     hits, walked = [], 0.0
-    for a, b in zip(chain, chain[1:]):
-        dx, dy = b[0] - a[0], b[1] - a[1]
-        length = math.hypot(dx, dy)
+    for primitive in chain:
+        a, b, length = (primitive["start"], primitive["end"],
+                        primitive["length"])
         if length <= 1e-12:
             continue
-        raw = ((px - a[0]) * dx + (py - a[1]) * dy) / (length * length)
-        t = max(0.0, min(1.0, raw))
-        qx, qy = a[0] + t * dx, a[1] + t * dy
+        if primitive["kind"] == "line":
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            raw = ((px - a[0]) * dx + (py - a[1]) * dy) / (length * length)
+            t = max(0.0, min(1.0, raw))
+            qx, qy = a[0] + t * dx, a[1] + t * dy
+            tx, ty = dx / length, dy / length
+            local_s = t * length
+        else:
+            cx, cy = primitive["center"]
+            angle = math.atan2(py - cy, px - cx)
+            if _angle_on_sweep(angle, primitive["start_angle"],
+                               primitive["sweep"]):
+                chosen = angle
+                if primitive["sweep"] >= 0:
+                    fraction = ((angle - primitive["start_angle"])
+                                % (2.0 * math.pi)) / primitive["sweep"]
+                else:
+                    fraction = ((primitive["start_angle"] - angle)
+                                % (2.0 * math.pi)) / (-primitive["sweep"])
+            else:
+                candidates = []
+                for fraction, point in ((0.0, a), (1.0, b)):
+                    candidates.append((math.hypot(px - point[0], py - point[1]),
+                                       fraction))
+                _distance, fraction = min(candidates)
+                chosen = (primitive["start_angle"]
+                          + fraction * primitive["sweep"])
+            qx = cx + primitive["radius"] * math.cos(chosen)
+            qy = cy + primitive["radius"] * math.sin(chosen)
+            direction = 1.0 if primitive["sweep"] >= 0 else -1.0
+            tx, ty = (-math.sin(chosen) * direction,
+                      math.cos(chosen) * direction)
+            local_s = fraction * length
         distance = math.hypot(px - qx, py - qy)
-        cross = (dx * (py - a[1]) - dy * (px - a[0])) / length
-        hits.append((distance, walked + t * length,
+        cross = tx * (py - qy) - ty * (px - qx)
+        hits.append((distance, walked + local_s,
                      1 if cross >= 0.0 else -1))
         walked += length
     return hits
@@ -176,7 +246,7 @@ def plated_elements(board, ground_net):
 def endpoint_refs(board, net, chain):
     """Exact footprint-pad owner at each ordered route endpoint."""
     refs = []
-    for x, y in (chain[0], chain[-1]):
+    for x, y in (chain[0]["start"], chain[-1]["end"]):
         point = pcbnew.VECTOR2I_MM(x, y)
         matches = []
         for fp in board.GetFootprints():
@@ -259,7 +329,17 @@ def grade(argv=None):
         print("coverage: 0/0 configured arm-sides graded; 0/0 pass")
         print("VERDICT: FAIL")
         return 1
-    band_mm = args.band_mm if args.band_mm is not None else 2.5
+    contract_band = contract_fence.get("maximum_lateral_center_offset_mm")
+    if args.band_mm is not None and contract_band is not None \
+            and abs(args.band_mm - float(contract_band)) > 1e-9:
+        print(f"input: board =    {board_path}")
+        print("COVERAGE FAIL: band_mm disagrees with RF-contract "
+              "maximum_lateral_center_offset_mm")
+        print("coverage: 0/0 configured arm-sides graded; 0/0 pass")
+        print("VERDICT: FAIL")
+        return 1
+    band_mm = (args.band_mm if args.band_mm is not None else
+               float(contract_band) if contract_band is not None else 2.5)
     bound_mm = (args.bound_mm if args.bound_mm is not None else
                 float(contract_bound) if contract_bound is not None else 1.1910)
     if band_mm <= 0 or bound_mm <= 0:
@@ -288,7 +368,7 @@ def grade(argv=None):
     results, errors = [], list(span_errors)
     worst, worst_where = 0.0, ""
     for net in nets:
-        chain, error = polyline(board, net, layer)
+        chain, error = route_chain(board, net, layer)
         if error:
             errors.append(f"{net}: {error}")
             print(f"{net:<18} UNGRADED — {error}")

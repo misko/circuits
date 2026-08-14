@@ -1435,6 +1435,29 @@ def t_source_schema_precedes_tsci():
           "part layout/precedent source gate must precede hash-bound reviews")
 
 
+@test("both rebuild drivers keep the conditional RF module bounded inside "
+      "existing lifecycle stages")
+def t_rf_module_stage_order():
+    for path in (ALL, REUSE):
+        txt = path.read_text()
+        contract = txt.find('rf_contract_check.py"')
+        context = txt.find('run_stage rf_context')
+        solver = txt.find('run_stage rf_solver')
+        source = txt.find('run_stage rf_source')
+        stitch = txt.rfind('route_and_stitch_generic.py" stitch')
+        realized = txt.rfind('run_stage rf_realized')
+        drc = txt.rfind('kicad-cli pcb drc')
+        check(-1 not in (contract, context, solver, source, stitch, realized, drc),
+              f"{path.name}: incomplete RF stage wiring")
+        check(contract < context < solver < source,
+              f"{path.name}: RF applicability/context/solver/source order")
+        check(stitch < realized < drc,
+              f"{path.name}: realized RF evidence must follow routing and "
+              "precede the final DRC")
+        check("pipeline_review.py" not in txt[context:source],
+              f"{path.name}: RF module added a reviewer/wait stage")
+
+
 @test("both rebuild drivers replay configured taps between route import and stitch")
 def t_route_taps_stage_ordering():
     for path in (ALL, REUSE):

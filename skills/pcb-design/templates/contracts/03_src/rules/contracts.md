@@ -679,6 +679,9 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.rationale` | `rf_contract_check.py` | non-empty applicability rationale |
 | `rf.risk_tier` | `rf_contract_check.py` | closed RF review tier when RF is enabled |
 | `rf.risk_basis` | `rf_contract_check.py` | substantive reason for the selected RF risk tier |
+| `rf.process.profile` | `rf_contract_check.py, rf_context.py, rf_check.py` | opt-in `rf-module-v1` adoption marker; absence preserves legacy advisory behavior |
+| `rf.process.context_policy` | `rf_contract_check.py, rf_context.py` | closed clean-room/precedent selection policy; clean-room excludes prior-design results |
+| `rf.process.geometry_policy` | `rf_contract_check.py, rf_check.py` | closed advisory/blocking state for measured bend geometry |
 | `rf.topology.*` | ADVISORY | human architecture summary; exact connectivity is owned by electrical invariants, pin-map parity and port nets |
 | `rf.ports[].id` | `rf_contract_check.py` | unique RF port-group identity |
 | `rf.ports[].nets` | `rf_contract_check.py` | non-empty exact net denominator for the port group |
@@ -701,6 +704,15 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.cross_sections[].target_z0_ohm` | `rf_contract_check.py` | positive target impedance |
 | `rf.cross_sections[].width_mm` | `rf_contract_check.py` | positive when locked and null while pending |
 | `rf.cross_sections[].gap_mm` | `rf_contract_check.py` | positive when locked and null while pending |
+| `rf.analysis.solver_jobs[].id` | `rf_contract_check.py, rf_solver.py` | unique local solver job and stable evidence-bundle name |
+| `rf.analysis.solver_jobs[].cross_section_ids` | `rf_contract_check.py, rf_solver.py` | exact, non-overlapping coverage of pending cross-sections under rf-module-v1 |
+| `rf.analysis.solver_jobs[].work_class` | `rf_contract_check.py, rf_solver.py` | must be `local_compute`; a solver is not a hidden research stage |
+| `rf.analysis.solver_jobs[].network` | `rf_contract_check.py, rf_solver.py` | must be false; source research is curated before runtime |
+| `rf.analysis.solver_jobs[].command` | `rf_contract_check.py, rf_solver.py` | non-empty direct argv with optional `{project}`/`{output_dir}` substitution, never shell evaluation |
+| `rf.analysis.solver_jobs[].inputs` | `rf_contract_check.py, rf_solver.py` | non-empty project-confined file denominator hashed into the cached job bundle |
+| `rf.analysis.solver_jobs[].outputs` | `rf_contract_check.py, rf_solver.py` | non-empty safe relative output denominator reopened by the artifact transaction |
+| `rf.analysis.solver_jobs[].timeout_s` | `rf_contract_check.py, rf_solver.py` | hard 1..300 second deadline with whole-process-group termination |
+| `rf.analysis.solver_jobs[].heartbeat_s` | `rf_contract_check.py, rf_solver.py` | 1..min(30, timeout) quiet-child heartbeat |
 | `rf.layout_constraints` | `rf_contract_check.py` | optional before RF geometry begins; once present it must carry reconciled route and ground-fence mappings |
 | `rf.layout_constraints.route.nets` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | unique exact routed-net denominator equal to the union of RF port nets and consumed by both realization and saved-board proof |
 | `rf.layout_constraints.route.layer` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | exact saved copper layer, reconciled with a locked cross-section |
@@ -711,6 +723,14 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.layout_constraints.route.maximum_stubs_per_net` | `rf_contract_check.py` | non-negative integer route-stub budget |
 | `rf.layout_constraints.route.length_matching` | `rf_contract_check.py` | substantive applicability/acceptance statement |
 | `rf.layout_constraints.route.geometry` | `rf_contract_check.py` | substantive route-geometry intent |
+| `rf.layout_constraints.route.bend_policy.minimum_radius_width_multiple` | `rf_contract_check.py, rf_check.py` | positive adopted bend-radius/width threshold; blocking only under the explicit geometry policy |
+| `rf.layout_constraints.route.bend_policy.source_claim_ids` | `rf_contract_check.py, rf_context.py, rf_check.py` | non-empty local source-card claim denominator; adopted IDs must be selected into the exact context bundle |
+| `rf.layout_constraints.route.bend_policy.exceptions[].id` | `rf_contract_check.py, rf_check.py` | unique measured-site exception identity |
+| `rf.layout_constraints.route.bend_policy.exceptions[].net` | `rf_contract_check.py, rf_check.py` | exact RF net for one exception |
+| `rf.layout_constraints.route.bend_policy.exceptions[].at_mm` | `rf_contract_check.py, rf_check.py` | exact source/realized site matched within the declared tolerance |
+| `rf.layout_constraints.route.bend_policy.exceptions[].tolerance_mm` | `rf_contract_check.py, rf_check.py` | positive coordinate matching tolerance |
+| `rf.layout_constraints.route.bend_policy.exceptions[].reason` | `rf_contract_check.py` | substantive exception rationale |
+| `rf.layout_constraints.route.bend_policy.exceptions[].evidence` | `rf_contract_check.py` | substantive evidence locator for the exception |
 | `rf.layout_constraints.ground_fence.status` | `rf_contract_check.py` | substantive stage/requirement state |
 | `rf.layout_constraints.ground_fence.source` | `rf_contract_check.py` | non-placeholder source summary |
 | `rf.layout_constraints.ground_fence.source_urls` | `rf_contract_check.py` | non-empty HTTPS source denominator |
@@ -720,6 +740,7 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.layout_constraints.ground_fence.nominal_via_mm.size` | `rf_contract_check.py` | positive via copper diameter, larger than drill and included in offset arithmetic |
 | `rf.layout_constraints.ground_fence.nominal_via_mm.drill` | `rf_contract_check.py` | positive drill smaller than copper diameter |
 | `rf.layout_constraints.ground_fence.nominal_lateral_center_offset_mm` | `rf_contract_check.py, route_and_stitch_generic.py` | positive nominal centre offset no smaller than trace half-width + CPWG gap + via radius, and the emitter's first offset |
+| `rf.layout_constraints.ground_fence.maximum_lateral_center_offset_mm` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py, rf_check.py` | single authoritative fence grading band; adopted projects refuse route/contract disagreement |
 | `rf.layout_constraints.ground_fence.lateral_offset_basis` | `rf_contract_check.py` | substantive geometry/solver limitation record |
 | `rf.layout_constraints.ground_fence.endpoint_structures[].refs` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | unique package/launch refdes whose exact RF pad owns one saved-route endpoint |
 | `rf.layout_constraints.ground_fence.endpoint_structures[].maximum_along_route_span_mm` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | non-negative route span discharged by exact package/connector return geometry rather than invented fence holes |
@@ -735,6 +756,8 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.reviews.<PHASE>.path` | `rf_contract_check.py` | in-project review path for schematic, PCB and fab phases |
 | `rf.reviews.<PHASE>.artifact` | `rf_contract_check.py` | exact in-project artifact bound by the phase review |
 | `rf.reviews.<PHASE>.requirements` | `rf_contract_check.py` | non-empty unique requirement-ID denominator checked by the review |
+| `rf.reviews.<PHASE>.evidence[].role` | `rf_contract_check.py` | unique evidence-bundle role; rf-module-v1 requires source evidence for schematic and realized evidence for PCB review |
+| `rf.reviews.<PHASE>.evidence[].path` | `rf_contract_check.py` | in-project schema-1 PASS bundle manifest bound by an `evidence_sha256` review row |
 | `rf.switch_interface.*` | ADVISORY | human control summary; schedule, invariants and schematic parity own executable behavior |
 | `rf.receiver_rating_tension.*` | ADVISORY | human risk summary; the user directive, ADR and first-article claims are authoritative |
 

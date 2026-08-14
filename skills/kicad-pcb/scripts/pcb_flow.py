@@ -61,7 +61,9 @@ DEFAULT_TOOL_FILES = (
     "pre_route_review_check.py", "promoted_route_check.py", "early_design_check.py",
     "via_ampacity_check.py",
     "critical_route_check.py", "placement_gates.py",
-    "policy_audit.py", "rf_contract_check.py",
+    "policy_audit.py", "rf_contract_check.py", "rf_context.py",
+    "rf_check.py", "rf_solver.py", "rf_bundle.py", "fence_pitch.py",
+    "../references/rf/source_cards.yaml", "../references/rf/rf-context.md",
     "grind_driver.py",
     "generate_board_generic.py", "generate_rules_generic.py",
     "route_and_stitch_generic.py", "circuit_json_to_kicad_sch.py",
@@ -687,12 +689,19 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
                        ) -> list[tuple[str, list[str]]]:
     rf_contract = ctx.route_path.parent / "rules" / "rf.yaml"
     commands = [
-        ("pre_route_schematic", [
-            KPY, str(SCRIPTS / "pre_route_review_check.py"), str(ctx.root),
-            "--phase", "schematic"]),
         ("rf_contract", [KPY, str(SCRIPTS / "rf_contract_check.py"),
                          str(ctx.root), "--contract", str(rf_contract),
                          "--require-applicability"]),
+        ("rf_context", [KPY, str(SCRIPTS / "rf_context.py"), str(ctx.root),
+                        "--contract", str(rf_contract)]),
+        ("rf_solver", [KPY, str(SCRIPTS / "rf_solver.py"), str(ctx.root),
+                       "--contract", str(rf_contract)]),
+        ("rf_source", [KPY, str(SCRIPTS / "rf_check.py"), "source",
+                       str(ctx.root), "--contract", str(rf_contract),
+                       "--route", str(ctx.route_path)]),
+        ("pre_route_schematic", [
+            KPY, str(SCRIPTS / "pre_route_review_check.py"), str(ctx.root),
+            "--phase", "schematic"]),
         ("tier_preflight", [KPY, str(SCRIPTS / "tier_preflight.py"),
                             str(ctx.root), "--route-config", str(ctx.route_path),
                             "--board", ctx.board_id]),
@@ -972,6 +981,10 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
     ]
     commands = before + build + [
         *post_board,
+        ("rf_realized", [
+            KPY, str(SCRIPTS / "rf_check.py"), "realized", str(ctx.root),
+            "--contract", str(ctx.route_path.parent / "rules" / "rf.yaml"),
+            "--route", str(ctx.route_path), "--board", str(ctx.board)]),
         ("rf_reviews", [
             KPY, str(SCRIPTS / "rf_contract_check.py"), str(ctx.root),
             "--contract", str(ctx.route_path.parent / "rules" / "rf.yaml"),

@@ -59,6 +59,7 @@ SUITES=(
   t1_stage_checkpoint.py
   t1_pad_separation.py
   t1_rf_contract.py
+  t1_rf_module.py
   t1_contracts.py
   t1_pipeline_foundation.py
   t1_pipeline_contract.py

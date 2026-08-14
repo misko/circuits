@@ -2205,6 +2205,46 @@ def t_route_fence_saved_centreline():
        "idempotent fence rerun duplicated plated sites")
 
 
+@test("route_fence follows a native KiCad arc by arclength and the independent "
+      "gate agrees")
+def t_route_fence_native_arc():
+    import yaml
+    _d, config, board = pour_scratch(["F.Cu", "B.Cu"],
+                                     ["route_fence", "fill", "gate"])
+    edit_board(
+        board,
+        "rf=pcbnew.NETINFO_ITEM(b,'RF_ARC'); b.Add(rf)\n"
+        "t=pcbnew.PCB_TRACK(b); t.SetStart(pcbnew.VECTOR2I_MM(6,10)); "
+        "t.SetEnd(pcbnew.VECTOR2I_MM(14,10)); t.SetWidth(pcbnew.FromMM(.3)); "
+        "t.SetLayer(pcbnew.F_Cu); t.SetNet(rf); b.Add(t)\n"
+        "a=pcbnew.PCB_ARC(b); a.SetStart(pcbnew.VECTOR2I_MM(14,10)); "
+        "a.SetMid(pcbnew.VECTOR2I_MM(16.828427,11.171573)); "
+        "a.SetEnd(pcbnew.VECTOR2I_MM(18,14)); "
+        "a.SetWidth(pcbnew.FromMM(.3)); a.SetLayer(pcbnew.F_Cu); "
+        "a.SetNet(rf); b.Add(a)\n"
+        "t=pcbnew.PCB_TRACK(b); t.SetStart(pcbnew.VECTOR2I_MM(18,14)); "
+        "t.SetEnd(pcbnew.VECTOR2I_MM(26,14)); t.SetWidth(pcbnew.FromMM(.3)); "
+        "t.SetLayer(pcbnew.F_Cu); t.SetNet(rf); b.Add(t)\n")
+    cfg = yaml.safe_load(config.read_text())
+    cfg["stitch"]["route_fence"] = {
+        "net": "GND", "nets": ["RF_ARC"], "layer": "F.Cu",
+        "nominal_pitch": 1.0, "maximum_pitch": 1.4, "band": 1.0,
+        "lateral_offsets": [0.70, 0.80, 0.90], "require": "all",
+    }
+    config.write_text(yaml.safe_dump(cfg))
+    r = must_pass(stitch(config), "native-arc route fence")
+    contains(r.out, "2/2 flank(s)", "arc fence denominator")
+    measured = must_pass(
+        run([KPY, FENCE, board, "1.0", "1.4", "--nets", "RF_ARC"]),
+        "independent native-arc fence measurement")
+    contains(measured.out, "2/2 configured arm-sides graded; 2/2 pass",
+             "independent arc coverage")
+    arcs = must_pass(run([KPY, "-c",
+                          "import pcbnew,sys; b=pcbnew.LoadBoard(sys.argv[1]); print(sum(t.GetClass()=='PCB_ARC' for t in b.GetTracks()))",
+                          board]), "count retained native arcs")
+    contains(arcs.out, "1", "native arc retained after stitch")
+
+
 def via_xy(board):
     """[(x_mm, y_mm)] of every via on the board, sorted."""
     code = ("import pcbnew,sys,json\nb=pcbnew.LoadBoard(sys.argv[1])\no=[]\n"
@@ -3028,6 +3068,22 @@ def t_seed_stubs_idempotent():
         passes=("seed_stubs", "seed_stubs", "fill", "gate"))
     r = must_pass(stitch(p), "stitch with two seed_stubs passes")
     contains(r.out, "1 idempotent-skip", "the second pass must skip its copper")
+
+
+@test("seed_stubs emits a native RF arc and reruns idempotently")
+def t_seed_stubs_native_arc():
+    d, p, board = seed_scratch(
+        [{"net": "PWR", "pin": "U1.1",
+          "arcs": [{"layer": "F.Cu", "width": 0.25,
+                    "start": [15, 10], "mid": [16.414214, 10.585786],
+                    "end": [17, 12]}], "vias": [[17, 12]]}],
+        passes=("seed_stubs", "seed_stubs", "fill", "gate"))
+    r = must_pass(stitch(p), "native-arc seed stub")
+    contains(r.out, "2 idempotent-skip", "arc and via idempotency")
+    arcs = must_pass(run([KPY, "-c",
+                          "import pcbnew,sys; b=pcbnew.LoadBoard(sys.argv[1]); print(sum(t.GetClass()=='PCB_ARC' for t in b.GetTracks()))",
+                          board]), "count seed arcs")
+    contains(arcs.out, "1", "one native seed arc")
 
 
 @test("seed_stubs REFUSES a stub segment that would collide foreign copper "

@@ -12,7 +12,8 @@ Use a fresh-context reviewer who did not place or route the board. Give only:
 - `03_src/rules/rf.yaml`, stackup source, field-solver evidence, and RF ADRs;
 - exact `.kicad_pcb` artifact named by `rf.reviews.pcb.artifact`;
 - relevant footprints/datasheets/reference layouts;
-- machine reports for DRC, copper length, landability, fence pitch, and
+- the exact `rf_realized_bundle` manifest (including its bounded fence report),
+  plus machine reports for DRC, copper length, landability, and
   inter-footprint pad separation.
 
 Exclude prior review conclusions, journals, STATUS, and dispositions.
@@ -46,9 +47,11 @@ Archive the review at the path declared in `rf.yaml` with:
     independence: independent-from-design-author
     source_commit: <full 40-character SHA>
     artifact_sha256: <SHA256 of exact .kicad_pcb>
+    evidence_sha256: rf_realized_bundle <SHA256 of exact bundle.json>
     design_verdict: SOUND | DEFECTIVE
     requirement: RF-PCB-... PASS | FAIL
 
 There is one `requirement:` line per contract ID. Run
 `rf_contract_check.py --require-review schematic --require-review pcb`; any
-missing/failed requirement, stale hash, or defective verdict blocks layout seal.
+missing/failed requirement, stale artifact/evidence hash, or defective verdict
+blocks layout seal. Legacy contracts omit the evidence row.

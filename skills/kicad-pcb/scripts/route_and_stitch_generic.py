@@ -2591,12 +2591,12 @@ def p_stitch_grid(ctx, c):
 
 
 def _simple_track_chain(ctx, netname, layer_name):
-    """Return one ordered, branch-free saved-track centreline in millimetres.
+    """Return one ordered, branch-free saved line/arc centreline.
 
     A route-following fence cannot be derived honestly from an unordered bag
-    of segments: a disconnected fragment, branch or arc changes the along-line
-    denominator.  Refuse those shapes here and leave their deliberate handling
-    to a future emitter rather than silently fencing only the first component.
+    of primitives: a disconnected fragment or branch changes the along-line
+    denominator. Native KiCad arcs are retained as arcs, never approximated by
+    a chord, so fence sites and apertures use their realized arclength.
     Integer KiCad coordinates are the graph keys, so no geometric tolerance
     can join two endpoints that the saved board itself keeps separate.
     """
@@ -2607,16 +2607,16 @@ def _simple_track_chain(ctx, netname, layer_name):
     for item in ctx.board.GetTracks():
         if item.GetNetname() != netname or item.GetLayer() != layer:
             continue
-        if item.GetClass() == "PCB_TRACK":
+        if item.GetClass() in ("PCB_TRACK", "PCB_ARC"):
             tracks.append(item)
         elif item.GetClass() != "PCB_VIA":
             unsupported.append(item.GetClass())
     if unsupported:
         die(f"route_fence net {netname!r} has unsupported {layer_name} "
-            f"copper {sorted(set(unsupported))}; only straight PCB_TRACK "
-            "segments have a defined route-following fence")
+            f"copper {sorted(set(unsupported))}; only PCB_TRACK/PCB_ARC "
+            "primitives have a defined route-following fence")
     if not tracks:
-        die(f"route_fence net {netname!r} has no {layer_name} PCB_TRACK "
+        die(f"route_fence net {netname!r} has no {layer_name} track/arc "
             "centreline")
 
     def key(p):
@@ -2636,37 +2636,88 @@ def _simple_track_chain(ctx, netname, layer_name):
         die(f"route_fence net {netname!r} is not one simple chain: "
             f"{len(branches)} branch node(s), {len(ends)} endpoint(s)")
 
-    chain, used, cur = [ends[0]], set(), ends[0]
+    ordered, used, cur = [], set(), ends[0]
     while True:
         nxt = next(((i, other) for i, other in adj[cur] if i not in used),
                    None)
         if nxt is None:
             break
-        i, cur = nxt
+        i, other = nxt
         used.add(i)
-        chain.append(cur)
-    if len(used) != len(tracks) or chain[-1] != ends[1]:
+        item = tracks[i]
+        reverse = key(item.GetEnd()) == cur
+        ordered.append(_route_primitive(item, reverse))
+        cur = other
+    if len(used) != len(tracks) or cur != ends[1]:
         die(f"route_fence net {netname!r} has disconnected {layer_name} "
             f"copper ({len(used)}/{len(tracks)} segments reached)")
-    return [(points[p].x / 1e6, points[p].y / 1e6) for p in chain]
+    if any(row["length"] <= 1e-12 for row in ordered):
+        die(f"route_fence net {netname!r} has invalid zero-length copper")
+    return ordered
+
+
+def _route_angle_on_sweep(angle, start, sweep, tolerance=1e-9):
+    tau = 2.0 * math.pi
+    if sweep >= 0:
+        return (angle - start) % tau <= sweep + tolerance
+    return (start - angle) % tau <= -sweep + tolerance
+
+
+def _route_primitive(item, reverse=False):
+    """Emitter-owned line/arc geometry; the release gate reimplements it."""
+    def xy(point):
+        return point.x / 1e6, point.y / 1e6
+
+    start = xy(item.GetEnd() if reverse else item.GetStart())
+    end = xy(item.GetStart() if reverse else item.GetEnd())
+    if item.GetClass() == "PCB_TRACK":
+        return {"kind": "line", "start": start, "end": end,
+                "length": math.hypot(end[0] - start[0], end[1] - start[1])}
+    mid, center = xy(item.GetMid()), xy(item.GetCenter())
+    radius = math.hypot(start[0] - center[0], start[1] - center[1])
+    if radius <= 1e-12:
+        return {"kind": "invalid", "start": start, "end": end,
+                "length": 0.0}
+    a0 = math.atan2(start[1] - center[1], start[0] - center[0])
+    am = math.atan2(mid[1] - center[1], mid[0] - center[0])
+    a1 = math.atan2(end[1] - center[1], end[0] - center[0])
+    ccw = (a1 - a0) % (2.0 * math.pi)
+    sweep = ccw if (am - a0) % (2.0 * math.pi) <= ccw + 1e-9 \
+        else -((a0 - a1) % (2.0 * math.pi))
+    return {"kind": "arc", "start": start, "mid": mid, "end": end,
+            "center": center, "radius": radius, "start_angle": a0,
+            "sweep": sweep, "length": abs(sweep) * radius}
+
+
+def _route_primitive_point(primitive, distance):
+    """Point and unit left normal at a bounded primitive arclength."""
+    length = primitive["length"]
+    fraction = max(0.0, min(1.0, distance / length))
+    if primitive["kind"] == "line":
+        a, b = primitive["start"], primitive["end"]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        tx, ty = dx / length, dy / length
+        return a[0] + fraction * dx, a[1] + fraction * dy, -ty, tx
+    angle = primitive["start_angle"] + fraction * primitive["sweep"]
+    cx, cy = primitive["center"]
+    direction = 1.0 if primitive["sweep"] >= 0 else -1.0
+    tx, ty = (-math.sin(angle) * direction,
+              math.cos(angle) * direction)
+    return (cx + primitive["radius"] * math.cos(angle),
+            cy + primitive["radius"] * math.sin(angle), -ty, tx)
 
 
 def _route_point(chain, wanted_s):
     """Point and left normal at arclength ``wanted_s`` on ``chain``."""
     walked = 0.0
-    for a, b in zip(chain, chain[1:]):
-        dx, dy = b[0] - a[0], b[1] - a[1]
-        length = math.hypot(dx, dy)
+    for primitive in chain:
+        length = primitive["length"]
         if length <= 1e-12:
             continue
         if wanted_s <= walked + length + 1e-9:
-            t = max(0.0, min(1.0, (wanted_s - walked) / length))
-            return (a[0] + t * dx, a[1] + t * dy,
-                    -dy / length, dx / length)
+            return _route_primitive_point(primitive, wanted_s - walked)
         walked += length
-    a, b = chain[-2], chain[-1]
-    length = math.hypot(b[0] - a[0], b[1] - a[1])
-    return b[0], b[1], -(b[1] - a[1]) / length, (b[0] - a[0]) / length
+    return _route_primitive_point(chain[-1], chain[-1]["length"])
 
 
 def _route_corner_sites(chain, side, offsets, band):
@@ -2686,13 +2737,19 @@ def _route_corner_sites(chain, side, offsets, band):
     is larger than the perpendicular offset used to construct it.
     """
     walked = 0.0
-    for i, (a, b, c) in enumerate(zip(chain, chain[1:], chain[2:]), 1):
-        in_dx, in_dy = b[0] - a[0], b[1] - a[1]
-        out_dx, out_dy = c[0] - b[0], c[1] - b[1]
-        in_len, out_len = math.hypot(in_dx, in_dy), math.hypot(out_dx, out_dy)
+    for i, (incoming, outgoing) in enumerate(zip(chain, chain[1:]), 1):
+        in_len, out_len = incoming["length"], outgoing["length"]
         walked += in_len
         if in_len <= 1e-12 or out_len <= 1e-12:
             continue
+        # A native arc is already a continuously offset curve. The ordinary
+        # aperture filler owns its fence; miter anchors are only meaningful at
+        # an explicit line-line corner.
+        if incoming["kind"] != "line" or outgoing["kind"] != "line":
+            continue
+        a, b, c = incoming["start"], incoming["end"], outgoing["end"]
+        in_dx, in_dy = b[0] - a[0], b[1] - a[1]
+        out_dx, out_dy = c[0] - b[0], c[1] - b[1]
         in_u = in_dx / in_len, in_dy / in_len
         out_u = out_dx / out_len, out_dy / out_len
         # Collinear vertices have no corner aperture to anchor.  A U-turn is
@@ -2731,26 +2788,52 @@ def _route_corner_sites(chain, side, offsets, band):
 
 
 def _project_to_chain_all(chain, px, py):
-    """Every finite-segment ``(distance, arclength, side)`` projection.
+    """Every finite-primitive ``(distance, arclength, side)`` projection.
 
     A plated hole beside a bend may physically return current for both arms.
     Keeping only its single nearest polyline point creates a fictitious fence
     aperture through the corner and makes the result depend on segment order.
-    Each segment therefore gets its own bounded projection; callers select
+    Each line/arc therefore gets its own bounded projection; callers select
     the distance band and side they grade.
     """
     hits, walked = [], 0.0
-    for a, b in zip(chain, chain[1:]):
-        dx, dy = b[0] - a[0], b[1] - a[1]
-        length = math.hypot(dx, dy)
+    for primitive in chain:
+        a, b, length = (primitive["start"], primitive["end"],
+                        primitive["length"])
         if length <= 1e-12:
             continue
-        raw = ((px - a[0]) * dx + (py - a[1]) * dy) / (length * length)
-        t = max(0.0, min(1.0, raw))
-        qx, qy = a[0] + t * dx, a[1] + t * dy
+        if primitive["kind"] == "line":
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            raw = ((px - a[0]) * dx + (py - a[1]) * dy) / (length * length)
+            fraction = max(0.0, min(1.0, raw))
+            qx, qy = a[0] + fraction * dx, a[1] + fraction * dy
+            tx, ty = dx / length, dy / length
+        else:
+            cx, cy = primitive["center"]
+            angle = math.atan2(py - cy, px - cx)
+            if _route_angle_on_sweep(angle, primitive["start_angle"],
+                                     primitive["sweep"]):
+                chosen = angle
+                if primitive["sweep"] >= 0:
+                    fraction = ((angle - primitive["start_angle"])
+                                % (2.0 * math.pi)) / primitive["sweep"]
+                else:
+                    fraction = ((primitive["start_angle"] - angle)
+                                % (2.0 * math.pi)) / (-primitive["sweep"])
+            else:
+                choices = [(math.hypot(px - point[0], py - point[1]), fraction)
+                           for fraction, point in ((0.0, a), (1.0, b))]
+                _distance, fraction = min(choices)
+                chosen = (primitive["start_angle"]
+                          + fraction * primitive["sweep"])
+            qx = cx + primitive["radius"] * math.cos(chosen)
+            qy = cy + primitive["radius"] * math.sin(chosen)
+            direction = 1.0 if primitive["sweep"] >= 0 else -1.0
+            tx, ty = (-math.sin(chosen) * direction,
+                      math.cos(chosen) * direction)
         distance = math.hypot(px - qx, py - qy)
-        cross = (dx * (py - a[1]) - dy * (px - a[0])) / length
-        hits.append((distance, walked + t * length,
+        cross = tx * (py - qy) - ty * (px - qx)
+        hits.append((distance, walked + fraction * length,
                      1 if cross >= 0.0 else -1))
         walked += length
     return hits
@@ -2781,7 +2864,7 @@ def _plated_ground_elements(ctx, netcode):
 def _route_endpoint_refs(ctx, netname, chain):
     """Exact footprint-pad owner at each saved-chain endpoint."""
     refs = []
-    for x, y in (chain[0], chain[-1]):
+    for x, y in (chain[0]["start"], chain[-1]["end"]):
         point = ctx.pcbnew.VECTOR2I_MM(x, y)
         matches = []
         for fp in ctx.board.GetFootprints():
@@ -2818,8 +2901,7 @@ def _endpoint_span_map(fence_contract):
 def _fence_side_gaps(chain, elements, side, band, start_span=0.0,
                      end_span=0.0):
     """Along-route apertures outside proven package/launch endpoint spans."""
-    length = sum(math.hypot(b[0] - a[0], b[1] - a[1])
-                 for a, b in zip(chain, chain[1:]))
+    length = sum(primitive["length"] for primitive in chain)
     start, stop = float(start_span), length - float(end_span)
     if start >= stop - 1e-9:
         die(f"route_fence endpoint structures consume the complete "
@@ -2889,7 +2971,12 @@ def p_route_fence(ctx, c):
         die("stitch.route_fence.maximum_pitch disagrees with the RF-contract "
             "maximum_along_route_pitch_mm")
     nominal = float(c.get("nominal_pitch", maximum))
-    band = float(c.get("band", 0.0))
+    contract_band = fence_contract.get("maximum_lateral_center_offset_mm")
+    if c.get("band") is not None and contract_band is not None \
+            and abs(float(c["band"]) - float(contract_band)) > 1e-9:
+        die("stitch.route_fence.band disagrees with the RF-contract "
+            "maximum_lateral_center_offset_mm")
+    band = float(c.get("band") or contract_band or 0.0)
     contract_offset = fence_contract.get("nominal_lateral_center_offset_mm")
     offsets = [float(v) for v in
                (c.get("lateral_offsets") or
@@ -4253,6 +4340,25 @@ def _same_seg_exists(ctx, x1, y1, x2, y2, lid, code, tol=0.02):
     return False
 
 
+def _same_arc_exists(ctx, start, mid, end, lid, code, tol=0.02):
+    """Idempotency probe for one native same-net ``PCB_ARC``."""
+    def near(a, b):
+        return abs(a[0] - b[0]) <= tol and abs(a[1] - b[1]) <= tol
+
+    for item in ctx.board.GetTracks():
+        if (item.GetClass() != "PCB_ARC" or item.GetNetCode() != code
+                or item.GetLayer() != lid):
+            continue
+        actual_start, actual_end = _ends_mm(item)
+        point = item.GetMid()
+        actual_mid = point.x / 1e6, point.y / 1e6
+        if (near(actual_mid, mid)
+                and ((near(actual_start, start) and near(actual_end, end))
+                     or (near(actual_start, end) and near(actual_end, start)))):
+            return True
+    return False
+
+
 def _same_via_exists(ctx, x, y, code, tol=0.05):
     for t in ctx.board.GetTracks():
         if t.GetClass() == "PCB_VIA" and t.GetNetCode() == code:
@@ -4386,6 +4492,26 @@ def p_seed_stubs(ctx, c):
             if conflict:
                 break
         if conflict is None:
+            for arc in stub.get("arcs", []) or []:
+                lid = _layer_id(pcbnew, arc["layer"])
+                w = float(arc["width"])
+                try:
+                    start = tuple(round(float(v), 3) for v in arc["start"])
+                    mid = tuple(round(float(v), 3) for v in arc["mid"])
+                    end = tuple(round(float(v), 3) for v in arc["end"])
+                except (KeyError, TypeError, ValueError) as exc:
+                    die(f"seed_stubs.stubs[{i}].arcs needs numeric "
+                        f"start/mid/end coordinate pairs: {exc}")
+                if not all(len(point) == 2 for point in (start, mid, end)):
+                    die(f"seed_stubs.stubs[{i}].arcs start/mid/end must be "
+                        "two-coordinate points")
+                candidate = tk.make_arc(start, mid, end, net, lid, w)
+                if tk.collides_item(candidate, code, lid) is not None:
+                    conflict = (f"arc {start}->{mid}->{end} "
+                                f"{arc['layer']}")
+                    break
+                prims.append(("arc", start, mid, end, w, lid))
+        if conflict is None:
             for (vx, vy) in stub.get("vias", []) or []:
                 vx, vy = round(vx, 3), round(vy, 3)
                 if (not _same_via_exists(ctx, vx, vy, code)
@@ -4408,6 +4534,13 @@ def p_seed_stubs(ctx, c):
                     continue
                 tk.add_seg(ax, ay, bx, by, net, lid, w)
                 placed += 1
+            elif prim[0] == "arc":
+                _, start, mid, end, w, lid = prim
+                if _same_arc_exists(ctx, start, mid, end, lid, code):
+                    skipped += 1
+                    continue
+                tk.add_arc(start, mid, end, net, lid, w)
+                placed += 1
             else:
                 _, vx, vy = prim
                 if _same_via_exists(ctx, vx, vy, code):
@@ -4424,7 +4557,7 @@ def p_seed_stubs(ctx, c):
                     f"first segment starts at the pad)")
         served += 1
     ctx.bump("seed_stubs", placed)
-    print(f"seed_stubs: {served} bank(s) served ({placed} segments/vias "
+    print(f"seed_stubs: {served} bank(s) served ({placed} primitives/vias "
           f"placed, {skipped} idempotent-skip), {refused} refused")
 
 

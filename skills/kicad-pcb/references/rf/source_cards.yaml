@@ -1,0 +1,157 @@
+schema: 1
+sources:
+  - id: ADI-RF-BEND-RADIUS-3W
+    title: PCB Layout Guidelines for RF and Mixed-Signal
+    publisher: Analog Devices
+    locator: https://www.analog.com/en/resources/technical-articles/pcbs-layout-guidelines-for-rf--mixedsignal.html
+    provenance: normative
+    topics: [bend_geometry, controlled_impedance]
+    selectors: [bend_geometry]
+    claim: >-
+      Prefer curved RF turns; where a curved bend is used, a bend radius of at
+      least three times the conductor width is the published layout guideline.
+    use: >-
+      Set an explicit radius-to-width policy and review every direction change,
+      while treating the final impedance as a property of the ordered stackup.
+    limits: >-
+      This is a layout guideline, not proof of broadband insertion loss; a
+      first article or a more detailed model still owns performance.
+
+  - id: ADI-RF-CPWG-FENCE-BOTH-SIDES
+    title: PCB Layout Guidelines for RF and Mixed-Signal
+    publisher: Analog Devices
+    locator: https://www.analog.com/en/resources/technical-articles/pcbs-layout-guidelines-for-rf--mixedsignal.html
+    provenance: normative
+    topics: [cpwg, via_fence, reference_return]
+    selectors: [via_fence, cpwg]
+    claim: >-
+      Grounded coplanar routing uses adjacent grounded copper and stitching on
+      both sides of the signal path to control the return structure.
+    use: >-
+      Require two-sided, route-following fence coverage and measure the saved
+      plated returns along the complete route, including launch spans.
+    limits: >-
+      A nominal via lattice is not evidence of the realized along-route pitch,
+      and fence geometry does not replace reference-plane continuity review.
+
+  - id: ADI-MMIC-LAYOUT-LAUNCH-RETURN
+    title: Layout Guidelines for MMIC Components
+    publisher: Analog Devices
+    locator: https://www.analog.com/media/en/technical-documentation/application-notes/layout_guidelines_for_mmic_components.pdf
+    provenance: normative
+    topics: [connector_launch, reference_return, discontinuity]
+    selectors: [connector_launch, microwave]
+    claim: >-
+      RF package transitions, grounding, and the transmission-line interface
+      are a coupled discontinuity and should be laid out as one structure.
+    use: >-
+      Give every launch an owner, preserve a short unbroken return path, and
+      make launch geometry part of schematic, PCB, and first-article review.
+    limits: >-
+      Package-specific evaluation-board guidance and the selected connector
+      datasheet override a generic launch pattern.
+
+  - id: JLC-IMPEDANCE-ORDERED-STACKUP
+    title: User Guide to the JLCPCB Impedance Calculator
+    publisher: JLCPCB
+    locator: https://jlcpcb.com/help/article/user-guide-to-the-jlcpcb-impedance-calculator
+    provenance: normative
+    topics: [controlled_impedance, fabrication, stackup]
+    selectors: [jlcpcb, controlled_impedance]
+    claim: >-
+      Controlled-impedance geometry must be calculated against a selected JLC
+      layer stack and the matching structure type, using the manufacturer
+      calculator inputs rather than a generic board thickness.
+    use: >-
+      Lock the exact JLC stackup code, copper layer, reference layer, finished
+      copper assumptions, width, and coplanar gap before layout is sealed.
+    limits: >-
+      Public calculator output is planning evidence. The order preview and
+      manufacturer engineering response remain the order-time authority.
+
+  - id: JLC-STACKUP-CATALOGUE
+    title: JLCPCB Impedance Controlled PCB Stackups
+    publisher: JLCPCB
+    locator: https://jlcpcb.com/impedance
+    provenance: normative
+    topics: [fabrication, stackup]
+    selectors: [jlcpcb]
+    claim: >-
+      JLC publishes named impedance stackups whose dielectric construction is
+      the appropriate starting point for its controlled-impedance service.
+    use: >-
+      Record a named stackup rather than inferring dielectric height from the
+      overall board thickness, and recheck it in the fabrication preview.
+    limits: >-
+      Availability and process values can change; order-time evidence must
+      echo the selected construction.
+
+  - id: KICAD-TRACK-ARC-CAPABILITY
+    title: KiCad PCB Editor documentation and board file format
+    publisher: KiCad Project
+    locator: https://docs.kicad.org/9.0/en/pcbnew/pcbnew.html
+    provenance: tool_capability
+    topics: [bend_geometry, tool_capability]
+    selectors: [bend_geometry]
+    claim: >-
+      KiCad represents routed track arcs as native board items and supports
+      rounded-corner routing workflows.
+    use: >-
+      Preserve arcs as arcs through route emission, saved-board measurement,
+      DRC, rendering, and release evidence instead of flattening them silently.
+    limits: >-
+      Router modes do not all edit existing arcs equivalently; the pipeline
+      must verify its own deterministic emit/reopen path.
+
+  - id: POZAR-TRANSMISSION-LINE-FOUNDATION
+    title: Microwave Engineering, transmission-line chapters
+    publisher: David M. Pozar, Wiley
+    locator: ISBN 978-1-119-77377-5
+    provenance: background
+    topics: [controlled_impedance, reference_return, discontinuity]
+    selectors: [microwave, controlled_impedance]
+    claim: >-
+      At microwave frequencies a routed interconnect is a distributed
+      transmission line; geometry, materials, reference conductor, and
+      discontinuities determine propagation and reflection.
+    use: >-
+      Review the signal and return structure together and avoid treating a
+      nominal trace width as a complete impedance specification.
+    limits: >-
+      Textbook models require the actual fabrication geometry and do not
+      certify a manufacturer process by themselves.
+
+  - id: WADELL-COPLANAR-STRUCTURES
+    title: Transmission Line Design Handbook, coplanar structures
+    publisher: Brian C. Wadell, Artech House
+    locator: ISBN 978-0-89006-436-8
+    provenance: background
+    topics: [cpwg, controlled_impedance, discontinuity]
+    selectors: [cpwg]
+    claim: >-
+      Coplanar transmission-line behaviour depends on the complete conductor
+      and dielectric geometry, including lateral ground spacing and conductor
+      thickness.
+    use: >-
+      Keep the CPWG gap, width, copper thickness, dielectric height, and
+      reference plane under one cross-section authority.
+    limits: >-
+      Closed-form models are approximations and must be reconciled with the
+      fabricator model and first-article measurement.
+
+  - id: IPC-2141-CONTROLLED-IMPEDANCE
+    title: IPC-2141A Design Guide for High-Speed Controlled Impedance Circuit Boards
+    publisher: IPC
+    locator: IPC-2141A
+    provenance: background
+    topics: [controlled_impedance, industry_standard]
+    selectors: [controlled_impedance]
+    claim: >-
+      Controlled-impedance design requires a declared transmission-line
+      structure and material/geometry inputs rather than width alone.
+    use: >-
+      Treat impedance as a cross-section contract carried through fabrication
+      evidence, not as an annotation applied after routing.
+    limits: >-
+      Use the current purchased standard and the fabricator's process data for
+      contractual decisions; this card is only a routing reminder.
