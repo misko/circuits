@@ -81,6 +81,44 @@ def t_protected_wrong_geometry_fails():
              "finding names authored protected geometry")
 
 
+@test("V-PROCESS refuses an unprotected ordinary via inside an SMT land",
+      kind="known_bad")
+def t_ordinary_via_in_pad_fails():
+    """Same-net via-in-pad is DRC-clean but can starve the solder joint."""
+    _d, board_path, _assembly = fixture()
+    board = pcbnew.LoadBoard(str(board_path))
+    ordinary = [item for item in board.GetTracks()
+                if item.GetClass() == "PCB_VIA"
+                and item.GetFillingMode() != pcbnew.FILLING_MODE_FILLED][0]
+    footprint = pcbnew.FOOTPRINT(board)
+    footprint.SetReference("J11")
+    pad = pcbnew.PAD(footprint)
+    pad.SetNumber("3")
+    pad.SetShape(pcbnew.PAD_SHAPE_RECT)
+    pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    pad.SetSize(pcbnew.VECTOR2I_MM(0.74, 2.79))
+    pad.SetLayerSet(pcbnew.PAD.SMDMask())
+    pad.SetPosition(ordinary.GetPosition())
+    footprint.Add(pad)
+    board.Add(footprint)
+    board.Save(str(board_path))
+    result = must_fail(run([KPY, TOOL, board_path]),
+                       "unprotected via inside J11.3", "V-VIP")
+    contains(result.out, "SMT land(s) J11.3",
+             "finding does not name the affected assembly land")
+
+
+@test("V-PROCESS refuses native fill/cap intent with no assembly contract",
+      kind="known_bad")
+def t_protected_without_contract_fails():
+    d, board, assembly = fixture(rows=((0.50, 0.20, True),))
+    assembly.write_text(yaml.safe_dump({"service": "advanced"}))
+    result = must_fail(run([KPY, TOOL, board]),
+                       "protected via without order selector", "V-SCHEMA")
+    contains(result.out, "declares no via_process",
+             "native item flags were silently treated as an order process")
+
+
 @test("JLC exporter emits the exact generated via order note")
 def t_exporter_emits_note():
     d, board, assembly = fixture()

@@ -101,6 +101,8 @@ rationale.
 | IMP-085 | Normalize overlap-only track/via joints before deleting barrels | completed | Pluto RX2 8-way v5 route cleanup |
 | IMP-086 | Run external mating-fact provenance before PCB generation | proposed | Pluto RX2 8-way v5 post-stitch gate |
 | IMP-087 | Grade rerunnable density gates against realized saved geometry | completed | Pluto RX2 8-way v5 RF-fence rerun |
+| IMP-088 | Seed deterministic identities across import and stitch, not only route prep | proposed | Pluto RX2 8-way v5 layout-seal entry |
+| IMP-089 | Treat same-net via-in-pad as a fabrication process, not a DRC clearance | completed | Pluto RX2 8-way v5 final layout red team |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -3059,3 +3061,72 @@ Recommended execution order for future boards:
   introduced, before using it in an expensive board replay.
 - history: 2026-08-13 — completed during disposable RF-fence promotion, before
   touching the real board.
+
+## IMP-088 — seed deterministic identities across import and stitch
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 layout-seal entry, 2026-08-13
+- evidence: IMP-081 seeded route preparation, so identical source produces a
+  byte-identical r0. The later `import_krt.py` and stitch passes still construct
+  PCB tracks/vias without a stable KiCad UUID seed. A canonical rebuild can
+  therefore reproduce identical copper and clean DRC while changing the board
+  SHA solely through fresh object identities, invalidating exact-artifact RF,
+  pin, render, topology and layout reviews.
+- general rule: reproducibility ends at the last artifact-producing stage, not
+  the first deterministic one. Every process that creates identity-bearing
+  objects must derive a stage-specific seed from immutable input identity and
+  preserve deterministic creation order. A geometry-only comparison may be a
+  useful diagnostic, but it must not silently replace exact-byte provenance.
+- intended landing point: seed KiCad's UUID generator in `import_krt.py` from
+  the exact base-board plus promoted-chain identity, and in `cmd_stitch` from
+  the exact imported-board plus route/stitch-contract identity. Record those
+  seeds and input hashes in provenance, then require two clean full replays to
+  produce byte-identical imported and post-stitch boards.
+- completion evidence required: fixtures must replay import and stitch twice
+  from byte-identical inputs, including tracks, vias, corner anchors, filled
+  zones and fresh-interpreter barriers, and require byte equality. Changing
+  one source track or stitch parameter must change the identity namespace;
+  an idempotent rerun on the finished board must still emit no duplicates.
+- recommendation: implement before the next routed board and before using a
+  full rebuild as an exact-review recovery path. V5 should use the existing
+  reviewed-commit layout-seal path now; changing producer identity policy
+  after its exact board was reviewed would create avoidable subject churn.
+- history: 2026-08-13 — proposed when the layout-seal rehearsal showed that a
+  canonical rebuild could be geometrically correct yet stale every exact-board
+  review for identity-only reasons.
+
+## IMP-089 — treat same-net via-in-pad as a fabrication process
+
+- status: completed
+- observed: Pluto RX2 8-way v5 final layout red team, 2026-08-13
+- evidence: exact board `0b8ab1962ef7` was DRC 0/0/0, P-PADSEP clean and RF
+  fence 18/18, yet an ordinary 0.45/0.20-mm GND stitch via at
+  `(42.50,77.50)` was centred inside keyed SWD connector J11.3's
+  0.74 x 2.79-mm F.Cu/F.Mask/F.Paste land. Same-net copper overlap is legal,
+  so DRC had no reason to object. The via was neither filled nor capped and
+  could wick paste/solder from the connector joint. A final-chain-to-board
+  `via_in_pad_guard.py` comparison reported exactly this one post-route hole.
+- general rule: via placement needs two independent meanings. Electrical DRC
+  decides whether copper may touch; assembly policy decides whether a drilled
+  barrel may occupy an SMT land. Every ordinary grid, fence, rescue and repair
+  emitter must refuse exact SMD-pad hits at its shared admission seam. Only an
+  explicitly owned via-in-pad operation may opt in, and every realized
+  via-in-pad must be filled+capped and selectable by an unambiguous fabrication
+  family that does not include ordinary vias.
+- landed in: `route_and_stitch_generic.py` now rejects ordinary stitch sites
+  whose centres hit exact KiCad SMD copper, with explicit opt-in only for
+  `pad_rescue.via_in_pad: true`. `via_process_check.py` independently scans the
+  final board, refuses any unprotected via in an SMT land, refuses native
+  fill/cap intent without an assembly contract, and proves protected versus
+  ordinary drill-family separation at layout/fab entry.
+- regression: `t2_route_stitch.py` places a same-net J11-like land directly on
+  a declared grid site and requires the site to remain barrel-free;
+  `t1_via_process.py` requires both the unprotected-via-in-pad and
+  native-flags-without-order-contract fixtures to fail.
+- project correction: v5 replay removes the single J11 grid via. The nine
+  intended U1 EP holes are 0.45/0.25-mm filled+capped vias; all 629 ordinary
+  route/stitch/fence holes remain 0.45/0.20 mm. JLC's published POFV guidance
+  lists a 0.25-mm hole with 0.40-mm via diameter, so the selected protected
+  0.45/0.25-mm family is within that published geometry and drill-distinct.
+- history: 2026-08-13 — completed before layout seal after independent final
+  pin and layout lenses both refused the otherwise-green exact board.

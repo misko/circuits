@@ -365,3 +365,104 @@ The placement, routing and post-stitch checkpoints are respectively SHA-256
 fabrication: the 5-mm whole-board lattice is ordinary plane stitching only.
 The next stage must realize and measure the <=1.40-mm route-following RF fence,
 then rerun the saved-board gates and obtain exact RF PCB review.
+
+## 2026-08-13 — route-following RF fence realization
+
+The RF fence was developed only on disposable copies until its emitter,
+independent checker and full KiCad DRC all agreed. The saved 0.295-mm F.Cu RF
+centrelines and component placement were never edited. The contract now names
+the exact nine-net denominator, In1.Cu reference, 1.40-mm guided-wavelength
+pitch, 0.70-mm nominal lateral offset, 0.45/0.20-mm ordinary via geometry, and
+the geometry-owned endpoint spans at U1 and J2--J10.
+
+The early trials exposed a real greedy-placement local minimum:
+
+| disposable trial | saved-board flank result | disposition |
+|---|---:|---|
+| route-only sites, no endpoint model | 3/18 | rejected |
+| geometry-proven endpoint spans | 12/18 | retained contract, incomplete emitter |
+| 0.50-mm same-net via spacing | 16/18 | DRC-clean; ANT2-R and ANT7-R still open |
+| globally reduced spacing, 0.46 mm | 14/18 | rejected; greedily added vias made later gaps worse |
+| corner-first anchors + multi-segment physical credit | 18/18 | accepted |
+
+Both 16/18 survivors were symmetric inner bends. A legal via just before the
+corner and another just after it consumed the only remaining barrel window,
+while the single-nearest-point model credited each physical return to only one
+arm. The accepted generic algorithm reserves offset-path corner anchors before
+straight-span filling and credits a plated return to every adjacent finite
+segment it is physically within-band of. No smaller via tier, retry loop or RF
+reroute was needed.
+
+The exact board adds 394 ordinary GND vias, including 22 corner anchors. The
+independent saved-board report grades all 18 flanks and includes launch
+lead-in, interior and run-out apertures outside only the proven endpoint spans.
+Worst case is RF_ANT8-R at 1.3979 mm against the 1.4000-mm bound. Saved pours
+remain 4/4 present; rules audit is 20/20 and KiCad DRC is 0 violations / 0
+unconnected / 0 schematic-parity findings.
+
+The disposable promotion also exposed an idempotence defect in the ordinary
+grid: a complete rerun emitted zero duplicates, then compared that mutation
+count with `min: 80`. The corrected gate reports zero added separately and
+grades 200/234 declared sites served by realized same-net plated returns.
+
+### RF-fence reflection
+
+- Reserve constrained geometry before filling unconstrained space. Corners,
+  launches, neckdowns and escape pockets should not be left to a greedy tail.
+- A rerunnable acceptance gate must measure the saved property, never infer it
+  from how many objects this invocation happened to add.
+- For bent routes, physical coverage may be one-to-many: one return hole can
+  serve two adjacent finite segments. A single nearest projection is not a
+  faithful RF model.
+- RF endpoint exclusions are not arbitrary distances. Package and connector
+  ground structures must own explicit measured spans or the gate must grade
+  all the way to the signal-pad centre.
+- The emitter and checker must remain independent. Attempted-site counts and
+  emitter-internal projections do not certify the saved board.
+
+Mechanically proven subject commit is
+`44aad7a7a7fe8e4102987c811ef137768656dec2`; exact fenced board SHA-256 is
+`0b8ab1962ef798e77eb29f09bcc809695d092e130c627cd2fd5b535e3a1aea41`.
+Independent exact-board RF PCB review remains the next layout-seal boundary.
+
+## 2026-08-13 — final-review via-in-pad refusal and replay
+
+The first exact-board review set correctly refused fenced board
+`0b8ab1962ef7` even though DRC was 0/0/0, pad separation was clean and the RF
+fence passed 18/18. An ordinary 0.45/0.20-mm GND grid via at
+`(42.50,77.50)` was centred in keyed SWD connector J11.3's
+0.74 x 2.79-mm F.Cu/F.Mask/F.Paste land. The via was unfilled and uncapped;
+same-net copper explains why electrical DRC accepted it, but not why the
+assembly process should. Independent pin and red-team layout lenses both
+graded it P1 and no layout seal was issued.
+
+The correction landed at two general boundaries before replay:
+
+- the shared stitch-via site admission now refuses exact SMD-pad hits for
+  grid, fence, rescue and repair vias; only an explicitly configured
+  via-in-pad rescue may opt in;
+- the final via-process gate independently scans every saved via/SMD-pad
+  relation, refuses unprotected via-in-pad and refuses native fill/cap flags
+  without a machine-readable, drill-disjoint order selector.
+
+That second boundary exposed an existing order ambiguity as well. U1's nine
+intentional filled/capped holes and all ordinary holes had both used a
+0.20-mm drill, so a Gerber/drill-family order instruction could not select
+only U1. The protected field now uses 0.45/0.25-mm vias while all ordinary
+route/stitch/fence vias stay 0.45/0.20 mm. JLC's published
+[POFV requirements](https://jlcpcb.com/news/free-via-in-pad-6-20-layer-pcbs-pofv)
+list a 0.25-mm hole with 0.40-mm via diameter; the selected 0.45/0.25-mm
+protected family is more generous in outer diameter and unambiguous in the
+drill output.
+
+A disposable complete generate/import/stitch/fence/fill replay passed before
+promotion. The real replay removes exactly the J11 grid via, reports 199/234
+ordinary sites served, retains 394 route-fence vias and 22 corner anchors,
+passes the tightened +/-1.10-mm saved-board fence 18/18 with the same
+1.3979-mm worst aperture, and remains DRC 0/0/0 with four saved pours. The
+via-process census is 9 protected 0.45/0.25-mm and 629 ordinary
+0.45/0.20-mm vias, with 9/9 realized via-in-pad sites protected and zero
+post-route via-in-pad additions. Corrected board SHA-256 is
+`39251c24d4b3cc878824f26c48178cbc4a4d418fa528045c6c13f2308e017acd`.
+Every earlier exact-board review is intentionally stale; all six final lenses
+must renew against the corrected source commit and board hash before sealing.

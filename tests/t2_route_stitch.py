@@ -2250,6 +2250,35 @@ def t_grid_fractional_pitch():
           "genuinely fractional")
 
 
+@test("stitch_grid refuses an ordinary same-net via centred in an SMD land")
+def t_grid_no_undeclared_via_in_pad():
+    """Same-net overlap is DRC-legal but not process-neutral.
+
+    Pluto RX2 8-way v5's 5-mm GND lattice placed an unfilled 0.45/0.20-mm
+    barrel at (42.50,77.50), inside keyed SWD connector J11.3.  DRC stayed
+    clean because both objects were GND, but the undeclared via-in-pad could
+    wick solder from the 0.74 x 2.79-mm SMT land.  Every ordinary stitch
+    emitter shares ``try_via``; the common site seam must reject the exact
+    SMD shape unless its caller explicitly owns via-in-pad processing.
+    """
+    _d, config, board = pour_scratch(
+        ["F.Cu", "B.Cu"], ["stitch_grid", "fill", "gate"])
+    edit_board(
+        board,
+        "fp=pcbnew.FOOTPRINT(b); fp.SetReference('J11')\n"
+        "pad=pcbnew.PAD(fp); pad.SetNumber('3')\n"
+        "pad.SetShape(pcbnew.PAD_SHAPE_ROUNDRECT)\n"
+        "pad.SetRoundRectRadiusRatio(0.15)\n"
+        "pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)\n"
+        "pad.SetSize(pcbnew.VECTOR2I_MM(0.74,2.79))\n"
+        "pad.SetLayerSet(pcbnew.PAD.SMDMask())\n"
+        "pad.SetPosition(pcbnew.VECTOR2I_MM(8.0,5.0))\n"
+        "pad.SetNet(b.FindNet('GND')); fp.Add(pad); b.Add(fp)\n")
+    must_pass(stitch(config), "stitch grid beside same-net SMD copper")
+    check((8.0, 5.0) not in via_xy(board),
+          "ordinary stitch via landed in J11.3 despite no via-in-pad owner")
+
+
 @test("stitch_grid minimum grades the realized saved grid on an idempotent "
       "rerun, not only newly emitted vias")
 def t_grid_min_idempotent():

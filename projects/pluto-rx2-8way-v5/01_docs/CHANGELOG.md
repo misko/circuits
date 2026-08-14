@@ -153,4 +153,15 @@ day and fab exactly one of them.
 - Regenerated adopted rules after the last board save. The exact fenced board
   SHA-256 is `0b8ab1962ef7`; saved pours are present, rules audit is 20/20, and
   final KiCad DRC remains 0 violations / 0 unconnected / 0 parity findings.
+- Refused that otherwise-green exact board during independent final review:
+  one unfilled ordinary GND grid via was centred in J11.3's SMD paste land.
+  Same-net DRC silence was not accepted as assembly-process approval.
+- Moved the correction to shared process boundaries before replay. Ordinary
+  stitch emitters now refuse exact SMD-pad hits and V-PROCESS independently
+  rejects unprotected via-in-pad or native fill/cap intent with no unambiguous
+  assembly selector; regression fixtures reproduce both failure classes.
+- Made selective U1 POFV orderable: its nine protected vias are now
+  0.45/0.25 mm while all 629 ordinary vias remain 0.45/0.20 mm. The complete
+  replay removes exactly the J11 via, keeps RF fence 18/18 at 1.3979 mm worst,
+  and finishes DRC 0/0/0 on corrected board SHA-256 `39251c24d4b3`.
 Released: no

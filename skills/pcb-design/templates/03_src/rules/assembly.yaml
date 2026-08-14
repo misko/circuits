@@ -42,6 +42,31 @@ fiducials: none            # `none` + the fab's own statement, or a count/type.
                            # state `none` deliberately or declare what you placed.
 build_quantity: 5          # boards in the order — A-STOCK grades stock >= qty x this
 
+# ---- SELECTIVE VIA-IN-PAD PROCESS (required when any via centre is in an SMT
+# land, or any board via carries native fill/cap flags) ----------------------
+# Electrical DRC deliberately permits same-net overlap; it does NOT approve an
+# open barrel beneath solder paste. `via_process_check.py` independently scans
+# the exact final board, requires every via-in-pad site filled+capped, and
+# refuses native KiCad protection flags unless the order contract can select a
+# drill family disjoint from ordinary vias. Do not rely on item flags alone:
+# Gerber/drill outputs do not carry them to the fabricator.
+# pcb_process: "JLC advanced; selective filled/capped via-in-pad"
+# via_process:
+#   ipc_4761: type_vii_filled_and_capped
+#   fill_material: copper_paste
+#   selection: item_level_source_plus_drill_family_order_selector
+#   source: "03_src/floorplan.yaml thermal_vias.protection"
+#   protected_geometry: {via_diameter_mm: 0.45, drill_mm: 0.25}
+#   fabricator_selector:
+#     kind: drill_family
+#     protected_drill_mm: 0.25
+#     ordinary_drill_mm: [0.20, 0.30]
+#   ordinary_vias: "ordinary drill families inherit board defaults; no fill/cap"
+#   order_remark: >-
+#     Fill and copper-cap the complete 0.25 mm drill family only. Do not fill
+#     or cap ordinary 0.20 mm or 0.30 mm drill routing/stitching vias.
+#   uploader_confirmation_required: true
+
 # ---- NOT ASSEMBLED (the population set) ------------------------------------
 # Every ref here MUST also carry FP_EXCLUDE_FROM_POS_FILES on the board, so it
 # leaves the CPL. Declaring it here but leaving it on the CPL is a FAIL: the

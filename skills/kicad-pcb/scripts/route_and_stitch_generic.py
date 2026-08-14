@@ -1699,6 +1699,7 @@ class Ctx:
         self.dirty = False         # a Remove() happened -> barrier required
         self._used = None
         self._pth = None
+        self._copper_smd_pads = None
 
     def remove(self, item):
         """EVERY removal goes through here. board.Remove() poisons the
@@ -1771,6 +1772,33 @@ class Ctx:
                          if p.GetDrillSize().x > 0]
         return self._pth
 
+    @property
+    def copper_smd_pads(self):
+        """Undrilled component copper lands that ordinary vias must avoid.
+
+        KiCad correctly permits same-net copper overlap, so the geometric
+        collision checker cannot distinguish a useful same-net join from an
+        undeclared via-in-pad process.  Cache the exact pad shapes here and
+        make that assembly decision explicit at the shared stitch-via seam.
+        """
+        if self._copper_smd_pads is None:
+            layers = [layer for layer in self.board.GetEnabledLayers().Seq()
+                      if self.pcbnew.IsCopperLayer(layer)]
+            self._copper_smd_pads = [
+                (pad, pad.GetBoundingBox())
+                for footprint in self.board.GetFootprints()
+                for pad in footprint.Pads()
+                if pad.GetDrillSize().x <= 0
+                and any(pad.IsOnLayer(layer) for layer in layers)
+            ]
+        return self._copper_smd_pads
+
+    def lands_in_smd_pad(self, x, y):
+        """Whether a proposed via centre lies in any exact SMD copper land."""
+        pos = self.pcbnew.VECTOR2I_MM(x, y)
+        return any(bbox.Contains(pos) and pad.HitTest(pos)
+                   for pad, bbox in self.copper_smd_pads)
+
     def bump(self, k, n=1):
         self.counts[k] = self.counts.get(k, 0) + n
 
@@ -1792,7 +1820,8 @@ class Ctx:
                 return False
         return True
 
-    def via_choice(self, net, x, y, avoid=(), spacing_override=None):
+    def via_choice(self, net, x, y, avoid=(), spacing_override=None,
+                   allow_via_in_pad=False):
         """Return the first legal ``(x, y, size, drill)`` without emitting it.
 
         Some callers need to validate copper that must reach the proposed via
@@ -1806,6 +1835,14 @@ class Ctx:
         pth_margin = float(v.get("pth_margin", 0.3))
         x, y = round(x, 2), round(y, 2)
         if not self.keepin(x, y):
+            return None
+        # DRC intentionally allows same-net copper to overlap.  An ordinary
+        # stitch via in an SMD land is nevertheless a fabrication decision:
+        # without declared fill/cap it can wick solder and starve the joint.
+        # Refuse it at the one primitive used by grid, fence and rescue
+        # emitters.  Only a caller that explicitly owns via-in-pad processing
+        # may opt in (currently pad_rescue with via_in_pad: true).
+        if not allow_via_in_pad and self.lands_in_smd_pad(x, y):
             return None
         for r in avoid:
             m = float(r.get("margin", 0.0))
@@ -1830,12 +1867,14 @@ class Ctx:
                 return x, y, size, drill
         return None
 
-    def try_via(self, net, x, y, avoid=(), spacing_override=None):
+    def try_via(self, net, x, y, avoid=(), spacing_override=None,
+                allow_via_in_pad=False):
         """Place one collide-checked via. THE shared primitive: every via
         this script adds goes through here, so the spacing/PTH/keepin
         guards can never be bypassed by a new pass."""
-        choice = self.via_choice(net, x, y, avoid,
-                                 spacing_override=spacing_override)
+        choice = self.via_choice(
+            net, x, y, avoid, spacing_override=spacing_override,
+            allow_via_in_pad=allow_via_in_pad)
         if choice is None:
             return False
         x, y, size, drill = choice
@@ -3131,7 +3170,8 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
                 ok += 1
                 continue
             px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
-            if vip and ctx.try_via(net_obj, px, py):
+            if vip and ctx.try_via(net_obj, px, py,
+                                   allow_via_in_pad=True):
                 ok += 1
                 continue
             bb = p.GetBoundingBox()

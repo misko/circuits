@@ -69,6 +69,10 @@
       vias including 22 bend anchors; the independent saved-board report
       grades 18/18 flanks with worst aperture 1.3979 mm <= 1.4000 mm. The
       separate 5-mm rectangular lattice is not credited as RF fence
+- [x] final-review P1 corrected before seal: the ordinary GND grid no longer
+      lands in J11.3; exact final scan reports zero post-route via-in-pad,
+      while V-PROCESS proves all 9 intentional U1 sites filled/capped in the
+      drill-distinct 0.45/0.25-mm family and 629 ordinary 0.45/0.20-mm vias
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.
@@ -82,6 +86,9 @@ RELEASED must additionally pass the release gate at the bottom.
 - [x] `pad_separation.py 04_kicad/<board>.kicad_pcb --project .` → P-PADSEP
       PASS: separate-footprint copper clears the fab-tier gap and paste does
       not intrude on foreign lands
+- [x] `via_process_check.py 04_kicad/<board>.kicad_pcb` → V-PROCESS PASS:
+      9/9 via-in-pad sites protected, protected/ordinary drill families
+      disjoint, and the generated order remark complete
 - [x] rules regenerate byte-identical from `03_src/rules/nets.yaml` (no hand-edits)
 - [ ] BOM ↔ `02_parts/` parity (every used part has a datasheet + facts on file)
 - [ ] `module_first_check.py .` → P-MOD PASS; every complex subsystem uses a
@@ -97,9 +104,11 @@ RELEASED must additionally pass the release gate at the bottom.
       operational silk readability
 - [x] `01_docs/CHANGELOG.md` entry written
 - [ ] anything surprising captured as an ADR in `01_docs/decisions/`
-- [ ] `03_src/rules/rf.yaml` explicitly records RF applicability. If enabled:
+- [x] `03_src/rules/rf.yaml` explicitly records RF applicability. If enabled:
       independent RF schematic review is SOUND before placement; independent
-      exact-board RF PCB review is SOUND before layout seal
+      exact-board RF PCB review was SOUND before the rejected first seal
+- [ ] all six final exact-board lenses renewed SOUND against corrected board
+      SHA-256 `39251c24d4b3` and its source commit before layout seal
 - [ ] order-stage JLC assembly DFM explicitly accepts the manufacturer-land
       SMA drills (1.50/1.70 mm) against JLC C429844 CAD (1.60/1.80 mm); do not
       silently replace the Amphenol Rev-C footprint

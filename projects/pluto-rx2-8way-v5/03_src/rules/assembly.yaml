@@ -5,7 +5,25 @@ fiducials: {global_top: 3, local_required_for_0_5mm_QFN: true}
 build_quantity: 5_first_articles
 not_assembled: []
 consigned: []
-exempt_prefixes: [FID, MH]
+exempt_prefixes: [FID, H, MH]
+
+pcb_process: "JLC four-layer advanced; copper-paste-filled and copper-capped via-in-pad only at U1's explicitly protected 0.25-mm drill family"
+via_process:
+  ipc_4761: type_vii_filled_and_capped
+  fill_material: copper_paste
+  selection: item_level_source_plus_drill_family_order_selector
+  source: "03_src/floorplan.yaml thermal_vias.protection"
+  protected_geometry: {via_diameter_mm: 0.45, drill_mm: 0.25}
+  fabricator_selector:
+    kind: drill_family
+    protected_drill_mm: 0.25
+    ordinary_drill_mm: [0.20]
+  ordinary_vias: "0.20-mm drill only; inherit board defaults; no fill/cap treatment"
+  order_remark: >-
+    Copper-paste fill and copper cap the complete 0.25 mm drill family only:
+    these are the nine 0.45/0.25 mm U1 exposed-pad vias. Do not fill or cap
+    the ordinary 0.20 mm drill routing, stitching, fence, or plane-return vias.
+  uploader_confirmation_required: true
 
 assembly_scope:
   smt: turnkey_JLC

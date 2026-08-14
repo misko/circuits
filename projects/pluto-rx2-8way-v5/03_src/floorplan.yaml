@@ -41,14 +41,16 @@ board:
 # The only paid advanced feature is deliberate, not an escape convenience:
 # U1's exposed pad is the RF return for a 5.9 GHz switch and receives a filled,
 # copper-capped 3 x 3 via-in-pad field.  Ordinary route/stitch vias stay at
-# 0.45/0.20 mm and receive no fill/cap treatment.
+# 0.45/0.20 mm and receive no fill/cap treatment.  The protected U1 family
+# uses a distinct 0.25-mm drill so JLC can select it unambiguously from the
+# Gerber/drill package; native KiCad item flags alone are not an order format.
 thermal_vias:
   protection: {capping: yes, filling: yes}
   fields:
     - ref: U1
       pad: 25
       size: 0.45
-      drill: 0.20
+      drill: 0.25
       at: [[-0.75, -0.75], [0.0, -0.75], [0.75, -0.75],
            [-0.75, 0.0], [0.0, 0.0], [0.75, 0.0],
            [-0.75, 0.75], [0.0, 0.75], [0.75, 0.75]]

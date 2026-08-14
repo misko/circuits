@@ -8716,7 +8716,7 @@
 	(via
 		(at 65.75 48)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)
@@ -8750,7 +8750,7 @@
 	(via
 		(at 65 48)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)
@@ -8816,7 +8816,7 @@
 	(via
 		(at 64.25 47.25)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)
@@ -8834,7 +8834,7 @@
 	(via
 		(at 64.25 48)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)
@@ -8860,7 +8860,7 @@
 	(via
 		(at 65.75 47.25)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)
@@ -8870,7 +8870,7 @@
 	(via
 		(at 65 47.25)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)
@@ -8880,7 +8880,7 @@
 	(via
 		(at 65 48.75)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)
@@ -8914,7 +8914,7 @@
 	(via
 		(at 64.25 48.75)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)
@@ -8932,7 +8932,7 @@
 	(via
 		(at 65.75 48.75)
 		(size 0.45)
-		(drill 0.2)
+		(drill 0.25)
 		(layers "F.Cu" "B.Cu")
 		(capping yes)
 		(filling yes)

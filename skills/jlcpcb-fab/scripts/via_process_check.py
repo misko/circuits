@@ -78,6 +78,38 @@ def close(a, b):
     return abs(float(a) - float(b)) <= TOL_MM
 
 
+def via_in_pad_hits(board):
+    """Map via UUIDs to exact undrilled component lands containing them.
+
+    Same-net via/pad overlap is intentionally DRC-clean, but an open barrel
+    beneath an SMT paste aperture is not assembly-neutral.  Use KiCad's exact
+    pad hit-test rather than a rectangular approximation and require every
+    such barrel to belong to the declared filled/capped process.
+    """
+    copper_layers = [layer for layer in board.GetEnabledLayers().Seq()
+                     if pcbnew.IsCopperLayer(layer)]
+    pads = []
+    for footprint in board.GetFootprints():
+        for pad in footprint.Pads():
+            if (pad.GetDrillSize().x > 0
+                    or not any(pad.IsOnLayer(layer)
+                               for layer in copper_layers)):
+                continue
+            pads.append((footprint.GetReference(), pad,
+                         pad.GetBoundingBox()))
+    out = {}
+    for via in board.GetTracks():
+        if via.GetClass() != "PCB_VIA":
+            continue
+        pos = via.GetPosition()
+        hits = [f"{ref}.{pad.GetNumber()}"
+                for ref, pad, bbox in pads
+                if bbox.Contains(pos) and pad.HitTest(pos)]
+        if hits:
+            out[via.m_Uuid.AsString()] = hits
+    return out
+
+
 def _mm(value, path, fails):
     try:
         value = float(value)
@@ -92,13 +124,28 @@ def _mm(value, path, fails):
 
 def check(board_path: Path, assembly: str | None = None):
     data, apath = load_assembly(board_path, assembly)
+    board = pcbnew.LoadBoard(str(board_path))
+    vip_hits = via_in_pad_hits(board)
+    protected_without_contract = [
+        item for item in board.GetTracks()
+        if item.GetClass() == "PCB_VIA"
+        and (item.GetCappingMode() == pcbnew.CAPPING_MODE_CAPPED
+             or item.GetFillingMode() == pcbnew.FILLING_MODE_FILLED)
+    ]
     out = {
         "board": str(board_path), "assembly": str(apath) if apath else None,
         "fails": [], "oks": [], "coverage": {}, "na": None, "census": {},
     }
     vp = data.get("via_process")
     if vp is None:
-        out["na"] = "V-PROCESS N-A: assembly.yaml declares no via_process"
+        if vip_hits or protected_without_contract:
+            out["fails"].append(
+                "V-SCHEMA assembly.yaml declares no via_process although "
+                f"the board has {len(vip_hits)} via-in-pad site(s) and "
+                f"{len(protected_without_contract)} via(s) carrying native "
+                "fill/cap flags")
+        else:
+            out["na"] = "V-PROCESS N-A: assembly.yaml declares no via_process"
         return out
     if not isinstance(vp, dict):
         out["fails"].append("V-SCHEMA via_process: expected a mapping")
@@ -175,7 +222,6 @@ def check(board_path: Path, assembly: str | None = None):
             "V-ORDER uploader_confirmation_required must be true for a "
             "selective via process")
 
-    board = pcbnew.LoadBoard(str(board_path))
     protected = ordinary_count = partial = 0
     census = {}
     for item in board.GetTracks():
@@ -190,6 +236,12 @@ def check(board_path: Path, assembly: str | None = None):
         pos = item.GetPosition()
         where = (f"{item.GetNetname() or '(no net)'} at "
                  f"({pcbnew.ToMM(pos.x):.3f},{pcbnew.ToMM(pos.y):.3f})")
+        pads = vip_hits.get(item.m_Uuid.AsString(), [])
+        if pads and not (capped and filled):
+            out["fails"].append(
+                f"V-VIP {where}: ordinary/unprotected via is centred in "
+                f"SMT land(s) {', '.join(pads)}; declare and realize a "
+                "filled+capped process or move the via")
         if capped != filled:
             partial += 1
             out["fails"].append(
@@ -224,6 +276,7 @@ def check(board_path: Path, assembly: str | None = None):
     out["coverage"] = {
         "V-FLAGS": f"{total}/{total} vias graded",
         "V-SELECT": f"{total}/{total} vias compared with drill families",
+        "V-VIP": f"{len(vip_hits)}/{len(vip_hits)} via-in-pad sites graded",
     }
     if total == 0:
         out["fails"].append(
