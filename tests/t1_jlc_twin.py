@@ -1653,5 +1653,70 @@ def t_mount_fallback_on_failed_fit():
           "fit's mount (they differ by only %.3f mm)" % werr)
 
 
+@test("an explicit unique-pad mount anchor defeats duplicate ground-number "
+      "centroid drift", kind="known_bad")
+def t_mount_anchor_duplicate_ground_numbers():
+    """The Pluto RX2 8-way SMA incident, reduced to its exact geometry.
+    Our manufacturer footprint has signal pad 1 at the origin and separately
+    numbered ground posts 2/3/4/5.  JLC has the same five hole centres but
+    calls every ground post pad 2.  The common-number centroid therefore
+    compares our signal+one corner with JLC's signal+four symmetric corners;
+    it lies (-1.27,-1.27) mm from the real origin and shifts the model by
+    sqrt(1.27^2+1.27^2) = 1.796 mm.
+
+    The unique signal hole is an independent datum present exactly once on
+    both sides.  An adjudicated 1->1 anchor must preserve the raw failed-fit
+    evidence while placing JLC's zero-offset model exactly at our footprint
+    origin.  Before the fix this schema was ignored and the mounted offset was
+    (-1.27,+1.27) mm in KiCad model coordinates.
+    """
+    d = tmpdir("mountanchor_sma_")
+    wrl = d / "bar.wrl"
+    bar_wrl(wrl)
+    code = "C429844"
+    ours = {"1": (0.0, 0.0), "2": (-2.54, -2.54),
+            "3": (2.54, -2.54), "4": (-2.54, 2.54),
+            "5": (2.54, 2.54)}
+    jlc_mod(d, code, str(wrl),
+            pads={"1": (0.0, 0.0), "2": (-2.54, -2.54)},
+            extra_pads=[("2", (2.54, -2.54)),
+                        ("2", (-2.54, 2.54)),
+                        ("2", (2.54, 2.54))],
+            rot_z=0.0, off=(0.0, 0.0))
+    board, _ = synth_board(d, 0, pads=ours)
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
+                   f"SMA,U9,SYNTH,,{code}\n")
+    adj = d / "adj.yaml"
+    adj.write_text(
+        f"- {{lcsc: {code}, refs: [U9], status: PAD-MISMATCH, "
+        "why: exact hole centres independently verified}\n"
+        f"- {{lcsc: {code}, refs: [U9], status: PAD-GEOM, "
+        "why: exact hole centres independently verified}\n"
+        f"- lcsc: {code}\n"
+        "  refs: [U9]\n"
+        "  status: MODEL-REG\n"
+        "  mount_anchor: {our_pad: '1', jlc_pad: '1', angle: 0}\n"
+        "  why: unique signal-hole origin independently verified\n")
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    r = run([KPY, TWIN, board, bom, d / "twin", "--no-render",
+             "--adjudications", adj], cwd=d,
+            env={"EASYEDA2KICAD": str(e2k),
+                 "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+    must_pass(r, "anchored twin on duplicate SMA ground numbers")
+    contains(r.out, "best 1.80mm", "the raw mismatch remains visible")
+    contains(r.out, "MOUNT-ANCHOR", "the evidence-backed anchor is named")
+    contains(r.out, "our 1 -> JLC 1 at 0deg", "the exact datum is reported")
+
+    old_shift = math.hypot(1.27, 1.27)
+    check(abs(old_shift - 1.796051) < 1e-5,
+          "fixture does not reproduce the 1.796 mm centroid drift")
+    ms = read_mount(d / "twin" / "twin.kicad_pcb")
+    eq(len(ms), 1, "one SMA model mounted")
+    check(abs(ms[0]["ox"]) < 1e-6 and abs(ms[0]["oy"]) < 1e-6,
+          "unique pad-1 datum should produce model offset (0,0), got "
+          "(%+.6f,%+.6f)" % (ms[0]["ox"], ms[0]["oy"]))
+
+
 if __name__ == "__main__":
     sys.exit(main())

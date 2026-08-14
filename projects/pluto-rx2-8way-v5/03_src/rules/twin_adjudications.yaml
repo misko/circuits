@@ -44,15 +44,20 @@
 - lcsc: C429844
   refs: *sma_refs
   status: MODEL-REG
+  mount_anchor:
+    our_pad: "1"
+    jlc_pad: "1"
+    angle: 0
   why: >
     The 5.9 mm bbox-centre finding is not a placement offset: this right-angle
     connector's mating barrel extends 11.6 mm from the PCB datum, so its body
     is intentionally highly asymmetric about the five-hole land.  The final
-    twin uses JLC's own model transform with no model rotation or translation
-    override, and the independent render review shows all nine mating barrels
-    pointing outward at their assigned board edges.  Electrical/mechanical
-    registration is established by the exact hole-centre comparison and the
-    Amphenol Rev C envelope above; the bbox-centre heuristic is inapplicable to
+    twin registers the unique signal-hole datum (our pad 1 to JLC pad 1) at
+    0 degrees, with no model rotation or free-form translation override.  The
+    independent hole-centre comparison establishes that both pad-1 centres are
+    the footprint origin and that all four ground-hole centres also agree.
+    The render review must show all nine mating barrels pointing outward at
+    their assigned board edges.  The bbox-centre heuristic is inapplicable to
     this asymmetric edge connector.  This entry does not waive the drill-size
     DFM gate or the order-preview orientation inspection.
 

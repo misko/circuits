@@ -106,7 +106,7 @@ rationale.
 | IMP-090 | Bind review freshness to declared stage dependencies, not monolithic source bags | proposed | Pluto RX2 8-way v5 corrected layout seal |
 | IMP-091 | Freeze executable assembly-process ownership before placement export | proposed | Pluto RX2 8-way v5 layout-seal entry |
 | IMP-092 | Make provenance source discovery honor declared source boundaries and ignore policy | proposed | Pluto RX2 8-way v5 layout seal |
-| IMP-093 | Compare repeated-pad catalog lands as geometry, not merged labels | proposed | Pluto RX2 8-way v5 final JLC twin |
+| IMP-093 | Compare repeated-pad catalog lands as geometry, not merged labels | implementing | Pluto RX2 8-way v5 final JLC twin |
 | IMP-094 | Bind review contracts to the exporter artifact index | proposed | Pluto RX2 8-way v5 fabrication entry |
 | IMP-095 | Dispatch exact-artifact reviews from a machine-written envelope | proposed | Pluto RX2 8-way v5 RF fabrication review |
 | IMP-096 | Derive release PDF pages from populated sides and document purpose | proposed | Pluto RX2 8-way v5 release-asset export |
@@ -174,7 +174,7 @@ rationale.
 
 ## IMP-003 — pre-generation footprint resolution
 
-- status: proposed
+- status: implementing
 - observed: `projects/usb-hub-3s-v4/01_docs/journal/placement.md`,
   2026-08-11 Stage 3 closeout
 - evidence: The first board-generation attempt stopped immediately because the
@@ -3289,6 +3289,18 @@ Recommended execution order for future boards:
   the matcher is not required for this board's release.
 - history: 2026-08-13 — proposed after the strict final twin failed safely but
   represented a catalog numbering convention as two geometric failures.
+- implementation progress: 2026-08-14 — the renderer and independent
+  A-RENDER gate now consume an evidence-bound `mount_anchor` only after a
+  whole-pattern fit fails. Each side's named pad must occur exactly once;
+  invalid or duplicated datums refuse the run. A C429844-shaped known-bad
+  fixture reproduces the old 1.796-mm centroid shift and proves the unique
+  signal-hole 1-to-1 datum yields a zero-offset model while retaining the raw
+  failed-fit evidence. This closes the false render displacement without
+  claiming that numbering or full pad geometry agrees.
+- remaining work: the numbering-free multiset/assignment channel described
+  above is still open. It must match all five physical lands, report the real
+  drill delta, stay red when one post moves and preserve the independent
+  polarity channel before IMP-093 can be marked completed.
 
 ## IMP-094 — bind review contracts to the exporter artifact index
 

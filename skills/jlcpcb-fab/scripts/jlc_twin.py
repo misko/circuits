@@ -934,6 +934,36 @@ def main():
     pad_alias = {a["lcsc"]: {str(k): str(v)
                              for k, v in a["pad_alias"].items()}
                  for a in adjudicated if a.get("pad_alias")}
+    # Explicit mount anchors are for the narrow case where the physical land
+    # is known to agree but pad-number multiplicity makes a whole-pattern fit
+    # impossible (for example, four separately numbered ground posts in our
+    # footprint versus four copies of pad "2" in a catalog footprint).  A
+    # unique named pad on each side supplies a real datum; unlike a free-form
+    # model nudge this is independently reproducible from the two footprints.
+    mount_anchor = {}
+    for a in adjudicated:
+        raw = a.get("mount_anchor")
+        if raw is None:
+            continue
+        code = str(a.get("lcsc") or "").strip()
+        if not code or not isinstance(raw, dict):
+            sys.exit("mount_anchor schema: requires an lcsc and a mapping")
+        if raw.get("our_pad") is None or raw.get("jlc_pad") is None:
+            sys.exit(f"mount_anchor schema for {code}: requires our_pad and "
+                     "jlc_pad")
+        try:
+            angle = int(raw.get("angle", 0)) % 360
+        except (TypeError, ValueError):
+            sys.exit(f"mount_anchor schema for {code}: angle must be a "
+                     "right-angle integer")
+        if angle not in (0, 90, 180, 270):
+            sys.exit(f"mount_anchor schema for {code}: angle {angle} is not "
+                     "one of 0, 90, 180, 270")
+        parsed = {"our_pad": str(raw["our_pad"]),
+                  "jlc_pad": str(raw["jlc_pad"]), "angle": angle}
+        if code in mount_anchor and mount_anchor[code] != parsed:
+            sys.exit(f"mount_anchor schema for {code}: conflicting anchors")
+        mount_anchor[code] = parsed
 
     def adjudicate(lcsc, ref, status):
         for a in adjudicated:
@@ -997,6 +1027,7 @@ def main():
             lines.append({"Designator": ref, "LCSC": code})
     findings, criticals, twin, padgeom = [], [], {}, {}
     mount_fallback = set()   # refs mounted at JLC's own transform, fit failed
+    mount_anchored = set()   # failed fits mounted from an explicit pad datum
     bodies_line = ("bodies mounted: SKIPPED (nothing fitted, so "
                    "nothing was mounted)")
     ref_lcsc = {}          # ref -> LCSC, for NO-BODY rows
@@ -1165,7 +1196,32 @@ def main():
                 # calls "authoritative" in its own MODEL-REG hint. So: offset
                 # 0, JLC's own model rot_z, anchored by mapping JLC's
                 # common-pad centroid onto ours.
-                twin[ref] = (jfp, 0, oc, _jca, lcsc)
+                anchor = mount_anchor.get(lcsc)
+                if anchor:
+                    op = opads_raw.get(anchor["our_pad"], [])
+                    jp = jraw.get(anchor["jlc_pad"], [])
+                    if len(op) != 1 or len(jp) != 1:
+                        findings.append((lcsc, ref, "MOUNT-ANCHOR-INVALID",
+                                         f"anchor {anchor['our_pad']}->"
+                                         f"{anchor['jlc_pad']} requires one "
+                                         f"pad centre on each side; found "
+                                         f"ours={len(op)}, JLC={len(jp)}"))
+                        criticals.append(ref)
+                        continue
+                    anchor_oc = (op[0][0] - fp.GetPosition().x / 1e6,
+                                 op[0][1] - fp.GetPosition().y / 1e6)
+                    anchor_jc = jp[0]
+                    anchor_ang = anchor["angle"]
+                    twin[ref] = (jfp, anchor_ang, anchor_oc, anchor_jc, lcsc)
+                    mount_anchored.add(ref)
+                    findings.append((lcsc, ref, "MOUNT-ANCHOR",
+                                     f"failed whole-pattern fit replaced by "
+                                     f"explicit unique-pad datum: our pad "
+                                     f"{anchor['our_pad']} -> JLC pad "
+                                     f"{anchor['jlc_pad']} at "
+                                     f"{anchor_ang}deg"))
+                else:
+                    twin[ref] = (jfp, 0, oc, _jca, lcsc)
                 mount_fallback.add(ref)
                 if fits:
                     why = (f"best {fits[0][0]:.2f}mm at {fits[0][2]}deg"
@@ -1173,12 +1229,19 @@ def main():
                            f"{FIT_TOL}mm")
                 else:
                     why = "no pad correspondence at any angle"
-                findings.append((lcsc, ref, "MOUNT-FALLBACK",
-                                 f"{why} — body mounted at JLC's OWN footprint "
-                                 f"transform (offset 0, their model rot_z), "
-                                 f"NOT at the failed fit. The render is "
-                                 f"therefore what JLC's own CAD says, and is "
-                                 f"gated as such by twin_overlay"))
+                if ref in mount_anchored:
+                    a = mount_anchor[lcsc]
+                    detail = (f"{why} — body mounted by the adjudicated "
+                              f"unique-pad datum our {a['our_pad']} -> JLC "
+                              f"{a['jlc_pad']} at {a['angle']}deg, NOT by "
+                              "either mismatched pad-group centroid")
+                else:
+                    detail = (f"{why} — body mounted at JLC's OWN footprint "
+                              f"transform (offset 0, their model rot_z), NOT "
+                              f"at the failed fit. The render is therefore "
+                              f"what JLC's own CAD says, and is gated as such "
+                              f"by twin_overlay")
+                findings.append((lcsc, ref, "MOUNT-FALLBACK", detail))
                 continue
             e, mir, ang = good[0]
             if mir:
@@ -1360,7 +1423,15 @@ def main():
                     pg = padgeom.get(ref, 0.0)
                     pgnote = (f", incl. pad_geom_delta={pg:.2f}mm"
                               if pg > 0.1 else "")
-                    if ref in mount_fallback:
+                    if ref in mount_anchored:
+                        a = mount_anchor[lcsc]
+                        hint += (" [MOUNT-ANCHOR: no whole-pattern pad "
+                                 "correspondence exists, so registration uses "
+                                 f"the explicit unique-pad datum our "
+                                 f"{a['our_pad']} -> JLC {a['jlc_pad']} at "
+                                 f"{a['angle']}deg. Verify the datasheet "
+                                 "supports that datum and orientation]")
+                    elif ref in mount_fallback:
                         # Say which mount the picture actually shows. "VERIFY
                         # leads sit on pads visually" is an instruction a
                         # reviewer cannot carry out when the pad
@@ -1546,6 +1617,7 @@ def main():
     order = {"FETCH-FAILED": -1, "NO-BODY": -1, "MIRRORED": 0,
              "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3,
              "MODEL-REG": 3, "POLARITY-FIT": 1, "MOUNT-FALLBACK": 1,
+             "MOUNT-ANCHOR-INVALID": -1, "MOUNT-ANCHOR": 4,
              "PAD-MULTIPLICITY": 4,
              "POLARITY-CHECK": 4, "POLARITY-FIT-BLIND": 4,
              "POLARITY-FIT-OK": 8,

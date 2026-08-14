@@ -570,11 +570,55 @@ def read_model_adjudications(path):
             continue
         dst = out.setdefault(str(row["lcsc"]), {})
         for key in ("model_dx", "model_dy", "board_dx", "board_dy",
-                    "model_rot_z", "pad_alias"):
+                    "model_rot_z", "pad_alias", "mount_anchor"):
             if row.get(key) is not None:
-                dst[key] = (dict(row[key]) if key == "pad_alias"
+                dst[key] = (dict(row[key]) if key in ("pad_alias",
+                                                       "mount_anchor")
                             else float(row[key]))
+    for code, row in out.items():
+        anchor = row.get("mount_anchor")
+        if anchor is None:
+            continue
+        if anchor.get("our_pad") is None or anchor.get("jlc_pad") is None:
+            raise ValueError(f"mount_anchor for {code} requires our_pad and "
+                             "jlc_pad")
+        try:
+            angle = int(anchor.get("angle", 0)) % 360
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"mount_anchor for {code} angle must be a "
+                             "right-angle integer") from exc
+        if angle not in (0, 90, 180, 270):
+            raise ValueError(f"mount_anchor for {code} angle {angle} is not "
+                             "one of 0, 90, 180, 270")
+        row["mount_anchor"] = {"our_pad": str(anchor["our_pad"]),
+                               "jlc_pad": str(anchor["jlc_pad"]),
+                               "angle": angle}
     return out
+
+
+def explicit_anchor_geometry(anchor, our_pads, jlc_pads, footprint_pos):
+    """Return (our-local datum, JLC-local datum, angle) for a unique-pad
+    mount anchor.  Both sides must name exactly one centre: accepting a
+    duplicated pad here would recreate the centroid ambiguity this feature
+    exists to eliminate."""
+    op = our_pads.get(anchor["our_pad"], [])
+    jp = jlc_pads.get(anchor["jlc_pad"], [])
+    if len(op) != 1 or len(jp) != 1:
+        raise ValueError(f"anchor {anchor['our_pad']}->{anchor['jlc_pad']} "
+                         f"requires one pad centre on each side; found "
+                         f"ours={len(op)}, JLC={len(jp)}")
+    oc = (op[0][0] - footprint_pos[0], op[0][1] - footprint_pos[1])
+    return oc, jp[0], anchor["angle"]
+
+
+def fit_description(row):
+    if row.get("anchored"):
+        a = row["anchor"]
+        return (f"ANCHOR {a['our_pad']}->{a['jlc_pad']} @{row['ang']}deg "
+                f"(failed fit {row['fit_err']:.2f}mm)")
+    if row["fitted"]:
+        return f"{row['ang']}deg @{row['fit_err']:.2f}mm"
+    return f"NONE (best {row['fit_err']:.2f}mm) -> JLC's own transform"
 
 
 def board_to_local(bdx, bdy, rot_deg):
@@ -776,6 +820,17 @@ def main(argv=None):
         fits = pad_fit(ours_c, jlc_c)
         fitted = bool(fits and fits[0][0] <= 0.5)
         ang = fits[0][1] if fitted else 0
+        anchored = False
+        anchor = adj.get("mount_anchor")
+        if not fitted and anchor:
+            try:
+                oc, jc, ang = explicit_anchor_geometry(
+                    anchor, p["pads"], jpads, p["pos"])
+            except ValueError as exc:
+                print(f"OVERLAY REFUSED: invalid mount_anchor for {code} "
+                      f"at {ref}: {exc}", file=sys.stderr)
+                return 2
+            anchored = True
         ldx = adj.get("model_dx", 0.0)
         ldy = adj.get("model_dy", 0.0)
         if adj.get("board_dx") is not None or adj.get("board_dy") is not None:
@@ -789,7 +844,8 @@ def main(argv=None):
                                    + adj.get("model_rot_z", 0.0)) % 360
         exp = expected_bbox(mesh, model_expected, jc, oc, ang,
                             p["rot"], p["pos"])
-        expected[ref] = dict(exp=exp, ang=ang, fitted=fitted, code=code,
+        expected[ref] = dict(exp=exp, ang=ang, fitted=fitted,
+                             anchored=anchored, anchor=anchor, code=code,
                              fit_err=fits[0][0] if fits else None,
                              adjudicated=bool(adj))
 
@@ -884,7 +940,8 @@ def main(argv=None):
                   meas[2] - bound[2], meas[3] - bound[3], 0.0)
         graded[ref] = dict(exp=exp, meas=meas, ctr=ctr, out=out, npx=npx,
                            touched=touched, **{k: e[k] for k in
-                                               ("ang", "fitted", "code",
+                                               ("ang", "fitted", "anchored",
+                                                "anchor", "code",
                                                 "fit_err", "adjudicated")})
 
     fails = {r: g for r, g in graded.items()
@@ -1025,8 +1082,7 @@ def main(argv=None):
              "L,T,R,B mm | body px | courtyard excursion mm |")
     L.append("|---|---|---|---|---|---|---|---|")
     for ref, g in sorted(graded.items(), key=lambda kv: -kv[1]["ctr"]):
-        fit = (f"{g['ang']}deg @{g['fit_err']:.2f}mm" if g["fitted"]
-               else f"NONE (best {g['fit_err']:.2f}mm) -> JLC's own transform")
+        fit = fit_description(g)
         ed = ",".join(f"{g['meas'][i] - g['exp'][i]:+.2f}" for i in range(4))
         L.append(f"| `{ref}` | {g['code']} | {fit} | {g['ctr']:.3f} | "
                  f"{g['out']:.3f} | {ed} | {g['npx']} | "

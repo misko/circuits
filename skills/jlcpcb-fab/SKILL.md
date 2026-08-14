@@ -341,8 +341,9 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
 3. Rotation audit: fitted angle vs jlc_rotations_db.csv; disagreements print
    suggested rows. The DB stays the empirical layer (JLC's assembly-zero is
    not always their EDA-zero) - verify in the JLC preview, don't blind-apply.
-3a2. Mount anchor is the UNWEIGHTED common-pad centroid - by measurement,
-   not principle. A wetting-force (pad-area-weighted) anchor was tried and
+3a2. For a successful whole-pattern fit, the mount anchor is the UNWEIGHTED
+   common-pad centroid - by measurement, not principle. A wetting-force
+   (pad-area-weighted) anchor was tried and
    made the known PAD-GEOM case WORSE: JLC's big tab pad center sits ~0.3mm
    off their own tab METAL, so every pad-anchoring flavor inherits pad-
    style offsets that have nothing to do with the part. When a PAD-GEOM
@@ -395,6 +396,17 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
    PAD-MISMATCH+PAD-GEOM(1.6mm artifact) to OK fit=0.27mm (2026-07-17).
    Prefer an alias over adjudicating the MISMATCH away: the alias RESTORES
    verification coverage instead of waiving it.
+3e. mount_anchor (adjudication field): use only when the physical hole/pad
+   pattern is independently established but a one-to-many numbering scheme
+   makes a whole-pattern fit impossible. Example: a manufacturer footprint
+   numbers four ground posts 2/3/4/5 while JLC calls all four pad 2. A common-
+   number centroid then compares one corner against four corners and moves a
+   correct model. Record a unique physical datum as
+   `{mount_anchor: {our_pad: "1", jlc_pad: "1", angle: 0}}`; each named pad
+   must occur exactly once or the twin and A-RENDER refuse it. The raw failed
+   fit and PAD-GEOM evidence remain visible and require their own dispositions.
+   This is not a model nudge: the datum and angle must be supported by the part
+   drawing and direct footprint geometry, and `model_dx/model_dy` remain zero.
 4. Known-different findings (merged drain pad vs JLC's split fingers, THT
    clip-pin counts, parts absent from EasyEDA) go in the project's
    twin_adjudications.yaml WITH the verification evidence - the gate is
@@ -414,9 +426,11 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
    latter are measurement references for A-RENDER; their resolution and camera
    are intentionally identical to the populated orthographic views. The edge profiles double as component-
    height / enclosure-clearance checks) - the
-   local substitute for JLC's end-of-order preview. Adjudicated parts are
-   mounted at their best non-mirrored fit precisely so a human can eyeball
-   them. Transform gotchas encoded 2026-07-16: model offsets are
+   local substitute for JLC's end-of-order preview. A failed fit is never used
+   as a mount transform: without an explicit unique-pad `mount_anchor`, the
+   part uses JLC's own transform mapped by the common centroid and is reported
+   as `MOUNT-FALLBACK`; with one, both the twin and A-RENDER report the exact
+   anchor they used. Transform gotchas encoded 2026-07-16: model offsets are
    FOOTPRINT-LOCAL mm (absolute coords put every body ~60mm off); the
    3D frame is y-UP while board coords are y-down; and the fit/mount must
    center on the COMMON pad set only - own-set centroids slide the model

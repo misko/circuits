@@ -145,6 +145,43 @@ def flip_j1(dest):
     return dest
 
 
+@test("A-RENDER independently uses an explicit unique-pad anchor for a "
+      "failed duplicate-ground fit", kind="known_bad")
+def t_explicit_mount_anchor_geometry():
+    """The renderer and the pixel gate must not share mount arithmetic, but
+    they must consume the same evidence contract.  This pins A-RENDER's own
+    interpretation of the Pluto SMA 1->1 signal-hole datum and its report
+    label.  The duplicated JLC pad 2 is deliberately present but is never a
+    valid anchor."""
+    d = tmpdir("ovl_anchor_")
+    adj = d / "adj.yaml"
+    adj.write_text(
+        "- lcsc: C429844\n"
+        "  status: MODEL-REG\n"
+        "  mount_anchor: {our_pad: '1', jlc_pad: '1', angle: 0}\n")
+    probe = (
+        "import json,sys\n"
+        f"sys.path.insert(0,{str(FAB_SCRIPTS)!r})\n"
+        "from twin_overlay import (read_model_adjudications, "
+        "explicit_anchor_geometry, fit_description)\n"
+        "a=read_model_adjudications(sys.argv[1])['C429844']['mount_anchor']\n"
+        "ours={'1':[(30.0,25.0)], '2':[(27.46,22.46)], "
+        "'3':[(32.54,22.46)], '4':[(27.46,27.54)], "
+        "'5':[(32.54,27.54)]}\n"
+        "jlc={'1':[(0.0,0.0)], '2':[(-2.54,-2.54),(2.54,-2.54),"
+        "(-2.54,2.54),(2.54,2.54)]}\n"
+        "oc,jc,ang=explicit_anchor_geometry(a,ours,jlc,(30.0,25.0))\n"
+        "label=fit_description({'anchored':True,'anchor':a,'ang':ang,"
+        "'fit_err':1.796})\n"
+        "print('@@'+json.dumps([oc,jc,ang,label]))\n")
+    r = must_pass(run([KPY, "-c", probe, adj]),
+                  "A-RENDER unique-pad anchor probe")
+    contains(r.out, '[[0.0, 0.0], [0.0, 0.0], 0,',
+             "pad-1 origins produce a zero mount translation")
+    contains(r.out, "ANCHOR 1->1 @0deg (failed fit 1.80mm)",
+             "the report distinguishes an anchor from generic fallback")
+
+
 # ===================================================================== clean
 
 @test("A-RENDER passes the CORRECTED twin render and prints its coverage")
