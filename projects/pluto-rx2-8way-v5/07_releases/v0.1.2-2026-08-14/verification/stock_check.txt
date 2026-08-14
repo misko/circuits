@@ -1,0 +1,25 @@
+input: bom = projects/pluto-rx2-8way-v5/07_releases/v0.1.0-2026-08-13/fab/bom.csv
+13 BOM lines: 13 with LCSC, 0 without
+
+  OK               C207010    x1   0603L010YR                             expand stock=13425
+  OK               C1525      x3   100nF                                  base   stock=37408658
+  OK               C60490     x4   10kΩ                                   expand stock=9322327
+  OK               C19666     x3   4.7uF                                  base   stock=5754873
+  OK               C105872    x2   5.1kΩ                                  expand stock=2337297
+  OK               C429844    x9   901-143-6RFX                           expand stock=630
+  OK               C2932107   x1   FTSH-105-01-L-DV-K-P-TR                expand stock=12070
+  OK               C5121458   x1   PE42482A-X                             expand stock=1199
+  OK               C83270     x1   SMBJ6.0A                               expand stock=9071
+  OK               C5452432   x1   STM32C011F4P6                          expand stock=1392
+  OK               C1972959   x1   TPD2E2U06DRLR                          expand stock=10694
+  OK               C2866134   x1   TPS7A2433DBVR                          expand stock=19940
+  OK               C5184243   x1   USB4105-GF-A-120                       expand stock=3618
+
+report -> projects/pluto-rx2-8way-v5/07_releases/v0.1.0-2026-08-13/verification/stock_check.csv
+json -> projects/pluto-rx2-8way-v5/07_releases/v0.1.0-2026-08-13/verification/stock_check.json
+
+PASS: 13/13 coded BOM lines have stock >= 5 x qty (0 with problems); 0/13 lines carry NO LCSC and were NOT graded by this tool
+  SCOPE: graded against LCSC CATALOG stock (stockCount). JLC's assembly uploader
+  allocates from a DIFFERENT pool, so a PASS here does NOT mean the line will
+  clear at order time. A FAIL is real; a PASS is necessary and not sufficient.
+  The only instrument that answers 'will it clear' is the uploader itself — F-ECHO.

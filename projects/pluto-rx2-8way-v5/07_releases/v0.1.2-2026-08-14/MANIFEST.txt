@@ -1,0 +1,119 @@
+MANIFEST — Pluto RX2 eight-way v5 v0.1.2-2026-08-14
+
+board:        pluto_rx2_8way_v5, 90 x 65 mm, 4 layer
+version:      v0.1.2
+ordered:      not ordered — verification-only twin correction sealed 2026-08-14
+git_sha:      ba42fc9dba7f149f4187f50ef4fff697f0ed2a7a
+git_dirty:    false
+kicad:        10.0.4
+tools:        repository kicad-pcb/jlcpcb-fab skills; Python 3.12.3
+fab:          JLCPCB, 4 layer, advanced selective via-in-pad and controlled impedance
+quantity:     5
+gates:        DRC 0/0/0; standalone DRC 0/0/0; ERC 0 errors / 176 warnings;
+              parity 22 nets / 131 nodes / 0 discrepancies; F-PAYLOAD 6/6;
+              BOM 13/13; CPL 29/29; stock 13/13; twin bodies 29/29;
+              A-RENDER 14/14 measurable bodies;
+              RF fence 18/18; via process 638/638; reviews SOUND/SOUND
+DESIGN:       PASS
+SOURCING:     CLEAR
+order:        DO-NOT-ORDER — JLC uploader/process acknowledgement and physical
+              first-article RF acceptance are not complete
+release_mode: docs-only
+supersedes:   v0.1.1-2026-08-14
+scope:        hardware-only design archive; verification evidence correction only
+3d:           component-bearing STEP present; glTF absent
+assembly:     JLC top SMT plus required J2-J10 through-hole connector service
+not_assembled:
+msl:          no consigned parts; follow JLC handling for exposed-pad U1
+
+sha256:
+  3d/pluto_rx2_8way_v5.step  646b00ffa7a942f281896cbc20987fb7e91dc68d429ef167676c27a37af29329
+  ORDER_README.md  92a241943c4a362e08ab3a9fa5b148067b95af7c35bf2ca0338db32c029a9fdc
+  fab/bom.csv  7b01a6d1fa70ae7187c5ada14a963894acca97fa4a7c893df6eba447d8a06c65
+  fab/bom_echo_gate.txt  f3de775e3d3606f3f5d0b6ec866680658954f8ada9b23382ba3435a75cabab63
+  fab/cpl.csv  33c429cbfda70c7b6e2be0a67165eb51a715e312737fc7648be0b5371ca44d54
+  fab/order_notes.txt  5f59df46e6b77a67e7d862741797a10c850566077f0a7c6aace4497643309734
+  fab/pluto_rx2_8way_v5-B_Cu.gbl  ab4113e67fbbde4a841d92f63356f5a8fcb4da6fe5ea792ddf743ea641db1ee3
+  fab/pluto_rx2_8way_v5-B_Mask.gbs  5fc2776ea7d72aba96bd4ce32d29391eb831d670db78e15c700927315dbf4dcd
+  fab/pluto_rx2_8way_v5-B_Paste.gbp  094c2262a69ca0c6de4c1ea053a01561e8781572688dc9037be6de9798666e4e
+  fab/pluto_rx2_8way_v5-B_Silkscreen.gbo  16954c449922a77a04f9e03198f162b13dd7fee08101cead43a983e83c7d9e38
+  fab/pluto_rx2_8way_v5-Edge_Cuts.gm1  5ac7fcc05139216fa7bee2dcbf0b64ed98a1273433469673f64c1ff7d77e9908
+  fab/pluto_rx2_8way_v5-F_Cu.gtl  ecd47fc3afd39779f2e352410c62945f9e8c1369be452087ddb8e12784b950bd
+  fab/pluto_rx2_8way_v5-F_Mask.gts  297265e9bfbd7a677a7c6bb63e87cd0179842521f6047e9fc99f043711adf3bf
+  fab/pluto_rx2_8way_v5-F_Paste.gtp  89c73c7e8663489834ea7ed2d7c909d8d3d642514a0387d1679c53c7639f6c8d
+  fab/pluto_rx2_8way_v5-F_Silkscreen.gto  74f5ac9823a98f66162c999856ba4417fe3871b445b957528d25c073a298c310
+  fab/pluto_rx2_8way_v5-In1_Cu.g1  61dd57a1a3a2b69b128811a19a50616d38510f55bc513c6d67a45ab777983552
+  fab/pluto_rx2_8way_v5-In2_Cu.g2  49d5adf6209a0da04c56edcb8272697ca02412145258b9decb8697b46159565c
+  fab/pluto_rx2_8way_v5-NPTH.drl  0d54de0eeb59be3425b180a0e5f9dcfbcbc50280af93c1357396782375811624
+  fab/pluto_rx2_8way_v5-PTH.drl  73bc106689827a25b5edef37b195a11b665b55e649a7fff50f8f7e068a1302ef
+  fab/pluto_rx2_8way_v5_gerbers.zip  71eaba992c478faf33c75ff0d91a1767072fda4eecfa8bd794d5bc232ce42fc7
+  fab/rotation_human_gate.txt  db5036e949eddf7454bf9b2d701f267d4d279a868db774108039ffbab05f61be
+  pdf/assembly.pdf  06a8d1443abfd1f9f831139ae797ae3e85d5be5aad8bfb3041a26d51f9158576
+  pdf/pcb_layers.pdf  e7cbdb66b66e446cb3bc21694966bb911558af28c5178b8f70f33c9dd4973127
+  pdf/schematic.pdf  9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759f5d955
+  source/fp-lib-table  dc655257fbbf4338727da6452aa9ec42d0edcc3191959fa66f97e5e7e17af8fc
+  source/pluto_rx2_8way_v5.kicad_dru  d3c913948acfe3e7170c6b04b6c3c7c1bbb0eff4366fad61040b85ce033ab759
+  source/pluto_rx2_8way_v5.kicad_pcb  43689fe44daa2bd437979c573e78da39a51aacd9d4664a24e7e29bc1c22ea0b3
+  source/pluto_rx2_8way_v5.kicad_pro  b591aefa57648bd3cf23d7760a7b7b37bb417af5754cdf78343ae55a15cfb04e
+  source/pluto_rx2_8way_v5.kicad_sch  4cd8d314261059a73af7dfe5aa6d019c5c4160e75f09144bafd9e29a4d815f7f
+  source/pluto_rx2_8way_v5.net  a9ff03bc726a652b5e54f61b907a5520b0ba2c60ff9e0aacec3763e8ab398c7b
+  source/pluto_rx2_8way_v5.pretty/Amphenol_901_143_6RFX.kicad_mod  c76c502b78556e4937db7b401f701df172ededaac755b2853e9c6ad11c8039da
+  source/pluto_rx2_8way_v5.pretty/GCT_USB4105_GF_A_120.kicad_mod  c8961d2548bf3828f3fd51aa11911c9feff66ac866e3721a92501a0e2630dc43
+  source/pluto_rx2_8way_v5.pretty/Psemi_PE42482_QFN24_4x4_P0.5.kicad_mod  d47c4c6ebc51cf57d7e148f2bc1edbccf5381e8e40820ea19c110d26490a6419
+  source/pluto_rx2_8way_v5.pretty/Samtec_FTSH_105_01_L_DV_K_P_TR.kicad_mod  fd599be7e7b1de94451984067b9eb93387efaff856be98d94846cac2273a4576
+  source/pluto_rx2_8way_v5.tsx  4959ed7107a3dae3969df2b8306b591187bda34f79720c9b410676f7908ef53b
+  verification/DISPOSITIONS.md  8928613f9a88955644f87b441ecf83f804553770a73c59dd2984121197ce4cbb
+  verification/FIRST_ARTICLE_TEST_PLAN.md  3914ed9dcb6a8221dfbe4c19cb5607ff8701367eec4d1596d942866e9176d43e
+  verification/assembly.yaml  993fa63cfbb85f64d1b573a4131d880630a16278226558e597f357f294ce0c4d
+  verification/assembly_coverage.json  e1899145fdd8fe61d97ca1a7b85e78b6e128b5ed335ca2de030baf6d799e3aa4
+  verification/assembly_coverage.txt  fa2c4e0ef7a2f6b835e15503fa6aa64b9dc5af3e80f10e04b9e14a4eef36fcbc
+  verification/audit.txt  8b7fec83f32eae3cd2d6794e26e064a49a9a5b1b1be09fb7a078db888bdf0a43
+  verification/bom_echo_gate.txt  f3de775e3d3606f3f5d0b6ec866680658954f8ada9b23382ba3435a75cabab63
+  verification/bom_legibility.json  2df5696fee65157d3687a68e97f5b2d2dba9167de66b2be83072d618fda8dfb3
+  verification/bom_legibility.txt  4110b0d68849d3271a0b765a4eb37b0048cd36358d9cd0ca0255ef09bbbb4cde
+  verification/bom_source_check.txt  a575d2f0e256adbec8e28815049e2ab9c730375e5712f2d6196793e37a2ef464
+  verification/design_math.md  32f08b28e1ba740932b3b51f036ee685e9c69a86d1153805137013406cdbbbf6
+  verification/drc.json  3d2d10295c2db0d8ed185ae94cca518adb860a64eae2873359c09aab1740b7b2
+  verification/erc.json  40a1d744111a4a6ee9d986d1bd16c173db74dc1ba66bc55534bcb68c505d6da1
+  verification/erc_errors.json  423f3e5c32d8d48e7bc7bdbf85aea4a4ae9402c12a743f3e6510ed98244da705
+  verification/fab_payload_census.json  793e92a8a1d1cad1364c9d6964811c667d4ed73e544840e199e0d13f21962b23
+  verification/fab_payload_census.txt  0f18d0e51dc8069b1f41fde66ca0b45c8ef923ea2a32c4f5812d5484377018e4
+  verification/fence_pitch.json  af8757f76cb28e059751f0d0159e6c4b181ef5148e8afd9be6b4804744f53f5e
+  verification/missing_models.txt  bc66682f2dec68063b0d341ef1edb154910bc83c7896f930e046d45ce4e17c1f
+  verification/model_coverage.json  5717a6073c58d969245f157ed27efd56e53c325dd436970b9877a3312c745677
+  verification/nets.yaml  cbcf195900f9edc9b26ce45dcc851c71c8be91c72ab622512022e295a1833054
+  verification/parity.md  a1b7813d1850b28a2d5ee5407d098edc249277a7a83bd7fcc649b231aa35c390
+  verification/pin_review.md  92f88210398996665b0c6948dd894536532954fb20721b11f4418383c99d7086
+  verification/policy_audit.md  09edef6eb2f7f9bc4ddf455ee20c4ae7322ce7df6f44f6251775f8e9073c7491
+  verification/power_tree.yaml  c2a7ca3715cf9c40b1e766b18a6fa87dbec5e1ca53ea1765899074405c5ffee8
+  verification/redteam_layout.md  ff3ac364115167fc644c517391d63a5f2ce9728f2c791e81e08dbf6481b289eb
+  verification/redteam_topology.md  c1e58238af707673f7fe332eaf6d381f5ca75d76fbdc73719b4aa722bb9a9535
+  verification/render_bottom_bare.png  6d1a235d807a52a64f6a2962313b1b47e54fa76848cea8d941605a1b32e19fb8
+  verification/render_review.md  105131ff82f64ebe5bbcb5f08e38d6ec9d830d4d6a4cfbe982bd50ae4df9b602
+  verification/render_top_bare.png  b49d029c03350a93ab738210e636c98e9f1dc9a943cbbda71cbf7d554a353d76
+  verification/rf.yaml  101112345ca8b3f6e004b793badb92ae4891da3f54a83a6c42ecb8ddcd37d1c1
+  verification/rf_contract.txt  2fc94774a320f05c3e2118a4e30864483e40c2385e3c070af567c580926a5e25
+  verification/rf_fab.md  18df37103375063a89dc4923635c975423dcced873bbdf582628a8e1ec42b8fb
+  verification/rf_pcb.md  78fa3122a749ace1b3365a3084679dcd32353ec03b9290bc87ffe84d24b9fef6
+  verification/rf_schematic.md  29c15881c61d802f4eafb4efc391a56230223e379cca577c59807cb867c2cb65
+  verification/rotation_human_gate.txt  db5036e949eddf7454bf9b2d701f267d4d279a868db774108039ffbab05f61be
+  verification/rules_audit.txt  f18eac6bcedc67e61053a6e836291b2e510c502d9536cf720a0404fcde5ff8aa
+  verification/standalone_archive_drc.json  410fcfaa22e3420e16dc436fe367cf171f6556512be88b3add970f127d39e116
+  verification/standalone_replot.txt  da9db3f5f31d3541e5e6aead66e2358135c7ce9ee460daee00c16e8d64cd9246
+  verification/stock_check.csv  8ba6f8735f9097db8a3ba4d09e4932fcfd8434e29c4eb842f7004a16c225305b
+  verification/stock_check.json  accc69c7236269c4eb3a15145021acab61e39edb273e5d3a2024d688ab08fcc4
+  verification/stock_check.txt  cc6153b600351cb9cf17d85aeef022b082d839f088c0443cd437516c0a319439
+  verification/twin_adjudications.yaml  1f35ebdc041d138f1d9c9ef106fd1423c4abc3e54f8dfc6ef34f4a6338f0803a
+  verification/twin_bare_bottom.png  6d1a235d807a52a64f6a2962313b1b47e54fa76848cea8d941605a1b32e19fb8
+  verification/twin_bare_top.png  b49d029c03350a93ab738210e636c98e9f1dc9a943cbbda71cbf7d554a353d76
+  verification/twin_bottom.png  65be61903611a66ea9809b2c53adb6125af7c9ec39117917d4ec9414fb19df00
+  verification/twin_edge_east.png  d705332b9d464b3afd14aa2a693a72f42375be2e560931389a99e3be8db64da6
+  verification/twin_edge_west.png  7b23709c5cf518f0e935b9faef0047618d07a7a5a57851a5bd7e175a986383ca
+  verification/twin_iso_nw.png  8eb130fe80a0909abd8db027ddf92e20c99593ca132ae1f31b042e5f9f20ce66
+  verification/twin_iso_se.png  9f61a9926694d1188672898a1407de91800d73b318c1c1f1a719dcb3ac203c4c
+  verification/twin_overlay_top.md  221e287734ec575fc61a40fa2377fd9e8a1f1a306ee2d1c2eac95eecc7ba73b3
+  verification/twin_report.csv  8a6dfcab6521fa87dbd74f8b7af6c6e083c81c53138959945ff83729e32297b7
+  verification/twin_report.txt  8a6dfcab6521fa87dbd74f8b7af6c6e083c81c53138959945ff83729e32297b7
+  verification/twin_top.png  9126106cef392be3e0b1e9cfedc046af44389c8c5d68c097852550351e8d0308
+  verification/twin_top_courtyard_overlay.png  8538d77442caf34c3ed349ea45673a4394b1c78fe30b5eac52ef39fc98769e5d
+  verification/via_process.json  3e9f6b194a39c5142cc050529774ae1c24fdcee0ef04b77ccaaca8022ff58d78

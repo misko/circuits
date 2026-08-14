@@ -7,6 +7,23 @@ One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 Most revisions never ship. That is normal: a board can go v4.4 → v4.10 in a
 day and fab exactly one of them.
 
+## v0.1.2 — 2026-08-14  [verification-only twin correction]
+- Superseded v0.1.1 without changing fabrication, source, PDF or 3D payload.
+- Corrected the digital-twin fallback that compared our single SMA ground pad
+  2 with JLC's four pad-2 instances and displaced all nine catalog models by
+  1.796 mm despite identical five-hole centres.
+- Added an evidence-bound unique-pad `mount_anchor` contract. Both the twin
+  renderer and independent A-RENDER gate require exactly one named pad on each
+  side; C429844 uses signal pad 1 to pad 1 at zero degrees and produces zero
+  model translation without a free-form nudge.
+- Regenerated all six populated twin views, both bare references, reports and
+  overlay. A-RENDER passes 14/14 measurable bodies; J2/J3/J5-J10 are directly
+  measured and J4 is explicitly excluded because H1/FID1 merge its crop.
+- Retained the raw 1.796-mm failed-fit finding, real 0.10-mm drill delta, JLC
+  DFM/uploader obligations and `DO-NOT-ORDER` first-article hold.
+
+Released: 07_releases/v0.1.2-2026-08-14
+
 ## v0.1.1 — 2026-08-14  [docs-only publication correction]
 - Superseded v0.1.0 without changing any fabrication, source or 3D payload.
 - Replaced the prose-only reserved `release_mode` value with the structured
