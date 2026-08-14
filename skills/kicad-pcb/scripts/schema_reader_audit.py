@@ -280,11 +280,14 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
-GOVERNED_FLOOR = 16
-PROVEN_FLOOR = 514
+GOVERNED_FLOOR = 17
+PROVEN_FLOOR = 551
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
+#: 16 -> 17 families and 514 -> 551 PROVEN on 2026-08-13: the RF contract's
+#: exact route/fence geometry and imported mating-fact schema acquired real
+#: readers. Measured `--root .`: 648/648 declared, 551 PROVEN, 0 orphan.
 #: 508 -> 514 on 2026-08-13: schema-2 control profiles bind profile identity,
 #: revision, canonical source and both generated consumer paths to the
 #: canonical control-protocol reader. Measured `--root .`: 610/610 declared,

@@ -182,6 +182,139 @@ def validate_enabled(project: Path, contract: dict,
                         f"rf.cross_sections[{index}].{key} must be > 0 when "
                         "status is locked")
 
+    # RF layout is optional before geometry work begins, but once declared it
+    # is executable authority: the route-following emitter and the independent
+    # saved-board fence gate both consume it.  Validate the complete block and
+    # reconcile it with the port/cross-section authorities here so a copied
+    # net list, layer, width, gap or fence number cannot drift silently.
+    layout_raw = rf.get("layout_constraints")
+    if layout_raw is not None:
+        layout = _mapping(layout_raw, "rf.layout_constraints")
+        route = _mapping(layout.get("route"),
+                         "rf.layout_constraints.route")
+        route_nets = _list(route.get("nets"),
+                           "rf.layout_constraints.route.nets")
+        route_nets = [_nonempty(net,
+                               f"rf.layout_constraints.route.nets[{i}]")
+                      for i, net in enumerate(route_nets)]
+        if len(set(route_nets)) != len(route_nets):
+            raise ContractError("rf.layout_constraints.route.nets contains "
+                                "duplicates")
+        port_nets = [str(net) for port in ports for net in port["nets"]]
+        if set(route_nets) != set(port_nets):
+            raise ContractError(
+                "rf.layout_constraints.route.nets must equal the exact union "
+                f"of rf.ports[].nets; route={route_nets}, ports={port_nets}")
+        route_layer = _nonempty(route.get("layer"),
+                                "rf.layout_constraints.route.layer")
+        reference_layer = _nonempty(
+            route.get("reference_layer"),
+            "rf.layout_constraints.route.reference_layer")
+        numeric = {}
+        for key in ("width_mm", "gap_to_top_ground_mm"):
+            value = route.get(key)
+            if not isinstance(value, (int, float)) or float(value) <= 0:
+                raise ContractError(
+                    f"rf.layout_constraints.route.{key} must be > 0")
+            numeric[key] = float(value)
+        for key in ("maximum_vias_per_net", "maximum_stubs_per_net"):
+            value = route.get(key)
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                raise ContractError(
+                    f"rf.layout_constraints.route.{key} must be a "
+                    "non-negative integer")
+        for key in ("length_matching", "geometry"):
+            _substantive(route.get(key),
+                         f"rf.layout_constraints.route.{key}")
+        matching_sections = [s for s in sections
+                             if s.get("status", "locked") == "locked"
+                             and s.get("copper_layer") == route_layer
+                             and s.get("reference_layer") == reference_layer
+                             and abs(float(s.get("width_mm", -1)) -
+                                     numeric["width_mm"]) <= 1e-9
+                             and abs(float(s.get("gap_mm", -1)) -
+                                     numeric["gap_to_top_ground_mm"]) <= 1e-9]
+        if not matching_sections:
+            raise ContractError(
+                "rf.layout_constraints.route layer/reference/width/gap does "
+                "not match any locked rf.cross_sections[] authority")
+
+        fence = _mapping(layout.get("ground_fence"),
+                         "rf.layout_constraints.ground_fence")
+        for key in ("status", "source", "wavelength_basis",
+                    "pitch_derivation", "lateral_offset_basis", "coverage",
+                    "verify"):
+            _substantive(fence.get(key),
+                         f"rf.layout_constraints.ground_fence.{key}")
+        urls = _list(fence.get("source_urls"),
+                     "rf.layout_constraints.ground_fence.source_urls")
+        for i, url in enumerate(urls):
+            value = _nonempty(
+                url, f"rf.layout_constraints.ground_fence.source_urls[{i}]")
+            if not re.match(r"^https://", value):
+                raise ContractError(
+                    "rf.layout_constraints.ground_fence.source_urls must use "
+                    f"https URLs, got {value!r}")
+        maximum_pitch = fence.get("maximum_along_route_pitch_mm")
+        lateral_offset = fence.get("nominal_lateral_center_offset_mm")
+        for key, value in (("maximum_along_route_pitch_mm", maximum_pitch),
+                           ("nominal_lateral_center_offset_mm", lateral_offset)):
+            if not isinstance(value, (int, float)) or float(value) <= 0:
+                raise ContractError(
+                    f"rf.layout_constraints.ground_fence.{key} must be > 0")
+        nominal_via = _mapping(
+            fence.get("nominal_via_mm"),
+            "rf.layout_constraints.ground_fence.nominal_via_mm")
+        for key in ("size", "drill"):
+            value = nominal_via.get(key)
+            if not isinstance(value, (int, float)) or float(value) <= 0:
+                raise ContractError(
+                    "rf.layout_constraints.ground_fence.nominal_via_mm."
+                    f"{key} must be > 0")
+        if float(nominal_via["drill"]) >= float(nominal_via["size"]):
+            raise ContractError(
+                "rf.layout_constraints.ground_fence nominal via drill must "
+                "be smaller than its copper size")
+        minimum_offset = (numeric["width_mm"] / 2.0
+                          + numeric["gap_to_top_ground_mm"]
+                          + float(nominal_via["size"]) / 2.0)
+        if float(lateral_offset) + 1e-9 < minimum_offset:
+            raise ContractError(
+                "rf.layout_constraints.ground_fence nominal lateral offset "
+                f"{lateral_offset}mm is below the realized copper-separation "
+                f"minimum {minimum_offset:.4f}mm")
+        endpoint_structures = _list(
+            fence.get("endpoint_structures"),
+            "rf.layout_constraints.ground_fence.endpoint_structures")
+        endpoint_refs = set()
+        for i, raw in enumerate(endpoint_structures):
+            row = _mapping(
+                raw,
+                f"rf.layout_constraints.ground_fence.endpoint_structures[{i}]")
+            refs = _list(
+                row.get("refs"),
+                "rf.layout_constraints.ground_fence."
+                f"endpoint_structures[{i}].refs")
+            for j, ref in enumerate(refs):
+                ref = _nonempty(
+                    ref, "rf.layout_constraints.ground_fence."
+                    f"endpoint_structures[{i}].refs[{j}]")
+                if ref in endpoint_refs:
+                    raise ContractError(
+                        "rf.layout_constraints.ground_fence."
+                        f"endpoint_structures repeats ref {ref!r}")
+                endpoint_refs.add(ref)
+            span = row.get("maximum_along_route_span_mm")
+            if not isinstance(span, (int, float)) or float(span) < 0:
+                raise ContractError(
+                    "rf.layout_constraints.ground_fence."
+                    "endpoint_structures[].maximum_along_route_span_mm must "
+                    "be >= 0")
+            _substantive(
+                row.get("basis"),
+                "rf.layout_constraints.ground_fence."
+                f"endpoint_structures[{i}].basis")
+
     claims = _list(rf.get("performance_claims"), "rf.performance_claims")
     claim_ids = set()
     for index, raw in enumerate(claims):

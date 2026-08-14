@@ -1792,7 +1792,7 @@ class Ctx:
                 return False
         return True
 
-    def via_choice(self, net, x, y, avoid=()):
+    def via_choice(self, net, x, y, avoid=(), spacing_override=None):
         """Return the first legal ``(x, y, size, drill)`` without emitting it.
 
         Some callers need to validate copper that must reach the proposed via
@@ -1801,7 +1801,8 @@ class Ctx:
         a rejected compound candidate must not leave an orphan via behind and
         consume the next candidate's spacing window."""
         v = get(self.cfg, "stitch.via", {}) or {}
-        spacing = float(v.get("spacing", 0.62))
+        spacing = (float(spacing_override) if spacing_override is not None
+                   else float(v.get("spacing", 0.62)))
         pth_margin = float(v.get("pth_margin", 0.3))
         x, y = round(x, 2), round(y, 2)
         if not self.keepin(x, y):
@@ -1829,11 +1830,12 @@ class Ctx:
                 return x, y, size, drill
         return None
 
-    def try_via(self, net, x, y, avoid=()):
+    def try_via(self, net, x, y, avoid=(), spacing_override=None):
         """Place one collide-checked via. THE shared primitive: every via
         this script adds goes through here, so the spacing/PTH/keepin
         guards can never be bypassed by a new pass."""
-        choice = self.via_choice(net, x, y, avoid)
+        choice = self.via_choice(net, x, y, avoid,
+                                 spacing_override=spacing_override)
         if choice is None:
             return False
         x, y, size, drill = choice
@@ -2500,16 +2502,485 @@ def _grid_axis(spec, axis):
 def p_stitch_grid(ctx, c):
     net = ctx.net(c.get("net", "GND"))
     avoid = c.get("avoid", []) or []
-    n = 0
-    for x in _grid_axis(c["x"], "x"):
-        for y in _grid_axis(c["y"], "y"):
-            if ctx.try_via(net, x, y, avoid=avoid):
-                n += 1
-    ctx.bump("grid_vias", n)
-    print(f"stitch grid: {n} vias")
+    xs, ys = _grid_axis(c["x"], "x"), _grid_axis(c["y"], "y")
+    sites = [(x, y) for x in xs for y in ys]
+    added = 0
+    for x, y in sites:
+        if ctx.try_via(net, x, y, avoid=avoid):
+            added += 1
+
+    # `min` is a saved-result requirement, not a first-run work counter.  On
+    # a deterministic rerun every complete site is already occupied, so
+    # try_via correctly emits zero; grading only `added` then reports an
+    # existing healthy grid as `0 < min`.  Credit realized same-net plated
+    # returns within the same spacing window that prevented a duplicate.
+    spacing = float((get(ctx.cfg, "stitch.via", {}) or {}).get(
+        "spacing", 0.62))
+    elements = _plated_ground_elements(ctx, net.GetNetCode())
+    served = sum(any(math.hypot(x - vx, y - vy) <= spacing + 1e-9
+                     for vx, vy in elements)
+                 for x, y in sites)
+    ctx.bump("grid_vias", added)
+    ctx.counts["grid_sites_total"] = len(sites)
+    ctx.counts["grid_sites_served"] = served
+    print(f"stitch grid: {added} vias added; {served}/{len(sites)} "
+          "declared sites served by realized same-net plated returns")
     lo = c.get("min")
-    if lo is not None and n < int(lo):
-        ctx.failures.append(f"stitch grid too sparse: {n} < {lo}")
+    if lo is not None and served < int(lo):
+        ctx.failures.append(f"stitch grid too sparse: {served} < {lo} "
+                            "realized served sites")
+
+
+def _simple_track_chain(ctx, netname, layer_name):
+    """Return one ordered, branch-free saved-track centreline in millimetres.
+
+    A route-following fence cannot be derived honestly from an unordered bag
+    of segments: a disconnected fragment, branch or arc changes the along-line
+    denominator.  Refuse those shapes here and leave their deliberate handling
+    to a future emitter rather than silently fencing only the first component.
+    Integer KiCad coordinates are the graph keys, so no geometric tolerance
+    can join two endpoints that the saved board itself keeps separate.
+    """
+    pcbnew = ctx.pcbnew
+    layer = _layer_id(pcbnew, layer_name)
+    tracks = []
+    unsupported = []
+    for item in ctx.board.GetTracks():
+        if item.GetNetname() != netname or item.GetLayer() != layer:
+            continue
+        if item.GetClass() == "PCB_TRACK":
+            tracks.append(item)
+        elif item.GetClass() != "PCB_VIA":
+            unsupported.append(item.GetClass())
+    if unsupported:
+        die(f"route_fence net {netname!r} has unsupported {layer_name} "
+            f"copper {sorted(set(unsupported))}; only straight PCB_TRACK "
+            "segments have a defined route-following fence")
+    if not tracks:
+        die(f"route_fence net {netname!r} has no {layer_name} PCB_TRACK "
+            "centreline")
+
+    def key(p):
+        return int(p.x), int(p.y)
+
+    points, adj = {}, {}
+    for i, t in enumerate(tracks):
+        a, b = key(t.GetStart()), key(t.GetEnd())
+        if a == b:
+            die(f"route_fence net {netname!r} contains a zero-length track")
+        points[a], points[b] = t.GetStart(), t.GetEnd()
+        adj.setdefault(a, []).append((i, b))
+        adj.setdefault(b, []).append((i, a))
+    branches = [p for p, edges in adj.items() if len(edges) > 2]
+    ends = sorted(p for p, edges in adj.items() if len(edges) == 1)
+    if branches or len(ends) != 2:
+        die(f"route_fence net {netname!r} is not one simple chain: "
+            f"{len(branches)} branch node(s), {len(ends)} endpoint(s)")
+
+    chain, used, cur = [ends[0]], set(), ends[0]
+    while True:
+        nxt = next(((i, other) for i, other in adj[cur] if i not in used),
+                   None)
+        if nxt is None:
+            break
+        i, cur = nxt
+        used.add(i)
+        chain.append(cur)
+    if len(used) != len(tracks) or chain[-1] != ends[1]:
+        die(f"route_fence net {netname!r} has disconnected {layer_name} "
+            f"copper ({len(used)}/{len(tracks)} segments reached)")
+    return [(points[p].x / 1e6, points[p].y / 1e6) for p in chain]
+
+
+def _route_point(chain, wanted_s):
+    """Point and left normal at arclength ``wanted_s`` on ``chain``."""
+    walked = 0.0
+    for a, b in zip(chain, chain[1:]):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        length = math.hypot(dx, dy)
+        if length <= 1e-12:
+            continue
+        if wanted_s <= walked + length + 1e-9:
+            t = max(0.0, min(1.0, (wanted_s - walked) / length))
+            return (a[0] + t * dx, a[1] + t * dy,
+                    -dy / length, dx / length)
+        walked += length
+    a, b = chain[-2], chain[-1]
+    length = math.hypot(b[0] - a[0], b[1] - a[1])
+    return b[0], b[1], -(b[1] - a[1]) / length, (b[0] - a[0]) / length
+
+
+def _route_corner_sites(chain, side, offsets, band):
+    """Yield offset-path miter sites at each internal polyline vertex.
+
+    Greedily filling only the longest current aperture can put one via just
+    before a bend and another just after it.  Both are locally legal, yet
+    their projections leave an over-pitch aperture *through* the corner that
+    no later via can occupy because the two barrels now consume its spacing
+    window.  Anchor the bends first at the intersection of their two offset
+    centrelines; the ordinary aperture loop can then fill the straight spans
+    on either side without that order-dependent trap.
+
+    The returned site is checked against the finite saved polyline, not only
+    its infinite supporting lines.  That matters on the outside of a turn,
+    where the miter's nearest route point is the vertex and its radial offset
+    is larger than the perpendicular offset used to construct it.
+    """
+    walked = 0.0
+    for i, (a, b, c) in enumerate(zip(chain, chain[1:], chain[2:]), 1):
+        in_dx, in_dy = b[0] - a[0], b[1] - a[1]
+        out_dx, out_dy = c[0] - b[0], c[1] - b[1]
+        in_len, out_len = math.hypot(in_dx, in_dy), math.hypot(out_dx, out_dy)
+        walked += in_len
+        if in_len <= 1e-12 or out_len <= 1e-12:
+            continue
+        in_u = in_dx / in_len, in_dy / in_len
+        out_u = out_dx / out_len, out_dy / out_len
+        # Collinear vertices have no corner aperture to anchor.  A U-turn is
+        # not a simple routable offset path and is refused by yielding none;
+        # the independent fence gate will still expose its unclosed aperture.
+        turn_cross = in_u[0] * out_u[1] - in_u[1] * out_u[0]
+        turn_dot = in_u[0] * out_u[0] + in_u[1] * out_u[1]
+        if abs(turn_cross) <= 1e-9 and turn_dot > 0.0:
+            continue
+        n1 = side * -in_u[1], side * in_u[0]
+        n2 = side * -out_u[1], side * out_u[0]
+        mx, my = n1[0] + n2[0], n1[1] + n2[1]
+        mlen = math.hypot(mx, my)
+        if mlen <= 1e-9:
+            continue
+        mx, my = mx / mlen, my / mlen
+        denominator = mx * n1[0] + my * n1[1]
+        if denominator <= 1e-9:
+            continue
+        for offset in offsets:
+            radial = offset / denominator
+            x, y = b[0] + mx * radial, b[1] + my * radial
+            hits = [(distance, s) for distance, s, projected_side
+                    in _project_to_chain_all(chain, x, y)
+                    if projected_side == side and distance <= band + 1e-9]
+            # A real corner anchor must serve the saved route on BOTH sides
+            # of the vertex.  On the inside of a bend the offset centrelines
+            # intersect between the arms, so its two finite-segment
+            # projections deliberately bracket the vertex rather than both
+            # landing exactly on it.
+            if (not any(s <= walked + 0.02 for _distance, s in hits)
+                    or not any(s >= walked - 0.02
+                               for _distance, s in hits)):
+                continue
+            yield i, walked, x, y, offset
+
+
+def _project_to_chain_all(chain, px, py):
+    """Every finite-segment ``(distance, arclength, side)`` projection.
+
+    A plated hole beside a bend may physically return current for both arms.
+    Keeping only its single nearest polyline point creates a fictitious fence
+    aperture through the corner and makes the result depend on segment order.
+    Each segment therefore gets its own bounded projection; callers select
+    the distance band and side they grade.
+    """
+    hits, walked = [], 0.0
+    for a, b in zip(chain, chain[1:]):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        length = math.hypot(dx, dy)
+        if length <= 1e-12:
+            continue
+        raw = ((px - a[0]) * dx + (py - a[1]) * dy) / (length * length)
+        t = max(0.0, min(1.0, raw))
+        qx, qy = a[0] + t * dx, a[1] + t * dy
+        distance = math.hypot(px - qx, py - qy)
+        cross = (dx * (py - a[1]) - dy * (px - a[0])) / length
+        hits.append((distance, walked + t * length,
+                     1 if cross >= 0.0 else -1))
+        walked += length
+    return hits
+
+
+def _project_to_chain(chain, px, py):
+    """Nearest ``(distance, arclength, side)`` on a simple polyline."""
+    hits = _project_to_chain_all(chain, px, py)
+    return min(hits, key=lambda hit: hit[0]) if hits else None
+
+
+def _plated_ground_elements(ctx, netcode):
+    """Centres of saved GND vias and drilled GND footprint posts/pads."""
+    out = []
+    for item in ctx.board.GetTracks():
+        if item.GetClass() == "PCB_VIA" and item.GetNetCode() == netcode:
+            p = item.GetPosition()
+            out.append((p.x / 1e6, p.y / 1e6))
+    for fp in ctx.board.GetFootprints():
+        for pad in fp.Pads():
+            if pad.GetNetCode() != netcode or pad.GetDrillSizeX() <= 0:
+                continue
+            p = pad.GetPosition()
+            out.append((p.x / 1e6, p.y / 1e6))
+    return out
+
+
+def _route_endpoint_refs(ctx, netname, chain):
+    """Exact footprint-pad owner at each saved-chain endpoint."""
+    refs = []
+    for x, y in (chain[0], chain[-1]):
+        point = ctx.pcbnew.VECTOR2I_MM(x, y)
+        matches = []
+        for fp in ctx.board.GetFootprints():
+            for pad in fp.Pads():
+                if (pad.GetNetname() == netname
+                        and pad.GetBoundingBox().Contains(point)):
+                    matches.append(fp.GetReference())
+        matches = sorted(set(matches))
+        if len(matches) != 1:
+            die(f"route_fence net {netname!r} endpoint ({x:.4f},{y:.4f}) "
+                f"belongs to {matches or 'no exact net pad'}; exactly one "
+                "package/launch owner is required")
+        refs.append(matches[0])
+    return tuple(refs)
+
+
+def _endpoint_span_map(fence_contract):
+    """Refdes -> geometry-proven route span owned by its package/launch."""
+    out = {}
+    for i, row in enumerate(fence_contract.get("endpoint_structures") or []):
+        if not isinstance(row, dict):
+            die(f"ground_fence.endpoint_structures[{i}] must be a mapping")
+        span = float(row.get("maximum_along_route_span_mm", 0.0))
+        if span < 0:
+            die("ground_fence.endpoint_structures maximum span cannot be "
+                "negative")
+        for ref in row.get("refs") or []:
+            if str(ref) in out:
+                die(f"ground_fence.endpoint_structures repeats ref {ref!r}")
+            out[str(ref)] = span
+    return out
+
+
+def _fence_side_gaps(chain, elements, side, band, start_span=0.0,
+                     end_span=0.0):
+    """Along-route apertures outside proven package/launch endpoint spans."""
+    length = sum(math.hypot(b[0] - a[0], b[1] - a[1])
+                 for a, b in zip(chain, chain[1:]))
+    start, stop = float(start_span), length - float(end_span)
+    if start >= stop - 1e-9:
+        die(f"route_fence endpoint structures consume the complete "
+            f"{length:.4f}mm route span ({start_span}+{end_span}mm)")
+    points = []
+    for x, y in elements:
+        for distance, s, projected_side in _project_to_chain_all(
+                chain, x, y):
+            if distance <= band + 1e-9 and projected_side == side:
+                points.append(max(start, min(stop, s)))
+    points = sorted({round(s, 4) for s in points})
+    boundaries = ([start]
+                  + [s for s in points if start + 1e-6 < s < stop - 1e-6]
+                  + [stop])
+    gaps = [(boundaries[i], boundaries[i + 1])
+            for i in range(len(boundaries) - 1)]
+    return length, start, stop, points, gaps
+
+
+@stitch_pass("route_fence")
+def p_route_fence(ctx, c):
+    """Realize a collision-clean plated-GND fence along both RF flanks.
+
+    The pass consumes the *saved RF centrelines*, not a rectangular attempt
+    lattice.  Existing GND vias and drilled launch posts are measured first;
+    each new site is accepted only through ``Ctx.try_via`` and the complete
+    side is remeasured after every addition.  One via may therefore serve two
+    adjacent arms, while a collision-rejected attempted site earns no credit.
+
+    This in-process measurement is an early refusal, not the release verdict.
+    ``fence_pitch.py`` independently reopens the final saved board and grades
+    the realized aperture, including lead-in and run-out at both endpoints.
+    """
+    contract = None
+    if c.get("contract"):
+        contract_path = rel(ctx.cfg, c["contract"])
+        try:
+            contract = yaml.safe_load(
+                contract_path.read_text(encoding="utf-8-sig")) or {}
+            contract = contract["rf"]["layout_constraints"]
+        except (OSError, KeyError, TypeError, yaml.YAMLError) as exc:
+            die(f"stitch.route_fence.contract cannot provide "
+                f"rf.layout_constraints from {contract_path}: {exc}")
+    route_contract = (contract or {}).get("route") or {}
+    fence_contract = (contract or {}).get("ground_fence") or {}
+
+    nets = [str(n) for n in
+            (c.get("nets") or route_contract.get("nets") or [])]
+    if not nets:
+        die("stitch.route_fence.nets must name at least one routed net")
+    if c.get("nets") and route_contract.get("nets") \
+            and nets != [str(n) for n in route_contract["nets"]]:
+        die("stitch.route_fence.nets disagrees with the exact RF-contract "
+            "route-net denominator")
+    ground = ctx.net(c.get("net", "GND"))
+    layer = str(c.get("layer") or route_contract.get("layer") or "F.Cu")
+    if c.get("layer") and route_contract.get("layer") \
+            and str(c["layer"]) != str(route_contract["layer"]):
+        die("stitch.route_fence.layer disagrees with the RF-contract route "
+            "layer")
+    maximum = float(c.get("maximum_pitch") or
+                    fence_contract.get("maximum_along_route_pitch_mm") or 0.0)
+    if c.get("maximum_pitch") is not None \
+            and fence_contract.get("maximum_along_route_pitch_mm") is not None \
+            and abs(float(c["maximum_pitch"]) - float(
+                fence_contract["maximum_along_route_pitch_mm"])) > 1e-9:
+        die("stitch.route_fence.maximum_pitch disagrees with the RF-contract "
+            "maximum_along_route_pitch_mm")
+    nominal = float(c.get("nominal_pitch", maximum))
+    band = float(c.get("band", 0.0))
+    contract_offset = fence_contract.get("nominal_lateral_center_offset_mm")
+    offsets = [float(v) for v in
+               (c.get("lateral_offsets") or
+                ([contract_offset] if contract_offset is not None else []))]
+    if contract_offset is not None and offsets \
+            and abs(offsets[0] - float(contract_offset)) > 1e-9:
+        die("stitch.route_fence.lateral_offsets[0] must equal the RF-contract "
+            "nominal_lateral_center_offset_mm")
+    jitters = [float(v) for v in
+               (c.get("longitudinal_jitter") or
+                [0.0, -0.10, 0.10, -0.20, 0.20, -0.30, 0.30])]
+    if maximum <= 0 or nominal <= 0 or nominal > maximum + 1e-9:
+        die("stitch.route_fence needs 0 < nominal_pitch <= maximum_pitch")
+    if band <= 0 or not offsets or any(v <= 0 or v > band for v in offsets):
+        die("stitch.route_fence lateral_offsets must be positive and no "
+            "larger than band")
+    search_step = float(c.get("longitudinal_step", 0.05))
+    if search_step <= 0:
+        die("stitch.route_fence.longitudinal_step must be positive")
+    max_add = int(c.get("max_new_vias", 5000))
+    require_all = str(c.get("require", "all")).lower() == "all"
+    via_spacing = c.get("via_spacing")
+    if via_spacing is not None:
+        via_spacing = float(via_spacing)
+        via = get(ctx.cfg, "stitch.via", {}) or {}
+        largest_drill = max(float(t.get("drill", via.get("drill", 0.2)))
+                            for t in (via.get("tiers") or [via]))
+        minimum = largest_drill + float(ctx.tk.h2h)
+        if via_spacing + 1e-9 < minimum:
+            die(f"stitch.route_fence.via_spacing {via_spacing}mm is below "
+                f"drill + saved-board hole-to-hole floor {minimum:.3f}mm")
+
+    processing = [str(n) for n in (c.get("processing_order") or nets)]
+    if len(processing) != len(nets) or set(processing) != set(nets):
+        die("stitch.route_fence.processing_order must be an exact "
+            "permutation of the RF-contract route-net denominator")
+    chains = {net: _simple_track_chain(ctx, net, layer) for net in processing}
+    span_map = _endpoint_span_map(fence_contract)
+    endpoint_spans = {}
+    for net, chain in chains.items():
+        if fence_contract.get("endpoint_structures"):
+            refs = _route_endpoint_refs(ctx, net, chain)
+            missing = [ref for ref in refs if ref not in span_map]
+            if missing:
+                die(f"route_fence net {net!r} endpoint ref(s) {missing} have "
+                    "no geometry-proven ground_fence.endpoint_structures row")
+        else:
+            refs = ("route-start", "route-end")
+        endpoint_spans[net] = (span_map.get(refs[0], 0.0),
+                               span_map.get(refs[1], 0.0), refs)
+    added, corner_added, passed, total = 0, 0, 0, 2 * len(chains)
+    unresolved = []
+
+    # Reserve the scarce bend sites before the greedy straight-span filler
+    # can consume their via-spacing windows.  This is deliberately a separate
+    # first phase across every RF net: changing `processing_order` must not
+    # decide whether a later net's corner is physically realizable.
+    for net, chain in chains.items():
+        for side in (-1, 1):
+            for _index, _s, x, y, _offset in _route_corner_sites(
+                    chain, side, offsets, band):
+                if added >= max_add:
+                    break
+                if ctx.try_via(ground, x, y,
+                               spacing_override=via_spacing):
+                    added += 1
+                    corner_added += 1
+
+    for net, chain in chains.items():
+        for side in (-1, 1):
+            tag = "right" if side < 0 else "left"
+            start_span, end_span, refs = endpoint_spans[net]
+            while True:
+                elements = _plated_ground_elements(ctx, ground.GetNetCode())
+                length, start, stop, points, gaps = _fence_side_gaps(
+                    chain, elements, side, band, start_span, end_span)
+                worst = max(gaps, key=lambda pair: pair[1] - pair[0])
+                aperture = worst[1] - worst[0]
+                if aperture <= maximum + 1e-9:
+                    passed += 1
+                    print(f"route fence {net} {tag}: {len(points)} element(s), "
+                          f"worst aperture {aperture:.4f}mm / {maximum:.4f}mm; "
+                          f"graded s={start:.2f}..{stop:.2f} after "
+                          f"{refs[0]}={start_span:.2f}mm, "
+                          f"{refs[1]}={end_span:.2f}mm endpoint structures")
+                    break
+                if added >= max_add:
+                    unresolved.append(
+                        f"{net} {tag}: maximum new-via budget {max_add} "
+                        f"reached with {aperture:.4f}mm aperture")
+                    break
+
+                a, b = worst
+                # Seed long empty spans at the nominal cadence.  Once a span
+                # is within two maximum pitches, its midpoint maximizes the
+                # clearance to both neighbours and is the most repairable site.
+                target = ((a + b) / 2.0 if b - a <= 2.0 * maximum
+                          else a + nominal)
+                # Search EVERY arclength position that could close the gap,
+                # not merely +/- a few nominal jitters.  For a long endpoint
+                # span the first new element must be no farther than `maximum`
+                # from `a`; for a span shorter than 2*maximum it must also be
+                # within `maximum` of `b`.  Exhausting this closed interval is
+                # what makes "no legal site" evidence about geometry rather
+                # than about one unlucky seed (the first v5 trial abandoned
+                # whole 14-31mm flanks after probing only s=0.6..1.4mm).
+                low = a + search_step
+                high = min(b - search_step, a + maximum)
+                if b - a <= 2.0 * maximum:
+                    low = max(low, b - maximum)
+                candidates = [target + jitter for jitter in jitters]
+                if high >= low - 1e-9:
+                    count = int(math.floor((high - low) / search_step))
+                    candidates.extend(low + i * search_step
+                                      for i in range(count + 1))
+                    candidates.append(high)
+                candidates = sorted(
+                    {round(s, 4) for s in candidates
+                     if a + 1e-6 < s < b - 1e-6 and low - 1e-9 <= s <= high + 1e-9},
+                    key=lambda s: (abs(s - target), s))
+                placed = False
+                for s in candidates:
+                    x, y, nx, ny = _route_point(chain, s)
+                    for offset in offsets:
+                        vx = x + side * nx * offset
+                        vy = y + side * ny * offset
+                        if ctx.try_via(ground, vx, vy,
+                                       spacing_override=via_spacing):
+                            added += 1
+                            placed = True
+                            break
+                    if placed:
+                        break
+                if not placed:
+                    unresolved.append(
+                        f"{net} {tag}: no legal site can split saved-board "
+                        f"aperture s={a:.3f}..{b:.3f}mm ({aperture:.4f}mm)")
+                    break
+
+    ctx.bump("rf_fence_vias", added)
+    ctx.bump("rf_fence_corner_vias", corner_added)
+    ctx.bump("rf_fence_sides_ok", passed)
+    ctx.counts["rf_fence_sides_total"] = total
+    print(f"route fence: {added} new via(s) ({corner_added} corner anchor(s)), "
+          f"{passed}/{total} flank(s) inside the in-process aperture bound")
+    if unresolved:
+        for finding in unresolved:
+            print(f"  RF FENCE UNRESOLVED: {finding}")
+        if require_all:
+            ctx.failures.extend("route fence: " + f for f in unresolved)
 
 
 def _rescue_targets(ctx, c):

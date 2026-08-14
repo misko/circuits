@@ -65,8 +65,10 @@
 - [x] post-stitch checkpoint pins 23/23 exact route, review, provenance, rule,
       DRC and saved-board artifacts at SHA-256
       `888c17bc703d324d18947fa704423eafe4054893497ee211c3b0f958a68d45c2`
-- [ ] route-following RF fence realized and measured at <=1.40-mm along-route
-      pitch; the current 5-mm rectangular lattice is not credited as RF fence
+- [x] route-following RF fence realizes 394 collision-clean 0.45/0.20-mm GND
+      vias including 22 bend anchors; the independent saved-board report
+      grades 18/18 flanks with worst aperture 1.3979 mm <= 1.4000 mm. The
+      separate 5-mm rectangular lattice is not credited as RF fence
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.
@@ -91,9 +93,9 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] every 2-pad polarized part: pad 1's net checked against `02_parts/*/part.yaml`
       (diodes, LEDs, electrolytics, AND connectors — this is invisible to DRC)
 - [x] targeted 3D/render review: J11 body/keying and SMA body/leg/edge alignment
-- [ ] complete placement review: RF spoke corridors, all body clearances and
+- [x] complete placement review: RF spoke corridors, all body clearances and
       operational silk readability
-- [ ] `01_docs/CHANGELOG.md` entry written
+- [x] `01_docs/CHANGELOG.md` entry written
 - [ ] anything surprising captured as an ADR in `01_docs/decisions/`
 - [ ] `03_src/rules/rf.yaml` explicitly records RF applicability. If enabled:
       independent RF schematic review is SOUND before placement; independent

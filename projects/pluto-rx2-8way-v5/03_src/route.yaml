@@ -217,7 +217,8 @@ stitch:
   passes: [dedupe_vias, normalize_vias, bridge_via_endpoints, drop_micro_fragments,
            drop_dangling, split_t_junctions, reload,
            hole_to_hole, pad_rescue,
-           stub_fallback, astar_fallback, via_janitor, stitch_grid, fill,
+           stub_fallback, astar_fallback, via_janitor, stitch_grid,
+           route_fence, fill,
            island_rescue,
            dedupe_vias, hole_to_hole, fill, fresh_reload, heal_islands, gate]
   dedupe_vias: {radius: 0.35, metric: box}
@@ -261,6 +262,28 @@ stitch:
     x: [22.5, 108.0, 5.0]
     y: [22.5, 84.0, 5.0]
     min: 80
+  # The requirement denominator/layer/maximum aperture come from rf.yaml,
+  # not a copied second authority.  The emitter measures the saved RF chains
+  # and existing plated returns, then fills only realized along-route gaps.
+  # 0.70 mm is the solver-contract nominal centre offset; wider searches are
+  # collision fallbacks and remain inside the independently graded 1.10-mm
+  # lateral band.  Every accepted barrel still uses stitch.via's JLC tier.
+  route_fence:
+    contract: 03_src/rules/rf.yaml
+    net: GND
+    nominal_pitch: 1.00
+    band: 1.10
+    lateral_offsets: [0.70, 0.80, 0.90, 1.00, 1.10]
+    longitudinal_jitter: [0.00, -0.10, 0.10, -0.20, 0.20, -0.30, 0.30,
+                          -0.40, 0.40]
+    longitudinal_step: 0.05
+    # Adjacent RF rows may use separate same-net barrels at 0.50mm centres.
+    # With 0.20mm drills this leaves 0.30mm hole-to-hole, above the declared
+    # 0.25mm JLC advanced floor.  Copper disks may approach/overlap because
+    # both are GND; the independent full DRC still owns the realized result.
+    via_spacing: 0.50
+    max_new_vias: 2000
+    require: all
   island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu], require: all}
   heal_islands: {min_bbox: 0.1, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu],
                  sample_step: 0.05, max_gap_candidates: 2000,
@@ -305,5 +328,5 @@ flow:
     rebuild: 1500
     layout_drc: 180
   blockers:
-    - "The five control/power waves are promoted and quick-clean; import, plane stitch/fill and final saved-board gates remain pending"
-    - "The generic rectangular stitch lattice is not an RF-fence proof; route-following fence realization and saved-board aperture measurement are required before RF PCB approval"
+    - "The exact routed/stitch/fence board is mechanically clean; independent exact-board RF PCB review remains required before layout seal"
+    - "RF fab plotting/review and first-article VNA/TDR acceptance remain later prototype/order boundaries"

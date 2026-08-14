@@ -95,6 +95,41 @@ def gate(d, *reviews):
     return run(args)
 
 
+def add_layout_contract(d):
+    path = d / "03_src/rules/rf.yaml"
+    data = yaml.safe_load(path.read_text())
+    data["rf"]["layout_constraints"] = {
+        "route": {
+            "nets": ["RF1"], "layer": "F.Cu",
+            "reference_layer": "In1.Cu", "width_mm": 0.36,
+            "gap_to_top_ground_mm": 0.2, "maximum_vias_per_net": 0,
+            "maximum_stubs_per_net": 0,
+            "length_matching": "not required for this single path",
+            "geometry": "one direct branch-free saved centreline",
+        },
+        "ground_fence": {
+            "status": "required after route realization",
+            "source": "vendor RF layout guidance",
+            "source_urls": ["https://example.test/rf-layout"],
+            "wavelength_basis": "guided wavelength at the upper band edge",
+            "maximum_along_route_pitch_mm": 1.2,
+            "pitch_derivation": "rounded down from lambda/20",
+            "nominal_via_mm": {"size": 0.45, "drill": 0.2},
+            "nominal_lateral_center_offset_mm": 0.7,
+            "lateral_offset_basis": "trace half-width plus gap and via radius",
+            "endpoint_structures": [{
+                "refs": ["J1", "U1"],
+                "maximum_along_route_span_mm": 1.0,
+                "basis": "exact package copper and plated ground field",
+            }],
+            "coverage": "both flanks from launch to package return field",
+            "verify": "independent saved-board aperture measurement",
+        },
+    }
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    return path
+
+
 @test("legacy inspection may report unmigrated without claiming RF review")
 def t_missing_contract_is_visible_legacy_state():
     d = tmpdir("rfcontract_missing_") / "demo"
@@ -122,6 +157,26 @@ def t_enabled_contract_is_complete():
     r = must_pass(gate(project()), "complete RF contract")
     contains(r.out, "1 port(s), 1 cross-section(s), 1 claim(s)",
              "requirements census")
+
+
+@test("declared RF route/fence geometry reconciles ports, cross-section and "
+      "lateral copper clearance")
+def t_layout_contract_is_executable():
+    d = project()
+    add_layout_contract(d)
+    must_pass(gate(d), "executable RF layout contract")
+
+
+@test("RF layout net denominator cannot drift from the port contract",
+      kind="known_bad")
+def t_layout_net_drift_fails():
+    d = project()
+    path = add_layout_contract(d)
+    data = yaml.safe_load(path.read_text())
+    data["rf"]["layout_constraints"]["route"]["nets"] = ["RF_ADJACENT"]
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    must_fail(gate(d), "drifted RF route denominator",
+              "must equal the exact union")
 
 
 @test("a solver-pending cross-section is allowed before PCB work")

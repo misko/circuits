@@ -158,10 +158,15 @@ def board_text(segs=(), vias=(), arcs=(), zones=(), pads=()):
 
 
 def fence_board_text(gap):
-    """A real saved-board fixture with one ANT1 arm and two GND-via rows."""
+    """A real saved-board fixture with one ANT1 arm and two full GND rows."""
     vias = []
+    xs = []
+    x = gap / 2.0
+    while x < 8.0 - 1e-9:
+        xs.append(round(x, 6))
+        x += gap
     for y in (-1.0, 1.0):
-        for x in (1.0, 1.0 + gap):
+        for x in xs:
             vias += ["\t(via", f"\t\t(at {x} {y})", "\t\t(size 0.25)",
                      "\t\t(drill 0.15)", "\t\t(layers \"F.Cu\" \"B.Cu\")",
                      "\t\t(net 1)", "\t)"]
@@ -876,8 +881,9 @@ def t_fence_pitch_red_and_green():
     r_good = must_pass(run([KPY, FENCE, good, "2.5", "1.1910"]),
                        "realized fence aperture inside the bound")
     contains(r_good.out, "VERDICT: PASS", "the gate is satisfiable")
-    contains(r_good.out, "2/22 configured arm-sides graded",
-             "the denominator exposes the intentionally small fixture")
+    contains(r_good.out, "2/2 configured arm-sides graded",
+             "the denominator is discovered from the saved fixture rather "
+             "than padded with historical hard-coded net names")
 
 
 @test("the schema is self-documenting and the gate obeys G-INPUT/G-COVER")

@@ -462,6 +462,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `stitch.keepin.*` | `route_and_stitch_generic.py` | stitch keep-in inset |
 | `stitch.via.*` | `route_and_stitch_generic.py` | stitch via geometry + tiers |
 | `stitch.stitch_grid.*` | `route_and_stitch_generic.py` | plane stitch grid; `x`/`y` are `[start, stop, pitch]` in mm and the PITCH MAY BE FRACTIONAL (see below) |
+| `stitch.route_fence.*` | `route_and_stitch_generic.py` | RF-contract path plus optional exact-consistency pins, ground net, nominal pitch, accepted lateral band/offset search, bounded longitudinal search, new-via ceiling and required-side policy; contract-owned net/layer/maximum pitch are consumed when pins are absent, and independent saved-board proof remains `fence_pitch.py` |
 | `stitch.pad_rescue.*` | `route_and_stitch_generic.py` | pad-rescue pass |
 | `stitch.island_rescue.*` | `route_and_stitch_generic.py` | island-rescue pass |
 | `stitch.heal_islands.*` | `route_and_stitch_generic.py` | same-net pour bridge pass |

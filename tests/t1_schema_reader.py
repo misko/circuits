@@ -424,12 +424,12 @@ def t_ungoverned_family_is_named_not_failed():
 
 
 # --------------------------------------------------------------- real bytes
-@test("the REAL fleet denominator: 16 governed families over the real projects, "
+@test("the REAL fleet denominator: 17 governed families over the real projects, "
       "with the observed-key count and the blanket count both printed")
 def t_real_fleet_denominator():
     r = run([KPY, str(SRA), "--root", str(ROOT)])
     must_pass(r, "G-ORPHAN on the real repo")
-    contains(r.out, "16 governed famil")
+    contains(r.out, "17 governed famil")
     contains(r.out, "0 ORPHAN key(s) in source with no row")
     m = re.search(r"declares (\d+) distinct schema key\(s\) under those rows; "
                   r"(\d+) row\(s\) are", r.out)
@@ -438,7 +438,7 @@ def t_real_fleet_denominator():
           f"the fleet's observed schema shrank to {m.group(1)} keys — if that "
           f"is real, re-measure; if not, the walker stopped covering something")
     # the families with no `### keys:` block are named, not silent
-    for fam in ("assembly.yaml", "mates.yaml", "rf.yaml", "twin_adjudications.yaml"):
+    for fam in ("twin_adjudications.yaml",):
         contains(r.out, fam)
 
 

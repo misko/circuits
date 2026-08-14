@@ -138,4 +138,19 @@ day and fab exactly one of them.
 - Pinned the exact post-stitch pause in a 23/23 checkpoint. This is not a fab
   release: the <=1.40-mm route-following 5.9-GHz RF fence and exact RF PCB
   review remain open.
+- Completed IMP-080 without moving the approved RF copper. A contract-driven
+  route-following emitter added 394 ordinary 0.45/0.20-mm GND vias, including
+  22 corner anchors; the independent saved-board checker grades 18/18 flanks
+  with worst along-route aperture 1.3979 mm against the 1.4000-mm bound.
+- Rejected the apparent greedy-placement local minimum rather than shrinking
+  the general via geometry or rerouting RF. The accepted general fix reserves
+  constrained bends first and lets one physical plated return serve both
+  adjacent finite segments where the saved geometry proves it does.
+- Corrected a resumability false failure exposed by the disposable promotion:
+  `stitch_grid.min` now grades realized same-net plated returns rather than
+  newly-added-via count. The exact rerun emits zero duplicates while measuring
+  200/234 declared sites served (IMP-087).
+- Regenerated adopted rules after the last board save. The exact fenced board
+  SHA-256 is `0b8ab1962ef7`; saved pours are present, rules audit is 20/20, and
+  final KiCad DRC remains 0 violations / 0 unconnected / 0 parity findings.
 Released: no

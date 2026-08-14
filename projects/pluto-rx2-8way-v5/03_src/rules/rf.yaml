@@ -69,6 +69,13 @@ rf:
       nominal_via_mm: {size: 0.45, drill: 0.20}
       nominal_lateral_center_offset_mm: 0.70
       lateral_offset_basis: "clears the 0.295-mm trace by more than the adopted 0.20-mm copper gap while retaining close top-ground-to-L2 bonds; exact accepted offsets must be measured and, if treated as part of the impedance model, field-solved"
+      endpoint_structures:
+        - refs: [U1]
+          maximum_along_route_span_mm: 1.60
+          basis: "measured saved copper: every RF land exits package-normal for at most 1.60mm beside alternating U1 perimeter GND lands, each joined directly into pad 25 and its filled/capped 3x3 ground-via field; the route-following hole fence begins at the end of this package-owned return field"
+        - refs: [J2, J3, J4, J5, J6, J7, J8, J9, J10]
+          maximum_along_route_span_mm: 3.94
+          basis: "901-143-6RFX realized footprint geometry: the inward pair of 2.80mm plated GND pads is centered 2.54mm along the package-normal RF centreline from the signal-pin centre and its copper continues another 1.40mm inward, so the exact connector-owned span ends at 3.94mm; external fence aperture grading begins at that saved copper edge rather than inventing vias inside the footprint"
       coverage: "both flanks from each SMA ground-post launch to the U1 ground-via/ground-pad field, allowing only geometry-proven package/connector return structures as fence elements"
       verify: "saved-board route-aware fence gate; declared pitch or attempted-via count cannot certify collision-rejected realized geometry"
 

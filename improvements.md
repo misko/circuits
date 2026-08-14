@@ -93,9 +93,14 @@ rationale.
 | IMP-077 | Reconcile footprint and symbol metadata before schematic-parity DRC | proposed | Pluto RX2 8-way v5 keyed-SWD placement |
 | IMP-078 | Run the source-resolvable tier/routing preflight before schematic and placement spend | proposed | Pluto RX2 8-way v5 keyed-SWD placement |
 | IMP-079 | Derive compact floorplans from topology and operational connector envelopes before placement freeze | proposed | Pluto RX2 8-way v5 compact placement |
-| IMP-080 | Emit and measure RF fences from routed centrelines, not a rectangular lattice declaration | proposed | Pluto RX2 8-way v5 route preparation |
+| IMP-080 | Emit and measure RF fences from routed centrelines, not a rectangular lattice declaration | completed | Pluto RX2 8-way v5 route preparation |
 | IMP-081 | Seed route-prep UUID generation so identical source yields byte-identical r0 | completed | Pluto RX2 8-way v5 route preparation |
 | IMP-082 | Require executable budgets for datasheet `short`/`close` layout obligations before placement review | proposed | Pluto RX2 8-way v5 pre-route placement renewal |
+| IMP-083 | Make no-via-in-pad intent executable at every routing wave | completed | Pluto RX2 8-way v5 first control/power route |
+| IMP-084 | Make geometry admission consume pad-local copper and mask rules | completed | Pluto RX2 8-way v5 first post-stitch DRC |
+| IMP-085 | Normalize overlap-only track/via joints before deleting barrels | completed | Pluto RX2 8-way v5 route cleanup |
+| IMP-086 | Run external mating-fact provenance before PCB generation | proposed | Pluto RX2 8-way v5 post-stitch gate |
+| IMP-087 | Grade rerunnable density gates against realized saved geometry | completed | Pluto RX2 8-way v5 RF-fence rerun |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -2757,7 +2762,7 @@ Recommended execution order for future boards:
 
 ## IMP-080 — emit and measure RF fences from routed centrelines
 
-- status: proposed
+- status: completed
 - observed: Pluto RX2 8-way v5 deterministic route preparation, 2026-08-13
 - evidence: the generic stitch backend's `stitch_grid` accepts only orthogonal
   `x`/`y` lattice axes. It can provide ordinary plane stitching but cannot
@@ -2772,27 +2777,52 @@ Recommended execution order for future boards:
   Emission must sample the actual saved centreline, collision-check both
   flanks, and refuse uncovered apertures; an independent gate must then measure
   the surviving vias/PTH returns from the saved board.
-- intended landing point: add a generic `stitch.route_fence` pass whose config
-  is derived from `rules/rf.yaml`, and make `fence_pitch.py` accept an explicit
-  net list or the same RF-rule source while preserving its legacy CLI. Keep
-  general `stitch_grid` separate and never let attempted-site count satisfy the
-  fence gate.
-- completion evidence required: fixtures cover horizontal, diagonal and bent
-  polylines; both flanks; connector/package PTH return elements; endpoint
-  exclusion; collision-rejected sites that open an aperture; a declared tight
-  grid whose realized flank spacing fails; and a complete route-following
-  fence that passes. Existing callers retain byte-for-byte default net
-  selection when no new option is supplied.
-- recommendation: implement before v5 RF PCB approval and layout seal. It does
-  not block the present deterministic route preparation or the next stochastic
-  control/power route, because correct fence placement must consume the actual
-  final RF centrelines. The current board-wide 5 mm lattice is explicitly
-  non-authoritative for RF.
+- implementation: `route_and_stitch_generic.py` now has a generic
+  `stitch.route_fence` pass. It reconstructs each exact saved straight-track
+  chain, derives the net denominator/layer/maximum pitch from `rf.yaml`, grades
+  explicit package/connector endpoint structures, reserves constrained bend
+  sites before straight-span filling, collision-checks both flanks through the
+  shared fabrication-aware via primitive, and refuses every unresolved
+  aperture. A plated return beside a bend is credited to every adjacent finite
+  route segment it physically serves; forcing it onto only one nearest
+  projection created a fictitious corner opening.
+- independent implementation: `fence_pitch.py` was generalized without
+  sharing emitter state. It reopens the saved board, accepts a contract or
+  explicit net list while retaining its legacy positional CLI, reconstructs
+  and fail-closes each simple chain, counts realized GND vias/PTH posts, grades
+  lead-in/interior/run-out apertures outside only geometry-proven endpoint
+  spans, and writes a machine-readable report. `rf_contract_check.py` now
+  reconciles the layout net denominator, route cross-section, via/stub policy,
+  guided-wavelength pitch, lateral offset and endpoint evidence before layout.
+- local-minimum evidence: the first disposable v5 emitter closed 3/18 flanks;
+  endpoint structures raised that to 12/18 and the 0.50-mm same-net spacing
+  policy to 16/18. Reducing spacing to 0.46 mm made the greedy result worse at
+  14/18. Both survivors were symmetric 45-degree inner bends where legal vias
+  placed just before and after the corner consumed its remaining placement
+  window. Corner-first anchors plus multi-segment physical credit close the
+  same saved geometry deterministically rather than retrying or rerouting it.
+- completion evidence: focused clean/known-bad fixtures cover a bent chain,
+  both flanks, endpoint-inclusive failure/pass, idempotence and saved-board
+  measurement. V5 realizes 394 new 0.45/0.20-mm GND vias, including 22 corner
+  anchors. The independent report grades 18/18 arm-sides PASS; worst aperture
+  is 1.3979 mm against the 1.4000-mm guided-wavelength bound. KiCad DRC remains
+  0 violations / 0 unconnected / 0 schematic-parity findings and all four
+  filled zones survive the saved-file read-back.
+- recommendation: make this contract mandatory before routing on every RF
+  board that relies on a coplanar via fence. Define the exact route nets,
+  stackup/reference plane, guided-wavelength pitch, lateral band, via geometry
+  and endpoint return structures before copper, but emit and independently
+  grade only after the actual centrelines exist. Keep ordinary plane stitching
+  separate and never let an attempted-site count certify an RF fence.
 - sources: Analog Devices' MMIC layout note recommends CPWG ground holes at
   `lambda/20` or less; its RF/mixed-signal PCB guidance recommends fences on
   both CPWG sides and an unbroken underlying plane. V5 derives a conservative
   1.40 mm maximum from its retained JLC effective dielectric constant at
   5.9 GHz and records the calculation in `03_src/rules/rf.yaml`.
+- history: 2026-08-13 — completed before exact-board RF PCB review. The
+  rejected 0.25/0.15-mm via fallback and RF reroute experiments were not
+  carried into the board; the solution preserves the approved RF copper and
+  the ordinary 0.45/0.20-mm JLC via geometry.
 
 ## IMP-081 — deterministic UUIDs for route preparation
 
@@ -2995,3 +3025,37 @@ Recommended execution order for future boards:
 - recommendation: implement before the next board that interfaces with
   externally designed hardware. V5's instance is fixed and not blocked.
 - history: 2026-08-13 — proposed after the right gate ran at the wrong stage.
+
+## IMP-087 — grade rerunnable density gates against realized saved geometry
+
+- status: completed
+- observed: Pluto RX2 8-way v5 RF-fence disposable rerun, 2026-08-13
+- evidence: the already-complete ordinary 5-mm GND stitch grid caused
+  `stitch_grid` to emit zero duplicate vias, then falsely failed its own
+  `min: 80` contract as `0 < 80`. The first run had safely realized 200 grid
+  sites; the gate was measuring work performed in this invocation rather than
+  the board property the minimum was meant to require.
+- general rule: a rerunnable stage's acceptance criteria must grade the
+  realized saved result, not its mutation delta. `added`, `removed`, cache-hit
+  and retry counters are useful telemetry, but they cannot stand in for
+  population, density, connectivity, fill or coverage requirements. This
+  applies beyond vias to thermal arrays, test points, zones, labels, model
+  coverage and any resumable generator.
+- implementation: `stitch_grid` still reports newly added vias separately,
+  but its minimum now counts declared lattice sites served by realized
+  same-net plated returns inside the same spacing window that suppresses a
+  duplicate. It records `grid_sites_total` and `grid_sites_served`; a foreign
+  blocker earns no credit. The existing impossible-minimum known-bad remains
+  red.
+- completion evidence: a new fixture realizes a grid, reruns the complete
+  stitch pass, proves zero new vias, and requires the saved served-site
+  denominator to remain green. On the fenced v5 rerun, zero duplicate grid
+  vias and 200/234 realized served sites pass the unchanged `min: 80`; the
+  complete stitch gate is clean.
+- recommendation: audit every resumable `min`/`require: all` gate for this
+  distinction before the next board. Prefer three explicit values in reports:
+  `attempted or added this run`, `realized subjects graded`, and `required
+  denominator`. Run this cheap idempotence fixture when a new emitter is
+  introduced, before using it in an expensive board replay.
+- history: 2026-08-13 — completed during disposable RF-fence promotion, before
+  touching the real board.

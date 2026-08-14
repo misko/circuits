@@ -701,8 +701,31 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.cross_sections[].target_z0_ohm` | `rf_contract_check.py` | positive target impedance |
 | `rf.cross_sections[].width_mm` | `rf_contract_check.py` | positive when locked and null while pending |
 | `rf.cross_sections[].gap_mm` | `rf_contract_check.py` | positive when locked and null while pending |
-| `rf.layout_constraints` | OWED | container for PCB-route and RF-fence intent; exact route.yaml/saved-board checks are authoritative today, while IMP-080 owns the missing shared reader/emitter |
-| `rf.layout_constraints.*` | OWED | route/fence geometry and derived bound subtree awaiting the route-aware IMP-080 emitter plus independent saved-board fence gate; must not be treated as presently enforced |
+| `rf.layout_constraints` | `rf_contract_check.py` | optional before RF geometry begins; once present it must carry reconciled route and ground-fence mappings |
+| `rf.layout_constraints.route.nets` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | unique exact routed-net denominator equal to the union of RF port nets and consumed by both realization and saved-board proof |
+| `rf.layout_constraints.route.layer` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | exact saved copper layer, reconciled with a locked cross-section |
+| `rf.layout_constraints.route.reference_layer` | `rf_contract_check.py` | exact return layer, reconciled with the locked cross-section |
+| `rf.layout_constraints.route.width_mm` | `rf_contract_check.py` | positive realized width equal to a locked cross-section width |
+| `rf.layout_constraints.route.gap_to_top_ground_mm` | `rf_contract_check.py` | positive CPWG gap equal to the locked cross-section gap and used in lateral-offset arithmetic |
+| `rf.layout_constraints.route.maximum_vias_per_net` | `rf_contract_check.py` | non-negative integer route-via budget |
+| `rf.layout_constraints.route.maximum_stubs_per_net` | `rf_contract_check.py` | non-negative integer route-stub budget |
+| `rf.layout_constraints.route.length_matching` | `rf_contract_check.py` | substantive applicability/acceptance statement |
+| `rf.layout_constraints.route.geometry` | `rf_contract_check.py` | substantive route-geometry intent |
+| `rf.layout_constraints.ground_fence.status` | `rf_contract_check.py` | substantive stage/requirement state |
+| `rf.layout_constraints.ground_fence.source` | `rf_contract_check.py` | non-placeholder source summary |
+| `rf.layout_constraints.ground_fence.source_urls` | `rf_contract_check.py` | non-empty HTTPS source denominator |
+| `rf.layout_constraints.ground_fence.wavelength_basis` | `rf_contract_check.py` | substantive physical derivation record |
+| `rf.layout_constraints.ground_fence.maximum_along_route_pitch_mm` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | positive authoritative aperture bound consumed by realization and independent saved-board proof |
+| `rf.layout_constraints.ground_fence.pitch_derivation` | `rf_contract_check.py` | substantive rounding/derivation record |
+| `rf.layout_constraints.ground_fence.nominal_via_mm.size` | `rf_contract_check.py` | positive via copper diameter, larger than drill and included in offset arithmetic |
+| `rf.layout_constraints.ground_fence.nominal_via_mm.drill` | `rf_contract_check.py` | positive drill smaller than copper diameter |
+| `rf.layout_constraints.ground_fence.nominal_lateral_center_offset_mm` | `rf_contract_check.py, route_and_stitch_generic.py` | positive nominal centre offset no smaller than trace half-width + CPWG gap + via radius, and the emitter's first offset |
+| `rf.layout_constraints.ground_fence.lateral_offset_basis` | `rf_contract_check.py` | substantive geometry/solver limitation record |
+| `rf.layout_constraints.ground_fence.endpoint_structures[].refs` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | unique package/launch refdes whose exact RF pad owns one saved-route endpoint |
+| `rf.layout_constraints.ground_fence.endpoint_structures[].maximum_along_route_span_mm` | `rf_contract_check.py, route_and_stitch_generic.py, fence_pitch.py` | non-negative route span discharged by exact package/connector return geometry rather than invented fence holes |
+| `rf.layout_constraints.ground_fence.endpoint_structures[].basis` | `rf_contract_check.py` | substantive measured geometry and return-path justification for the bounded endpoint span |
+| `rf.layout_constraints.ground_fence.coverage` | `rf_contract_check.py` | substantive physical endpoint/flank denominator |
+| `rf.layout_constraints.ground_fence.verify` | `rf_contract_check.py` | substantive independent saved-board verification requirement |
 | `rf.performance_claims[].id` | `rf_contract_check.py` | unique first-article RF claim identity |
 | `rf.performance_claims[].claim` | `rf_contract_check.py` | substantive claim text |
 | `rf.performance_claims[].acceptance` | `rf_contract_check.py` | substantive acceptance criterion |

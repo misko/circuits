@@ -25,6 +25,7 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains,  # noqa: 
                      not_contains, run, test, tmpdir)
 
 RS = SCRIPTS / "route_and_stitch_generic.py"
+FENCE = SCRIPTS / "fence_pitch.py"
 VIP_GUARD = SCRIPTS / "via_in_pad_guard.py"
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
@@ -2118,6 +2119,55 @@ def pour_scratch(layers, passes):
     return d, p, board
 
 
+@test("route_fence closes both saved-centreline flanks, including endpoint "
+      "spans, and is idempotent")
+def t_route_fence_saved_centreline():
+    """The emitter must follow realized copper, not a declared lattice, and
+    the independent gate must include the launch/package lead-in and run-out.
+    A second run proves existing plated elements are remeasured and credited
+    instead of receiving a duplicate row of vias.
+    """
+    import yaml
+    _d, config, board = pour_scratch(["F.Cu", "B.Cu"],
+                                     ["route_fence", "fill", "gate"])
+    edit_board(
+        board,
+        "rf=pcbnew.NETINFO_ITEM(b,'RF_TEST'); b.Add(rf)\n"
+        "for a,z in [((6.0,10.0),(14.0,10.0)),"
+        "            ((14.0,10.0),(18.0,14.0)),"
+        "            ((18.0,14.0),(26.0,14.0))]:\n"
+        " t=pcbnew.PCB_TRACK(b)\n"
+        " t.SetStart(pcbnew.VECTOR2I_MM(*a))\n"
+        " t.SetEnd(pcbnew.VECTOR2I_MM(*z))\n"
+        " t.SetWidth(pcbnew.FromMM(0.30)); t.SetLayer(pcbnew.F_Cu)\n"
+        " t.SetNet(rf); b.Add(t)\n")
+    cfg = yaml.safe_load(config.read_text())
+    cfg["stitch"]["route_fence"] = {
+        "net": "GND", "nets": ["RF_TEST"], "layer": "F.Cu",
+        "nominal_pitch": 1.0, "maximum_pitch": 1.4, "band": 1.0,
+        "lateral_offsets": [0.70, 0.80, 0.90], "require": "all",
+    }
+    config.write_text(yaml.safe_dump(cfg))
+
+    first = must_pass(stitch(config), "first route-following fence run")
+    contains(first.out, "2/2 flank(s)", "in-process fence denominator")
+    contains(first.out, "corner anchor(s)",
+             "bends are reserved before greedy straight-span filling")
+    count = via_nets(board).get("GND", 0)
+    check(count >= 20, f"implausibly few realized fence vias: {count}")
+    measured = must_pass(
+        run([KPY, FENCE, board, "1.0", "1.4", "--nets", "RF_TEST"]),
+        "independent saved-board fence measurement")
+    contains(measured.out, "2/2 configured arm-sides graded; 2/2 pass",
+             "saved-board endpoint-inclusive denominator")
+
+    second = must_pass(stitch(config), "idempotent fence rerun")
+    contains(second.out, "route fence: 0 new via(s)",
+             "rerun did not credit existing realized sites")
+    eq(via_nets(board).get("GND", 0), count,
+       "idempotent fence rerun duplicated plated sites")
+
+
 def via_xy(board):
     """[(x_mm, y_mm)] of every via on the board, sorted."""
     code = ("import pcbnew,sys,json\nb=pcbnew.LoadBoard(sys.argv[1])\no=[]\n"
@@ -2198,6 +2248,26 @@ def t_grid_fractional_pitch():
           "every via landed on a whole millimetre, so this fixture cannot "
           "tell the two steppers apart — pick a pitch whose lattice is "
           "genuinely fractional")
+
+
+@test("stitch_grid minimum grades the realized saved grid on an idempotent "
+      "rerun, not only newly emitted vias")
+def t_grid_min_idempotent():
+    """A completed grid makes every second-run `try_via` a correct no-op.
+    Its density contract must stay green by measuring the plated result;
+    otherwise every resumed/post-review stitch run falsely reports `0 < min`.
+    """
+    import yaml
+    _d, p, _board = _grid_pitch_scratch(2.0)
+    cfg = yaml.safe_load(p.read_text())
+    cfg["stitch"]["stitch_grid"]["min"] = 20
+    p.write_text(yaml.safe_dump(cfg))
+    must_pass(stitch(p), "initial stitch-grid realization")
+    second = must_pass(stitch(p), "idempotent stitch-grid rerun")
+    contains(second.out, "stitch grid: 0 vias added",
+             "rerun unexpectedly duplicated the existing grid")
+    contains(second.out, "declared sites served",
+             "rerun did not grade the saved plated result")
 
 
 @test("a NON-POSITIVE stitch pitch is a hard error — pre-fix it placed ZERO "
