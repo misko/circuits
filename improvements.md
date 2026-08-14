@@ -1960,6 +1960,12 @@ rationale.
   import one parser and return the same finding IDs.
 - history: 2026-08-12 — narrow independent publication reseals commissioned;
   docs-only v0.6.1 correction in progress, shared pre-seal parser still open.
+- history: 2026-08-14 — Pluto RX2 8-way v5 repeated the same exact-slug
+  failure on two otherwise SOUND, hash-bound reviews because the mutable
+  release staging path still did not call the publication parser. Preserve
+  immutable v0.1.0 and correct the identity fields through a strict docs-only
+  v0.1.1 successor; this is additional evidence that the shared pre-seal
+  parser is required, not a project-specific convention.
 
 ## IMP-060 — publication must replay the release's declared freshness mode
 
@@ -2122,6 +2128,13 @@ rationale.
 - history: 2026-08-12 — proposed from the nine-hour retrospective to make
   inexpensive metadata and packaging findings cost a staging edit, not an
   immutable supersede.
+- history: 2026-08-14 — Pluto RX2 8-way v5 passed its lower-level release and
+  freshness gates but post-seal publication rejected a prose value in the
+  reserved `release_mode` field, two non-canonical review subjects and a
+  material BRIEF edit after the stamped source commit. All were knowable in
+  mutable staging. This recurrence promotes the rehearsal from an efficiency
+  improvement to a required release-safety control; implementation remains
+  open.
 
 ## IMP-064 — early warning plus late authoritative recheck
 
