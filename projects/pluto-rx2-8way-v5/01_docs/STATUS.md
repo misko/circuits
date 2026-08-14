@@ -1,10 +1,10 @@
-# STATUS beacon — hardware design archive sealed
+# STATUS beacon — Pluto RX2 eight-way v5
 
 <!-- reader parses from here down -->
-stage:   release_seal
-step:    "sealed docs-only v0.1.1 publication correction from source commit 892721c8 at release commit 5f96461a and tag pluto-rx2-8way-v5-v0.1.1; hardware payload remains byte-identical to v0.1.0"
-measure: "P-PUBLISH PASS; DESIGN PASS and FRESHNESS PASS; fab 19/19, source 12/12 and 3d 1/1 byte-identical to v0.1.0; 91 manifest hashes valid; DRC 0/0/0; ERC 0 errors; firmware excluded by D16/D17"
+stage:   seal
+step:    "sealed hardware-only v0.2.1-2026-08-14 from source commit aa97e64e at release commit a9364fb8"
+measure: "DESIGN/FRESHNESS PASS; policy 0 FAIL; DRC 0/0/0; ERC 0 errors; RF reviews 13/13; P-MODEL-REG 9/9 bodies and 45/45 drilled centres; manifest 149/149 hashes; negative 5 mm registration fixture rejects"
 state:   done
-next:    "run the exact JLC uploader/process/BOM/rotation gates and five-board first-article power/VNA plan before any production order"
+next:    "run JLCPCB uploader/process/BOM/rotation/THT previews, then execute the documented five-board first-article RF and electrical acceptance plan before production payment"
 op_pid:
-updated: 2026-08-14T00:19:46-07:00
+updated: 2026-08-14T16:59:04
