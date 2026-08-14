@@ -177,4 +177,7 @@ day and fab exactly one of them.
 - Closed `V5-F2-source-document-lifecycle` in the authoritative findings
   ledger with the Rev 5 digest and focused comparison evidence; the project no
   longer contradicts its own current source-document state.
+- Corrected J11's dossier `mates:` field from a cable-family name to the
+  schema's physical role `plug`; the keyed FFSD receptacle relationship remains
+  explicit in the part note. This source-only correction makes P-ESC 13/13.
 Released: no
