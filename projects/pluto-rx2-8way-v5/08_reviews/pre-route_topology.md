@@ -5,15 +5,15 @@ review_stage: pre-route
 review_kind: topology
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-checkpoint_sha256: 4aa02bd4e5192377a4297164e3e28b270f0fa9073b092fa825d1bf9c6120b8f1
-circuit_json_sha256: 3ba4cf6381822872ac295705c5bab3479b1fe75fc5337b4b05eeb09d7c3a1ac8
+checkpoint_sha256: f8d17bb351beb74fe62add8c62ce0d30a3788b95235db34e50a6761515f6b3bf
+circuit_json_sha256: bf7063ed5f5239afb2dc0b9785d1b82ce092a30b4687dd85d5abf62a34f064f9
 kicad_schematic_path: 04_kicad/pluto_rx2_8way_v5.kicad_sch
-kicad_schematic_sha256: 9f373e13e6eb008e96d0d90521d585e8e2f17e17d0aa3561ab36ec3c03b32b45
-schematic_pdf_sha256: 1dd0e60e507f9b276cbaeebba8d6865673b8cec90193a35ac0e1057917382da6
+kicad_schematic_sha256: a21b84984b934ee37d65d04976193df6f5ff2ac8747323c22397e003744c7b0f
+schematic_pdf_sha256: eafe50122e048fde289ecfdc26dcf6e28a2bc27e6c5b232db9c9f0786da365c0
 netlist_sha256: 72bea8142a167c10d90c2ad1f5a5cac519e564bbb16755808a1fcd2675200021
-exact_netlist_sha256: 3331343401272b4636763e70030fff14f65c54d71337b1c763410628c0b2befd
+exact_netlist_sha256: dab68a6458c2f3070380a3c887e862a1d8277970fd8f159d498990decdfc94e0
 parts_sha256: e275db04f5e06b63d92714a9bb6f3c609f447e41d74a042001161ed2cc9bf6cb
-design_rules_sha256: f5837640a458d8dfeb85e076ae7b501c87a30d3c880be0e44efe480d303299d8
+design_rules_sha256: 70af3e20c1338c9d83b96348de0f3193434e387c39241ba59cd28c73a8acfb79
 authoring_source_sha256: d7780efb61bf5f3f1577aef4776a7f32484847a4fd121f88ebbbf11b07b52d73
 
 # Pre-route topology review after programming-connector decision D13
@@ -181,3 +181,12 @@ errors. The 4.75-5.5 V envelope, 20 mA design load, USB data no-connects,
 independent CC resistors and RF/control topology are unchanged. P0/P1/P2
 schematic defects remain 0/0/0; **SOUND / DO-NOT-ORDER** pending PCB replay,
 route, assembly preview and first-article tests.
+
+The strict-RF integration renewal changes only the RF process contract and
+the already-connected RF centreline geometry: it adopts bounded
+`rf-module-v1` context, a blocking 3W minimum-radius bend policy, and the
+realized 1.10 mm fence band. It adds no schematic component, pin, net, value,
+state word, or power path. I retraced the regenerated 30-component netlist:
+the canonical netlist digest and all 34/34 electrical invariants remain
+unchanged. P0/P1/P2 schematic-topology defects remain 0/0/0;
+**SOUND / DO-NOT-ORDER** pending exact routed-board renewal.

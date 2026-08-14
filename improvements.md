@@ -1895,12 +1895,26 @@ rationale.
   removes its model after generation and fails 0/22. Pluto RX2 8-way v5 passes
   29/29 with eight provenance- and digest-pinned official KiCad package-model
   files covering 17 fitted refs.
-- remaining: automated attachment-field/body registration and polarity-marker
-  projection, coupon/receipt production, independent authority binding and
-  hash-cache invalidation are not implemented. The native-STEP-versus-
-  converted-WRL SMA failure therefore remains an explicit visual/mechanical
-  review obligation; body coverage, `mount_anchor`, catalog bounding boxes and
-  same-mesh pixel agreement must never close it.
+- implementation progress: `model_registration_gate.py` and
+  `native_model_registration.py` now provide the first reusable blocking
+  `P-MODEL-REG` channel. A schema-1 project contract binds critical refs to an
+  exact native-model SHA and numeric tolerances. The gate renders the exact
+  board and a same-camera bare board, measures native-model pixels, and
+  independently compares them with F.Fab, F.CrtYd, and every drilled
+  attachment-pad centre. Its diagnostic overlay makes the transform channels
+  visually distinct: orange courtyard, green expected F.Fab, pink measured
+  native pixels, cyan attachment field, and blue board edge. The canonical
+  full/reuse drivers run it before placement review. Pluto J2-J10 pass 9/9
+  instances and 45/45 drilled centres; the prior converted-WRL self-pass is no
+  longer accepted as the placement A-RENDER receipt.
+- remaining: polarity-marker projection, permitted-edge overhang schemas,
+  origin-centred per-tuple coupons, tuple-hash receipt caching, and automatic
+  invalidation/reuse across boards are not implemented. The current gate
+  binds independent model and board hashes on every run and closes the Pluto
+  body/courtyard/attachment-field defect, but full semantic STEP feature
+  recognition remains out of scope. Body coverage, `mount_anchor`, catalog
+  bounding boxes and same-mesh pixel agreement must still never close
+  physical registration by themselves.
 - completion evidence required: known-present, genuine-absent and transient
   model-resolution fixtures; correct body with wrong internal XY origin; right
   XY with wrong rotation; correct body with wrong footprint drills; repeated
@@ -1924,6 +1938,9 @@ rationale.
     registration into separate claims after the corrected Pluto twin exposed
     a shared-source false pass. Defined an independent, hash-cached per-part
     registration receipt as the remaining implementation target.
+  - 2026-08-14 — landed the first reusable blocking native-model registration
+    gate and wired it before placement review; Pluto's nine SMAs now have
+    independent F.Fab/courtyard/45-hole evidence instead of a same-WRL pass.
 
 ## IMP-056 — population evidence must separate automated and manual bodies
 

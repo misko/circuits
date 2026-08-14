@@ -4,6 +4,10 @@ rf:
   rationale: "receive-only one-of-eight 50ohm selector covering the requested 100MHz-5.9GHz band"
   risk_tier: microwave
   risk_basis: "5.9GHz performance depends on the QFN escape, nine SMA launches, stackup, return paths and coupling"
+  process:
+    profile: rf-module-v1
+    context_policy: clean_room
+    geometry_policy: blocking
 
   topology:
     direction: receive_only
@@ -56,7 +60,11 @@ rf:
       maximum_vias_per_net: 0
       maximum_stubs_per_net: 0
       length_matching: "not required; selected paths are used one at a time and first-article loss balance, not phase equality, is the acceptance metric"
-      geometry: "one shortest collision-clean centreline per switch-to-SMA connection; no meanders and no unnecessary parallel runs"
+      geometry: "one shortest collision-clean line/arc centreline per switch-to-SMA connection; tangent rounded turns, no meanders and no unnecessary parallel runs"
+      bend_policy:
+        minimum_radius_width_multiple: 3.0
+        source_claim_ids: [ADI-RF-BEND-RADIUS-3W]
+        exceptions: []
     ground_fence:
       status: "required after the actual RF centrelines exist; ordinary rectangular board stitching is not proof"
       source: "Analog Devices Layout Guidelines for MMIC Components states that CPWG ground holes should be separated by lambda/20 or less; Analog Devices RF & Mixed-Signal PCB Layout Guidelines recommends fences on both sides of CPWG and an unbroken underlying ground plane"
@@ -68,6 +76,7 @@ rf:
       pitch_derivation: "round down from lambda_g/20 = 1.435 mm"
       nominal_via_mm: {size: 0.45, drill: 0.20}
       nominal_lateral_center_offset_mm: 0.70
+      maximum_lateral_center_offset_mm: 1.10
       lateral_offset_basis: "clears the 0.295-mm trace by more than the adopted 0.20-mm copper gap while retaining close top-ground-to-L2 bonds; exact accepted offsets must be measured and, if treated as part of the impedance model, field-solved"
       endpoint_structures:
         - refs: [U1]
@@ -114,10 +123,14 @@ rf:
       path: 08_reviews/rf_schematic.md
       artifact: 04_kicad/pluto_rx2_8way_v5.kicad_sch
       requirements: [RF-SCH-TOPOLOGY, RF-SCH-PINMAP, RF-SCH-DC, RF-SCH-DEFAULT]
+      evidence:
+        - {role: rf_source_bundle, path: 06_build/rf/source/bundle.json}
     pcb:
       path: 08_reviews/rf_pcb.md
       artifact: 04_kicad/pluto_rx2_8way_v5.kicad_pcb
       requirements: [RF-PCB-STACKUP, RF-PCB-IMPEDANCE, RF-PCB-LAUNCHES, RF-PCB-RETURN, RF-PCB-COUPLING]
+      evidence:
+        - {role: rf_realized_bundle, path: 06_build/rf/realized/bundle.json}
     fab:
       path: 08_reviews/rf_fab.md
       artifact: 06_build/fab/pluto_rx2_8way_v5_gerbers.zip

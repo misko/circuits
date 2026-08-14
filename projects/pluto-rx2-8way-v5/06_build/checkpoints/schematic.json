@@ -1,32 +1,32 @@
 {
   "files": {
     "03_src/rebuild_all.sh": {
-      "sha256": "4b4f427c9e05a57481e320ad14c317d9e776fb5f6f6159c9ef90315a70f23404",
-      "size": 26472
+      "sha256": "0140b3ace5e86ee69513003846fb24ad1883993ac6d746ab848e968bfbbd2c9d",
+      "size": 26671
     },
     "03_tscircuit/build/circuit.json": {
-      "sha256": "3ba4cf6381822872ac295705c5bab3479b1fe75fc5337b4b05eeb09d7c3a1ac8",
+      "sha256": "bf7063ed5f5239afb2dc0b9785d1b82ce092a30b4687dd85d5abf62a34f064f9",
       "size": 672015
     },
     "03_tscircuit/build/schematic.pdf": {
-      "sha256": "1dd0e60e507f9b276cbaeebba8d6865673b8cec90193a35ac0e1057917382da6",
-      "size": 105737
+      "sha256": "eafe50122e048fde289ecfdc26dcf6e28a2bc27e6c5b232db9c9f0786da365c0",
+      "size": 105752
     },
     "03_tscircuit/manifest.yaml": {
       "sha256": "eb41c47937cadf55f982ced10ff202447ab27bf6f8013577b4ee6c7cf50b474b",
       "size": 377
     },
     "04_kicad/pluto_rx2_8way_v5.kicad_sch": {
-      "sha256": "9f373e13e6eb008e96d0d90521d585e8e2f17e17d0aa3561ab36ec3c03b32b45",
+      "sha256": "a21b84984b934ee37d65d04976193df6f5ff2ac8747323c22397e003744c7b0f",
       "size": 127239
     },
     "06_build/build_provenance.json": {
-      "sha256": "c5222533b533ec590f830df9e05063a16281771ecc188a10d007a7b5f2a9fc67",
+      "sha256": "be26240c32728fa975f2048de9c797a9ee7f8ee4a04ae011d61d9f8901606188",
       "size": 804
     },
     "06_build/netlists/pluto_rx2_8way_v5.net": {
-      "sha256": "3331343401272b4636763e70030fff14f65c54d71337b1c763410628c0b2befd",
-      "size": 64906
+      "sha256": "dab68a6458c2f3070380a3c887e862a1d8277970fd8f159d498990decdfc94e0",
+      "size": 64877
     }
   },
   "name": "schematic",

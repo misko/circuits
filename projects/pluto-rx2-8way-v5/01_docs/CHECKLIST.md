@@ -1,6 +1,6 @@
 # Revision checklist
 
-## v0.2.0 bench-power candidate — layout sealed 2026-08-14
+## v0.2.1 bench-power / rounded-RF hardware archive — release sealed 2026-08-14
 
 - [x] J12 is exact CJT `A2541WV-2P` / LCSC `C225477`, vertical 1x2 THT at
       2.54-mm pitch; manufacturer drawing, dossier and project-local 3D model
@@ -14,24 +14,26 @@
       assertions pass 133/133, electrical invariants 34/34 and ERC has zero
       error-severity findings
 - [x] placement passes 42 assertions, zero pad/courtyard collisions, P-PADSEP,
-      30/30 model coverage and pre-route reviews/A-RENDER 4/4
+      30/30 model coverage and pre-route reviews; blocking P-MODEL-REG passes
+      9/9 SMA instances and 45/45 drilled attachment centres
 - [x] exact JLC twin includes J12; 30/30 bodies mount and J12 measures 0.172-mm
       centre delta / 0.176-mm outward excursion against the 1.00-mm limit
 - [x] the promoted route preserves all earlier tracks/vias and adds only two
       0.30-mm `VBUS_RAW` segments; final saved-board DRC is 0/0/0
-- [x] all nine RF routes remain unchanged; route fence passes 18/18 flanks and
-      via process grades 9 filled/capped + 628 ordinary vias
-- [x] fresh layout-only seal binds board SHA-256
-      `e47f366f5faa1991f1eed963dc882b436cc84e02e463e270e7d6f6d995f3f183`
+- [x] seven RF paths use 14 tangent arcs and two remain direct/straight; all
+      nine remain branch-free with zero RF vias, route fence passes 18/18
+      flanks and via process grades 9 filled/capped + 615 ordinary vias
+- [x] fresh layout seal and release evidence bind board SHA-256
+      `e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5`
 - [x] firmware was not generated or modified
-- [ ] commit the exact source/layout/review snapshot
-- [ ] generate and independently review a distinct v0.2.0 fabrication,
-      BOM/CPL and final-render staging package; do not alter v0.1.2 fab bytes
+- [x] commit the exact source/layout/review snapshot
+- [x] generate and independently review a distinct v0.2.1 fabrication,
+      BOM/CPL, STEP and high-resolution final-render release package
 - [ ] obtain JLC controlled-impedance, selective-via, C429844/C225477 THT,
       BOM-allocation, rotation and placement-preview echoes before ordering
 
-Current order verdict: **DO-NOT-ORDER**. The board is layout-sealed, not
-release-sealed.
+Current order verdict: **DO-NOT-ORDER**. The local hardware archive is sealed;
+JLC uploader/process acknowledgement and first-article evidence are still open.
 
 ## Layout-sealed candidate — 2026-08-13
 

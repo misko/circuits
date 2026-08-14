@@ -35,37 +35,79 @@ prep:
   # the PE42482 RF land centre to its SMA centre land: package/launch-normal,
   # stub-free, zero RF vias, no stochastic doglegs and no invented phase
   # matching.
-  seed_stubs:
+  seed_stubs: &deterministic_seed_stubs
     clearance: 0.20
     via: {size: 0.45, drill: 0.20}
     stubs:
       - net: RF_COMMON
         pin: U1.22
-        segments: [{layer: F.Cu, width: 0.295, pts: [[64.75, 46.10], [64.75, 44.50], [65.00, 36.50], [65.00, 31.60]]}]
+        segments:
+          - {layer: F.Cu, width: 0.295, pts: [[64.750, 46.100], [64.750, 44.812]]}
+          - {layer: F.Cu, width: 0.295, pts: [[64.760, 44.188], [64.990, 36.812]]}
+          - {layer: F.Cu, width: 0.295, pts: [[65.000, 36.188], [65.000, 31.600]]}
+        arcs:
+          - {layer: F.Cu, width: 0.295, start: [64.750, 44.812], mid: [64.752, 44.500], end: [64.760, 44.188]}
+          - {layer: F.Cu, width: 0.295, start: [64.990, 36.812], mid: [64.998, 36.500], end: [65.000, 36.188]}
       - net: RF_ANT1
         pin: U1.24
-        segments: [{layer: F.Cu, width: 0.295, pts: [[63.75, 46.10], [63.75, 44.50], [50.00, 36.50], [50.00, 31.60]]}]
+        segments:
+          - {layer: F.Cu, width: 0.295, pts: [[63.750, 46.100], [63.750, 45.075]]}
+          - {layer: F.Cu, width: 0.295, pts: [[63.253, 44.211], [50.497, 36.789]]}
+          - {layer: F.Cu, width: 0.295, pts: [[50.000, 35.925], [50.000, 31.600]]}
+        arcs:
+          - {layer: F.Cu, width: 0.295, start: [63.750, 45.075], mid: [63.617, 44.577], end: [63.253, 44.211]}
+          - {layer: F.Cu, width: 0.295, start: [50.497, 36.789], mid: [50.133, 36.423], end: [50.000, 35.925]}
       - net: RF_ANT2
         pin: U1.2
-        segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 47.25], [61.50, 47.25], [35.00, 36.50], [35.00, 31.60]]}]
+        segments:
+          - {layer: F.Cu, width: 0.295, pts: [[63.100, 47.250], [61.695, 47.250]]}
+          - {layer: F.Cu, width: 0.295, pts: [[61.319, 47.177], [35.624, 36.753]]}
+          - {layer: F.Cu, width: 0.295, pts: [[35.000, 35.827], [35.000, 31.600]]}
+        arcs:
+          - {layer: F.Cu, width: 0.295, start: [61.695, 47.250], mid: [61.504, 47.232], end: [61.319, 47.177]}
+          - {layer: F.Cu, width: 0.295, start: [35.624, 36.753], mid: [35.171, 36.385], end: [35.000, 35.827]}
       - net: RF_ANT3
         pin: U1.4
         segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 48.25], [31.60, 48.00]]}]
       - net: RF_ANT4
         pin: U1.6
-        segments: [{layer: F.Cu, width: 0.295, pts: [[63.10, 49.25], [61.50, 49.25], [36.50, 66.00], [31.60, 66.00]]}]
+        segments:
+          - {layer: F.Cu, width: 0.295, pts: [[63.100, 49.250], [61.804, 49.250]]}
+          - {layer: F.Cu, width: 0.295, pts: [[61.247, 49.419], [36.753, 65.831]]}
+          - {layer: F.Cu, width: 0.295, pts: [[36.196, 66.000], [31.600, 66.000]]}
+        arcs:
+          - {layer: F.Cu, width: 0.295, start: [61.804, 49.250], mid: [61.513, 49.293], end: [61.247, 49.419]}
+          - {layer: F.Cu, width: 0.295, start: [36.753, 65.831], mid: [36.487, 65.957], end: [36.196, 66.000]}
       - net: RF_ANT5
         pin: U1.13
-        segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 49.25], [68.50, 49.25], [93.50, 66.00], [98.40, 66.00]]}]
+        segments:
+          - {layer: F.Cu, width: 0.295, pts: [[66.900, 49.250], [68.196, 49.250]]}
+          - {layer: F.Cu, width: 0.295, pts: [[68.753, 49.419], [93.247, 65.831]]}
+          - {layer: F.Cu, width: 0.295, pts: [[93.804, 66.000], [98.400, 66.000]]}
+        arcs:
+          - {layer: F.Cu, width: 0.295, start: [68.196, 49.250], mid: [68.487, 49.293], end: [68.753, 49.419]}
+          - {layer: F.Cu, width: 0.295, start: [93.247, 65.831], mid: [93.513, 65.957], end: [93.804, 66.000]}
       - net: RF_ANT6
         pin: U1.15
         segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 48.25], [98.40, 48.00]]}]
       - net: RF_ANT7
         pin: U1.17
-        segments: [{layer: F.Cu, width: 0.295, pts: [[66.90, 47.25], [68.50, 47.25], [95.00, 36.50], [95.00, 31.60]]}]
+        segments:
+          - {layer: F.Cu, width: 0.295, pts: [[66.900, 47.250], [68.305, 47.250]]}
+          - {layer: F.Cu, width: 0.295, pts: [[68.681, 47.177], [94.376, 36.753]]}
+          - {layer: F.Cu, width: 0.295, pts: [[95.000, 35.827], [95.000, 31.600]]}
+        arcs:
+          - {layer: F.Cu, width: 0.295, start: [68.305, 47.250], mid: [68.496, 47.232], end: [68.681, 47.177]}
+          - {layer: F.Cu, width: 0.295, start: [94.376, 36.753], mid: [94.829, 36.385], end: [95.000, 35.827]}
       - net: RF_ANT8
         pin: U1.19
-        segments: [{layer: F.Cu, width: 0.295, pts: [[66.25, 46.10], [66.25, 44.50], [80.00, 36.50], [80.00, 31.60]]}]
+        segments:
+          - {layer: F.Cu, width: 0.295, pts: [[66.250, 46.100], [66.250, 45.075]]}
+          - {layer: F.Cu, width: 0.295, pts: [[66.747, 44.211], [79.503, 36.789]]}
+          - {layer: F.Cu, width: 0.295, pts: [[80.000, 35.925], [80.000, 31.600]]}
+        arcs:
+          - {layer: F.Cu, width: 0.295, start: [66.250, 45.075], mid: [66.383, 44.577], end: [66.747, 44.211]}
+          - {layer: F.Cu, width: 0.295, start: [79.503, 36.789], mid: [79.867, 36.423], end: [80.000, 35.925]}
       # The six RF-ground perimeter lands cannot accept ordinary unfilled
       # via-in-pad.  Join them under the package directly into the exposed-pad
       # copper and its already-authored filled/capped 3x3 ground-via field.
@@ -218,13 +260,14 @@ stitch:
     pth_margin: 0.20
     tiers: [{size: 0.45, drill: 0.20, hole_to_copper: 0.19}]
   keepin: {inset: 0.80}
-  passes: [dedupe_vias, normalize_vias, bridge_via_endpoints, drop_micro_fragments,
+  passes: [seed_stubs, dedupe_vias, normalize_vias, bridge_via_endpoints, drop_micro_fragments,
            drop_dangling, split_t_junctions, reload,
            hole_to_hole, pad_rescue,
            stub_fallback, astar_fallback, via_janitor, stitch_grid,
            route_fence, fill,
            island_rescue,
            dedupe_vias, hole_to_hole, fill, fresh_reload, heal_islands, gate]
+  seed_stubs: *deterministic_seed_stubs
   dedupe_vias: {radius: 0.35, metric: box}
   # Repair only impossible sub-tier geometry; do not inflate valid advanced-
   # tier vias collision-unchecked. All project emitters still prefer 0.45/0.20.
@@ -305,7 +348,7 @@ flow:
     pin: 08_reviews/pre-route_pin.md
     layout: 08_reviews/pre-route_layout.md
     render: 08_reviews/pre-route_render.md
-    a_render: 06_build/pre_route/twin_overlay.md
+    a_render: 06_build/pre_route/model_registration.md
   owner:
     stage: routing
     files: [03_src/floorplan.yaml, 03_src/route.yaml]

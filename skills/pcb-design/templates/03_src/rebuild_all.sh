@@ -352,6 +352,8 @@ run_stage route_prep   $PY "$S/route_and_stitch_generic.py" prep   03_src/route.
 
 # [5d] Exact pre-route pin/layout/render reviews plus the preliminary
 # same-camera A-RENDER report. Final staged reviews still run after routing.
+$PY "$FS/model_registration_gate.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [5d] P-MODEL-REG: native body, footprint, courtyard, or attachment datums disagree"; exit 1; }
 $PY "$S/pre_route_review_check.py" . --phase placement \
     --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [5d] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence is missing, stale, or defective"; exit 1; }

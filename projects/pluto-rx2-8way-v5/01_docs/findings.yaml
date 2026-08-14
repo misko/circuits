@@ -64,8 +64,9 @@ gates:
       - 08_reviews/pre-route_topology.md
       - 08_reviews/rf_schematic.md
       - 08_reviews/rf_pcb.md
-      - 01_docs/renders/v0.2.0-candidate-bench-power-top.png
-      - 01_docs/renders/v0.2.0-candidate-bench-power-iso.png
+      - 07_releases/v0.2.1-2026-08-14/verification/final_top_3200.png
+      - 07_releases/v0.2.1-2026-08-14/verification/final_iso_3200.png
+      - 07_releases/v0.2.1-2026-08-14/verification/sma_native_registration/native_model_registration.md
       - 01_docs/journal/routing.md
 
   - id: V5-release-package
@@ -118,7 +119,7 @@ findings:
     state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: layout
-    finding: The cross-section, exact footprints, compact 90x65mm mechanics, five-top/two-per-side cyclic U edge order, bench-power header and connector datums are realized and machine-clean. The current placement/render reviews approve connector access, straight RF planning corridors and render readability on exact routed board SHA e47f366f5faa. The explicit release checklist retains JLC assembly DFM disposition of the 0.10mm SMA drill delta and both C429844/C225477 THT processes before order; routed RF geometry remains separately gated by V5-placement-and-routing.
+    finding: The cross-section, exact footprints, compact 90x65mm mechanics, five-top/two-per-side cyclic U edge order, bench-power header and connector datums are realized and machine-clean. The current placement/render reviews approve connector access, tangent-rounded RF routes and render readability on exact routed board SHA e2d1deaf4052. Independent native-model registration places all 45 SMA attachment centres inside their bodies and both body envelopes inside the courtyards. The explicit release checklist retains JLC assembly DFM disposition of the 0.10mm SMA drill delta and both C429844/C225477 THT processes before order; routed RF geometry remains separately gated by V5-placement-and-routing.
     closes_when: The exact board hash receives connector/RF/render approval and the order-stage DFM obligation is carried into the fab checklist.
     evidence:
       - 03_src/floorplan.yaml
@@ -126,8 +127,9 @@ findings:
       - 08_reviews/pre-route_layout.md
       - 08_reviews/pre-route_render.md
       - 08_reviews/rf_pcb.md
-      - 01_docs/renders/v0.2.0-candidate-bench-power-top.png
-      - 01_docs/renders/v0.2.0-candidate-bench-power-iso.png
+      - 07_releases/v0.2.1-2026-08-14/verification/final_top_3200.png
+      - 07_releases/v0.2.1-2026-08-14/verification/final_iso_3200.png
+      - 07_releases/v0.2.1-2026-08-14/verification/sma_native_registration/native_overlay_J2.png
       - 06_build/checkpoints/placement-pre-D13.json
       - 01_docs/CHECKLIST.md
 

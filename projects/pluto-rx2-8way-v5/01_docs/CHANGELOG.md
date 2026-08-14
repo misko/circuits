@@ -7,7 +7,7 @@ One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 Most revisions never ship. That is normal: a board can go v4.4 → v4.10 in a
 day and fab exactly one of them.
 
-## v0.2.0 — 2026-08-14  [in progress — bench-power hardware revision]
+## v0.2.1 — 2026-08-14  [hardware archive — bench power, rounded RF, independent model registration]
 - Added J12, exact CJT A2541WV-2P / LCSC C225477, as a populated vertical
   1x2 2.54-mm through-hole bench-power header beside USB-C.
 - Connected J12 pin 1 (+5V) to `VBUS_RAW` and pin 2 to GND, so either input
@@ -15,16 +15,38 @@ day and fab exactly one of them.
 - Kept the 4.75–5.5 V input contract and made the non-isolated source rule
   explicit in schematic, invariants, power/protection schemas and board silk:
   `USB OR J12 - NOT BOTH`.
-- No v0.1.2 fabrication payload is changed by this source revision. A new
-  release may be sealed only after regenerated schematic, PCB, routing, DRC,
-  assembly and render evidence pass.
-- The exact v0.2.0 candidate now has a fresh layout-only seal over board
-  SHA-256 `e47f366f5faa`: 30/30 component parity and 3D model coverage,
-  34/34 electrical invariants, pre-route review 4/4, final DRC 0/0/0,
-  18/18 RF fence flanks, 9 protected + 628 ordinary vias, and exact-artifact
-  RF schematic/PCB reviews all pass. It remains **not release-sealed** and
-  **DO-NOT-ORDER** until the new fabrication/BOM/CPL package and JLC previews
-  are completed.
+- Replaced seven sharp two-corner RF paths with fourteen native tangent arcs;
+  all nine RF paths remain branch-free 0.295-mm F.Cu with zero RF vias. The
+  minimum bend radius is 3.350 routed widths and the return fence passes all
+  18 flanks with a 1.3979-mm worst aperture against the 1.4000-mm limit.
+- Added blocking `P-MODEL-REG` before placement review. It binds the exact
+  native Amphenol STEP by SHA-256 and independently compares measured model
+  pixels with F.Fab, F.CrtYd and every drilled attachment centre. J2–J10 pass
+  9/9 model instances and 45/45 drilled centres; measured courtyard excursion
+  is 0.000 mm for every connector.
+- Preserved the raw JLC C429844 catalog twin as diagnostic evidence, but
+  withdrew it as physical-registration proof: its converted WRL has an
+  internal XY-origin defect and the former gate compared expected and measured
+  envelopes derived from that same bad mesh.
+- Regenerated the exact board, schematic, Gerbers, drills, BOM/CPL, PDFs,
+  component-bearing STEP, high-resolution final views and RF evidence. Final
+  DRC/parity is 0/0/0, component parity and model coverage are 30/30, stock is
+  14/14, and via process is 9 protected plus 615 ordinary vias.
+- This remains a hardware-only **DO-NOT-ORDER** archive. Firmware is absent by
+  user directive; JLC uploader/process acknowledgements and physical
+  first-article VNA/electrical testing remain mandatory.
+
+Released: 07_releases/v0.2.1-2026-08-14
+
+## v0.2.0 — 2026-08-14  [withdrawn before publication]
+- The local candidate combined strict rounded RF routing with a JLC catalog
+  twin whose SMA bodies were internally misregistered to their footprints.
+- Its old A-RENDER result only proved that a derived expected box and rendered
+  pixels agreed with the same faulty converted WRL. Courtyard excursion was
+  reported but was not a blocking condition, so the false physical pass was
+  possible.
+- The candidate was never pushed to `main` and is superseded by v0.2.1. Do not
+  publish or order the local v0.2.0 tag/archive.
 
 Released: no
 

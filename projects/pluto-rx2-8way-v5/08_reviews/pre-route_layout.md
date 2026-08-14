@@ -7,8 +7,8 @@ review_kind: layout
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 board_sha256: 3fc9efc86e75025084e7b0a4555e7417adfa6f3a07c22129de7ca7fc6b6ff9dd
-design_rules_sha256: f5837640a458d8dfeb85e076ae7b501c87a30d3c880be0e44efe480d303299d8
-route_prep_sha256: 4995336f67cf4b418b136f70dd411539d09ee82c3a81a576ff1801692b99440b
+design_rules_sha256: 70af3e20c1338c9d83b96348de0f3193434e387c39241ba59cd28c73a8acfb79
+route_prep_sha256: c00f0e64bd282aa1034c2747418c058914421a83b447d4ed943fffbf51cd3d86
 
 # Fresh corrected placement/layout renewal
 

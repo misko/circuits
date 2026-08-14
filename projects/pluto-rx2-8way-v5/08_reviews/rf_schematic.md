@@ -1,12 +1,13 @@
 review_kind: RF_SCHEMATIC
-subject: pluto-rx2-8way-v5 v0.2.0 candidate hardware-only RF schematic with J12
+subject: pluto-rx2-8way-v5 v0.2.1 candidate hardware-only RF schematic with J12
 date: 2026-08-14
 reviewer: Codex exact-artifact RF schematic reviewer
 independence: independent-from-design-author
 context-given: exact staged schematic, RF contract, part dossiers and machine verification
 source_commit: 9516a13c47e2dfb18865e3fc0ca402e12c7b1c95
-artifact_sha256: 9f373e13e6eb008e96d0d90521d585e8e2f17e17d0aa3561ab36ec3c03b32b45
-board_sha256: e47f366f5faa1991f1eed963dc882b436cc84e02e463e270e7d6f6d995f3f183
+artifact_sha256: a21b84984b934ee37d65d04976193df6f5ff2ac8747323c22397e003744c7b0f
+board_sha256: e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5
+evidence_sha256: rf_source_bundle a89deb1fe5f387458061f22670d43920a046bd9e9bc9feca29472cfb50693fb6
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 requirement: RF-SCH-TOPOLOGY PASS
@@ -20,9 +21,10 @@ p2_findings: 0
 # Exact staged RF schematic review
 
 The staged schematic implements one receive-only PE42482A-X absorptive SP8T
-between common SMA J2 and antenna SMAs J3–J10. The exported netlist and board
-agree over 22 nets, 133 connected nodes and 24 no-connects with zero real
-discrepancies. ERC has zero error-severity findings.
+between common SMA J2 and antenna SMAs J3–J10. The regenerated schematic,
+exported netlist, manifest and board agree on all 30 component identities and
+127 declared multi-pin physical identities. ERC has zero error-severity
+findings, and the RF source bundle grades all nine planned RF nets.
 
 The exact switch pin map, binary LS-low truth table and `PA0..PA3 -> V1..V4`
 mapping agree with the reviewed dossier and RF contract. Passive 10-kohm bias

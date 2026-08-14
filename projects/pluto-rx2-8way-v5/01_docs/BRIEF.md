@@ -1,5 +1,5 @@
 status: in-progress
-current_release: 07_releases/v0.1.2-2026-08-14
+current_release: 07_releases/v0.2.1-2026-08-14
 commission_basis: clean-room reconstruction with eight user-authoritative decisions
 
 # Commission brief — pluto-rx2-8way-v5

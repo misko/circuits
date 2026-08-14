@@ -41,6 +41,7 @@ PY=/usr/bin/python3
 # resolve the shared skill scripts (repo-relative first, ~/.claude fallback)
 S="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || echo ../../..)" && pwd)/skills/kicad-pcb/scripts"
 [ -f "$S/generate_board_generic.py" ] || S="$HOME/.claude/skills/kicad-pcb/scripts"
+FS="$(dirname "$(dirname "$S")")/jlcpcb-fab/scripts"
 export PATH="$HOME/.bun/bin:$PATH"
 
 run_stage() {
@@ -136,6 +137,8 @@ $PY "$S/tier_preflight.py" . \
     || { echo "GATE FAILED [4b] R-PREFLIGHT: route geometry disagrees with the fab tier"; exit 1; }
 $PY "$S/route_and_stitch_generic.py" prep 03_src/route.yaml
 
+$PY "$FS/model_registration_gate.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [4c] P-MODEL-REG: native body, footprint, courtyard, or attachment datums disagree"; exit 1; }
 $PY "$S/pre_route_review_check.py" . --phase placement \
     --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [4c] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence missing, stale, or defective"; exit 1; }
