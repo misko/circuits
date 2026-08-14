@@ -1,10 +1,10 @@
-# STATUS beacon — layout is clean; assembly ownership fixed before final seal
+# STATUS beacon — reviewed layout sealed; paused before fabrication
 
 <!-- reader parses from here down -->
-stage:   layout_review
-step:    "corrected board is SOUND; final seal rehearsal fixed J2-J10 assembly ownership, current ST evidence, its maturity ledger and J11 connector-role schema before seal"
-measure: "board unchanged at 39251c24d4b3; DRC 0/0/0; V-PROCESS 9 protected 0.45/0.25mm + 629 ordinary 0.45/0.20mm; RF fence 18/18 worst 1.3979mm; exact C429844 Plugin stock 951; A-POP THT findings 9 -> 0; official DS13866 Rev5 local digest e392b1542086"
-state:   working
-next:    "commit the J11 source-schema correction, perform a final bounded exact-review rebind, then mint the reviewed-commit layout seal and pause before fabrication"
+stage:   seal
+step:    "layout seal minted against reviewed source commit 4cf5c818; fabrication package has not started"
+measure: "board 39251c24d4b3; six exact-final lenses SOUND; DRC 0/0/0; P-ESC 13/13; P-LAND 62/62; P-PADSEP pass; V-PROCESS 9 protected 0.45/0.25mm + 629 ordinary 0.45/0.20mm; RF fence 18/18 worst 1.3979mm"
+state:   done
+next:    "after the stage pause, begin a pre-seal JLC fabrication/BOM/CPL package and qualify rotations, exact C429844 THT ownership, stackup/impedance and selective POFV in the real uploader"
 op_pid:
-updated: 2026-08-13T20:51:25-07:00
+updated: 2026-08-13T21:10:08-07:00

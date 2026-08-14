@@ -105,6 +105,7 @@ rationale.
 | IMP-089 | Treat same-net via-in-pad as a fabrication process, not a DRC clearance | completed | Pluto RX2 8-way v5 final layout red team |
 | IMP-090 | Bind review freshness to declared stage dependencies, not monolithic source bags | proposed | Pluto RX2 8-way v5 corrected layout seal |
 | IMP-091 | Freeze executable assembly-process ownership before placement export | proposed | Pluto RX2 8-way v5 layout-seal entry |
+| IMP-092 | Make provenance source discovery honor declared source boundaries and ignore policy | proposed | Pluto RX2 8-way v5 layout seal |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -3203,3 +3204,35 @@ Recommended execution order for future boards:
   separate hand-solder release.
 - history: 2026-08-13 — proposed and corrected at v5 layout-seal entry, before
   the seal was minted.
+
+## IMP-092 — make provenance source discovery honor declared source boundaries and ignore policy
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 layout seal, 2026-08-13
+- evidence: the first exact reviewed-commit seal attempt treated five generated
+  two-byte files under `03_tscircuit/.tscircuit/cache/` as source inputs. The
+  directory was already excluded by the project's `.gitignore`, its contents
+  were tool cache rather than design authority, and the committed source was
+  unchanged. Moving the ignored cache out of the project made the same sealed
+  source pass without changing a design artifact.
+- general rule: provenance must enumerate the declared authoritative inputs of
+  a stage. Generated caches, editor state, lock files and build scratch must
+  never silently join that authority merely because they appear below a broad
+  source directory. A dirty or untracked *authoritative* input must still fail
+  closed.
+- intended landing point: centralize source discovery behind one policy-aware
+  walker. It should consume explicit source roots, honor repository and
+  project ignore rules for non-authoritative files, always exclude known tool
+  cache/lock families such as `.tscircuit/`, and write the enumerated relative
+  path list beside every source digest so unexpected membership is inspectable.
+- safety condition: ignore rules must not be able to hide a path explicitly
+  declared by a stage contract. Regression fixtures must prove that adding a
+  cache file leaves the digest stable, adding an undeclared authoritative
+  source fails discovery, and changing a declared-but-ignored source still
+  changes the digest or fails loudly.
+- recommendation: implement before the next layout seal. Until then, remove or
+  relocate ignored generator caches before provenance generation and inspect
+  the exact source-member list; do not weaken the reviewed-commit or clean-tree
+  requirement.
+- history: 2026-08-13 — proposed after the reviewed-commit seal was blocked by
+  ignored tsCircuit cache bytes rather than a source or board delta.

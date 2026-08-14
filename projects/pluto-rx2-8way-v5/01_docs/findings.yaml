@@ -52,9 +52,19 @@ gates:
 
   - id: V5-placement-and-routing
     required_for: DESIGN_CLEAN
-    state: pending
+    state: pass
     owner: layout
     closes_when: Exact placement and routed PCB pass geometry, RF, impedance, connectivity, DRC, render and fresh-context review gates for the selected JLC process.
+    evidence:
+      - 04_kicad/pluto_rx2_8way_v5.kicad_pcb
+      - 06_build/layout_seal.json
+      - 08_reviews/2026-08-13_4cf5c818_pin_review.md
+      - 08_reviews/2026-08-13_4cf5c818_render_review.md
+      - 08_reviews/2026-08-13_4cf5c818_redteam_topology.md
+      - 08_reviews/2026-08-13_4cf5c818_redteam_layout.md
+      - 08_reviews/2026-08-13_4cf5c818_rf_schematic.md
+      - 08_reviews/2026-08-13_4cf5c818_rf_pcb.md
+      - 01_docs/journal/routing.md
 
   - id: V5-release-package
     required_for: FIRST_ARTICLE_ORDERABLE

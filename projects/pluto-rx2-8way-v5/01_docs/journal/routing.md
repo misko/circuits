@@ -491,3 +491,46 @@ correctly absent until a release is actually staged. The board bytes are
 unchanged. The lesson is stage ordering: run A-POP/A-POS on the first candidate
 BOM/CPL before routing, because assembly ownership is source architecture even
 when the final allocation echo is necessarily order-time evidence (IMP-091).
+
+## 2026-08-13 — exact reviewed-commit layout seal and stage reflection
+
+All six exact-final lenses were renewed against source commit
+`4cf5c818684e4c39f594b50a567fb086b9cf6f13` and the unchanged routed board
+SHA-256 `39251c24d4b3cc878824f26c48178cbc4a4d418fa528045c6c13f2308e017acd`.
+Pin, render, topology, layout, RF schematic and RF PCB reviews are SOUND. The
+reviewed-commit seal replay passes DRC 0/0/0, P-ESC 13/13, P-LAND 62/62,
+P-PADSEP across 167 pads/12,971 copper pairs/17,058 paste pairs, 638/638 via
+process grading and both RF review families. The resulting seal explicitly
+covers PCB layout only; fabrication, PCBA, firmware and physical performance
+remain unsealed.
+
+The first seal invocation was blocked even though source commit and board
+bytes were correct. Provenance discovery had swept five generated two-byte
+files from ignored `03_tscircuit/.tscircuit/cache/` into its broad source bag.
+The cache was already excluded from Git and carried no design authority.
+Moving it recoverably outside the project made the identical reviewed source
+pass. IMP-092 records the general correction: provenance should enumerate
+declared authoritative inputs and honor non-authoritative ignore/cache policy,
+while never permitting an ignore rule to hide an explicitly declared input.
+
+### Layout-stage reflection
+
+- Time was spent productively where independent gates found real defects: an
+  ordinary same-net via in J11 paste, a non-selective fill/cap drill family,
+  ambiguous THT population ownership, stale source-document state and an
+  invalid connector-role value. DRC alone could not have closed those.
+- Several findings belonged earlier. Via-in-pad process intent belongs in the
+  first routing preflight; THT ownership belongs before the first CPL; current
+  document identity and typed connector roles belong in exact-parts/P-ESC.
+- Rebinding six broad reviews after downstream-only source corrections was
+  safe but expensive. IMP-090 should replace monolithic review source bags
+  with declared, fail-closed dependency projections before another board with
+  frequent late sourcing and process edits.
+- The route/stitch pipeline was not trapped in a local minimum at completion.
+  Its bounded waves, disposable promotion, exact checkpoints and independent
+  saved-board gates made rejected states observable and recoverable. The
+  remaining latency came mainly from late semantic/process checks and review
+  freshness churn rather than copper search.
+- Fabrication must begin from the sealed identity, create a staged release,
+  and stop again for exact Gerber/RF, BOM/CPL/rotation, JLC process and uploader
+  review. The layout seal is a permission to prepare that package, not to buy it.

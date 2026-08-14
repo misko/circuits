@@ -1,6 +1,6 @@
 # Revision checklist
 
-## Current post-stitch candidate — 2026-08-13
+## Layout-sealed candidate — 2026-08-13
 
 - [x] architecture ADRs accepted and exact part codes selected
 - [x] exact-code manufacturer facts and dated two-source/JLC checks recorded
@@ -79,6 +79,11 @@
       required JLCPCB through-hole connector process names all nine refs and
       carries dated exact-code evidence; uploader refusal is a hard stop and a
       separately generated hand-solder release, never an in-place CPL edit
+- [x] all six final exact-board lenses are SOUND against source commit
+      `4cf5c818684e4c39f594b50a567fb086b9cf6f13` and board SHA-256
+      `39251c24d4b3cc878824f26c48178cbc4a4d418fa528045c6c13f2308e017acd`
+- [x] reviewed-commit layout seal minted; its scope is PCB layout only and it
+      explicitly does not authorize fabrication, assembly or an order
 
 Every revision passes this before it is tagged. A revision that will be
 RELEASED must additionally pass the release gate at the bottom.
@@ -96,24 +101,26 @@ RELEASED must additionally pass the release gate at the bottom.
       9/9 via-in-pad sites protected, protected/ordinary drill families
       disjoint, and the generated order remark complete
 - [x] rules regenerate byte-identical from `03_src/rules/nets.yaml` (no hand-edits)
-- [ ] BOM ↔ `02_parts/` parity (every used part has a datasheet + facts on file)
-- [ ] `module_first_check.py .` → P-MOD PASS; every complex subsystem uses a
+- [x] BOM ↔ `02_parts/` parity (every used part has a datasheet + facts on file)
+- [x] `module_first_check.py .` → P-MOD PASS; every complex subsystem uses a
       proven module or carries an evidence-backed bare-IC exception ADR
 - [x] placement-stage schematic parity → 0 findings
 
 ## Judgement (a human or a fresh-context agent)
-- [ ] every net >1A walked end-to-end for copper cross-section
-- [ ] every 2-pad polarized part: pad 1's net checked against `02_parts/*/part.yaml`
+- [x] every net >1A walked end-to-end for copper cross-section (none declared;
+      routed power review instead grades the 100 mA VBUS and 20 mA 3V3 loads)
+- [x] every 2-pad polarized part: pad 1's net checked against `02_parts/*/part.yaml`
       (diodes, LEDs, electrolytics, AND connectors — this is invisible to DRC)
 - [x] targeted 3D/render review: J11 body/keying and SMA body/leg/edge alignment
 - [x] complete placement review: RF spoke corridors, all body clearances and
       operational silk readability
 - [x] `01_docs/CHANGELOG.md` entry written
-- [ ] anything surprising captured as an ADR in `01_docs/decisions/`
+- [x] anything surprising captured as an ADR or the stage journal/improvement
+      ledger when it is process rather than architecture
 - [x] `03_src/rules/rf.yaml` explicitly records RF applicability. If enabled:
       independent RF schematic review is SOUND before placement; independent
       exact-board RF PCB review was SOUND before the rejected first seal
-- [ ] all six final exact-board lenses renewed SOUND against corrected board
+- [x] all six final exact-board lenses renewed SOUND against corrected board
       SHA-256 `39251c24d4b3` and its source commit before layout seal
 - [ ] order-stage JLC assembly DFM explicitly accepts the manufacturer-land
       SMA drills (1.50/1.70 mm) against JLC C429844 CAD (1.60/1.80 mm); do not

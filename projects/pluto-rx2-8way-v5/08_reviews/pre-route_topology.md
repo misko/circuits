@@ -11,8 +11,8 @@ kicad_schematic_sha256: 1abd0c209be27ac602f55f8e81cf25e4e98bb3a99a2fb76494fc8bbf
 schematic_pdf_sha256: 9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759f5d955
 netlist_sha256: 817a6cea93afa2ee3e387cf861702dfe4e06c9a8fa7af192f7f9d53cea1f2ecd
 exact_netlist_sha256: e39508799698657495d058021a990f9e02c0ff7f526efbf44939f0cf13bbb795
-parts_sha256: 879aa0b01010b253ad07989de128d0035d4cf4a01266eaa37b18b21a27dc1ce8
-design_rules_sha256: 442edd6040f0b990f94a76f0f21d702503c0ba365fe6c5464d55f1842ab6999e
+parts_sha256: 5f5fd1858798e18facce8ed0264edf4808ce6eaa1e1e5dbde1088ee9aef6f905
+design_rules_sha256: 5c8ccde65b844267b1c9c293997c979c2a26eb8264bda0369335a1c465f50640
 authoring_source_sha256: 4959ed7107a3dae3969df2b8306b591187bda34f79720c9b410676f7908ef53b
 
 # Pre-route topology review after programming-connector decision D13
@@ -84,3 +84,52 @@ The D-MATE renewal makes the existing cable boundary machine-readable without
 restating values: Pluto Plus SMA gender, port order and the receiver absolute
 maximum are referenced to their single `spf/plutoplus_hardware` evidence home
 and graded 3/3. No dimension is consumed and no topology changes. **SOUND**.
+
+The 2026-08-13 `dae8320d` renewal independently reopened all current part
+dossiers, their retained local evidence, every adopted design-rule YAML, the
+exact schematic PDF and the normalized electrical netlist. The changed part
+and rule digests describe the corrected selective U1 via-process contract:
+nine protected 0.45/0.25-mm filled/capped sites are drill-distinct from
+ordinary 0.45/0.20-mm vias. They do not change a schematic component, value,
+pin, net, truth-table word or rating. Fresh checks remain 32/32 electrical
+invariants, 21/21 surviving labels, 131/131 pin-map assertions, 29/29 source
+component parity and zero ERC errors. The four RF schematic requirements and
+the USB-C/protection/control paths were retraced against the current pSemi,
+TI, ST and connector dossiers. P0/P1/P2 schematic defects remain 0/0/0;
+**SOUND / DO-NOT-ORDER**.
+
+The `6d1d01ca` renewal rechecked the unchanged exact schematic, normalized
+netlist, four-page PDF and part authority after adding the machine-readable
+J2-J10 through-hole assembly contract. The new broad design-rule digest changes
+only the assembly ownership/order contract: it names the required JLCPCB
+wave/manual process, exact connector denominator and uploader stop condition.
+It changes no component, value, pin, electrical net, truth-table word, rating
+or schematic geometry. Fresh checks remain 32/32 electrical invariants,
+21/21 labels, 131/131 pin-map assertions, 29/29 component parity and zero ERC
+errors. P0/P1/P2 schematic defects remain 0/0/0; **SOUND / DO-NOT-ORDER**.
+
+The `770ac064` renewal replaces no design fact: it binds the STM32 dossier to
+official local ST DS13866 Rev 5 and renames the retained historical byte copy
+to its correct Rev 3 identity. I independently reopened both PDFs. Rev 5
+confirms the consumed TSSOP-20 pin sequence, PA13/PA14 SWD roles, 2.0-3.6 V
+supply, BOR4 rising 2.80-3.00 V/falling 2.70-2.90 V, HSI48 -1/+1% at
+0-85 C and -2.5/+2% full-temperature, and 6.5 x 4.4 mm 0.65-mm-pitch package.
+Fresh exact checks remain 32/32 invariants, 21/21 labels, 131/131 pin maps,
+29/29 components and zero ERC errors. No schematic topology or rating changes;
+P0/P1/P2 schematic defects remain 0/0/0. **SOUND / DO-NOT-ORDER**.
+
+The `3ecf08ab` renewal closes V5-F2 in the findings ledger using the same exact
+official Rev 5 evidence independently checked above. Its remaining source delta
+is changelog/research cleanup only. Part and broad design-rule hashes,
+schematic, normalized netlist and PDF are unchanged from `770ac064`. A fresh
+exact export still passes 32/32 invariants, 21/21 labels, 131/131 pin maps and
+zero-discrepancy PCB parity over 22 nets; ERC errors remain zero. P0/P1/P2
+schematic defects remain 0/0/0; **SOUND / DO-NOT-ORDER**.
+
+The `4cf5c818` renewal changes only J11's dossier-level mating-role vocabulary:
+the board-side FTSH male header is now schema-valid `plug`, while the note
+retains its keyed 1.27-mm FFSD-family cable-receptacle relationship. P-ESC
+passes 13/13. The schematic, normalized netlist, PDF, component identity,
+J11 pin map and adopted design rules are unchanged. No topology, rating or
+readability conclusion changes; P0/P1/P2 schematic defects remain 0/0/0.
+**SOUND / DO-NOT-ORDER**.

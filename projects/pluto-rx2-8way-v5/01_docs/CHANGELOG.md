@@ -180,4 +180,14 @@ day and fab exactly one of them.
 - Corrected J11's dossier `mates:` field from a cable-family name to the
   schema's physical role `plug`; the keyed FFSD receptacle relationship remains
   explicit in the part note. This source-only correction makes P-ESC 13/13.
+- Renewed all six exact-final review lenses against source commit `4cf5c818`
+  and unchanged board SHA-256 `39251c24d4b3`; every lens is SOUND with zero
+  P0/P1/P2 layout findings. The remaining findings are fabrication, order,
+  firmware and first-article controls rather than layout defects.
+- Minted the reviewed-commit layout seal after the full gate replay: DRC
+  0/0/0, P-ESC 13/13, P-LAND 62/62, P-PADSEP pass, RF reviews 9/9 and via
+  process 638/638. This seal covers PCB layout only and is not a fab release.
+- Recorded a provenance-discovery defect after ignored tsCircuit cache bytes
+  blocked the first seal attempt. Relocating the ignored cache restored the
+  correct source set without a design change; IMP-092 carries the general fix.
 Released: no
