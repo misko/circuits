@@ -190,4 +190,24 @@ day and fab exactly one of them.
 - Recorded a provenance-discovery defect after ignored tsCircuit cache bytes
   blocked the first seal attempt. Relocating the ignored cache restored the
   correct source set without a design change; IMP-092 carries the general fix.
+- Entered fabrication with a strict rather than permissive export. The first
+  run stopped before writing uploadable BOM/CPL data because six exact LCSC
+  rotation rows were missing; independent pad and marking measurements now
+  cover C2866134, C2932107, C429844, C5184243, C5452432 and C83270, and the
+  complete 99-row authority passes M-PROV/A-POL.
+- Generated the first exact JLC package from unchanged board SHA-256
+  `39251c24d4b3`: 11 Gerber layers plus separate PTH/NPTH drills, 13 coded BOM
+  lines and 29 top-side CPL placements. BOM source/legibility, 13/13 live stock,
+  archive integrity, four-layer pour census, A-POP/A-POS, selective via process
+  and 18/18 RF fence gates pass.
+- Resolved the final exact-code JLC twin without weakening global tolerances.
+  All 29 fitted bodies mount; a pixel-independent overlay grades 14/14
+  resolvable bodies within 1.00 mm and names the 15 sub-resolution/occluded
+  bodies. Evidence-bound adjudications retain Amphenol and Samtec manufacturer
+  lands over conflicting generic catalog CAD and retain Littelfuse's compliant
+  SMB pad dimensions; every order-preview and DFM obligation remains explicit.
+- Corrected the RF fabrication artifact contract from a hand-typed hyphenated
+  ZIP name to the strict exporter's actual underscore name before dispatching
+  the exact-Gerber review. IMP-093 and IMP-094 record the repeated-pad matcher
+  and generated-artifact-index improvements exposed by this stage.
 Released: no

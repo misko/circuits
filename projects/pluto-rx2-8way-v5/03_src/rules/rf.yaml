@@ -120,7 +120,7 @@ rf:
       requirements: [RF-PCB-STACKUP, RF-PCB-IMPEDANCE, RF-PCB-LAUNCHES, RF-PCB-RETURN, RF-PCB-COUPLING]
     fab:
       path: 08_reviews/rf_fab.md
-      artifact: 06_build/fab/pluto_rx2_8way_v5-gerbers.zip
+      artifact: 06_build/fab/pluto_rx2_8way_v5_gerbers.zip
       requirements: [RF-FAB-STACKUP, RF-FAB-COPPER, RF-FAB-DRILLS, RF-FAB-FIRST-ARTICLE]
 
   switch_interface:

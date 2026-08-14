@@ -1,0 +1,115 @@
+# JLC digital-twin adjudication register — pluto-rx2-8way-v5
+#
+# Each entry closes one blocking twin status using evidence independent of the
+# twin checker.  These are narrow part/ref/status dispositions, not global
+# tolerance changes.  The final twin must still mount all 29 CPL placements,
+# use the independently measured rotation table, and report no unadjudicated
+# critical references.
+
+# C429844 / 901-143-6RFX — nine exact Amphenol right-angle SMA jacks.
+# Manufacturer authority: SMA6252A2-3GT50G-50 Rev C, retained with SHA-256
+# 96328d8531223f0d92326083352695388c91ad059df4511804d82d7b1b156cec.
+# Direct footprint measurement on 2026-08-13 found the same five hole centres
+# in our and JLC's footprints: signal (0,0), grounds (+/-2.54,+/-2.54) mm.
+# Our exact-manufacturer footprint numbers the four grounds 2,3,4,5; JLC calls
+# all four of them pad 2.  The twin cannot express that one-to-many naming map,
+# so its merged pad-2 centroid produces a false 1.796 mm fit residual and a
+# false 3.59 mm pair-distance comparison.  This does not hide the one real CAD
+# difference: JLC uses 1.60/1.80 mm drills while Rev C recommends 1.50/1.70 mm.
+# The manufacturer drills are deliberately retained; JLC assembly DFM must
+# explicitly accept them before ordering.  Rotation is independently measured
+# as offset 0 and is not overridden here.
+- lcsc: C429844
+  refs: &sma_refs [J2, J3, J4, J5, J6, J7, J8, J9, J10]
+  status: PAD-MISMATCH
+  why: &sma_land_evidence >
+    Independent raw-footprint measurement against Amphenol drawing
+    SMA6252A2-3GT50G-50 Rev C found all five hole centres identical to
+    0.000 mm: signal at (0,0) and grounds at (+/-2.54,+/-2.54) mm.  The
+    reported 1.796 mm residual is created because the project preserves the
+    manufacturer's distinct ground pins 2/3/4/5 while JLC collapses all four
+    ground posts to pad number 2; the checker must compare one ground against
+    the centroid of four.  A one-to-many pad alias is impossible and changing
+    the project pin identities would reduce source verification.  Exact pad
+    sizes also agree (signal 2.40 mm, grounds 2.80 mm).  JLC's only physical
+    land delta is drill diameter: 1.60/1.80 mm versus the manufacturer's
+    recommended 1.50/1.70 mm.  The manufacturer land is authoritative and
+    retained, with explicit JLC assembly-DFM acceptance required before order.
+
+- lcsc: C429844
+  refs: *sma_refs
+  status: PAD-GEOM
+  why: *sma_land_evidence
+
+- lcsc: C429844
+  refs: *sma_refs
+  status: MODEL-REG
+  why: >
+    The 5.9 mm bbox-centre finding is not a placement offset: this right-angle
+    connector's mating barrel extends 11.6 mm from the PCB datum, so its body
+    is intentionally highly asymmetric about the five-hole land.  The final
+    twin uses JLC's own model transform with no model rotation or translation
+    override, and the independent render review shows all nine mating barrels
+    pointing outward at their assigned board edges.  Electrical/mechanical
+    registration is established by the exact hole-centre comparison and the
+    Amphenol Rev C envelope above; the bbox-centre heuristic is inapplicable to
+    this asymmetric edge connector.  This entry does not waive the drill-size
+    DFM gate or the order-preview orientation inspection.
+
+# C2932107 / FTSH-105-01-L-DV-K-P-TR — exact keyed SWD header.
+# Manufacturer authority: Samtec FTSH-DV series print Rev FX and recommended
+# PCB footprint Rev H, retained in the part dossier (series-print SHA-256
+# ef2961377445b9ad10762ea27519e7b59e5cbb5847dc0058d8e35c0d97c446a3;
+# footprint SHA-256 caa205b92560423f3b0aea9c69d6c38340d1b7f01b0655092994450e935edcb3).
+- lcsc: C2932107
+  refs: [J11]
+  status: PAD-MISMATCH
+  why: &j11_land_evidence >
+    Direct measurement confirms identical 1.27 mm column pitch and identical
+    pin ordering, but JLC's catalog footprint uses a generic 5.08 mm row span
+    with 0.574 x 2.000 mm lands.  Samtec's exact recommended layout specifies
+    4.065 mm row span and 0.74 x 2.79 mm lands, which the project footprint
+    implements.  The resulting 0.5075 mm centred residual and 1.015 mm row-span
+    delta are therefore a known catalog-CAD conflict, not a placement or pin
+    mapping error.  The exact Samtec land is authoritative and retained; JLC
+    upload DFM and the human order preview must preserve it and confirm pin 1
+    and key orientation.
+
+- lcsc: C2932107
+  refs: [J11]
+  status: PAD-GEOM
+  why: *j11_land_evidence
+
+# C83270 / Littelfuse SMBJ6.0A — unidirectional DO-214AA TVS.
+- lcsc: C83270
+  refs: [D1]
+  status: PAD-GEOM
+  why: >
+    Littelfuse SMBJ Series 2025 drawing, retained with SHA-256
+    d7df155be4b1f612085401e8c946f065e284d65a0e7de22b9225a7b73946e51b,
+    specifies solder-pad dimensions I >=2.260 mm, J/L >=2.160 mm and gap
+    K <=2.740 mm.  The project KiCad D_SMB land measures 2.50 x 2.30 mm with
+    a 1.80 mm gap and therefore meets all three manufacturer bounds.  JLC's
+    exact-code CAD measures 2.047 x 2.192 mm with a 2.673 mm gap; its different
+    4.72 mm pad-centre span causes the reported 0.42 mm delta and its pads are
+    slightly smaller than Littelfuse's stated minima.  The manufacturer-
+    compliant project land is retained.  Polarity is separate: both raw
+    footprints put pad 1/cathode at negative X, the project connects pad 1 to
+    VBUS_PROTECTED and pad 2/anode to GND, and D1 remains mandatory in the JLC
+    human preview because the model-side mark is not machine-readable.
+
+# C5184243 / USB4105-GF-A-120 — exact GCT power-only USB-C receptacle.
+- lcsc: C5184243
+  refs: [J1]
+  status: MODEL-REG
+  why: >
+    GCT USB4105 Rev B (retained SHA-256
+    fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5)
+    is the land-pattern and edge-datum authority.  The twin's independent
+    numbered-pad fit is 0.00 mm and its exact-code JLC body seats over all
+    contacts and shell stakes at the south edge with JLC's own model transform.
+    The reported 2.1 mm body-centre displacement is the expected bbox bias of
+    an asymmetric right-angle receptacle plus a different library origin, not
+    a lead-registration error.  No model rotation or translation override is
+    applied; the human assembly preview must still confirm the receptacle opens
+    outward from the board edge.

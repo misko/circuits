@@ -3236,3 +3236,71 @@ Recommended execution order for future boards:
   requirement.
 - history: 2026-08-13 — proposed after the reviewed-commit seal was blocked by
   ignored tsCircuit cache bytes rather than a source or board delta.
+
+## IMP-093 — compare repeated-pad catalog lands as geometry, not merged labels
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 final JLC twin, 2026-08-13
+- evidence: the exact C429844 catalog footprint and the manufacturer-derived
+  901-143-6RFX footprint put all five holes at the same centres to 0.000 mm and
+  use the same 2.40/2.80-mm copper diameters. The project preserves four
+  distinct shell pins 2/3/4/5; JLC labels all four shell posts `2`.
+  `jlc_twin.py` therefore compared one project pad 2 with the centroid of four
+  JLC pad-2 instances, reporting a 1.796-mm `PAD-MISMATCH` and a false 3.59-mm
+  `PAD-GEOM` delta. The tool correctly failed closed, but could not encode the
+  one-to-many naming relationship and required 27 per-ref adjudicated finding
+  rows for nine geometrically identical connectors.
+- general rule: repeated pad numbers are a naming/multiplicity property, not a
+  licence to collapse physical lands into one point. Land-pattern comparison
+  must retain every physical instance and expose two independent results:
+  numbering/pin-map agreement and numbering-free geometric agreement. A
+  geometry pass must never be promoted into an electrical pin-map claim.
+- intended landing point: add a deterministic multiset/assignment channel to
+  `jlc_twin.py` for repeated labels. Compare complete pad clouds by position,
+  shape, drill and layer after rigid transforms, report the winning residual
+  and runner-up separation, and keep `PAD-MULTIPLICITY` visible. Permit an
+  evidence-bound alias only for electrical identity; do not require an
+  impossible one-to-many scalar `pad_alias` merely to measure geometry.
+- completion evidence required: the C429844-shaped fixture must report five
+  centres matched at 0.000 mm while separately naming the 2-versus-2/3/4/5
+  convention and the real 0.10-mm drill delta. A fixture with one moved shell
+  post must remain red, and a geometrically symmetric but electrically swapped
+  polarized part must still require the independent polarity channel.
+- recommendation: implement before the next board with multi-post connectors,
+  exposed tabs or duplicated same-net pads. V5 is safely resolved by exact
+  manufacturer evidence and retains its explicit uploader DFM gate; changing
+  the matcher is not required for this board's release.
+- history: 2026-08-13 — proposed after the strict final twin failed safely but
+  represented a catalog numbering convention as two geometric failures.
+
+## IMP-094 — bind review contracts to the exporter artifact index
+
+- status: proposed
+- observed: Pluto RX2 8-way v5 fabrication entry, 2026-08-13
+- evidence: `rf.yaml` named
+  `06_build/fab/pluto_rx2_8way_v5-gerbers.zip`, while the strict exporter
+  deterministically emitted
+  `06_build/fab/pluto_rx2_8way_v5_gerbers.zip`. The PCB, plots and review intent
+  were sound; one hand-typed hyphen made the exact-artifact RF review contract
+  point at a nonexistent file. The mismatch was corrected before review and
+  changed no fabrication bytes.
+- general rule: a producer-generated artifact name is output metadata. A
+  downstream exact-artifact contract should select it through one emitted
+  index or an unambiguous role query, not restate the producer's filename
+  convention. If a path is retained for human readability, post-export
+  contract binding must run immediately and fail before review work begins.
+- intended landing point: have `export_jlc_package.py` emit a versioned
+  `artifact_index.json` with roles such as `gerber_archive`, `bom`, `cpl`,
+  `pth_drill` and `npth_drill`, each carrying relative path and SHA-256.
+  Extend `rf_contract_check.py` to resolve the fab artifact by role and compare
+  any declared path/hash against that index at fabrication entry.
+- completion evidence required: a filename-convention change must keep a
+  role-bound review current, while a hand-declared stale path, two candidate
+  Gerber archives, a missing role or a changed artifact hash must fail before
+  the review is dispatched. The index itself must be regenerated and shipped
+  with the release evidence.
+- recommendation: implement before renaming another exporter or board stem.
+  V5's source path is corrected now, so this is not a blocker for its current
+  fabrication stage.
+- history: 2026-08-13 — proposed after exact-artifact review setup found the
+  hyphen-versus-underscore path mismatch before any release was sealed.
