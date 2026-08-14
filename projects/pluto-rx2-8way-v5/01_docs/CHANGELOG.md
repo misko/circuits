@@ -174,4 +174,7 @@ day and fab exactly one of them.
   correctly named Rev 3 history plus ST's current official DS13866 Rev 5 bytes.
   The current digest is now dossier authority; a focused comparison confirms
   no change to the TSSOP-20 pin map, BOR4, HSI48 or package facts used here.
+- Closed `V5-F2-source-document-lifecycle` in the authoritative findings
+  ledger with the Rev 5 digest and focused comparison evidence; the project no
+  longer contradicts its own current source-document state.
 Released: no

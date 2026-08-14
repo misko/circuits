@@ -89,15 +89,18 @@ findings:
       - 01_docs/renders/v0.0-D15-compact-placement-top.png
 
   - id: V5-F2-source-document-lifecycle
-    state: open
+    state: closed
     blocks_at_or_above: DESIGN_CLEAN
     owner: electrical
-    finding: The exact Amphenol drawing is now locally captured, hash-bound and qualified against the current product page plus PCN-031726; the committed STM32 data sheet remains Rev 4 while Rev 5 is current online.
+    finding: The exact Amphenol drawing is locally captured, hash-bound and qualified against the current product page plus PCN-031726. ST's official DS13866 Rev 5 is now the digest-selected local STM32 authority; the prior misnamed file is correctly retained as Rev 3 history, and a focused comparison found no change to the TSSOP-20 pin sequence, BOR4, HSI48 or package facts consumed by this design.
     closes_when: Current ST Rev 5 is locally captured and rechecked before design freeze.
     evidence:
       - 02_parts/901-143-6RFX/SMA6252A2-3GT50G-50-RevC.pdf
       - 02_parts/901-143-6RFX/PCN-031726.pdf
       - 02_parts/901-143-6RFX/part.yaml
+      - 02_parts/STM32C011F4P6/DS13866-Rev5.pdf
+      - 02_parts/STM32C011F4P6/part.yaml
+      - 02_parts/README.md
 
   - id: V5-F3-rf-geometry-and-mechanics
     state: closed

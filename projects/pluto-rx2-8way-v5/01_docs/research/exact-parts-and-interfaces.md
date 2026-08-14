@@ -50,9 +50,10 @@ The reproducible source-stage input is
 BOM, not a generated schematic BOM; netlist/BOM parity becomes mandatory at
 the schematic checkpoint.
 
-Evidence provenance and the remaining STM32 revision deviation are visible in
+Evidence provenance and the resolved STM32 revision history are visible in
 [`02_parts/README.md`](../../02_parts/README.md). The Amphenol endpoint refused
 the local client, but the exact Rev-C drawing is now retained and qualified
-against the current exact product page and no-form/fit-change PCN. The local
-STM32 data sheet is still Rev 4 while relevant facts were cross-checked against
-Rev 5 online; that deviation may not pass design freeze without fresh evidence.
+against the current exact product page and no-form/fit-change PCN. ST's official
+DS13866 Rev 5 is now retained locally and digest-selected; the previous
+misnamed file is retained as Rev 3 history. The TSSOP-20 pin sequence, BOR4,
+HSI48 and package facts consumed here remain unchanged in the focused compare.
