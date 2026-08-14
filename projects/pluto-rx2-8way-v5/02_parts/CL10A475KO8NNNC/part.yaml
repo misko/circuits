@@ -11,5 +11,5 @@ gotchas:
   - "TPS7A24 requires at least 1uF effective. A conservative 50% DC-bias derating plus -10% tolerance leaves 2.115uF."
 asserts:
   - {assert: value, equals: 4.7u, tolerance_pct: 10, why: "selected 16V LDO input capacitor exact code"}
-verified: "exact Samsung current product page and LCSC/JLC exact-code record checked for MPN, 4.7uF, 16V, X5R, tolerance and 0603 package on 2026-08-13; local manufacturer catalog supports order-code decoding"
+verified: "exact Samsung current product page and LCSC/JLC exact-code record checked for MPN, 4.7uF, 16V, X5R, tolerance and 0603 package on 2026-08-13; manufacturer catalog page 20 supports the 4.7uF/16V X5R order-code decoding"
 sourcing: {lcsc: C19666, jlc_basic: true}

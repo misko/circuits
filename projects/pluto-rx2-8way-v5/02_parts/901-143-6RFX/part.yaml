@@ -42,7 +42,7 @@ gotchas:
   - "Fresh JLC C429844 CAD uses 1.60/1.80mm drills while Amphenol recommends 1.50/1.70mm holes. Keep the manufacturer land and obtain explicit JLC assembly DFM confirmation before ordering."
   - "J2-J10 are all user-confirmed D12 female/jack right-angle SMA interfaces; every external cable must mate to a jack."
   - "The Rev C drawing states 500 mating cycles while the current exact product page states 100 minimum; use the conservative current-page value of 100 for design claims."
-verified: "active status, jack/right-angle/THT/50ohm/18GHz/100-cycle current-page limit read on the exact Amphenol product page; five-hole geometry, envelope and tolerances read from SMA6252A2-3GT50G-50 Rev C; PCN-031726 confirms the 2026 origin transfer does not change form, fit or function; checked 2026-08-13"
+verified: "active status, jack/right-angle/THT/50ohm/18GHz/100-cycle current-page limit read on the exact Amphenol product page; five-hole geometry, envelope and tolerances read from the one-page SMA6252A2-3GT50G-50 Rev C manufacturer drawing; PCN-031726 confirms the 2026 origin transfer does not change form, fit or function; checked 2026-08-13"
 sourcing: {lcsc: C429844, digikey: ARFX1232-ND}
 layout:
   source: "Amphenol SMA6252A2-3GT50G-50 Rev C customer drawing, exact product page and PCN-031726"

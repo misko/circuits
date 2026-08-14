@@ -6,8 +6,8 @@ review_stage: pre-route
 review_kind: layout
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
-board_sha256: bdb0df87886cc15ed8a3ae2aee53c97f4a4cfd49734558967240816c5c73a22e
-design_rules_sha256: 442edd6040f0b990f94a76f0f21d702503c0ba365fe6c5464d55f1842ab6999e
+board_sha256: 3c11d72b004dad1d293f2774b2f90d193f3619de41e9a79997e46733bfda8393
+design_rules_sha256: 36859a430335ab340763e1dec7161129bb95973d8ba2fd008ee94ecd2cb649b1
 route_prep_sha256: b88e7388011cd2ef29484b6a586514e5b2f41a83d731c189e1db327ba1386b25
 
 # Fresh corrected placement/layout renewal

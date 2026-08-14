@@ -13,7 +13,7 @@ gotchas:
   - "Tie EN to IN for always-on operation; leave NC floating as permitted by the data sheet."
   - "The design budgets only 20mA. At 5.5V input and 3.25875V worst-low output the conservative dissipation is 44.825mW and estimated rise is 7.6C; the 238mW limit is a board-dependent 85C-ambient derating, not a package absolute rating."
   - "Effective input capacitance must be at least 1uF and effective output capacitance must remain within 1uF-100uF after bias/tolerance."
-verified: "fixed-output pin map, input/output ranges, dropout, capacitive stability, thermals and layout read from digest-selected TI SBVS386E on 2026-08-13; the retained local PDF filename is legacy and not its authority"
+verified: "fixed-output pin map on page 3; recommended input/output and capacitor ranges plus thermal table on page 5; dropout on page 6; thermal discussion on pages 16 and 18; and layout/Figure 8-7 on page 20 read from digest-selected TI SBVS386E on 2026-08-13; the retained local PDF filename is legacy and not its authority"
 sourcing: {lcsc: C2866134, digikey: 296-TPS7A2433DBVRCT-ND}
 layout:
   source: "TI SBVS386E layout section and Figure 8-7"

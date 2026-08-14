@@ -7,11 +7,12 @@ design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 schematic_pdf_sha256: 9cbef2e62613c12b64c3d8367b602360343411974053848b02e2bb2759f5d955
 netlist_sha256: 817a6cea93afa2ee3e387cf861702dfe4e06c9a8fa7af192f7f9d53cea1f2ecd
-exact_netlist_sha256: e39508799698657495d058021a990f9e02c0ff7f526efbf44939f0cf13bbb795
-parts_sha256: 5f5fd1858798e18facce8ed0264edf4808ce6eaa1e1e5dbde1088ee9aef6f905
-design_rules_sha256: 5c8ccde65b844267b1c9c293997c979c2a26eb8264bda0369335a1c465f50640
+exact_netlist_sha256: 400f19623b6523b6cc4808af85b7153d65301e472ce908d830452096f5ad1505
+parts_sha256: 7b857f4e6641e01996ef5b8a41758751a8ba0e21fa782a180670997fb5cb617f
+design_rules_sha256: 36859a430335ab340763e1dec7161129bb95973d8ba2fd008ee94ecd2cb649b1
 circuit_json_sha256: c66c3e1a242d03f9312fa4fc03ac90634af704041461446e9e955232c3163f63
-kicad_schematic_sha256: 1abd0c209be27ac602f55f8e81cf25e4e98bb3a99a2fb76494fc8bbfcf20603b
+kicad_schematic_path: 03_tscircuit/kicad/pluto_rx2_8way_v5.kicad_sch
+kicad_schematic_sha256: 4cd8d314261059a73af7dfe5aa6d019c5c4160e75f09144bafd9e29a4d815f7f
 schematic_checkpoint_sha256: 6f6506b1a405ac8fa0e753b4987183abd9f91c108b15e5c009645f36c77f8b24
 authoring_source_sha256: 4959ed7107a3dae3969df2b8306b591187bda34f79720c9b410676f7908ef53b
 
@@ -95,3 +96,22 @@ in prose. P-ESC passes 13/13. The exact four-page PDF, schematic, circuit JSON,
 normalized netlist and design rules are unchanged; I found no rendered-symbol,
 pin-label, page-geometry or readability consequence. P0/P1/P2 readability
 defects remain 0/0/0; **SOUND / DO-NOT-ORDER**.
+
+The current-working-tree renewal additionally reviews the regenerated pinned
+native KiCad schematic at the path bound above. The converter now stacks the
+four TSX sheet-local coordinate spaces on one non-overlapping native canvas.
+I exported that exact native file to PDF and inspected each separated region:
+USB-C power/protection, RF switch core, nine SMA interfaces, and autonomous
+control/SWD are all readable at normal zoom; symbols, pin numbers, labels,
+no-connect marks and wires do not clip or form false composites. The previously
+superimposed J1/J2 and U1/U2 coordinate regions are visibly separated.
+
+Independent `sch_occlusion.py` grades all 202/202 drawable objects (51 wires,
+52 global labels and 99 symbol instances), reports S-WNET = 0 and S-OCCL = 0
+against the zero ceiling. A fresh native export retains canonical netlist
+digest `817a6cea...`, while the authored four-page tscircuit PDF remains
+byte-identical. The ten strengthened dossier citations were checked against
+their retained manufacturer pages/sheets/drawings and are supported. The two
+pending floorplan silk-caption edits have no schematic-render consequence and
+remain subject to later board replay/review. P0/P1/P2 readability defects are
+0/0/0; **SOUND / DO-NOT-ORDER**.

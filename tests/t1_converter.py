@@ -9,6 +9,7 @@ with an empty footprinter_string. The clean case asserts 41 and 24. The
 known-bad case proves the assertion has teeth by running it against a sheet
 that really does have the collapsed symbol.
 """
+import json
 import re
 import subprocess
 import sys
@@ -81,6 +82,58 @@ def t_two_resistors():
     eq(sorted(set(nodes.values())), ["GND", "MID", "VIN"], "net names")
     # annotated => no unannotated '?' references anywhere
     check("R?" not in sheet.read_text(), "sheet has unannotated references")
+
+
+@test("converter: separate tscircuit sheets cannot collapse onto one KiCad coordinate plane")
+def t_multisheet_geometry_is_separated():
+    d = tmpdir("conv_multisheet_")
+    src = json.loads((T0 / "two_resistors" / "circuit.json").read_text())
+    comps = [e for e in src if e.get("type") == "schematic_component"]
+    check(len(comps) == 2, "two_resistors fixture shape changed")
+    a, b = comps
+    ax, ay = a["center"]["x"], a["center"]["y"]
+    bx, by = b["center"]["x"], b["center"]["y"]
+    # Make both authored pages use the exact same local coordinates. Before
+    # the per-sheet transform this put both bodies and their properties on top
+    # of one another even though tscircuit explicitly named different sheets.
+    b["center"] = dict(a["center"])
+    for e in src:
+        if e.get("type") == "schematic_component":
+            e["schematic_sheet_id"] = ("schematic_sheet_0" if e is a
+                                         else "schematic_sheet_1")
+        elif e.get("type") == "schematic_port":
+            if e.get("schematic_component_id") == b["schematic_component_id"]:
+                e["center"]["x"] += ax - bx
+                e["center"]["y"] += ay - by
+                e["schematic_sheet_id"] = "schematic_sheet_1"
+            else:
+                e["schematic_sheet_id"] = "schematic_sheet_0"
+    # Let the converter's safety labels name each independent pin root; traces
+    # from the original one-page fixture intentionally do not cross pages.
+    src = [e for e in src if e.get("type") not in
+           ("schematic_trace", "schematic_net_label")]
+    src += [
+        {"type": "schematic_sheet", "schematic_sheet_id": "schematic_sheet_0",
+         "name": "a", "sheet_index": 1},
+        {"type": "schematic_sheet", "schematic_sheet_id": "schematic_sheet_1",
+         "name": "b", "sheet_index": 2},
+    ]
+    cj = d / "circuit.json"
+    cj.write_text(json.dumps(src))
+    out = d / "multi.kicad_sch"
+    must_pass(run([PY, CONV, cj, "-o", out, "--project", "multi"]),
+              "convert overlapping local sheet coordinates")
+    text = out.read_text()
+    pos = {}
+    for ref in ("R1", "R2"):
+        m = re.search(rf'\(property "Reference" "{ref}" \(at ([\d.]+) ([\d.]+)',
+                      text)
+        check(m is not None, f"{ref} property position missing")
+        pos[ref] = (float(m.group(1)), float(m.group(2)))
+    check(pos["R1"] != pos["R2"], f"separate sheets overlap at {pos['R1']}")
+    eq(len(netlist_of(out)), 4, "multisheet node count")
+    must_pass(run([PY, SCRIPTS / "sch_occlusion.py", out]),
+              "multisheet schematic occlusion gate")
 
 
 @test("converter: every refdes gets its OWN lib_symbol (no Device:U_chip collision)")

@@ -8,5 +8,5 @@ escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked:
 limits: {resistance: 5.1kOhm, tolerance: 1pct, power_70C: 62.5mW, voltage: 50V, temperature_coefficient: 100ppm_per_C, operating_temperature: -55C_to_155C}
 asserts:
   - {assert: value, equals: 5.1k, tolerance_pct: 1, why: "each USB Type-C sink CC pin requires its own 5.1k Rd and the selected exact code is 1 percent"}
-verified: "exact generated Yageo specsheet checked for value, tolerance, power, voltage, dimensions and temperature on 2026-08-13"
+verified: "exact generated Yageo one-page specsheet page 1 checked for value, tolerance, power, voltage, dimensions and temperature on 2026-08-13"
 sourcing: {lcsc: C105872}

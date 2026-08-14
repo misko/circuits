@@ -8,5 +8,5 @@ escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked:
 limits: {capacitance: 100nF, tolerance: 10pct, rated_voltage: 16V, dielectric: X7R, dimensions_mm: [1.0, 0.5]}
 asserts:
   - {assert: value, equals: 100n, tolerance_pct: 10, why: "selected local bypass and NRST capacitor exact code"}
-verified: "exact Samsung generated product specification checked for MPN, 100nF, 16V, X7R, tolerance and 0402 dimensions on 2026-08-13"
+verified: "exact Samsung generated product specification page 1 checked for MPN, 100nF, 16V, X7R, tolerance and 0402 dimensions on 2026-08-13"
 sourcing: {lcsc: C1525}

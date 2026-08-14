@@ -3378,3 +3378,36 @@ Recommended execution order for future boards:
   so the shared producer is not a blocker for this board.
 - history: 2026-08-13 — proposed after the first mechanically successful PDF
   export was visibly poor as a human assembly packet.
+
+## IMP-097 — preserve schematic-sheet coordinate domains in native conversion
+
+- status: implemented
+- observed: Pluto RX2 8-way v5 hardware-release audit, 2026-08-13
+- evidence: the TSX human schematic contained four independently readable
+  authored sheets, but `circuit_json_to_kicad_sch.py` treated every sheet's
+  local coordinates as one global plane. The resulting native KiCad schematic
+  superimposed J1/J2, U1/U2 and four value/reference fields. The rendered TSX
+  PDF looked correct, so reviewing only that publication artifact hid the
+  defective native source until full `S-OCCL` release grading found six exact
+  overlaps.
+- general rule: a schematic sheet identifier defines a coordinate domain.
+  Geometry from separate domains must be emitted as separate native sheets or
+  assigned deterministic non-overlapping regions before any global transform.
+  A readable publication PDF does not prove the editable/native schematic is
+  readable.
+- landed at: the shared layout-preserving converter now computes bounds per
+  `schematic_sheet_id`, orders pages by the authored `sheet_index`, stacks
+  their unchanged local geometry into non-overlapping regions, and restricts
+  port resolution to the trace's own sheet. The converter still proves the
+  exported netlist independently against the board.
+- completion evidence: a regression gives two authored sheets identical local
+  component coordinates and requires different emitted KiCad coordinates,
+  four exported nodes and zero native schematic occlusions. The full converter
+  suite passes 44/44. Pluto v5's regenerated native schematic has 202/202
+  drawable objects placed, zero text occlusions, zero two-net conductor events
+  and exact 22-net/131-node parity with the unchanged routed board.
+- recommendation: carry this fix immediately. Keep both human-render review
+  and native `S-OCCL`/netlist parity as independent gates; neither subsumes the
+  other.
+- history: 2026-08-13 — found and fixed during hardware-only release audit;
+  firmware was not read or invoked.

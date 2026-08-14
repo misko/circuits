@@ -26,7 +26,7 @@ gotchas:
   - "Before changing PA0-PA3 to outputs, preload the atomic GPIO output word for U1 ALL_OFF; external pulls own the state while pins are inputs."
   - "PA13/PA14 are retained for SWD. J11 exposes target-powered VTref, GND, SWDIO, SWCLK and NRST on a keyed Cortex connector; the programmer must sense target power and must not power the board."
   - "DS13866 Rev 5 is the digest-selected local authority. The previous local Rev 3 is retained under its correct historical filename; do not use it for a new review."
-verified: "Local ST DS13866 Rev 5: TSSOP-20 pin map, supply, memory, timers/watchdogs, BOR thresholds, HSI48 error, reset-state pulls and package dimensions rechecked 2026-08-13; focused Rev 3-to-Rev 5 comparison found no change to the values consumed by this design"
+verified: "Local ST DS13866 Rev 5: Figure 5 page 28 TSSOP-20 pin map, supply, memory, timers/watchdogs, BOR thresholds, HSI48 error, reset-state pulls and Table 68 page 87 package dimensions rechecked 2026-08-13; focused Rev 3-to-Rev 5 comparison found no change to the values consumed by this design"
 sourcing: {lcsc: C5452432}
 layout:
   source: "ST DS13866 power-supply scheme and package drawing"

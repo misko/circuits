@@ -31,7 +31,7 @@ gotchas:
   - "A6/B6, A7/B7 and A8/B8 remain explicit no-connects because v5 has no USB data or alternate mode."
   - "Retain all duplicated VBUS/GND contacts and all shell stakes in the custom footprint."
   - "The exact KiCad 10 GCT USB4105 STEP is retained project-local at 03_src/lib/3dmodels/USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.step, sha256 6338ce740fa231c2d3dcc6384e0576994a47240a312a21413cb85d76990a69a0, so headless rendering does not depend on an unresolved KICAD10_3DMODEL_DIR token."
-verified: "contact table, recommended PCB layout, ratings, suffix/stake option and mating-cycle rating read from GCT USB4105 Rev B on 2026-08-13"
+verified: "contact table, recommended PCB layout, ratings, suffix/stake option and mating-cycle rating on manufacturer drawing sheet 1 read from GCT USB4105 Rev B on 2026-08-13"
 sourcing: {lcsc: C5184243}
 layout:
   source: "GCT USB4105 Revision B recommended PCB layout"

@@ -182,7 +182,9 @@ silk:
     - {text: "ANT4", at: [38.5, 66.0], size: 0.95, rot: 90}
     - {text: "ANT6", at: [91.5, 48.0], size: 0.95, rot: 90}
     - {text: "ANT5", at: [91.5, 66.0], size: 0.95, rot: 90}
-    - {text: "USB-C POWER ONLY", at: [52.0, 82.0], size: 0.95}
+    - {text: "USB-C", at: [56.5, 84.2], size: 0.80}
+    - {text: "POWER ONLY", at: [75.0, 84.2], size: 0.80}
+    - {text: "FUSE", at: [76.5, 70.5], size: 0.60}
     - {text: "pluto-rx2-8way-v5  100MHz-5.9GHz", at: [65.0, 42.5], size: 0.70}
     - {text: "KEYED SWD J11", at: [44.0, 70.5], size: 0.70}
 

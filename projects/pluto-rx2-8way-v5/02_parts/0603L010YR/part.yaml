@@ -9,7 +9,7 @@ limits: {hold_current_20C: 100mA, trip_current_20C: 300mA, maximum_voltage: 15V,
 gotchas:
   - "The board's 20mA maximum design load remains below the 30mA hold rating at 85C; this is not a precise current limiter and its cold/trip behavior is not an active eFuse."
   - "A USB source capable of fault current above the part's 40A interrupt rating is outside the proven envelope."
-verified: "ordering code, electrical table and temperature derating table read from Littelfuse 0603L series data sheet on 2026-08-13"
+verified: "Littelfuse 0603L series data sheet page 1 electrical/derating table and page 4 dimensions, solder-pad layout and ordering table read on 2026-08-13"
 sourcing: {lcsc: C207010}
 layout:
   source: "Littelfuse 0603L series data sheet"

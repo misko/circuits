@@ -2000,30 +2000,77 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
     for p in sport:
         ports_of_scomp.setdefault(p['schematic_component_id'], []).append(p)
 
-    # ---- bounds over all schematic geometry -> transform
-    xs, ys = [], []
+    # ---- per-sheet bounds -> one non-overlapping native KiCad canvas
+    # tscircuit gives every authored schematic sheet its own local coordinate
+    # system.  Treating those coordinates as global superimposes components,
+    # wires and property text from otherwise-independent pages (Pluto v5's
+    # J1/J2 and U1/U2 were exact measured examples).  KiCad's legacy root-sheet
+    # writer used here cannot emit a hierarchy, so retain every page's local
+    # geometry while stacking the pages vertically on one inspectable canvas.
+    # Connectivity remains label-based and therefore unchanged.
+    sheet_rows = [e for e in d if e.get('type') == 'schematic_sheet']
+    sheet_order = {
+        e.get('schematic_sheet_id'): (e.get('sheet_index', 10**9),
+                                      e.get('name', ''),
+                                      e.get('schematic_sheet_id', ''))
+        for e in sheet_rows
+    }
+    all_sheet_ids = {
+        e.get('schematic_sheet_id') for e in (scomp + sport + strace + snlabel)
+        if e.get('schematic_sheet_id') is not None
+    }
+    default_sheet = min(all_sheet_ids, key=lambda sid: sheet_order.get(
+        sid, (10**9, '', sid))) if all_sheet_ids else '__root__'
+    bounds = {sid: [[], []] for sid in (all_sheet_ids or {default_sheet})}
+
+    def sid_of(obj):
+        return obj.get('schematic_sheet_id', default_sheet)
+
+    def add_xy(sid, x, y):
+        bounds.setdefault(sid, [[], []])
+        bounds[sid][0].append(x)
+        bounds[sid][1].append(y)
+
     for c in scomp:
+        sid = sid_of(c)
         cx, cy = c['center']['x'], c['center']['y']
         w, h = c['size']['width'], c['size']['height']
-        xs += [cx - w / 2, cx + w / 2]
-        ys += [cy - h / 2, cy + h / 2]
+        add_xy(sid, cx - w / 2, cy - h / 2)
+        add_xy(sid, cx + w / 2, cy + h / 2)
     for p in sport:
-        xs.append(p['center']['x'])
-        ys.append(p['center']['y'])
+        add_xy(sid_of(p), p['center']['x'], p['center']['y'])
     for t in strace:
+        sid = sid_of(t)
         for e in t['edges']:
-            xs += [e['from']['x'], e['to']['x']]
-            ys += [e['from']['y'], e['to']['y']]
+            add_xy(sid, e['from']['x'], e['from']['y'])
+            add_xy(sid, e['to']['x'], e['to']['y'])
     for n in snlabel:
-        xs.append(n['anchor_position']['x'])
-        ys.append(n['anchor_position']['y'])
-    minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
+        add_xy(sid_of(n), n['anchor_position']['x'], n['anchor_position']['y'])
 
-    def T(x, y):
+    ordered_sids = sorted(bounds, key=lambda sid: sheet_order.get(
+        sid, (10**9, '', sid)))
+    sheet_geom = {}
+    y_cursor = L_M
+    max_sheet_w = 0.0
+    for sid in ordered_sids:
+        xs, ys = bounds[sid]
+        if not xs or not ys:
+            continue
+        minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
+        w_mm = (maxx - minx) * L_S
+        h_mm = (maxy - miny) * L_S
+        sheet_geom[sid] = (minx, maxx, miny, maxy, y_cursor)
+        max_sheet_w = max(max_sheet_w, w_mm)
+        y_cursor += h_mm + L_M
+
+    def T(x, y, sid=default_sheet):
         # y flip: tscircuit y-up -> KiCad y-down. snap to L_G grid (consistently
         # from the same source coord) so pin tips and wire ends coincide exactly.
+        # The sheet-local y origin also prevents separate TSX pages from
+        # occupying the same KiCad coordinates.
+        minx, maxx, miny, maxy, y0 = sheet_geom[sid]
         return (round(_rhu((x - minx) * L_S + L_M, L_G), 3),
-                round(_rhu((maxy - y) * L_S + L_M, L_G), 3))
+                round(_rhu((maxy - y) * L_S + y0, L_G), 3))
 
     def key(pt):
         return (round(pt[0], 3), round(pt[1], 3))
@@ -2036,6 +2083,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
     pin_side = {}               # (refdes, pad) -> side
     portid2tip = {}             # source_port_id -> (x, y) of its KiCad pin tip
     for c in scomp:
+        sid = sid_of(c)
         cid = c['source_component_id']
         cx, cy = c['center']['x'], c['center']['y']
         meta = None
@@ -2047,7 +2095,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         meta = comp_by_ref.get(refdes)
         if meta is None:
             continue
-        inst = T(cx, cy)
+        inst = T(cx, cy, sid)
         w_mm = max(c['size']['width'] * L_S, 2.54)
         h_mm = max(c['size']['height'] * L_S, 2.54)
         # group this component's schematic_ports by KiCad pad name (collapse
@@ -2067,7 +2115,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
                 if portinfo[p['source_port_id']]['net'] is not None:
                     net = portinfo[p['source_port_id']]['net']
                     break
-            tip = T(rep['center']['x'], rep['center']['y'])
+            tip = T(rep['center']['x'], rep['center']['y'], sid)
             # KiCad LIB-SYMBOL space is y-UP but the sheet is y-DOWN: a symbol
             # instance flips local y (sheet_y = inst_y - local_y). So the pin's
             # local coords must be (tip_x - inst_x, inst_y - tip_y) for its KiCad
@@ -2123,30 +2171,33 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
                        "sides": {str(k): pin_side[(refdes, k)] for k in tips}})
 
     # ---- wires from schematic_trace routes (GND excluded -> power symbols)
-    def resolve_vertex(pt):
+    def resolve_vertex(pt, sid):
         best, bd = None, 1e18
         for p in sport:
+            if sid_of(p) != sid:
+                continue
             dd = (p['center']['x'] - pt['x']) ** 2 + (p['center']['y'] - pt['y']) ** 2
             if dd < bd:
                 bd, best = dd, p
         if bd <= L_PORT_TOL2 and best['source_port_id'] in portid2tip:
             return portid2tip[best['source_port_id']]
-        return T(pt['x'], pt['y'])
+        return T(pt['x'], pt['y'], sid)
 
     raw_segs = []               # (a, b, net)
     junctions = set()
     for t in strace:
+        sid = sid_of(t)
         net = canon_net(key2net.get(t['subcircuit_connectivity_map_key']), aliases)
         if net is None or net == "GND":
             continue
         for e in t['edges']:
-            a = resolve_vertex(e['from'])
-            b = resolve_vertex(e['to'])
+            a = resolve_vertex(e['from'], sid)
+            b = resolve_vertex(e['to'], sid)
             if key(a) == key(b):
                 continue
             raw_segs.append((a, b, net))
         for j in (t.get('junctions') or []):
-            junctions.add(key(T(j['x'], j['y'])))
+            junctions.add(key(T(j['x'], j['y'], sid)))
 
     # ---- safety filter: drop any segment that would short a foreign net
     all_tips = list(tip_net.items())
@@ -2189,7 +2240,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         net = canon_net(n['text'], aliases)
         if net is None or net == "GND":
             continue
-        x, y = T(n['anchor_position']['x'], n['anchor_position']['y'])
+        x, y = T(n['anchor_position']['x'], n['anchor_position']['y'], sid_of(n))
         # the SIDE is the direction the plate REACHES, derived from the label's
         # own geometry — never `anchor_side`, which names the opposite edge and
         # inverted every label on every board until 2026-07-31.
@@ -2403,8 +2454,8 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
             juncs.append(f'  (junction (at {jx:.3f} {jy:.3f}) (diameter 0) (color 0 0 0 0)'
                          f' (uuid "{_u()}"))')
 
-    pw = round(_rhu((maxx - minx) * L_S + 2 * L_M + 40, L_G), 2)
-    ph = round(_rhu((maxy - miny) * L_S + 2 * L_M + 20, L_G), 2)
+    pw = round(_rhu(max_sheet_w + 2 * L_M + 40, L_G), 2)
+    ph = round(_rhu(y_cursor + L_M + 20, L_G), 2)
     sch = [
         '(kicad_sch (version 20230121) (generator circuit_json_to_kicad_sch)',
         f'  (uuid "{root_uuid}")',
