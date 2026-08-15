@@ -86,5 +86,9 @@ mergeable.
 
 - [x] seal follows the 2-commit procedure — 07_releases contract "Seal procedure (normative)": gates+reviews on staging → source commit S → MANIFEST stamped `git_sha: S` / `git_dirty: false` + M-REL/freshness re-run → seal commit adds ONLY the release dir (+ CHANGELOG, + SUPERSEDED.md on the predecessor)
 - [ ] publication boundary: `python3 skills/pcb-design/scripts/pcb_publication_gate.py --base <publication-branch-base-sha> --head <candidate-head-sha>` exits 0; repository protection requires this check and a PR before material PCB changes can reach the publication branch
-- [x] N/A for this initial release — docs-only supersede mode was not used
-- [x] N/A for this initial release — no non-docs supersede mode was used
+- [x] v0.1.1 is not docs-only: it corrects source-archive fidelity while
+      asserting byte-identical copper, BOM/CPL, PDFs and STEP
+- [x] no named supersede mode matched this first source-packaging correction;
+      `freshness_exceptions.txt` explicitly grades all 22 intentionally
+      identical fab/PDF artifacts, while publication independently requires
+      the sealed root PCB to be byte-identical to the reviewed live PCB
