@@ -1,0 +1,42 @@
+mpn: "1935161"
+manufacturer: Phoenix Contact
+type: two_position_external_power_terminal
+datasheet:
+  doc_id: PT 1,5/ 2-5,0-H
+  revision: "Phoenix online catalog 2013-11-13"
+  url: https://www.phoenixcontact.com/us/products/1935161
+  local: 1935161.pdf
+  sha256: 760ff908523dd6eccff7d1c8accbd8bedce0bf8e57bc1cbe3cc2485c7b98e83a
+  fetched: 2026-08-14
+package: 2-position 5.00mm pitch side-entry THT screw terminal, green PA
+footprint: pi_usb_port_switch:Phoenix_1935161_PT_1p5_2_5p0_H
+escape: {style: connector, pitch: 5.0, tier_required: jlc_2layer_default, checked: "Phoenix exact drilling-diagram review 2026-08-14"}
+pins:
+  1: EXT_5V_RAW
+  2: {name: GND, tie: GND}
+limits:
+  rated_current_ul: 18A
+  rated_current_iec: 17.5A
+  rated_voltage_ul: 300V
+  rated_voltage_iec: 400V
+  wire_range: "26 to 14AWG / 2.5mm2"
+  contact_resistance: 20mOhm
+  operating_temperature: -40C to 105C
+  screw_torque: 0.35 to 0.4Nm
+gotchas:
+  - "The passive terminal has no inherent polarity. This board assigns pad 1=EXT_5V_RAW and pad 2=GND, with square pad 1 and oversized plus/minus silkscreen on both board sides."
+  - "External source requirement is regulated 5.15-5.25V at the board terminal under load, at least 5A, with nominal 5.2V recommended. Never connect the Raspberry Pi's 5V header pins to this rail."
+  - "The manufacturer drilling diagram specifies 5.00mm pitch, 1.0mm pins and 1.3mm holes. Do not substitute a visually similar 5.08mm footprint."
+  - "Provide mechanical support while tightening the screw and use the specified 0.35-0.4Nm torque."
+verified: "Phoenix-generated exact 1935161 catalog PDF gives the 5.00mm drill pattern, 1.0mm pins, 1.3mm holes, 10x9mm body and 17.5A product identity; independently read 2026-08-14."
+layout:
+  source: "Phoenix Contact PT 1,5/2-5,0-H exact catalog drawing and board input-protection topology"
+  reviewed: 2026-08-14
+  notes:
+    - "Place at the power-input edge with screwdriver and wire-entry access, followed immediately by the replaceable fuse and reverse-polarity MOSFET. Use broad copper without a thermal-spoke bottleneck and keep raw-positive copper compact."
+layout_refs:
+  - "Phoenix Contact 1935161 exact drilling and body drawing"
+sourcing:
+  lcsc: C3819953
+  alternates: []
+  note: "Exact Phoenix MPN was listed by JLC/LCSC and DigiKey when checked 2026-08-14; final Q-2SOURCE evidence is authoritative."

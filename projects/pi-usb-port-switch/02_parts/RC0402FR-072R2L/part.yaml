@@ -1,0 +1,14 @@
+mpn: RC0402FR-072R2L
+manufacturer: YAGEO
+type: thick_film_resistor
+datasheet: {doc_id: RC0402FR-072R2L-spec, revision: "generated 2026-08-14", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-072R2L", local: RC0402FR-072R2L.pdf, sha256: 1ebc2d45917e26e4fa42846674cc08e173f7a18b37613adc1e05545a08aa7949, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {resistance: 2.2Ohm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas:
+  - "These are optional 0-to-2.2ohm SuperSpeed ESD-series elements from the TUSB522P application guidance. Populate 2.2ohm for the first article and preserve pair symmetry and short pads; a change to 0ohm is a measured SI tuning decision, not an automatic substitution."
+verified: "Exact YAGEO generated specification independently read for MPN, 2.2ohm, 1%, 0402, 62.5mW and dimensions on 2026-08-14."
+layout: {source: "TUSB522P SLLSEV9E application guidance", reviewed: 2026-08-14, notes: ["Place in-line at the redriver/connector ESD boundary with identical geometry on both members of every pair."]}
+sourcing: {lcsc: C327251, alternates: []}

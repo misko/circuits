@@ -1,0 +1,13 @@
+mpn: EEEFK1A151P
+manufacturer: Panasonic Industry
+type: aluminum_electrolytic_output_capacitor
+datasheet: {doc_id: ABA0000C1175, revision: "FK series catalog", url: "https://industrial.panasonic.com/cdbs/www-data/pdf/RDE0000/ABA0000C1175.pdf", local: ABA0000C1175.pdf, sha256: aefce858e08fbf0b795b3cff7a45df519b6f9a733d5a07293f23c78781b1e990, fetched: 2026-08-14}
+package: SMD aluminum can, D6.3x5.8mm
+footprint: Capacitor_SMD:CP_Elec_6.3x5.8
+escape: {style: passive, pitch: 2.2, tier_required: jlc_2layer_default, checked: "Panasonic exact D-size dimensions/polarity 2026-08-14"}
+pins: {1: POS, 2: NEG}
+limits: {voltage: 10V, capacitance: "150uF +/-20%", ripple_105C: 240mArms, impedance_100kHz: 0.36Ohm, temperature: "-55C to 105C", endurance: "2000h at 105C"}
+gotchas: ["One capacitor sits after each TPS2557 at the downstream USB-A receptacle. Pad 1 is positive. It is hold-up/transient capacitance, not a substitute for each switch's pin-local ceramic bypass."]
+verified: "Panasonic FK catalog exact 10V/150uF/6.3x5.8mm EEEFK1A151P row and polarity checked 2026-08-14."
+layout: {source: "Panasonic dimensions plus TPS2557 output transient topology", reviewed: 2026-08-14, notes: ["Place at the individual switched VBUS receptacle branch with broad VBUS and ground copper."]}
+sourcing: {lcsc: C264054, alternates: []}

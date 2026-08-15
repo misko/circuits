@@ -1,0 +1,22 @@
+schema: 1
+power_claims:
+  - id: downstream_usb_vbus
+    rails: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW]
+    count: 4
+    simultaneous_count: 4
+    current_A: 0.9
+    voltage_min_V: 4.75
+    voltage_max_V: 5.25
+    duty: continuous
+    measurement_plane: mated_test_plug
+    boundary_evidence: >-
+      BRIEF A5; USB-IF USB 2.0/3.2/BC1.2 drop-droop procedure revision 1.4.1
+      uses 0.9 A and 4.75 V minimum for a self-powered USB 3.2 downstream port.
+    included_elements:
+      - protection_switch
+      - pcb_copper_vias_joints
+      - mated_power_contacts
+    excluded_elements:
+      - cable
+      - appliance
+no_external_power_outputs: false

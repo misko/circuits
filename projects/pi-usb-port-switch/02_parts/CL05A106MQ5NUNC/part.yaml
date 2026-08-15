@@ -1,0 +1,13 @@
+mpn: CL05A106MQ5NUNC
+manufacturer: Samsung Electro-Mechanics
+type: ceramic_capacitor
+datasheet: {doc_id: CL05A106MQ5NUNC-SPEC, revision: "issued 2026-01-19", url: "https://product.samsungsem.com/mlcc/CL05A106MQ5NUN.do", local: CL05A106MQ5NUNC-spec.pdf, sha256: af768783712071dd7108c21fa94233bb31d22df14c1945bb806f97d5d5dfad73, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Capacitor_SMD:C_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact Samsung dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {capacitance: 10uF, tolerance: 20pct, rated_voltage: 6.3V, dielectric: X5R, dimensions_mm: [1.0, 0.5]}
+gotchas: ["Use for the four redriver local bulk capacitors and regulator output. The 6.3V rating is acceptable only on the protected 3.3V rail; account for DC-bias derating."]
+verified: "Exact Samsung product specification p.1 checked for full order code, 10uF, 6.3V, X5R, tolerance and 0402 dimensions on 2026-08-14."
+layout: {source: "TUSB522P and TLV761 datasheets", reviewed: 2026-08-14, notes: ["Keep each local bulk return short and out of the SuperSpeed pair corridor."]}
+sourcing: {lcsc: C15525, alternates: []}

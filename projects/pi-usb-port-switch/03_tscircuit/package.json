@@ -1,0 +1,6 @@
+{
+  "name": "pi-usb-port-switch",
+  "main": "src/pi_usb_port_switch.tsx",
+  "type": "module",
+  "dependencies": { "tscircuit": "0.0.2300" }
+}

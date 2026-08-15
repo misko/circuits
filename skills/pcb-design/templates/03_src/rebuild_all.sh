@@ -312,6 +312,9 @@ $PY "$S/model_coverage_check.py" "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [4m] P-MODEL: every fitted footprint needs a renderer-resolvable 3D body before placement review"; exit 1; }
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [4a] R-PAIRMAP: critical pair polarity/wave/layer contract is incomplete"; exit 1; }
+$PY "$S/rf_check.py" source . --require-geometry \
+    --out 06_build/rf/placement \
+    || { echo "GATE FAILED [4a2] RF-PLACEMENT: source-deferred controlled-impedance coordinates must close before route preparation"; exit 1; }
 
 # P-PADSEP — separate-footprint pads must clear the fab-tier floor even on the
 # same net; joining is explicit track/zone copper. Also catches paste over a
@@ -359,7 +362,10 @@ $PY "$S/pre_route_review_check.py" . --phase placement \
     || { echo "GATE FAILED [5d] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence is missing, stale, or defective"; exit 1; }
 
 # [6-8] import + stitch from route.yaml  [SHARED]
-run_stage route_import $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml --route-source promoted
+# Honor route.import_source from route.yaml.  Hard-coding `promoted` here makes
+# projects using the reviewed build/FINAL chain fail even when their declared
+# provenance policy and exact route marker are valid.
+run_stage route_import $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml
 run_stage route_taps   $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
 run_stage stitch       $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \

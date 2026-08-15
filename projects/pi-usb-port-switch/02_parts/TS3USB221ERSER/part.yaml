@@ -1,0 +1,59 @@
+mpn: TS3USB221ERSER
+manufacturer: Texas Instruments
+type: usb2_high_speed_switch
+datasheet:
+  doc_id: SCDS263
+  revision: SCDS263E
+  url: https://www.ti.com/lit/ds/symlink/ts3usb221e.pdf
+  local: SCDS263E.pdf
+  sha256: d44f7857d105a8c481091e882047d9982f9534354cd850a5f6fcb350c5752d7f
+  fetched: 2026-08-14
+package: RSE 10-pin UQFN, 2.0 x 1.5 mm, 0.4 mm pitch
+footprint: pi_usb_port_switch:TS3USB221E_RSE10_2x1.5_P0.4
+escape:
+  style: qfn
+  pitch: 0.4
+  escapes_worst_side: 4
+  tier_required: jlc_4layer_advanced
+  checked: "escape_check.py 2026-08-14; standard tier was only conditional for local outward escape"
+pins:
+  1: 1D+
+  2: 1D-
+  3: 2D+
+  4: 2D-
+  5: {name: GND, tie: GND}
+  6: OE
+  7: D-
+  8: D+
+  9: S
+  10: VCC
+limits:
+  vcc_operating: 2.3V to 3.6V
+  bandwidth_typ: 1.1GHz
+  ron_typ: 6Ohm
+  cio_on_typ: 6pF
+  oe_behavior: "high = all switches high impedance; low = selected path connected"
+gotchas:
+  - "This is used as a disconnect, not as a two-destination mux: S is strapped low, 1D+/1D- carry the channel and 2D+/2D- are NC."
+  - "OE is active high for disconnect. A local pullup makes the USB2 path disconnected during reset or loss of 3.3V control; a 2N7002 pulls OE low only when DATA_OK is true."
+  - "The 0.4mm RSE land is not interchangeable with TI's larger DRC package."
+verified: "TI SCDS263E Figure 5-1 RSE top view, Table 5-1 and truth table, printed pp.3-4, independently read 2026-08-14."
+layout:
+  source: "TI SCDS263E section 11 Layout"
+  reviewed: 2026-08-14
+  keep_short:
+    - {net: 3V3, max_span_mm: 3.5, partner_refs: [C17, C33, C49, C65], why: "one 100nF bypass is reserved directly at pin 10 of each USB2 switch; 3.5mm is the routed-board pin-centre budget and retains a package-local branch"}
+  adjacency:
+    - {refdes: [U3, J3], max_mm: 75, why: "channel 1 upstream USB2 half-channel is a direct, stub-free controlled-impedance run; 75mm bounds the symmetric four-channel board geometry"}
+    - {refdes: [U3, J4], max_mm: 75, why: "channel 1 downstream USB2 half-channel is a direct, stub-free controlled-impedance run; 75mm bounds the symmetric four-channel board geometry"}
+    - {refdes: [U9, J5], max_mm: 75, why: "channel 2 upstream USB2 half-channel is a direct, stub-free controlled-impedance run; 75mm bounds the symmetric four-channel board geometry"}
+    - {refdes: [U9, J6], max_mm: 75, why: "channel 2 downstream USB2 half-channel is a direct, stub-free controlled-impedance run; 75mm bounds the symmetric four-channel board geometry"}
+    - {refdes: [U15, J7], max_mm: 75, why: "channel 3 upstream USB2 half-channel is a direct, stub-free controlled-impedance run; 75mm bounds the symmetric four-channel board geometry"}
+    - {refdes: [U15, J8], max_mm: 75, why: "channel 3 downstream USB2 half-channel is a direct, stub-free controlled-impedance run; 75mm bounds the symmetric four-channel board geometry"}
+    - {refdes: [U21, J9], max_mm: 75, why: "channel 4 upstream USB2 half-channel is a direct, stub-free controlled-impedance run; 75mm bounds the symmetric four-channel board geometry"}
+    - {refdes: [U21, J10], max_mm: 75, why: "channel 4 downstream USB2 half-channel is a direct, stub-free controlled-impedance run; 75mm bounds the symmetric four-channel board geometry"}
+  notes:
+    - "Route D+/D- through the common and 1D pad fields with continuous reference ground, equal geometry and no branch stub toward the unused 2D pins."
+layout_refs:
+  - "TI SCDS263E section 11 and layout example"
+sourcing: {lcsc: C129313, alternates: []}

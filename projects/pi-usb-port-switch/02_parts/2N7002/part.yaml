@@ -1,0 +1,38 @@
+mpn: 2N7002-7-F
+manufacturer: Diodes Incorporated
+type: n_channel_small_signal_mosfet
+datasheet:
+  doc_id: DS11303
+  revision: "Rev. 40-2, July 2024"
+  url: https://www.diodes.com/assets/Datasheets/2N7002.pdf
+  local: 2N7002-Diodes.pdf
+  sha256: ff8e1c98f93c7e3a2cdbe763d4ef6bd6028699bf005882871c00d2d5a398f6b1
+  fetched: 2026-08-14
+package: SOT-23
+footprint: Package_TO_SOT_SMD:SOT-23
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-14"}
+pins:
+  1: G
+  2: S
+  3: D
+limits:
+  vds: 60V
+  vgs: "+/-20V"
+  id_continuous: "170mA at 25C, steady state, VGS=10V, datasheet note 5 test board"
+  vgs_threshold: "1.0V min, 2.0V max at ID=250uA"
+gotchas:
+  - "This exact Diodes 2N7002-7-F pin order is gate=1, source=2, drain=3 in the manufacturer's SOT23 top-view figure. Do not import a vendor variant without repeating the pin review."
+  - "It is used only as an open-drain pull-down against tens of microamps, never as a USB VBUS pass element. Therefore the absence of guaranteed low RDS(on) at 3.3V is irrelevant to the intended use."
+  - "One device per channel pulls TS3USB221E OE low from DATA_OK. The local OE pullup leaves USB 2 data disconnected when GPIO or 3.3V control is absent. TPS2557 has an active-high EN and does not use an inverter."
+verified: "Diodes DS11303 Rev. 40-2 p.1 SOT23 top-view figure gives G/S/D and the standard pad numbering maps 1=G, 2=S, 3=D; limits read from pp.1-2, independently read 2026-08-14."
+layout:
+  source: "board-owned low-speed fail-safe control topology; manufacturer publishes no application-specific layout rule"
+  reviewed: 2026-08-14
+  notes:
+  - "Place each FET beside TS3USB221E OE and its pullup; keep the gate pulldown local."
+layout_refs:
+  - "Diodes DS11303 Rev. 40-2 package/pin figure p.1"
+sourcing:
+  lcsc: C85049
+  alternates: []
+  note: "Q-2SOURCE candidate: JLC C85049 and Mouser exact 2N7002-7-F were both stocked when checked 2026-08-14; final stock sidecar is authoritative."

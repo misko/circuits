@@ -1,0 +1,55 @@
+mpn: TPS2557DRBR
+manufacturer: Texas Instruments
+type: precision_adjustable_current_limited_power_switch
+datasheet:
+  doc_id: SLVS931
+  revision: SLVS931B
+  url: https://www.ti.com/lit/ds/symlink/tps2557.pdf
+  local: SLVS931B.pdf
+  sha256: cb02f29b8943f2234cc28b7c894d2322a8dc1879b80f9490927f47acc78b11ef
+  fetched: 2026-08-14
+  provenance: "adopted byte-for-byte from the repository's pinned manufacturer PDF and independently re-read for the 0.9A channel"
+package: DRB 8-pin VSON, 3.0 x 3.0 mm, 0.65 mm pitch, exposed PowerPAD
+footprint: Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm_ThermalVias
+escape:
+  style: qfn
+  pitch: 0.65
+  escapes_worst_side: 4
+  tier_required: jlc_4layer_standard
+  checked: "escape_check.py and manufacturer thermal-land review 2026-08-14"
+pins:
+  1: {name: GND, tie: GND}
+  2: IN
+  3: IN
+  4: EN
+  5: ILIM
+  6: OUT
+  7: OUT
+  8: FAULT
+  9: {name: EP, tie: GND}
+limits:
+  vin_operating: 2.5V to 6.5V
+  output_continuous: 5A
+  rds_on_max_at_125c: 35mOhm
+  current_limit_with_100k: "935mA min, 1.100A typ, 1.260A max before external-resistor tolerance"
+  standby_supply_max: 2uA
+gotchas:
+  - "TPS2557 EN is active HIGH. Each channel has a physical pulldown and PWR_EN drives it directly, so an unpowered/disconnected Pi defaults VBUS off without an inverter. TPS2556 is the active-low sibling and must not be substituted silently."
+  - "Use 100kOhm 1% at ILIM. Including resistor tolerance conservatively shifts the characterized range to about 0.926-1.273A: above the 0.9A load claim and below the USB-A connector's 1.5A rating."
+  - "At 0.9A, guaranteed 35mOhm consumes 31.5mV, recovering 90mV of VBUS margin versus the rejected TPS2552. Use all IN/OUT pins and the full PowerPAD land."
+  - "FAULT is active-low open-drain and goes to a labeled test point/pullup only; it does not create an undocumented automatic retry or firmware dependency."
+verified: "TI SLVS931B DRB top-view figure and pin table, printed p.3, confirm pins 1 GND, 2-3 IN, 4 active-high EN, 5 ILIM, 6-7 OUT, 8 FAULT and PowerPAD GND; electrical table and current-limit row re-read 2026-08-14."
+layout:
+  source: "TI SLVS931B sections 12.1-12.3 and Figure 39"
+  reviewed: 2026-08-14
+  keep_short:
+    - {net: ILIM1, max_span_mm: 2, partner_refs: [R66], why: "U4 current-setting resistor adjacent to pin 5"}
+    - {net: ILIM2, max_span_mm: 2, partner_refs: [R67], why: "U10 current-setting resistor adjacent to pin 5"}
+    - {net: ILIM3, max_span_mm: 2, partner_refs: [R68], why: "U16 current-setting resistor adjacent to pin 5"}
+    - {net: ILIM4, max_span_mm: 2, partner_refs: [R69], why: "U22 current-setting resistor adjacent to pin 5"}
+    - {net: P5V_PROTECTED, max_span_mm: 4, partner_refs: [C18, C34, C50, C66], why: "one 100nF input bypass is reserved directly at each TPS2557 IN/GND"}
+  notes:
+  - "Use broad copper across both IN and both OUT lands, place input/output capacitors and ILIM resistor locally, and connect PowerPAD to ground using the advanced-tier filled/capped via process."
+layout_refs:
+  - "TI SLVS931B section 12 and Figure 39"
+sourcing: {lcsc: C130056, alternates: [{lcsc: C2150199, mpn: TPS2557DRBT}]}

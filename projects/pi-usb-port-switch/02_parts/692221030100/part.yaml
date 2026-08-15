@@ -1,0 +1,48 @@
+mpn: "692221030100"
+manufacturer: Wurth Elektronik
+type: usb3_type_b_receptacle
+mates: receptacle
+datasheet:
+  doc_id: "692221030100"
+  revision: "002.002 2020-09-24"
+  url: https://www.we-online.com/components/products/datasheet/692221030100.pdf
+  local: 692221030100.pdf
+  sha256: 4286d859a633ee835a31f418d203988046e3c0782131dcd59d082a1ebc4adb8d
+  fetched: 2026-08-14
+  pages: 7
+package: right-angle through-hole USB 3 Type-B receptacle
+footprint: pi_usb_port_switch:Wurth_692221030100_USB3_B
+escape: {style: connector, pitch: 2.0, tier_required: jlc_2layer_default, checked: "manufacturer hole-pattern review 2026-08-14"}
+pins:
+  1: VBUS_UPSTREAM_NC
+  2: D-
+  3: D+
+  4: {name: GND, tie: GND}
+  5: SSTX-
+  6: SSTX+
+  7: {name: GND_DRAIN, tie: GND}
+  8: SSRX-
+  9: SSRX+
+  10: {name: SHIELD, tie: GND, note: "all shell/retention terminals"}
+limits:
+  contact_current: 1.8A
+  voltage: 30VAC
+  contact_resistance_max: 50mOhm
+  durability: 5000_cycles
+  operating_temperature: -20C_to_85C
+gotchas:
+  - "Pin 1 upstream VBUS is deliberately no-connect: the separate protected supply must never backfeed a Raspberry Pi USB host port. Pin 4 and shield remain common ground."
+  - "The manufacturer drawing uses a recommended HOLE pattern and physical connector view that must not be mirrored by eye. Footprint/3D body alignment is a mandatory pre-layout visual proof."
+  - "JLC C5334230 resolves to the exact Wurth MPN but its EasyEDA CAD is generically named XUNPU_USB-306BWD-ARW. Independent pad-cloud measurement against the manufacturer-derived land is exact to 0.0039mm after origin normalization; retain the manufacturer land and require JLC through-hole/order-preview confirmation."
+verified: "Würth 692221030100 rev002.002 printed pp.1-2: dimensions, recommended hole pattern, exact pin assignment, electrical/mechanical limits independently read 2026-08-14."
+layout:
+  source: "Würth 692221030100 rev002.002 recommended hole pattern"
+  reviewed: 2026-08-14
+  notes:
+    - "Place flush at the upstream board edge with the cable envelope clear. Put the ESD array connector-close and preserve pair symmetry through the THT field."
+layout_refs:
+  - "Würth 692221030100 rev002.002 pp.1-2"
+sourcing:
+  lcsc: C5334230
+  alternates: []
+  note: "Exact active MPN: JLC C5334230 stock 47 on 2026-08-15, plus DigiKey and Mouser on the dated Q-2SOURCE check. JLC CAD geometry was independently fitted to the manufacturer land; no footprint substitution."

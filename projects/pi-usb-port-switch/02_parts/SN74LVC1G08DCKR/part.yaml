@@ -1,0 +1,37 @@
+mpn: SN74LVC1G08DCKR
+manufacturer: Texas Instruments
+type: single_two_input_and_gate
+datasheet:
+  doc_id: SCES217
+  revision: SCES217AA
+  url: https://www.ti.com/lit/ds/symlink/sn74lvc1g08.pdf
+  local: SCES217AA.pdf
+  sha256: 3dc8b54d73d72c3ce091f840a0be4f1083a715dd46d20811939d8179cbe0dcc6
+  fetched: 2026-08-14
+package: DCK 5-pin SC70, 0.65 mm pitch
+footprint: pi_usb_port_switch_compat:SC-70-5
+escape: {style: leaded, pitch: 0.65, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-14"}
+pins:
+  1: A
+  2: B
+  3: {name: GND, tie: GND}
+  4: Y
+  5: VCC
+limits:
+  vcc_operating: 1.65V to 5.5V
+  partial_power_down: "Ioff supports live inputs while VCC=0"
+  function: "Y = A AND B"
+gotchas:
+  - "Per channel, A=PWR_EN and B=DATA_EN. Y=DATA_OK is the only signal allowed to enable either USB2 or SuperSpeed data. Thus DATA_EN can never reconnect data while power is commanded off."
+  - "Each Pi input gets its own external pulldown; do not rely on Raspberry Pi boot pulls."
+verified: "TI SCES217AA DCK top-view pin figure, pin functions and Ioff feature independently read 2026-08-14."
+layout:
+  source: "TI SCES217AA layout guidance and board-owned fail-safe control topology"
+  reviewed: 2026-08-14
+  keep_short:
+    - {net: 3V3, max_span_mm: 3, partner_refs: [C19, C35, C51, C67], why: "one 100nF bypass is reserved beside pin 5 of each channel gate"}
+  notes:
+    - "Keep this low-speed logic away from SuperSpeed pair corridors; place it with the channel control pull resistors."
+layout_refs:
+  - "TI SCES217AA Layout section"
+sourcing: {lcsc: C7832, alternates: []}

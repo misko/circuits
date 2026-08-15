@@ -1,0 +1,13 @@
+mpn: RC0402FR-07220KL
+manufacturer: YAGEO
+type: thick_film_resistor
+datasheet: {doc_id: RC0402FR-07220KL-spec, revision: "generated 2026-08-14", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-07220KL", local: RC0402FR-07220KL.pdf, sha256: 5fd28602821ab7533bb048058f141ca4d0ab67f5e4b76208c5cebb54afe3aff2, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {resistance: 220kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas: ["One resistor biases each TUSB522P RX2 input to ground after its 330nF optional short-to-VBUS protection capacitor; use the 220k value specified by TI and do not treat it as a generic pull-down."]
+verified: "Exact YAGEO generated specification independently read for MPN, 220kohm, 1%, 0402 and dimensions on 2026-08-14."
+layout: {source: "TUSB522P SLLSEV9E application guidance", reviewed: 2026-08-14, notes: ["Place beside the associated RX2 AC-coupling capacitor without creating a branch stub in the differential path."]}
+sourcing: {lcsc: C138030, alternates: []}

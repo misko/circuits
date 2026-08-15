@@ -1,0 +1,1134 @@
+# Hardware-only routing contract for the Pi-controlled four-port USB fixture.
+# Every one of the 96 SuperSpeed nets and 16 USB2 nets is inventoried as a
+# polarity-aware differential pair. SuperSpeed core/TX paths remain F.Cu and
+# zero-via. Eight connector-side SuperSpeed RX pairs and all eight USB2 pairs
+# use short, matched B.Cu bypasses
+# between paired signal transitions with nearby GND return vias; B.Cu is
+# referenced to continuous In2.Cu in the symmetric four-layer stackup.
+# Geometry is solved for JLC04161H-7628: 0.25 mm width / 0.18 mm gap gives
+# 89.53 ohm in the retained coated finite-difference solve (dx=0.004 mm).
+project:
+  name: pi_usb_port_switch
+  board: 04_kicad/pi_usb_port_switch.kicad_pcb
+  build_dir: 06_build/route
+
+flow:
+  heartbeat_s: 10
+  rebuild_args: [--resume-after-schematic-review]
+  pre_route_reviews:
+    board: 04_kicad/pi_usb_port_switch.kicad_pcb
+    netlist: 06_build/netlists/pi_usb_port_switch.net
+    topology: 08_reviews/pre-route_topology.md
+    schematic_pdf: 03_tscircuit/build/schematic.pdf
+    schematic_render: 08_reviews/pre-route_schematic_render.md
+    pin: 08_reviews/pre-route_pin.md
+    layout: 08_reviews/pre-route_layout.md
+    render: 08_reviews/pre-route_render.md
+    a_render: 06_build/pre_route/twin_overlay.md
+  owner:
+    stage: placement
+    files: [03_src/floorplan.yaml, 03_src/route.yaml]
+  copper:
+    deterministic: [prep.seed_stubs, taps.connections, stitch.seed_stubs, route.final]
+    stochastic: [route.waves]
+  budgets_s:
+    placement_review_prepare: 180
+    route_import: 300
+    stitch: 900
+    rebuild: 1800
+    layout_drc: 240
+  timeouts_s:
+    default: 600
+    source_schema_governance: 60
+    adr_bound_governance: 60
+    placement_review_prepare: 420
+    route_wave: 1200
+    route_race: 3600
+    route_evaluate: 240
+    route_import: 300
+    stitch: 1200
+    rebuild: 1800
+    layout_drc: 240
+  blockers:
+    - "Exact placement pin/layout/render review must pass before routing"
+    - "All 56 physical differential pairs must preserve polarity, coupling, and continuous adjacent-plane reference; only the eight contracted connector RX pairs and eight USB2 pairs may use matched F.Cu/B.Cu transitions with explicit nearby GND return vias"
+    - "Power copper, JLC assembly preview, controlled-impedance acknowledgement, and first-article USB qualification remain mandatory"
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2, User.3]
+    mounting_holes: {radius: 3.0}
+    edge_band: 0.7
+    rects: []
+  # TI SLVSBO7O Table 4-3 and Figure 7-11 define the opposite NC lands as
+  # optional straight-through routing lands.  Each connector net therefore
+  # runs continuously through its protected I/O land and the same-net NC land.
+  # The connector and TUSB522 lane groups have opposite physical Y order, so
+  # RX crosses on B.Cu between matched via pairs over continuous In2.Cu while
+  # TX remains on F.Cu over In1.Cu.  Channel 1 is the geometry pilot; translated
+  # launches are added only after its saved-board DRC and visual route review.
+  seed_stubs:
+    clearance: 0.20
+    # Localized advanced-tier signal transitions: the 0.30/0.20 mm geometry
+    # clears the 0.5 mm protection/switch escape while retaining a practical
+    # 7.9:1 through-hole aspect ratio. General router vias remain 0.45/0.20.
+    via: {size: 0.30, drill: 0.20}
+    stubs:
+      # Channel 1 upstream RX: flow through U5, then make the layer crossover.
+      - net: USB1_SS_RX_UP_CONN_N
+        pin: J3.5
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 38.500], [38.000, 39.500], [39.525, 41.500], [40.875, 41.500], [41.600, 41.500], [43.000, 41.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[43.000, 41.000], [48.100, 44.600], [54.500, 44.600]]}
+          - {layer: F.Cu, width: 0.25, pts: [[54.500, 44.600], [55.490, 44.600]]}
+        vias: [[43.000, 41.000], [54.500, 44.600]]
+      - net: USB1_SS_RX_UP_CONN_P
+        pin: J3.6
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 40.250], [37.800, 42.000], [39.525, 42.000], [40.875, 42.000], [41.600, 42.000], [43.000, 42.200]]}
+          - {layer: B.Cu, width: 0.25, pts: [[43.000, 42.200], [48.000, 45.800], [54.500, 45.800]]}
+          - {layer: F.Cu, width: 0.25, pts: [[54.500, 45.800], [55.490, 45.800]]}
+        vias: [[43.000, 42.200], [54.500, 45.800]]
+      # Channel 1 upstream TX: true top-layer flow-through path across U5.
+      - net: USB1_SS_TX_UP_CONN_N
+        pin: J3.8
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 45.250], [38.300, 44.000], [39.525, 44.000], [40.875, 44.000], [43.000, 44.000], [44.800, 42.200], [55.490, 42.200]]}
+      - net: USB1_SS_TX_UP_CONN_P
+        pin: J3.9
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 47.000], [38.000, 47.000], [38.500, 45.000], [39.525, 44.500], [40.875, 44.500], [43.000, 45.200], [46.000, 45.200], [48.000, 43.400], [55.490, 43.400]]}
+      # Channel 1 downstream TX: true top-layer flow-through path across U6.
+      - net: USB1_SS_TX_DN_CONN_N
+        pin: J4.8
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 42.200], [149.000, 42.200], [150.925, 42.000], [152.275, 42.000], [153.400, 42.000], [154.700, 42.500]]}
+      - net: USB1_SS_TX_DN_CONN_P
+        pin: J4.9
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 43.400], [149.000, 43.400], [150.925, 42.500], [152.275, 42.500], [153.400, 43.200], [154.700, 44.500]]}
+      # Channel 1 downstream RX: cross after the 5 V B.Cu spine, return to F.Cu
+      # immediately before the board-side NC lands, then flow through U6.
+      - net: USB1_SS_RX_DN_CONN_N
+        pin: J4.5
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 44.600], [140.500, 44.600]]}
+          - {layer: B.Cu, width: 0.25, pts: [[140.500, 44.600], [147.500, 39.150]]}
+          - {layer: F.Cu, width: 0.25, pts: [[147.500, 39.150], [149.800, 39.150], [150.925, 39.500], [152.275, 39.500], [153.200, 39.500], [153.200, 36.500], [154.700, 36.500]]}
+        vias: [[140.500, 44.600], [147.500, 39.150]]
+      - net: USB1_SS_RX_DN_CONN_P
+        pin: J4.6
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 45.800], [140.500, 45.800]]}
+          - {layer: B.Cu, width: 0.25, pts: [[140.500, 45.800], [147.500, 39.850]]}
+          - {layer: F.Cu, width: 0.25, pts: [[147.500, 39.850], [149.800, 39.850], [150.925, 40.000], [152.275, 40.000], [153.800, 40.000], [153.800, 38.500], [154.700, 38.500]]}
+        vias: [[140.500, 45.800], [147.500, 39.850]]
+      # Stitch L2/L3 references together immediately beside every RX signal-
+      # via pair; connector PTH grounds provide the return at the cable end.
+      - {net: GND, why: "USB1 upstream RX first layer transition return", vias: [[42.200, 40.300], [44.000, 40.500]]}
+      - {net: GND, why: "USB1 upstream RX second layer transition return", vias: [[53.700, 44.000], [53.700, 46.400]]}
+      - {net: GND, why: "USB1 downstream RX first layer transition return", vias: [[139.000, 44.000], [139.700, 46.600]]}
+      - {net: GND, why: "USB1 downstream RX second layer transition return", vias: [[146.500, 38.300], [148.500, 38.300]]}
+      # Channel 2: exact +28 mm translation of the proved channel-1 connector geometry.
+      - net: USB2_SS_RX_UP_CONN_N
+        pin: J5.5
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 66.500], [38.000, 67.500], [39.525, 69.500], [40.875, 69.500], [41.600, 69.500], [43.000, 69.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[43.000, 69.000], [48.100, 72.600], [54.500, 72.600]]}
+          - {layer: F.Cu, width: 0.25, pts: [[54.500, 72.600], [55.490, 72.600]]}
+        vias: [[43.000, 69.000], [54.500, 72.600]]
+      - net: USB2_SS_RX_UP_CONN_P
+        pin: J5.6
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 68.250], [37.800, 70.000], [39.525, 70.000], [40.875, 70.000], [41.600, 70.000], [43.000, 70.200]]}
+          - {layer: B.Cu, width: 0.25, pts: [[43.000, 70.200], [48.000, 73.800], [54.500, 73.800]]}
+          - {layer: F.Cu, width: 0.25, pts: [[54.500, 73.800], [55.490, 73.800]]}
+        vias: [[43.000, 70.200], [54.500, 73.800]]
+      - net: USB2_SS_TX_UP_CONN_N
+        pin: J5.8
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 73.250], [38.300, 72.000], [39.525, 72.000], [40.875, 72.000], [43.000, 72.000], [44.800, 70.200], [55.490, 70.200]]}
+      - net: USB2_SS_TX_UP_CONN_P
+        pin: J5.9
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 75.000], [38.000, 75.000], [38.500, 73.000], [39.525, 72.500], [40.875, 72.500], [43.000, 73.200], [46.000, 73.200], [48.000, 71.400], [55.490, 71.400]]}
+      - net: USB2_SS_TX_DN_CONN_N
+        pin: J6.8
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 70.200], [149.000, 70.200], [150.925, 70.000], [152.275, 70.000], [153.400, 70.000], [154.700, 70.500]]}
+      - net: USB2_SS_TX_DN_CONN_P
+        pin: J6.9
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 71.400], [149.000, 71.400], [150.925, 70.500], [152.275, 70.500], [153.400, 71.200], [154.700, 72.500]]}
+      - net: USB2_SS_RX_DN_CONN_N
+        pin: J6.5
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 72.600], [140.500, 72.600]]}
+          - {layer: B.Cu, width: 0.25, pts: [[140.500, 72.600], [147.500, 67.150]]}
+          - {layer: F.Cu, width: 0.25, pts: [[147.500, 67.150], [149.800, 67.150], [150.925, 67.500], [152.275, 67.500], [153.200, 67.500], [153.200, 64.500], [154.700, 64.500]]}
+        vias: [[140.500, 72.600], [147.500, 67.150]]
+      - net: USB2_SS_RX_DN_CONN_P
+        pin: J6.6
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 73.800], [140.500, 73.800]]}
+          - {layer: B.Cu, width: 0.25, pts: [[140.500, 73.800], [147.500, 67.850]]}
+          - {layer: F.Cu, width: 0.25, pts: [[147.500, 67.850], [149.800, 67.850], [150.925, 68.000], [152.275, 68.000], [153.800, 68.000], [153.800, 66.500], [154.700, 66.500]]}
+        vias: [[140.500, 73.800], [147.500, 67.850]]
+      - {net: GND, why: "USB2 upstream RX first layer transition return", vias: [[42.200, 68.300], [44.000, 68.500]]}
+      - {net: GND, why: "USB2 upstream RX second layer transition return", vias: [[53.700, 72.000], [53.700, 74.400]]}
+      - {net: GND, why: "USB2 downstream RX first layer transition return", vias: [[139.000, 72.000], [139.700, 74.600]]}
+      - {net: GND, why: "USB2 downstream RX second layer transition return", vias: [[146.500, 66.300], [148.500, 66.300]]}
+      # Channel 3: exact +56 mm translation of the proved channel-1 connector geometry.
+      - net: USB3_SS_RX_UP_CONN_N
+        pin: J7.5
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 94.500], [38.000, 95.500], [39.525, 97.500], [40.875, 97.500], [41.600, 97.500], [43.000, 97.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[43.000, 97.000], [48.100, 100.600], [54.500, 100.600]]}
+          - {layer: F.Cu, width: 0.25, pts: [[54.500, 100.600], [55.490, 100.600]]}
+        vias: [[43.000, 97.000], [54.500, 100.600]]
+      - net: USB3_SS_RX_UP_CONN_P
+        pin: J7.6
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 96.250], [37.800, 98.000], [39.525, 98.000], [40.875, 98.000], [41.600, 98.000], [43.000, 98.200]]}
+          - {layer: B.Cu, width: 0.25, pts: [[43.000, 98.200], [48.000, 101.800], [54.500, 101.800]]}
+          - {layer: F.Cu, width: 0.25, pts: [[54.500, 101.800], [55.490, 101.800]]}
+        vias: [[43.000, 98.200], [54.500, 101.800]]
+      - net: USB3_SS_TX_UP_CONN_N
+        pin: J7.8
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 101.250], [38.300, 100.000], [39.525, 100.000], [40.875, 100.000], [43.000, 100.000], [44.800, 98.200], [55.490, 98.200]]}
+      - net: USB3_SS_TX_UP_CONN_P
+        pin: J7.9
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 103.000], [38.000, 103.000], [38.500, 101.000], [39.525, 100.500], [40.875, 100.500], [43.000, 101.200], [46.000, 101.200], [48.000, 99.400], [55.490, 99.400]]}
+      - net: USB3_SS_TX_DN_CONN_N
+        pin: J8.8
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 98.200], [149.000, 98.200], [150.925, 98.000], [152.275, 98.000], [153.400, 98.000], [154.700, 98.500]]}
+      - net: USB3_SS_TX_DN_CONN_P
+        pin: J8.9
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 99.400], [149.000, 99.400], [150.925, 98.500], [152.275, 98.500], [153.400, 99.200], [154.700, 100.500]]}
+      - net: USB3_SS_RX_DN_CONN_N
+        pin: J8.5
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 100.600], [140.500, 100.600]]}
+          - {layer: B.Cu, width: 0.25, pts: [[140.500, 100.600], [147.500, 95.150]]}
+          - {layer: F.Cu, width: 0.25, pts: [[147.500, 95.150], [149.800, 95.150], [150.925, 95.500], [152.275, 95.500], [153.200, 95.500], [153.200, 92.500], [154.700, 92.500]]}
+        vias: [[140.500, 100.600], [147.500, 95.150]]
+      - net: USB3_SS_RX_DN_CONN_P
+        pin: J8.6
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 101.800], [140.500, 101.800]]}
+          - {layer: B.Cu, width: 0.25, pts: [[140.500, 101.800], [147.500, 95.850]]}
+          - {layer: F.Cu, width: 0.25, pts: [[147.500, 95.850], [149.800, 95.850], [150.925, 96.000], [152.275, 96.000], [153.800, 96.000], [153.800, 94.500], [154.700, 94.500]]}
+        vias: [[140.500, 101.800], [147.500, 95.850]]
+      - {net: GND, why: "USB3 upstream RX first layer transition return", vias: [[42.200, 96.300], [44.000, 96.500]]}
+      - {net: GND, why: "USB3 upstream RX second layer transition return", vias: [[53.700, 100.000], [53.700, 102.400]]}
+      - {net: GND, why: "USB3 downstream RX first layer transition return", vias: [[139.000, 100.000], [139.700, 102.600]]}
+      - {net: GND, why: "USB3 downstream RX second layer transition return", vias: [[146.500, 94.300], [148.500, 94.300]]}
+      # Channel 4: exact +84 mm translation of the proved channel-1 connector geometry.
+      - net: USB4_SS_RX_UP_CONN_N
+        pin: J9.5
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 122.500], [38.000, 123.500], [39.525, 125.500], [40.875, 125.500], [41.600, 125.500], [43.000, 125.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[43.000, 125.000], [48.100, 128.600], [54.500, 128.600]]}
+          - {layer: F.Cu, width: 0.25, pts: [[54.500, 128.600], [55.490, 128.600]]}
+        vias: [[43.000, 125.000], [54.500, 128.600]]
+      - net: USB4_SS_RX_UP_CONN_P
+        pin: J9.6
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 124.250], [37.800, 126.000], [39.525, 126.000], [40.875, 126.000], [41.600, 126.000], [43.000, 126.200]]}
+          - {layer: B.Cu, width: 0.25, pts: [[43.000, 126.200], [48.000, 129.800], [54.500, 129.800]]}
+          - {layer: F.Cu, width: 0.25, pts: [[54.500, 129.800], [55.490, 129.800]]}
+        vias: [[43.000, 126.200], [54.500, 129.800]]
+      - net: USB4_SS_TX_UP_CONN_N
+        pin: J9.8
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 129.250], [38.300, 128.000], [39.525, 128.000], [40.875, 128.000], [43.000, 128.000], [44.800, 126.200], [55.490, 126.200]]}
+      - net: USB4_SS_TX_UP_CONN_P
+        pin: J9.9
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[37.000, 131.000], [38.000, 131.000], [38.500, 129.000], [39.525, 128.500], [40.875, 128.500], [43.000, 129.200], [46.000, 129.200], [48.000, 127.400], [55.490, 127.400]]}
+      - net: USB4_SS_TX_DN_CONN_N
+        pin: J10.8
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 126.200], [149.000, 126.200], [150.925, 126.000], [152.275, 126.000], [153.400, 126.000], [154.700, 126.500]]}
+      - net: USB4_SS_TX_DN_CONN_P
+        pin: J10.9
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 127.400], [149.000, 127.400], [150.925, 126.500], [152.275, 126.500], [153.400, 127.200], [154.700, 128.500]]}
+      - net: USB4_SS_RX_DN_CONN_N
+        pin: J10.5
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 128.600], [140.500, 128.600]]}
+          - {layer: B.Cu, width: 0.25, pts: [[140.500, 128.600], [147.500, 123.150]]}
+          - {layer: F.Cu, width: 0.25, pts: [[147.500, 123.150], [149.800, 123.150], [150.925, 123.500], [152.275, 123.500], [153.200, 123.500], [153.200, 120.500], [154.700, 120.500]]}
+        vias: [[140.500, 128.600], [147.500, 123.150]]
+      - net: USB4_SS_RX_DN_CONN_P
+        pin: J10.6
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[136.510, 129.800], [140.500, 129.800]]}
+          - {layer: B.Cu, width: 0.25, pts: [[140.500, 129.800], [147.500, 123.850]]}
+          - {layer: F.Cu, width: 0.25, pts: [[147.500, 123.850], [149.800, 123.850], [150.925, 124.000], [152.275, 124.000], [153.800, 124.000], [153.800, 122.500], [154.700, 122.500]]}
+        vias: [[140.500, 129.800], [147.500, 123.850]]
+      - {net: GND, why: "USB4 upstream RX first layer transition return", vias: [[42.200, 124.300], [44.000, 124.500]]}
+      - {net: GND, why: "USB4 upstream RX second layer transition return", vias: [[53.700, 128.000], [53.700, 130.400]]}
+      - {net: GND, why: "USB4 downstream RX first layer transition return", vias: [[139.000, 128.000], [139.700, 130.600]]}
+      - {net: GND, why: "USB4 downstream RX second layer transition return", vias: [[146.500, 122.300], [148.500, 122.300]]}
+
+      # Channel-1 downstream TX exits the redriver with only 0.50 mm pitch.
+      # The generic pair router can incorrectly classify this short pair as
+      # already served when adjacent deterministic copper touches its search
+      # envelope.  Keep the direct, monotonic top-layer escape explicit.
+      - net: USB1_SS_TX_DN_IC_P
+        pin: U2.22
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[96.963, 43.750], [109.500, 43.750], [110.500, 42.750], [112.800, 42.750], [113.300, 43.400], [114.520, 43.400]]}
+      - net: USB1_SS_TX_DN_IC_N
+        pin: U2.23
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[96.963, 43.250], [108.000, 43.250], [110.000, 42.200], [114.520, 42.200]]}
+
+      # RX bias lands are deliberately inline with the AC-coupling capacitor
+      # endpoints. Seed the short resistor-to-cap legs so the differential
+      # router owns only the coupled redriver-to-bias section and cannot defer
+      # these third terminals as single-ended branches.
+      - {net: USB1_SS_RX_DN_IC_P, pin: C12.2, segments: [{layer: F.Cu, width: 0.25, pts: [[96.963, 45.250], [108.500, 45.250], [110.500, 45.800], [112.000, 45.800], [114.520, 45.800]]}]}
+      - {net: USB1_SS_RX_DN_IC_N, pin: C13.2, segments: [{layer: F.Cu, width: 0.25, pts: [[96.963, 44.750], [108.500, 44.750], [110.500, 44.600], [112.000, 44.600], [114.520, 44.600]]}]}
+      - {net: USB2_SS_RX_DN_IC_P, pin: C28.2, segments: [{layer: F.Cu, width: 0.25, pts: [[96.963, 73.250], [108.500, 73.250], [110.500, 73.800], [112.000, 73.800], [114.520, 73.800]]}]}
+      - {net: USB2_SS_RX_DN_IC_N, pin: C29.2, segments: [{layer: F.Cu, width: 0.25, pts: [[96.963, 72.750], [108.500, 72.750], [110.500, 72.600], [112.000, 72.600], [114.520, 72.600]]}]}
+      - {net: USB3_SS_RX_DN_IC_P, pin: C44.2, segments: [{layer: F.Cu, width: 0.25, pts: [[96.963, 101.250], [108.500, 101.250], [110.500, 101.800], [112.000, 101.800], [114.520, 101.800]]}]}
+      - {net: USB3_SS_RX_DN_IC_N, pin: C45.2, segments: [{layer: F.Cu, width: 0.25, pts: [[96.963, 100.750], [108.500, 100.750], [110.500, 100.600], [112.000, 100.600], [114.520, 100.600]]}]}
+      - {net: USB4_SS_RX_DN_IC_P, pin: C60.2, segments: [{layer: F.Cu, width: 0.25, pts: [[96.963, 129.250], [108.500, 129.250], [110.500, 129.800], [112.000, 129.800], [114.520, 129.800]]}]}
+      - {net: USB4_SS_RX_DN_IC_N, pin: C61.2, segments: [{layer: F.Cu, width: 0.25, pts: [[96.963, 128.750], [108.500, 128.750], [110.500, 128.600], [112.000, 128.600], [114.520, 128.600]]}]}
+
+      # The four TUSB522s share six static strap nets.  Give each net a B.Cu
+      # spine and ordered F.Cu fan-outs rather than exposing six five-terminal
+      # nets to global rip-up.  The buses sit between the redriver columns and
+      # the USB2 paths; the pull-resistor order above U2 mirrors the bus order.
+      - net: TUSB_OS1
+        pin: R79.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[121.490, 33.000], [121.490, 34.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[121.490, 34.000], [90.000, 35.000], [90.000, 46.700], [90.000, 74.700], [90.000, 102.700], [90.000, 130.750]]}
+          - {layer: F.Cu, width: 0.25, pts: [[94.750, 45.962], [94.750, 46.700], [90.000, 46.700]]}
+          - {layer: F.Cu, width: 0.25, pts: [[94.750, 73.963], [94.750, 74.700], [90.000, 74.700]]}
+          - {layer: F.Cu, width: 0.25, pts: [[94.750, 101.963], [94.750, 102.700], [90.000, 102.700]]}
+          - {layer: F.Cu, width: 0.25, pts: [[94.750, 129.963], [94.750, 130.750], [90.000, 130.750]]}
+        vias: [[121.490, 34.000], [90.000, 46.700], [90.000, 74.700], [90.000, 102.700], [90.000, 130.750]]
+      - net: TUSB_DE1
+        pin: R77.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[123.490, 33.000], [123.490, 35.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[123.490, 35.000], [92.000, 36.000], [92.000, 47.200], [92.000, 75.200], [92.000, 103.200], [92.000, 131.250]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.250, 45.962], [95.250, 47.200], [92.000, 47.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.250, 73.963], [95.250, 75.200], [92.000, 75.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.250, 101.963], [95.250, 103.200], [92.000, 103.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.250, 129.963], [95.250, 131.250], [92.000, 131.250]]}
+        vias: [[123.490, 35.000], [92.000, 47.200], [92.000, 75.200], [92.000, 103.200], [92.000, 131.250]]
+      - net: TUSB_EQ2
+        pin: R76.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[125.490, 33.000], [125.490, 36.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[125.490, 36.000], [94.000, 37.000], [94.000, 47.700], [94.000, 75.700], [94.000, 103.700], [94.000, 131.750]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.750, 45.962], [95.750, 47.700], [94.000, 47.700]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.750, 73.963], [95.750, 75.700], [94.000, 75.700]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.750, 101.963], [95.750, 103.700], [94.000, 103.700]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.750, 129.963], [95.750, 131.750], [94.000, 131.750]]}
+        vias: [[125.490, 36.000], [94.000, 47.700], [94.000, 75.700], [94.000, 103.700], [94.000, 131.750]]
+      - net: TUSB_OS2
+        pin: R80.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[127.490, 33.000], [127.490, 37.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[127.490, 37.000], [96.000, 38.000], [96.000, 40.300], [96.000, 68.300], [96.000, 96.300], [96.000, 124.300]]}
+          - {layer: F.Cu, width: 0.25, pts: [[94.750, 42.038], [94.750, 40.300], [96.000, 40.300]]}
+          - {layer: F.Cu, width: 0.25, pts: [[94.750, 70.037], [94.750, 68.300], [96.000, 68.300]]}
+          - {layer: F.Cu, width: 0.25, pts: [[94.750, 98.037], [94.750, 96.300], [96.000, 96.300]]}
+          - {layer: F.Cu, width: 0.25, pts: [[94.750, 126.037], [94.750, 124.300], [96.000, 124.300]]}
+        vias: [[127.490, 37.000], [96.000, 40.300], [96.000, 68.300], [96.000, 96.300], [96.000, 124.300]]
+      - net: TUSB_DE2
+        pin: R78.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[129.490, 33.000], [129.490, 38.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[129.490, 38.000], [98.000, 39.000], [98.000, 40.800], [98.000, 68.800], [98.000, 96.800], [98.000, 124.800]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.250, 42.038], [95.250, 40.800], [98.000, 40.800]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.250, 70.037], [95.250, 68.800], [98.000, 68.800]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.250, 98.037], [95.250, 96.800], [98.000, 96.800]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.250, 126.037], [95.250, 124.800], [98.000, 124.800]]}
+        vias: [[129.490, 38.000], [98.000, 40.800], [98.000, 68.800], [98.000, 96.800], [98.000, 124.800]]
+      - net: TUSB_EQ1
+        pin: R75.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[131.490, 33.000], [131.490, 39.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[131.490, 39.000], [100.000, 40.000], [100.000, 41.300], [100.000, 69.300], [100.000, 97.300], [100.000, 125.300]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.750, 42.038], [95.750, 41.300], [100.000, 41.300]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.750, 70.037], [95.750, 69.300], [100.000, 69.300]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.750, 98.037], [95.750, 97.300], [100.000, 97.300]]}
+          - {layer: F.Cu, width: 0.25, pts: [[95.750, 126.037], [95.750, 125.300], [100.000, 125.300]]}
+        vias: [[131.490, 39.000], [100.000, 41.300], [100.000, 69.300], [100.000, 97.300], [100.000, 125.300]]
+
+      # The four power-enable nets each join a top pull network, the local
+      # hardware interlock, and the channel load-switch enable.  Leaving these
+      # long three/four-terminal trees to the maze router causes global rip-up
+      # after the USB geometry is already stable.  Give each channel a quiet
+      # B.Cu drop just east of the strap buses and use short F.Cu fan-outs at
+      # the destination row.  The drops deliberately stop before each local
+      # fan-out, so later channels cross earlier fan-outs on the opposite layer.
+      - net: PWR_EN1
+        pin: U7.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[104.510, 32.000], [103.490, 34.000], [103.490, 35.500], [101.000, 41.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[101.000, 41.500], [101.000, 56.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[101.000, 56.500], [113.500, 56.500], [113.500, 50.350], [115.162, 50.350]]}
+          - {layer: F.Cu, width: 0.25, pts: [[101.000, 56.500], [139.000, 56.500], [136.975, 52.450]]}
+        vias: [[101.000, 41.500], [101.000, 56.500]]
+      # Keep the reverse-polarity MOSFET gate outside Q1's fused-input pad
+      # field.  The maze-router's compact path passes within 0.18 mm of pad 8;
+      # this explicit right-side escape preserves the full 0.20 mm clearance.
+      - net: RPP_GATE
+        pin: Q1.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[69.900, 25.660], [71.500, 25.660], [72.490, 27.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[71.500, 25.660], [72.000, 33.500], [68.510, 35.000], [64.490, 35.000], [64.490, 33.500]]}
+      - net: PWR_EN2
+        pin: U13.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.510, 32.000], [107.490, 34.000], [107.490, 36.500], [102.000, 41.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[102.000, 41.500], [102.000, 84.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[102.000, 84.500], [113.500, 84.500], [113.500, 78.350], [115.162, 78.350]]}
+          - {layer: F.Cu, width: 0.25, pts: [[102.000, 84.500], [139.000, 84.500], [136.975, 80.450]]}
+        vias: [[102.000, 41.500], [102.000, 84.500]]
+      - net: PWR_EN3
+        pin: U19.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[112.510, 32.000], [111.490, 34.000], [111.490, 37.500], [105.500, 41.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[105.500, 41.500], [105.500, 112.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[105.500, 112.500], [113.500, 112.500], [113.500, 106.350], [115.162, 106.350]]}
+          - {layer: F.Cu, width: 0.25, pts: [[105.500, 112.500], [139.000, 112.500], [136.975, 108.450]]}
+        vias: [[105.500, 41.500], [105.500, 112.500]]
+      - net: PWR_EN4
+        pin: U25.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[116.510, 32.000], [115.490, 34.000], [115.490, 38.500], [108.500, 41.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[108.500, 41.500], [108.500, 138.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[108.500, 138.500], [113.500, 138.500], [113.500, 134.350]]}
+          - {layer: F.Cu, width: 0.25, pts: [[113.500, 134.350], [115.162, 134.350]]}
+          # Cross the protected-5-V B.Cu spine on F.Cu so this control branch
+          # cannot cleave the high-current pour into separate channel groups.
+          - {layer: F.Cu, width: 0.25, pts: [[108.500, 116.500], [138.500, 116.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[138.500, 116.500], [138.500, 138.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[138.500, 138.500], [136.975, 136.450]]}
+        vias: [[108.500, 41.500], [108.500, 116.500], [113.500, 134.350], [138.500, 116.500], [138.500, 138.500]]
+
+      # DATA_EN3 is the remaining long interlock leg after the four power
+      # enables are deterministic.  Approach U19.2 from below the USB2
+      # crossover on B.Cu, then use only the final pad escape on F.Cu.
+      - net: DATA_EN3
+        pin: U19.2
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[114.510, 32.000], [113.490, 34.000], [113.490, 38.000], [106.500, 41.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[106.500, 41.500], [106.500, 114.500], [107.700, 114.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[107.700, 114.500], [109.300, 114.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[109.300, 114.500], [114.200, 114.500], [114.200, 107.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[114.200, 107.000], [115.162, 107.000]]}
+        vias: [[106.500, 41.500], [107.700, 114.500], [109.300, 114.500], [114.200, 107.000]]
+
+      # DATA_EN4 is the longest control branch and the only repeat-channel
+      # tap that consistently drives the general router into global rip-up.
+      # Give it a quiet B.Cu trunk just outside the strap buses, with local
+      # F.Cu trees at the pull network and channel-4 gate.
+      - net: DATA_EN4
+        pin: U25.2
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[118.510, 32.000], [119.500, 33.000], [119.500, 36.000], [117.490, 36.000], [117.490, 41.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[117.490, 34.000], [117.490, 36.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[117.490, 41.000], [103.000, 41.000], [103.000, 139.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[103.000, 139.000], [113.500, 139.000], [113.500, 135.000], [115.162, 135.000]]}
+        vias: [[117.490, 41.000], [103.000, 139.000]]
+
+      # USB2 is deterministic because each ESD array is a same-net
+      # flow-through land field and the switch presents orthogonal pad faces.
+      # Both upstream and downstream pairs make short, matched F/B/F bypasses
+      # around otherwise crossing launch order. Both outer layers have an
+      # adjacent solid GND reference, and each signal-via pair has explicit
+      # nearby L2/L3 return stitching.
+      - net: USB1_HS_UP_N
+        pin: J3.2
+        segments:
+          - {layer: B.Cu, width: 0.25, pts: [[35.000, 41.500], [35.500, 41.200], [38.200, 41.200], [39.000, 42.700], [38.400, 43.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[38.400, 43.000], [39.525, 43.000], [40.875, 43.000], [42.000, 43.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[42.000, 43.000], [44.000, 44.500], [47.000, 48.200], [52.000, 48.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[52.000, 48.200], [101.500, 48.200], [104.000, 49.750], [107.362, 49.750]]}
+        vias: [[38.400, 43.000], [42.000, 43.000], [52.000, 48.200]]
+      - net: USB1_HS_UP_P
+        pin: J3.3
+        segments:
+          - {layer: B.Cu, width: 0.25, pts: [[33.000, 41.500], [33.000, 42.700], [35.000, 42.700], [35.400, 42.700], [36.000, 43.000], [36.500, 43.900], [38.900, 43.900], [38.900, 43.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[38.900, 43.500], [39.525, 43.500], [40.875, 43.500], [41.600, 43.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[41.600, 43.500], [41.600, 44.200], [43.500, 46.000], [47.500, 49.200], [52.500, 49.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[52.500, 49.200], [101.500, 49.200], [104.000, 50.250], [107.362, 50.250]]}
+        vias: [[38.900, 43.500], [41.600, 43.500], [52.500, 49.200]]
+      - net: USB1_HS_DN_P
+        pin: U3.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.638, 50.750], [110.000, 51.200]]}
+          - {layer: B.Cu, width: 0.25, pts: [[110.000, 51.200], [112.000, 49.200], [120.000, 49.200], [122.000, 48.200], [132.500, 48.200], [134.000, 40.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[134.000, 40.500], [150.925, 40.500], [152.275, 40.500], [153.000, 40.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[153.000, 40.500], [153.300, 39.500], [156.200, 39.500]]}
+        vias: [[110.000, 51.200], [134.000, 40.500], [153.000, 40.500]]
+      - net: USB1_HS_DN_N
+        pin: U3.2
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.638, 50.250], [109.300, 50.250], [110.000, 49.800], [120.000, 49.800]]}
+          - {layer: B.Cu, width: 0.25, pts: [[120.000, 49.800], [122.000, 48.800], [133.000, 48.800], [134.500, 41.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[134.500, 41.000], [150.925, 41.000], [152.275, 41.000], [153.500, 41.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[153.500, 41.000], [153.300, 41.500], [156.200, 41.500]]}
+        vias: [[120.000, 49.800], [134.500, 41.000], [153.500, 41.000]]
+      - {net: GND, why: "USB1 upstream USB2 first transition return", vias: [[41.500, 46.000], [42.800, 44.500]]}
+      - {net: GND, why: "USB1 upstream USB2 second transition return", vias: [[51.000, 47.500], [53.000, 50.000]]}
+      - {net: GND, why: "USB1 downstream USB2 switch-side transition return", vias: [[109.400, 52.200], [119.500, 52.500]]}
+      - {net: GND, why: "USB1 downstream USB2 first transition return", vias: [[131.500, 49.500], [134.000, 49.500]]}
+      - {net: GND, why: "USB1 downstream USB2 second transition return", vias: [[133.000, 39.500], [135.500, 39.500]]}
+
+      - net: USB2_HS_UP_N
+        pin: J5.2
+        segments:
+          - {layer: B.Cu, width: 0.25, pts: [[35.000, 69.500], [35.500, 69.200], [38.200, 69.200], [39.000, 70.700], [38.400, 71.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[38.400, 71.000], [39.525, 71.000], [40.875, 71.000], [42.000, 71.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[42.000, 71.000], [44.000, 72.500], [47.000, 76.200], [52.000, 76.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[52.000, 76.200], [101.500, 76.200], [104.000, 77.750], [107.362, 77.750]]}
+        vias: [[38.400, 71.000], [42.000, 71.000], [52.000, 76.200]]
+      - net: USB2_HS_UP_P
+        pin: J5.3
+        segments:
+          - {layer: B.Cu, width: 0.25, pts: [[33.000, 69.500], [33.000, 70.700], [35.000, 70.700], [35.400, 70.700], [36.000, 71.000], [36.500, 71.900], [38.900, 71.900], [38.900, 71.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[38.900, 71.500], [39.525, 71.500], [40.875, 71.500], [41.600, 71.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[41.600, 71.500], [41.600, 72.200], [43.500, 74.000], [47.500, 77.200], [52.500, 77.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[52.500, 77.200], [101.500, 77.200], [104.000, 78.250], [107.362, 78.250]]}
+        vias: [[38.900, 71.500], [41.600, 71.500], [52.500, 77.200]]
+      - net: USB2_HS_DN_P
+        pin: U9.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.638, 78.750], [110.000, 79.200]]}
+          - {layer: B.Cu, width: 0.25, pts: [[110.000, 79.200], [112.000, 77.200], [120.000, 77.200], [122.000, 76.200], [132.500, 76.200], [134.000, 68.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[134.000, 68.500], [150.925, 68.500], [152.275, 68.500], [153.000, 68.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[153.000, 68.500], [153.300, 67.500], [156.200, 67.500]]}
+        vias: [[110.000, 79.200], [134.000, 68.500], [153.000, 68.500]]
+      - net: USB2_HS_DN_N
+        pin: U9.2
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.638, 78.250], [109.300, 78.250], [110.000, 77.800], [120.000, 77.800]]}
+          - {layer: B.Cu, width: 0.25, pts: [[120.000, 77.800], [122.000, 76.800], [133.000, 76.800], [134.500, 69.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[134.500, 69.000], [150.925, 69.000], [152.275, 69.000], [153.500, 69.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[153.500, 69.000], [153.300, 69.500], [156.200, 69.500]]}
+        vias: [[120.000, 77.800], [134.500, 69.000], [153.500, 69.000]]
+      - {net: GND, why: "USB2 upstream USB2 first transition return", vias: [[41.500, 74.000], [42.800, 72.500]]}
+      - {net: GND, why: "USB2 upstream USB2 second transition return", vias: [[51.000, 75.500], [53.000, 78.000]]}
+      - {net: GND, why: "USB2 downstream USB2 switch-side transition return", vias: [[109.400, 80.200], [119.500, 80.500]]}
+      - {net: GND, why: "USB2 downstream USB2 first transition return", vias: [[131.500, 77.500], [134.000, 77.500]]}
+      - {net: GND, why: "USB2 downstream USB2 second transition return", vias: [[133.000, 67.500], [135.500, 67.500]]}
+
+      - net: USB3_HS_UP_N
+        pin: J7.2
+        segments:
+          - {layer: B.Cu, width: 0.25, pts: [[35.000, 97.500], [35.500, 97.200], [38.200, 97.200], [39.000, 98.700], [38.400, 99.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[38.400, 99.000], [39.525, 99.000], [40.875, 99.000], [42.000, 99.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[42.000, 99.000], [44.000, 100.500], [47.000, 104.200], [52.000, 104.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[52.000, 104.200], [101.500, 104.200], [104.000, 105.750], [107.362, 105.750]]}
+        vias: [[38.400, 99.000], [42.000, 99.000], [52.000, 104.200]]
+      - net: USB3_HS_UP_P
+        pin: J7.3
+        segments:
+          - {layer: B.Cu, width: 0.25, pts: [[33.000, 97.500], [33.000, 98.700], [35.000, 98.700], [35.400, 98.700], [36.000, 99.000], [36.500, 99.900], [38.900, 99.900], [38.900, 99.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[38.900, 99.500], [39.525, 99.500], [40.875, 99.500], [41.600, 99.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[41.600, 99.500], [41.600, 100.200], [43.500, 102.000], [47.500, 105.200], [52.500, 105.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[52.500, 105.200], [101.500, 105.200], [104.000, 106.250], [107.362, 106.250]]}
+        vias: [[38.900, 99.500], [41.600, 99.500], [52.500, 105.200]]
+      - net: USB3_HS_DN_P
+        pin: U15.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.638, 106.750], [110.000, 107.200]]}
+          - {layer: B.Cu, width: 0.25, pts: [[110.000, 107.200], [112.000, 105.200], [120.000, 105.200], [122.000, 104.200], [132.500, 104.200], [134.000, 96.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[134.000, 96.500], [150.925, 96.500], [152.275, 96.500], [153.000, 96.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[153.000, 96.500], [153.300, 95.500], [156.200, 95.500]]}
+        vias: [[110.000, 107.200], [134.000, 96.500], [153.000, 96.500]]
+      - net: USB3_HS_DN_N
+        pin: U15.2
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.638, 106.250], [109.300, 106.250], [110.000, 105.800], [120.000, 105.800]]}
+          - {layer: B.Cu, width: 0.25, pts: [[120.000, 105.800], [122.000, 104.800], [133.000, 104.800], [134.500, 97.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[134.500, 97.000], [150.925, 97.000], [152.275, 97.000], [153.500, 97.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[153.500, 97.000], [153.300, 97.500], [156.200, 97.500]]}
+        vias: [[120.000, 105.800], [134.500, 97.000], [153.500, 97.000]]
+      - {net: GND, why: "USB3 upstream USB2 first transition return", vias: [[41.500, 102.000], [42.800, 100.500]]}
+      - {net: GND, why: "USB3 upstream USB2 second transition return", vias: [[51.000, 103.500], [53.000, 106.000]]}
+      - {net: GND, why: "USB3 downstream USB2 switch-side transition return", vias: [[109.400, 108.200], [119.500, 108.500]]}
+      - {net: GND, why: "USB3 downstream USB2 first transition return", vias: [[131.500, 105.500], [134.000, 105.500]]}
+      - {net: GND, why: "USB3 downstream USB2 second transition return", vias: [[133.000, 95.500], [135.500, 95.500]]}
+
+      - net: USB4_HS_UP_N
+        pin: J9.2
+        segments:
+          - {layer: B.Cu, width: 0.25, pts: [[35.000, 125.500], [35.500, 125.200], [38.200, 125.200], [39.000, 126.700], [38.400, 127.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[38.400, 127.000], [39.525, 127.000], [40.875, 127.000], [42.000, 127.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[42.000, 127.000], [44.000, 128.500], [47.000, 132.200], [52.000, 132.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[52.000, 132.200], [70.000, 132.200], [72.000, 131.000], [78.000, 131.000], [80.000, 132.300], [101.500, 132.300], [104.000, 133.750], [107.362, 133.750]]}
+        vias: [[38.400, 127.000], [42.000, 127.000], [52.000, 132.200]]
+      - net: USB4_HS_UP_P
+        pin: J9.3
+        segments:
+          - {layer: B.Cu, width: 0.25, pts: [[33.000, 125.500], [33.000, 126.700], [35.000, 126.700], [35.400, 126.700], [36.000, 127.000], [36.500, 127.900], [38.900, 127.900], [38.900, 127.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[38.900, 127.500], [39.525, 127.500], [40.875, 127.500], [41.600, 127.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[41.600, 127.500], [41.600, 128.200], [43.500, 130.000], [47.500, 133.200], [52.500, 133.200]]}
+          - {layer: F.Cu, width: 0.25, pts: [[52.500, 133.200], [70.000, 133.200], [72.000, 131.600], [78.000, 131.600], [80.000, 133.300], [101.500, 133.300], [104.000, 134.250], [107.362, 134.250]]}
+        vias: [[38.900, 127.500], [41.600, 127.500], [52.500, 133.200]]
+      - net: USB4_HS_DN_P
+        pin: U21.1
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.638, 134.750], [110.000, 135.200]]}
+          - {layer: B.Cu, width: 0.25, pts: [[110.000, 135.200], [112.000, 133.200], [120.000, 133.200], [122.000, 132.200], [132.500, 132.200], [134.000, 124.500]]}
+          - {layer: F.Cu, width: 0.25, pts: [[134.000, 124.500], [150.925, 124.500], [152.275, 124.500], [153.000, 124.500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[153.000, 124.500], [153.300, 123.500], [156.200, 123.500]]}
+        vias: [[110.000, 135.200], [134.000, 124.500], [153.000, 124.500]]
+      - net: USB4_HS_DN_N
+        pin: U21.2
+        segments:
+          - {layer: F.Cu, width: 0.25, pts: [[108.638, 134.250], [109.300, 134.250], [110.000, 133.800], [120.000, 133.800]]}
+          - {layer: B.Cu, width: 0.25, pts: [[120.000, 133.800], [122.000, 132.800], [133.000, 132.800], [134.500, 125.000]]}
+          - {layer: F.Cu, width: 0.25, pts: [[134.500, 125.000], [150.925, 125.000], [152.275, 125.000], [153.500, 125.000]]}
+          - {layer: B.Cu, width: 0.25, pts: [[153.500, 125.000], [153.300, 125.500], [156.200, 125.500]]}
+        vias: [[120.000, 133.800], [134.500, 125.000], [153.500, 125.000]]
+      - {net: GND, why: "USB4 upstream USB2 first transition return", vias: [[41.500, 130.000], [42.800, 128.500]]}
+      - {net: GND, why: "USB4 upstream USB2 second transition return", vias: [[51.000, 131.500], [53.000, 134.000]]}
+      - {net: GND, why: "USB4 downstream USB2 switch-side transition return", vias: [[109.400, 136.200], [119.500, 136.500]]}
+      - {net: GND, why: "USB4 downstream USB2 first transition return", vias: [[131.500, 133.500], [134.000, 133.500]]}
+      - {net: GND, why: "USB4 downstream USB2 second transition return", vias: [[133.000, 123.500], [135.500, 123.500]]}
+      # The redriver 3V3 lands are only 0.25 mm tall on 0.50 mm pitch.  Bond
+      # each supply pin directly to its adjacent bypass capacitor before the
+      # general 0.40 mm power wave runs.  The first 0.50 mm is a measured
+      # 0.35 mm package neck inside the matching named rule area; it widens to
+      # the board-wide PWR_3V3 floor immediately outside the land field.
+      - net: 3V3
+        pin: U2.1
+        segments:
+          - {layer: F.Cu, width: 0.35, pts: [[96.250, 42.0375], [96.750, 42.040]]}
+          - {layer: F.Cu, width: 0.40, pts: [[96.750, 42.040], [98.670, 42.040]]}
+      - net: 3V3
+        pin: U8.1
+        segments:
+          - {layer: F.Cu, width: 0.35, pts: [[96.250, 70.0375], [96.750, 70.040]]}
+          - {layer: F.Cu, width: 0.40, pts: [[96.750, 70.040], [98.670, 70.040]]}
+      - net: 3V3
+        pin: U14.1
+        segments:
+          - {layer: F.Cu, width: 0.35, pts: [[96.250, 98.0375], [96.750, 98.040]]}
+          - {layer: F.Cu, width: 0.40, pts: [[96.750, 98.040], [98.670, 98.040]]}
+      - net: 3V3
+        pin: U20.1
+        segments:
+          - {layer: F.Cu, width: 0.35, pts: [[96.250, 126.0375], [96.750, 126.040]]}
+          - {layer: F.Cu, width: 0.40, pts: [[96.750, 126.040], [98.670, 126.040]]}
+      # Deterministic 3V3 backbone.  The layer alternation follows the open
+      # spaces between the repeated USB corridors and joins every channel's
+      # redriver bypass island to the LDO before KRT fans out the low-current
+      # local branches.  This prevents a multipoint autoroute from declaring
+      # success after joining only one of four otherwise identical islands.
+      - net: 3V3
+        pin: C4.1
+        segments:
+          - {layer: F.Cu, width: 0.40, pts: [[97.520, 33.000], [97.500, 33.000], [97.500, 33.150], [98.100, 33.750], [98.250, 33.750], [98.550, 34.050], [98.550, 40.550], [98.650, 40.650]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.550, 34.050], [99.600, 33.000], [100.500, 33.000], [100.520, 33.000]]}
+          - {layer: F.Cu, width: 0.40, pts: [[100.500, 33.000], [100.750, 32.750], [100.750, 27.400], [101.150, 27.000]]}
+          - {layer: F.Cu, width: 0.40, pts: [[100.750, 27.400], [100.350, 27.000], [94.850, 27.000]]}
+          - {layer: B.Cu, width: 0.40, pts: [[98.650, 40.650], [98.650, 42.600], [98.650, 47.550], [98.650, 49.850]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 42.600], [98.650, 42.050], [98.670, 42.040]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 47.550], [98.650, 47.000], [98.670, 47.000]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 49.850], [98.650, 68.650]]}
+          - {layer: B.Cu, width: 0.40, pts: [[98.650, 68.650], [98.650, 69.950], [98.650, 73.900], [98.650, 77.850]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 69.950], [98.650, 70.050], [98.670, 70.040]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 73.900], [98.650, 75.000], [98.670, 75.000]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 77.850], [98.650, 96.650]]}
+          - {layer: B.Cu, width: 0.40, pts: [[98.650, 96.650], [98.650, 97.950], [98.650, 101.900], [98.650, 105.850]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 97.950], [98.650, 98.050], [98.670, 98.040]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 101.900], [98.650, 103.000], [98.670, 103.000]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 105.850], [98.650, 124.650]]}
+          - {layer: B.Cu, width: 0.40, pts: [[98.650, 124.650], [98.650, 125.950], [98.650, 129.900]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 125.950], [98.650, 126.050], [98.670, 126.040]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.650, 129.900], [98.650, 131.000], [98.670, 131.000]]}
+        vias:
+          - [98.650, 40.650]
+          - [98.650, 42.600]
+          - [98.650, 47.550]
+          - [98.650, 49.850]
+          - [98.650, 68.650]
+          - [98.650, 69.950]
+          - [98.650, 73.900]
+          - [98.650, 77.850]
+          - [98.650, 96.650]
+          - [98.650, 97.950]
+          - [98.650, 101.900]
+          - [98.650, 105.850]
+          - [98.650, 124.650]
+          - [98.650, 125.950]
+          - [98.650, 129.900]
+      # USB2-switch VCC escapes are deterministic because the adjacent USB2
+      # pairs deliberately occupy both outer layers.  The first 0.24 mm at
+      # each 0.40 mm-pitch land uses the scoped 0.30 mm neck, then widens to
+      # the 0.40 mm spine.  Channels 1-3 are exact translations; channel 4
+      # uses the open lower-edge corridor and two ordinary 0.45/0.20 mm vias.
+      - net: 3V3
+        pin: U3.10
+        segments:
+          - {layer: F.Cu, width: 0.30, pts: [[108.000, 50.860], [108.000, 51.100]]}
+          - {layer: F.Cu, width: 0.40, pts: [[108.000, 51.100], [108.000, 51.200], [107.850, 51.350], [106.900, 51.350], [106.400, 50.850], [98.650, 50.850]]}
+      - net: 3V3
+        pin: U9.10
+        segments:
+          - {layer: F.Cu, width: 0.30, pts: [[108.000, 78.860], [108.000, 79.100]]}
+          - {layer: F.Cu, width: 0.40, pts: [[108.000, 79.100], [108.000, 79.200], [107.850, 79.350], [106.900, 79.350], [106.400, 78.850], [98.650, 78.850]]}
+      - net: 3V3
+        pin: U15.10
+        segments:
+          - {layer: F.Cu, width: 0.30, pts: [[108.000, 106.860], [108.000, 107.100]]}
+          - {layer: F.Cu, width: 0.40, pts: [[108.000, 107.100], [108.000, 107.200], [107.850, 107.350], [106.900, 107.350], [106.400, 106.850], [98.650, 106.850]]}
+      - net: 3V3
+        pin: U21.10
+        segments:
+          - {layer: F.Cu, width: 0.30, pts: [[108.000, 134.860], [108.000, 135.100]]}
+          - {layer: F.Cu, width: 0.40, pts: [[108.000, 135.100], [108.000, 135.200], [107.850, 135.350], [106.900, 135.350], [106.450, 134.900]]}
+          - {layer: B.Cu, width: 0.40, pts: [[106.450, 134.900], [105.350, 133.800], [105.350, 133.100]]}
+          - {layer: F.Cu, width: 0.40, pts: [[105.350, 133.100], [103.400, 130.250], [99.250, 130.250], [98.650, 130.850]]}
+        vias: [[106.450, 134.900], [105.350, 133.100]]
+      # Per-port switched VBUS takes a wide bottom-layer route around the USB
+      # connector field.  Two 0.60/0.30 mm source vias work in parallel at
+      # each F.Cu collector; the Type-A VBUS pin is already plated through.
+      - net: VBUS1_SW
+        pin: J4.1
+        segments:
+          - {layer: B.Cu, width: 0.80, pts: [[156.200, 44.000], [162.000, 44.000], [162.000, 53.400], [142.400, 53.400]]}
+        vias: [[142.400, 53.400], [143.200, 53.400]]
+      - net: VBUS2_SW
+        pin: J6.1
+        segments:
+          - {layer: B.Cu, width: 0.80, pts: [[156.200, 72.000], [162.000, 72.000], [162.000, 81.400], [142.400, 81.400]]}
+        vias: [[142.400, 81.400], [143.200, 81.400]]
+      - net: VBUS3_SW
+        pin: J8.1
+        segments:
+          - {layer: B.Cu, width: 0.80, pts: [[156.200, 100.000], [162.000, 100.000], [162.000, 109.400], [142.400, 109.400]]}
+        vias: [[142.400, 109.400], [143.200, 109.400]]
+      - net: VBUS4_SW
+        pin: J10.1
+        segments:
+          - {layer: B.Cu, width: 0.80, pts: [[156.200, 128.000], [162.000, 128.000], [162.000, 137.400], [142.400, 137.400]]}
+        vias: [[142.400, 137.400], [143.200, 137.400]]
+  waves:
+    exclude: [GND, EXT_5V_RAW, EXT_5V_FUSED, P5V_PROTECTED,
+              VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW,
+              "unconnected-*"]
+    groups:
+      usb_ss:
+        - USB1_SS_TX_UP_CONN_P
+        - USB1_SS_TX_UP_CONN_N
+        - USB1_SS_TX_UP_MID_P
+        - USB1_SS_TX_UP_MID_N
+        - USB1_SS_TX_UP_IC_P
+        - USB1_SS_TX_UP_IC_N
+        - USB1_SS_TX_DN_CONN_P
+        - USB1_SS_TX_DN_CONN_N
+        - USB1_SS_TX_DN_MID_P
+        - USB1_SS_TX_DN_MID_N
+        - USB1_SS_TX_DN_IC_P
+        - USB1_SS_TX_DN_IC_N
+        - USB1_SS_RX_UP_CONN_P
+        - USB1_SS_RX_UP_CONN_N
+        - USB1_SS_RX_UP_MID_P
+        - USB1_SS_RX_UP_MID_N
+        - USB1_SS_RX_UP_IC_P
+        - USB1_SS_RX_UP_IC_N
+        - USB1_SS_RX_DN_CONN_P
+        - USB1_SS_RX_DN_CONN_N
+        - USB1_SS_RX_DN_MID_P
+        - USB1_SS_RX_DN_MID_N
+        - USB1_SS_RX_DN_IC_P
+        - USB1_SS_RX_DN_IC_N
+        - USB2_SS_TX_UP_CONN_P
+        - USB2_SS_TX_UP_CONN_N
+        - USB2_SS_TX_UP_MID_P
+        - USB2_SS_TX_UP_MID_N
+        - USB2_SS_TX_UP_IC_P
+        - USB2_SS_TX_UP_IC_N
+        - USB2_SS_TX_DN_CONN_P
+        - USB2_SS_TX_DN_CONN_N
+        - USB2_SS_TX_DN_MID_P
+        - USB2_SS_TX_DN_MID_N
+        - USB2_SS_TX_DN_IC_P
+        - USB2_SS_TX_DN_IC_N
+        - USB2_SS_RX_UP_CONN_P
+        - USB2_SS_RX_UP_CONN_N
+        - USB2_SS_RX_UP_MID_P
+        - USB2_SS_RX_UP_MID_N
+        - USB2_SS_RX_UP_IC_P
+        - USB2_SS_RX_UP_IC_N
+        - USB2_SS_RX_DN_CONN_P
+        - USB2_SS_RX_DN_CONN_N
+        - USB2_SS_RX_DN_MID_P
+        - USB2_SS_RX_DN_MID_N
+        - USB2_SS_RX_DN_IC_P
+        - USB2_SS_RX_DN_IC_N
+        - USB3_SS_TX_UP_CONN_P
+        - USB3_SS_TX_UP_CONN_N
+        - USB3_SS_TX_UP_MID_P
+        - USB3_SS_TX_UP_MID_N
+        - USB3_SS_TX_UP_IC_P
+        - USB3_SS_TX_UP_IC_N
+        - USB3_SS_TX_DN_CONN_P
+        - USB3_SS_TX_DN_CONN_N
+        - USB3_SS_TX_DN_MID_P
+        - USB3_SS_TX_DN_MID_N
+        - USB3_SS_TX_DN_IC_P
+        - USB3_SS_TX_DN_IC_N
+        - USB3_SS_RX_UP_CONN_P
+        - USB3_SS_RX_UP_CONN_N
+        - USB3_SS_RX_UP_MID_P
+        - USB3_SS_RX_UP_MID_N
+        - USB3_SS_RX_UP_IC_P
+        - USB3_SS_RX_UP_IC_N
+        - USB3_SS_RX_DN_CONN_P
+        - USB3_SS_RX_DN_CONN_N
+        - USB3_SS_RX_DN_MID_P
+        - USB3_SS_RX_DN_MID_N
+        - USB3_SS_RX_DN_IC_P
+        - USB3_SS_RX_DN_IC_N
+        - USB4_SS_TX_UP_CONN_P
+        - USB4_SS_TX_UP_CONN_N
+        - USB4_SS_TX_UP_MID_P
+        - USB4_SS_TX_UP_MID_N
+        - USB4_SS_TX_UP_IC_P
+        - USB4_SS_TX_UP_IC_N
+        - USB4_SS_TX_DN_CONN_P
+        - USB4_SS_TX_DN_CONN_N
+        - USB4_SS_TX_DN_MID_P
+        - USB4_SS_TX_DN_MID_N
+        - USB4_SS_TX_DN_IC_P
+        - USB4_SS_TX_DN_IC_N
+        - USB4_SS_RX_UP_CONN_P
+        - USB4_SS_RX_UP_CONN_N
+        - USB4_SS_RX_UP_MID_P
+        - USB4_SS_RX_UP_MID_N
+        - USB4_SS_RX_UP_IC_P
+        - USB4_SS_RX_UP_IC_N
+        - USB4_SS_RX_DN_CONN_P
+        - USB4_SS_RX_DN_CONN_N
+        - USB4_SS_RX_DN_MID_P
+        - USB4_SS_RX_DN_MID_N
+        - USB4_SS_RX_DN_IC_P
+        - USB4_SS_RX_DN_IC_N
+      usb_hs:
+        - USB1_HS_UP_P
+        - USB1_HS_UP_N
+        - USB1_HS_DN_P
+        - USB1_HS_DN_N
+        - USB2_HS_UP_P
+        - USB2_HS_UP_N
+        - USB2_HS_DN_P
+        - USB2_HS_DN_N
+        - USB3_HS_UP_P
+        - USB3_HS_UP_N
+        - USB3_HS_DN_P
+        - USB3_HS_DN_N
+        - USB4_HS_UP_P
+        - USB4_HS_UP_N
+        - USB4_HS_DN_P
+        - USB4_HS_DN_N
+      power: [3V3]
+      signal: rest
+
+route:
+  krt: ~/gits/KiCadRoutingTools
+  # KRT's isolated environment carries numpy/scipy/shapely; the system KiCad
+  # interpreter can import pcbnew but cannot execute the coupled router.
+  kicad_python: /home/mouse9911/gits/KiCadRoutingTools/.venv/bin/python
+  import_source: build
+  race: 1
+  preflight_critical_pairs:
+    - {name: USB1_SS_TX_UP_CONN, p: USB1_SS_TX_UP_CONN_P, n: USB1_SS_TX_UP_CONN_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_TX_UP_MID, p: USB1_SS_TX_UP_MID_P, n: USB1_SS_TX_UP_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_TX_UP_IC, p: USB1_SS_TX_UP_IC_P, n: USB1_SS_TX_UP_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_TX_DN_CONN, p: USB1_SS_TX_DN_CONN_P, n: USB1_SS_TX_DN_CONN_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_TX_DN_MID, p: USB1_SS_TX_DN_MID_P, n: USB1_SS_TX_DN_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_TX_DN_IC, p: USB1_SS_TX_DN_IC_P, n: USB1_SS_TX_DN_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_RX_UP_CONN, p: USB1_SS_RX_UP_CONN_P, n: USB1_SS_RX_UP_CONN_N, source: seed_stubs, group: usb_ss, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB1_SS_RX_UP_MID, p: USB1_SS_RX_UP_MID_P, n: USB1_SS_RX_UP_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_RX_UP_IC, p: USB1_SS_RX_UP_IC_P, n: USB1_SS_RX_UP_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_RX_DN_CONN, p: USB1_SS_RX_DN_CONN_P, n: USB1_SS_RX_DN_CONN_N, source: seed_stubs, group: usb_ss, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB1_SS_RX_DN_MID, p: USB1_SS_RX_DN_MID_P, n: USB1_SS_RX_DN_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_SS_RX_DN_IC, p: USB1_SS_RX_DN_IC_P, n: USB1_SS_RX_DN_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_TX_UP_CONN, p: USB2_SS_TX_UP_CONN_P, n: USB2_SS_TX_UP_CONN_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_TX_UP_MID, p: USB2_SS_TX_UP_MID_P, n: USB2_SS_TX_UP_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_TX_UP_IC, p: USB2_SS_TX_UP_IC_P, n: USB2_SS_TX_UP_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_TX_DN_CONN, p: USB2_SS_TX_DN_CONN_P, n: USB2_SS_TX_DN_CONN_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_TX_DN_MID, p: USB2_SS_TX_DN_MID_P, n: USB2_SS_TX_DN_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_TX_DN_IC, p: USB2_SS_TX_DN_IC_P, n: USB2_SS_TX_DN_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_RX_UP_CONN, p: USB2_SS_RX_UP_CONN_P, n: USB2_SS_RX_UP_CONN_N, source: seed_stubs, group: usb_ss, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB2_SS_RX_UP_MID, p: USB2_SS_RX_UP_MID_P, n: USB2_SS_RX_UP_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_RX_UP_IC, p: USB2_SS_RX_UP_IC_P, n: USB2_SS_RX_UP_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_RX_DN_CONN, p: USB2_SS_RX_DN_CONN_P, n: USB2_SS_RX_DN_CONN_N, source: seed_stubs, group: usb_ss, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB2_SS_RX_DN_MID, p: USB2_SS_RX_DN_MID_P, n: USB2_SS_RX_DN_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB2_SS_RX_DN_IC, p: USB2_SS_RX_DN_IC_P, n: USB2_SS_RX_DN_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_TX_UP_CONN, p: USB3_SS_TX_UP_CONN_P, n: USB3_SS_TX_UP_CONN_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_TX_UP_MID, p: USB3_SS_TX_UP_MID_P, n: USB3_SS_TX_UP_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_TX_UP_IC, p: USB3_SS_TX_UP_IC_P, n: USB3_SS_TX_UP_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_TX_DN_CONN, p: USB3_SS_TX_DN_CONN_P, n: USB3_SS_TX_DN_CONN_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_TX_DN_MID, p: USB3_SS_TX_DN_MID_P, n: USB3_SS_TX_DN_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_TX_DN_IC, p: USB3_SS_TX_DN_IC_P, n: USB3_SS_TX_DN_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_RX_UP_CONN, p: USB3_SS_RX_UP_CONN_P, n: USB3_SS_RX_UP_CONN_N, source: seed_stubs, group: usb_ss, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB3_SS_RX_UP_MID, p: USB3_SS_RX_UP_MID_P, n: USB3_SS_RX_UP_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_RX_UP_IC, p: USB3_SS_RX_UP_IC_P, n: USB3_SS_RX_UP_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_RX_DN_CONN, p: USB3_SS_RX_DN_CONN_P, n: USB3_SS_RX_DN_CONN_N, source: seed_stubs, group: usb_ss, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB3_SS_RX_DN_MID, p: USB3_SS_RX_DN_MID_P, n: USB3_SS_RX_DN_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB3_SS_RX_DN_IC, p: USB3_SS_RX_DN_IC_P, n: USB3_SS_RX_DN_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_TX_UP_CONN, p: USB4_SS_TX_UP_CONN_P, n: USB4_SS_TX_UP_CONN_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_TX_UP_MID, p: USB4_SS_TX_UP_MID_P, n: USB4_SS_TX_UP_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_TX_UP_IC, p: USB4_SS_TX_UP_IC_P, n: USB4_SS_TX_UP_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_TX_DN_CONN, p: USB4_SS_TX_DN_CONN_P, n: USB4_SS_TX_DN_CONN_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_TX_DN_MID, p: USB4_SS_TX_DN_MID_P, n: USB4_SS_TX_DN_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_TX_DN_IC, p: USB4_SS_TX_DN_IC_P, n: USB4_SS_TX_DN_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_RX_UP_CONN, p: USB4_SS_RX_UP_CONN_P, n: USB4_SS_RX_UP_CONN_N, source: seed_stubs, group: usb_ss, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB4_SS_RX_UP_MID, p: USB4_SS_RX_UP_MID_P, n: USB4_SS_RX_UP_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_RX_UP_IC, p: USB4_SS_RX_UP_IC_P, n: USB4_SS_RX_UP_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_RX_DN_CONN, p: USB4_SS_RX_DN_CONN_P, n: USB4_SS_RX_DN_CONN_N, source: seed_stubs, group: usb_ss, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB4_SS_RX_DN_MID, p: USB4_SS_RX_DN_MID_P, n: USB4_SS_RX_DN_MID_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB4_SS_RX_DN_IC, p: USB4_SS_RX_DN_IC_P, n: USB4_SS_RX_DN_IC_N, wave: usb_ss, allowed_layers: [F.Cu], no_vias: true}
+    - {name: USB1_HS_UP, p: USB1_HS_UP_P, n: USB1_HS_UP_N, source: seed_stubs, group: usb_hs, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB1_HS_DN, p: USB1_HS_DN_P, n: USB1_HS_DN_N, source: seed_stubs, group: usb_hs, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB2_HS_UP, p: USB2_HS_UP_P, n: USB2_HS_UP_N, source: seed_stubs, group: usb_hs, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB2_HS_DN, p: USB2_HS_DN_P, n: USB2_HS_DN_N, source: seed_stubs, group: usb_hs, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB3_HS_UP, p: USB3_HS_UP_P, n: USB3_HS_UP_N, source: seed_stubs, group: usb_hs, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB3_HS_DN, p: USB3_HS_DN_P, n: USB3_HS_DN_N, source: seed_stubs, group: usb_hs, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB4_HS_UP, p: USB4_HS_UP_P, n: USB4_HS_UP_N, source: seed_stubs, group: usb_hs, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: USB4_HS_DN, p: USB4_HS_DN_P, n: USB4_HS_DN_N, source: seed_stubs, group: usb_hs, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+  no_critical_routes: null
+  common:
+    layers: [F.Cu, B.Cu]
+    via_size: 0.45
+    via_drill: 0.20
+    fab_tier: advanced
+    clearance: 0.20
+    grid_step: 0.05
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+  waves:
+    - name: usb_ss
+      engine: diff
+      group: usb_ss
+      track_width: 0.25
+      clearance: 0.20
+      diff_pair_gap: 0.18
+      layers: [F.Cu]
+      keepout_layer: User.3
+      length_match_group:
+        - [USB1_SS_TX_UP_CONN_P, USB1_SS_TX_UP_CONN_N]
+        - [USB1_SS_TX_UP_MID_P, USB1_SS_TX_UP_MID_N]
+        - [USB1_SS_TX_UP_IC_P, USB1_SS_TX_UP_IC_N]
+        - [USB1_SS_TX_DN_CONN_P, USB1_SS_TX_DN_CONN_N]
+        - [USB1_SS_TX_DN_MID_P, USB1_SS_TX_DN_MID_N]
+        - [USB1_SS_TX_DN_IC_P, USB1_SS_TX_DN_IC_N]
+        - [USB1_SS_RX_UP_CONN_P, USB1_SS_RX_UP_CONN_N]
+        - [USB1_SS_RX_UP_MID_P, USB1_SS_RX_UP_MID_N]
+        - [USB1_SS_RX_UP_IC_P, USB1_SS_RX_UP_IC_N]
+        - [USB1_SS_RX_DN_CONN_P, USB1_SS_RX_DN_CONN_N]
+        - [USB1_SS_RX_DN_MID_P, USB1_SS_RX_DN_MID_N]
+        - [USB1_SS_RX_DN_IC_P, USB1_SS_RX_DN_IC_N]
+        - [USB2_SS_TX_UP_CONN_P, USB2_SS_TX_UP_CONN_N]
+        - [USB2_SS_TX_UP_MID_P, USB2_SS_TX_UP_MID_N]
+        - [USB2_SS_TX_UP_IC_P, USB2_SS_TX_UP_IC_N]
+        - [USB2_SS_TX_DN_CONN_P, USB2_SS_TX_DN_CONN_N]
+        - [USB2_SS_TX_DN_MID_P, USB2_SS_TX_DN_MID_N]
+        - [USB2_SS_TX_DN_IC_P, USB2_SS_TX_DN_IC_N]
+        - [USB2_SS_RX_UP_CONN_P, USB2_SS_RX_UP_CONN_N]
+        - [USB2_SS_RX_UP_MID_P, USB2_SS_RX_UP_MID_N]
+        - [USB2_SS_RX_UP_IC_P, USB2_SS_RX_UP_IC_N]
+        - [USB2_SS_RX_DN_CONN_P, USB2_SS_RX_DN_CONN_N]
+        - [USB2_SS_RX_DN_MID_P, USB2_SS_RX_DN_MID_N]
+        - [USB2_SS_RX_DN_IC_P, USB2_SS_RX_DN_IC_N]
+        - [USB3_SS_TX_UP_CONN_P, USB3_SS_TX_UP_CONN_N]
+        - [USB3_SS_TX_UP_MID_P, USB3_SS_TX_UP_MID_N]
+        - [USB3_SS_TX_UP_IC_P, USB3_SS_TX_UP_IC_N]
+        - [USB3_SS_TX_DN_CONN_P, USB3_SS_TX_DN_CONN_N]
+        - [USB3_SS_TX_DN_MID_P, USB3_SS_TX_DN_MID_N]
+        - [USB3_SS_TX_DN_IC_P, USB3_SS_TX_DN_IC_N]
+        - [USB3_SS_RX_UP_CONN_P, USB3_SS_RX_UP_CONN_N]
+        - [USB3_SS_RX_UP_MID_P, USB3_SS_RX_UP_MID_N]
+        - [USB3_SS_RX_UP_IC_P, USB3_SS_RX_UP_IC_N]
+        - [USB3_SS_RX_DN_CONN_P, USB3_SS_RX_DN_CONN_N]
+        - [USB3_SS_RX_DN_MID_P, USB3_SS_RX_DN_MID_N]
+        - [USB3_SS_RX_DN_IC_P, USB3_SS_RX_DN_IC_N]
+        - [USB4_SS_TX_UP_CONN_P, USB4_SS_TX_UP_CONN_N]
+        - [USB4_SS_TX_UP_MID_P, USB4_SS_TX_UP_MID_N]
+        - [USB4_SS_TX_UP_IC_P, USB4_SS_TX_UP_IC_N]
+        - [USB4_SS_TX_DN_CONN_P, USB4_SS_TX_DN_CONN_N]
+        - [USB4_SS_TX_DN_MID_P, USB4_SS_TX_DN_MID_N]
+        - [USB4_SS_TX_DN_IC_P, USB4_SS_TX_DN_IC_N]
+        - [USB4_SS_RX_UP_CONN_P, USB4_SS_RX_UP_CONN_N]
+        - [USB4_SS_RX_UP_MID_P, USB4_SS_RX_UP_MID_N]
+        - [USB4_SS_RX_UP_IC_P, USB4_SS_RX_UP_IC_N]
+        - [USB4_SS_RX_DN_CONN_P, USB4_SS_RX_DN_CONN_N]
+        - [USB4_SS_RX_DN_MID_P, USB4_SS_RX_DN_MID_N]
+        - [USB4_SS_RX_DN_IC_P, USB4_SS_RX_DN_IC_N]
+      length_match_tolerance: 0.50
+      meander_amplitude: 0.30
+      max_iterations: 1800000
+      max_probe_iterations: 120000
+      max_ripup: 80
+    - name: usb_hs
+      engine: diff
+      group: usb_hs
+      track_width: 0.25
+      clearance: 0.20
+      diff_pair_gap: 0.18
+      layers: [F.Cu]
+      keepout_layer: User.3
+      length_match_group:
+        - [USB1_HS_UP_P, USB1_HS_UP_N]
+        - [USB1_HS_DN_P, USB1_HS_DN_N]
+        - [USB2_HS_UP_P, USB2_HS_UP_N]
+        - [USB2_HS_DN_P, USB2_HS_DN_N]
+        - [USB3_HS_UP_P, USB3_HS_UP_N]
+        - [USB3_HS_DN_P, USB3_HS_DN_N]
+        - [USB4_HS_UP_P, USB4_HS_UP_N]
+        - [USB4_HS_DN_P, USB4_HS_DN_N]
+      length_match_tolerance: 0.50
+      meander_amplitude: 0.30
+      max_iterations: 900000
+      max_probe_iterations: 80000
+      max_ripup: 50
+    - name: signal
+      group: signal
+      track_width: 0.18
+      layers: [F.Cu, B.Cu]
+      max_iterations: 1200000
+      max_probe_iterations: 100000
+      max_ripup: 70
+    - name: power
+      group: power
+      track_width: 0.40
+      layers: [F.Cu, B.Cu]
+      max_iterations: 1200000
+      max_probe_iterations: 100000
+      max_ripup: 40
+
+via_ampacity:
+  source: "Texas Instruments SLVA959B Rev B, Table 3-1 (IPC-2152): https://www.ti.com/lit/an/slva959b/slva959b.pdf"
+  method: "sum published 10 C-rise capacity by finished hole; no credit for fill material"
+  temperature_rise_c: 10
+  capacity_by_finished_hole_mm: {0.20: 0.55, 0.25: 0.81, 0.30: 0.84}
+  transfers:
+    - {name: protected_5v_header_bank, net: P5V_PROTECTED,
+       rect: [90.0, 24.8, 94.0, 29.9], minimum_vias: 8,
+       required_continuous_a: 4.05,
+       why: "all four 0.9 A ports plus 0.45 A local logic cross from the F.Cu protection island to the B.Cu distributor"}
+    - {name: port1_input_drop, net: P5V_PROTECTED, rect: [135.2, 52.1, 136.8, 52.8], minimum_vias: 2, required_continuous_a: 0.9, why: "TPS2557 channel-1 input island to protected distributor"}
+    - {name: port2_input_drop, net: P5V_PROTECTED, rect: [135.2, 80.1, 136.8, 80.8], minimum_vias: 2, required_continuous_a: 0.9, why: "TPS2557 channel-2 input island to protected distributor"}
+    - {name: port3_input_drop, net: P5V_PROTECTED, rect: [135.2, 108.1, 136.8, 108.8], minimum_vias: 2, required_continuous_a: 0.9, why: "TPS2557 channel-3 input island to protected distributor"}
+    - {name: port4_input_drop, net: P5V_PROTECTED, rect: [135.2, 136.1, 136.8, 136.8], minimum_vias: 2, required_continuous_a: 0.9, why: "TPS2557 channel-4 input island to protected distributor"}
+    - {name: port1_output_drop, net: VBUS1_SW, rect: [142.0, 53.0, 143.5, 53.8], minimum_vias: 2, required_continuous_a: 0.9, why: "channel-1 F.Cu output collector to B.Cu connector branch"}
+    - {name: port2_output_drop, net: VBUS2_SW, rect: [142.0, 81.0, 143.5, 81.8], minimum_vias: 2, required_continuous_a: 0.9, why: "channel-2 F.Cu output collector to B.Cu connector branch"}
+    - {name: port3_output_drop, net: VBUS3_SW, rect: [142.0, 109.0, 143.5, 109.8], minimum_vias: 2, required_continuous_a: 0.9, why: "channel-3 F.Cu output collector to B.Cu connector branch"}
+    - {name: port4_output_drop, net: VBUS4_SW, rect: [142.0, 137.0, 143.5, 137.8], minimum_vias: 2, required_continuous_a: 0.9, why: "channel-4 F.Cu output collector to B.Cu connector branch"}
+
+taps:
+  clearance: 0.20
+  via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205}
+  connections:
+    # U7.5 and U25.5 are boxed between the USB2 pair and GPIO-control escape
+    # on F.Cu.  Two narrow package-neck taps cross that local fence on B.Cu
+    # and rejoin already-connected 3V3 copper; this is deterministic instead
+    # of asking the general multi-point router to rediscover a zero-slack exit.
+    - {net: 3V3, from: U7.5, to: [118.25, 52.75], width: 0.18,
+       layer: F.Cu, hop_layer: B.Cu,
+       via: {size: 0.45, drill: 0.20, hole_to_copper: 0.205}}
+    - {net: 3V3, from: U25.5, to: [118.75, 136.25], width: 0.18,
+       layer: F.Cu, hop_layer: B.Cu,
+       via: {size: 0.45, drill: 0.20, hole_to_copper: 0.205}}
+    # R50.2 is pinched into a second small F.Cu GND island after the complete
+    # high-speed/control route is refilled.  This measured off-pad location is
+    # inside that island and clears the B.Cu signal field, so an ordinary via
+    # joins it to both internal GND planes without creating via-in-pad solder
+    # wicking on the 0402 land.
+    - {net: GND, from: [107.05, 32.70], width: 0.30, layer: F.Cu, plane: true, drop: true, via: {size: 0.45, drill: 0.20, hole_to_copper: 0.205, exact: true}}
+    # R53.2 is the only other pad-bearing F.Cu GND island that cannot accept
+    # an automatically placed legal rescue via after the complete refill.
+    # This off-pad point is inside its island and clears every routed layer.
+    - {net: GND, from: [112.96, 32.65], width: 0.30, layer: F.Cu, plane: true, drop: true, via: {size: 0.45, drill: 0.20, hole_to_copper: 0.205, exact: true}}
+    # R51.2's local F.Cu ground island cannot accept a via-in-pad because the
+    # plated barrel would intersect the deterministic TUSB_OS1 route on B.Cu.
+    # This measured off-pad point lies in the same island and has full-stack
+    # copper/hole clearance, so one ordinary via joins it to both GND planes.
+    - {net: GND, from: [108.892, 33.066], width: 0.30, layer: F.Cu, plane: true, drop: true, via: {size: 0.45, drill: 0.20, hole_to_copper: 0.205, exact: true}}
+    # Aggregate F.Cu-to-B.Cu transfer: eight ordinary off-pad barrels provide
+    # 6.72 A at the retained 10 C-rise screen versus 4.05 A required.
+    - {net: P5V_PROTECTED, from: [90.5, 25.2], width: 1.0, layer: F.Cu, plane: true, drop: true, via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205, exact: true}}
+    - {net: P5V_PROTECTED, from: [91.5, 25.2], width: 1.0, layer: F.Cu, plane: true, drop: true, via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205, exact: true}}
+    - {net: P5V_PROTECTED, from: [92.5, 25.2], width: 1.0, layer: F.Cu, plane: true, drop: true, via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205, exact: true}}
+    - {net: P5V_PROTECTED, from: [93.25, 25.2], width: 1.0, layer: F.Cu, plane: true, drop: true, via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205, exact: true}}
+    - {net: P5V_PROTECTED, from: [90.5, 29.5], width: 1.0, layer: F.Cu, plane: true, drop: true, via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205, exact: true}}
+    - {net: P5V_PROTECTED, from: [91.5, 29.5], width: 1.0, layer: F.Cu, plane: true, drop: true, via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205, exact: true}}
+    - {net: P5V_PROTECTED, from: [92.5, 29.5], width: 1.0, layer: F.Cu, plane: true, drop: true, via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205, exact: true}}
+    - {net: P5V_PROTECTED, from: [93.5, 29.5], width: 1.0, layer: F.Cu, plane: true, drop: true, via: {size: 0.60, drill: 0.30, hole_to_copper: 0.205, exact: true}}
+    # Two filled/capped 0.35/0.25 mm via-in-pad drops per TPS2557 input pair
+    # provide 1.62 A screened capacity per 0.90 A channel. The protected
+    # 0.25 mm drill family is intentionally disjoint from every ordinary via.
+    - {net: P5V_PROTECTED, from: U4.2, width: 0.50, layer: F.Cu, plane: true, drop: true, via: {size: 0.35, drill: 0.25, exact: true}, via_protection: {capping: yes, filling: yes}}
+    - {net: P5V_PROTECTED, from: U4.3, width: 0.50, layer: F.Cu, plane: true, drop: true, via: {size: 0.35, drill: 0.25, exact: true}, via_protection: {capping: yes, filling: yes}}
+    - {net: P5V_PROTECTED, from: U10.2, width: 0.50, layer: F.Cu, plane: true, drop: true, via: {size: 0.35, drill: 0.25, exact: true}, via_protection: {capping: yes, filling: yes}}
+    - {net: P5V_PROTECTED, from: U10.3, width: 0.50, layer: F.Cu, plane: true, drop: true, via: {size: 0.35, drill: 0.25, exact: true}, via_protection: {capping: yes, filling: yes}}
+    - {net: P5V_PROTECTED, from: U16.2, width: 0.50, layer: F.Cu, plane: true, drop: true, via: {size: 0.35, drill: 0.25, exact: true}, via_protection: {capping: yes, filling: yes}}
+    - {net: P5V_PROTECTED, from: U16.3, width: 0.50, layer: F.Cu, plane: true, drop: true, via: {size: 0.35, drill: 0.25, exact: true}, via_protection: {capping: yes, filling: yes}}
+    - {net: P5V_PROTECTED, from: U22.2, width: 0.50, layer: F.Cu, plane: true, drop: true, via: {size: 0.35, drill: 0.25, exact: true}, via_protection: {capping: yes, filling: yes}}
+    - {net: P5V_PROTECTED, from: U22.3, width: 0.50, layer: F.Cu, plane: true, drop: true, via: {size: 0.35, drill: 0.25, exact: true}, via_protection: {capping: yes, filling: yes}}
+
+stitch:
+  clearance: 0.20
+  via:
+    size: 0.45
+    drill: 0.20
+    spacing: 0.50
+    pth_margin: 0.25
+    tiers:
+      - {size: 0.45, drill: 0.20, hole_to_copper: 0.205}
+  keepin: {inset: 0.8}
+  passes: [dedupe_vias, normalize_vias, protect_via_in_pad, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, stitch_grid, fill, island_rescue,
+           dedupe_vias, hole_to_hole, prune_stitch_dangling, fill, fresh_reload,
+           prune_stitch_dangling, fill, fresh_reload, heal_islands, gate]
+  dedupe_vias: {radius: 0.35, metric: box}
+  normalize_vias: {below_width: 0.24, size: 0.25, drill: 0.15}
+  # Every realized barrel beneath an SMT paste land is assigned to the same
+  # fabricator-visible Type-VII drill family as the source-owned thermal vias.
+  protect_via_in_pad:
+    via: {size: 0.35, drill: 0.25}
+    via_protection: {capping: yes, filling: yes}
+    min: 36
+  # A 5 um anchor tolerance distinguishes a true endpoint join from the
+  # router's 14 um rounding whiskers; the legacy 50 um tolerance incorrectly
+  # treated those whiskers as served by a nearby, but disjoint, endpoint.
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true, anchor_tol: 0.005}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND, P5V_PROTECTED, VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW]}
+  # GND pads connect through the continuous F/B pours into the stitched inner
+  # planes.  Do not run per-pad A* rescue here: dense USB packages create many
+  # equivalent candidate paths and make that fallback effectively unbounded.
+  # The filled-board DRC names any genuinely starved thermal; those pads receive
+  # explicit floorplan pad_overrides instead of speculative rescue tracks.
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu], require: all}
+  heal_islands: {min_bbox: 0.1, layers: [F.Cu, B.Cu], sample_step: 0.05, max_gap_candidates: 2500, clear_rescue_failures: true}
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2}
+  stitch_grid:
+    net: GND
+    x: [22.0, 168.0, 6.0]
+    y: [22.0, 138.0, 6.0]

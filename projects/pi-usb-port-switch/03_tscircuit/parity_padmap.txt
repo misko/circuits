@@ -1,0 +1,2 @@
+# All authored electrical pads are numeric. Manufacturer duplicate/tied pads
+# are reconciled from the pinned 02_parts dossiers by the shared bridge.

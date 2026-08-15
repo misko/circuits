@@ -1,0 +1,13 @@
+mpn: 16SVPF180M
+manufacturer: Panasonic Industry
+type: conductive_polymer_aluminum_input_capacitor
+datasheet: {doc_id: AAB8000C177, revision: "SVPF series", url: "https://industrial.panasonic.com/cdbs/www-data/pdf/AAB8000/AAB8000C177.pdf", local: AAB8000C177.pdf, sha256: d9884e348623832afb8cbb12bbe979e4972fe4463f332ccbd3c0d173e2b03861, fetched: 2026-08-14}
+package: SMD aluminum polymer can, D6.3x5.9mm, size C6
+footprint: Capacitor_SMD:CP_Elec_6.3x5.8
+escape: {style: passive, pitch: 4.6, tier_required: jlc_2layer_default, checked: "Panasonic exact C6 dimensions/polarity 2026-08-14"}
+pins: {1: POS, 2: NEG}
+limits: {voltage: 16V, capacitance: "180uF +/-20%", esr_100kHz_max: 22mOhm, ripple_100kHz_105C: 3.3Arms, temperature: "-55C to 105C", endurance: "5000h at 105C"}
+gotchas: ["Two devices provide shared protected-input bulk. Pad 1 is positive. Their low ESR makes input hot-plug/inrush a measured first-article item; the replaceable fuse and source must tolerate that transient."]
+verified: "Panasonic exact product page and SVPF series sheet fix 16V, 180uF +/-20%, 22mohm ESR, D6.3x5.9mm and polarity; checked 2026-08-14."
+layout: {source: "Panasonic dimensions and board input-transient topology", reviewed: 2026-08-14, notes: ["Place after the reverse-polarity FET at the shared trunk with broad positive/ground copper."]}
+sourcing: {lcsc: C136277, alternates: []}

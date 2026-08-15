@@ -16,7 +16,7 @@ CHECK = SCRIPTS / "rf_check.py"
 SOLVER = SCRIPTS / "rf_solver.py"
 
 
-def source_project(*, blocking=False):
+def source_project(*, blocking=False, geometry_deferred=False):
     root = tmpdir("rfmodule_")
     (root / "03_src/rules").mkdir(parents=True)
     (root / "06_build/rf").mkdir(parents=True)
@@ -52,7 +52,11 @@ def source_project(*, blocking=False):
                              "maximum_lateral_center_offset_mm": 1.1}},
     }
     if process:
+        process["geometry_stage"] = ("placement" if geometry_deferred else
+                                     "source")
         rf["process"] = process
+    if geometry_deferred:
+        rf.pop("layout_constraints")
     (root / "03_src/rules/rf.yaml").write_text(
         yaml.safe_dump({"schema": 1, "rf": rf}, sort_keys=False))
     route = {
@@ -172,6 +176,21 @@ def t_source_blocking_rejects_corner():
     must_pass(run([KPY, CONTEXT, root]), "blocking project context")
     must_fail(run([KPY, CHECK, "source", root]), "blocking sharp corner",
               "unrounded")
+
+
+@test("high-speed coordinates may defer to placement but not beyond it")
+def t_geometry_stage_defer_then_require():
+    root = source_project(blocking=True, geometry_deferred=True)
+    must_pass(run([KPY, CONTEXT, root]), "deferred-geometry RF context")
+    early_out = root / "06_build/rf/source"
+    early = must_pass(run([KPY, CHECK, "source", root, "--out", early_out]),
+                      "source-stage geometry deferral")
+    contains(early.out, "0/0 RF nets graded", "honest deferred denominator")
+    report = json.loads((early_out / "report.json").read_text())
+    eq(report["status"], "DEFERRED", "source deferral status")
+    must_fail(run([KPY, CHECK, "source", root, "--require-geometry",
+                   "--out", root / "06_build/rf/placement"]),
+              "placement replay without geometry", "route-net denominator")
 
 
 def solver_project(*, timeout=False):

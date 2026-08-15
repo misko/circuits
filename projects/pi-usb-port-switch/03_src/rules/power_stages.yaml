@@ -1,0 +1,6 @@
+schema: 2
+stages: []
+no_external_gate_drive_stages: >-
+  No clocked or externally driven power-switching stage exists. The DMP3007SPS
+  gate has static resistor bias as a reverse-polarity pass device; TPS2557 and
+  TLV761 switching/control are internal to their IC packages.

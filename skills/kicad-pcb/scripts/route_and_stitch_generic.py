@@ -91,7 +91,9 @@ and output hashes still agree. Bare rN files are never treated as evidence.
             layer/hop_layer, plane, optional via{} geometry override and
             via_protection{capping,filling}} — see cmd_taps
   stitch:   via{}, keepin{}, passes[] (the ORDER — this is the axis the
-            six boards actually disagree on), plus one block per pass
+            six boards actually disagree on), plus one block per pass;
+            protect_via_in_pad can promote every realized barrel centred in
+            an SMT land into one declared filled/capped drill family
 
 The `passes` list is deliberately explicit rather than a fixed pipeline:
 the survey found the stitch grid running first, middle and LAST across
@@ -2065,6 +2067,7 @@ def p_micro(ctx, c):
     ends served disconnects the net, so the default requires a free end."""
     lim = float(c.get("max_length", 0.12))
     need_free = bool(c.get("require_free_end", True))
+    anchor_tol = float(c.get("anchor_tol", 0.05))
     segs, vias, pads = _track_context(ctx)
     endpts = {}
     for t in segs:
@@ -2086,7 +2089,8 @@ def p_micro(ctx, c):
         # raced 0/0. `_end_anchored` is the same served-test drop_dangling and
         # split_t_junctions already use: other track ends, vias, AND pads.
         if need_free and not any(
-                not _end_anchored(ctx, t, e[0], e[1], segs, vias, pads, 0.05)
+                not _end_anchored(ctx, t, e[0], e[1], segs, vias, pads,
+                                  anchor_tol)
                 for e in _ends_mm(t)):
             continue
         dead.append(t)
@@ -2094,6 +2098,107 @@ def p_micro(ctx, c):
         ctx.remove(t)
     ctx.bump("micro_removed", len(dead))
     print(f"removed {len(dead)} dangling micro-fragments")
+
+
+@stitch_pass("protect_via_in_pad")
+def p_protect_via_in_pad(ctx, c):
+    """Promote every exact via-in-SMT-land hit to one IPC-4761 family.
+
+    Autorouters may legally use a same-net SMD land as a layer-transition
+    site.  KiCad DRC accepts that copper, but an ordinary open barrel under
+    paste can starve the solder joint and Gerber cannot carry per-item fill
+    flags.  This pass makes the *realized* set explicit and drill-selectable;
+    via_process_check independently grades the saved result and order note.
+    """
+    if not isinstance(c, dict):
+        die("stitch.protect_via_in_pad must be a mapping")
+    unknown = sorted(set(c) - {"via", "via_protection", "min"})
+    if unknown:
+        die(f"stitch.protect_via_in_pad has unknown key(s) {unknown}")
+    via_cfg = c.get("via")
+    protection = c.get("via_protection")
+    if not isinstance(via_cfg, dict):
+        die("stitch.protect_via_in_pad.via must be a mapping")
+    unknown_via = sorted(set(via_cfg) - {"size", "drill"})
+    if unknown_via:
+        die("stitch.protect_via_in_pad.via has unknown key(s) "
+            f"{unknown_via}")
+    try:
+        size = float(via_cfg["size"])
+        drill = float(via_cfg["drill"])
+    except (KeyError, TypeError, ValueError):
+        die("stitch.protect_via_in_pad.via needs numeric size and drill")
+    if not (size > drill > 0):
+        die("stitch.protect_via_in_pad.via needs size > drill > 0")
+    try:
+        minimum = int(c.get("min", 1))
+    except (TypeError, ValueError):
+        die("stitch.protect_via_in_pad.min must be an integer")
+    if minimum < 0:
+        die("stitch.protect_via_in_pad.min must be non-negative")
+
+    pcbnew = ctx.pcbnew
+    copper_layers = [layer for layer in ctx.board.GetEnabledLayers().Seq()
+                     if pcbnew.IsCopperLayer(layer)]
+    pads = []
+    for footprint in ctx.board.GetFootprints():
+        for pad in footprint.Pads():
+            if (pad.GetDrillSize().x > 0
+                    or not any(pad.IsOnLayer(layer)
+                               for layer in copper_layers)):
+                continue
+            pads.append((pad, pad.GetBoundingBox()))
+
+    def apply_protection(via):
+        if not isinstance(protection, dict) or not protection:
+            die("stitch.protect_via_in_pad.via_protection must declare "
+                "capping and filling")
+        unknown_p = sorted(set(protection) - {"capping", "filling"})
+        if unknown_p:
+            die("stitch.protect_via_in_pad.via_protection has unknown key(s) "
+                f"{unknown_p}")
+
+        def enabled(key):
+            value = protection.get(key)
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str) and value.strip().lower() in ("yes", "no"):
+                return value.strip().lower() == "yes"
+            die("stitch.protect_via_in_pad.via_protection."
+                f"{key} must be a boolean (yes/no)")
+
+        cap = enabled("capping")
+        fill = enabled("filling")
+        if not (cap and fill):
+            die("stitch.protect_via_in_pad requires both capping and filling")
+        via.SetCappingMode(pcbnew.CAPPING_MODE_CAPPED)
+        via.SetFillingMode(pcbnew.FILLING_MODE_FILLED)
+
+    hits = 0
+    changed = 0
+    target_w = pcbnew.FromMM(size)
+    target_d = pcbnew.FromMM(drill)
+    for via in ctx.board.GetTracks():
+        if via.GetClass() != "PCB_VIA":
+            continue
+        pos = via.GetPosition()
+        if not any(bbox.Contains(pos) and pad.HitTest(pos)
+                   for pad, bbox in pads):
+            continue
+        hits += 1
+        was_target = (via.GetWidth(pcbnew.F_Cu) == target_w
+                      and via.GetDrill() == target_d
+                      and via.GetCappingMode() == pcbnew.CAPPING_MODE_CAPPED
+                      and via.GetFillingMode() == pcbnew.FILLING_MODE_FILLED)
+        via.SetWidth(target_w)
+        via.SetDrill(target_d)
+        apply_protection(via)
+        changed += int(not was_target)
+    if hits < minimum:
+        die(f"protect_via_in_pad: realized {hits}, require at least {minimum}")
+    ctx.bump("via_in_pad_protected", changed)
+    print(f"protected {hits} realized via-in-pad barrel(s) "
+          f"as {size:.3f}/{drill:.3f} mm Type VII ({changed} changed)")
 
 
 def _end_anchored(ctx, t, ex, ey, segs, vias, pads, tol):
@@ -3749,6 +3854,7 @@ def p_prune_stitch_dangling(ctx, c):
         return (px - ax - t * dx) ** 2 + (py - ay - t * dy) ** 2
 
     dead = []
+    dead_details = []
     for v in [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"]:
         vx, vy = v.GetPosition().x / 1e6, v.GetPosition().y / 1e6
         if not any(abs(vx - ex) <= tol and abs(vy - ey) <= tol
@@ -3784,12 +3890,18 @@ def p_prune_stitch_dangling(ctx, c):
                     attach.add(lay)
         if len(attach) < minlay:
             dead.append(v)
+            dead_details.append(
+                (v.GetNetname(), vx, vy,
+                 [ctx.board.GetLayerName(layer) for layer in sorted(attach)]))
     for v in dead:
         ctx.remove(v)
     ctx._used = None
     ctx.bump("stitch_dangling_pruned", len(dead))
     print(f"pruned {len(dead)} dangling stitch-emitted vias "
           f"(of {len(emitted)} emitted)")
+    for netname, x, y, layers in dead_details:
+        print(f"  prune {netname} via ({x:.3f},{y:.3f}): "
+              f"same-net copper on {layers or 'no layers'}; need {minlay}")
 
 
 @stitch_pass("fill")

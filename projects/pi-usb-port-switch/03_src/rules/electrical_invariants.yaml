@@ -1,0 +1,1536 @@
+# pi-usb-port-switch — executable electrical intent.
+# Generated as an explicit review denominator from ADRs 0001/0002/0003/0006.
+# It binds function, values and pin direction independently of ERC/parity.
+supplies:
+  3V3: 3.3
+  P5V_PROTECTED: 5.2
+
+invariants:
+  - assert: series_chain
+    chain: [EXT_5V_RAW, F1, EXT_5V_FUSED, Q1, P5V_PROTECTED]
+    through: {Q1: [D1, S1]}
+    adr: "0006"
+    why: "The removable fuse holder and P-channel reverse-polarity FET must be in the only shared 5.2 V delivery path."
+  - assert: pin_on_net
+    pin: "Q1.5"
+    net: EXT_5V_FUSED
+    adr: "0006"
+    why: "Q1 drain-side lands face the fused input; reversing the MOSFET defeats the intended reverse-polarity behavior."
+  - assert: pin_on_net
+    pin: "Q1.2"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Q1 source-side lands feed the protected distribution rail."
+  - assert: pin_on_net
+    pin: "U1.3"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "The local 3.3 V regulator input is powered only after fuse and reverse-polarity protection."
+  - assert: pin_on_net
+    pin: "U1.2"
+    net: 3V3
+    adr: "0006"
+    why: "The TLV76133 output is the board-local 3.3 V rail and never a Raspberry Pi power pin."
+  - assert: part_value
+    part: R65
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0006"
+    why: "Q1 gate-to-ground bias must turn the reverse-protection FET on only with the external input architecture."
+  - assert: part_value
+    part: R70
+    equals: 1000000
+    tolerance_pct: 5
+    adr: "0006"
+    why: "The gate-to-source bleed bounds the undriven Q1 gate rather than leaving it floating."
+  - assert: net_has_part
+    net: P5V_PROTECTED
+    part_type: capacitor
+    min: 2
+    adr: "0006"
+    why: "The shared protected rail requires both bulk and local high-frequency bypassing before four switched branches."
+
+  # Channel 1: GPIO defaults, hard DATA_OK interlock, USB2 disconnect and VBUS.
+  - assert: series_chain
+    chain: [GPIO17_RAW, R41, PWR_EN1]
+    adr: "0001"
+    why: "Channel 1 power command must pass through its dedicated 1 kohm GPIO series resistor."
+  - assert: series_chain
+    chain: [GPIO27_RAW, R42, DATA_EN1]
+    adr: "0001"
+    why: "Channel 1 data command must pass through its dedicated 1 kohm GPIO series resistor."
+  - assert: part_value
+    part: R41
+    equals: 1000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 1 GPIO source resistor value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R42
+    equals: 1000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 1 GPIO source resistor value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R49
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 1 power-enable fail-safe pull-down value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R50
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 1 data-enable fail-safe pull-down value is part of the hardware-only control contract."
+  - assert: pin_on_net
+    pin: "U7.1"
+    net: PWR_EN1
+    adr: "0001"
+    why: "Channel 1 AND input A is the power command."
+  - assert: pin_on_net
+    pin: "U7.2"
+    net: DATA_EN1
+    adr: "0001"
+    why: "Channel 1 AND input B is the data command."
+  - assert: pin_on_net
+    pin: "U7.4"
+    net: DATA_OK1
+    adr: "0001"
+    why: "Channel 1 DATA_OK can assert only when both hardware inputs assert."
+  - assert: pin_on_net
+    pin: "U2.5"
+    net: DATA_OK1
+    adr: "0002"
+    why: "Channel 1 SuperSpeed redriver enable is driven by the hard interlock, not firmware alone."
+  - assert: pin_on_net
+    pin: "Q2.1"
+    net: DATA_OK1
+    adr: "0002"
+    why: "Channel 1 USB2 enable pull-down MOSFET gate follows the same hard interlock."
+  - assert: pin_on_net
+    pin: "Q2.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 1 USB2 control MOSFET source must return to ground."
+  - assert: pin_on_net
+    pin: "Q2.3"
+    net: USB2_OE1
+    adr: "0002"
+    why: "Channel 1 MOSFET pulls active-high USB2 disconnect low only when DATA_OK is true."
+  - assert: pin_on_net
+    pin: "R57.1"
+    net: 3V3
+    adr: "0002"
+    why: "Channel 1 USB2 OE has a local high/disconnected default."
+  - assert: pin_on_net
+    pin: "R57.2"
+    net: USB2_OE1
+    adr: "0002"
+    why: "Channel 1 USB2 OE pull-up is on the actual switch-control node."
+  - assert: part_value
+    part: R57
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 USB2 OE pull-up must establish a deterministic high-impedance reset state."
+  - assert: pin_on_net
+    pin: "R61.1"
+    net: USB2_SEL1
+    adr: "0002"
+    why: "Channel 1 TS3USB221 select is strapped to the populated 1D throw."
+  - assert: pin_on_net
+    pin: "R61.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 1 TS3USB221 select strap is a physical pull-down."
+  - assert: part_value
+    part: R61
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 USB2 select pull-down value is deterministic without Raspberry Pi software."
+  - assert: pin_on_net
+    pin: "U4.2"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Channel 1 power switch first IN pin is on the protected trunk."
+  - assert: pin_on_net
+    pin: "U4.3"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Channel 1 power switch second IN pin is also used for current and thermal capacity."
+  - assert: pin_on_net
+    pin: "U4.4"
+    net: PWR_EN1
+    adr: "0006"
+    why: "Channel 1 TPS2557 active-high enable is the fail-low power command."
+  - assert: pin_on_net
+    pin: "U4.6"
+    net: VBUS1_SW
+    adr: "0006"
+    why: "Channel 1 first TPS2557 output land feeds only its downstream VBUS."
+  - assert: pin_on_net
+    pin: "U4.7"
+    net: VBUS1_SW
+    adr: "0006"
+    why: "Channel 1 second TPS2557 output land is also used."
+  - assert: pin_on_net
+    pin: "J4.1"
+    net: VBUS1_SW
+    adr: "0003"
+    why: "Channel 1 downstream receptacle receives protected VBUS without any charging-port advertisement."
+  - assert: part_value
+    part: R66
+    equals: 100000
+    tolerance_pct: 2
+    adr: "0006"
+    why: "Channel 1 100 kohm ILIM programs the characterized approximately 0.926-1.273 A limit around the 0.9 A load claim."
+  - assert: part_value
+    part: R71
+    equals: 10000
+    tolerance_pct: 5
+    adr: "0006"
+    why: "Channel 1 open-drain fault indication has its intended local 3.3 V pull-up."
+  - assert: net_has_part
+    net: VBUS1_SW
+    part_type: capacitor
+    min: 2
+    adr: "0006"
+    why: "Channel 1 VBUS requires both local high-frequency and 150 uF bulk output capacitance."
+
+  # Channel 2: GPIO defaults, hard DATA_OK interlock, USB2 disconnect and VBUS.
+  - assert: series_chain
+    chain: [GPIO22_RAW, R43, PWR_EN2]
+    adr: "0001"
+    why: "Channel 2 power command must pass through its dedicated 1 kohm GPIO series resistor."
+  - assert: series_chain
+    chain: [GPIO23_RAW, R44, DATA_EN2]
+    adr: "0001"
+    why: "Channel 2 data command must pass through its dedicated 1 kohm GPIO series resistor."
+  - assert: part_value
+    part: R43
+    equals: 1000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 2 GPIO source resistor value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R44
+    equals: 1000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 2 GPIO source resistor value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R51
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 2 power-enable fail-safe pull-down value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R52
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 2 data-enable fail-safe pull-down value is part of the hardware-only control contract."
+  - assert: pin_on_net
+    pin: "U13.1"
+    net: PWR_EN2
+    adr: "0001"
+    why: "Channel 2 AND input A is the power command."
+  - assert: pin_on_net
+    pin: "U13.2"
+    net: DATA_EN2
+    adr: "0001"
+    why: "Channel 2 AND input B is the data command."
+  - assert: pin_on_net
+    pin: "U13.4"
+    net: DATA_OK2
+    adr: "0001"
+    why: "Channel 2 DATA_OK can assert only when both hardware inputs assert."
+  - assert: pin_on_net
+    pin: "U8.5"
+    net: DATA_OK2
+    adr: "0002"
+    why: "Channel 2 SuperSpeed redriver enable is driven by the hard interlock, not firmware alone."
+  - assert: pin_on_net
+    pin: "Q3.1"
+    net: DATA_OK2
+    adr: "0002"
+    why: "Channel 2 USB2 enable pull-down MOSFET gate follows the same hard interlock."
+  - assert: pin_on_net
+    pin: "Q3.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 2 USB2 control MOSFET source must return to ground."
+  - assert: pin_on_net
+    pin: "Q3.3"
+    net: USB2_OE2
+    adr: "0002"
+    why: "Channel 2 MOSFET pulls active-high USB2 disconnect low only when DATA_OK is true."
+  - assert: pin_on_net
+    pin: "R58.1"
+    net: 3V3
+    adr: "0002"
+    why: "Channel 2 USB2 OE has a local high/disconnected default."
+  - assert: pin_on_net
+    pin: "R58.2"
+    net: USB2_OE2
+    adr: "0002"
+    why: "Channel 2 USB2 OE pull-up is on the actual switch-control node."
+  - assert: part_value
+    part: R58
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 USB2 OE pull-up must establish a deterministic high-impedance reset state."
+  - assert: pin_on_net
+    pin: "R62.1"
+    net: USB2_SEL2
+    adr: "0002"
+    why: "Channel 2 TS3USB221 select is strapped to the populated 1D throw."
+  - assert: pin_on_net
+    pin: "R62.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 2 TS3USB221 select strap is a physical pull-down."
+  - assert: part_value
+    part: R62
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 USB2 select pull-down value is deterministic without Raspberry Pi software."
+  - assert: pin_on_net
+    pin: "U10.2"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Channel 2 power switch first IN pin is on the protected trunk."
+  - assert: pin_on_net
+    pin: "U10.3"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Channel 2 power switch second IN pin is also used for current and thermal capacity."
+  - assert: pin_on_net
+    pin: "U10.4"
+    net: PWR_EN2
+    adr: "0006"
+    why: "Channel 2 TPS2557 active-high enable is the fail-low power command."
+  - assert: pin_on_net
+    pin: "U10.6"
+    net: VBUS2_SW
+    adr: "0006"
+    why: "Channel 2 first TPS2557 output land feeds only its downstream VBUS."
+  - assert: pin_on_net
+    pin: "U10.7"
+    net: VBUS2_SW
+    adr: "0006"
+    why: "Channel 2 second TPS2557 output land is also used."
+  - assert: pin_on_net
+    pin: "J6.1"
+    net: VBUS2_SW
+    adr: "0003"
+    why: "Channel 2 downstream receptacle receives protected VBUS without any charging-port advertisement."
+  - assert: part_value
+    part: R67
+    equals: 100000
+    tolerance_pct: 2
+    adr: "0006"
+    why: "Channel 2 100 kohm ILIM programs the characterized approximately 0.926-1.273 A limit around the 0.9 A load claim."
+  - assert: part_value
+    part: R72
+    equals: 10000
+    tolerance_pct: 5
+    adr: "0006"
+    why: "Channel 2 open-drain fault indication has its intended local 3.3 V pull-up."
+  - assert: net_has_part
+    net: VBUS2_SW
+    part_type: capacitor
+    min: 2
+    adr: "0006"
+    why: "Channel 2 VBUS requires both local high-frequency and 150 uF bulk output capacitance."
+
+  # Channel 3: GPIO defaults, hard DATA_OK interlock, USB2 disconnect and VBUS.
+  - assert: series_chain
+    chain: [GPIO24_RAW, R45, PWR_EN3]
+    adr: "0001"
+    why: "Channel 3 power command must pass through its dedicated 1 kohm GPIO series resistor."
+  - assert: series_chain
+    chain: [GPIO25_RAW, R46, DATA_EN3]
+    adr: "0001"
+    why: "Channel 3 data command must pass through its dedicated 1 kohm GPIO series resistor."
+  - assert: part_value
+    part: R45
+    equals: 1000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 3 GPIO source resistor value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R46
+    equals: 1000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 3 GPIO source resistor value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R53
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 3 power-enable fail-safe pull-down value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R54
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 3 data-enable fail-safe pull-down value is part of the hardware-only control contract."
+  - assert: pin_on_net
+    pin: "U19.1"
+    net: PWR_EN3
+    adr: "0001"
+    why: "Channel 3 AND input A is the power command."
+  - assert: pin_on_net
+    pin: "U19.2"
+    net: DATA_EN3
+    adr: "0001"
+    why: "Channel 3 AND input B is the data command."
+  - assert: pin_on_net
+    pin: "U19.4"
+    net: DATA_OK3
+    adr: "0001"
+    why: "Channel 3 DATA_OK can assert only when both hardware inputs assert."
+  - assert: pin_on_net
+    pin: "U14.5"
+    net: DATA_OK3
+    adr: "0002"
+    why: "Channel 3 SuperSpeed redriver enable is driven by the hard interlock, not firmware alone."
+  - assert: pin_on_net
+    pin: "Q4.1"
+    net: DATA_OK3
+    adr: "0002"
+    why: "Channel 3 USB2 enable pull-down MOSFET gate follows the same hard interlock."
+  - assert: pin_on_net
+    pin: "Q4.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 3 USB2 control MOSFET source must return to ground."
+  - assert: pin_on_net
+    pin: "Q4.3"
+    net: USB2_OE3
+    adr: "0002"
+    why: "Channel 3 MOSFET pulls active-high USB2 disconnect low only when DATA_OK is true."
+  - assert: pin_on_net
+    pin: "R59.1"
+    net: 3V3
+    adr: "0002"
+    why: "Channel 3 USB2 OE has a local high/disconnected default."
+  - assert: pin_on_net
+    pin: "R59.2"
+    net: USB2_OE3
+    adr: "0002"
+    why: "Channel 3 USB2 OE pull-up is on the actual switch-control node."
+  - assert: part_value
+    part: R59
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 USB2 OE pull-up must establish a deterministic high-impedance reset state."
+  - assert: pin_on_net
+    pin: "R63.1"
+    net: USB2_SEL3
+    adr: "0002"
+    why: "Channel 3 TS3USB221 select is strapped to the populated 1D throw."
+  - assert: pin_on_net
+    pin: "R63.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 3 TS3USB221 select strap is a physical pull-down."
+  - assert: part_value
+    part: R63
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 USB2 select pull-down value is deterministic without Raspberry Pi software."
+  - assert: pin_on_net
+    pin: "U16.2"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Channel 3 power switch first IN pin is on the protected trunk."
+  - assert: pin_on_net
+    pin: "U16.3"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Channel 3 power switch second IN pin is also used for current and thermal capacity."
+  - assert: pin_on_net
+    pin: "U16.4"
+    net: PWR_EN3
+    adr: "0006"
+    why: "Channel 3 TPS2557 active-high enable is the fail-low power command."
+  - assert: pin_on_net
+    pin: "U16.6"
+    net: VBUS3_SW
+    adr: "0006"
+    why: "Channel 3 first TPS2557 output land feeds only its downstream VBUS."
+  - assert: pin_on_net
+    pin: "U16.7"
+    net: VBUS3_SW
+    adr: "0006"
+    why: "Channel 3 second TPS2557 output land is also used."
+  - assert: pin_on_net
+    pin: "J8.1"
+    net: VBUS3_SW
+    adr: "0003"
+    why: "Channel 3 downstream receptacle receives protected VBUS without any charging-port advertisement."
+  - assert: part_value
+    part: R68
+    equals: 100000
+    tolerance_pct: 2
+    adr: "0006"
+    why: "Channel 3 100 kohm ILIM programs the characterized approximately 0.926-1.273 A limit around the 0.9 A load claim."
+  - assert: part_value
+    part: R73
+    equals: 10000
+    tolerance_pct: 5
+    adr: "0006"
+    why: "Channel 3 open-drain fault indication has its intended local 3.3 V pull-up."
+  - assert: net_has_part
+    net: VBUS3_SW
+    part_type: capacitor
+    min: 2
+    adr: "0006"
+    why: "Channel 3 VBUS requires both local high-frequency and 150 uF bulk output capacitance."
+
+  # Channel 4: GPIO defaults, hard DATA_OK interlock, USB2 disconnect and VBUS.
+  - assert: series_chain
+    chain: [GPIO5_RAW, R47, PWR_EN4]
+    adr: "0001"
+    why: "Channel 4 power command must pass through its dedicated 1 kohm GPIO series resistor."
+  - assert: series_chain
+    chain: [GPIO6_RAW, R48, DATA_EN4]
+    adr: "0001"
+    why: "Channel 4 data command must pass through its dedicated 1 kohm GPIO series resistor."
+  - assert: part_value
+    part: R47
+    equals: 1000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 4 GPIO source resistor value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R48
+    equals: 1000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 4 GPIO source resistor value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R55
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 4 power-enable fail-safe pull-down value is part of the hardware-only control contract."
+  - assert: part_value
+    part: R56
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0001"
+    why: "Channel 4 data-enable fail-safe pull-down value is part of the hardware-only control contract."
+  - assert: pin_on_net
+    pin: "U25.1"
+    net: PWR_EN4
+    adr: "0001"
+    why: "Channel 4 AND input A is the power command."
+  - assert: pin_on_net
+    pin: "U25.2"
+    net: DATA_EN4
+    adr: "0001"
+    why: "Channel 4 AND input B is the data command."
+  - assert: pin_on_net
+    pin: "U25.4"
+    net: DATA_OK4
+    adr: "0001"
+    why: "Channel 4 DATA_OK can assert only when both hardware inputs assert."
+  - assert: pin_on_net
+    pin: "U20.5"
+    net: DATA_OK4
+    adr: "0002"
+    why: "Channel 4 SuperSpeed redriver enable is driven by the hard interlock, not firmware alone."
+  - assert: pin_on_net
+    pin: "Q5.1"
+    net: DATA_OK4
+    adr: "0002"
+    why: "Channel 4 USB2 enable pull-down MOSFET gate follows the same hard interlock."
+  - assert: pin_on_net
+    pin: "Q5.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 4 USB2 control MOSFET source must return to ground."
+  - assert: pin_on_net
+    pin: "Q5.3"
+    net: USB2_OE4
+    adr: "0002"
+    why: "Channel 4 MOSFET pulls active-high USB2 disconnect low only when DATA_OK is true."
+  - assert: pin_on_net
+    pin: "R60.1"
+    net: 3V3
+    adr: "0002"
+    why: "Channel 4 USB2 OE has a local high/disconnected default."
+  - assert: pin_on_net
+    pin: "R60.2"
+    net: USB2_OE4
+    adr: "0002"
+    why: "Channel 4 USB2 OE pull-up is on the actual switch-control node."
+  - assert: part_value
+    part: R60
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 USB2 OE pull-up must establish a deterministic high-impedance reset state."
+  - assert: pin_on_net
+    pin: "R64.1"
+    net: USB2_SEL4
+    adr: "0002"
+    why: "Channel 4 TS3USB221 select is strapped to the populated 1D throw."
+  - assert: pin_on_net
+    pin: "R64.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 4 TS3USB221 select strap is a physical pull-down."
+  - assert: part_value
+    part: R64
+    equals: 100000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 USB2 select pull-down value is deterministic without Raspberry Pi software."
+  - assert: pin_on_net
+    pin: "U22.2"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Channel 4 power switch first IN pin is on the protected trunk."
+  - assert: pin_on_net
+    pin: "U22.3"
+    net: P5V_PROTECTED
+    adr: "0006"
+    why: "Channel 4 power switch second IN pin is also used for current and thermal capacity."
+  - assert: pin_on_net
+    pin: "U22.4"
+    net: PWR_EN4
+    adr: "0006"
+    why: "Channel 4 TPS2557 active-high enable is the fail-low power command."
+  - assert: pin_on_net
+    pin: "U22.6"
+    net: VBUS4_SW
+    adr: "0006"
+    why: "Channel 4 first TPS2557 output land feeds only its downstream VBUS."
+  - assert: pin_on_net
+    pin: "U22.7"
+    net: VBUS4_SW
+    adr: "0006"
+    why: "Channel 4 second TPS2557 output land is also used."
+  - assert: pin_on_net
+    pin: "J10.1"
+    net: VBUS4_SW
+    adr: "0003"
+    why: "Channel 4 downstream receptacle receives protected VBUS without any charging-port advertisement."
+  - assert: part_value
+    part: R69
+    equals: 100000
+    tolerance_pct: 2
+    adr: "0006"
+    why: "Channel 4 100 kohm ILIM programs the characterized approximately 0.926-1.273 A limit around the 0.9 A load claim."
+  - assert: part_value
+    part: R74
+    equals: 10000
+    tolerance_pct: 5
+    adr: "0006"
+    why: "Channel 4 open-drain fault indication has its intended local 3.3 V pull-up."
+  - assert: net_has_part
+    net: VBUS4_SW
+    part_type: capacitor
+    min: 2
+    adr: "0006"
+    why: "Channel 4 VBUS requires both local high-frequency and 150 uF bulk output capacitance."
+
+  # Every SuperSpeed conductor has its own connector -> 2.2 ohm -> MID -> AC capacitor -> redriver chain.
+  - assert: series_chain
+    chain: [USB1_SS_TX_UP_CONN_P, R1, USB1_SS_TX_UP_MID_P, C6, USB1_SS_TX_UP_IC_P]
+    adr: "0002"
+    why: "Channel 1 TX_UP_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB1_SS_TX_UP_CONN_N, R2, USB1_SS_TX_UP_MID_N, C7, USB1_SS_TX_UP_IC_N]
+    adr: "0002"
+    why: "Channel 1 TX_UP_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB1_SS_TX_DN_CONN_P, R3, USB1_SS_TX_DN_MID_P, C8, USB1_SS_TX_DN_IC_P]
+    adr: "0002"
+    why: "Channel 1 TX_DN_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB1_SS_TX_DN_CONN_N, R4, USB1_SS_TX_DN_MID_N, C9, USB1_SS_TX_DN_IC_N]
+    adr: "0002"
+    why: "Channel 1 TX_DN_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB1_SS_RX_DN_CONN_P, R5, USB1_SS_RX_DN_MID_P, C12, USB1_SS_RX_DN_IC_P]
+    adr: "0002"
+    why: "Channel 1 RX_DN_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB1_SS_RX_DN_CONN_N, R6, USB1_SS_RX_DN_MID_N, C13, USB1_SS_RX_DN_IC_N]
+    adr: "0002"
+    why: "Channel 1 RX_DN_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB1_SS_RX_UP_CONN_P, R7, USB1_SS_RX_UP_MID_P, C10, USB1_SS_RX_UP_IC_P]
+    adr: "0002"
+    why: "Channel 1 RX_UP_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB1_SS_RX_UP_CONN_N, R8, USB1_SS_RX_UP_MID_N, C11, USB1_SS_RX_UP_IC_N]
+    adr: "0002"
+    why: "Channel 1 RX_UP_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: part_value
+    part: R1
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 SuperSpeed series resistor 1/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R2
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 SuperSpeed series resistor 2/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R3
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 SuperSpeed series resistor 3/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R4
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 SuperSpeed series resistor 4/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R5
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 SuperSpeed series resistor 5/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R6
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 SuperSpeed series resistor 6/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R7
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 SuperSpeed series resistor 7/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R8
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 SuperSpeed series resistor 8/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: C6
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 1 SuperSpeed coupling capacitor 1/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C7
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 1 SuperSpeed coupling capacitor 2/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C8
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 1 SuperSpeed coupling capacitor 3/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C9
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 1 SuperSpeed coupling capacitor 4/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C10
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 1 SuperSpeed coupling capacitor 5/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C11
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 1 SuperSpeed coupling capacitor 6/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C12
+    equals: 330n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 1 SuperSpeed coupling capacitor 7/8 is 330 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C13
+    equals: 330n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 1 SuperSpeed coupling capacitor 8/8 is 330 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: pin_on_net
+    pin: "R33.1"
+    net: USB1_SS_RX_DN_IC_P
+    adr: "0002"
+    why: "Channel 1 RX2 P bias resistor is on the redriver side of the 330 nF blocking capacitor."
+  - assert: pin_on_net
+    pin: "R33.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 1 RX2 P bias resistor returns to ground."
+  - assert: part_value
+    part: R33
+    equals: 220000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 RX2 P uses the TUSB522P 220 kohm bias value."
+  - assert: pin_on_net
+    pin: "R34.1"
+    net: USB1_SS_RX_DN_IC_N
+    adr: "0002"
+    why: "Channel 1 RX2 N bias resistor is on the redriver side of the 330 nF blocking capacitor."
+  - assert: pin_on_net
+    pin: "R34.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 1 RX2 N bias resistor returns to ground."
+  - assert: part_value
+    part: R34
+    equals: 220000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 1 RX2 N uses the TUSB522P 220 kohm bias value."
+  - assert: series_chain
+    chain: [USB2_SS_TX_UP_CONN_P, R9, USB2_SS_TX_UP_MID_P, C22, USB2_SS_TX_UP_IC_P]
+    adr: "0002"
+    why: "Channel 2 TX_UP_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB2_SS_TX_UP_CONN_N, R10, USB2_SS_TX_UP_MID_N, C23, USB2_SS_TX_UP_IC_N]
+    adr: "0002"
+    why: "Channel 2 TX_UP_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB2_SS_TX_DN_CONN_P, R11, USB2_SS_TX_DN_MID_P, C24, USB2_SS_TX_DN_IC_P]
+    adr: "0002"
+    why: "Channel 2 TX_DN_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB2_SS_TX_DN_CONN_N, R12, USB2_SS_TX_DN_MID_N, C25, USB2_SS_TX_DN_IC_N]
+    adr: "0002"
+    why: "Channel 2 TX_DN_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB2_SS_RX_DN_CONN_P, R13, USB2_SS_RX_DN_MID_P, C28, USB2_SS_RX_DN_IC_P]
+    adr: "0002"
+    why: "Channel 2 RX_DN_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB2_SS_RX_DN_CONN_N, R14, USB2_SS_RX_DN_MID_N, C29, USB2_SS_RX_DN_IC_N]
+    adr: "0002"
+    why: "Channel 2 RX_DN_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB2_SS_RX_UP_CONN_P, R15, USB2_SS_RX_UP_MID_P, C26, USB2_SS_RX_UP_IC_P]
+    adr: "0002"
+    why: "Channel 2 RX_UP_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB2_SS_RX_UP_CONN_N, R16, USB2_SS_RX_UP_MID_N, C27, USB2_SS_RX_UP_IC_N]
+    adr: "0002"
+    why: "Channel 2 RX_UP_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: part_value
+    part: R9
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 SuperSpeed series resistor 1/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R10
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 SuperSpeed series resistor 2/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R11
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 SuperSpeed series resistor 3/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R12
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 SuperSpeed series resistor 4/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R13
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 SuperSpeed series resistor 5/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R14
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 SuperSpeed series resistor 6/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R15
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 SuperSpeed series resistor 7/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R16
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 SuperSpeed series resistor 8/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: C22
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 2 SuperSpeed coupling capacitor 1/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C23
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 2 SuperSpeed coupling capacitor 2/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C24
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 2 SuperSpeed coupling capacitor 3/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C25
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 2 SuperSpeed coupling capacitor 4/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C26
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 2 SuperSpeed coupling capacitor 5/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C27
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 2 SuperSpeed coupling capacitor 6/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C28
+    equals: 330n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 2 SuperSpeed coupling capacitor 7/8 is 330 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C29
+    equals: 330n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 2 SuperSpeed coupling capacitor 8/8 is 330 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: pin_on_net
+    pin: "R35.1"
+    net: USB2_SS_RX_DN_IC_P
+    adr: "0002"
+    why: "Channel 2 RX2 P bias resistor is on the redriver side of the 330 nF blocking capacitor."
+  - assert: pin_on_net
+    pin: "R35.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 2 RX2 P bias resistor returns to ground."
+  - assert: part_value
+    part: R35
+    equals: 220000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 RX2 P uses the TUSB522P 220 kohm bias value."
+  - assert: pin_on_net
+    pin: "R36.1"
+    net: USB2_SS_RX_DN_IC_N
+    adr: "0002"
+    why: "Channel 2 RX2 N bias resistor is on the redriver side of the 330 nF blocking capacitor."
+  - assert: pin_on_net
+    pin: "R36.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 2 RX2 N bias resistor returns to ground."
+  - assert: part_value
+    part: R36
+    equals: 220000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 2 RX2 N uses the TUSB522P 220 kohm bias value."
+  - assert: series_chain
+    chain: [USB3_SS_TX_UP_CONN_P, R17, USB3_SS_TX_UP_MID_P, C38, USB3_SS_TX_UP_IC_P]
+    adr: "0002"
+    why: "Channel 3 TX_UP_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB3_SS_TX_UP_CONN_N, R18, USB3_SS_TX_UP_MID_N, C39, USB3_SS_TX_UP_IC_N]
+    adr: "0002"
+    why: "Channel 3 TX_UP_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB3_SS_TX_DN_CONN_P, R19, USB3_SS_TX_DN_MID_P, C40, USB3_SS_TX_DN_IC_P]
+    adr: "0002"
+    why: "Channel 3 TX_DN_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB3_SS_TX_DN_CONN_N, R20, USB3_SS_TX_DN_MID_N, C41, USB3_SS_TX_DN_IC_N]
+    adr: "0002"
+    why: "Channel 3 TX_DN_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB3_SS_RX_DN_CONN_P, R21, USB3_SS_RX_DN_MID_P, C44, USB3_SS_RX_DN_IC_P]
+    adr: "0002"
+    why: "Channel 3 RX_DN_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB3_SS_RX_DN_CONN_N, R22, USB3_SS_RX_DN_MID_N, C45, USB3_SS_RX_DN_IC_N]
+    adr: "0002"
+    why: "Channel 3 RX_DN_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB3_SS_RX_UP_CONN_P, R23, USB3_SS_RX_UP_MID_P, C42, USB3_SS_RX_UP_IC_P]
+    adr: "0002"
+    why: "Channel 3 RX_UP_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB3_SS_RX_UP_CONN_N, R24, USB3_SS_RX_UP_MID_N, C43, USB3_SS_RX_UP_IC_N]
+    adr: "0002"
+    why: "Channel 3 RX_UP_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: part_value
+    part: R17
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 SuperSpeed series resistor 1/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R18
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 SuperSpeed series resistor 2/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R19
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 SuperSpeed series resistor 3/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R20
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 SuperSpeed series resistor 4/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R21
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 SuperSpeed series resistor 5/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R22
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 SuperSpeed series resistor 6/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R23
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 SuperSpeed series resistor 7/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R24
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 SuperSpeed series resistor 8/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: C38
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 3 SuperSpeed coupling capacitor 1/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C39
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 3 SuperSpeed coupling capacitor 2/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C40
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 3 SuperSpeed coupling capacitor 3/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C41
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 3 SuperSpeed coupling capacitor 4/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C42
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 3 SuperSpeed coupling capacitor 5/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C43
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 3 SuperSpeed coupling capacitor 6/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C44
+    equals: 330n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 3 SuperSpeed coupling capacitor 7/8 is 330 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C45
+    equals: 330n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 3 SuperSpeed coupling capacitor 8/8 is 330 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: pin_on_net
+    pin: "R37.1"
+    net: USB3_SS_RX_DN_IC_P
+    adr: "0002"
+    why: "Channel 3 RX2 P bias resistor is on the redriver side of the 330 nF blocking capacitor."
+  - assert: pin_on_net
+    pin: "R37.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 3 RX2 P bias resistor returns to ground."
+  - assert: part_value
+    part: R37
+    equals: 220000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 RX2 P uses the TUSB522P 220 kohm bias value."
+  - assert: pin_on_net
+    pin: "R38.1"
+    net: USB3_SS_RX_DN_IC_N
+    adr: "0002"
+    why: "Channel 3 RX2 N bias resistor is on the redriver side of the 330 nF blocking capacitor."
+  - assert: pin_on_net
+    pin: "R38.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 3 RX2 N bias resistor returns to ground."
+  - assert: part_value
+    part: R38
+    equals: 220000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 3 RX2 N uses the TUSB522P 220 kohm bias value."
+  - assert: series_chain
+    chain: [USB4_SS_TX_UP_CONN_P, R25, USB4_SS_TX_UP_MID_P, C54, USB4_SS_TX_UP_IC_P]
+    adr: "0002"
+    why: "Channel 4 TX_UP_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB4_SS_TX_UP_CONN_N, R26, USB4_SS_TX_UP_MID_N, C55, USB4_SS_TX_UP_IC_N]
+    adr: "0002"
+    why: "Channel 4 TX_UP_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB4_SS_TX_DN_CONN_P, R27, USB4_SS_TX_DN_MID_P, C56, USB4_SS_TX_DN_IC_P]
+    adr: "0002"
+    why: "Channel 4 TX_DN_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB4_SS_TX_DN_CONN_N, R28, USB4_SS_TX_DN_MID_N, C57, USB4_SS_TX_DN_IC_N]
+    adr: "0002"
+    why: "Channel 4 TX_DN_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB4_SS_RX_DN_CONN_P, R29, USB4_SS_RX_DN_MID_P, C60, USB4_SS_RX_DN_IC_P]
+    adr: "0002"
+    why: "Channel 4 RX_DN_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB4_SS_RX_DN_CONN_N, R30, USB4_SS_RX_DN_MID_N, C61, USB4_SS_RX_DN_IC_N]
+    adr: "0002"
+    why: "Channel 4 RX_DN_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB4_SS_RX_UP_CONN_P, R31, USB4_SS_RX_UP_MID_P, C58, USB4_SS_RX_UP_IC_P]
+    adr: "0002"
+    why: "Channel 4 RX_UP_CONN_P is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: series_chain
+    chain: [USB4_SS_RX_UP_CONN_N, R32, USB4_SS_RX_UP_MID_N, C59, USB4_SS_RX_UP_IC_N]
+    adr: "0002"
+    why: "Channel 4 RX_UP_CONN_N is an independent protected AC-coupled conductor; no resistor, MID boundary or capacitor may disappear or cross polarity."
+  - assert: part_value
+    part: R25
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 SuperSpeed series resistor 1/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R26
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 SuperSpeed series resistor 2/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R27
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 SuperSpeed series resistor 3/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R28
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 SuperSpeed series resistor 4/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R29
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 SuperSpeed series resistor 5/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R30
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 SuperSpeed series resistor 6/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R31
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 SuperSpeed series resistor 7/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: R32
+    equals: 2.2
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 SuperSpeed series resistor 8/8 is the TI external-ESD boundary value, not a generic stuffing option."
+  - assert: part_value
+    part: C54
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 4 SuperSpeed coupling capacitor 1/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C55
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 4 SuperSpeed coupling capacitor 2/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C56
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 4 SuperSpeed coupling capacitor 3/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C57
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 4 SuperSpeed coupling capacitor 4/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C58
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 4 SuperSpeed coupling capacitor 5/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C59
+    equals: 100n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 4 SuperSpeed coupling capacitor 6/8 is 100 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C60
+    equals: 330n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 4 SuperSpeed coupling capacitor 7/8 is 330 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: part_value
+    part: C61
+    equals: 330n
+    tolerance_pct: 25
+    adr: "0002"
+    why: "Channel 4 SuperSpeed coupling capacitor 8/8 is 330 nF by the TUSB522P Figure 8-1/8-2 path assignment."
+  - assert: pin_on_net
+    pin: "R39.1"
+    net: USB4_SS_RX_DN_IC_P
+    adr: "0002"
+    why: "Channel 4 RX2 P bias resistor is on the redriver side of the 330 nF blocking capacitor."
+  - assert: pin_on_net
+    pin: "R39.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 4 RX2 P bias resistor returns to ground."
+  - assert: part_value
+    part: R39
+    equals: 220000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 RX2 P uses the TUSB522P 220 kohm bias value."
+  - assert: pin_on_net
+    pin: "R40.1"
+    net: USB4_SS_RX_DN_IC_N
+    adr: "0002"
+    why: "Channel 4 RX2 N bias resistor is on the redriver side of the 330 nF blocking capacitor."
+  - assert: pin_on_net
+    pin: "R40.2"
+    net: GND
+    adr: "0002"
+    why: "Channel 4 RX2 N bias resistor returns to ground."
+  - assert: part_value
+    part: R40
+    equals: 220000
+    tolerance_pct: 5
+    adr: "0002"
+    why: "Channel 4 RX2 N uses the TUSB522P 220 kohm bias value."
+
+  # Six shared TUSB522P three-level straps are deliberately fixed low on all four redrivers.
+  - assert: pin_on_net
+    pin: "R75.1"
+    net: TUSB_EQ1
+    adr: "0002"
+    why: "TUSB_EQ1 has one explicit physical pull-down shared by all four identical redrivers."
+  - assert: pin_on_net
+    pin: "R75.2"
+    net: GND
+    adr: "0002"
+    why: "TUSB_EQ1 strap resistor terminates at ground, not in a serial-looking daisy chain."
+  - assert: part_value
+    part: R75
+    equals: 4700
+    tolerance_pct: 5
+    adr: "0002"
+    why: "TUSB_EQ1 uses the reviewed 4.7 kohm deterministic low strap value."
+  - assert: pin_on_net
+    pin: "U2.2"
+    net: TUSB_EQ1
+    adr: "0002"
+    why: "U2 TUSB_EQ1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U8.2"
+    net: TUSB_EQ1
+    adr: "0002"
+    why: "U8 TUSB_EQ1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U14.2"
+    net: TUSB_EQ1
+    adr: "0002"
+    why: "U14 TUSB_EQ1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U20.2"
+    net: TUSB_EQ1
+    adr: "0002"
+    why: "U20 TUSB_EQ1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "R76.1"
+    net: TUSB_EQ2
+    adr: "0002"
+    why: "TUSB_EQ2 has one explicit physical pull-down shared by all four identical redrivers."
+  - assert: pin_on_net
+    pin: "R76.2"
+    net: GND
+    adr: "0002"
+    why: "TUSB_EQ2 strap resistor terminates at ground, not in a serial-looking daisy chain."
+  - assert: part_value
+    part: R76
+    equals: 4700
+    tolerance_pct: 5
+    adr: "0002"
+    why: "TUSB_EQ2 uses the reviewed 4.7 kohm deterministic low strap value."
+  - assert: pin_on_net
+    pin: "U2.17"
+    net: TUSB_EQ2
+    adr: "0002"
+    why: "U2 TUSB_EQ2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U8.17"
+    net: TUSB_EQ2
+    adr: "0002"
+    why: "U8 TUSB_EQ2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U14.17"
+    net: TUSB_EQ2
+    adr: "0002"
+    why: "U14 TUSB_EQ2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U20.17"
+    net: TUSB_EQ2
+    adr: "0002"
+    why: "U20 TUSB_EQ2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "R77.1"
+    net: TUSB_DE1
+    adr: "0002"
+    why: "TUSB_DE1 has one explicit physical pull-down shared by all four identical redrivers."
+  - assert: pin_on_net
+    pin: "R77.2"
+    net: GND
+    adr: "0002"
+    why: "TUSB_DE1 strap resistor terminates at ground, not in a serial-looking daisy chain."
+  - assert: part_value
+    part: R77
+    equals: 4700
+    tolerance_pct: 5
+    adr: "0002"
+    why: "TUSB_DE1 uses the reviewed 4.7 kohm deterministic low strap value."
+  - assert: pin_on_net
+    pin: "U2.16"
+    net: TUSB_DE1
+    adr: "0002"
+    why: "U2 TUSB_DE1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U8.16"
+    net: TUSB_DE1
+    adr: "0002"
+    why: "U8 TUSB_DE1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U14.16"
+    net: TUSB_DE1
+    adr: "0002"
+    why: "U14 TUSB_DE1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U20.16"
+    net: TUSB_DE1
+    adr: "0002"
+    why: "U20 TUSB_DE1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "R78.1"
+    net: TUSB_DE2
+    adr: "0002"
+    why: "TUSB_DE2 has one explicit physical pull-down shared by all four identical redrivers."
+  - assert: pin_on_net
+    pin: "R78.2"
+    net: GND
+    adr: "0002"
+    why: "TUSB_DE2 strap resistor terminates at ground, not in a serial-looking daisy chain."
+  - assert: part_value
+    part: R78
+    equals: 4700
+    tolerance_pct: 5
+    adr: "0002"
+    why: "TUSB_DE2 uses the reviewed 4.7 kohm deterministic low strap value."
+  - assert: pin_on_net
+    pin: "U2.3"
+    net: TUSB_DE2
+    adr: "0002"
+    why: "U2 TUSB_DE2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U8.3"
+    net: TUSB_DE2
+    adr: "0002"
+    why: "U8 TUSB_DE2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U14.3"
+    net: TUSB_DE2
+    adr: "0002"
+    why: "U14 TUSB_DE2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U20.3"
+    net: TUSB_DE2
+    adr: "0002"
+    why: "U20 TUSB_DE2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "R79.1"
+    net: TUSB_OS1
+    adr: "0002"
+    why: "TUSB_OS1 has one explicit physical pull-down shared by all four identical redrivers."
+  - assert: pin_on_net
+    pin: "R79.2"
+    net: GND
+    adr: "0002"
+    why: "TUSB_OS1 strap resistor terminates at ground, not in a serial-looking daisy chain."
+  - assert: part_value
+    part: R79
+    equals: 4700
+    tolerance_pct: 5
+    adr: "0002"
+    why: "TUSB_OS1 uses the reviewed 4.7 kohm deterministic low strap value."
+  - assert: pin_on_net
+    pin: "U2.15"
+    net: TUSB_OS1
+    adr: "0002"
+    why: "U2 TUSB_OS1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U8.15"
+    net: TUSB_OS1
+    adr: "0002"
+    why: "U8 TUSB_OS1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U14.15"
+    net: TUSB_OS1
+    adr: "0002"
+    why: "U14 TUSB_OS1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U20.15"
+    net: TUSB_OS1
+    adr: "0002"
+    why: "U20 TUSB_OS1 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "R80.1"
+    net: TUSB_OS2
+    adr: "0002"
+    why: "TUSB_OS2 has one explicit physical pull-down shared by all four identical redrivers."
+  - assert: pin_on_net
+    pin: "R80.2"
+    net: GND
+    adr: "0002"
+    why: "TUSB_OS2 strap resistor terminates at ground, not in a serial-looking daisy chain."
+  - assert: part_value
+    part: R80
+    equals: 4700
+    tolerance_pct: 5
+    adr: "0002"
+    why: "TUSB_OS2 uses the reviewed 4.7 kohm deterministic low strap value."
+  - assert: pin_on_net
+    pin: "U2.4"
+    net: TUSB_OS2
+    adr: "0002"
+    why: "U2 TUSB_OS2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U8.4"
+    net: TUSB_OS2
+    adr: "0002"
+    why: "U8 TUSB_OS2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U14.4"
+    net: TUSB_OS2
+    adr: "0002"
+    why: "U14 TUSB_OS2 pin must share the reviewed global fixed-low state."
+  - assert: pin_on_net
+    pin: "U20.4"
+    net: TUSB_OS2
+    adr: "0002"
+    why: "U20 TUSB_OS2 pin must share the reviewed global fixed-low state."
+
+label_survival:
+  pin_map:
+    - refs: [J2]
+      pins: {"6": GND, "9": GND, "11": GPIO17_RAW, "13": GPIO27_RAW, "14": GND, "15": GPIO22_RAW, "16": GPIO23_RAW, "18": GPIO24_RAW, "20": GND, "22": GPIO25_RAW, "25": GND, "29": GPIO5_RAW, "30": GND, "31": GPIO6_RAW, "34": GND, "39": GND}
+      unconnected: ["1", "2", "3", "4", "5", "7", "8", "10", "12", "17", "19", "21", "23", "24", "26", "27", "28", "32", "33", "35", "36", "37", "38", "40"]
+    - refs: [J3, J5, J7, J9]
+      n_start: 1
+      pins: {"2": "USB{n}_HS_UP_N", "3": "USB{n}_HS_UP_P", "4": GND, "5": "USB{n}_SS_RX_UP_CONN_N", "6": "USB{n}_SS_RX_UP_CONN_P", "7": GND, "8": "USB{n}_SS_TX_UP_CONN_N", "9": "USB{n}_SS_TX_UP_CONN_P", "10": GND}
+      unconnected: ["1"]
+    - refs: [J4, J6, J8, J10]
+      n_start: 1
+      pins: {"1": "VBUS{n}_SW", "2": "USB{n}_HS_DN_N", "3": "USB{n}_HS_DN_P", "4": GND, "5": "USB{n}_SS_RX_DN_CONN_N", "6": "USB{n}_SS_RX_DN_CONN_P", "7": GND, "8": "USB{n}_SS_TX_DN_CONN_N", "9": "USB{n}_SS_TX_DN_CONN_P", "10": GND}
+    - refs: [U2, U8, U14, U20]
+      n_start: 1
+      pins: {"1": 3V3, "2": TUSB_EQ1, "3": TUSB_DE2, "4": TUSB_OS2, "5": "DATA_OK{n}", "8": "USB{n}_SS_TX_UP_IC_N", "9": "USB{n}_SS_TX_UP_IC_P", "10": GND, "11": "USB{n}_SS_RX_UP_IC_N", "12": "USB{n}_SS_RX_UP_IC_P", "13": 3V3, "15": TUSB_OS1, "16": TUSB_DE1, "17": TUSB_EQ2, "19": "USB{n}_SS_RX_DN_IC_P", "20": "USB{n}_SS_RX_DN_IC_N", "21": GND, "22": "USB{n}_SS_TX_DN_IC_P", "23": "USB{n}_SS_TX_DN_IC_N", "25": GND}
+      unconnected: ["6", "7", "14", "18", "24"]
+    - refs: [U3, U9, U15, U21]
+      n_start: 1
+      pins: {"1": "USB{n}_HS_DN_P", "2": "USB{n}_HS_DN_N", "5": GND, "6": "USB2_OE{n}", "7": "USB{n}_HS_UP_N", "8": "USB{n}_HS_UP_P", "9": "USB2_SEL{n}", "10": 3V3}
+      unconnected: ["3", "4"]
+    - refs: [U5, U11, U17, U23]
+      n_start: 1
+      # Opposite NC lands are explicitly used as TI's optional straight-through
+      # routing lands; each is on the same external PCB net as its I/O partner.
+      pins: {"1": "USB{n}_SS_TX_UP_CONN_P", "2": "USB{n}_SS_TX_UP_CONN_N", "3": "USB{n}_HS_UP_P", "4": "USB{n}_HS_UP_N", "5": GND, "6": "USB{n}_SS_RX_UP_CONN_P", "7": "USB{n}_SS_RX_UP_CONN_N", "8": "USB{n}_SS_RX_UP_CONN_N", "9": "USB{n}_SS_RX_UP_CONN_P", "10": GND, "11": "USB{n}_HS_UP_N", "12": "USB{n}_HS_UP_P", "13": "USB{n}_SS_TX_UP_CONN_N", "14": "USB{n}_SS_TX_UP_CONN_P"}
+    - refs: [U6, U12, U18, U24]
+      n_start: 1
+      pins: {"1": "USB{n}_SS_RX_DN_CONN_N", "2": "USB{n}_SS_RX_DN_CONN_P", "3": "USB{n}_HS_DN_P", "4": "USB{n}_HS_DN_N", "5": GND, "6": "USB{n}_SS_TX_DN_CONN_N", "7": "USB{n}_SS_TX_DN_CONN_P", "8": "USB{n}_SS_TX_DN_CONN_P", "9": "USB{n}_SS_TX_DN_CONN_N", "10": GND, "11": "USB{n}_HS_DN_N", "12": "USB{n}_HS_DN_P", "13": "USB{n}_SS_RX_DN_CONN_P", "14": "USB{n}_SS_RX_DN_CONN_N"}

@@ -1,0 +1,453 @@
+# Pi-controlled four-port USB 3 bench disconnect board.
+# Four isolated left-to-right channels keep every SuperSpeed pair in a
+# straight, crossover-free corridor. Upstream Type-B cable entries are on the
+# west edge; downstream Type-A receptacles are on the east edge. Control,
+# power switching and bulk capacitance sit outside the high-speed corridors.
+project:
+  name: pi_usb_port_switch
+  netlist: 06_build/netlists/pi_usb_port_switch.net
+  output: 04_kicad/pi_usb_port_switch.kicad_pcb
+  parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
+
+board:
+  outline: {x0: 20.0, y0: 20.0, x1: 170.0, y1: 140.0}
+  edge_width: 0.1
+  layers: 4
+  stackup:
+    nominal_thickness_mm: 1.6
+    thickness_tolerance_mm: 0.10
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.0254
+    copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
+    dielectrics:
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 1.0650, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    refdes_prefix: H
+    at: [[25.0, 25.0], [165.0, 25.0], [75.0, 135.0], [100.0, 136.0]]
+  fiducials:
+    footprint: Fiducial:Fiducial_1mm_Mask2mm
+    refdes_prefix: FID
+    at: [[28.0, 56.5], [160.0, 54.5], [88.0, 136.0]]
+
+# DRC-derived plane drops for the only 19 pad-bearing F.Cu GND islands that
+# remain after route and fill.  Each 0.35/0.25 mm via is wholly inside its
+# named land and is explicitly filled and copper-capped (JLC advanced POFV /
+# IPC-4761 Type VII) so solder cannot wick into the barrel.  The 0.25 mm drill
+# is reserved for this protected family; ordinary routing/stitch vias use the
+# disjoint 0.20 mm or 0.30 mm families so the Gerber order can select the
+# process without relying on KiCad-only item flags.
+thermal_vias:
+  protection: {capping: yes, filling: yes}
+  fields:
+    - {refs: [C1, C2], pad: 2, size: 0.35, drill: 0.25, at: [[2.70, 0.00]]}
+    - {refs: [C3, C17, C18, C34, C50, C66], pad: 2, size: 0.35, drill: 0.25, at: [[0.48, 0.00]]}
+    - {refs: [R49, R63, R66, R67, R68, R69], pad: 2, size: 0.35, drill: 0.25, at: [[0.51, 0.00]]}
+    - {refs: [U3, U9, U15, U21], pad: 5, size: 0.35, drill: 0.25, at: [[0.00, 0.86]]}
+    - {refs: [U2, U8, U14, U20], pad: 25, size: 0.35, drill: 0.25, at: [[0.00, -0.50], [0.00, 0.50]]}
+    - {ref: U1, pad: 2, size: 0.35, drill: 0.25, at: [[3.15, -0.60], [3.15, 0.60]]}
+
+libraries:
+  - {lib: pi_usb_port_switch, path: 03_src/lib/pi_usb_port_switch.pretty}
+  # KiCad 10 renamed the canonical DCK/SC70-5 land to
+  # SOT-353_SC-70-5. Expose the exact vendored legacy-name copy under a unique
+  # nickname so it cannot shadow KiCad's complete Package_TO_SOT_SMD library.
+  - {lib: pi_usb_port_switch_compat, path: 03_src/lib/Package_TO_SOT_SMD.pretty}
+  - {lib: Package_SON, path: 03_src/lib/Package_SON.pretty}
+  - /usr/share/kicad/footprints
+
+placement:
+  require_anchor: true
+  patterns:
+    # The eight Wurth USB receptacles have no JLC/LCSC catalog line and are
+    # installed after PCBA.  F1 is one electrical footprint for two separate
+    # Keystone clips, so one centroid cannot express its physical population.
+    # assembly.yaml is the population authority; these native KiCad attributes
+    # keep the same refs out of every generated CPL.
+    - {match: [F1, J4, J6, J8, J10], attrs: [exclude_from_pos_files]}
+    # Filled-board DRC proves that these package-local ground pads cannot form
+    # a legal four-spoke relief in the routed escape geometry.  Use solid
+    # connection only for the named pads; all other GND pads retain the
+    # source-controlled 0.20/0.20 mm thermal relief below.
+    - match: [C1, C2, C3, C4, C14, C17, C18, C30, C34, C46, C47, C50, C51, C62, C63, C66, C67]
+      pad_overrides:
+        - {pads: [2], zone_connection: full}
+    - match: [R36, R39, R40, R49, R50, R52, R62, R63, R64, R66, R67, R68, R69, R76, R77, R78, R79, R80]
+      pad_overrides:
+        - {pads: [2], zone_connection: full}
+    - match: [J4, J6, J8, J10]
+      pad_overrides:
+        - {pads: [7], zone_connection: full}
+    - match: J2
+      pad_overrides:
+        - {pads: [9, 25], zone_connection: full}
+    - match: U7
+      pad_overrides:
+        - {pads: [3], zone_connection: full}
+    - match: [U2, U8, U14, U20]
+      pad_overrides:
+        - {pads: [25], zone_connection: full}
+    - match: [U3, U9, U15, U21]
+      pad_overrides:
+        - {pads: [5], zone_connection: full}
+    - match: [U4, U10, U16, U22]
+      pad_overrides:
+        - {pads: [1, 9], zone_connection: full}
+    - match: [J3, J4, J5, J6, J7, J8, J9, J10]
+      pad_overrides:
+        - {pads: [10], zone_connection: full}
+    - match: "Q1"
+      pad_overrides:
+        - {pads: [5, 6, 7, 8], zone_connection: full}
+    - match: "R65"
+      pad_overrides:
+        - {pads: [2], zone_connection: full}
+  anchors:
+    C1: [46.50, 37.50, 0]
+    C2: [88.00, 27.00, 0]
+    C3: [95.00, 33.00, 0]
+    C4: [98.00, 33.00, 0]
+    C5: [101.00, 33.00, 0]
+    C6: [76.00, 43.40, 0]
+    C7: [76.00, 42.20, 0]
+    C8: [115.00, 43.40, 0]
+    C9: [115.00, 42.20, 0]
+    # RX coupling parts use pad 2 on one side and pad 1 on the other.  Rotate
+    # them so the pad on each named source-side net faces that source; these
+    # are nonpolar ceramics and the electrical mapping is unchanged.
+    C10: [76.00, 45.80, 180]
+    C11: [76.00, 44.60, 180]
+    C12: [115.00, 45.80, 180]
+    C13: [115.00, 44.60, 180]
+    C14: [91.25, 45.96, 0]
+    C15: [99.15, 42.04, 0]
+    C16: [99.15, 47.00, 0]
+    C17: [110.00, 53.50, 0]
+    C18: [136.00, 55.00, 0]
+    C19: [119.00, 52.50, 0]
+    # Switched-output HF bypass: keep pad 1 immediately beside the TPS2557
+    # OUT pins and inside the VBUS collector, with its GND pad facing outward.
+    C20: [134.30, 48.30, 180]
+    C21: [144.00, 52.00, 0]
+    C22: [76.00, 71.40, 0]
+    C23: [76.00, 70.20, 0]
+    C24: [115.00, 71.40, 0]
+    C25: [115.00, 70.20, 0]
+    C26: [76.00, 73.80, 180]
+    C27: [76.00, 72.60, 180]
+    C28: [115.00, 73.80, 180]
+    C29: [115.00, 72.60, 180]
+    C30: [91.25, 73.96, 0]
+    C31: [99.15, 70.04, 0]
+    C32: [99.15, 75.00, 0]
+    C33: [110.00, 81.50, 0]
+    C34: [136.00, 83.00, 0]
+    C35: [119.00, 80.50, 0]
+    C36: [134.30, 76.30, 180]
+    C37: [144.00, 80.00, 0]
+    C38: [76.00, 99.40, 0]
+    C39: [76.00, 98.20, 0]
+    C40: [115.00, 99.40, 0]
+    C41: [115.00, 98.20, 0]
+    C42: [76.00, 101.80, 180]
+    C43: [76.00, 100.60, 180]
+    C44: [115.00, 101.80, 180]
+    C45: [115.00, 100.60, 180]
+    C46: [91.25, 101.96, 0]
+    C47: [99.15, 98.04, 0]
+    C48: [99.15, 103.00, 0]
+    C49: [110.00, 109.50, 0]
+    C50: [136.00, 111.00, 0]
+    C51: [119.00, 108.50, 0]
+    C52: [134.30, 104.30, 180]
+    C53: [144.00, 108.00, 0]
+    C54: [76.00, 127.40, 0]
+    C55: [76.00, 126.20, 0]
+    C56: [115.00, 127.40, 0]
+    C57: [115.00, 126.20, 0]
+    C58: [76.00, 129.80, 180]
+    C59: [76.00, 128.60, 180]
+    C60: [115.00, 129.80, 180]
+    C61: [115.00, 128.60, 180]
+    C62: [91.25, 128.50, 0]
+    C63: [99.15, 126.04, 0]
+    C64: [99.15, 131.00, 0]
+    C65: [110.00, 137.50, 0]
+    C66: [136.00, 139.00, 0]
+    C67: [119.00, 136.50, 0]
+    C68: [134.30, 132.30, 180]
+    C69: [144.00, 136.00, 0]
+    F1: [48.00, 28.00, 0]
+    J1: [32.00, 28.00, 0]
+    J2: [108.00, 25.00, 90]
+    J3: [35.00, 44.00, 270]
+    J4: [156.20, 44.00, 90]
+    J5: [35.00, 72.00, 270]
+    J6: [156.20, 72.00, 90]
+    J7: [35.00, 100.00, 270]
+    J8: [156.20, 100.00, 90]
+    J9: [35.00, 128.00, 270]
+    J10: [156.20, 128.00, 90]
+    # Drain lands face the fuse; source lands face the protected 5 V bus.
+    Q1: [68.00, 28.40, 180]
+    Q2: [126.00, 51.00, 0]
+    Q3: [126.00, 79.00, 0]
+    Q4: [126.00, 107.00, 0]
+    Q5: [126.00, 135.00, 0]
+    R1: [56.00, 43.40, 0]
+    R2: [56.00, 42.20, 0]
+    # Downstream ESD series resistors carry MID on pad 2 and connector-side
+    # copper on pad 1.  At 180 degrees pad 2 faces the redriver and pad 1 the
+    # receptacle, avoiding a forced U-turn at every pair.
+    R3: [136.00, 43.40, 180]
+    R4: [136.00, 42.20, 180]
+    R5: [136.00, 45.80, 180]
+    R6: [136.00, 44.60, 180]
+    R7: [56.00, 45.80, 0]
+    R8: [56.00, 44.60, 0]
+    R9: [56.00, 71.40, 0]
+    R10: [56.00, 70.20, 0]
+    R11: [136.00, 71.40, 180]
+    R12: [136.00, 70.20, 180]
+    R13: [136.00, 73.80, 180]
+    R14: [136.00, 72.60, 180]
+    R15: [56.00, 73.80, 0]
+    R16: [56.00, 72.60, 0]
+    R17: [56.00, 99.40, 0]
+    R18: [56.00, 98.20, 0]
+    R19: [136.00, 99.40, 180]
+    R20: [136.00, 98.20, 180]
+    R21: [136.00, 101.80, 180]
+    R22: [136.00, 100.60, 180]
+    R23: [56.00, 101.80, 0]
+    R24: [56.00, 100.60, 0]
+    R25: [56.00, 127.40, 0]
+    R26: [56.00, 126.20, 0]
+    R27: [136.00, 127.40, 180]
+    R28: [136.00, 126.20, 180]
+    R29: [136.00, 129.80, 180]
+    R30: [136.00, 128.60, 180]
+    R31: [56.00, 129.80, 0]
+    R32: [56.00, 128.60, 0]
+    # RX2 bias lands sit directly on the two coupled paths. Pad 1 is the
+    # signal land; the opposed pad 2 points away from the pair into GND, so
+    # the bias function adds no high-speed branch stub.
+    R33: [112.00, 46.31, 270]
+    R34: [112.00, 44.09, 90]
+    R35: [112.00, 74.31, 270]
+    R36: [112.00, 72.09, 90]
+    R37: [112.00, 102.31, 270]
+    R38: [112.00, 100.09, 90]
+    R39: [112.00, 130.31, 270]
+    R40: [112.00, 128.09, 90]
+    R41: [104.00, 32.00, 0]
+    R42: [106.00, 32.00, 0]
+    R43: [108.00, 32.00, 0]
+    R44: [110.00, 32.00, 0]
+    R45: [112.00, 32.00, 0]
+    R46: [114.00, 32.00, 0]
+    R47: [116.00, 32.00, 0]
+    R48: [118.00, 32.00, 0]
+    R49: [104.00, 34.00, 0]
+    R50: [106.00, 34.00, 0]
+    R51: [108.00, 34.00, 0]
+    R52: [110.00, 34.00, 0]
+    R53: [112.00, 34.00, 0]
+    R54: [114.00, 34.00, 0]
+    R55: [116.00, 34.00, 0]
+    R56: [118.00, 34.00, 0]
+    R57: [121.00, 54.00, 0]
+    R58: [121.00, 82.00, 0]
+    R59: [121.00, 110.00, 0]
+    R60: [121.00, 138.00, 0]
+    R61: [124.00, 54.00, 0]
+    R62: [124.00, 82.00, 0]
+    R63: [124.00, 110.00, 0]
+    R64: [124.00, 138.00, 0]
+    R65: [65.00, 33.50, 0]
+    R66: [139.00, 49.55, 0]
+    R67: [139.00, 77.55, 0]
+    R68: [139.00, 105.55, 0]
+    R69: [139.00, 133.55, 0]
+    # Reverse-polarity gate pull-up belongs on the protected side of Q1.  The
+    # former location below Q1 trapped its P5V pad behind the fused-input pad
+    # bank and created a real, disconnected protected-rail island.
+    R70: [73.00, 27.00, 180]
+    R71: [130.00, 54.00, 0]
+    R72: [130.00, 82.00, 0]
+    R73: [130.00, 110.00, 0]
+    R74: [130.00, 138.00, 0]
+    # Shared TUSB522 strap pulls are ordered to match their six B.Cu buses.
+    # This makes the one-to-four fan-out planar and deterministic instead of
+    # asking the general router to solve a six-net permutation repeatedly.
+    R79: [122.00, 33.00, 0]  # OS1
+    R77: [124.00, 33.00, 0]  # DE1
+    R76: [126.00, 33.00, 0]  # EQ2
+    R80: [128.00, 33.00, 0]  # OS2
+    R78: [130.00, 33.00, 0]  # DE2
+    R75: [132.00, 33.00, 0]  # EQ1
+    U1: [98.00, 27.00, 0]
+    # TUSB522 signal flow is west-to-east only at 270 degrees: RX1/TX2
+    # (upstream) then sit on the west side and TX1/RX2 (downstream) on the
+    # east side.  The former 90-degree rotation reversed both sides and
+    # forced every no-via P/N route to cross at the package approach.
+    U2: [95.00, 44.00, 270]
+    # The USB2 switch uses its orthogonal pad faces deliberately: upstream
+    # enters the north face and downstream exits the south face. Moving it
+    # into the open sub-row makes both matched approaches planar and keeps the
+    # data path clear of the redriver and power/control packages.
+    U3: [108.00, 50.00, 180]
+    U4: [136.00, 51.00, 90]
+    # Six-line ESD arrays sit at the closest courtyard-legal position to each
+    # connector. Their linear pad field must serve both the offset USB2 pins
+    # and the SuperSpeed pin bank, so connector adjacency is graded explicitly.
+    U5: [40.20, 43.00, 180]
+    U6: [151.60, 41.00, 0]
+    U7: [116.00, 51.00, 0]
+    U8: [95.00, 72.00, 270]
+    U9: [108.00, 78.00, 180]
+    U10: [136.00, 79.00, 90]
+    U11: [40.20, 71.00, 180]
+    U12: [151.60, 69.00, 0]
+    U13: [116.00, 79.00, 0]
+    U14: [95.00, 100.00, 270]
+    U15: [108.00, 106.00, 180]
+    U16: [136.00, 107.00, 90]
+    U17: [40.20, 99.00, 180]
+    U18: [151.60, 97.00, 0]
+    U19: [116.00, 107.00, 0]
+    U20: [95.00, 128.00, 270]
+    U21: [108.00, 134.00, 180]
+    U22: [136.00, 135.00, 90]
+    U23: [40.20, 127.00, 180]
+    U24: [151.60, 125.00, 0]
+    U25: [116.00, 135.00, 0]
+  legalize: {enable: true, clearance: 0.58, edge_margin: 0.30, hole_keepout: 2.6, ring_max: 48}
+
+design_rules:
+  track_min_width: 0.127
+  min_clearance: 0.127
+  # Advanced-tier deterministic USB transitions use 0.30/0.20 mm vias.
+  # Ordinary router/stitch vias remain larger; these are the DRC capability
+  # floors, not the default routing geometry.
+  via_min_annulus: 0.05
+  hole_clearance: 0.20
+  hole_to_hole: 0.25
+  copper_edge_clearance: 0.30
+  via_min_size: 0.30
+  min_through_drill: 0.20
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  # Deterministic high-current copper exists at placement time so the launch
+  # gate grades the actual architecture: package-limited lands enter a pour
+  # immediately; the 2.5 mm input-trunk rule remains the routed backstop.
+  - {net: EXT_5V_RAW, layers: [F.Cu], priority: 4, rect: [31.0, 26.4, 49.2, 32.9], connect: full}
+  - {net: EXT_5V_RAW, layers: [F.Cu], priority: 5, rect: [41.5, 32.8, 51.5, 41.3], connect: full}
+  - {net: EXT_5V_FUSED, layers: [F.Cu], priority: 4, rect: [56.5, 26.5, 70.8, 32.8], connect: full}
+  - {net: P5V_PROTECTED, layers: [F.Cu], priority: 3, rect: [65.5, 24.2, 96.2, 34.2], connect: full}
+  # Top-side protected rail drops through an eight-via current bank into this
+  # B.Cu header, which overlaps the vertical per-port distributor below.
+  - {net: P5V_PROTECTED, layers: [B.Cu], priority: 4, rect: [89.8, 24.2, 139.5, 34.2], connect: full}
+  # U1's large 3V3 output tab uses two filled/capped vias.  Give their B.Cu
+  # ends a local heat-spreading collector so they are electrically useful on
+  # both layers instead of becoming decorative/dangling via-in-pad barrels.
+  # Priority 6 deliberately clears the overlapping protected-5-V header.
+  - {net: 3V3, layers: [B.Cu], priority: 6, rect: [99.8, 24.6, 102.5, 29.4], connect: full}
+  # Bottom-layer protected-5-V spine; each short top-layer port island is
+  # via-bonded into this spine during the deterministic power-tap stage.
+  - {net: P5V_PROTECTED, layers: [B.Cu], priority: 3, rect: [128.0, 26.0, 139.5, 139.5], connect: full}
+  - {net: P5V_PROTECTED, layers: [F.Cu], priority: 3, rect: [134.2, 48.8, 137.8, 56.5], connect: full}
+  - {net: P5V_PROTECTED, layers: [F.Cu], priority: 3, rect: [134.2, 76.8, 137.8, 84.5], connect: full}
+  - {net: P5V_PROTECTED, layers: [F.Cu], priority: 3, rect: [134.2, 104.8, 137.8, 112.5], connect: full}
+  - {net: P5V_PROTECTED, layers: [F.Cu], priority: 3, rect: [134.2, 132.8, 137.8, 139.7], connect: full}
+  # Each switched output uses two joined F.Cu islands: a short package
+  # collector and a bulk-cap/via collector.  Priority 4 keeps VBUS distinct
+  # from the adjacent priority-3 protected-input island at the TPS2557.
+  - {net: VBUS1_SW, layers: [F.Cu], priority: 4, rect: [134.4, 48.0, 143.3, 51.0], connect: full}
+  - {net: VBUS1_SW, layers: [F.Cu], priority: 5, rect: [139.2, 50.8, 143.6, 53.8], connect: full}
+  - {net: VBUS2_SW, layers: [F.Cu], priority: 4, rect: [134.4, 76.0, 143.3, 79.0], connect: full}
+  - {net: VBUS2_SW, layers: [F.Cu], priority: 5, rect: [139.2, 78.8, 143.6, 81.8], connect: full}
+  - {net: VBUS3_SW, layers: [F.Cu], priority: 4, rect: [134.4, 104.0, 143.3, 107.0], connect: full}
+  - {net: VBUS3_SW, layers: [F.Cu], priority: 5, rect: [139.2, 106.8, 143.6, 109.8], connect: full}
+  - {net: VBUS4_SW, layers: [F.Cu], priority: 4, rect: [134.4, 132.0, 143.3, 135.0], connect: full}
+  - {net: VBUS4_SW, layers: [F.Cu], priority: 5, rect: [139.2, 134.8, 143.6, 137.8], connect: full}
+  - {net: GND, layers: [In1.Cu, In2.Cu], priority: 0, min_thickness: 0.20, clearance: 0.20, connect: full}
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.20, clearance: 0.20, thermal_gap: 0.20, thermal_spoke_width: 0.20, connect: thermal}
+
+keepouts:
+  # These permissive rule areas deny nothing.  They bind the 3V3 width-floor
+  # exceptions in rules/nets.yaml to the package-local necks only.  Separate
+  # channel boxes keep KiCad's overlap-based insideArea() semantics from
+  # accidentally relaxing the vertical 0.40 mm trunk between channels.
+  - {name: u2_3v3_pin1_neck, layers: [F.Cu], deny: [], rect: [96.10, 41.82, 96.82, 42.25]}
+  - {name: u8_3v3_pin1_neck, layers: [F.Cu], deny: [], rect: [96.10, 69.82, 96.82, 70.25]}
+  - {name: u14_3v3_pin1_neck, layers: [F.Cu], deny: [], rect: [96.10, 97.82, 96.82, 98.25]}
+  - {name: u20_3v3_pin1_neck, layers: [F.Cu], deny: [], rect: [96.10, 125.82, 96.82, 126.25]}
+  - {name: u2_3v3_pin13_neck, layers: [F.Cu], deny: [], rect: [93.50, 45.78, 93.95, 46.18]}
+  - {name: u8_3v3_pin13_neck, layers: [F.Cu], deny: [], rect: [93.50, 73.78, 93.95, 74.18]}
+  - {name: u14_3v3_pin13_neck, layers: [F.Cu], deny: [], rect: [93.50, 101.78, 93.95, 102.18]}
+  - {name: u20_3v3_pin13_neck, layers: [F.Cu], deny: [], rect: [93.50, 129.78, 93.95, 130.18]}
+  - {name: u3_3v3_pin10_neck, layers: [F.Cu], deny: [], rect: [107.82, 50.68, 108.18, 51.22]}
+  - {name: u9_3v3_pin10_neck, layers: [F.Cu], deny: [], rect: [107.82, 78.68, 108.18, 79.22]}
+  - {name: u15_3v3_pin10_neck, layers: [F.Cu], deny: [], rect: [107.82, 106.68, 108.18, 107.22]}
+  - {name: u21_3v3_pin10_neck, layers: [F.Cu], deny: [], rect: [107.82, 134.68, 108.18, 135.22]}
+  # Two short TS3USB221 supply escapes have no 0.40 mm path between the
+  # adjacent USB pair and control trace.  These boxes cover only the exact
+  # escape segments; the 3V3 rail outside them retains its 0.40 mm floor.
+  - {name: u7_3v3_pin5_escape, layers: [B.Cu], deny: [], rect: [116.70, 50.20, 118.40, 52.90]}
+  - {name: u25_3v3_pin5_escape, layers: [F.Cu], deny: [], rect: [116.70, 134.20, 118.90, 136.40]}
+
+silk:
+  min_text_height: 0.60
+  caption_nudge: true
+  refdes: {size: 0.60, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "JUQF"}
+  captions:
+    - {text: "SEPARATE 5V INPUT", at: [32.0, 21.8], size: 0.75}
+    - {text: "FUSED INPUT", at: [48.0, 21.8], size: 0.65}
+    - {text: "RASPBERRY PI GPIO", at: [108.0, 18.8], size: 0.65}
+    - {text: "PORT 1", at: [25.0, 44.0], size: 0.75, rot: 90}
+    - {text: "PORT 2", at: [25.0, 72.0], size: 0.75, rot: 90}
+    - {text: "PORT 3", at: [25.0, 100.0], size: 0.75, rot: 90}
+    - {text: "PORT 4", at: [25.0, 128.0], size: 0.75, rot: 90}
+    - {text: "UPSTREAM TYPE-B", at: [28.0, 86.0], size: 0.65, rot: 90}
+    - {text: "DOWNSTREAM TYPE-A", at: [167.0, 86.0], size: 0.65, rot: 90}
+    - {text: "USB OUT 1", at: [166.0, 44.0], size: 0.60, rot: 90}
+    - {text: "USB OUT 2", at: [166.0, 72.0], size: 0.60, rot: 90}
+    - {text: "USB OUT 3", at: [166.0, 100.0], size: 0.60, rot: 90}
+    - {text: "USB OUT 4", at: [166.0, 128.0], size: 0.60, rot: 90}
+    - {text: "pi-usb-port-switch  USB 3", at: [95.0, 137.0], size: 0.70}
+
+asserts:
+  pad_net:
+    - {ref: J1, pad: 1, net: EXT_5V_RAW}
+    - {ref: J1, pad: 2, net: GND}
+    - {ref: Q1, pad: 1, net: RPP_GATE}
+    - {ref: J3, pad: 5, net: USB1_SS_RX_UP_CONN_N}
+    - {ref: J3, pad: 9, net: USB1_SS_TX_UP_CONN_P}
+    - {ref: J4, pad: 5, net: USB1_SS_RX_DN_CONN_N}
+    - {ref: J4, pad: 9, net: USB1_SS_TX_DN_CONN_P}
+    - {ref: J5, pad: 5, net: USB2_SS_RX_UP_CONN_N}
+    - {ref: J6, pad: 5, net: USB2_SS_RX_DN_CONN_N}
+    - {ref: J7, pad: 5, net: USB3_SS_RX_UP_CONN_N}
+    - {ref: J8, pad: 5, net: USB3_SS_RX_DN_CONN_N}
+    - {ref: J9, pad: 5, net: USB4_SS_RX_UP_CONN_N}
+    - {ref: J10, pad: 5, net: USB4_SS_RX_DN_CONN_N}
+    - {ref: U2, pad: 25, net: GND}
+    - {ref: U8, pad: 25, net: GND}
+    - {ref: U14, pad: 25, net: GND}
+    - {ref: U20, pad: 25, net: GND}
+  body_offset:
+    - {ref: J3, axis: x, sign: "-"}
+    - {ref: J5, axis: x, sign: "-"}
+    - {ref: J7, axis: x, sign: "-"}
+    - {ref: J9, axis: x, sign: "-"}
+    - {ref: J4, axis: x, sign: "+"}
+    - {ref: J6, axis: x, sign: "+"}
+    - {ref: J8, axis: x, sign: "+"}
+    - {ref: J10, axis: x, sign: "+"}

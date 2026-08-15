@@ -1,0 +1,13 @@
+mpn: CL05B104KO5NNNC
+manufacturer: Samsung Electro-Mechanics
+type: ceramic_capacitor
+datasheet: {doc_id: CL05B104KO5NNNC-SPEC, revision: "generated product specification", url: "https://product.samsungsem.com/mlcc/CL05B104KO5NNNC.do", local: CL05B104KO5NNNC-spec.pdf, sha256: 4f5a2dcf3dcb4c183cd55320ac4b1b050bbc89f066a0ce86353ece3e56294afd, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Capacitor_SMD:C_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact Samsung dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {capacitance: 100nF, tolerance: 10pct, rated_voltage: 16V, dielectric: X7R, dimensions_mm: [1.0, 0.5]}
+gotchas: ["This exact row covers local bypass and six of the eight TUSB522P AC-coupling positions per channel. Decouplers go at their IC power pins; AC-coupling capacitors stay in-line and pair-symmetric."]
+verified: "Exact Samsung product specification p.1 checked for MPN, 100nF, 16V, X7R, tolerance and 0402 dimensions on 2026-08-14."
+layout: {source: "selected IC datasheets and USB 3 differential-layout contract", reviewed: 2026-08-14, notes: ["Local bypass loop first; SuperSpeed coupling placements preserve pair geometry and continuous reference."]}
+sourcing: {lcsc: C1525, alternates: []}

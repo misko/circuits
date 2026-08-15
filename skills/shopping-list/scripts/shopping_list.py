@@ -147,6 +147,7 @@ def normalize_manufacturer(value):
         "globalconnectortechnology": "gct",
         "keystone": "keystoneelectronics",
         "diodes": "diodes",
+        "panasonicindustry": "panasonic",
     }
     return aliases.get(s, s)
 
@@ -475,8 +476,11 @@ def read_jlc_snapshot(path, today, max_age_days):
     """Read the machine sidecar emitted by jlc_stock_check.py.
 
     The sidecar is a dated catalog observation, never an assembly-allocation
-    promise. It qualifies as one independent pool only while fresh and only
-    when every row can be joined by exact LCSC code, MPN and manufacturer.
+    promise. It qualifies as one independent pool only while fresh. Every
+    LCSC-coded row must be represented and join by exact LCSC code, MPN and
+    manufacturer; explicitly uncoded rows are outside the JLC pool and must
+    qualify through other authorized pools instead of invalidating the coded
+    rows' evidence.
     """
     if not path:
         return None, []
@@ -507,10 +511,23 @@ def read_jlc_snapshot(path, today, max_age_days):
         except ValueError:
             errors.append(f"JLC snapshot generated_at is not ISO-8601: {stamp!r}")
     lines = data.get("lines")
-    if not isinstance(lines, list) or not lines:
-        errors.append("JLC snapshot has no non-empty `lines` list")
-    if data.get("graded_lines") != data.get("total_lines"):
-        errors.append("JLC snapshot did not grade every BOM line")
+    if not isinstance(lines, list):
+        errors.append("JLC snapshot `lines` is not a list")
+        lines = []
+    graded = data.get("graded_lines")
+    total = data.get("total_lines")
+    uncoded = data.get("uncoded_lines")
+    if not all(isinstance(v, int) and v >= 0
+               for v in (graded, total, uncoded)):
+        errors.append("JLC snapshot coverage counters must be non-negative "
+                      "integers")
+    else:
+        if graded + uncoded != total:
+            errors.append("JLC snapshot coverage is inconsistent: "
+                          "graded_lines + uncoded_lines != total_lines")
+        if len(lines) != graded:
+            errors.append("JLC snapshot line count does not equal "
+                          "graded_lines")
     return (data if not errors else None), errors
 
 

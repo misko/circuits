@@ -200,6 +200,9 @@ def validate_enabled(project: Path, contract: dict,
         if process.get("geometry_policy") not in ("advisory", "blocking"):
             raise ContractError(
                 "rf.process.geometry_policy must be advisory or blocking")
+        if process.get("geometry_stage", "source") not in ("source", "placement"):
+            raise ContractError(
+                "rf.process.geometry_stage must be source or placement")
     tier = _nonempty(rf.get("risk_tier"), "rf.risk_tier")
     if tier not in RISK_TIERS:
         raise ContractError(
@@ -342,6 +345,13 @@ def validate_enabled(project: Path, contract: dict,
     # reconcile it with the port/cross-section authorities here so a copied
     # net list, layer, width, gap or fence number cannot drift silently.
     layout_raw = rf.get("layout_constraints")
+    if (adopted_rf_module
+            and process.get("geometry_stage", "source") == "source"
+            and layout_raw is None and not pending_sections):
+        raise ContractError(
+            "rf-module-v1 source-stage geometry requires layout_constraints; "
+            "use process.geometry_stage: placement only when coordinates are "
+            "deliberately deferred to the placement checkpoint")
     if layout_raw is not None:
         layout = _mapping(layout_raw, "rf.layout_constraints")
         route = _mapping(layout.get("route"),

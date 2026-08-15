@@ -1,0 +1,12 @@
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
+
+# Direct GPIO control means no onboard programmable controller. Data- and
+# power-switch IC applicability remains blocked on Q1-Q3.
+selections: []
+no_applicable_functions: >-
+  This is an inline USB switching fixture with no programmable compute, radio,
+  or converter subsystem. The selected redriver, data switch, and protected
+  load switches are terminal signal/power-path functions rather than
+  module-replaceable subsystems.
