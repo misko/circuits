@@ -1,0 +1,264 @@
+(footprint "Keystone_3568_Mini_Blade_Fuse_Holder"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "fuse holder, car blade fuse mini, http://www.keyelco.com/product-pdf.cfm?p=306")
+	(tags "car blade fuse mini")
+	(property "Reference" "REF**"
+		(at 4.96 -2.67 0)
+		(layer "F.SilkS")
+		(uuid "9c32af93-92c4-4dae-bb47-0a03a2b6c106")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Fuseholder_Blade_Mini_Keystone_3568"
+		(at 4.96 6.07 0)
+		(layer "F.Fab")
+		(uuid "109b7dd5-49a3-4d19-b284-42305de8515c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "79c7cae6-8916-4263-a595-cc6c132471f3")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0fab19c9-9164-4c0d-9d5a-36ca76cb0674")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -3.14 -1.77)
+		(end -3.14 5.17)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "af0153e6-f587-4c52-bf7d-7d71254c5987")
+	)
+	(fp_line
+		(start -3.14 5.17)
+		(end 13.06 5.17)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "151495d1-3130-46a1-97f9-f85222992de7")
+	)
+	(fp_line
+		(start 3.36 -0.3)
+		(end 6.56 -0.3)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "ea8dfe9c-e308-44fb-875e-79f9a659882b")
+	)
+	(fp_line
+		(start 4.21 1.7)
+		(end 5.71 1.7)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "41be307e-c000-4faf-aca0-e16e9619acd5")
+	)
+	(fp_line
+		(start 6.56 3.7)
+		(end 3.36 3.7)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "d36a562c-007b-4cd9-a89b-802b88204de9")
+	)
+	(fp_line
+		(start 13.06 -1.77)
+		(end -3.14 -1.77)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "8b80dc9c-0c68-42b8-bba2-b5b34927b0d7")
+	)
+	(fp_line
+		(start 13.06 5.17)
+		(end 13.06 -1.77)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "eded6b12-dfae-44a7-9e23-43cd32ee7da3")
+	)
+	(fp_line
+		(start -3.29 -1.92)
+		(end -3.29 5.32)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "b3288ba0-8d4c-4f10-bfd0-d9c1b2a21c1b")
+	)
+	(fp_line
+		(start -3.29 5.32)
+		(end 13.21 5.32)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "42b67e9b-2821-48ff-812e-28d21c40f508")
+	)
+	(fp_line
+		(start 13.21 -1.92)
+		(end -3.29 -1.92)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "fa89ed6b-2f36-4252-8bf4-997139528a0c")
+	)
+	(fp_line
+		(start 13.21 5.32)
+		(end 13.21 -1.92)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "bfb1d742-1bbf-473e-8e08-510bcd24407e")
+	)
+	(fp_line
+		(start -3.04 -1.67)
+		(end -3.04 5.07)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "03abfac1-0b18-404e-a6a9-d9b300b15129")
+	)
+	(fp_line
+		(start -3.04 5.07)
+		(end 12.96 5.07)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "ff01f8fd-7939-445a-9b62-e97b492ccedd")
+	)
+	(fp_line
+		(start 12.96 -1.67)
+		(end -3.04 -1.67)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "ee5280f0-8aa5-4f81-9f83-98ab7ecbc853")
+	)
+	(fp_line
+		(start 12.96 5.07)
+		(end 12.96 -1.67)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "ff8538d6-0568-4e8b-ae66-bace2987b5f0")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 4.96 1.7 0)
+		(layer "F.Fab")
+		(uuid "0064b69f-08dc-4837-af38-124b9a8c706b")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2.78 2.78)
+		(drill 1.78)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "a1fd0c48-3477-43f6-ba59-1417acd072b3")
+	)
+	(pad "1" thru_hole circle
+		(at 0 3.4)
+		(size 2.78 2.78)
+		(drill 1.78)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "496c7760-5305-453f-a008-1667d9cae242")
+	)
+	(pad "2" thru_hole circle
+		(at 9.92 0)
+		(size 2.78 2.78)
+		(drill 1.78)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "e24adeb3-5af8-4bd2-beea-dd06485799e2")
+	)
+	(pad "2" thru_hole circle
+		(at 9.92 3.4)
+		(size 2.78 2.78)
+		(drill 1.78)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "e8667a3d-0ff6-4fb6-8288-69f8c2d305f4")
+	)
+	(embedded_fonts no)
+	(model "${KICAD10_3DMODEL_DIR}/Fuse.3dshapes/Fuseholder_Blade_Mini_Keystone_3568.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)
+

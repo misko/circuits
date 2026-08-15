@@ -1,0 +1,22 @@
+fab/bom.csv   reason: v0.1.1 corrects source-archive path fidelity only; assembly data is intentionally unchanged
+fab/bom_echo_gate.txt   reason: v0.1.1 corrects source-archive path fidelity only; uploader checklist is intentionally unchanged
+fab/cpl.csv   reason: v0.1.1 corrects source-archive path fidelity only; placement data is intentionally unchanged
+fab/order_notes.txt   reason: v0.1.1 corrects source-archive path fidelity only; fab process is intentionally unchanged
+fab/pi_usb_port_switch-B_Cu.gbl   reason: v0.1.1 corrects source-archive path fidelity only; copper is intentionally unchanged
+fab/pi_usb_port_switch-B_Mask.gbs   reason: v0.1.1 corrects source-archive path fidelity only; mask is intentionally unchanged
+fab/pi_usb_port_switch-B_Paste.gbp   reason: v0.1.1 corrects source-archive path fidelity only; paste is intentionally unchanged
+fab/pi_usb_port_switch-B_Silkscreen.gbo   reason: v0.1.1 corrects source-archive path fidelity only; silkscreen is intentionally unchanged
+fab/pi_usb_port_switch-Edge_Cuts.gm1   reason: v0.1.1 corrects source-archive path fidelity only; outline is intentionally unchanged
+fab/pi_usb_port_switch-F_Cu.gtl   reason: v0.1.1 corrects source-archive path fidelity only; copper is intentionally unchanged
+fab/pi_usb_port_switch-F_Mask.gts   reason: v0.1.1 corrects source-archive path fidelity only; mask is intentionally unchanged
+fab/pi_usb_port_switch-F_Paste.gtp   reason: v0.1.1 corrects source-archive path fidelity only; paste is intentionally unchanged
+fab/pi_usb_port_switch-F_Silkscreen.gto   reason: v0.1.1 corrects source-archive path fidelity only; silkscreen is intentionally unchanged
+fab/pi_usb_port_switch-In1_Cu.g1   reason: v0.1.1 corrects source-archive path fidelity only; plane copper is intentionally unchanged
+fab/pi_usb_port_switch-In2_Cu.g2   reason: v0.1.1 corrects source-archive path fidelity only; plane copper is intentionally unchanged
+fab/pi_usb_port_switch-NPTH.drl   reason: v0.1.1 corrects source-archive path fidelity only; drilling is intentionally unchanged
+fab/pi_usb_port_switch-PTH.drl   reason: v0.1.1 corrects source-archive path fidelity only; drilling is intentionally unchanged
+fab/pi_usb_port_switch_gerbers.zip   reason: v0.1.1 corrects source-archive path fidelity only; upload payload is intentionally unchanged
+fab/rotation_human_gate.txt   reason: v0.1.1 corrects source-archive path fidelity only; rotations are intentionally unchanged
+pdf/assembly.pdf   reason: v0.1.1 corrects source-archive path fidelity only; assembly drawing is intentionally unchanged
+pdf/pcb_layers.pdf   reason: v0.1.1 corrects source-archive path fidelity only; layer drawing is intentionally unchanged
+pdf/schematic.pdf   reason: v0.1.1 corrects source-archive path fidelity only; schematic is intentionally unchanged

@@ -1,0 +1,25 @@
+  ok   A-CLASS USB_SS present (track_width 0.18mm)
+  ok   A-AGREE USB_SS pro/dru agree at 0.18mm
+  ok   A-AMP USB_SS exempt by declaration ('signal only')
+  ok   A-CLASS USB_HS present (track_width 0.18mm)
+  ok   A-AGREE USB_HS pro/dru agree at 0.18mm
+  ok   A-AMP USB_HS exempt by declaration ('signal only')
+  ok   A-CLASS PWR_INPUT present (track_width 2.5mm)
+  ok   A-AGREE PWR_INPUT pro/dru agree at 2.5mm
+  ok   A-AMP PWR_INPUT 4.05A ok at 2.5mm (need 2.068mm)
+  ok   A-CLASS PWR_PORT present (track_width 0.5mm)
+  ok   A-AGREE PWR_PORT pro/dru agree at 0.5mm
+  ok   A-AMP PWR_PORT 0.9A ok at 0.5mm (need 0.260mm)
+  ok   A-CLASS PWR_3V3 present (track_width 0.4mm)
+  ok   A-AGREE PWR_3V3 pro/dru agree at 0.4mm
+  ok   A-AMP PWR_3V3 0.45A ok at 0.4mm (need 0.100mm)
+  ok   A-CLASS GPIO_CONTROL present (track_width 0.18mm)
+  ok   A-AGREE GPIO_CONTROL pro/dru agree at 0.18mm
+  ok   A-AMP GPIO_CONTROL exempt by declaration ('signal only')
+  ok   A-CLASS GND_RETURN present (track_width 0.3mm)
+  ok   A-AGREE GND_RETURN pro/dru agree at 0.3mm
+  ok   A-AMP GND_RETURN exempt by declaration ('return (planes)')
+  ok   A-FIRE all 19 pi_usb_port_switch.kicad_dru rule(s) can fire
+  ok   A-ORDER generate_rules runs last before the DRC gate
+  coverage A-AMP: 7/7 net-class current declarations graded
+RULES AUDIT: PASS (0 fails, 23 checks)

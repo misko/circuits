@@ -1,0 +1,17 @@
+PI USB PORT SWITCH FINAL AUDIT
+board_sha256 d4bc778c1c80453ec7b198e1bf428b22cb03d414c4a0d86c89ab74d6facc4094
+component_identity PASS 190/190
+electrical_invariants PASS 282/282
+critical_pairs PASS 56/56
+drc PASS 0 violations / 0 unconnected / 0 schematic parity
+erc PASS 0 error-severity findings
+rules PASS 23/23
+via_ampacity PASS 9/9 transfer banks
+via_process PASS 749/749 graded; 61 protected; 688 ordinary; 0 partial
+model_coverage PASS 190/190
+jlc_twin PASS 185/185 CPL bodies
+strict_model_registration PASS 27/27 measurable; 0 resolvable unmeasured
+stock PASS 25/25 coded BOM lines for quantity 5 on 2026-08-15
+hardware_only PASS no firmware generated
+design_verdict SOUND
+order_verdict DO-NOT-ORDER pending uploader previews and first article

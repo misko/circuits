@@ -1,0 +1,15 @@
+A-POL SINGLE-CHANNEL — these placements have NO numbering-free
+channel corroborating their rotation. The pad-NUMBER fit is
+the only evidence, and a pad-number fit structurally cannot
+see a model whose own numbering differs from ours (C2296/
+C2297: fit 180 at a 17.7x margin, true offset 0). EACH MUST
+PASS THE JLC ORDER-PREVIEW HUMAN GATE BEFORE THE FIRST ORDER.
+
+C129313: U15,U21,U3,U9
+C130056: U10,U16,U22,U4
+C264054: C21,C37,C53,C69
+C2675181: U14,U2,U20,U8
+C3819953: J1
+C5364405: J2
+C7832: U13,U19,U25,U7
+C962978: U11,U12,U17,U18,U23,U24,U5,U6
