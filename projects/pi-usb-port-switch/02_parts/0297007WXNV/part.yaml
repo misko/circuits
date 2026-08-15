@@ -1,0 +1,33 @@
+mpn: 029707.5WXNV
+manufacturer: Littelfuse
+type: user_installed_automotive_blade_fuse
+datasheet:
+  doc_id: Littelfuse 297 MINI 32V
+  revision: 2024-09-27
+  url: https://www.littelfuse.com/assetdocs/littelfuse-datasheet-297-mini32v?assetguid=42c9dd21-a88e-4328-8e67-2f832444faf1
+  sha256: null
+  fetched: 2026-08-14
+  note: "Manufacturer endpoint rejected automated binary fetch; exact row is pinned by URL and the dated source review."
+package: MINI blade fuse, user-fitted in Keystone 3568 after PCBA
+footprint: null
+escape: {style: none, pitch: 0, tier_required: jlc_2layer_default, checked: "not a PCB land; user-fitted into holder"}
+pins:
+  1: blade
+  2: blade
+limits:
+  current: 7.5A
+  voltage: 32VDC
+  interrupting: 1000A_at_32VDC
+  cold_resistance_typ: 10.85mOhm
+  voltage_drop_typ: 135mV
+  i2t_typ: 82A2s
+  operating_temperature: -40C to 125C
+gotchas:
+  - "This fuse protects the input harness/trunk against gross faults; it does not replace the four TPS2557 per-port current limiters and is not claimed to protect semiconductors by coordination."
+  - "7.5A is intentionally above the approximately 4.7A electrical worst case so temperature derating does not cause routine nuisance opening. The external supply should normally be a current-limited 5V/5A bench supply."
+  - "Verify the prospective source short current is below the fuse's 1000A interrupt rating; ordinary regulated bench supplies are expected to be far below it."
+verified: "Exact 7.5A 029707.5WXNV identity and rating corroborated by the Littelfuse 297 series manufacturer sheet and current manufacturer product resource; 10.85mOhm, 135mV, 82A2s and ISO 8820-3 attributes re-read 2026-08-14."
+sourcing:
+  lcsc: null
+  alternates: []
+  note: "Buy as an exact user-installed consumable from an authorized distributor; do not substitute the current rating."

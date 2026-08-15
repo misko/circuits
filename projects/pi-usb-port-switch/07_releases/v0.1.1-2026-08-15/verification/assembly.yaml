@@ -1,0 +1,40 @@
+schema: 1
+service: "standard top-side SMT plus JLCPCB through-hole connector assembly for J1, J2, J3, J5, J7, and J9"
+sides: [top]
+fiducials: none
+build_quantity: 5
+pcb_process: "JLC four-layer advanced; copper-paste-filled and copper-capped via-in-pad only at the reserved 0.25 mm drill family"
+via_process:
+  ipc_4761: type_vii_filled_and_capped
+  fill_material: copper_paste
+  selection: item_level_source_plus_drill_family_order_selector
+  source: "03_src/floorplan.yaml thermal_vias.protection, 03_src/route.yaml taps.connections[].via_protection, and stitch.protect_via_in_pad over realized router barrels"
+  protected_geometry: {via_diameter_mm: 0.35, drill_mm: 0.25}
+  fabricator_selector:
+    kind: drill_family
+    protected_drill_mm: 0.25
+    ordinary_drill_mm: [0.20, 0.30]
+  ordinary_vias: "0.20 mm and 0.30 mm drill families only; no fill/cap treatment"
+  order_remark: >-
+    Copper-paste fill and copper cap the complete 0.25 mm drill family only:
+    these are the 61 realized protected 0.35/0.25 mm via-in-pad barrels.
+    Do not fill or cap ordinary 0.20 mm or 0.30 mm drill routing, stitching,
+    signal-transition, plane-return, or power-transfer vias.
+  uploader_confirmation_required: true
+through_hole:
+  process: "JLCPCB through-hole / wave-selective connector assembly, selected at order time"
+  refs: [J1, J2, J3, J5, J7, J9]
+  evidence: "Measured 2026-08-15: J1 C3819953 has 2 plated drilled paste-free pads; J2 C5364405 has 40; each of J3/J5/J7/J9 exact Wurth 692221030100 / C5334230 has 11 physical plated holes (the board electrically merges the two shell posts as pad 10). Live JLC catalog stock was 1050, 591, and 47 respectively. C5334230's numbering-free pad-cloud fit against the manufacturer land is 0.0039mm at offset 0 versus 2.9893mm next best. These refs stay on the CPL only if the uploader assigns the bought through-hole process and the preview is accepted before payment."
+not_assembled:
+  - refs: [J4, J6, J8, J10]
+    reason: not_in_catalog
+    evidence: "Exact Wurth 692121030100 Type-A receptacle returned no exact JLC/LCSC match in the live 2026-08-15 stock search; the exact MPN remains stocked at Mouser and DigiKey. These four output footprints carry FP_EXCLUDE_FROM_POS_FILES, so JLC is not asked to place an uncoded substitute."
+    disposition: "Buy the exact Wurth Type-A receptacles from an authorized distributor and hand-solder J4/J6/J8/J10 after JLC PCBA; inspect shell stakes and every USB contact before powered test."
+  - refs: [F1]
+    reason: mechanical
+    lcsc: C5249699
+    evidence: "Keystone 3568 is a two-clip MINI-blade fuse holder represented by one electrical footprint. JLC C5249699 identifies one physical clip, while F1 requires two separately located clips; a single CPL centroid cannot express the assembly. Confirmed from the Keystone M65 p.42 drawing and exact board land pattern on 2026-08-15."
+    disposition: "Purchase two Keystone 3568 clips per board, hand-solder both after PCBA, then fit the separate Littelfuse 029707.5WXNV 7.5 A MINI fuse before first power."
+consigned: []
+sourcing_plan: []
+exempt_prefixes: [H, TP, FID, MH]

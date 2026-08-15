@@ -1,0 +1,13 @@
+mpn: GRM155R61H334KE01D
+manufacturer: Murata Electronics
+type: ceramic_capacitor
+datasheet: {doc_id: GRM155R61H334KE01-01A, revision: "reference sheet", url: "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM155R61H334KE01-01A.pdf", local: GRM155R61H334KE01-01A.pdf, sha256: 881ee179318f3d665f94a8771abdf6fff9dc229bf79aaa2a64f11484779b7b01, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Capacitor_SMD:C_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact Murata dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {capacitance: 330nF, tolerance: 10pct, rated_voltage: 50V, dielectric: X5R, dimensions_mm: [1.0, 0.5, 0.6]}
+gotchas: ["These are the TUSB522P USB-A-side RX2 optional short-to-VBUS protection coupling capacitors. They are not decouplers; keep each in series with the pair and retain the associated 220kohm bias resistor."]
+verified: "Exact Murata reference sheet and product list checked for GRM155R61H334KE01D, 330nF, 50V, X5R, 10%, 0402 on 2026-08-14."
+layout: {source: "TUSB522P SLLSEV9E application guidance", reviewed: 2026-08-14, notes: ["Keep pair members aligned with equal pad transitions and no stubs."]}
+sourcing: {lcsc: C19271634, alternates: []}

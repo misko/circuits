@@ -78,7 +78,11 @@ PYEOF
 SCH="03_tscircuit/kicad/$BOARD.kicad_sch"      # the PINNED canonical schematic
 [ -f "$SCH" ] || { echo "rebuild_reuse: pinned $SCH missing — run rebuild_all.sh once and COMMIT it"; exit 2; }
 
-rm -f 06_build/route/FINAL 2>/dev/null || true   # force `import` to replay the promoted chain
+# Preserve an authenticated build/FINAL marker when route.import_source is
+# explicitly `build`; deleting it here makes the deterministic driver destroy
+# the very route lineage it is configured to import.  An explicit `promoted`
+# source does not consult build/FINAL, so no filesystem-precedence cleanup is
+# needed there either.  The importer owns source selection fail-closed.
 
 # [1] netlist from the PINNED committed schematic (deterministic — never tsci)
 mkdir -p 06_build/netlists

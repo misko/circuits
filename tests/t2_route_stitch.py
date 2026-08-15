@@ -508,6 +508,82 @@ def t_swig_barrier():
           "the barrier run changed connectivity")
 
 
+@test("micro-fragment anchor tolerance does not turn a nearby endpoint into a join")
+def t_micro_fragment_anchor_tolerance():
+    """A router rounding whisker can end only 14.4 um from a real endpoint.
+    The historical 50 um served-test called that free end connected and kept
+    the DRC-dangling fragment.  A project may tighten this geometric test
+    without changing the more tolerant cleanup passes."""
+    def mutate(cfg, _d):
+        cfg["stitch"]["passes"] = ["drop_micro_fragments", "fill"]
+        cfg["stitch"]["drop_micro_fragments"] = {
+            "max_length": 0.02,
+            "require_free_end": True,
+            "anchor_tol": 0.005,
+        }
+    d, p = scratch(mutate)
+    board = d / "04_kicad" / f"{STEM}.kicad_pcb"
+    edit_board(board,
+               "n=b.FindNet('GND')\n"
+               "a=pcbnew.PCB_TRACK(b)\n"
+               "a.SetStart(pcbnew.VECTOR2I_MM(30.0,30.0))\n"
+               "a.SetEnd(pcbnew.VECTOR2I_MM(40.0,30.0))\n"
+               "a.SetWidth(pcbnew.FromMM(0.25)); a.SetLayer(pcbnew.F_Cu)\n"
+               "a.SetNetCode(n.GetNetCode()); b.Add(a)\n"
+               "w=pcbnew.PCB_TRACK(b)\n"
+               "w.SetStart(pcbnew.VECTOR2I_MM(29.9856,30.0))\n"
+               "w.SetEnd(pcbnew.VECTOR2I_MM(30.0,30.0))\n"
+               "w.SetWidth(pcbnew.FromMM(0.25)); w.SetLayer(pcbnew.F_Cu)\n"
+               "w.SetNetCode(n.GetNetCode()); b.Add(w)\n")
+    r = must_pass(stitch(p), "micro-fragment tolerance stitch")
+    contains(r.out, "removed 1 dangling micro-fragment",
+             "nearby endpoint was mistaken for a real join")
+    probe = must_pass(run([
+        KPY, "-c",
+        "import pcbnew,sys; b=pcbnew.LoadBoard(sys.argv[1]); "
+        "print(sum(t.GetClass()=='PCB_TRACK' and "
+        "t.GetLength()/1e6 < 0.02 for t in b.GetTracks()))",
+        board]), "micro-fragment board probe")
+    eq(probe.out.strip(), "0", "14.4 um whisker survived cleanup")
+
+
+@test("protect_via_in_pad promotes the realized SMT-land set into one Type-VII family")
+def t_protect_via_in_pad():
+    """The manufacturing process must follow realized router geometry, not
+    only the source-owned thermal-via plan."""
+    def mutate(cfg, _d):
+        cfg["stitch"]["passes"] = ["protect_via_in_pad", "fill"]
+        cfg["stitch"]["protect_via_in_pad"] = {
+            "via": {"size": 0.50, "drill": 0.20},
+            "via_protection": {"capping": True, "filling": True},
+            "min": 1,
+        }
+    d, p = scratch(mutate)
+    board = d / "04_kicad" / f"{STEM}.kicad_pcb"
+    edit_board(board,
+               "pad=next(p for f in b.GetFootprints() for p in f.Pads() "
+               "if p.GetDrillSize().x==0 and p.GetNetname())\n"
+               "v=pcbnew.PCB_VIA(b); v.SetPosition(pad.GetPosition())\n"
+               "v.SetWidth(pcbnew.FromMM(0.45)); "
+               "v.SetDrill(pcbnew.FromMM(0.20))\n"
+               "v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu); v.SetNet(pad.GetNet())\n"
+               "b.Add(v)\n")
+    r = must_pass(stitch(p), "protect realized via-in-pad")
+    contains(r.out, "protected 1 realized via-in-pad barrel(s)",
+             "realized via-in-pad coverage")
+    probe = must_pass(run([
+        KPY, "-c",
+        "import pcbnew,sys; b=pcbnew.LoadBoard(sys.argv[1]); "
+        "v=next(t for t in b.GetTracks() if t.GetClass()=='PCB_VIA'); "
+        "print(round(pcbnew.ToMM(v.GetWidth(pcbnew.F_Cu)),3), "
+        "round(pcbnew.ToMM(v.GetDrill()),3), "
+        "v.GetCappingMode()==pcbnew.CAPPING_MODE_CAPPED, "
+        "v.GetFillingMode()==pcbnew.FILLING_MODE_FILLED)",
+        board]), "protected via-in-pad probe")
+    eq(probe.out.strip(), "0.5 0.2 True True",
+       "via-in-pad was not converted to the declared Type-VII family")
+
+
 @test("fresh_reload unconditionally rebuilds connectivity in a new process")
 def t_fresh_reload_barrier():
     """Zone connectivity can be stale even when no board object was removed.

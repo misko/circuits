@@ -57,7 +57,7 @@ def _canonical(value) -> bytes:
             + "\n").encode()
 
 
-def _contract_state(contract: dict) -> tuple[dict, str, bool]:
+def _contract_state(contract: dict) -> tuple[dict, str, bool, str]:
     if contract.get("schema") != 1 or not isinstance(contract.get("rf"), dict):
         raise RFCheckError("rf.yaml must carry schema: 1 and an rf mapping")
     rf = contract["rf"]
@@ -72,7 +72,10 @@ def _contract_state(contract: dict) -> tuple[dict, str, bool]:
     policy = str(process.get("geometry_policy", "advisory"))
     if policy not in {"advisory", "blocking"}:
         raise RFCheckError("rf.process.geometry_policy must be advisory or blocking")
-    return rf, policy, adopted
+    geometry_stage = str(process.get("geometry_stage", "source"))
+    if geometry_stage not in {"source", "placement"}:
+        raise RFCheckError("rf.process.geometry_stage must be source or placement")
+    return rf, policy, adopted, geometry_stage
 
 
 def _resolve(project: Path, supplied: Path | None, default: str) -> Path:
@@ -214,12 +217,22 @@ def _point(value, label):
     return float(value[0]), float(value[1])
 
 
-def _source_inventory(rf: dict, route: dict, policy: str) -> dict:
+def _source_inventory(rf: dict, route: dict, policy: str, *,
+                      geometry_stage: str = "source",
+                      require_geometry: bool = False) -> dict:
     layout = rf.get("layout_constraints") or {}
     authority = layout.get("route") or {}
     fence_authority = layout.get("ground_fence") or {}
     nets = [str(v) for v in authority.get("nets") or []]
     if not nets:
+        if geometry_stage == "placement" and not require_geometry:
+            return {"schema": 1, "mode": "source", "status": "DEFERRED",
+                    "geometry_policy": policy, "geometry_stage": geometry_stage,
+                    "nets": [], "coverage": {"graded": 0, "total": 0},
+                    "routes": [], "bend_findings": [], "errors": [],
+                    "advisories": ["RF route coordinates are explicitly "
+                                   "deferred to the placement checkpoint"],
+                    "verdict": "PASS"}
         pending = [str(row.get("id")) for row in rf.get("cross_sections") or []
                    if isinstance(row, dict)
                    and row.get("status", "locked") == "pending_solver"]
@@ -511,9 +524,10 @@ def _report_text(report: dict, subject: Path) -> str:
 
 
 def _publish_source(project: Path, contract_path: Path, route_path: Path,
-                    context_path: Path | None, out: Path) -> tuple[dict, Path]:
+                    context_path: Path | None, out: Path, *,
+                    require_geometry: bool = False) -> tuple[dict, Path]:
     contract = _load_yaml(contract_path, "RF contract")
-    rf, policy, adopted = _contract_state(contract)
+    rf, policy, adopted, geometry_stage = _contract_state(contract)
     if not rf["enabled"]:
         route = {}
         report = {"schema": 1, "mode": "source", "status": "N-A",
@@ -522,7 +536,9 @@ def _publish_source(project: Path, contract_path: Path, route_path: Path,
         inputs = {"rf.yaml": contract_path}
     else:
         route = _load_yaml(route_path, "route contract")
-        report = _source_inventory(rf, route, policy)
+        report = _source_inventory(
+            rf, route, policy, geometry_stage=geometry_stage,
+            require_geometry=require_geometry)
         if report["verdict"] != "PASS":
             raise RFCheckError("; ".join(report["errors"]))
         inputs = {"rf.yaml": contract_path, "route.yaml": route_path}
@@ -538,7 +554,8 @@ def _publish_source(project: Path, contract_path: Path, route_path: Path,
     subject_hashes = {"semantic_sha256": _sha(subject),
                       "raw_sha256": _sha(raw)}
     outputs = {"report.json": None, "report.txt": None}
-    producer = "rf_check.py source"
+    producer = ("rf_check.py source --require-geometry" if require_geometry
+                else "rf_check.py source")
     if fresh_bundle(out, subject_hashes, inputs, set(outputs),
                     producer=producer, producer_version=VERSION):
         return report, out
@@ -559,7 +576,7 @@ def _publish_realized(project: Path, contract_path: Path, route_path: Path,
                       board_path: Path | None,
                       out: Path) -> tuple[dict, Path, Path]:
     contract = _load_yaml(contract_path, "RF contract")
-    rf, policy, _adopted = _contract_state(contract)
+    rf, policy, _adopted, _geometry_stage = _contract_state(contract)
     if not rf["enabled"]:
         # Applicability is source authority.  A non-RF project must not need a
         # route contract, board file, or pcbnew merely to prove that this gate
@@ -642,6 +659,8 @@ def main(argv=None) -> int:
                     help="context bundle manifest; required by rf-module-v1 source")
     ap.add_argument("--board", type=Path)
     ap.add_argument("--out", type=Path)
+    ap.add_argument("--require-geometry", action="store_true",
+                    help="fail if placement-deferred route geometry is absent")
     args = ap.parse_args(argv)
     project = args.project.resolve()
     contract_path = _resolve(project, args.contract, "03_src/rules/rf.yaml")
@@ -653,7 +672,8 @@ def main(argv=None) -> int:
     try:
         if args.mode == "source":
             report, published = _publish_source(
-                project, contract_path, route_path, context_path, out)
+                project, contract_path, route_path, context_path, out,
+                require_geometry=args.require_geometry)
             subject = route_path
         else:
             board = _resolve(project, args.board, "") if args.board else None

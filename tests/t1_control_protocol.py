@@ -69,6 +69,18 @@ def profile_data():
     return data
 
 
+@test("hardware-only projects do not generate a firmware control profile")
+def t_profile_na_without_protocol():
+    d = tmpdir("control_profile_na_")
+    (d / "03_src" / "rules").mkdir(parents=True)
+    result = must_pass(run([KPY, CODEGEN, d, "--check"]),
+                       "hardware-only control profile applicability")
+    contains(result.out, "CONTROL-PROFILE N-A", "explicit applicability")
+    contains(result.out, "0/0", "honest empty denominator")
+    if (d / "05_firmware").exists():
+        raise AssertionError("N-A control-profile check created firmware files")
+
+
 @test("observable marker, windows, cycle and capture derive cleanly")
 def t_clean():
     r = must_pass(run([KPY, GATE, project()]), "clean timing protocol")

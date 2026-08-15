@@ -129,6 +129,8 @@ def t_manufacturer_aliases_are_narrow():
     sl = importlib.import_module("shopping_list")
     check(sl.same_manufacturer("Keystone", "Keystone Electronics"),
           "JLC's Keystone abbreviation is the same manufacturer")
+    check(sl.same_manufacturer("PANASONIC", "Panasonic Industry"),
+          "JLC's legacy Panasonic label is the Panasonic Industry identity")
     check(not sl.same_manufacturer("Keystone", "Phoenix Contact"),
           "the alias must not become fuzzy manufacturer matching")
 
@@ -217,6 +219,79 @@ def t_composed_authorized_pools_are_the_gate():
           f"wrong composed pools: {body['rows'][0]['authorized_pools']}")
     contains(r.out, "COMPOSED-POOLS PASS", "the gate verdict")
     contains(out.read_text(), "PASS 2/2", "row-level pool denominator")
+
+
+@test("explicit no-LCSC rows do not discard valid JLC evidence for coded rows")
+def t_mixed_bom_preserves_jlc_pool_per_row():
+    d = project({
+        "ACME-1": POOL_PART,
+        "BETA-1": """\
+mpn: BETA-1
+manufacturer: Beta Devices
+type: test_component
+sourcing:
+  lcsc: null
+""",
+    }, [
+        "ACME-1,U1,QFN,ACME-1,C123456",
+        "BETA-1,J1,CONNECTOR,BETA-1,",
+    ], quotes="""\
+quotes:
+  - mpn: ACME-1
+    manufacturer: Acme Devices
+    distributor: digikey
+    source: product_page
+    url: https://example.invalid/authorized/acme-1
+    read_on: 2026-01-02
+    stock: 1000
+  - mpn: BETA-1
+    manufacturer: Beta Devices
+    distributor: digikey
+    source: product_page
+    url: https://example.invalid/authorized/beta-1
+    read_on: 2026-01-02
+    stock: 1000
+""")
+    jlc = write_jlc_snapshot(d, [{
+        "lcsc": "C123456", "designators": "U1", "qty": 1,
+        "status": "OK", "stock": 1000, "type": "expand",
+        "mpn": "ACME-1", "manufacturer": "Acme Devices",
+    }])
+    snap = json.loads(jlc.read_text())
+    snap["total_lines"] = 2
+    snap["uncoded_lines"] = 1
+    jlc.write_text(json.dumps(snap, indent=1) + "\n")
+
+    replay = tmpdir("pool_mixed_bom_")
+    beta = {
+        "ManufacturerPartNumber": "BETA-1",
+        "MouserPartNumber": "999-BETA-1",
+        "Manufacturer": "Beta Devices",
+        "Availability": "1000 In Stock",
+        "LifecycleStatus": "Active",
+        "FactoryStock": "1000",
+        "LeadTime": "4 Weeks",
+        "Min": "1", "Mult": "1",
+        "ProductDetailUrl": "https://example.invalid/mouser/beta-1",
+        "PriceBreaks": [{"Quantity": 1, "Price": "$1.00",
+                         "Currency": "USD"}],
+    }
+    write_payload(replay, "BETA_1_Exact", [beta])
+    write_payload(replay, "BETA_1_None", [beta])
+    out, js = d / "mixed.md", d / "mixed.json"
+    r = must_pass(run([
+        KPY, SHOP, d, "--scope", "all", "--required-pools", "2",
+        "--jlc-stock-json", jlc, "--today", "2026-01-02",
+        "--replay", replay, "--no-cache", "--out", out, "--json", js,
+    ], env=NO_NET), "mixed JLC-coded and user-supplied BOM")
+    body = json.loads(js.read_text())
+    rows = {row["mpn"]: row for row in body["rows"]}
+    check(rows["ACME-1"]["authorized_pools"] == ["jlc", "digikey"],
+          f"coded row lost JLC evidence: {rows['ACME-1']['authorized_pools']}")
+    check(rows["BETA-1"]["authorized_pools"] == ["mouser", "digikey"],
+          f"uncoded row did not use non-JLC pools: "
+          f"{rows['BETA-1']['authorized_pools']}")
+    contains(r.out, "COMPOSED-POOLS PASS", "mixed-BOM gate verdict")
 
 
 @test("Amazon never counts as an authorized independent pool", kind="known_bad")

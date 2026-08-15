@@ -77,6 +77,23 @@ def rail(name, vin_min, vin_max, vout_min, vout_max, iout, conv, eff=None):
             f"    iout_max_A: {iout}\n    converter: {conv}\n{e}")
 
 
+def distribution_rail(name="USB1", *, resistance=300, limit_min=0.926,
+                      limit_max=1.273, devices=None):
+    devices = devices or ["DMP3007SPS-13", "TPS2557DRBR"]
+    rows = "".join(f"      - {device}\n" for device in devices)
+    return (f"  - name: {name}\n    stage: distribution\n"
+            "    vin_min: 5.15\n    vin_max: 5.25\n"
+            "    vout_min: 4.88\n    vout_max: 5.25\n"
+            "    iout_max_A: 0.9\n"
+            "    load_uv_threshold: 4.75\n"
+            "    distribution:\n      series_devices:\n"
+            f"{rows}"
+            f"      path_resistance_max_mohm: {resistance}\n"
+            f"      current_limit_min_A: {limit_min}\n"
+            f"      current_limit_max_A: {limit_max}\n"
+            "      reverse_current_policy: upstream_vbus_isolated\n")
+
+
 def ptree(*rails, top=""):
     return top + "rails:\n" + "".join(rails)
 
@@ -91,6 +108,35 @@ SOURCE_BOUNDARY = (
 
 def etopo(d, *extra):
     return run([KPY, PTOP, d, *extra])
+
+
+@test("E-TOPO grades protected pass-through distribution without a fake converter")
+def t_distribution_stage_pass():
+    d = project(ptree(distribution_rail()), parts={
+        "DMP3007SPS-13": "p_channel_mosfet_reverse_protection",
+        "TPS2557DRBR": "adjustable_current_limited_load_switch",
+    })
+    r = must_pass(etopo(d), "protected distribution rail")
+    contains(r.out, "protected distribution", "distribution verdict")
+    contains(r.out, "0/0 converter", "no invented converter census")
+
+
+@test("distribution rail rejects an unresolvable series device", kind="known_bad")
+def t_distribution_missing_device_fails():
+    d = project(ptree(distribution_rail(devices=["MISSING-SWITCH"])), parts={
+        "TPS2557DRBR": "adjustable_current_limited_load_switch",
+    })
+    must_fail(etopo(d), "missing protected-path device", "absent from 02_parts")
+
+
+@test("distribution rail rejects a current limit below declared load", kind="known_bad")
+def t_distribution_current_limit_fails():
+    d = project(ptree(distribution_rail(limit_min=0.8)), parts={
+        "DMP3007SPS-13": "p_channel_mosfet_reverse_protection",
+        "TPS2557DRBR": "adjustable_current_limited_load_switch",
+    })
+    must_fail(etopo(d), "under-sized distribution current limit",
+              "exceeds the minimum current limit")
 
 
 # ------------------------------------------------------------ clean cases

@@ -343,6 +343,8 @@ in the `02_parts` contract. These two are this folder's own.
 | `zones[].connect` | `generate_board_generic.py` | pad connection style |
 | `zones[].clearance` | `generate_board_generic.py` | pour clearance |
 | `zones[].min_thickness` | `generate_board_generic.py` | pour min thickness |
+| `zones[].thermal_gap` | `generate_board_generic.py` | thermal-relief gap for pads using thermal zone connection |
+| `zones[].thermal_spoke_width` | `generate_board_generic.py` | thermal-relief spoke width for pads using thermal zone connection |
 | `keepouts[].name` | `generate_board_generic.py` | rule-area name |
 | `keepouts[].layers` | `generate_board_generic.py, placement_gates.py` | rule-area layers |
 | `keepouts[].deny` | `generate_board_generic.py` | what the rule area denies |
@@ -471,6 +473,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `stitch.heal_islands.*` | `route_and_stitch_generic.py` | same-net pour bridge pass |
 | `stitch.unify_zone_priorities.*` | `route_and_stitch_generic.py` | zone-priority pass |
 | `stitch.normalize_vias.*` | `route_and_stitch_generic.py` | via normalisation pass |
+| `stitch.protect_via_in_pad.*` | `route_and_stitch_generic.py` | post-route exact pad-hit census and item-level cap/fill promotion for every realised via inside an SMT land; config declares the protected via geometry, protection modes, and minimum expected count |
 | `stitch.bridge_via_endpoints.*` | `route_and_stitch_generic.py` | strictly copper-contained same-net endpoint-to-via topology bridge, run before any barrel cleanup |
 | `stitch.via_janitor.*` | `route_and_stitch_generic.py` | minimum attached-layer count and local pad-search window for removing unused single-layer barrels |
 | `stitch.dedupe_vias.*` | `route_and_stitch_generic.py` | via de-duplication pass |

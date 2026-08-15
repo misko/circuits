@@ -279,6 +279,46 @@ def t_same_camera_bare_delta_measures_coloured_bodies():
              "the report must name the independent measurement channel")
 
 
+@test("A-RENDER does not union unchanged legacy pixels into a clean "
+      "same-camera delta body")
+def t_same_camera_delta_is_not_contaminated_by_legacy_board_pixels():
+    """Regression for the four C5334230 USB Type-B bodies on
+    pi-usb-port-switch.  Their populated-minus-bare components matched the
+    expected mesh to <=0.08 mm, but the old unconditional delta+legacy union
+    walked onto unchanged low-saturation board/pad pixels and reported a false
+    1.53 mm excursion.  The controlled delta observation must remain primary.
+    RED on the old code: the static grey bridge below joins J1's legacy blob
+    and pushes it more than the 1.00 mm tolerance outside its true body."""
+    from PIL import Image, ImageDraw
+
+    d = tmpdir("ovl_delta_primary_")
+    bare = d / "twin_bare_top.png"
+    pop = d / "twin_top.png"
+    sx, sy = synth_render(bare)
+    synth_render(pop, bodies=[(16.000, 96.050, 30.400, 105.350),
+                              (83.755, 119.408, 92.695, 126.963)])
+
+    # An unchanged desaturated board marking touches J1's rendered body and
+    # extends 3 mm west.  It is visible to the legacy colour heuristic but is
+    # exactly absent from populated-minus-bare RGB delta.
+    def px(mm_x, mm_y):
+        return (100 + int(round((mm_x - EDGE[0]) * sx)),
+                150 + int(round((mm_y - EDGE[1]) * sy)))
+
+    for path in (bare, pop):
+        im = Image.open(path).convert("RGB")
+        draw = ImageDraw.Draw(im)
+        draw.rectangle([px(13.0, 99.0), px(16.1, 102.0)],
+                       fill=(90, 90, 90))
+        im.save(path)
+
+    r, out = gate(png=pop, bare=bare, out=d)
+    must_pass(r, "A-RENDER with a clean delta body beside static legacy pixels")
+    cells = graded_row((out / "r.md").read_text(), "J1")
+    check(float(cells[5]) < 0.50,
+          f"unchanged legacy pixels contaminated J1 outward excursion: {cells}")
+
+
 @test("A-RENDER canonicalizes EasyEDA pad labels 01..09 to KiCad 1..9",
       kind="known_bad")
 def t_leading_zero_pad_labels_are_same_identity():

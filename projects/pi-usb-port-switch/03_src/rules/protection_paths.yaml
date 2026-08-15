@@ -1,0 +1,7 @@
+schema: 1
+paths: []
+no_surge_exposed_paths: >-
+  The admitted input is a bounded regulated SELV 5.15-5.25 V source; sustained
+  overvoltage and cable-surge waveforms are outside the interface boundary.
+  Eight TPD6E05U06 arrays handle connector IEC ESD under datasheet placement
+  and first-article obligations, not a sustained power-surge claim.

@@ -586,7 +586,11 @@ def load_rails(path):
                     f"rail {name!r} is missing {f!r} — every power PORT must "
                     f"pin its voltage ENVELOPE (vin_min/vin_max/vout_min/"
                     f"vout_max) and current, not just current (D-SPEC)")
-        if not r.get("converter"):
+        stage = str(r.get("stage", "conversion")).strip().lower()
+        if stage not in ("conversion", "distribution"):
+            raise LoadError(f"rail {name!r} stage must be conversion or "
+                            f"distribution, got {stage!r}")
+        if stage == "conversion" and not r.get("converter"):
             raise LoadError(f"rail {name!r} is missing 'converter:' (the refdes "
                             f"or part MPN of its converter)")
         vin_min = _num(r["vin_min"], "vin_min", name)
@@ -639,10 +643,58 @@ def load_rails(path):
         fb_low = fb_high = None
         if fb is not None:
             fb_low, fb_high = feedback_window(fb)
+        distribution = None
+        if stage == "distribution":
+            raw_distribution = r.get("distribution")
+            if not isinstance(raw_distribution, dict):
+                raise LoadError(f"rail {name!r} distribution stage requires a "
+                                "distribution: mapping")
+            devices = raw_distribution.get("series_devices")
+            if (not isinstance(devices, list) or not devices
+                    or any(not str(value).strip() for value in devices)):
+                raise LoadError(f"rail {name!r} distribution.series_devices "
+                                "must be a non-empty exact-part list")
+            resistance = _num(raw_distribution.get("path_resistance_max_mohm"),
+                              "distribution.path_resistance_max_mohm", name)
+            limit_min = _num(raw_distribution.get("current_limit_min_A"),
+                             "distribution.current_limit_min_A", name)
+            limit_max = _num(raw_distribution.get("current_limit_max_A"),
+                             "distribution.current_limit_max_A", name)
+            reverse_policy = str(
+                raw_distribution.get("reverse_current_policy", "")).strip()
+            if resistance <= 0:
+                raise LoadError(f"rail {name!r} distribution path resistance "
+                                "must be > 0")
+            if limit_min <= 0 or limit_max < limit_min:
+                raise LoadError(f"rail {name!r} distribution current-limit "
+                                "window must satisfy 0 < min <= max")
+            if iout > limit_min + 1e-9:
+                raise LoadError(f"rail {name!r} Iout {iout:g} A exceeds the "
+                                f"minimum current limit {limit_min:g} A")
+            if not reverse_policy:
+                raise LoadError(f"rail {name!r} distribution requires a "
+                                "reverse_current_policy")
+            distribution = {
+                "series_devices": [str(value).strip() for value in devices],
+                "path_resistance_max_mohm": resistance,
+                "current_limit_min_A": limit_min,
+                "current_limit_max_A": limit_max,
+                "reverse_current_policy": reverse_policy,
+            }
+            if vout_max > vin_max + 1e-9 or vout_min > vin_max + 1e-9:
+                raise LoadError(f"rail {name!r} distribution stage cannot "
+                                "raise its input voltage")
+            # The same declared resistance is the delivery-path authority for
+            # E-MARGIN unless a more detailed component budget is supplied.
+            if ir_budget is None:
+                ir_budget = resistance
+                ir_components = {"protected_distribution_path": resistance}
         rails.append({
             "name": name, "vin_min": vin_min, "vin_max": vin_max,
             "vout_min": vout_min, "vout_max": vout_max, "iout": iout,
-            "eff": eff, "converter": str(r["converter"]),
+            "eff": eff, "stage": stage,
+            "converter": (str(r["converter"]) if r.get("converter") else None),
+            "distribution": distribution,
             # OPTIONAL cascade ownership. A downstream converter still gets
             # its own Vin/Vout topology grade, but its power is already inside
             # the parent rail's declared load and must not be charged to the
@@ -762,6 +814,24 @@ def grade_linear(rail, dirname, facts):
 
 
 def grade_rail(rail, part_index):
+    if rail.get("stage") == "distribution":
+        distribution = rail["distribution"]
+        missing = [device for device in distribution["series_devices"]
+                   if _norm_id(device) not in part_index]
+        if missing:
+            raise LoadError(
+                f"rail {rail['name']!r} distribution devices are absent from "
+                f"02_parts: {missing}")
+        rail["topo"] = "DISTRIBUTION"
+        drop_mv = (distribution["path_resistance_max_mohm"]
+                   * rail["iout"])
+        return "PASS", (
+            f"rail {rail['name']!r} protected distribution: "
+            f"{len(distribution['series_devices'])} exact series device(s), "
+            f"current limit {distribution['current_limit_min_A']:g}-"
+            f"{distribution['current_limit_max_A']:g} A covers "
+            f"Iout {rail['iout']:g} A, path drop <= {drop_mv:.0f} mV; "
+            f"reverse policy={distribution['reverse_current_policy']} -> PASS")
     required = derive_topology(rail["vin_min"], rail["vin_max"],
                                rail["vout_min"], rail["vout_max"])
     dirname, declared, facts = resolve_converter(rail["converter"], part_index)
@@ -832,7 +902,7 @@ def worst_case_input_current(rails):
     # peaks when the input sags, so every switching rail is charged at it.
     vin_min = min(r["vin_min"] for r in roots)
     amps = sum(
-        r["iout"] if r.get("topo") == LINEAR
+        r["iout"] if r.get("topo") in (LINEAR, "DISTRIBUTION")
         else r["vout_max"] * r["iout"] / r["eff"] / vin_min
         for r in roots)
     # reported input power, consistent with the current above. For an
@@ -1255,7 +1325,7 @@ def converter_census(part_index):
 def _ungraded_converters(part_index, rails):
     """Converter parts in 02_parts that NO rail names. The M-COVER denominator
     for E-TOPO: `N converters graded / M present`."""
-    named = {_norm_id(r["converter"]) for r in rails}
+    named = {_norm_id(r["converter"]) for r in rails if r.get("converter")}
     return [c for c in converter_census(part_index)
             if _norm_id(c[0]) not in named]
 

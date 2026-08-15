@@ -613,6 +613,9 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rails[].steady_state_variation_evidence` | `power_topology.py` | evidence supporting the variation reserve |
 | `rails[].transient_voltage_qualification` | ADVISORY | human-readable first-article load-step/startup obligation; the steady-state arithmetic is machine-graded, while oscilloscope evidence is accepted at first article rather than inferred from prose |
 | `rails[].note` | ADVISORY | per-rail prose for a reviewer; the graded facts are the numbers beside it, and no gate resolves the sentence |
+| `rails[].stage` | `power_topology.py` | closed conversion/distribution stage kind; conversion requires a converter while distribution forbids an invented topology claim |
+| `rails[].distribution` | `power_topology.py` | protected pass-through path authority for a distribution stage |
+| `rails[].distribution.*` | `power_topology.py` | exact series-device population, path-resistance maximum, current-limit window, and reverse-current policy |
 | `linear_rails[].name` | `net_reference_audit.py` | E-NETREF K6 resolves it (and reports it UNREACHED by construction) |
 | `linear_rails[].kind` | OWED | the closed-ish vocabulary (`protection_pass`, load switch, link) that would decide WHICH bound applies, read by nothing |
 | `linear_rails[].element` | OWED | the pass element's refdes — the part whose Rds(on)/ESR sets the drop the envelope claims |
@@ -699,6 +702,7 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.process.profile` | `rf_contract_check.py, rf_context.py, rf_check.py` | opt-in `rf-module-v1` adoption marker; absence preserves legacy advisory behavior |
 | `rf.process.context_policy` | `rf_contract_check.py, rf_context.py` | closed clean-room/precedent selection policy; clean-room excludes prior-design results |
 | `rf.process.geometry_policy` | `rf_contract_check.py, rf_check.py` | closed advisory/blocking state for measured bend geometry |
+| `rf.process.geometry_stage` | `rf_contract_check.py, rf_check.py, pcb_flow.py` | closed source/placement lifecycle owner; placement deferral passes early only and is replayed fail-closed before route preparation |
 | `rf.topology.*` | ADVISORY | human architecture summary; exact connectivity is owned by electrical invariants, pin-map parity and port nets |
 | `rf.ports[].id` | `rf_contract_check.py` | unique RF port-group identity |
 | `rf.ports[].nets` | `rf_contract_check.py` | non-empty exact net denominator for the port group |

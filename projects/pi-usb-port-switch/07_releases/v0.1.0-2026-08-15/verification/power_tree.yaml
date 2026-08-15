@@ -1,0 +1,73 @@
+schema: 1
+
+# External supply is removable; E-OFF is not a battery-storage concern.
+source_type: external_regulated_5v2
+source_voltage_boundary:
+  minimum_operating_V: 5.15
+  evidence: "BRIEF A5/A6 and ADR-0006; voltage measured at the board input terminal under simultaneous load"
+off_control: "disconnect the external regulated supply"
+quiescent_ua: 0
+ir_floor_mohm: 100
+rails:
+  - &usb_port
+    name: VBUS1_SW
+    stage: distribution
+    vin_min: 5.15
+    vin_max: 5.25
+    vout_min: 5.15
+    vout_max: 5.25
+    iout_max_A: 0.9
+    external_output: true
+    claim_id: downstream_usb_vbus
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 400
+    margin: 0.1
+    margin_basis: engineering_allocation
+    margin_evidence: "ADR-0006; closes with extracted copper and hot four-wire first-article measurement"
+    ir_budget_components_mohm:
+      protection_switch:
+        value: 265
+        basis: budgeted_max
+        evidence: "shared 18mOhm effective fuse, 8mOhm holder and conservative 25mOhm hot DMP3007SPS-13 allocations at 4.05A, converted to equivalent 0.9A per-port drop, plus 35mOhm TPS2557"
+      pcb_copper_vias_joints:
+        value: 35
+        basis: budgeted_max
+        evidence: "pre-layout shared-trunk and branch allocation; close by exact copper extraction and hot four-wire first-article measurement"
+      mated_power_contacts:
+        value: 100
+        basis: maximum
+        evidence: "two Wurth 692121030100 mated power contacts at 50mOhm maximum each, VBUS plus return GND"
+    distribution:
+      series_devices:
+        - DMP3007SPS-13
+        - TPS2557DRBR
+      path_resistance_max_mohm: 400
+      current_limit_min_A: 0.926
+      current_limit_max_A: 1.273
+      reverse_current_policy: upstream_pi_vbus_isolated_and_external_backfeed_blocked
+  - <<: *usb_port
+    name: VBUS2_SW
+  - <<: *usb_port
+    name: VBUS3_SW
+  - <<: *usb_port
+    name: VBUS4_SW
+
+  - name: 3V3
+    vin_min: 5.15
+    vin_max: 5.25
+    vout_min: 3.24225
+    vout_max: 3.35775
+    iout_max_A: 0.45
+    converter: TLV76133DCYR
+    external_output: false
+    eff: 0.62
+    dropout_mv: 720
+    pdiss_max_mw: 940
+    note: >-
+      The 450mA design bound covers four TUSB522P 98mA active-current typical
+      values plus USB2 switch and interlock logic allowance. Output bounds use
+      the TLV761 full +/-1.75% accuracy. The 720mV rail dropout bound scales
+      TI's 1.6V-at-1A maximum to 0.45A as its CMOS-dropout section permits.
+      The 940mW dissipation limit represents a 35C ambient on the datasheet
+      95.4C/W JEDEC board; realized OUT/tab copper and a worst-mode first-article
+      thermal measurement are mandatory.

@@ -1,0 +1,13 @@
+mpn: RC0402FR-071KL
+manufacturer: YAGEO
+type: thick_film_resistor
+datasheet: {doc_id: RC0402FR-071KL-spec, revision: "generated 2026-08-14", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-071KL", local: RC0402FR-071KL.pdf, sha256: 541aa5653bf3c3ddcbdd9ccc5c1965d7e572cb2a6597f33041a67e0c80dc5bff, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {resistance: 1kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas: ["Each Raspberry Pi command crosses this 1kohm series resistor before the local 100kohm fail-safe pull-down and logic input. It limits fault/injection current but is not galvanic isolation."]
+verified: "Exact YAGEO generated specification independently read for MPN, 1kohm, 1%, 0402 and dimensions on 2026-08-14."
+layout: {source: "board-owned GPIO protection topology", reviewed: 2026-08-14, notes: ["Place at the GPIO-header side of each command net before the local board-domain node."]}
+sourcing: {lcsc: C106235, alternates: []}

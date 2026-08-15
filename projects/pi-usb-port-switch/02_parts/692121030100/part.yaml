@@ -1,0 +1,48 @@
+mpn: "692121030100"
+manufacturer: Wurth Elektronik
+type: usb3_type_a_receptacle
+mates: receptacle
+datasheet:
+  doc_id: "692121030100"
+  revision: "001.002 2025-06-12"
+  url: https://www.we-online.com/components/products/datasheet/692121030100.pdf
+  local: 692121030100.pdf
+  sha256: 6c9cf946c844d3d8ebf6e508d1cb5817e3b4191e0999e0ed02fe575858388e88
+  fetched: 2026-08-14
+  pages: 8
+package: right-angle through-hole USB 3 Type-A receptacle
+footprint: pi_usb_port_switch:Wurth_692121030100_USB3_A
+escape: {style: connector, pitch: 1.0, tier_required: jlc_2layer_default, checked: "manufacturer land-pattern review 2026-08-14"}
+pins:
+  1: VBUS
+  2: D-
+  3: D+
+  4: {name: GND, tie: GND}
+  5: SSRX-
+  6: SSRX+
+  7: {name: GND_DRAIN, tie: GND}
+  8: SSTX-
+  9: SSTX+
+  10: {name: SHIELD, tie: GND, note: "all shell/retention terminals"}
+limits:
+  contact_current: 1.8A
+  voltage: 30VAC
+  contact_resistance_max: 50mOhm
+  durability: 5000_cycles
+  operating_temperature: -20C_to_85C
+gotchas:
+  - "This is the downstream edge receptacle. Read the recommended land pattern in the drawing's stated view and prove the custom footprint and 3D body against the manufacturer dimensions before layout approval."
+  - "The 1.8A contact rating exceeds the approximately 1A channel limit but does not advertise a USB charging-port mode."
+  - "JLC library availability is not assumed. The assembly plan treats this THT connector as globally sourced/consigned or post-PCBA hand-fitted until JLC accepts the exact MPN."
+verified: "Würth 692121030100 rev001.002 printed pp.1-2: dimensions, recommended land pattern, electrical/mechanical limits; standard USB Type-A 9-contact assignment cross-checked against the USB 3 receptacle convention and selected Type-B manufacturer assignment."
+layout:
+  source: "Würth 692121030100 rev001.002 recommended land pattern"
+  reviewed: 2026-08-14
+  notes:
+    - "Place flush at the downstream board edge with the plug envelope clear. Put the ESD array connector-close and preserve pair symmetry through the THT field."
+layout_refs:
+  - "Würth 692121030100 rev001.002 pp.1-2"
+sourcing:
+  lcsc: null
+  alternates: []
+  note: "Exact active MPN stocked by DigiKey and Mouser on the dated Q-2SOURCE check; no footprint substitution."

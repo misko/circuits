@@ -1,0 +1,13 @@
+mpn: RC0402FR-0710KL
+manufacturer: YAGEO
+type: thick_film_resistor
+datasheet: {doc_id: RC0402FR-0710KL-spec, revision: "generated 2026-08-14", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-0710KL", local: RC0402FR-0710KL.pdf, sha256: 0ccce69bfa429c46004d83ef3bbe96fec0e89f46e1d960ac776c2df2a896378f, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {resistance: 10kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas: ["These four resistors pull the TPS2557 open-drain FAULT outputs to board 3.3V; FAULT remains an observation signal and never overrides the hardware off state."]
+verified: "Exact YAGEO generated specification independently read for MPN, 10kohm, 1%, 0402 and dimensions on 2026-08-14."
+layout: {source: "TPS2557 SLVS931B", reviewed: 2026-08-14, notes: ["Place at each FAULT pin in the low-speed control region."]}
+sourcing: {lcsc: C60490, alternates: []}

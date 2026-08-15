@@ -1,0 +1,40 @@
+mpn: TLV76133DCYR
+manufacturer: Texas Instruments
+type: linear_regulator_fixed_3v3
+dropout_mv: 1600
+pdiss_max_mw: 1048
+datasheet:
+  doc_id: SBVS349D
+  revision: "Rev. D, May 2025"
+  url: https://www.ti.com/lit/ds/symlink/tlv761.pdf
+  local: SBVS349D.pdf
+  sha256: c5c0c646e50eb5e4bd0a4ad1a7fe7a2319709940560be1d28ecb2fc37bf1c592
+  fetched: 2026-08-14
+package: DCY 4-pin SOT-223, tab is OUT
+footprint: Package_TO_SOT_SMD:SOT-223-3_TabPin2
+escape: {style: leaded, pitch: 2.3, tier_required: jlc_2layer_default, checked: "TI DCY drawing review 2026-08-14"}
+pins:
+  1: GND
+  2: {name: OUT, tie: VCC_3V3, note: "the exposed tab is the same physical/electrical pad 2, not a separate TAB pad"}
+  3: IN
+limits:
+  vin_operating: 2.5V to 18V
+  vin_absolute: 20V
+  output: "3.3V, +/-1.75% over temperature/load"
+  iout: 1A
+  dropout_max_at_1A: 1.6V
+  theta_ja_dcy: 95.4C_per_W
+  tj_recommended_max: 125C
+  cout: "1uF to 220uF, 2mOhm to 500mOhm ESR; 0.47uF minimum effective"
+gotchas:
+  - "The 1.6V maximum dropout is specified at 1A. TI states CMOS dropout scales with load; the rail contract uses a conservative 720mV at the 0.45A project bound."
+  - "At 5.25V input and 3.3V/0.45A output the LDO dissipates about 0.88W nominal. Use a large OUT/tab copper heat spreader into the ground-adjacent plane pattern, keep other heat sources away, and require a worst-mode first-article thermal measurement; do not hide this behind the nominal 1A part rating."
+  - "Excessive reverse current can damage the part. No external 3.3V source is permitted and the regulator input/output decay must be checked during bench power removal."
+verified: "TI SBVS349D Figure 4-1 and Table 4-1 give DCY pin 1=GND, pin 2/tab=OUT, pin 3=IN; Tables 5-3 through 5-5 give capacitor, thermal, accuracy, dropout and current limits; read 2026-08-14."
+layout:
+  source: "TI SBVS349D Sections 7.1.2, 7.1.4 and 7.5"
+  reviewed: 2026-08-14
+  notes:
+    - "Place input and output capacitors at the corresponding pins with short ground returns."
+    - "Use a deliberately sized OUT/tab heat-spreading region and bind the thermal review to the realized copper; keep it out of all SuperSpeed reference/escape corridors."
+sourcing: {lcsc: C7527500, alternates: []}

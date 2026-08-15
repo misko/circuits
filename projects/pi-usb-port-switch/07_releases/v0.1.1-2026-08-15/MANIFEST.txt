@@ -1,0 +1,159 @@
+MANIFEST — Pi USB port switch v0.1.1-2026-08-15
+
+board:        pi_usb_port_switch, 150 x 120 mm, 4 layer
+version:      v0.1.1
+ordered:      not ordered — exact-source packaging correction
+git_sha:      35b120075b75cc6107957857c975943acd7e50dd
+git_dirty:    false
+kicad:        10.0.4
+tools:        repository pcb-design/kicad-pcb/jlcpcb-fab pipeline; Python 3.12.3
+fab:          JLCPCB, 4-layer advanced, controlled impedance, selective via-in-pad
+quantity:     5
+gates:        DRC 0/0/0; ERC 0 errors / 1166 warnings; component identity 190/190;
+              electrical invariants 282/282; critical pairs 56/56; BOM 26/26;
+              CPL 185/185; stock 25/25; twin bodies 185/185; model coverage
+              190/190; strict registration 27/27; via process 749/749;
+              reviews SOUND/SOUND/SOUND/SOUND; policy audit 0 FAIL
+DESIGN:       PASS
+SOURCING:     CLEAR
+order:        DO-NOT-ORDER — JLC stackup/impedance, selective via-process,
+              THT/BOM/rotation previews and physical first article are pending
+supersedes:   v0.1.0-2026-08-15
+scope:        packaging correction; hardware-only four-channel USB fixture unchanged
+3d:           component-bearing STEP present; all 190 fitted model assignments resolved
+assembly:     JLC top SMT plus J1/J2/J3/J5/J7/J9 through-hole service
+not_assembled: F1, J4, J6, J8, J10
+msl:          follow JLC handling requirements for exposed-pad ICs
+
+sha256:
+  3d/pi_usb_port_switch.step  d944795483f064dc504879527bd9610bca5dd2b176a244e61c34e30e66e16a86
+  ORDER_README.md  560982a4813dadf4322c6b92dd8b666ac3f30d90eda3113c4561d2a720bc77d1
+  fab/bom.csv  62ab739374569dc8f8129909d77b918606ebcfe8d49dfcabd61ff0f3e863df8f
+  fab/bom_echo_gate.txt  59beba5ac9003dedaca388e7ec0f756860dd914669979d749bd584df377904a0
+  fab/cpl.csv  4f3131b8ccc71986e10df2499fbb557f7cc16da309721d9c7bab3585b597b286
+  fab/order_notes.txt  21a1a2bf16869c8b5665e1a3d04aacb3a91b02cb5a1f1ea15a0ab545e1238a80
+  fab/pi_usb_port_switch-B_Cu.gbl  96c9151142c59031482e6eb06d97d76f0e0bb209cc06219cc00728d11987dc1c
+  fab/pi_usb_port_switch-B_Mask.gbs  4b636deb1ef080f1d87e6f9b8bdb3800f946b38c65e2fbf4a2d6e66bf498e5d4
+  fab/pi_usb_port_switch-B_Paste.gbp  b52e83302fa7e41327dd700b6842101a96084f75e16b76ca8c6c5a0d6b7d7736
+  fab/pi_usb_port_switch-B_Silkscreen.gbo  0595204a43b7824994135aaf23fa3af394401fc0aa29cfa0c0e8f433cb007a82
+  fab/pi_usb_port_switch-Edge_Cuts.gm1  0900e44d777a005422ef5bd21b5f62b8b902a54780aee8e5a3f890df877135c0
+  fab/pi_usb_port_switch-F_Cu.gtl  51b5e5c3fb2cb9a99c926967e122dc5d0a105966d729ce3451698483b48829c6
+  fab/pi_usb_port_switch-F_Mask.gts  5750cc0c4b05e8fc29713d9420d2656cab92125e330927dd77e3d9baf1265a1a
+  fab/pi_usb_port_switch-F_Paste.gtp  e5e00ff67957912d7d9317e43a62d26ca0c6601c78943a27244e311d90106c30
+  fab/pi_usb_port_switch-F_Silkscreen.gto  2432bee4edb77e1f4dad0dd34c5ed492bce1006e43fd96852602bc1dfd5b459a
+  fab/pi_usb_port_switch-In1_Cu.g1  3528d10ef7e8ed188e0551ef7fb3da6fff13db5fcbdd90129f834a4c21d8f58a
+  fab/pi_usb_port_switch-In2_Cu.g2  ac72c6e5633bfdeb9df380c1ceb492a2e095b3e25db8357535289b0bed0d9849
+  fab/pi_usb_port_switch-NPTH.drl  ec13932062c929106b19c205433e83c3e3649a9bbbcfeef53f924de83d377fb5
+  fab/pi_usb_port_switch-PTH.drl  2e5b5c349c7364bf24ed1300bbbab29d9328639c60da41e03e58ce6e8dcb3a03
+  fab/pi_usb_port_switch_gerbers.zip  6acd90f556f4278032b3fb8e1571ddc9f760b441d7914ebd895936cd4c633e2f
+  fab/rotation_human_gate.txt  7ddcb3187c00678426f8aafb1e90fe94b885a439a413e51615d5c1f67cd71787
+  pdf/assembly.pdf  e118567776d637ac7e83b502c2ee5a972c8fe595adb98d34079138cc631032a1
+  pdf/pcb_layers.pdf  2310f675e4d1e9c862207c4cbacf0ba3b6f6c31bed7a543c5ca11766e87b9179
+  pdf/schematic.pdf  3adbeebd84a328d9d9d0454748763289b21427e6711e5e58bfd09b05f1cdbe8f
+  source/Package_SON.pretty/VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm_ThermalVias.kicad_mod  ff655f2e6d69a1b98c97722a0d629cae5e72a2fba7147c33517f597842fce8d9
+  source/Package_TO_SOT_SMD.pretty/SC-70-5.kicad_mod  9cf16cc70a9a4799fbd50775f0413400599eff24608c6d744740aa315ad46035
+  source/README.md  1c6895ad26c5b09e5a3460affe5c0a295860aa8bd075abd760ea27ac9411fce4
+  source/exact/03_src/lib/Package_SON.pretty/VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm_ThermalVias.kicad_mod  252fb7476a925bf27aa41f90efe3655d077279f6ed83f8f1348237f16c1e954b
+  source/exact/03_src/lib/Package_TO_SOT_SMD.pretty/SC-70-5.kicad_mod  9cf16cc70a9a4799fbd50775f0413400599eff24608c6d744740aa315ad46035
+  source/exact/03_src/lib/contracts.md  a21dc1757b7116b03ba9b7a9212f346533bf9261138f55be40dba194879c143c
+  source/exact/03_src/lib/pi_usb_port_switch.3dshapes/J_Wurth_WR-USB_692121030100.step  2820d251544f6b1fd7e5e5976dbd6dd21eb1a05bd48c7c807613a3ea1ec0630b
+  source/exact/03_src/lib/pi_usb_port_switch.3dshapes/J_Wurth_WR-USB_692221030100.step  3d7abfa28a5cc99488bff999c613e150cde1894fed87b5f2cf442700e9eaf3ea
+  source/exact/03_src/lib/pi_usb_port_switch.3dshapes/PowerDI5060-8.step  d121163bd314911b4d29dec0ae363abd398acdc1dcff09bb430af0875a00a113
+  source/exact/03_src/lib/pi_usb_port_switch.3dshapes/TPS2557_DRB.step  fe4edffe6c341b4a1972262e087900083e16735d623278a987347963f15dc070
+  source/exact/03_src/lib/pi_usb_port_switch.3dshapes/TS3USB221E_RSE10.step  0e9ad900f4687041262f5c2c723c83538ea6866704515d32285b5edeed70a6d5
+  source/exact/03_src/lib/pi_usb_port_switch.pretty/Keystone_3568_Mini_Blade_Fuse_Holder.kicad_mod  428df589aa1915e6981932c77a71bcd84cc3dc778bd385d306d6d4877df78620
+  source/exact/03_src/lib/pi_usb_port_switch.pretty/Phoenix_1935161_PT_1p5_2_5p0_H.kicad_mod  8cae43dc4ec8c625546dd206f65a7272780b743c7cf76762aa5892a286fe243d
+  source/exact/03_src/lib/pi_usb_port_switch.pretty/PowerDI5060-8.kicad_mod  a3959127d6d76721fc65ad8eac1f6658e707c5f68cba6bcc984836d83642b31a
+  source/exact/03_src/lib/pi_usb_port_switch.pretty/TPD6E05U06_RVZ14_3.5x1.35_P0.5.kicad_mod  9ee6b09394585a49b975e0a3f1bc4f40d5189ce8e6133df75262488afd74dc9b
+  source/exact/03_src/lib/pi_usb_port_switch.pretty/TS3USB221E_RSE10_2x1.5_P0.4.kicad_mod  836a711c186ba87b82195c05af720bd6a442754ef989fa9f70e3e27423581596
+  source/exact/03_src/lib/pi_usb_port_switch.pretty/TUSB522P_RGE24_4x4_P0.5.kicad_mod  db534ef26b5d35979e03a7ea71238aa811b01abf9f2dc1b6160276fb39203216
+  source/exact/03_src/lib/pi_usb_port_switch.pretty/Wurth_692121030100_USB3_A.kicad_mod  64a3efbafbd64382da6ab54f4f1a530556c2901d94f3bf5bb9db6431926b6e8a
+  source/exact/03_src/lib/pi_usb_port_switch.pretty/Wurth_692221030100_USB3_B.kicad_mod  2c60e24040374e9adbd67773f638ecf5a4b02e76352df0257de64963766f73f0
+  source/exact/03_tscircuit/src/pi_usb_port_switch.tsx  dec5507e6d50cebe71de2e05f34c7b5a19169ab47b877b3605b7123366c75586
+  source/exact/04_kicad/fp-lib-table  d34df356ce9caa058fa04977c62e0b3e82010d526d16d3f218da0e708a7bfbde
+  source/exact/04_kicad/pi_usb_port_switch.kicad_dru  f8894aa583f965f4e8242e25e9ec711843ffcee6586fa1379a9a1d84989a5988
+  source/exact/04_kicad/pi_usb_port_switch.kicad_pcb  d4bc778c1c80453ec7b198e1bf428b22cb03d414c4a0d86c89ab74d6facc4094
+  source/exact/04_kicad/pi_usb_port_switch.kicad_pro  a008a23953d4f4ddc23be042e5aea4ffccdbfc01aa6b8cfd1bb73fb33a7ecfd8
+  source/exact/04_kicad/pi_usb_port_switch.kicad_sch  450f13824df2cee085d3fac519a3fd60c1b16fea07bab0dae6623df14cdfef01
+  source/exact/06_build/netlists/pi_usb_port_switch.net  d7e78e0f1ba77d7f7ae69d358f24b89972b3597ed8eec03aede4e9bdface9d04
+  source/fp-lib-table  d34df356ce9caa058fa04977c62e0b3e82010d526d16d3f218da0e708a7bfbde
+  source/pi_usb_port_switch.3dshapes/J_Wurth_WR-USB_692121030100.step  2820d251544f6b1fd7e5e5976dbd6dd21eb1a05bd48c7c807613a3ea1ec0630b
+  source/pi_usb_port_switch.3dshapes/J_Wurth_WR-USB_692221030100.step  3d7abfa28a5cc99488bff999c613e150cde1894fed87b5f2cf442700e9eaf3ea
+  source/pi_usb_port_switch.3dshapes/PowerDI5060-8.step  d121163bd314911b4d29dec0ae363abd398acdc1dcff09bb430af0875a00a113
+  source/pi_usb_port_switch.3dshapes/TPS2557_DRB.step  fe4edffe6c341b4a1972262e087900083e16735d623278a987347963f15dc070
+  source/pi_usb_port_switch.3dshapes/TS3USB221E_RSE10.step  0e9ad900f4687041262f5c2c723c83538ea6866704515d32285b5edeed70a6d5
+  source/pi_usb_port_switch.kicad_dru  f8894aa583f965f4e8242e25e9ec711843ffcee6586fa1379a9a1d84989a5988
+  source/pi_usb_port_switch.kicad_pcb  d4bc778c1c80453ec7b198e1bf428b22cb03d414c4a0d86c89ab74d6facc4094
+  source/pi_usb_port_switch.kicad_pro  a008a23953d4f4ddc23be042e5aea4ffccdbfc01aa6b8cfd1bb73fb33a7ecfd8
+  source/pi_usb_port_switch.kicad_sch  450f13824df2cee085d3fac519a3fd60c1b16fea07bab0dae6623df14cdfef01
+  source/pi_usb_port_switch.net  d7e78e0f1ba77d7f7ae69d358f24b89972b3597ed8eec03aede4e9bdface9d04
+  source/pi_usb_port_switch.pretty/Keystone_3568_Mini_Blade_Fuse_Holder.kicad_mod  428df589aa1915e6981932c77a71bcd84cc3dc778bd385d306d6d4877df78620
+  source/pi_usb_port_switch.pretty/Phoenix_1935161_PT_1p5_2_5p0_H.kicad_mod  8cae43dc4ec8c625546dd206f65a7272780b743c7cf76762aa5892a286fe243d
+  source/pi_usb_port_switch.pretty/PowerDI5060-8.kicad_mod  01799a76b70ae721b52cf54a1773cae8ed54d1c6d797082ec6354f2eda31fcab
+  source/pi_usb_port_switch.pretty/TPD6E05U06_RVZ14_3.5x1.35_P0.5.kicad_mod  9ee6b09394585a49b975e0a3f1bc4f40d5189ce8e6133df75262488afd74dc9b
+  source/pi_usb_port_switch.pretty/TS3USB221E_RSE10_2x1.5_P0.4.kicad_mod  e4446fe3fb591c0e18b7bf8b5955562af6a8431eb2c698c5a636486aa0ae67b1
+  source/pi_usb_port_switch.pretty/TUSB522P_RGE24_4x4_P0.5.kicad_mod  db534ef26b5d35979e03a7ea71238aa811b01abf9f2dc1b6160276fb39203216
+  source/pi_usb_port_switch.pretty/Wurth_692121030100_USB3_A.kicad_mod  2d653a18959e7e8154c9783acd25b285795c20a508c63dc928bd6a50f3c56a62
+  source/pi_usb_port_switch.pretty/Wurth_692221030100_USB3_B.kicad_mod  8c17a7fc2db5eb5b4209e1d68d34c10dfb9caed02bde94c6c1f4ab9200ed5d07
+  source/pi_usb_port_switch.tsx  dec5507e6d50cebe71de2e05f34c7b5a19169ab47b877b3605b7123366c75586
+  verification/DISPOSITIONS.md  75fa37b3ca24836157318d6db38643c2bdedd55536c5e98d6aa952cf107a397b
+  verification/FIRST_ARTICLE_TEST_PLAN.md  65ee5784367ef97c76251ffc7cf9b59c5ff50e065c180b883351b87c21dca559
+  verification/archive_model_coverage.json  b96988ef26dfe6a66c46c48efd581e91f1f54cc3591ca3bd6981e0d60f362cfa
+  verification/assembly.yaml  5e07ec6c70f91b1aec11bf97a4e0adbd2076d936bc5d29a1c5aecbd2f3660302
+  verification/assembly_coverage.json  eb3aeb41cb5e04ac450bad05b4e58da40624249c7a0e2911710fdfea95640258
+  verification/assembly_coverage.txt  0d91a8efec4de4373aa00a2ffa2f9de9a59dccedd750b618e12337d4d8e509c4
+  verification/audit.txt  37fb4ff2ced39a32194fbc6b3056534021b61541cfe90019c3895399265efa78
+  verification/bom_echo_gate.txt  59beba5ac9003dedaca388e7ec0f756860dd914669979d749bd584df377904a0
+  verification/bom_legibility.json  55609ac2ce0081f0aa1900e415d094c4867b788ba8bce63961177f186f0a260a
+  verification/bom_legibility.txt  05d9dfe75ff014f1b8863b93f506bddbf7f0859079074471c6494c094c7c9db0
+  verification/bom_source_check.txt  cf60373f2c6fed2eaeb17c86dcf57bc907cecf7b0c14ed161fc022c38dec7ceb
+  verification/bottom.png  171f5aa5e176526e39ea9f93a8627ebc6dc293b0d291fae1a5529ca258ce667d
+  verification/critical_route_check.txt  5ef4cbb1445e6095876b3364d62d185b75d8be71e3a4a81cf5ca2766f1ba59c4
+  verification/design_math.md  ac7d51cec7bc869a72f05a4db34a7782ba4e7fe0f84d7cd2d70f7a3262faab8f
+  verification/drc.json  2b1153f3e159912f378f5e2bdb43b3fc77aa5a0b636918d7aa6a546cf3f3845c
+  verification/erc.json  6d80b6c5647112f30fb0f408d8a074a1f906da701481a9713e80b4783001ef5a
+  verification/erc_errors.json  b13db65231ffbe8ff0927522dc415e9f67b417db7a1254f26532b95dc7097c12
+  verification/fab_payload_census.json  321efdb9b59d4352cd77813a49aa186a5276d16c82edfa7a9d344a74ceebc988
+  verification/fab_payload_census.txt  5e032d79ddf8e84460ac81ae8d3d2329499a925c39ce7b97fdab9d383dfbfae9
+  verification/freshness_exceptions.txt  fb755715c5ab8007c30eca806e330ab7ac5bea4126630c478c12d144021c47b9
+  verification/iso.png  60c998e3f02909571a2b2f6b3be81a596ce5a6173b58868cd4a4a19bab97adda
+  verification/missing_models.txt  87db3b80aef85614db1da5bc69c2474b040d543d62337423ee580025ad41ecb4
+  verification/model_coverage.json  dadcfb7128349912e1831cf6f4af02b76bbc138055ca310aa29231871e60340b
+  verification/nets.yaml  495ced4abb8eec6d9b01ec0a9fb275badae7be29acf03b57f997cb14b0479af0
+  verification/parity.md  2eecf695f0475550a754f9c3b2ac221ca14ae246a14eb47b454ff25b11b1f961
+  verification/pin_audit.txt  b9027612591e6db8350ec1048086945d979a6d3ad14e4aa4b59a7cb5773e40a7
+  verification/pin_review.md  ad6ecebf917fcf20ada016a01c837eab829730ba32817df53497cc07b686cda6
+  verification/policy_audit.md  4b7e0596636aea6a9a3c5538b1c077015b63c55d395b153608554caac2e9578c
+  verification/power_tree.yaml  ee64033d8a97cad588a8ab841a5a930e8d31ea6d2f72069325247b9a66bd497a
+  verification/redteam_layout.md  85bde2866234d35ae5167127c0afd96cb093de68336af6772d800cbdc0742520
+  verification/redteam_topology.md  7648bb82724aa517415975e3ac494b9fa1850139e0838ad726a9432f30b720f9
+  verification/release_required.json  8ac88ed2e601171b9cd5b8b0ea83dd73b3ecc8c5e959d218190193f20f2a1506
+  verification/render_bottom_bare.png  e07e4c5a137169b4fd3e8354a43c0318d083126fb6dcdfa8fc40d7bcd5d150d6
+  verification/render_review.md  dd1fe5551a6c9b15e232cc0c5882c48b10f6d983472715dc3c3482dbaf6498d0
+  verification/render_top_bare.png  c6971ea8e934cd93608b867e74b3f13da53a125e8a25c9d8c18e1dbb29d89d59
+  verification/rf.yaml  d6ebfb065ac5d85399e3eb2e6d621a54de02c915d37779729a6f621e2ffaa44f
+  verification/rules_audit.txt  9db2c776d90f9c230c7f66a911e8c3f6f7bd90f353587de38269e546989481cd
+  verification/stock_check.csv  dc587c32ae8376f36550e042abdfcee08cc1b4a505ec8dc604cb56f292b72ca1
+  verification/stock_check.json  e05855f7aa5b6ca457fa5bc812f9a1d4b6c0b8ab03a0f17716321a995303efcb
+  verification/stock_check.txt  dc587c32ae8376f36550e042abdfcee08cc1b4a505ec8dc604cb56f292b72ca1
+  verification/top.png  c31de5b48163588770e53f810fe4330c21f89e66171d58acfba2e88dff61d9ab
+  verification/twin_adjudications.yaml  acda8c58ec8fdb98d8d4f2dfed75faa707040dfcd44f6a650ceaa202b249ac19
+  verification/twin_bare_bottom.png  e07e4c5a137169b4fd3e8354a43c0318d083126fb6dcdfa8fc40d7bcd5d150d6
+  verification/twin_bare_top.png  c6971ea8e934cd93608b867e74b3f13da53a125e8a25c9d8c18e1dbb29d89d59
+  verification/twin_bare_top_hi.png  937e563715ad7767ad32176c513c86d1ae3dc91c4ec741b743b056aef27ff90d
+  verification/twin_bare_top_registration_3200.png  608ba92bd57f3cea8222543705bbb61023ccc0e8dbaace27e8a9e1a2f7f9f178
+  verification/twin_bottom.png  b9de4b86ab7a5d6af9ecc9842eb430b1a6e2928f7ec6916abd03b3a6b92cc866
+  verification/twin_edge_east.png  a0e1aae95be9bbf382c1f77265332b59a2ab4dd080b7701dd56bf36498342762
+  verification/twin_edge_west.png  96cdf192001dca57983b5dc474cd60ba66ea806628208ece7ae4d089be3b2a80
+  verification/twin_iso_nw.png  1edf5da0e5784114cb2efd50d12e21bcc5a6f714fd6c3f04f94bb7c0c7f28402
+  verification/twin_iso_se.png  9f4e9e2427ae08e48d28305d9cf996385b827ded4fe219501ba473391c5362f8
+  verification/twin_overlay_top.md  b73cb3269c5c260f00ad6da221d4a680e531591c27b89ea145c10c43dda22e9e
+  verification/twin_overlay_top_registration_3200.md  427cdcba9af9e74bff1e9102fd599e8919547cb3058651d5d309ce4b47884d37
+  verification/twin_report.csv  333c89a07c695554c77c1df9bd8ecca88586401fa1fd4f06af8578813b202af7
+  verification/twin_top.png  398f7250eb022c7bca5d7e1ab456add2ad43728918ba588303a9590a6c56d718
+  verification/twin_top_hi.png  35d27bf567a9a84e74e927aaeb615204e4e3caf081d38f7fda853e7c83591351
+  verification/twin_top_registration_3200.png  bda0b5d1a4456163a9cb97249e8440d9cf12decffc5134baceae3c627618ff86
+  verification/twin_top_registration_3200_courtyard_overlay.png  a93f89df695b34a938e223731f5a4471cdefed9be6a04968aea3507ba9e44bf2
+  verification/via_ampacity.json  1c3f25656c400b8710fe2ce31f77587ddfd09fe10b512716190058ed4d48fc19
+  verification/via_process.json  0a5c1ddba09a79404b0b4dbb31f51aa348822aa3bb2727da583a36432833cd85
+  verification/via_process.txt  8de693ef8ee9f5c86628325352ee826cf8e2752f0d319e3a5d869b6e01330d4e

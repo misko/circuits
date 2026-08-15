@@ -1,0 +1,76 @@
+mpn: "61304021121"
+manufacturer: Wurth Elektronik
+type: raspberry_pi_gpio_ribbon_header
+datasheet:
+  doc_id: 61304021121
+  revision: "002.000, 2025-11-08"
+  url: https://www.we-online.com/components/products/datasheet/61304021121.pdf
+  local: 61304021121.pdf
+  sha256: 2e5ba3fc40f11684825d1726f1b508f9d24498f3532a335b455f8a4874fca498
+  fetched: 2026-08-14
+package: 2x20 vertical through-hole male header, 2.54mm row and column pitch, 6mm mating pins, 3mm tails
+footprint: Connector_PinHeader_2.54mm:PinHeader_2x20_P2.54mm_Vertical
+escape: {style: connector, pitch: 2.54, tier_required: jlc_2layer_default, checked: "Wurth exact recommended-hole-pattern review 2026-08-14"}
+pins:
+  1: P1
+  2: P2
+  3: P3
+  4: P4
+  5: P5
+  6: P6
+  7: P7
+  8: P8
+  9: P9
+  10: P10
+  11: P11
+  12: P12
+  13: P13
+  14: P14
+  15: P15
+  16: P16
+  17: P17
+  18: P18
+  19: P19
+  20: P20
+  21: P21
+  22: P22
+  23: P23
+  24: P24
+  25: P25
+  26: P26
+  27: P27
+  28: P28
+  29: P29
+  30: P30
+  31: P31
+  32: P32
+  33: P33
+  34: P34
+  35: P35
+  36: P36
+  37: P37
+  38: P38
+  39: P39
+  40: P40
+limits:
+  current_per_contact: 3A
+  operating_temperature: -40C to 105C
+  durability: 25 mating cycles
+gotchas:
+  - "This is a cable-connected sidecar, not a HAT. It mates a standard 40-way female-to-female Raspberry Pi GPIO extension cable and does not impose Pi 4 versus Pi 5 mechanical stacking geometry."
+  - "Pins 1/17 (3.3V) and 2/4 (5V) are NC. The board never powers from or backfeeds the Pi header. Ground pins 6,9,14,20,25,30,34,39 join board ground."
+  - "The unshrouded connector can be reversed. Mark pin 1 conspicuously on top and bottom silkscreen and require a pin-1-striped cable."
+  - "Control mapping: pin11 GPIO17=PWR1, pin13 GPIO27=DATA1, pin15 GPIO22=PWR2, pin16 GPIO23=DATA2, pin18 GPIO24=PWR3, pin22 GPIO25=DATA3, pin29 GPIO5=PWR4, pin31 GPIO6=DATA4. All other GPIO are NC."
+verified: "Wurth exact sheet 61304021121 p.1 DIMENSIONS and RECOMMENDED HOLE PATTERN drawings confirm 2x20 vertical THT, 2.54mm pitch and row spacing, 6mm mating length, 3mm tails, 3A and -40C to 105C; Raspberry Pi physical pin mapping is from the official 40-pin header map, reviewed 2026-08-14."
+layout:
+  source: "Wurth 61304021121 exact mechanical drawing plus Raspberry Pi official 40-pin GPIO physical map"
+  reviewed: 2026-08-14
+  notes:
+    - "Place on a board edge with ribbon exit clear. Use several ground pins and keep the eight command traces in the low-speed control region away from SuperSpeed pairs."
+layout_refs:
+  - "Wurth 61304021121 drawing 61304021121.pdf, p.1, DIMENSIONS and RECOMMENDED HOLE PATTERN figures"
+  - "Raspberry Pi official 40-pin GPIO documentation"
+sourcing:
+  lcsc: C5364405
+  alternates: []
+  note: "Exact Wurth MPN was listed by JLC/LCSC, DigiKey and Mouser when checked 2026-08-14; final stock sidecar is authoritative."

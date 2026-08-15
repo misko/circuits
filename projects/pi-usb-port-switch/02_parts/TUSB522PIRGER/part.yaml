@@ -1,0 +1,74 @@
+mpn: TUSB522PIRGER
+manufacturer: Texas Instruments
+type: usb3_dual_channel_redriver
+datasheet:
+  doc_id: SLLSEV9
+  revision: SLLSEV9E
+  url: https://www.ti.com/lit/ds/symlink/tusb522p.pdf
+  local: SLLSEV9E.pdf
+  sha256: 422ff085eaaf397372f5a4251f3458e6275adb99285b3e3f88f947553939142b
+  fetched: 2026-08-14
+  pages: 34
+package: RGE 24-pin VQFN, 4.0 x 4.0 mm, 0.5 mm pitch, exposed pad
+footprint: pi_usb_port_switch:TUSB522P_RGE24_4x4_P0.5
+escape:
+  style: qfn
+  pitch: 0.5
+  escapes_worst_side: 6
+  tier_required: jlc_4layer_advanced
+  checked: "escape_check.py exact-package review 2026-08-14"
+pins:
+  1: VCC
+  2: EQ1
+  3: DE2
+  4: OS2
+  5: EN_RXD
+  6: NC
+  7: NC
+  8: RX1N
+  9: RX1P
+  10: {name: GND, tie: GND}
+  11: TX2N
+  12: TX2P
+  13: VCC
+  14: {name: RSV, note: "reserved; follow datasheet Figure 8-2 connection"}
+  15: OS1
+  16: DE1
+  17: EQ2
+  18: NC
+  19: RX2P
+  20: RX2N
+  21: {name: GND, tie: GND}
+  22: TX1P
+  23: TX1N
+  24: NC
+  25: {name: EP, tie: GND, note: "exposed thermal/ground pad"}
+limits:
+  vcc_operating: 3.0V to 3.6V
+  data_rate: 5Gbps
+  supply_current_active_typ: 98mA
+  enable_default: "off through internal 660kOhm pulldown"
+  differential_impedance: "90Ohm +/-15%"
+gotchas:
+  - "EN_RXD is active high. The internal 660kOhm pulldown makes loss of control fail-safe disconnected, but the board also drives it only from the hardware PWR_EN AND DATA_EN interlock."
+  - "Follow Figure 8-2 rather than generic transmitter folklore: fit 100nF in series with RX1P/N, TX1P/N and TX2P/N. For the USB-A-side RX2P/N pair, fit the optional 330nF plus one 220kOhm-to-ground resistor per conductor from Figure 8-1 so a sustained short to VBUS is blocked. That is eight AC capacitors per redriver."
+  - "EQ1/EQ2, DE1/DE2 and OS1/OS2 are three-level analog strap inputs, not ordinary binary GPIO. The board provides deterministic, documented population straps and never leaves them floating."
+  - "TI warns that external ESD protection with a clamp voltage above 4V can require series resistance. Both board connectors are externally touchable, so this design places 2.2Ohm on every SuperSpeed conductor between the redriver-side coupling network and each connector-side ESD array: eight resistors per channel. This is a first-article SI item, not a USB-IF compliance claim."
+  - "Do not swap channel directions from the part number or symbol intuition. Figure 5-1 is the authority for RX1->TX1 and RX2->TX2 pin numbering."
+verified: "TI SLLSEV9E Figure 5-1 RGE top view and Table 5-1, printed pp.3-4, independently read 2026-08-14; supply, enable and tuning behavior re-read from sections 6-8."
+layout:
+  source: "TI SLLSEV9E sections 10.1-10.2 and Figure 10-1"
+  reviewed: 2026-08-14
+  keep_short:
+    - {net: 3V3, max_span_mm: 3.5, partner_refs: [C14, C15, C16, C30, C31, C32, C46, C47, C48, C62, C63, C64], why: "three local rail capacitors are reserved at each redriver VCC pin pair; 3.5mm is the package-local pin-centre budget of the realized symmetric placement"}
+  notes:
+    - "Keep each redriver inside its channel's straight connector-to-connector corridor. Connector-to-redriver proximity is a multi-segment routed-path requirement across series ESD resistors and AC-coupling capacitors, not a direct shared-net adjacency; grade it through the explicit differential-pair route and realized-length contracts."
+    - "Route each pair on one layer over continuous ground, 90Ohm differential, intra-pair mismatch <=0.05mm, no plane split, no stubs, and no more than two vias per conductor."
+    - "Use bends of at least 135 degrees or arcs; separate unrelated high-speed pairs by at least five trace widths where the floorplan permits."
+    - "Keep each required AC-coupling capacitor somewhere between its connector and redriver, preserving pair symmetry. Keep the ESD array connector-close and its 2.2Ohm series resistors adjacent to the ESD boundary; TI confirms capacitor physical location is not critical when the correct value and body size are used."
+layout_refs:
+  - "TI SLLSEV9E section 10.1 Layout Guidelines and Figure 10-1"
+sourcing:
+  lcsc: C2675181
+  alternates: []
+  note: "Exact RGE industrial-temperature MPN; stock is intentionally checked only in dated sourcing evidence."

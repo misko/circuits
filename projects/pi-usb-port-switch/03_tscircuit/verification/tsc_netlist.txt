@@ -1,0 +1,2303 @@
+COMPONENTS:
+ - J1: 1935161
+ - F1: 3568
+ - Q1: DMP3007SPS-13
+ - R65: 100kΩ res0402 resistor
+ - R70: 1MΩ res0402 resistor
+ - C1: 180uF cap0402 capacitor
+ - C2: 180uF cap0402 capacitor
+ - U1: TLV76133DCYR
+ - C3: 100nF cap0402 capacitor
+ - C4: 1uF cap0402 capacitor
+ - C5: 10uF cap0402 capacitor
+ - J2: 61304021121
+ - R41: 1kΩ res0402 resistor
+ - R42: 1kΩ res0402 resistor
+ - R49: 100kΩ res0402 resistor
+ - R50: 100kΩ res0402 resistor
+ - R43: 1kΩ res0402 resistor
+ - R44: 1kΩ res0402 resistor
+ - R51: 100kΩ res0402 resistor
+ - R52: 100kΩ res0402 resistor
+ - R45: 1kΩ res0402 resistor
+ - R46: 1kΩ res0402 resistor
+ - R53: 100kΩ res0402 resistor
+ - R54: 100kΩ res0402 resistor
+ - R47: 1kΩ res0402 resistor
+ - R48: 1kΩ res0402 resistor
+ - R55: 100kΩ res0402 resistor
+ - R56: 100kΩ res0402 resistor
+ - R75: 4.7kΩ res0402 resistor
+ - R76: 4.7kΩ res0402 resistor
+ - R77: 4.7kΩ res0402 resistor
+ - R78: 4.7kΩ res0402 resistor
+ - R79: 4.7kΩ res0402 resistor
+ - R80: 4.7kΩ res0402 resistor
+ - J3: 692221030100
+ - J4: 692121030100
+ - U5: TPD6E05U06RVZR
+ - U6: TPD6E05U06RVZR
+ - R1: 2.2Ω res0402 resistor
+ - R2: 2.2Ω res0402 resistor
+ - R3: 2.2Ω res0402 resistor
+ - R4: 2.2Ω res0402 resistor
+ - R5: 2.2Ω res0402 resistor
+ - R6: 2.2Ω res0402 resistor
+ - R7: 2.2Ω res0402 resistor
+ - R8: 2.2Ω res0402 resistor
+ - C6: 100nF cap0402 capacitor
+ - C7: 100nF cap0402 capacitor
+ - C8: 100nF cap0402 capacitor
+ - C9: 100nF cap0402 capacitor
+ - C10: 100nF cap0402 capacitor
+ - C11: 100nF cap0402 capacitor
+ - C12: 330nF cap0402 capacitor
+ - C13: 330nF cap0402 capacitor
+ - R33: 220kΩ res0402 resistor
+ - R34: 220kΩ res0402 resistor
+ - U2: TUSB522PIRGER
+ - C14: 100nF cap0402 capacitor
+ - C15: 100nF cap0402 capacitor
+ - C16: 10uF cap0402 capacitor
+ - U3: TS3USB221ERSER
+ - C17: 100nF cap0402 capacitor
+ - Q2: 2N7002-7-F
+ - R57: 100kΩ res0402 resistor
+ - R61: 100kΩ res0402 resistor
+ - U7: SN74LVC1G08DCKR
+ - C19: 100nF cap0402 capacitor
+ - U4: TPS2557DRBR
+ - C18: 100nF cap0402 capacitor
+ - R66: 100kΩ res0402 resistor
+ - R71: 10kΩ res0402 resistor
+ - C20: 100nF cap0402 capacitor
+ - C21: 150uF cap0402 capacitor
+ - J5: 692221030100
+ - J6: 692121030100
+ - U11: TPD6E05U06RVZR
+ - U12: TPD6E05U06RVZR
+ - R9: 2.2Ω res0402 resistor
+ - R10: 2.2Ω res0402 resistor
+ - R11: 2.2Ω res0402 resistor
+ - R12: 2.2Ω res0402 resistor
+ - R13: 2.2Ω res0402 resistor
+ - R14: 2.2Ω res0402 resistor
+ - R15: 2.2Ω res0402 resistor
+ - R16: 2.2Ω res0402 resistor
+ - C22: 100nF cap0402 capacitor
+ - C23: 100nF cap0402 capacitor
+ - C24: 100nF cap0402 capacitor
+ - C25: 100nF cap0402 capacitor
+ - C26: 100nF cap0402 capacitor
+ - C27: 100nF cap0402 capacitor
+ - C28: 330nF cap0402 capacitor
+ - C29: 330nF cap0402 capacitor
+ - R35: 220kΩ res0402 resistor
+ - R36: 220kΩ res0402 resistor
+ - U8: TUSB522PIRGER
+ - C30: 100nF cap0402 capacitor
+ - C31: 100nF cap0402 capacitor
+ - C32: 10uF cap0402 capacitor
+ - U9: TS3USB221ERSER
+ - C33: 100nF cap0402 capacitor
+ - Q3: 2N7002-7-F
+ - R58: 100kΩ res0402 resistor
+ - R62: 100kΩ res0402 resistor
+ - U13: SN74LVC1G08DCKR
+ - C35: 100nF cap0402 capacitor
+ - U10: TPS2557DRBR
+ - C34: 100nF cap0402 capacitor
+ - R67: 100kΩ res0402 resistor
+ - R72: 10kΩ res0402 resistor
+ - C36: 100nF cap0402 capacitor
+ - C37: 150uF cap0402 capacitor
+ - J7: 692221030100
+ - J8: 692121030100
+ - U17: TPD6E05U06RVZR
+ - U18: TPD6E05U06RVZR
+ - R17: 2.2Ω res0402 resistor
+ - R18: 2.2Ω res0402 resistor
+ - R19: 2.2Ω res0402 resistor
+ - R20: 2.2Ω res0402 resistor
+ - R21: 2.2Ω res0402 resistor
+ - R22: 2.2Ω res0402 resistor
+ - R23: 2.2Ω res0402 resistor
+ - R24: 2.2Ω res0402 resistor
+ - C38: 100nF cap0402 capacitor
+ - C39: 100nF cap0402 capacitor
+ - C40: 100nF cap0402 capacitor
+ - C41: 100nF cap0402 capacitor
+ - C42: 100nF cap0402 capacitor
+ - C43: 100nF cap0402 capacitor
+ - C44: 330nF cap0402 capacitor
+ - C45: 330nF cap0402 capacitor
+ - R37: 220kΩ res0402 resistor
+ - R38: 220kΩ res0402 resistor
+ - U14: TUSB522PIRGER
+ - C46: 100nF cap0402 capacitor
+ - C47: 100nF cap0402 capacitor
+ - C48: 10uF cap0402 capacitor
+ - U15: TS3USB221ERSER
+ - C49: 100nF cap0402 capacitor
+ - Q4: 2N7002-7-F
+ - R59: 100kΩ res0402 resistor
+ - R63: 100kΩ res0402 resistor
+ - U19: SN74LVC1G08DCKR
+ - C51: 100nF cap0402 capacitor
+ - U16: TPS2557DRBR
+ - C50: 100nF cap0402 capacitor
+ - R68: 100kΩ res0402 resistor
+ - R73: 10kΩ res0402 resistor
+ - C52: 100nF cap0402 capacitor
+ - C53: 150uF cap0402 capacitor
+ - J9: 692221030100
+ - J10: 692121030100
+ - U23: TPD6E05U06RVZR
+ - U24: TPD6E05U06RVZR
+ - R25: 2.2Ω res0402 resistor
+ - R26: 2.2Ω res0402 resistor
+ - R27: 2.2Ω res0402 resistor
+ - R28: 2.2Ω res0402 resistor
+ - R29: 2.2Ω res0402 resistor
+ - R30: 2.2Ω res0402 resistor
+ - R31: 2.2Ω res0402 resistor
+ - R32: 2.2Ω res0402 resistor
+ - C54: 100nF cap0402 capacitor
+ - C55: 100nF cap0402 capacitor
+ - C56: 100nF cap0402 capacitor
+ - C57: 100nF cap0402 capacitor
+ - C58: 100nF cap0402 capacitor
+ - C59: 100nF cap0402 capacitor
+ - C60: 330nF cap0402 capacitor
+ - C61: 330nF cap0402 capacitor
+ - R39: 220kΩ res0402 resistor
+ - R40: 220kΩ res0402 resistor
+ - U20: TUSB522PIRGER
+ - C62: 100nF cap0402 capacitor
+ - C63: 100nF cap0402 capacitor
+ - C64: 10uF cap0402 capacitor
+ - U21: TS3USB221ERSER
+ - C65: 100nF cap0402 capacitor
+ - Q5: 2N7002-7-F
+ - R60: 100kΩ res0402 resistor
+ - R64: 100kΩ res0402 resistor
+ - U25: SN74LVC1G08DCKR
+ - C67: 100nF cap0402 capacitor
+ - U22: TPS2557DRBR
+ - C66: 100nF cap0402 capacitor
+ - R69: 100kΩ res0402 resistor
+ - R74: 10kΩ res0402 resistor
+ - C68: 100nF cap0402 capacitor
+ - C69: 150uF cap0402 capacitor
+
+NET: EXT_5V_FUSED
+  - Q1 D4
+  - Q1 D3
+  - Q1 D2
+  - Q1 D1
+  - F1 FUSE_B
+
+NET: RPP_GATE
+  - R70 pin2
+  - R65 pin1
+  - Q1 G
+
+NET: EXT_5V_RAW
+  - C1 pin1 (+)
+  - F1 FUSE_A
+  - J1 EXT_5V_RAW
+
+NET: GPIO17_RAW
+  - R41 pin1
+  - J2 P11
+
+NET: GPIO27_RAW
+  - R42 pin1
+  - J2 P13
+
+NET: GPIO22_RAW
+  - R43 pin1
+  - J2 P15
+
+NET: GPIO23_RAW
+  - R44 pin1
+  - J2 P16
+
+NET: GPIO24_RAW
+  - R45 pin1
+  - J2 P18
+
+NET: GPIO25_RAW
+  - R46 pin1
+  - J2 P22
+
+NET: GPIO5_RAW
+  - R47 pin1
+  - J2 P29
+
+NET: GPIO6_RAW
+  - R48 pin1
+  - J2 P31
+
+NET: USB1_SS_TX_UP_CONN_P
+  - R1 pin1
+  - U5 pin12
+  - J3 pin9
+
+NET: USB1_SS_TX_UP_CONN_N
+  - R2 pin1
+  - U5 pin11
+  - J3 pin8
+
+NET: USB1_SS_TX_DN_CONN_P
+  - R3 pin1
+  - U6 pin12
+  - J4 pin9
+
+NET: USB1_SS_TX_DN_CONN_N
+  - R4 pin1
+  - U6 pin11
+  - J4 pin8
+
+NET: USB1_SS_RX_DN_CONN_P
+  - R5 pin1
+  - U6 pin9
+  - J4 pin6
+
+NET: USB1_SS_RX_DN_CONN_N
+  - R6 pin1
+  - U6 pin8
+  - J4 pin5
+
+NET: USB1_SS_RX_UP_CONN_P
+  - R7 pin1
+  - U5 pin9
+  - J3 pin6
+
+NET: USB1_SS_RX_UP_CONN_N
+  - R8 pin1
+  - U5 pin8
+  - J3 pin5
+
+NET: USB1_SS_TX_UP_MID_P
+  - C6 pin1 (+)
+  - R1 pin2
+
+NET: USB1_SS_TX_UP_MID_N
+  - C7 pin1 (+)
+  - R2 pin2
+
+NET: USB1_SS_TX_DN_MID_P
+  - C8 pin2 (-)
+  - R3 pin2
+
+NET: USB1_SS_TX_DN_MID_N
+  - C9 pin2 (-)
+  - R4 pin2
+
+NET: USB1_SS_RX_UP_MID_P
+  - C10 pin2 (-)
+  - R7 pin2
+
+NET: USB1_SS_RX_UP_MID_N
+  - C11 pin2 (-)
+  - R8 pin2
+
+NET: USB1_SS_RX_DN_MID_P
+  - C12 pin1 (+)
+  - R5 pin2
+
+NET: USB1_SS_RX_DN_MID_N
+  - C13 pin1 (+)
+  - R6 pin2
+
+NET: USB1_SS_TX_UP_IC_N
+  - U2 RX1N
+  - C7 pin2 (-)
+
+NET: USB1_SS_TX_UP_IC_P
+  - U2 RX1P
+  - C6 pin2 (-)
+
+NET: USB1_SS_RX_UP_IC_N
+  - U2 TX2N
+  - C11 pin1 (+)
+
+NET: USB1_SS_RX_UP_IC_P
+  - U2 TX2P
+  - C10 pin1 (+)
+
+NET: USB1_SS_RX_DN_IC_P
+  - U2 RX2P
+  - R33 pin1
+  - C12 pin2 (-)
+
+NET: USB1_SS_RX_DN_IC_N
+  - U2 RX2N
+  - R34 pin1
+  - C13 pin2 (-)
+
+NET: USB1_SS_TX_DN_IC_P
+  - U2 TX1P
+  - C8 pin1 (+)
+
+NET: USB1_SS_TX_DN_IC_N
+  - U2 TX1N
+  - C9 pin1 (+)
+
+NET: USB1_HS_DN_P
+  - U3 pin1
+  - U6 pin14
+  - J4 pin3
+
+NET: USB1_HS_DN_N
+  - U3 pin2
+  - U6 pin13
+  - J4 pin2
+
+NET: USB1_HS_UP_N
+  - U3 pin7
+  - U5 pin13
+  - J3 pin2
+
+NET: USB1_HS_UP_P
+  - U3 pin8
+  - U5 pin14
+  - J3 pin3
+
+NET: USB2_OE1
+  - R57 pin2
+  - Q2 D
+  - U3 OE
+
+NET: USB2_SEL1
+  - R61 pin1
+  - U3 S
+
+NET: DATA_EN1
+  - U7 B
+  - R50 pin1
+  - R42 pin2
+
+NET: DATA_OK1
+  - U7 Y
+  - Q2 G
+  - U2 EN_RXD
+
+NET: PWR_EN1
+  - U4 EN
+  - U7 A
+  - R49 pin1
+  - R41 pin2
+
+NET: ILIM1
+  - R66 pin1
+  - U4 ILIM
+
+NET: VBUS_FAULT1_N
+  - R71 pin2
+  - U4 FAULT
+
+NET: VBUS1_SW
+  - C21 pin1 (+)
+  - C20 pin1 (+)
+  - U4 OUT2
+  - U4 OUT1
+  - J4 VBUS
+
+NET: USB2_SS_TX_UP_CONN_P
+  - R9 pin1
+  - U11 pin12
+  - J5 pin9
+
+NET: USB2_SS_TX_UP_CONN_N
+  - R10 pin1
+  - U11 pin11
+  - J5 pin8
+
+NET: USB2_SS_TX_DN_CONN_P
+  - R11 pin1
+  - U12 pin12
+  - J6 pin9
+
+NET: USB2_SS_TX_DN_CONN_N
+  - R12 pin1
+  - U12 pin11
+  - J6 pin8
+
+NET: USB2_SS_RX_DN_CONN_P
+  - R13 pin1
+  - U12 pin9
+  - J6 pin6
+
+NET: USB2_SS_RX_DN_CONN_N
+  - R14 pin1
+  - U12 pin8
+  - J6 pin5
+
+NET: USB2_SS_RX_UP_CONN_P
+  - R15 pin1
+  - U11 pin9
+  - J5 pin6
+
+NET: USB2_SS_RX_UP_CONN_N
+  - R16 pin1
+  - U11 pin8
+  - J5 pin5
+
+NET: USB2_SS_TX_UP_MID_P
+  - C22 pin1 (+)
+  - R9 pin2
+
+NET: USB2_SS_TX_UP_MID_N
+  - C23 pin1 (+)
+  - R10 pin2
+
+NET: USB2_SS_TX_DN_MID_P
+  - C24 pin2 (-)
+  - R11 pin2
+
+NET: USB2_SS_TX_DN_MID_N
+  - C25 pin2 (-)
+  - R12 pin2
+
+NET: USB2_SS_RX_UP_MID_P
+  - C26 pin2 (-)
+  - R15 pin2
+
+NET: USB2_SS_RX_UP_MID_N
+  - C27 pin2 (-)
+  - R16 pin2
+
+NET: USB2_SS_RX_DN_MID_P
+  - C28 pin1 (+)
+  - R13 pin2
+
+NET: USB2_SS_RX_DN_MID_N
+  - C29 pin1 (+)
+  - R14 pin2
+
+NET: USB2_SS_TX_UP_IC_N
+  - U8 RX1N
+  - C23 pin2 (-)
+
+NET: USB2_SS_TX_UP_IC_P
+  - U8 RX1P
+  - C22 pin2 (-)
+
+NET: USB2_SS_RX_UP_IC_N
+  - U8 TX2N
+  - C27 pin1 (+)
+
+NET: USB2_SS_RX_UP_IC_P
+  - U8 TX2P
+  - C26 pin1 (+)
+
+NET: USB2_SS_RX_DN_IC_P
+  - U8 RX2P
+  - R35 pin1
+  - C28 pin2 (-)
+
+NET: USB2_SS_RX_DN_IC_N
+  - U8 RX2N
+  - R36 pin1
+  - C29 pin2 (-)
+
+NET: USB2_SS_TX_DN_IC_P
+  - U8 TX1P
+  - C24 pin1 (+)
+
+NET: USB2_SS_TX_DN_IC_N
+  - U8 TX1N
+  - C25 pin1 (+)
+
+NET: USB2_HS_DN_P
+  - U9 pin1
+  - U12 pin14
+  - J6 pin3
+
+NET: USB2_HS_DN_N
+  - U9 pin2
+  - U12 pin13
+  - J6 pin2
+
+NET: USB2_HS_UP_N
+  - U9 pin7
+  - U11 pin13
+  - J5 pin2
+
+NET: USB2_HS_UP_P
+  - U9 pin8
+  - U11 pin14
+  - J5 pin3
+
+NET: USB2_OE2
+  - R58 pin2
+  - Q3 D
+  - U9 OE
+
+NET: USB2_SEL2
+  - R62 pin1
+  - U9 S
+
+NET: DATA_EN2
+  - U13 B
+  - R52 pin1
+  - R44 pin2
+
+NET: DATA_OK2
+  - U13 Y
+  - Q3 G
+  - U8 EN_RXD
+
+NET: PWR_EN2
+  - U10 EN
+  - U13 A
+  - R51 pin1
+  - R43 pin2
+
+NET: ILIM2
+  - R67 pin1
+  - U10 ILIM
+
+NET: VBUS_FAULT2_N
+  - R72 pin2
+  - U10 FAULT
+
+NET: VBUS2_SW
+  - C37 pin1 (+)
+  - C36 pin1 (+)
+  - U10 OUT2
+  - U10 OUT1
+  - J6 VBUS
+
+NET: USB3_SS_TX_UP_CONN_P
+  - R17 pin1
+  - U17 pin12
+  - J7 pin9
+
+NET: USB3_SS_TX_UP_CONN_N
+  - R18 pin1
+  - U17 pin11
+  - J7 pin8
+
+NET: USB3_SS_TX_DN_CONN_P
+  - R19 pin1
+  - U18 pin12
+  - J8 pin9
+
+NET: USB3_SS_TX_DN_CONN_N
+  - R20 pin1
+  - U18 pin11
+  - J8 pin8
+
+NET: USB3_SS_RX_DN_CONN_P
+  - R21 pin1
+  - U18 pin9
+  - J8 pin6
+
+NET: USB3_SS_RX_DN_CONN_N
+  - R22 pin1
+  - U18 pin8
+  - J8 pin5
+
+NET: USB3_SS_RX_UP_CONN_P
+  - R23 pin1
+  - U17 pin9
+  - J7 pin6
+
+NET: USB3_SS_RX_UP_CONN_N
+  - R24 pin1
+  - U17 pin8
+  - J7 pin5
+
+NET: USB3_SS_TX_UP_MID_P
+  - C38 pin1 (+)
+  - R17 pin2
+
+NET: USB3_SS_TX_UP_MID_N
+  - C39 pin1 (+)
+  - R18 pin2
+
+NET: USB3_SS_TX_DN_MID_P
+  - C40 pin2 (-)
+  - R19 pin2
+
+NET: USB3_SS_TX_DN_MID_N
+  - C41 pin2 (-)
+  - R20 pin2
+
+NET: USB3_SS_RX_UP_MID_P
+  - C42 pin2 (-)
+  - R23 pin2
+
+NET: USB3_SS_RX_UP_MID_N
+  - C43 pin2 (-)
+  - R24 pin2
+
+NET: USB3_SS_RX_DN_MID_P
+  - C44 pin1 (+)
+  - R21 pin2
+
+NET: USB3_SS_RX_DN_MID_N
+  - C45 pin1 (+)
+  - R22 pin2
+
+NET: USB3_SS_TX_UP_IC_N
+  - U14 RX1N
+  - C39 pin2 (-)
+
+NET: USB3_SS_TX_UP_IC_P
+  - U14 RX1P
+  - C38 pin2 (-)
+
+NET: USB3_SS_RX_UP_IC_N
+  - U14 TX2N
+  - C43 pin1 (+)
+
+NET: USB3_SS_RX_UP_IC_P
+  - U14 TX2P
+  - C42 pin1 (+)
+
+NET: USB3_SS_RX_DN_IC_P
+  - U14 RX2P
+  - R37 pin1
+  - C44 pin2 (-)
+
+NET: USB3_SS_RX_DN_IC_N
+  - U14 RX2N
+  - R38 pin1
+  - C45 pin2 (-)
+
+NET: USB3_SS_TX_DN_IC_P
+  - U14 TX1P
+  - C40 pin1 (+)
+
+NET: USB3_SS_TX_DN_IC_N
+  - U14 TX1N
+  - C41 pin1 (+)
+
+NET: USB3_HS_DN_P
+  - U15 pin1
+  - U18 pin14
+  - J8 pin3
+
+NET: USB3_HS_DN_N
+  - U15 pin2
+  - U18 pin13
+  - J8 pin2
+
+NET: USB3_HS_UP_N
+  - U15 pin7
+  - U17 pin13
+  - J7 pin2
+
+NET: USB3_HS_UP_P
+  - U15 pin8
+  - U17 pin14
+  - J7 pin3
+
+NET: USB2_OE3
+  - R59 pin2
+  - Q4 D
+  - U15 OE
+
+NET: USB2_SEL3
+  - R63 pin1
+  - U15 S
+
+NET: DATA_EN3
+  - U19 B
+  - R54 pin1
+  - R46 pin2
+
+NET: DATA_OK3
+  - U19 Y
+  - Q4 G
+  - U14 EN_RXD
+
+NET: PWR_EN3
+  - U16 EN
+  - U19 A
+  - R53 pin1
+  - R45 pin2
+
+NET: ILIM3
+  - R68 pin1
+  - U16 ILIM
+
+NET: VBUS_FAULT3_N
+  - R73 pin2
+  - U16 FAULT
+
+NET: VBUS3_SW
+  - C53 pin1 (+)
+  - C52 pin1 (+)
+  - U16 OUT2
+  - U16 OUT1
+  - J8 VBUS
+
+NET: USB4_SS_TX_UP_CONN_P
+  - R25 pin1
+  - U23 pin12
+  - J9 pin9
+
+NET: USB4_SS_TX_UP_CONN_N
+  - R26 pin1
+  - U23 pin11
+  - J9 pin8
+
+NET: USB4_SS_TX_DN_CONN_P
+  - R27 pin1
+  - U24 pin12
+  - J10 pin9
+
+NET: USB4_SS_TX_DN_CONN_N
+  - R28 pin1
+  - U24 pin11
+  - J10 pin8
+
+NET: USB4_SS_RX_DN_CONN_P
+  - R29 pin1
+  - U24 pin9
+  - J10 pin6
+
+NET: USB4_SS_RX_DN_CONN_N
+  - R30 pin1
+  - U24 pin8
+  - J10 pin5
+
+NET: USB4_SS_RX_UP_CONN_P
+  - R31 pin1
+  - U23 pin9
+  - J9 pin6
+
+NET: USB4_SS_RX_UP_CONN_N
+  - R32 pin1
+  - U23 pin8
+  - J9 pin5
+
+NET: USB4_SS_TX_UP_MID_P
+  - C54 pin1 (+)
+  - R25 pin2
+
+NET: USB4_SS_TX_UP_MID_N
+  - C55 pin1 (+)
+  - R26 pin2
+
+NET: USB4_SS_TX_DN_MID_P
+  - C56 pin2 (-)
+  - R27 pin2
+
+NET: USB4_SS_TX_DN_MID_N
+  - C57 pin2 (-)
+  - R28 pin2
+
+NET: USB4_SS_RX_UP_MID_P
+  - C58 pin2 (-)
+  - R31 pin2
+
+NET: USB4_SS_RX_UP_MID_N
+  - C59 pin2 (-)
+  - R32 pin2
+
+NET: USB4_SS_RX_DN_MID_P
+  - C60 pin1 (+)
+  - R29 pin2
+
+NET: USB4_SS_RX_DN_MID_N
+  - C61 pin1 (+)
+  - R30 pin2
+
+NET: TUSB_EQ1
+  - U20 EQ1
+  - U14 EQ1
+  - U8 EQ1
+  - U2 EQ1
+  - R75 pin1
+
+NET: TUSB_DE2
+  - U20 DE2
+  - U14 DE2
+  - U8 DE2
+  - U2 DE2
+  - R78 pin1
+
+NET: TUSB_OS2
+  - U20 OS2
+  - U14 OS2
+  - U8 OS2
+  - U2 OS2
+  - R80 pin1
+
+NET: USB4_SS_TX_UP_IC_N
+  - U20 RX1N
+  - C55 pin2 (-)
+
+NET: USB4_SS_TX_UP_IC_P
+  - U20 RX1P
+  - C54 pin2 (-)
+
+NET: USB4_SS_RX_UP_IC_N
+  - U20 TX2N
+  - C59 pin1 (+)
+
+NET: USB4_SS_RX_UP_IC_P
+  - U20 TX2P
+  - C58 pin1 (+)
+
+NET: TUSB_OS1
+  - U20 OS1
+  - U14 OS1
+  - U8 OS1
+  - U2 OS1
+  - R79 pin1
+
+NET: TUSB_DE1
+  - U20 DE1
+  - U14 DE1
+  - U8 DE1
+  - U2 DE1
+  - R77 pin1
+
+NET: TUSB_EQ2
+  - U20 EQ2
+  - U14 EQ2
+  - U8 EQ2
+  - U2 EQ2
+  - R76 pin1
+
+NET: USB4_SS_RX_DN_IC_P
+  - U20 RX2P
+  - R39 pin1
+  - C60 pin2 (-)
+
+NET: USB4_SS_RX_DN_IC_N
+  - U20 RX2N
+  - R40 pin1
+  - C61 pin2 (-)
+
+NET: USB4_SS_TX_DN_IC_P
+  - U20 TX1P
+  - C56 pin1 (+)
+
+NET: USB4_SS_TX_DN_IC_N
+  - U20 TX1N
+  - C57 pin1 (+)
+
+NET: USB4_HS_DN_P
+  - U21 pin1
+  - U24 pin14
+  - J10 pin3
+
+NET: USB4_HS_DN_N
+  - U21 pin2
+  - U24 pin13
+  - J10 pin2
+
+NET: USB4_HS_UP_N
+  - U21 pin7
+  - U23 pin13
+  - J9 pin2
+
+NET: USB4_HS_UP_P
+  - U21 pin8
+  - U23 pin14
+  - J9 pin3
+
+NET: USB2_OE4
+  - R60 pin2
+  - Q5 D
+  - U21 OE
+
+NET: USB2_SEL4
+  - R64 pin1
+  - U21 S
+
+NET: DATA_EN4
+  - U25 B
+  - R56 pin1
+  - R48 pin2
+
+NET: DATA_OK4
+  - U25 Y
+  - Q5 G
+  - U20 EN_RXD
+
+NET: PWR_EN4
+  - U22 EN
+  - U25 A
+  - R55 pin1
+  - R47 pin2
+
+NET: P5V_PROTECTED
+  - C66 pin1 (+)
+  - U22 IN2
+  - U22 IN1
+  - C50 pin1 (+)
+  - U16 IN2
+  - U16 IN1
+  - C34 pin1 (+)
+  - U10 IN2
+  - U10 IN1
+  - C18 pin1 (+)
+  - U4 IN2
+  - U4 IN1
+  - C3 pin1 (+)
+  - U1 IN
+  - C2 pin1 (+)
+  - R70 pin1
+  - Q1 S3
+  - Q1 S2
+  - Q1 S1
+
+NET: ILIM4
+  - R69 pin1
+  - U22 ILIM
+
+NET: N3V3
+  - R74 pin1
+  - C67 pin1 (+)
+  - U25 VCC
+  - R60 pin1
+  - C65 pin1 (+)
+  - U21 VCC
+  - C64 pin1 (+)
+  - C63 pin1 (+)
+  - C62 pin1 (+)
+  - U20 VCC2
+  - U20 VCC1
+  - R73 pin1
+  - C51 pin1 (+)
+  - U19 VCC
+  - R59 pin1
+  - C49 pin1 (+)
+  - U15 VCC
+  - C48 pin1 (+)
+  - C47 pin1 (+)
+  - C46 pin1 (+)
+  - U14 VCC2
+  - U14 VCC1
+  - R72 pin1
+  - C35 pin1 (+)
+  - U13 VCC
+  - R58 pin1
+  - C33 pin1 (+)
+  - U9 VCC
+  - C32 pin1 (+)
+  - C31 pin1 (+)
+  - C30 pin1 (+)
+  - U8 VCC2
+  - U8 VCC1
+  - R71 pin1
+  - C19 pin1 (+)
+  - U7 VCC
+  - R57 pin1
+  - C17 pin1 (+)
+  - U3 VCC
+  - C16 pin1 (+)
+  - C15 pin1 (+)
+  - C14 pin1 (+)
+  - U2 VCC2
+  - U2 VCC1
+  - C5 pin1 (+)
+  - C4 pin1 (+)
+  - U1 OUT
+
+NET: VBUS_FAULT4_N
+  - R74 pin2
+  - U22 FAULT
+
+NET: VBUS4_SW
+  - C69 pin1 (+)
+  - C68 pin1 (+)
+  - U22 OUT2
+  - U22 OUT1
+  - J10 VBUS
+
+NET: GND
+  - C69 pin2 (-)
+  - C68 pin2 (-)
+  - R69 pin2
+  - C66 pin2 (-)
+  - U22 EP
+  - U22 GND
+  - C67 pin2 (-)
+  - U25 GND
+  - R64 pin2
+  - Q5 S
+  - C65 pin2 (-)
+  - U21 GND
+  - C64 pin2 (-)
+  - C63 pin2 (-)
+  - C62 pin2 (-)
+  - U20 EP
+  - U20 GND2
+  - U20 GND1
+  - R40 pin2
+  - R39 pin2
+  - U24 GND2
+  - U24 GND1
+  - U23 GND2
+  - U23 GND1
+  - J10 SHIELD
+  - J10 GND_DRAIN
+  - J10 GND
+  - J9 SHIELD
+  - J9 GND_DRAIN
+  - J9 GND
+  - C53 pin2 (-)
+  - C52 pin2 (-)
+  - R68 pin2
+  - C50 pin2 (-)
+  - U16 EP
+  - U16 GND
+  - C51 pin2 (-)
+  - U19 GND
+  - R63 pin2
+  - Q4 S
+  - C49 pin2 (-)
+  - U15 GND
+  - C48 pin2 (-)
+  - C47 pin2 (-)
+  - C46 pin2 (-)
+  - U14 EP
+  - U14 GND2
+  - U14 GND1
+  - R38 pin2
+  - R37 pin2
+  - U18 GND2
+  - U18 GND1
+  - U17 GND2
+  - U17 GND1
+  - J8 SHIELD
+  - J8 GND_DRAIN
+  - J8 GND
+  - J7 SHIELD
+  - J7 GND_DRAIN
+  - J7 GND
+  - C37 pin2 (-)
+  - C36 pin2 (-)
+  - R67 pin2
+  - C34 pin2 (-)
+  - U10 EP
+  - U10 GND
+  - C35 pin2 (-)
+  - U13 GND
+  - R62 pin2
+  - Q3 S
+  - C33 pin2 (-)
+  - U9 GND
+  - C32 pin2 (-)
+  - C31 pin2 (-)
+  - C30 pin2 (-)
+  - U8 EP
+  - U8 GND2
+  - U8 GND1
+  - R36 pin2
+  - R35 pin2
+  - U12 GND2
+  - U12 GND1
+  - U11 GND2
+  - U11 GND1
+  - J6 SHIELD
+  - J6 GND_DRAIN
+  - J6 GND
+  - J5 SHIELD
+  - J5 GND_DRAIN
+  - J5 GND
+  - C21 pin2 (-)
+  - C20 pin2 (-)
+  - R66 pin2
+  - C18 pin2 (-)
+  - U4 EP
+  - U4 GND
+  - C19 pin2 (-)
+  - U7 GND
+  - R61 pin2
+  - Q2 S
+  - C17 pin2 (-)
+  - U3 GND
+  - C16 pin2 (-)
+  - C15 pin2 (-)
+  - C14 pin2 (-)
+  - U2 EP
+  - U2 GND2
+  - U2 GND1
+  - R34 pin2
+  - R33 pin2
+  - U6 GND2
+  - U6 GND1
+  - U5 GND2
+  - U5 GND1
+  - J4 SHIELD
+  - J4 GND_DRAIN
+  - J4 GND
+  - J3 SHIELD
+  - J3 GND_DRAIN
+  - J3 GND
+  - R80 pin2
+  - R79 pin2
+  - R78 pin2
+  - R77 pin2
+  - R76 pin2
+  - R75 pin2
+  - R56 pin2
+  - R55 pin2
+  - R54 pin2
+  - R53 pin2
+  - R52 pin2
+  - R51 pin2
+  - R50 pin2
+  - R49 pin2
+  - J2 P39
+  - J2 P34
+  - J2 P30
+  - J2 P25
+  - J2 P20
+  - J2 P14
+  - J2 P9
+  - J2 P6
+  - C5 pin2 (-)
+  - C4 pin2 (-)
+  - C3 pin2 (-)
+  - U1 GND
+  - C2 pin2 (-)
+  - C1 pin2 (-)
+  - R65 pin2
+  - J1 GND
+
+
+COMPONENT_PINS:
+J1 (1935161)
+- pin1(EXT_5V_RAW): NETS(EXT_5V_RAW)
+- pin2(GND): NETS(GND)
+
+F1 (3568)
+- pin1(FUSE_A): NETS(EXT_5V_RAW)
+- pin2(FUSE_B): NETS(EXT_5V_FUSED)
+
+Q1 (DMP3007SPS-13)
+- pin1(G): NETS(RPP_GATE)
+- pin2(S1): NETS(P5V_PROTECTED)
+- pin3(S2): NETS(P5V_PROTECTED)
+- pin4(S3): NETS(P5V_PROTECTED)
+- pin5(D1): NETS(EXT_5V_FUSED)
+- pin6(D2): NETS(EXT_5V_FUSED)
+- pin7(D3): NETS(EXT_5V_FUSED)
+- pin8(D4): NETS(EXT_5V_FUSED)
+
+R65 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(RPP_GATE)
+- pin2(cathode, neg, right): NETS(GND)
+
+R70 (1MΩ res0402)
+- pin1(anode, pos, left): NETS(P5V_PROTECTED)
+- pin2(cathode, neg, right): NETS(RPP_GATE)
+
+C1 (180uF cap0402)
+- pin1(pos, anode, left): NETS(EXT_5V_RAW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C2 (180uF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+U1 (TLV76133DCYR)
+- pin1(GND): NETS(GND)
+- pin2(OUT): NETS(N3V3)
+- pin3(IN): NETS(P5V_PROTECTED)
+
+C3 (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+C4 (1uF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C5 (10uF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+J2 (61304021121)
+- pin1(P1): NOT_CONNECTED
+- pin2(P2): NOT_CONNECTED
+- pin3(P3): NOT_CONNECTED
+- pin4(P4): NOT_CONNECTED
+- pin5(P5): NOT_CONNECTED
+- pin6(P6): NETS(GND)
+- pin7(P7): NOT_CONNECTED
+- pin8(P8): NOT_CONNECTED
+- pin9(P9): NETS(GND)
+- pin10(P10): NOT_CONNECTED
+- pin11(P11): NETS(GPIO17_RAW)
+- pin12(P12): NOT_CONNECTED
+- pin13(P13): NETS(GPIO27_RAW)
+- pin14(P14): NETS(GND)
+- pin15(P15): NETS(GPIO22_RAW)
+- pin16(P16): NETS(GPIO23_RAW)
+- pin17(P17): NOT_CONNECTED
+- pin18(P18): NETS(GPIO24_RAW)
+- pin19(P19): NOT_CONNECTED
+- pin20(P20): NETS(GND)
+- pin21(P21): NOT_CONNECTED
+- pin22(P22): NETS(GPIO25_RAW)
+- pin23(P23): NOT_CONNECTED
+- pin24(P24): NOT_CONNECTED
+- pin25(P25): NETS(GND)
+- pin26(P26): NOT_CONNECTED
+- pin27(P27): NOT_CONNECTED
+- pin28(P28): NOT_CONNECTED
+- pin29(P29): NETS(GPIO5_RAW)
+- pin30(P30): NETS(GND)
+- pin31(P31): NETS(GPIO6_RAW)
+- pin32(P32): NOT_CONNECTED
+- pin33(P33): NOT_CONNECTED
+- pin34(P34): NETS(GND)
+- pin35(P35): NOT_CONNECTED
+- pin36(P36): NOT_CONNECTED
+- pin37(P37): NOT_CONNECTED
+- pin38(P38): NOT_CONNECTED
+- pin39(P39): NETS(GND)
+- pin40(P40): NOT_CONNECTED
+
+R41 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(GPIO17_RAW)
+- pin2(cathode, neg, right): NETS(PWR_EN1)
+
+R42 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(GPIO27_RAW)
+- pin2(cathode, neg, right): NETS(DATA_EN1)
+
+R49 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_EN1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R50 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_EN1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R43 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(GPIO22_RAW)
+- pin2(cathode, neg, right): NETS(PWR_EN2)
+
+R44 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(GPIO23_RAW)
+- pin2(cathode, neg, right): NETS(DATA_EN2)
+
+R51 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_EN2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R52 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_EN2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R45 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(GPIO24_RAW)
+- pin2(cathode, neg, right): NETS(PWR_EN3)
+
+R46 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(GPIO25_RAW)
+- pin2(cathode, neg, right): NETS(DATA_EN3)
+
+R53 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_EN3)
+- pin2(cathode, neg, right): NETS(GND)
+
+R54 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_EN3)
+- pin2(cathode, neg, right): NETS(GND)
+
+R47 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(GPIO5_RAW)
+- pin2(cathode, neg, right): NETS(PWR_EN4)
+
+R48 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(GPIO6_RAW)
+- pin2(cathode, neg, right): NETS(DATA_EN4)
+
+R55 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_EN4)
+- pin2(cathode, neg, right): NETS(GND)
+
+R56 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_EN4)
+- pin2(cathode, neg, right): NETS(GND)
+
+R75 (4.7kΩ res0402)
+- pin1(anode, pos, left): NETS(TUSB_EQ1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R76 (4.7kΩ res0402)
+- pin1(anode, pos, left): NETS(TUSB_EQ2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R77 (4.7kΩ res0402)
+- pin1(anode, pos, left): NETS(TUSB_DE1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R78 (4.7kΩ res0402)
+- pin1(anode, pos, left): NETS(TUSB_DE2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R79 (4.7kΩ res0402)
+- pin1(anode, pos, left): NETS(TUSB_OS1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R80 (4.7kΩ res0402)
+- pin1(anode, pos, left): NETS(TUSB_OS2)
+- pin2(cathode, neg, right): NETS(GND)
+
+J3 (692221030100)
+- pin1(VBUS_NC): NOT_CONNECTED
+- pin2: NETS(USB1_HS_UP_N)
+- pin3: NETS(USB1_HS_UP_P)
+- pin4(GND): NETS(GND)
+- pin5: NETS(USB1_SS_RX_UP_CONN_N)
+- pin6: NETS(USB1_SS_RX_UP_CONN_P)
+- pin7(GND_DRAIN): NETS(GND)
+- pin8: NETS(USB1_SS_TX_UP_CONN_N)
+- pin9: NETS(USB1_SS_TX_UP_CONN_P)
+- pin10(SHIELD): NETS(GND)
+
+J4 (692121030100)
+- pin1(VBUS): NETS(VBUS1_SW)
+- pin2: NETS(USB1_HS_DN_N)
+- pin3: NETS(USB1_HS_DN_P)
+- pin4(GND): NETS(GND)
+- pin5: NETS(USB1_SS_RX_DN_CONN_N)
+- pin6: NETS(USB1_SS_RX_DN_CONN_P)
+- pin7(GND_DRAIN): NETS(GND)
+- pin8: NETS(USB1_SS_TX_DN_CONN_N)
+- pin9: NETS(USB1_SS_TX_DN_CONN_P)
+- pin10(SHIELD): NETS(GND)
+
+U5 (TPD6E05U06RVZR)
+- pin1(NC1): NOT_CONNECTED
+- pin2(NC2): NOT_CONNECTED
+- pin3(NC3): NOT_CONNECTED
+- pin4(NC4): NOT_CONNECTED
+- pin5(GND1): NETS(GND)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8: NETS(USB1_SS_RX_UP_CONN_N)
+- pin9: NETS(USB1_SS_RX_UP_CONN_P)
+- pin10(GND2): NETS(GND)
+- pin11: NETS(USB1_SS_TX_UP_CONN_N)
+- pin12: NETS(USB1_SS_TX_UP_CONN_P)
+- pin13: NETS(USB1_HS_UP_N)
+- pin14: NETS(USB1_HS_UP_P)
+
+U6 (TPD6E05U06RVZR)
+- pin1(NC1): NOT_CONNECTED
+- pin2(NC2): NOT_CONNECTED
+- pin3(NC3): NOT_CONNECTED
+- pin4(NC4): NOT_CONNECTED
+- pin5(GND1): NETS(GND)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8: NETS(USB1_SS_RX_DN_CONN_N)
+- pin9: NETS(USB1_SS_RX_DN_CONN_P)
+- pin10(GND2): NETS(GND)
+- pin11: NETS(USB1_SS_TX_DN_CONN_N)
+- pin12: NETS(USB1_SS_TX_DN_CONN_P)
+- pin13: NETS(USB1_HS_DN_N)
+- pin14: NETS(USB1_HS_DN_P)
+
+R1 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_TX_UP_CONN_P)
+- pin2(cathode, neg, right): NETS(USB1_SS_TX_UP_MID_P)
+
+R2 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_TX_UP_CONN_N)
+- pin2(cathode, neg, right): NETS(USB1_SS_TX_UP_MID_N)
+
+R3 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_TX_DN_CONN_P)
+- pin2(cathode, neg, right): NETS(USB1_SS_TX_DN_MID_P)
+
+R4 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_TX_DN_CONN_N)
+- pin2(cathode, neg, right): NETS(USB1_SS_TX_DN_MID_N)
+
+R5 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_RX_DN_CONN_P)
+- pin2(cathode, neg, right): NETS(USB1_SS_RX_DN_MID_P)
+
+R6 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_RX_DN_CONN_N)
+- pin2(cathode, neg, right): NETS(USB1_SS_RX_DN_MID_N)
+
+R7 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_RX_UP_CONN_P)
+- pin2(cathode, neg, right): NETS(USB1_SS_RX_UP_MID_P)
+
+R8 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_RX_UP_CONN_N)
+- pin2(cathode, neg, right): NETS(USB1_SS_RX_UP_MID_N)
+
+C6 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB1_SS_TX_UP_MID_P)
+- pin2(neg, cathode, right): NETS(USB1_SS_TX_UP_IC_P)
+
+C7 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB1_SS_TX_UP_MID_N)
+- pin2(neg, cathode, right): NETS(USB1_SS_TX_UP_IC_N)
+
+C8 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB1_SS_TX_DN_IC_P)
+- pin2(neg, cathode, right): NETS(USB1_SS_TX_DN_MID_P)
+
+C9 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB1_SS_TX_DN_IC_N)
+- pin2(neg, cathode, right): NETS(USB1_SS_TX_DN_MID_N)
+
+C10 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB1_SS_RX_UP_IC_P)
+- pin2(neg, cathode, right): NETS(USB1_SS_RX_UP_MID_P)
+
+C11 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB1_SS_RX_UP_IC_N)
+- pin2(neg, cathode, right): NETS(USB1_SS_RX_UP_MID_N)
+
+C12 (330nF cap0402)
+- pin1(pos, anode, left): NETS(USB1_SS_RX_DN_MID_P)
+- pin2(neg, cathode, right): NETS(USB1_SS_RX_DN_IC_P)
+
+C13 (330nF cap0402)
+- pin1(pos, anode, left): NETS(USB1_SS_RX_DN_MID_N)
+- pin2(neg, cathode, right): NETS(USB1_SS_RX_DN_IC_N)
+
+R33 (220kΩ res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_RX_DN_IC_P)
+- pin2(cathode, neg, right): NETS(GND)
+
+R34 (220kΩ res0402)
+- pin1(anode, pos, left): NETS(USB1_SS_RX_DN_IC_N)
+- pin2(cathode, neg, right): NETS(GND)
+
+U2 (TUSB522PIRGER)
+- pin1(VCC1): NETS(N3V3)
+- pin2(EQ1): NETS(TUSB_EQ1)
+- pin3(DE2): NETS(TUSB_DE2)
+- pin4(OS2): NETS(TUSB_OS2)
+- pin5(EN_RXD): NETS(DATA_OK1)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8(RX1N): NETS(USB1_SS_TX_UP_IC_N)
+- pin9(RX1P): NETS(USB1_SS_TX_UP_IC_P)
+- pin10(GND1): NETS(GND)
+- pin11(TX2N): NETS(USB1_SS_RX_UP_IC_N)
+- pin12(TX2P): NETS(USB1_SS_RX_UP_IC_P)
+- pin13(VCC2): NETS(N3V3)
+- pin14(RSV): NOT_CONNECTED
+- pin15(OS1): NETS(TUSB_OS1)
+- pin16(DE1): NETS(TUSB_DE1)
+- pin17(EQ2): NETS(TUSB_EQ2)
+- pin18(NC18): NOT_CONNECTED
+- pin19(RX2P): NETS(USB1_SS_RX_DN_IC_P)
+- pin20(RX2N): NETS(USB1_SS_RX_DN_IC_N)
+- pin21(GND2): NETS(GND)
+- pin22(TX1P): NETS(USB1_SS_TX_DN_IC_P)
+- pin23(TX1N): NETS(USB1_SS_TX_DN_IC_N)
+- pin24(NC24): NOT_CONNECTED
+- pin25(EP): NETS(GND)
+
+C14 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C15 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C16 (10uF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U3 (TS3USB221ERSER)
+- pin1: NETS(USB1_HS_DN_P)
+- pin2: NETS(USB1_HS_DN_N)
+- pin3: NOT_CONNECTED
+- pin4: NOT_CONNECTED
+- pin5(GND): NETS(GND)
+- pin6(OE): NETS(USB2_OE1)
+- pin7: NETS(USB1_HS_UP_N)
+- pin8: NETS(USB1_HS_UP_P)
+- pin9(S): NETS(USB2_SEL1)
+- pin10(VCC): NETS(N3V3)
+
+C17 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+Q2 (2N7002-7-F)
+- pin1(G): NETS(DATA_OK1)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(USB2_OE1)
+
+R57 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(USB2_OE1)
+
+R61 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(USB2_SEL1)
+- pin2(cathode, neg, right): NETS(GND)
+
+U7 (SN74LVC1G08DCKR)
+- pin1(A): NETS(PWR_EN1)
+- pin2(B): NETS(DATA_EN1)
+- pin3(GND): NETS(GND)
+- pin4(Y): NETS(DATA_OK1)
+- pin5(VCC): NETS(N3V3)
+
+C19 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U4 (TPS2557DRBR)
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(PWR_EN1)
+- pin5(ILIM): NETS(ILIM1)
+- pin6(OUT1): NETS(VBUS1_SW)
+- pin7(OUT2): NETS(VBUS1_SW)
+- pin8(FAULT): NETS(VBUS_FAULT1_N)
+- pin9(EP): NETS(GND)
+
+C18 (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+R66 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R71 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(VBUS_FAULT1_N)
+
+C20 (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS1_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C21 (150uF cap0402)
+- pin1(pos, anode, left): NETS(VBUS1_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+J5 (692221030100)
+- pin1(VBUS_NC): NOT_CONNECTED
+- pin2: NETS(USB2_HS_UP_N)
+- pin3: NETS(USB2_HS_UP_P)
+- pin4(GND): NETS(GND)
+- pin5: NETS(USB2_SS_RX_UP_CONN_N)
+- pin6: NETS(USB2_SS_RX_UP_CONN_P)
+- pin7(GND_DRAIN): NETS(GND)
+- pin8: NETS(USB2_SS_TX_UP_CONN_N)
+- pin9: NETS(USB2_SS_TX_UP_CONN_P)
+- pin10(SHIELD): NETS(GND)
+
+J6 (692121030100)
+- pin1(VBUS): NETS(VBUS2_SW)
+- pin2: NETS(USB2_HS_DN_N)
+- pin3: NETS(USB2_HS_DN_P)
+- pin4(GND): NETS(GND)
+- pin5: NETS(USB2_SS_RX_DN_CONN_N)
+- pin6: NETS(USB2_SS_RX_DN_CONN_P)
+- pin7(GND_DRAIN): NETS(GND)
+- pin8: NETS(USB2_SS_TX_DN_CONN_N)
+- pin9: NETS(USB2_SS_TX_DN_CONN_P)
+- pin10(SHIELD): NETS(GND)
+
+U11 (TPD6E05U06RVZR)
+- pin1(NC1): NOT_CONNECTED
+- pin2(NC2): NOT_CONNECTED
+- pin3(NC3): NOT_CONNECTED
+- pin4(NC4): NOT_CONNECTED
+- pin5(GND1): NETS(GND)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8: NETS(USB2_SS_RX_UP_CONN_N)
+- pin9: NETS(USB2_SS_RX_UP_CONN_P)
+- pin10(GND2): NETS(GND)
+- pin11: NETS(USB2_SS_TX_UP_CONN_N)
+- pin12: NETS(USB2_SS_TX_UP_CONN_P)
+- pin13: NETS(USB2_HS_UP_N)
+- pin14: NETS(USB2_HS_UP_P)
+
+U12 (TPD6E05U06RVZR)
+- pin1(NC1): NOT_CONNECTED
+- pin2(NC2): NOT_CONNECTED
+- pin3(NC3): NOT_CONNECTED
+- pin4(NC4): NOT_CONNECTED
+- pin5(GND1): NETS(GND)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8: NETS(USB2_SS_RX_DN_CONN_N)
+- pin9: NETS(USB2_SS_RX_DN_CONN_P)
+- pin10(GND2): NETS(GND)
+- pin11: NETS(USB2_SS_TX_DN_CONN_N)
+- pin12: NETS(USB2_SS_TX_DN_CONN_P)
+- pin13: NETS(USB2_HS_DN_N)
+- pin14: NETS(USB2_HS_DN_P)
+
+R9 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_TX_UP_CONN_P)
+- pin2(cathode, neg, right): NETS(USB2_SS_TX_UP_MID_P)
+
+R10 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_TX_UP_CONN_N)
+- pin2(cathode, neg, right): NETS(USB2_SS_TX_UP_MID_N)
+
+R11 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_TX_DN_CONN_P)
+- pin2(cathode, neg, right): NETS(USB2_SS_TX_DN_MID_P)
+
+R12 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_TX_DN_CONN_N)
+- pin2(cathode, neg, right): NETS(USB2_SS_TX_DN_MID_N)
+
+R13 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_RX_DN_CONN_P)
+- pin2(cathode, neg, right): NETS(USB2_SS_RX_DN_MID_P)
+
+R14 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_RX_DN_CONN_N)
+- pin2(cathode, neg, right): NETS(USB2_SS_RX_DN_MID_N)
+
+R15 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_RX_UP_CONN_P)
+- pin2(cathode, neg, right): NETS(USB2_SS_RX_UP_MID_P)
+
+R16 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_RX_UP_CONN_N)
+- pin2(cathode, neg, right): NETS(USB2_SS_RX_UP_MID_N)
+
+C22 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB2_SS_TX_UP_MID_P)
+- pin2(neg, cathode, right): NETS(USB2_SS_TX_UP_IC_P)
+
+C23 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB2_SS_TX_UP_MID_N)
+- pin2(neg, cathode, right): NETS(USB2_SS_TX_UP_IC_N)
+
+C24 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB2_SS_TX_DN_IC_P)
+- pin2(neg, cathode, right): NETS(USB2_SS_TX_DN_MID_P)
+
+C25 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB2_SS_TX_DN_IC_N)
+- pin2(neg, cathode, right): NETS(USB2_SS_TX_DN_MID_N)
+
+C26 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB2_SS_RX_UP_IC_P)
+- pin2(neg, cathode, right): NETS(USB2_SS_RX_UP_MID_P)
+
+C27 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB2_SS_RX_UP_IC_N)
+- pin2(neg, cathode, right): NETS(USB2_SS_RX_UP_MID_N)
+
+C28 (330nF cap0402)
+- pin1(pos, anode, left): NETS(USB2_SS_RX_DN_MID_P)
+- pin2(neg, cathode, right): NETS(USB2_SS_RX_DN_IC_P)
+
+C29 (330nF cap0402)
+- pin1(pos, anode, left): NETS(USB2_SS_RX_DN_MID_N)
+- pin2(neg, cathode, right): NETS(USB2_SS_RX_DN_IC_N)
+
+R35 (220kΩ res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_RX_DN_IC_P)
+- pin2(cathode, neg, right): NETS(GND)
+
+R36 (220kΩ res0402)
+- pin1(anode, pos, left): NETS(USB2_SS_RX_DN_IC_N)
+- pin2(cathode, neg, right): NETS(GND)
+
+U8 (TUSB522PIRGER)
+- pin1(VCC1): NETS(N3V3)
+- pin2(EQ1): NETS(TUSB_EQ1)
+- pin3(DE2): NETS(TUSB_DE2)
+- pin4(OS2): NETS(TUSB_OS2)
+- pin5(EN_RXD): NETS(DATA_OK2)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8(RX1N): NETS(USB2_SS_TX_UP_IC_N)
+- pin9(RX1P): NETS(USB2_SS_TX_UP_IC_P)
+- pin10(GND1): NETS(GND)
+- pin11(TX2N): NETS(USB2_SS_RX_UP_IC_N)
+- pin12(TX2P): NETS(USB2_SS_RX_UP_IC_P)
+- pin13(VCC2): NETS(N3V3)
+- pin14(RSV): NOT_CONNECTED
+- pin15(OS1): NETS(TUSB_OS1)
+- pin16(DE1): NETS(TUSB_DE1)
+- pin17(EQ2): NETS(TUSB_EQ2)
+- pin18(NC18): NOT_CONNECTED
+- pin19(RX2P): NETS(USB2_SS_RX_DN_IC_P)
+- pin20(RX2N): NETS(USB2_SS_RX_DN_IC_N)
+- pin21(GND2): NETS(GND)
+- pin22(TX1P): NETS(USB2_SS_TX_DN_IC_P)
+- pin23(TX1N): NETS(USB2_SS_TX_DN_IC_N)
+- pin24(NC24): NOT_CONNECTED
+- pin25(EP): NETS(GND)
+
+C30 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C31 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C32 (10uF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U9 (TS3USB221ERSER)
+- pin1: NETS(USB2_HS_DN_P)
+- pin2: NETS(USB2_HS_DN_N)
+- pin3: NOT_CONNECTED
+- pin4: NOT_CONNECTED
+- pin5(GND): NETS(GND)
+- pin6(OE): NETS(USB2_OE2)
+- pin7: NETS(USB2_HS_UP_N)
+- pin8: NETS(USB2_HS_UP_P)
+- pin9(S): NETS(USB2_SEL2)
+- pin10(VCC): NETS(N3V3)
+
+C33 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+Q3 (2N7002-7-F)
+- pin1(G): NETS(DATA_OK2)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(USB2_OE2)
+
+R58 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(USB2_OE2)
+
+R62 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(USB2_SEL2)
+- pin2(cathode, neg, right): NETS(GND)
+
+U13 (SN74LVC1G08DCKR)
+- pin1(A): NETS(PWR_EN2)
+- pin2(B): NETS(DATA_EN2)
+- pin3(GND): NETS(GND)
+- pin4(Y): NETS(DATA_OK2)
+- pin5(VCC): NETS(N3V3)
+
+C35 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U10 (TPS2557DRBR)
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(PWR_EN2)
+- pin5(ILIM): NETS(ILIM2)
+- pin6(OUT1): NETS(VBUS2_SW)
+- pin7(OUT2): NETS(VBUS2_SW)
+- pin8(FAULT): NETS(VBUS_FAULT2_N)
+- pin9(EP): NETS(GND)
+
+C34 (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+R67 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R72 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(VBUS_FAULT2_N)
+
+C36 (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS2_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C37 (150uF cap0402)
+- pin1(pos, anode, left): NETS(VBUS2_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+J7 (692221030100)
+- pin1(VBUS_NC): NOT_CONNECTED
+- pin2: NETS(USB3_HS_UP_N)
+- pin3: NETS(USB3_HS_UP_P)
+- pin4(GND): NETS(GND)
+- pin5: NETS(USB3_SS_RX_UP_CONN_N)
+- pin6: NETS(USB3_SS_RX_UP_CONN_P)
+- pin7(GND_DRAIN): NETS(GND)
+- pin8: NETS(USB3_SS_TX_UP_CONN_N)
+- pin9: NETS(USB3_SS_TX_UP_CONN_P)
+- pin10(SHIELD): NETS(GND)
+
+J8 (692121030100)
+- pin1(VBUS): NETS(VBUS3_SW)
+- pin2: NETS(USB3_HS_DN_N)
+- pin3: NETS(USB3_HS_DN_P)
+- pin4(GND): NETS(GND)
+- pin5: NETS(USB3_SS_RX_DN_CONN_N)
+- pin6: NETS(USB3_SS_RX_DN_CONN_P)
+- pin7(GND_DRAIN): NETS(GND)
+- pin8: NETS(USB3_SS_TX_DN_CONN_N)
+- pin9: NETS(USB3_SS_TX_DN_CONN_P)
+- pin10(SHIELD): NETS(GND)
+
+U17 (TPD6E05U06RVZR)
+- pin1(NC1): NOT_CONNECTED
+- pin2(NC2): NOT_CONNECTED
+- pin3(NC3): NOT_CONNECTED
+- pin4(NC4): NOT_CONNECTED
+- pin5(GND1): NETS(GND)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8: NETS(USB3_SS_RX_UP_CONN_N)
+- pin9: NETS(USB3_SS_RX_UP_CONN_P)
+- pin10(GND2): NETS(GND)
+- pin11: NETS(USB3_SS_TX_UP_CONN_N)
+- pin12: NETS(USB3_SS_TX_UP_CONN_P)
+- pin13: NETS(USB3_HS_UP_N)
+- pin14: NETS(USB3_HS_UP_P)
+
+U18 (TPD6E05U06RVZR)
+- pin1(NC1): NOT_CONNECTED
+- pin2(NC2): NOT_CONNECTED
+- pin3(NC3): NOT_CONNECTED
+- pin4(NC4): NOT_CONNECTED
+- pin5(GND1): NETS(GND)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8: NETS(USB3_SS_RX_DN_CONN_N)
+- pin9: NETS(USB3_SS_RX_DN_CONN_P)
+- pin10(GND2): NETS(GND)
+- pin11: NETS(USB3_SS_TX_DN_CONN_N)
+- pin12: NETS(USB3_SS_TX_DN_CONN_P)
+- pin13: NETS(USB3_HS_DN_N)
+- pin14: NETS(USB3_HS_DN_P)
+
+R17 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_TX_UP_CONN_P)
+- pin2(cathode, neg, right): NETS(USB3_SS_TX_UP_MID_P)
+
+R18 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_TX_UP_CONN_N)
+- pin2(cathode, neg, right): NETS(USB3_SS_TX_UP_MID_N)
+
+R19 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_TX_DN_CONN_P)
+- pin2(cathode, neg, right): NETS(USB3_SS_TX_DN_MID_P)
+
+R20 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_TX_DN_CONN_N)
+- pin2(cathode, neg, right): NETS(USB3_SS_TX_DN_MID_N)
+
+R21 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_RX_DN_CONN_P)
+- pin2(cathode, neg, right): NETS(USB3_SS_RX_DN_MID_P)
+
+R22 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_RX_DN_CONN_N)
+- pin2(cathode, neg, right): NETS(USB3_SS_RX_DN_MID_N)
+
+R23 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_RX_UP_CONN_P)
+- pin2(cathode, neg, right): NETS(USB3_SS_RX_UP_MID_P)
+
+R24 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_RX_UP_CONN_N)
+- pin2(cathode, neg, right): NETS(USB3_SS_RX_UP_MID_N)
+
+C38 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB3_SS_TX_UP_MID_P)
+- pin2(neg, cathode, right): NETS(USB3_SS_TX_UP_IC_P)
+
+C39 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB3_SS_TX_UP_MID_N)
+- pin2(neg, cathode, right): NETS(USB3_SS_TX_UP_IC_N)
+
+C40 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB3_SS_TX_DN_IC_P)
+- pin2(neg, cathode, right): NETS(USB3_SS_TX_DN_MID_P)
+
+C41 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB3_SS_TX_DN_IC_N)
+- pin2(neg, cathode, right): NETS(USB3_SS_TX_DN_MID_N)
+
+C42 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB3_SS_RX_UP_IC_P)
+- pin2(neg, cathode, right): NETS(USB3_SS_RX_UP_MID_P)
+
+C43 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB3_SS_RX_UP_IC_N)
+- pin2(neg, cathode, right): NETS(USB3_SS_RX_UP_MID_N)
+
+C44 (330nF cap0402)
+- pin1(pos, anode, left): NETS(USB3_SS_RX_DN_MID_P)
+- pin2(neg, cathode, right): NETS(USB3_SS_RX_DN_IC_P)
+
+C45 (330nF cap0402)
+- pin1(pos, anode, left): NETS(USB3_SS_RX_DN_MID_N)
+- pin2(neg, cathode, right): NETS(USB3_SS_RX_DN_IC_N)
+
+R37 (220kΩ res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_RX_DN_IC_P)
+- pin2(cathode, neg, right): NETS(GND)
+
+R38 (220kΩ res0402)
+- pin1(anode, pos, left): NETS(USB3_SS_RX_DN_IC_N)
+- pin2(cathode, neg, right): NETS(GND)
+
+U14 (TUSB522PIRGER)
+- pin1(VCC1): NETS(N3V3)
+- pin2(EQ1): NETS(TUSB_EQ1)
+- pin3(DE2): NETS(TUSB_DE2)
+- pin4(OS2): NETS(TUSB_OS2)
+- pin5(EN_RXD): NETS(DATA_OK3)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8(RX1N): NETS(USB3_SS_TX_UP_IC_N)
+- pin9(RX1P): NETS(USB3_SS_TX_UP_IC_P)
+- pin10(GND1): NETS(GND)
+- pin11(TX2N): NETS(USB3_SS_RX_UP_IC_N)
+- pin12(TX2P): NETS(USB3_SS_RX_UP_IC_P)
+- pin13(VCC2): NETS(N3V3)
+- pin14(RSV): NOT_CONNECTED
+- pin15(OS1): NETS(TUSB_OS1)
+- pin16(DE1): NETS(TUSB_DE1)
+- pin17(EQ2): NETS(TUSB_EQ2)
+- pin18(NC18): NOT_CONNECTED
+- pin19(RX2P): NETS(USB3_SS_RX_DN_IC_P)
+- pin20(RX2N): NETS(USB3_SS_RX_DN_IC_N)
+- pin21(GND2): NETS(GND)
+- pin22(TX1P): NETS(USB3_SS_TX_DN_IC_P)
+- pin23(TX1N): NETS(USB3_SS_TX_DN_IC_N)
+- pin24(NC24): NOT_CONNECTED
+- pin25(EP): NETS(GND)
+
+C46 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C47 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C48 (10uF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U15 (TS3USB221ERSER)
+- pin1: NETS(USB3_HS_DN_P)
+- pin2: NETS(USB3_HS_DN_N)
+- pin3: NOT_CONNECTED
+- pin4: NOT_CONNECTED
+- pin5(GND): NETS(GND)
+- pin6(OE): NETS(USB2_OE3)
+- pin7: NETS(USB3_HS_UP_N)
+- pin8: NETS(USB3_HS_UP_P)
+- pin9(S): NETS(USB2_SEL3)
+- pin10(VCC): NETS(N3V3)
+
+C49 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+Q4 (2N7002-7-F)
+- pin1(G): NETS(DATA_OK3)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(USB2_OE3)
+
+R59 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(USB2_OE3)
+
+R63 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(USB2_SEL3)
+- pin2(cathode, neg, right): NETS(GND)
+
+U19 (SN74LVC1G08DCKR)
+- pin1(A): NETS(PWR_EN3)
+- pin2(B): NETS(DATA_EN3)
+- pin3(GND): NETS(GND)
+- pin4(Y): NETS(DATA_OK3)
+- pin5(VCC): NETS(N3V3)
+
+C51 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U16 (TPS2557DRBR)
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(PWR_EN3)
+- pin5(ILIM): NETS(ILIM3)
+- pin6(OUT1): NETS(VBUS3_SW)
+- pin7(OUT2): NETS(VBUS3_SW)
+- pin8(FAULT): NETS(VBUS_FAULT3_N)
+- pin9(EP): NETS(GND)
+
+C50 (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+R68 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM3)
+- pin2(cathode, neg, right): NETS(GND)
+
+R73 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(VBUS_FAULT3_N)
+
+C52 (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS3_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C53 (150uF cap0402)
+- pin1(pos, anode, left): NETS(VBUS3_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+J9 (692221030100)
+- pin1(VBUS_NC): NOT_CONNECTED
+- pin2: NETS(USB4_HS_UP_N)
+- pin3: NETS(USB4_HS_UP_P)
+- pin4(GND): NETS(GND)
+- pin5: NETS(USB4_SS_RX_UP_CONN_N)
+- pin6: NETS(USB4_SS_RX_UP_CONN_P)
+- pin7(GND_DRAIN): NETS(GND)
+- pin8: NETS(USB4_SS_TX_UP_CONN_N)
+- pin9: NETS(USB4_SS_TX_UP_CONN_P)
+- pin10(SHIELD): NETS(GND)
+
+J10 (692121030100)
+- pin1(VBUS): NETS(VBUS4_SW)
+- pin2: NETS(USB4_HS_DN_N)
+- pin3: NETS(USB4_HS_DN_P)
+- pin4(GND): NETS(GND)
+- pin5: NETS(USB4_SS_RX_DN_CONN_N)
+- pin6: NETS(USB4_SS_RX_DN_CONN_P)
+- pin7(GND_DRAIN): NETS(GND)
+- pin8: NETS(USB4_SS_TX_DN_CONN_N)
+- pin9: NETS(USB4_SS_TX_DN_CONN_P)
+- pin10(SHIELD): NETS(GND)
+
+U23 (TPD6E05U06RVZR)
+- pin1(NC1): NOT_CONNECTED
+- pin2(NC2): NOT_CONNECTED
+- pin3(NC3): NOT_CONNECTED
+- pin4(NC4): NOT_CONNECTED
+- pin5(GND1): NETS(GND)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8: NETS(USB4_SS_RX_UP_CONN_N)
+- pin9: NETS(USB4_SS_RX_UP_CONN_P)
+- pin10(GND2): NETS(GND)
+- pin11: NETS(USB4_SS_TX_UP_CONN_N)
+- pin12: NETS(USB4_SS_TX_UP_CONN_P)
+- pin13: NETS(USB4_HS_UP_N)
+- pin14: NETS(USB4_HS_UP_P)
+
+U24 (TPD6E05U06RVZR)
+- pin1(NC1): NOT_CONNECTED
+- pin2(NC2): NOT_CONNECTED
+- pin3(NC3): NOT_CONNECTED
+- pin4(NC4): NOT_CONNECTED
+- pin5(GND1): NETS(GND)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8: NETS(USB4_SS_RX_DN_CONN_N)
+- pin9: NETS(USB4_SS_RX_DN_CONN_P)
+- pin10(GND2): NETS(GND)
+- pin11: NETS(USB4_SS_TX_DN_CONN_N)
+- pin12: NETS(USB4_SS_TX_DN_CONN_P)
+- pin13: NETS(USB4_HS_DN_N)
+- pin14: NETS(USB4_HS_DN_P)
+
+R25 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_TX_UP_CONN_P)
+- pin2(cathode, neg, right): NETS(USB4_SS_TX_UP_MID_P)
+
+R26 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_TX_UP_CONN_N)
+- pin2(cathode, neg, right): NETS(USB4_SS_TX_UP_MID_N)
+
+R27 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_TX_DN_CONN_P)
+- pin2(cathode, neg, right): NETS(USB4_SS_TX_DN_MID_P)
+
+R28 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_TX_DN_CONN_N)
+- pin2(cathode, neg, right): NETS(USB4_SS_TX_DN_MID_N)
+
+R29 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_RX_DN_CONN_P)
+- pin2(cathode, neg, right): NETS(USB4_SS_RX_DN_MID_P)
+
+R30 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_RX_DN_CONN_N)
+- pin2(cathode, neg, right): NETS(USB4_SS_RX_DN_MID_N)
+
+R31 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_RX_UP_CONN_P)
+- pin2(cathode, neg, right): NETS(USB4_SS_RX_UP_MID_P)
+
+R32 (2.2Ω res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_RX_UP_CONN_N)
+- pin2(cathode, neg, right): NETS(USB4_SS_RX_UP_MID_N)
+
+C54 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB4_SS_TX_UP_MID_P)
+- pin2(neg, cathode, right): NETS(USB4_SS_TX_UP_IC_P)
+
+C55 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB4_SS_TX_UP_MID_N)
+- pin2(neg, cathode, right): NETS(USB4_SS_TX_UP_IC_N)
+
+C56 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB4_SS_TX_DN_IC_P)
+- pin2(neg, cathode, right): NETS(USB4_SS_TX_DN_MID_P)
+
+C57 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB4_SS_TX_DN_IC_N)
+- pin2(neg, cathode, right): NETS(USB4_SS_TX_DN_MID_N)
+
+C58 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB4_SS_RX_UP_IC_P)
+- pin2(neg, cathode, right): NETS(USB4_SS_RX_UP_MID_P)
+
+C59 (100nF cap0402)
+- pin1(pos, anode, left): NETS(USB4_SS_RX_UP_IC_N)
+- pin2(neg, cathode, right): NETS(USB4_SS_RX_UP_MID_N)
+
+C60 (330nF cap0402)
+- pin1(pos, anode, left): NETS(USB4_SS_RX_DN_MID_P)
+- pin2(neg, cathode, right): NETS(USB4_SS_RX_DN_IC_P)
+
+C61 (330nF cap0402)
+- pin1(pos, anode, left): NETS(USB4_SS_RX_DN_MID_N)
+- pin2(neg, cathode, right): NETS(USB4_SS_RX_DN_IC_N)
+
+R39 (220kΩ res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_RX_DN_IC_P)
+- pin2(cathode, neg, right): NETS(GND)
+
+R40 (220kΩ res0402)
+- pin1(anode, pos, left): NETS(USB4_SS_RX_DN_IC_N)
+- pin2(cathode, neg, right): NETS(GND)
+
+U20 (TUSB522PIRGER)
+- pin1(VCC1): NETS(N3V3)
+- pin2(EQ1): NETS(TUSB_EQ1)
+- pin3(DE2): NETS(TUSB_DE2)
+- pin4(OS2): NETS(TUSB_OS2)
+- pin5(EN_RXD): NETS(DATA_OK4)
+- pin6(NC6): NOT_CONNECTED
+- pin7(NC7): NOT_CONNECTED
+- pin8(RX1N): NETS(USB4_SS_TX_UP_IC_N)
+- pin9(RX1P): NETS(USB4_SS_TX_UP_IC_P)
+- pin10(GND1): NETS(GND)
+- pin11(TX2N): NETS(USB4_SS_RX_UP_IC_N)
+- pin12(TX2P): NETS(USB4_SS_RX_UP_IC_P)
+- pin13(VCC2): NETS(N3V3)
+- pin14(RSV): NOT_CONNECTED
+- pin15(OS1): NETS(TUSB_OS1)
+- pin16(DE1): NETS(TUSB_DE1)
+- pin17(EQ2): NETS(TUSB_EQ2)
+- pin18(NC18): NOT_CONNECTED
+- pin19(RX2P): NETS(USB4_SS_RX_DN_IC_P)
+- pin20(RX2N): NETS(USB4_SS_RX_DN_IC_N)
+- pin21(GND2): NETS(GND)
+- pin22(TX1P): NETS(USB4_SS_TX_DN_IC_P)
+- pin23(TX1N): NETS(USB4_SS_TX_DN_IC_N)
+- pin24(NC24): NOT_CONNECTED
+- pin25(EP): NETS(GND)
+
+C62 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C63 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C64 (10uF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U21 (TS3USB221ERSER)
+- pin1: NETS(USB4_HS_DN_P)
+- pin2: NETS(USB4_HS_DN_N)
+- pin3: NOT_CONNECTED
+- pin4: NOT_CONNECTED
+- pin5(GND): NETS(GND)
+- pin6(OE): NETS(USB2_OE4)
+- pin7: NETS(USB4_HS_UP_N)
+- pin8: NETS(USB4_HS_UP_P)
+- pin9(S): NETS(USB2_SEL4)
+- pin10(VCC): NETS(N3V3)
+
+C65 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+Q5 (2N7002-7-F)
+- pin1(G): NETS(DATA_OK4)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(USB2_OE4)
+
+R60 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(USB2_OE4)
+
+R64 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(USB2_SEL4)
+- pin2(cathode, neg, right): NETS(GND)
+
+U25 (SN74LVC1G08DCKR)
+- pin1(A): NETS(PWR_EN4)
+- pin2(B): NETS(DATA_EN4)
+- pin3(GND): NETS(GND)
+- pin4(Y): NETS(DATA_OK4)
+- pin5(VCC): NETS(N3V3)
+
+C67 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+U22 (TPS2557DRBR)
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(PWR_EN4)
+- pin5(ILIM): NETS(ILIM4)
+- pin6(OUT1): NETS(VBUS4_SW)
+- pin7(OUT2): NETS(VBUS4_SW)
+- pin8(FAULT): NETS(VBUS_FAULT4_N)
+- pin9(EP): NETS(GND)
+
+C66 (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+R69 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM4)
+- pin2(cathode, neg, right): NETS(GND)
+
+R74 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(VBUS_FAULT4_N)
+
+C68 (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS4_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C69 (150uF cap0402)
+- pin1(pos, anode, left): NETS(VBUS4_SW)
+- pin2(neg, cathode, right): NETS(GND)

@@ -105,6 +105,15 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     project = Path(args.project).resolve()
     contract = project / "03_src/rules/control_protocol.yaml"
+    # Hardware-only projects intentionally have no control protocol and must
+    # not be forced to mint firmware/decoder artifacts merely because the
+    # canonical PCB driver runs its source gates. Keep this applicability
+    # decision identical to control_protocol_check.py: absence is explicit
+    # 0/0 N-A, while a present but malformed contract still fails closed.
+    if not contract.is_file():
+        print(f"CONTROL-PROFILE N-A: no {contract}; 0/0 generated consumer "
+              "artifact(s) required")
+        return 0
     try:
         data = load(contract)
         failures, summary = grade(data)

@@ -895,22 +895,20 @@ def main(argv=None):
         got = extract_body(im.load(), im.size, win, seed,
                            blocked=blocked, protect=own,
                            bare_px=bare_im.load() if bare_im else None)
-        # A same-colour occlusion can vanish from an RGB difference (a white
-        # connector shell over white silkscreen). Union the independently
-        # colour-classified component with the delta component. On capacitors
-        # the delta supplies the tan body the old channel missed; on white
-        # shells the legacy channel supplies the coincident edge the delta
-        # necessarily cannot see.
+        # The same-camera delta is the independent measurement and therefore
+        # wins whenever it resolves a body.  The legacy low-saturation channel
+        # is only a recovery path when the delta is absent or below the pixel
+        # floor.  Unconditionally UNIONING the two used to let unchanged
+        # low-saturation board features contaminate a clean delta component:
+        # on pi-usb-port-switch, the four large through-hole USB shells had
+        # faithful delta boxes (<=0.08 mm edge error), while the legacy flood
+        # reached their exposed shell pads/board pixels and invented a 1.53 mm
+        # outward excursion.  A secondary heuristic must not overrule the
+        # controlled populated-minus-bare observation.
         if bare_im is not None:
             legacy = extract_body(im.load(), im.size, win, seed,
                                   blocked=blocked, protect=own)
-            if got and legacy:
-                gb, gn, gt = got
-                lb, ln, lt = legacy
-                got = ((min(gb[0], lb[0]), min(gb[1], lb[1]),
-                        max(gb[2], lb[2]), max(gb[3], lb[3])),
-                       gn + ln, gt or lt)
-            elif legacy:
+            if (got is None or got[1] < MIN_BODY_PX) and legacy:
                 got = legacy
         if got is None:
             unmeasured[ref] = ("no body pixels anywhere in the expected "

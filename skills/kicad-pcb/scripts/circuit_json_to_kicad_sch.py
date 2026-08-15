@@ -407,6 +407,9 @@ def load_model(path, aliases=None, overrides=None, return_ports=False, ties=None
         is_tp = c.get('ftype') == 'simple_test_point' or refdes.startswith('TP')
         codes = [code for v in (c.get('supplier_part_numbers') or {}).values()
                  for code in (v or [])]
+        manufacturer_mpn = c.get('manufacturer_part_number')
+        if manufacturer_mpn:
+            codes.append(str(manufacturer_mpn))
         pin_tuples = [(pad, v["port"], v["net"]) for pad, v in ordered]
         # EXTRA PINS from 02_parts `tie:` annotations. A tie pad tscircuit's
         # footprint can't express (an exposed thermal pad) is ABSENT from
@@ -464,7 +467,7 @@ def comp_mpn(c):
     for v in sp.values():
         if v:
             return v[0]
-    return ""
+    return c.get('manufacturer_part_number') or ""
 
 
 # ------------------------------------------------------------------ layout

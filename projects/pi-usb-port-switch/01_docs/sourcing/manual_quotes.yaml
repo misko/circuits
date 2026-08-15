@@ -1,0 +1,104 @@
+# Human-read distributor evidence for exact lines not graded as orderable by
+# the configured Mouser API. Stock and price are dated observations; re-read
+# every product page on order day.
+quotes:
+  - mpn: 029707.5WXNV
+    manufacturer: Littelfuse
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/littelfuse-inc/029707-5WXNV/146586"
+    read_on: 2026-08-14
+    dpn: F990-ND
+    stock: 51496
+    min: 1
+    mult: 1
+    lifecycle: Active
+    price_breaks:
+      - {qty: 1, usd: 0.39}
+      - {qty: 5, usd: 0.326}
+      - {qty: 10, usd: 0.301}
+      - {qty: 50, usd: 0.2494}
+    note: >-
+      Exact Littelfuse manufacturer MPN, active status, bulk order code, stock
+      and price ladder read directly from the DigiKey product page; search
+      snippets were not used.
+
+  - mpn: "692121030100"
+    manufacturer: Wurth Elektronik
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/w%C3%BCrth-elektronik/692121030100/2627262"
+    read_on: 2026-08-14
+    dpn: 732-692121030100CT-ND
+    stock: 5644
+    min: 1
+    mult: 1
+    lifecycle: Active
+    price_breaks:
+      - {qty: 1, usd: 3.06}
+      - {qty: 10, usd: 2.701}
+      - {qty: 50, usd: 2.545}
+      - {qty: 100, usd: 2.286}
+    note: >-
+      Exact Wurth USB 3 Type-A through-hole receptacle MPN and cut-tape DPN
+      read directly from the DigiKey product page.
+
+  - mpn: "692221030100"
+    manufacturer: Wurth Elektronik
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/w%C3%BCrth-elektronik/692221030100/2627274"
+    read_on: 2026-08-14
+    dpn: 732-3158-ND
+    stock: 4656
+    min: 1
+    mult: 1
+    lifecycle: Active
+    price_breaks:
+      - {qty: 1, usd: 4.21}
+      - {qty: 10, usd: 3.715}
+      - {qty: 50, usd: 3.5008}
+      - {qty: 100, usd: 3.1445}
+    note: >-
+      Exact Wurth USB 3 Type-B through-hole receptacle MPN and tray DPN read
+      directly from the DigiKey product page.
+
+  - mpn: CL05A106MQ5NUNC
+    manufacturer: Samsung Electro-Mechanics
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/samsung-electro-mechanics/CL05A106MQ5NUNC/3887109"
+    read_on: 2026-08-14
+    dpn: 1276-1451-1-ND
+    stock: 279541
+    min: 1
+    mult: 1
+    lifecycle: Active
+    price_breaks:
+      - {qty: 1, usd: 0.23}
+      - {qty: 10, usd: 0.13}
+      - {qty: 50, usd: 0.0928}
+      - {qty: 100, usd: 0.0815}
+    note: >-
+      Exact Samsung 10uF 6.3V X5R 0402 MPN and cut-tape DPN read directly
+      from the DigiKey product page.
+
+  - mpn: TLV76133DCYR
+    manufacturer: Texas Instruments
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/texas-instruments/TLV76133DCYR/18716472"
+    read_on: 2026-08-14
+    dpn: 296-TLV76133DCYRCT-ND
+    stock: 1241
+    min: 1
+    mult: 1
+    lifecycle: Active
+    price_breaks:
+      - {qty: 1, usd: 0.55}
+      - {qty: 10, usd: 0.39}
+      - {qty: 25, usd: 0.3492}
+      - {qty: 100, usd: 0.3038}
+    note: >-
+      Exact TI fixed 3.3V SOT-223-4 MPN and cut-tape DPN read directly from
+      the DigiKey product page.

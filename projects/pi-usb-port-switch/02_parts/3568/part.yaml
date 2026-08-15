@@ -1,0 +1,32 @@
+mpn: "3568"
+manufacturer: Keystone Electronics
+type: mini_automotive_blade_fuse_holder
+datasheet:
+  doc_id: M65p42
+  revision: 2024 catalog drawing
+  url: https://www.keyelco.com/product.cfm/product_id/306
+  local: M65p42.pdf
+  sha256: caa141ea51ac68cf80ab6e14ad2075fcfc76206451f4bfe45330005c0deaf395
+  fetched: 2026-08-14
+  provenance: "adopted byte-for-byte from the repository's pinned manufacturer drawing and independently re-read"
+package: horizontal through-hole MINI blade fuse holder
+footprint: pi_usb_port_switch:Keystone_3568_Mini_Blade_Fuse_Holder
+escape: {style: connector, pitch: 7.62, tier_required: jlc_2layer_default, checked: "manufacturer land-pattern review 2026-08-14"}
+pins:
+  1: FUSE_A
+  2: FUSE_B
+limits:
+  holder_current: 30A
+  fuse_series: "MINI blade 297/ATM"
+gotchas:
+  - "Populate one user-replaceable Littelfuse 029707.5WXNV 7.5A fuse after assembly. The holder and fuse are separate line items."
+  - "The complete holder has four solder terminals representing two electrical contacts. The custom footprint must preserve all four mechanical/electrical holes rather than reducing it to two clips."
+verified: "Keystone drawing M65 p.42, exact catalog 3568, dimensions and 30A holder rating independently re-read 2026-08-14."
+layout:
+  source: "Keystone drawing M65 p.42"
+  reviewed: 2026-08-14
+  notes:
+    - "Place between input terminal and reverse-polarity MOSFET with fuse accessible from the top and with its removal envelope clear. Use broad copper on both contacts."
+layout_refs:
+  - "Keystone M65 p.42 exact 3568 holder drawing"
+sourcing: {lcsc: C5249699, alternates: [], note: "THT/hand-assembly candidate; confirm JLC THT service before assigning placement"}

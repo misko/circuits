@@ -1,0 +1,20 @@
+# RF-module applicability is explicit. This board has controlled-impedance
+# high-speed DIGITAL differential links, but no intentional single-ended RF,
+# phase-coherent, microwave, antenna, or via-fenced transmission-line network.
+#
+# USB SI is not ungoverned: rules/nets.yaml inventories all 112 high-speed
+# nets; route.yaml contracts all 56 P/N segments to 0.25/0.18-mm, F.Cu-only,
+# zero-via differential waves over solid In1.Cu; critical_route_check.py,
+# KiCad differential rules, realized copper/skew review, JLC impedance echo,
+# and first-article USB 2/3 qualification are blocking. The RF module is kept
+# off because its route-bank and ground-fence semantics model a different
+# physical structure and would be false evidence for edge-coupled USB pairs.
+schema: 1
+rf:
+  enabled: false
+  rationale: >-
+    No intentional RF port or RF transmission-line network exists. USB 3 Gen
+    1 and USB 2 are high-speed digital differential interfaces governed by the
+    dedicated USB pair, impedance, return-path, realized-skew and first-article
+    contracts; the RF module's single-ended route-bank and via-fence model is
+    not electrically applicable.

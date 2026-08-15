@@ -1779,6 +1779,17 @@ class BoardBuilder:
                 zone.SetAssignedPriority(int(z.get("priority", 0)))
                 zone.SetMinThickness(pcbnew.FromMM(float(z.get("min_thickness", 0.25))))
                 zone.SetLocalClearance(pcbnew.FromMM(float(z.get("clearance", 0.25))))
+                # KiCad's zone defaults are 0.50 mm for both values.  That is
+                # too coarse for common 0402/fine-pitch layouts and silently
+                # turns otherwise legal thermal connections into
+                # `starved_thermal` DRC failures.  Keep the default unless the
+                # board source declares a manufacturing-qualified geometry.
+                if "thermal_gap" in z:
+                    zone.SetThermalReliefGap(
+                        pcbnew.FromMM(float(z["thermal_gap"])))
+                if "thermal_spoke_width" in z:
+                    zone.SetThermalReliefSpokeWidth(
+                        pcbnew.FromMM(float(z["thermal_spoke_width"])))
                 zone.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL
                                       if z.get("connect") == "full"
                                       else pcbnew.ZONE_CONNECTION_THERMAL)

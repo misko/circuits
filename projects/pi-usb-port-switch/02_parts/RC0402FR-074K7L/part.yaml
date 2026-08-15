@@ -1,0 +1,13 @@
+mpn: RC0402FR-074K7L
+manufacturer: YAGEO
+type: thick_film_resistor
+datasheet: {doc_id: RC0402FR-074K7L-spec, revision: "generated 2026-08-14", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-074K7L", local: RC0402FR-074K7L.pdf, sha256: 70059366a90702ccd94964056b48b42a111ab1ffbdcfbf0f88ae15dcf8edbbe3, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {resistance: 4.7kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas: ["One populated 4.7kohm pull-down fixes each of the six global TUSB522P EQ1/EQ2/DE1/DE2/OS1/OS2 strap nets low. This revision has no optional pull-up footprints; changing a strap is a schematic/BOM revision, not a population improvisation."]
+verified: "Exact YAGEO generated specification independently read for MPN, 4.7kohm, 1%, 0402 and dimensions on 2026-08-14."
+layout: {source: "TUSB522P SLLSEV9E strap tables plus four-device parallel-pull audit", reviewed: 2026-08-14, notes: ["Keep each global strap pull pair together in the configuration area and label the selected state."]}
+sourcing: {lcsc: C105871, alternates: []}

@@ -1,0 +1,4 @@
+JLCPCB VIA PROCESS — GENERATED; DO NOT RE-TYPE
+Source: /home/mouse9911/gits/circuits/projects/pi-usb-port-switch/03_src/rules/assembly.yaml
+Order remark: Copper-paste fill and copper cap the complete 0.25 mm drill family only: these are the 61 realized protected 0.35/0.25 mm via-in-pad barrels. Do not fill or cap ordinary 0.20 mm or 0.30 mm drill routing, stitching, signal-transition, plane-return, or power-transfer vias.
+Uploader confirmation required: YES

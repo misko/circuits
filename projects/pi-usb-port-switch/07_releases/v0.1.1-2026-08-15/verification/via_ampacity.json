@@ -1,0 +1,172 @@
+{
+  "board": "/home/mouse9911/gits/circuits/projects/pi-usb-port-switch/04_kicad/pi_usb_port_switch.kicad_pcb",
+  "board_sha256": "d4bc778c1c80453ec7b198e1bf428b22cb03d414c4a0d86c89ab74d6facc4094",
+  "capacity_by_finished_hole_mm": {
+    "0.2": 0.55,
+    "0.25": 0.81,
+    "0.3": 0.84
+  },
+  "failures": [],
+  "gate": "A-VIA",
+  "method": "sum published 10 C-rise capacity by finished hole; no credit for fill material",
+  "route_contract": "/home/mouse9911/gits/circuits/projects/pi-usb-port-switch/03_src/route.yaml",
+  "schema": 1,
+  "source": "Texas Instruments SLVA959B Rev B, Table 3-1 (IPC-2152): https://www.ti.com/lit/an/slva959b/slva959b.pdf",
+  "temperature_rise_c": 10.0,
+  "transfers": [
+    {
+      "credited_capacity_a": 6.72,
+      "finished_hole_census_mm": {
+        "0.300": 8
+      },
+      "name": "protected_5v_header_bank",
+      "net": "P5V_PROTECTED",
+      "rect_mm": [
+        90.0,
+        24.8,
+        94.0,
+        29.9
+      ],
+      "required_continuous_a": 4.05,
+      "via_count": 8,
+      "why": "all four 0.9 A ports plus 0.45 A local logic cross from the F.Cu protection island to the B.Cu distributor"
+    },
+    {
+      "credited_capacity_a": 1.62,
+      "finished_hole_census_mm": {
+        "0.250": 2
+      },
+      "name": "port1_input_drop",
+      "net": "P5V_PROTECTED",
+      "rect_mm": [
+        135.2,
+        52.1,
+        136.8,
+        52.8
+      ],
+      "required_continuous_a": 0.9,
+      "via_count": 2,
+      "why": "TPS2557 channel-1 input island to protected distributor"
+    },
+    {
+      "credited_capacity_a": 1.62,
+      "finished_hole_census_mm": {
+        "0.250": 2
+      },
+      "name": "port2_input_drop",
+      "net": "P5V_PROTECTED",
+      "rect_mm": [
+        135.2,
+        80.1,
+        136.8,
+        80.8
+      ],
+      "required_continuous_a": 0.9,
+      "via_count": 2,
+      "why": "TPS2557 channel-2 input island to protected distributor"
+    },
+    {
+      "credited_capacity_a": 1.62,
+      "finished_hole_census_mm": {
+        "0.250": 2
+      },
+      "name": "port3_input_drop",
+      "net": "P5V_PROTECTED",
+      "rect_mm": [
+        135.2,
+        108.1,
+        136.8,
+        108.8
+      ],
+      "required_continuous_a": 0.9,
+      "via_count": 2,
+      "why": "TPS2557 channel-3 input island to protected distributor"
+    },
+    {
+      "credited_capacity_a": 1.62,
+      "finished_hole_census_mm": {
+        "0.250": 2
+      },
+      "name": "port4_input_drop",
+      "net": "P5V_PROTECTED",
+      "rect_mm": [
+        135.2,
+        136.1,
+        136.8,
+        136.8
+      ],
+      "required_continuous_a": 0.9,
+      "via_count": 2,
+      "why": "TPS2557 channel-4 input island to protected distributor"
+    },
+    {
+      "credited_capacity_a": 1.1,
+      "finished_hole_census_mm": {
+        "0.200": 2
+      },
+      "name": "port1_output_drop",
+      "net": "VBUS1_SW",
+      "rect_mm": [
+        142.0,
+        53.0,
+        143.5,
+        53.8
+      ],
+      "required_continuous_a": 0.9,
+      "via_count": 2,
+      "why": "channel-1 F.Cu output collector to B.Cu connector branch"
+    },
+    {
+      "credited_capacity_a": 1.1,
+      "finished_hole_census_mm": {
+        "0.200": 2
+      },
+      "name": "port2_output_drop",
+      "net": "VBUS2_SW",
+      "rect_mm": [
+        142.0,
+        81.0,
+        143.5,
+        81.8
+      ],
+      "required_continuous_a": 0.9,
+      "via_count": 2,
+      "why": "channel-2 F.Cu output collector to B.Cu connector branch"
+    },
+    {
+      "credited_capacity_a": 1.1,
+      "finished_hole_census_mm": {
+        "0.200": 2
+      },
+      "name": "port3_output_drop",
+      "net": "VBUS3_SW",
+      "rect_mm": [
+        142.0,
+        109.0,
+        143.5,
+        109.8
+      ],
+      "required_continuous_a": 0.9,
+      "via_count": 2,
+      "why": "channel-3 F.Cu output collector to B.Cu connector branch"
+    },
+    {
+      "credited_capacity_a": 1.1,
+      "finished_hole_census_mm": {
+        "0.200": 2
+      },
+      "name": "port4_output_drop",
+      "net": "VBUS4_SW",
+      "rect_mm": [
+        142.0,
+        137.0,
+        143.5,
+        137.8
+      ],
+      "required_continuous_a": 0.9,
+      "via_count": 2,
+      "why": "channel-4 F.Cu output collector to B.Cu connector branch"
+    }
+  ],
+  "verdict": "PASS"
+}

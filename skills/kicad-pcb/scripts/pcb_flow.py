@@ -776,10 +776,14 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
             "--board", ctx.board_id, "--skip-drc", "--phase", "placement"]))
         placement_index = next(i for i, row in enumerate(commands)
                                if row[0] == "placement_policy") + 1
-        commands.insert(placement_index, ("route_prep", [
+        commands.insert(placement_index, ("rf_placement", [
+            KPY, str(SCRIPTS / "rf_check.py"), "source", str(ctx.root),
+            "--require-geometry", "--out",
+            str(ctx.root / "06_build/rf/placement")]))
+        commands.insert(placement_index + 1, ("route_prep", [
             KPY, str(SCRIPTS / "route_and_stitch_generic.py"), "prep",
             str(ctx.route_path)]))
-        commands.insert(placement_index + 1, ("pre_route_placement", [
+        commands.insert(placement_index + 2, ("pre_route_placement", [
             KPY, str(SCRIPTS / "pre_route_review_check.py"), str(ctx.root),
             "--phase", "placement", "--board", str(ctx.board)]))
     return commands
@@ -951,7 +955,7 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
     after = preflight_commands(ctx, include_land=True)
     post_board = [row for row in after if row[0] in (
         "placement_clearance", "critical_pair_map", "escape_lands",
-        "pad_separation", "placement_policy")]
+        "pad_separation", "placement_policy", "rf_placement")]
     # PR-REVIEW's placement witness is intentionally bound to the exact
     # track-free board. The canonical rebuild grades it before route import.
     # Re-running that checker here, after the driver has added routed copper,
