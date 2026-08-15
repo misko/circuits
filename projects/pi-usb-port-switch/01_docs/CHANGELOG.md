@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.1-2026-08-15
+
+- Packaging-only corrective release after the publication boundary found that
+  v0.1.0 had rewritten custom 3D-model paths inside its archived PCB. Copper,
+  schematic connectivity, fabrication files, BOM/CPL, STEP and reviewed live
+  board remain unchanged.
+- Preserve `source/pi_usb_port_switch.kicad_pcb` byte-for-byte with the live,
+  reviewed board. Add a nested exact source tree whose original relative paths
+  resolve the vendored custom footprint and model libraries offline.
+- Archive the four exact-artifact final reviews under `08_reviews/` so their
+  release copies are independently bound and publication-verifiable.
+
 ## v0.1.0-2026-08-15
 
 - Initial hardware-only release of the four-channel Raspberry Pi USB inline
