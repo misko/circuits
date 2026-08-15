@@ -1,0 +1,296 @@
+# The 0.5 mm-pitch USB 3 redriver and 0.4 mm-pitch USB 2 switch require the
+# JLCPCB four-layer advanced tier selected by ADR-0005.  This file establishes
+# executable net ownership before schematic capture. It uses a 0.17 mm
+# ordinary-net clearance so the exact TI RSE land's 0.175 mm
+# diagonal pad spacing is legal. Differential geometry remains independently
+# fixed at 0.25 mm width / 0.18 mm gap by the routed-pair contract and retained
+# stackup solve; the JLC order-time calculator/process echo remains mandatory.
+fab_tier: jlc_4layer_advanced
+default_clearance: 0.17mm
+default_track_width: 0.18mm
+
+# Package-local 3V3 necks.  These relax the 0.40 mm robustness floor only
+# where the actual 0.50/0.40 mm-pitch lands cannot accept it at the retained
+# clearance; all downstream copper remains 0.40 mm.  The loads are bypass-
+# branch currents, far below the ampacity of even the narrowest 0.30 mm neck.
+scoped_floors:
+  - {zone: u2_3v3_pin1_neck, nets: [3V3], min_width: 0.35mm, why: "U2 pin 1 is a 0.25 mm-high land on 0.50 mm pitch; a 0.50 mm-long 0.35 mm neck bonds directly to C15 before widening to 0.40 mm."}
+  - {zone: u8_3v3_pin1_neck, nets: [3V3], min_width: 0.35mm, why: "Channel-2 translation of the measured U2 pin-1 package neck, directly into C31."}
+  - {zone: u14_3v3_pin1_neck, nets: [3V3], min_width: 0.35mm, why: "Channel-3 translation of the measured U2 pin-1 package neck, directly into C47."}
+  - {zone: u20_3v3_pin1_neck, nets: [3V3], min_width: 0.35mm, why: "Channel-4 translation of the measured U2 pin-1 package neck, directly into C63; prevents the router's former 0.25/0.15 mm via-in-pad escape."}
+  - {zone: u2_3v3_pin13_neck, nets: [3V3], min_width: 0.349mm, why: "U2 pin 13 uses the router-measured 0.3498 mm package exit, widening to 0.40 mm within 0.15 mm of the land."}
+  - {zone: u8_3v3_pin13_neck, nets: [3V3], min_width: 0.349mm, why: "Channel-2 translation of the measured U2 pin-13 package exit."}
+  - {zone: u14_3v3_pin13_neck, nets: [3V3], min_width: 0.349mm, why: "Channel-3 translation of the measured U2 pin-13 package exit."}
+  - {zone: u20_3v3_pin13_neck, nets: [3V3], min_width: 0.349mm, why: "Channel-4 translation of the measured U2 pin-13 package exit."}
+  - {zone: u3_3v3_pin10_neck, nets: [3V3], min_width: 0.29mm, why: "U3 pin 10 is 0.35 mm wide on 0.40 mm pitch; the router-measured 0.30 mm neck is 0.24 mm long before widening to 0.40 mm."}
+  - {zone: u9_3v3_pin10_neck, nets: [3V3], min_width: 0.29mm, why: "Channel-2 translation of the measured U3 pin-10 package neck."}
+  - {zone: u15_3v3_pin10_neck, nets: [3V3], min_width: 0.29mm, why: "Channel-3 translation of the measured U3 pin-10 package neck."}
+  - {zone: u21_3v3_pin10_neck, nets: [3V3], min_width: 0.29mm, why: "Channel-4 translation of the measured U3 pin-10 package neck."}
+  - {zone: u7_3v3_pin5_escape, nets: [3V3], min_width: 0.18mm, why: "U7 pin 5 is boxed between USB1_HS_DN and DATA_EN1; this short local logic-supply escape clears the package, then joins the 0.40 mm rail. At 0.45 A, 0.18 mm remains above the independent 0.10 mm ampacity screen."}
+  - {zone: u25_3v3_pin5_escape, nets: [3V3], min_width: 0.18mm, why: "Channel-4 U25 pin 5 is boxed between USB4_HS_DN and DATA_EN4; this short local logic-supply escape clears the package, then joins the 0.40 mm rail. At 0.45 A, 0.18 mm remains above the independent 0.10 mm ampacity screen."}
+
+classes:
+  USB_SS:
+    intent: >
+      All board-owned 5 Gbit/s SuperSpeed segments.  TX names follow host-to-
+      device flow and RX names follow device-to-host flow; UP is the USB-B/Pi
+      side and DN is the USB-A/device side.  CONN and IC suffixes preserve the
+      AC-coupling-capacitor boundaries instead of pretending each conductor is
+      one continuous net.
+    nets:
+      - USB1_SS_TX_UP_CONN_P
+      - USB1_SS_TX_UP_CONN_N
+      - USB1_SS_TX_UP_MID_P
+      - USB1_SS_TX_UP_MID_N
+      - USB1_SS_TX_UP_IC_P
+      - USB1_SS_TX_UP_IC_N
+      - USB1_SS_TX_DN_IC_P
+      - USB1_SS_TX_DN_IC_N
+      - USB1_SS_TX_DN_CONN_P
+      - USB1_SS_TX_DN_CONN_N
+      - USB1_SS_TX_DN_MID_P
+      - USB1_SS_TX_DN_MID_N
+      - USB1_SS_RX_DN_CONN_P
+      - USB1_SS_RX_DN_CONN_N
+      - USB1_SS_RX_DN_MID_P
+      - USB1_SS_RX_DN_MID_N
+      - USB1_SS_RX_DN_IC_P
+      - USB1_SS_RX_DN_IC_N
+      - USB1_SS_RX_UP_IC_P
+      - USB1_SS_RX_UP_IC_N
+      - USB1_SS_RX_UP_CONN_P
+      - USB1_SS_RX_UP_CONN_N
+      - USB1_SS_RX_UP_MID_P
+      - USB1_SS_RX_UP_MID_N
+      - USB2_SS_TX_UP_CONN_P
+      - USB2_SS_TX_UP_CONN_N
+      - USB2_SS_TX_UP_MID_P
+      - USB2_SS_TX_UP_MID_N
+      - USB2_SS_TX_UP_IC_P
+      - USB2_SS_TX_UP_IC_N
+      - USB2_SS_TX_DN_IC_P
+      - USB2_SS_TX_DN_IC_N
+      - USB2_SS_TX_DN_CONN_P
+      - USB2_SS_TX_DN_CONN_N
+      - USB2_SS_TX_DN_MID_P
+      - USB2_SS_TX_DN_MID_N
+      - USB2_SS_RX_DN_CONN_P
+      - USB2_SS_RX_DN_CONN_N
+      - USB2_SS_RX_DN_MID_P
+      - USB2_SS_RX_DN_MID_N
+      - USB2_SS_RX_DN_IC_P
+      - USB2_SS_RX_DN_IC_N
+      - USB2_SS_RX_UP_IC_P
+      - USB2_SS_RX_UP_IC_N
+      - USB2_SS_RX_UP_CONN_P
+      - USB2_SS_RX_UP_CONN_N
+      - USB2_SS_RX_UP_MID_P
+      - USB2_SS_RX_UP_MID_N
+      - USB3_SS_TX_UP_CONN_P
+      - USB3_SS_TX_UP_CONN_N
+      - USB3_SS_TX_UP_MID_P
+      - USB3_SS_TX_UP_MID_N
+      - USB3_SS_TX_UP_IC_P
+      - USB3_SS_TX_UP_IC_N
+      - USB3_SS_TX_DN_IC_P
+      - USB3_SS_TX_DN_IC_N
+      - USB3_SS_TX_DN_CONN_P
+      - USB3_SS_TX_DN_CONN_N
+      - USB3_SS_TX_DN_MID_P
+      - USB3_SS_TX_DN_MID_N
+      - USB3_SS_RX_DN_CONN_P
+      - USB3_SS_RX_DN_CONN_N
+      - USB3_SS_RX_DN_MID_P
+      - USB3_SS_RX_DN_MID_N
+      - USB3_SS_RX_DN_IC_P
+      - USB3_SS_RX_DN_IC_N
+      - USB3_SS_RX_UP_IC_P
+      - USB3_SS_RX_UP_IC_N
+      - USB3_SS_RX_UP_CONN_P
+      - USB3_SS_RX_UP_CONN_N
+      - USB3_SS_RX_UP_MID_P
+      - USB3_SS_RX_UP_MID_N
+      - USB4_SS_TX_UP_CONN_P
+      - USB4_SS_TX_UP_CONN_N
+      - USB4_SS_TX_UP_MID_P
+      - USB4_SS_TX_UP_MID_N
+      - USB4_SS_TX_UP_IC_P
+      - USB4_SS_TX_UP_IC_N
+      - USB4_SS_TX_DN_IC_P
+      - USB4_SS_TX_DN_IC_N
+      - USB4_SS_TX_DN_CONN_P
+      - USB4_SS_TX_DN_CONN_N
+      - USB4_SS_TX_DN_MID_P
+      - USB4_SS_TX_DN_MID_N
+      - USB4_SS_RX_DN_CONN_P
+      - USB4_SS_RX_DN_CONN_N
+      - USB4_SS_RX_DN_MID_P
+      - USB4_SS_RX_DN_MID_N
+      - USB4_SS_RX_DN_IC_P
+      - USB4_SS_RX_DN_IC_N
+      - USB4_SS_RX_UP_IC_P
+      - USB4_SS_RX_UP_IC_N
+      - USB4_SS_RX_UP_CONN_P
+      - USB4_SS_RX_UP_CONN_N
+      - USB4_SS_RX_UP_MID_P
+      - USB4_SS_RX_UP_MID_N
+    current: "signal only"
+    min_width: 0.18mm
+    clearance: 0.17mm
+    routing: >
+      One outer layer above uninterrupted L2 ground; ESD first at each
+      connector, symmetric 2.2 ohm resistor and capacitor launches, no stubs,
+      zero-via preference, and at least five trace widths between unrelated
+      pairs where the connector fanout permits.
+    verify: >
+      Direction/pin-map invariant, schematic pair inventory, order-time JLCPCB
+      90 ohm differential solve, realized-copper skew/uncoupled-length audit,
+      DRC, then first-article USB 3 enumeration and sustained-throughput test.
+
+  USB_HS:
+    intent: >
+      Four independent 480 Mbit/s USB 2 D+/D- pass-through channels, each split
+      into an upstream and downstream segment by its fail-safe data switch.
+    nets:
+      - USB1_HS_UP_P
+      - USB1_HS_UP_N
+      - USB1_HS_DN_P
+      - USB1_HS_DN_N
+      - USB2_HS_UP_P
+      - USB2_HS_UP_N
+      - USB2_HS_DN_P
+      - USB2_HS_DN_N
+      - USB3_HS_UP_P
+      - USB3_HS_UP_N
+      - USB3_HS_DN_P
+      - USB3_HS_DN_N
+      - USB4_HS_UP_P
+      - USB4_HS_UP_N
+      - USB4_HS_DN_P
+      - USB4_HS_DN_N
+    current: "signal only"
+    min_width: 0.18mm
+    clearance: 0.17mm
+    routing: >
+      Short, direct, stub-free differential routes above uninterrupted L2
+      ground; the unused TS3USB221E throw is left electrically and physically
+      unbranched.
+    verify: >
+      Schematic pair inventory, order-time 90 ohm differential solve,
+      realized-copper pair-skew audit, DRC and first-article USB 2 enumeration.
+
+  PWR_INPUT:
+    intent: >
+      External 5.2 V input from the removable terminal through the user-fit
+      fuse and reverse-polarity P-FET to the shared protected trunk.  The width
+      is a track floor; broad copper and via arrays carry the simultaneous load.
+    nets: [EXT_5V_RAW, EXT_5V_FUSED, P5V_PROTECTED]
+    current: "4.05 A continuous design trunk; 7.5 A user-fit fuse"
+    min_width: 2.50mm
+    clearance: 0.20mm
+    routing: >
+      Short broad top-layer trunk/pour with immediate widening after component
+      pads and parallel return copper; keep the protection loop away from USB.
+    verify: >
+      DRC, filled-copper extraction, complete-path resistance budget, hot
+      four-wire voltage-drop measurement and simultaneous four-port thermal test.
+
+  PWR_PORT:
+    intent: >
+      Four independently current-limited switched VBUS outputs from the
+      protected trunk to the downstream USB-A receptacles.
+    nets: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW]
+    current: "0.9 A continuous per port"
+    min_width: 0.50mm
+    clearance: 0.20mm
+    routing: >
+      Short top-layer branches/pours using both TPS2557 IN and OUT pins; widen
+      immediately after any unavoidable package-pad neckdown.
+    verify: >
+      DRC, per-port copper resistance, 0.9 A hot voltage-drop test and
+      simultaneous four-port thermal test.
+
+  PWR_3V3:
+    intent: >
+      Local logic, USB 2 switch and four-redriver rail from the TLV76133;
+      never connected to a Raspberry Pi 3.3 V pin.
+    nets: [3V3]
+    current: "0.45 A maximum design load"
+    min_width: 0.40mm
+    clearance: 0.17mm
+    routing: >
+      Compact branches from the LDO with a direct bypass at every IC supply;
+      keep the regulator thermal land and return free of USB pair crossings.
+    verify: >
+      DRC, loaded voltage, startup/brownout behavior, ripple and worst-mode LDO
+      thermal measurement.
+
+  GPIO_CONTROL:
+    intent: >
+      Eight Raspberry Pi commands, their protected local copies, four hardware
+      PWR_EN AND DATA_EN interlock outputs, USB 2 active-high disconnect nodes,
+      fault test nodes and deterministic three-level redriver straps.
+    nets:
+      - GPIO17_RAW
+      - GPIO27_RAW
+      - GPIO22_RAW
+      - GPIO23_RAW
+      - GPIO24_RAW
+      - GPIO25_RAW
+      - GPIO5_RAW
+      - GPIO6_RAW
+      - PWR_EN1
+      - DATA_EN1
+      - DATA_OK1
+      - USB2_OE1
+      - VBUS_FAULT1_N
+      - PWR_EN2
+      - DATA_EN2
+      - DATA_OK2
+      - USB2_OE2
+      - VBUS_FAULT2_N
+      - PWR_EN3
+      - DATA_EN3
+      - DATA_OK3
+      - USB2_OE3
+      - VBUS_FAULT3_N
+      - PWR_EN4
+      - DATA_EN4
+      - DATA_OK4
+      - USB2_OE4
+      - VBUS_FAULT4_N
+      - TUSB_EQ1
+      - TUSB_EQ2
+      - TUSB_DE1
+      - TUSB_DE2
+      - TUSB_OS1
+      - TUSB_OS2
+    current: "signal only"
+    min_width: 0.18mm
+    clearance: 0.17mm
+    routing: >
+      Ordinary short control routing outside differential-pair corridors; each
+      raw GPIO reaches its 1 kohm series resistor before any local branch.
+    verify: >
+      ERC, exact-net and truth-table audit proving DATA_OK equals PWR_EN AND
+      DATA_EN, plus unpowered-Pi and boot-time fail-safe bench tests.
+
+  GND_RETURN:
+    intent: >
+      Common signal, power, ESD and connector reference.  Ground is never
+      switched, and no Raspberry Pi supply pin is used.
+    nets: [GND]
+    current: "return (planes)"
+    min_width: 0.30mm
+    clearance: 0.17mm
+    routing: >
+      Solid L2 ground plane with top/bottom return pours, connector and ESD
+      stitching, and no split or void beneath any USB 2 or USB 3 route.
+    verify: >
+      Plane-continuity and return-path review, stitch-via census, DRC and
+      loaded ground-offset measurement at each upstream/downstream connector.
+
+# Pair matching is graded on realized copper after the schematic/netlist has
+# fixed every series boundary.  The source gate must not claim measurements or
+# an impedance geometry that does not yet exist.
+length_match: []

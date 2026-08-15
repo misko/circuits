@@ -1,0 +1,24 @@
+{
+ "target": "projects/pi-usb-port-switch/07_releases/v0.1.0-2026-08-15",
+ "summary": {
+  "board": 197,
+  "cpl": 185,
+  "datum_max_mm": 0.0,
+  "datum_max_ref": "U9",
+  "datum_graded": 185,
+  "unpopulated": 12,
+  "declared": 5,
+  "consigned": 0,
+  "exempt_prefixes": [
+   "H",
+   "TP",
+   "FID",
+   "MH"
+  ],
+  "sides": {
+   "top": 185
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

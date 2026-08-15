@@ -1,0 +1,94 @@
+# Pi USB port switch — machine-readable JLC digital-twin dispositions.
+#
+# Every row accepts one measured CAD difference; none overrides a placement
+# rotation.  Rotation authority remains jlc_lcsc_rotations.csv and all
+# single-channel rows remain subject to rotation_human_gate.txt.
+
+- lcsc: C5249699
+  refs: [F1]
+  status: PAD-MISMATCH
+  why: >-
+    Measured 2026-08-15: JLC's two-pad 3.40 mm CAD represents one Keystone
+    3568 clip, not the complete two-clip fuse holder. Keystone M65 p.42 fixes
+    the complete holder's four-hole, approximately 9.9 mm terminal-spacing
+    land implemented by F1. assembly.yaml excludes F1 from the CPL because one
+    electrical reference requires two clips and therefore has no valid single
+    placement centroid. This accepts the catalog-CAD mismatch, not the land.
+- lcsc: C5249699
+  refs: [F1]
+  status: PAD-GEOM
+  why: >-
+    The reported 6.52 mm delta is the measured difference between JLC's
+    single-clip representation and the pinned manufacturer complete-holder
+    land. F1 is hand-soldered as two Keystone 3568 clips and is not a JLC
+    placement instruction.
+- lcsc: C5249699
+  refs: [F1]
+  status: PAD-MULTIPLICITY
+  why: >-
+    Keystone's complete holder requires two plated holes for each of the two
+    electrical terminals; duplicate pad numbers {1:2, 2:2} intentionally model
+    those four barrels. JLC's one-clip CAD has one pad per terminal. F1 is off
+    the CPL and hand assembled.
+- lcsc: C5249699
+  refs: [F1]
+  status: MODEL-REG
+  why: >-
+    A body registered to JLC's single-clip 3.40 mm CAD cannot register to the
+    complete two-clip holder land. The native KiCad render uses the board's
+    complete holder model; physical clip seating and fuse retention remain
+    first-article checks.
+
+- lcsc: C7527500
+  refs: [U1]
+  status: PAD-GEOM
+  pad_alias: {"4": "2"}
+  why: >-
+    JLC numbers the SOT-223 output tab as pad 4 while TI SBVS349D Table 4-1 and
+    the board correctly assign both the centre lead and tab to electrical pin
+    2. The alias records that physical identity before fitting. Measured land
+    extents along the lead-to-tab axis are ours [2.15,4.15] mm per side and
+    JLC [1.595,4.065] mm, giving 1.915 mm shared copper per side; the 2.30 mm
+    lead pitch and three-terminal topology agree. This is an IPC/KiCad versus
+    EasyEDA fillet-extent difference, not a pin-map or seating defect.
+
+- lcsc: C85049
+  refs: [Q2, Q3, Q4, Q5]
+  status: PAD-GEOM
+  why: >-
+    Exact Diodes 2N7002-7-F SOT-23. Measured per side after the independently
+    resolved 180-degree rotation: the KiCad land spans 0.20..1.675 mm from
+    package centre and JLC spans 0.65..1.65 mm, so JLC's full 1.00 mm land is
+    contained in board copper. Both use 1.90 mm same-side pitch and the same
+    three-pad topology. Diodes DS11303 Rev.40-2 p.4 permits its suggested land
+    while KiCad's IPC land supplies a longer heel fillet; the leads land on
+    both patterns.
+
+- lcsc: C7832
+  refs: [U7, U13, U19, U25]
+  status: PAD-GEOM
+  why: >-
+    Exact TI SN74LVC1G08DCKR DCK/SC70-5. The board's IPC land spans
+    0.325..1.350 mm from package centre on each side; TI's example/JLC land
+    spans approximately 0.625..1.575 mm, leaving 0.725 mm shared copper per
+    lead side. TI SCES217AA DCK0005A gives the physical lead envelope as
+    0.925..1.075 mm at the toe with 0.26..0.46 mm lead length; that complete
+    terminal envelope lies on the board's 0.325..1.350 mm copper. TI note 7
+    explicitly permits alternate IPC-7351 designs. Pitch 0.65 mm, pad topology,
+    pin map, and non-mirrored fit agree; the separately measured 180-degree
+    rotation remains on the order-preview human gate.
+
+- lcsc: C5334230
+  refs: [J3, J5, J7, J9]
+  status: PAD-GEOM
+  pad_alias: {"11": "10"}
+  why: >-
+    Exact Wurth 692221030100 USB 3 Type-B receptacle. Measured 2026-08-15
+    against the manufacturer-derived board land: after translating the local
+    footprint origin by (+1.25,-1.35) mm, JLC pads 1-9 and both shell posts
+    coincide with the board holes to 0.0039 mm in the numbering-free pad-cloud
+    fit; the next-best quarter-turn is 2.9893 mm away. JLC names the second
+    shell post pad 11, while the Wurth-derived board intentionally gives both
+    mechanically identical shell posts electrical pad number 10. The alias
+    records that duplicate shell identity before fitting and does not change
+    connector rotation, signal numbering, or board copper.

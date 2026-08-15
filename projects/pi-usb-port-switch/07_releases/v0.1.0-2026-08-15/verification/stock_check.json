@@ -1,0 +1,267 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "projects/pi-usb-port-switch/06_build/fab/bom.csv",
+ "generated_at": "2026-08-15T22:14:25.241551+00:00",
+ "min_stock_per_board": 5,
+ "verdict": "PASS",
+ "stock_source": "lcsc_catalog_stockCount",
+ "predicts_jlc_assembly_allocation": false,
+ "pass_means": "catalog stock >= min_stock x qty at query time; NOT that JLC will allocate the line -- see F-ECHO",
+ "graded_lines": 25,
+ "total_lines": 26,
+ "zero_coverage": null,
+ "failures": 0,
+ "uncoded_lines": 1,
+ "lines": [
+  {
+   "lcsc": "C60491",
+   "designators": "R49,R50,R51,R52,R53,R54,R55,R56,R57,R58,R59,R60,R61,R62,R63,R64,R65,R66,R67,R68,R69",
+   "qty": 21,
+   "status": "OK",
+   "stock": 6498144,
+   "type": "expand",
+   "mpn": "RC0402FR-07100KL",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C1525",
+   "designators": "C10,C11,C14,C15,C17,C18,C19,C20,C22,C23,C24,C25,C26,C27,C3,C30,C31,C33,C34,C35,C36,C38,C39,C40,C41,C42,C43,C46,C47,C49,C50,C51,C52,C54,C55,C56,C57,C58,C59,C6,C62,C63,C65,C66,C67,C68,C7,C8,C9",
+   "qty": 49,
+   "status": "OK",
+   "stock": 37706204,
+   "type": "base",
+   "mpn": "CL05B104KO5NNNC",
+   "manufacturer": "Samsung Electro-Mechanics"
+  },
+  {
+   "lcsc": "C60490",
+   "designators": "R71,R72,R73,R74",
+   "qty": 4,
+   "status": "OK",
+   "stock": 10203252,
+   "type": "expand",
+   "mpn": "RC0402FR-0710KL",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C15525",
+   "designators": "C16,C32,C48,C5,C64",
+   "qty": 5,
+   "status": "OK",
+   "stock": 10314266,
+   "type": "base",
+   "mpn": "CL05A106MQ5NUNC",
+   "manufacturer": "Samsung Electro-Mechanics"
+  },
+  {
+   "lcsc": "C264054",
+   "designators": "C21,C37,C53,C69",
+   "qty": 4,
+   "status": "OK",
+   "stock": 1796,
+   "type": "expand",
+   "mpn": "EEEFK1A151P",
+   "manufacturer": "PANASONIC"
+  },
+  {
+   "lcsc": "C136277",
+   "designators": "C1,C2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1049,
+   "type": "expand",
+   "mpn": "16SVPF180M",
+   "manufacturer": "PANASONIC"
+  },
+  {
+   "lcsc": "C3819953",
+   "designators": "J1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1050,
+   "type": "expand",
+   "mpn": "1935161",
+   "manufacturer": "Phoenix Contact"
+  },
+  {
+   "lcsc": "C138033",
+   "designators": "R70",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1942590,
+   "type": "expand",
+   "mpn": "RC0402FR-071ML",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C106235",
+   "designators": "R41,R42,R43,R44,R45,R46,R47,R48",
+   "qty": 8,
+   "status": "OK",
+   "stock": 4752107,
+   "type": "expand",
+   "mpn": "RC0402FR-071KL",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C52923",
+   "designators": "C4",
+   "qty": 1,
+   "status": "OK",
+   "stock": 11836548,
+   "type": "base",
+   "mpn": "CL05A105KA5NQNC",
+   "manufacturer": "Samsung Electro-Mechanics"
+  },
+  {
+   "lcsc": "C327251",
+   "designators": "R1,R10,R11,R12,R13,R14,R15,R16,R17,R18,R19,R2,R20,R21,R22,R23,R24,R25,R26,R27,R28,R29,R3,R30,R31,R32,R4,R5,R6,R7,R8,R9",
+   "qty": 32,
+   "status": "OK",
+   "stock": 196494,
+   "type": "expand",
+   "mpn": "RC0402FR-072R2L",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C138030",
+   "designators": "R33,R34,R35,R36,R37,R38,R39,R40",
+   "qty": 8,
+   "status": "OK",
+   "stock": 625299,
+   "type": "expand",
+   "mpn": "RC0402FR-07220KL",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C85049",
+   "designators": "Q2,Q3,Q4,Q5",
+   "qty": 4,
+   "status": "OK",
+   "stock": 423753,
+   "type": "expand",
+   "mpn": "2N7002-7-F",
+   "manufacturer": "Diodes Incorporated"
+  },
+  {
+   "lcsc": "C19271634",
+   "designators": "C12,C13,C28,C29,C44,C45,C60,C61",
+   "qty": 8,
+   "status": "OK",
+   "stock": 41444,
+   "type": "expand",
+   "mpn": "GRM155R61H334KE01D",
+   "manufacturer": "Murata Electronics"
+  },
+  {
+   "lcsc": "C5249699",
+   "designators": "F1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 196,
+   "type": "expand",
+   "mpn": "3568",
+   "manufacturer": "Keystone"
+  },
+  {
+   "lcsc": "C105871",
+   "designators": "R75,R76,R77,R78,R79,R80",
+   "qty": 6,
+   "status": "OK",
+   "stock": 7466060,
+   "type": "expand",
+   "mpn": "RC0402FR-074K7L",
+   "manufacturer": "YAGEO"
+  },
+  {
+   "lcsc": "C5364405",
+   "designators": "J2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 591,
+   "type": "expand",
+   "mpn": "61304021121",
+   "manufacturer": "Wurth Elektronik"
+  },
+  {
+   "lcsc": "C5334230",
+   "designators": "J3,J5,J7,J9",
+   "qty": 4,
+   "status": "OK",
+   "stock": 47,
+   "type": "expand",
+   "mpn": "692221030100",
+   "manufacturer": "Wurth Elektronik"
+  },
+  {
+   "lcsc": "C397981",
+   "designators": "Q1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1402,
+   "type": "expand",
+   "mpn": "DMP3007SPS-13",
+   "manufacturer": "Diodes Incorporated"
+  },
+  {
+   "lcsc": "C7832",
+   "designators": "U13,U19,U25,U7",
+   "qty": 4,
+   "status": "OK",
+   "stock": 89820,
+   "type": "expand",
+   "mpn": "SN74LVC1G08DCKR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C7527500",
+   "designators": "U1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 18715,
+   "type": "expand",
+   "mpn": "TLV76133DCYR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C962978",
+   "designators": "U11,U12,U17,U18,U23,U24,U5,U6",
+   "qty": 8,
+   "status": "OK",
+   "stock": 3794,
+   "type": "expand",
+   "mpn": "TPD6E05U06RVZR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C130056",
+   "designators": "U10,U16,U22,U4",
+   "qty": 4,
+   "status": "OK",
+   "stock": 2642,
+   "type": "expand",
+   "mpn": "TPS2557DRBR",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C129313",
+   "designators": "U15,U21,U3,U9",
+   "qty": 4,
+   "status": "OK",
+   "stock": 517,
+   "type": "expand",
+   "mpn": "TS3USB221ERSER",
+   "manufacturer": "Texas Instruments"
+  },
+  {
+   "lcsc": "C2675181",
+   "designators": "U14,U2,U20,U8",
+   "qty": 4,
+   "status": "OK",
+   "stock": 2418,
+   "type": "expand",
+   "mpn": "TUSB522PIRGER",
+   "manufacturer": "Texas Instruments"
+  }
+ ]
+}
