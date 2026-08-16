@@ -145,7 +145,8 @@ SKIP_BASENAMES = {
     # CLI and print no verdict.  The lexical inventory otherwise mistakes
     # their closed vocabularies for executable gates.
     "pipeline_artifacts.py", "pipeline_catalog.py", "pipeline_contract.py",
-    "pipeline_facts.py", "pipeline_identity.py", "pipeline_registry.py",
+    "pipeline_facts.py", "pipeline_identity.py", "pipeline_readiness.py",
+    "pipeline_registry.py",
     "pipeline_review.py", "pipeline_runtime.py", "pipeline_shadow.py",
     "pipeline_timing.py", "pipeline_xtrace.py",
 }

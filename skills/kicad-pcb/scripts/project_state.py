@@ -2,6 +2,7 @@
 """M-STATE — derive PCB maturity from one findings ledger.
 
 Usage: project_state.py PROJECT [--ledger PATH] [--expect LEVEL] [--no-write]
+                        [--receipt-registry PATH]
 
 G-INPUT: the verdict names the exact findings ledger under grade.
 G-COVER: it reports ``N/M controls satisfied`` for the derived level.
@@ -18,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 import yaml
@@ -114,10 +116,58 @@ def derive(project: Path, ledger_path: Path) -> dict:
     }
 
 
+def attach_receipt_shadow(project: Path, legacy: dict,
+                          registry_path: Path) -> dict:
+    """Attach a non-authoritative receipt computation and exact comparison.
+
+    A malformed or stale shadow can never disappear and can never lower or
+    raise the legacy maturity.  Promotion to execution authority is a separate
+    decision after representative canaries agree.
+    """
+
+    try:
+        pcb_design_scripts = (
+            Path(__file__).resolve().parents[2] / "pcb-design" / "scripts"
+        )
+        if str(pcb_design_scripts) not in sys.path:
+            sys.path.insert(0, str(pcb_design_scripts))
+        from pipeline_readiness import evaluate as evaluate_receipts
+
+        shadow = evaluate_receipts(project, registry_path)
+    except (ImportError, OSError, TypeError, ValueError, yaml.YAMLError) as exc:
+        shadow = {
+            "schema": 1,
+            "mode": "shadow",
+            "authority": "legacy-findings-ledger",
+            "registry": str(registry_path),
+            "status": "FAIL",
+            "derived_maturity": "DRAFT",
+            "coverage": {"satisfied": 0, "total": 0, "not_applicable": 0},
+            "evaluated": [],
+            "stages": [],
+            "findings": [str(exc)],
+        }
+    legacy_maturity = legacy["derived_maturity"]
+    receipt_maturity = shadow["derived_maturity"]
+    maturity_matches = legacy_maturity == receipt_maturity
+    shadow["comparison"] = {
+        "legacy_derived_maturity": legacy_maturity,
+        "receipt_derived_maturity": receipt_maturity,
+        "maturity_matches": maturity_matches,
+        "matches": shadow["status"] == "PASS" and maturity_matches,
+    }
+    legacy["receipt_shadow"] = shadow
+    return legacy
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("project")
     ap.add_argument("--ledger", default="01_docs/findings.yaml")
+    ap.add_argument(
+        "--receipt-registry",
+        help="project-relative receipt registry to evaluate in shadow mode",
+    )
     ap.add_argument("--expect", choices=LEVELS)
     ap.add_argument("--no-write", action="store_true")
     args = ap.parse_args(argv)
@@ -129,22 +179,37 @@ def main(argv=None) -> int:
     except (OSError, ValueError, KeyError, TypeError, yaml.YAMLError) as exc:
         print(f"M-STATE FAIL: 0/1 controls satisfied; ledger={ledger}; {exc}")
         return 2
+    if args.receipt_registry:
+        registry = Path(args.receipt_registry)
+        registry = registry if registry.is_absolute() else project / registry
+        attach_receipt_shadow(project, result, registry)
     cov = result["coverage"]
     maturity = result["derived_maturity"]
     if not args.no_write:
         atomic_json(project / "06_build/project_state.json", result)
     expected_ok = args.expect is None or maturity == args.expect
     target_ok = result.get("declared_target") in (None, maturity)
+    shadow_text = ""
+    if "receipt_shadow" in result:
+        shadow = result["receipt_shadow"]
+        comparison = shadow["comparison"]
+        shadow_text = (
+            f"; receipt-shadow={shadow['status']}, "
+            f"receipt-derived={shadow['derived_maturity']}, "
+            f"legacy-agrees={comparison['matches']}"
+        )
+        if shadow["status"] != "PASS" and shadow.get("findings"):
+            shadow_text += f", receipt-finding={shadow['findings'][0]}"
     if not expected_ok or not target_ok:
         wanted = args.expect or result.get("declared_target")
         first = next((r for r in result["evaluated"] if not r["satisfied"]), {})
         print(f"M-STATE FAIL: {cov['satisfied']}/{max(1, cov['total'])} controls "
               f"satisfied; ledger={ledger}; derived={maturity}, wanted={wanted}; "
               f"pending={first.get('pending_gates', [])}, "
-              f"blockers={first.get('open_blockers', [])}")
+              f"blockers={first.get('open_blockers', [])}{shadow_text}")
         return 1
     print(f"M-STATE PASS: {cov['satisfied']}/{max(1, cov['total'])} controls "
-          f"satisfied; ledger={ledger}; derived={maturity}")
+          f"satisfied; ledger={ledger}; derived={maturity}{shadow_text}")
     return 0
 
 
