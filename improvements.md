@@ -183,7 +183,7 @@ rationale.
 
 ## IMP-003 — pre-generation footprint resolution
 
-- status: implementing
+- status: proposed
 - observed: `projects/usb-hub-3s-v4/01_docs/journal/placement.md`,
   2026-08-11 Stage 3 closeout
 - evidence: The first board-generation attempt stopped immediately because the
@@ -3354,7 +3354,7 @@ Recommended execution order for future boards:
 
 ## IMP-093 — compare repeated-pad catalog lands as geometry, not merged labels
 
-- status: proposed
+- status: implementing
 - observed: Pluto RX2 8-way v5 final JLC twin, 2026-08-13
 - evidence: the exact C429844 catalog footprint and the manufacturer-derived
   901-143-6RFX footprint put all five holes at the same centres to 0.000 mm and
