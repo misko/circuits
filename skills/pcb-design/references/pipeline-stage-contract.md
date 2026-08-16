@@ -145,6 +145,57 @@ The transaction must:
 6. atomically replace the accepted bundle without exposing a partial result;
 7. preserve a previous accepted bundle on failure.
 
+### Frozen receipt composition
+
+The migration uses the existing schema-1 objects rather than introducing a
+second verdict or manifest format:
+
+- `stage-receipt-v1` is exactly the `StageResult` schema above. It owns
+  applicability, verdict, coverage, findings, timing and subject identity.
+- `artifact-bundle-v1` is exactly the `bundle.json` schema above. It owns
+  durable paths, byte hashes and atomic acceptance.
+- A domain-specific evidence receipt is a declared JSON output inside an
+  artifact bundle. It records measurements and provenance only; it must not
+  duplicate or override the outer stage verdict.
+
+The first domain receipt is `model-registration-receipt-v1`:
+
+```yaml
+schema: 1
+kind: model-registration-receipt-v1
+tuple:
+  footprint_sha256: <64 hex>
+  model_sha256: <64 hex>
+  transform_sha256: <64 hex>
+  contract_sha256: <64 hex>
+  tool_identity: <non-empty stable identity>
+refs: [J2]
+measurements:
+  - ref: J2
+    attachment_centres_graded: 5
+    attachment_centres_total: 5
+    centre_delta_mm: 0.0
+    fab_outward_mm: 0.0
+    courtyard_outward_mm: 0.0
+evidence: [native_top_registration_overlay.png]
+```
+
+Its tuple cache key is SHA-256 over canonical JSON containing exactly the five
+`tuple` fields shown above. Any footprint, model, transform, registration
+contract or checker-identity change therefore invalidates reuse. `refs`,
+`measurements` and `evidence` are sorted deterministically; evidence paths are
+relative to the bundle. The outer `StageResult.outputs` names the accepted
+artifact bundle, whose manifest binds this receipt and every referenced image
+to exact bytes.
+
+Readiness composition consumes only strict `stage-receipt-v1` mappings plus
+their accepted bundles. A receipt is admissible when its stage is applicable,
+passing, expected for the current lifecycle/profile, bound to the current
+semantic and raw subject hashes, and all named outputs reopen through their
+bundle manifests. During migration this computation is shadow-only: the
+legacy findings ledger remains execution authority until canary equivalence is
+separately approved.
+
 ## Review contract schema 1
 
 A review commission names an immutable subject, one lens, a bounded checklist,
