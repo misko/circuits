@@ -67,6 +67,7 @@ SUITES=(
   t1_pipeline_registry.py
   t1_pipeline_runtime.py
   t1_pipeline_artifacts.py
+  t1_receipt_readiness.py
   t1_pipeline_review.py
   t1_pipeline_facts.py
   t1_pipeline_timing.py
@@ -104,6 +105,7 @@ SUITES=(
   t1_status.py
   t1_jlc_twin.py
   t1_twin_overlay.py
+  t1_model_registration.py
   t1_fab_payload.py
   t1_via_process.py
   t1_via_ampacity.py

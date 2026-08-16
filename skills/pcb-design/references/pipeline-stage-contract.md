@@ -196,6 +196,21 @@ bundle manifests. During migration this computation is shadow-only: the
 legacy findings ledger remains execution authority until canary equivalence is
 separately approved.
 
+Each schema-1 readiness-registry stage also declares `minimum_total`: a
+positive expected coverage floor for `APPLIES`, or exactly zero for
+`NOT_APPLICABLE`. A non-vacuous PASS below that floor is still inadmissible.
+Stage IDs and bundle paths are unique across the registry so one receipt or
+manifest cannot satisfy two controls. Example stage entry:
+
+```yaml
+stage_id: P-MODEL-REG
+required_for: DESIGN_CLEAN
+applicability: APPLIES
+minimum_total: 1
+bundles:
+  model_registration_bundle: 06_build/pre_route/model_registration_bundle/bundle.json
+```
+
 ## Review contract schema 1
 
 A review commission names an immutable subject, one lens, a bounded checklist,
@@ -277,6 +292,9 @@ The schema-1 foundation is available under `skills/pcb-design/scripts/`:
   work-class telemetry;
 - `pipeline_artifacts.py` — fresh validated bundle staging and atomic
   manifest-last promotion.
+- `pipeline_readiness.py` — strict closed receipt registries, coverage floors,
+  subject/freshness/bundle validation and non-authoritative maturity
+  composition;
 - `pipeline_review.py` — bounded commissions and exact durable-witness
   admissibility;
 - `pipeline_facts.py` — early prevention observations paired with independent
@@ -295,6 +313,17 @@ These modules are shadow infrastructure, not permission to bypass an existing
 gate or publication path. A producer is migrated only after its adapter has a
 clean and known-bad fixture and its observed plan/result/artifacts agree on
 both canary projects.
+
+The 2026-08-15 adoption slice adds two real consumers without changing legacy
+authority. `fab_payload_census.py --bundle` can publish reopened JSON/text
+evidence transactionally and retain rejected diagnostics. `P-MODEL-REG` now
+uses origin-centred, exact-tuple per-group caches plus one aggregate bundle
+whose run and subject match its strict `StageResult`; the aggregate reopens
+through `pipeline_readiness.py` for both single- and multi-group fixtures.
+`project_state.py --receipt-registry` records receipt-derived maturity and its
+comparison with the legacy ledger but does not alter the legacy verdict or
+exit status. Stock, routed-review, twin and release-staging migrations, real
+project readiness registries and authority promotion remain open.
 
 The first disposable reuse-driver observation on 2026-08-12 did not agree:
 USB Hub 3S v4 stopped after about 11.4 seconds at stale/missing pre-route review

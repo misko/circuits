@@ -1911,14 +1911,27 @@ rationale.
   full/reuse drivers run it before placement review. Pluto J2-J10 pass 9/9
   instances and 45/45 drilled centres; the prior converted-WRL self-pass is no
   longer accepted as the placement A-RENDER receipt.
+- implementation progress: 2026-08-15 — the gate now constructs a compact,
+  origin-centred coupon for every unique declared registration group and
+  caches its accepted evidence by canonical hashes of the footprint
+  registration datums, exact native model, model transform, numeric contract
+  and checker identity. A verdict-free `model_registration_receipt.json`
+  records measurements and images; a strict `model_registration.stage.json`
+  owns PASS/FAIL. Per-group tuple bundles preserve a prior accepted pass and
+  retain failed diagnostics, while one aggregate transaction binds their
+  manifest hashes to the outer stage run/subject for receipt-derived
+  readiness. Tests cover clean/cache reuse, two distinct groups, duplicate-ref
+  denominator inflation, transform invalidation, the historical 5-mm shift,
+  and a custom output location. The full Pluto nine-SMA canary passes 45/45
+  drilled centres.
 - remaining: polarity-marker projection, permitted-edge overhang schemas,
-  origin-centred per-tuple coupons, tuple-hash receipt caching, and automatic
-  invalidation/reuse across boards are not implemented. The current gate
-  binds independent model and board hashes on every run and closes the Pluto
-  body/courtyard/attachment-field defect, but full semantic STEP feature
-  recognition remains out of scope. Body coverage, `mount_anchor`, catalog
-  bounding boxes and same-mesh pixel agreement must still never close
-  physical registration by themselves.
+  native/drawing landmark classes beyond body/F.Fab/courtyard/drilled centres,
+  repeated-pad-numbering geometry, wrong-drill, wrong-rotation and converted-
+  origin fixtures, and coverage policy deciding which project parts require a
+  receipt. Full semantic STEP feature recognition remains out of scope. Body
+  coverage, `mount_anchor`, catalog bounding boxes and same-mesh pixel
+  agreement must still never close physical registration by themselves, so
+  this entry remains implementing.
 - completion evidence required: known-present, genuine-absent and transient
   model-resolution fixtures; correct body with wrong internal XY origin; right
   XY with wrong rotation; correct body with wrong footprint drills; repeated
@@ -1945,6 +1958,9 @@ rationale.
   - 2026-08-14 — landed the first reusable blocking native-model registration
     gate and wired it before placement review; Pluto's nine SMAs now have
     independent F.Fab/courtyard/45-hole evidence instead of a same-WRL pass.
+  - 2026-08-15 — added origin-centred coupons, exact tuple receipts/caching,
+    automatic invalidation, atomic per-group evidence, and an aggregate
+    StageResult-bound bundle that passes the generic readiness composer.
 
 ## IMP-056 — population evidence must separate automated and manual bodies
 
@@ -2191,6 +2207,16 @@ rationale.
   and atomic directory promotion while preserving any accepted bundle on
   failure. Adoption by real producers and retained failed diagnostic
   workspaces remain open, so this entry is not complete.
+- implementation progress: 2026-08-15 — `fab_payload_census.py` is the first
+  real producer to adopt the primitive through an opt-in `--bundle` path. It
+  declares the board, Gerber and rule inputs; publishes reopened JSON and
+  human-text evidence with one manifest; cross-checks their durable verdict;
+  preserves the prior accepted bundle; and retains failed bytes in a sibling
+  workspace with no `bundle.json`. Legacy stdout and `--json` behavior remain
+  unchanged. Stock evidence is the next bounded migration, followed by a
+  shared routed-review exporter, then the JLC twin after its resumable cache is
+  separated from accepted evidence, and finally release staging after its
+  upstream producers are transactional. This entry remains implementing.
 
 ## IMP-063 — complete pre-seal release rehearsal
 
@@ -2543,6 +2569,20 @@ Recommended execution order for future boards:
   and the rebuild template invokes them before TSX. The generic stage registry,
   subject hashes, freshness checking and receipt-to-`project_state.py`
   composition remain outstanding; therefore this is not complete.
+- implementation progress: 2026-08-15 — a strict schema-1 readiness registry
+  and composer now validate the closed expected receipt set, exact
+  applicability, semantic/raw subject identity, output symbols, accepted
+  bundle run/subject/timing, file census, hashes, sizes and symlink safety.
+  Every applicable stage declares a positive `minimum_total`; an unexpected
+  low-but-nonzero denominator is inadmissible, and one accepted manifest may
+  not be reused to satisfy two stage/output bindings.
+  `project_state.py --receipt-registry ...` records deterministic receipt
+  maturity and its exact comparison with the legacy ledger, but deliberately
+  leaves the ledger and existing exit status authoritative. Clean, missing,
+  unknown, stale, tampered, explicit-N/A and disagreement fixtures are wired
+  into the default runner. Real project registries/receipts and representative
+  canary observations remain required before any authority promotion, so this
+  entry remains implementing.
 - implementation note: source-phase policy currently imports PCB machinery and
   emits KiCad property assertions even though its two source rows pass. A stage
   registry should phase-lazy-load dependencies so source receipts are quiet,
