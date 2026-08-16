@@ -22,7 +22,7 @@
 - what happened: three deliberately uncoded global/user-fit parts initially invalidated valid JLC evidence for 24 unrelated coded rows.
 - root cause: the shopping-list composer treated a distributor as an all-or-nothing BOM source instead of one independent pool per exact row.
 - avoid next time: retain fresh JLC evidence for every coded row and mark only the uncoded row ineligible for that pool; require it to clear two other pools.
-- candidate-canon: implemented as IMP-103 with an end-to-end regression.
+- candidate-canon: implemented as IMP-104 with an end-to-end regression.
 
 ## Executable rule classes should be populated with directional nets as soon as pin roles are known
 - what happened: prose described USB 2, USB 3 and power classes while `nets.yaml` still contained `classes: {}`; the source audit correctly reported 0/0 coverage.
