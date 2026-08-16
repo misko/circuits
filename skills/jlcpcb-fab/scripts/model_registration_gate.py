@@ -29,6 +29,7 @@ import native_model_registration as native  # noqa: E402
 
 STAGE_ID = "P-MODEL-REG"
 OUTPUT_SYMBOL = "model_registration_bundle"
+INDEX_KIND = "model-registration-index-v1"
 
 
 def digest(path: Path) -> str:
@@ -291,6 +292,122 @@ def run_group(project: Path, board: Path, config_path: Path, build: Path,
     return accepted, False, None
 
 
+def group_index(project: Path, rows_out):
+    groups = []
+    for group_id, values, tuple_value, report, passed, _cached in sorted(
+            rows_out, key=lambda row: row[0]):
+        if not passed:
+            raise ValueError(f"cannot index failed registration group {group_id}")
+        manifest = report.parent / "bundle.json"
+        if not manifest.is_file():
+            raise ValueError(f"registration group {group_id} has no accepted manifest")
+        groups.append({
+            "id": group_id,
+            "refs": values["refs"],
+            "tuple": tuple_value,
+            "tuple_cache_key": native.tuple_cache_key(tuple_value),
+            "manifest": manifest.relative_to(project).as_posix(),
+            "manifest_sha256": digest(manifest),
+            "manifest_size": manifest.stat().st_size,
+        })
+    return groups
+
+
+def validate_index(project: Path, index, expected) -> None:
+    expected_fields = {
+        "schema", "kind", "stage_id", "run_id", "subject", "groups",
+    }
+    if not isinstance(index, dict) or set(index) != expected_fields:
+        raise ValueError("model registration index fields differ from schema 1")
+    if index != expected:
+        raise ValueError("model registration index disagrees with final aggregate state")
+    ids = [group["id"] for group in index["groups"]]
+    if ids != sorted(set(ids)):
+        raise ValueError("model registration index group ids are not sorted and unique")
+    expected_group_fields = {
+        "id", "refs", "tuple", "tuple_cache_key", "manifest",
+        "manifest_sha256", "manifest_size",
+    }
+    for group in index["groups"]:
+        if set(group) != expected_group_fields:
+            raise ValueError(f"model registration index group differs: {group.get('id')}")
+        manifest = project.joinpath(*PurePosixPath(group["manifest"]).parts)
+        if (not manifest.is_file() or manifest.stat().st_size != group["manifest_size"] or
+                digest(manifest) != group["manifest_sha256"]):
+            raise ValueError(f"indexed group manifest changed: {group['id']}")
+        document = json.loads(manifest.read_text(encoding="utf-8"))
+        if (document.get("schema") != 1 or document.get("status") != "PASS" or
+                document.get("subject", {}).get("semantic_sha256") !=
+                group["tuple_cache_key"]):
+            raise ValueError(f"indexed group manifest subject differs: {group['id']}")
+        receipt_path = manifest.parent / "model_registration_receipt.json"
+        receipt_record = document.get("outputs", {}).get(
+            "model_registration_receipt.json", {})
+        if (not receipt_path.is_file() or digest(receipt_path) !=
+                receipt_record.get("sha256") or receipt_path.stat().st_size !=
+                receipt_record.get("size")):
+            raise ValueError(f"indexed group receipt is not manifest-bound: {group['id']}")
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        if receipt.get("tuple") != group["tuple"] or receipt.get("refs") != group["refs"]:
+            raise ValueError(f"indexed group tuple/refs differ: {group['id']}")
+
+
+def publish_aggregate(project: Path, output: Path, board: Path,
+                      config_path: Path, engine: Path, run_id: str,
+                      subject, rows_out):
+    accepted = output.parent / "model_registration_bundle"
+    groups = group_index(project, rows_out)
+    index = {
+        "schema": 1,
+        "kind": INDEX_KIND,
+        "stage_id": STAGE_ID,
+        "run_id": run_id,
+        "subject": subject,
+        "groups": groups,
+    }
+    inputs = {
+        "source/board.kicad_pcb": board,
+        "contract/model_registration.yaml": config_path,
+        "legacy/model_registration.md": output,
+        "tool/model_registration_gate.py": Path(__file__).resolve(),
+        "tool/native_model_registration.py": engine,
+        "tool/twin_overlay.py": engine.with_name("twin_overlay.py"),
+    }
+    for group in groups:
+        manifest = project.joinpath(*PurePosixPath(group["manifest"]).parts)
+        inputs[f"groups/{group['id']}/bundle.json"] = manifest
+        inputs[f"groups/{group['id']}/model_registration_receipt.json"] = (
+            manifest.parent / "model_registration_receipt.json")
+    transaction = ArtifactBundleTransaction(
+        accepted,
+        producer="model-registration-aggregate",
+        producer_version="model-registration-index-v1:" + digest(Path(__file__).resolve()),
+        subject=subject,
+        inputs=inputs,
+        outputs={
+            "model_registration.md": None,
+            "model_registration_index.json": None,
+        },
+        run_id=run_id,
+        retain_failed=True,
+    )
+
+    def produce(staging):
+        shutil.copy2(output, staging / "model_registration.md")
+        (staging / "model_registration_index.json").write_text(
+            json.dumps(index, indent=2, sort_keys=True, allow_nan=False) + "\n",
+            encoding="utf-8",
+        )
+
+    def reopen(_staging, opened):
+        validate_index(project, opened["model_registration_index.json"], index)
+        if opened["model_registration.md"] != output.read_text(encoding="utf-8"):
+            raise ValueError("accepted aggregate report differs from legacy report")
+
+    published = transaction.publish(produce, reopen_validator=reopen)
+    return published.path
+
+
 def emit_stage(path: Path, *, run_id: str, semantic: str, raw: str,
                applicability: str, reason, status: str, started: str,
                elapsed: float, graded: int, total: int, outputs, findings) -> None:
@@ -349,30 +466,34 @@ def main(argv=None) -> int:
     build = project / "06_build/pre_route/native_registration"
     build.mkdir(parents=True, exist_ok=True)
     seen_ids = set()
+    seen_refs = {}
     prepared = []
     for index, group in enumerate(groups):
         if not isinstance(group, dict):
             raise SystemExit(f"P-MODEL-REG groups[{index}] must be a mapping")
         group_id = str(group.get("id", "")).strip()
-        if (not group_id or group_id in seen_ids or "/" in group_id or
-                ".." in group_id):
+        if (not group_id or group_id in seen_ids or
+                any(char not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-"
+                    for char in group_id)):
             raise SystemExit(f"P-MODEL-REG invalid/duplicate group id: {group_id!r}")
         seen_ids.add(group_id)
         try:
             values = normalized_group(group_id, group)
+            for ref in values["refs"]:
+                prior = seen_refs.get(ref)
+                if prior is not None:
+                    raise ValueError(
+                        f"P-MODEL-REG ref {ref} appears in both {prior} and {group_id}")
+                seen_refs[ref] = group_id
             tuple_value, rows = tuple_for(board, values)
         except ValueError as exc:
             raise SystemExit(str(exc))
         prepared.append((group_id, values, tuple_value, rows))
 
-    semantic = canonical_sha([
+    semantic = canonical_sha(sorted([
         {"id": group_id, "refs": values["refs"], "tuple": tuple_value}
         for group_id, values, tuple_value, _rows in prepared
-    ])
-    raw = canonical_sha({
-        "board": digest(board), "config": digest(config_path),
-        "engine": digest(engine), "twin_overlay": digest(engine.with_name("twin_overlay.py")),
-    })
+    ], key=lambda item: item["id"]))
     rows_out = []
     findings = []
     graded = 0
@@ -392,6 +513,9 @@ def main(argv=None) -> int:
 
     failed = graded != len(prepared)
     output.parent.mkdir(parents=True, exist_ok=True)
+    aggregate_manifest = output.parent / "model_registration_bundle/bundle.json"
+    aggregate_relative = aggregate_manifest.relative_to(project).as_posix()
+    bundle_label = "aggregate_bundle_unavailable" if failed else "accepted_bundle"
     lines = [
         "# Project native model physical registration",
         "",
@@ -400,6 +524,7 @@ def main(argv=None) -> int:
         "registration_kind: P-MODEL-REG",
         f"config_sha256: {digest(config_path)}",
         f"stage_receipt: {stage_output.relative_to(project).as_posix()}",
+        f"{bundle_label}: {aggregate_relative}",
         "",
         "This aggregate is independent physical-registration evidence. Each "
         "group uses an origin-centred coupon and compares native-model pixels "
@@ -417,6 +542,43 @@ def main(argv=None) -> int:
             f"`{native.tuple_cache_key(tuple_value)}` | `{relative}` | {result} |")
     output.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
+    raw_inputs = {
+        "board": digest(board), "config": digest(config_path),
+        "gate": digest(Path(__file__).resolve()), "engine": digest(engine),
+        "twin_overlay": digest(engine.with_name("twin_overlay.py")),
+        "legacy_report": digest(output),
+    }
+    for group_id, _values, _tuple_value, report, passed, _cached in rows_out:
+        manifest = report.parent / "bundle.json"
+        if passed and manifest.is_file():
+            raw_inputs[f"group:{group_id}"] = digest(manifest)
+    raw = canonical_sha(raw_inputs)
+    subject = {"semantic_sha256": semantic, "raw_sha256": raw}
+
+    aggregate_bundle = None
+    if not failed:
+        try:
+            aggregate_bundle = publish_aggregate(
+                project, output, board, config_path, engine, run_id, subject,
+                rows_out,
+            )
+        except (ArtifactError, OSError, TypeError, ValueError,
+                json.JSONDecodeError) as exc:
+            failed = True
+            findings.append({"aggregate": OUTPUT_SYMBOL, "error": str(exc)})
+            output.write_text(
+                output.read_text(encoding="utf-8").replace(
+                    "a-render_verdict: PASS", "a-render_verdict: FAIL", 1),
+                encoding="utf-8",
+            )
+            output.write_text(
+                output.read_text(encoding="utf-8").replace(
+                    "accepted_bundle:", "aggregate_bundle_failed:", 1),
+                encoding="utf-8",
+            )
+            raw_inputs["legacy_report"] = digest(output)
+            raw = canonical_sha(raw_inputs)
+
     emit_stage(
         stage_output, run_id=run_id, semantic=semantic, raw=raw,
         applicability="APPLIES", reason=None,
@@ -425,6 +587,8 @@ def main(argv=None) -> int:
         total=len(prepared), outputs=[] if failed else [OUTPUT_SYMBOL],
         findings=findings,
     )
+    if aggregate_bundle is not None:
+        print(f"P-MODEL-REG accepted aggregate -> {aggregate_bundle}")
     print(
         f"P-MODEL-REG {'FAIL' if failed else 'PASS'}: {graded}/{len(prepared)} "
         f"group(s) graded -> {output}")
