@@ -199,13 +199,17 @@ class ExpectedStage:
     stage_id: str
     required_for: str
     applicability: str
+    minimum_total: int
     bundles: Mapping[str, str]
 
     @classmethod
     def from_mapping(cls, value: Any, where: str) -> "ExpectedStage":
         _exact_fields(
             value,
-            {"stage_id", "required_for", "applicability", "bundles"},
+            {
+                "stage_id", "required_for", "applicability",
+                "minimum_total", "bundles",
+            },
             where,
         )
         stage_id = value["stage_id"]
@@ -217,6 +221,14 @@ class ExpectedStage:
         applicability = value["applicability"]
         if applicability not in APPLICABILITIES:
             _fail(f"{where}.applicability: expected one of {sorted(APPLICABILITIES)}")
+        minimum_total = value["minimum_total"]
+        if (not isinstance(minimum_total, int) or isinstance(minimum_total, bool)
+                or minimum_total < 0):
+            _fail(f"{where}.minimum_total: expected a non-negative integer")
+        if applicability == "APPLIES" and minimum_total == 0:
+            _fail(f"{where}.minimum_total: APPLIES stage requires a positive value")
+        if applicability == "NOT_APPLICABLE" and minimum_total != 0:
+            _fail(f"{where}.minimum_total: NOT_APPLICABLE stage requires zero")
         raw_bundles = value["bundles"]
         if not isinstance(raw_bundles, Mapping):
             _fail(f"{where}.bundles: expected a mapping")
@@ -234,7 +246,8 @@ class ExpectedStage:
             _fail(f"{where}.bundles: APPLIES stage needs an accepted bundle")
         if applicability == "NOT_APPLICABLE" and bundles:
             _fail(f"{where}.bundles: NOT_APPLICABLE stage cannot name bundles")
-        return cls(stage_id, required_for, applicability, dict(bundles))
+        return cls(stage_id, required_for, applicability, minimum_total,
+                   dict(bundles))
 
 
 @dataclass(frozen=True)
@@ -276,6 +289,17 @@ class ReadinessRegistry:
         ids = [stage.stage_id for stage in stages]
         if ids != sorted(set(ids)):
             _fail("receipt registry.stages: stage ids must be sorted and unique")
+        bundle_owners: dict[str, str] = {}
+        for stage in stages:
+            for symbol, path in stage.bundles.items():
+                owner = f"{stage.stage_id}.{symbol}"
+                prior = bundle_owners.get(path)
+                if prior is not None:
+                    _fail(
+                        f"receipt registry.stages: bundle {path!r} is reused by "
+                        f"{prior} and {owner}"
+                    )
+                bundle_owners[path] = owner
         if any(LEVELS.index(stage.required_for) > LEVELS.index(target)
                for stage in stages):
             _fail("receipt registry.stages: a stage is later than registry target")
@@ -451,6 +475,11 @@ def evaluate(project: Path, registry_path: Path) -> dict[str, Any]:
                 if (expected.applicability == "NOT_APPLICABLE" and
                         receipt.status != "NOT_APPLICABLE"):
                     _fail(f"receipt {expected.stage_id}: expected NOT_APPLICABLE")
+                if receipt.total < expected.minimum_total:
+                    _fail(
+                        f"receipt {expected.stage_id}: total {receipt.total} is "
+                        f"below minimum_total {expected.minimum_total}"
+                    )
                 if tuple(receipt.outputs) != tuple(expected.bundles):
                     _fail(
                         f"receipt {expected.stage_id}: output symbols disagree "
@@ -478,6 +507,7 @@ def evaluate(project: Path, registry_path: Path) -> dict[str, Any]:
             "stage_id": expected.stage_id,
             "required_for": expected.required_for,
             "expected_applicability": expected.applicability,
+            "minimum_total": expected.minimum_total,
             "receipt": receipt_rel,
             "receipt_sha256": receipt_sha256,
             "admissible": admissible,

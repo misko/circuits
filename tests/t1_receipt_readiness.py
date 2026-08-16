@@ -107,6 +107,7 @@ def readiness_tree(*, include_optional=False, legacy_state="pass",
         "stage_id": "P-DESIGN",
         "required_for": "DESIGN_CLEAN",
         "applicability": "APPLIES",
+        "minimum_total": 2,
         "bundles": {
             "design_bundle": "06_build/bundles/design/bundle.json",
         },
@@ -118,6 +119,7 @@ def readiness_tree(*, include_optional=False, legacy_state="pass",
             "stage_id": "P-OPTIONAL",
             "required_for": "DESIGN_CLEAN",
             "applicability": "NOT_APPLICABLE",
+            "minimum_total": 0,
             "bundles": {},
         })
     registry = {
@@ -209,6 +211,45 @@ def t_not_applicable():
     eq(value["status"], "PASS", "N/A shadow verdict")
     eq(value["coverage"], {"satisfied": 2, "total": 2, "not_applicable": 1},
        "N/A denominator")
+
+
+@test("low nonzero denominator cannot advance receipt readiness",
+      kind="known_bad")
+def t_low_nonzero_denominator():
+    project, registry_path = readiness_tree()
+    registry = yaml.safe_load(registry_path.read_text())
+    registry["stages"][0]["minimum_total"] = 3
+    registry_path.write_text(yaml.safe_dump(registry, sort_keys=False))
+    result = run_shadow(project)
+    contains(result.out, "M-STATE PASS", "legacy remains authority")
+    contains(result.out, "receipt-shadow=FAIL", "minimum coverage verdict")
+    value = shadow(project)
+    check(any("total 2 is below minimum_total 3" in item
+              for item in value["findings"]), "minimum coverage diagnosis")
+
+
+@test("one accepted bundle cannot satisfy two stage/output bindings",
+      kind="known_bad")
+def t_duplicate_bundle_reuse():
+    project, registry_path = readiness_tree()
+    registry = yaml.safe_load(registry_path.read_text())
+    registry["stages"].append({
+        "stage_id": "P-SECOND",
+        "required_for": "DESIGN_CLEAN",
+        "applicability": "APPLIES",
+        "minimum_total": 1,
+        "bundles": {
+            "second_bundle": "06_build/bundles/design/bundle.json",
+        },
+    })
+    registry_path.write_text(yaml.safe_dump(registry, sort_keys=False))
+    result = run_shadow(project)
+    contains(result.out, "M-STATE PASS", "legacy remains authority")
+    contains(result.out, "receipt-shadow=FAIL", "duplicate bundle verdict")
+    value = shadow(project)
+    check(any("is reused by P-DESIGN.design_bundle and P-SECOND.second_bundle"
+              in item for item in value["findings"]),
+          "duplicate bundle ownership diagnosis")
 
 
 @test("legacy/receipt disagreement is exposed but legacy result stays authority")
