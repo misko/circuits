@@ -3504,7 +3504,7 @@ Recommended execution order for future boards:
 
 ## IMP-097 — preserve schematic-sheet coordinate domains in native conversion
 
-- status: implemented
+- status: completed
 - observed: Pluto RX2 8-way v5 hardware-release audit, 2026-08-13
 - evidence: the TSX human schematic contained four independently readable
   authored sheets, but `circuit_json_to_kicad_sch.py` treated every sheet's
@@ -3579,7 +3579,7 @@ Recommended execution order for future boards:
 
 ## IMP-099 — seed every late KiCad writer, not only board and route preparation
 
-- status: implemented
+- status: completed
 - observed: Pluto RX2 8-way v5 hardware-release reproducibility proof,
   2026-08-13
 - evidence: the committed and first clean-replayed boards had identical
@@ -3687,7 +3687,7 @@ Recommended execution order for future boards:
 
 ## IMP-102 — make RF expertise a conditional, bounded evidence module
 
-- status: implemented
+- status: completed
 - observed: Pluto RX2 8-way v5 RF routing/fence audit, 2026-08-14
 - evidence: the board has nine declared 50-ohm CPWG paths and a passing
   18/18 saved-board fence result, but the retained invocation graded a default
@@ -3743,7 +3743,7 @@ Recommended execution order for future boards:
 
 ## IMP-103 — model protected distribution rails explicitly
 
-- status: implemented
+- status: completed
 - observed: Raspberry Pi USB port switch commission/source preflight,
   2026-08-14
 - evidence: the board's four downstream VBUS paths are pass-through
@@ -3781,7 +3781,7 @@ Recommended execution order for future boards:
 
 ## IMP-104 — retain per-row JLC evidence in mixed-source BOMs
 
-- status: implemented
+- status: completed
 - observed: Raspberry Pi USB port switch Q-2SOURCE composition, 2026-08-14
 - evidence: its candidate BOM has exact JLC/LCSC codes alongside intentional
   global/user-fit rows. `jlc_stock_check.py` correctly graded the coded rows and
@@ -3809,7 +3809,7 @@ Recommended execution order for future boards:
 
 ## IMP-105 — separate early high-speed authority from placed route primitives
 
-- status: implemented
+- status: completed
 - observed: Raspberry Pi four-channel USB 3 inline switch source preflight,
   2026-08-15
 - evidence: after exact USB pin maps were locked, the project could truthfully
