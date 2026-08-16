@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """fab_payload_census.py — canon F-*: grade the bytes that ACTUALLY SHIP.
 
-    fab_payload_census.py <release-dir> [--json OUT]
+    fab_payload_census.py <release-dir> [--json OUT | --bundle DIR]
 
 WHY THIS EXISTS. usb-hub-3s-v3 shipped THREE sealed releases (v1.6, v1.7, v1.8)
 whose gerbers contain NO COPPER POUR ON ANY LAYER — 51 zones on the board, 0
@@ -35,11 +35,17 @@ skip — `bom_source_check`'s row_kind silently dropped 12 of 26 rows while
 printing PASS, and that is the failure mode being avoided here.
 """
 import argparse
+import hashlib
 import json
 import re
 import sys
 import zipfile
 from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[1] / "pcb-design" / "scripts"))
+from pipeline_artifacts import (ArtifactBundleTransaction, ArtifactError,  # noqa: E402
+                                ArtifactValidationError)
 
 #: gerber filename stem suffix -> KiCad board layer name.
 LAYER_FROM_FILE = {"F_Cu": "F.Cu", "B_Cu": "B.Cu"}
@@ -294,34 +300,132 @@ def check(release_dir, assembly=None):
     return r
 
 
+def render_result(r):
+    """Return the stable human rendering of one already-adjudicated result."""
+    lines = []
+    if r.get("na"):
+        return f"  {r['na']}\n"
+    for key, value in sorted(r["coverage"].items()):
+        lines.append(f"  coverage {key}: {value}")
+    lines.extend(f"  ok   {item}" for item in r["oks"])
+    lines.extend(f"  FAIL {item}" for item in r["fails"])
+    if r["fails"]:
+        lines.append(f"F-PAYLOAD FAIL: {len(r['fails'])} finding(s), "
+                     f"{len(r['oks'])} ok")
+    else:
+        lines.append(f"F-PAYLOAD OK: {len(r['oks'])} check(s) passed")
+    return "\n".join(lines) + "\n"
+
+
+def _bundle_inputs(release_dir, assembly=None):
+    """Name every source byte the census can consume for this invocation."""
+    rel = Path(release_dir).resolve()
+    zips = sorted((rel / "fab").glob("*_gerbers.zip"))
+    boards = sorted((rel / "source").glob("*.kicad_pcb"))
+    if not zips or not boards:
+        return {}
+    inputs = {
+        "fab/gerbers.zip": zips[0],
+        "source/board.kicad_pcb": boards[0],
+    }
+    candidates = ([Path(assembly).resolve()] if assembly else [
+        rel / "source" / "assembly.yaml",
+        rel.parent.parent / "03_src" / "rules" / "assembly.yaml",
+    ])
+    for index, candidate in enumerate(candidates):
+        if candidate.is_file():
+            inputs[f"rules/assembly-{index}.yaml"] = candidate
+    return inputs
+
+
+def _sha256(payload):
+    return hashlib.sha256(payload).hexdigest()
+
+
+def publish_bundle(release_dir, assembly, result, accepted_dir):
+    """Publish F-PAYLOAD evidence as one validated artifact transaction."""
+    accepted = Path(accepted_dir)
+    accepted.parent.mkdir(parents=True, exist_ok=True)
+    inputs = _bundle_inputs(release_dir, assembly)
+    if not inputs:
+        raise ArtifactValidationError(
+            "F-PAYLOAD is N-A: no gradeable board/gerber input pair; "
+            "no evidence bundle was accepted")
+    semantic = dict(result)
+    semantic.pop("release", None)
+    semantic_bytes = json.dumps(
+        semantic, sort_keys=True, separators=(",", ":"), default=str).encode()
+    raw = bytearray()
+    for name, path in sorted(inputs.items()):
+        raw.extend(name.encode())
+        raw.extend(b"\0")
+        raw.extend(path.read_bytes())
+        raw.extend(b"\0")
+    version = _sha256(Path(__file__).read_bytes())
+    tx = ArtifactBundleTransaction(
+        accepted,
+        producer="fab_payload_census.py",
+        producer_version=version,
+        subject={"semantic_sha256": _sha256(semantic_bytes),
+                 "raw_sha256": _sha256(bytes(raw))},
+        inputs=inputs,
+        outputs={"report.json": None, "report.txt": None},
+        retain_failed=True,
+    )
+
+    def produce(staging):
+        (staging / "report.json").write_text(
+            json.dumps(result, indent=2, sort_keys=True, default=str) + "\n",
+            encoding="utf-8")
+        (staging / "report.txt").write_text(
+            render_result(result), encoding="utf-8")
+        return 1 if result.get("fails") else 0
+
+    def reopen(_staging, opened):
+        durable = opened["report.json"]
+        if opened["report.txt"] != render_result(durable):
+            raise ArtifactValidationError(
+                "durable JSON and text F-PAYLOAD verdicts disagree")
+
+    try:
+        return tx.publish(produce, reopen_validator=reopen)
+    except BaseException as exc:
+        if tx.failed_workspace is not None:
+            exc.add_note(f"failed workspace retained at {tx.failed_workspace}")
+        raise
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("release_dir")
     ap.add_argument("--json", default=None)
     ap.add_argument("--assembly", default=None,
                     help="assembly.yaml carrying a `pourless:` declaration")
+    ap.add_argument("--bundle", default=None,
+                    help="atomically publish report.json/report.txt plus a "
+                         "manifest into this accepted evidence directory")
     a = ap.parse_args(argv)
+
+    if a.json and a.bundle:
+        ap.error("--json and --bundle are alternative publication modes")
 
     r = check(a.release_dir, a.assembly)
     if a.json:
         Path(a.json).write_text(json.dumps(r, indent=2, default=str) + "\n")
-
+    print(render_result(r), end="")
+    if a.bundle:
+        try:
+            published = publish_bundle(a.release_dir, a.assembly, r, a.bundle)
+        except ArtifactError as exc:
+            print(f"F-PAYLOAD BUNDLE REJECTED: {exc}")
+            notes = getattr(exc, "__notes__", ())
+            for note in notes:
+                print(f"  {note}")
+            return 1
+        print(f"F-PAYLOAD BUNDLE ACCEPTED: {published.path}")
     if r.get("na"):
-        print(f"  {r['na']}")
         return 0
-    for k, v in sorted(r["coverage"].items()):
-        print(f"  coverage {k}: {v}")
-    for o in r["oks"]:
-        print(f"  ok   {o}")
-    for f in r["fails"]:
-        print(f"  FAIL {f}")
-
-    if r["fails"]:
-        print(f"F-PAYLOAD FAIL: {len(r['fails'])} finding(s), "
-              f"{len(r['oks'])} ok")
-        return 1
-    print(f"F-PAYLOAD OK: {len(r['oks'])} check(s) passed")
-    return 0
+    return 1 if r["fails"] else 0
 
 
 if __name__ == "__main__":

@@ -293,6 +293,48 @@ def t_failed_promotion():
     eq(accepted_bytes(accepted), before, "accepted bundle after promotion failure")
 
 
+@test("retained promotion failure strips the unaccepted manifest",
+      kind="known_bad")
+def t_retained_failed_promotion_has_no_manifest():
+    _root, source, accepted = fixture()
+    transaction(source, accepted, run_id="run-old").publish(
+        lambda staging: write_consistent(staging), reopen_validator=cross_check)
+    before = accepted_bytes(accepted)
+    tx = artifacts.ArtifactBundleTransaction(
+        accepted,
+        producer="fixture-producer",
+        producer_version="fixture-v1",
+        subject={"semantic_sha256": SEMANTIC, "raw_sha256": RAW},
+        inputs={"fab/bom.csv": source},
+        outputs={"result.json": None, "result.csv": None},
+        run_id="run-retained-promote-fail",
+        retain_failed=True,
+    )
+    original = artifacts._rename_exchange
+
+    def fail_exchange(_source, _target):
+        raise OSError("simulated promotion failure")
+
+    artifacts._rename_exchange = fail_exchange
+    try:
+        try:
+            tx.publish(lambda staging: write_consistent(staging, quantity=11),
+                       reopen_validator=cross_check)
+        except artifacts.ArtifactPromotionError:
+            pass
+        else:
+            raise AssertionError("failed promotion unexpectedly succeeded")
+    finally:
+        artifacts._rename_exchange = original
+    check(tx.failed_workspace is not None, "failure workspace identity")
+    check(not (tx.failed_workspace / "bundle.json").exists(),
+          "unaccepted PASS manifest survived promotion failure")
+    check((tx.failed_workspace / "result.json").is_file(),
+          "producer diagnostic output was not retained")
+    eq(accepted_bytes(accepted), before,
+       "accepted bytes after retained promotion failure")
+
+
 @test("undeclared producer output is rejected", kind="known_bad")
 def t_undeclared_output():
     _root, source, accepted = fixture()
@@ -335,6 +377,46 @@ def t_nested_parent_symlink():
     else:
         raise AssertionError("nested output symlink was followed and published")
     check(not accepted.exists(), "symlinked first bundle was published")
+
+
+@test("opt-in failed workspace retention preserves exact diagnostics and prior good",
+      kind="known_bad")
+def t_retain_failed_workspace():
+    _root, source, accepted = fixture()
+    transaction(source, accepted, run_id="run-old").publish(
+        lambda staging: write_consistent(staging), reopen_validator=cross_check)
+    before = accepted_bytes(accepted)
+    tx = artifacts.ArtifactBundleTransaction(
+        accepted,
+        producer="fixture-producer",
+        producer_version="fixture-v1",
+        subject={"semantic_sha256": SEMANTIC, "raw_sha256": RAW},
+        inputs={"fab/bom.csv": source},
+        outputs={"result.json": None, "result.csv": None},
+        run_id="run-known-bad",
+        retain_failed=True,
+    )
+
+    def failed(staging):
+        (staging / "result.json").write_text('{"partial":true}\n')
+        (staging / "result.csv").write_text("code,quantity\nC1,\n")
+        return 23
+
+    try:
+        tx.publish(failed)
+    except artifacts.ArtifactProducerError:
+        pass
+    else:
+        raise AssertionError("failed producer unexpectedly published")
+    expected = accepted.parent / "accepted.failed-run-known-bad"
+    eq(tx.failed_workspace, expected, "retained workspace identity")
+    check(expected.is_dir(), "failed workspace was not retained")
+    check(not (expected / "bundle.json").exists(),
+          "rejected workspace received an acceptance manifest")
+    check((expected / "result.json").read_text() == '{"partial":true}\n',
+          "failed diagnostic bytes changed")
+    eq(accepted_bytes(accepted), before,
+       "accepted bundle after retained failed attempt")
 
 
 if __name__ == "__main__":

@@ -22,6 +22,8 @@ The real sealed releases are used as fixtures where the incident IS the
 fixture — v1.8 is a permanent, immutable, honest known-bad this project already
 paid for, and it can never silently "get fixed" out from under the test.
 """
+import hashlib
+import json
 import subprocess
 import sys
 import zipfile
@@ -148,6 +150,70 @@ def t_good_release_passes():
     simply fail everything, which is how a gate 'catches' without discriminating."""
     r = must_pass(run([KPY, TOOL, CRV2]), "F-PAYLOAD on crow-recorder v1.5")
     contains(r.out, "F-POUR F.Cu 4 zone(s) -> 104 G36", "measured pour census")
+
+
+@test("fpay_bundle_atomically_publishes_reopened_machine_and_human_evidence")
+def t_bundle_publication():
+    rel = _fixture(
+        [("F.Cu", False)],
+        {"F_Cu": ("Copper,L1,Top", 1)},
+        stem="bundle-good",
+    )
+    accepted = rel / "verification" / "f_payload"
+    r = must_pass(run([KPY, TOOL, rel, "--bundle", accepted]),
+                  "transactional F-PAYLOAD publication")
+    contains(r.out, "F-PAYLOAD BUNDLE ACCEPTED", "acceptance is explicit")
+    report = json.loads((accepted / "report.json").read_text())
+    check(not report["fails"], "accepted report contains a failing verdict")
+    contains((accepted / "report.txt").read_text(), "F-PAYLOAD OK",
+             "human report agrees")
+    manifest = json.loads((accepted / "bundle.json").read_text())
+    check(manifest["status"] == "PASS", "manifest verdict")
+    check(set(manifest["outputs"]) == {"report.json", "report.txt"},
+          "declared output census")
+    check(set(manifest["inputs"]) == {
+        "fab/gerbers.zip", "source/board.kicad_pcb"}, "declared inputs")
+    for name in manifest["outputs"]:
+        payload = (accepted / name).read_bytes()
+        check(manifest["outputs"][name]["sha256"]
+              == hashlib.sha256(payload).hexdigest(), f"{name} durable hash")
+
+
+@test("fpay_failed_bundle_retains_diagnostics_without_replacing prior good",
+      kind="known_bad")
+def t_bundle_failure_retention():
+    good = _fixture(
+        [("F.Cu", False)],
+        {"F_Cu": ("Copper,L1,Top", 1)},
+        stem="bundle-good",
+    )
+    accepted = good / "verification" / "f_payload"
+    must_pass(run([KPY, TOOL, good, "--bundle", accepted]),
+              "initial accepted F-PAYLOAD bundle")
+    before = {
+        p.relative_to(accepted).as_posix(): p.read_bytes()
+        for p in accepted.rglob("*") if p.is_file()
+    }
+    bad = _fixture(
+        [("F.Cu", False)],
+        {"F_Cu": ("Copper,L1,Top", 0)},
+        stem="bundle-bad",
+    )
+    r = must_fail(run([KPY, TOOL, bad, "--bundle", accepted]),
+                  "known-bad F-PAYLOAD bundle")
+    contains(r.out, "F-PAYLOAD BUNDLE REJECTED", "failure is explicit")
+    contains(r.out, "failed workspace retained", "diagnostic location")
+    after = {
+        p.relative_to(accepted).as_posix(): p.read_bytes()
+        for p in accepted.rglob("*") if p.is_file()
+    }
+    check(after == before, "failed publication replaced previous-good bytes")
+    failed = list(accepted.parent.glob("f_payload.failed-*"))
+    check(len(failed) == 1, "expected one retained failed workspace")
+    check(not (failed[0] / "bundle.json").exists(),
+          "rejected diagnostics received an acceptance manifest")
+    failed_report = json.loads((failed[0] / "report.json").read_text())
+    check(bool(failed_report["fails"]), "failed finding was not retained")
 
 
 # ------------------------------------------------- the two self-inflicted bugs

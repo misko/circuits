@@ -292,6 +292,7 @@ class ArtifactBundleTransaction:
         inputs: Mapping[str, Path | str],
         outputs: Mapping[str, OutputSpec | None],
         run_id: str | None = None,
+        retain_failed: bool = False,
     ) -> None:
         raw_target = Path(accepted_dir).expanduser()
         if raw_target.name in {"", ".", ".."}:
@@ -324,6 +325,10 @@ class ArtifactBundleTransaction:
         self.run_id = run_id or _new_run_id()
         if not _RUN_ID_RE.fullmatch(self.run_id):
             raise ArtifactDeclarationError(f"invalid run_id: {self.run_id!r}")
+        if not isinstance(retain_failed, bool):
+            raise ArtifactDeclarationError("retain_failed must be boolean")
+        self.retain_failed = retain_failed
+        self.failed_workspace: Path | None = None
 
         if not inputs:
             raise ArtifactDeclarationError("at least one declared input is required")
@@ -564,7 +569,35 @@ class ArtifactBundleTransaction:
                 replaced_existing=replaced,
             )
         except BaseException:
-            _discard_staging(staging, self.accepted_dir.parent, prefix)
+            if self.retain_failed and staging.is_dir() and not staging.is_symlink():
+                # A failed attempt is never given the accepted directory name
+                # and must not retain bundle.json (a promotion failure happens
+                # after that manifest was serialized).  Keep the producer's
+                # exact evidence bytes as a sibling forensic workspace, with
+                # the run identity in its name, while leaving any previous
+                # accepted bundle untouched.
+                failed = (self.accepted_dir.parent
+                          / f"{self.accepted_dir.name}.failed-{self.run_id}")
+                try:
+                    rejected_manifest = staging / "bundle.json"
+                    if rejected_manifest.exists() or rejected_manifest.is_symlink():
+                        rejected_manifest.unlink()
+                    if failed.exists() or failed.is_symlink():
+                        raise FileExistsError(
+                            f"failed workspace already exists: {failed}")
+                    os.rename(staging, failed)
+                    self.failed_workspace = failed
+                    try:
+                        _fsync_directory(failed.parent)
+                    except OSError:
+                        pass
+                except OSError:
+                    # Retention is diagnostic and must not mask the original
+                    # producer/validation/promotion failure.  If rename fails,
+                    # normal safe cleanup applies.
+                    _discard_staging(staging, self.accepted_dir.parent, prefix)
+            else:
+                _discard_staging(staging, self.accepted_dir.parent, prefix)
             raise
 
 
