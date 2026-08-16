@@ -1,0 +1,12 @@
+# Applicability is explicit: this is high-speed digital USB, not an intentional
+# RF network. USB impedance, skew, return continuity and first-article testing
+# remain governed by the USB pair and fabrication contracts.
+schema: 1
+rf:
+  enabled: false
+  rationale: >-
+    No intentional RF port, antenna, phase-coherent network or via-fenced
+    transmission line exists. USB 2.0 high-speed differential interfaces are
+    governed by dedicated pair, impedance, return-path, realized-skew and
+    first-article contracts; the RF module's route-bank and fence semantics are
+    not electrically applicable.

@@ -5,16 +5,18 @@ default_track_width: 0.18mm
 classes:
   USB_HS:
     intent: >-
-      Ten USB 2.0 High-Speed pair segments: upstream, internal management,
-      and two segments per externally switched port. Route as 90 ohm
+      Five functional USB 2.0 links represented as fifteen differential
+      pair-net segments because the connector-side ESD devices divide the
+      upstream and four external paths. Route as 90 ohm
       differential CPWG over a continuous reference plane; final geometry is
       locked to the selected JLC stackup before routing.
     nets:
-      [USB_UP_P, USB_UP_N, CTRL_USB_P, CTRL_USB_N,
-       P1_HUB_P, P1_HUB_N, P1_PORT_P, P1_PORT_N,
-       P2_HUB_P, P2_HUB_N, P2_PORT_P, P2_PORT_N,
-       P3_HUB_P, P3_HUB_N, P3_PORT_P, P3_PORT_N,
-       P4_HUB_P, P4_HUB_N, P4_PORT_P, P4_PORT_N]
+      [UP_CONN_P, UP_CONN_N, UP_HUB_P, UP_HUB_N,
+       MGMT_P, MGMT_N,
+       P1_HUB_P, P1_HUB_N, P1_PORT_P, P1_PORT_N, P1_CONN_P, P1_CONN_N,
+       P2_HUB_P, P2_HUB_N, P2_PORT_P, P2_PORT_N, P2_CONN_P, P2_CONN_N,
+       P3_HUB_P, P3_HUB_N, P3_PORT_P, P3_PORT_N, P3_CONN_P, P3_CONN_N,
+       P4_HUB_P, P4_HUB_N, P4_PORT_P, P4_PORT_N, P4_CONN_P, P4_CONN_N]
     impedance: "90 ohm differential, JLC-confirmed stackup geometry"
     current: signal
     min_width: 0.18mm

@@ -330,7 +330,7 @@ def board_extent_px(im, step=1):
 
 def extract_body(px, size, win, seed_px, blocked=(), protect=None,
                  ero=EROSION, thr=SAT_THRESHOLD, bare_px=None,
-                 diff_thr=DIFF_THRESHOLD):
+                 diff_thr=DIFF_THRESHOLD, union_components=False):
     """Connected component of body pixels inside `win`, nearest `seed_px`.
 
     `blocked` is a list of pixel rectangles where a DIFFERENT part's body is
@@ -343,6 +343,16 @@ def extract_body(px, size, win, seed_px, blocked=(), protect=None,
 
     Returns (bbox_px, npx, touched_border) or None. `bbox_px` is dilated back
     by `ero` so it is comparable with an un-eroded expectation.
+
+    ``union_components`` is reserved for same-camera populated-minus-bare
+    coupons containing one provenance-bound native model per search window.
+    Native STEP bodies are often multipart and therefore produce several
+    disconnected pixel islands; selecting only the island nearest the F.Fab
+    centre can reduce a connector to one shell edge.  In that mode the bare
+    render has already removed pads, silk and board graphics, so every
+    surviving unblocked component belongs to the one model and must be part
+    of its measured envelope.  Catalog-twin callers retain the historical
+    nearest-component behavior by default.
     """
     W, H = size
     x0, y0, x1, y1 = win
@@ -371,24 +381,24 @@ def extract_body(px, size, win, seed_px, blocked=(), protect=None,
             nxt[(x, y)] = v and all(mask.get((x + dx, y + dy), False)
                                     for dx in (-1, 0, 1) for dy in (-1, 0, 1))
         mask = nxt
-    sx, sy = seed_px
-    best = None
-    for (x, y), v in mask.items():
-        if v:
-            d = (x - sx) ** 2 + (y - sy) ** 2
-            if best is None or d < best[0]:
-                best = (d, (x, y))
-    if best is None:
+    live = [point for point, value in mask.items() if value]
+    if not live:
         return None
-    seen = {best[1]}
-    q = deque([best[1]])
-    while q:
-        x, y = q.popleft()
-        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            p = (x + dx, y + dy)
-            if mask.get(p) and p not in seen:
-                seen.add(p)
-                q.append(p)
+    if union_components:
+        seen = set(live)
+    else:
+        sx, sy = seed_px
+        seed = min(live, key=lambda point:
+                   (point[0] - sx) ** 2 + (point[1] - sy) ** 2)
+        seen = {seed}
+        q = deque([seed])
+        while q:
+            x, y = q.popleft()
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                p = (x + dx, y + dy)
+                if mask.get(p) and p not in seen:
+                    seen.add(p)
+                    q.append(p)
     xs = [p[0] for p in seen]
     ys = [p[1] for p in seen]
     touched = (min(xs) <= x0 + ero or max(xs) >= x1 - ero

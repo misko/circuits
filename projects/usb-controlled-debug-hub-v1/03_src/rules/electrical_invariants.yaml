@@ -6,7 +6,7 @@ supplies:
 invariants:
   - assert: series_chain
     chain: [P5V_RAW, F_IN, P5V_FUSED, Q_RP, P5V_PROTECTED]
-    through: {Q_RP: [D, S]}
+    through: {Q_RP: ["5", "2"]}
     adr: "0002"
     why: The external source must pass through the replaceable fuse and reverse-polarity MOSFET before any load.
   - assert: pin_on_net

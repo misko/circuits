@@ -41,6 +41,12 @@ BACKEND GAP to report, not a bespoke script to write here.
   non-board-only footprint must carry at least one non-empty model file that
   resolves in the headless renderer environment; renderer exit zero alone is
   never body-coverage evidence.
+- `render_board.py BOARD OUTPUT [render options]` is the canonical modeled
+  review renderer. It reuses P-MODEL's saved-board resolver and passes every
+  referenced model-directory token to `kicad-cli` with `-D`; raw headless
+  render commands may silently omit stock bodies when those variables exist
+  only in KiCad's user data tree. `--dry-run` emits the exact argv and coverage
+  denominator without creating an image.
 - `promoted_route_check.py BOARD ROUTE.yaml` is P-ROUTEBASE: before placement
   review can be credited, route prep must be fresh and an existing explicitly
   selected promoted route must match the exact regenerated base's footprint

@@ -1,80 +1,236 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
-# board as a reference for the generic backend's config format. Copy into a
-# new project's 03_src/ and replace the values — the KEYS are the contract.
-#
-# cook-loadcell floorplan — the whole per-board input to
-# skills/kicad-pcb/scripts/generate_board_generic.py, replacing the 373-line
-# hand-written 03_src/generate_board.py.
-#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/generate_board_generic.py \
-#       03_src/floorplan.yaml -o 06_build/proof/cook_loadcell.kicad_pcb
-# 55x45 2-layer: sensors J1/J2 + J5 north, J3/J4 + J6 south, HX711 center-west
-# (analog corner W, digital SE).
-
+# First-pass four-layer floorplan for the self-powered USB debug hub. The four
+# downstream channels form straight north-south lanes: connector, ESD, data
+# switch and current-limited VBUS switch. The hub/management island occupies
+# the centre and the input/buck cell stays on the south edge.
 project:
-  name: cook_loadcell
-  netlist: 06_build/netlists/cook_loadcell.net
-  output: 04_kicad/cook_loadcell.kicad_pcb
+  name: usb_controlled_debug_hub
+  netlist: 06_build/netlists/usb_controlled_debug_hub.net
+  output: 04_kicad/usb_controlled_debug_hub.kicad_pcb
   parts_dir: 02_parts
 
 board:
-  outline: {x0: 20.0, y0: 20.0, x1: 75.0, y1: 65.0}
+  outline: {x0: 20.0, y0: 20.0, x1: 150.0, y1: 110.0}
   edge_width: 0.1
-  layers: 2
-  # Optional, board-wide fabrication intent. Enable only when the order calls
-  # for every via to use the corresponding process; separately identify all
-  # via-in-pad sites and require fabricator/assembly DFM acceptance.
-  # Board-default via treatment; every via left "From rules" inherits it.
-  # Prefer selective thermal_vias.protection for via-in-pad work.
-  # via_protection: {capping: yes, filling: yes}
+  layers: 4
+  stackup:
+    # Provisional public JLCPCB JLC04161H-7628 construction. The order-time
+    # impedance solve remains authoritative for the final USB geometry.
+    nominal_thickness_mm: 1.6
+    thickness_tolerance_mm: 0.10
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.01
+    copper_thickness_mm: [0.035, 0.0152, 0.0152, 0.035]
+    dielectrics:
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: core, thickness_mm: 1.0650, material: "FR4", epsilon_r: 4.4, loss_tangent: 0.02}
+      - {type: prepreg, thickness_mm: 0.2104, material: "7628", epsilon_r: 4.4, loss_tangent: 0.02}
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
-    at: [[23.5, 23.5], [71.5, 23.5], [23.5, 61.5], [71.5, 61.5]]
+    refdes_prefix: H
+    at: [[24.0, 24.0], [146.0, 24.0], [24.0, 106.0], [146.0, 106.0]]
+  fiducials:
+    footprint: Fiducial:Fiducial_1mm_Mask2mm
+    refdes_prefix: FID
+    at: [[28.0, 28.0], [140.0, 101.0], [28.0, 102.0]]
 
-libraries: [/usr/share/kicad/footprints]
+libraries:
+  - {lib: usb_controlled_debug_hub, path: 03_src/lib/usb_controlled_debug_hub.pretty}
+  - /usr/share/kicad/footprints
 
 placement:
-  # anchors are PINNED — the legalizer never moves them
+  # The ESD arrays and high-speed data switches sit on B.Cu beneath their
+  # associated connector bodies. This is the only mechanically clear way to
+  # keep each ESD array within 2 mm of the USB contact lands while also keeping
+  # the ESD-to-switch segment inside the 12 mm high-speed placement budget.
+  sides:
+    U_ESD_UP: bottom
+    U_ESD1: bottom
+    U_ESD2: bottom
+    U_ESD3: bottom
+    U_ESD4: bottom
+    U_DATA1: bottom
+    U_DATA2: bottom
+    U_DATA3: bottom
+    U_DATA4: bottom
   anchors:
-    # XH footprints are pad-1-origin; pads run +x at rot 0. Pitch must be
-    # >= 11.1 (B3B-XH courtyard is 10.99 wide) or bodies overlap pairwise
-    # and J1/J3 pad 1 lands on the corner mounting holes.
-    J1: [30.2, 24.2, 0]
-    J2: [41.3, 24.2, 0]
-    J5: [52.5, 24.2, 0]
-    J3: [30.2, 60.8, 0]
-    J4: [41.3, 60.8, 0]
-    J6: [53.5, 60.8, 0]
-    U1: [38.0, 42.0, 0]
-    Q1: [28.5, 36.0, 0]
-    JP1: [63.0, 42.0, 270]
-  # seeds are starting points the legalizer may walk outward from
-  seeds:
-    R1: [28.5, 39.5]
-    R2: [26.6, 42.6]     # moved: its GND pad kept landing on the S_PLUS B.Cu run
-    C1: [28.5, 44.5]
-    C2: [28.5, 47.0]
-    R7: [63.0, 27.5]
-    C7: [63.0, 30.0]
-    SJ1: [63.0, 32.5]
-    C3: [44.0, 38.0]
-    C4: [47.0, 38.0]
-    C5: [44.0, 46.0]
-    C6: [47.0, 46.0]
-    D1: [55.0, 55.0]
-    D2: [58.0, 55.0]
-    TP1: [24.0, 32.0]
-    TP2: [24.0, 40.0]
-    TP3: [24.0, 48.0]
-    TP4: [24.0, 55.0]
-    TP5: [52.0, 51.0]
-    TP6: [56.0, 51.0]
-    TP7: [60.0, 51.0]
+    # Downstream receptacles on the north edge, mouths facing out.
+    J_PORT1: [48.0, 24.0, 0]
+    J_PORT2: [76.0, 24.0, 0]
+    J_PORT3: [104.0, 24.0, 0]
+    J_PORT4: [132.0, 24.0, 0]
+    U_ESD1: [51.5, 27.0, 90]
+    U_ESD2: [79.5, 27.0, 90]
+    U_ESD3: [107.5, 27.0, 90]
+    U_ESD4: [135.5, 27.0, 90]
+    U_DATA1: [57.0, 35.0, 0]
+    U_DATA2: [82.0, 35.0, 0]
+    U_DATA3: [105.0, 35.0, 180]
+    U_DATA4: [128.0, 35.0, 180]
+    U_PWR1: [48.0, 54.0, 0]
+    U_PWR2: [76.0, 54.0, 0]
+    U_PWR3: [104.0, 54.0, 0]
+    U_PWR4: [132.0, 54.0, 0]
+
+    # Upstream entry and low-noise hub island.
+    J_UP: [24.5, 57.0, 90]
+    U_ESD_UP: [23.5, 61.0, 270]
+    U_HUB: [93.0, 65.0, 0]
+    Y_HUB: [93.0, 53.0, 0]
+    U_PWR_CTRL: [45.0, 72.0, 0]
+    U_CTRL: [106.0, 76.0, 180]
+    U_EXP: [123.0, 76.0, 0]
+    U_AND_PWR: [104.0, 86.0, 0]
+    U_AND_DATA: [120.0, 86.0, 0]
+    Q_DATA1: [62.0, 42.0, 0]
+    Q_DATA2: [87.0, 42.0, 0]
+    Q_DATA3: [100.0, 42.0, 0]
+    Q_DATA4: [125.0, 42.0, 0]
+
+    # Protected input and 3.3 V buck remain outside USB escape corridors.
+    J_PWR: [25.5, 98.0, 90]
+    F_IN: [37.0, 99.0, 0]
+    Q_RP: [54.0, 99.0, 180]
+    U_BUCK: [68.0, 91.0, 0]
+    L_MAIN: [74.1, 91.0, 0]
+
+    # Per-port data-control and VBUS-switch satellites. These are pinned after
+    # the coarse channel anchors because ratline legalization does not know the
+    # load-switch ILIM/decoupling or data-switch OE adjacency requirements.
+    C_DATA1: [60.0, 38.5, 0]
+    R_DATA_OE1: [64.0, 38.5, 0]
+    R_DATA_OK1: [64.0, 45.5, 0]
+    C_PWR1_IN: [43.5, 54.0, 0]
+    R_ILIM1: [51.3, 55.0, 90]
+    R_PWR_EN1: [43.0, 50.0, 0]
+    C_PORT1_HF: [52.0, 52.0, 0]
+    C_PORT1_BULK: [54.5, 56.0, 0]
+    C_DATA2: [85.0, 38.5, 0]
+    R_DATA_OE2: [89.0, 38.5, 0]
+    R_DATA_OK2: [89.0, 45.5, 0]
+    C_PWR2_IN: [71.5, 54.0, 0]
+    R_ILIM2: [79.3, 55.0, 90]
+    R_PWR_EN2: [71.0, 50.0, 0]
+    C_PORT2_HF: [80.0, 52.0, 0]
+    C_PORT2_BULK: [82.5, 56.0, 0]
+    C_DATA3: [102.0, 38.5, 0]
+    R_DATA_OE3: [98.0, 38.5, 0]
+    R_DATA_OK3: [98.0, 45.5, 0]
+    C_PWR3_IN: [99.5, 54.0, 0]
+    R_ILIM3: [107.3, 55.0, 90]
+    R_PWR_EN3: [99.0, 50.0, 0]
+    C_PORT3_HF: [108.0, 52.0, 0]
+    C_PORT3_BULK: [110.5, 56.0, 0]
+    C_DATA4: [127.0, 38.5, 0]
+    R_DATA_OE4: [123.0, 38.5, 0]
+    R_DATA_OK4: [123.0, 45.5, 0]
+    C_PWR4_IN: [127.5, 54.0, 0]
+    R_ILIM4: [135.3, 55.0, 90]
+    R_PWR_EN4: [127.0, 50.0, 0]
+    C_PORT4_HF: [136.0, 52.0, 0]
+    C_PORT4_BULK: [138.5, 56.0, 0]
+
+    # USB2517I power-pin bypass ring, clock, bias, reset and VBUS sense.
+    C_HUB_A1: [87.0, 59.0, 0]
+    C_HUB_A2: [90.0, 59.0, 0]
+    C_HUB_A3: [96.0, 59.0, 0]
+    C_HUB_A4: [99.0, 59.0, 0]
+    C_HUB_A_BULK: [102.0, 62.0, 0]
+    C_HUB_CR_HF: [102.0, 65.0, 0]
+    C_HUB_CR_BULK: [102.0, 68.0, 0]
+    C_HUB_DD: [87.0, 71.0, 0]
+    C_HUB_PLL: [90.0, 71.0, 0]
+    C_HUB_18: [96.0, 71.0, 0]
+    C_HUB_18PLL: [99.0, 71.0, 0]
+    C_XTAL1: [88.5, 53.0, 0]
+    C_XTAL2: [97.5, 53.0, 0]
+    R_XTAL: [93.0, 56.2, 0]
+    R_RBIAS: [100.0, 56.0, 0]
+    R_HUB_RESET: [84.0, 67.0, 0]
+    C_HUB_RESET: [84.0, 70.0, 0]
+    R_VBUS_TOP: [83.0, 59.0, 0]
+    R_VBUS_BOT: [83.0, 62.0, 0]
+
+    # Hardware configuration straps in a visually auditable bank.
+    R_CFG0: [30.0, 82.0, 0]
+    R_CFG1: [34.0, 82.0, 0]
+    R_CFG2: [38.0, 82.0, 0]
+    R_NONREM1: [42.0, 82.0, 0]
+    R_NONREM0: [46.0, 82.0, 0]
+    R_SWAP1: [30.0, 85.0, 0]
+    R_SWAP2: [34.0, 85.0, 0]
+    R_SWAP3: [38.0, 85.0, 0]
+    R_SWAP4: [42.0, 85.0, 0]
+    R_SWAP5: [46.0, 85.0, 0]
+    R_SWAP6: [50.0, 85.0, 0]
+    R_SWAP7: [54.0, 85.0, 0]
+    R_GANG: [30.0, 88.0, 0]
+    R_BOOST0: [34.0, 88.0, 0]
+    R_BOOST1: [38.0, 88.0, 0]
+    R_DIS6N: [52.0, 82.0, 0]
+    R_DIS6P: [56.0, 82.0, 0]
+    R_DIS7N: [60.0, 82.0, 0]
+    R_DIS7P: [64.0, 82.0, 0]
+
+    # Internal management port, USB bridge, GPIO expander and interlocks.
+    R_ILIM_CTRL: [48.3, 73.0, 90]
+    C_PWR_CTRL_IN: [40.2, 72.0, 0]
+    C_PWR_CTRL_OUT_HF: [50.0, 69.0, 0]
+    C_PWR_CTRL_OUT: [50.0, 73.0, 0]
+    C_CTRL_VDD: [112.5, 80.0, 0]
+    C_CTRL_VUSB: [100.2, 76.0, 0]
+    R_CTRL_RESET: [112.5, 76.0, 0]
+    R_I2C_SCL: [116.0, 71.0, 0]
+    R_I2C_SDA: [116.0, 74.0, 0]
+    C_EXP_VDD: [116.0, 77.0, 0]
+    R_EXP_RESET: [130.0, 79.0, 0]
+    C_AND_PWR: [109.0, 84.0, 0]
+    C_AND_DATA: [125.0, 84.0, 0]
+    R_PWR_CMD1: [108.0, 92.0, 0]
+    R_PWR_CMD2: [114.0, 92.0, 0]
+    R_PWR_CMD3: [124.0, 92.0, 0]
+    R_PWR_CMD4: [130.0, 92.0, 0]
+    R_DATA_CMD1: [108.0, 96.0, 0]
+    R_DATA_CMD2: [114.0, 96.0, 0]
+    R_DATA_CMD3: [124.0, 96.0, 0]
+    R_DATA_CMD4: [130.0, 96.0, 0]
+
+    # Reverse-polarity and AP63203 cells.
+    R_QRP_GATE: [51.0, 94.0, 0]
+    R_QRP_SOURCE: [56.0, 94.0, 0]
+    C_TRUNK_HF: [61.0, 98.0, 0]
+    C_TRUNK_BULK: [64.0, 102.0, 0]
+    C_BUCK_IN: [64.3, 91.0, 180]
+    C_BST: [71.1, 91.0, 90]
+    C_BUCK_OUT1: [80.0, 89.0, 0]
+    C_BUCK_OUT2: [80.0, 94.0, 0]
+
+  # Source-owned manufacturer/JLC STEP bodies. Explicit transforms preserve
+  # the supplier model's own footprint frame instead of relying on a visually
+  # similar KiCad package name; model-registration review remains a separate
+  # gate after rendering.
   patterns:
-    # the KiCad SolderJumper footprint ships exclude_from_bom but the symbol
-    # is in_bom yes -> footprint_symbol_mismatch parity error. Clear it.
-    - match: "SJ*"
-      clear_attrs: [exclude_from_bom]
-  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
+    - match: J_PORT*
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/KH-AF90DIP-112.step", offset: [3.49, 0.26, 0], rotate: [0, 0, 0]}
+    - match: J_UP
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/TE_292304-1.step", offset: [0, 0.25, 0], rotate: [0, 0, 0]}
+    - match: J_PWR
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/Phoenix_1935161.step", offset: [-2.735, -4.262, 0], rotate: [0, 0, 0]}
+    - match: Q_RP
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/DMP3007_PowerDI5060.step", rotate: [0, 0, 0]}
+    - match: Q_DATA*
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/2N7002K_SOT23.step", rotate: [0, 0, 180]}
+    - match: L_MAIN
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/SWPA4030S.step", rotate: [0, 0, 270]}
+    - match: U_HUB
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/USB2517I_QFN64.step", rotate: [0, 0, 0]}
+    - match: U_PWR*
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step", rotate: [0, 0, 270]}
+
+  # Every authored anchor is reviewed placement intent; this board currently
+  # pins the complete 133-part placement so regeneration cannot drift it.
+  pin: ["*"]
+  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 100}
 
 design_rules:
   track_min_width: 0.15
@@ -89,43 +245,27 @@ design_rules:
   solder_mask_expansion: 0.0
 
 zones:
-  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
+  - {net: GND, layers: [F.Cu, In1.Cu, B.Cu], priority: 0, min_thickness: 0.25, clearance: 0.2, connect: thermal}
 
 silk:
-  min_text_height: 0.6
-  refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
-  labels:
-    - {match: "TP*", from: value, strip: "TP ", size: 0.6}
+  min_text_height: 0.7
+  refdes: {size: 0.7, min_size: 0.5, fab_copy: true, clearance: 0.16, priority_prefixes: "JUQF"}
   captions:
-    - ["LOAD SENSOR 1  B R W", 30.5, 29.2, 0.7]
-    - ["SENSOR 2  B R W", 38.8, 31.0, 0.7]
-    - ["FULL BRIDGE ALT: E+ S+ S- E- SH", 52.0, 29.4, 0.65]
-    - ["SENSOR 3  B R W", 30.5, 57.2, 0.7]
-    - ["SENSOR 4  B R W", 39.5, 55.4, 0.7]
-    - ["TO COOK-HUB J6: 5V 3V3 G DAT CLK", 54.0, 57.2, 0.65]
-    - ["JP1 RATE: 1-2=10SPS 2-3=80SPS", 62.0, 37.8, 0.6]
-    - ["SJ1: SHIELD HARD BOND", 63.0, 34.6, 0.55]
-    # title block lives in the SE clearing (JP1 y<=44.5, TP row y=51)
-    - ["cook-loadcell v1.0  HX711 PCB C", 57.0, 47.0, 0.7]
-    - ["MODE = POPULATION: 4x HALF-BRIDGE OR J5", 57.0, 48.7, 0.6]
+    - ["USB DEBUG HUB — PORTS 1  2  3  4", 92.0, 29.0, 0.9]
+    - ["SELF-POWERED 5.10–5.25 V / 3 A MIN", 52.0, 105.0, 0.7]
 
 asserts:
   pad_net:
-    - {ref: D1, pad: 1, net: DAT}      # pad 1 = cathode
-    - {ref: D2, pad: 1, net: CLK}
-    - {ref: Q1, pad: 2, net: 5V}
-    - {ref: Q1, pad: 3, net: E_PLUS}
-    - {ref: U1, pad: 8, net: S_PLUS}
-    - {ref: U1, pad: 7, net: S_MINUS}
-    - {ref: J6, pad: 4, net: DAT}
-    - {ref: J6, pad: 5, net: CLK}
+    - {ref: Q_RP, pad: 1, net: QRP_GATE}
+    - {ref: Q_RP, pad: 2, net: P5V_PROTECTED}
+    - {ref: Q_RP, pad: 5, net: P5V_FUSED}
+    - {ref: U_HUB, pad: 58, net: UP_HUB_N}
+    - {ref: U_HUB, pad: 59, net: UP_HUB_P}
+    - {ref: U_HUB, pad: 65, net: GND}
+    - {ref: J_UP, pad: 1, net: USB_UP_VBUS}
+    - {ref: J_PORT1, pad: 1, net: VBUS1_SW}
+    - {ref: J_PORT4, pad: 1, net: VBUS4_SW}
 
-# ESCAPE CORRIDORS (Phase F 2026-07-21, from usb-pwr-hub-3s ADR-0008):
-# reserved routing lanes off a dense package's loaded side — satisfies
-# escape_check v2's `escape-corridor` condition (P-ESC). Expands to a named
-# rule area `esc_<ref>_<side>` denying footprints+pours (tracks/vias stay
-# allowed — that is the lane). Unknown ref / bad side = hard error.
-#
-# escape_corridors:
-#   - {ref: U1, side: E, depth_mm: 4.0}            # full-side lane
-#   - {ref: U2, side: N, depth_mm: 3.0, width_mm: 6.0, layers: [F.Cu]}
+escape_corridors:
+  - {ref: U_HUB, side: N, depth_mm: 5.0, layers: [F.Cu]}
+  - {ref: U_HUB, side: S, depth_mm: 5.0, layers: [F.Cu]}

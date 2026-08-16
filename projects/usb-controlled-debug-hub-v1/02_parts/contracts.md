@@ -264,7 +264,7 @@ layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
                             # date: the field was in this contract and in the
                             # part.yaml files and no gate opened it, which
                             # reads as covered and is worse than absent.
-    - {refdes: [U_ESD, J_USB], max_mm: 2.0, why: "ST DocID11265 sec 2.2: 6 nH
+    - {refdes: [U_ESD, J_USB], nets: [USB_DP, USB_DM], max_mm: 2.0, why: "ST DocID11265 sec 2.2: 6 nH
         per 10 mm turns a 17 V clamp into 305 V, so this is a clamp-voltage
         term and not tidiness"}
                             # `max_mm` is the COPPER GAP — pad EDGE to pad
@@ -276,6 +276,12 @@ layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
                             # / R-THERM work). A pair sharing no un-poured net,
                             # or naming a refdes absent from the board, is
                             # P-ADJ-UNREACHED.
+                            # Optional `nets:` restricts the grade to a
+                            # non-empty allowlist of nets shared by BOTH
+                            # footprints. Use it when the requirement governs
+                            # a signal path but the parts also share an
+                            # unrelated rail; a missing/non-shared name is
+                            # P-ADJ-UNREACHED, never silently ignored.
   # notes: [...]            # free-text rules for the half no gate can grade
 layout_refs:                # REQUIRED for every HARD part (dense escapes,
                             # switching power, >0.5A analog, RF): the LAYOUT
@@ -714,6 +720,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `layout.adjacency[].a` | `policy_audit.py` | P-ADJ pair member |
 | `layout.adjacency[].b` | `policy_audit.py` | P-ADJ pair member |
 | `layout.adjacency[].max_mm` | `policy_audit.py` | P-ADJ copper-gap budget |
+| `layout.adjacency[].nets` | `policy_audit.py` | optional non-empty allowlist of shared nets graded by P-ADJ-PAIR; missing/non-shared names fail P-ADJ-UNREACHED |
 | `layout.adjacency[].why` | `policy_audit.py` | the datasheet requirement being honoured |
 | `asserts[].assert` | `part_facts_check.py` | P-FACT: which assertion kind |
 | `asserts[].equals` | `part_facts_check.py` | P-FACT expected value |

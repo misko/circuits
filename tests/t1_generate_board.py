@@ -76,7 +76,12 @@ def t_model_override_and_coverage():
     if cfg["project"].get("parts_dir"):
         cfg["project"]["parts_dir"] = str(LC / cfg["project"]["parts_dir"])
     cfg["placement"].setdefault("patterns", []).append({
-        "match": "*", "model_override": "${KIPRJMOD}/body.step"})
+        "match": "*", "model_override": {
+            "file": "${KIPRJMOD}/body.step",
+            "offset": [1.25, -2.5, 0.1],
+            "scale": [1, 1, 1],
+            "rotate": [0, 0, 270],
+        }})
     floorplan = d / "floorplan.yaml"
     floorplan.write_text(yaml.safe_dump(cfg))
     board = d / "board.kicad_pcb"
@@ -90,10 +95,51 @@ def t_model_override_and_coverage():
     # deliberately excluded from its fitted BOM population.
     contains(clean.out, "PASS MODEL-COVERAGE: 22/22", "coverage verdict")
 
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "m=list(b.FindFootprintByReference('U1').Models())[0]\n"
+            "print('@@',m.m_Offset.x,m.m_Offset.y,m.m_Offset.z,"
+            "m.m_Rotation.x,m.m_Rotation.y,m.m_Rotation.z)\n")
+    probe = must_pass(run([KPY, "-c", code, board]),
+                      "probe explicit model transform")
+    contains(probe.out, "@@ 1.25 -2.5 0.1 0.0 0.0 270.0",
+             "model_override mapping transform")
+
     body.unlink()
     broken = run([KPY, MODEL_COVERAGE, board])
     must_fail(broken, "model coverage after its source body is removed",
               "FAIL MODEL-COVERAGE: 0/22")
+
+
+@test("placement.sides flips only named footprints and validates its closed "
+      "top/bottom vocabulary", kind="known_bad")
+def t_explicit_placement_sides():
+    import yaml
+    d, cfgp = scratch_config(
+        lambda cfg: cfg["placement"].update({"sides": {"U1": "bottom"}}),
+        "bottom.yaml")
+    board = d / "bottom.kicad_pcb"
+    built = gen(cfgp, board)
+    contains(built.out, "placed 1 footprint(s) on B.Cu",
+             "explicit bottom-side count")
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "print('@@',b.FindFootprintByReference('U1').IsFlipped(),"
+            "b.FindFootprintByReference('J1').IsFlipped())\n")
+    probe = must_pass(run([KPY, "-c", code, board]), "probe footprint sides")
+    contains(probe.out, "@@ True False", "one bottom and one default-top part")
+
+    bad_d, bad_cfg = scratch_config(
+        lambda cfg: cfg["placement"].update({"sides": {"U1": "inner"}}),
+        "bad-side.yaml")
+    bad = gen(bad_cfg, bad_d / "bad.kicad_pcb", expect_ok=False)
+    must_fail(bad, "invalid placement side", "accepts only top|bottom")
+
+    ghost_d, ghost_cfg = scratch_config(
+        lambda cfg: cfg["placement"].update(
+            {"sides": {"U_NOT_PRESENT": "bottom"}}), "ghost-side.yaml")
+    ghost = gen(ghost_cfg, ghost_d / "ghost.kicad_pcb", expect_ok=False)
+    must_fail(ghost, "unknown side refdes", "names unknown refdes")
 
 
 @test("generate_board_generic writes an F.Fab refdes copy for every part")

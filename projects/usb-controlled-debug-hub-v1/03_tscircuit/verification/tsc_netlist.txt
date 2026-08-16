@@ -1,0 +1,1619 @@
+COMPONENTS:
+ - J_PWR: 
+ - F_IN: 3568
+ - Q_RP: 
+ - R_QRP_GATE: 100kΩ res0402 resistor
+ - R_QRP_SOURCE: 1MΩ res0402 resistor
+ - C_TRUNK_HF: 100nF cap0402 capacitor
+ - C_TRUNK_BULK: 22uF cap1210 capacitor
+ - U_BUCK: sot23_6
+ - L_MAIN: L_MAIN, source_component
+ - C_BUCK_IN: 10uF cap0603 capacitor
+ - C_BST: 100nF cap0402 capacitor
+ - C_BUCK_OUT1: 22uF cap1210 capacitor
+ - C_BUCK_OUT2: 22uF cap1210 capacitor
+ - J_UP: 
+ - U_ESD_UP: sot23_6
+ - U_HUB: 
+ - Y_HUB: 
+ - R_XTAL: 1MΩ res0402 resistor
+ - R_RBIAS: 12kΩ res0402 resistor
+ - C_XTAL1: 18pF cap0402 capacitor
+ - C_XTAL2: 18pF cap0402 capacitor
+ - C_HUB_A1: 100nF cap0402 capacitor
+ - C_HUB_A2: 100nF cap0402 capacitor
+ - C_HUB_A3: 100nF cap0402 capacitor
+ - C_HUB_A4: 100nF cap0402 capacitor
+ - C_HUB_A_BULK: 1uF cap0402 capacitor
+ - C_HUB_CR_HF: 100nF cap0402 capacitor
+ - C_HUB_CR_BULK: 1uF cap0402 capacitor
+ - C_HUB_DD: 100nF cap0402 capacitor
+ - C_HUB_PLL: 100nF cap0402 capacitor
+ - C_HUB_18: 1uF cap0402 capacitor
+ - C_HUB_18PLL: 1uF cap0402 capacitor
+ - R_HUB_RESET: 10kΩ res0402 resistor
+ - C_HUB_RESET: 1uF cap0402 capacitor
+ - R_VBUS_TOP: 100kΩ res0402 resistor
+ - R_VBUS_BOT: 100kΩ res0402 resistor
+ - R_CFG0: 10kΩ res0402 resistor
+ - R_CFG1: 10kΩ res0402 resistor
+ - R_CFG2: 10kΩ res0402 resistor
+ - R_NONREM1: 10kΩ res0402 resistor
+ - R_NONREM0: 10kΩ res0402 resistor
+ - R_SWAP1: 100kΩ res0402 resistor
+ - R_SWAP2: 100kΩ res0402 resistor
+ - R_SWAP3: 100kΩ res0402 resistor
+ - R_SWAP4: 100kΩ res0402 resistor
+ - R_SWAP5: 100kΩ res0402 resistor
+ - R_SWAP6: 100kΩ res0402 resistor
+ - R_SWAP7: 100kΩ res0402 resistor
+ - R_GANG: 10kΩ res0402 resistor
+ - R_BOOST0: 10kΩ res0402 resistor
+ - R_BOOST1: 10kΩ res0402 resistor
+ - R_DIS6N: 10kΩ res0402 resistor
+ - R_DIS6P: 10kΩ res0402 resistor
+ - R_DIS7N: 10kΩ res0402 resistor
+ - R_DIS7P: 10kΩ res0402 resistor
+ - U_PWR_CTRL: 
+ - R_ILIM_CTRL: 165kΩ res0402 resistor
+ - C_PWR_CTRL_IN: 100nF cap0402 capacitor
+ - C_PWR_CTRL_OUT_HF: 100nF cap0402 capacitor
+ - C_PWR_CTRL_OUT: 1uF cap0402 capacitor
+ - U_CTRL: 
+ - C_CTRL_VDD: 100nF cap0402 capacitor
+ - C_CTRL_VUSB: 330nF cap0402 capacitor
+ - R_CTRL_RESET: 10kΩ res0402 resistor
+ - R_I2C_SCL: 4.7kΩ res0402 resistor
+ - R_I2C_SDA: 4.7kΩ res0402 resistor
+ - U_EXP: 
+ - C_EXP_VDD: 100nF cap0402 capacitor
+ - R_EXP_RESET: 10kΩ res0402 resistor
+ - R_PWR_CMD1: 10kΩ res0402 resistor
+ - R_PWR_CMD2: 10kΩ res0402 resistor
+ - R_PWR_CMD3: 10kΩ res0402 resistor
+ - R_PWR_CMD4: 10kΩ res0402 resistor
+ - R_DATA_CMD1: 10kΩ res0402 resistor
+ - R_DATA_CMD2: 10kΩ res0402 resistor
+ - R_DATA_CMD3: 10kΩ res0402 resistor
+ - R_DATA_CMD4: 10kΩ res0402 resistor
+ - U_AND_PWR: 
+ - C_AND_PWR: 100nF cap0402 capacitor
+ - U_AND_DATA: 
+ - C_AND_DATA: 100nF cap0402 capacitor
+ - U_DATA1: 
+ - C_DATA1: 100nF cap0402 capacitor
+ - R_DATA_OE1: 10kΩ res0402 resistor
+ - Q_DATA1: sot23
+ - R_DATA_OK1: 10kΩ res0402 resistor
+ - U_PWR1: 
+ - R_ILIM1: 165kΩ res0402 resistor
+ - C_PWR1_IN: 100nF cap0402 capacitor
+ - C_PORT1_HF: 100nF cap0402 capacitor
+ - C_PORT1_BULK: 22uF cap1210 capacitor
+ - R_PWR_EN1: 10kΩ res0402 resistor
+ - U_ESD1: sot23_6
+ - J_PORT1: 
+ - U_DATA2: 
+ - C_DATA2: 100nF cap0402 capacitor
+ - R_DATA_OE2: 10kΩ res0402 resistor
+ - Q_DATA2: sot23
+ - R_DATA_OK2: 10kΩ res0402 resistor
+ - U_PWR2: 
+ - R_ILIM2: 165kΩ res0402 resistor
+ - C_PWR2_IN: 100nF cap0402 capacitor
+ - C_PORT2_HF: 100nF cap0402 capacitor
+ - C_PORT2_BULK: 22uF cap1210 capacitor
+ - R_PWR_EN2: 10kΩ res0402 resistor
+ - U_ESD2: sot23_6
+ - J_PORT2: 
+ - U_DATA3: 
+ - C_DATA3: 100nF cap0402 capacitor
+ - R_DATA_OE3: 10kΩ res0402 resistor
+ - Q_DATA3: sot23
+ - R_DATA_OK3: 10kΩ res0402 resistor
+ - U_PWR3: 
+ - R_ILIM3: 165kΩ res0402 resistor
+ - C_PWR3_IN: 100nF cap0402 capacitor
+ - C_PORT3_HF: 100nF cap0402 capacitor
+ - C_PORT3_BULK: 22uF cap1210 capacitor
+ - R_PWR_EN3: 10kΩ res0402 resistor
+ - U_ESD3: sot23_6
+ - J_PORT3: 
+ - U_DATA4: 
+ - C_DATA4: 100nF cap0402 capacitor
+ - R_DATA_OE4: 10kΩ res0402 resistor
+ - Q_DATA4: sot23
+ - R_DATA_OK4: 10kΩ res0402 resistor
+ - U_PWR4: 
+ - R_ILIM4: 165kΩ res0402 resistor
+ - C_PWR4_IN: 100nF cap0402 capacitor
+ - C_PORT4_HF: 100nF cap0402 capacitor
+ - C_PORT4_BULK: 22uF cap1210 capacitor
+ - R_PWR_EN4: 10kΩ res0402 resistor
+ - U_ESD4: sot23_6
+ - J_PORT4: 
+
+NET: P5V_RAW
+  - F_IN FUSE_IN
+  - F_IN pin1_internal_1
+  - J_PWR P5V_RAW
+
+NET: QRP_GATE
+  - R_QRP_SOURCE pin1
+  - R_QRP_GATE pin1
+  - Q_RP G
+
+NET: BST_3V3
+  - C_BST pin1 (+)
+  - U_BUCK BST
+
+NET: SW_3V3
+  - C_BST pin2 (-)
+  - L_MAIN pin1 (+)
+  - U_BUCK SW
+
+NET: UP_CONN_P
+  - U_ESD_UP IO1
+  - J_UP D_PLUS
+
+NET: UP_CONN_N
+  - U_ESD_UP IO2
+  - J_UP D_MINUS
+
+NET: UP_HUB_N
+  - U_HUB UP_DM
+  - U_ESD_UP IO2B
+
+NET: UP_HUB_P
+  - U_HUB UP_DP
+  - U_ESD_UP IO1B
+
+NET: RBIAS
+  - R_RBIAS pin1
+  - U_HUB RBIAS
+
+NET: XTAL1
+  - C_XTAL1 pin1 (+)
+  - R_XTAL pin1
+  - Y_HUB X1
+  - U_HUB XTAL1
+
+NET: XTAL2
+  - C_XTAL2 pin1 (+)
+  - R_XTAL pin2
+  - Y_HUB X2
+  - U_HUB XTAL2
+
+NET: HUB_VDD18
+  - C_HUB_18 pin1 (+)
+  - U_HUB VDD18
+
+NET: HUB_VDD18PLL
+  - C_HUB_18PLL pin1 (+)
+  - U_HUB VDD18PLL
+
+NET: HUB_RESET_N
+  - C_HUB_RESET pin1 (+)
+  - R_HUB_RESET pin2
+  - U_HUB RESET_N
+
+NET: USB_UP_VBUS
+  - R_VBUS_TOP pin1
+  - U_ESD_UP VBUS
+  - J_UP VBUS
+
+NET: HUB_VBUS_SENSE
+  - R_VBUS_BOT pin1
+  - R_VBUS_TOP pin2
+  - U_HUB VBUS_DET
+
+NET: HUB_CFG0
+  - R_CFG0 pin1
+  - U_HUB CFG_SEL0
+
+NET: HUB_CFG1
+  - R_CFG1 pin1
+  - U_HUB CFG_SEL1
+
+NET: HUB_CFG2
+  - R_CFG2 pin1
+  - U_HUB CFG_SEL2
+
+NET: HUB_NONREM1
+  - R_NONREM1 pin1
+  - U_HUB NON_REM1
+
+NET: HUB_NONREM0
+  - R_NONREM0 pin2
+  - U_HUB NON_REM0
+
+NET: HUB_SWAP1
+  - R_SWAP1 pin1
+  - U_HUB PRT_SWP1
+
+NET: HUB_SWAP2
+  - R_SWAP2 pin1
+  - U_HUB PRT_SWP2
+
+NET: HUB_SWAP3
+  - R_SWAP3 pin1
+  - U_HUB PRT_SWP3
+
+NET: HUB_SWAP4
+  - R_SWAP4 pin1
+  - U_HUB PRT_SWP4
+
+NET: HUB_SWAP5
+  - R_SWAP5 pin1
+  - U_HUB PRT_SWP5
+
+NET: HUB_SWAP6
+  - R_SWAP6 pin1
+  - U_HUB PRT_SWP6
+
+NET: HUB_SWAP7
+  - R_SWAP7 pin1
+  - U_HUB PRT_SWP7
+
+NET: HUB_GANG
+  - R_GANG pin1
+  - U_HUB GANG_EN
+
+NET: HUB_BOOST0
+  - R_BOOST0 pin1
+  - U_HUB BOOST0
+
+NET: HUB_BOOST1
+  - R_BOOST1 pin1
+  - U_HUB BOOST1
+
+NET: HUB_DIS6_N
+  - R_DIS6N pin2
+  - U_HUB DN6_DM
+
+NET: HUB_DIS6_P
+  - R_DIS6P pin2
+  - U_HUB DN6_DP
+
+NET: HUB_DIS7_N
+  - R_DIS7N pin2
+  - U_HUB DN7_DM
+
+NET: HUB_DIS7_P
+  - R_DIS7P pin2
+  - U_HUB DN7_DP
+
+NET: HUB_PRTPWR1
+  - U_PWR_CTRL EN
+  - U_HUB PRTPWR1
+
+NET: HUB_OCS1_N
+  - U_PWR_CTRL FAULT_N
+  - U_HUB OCS1_N
+
+NET: ILIM_CTRL
+  - R_ILIM_CTRL pin1
+  - U_PWR_CTRL ILIM
+
+NET: MGMT_N
+  - U_CTRL D_MINUS
+  - U_HUB DN1_DM
+
+NET: MGMT_P
+  - U_CTRL D_PLUS
+  - U_HUB DN1_DP
+
+NET: CTRL_VUSB_3V3
+  - C_CTRL_VUSB pin1 (+)
+  - U_CTRL VUSB
+
+NET: CTRL_RESET_N
+  - R_CTRL_RESET pin2
+  - U_CTRL RST
+
+NET: I2C_SCL
+  - U_EXP SCL
+  - R_I2C_SCL pin2
+  - U_CTRL SCL
+
+NET: I2C_SDA
+  - U_EXP SDA
+  - R_I2C_SDA pin2
+  - U_CTRL SDA
+
+NET: EXP_RESET_N
+  - R_EXP_RESET pin2
+  - U_EXP RESET_N
+
+NET: HUB_PRTPWR2
+  - U_AND_PWR 1A
+  - U_HUB PRTPWR2
+
+NET: PWR_CMD1
+  - U_AND_PWR 1B
+  - R_PWR_CMD1 pin1
+  - U_EXP GPA0
+
+NET: HUB_PRTPWR3
+  - U_AND_PWR 2A
+  - U_HUB PRTPWR3
+
+NET: PWR_CMD2
+  - U_AND_PWR 2B
+  - R_PWR_CMD2 pin1
+  - U_EXP GPA1
+
+NET: HUB_PRTPWR4
+  - U_AND_PWR 3A
+  - U_HUB PRTPWR4
+
+NET: PWR_CMD3
+  - U_AND_PWR 3B
+  - R_PWR_CMD3 pin1
+  - U_EXP GPA2
+
+NET: HUB_PRTPWR5
+  - U_AND_PWR 4A
+  - U_HUB PRTPWR5
+
+NET: PWR_CMD4
+  - U_AND_PWR 4B
+  - R_PWR_CMD4 pin1
+  - U_EXP GPA3
+
+NET: DATA_CMD1
+  - U_AND_DATA 1B
+  - R_DATA_CMD1 pin1
+  - U_EXP GPA4
+
+NET: DATA_CMD2
+  - U_AND_DATA 2B
+  - R_DATA_CMD2 pin1
+  - U_EXP GPA5
+
+NET: DATA_CMD3
+  - U_AND_DATA 3B
+  - R_DATA_CMD3 pin1
+  - U_EXP GPA6
+
+NET: DATA_CMD4
+  - U_AND_DATA 4B
+  - R_DATA_CMD4 pin1
+  - U_EXP GPA7
+
+NET: P1_HUB_P
+  - U_DATA1 D_PLUS
+  - U_HUB DN2_DP
+
+NET: P1_HUB_N
+  - U_DATA1 D_MINUS
+  - U_HUB DN2_DM
+
+NET: DATA_OE1_N
+  - Q_DATA1 D
+  - R_DATA_OE1 pin2
+  - U_DATA1 OE
+
+NET: DATA_OK1
+  - R_DATA_OK1 pin1
+  - Q_DATA1 G
+  - U_AND_DATA 1Y
+
+NET: HUB_OCS2_N
+  - U_PWR1 FAULT_N
+  - U_HUB OCS2_N
+
+NET: ILIM1
+  - R_ILIM1 pin1
+  - U_PWR1 ILIM
+
+NET: PWR_EN1
+  - R_PWR_EN1 pin1
+  - U_PWR1 EN
+  - U_AND_DATA 1A
+  - U_AND_PWR 1Y
+
+NET: P1_PORT_P
+  - U_ESD1 IO1
+  - U_DATA1 HSD1_PLUS
+
+NET: P1_PORT_N
+  - U_ESD1 IO2
+  - U_DATA1 HSD1_MINUS
+
+NET: P1_CONN_N
+  - J_PORT1 D_MINUS
+  - U_ESD1 IO2B
+
+NET: P1_CONN_P
+  - J_PORT1 D_PLUS
+  - U_ESD1 IO1B
+
+NET: P2_HUB_P
+  - U_DATA2 D_PLUS
+  - U_HUB DN3_DP
+
+NET: P2_HUB_N
+  - U_DATA2 D_MINUS
+  - U_HUB DN3_DM
+
+NET: DATA_OE2_N
+  - Q_DATA2 D
+  - R_DATA_OE2 pin2
+  - U_DATA2 OE
+
+NET: DATA_OK2
+  - R_DATA_OK2 pin1
+  - Q_DATA2 G
+  - U_AND_DATA 2Y
+
+NET: HUB_OCS3_N
+  - U_PWR2 FAULT_N
+  - U_HUB OCS3_N
+
+NET: ILIM2
+  - R_ILIM2 pin1
+  - U_PWR2 ILIM
+
+NET: PWR_EN2
+  - R_PWR_EN2 pin1
+  - U_PWR2 EN
+  - U_AND_DATA 2A
+  - U_AND_PWR 2Y
+
+NET: P2_PORT_P
+  - U_ESD2 IO1
+  - U_DATA2 HSD1_PLUS
+
+NET: P2_PORT_N
+  - U_ESD2 IO2
+  - U_DATA2 HSD1_MINUS
+
+NET: P2_CONN_N
+  - J_PORT2 D_MINUS
+  - U_ESD2 IO2B
+
+NET: P2_CONN_P
+  - J_PORT2 D_PLUS
+  - U_ESD2 IO1B
+
+NET: P3_HUB_P
+  - U_DATA3 D_PLUS
+  - U_HUB DN4_DP
+
+NET: P3_HUB_N
+  - U_DATA3 D_MINUS
+  - U_HUB DN4_DM
+
+NET: DATA_OE3_N
+  - Q_DATA3 D
+  - R_DATA_OE3 pin2
+  - U_DATA3 OE
+
+NET: DATA_OK3
+  - R_DATA_OK3 pin1
+  - Q_DATA3 G
+  - U_AND_DATA 3Y
+
+NET: HUB_OCS4_N
+  - U_PWR3 FAULT_N
+  - U_HUB OCS4_N
+
+NET: ILIM3
+  - R_ILIM3 pin1
+  - U_PWR3 ILIM
+
+NET: PWR_EN3
+  - R_PWR_EN3 pin1
+  - U_PWR3 EN
+  - U_AND_DATA 3A
+  - U_AND_PWR 3Y
+
+NET: P3_PORT_P
+  - U_ESD3 IO1
+  - U_DATA3 HSD1_PLUS
+
+NET: P3_PORT_N
+  - U_ESD3 IO2
+  - U_DATA3 HSD1_MINUS
+
+NET: P3_CONN_N
+  - J_PORT3 D_MINUS
+  - U_ESD3 IO2B
+
+NET: P3_CONN_P
+  - J_PORT3 D_PLUS
+  - U_ESD3 IO1B
+
+NET: P4_HUB_P
+  - U_DATA4 D_PLUS
+  - U_HUB DN5_DP
+
+NET: P4_HUB_N
+  - U_DATA4 D_MINUS
+  - U_HUB DN5_DM
+
+NET: N3V3_MAIN
+  - R_DATA_OE4 pin1
+  - C_DATA4 pin1 (+)
+  - U_DATA4 VCC
+  - R_DATA_OE3 pin1
+  - C_DATA3 pin1 (+)
+  - U_DATA3 VCC
+  - R_DATA_OE2 pin1
+  - C_DATA2 pin1 (+)
+  - U_DATA2 VCC
+  - R_DATA_OE1 pin1
+  - C_DATA1 pin1 (+)
+  - U_DATA1 VCC
+  - C_AND_DATA pin1 (+)
+  - U_AND_DATA VCC
+  - C_AND_PWR pin1 (+)
+  - U_AND_PWR VCC
+  - R_DIS7P pin1
+  - R_DIS7N pin1
+  - R_DIS6P pin1
+  - R_DIS6N pin1
+  - R_NONREM0 pin1
+  - R_HUB_RESET pin1
+  - C_HUB_PLL pin1 (+)
+  - C_HUB_DD pin1 (+)
+  - C_HUB_CR_BULK pin1 (+)
+  - C_HUB_CR_HF pin1 (+)
+  - C_HUB_A_BULK pin1 (+)
+  - C_HUB_A4 pin1 (+)
+  - C_HUB_A3 pin1 (+)
+  - C_HUB_A2 pin1 (+)
+  - C_HUB_A1 pin1 (+)
+  - U_HUB VDD33PLL
+  - U_HUB VDDA33_4
+  - U_HUB VDDA33_3
+  - U_HUB VDD33
+  - U_HUB VDD33CR
+  - U_HUB VDDA33_2
+  - U_HUB VDDA33_1
+  - C_BUCK_OUT2 pin1 (+)
+  - C_BUCK_OUT1 pin1 (+)
+  - L_MAIN pin2 (-)
+  - U_BUCK FB
+
+NET: DATA_OE4_N
+  - Q_DATA4 D
+  - R_DATA_OE4 pin2
+  - U_DATA4 OE
+
+NET: DATA_OK4
+  - R_DATA_OK4 pin1
+  - Q_DATA4 G
+  - U_AND_DATA 4Y
+
+NET: HUB_OCS5_N
+  - U_PWR4 FAULT_N
+  - U_HUB OCS5_N
+
+NET: ILIM4
+  - R_ILIM4 pin1
+  - U_PWR4 ILIM
+
+NET: PWR_EN4
+  - R_PWR_EN4 pin1
+  - U_PWR4 EN
+  - U_AND_DATA 4A
+  - U_AND_PWR 4Y
+
+NET: P4_PORT_P
+  - U_ESD4 IO1
+  - U_DATA4 HSD1_PLUS
+
+NET: P4_PORT_N
+  - U_ESD4 IO2
+  - U_DATA4 HSD1_MINUS
+
+NET: P4_CONN_N
+  - J_PORT4 D_MINUS
+  - U_ESD4 IO2B
+
+NET: P4_CONN_P
+  - J_PORT4 D_PLUS
+  - U_ESD4 IO1B
+
+NET: GND
+  - J_PORT4 SHIELD
+  - J_PORT4 pin5_internal_1
+  - J_PORT4 GND
+  - U_ESD4 GND
+  - R_PWR_EN4 pin2
+  - C_PORT4_BULK pin2 (-)
+  - C_PORT4_HF pin2 (-)
+  - C_PWR4_IN pin2 (-)
+  - R_ILIM4 pin2
+  - U_PWR4 EP
+  - U_PWR4 GND
+  - R_DATA_OK4 pin2
+  - Q_DATA4 S
+  - C_DATA4 pin2 (-)
+  - U_DATA4 GND
+  - U_DATA4 SEL
+  - J_PORT3 SHIELD
+  - J_PORT3 pin5_internal_1
+  - J_PORT3 GND
+  - U_ESD3 GND
+  - R_PWR_EN3 pin2
+  - C_PORT3_BULK pin2 (-)
+  - C_PORT3_HF pin2 (-)
+  - C_PWR3_IN pin2 (-)
+  - R_ILIM3 pin2
+  - U_PWR3 EP
+  - U_PWR3 GND
+  - R_DATA_OK3 pin2
+  - Q_DATA3 S
+  - C_DATA3 pin2 (-)
+  - U_DATA3 GND
+  - U_DATA3 SEL
+  - J_PORT2 SHIELD
+  - J_PORT2 pin5_internal_1
+  - J_PORT2 GND
+  - U_ESD2 GND
+  - R_PWR_EN2 pin2
+  - C_PORT2_BULK pin2 (-)
+  - C_PORT2_HF pin2 (-)
+  - C_PWR2_IN pin2 (-)
+  - R_ILIM2 pin2
+  - U_PWR2 EP
+  - U_PWR2 GND
+  - R_DATA_OK2 pin2
+  - Q_DATA2 S
+  - C_DATA2 pin2 (-)
+  - U_DATA2 GND
+  - U_DATA2 SEL
+  - J_PORT1 SHIELD
+  - J_PORT1 pin5_internal_1
+  - J_PORT1 GND
+  - U_ESD1 GND
+  - R_PWR_EN1 pin2
+  - C_PORT1_BULK pin2 (-)
+  - C_PORT1_HF pin2 (-)
+  - C_PWR1_IN pin2 (-)
+  - R_ILIM1 pin2
+  - U_PWR1 EP
+  - U_PWR1 GND
+  - R_DATA_OK1 pin2
+  - Q_DATA1 S
+  - C_DATA1 pin2 (-)
+  - U_DATA1 GND
+  - U_DATA1 SEL
+  - C_AND_DATA pin2 (-)
+  - U_AND_DATA GND
+  - C_AND_PWR pin2 (-)
+  - U_AND_PWR GND
+  - R_DATA_CMD4 pin2
+  - R_DATA_CMD3 pin2
+  - R_DATA_CMD2 pin2
+  - R_DATA_CMD1 pin2
+  - R_PWR_CMD4 pin2
+  - R_PWR_CMD3 pin2
+  - R_PWR_CMD2 pin2
+  - R_PWR_CMD1 pin2
+  - C_EXP_VDD pin2 (-)
+  - U_EXP A2
+  - U_EXP A1
+  - U_EXP A0
+  - U_EXP VSS
+  - C_CTRL_VUSB pin2 (-)
+  - C_CTRL_VDD pin2 (-)
+  - U_CTRL VSS
+  - C_PWR_CTRL_OUT pin2 (-)
+  - C_PWR_CTRL_OUT_HF pin2 (-)
+  - C_PWR_CTRL_IN pin2 (-)
+  - R_ILIM_CTRL pin2
+  - U_PWR_CTRL EP
+  - U_PWR_CTRL GND
+  - R_BOOST1 pin2
+  - R_BOOST0 pin2
+  - R_GANG pin2
+  - R_SWAP7 pin2
+  - R_SWAP6 pin2
+  - R_SWAP5 pin2
+  - R_SWAP4 pin2
+  - R_SWAP3 pin2
+  - R_SWAP2 pin2
+  - R_SWAP1 pin2
+  - R_NONREM1 pin2
+  - R_CFG2 pin2
+  - R_CFG1 pin2
+  - R_CFG0 pin2
+  - R_VBUS_BOT pin2
+  - C_HUB_RESET pin2 (-)
+  - C_HUB_18PLL pin2 (-)
+  - C_HUB_18 pin2 (-)
+  - C_HUB_PLL pin2 (-)
+  - C_HUB_DD pin2 (-)
+  - C_HUB_CR_BULK pin2 (-)
+  - C_HUB_CR_HF pin2 (-)
+  - C_HUB_A_BULK pin2 (-)
+  - C_HUB_A4 pin2 (-)
+  - C_HUB_A3 pin2 (-)
+  - C_HUB_A2 pin2 (-)
+  - C_HUB_A1 pin2 (-)
+  - C_XTAL2 pin2 (-)
+  - C_XTAL1 pin2 (-)
+  - R_RBIAS pin2
+  - Y_HUB GND2
+  - Y_HUB GND1
+  - U_HUB EP_VSS
+  - U_ESD_UP GND
+  - J_UP SHIELD
+  - J_UP pin5_internal_1
+  - J_UP GND
+  - C_BUCK_OUT2 pin2 (-)
+  - C_BUCK_OUT1 pin2 (-)
+  - C_BUCK_IN pin2 (-)
+  - U_BUCK GND
+  - C_TRUNK_BULK pin2 (-)
+  - C_TRUNK_HF pin2 (-)
+  - R_QRP_GATE pin2
+  - J_PWR GND
+
+NET: P5V_FUSED
+  - Q_RP D8
+  - Q_RP D7
+  - Q_RP D6
+  - Q_RP D5
+  - F_IN FUSE_OUT
+  - F_IN pin2_internal_1
+
+NET: VBUS_CTRL
+  - R_EXP_RESET pin1
+  - C_EXP_VDD pin1 (+)
+  - U_EXP VDD
+  - R_I2C_SDA pin1
+  - R_I2C_SCL pin1
+  - R_CTRL_RESET pin1
+  - C_CTRL_VDD pin1 (+)
+  - U_CTRL VDD
+  - C_PWR_CTRL_OUT pin1 (+)
+  - C_PWR_CTRL_OUT_HF pin1 (+)
+  - U_PWR_CTRL OUT2
+  - U_PWR_CTRL OUT1
+
+NET: VBUS1_SW
+  - J_PORT1 VBUS
+  - U_ESD1 VBUS
+  - C_PORT1_BULK pin1 (+)
+  - C_PORT1_HF pin1 (+)
+  - U_PWR1 OUT2
+  - U_PWR1 OUT1
+
+NET: VBUS2_SW
+  - J_PORT2 VBUS
+  - U_ESD2 VBUS
+  - C_PORT2_BULK pin1 (+)
+  - C_PORT2_HF pin1 (+)
+  - U_PWR2 OUT2
+  - U_PWR2 OUT1
+
+NET: VBUS3_SW
+  - J_PORT3 VBUS
+  - U_ESD3 VBUS
+  - C_PORT3_BULK pin1 (+)
+  - C_PORT3_HF pin1 (+)
+  - U_PWR3 OUT2
+  - U_PWR3 OUT1
+
+NET: P5V_PROTECTED
+  - C_PWR4_IN pin1 (+)
+  - U_PWR4 IN2
+  - U_PWR4 IN1
+  - C_PWR3_IN pin1 (+)
+  - U_PWR3 IN2
+  - U_PWR3 IN1
+  - C_PWR2_IN pin1 (+)
+  - U_PWR2 IN2
+  - U_PWR2 IN1
+  - C_PWR1_IN pin1 (+)
+  - U_PWR1 IN2
+  - U_PWR1 IN1
+  - C_PWR_CTRL_IN pin1 (+)
+  - U_PWR_CTRL IN2
+  - U_PWR_CTRL IN1
+  - C_BUCK_IN pin1 (+)
+  - U_BUCK VIN
+  - U_BUCK EN
+  - C_TRUNK_BULK pin1 (+)
+  - C_TRUNK_HF pin1 (+)
+  - R_QRP_SOURCE pin2
+  - Q_RP S4
+  - Q_RP S3
+  - Q_RP S2
+
+NET: VBUS4_SW
+  - J_PORT4 VBUS
+  - U_ESD4 VBUS
+  - C_PORT4_BULK pin1 (+)
+  - C_PORT4_HF pin1 (+)
+  - U_PWR4 OUT2
+  - U_PWR4 OUT1
+
+
+COMPONENT_PINS:
+J_PWR
+- pin1(P5V_RAW): NETS(P5V_RAW)
+- pin2(GND): NETS(GND)
+
+F_IN (3568)
+- pin1_internal_1(pin1, 1): NETS(P5V_RAW)
+- pin2_internal_1(pin2, 2): NETS(P5V_FUSED)
+- pin1(FUSE_IN): NETS(P5V_RAW)
+- pin2(FUSE_OUT): NETS(P5V_FUSED)
+
+Q_RP
+- pin1(G): NETS(QRP_GATE)
+- pin2(S2): NETS(P5V_PROTECTED)
+- pin3(S3): NETS(P5V_PROTECTED)
+- pin4(S4): NETS(P5V_PROTECTED)
+- pin5(D5): NETS(P5V_FUSED)
+- pin6(D6): NETS(P5V_FUSED)
+- pin7(D7): NETS(P5V_FUSED)
+- pin8(D8): NETS(P5V_FUSED)
+
+R_QRP_GATE (100kΩ res0402)
+- pin1(anode, pos, left): NETS(QRP_GATE)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_QRP_SOURCE (1MΩ res0402)
+- pin1(anode, pos, left): NETS(QRP_GATE)
+- pin2(cathode, neg, right): NETS(P5V_PROTECTED)
+
+C_TRUNK_HF (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_TRUNK_BULK (22uF cap1210)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+U_BUCK
+- pin1(FB): NETS(N3V3_MAIN)
+- pin2(EN): NETS(P5V_PROTECTED)
+- pin3(VIN): NETS(P5V_PROTECTED)
+- pin4(GND): NETS(GND)
+- pin5(SW): NETS(SW_3V3)
+- pin6(BST): NETS(BST_3V3)
+
+L_MAIN
+- pin1(anode, pos, left): NETS(SW_3V3)
+- pin2(cathode, neg, right): NETS(N3V3_MAIN)
+
+C_BUCK_IN (10uF cap0603)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_BST (100nF cap0402)
+- pin1(pos, anode, left): NETS(BST_3V3)
+- pin2(neg, cathode, right): NETS(SW_3V3)
+
+C_BUCK_OUT1 (22uF cap1210)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_BUCK_OUT2 (22uF cap1210)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+J_UP
+- pin5_internal_1(pin5, SH, 5): NETS(GND)
+- pin1(VBUS): NETS(USB_UP_VBUS)
+- pin2(D_MINUS): NETS(UP_CONN_N)
+- pin3(D_PLUS): NETS(UP_CONN_P)
+- pin4(GND): NETS(GND)
+- pin5(SHIELD, SH): NETS(GND)
+
+U_ESD_UP
+- pin1(IO1): NETS(UP_CONN_P)
+- pin2(GND): NETS(GND)
+- pin3(IO2): NETS(UP_CONN_N)
+- pin4(IO2B): NETS(UP_HUB_N)
+- pin5(VBUS): NETS(USB_UP_VBUS)
+- pin6(IO1B): NETS(UP_HUB_P)
+
+U_HUB
+- pin1(DN1_DM): NETS(MGMT_N)
+- pin2(DN1_DP): NETS(MGMT_P)
+- pin3(DN2_DM): NETS(P1_HUB_N)
+- pin4(DN2_DP): NETS(P1_HUB_P)
+- pin5(VDDA33_1): NETS(N3V3_MAIN)
+- pin6(DN3_DM): NETS(P2_HUB_N)
+- pin7(DN3_DP): NETS(P2_HUB_P)
+- pin8(DN4_DM): NETS(P3_HUB_N)
+- pin9(DN4_DP): NETS(P3_HUB_P)
+- pin10(VDDA33_2): NETS(N3V3_MAIN)
+- pin11(DN5_DM): NETS(P4_HUB_N)
+- pin12(DN5_DP): NETS(P4_HUB_P)
+- pin13(CFG_SEL2): NETS(HUB_CFG2)
+- pin14(LED_B7): NOT_CONNECTED
+- pin15(PRT_SWP7): NETS(HUB_SWAP7)
+- pin16(LED_B6): NOT_CONNECTED
+- pin17(PRT_SWP6): NETS(HUB_SWAP6)
+- pin18(LED_B5): NOT_CONNECTED
+- pin19(TEST): NOT_CONNECTED
+- pin20(PRTPWR4): NETS(HUB_PRTPWR4)
+- pin21(OCS4_N): NETS(HUB_OCS4_N)
+- pin22(OCS3_N): NETS(HUB_OCS3_N)
+- pin23(PRTPWR3): NETS(HUB_PRTPWR3)
+- pin24(VDD33CR): NETS(N3V3_MAIN)
+- pin25(VDD18): NETS(HUB_VDD18)
+- pin26(PRTPWR2): NETS(HUB_PRTPWR2)
+- pin27(OCS2_N): NETS(HUB_OCS2_N)
+- pin28(OCS1_N): NETS(HUB_OCS1_N)
+- pin29(PRTPWR1): NETS(HUB_PRTPWR1)
+- pin30(PRTPWR5): NETS(HUB_PRTPWR5)
+- pin31(PRT_SWP5): NETS(HUB_SWAP5)
+- pin32(LED_B4): NOT_CONNECTED
+- pin33(PRT_SWP4): NETS(HUB_SWAP4)
+- pin34(GANG_EN): NETS(HUB_GANG)
+- pin35(OCS5_N): NETS(HUB_OCS5_N)
+- pin36(PRTPWR7): NOT_CONNECTED
+- pin37(OCS7_N): NOT_CONNECTED
+- pin38(OCS6_N): NOT_CONNECTED
+- pin39(PRTPWR6): NOT_CONNECTED
+- pin40(NON_REM1): NETS(HUB_NONREM1)
+- pin41(CFG_SEL0): NETS(HUB_CFG0)
+- pin42(CFG_SEL1): NETS(HUB_CFG1)
+- pin43(RESET_N): NETS(HUB_RESET_N)
+- pin44(VBUS_DET): NETS(HUB_VBUS_SENSE)
+- pin45(NON_REM0): NETS(HUB_NONREM0)
+- pin46(VDD33): NETS(N3V3_MAIN)
+- pin47(PRT_SWP3): NETS(HUB_SWAP3)
+- pin48(BOOST1): NETS(HUB_BOOST1)
+- pin49(PRT_SWP2): NETS(HUB_SWAP2)
+- pin50(BOOST0): NETS(HUB_BOOST0)
+- pin51(PRT_SWP1): NETS(HUB_SWAP1)
+- pin52(VDDA33_3): NETS(N3V3_MAIN)
+- pin53(DN6_DM): NETS(HUB_DIS6_N)
+- pin54(DN6_DP): NETS(HUB_DIS6_P)
+- pin55(DN7_DM): NETS(HUB_DIS7_N)
+- pin56(DN7_DP): NETS(HUB_DIS7_P)
+- pin57(VDDA33_4): NETS(N3V3_MAIN)
+- pin58(UP_DM): NETS(UP_HUB_N)
+- pin59(UP_DP): NETS(UP_HUB_P)
+- pin60(XTAL2): NETS(XTAL2)
+- pin61(XTAL1): NETS(XTAL1)
+- pin62(VDD18PLL): NETS(HUB_VDD18PLL)
+- pin63(RBIAS): NETS(RBIAS)
+- pin64(VDD33PLL): NETS(N3V3_MAIN)
+- pin65(EP_VSS): NETS(GND)
+
+Y_HUB
+- pin1(X1): NETS(XTAL1)
+- pin2(GND1): NETS(GND)
+- pin3(X2): NETS(XTAL2)
+- pin4(GND2): NETS(GND)
+
+R_XTAL (1MΩ res0402)
+- pin1(anode, pos, left): NETS(XTAL1)
+- pin2(cathode, neg, right): NETS(XTAL2)
+
+R_RBIAS (12kΩ res0402)
+- pin1(anode, pos, left): NETS(RBIAS)
+- pin2(cathode, neg, right): NETS(GND)
+
+C_XTAL1 (18pF cap0402)
+- pin1(pos, anode, left): NETS(XTAL1)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_XTAL2 (18pF cap0402)
+- pin1(pos, anode, left): NETS(XTAL2)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_A1 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_A2 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_A3 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_A4 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_A_BULK (1uF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_CR_HF (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_CR_BULK (1uF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_DD (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_PLL (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_18 (1uF cap0402)
+- pin1(pos, anode, left): NETS(HUB_VDD18)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_HUB_18PLL (1uF cap0402)
+- pin1(pos, anode, left): NETS(HUB_VDD18PLL)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_HUB_RESET (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(HUB_RESET_N)
+
+C_HUB_RESET (1uF cap0402)
+- pin1(pos, anode, left): NETS(HUB_RESET_N)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_VBUS_TOP (100kΩ res0402)
+- pin1(anode, pos, left): NETS(USB_UP_VBUS)
+- pin2(cathode, neg, right): NETS(HUB_VBUS_SENSE)
+
+R_VBUS_BOT (100kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_VBUS_SENSE)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_CFG0 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_CFG0)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_CFG1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_CFG1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_CFG2 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_CFG2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_NONREM1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_NONREM1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_NONREM0 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(HUB_NONREM0)
+
+R_SWAP1 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_SWAP1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_SWAP2 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_SWAP2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_SWAP3 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_SWAP3)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_SWAP4 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_SWAP4)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_SWAP5 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_SWAP5)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_SWAP6 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_SWAP6)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_SWAP7 (100kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_SWAP7)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_GANG (10kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_GANG)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_BOOST0 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_BOOST0)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_BOOST1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(HUB_BOOST1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_DIS6N (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(HUB_DIS6_N)
+
+R_DIS6P (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(HUB_DIS6_P)
+
+R_DIS7N (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(HUB_DIS7_N)
+
+R_DIS7P (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(HUB_DIS7_P)
+
+U_PWR_CTRL
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(HUB_PRTPWR1)
+- pin5(ILIM): NETS(ILIM_CTRL)
+- pin6(OUT1): NETS(VBUS_CTRL)
+- pin7(OUT2): NETS(VBUS_CTRL)
+- pin8(FAULT_N): NETS(HUB_OCS1_N)
+- pin9(EP): NETS(GND)
+
+R_ILIM_CTRL (165kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM_CTRL)
+- pin2(cathode, neg, right): NETS(GND)
+
+C_PWR_CTRL_IN (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PWR_CTRL_OUT_HF (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS_CTRL)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PWR_CTRL_OUT (1uF cap0402)
+- pin1(pos, anode, left): NETS(VBUS_CTRL)
+- pin2(neg, cathode, right): NETS(GND)
+
+U_CTRL
+- pin1(VDD): NETS(VBUS_CTRL)
+- pin2(GP0): NOT_CONNECTED
+- pin3(GP1): NOT_CONNECTED
+- pin4(RST): NETS(CTRL_RESET_N)
+- pin5(URX): NOT_CONNECTED
+- pin6(UTX): NOT_CONNECTED
+- pin7(GP2): NOT_CONNECTED
+- pin8(GP3): NOT_CONNECTED
+- pin9(SDA): NETS(I2C_SDA)
+- pin10(SCL): NETS(I2C_SCL)
+- pin11(VUSB): NETS(CTRL_VUSB_3V3)
+- pin12(D_MINUS): NETS(MGMT_N)
+- pin13(D_PLUS): NETS(MGMT_P)
+- pin14(VSS): NETS(GND)
+
+C_CTRL_VDD (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS_CTRL)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_CTRL_VUSB (330nF cap0402)
+- pin1(pos, anode, left): NETS(CTRL_VUSB_3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_CTRL_RESET (10kΩ res0402)
+- pin1(anode, pos, left): NETS(VBUS_CTRL)
+- pin2(cathode, neg, right): NETS(CTRL_RESET_N)
+
+R_I2C_SCL (4.7kΩ res0402)
+- pin1(anode, pos, left): NETS(VBUS_CTRL)
+- pin2(cathode, neg, right): NETS(I2C_SCL)
+
+R_I2C_SDA (4.7kΩ res0402)
+- pin1(anode, pos, left): NETS(VBUS_CTRL)
+- pin2(cathode, neg, right): NETS(I2C_SDA)
+
+U_EXP
+- pin1(GPB0): NOT_CONNECTED
+- pin2(GPB1): NOT_CONNECTED
+- pin3(GPB2): NOT_CONNECTED
+- pin4(GPB3): NOT_CONNECTED
+- pin5(GPB4): NOT_CONNECTED
+- pin6(GPB5): NOT_CONNECTED
+- pin7(GPB6): NOT_CONNECTED
+- pin8(GPB7): NOT_CONNECTED
+- pin9(VDD): NETS(VBUS_CTRL)
+- pin10(VSS): NETS(GND)
+- pin11(NC1): NOT_CONNECTED
+- pin12(SCL): NETS(I2C_SCL)
+- pin13(SDA): NETS(I2C_SDA)
+- pin14(NC2): NOT_CONNECTED
+- pin15(A0): NETS(GND)
+- pin16(A1): NETS(GND)
+- pin17(A2): NETS(GND)
+- pin18(RESET_N): NETS(EXP_RESET_N)
+- pin19(INTB): NOT_CONNECTED
+- pin20(INTA): NOT_CONNECTED
+- pin21(GPA0): NETS(PWR_CMD1)
+- pin22(GPA1): NETS(PWR_CMD2)
+- pin23(GPA2): NETS(PWR_CMD3)
+- pin24(GPA3): NETS(PWR_CMD4)
+- pin25(GPA4): NETS(DATA_CMD1)
+- pin26(GPA5): NETS(DATA_CMD2)
+- pin27(GPA6): NETS(DATA_CMD3)
+- pin28(GPA7): NETS(DATA_CMD4)
+
+C_EXP_VDD (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS_CTRL)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_EXP_RESET (10kΩ res0402)
+- pin1(anode, pos, left): NETS(VBUS_CTRL)
+- pin2(cathode, neg, right): NETS(EXP_RESET_N)
+
+R_PWR_CMD1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_CMD1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_PWR_CMD2 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_CMD2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_PWR_CMD3 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_CMD3)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_PWR_CMD4 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_CMD4)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_DATA_CMD1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_CMD1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_DATA_CMD2 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_CMD2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_DATA_CMD3 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_CMD3)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_DATA_CMD4 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_CMD4)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_AND_PWR
+- pin1(1A): NETS(HUB_PRTPWR2)
+- pin2(1B): NETS(PWR_CMD1)
+- pin3(1Y): NETS(PWR_EN1)
+- pin4(2A): NETS(HUB_PRTPWR3)
+- pin5(2B): NETS(PWR_CMD2)
+- pin6(2Y): NETS(PWR_EN2)
+- pin7(GND): NETS(GND)
+- pin8(3Y): NETS(PWR_EN3)
+- pin9(3A): NETS(HUB_PRTPWR4)
+- pin10(3B): NETS(PWR_CMD3)
+- pin11(4Y): NETS(PWR_EN4)
+- pin12(4A): NETS(HUB_PRTPWR5)
+- pin13(4B): NETS(PWR_CMD4)
+- pin14(VCC): NETS(N3V3_MAIN)
+
+C_AND_PWR (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+U_AND_DATA
+- pin1(1A): NETS(PWR_EN1)
+- pin2(1B): NETS(DATA_CMD1)
+- pin3(1Y): NETS(DATA_OK1)
+- pin4(2A): NETS(PWR_EN2)
+- pin5(2B): NETS(DATA_CMD2)
+- pin6(2Y): NETS(DATA_OK2)
+- pin7(GND): NETS(GND)
+- pin8(3Y): NETS(DATA_OK3)
+- pin9(3A): NETS(PWR_EN3)
+- pin10(3B): NETS(DATA_CMD3)
+- pin11(4Y): NETS(DATA_OK4)
+- pin12(4A): NETS(PWR_EN4)
+- pin13(4B): NETS(DATA_CMD4)
+- pin14(VCC): NETS(N3V3_MAIN)
+
+C_AND_DATA (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+U_DATA1
+- pin1(VCC): NETS(N3V3_MAIN)
+- pin2(SEL): NETS(GND)
+- pin3(D_PLUS): NETS(P1_HUB_P)
+- pin4(D_MINUS): NETS(P1_HUB_N)
+- pin5(GND): NETS(GND)
+- pin6(HSD1_MINUS): NETS(P1_PORT_N)
+- pin7(HSD1_PLUS): NETS(P1_PORT_P)
+- pin8(HSD2_MINUS): NOT_CONNECTED
+- pin9(HSD2_PLUS): NOT_CONNECTED
+- pin10(OE): NETS(DATA_OE1_N)
+
+C_DATA1 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_DATA_OE1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(DATA_OE1_N)
+
+Q_DATA1
+- pin1(G): NETS(DATA_OK1)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(DATA_OE1_N)
+
+R_DATA_OK1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_OK1)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_PWR1
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(PWR_EN1)
+- pin5(ILIM): NETS(ILIM1)
+- pin6(OUT1): NETS(VBUS1_SW)
+- pin7(OUT2): NETS(VBUS1_SW)
+- pin8(FAULT_N): NETS(HUB_OCS2_N)
+- pin9(EP): NETS(GND)
+
+R_ILIM1 (165kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM1)
+- pin2(cathode, neg, right): NETS(GND)
+
+C_PWR1_IN (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PORT1_HF (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS1_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PORT1_BULK (22uF cap1210)
+- pin1(pos, anode, left): NETS(VBUS1_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_PWR_EN1 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_EN1)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_ESD1
+- pin1(IO1): NETS(P1_PORT_P)
+- pin2(GND): NETS(GND)
+- pin3(IO2): NETS(P1_PORT_N)
+- pin4(IO2B): NETS(P1_CONN_N)
+- pin5(VBUS): NETS(VBUS1_SW)
+- pin6(IO1B): NETS(P1_CONN_P)
+
+J_PORT1
+- pin5_internal_1(pin5, SH, 5): NETS(GND)
+- pin1(VBUS): NETS(VBUS1_SW)
+- pin2(D_MINUS): NETS(P1_CONN_N)
+- pin3(D_PLUS): NETS(P1_CONN_P)
+- pin4(GND): NETS(GND)
+- pin5(SHIELD, SH): NETS(GND)
+
+U_DATA2
+- pin1(VCC): NETS(N3V3_MAIN)
+- pin2(SEL): NETS(GND)
+- pin3(D_PLUS): NETS(P2_HUB_P)
+- pin4(D_MINUS): NETS(P2_HUB_N)
+- pin5(GND): NETS(GND)
+- pin6(HSD1_MINUS): NETS(P2_PORT_N)
+- pin7(HSD1_PLUS): NETS(P2_PORT_P)
+- pin8(HSD2_MINUS): NOT_CONNECTED
+- pin9(HSD2_PLUS): NOT_CONNECTED
+- pin10(OE): NETS(DATA_OE2_N)
+
+C_DATA2 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_DATA_OE2 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(DATA_OE2_N)
+
+Q_DATA2
+- pin1(G): NETS(DATA_OK2)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(DATA_OE2_N)
+
+R_DATA_OK2 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_OK2)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_PWR2
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(PWR_EN2)
+- pin5(ILIM): NETS(ILIM2)
+- pin6(OUT1): NETS(VBUS2_SW)
+- pin7(OUT2): NETS(VBUS2_SW)
+- pin8(FAULT_N): NETS(HUB_OCS3_N)
+- pin9(EP): NETS(GND)
+
+R_ILIM2 (165kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM2)
+- pin2(cathode, neg, right): NETS(GND)
+
+C_PWR2_IN (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PORT2_HF (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS2_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PORT2_BULK (22uF cap1210)
+- pin1(pos, anode, left): NETS(VBUS2_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_PWR_EN2 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_EN2)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_ESD2
+- pin1(IO1): NETS(P2_PORT_P)
+- pin2(GND): NETS(GND)
+- pin3(IO2): NETS(P2_PORT_N)
+- pin4(IO2B): NETS(P2_CONN_N)
+- pin5(VBUS): NETS(VBUS2_SW)
+- pin6(IO1B): NETS(P2_CONN_P)
+
+J_PORT2
+- pin5_internal_1(pin5, SH, 5): NETS(GND)
+- pin1(VBUS): NETS(VBUS2_SW)
+- pin2(D_MINUS): NETS(P2_CONN_N)
+- pin3(D_PLUS): NETS(P2_CONN_P)
+- pin4(GND): NETS(GND)
+- pin5(SHIELD, SH): NETS(GND)
+
+U_DATA3
+- pin1(VCC): NETS(N3V3_MAIN)
+- pin2(SEL): NETS(GND)
+- pin3(D_PLUS): NETS(P3_HUB_P)
+- pin4(D_MINUS): NETS(P3_HUB_N)
+- pin5(GND): NETS(GND)
+- pin6(HSD1_MINUS): NETS(P3_PORT_N)
+- pin7(HSD1_PLUS): NETS(P3_PORT_P)
+- pin8(HSD2_MINUS): NOT_CONNECTED
+- pin9(HSD2_PLUS): NOT_CONNECTED
+- pin10(OE): NETS(DATA_OE3_N)
+
+C_DATA3 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_DATA_OE3 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(DATA_OE3_N)
+
+Q_DATA3
+- pin1(G): NETS(DATA_OK3)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(DATA_OE3_N)
+
+R_DATA_OK3 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_OK3)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_PWR3
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(PWR_EN3)
+- pin5(ILIM): NETS(ILIM3)
+- pin6(OUT1): NETS(VBUS3_SW)
+- pin7(OUT2): NETS(VBUS3_SW)
+- pin8(FAULT_N): NETS(HUB_OCS4_N)
+- pin9(EP): NETS(GND)
+
+R_ILIM3 (165kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM3)
+- pin2(cathode, neg, right): NETS(GND)
+
+C_PWR3_IN (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PORT3_HF (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS3_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PORT3_BULK (22uF cap1210)
+- pin1(pos, anode, left): NETS(VBUS3_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_PWR_EN3 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_EN3)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_ESD3
+- pin1(IO1): NETS(P3_PORT_P)
+- pin2(GND): NETS(GND)
+- pin3(IO2): NETS(P3_PORT_N)
+- pin4(IO2B): NETS(P3_CONN_N)
+- pin5(VBUS): NETS(VBUS3_SW)
+- pin6(IO1B): NETS(P3_CONN_P)
+
+J_PORT3
+- pin5_internal_1(pin5, SH, 5): NETS(GND)
+- pin1(VBUS): NETS(VBUS3_SW)
+- pin2(D_MINUS): NETS(P3_CONN_N)
+- pin3(D_PLUS): NETS(P3_CONN_P)
+- pin4(GND): NETS(GND)
+- pin5(SHIELD, SH): NETS(GND)
+
+U_DATA4
+- pin1(VCC): NETS(N3V3_MAIN)
+- pin2(SEL): NETS(GND)
+- pin3(D_PLUS): NETS(P4_HUB_P)
+- pin4(D_MINUS): NETS(P4_HUB_N)
+- pin5(GND): NETS(GND)
+- pin6(HSD1_MINUS): NETS(P4_PORT_N)
+- pin7(HSD1_PLUS): NETS(P4_PORT_P)
+- pin8(HSD2_MINUS): NOT_CONNECTED
+- pin9(HSD2_PLUS): NOT_CONNECTED
+- pin10(OE): NETS(DATA_OE4_N)
+
+C_DATA4 (100nF cap0402)
+- pin1(pos, anode, left): NETS(N3V3_MAIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_DATA_OE4 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_MAIN)
+- pin2(cathode, neg, right): NETS(DATA_OE4_N)
+
+Q_DATA4
+- pin1(G): NETS(DATA_OK4)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(DATA_OE4_N)
+
+R_DATA_OK4 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(DATA_OK4)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_PWR4
+- pin1(GND): NETS(GND)
+- pin2(IN1): NETS(P5V_PROTECTED)
+- pin3(IN2): NETS(P5V_PROTECTED)
+- pin4(EN): NETS(PWR_EN4)
+- pin5(ILIM): NETS(ILIM4)
+- pin6(OUT1): NETS(VBUS4_SW)
+- pin7(OUT2): NETS(VBUS4_SW)
+- pin8(FAULT_N): NETS(HUB_OCS5_N)
+- pin9(EP): NETS(GND)
+
+R_ILIM4 (165kΩ res0402)
+- pin1(anode, pos, left): NETS(ILIM4)
+- pin2(cathode, neg, right): NETS(GND)
+
+C_PWR4_IN (100nF cap0402)
+- pin1(pos, anode, left): NETS(P5V_PROTECTED)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PORT4_HF (100nF cap0402)
+- pin1(pos, anode, left): NETS(VBUS4_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_PORT4_BULK (22uF cap1210)
+- pin1(pos, anode, left): NETS(VBUS4_SW)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_PWR_EN4 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(PWR_EN4)
+- pin2(cathode, neg, right): NETS(GND)
+
+U_ESD4
+- pin1(IO1): NETS(P4_PORT_P)
+- pin2(GND): NETS(GND)
+- pin3(IO2): NETS(P4_PORT_N)
+- pin4(IO2B): NETS(P4_CONN_N)
+- pin5(VBUS): NETS(VBUS4_SW)
+- pin6(IO1B): NETS(P4_CONN_P)
+
+J_PORT4
+- pin5_internal_1(pin5, SH, 5): NETS(GND)
+- pin1(VBUS): NETS(VBUS4_SW)
+- pin2(D_MINUS): NETS(P4_CONN_N)
+- pin3(D_PLUS): NETS(P4_CONN_P)
+- pin4(GND): NETS(GND)
+- pin5(SHIELD, SH): NETS(GND)

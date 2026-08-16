@@ -45,6 +45,7 @@ NOT read another project's config). Top-level keys:
               KiCad-style root holding "<lib>.pretty", a {lib,path} entry
               binds one library name to one explicit .pretty dir
   placement:  anchors {REF: [x,y,rot]}, post_anchors {REF: [x,y,rot]},
+              sides {REF: top|bottom},
               seeds {REF: [x,y]}, regions,
               patterns[] (glob -> region/near/attrs/model_override/
                 pad_overrides),
@@ -968,6 +969,18 @@ class BoardBuilder:
         self.pinned = set()
         placed = 0
         model_overrides = 0
+        sides = self.place_cfg.get("sides") or {}
+        if not isinstance(sides, dict):
+            die("placement.sides must be a mapping of REF: top|bottom")
+        unknown = sorted(set(sides) - set(self.comps))
+        if unknown:
+            die("placement.sides names unknown refdes: " + ", ".join(unknown))
+        invalid = sorted((ref, side) for ref, side in sides.items()
+                         if str(side).lower() not in ("top", "bottom"))
+        if invalid:
+            detail = ", ".join(f"{ref}={side!r}" for ref, side in invalid)
+            die(f"placement.sides accepts only top|bottom: {detail}")
+        bottom_count = 0
         for ref, (fpid, val) in sorted(self.comps.items()):
             fp = self.res.load(ref, fpid, val)
             fp.SetReference(ref)
@@ -1018,25 +1031,44 @@ class BoardBuilder:
                         if "clearance" in ov:
                             pad.SetLocalClearance(pcbnew.FromMM(float(ov["clearance"])))
             self.board.Add(fp)
+            if str(sides.get(ref, "top")).lower() == "bottom":
+                # pcbnew requires a footprint to belong to a board before it
+                # can be flipped safely. The origin stays fixed while copper,
+                # mask, fab, courtyard and 3D-model layers move to the back.
+                fp.Flip(fp.GetPosition(), False)
+                bottom_count += 1
             placed += 1
         self.fps = {f.GetReference(): f for f in self.board.GetFootprints()}
         self.say(f"placed {placed} footprints ({len(self.pinned)} anchored)")
+        if bottom_count:
+            self.say(f"placed {bottom_count} footprint(s) on B.Cu")
         if model_overrides:
             self.say(f"3D model overrides: {model_overrides} footprints "
                      f"source-bound to resolvable files")
         return placed
 
-    def apply_model_override(self, fp, ref, filename):
+    def apply_model_override(self, fp, ref, spec):
         """Replace a library footprint's model path with source-owned CAD.
 
-        The original model transform is preserved because a package model can
-        legitimately need a footprint-specific offset or rotation.  A missing
-        source file is fatal at generation time: KiCad's renderer otherwise
-        exits zero while silently omitting the body.
+        A scalar keeps the original footprint transform. A mapping may supply
+        `file` plus explicit three-number `offset`, `scale`, and `rotate`
+        vectors for supplier/manufacturer models whose coordinate frame does
+        not match the library body. A missing source file is fatal: KiCad's
+        renderer otherwise exits zero while silently omitting the body.
         """
+        transform = {}
+        if isinstance(spec, dict):
+            unknown = sorted(set(spec) - {"file", "offset", "scale", "rotate"})
+            if unknown:
+                die(f"{ref}: placement model_override has unknown key(s): "
+                    + ", ".join(unknown))
+            transform = spec
+            filename = spec.get("file")
+        else:
+            filename = spec
         filename = str(filename or "").strip()
         if not filename:
-            die(f"{ref}: placement model_override must be a non-empty path")
+            die(f"{ref}: placement model_override must name a non-empty file")
         expanded = filename.replace("${KIPRJMOD}",
                                     str(self.out.resolve().parent))
         if "${" in expanded or "$(" in expanded:
@@ -1062,6 +1094,18 @@ class BoardBuilder:
                 dst.x, dst.y, dst.z = src.x, src.y, src.z
             model.m_Show = old[0].m_Show
             model.m_Opacity = old[0].m_Opacity
+        for key, dst in (("offset", model.m_Offset),
+                         ("scale", model.m_Scale),
+                         ("rotate", model.m_Rotation)):
+            if key not in transform:
+                continue
+            vals = transform[key]
+            if (not isinstance(vals, (list, tuple)) or len(vals) != 3
+                    or any(not isinstance(v, (int, float)) or isinstance(v, bool)
+                           for v in vals)):
+                die(f"{ref}: placement model_override.{key} must be three "
+                    f"numbers, got {vals!r}")
+            dst.x, dst.y, dst.z = (float(v) for v in vals)
         fp.Models().clear()
         fp.Models().push_back(model)
 
@@ -1364,12 +1408,19 @@ class BoardBuilder:
         pin = [f for f in self.board.GetFootprints()
                if f.GetReference() in self.pinned]
         for i, fa in enumerate(pin):
-            pa = fa.GetCourtyard(pcbnew.F_CrtYd)
+            a_bottom = fa.IsFlipped()
+            a_layer = pcbnew.B_CrtYd if a_bottom else pcbnew.F_CrtYd
+            pa = fa.GetCourtyard(a_layer)
             ba = pa.BBox()
             if ba.GetWidth() == 0:
                 continue
             for fb in pin[i + 1:]:
-                pb = fb.GetCourtyard(pcbnew.F_CrtYd)
+                # Opposite-side component bodies may overlap in XY by design;
+                # only copper overlap (checked above) is meaningful there.
+                if fb.IsFlipped() != a_bottom:
+                    continue
+                b_layer = pcbnew.B_CrtYd if fb.IsFlipped() else pcbnew.F_CrtYd
+                pb = fb.GetCourtyard(b_layer)
                 bb = pb.BBox()
                 # The bbox is a sweep/filter only. Rotated rectangular
                 # courtyards routinely have intersecting axis-aligned boxes

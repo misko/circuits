@@ -13,7 +13,7 @@ GATE = SCRIPTS / "pin_map_check.py"
 def fixture(*, board_pins=("1", "2", "3", "4", "5", "6", "7", "8"),
             schematic_pins=("1", "2", "3", "4", "5", "6", "7", "8"),
             yaml_pins=("1", "2", "3", "4", "5", "6", "7", "8"),
-            aliases=None):
+            aliases=None, repeated_internal_pin=None):
     d = tmpdir("pinmap_")
     (d / "02_parts/FET").mkdir(parents=True)
     (d / "03_tscircuit/build").mkdir(parents=True)
@@ -40,6 +40,12 @@ def fixture(*, board_pins=("1", "2", "3", "4", "5", "6", "7", "8"),
         data.append({"type": "source_port", "source_port_id": f"p{i}",
                      "source_component_id": cid, "pin_number": int(pin),
                      "name": f"P{pin}", "port_hints": [f"pin{pin}", pin]})
+    if repeated_internal_pin is not None:
+        pin = str(repeated_internal_pin)
+        data.append({"type": "source_port", "source_port_id": "p_internal",
+                     "source_component_id": cid, "pin_number": None,
+                     "name": f"P{pin}_INTERNAL",
+                     "port_hints": [f"pin{pin}_internal_1", f"pin{pin}", pin]})
     (d / "03_tscircuit/build/circuit.json").write_text(json.dumps(data))
 
     board = d / "04_kicad/demo.kicad_pcb"
@@ -74,6 +80,13 @@ def gate(d, board):
 def t_clean_identity():
     d, board = fixture()
     result = must_pass(gate(d, board), "identity map")
+    contains(result.out, "8 declared physical pin identities graded", "coverage")
+
+
+@test("P-PINMAP canonicalizes tscircuit's repeated-pad internal source port")
+def t_repeated_pad_internal_port():
+    d, board = fixture(repeated_internal_pin="5")
+    result = must_pass(gate(d, board), "repeated physical pad source port")
     contains(result.out, "8 declared physical pin identities graded", "coverage")
 
 

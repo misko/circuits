@@ -91,7 +91,12 @@ def load_circuit(path: Path):
         if number is None:
             for hint in item.get("port_hints") or []:
                 match = re.fullmatch(r"pin(.+)", sval(hint), re.I)
-                if match:
+                # tscircuit emits one additional source_port for a repeated
+                # physical pad as ``pin5_internal_1`` while retaining the
+                # canonical ``pin5`` hint on that same port.  The suffix is a
+                # producer identity, not a sixth connector pin; prefer the
+                # canonical hint instead of inflating the physical pin set.
+                if match and not re.search(r"_internal_\d+$", match.group(1), re.I):
                     number = match.group(1)
                     break
         if number is not None:

@@ -24,7 +24,10 @@ rails:
     load_uv_threshold: 4.75
     ir_budget_mohm: 160
     margin: 0.20
-    ir_budget_components_mohm: {port_power_switch: 35, pcb_copper_vias_joints: 25, mated_power_contacts: 100}
+    ir_budget_components_mohm:
+      protection_switch: {value: 35, basis: maximum, evidence: "TPS2557 maximum RON at 125 C"}
+      pcb_copper_vias_joints: {value: 25, basis: budgeted_max, evidence: "four-layer branch-pour/via/joint allocation; confirm by hot four-wire first-article measurement"}
+      mated_power_contacts: {value: 100, basis: budgeted_max, evidence: "engineering allocation for one mated VBUS and GND contact pair; qualify on the exact connector lot"}
     distribution:
       series_devices: [DMP3007SPS-13, TPS2557DRBR]
       path_resistance_max_mohm: 160
@@ -44,7 +47,10 @@ rails:
     load_uv_threshold: 4.75
     ir_budget_mohm: 160
     margin: 0.20
-    ir_budget_components_mohm: {port_power_switch: 35, pcb_copper_vias_joints: 25, mated_power_contacts: 100}
+    ir_budget_components_mohm:
+      protection_switch: {value: 35, basis: maximum, evidence: "TPS2557 maximum RON at 125 C"}
+      pcb_copper_vias_joints: {value: 25, basis: budgeted_max, evidence: "four-layer branch-pour/via/joint allocation; confirm by hot four-wire first-article measurement"}
+      mated_power_contacts: {value: 100, basis: budgeted_max, evidence: "engineering allocation for one mated VBUS and GND contact pair; qualify on the exact connector lot"}
     distribution:
       series_devices: [DMP3007SPS-13, TPS2557DRBR]
       path_resistance_max_mohm: 160
@@ -64,7 +70,10 @@ rails:
     load_uv_threshold: 4.75
     ir_budget_mohm: 160
     margin: 0.20
-    ir_budget_components_mohm: {port_power_switch: 35, pcb_copper_vias_joints: 25, mated_power_contacts: 100}
+    ir_budget_components_mohm:
+      protection_switch: {value: 35, basis: maximum, evidence: "TPS2557 maximum RON at 125 C"}
+      pcb_copper_vias_joints: {value: 25, basis: budgeted_max, evidence: "four-layer branch-pour/via/joint allocation; confirm by hot four-wire first-article measurement"}
+      mated_power_contacts: {value: 100, basis: budgeted_max, evidence: "engineering allocation for one mated VBUS and GND contact pair; qualify on the exact connector lot"}
     distribution:
       series_devices: [DMP3007SPS-13, TPS2557DRBR]
       path_resistance_max_mohm: 160
@@ -84,7 +93,10 @@ rails:
     load_uv_threshold: 4.75
     ir_budget_mohm: 160
     margin: 0.20
-    ir_budget_components_mohm: {port_power_switch: 35, pcb_copper_vias_joints: 25, mated_power_contacts: 100}
+    ir_budget_components_mohm:
+      protection_switch: {value: 35, basis: maximum, evidence: "TPS2557 maximum RON at 125 C"}
+      pcb_copper_vias_joints: {value: 25, basis: budgeted_max, evidence: "four-layer branch-pour/via/joint allocation; confirm by hot four-wire first-article measurement"}
+      mated_power_contacts: {value: 100, basis: budgeted_max, evidence: "engineering allocation for one mated VBUS and GND contact pair; qualify on the exact connector lot"}
     distribution:
       series_devices: [DMP3007SPS-13, TPS2557DRBR]
       path_resistance_max_mohm: 160

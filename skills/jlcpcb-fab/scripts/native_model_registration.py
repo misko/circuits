@@ -491,6 +491,7 @@ def main(argv=None) -> int:
         measured = extract_body(
             image.load(), image.size, window, centre, blocked=blocked,
             protect=expected_px[row["ref"]], bare_px=bare_image.load(),
+            union_components=True,
         )
         if measured is None:
             failures.append(f"{row['ref']}: native body pixels were not measured")

@@ -145,6 +145,35 @@ def flip_j1(dest):
     return dest
 
 
+@test("same-camera native-model extraction unions disconnected STEP body islands")
+def t_native_multipart_body_union():
+    """A connector STEP commonly renders as disconnected shell/housing
+    islands.  Native registration owns a one-model coupon, so its measured
+    envelope must include every populated-minus-bare island; the general twin
+    path must retain nearest-component behavior for crowded boards."""
+    probe = (
+        "import json,sys\n"
+        "from PIL import Image\n"
+        f"sys.path.insert(0,{str(FAB_SCRIPTS)!r})\n"
+        "from twin_overlay import extract_body\n"
+        "bare=Image.new('RGB',(80,40),(70,110,60))\n"
+        "pop=bare.copy()\n"
+        "p=pop.load()\n"
+        "for box in ((10,10,25,25),(45,10,60,25)):\n"
+        " x0,y0,x1,y1=box\n"
+        " for y in range(y0,y1+1):\n"
+        "  for x in range(x0,x1+1): p[x,y]=(220,220,220)\n"
+        "kw=dict(size=pop.size,win=(0,0,79,39),seed_px=(18,18),"
+        "bare_px=bare.load(),ero=0)\n"
+        "nearest=extract_body(pop.load(),**kw)\n"
+        "union=extract_body(pop.load(),union_components=True,**kw)\n"
+        "print('@@'+json.dumps([nearest[0],union[0]]))\n")
+    result = must_pass(run([KPY, "-c", probe]),
+                       "multipart native-model extraction probe")
+    contains(result.out, "@@[[10, 10, 25, 25], [10, 10, 60, 25]]",
+             "native coupons union every disconnected same-camera body island")
+
+
 @test("A-RENDER independently uses an explicit unique-pad anchor for a "
       "failed duplicate-ground fit", kind="known_bad")
 def t_explicit_mount_anchor_geometry():

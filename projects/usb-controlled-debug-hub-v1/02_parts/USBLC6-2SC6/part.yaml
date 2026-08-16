@@ -30,11 +30,11 @@ sourcing: {lcsc: C7519, alternates: [C2687116], note: "Exact part is in the JLC/
 layout:
   source: "ST USBLC6-2SC6 datasheet Application/Layout (place first in the data path)"
   adjacency:
-    - {refdes: [U_ESD_UP, J_UP], max_mm: 2.0, why: "upstream ESD array must be the first device reached from the connector"}
-    - {refdes: [U_ESD1, J_PORT1], max_mm: 2.0, why: "port 1 ESD array must be the first device reached from the connector"}
-    - {refdes: [U_ESD2, J_PORT2], max_mm: 2.0, why: "port 2 ESD array must be the first device reached from the connector"}
-    - {refdes: [U_ESD3, J_PORT3], max_mm: 2.0, why: "port 3 ESD array must be the first device reached from the connector"}
-    - {refdes: [U_ESD4, J_PORT4], max_mm: 2.0, why: "port 4 ESD array must be the first device reached from the connector"}
+    - {refdes: [U_ESD_UP, J_UP], nets: [UP_CONN_N, UP_CONN_P], max_mm: 2.0, why: "upstream ESD array must be the first device reached from the connector on D+/D-; VBUS is a clamp-reference branch, not the protected series path"}
+    - {refdes: [U_ESD1, J_PORT1], nets: [P1_CONN_N, P1_CONN_P], max_mm: 2.0, why: "port 1 ESD array must be the first device reached from the connector on D+/D-; VBUS is a clamp-reference branch, not the protected series path"}
+    - {refdes: [U_ESD2, J_PORT2], nets: [P2_CONN_N, P2_CONN_P], max_mm: 2.0, why: "port 2 ESD array must be the first device reached from the connector on D+/D-; VBUS is a clamp-reference branch, not the protected series path"}
+    - {refdes: [U_ESD3, J_PORT3], nets: [P3_CONN_N, P3_CONN_P], max_mm: 2.0, why: "port 3 ESD array must be the first device reached from the connector on D+/D-; VBUS is a clamp-reference branch, not the protected series path"}
+    - {refdes: [U_ESD4, J_PORT4], nets: [P4_CONN_N, P4_CONN_P], max_mm: 2.0, why: "port 4 ESD array must be the first device reached from the connector on D+/D-; VBUS is a clamp-reference branch, not the protected series path"}
   notes:
     - "at the USB connector edge, in-line on the D+/D- pair before any branch; VBUS pin to the port rail"
     - "short, symmetric stubs from the data pair to IO pins; GND(2) to the ground plane with a low-impedance path"

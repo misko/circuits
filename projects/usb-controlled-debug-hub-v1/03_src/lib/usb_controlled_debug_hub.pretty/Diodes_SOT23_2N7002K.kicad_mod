@@ -1,0 +1,13 @@
+(footprint "Diodes_SOT23_2N7002K"
+  (version 20240108) (generator pcbnew) (layer "F.Cu")
+  (descr "Diodes 2N7002K SOT23, DS30896 suggested pads")
+  (property "Reference" "REF**" (at 0 -2.3 0) (layer "F.SilkS") (effects (font (size 0.8 0.8) (thickness 0.12))))
+  (property "Value" "2N7002K" (at 0 2.3 0) (layer "F.Fab") (effects (font (size 0.8 0.8) (thickness 0.12))))
+  (attr smd)
+  (fp_rect (start -1.65 -1.7) (end 1.93 1.7) (stroke (width 0.05) (type solid)) (fill none) (layer "F.CrtYd"))
+  (fp_line (start -1.45 -0.77) (end 1.45 -0.77) (stroke (width 0.12) (type solid)) (layer "F.SilkS"))
+  (fp_line (start -1.45 0.77) (end 1.45 0.77) (stroke (width 0.12) (type solid)) (layer "F.SilkS"))
+  (pad "1" smd roundrect (at -1 -1) (size 0.8 0.9) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.2))
+  (pad "2" smd roundrect (at -1 1) (size 0.8 0.9) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.2))
+  (pad "3" smd roundrect (at 1 0) (size 1.35 0.9) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.2))
+)

@@ -120,6 +120,12 @@ rationale.
 | IMP-104 | Retain per-row JLC evidence in mixed-source BOMs | completed | Raspberry Pi USB port switch sourcing |
 | IMP-105 | Separate early high-speed authority from placed route primitives | completed | Raspberry Pi USB 3 source preflight |
 | IMP-106 | Refactor PCB skills around progressive disclosure without moving execution authority | completed | Cross-board skill/pipeline review |
+| IMP-107 | Make footprint side a first-class floorplan property | completed | USB-controlled debug hub placement |
+| IMP-108 | Scope physical adjacency budgets to the electrical path they protect | completed | USB-controlled debug hub ESD placement |
+| IMP-109 | Preserve every actionable finding in durable gate reports | completed | USB-controlled debug hub placement iteration |
+| IMP-110 | Measure every disconnected body island in native-model registration coupons | completed | USB-controlled debug hub connector registration |
+| IMP-111 | Canonicalize producer-private repeated-pad identities before physical pin comparison | completed | USB-controlled debug hub pin-map preflight |
+| IMP-112 | Give headless rendering the same model environment as body coverage | completed | USB-controlled debug hub placement render |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -1924,6 +1930,17 @@ rationale.
   denominator inflation, transform invalidation, the historical 5-mm shift,
   and a custom output location. The full Pluto nine-SMA canary passes 45/45
   drilled centres.
+- implementation progress: 2026-08-16 — the USB-controlled debug hub bound
+  eight exact source-owned STEP files through structured
+  `model_override: {file, offset, scale, rotate}` declarations and reached
+  independent saved-board body coverage of 133/133. Its registration contract
+  then graded the four USB-A receptacles, upstream USB-B receptacle and power
+  terminal against manufacturer-derived F.Fab, courtyard and 32 drilled
+  attachment centres before routing. That run caught a genuinely translated
+  Phoenix terminal body, a too-small USB-B courtyard, and a detector that had
+  reduced multipart STEP bodies to the connected pixel island nearest the
+  expected centre. After correcting all three classes, P-MODEL-REG passes 3/3
+  unique tuples; presence and registration remain separate claims.
 - remaining: polarity-marker projection, permitted-edge overhang schemas,
   native/drawing landmark classes beyond body/F.Fab/courtyard/drilled centres,
   repeated-pad-numbering geometry, wrong-drill, wrong-rotation and converted-
@@ -1961,6 +1978,9 @@ rationale.
   - 2026-08-15 — added origin-centred coupons, exact tuple receipts/caching,
     automatic invalidation, atomic per-group evidence, and an aggregate
     StageResult-bound bundle that passes the generic readiness composer.
+  - 2026-08-16 — added structured source transforms, registered the new USB
+    hub's three critical connector families before routing, and made native
+    coupon measurement include disconnected STEP body islands.
 
 ## IMP-056 — population evidence must separate automated and manual bodies
 
@@ -3936,3 +3956,152 @@ Recommended execution order for future boards:
 - history: 2026-08-15 — implemented on a dedicated branch with a frozen legacy
   denominator and behavior-first compatibility fixtures before documentation
   or publication.
+
+## IMP-107 — make footprint side a first-class floorplan property
+
+- status: completed
+- observed: USB-controlled debug hub placement, 2026-08-16
+- evidence: keeping each USBLC6 ESD array and FSUSB42 data switch inside its
+  electrical distance budget while four large THT USB-A bodies occupied the
+  same top-side cells required nine deliberate bottom-side placements. The
+  generic generator previously had no declarative side input; a project would
+  have needed a board-specific postprocessor, and flipping a detached pcbnew
+  footprint before it belonged to a board caused a native crash.
+- general rule: side is authored placement intent, alongside coordinate and
+  rotation. The generator must validate a closed `top|bottom` vocabulary,
+  reject unknown references, add the footprint to its board before flipping,
+  and grade body collisions only between parts on the same assembly side.
+  Copper overlap and pad-short checks remain side-independent.
+- landed at: `placement.sides` in `floorplan.yaml`, consumed by
+  `generate_board_generic.py`; project and template contracts document the
+  field. The generator reports its bottom-side denominator and the USB hub
+  regenerates deterministically with nine B.Cu footprints.
+- completion evidence: `tests/t1_generate_board.py` proves a named footprint
+  flips while an undeclared control stays top, and that invalid side values or
+  unknown references fail before board output. The existing pad-overlap and
+  courtyard suites remain green.
+- recommendation: use only where the electrical/mechanical floorplan benefits;
+  keep ordinary single-sided assembly as the implicit top-side default.
+
+## IMP-108 — scope physical adjacency budgets to the electrical path they protect
+
+- status: completed
+- observed: USB-controlled debug hub ESD placement, 2026-08-16
+- evidence: each USBLC6 array shares D+, D-, VBUS and GND with its connector,
+  but the 2 mm placement obligation exists to control the high-speed clamp
+  path. Grading the pair over every shared net incorrectly selected the remote
+  VBUS clamp-reference branch and made a correct in-line data placement look
+  impossible.
+- general rule: a physical adjacency row may name the exact shared net or net
+  set whose path creates the distance requirement. Every named net must exist
+  on both declared references; a typo or non-shared name is UNREACHED, never a
+  fallback to some other shared connection. Omitting `nets` preserves the
+  conservative all-shared-net behavior.
+- landed at: optional `layout.adjacency[].nets` in `part.yaml`, consumed by
+  `policy_audit.py` and documented in the project/template part contracts. The
+  USB ESD rules scope the tight budget to D+/D- and the placed board closes all
+  38/38 measurable layout budgets.
+- completion evidence: `tests/t1_escape_tier.py` covers a valid scoped shared
+  net and a non-shared name that fails P-ADJ-UNREACHED.
+- recommendation: use for ESD, filters, current-sense and feedback structures
+  where a part pair shares unrelated support nets; do not use it to hide a bad
+  layout on another electrically critical shared path.
+
+## IMP-109 — preserve every actionable finding in durable gate reports
+
+- status: completed
+- observed: USB-controlled debug hub placement iteration, 2026-08-16
+- evidence: the placement policy console intentionally printed only the first
+  five adjacency failures, but the same truncation reached the durable report.
+  Fixing those five and rerunning exposed the next set, turning one bounded
+  placement diagnosis into a serial whack-a-mole loop.
+- general rule: console output may be bounded for readability; the persisted
+  diagnostic artifact must enumerate the complete actionable denominator.
+  Summary counts and representative samples are navigation aids, not a
+  substitute for the full finding set needed to make one corrective pass.
+- landed at: `policy_audit.py` retains bounded console presentation while its
+  Markdown report writes every P-ADJ finding.
+- completion evidence: `tests/t1_escape_tier.py` creates six independent
+  violations and requires all six to appear in the durable report.
+- recommendation: apply this pattern to every iterative geometry, sourcing and
+  release gate; if a complete set is too large, write a structured sidecar and
+  link it from the bounded summary rather than discarding rows.
+
+## IMP-110 — measure every disconnected body island in native-model registration coupons
+
+- status: completed
+- observed: USB-controlled debug hub connector registration, 2026-08-16
+- evidence: exact USB connector STEP files render as several disconnected
+  shell, housing and retention-feature pixel islands. The registration gate's
+  nearest-connected-component rule measured only one USB-B shell edge. That
+  falsely reported all six drilled centres outside the body and, more
+  importantly, hid body excursions visible elsewhere in the same model.
+- general rule: same-camera populated-minus-bare coupons with exactly one
+  provenance-bound model per search window own every surviving unblocked
+  difference island. Their measurement must union those islands before
+  comparing F.Fab, courtyard and attachment datums. Crowded whole-board twin
+  images retain nearest-component behavior because unrelated neighboring
+  bodies can occupy the search window.
+- landed at: `extract_body(..., union_components=True)` is used only by
+  `native_model_registration.py`; the default remains false for catalog-twin
+  callers. This exposed and enabled correction of the terminal translation,
+  USB-A registration and USB-B courtyard before routing.
+- completion evidence: `tests/t1_twin_overlay.py` supplies two disconnected
+  populated-minus-bare body islands and proves native coupon mode spans both
+  while the default mode selects only the seeded component. The live project
+  now passes P-MODEL-REG for 3/3 model tuples and 32/32 drilled centres.
+- recommendation: carry immediately for all native STEP registration. Keep the
+  one-model coupon invariant explicit; never enable union mode on a populated
+  multi-part board without an independent pixel ownership partition.
+
+## IMP-111 — canonicalize producer-private repeated-pad identities before physical pin comparison
+
+- status: completed
+- observed: USB-controlled debug hub pin-map preflight, 2026-08-16
+- evidence: tscircuit represents the second occurrence of a repeated numeric
+  connector pad with a private source-port hint such as
+  `pin5_internal_1`, followed by the canonical `pin5` hint. P-PINMAP selected
+  the first string and reported a fictitious sixth physical identity on every
+  USB connector even though both shell stakes intentionally share pad 5 in the
+  exact footprint and board.
+- general rule: producer-private identifiers must not enter the physical pin
+  denominator. When a source port has no explicit `pin_number`, ignore
+  `_internal_N` hint suffixes and select its canonical pin hint. Do not add a
+  fake dossier pin or alias merely to satisfy one producer's object identity.
+- landed at: `pin_map_check.py` skips internal repeated-pad hints while
+  retaining the canonical hint on the same source port. The live board passes
+  293 declared identities over 27 multi-pin references.
+- completion evidence: `tests/t1_pin_map.py` reproduces the extra internal
+  source port and proves the physical denominator remains eight; missing pins,
+  unevidenced aliases, unlike-function collapses and zero coverage still fail.
+- recommendation: keep this normalization narrow to the documented suffix and
+  require the canonical hint to exist; unrelated named pins must remain visible
+  as extra identities.
+
+## IMP-112 — give headless rendering the same model environment as body coverage
+
+- status: completed
+- observed: USB-controlled debug hub placement render, 2026-08-16
+- evidence: P-MODEL passed 133/133 because it resolved stock KiCad STEP files
+  under the user data tree, but a raw `kicad-cli pcb render` received no
+  `KICAD10_3DMODEL_DIR` definition. It exited zero and drew the project-local
+  exact connector bodies while silently omitting ordinary SOIC, SSOP, TSSOP,
+  resistor, capacitor, fuse and crystal bodies. The image looked plausible
+  until a high-resolution crop exposed empty IC outlines.
+- general rule: a model-coverage resolver and the renderer must consume one
+  explicit environment. A successful raw render is neither coverage nor proof
+  that its variable table matches the preflight. The canonical invocation must
+  pass every model-directory token used by the saved board and refuse any
+  unresolved reference before image generation.
+- landed at: `render_board.py` reuses `model_coverage_check.py` resolution,
+  injects referenced variables through `kicad-cli -D`, verifies a fresh non-
+  empty output, and supports a JSON `--dry-run` command receipt. Its use
+  restored every stock package body in the placement render without changing
+  the board.
+- completion evidence: `tests/t1_render_board.py` proves the exact
+  `KICAD10_3DMODEL_DIR` value reaches renderer argv and that an unresolved
+  saved-board model blocks before rendering. The live corrected top view shows
+  the previously absent controller, expander and two logic-package bodies.
+- recommendation: use this wrapper for every placement, routed and release
+  KiCad render; reserve raw `kicad-cli pcb render` for isolated diagnostics
+  whose model environment is supplied explicitly.

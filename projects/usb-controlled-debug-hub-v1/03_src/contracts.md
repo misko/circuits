@@ -310,6 +310,7 @@ in the `02_parts` contract. These two are this folder's own.
 | `libraries[].path` | `generate_board_generic.py` | fp-lib-table path |
 | `placement.anchors.<REF>` | `generate_board_generic.py` | fixed placement |
 | `placement.post_anchors.<REF>` | `generate_board_generic.py` | reviewed local placement applied after legalization, preserving every other floater's deterministic routed position; P-COLLIDE runs afterward |
+| `placement.sides.<REF>` | `generate_board_generic.py` | explicit `top`/`bottom` assembly side; defaults to `top`, validates refdes and value, and makes anchored courtyard collision checks side-aware |
 | `placement.seeds.<REF>` | `generate_board_generic.py` | legalizer start point |
 | `placement.regions.<NAME>` | `generate_board_generic.py` | named placement region |
 | `placement.require_anchor` | `generate_board_generic.py` | refuse an unanchored part |
@@ -323,7 +324,7 @@ in the `02_parts` contract. These two are this folder's own.
 | `placement.patterns[].region` | `generate_board_generic.py` | named-region placement target |
 | `placement.patterns[].attrs` | `generate_board_generic.py` | footprint attributes |
 | `placement.patterns[].clear_attrs` | `generate_board_generic.py` | attribute removal |
-| `placement.patterns[].model_override` | `generate_board_generic.py` | replace a footprint library model with one source-bound, non-empty renderer-resolvable file while preserving its existing model transform; multiple matching overrides for one refdes are a generation error |
+| `placement.patterns[].model_override` | `generate_board_generic.py` | scalar path, or `{file, offset?, scale?, rotate?}`; replaces a footprint model with source-bound non-empty CAD, preserving the existing transform unless explicit three-number vectors override it; multiple matching overrides for one refdes are an error |
 | `placement.patterns[].pad_overrides[].on_net` | `generate_board_generic.py, net_reference_audit.py` | pad-override selector (E-NETREF K10) |
 | `placement.patterns[].pad_overrides[].pads` | `generate_board_generic.py` | pad selector |
 | `placement.patterns[].pad_overrides[].clearance` | `generate_board_generic.py` | per-pad clearance |

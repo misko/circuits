@@ -112,8 +112,9 @@ never a software-controlled conductor. Ground is not disconnected per port.
 
 ## Critical geometries
 
-- Ten active USB pair segments: upstream, internal management, and two
-  halves for each of four external ports.
+- Five functional USB links are represented as fifteen pair-net segments:
+  connector-side ESD divides the upstream path and each of the four external
+  paths, while the internal management path is one uninterrupted segment.
 - Each FSUSB42 sits in-line with no copper stub on its unused throw.
 - Hub supply decouplers, 12 kΩ RBIAS, 24 MHz crystal and load capacitors remain
   against their named pins before escape routing.

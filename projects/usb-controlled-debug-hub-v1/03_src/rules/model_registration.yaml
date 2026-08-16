@@ -1,0 +1,29 @@
+schema: 1
+groups:
+  - id: usb_a_kh_af90dip_112
+    refs: [J_PORT1, J_PORT2, J_PORT3, J_PORT4]
+    authority: "Kinghelm KH-AF90DIP-112 drawing A/1 body envelope, six-hole attachment field, and source-owned exact-code JLC STEP"
+    model_sha256: b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3
+    fit_tolerance_mm: 1.0
+    courtyard_containment_tolerance_mm: 0.25
+    search_margin_mm: 8.0
+    render_width: 2400
+    render_height: 1600
+  - id: usb_b_te_292304_1
+    refs: [J_UP]
+    authority: "TE ENG_CD_292304 Rev D4 body envelope, six-hole attachment field, and official TE native STEP"
+    model_sha256: 7b55239f18db48488579f0fdccddc183e0adfb71480bc3fd41540cc43b5a27cc
+    fit_tolerance_mm: 1.0
+    courtyard_containment_tolerance_mm: 0.25
+    search_margin_mm: 8.0
+    render_width: 2400
+    render_height: 1600
+  - id: power_terminal_phoenix_1935161
+    refs: [J_PWR]
+    authority: "Phoenix Contact 1935161 catalog body envelope and drill pattern plus source-owned exact-code JLC STEP"
+    model_sha256: 2e5d756b7aff398a75c25d85ac06e7af2f908fa9e1c1caa91543a93f2a4dcc91
+    fit_tolerance_mm: 1.0
+    courtyard_containment_tolerance_mm: 0.25
+    search_margin_mm: 8.0
+    render_width: 2400
+    render_height: 1600

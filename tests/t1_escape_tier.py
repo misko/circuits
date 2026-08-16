@@ -978,6 +978,37 @@ def t_padj_pair_is_graded():
     contains(gh["P-ADJ-UNREACHED"][1], "U_NOT_HERE", "names the missing refdes")
 
 
+@test("P-ADJ-PAIR may scope a physical requirement to named shared nets and "
+      "fails closed on unknown names", kind="known_bad")
+def t_padj_pair_net_scope():
+    scoped = ('    - {refdes: [U1, C1], nets: [SW_NODE], max_mm: 2.0, '
+              'why: "the short-loop requirement applies to this signal path, '
+              'not every rail the packages happen to share"}')
+    ok = audit_rows(padj_project([KS_REAL], adjacency=[scoped]))
+    eq(ok["P-ADJ-PAIR"][0], "PASS", "a valid shared-net allowlist")
+    contains(ok["P-ADJ-PAIR"][1], "on SW_NODE", "names the scoped net")
+
+    ghost = ('    - {refdes: [U1, C1], nets: [NOT_SHARED], max_mm: 2.0, '
+             'why: "a typo must not silently broaden or erase the grade"}')
+    bad = audit_rows(padj_project([KS_REAL], adjacency=[ghost]))
+    eq(bad["P-ADJ-UNREACHED"][0], "FAIL", "an unknown scoped net")
+    contains(bad["P-ADJ-UNREACHED"][1], "NOT_SHARED", "names the bad net")
+    contains(bad["P-ADJ-UNREACHED"][1], "not shared", "states the mismatch")
+
+
+@test("P-ADJ failure reports enumerate every actionable finding instead of "
+      "truncating the iteration set", kind="known_bad")
+def t_padj_reports_all_failures():
+    finding = ('    - {refdes: [U1, C_BULK], max_mm: 2.0, why: '
+               '"six independent declarations model a report longer than the '
+               'old five-item preview"}')
+    rows = audit_rows(padj_project([KS_REAL], adjacency=[finding] * 6,
+                                   bulk_at=40.0))
+    eq(rows["P-ADJ-PAIR"][0], "FAIL", "six over-budget declarations")
+    eq(rows["P-ADJ-PAIR"][1].count("U1~C_BULK"), 6,
+       "the durable report retains every finding")
+
+
 @test("a PROSE adjacency entry is UNREACHED, not a CRASH — the string form is "
       "the fleet's COMMON one", kind="known_bad")
 def t_padj_pair_prose_entry_does_not_crash():

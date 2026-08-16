@@ -7,9 +7,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
 
 # --- board-specific knobs (the ONLY things to edit) -------------------------
-BOARD=power3s                                  # <board> stem for 04_kicad/<board>.*
-TSX=power3s                                    # 03_tscircuit/src/<TSX>.tsx basename
-SCHEMATIC_TITLE=POWER3S                        # human PDF title
+BOARD=usb_controlled_debug_hub                 # <board> stem for 04_kicad/<board>.*
+TSX=usb_controlled_debug_hub                   # 03_tscircuit/src/<TSX>.tsx basename
+SCHEMATIC_TITLE=USB_CONTROLLED_DEBUG_HUB       # human PDF title
 # ----------------------------------------------------------------------------
 
 PY=/usr/bin/python3

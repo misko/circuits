@@ -879,6 +879,27 @@ def main():
                     pb = [p for p in fb.Pads() if p.GetNetname()]
                     shared = ({p.GetNetname() for p in pa}
                               & {p.GetNetname() for p in pb})
+                    wanted = ad.get("nets")
+                    if wanted is not None:
+                        if isinstance(wanted, str):
+                            wanted = [wanted]
+                        if (not isinstance(wanted, list) or not wanted
+                                or any(not isinstance(n, str) or not n.strip()
+                                       for n in wanted)):
+                            unreached.append(
+                                f"{pname}: adjacency {pair[0]}/{pair[1]} has "
+                                f"malformed nets: {ad.get('nets')!r}; use a "
+                                f"non-empty net-name list; budget {mx}mm "
+                                f"graded NOTHING")
+                            continue
+                        absent_nets = sorted(set(wanted) - shared)
+                        if absent_nets:
+                            unreached.append(
+                                f"{pname}: adjacency {pair[0]}/{pair[1]} "
+                                f"requests nets not shared by both parts: "
+                                f"{absent_nets}; budget {mx}mm graded NOTHING")
+                            continue
+                        shared &= set(wanted)
                     poured = sorted(shared & zone_nets)
                     live = sorted(shared - zone_nets)
                     if not live:
@@ -928,7 +949,7 @@ def main():
                       f"{len(graded_)}/{declared} declared budgets graded; "
                       f"tightest margin: {tightest}",
                       (f"datasheet layout.{kind} budgets exceeded: "
-                       f"{viol_[:5]} ({len(viol_)}/{len(graded_)} graded) — "
+                       f"{viol_} ({len(viol_)}/{len(graded_)} graded) — "
                        f"re-place per the part's layout: block (targets HARD "
                        f"against the chip), or waive with the measured pair + "
                        f"why ({cid})"
