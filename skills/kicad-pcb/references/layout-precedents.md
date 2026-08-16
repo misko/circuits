@@ -7,6 +7,12 @@ the manufacturer's own routed example WINS over your derivation. This doc
 is the source catalog, in authority order, with what to extract and the
 rules that keep it canon-clean.
 
+## Contents
+
+1. Study-then-rederive contract
+2. Sources in authority order
+3. Transfer and licensing caveats
+
 ## The contract: STUDY, THEN RE-DERIVE
 
 - Extract DECISIONS, never copper: adjacency (which passive hugs which

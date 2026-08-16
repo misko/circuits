@@ -9,6 +9,14 @@ geometry and release tools.  It does not replace them:
 - `jlcpcb-fab` owns fabrication, PCBA, stock, 3D-model, polarity, and sealed
   release gates.
 
+## Contents
+
+1. State machine
+2. Route configuration contract
+3. Commands
+4. Handoff and performance contracts
+5. Testing pyramid
+
 ## State machine
 
 ```text

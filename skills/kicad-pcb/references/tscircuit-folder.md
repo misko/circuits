@@ -16,6 +16,17 @@ Note the shared module library `tscircuit_modules/` at the REPO ROOT is NOT a
 project stage and keeps its unnumbered name; so does the tool/product name
 "tscircuit" everywhere it appears in prose.
 
+## Contents
+
+1. Authoring boundary and two schematic audiences
+2. Folder format and generation
+3. KiCad schematic and PCB bridges
+4. Go-forward rebuild command
+5. Verification limits and authoring notes
+6. Shared module registry and toolchain
+
+Producer-boundary gates routed here include `TSX-PRE` and `TSX-DIAG`.
+
 ## Why this is allowed under canon S-DSL
 
 The migration boundary is fixed by repo **ADR-0001**

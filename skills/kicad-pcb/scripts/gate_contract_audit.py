@@ -505,7 +505,11 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: test. The declaration landed WITH its fixture, which reproduces the vacuous
 #: pass on every run instead of asserting it in prose. Raised in the same commit
 #: that earns it, never ahead of one.
-VACUITY_FLOOR = 14
+#: 16 since 2026-08-15: the progressive-disclosure router and authority audit
+#: landed with declarations and executable fixtures. The router composes a
+#: profile without proving a board exists; the authority audit proves lexical
+#: reachability without understanding whether prose reversed a policy.
+VACUITY_FLOOR = 16
 
 
 def vacuity_declaration(text):

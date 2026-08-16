@@ -7,6 +7,9 @@
 | Pattern | What |
 |---|---|
 | `lcsc_passives_ledger.yaml` | vetted LCSC->MPN/value ledger for fleet R/C passives — leg C of `bom_source_check.py` (canon M6 / policy_audit M-BOM). Schema per entry: `<LCSC>: {mpn, value, verified}` |
+| `assembly-and-order.md` | BOM/CPL, sourcing, rotation, and uploader-side procedure |
+| `digital-twin.md` | JLC CAD correspondence, model transforms, and render-registration procedure |
+| `release-staging.md` | exact fabrication/assembly staging battery and seal handoff |
 | `contracts.md` | this file |
 
 ## Audit

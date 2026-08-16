@@ -1,5 +1,8 @@
 # Conditional RF module
 
+This adapter routes `RF-CONTRACT`, `RF-CONTEXT`, `RF-SOLVER`, `RF-SOURCE`, and
+`RF-REALIZED` to their executable checks without adding another pipeline owner.
+
 Load this module only when `03_src/rules/rf.yaml` says `rf.enabled: true`.
 `rf_context.py` selects the relevant local source cards before schematic or
 layout generation. It performs no web search, launches no agent, and owns no

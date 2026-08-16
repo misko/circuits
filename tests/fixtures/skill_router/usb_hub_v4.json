@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "signal_integrity": "ordinary",
+  "assembly": "jlcpcb",
+  "firmware": "forbidden",
+  "foreign_mating": false,
+  "target": "release"
+}

@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "baseline": {
+    "source_commit": "a8659927c98baf22c51dd4db733b901911098d3f",
+    "pcb_design_lines": 1470,
+    "pcb_design_words": 14601
+  },
+  "core_budget": {
+    "path": "skills/pcb-design/SKILL.md",
+    "min_lines": 250,
+    "max_lines": 400,
+    "max_words": 5000
+  },
+  "domains": [
+    {
+      "id": "commission",
+      "owner": "pcb-design",
+      "references": ["skills/pcb-design/references/commission-and-scope.md"],
+      "policy_ids": ["D-ADJ", "D-ESC", "D-LAYOUT", "D-MATE", "D-MOD", "D-SPEC", "D-TIER", "Q-2SOURCE"]
+    },
+    {
+      "id": "lifecycle",
+      "owner": "pcb-design",
+      "references": ["skills/pcb-design/references/lifecycle-and-backtrack.md"],
+      "policy_ids": ["D-BACK", "M-BEACON", "M-JRNL", "M-LEARN"]
+    },
+    {
+      "id": "review_publication",
+      "owner": "pcb-design",
+      "references": ["skills/pcb-design/references/review-and-publication.md"],
+      "policy_ids": ["M-REV", "P-PUBLISH", "PR-REVIEW"]
+    },
+    {
+      "id": "pipeline_contract",
+      "owner": "pcb-design",
+      "references": ["skills/pcb-design/references/pipeline-stage-contract.md"],
+      "policy_ids": ["GG-RESOLVE", "GG-SHADOW", "M-BOUND", "M-COVER", "M-FRESH"]
+    },
+    {
+      "id": "compute",
+      "owner": "pcb-design",
+      "references": ["skills/pcb-design/references/compute-tiers.md"],
+      "policy_ids": []
+    },
+    {
+      "id": "kicad_policy",
+      "owner": "kicad-pcb",
+      "references": ["skills/kicad-pcb/references/design-policies.md"],
+      "policy_ids": ["A-AMP", "A-BODY", "E-ADR", "E-CAP", "E-FAULT", "E-INV", "E-MARGIN", "E-NETREF", "E-OFF", "E-PATH", "E-SURGE", "E-SWDRV", "E-TOPO", "F-KNOB", "F-PATH", "G-ORPHAN", "G-SELFCON", "G-VACUOUS", "M-BAR", "M-BOM", "M-DEPEND", "M-EXIST", "M-GRADE", "M-IMPORT", "M-OWED", "M-PROXY", "M-REL", "M-RESTATE", "P-ADJ", "P-ADJ-PAIR", "P-ADJ-UNREACHED", "P-AUTH", "P-BODYCLR", "P-CAP", "P-DRC", "P-ESC", "P-FACT", "P-LAND", "P-LAYOUT", "P-MOD", "P-OUT", "P-PADSEP", "P-PINMAP", "P-PREC", "P-ROUTEBASE", "P-SILK-FN", "P-TIER", "R-CRITESC", "R-LEN", "R-PAIRMAP", "R-PREFLIGHT", "R-RULES", "R-SCOPE", "R-THERM", "S-COUNT", "S-DSL", "S-NETMERGE", "S-OCCL", "S-VER"]
+    },
+    {
+      "id": "kicad_schematic",
+      "owner": "kicad-pcb",
+      "references": ["skills/kicad-pcb/references/schematic-generation.md", "skills/kicad-pcb/references/tscircuit-folder.md"],
+      "policy_ids": ["TSX-DIAG", "TSX-PRE"]
+    },
+    {
+      "id": "kicad_placement",
+      "owner": "kicad-pcb",
+      "references": ["skills/kicad-pcb/references/placement-and-proximity.md"],
+      "policy_ids": []
+    },
+    {
+      "id": "kicad_routing",
+      "owner": "kicad-pcb",
+      "references": ["skills/kicad-pcb/references/fast-pcb-flow.md", "skills/kicad-pcb/references/routing-pipeline.md"],
+      "policy_ids": ["PF-VIA-ASPECT"]
+    },
+    {
+      "id": "kicad_layout_precedents",
+      "owner": "kicad-pcb",
+      "references": ["skills/kicad-pcb/references/layout-precedents.md"],
+      "policy_ids": []
+    },
+    {
+      "id": "kicad_rf",
+      "owner": "kicad-pcb",
+      "references": ["skills/kicad-pcb/references/rf-fab-review-protocol.md", "skills/kicad-pcb/references/rf-pcb-review-protocol.md", "skills/kicad-pcb/references/rf-schematic-review-protocol.md", "skills/kicad-pcb/references/rf/rf-context.md"],
+      "policy_ids": ["RF-CONTEXT", "RF-CONTRACT", "RF-REALIZED", "RF-SOLVER", "RF-SOURCE"]
+    },
+    {
+      "id": "jlc_assembly_order",
+      "owner": "jlcpcb-fab",
+      "references": ["skills/jlcpcb-fab/references/assembly-and-order.md"],
+      "policy_ids": ["A-BUY", "A-POL", "A-POP", "A-POS", "A-ROT", "A-STOCK", "F-ECHO", "F-ENCODE", "F-LEGIBLE", "F-MPN", "F-WORDS", "M-PROV", "POLARITY-CHECK", "POLARITY-FIT", "ROT-DB-SUGGEST"]
+    },
+    {
+      "id": "jlc_twin",
+      "owner": "jlcpcb-fab",
+      "references": ["skills/jlcpcb-fab/references/digital-twin.md"],
+      "policy_ids": ["A-RENDER", "MODEL-REG", "MODEL-SELF", "NO-BODY", "PAD-GEOM", "PAD-MISMATCH"]
+    },
+    {
+      "id": "jlc_release_staging",
+      "owner": "jlcpcb-fab",
+      "references": ["skills/jlcpcb-fab/references/release-staging.md"],
+      "policy_ids": ["A-VIA"]
+    }
+  ],
+  "stages": [
+    {
+      "spec": {"schema": 1, "id": "PCB-COMMISSION", "owner": "pcb-design", "lifecycle": "commission", "cost": "cheap", "work_class": "local", "timeout_s": 30, "requires": [], "produces": ["commissioned_brief"], "blocks": ["architecture"], "invalidated_by": ["brief_semantic"]},
+      "domains": ["commission", "lifecycle"],
+      "applies": {"always": true}
+    },
+    {
+      "spec": {"schema": 1, "id": "PCB-ARCHITECTURE", "owner": "pcb-design", "lifecycle": "architecture", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["commissioned_brief"], "produces": ["architecture_locked"], "blocks": ["sourcing"], "invalidated_by": ["architecture_semantic", "brief_semantic"]},
+      "domains": ["commission", "kicad_policy", "lifecycle"],
+      "applies": {"always": true}
+    },
+    {
+      "spec": {"schema": 1, "id": "PCB-SOURCING", "owner": "pcb-design", "lifecycle": "sourcing", "cost": "external", "work_class": "network", "timeout_s": 3600, "requires": ["architecture_locked"], "produces": ["parts_locked"], "blocks": ["schematic"], "invalidated_by": ["architecture_semantic", "parts_semantic"]},
+      "domains": ["commission", "kicad_layout_precedents", "kicad_policy", "lifecycle"],
+      "applies": {"always": true}
+    },
+    {
+      "spec": {"schema": 1, "id": "KICAD-RF-CONTEXT", "owner": "kicad-pcb", "lifecycle": "architecture", "cost": "cheap", "work_class": "local", "timeout_s": 30, "requires": ["parts_locked"], "produces": ["rf_context"], "blocks": ["schematic"], "invalidated_by": ["parts_semantic", "rf_contract_semantic"]},
+      "domains": ["kicad_rf", "lifecycle"],
+      "applies": {"signal_integrity": ["high_speed_digital", "rf"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "KICAD-RF-SOURCE", "owner": "kicad-pcb", "lifecycle": "schematic", "cost": "cheap", "work_class": "local", "timeout_s": 60, "requires": ["rf_context"], "produces": ["rf_source_clearance"], "blocks": ["schematic"], "invalidated_by": ["rf_contract_semantic", "source_semantic"]},
+      "domains": ["kicad_rf", "lifecycle"],
+      "applies": {"signal_integrity": ["high_speed_digital", "rf"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "KICAD-SCHEMATIC", "owner": "kicad-pcb", "lifecycle": "schematic", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["parts_locked", "rf_source_clearance"], "produces": ["schematic_reviewed"], "blocks": ["placement"], "invalidated_by": ["parts_semantic", "rules_semantic", "source_semantic"]},
+      "domains": ["kicad_policy", "kicad_schematic", "lifecycle", "review_publication"],
+      "applies": {"always": true}
+    },
+    {
+      "spec": {"schema": 1, "id": "KICAD-PLACEMENT", "owner": "kicad-pcb", "lifecycle": "placement", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["schematic_reviewed"], "produces": ["placement_reviewed"], "blocks": ["routing"], "invalidated_by": ["placement_semantic", "schematic_semantic"]},
+      "domains": ["kicad_placement", "kicad_policy", "lifecycle", "review_publication"],
+      "applies": {"always": true}
+    },
+    {
+      "spec": {"schema": 1, "id": "KICAD-MATING-IMPORT", "owner": "kicad-pcb", "lifecycle": "placement", "cost": "cheap", "work_class": "local", "timeout_s": 30, "requires": ["placement_reviewed"], "produces": ["mating_clearance"], "blocks": ["routing"], "invalidated_by": ["mating_semantic", "placement_semantic"]},
+      "domains": ["commission", "kicad_placement", "lifecycle"],
+      "applies": {"foreign_mating": [true]}
+    },
+    {
+      "spec": {"schema": 1, "id": "KICAD-ROUTING", "owner": "kicad-pcb", "lifecycle": "routing", "cost": "bounded", "work_class": "local", "timeout_s": 7200, "requires": ["mating_clearance", "placement_reviewed"], "produces": ["routed_board"], "blocks": ["layout_seal"], "invalidated_by": ["placement_semantic", "route_process", "rules_semantic"]},
+      "domains": ["kicad_policy", "kicad_routing", "lifecycle"],
+      "applies": {"always": true}
+    },
+    {
+      "spec": {"schema": 1, "id": "KICAD-RF-REALIZED", "owner": "kicad-pcb", "lifecycle": "routing", "cost": "bounded", "work_class": "local", "timeout_s": 120, "requires": ["routed_board"], "produces": ["rf_realized_clearance"], "blocks": ["layout_seal"], "invalidated_by": ["rf_contract_semantic", "route_process"]},
+      "domains": ["kicad_rf", "lifecycle"],
+      "applies": {"signal_integrity": ["high_speed_digital", "rf"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "KICAD-LAYOUT-SEAL", "owner": "kicad-pcb", "lifecycle": "layout_seal", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["rf_realized_clearance", "routed_board"], "produces": ["layout_sealed"], "blocks": ["fabrication"], "invalidated_by": ["board_semantic", "route_process", "rules_semantic"]},
+      "domains": ["kicad_policy", "kicad_routing", "lifecycle"],
+      "applies": {"always": true}
+    },
+    {
+      "spec": {"schema": 1, "id": "JLC-FABRICATION", "owner": "jlcpcb-fab", "lifecycle": "fabrication", "cost": "external", "work_class": "network", "timeout_s": 3600, "requires": ["layout_sealed"], "produces": ["fabrication_staged"], "blocks": ["release_staging"], "invalidated_by": ["board_semantic", "fab_process", "parts_semantic"]},
+      "domains": ["jlc_assembly_order", "jlc_release_staging", "jlc_twin", "lifecycle"],
+      "applies": {"targets": ["first_article", "production", "publication", "release"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "JLC-ASSEMBLY-VERIFY", "owner": "jlcpcb-fab", "lifecycle": "fabrication", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["fabrication_staged"], "produces": ["assembly_verified"], "blocks": ["release_staging"], "invalidated_by": ["assembly_semantic", "fab_process", "parts_semantic"]},
+      "domains": ["jlc_assembly_order", "jlc_release_staging", "jlc_twin", "lifecycle"],
+      "applies": {"targets": ["first_article", "production", "publication", "release"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "JLC-RF-FAB-REVIEW", "owner": "jlcpcb-fab", "lifecycle": "fabrication", "cost": "review", "work_class": "review_wait", "timeout_s": 3600, "requires": ["fabrication_staged", "rf_realized_clearance"], "produces": ["rf_fab_clearance"], "blocks": ["release_staging"], "invalidated_by": ["fab_process", "rf_contract_semantic"]},
+      "domains": ["jlc_release_staging", "kicad_rf", "lifecycle", "review_publication"],
+      "applies": {"signal_integrity": ["high_speed_digital", "rf"], "targets": ["first_article", "production", "publication", "release"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "PCB-RELEASE-REVIEW", "owner": "pcb-design", "lifecycle": "release_staging", "cost": "review", "work_class": "review_wait", "timeout_s": 7200, "requires": ["assembly_verified", "rf_fab_clearance"], "produces": ["release_reviewed"], "blocks": ["release_seal"], "invalidated_by": ["review_subject", "staging_semantic"]},
+      "domains": ["jlc_release_staging", "lifecycle", "review_publication"],
+      "applies": {"targets": ["first_article", "production", "publication", "release"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "PCB-RELEASE-SEAL", "owner": "pcb-design", "lifecycle": "release_seal", "cost": "cheap", "work_class": "local", "timeout_s": 300, "requires": ["release_reviewed"], "produces": ["sealed_release"], "blocks": ["first_article", "publication"], "invalidated_by": ["release_claim", "source_commit"]},
+      "domains": ["lifecycle", "review_publication"],
+      "applies": {"targets": ["first_article", "production", "publication", "release"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "PCB-PUBLICATION", "owner": "pcb-design", "lifecycle": "publication", "cost": "cheap", "work_class": "local", "timeout_s": 600, "requires": ["sealed_release"], "produces": ["published_design"], "blocks": ["production"], "invalidated_by": ["publication_diff", "release_claim"]},
+      "domains": ["lifecycle", "review_publication"],
+      "applies": {"targets": ["publication"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "PCB-FIRST-ARTICLE", "owner": "pcb-design", "lifecycle": "first_article", "cost": "operator", "work_class": "operator_wait", "requires": ["sealed_release"], "produces": ["first_article_evidence"], "blocks": ["production"], "invalidated_by": ["first_article_subject", "release_claim"]},
+      "domains": ["lifecycle", "review_publication"],
+      "applies": {"targets": ["first_article", "production"]}
+    },
+    {
+      "spec": {"schema": 1, "id": "PCB-PRODUCTION", "owner": "pcb-design", "lifecycle": "production", "cost": "operator", "work_class": "operator_wait", "requires": ["first_article_evidence"], "produces": ["production_authorized"], "blocks": [], "invalidated_by": ["production_claim", "release_claim"]},
+      "domains": ["lifecycle", "review_publication"],
+      "applies": {"targets": ["production"]}
+    }
+  ]
+}

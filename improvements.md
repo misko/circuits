@@ -119,6 +119,7 @@ rationale.
 | IMP-103 | Model protected distribution rails explicitly | completed | Raspberry Pi USB port switch power preflight |
 | IMP-104 | Retain per-row JLC evidence in mixed-source BOMs | completed | Raspberry Pi USB port switch sourcing |
 | IMP-105 | Separate early high-speed authority from placed route primitives | completed | Raspberry Pi USB 3 source preflight |
+| IMP-106 | Refactor PCB skills around progressive disclosure without moving execution authority | completed | Cross-board skill/pipeline review |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -3844,3 +3845,54 @@ Recommended execution order for future boards:
   route geometry are intentionally part of early architecture.
 - history: 2026-08-15 — implemented and regression-tested before the Pi USB
   board began TSX capture; schema-reader governance covers the new authority.
+
+## IMP-106 — refactor PCB skills around progressive disclosure without moving execution authority
+
+- status: completed
+- observed: repository-wide review after USB Hub 3S v4, Pluto RX2 8-way v5,
+  and Raspberry Pi USB switch work, 2026-08-15
+- evidence: `skills/pcb-design/SKILL.md` had grown to 1,470 lines / 14,601
+  words and mixed lifecycle authority, incidents, JLC mechanics, layout
+  mechanics, gate invocation detail, and reference routing. The duplication
+  made it difficult to know which statement owned a decision and caused every
+  board task to load procedures that did not apply. The JLC skill had the same
+  smaller form at 593 lines / 5,601 words.
+- general rule: progressive disclosure is an information-architecture change,
+  not permission to alter board behavior. Keep a small entry kernel containing
+  scope, lifecycle, decision rules, invariants, and a direct reference router.
+  Give each domain one owner; move detailed procedure to that owner's named
+  reference. Preserve current project drivers, scripts, gates, review pauses,
+  seal rules, and publication rules until separate execution-equivalence
+  canaries authorize a migration.
+- landed at: `skills/pcb-design/SKILL.md` is a 260-line / 1,819-word
+  orchestration kernel and `skills/jlcpcb-fab/SKILL.md` is a 134-line /
+  861-word manufacturer adapter. `skill-authority-map.json` declares 14
+  single-owner domains, 19 routed references, a typed capability-to-stage
+  catalog, and the frozen pre-refactor source commit. The pure
+  `skill_reference_router.py` selects stage-local authorities for ordinary,
+  high-speed digital, RF, mating, JLC, and lifecycle target conditions; it
+  cannot execute, retry, promote, review, seal, or publish anything.
+- compatibility rule: `skill_authority_check.py` requires the PCB core to stay
+  within 250--400 lines and 5,000 words, routes every long procedure directly,
+  rejects duplicate authority, and proves all 109/109 pre-refactor policy/gate
+  IDs remain reachable. Exact typed traces are pinned for a simple board, USB
+  Hub v4, Raspberry Pi USB, and Pluto RF release. Firmware remains forbidden
+  by default; an explicit request creates only a separate handoff, never a PCB
+  pipeline stage.
+- completion evidence: `tests/t1_skill_progressive_disclosure.py` passes nine
+  clean, known-bad, and declared-vacuity cases, including an unregistered
+  assembly adapter, duplicate A-ROT ownership, and the lexical limits of the
+  router/authority audit. The existing USB and Pluto v4 catalog canaries,
+  stage contract/registry, rebuild templates, and rotation-authority suites
+  remain green. Both refactored skills pass the skill-creator schema validator.
+  `tests/t1_contracts.py` now checks the routed Markdown corpus rather than
+  assuming every policy appears in the monolithic entry file.
+- recommendation: carry immediately for all new and resumed boards. Treat any
+  future change to stage order, applicability, gate predicate, artifact,
+  review pause, backtrack target, seal, or publication behavior as a separate
+  migration requiring clean and known-bad tests plus USB and Pluto trace
+  comparison. Preserve the old skill only through Git history; do not maintain
+  a second live legacy manual.
+- history: 2026-08-15 — implemented on a dedicated branch with a frozen legacy
+  denominator and behavior-first compatibility fixtures before documentation
+  or publication.

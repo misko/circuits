@@ -116,3 +116,37 @@ legacy Pluto routed-design violations separately from the collision checker,
 and compare ordered applicability/identity/output/result observations against
 both complete canary catalogs.  The legacy drivers remain authoritative until
 that comparison passes and an ADR amendment explicitly moves authority.
+
+## 2026-08-15 progressive-disclosure compatibility layer
+
+The skill refactor did not migrate execution authority. The project rebuild
+drivers, script predicates, review pauses, accepted artifacts, seal rules, and
+publication gate remain authoritative exactly as before. The new
+`skill_reference_router.py` is a pure composition/coverage tool: it cannot run
+a stage, retry work, promote an artifact, write a review, seal a release, or
+publish a branch.
+
+The compatibility audit freezes source commit
+`a8659927c98baf22c51dd4db733b901911098d3f` as its legacy denominator. It
+accounts for 109/109 policy and gate IDs, assigns 14 domains to one owner each,
+and requires all 19 selected references to be directly reachable from the
+small core. The PCB core is 260 lines / 1,819 words, inside its enforced
+250--400 line and 5,000-word budget.
+
+Four capability fixtures pin the normalized composition trace:
+
+| Fixture | Target | Typed stages | Conditional behavior |
+|---|---|---:|---|
+| Simple ordinary board | layout seal | 7 | no RF, mating, JLC, release, or firmware procedure |
+| USB Hub 3S v4 | release seal | 11 | JLC path selected; existing fail-closed review semantics retained |
+| Raspberry Pi USB switch | release seal | 15 | conditional SI context/source/realized/fab evidence selected; geometry may defer to placement |
+| Pluto RX2 8-way | release seal | 15 | RF context/source/realized/fab stages selected; no firmware stage |
+
+The focused progressive-disclosure suite passed 9/9, including known-bad
+fixtures for duplicate authority and an unregistered assembly adapter plus
+executable declarations of both new tools' semantic limits. The
+existing USB catalog canary passed 9/9 and the distinct Pluto v4 catalog canary
+passed 7/7. Stage-contract, registry, rebuild-template, and rotation-authority
+suites also remained green. This proves reference-selection and governance
+compatibility; it does not convert a static catalog check into board execution
+equivalence and does not authorize a driver migration.

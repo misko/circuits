@@ -4,6 +4,17 @@ Proven end-to-end on a 136-part, 100×65 mm, 4-layer board: 0 unconnected,
 0 shorts, 0 fab-illegal copper. Order is load-bearing — each deviation below
 reintroduces a failure that was already debugged once.
 
+## Contents
+
+1. Ampacity guardrails
+2. Canonical routing steps
+3. Repair procedure
+4. Package-versus-router decision
+5. Measured empirics
+6. Quick-loop economics and escalation
+
+The route-entry capability check includes `PF-VIA-ASPECT`.
+
 ## Step 0 (BEFORE anything routes): ampacity guardrails
 
 Define current-tiered netclasses (SWITCH_NODE / PWR_RAIL / VBUS / signal)

@@ -4,6 +4,17 @@ This reference freezes the public interfaces for the pipeline refactor. Read
 it when adding or composing a stage, producer, review, release gate or timing
 instrumentation. Domain predicates remain in `kicad-pcb` and `jlcpcb-fab`.
 
+## Contents
+
+1. Ownership and typed stage/result schemas
+2. Subject identity and artifact transactions
+3. Review contracts and lifecycle facts
+4. Conditional RF adapter
+5. Migration and shadow implementation status
+
+Migration/coverage IDs owned here: `GG-RESOLVE`, `GG-SHADOW`, `M-BOUND`,
+`M-COVER`, and `M-FRESH`.
+
 ## Ownership
 
 | Owner | Responsibility |
@@ -237,6 +248,15 @@ both canary projects.
 The first disposable reuse-driver observation on 2026-08-12 did not agree:
 USB Hub 3S v4 stopped after about 11.4 seconds at stale/missing pre-route review
 evidence, while legacy Pluto RX2 8-way stopped after about 2.0 seconds at seven
-anchored courtyard overlaps.  Both failures were prompt and diagnostic, but
-neither is a complete trace.  The latter is not the separate Pluto RX2 8-way
-v4 sealed canary required above.  See `docs/pipeline-shadow-canaries.md`.
+anchored courtyard overlaps. Both failures were prompt and diagnostic. Later
+work corrected the legacy broad-phase geometry false positive and completed a
+distinct Pluto RX2 8-way v4 green 22-stage reuse trace; USB still deliberately
+stops fail-closed when its exact human-review evidence is stale. See
+`docs/pipeline-shadow-canaries.md` for the ordered evidence and limitations.
+
+The 2026-08-15 progressive-disclosure refactor adds a pure capability-profile
+router and a frozen 109-policy authority/coverage audit. It changes which
+procedure text is loaded, not which driver or gate executes. Its simple, USB,
+Pi USB, and Pluto fixtures pin the normalized composition trace; the existing
+USB and Pluto catalog canaries remain green. No execution authority moves on
+that evidence alone.

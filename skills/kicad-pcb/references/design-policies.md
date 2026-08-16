@@ -12,6 +12,22 @@ waived with evidence in the project's `03_src/rules/policy_waivers.yaml`
 Verification legend: [M] = machine (policy_audit.py) · [H] = human/fresh
 agent per review protocol · [G] = existing pipeline gate it rides on.
 
+## Contents
+
+1. Schematic policies
+2. Placement policies
+3. Routing policies
+4. Electrical policies
+5. Assembly and fabrication-artifact policies
+6. Meta/reproducibility policies
+7. Running the audit
+
+Compatibility index for executable gates introduced after their parent policy
+sections: `E-CAP`, `E-FAULT`, `E-PATH`, `E-SURGE`, `E-SWDRV`, `P-AUTH`,
+`P-BODYCLR`, `P-DRC`, `P-ROUTEBASE`, `R-CRITESC`, and `R-PAIRMAP`. These IDs
+remain part of this canon even when their detailed invocation lives in the
+stage-specific reference or script.
+
 ## Schematic — the contract of intent (IEC 60617 / IEEE 315, IPC-2612)
 
 | ID | Policy | Verified | Motivating incident |

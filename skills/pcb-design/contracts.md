@@ -10,11 +10,11 @@ why).
 
 | Pattern | What |
 |---|---|
-| `SKILL.md` | the orchestration manual, stage by stage, with the D-* gates |
+| `SKILL.md` | the small orchestration kernel: lifecycle, invariants, capability-profile decisions, and direct reference router |
 | `contracts.md` | this file |
-| `scripts/**` | publication-boundary orchestration gates; mechanical and fabrication mechanics remain owned by the lower-level skills |
+| `scripts/**` | publication-boundary orchestration gates plus the pure reference router and authority/coverage checker; mechanical and fabrication mechanics remain owned by the lower-level skills |
 | `templates/**` | the seed set: `contracts/` (stage contracts, nested to match project layout), `03_src/` + `03_tscircuit/` schema examples, `01_docs/` starters, `ORCHESTRATION_STATE.md` (the coordinator's state-journal skeleton, copied per campaign not per project), `project.gitignore`, `rebuild_all.sh`, `README.md` |
-| `references/**` | the skill's own reference data (e.g. `compute-tiers.md`, the work-class → model-tier table backing SKILL.md "Compute discipline") |
+| `references/**` | one-owner orchestration procedures, the typed stage contract, and the machine-readable authority map; KiCad and JLC mechanics remain routed to their owning skills |
 
 ## Audit
 
@@ -23,6 +23,9 @@ why).
   with zero violations before any design work.
 - Template drift is the failure mode this layout kills: there is exactly ONE
   copy of each stage contract (here), so nothing can silently diverge.
+- `scripts/skill_authority_check.py` freezes the pre-refactor policy
+  denominator, requires every routed reference to be reachable, and rejects
+  duplicate authority or a core outside its line/word budget.
 
 ## Structure
 

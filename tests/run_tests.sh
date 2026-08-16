@@ -63,6 +63,7 @@ SUITES=(
   t1_contracts.py
   t1_pipeline_foundation.py
   t1_pipeline_contract.py
+  t1_skill_progressive_disclosure.py
   t1_pipeline_registry.py
   t1_pipeline_runtime.py
   t1_pipeline_artifacts.py

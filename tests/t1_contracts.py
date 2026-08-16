@@ -412,7 +412,13 @@ def t_skill_contract_sync():
     skills = ROOT / "skills"
     canon = (skills / "kicad-pcb/references/design-policies.md").read_text()
     audit = (skills / "kicad-pcb/scripts/policy_audit.py").read_text()
-    skill = (skills / "pcb-design/SKILL.md").read_text()
+    # Progressive disclosure moved orchestration policy from one monolithic
+    # SKILL.md into routed references.  The governance corpus is therefore the
+    # whole human-readable pcb-design skill, not only its small entry point.
+    skill = "\n".join(
+        p.read_text()
+        for p in sorted((skills / "pcb-design").rglob("*.md"))
+    )
 
     def emitted(txt):
         return set(re.findall(
@@ -427,7 +433,8 @@ def t_skill_contract_sync():
                        f"design-policies.md (add the canon row): {missing}")
 
     # 2. no contract template may cite a check-ID that exists NOWHERE in the
-    #    skill (canon + audit + SKILL.md) — a stale/orphaned governance claim.
+    #    skill (canon + audit + routed pcb-design Markdown corpus) — a
+    #    stale/orphaned governance claim.
     #    A contract may still PROPOSE a future gate: a citation on a line marked
     #    candidate/proposed/future/TODO/planned is exempt (forward-reference,
     #    not drift).
