@@ -1,19 +1,308 @@
 #!/usr/bin/env python3
-"""Project-level P-MODEL-REG orchestrator for native model registrations."""
+"""Project P-MODEL-REG orchestrator with tuple-cached atomic evidence."""
 
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import hashlib
-from pathlib import Path
+import json
+import math
+from pathlib import Path, PurePosixPath
+import shutil
 import subprocess
 import sys
+import time
+from types import SimpleNamespace
 
 import yaml
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+PCB_PIPELINE = SCRIPT_DIR.parents[1] / "pcb-design" / "scripts"
+sys.path.insert(0, str(PCB_PIPELINE))
+sys.path.insert(0, str(SCRIPT_DIR))
+
+from pipeline_artifacts import ArtifactBundleTransaction, ArtifactError  # noqa: E402
+from pipeline_contract import StageResult  # noqa: E402
+import native_model_registration as native  # noqa: E402
+
+
+STAGE_ID = "P-MODEL-REG"
+OUTPUT_SYMBOL = "model_registration_bundle"
 
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def canonical_sha(value) -> str:
+    return hashlib.sha256(json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")).hexdigest()
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds").replace(
+        "+00:00", "Z")
+
+
+def write_json_atomic(path: Path, value) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp-{time.time_ns():x}")
+    temporary.write_text(
+        json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(path)
+
+
+def parse_refs(group_id: str, value):
+    if isinstance(value, list):
+        refs = [str(ref).strip() for ref in value]
+    elif isinstance(value, str):
+        refs = native.parse_refs(value)
+    else:
+        raise ValueError(f"P-MODEL-REG {group_id}: refs must be non-empty")
+    if (not refs or any(not ref for ref in refs) or
+            len(refs) != len(set(refs)) or
+            any(any(char not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-"
+                    for char in ref) for ref in refs)):
+        raise ValueError(f"P-MODEL-REG {group_id}: refs must be safe and unique")
+    return sorted(refs, key=native.ref_sort_key)
+
+
+def normalized_group(group_id: str, group):
+    refs = parse_refs(group_id, group.get("refs"))
+    model_sha = str(group.get("model_sha256", "")).lower()
+    if len(model_sha) != 64 or any(ch not in "0123456789abcdef" for ch in model_sha):
+        raise ValueError(f"P-MODEL-REG {group_id}: invalid model_sha256")
+    values = {
+        "refs": refs,
+        "model_sha256": model_sha,
+        "fit_tolerance_mm": float(group.get("fit_tolerance_mm", 1.0)),
+        "courtyard_containment_tolerance_mm": float(
+            group.get("courtyard_containment_tolerance_mm", 0.25)),
+        "search_margin_mm": float(group.get("search_margin_mm", 8.0)),
+        "render_width": int(group.get("render_width", 2400)),
+        "render_height": int(group.get("render_height", 1600)),
+        "authority": str(group.get("authority", "")),
+    }
+    for name in ("fit_tolerance_mm", "courtyard_containment_tolerance_mm",
+                 "search_margin_mm"):
+        if not math.isfinite(values[name]) or values[name] < 0:
+            raise ValueError(f"P-MODEL-REG {group_id}: {name} must be finite and non-negative")
+    if values["render_width"] < 320 or values["render_height"] < 240:
+        raise ValueError(f"P-MODEL-REG {group_id}: render dimensions are too small")
+    contract = {"schema": 1, "group_id": group_id, **values}
+    values["contract_sha256"] = canonical_sha(contract)
+    return values
+
+
+def tuple_for(board: Path, values):
+    _board, rows = native.collect_source_rows(
+        board, values["refs"], values["model_sha256"])
+    args = SimpleNamespace(
+        fit_tol_mm=values["fit_tolerance_mm"],
+        courtyard_tol_mm=values["courtyard_containment_tolerance_mm"],
+        search_margin_mm=values["search_margin_mm"],
+        width=values["render_width"], height=values["render_height"],
+        contract_sha256=values["contract_sha256"],
+        tool_identity=native.tool_identity(),
+    )
+    return native.registration_tuple(rows, values["refs"], args), rows
+
+
+def declared_outputs(refs, model_suffix):
+    names = {
+        "model_registration_receipt.json": None,
+        "native_bare.kicad_pcb": None,
+        "native_bare_top.png": None,
+        "native_coupon.kicad_pcb": None,
+        "native_model_registration.md": None,
+        "native_model" + model_suffix.lower(): None,
+        "native_top.png": None,
+        "native_top_registration_overlay.png": None,
+    }
+    names.update({f"native_overlay_{ref}.png": None for ref in refs})
+    return names
+
+
+def validate_receipt(receipt, tuple_value, refs, output_names) -> None:
+    expected_top = {"schema", "kind", "tuple", "refs", "measurements", "evidence"}
+    if not isinstance(receipt, dict) or set(receipt) != expected_top:
+        raise ValueError("model receipt fields differ from schema 1")
+    if receipt["schema"] != 1 or receipt["kind"] != native.RECEIPT_KIND:
+        raise ValueError("model receipt schema/kind is unsupported")
+    expected_tuple = {
+        "footprint_sha256", "model_sha256", "transform_sha256",
+        "contract_sha256", "tool_identity",
+    }
+    if not isinstance(receipt["tuple"], dict) or set(receipt["tuple"]) != expected_tuple:
+        raise ValueError("model receipt tuple fields differ")
+    if receipt["tuple"] != tuple_value:
+        raise ValueError("model receipt tuple does not match current subject")
+    if receipt["refs"] != refs:
+        raise ValueError("model receipt refs are stale or unordered")
+    measurements = receipt["measurements"]
+    expected_measurement = {
+        "ref", "attachment_centres_graded", "attachment_centres_total",
+        "centre_delta_mm", "fab_outward_mm", "courtyard_outward_mm",
+    }
+    if (not isinstance(measurements, list) or
+            [item.get("ref") for item in measurements
+             if isinstance(item, dict)] != refs):
+        raise ValueError("model receipt measurement denominator differs")
+    for item in measurements:
+        if not isinstance(item, dict) or set(item) != expected_measurement:
+            raise ValueError("model receipt measurement fields differ")
+        graded = item["attachment_centres_graded"]
+        total = item["attachment_centres_total"]
+        if (not isinstance(graded, int) or isinstance(graded, bool) or
+                not isinstance(total, int) or isinstance(total, bool) or
+                total <= 0 or graded != total):
+            raise ValueError("model receipt attachment denominator is incomplete")
+        for name in ("centre_delta_mm", "fab_outward_mm", "courtyard_outward_mm"):
+            value = item[name]
+            if (not isinstance(value, (int, float)) or isinstance(value, bool) or
+                    not math.isfinite(value) or value < 0):
+                raise ValueError(f"model receipt {name} is not a finite measurement")
+    evidence = receipt["evidence"]
+    if (not isinstance(evidence, list) or not evidence or
+            evidence != sorted(set(evidence))):
+        raise ValueError("model receipt evidence must be sorted and unique")
+    for name in evidence:
+        path = PurePosixPath(name)
+        if path.is_absolute() or any(part in ("", ".", "..") for part in path.parts):
+            raise ValueError("model receipt evidence path is unsafe")
+        if name not in output_names:
+            raise ValueError(f"model receipt evidence is undeclared: {name}")
+
+
+def accepted_cache_valid(path: Path, tuple_value, refs, output_names) -> bool:
+    try:
+        manifest = json.loads((path / "bundle.json").read_text(encoding="utf-8"))
+        if manifest.get("schema") != 1 or manifest.get("status") != "PASS":
+            return False
+        if set(manifest.get("outputs", {})) != set(output_names):
+            return False
+        actual = {
+            artifact.relative_to(path).as_posix()
+            for artifact in path.rglob("*") if artifact.is_file()
+        }
+        if actual != set(output_names) | {"bundle.json"}:
+            return False
+        for name, record in manifest["outputs"].items():
+            artifact = path / name
+            if (not artifact.is_file() or artifact.stat().st_size != record.get("size") or
+                    digest(artifact) != record.get("sha256")):
+                return False
+        receipt = json.loads(
+            (path / "model_registration_receipt.json").read_text(encoding="utf-8"))
+        validate_receipt(receipt, tuple_value, refs, output_names)
+        return manifest.get("subject", {}).get("semantic_sha256") == native.tuple_cache_key(
+            tuple_value)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return False
+
+
+def engine_command(engine: Path, board: Path, outdir: Path, values, tuple_value):
+    return [
+        sys.executable, str(engine), str(board), str(outdir),
+        "--refs", ",".join(values["refs"]),
+        "--model-sha256", values["model_sha256"],
+        "--fit-tol-mm", str(values["fit_tolerance_mm"]),
+        "--courtyard-tol-mm", str(values["courtyard_containment_tolerance_mm"]),
+        "--search-margin-mm", str(values["search_margin_mm"]),
+        "--width", str(values["render_width"]),
+        "--height", str(values["render_height"]),
+        "--contract-sha256", tuple_value["contract_sha256"],
+        "--tool-identity", tuple_value["tool_identity"],
+    ]
+
+
+def run_group(project: Path, board: Path, config_path: Path, build: Path,
+              engine: Path, group_id: str, values, tuple_value, rows, run_id: str):
+    accepted = build / group_id
+    outputs = declared_outputs(values["refs"], rows[0]["model"].suffix)
+    if accepted_cache_valid(accepted, tuple_value, values["refs"], outputs):
+        print(f"P-MODEL-REG CACHE-HIT: {group_id} {native.tuple_cache_key(tuple_value)}")
+        return accepted, True, None
+
+    attempt = build / "failed_attempts" / f"{group_id}-{run_id}"
+    attempt.mkdir(parents=True, exist_ok=False)
+    model = rows[0]["model"]
+    raw_subject = canonical_sha({
+        "board": digest(board), "config": digest(config_path),
+        "engine": digest(engine), "twin_overlay": digest(engine.with_name("twin_overlay.py")),
+        "model": digest(model),
+    })
+    transaction = ArtifactBundleTransaction(
+        accepted,
+        producer="native-model-registration",
+        producer_version=tuple_value["tool_identity"],
+        subject={
+            "semantic_sha256": native.tuple_cache_key(tuple_value),
+            "raw_sha256": raw_subject,
+        },
+        inputs={
+            "source/board.kicad_pcb": board,
+            "contract/model_registration.yaml": config_path,
+            "model/native.step": model,
+            "tool/native_model_registration.py": engine,
+            "tool/twin_overlay.py": engine.with_name("twin_overlay.py"),
+        },
+        outputs=outputs,
+        run_id=run_id,
+    )
+
+    command = engine_command(engine, board, attempt, values, tuple_value)
+
+    def produce(staging):
+        result = subprocess.run(command, text=True, capture_output=True)
+        sys.stdout.write(result.stdout)
+        sys.stderr.write(result.stderr)
+        if result.returncode:
+            (attempt / "invocation.log").write_text(
+                result.stdout + result.stderr, encoding="utf-8")
+            return result.returncode
+        for name in outputs:
+            source = attempt / name
+            if not source.is_file():
+                return 97
+            shutil.copy2(source, staging / name)
+        return 0
+
+    def reopen(_staging, opened):
+        validate_receipt(
+            opened["model_registration_receipt.json"], tuple_value,
+            values["refs"], outputs,
+        )
+
+    try:
+        transaction.publish(produce, reopen_validator=reopen)
+    except ArtifactError as exc:
+        return attempt, False, str(exc)
+    shutil.rmtree(attempt)
+    try:
+        attempt.parent.rmdir()
+    except OSError:
+        pass
+    return accepted, False, None
+
+
+def emit_stage(path: Path, *, run_id: str, semantic: str, raw: str,
+               applicability: str, reason, status: str, started: str,
+               elapsed: float, graded: int, total: int, outputs, findings) -> None:
+    result = StageResult(
+        stage_id=STAGE_ID, run_id=run_id,
+        subject={"semantic_sha256": semantic, "raw_sha256": raw},
+        applicability=applicability, applicability_reason=reason, status=status,
+        started_at=started, finished_at=utc_now(), elapsed_s=elapsed,
+        graded=graded, total=total, outputs=outputs, findings=findings,
+        resume=None,
+    )
+    write_json_atomic(path, result.to_mapping())
 
 
 def main(argv=None) -> int:
@@ -21,12 +310,30 @@ def main(argv=None) -> int:
     parser.add_argument("project")
     parser.add_argument("--board", required=True)
     parser.add_argument("--out", default="06_build/pre_route/model_registration.md")
+    parser.add_argument("--stage-out")
     args = parser.parse_args(argv)
 
+    started_clock = time.monotonic()
+    started = utc_now()
     project = Path(args.project).resolve()
     board = (project / args.board).resolve()
+    output = (project / args.out).resolve()
+    stage_output = ((project / args.stage_out).resolve() if args.stage_out else
+                    output.with_suffix(".stage.json"))
     config_path = project / "03_src/rules/model_registration.yaml"
+    run_id = (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" +
+              f"{time.time_ns():x}"[-12:])
     if not config_path.is_file():
+        identity = canonical_sha({"stage": STAGE_ID, "reason": "no contract"})
+        raw = digest(board) if board.is_file() else identity
+        emit_stage(
+            stage_output, run_id=run_id, semantic=identity, raw=raw,
+            applicability="NOT_APPLICABLE",
+            reason="no 03_src/rules/model_registration.yaml",
+            status="NOT_APPLICABLE", started=started,
+            elapsed=time.monotonic() - started_clock, graded=0, total=0,
+            outputs=[], findings=[],
+        )
         print("P-MODEL-REG N-A: no 03_src/rules/model_registration.yaml")
         return 0
     config = yaml.safe_load(config_path.read_text(encoding="utf-8-sig")) or {}
@@ -38,47 +345,52 @@ def main(argv=None) -> int:
     if not board.is_file():
         raise SystemExit(f"P-MODEL-REG board does not exist: {board}")
 
-    engine = Path(__file__).with_name("native_model_registration.py")
+    engine = SCRIPT_DIR / "native_model_registration.py"
     build = project / "06_build/pre_route/native_registration"
     build.mkdir(parents=True, exist_ok=True)
     seen_ids = set()
-    rows = []
-    failed = False
+    prepared = []
     for index, group in enumerate(groups):
         if not isinstance(group, dict):
             raise SystemExit(f"P-MODEL-REG groups[{index}] must be a mapping")
         group_id = str(group.get("id", "")).strip()
-        if not group_id or group_id in seen_ids or "/" in group_id or ".." in group_id:
+        if (not group_id or group_id in seen_ids or "/" in group_id or
+                ".." in group_id):
             raise SystemExit(f"P-MODEL-REG invalid/duplicate group id: {group_id!r}")
         seen_ids.add(group_id)
-        refs = group.get("refs")
-        if isinstance(refs, list):
-            refs = ",".join(str(ref) for ref in refs)
-        if not isinstance(refs, str) or not refs.strip():
-            raise SystemExit(f"P-MODEL-REG {group_id}: refs must be non-empty")
-        model_sha = str(group.get("model_sha256", "")).lower()
-        if len(model_sha) != 64 or any(ch not in "0123456789abcdef" for ch in model_sha):
-            raise SystemExit(f"P-MODEL-REG {group_id}: invalid model_sha256")
-        outdir = build / group_id
-        command = [
-            sys.executable, str(engine), str(board), str(outdir),
-            "--refs", refs, "--model-sha256", model_sha,
-            "--fit-tol-mm", str(float(group.get("fit_tolerance_mm", 1.0))),
-            "--courtyard-tol-mm",
-            str(float(group.get("courtyard_containment_tolerance_mm", 0.25))),
-            "--search-margin-mm", str(float(group.get("search_margin_mm", 8.0))),
-            "--width", str(int(group.get("render_width", 2400))),
-            "--height", str(int(group.get("render_height", 1600))),
-        ]
-        result = subprocess.run(command, text=True, capture_output=True)
-        sys.stdout.write(result.stdout)
-        sys.stderr.write(result.stderr)
-        report = outdir / "native_model_registration.md"
-        if result.returncode or not report.is_file():
-            failed = True
-        rows.append((group_id, refs, model_sha, report, result.returncode))
+        try:
+            values = normalized_group(group_id, group)
+            tuple_value, rows = tuple_for(board, values)
+        except ValueError as exc:
+            raise SystemExit(str(exc))
+        prepared.append((group_id, values, tuple_value, rows))
 
-    output = (project / args.out).resolve()
+    semantic = canonical_sha([
+        {"id": group_id, "refs": values["refs"], "tuple": tuple_value}
+        for group_id, values, tuple_value, _rows in prepared
+    ])
+    raw = canonical_sha({
+        "board": digest(board), "config": digest(config_path),
+        "engine": digest(engine), "twin_overlay": digest(engine.with_name("twin_overlay.py")),
+    })
+    rows_out = []
+    findings = []
+    graded = 0
+    for group_id, values, tuple_value, rows in prepared:
+        path, cached, error = run_group(
+            project, board, config_path, build, engine, group_id, values,
+            tuple_value, rows, run_id,
+        )
+        report = path / "native_model_registration.md"
+        passed = error is None and report.is_file()
+        if passed:
+            graded += 1
+        else:
+            findings.append({"group": group_id, "error": error or "missing report",
+                             "diagnostics": path.relative_to(project).as_posix()})
+        rows_out.append((group_id, values, tuple_value, report, passed, cached))
+
+    failed = graded != len(prepared)
     output.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# Project native model physical registration",
@@ -87,25 +399,35 @@ def main(argv=None) -> int:
         f"a-render_verdict: {'FAIL' if failed else 'PASS'}",
         "registration_kind: P-MODEL-REG",
         f"config_sha256: {digest(config_path)}",
+        f"stage_receipt: {stage_output.relative_to(project).as_posix()}",
         "",
         "This aggregate is independent physical-registration evidence. Each "
-        "group compares native-model pixels with F.Fab, F.CrtYd, and drilled "
-        "attachment datums. Catalog-twin renderer fidelity is a separate gate.",
+        "group uses an origin-centred coupon and compares native-model pixels "
+        "with F.Fab, F.CrtYd, and drilled attachment datums. Catalog-twin "
+        "renderer fidelity is a separate gate.",
         "",
-        "| group | refs | model SHA-256 | group report | result |",
+        "| group | refs | tuple cache key | group report | result |",
         "|---|---|---|---|---|",
     ]
-    for group_id, refs, model_sha, report, returncode in rows:
+    for group_id, values, tuple_value, report, passed, cached in rows_out:
         relative = report.relative_to(project).as_posix()
+        result = "CACHE-HIT" if cached and passed else ("PASS" if passed else "FAIL")
         lines.append(
-            f"| {group_id} | {refs} | `{model_sha}` | `{relative}` | "
-            f"{'PASS' if returncode == 0 and report.is_file() else 'FAIL'} |"
-        )
+            f"| {group_id} | {','.join(values['refs'])} | "
+            f"`{native.tuple_cache_key(tuple_value)}` | `{relative}` | {result} |")
     output.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(
-        f"P-MODEL-REG {'FAIL' if failed else 'PASS'}: {len(rows)}/{len(rows)} "
-        f"group(s) graded -> {output}"
+
+    emit_stage(
+        stage_output, run_id=run_id, semantic=semantic, raw=raw,
+        applicability="APPLIES", reason=None,
+        status="FAIL" if failed else "PASS", started=started,
+        elapsed=time.monotonic() - started_clock, graded=graded,
+        total=len(prepared), outputs=[] if failed else [OUTPUT_SYMBOL],
+        findings=findings,
     )
+    print(
+        f"P-MODEL-REG {'FAIL' if failed else 'PASS'}: {graded}/{len(prepared)} "
+        f"group(s) graded -> {output}")
     return 1 if failed else 0
 
 

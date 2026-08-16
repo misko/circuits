@@ -8,6 +8,7 @@ with their own mesh while missing F.Fab, F.CrtYd, and drilled attachment
 datums.
 """
 import hashlib
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -16,7 +17,10 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (FAB_SCRIPTS, KPY, ROOT, contains, main, must_fail,  # noqa: E402
-                     must_pass, run, test, tmpdir)
+                     must_pass, run, test, tmpdir, check, eq)
+
+sys.path.insert(0, str(ROOT / "skills/pcb-design/scripts"))
+from pipeline_contract import StageResult  # noqa: E402
 
 ENGINE = FAB_SCRIPTS / "native_model_registration.py"
 GATE = FAB_SCRIPTS / "model_registration_gate.py"
@@ -26,7 +30,7 @@ SOURCE_MODEL = (SOURCE_PROJECT /
                 "03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step")
 
 
-def broken_project():
+def project_fixture(*, shifted=False):
     project = tmpdir("model_registration_") / "pluto"
     board_dir = project / "04_kicad"
     model_dir = project / "03_src/lib/3dmodels"
@@ -38,9 +42,8 @@ def broken_project():
     shutil.copy2(SOURCE_BOARD, board)
     shutil.copy2(SOURCE_MODEL, model)
 
-    # Keep the exact J2 footprint and model; remove unrelated bodies so the
-    # raster subtraction has one unambiguous subject. Change only the model's
-    # footprint-local offset, preserving the model bytes and their SHA-256.
+    # Keep the exact J2 footprint and exact native model.  The optional fault
+    # changes only the footprint-local model transform, preserving model bytes.
     mutate = (
         "import pcbnew,sys\n"
         "p=sys.argv[1]; b=pcbnew.LoadBoard(p)\n"
@@ -48,7 +51,7 @@ def broken_project():
         "  if fp.GetReference() != 'J2': fp.Models().clear()\n"
         "  else:\n"
         "    models=fp.Models(); model=models[0]\n"
-        "    model.m_Offset.x=5.0; models[0]=model\n"
+        f"    model.m_Offset.x={5.0 if shifted else 0.0}; models[0]=model\n"
         "b.Save(p)\n"
     )
     must_pass(run([KPY, "-c", mutate, board]), "inject 5 mm model offset")
@@ -71,6 +74,103 @@ def broken_project():
     return project, board, model_sha
 
 
+def broken_project():
+    return project_fixture(shifted=True)
+
+
+def accepted_bytes(path):
+    return {
+        item.relative_to(path).as_posix(): item.read_bytes()
+        for item in path.rglob("*") if item.is_file()
+    }
+
+
+def gate_command(project, board):
+    return [
+        KPY, GATE, project, "--board", f"04_kicad/{board.name}",
+        "--out", "06_build/pre_route/model_registration.md",
+    ]
+
+
+@test("model registration publishes a strict tuple receipt and StageResult")
+def t_clean_receipt_bundle_and_stage_result():
+    project, board, _model_sha = project_fixture()
+    first = must_pass(run(gate_command(project, board)),
+                      "model registration clean fixture")
+    contains(first.out, "P-MODEL-REG PASS: 1/1 group(s) graded",
+             "clean aggregate denominator")
+    aggregate = (project / "06_build/pre_route/model_registration.md").read_text()
+    contains(aggregate, "a-render_verdict: PASS",
+             "legacy aggregate verdict remains machine-readable")
+    contains(aggregate, f"board_sha256: {hashlib.sha256(board.read_bytes()).hexdigest()}",
+             "legacy aggregate board binding remains machine-readable")
+
+    bundle = project / "06_build/pre_route/native_registration/shifted_sma"
+    manifest = json.loads((bundle / "bundle.json").read_text())
+    receipt = json.loads(
+        (bundle / "model_registration_receipt.json").read_text())
+    stage = StageResult.from_json(
+        (project / "06_build/pre_route/model_registration.stage.json").read_text())
+    eq(stage.stage_id, "P-MODEL-REG", "stage id")
+    eq(stage.status, "PASS", "outer verdict")
+    eq(stage.outputs, ("model_registration_bundle",), "outer output symbol")
+    eq(stage.graded, 1, "outer graded groups")
+    eq(stage.total, 1, "outer total groups")
+    eq(receipt["kind"], "model-registration-receipt-v1", "domain receipt kind")
+    eq(set(receipt["tuple"]), {
+        "footprint_sha256", "model_sha256", "transform_sha256",
+        "contract_sha256", "tool_identity",
+    }, "exact tuple fields")
+    check("status" not in receipt and "verdict" not in receipt,
+          "domain receipt duplicated outer verdict")
+    eq(receipt["refs"], ["J2"], "receipt ref denominator")
+    eq(receipt["measurements"][0]["attachment_centres_graded"], 5,
+       "graded drilled attachment centres")
+    eq(receipt["evidence"], sorted(set(receipt["evidence"])),
+       "deterministic evidence ordering")
+    check((bundle / "native_coupon.kicad_pcb").is_file(),
+          "origin-centred coupon persisted")
+    for name, record in manifest["outputs"].items():
+        artifact = bundle / name
+        eq(hashlib.sha256(artifact.read_bytes()).hexdigest(), record["sha256"],
+           f"manifest binds {name}")
+
+    before = accepted_bytes(bundle)
+    second = must_pass(run(gate_command(project, board)),
+                       "model registration tuple cache fixture")
+    contains(second.out, "P-MODEL-REG CACHE-HIT: shifted_sma",
+             "unchanged tuple is reused")
+    eq(accepted_bytes(bundle), before, "cache hit leaves accepted bundle immutable")
+
+
+@test("model-transform change invalidates cache and preserves prior PASS",
+      kind="known_bad")
+def t_transform_change_invalidates_without_clobbering_accepted_bundle():
+    project, board, _model_sha = project_fixture()
+    must_pass(run(gate_command(project, board)), "seed accepted model receipt")
+    bundle = project / "06_build/pre_route/native_registration/shifted_sma"
+    before = accepted_bytes(bundle)
+    mutate = (
+        "import pcbnew,sys\n"
+        "p=sys.argv[1]; b=pcbnew.LoadBoard(p); fp=b.FindFootprintByReference('J2')\n"
+        "models=fp.Models(); model=models[0]; model.m_Offset.x=5.0; "
+        "models[0]=model; b.Save(p)\n"
+    )
+    must_pass(run([KPY, "-c", mutate, board]), "change native model transform")
+    failed = must_fail(run(gate_command(project, board)),
+                       "changed tuple registration", expect="P-MODEL-REG FAIL")
+    check("CACHE-HIT" not in failed.out, "changed transform reused old tuple")
+    eq(accepted_bytes(bundle), before, "failed tuple preserves prior PASS bundle")
+    diagnostics = project / "06_build/pre_route/native_registration/failed_attempts"
+    check(any(path.name == "invocation.log" for path in diagnostics.rglob("*")),
+          "failed attempt diagnostics were retained")
+    stage = StageResult.from_json(
+        (project / "06_build/pre_route/model_registration.stage.json").read_text())
+    eq(stage.status, "FAIL", "outer receipt owns failed verdict")
+    eq(stage.outputs, (), "failed receipt does not name prior accepted output")
+    eq((stage.graded, stage.total), (0, 1), "failed group denominator")
+
+
 @test("native registration rejects a provenance-correct model shifted 5 mm",
       kind="known_bad")
 def t_native_engine_and_project_gate_reject_shifted_model():
@@ -85,12 +185,10 @@ def t_native_engine_and_project_gate_reject_shifted_model():
     contains(direct.out, "body exceeds F.CrtYd",
              "direct gate identifies physical courtyard excursion")
 
-    aggregate = must_fail(run([
-        KPY, GATE, project, "--board", f"04_kicad/{board.name}",
-        "--out", "06_build/pre_route/model_registration.md",
-    ]), "model_registration_gate.py shifted-model fixture",
+    aggregate = must_fail(run(gate_command(project, board)),
+        "model_registration_gate.py shifted-model fixture",
         expect="P-MODEL-REG FAIL")
-    contains(aggregate.out, "1/1 group(s) graded",
+    contains(aggregate.out, "0/1 group(s) graded",
              "project gate reports its complete group denominator")
 
 
