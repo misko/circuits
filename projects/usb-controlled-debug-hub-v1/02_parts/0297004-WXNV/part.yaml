@@ -1,0 +1,42 @@
+mpn: 0297004.WXNV
+manufacturer: Littelfuse
+type: replaceable_mini_blade_fuse
+value: 0297004.WXNV
+function: User-replaceable 4 A input fuse installed in F_IN holder
+status: active
+note_dirname: "Filesystem-safe directory spelling uses a hyphen where the exact orderable MPN contains a period."
+datasheet:
+  doc_id: "MINI Series Blade Fuses - Rated 32V"
+  revision: "2024-09-27"
+  url: "https://www.littelfuse.com/assetdocs/littelfuse_datasheet_297_mini32v.pdf?assetguid=42c9dd21-a88e-4328-8e67-2f832444faf1"
+  product_page: "https://www.digikey.com/en/products/detail/littelfuse-inc/0297004-WXNV/146578"
+  fetched: 2026-08-15
+  pages: 3
+  provenance: "CITED: current Littelfuse 297 MINI family datasheet and exact active DigiKey orderable row. The manufacturer PDF is cited by URL because direct automated download returned HTTP 403."
+package: MINI 297 automotive blade fuse, 10.9 x 3.8 x 8.8 mm
+footprint: null
+assembly: user_installed_in_keystone_3568
+limits:
+  current_rating: 4 A
+  voltage_rating_dc: 32 V
+  interrupt_rating: 1000 A at 32 V DC
+  cold_resistance_typ: 23.48 mOhm
+  voltage_drop_typ_at_rating: 121 mV
+  operating_temperature: -40 to +125 C
+  max_continuous_current_typ_at_60c: 2.9 A
+  max_continuous_current_typ_at_80c: 2.7 A
+  opening_time_at_135pct: 0.75 to 600 s
+verified: "Littelfuse 2024-09-27 datasheet pp1-3: 0297004 row, WXNV silver-plated ordering family, time-current table, and temperature derating; exact 0297004.WXNV active listing cross-checked at DigiKey 2026-08-15."
+gotchas:
+  - "The 4 A marking is not a promise of 4 A continuous operation at every ambient. The published typical derating allows 2.9 A at 60 C and 2.7 A at 80 C; the board's approximately 2.6 A full-load input remains inside that window but requires first-article thermal/drop testing."
+  - "The fuse is not assembled by JLCPCB. It is a separate release-line item installed by the user in the exact Keystone 3568 holder."
+  - "Typical cold resistance and voltage drop are not guaranteed maxima. The input budget conservatively reserves the published 121 mV rated-current drop even though the admitted board load is below 4 A."
+sourcing:
+  digikey: F988-ND
+  mouser: 576-0297004.WXNV
+  lcsc: null
+  note: "Exact active part is broadly distributor-stocked; live quantities remain order-time evidence."
+asserts:
+  - assert: value
+    equals: 0297004.WXNV
+    why: "A higher fuse rating weakens input protection and a lower rating loses full-load ambient margin."

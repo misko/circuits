@@ -1,0 +1,30 @@
+mpn: CX3225SB24000H0FLJCC
+manufacturer: Kyocera AVX
+type: quartz_crystal
+value: CX3225SB24000H0FLJCC
+function: USB2517I 24 MHz reference
+status: active
+datasheet:
+  url: https://ele.kyocera.com/assets/products/crystal-device/cx3225sb_e.pdf
+  local: cx3225sb_e.pdf
+  sha256: 624c1cdca024c0ef18dbc266d839bd9ea2e496a74aecadcabeff69c62758e211
+  product_page: https://www.lcsc.com/product-detail/C1985204.html
+  provenance: "CITED: official Kyocera CX3225SB family catalog plus the exact LCSC ordering row, checked 2026-08-01."
+package: SMD3225-4P
+footprint: Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm
+escape: {style: leaded, pitch: 2.2, tier_required: jlc_2layer_default, checked: escape_check 2026-07-31}
+pins: {1: XIN, 2: GND, 3: XOUT, 4: GND}
+limits: {frequency: 24 MHz, tolerance: 10 ppm, stability: 15 ppm, load_capacitance: 12 pF, esr_max: 50 ohm, temperature: -30 to +85 C}
+verified: "CITED: Kyocera CX3225SB family catalog page 1 connection top view, recommended land drawing, and ordering table; exact H0FLJCC ordering row cross-checked at LCSC C1985204, 2026-08-01."
+gotchas:
+  - "USB2517I requires 24 MHz within +/-350 ppm; this crystal's tolerance plus stability is comfortably inside that budget."
+  - "Pads 2 and 4 are case grounds. Keep the crystal, 1 Mohm resistor, and load capacitors tight to hub pins 60/61."
+layout: {source: "Kyocera AVX 3225 package plus Microchip USB2517 hardware checklist", reviewed: 2026-07-31, notes: ["No signal or switch-node routing beneath or through the crystal cell."]}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Kyocera CX3225SB family catalog page 1: connection top view, recommended land drawing, and ordering table"}
+  - {tier: 2, reached: false, artifact: "Kyocera AVX manufacturer evaluation-board or editable reference-layout design files", why: "A passive crystal has no manufacturer evaluation-board layout specific to this exact ordering code."}
+sourcing: {lcsc: C1985204, note: "Exact crystal is catalogued; live allocation is a release-time recheck."}
+asserts:
+  - assert: value
+    equals: CX3225SB24000H0FLJCC
+    why: "The 24 MHz frequency, 12 pF load, ESR and four-pad package are bound to the exact crystal."

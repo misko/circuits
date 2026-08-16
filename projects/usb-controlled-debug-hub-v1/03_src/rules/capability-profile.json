@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "signal_integrity": "high_speed_digital",
+  "assembly": "jlcpcb",
+  "firmware": "forbidden",
+  "foreign_mating": false,
+  "target": "design"
+}
+

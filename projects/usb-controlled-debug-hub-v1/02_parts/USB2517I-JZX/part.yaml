@@ -1,0 +1,169 @@
+mpn: USB2517I-JZX
+manufacturer: Microchip Technology
+type: usb_2_high_speed_hub_controller
+value: USB2517I-JZX
+function: Seven-port USB 2.0 high-speed Multi-TT hub with per-port power and overcurrent control
+status: in_production
+
+datasheet:
+  doc_id: DS00001598C
+  revision: C
+  url: https://ww1.microchip.com/downloads/aemDocuments/documents/UNG/ProductDocuments/DataSheets/USB2517-USB2517i-Data-Sheet-00001598C.pdf
+  product_page: https://www.microchip.com/en-us/product/USB2517
+  local: DS00001598C.pdf
+  sha256: 22ea512b8b0f4e0f84508e50ab00b0546b63f8615ea943b0232dc29560a4d2ca
+  fetched: 2026-07-31
+  pages: 59
+  provenance: "CITED: fetched directly from Microchip; document footer identifies DS00001598C."
+
+package: QFN-64-EP, 9.0 x 9.0 mm body, 0.50 mm pitch, 4.7 x 4.7 mm exposed pad
+footprint: Package_DFN_QFN:QFN-64-1EP_9x9mm_P0.5mm_EP4.7x4.7mm_ThermalVias
+escape:
+  style: qfn
+  pitch: 0.5
+  escapes_worst_side: 15
+  tier_required: jlc_4layer_advanced
+  checked: escape_check 2026-07-31
+
+pins:
+  1: USBDN1_DM/PRT_DIS_M1
+  2: USBDN1_DP/PRT_DIS_P1
+  3: USBDN2_DM/PRT_DIS_M2
+  4: USBDN2_DP/PRT_DIS_P2
+  5: VDDA33
+  6: USBDN3_DM/PRT_DIS_M3
+  7: USBDN3_DP/PRT_DIS_P3
+  8: USBDN4_DM/PRT_DIS_M4
+  9: USBDN4_DP/PRT_DIS_P4
+  10: VDDA33
+  11: USBDN5_DM/PRT_DIS_M5
+  12: USBDN5_DP/PRT_DIS_P5
+  13: CFG_SEL2
+  14: LED_B7_N
+  15: LED_A7_N/PRT_SWP7
+  16: LED_B6_N
+  17: LED_A6_N/PRT_SWP6
+  18: LED_B5_N
+  19: TEST
+  20: PRTPWR4
+  21: OCS4_N
+  22: OCS3_N
+  23: PRTPWR3
+  24: VDD33CR
+  25: VDD18
+  26: PRTPWR2
+  27: OCS2_N
+  28: OCS1_N
+  29: PRTPWR1
+  30: PRTPWR5
+  31: LED_A5_N/PRT_SWP5
+  32: LED_B4_N
+  33: LED_A4_N/PRT_SWP4
+  34: LED_B3_N/GANG_EN
+  35: OCS5_N
+  36: PRTPWR7
+  37: OCS7_N
+  38: OCS6_N
+  39: PRTPWR6
+  40: SDA/SMBDATA/NON_REM1
+  41: SCL/SMBCLK/CFG_SEL0
+  42: HS_IND/CFG_SEL1
+  43: RESET_N
+  44: VBUS_DET
+  45: SUSP_IND/LOCAL_PWR/NON_REM0
+  46: VDD33
+  47: LED_A3_N/PRT_SWP3
+  48: LED_B2_N/BOOST1
+  49: LED_A2_N/PRT_SWP2
+  50: LED_B1_N/BOOST0
+  51: LED_A1_N/PRT_SWP1
+  52: VDDA33
+  53: USBDN6_DM/PRT_DIS_M6
+  54: USBDN6_DP/PRT_DIS_P6
+  55: USBDN7_DM/PRT_DIS_M7
+  56: USBDN7_DP/PRT_DIS_P7
+  57: VDDA33
+  58: USBUP_DM
+  59: USBUP_DP
+  60: XTAL2
+  61: XTAL1/CLKIN
+  62: VDD18PLL
+  63: RBIAS
+  64: VDD33PLL
+  65:
+    name: EP/VSS
+    tie: GND
+    note: "Datasheet Figure 3-1 calls this the unnumbered thermal slug; the selected footprint realizes it as physical pad 65 and it must connect to VSS."
+
+limits:
+  vdd33_operating: 3.0 to 3.6 V
+  vdd18_operating: 1.62 to 1.98 V
+  vdd33_absolute_max: 4.6 V
+  vdd18_absolute_max: 2.5 V
+  io_absolute_max: -0.5 to 5.5 V
+  ambient_temperature: -40 to +85 C for USB2517I
+  supply_current_max: 460 mA, all supplies combined, seven high-speed ports configured
+  supply_rise_time_max: 400 us unless RESET_N is held low until stable
+  clock: 24.000 MHz +/-350 ppm
+  r_bias: 12.0 kohm +/-1 percent to ground
+  input_low_max: 0.8 V
+  input_high_min: 2.0 V
+  output_low_max: 0.4 V at 12 mA
+  output_high_min: 2.4 V at -12 mA
+  hbm_esd: 4 kV
+
+land_pattern:
+  source: "CITED: DS00001598C Figure 10-1, PDF pp53-54; JLC C478081 CAD independently inspected 2026-07-31."
+  body_mm: [9.0, 9.0]
+  pitch_mm: 0.5
+  exposed_pad_mm: [4.7, 4.7]
+  recommended_perimeter_land_mm: [0.69, 0.28]
+  note: "JLC's live C478081 CAD names an EP4.8 footprint with 0.85 x 0.30 mm perimeter lands; retain the manufacturer land pattern and require the JLC twin/pad review before release."
+
+electrical:
+  source: "DS00001598C Tables 5-1, 8-1, 8-2 and DS00004211A Figures 3-1, 5-2"
+  defaults:
+    v_ih_min: 2.0
+    v_il_max: 0.8
+
+gotchas:
+  - "PRTPWR1..7 are active-high outputs; the external port switch must accept 3.3 V active-high enable. OCS1_N..7_N expect an active-low open-drain fault and have internal pull-ups."
+  - "Port numbering is non-monotonic around the package. Use Figure 3-1/Table 5-1, not geometric intuition: PRTPWR5 is pin 30, PRTPWR6 pin 39, and PRTPWR7 pin 36."
+  - "The 2021 checklist text contains two editorial errors: its Figure 3-1 and the datasheet correctly place VDD18PLL on pin 62 (not checklist prose pin 23), and its PRTPWR paragraph repeats 'drives low' for ON although the datasheet and Figure 5-2 require active-high enable."
+  - "Pin 19 TEST has an internal pulldown; leave it unconnected. Unused downstream ports must be disabled through SMBus configuration or reset straps."
+  - "For SMBus-slave configuration use CFG_SEL[2:0]=001 and address 0b0101100 (0x2C 7-bit). Configuration must complete before hub attach; EEPROM/SMBus/default methods cannot be mixed."
+  - "VBUS_DET should sense upstream VBUS through the checklist's high-impedance 100k/100k divider; tying it to 3.3 V loses host-VBUS disconnect/reset detection."
+  - "Each VDDA33 pin (5,10,52,57) needs 100 nF locally plus one shared 1 uF; VDD33CR needs 1 uF plus 100 nF; VDD33 and VDD33PLL each need 100 nF; VDD18 and VDD18PLL each need 1 uF low-ESR to VSS. Do not power loads from the 1.8 V regulator outputs."
+  - "The USB protection/connector capacitance budget is 5 pF total. Put low-capacitance ESD directly in-line at each connector with no branch stub and a very short plane return."
+
+verified: "CITED: complete 1-64 map read from DS00001598C Figure 3-1 PDF p7 and cross-checked against Table 5-1 PDF pp11-16 plus Microchip EVB-USB2517 schematic sheet 2; pad 65 realization cross-checked against the EVB symbol VSS(FLAG) and selected footprint. 2026-07-31."
+
+layout:
+  source: "Microchip DS00004211A Sections 3-7 and Figures 3-1/4-1/5-1/5-2/6-1; EVB-USB2517 Rev A Gerber + IPC netlist inspected 2026-07-31"
+  reviewed: 2026-07-31
+  notes:
+    - "Use four layers with an unbroken ground reference immediately below the USB routing; route each 90 ohm differential pair without stubs and keep pair members symmetric."
+    - "Reserve all four QFN sides for outward escape. Put the four VDDA33 100 nF capacitors at pins 5/10/52/57 and the other regulator capacitors at their named supply pins before routing signals."
+    - "Place the 12 k RBIAS resistor directly at pin 63 with a dedicated low-impedance ground return; keep the 24 MHz crystal, 1 M parallel resistor, and load capacitors tight to pins 60/61 and isolated from USB traces."
+    - "Tie exposed pad 65 to the ground plane with the selected footprint's thermal-via array."
+    - "Orient the controller so downstream pair pin groups face their connector/switch banks; use PortSwap only as an explicit configured decision, never to mask an undocumented footprint error."
+
+layout_refs:
+  - tier: 1
+    reached: true
+    artifact: "Microchip USB2517 Hardware Design Checklist DS00004211A, Figures 3-1 through 8-3"
+  - tier: 2
+    reached: true
+    artifact: "Microchip EVB-USB2517 Rev A official OrCAD schematic plus four-layer Gerber/IPC-356 design files, https://www.microchip.com/en-us/development-tool/EVB-USB2517"
+  - tier: 3
+    reached: false
+    artifact: "OSHWLab/EasyEDA open-board search by LCSC C478081"
+    why: "The manufacturer EVB provides editable schematic and routed fabrication data, so lower-authority community copper was not needed."
+
+sourcing:
+  lcsc: C478081
+  note: "Exact USB2517I-JZX QFN-64-EP is present in the LCSC/JLC catalog; live EasyEDA CAD fetch succeeded 2026-07-31. Catalog stock remains order-time data and is intentionally not committed here."
+asserts:
+  - assert: value
+    equals: USB2517I-JZX
+    why: "The industrial-temperature seven-port QFN-64 identity is tied to the verified pin map and escape tier."

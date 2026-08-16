@@ -1,0 +1,131 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
+# board as a reference for the generic backend's config format. Copy into a
+# new project's 03_src/ and replace the values — the KEYS are the contract.
+#
+# cook-loadcell floorplan — the whole per-board input to
+# skills/kicad-pcb/scripts/generate_board_generic.py, replacing the 373-line
+# hand-written 03_src/generate_board.py.
+#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/generate_board_generic.py \
+#       03_src/floorplan.yaml -o 06_build/proof/cook_loadcell.kicad_pcb
+# 55x45 2-layer: sensors J1/J2 + J5 north, J3/J4 + J6 south, HX711 center-west
+# (analog corner W, digital SE).
+
+project:
+  name: cook_loadcell
+  netlist: 06_build/netlists/cook_loadcell.net
+  output: 04_kicad/cook_loadcell.kicad_pcb
+  parts_dir: 02_parts
+
+board:
+  outline: {x0: 20.0, y0: 20.0, x1: 75.0, y1: 65.0}
+  edge_width: 0.1
+  layers: 2
+  # Optional, board-wide fabrication intent. Enable only when the order calls
+  # for every via to use the corresponding process; separately identify all
+  # via-in-pad sites and require fabricator/assembly DFM acceptance.
+  # Board-default via treatment; every via left "From rules" inherits it.
+  # Prefer selective thermal_vias.protection for via-in-pad work.
+  # via_protection: {capping: yes, filling: yes}
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    at: [[23.5, 23.5], [71.5, 23.5], [23.5, 61.5], [71.5, 61.5]]
+
+libraries: [/usr/share/kicad/footprints]
+
+placement:
+  # anchors are PINNED — the legalizer never moves them
+  anchors:
+    # XH footprints are pad-1-origin; pads run +x at rot 0. Pitch must be
+    # >= 11.1 (B3B-XH courtyard is 10.99 wide) or bodies overlap pairwise
+    # and J1/J3 pad 1 lands on the corner mounting holes.
+    J1: [30.2, 24.2, 0]
+    J2: [41.3, 24.2, 0]
+    J5: [52.5, 24.2, 0]
+    J3: [30.2, 60.8, 0]
+    J4: [41.3, 60.8, 0]
+    J6: [53.5, 60.8, 0]
+    U1: [38.0, 42.0, 0]
+    Q1: [28.5, 36.0, 0]
+    JP1: [63.0, 42.0, 270]
+  # seeds are starting points the legalizer may walk outward from
+  seeds:
+    R1: [28.5, 39.5]
+    R2: [26.6, 42.6]     # moved: its GND pad kept landing on the S_PLUS B.Cu run
+    C1: [28.5, 44.5]
+    C2: [28.5, 47.0]
+    R7: [63.0, 27.5]
+    C7: [63.0, 30.0]
+    SJ1: [63.0, 32.5]
+    C3: [44.0, 38.0]
+    C4: [47.0, 38.0]
+    C5: [44.0, 46.0]
+    C6: [47.0, 46.0]
+    D1: [55.0, 55.0]
+    D2: [58.0, 55.0]
+    TP1: [24.0, 32.0]
+    TP2: [24.0, 40.0]
+    TP3: [24.0, 48.0]
+    TP4: [24.0, 55.0]
+    TP5: [52.0, 51.0]
+    TP6: [56.0, 51.0]
+    TP7: [60.0, 51.0]
+  patterns:
+    # the KiCad SolderJumper footprint ships exclude_from_bom but the symbol
+    # is in_bom yes -> footprint_symbol_mismatch parity error. Clear it.
+    - match: "SJ*"
+      clear_attrs: [exclude_from_bom]
+  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
+
+design_rules:
+  track_min_width: 0.15
+  min_clearance: 0.127
+  via_min_annulus: 0.13
+  hole_clearance: 0.25
+  hole_to_hole: 0.5
+  copper_edge_clearance: 0.3
+  via_min_size: 0.45
+  min_through_drill: 0.2
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
+
+silk:
+  min_text_height: 0.6
+  refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
+  labels:
+    - {match: "TP*", from: value, strip: "TP ", size: 0.6}
+  captions:
+    - ["LOAD SENSOR 1  B R W", 30.5, 29.2, 0.7]
+    - ["SENSOR 2  B R W", 38.8, 31.0, 0.7]
+    - ["FULL BRIDGE ALT: E+ S+ S- E- SH", 52.0, 29.4, 0.65]
+    - ["SENSOR 3  B R W", 30.5, 57.2, 0.7]
+    - ["SENSOR 4  B R W", 39.5, 55.4, 0.7]
+    - ["TO COOK-HUB J6: 5V 3V3 G DAT CLK", 54.0, 57.2, 0.65]
+    - ["JP1 RATE: 1-2=10SPS 2-3=80SPS", 62.0, 37.8, 0.6]
+    - ["SJ1: SHIELD HARD BOND", 63.0, 34.6, 0.55]
+    # title block lives in the SE clearing (JP1 y<=44.5, TP row y=51)
+    - ["cook-loadcell v1.0  HX711 PCB C", 57.0, 47.0, 0.7]
+    - ["MODE = POPULATION: 4x HALF-BRIDGE OR J5", 57.0, 48.7, 0.6]
+
+asserts:
+  pad_net:
+    - {ref: D1, pad: 1, net: DAT}      # pad 1 = cathode
+    - {ref: D2, pad: 1, net: CLK}
+    - {ref: Q1, pad: 2, net: 5V}
+    - {ref: Q1, pad: 3, net: E_PLUS}
+    - {ref: U1, pad: 8, net: S_PLUS}
+    - {ref: U1, pad: 7, net: S_MINUS}
+    - {ref: J6, pad: 4, net: DAT}
+    - {ref: J6, pad: 5, net: CLK}
+
+# ESCAPE CORRIDORS (Phase F 2026-07-21, from usb-pwr-hub-3s ADR-0008):
+# reserved routing lanes off a dense package's loaded side — satisfies
+# escape_check v2's `escape-corridor` condition (P-ESC). Expands to a named
+# rule area `esc_<ref>_<side>` denying footprints+pours (tracks/vias stay
+# allowed — that is the lane). Unknown ref / bad side = hard error.
+#
+# escape_corridors:
+#   - {ref: U1, side: E, depth_mm: 4.0}            # full-side lane
+#   - {ref: U2, side: N, depth_mm: 3.0, width_mm: 6.0, layers: [F.Cu]}

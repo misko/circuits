@@ -1,0 +1,72 @@
+fab_tier: jlc_4layer_advanced
+default_clearance: 0.17mm
+default_track_width: 0.18mm
+
+classes:
+  USB_HS:
+    intent: >-
+      Ten USB 2.0 High-Speed pair segments: upstream, internal management,
+      and two segments per externally switched port. Route as 90 ohm
+      differential CPWG over a continuous reference plane; final geometry is
+      locked to the selected JLC stackup before routing.
+    nets:
+      [USB_UP_P, USB_UP_N, CTRL_USB_P, CTRL_USB_N,
+       P1_HUB_P, P1_HUB_N, P1_PORT_P, P1_PORT_N,
+       P2_HUB_P, P2_HUB_N, P2_PORT_P, P2_PORT_N,
+       P3_HUB_P, P3_HUB_N, P3_PORT_P, P3_PORT_N,
+       P4_HUB_P, P4_HUB_N, P4_PORT_P, P4_PORT_N]
+    impedance: "90 ohm differential, JLC-confirmed stackup geometry"
+    current: signal
+    min_width: 0.18mm
+    clearance: 0.17mm
+    routing: manual_length_aware
+    verify: DRC, differential-pair geometry audit, realized-copper skew audit, reference-plane continuity audit, and first-article USB 2.0 enumeration
+  PWR_INPUT:
+    intent: Regulated 5 V input trunk feeding all port switches and local rails.
+    nets: [P5V_RAW, P5V_FUSED, P5V_PROTECTED]
+    current: 2.6A continuous worst-case design load
+    min_width: 1.5mm
+    clearance: 0.17mm
+    routing: pour_or_wide_track
+    verify: DRC, full-load DC-drop budget, fuse/MOSFET thermal rise, and first-article four-wire measurement
+  PWR_PORT:
+    intent: Individually switched 500 mA USB VBUS outputs.
+    nets: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW, VBUS_CTRL]
+    current: 0.5A per net
+    min_width: 0.5mm
+    clearance: 0.17mm
+    routing: short_direct
+    verify: DRC and 500 mA mated-plug DC-drop measurement on all four ports simultaneously
+  PWR_3V3:
+    intent: Main hub/data-switch/logic 3.3 V distribution.
+    nets: [3V3_MAIN, SW_3V3, BST_3V3]
+    current: 0.6A
+    min_width: 0.4mm
+    clearance: 0.17mm
+    routing: short_power_tree
+    verify: DRC, regulator-loop placement review, ripple measurement, and full-load thermal test
+  PWR_INTERNAL:
+    intent: Internal management-device 5 V rail, sourced only from hub port 1.
+    nets: [VBUS_CTRL, CTRL_VUSB_3V3]
+    current: 0.1A
+    min_width: 0.4mm
+    clearance: 0.17mm
+    routing: short_direct
+    verify: DRC and management-port voltage/current measurement during USB enumeration
+  CONTROL:
+    intent: Slow I2C, command, enable, and active-low fault/control nets.
+    nets:
+      [I2C_SCL, I2C_SDA, PWR_CMD1, PWR_CMD2, PWR_CMD3, PWR_CMD4,
+       DATA_CMD1, DATA_CMD2, DATA_CMD3, DATA_CMD4,
+       PWR_EN1, PWR_EN2, PWR_EN3, PWR_EN4,
+       DATA_OK1, DATA_OK2, DATA_OK3, DATA_OK4,
+       DATA_OE1_N, DATA_OE2_N, DATA_OE3_N, DATA_OE4_N,
+       HUB_PRTPWR1, HUB_PRTPWR2, HUB_PRTPWR3, HUB_PRTPWR4, HUB_PRTPWR5,
+       HUB_OCS1_N, HUB_OCS2_N, HUB_OCS3_N, HUB_OCS4_N, HUB_OCS5_N,
+       HUB_RESET_N, CTRL_RESET_N, EXP_RESET_N, USB_UP_VBUS, HUB_VBUS_SENSE,
+       ILIM1, ILIM2, ILIM3, ILIM4, ILIM_CTRL, XTAL1, XTAL2]
+    current: signal
+    min_width: 0.18mm
+    clearance: 0.17mm
+    routing: ordinary
+    verify: DRC, schematic safe-state truth-table audit, reset-state bench test, and I2C control exercise

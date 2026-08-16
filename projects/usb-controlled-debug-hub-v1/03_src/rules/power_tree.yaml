@@ -1,0 +1,117 @@
+schema: 1
+source_type: external_regulated_5v
+off_control: "unplug the external regulated 5 V bench supply"
+input_trunk_class: PWR_INPUT
+ir_floor_mohm: 100
+source_voltage_at_p5v_raw: {min_V: 5.10, max_V: 5.25}
+protected_trunk_floor_V: 4.89
+protected_trunk_budget: >-
+  At 2.6 A, reserve the fuse's published 121 mV typical drop at its higher
+  4 A rating plus 65 mV for a conservative 25 mOhm hot reverse-polarity FET
+  and 24 mV for board/joint copper. 5.10 V - 0.210 V = 4.89 V.
+
+rails:
+  - name: VBUS1_SW
+    stage: distribution
+    vin_min: 4.89
+    vin_max: 5.25
+    vout_min: 4.89
+    vout_max: 5.25
+    iout_max_A: 0.5
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 160
+    margin: 0.20
+    ir_budget_components_mohm: {port_power_switch: 35, pcb_copper_vias_joints: 25, mated_power_contacts: 100}
+    distribution:
+      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      path_resistance_max_mohm: 160
+      current_limit_min_A: 0.535
+      current_limit_max_A: 0.794
+      reverse_current_policy: "Downstream devices may not source VBUS; TPS2557 is not credited as a reverse-blocking element."
+  - name: VBUS2_SW
+    stage: distribution
+    vin_min: 4.89
+    vin_max: 5.25
+    vout_min: 4.89
+    vout_max: 5.25
+    iout_max_A: 0.5
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 160
+    margin: 0.20
+    ir_budget_components_mohm: {port_power_switch: 35, pcb_copper_vias_joints: 25, mated_power_contacts: 100}
+    distribution:
+      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      path_resistance_max_mohm: 160
+      current_limit_min_A: 0.535
+      current_limit_max_A: 0.794
+      reverse_current_policy: "Downstream devices may not source VBUS; TPS2557 is not credited as a reverse-blocking element."
+  - name: VBUS3_SW
+    stage: distribution
+    vin_min: 4.89
+    vin_max: 5.25
+    vout_min: 4.89
+    vout_max: 5.25
+    iout_max_A: 0.5
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 160
+    margin: 0.20
+    ir_budget_components_mohm: {port_power_switch: 35, pcb_copper_vias_joints: 25, mated_power_contacts: 100}
+    distribution:
+      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      path_resistance_max_mohm: 160
+      current_limit_min_A: 0.535
+      current_limit_max_A: 0.794
+      reverse_current_policy: "Downstream devices may not source VBUS; TPS2557 is not credited as a reverse-blocking element."
+  - name: VBUS4_SW
+    stage: distribution
+    vin_min: 4.89
+    vin_max: 5.25
+    vout_min: 4.89
+    vout_max: 5.25
+    iout_max_A: 0.5
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 160
+    margin: 0.20
+    ir_budget_components_mohm: {port_power_switch: 35, pcb_copper_vias_joints: 25, mated_power_contacts: 100}
+    distribution:
+      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      path_resistance_max_mohm: 160
+      current_limit_min_A: 0.535
+      current_limit_max_A: 0.794
+      reverse_current_policy: "Downstream devices may not source VBUS; TPS2557 is not credited as a reverse-blocking element."
+  - name: VBUS_CTRL
+    stage: distribution
+    vin_min: 4.89
+    vin_max: 5.25
+    vout_min: 4.89
+    vout_max: 5.25
+    iout_max_A: 0.10
+    eff: 0.99
+    external_output: false
+    distribution:
+      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      path_resistance_max_mohm: 220
+      current_limit_min_A: 0.535
+      current_limit_max_A: 0.794
+      reverse_current_policy: "The internal management rail is load-only and does not source hub port 1 VBUS."
+  - name: 3V3_MAIN
+    vin_min: 4.89
+    vin_max: 5.25
+    vout_min: 3.27
+    vout_max: 3.33
+    iout_max_A: 0.60
+    converter: AP63203QWU-7
+    eff: 0.85
+    external_output: false

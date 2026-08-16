@@ -1,0 +1,102 @@
+supplies:
+  P5V_PROTECTED: 5.0
+  3V3_MAIN: 3.3
+  VBUS_CTRL: 5.0
+
+invariants:
+  - assert: series_chain
+    chain: [P5V_RAW, F_IN, P5V_FUSED, Q_RP, P5V_PROTECTED]
+    through: {Q_RP: [D, S]}
+    adr: "0002"
+    why: The external source must pass through the replaceable fuse and reverse-polarity MOSFET before any load.
+  - assert: pin_on_net
+    pin: "J_UP.1"
+    net: USB_UP_VBUS
+    adr: "0002"
+    why: Upstream VBUS is sense-only and must not be tied to the self-powered 5 V trunk.
+  - assert: net_has_part
+    net: P5V_PROTECTED
+    part_type: capacitor
+    min: 1
+    adr: "0002"
+    why: The protected input trunk requires local bulk and high-frequency decoupling.
+  - assert: net_has_part
+    net: PWR_CMD1
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 1 power command must default low while management logic is absent.
+  - assert: net_has_part
+    net: PWR_CMD2
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 2 power command must default low while management logic is absent.
+  - assert: net_has_part
+    net: PWR_CMD3
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 3 power command must default low while management logic is absent.
+  - assert: net_has_part
+    net: PWR_CMD4
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 4 power command must default low while management logic is absent.
+  - assert: net_has_part
+    net: DATA_CMD1
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 1 data command must default low while management logic is absent.
+  - assert: net_has_part
+    net: DATA_CMD2
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 2 data command must default low while management logic is absent.
+  - assert: net_has_part
+    net: DATA_CMD3
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 3 data command must default low while management logic is absent.
+  - assert: net_has_part
+    net: DATA_CMD4
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 4 data command must default low while management logic is absent.
+  - assert: part_value
+    part: R_ILIM1
+    equals: 165k
+    tolerance_pct: 1.0
+    adr: "0002"
+    why: TPS2557 tolerance study targets standard USB 2.0 downstream-port current.
+  - assert: part_value
+    part: R_ILIM2
+    equals: 165k
+    tolerance_pct: 1.0
+    adr: "0002"
+    why: TPS2557 tolerance study targets standard USB 2.0 downstream-port current.
+  - assert: part_value
+    part: R_ILIM3
+    equals: 165k
+    tolerance_pct: 1.0
+    adr: "0002"
+    why: TPS2557 tolerance study targets standard USB 2.0 downstream-port current.
+  - assert: part_value
+    part: R_ILIM4
+    equals: 165k
+    tolerance_pct: 1.0
+    adr: "0002"
+    why: TPS2557 tolerance study targets standard USB 2.0 downstream-port current.
+  - assert: part_value
+    part: R_ILIM_CTRL
+    equals: 165k
+    tolerance_pct: 1.0
+    adr: "0002"
+    why: The internal management port remains within the same USB 2.0 current-limit envelope.
+
+label_survival: {}

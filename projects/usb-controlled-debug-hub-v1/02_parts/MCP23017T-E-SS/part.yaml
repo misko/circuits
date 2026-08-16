@@ -1,0 +1,102 @@
+mpn: MCP23017T-E/SS
+manufacturer: Microchip Technology
+type: gpio_expander_i2c_16bit
+value: MCP23017T-E/SS
+function: Firmwareless eight-command register bank with hardware-safe external pulls
+status: in_production
+note_dirname: "directory MCP23017T-E-SS; '/' in the orderable MPN is not usable in a path"
+datasheet:
+  doc_id: DS20001952
+  revision: DS20001952D
+  url: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
+  product_page: https://www.microchip.com/en-us/product/MCP23017
+  local: DS20001952D.pdf
+  sha256: 63cb5f2bec44434cdeeada1790d0316c9dc06b33febb489ad87bb0e2d540496a
+  fetched: 2026-08-15
+  pages: 40
+  provenance: "CITED: downloaded directly from Microchip; DS20001952D footer identifies the current family datasheet."
+package: SSOP-28, 5.30 mm body, 0.65 mm pitch
+footprint: Package_SO:SSOP-28_5.3x10.2mm_P0.65mm
+escape:
+  style: leaded
+  pitch: 0.65
+  escapes_worst_side: 11
+  tier_required: jlc_2layer_default
+  conditions: [escape-corridor]
+  checked: escape_check 2026-08-15
+pins:
+  1: GPB0
+  2: GPB1
+  3: GPB2
+  4: GPB3
+  5: GPB4
+  6: GPB5
+  7: GPB6
+  8: GPB7
+  9: VDD
+  10: VSS
+  11: {name: NC, note: "NC on MCP23017; CS only on the SPI MCP23S17."}
+  12: SCL
+  13: SDA
+  14: {name: NC, note: "NC on MCP23017; SO only on the SPI MCP23S17."}
+  15: A0
+  16: A1
+  17: A2
+  18: RESET_N
+  19: INTB
+  20: INTA
+  21: GPA0
+  22: GPA1
+  23: GPA2
+  24: GPA3
+  25: GPA4
+  26: GPA5
+  27: GPA6
+  28: GPA7
+configuration:
+  i2c_address_7bit: 0x20
+  address_straps: A0=A1=A2=VSS
+  command_map:
+    GPA0: PWR_CMD1
+    GPA1: PWR_CMD2
+    GPA2: PWR_CMD3
+    GPA3: PWR_CMD4
+    GPA4: DATA_CMD1
+    GPA5: DATA_CMD2
+    GPA6: DATA_CMD3
+    GPA7: DATA_CMD4
+  reset_default: all I/O inputs; external pull-downs hold all commands low
+limits:
+  vdd: 1.8 to 5.5 V
+  i2c_clock: 100 kHz, 400 kHz, or 1.7 MHz subject to supply
+  gpio_current: 25 mA sink/source absolute pin capability
+  temperature: -40 to +125 C for E temperature grade subject to supply limits
+electrical:
+  source: "DS20001952D DC characteristics and pin descriptions"
+  vdd: 5.0
+  vdd_net: VBUS_CTRL
+gotchas:
+  - "All I/O pins default to inputs. The eight external command pull-downs are the safety authority; host initialization is not."
+  - "Pins 11 and 14 are NC on the I2C part. Do not wire them using the MCP23S17 SPI variant map."
+  - "Tie A0/A1/A2 directly low for address 0x20 and pull RESET_N high locally; RESET_N has no internal pull-up."
+  - "INTA/INTB and GPB0..7 are unused on this board and remain explicitly unconnected. Faults go directly from TPS2557 to USB2517 OCS inputs."
+verified: "CITED: DS20001952D Package Types figure p2 and pin description table pp14-15; SSOP map cross-checked pin-by-pin and tape/reel T-E/SS identity checked in ordering information, 2026-08-15."
+layout:
+  source: "Microchip DS20001952D power, reset, I2C timing, and SSOP package sections"
+  reviewed: 2026-08-15
+  keep_short:
+    - {net: VBUS_CTRL, max_span_mm: 4, anchor_pins: ["9"], partner_refs: [C_EXP_VDD], why: "Place the 100 nF VDD bypass directly at VDD(9)/VSS(10)."}
+  notes:
+    - "Reserve a surface escape corridor along both SSOP sides before placement is frozen."
+    - "Keep the I2C pull-up pair close to the bridge/expander cluster and keep the eight pulled-down command fanout out of USB pair corridors."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Microchip DS20001952D pin map, typical interface, reset, and I2C timing"}
+  - {tier: 2, reached: true, artifact: "Microchip GPIO Expander Keypad and LCD Demo Board official MCP23017 reference"}
+  - {tier: 3, reached: false, artifact: "Community exact-MPN routed reference", why: "The official reference and slow-interface package guidance are sufficient; no community copper is needed."}
+sourcing:
+  lcsc: C558584
+  note: "Exact tape-and-reel SSOP-28 part is available from both JLC/LCSC and Mouser; live quantities remain release-time evidence."
+asserts:
+  - assert: value
+    equals: MCP23017T-E/SS
+    why: "The tape-and-reel SSOP identity prevents substitution with SOIC/QFN or the SPI MCP23S17 variant."
