@@ -116,6 +116,9 @@ rationale.
 | IMP-100 | Validate assembly semantics before release staging | proposed | Pluto RX2 8-way v5 release staging |
 | IMP-101 | Make local PCB ECO routing preserve the validated copper baseline | proposed | Pluto RX2 8-way v5 J12 bench-power renewal |
 | IMP-102 | Make RF expertise a conditional, bounded evidence module | completed | Pluto RX2 8-way v5 RF module audit |
+| IMP-103 | Model protected distribution rails explicitly | completed | Raspberry Pi USB port switch power preflight |
+| IMP-104 | Retain per-row JLC evidence in mixed-source BOMs | completed | Raspberry Pi USB port switch sourcing |
+| IMP-105 | Separate early high-speed authority from placed route primitives | completed | Raspberry Pi USB 3 source preflight |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -3737,3 +3740,107 @@ Recommended execution order for future boards:
   contract and reviews. Keep non-RF projects on the immediate N-A path.
 - history: 2026-08-14 — audited, modularized and integrated after the Pluto
   board exposed both an authority gap and an end-to-end arc capability gap.
+
+## IMP-103 — model protected distribution rails explicitly
+
+- status: implemented
+- observed: Raspberry Pi USB port switch commission/source preflight,
+  2026-08-14
+- evidence: the board's four downstream VBUS paths are pass-through
+  distribution rails fed through a shared fuse and reverse-polarity MOSFET,
+  then one TPS2557 load switch per port. `power_tree.yaml` can express their
+  load, voltage and resistance budgets, but the topology and margin validators
+  previously required every external rail to name a buck, boost or linear
+  `converter`. With no truthful converter to name, `power_topology.py --margin`
+  reported load errors instead of checking the load-switch path. Inventing a
+  converter would have made the artifact pass while corrupting its circuit
+  model.
+- general rule: a power contract must distinguish conversion rails from
+  protected distribution rails. Both are real power stages, but distribution
+  is governed by switch/pass-FET current, resistance, current limit,
+  reverse-current behavior and voltage-drop budget rather than efficiency and
+  regulator equations.
+- landed at: `power_topology.py` accepts the explicit
+  `stage: distribution` form and requires an exact non-empty series-device
+  population, worst-case path resistance, a current-limit window covering the
+  commissioned load, reverse-current policy and the normal Vin/Vout envelope.
+  It resolves every device against `02_parts`, grades the distribution path
+  without inventing a converter, includes its constant-current load in the
+  input-trunk calculation, and gives E-MARGIN the same resistance authority.
+- completion evidence: `tests/t1_power_topology.py` covers a valid protected
+  distribution path and known-bad missing-device and under-current-limit
+  fixtures while retaining the converter and linear-regulator regressions. The
+  Pi USB fixture passes D-SPEC/E-PATH 3/3, E-TOPO 5/5 rails with one real
+  converter, and E-MARGIN 4/4 external rails.
+- recommendation: carry for every switched or pass-through power board; never
+  express a load switch, eFuse or pass FET as a fictitious converter.
+- history: 2026-08-14 — recorded when the four-channel USB fixture exposed the
+  schema gap during the first complete loaded-plug voltage-drop audit.
+- history: 2026-08-15 — implemented in the shared checker and contract with
+  clean/known-bad regressions before this board began schematic capture.
+
+## IMP-104 — retain per-row JLC evidence in mixed-source BOMs
+
+- status: implemented
+- observed: Raspberry Pi USB port switch Q-2SOURCE composition, 2026-08-14
+- evidence: its candidate BOM has exact JLC/LCSC codes alongside intentional
+  global/user-fit rows. `jlc_stock_check.py` correctly graded the coded rows and
+  explicitly reported uncoded rows, but `shopping_list.py` previously required
+  `graded_lines == total_lines`. That discarded the entire JLC pool, so a
+  fully stocked resistor or IC lost valid evidence merely because an unrelated
+  connector had no LCSC code.
+- general rule: source qualification is per exact row. An explicitly uncoded
+  row is ineligible for the JLC pool and must clear two other authorized pools;
+  it must not invalidate exact, fresh JLC evidence for coded rows.
+- landed at: `shopping_list.py` validates the sidecar coverage identity
+  `graded_lines + uncoded_lines == total_lines` and requires the line count to
+  equal `graded_lines`. It preserves JLC grading for coded rows while returning
+  `NO-LCSC` only on the uncoded row.
+- completion evidence: `tests/t1_shopping_list.py` includes a mixed two-row
+  fixture where the coded part qualifies through JLC plus DigiKey and the
+  uncoded part independently qualifies through Mouser plus DigiKey. Corrupt
+  counters and missing coded rows remain fail-closed through consistency
+  checks.
+- recommendation: carry immediately; this is required for any JLC assembly
+  containing a hand-fit fuse, globally sourced connector, consigned part or
+  other intentional non-LCSC line.
+- history: 2026-08-14 — generalized, fixed and regression-tested at the first
+  mixed-source Q-2SOURCE run for the four-channel USB fixture.
+
+## IMP-105 — separate early high-speed authority from placed route primitives
+
+- status: implemented
+- observed: Raspberry Pi four-channel USB 3 inline switch source preflight,
+  2026-08-15
+- evidence: after exact USB pin maps were locked, the project could truthfully
+  declare its SuperSpeed and USB 2 pair inventory, named JLC stackup, 90-ohm
+  intent, zero-via preference and first-article link tests. The conditional RF
+  module previously presented an all-or-nothing source shape: a locked
+  cross-section made `rf_check.py source` require coordinate-level route
+  primitives before a floorplan or component coordinates existed. Inventing
+  route primitives would have made the gate pass by corrupting its evidence.
+- general rule: controlled-impedance applicability, exact pair inventory and
+  stackup/cross-section authority are source-stage facts; coordinate-level
+  route primitives are placement-stage facts. Microwave boards may choose to
+  author geometry earlier, but ordinary high-speed digital boards should not
+  be forced either to pre-place the board before schematic capture or to
+  disable SI applicability.
+- landed at: `rf.process.geometry_stage` is a closed `source|placement`
+  lifecycle owner. Source still requires ports/pairs, risk tier, named stackup,
+  target impedance, reference plane, allowed layers/vias/stubs, performance
+  claims and either a locked cross-section or an honest bounded solver job. It
+  may explicitly defer `layout_constraints` primitives to placement, where
+  `rf_check.py source --require-geometry` requires the complete exact-net
+  denominator before route preparation. Existing contracts default to source
+  ownership, preserving stricter microwave behavior.
+- completion evidence: a USB 3-style fixture passes source with locked
+  pair/stackup authority and no invented coordinates, then fails placement if
+  a critical pair lacks a planned route bank. The Pluto microwave canary keeps
+  its source-level blocking behavior. Pending solver jobs, empty pair
+  inventories and locked geometries with no later placement owner still fail
+  closed through `tests/t1_rf_module.py` and `tests/t1_rf_contract.py`.
+- recommendation: use placement ownership for ordinary high-speed digital
+  boards and retain source ownership for microwave designs whose floorplan and
+  route geometry are intentionally part of early architecture.
+- history: 2026-08-15 — implemented and regression-tested before the Pi USB
+  board began TSX capture; schema-reader governance covers the new authority.
