@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/circuits-pi-usb-release/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+    "prep",
+    "03_src/route.yaml"
+  ],
+  "elapsed_s": 4.454,
+  "finished_at": 1786833254.0158284,
+  "heartbeat_s": 10.0,
+  "label": "route_prep",
+  "pid": 1479327,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786833249.561495,
+  "status": "finished",
+  "timeout_s": 600.0
+}

@@ -41,6 +41,12 @@ BACKEND GAP to report, not a bespoke script to write here.
   non-board-only footprint must carry at least one non-empty model file that
   resolves in the headless renderer environment; renderer exit zero alone is
   never body-coverage evidence.
+- `reference_plane_check.py BOARD --config rules/nets.yaml [-o REPORT.json]`
+  is the opt-in R-REFPLANE final-board gate. Declared high-speed outer-layer
+  tracks are projected onto their named adjacent reference layer; foreign
+  tracks and through-vias below the source-owned margins fail even when DRC is
+  clean. An absent declaration is explicit N-A; a present empty declaration is
+  invalid. It complements rather than claims a field solve or full zone proof.
 - `render_board.py BOARD OUTPUT [render options]` is the canonical modeled
   review renderer. It reuses P-MODEL's saved-board resolver and passes every
   referenced model-directory token to `kicad-cli` with `-D`; raw headless
@@ -178,7 +184,10 @@ BACKEND GAP to report, not a bespoke script to write here.
   the COPPER — track centrelines, arc centrelines as r*theta, via barrel
   z-length — for the `length_match:` groups declared in
   `03_src/rules/nets.yaml`, and grades their spread against a derived DRIFT
-  ceiling plus an optional REPRODUCIBILITY `pin:`.
+  ceiling plus an optional REPRODUCIBILITY `pin:`. `--json` is a strict
+  machine-output mode: stdout is one parseable JSON document with no human
+  report prefix; omit it for the human-readable report. `--json-output PATH`
+  writes that same document directly for release evidence.
   WHY: R-LEN had been `re.search(r"length|spread", audit_src)` over the
   project's `audit_board.py` since the canon was written, so a COMMENT
   satisfied it. Measured 2026-07-29 — smc0985-cooksense PASSED on two remarks

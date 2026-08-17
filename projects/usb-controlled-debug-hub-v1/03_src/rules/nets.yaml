@@ -63,6 +63,37 @@ scoped_clearances:
   - {zone: data3_package_launch, nets: [P3_HUB_P, P3_HUB_N, P3_PORT_P, P3_PORT_N, 3V3_MAIN], clearance: 0.15mm, why: "Channel-3 translation of the measured FSUSB42 package launch."}
   - {zone: data4_package_launch, nets: [P4_HUB_P, P4_HUB_N, P4_PORT_P, P4_PORT_N, 3V3_MAIN], clearance: 0.15mm, why: "Channel-4 translation of the measured FSUSB42 package launch."}
 
+# Outer-layer USB routes require an adjacent, substantially continuous GND
+# reference.  This opt-in gate catches foreign inner-layer tracks/vias whose
+# projection would cut that return corridor even when ordinary DRC is clean.
+# It is intentionally paired in both directions: B.Cu references In2.Cu and
+# F.Cu references In1.Cu.
+reference_plane_checks:
+  USB_BCU_OVER_IN2:
+    signal_layer: B.Cu
+    reference_layer: In2.Cu
+    reference_net: GND
+    signal_nets:
+      [UP_HUB_P, UP_HUB_N, MGMT_P, MGMT_N,
+       P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N,
+       P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N,
+       P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N,
+       P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+    min_track_clearance_mm: 0.30
+    min_via_clearance_mm: 0.15
+  USB_FCU_OVER_IN1:
+    signal_layer: F.Cu
+    reference_layer: In1.Cu
+    reference_net: GND
+    signal_nets:
+      [UP_HUB_P, UP_HUB_N, MGMT_P, MGMT_N,
+       P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N,
+       P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N,
+       P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N,
+       P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+    min_track_clearance_mm: 0.30
+    min_via_clearance_mm: 0.15
+
 classes:
   USB_HS_UPSTREAM:
     intent: >-
@@ -216,6 +247,9 @@ length_match:
     max_spread_mm: 0.50
     router_moves: octilinear
     elongation: meander
+    octilinear_endpoints:
+      P: [J_UP.3, U_HUB.59]
+      N: [J_UP.2, U_HUB.58]
     stackup_mm: [0.2104, 1.0650, 0.2104]
   MGMT:
     adr: 0005
@@ -237,6 +271,9 @@ length_match:
     max_spread_mm: 1.00
     router_moves: octilinear
     elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.4, J_PORT1.3]
+      N: [U_HUB.3, J_PORT1.2]
     stackup_mm: [0.2104, 1.0650, 0.2104]
   PORT2_E2E:
     adr: 0005
@@ -248,6 +285,9 @@ length_match:
     max_spread_mm: 1.00
     router_moves: octilinear
     elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.7, J_PORT2.3]
+      N: [U_HUB.6, J_PORT2.2]
     stackup_mm: [0.2104, 1.0650, 0.2104]
   PORT3_E2E:
     adr: 0005
@@ -259,6 +299,9 @@ length_match:
     max_spread_mm: 1.00
     router_moves: octilinear
     elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.9, J_PORT3.3]
+      N: [U_HUB.8, J_PORT3.2]
     stackup_mm: [0.2104, 1.0650, 0.2104]
   PORT4_E2E:
     adr: 0005
@@ -270,4 +313,7 @@ length_match:
     max_spread_mm: 1.00
     router_moves: octilinear
     elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.12, J_PORT4.3]
+      N: [U_HUB.11, J_PORT4.2]
     stackup_mm: [0.2104, 1.0650, 0.2104]

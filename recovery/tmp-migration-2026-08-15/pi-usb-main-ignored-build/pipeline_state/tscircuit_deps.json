@@ -1,0 +1,20 @@
+{
+  "command": [
+    "env",
+    "--chdir=03_tscircuit",
+    "bun",
+    "install",
+    "--frozen-lockfile",
+    "--ignore-scripts"
+  ],
+  "elapsed_s": 0.092,
+  "finished_at": 1786832881.2077537,
+  "heartbeat_s": 10.0,
+  "label": "tscircuit_deps",
+  "pid": 1468229,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786832881.115974,
+  "status": "finished",
+  "timeout_s": 600.0
+}

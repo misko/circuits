@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/circuits-pi-usb-release/skills/kicad-pcb/scripts/import_krt.py",
+    "/tmp/circuits-pi-usb-release/projects/pi-usb-port-switch/06_build/route/r4.kicad_pcb",
+    "/tmp/circuits-pi-usb-release/projects/pi-usb-port-switch/04_kicad/pi_usb_port_switch.kicad_pcb",
+    "/tmp/circuits-pi-usb-release/projects/pi-usb-port-switch/04_kicad/pi_usb_port_switch.kicad_pcb",
+    "--no-fill"
+  ],
+  "elapsed_s": 0.225,
+  "finished_at": 1786833255.4715965,
+  "heartbeat_s": 10.0,
+  "label": "route-import",
+  "pid": 1479568,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786833255.2464364,
+  "status": "finished",
+  "timeout_s": 300.0
+}

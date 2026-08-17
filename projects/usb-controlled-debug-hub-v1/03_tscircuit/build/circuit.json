@@ -18,7 +18,7 @@
     "sheet_index": 2,
     "center": {
       "x": -2.6000000000000005,
-      "y": -4.007499999999999
+      "y": -3.875
     }
   },
   {
@@ -22181,8 +22181,8 @@
     },
     "rotation": 0,
     "size": {
-      "width": 1.9000000000000001,
-      "height": 6.800000000000003
+      "width": 4,
+      "height": 8
     },
     "pin_spacing": 0.2,
     "port_labels": {
@@ -22264,8 +22264,8 @@
     "anchor": "left",
     "rotation": 0,
     "position": {
-      "x": -0.9500000000000001,
-      "y": -2.4100000000000015
+      "x": -2,
+      "y": -3.01
     },
     "color": "#006464",
     "font_size": 0.18,
@@ -22279,8 +22279,8 @@
     "anchor": "left",
     "rotation": 0,
     "position": {
-      "x": -0.9500000000000001,
-      "y": 4.650000000000001
+      "x": -2,
+      "y": 5.25
     },
     "color": "#006464",
     "font_size": 0.18,
@@ -26721,7 +26721,7 @@
     "schematic_port_id": "schematic_port_58",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 4.320000000000002
     },
     "source_port_id": "source_port_61",
@@ -26739,7 +26739,7 @@
     "schematic_port_id": "schematic_port_59",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 4.120000000000001
     },
     "source_port_id": "source_port_62",
@@ -26757,7 +26757,7 @@
     "schematic_port_id": "schematic_port_60",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 3.9200000000000017
     },
     "source_port_id": "source_port_63",
@@ -26775,7 +26775,7 @@
     "schematic_port_id": "schematic_port_61",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 3.7200000000000015
     },
     "source_port_id": "source_port_64",
@@ -26793,7 +26793,7 @@
     "schematic_port_id": "schematic_port_62",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 3.5200000000000014
     },
     "source_port_id": "source_port_65",
@@ -26811,7 +26811,7 @@
     "schematic_port_id": "schematic_port_63",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 3.3200000000000016
     },
     "source_port_id": "source_port_66",
@@ -26829,7 +26829,7 @@
     "schematic_port_id": "schematic_port_64",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 3.120000000000002
     },
     "source_port_id": "source_port_67",
@@ -26847,7 +26847,7 @@
     "schematic_port_id": "schematic_port_65",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.9200000000000017
     },
     "source_port_id": "source_port_68",
@@ -26865,7 +26865,7 @@
     "schematic_port_id": "schematic_port_66",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.7200000000000015
     },
     "source_port_id": "source_port_69",
@@ -26883,7 +26883,7 @@
     "schematic_port_id": "schematic_port_67",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.520000000000002
     },
     "source_port_id": "source_port_70",
@@ -26901,7 +26901,7 @@
     "schematic_port_id": "schematic_port_68",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.320000000000002
     },
     "source_port_id": "source_port_71",
@@ -26919,7 +26919,7 @@
     "schematic_port_id": "schematic_port_69",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.120000000000002
     },
     "source_port_id": "source_port_72",
@@ -26937,7 +26937,7 @@
     "schematic_port_id": "schematic_port_70",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 1.9200000000000017
     },
     "source_port_id": "source_port_73",
@@ -26955,7 +26955,7 @@
     "schematic_port_id": "schematic_port_71",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 1.7200000000000015
     },
     "source_port_id": "source_port_74",
@@ -26973,7 +26973,7 @@
     "schematic_port_id": "schematic_port_72",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 1.5200000000000014
     },
     "source_port_id": "source_port_75",
@@ -26991,7 +26991,7 @@
     "schematic_port_id": "schematic_port_73",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 1.3200000000000012
     },
     "source_port_id": "source_port_76",
@@ -27009,7 +27009,7 @@
     "schematic_port_id": "schematic_port_74",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 1.120000000000001
     },
     "source_port_id": "source_port_77",
@@ -27027,7 +27027,7 @@
     "schematic_port_id": "schematic_port_75",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 0.9200000000000008
     },
     "source_port_id": "source_port_78",
@@ -27045,7 +27045,7 @@
     "schematic_port_id": "schematic_port_76",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 0.7200000000000006
     },
     "source_port_id": "source_port_79",
@@ -27063,7 +27063,7 @@
     "schematic_port_id": "schematic_port_77",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 0.5200000000000005
     },
     "source_port_id": "source_port_80",
@@ -27081,7 +27081,7 @@
     "schematic_port_id": "schematic_port_78",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 0.32000000000000073
     },
     "source_port_id": "source_port_81",
@@ -27099,7 +27099,7 @@
     "schematic_port_id": "schematic_port_79",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 0.12000000000000055
     },
     "source_port_id": "source_port_82",
@@ -27117,7 +27117,7 @@
     "schematic_port_id": "schematic_port_80",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.07999999999999963
     },
     "source_port_id": "source_port_83",
@@ -27135,7 +27135,7 @@
     "schematic_port_id": "schematic_port_81",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.2799999999999998
     },
     "source_port_id": "source_port_84",
@@ -27145,7 +27145,7 @@
     "pin_number": 24,
     "true_ccw_index": 23,
     "display_pin_label": "VDD33CR",
-    "is_connected": false,
+    "is_connected": true,
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
@@ -27153,7 +27153,7 @@
     "schematic_port_id": "schematic_port_82",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.48
     },
     "source_port_id": "source_port_85",
@@ -27171,7 +27171,7 @@
     "schematic_port_id": "schematic_port_83",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.6800000000000002
     },
     "source_port_id": "source_port_86",
@@ -27189,7 +27189,7 @@
     "schematic_port_id": "schematic_port_84",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.8800000000000003
     },
     "source_port_id": "source_port_87",
@@ -27207,7 +27207,7 @@
     "schematic_port_id": "schematic_port_85",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.0800000000000005
     },
     "source_port_id": "source_port_88",
@@ -27225,7 +27225,7 @@
     "schematic_port_id": "schematic_port_86",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.2800000000000007
     },
     "source_port_id": "source_port_89",
@@ -27243,7 +27243,7 @@
     "schematic_port_id": "schematic_port_87",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.4800000000000009
     },
     "source_port_id": "source_port_90",
@@ -27261,7 +27261,7 @@
     "schematic_port_id": "schematic_port_88",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.680000000000001
     },
     "source_port_id": "source_port_91",
@@ -27279,7 +27279,7 @@
     "schematic_port_id": "schematic_port_89",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.8800000000000012
     },
     "source_port_id": "source_port_92",
@@ -27297,7 +27297,7 @@
     "schematic_port_id": "schematic_port_90",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -2.0800000000000014
     },
     "source_port_id": "source_port_93",
@@ -27315,7 +27315,7 @@
     "schematic_port_id": "schematic_port_91",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -1.9800000000000013
     },
     "source_port_id": "source_port_94",
@@ -27333,7 +27333,7 @@
     "schematic_port_id": "schematic_port_92",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -1.7800000000000011
     },
     "source_port_id": "source_port_95",
@@ -27351,7 +27351,7 @@
     "schematic_port_id": "schematic_port_93",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -1.5800000000000014
     },
     "source_port_id": "source_port_96",
@@ -27369,7 +27369,7 @@
     "schematic_port_id": "schematic_port_94",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -1.3800000000000012
     },
     "source_port_id": "source_port_97",
@@ -27387,7 +27387,7 @@
     "schematic_port_id": "schematic_port_95",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -1.1800000000000015
     },
     "source_port_id": "source_port_98",
@@ -27405,7 +27405,7 @@
     "schematic_port_id": "schematic_port_96",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.9800000000000013
     },
     "source_port_id": "source_port_99",
@@ -27423,7 +27423,7 @@
     "schematic_port_id": "schematic_port_97",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.7800000000000014
     },
     "source_port_id": "source_port_100",
@@ -27441,7 +27441,7 @@
     "schematic_port_id": "schematic_port_98",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.5800000000000014
     },
     "source_port_id": "source_port_101",
@@ -27459,7 +27459,7 @@
     "schematic_port_id": "schematic_port_99",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.38000000000000145
     },
     "source_port_id": "source_port_102",
@@ -27477,7 +27477,7 @@
     "schematic_port_id": "schematic_port_100",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.1800000000000015
     },
     "source_port_id": "source_port_103",
@@ -27495,7 +27495,7 @@
     "schematic_port_id": "schematic_port_101",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.019999999999998463
     },
     "source_port_id": "source_port_104",
@@ -27513,7 +27513,7 @@
     "schematic_port_id": "schematic_port_102",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.21999999999999842
     },
     "source_port_id": "source_port_105",
@@ -27531,7 +27531,7 @@
     "schematic_port_id": "schematic_port_103",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.4199999999999986
     },
     "source_port_id": "source_port_106",
@@ -27549,7 +27549,7 @@
     "schematic_port_id": "schematic_port_104",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.6199999999999988
     },
     "source_port_id": "source_port_107",
@@ -27567,7 +27567,7 @@
     "schematic_port_id": "schematic_port_105",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.819999999999999
     },
     "source_port_id": "source_port_108",
@@ -27585,7 +27585,7 @@
     "schematic_port_id": "schematic_port_106",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.0199999999999991
     },
     "source_port_id": "source_port_109",
@@ -27603,7 +27603,7 @@
     "schematic_port_id": "schematic_port_107",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.2199999999999993
     },
     "source_port_id": "source_port_110",
@@ -27621,7 +27621,7 @@
     "schematic_port_id": "schematic_port_108",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.4199999999999995
     },
     "source_port_id": "source_port_111",
@@ -27639,7 +27639,7 @@
     "schematic_port_id": "schematic_port_109",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.6199999999999997
     },
     "source_port_id": "source_port_112",
@@ -27657,7 +27657,7 @@
     "schematic_port_id": "schematic_port_110",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.8199999999999998
     },
     "source_port_id": "source_port_113",
@@ -27675,7 +27675,7 @@
     "schematic_port_id": "schematic_port_111",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.0199999999999996
     },
     "source_port_id": "source_port_114",
@@ -27693,7 +27693,7 @@
     "schematic_port_id": "schematic_port_112",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.2199999999999998
     },
     "source_port_id": "source_port_115",
@@ -27711,7 +27711,7 @@
     "schematic_port_id": "schematic_port_113",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.42
     },
     "source_port_id": "source_port_116",
@@ -27729,7 +27729,7 @@
     "schematic_port_id": "schematic_port_114",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.62
     },
     "source_port_id": "source_port_117",
@@ -27747,7 +27747,7 @@
     "schematic_port_id": "schematic_port_115",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.8200000000000003
     },
     "source_port_id": "source_port_118",
@@ -27765,7 +27765,7 @@
     "schematic_port_id": "schematic_port_116",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.0200000000000005
     },
     "source_port_id": "source_port_119",
@@ -27783,7 +27783,7 @@
     "schematic_port_id": "schematic_port_117",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.2200000000000006
     },
     "source_port_id": "source_port_120",
@@ -27801,7 +27801,7 @@
     "schematic_port_id": "schematic_port_118",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.420000000000001
     },
     "source_port_id": "source_port_121",
@@ -27819,7 +27819,7 @@
     "schematic_port_id": "schematic_port_119",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.620000000000001
     },
     "source_port_id": "source_port_122",
@@ -27837,7 +27837,7 @@
     "schematic_port_id": "schematic_port_120",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.820000000000001
     },
     "source_port_id": "source_port_123",
@@ -27855,7 +27855,7 @@
     "schematic_port_id": "schematic_port_121",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 4.020000000000001
     },
     "source_port_id": "source_port_124",
@@ -27873,7 +27873,7 @@
     "schematic_port_id": "schematic_port_122",
     "schematic_component_id": "schematic_component_21",
     "center": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 4.2200000000000015
     },
     "source_port_id": "source_port_125",
@@ -27883,7 +27883,7 @@
     "pin_number": 65,
     "true_ccw_index": 64,
     "display_pin_label": "EP_VSS",
-    "is_connected": true,
+    "is_connected": false,
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
@@ -27901,7 +27901,7 @@
     "pin_number": 1,
     "true_ccw_index": 0,
     "display_pin_label": "X1",
-    "is_connected": false,
+    "is_connected": true,
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
@@ -27919,7 +27919,7 @@
     "pin_number": 2,
     "true_ccw_index": 1,
     "display_pin_label": "GND1",
-    "is_connected": true,
+    "is_connected": false,
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
@@ -28035,7 +28035,7 @@
     "distance_from_component_edge": 0.4,
     "pin_number": 1,
     "display_pin_label": "pos",
-    "is_connected": true,
+    "is_connected": false,
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
@@ -28451,7 +28451,7 @@
     "distance_from_component_edge": 0.4,
     "pin_number": 1,
     "display_pin_label": "anode",
-    "is_connected": false,
+    "is_connected": true,
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
@@ -37907,106 +37907,56 @@
   {
     "type": "schematic_trace",
     "schematic_trace_id": "schematic_trace_46",
-    "source_trace_id": "schematic_port_120-schematic_port_129",
+    "source_trace_id": "schematic_port_81-schematic_port_157",
     "edges": [
       {
         "from": {
-          "x": 1.35,
-          "y": 3.820000000000001
+          "x": -2.4000000000000004,
+          "y": -0.2799999999999998
         },
         "to": {
-          "x": 2.1450000000000005,
-          "y": 3.820000000000001
+          "x": -5.900000000000001,
+          "y": -0.2799999999999998
         }
       },
       {
         "from": {
-          "x": 2.1450000000000005,
-          "y": 3.820000000000001
+          "x": -5.900000000000001,
+          "y": -0.2799999999999998
         },
         "to": {
-          "x": 2.1450000000000005,
-          "y": 4.48
+          "x": -5.900000000000001,
+          "y": -3.3600000000000003
         }
       },
       {
         "from": {
-          "x": 2.1450000000000005,
-          "y": 4.48
+          "x": -5.900000000000001,
+          "y": -3.3600000000000003
         },
         "to": {
-          "x": 2.9400000000000004,
-          "y": 4.48
+          "x": -5.700000000000001,
+          "y": -3.3600000000000003
         }
       },
       {
         "from": {
-          "x": 2.9400000000000004,
-          "y": 4.48
+          "x": -5.700000000000001,
+          "y": -3.3600000000000003
         },
         "to": {
-          "x": 3.0600000000000005,
-          "y": 4.48
+          "x": -5.340000000000001,
+          "y": -3.3600000000000003
         }
       }
     ],
     "junctions": [],
-    "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net60",
+    "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net9",
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
     "type": "schematic_trace",
     "schematic_trace_id": "schematic_trace_47",
-    "source_trace_id": "schematic_port_57-schematic_port_164",
-    "edges": [
-      {
-        "from": {
-          "x": -5.620000000000001,
-          "y": 2.24
-        },
-        "to": {
-          "x": -3.4000000000000004,
-          "y": 2.24
-        }
-      },
-      {
-        "from": {
-          "x": -3.4000000000000004,
-          "y": 2.24
-        },
-        "to": {
-          "x": -3.4000000000000004,
-          "y": 4.760000000000001
-        }
-      },
-      {
-        "from": {
-          "x": -3.4000000000000004,
-          "y": 4.760000000000001
-        },
-        "to": {
-          "x": -3.6000000000000005,
-          "y": 4.760000000000001
-        }
-      },
-      {
-        "from": {
-          "x": -3.6000000000000005,
-          "y": 4.760000000000001
-        },
-        "to": {
-          "x": -3.9000000000000004,
-          "y": 4.760000000000001
-        }
-      }
-    ],
-    "junctions": [],
-    "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net1",
-    "schematic_sheet_id": "schematic_sheet_1"
-  },
-  {
-    "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_48",
     "source_trace_id": "schematic_port_135-schematic_port_147",
     "edges": [
       {
@@ -38066,67 +38016,7 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_49",
-    "source_trace_id": "schematic_port_127-schematic_port_131",
-    "edges": [
-      {
-        "from": {
-          "x": 4.740000000000001,
-          "y": -2.8000000000000003
-        },
-        "to": {
-          "x": 4.680000000000001,
-          "y": -2.8000000000000003
-        }
-      },
-      {
-        "from": {
-          "x": 4.680000000000001,
-          "y": -2.8000000000000003
-        },
-        "to": {
-          "x": 3.3000000000000007,
-          "y": -2.8000000000000003
-        }
-      },
-      {
-        "from": {
-          "x": 3.3000000000000007,
-          "y": -2.8000000000000003
-        },
-        "to": {
-          "x": 3.3000000000000007,
-          "y": -4.760000000000001
-        }
-      },
-      {
-        "from": {
-          "x": 3.3000000000000007,
-          "y": -4.760000000000001
-        },
-        "to": {
-          "x": 3.500000000000001,
-          "y": -4.760000000000001
-        }
-      },
-      {
-        "from": {
-          "x": 3.500000000000001,
-          "y": -4.760000000000001
-        },
-        "to": {
-          "x": 3.6200000000000006,
-          "y": -4.760000000000001
-        }
-      }
-    ],
-    "junctions": [],
-    "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net58",
-    "schematic_sheet_id": "schematic_sheet_1"
-  },
-  {
-    "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_50",
+    "schematic_trace_id": "schematic_trace_48",
     "source_trace_id": "schematic_port_144-schematic_port_132",
     "edges": [
       {
@@ -38199,7 +38089,7 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_51",
+    "schematic_trace_id": "schematic_trace_49",
     "source_trace_id": "schematic_port_156-schematic_port_144",
     "edges": [
       {
@@ -38264,7 +38154,7 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_52",
+    "schematic_trace_id": "schematic_trace_50",
     "source_trace_id": "schematic_port_154-schematic_port_142",
     "edges": [
       {
@@ -38324,43 +38214,43 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_53",
+    "schematic_trace_id": "schematic_trace_51",
     "source_trace_id": "schematic_port_109-schematic_port_103",
     "edges": [
       {
         "from": {
-          "x": 1.35,
+          "x": 2.4,
           "y": 1.6199999999999997
         },
         "to": {
-          "x": 2.7710000000000004,
+          "x": 3.821,
           "y": 1.6199999999999997
         }
       },
       {
         "from": {
-          "x": 2.7710000000000004,
+          "x": 3.821,
           "y": 1.6199999999999997
         },
         "to": {
-          "x": 2.7710000000000004,
+          "x": 3.821,
           "y": 0.4199999999999987
         }
       },
       {
         "from": {
-          "x": 2.7710000000000004,
+          "x": 3.821,
           "y": 0.4199999999999987
         },
         "to": {
-          "x": 1.35,
+          "x": 2.4,
           "y": 0.4199999999999986
         }
       }
     ],
     "junctions": [
       {
-        "x": 2.7710000000000004,
+        "x": 3.821,
         "y": 1.6199999999999997
       }
     ],
@@ -38369,48 +38259,48 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_54",
+    "schematic_trace_id": "schematic_trace_52",
     "source_trace_id": "schematic_port_114-schematic_port_109",
     "edges": [
       {
         "from": {
-          "x": 1.35,
+          "x": 2.4,
           "y": 2.62
         },
         "to": {
-          "x": 2.7710000000000004,
+          "x": 3.821,
           "y": 2.6200000000000006
         }
       },
       {
         "from": {
-          "x": 2.7710000000000004,
+          "x": 3.821,
           "y": 2.6200000000000006
         },
         "to": {
-          "x": 2.7710000000000004,
+          "x": 3.821,
           "y": 1.6199999999999999
         }
       },
       {
         "from": {
-          "x": 2.7710000000000004,
+          "x": 3.821,
           "y": 1.6199999999999999
         },
         "to": {
-          "x": 1.35,
+          "x": 2.4,
           "y": 1.6199999999999997
         }
       }
     ],
     "junctions": [
       {
-        "x": 2.7710000000000004,
+        "x": 3.821,
         "y": 1.6199999999999999
       },
       {
-        "x": 2.7710000000000004,
-        "y": 2.6200000000000006
+        "x": 2.6,
+        "y": 2.62
       }
     ],
     "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net9",
@@ -38418,86 +38308,44 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_55",
+    "schematic_trace_id": "schematic_trace_53",
     "source_trace_id": "schematic_port_121-schematic_port_114",
     "edges": [
       {
         "from": {
-          "x": 1.35,
+          "x": 2.4,
           "y": 4.020000000000001
         },
         "to": {
-          "x": 2.1075,
+          "x": 2.6,
           "y": 4.020000000000001
         }
       },
       {
         "from": {
-          "x": 2.1075,
+          "x": 2.6,
           "y": 4.020000000000001
         },
         "to": {
-          "x": 2.1825,
-          "y": 4.020000000000001
-        },
-        "is_crossing": true
-      },
-      {
-        "from": {
-          "x": 2.1825,
-          "y": 4.020000000000001
-        },
-        "to": {
-          "x": 2.9035,
-          "y": 4.020000000000001
-        }
-      },
-      {
-        "from": {
-          "x": 2.9035,
-          "y": 4.020000000000001
-        },
-        "to": {
-          "x": 2.9785000000000004,
-          "y": 4.020000000000001
-        },
-        "is_crossing": true
-      },
-      {
-        "from": {
-          "x": 2.9785000000000004,
-          "y": 4.020000000000001
-        },
-        "to": {
-          "x": 3.281000000000001,
-          "y": 4.020000000000001
-        }
-      },
-      {
-        "from": {
-          "x": 3.281000000000001,
-          "y": 4.020000000000001
-        },
-        "to": {
-          "x": 3.281000000000001,
+          "x": 2.6,
           "y": 2.62
         }
       },
       {
         "from": {
-          "x": 3.281000000000001,
+          "x": 2.6,
           "y": 2.62
         },
         "to": {
-          "x": 1.35,
+          "x": 2.4,
           "y": 2.62
         }
       }
     ],
     "junctions": [
       {
-        "x": 2.7710000000000004,
-        "y": 2.6200000000000006
+        "x": 2.6,
+        "y": 2.62
       }
     ],
     "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net9",
@@ -38505,36 +38353,36 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_56",
+    "schematic_trace_id": "schematic_trace_54",
     "source_trace_id": "schematic_port_67-schematic_port_62",
     "edges": [
       {
         "from": {
-          "x": -1.35,
+          "x": -2.4,
           "y": 2.520000000000002
         },
         "to": {
-          "x": -2.531,
+          "x": -3.581,
           "y": 2.520000000000001
         }
       },
       {
         "from": {
-          "x": -2.531,
+          "x": -3.581,
           "y": 2.520000000000001
         },
         "to": {
-          "x": -2.531,
+          "x": -3.581,
           "y": 3.520000000000002
         }
       },
       {
         "from": {
-          "x": -2.531,
+          "x": -3.581,
           "y": 3.520000000000002
         },
         "to": {
-          "x": -1.35,
+          "x": -2.4,
           "y": 3.5200000000000014
         }
       }
@@ -38545,138 +38393,178 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_57",
-    "source_trace_id": "schematic_port_130-schematic_port_124",
+    "schematic_trace_id": "schematic_trace_55",
+    "source_trace_id": "schematic_port_120-schematic_port_129",
     "edges": [
       {
         "from": {
-          "x": 3.66,
-          "y": 4.48
+          "x": 2.4,
+          "y": 3.820000000000001
         },
         "to": {
-          "x": 3.7800000000000002,
-          "y": 4.48
+          "x": 2.5625,
+          "y": 3.820000000000001
         }
       },
       {
         "from": {
-          "x": 3.7800000000000002,
-          "y": 4.48
+          "x": 2.5625,
+          "y": 3.820000000000001
         },
         "to": {
-          "x": 3.9800000000000004,
-          "y": 4.48
-        }
-      },
-      {
-        "from": {
-          "x": 3.9800000000000004,
-          "y": 4.48
-        },
-        "to": {
-          "x": 3.9800000000000004,
-          "y": 1.6300000000000001
-        }
-      },
-      {
-        "from": {
-          "x": 3.9800000000000004,
-          "y": 1.6300000000000001
-        },
-        "to": {
-          "x": 3.5509999999999997,
-          "y": 1.6300000000000001
-        }
-      },
-      {
-        "from": {
-          "x": 3.5509999999999997,
-          "y": 1.6300000000000001
-        },
-        "to": {
-          "x": 3.5509999999999997,
-          "y": -0.82
-        }
-      },
-      {
-        "from": {
-          "x": 3.5509999999999997,
-          "y": -0.82
-        },
-        "to": {
-          "x": 3.069000000000001,
-          "y": -0.82
-        }
-      },
-      {
-        "from": {
-          "x": 3.069000000000001,
-          "y": -0.82
-        },
-        "to": {
-          "x": 3.069000000000001,
-          "y": -1.2200000000000002
-        }
-      },
-      {
-        "from": {
-          "x": 3.069000000000001,
-          "y": -1.2200000000000002
-        },
-        "to": {
-          "x": 3.8900000000000006,
-          "y": -1.2200000000000002
-        }
-      }
-    ],
-    "junctions": [],
-    "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net1",
-    "schematic_sheet_id": "schematic_sheet_1"
-  },
-  {
-    "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_58",
-    "source_trace_id": "available-net-orientation-10-GND",
-    "edges": [
-      {
-        "from": {
-          "x": 1.35,
-          "y": 4.2200000000000015
-        },
-        "to": {
-          "x": 2.1075,
-          "y": 4.2200000000000015
-        }
-      },
-      {
-        "from": {
-          "x": 2.1075,
-          "y": 4.2200000000000015
-        },
-        "to": {
-          "x": 2.1825,
-          "y": 4.2200000000000015
+          "x": 2.6374999999999997,
+          "y": 3.820000000000001
         },
         "is_crossing": true
       },
       {
         "from": {
-          "x": 2.1825,
-          "y": 4.2200000000000015
+          "x": 2.6374999999999997,
+          "y": 3.820000000000001
         },
         "to": {
-          "x": 2.9410000000000007,
+          "x": 2.67,
+          "y": 3.820000000000001
+        }
+      },
+      {
+        "from": {
+          "x": 2.67,
+          "y": 3.820000000000001
+        },
+        "to": {
+          "x": 2.67,
+          "y": 4.020000000000002
+        }
+      },
+      {
+        "from": {
+          "x": 2.67,
+          "y": 4.020000000000002
+        },
+        "to": {
+          "x": 2.921,
+          "y": 4.020000000000002
+        }
+      },
+      {
+        "from": {
+          "x": 2.921,
+          "y": 4.020000000000002
+        },
+        "to": {
+          "x": 2.921,
+          "y": 4.48
+        }
+      },
+      {
+        "from": {
+          "x": 2.921,
+          "y": 4.48
+        },
+        "to": {
+          "x": 2.9400000000000004,
+          "y": 4.48
+        }
+      },
+      {
+        "from": {
+          "x": 2.9400000000000004,
+          "y": 4.48
+        },
+        "to": {
+          "x": 3.0600000000000005,
+          "y": 4.48
+        }
+      }
+    ],
+    "junctions": [],
+    "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net60",
+    "schematic_sheet_id": "schematic_sheet_1"
+  },
+  {
+    "type": "schematic_trace",
+    "schematic_trace_id": "schematic_trace_56",
+    "source_trace_id": "schematic_port_57-schematic_port_164",
+    "edges": [
+      {
+        "from": {
+          "x": -5.620000000000001,
+          "y": 2.24
+        },
+        "to": {
+          "x": -3.881,
+          "y": 2.24
+        }
+      },
+      {
+        "from": {
+          "x": -3.881,
+          "y": 2.24
+        },
+        "to": {
+          "x": -3.881,
           "y": 4.2200000000000015
         }
       },
       {
         "from": {
-          "x": 2.9410000000000007,
+          "x": -3.881,
           "y": 4.2200000000000015
         },
         "to": {
-          "x": 2.9410000000000007,
-          "y": 3.519000000000001
+          "x": -3.581,
+          "y": 4.2200000000000015
+        }
+      },
+      {
+        "from": {
+          "x": -3.581,
+          "y": 4.2200000000000015
+        },
+        "to": {
+          "x": -3.581,
+          "y": 4.120000000000001
+        }
+      },
+      {
+        "from": {
+          "x": -3.581,
+          "y": 4.120000000000001
+        },
+        "to": {
+          "x": -3.4000000000000004,
+          "y": 4.120000000000001
+        }
+      },
+      {
+        "from": {
+          "x": -3.4000000000000004,
+          "y": 4.120000000000001
+        },
+        "to": {
+          "x": -3.4000000000000004,
+          "y": 4.760000000000001
+        }
+      },
+      {
+        "from": {
+          "x": -3.4000000000000004,
+          "y": 4.760000000000001
+        },
+        "to": {
+          "x": -3.6000000000000005,
+          "y": 4.760000000000001
+        }
+      },
+      {
+        "from": {
+          "x": -3.6000000000000005,
+          "y": 4.760000000000001
+        },
+        "to": {
+          "x": -3.9000000000000004,
+          "y": 4.760000000000001
         }
       }
     ],
@@ -38686,7 +38574,117 @@
   },
   {
     "type": "schematic_trace",
-    "schematic_trace_id": "schematic_trace_59",
+    "schematic_trace_id": "schematic_trace_57",
+    "source_trace_id": "schematic_port_123-schematic_port_127",
+    "edges": [
+      {
+        "from": {
+          "x": 3.8900000000000006,
+          "y": -1.02
+        },
+        "to": {
+          "x": 3.3690000000000007,
+          "y": -1.02
+        }
+      },
+      {
+        "from": {
+          "x": 3.3690000000000007,
+          "y": -1.02
+        },
+        "to": {
+          "x": 3.3690000000000007,
+          "y": -1.4200000000000004
+        }
+      },
+      {
+        "from": {
+          "x": 3.3690000000000007,
+          "y": -1.4200000000000004
+        },
+        "to": {
+          "x": 3.6900000000000004,
+          "y": -1.4200000000000004
+        }
+      },
+      {
+        "from": {
+          "x": 3.6900000000000004,
+          "y": -1.4200000000000004
+        },
+        "to": {
+          "x": 3.6900000000000004,
+          "y": -1.580000000000001
+        }
+      },
+      {
+        "from": {
+          "x": 3.6900000000000004,
+          "y": -1.580000000000001
+        },
+        "to": {
+          "x": 3.821,
+          "y": -1.580000000000001
+        }
+      },
+      {
+        "from": {
+          "x": 3.821,
+          "y": -1.580000000000001
+        },
+        "to": {
+          "x": 3.821,
+          "y": -2.1800000000000015
+        }
+      },
+      {
+        "from": {
+          "x": 3.821,
+          "y": -2.1800000000000015
+        },
+        "to": {
+          "x": 3.6900000000000004,
+          "y": -2.1800000000000015
+        }
+      },
+      {
+        "from": {
+          "x": 3.6900000000000004,
+          "y": -2.1800000000000015
+        },
+        "to": {
+          "x": 3.6900000000000004,
+          "y": -2.8000000000000003
+        }
+      },
+      {
+        "from": {
+          "x": 3.6900000000000004,
+          "y": -2.8000000000000003
+        },
+        "to": {
+          "x": 4.680000000000001,
+          "y": -2.8000000000000003
+        }
+      },
+      {
+        "from": {
+          "x": 4.680000000000001,
+          "y": -2.8000000000000003
+        },
+        "to": {
+          "x": 4.740000000000001,
+          "y": -2.8000000000000003
+        }
+      }
+    ],
+    "junctions": [],
+    "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net58",
+    "schematic_sheet_id": "schematic_sheet_1"
+  },
+  {
+    "type": "schematic_trace",
+    "schematic_trace_id": "schematic_trace_58",
     "source_trace_id": "available-net-orientation-12-GND",
     "edges": [
       {
@@ -38716,8 +38714,48 @@
   },
   {
     "type": "schematic_trace",
+    "schematic_trace_id": "schematic_trace_59",
+    "source_trace_id": "available-net-orientation-13-GND",
+    "edges": [
+      {
+        "from": {
+          "x": 3.66,
+          "y": 4.48
+        },
+        "to": {
+          "x": 3.7800000000000002,
+          "y": 4.48
+        }
+      },
+      {
+        "from": {
+          "x": 3.7800000000000002,
+          "y": 4.48
+        },
+        "to": {
+          "x": 4.071000000000001,
+          "y": 4.48
+        }
+      },
+      {
+        "from": {
+          "x": 4.071000000000001,
+          "y": 4.48
+        },
+        "to": {
+          "x": 4.071000000000001,
+          "y": 4.429
+        }
+      }
+    ],
+    "junctions": [],
+    "subcircuit_connectivity_map_key": "unnamedsubcircuitsubcircuit_source_group_22_connectivity_net1",
+    "schematic_sheet_id": "schematic_sheet_1"
+  },
+  {
+    "type": "schematic_trace",
     "schematic_trace_id": "schematic_trace_60",
-    "source_trace_id": "available-net-orientation-14-GND",
+    "source_trace_id": "available-net-orientation-15-GND",
     "edges": [
       {
         "from": {
@@ -38757,7 +38795,7 @@
   {
     "type": "schematic_trace",
     "schematic_trace_id": "schematic_trace_61",
-    "source_trace_id": "available-net-orientation-16-GND",
+    "source_trace_id": "available-net-orientation-17-GND",
     "edges": [
       {
         "from": {
@@ -38812,7 +38850,7 @@
   {
     "type": "schematic_trace",
     "schematic_trace_id": "schematic_trace_62",
-    "source_trace_id": "available-net-orientation-18-GND",
+    "source_trace_id": "available-net-orientation-19-GND",
     "edges": [
       {
         "from": {
@@ -38852,7 +38890,7 @@
   {
     "type": "schematic_trace",
     "schematic_trace_id": "schematic_trace_63",
-    "source_trace_id": "available-net-orientation-19-GND",
+    "source_trace_id": "available-net-orientation-20-GND",
     "edges": [
       {
         "from": {
@@ -38959,11 +38997,11 @@
     "text": "UP_HUB_N",
     "source_net_id": "source_net_13",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.8200000000000003
     },
     "center": {
-      "x": 1.8900000000000001,
+      "x": 2.94,
       "y": 2.8200000000000003
     },
     "anchor_side": "left",
@@ -39007,11 +39045,11 @@
     "text": "UP_HUB_P",
     "source_net_id": "source_net_14",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.0200000000000005
     },
     "center": {
-      "x": 1.8900000000000001,
+      "x": 2.94,
       "y": 3.0200000000000005
     },
     "anchor_side": "left",
@@ -39039,11 +39077,11 @@
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
-      "x": -3.4000000000000004,
+      "x": -3.881,
       "y": 2.24
     },
     "center": {
-      "x": -3.4000000000000004,
+      "x": -3.881,
       "y": 2.1500000000000004
     },
     "anchor_side": "top",
@@ -39056,16 +39094,15 @@
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
-      "x": 2.9410000000000007,
-      "y": 3.519000000000001
+      "x": 2.4,
+      "y": 4.2200000000000015
     },
     "center": {
-      "x": 2.9410000000000007,
-      "y": 3.429000000000001
+      "x": 2.6399999999999997,
+      "y": 4.2200000000000015
     },
-    "anchor_side": "top",
-    "schematic_sheet_id": "schematic_sheet_1",
-    "symbol_name": "rail_down"
+    "anchor_side": "left",
+    "schematic_sheet_id": "schematic_sheet_1"
   },
   {
     "type": "schematic_net_label",
@@ -39073,16 +39110,15 @@
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
-      "x": 3.5509999999999997,
-      "y": -1.2200000000000004
+      "x": 3.890000000000001,
+      "y": -1.2200000000000002
     },
     "center": {
-      "x": 3.5509999999999997,
-      "y": -1.3100000000000005
+      "x": 3.6500000000000012,
+      "y": -1.2200000000000002
     },
-    "anchor_side": "top",
-    "schematic_sheet_id": "schematic_sheet_1",
-    "symbol_name": "rail_down"
+    "anchor_side": "right",
+    "schematic_sheet_id": "schematic_sheet_1"
   },
   {
     "type": "schematic_net_label",
@@ -39107,6 +39143,23 @@
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
+      "x": 4.071000000000001,
+      "y": 4.429
+    },
+    "center": {
+      "x": 4.071000000000001,
+      "y": 4.339
+    },
+    "anchor_side": "top",
+    "schematic_sheet_id": "schematic_sheet_1",
+    "symbol_name": "rail_down"
+  },
+  {
+    "type": "schematic_net_label",
+    "schematic_net_label_id": "schematic_net_label_64",
+    "text": "GND",
+    "source_net_id": "source_net_1",
+    "anchor_position": {
       "x": 4.840000000000001,
       "y": -8.96
     },
@@ -39120,7 +39173,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_64",
+    "schematic_net_label_id": "schematic_net_label_65",
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
@@ -39137,7 +39190,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_65",
+    "schematic_net_label_id": "schematic_net_label_66",
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
@@ -39154,7 +39207,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_66",
+    "schematic_net_label_id": "schematic_net_label_67",
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
@@ -39171,7 +39224,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_67",
+    "schematic_net_label_id": "schematic_net_label_68",
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
@@ -39187,7 +39240,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_68",
+    "schematic_net_label_id": "schematic_net_label_69",
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
@@ -39204,7 +39257,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_69",
+    "schematic_net_label_id": "schematic_net_label_70",
     "text": "GND",
     "source_net_id": "source_net_1",
     "anchor_position": {
@@ -39221,32 +39274,16 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_70",
+    "schematic_net_label_id": "schematic_net_label_71",
     "text": "MGMT_P",
     "source_net_id": "source_net_15",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 4.320000000000002
     },
     "center": {
-      "x": -1.77,
+      "x": -2.82,
       "y": 4.320000000000002
-    },
-    "anchor_side": "right",
-    "schematic_sheet_id": "schematic_sheet_1"
-  },
-  {
-    "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_71",
-    "text": "MGMT_N",
-    "source_net_id": "source_net_16",
-    "anchor_position": {
-      "x": -1.35,
-      "y": 4.120000000000001
-    },
-    "center": {
-      "x": -1.77,
-      "y": 4.120000000000001
     },
     "anchor_side": "right",
     "schematic_sheet_id": "schematic_sheet_1"
@@ -39254,15 +39291,15 @@
   {
     "type": "schematic_net_label",
     "schematic_net_label_id": "schematic_net_label_72",
-    "text": "P1_HUB_N",
-    "source_net_id": "source_net_17",
+    "text": "MGMT_N",
+    "source_net_id": "source_net_16",
     "anchor_position": {
-      "x": -1.35,
-      "y": 3.9200000000000017
+      "x": -2.4,
+      "y": 4.120000000000001
     },
     "center": {
-      "x": -1.8900000000000001,
-      "y": 3.9200000000000017
+      "x": -2.82,
+      "y": 4.120000000000001
     },
     "anchor_side": "right",
     "schematic_sheet_id": "schematic_sheet_1"
@@ -39270,15 +39307,15 @@
   {
     "type": "schematic_net_label",
     "schematic_net_label_id": "schematic_net_label_73",
-    "text": "P1_HUB_P",
-    "source_net_id": "source_net_18",
+    "text": "P1_HUB_N",
+    "source_net_id": "source_net_17",
     "anchor_position": {
-      "x": -1.35,
-      "y": 3.7200000000000015
+      "x": -2.4,
+      "y": 3.9200000000000017
     },
     "center": {
-      "x": -1.8900000000000001,
-      "y": 3.7200000000000015
+      "x": -2.94,
+      "y": 3.9200000000000017
     },
     "anchor_side": "right",
     "schematic_sheet_id": "schematic_sheet_1"
@@ -39286,17 +39323,17 @@
   {
     "type": "schematic_net_label",
     "schematic_net_label_id": "schematic_net_label_74",
-    "text": "N3V3_MAIN",
-    "source_net_id": "source_net_9",
+    "text": "P1_HUB_P",
+    "source_net_id": "source_net_18",
     "anchor_position": {
-      "x": -2.531,
-      "y": 3.520000000000002
+      "x": -2.4,
+      "y": 3.7200000000000015
     },
     "center": {
-      "x": -2.531,
-      "y": 3.6100000000000017
+      "x": -2.94,
+      "y": 3.7200000000000015
     },
-    "anchor_side": "bottom",
+    "anchor_side": "right",
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
@@ -39305,14 +39342,14 @@
     "text": "N3V3_MAIN",
     "source_net_id": "source_net_9",
     "anchor_position": {
-      "x": -1.35,
-      "y": -0.2799999999999998
+      "x": -2.9905,
+      "y": 2.5200000000000014
     },
     "center": {
-      "x": -1.9500000000000002,
-      "y": -0.2799999999999998
+      "x": -2.9905,
+      "y": 2.4300000000000015
     },
-    "anchor_side": "right",
+    "anchor_side": "top",
     "schematic_sheet_id": "schematic_sheet_1"
   },
   {
@@ -39321,12 +39358,12 @@
     "text": "N3V3_MAIN",
     "source_net_id": "source_net_9",
     "anchor_position": {
-      "x": 2.7710000000000004,
-      "y": 1.0199999999999991
+      "x": -5.900000000000001,
+      "y": -0.2799999999999998
     },
     "center": {
-      "x": 2.1710000000000003,
-      "y": 1.0199999999999991
+      "x": -6.500000000000002,
+      "y": -0.2799999999999998
     },
     "anchor_side": "right",
     "schematic_sheet_id": "schematic_sheet_1"
@@ -39334,6 +39371,22 @@
   {
     "type": "schematic_net_label",
     "schematic_net_label_id": "schematic_net_label_77",
+    "text": "N3V3_MAIN",
+    "source_net_id": "source_net_9",
+    "anchor_position": {
+      "x": 3.821,
+      "y": 1.6199999999999997
+    },
+    "center": {
+      "x": 4.421,
+      "y": 1.6199999999999997
+    },
+    "anchor_side": "left",
+    "schematic_sheet_id": "schematic_sheet_1"
+  },
+  {
+    "type": "schematic_net_label",
+    "schematic_net_label_id": "schematic_net_label_78",
     "text": "N3V3_MAIN",
     "source_net_id": "source_net_9",
     "anchor_position": {
@@ -39349,7 +39402,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_78",
+    "schematic_net_label_id": "schematic_net_label_79",
     "text": "N3V3_MAIN",
     "source_net_id": "source_net_9",
     "anchor_position": {
@@ -39365,7 +39418,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_79",
+    "schematic_net_label_id": "schematic_net_label_80",
     "text": "N3V3_MAIN",
     "source_net_id": "source_net_9",
     "anchor_position": {
@@ -39381,7 +39434,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_80",
+    "schematic_net_label_id": "schematic_net_label_81",
     "text": "N3V3_MAIN",
     "source_net_id": "source_net_9",
     "anchor_position": {
@@ -39397,7 +39450,7 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_81",
+    "schematic_net_label_id": "schematic_net_label_82",
     "text": "N3V3_MAIN",
     "source_net_id": "source_net_9",
     "anchor_position": {
@@ -39413,31 +39466,15 @@
   },
   {
     "type": "schematic_net_label",
-    "schematic_net_label_id": "schematic_net_label_82",
-    "text": "N3V3_MAIN",
-    "source_net_id": "source_net_9",
-    "anchor_position": {
-      "x": -5.340000000000001,
-      "y": -3.3600000000000003
-    },
-    "center": {
-      "x": -5.940000000000001,
-      "y": -3.3600000000000003
-    },
-    "anchor_side": "right",
-    "schematic_sheet_id": "schematic_sheet_1"
-  },
-  {
-    "type": "schematic_net_label",
     "schematic_net_label_id": "schematic_net_label_83",
     "text": "P2_HUB_N",
     "source_net_id": "source_net_19",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 3.3200000000000016
     },
     "center": {
-      "x": -1.8900000000000001,
+      "x": -2.94,
       "y": 3.3200000000000016
     },
     "anchor_side": "right",
@@ -39449,11 +39486,11 @@
     "text": "P2_HUB_P",
     "source_net_id": "source_net_20",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 3.120000000000002
     },
     "center": {
-      "x": -1.8900000000000001,
+      "x": -2.94,
       "y": 3.120000000000002
     },
     "anchor_side": "right",
@@ -39465,11 +39502,11 @@
     "text": "P3_HUB_N",
     "source_net_id": "source_net_21",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.9200000000000017
     },
     "center": {
-      "x": -1.8900000000000001,
+      "x": -2.94,
       "y": 2.9200000000000017
     },
     "anchor_side": "right",
@@ -39481,11 +39518,11 @@
     "text": "P3_HUB_P",
     "source_net_id": "source_net_22",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.7200000000000015
     },
     "center": {
-      "x": -1.8900000000000001,
+      "x": -2.94,
       "y": 2.7200000000000015
     },
     "anchor_side": "right",
@@ -39497,11 +39534,11 @@
     "text": "P4_HUB_N",
     "source_net_id": "source_net_23",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.320000000000002
     },
     "center": {
-      "x": -1.8900000000000001,
+      "x": -2.94,
       "y": 2.320000000000002
     },
     "anchor_side": "right",
@@ -39513,11 +39550,11 @@
     "text": "P4_HUB_P",
     "source_net_id": "source_net_24",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 2.120000000000002
     },
     "center": {
-      "x": -1.8900000000000001,
+      "x": -2.94,
       "y": 2.120000000000002
     },
     "anchor_side": "right",
@@ -39529,11 +39566,11 @@
     "text": "HUB_CFG2",
     "source_net_id": "source_net_25",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 1.9200000000000017
     },
     "center": {
-      "x": -1.8900000000000001,
+      "x": -2.94,
       "y": 1.9200000000000017
     },
     "anchor_side": "right",
@@ -39545,11 +39582,11 @@
     "text": "HUB_SWAP7",
     "source_net_id": "source_net_26",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 1.5200000000000014
     },
     "center": {
-      "x": -1.9500000000000002,
+      "x": -3,
       "y": 1.5200000000000014
     },
     "anchor_side": "right",
@@ -39561,11 +39598,11 @@
     "text": "HUB_SWAP6",
     "source_net_id": "source_net_27",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 1.120000000000001
     },
     "center": {
-      "x": -1.9500000000000002,
+      "x": -3,
       "y": 1.120000000000001
     },
     "anchor_side": "right",
@@ -39577,11 +39614,11 @@
     "text": "HUB_PRTPWR4",
     "source_net_id": "source_net_28",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 0.5200000000000005
     },
     "center": {
-      "x": -2.0700000000000003,
+      "x": -3.12,
       "y": 0.5200000000000005
     },
     "anchor_side": "right",
@@ -39593,11 +39630,11 @@
     "text": "HUB_OCS4_N",
     "source_net_id": "source_net_29",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 0.32000000000000073
     },
     "center": {
-      "x": -2.01,
+      "x": -3.0599999999999996,
       "y": 0.32000000000000073
     },
     "anchor_side": "right",
@@ -39609,11 +39646,11 @@
     "text": "HUB_OCS3_N",
     "source_net_id": "source_net_30",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": 0.12000000000000055
     },
     "center": {
-      "x": -2.01,
+      "x": -3.0599999999999996,
       "y": 0.12000000000000055
     },
     "anchor_side": "right",
@@ -39625,11 +39662,11 @@
     "text": "HUB_PRTPWR3",
     "source_net_id": "source_net_31",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.07999999999999963
     },
     "center": {
-      "x": -2.0700000000000003,
+      "x": -3.12,
       "y": -0.07999999999999963
     },
     "anchor_side": "right",
@@ -39641,11 +39678,11 @@
     "text": "HUB_VDD18",
     "source_net_id": "source_net_32",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.48
     },
     "center": {
-      "x": -1.9500000000000002,
+      "x": -3,
       "y": -0.48
     },
     "anchor_side": "right",
@@ -39673,11 +39710,11 @@
     "text": "HUB_PRTPWR2",
     "source_net_id": "source_net_33",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.6800000000000002
     },
     "center": {
-      "x": -2.0700000000000003,
+      "x": -3.12,
       "y": -0.6800000000000002
     },
     "anchor_side": "right",
@@ -39689,11 +39726,11 @@
     "text": "HUB_OCS2_N",
     "source_net_id": "source_net_34",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -0.8800000000000003
     },
     "center": {
-      "x": -2.01,
+      "x": -3.0599999999999996,
       "y": -0.8800000000000003
     },
     "anchor_side": "right",
@@ -39705,11 +39742,11 @@
     "text": "HUB_OCS1_N",
     "source_net_id": "source_net_35",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.0800000000000005
     },
     "center": {
-      "x": -2.01,
+      "x": -3.0599999999999996,
       "y": -1.0800000000000005
     },
     "anchor_side": "right",
@@ -39721,11 +39758,11 @@
     "text": "HUB_PRTPWR1",
     "source_net_id": "source_net_36",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.2800000000000007
     },
     "center": {
-      "x": -2.0700000000000003,
+      "x": -3.12,
       "y": -1.2800000000000007
     },
     "anchor_side": "right",
@@ -39737,11 +39774,11 @@
     "text": "HUB_PRTPWR5",
     "source_net_id": "source_net_37",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.4800000000000009
     },
     "center": {
-      "x": -2.0700000000000003,
+      "x": -3.12,
       "y": -1.4800000000000009
     },
     "anchor_side": "right",
@@ -39753,11 +39790,11 @@
     "text": "HUB_SWAP5",
     "source_net_id": "source_net_38",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -1.680000000000001
     },
     "center": {
-      "x": -1.9500000000000002,
+      "x": -3,
       "y": -1.680000000000001
     },
     "anchor_side": "right",
@@ -39769,11 +39806,11 @@
     "text": "HUB_SWAP4",
     "source_net_id": "source_net_39",
     "anchor_position": {
-      "x": -1.35,
+      "x": -2.4,
       "y": -2.0800000000000014
     },
     "center": {
-      "x": -1.9500000000000002,
+      "x": -3,
       "y": -2.0800000000000014
     },
     "anchor_side": "right",
@@ -39785,11 +39822,11 @@
     "text": "HUB_GANG",
     "source_net_id": "source_net_40",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -1.9800000000000013
     },
     "center": {
-      "x": 1.8900000000000001,
+      "x": 2.94,
       "y": -1.9800000000000013
     },
     "anchor_side": "left",
@@ -39801,11 +39838,11 @@
     "text": "HUB_OCS5_N",
     "source_net_id": "source_net_41",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -1.7800000000000011
     },
     "center": {
-      "x": 2.01,
+      "x": 3.0599999999999996,
       "y": -1.7800000000000011
     },
     "anchor_side": "left",
@@ -39817,11 +39854,11 @@
     "text": "HUB_NONREM1",
     "source_net_id": "source_net_42",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.7800000000000014
     },
     "center": {
-      "x": 2.0700000000000003,
+      "x": 3.12,
       "y": -0.7800000000000014
     },
     "anchor_side": "left",
@@ -39833,11 +39870,11 @@
     "text": "HUB_CFG0",
     "source_net_id": "source_net_43",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.5800000000000014
     },
     "center": {
-      "x": 1.8900000000000001,
+      "x": 2.94,
       "y": -0.5800000000000014
     },
     "anchor_side": "left",
@@ -39849,11 +39886,11 @@
     "text": "HUB_CFG1",
     "source_net_id": "source_net_44",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.38000000000000145
     },
     "center": {
-      "x": 1.8900000000000001,
+      "x": 2.94,
       "y": -0.38000000000000145
     },
     "anchor_side": "left",
@@ -39865,11 +39902,11 @@
     "text": "HUB_RESET_N",
     "source_net_id": "source_net_45",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": -0.1800000000000015
     },
     "center": {
-      "x": 2.0700000000000003,
+      "x": 3.12,
       "y": -0.1800000000000015
     },
     "anchor_side": "left",
@@ -39897,11 +39934,11 @@
     "text": "HUB_VBUS_SENSE",
     "source_net_id": "source_net_46",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.019999999999998463
     },
     "center": {
-      "x": 2.25,
+      "x": 3.3,
       "y": 0.019999999999998463
     },
     "anchor_side": "left",
@@ -39929,11 +39966,11 @@
     "text": "HUB_NONREM0",
     "source_net_id": "source_net_47",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.21999999999999842
     },
     "center": {
-      "x": 2.0700000000000003,
+      "x": 3.12,
       "y": 0.21999999999999842
     },
     "anchor_side": "left",
@@ -39945,11 +39982,11 @@
     "text": "HUB_SWAP3",
     "source_net_id": "source_net_48",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.6199999999999988
     },
     "center": {
-      "x": 1.9500000000000002,
+      "x": 3,
       "y": 0.6199999999999988
     },
     "anchor_side": "left",
@@ -39961,11 +39998,11 @@
     "text": "HUB_BOOST1",
     "source_net_id": "source_net_49",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 0.819999999999999
     },
     "center": {
-      "x": 2.01,
+      "x": 3.0599999999999996,
       "y": 0.819999999999999
     },
     "anchor_side": "left",
@@ -39977,11 +40014,11 @@
     "text": "HUB_SWAP2",
     "source_net_id": "source_net_50",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.0199999999999991
     },
     "center": {
-      "x": 1.9500000000000002,
+      "x": 3,
       "y": 1.0199999999999991
     },
     "anchor_side": "left",
@@ -39993,11 +40030,11 @@
     "text": "HUB_BOOST0",
     "source_net_id": "source_net_51",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.2199999999999993
     },
     "center": {
-      "x": 2.01,
+      "x": 3.0599999999999996,
       "y": 1.2199999999999993
     },
     "anchor_side": "left",
@@ -40009,11 +40046,11 @@
     "text": "HUB_SWAP1",
     "source_net_id": "source_net_52",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.4199999999999995
     },
     "center": {
-      "x": 1.9500000000000002,
+      "x": 3,
       "y": 1.4199999999999995
     },
     "anchor_side": "left",
@@ -40025,11 +40062,11 @@
     "text": "HUB_DIS6_N",
     "source_net_id": "source_net_53",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 1.8199999999999998
     },
     "center": {
-      "x": 2.01,
+      "x": 3.0599999999999996,
       "y": 1.8199999999999998
     },
     "anchor_side": "left",
@@ -40041,11 +40078,11 @@
     "text": "HUB_DIS6_P",
     "source_net_id": "source_net_54",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.0199999999999996
     },
     "center": {
-      "x": 2.01,
+      "x": 3.0599999999999996,
       "y": 2.0199999999999996
     },
     "anchor_side": "left",
@@ -40057,11 +40094,11 @@
     "text": "HUB_DIS7_N",
     "source_net_id": "source_net_55",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.2199999999999998
     },
     "center": {
-      "x": 2.01,
+      "x": 3.0599999999999996,
       "y": 2.2199999999999998
     },
     "anchor_side": "left",
@@ -40073,11 +40110,11 @@
     "text": "HUB_DIS7_P",
     "source_net_id": "source_net_56",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 2.42
     },
     "center": {
-      "x": 2.01,
+      "x": 3.0599999999999996,
       "y": 2.42
     },
     "anchor_side": "left",
@@ -40089,11 +40126,11 @@
     "text": "XTAL2",
     "source_net_id": "source_net_57",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.2200000000000006
     },
     "center": {
-      "x": 1.71,
+      "x": 2.76,
       "y": 3.2200000000000006
     },
     "anchor_side": "left",
@@ -40121,11 +40158,11 @@
     "text": "XTAL1",
     "source_net_id": "source_net_58",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.420000000000001
     },
     "center": {
-      "x": 1.71,
+      "x": 2.76,
       "y": 3.420000000000001
     },
     "anchor_side": "left",
@@ -40137,11 +40174,11 @@
     "text": "XTAL1",
     "source_net_id": "source_net_58",
     "anchor_position": {
-      "x": 3.890000000000001,
+      "x": 3.6900000000000004,
       "y": -1.02
     },
     "center": {
-      "x": 3.530000000000001,
+      "x": 3.3300000000000005,
       "y": -1.02
     },
     "anchor_side": "right",
@@ -40153,12 +40190,12 @@
     "text": "XTAL1",
     "source_net_id": "source_net_58",
     "anchor_position": {
-      "x": 3.3000000000000007,
-      "y": -2.8000000000000003
+      "x": 3.6200000000000006,
+      "y": -4.760000000000001
     },
     "center": {
-      "x": 2.940000000000001,
-      "y": -2.8000000000000003
+      "x": 3.2600000000000007,
+      "y": -4.760000000000001
     },
     "anchor_side": "right",
     "schematic_sheet_id": "schematic_sheet_1"
@@ -40169,11 +40206,11 @@
     "text": "HUB_VDD18PLL",
     "source_net_id": "source_net_59",
     "anchor_position": {
-      "x": 1.35,
+      "x": 2.4,
       "y": 3.620000000000001
     },
     "center": {
-      "x": 2.13,
+      "x": 3.1799999999999997,
       "y": 3.620000000000001
     },
     "anchor_side": "left",
@@ -40201,11 +40238,11 @@
     "text": "RBIAS",
     "source_net_id": "source_net_60",
     "anchor_position": {
-      "x": 2.1450000000000005,
+      "x": 2.67,
       "y": 3.820000000000001
     },
     "center": {
-      "x": 2.5050000000000003,
+      "x": 3.03,
       "y": 3.820000000000001
     },
     "anchor_side": "left",
@@ -89213,371 +89250,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_j0qbgvW9av",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1519(.external_port_3>.R_DATA_OK3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_117",
-    "pcb_component_id": "pcb_component_117",
-    "pcb_group_id": "pcb_group_12",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_pxHvHAfkMz",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1701(.U_PWR4_cell>.R_ILIM4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
-    "source_component_id": "source_component_132",
-    "pcb_component_id": "pcb_component_132",
-    "pcb_group_id": "pcb_group_13",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C327368",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_l1AXJuRFKR",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1592(.external_port_3>.R_PWR_EN3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_123",
-    "pcb_component_id": "pcb_component_123",
-    "pcb_group_id": "pcb_group_12",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_yCDojXSvhc",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1383(.U_PWR2_cell>.R_ILIM2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
-    "source_component_id": "source_component_106",
-    "pcb_component_id": "pcb_component_106",
-    "pcb_group_id": "pcb_group_9",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C327368",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_M2c3GeaDmL",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1555(.U_PWR3_cell>.C_PWR3_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_120",
-    "pcb_component_id": "pcb_component_120",
-    "pcb_group_id": "pcb_group_11",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_ACpNFO5nwT",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#961(.management_device>.C_EXP_VDD) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_73",
-    "pcb_component_id": "pcb_component_73",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_T5232AFI90",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1077(.management_device>.R_DATA_CMD4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_82",
-    "pcb_component_id": "pcb_component_82",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_M4WV6QgxqN",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#919(.management_device>.R_I2C_SDA) /> footprint \"0402\" does not match supplier footprint jlcpcb:C105871 (copper IoU 0.7741).",
-    "source_component_id": "source_component_71",
-    "pcb_component_id": "pcb_component_71",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C105871",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_E8T77nc9lI",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#411(.upstream_and_hub>.C_HUB_A_BULK) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
-    "source_component_id": "source_component_31",
-    "pcb_component_id": "pcb_component_31",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C52923",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_arCJzCPZIz",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#650(.upstream_and_hub>.R_SWAP4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_50",
-    "pcb_component_id": "pcb_component_50",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_pXFC6VInMy",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#728(.upstream_and_hub>.R_BOOST1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_56",
-    "pcb_component_id": "pcb_component_56",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_uzmCls4NHR",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1106(.hardware_interlocks>.C_AND_PWR) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_84",
-    "pcb_component_id": "pcb_component_84",
-    "pcb_group_id": "pcb_group_4",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_SxoacV7O2c",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#26(.protected_input_and_3v3>.C_AGG_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_3",
-    "pcb_component_id": "pcb_component_3",
-    "pcb_group_id": "pcb_group_0",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_XgKrcD6LsR",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#483(.upstream_and_hub>.C_HUB_18PLL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
-    "source_component_id": "source_component_37",
-    "pcb_component_id": "pcb_component_37",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C52923",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_E0zcLOe0LZ",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#881(.management_device>.C_CTRL_VUSB) /> footprint \"0402\" does not match supplier footprint jlcpcb:C19271634 (copper IoU 0.7249).",
-    "source_component_id": "source_component_68",
-    "pcb_component_id": "pcb_component_68",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C19271634",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_JX8IzhgFaZ",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#869(.management_device>.C_CTRL_VDD) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_67",
-    "pcb_component_id": "pcb_component_67",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_bEiI0Oclku",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#829(.U_PWR_CTRL_cell>.C_PWR_CTRL_OUT_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_64",
-    "pcb_component_id": "pcb_component_64",
-    "pcb_group_id": "pcb_group_2",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_DXp5ZnMG42",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#138(.protected_input_and_3v3>.C_TRUNK_USB) /> footprint the provided footprint does not match supplier footprint jlcpcb:C136277 (copper IoU 0.3922).",
-    "source_component_id": "source_component_12",
-    "pcb_component_id": "pcb_component_12",
-    "pcb_group_id": "pcb_group_0",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C136277",
-    "footprint_copper_intersection_over_union": 0.3922
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_R6YOvwTDg2",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1332(.external_port_2>.R_DATA_OE2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_102",
-    "pcb_component_id": "pcb_component_102",
-    "pcb_group_id": "pcb_group_10",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_sYuhsjFoFW",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#817(.U_PWR_CTRL_cell>.C_PWR_CTRL_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_63",
-    "pcb_component_id": "pcb_component_63",
-    "pcb_group_id": "pcb_group_2",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_SkXdHNywuQ",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1360(.external_port_2>.R_DATA_OK2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_104",
-    "pcb_component_id": "pcb_component_104",
-    "pcb_group_id": "pcb_group_10",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_sUp22olkic",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#702(.upstream_and_hub>.R_GANG) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_54",
-    "pcb_component_id": "pcb_component_54",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_XgiZzJUEnm",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#585(.upstream_and_hub>.R_NONREM1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_45",
-    "pcb_component_id": "pcb_component_45",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_a3Dqls170Q",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#741(.upstream_and_hub>.R_DIS6N) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_57",
-    "pcb_component_id": "pcb_component_57",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_PIVa3qZTyt",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1133(.hardware_interlocks>.C_AND_DATA) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_86",
-    "pcb_component_id": "pcb_component_86",
-    "pcb_group_id": "pcb_group_4",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_TlTdAIYZuK",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#313(.upstream_and_hub>.R_XTAL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C138033 (copper IoU 0.7741).",
-    "source_component_id": "source_component_23",
-    "pcb_component_id": "pcb_component_23",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C138033",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_T5k1rVBNHN",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#572(.upstream_and_hub>.R_CFG2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_44",
-    "pcb_component_id": "pcb_component_44",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_ygSmzcSatK",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1726(.U_PWR4_cell>.C_PORT4_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_134",
-    "pcb_component_id": "pcb_component_134",
-    "pcb_group_id": "pcb_group_13",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_nLi2vEdEN4",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Z1m7wgZeNr",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#1678(.external_port_4>.R_DATA_OK4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
     "source_component_id": "source_component_130",
@@ -89590,540 +89263,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_8deEVj9bJU",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#689(.upstream_and_hub>.R_SWAP7) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_53",
-    "pcb_component_id": "pcb_component_53",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_il17hDVbHu",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#375(.upstream_and_hub>.C_HUB_A2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_28",
-    "pcb_component_id": "pcb_component_28",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_f7ECA0ItRK",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#715(.upstream_and_hub>.R_BOOST0) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_55",
-    "pcb_component_id": "pcb_component_55",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_UeRy5EGmCo",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<chip#1150(.external_port_1>.U_DATA1) /> footprint the provided footprint does not match supplier footprint jlcpcb:C11355 (copper IoU 0.7509).",
-    "source_component_id": "source_component_87",
-    "pcb_component_id": "pcb_component_87",
-    "pcb_group_id": "pcb_group_8",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C11355",
-    "footprint_copper_intersection_over_union": 0.7509
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_EFGyUmqLoy",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#841(.U_PWR_CTRL_cell>.C_PWR_CTRL_OUT) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
-    "source_component_id": "source_component_65",
-    "pcb_component_id": "pcb_component_65",
-    "pcb_group_id": "pcb_group_2",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C52923",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_pSEAxrlrCJ",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<chip#1468(.external_port_3>.U_DATA3) /> footprint the provided footprint does not match supplier footprint jlcpcb:C11355 (copper IoU 0.7509).",
-    "source_component_id": "source_component_113",
-    "pcb_component_id": "pcb_component_113",
-    "pcb_group_id": "pcb_group_12",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C11355",
-    "footprint_copper_intersection_over_union": 0.7509
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_B1sVCakB3N",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1542(.U_PWR3_cell>.R_ILIM3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
-    "source_component_id": "source_component_119",
-    "pcb_component_id": "pcb_component_119",
-    "pcb_group_id": "pcb_group_11",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C327368",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_afNzyfQjSO",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#559(.upstream_and_hub>.R_CFG1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_43",
-    "pcb_component_id": "pcb_component_43",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_vTevlqJ1Wp",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#676(.upstream_and_hub>.R_SWAP6) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_52",
-    "pcb_component_id": "pcb_component_52",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_zzgyXQZkjB",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1396(.U_PWR2_cell>.C_PWR2_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_107",
-    "pcb_component_id": "pcb_component_107",
-    "pcb_group_id": "pcb_group_9",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_wkqjJI1toz",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#893(.management_device>.R_CTRL_RESET) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_69",
-    "pcb_component_id": "pcb_component_69",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_MBEMPnWmR3",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<chip#1309(.external_port_2>.U_DATA2) /> footprint the provided footprint does not match supplier footprint jlcpcb:C11355 (copper IoU 0.7509).",
-    "source_component_id": "source_component_100",
-    "pcb_component_id": "pcb_component_100",
-    "pcb_group_id": "pcb_group_10",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C11355",
-    "footprint_copper_intersection_over_union": 0.7509
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_EmCAO3R1U2",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#114(.protected_input_and_3v3>.C_TRUNK_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_10",
-    "pcb_component_id": "pcb_component_10",
-    "pcb_group_id": "pcb_group_0",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_RujBZho0oM",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#459(.upstream_and_hub>.C_HUB_PLL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_35",
-    "pcb_component_id": "pcb_component_35",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_AP1vNsT0qo",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#363(.upstream_and_hub>.C_HUB_A1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_27",
-    "pcb_component_id": "pcb_component_27",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_LfbXYTIZk5",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#423(.upstream_and_hub>.C_HUB_CR_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_32",
-    "pcb_component_id": "pcb_component_32",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_rNBFllE9U3",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1237(.U_PWR1_cell>.C_PWR1_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_94",
-    "pcb_component_id": "pcb_component_94",
-    "pcb_group_id": "pcb_group_7",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_SEAdRuWcG0",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#546(.upstream_and_hub>.R_CFG0) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_42",
-    "pcb_component_id": "pcb_component_42",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_lw6AY4siGz",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1038(.management_device>.R_DATA_CMD1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_79",
-    "pcb_component_id": "pcb_component_79",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_6bIlZWSf7M",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1025(.management_device>.R_PWR_CMD4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_78",
-    "pcb_component_id": "pcb_component_78",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_iB61h9Zfxh",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#767(.upstream_and_hub>.R_DIS7N) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_59",
-    "pcb_component_id": "pcb_component_59",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Ks4dN7xKBb",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1161(.external_port_1>.C_DATA1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_88",
-    "pcb_component_id": "pcb_component_88",
-    "pcb_group_id": "pcb_group_8",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_psHGtqCPkB",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1012(.management_device>.R_PWR_CMD3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_77",
-    "pcb_component_id": "pcb_component_77",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_qH1zwJb448",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1320(.external_port_2>.C_DATA2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_101",
-    "pcb_component_id": "pcb_component_101",
-    "pcb_group_id": "pcb_group_10",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_17AII3tLsr",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#435(.upstream_and_hub>.C_HUB_CR_BULK) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
-    "source_component_id": "source_component_33",
-    "pcb_component_id": "pcb_component_33",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C52923",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_iuzsDPnr23",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1249(.U_PWR1_cell>.C_PORT1_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_95",
-    "pcb_component_id": "pcb_component_95",
-    "pcb_group_id": "pcb_group_7",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_hTskrMbbF9",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1408(.U_PWR2_cell>.C_PORT2_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_108",
-    "pcb_component_id": "pcb_component_108",
-    "pcb_group_id": "pcb_group_9",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_piz9rKN5jZ",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1064(.management_device>.R_DATA_CMD3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_81",
-    "pcb_component_id": "pcb_component_81",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_BOKZzkmpOp",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<chip#1627(.external_port_4>.U_DATA4) /> footprint the provided footprint does not match supplier footprint jlcpcb:C11355 (copper IoU 0.7509).",
-    "source_component_id": "source_component_126",
-    "pcb_component_id": "pcb_component_126",
-    "pcb_group_id": "pcb_group_14",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C11355",
-    "footprint_copper_intersection_over_union": 0.7509
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_kZubNiexl3",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1638(.external_port_4>.C_DATA4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_127",
-    "pcb_component_id": "pcb_component_127",
-    "pcb_group_id": "pcb_group_14",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_FdHnPkihFn",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1479(.external_port_3>.C_DATA3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_114",
-    "pcb_component_id": "pcb_component_114",
-    "pcb_group_id": "pcb_group_12",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_b77luXLyBX",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#999(.management_device>.R_PWR_CMD2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_76",
-    "pcb_component_id": "pcb_component_76",
-    "pcb_group_id": "pcb_group_3",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_OLp422TEe3",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1433(.external_port_2>.R_PWR_EN2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_110",
-    "pcb_component_id": "pcb_component_110",
-    "pcb_group_id": "pcb_group_10",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_HQIuc6P1Et",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#351(.upstream_and_hub>.C_XTAL2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1549 (copper IoU 0.7249).",
-    "source_component_id": "source_component_26",
-    "pcb_component_id": "pcb_component_26",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1549",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_izF2hDXsqw",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#520(.upstream_and_hub>.R_VBUS_TOP) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_40",
-    "pcb_component_id": "pcb_component_40",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_E8mn24OK4a",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1650(.external_port_4>.R_DATA_OE4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_128",
-    "pcb_component_id": "pcb_component_128",
-    "pcb_group_id": "pcb_group_14",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_euMWGIvhg1",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1173(.external_port_1>.R_DATA_OE1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_89",
-    "pcb_component_id": "pcb_component_89",
-    "pcb_group_id": "pcb_group_8",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_g3MQo59rrJ",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1274(.external_port_1>.R_PWR_EN1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_97",
-    "pcb_component_id": "pcb_component_97",
-    "pcb_group_id": "pcb_group_8",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_dHujFbG0ez",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#508(.upstream_and_hub>.C_HUB_RESET) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
-    "source_component_id": "source_component_39",
-    "pcb_component_id": "pcb_component_39",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C52923",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_JeJZ33LuMf",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1224(.U_PWR1_cell>.R_ILIM1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
-    "source_component_id": "source_component_93",
-    "pcb_component_id": "pcb_component_93",
-    "pcb_group_id": "pcb_group_7",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C327368",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_jLiY3qCucG",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#598(.upstream_and_hub>.R_NONREM0) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_46",
-    "pcb_component_id": "pcb_component_46",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_pqJGSI9SBc",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_HYpADaKSaw",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#1491(.external_port_3>.R_DATA_OE3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
     "source_component_id": "source_component_115",
@@ -90136,63 +89276,11 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_hI18IBuDEC",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Gz1jgtczkU",
     "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1567(.U_PWR3_cell>.C_PORT3_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_121",
-    "pcb_component_id": "pcb_component_121",
-    "pcb_group_id": "pcb_group_11",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_r706QzG0Ud",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#1714(.U_PWR4_cell>.C_PWR4_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_133",
-    "pcb_component_id": "pcb_component_133",
-    "pcb_group_id": "pcb_group_13",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_04kOseYRlb",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1201(.external_port_1>.R_DATA_OK1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_91",
-    "pcb_component_id": "pcb_component_91",
-    "pcb_group_id": "pcb_group_8",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_zUDI7Tfj6G",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#611(.upstream_and_hub>.R_SWAP1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_47",
-    "pcb_component_id": "pcb_component_47",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_5KrO2FvAWg",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#1051(.management_device>.R_DATA_CMD2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_80",
-    "pcb_component_id": "pcb_component_80",
+    "message": "<resistor#1012(.management_device>.R_PWR_CMD3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_77",
+    "pcb_component_id": "pcb_component_77",
     "pcb_group_id": "pcb_group_3",
     "subcircuit_id": "subcircuit_source_group_22",
     "supplier_name": "jlcpcb",
@@ -90201,7 +89289,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_e9pRYBvd6M",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_QskDd3kkVD",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#1751(.external_port_4>.R_PWR_EN4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
     "source_component_id": "source_component_136",
@@ -90214,154 +89302,24 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_oj8IvLerCO",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_PwXSxIpsQF",
     "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#906(.management_device>.R_I2C_SCL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C105871 (copper IoU 0.7741).",
-    "source_component_id": "source_component_70",
-    "pcb_component_id": "pcb_component_70",
+    "message": "<capacitor#881(.management_device>.C_CTRL_VUSB) /> footprint \"0402\" does not match supplier footprint jlcpcb:C19271634 (copper IoU 0.7249).",
+    "source_component_id": "source_component_68",
+    "pcb_component_id": "pcb_component_68",
     "pcb_group_id": "pcb_group_3",
     "subcircuit_id": "subcircuit_source_group_22",
     "supplier_name": "jlcpcb",
-    "supplier_part_number": "C105871",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_jkN6AyJY4c",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#184(.protected_input_and_3v3>.C_BST) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_16",
-    "pcb_component_id": "pcb_component_16",
-    "pcb_group_id": "pcb_group_0",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
+    "supplier_part_number": "C19271634",
     "footprint_copper_intersection_over_union": 0.7249
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_iYE6XYb668",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_p1Wp5UgNYs",
     "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#780(.upstream_and_hub>.R_DIS7P) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_60",
-    "pcb_component_id": "pcb_component_60",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_DMvcc7du42",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#663(.upstream_and_hub>.R_SWAP5) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_51",
-    "pcb_component_id": "pcb_component_51",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_KZkogRWUW0",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#533(.upstream_and_hub>.R_VBUS_BOT) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_41",
-    "pcb_component_id": "pcb_component_41",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_ocYzG0uim7",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<chip#308(.upstream_and_hub>.Y_HUB) /> footprint the provided footprint does not match supplier footprint jlcpcb:C1985204 (copper IoU 0.6254).",
-    "source_component_id": "source_component_22",
-    "pcb_component_id": "pcb_component_22",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1985204",
-    "footprint_copper_intersection_over_union": 0.6254
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_RxXB1DT9Ct",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#637(.upstream_and_hub>.R_SWAP3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_49",
-    "pcb_component_id": "pcb_component_49",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_zzD3noxBQY",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#471(.upstream_and_hub>.C_HUB_18) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
-    "source_component_id": "source_component_36",
-    "pcb_component_id": "pcb_component_36",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C52923",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_nvGjHrbj5x",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#326(.upstream_and_hub>.R_RBIAS) /> footprint \"0402\" does not match supplier footprint jlcpcb:C114760 (copper IoU 0.7741).",
-    "source_component_id": "source_component_24",
-    "pcb_component_id": "pcb_component_24",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C114760",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_vLzeveIGK5",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#387(.upstream_and_hub>.C_HUB_A3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_29",
-    "pcb_component_id": "pcb_component_29",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Y8LPqypZE8",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#624(.upstream_and_hub>.R_SWAP2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
-    "source_component_id": "source_component_48",
-    "pcb_component_id": "pcb_component_48",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60491",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Yim7e1PXlr",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#986(.management_device>.R_PWR_CMD1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_75",
-    "pcb_component_id": "pcb_component_75",
+    "message": "<resistor#973(.management_device>.R_EXP_RESET) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_74",
+    "pcb_component_id": "pcb_component_74",
     "pcb_group_id": "pcb_group_3",
     "subcircuit_id": "subcircuit_source_group_22",
     "supplier_name": "jlcpcb",
@@ -90370,72 +89328,20 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_3Td7LNDaX8",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_v5DjrxCMPi",
     "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#399(.upstream_and_hub>.C_HUB_A4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_30",
-    "pcb_component_id": "pcb_component_30",
-    "pcb_group_id": "pcb_group_1",
+    "message": "<chip#1468(.external_port_3>.U_DATA3) /> footprint the provided footprint does not match supplier footprint jlcpcb:C11355 (copper IoU 0.7509).",
+    "source_component_id": "source_component_113",
+    "pcb_component_id": "pcb_component_113",
+    "pcb_group_id": "pcb_group_12",
     "subcircuit_id": "subcircuit_source_group_22",
     "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
+    "supplier_part_number": "C11355",
+    "footprint_copper_intersection_over_union": 0.7509
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_d3l3UoTCwB",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#804(.U_PWR_CTRL_cell>.R_ILIM_CTRL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
-    "source_component_id": "source_component_62",
-    "pcb_component_id": "pcb_component_62",
-    "pcb_group_id": "pcb_group_2",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C327368",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Jhk6Lrs6a2",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#447(.upstream_and_hub>.C_HUB_DD) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_34",
-    "pcb_component_id": "pcb_component_34",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_MgoJjBkYtx",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#754(.upstream_and_hub>.R_DIS6P) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_58",
-    "pcb_component_id": "pcb_component_58",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C60490",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_QcZP9ypZhm",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#339(.upstream_and_hub>.C_XTAL1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1549 (copper IoU 0.7249).",
-    "source_component_id": "source_component_25",
-    "pcb_component_id": "pcb_component_25",
-    "pcb_group_id": "pcb_group_1",
-    "subcircuit_id": "subcircuit_source_group_22",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1549",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_5PimVYbnqx",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_hDhM1XAqGO",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<resistor#495(.upstream_and_hub>.R_HUB_RESET) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
     "source_component_id": "source_component_38",
@@ -90448,7 +89354,969 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Z3hQp9wOVI",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_vKz5ZrJv0G",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#754(.upstream_and_hub>.R_DIS6P) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_58",
+    "pcb_component_id": "pcb_component_58",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_3xEhPygJAm",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#841(.U_PWR_CTRL_cell>.C_PWR_CTRL_OUT) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
+    "source_component_id": "source_component_65",
+    "pcb_component_id": "pcb_component_65",
+    "pcb_group_id": "pcb_group_2",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C52923",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_EXZoAbgh51",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<chip#1309(.external_port_2>.U_DATA2) /> footprint the provided footprint does not match supplier footprint jlcpcb:C11355 (copper IoU 0.7509).",
+    "source_component_id": "source_component_100",
+    "pcb_component_id": "pcb_component_100",
+    "pcb_group_id": "pcb_group_10",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C11355",
+    "footprint_copper_intersection_over_union": 0.7509
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_7LbaOqBJHN",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1714(.U_PWR4_cell>.C_PWR4_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_133",
+    "pcb_component_id": "pcb_component_133",
+    "pcb_group_id": "pcb_group_13",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_bwTQJw0tvR",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1249(.U_PWR1_cell>.C_PORT1_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_95",
+    "pcb_component_id": "pcb_component_95",
+    "pcb_group_id": "pcb_group_7",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_esM3JKEoq1",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#676(.upstream_and_hub>.R_SWAP6) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_52",
+    "pcb_component_id": "pcb_component_52",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_WIXsuOjIxM",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1650(.external_port_4>.R_DATA_OE4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_128",
+    "pcb_component_id": "pcb_component_128",
+    "pcb_group_id": "pcb_group_14",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_ahjBXJPTAN",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1726(.U_PWR4_cell>.C_PORT4_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_134",
+    "pcb_component_id": "pcb_component_134",
+    "pcb_group_id": "pcb_group_13",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Dk7N3dhx4d",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1383(.U_PWR2_cell>.R_ILIM2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
+    "source_component_id": "source_component_106",
+    "pcb_component_id": "pcb_component_106",
+    "pcb_group_id": "pcb_group_9",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C327368",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_gKWf99lOGj",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#728(.upstream_and_hub>.R_BOOST1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_56",
+    "pcb_component_id": "pcb_component_56",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_OQy4F6qXIL",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1592(.external_port_3>.R_PWR_EN3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_123",
+    "pcb_component_id": "pcb_component_123",
+    "pcb_group_id": "pcb_group_12",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_pvbvwK5NRL",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<chip#1627(.external_port_4>.U_DATA4) /> footprint the provided footprint does not match supplier footprint jlcpcb:C11355 (copper IoU 0.7509).",
+    "source_component_id": "source_component_126",
+    "pcb_component_id": "pcb_component_126",
+    "pcb_group_id": "pcb_group_14",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C11355",
+    "footprint_copper_intersection_over_union": 0.7509
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_STaLxatq4t",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1360(.external_port_2>.R_DATA_OK2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_104",
+    "pcb_component_id": "pcb_component_104",
+    "pcb_group_id": "pcb_group_10",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_wvsOJo8D94",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#804(.U_PWR_CTRL_cell>.R_ILIM_CTRL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
+    "source_component_id": "source_component_62",
+    "pcb_component_id": "pcb_component_62",
+    "pcb_group_id": "pcb_group_2",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C327368",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_xgt7DIe4t1",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1396(.U_PWR2_cell>.C_PWR2_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_107",
+    "pcb_component_id": "pcb_component_107",
+    "pcb_group_id": "pcb_group_9",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_gPSXkTyuSy",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1542(.U_PWR3_cell>.R_ILIM3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
+    "source_component_id": "source_component_119",
+    "pcb_component_id": "pcb_component_119",
+    "pcb_group_id": "pcb_group_11",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C327368",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_TdYcsoNzfM",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1408(.U_PWR2_cell>.C_PORT2_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_108",
+    "pcb_component_id": "pcb_component_108",
+    "pcb_group_id": "pcb_group_9",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_p4X0Ygkite",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#999(.management_device>.R_PWR_CMD2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_76",
+    "pcb_component_id": "pcb_component_76",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Ac9Do8UqNV",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#829(.U_PWR_CTRL_cell>.C_PWR_CTRL_OUT_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_64",
+    "pcb_component_id": "pcb_component_64",
+    "pcb_group_id": "pcb_group_2",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_7e7GyQcBXy",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1701(.U_PWR4_cell>.R_ILIM4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
+    "source_component_id": "source_component_132",
+    "pcb_component_id": "pcb_component_132",
+    "pcb_group_id": "pcb_group_13",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C327368",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_OHb7Vqgep6",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1025(.management_device>.R_PWR_CMD4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_78",
+    "pcb_component_id": "pcb_component_78",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_tC7KEZhE8F",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1201(.external_port_1>.R_DATA_OK1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_91",
+    "pcb_component_id": "pcb_component_91",
+    "pcb_group_id": "pcb_group_8",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_P7Fbv5CDYu",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1567(.U_PWR3_cell>.C_PORT3_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_121",
+    "pcb_component_id": "pcb_component_121",
+    "pcb_group_id": "pcb_group_11",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_iCFfN1pkN1",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#702(.upstream_and_hub>.R_GANG) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_54",
+    "pcb_component_id": "pcb_component_54",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_s8rrqLQIQf",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#906(.management_device>.R_I2C_SCL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C105871 (copper IoU 0.7741).",
+    "source_component_id": "source_component_70",
+    "pcb_component_id": "pcb_component_70",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C105871",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_gOoSna3toc",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#585(.upstream_and_hub>.R_NONREM1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_45",
+    "pcb_component_id": "pcb_component_45",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_HakuNLFGYU",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1519(.external_port_3>.R_DATA_OK3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_117",
+    "pcb_component_id": "pcb_component_117",
+    "pcb_group_id": "pcb_group_12",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_9blTCh2Ac4",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1479(.external_port_3>.C_DATA3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_114",
+    "pcb_component_id": "pcb_component_114",
+    "pcb_group_id": "pcb_group_12",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_JlvMPAA2cP",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#919(.management_device>.R_I2C_SDA) /> footprint \"0402\" does not match supplier footprint jlcpcb:C105871 (copper IoU 0.7741).",
+    "source_component_id": "source_component_71",
+    "pcb_component_id": "pcb_component_71",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C105871",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_qeD8YKOlpz",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#780(.upstream_and_hub>.R_DIS7P) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_60",
+    "pcb_component_id": "pcb_component_60",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_awzDpFonfP",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#572(.upstream_and_hub>.R_CFG2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_44",
+    "pcb_component_id": "pcb_component_44",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_tXTCk5Zktw",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1173(.external_port_1>.R_DATA_OE1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_89",
+    "pcb_component_id": "pcb_component_89",
+    "pcb_group_id": "pcb_group_8",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_fCCHKSjCK6",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#611(.upstream_and_hub>.R_SWAP1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_47",
+    "pcb_component_id": "pcb_component_47",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_7SxGDPnXLW",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1038(.management_device>.R_DATA_CMD1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_79",
+    "pcb_component_id": "pcb_component_79",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_fCDBkWBvwi",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#138(.protected_input_and_3v3>.C_TRUNK_USB) /> footprint the provided footprint does not match supplier footprint jlcpcb:C136277 (copper IoU 0.3922).",
+    "source_component_id": "source_component_12",
+    "pcb_component_id": "pcb_component_12",
+    "pcb_group_id": "pcb_group_0",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C136277",
+    "footprint_copper_intersection_over_union": 0.3922
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_1fFIX7B4c5",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#520(.upstream_and_hub>.R_VBUS_TOP) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_40",
+    "pcb_component_id": "pcb_component_40",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_ovaOCQxFCA",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#650(.upstream_and_hub>.R_SWAP4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_50",
+    "pcb_component_id": "pcb_component_50",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_lkRfvAJbqe",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<chip#1150(.external_port_1>.U_DATA1) /> footprint the provided footprint does not match supplier footprint jlcpcb:C11355 (copper IoU 0.7509).",
+    "source_component_id": "source_component_87",
+    "pcb_component_id": "pcb_component_87",
+    "pcb_group_id": "pcb_group_8",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C11355",
+    "footprint_copper_intersection_over_union": 0.7509
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_CFKt8dYXWA",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1133(.hardware_interlocks>.C_AND_DATA) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_86",
+    "pcb_component_id": "pcb_component_86",
+    "pcb_group_id": "pcb_group_4",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_M9gp9Ln2Gg",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#741(.upstream_and_hub>.R_DIS6N) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_57",
+    "pcb_component_id": "pcb_component_57",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_KOTmYu0Xx0",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#689(.upstream_and_hub>.R_SWAP7) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_53",
+    "pcb_component_id": "pcb_component_53",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_zHLzRn3Lgg",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#869(.management_device>.C_CTRL_VDD) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_67",
+    "pcb_component_id": "pcb_component_67",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_ndIBOa80p3",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#961(.management_device>.C_EXP_VDD) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_73",
+    "pcb_component_id": "pcb_component_73",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_pISaSY2jJY",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1051(.management_device>.R_DATA_CMD2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_80",
+    "pcb_component_id": "pcb_component_80",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Bo0gGwja3X",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1638(.external_port_4>.C_DATA4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_127",
+    "pcb_component_id": "pcb_component_127",
+    "pcb_group_id": "pcb_group_14",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_GKPkISzQCE",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1161(.external_port_1>.C_DATA1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_88",
+    "pcb_component_id": "pcb_component_88",
+    "pcb_group_id": "pcb_group_8",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_4D9oIWjT8F",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#598(.upstream_and_hub>.R_NONREM0) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_46",
+    "pcb_component_id": "pcb_component_46",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_dVFROAPkoY",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#893(.management_device>.R_CTRL_RESET) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_69",
+    "pcb_component_id": "pcb_component_69",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_TNh3BjWi4Z",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1106(.hardware_interlocks>.C_AND_PWR) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_84",
+    "pcb_component_id": "pcb_component_84",
+    "pcb_group_id": "pcb_group_4",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_e0pVw1ow7c",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#435(.upstream_and_hub>.C_HUB_CR_BULK) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
+    "source_component_id": "source_component_33",
+    "pcb_component_id": "pcb_component_33",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C52923",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_ABRzytmkF3",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#767(.upstream_and_hub>.R_DIS7N) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_59",
+    "pcb_component_id": "pcb_component_59",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_6bgSfLNjXm",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#387(.upstream_and_hub>.C_HUB_A3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_29",
+    "pcb_component_id": "pcb_component_29",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_V8HGIksvti",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1077(.management_device>.R_DATA_CMD4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_82",
+    "pcb_component_id": "pcb_component_82",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_oJieXkFCgY",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#663(.upstream_and_hub>.R_SWAP5) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_51",
+    "pcb_component_id": "pcb_component_51",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_OLJV980mRK",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#559(.upstream_and_hub>.R_CFG1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_43",
+    "pcb_component_id": "pcb_component_43",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_9ZLXTw9n5d",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1332(.external_port_2>.R_DATA_OE2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_102",
+    "pcb_component_id": "pcb_component_102",
+    "pcb_group_id": "pcb_group_10",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_BY1puVe46n",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<chip#308(.upstream_and_hub>.Y_HUB) /> footprint the provided footprint does not match supplier footprint jlcpcb:C1985204 (copper IoU 0.6254).",
+    "source_component_id": "source_component_22",
+    "pcb_component_id": "pcb_component_22",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1985204",
+    "footprint_copper_intersection_over_union": 0.6254
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_v0YLDzmNkf",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1555(.U_PWR3_cell>.C_PWR3_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_120",
+    "pcb_component_id": "pcb_component_120",
+    "pcb_group_id": "pcb_group_11",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_mYgXrkKWDL",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1433(.external_port_2>.R_PWR_EN2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_110",
+    "pcb_component_id": "pcb_component_110",
+    "pcb_group_id": "pcb_group_10",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_sNxqvDU4MO",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#184(.protected_input_and_3v3>.C_BST) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_16",
+    "pcb_component_id": "pcb_component_16",
+    "pcb_group_id": "pcb_group_0",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_k9E6wsHHJO",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#533(.upstream_and_hub>.R_VBUS_BOT) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_41",
+    "pcb_component_id": "pcb_component_41",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_YwZZXLeMWl",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1224(.U_PWR1_cell>.R_ILIM1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C327368 (copper IoU 0.7741).",
+    "source_component_id": "source_component_93",
+    "pcb_component_id": "pcb_component_93",
+    "pcb_group_id": "pcb_group_7",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C327368",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_kZZ1vaqoUg",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#817(.U_PWR_CTRL_cell>.C_PWR_CTRL_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_63",
+    "pcb_component_id": "pcb_component_63",
+    "pcb_group_id": "pcb_group_2",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_77v6BYHYIH",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#508(.upstream_and_hub>.C_HUB_RESET) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
+    "source_component_id": "source_component_39",
+    "pcb_component_id": "pcb_component_39",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C52923",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_mqwpP7bQEt",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#624(.upstream_and_hub>.R_SWAP2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_48",
+    "pcb_component_id": "pcb_component_48",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_E3vCtJgmTk",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#637(.upstream_and_hub>.R_SWAP3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60491 (copper IoU 0.7741).",
+    "source_component_id": "source_component_49",
+    "pcb_component_id": "pcb_component_49",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60491",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_G9QI3LBTVI",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#546(.upstream_and_hub>.R_CFG0) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_42",
+    "pcb_component_id": "pcb_component_42",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_wMeRCqmrov",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#447(.upstream_and_hub>.C_HUB_DD) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_34",
+    "pcb_component_id": "pcb_component_34",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_cgU4jgBc0A",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#326(.upstream_and_hub>.R_RBIAS) /> footprint \"0402\" does not match supplier footprint jlcpcb:C114760 (copper IoU 0.7741).",
+    "source_component_id": "source_component_24",
+    "pcb_component_id": "pcb_component_24",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C114760",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_uf4Azgt18v",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1237(.U_PWR1_cell>.C_PWR1_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_94",
+    "pcb_component_id": "pcb_component_94",
+    "pcb_group_id": "pcb_group_7",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_TvqFIKA5ii",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1274(.external_port_1>.R_PWR_EN1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_97",
+    "pcb_component_id": "pcb_component_97",
+    "pcb_group_id": "pcb_group_8",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_jPYGMQWYWa",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#1064(.management_device>.R_DATA_CMD3) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_81",
+    "pcb_component_id": "pcb_component_81",
+    "pcb_group_id": "pcb_group_3",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_o8FOS9Lmxk",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#114(.protected_input_and_3v3>.C_TRUNK_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_10",
+    "pcb_component_id": "pcb_component_10",
+    "pcb_group_id": "pcb_group_0",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_9HiZQ3Szkq",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#399(.upstream_and_hub>.C_HUB_A4) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_30",
+    "pcb_component_id": "pcb_component_30",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_qdq0HSXK2A",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<chip#15(.protected_input_and_3v3>.U_AGG) /> footprint the provided footprint does not match supplier footprint jlcpcb:C2864845 (copper IoU 0.7407).",
     "source_component_id": "source_component_2",
@@ -90461,11 +90329,76 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_uGansMSwPN",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_VEcTz8JoDE",
     "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#973(.management_device>.R_EXP_RESET) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
-    "source_component_id": "source_component_74",
-    "pcb_component_id": "pcb_component_74",
+    "message": "<resistor#313(.upstream_and_hub>.R_XTAL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C138033 (copper IoU 0.7741).",
+    "source_component_id": "source_component_23",
+    "pcb_component_id": "pcb_component_23",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C138033",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_RnljNMU8gZ",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#363(.upstream_and_hub>.C_HUB_A1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_27",
+    "pcb_component_id": "pcb_component_27",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_qMnSLo9W7A",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#339(.upstream_and_hub>.C_XTAL1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1549 (copper IoU 0.7249).",
+    "source_component_id": "source_component_25",
+    "pcb_component_id": "pcb_component_25",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1549",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_MUPn4PguD2",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#423(.upstream_and_hub>.C_HUB_CR_HF) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_32",
+    "pcb_component_id": "pcb_component_32",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Ad5mZLNiUX",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#471(.upstream_and_hub>.C_HUB_18) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
+    "source_component_id": "source_component_36",
+    "pcb_component_id": "pcb_component_36",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C52923",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_BaP6hDN20W",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#986(.management_device>.R_PWR_CMD1) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_75",
+    "pcb_component_id": "pcb_component_75",
     "pcb_group_id": "pcb_group_3",
     "subcircuit_id": "subcircuit_source_group_22",
     "supplier_name": "jlcpcb",
@@ -90473,7 +90406,111 @@
     "footprint_copper_intersection_over_union": 0.7741
   },
   {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_lcrb0l5f3k",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#1320(.external_port_2>.C_DATA2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_101",
+    "pcb_component_id": "pcb_component_101",
+    "pcb_group_id": "pcb_group_10",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_VduUhil1Zf",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<resistor#715(.upstream_and_hub>.R_BOOST0) /> footprint \"0402\" does not match supplier footprint jlcpcb:C60490 (copper IoU 0.7741).",
+    "source_component_id": "source_component_55",
+    "pcb_component_id": "pcb_component_55",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C60490",
+    "footprint_copper_intersection_over_union": 0.7741
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_7wK9E7IQip",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#459(.upstream_and_hub>.C_HUB_PLL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_35",
+    "pcb_component_id": "pcb_component_35",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_QyxIupKOGQ",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#351(.upstream_and_hub>.C_XTAL2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1549 (copper IoU 0.7249).",
+    "source_component_id": "source_component_26",
+    "pcb_component_id": "pcb_component_26",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1549",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_szUbATjl5C",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#411(.upstream_and_hub>.C_HUB_A_BULK) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
+    "source_component_id": "source_component_31",
+    "pcb_component_id": "pcb_component_31",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C52923",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_YUvkYpVwXw",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#26(.protected_input_and_3v3>.C_AGG_IN) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_3",
+    "pcb_component_id": "pcb_component_3",
+    "pcb_group_id": "pcb_group_0",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_UUjZoQdEiL",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#375(.upstream_and_hub>.C_HUB_A2) /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
+    "source_component_id": "source_component_28",
+    "pcb_component_id": "pcb_component_28",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_kK1GAb0fGe",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<capacitor#483(.upstream_and_hub>.C_HUB_18PLL) /> footprint \"0402\" does not match supplier footprint jlcpcb:C52923 (copper IoU 0.7249).",
+    "source_component_id": "source_component_37",
+    "pcb_component_id": "pcb_component_37",
+    "pcb_group_id": "pcb_group_1",
+    "subcircuit_id": "subcircuit_source_group_22",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C52923",
+    "footprint_copper_intersection_over_union": 0.7249
+  },
+  {
     "type": "source_project_metadata",
-    "source_filesystem_md5_hash": "b1236c91a91cc5b624429b1a5a2f116d"
+    "source_filesystem_md5_hash": "8c70e6a381f0d2f9a1f1b225dc0e5f39"
   }
 ]

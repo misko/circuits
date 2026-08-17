@@ -23,7 +23,14 @@ pins:
   4: GND
   5: {name: SHIELD, note: "The two manufacturer shell stakes are one fused electrical pad number in the project footprint."}
 sourcing: {lcsc: C503996, alternates: [], note: "THT part; live JLC allocation and through-hole assembly coverage require release-time confirmation."}
-verified: "REPLACEMENT for 1001-011-01101 after the fresh-context pin review proved that part is a USB-A MALE PLUG rated 1.5A (its drawing title 'USB 4P AM SMT', current spec p.1). KH-AF90DIP-112 vendor drawing p.1: female receptacle, PCB pattern O1.0 signal holes at 2.500/2.000/2.500 pitch, O3.0 shell holes 13.240 apart offset 2.600 forward - vendored footprint drawn to these numbers (Stewart SS-52100 template, same USB-standard contact order 1=VBUS 2=D- 3=D+ 4=GND). Contact rating not stated by vendor; USB-A contacts are 1.5A-class per the connector standard - 2A cont/2.5A burst DCP use is the industry-universal practice, disposition in ADR 0006."
+pin_authority:
+  source: "JLC/EasyEDA exact catalog library for LCSC C503996 / KH-AF90DIP-112"
+  captured: 2026-08-17
+  evidence: "02_parts/KH-AF90DIP-112/pin_authority.md"
+  symbol_sha256: f267353bb2612f0908fdb660f4cb2fda7ea8e1b2d367d80004047df7cc4b7992
+  footprint_sha256: 918e73b3f9e26fd6821f5e894f46b5ad8824ec31994a80df2d446e73896510fd
+  mapping: {1: VBUS, 2: DM, 3: DP, 4: GND}
+verified: "REPLACEMENT for 1001-011-01101 after the fresh-context pin review proved that part is a USB-A MALE PLUG rated 1.5A (its drawing title 'USB 4P AM SMT', current spec p.1). KH-AF90DIP-112 vendor drawing p.1 proves the female-receptacle geometry: O1.0 signal holes at 2.500/2.000/2.500 pitch and O3.0 shell holes 13.240 apart offset 2.600 forward. The exact JLC/EasyEDA C503996 library independently binds that geometry to pad 1=VCC/VBUS, 2=D-, 3=D+, 4=GND; the project footprint is the same row translated +3.49 mm with the same mouth direction and shell field. Contact rating is not stated by the vendor; disposition remains in ADR 0006."
 layout:
   source: "KH-AF90DIP-112 datasheet + USB-A host-port layout practice"
   adjacency:

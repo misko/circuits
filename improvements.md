@@ -138,6 +138,42 @@ rationale.
 | IMP-122 | Grade realised functional pad-bank direction before routing | completed | USB-controlled debug hub USB routing backtrack |
 | IMP-123 | Preflight differential endpoint topology and tangent compatibility | proposed | USB-controlled debug hub USB routing retry |
 | IMP-124 | Classify high-speed protection parts as shunt or series before placement | proposed | USB-controlled debug hub deterministic USB-bottom routing |
+| IMP-125 | Make generated evidence bundles relocatable across atomic promotion | completed | USB-controlled debug hub evidence promotion |
+| IMP-126 | Grade connector mating direction against the board edge | completed | USB-controlled debug hub connector review |
+| IMP-127 | Bind package-local rule areas to realised footprints | completed | USB-controlled debug hub connector review |
+| IMP-128 | Authenticate camera semantics in directional render evidence | completed | USB-controlled debug hub connector review |
+| IMP-129 | Separate geometric render resolution from ray-tracing quality | proposed | USB-controlled debug hub connector review |
+| IMP-130 | Grade the signed mounting side independently of XY registration | implementing | USB-controlled debug hub connector review |
+| IMP-131 | Derive intermediate power floors in their own current domain | implementing | USB-controlled debug hub schematic renewal |
+| IMP-132 | Make schematic-review hashes phase-semantic | proposed | USB-controlled debug hub schematic renewal |
+| IMP-133 | Grade deterministic critical-copper length before review and routing | proposed | USB-controlled debug hub route preparation |
+| IMP-134 | Replay downstream corridor capacity after deterministic route growth | proposed | USB-controlled debug hub route preparation |
+| IMP-135 | Authenticate a reviewed critical route as a reusable wave prefix | implementing | USB-controlled debug hub route recovery |
+| IMP-136 | Classify wide multi-pad power distribution before autorouting | completed | USB-controlled debug hub route recovery |
+| IMP-137 | Make incomplete structured router results fail the wave directly | completed | USB-controlled debug hub route recovery |
+| IMP-138 | Measure plated-pad layer transitions as real conductor length | implementing | USB-controlled debug hub route review |
+| IMP-139 | Order route waves by geometric flexibility and physical ownership | implementing | USB-controlled debug hub route recovery |
+| IMP-140 | Bound routing exploration by stagnation and novelty | completed | USB-controlled debug hub routing retrospective |
+| IMP-141 | Grade every route candidate in an authoritative immutable workspace | completed | USB-controlled debug hub routing retrospective |
+| IMP-142 | Make first-article power-up a staged, measurable contract | completed | USB Hub 3S v3 bring-up failure |
+| IMP-143 | Make route experiments transactional and retention-bounded | completed | USB-controlled debug hub routing retrospective |
+| IMP-144 | Keep one canonical pause-state authority | completed | USB-controlled debug hub routing retrospective |
+| IMP-145 | Schedule user interaction only at high-leverage physical boundaries | implementing | USB-controlled debug hub and USB Hub 3S v3 reviews |
+| IMP-146 | Make copper-layer roles and low-speed escape eligibility executable | proposed | USB-controlled debug hub final control routing |
+| IMP-147 | Route against pairwise authoritative clearances, not one global clearance | proposed | USB-controlled debug hub final control routing |
+| IMP-148 | Prove placement and complete routability together before floorplan promotion | proposed | USB-controlled debug hub VBUS-divider relocation |
+| IMP-149 | Author deterministic geometry with explicit numeric margin above hard floors | proposed | USB-controlled debug hub sense routing |
+| IMP-150 | Isolate repeated KiCad board mutations per candidate process | proposed | USB-controlled debug hub placement scan |
+| IMP-151 | Require complete displaced-net closure and source rebase before ECO promotion | proposed | USB-controlled debug hub VBUS-divider relocation |
+| IMP-152 | Make generated-copper cleanup ownership-scoped and width-aware | partially implemented | USB-controlled debug hub final stitch replay |
+| IMP-153 | Preflight stitching sites against final filled geometry | proposed | USB-controlled debug hub final ground stitching |
+| IMP-154 | Distinguish byte provenance from semantic 3D-model identity | proposed | USB-controlled debug hub model registration |
+| IMP-155 | Generate the release manifest skeleton before release gates | proposed | USB-controlled debug hub release staging |
+| IMP-156 | Use multiscale render evidence for small bodies | proposed | USB-controlled debug hub JLC twin overlay |
+| IMP-157 | Reject same-net branches, cycles, and duplicate copper before route promotion | project repair landed | USB-controlled debug hub Port 4 release audit |
+| IMP-158 | Grade every realized via against the actual stackup aspect-ratio ceiling | project repair landed | USB-controlled debug hub topology red team |
+| IMP-159 | Make route replay regenerate or select an immutable segment-free base | proposed | USB-controlled debug hub route repair replay |
+| IMP-160 | Grade projected reference-plane interruptions on every declared adjacent plane | implemented | USB-controlled debug hub final electrical review |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -3358,6 +3394,24 @@ Recommended execution order for future boards:
   route/stitch/fence holes remain 0.45/0.20 mm. JLC's published POFV guidance
   lists a 0.25-mm hole with 0.40-mm via diameter, so the selected protected
   0.45/0.25-mm family is within that published geometry and drill-distinct.
+- 2026-08-17 follow-up: the USB-controlled debug hub reached release staging
+  with 87 realized via-in-pad sites even though only one source thermal via
+  carried Type-VII flags. Most were legitimate route/prep transitions whose
+  centres landed in same-net passive or IC lands, so electrical DRC remained
+  0/0/0. The late process census correctly blocked fabrication. The repaired
+  source now makes the complete 0.46/0.20-mm drill family filled+capped (470
+  vias), leaves the 0.41/0.15 and 0.70/0.35-mm families ordinary, and splits
+  one bulk-capacitor spur from its main power-via bank so current capacity is
+  preserved. `protect_via_family` applies native intent to the exact complete
+  family without resizing other vias; `via_process_check.py` now passes
+  525/525 via flags/selectors and 87/87 via-in-pad sites while full DRC remains
+  0/0/0.
+- remaining lifecycle correction: run the final-style via-in-pad census after
+  prep and after every promoted route wave, not for the first time during fab
+  export. Before routing begins, require either an executable no-via-in-pad
+  policy or a drill-disjoint fabrication family plus assembly/order contract.
+  A wave that introduces a new barrel under paste must fail promotion unless
+  its manufacturing disposition is already source-authenticated.
 - history: 2026-08-13 — completed before layout seal after independent final
   pin and layout lenses both refused the otherwise-green exact board.
 
@@ -5342,3 +5396,432 @@ policies and one public `KICAD-ROUTING` stage; the USB reuse canary preserved
 all 33 stages in order; Pluto v4 full/reuse traces remained distinct and
 dependency-complete; 21 existing wave-routing tests passed; gate-contract
 coverage was 73/73 with G-INPUT/G-COVER/G-RED satisfied.
+
+## IMP-146 — make copper-layer roles and low-speed escape eligibility executable
+
+- status: proposed
+- observed: USB-controlled debug hub final control routing, 2026-08-17
+- evidence: `HUB_VBUS_SENSE` was repeatedly infeasible or fragile when the
+  router was restricted to F.Cu/B.Cu. The successful candidate used one short
+  In2.Cu segment and one via, routed in 1,369 iterations / 0.06 seconds at
+  0.30 mm clearance while preserving In1.Cu as an uninterrupted ground
+  reference. The five-via outer-layer alternative crossed the occupied P4,
+  OCS, management, reset and command field. Its proof receipt is
+  `projects/usb-controlled-debug-hub-v1/06_build/route/candidate_grades/nearhub-x78y60-complete/receipt.json`.
+- general rule: layer eligibility follows electrical role and stackup intent,
+  not a blanket outer-layer default. A low-speed control or DC-sense net may
+  use a declared internal signal-capable layer when an adjacent continuous
+  reference plane remains, while USB/RF/differential and plane-owned nets keep
+  their stricter layer contracts. An internal ground pour may clear locally
+  around a signal only when another declared reference plane and the
+  post-fill plane-continuity gates prove the return structure.
+- intended landing point: extend route policy with source-owned layer roles
+  such as `signal`, `reference_plane`, `mixed_signal_pour`, and
+  `power_plane`, plus per-net-class layer eligibility and required reference
+  planes. The routing preflight should report eligible escape layers before
+  any rip-up escalation and require fill/return-path rechecks when a mixed
+  layer is used.
+- completion evidence required: a four-layer fixture with two plane layers
+  permits a low-speed net on the declared mixed layer and proves the other
+  plane continuous; the same fixture rejects USB/RF use of that layer; a
+  two-layer board gains no fictitious escape; and post-fill loss of the
+  declared reference path fails promotion.
+- recommendation: high value. Integrate with IMP-139 ownership ordering and
+  the existing stackup/plane gates before adding more handcrafted route
+  repair logic.
+
+## IMP-147 — route against pairwise authoritative clearances, not one global clearance
+
+- status: proposed
+- observed: USB-controlled debug hub final control routing, 2026-08-17
+- evidence: a global 0.15 mm search found a connected outer-layer sense route,
+  but immutable authoritative DRC found four USB-class clearance defects
+  (actual 0.1809--0.2964 mm against 0.30 mm). A global 0.30/0.32 mm search
+  could not pass the fine-pitch control escape even though control-to-control
+  spacing legally requires only 0.15 mm. The candidate was correctly rejected,
+  but the router had no way to express both constraints in one search.
+- general rule: route feasibility is governed by the clearance between the
+  moving net and each obstacle, including scoped rule areas, not one clearance
+  number for the entire wave. A low-speed control net may approach another
+  control at its control floor while still maintaining the USB/RF/power rule
+  against those classes.
+- intended landing point: construct the router obstacle map from the prepared
+  board's effective netclass and custom-rule authority. Expose a conservative
+  per-pair clearance callback/table to search, including scoped-area overrides,
+  and record the smallest effective clearance by obstacle class in the
+  structured route summary. The immutable DRC remains authoritative.
+- completion evidence required: a fixture with a narrow legal control-control
+  neck and a nearby USB pair routes through the neck while holding the larger
+  USB clearance; a deliberately incomplete rule projection is `INCOMPLETE`,
+  not silently replaced by a global minimum; and the generated route passes
+  the exact prepared-sidecar DRC under IMP-141.
+- recommendation: high value for dense mixed-signal boards. Until implemented,
+  use conservative layer changes or deterministic local geometry rather than
+  accepting a globally clamped router sidecar.
+
+## IMP-148 — prove placement and complete routability together before floorplan promotion
+
+- status: proposed
+- observed: USB-controlled debug hub VBUS-divider relocation, 2026-08-17
+- evidence: the original divider at `(83,59)/(83,62)` was physically legal but
+  enclosed by the P1/P2 route transitions. Several visually plausible new
+  positions collided with accepted copper. A bounded 49-position native-DRC
+  scan found exactly one zero-hard near-hub position, `(78,60)/(78,62)`. That
+  position was not considered proven until `HUB_VBUS_SENSE`, `USB_UP_VBUS`,
+  `HUB_NONREM0`, and the preserved `HUB_OCS1_N` all connected with zero hard
+  findings.
+- general rule: placement clearance is necessary but not sufficient. Before
+  promoting a local floorplan ECO, prove the component's required ingress,
+  egress and return/reference paths and restore every net temporarily removed
+  to make the probe. Prefer a bounded native-geometry scan over visual guessing
+  or unbounded router permutations.
+- intended landing point: add a placement-feasibility probe that accepts a
+  bounded candidate grid or explicit alternatives, runs exact physical DRC,
+  performs declared route probes, restores displaced-net obligations, and
+  emits a ranked receipt. It must remain diagnostic until the floorplan and
+  source route policy are promoted transactionally.
+- completion evidence required: a physically legal but unroutable placement is
+  rejected; a placement that routes the target while stranding a displaced
+  net is rejected; coordinate-only alternatives are bounded by the exploration
+  budget; and the selected placement reproduces after source regeneration.
+- recommendation: high value. Run at placement freeze for dense IC support
+  networks and again before promoting any post-route footprint move.
+
+## IMP-149 — author deterministic geometry with explicit numeric margin above hard floors
+
+- status: proposed
+- observed: USB-controlled debug hub sense routing, 2026-08-17
+- evidence: a deterministic segment authored at the exact 0.180 mm CONTROL
+  width floor serialized/reconstructed as 0.1798 mm and correctly failed the
+  authoritative track-width rule. Re-authoring the intended geometry at
+  0.19 mm removed that false-boundary dependence. This was not permission to
+  weaken the 0.18 mm rule.
+- general rule: an authored manufacturing or DRC value should not sit exactly
+  on an integer-grid, unit-conversion or serialization boundary. Use a declared
+  positive design margin for deterministic widths, clearances, drills and
+  edge distances; report both the required floor and authored target.
+- intended landing point: add a numeric-margin lint to route-prep and
+  deterministic-copper emitters. The lint should understand KiCad's internal
+  units and flag values whose serialized result can fall at/below the adopted
+  floor. Default targets should come from fabrication policy, not an arbitrary
+  universal epsilon.
+- completion evidence required: the 0.180-to-0.1798 regression fails before
+  board generation; a 0.19 mm control track passes; exact values explicitly
+  mandated by a controlled-impedance solver are handled by that solver's own
+  tolerance contract rather than blindly inflated.
+- recommendation: small and inexpensive; implement alongside deterministic
+  route-source cleanup.
+
+## IMP-150 — isolate repeated KiCad board mutations per candidate process
+
+- status: proposed
+- observed: USB-controlled debug hub placement scan, 2026-08-17
+- evidence: the first in-process placement scanner repeatedly loaded, mutated
+  and discarded pcbnew boards. On its second iteration `LoadBoard` returned a
+  `SwigPyObject` without `GetFootprints`, accompanied by numerous SWIG ownership
+  warnings. Running each candidate mutation in a fresh subprocess completed all
+  49 positions deterministically in about 28 seconds.
+- general rule: long-lived SWIG object graphs are not a safe orchestration
+  boundary for repeated destructive board mutations. Candidate isolation also
+  prevents one failed mutation from contaminating the next candidate's board
+  state.
+- intended landing point: give batch geometry probes a shared subprocess worker
+  protocol: one input board, one bounded mutation, one output/result, then
+  process exit. Keep orchestration and ranking in the parent process; suppress
+  known non-actionable SWIG diagnostics into the artifact log while surfacing
+  crashes as `INCOMPLETE`.
+- completion evidence required: a multi-candidate fixture completes without
+  cross-candidate object reuse; a crashing worker leaves other candidates
+  gradeable; inputs remain byte-identical; and worker stderr is retained but
+  does not flood normal progress output.
+- recommendation: medium priority, particularly for placement scans, model
+  registration coupons and route-surgery experiments.
+
+## IMP-151 — require complete displaced-net closure and source rebase before ECO promotion
+
+- status: proposed
+- observed: USB-controlled debug hub VBUS-divider relocation, 2026-08-17
+- evidence: experimental candidates deliberately removed `USB_UP_VBUS`,
+  `HUB_NONREM0`, and sometimes `HUB_OCS1_N` to expose the constrained sense
+  route. Several intermediate boards had zero target-net clearance findings but
+  were not complete designs. The final physical candidate connected all eight
+  declared nets with zero hard findings yet still received `REJECTED`, correctly,
+  because its moved footprints and replacement copper were not present in the
+  prepared route base.
+- general rule: an ECO has three distinct verdicts: local physical feasibility,
+  complete electrical closure including displaced nets, and reproducible
+  source promotion. None implies the next. A board is promotable only after the
+  floorplan/config source regenerates the new prepared base and the reviewed
+  copper is rebased and accepted against it.
+- intended landing point: extend the route-experiment transaction with an
+  explicit displacement set and promotion recipe. Candidate grading reports
+  `PHYSICALLY_FEASIBLE`, `ELECTRICALLY_COMPLETE`, and `SOURCE_AUTHENTICATED`
+  separately; only the conjunction may update the canonical route pointer.
+  Generate the rebase plan from footprint/net deltas rather than ad hoc file
+  copying.
+- completion evidence required: target-only success cannot promote while a
+  displaced net is open; a complete candidate against stale r0 remains
+  rejected; regeneration plus semantic rebase produces an accepted receipt;
+  and route-base failure text distinguishes expected ECO deltas from accidental
+  loss of unrelated reviewed copper.
+- recommendation: high value and the immediate next step for this board. Build
+  on IMP-040, IMP-101, IMP-141 and IMP-143 instead of adding a parallel
+  promotion authority.
+
+### 2026-08-17 final-control routing synthesis
+
+The complete learning record for this stage is also preserved in
+`projects/usb-controlled-debug-hub-v1/01_docs/journal/07_routing_topology_reflection_2026-08-17.md`.
+The priority order arising from the run is:
+
+1. apply IMP-151 now so the physically proven board becomes reproducible rather
+   than merely copying the candidate;
+2. add IMP-146 and IMP-148 to the routing/placement preflight so future boards
+   discover the legal internal-layer escape and routable placement before
+   outer-layer congestion accumulates;
+3. implement IMP-147 for dense mixed-rule routing; and
+4. land the inexpensive IMP-149 lint and IMP-150 worker isolation as bounded
+   tooling hardening.
+
+Related existing items remain active rather than duplicated: IMP-134 covers
+downstream corridor replay, IMP-139 owns constrained-wave ordering, IMP-140
+caps non-novel search, IMP-141 owns authoritative candidate verdicts, and
+IMP-143 owns experiment retention.
+
+## IMP-152 — make generated-copper cleanup ownership-scoped and width-aware
+
+- status: partially implemented on the USB-controlled debug hub; reusable
+  contract and regression fixtures pending
+- observed: USB-controlled debug hub final stitch replay, 2026-08-17
+- evidence: an `all`-scope dangling cleanup removed an authenticated
+  `DATA_OE4` route segment and valid protected-power via banks. The via test
+  compared centre lines while the electrically valid contact came from the
+  annular ring overlapping a wide track. The board regressed from an accepted
+  route to 14 DRC violations and 7 unconnected items after a nominal cleanup.
+- general rule: a downstream producer may delete only objects it emitted and
+  can identify by receipt. Geometric connectivity tests must use copper
+  extents (track half-width, via annulus and pad shape), not centre-line
+  coincidence. Authenticated route copper is immutable input to stitching.
+- landed locally: stitch pruning now uses `scope: emitted`; the redundant
+  same-layer seed via was removed at source; the canonical replay returns DRC
+  0/0/0 with all critical pairs connected.
+- intended landing point: give every generated track/via an ownership receipt
+  and require cleanup APIs to name the producer scope. Add a shared
+  copper-contact predicate based on actual shapes. Run full connectivity and
+  immutable DRC immediately after every destructive cleanup pass.
+- completion evidence required: a fixture preserves a route-owned segment and
+  a via whose annulus contacts a wide track while deleting a truly isolated
+  stitch-owned via; an `all` scope is rejected in release mode; post-cleanup
+  0/0/0 and critical-pair checks are mandatory.
+- recommendation: P0. This can silently corrupt any densely routed board after
+  routing has already passed and should be generalized before the next board.
+
+## IMP-153 — preflight stitching sites against final filled geometry
+
+- status: project workaround landed; general preflight proposed
+- observed: USB-controlled debug hub final ground stitching, 2026-08-17
+- evidence: two nominal grid sites at `(88,32)` and `(144,32)` landed in
+  final-fill voids. They were legal in the early geometric grid but became
+  dangling only after zone refill, creating late verification noise and
+  tempting broad cleanup.
+- general rule: a stitching site is valid only if the plated barrel/annulus
+  contacts the intended copper on every required layer after authoritative
+  zone fill. Grid regularity is not evidence of electrical attachment.
+- landed locally: the two impossible sites are source-declared avoid boxes;
+  129/129 ground SMD pads are served and all 86 emitted/retained stitch vias
+  survive final verification.
+- intended landing point: add a dry-run fill/contact probe before emitting the
+  stitch grid, record accepted and rejected sites with reasons, and regenerate
+  the same decision deterministically after routing changes.
+- completion evidence required: a fixture containing a zone void rejects its
+  visually regular grid point before mutation, accepts neighbouring connected
+  points, and reports zero dangling stitch-owned copper after final refill.
+- recommendation: P1, inexpensive and broadly useful on plane-heavy boards.
+
+## IMP-154 — distinguish byte provenance from semantic 3D-model identity
+
+- status: project hashes corrected; dual-hash model authority proposed
+- observed: USB-controlled debug hub model registration, 2026-08-17
+- evidence: vendored STEP files and cached JLC STEP sources had different raw
+  SHA256 values solely because of line endings and trailing whitespace. After
+  canonical text normalization their bytes were identical, yet the raw-hash
+  gate initially reported a model-registration failure.
+- general rule: release provenance and geometric/model identity are separate
+  claims. The release must pin the exact repository bytes, while a model
+  equivalence gate may additionally use a documented canonical or geometry
+  digest. Neither digest may silently substitute for the other.
+- landed locally: the registration rules now pin the exact vendored raw bytes
+  and document canonical equality; all four model groups pass.
+- intended landing point: model receipts should store `source_sha256`,
+  `canonical_step_sha256`, normalization version and, where practical, a
+  geometry digest. A raw-byte change invalidates provenance; semantic approval
+  is reusable only when the canonical geometry/transform/camera subject is
+  unchanged.
+- completion evidence required: CRLF/whitespace-only variants share the
+  canonical digest but retain different source hashes; a coordinate or solid
+  change alters the semantic digest and invalidates approval.
+- recommendation: P1. This prevents false regressions without weakening exact
+  release provenance.
+
+## IMP-155 — generate the release manifest skeleton before running release gates
+
+- status: proposed; manual staging skeleton used on this release
+- observed: USB-controlled debug hub assembly coverage, 2026-08-17
+- evidence: population identity, CPL datum and side counts were correct, but
+  the release-local assembly gate failed solely because `MANIFEST.txt` did not
+  yet contain the generated `not_assembled: F_IN` line. The manifest was being
+  treated as a final seal artifact even though several gates consume its
+  declarations earlier.
+- general rule: separate a generated release declaration from its final
+  cryptographic seal. Create the declaration skeleton at staging start from
+  authoritative project rules; append hashes and clean-commit provenance only
+  at seal time.
+- intended landing point: a `release_stage init` command writes a clearly
+  marked DRAFT manifest containing board/version/date, assembly disposition,
+  process declarations and pending provenance fields. `release_stage seal`
+  refuses pending fields, replaces the draft marker, hashes every payload file
+  and proves no undeclared files exist.
+- completion evidence required: assembly coverage passes against a generated
+  draft; hand-edited population lines fail regeneration; the seal refuses
+  dirty inputs, pending fields, missing files and stale hashes.
+- recommendation: P1. This removes circular gate ordering and hand-copy risk.
+
+## IMP-156 — use multiscale render evidence instead of one whole-board resolution
+
+- status: proposed
+- observed: USB-controlled debug hub JLC twin overlay, 2026-08-17
+- evidence: the same-camera populated-minus-bare overlays measured all 30
+  resolvable top bodies and all 9 bottom bodies within 1 mm, but 99 small
+  top-side passives were explicitly below the whole-board two-millimetre
+  resolvability floor. Increasing the full-board image indefinitely is an
+  inefficient way to inspect 0402/0603 bodies.
+- general rule: whole-board renders prove global placement and connector
+  context; deterministic local crops prove small-body presence and polarity.
+  Both views must bind the same board hash, camera/projection contract and
+  populated-minus-bare source.
+- intended landing point: after the global overlay, automatically render tiled
+  orthographic populated/bare crops only for unresolved refs, then merge their
+  measurements into one coverage receipt. Keep symmetric/polarized parts as
+  explicit human or pin-1 gates where pixels cannot prove orientation.
+- completion evidence required: a mixed 0402/connector fixture achieves full
+  resolvable coverage without an enormous whole-board raster; crop and global
+  receipts bind the same board hash; a shifted small body fails locally.
+- recommendation: P2. Valuable for evidence completeness, but it should not
+  delay this release because every currently resolvable body passes and the
+  unresolved set is named rather than silently accepted.
+
+## IMP-157 — reject same-net branches, cycles, and duplicate copper before route promotion
+
+- status: project repair landed; lifecycle integration proposed
+- observed: USB-controlled debug hub Port 4 release audit, 2026-08-17
+- evidence: canonical DRC was 0/0/0 and all ten critical pair endpoint checks
+  passed, yet strict realized-copper analysis refused `P4_HUB_P`: two launch
+  segments existed twice at coordinates differing by only 1 nm. KiCad merged
+  them visually and treated the overlapping same-net copper as connected, but
+  the conductor graph correctly contained parallel edges, branch vertices and
+  a cycle. Removing only the duplicate source pair made all 6/6 USB groups and
+  12/12 members measurable; Port 4 then passed at 0.751 mm skew against its
+  1.0 mm ceiling while DRC remained 0/0/0.
+- general rule: endpoint connectivity and clearance DRC do not prove that a
+  transmission line is a simple conductor. Before any critical-route wave is
+  promoted, canonicalize geometrically coincident primitives at the board's
+  integer-unit resolution and reject unexpected same-net branches, stubs,
+  cycles, parallel edges, or disconnected components.
+- intended landing point: make `copper_length_audit.py` (or a narrower shared
+  topology precheck) part of immutable candidate grading for every declared
+  differential/RF/clock group. Emit the exact primitive UUIDs and source owner
+  for duplicate edges so repair happens in the producer, not in the final PCB.
+- completion evidence required: fixtures covering exact duplicates, 1-nm
+  near-duplicates, a legitimate declared tree, a real stub and a loop; only
+  the declared topology may promote, and a 0/0/0 DRC cannot override failure.
+- recommendation: P0 for high-speed/RF boards and P1 as a general route hygiene
+  check. Run it immediately after each promoted critical-copper wave.
+
+## IMP-158 — grade every realized via against the actual stackup aspect-ratio ceiling
+
+- status: project repair landed; generic gate proposed
+- observed: USB-controlled debug hub topology red team, 2026-08-17
+- evidence: 27 realized 0.410/0.150 mm signal vias satisfied the generic JLC
+  advanced minimum-drill rule but reached 10.67:1 on the board's nominal
+  1.6 mm stackup, beyond the project's adopted 10:1 ceiling. Tier preflight
+  checked configured minima and missed the realized board/stackup combination.
+  The source repair moved those transitions into the existing 0.460/0.200 mm
+  protected family. Final census is 497 protected 0.46/0.20 mm vias and 28
+  ordinary 0.70/0.35 mm vias; every drill is at or below 8:1 and DRC remains
+  0/0/0.
+- general rule: manufacturability belongs to each realized hole, not merely to
+  the route configuration's nominal via. Compute board thickness / finished
+  drill for every PTH and via after prep, after every promoted wave, after
+  stitch, and from the final drill files. The smallest allowed catalog drill
+  is not automatically legal at every selected thickness.
+- intended landing point: extend tier/route/fab gates with one shared
+  stackup-aware aspect-ratio census. It must compare native board vias, route
+  vias, thermal/stitch vias and PTH footprints against the selected process,
+  report the owning source, and reject an absent or ambiguous thickness.
+- completion evidence required: a 0.15 mm drill passes on a qualified thin
+  board but fails at 1.6 mm under a 10:1 ceiling; changing only the route common
+  via cannot hide an old promoted via; final Excellon drill families reconcile
+  exactly with the board census and order notes.
+- recommendation: P0. Add this before the next fabrication release and before
+  route-review spend on every multilayer board.
+
+## IMP-159 — make route replay regenerate or select an immutable segment-free base
+
+- status: proposed
+- observed: USB-controlled debug hub route repair replay, 2026-08-17
+- evidence: the route backend correctly refused `prep` when the canonical PCB
+  still contained the previously imported 2,000+ copper items, and later
+  refused a widened-via prefix against a cached old `r0`. The valid recovery
+  required three separately remembered steps: regenerate the board from
+  `floorplan.yaml`, regenerate rules, then regenerate `r0` before authenticating
+  the prefix. Each refusal was safe, but the replay entrypoint did not explain
+  or perform the full source lifecycle.
+- general rule: the segment-free placed board and the final routed board are
+  different lifecycle artifacts even when a legacy flow uses one pathname.
+  A replay command must either regenerate the base transactionally or name an
+  immutable base artifact explicitly; it must never infer readiness from a
+  cached `r0` or ask an operator to hand-clear copper.
+- intended landing point: add `route replay` orchestration that snapshots
+  hashes, runs board generation and rule generation, creates fresh `r0`,
+  authenticates/rebases the promoted prefix, imports, stitches and runs the
+  complete final gate battery. Preserve the last good final board until the
+  replacement passes, then promote atomically.
+- completion evidence required: replay from a routed canonical board succeeds
+  without manual file surgery; a stale prefix or stale `r0` fails before
+  mutation; a failed replay leaves the previous canonical result recoverable;
+  and successful output is reproducible from committed source alone.
+- recommendation: P1. It reduces operator error and makes small source repairs
+  cheap enough that defects are fixed rather than waived late in release.
+
+## IMP-160 — grade projected reference-plane interruptions on every declared adjacent plane
+
+- status: implemented as an opt-in board-measured gate
+- observed: USB-controlled debug hub final electrical review, 2026-08-17
+- evidence: exact DRC was 0/0/0, strict USB topology and realized-length gates
+  passed, and the existing P-PLANE policy covered In1 only. Independent final
+  review nevertheless found `USB_UP_VBUS` and `HUB_VBUS_SENSE` In2 tracks
+  crossing directly beneath eight B.Cu USB conductors, cutting their nearest
+  reference plane. Source-owned detours removed every crossing; the repaired
+  board's nearest projected foreign-track copper edge is 0.4468 mm on
+  B.Cu/In2 and 10.7108 mm on F.Cu/In1.
+- general rule: a legal conductor on an inner mixed-signal layer can still be
+  an SI defect for an outer high-speed route. Every high-speed/RF class must
+  declare its signal layer, adjacent reference layer/net, and projected
+  foreign-copper margins. Grade all declared adjacent planes, not just a
+  globally preferred plane and not merely the presence of a GND zone.
+- landed implementation: `reference_plane_check.py` reads opt-in
+  `reference_plane_checks` from the project nets YAML, measures final-board
+  foreign tracks and through-vias beneath each declared signal corridor, emits
+  nearest-margin and exact-violation geometry, and fails below the source-owned
+  track/via floors. The USB debug hub declares both B.Cu-over-In2 and
+  F.Cu-over-In1 checks; existing boards are unchanged until they opt in.
+- scope boundary: this is a projected interruption check, not a field solve or
+  proof that filled GND polygons form a globally continuous return path. It
+  complements, rather than replaces, impedance solving, zone/plane review,
+  discontinuity review, DRC and first-article eye/traffic testing.
+- completion evidence: the original crossing geometry is red; the exact
+  repaired board passes both planes with named closest obstacles; absent
+  declared nets/layers or an empty signal denominator fail configuration.
+- recommendation: P0 for USB/RF/high-speed four-layer boards. Run after every
+  promoted critical route, after fill/stitch, and again on the exact staged
+  source before release sealing.

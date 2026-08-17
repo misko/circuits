@@ -375,6 +375,10 @@ run_stage route_taps   $PY "$S/route_and_stitch_generic.py" taps   03_src/route.
 run_stage stitch       $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \
     || { echo "GATE FAILED [8a] R-CRITESC: critical pairs are open, on forbidden layers, or use forbidden vias"; exit 1; }
+$PY "$S/reference_plane_check.py" "04_kicad/$BOARD.kicad_pcb" \
+    --config 03_src/rules/nets.yaml \
+    --json 06_build/verification/reference_plane.json \
+    || { echo "GATE FAILED [8b] R-REFPLANE: foreign inner copper interrupts a declared high-speed reference corridor"; exit 1; }
 
 # [9] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
 $PY "$S/generate_rules_generic.py" .

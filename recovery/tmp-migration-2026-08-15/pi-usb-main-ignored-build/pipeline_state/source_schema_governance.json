@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/circuits-pi-usb-release/skills/kicad-pcb/scripts/schema_reader_audit.py",
+    "--root",
+    "/tmp/circuits-pi-usb-release"
+  ],
+  "elapsed_s": 1.96,
+  "finished_at": 1786832880.195351,
+  "heartbeat_s": 10.0,
+  "label": "source_schema_governance",
+  "pid": 1467194,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786832878.2352138,
+  "status": "finished",
+  "timeout_s": 60.0
+}

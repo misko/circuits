@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/circuits-pi-usb-release/skills/kicad-pcb/scripts/build_provenance.py",
+    "audit",
+    "/tmp/circuits-pi-usb-release/projects/pi-usb-port-switch"
+  ],
+  "elapsed_s": 0.027,
+  "finished_at": 1786833221.2018502,
+  "heartbeat_s": 10.0,
+  "label": "build_freshness",
+  "pid": 1478544,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786833221.1751606,
+  "status": "finished",
+  "timeout_s": 600.0
+}

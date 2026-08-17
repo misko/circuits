@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/circuits-pi-usb-release/skills/kicad-pcb/scripts/route_and_stitch_generic.py",
+    "taps",
+    "03_src/route.yaml"
+  ],
+  "elapsed_s": 1.431,
+  "finished_at": 1786833257.3127658,
+  "heartbeat_s": 10.0,
+  "label": "route_taps",
+  "pid": 1479603,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786833255.8815658,
+  "status": "finished",
+  "timeout_s": 600.0
+}

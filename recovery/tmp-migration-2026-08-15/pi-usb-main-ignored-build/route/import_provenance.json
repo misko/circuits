@@ -1,0 +1,14 @@
+{
+  "chain": "06_build/route/r4.kicad_pcb",
+  "chain_sha256": "8093cb3b8343ee00cf991cc23ed46bb88fcdb26d8578133be8c37ae866968788",
+  "config": "03_src/route.yaml",
+  "config_sha256": "e7c5f2f8d67783669216edd6c8790ea5153658cb7f4fa30b2a2a084d291f99d8",
+  "elapsed_s": 0.225,
+  "finished_ns": 1786833255473083247,
+  "schema": 1,
+  "selected_source": "build",
+  "started_ns": 1786833255246425481,
+  "target": "04_kicad/pi_usb_port_switch.kicad_pcb",
+  "target_after_sha256": "5e17ca0a9b49a6f04c1eff8a556e15ae1e3537a74c50f86e133a22254590db6a",
+  "target_before_sha256": "168838f8e57b16581a8f54cdd4b75a85d1d5dbb1698428d281a7c07dccf14101"
+}

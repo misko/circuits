@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/circuits-pi-usb-release/skills/kicad-pcb/scripts/rf_contract_check.py",
+    "/tmp/circuits-pi-usb-release/projects/pi-usb-port-switch",
+    "--contract",
+    "/tmp/circuits-pi-usb-release/projects/pi-usb-port-switch/03_src/rules/rf.yaml",
+    "--require-applicability"
+  ],
+  "elapsed_s": 0.035,
+  "finished_at": 1786833221.920501,
+  "heartbeat_s": 10.0,
+  "label": "rf_contract",
+  "pid": 1478564,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786833221.8851614,
+  "status": "finished",
+  "timeout_s": 600.0
+}

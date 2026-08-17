@@ -1,0 +1,12 @@
+{
+  "schema": 2,
+  "generated_at": "2026-08-15T22:35:40+00:00",
+  "inputs": {
+    "source": "sha256:dc438de00910f37f9caa4370103efbc8ec6be309b6d61490528f46cb8236ba0a",
+    "board": "sha256:d4bc778c1c80453ec7b198e1bf428b22cb03d414c4a0d86c89ab74d6facc4094",
+    "tools": "sha256:f85a81fe6fa0015e7f5a1dc752d26a047d9547148f4641d07cd426eceaf1087f",
+    "gate": "sha256:e96c1f1d0c09e58157d192c679c719219dadf577b6ace66870bdc590cb1bb4e0"
+  },
+  "scope": "PCB layout only",
+  "board_id": "pi_usb_port_switch"
+}

@@ -3,6 +3,11 @@
 !06_build/checkpoints/
 !06_build/checkpoints/*.json
 
+# Preserved exploratory boards, logs, and superseded build snapshots. They
+# remain in the repository filesystem for forensic recovery but are not source
+# inputs and must not make a release-scoped cleanliness check fail.
+recovery/
+
 *.kicad_pcb-bak
 *.kicad_sch-bak
 *-backups/

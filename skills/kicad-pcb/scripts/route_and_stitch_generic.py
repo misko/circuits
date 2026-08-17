@@ -2733,6 +2733,78 @@ def p_protect_via_in_pad(ctx, c):
           f"as {size:.3f}/{drill:.3f} mm Type VII ({changed} changed)")
 
 
+@stitch_pass("protect_via_family")
+def p_protect_via_family(ctx, c):
+    """Apply Type-VII flags to one complete, drill-selectable via family.
+
+    Gerber carries neither KiCad's per-via fill/cap attributes nor a stable
+    item identifier.  When the fabrication contract selects by drill family,
+    every realized via in that family must therefore carry the same native
+    intent.  This pass never resizes vias and never touches another family.
+    """
+    if not isinstance(c, dict):
+        die("stitch.protect_via_family must be a mapping")
+    unknown = sorted(set(c) - {"via", "via_protection", "min"})
+    if unknown:
+        die(f"stitch.protect_via_family has unknown key(s) {unknown}")
+    via_cfg = c.get("via")
+    protection = c.get("via_protection")
+    if not isinstance(via_cfg, dict):
+        die("stitch.protect_via_family.via must be a mapping")
+    unknown_via = sorted(set(via_cfg) - {"size", "drill"})
+    if unknown_via:
+        die("stitch.protect_via_family.via has unknown key(s) "
+            f"{unknown_via}")
+    try:
+        size = float(via_cfg["size"])
+        drill = float(via_cfg["drill"])
+        minimum = int(c.get("min", 1))
+    except (KeyError, TypeError, ValueError):
+        die("stitch.protect_via_family needs numeric via size/drill and "
+            "integer min")
+    if not (size > drill > 0) or minimum < 0:
+        die("stitch.protect_via_family requires size > drill > 0 and min >= 0")
+    if not isinstance(protection, dict) or not protection:
+        die("stitch.protect_via_family.via_protection must declare capping "
+            "and filling")
+    unknown_p = sorted(set(protection) - {"capping", "filling"})
+    if unknown_p:
+        die("stitch.protect_via_family.via_protection has unknown key(s) "
+            f"{unknown_p}")
+
+    def enabled(key):
+        value = protection.get(key)
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str) and value.strip().lower() in ("yes", "no"):
+            return value.strip().lower() == "yes"
+        die("stitch.protect_via_family.via_protection."
+            f"{key} must be a boolean (yes/no)")
+
+    if not (enabled("capping") and enabled("filling")):
+        die("stitch.protect_via_family requires both capping and filling")
+    target_w = ctx.pcbnew.FromMM(size)
+    target_d = ctx.pcbnew.FromMM(drill)
+    hits = changed = 0
+    for via in ctx.board.GetTracks():
+        if (via.GetClass() != "PCB_VIA"
+                or via.GetWidth(ctx.pcbnew.F_Cu) != target_w
+                or via.GetDrill() != target_d):
+            continue
+        hits += 1
+        already = (via.GetCappingMode() == ctx.pcbnew.CAPPING_MODE_CAPPED
+                   and via.GetFillingMode()
+                   == ctx.pcbnew.FILLING_MODE_FILLED)
+        via.SetCappingMode(ctx.pcbnew.CAPPING_MODE_CAPPED)
+        via.SetFillingMode(ctx.pcbnew.FILLING_MODE_FILLED)
+        changed += int(not already)
+    if hits < minimum:
+        die(f"protect_via_family: realized {hits}, require at least {minimum}")
+    ctx.bump("via_family_protected", changed)
+    print(f"protected complete {size:.3f}/{drill:.3f} mm via family: "
+          f"{hits} realized, {changed} changed")
+
+
 def _end_anchored(ctx, t, ex, ey, segs, vias, pads, tol):
     """Is this end on an ANCHOR (another segment's endpoint, a via, a pad)?
     KiCad's connectivity anchors tracks at endpoints only, so a T-junction
@@ -4369,13 +4441,16 @@ def p_prune_stitch_dangling(ctx, c):
     pcbnew = ctx.pcbnew
     tol = float(c.get("tol", 0.05))
     minlay = int(c.get("min_layers", 2))
+    scope = c.get("scope", "emitted")
+    if scope not in ("emitted", "all"):
+        die("prune_stitch_dangling.scope must be 'emitted' or 'all'")
     zones = [z for z in ctx.board.Zones() if not z.GetIsRuleArea()
              and z.GetNetname()]
     if zones and not any(z.IsFilled() for z in zones):
         die("prune_stitch_dangling must run AFTER `fill` — on an unfilled "
             "board every stitch via looks dangling and would be pruned")
     emitted = ctx.emitted
-    if not emitted:
+    if not emitted and scope == "emitted":
         print("prune_stitch_dangling: no stitch-emitted vias this run")
         return
 
@@ -4389,8 +4464,9 @@ def p_prune_stitch_dangling(ctx, c):
     dead_details = []
     for v in [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"]:
         vx, vy = v.GetPosition().x / 1e6, v.GetPosition().y / 1e6
-        if not any(abs(vx - ex) <= tol and abs(vy - ey) <= tol
-                   for ex, ey in emitted):
+        if scope == "emitted" and not any(
+                abs(vx - ex) <= tol and abs(vy - ey) <= tol
+                for ex, ey in emitted):
             continue                        # not ours — never touch it
         r2 = (v.GetWidth(pcbnew.F_Cu) / 2e6) ** 2
         attach = set()
@@ -4429,8 +4505,13 @@ def p_prune_stitch_dangling(ctx, c):
         ctx.remove(v)
     ctx._used = None
     ctx.bump("stitch_dangling_pruned", len(dead))
-    print(f"pruned {len(dead)} dangling stitch-emitted vias "
-          f"(of {len(emitted)} emitted)")
+    if scope == "emitted":
+        print(f"pruned {len(dead)} dangling stitch-emitted vias "
+              f"(of {len(emitted)} emitted)")
+    else:
+        total = sum(1 for t in ctx.board.GetTracks()
+                    if t.GetClass() == "PCB_VIA") + len(dead)
+        print(f"pruned {len(dead)} dangling vias across all {total} vias")
     for netname, x, y, layers in dead_details:
         print(f"  prune {netname} via ({x:.3f},{y:.3f}): "
               f"same-net copper on {layers or 'no layers'}; need {minlay}")
@@ -4452,10 +4533,14 @@ def p_island(ctx, c):
     min_bb = float(c.get("min_bbox", 0.8))
     layers = [_layer_id(pcbnew, n)
               for n in c.get("layers", ["F.Cu", "B.Cu", "In2.Cu"])]
-    via_by_net = {}
-    for t in ctx.board.GetTracks():
-        if t.GetClass() == "PCB_VIA":
-            via_by_net.setdefault(t.GetNetname(), []).append(t.GetPosition())
+    # Keep newly emitted centres separately: try_via() deliberately returns
+    # only success/failure, and every successful centre is inside the island
+    # by construction.  Existing copper items are evaluated with
+    # _island_holds() below so this early rescue pass uses the same
+    # copper-overlap semantics as authoritative heal_islands.  The former
+    # centre-only/endpoint-only checks misclassified a via ring touching an
+    # island edge, or a track body crossing a small island, as disconnected.
+    emitted_centres_by_net = {}
     added = 0
     for z in ctx.board.Zones():
         nn = z.GetNetname()
@@ -4470,7 +4555,14 @@ def p_island(ctx, c):
                 bb = o.BBox()
                 if bb.GetWidth() < min_bb * 1e6 or bb.GetHeight() < min_bb * 1e6:
                     continue
-                if any(o.PointInside(p) for p in via_by_net.get(nn, [])):
+                isl = {"chain": o, "layer": lay}
+                if any(_island_holds(ctx, isl, t)
+                       for t in ctx.board.GetTracks()
+                       if t.GetClass() == "PCB_VIA"
+                       and t.GetNetname() == nn):
+                    continue
+                if any(o.PointInside(p)
+                       for p in emitted_centres_by_net.get(nn, [])):
                     continue
                 # BARREL CREDIT: a drilled same-net pad inside the island is
                 # already bonded through its own plated barrel. (crow-array-pod)
@@ -4481,12 +4573,14 @@ def p_island(ctx, c):
                 # TRACK CREDIT: a same-net segment with one end inside the
                 # island and the other outside feeds it directly — an A*
                 # rescue lands exactly here and leaves no via to find.
-                if any(o.PointInside(t.GetStart()) != o.PointInside(t.GetEnd())
+                if any(_island_holds(ctx, isl, t)
+                       and not (o.PointInside(t.GetStart())
+                                and o.PointInside(t.GetEnd()))
                        for t in ctx.board.GetTracks()
                        if t.GetClass() == "PCB_TRACK" and t.GetNetname() == nn
                        and t.GetLayer() == lay):
                     continue
-                has_pad = any(o.PointInside(p2.GetPosition())
+                has_pad = any(_island_holds(ctx, isl, p2)
                               for fp2 in ctx.board.GetFootprints()
                               for p2 in fp2.Pads() if p2.GetNetname() == nn)
                 placed = False
@@ -4497,7 +4591,7 @@ def p_island(ctx, c):
                         if not o.PointInside(pcbnew.VECTOR2I(x, y)):
                             continue
                         if ctx.try_via(ctx.net(nn), x / 1e6, y / 1e6):
-                            via_by_net.setdefault(nn, []).append(
+                            emitted_centres_by_net.setdefault(nn, []).append(
                                 pcbnew.VECTOR2I(x, y))
                             added += 1
                             placed = True

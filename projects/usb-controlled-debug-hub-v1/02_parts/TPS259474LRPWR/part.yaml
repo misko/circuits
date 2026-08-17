@@ -1,7 +1,16 @@
 mpn: TPS259474LRPWR
 manufacturer: Texas Instruments
 type: aggregate_latchoff_circuit_breaker_efuse
-datasheet: {doc_id: SLVSFC9, revision: SLVSFC9C, url: "https://www.ti.com/lit/ds/symlink/tps25947.pdf", fetched: 2026-08-16}
+datasheet:
+  doc_id: SLVSFC9
+  revision: "SLVSFC9C, revised May 2026"
+  url: "https://www.ti.com/lit/ds/symlink/tps25947.pdf"
+  product_page: "https://www.ti.com/product/TPS25947"
+  local: SLVSFC9C.pdf
+  sha256: 051ecddfe545b8b9f4f992148d24f385f75b1116fd36bec358f85008a7d919ec
+  fetched: 2026-08-17
+  pages: 75
+  provenance: "CITED: downloaded directly from ti.com; title/footer identify TPS25947 and document SLVSFC9C."
 package: RPW0010A VQFN-HR-10 2x2mm P0.45
 footprint: usb_controlled_debug_hub:TI_RPW0010A_VQFN-HR-10_2x2mm_P0.45mm
 escape: {style: qfn, pitch: 0.45, tier_required: jlc_4layer_advanced, checked: "TI 4225183/A land pattern cross-checked against exact JLC C2864845 EasyEDA CAD on 2026-08-16"}
@@ -14,7 +23,7 @@ gotchas:
   - "C_AGG_DVDT=3.3nF C0G bounds the fastest nominal slew to 0.640V/ms at its charged low-capacitance corner; the effective output bank's startup inrush remains below the aggregate threshold."
   - "The shared 150k/10k/43.2k divider implements TI equations 10/11. PGTH is intentionally grounded and the unused open-drain PG output is left open."
   - "Keep R_AGG_ILIM, C_AGG_TIMER, C_AGG_DVDT and the divider adjacent to their pins. Keep ILM parasitic capacitance below TI's 50pF limit and away from switching copper."
-verified: "TI SLVSFC9C device table, pin table, electrical limits, equations 5/6/10-13, layout section and RPW0010A package drawing independently read 2026-08-16; exact JLC/LCSC C2864845 identifies genuine TI TPS259474LRPWR and JLC-compatible VQFN-HR CAD"
+verified: "CITED: exact TPS259474L latch-off/circuit-breaker row in TI SLVSFC9C Device Comparison Table, PDF p.4; RPW 10-pin QFN top view Figure 5-1 and complete Pin Functions Table 5-1, PDF pp.5-6; independently re-read 2026-08-17. Exact JLC/LCSC C2864845 identifies TPS259474LRPWR and the compatible VQFN-HR CAD."
 sourcing: {lcsc: C2864845, alternates: [], note: "3584 LCSC units observed 2026-08-16; order-time JLC allocation remains authoritative"}
 layout:
   source: "TI SLVSFC9C sections 8.4 and RPW0010A drawing 4225183/A"

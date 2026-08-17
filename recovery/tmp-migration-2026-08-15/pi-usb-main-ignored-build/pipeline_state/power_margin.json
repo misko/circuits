@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/circuits-pi-usb-release/skills/kicad-pcb/scripts/power_topology.py",
+    "/tmp/circuits-pi-usb-release/projects/pi-usb-port-switch",
+    "--margin"
+  ],
+  "elapsed_s": 0.045,
+  "finished_at": 1786833221.6965156,
+  "heartbeat_s": 10.0,
+  "label": "power_margin",
+  "pid": 1478556,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786833221.6512988,
+  "status": "finished",
+  "timeout_s": 600.0
+}

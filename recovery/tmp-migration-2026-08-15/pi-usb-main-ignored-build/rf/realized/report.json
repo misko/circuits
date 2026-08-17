@@ -1,0 +1,13 @@
+{
+  "bend_findings": [],
+  "coverage": {
+    "graded": 1,
+    "total": 1
+  },
+  "errors": [],
+  "geometry_policy": "advisory",
+  "mode": "realized",
+  "schema": 1,
+  "status": "N-A",
+  "verdict": "PASS"
+}

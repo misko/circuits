@@ -57,6 +57,20 @@ def fixture(root):
 
 
 class CandidateWorkspaceTest(unittest.TestCase):
+    def test_kicad_connected_items_need_not_be_hashable(self):
+        class UnhashableItem:
+            __hash__ = None
+
+            def __init__(self, identity):
+                self.identity = identity
+
+            def __eq__(self, other):
+                return isinstance(other, UnhashableItem) \
+                    and self.identity == other.identity
+
+        reached = list([UnhashableItem("track"), UnhashableItem("pad-2")])
+        self.assertIn(UnhashableItem("pad-2"), reached)
+
     def test_candidate_sidecars_cannot_grade_their_own_board(self):
         root = Path(tempfile.mkdtemp(prefix="candidate-workspace-"))
         prepared, candidate = fixture(root)

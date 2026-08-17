@@ -22,7 +22,10 @@ groups:
   - id: usb_b_te_292304_1
     refs: [J_UP]
     authority: "TE ENG_CD_292304 Rev D4 body envelope and six-hole attachment field plus JLC exact-code C86462 KiCad-ready STEP"
-    model_sha256: 59f6f7c39bc749a43bf1a2ee6a259726de019035bb3548e70deffa8c265c8afe
+    # The vendored source is geometrically identical to JLC's cached C86462
+    # STEP after CRLF/trailing-space normalization; pin the repository bytes
+    # that the generated board actually resolves.
+    model_sha256: be923a80374c5a6a90134a27872bbe81a51a0768d584b90f4fa041afa309b2cf
     fit_tolerance_mm: 1.0
     courtyard_containment_tolerance_mm: 0.25
     search_margin_mm: 8.0
@@ -51,7 +54,9 @@ groups:
     refs: [U_AGG]
     authority: "TI RPW0010A package drawing and exact JLC/LCSC C2864845 native STEP for TPS259474LRPWR"
     registration_datum: all_pad_centres
-    model_sha256: d7a805b97e8c24cc388b72ed83b5ae958a63b7f9920c710381bf13da05fc5dd2
+    # Repository serialization is the same JLC C2864845 geometry after
+    # CRLF/trailing-space normalization; bind the model bytes actually used.
+    model_sha256: 1d13993d4bc9c3a12cd6ad47a92ca3333400eaa650b37a741ece3b40de0b03d7
     fit_tolerance_mm: 0.35
     courtyard_containment_tolerance_mm: 0.25
     search_margin_mm: 3.0

@@ -73,5 +73,37 @@ def t_authority_mismatched_digest():
     raise Failed("mismatched digest selected adjacent authority")
 
 
+@test("exact BOM MPN resolves through the authoritative field, not directory punctuation")
+def t_exact_mpn_filesystem_safe_directory():
+    d = tmpdir("pin_mpn_safe_")
+    safe = d / "MCP2221A-I-SL"
+    safe.mkdir()
+    (safe / "part.yaml").write_text("mpn: MCP2221A-I/SL\npins: {1: VDD}\n")
+    got_dir, got = _pin_audit.part_authority(d, "MCP2221A-I/SL")
+    if got_dir != safe or got.get("mpn") != "MCP2221A-I/SL":
+        raise Failed(f"exact field identity did not resolve safe directory: {got_dir}, {got}")
+    try:
+        _pin_audit.part_authority(d, "MCP2221A-I-SL")
+    except RuntimeError as exc:
+        contains(str(exc), "exact BOM MPN", "punctuation-normalized alias rejected")
+    else:
+        raise Failed("filesystem spelling was accepted as an exact MPN alias")
+
+
+@test("duplicate exact MPN dossier identities fail closed", kind="known_bad")
+def t_exact_mpn_duplicate_is_ambiguous():
+    d = tmpdir("pin_mpn_duplicate_")
+    for name in ("safe-one", "safe-two"):
+        p = d / name
+        p.mkdir()
+        (p / "part.yaml").write_text("mpn: '74LVC08APW,118'\npins: {1: 1A}\n")
+    try:
+        _pin_audit.part_authority(d, "74LVC08APW,118")
+    except RuntimeError as exc:
+        contains(str(exc), "ambiguous", "duplicate exact identities rejected")
+        return
+    raise Failed("duplicate exact MPN identities resolved silently")
+
+
 if __name__ == "__main__":
     sys.exit(main())

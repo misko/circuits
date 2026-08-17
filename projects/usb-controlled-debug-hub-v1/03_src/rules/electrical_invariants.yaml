@@ -122,17 +122,17 @@ invariants:
   - {assert: pin_on_net, pin: "U_ESD_UP.1", net: UP_HUB_N, adr: "0006", why: "symmetric IO1 is assigned to upstream D- after the bottom-side protector is rotated so its signal bank faces the connector without a crossover"}
   - {assert: pin_on_net, pin: "U_ESD_UP.2", net: UP_HUB_P, adr: "0006", why: "symmetric IO2 is assigned to upstream D+ after the bottom-side protector is rotated so its signal bank faces the connector without a crossover"}
   - {assert: pin_on_net, pin: "U_ESD_UP.3", net: GND, adr: "0006", why: "upstream shunt protector return must terminate on the common reference plane"}
-  - {assert: pin_on_net, pin: "U_ESD1.1", net: P1_PORT_P, adr: "0006", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
-  - {assert: pin_on_net, pin: "U_ESD1.2", net: P1_PORT_N, adr: "0006", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD1.1", net: P1_PORT_P, adr: "0008", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD1.2", net: P1_PORT_N, adr: "0008", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
   - {assert: pin_on_net, pin: "U_ESD1.3", net: GND, adr: "0006", why: "port 1 protector return must terminate on the common reference plane"}
-  - {assert: pin_on_net, pin: "U_ESD2.1", net: P2_PORT_P, adr: "0006", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
-  - {assert: pin_on_net, pin: "U_ESD2.2", net: P2_PORT_N, adr: "0006", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD2.1", net: P2_PORT_P, adr: "0008", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD2.2", net: P2_PORT_N, adr: "0008", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
   - {assert: pin_on_net, pin: "U_ESD2.3", net: GND, adr: "0006", why: "port 2 protector return must terminate on the common reference plane"}
-  - {assert: pin_on_net, pin: "U_ESD3.1", net: P3_PORT_P, adr: "0006", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
-  - {assert: pin_on_net, pin: "U_ESD3.2", net: P3_PORT_N, adr: "0006", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD3.1", net: P3_PORT_P, adr: "0008", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD3.2", net: P3_PORT_N, adr: "0008", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
   - {assert: pin_on_net, pin: "U_ESD3.3", net: GND, adr: "0006", why: "port 3 protector return must terminate on the common reference plane"}
-  - {assert: pin_on_net, pin: "U_ESD4.1", net: P4_PORT_P, adr: "0006", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
-  - {assert: pin_on_net, pin: "U_ESD4.2", net: P4_PORT_N, adr: "0006", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD4.1", net: P4_PORT_P, adr: "0008", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD4.2", net: P4_PORT_N, adr: "0008", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
   - {assert: pin_on_net, pin: "U_ESD4.3", net: GND, adr: "0006", why: "port 4 protector return must terminate on the common reference plane"}
   # FSUSB42 is an electrically symmetric dual-SPDT analog switch.  For the
   # outward-facing receptacle geometry, logical D+ deliberately uses the

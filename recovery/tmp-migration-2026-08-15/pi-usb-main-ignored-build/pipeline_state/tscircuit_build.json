@@ -1,0 +1,19 @@
+{
+  "command": [
+    "env",
+    "--chdir=03_tscircuit",
+    "./node_modules/.bin/tsci",
+    "build",
+    "src/pi_usb_port_switch.tsx"
+  ],
+  "elapsed_s": 15.246,
+  "finished_at": 1786832896.6037412,
+  "heartbeat_s": 10.0,
+  "label": "tscircuit_build",
+  "pid": 1468235,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786832881.357558,
+  "status": "finished",
+  "timeout_s": 600.0
+}

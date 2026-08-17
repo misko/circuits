@@ -12,9 +12,12 @@ Two of these gates could not fail before this suite existed:
   * jlc_twin's fetch classifier (see t1_jlc_twin.py) defaulted to NO-CAD.
 """
 import json
+import importlib.util
 import shutil
 import sys
 from pathlib import Path
+
+import pcbnew
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (FIXTURES, KPY, ROOT, SCRIPTS, check, contains,  # noqa: E402
@@ -27,6 +30,10 @@ POLICY = SCRIPTS / "policy_audit.py"
 PARITY = SCRIPTS / "board_netlist_parity.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 SEALED_LC = LC / "04_kicad" / "cook_loadcell.kicad_pcb"
+
+_policy_spec = importlib.util.spec_from_file_location("policy_audit_under_test", POLICY)
+_policy = importlib.util.module_from_spec(_policy_spec)
+_policy_spec.loader.exec_module(_policy)
 
 AUDIT_CFG = {
     "frame": [20.0, 20.0, 55.0, 45.0],
@@ -1172,6 +1179,64 @@ def t_ppol_legacy_path_unchanged():
     check(pol and keep,
           "the PRE-FIX predicates no longer pass the legacy tree — this "
           "fixture is supposed to prove the old path is UNCHANGED")
+
+
+class _ThermVec:
+    def __init__(self, x=0, y=0):
+        self.x, self.y = pcbnew.FromMM(x), pcbnew.FromMM(y)
+
+
+class _ThermPad:
+    def __init__(self, attr, number, x, y, w, h, net="GND", drill=0):
+        self.attr, self.number, self.pos = attr, number, _ThermVec(x, y)
+        self.w, self.h, self.net, self.drill = w, h, net, drill
+    def GetAttribute(self): return self.attr
+    def GetNumber(self): return self.number
+    def GetPosition(self): return self.pos
+    def GetSizeX(self): return pcbnew.FromMM(self.w)
+    def GetSizeY(self): return pcbnew.FromMM(self.h)
+    def GetNetname(self): return self.net
+    def GetDrillSize(self): return _ThermVec(self.drill, self.drill)
+
+
+class _ThermFootprint:
+    def __init__(self, ref, pads): self.ref, self.pads = ref, pads
+    def GetReference(self): return self.ref
+    def Pads(self): return self.pads
+
+
+class _ThermBoard:
+    def __init__(self, fps): self.fps = fps
+    def GetFootprints(self): return self.fps
+    def GetTracks(self): return []
+
+
+def _ep_fixture(n_holes):
+    # Two overlapping SMD shapes model one physical F/B exposed paddle. The
+    # extra small numbered SMD pads keep the device in R-THERM's multi-pin
+    # population; plated pad 65 holes are the footprint-owned via array.
+    pads = [
+        _ThermPad(pcbnew.PAD_ATTRIB_SMD, "65", 10, 10, 4.7, 4.7),
+        _ThermPad(pcbnew.PAD_ATTRIB_SMD, "65", 10, 10, 4.7, 4.7),
+        _ThermPad(pcbnew.PAD_ATTRIB_SMD, "1", 6, 10, .3, .8, "SIG"),
+        _ThermPad(pcbnew.PAD_ATTRIB_SMD, "2", 14, 10, .3, .8, "SIG2"),
+    ]
+    pads += [_ThermPad(pcbnew.PAD_ATTRIB_PTH, "65", 9.3 + i * 1.4, 10,
+                       .5, .5, drill=.2) for i in range(n_holes)]
+    return _ThermBoard([_ThermFootprint("U_EP", pads)])
+
+
+@test("R-THERM counts a footprint-owned plated EP array and deduplicates F/B land shapes")
+def t_rtherm_counts_plated_ep_array_once():
+    got = _policy.thermal_pad_findings(_ep_fixture(2), 4)
+    eq(got, [], "two physical plated thermal holes satisfy the EP")
+
+
+@test("R-THERM reports one physical EP once when its plated array is absent",
+      kind="known_bad")
+def t_rtherm_missing_array_is_one_finding():
+    got = _policy.thermal_pad_findings(_ep_fixture(0), 4)
+    eq(got, ["U_EP.65(0)"], "overlapping F/B shapes are one physical land")
 
 
 if __name__ == "__main__":

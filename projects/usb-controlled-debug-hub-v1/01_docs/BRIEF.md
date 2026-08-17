@@ -1,8 +1,8 @@
 # brief: usb-controlled-debug-hub-v1
 
-status: in-progress
+status: release-staging
 prompt_sha256: 7959371bea4d4016e563f30e86b0acc5a552a4b47a189b7d18968a086dcc92a0
-current_release: no
+current_release: v0.1.2-2026-08-17 (mutable staging; not sealed)
 
 ## Original prompt
 
@@ -24,15 +24,15 @@ review, and release gates without generating custom firmware.
 
 | # | Criterion | Source | Status |
 |---|---|---|---|
-| G1 | One upstream connector enumerates a USB 2.0 hub | P | unmet |
-| G2 | Four downstream USB-A receptacles are available concurrently | P | unmet |
-| G3 | The same upstream cable also exposes an onboard USB management device | P, A1 | unmet |
-| G4 | Each USB-A independently supports full-off, power-only, and fully connected states | P | unmet |
-| G5 | Reset, unconfigured control, or loss of control power leaves every external port fully disconnected; the command-state interlock rejects data-on whenever the commanded power enable is off | A3 | unmet |
-| G6 | The hub is self-powered from a separate regulated 5 V input and never back-powers the upstream host | A2 | unmet |
-| G7 | Each external port delivers the USB 2.0 self-powered-hub load of 500 mA at 4.75–5.25 V at the mated test plug, all four simultaneously | A2 | unmet |
-| G8 | No firmware or host utility is generated unless the user explicitly requests it | D1, D2 | unmet |
-| G9 | A complete JLCPCB PCBA release passes applicable electrical, SI, sourcing, assembly, render, and independent-review gates | A4 | unmet |
+| G1 | One upstream connector enumerates a USB 2.0 hub | P | design PASS; first-article enumeration pending |
+| G2 | Four downstream USB-A receptacles are available concurrently | P | design PASS; physical qualification pending |
+| G3 | The same upstream cable also exposes an onboard USB management device | P, A1 | design PASS; first-article enumeration pending |
+| G4 | Each USB-A independently supports full-off, power-only, and fully connected states | P | design PASS; first-article state test pending |
+| G5 | Reset, unconfigured control, or loss of control power leaves every external port fully disconnected; the command-state interlock rejects data-on whenever the commanded power enable is off | A3 | topology/invariants PASS; physical fault-injection pending |
+| G6 | The hub is self-powered from a separate regulated 5 V input and never back-powers the upstream host | A2 | topology/invariants PASS; physical backfeed test pending |
+| G7 | Each external port delivers the USB 2.0 self-powered-hub load of 500 mA at 4.75–5.25 V at the mated test plug, all four simultaneously | A2 | design math PASS; first-article load/drop/thermal test pending |
+| G8 | No firmware or host utility is generated unless the user explicitly requests it | D1, D2 | met |
+| G9 | A complete JLCPCB PCBA release passes applicable electrical, SI, sourcing, assembly, render, and independent-review gates | A4 | staging gates PASS; human/order-time gates and seal pending |
 
 ## Spec tensions
 
@@ -147,3 +147,4 @@ a lower threshold/current-limit architecture before fabrication.
 | C7 | Bare USB2517 is justified; JLC four-layer advanced is the provisional minimum tier | agent (A4, A5 / P-delegation) | [0004](decisions/0004-module-and-fabrication-tier.md) |
 | C8 | Use dual adjacent GND planes and explicit outer-layer USB transition policy; treat public JLC geometry as provisional until order-time confirmation | agent (placement evidence / P-delegation) | [0005](decisions/0005-usb-stackup-and-layer-transitions.md) |
 | C9 | Close the USB hub bulk, aggregate-fault and connector-capacitance envelopes before routing; use a latch-off aggregate eFuse and 0.7 pF shunt ESD devices | agent (independent pre-route review / P-delegation) | [0006](decisions/0006-pre-route-electrical-corrections.md) |
+| C10 | Bind each downstream PESD2USB3UX IO1 channel to D+ and IO2 channel to D- to match the realized no-crossover launch | agent (routed-board evidence / P-delegation) | [0008](decisions/0008-downstream-esd-lane-assignment.md) |

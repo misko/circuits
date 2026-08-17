@@ -36,6 +36,20 @@ board:
     refdes_prefix: FID
     at: [[28.0, 28.0], [140.0, 101.0], [28.0, 102.0]]
 
+# C_HUB_A4.2 is enclosed by the hub oscillator and 3V3 package launches, so
+# no off-pad ground-via corridor survives the exact DRC geometry.  The single
+# 0.46/0.20 mm via fits inside its 0.56 x 0.62 mm land.  It belongs to the
+# board's complete 0.20 mm drill family, which is explicitly filled and
+# copper-capped (IPC-4761 Type VII / JLC advanced POFV) to prevent solder
+# wicking at every realized via-in-pad site.  The 0.35 mm family remains an
+# ordinary open power-barrel family and is named separately in the fabrication
+# order.  A 0.15 mm drill is not permitted on this nominal 1.6 mm stackup: its
+# 10.67:1 aspect ratio exceeds the adopted JLC advanced 10:1 ceiling.
+thermal_vias:
+  protection: {capping: yes, filling: yes}
+  fields:
+    - {ref: C_HUB_A4, pad: 2, size: 0.46, drill: 0.20, at: [[0.48, 0.00]]}
+
 libraries:
   - {lib: usb_controlled_debug_hub, path: 03_src/lib/usb_controlled_debug_hub.pretty}
   - /usr/share/kicad/footprints
@@ -184,8 +198,11 @@ placement:
     R_RBIAS: [100.0, 56.0, 0]
     R_HUB_RESET: [84.0, 67.0, 0]
     C_HUB_RESET: [84.0, 70.0, 0]
-    R_VBUS_TOP: [83.0, 59.0, 0]
-    R_VBUS_BOT: [83.0, 62.0, 0]
+    # The former (83,59)/(83,62) divider was physically legal but enclosed by
+    # the completed P1/P2 USB transitions.  A bounded 49-position native-DRC
+    # scan plus complete route replay found this nearest zero-hard placement.
+    R_VBUS_TOP: [78.0, 60.0, 0]
+    R_VBUS_BOT: [78.0, 62.0, 0]
 
     # Hardware configuration straps in a visually auditable bank.
     # Keep the right-edge USB2517 strap terminations in the same vertical
@@ -304,8 +321,23 @@ placement:
       # electrically preferable here and avoids a one-spoke thermal on the
       # small perimeter land.
       pad_overrides: [{pads: [8], on_net: GND, zone_connection: full}]
+    - match: U_DATA*
+      # Bottom-side ground lands use explicit B.Cu spokes; solid pour contact
+      # avoids a one-spoke thermal on these narrow 0.5 mm-pitch pads.
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
+    - match: U_AND_PWR
+      pad_overrides: [{pads: [7], on_net: GND, zone_connection: full}]
+    - match: R_BOOST1
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
+    - match: Y_HUB
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
+    - match: C_TRUNK_USB
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
+    - match: C_TRUNK_BULK
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
     - match: U_PWR*
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step", rotate: [0, 0, 270]}
+      pad_overrides: [{pads: [9], on_net: GND, zone_connection: full}]
 
   # Every authored anchor is reviewed placement intent; this board currently
   # pins the complete source-owned placement so regeneration cannot drift it.
@@ -321,14 +353,22 @@ design_rules:
   # staggered 0.46/0.20 mm vias with >=0.40 mm realized hole-to-hole gap.
   hole_to_hole: 0.25
   copper_edge_clearance: 0.3
-  # Local QFN fanout exception; ordinary route vias stay 0.46/0.20 mm.
-  # 0.41/0.15 mm preserves the same 0.13 mm annulus on JLC advanced.
-  via_min_size: 0.41
-  min_through_drill: 0.15
+  # Local QFN fanout and ordinary signal transitions use 0.46/0.20 mm.  The
+  # 0.20 mm drill is an 8:1 aspect ratio at nominal 1.6 mm thickness.
+  via_min_size: 0.46
+  min_through_drill: 0.20
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
 
 zones:
+  # The 3 A common input path uses source-owned copper collectors rather than
+  # relying on nominal-width tracks alone. RAW and FUSED remain compact around
+  # the connector/fuse/eFuse cell; PROTECTED drops into a broad south-edge B.Cu
+  # spine, away from every USB pair and its adjacent reference plane.
+  - {net: P5V_RAW, layers: [F.Cu], priority: 4, rect: [24.0, 96.0, 38.5, 103.5], connect: full}
+  - {net: P5V_FUSED, layers: [F.Cu], priority: 5, rect: [45.5, 93.0, 53.5, 103.5], connect: full}
+  - {net: P5V_PROTECTED, layers: [F.Cu], priority: 4, rect: [52.5, 94.5, 69.5, 105.0], connect: full}
+  - {net: P5V_PROTECTED, layers: [B.Cu], priority: 4, rect: [56.5, 99.5, 141.5, 106.0], connect: full}
   # Both outer-layer USB corridors have an uninterrupted adjacent reference:
   # F.Cu references In1.Cu and B.Cu references In2.Cu.  The 0.30 mm outer
   # ground clearance is part of the provisional JLC04161H-7628 CPWG solve and
@@ -394,8 +434,24 @@ keepouts:
 
 silk:
   min_text_height: 0.7
+  caption_nudge: true
   refdes: {size: 0.7, min_size: 0.5, fab_copy: true, clearance: 0.16, priority_prefixes: "JUQF"}
   captions:
+    # Human-facing connector and service labels are source-owned and remain
+    # visible after assembly. Each port caption names its own connector so the
+    # ownership gate can reject a label that drifts toward a neighbouring port.
+    - {text: "PORT 1", at: [55.0, 39.0], size: 0.75}
+    - {text: "PORT 2", at: [83.0, 39.0], size: 0.75}
+    - {text: "PORT 3", at: [111.0, 39.0], size: 0.75}
+    - {text: "PORT 4", at: [139.0, 39.0], size: 0.75}
+    - {text: "UPSTREAM USB", at: [23.0, 57.0], size: 0.70, rot: 90}
+    - {text: "5V INPUT", at: [25.5, 89.0], size: 0.70}
+    # J_PWR is vertical: pad 1 is the lower +5 V input at y=98 mm and pad 2
+    # is the upper ground return at y=93 mm.  Keep polarity explicit on the
+    # assembled board; a generic power label is not sufficient bench guidance.
+    - {text: "+5V", at: [29.0, 98.0], size: 0.70}
+    - {text: "GND", at: [29.0, 93.0], size: 0.70}
+    - {text: "4A FUSE", at: [37.0, 91.0], size: 0.70}
     - ["SELF-POWERED 5.10–5.25 V / 3 A CONT / 5 A 6 ms PEAK", 57.0, 108.0, 0.7]
 
 asserts:

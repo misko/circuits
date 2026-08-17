@@ -83,6 +83,65 @@ def keep_short_partner_refs(value):
     return {ref.strip() for ref in value}
 
 
+def thermal_pad_findings(board, copper_layers, area_min=4.0, min_vias=2,
+                         search=1.0):
+    """Return large SMD pads lacking nearby inter-layer thermal conductors.
+
+    A thermal conductor may be either a board-level ``PCB_VIA`` or a plated
+    through pad on the *same footprint and net*.  The latter matters for QFN
+    footprints whose exposed paddle owns a manufacturer-patterned PTH array:
+    those holes are electrically and thermally real, but converting them into
+    anonymous board vias would discard the footprint's pin identity.
+
+    Duplicate F/B copper shapes for one exposed pad are one physical land and
+    are graded once.  Unrelated connector/PTH pins are deliberately excluded;
+    a nearby plated pin on another footprint is not evidence for a thermal
+    path under this device.
+    """
+    board_vias = {(MM(t.GetPosition().x), MM(t.GetPosition().y),
+                   t.GetNetname(), None)
+                  for t in board.GetTracks()
+                  if t.GetClass() == "PCB_VIA" and t.GetNetname()}
+    pth_pads = set()
+    for fp in board.GetFootprints():
+        ref = fp.GetReference()
+        for pad in fp.Pads():
+            if (pad.GetAttribute() == pcbnew.PAD_ATTRIB_PTH
+                    and pad.GetDrillSize().x > 0 and pad.GetNetname()):
+                pth_pads.add((MM(pad.GetPosition().x),
+                              MM(pad.GetPosition().y), pad.GetNetname(), ref))
+    conductors = board_vias | pth_pads
+
+    cold, seen = [], set()
+    for fp in (board.GetFootprints() if copper_layers >= 4 else []):
+        numbered = [p for p in fp.Pads() if p.GetNumber()]
+        if len(numbered) <= 2:
+            continue
+        ref = fp.GetReference()
+        for pad in fp.Pads():
+            if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+                continue
+            w, h = MM(pad.GetSizeX()), MM(pad.GetSizeY())
+            net = pad.GetNetname()
+            if w * h < area_min or not net:
+                continue
+            px, py = MM(pad.GetPosition().x), MM(pad.GetPosition().y)
+            # Some EP footprints represent the same physical land with
+            # overlapping F.Cu and B.Cu SMD shapes carrying one pad number.
+            key = (ref, pad.GetNumber(), round(px, 6), round(py, 6),
+                   round(w, 6), round(h, 6), net)
+            if key in seen:
+                continue
+            seen.add(key)
+            n = sum(1 for vx, vy, vn, owner in conductors
+                    if vn == net and (owner is None or owner == ref)
+                    and abs(vx - px) < w / 2 + search
+                    and abs(vy - py) < h / 2 + search)
+            if n < min_vias:
+                cold.append(f"{ref}.{pad.GetNumber()}({n})")
+    return cold
+
+
 GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A", "UNGRADED")
 
 # ------------------------------------------- P-PREC: the precedent ratchet
@@ -1358,25 +1417,7 @@ def main():
         area_min = float(cfg.get("therm_pad_area_mm2", 4.0))
         min_vias = int(cfg.get("therm_min_vias", 2))
         search = float(cfg.get("therm_search_mm", 1.0))
-        vias = [(MM(t.GetPosition().x), MM(t.GetPosition().y), t.GetNetname())
-                for t in board.GetTracks() if t.GetClass() == "PCB_VIA"]
-        cold = []
-        for f in (board.GetFootprints() if cu >= 4 else []):
-            if len([p for p in f.Pads() if p.GetNumber()]) <= 2:
-                continue
-            for p in f.Pads():
-                if p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
-                    continue
-                w, h = MM(p.GetSizeX()), MM(p.GetSizeY())
-                if w * h < area_min or not p.GetNetname():
-                    continue
-                px, py = MM(p.GetPosition().x), MM(p.GetPosition().y)
-                n = sum(1 for vx, vy, vn in vias
-                        if vn == p.GetNetname()
-                        and abs(vx - px) < w / 2 + search
-                        and abs(vy - py) < h / 2 + search)
-                if n < min_vias:
-                    cold.append(f"{f.GetReference()}.{p.GetNumber()}({n})")
+        cold = thermal_pad_findings(board, cu, area_min, min_vias, search)
         if cu >= 4:
             grade("R-THERM", not cold,
                   f"all pads >={area_min}mm2 have >={min_vias} nearby same-net vias",

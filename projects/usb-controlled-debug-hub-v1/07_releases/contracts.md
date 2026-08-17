@@ -338,8 +338,11 @@ the absence and any disagreement with `assembly.yaml`.
 
 Each ref traces to an `assembly.yaml` entry whose `reason:` is the CLOSED
 vocabulary — `not_in_catalog` · `user_supplied` · `dnp_by_design` ·
-`mechanical` · `test_point` — with a DATED `evidence:` measurement (the
-catalog query and its result) and a `disposition:`. `consign` is NOT a
+`mechanical` · `test_point` · `process_incompatible` — with a DATED
+`evidence:` measurement (the catalog query and its result) and a
+`disposition:`. `process_incompatible` is reserved for a wanted part that the
+purchased assembly process cannot place; it must name the exact process gap
+and the evidenced manual/alternate disposition. `consign` is NOT a
 population reason: a consigned part is POPULATED, stays ON the CPL, and
 belongs in the `consigned:` MANIFEST line above (crow-recorder-central-v2 v1.3
 declared its placed U1 "not_assembled" that way). The `msl:` line is REQUIRED

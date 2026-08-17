@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/circuits-pi-usb-release/skills/kicad-pcb/scripts/module_first_check.py",
+    "/tmp/circuits-pi-usb-release/projects/pi-usb-port-switch"
+  ],
+  "elapsed_s": 0.096,
+  "finished_at": 1786833221.1745365,
+  "heartbeat_s": 10.0,
+  "label": "module_first",
+  "pid": 1478542,
+  "returncode": 0,
+  "schema": 1,
+  "started_at": 1786833221.0787706,
+  "status": "finished",
+  "timeout_s": 600.0
+}

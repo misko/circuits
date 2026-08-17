@@ -266,7 +266,11 @@ def connectivity(board_path: Path, nets: list[str]) -> dict[str, Any]:
         if len(pads) < 2:
             failures.append({"net": net, "reason": f"only {len(pads)} pad(s)"})
             continue
-        reached = set(conn.GetConnectedItems(pads[0]))
+        # pcbnew's SWIG wrappers for tracks, vias, and pads are deliberately
+        # unhashable in KiCad 10.  Preserve the connectivity result as a
+        # sequence and use equality membership instead of attempting to put
+        # the wrappers in a set.
+        reached = list(conn.GetConnectedItems(pads[0]))
         missing = [f"{pad.GetParentFootprint().GetReference()}.{pad.GetNumber()}"
                    for pad in pads[1:] if pad not in reached]
         if missing:

@@ -1,0 +1,33 @@
+{
+  "finished_at": "2026-08-15T22:27:22.462059Z",
+  "inputs": {
+    "rf.yaml": {
+      "sha256": "d6ebfb065ac5d85399e3eb2e6d621a54de02c915d37779729a6f621e2ffaa44f",
+      "size": 1159
+    },
+    "source_cards.yaml": {
+      "sha256": "0071abdf25dad483186e5f64df030b7f05950864322df05966bd21b218fc9504",
+      "size": 7235
+    }
+  },
+  "outputs": {
+    "context.json": {
+      "sha256": "fff7bbcd535124b9b92ee011ae4855652f69ecdad53d5ed055f853f099bf40b4",
+      "size": 281
+    },
+    "report.txt": {
+      "sha256": "f5d24d939a5708417f6536795e171f1e65158c28c6ed4d2176290a68a804efeb",
+      "size": 222
+    }
+  },
+  "producer": "rf_context.py",
+  "producer_version": "1",
+  "run_id": "20260815T222722Z-96f70be9",
+  "schema": 1,
+  "started_at": "2026-08-15T22:27:22.454475Z",
+  "status": "PASS",
+  "subject": {
+    "raw_sha256": "b7c703da6db9df0f712274606a37a803530ca33c6a9ce96c35da4399e463d1d4",
+    "semantic_sha256": "635fa144ba4997d199c1c078355ce77f03644725ce736c667b1015a3c6c5627e"
+  }
+}

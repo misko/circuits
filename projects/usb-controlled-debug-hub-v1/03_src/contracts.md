@@ -501,6 +501,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `stitch.unify_zone_priorities.*` | `route_and_stitch_generic.py` | zone-priority pass |
 | `stitch.normalize_vias.*` | `route_and_stitch_generic.py` | via normalisation pass |
 | `stitch.protect_via_in_pad.*` | `route_and_stitch_generic.py` | post-route exact pad-hit census and item-level cap/fill promotion for every realised via inside an SMT land; config declares the protected via geometry, protection modes, and minimum expected count |
+| `stitch.protect_via_family.*` | `route_and_stitch_generic.py` | post-route promotion of every realized via with one exact size/drill pair to filled+capped intent; this is the source-side counterpart of a Gerber-era fabricator drill-family selector and never resizes or touches another via family |
 | `stitch.bridge_via_endpoints.*` | `route_and_stitch_generic.py` | strictly copper-contained same-net endpoint-to-via topology bridge, run before any barrel cleanup |
 | `stitch.via_janitor.*` | `route_and_stitch_generic.py` | minimum attached-layer count and local pad-search window for removing unused single-layer barrels |
 | `stitch.dedupe_vias.*` | `route_and_stitch_generic.py` | via de-duplication pass |

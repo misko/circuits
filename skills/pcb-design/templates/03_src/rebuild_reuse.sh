@@ -159,6 +159,10 @@ $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \
     || { echo "GATE FAILED [6a] R-CRITESC: critical-pair copper is incomplete"; exit 1; }
+$PY "$S/reference_plane_check.py" "04_kicad/$BOARD.kicad_pcb" \
+    --config 03_src/rules/nets.yaml \
+    --json 06_build/verification/reference_plane.json \
+    || { echo "GATE FAILED [6b] R-REFPLANE: foreign inner copper interrupts a declared high-speed reference corridor"; exit 1; }
 
 # [7] generate_rules LAST — pcbnew saves in the chain clobber netclasses  [SHARED]
 $PY "$S/generate_rules_generic.py" .

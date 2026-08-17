@@ -3,6 +3,26 @@ sides: [top, bottom]
 fiducials: "3 top-side global fiducials"
 build_quantity: 5
 
+pcb_process: "JLC four-layer advanced; copper-paste-filled and copper-capped via-in-pad process on the complete 0.20 mm drill family"
+via_process:
+  ipc_4761: type_vii_filled_and_capped
+  fill_material: copper_paste
+  selection: drill_family_order_selector
+  source: "03_src/floorplan.yaml thermal_vias plus 03_src/route.yaml stitch.protect_via_family over the realized routed board"
+  protected_geometry: {via_diameter_mm: 0.46, drill_mm: 0.20}
+  fabricator_selector:
+    kind: drill_family
+    protected_drill_mm: 0.20
+    ordinary_drill_mm: [0.35]
+  ordinary_vias: "0.35 mm power-transfer drill family only; no fill/cap treatment"
+  order_remark: >-
+    Copper-paste fill and copper cap the complete 0.20 mm drill family:
+    every 0.46/0.20 mm via is IPC-4761 Type VII, including every realized
+    via-in-pad barrel. Do not fill or cap the ordinary 0.35 mm drill family.
+    Confirm this selective drill-family process in the
+    manufacturing review before payment.
+  uploader_confirmation_required: true
+
 through_hole:
   process: >
     JLCPCB post-through-hole / wave-selective connector assembly, selected

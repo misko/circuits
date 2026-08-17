@@ -305,6 +305,7 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
       connections={{ pin1: "net.UP_HUB_N", pin2: "net.UP_HUB_P", pin3: "net.GND" }} />
 
     <chip name="U_HUB" supplierPartNumbers={{ jlcpcb: ["C478081"] }} footprint={<Qfn64Ep />}
+      schWidth="4mm" schHeight="8mm"
       {...schProps("U_HUB")}
       pinLabels={{ pin1:"DN1_DM",pin2:"DN1_DP",pin3:"DN2_DM",pin4:"DN2_DP",pin5:"VDDA33_1",pin6:"DN3_DM",pin7:"DN3_DP",pin8:"DN4_DM",pin9:"DN4_DP",pin10:"VDDA33_2",pin11:"DN5_DM",pin12:"DN5_DP",pin13:"CFG_SEL2",pin14:"LED_B7",pin15:"PRT_SWP7",pin16:"LED_B6",pin17:"PRT_SWP6",pin18:"LED_B5",pin19:"TEST",pin20:"PRTPWR4",pin21:"OCS4_N",pin22:"OCS3_N",pin23:"PRTPWR3",pin24:"VDD33CR",pin25:"VDD18",pin26:"PRTPWR2",pin27:"OCS2_N",pin28:"OCS1_N",pin29:"PRTPWR1",pin30:"PRTPWR5",pin31:"PRT_SWP5",pin32:"LED_B4",pin33:"PRT_SWP4",pin34:"GANG_EN",pin35:"OCS5_N",pin36:"PRTPWR7",pin37:"OCS7_N",pin38:"OCS6_N",pin39:"PRTPWR6",pin40:"NON_REM1",pin41:"CFG_SEL0",pin42:"CFG_SEL1",pin43:"RESET_N",pin44:"VBUS_DET",pin45:"NON_REM0",pin46:"VDD33",pin47:"PRT_SWP3",pin48:"BOOST1",pin49:"PRT_SWP2",pin50:"BOOST0",pin51:"PRT_SWP1",pin52:"VDDA33_3",pin53:"DN6_DM",pin54:"DN6_DP",pin55:"DN7_DM",pin56:"DN7_DP",pin57:"VDDA33_4",pin58:"UP_DM",pin59:"UP_DP",pin60:"XTAL2",pin61:"XTAL1",pin62:"VDD18PLL",pin63:"RBIAS",pin64:"VDD33PLL",pin65:"EP_VSS" }}
       connections={{

@@ -410,6 +410,9 @@ length_match:
                                # the floor spread is not a bound. Cross-checked:
                                # 03_src/route.yaml must carry a
                                # `length_match_group` or this is a FAIL.
+    octilinear_endpoints:      # OPTIONAL explicit physical terminal pair per
+      ARM1: [J1.1, U1.2]       # member. Required when a member net has 3+
+      ARM2: [J2.1, U1.3]       # pads (for example a shunt ESD device).
     pin:                       # OPTIONAL, and the check that guards a release:
       spread_mm: 0.000         # the PUBLISHED spread this board's artifact
       tol_mm: 0.05             # claims. drift beyond tol_mm FAILS, because a
@@ -705,15 +708,40 @@ def oct_floor(a, b):
     return max(dx, dy) + OCT_K * min(dx, dy)
 
 
-def member_pad_floor(chain, pads):
+def member_pad_floor(chain, pads, endpoints=None):
     """(floor_mm, [why]) for one member's ORDERED net chain, pads only.
 
-    A net with exactly two pads contributes its octilinear pad-to-pad floor.
+    When `endpoints` names two exact `REF.PAD` identities, their direct
+    octilinear span is a conservative floor for the complete member chain.
+    This is the explicit form needed by protected USB nets with a third shunt
+    pad: choosing two of three pads heuristically would be adjacent-property
+    inference, while named physical endpoints are reviewable authority.
+
+    Otherwise, a net with exactly two pads contributes its octilinear floor.
     Anything else (0, 1, or 3+ pads) is UNREACHED for the whole member and
     says which net and how many — a three-pad net has no single pad PAIR, and
     inventing one would be the adjacent-property error this file exists to
     stop.
     """
+    if endpoints is not None:
+        found = {}
+        wanted = set(endpoints)
+        for net in chain:
+            for ref, pad, x, y in pads.get(net) or []:
+                key = f"{ref}.{pad}"
+                if key in wanted:
+                    found.setdefault(key, []).append((x, y, net))
+        why = []
+        for key in endpoints:
+            hits = found.get(key) or []
+            if len(hits) != 1:
+                why.append(f"explicit endpoint {key}: resolved {len(hits)} "
+                           f"times across member nets {chain}")
+        if why:
+            return None, why
+        return oct_floor(found[endpoints[0]][0][:2],
+                         found[endpoints[1]][0][:2]), []
+
     total, why = 0.0, []
     for n in chain:
         ps = pads.get(n) or []
@@ -910,6 +938,18 @@ def load_groups(proj):
                 f"(KRT's 8-direction move set — the default) or `any`, got "
                 f"{rm!r}. A router's move set is a FACT about the tool, so "
                 f"only these two claims are checkable")
+        endpoints = d.get("octilinear_endpoints")
+        if endpoints is not None:
+            if not isinstance(endpoints, dict) or set(endpoints) != set(mem):
+                raise AuditError(
+                    f"{p}: length_match.{g}.octilinear_endpoints must name "
+                    f"exactly the members {sorted(mem)}")
+            for name, pair in endpoints.items():
+                if not isinstance(pair, list) or len(pair) != 2 or not all(
+                        isinstance(x, str) and "." in x for x in pair):
+                    raise AuditError(
+                        f"{p}: length_match.{g}.octilinear_endpoints.{name} "
+                        f"must be [REF.PAD, REF.PAD]")
         pin = d.get("pin")
         if pin is not None:
             if not isinstance(pin, dict) or "spread_mm" not in pin \
@@ -980,8 +1020,9 @@ def grade_octilinear(gname, d, pads, recipe, row, res):
         return
     row["oct_why"] = ""
     unreached = []
+    endpoint_map = d.get("octilinear_endpoints") or {}
     for mname, chain in d["members"].items():
-        floor, why = member_pad_floor(chain, pads)
+        floor, why = member_pad_floor(chain, pads, endpoint_map.get(mname))
         row["oct_floor_mm"][mname] = floor
         unreached += [f"{mname}: {w}" for w in why]
     if unreached:
@@ -1409,6 +1450,8 @@ def main(argv=None):
                     help="exit 1 when any declared group is UNREACHED (an "
                          "unmeasured intent is a coverage gap, not a pass)")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--json-output",
+                    help="also write the machine-readable result to PATH")
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args(argv)
 
@@ -1430,23 +1473,38 @@ def main(argv=None):
             for p in projs:
                 r = grade(p)
                 allres.append(r)
-                good = report(r, verbose=not a.quiet)
+                good = not r["fails"]
+                if not a.json:
+                    report(r, verbose=not a.quiet)
                 if not good or (a.strict and r["unreached"]):
                     bad += 1
-                print()
+                if not a.json:
+                    print()
             ng = sum(r["n_group"] for r in allres)
             nm = sum(r["n_measured"] for r in allres)
             nt = sum(r["n_member"] for r in allres)
-            print(f"FLEET: {len(projs)} project(s), {ng} length_match group(s) "
-                  f"declared, {nm} member path(s) measured / {nt}, "
-                  f"{bad} project(s) FAIL")
             if a.json:
-                print(json.dumps(allres, indent=1, default=str))
+                encoded = json.dumps(allres, indent=1, default=str) + "\n"
+                print(encoded, end="")
+            else:
+                print(f"FLEET: {len(projs)} project(s), {ng} length_match group(s) "
+                      f"declared, {nm} member path(s) measured / {nt}, "
+                      f"{bad} project(s) FAIL")
+            if a.json_output:
+                Path(a.json_output).write_text(
+                    json.dumps(allres, indent=1, default=str) + "\n",
+                    encoding="utf-8")
             return 1 if bad else 0
         res = grade(a.project, a.board)
-        ok = report(res, verbose=not a.quiet)
+        ok = not res["fails"]
         if a.json:
             print(json.dumps(res, indent=1, default=str))
+        else:
+            report(res, verbose=not a.quiet)
+        if a.json_output:
+            Path(a.json_output).write_text(
+                json.dumps(res, indent=1, default=str) + "\n",
+                encoding="utf-8")
         if not ok:
             return 1
         return 1 if (a.strict and res["unreached"]) else 0

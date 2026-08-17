@@ -1,0 +1,77 @@
+schema: 1
+service: JLCPCB_PCBA
+sides: [top]
+fiducials: {global_top: 3, local_required_for_0_5mm_QFN: true}
+build_quantity: 5_first_articles
+not_assembled: []
+consigned: []
+exempt_prefixes: [FID, H, MH]
+
+pcb_process: "JLC four-layer advanced; copper-paste-filled and copper-capped via-in-pad only at U1's explicitly protected 0.25-mm drill family"
+via_process:
+  ipc_4761: type_vii_filled_and_capped
+  fill_material: copper_paste
+  selection: item_level_source_plus_drill_family_order_selector
+  source: "03_src/floorplan.yaml thermal_vias.protection"
+  protected_geometry: {via_diameter_mm: 0.45, drill_mm: 0.25}
+  fabricator_selector:
+    kind: drill_family
+    protected_drill_mm: 0.25
+    ordinary_drill_mm: [0.20]
+  ordinary_vias: "0.20-mm drill only; inherit board defaults; no fill/cap treatment"
+  order_remark: >-
+    Copper-paste fill and copper cap the complete 0.25 mm drill family only:
+    these are the nine 0.45/0.25 mm U1 exposed-pad vias. Do not fill or cap
+    the ordinary 0.20 mm drill routing, stitching, fence, or plane-return vias.
+  uploader_confirmation_required: true
+
+# J2-J10 are true paste-free THT connectors and therefore cannot be executed
+# by the top-side SMT/reflow line represented by the CPL alone.  They remain on
+# the CPL because this release explicitly buys JLCPCB's connector through-hole
+# service.  If the uploader does not mark exact C429844 as wave/manual assembly,
+# this release must stop: the fallback is a separately generated hand-solder
+# release with J2-J10 declared not_assembled and removed from its CPL.
+through_hole:
+  process: >-
+    JLCPCB through-hole connector assembly (wave/manual assembly), required for
+    this release and selected at order time for every J2-J10 placement
+  refs: [J2, J3, J4, J5, J6, J7, J8, J9, J10]
+  evidence: >-
+    2026-08-13 exact JLC catalog query: C429844 = Amphenol 901-143-6RFX,
+    componentSpecificationEn Plugin, extended library, stockCount 951 for nine
+    required. JLCPCB PCB Assembly FAQs (last updated 2025-11-24) state that
+    through-hole connectors are supported and parts marked for wave soldering
+    are manually assembled. Catalog stock and Plugin classification do not
+    prove order allocation: the uploader must echo exact C429844 as accepted
+    wave/manual assembly before payment, otherwise stop and create a distinct
+    hand-solder release rather than silently dropping these connectors.
+
+assembly_scope:
+  smt: turnkey_JLC
+  tht: "J2-J10 use the required JLCPCB through-hole wave/manual assembly line; uploader refusal stops this release"
+  bottom_population: none
+  connectors: all_populated
+
+sourcing_plan:
+  - {function: RF_switch, part: PE42482A-X, lcsc: C5121458, refs: [U1]}
+  - {function: controller, part: STM32C011F4P6, lcsc: C5452432, refs: [U2]}
+  - {function: regulator, part: TPS7A2433DBVR, lcsc: C2866134, refs: [U3]}
+  - {function: CC_ESD, part: TPD2E2U06DRLR, lcsc: C1972959, refs: [U4]}
+  - {function: USB_C_input, part: USB4105-GF-A-120, lcsc: C5184243, refs: [J1]}
+  - {function: keyed_Cortex_SWD, part: FTSH-105-01-L-DV-K-P-TR, lcsc: C2932107, refs: [J11]}
+  - {function: SMA_interfaces, part: 901-143-6RFX, lcsc: C429844, refs: [J2, J3, J4, J5, J6, J7, J8, J9, J10]}
+  - {function: input_PPTC, part: 0603L010YR, lcsc: C207010, refs: [F1]}
+  - {function: VBUS_TVS, part: SMBJ6.0A, lcsc: C83270, refs: [D1]}
+  - {function: Type_C_Rd, part: RC0402FR-075K1L, lcsc: C105872, refs: [R1, R2]}
+  - {function: switch_bias, part: RC0402FR-0710KL, lcsc: C60490, refs: [R3, R4, R5, R6]}
+  - {function: protected_input_and_rail_bulk_caps, part: CL10A475KO8NNNC, lcsc: C19666, refs: [C1, C2, C3]}
+  - {function: bypass_and_reset_caps, part: CL05B104KO5NNNC, lcsc: C1525, refs: [C4, C5, C6]}
+
+order_time_requirements:
+  - upload BOM and CPL and obtain a line-by-line placement/allocation echo
+  - select four-layer 1.6mm JLC04161H-7628 and controlled impedance
+  - confirm U1 MSL handling and assembly profile against actual JLC listing
+  - confirm J11 pin-1 orientation and keyed-cable compatibility in the JLC placement preview
+  - confirm nine SMA connectors are accepted for wave soldering and inspect their joint fillets
+  - if exact C429844 is not echoed as wave/manual assembly, stop this release and generate a separate hand-solder population contract and CPL
+  - approve polarity/orientation render for D1, J1, U1 and every SMA before payment

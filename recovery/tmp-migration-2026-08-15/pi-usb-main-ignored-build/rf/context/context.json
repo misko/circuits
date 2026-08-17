@@ -1,0 +1,13 @@
+{
+  "adopted_source_claim_ids": [],
+  "context_policy": "clean_room",
+  "coverage": {},
+  "features": [],
+  "profile": "legacy-compatible",
+  "review_wait_created": false,
+  "runtime_network": false,
+  "schema": 1,
+  "selected_source_ids": [],
+  "sources": [],
+  "status": "N-A"
+}

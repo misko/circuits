@@ -384,9 +384,18 @@ prep:
           - {layer: F.Cu, width: 0.50, pts: [[78.200, 54.000], [78.600, 53.800], [81.300, 53.200]]}
           - {layer: B.Cu, width: 0.50, pts: [[81.300, 53.200], [81.300, 51.200], [79.520, 51.200]]}
           - {layer: F.Cu, width: 0.50, pts: [[79.520, 51.200], [79.520, 52.000]]}
+        vias: [[81.300, 53.200], [79.520, 51.200]]
+      # The bulk-capacitor spur carries ripple current rather than the full
+      # downstream load.  Give its in-pad transition the board's protected
+      # 0.46/0.20 mm Type-VII family while retaining both 0.70/0.35 mm vias on
+      # the main U_PWR2-to-port current path above.
+      - net: VBUS2_SW
+        pin: C_PORT2_BULK.1
+        via: {size: 0.46, drill: 0.20}
+        segments:
           - {layer: B.Cu, width: 0.50, pts: [[81.300, 53.200], [81.300, 55.200]]}
           - {layer: F.Cu, width: 0.50, pts: [[81.300, 55.200], [81.025, 55.200], [81.025, 56.000]]}
-        vias: [[81.300, 53.200], [79.520, 51.200], [81.300, 55.200]]
+        vias: [[81.300, 55.200]]
       # Port 3 is not geometrically equivalent to the other three switched
       # outputs after the earlier hub-strap waves: HUB_SWAP3 occupies the
       # otherwise natural F.Cu output-to-bulk path, while HUB_DIS7_P and
@@ -492,17 +501,53 @@ prep:
           - {layer: F.Cu, width: 0.18, pts: [[88.5875, 68.2500], [87.4000, 68.2500], [87.4000, 68.4000]]}
           - {layer: B.Cu, width: 0.18, pts: [[87.4000, 68.4000], [89.5000, 68.4000], [92.0000, 70.9000], [92.0000, 75.0000]]}
         vias: [[87.4000, 68.4000]]
-      # R_NONREM0.2 is the inner pad of a pull-up pair.  Its right side is
-      # bounded by the 3V3 pad, so expose the signal below the resistor before
-      # changing layers; otherwise the right-strap wave centres its via in
-      # the paste land.
+      # The former two-via NONREM0 dogbone occupied the transition now needed
+      # by HUB_VBUS_SENSE.  Keep this complete strap on F.Cu around the sense
+      # launch; the replacement passed authoritative DRC with no vias.
       - net: HUB_NONREM0
         pin: R_NONREM0.2
         segments:
-          - {layer: F.Cu, width: 0.18, pts: [[98.7400, 64.0000], [98.7400, 64.7000]]}
-          - {layer: F.Cu, width: 0.18, pts: [[97.4125, 62.7500], [97.8500, 62.7500], [98.0000, 62.9000], [98.2000, 62.9000]]}
-          - {layer: B.Cu, width: 0.18, pts: [[98.2000, 62.9000], [98.2000, 63.3000], [98.7400, 64.0000], [98.7400, 64.7000]]}
-        vias: [[98.2000, 62.9000], [98.7400, 64.7000]]
+          - {layer: F.Cu, width: 0.19, pts: [[97.5000, 62.8500], [98.2750, 62.8500], [98.3250, 62.9000], [98.3750, 62.9000], [98.4250, 62.9500], [98.4500, 62.9500], [98.7500, 63.2500], [98.7500, 64.0000]]}
+      # Final reset/sense escapes are deterministic because each owns one
+      # unique corridor through the completed USB/control field.  They were
+      # individually candidate-graded before promotion; leaving them to the
+      # generic tap placer repeatedly produced via-in-pad or boxed-frontier
+      # failures.
+      - net: CTRL_RESET_N
+        pin: R_CTRL_RESET.2
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[79.5000, 77.0000], [79.1500, 76.6500]]}
+          - {layer: B.Cu, width: 0.18, pts: [[79.1500, 76.6000], [77.8000, 76.6000]]}
+          - {layer: F.Cu, width: 0.18, pts: [[77.8000, 76.6000], [77.6500, 76.4500], [77.6000, 76.4500], [77.4500, 76.6000], [72.1000, 76.6000], [71.5000, 76.0000], [71.5250, 76.0000]]}
+        vias: [[79.1500, 76.6000], [77.8000, 76.6000]]
+      - net: HUB_RESET_N
+        pin: R_HUB_RESET.2
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[84.5100, 67.0000], [84.4000, 67.5500]]}
+          - {layer: B.Cu, width: 0.18, pts: [[84.4000, 67.5500], [84.5500, 67.5500], [85.2500, 66.8500], [85.6500, 66.8500], [90.3000, 62.2000], [95.5500, 62.2000], [96.5000, 63.1500], [96.5000, 63.7500]]}
+          - {layer: F.Cu, width: 0.18, pts: [[96.5000, 63.7500], [97.4125, 63.7500]]}
+          - {layer: B.Cu, width: 0.18, pts: [[84.4000, 67.5500], [83.5500, 68.4000]]}
+          - {layer: F.Cu, width: 0.18, pts: [[83.5000, 68.4500], [83.5000, 70.0000]]}
+        vias: [[84.4000, 67.5500], [96.5000, 63.7500], [83.5500, 68.4000]]
+      # These two low-speed DC/sense routes use In2.Cu only in corridors that
+      # do not cross the B.Cu USB pairs which reference that plane.  The former
+      # straight routes crossed eight B.Cu USB conductors and were rejected by
+      # the final reference-plane review.  The detours below were solved with
+      # projected B.Cu USB keepouts, then independently DRC- and geometry-
+      # graded before promotion.  Keep their exact shape source-owned.
+      - net: HUB_VBUS_SENSE
+        pin: U_HUB.44
+        segments:
+          - {layer: F.Cu, width: 0.19, pts: [[97.4125, 63.2500], [98.0500, 63.2500], [98.1500, 63.3500]]}
+          - {layer: In2.Cu, width: 0.19, pts: [[98.1500, 63.3500], [98.0000, 63.2500], [95.5000, 63.2500], [95.2500, 63.5000], [88.2500, 63.5000], [85.0000, 66.7500], [83.5000, 66.7500], [79.7500, 63.0000], [79.7500, 62.2500], [79.6500, 62.0000]]}
+          - {layer: F.Cu, width: 0.19, pts: [[79.6500, 62.0000], [78.9000, 62.7500], [78.1500, 62.7500], [77.5000, 62.1000], [77.5000, 62.0000], [77.8000, 61.7000], [77.8000, 60.8000], [78.5000, 60.1000], [78.5000, 60.0000]]}
+        vias: [[98.1500, 63.3500], [79.6500, 62.0000]]
+      - net: USB_UP_VBUS
+        pin: R_VBUS_TOP.1
+        segments:
+          - {layer: F.Cu, width: 0.19, pts: [[77.5000, 60.0000], [77.1500, 59.6500], [77.1500, 59.1500]]}
+          - {layer: In2.Cu, width: 0.19, pts: [[77.1500, 59.1500], [77.0000, 59.0000], [76.2500, 59.0000], [64.0000, 46.7500], [64.0000, 44.7500], [63.0000, 43.7500], [57.7500, 43.7500], [55.2500, 46.2500], [53.5000, 46.2500], [39.5000, 60.2500], [35.5000, 60.2500], [34.7500, 59.5000], [34.7500, 58.7500], [34.5000, 58.5000], [34.2000, 58.2500]]}
+        vias: [[77.1500, 59.1500]]
       # C_AGG_DVDT pad 1 is a broad 0603 land and the generic router selected
       # its centre for a layer transition.  Carry the signal beyond the land
       # first, then own the transition explicitly so control_local cannot
@@ -516,7 +561,28 @@ prep:
         pin: U_AGG.10
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[52.9100, 98.1000], [54.0000, 98.1000]]}
-        vias: [[54.0000, 98.1000]]
+          - {layer: B.Cu, width: 0.18, pts: [[54.0000, 98.1000], [55.2000, 101.0000]]}
+          - {layer: F.Cu, width: 0.18, pts: [[55.2000, 101.0000], [55.2250, 101.0000]]}
+        vias: [[54.0000, 98.1000], [55.2000, 101.0000]]
+      # Move the DVDT return below its perimeter pin, leaving the parallel
+      # upper corridor to the adjacent U_AGG ground land.  The short B.Cu leg
+      # joins the already source-owned capacitor-side route at (53.45,98.95).
+      - net: AGG_DVDT
+        pin: U_AGG.7
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[52.9000, 99.9000], [53.4000, 99.9000], [53.6500, 100.5000]]}
+          - {layer: B.Cu, width: 0.18, pts: [[53.6500, 100.5000], [53.4500, 98.9500]]}
+        vias: [[53.6500, 100.5000]]
+      - net: GND
+        pin: U_AGG.8
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[52.9100, 99.2300], [56.2800, 99.0200]]}
+          # Share the same reviewed off-pad plane transition with the adjacent
+          # R_AGG_ILIM ground land.  Leaving this to generic pad rescue made
+          # its chosen via depend on nearby route occupancy, so the prepared
+          # base no longer matched the otherwise clean promoted prefix.
+          - {layer: F.Cu, width: 0.25, pts: [[56.8250, 98.0000], [56.2800, 99.0200]]}
+        vias: [[56.2800, 99.0200]]
       # The aggregate UV/OV divider taps are tightly boxed by the broad fused
       # 5 V feed and adjacent QFN lands.  Cross that feed on B.Cu using four
       # deliberately well-separated vias, then make short, visible F.Cu exits
@@ -546,13 +612,18 @@ prep:
         pin: U_HUB.62
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[90.2500, 60.5875], [90.2000, 58.8800]]}
-      # A through-via at the outward ground pad intersects P3_HUB on B.Cu.
-      # Reserve a short F.Cu spoke instead; the continuous top GND zone owns
-      # this local return when stitch/fill runs.
+      # A through-via beside the outward ground pad intersects P3_HUB on B.Cu,
+      # while the original 0.32 mm F.Cu spoke filled as an isolated island
+      # between XTAL1, 3V3_MAIN and HUB_VDD18PLL.  Keep the PLL capacitor in
+      # its electrically preferred position and carry its return around the
+      # oscillator at 0.30 mm to the existing plated GND drop at (83.97,56).
+      # The bounded A* probe found this zero-via path at the declared 0.15 mm
+      # local control clearance; compressed octilinear geometry independently
+      # passes authoritative physical DRC and avoids both HDI and via-in-pad.
       - net: GND
         pin: C_HUB_18PLL.2
         segments:
-          - {layer: F.Cu, width: 0.18, pts: [[90.2000, 57.9200], [90.2000, 57.6000]]}
+          - {layer: F.Cu, width: 0.30, pts: [[90.2000, 57.9200], [89.9700, 57.7000], [88.7700, 57.7000], [88.4700, 57.4000], [88.3700, 57.4000], [88.2700, 57.3000], [86.7700, 57.3000], [85.4700, 56.0000], [83.9700, 56.0000]]}
       # RBIAS retains its independent constrained package escape.
       - net: RBIAS
         pin: U_HUB.63
@@ -598,7 +669,7 @@ prep:
       # its dedicated full-clearance wave after the authenticated prefix has
       # installed the ten port-control nets.  This makes corridor ownership
       # explicit instead of asking two pre-route paths to overlap.
-      - {net: HUB_NONREM0, pin: U_HUB.45, segments: [{layer: F.Cu, width: 0.18, pts: [[97.4125, 62.7500], [97.8500, 62.7500]]}]}
+      # NONREM0 is already complete in the source-owned path above.
       # This bank is entirely local on F.Cu.  Earlier unnecessary source vias
       # pierced the B.Cu corridor required by the ordered top strap bus.
       - {net: HUB_CFG1, pin: U_HUB.42, segments: [{layer: F.Cu, width: 0.18, pts: [[97.4125, 64.2500], [97.8500, 64.2500]]}]}
@@ -625,7 +696,7 @@ prep:
                [45.5500, 86.2500], [44.5000, 84.5000]]
       - net: HUB_DIS7_N
         pin: U_HUB.55
-        via: {size: 0.41, drill: 0.15}
+        via: {size: 0.46, drill: 0.20}
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[93.7500, 60.5875], [93.7500, 59.5500]]}
           # Exact P4-safe transition sequence inherited from the previously
@@ -640,7 +711,7 @@ prep:
         vias: [[93.7500, 59.5500], [94.2500, 57.7000], [95.8000, 57.4000], [103.5000, 62.1000], [103.5000, 63.7000], [123.8000, 64.7000]]
       - net: HUB_DIS6_P
         pin: U_HUB.54
-        via: {size: 0.41, drill: 0.15}
+        via: {size: 0.46, drill: 0.20}
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[94.2500, 60.5875], [94.2500, 59.9000]]}
           - {layer: B.Cu, width: 0.18, pts: [[94.2500, 59.9000], [94.5000, 60.1500], [94.5000, 60.8500], [95.3000, 61.6500], [98.5000, 61.6500], [99.9000, 63.0500]]}
@@ -650,7 +721,7 @@ prep:
         vias: [[94.2500, 59.9000], [99.9000, 63.0500], [101.0500, 64.2000], [120.8000, 65.2000]]
       - net: HUB_DIS6_N
         pin: U_HUB.53
-        via: {size: 0.41, drill: 0.15}
+        via: {size: 0.46, drill: 0.20}
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[94.7500, 60.5875], [94.7500, 59.5500]]}
           - {layer: B.Cu, width: 0.18, pts: [[94.7500, 59.5500], [94.7500, 59.4000], [94.1000, 58.7500], [94.1000, 58.4000]]}
@@ -660,7 +731,7 @@ prep:
         vias: [[94.7500, 59.5500], [94.1000, 58.4000], [95.7500, 56.6500], [110.4500, 60.4000]]
       - net: HUB_DIS7_P
         pin: U_HUB.56
-        via: {size: 0.41, drill: 0.15}
+        via: {size: 0.46, drill: 0.20}
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[93.2500, 60.5875], [93.2500, 59.9000]]}
           - {layer: B.Cu, width: 0.18, pts: [[93.2500, 59.9000], [93.0000, 59.6000], [93.0000, 56.8500], [94.1500, 55.7000]]}
@@ -672,7 +743,7 @@ prep:
         vias: [[93.2500, 59.9000], [94.1500, 55.7000], [95.7000, 55.8500], [114.6000, 56.2500], [115.7500, 57.4000], [126.8000, 64.2000]]
       - net: HUB_SWAP1
         pin: U_HUB.51
-        via: {size: 0.41, drill: 0.15}
+        via: {size: 0.46, drill: 0.20}
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[95.7500, 60.5875], [95.7500, 59.7500]]}
           # Reuse the previously authenticated P4 crossing: stay north of the
@@ -683,7 +754,7 @@ prep:
         vias: [[95.7500, 59.7500], [108.0000, 61.2000]]
       - net: HUB_BOOST0
         pin: U_HUB.50
-        via: {size: 0.41, drill: 0.15}
+        via: {size: 0.46, drill: 0.20}
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[96.2500, 60.5875], [96.2500, 60.1000]]}
           - {layer: B.Cu, width: 0.18, pts: [[96.2500, 60.1000], [96.2500, 60.7000], [107.0000, 60.7000]]}
@@ -691,7 +762,7 @@ prep:
         vias: [[96.2500, 60.1000], [107.0000, 60.7000]]
       - net: HUB_SWAP2
         pin: U_HUB.49
-        via: {size: 0.41, drill: 0.15}
+        via: {size: 0.46, drill: 0.20}
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[96.7500, 60.5875], [96.7500, 59.7500]]}
           - {layer: B.Cu, width: 0.18, pts: [[96.7500, 59.7500], [96.7500, 60.2000], [106.2000, 60.2000]]}
@@ -726,7 +797,6 @@ prep:
         pin: U_HUB.10
         segments:
           - {layer: F.Cu, width: 0.20, pts: [[88.5875, 65.7500], [87.7000, 65.7500]]}
-        vias: [[87.7000, 65.7500]]
       - net: 3V3_MAIN
         pin: U_HUB.24
         segments:
@@ -785,7 +855,6 @@ prep:
           # the later bulk-power wave one accessible endpoint.
           - {layer: F.Cu, width: 0.40, pts: [[101.5200, 65.0000], [101.5200, 68.0000], [100.8000, 68.8000]]}
           - {layer: F.Cu, width: 0.40, pts: [[99.7600, 64.0000], [99.7600, 65.0000], [101.5200, 65.0000]]}
-        vias: [[100.8000, 68.8000]]
       - net: 3V3_MAIN
         pin: U_HUB.52
         segments:
@@ -848,15 +917,9 @@ prep:
       # 0603 land.  Own short horizontal F.Cu escapes here and transition at
       # measured open sites between the adjacent strap launches instead.
       - net: 3V3_MAIN
-        pin: R_SWAP1.2
-        segments:
-          - {layer: F.Cu, width: 0.20, pts: [[116.5100, 70.0000], [116.5100, 69.0000]]}
-        vias: [[116.5100, 69.0000]]
-      - net: 3V3_MAIN
         pin: R_DIS6N.1
         segments:
           - {layer: F.Cu, width: 0.20, pts: [[119.5100, 70.0000], [119.2000, 69.0000]]}
-        vias: [[119.2000, 69.0000]]
       # The four backside FSUSB42 supply lands share the same 0.50 mm-pitch
       # edge geometry.  Give every channel a symmetric B.Cu launch and move
       # the layer transition outside the package instead of accepting a
@@ -865,7 +928,6 @@ prep:
         pin: U_DATA1.1
         segments:
           - {layer: B.Cu, width: 0.35, pts: [[59.1000, 43.5000], [57.8000, 43.5000]]}
-        vias: [[57.8000, 43.5000]]
       - net: 3V3_MAIN
         pin: U_DATA2.1
         segments:
@@ -881,6 +943,31 @@ prep:
         segments:
           - {layer: B.Cu, width: 0.35, pts: [[123.9000, 45.5000], [122.6000, 45.5000]]}
         vias: [[122.6000, 45.5000]]
+      # U_DATA1..4 are bottom-side parts.  The former generic pad rescue put
+      # these spokes on F.Cu at the same coordinates, leaving the real B.Cu
+      # lands open.  Follow each narrow land's long axis and terminate at a
+      # measured off-pad GND via; the scoped package-launch rules retain USB
+      # clearance to the adjacent 0.5 mm-pitch signal lands.
+      - net: GND
+        pin: U_DATA1.2
+        segments:
+          - {layer: B.Cu, width: 0.18, pts: [[59.1000, 44.0000], [60.3000, 44.0000], [61.0000, 43.0000]]}
+        vias: [[61.0000, 43.0000]]
+      - net: GND
+        pin: U_DATA2.2
+        segments:
+          - {layer: B.Cu, width: 0.18, pts: [[84.1000, 44.0000], [85.3000, 44.0000], [86.0000, 43.0000]]}
+        vias: [[86.0000, 43.0000]]
+      - net: GND
+        pin: U_DATA3.2
+        segments:
+          - {layer: B.Cu, width: 0.18, pts: [[102.9000, 45.0000], [104.3500, 45.0000]]}
+        vias: [[104.3500, 45.0000]]
+      - net: GND
+        pin: U_DATA4.2
+        segments:
+          - {layer: B.Cu, width: 0.18, pts: [[123.9000, 45.0000], [125.3500, 45.0000]]}
+        vias: [[125.3500, 45.0000]]
       # The two long left-bank DATA_OK spans terminate on inward-facing
       # TSSOP lands after crossing the already-authenticated USB/hub field.
       # A global 20-net command wave repeatedly connected the local Q/R tap
@@ -890,26 +977,44 @@ prep:
         pin: U_AND_DATA.3
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[117.1375, 85.3500], [116.2000, 85.3500], [115.7500, 84.9000]]}
-        vias: [[115.7500, 84.9000]]
       - net: DATA_OK2
         pin: U_AND_DATA.6
         segments:
           - {layer: F.Cu, width: 0.18, pts: [[117.1375, 87.3000], [116.2000, 87.3000], [115.7500, 87.7500]]}
-        vias: [[115.7500, 87.7500]]
       # Command/control fanout changes layer only after leaving the named
       # package land.  The first complete command wave connected every net but
       # proposed eleven ordinary through-vias in SMD lands; these reviewed
       # dogbones make that manufacturing decision explicit and repeatable.
-      - {net: PWR_EN4, pin: U_AND_DATA.12, segments: [{layer: F.Cu, width: 0.18, pts: [[122.8625, 85.3500], [120.0000, 85.3500]]}], vias: [[120.0000, 85.3500]]}
+      - {net: PWR_EN4, pin: U_AND_DATA.12, segments: [{layer: F.Cu, width: 0.18, pts: [[122.8625, 85.3500], [120.0000, 85.3500]]}]}
       - {net: PWR_EN3, pin: U_AND_PWR.8, segments: [{layer: F.Cu, width: 0.18, pts: [[106.8625, 87.9500], [106.8625, 88.4000]]}], vias: [[106.8625, 88.4000]]}
-      - {net: PWR_CMD2, pin: U_AND_PWR.5, segments: [{layer: F.Cu, width: 0.18, pts: [[101.1375, 86.6500], [104.0000, 86.6500]]}], vias: [[104.0000, 86.6500]]}
-      - {net: DATA_CMD1, pin: U_EXP.25, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000, 73.7250], [128.0000, 73.7250], [128.3000, 73.7250]]}], vias: [[128.3000, 73.7250]]}
+      - {net: PWR_CMD2, pin: U_AND_PWR.5, segments: [{layer: F.Cu, width: 0.18, pts: [[101.1375, 86.6500], [103.1000, 86.6500]]}]}
+      - {net: DATA_CMD1, pin: U_EXP.25, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000, 73.7250], [128.0000, 73.7250], [128.3000, 73.7250]]}]}
       - {net: PWR_EN1, pin: U_AND_PWR.3, segments: [{layer: F.Cu, width: 0.18, pts: [[101.1375, 85.3500], [104.0000, 85.3500]]}], vias: [[104.0000, 85.3500]]}
       - {net: DATA_CMD4, pin: U_AND_DATA.13, segments: [{layer: F.Cu, width: 0.18, pts: [[122.8625, 84.7000], [120.0000, 84.7000]]}], vias: [[120.0000, 84.7000]]}
-      - {net: DATA_OE4_N, pin: U_DATA4.10, segments: [{layer: B.Cu, width: 0.18, pts: [[128.1000, 45.5000], [129.4000, 45.5000], [129.7000, 45.5000]]}], vias: [[129.7000, 45.5000]]}
+      # This B.Cu endpoint joins the already-authenticated diagonal at
+      # (129.7,45.5).  No layer transition occurs there; the former via was a
+      # redundant one-layer barrel and became a false cleanup target.
+      - {net: DATA_OE4_N, pin: U_DATA4.10, segments: [{layer: B.Cu, width: 0.18, pts: [[128.1000, 45.5000], [129.4000, 45.5000], [129.7000, 45.5000]]}]}
       - {net: DATA_OE4_N, pin: R_DATA_OE4.2, segments: [{layer: F.Cu, width: 0.18, pts: [[121.0100, 38.5000], [121.5000, 37.4000]]}], vias: [[121.5000, 37.4000]]}
       - {net: DATA_OE3_N, pin: Q_DATA3.3, segments: [{layer: F.Cu, width: 0.18, pts: [[101.0000, 42.0000], [101.0000, 40.8000]]}], vias: [[101.0000, 40.8000]]}
       - {net: DATA_CMD2, pin: U_AND_DATA.5, segments: [{layer: F.Cu, width: 0.18, pts: [[117.1375, 86.6500], [120.0000, 86.6500]]}], vias: [[120.0000, 86.6500]]}
+      # Two short low-speed control overpasses resolve the final outer-layer
+      # topology without disturbing P4's return plane.  Both use In1.Cu;
+      # P4_HUB_P/N remain on B.Cu with their adjacent In2.Cu GND reference
+      # uninterrupted.  Existing endpoint vias are made explicit here so the
+      # promoted prefix is compatible with a fresh deterministic r0.
+      - net: I2C_SCL
+        why: "Bounded In1 overpass between two existing I2C_SCL route nodes; preserves the uninterrupted In2 reference beneath the B.Cu P4 pair."
+        segments:
+          - {layer: B.Cu, width: 0.18, pts: [[97.7500, 75.2000], [96.9000, 76.0500]]}
+          - {layer: In1.Cu, width: 0.18, pts: [[96.9000, 76.0500], [95.6750, 77.2750]]}
+        vias: [[96.9000, 76.0500], [95.6750, 77.2750]]
+      - net: HUB_PRTPWR4
+        why: "Bounded In1 overpass between existing HUB_PRTPWR4 route nodes; removes two F.Cu SDA crossings while keeping P4's adjacent In2 reference continuous."
+        segments:
+          - {layer: In1.Cu, width: 0.18, pts: [[93.5000, 76.5000], [93.5000, 77.8000], [98.2000, 81.9500]]}
+          - {layer: F.Cu, width: 0.18, pts: [[98.2000, 81.9500], [99.1500, 82.9000]]}
+        vias: [[93.5000, 76.5000], [98.2000, 81.9500]]
   waves:
     exclude: [GND, "unconnected-*"]
     groups:
@@ -976,26 +1081,48 @@ prep:
          PWR_CMD1, PWR_CMD2, PWR_CMD3, PWR_CMD4,
          PWR_EN1, PWR_EN2, PWR_EN3, PWR_EN4]
       control_misc:
-        [CTRL_RESET_N, EXP_RESET_N, HUB_RESET_N, I2C_SCL, I2C_SDA,
+        [EXP_RESET_N, I2C_SCL, I2C_SDA,
          HUB_VBUS_SENSE, USB_UP_VBUS]
 
 route:
   import_source: build
   krt: ~/gits/KiCadRoutingTools
   kicad_python: /usr/bin/python3
+  # This existing board enters the progressive controls at the authenticated
+  # restart boundary. Candidate grading and semantic retry bounds enforce now;
+  # ownership runs in observe mode for this suffix so any legacy declaration
+  # gaps are recorded without invalidating already-reviewed copper.
+  ownership_preflight: {mode: enforce}
+  candidate_grade: {mode: enforce}
+  exploration_guard:
+    mode: enforce
+    plateau_attempts: 2
+    max_attempts: 5
+    max_novel_signatures: 3
+    max_operation_amplification: 8
+  ownership:
+    nets:
+      P5V_PROTECTED:
+        topology: wide_trunk
+        owner: prep.seed_stubs
+        why: >-
+          The reviewed source-owned 5 V distributor connects the eFuse,
+          per-port switches, controller rail, and local bulk capacitors; it is
+          intentionally absent from the stochastic route-wave sequence.
   forbid_new_via_in_pad: true
-  # The authenticated prefix retains the exact prepared base, all critical
-  # USB copper, the revised P4 detour, and the independently reconciled ten-net
-  # OCS/PRTPWR bank, plus the bounded pin-24/PLL 3V3 collector. It materializes
-  # after usb_upstream so later waves can route around the already-owned USB
-  # corridors. Earlier waves whose nets are already connected are authenticated
-  # by P-ROUTEBASE and skipped. Placement or deterministic-copper edits
-  # intentionally invalidate both hashes.
+  # The authenticated prefix retains the exact prepared base and the complete
+  # reviewed route through control_misc.  The formerly difficult reset, I2C,
+  # hub-strap and VBUS-sense nets are now deterministic source-owned copper;
+  # route-candidate grading independently passed route-base coverage, physical
+  # hard DRC, via-in-pad, and 8/8 required-net connectivity.  The quick
+  # pre-stitch check then reported zero routed-net opens and zero copper-rule
+  # findings, with all 86 required routed nets connected.  Placement or
+  # deterministic-copper edits invalidate both hashes.
   prefix:
     board: 03_src/route/critical_prefix.kicad_pcb
-    through_wave: usb_upstream
-    r0_sha256: 897479ffbee4fee7ce2240216bda1ff8947564a6bf848c9c36ca3148ab33e6f1
-    board_sha256: 4c001688273281e1eb487e237c7862615ff8b637708943456eb03ab54683257f
+    through_wave: control_misc
+    r0_sha256: 50964297628b20ac886e865c57a7ae467cc3eaeaf1a9dff1905985d36d336ba0
+    board_sha256: 9bd067dd18bb641682e9a1d6ca86856b5884a8ea2e7ad25a7db8828dbaebcdb4
   # Authenticate each partial route against physical DRC. Opens, dangling
   # preparation copper and library-context notices remain deferred until
   # stitch; shorts, clearances, widths, holes, edges and USB uncoupled-length
@@ -1221,12 +1348,23 @@ route:
       max_probe_iterations: 75000
       max_ripup: 20
     - name: control_misc
-      group: control_misc
+      # Keep this explicit at the authenticated restart boundary: the build's
+      # older nets_control_misc.txt intentionally still records CTRL_RESET_N,
+      # which is now owned by the named post-import tap below.
+      nets: [EXP_RESET_N, I2C_SCL, I2C_SDA]
       track_width: 0.18
       clearance: 0.15
       max_iterations: 700000
       max_probe_iterations: 75000
       max_ripup: 10
+taps:
+  # The previously declared reset/sense tap set is now complete source-owned
+  # copper in prep.seed_stubs.  Keep the stage explicit and empty so existing
+  # lifecycle ordering is unchanged while no generic tap can replace the
+  # reviewed routes.
+  clearance: 0.15
+  via: {size: 0.46, drill: 0.20, hole_to_copper: 0.255}
+  connections: []
 
 stitch:
   clearance: 0.30
@@ -1238,11 +1376,11 @@ stitch:
     tiers:
       - {size: 0.46, drill: 0.20, hole_to_copper: 0.255}
   keepin: {inset: 0.8}
-  passes: [dedupe_vias, drop_micro_fragments, drop_dangling,
+  passes: [dedupe_vias, drop_micro_fragments,
            split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
            astar_fallback, stitch_grid, fill, island_rescue, fill,
-           fresh_reload, unify_zone_priorities, heal_islands,
-           prune_stitch_dangling, gate]
+           fresh_reload, heal_islands,
+           prune_stitch_dangling, protect_via_family, gate]
   dedupe_vias: {radius: 0.5, metric: box}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
@@ -1277,7 +1415,32 @@ stitch:
     y: [24, 106, 8]
     avoid:
       - {x0: 20.0, y0: 88.0, x1: 86.0, y1: 110.0, margin: 0.8}
+      # These two grid intersections fall in final-fill voids and were proven
+      # by full KiCad DRC to attach on only one layer.  Exclude them before
+      # emission instead of generating and later guessing about ownership.
+      - {x0: 87.5, y0: 31.5, x1: 88.5, y1: 32.5, margin: 0.0}
+      - {x0: 143.5, y0: 31.5, x1: 144.5, y1: 32.5, margin: 0.0}
   island_rescue: {min_bbox: 0.8, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], require: all}
+  # Deliberately absent from `passes`: the input power collectors have higher
+  # priority outlines over the board-wide GND outline. KiCad resolves that
+  # ordinary cross-net pour pattern by priority and clearance during refill;
+  # `unify_zone_priorities` is only a same-net/same-priority auto-fixer and
+  # intentionally refuses this geometry. Final `kicad-cli ... --refill-zones`
+  # DRC remains authoritative for actual intersections and copper shorts.
   unify_zone_priorities: {min_bbox: 0.8}
   heal_islands: {min_bbox: 0.1, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], sample_step: 0.05, max_gap_candidates: 2000, clear_rescue_failures: true}
-  prune_stitch_dangling: {tol: 0.05, min_layers: 2}
+  # Cleanup owns only vias emitted by this stitch run.  Imported route vias
+  # are authenticated design intent; full DRC may reject them, but a geometric
+  # post-pass must never delete them.  This boundary matters for wide power
+  # tracks whose copper overlaps a nearby via even when centerlines do not.
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2, scope: emitted}
+  # Gerber cannot communicate KiCad's per-item fill/cap flags.  The complete
+  # 0.20 mm drill family is therefore one fabricator-selectable Type-VII
+  # process family.  This includes every realized via-in-pad site and every
+  # signal transition; the drill-disjoint 0.35 mm power-via family remains
+  # ordinary.  The former 0.15 mm signal family exceeded the 10:1 aspect-ratio
+  # ceiling at nominal 1.6 mm thickness and is forbidden by source policy.
+  protect_via_family:
+    via: {size: 0.46, drill: 0.20}
+    via_protection: {capping: yes, filling: yes}
+    min: 1

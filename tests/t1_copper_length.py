@@ -902,6 +902,22 @@ def t_oct_no_pad_pair_unreached():
     not_contains(r.out, "PASS R-LEN", "and it is never a pass")
 
 
+@test("explicit octilinear endpoints make a reviewed three-pad protected net gradeable")
+def t_oct_explicit_endpoints():
+    sys.path.insert(0, str(SCRIPTS))
+    import importlib
+    cla = importlib.import_module("copper_length_audit")
+    pads = {
+        "USB_P": [("J1", "3", 0.0, 0.0),
+                  ("U_ESD", "1", 2.0, 0.0),
+                  ("U_HUB", "4", 5.0, 0.0)]
+    }
+    floor, why = cla.member_pad_floor(
+        ["USB_P"], pads, ["J1.3", "U_HUB.4"])
+    eq(why, [], "both exact endpoint identities resolve once")
+    eq(round(floor, 6), 5.0, "the physical chain terminals own the floor")
+
+
 @test("saved-board fence_pitch fails an over-bound realized aperture and "
       "passes a closed one", kind="known_bad")
 def t_fence_pitch_red_and_green():
@@ -937,6 +953,26 @@ def t_schema_and_gate_contract():
     contains(r.out, "G-CONTRACT OK",
              "the gate-on-gates accepts the new checker: it names its input, "
              "prints an N/M denominator, and has a must_fail fixture here")
+
+
+@test("--json emits exactly one machine-parseable document")
+def t_json_is_pure_json():
+    d = scratch(pair_decl(),
+                segs=[straight("ARM1_A", 0, 5),
+                      straight("ARM1_B", 1, 5),
+                      straight("ARM2_A", 2, 5),
+                      straight("ARM2_B", 3, 5)])
+    r = must_pass(run([KPY, LEN, d, "--strict", "--json"]),
+                  "pure JSON R-LEN output")
+    doc = json.loads(r.out)
+    eq(doc["n_group"], 1, "one declared group is serialized")
+    eq(doc["n_measured"], 2, "both member chains are serialized")
+    eq(doc["fails"], [], "the JSON carries the verdict data")
+    out = d / "length.json"
+    r2 = must_pass(run([KPY, LEN, d, "--strict", "--json-output", out]),
+                   "direct JSON evidence output")
+    eq(json.loads(out.read_text())["n_measured"], 2,
+       "the direct evidence file is parseable and complete")
 
 
 # ========================================= the declaration, WHERE IT ENTERS

@@ -1,0 +1,20 @@
+{
+  "blocker": "Obtain explicit human approval of the exact v0.1.2 connector-facing orientation subject, then retain the approval in verification before sealing.",
+  "checkpoint": {
+    "path": "04_kicad/usb_controlled_debug_hub.kicad_pcb",
+    "sha256": "c5cd719571e216224c83aca142ac84e1f11facdfb48b1bcb771c9d5b97c06e68",
+    "size": 2950600
+  },
+  "next_command": "python3 skills/jlcpcb-fab/scripts/release_freshness_check.py projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17 --claim design",
+  "phase": "release_staging_human_approval",
+  "project": "usb-controlled-debug-hub-v1",
+  "receipts": [
+    {
+      "path": "06_build/release_staging/v0.1.2-2026-08-17/verification/orientation/orientation_receipt.json",
+      "sha256": "8a057d61d5e9f209b5c2ee168536ed63a41f02743986e4b2469d132e594a8b86",
+      "size": 4744
+    }
+  ],
+  "schema": 1,
+  "state_id": "794738eddf17eb074eddeef58437739156a75ce3c07d3f39c391a4687982af45"
+}

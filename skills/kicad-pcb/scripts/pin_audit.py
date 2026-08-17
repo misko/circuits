@@ -118,6 +118,46 @@ def datasheet_path(part_dir, declared):
         f"found {len(pdfs)} PDF(s)")
 
 
+def part_authority(parts_dir, exact_mpn):
+    """Return ``(part_dir, parsed_part_yaml)`` for one exact BOM MPN.
+
+    An exact orderable MPN can contain characters that cannot safely be used
+    as one directory component (for example ``MCP2221A-I/SL``), so directory
+    spelling is not identity.  Resolve through the dossier's authoritative
+    ``mpn:`` field, never through punctuation stripping or another fuzzy
+    normalization.  The directory name remains the compatibility fallback
+    only for older dossiers that omit ``mpn:``.
+
+    Duplicate exact identities are an ambiguity and therefore a hard
+    P-AUTH failure.  This deliberately scans the small dossier tree instead
+    of guessing which filesystem-safe spelling an author intended.
+    """
+    parts_dir = Path(parts_dir)
+    if yaml is None:
+        raise RuntimeError("P-AUTH: PyYAML is required to resolve exact MPN dossiers")
+    matches = []
+    for ypath in sorted(parts_dir.glob("*/part.yaml")):
+        try:
+            data = yaml.safe_load(ypath.read_text(encoding="utf-8-sig")) or {}
+        except Exception as exc:  # noqa: BLE001 - surface the exact bad authority
+            raise RuntimeError(f"P-AUTH {ypath}: cannot parse part.yaml: {exc}") from exc
+        if not isinstance(data, dict):
+            raise RuntimeError(f"P-AUTH {ypath}: part.yaml must contain a mapping")
+        declared_mpn = str(data.get("mpn") or ypath.parent.name).strip()
+        if declared_mpn == exact_mpn:
+            matches.append((ypath.parent, data))
+    if not matches:
+        raise RuntimeError(
+            f"P-AUTH {parts_dir}: exact BOM MPN {exact_mpn!r} resolves to no "
+            "part.yaml `mpn:` identity")
+    if len(matches) != 1:
+        paths = ", ".join(str(part_dir / "part.yaml") for part_dir, _ in matches)
+        raise RuntimeError(
+            f"P-AUTH {parts_dir}: exact BOM MPN {exact_mpn!r} is ambiguous "
+            f"across {len(matches)} dossiers: {paths}")
+    return matches[0]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("board")
@@ -152,13 +192,12 @@ def main():
             p["side"] = side_of(p, numbered)
         mpn = ref_mpn.get(ref, "")
         ymap, aliases, ds, verified = {}, {}, "(none)", ""
-        ypath = parts / mpn / "part.yaml"
-        if mpn and ypath.exists() and yaml:
-            y = yaml.safe_load(open(ypath))
+        if mpn:
+            part_dir, y = part_authority(parts, mpn)
             ymap = {str(k): v for k, v in (y.get("pins") or {}).items()}
             aliases = {str(k): v for k, v in (y.get("pin_aliases") or {}).items()}
             d = y.get("datasheet") or {}
-            ds = datasheet_path(parts / mpn, d)
+            ds = datasheet_path(part_dir, d)
             verified = y.get("verified", "")
         physical_map = dict(ymap)
         semantic_seen = set()
