@@ -367,6 +367,45 @@ def t_via_z_from_declared_stackup():
              "the via barrel is 1.1896 mm of real copper and it closes the gap")
 
 
+@test("a plated THT pad used as a layer transition is priced like a via barrel")
+def t_plated_pad_barrel_from_declared_stackup():
+    """One member crosses F.Cu->B.Cu through a connector pad; the other uses
+    an explicit via over the same declared stackup.  Both planar paths are
+    10.0001 mm, so counting only the via would manufacture 1.4 mm of skew."""
+    decl = pair_decl(tol=0.01, no_vias=False,
+                     stackup="[0.2, 1.0, 0.2]",
+                     extra="    router_moves: any")
+    d = scratch(
+        decl,
+        segs=[("ARM1_A", (0, 0), (5, 0), "F.Cu"),
+              ("ARM1_A", (5, 0), (10, 0), "B.Cu"),
+              straight("ARM1_B", 2, 0.0001),
+              ("ARM2_A", (0, 1), (5, 1), "F.Cu"),
+              ("ARM2_A", (5, 1), (10, 1), "B.Cu"),
+              straight("ARM2_B", 3, 0.0001)],
+        vias=[("ARM2_A", (5, 1), "F.Cu", "B.Cu")])
+    board = next((d / "04_kicad").glob("*.kicad_pcb"))
+    text = board.read_text()
+    tht = """\
+\t(footprint "t1:tht"
+\t\t(layer "F.Cu")
+\t\t(at 0 0)
+\t\t(property "Reference" "J1" (at 0 0 0))
+\t\t(pad "1" thru_hole circle
+\t\t\t(at 5 0)
+\t\t\t(size 1.5 1.5)
+\t\t\t(drill 0.8)
+\t\t\t(layers "*.Cu" "*.Mask")
+\t\t\t(net 1 "ARM1_A")
+\t\t)
+\t)
+"""
+    board.write_text(text.rsplit("\n)", 1)[0] + "\n" + tht + ")\n")
+    r = must_pass(run([KPY, LEN, d, "--strict"]), "plated pad barrel")
+    contains(r.out, "spread=0.0000 mm", "pad and via barrels are symmetric")
+    contains(r.out, "pad-barrels 1", "the explicit plated transition is named")
+
+
 @test("the pcbnew-free reader AGREES WITH PCBNEW on four real routed boards "
       "(canon M1: the checker may not share a method with the checked)")
 def t_reader_agrees_with_pcbnew():

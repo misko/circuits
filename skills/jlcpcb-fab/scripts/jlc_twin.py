@@ -306,6 +306,61 @@ def fetch(lcsc, cachedir, attempts=None, progress=None, deadline=None):
     return None, msg, kind
 
 
+def rebase_cached_model_paths(footprint, footprint_path):
+    """Bind a cached EasyEDA footprint to the model files beside this cache.
+
+    easyeda2kicad writes absolute model filenames into ``.kicad_mod``. A
+    higher-level atomic producer may copy a populated cache into a temporary
+    sibling and then promote it. The land remains valid, but its embedded
+    filename still names the vanished staging tree. Resolve the model from the
+    current per-code cache and preserve every registration field.
+    """
+    code_dir = Path(footprint_path).resolve().parent.parent
+    models = list(footprint.Models())
+    footprint.Models().clear()
+    for old in models:
+        model = pcbnew.FP_3DMODEL()
+        raw = Path(os.path.expanduser(str(old.m_Filename)))
+        local = code_dir / "jlc.3dshapes" / raw.name
+        model.m_Filename = str(local.resolve()) if local.is_file() else str(raw)
+        model.m_Scale = old.m_Scale
+        model.m_Offset = old.m_Offset
+        model.m_Rotation = old.m_Rotation
+        footprint.Models().push_back(model)
+
+
+def portable_twin_model_path(filename, outdir):
+    """Return a twin-board model path that survives atomic parent renames."""
+    path = Path(os.path.expanduser(str(filename))).resolve()
+    try:
+        rel = path.relative_to(Path(outdir).resolve())
+    except ValueError:
+        return str(filename)
+    return "${KIPRJMOD}/" + rel.as_posix()
+
+
+def select_render_model_path(filename, extension=None):
+    """Select an explicitly evidenced sibling representation for rendering.
+
+    EasyEDA commonly emits both WRL and STEP from the same catalog solid, but
+    the generated WRL can have a different signed-Z convention.  A per-part
+    adjudication may therefore request the sibling STEP.  Refuse a missing
+    representation instead of silently falling back to the defective one.
+    """
+    path = Path(os.path.expanduser(str(filename))).resolve()
+    if extension is None:
+        return path
+    ext = str(extension).strip().lower()
+    if not ext.startswith("."):
+        ext = "." + ext
+    if ext not in (".step", ".stp", ".wrl"):
+        raise ValueError(f"unsupported render_model_extension {extension!r}")
+    selected = path.with_suffix(ext)
+    if not selected.is_file() or selected.stat().st_size <= 0:
+        raise ValueError(f"requested render model does not exist: {selected}")
+    return selected
+
+
 def canonical_pad_number(value):
     """Normalize formatting-only decimal zeros, preserve alphanumeric pins.
 
@@ -319,13 +374,37 @@ def canonical_pad_number(value):
     return str(int(value)) if value.isdigit() else value
 
 
-def pads_of(fp):
+def board_to_footprint_local(fp, x, y):
+    """Board-coordinate point -> the footprint library's unflipped frame.
+
+    A B.Cu footprint is mirrored by KiCad after the library geometry is
+    authored.  Comparing its realised board coordinates directly with JLC's
+    top-side library footprint therefore manufactures a MIRRORED result for
+    every asymmetric bottom-side package.  Undo both board rotation and the
+    side flip so land-pattern identity is always compared library-to-library.
+    """
+    pos = fp.GetPosition()
+    lx, ly = board_to_local(x - pos.x / 1e6, y - pos.y / 1e6,
+                            fp.GetOrientationDegrees())
+    return (lx, -ly if fp.IsFlipped() else ly)
+
+
+def footprint_local_to_board(fp, x, y):
+    """Inverse of board_to_footprint_local(), returning a board-frame delta."""
+    if fp.IsFlipped():
+        y = -y
+    return local_to_board(x, y, fp.GetOrientationDegrees())
+
+
+def pads_of(fp, footprint_local=False):
     d = {}
     for p in fp.Pads():
         n = canonical_pad_number(p.GetNumber())
         if n:
-            d.setdefault(n, []).append((p.GetPosition().x / 1e6,
-                                        p.GetPosition().y / 1e6))
+            x, y = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+            if footprint_local:
+                x, y = board_to_footprint_local(fp, x, y)
+            d.setdefault(n, []).append((x, y))
     return d
 
 
@@ -601,7 +680,7 @@ def reg_check(model_bbox, jm, ang, jc, oc, fp):
             lxy = xform({"p": [(jx - jc[0], jy - jc[1])]}, ang, False)["p"][0]
             lx, ly = lxy[0] + oc[0], lxy[1] + oc[1]
             # 3. our local -> board (the footprint's own rotation)
-            bx, by = local_to_board(lx, ly, rot)
+            bx, by = footprint_local_to_board(fp, lx, ly)
             corners.append((bx + fpos.x / 1e6, by + fpos.y / 1e6))
     mnx = min(c[0] for c in corners); mxx = max(c[0] for c in corners)
     mny = min(c[1] for c in corners); mxy = max(c[1] for c in corners)
@@ -819,7 +898,7 @@ def install_declared_twin_bodies(board, bodies, assembly_path, board_path):
     return rows
 
 
-def marker_side(fp, pads, layers=None):
+def marker_side(fp, pads, layers=None, footprint_local=False):
     """Which pad does this footprint's POLARITY MARKING sit nearest?
 
     Numbering-free channel for a 2-pad polarized part. Both libraries draw an
@@ -852,6 +931,8 @@ def marker_side(fp, pads, layers=None):
             continue
         for pt in (g.GetStart(), g.GetEnd()):
             px, py = pt.x / 1e6, pt.y / 1e6
+            if footprint_local:
+                px, py = board_to_footprint_local(fp, px, py)
             proj.append((px - mid[0]) * ux + (py - mid[1]) * uy)
     if not proj:
         return None
@@ -912,6 +993,10 @@ def main():
 
     model_rot_override = {a["lcsc"]: float(a["model_rot_z"])
                           for a in adjudicated if a.get("model_rot_z") is not None}
+    model_extension_override = {
+        a["lcsc"]: str(a["render_model_extension"])
+        for a in adjudicated if a.get("render_model_extension") is not None
+    }
     model_xy_override = {a["lcsc"]: (float(a.get("model_dx", 0)),
                                      float(a.get("model_dy", 0)))
                          for a in adjudicated
@@ -1091,24 +1176,25 @@ def main():
             continue
         jfp = pcbnew.FootprintLoad(str(Path(fp_path).parent),
                                    Path(fp_path).stem)
+        rebase_cached_model_paths(jfp, fp_path)
         self_checked = False
         for ref in [d.strip() for d in r["Designator"].split(",")]:
             fp = by_ref.get(ref)
             if fp is None:
                 findings.append((lcsc, ref, "NOT-ON-BOARD", ""))
                 continue
-            # compare in the footprint's own frame (undo board rotation)
-            rot = fp.GetOrientationDegrees()
-            fp.SetOrientationDegrees(0)
-            opads_raw = pads_of(fp)
+            # Compare library frame to library frame.  This explicitly undoes
+            # both board rotation and a B.Cu side flip; otherwise every
+            # asymmetric bottom-side package is falsely diagnosed MIRRORED.
+            opads_raw = pads_of(fp, footprint_local=True)
             # Cache the numbering-free marking in the SAME footprint-local
             # frame as opads_raw.  Restoring the board rotation before calling
             # marker_side mixed global graphics with zero-rotation pad
             # coordinates, so every 180-degree instance of an otherwise
             # identical polarized footprint could report the opposite end
             # (programmable-usb2-hub D2 PASS / D3 FAIL on the same C2128).
-            ours_mark_local = marker_side(fp, opads_raw)
-            fp.SetOrientationDegrees(rot)
+            ours_mark_local = marker_side(
+                fp, opads_raw, footprint_local=True)
             # center BOTH sets on the COMMON numbered pads only: centering
             # each on its own full set biases the fit/mount whenever one side
             # names extra pads (XT60 pegs, FET drain fingers) - the XT60 model
@@ -1160,8 +1246,7 @@ def main():
             # FOOTPRINT-LOCAL centroid: model offsets are relative to the
             # footprint origin, not the board (absolute coords put every
             # model ~60mm off its part - found 2026-07-16)
-            oc = (_oca[0] - fp.GetPosition().x / 1e6,
-                  _oca[1] - fp.GetPosition().y / 1e6)
+            oc = _oca
             if not self_checked:
                 self_checked = True
                 sc = model_self_check(jfp, _jca)
@@ -1208,8 +1293,7 @@ def main():
                                          f"ours={len(op)}, JLC={len(jp)}"))
                         criticals.append(ref)
                         continue
-                    anchor_oc = (op[0][0] - fp.GetPosition().x / 1e6,
-                                 op[0][1] - fp.GetPosition().y / 1e6)
+                    anchor_oc = op[0]
                     anchor_jc = jp[0]
                     anchor_ang = anchor["angle"]
                     twin[ref] = (jfp, anchor_ang, anchor_oc, anchor_jc, lcsc)
@@ -1369,10 +1453,12 @@ def main():
             dx, dy = model_xy_override.get(lcsc, (0.0, 0.0))
             if fp and lcsc in board_xy_override:
                 bdx, bdy = board_xy_override[lcsc]
-                cdx, cdy = board_to_local(bdx, bdy, fp.GetOrientationDegrees())
+                cdx, cdy = board_to_footprint_local(
+                    fp, bdx + fp.GetPosition().x / 1e6,
+                    bdy + fp.GetPosition().y / 1e6)
                 dx, dy = dx + cdx, dy + cdy
             if fp and (dx or dy):
-                ebx, eby = local_to_board(dx, dy, fp.GetOrientationDegrees())
+                ebx, eby = footprint_local_to_board(fp, dx, dy)
                 print(f"NUDGE {ref} ({lcsc}): local({dx:+.2f},{dy:+.2f})mm "
                       f"-> board({ebx:+.2f},{eby:+.2f})mm east+/south+ "
                       f"[rot {fp.GetOrientationDegrees():.0f}]")
@@ -1460,7 +1546,12 @@ def main():
             fp.Models().clear()
             for jm in jmodels:
                 m = pcbnew.FP_3DMODEL()
-                m.m_Filename = jm.m_Filename
+                # The twin is a relocatable evidence bundle. Do not persist
+                # the absolute cache/staging directory emitted by
+                # easyeda2kicad; KIPRJMOD is the directory of twin.kicad_pcb.
+                selected_model = select_render_model_path(
+                    jm.m_Filename, model_extension_override.get(lcsc))
+                m.m_Filename = portable_twin_model_path(selected_model, out)
                 m.m_Scale = jm.m_Scale
                 m.m_Rotation = jm.m_Rotation
                 # frames: our footprint = JLC footprint rotated by `ang` (the
@@ -1517,7 +1608,8 @@ def main():
                                if d.strip() in by_ref} | set(local_bodies))
             src_desc = (f"{len(cpl_refs)} checked/manual refs (no --cpl given; pass "
                         f"fab/cpl.csv for the population denominator)")
-        mounted, missing = no_body_pass(tb, cpl_refs, args.board)
+        mounted, missing = no_body_pass(
+            tb, cpl_refs, out / "twin.kicad_pcb")
         bodies_line = f"bodies mounted: {len(mounted)}/{len(cpl_refs)}"
         mounted_set = set(mounted)
         cpl_bodies_line = (f"CPL bodies mounted: "

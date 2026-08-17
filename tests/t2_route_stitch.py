@@ -67,11 +67,14 @@ def scratch(mutate=None, with_board=True):
     return d, p
 
 
-def stub_krt(d, exit_code=0, write_output=True):
+def stub_krt(d, exit_code=0, write_output=True, json_summary=None):
     """A fake KRT that records argv and copies input->output. Hermetic
     stand-in for the real router; also the failure-injection seam."""
     k = d / "krt"
     k.mkdir(exist_ok=True)
+    summary_stmt = ("print('JSON_SUMMARY: ' + "
+                    f"{json.dumps(json.dumps(json_summary))})\n"
+                    if json_summary is not None else "")
     body = (
         "import sys, shutil, json, pathlib\n"
         "a = sys.argv[1:]\n"
@@ -80,7 +83,8 @@ def stub_krt(d, exit_code=0, write_output=True):
         f"if {write_output}:\n"
         "    o = a[a.index('--output') + 1]\n"
         "    shutil.copy(a[0], o)\n"
-        f"sys.exit({exit_code})\n")
+        + summary_stmt
+        + f"sys.exit({exit_code})\n")
     (k / "route.py").write_text(body)
     (k / "route_diff.py").write_text(body)
     return k
@@ -153,6 +157,7 @@ def t_prep_deterministic_bytes():
             "clearance": 0.15,
             "via": {"size": 0.6, "drill": 0.3},
             "stubs": [{"net": "E_PLUS", "pin": "U1.3",
+                       "via": {"size": 0.42, "drill": 0.18},
                        "vias": [[35.525, 40.095]]}],
         }
         cfg.setdefault("prep", {})["pad_rescue"] = True
@@ -217,6 +222,7 @@ def t_prep_seed_stubs():
             "clearance": 0.15,
             "via": {"size": 0.6, "drill": 0.3},
             "stubs": [{"net": "E_PLUS", "pin": "U1.3",
+                       "via": {"size": 0.42, "drill": 0.18},
                        "vias": [[35.525, 40.095]]}],
         }
     d, p = scratch(mutate)
@@ -226,11 +232,13 @@ def t_prep_seed_stubs():
     r0 = d / "06_build" / "route" / "r0.kicad_pcb"
     code = ("import pcbnew,sys\n"
             "b=pcbnew.LoadBoard(sys.argv[1]); n=b.FindNet('E_PLUS').GetNetCode()\n"
-            "print('@@'+str(sum(1 for t in b.GetTracks() "
-            "if t.GetClass()=='PCB_VIA' and t.GetNetCode()==n)))\n")
+            "v=[t for t in b.GetTracks() if t.GetClass()=='PCB_VIA' "
+            "and t.GetNetCode()==n]\n"
+            "print('@@'+repr((len(v),round(pcbnew.ToMM(v[0].GetWidth("
+            "pcbnew.F_Cu)),3),round(pcbnew.ToMM(v[0].GetDrillValue()),3))))\n")
     got = must_pass(run([KPY, "-c", code, r0]), "inspect preseeded r0")
-    eq(int(got.out.split("@@", 1)[1].strip()), 1,
-       "the deterministic via did not ride into r0")
+    eq(eval(got.out.split("@@", 1)[1].strip()), (1, 0.42, 0.18),
+       "the per-bank deterministic via geometry did not ride into r0")
 
 
 @test("prep.pad_rescue places collision-checked plane drops before KRT")
@@ -297,6 +305,51 @@ def t_krt_diff_engine():
     check("--diff-pair-gap" not in calls[1],
           "diff-only option leaked into route.py")
     contains(r.out, "wave an (diff)", "diff engine report")
+
+
+@test("a differential wave cannot authenticate or promote skipped fanouts",
+      kind="known_bad")
+def t_kb_diff_skipped_fanout_is_hard_failure():
+    def mutate(cfg, d):
+        use_stub(cfg, d, json_summary={
+            "successful": 0, "failed": 0,
+            "skipped_bad_fanout": ["AN_P/AN_N"],
+        })
+        cfg["route"]["waves"][0]["engine"] = "diff"
+        cfg["route"]["waves"][0]["diff_pair_gap"] = 0.17
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    final = d / "06_build" / "route" / "FINAL"
+    final.write_text("stale-success.kicad_pcb\n")
+    must_fail(run([sys.executable, RS, "route", p]),
+              "diff wave that skipped its targets", "skipped 1 requested")
+    check(not final.exists(), "a skipped diff wave retained stale FINAL")
+    progress = json.loads(
+        (d / "06_build" / "route" / "route_progress.json").read_text())
+    eq(progress["waves"], [],
+       "a skipped diff wave became an authenticated prefix")
+
+
+@test("a differential wave cannot authenticate single-ended deferrals",
+      kind="known_bad")
+def t_kb_diff_single_ended_deferral_is_hard_failure():
+    def mutate(cfg, d):
+        use_stub(cfg, d, json_summary={
+            "successful": 0, "failed": 0,
+            "skipped_bad_fanout": [],
+            "single_ended_diff_pairs": ["AN"],
+            "failed_diff_pairs": [],
+        })
+        cfg["route"]["waves"][0]["engine"] = "diff"
+        cfg["route"]["waves"][0]["diff_pair_gap"] = 0.17
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_fail(run([sys.executable, RS, "route", p]),
+              "diff wave that deferred its targets", "did not coupled-route")
+    progress = json.loads(
+        (d / "06_build" / "route" / "route_progress.json").read_text())
+    eq(progress["waves"], [],
+       "a deferred diff wave became an authenticated prefix")
 
 
 @test("KRT waves are CHAINED: each wave routes the previous wave's output")
@@ -712,6 +765,30 @@ def t_kb_krt_lies():
               "route with a silent KRT", "produced no")
 
 
+@test("a single-ended KRT wave cannot authenticate unresolved nets",
+      kind="known_bad")
+def t_kb_krt_zero_with_unresolved_net():
+    """route.py can exit zero after writing a partial candidate. Physical
+    wave DRC intentionally defers opens, so its machine summary must block
+    promotion when a requested net remains unresolved."""
+    def mutate(cfg, d):
+        use_stub(cfg, d, json_summary={
+            "routed_single": [],
+            "failed_single": ["E_PLUS"],
+            "failed_multipoint": [],
+            "successful": 0,
+            "failed": 1,
+        })
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_fail(run([sys.executable, RS, "route", p]),
+              "zero-exit partial KRT wave", "left requested net(s) unresolved")
+    progress = json.loads(
+        (d / "06_build" / "route" / "route_progress.json").read_text())
+    eq(progress["waves"], [],
+       "an incomplete single-ended wave became an authenticated prefix")
+
+
 @test("every KRT wave carries .kicad_pro and .kicad_dru rule sidecars")
 def t_krt_rule_sidecars_survive_each_wave():
     """KiCad loads custom rules by the board basename.  KRT historically
@@ -906,6 +983,27 @@ def t_krt_fab_overrides():
            "the fab_overrides value did not reach KRT")
 
 
+@test("a hole_to_hole_clearance route option reaches KRT on every wave")
+def t_krt_hole_to_hole_clearance():
+    """A board may deliberately carry a drill-spacing margin above its fab
+    tier.  If the wrapper cannot pass that floor into search, KRT can emit a
+    route that is manufacturable at the tier yet fails the board's authored
+    DRC after the expensive wave completes."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["common"]["hole_to_hole_clearance"] = 0.5
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    calls = krt_calls(d / "krt")
+    check(len(calls) >= 1, "no KRT waves were invoked")
+    for c in calls:
+        check("--hole-to-hole-clearance" in c,
+              f"wave missing --hole-to-hole-clearance: {c}")
+        eq(c[c.index("--hole-to-hole-clearance") + 1], "0.5",
+           "the hole-to-hole floor did not reach KRT")
+
+
 @test("a length_match_group in route.yaml REACHES route.py's argv as a "
       "repeatable --length-match-group, and its tolerance/amplitude with it")
 def t_krt_length_match_reaches_argv():
@@ -948,6 +1046,41 @@ def t_krt_length_match_reaches_argv():
         eq(c[c.index("--meander-amplitude") + 1], "0.8",
            "the meander amplitude did not reach KRT")
         eq(c.count("--length-match-group"), 1, "exactly one group")
+
+
+@test("a diff_pair_intra_match wave option reaches route_diff.py, and cannot "
+      "leak into a single-ended wave")
+def t_krt_diff_pair_intra_match_reaches_argv():
+    """A P/N ``length_match_group`` is not the same mechanism as KRT's
+    intra-pair matcher.  The former groups routed results; the latter measures
+    and compensates the two individual conductors generated from one coupled
+    centerline.  On usb-controlled-debug-hub-v1, omitting this flag produced a
+    route accepted by KRT while the independent realized-copper audit measured
+    1.4837 mm end-to-end P/N spread on port 4 against a 1.0 mm ceiling.
+
+    Pin the actual argv because a YAML key that never reaches route_diff.py is
+    indistinguishable from a design that deliberately disabled matching.
+    """
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["waves"][0]["engine"] = "diff"
+        cfg["route"]["waves"][0]["diff_pair_intra_match"] = True
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    calls = krt_calls(d / "krt")
+    check("--diff-pair-intra-match" in calls[0],
+          "diff_pair_intra_match did not reach route_diff.py")
+
+    def bad(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["waves"][0]["engine"] = "single"
+        cfg["route"]["waves"][0]["diff_pair_intra_match"] = True
+    d2, p2 = scratch(bad)
+    must_pass(prep(p2), "prep")
+    must_fail(run([sys.executable, RS, "route", p2]),
+              "diff-only option on a single-ended wave",
+              "unknown KRT option 'diff_pair_intra_match'")
 
 
 @test("a LIST OF LISTS becomes one --length-match-group per group (the flag is "
@@ -1601,6 +1734,37 @@ def t_route_resume_authenticated():
        "resume should rerun only the missing suffix")
 
 
+@test("route --through-wave creates an authenticated pause without promoting "
+      "a partial chain")
+def t_route_through_wave_pause_and_resume():
+    import yaml
+
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["race"] = 1
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    waves = yaml.safe_load(p.read_text())["route"]["waves"]
+    check(len(waves) >= 2, "fixture needs multiple waves")
+    first = waves[0].get("name", "w1")
+    r = must_pass(run([sys.executable, RS, "route", p,
+                       "--through-wave", first]), "bounded first wave")
+    contains(r.out, "route pause: 1/", "explicit bounded-pause receipt")
+    check(not (d / "06_build" / "route" / "FINAL").exists(),
+          "a partial route chain must not be promotable")
+    progress = json.loads(
+        (d / "06_build" / "route" / "route_progress.json").read_text())
+    eq([row["name"] for row in progress["waves"]], [first],
+       "the pause must authenticate exactly the requested prefix")
+    before = len(krt_calls(d / "krt"))
+    must_pass(run([sys.executable, RS, "route", p, "--resume"]),
+              "resume bounded prefix")
+    eq(len(krt_calls(d / "krt")), before + len(waves) - 1,
+       "resume should run only the uncompleted suffix")
+    check((d / "06_build" / "route" / "FINAL").is_file(),
+          "the completed resumed chain must become promotable")
+
+
 @test("route --resume rejects a mutated intermediate instead of trusting rN",
       kind="known_bad")
 def t_route_resume_rejects_mutation():
@@ -1614,6 +1778,79 @@ def t_route_resume_rejects_mutation():
     r1.write_bytes(r1.read_bytes() + b"\n# planted post-route mutation\n")
     must_fail(run([sys.executable, RS, "route", p, "--resume"]),
               "resume over mutated wave", "missing or changed")
+
+
+@test("route.prefix authenticates a reviewed checkpoint and runs only its "
+      "unfinished suffix")
+def t_route_reviewed_prefix():
+    import hashlib
+    import yaml
+
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["race"] = 1
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep reviewed-prefix fixture")
+    must_pass(run([sys.executable, RS, "route", p]),
+              "make reviewed-prefix fixture")
+    cfg = yaml.safe_load(p.read_text())
+    waves = cfg["route"]["waves"]
+    check(len(waves) >= 2, "fixture needs a prefix and a suffix")
+    candidate = d / "03_src" / "reviewed_prefix.kicad_pcb"
+    shutil.copy(d / "06_build" / "route" / "r1.kicad_pcb", candidate)
+    r0 = d / "06_build" / "route" / "r0.kicad_pcb"
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    cfg["route"]["prefix"] = {
+        "board": "03_src/reviewed_prefix.kicad_pcb",
+        "through_wave": waves[0].get("name", "w1"),
+        "r0_sha256": digest(r0),
+        "board_sha256": digest(candidate),
+    }
+    p.write_text(yaml.safe_dump(cfg))
+    before = len(krt_calls(d / "krt"))
+    got = must_pass(run([sys.executable, RS, "route", p]),
+                    "consume reviewed prefix")
+    contains(got.out, "route prefix: authenticated through wave 1",
+             "prefix authentication receipt")
+    eq(len(krt_calls(d / "krt")), before + len(waves) - 1,
+       "reviewed prefix should skip exactly its authenticated waves")
+    progress = json.loads(
+        (d / "06_build" / "route" / "route_progress.json").read_text())
+    eq(progress["prefix"]["through_index"], 1,
+       "progress omitted prefix provenance")
+    eq(progress["waves"][0]["index"], 2,
+       "suffix progress did not begin after the prefix")
+
+
+@test("route.prefix rejects changed reviewed copper before running KRT",
+      kind="known_bad")
+def t_kb_route_prefix_hash_drift():
+    import hashlib
+    import yaml
+
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["race"] = 1
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep stale-prefix fixture")
+    candidate = d / "03_src" / "reviewed_prefix.kicad_pcb"
+    shutil.copy(d / "06_build" / "route" / "r0.kicad_pcb", candidate)
+    cfg = yaml.safe_load(p.read_text())
+    r0 = d / "06_build" / "route" / "r0.kicad_pcb"
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    cfg["route"]["prefix"] = {
+        "board": "03_src/reviewed_prefix.kicad_pcb",
+        "through_wave": cfg["route"]["waves"][0].get("name", "w1"),
+        "r0_sha256": digest(r0),
+        "board_sha256": digest(candidate),
+    }
+    p.write_text(yaml.safe_dump(cfg))
+    candidate.write_bytes(candidate.read_bytes() + b"\n# changed after review\n")
+    before = len(krt_calls(d / "krt"))
+    must_fail(run([sys.executable, RS, "route", p]),
+              "changed reviewed prefix", "board hash mismatch")
+    eq(len(krt_calls(d / "krt")), before,
+       "KRT ran before the stale reviewed-prefix refusal")
 
 
 # ============================================= QUICK (loop cheapener) ====

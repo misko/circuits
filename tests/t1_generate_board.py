@@ -124,10 +124,20 @@ def t_explicit_placement_sides():
              "explicit bottom-side count")
     code = ("import pcbnew,sys\n"
             "b=pcbnew.LoadBoard(sys.argv[1])\n"
-            "print('@@',b.FindFootprintByReference('U1').IsFlipped(),"
-            "b.FindFootprintByReference('J1').IsFlipped())\n")
+            "u=b.FindFootprintByReference('U1'); "
+            "j=b.FindFootprintByReference('J1')\n"
+            "print('@@',u.IsFlipped(),j.IsFlipped(),"
+            "u.Reference().GetLayer()==pcbnew.B_SilkS,"
+            "u.Reference().IsMirrored(),"
+            "j.Reference().GetLayer()==pcbnew.F_SilkS,"
+            "not j.Reference().IsMirrored(),"
+            "any(t.GetClass()=='PCB_TEXT' and t.GetText()=='U1' and "
+            "t.GetLayer()==pcbnew.B_Fab and t.IsMirrored() "
+            "for t in b.GetDrawings()))\n")
     probe = must_pass(run([KPY, "-c", code, board]), "probe footprint sides")
-    contains(probe.out, "@@ True False", "one bottom and one default-top part")
+    contains(probe.out, "@@ True False True True True True True",
+             "bottom part keeps back-side silk/Fab text while default-top "
+             "text remains unmirrored on the front")
 
     bad_d, bad_cfg = scratch_config(
         lambda cfg: cfg["placement"].update({"sides": {"U1": "inner"}}),
@@ -323,6 +333,47 @@ def t_permissive_rule_area():
     eq(flags, "0,0,0,0", "a permissive rule area must forbid NOTHING")
 
 
+@test("a ref-bound package rule area follows realised copper pads")
+def t_ref_bound_rule_area():
+    """Package-local DRU scopes must move with the package.  A static rect
+    survived a USB-switch translation and silently left all ten pads outside
+    the intended clearance exception."""
+    def mutate(cfg):
+        cfg["keepouts"] = [{"name": "FOLLOW_J1", "deny": [],
+                            "layers": ["F.Cu"], "ref": "J1",
+                            "margin_mm": 0.4}]
+    d, p = scratch_config(mutate)
+    out = d / "b.kicad_pcb"
+    gen(p, out)
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "f=b.FindFootprintByReference('J1')\n"
+            "pbs=[p.GetBoundingBox() for p in f.Pads()]\n"
+            "z=[z for z in b.Zones() if z.GetZoneName()=='FOLLOW_J1'][0]\n"
+            "q=z.GetBoundingBox()\n"
+            "v=(min(x.GetLeft() for x in pbs)-q.GetLeft(),"
+            "min(x.GetTop() for x in pbs)-q.GetTop(),"
+            "q.GetRight()-max(x.GetRight() for x in pbs),"
+            "q.GetBottom()-max(x.GetBottom() for x in pbs))\n"
+            "print('@@'+','.join('%.3f'%pcbnew.ToMM(x) for x in v))\n")
+    r = must_pass(run([KPY, "-c", code, out]), "probe ref-bound rule area")
+    eq(r.out.split("@@")[1].strip(), "0.400,0.400,0.400,0.400",
+       "ref-bound rule area pad margins")
+
+
+@test("a ref-bound rule area with an unknown owner is a hard error",
+      kind="known_bad")
+def t_ref_bound_rule_area_unknown_ref():
+    def mutate(cfg):
+        cfg["keepouts"] = [{"name": "LOST", "deny": [],
+                            "layers": ["F.Cu"], "ref": "U_DOES_NOT_EXIST",
+                            "margin_mm": 0.4}]
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with a ref-bound area whose owner is absent",
+              "unknown ref 'U_DOES_NOT_EXIST'")
+
+
 @test("a rule area on a layer the stackup does not have is a hard error",
       kind="known_bad")
 def t_rule_area_layer_not_in_stackup():
@@ -425,6 +476,43 @@ def t_body_offset_assert():
     r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
     must_fail(r, "generator with a contradictory body_offset assert",
               "opening faces the wrong way")
+
+
+@test("an edge connector whose mouth faces away from its declared board edge "
+      "blocks the build", kind="known_bad")
+def t_edge_faces_assert():
+    """Board-edge intent must be explicit.  Contradictory x0/x1 claims prove
+    the realised footprint geometry is consumed without depending on the
+    fixture connector's particular authored rotation convention."""
+    def mutate(cfg):
+        cfg.setdefault("asserts", {})["edge_faces"] = [
+            {"ref": "J1", "edge": "x0"},
+            {"ref": "J1", "edge": "x1"},   # both cannot hold
+        ]
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with a connector facing away from its board edge",
+              "mating face points away from its declared board edge")
+
+
+@test("a functional pad bank facing away from its adjacent cell blocks the "
+      "build", kind="known_bad")
+def t_pad_bank_faces_assert():
+    """Proximity cannot distinguish a mux/ESD body whose signal bank faces
+    its neighbour from the same body rotated 180 degrees.  Two opposing bank
+    claims cannot both be true, so this fixture is independent of the exact
+    cook-loadcell placement while proving the realised-pad check bites."""
+    def mutate(cfg):
+        cfg.setdefault("asserts", {})["pad_bank_faces"] = [
+            {"ref": "J1", "pads": [1], "toward_ref": "U1",
+             "toward_pads": [1], "behind_pads": [2]},
+            {"ref": "J1", "pads": [2], "toward_ref": "U1",
+             "toward_pads": [1], "behind_pads": [1]},
+        ]
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with an outward-facing functional pad bank",
+              "functional pad bank faces the wrong cell")
 
 
 @test("an edge-launch clearing that lands ON the board blocks the build",

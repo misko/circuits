@@ -83,6 +83,7 @@ Read these files directly when their condition applies. References longer than
 | RF/impedance/phase/isolation applies | kicad-pcb | `../kicad-pcb/references/rf/rf-context.md` plus the applicable RF review protocol linked here: `../kicad-pcb/references/rf-schematic-review-protocol.md`, `../kicad-pcb/references/rf-pcb-review-protocol.md`, `../kicad-pcb/references/rf-fab-review-protocol.md` |
 | JLC BOM/CPL, stock, rotation, uploader review | jlcpcb-fab | `../jlcpcb-fab/references/assembly-and-order.md` |
 | JLC CAD twin, model transforms, bounding boxes/registration | jlcpcb-fab | `../jlcpcb-fab/references/digital-twin.md` |
+| Edge-mounted connector orientation, mating plane, directional 3D approval | jlcpcb-fab | `../jlcpcb-fab/references/connector-orientation.md` |
 | Exact JLC fabrication/assembly staging | jlcpcb-fab | `../jlcpcb-fab/references/release-staging.md` |
 
 For exact CLI flags, run the owning script with `--help`; do not load a long
@@ -177,6 +178,8 @@ schematic does not pass.
 Load only the applicable KiCad placement/routing references. Prove package
 escape, part/pin identity, native-polygon body/courtyard clearance, datasheet
 adjacency, corridor capacity, and critical-pair inventory before router spend.
+After native-model registration, close `P-ORIENT` for edge-mounted connectors
+with machine geometry plus exact, hash-bound human directional views.
 
 For high-speed digital or RF, activate the conditional signal-integrity
 adapter and its source/realized/fab reviews. Bind physical P/N chains,

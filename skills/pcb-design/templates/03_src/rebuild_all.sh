@@ -357,6 +357,11 @@ run_stage route_prep   $PY "$S/route_and_stitch_generic.py" prep   03_src/route.
 # same-camera A-RENDER report. Final staged reviews still run after routing.
 $PY "$FS/model_registration_gate.py" . --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [5d] P-MODEL-REG: native body, footprint, courtyard, or attachment datums disagree"; exit 1; }
+# [5e] P-ORIENT: one semantic edge authority, per-instance geometry, bounded
+# progress-visible renders, and exact human approval before routing spend.
+timeout --signal=TERM --kill-after=10s 180s \
+    $PY "$FS/connector_orientation_gate.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [5e] P-ORIENT: connector mouth/edge geometry, render evidence, or explicit approval is missing, stale, or defective"; exit 1; }
 $PY "$S/pre_route_review_check.py" . --phase placement \
     --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [5d] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence is missing, stale, or defective"; exit 1; }

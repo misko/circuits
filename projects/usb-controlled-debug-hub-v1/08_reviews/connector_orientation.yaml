@@ -1,0 +1,22 @@
+schema: 1
+kind: connector-orientation-approval-v1
+verdict: APPROVED
+subject_sha256: 43a74ee2ddf76192c25f8e51529cdcbc9aad010cefd2362d2d4bf2945d7d553d
+refs:
+- J_PORT1
+- J_PORT2
+- J_PORT3
+- J_PORT4
+- J_UP
+reviewer: User, explicit Codex task approval 2026-08-16; semantic subject unchanged
+  after renderer-only renewal
+confirmed_at: '2026-08-16T23:25:46Z'
+evidence_sha256:
+  views/J_PORT1_inside.png: 456e4bc6345a97a1d81355b2cf8649aef1352e6af7da657996963bc46137dce8
+  views/J_PORT1_outside.png: efc00770faffd4c703eaab44be89bd9d39dfdc681a4a89cce1a2d9f341fe9801
+  views/J_PORT1_top.png: 40f7ea7f2bcc3c9ba17314d4ea330c45a3ab8d20969d19f159db3e13a79ea32c
+  views/J_UP_inside.png: 3176d830e1997ef99f4d3a90c8a20aa9e9f92d037140ec2687e3881d4227bc26
+  views/J_UP_outside.png: 53d22c032296c6e8cb5214b71d4f5f4647e5a1682747336d8187e0d580be4362
+  views/J_UP_profile_a.png: e989a6814e175be24ff5ca1eb6bae391f88f9e1dc9620c1e0816b761b32263ef
+  views/J_UP_profile_b.png: ed0d62c395327000c2d4c85c3e1e57715f19c55afba33bf6411f29f333990651
+  views/J_UP_top.png: e8378c6afb2bc461e3518015b9df8e304ad6a92ef91637415afb83196675cb25

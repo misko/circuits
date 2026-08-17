@@ -20,6 +20,8 @@ showed the same pipeline every time, with different constants:
 
     /usr/bin/python3 route_and_stitch_generic.py prep    03_src/route.yaml
     <KRT venv python>  route_and_stitch_generic.py route 03_src/route.yaml
+    <KRT venv python>  route_and_stitch_generic.py route 03_src/route.yaml \
+                          --through-wave critical
     /usr/bin/python3 route_and_stitch_generic.py import  03_src/route.yaml
     /usr/bin/python3 route_and_stitch_generic.py quick   03_src/route.yaml
     /usr/bin/python3 route_and_stitch_generic.py stitch  03_src/route.yaml
@@ -63,6 +65,8 @@ HARD ERRORS (never silent):
     of such lists) — coercing it would route with the WRONG matched set and
     say nothing
   * a KRT wave exiting nonzero
+  * an opted-in wave whose realized output violates its realized_width
+    contract (the command-line width is not evidence)
   * any stitch pass falling short of its configured `min` / `require`
   * `import` onto a board that already has tracks
 
@@ -77,16 +81,24 @@ so the commands work from any cwd. Top-level keys:
             rects[]}, waves {exclude[], groups{}, rest}
   route:    krt, python, race (N concurrent chains, quick-measured best
             wins; CLI --race overrides), import_source (build|promoted),
+            prefix {board, through_wave, r0_sha256, board_sha256} (optional
+            reviewed, hash-bound critical prefix from which later waves resume),
             kicad_python (KiCad interpreter), forbid_new_via_in_pad (compare
             every wave output with its input and refuse router-created vias
             in SMD lands), common{...}, waves[]
-            {name, nets|group, + any KRT flag override}
+            {name, nets|group, realized_width (wrapper-owned output contract),
+            + any KRT flag override}
   flow:     heartbeat_s, timeouts_s {route_wave, route_race,
             route_evaluate, route_import}; performance budgets are separate
 
 `route --resume` is intentionally single-chain only. It accepts only the
-contiguous prefix in route_progress.json whose route.yaml, r0, per-wave input
-and output hashes still agree. Bare rN files are never treated as evidence.
+contiguous prefix in route_progress.json whose route.yaml, r0, optional
+reviewed route.prefix, per-wave input and output hashes still agree. Bare rN
+files are never treated as evidence. A route.prefix is checked against r0 for
+base-copper inheritance, physical DRC, and connected critical pairs before it
+can skip any wave; stale hashes fail closed.
+`route --through-wave NAME` creates that same authenticated prefix as a
+deliberate stage pause, writes no FINAL marker, and resumes with `--resume`.
   taps:     clearance, via{}, connections[] {net, from, to, width,
             layer/hop_layer, plane, optional via{} geometry override and
             via_protection{capping,filling}} — see cmd_taps
@@ -374,7 +386,7 @@ def _rules_ride_along(cfg, src_pcb, out_pcb):
           f"{len(pats)} patterns)")
 
 
-def _critical_route_gate(cfg, require_connected=False):
+def _critical_route_gate(cfg, require_connected=False, board=None):
     """Make the shared route entry points enforce the adopted pair contract."""
     root = Path(cfg["_root"])
     route = get(cfg, "route", {}) or {}
@@ -384,8 +396,14 @@ def _critical_route_gate(cfg, require_connected=False):
         print("R-PAIRMAP: legacy/unadopted route config — not graded")
         return
     checker = Path(__file__).resolve().parent / "critical_route_check.py"
-    board = rel(cfg, cfg["project"]["board"])
-    cmd = [sys.executable, str(checker), str(root), "--board", str(board)]
+    board = Path(board) if board is not None else rel(
+        cfg, cfg["project"]["board"])
+    # `route` is intentionally runnable under KRT's virtualenv (numpy, scipy),
+    # which normally does not contain KiCad's pcbnew module.  The checker is a
+    # board reader and therefore belongs to the explicitly configured KiCad
+    # interpreter, just like the per-wave geometry guards below.
+    kpy = get(cfg, "route.kicad_python", "/usr/bin/python3")
+    cmd = [kpy, str(checker), str(root), "--board", str(board)]
     if require_connected:
         cmd.append("--require-connected")
     result = run_bounded(
@@ -639,9 +657,12 @@ def wave_nets(cfg, allnets):
 # REPEATABLE and each occurrence is one group. `grouplist` renders both shapes:
 # a flat list of patterns is ONE group; a list of lists is one flag per group.
 _KRT_FLAGMAP = {
+    "ordering": ("--ordering", "val"),
     "layers": ("--layers", "list"),
+    "layer_costs": ("--layer-costs", "list"),
     "clearance": ("--clearance", "val"),
     "board_edge_clearance": ("--board-edge-clearance", "val"),
+    "hole_to_hole_clearance": ("--hole-to-hole-clearance", "val"),
     "track_width": ("--track-width", "val"),
     "via_size": ("--via-size", "val"),
     "via_drill": ("--via-drill", "val"),
@@ -706,7 +727,8 @@ def _krt_args(d, extra_flags=None):
 
 
 def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
-                tag="", start_wave=1, progress=None, cancel_event=None):
+                tag="", start_wave=1, stop_wave=None, progress=None,
+                cancel_event=None):
     """Run the chained KRT waves rN -> rN+1 inside `workdir`, starting from
     board `cur`. Returns the final chain file. `env` extends the subprocess
     environment (race candidates get ROUTE_RACE_CANDIDATE)."""
@@ -714,6 +736,8 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
     for i, wv in enumerate(waves, 1):
         if i < start_wave:
             continue
+        if stop_wave is not None and i > stop_wave:
+            break
         name = wv.get("name", f"w{i}")
         nets = wv.get("nets")
         if nets is None:
@@ -736,19 +760,60 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
         tw = wave_track_width(cfg, name, list(nets), opts.get("track_width"))
         if tw is not None:
             opts["track_width"] = tw
+        # Wrapper-owned postcondition: do not pass this to KRT.  The command
+        # line can request one width while later router cleanup emits another;
+        # only the realized board is authoritative.
+        realized_width = opts.pop("realized_width", None)
+        if realized_width is not None:
+            if not isinstance(realized_width, dict):
+                die(f"wave {name!r}: realized_width must be a mapping")
+            required = {"nominal", "minimum",
+                        "max_subnominal_length_per_net",
+                        "max_subnominal_segments_per_net"}
+            unknown = set(realized_width) - required
+            missing = required - set(realized_width)
+            if unknown or missing:
+                die(f"wave {name!r}: realized_width keys must be exactly "
+                    f"{sorted(required)}; missing={sorted(missing)}, "
+                    f"unknown={sorted(unknown)}")
+            try:
+                realized_width = {
+                    "nominal": float(realized_width["nominal"]),
+                    "minimum": float(realized_width["minimum"]),
+                    "max_subnominal_length_per_net": float(
+                        realized_width["max_subnominal_length_per_net"]),
+                    "max_subnominal_segments_per_net": int(
+                        realized_width["max_subnominal_segments_per_net"]),
+                }
+            except (TypeError, ValueError):
+                die(f"wave {name!r}: realized_width values must be numeric")
+            if (realized_width["minimum"] <= 0
+                    or realized_width["nominal"] < realized_width["minimum"]
+                    or realized_width["max_subnominal_length_per_net"] < 0
+                    or realized_width["max_subnominal_segments_per_net"] < 0):
+                die(f"wave {name!r}: invalid realized_width bounds: "
+                    f"{realized_width}")
         engine = str(opts.pop("engine", "single")).strip().lower()
         if engine not in ("single", "diff"):
             die(f"wave {name!r}: engine must be 'single' or 'diff', got {engine!r}")
         if engine == "diff":
             # route_diff.py owns coupled _P/_N geometry.  Unlike route.py it
-            # has no fab-preset flags; explicit via/clearance geometry has
-            # already been floored by tier_geometry() above.
-            for unsupported in ("fab_tier", "fab_overrides", "power_nets",
-                                "power_nets_widths", "no_power_tap_neckdown"):
+            # does not consume single-ended power-net options.  It DOES own
+            # the shared fab-tier flags now; retain fab_tier/fab_overrides so
+            # emission-time neck floors use the same manufacturing authority
+            # as this wrapper and the generated DRC rules.
+            for unsupported in ("power_nets", "power_nets_widths",
+                                "no_power_tap_neckdown"):
                 opts.pop(unsupported, None)
         router_script = "route_diff.py" if engine == "diff" else "route.py"
-        diff_flags = ({"diff_pair_gap": ("--diff-pair-gap", "val")}
-                      if engine == "diff" else None)
+        # route_diff.py has a small engine-specific argparse surface which
+        # route.py intentionally does not share.  Keep those flags here rather
+        # than in _KRT_FLAGMAP so the flagmap-vs-route.py contract remains
+        # exact and a single-ended wave cannot accidentally request them.
+        diff_flags = ({
+            "diff_pair_gap": ("--diff-pair-gap", "val"),
+            "diff_pair_intra_match": ("--diff-pair-intra-match", "flag"),
+        } if engine == "diff" else None)
         cmd = ([py, str(krt / router_script), str(cur), "--output", str(nxt)]
                + _krt_args(opts, diff_flags) + ["--nets"] + list(nets))
         print(f"\n=== {tag}wave {name} ({engine}): {len(nets)} nets ===\n  "
@@ -770,6 +835,79 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
             die(f"KRT wave {name!r} exited {result.returncode}")
         if not nxt.is_file():
             die(f"KRT wave {name!r} produced no {nxt}")
+        summaries = [line.split("JSON_SUMMARY:", 1)[1].strip()
+                     for line in result.output.splitlines()
+                     if "JSON_SUMMARY:" in line]
+        decoded_summaries = []
+        for raw_summary in summaries:
+            try:
+                decoded_summaries.append(json.loads(raw_summary))
+            except json.JSONDecodeError as exc:
+                die(f"KRT wave {name!r} emitted malformed JSON_SUMMARY: "
+                    f"{exc}")
+
+        # route.py exits zero after writing its best candidate even when one
+        # or more requested nets remain open.  Partial-stage KiCad DRC also
+        # deliberately defers opens, so neither return code nor physical DRC
+        # can authenticate wave completeness.  Reconcile every emitted
+        # summary in order: a later final-reconciliation pass may explicitly
+        # recover a net that failed in the first pass (for example a boxed
+        # multipoint supply), but an unresolved failure must stop promotion.
+        unresolved = set()
+        for summary in decoded_summaries:
+            recovered = {str(v) for v in (summary.get("routed_single") or [])}
+            unresolved.difference_update(recovered)
+            unresolved.update(str(v) for v in
+                              (summary.get("failed_single") or []))
+            for item in summary.get("failed_multipoint") or []:
+                if isinstance(item, dict) and item.get("net_name"):
+                    unresolved.add(str(item["net_name"]))
+        if unresolved:
+            die(f"KRT wave {name!r} left requested net(s) unresolved despite "
+                "exit 0: " + ", ".join(sorted(unresolved)))
+
+        if engine == "diff":
+            if decoded_summaries:
+                summary = decoded_summaries[-1]
+                skipped = summary.get("skipped_bad_fanout") or []
+                if skipped:
+                    die(f"KRT wave {name!r} skipped {len(skipped)} requested "
+                        "differential pair(s) after its fanout precheck: "
+                        + ", ".join(str(v) for v in skipped))
+                deferred = summary.get("single_ended_diff_pairs") or []
+                failed_pairs = summary.get("failed_diff_pairs") or []
+                if deferred or failed_pairs:
+                    detail = []
+                    if deferred:
+                        detail.append("deferred=" + ",".join(str(v) for v in deferred))
+                    if failed_pairs:
+                        detail.append("failed=" + ",".join(str(v) for v in failed_pairs))
+                    die(f"KRT wave {name!r} did not coupled-route every requested "
+                        "differential pair (" + "; ".join(detail) + ")")
+        if realized_width is not None:
+            guard = (Path(__file__).resolve().parent
+                     / "realized_track_width_guard.py")
+            report = workdir / f"wave_{i}_realized_track_width.json"
+            kpy = get(cfg, "route.kicad_python", "/usr/bin/python3")
+            checked = run_bounded(
+                [kpy, str(guard), str(nxt), "--nets", *list(nets),
+                 "--nominal-width", str(realized_width["nominal"]),
+                 "--min-width", str(realized_width["minimum"]),
+                 "--max-subnominal-length-per-net",
+                 str(realized_width["max_subnominal_length_per_net"]),
+                 "--max-subnominal-segments-per-net",
+                 str(realized_width["max_subnominal_segments_per_net"]),
+                 "--json", str(report)],
+                timeout_s=_timeout_s(cfg, "route_wave_gate", 60),
+                heartbeat_s=_heartbeat_s(cfg),
+                label=f"{tag}route:{name}:realized-width".strip(),
+                state_path=workdir / f"wave_{i}_realized_width_state.json",
+                cancel_event=cancel_event, echo=False)
+            if checked.returncode != 0:
+                detail = checked.output[-1600:].strip()
+                die(f"KRT wave {name!r} violated its realized_width "
+                    f"contract; report: {report}"
+                    + (f"\n{detail}" if detail else ""))
         # Some routers escape a boxed SMD endpoint by dropping an ordinary
         # via directly in its land.  That can look connected while violating
         # the board's assembly/reliability contract (solder wicking, uncapped
@@ -804,6 +942,9 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
             src_rules = cur.with_suffix(ext)
             if src_rules.is_file():
                 shutil.copy2(src_rules, nxt.with_suffix(ext))
+        _wave_drc_gate(
+            cfg, nxt, f"{tag}route:{name}:physical-drc".strip(),
+            workdir / f"wave_{i}_physical_drc.json")
         if progress is not None:
             progress.setdefault("waves", []).append({
                 "index": i, "name": name,
@@ -850,6 +991,75 @@ def _atomic_json(path, value):
     temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     temp.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
     os.replace(temp, path)
+
+
+_DEFAULT_WAVE_DRC_HARD_TYPES = {
+    "annular_width", "board_edge", "clearance", "copper_edge_clearance",
+    "diff_pair_uncoupled_length_too_long", "drill_out_of_range",
+    "hole_clearance", "hole_to_hole", "shorting_items", "track_width",
+    "through_hole_pad_without_hole", "via_diameter", "via_in_pad",
+}
+
+
+def _wave_drc_gate(cfg, board, label, report):
+    """Fail a route checkpoint on physical DRC, while allowing partial opens.
+
+    A route wave is intentionally incomplete, so dangling tracks/vias,
+    unconnected items and standalone-library context cannot gate it.  Shorts,
+    clearances, width, holes, edges and differential-coupling limits can never
+    be repaired by a later unrelated wave and therefore authenticate here.
+    """
+    spec = get(cfg, "route.wave_drc", False)
+    if not spec:
+        return
+    if spec is True:
+        hard = set(_DEFAULT_WAVE_DRC_HARD_TYPES)
+    elif isinstance(spec, dict):
+        unknown = set(spec) - {"enabled", "hard_types"}
+        if unknown:
+            die(f"route.wave_drc has unknown key(s): {sorted(unknown)}")
+        if not spec.get("enabled", True):
+            return
+        values = spec.get("hard_types", sorted(_DEFAULT_WAVE_DRC_HARD_TYPES))
+        if not isinstance(values, list) or not all(
+                isinstance(value, str) and value for value in values):
+            die("route.wave_drc.hard_types must be a list of non-empty strings")
+        hard = set(values)
+    else:
+        die("route.wave_drc must be true/false or a mapping")
+
+    board, report = Path(board), Path(report)
+    checked = run_bounded(
+        ["kicad-cli", "pcb", "drc", "--severity-all", "--format", "json",
+         "-o", str(report), str(board)],
+        timeout_s=_timeout_s(cfg, "route_wave_gate", 180),
+        heartbeat_s=_heartbeat_s(cfg), label=label,
+        state_path=report.with_name(report.stem + "_state.json"), echo=False)
+    # kicad-cli returns non-zero when it finds violations; the JSON is the
+    # authoritative classified result.  A missing/unreadable report is a tool
+    # failure and must not be mistaken for a clean board.
+    if not report.is_file():
+        die(f"{label}: kicad-cli wrote no DRC report (exit "
+            f"{checked.returncode}): {checked.output[-800:]}")
+    try:
+        payload = json.loads(report.read_text(encoding="utf-8-sig"))
+    except Exception as exc:
+        die(f"{label}: unreadable DRC report {report}: {exc}")
+    hits = [row for row in payload.get("violations", [])
+            if row.get("type") in hard]
+    if hits:
+        counts = {}
+        for row in hits:
+            counts[row.get("type", "unknown")] = \
+                counts.get(row.get("type", "unknown"), 0) + 1
+        sample = str(hits[0].get("description", ""))[:300]
+        die(f"{label}: physical route DRC FAILED: "
+            + ", ".join(f"{name}={count}"
+                        for name, count in sorted(counts.items()))
+            + f"; first: {sample}; report: {report}")
+    print(f"{label}: PASS — zero hard physical DRC findings "
+          f"({len(payload.get('violations', []))} partial-stage findings "
+          f"deferred) -> {report}")
 
 
 def _heartbeat_s(cfg):
@@ -936,15 +1146,102 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results,
         results[i] = {"error": str(e)}
 
 
-def _new_route_progress(cfg, r0):
-    return {
+def _new_route_progress(cfg, r0, prefix=None):
+    progress = {
         "schema": 1, "config": str(cfg["_path"]),
         "config_sha256": _sha256(cfg["_path"]),
         "r0_sha256": _sha256(r0), "waves": [],
     }
+    if prefix is not None:
+        progress["prefix"] = dict(prefix)
+    return progress
 
 
-def _resume_route(cfg, build, waves, r0):
+def _route_prefix(cfg, build, waves, r0):
+    """Authenticate and materialize an optional reviewed wave prefix.
+
+    A dense critical route can be expensive or stochastic to rediscover.  The
+    prefix is therefore a source artifact, not a loose build checkpoint: both
+    it and the exact prepared base are hash-bound, it must retain every base
+    footprint/pad/seed/via, and it must pass physical DRC plus the adopted
+    connected-pair contract before any later wave is allowed to consume it.
+    """
+    spec = get(cfg, "route.prefix")
+    if spec is None:
+        return 0, r0, None
+    if not isinstance(spec, dict):
+        die("route.prefix must be a mapping")
+    required = {"board", "through_wave", "r0_sha256", "board_sha256"}
+    unknown = set(spec) - required
+    missing = required - set(spec)
+    if unknown or missing:
+        die("route.prefix keys must be exactly "
+            f"{sorted(required)}; missing={sorted(missing)}, "
+            f"unknown={sorted(unknown)}")
+    matches = [i for i, wave in enumerate(waves, 1)
+               if wave.get("name", f"w{i}") == spec["through_wave"]]
+    if len(matches) != 1:
+        die(f"route.prefix.through_wave {spec['through_wave']!r} must name "
+            "exactly one configured wave")
+    through = matches[0]
+    expected_r0 = str(spec["r0_sha256"]).lower()
+    actual_r0 = _sha256(r0)
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_r0):
+        die("route.prefix.r0_sha256 must be a lowercase SHA-256 digest")
+    if expected_r0 != actual_r0:
+        die("route.prefix r0 hash mismatch — prep/source geometry changed; "
+            "the reviewed prefix is stale")
+    source = rel(cfg, spec["board"]).resolve()
+    if not source.is_file():
+        die(f"route.prefix board not found: {source}")
+    expected_board = str(spec["board_sha256"]).lower()
+    actual_board = _sha256(source)
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_board):
+        die("route.prefix.board_sha256 must be a lowercase SHA-256 digest")
+    if expected_board != actual_board:
+        die("route.prefix board hash mismatch — reviewed copper changed")
+
+    staged = build / f"r{through}.kicad_pcb"
+    if source != staged.resolve():
+        shutil.copy2(source, staged)
+    # The exact current rules accompany the materialized checkpoint.  A
+    # source-side stale .dru must not grade current geometry under old floors.
+    for ext in (".kicad_pro", ".kicad_dru"):
+        sidecar = r0.with_suffix(ext)
+        if sidecar.is_file():
+            shutil.copy2(sidecar, staged.with_suffix(ext))
+
+    # P-ROUTEBASE in direct mode proves that the checkpoint retained the
+    # exact r0 footprint/pad identity and all deterministic prep copper.
+    checker = Path(__file__).resolve().parent / "promoted_route_check.py"
+    kpy = get(cfg, "route.kicad_python", "/usr/bin/python3")
+    checked = run_bounded(
+        [kpy, str(checker), "--prepared", str(r0), "--chain", str(staged)],
+        timeout_s=_timeout_s(cfg, "route_preflight", 180),
+        heartbeat_s=_heartbeat_s(cfg), label="route-prefix:base",
+        state_path=build / "prefix_base_state.json")
+    if checked.returncode:
+        die("route.prefix does not derive from the exact prepared base "
+            "(P-ROUTEBASE failed)")
+    _wave_drc_gate(cfg, staged, "route-prefix:physical-drc",
+                   build / "prefix_physical_drc.json")
+    _critical_route_gate(cfg, require_connected=True, board=staged)
+    receipt = {
+        "through_index": through,
+        "through_wave": spec["through_wave"],
+        "source": str(source),
+        "source_sha256": actual_board,
+        "r0_sha256": actual_r0,
+        "materialized": os.path.relpath(staged, build),
+        "materialized_sha256": _sha256(staged),
+    }
+    print(f"route prefix: authenticated through wave {through} "
+          f"({spec['through_wave']}) -> {staged}")
+    return through, staged, receipt
+
+
+def _resume_route(cfg, build, waves, r0, prefix_index=0, prefix_board=None,
+                  prefix_receipt=None):
     """Return (next wave index, current board, progress), fail closed on drift."""
     path = build / "route_progress.json"
     if not path.is_file():
@@ -960,9 +1257,12 @@ def _resume_route(cfg, build, waves, r0):
         die("cannot resume: route.yaml changed since the recorded waves")
     if progress.get("r0_sha256") != _sha256(r0):
         die("cannot resume: prep r0 changed since the recorded waves")
-    cur = r0
+    recorded_prefix = progress.get("prefix")
+    if recorded_prefix != prefix_receipt:
+        die("cannot resume: reviewed route.prefix provenance changed")
+    cur = prefix_board if prefix_board is not None else r0
     records = progress.get("waves") or []
-    for expected, rec in enumerate(records, 1):
+    for expected, rec in enumerate(records, prefix_index + 1):
         if rec.get("index") != expected or expected > len(waves):
             die("cannot resume: progress waves are not a contiguous prefix")
         if rec.get("name") != waves[expected - 1].get("name", f"w{expected}"):
@@ -973,10 +1273,11 @@ def _resume_route(cfg, build, waves, r0):
         if _sha256(cur) != rec.get("input_sha256"):
             die(f"cannot resume: wave {expected} input hash no longer chains")
         cur = output
-    return len(records) + 1, cur, progress
+    return prefix_index + len(records) + 1, cur, progress
 
 
-def cmd_route(cfg, race=None, skip_preflight=False, resume=False):
+def cmd_route(cfg, race=None, skip_preflight=False, resume=False,
+              through_wave=None):
     # Invalidate build-lineage promotion at the FIRST route-command boundary,
     # before critical-pair, tier, KRT, wave or r0 validation.  Any failed rerun
     # means the build lineage has no current winner; retaining an old FINAL
@@ -1021,6 +1322,15 @@ def cmd_route(cfg, race=None, skip_preflight=False, resume=False):
     waves = get(cfg, "route.waves", []) or []
     if not waves:
         die("route.waves is empty — nothing to route")
+    stop_wave = None
+    if through_wave is not None:
+        matches = [i for i, wave in enumerate(waves, 1)
+                   if wave.get("name", f"w{i}") == through_wave]
+        if len(matches) != 1:
+            die(f"--through-wave {through_wave!r} must name exactly one "
+                f"route wave; available: "
+                f"{[wave.get('name', f'w{i}') for i, wave in enumerate(waves, 1)]}")
+        stop_wave = matches[0]
     # tier-derived geometry: missing via/clearance come from the declared fab
     # tier; explicit sub-floor values are rejected (per-wave overrides too).
     tier = fab_tier(cfg)
@@ -1029,23 +1339,50 @@ def cmd_route(cfg, race=None, skip_preflight=False, resume=False):
     cur = build / get(cfg, "prep.out", "r0.kicad_pcb")
     if not cur.is_file():
         die(f"{cur} missing — run `prep` first")
+    _wave_drc_gate(cfg, cur, "route:r0:physical-drc",
+                   build / "r0_physical_drc.json")
+
+    prefix_index, prefix_board, prefix_receipt = _route_prefix(
+        cfg, build, waves, cur)
+    if stop_wave is not None and stop_wave < prefix_index:
+        die(f"--through-wave {through_wave!r} precedes the authenticated "
+            f"route.prefix through wave {prefix_index}")
 
     n = int(race if race is not None else get(cfg, "route.race", 1) or 1)
     if n > 1:
+        if prefix_receipt is not None:
+            die("route.race is not supported with route.prefix; continue the "
+                "authenticated suffix as one deterministic chain")
+        if through_wave is not None:
+            die("--through-wave is only defined for one deterministic "
+                "wave-chain; a stochastic race must run its complete chain")
         if resume:
             die("--resume is only defined for one deterministic wave-chain; "
                 "a stochastic race must restart its candidate set")
         return _cmd_route_race(cfg, py, krt, waves, tier, common, build, n)
 
     if resume:
-        start_wave, cur, progress = _resume_route(cfg, build, waves, cur)
+        start_wave, cur, progress = _resume_route(
+            cfg, build, waves, cur, prefix_index, prefix_board,
+            prefix_receipt)
         print(f"resume: {start_wave - 1}/{len(waves)} authenticated wave(s); "
               f"continuing from {cur}")
     else:
-        start_wave, progress = 1, _new_route_progress(cfg, cur)
+        cur = prefix_board
+        start_wave = prefix_index + 1
+        progress = _new_route_progress(cfg, build / get(
+            cfg, "prep.out", "r0.kicad_pcb"), prefix_receipt)
         _atomic_json(build / "route_progress.json", progress)
     cur = _wave_chain(cfg, py, krt, waves, tier, common, build, cur,
-                      start_wave=start_wave, progress=progress)
+                      start_wave=start_wave, stop_wave=stop_wave,
+                      progress=progress)
+    completed = prefix_index + len(progress.get("waves") or [])
+    if completed < len(waves):
+        print(f"\nroute pause: {completed}/{len(waves)} authenticated "
+              f"wave(s) complete -> {cur}\n"
+              "No FINAL marker was written. Continue the exact chain with "
+              "`route --resume` (and optionally another --through-wave).")
+        return 0
     print(f"\nwaves done -> {cur}")
     (build / "FINAL").write_text(str(cur) + "\n")
     return 0
@@ -4516,6 +4853,42 @@ def _pin_touched(ctx, px, py, code, tol=0.16, pad=None):
     return False
 
 
+def _copper_item_identity(item):
+    """Compact, best-effort identity for a collision refusal.
+
+    A bare ``foreign copper`` result proves safety but hides the object the
+    author must route around.  Keep this diagnostic side-effect free and
+    tolerant of KiCad SWIG API differences so a reporting failure can never
+    weaken the underlying refusal.
+    """
+    if item is None:
+        return "unknown item"
+    try:
+        kind = str(item.GetClass())
+    except Exception:
+        kind = type(item).__name__
+    try:
+        net = str(item.GetNetname() or "<no-net>")
+    except Exception:
+        net = "<unknown-net>"
+    if kind in ("PCB_PAD", "PAD"):
+        try:
+            fp = item.GetParentFootprint()
+            return f"{fp.GetReference()}.{item.GetNumber()}[{net}]"
+        except Exception:
+            pass
+    try:
+        if kind == "PCB_VIA":
+            p = item.GetPosition()
+            return (f"{kind}[{net}]@({p.x / 1e6:.3f},"
+                    f"{p.y / 1e6:.3f})")
+        a, b = item.GetStart(), item.GetEnd()
+        return (f"{kind}[{net}] ({a.x / 1e6:.3f},{a.y / 1e6:.3f})->"
+                f"({b.x / 1e6:.3f},{b.y / 1e6:.3f})")
+    except Exception:
+        return f"{kind}[{net}]"
+
+
 @stitch_pass("seed_stubs")
 def p_seed_stubs(ctx, c):
     """DETERMINISTIC pour-fed chip-pin stubs (canon M8 promotion). The
@@ -4534,6 +4907,7 @@ def p_seed_stubs(ctx, c):
         via: {size: 0.25, drill: 0.15}  # tier-derived when omitted
         stubs:
           - {net: LX1, pin: U1.18,
+             via: {size: 0.41, drill: 0.15}, # optional per-bank override
              segments: [{layer: F.Cu, width: 0.25, pts: [[x,y],[x,y]]}],
              vias: [[x,y]]}
     SAFETY (the D-BACK lesson — an unbounded emitter is worse than none):
@@ -4591,14 +4965,25 @@ def p_seed_stubs(ctx, c):
                     f"{pinpad.GetNetname()!r}, not {netname!r} — a seed stub "
                     f"must NEVER bridge nets")
         prims, conflict = [], None
+        stub_via = dict(via)
+        override = stub.get("via", {}) or {}
+        if not isinstance(override, dict):
+            die(f"seed_stubs.stubs[{i}].via must be a mapping")
+        stub_via.update(override)
+        _stub_tier_via(ctx.cfg, stub_via)
+        stub_vs = float(stub_via.get("size", vs))
+        stub_vd = float(stub_via.get("drill", vd))
         for seg in stub.get("segments", []) or []:
             lid = _layer_id(pcbnew, seg["layer"])
             w = float(seg["width"])
             pts = seg["pts"]
             for (ax, ay), (bx, by) in zip(pts, pts[1:]):
                 ax, ay, bx, by = (round(v, 3) for v in (ax, ay, bx, by))
-                if tk.collides(ax, ay, bx, by, w, code, lid) is not None:
-                    conflict = f"seg ({ax},{ay})->({bx},{by}) {seg['layer']}"
+                hit = tk.collides(ax, ay, bx, by, w, code, lid)
+                if hit is not None:
+                    conflict = (f"seg ({ax},{ay})->({bx},{by}) "
+                                f"{seg['layer']} against "
+                                f"{_copper_item_identity(hit)}")
                     break
                 prims.append(("seg", ax, ay, bx, by, w, lid))
             if conflict:
@@ -4618,19 +5003,23 @@ def p_seed_stubs(ctx, c):
                     die(f"seed_stubs.stubs[{i}].arcs start/mid/end must be "
                         "two-coordinate points")
                 candidate = tk.make_arc(start, mid, end, net, lid, w)
-                if tk.collides_item(candidate, code, lid) is not None:
+                hit = tk.collides_item(candidate, code, lid)
+                if hit is not None:
                     conflict = (f"arc {start}->{mid}->{end} "
-                                f"{arc['layer']}")
+                                f"{arc['layer']} against "
+                                f"{_copper_item_identity(hit)}")
                     break
                 prims.append(("arc", start, mid, end, w, lid))
         if conflict is None:
             for (vx, vy) in stub.get("vias", []) or []:
                 vx, vy = round(vx, 3), round(vy, 3)
                 if (not _same_via_exists(ctx, vx, vy, code)
-                        and not tk.via_site_ok(vx, vy, code, size=vs, drill=vd)):
+                        and not tk.via_site_ok(vx, vy, code,
+                                              size=stub_vs,
+                                              drill=stub_vd)):
                     conflict = f"via ({vx},{vy})"
                     break
-                prims.append(("via", vx, vy))
+                prims.append(("via", vx, vy, stub_vs, stub_vd))
         if conflict is not None:
             ctx.failures.append(
                 f"seed_stub {netname} {pin or ''}: REFUSED — {conflict} "
@@ -4654,11 +5043,11 @@ def p_seed_stubs(ctx, c):
                 tk.add_arc(start, mid, end, net, lid, w)
                 placed += 1
             else:
-                _, vx, vy = prim
+                _, vx, vy, prim_vs, prim_vd = prim
                 if _same_via_exists(ctx, vx, vy, code):
                     skipped += 1
                     continue
-                tk.add_via(vx, vy, net, size=vs, drill=vd)
+                tk.add_via(vx, vy, net, size=prim_vs, drill=prim_vd)
                 placed += 1
         if pinpad is not None:
             px, py = (pinpad.GetPosition().x / 1e6,
@@ -5034,6 +5423,10 @@ def main(argv=None):
     ap.add_argument("--resume", action="store_true",
                     help="route: continue an authenticated single-chain prefix; "
                          "refuses stale/unproven rN files and route races")
+    ap.add_argument("--through-wave", default=None,
+                    help="route: stop successfully after this named wave, "
+                         "recording an authenticated resumable prefix but no "
+                         "FINAL marker (single-chain only)")
     ap.add_argument("--route-source", choices=["auto", "build", "promoted"],
                     help="import: select route lineage explicitly (overrides "
                          "route.import_source)")
@@ -5044,7 +5437,8 @@ def main(argv=None):
             return cmd_prep(cfg)
         if a.command == "route":
             return cmd_route(cfg, race=a.race,
-                             skip_preflight=a.skip_preflight, resume=a.resume)
+                             skip_preflight=a.skip_preflight, resume=a.resume,
+                             through_wave=a.through_wave)
         if a.command == "import":
             return cmd_import(cfg, a.route_source)
         if a.command == "taps":

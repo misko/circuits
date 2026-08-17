@@ -106,6 +106,7 @@ SUITES=(
   t1_jlc_twin.py
   t1_twin_overlay.py
   t1_model_registration.py
+  t1_connector_orientation.py
   t1_fab_payload.py
   t1_via_process.py
   t1_via_ampacity.py

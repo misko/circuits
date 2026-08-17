@@ -89,6 +89,10 @@ MEASURED, per net, from the shipped `.kicad_pcb` bytes:
   * `(arc ...)` centreline length as r*theta from its start/mid/end triple.
   * `(via ...)` count, layer span, and its BARREL Z-LENGTH — but only when the
     stackup is DECLARED (see below). A via is real copper on a phase path.
+  * A plated through-hole PAD barrel when track endpoints on that pad's exact
+    board coordinate use two copper layers.  This is the same measurable
+    layer-transition copper as a via; omitting it makes a connector-pad
+    crossover look disconnected and charges only the other conductor's via.
 
 NOT MEASURED, each with its reason, because an unmeasurable term is UNREACHED
 and never silently a pass (canon M-COVER):
@@ -655,6 +659,41 @@ def read_pads(text):
     return out
 
 
+def read_plated_pads(text):
+    """{net -> [(x, y, ref, pad)]} for plated through-hole pads.
+
+    Only the exact pad coordinate is needed here.  ``net_geometry`` adds a
+    barrel edge only when copper endpoints for the same net actually meet
+    that coordinate on two different layers, so an ordinary THT landing that
+    stays on one layer contributes no phantom Z length.
+    """
+    out = {}
+    for fb in _blocks(text, "footprint"):
+        m = re.search(_AT3, fb)
+        if not m:
+            continue
+        fx, fy = float(m.group(1)), float(m.group(2))
+        a = math.radians(float(m.group(3)) if m.group(3) else 0.0)
+        rm = re.search(r'\(property\s+"Reference"\s+"([^"]+)"', fb) or \
+            re.search(r'\(fp_text\s+reference\s+"([^"]+)"', fb)
+        ref = rm.group(1) if rm else "?"
+        ca, sa = math.cos(a), math.sin(a)
+        for pb in _subblocks(fb, "pad"):
+            head = re.search(r'\(pad\s+"([^"]*)"\s+(\S+)', pb)
+            am = re.search(_AT3, pb)
+            nn = re.search(r'\(net\s+(?:\d+\s+)?"([^"]*)"\s*\)', pb)
+            layers = re.search(r'\(layers\s+([^\)]*)\)', pb)
+            if not (head and am and nn and layers) or not nn.group(1):
+                continue
+            if head.group(2) != "thru_hole" or '"*.Cu"' not in layers.group(1):
+                continue
+            px, py = float(am.group(1)), float(am.group(2))
+            out.setdefault(nn.group(1), []).append(
+                (fx + px * ca + py * sa, fy - px * sa + py * ca,
+                 ref, head.group(1)))
+    return out
+
+
 #: sqrt(2) - 1: the diagonal premium of an 8-direction move set.
 OCT_K = math.sqrt(2.0) - 1.0
 
@@ -691,7 +730,7 @@ def _node(xy, layer):
     return (int(round(xy[0] * NM)), int(round(xy[1] * NM)), layer)
 
 
-def net_geometry(entry, layer_order, stackup_mm=None):
+def net_geometry(entry, layer_order, stackup_mm=None, plated_pads=()):
     """Measure ONE net's copper. Returns a dict; nothing here can raise.
 
     `via_z_mm` is None when the stackup was not declared — the caller must
@@ -721,6 +760,29 @@ def net_geometry(entry, layer_order, stackup_mm=None):
         u, v = _node(at, la), _node(at, lb)
         adj.setdefault(u, []).append((v, span))
         adj.setdefault(v, []).append((u, span))
+
+    # A THT pad is a plated barrel too.  Count it only when exact track
+    # endpoints on this net use at least two layers at the pad coordinate.
+    # This deliberately does not try to infer arbitrary pad-entry geometry;
+    # it recognizes the explicit layer-transition shape and nothing broader.
+    pad_z, pad_unpriced, n_pad_barrel = 0.0, 0, 0
+    for x, y, _ref, _pad in plated_pads:
+        present = [name for name in layer_order if _node((x, y), name) in adj]
+        if len(present) < 2:
+            continue
+        lo, hi = min(idx[name] for name in present), max(idx[name] for name in present)
+        span = (sum(stackup_mm[lo:hi])
+                if stackup_mm and hi <= len(stackup_mm) else None)
+        if span is None:
+            pad_unpriced += 1
+            span = 0.0
+        else:
+            pad_z += span
+        la, lb = layer_order[lo], layer_order[hi]
+        u, v = _node((x, y), la), _node((x, y), lb)
+        adj.setdefault(u, []).append((v, span))
+        adj.setdefault(v, []).append((u, span))
+        n_pad_barrel += 1
 
     # components / degrees / the longest path
     #
@@ -778,6 +840,9 @@ def net_geometry(entry, layer_order, stackup_mm=None):
         "track_mm": track_mm,
         "via_z_mm": None if via_unpriced else via_z,
         "via_unpriced": via_unpriced,
+        "pad_barrel_z_mm": None if pad_unpriced else pad_z,
+        "pad_barrel_unpriced": pad_unpriced,
+        "n_pad_barrel": n_pad_barrel,
         "n_via": len(entry["vias"]),
         "n_seg": len(entry["segs"]),
         "n_zone": entry["zones"],
@@ -787,7 +852,8 @@ def net_geometry(entry, layer_order, stackup_mm=None):
         "n_end": sum(1 for n in deg if deg[n] == 1),
         "n_edge": n_edge,
         "path_mm": None if cyclic else longest,
-        "total_mm": track_mm + (via_z if not via_unpriced else 0.0),
+        "total_mm": (track_mm + (via_z if not via_unpriced else 0.0)
+                     + (pad_z if not pad_unpriced else 0.0)),
     }
 
 
@@ -1059,6 +1125,7 @@ def grade(proj, board_override=None):
     nets, layer_order, text = read_copper(board)
     board_nets = set(nets)
     pads = read_pads(text)
+    plated_pads = read_plated_pads(text)
     recipe = route_recipe(proj)
 
     for gname, d in groups.items():
@@ -1080,7 +1147,7 @@ def grade(proj, board_override=None):
             res["n_member"] += 1
             m = {"name": mname, "nets": list(chain), "total_mm": 0.0,
                  "path_mm": 0.0, "n_via": 0, "n_zone": 0, "n_branch": 0,
-                 "n_comp": 0, "n_end": 0, "n_cyclic": 0,
+                 "n_pad_barrel": 0, "n_comp": 0, "n_end": 0, "n_cyclic": 0,
                  "measured": True, "why": []}
             for n in chain:
                 if n not in board_nets:
@@ -1091,11 +1158,12 @@ def grade(proj, board_override=None):
                     m["measured"] = False
                     m["why"].append(f"{n}: no copper on this board")
                     continue
-                gg = net_geometry(nets[n], layer_order, stack)
+                gg = net_geometry(nets[n], layer_order, stack,
+                                  plated_pads.get(n, ()))
                 m["total_mm"] += gg["total_mm"]
                 m["path_mm"] += (gg["path_mm"] or 0.0)
-                for k in ("n_via", "n_zone", "n_branch", "n_comp", "n_end",
-                          "n_cyclic"):
+                for k in ("n_via", "n_pad_barrel", "n_zone", "n_branch",
+                          "n_comp", "n_end", "n_cyclic"):
                     m[k] += gg[k]
                 if gg["n_cyclic"]:
                     m["measured"] = False
@@ -1114,6 +1182,13 @@ def grade(proj, board_override=None):
                         f"{n}: {gg['via_unpriced']} via(s) and no `stackup_mm:` "
                         f"declared — the barrel z-length is not derivable from "
                         f"a board that carries no (stackup) block")
+                if gg["pad_barrel_unpriced"]:
+                    m["measured"] = False
+                    m["why"].append(
+                        f"{n}: {gg['pad_barrel_unpriced']} plated pad barrel(s) "
+                        f"join track endpoints on different layers and no "
+                        f"`stackup_mm:` is declared — the Z length is not "
+                        f"derivable")
                 # `topology: chain` is verified on the two properties that are
                 # facts about the BOARD rather than about this reader: NO branch
                 # vertex and NO cycle. A graph with neither is a disjoint union
@@ -1258,6 +1333,7 @@ def report(res, out=print, verbose=True):
             for m in g["members"]:
                 out(f"      {m['name']:<10s} >= {m['total_mm']:9.4f} mm  "
                     f"path {m['path_mm']:9.4f}  vias {m['n_via']}  "
+                    f"pad-barrels {m['n_pad_barrel']}  "
                     f"zones {m['n_zone']}  branch {m['n_branch']}  "
                     f"comp {m['n_comp']}  ends {m['n_end']}  "
                     f"nets {'+'.join(m['nets'])}")
@@ -1289,10 +1365,11 @@ def census(proj, board_override=None, out=print, min_mm=0.0):
     board = find_board(proj, board_override)
     if board is None:
         raise AuditError(f"{proj}: no .kicad_pcb in 04_kicad/")
-    nets, layer_order, _ = read_copper(board)
+    nets, layer_order, text = read_copper(board)
+    plated_pads = read_plated_pads(text)
     rows = []
     for n, e in sorted(nets.items()):
-        g = net_geometry(e, layer_order, None)
+        g = net_geometry(e, layer_order, None, plated_pads.get(n, ()))
         if g["n_seg"] or g["n_via"]:
             rows.append((n, g))
     out(f"R-LEN census — {board}")

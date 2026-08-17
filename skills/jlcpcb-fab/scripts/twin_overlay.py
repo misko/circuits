@@ -278,7 +278,7 @@ def pad_fit(ours_centred, jlc_centred):
     return sorted(out)
 
 
-def expected_bbox(mesh, model, jc, oc, ang, fp_rot, fp_pos):
+def expected_bbox(mesh, model, jc, oc, ang, fp_rot, fp_pos, bottom=False):
     """Board-frame mm bbox of the mesh, mounted the way the render is entitled
     to mount it. Three frame hops, each named:
 
@@ -286,7 +286,9 @@ def expected_bbox(mesh, model, jc, oc, ang, fp_rot, fp_pos):
          rot_z / scale / offset — the transform JLC ships with the part;
       2. JLC frame -> our footprint-local frame, by `ang` (0 when no pad fit
          exists), with JLC's common-pad centroid mapped onto ours;
-      3. our local frame -> board, by the footprint's own orientation.
+      3. our unflipped library frame -> board, by the footprint side and
+         orientation.  KiCad mirrors a B.Cu footprint's local Y coordinate
+         before applying its board rotation.
     """
     corners = []
     for mx in (mesh[0], mesh[2]):
@@ -295,7 +297,10 @@ def expected_bbox(mesh, model, jc, oc, ang, fp_rot, fp_pos):
             jx = rx * model["scale"][0] + model["off"][0]
             jy = -(ry * model["scale"][1] + model["off"][1])      # -> y-down
             lx, ly = rot_ydown(jx - jc[0], jy - jc[1], ang)
-            bx, by = rot_ydown(lx + oc[0], ly + oc[1], fp_rot)
+            lx, ly = lx + oc[0], ly + oc[1]
+            if bottom:
+                ly = -ly
+            bx, by = rot_ydown(lx, ly, fp_rot)
             corners.append((bx + fp_pos[0], by + fp_pos[1]))
     xs = [c[0] for c in corners]
     ys = [c[1] for c in corners]
@@ -448,14 +453,20 @@ def collect(board, side):
             pxs += [pb.GetLeft() / 1e6, pb.GetRight() / 1e6]
             pys += [pb.GetTop() / 1e6, pb.GetBottom() / 1e6]
         padbb = (min(pxs), min(pys), max(pxs), max(pys)) if pxs else None
-        fp.SetOrientationDegrees(0)
         pads = {}
         for p in fp.Pads():
             n = canonical_pad_number(p.GetNumber())
             if n:
-                pads.setdefault(n, []).append((p.GetPosition().x / 1e6,
-                                               p.GetPosition().y / 1e6))
-        fp.SetOrientationDegrees(rot)
+                x = p.GetPosition().x / 1e6
+                y = p.GetPosition().y / 1e6
+                # Board coordinates -> the library's unflipped local frame.
+                # This arithmetic is intentionally local to A-RENDER rather
+                # than imported from jlc_twin (canon M1).  It is separately
+                # pinned against pcbnew for a rotated asymmetric B.Cu part.
+                lx, ly = board_to_local(x - pos[0], y - pos[1], rot)
+                if fp.IsFlipped():
+                    ly = -ly
+                pads.setdefault(n, []).append((lx, ly))
         out.append(dict(ref=ref, cy=cy, has_other=bool(other.OutlineCount()),
                         pos=pos, rot=rot, pads=pads, padbb=padbb,
                         bottom=fp.GetLayer() != pcbnew.F_Cu,
@@ -578,14 +589,29 @@ def read_model_adjudications(path):
     for row in rows:
         if not isinstance(row, dict) or not row.get("lcsc"):
             continue
-        dst = out.setdefault(str(row["lcsc"]), {})
+        code = str(row["lcsc"])
+        dst = out.setdefault(code, {})
         for key in ("model_dx", "model_dy", "board_dx", "board_dy",
-                    "model_rot_z", "pad_alias", "mount_anchor"):
+                    "model_rot_z", "pad_alias", "mount_anchor",
+                    "render_model_extension", "plan_bbox_expand_mm"):
             if row.get(key) is not None:
-                dst[key] = (dict(row[key]) if key in ("pad_alias",
-                                                       "mount_anchor")
-                            else float(row[key]))
+                if key in ("pad_alias", "mount_anchor"):
+                    dst[key] = dict(row[key])
+                elif key == "render_model_extension":
+                    ext = str(row[key]).strip().lower()
+                    if not ext.startswith("."):
+                        ext = "." + ext
+                    if ext not in (".step", ".stp", ".wrl"):
+                        raise ValueError(f"render_model_extension for {code} "
+                                         f"must be STEP/STP/WRL")
+                    dst[key] = ext
+                else:
+                    dst[key] = float(row[key])
     for code, row in out.items():
+        expand = row.get("plan_bbox_expand_mm", 0.0)
+        if not math.isfinite(expand) or expand < 0:
+            raise ValueError(f"plan_bbox_expand_mm for {code} must be a "
+                             f"finite non-negative number")
         anchor = row.get("mount_anchor")
         if anchor is None:
             continue
@@ -606,7 +632,7 @@ def read_model_adjudications(path):
     return out
 
 
-def explicit_anchor_geometry(anchor, our_pads, jlc_pads, footprint_pos):
+def explicit_anchor_geometry(anchor, our_pads, jlc_pads, footprint_pos=None):
     """Return (our-local datum, JLC-local datum, angle) for a unique-pad
     mount anchor.  Both sides must name exactly one centre: accepting a
     duplicated pad here would recreate the centroid ambiguity this feature
@@ -617,7 +643,9 @@ def explicit_anchor_geometry(anchor, our_pads, jlc_pads, footprint_pos):
         raise ValueError(f"anchor {anchor['our_pad']}->{anchor['jlc_pad']} "
                          f"requires one pad centre on each side; found "
                          f"ours={len(op)}, JLC={len(jp)}")
-    oc = (op[0][0] - footprint_pos[0], op[0][1] - footprint_pos[1])
+    oc = op[0]
+    if footprint_pos is not None:
+        oc = (oc[0] - footprint_pos[0], oc[1] - footprint_pos[1])
     return oc, jp[0], anchor["angle"]
 
 
@@ -636,6 +664,12 @@ def board_to_local(bdx, bdy, rot_deg):
     th = math.radians(rot_deg)
     return (bdx * math.cos(th) - bdy * math.sin(th),
             bdx * math.sin(th) + bdy * math.cos(th))
+
+
+def board_delta_to_footprint_local(bdx, bdy, rot_deg, bottom=False):
+    """Board-frame delta -> the footprint library's unflipped local frame."""
+    lx, ly = board_to_local(bdx, bdy, rot_deg)
+    return (lx, -ly if bottom else ly)
 
 
 def apply_pad_alias(pads, alias):
@@ -781,23 +815,6 @@ def main(argv=None):
             continue
         if p["cy"] is None:
             continue                       # not on the side being rendered
-        if p["bottom"]:
-            # MEASURED 2026-07-26: jlc_twin cannot mount a body on a
-            # bottom-side footprint at all. Flip crow-recorder-central-v2's
-            # J1 to B.Cu and its own gate reports `MIRRORED mirror fit 0.00mm
-            # vs non-mirror 6.00mm` and refuses the mount — the flip IS a
-            # mirror, and the detector that exists to catch a mirror-NUMBERED
-            # land pattern cannot tell the two apart. So a bottom render never
-            # carries a JLC body today, and this gate has no calibrated
-            # mirror for the model transform either. Refusing to compute an
-            # expectation is the honest state; INVENTING one and passing it
-            # would be the `jlc_twin` exit-0 class over again.
-            no_model[ref] = (f"{code}: bottom-side footprint — jlc_twin reads "
-                             f"the flip as MIRRORED and mounts no body, and "
-                             f"this gate has no calibrated mirror for the "
-                             f"model transform. NOT graded, and not counted "
-                             f"as covered")
-            continue
         mod = cache.get(code)
         if not mod:
             no_model[ref] = f"{code}: no JLC footprint cached (never fetched)"
@@ -812,6 +829,15 @@ def main(argv=None):
             no_model[ref] = f"{code}: mesh {Path(model['file']).name} unreadable"
             continue
         adj = model_adjudications.get(code, {})
+        expand = adj.get("plan_bbox_expand_mm", 0.0)
+        if expand:
+            # The selected render representation can be a manufacturer STEP
+            # while the independently parsed catalog geometry remains WRL.
+            # Record the measured symmetric plan-envelope delta explicitly;
+            # centre alignment and the ordinary A-RENDER tolerance remain
+            # fully active, so this cannot waive a translated model.
+            mesh = (mesh[0] - expand, mesh[1] - expand,
+                    mesh[2] + expand, mesh[3] + expand)
         jpads = apply_pad_alias(jpads, adj.get("pad_alias"))
         common = set(p["pads"]) & set(jpads)
         if not common:
@@ -819,11 +845,11 @@ def main(argv=None):
             continue
         no = sum(len(p["pads"][k]) for k in common)
         nj = sum(len(jpads[k]) for k in common)
-        oc = (sum(x for k in common for x, _ in p["pads"][k]) / no - p["pos"][0],
-              sum(y for k in common for _, y in p["pads"][k]) / no - p["pos"][1])
+        oc = (sum(x for k in common for x, _ in p["pads"][k]) / no,
+              sum(y for k in common for _, y in p["pads"][k]) / no)
         jc = (sum(x for k in common for x, _ in jpads[k]) / nj,
               sum(y for k in common for _, y in jpads[k]) / nj)
-        ours_c = {k: [(x - p["pos"][0] - oc[0], y - p["pos"][1] - oc[1])
+        ours_c = {k: [(x - oc[0], y - oc[1])
                       for x, y in v] for k, v in p["pads"].items()}
         jlc_c = {k: [(x - jc[0], y - jc[1]) for x, y in v]
                  for k, v in jpads.items()}
@@ -835,7 +861,7 @@ def main(argv=None):
         if not fitted and anchor:
             try:
                 oc, jc, ang = explicit_anchor_geometry(
-                    anchor, p["pads"], jpads, p["pos"])
+                    anchor, p["pads"], jpads)
             except ValueError as exc:
                 print(f"OVERLAY REFUSED: invalid mount_anchor for {code} "
                       f"at {ref}: {exc}", file=sys.stderr)
@@ -844,8 +870,9 @@ def main(argv=None):
         ldx = adj.get("model_dx", 0.0)
         ldy = adj.get("model_dy", 0.0)
         if adj.get("board_dx") is not None or adj.get("board_dy") is not None:
-            cdx, cdy = board_to_local(adj.get("board_dx", 0.0),
-                                      adj.get("board_dy", 0.0), p["rot"])
+            cdx, cdy = board_delta_to_footprint_local(
+                adj.get("board_dx", 0.0), adj.get("board_dy", 0.0),
+                p["rot"], p["bottom"])
             ldx += cdx
             ldy += cdy
         oc = (oc[0] + ldx, oc[1] + ldy)
@@ -853,7 +880,7 @@ def main(argv=None):
         model_expected["rotz"] = (model_expected["rotz"]
                                    + adj.get("model_rot_z", 0.0)) % 360
         exp = expected_bbox(mesh, model_expected, jc, oc, ang,
-                            p["rot"], p["pos"])
+                            p["rot"], p["pos"], p["bottom"])
         expected[ref] = dict(exp=exp, ang=ang, fitted=fitted,
                              anchored=anchored, anchor=anchor, code=code,
                              fit_err=fits[0][0] if fits else None,

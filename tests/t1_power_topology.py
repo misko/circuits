@@ -373,6 +373,56 @@ def t_margin_component_breakdown_mismatch():
     contains(r.out, "ir_budget_mohm is 70", "names the graded scalar")
 
 
+@test("E-MARGIN derives a shared protected floor at trunk current")
+def t_shared_upstream_delivery_pass():
+    upstream = """upstream_delivery:
+  source_net: VIN
+  destination_net: VPROTECTED
+  source_min_V: 5.20
+  destination_floor_V: 4.89
+  load_current_A: 2.58
+  margin: 0.05
+  evidence: exact fuse, eFuse and common-path budget
+  rails: [USB]
+  fixed_drop_components_mV:
+    fuse: {value: 121, basis: engineering_bound, evidence: exact fuse dossier}
+  resistance_components_mohm:
+    efuse: {value: 45, basis: manufacturer_maximum, evidence: exact eFuse dossier}
+    common: {value: 18, basis: budgeted_max, evidence: holder and copper qualification}
+"""
+    d = project(upstream + ptree(railx("USB", 4.89, 5.25, 4.89, 5.25, 0.5,
+                                      "LM5116MHX-NOPB", load_uv_threshold=4.75,
+                                      ir_budget_mohm=80)),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(margin(d), "shared input delivery proof")
+    contains(r.out, "derived floor", "prints the derived intermediate voltage")
+    contains(r.out, "fuse=121", "prints the fixed-drop component")
+    contains(r.out, "efuse=45", "prints the trunk-resistance component")
+
+
+@test("E-MARGIN rejects an assumed shared floor above its derivation", kind="known_bad")
+def t_shared_upstream_delivery_circular_floor_fails():
+    upstream = """upstream_delivery:
+  source_net: VIN
+  destination_net: VPROTECTED
+  source_min_V: 5.10
+  destination_floor_V: 4.89
+  load_current_A: 2.58
+  evidence: incident fixture
+  rails: [USB]
+  fixed_drop_components_mV:
+    fuse: {value: 121, basis: engineering_bound, evidence: exact fuse dossier}
+  resistance_components_mohm:
+    efuse: {value: 45, basis: manufacturer_maximum, evidence: exact eFuse dossier}
+"""
+    d = project(upstream + ptree(railx("USB", 4.89, 5.25, 4.89, 5.25, 0.5,
+                                      "LM5116MHX-NOPB", load_uv_threshold=4.75,
+                                      ir_budget_mohm=80)),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "circular protected-floor incident", "derived worst-low")
+    contains(r.out, "4.863 V derived floor", "reproduces the USB hub defect")
+
+
 @test("E-MARGIN FAILS THE INCIDENT (floor mode): 4.97V into a Pi5 at 5A = 68mOhm",
       kind="known_bad")
 def t_margin_incident_floor():

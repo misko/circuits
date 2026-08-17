@@ -511,6 +511,65 @@ def _load_ir_components(raw, total, name):
     return out
 
 
+def _load_upstream_delivery(raw):
+    """Load a shared input-path voltage-floor proof.
+
+    Per-output IR budgets run at one output's current.  A fuse fixed-drop and
+    aggregate eFuse instead run at the shared trunk current; folding those
+    terms into every output rail either assumes an unproved intermediate
+    voltage or applies the wrong current.  This block derives that intermediate
+    floor once and binds every named consumer rail to it.
+    """
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise LoadError("upstream_delivery must be a mapping")
+    text_fields = ("source_net", "destination_net", "evidence")
+    out = {}
+    for field in text_fields:
+        value = str(raw.get(field, "")).strip()
+        if not value:
+            raise LoadError(f"upstream_delivery.{field} is required")
+        out[field] = value
+    for field in ("source_min_V", "destination_floor_V", "load_current_A"):
+        value = _num(raw.get(field), f"upstream_delivery.{field}", "shared input")
+        if value <= 0:
+            raise LoadError(f"upstream_delivery.{field} must be > 0")
+        out[field] = value
+    margin = _num(raw.get("margin", 0), "upstream_delivery.margin", "shared input")
+    if margin < 0:
+        raise LoadError("upstream_delivery.margin must be >= 0")
+    out["margin"] = margin
+    rails = raw.get("rails")
+    if not isinstance(rails, list) or not rails or any(not str(x).strip() for x in rails):
+        raise LoadError("upstream_delivery.rails must be a non-empty rail-name list")
+    out["rails"] = [str(x).strip() for x in rails]
+    if len(set(out["rails"])) != len(out["rails"]):
+        raise LoadError("upstream_delivery.rails contains duplicates")
+
+    def components(field):
+        values = raw.get(field)
+        if not isinstance(values, dict) or not values:
+            raise LoadError(f"upstream_delivery.{field} must be a non-empty mapping")
+        parsed = {}
+        for label, entry in values.items():
+            if not str(label).strip() or not isinstance(entry, dict):
+                raise LoadError(f"upstream_delivery.{field} entries need a label and mapping")
+            if "value" not in entry:
+                raise LoadError(f"upstream_delivery.{field}.{label} is missing value")
+            value = _num(entry["value"], f"upstream_delivery.{field}.{label}.value", "shared input")
+            basis = str(entry.get("basis", "")).strip()
+            evidence = str(entry.get("evidence", "")).strip()
+            if value < 0 or not basis or not evidence:
+                raise LoadError(f"upstream_delivery.{field}.{label} needs non-negative value, basis and evidence")
+            parsed[str(label)] = {"value": value, "basis": basis, "evidence": evidence}
+        return parsed
+
+    out["fixed_drop_components_mV"] = components("fixed_drop_components_mV")
+    out["resistance_components_mohm"] = components("resistance_components_mohm")
+    return out
+
+
 # slack absorbing an honestly-ROUNDED declared corner (0.5 mV), never a
 # tolerance term someone actually omitted (those move the corner 10s of mV).
 _FB_ROUND_SLACK_V = 0.0005
@@ -573,7 +632,9 @@ def load_rails(path):
            "pack_capacity_mah": data.get("pack_capacity_mah"),
            "source_voltage_boundary": data.get("source_voltage_boundary"),
            # E-MARGIN floor used for a rail that declares no ir_budget_mohm:
-           "ir_floor_mohm": data.get("ir_floor_mohm")}
+           "ir_floor_mohm": data.get("ir_floor_mohm"),
+           "upstream_delivery": _load_upstream_delivery(
+               data.get("upstream_delivery"))}
 
     rails = []
     for i, r in enumerate(rails_raw):
@@ -722,6 +783,11 @@ def load_rails(path):
     by_name = {r["name"]: r for r in rails}
     if len(by_name) != len(rails):
         raise LoadError("power_tree.yaml rail names must be unique")
+    upstream = top.get("upstream_delivery")
+    if upstream:
+        missing = sorted(set(upstream["rails"]) - set(by_name))
+        if missing:
+            raise LoadError(f"upstream_delivery names absent rails: {missing}")
     for rail in rails:
         parent_name = rail.get("input_parent")
         if not parent_name:
@@ -1022,6 +1088,38 @@ DEFAULT_IR_FLOOR_MOHM = 100.0    # a bare realistic board+connector+cable path
 DEFAULT_MARGIN = 0.20            # headroom must beat the IR drop by this much
 
 
+def grade_upstream_delivery(upstream, rails):
+    """Derive the shared protected-trunk floor from the admitted source."""
+    if upstream is None:
+        return "N-A", None
+    fixed = sum(v["value"] for v in upstream["fixed_drop_components_mV"].values())
+    resistance = sum(v["value"] for v in upstream["resistance_components_mohm"].values())
+    nominal_drop_mv = fixed + resistance * upstream["load_current_A"]
+    charged_drop_mv = nominal_drop_mv * (1 + upstream["margin"])
+    derived = upstream["source_min_V"] - charged_drop_mv / 1000.0
+    declared = upstream["destination_floor_V"]
+    fixed_text = " + ".join(
+        f"{k}={v['value']:g}" for k, v in upstream["fixed_drop_components_mV"].items())
+    resistance_text = " + ".join(
+        f"{k}={v['value']:g}" for k, v in upstream["resistance_components_mohm"].items())
+    hdr = (f"shared {upstream['source_net']}->{upstream['destination_net']}: "
+           f"{upstream['source_min_V']:.3f} V - [fixed {fixed_text} mV + "
+           f"({resistance_text} mOhm) x {upstream['load_current_A']:g} A] x "
+           f"{1 + upstream['margin']:.2f} = {derived:.3f} V derived floor; "
+           f"declared {declared:.3f} V")
+    problems = []
+    if declared > derived + 1e-9:
+        problems.append("declared protected floor exceeds the derived worst-low")
+    by_name = {r["name"]: r for r in rails}
+    for name in upstream["rails"]:
+        if by_name[name]["vin_min"] > declared + 1e-9:
+            problems.append(
+                f"rail {name!r} vin_min {by_name[name]['vin_min']:.3f} V exceeds the declared shared floor")
+    if problems:
+        return "FAIL", f"{hdr} -> FAIL: " + "; ".join(problems)
+    return "PASS", f"{hdr} -> PASS ({upstream['evidence']})"
+
+
 def grade_margin(rail, ir_floor_mohm):
     """Grade ONE rail's output-setpoint load margin. Returns (verdict, msg);
     verdict in PASS / FAIL / N-A. N-A unless the rail declares
@@ -1123,7 +1221,8 @@ def run_margin_check(proj, ptp, nets_override=None):
         return 0, ["E-MARGIN N-A: power_tree.yaml has no rails"]
     ir_floor = top.get("ir_floor_mohm")
     ir_floor = DEFAULT_IR_FLOOR_MOHM if ir_floor is None else float(ir_floor)
-    graded = [grade_margin(r, ir_floor) for r in rails]
+    graded = [grade_upstream_delivery(top.get("upstream_delivery"), rails)]
+    graded += [grade_margin(r, ir_floor) for r in rails]
     # a declared-vs-computed feedback window that under-states its corners is
     # an E-MARGIN defect too: the headroom everyone reasons from is fiction.
     graded += [grade_feedback_window(r) for r in rails]

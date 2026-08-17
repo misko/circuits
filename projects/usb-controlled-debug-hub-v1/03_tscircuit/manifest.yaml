@@ -2,7 +2,7 @@
 components:
   - J_PWR
   - F_IN
-  - Q_RP
+  - U_AGG
   - U_BUCK
   - L_MAIN
   - J_UP
@@ -34,8 +34,10 @@ components:
   - J_PORT2
   - J_PORT3
   - J_PORT4
-  - R_QRP_GATE
-  - R_QRP_SOURCE
+  - R_AGG_UV_TOP
+  - R_AGG_UV_MID
+  - R_AGG_OV_BOT
+  - R_AGG_ILIM
   - R_XTAL
   - R_RBIAS
   - R_HUB_RESET
@@ -91,6 +93,10 @@ components:
   - R_PWR_EN4
   - C_TRUNK_HF
   - C_TRUNK_BULK
+  - C_TRUNK_USB
+  - C_AGG_IN
+  - C_AGG_TIMER
+  - C_AGG_DVDT
   - C_BUCK_IN
   - C_BST
   - C_BUCK_OUT1

@@ -421,9 +421,20 @@ def main(argv=None):
             sys.exit(f"generate_rules_generic: scoped_clearances[{i}] "
                      f"(zone {zone}) has no `clearance`")
         cnets = sc.get("nets") or []
-        if not cnets:
+        nets_a = sc.get("nets_a") or []
+        nets_b = sc.get("nets_b") or []
+        pair_scoped = bool(nets_a or nets_b)
+        if pair_scoped and (not nets_a or not nets_b):
             sys.exit(f"generate_rules_generic: scoped_clearances[{i}] "
-                     f"(zone {zone}) has no `nets` — clearance is a property "
+                     f"(zone {zone}) must provide BOTH `nets_a` and `nets_b` "
+                     f"— a one-sided pair scope is ambiguous")
+        if cnets and pair_scoped:
+            sys.exit(f"generate_rules_generic: scoped_clearances[{i}] "
+                     f"(zone {zone}) mixes legacy `nets` with `nets_a`/"
+                     f"`nets_b` — choose one isolation model")
+        if not cnets and not pair_scoped:
+            sys.exit(f"generate_rules_generic: scoped_clearances[{i}] "
+                     f"(zone {zone}) has no `nets` or `nets_a`/`nets_b` — clearance is a property "
                      f"of a PAIR, and 'every pair inside this area' is not an "
                      f"isolation argument. Name the nets whose isolation is "
                      f"being reduced (`nets` is optional for scoped_floors "
@@ -444,8 +455,16 @@ def main(argv=None):
         while rname in clr_names:
             rname += "_"
         clr_names.add(rname)
-        clause = " || ".join(f"A.NetName == '{n}' || B.NetName == '{n}'"
-                             for n in cnets)
+        if pair_scoped:
+            a_on_a = " || ".join(f"A.NetName == '{n}'" for n in nets_a)
+            b_on_b = " || ".join(f"B.NetName == '{n}'" for n in nets_b)
+            a_on_b = " || ".join(f"A.NetName == '{n}'" for n in nets_b)
+            b_on_a = " || ".join(f"B.NetName == '{n}'" for n in nets_a)
+            clause = (f"(({a_on_a}) && ({b_on_b})) || "
+                      f"(({a_on_b}) && ({b_on_a}))")
+        else:
+            clause = " || ".join(f"A.NetName == '{n}' || B.NetName == '{n}'"
+                                 for n in cnets)
         cond = (f"A.insideArea('{zone}') && B.insideArea('{zone}') "
                 f"&& ({clause})")
         clr_rules.append(

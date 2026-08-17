@@ -319,7 +319,10 @@ class Preflight:
             sc = sc or {}
             v = _mm(sc.get("clearance"))
             if sc.get("zone") and v is not None:
-                out.append((sc["zone"], v, list(sc.get("nets") or [])))
+                scoped_nets = (list(sc.get("nets") or [])
+                               + list(sc.get("nets_a") or [])
+                               + list(sc.get("nets_b") or []))
+                out.append((sc["zone"], v, scoped_nets))
         return out
 
     def route_clearance_scopes(self):

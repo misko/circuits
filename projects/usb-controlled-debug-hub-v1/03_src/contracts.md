@@ -24,7 +24,7 @@ per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 |---|---|---|
 | `floorplan.yaml` | placement config: outline, mounting holes, `fiducials {footprint, refdes_prefix, at[]}` (>=3 non-collinear; board-only, BOM- and CPL-excluded — a fiducial has no net, no BOM line and no placement row, so it is a BOARD FEATURE, not a part), named regions, anchors, `repeat:` banks, keepouts (incl. `deny: []` PERMISSIVE DRU anchors — the thing `rules/nets.yaml` `scoped_floors` scopes a width relaxation to), zones, silk, orientation asserts. **THIS FILE IS ALSO WHERE A GENERIC-BACKEND BOARD SATISFIES P-POL AND P-KEEP** (canon P2/P3): `asserts.pad_net[]` is the pad-1-net polarity check — `generate_board_generic.run_asserts()` hard-fails the driver on a mismatch — and `keepouts[]` / `board.mounting_holes` are half the keepout declaration (`route.yaml prep.keepouts` and `rules/mates.yaml` are the rest). `policy_audit.py` grades the PRESENCE of both and NAMES which home satisfied it with a count; an EMPTY block satisfies nothing (canon M-COVER). Before 2026-07-30 both checks grepped `03_src/` for the per-board Python ADR-0002 abolished, so every compliant board carried two verbatim waivers | SHARED `generate_board_generic.py`, `policy_audit.py` (P-POL/P-KEEP presence) |
 | `thermal_vias` | Optional fabrication-via declarations. Preferred `fields[]` rows name `ref` or `refs`, an owning `pad`, `size`, `drill`, and non-empty footprint-relative `at` coordinates; optional shared/field-level `protection: {capping,filling}` emits item-level IPC-4761 overrides, not an ambiguous board default. The generator resolves the pad's live nonzero net and emits true board-level vias without modifying the library-linked footprint. Legacy `promote_heatsink_pads[]` instead replaces every drilled `pad_prop_heatsink` subpad on each named footprint with an identical true via and clears the now-modified embedded footprint's library ID while preserving its source FPID in the description. These are the JLC fill/cap boundary: component PTH holes are not vias and ordinary route vias must not silently inherit a via-covering order. Unknown refs/pads, empty matches, invalid geometry/protection, slots and unnetted marks refuse. | SHARED `generate_board_generic.py` |
-| `route.yaml` | routing + stitch config plus `flow.pre_route_reviews` exact-artifact bindings, `route.preflight_critical_pairs` (R-PAIRMAP/R-CRITESC), and optional `via_ampacity` series-boundary declarations (A-VIA). Every critical differential pair is assigned to the differential engine, length-match group, allowed layers, and via policy before routing; the realized board is rechecked after stitch. An explicitly selected existing `route.final` is P-ROUTEBASE-compared to the exact prepared r0—including deterministic seed segments/vias—before placement review. | SHARED `pre_route_review_check.py`, `promoted_route_check.py`, `critical_route_check.py`, `via_ampacity_check.py`, `route_and_stitch_generic.py` |
+| `route.yaml` | routing + stitch config plus `flow.pre_route_reviews` exact-artifact bindings, `route.preflight_critical_pairs` (R-PAIRMAP/R-CRITESC), optional hash-bound `route.prefix`, and optional `via_ampacity` series-boundary declarations (A-VIA). Every critical differential pair is assigned to the differential engine, length-match group, allowed layers, and via policy before routing; the realized board is rechecked after stitch. A prefix must match the exact prepared r0 and pass P-ROUTEBASE, physical DRC, and connected critical-pair checks before later waves consume it. An explicitly selected existing `route.final` is independently P-ROUTEBASE-compared before placement review. | SHARED `pre_route_review_check.py`, `promoted_route_check.py`, `critical_route_check.py`, `via_ampacity_check.py`, `route_and_stitch_generic.py` |
 | `rules/integration.yaml` | P-MOD module-first architecture record: every complex subsystem selects a module or carries a bare-IC exception with binding requirement, measured/cited comparison, considered modules and ADR. Absent means legacy/unmigrated, never pass | SHARED `module_first_check.py`, `policy_audit.py` |
 | `rules/` | machine-enforced design intent, including `requirements.yaml` (D-SPEC/E-PATH), `power_tree.yaml` (E-TOPO/E-MARGIN), `power_stages.yaml` (E-SWDRV), `protection_paths.yaml` (E-SURGE), `nets.yaml`, `electrical_invariants.yaml`, `assembly.yaml`, and review/waiver records; see `rules/contracts.md` | SHARED semantic gates, rule generator, policy audit, assembly coverage, and jlc_twin |
 | `route/**` | the PROMOTED KRT chain (`*.kicad_pcb`) — a committed ARTIFACT, not code (canon M3); `import` replays it deterministically | SHARED `route_and_stitch_generic.py import` |
@@ -68,6 +68,7 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | 5 | `$S/generate_rules_generic.py .` — netclasses BEFORE route-prep (canon R1) | any python3 |
 | 5b | `$S/tier_preflight.py .` — canon R-PREFLIGHT: every routing/stitch/rescue parameter with a DRC-floor twin proven consistent with the declared fab tier BEFORE any KRT cycle; `route` refuses on FAIL by itself, but the template replays a promoted chain via `import`, so the rebuild runs the gate explicitly | any python3 (no pcbnew) |
 | 6 | `$S/route_and_stitch_generic.py prep 03_src/route.yaml` (netclass-carrying, track-free route input) | `/usr/bin/python3` |
+| 6a | `$FS/model_registration_gate.py` then bounded `$FS/connector_orientation_gate.py` — **P-MODEL-REG + P-ORIENT**: prove native body registration first, then grade every declared edge connector's mouth/model axes and manufacturer mating plane against the single `floorplan.yaml` edge authority. Progress-visible exact-board views require an explicit hash-bound human decision; repeated identical tuples share one visual representative while every physical ref remains machine-graded. | `/usr/bin/python3` + human |
 | 6b | `$S/pre_route_review_check.py . --phase placement --board 04_kicad/<board>.kicad_pcb` — **P-ROUTEBASE + PR-REVIEW**: first prove an existing promoted route derives from this exact prepared r0 (placement, source/prepared vias and prepared segments), then require independent pin/layout/render reviews plus same-camera A-RENDER bound to the exact track-free board and adopted design-rule SHA before route import. | `/usr/bin/python3` + human/fresh-context review |
 | 7 | `$S/route_and_stitch_generic.py import 03_src/route.yaml` (replay the promoted `route/` chain — canon M3) | `/usr/bin/python3` |
 | 7b | `$S/route_and_stitch_generic.py taps 03_src/route.yaml` — only if `taps:` configured (no-op otherwise); pour-fed sense pins / boxed-in pads, before the pours fill | `/usr/bin/python3` |
@@ -325,6 +326,10 @@ in the `02_parts` contract. These two are this folder's own.
 | `placement.patterns[].attrs` | `generate_board_generic.py` | footprint attributes |
 | `placement.patterns[].clear_attrs` | `generate_board_generic.py` | attribute removal |
 | `placement.patterns[].model_override` | `generate_board_generic.py` | scalar path, or `{file, offset?, scale?, rotate?}`; replaces a footprint model with source-bound non-empty CAD, preserving the existing transform unless explicit three-number vectors override it; multiple matching overrides for one refdes are an error |
+| `placement.patterns[].model_override.file` | `generate_board_generic.py` | source-bound non-empty CAD path; unresolved variables or missing/empty files fail before board save |
+| `placement.patterns[].model_override.offset` | `generate_board_generic.py` | optional three-number model translation; malformed vectors fail |
+| `placement.patterns[].model_override.scale` | `generate_board_generic.py` | optional three-number model scale; malformed vectors fail |
+| `placement.patterns[].model_override.rotate` | `generate_board_generic.py` | optional three-number model rotation; malformed vectors fail |
 | `placement.patterns[].pad_overrides[].on_net` | `generate_board_generic.py, net_reference_audit.py` | pad-override selector (E-NETREF K10) |
 | `placement.patterns[].pad_overrides[].pads` | `generate_board_generic.py` | pad selector |
 | `placement.patterns[].pad_overrides[].clearance` | `generate_board_generic.py` | per-pad clearance |
@@ -351,18 +356,31 @@ in the `02_parts` contract. These two are this folder's own.
 | `keepouts[].deny` | `generate_board_generic.py` | what the rule area denies |
 | `keepouts[].rect` | `generate_board_generic.py` | rule-area outline |
 | `keepouts[].points` | `generate_board_generic.py` | rule-area polygon |
+| `keepouts[].ref` | `generate_board_generic.py` | optional footprint owner whose realised copper-pad bounds define a placement-following package-local rule area; mutually exclusive with `rect`, `points`, and `region` |
+| `keepouts[].margin_mm` | `generate_board_generic.py` | optional non-negative expansion around a ref-bound realised copper-pad envelope |
 | `escape_corridors[].ref` | `generate_board_generic.py` | P-ESC corridor owner |
 | `escape_corridors[].side` | `generate_board_generic.py` | corridor side |
 | `escape_corridors[].depth_mm` | `generate_board_generic.py` | corridor depth |
+| `escape_corridors[].width_mm` | `generate_board_generic.py` | optional positive corridor span across the selected package side; omission uses the complete side |
+| `escape_corridors[].layers` | `generate_board_generic.py` | optional non-empty KiCad layer set for the generated named rule area; defaults to F.Cu |
 | `asserts.pad_net[].ref` | `generate_board_generic.py, net_reference_audit.py, policy_audit.py` | pad-net assertion (E-NETREF K9) |
 | `asserts.pad_net[].pad` | `generate_board_generic.py, net_reference_audit.py, policy_audit.py` | pad-net assertion |
 | `asserts.pad_net[].net` | `generate_board_generic.py, net_reference_audit.py, policy_audit.py` | pad-net assertion |
 | `asserts.body_offset[].ref` | `generate_board_generic.py` | body-offset assertion |
 | `asserts.body_offset[].axis` | `generate_board_generic.py` | body-offset assertion |
 | `asserts.body_offset[].sign` | `generate_board_generic.py` | body-offset assertion |
+| `asserts.edge_faces[].ref` | `generate_board_generic.py` | edge-mounted connector whose mating-face displacement must point toward its declared board edge |
+| `asserts.edge_faces[].edge` | `generate_board_generic.py` | semantic outward board edge (`x0`, `x1`, `y0`, or `y1`) |
+| `asserts.edge_faces[].min_offset_mm` | `generate_board_generic.py` | optional strict minimum body-vs-pad centroid displacement toward the declared edge |
 | `asserts.pad_order[].ref` | `generate_board_generic.py` | pad-order assertion |
 | `asserts.pad_order[].axis` | `generate_board_generic.py` | pad-order assertion |
 | `asserts.pad_order[].pads` | `generate_board_generic.py` | pad-order assertion |
+| `asserts.pad_bank_faces[].ref` | `generate_board_generic.py` | realised functional-pad-bank owner; catches a close-but-backwards mux, filter, or shunt protector |
+| `asserts.pad_bank_faces[].pads` | `generate_board_generic.py` | functional/front pad numbers on the owner |
+| `asserts.pad_bank_faces[].toward_ref` | `generate_board_generic.py` | adjacent target footprint the bank must face |
+| `asserts.pad_bank_faces[].toward_pads` | `generate_board_generic.py` | target pad bank used as the directional datum |
+| `asserts.pad_bank_faces[].behind_pads` | `generate_board_generic.py` | owner pad bank that must remain farther from the target |
+| `asserts.pad_bank_faces[].margin_mm` | `generate_board_generic.py` | optional minimum positive front-vs-rear distance advantage |
 | `asserts.pad_beyond_edge[].ref` | `generate_board_generic.py` | edge-overhang assertion |
 | `asserts.pad_beyond_edge[].pad` | `generate_board_generic.py` | edge-overhang assertion |
 | `asserts.pad_beyond_edge[].edge` | `generate_board_generic.py` | edge-overhang assertion |
@@ -455,13 +473,21 @@ two cannot drift apart without the router failing to find its own pass.
 | `route.kicad_python` | `route_and_stitch_generic.py` | pcbnew-capable interpreter for route-wave geometry guards and race import/quick evaluation; KRT itself uses `route.python` or its own venv |
 | `route.race` | `route_and_stitch_generic.py` | parallel candidate count |
 | `route.forbid_new_via_in_pad` | `route_and_stitch_generic.py, via_in_pad_guard.py` | opt-in per-wave comparison that refuses router-created vias whose centres land in SMD copper while allowing reviewed source-owned vias already present in the wave input |
+| `route.wave_drc` | `route_and_stitch_generic.py` | opt-in bounded physical-DRC authentication after each partial route wave; permits expected opens while refusing shorts, clearance, width, hole, edge and coupling violations before promotion |
+| `route.wave_drc.*` | `route_and_stitch_generic.py` | optional `enabled` and closed `hard_types` overrides for the partial-wave physical DRC classifier |
+| `route.prefix` | `route_and_stitch_generic.py, promoted_route_check.py, critical_route_check.py` | optional reviewed wave-prefix mapping; exact prepared-base and prefix hashes, base inheritance, physical DRC, and connected critical pairs are authenticated before skipped waves |
+| `route.prefix.board` | `route_and_stitch_generic.py` | source-owned reviewed checkpoint materialized into the build chain |
+| `route.prefix.through_wave` | `route_and_stitch_generic.py` | exact last wave already represented by the checkpoint |
+| `route.prefix.r0_sha256` | `route_and_stitch_generic.py` | exact prepared-base digest; any source/prep drift refuses prefix reuse |
+| `route.prefix.board_sha256` | `route_and_stitch_generic.py` | exact reviewed checkpoint digest; post-review copper mutation refuses reuse |
+| `route.waves[].realized_width` | `route_and_stitch_generic.py, realized_track_width_guard.py` | opt-in output-board contract with nominal width, absolute fabrication floor, and per-net maximum sub-nominal segment count/total length; fails wholesale router shrinkage while making each bounded launch/bend discontinuity explicit and measurable |
 | `route.final` | `route_and_stitch_generic.py` | the chain file promoted |
 | `route.import_source` | `route_and_stitch_generic.py` | explicit build/promoted lineage selected for route import; targets must not depend on stale-file precedence |
 | `route.common.*` | `route_and_stitch_generic.py` | per-run KRT geometry defaults |
 | `route.preflight_critical_pairs` | `critical_route_check.py` | critical-pair inventory cross-checked for completeness against independent `nets.yaml length_match` intent before routing and on realized copper; route/prep/import/stitch entry points enforce it directly |
 | `route.preflight_critical_pairs[].*` | `critical_route_check.py` | pair identity, P/N nets, routing wave, allowed layers, and via policy |
 | `route.no_critical_routes` | `critical_route_check.py` | explicit evidenced applicability decision when the inventory is empty |
-| `route.waves[].*` | `route_and_stitch_generic.py` | per-wave KRT overrides, validated against the netclass floors at PREP time |
+| `route.waves[].*` | `route_and_stitch_generic.py` | per-wave KRT overrides plus explicitly documented wrapper-owned postconditions, validated against the netclass floors at PREP time |
 | `via_ampacity.*` | `via_ampacity_check.py` | optional exact-board series-transition capacity contract: source/method/temperature, finished-hole capacity table and named tight rectangles with net, minimum via count, continuous-current requirement and physical reason |
 | `stitch.passes` | `route_and_stitch_generic.py` | the pass ORDER; a list with no `fill` is refused |
 | `stitch.clearance` | `route_and_stitch_generic.py` | stitch clearance |

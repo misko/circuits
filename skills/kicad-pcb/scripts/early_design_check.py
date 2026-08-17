@@ -580,6 +580,7 @@ def check_fault_envelopes(project: Path):
             "no_fault_envelope_requirements reason only when no independently "
             "limited outputs share an upstream path")
     invariant_values = asserted_part_values(project)
+    aliases = part_aliases(project)
     notes, seen_names = [], set()
     for i, env in enumerate(envelopes):
         where = f"E-FAULT fault_envelopes[{i}]"
@@ -619,15 +620,28 @@ def check_fault_envelopes(project: Path):
                     f"{count:g}")
             each_high = number(row.get("worst_high_each_A"),
                                f"{dw}.worst_high_each_A", positive=True)
-            refs = list_value(row.get("programmer_refs"),
-                              f"{dw}.programmer_refs")
-            if len(refs) != int(count):
+            programmer_refs = row.get("programmer_refs")
+            evidence_refs = row.get("evidence_refs")
+            if programmer_refs is not None and evidence_refs is not None:
                 raise ContractError(
-                    f"{dw}.programmer_refs has {len(refs)} refs, expected "
-                    f"count {int(count)}")
-            for ref in refs:
-                require_asserted_part(ref, f"{dw}.programmer_refs[]",
-                                      invariant_values)
+                    f"{dw} must use programmer_refs or evidence_refs, not both")
+            if programmer_refs is not None:
+                refs = list_value(programmer_refs, f"{dw}.programmer_refs")
+                if len(refs) != int(count):
+                    raise ContractError(
+                        f"{dw}.programmer_refs has {len(refs)} refs, expected "
+                        f"count {int(count)}")
+                for ref in refs:
+                    require_asserted_part(ref, f"{dw}.programmer_refs[]",
+                                          invariant_values)
+            else:
+                refs = list_value(evidence_refs, f"{dw}.evidence_refs")
+                if len(refs) != int(count):
+                    raise ContractError(
+                        f"{dw}.evidence_refs has {len(refs)} refs, expected "
+                        f"count {int(count)}")
+                for ref in refs:
+                    require_part(ref, f"{dw}.evidence_refs[]", aliases)
             text_value(row.get("evidence"), f"{dw}.evidence")
             downstream_sum += simultaneous * each_high
 
@@ -814,28 +828,64 @@ def check_fault_envelopes(project: Path):
         startup_where = f"{where}.aggregate_breaker.timer.startup"
         startup_ref, startup_c_min, _, _ = fault_cap_corners(
             startup, startup_where, invariant_values)
-        vin_min = number(startup.get("vin_min_V"), f"{startup_where}.vin_min_V",
-                         positive=True)
-        gate = number(startup.get("gate_overdrive_V"),
-                      f"{startup_where}.gate_overdrive_V", positive=True)
-        dvdt_current_max = number(startup.get("dvdt_current_max_uA"),
-                                  f"{startup_where}.dvdt_current_max_uA",
-                                  positive=True)
-        divisor = number(startup.get("itimer_divisor"),
-                         f"{startup_where}.itimer_divisor", positive=True)
-        tghi_min_ms = startup_c_min * (vin_min + gate) / dvdt_current_max
-        allowed_timer_nf = tghi_min_ms * 1_000_000.0 / divisor
-        if timer_c_max > allowed_timer_nf + 1e-12:
+        startup_model = str(startup.get("model") or
+                            "timer_to_gate_high_ratio").strip()
+        if startup_model == "slew_limited_output_bank":
+            coefficient = number(
+                startup.get("slew_coefficient_pF_V_per_ms"),
+                f"{startup_where}.slew_coefficient_pF_V_per_ms",
+                positive=True)
+            output_cap = number(startup.get("output_capacitance_max_uF"),
+                                f"{startup_where}.output_capacitance_max_uF",
+                                positive=True)
+            slew_max_v_per_ms = coefficient / (startup_c_min * 1000.0)
+            inrush_max_a = output_cap * slew_max_v_per_ms / 1000.0
+            expected_inrush = number(
+                startup.get("expected_inrush_max_A"),
+                f"{startup_where}.expected_inrush_max_A", positive=True)
+            inrush_tolerance = number(
+                startup.get("calculation_tolerance_A"),
+                f"{startup_where}.calculation_tolerance_A", positive=True)
+            if abs(expected_inrush - inrush_max_a) > inrush_tolerance + 1e-12:
+                raise ContractError(
+                    f"E-FAULT {name!r}: expected startup inrush "
+                    f"{expected_inrush:g} A does not match derived "
+                    f"{inrush_max_a:.6f} A")
+            if inrush_max_a > low + 1e-12:
+                raise ContractError(
+                    f"E-FAULT {name!r}: startup inrush {inrush_max_a:.6f} A "
+                    f"exceeds breaker worst-low threshold {low:.6f} A")
+            startup_note = (f"startup={startup_ref} gives "
+                            f"{slew_max_v_per_ms:.3f} V/ms, "
+                            f"{inrush_max_a:.3f} A")
+        elif startup_model == "timer_to_gate_high_ratio":
+            vin_min = number(startup.get("vin_min_V"),
+                             f"{startup_where}.vin_min_V", positive=True)
+            gate = number(startup.get("gate_overdrive_V"),
+                          f"{startup_where}.gate_overdrive_V", positive=True)
+            dvdt_current_max = number(startup.get("dvdt_current_max_uA"),
+                                      f"{startup_where}.dvdt_current_max_uA",
+                                      positive=True)
+            divisor = number(startup.get("itimer_divisor"),
+                             f"{startup_where}.itimer_divisor", positive=True)
+            tghi_min_ms = startup_c_min * (vin_min + gate) / dvdt_current_max
+            allowed_timer_nf = tghi_min_ms * 1_000_000.0 / divisor
+            if timer_c_max > allowed_timer_nf + 1e-12:
+                raise ContractError(
+                    f"E-FAULT {name!r}: {timer_ref} worst-high "
+                    f"{timer_c_max:.3f} nF exceeds {allowed_timer_nf:.3f} nF "
+                    f"allowed by {startup_ref} worst-low startup ramp "
+                    f"({tghi_min_ms:.3f} ms)")
+            startup_note = f"startup allows {allowed_timer_nf:.3f} nF"
+        else:
             raise ContractError(
-                f"E-FAULT {name!r}: {timer_ref} worst-high {timer_c_max:.3f} "
-                f"nF exceeds {allowed_timer_nf:.3f} nF allowed by "
-                f"{startup_ref} worst-low startup ramp ({tghi_min_ms:.3f} ms)")
+                f"{startup_where}.model {startup_model!r} is unknown")
 
         notes.append(
             f"E-FAULT {name}: normal/peak/fault={normal:g}/{peak:g}/"
             f"{downstream_sum:.3f} A, breaker={low:g}..{high:g} A, "
             f"timer={timer_min_ms:.3f}..{timer_max_ms:.3f} ms, "
-            f"startup allows {allowed_timer_nf:.3f} nF")
+            f"{startup_note}")
     return notes
 
 

@@ -1,7 +1,7 @@
 schema: 1
 paths: []
 no_surge_exposed_paths: >-
-  The admitted input is a bounded regulated SELV 5.10-5.25 V source; sustained
+  The admitted input is a bounded regulated SELV 5.20-5.25 V source; sustained
   overvoltage and cable-surge waveforms are outside the interface boundary.
-  USBLC6-2SC6 arrays handle connector IEC ESD under datasheet placement and
+  PESD2USB3UX-TR shunt arrays handle connector IEC ESD under datasheet placement and
   first-article obligations, not a sustained power-surge claim.

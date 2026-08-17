@@ -76,7 +76,8 @@ def gate(*extra, out=None, png=TOP, board=BOARD, side="top", bom=BOM,
 
 
 def synth_render(path, px_box=(100, 150, 700, 573), size=(800, 600),
-                 bodies=(), edge=EDGE, body_color=(90, 90, 90)):
+                 bodies=(), edge=EDGE, body_color=(90, 90, 90),
+                 mirror=False):
     """A minimal stand-in for a kicad-cli render: a SATURATED green rectangle
     for the board (which is all the calibrator needs) plus DESATURATED grey
     rectangles for bodies, in mm, projected with the caller's own arithmetic.
@@ -95,6 +96,8 @@ def synth_render(path, px_box=(100, 150, 700, 573), size=(800, 600),
     sx = (x1 - x0 + 1) / (edge[2] - edge[0])
     sy = (y1 - y0 + 1) / (edge[3] - edge[1])
     for (bx0, by0, bx1, by1) in bodies:
+        if mirror:
+            bx0, bx1 = edge[2] - bx1 + edge[0], edge[2] - bx0 + edge[0]
         for y in range(int(y0 + (by0 - edge[1]) * sy),
                        int(y0 + (by1 - edge[1]) * sy) + 1):
             for x in range(int(x0 + (bx0 - edge[0]) * sx),
@@ -209,6 +212,38 @@ def t_explicit_mount_anchor_geometry():
              "pad-1 origins produce a zero mount translation")
     contains(r.out, "ANCHOR 1->1 @0deg (failed fit 1.80mm)",
              "the report distinguishes an anchor from generic fallback")
+
+
+@test("a selected render representation carries an explicit symmetric plan "
+      "envelope without weakening centre registration")
+def t_render_representation_envelope_contract():
+    d = tmpdir("ovl_model_representation_")
+    adj = d / "adj.yaml"
+    adj.write_text(
+        "- lcsc: C86462\n"
+        "  status: MODEL-REG\n"
+        "  render_model_extension: step\n"
+        "  plan_bbox_expand_mm: 1.52\n")
+    probe = (
+        "import json,sys\n"
+        f"sys.path.insert(0,{str(FAB_SCRIPTS)!r})\n"
+        "from twin_overlay import read_model_adjudications\n"
+        "a=read_model_adjudications(sys.argv[1])['C86462']\n"
+        "mesh=(-6.0,-12.0,6.0,4.0); e=a['plan_bbox_expand_mm']\n"
+        "expanded=(mesh[0]-e,mesh[1]-e,mesh[2]+e,mesh[3]+e)\n"
+        "print('@@'+json.dumps([a['render_model_extension'],expanded]))\n")
+    r = must_pass(run([KPY, "-c", probe, adj]),
+                  "render representation envelope contract")
+    contains(r.out, '@@[".step", [-7.52, -13.52, 7.52, 5.52]]',
+             "selected extension and symmetric envelope are explicit")
+
+    bad = d / "bad.yaml"
+    bad.write_text(
+        "- lcsc: C86462\n"
+        "  render_model_extension: step\n"
+        "  plan_bbox_expand_mm: -1\n")
+    rb = run([KPY, "-c", probe, bad])
+    must_fail(rb, "negative envelope expansion", "non-negative")
 
 
 # ===================================================================== clean
@@ -435,6 +470,29 @@ def t_bottom_courtyard_is_mirrored():
           f"expectation {want_l:.1f}..{want_r:.1f}")
     # and it must not have graded anything it cannot grade
     contains(r.out, "NOTHING GRADED", "a run that grades nothing must say so")
+
+
+@test("A-RENDER grades a BOTTOM-side body in the unflipped library frame")
+def t_bottom_body_is_expected_and_measured():
+    """Flip the asymmetric J1 footprint to B.Cu and draw its body at the
+    independently derived bottom-side envelope.  KiCad represents this flip
+    as B.Cu plus orientation 180: local Y is side-mirrored, then the 180-degree
+    placement rotation makes the realised board envelope an X reflection of
+    the top envelope about J1's (24,102) anchor.  Thus
+    16.000..30.400 x 96.050..105.350 becomes
+    17.600..32.000 x 96.050..105.350; the bottom camera then mirrors board X
+    once more.  The fixture fails if either reflection is omitted or doubled."""
+    d = tmpdir("ovl_botbody_")
+    b = flip_j1(d / "board.kicad_pcb")
+    png = d / "twin_bottom.png"
+    synth_render(png, bodies=[(17.600, 96.050, 32.000, 105.350)], mirror=True)
+    r = run([KPY, OVL, b, png, "--side", "bottom",
+             "--twin-dir", FIX, "--bom", BOM, "--assembly", ASSY,
+             "--out", d / "ov", "--report", d / "r.md"])
+    must_pass(r, "A-RENDER on a faithful bottom-side body")
+    contains(r.out, "1 measured / 1 with an expected body",
+             "the bottom body participates in the gate denominator")
+    contains(r.out, "OVERLAY OK", "the faithful bottom body verdict")
 
 
 # ================================================================ known-bad

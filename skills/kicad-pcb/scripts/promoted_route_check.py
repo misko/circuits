@@ -2,6 +2,8 @@
 """P-ROUTEBASE: prove a promoted KRT chain derives from this exact base.
 
     /usr/bin/python3 promoted_route_check.py BOARD.kicad_pcb ROUTE.yaml
+    /usr/bin/python3 promoted_route_check.py --prepared r0.kicad_pcb \
+        --chain reviewed-prefix.kicad_pcb
 
 The imported route contributes tracks and router vias; placement and zones
 come from the regenerated base, while deterministic ``prep`` copper must be
@@ -233,11 +235,24 @@ def check(base_path: Path, route_path: Path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("board")
-    ap.add_argument("route_config")
+    ap.add_argument("board", nargs="?")
+    ap.add_argument("route_config", nargs="?")
+    ap.add_argument("--prepared")
+    ap.add_argument("--chain")
     args = ap.parse_args(argv)
-    failures, note, footprints, vias, tracks = check(
-        Path(args.board), Path(args.route_config))
+    if bool(args.prepared) != bool(args.chain):
+        ap.error("--prepared and --chain must be provided together")
+    if args.prepared:
+        if args.board or args.route_config:
+            ap.error("direct --prepared/--chain mode takes no positional paths")
+        failures, footprints, vias, tracks = compare(
+            Path(args.prepared), Path(args.chain))
+        note = None
+    else:
+        if not args.board or not args.route_config:
+            ap.error("BOARD and ROUTE.yaml are required outside direct mode")
+        failures, note, footprints, vias, tracks = check(
+            Path(args.board), Path(args.route_config))
     if note:
         print(note)
         return 0

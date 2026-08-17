@@ -78,9 +78,20 @@ def normalized_group(group_id: str, group):
     model_sha = str(group.get("model_sha256", "")).lower()
     if len(model_sha) != 64 or any(ch not in "0123456789abcdef" for ch in model_sha):
         raise ValueError(f"P-MODEL-REG {group_id}: invalid model_sha256")
+    orientation = group.get("orientation")
+    mount_side = None
+    if orientation is not None:
+        if not isinstance(orientation, dict):
+            raise ValueError(f"P-MODEL-REG {group_id}: orientation must be a mapping")
+        mount_side = str(orientation.get("mount_side", "")).strip().lower()
+        if mount_side not in ("front", "back"):
+            raise ValueError(
+                f"P-MODEL-REG {group_id}: orientation.mount_side must be front or back")
     values = {
         "refs": refs,
         "model_sha256": model_sha,
+        "registration_datum": str(
+            group.get("registration_datum", "drilled_centres")).strip(),
         "fit_tolerance_mm": float(group.get("fit_tolerance_mm", 1.0)),
         "courtyard_containment_tolerance_mm": float(
             group.get("courtyard_containment_tolerance_mm", 0.25)),
@@ -88,13 +99,23 @@ def normalized_group(group_id: str, group):
         "render_width": int(group.get("render_width", 2400)),
         "render_height": int(group.get("render_height", 1600)),
         "authority": str(group.get("authority", "")),
+        "mount_side": mount_side,
+        "mount_side_min_fraction": float(
+            group.get("mount_side_min_fraction", 0.75)),
     }
+    if values["registration_datum"] not in native.REGISTRATION_DATUMS:
+        raise ValueError(
+            f"P-MODEL-REG {group_id}: registration_datum must be one of "
+            f"{sorted(native.REGISTRATION_DATUMS)}")
     for name in ("fit_tolerance_mm", "courtyard_containment_tolerance_mm",
                  "search_margin_mm"):
         if not math.isfinite(values[name]) or values[name] < 0:
             raise ValueError(f"P-MODEL-REG {group_id}: {name} must be finite and non-negative")
     if values["render_width"] < 320 or values["render_height"] < 240:
         raise ValueError(f"P-MODEL-REG {group_id}: render dimensions are too small")
+    if not 0.5 <= values["mount_side_min_fraction"] <= 1.0:
+        raise ValueError(
+            f"P-MODEL-REG {group_id}: mount_side_min_fraction must be within [0.5, 1.0]")
     contract = {"schema": 1, "group_id": group_id, **values}
     values["contract_sha256"] = canonical_sha(contract)
     return values
@@ -102,7 +123,8 @@ def normalized_group(group_id: str, group):
 
 def tuple_for(board: Path, values):
     _board, rows = native.collect_source_rows(
-        board, values["refs"], values["model_sha256"])
+        board, values["refs"], values["model_sha256"],
+        values["registration_datum"])
     args = SimpleNamespace(
         fit_tol_mm=values["fit_tolerance_mm"],
         courtyard_tol_mm=values["courtyard_containment_tolerance_mm"],
@@ -110,11 +132,14 @@ def tuple_for(board: Path, values):
         width=values["render_width"], height=values["render_height"],
         contract_sha256=values["contract_sha256"],
         tool_identity=native.tool_identity(),
+        registration_datum=values["registration_datum"],
+        mount_side=values["mount_side"],
+        mount_side_min_fraction=values["mount_side_min_fraction"],
     )
     return native.registration_tuple(rows, values["refs"], args), rows
 
 
-def declared_outputs(refs, model_suffix):
+def declared_outputs(refs, model_suffix, mount_side=None):
     names = {
         "model_registration_receipt.json": None,
         "native_bare.kicad_pcb": None,
@@ -126,6 +151,11 @@ def declared_outputs(refs, model_suffix):
         "native_top_registration_overlay.png": None,
     }
     names.update({f"native_overlay_{ref}.png": None for ref in refs})
+    if mount_side:
+        names.update({
+            "native_side_front.png": None,
+            "native_side_right.png": None,
+        })
     return names
 
 
@@ -208,10 +238,11 @@ def accepted_cache_valid(path: Path, tuple_value, refs, output_names) -> bool:
 
 
 def engine_command(engine: Path, board: Path, outdir: Path, values, tuple_value):
-    return [
+    command = [
         sys.executable, str(engine), str(board), str(outdir),
         "--refs", ",".join(values["refs"]),
         "--model-sha256", values["model_sha256"],
+        "--registration-datum", values["registration_datum"],
         "--fit-tol-mm", str(values["fit_tolerance_mm"]),
         "--courtyard-tol-mm", str(values["courtyard_containment_tolerance_mm"]),
         "--search-margin-mm", str(values["search_margin_mm"]),
@@ -220,12 +251,19 @@ def engine_command(engine: Path, board: Path, outdir: Path, values, tuple_value)
         "--contract-sha256", tuple_value["contract_sha256"],
         "--tool-identity", tuple_value["tool_identity"],
     ]
+    if values["mount_side"]:
+        command += [
+            "--mount-side", values["mount_side"],
+            "--mount-side-min-fraction", str(values["mount_side_min_fraction"]),
+        ]
+    return command
 
 
 def run_group(project: Path, board: Path, config_path: Path, build: Path,
               engine: Path, group_id: str, values, tuple_value, rows, run_id: str):
     accepted = build / group_id
-    outputs = declared_outputs(values["refs"], rows[0]["model"].suffix)
+    outputs = declared_outputs(
+        values["refs"], rows[0]["model"].suffix, values["mount_side"])
     if accepted_cache_valid(accepted, tuple_value, values["refs"], outputs):
         print(f"P-MODEL-REG CACHE-HIT: {group_id} {native.tuple_cache_key(tuple_value)}")
         return accepted, True, None
@@ -528,7 +566,8 @@ def main(argv=None) -> int:
         "",
         "This aggregate is independent physical-registration evidence. Each "
         "group uses an origin-centred coupon and compares native-model pixels "
-        "with F.Fab, F.CrtYd, and drilled attachment datums. Catalog-twin "
+        "with F.Fab, F.CrtYd, and each group's declared drilled-centre or "
+        "all-pad-centre datum. Catalog-twin "
         "renderer fidelity is a separate gate.",
         "",
         "| group | refs | tuple cache key | group report | result |",

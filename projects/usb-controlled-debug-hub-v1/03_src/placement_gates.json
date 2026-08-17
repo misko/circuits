@@ -3,7 +3,7 @@
   "courtyard": true,
   "out_ok": ["J_UP"],
   "out_ok_evidence": {
-    "J_UP": "TE 292304-1 right-angle USB-B: the manufacturer-derived body/courtyard intentionally crosses the west Edge.Cuts by 1.82 mm to expose the mating face; every plated signal and shell attachment hole remains inside the PCB outline."
+    "J_UP": "TE 292304-1 right-angle USB-B: the manufacturer-derived body/courtyard intentionally crosses the west Edge.Cuts by 0.45 mm to expose the mating face; every plated signal and shell attachment hole remains inside the PCB outline."
   },
   "body_clearance": {
     "min_courtyard_gap": 0.10,

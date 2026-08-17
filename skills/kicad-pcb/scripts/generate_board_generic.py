@@ -57,13 +57,20 @@ NOT read another project's config). Top-level keys:
   zones:      list of {net, layers, priority, outline|region|board,
                        connect: thermal|full, min_thickness, clearance}
               Inner layers (In1.Cu/In2.Cu) require board.layers >= 3/4.
-  keepouts:   list of {region|points, layers, name, deny[]} — rule areas.
+  keepouts:   list of {region|points|rect|ref, layers, name, deny[]} — rule
+              areas; `ref` derives a package-local area from realised copper
+              pads plus optional `margin_mm`, so it follows placement changes.
               ONE zone spans all its layers via an LSET.
   silk:       captions[], refdes {size, min_size, fab_copy, clearance},
               labels {match, from: value|net} for functional captions
   asserts:    pad_net[] {ref, pad, net}, pad_order[] {ref, pads, axis},
+              pad_bank_faces[] {ref, pads, toward_ref, toward_pads,
+                behind_pads, margin_mm} — a functional pad bank must be
+                closer to its adjacent target bank than the named rear bank,
               body_offset[] {ref, axis, sign} — which way a connector mouth
                 faces (catches a 180 flip pad_order cannot see),
+              edge_faces[] {ref, edge, min_offset_mm?} — bind that mating-face
+                displacement to the declared board edge (x0/x1/y0/y1),
               pad_beyond_edge[] {ref, pad, offset, edge} — an edge-launch
                 clearing must hang OFF the board
   thermal_vias: fields[] and/or promote_heatsink_pads[], plus optional
@@ -1498,6 +1505,54 @@ class BoardBuilder:
                 die(f"ORIENTATION ASSERT: {ref} pads {pads} not ascending in "
                     f"{axis} (part is rotated wrong)")
             n += 1
+        # `pad_bank_faces`: DISTANCE-ONLY PLACEMENT IS NOT DIRECTION.  A shunt
+        # ESD part can be close to a connector while its ground land sits
+        # between the connector and both signal lands; a mux can be close to
+        # both neighbours while its two channel banks face the wrong cells.
+        # Compare realised pad-bank centroids, after the bottom-side flip, so
+        # the assertion grades the copper launch the router will actually see.
+        for e in a.get("pad_bank_faces") or []:
+            ref = e["ref"]
+            toward_ref = e["toward_ref"]
+            f = self.fps.get(ref) or die(
+                f"pad_bank_faces: unknown refdes {ref}")
+            target = self.fps.get(toward_ref) or die(
+                f"pad_bank_faces: unknown toward_ref {toward_ref}")
+
+            def centroid(fp, nums, label):
+                wanted = [str(value) for value in nums]
+                positions = []
+                for number in wanted:
+                    pad = next((p for p in fp.Pads()
+                                if p.GetNumber() == number), None)
+                    if pad is None:
+                        die(f"pad_bank_faces: {label} has no pad {number}")
+                    positions.append(pad.GetPosition())
+                if not positions:
+                    die(f"pad_bank_faces: {label} pad bank is empty")
+                return (sum(p.x for p in positions) / len(positions),
+                        sum(p.y for p in positions) / len(positions))
+
+            front = centroid(f, e.get("pads") or [], ref)
+            rear = centroid(f, e.get("behind_pads") or [], ref)
+            aim = centroid(target, e.get("toward_pads") or [], toward_ref)
+            front_mm = math.hypot(front[0] - aim[0], front[1] - aim[1]) / 1e6
+            rear_mm = math.hypot(rear[0] - aim[0], rear[1] - aim[1]) / 1e6
+            margin = float(e.get("margin_mm", 0.0))
+            if front_mm + margin >= rear_mm:
+                die(
+                    f"ORIENTATION ASSERT: {ref} pad bank {e.get('pads')} is "
+                    f"{front_mm:.2f}mm from {toward_ref} bank "
+                    f"{e.get('toward_pads')}, not at least {margin:.2f}mm "
+                    f"closer than rear bank {e.get('behind_pads')} "
+                    f"({rear_mm:.2f}mm) — the functional pad bank faces the "
+                    "wrong cell")
+            n += 1
+        # Common outward normals for semantic board-edge assertions.  x0/y0
+        # are the minimum-coordinate edges; x1/y1 are the maximum edges.
+        EDGES = {"x0": ("x", -1), "x1": ("x", 1),
+                 "y0": ("y", -1), "y1": ("y", 1)}
+
         # `body_offset`: WHICH WAY DOES THE CONNECTOR MOUTH FACE. A jack's
         # pads cluster at its rear, so the body centroid is displaced toward
         # the opening. Pad order alone cannot catch a 180-degree flip on a
@@ -1520,11 +1575,36 @@ class BoardBuilder:
                     f"{axis} from its pads, expected sign {sign} — the connector "
                     f"opening faces the wrong way")
             n += 1
+        # `edge_faces`: bind the same realised body-vs-pad displacement to a
+        # named BOARD EDGE.  This is deliberately semantic: a source rotation
+        # of 0/180 changes meaning across footprint authors and board sides,
+        # while "J1 mates through y0" remains stable.  Registration checks
+        # cannot replace it: a perfectly registered model can still depict a
+        # perfectly backwards connector.
+        for e in a.get("edge_faces") or []:
+            ref, edge = e["ref"], e.get("edge", "y1")
+            if edge not in EDGES:
+                die(f"edge_faces: unknown edge {edge!r} (want {sorted(EDGES)})")
+            axis, out = EDGES[edge]
+            f = self.fps.get(ref) or die(f"edge_faces: unknown refdes {ref}")
+            pads = [p.GetPosition() for p in f.Pads()]
+            if not pads:
+                die(f"edge_faces: {ref} has no pads")
+            bb = f.GetBoundingBox(False, False)
+            v = (bb.Centre().x - sum(p.x for p in pads) / len(pads)) if axis == "x" \
+                else (bb.Centre().y - sum(p.y for p in pads) / len(pads))
+            outward_mm = MM(v) * out
+            minimum = float(e.get("min_offset_mm", 0.0))
+            if outward_mm <= minimum:
+                die(f"ORIENTATION ASSERT: {ref} mating-face displacement is "
+                    f"{outward_mm:+.2f}mm toward {edge}, expected more than "
+                    f"{minimum:.2f}mm — the connector mating face points away "
+                    "from its declared board edge")
+            n += 1
         # `pad_beyond_edge`: a clearing measured off a pad must fall OUTSIDE
         # the board. An edge-launch antenna (ESP32-S3) is only legal because
         # its keepout hangs off the edge; if the module creeps inboard the
         # keepout lands on live copper and nothing else notices.
-        EDGES = {"x0": ("x", -1), "x1": ("x", 1), "y0": ("y", -1), "y1": ("y", 1)}
         for e in a.get("pad_beyond_edge") or []:
             ref, edge = e["ref"], e.get("edge", "y1")
             if edge not in EDGES:
@@ -1903,7 +1983,28 @@ class BoardBuilder:
                 "deny": ["footprints", "pours"],
             })
         for k in self.cfg.get("keepouts") or []:
-            pts = self.zone_points(k)
+            if "ref" in k:
+                if any(key in k for key in ("points", "region", "rect")):
+                    die(f"keepout {k.get('name', '?')!r}: ref cannot be "
+                        "combined with points, region, or rect")
+                ref = str(k["ref"])
+                fp = self.fps.get(ref)
+                if fp is None:
+                    die(f"keepout {k.get('name', '?')!r}: unknown ref {ref!r}")
+                margin = float(k.get("margin_mm", 0.0))
+                if margin < 0:
+                    die(f"keepout {k.get('name', '?')!r}: margin_mm must be >= 0")
+                pads = list(fp.Pads())
+                if not pads:
+                    die(f"keepout {k.get('name', '?')!r}: {ref} has no pads")
+                boxes = [pad.GetBoundingBox() for pad in pads]
+                x0 = min(pcbnew.ToMM(box.GetLeft()) for box in boxes) - margin
+                y0 = min(pcbnew.ToMM(box.GetTop()) for box in boxes) - margin
+                x1 = max(pcbnew.ToMM(box.GetRight()) for box in boxes) + margin
+                y1 = max(pcbnew.ToMM(box.GetBottom()) for box in boxes) + margin
+                pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+            else:
+                pts = self.zone_points(k)
             _validate_simple_polygon(
                 pts, f"keepout {k.get('name', '?')!r} outline")
             deny = set(k.get("deny", ["tracks", "vias", "pours"]) or [])
@@ -2246,7 +2347,7 @@ class BoardBuilder:
             self.board.Add(kt)
             silk_obst.append(cand)
 
-        # ---- refdes: F.SilkS de-collided + ALWAYS an F.Fab copy
+        # ---- refdes: assembly-side silk de-collided + matching Fab copy
         # (fab_size is NOT tier-floored: F.Fab is documentation, not silk)
         size = self.silk_h(rc.get("size"), 0.6, "refdes size")
         small = self.silk_h(rc.get("min_size"), 0.45, "refdes min_size")
@@ -2260,15 +2361,25 @@ class BoardBuilder:
         for fp in sorted(self.board.GetFootprints(), key=prio):
             r = fp.GetReference()
             ref = fp.Reference()
+            flipped = fp.IsFlipped()
+            silk_layer = pcbnew.B_SilkS if flipped else pcbnew.F_SilkS
+            fab_layer = pcbnew.B_Fab if flipped else pcbnew.F_Fab
             if fab_copy:
-                fab = self._mktext(r, float(rc.get("fab_size", 0.5)), pcbnew.F_Fab)
+                fab = self._mktext(r, float(rc.get("fab_size", 0.5)), fab_layer)
+                fab.SetMirrored(flipped)
                 fab.SetTextThickness(int(0.08e6))
                 fab.SetPosition(fp.GetPosition())
                 self.board.Add(fab)
             if r in self.hole_refs:
                 ref.SetVisible(False)
                 continue
-            ref.SetLayer(pcbnew.F_SilkS)
+            # Flip() correctly mirrors a footprint field and moves it to the
+            # back.  The old unconditional F.SilkS assignment retained that
+            # mirrored flag on the front, producing KiCad's
+            # mirrored_text_on_front_layer DRC finding for every bottom-side
+            # part.  Keep layer and mirroring as one side-aware operation.
+            ref.SetLayer(silk_layer)
+            ref.SetMirrored(flipped)
             ref.SetVisible(True)
             fx, fy = MM(fp.GetPosition().x), MM(fp.GetPosition().y)
 

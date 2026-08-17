@@ -62,10 +62,13 @@ verified: >
 gotchas:
   - >
     OE IS ACTIVE HIGH DISCONNECT: OE=HIGH disconnects every switch path;
-    OE=LOW connects the throw selected by SEL. For this board tie SEL LOW,
-    connect hub-side Pn_HUB_P/Pn_HUB_N to common pins 3/4, connect the USB-A
-    connector side to HSD1 pins 7/6, and emit explicit NC flags on HSD2 pins
-    9/8. A 10k pull-up on OE makes management reset fail physically disconnected.
+    OE=LOW connects the throw selected by SEL. Package connectivity is fixed:
+    common pin 3 selects HSD1 pin 7 (or HSD2 pin 9), and common pin 4 selects
+    HSD1 pin 6 (or HSD2 pin 8). The two analog channels are electrically
+    symmetric; the board-owned ADR must bind which complete channel carries
+    logical D+ and D-. For this board ADR-0007 assigns D+ through 6-to-4 and
+    D- through 7-to-3, ties SEL LOW, and leaves HSD2 pins 8/9 explicitly NC.
+    A 10k pull-up on OE makes management reset fail physically disconnected.
   - >
     There is no hardware status output. Host control software may report the
     commanded OE state, while actual connection/enumeration remains a host
@@ -96,25 +99,25 @@ layout:
     unbroken reference plane and no stubs on common or HSD1.
   reviewed: 2026-07-31
   keep_short:
-    - {net: P1_HUB_P, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
-    - {net: P1_HUB_N, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
-    - {net: P2_HUB_P, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
-    - {net: P2_HUB_N, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
-    - {net: P3_HUB_P, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
-    - {net: P3_HUB_N, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
-    - {net: P4_HUB_P, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
-    - {net: P4_HUB_N, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell; stubless impedance and plane continuity govern"}
-    - {net: P1_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
-    - {net: P1_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
-    - {net: P2_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
-    - {net: P2_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
-    - {net: P3_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
-    - {net: P3_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
-    - {net: P4_PORT_P, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: short HSD1+ run to connector-side ESD, with no stub"}
-    - {net: P4_PORT_N, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: short HSD1- run to connector-side ESD, with no stub"}
+    - {net: P1_HUB_P, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: ADR-0007 D+ uses the complete symmetric 6-to-4 channel; 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell"}
+    - {net: P1_HUB_N, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: ADR-0007 D- uses the complete symmetric 7-to-3 channel; stubless impedance and plane continuity govern"}
+    - {net: P2_HUB_P, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: ADR-0007 D+ uses the complete symmetric 6-to-4 channel; 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell"}
+    - {net: P2_HUB_N, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: ADR-0007 D- uses the complete symmetric 7-to-3 channel; stubless impedance and plane continuity govern"}
+    - {net: P3_HUB_P, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: ADR-0007 D+ uses the complete symmetric 6-to-4 channel; 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell"}
+    - {net: P3_HUB_N, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: ADR-0007 D- uses the complete symmetric 7-to-3 channel; stubless impedance and plane continuity govern"}
+    - {net: P4_HUB_P, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: ADR-0007 D+ uses the complete symmetric 6-to-4 channel; 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell"}
+    - {net: P4_HUB_N, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: ADR-0007 D- uses the complete symmetric 7-to-3 channel; stubless impedance and plane continuity govern"}
+    - {net: P1_PORT_P, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: ADR-0007 short D+ run on the symmetric HSD1 6-to-4 channel, with no stub"}
+    - {net: P1_PORT_N, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: ADR-0007 short D- run on the symmetric HSD1 7-to-3 channel, with no stub"}
+    - {net: P2_PORT_P, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: ADR-0007 short D+ run on the symmetric HSD1 6-to-4 channel, with no stub"}
+    - {net: P2_PORT_N, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: ADR-0007 short D- run on the symmetric HSD1 7-to-3 channel, with no stub"}
+    - {net: P3_PORT_P, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: ADR-0007 short D+ run on the symmetric HSD1 6-to-4 channel, with no stub"}
+    - {net: P3_PORT_N, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: ADR-0007 short D- run on the symmetric HSD1 7-to-3 channel, with no stub"}
+    - {net: P4_PORT_P, max_span_mm: 12, anchor_pins: ["6"], why: "DERIVED: ADR-0007 short D+ run on the symmetric HSD1 6-to-4 channel, with no stub"}
+    - {net: P4_PORT_N, max_span_mm: 12, anchor_pins: ["7"], why: "DERIVED: ADR-0007 short D- run on the symmetric HSD1 7-to-3 channel, with no stub"}
   notes:
     - "Route each D+/D- pair through the switch pads without necking into a stub; keep pair geometry and reference-plane continuity through the whole cell."
-    - "Place USBLC6-2SC6 at the connector, then the FSUSB42 behind it; the ESD clamp must see the disturbance before a longer trace reaches the switch or hub."
+    - "Place the PESD2USB3UX shunt at the connector and the FSUSB42 behind it; keep the clamp branch and its ground return short so the disturbance reaches the clamp before a longer trace reaches the switch or hub."
     - "Keep the OE pull-up adjacent to pin 10 so reset cannot leave a half-selected data path."
 layout_refs:
   - {tier: 1, reached: true, artifact: "onsemi FSUSB42/D Rev 3 pinout, truth table and 480Mbps AC characterization; no routed PCB figure is published"}

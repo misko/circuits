@@ -15,7 +15,6 @@ datasheet:
   provenance: "CITED: current Littelfuse 297 MINI family datasheet and exact active DigiKey orderable row. The manufacturer PDF is cited by URL because direct automated download returned HTTP 403."
 package: MINI 297 automotive blade fuse, 10.9 x 3.8 x 8.8 mm
 footprint: null
-assembly: user_installed_in_keystone_3568
 limits:
   current_rating: 4 A
   voltage_rating_dc: 32 V
@@ -33,7 +32,6 @@ gotchas:
   - "Typical cold resistance and voltage drop are not guaranteed maxima. The input budget conservatively reserves the published 121 mV rated-current drop even though the admitted board load is below 4 A."
 sourcing:
   digikey: F988-ND
-  mouser: 576-0297004.WXNV
   lcsc: null
   note: "Exact active part is broadly distributor-stocked; live quantities remain order-time evidence."
 asserts:

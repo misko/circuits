@@ -3,12 +3,123 @@ source_type: external_regulated_5v
 off_control: "unplug the external regulated 5 V bench supply"
 input_trunk_class: PWR_INPUT
 ir_floor_mohm: 100
-source_voltage_at_p5v_raw: {min_V: 5.10, max_V: 5.25}
-protected_trunk_floor_V: 4.89
-protected_trunk_budget: >-
-  At 2.6 A, reserve the fuse's published 121 mV typical drop at its higher
-  4 A rating plus 65 mV for a conservative 25 mOhm hot reverse-polarity FET
-  and 24 mV for board/joint copper. 5.10 V - 0.210 V = 4.89 V.
+
+upstream_delivery:
+  source_net: P5V_RAW
+  destination_net: P5V_PROTECTED
+  source_min_V: 5.20
+  destination_floor_V: 4.89
+  load_current_A: 2.58
+  margin: 0.05
+  evidence: "Commissioned bench-source minimum, exact fuse allowance, TPS259474L maximum RON, and bounded holder/common-copper allocation; verify the last term by hot four-wire first-article measurement."
+  rails: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW, VBUS_CTRL, 3V3_MAIN]
+  fixed_drop_components_mV:
+    input_fuse: {value: 121, basis: engineering_bound, evidence: "Littelfuse 0297004 published rated-current voltage drop, charged unchanged at the lower 2.58A board load"}
+  resistance_components_mohm:
+    aggregate_efuse: {value: 45, basis: manufacturer_maximum, evidence: "TI TPS259474L catalog maximum RON"}
+    fuse_holder_and_common_copper: {value: 18, basis: budgeted_max, evidence: "Keystone 3568 contacts plus broad input copper allocation; qualify by hot four-wire first-article measurement"}
+
+effective_capacitance_banks:
+  - name: USB 2.0 downstream-hub source bank
+    requirement_uF: 120
+    requirement_evidence: "USB 2.0 Rev 2.0 section 7.2.4.1/Table 7-7 requires at least 120uF low-ESR hub VBUS bypass capacitance"
+    accepted_dielectrics: [ceramic, polymer]
+    contributors:
+      - part: 16SVPF180M
+        refs: [C_TRUNK_USB]
+        nominal_each_uF: 180
+        dielectric: polymer
+        tolerance_minus_pct: 20
+        dc_bias_derating_pct: 0
+        temperature_derating_pct: 0
+        lifecycle_derating_pct: 20
+        basis: manufacturer_limits
+        evidence: "Panasonic exact SVPF row: -20% initial tolerance and an independent 20% endurance capacitance-change allowance"
+      - part: C3225X7R1C226KT000N
+        refs: [C_TRUNK_BULK]
+        nominal_each_uF: 22
+        dielectric: ceramic
+        tolerance_minus_pct: 10
+        dc_bias_derating_pct: 20
+        temperature_derating_pct: 15
+        lifecycle_derating_pct: 0
+        basis: engineering_bound
+        evidence: "exact 22uF/16V X7R part with conservative 5.25V DC-bias and full X7R temperature derating"
+
+fault_envelopes:
+  - name: five USB power switches and local 3V3 load on shared 5V input
+    normal_continuous_A: 2.58
+    service_peak_A: 3.0
+    service_peak_max_ms: 1.5
+    downstream_limits:
+      - name: four external TPS2557 USB outputs
+        count: 4
+        simultaneous_count: 4
+        worst_high_each_A: 0.794
+        programmer_refs: [R_ILIM1, R_ILIM2, R_ILIM3, R_ILIM4]
+        evidence: "TI TPS2557 electrical-table current-limit corners with exact 165k 1% ILIM resistors"
+      - name: internal management TPS2557 output
+        count: 1
+        simultaneous_count: 1
+        worst_high_each_A: 0.794
+        programmer_refs: [R_ILIM_CTRL]
+        evidence: "same charged TPS2557 limit; included even though the commissioned management load is below 0.1A"
+      - name: maximum commissioned 3V3 converter input demand
+        count: 1
+        simultaneous_count: 1
+        worst_high_each_A: 0.48
+        evidence_refs: [AP63203QWU-7]
+        evidence: "0.60A at 3.3V divided by 4.89V and the charged 85% conversion efficiency is 0.476A, rounded upward"
+    upstream:
+      continuous_rating_A: 3.0
+      peak_rating_A: 5.0
+      evidence: "commissioning requires a regulated 5.20-5.25V source rated at least 3A continuous and 5A for 6ms transient service"
+      overload_qualification_max_ms: 6.0
+      overload_qualification_evidence: "C_AGG_TIMER bounds any 3.0-3.680A overload to 5.043ms; qualify the exact source and input connector at 5A/6ms"
+    aggregate_breaker:
+      programmer_ref: R_AGG_ILIM
+      threshold_model:
+        equation: inverse_resistance_with_offset
+        coefficient_worst_low_A_ohm: 3000.6
+        coefficient_worst_high_A_ohm: 3667.4
+        current_offset_A: 0
+        programmer_tcr_ppm_per_C: 25
+        programmer_temperature_excursion_C: 100
+      expected_threshold_worst_low_A: 2.990134529
+      expected_threshold_worst_high_A: 3.680280983
+      threshold_calculation_tolerance_A: 0.000001
+      minimum_normal_margin_A: 0.40
+      minimum_fault_coordination_margin_A: 0.50
+      response: latch_off
+      threshold_evidence: "TI TPS25947 equation 5, 3334/RILM, with the specified +/-10% ILIM accuracy and exact 1k 0.1% +/-25ppm/C resistor over 100C"
+      reset_evidence: "TPS259474L latches off after persistent overcurrent; unplugging/cycling the external 5V input clears the latch"
+      timer:
+        capacitor_ref: C_AGG_TIMER
+        capacitance_nominal_nF: 3.3
+        tolerance_pct: 5
+        temperature_minus_pct: 0.3
+        temperature_plus_pct: 0.3
+        dc_bias_minus_pct: 0
+        aging_minus_pct: 0
+        comparator_delta_min_V: 1.286
+        comparator_delta_max_V: 1.741
+        discharge_current_min_uA: 1.2
+        discharge_current_max_uA: 2.5
+        evidence: "Murata C0G exact part plus TI TPS25947 ITIMER voltage/current extrema"
+        startup:
+          model: slew_limited_output_bank
+          capacitor_ref: C_AGG_DVDT
+          capacitance_nominal_nF: 3.3
+          tolerance_pct: 5
+          temperature_minus_pct: 0.3
+          temperature_plus_pct: 0.3
+          dc_bias_minus_pct: 0
+          aging_minus_pct: 0
+          slew_coefficient_pF_V_per_ms: 2000
+          output_capacitance_max_uF: 251.86
+          expected_inrush_max_A: 0.161160
+          calculation_tolerance_A: 0.000001
+          evidence: "TI TPS25947 equations 12-14; the 251.86uF ceiling includes the 180uF polymer, 22uF trunk ceramic, 10uF buck input and six 100nF post-breaker capacitors at positive tolerance"
 
 rails:
   - name: VBUS1_SW
@@ -29,7 +140,7 @@ rails:
       pcb_copper_vias_joints: {value: 25, basis: budgeted_max, evidence: "four-layer branch-pour/via/joint allocation; confirm by hot four-wire first-article measurement"}
       mated_power_contacts: {value: 100, basis: budgeted_max, evidence: "engineering allocation for one mated VBUS and GND contact pair; qualify on the exact connector lot"}
     distribution:
-      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      series_devices: [TPS2557DRBR]
       path_resistance_max_mohm: 160
       current_limit_min_A: 0.535
       current_limit_max_A: 0.794
@@ -52,7 +163,7 @@ rails:
       pcb_copper_vias_joints: {value: 25, basis: budgeted_max, evidence: "four-layer branch-pour/via/joint allocation; confirm by hot four-wire first-article measurement"}
       mated_power_contacts: {value: 100, basis: budgeted_max, evidence: "engineering allocation for one mated VBUS and GND contact pair; qualify on the exact connector lot"}
     distribution:
-      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      series_devices: [TPS2557DRBR]
       path_resistance_max_mohm: 160
       current_limit_min_A: 0.535
       current_limit_max_A: 0.794
@@ -75,7 +186,7 @@ rails:
       pcb_copper_vias_joints: {value: 25, basis: budgeted_max, evidence: "four-layer branch-pour/via/joint allocation; confirm by hot four-wire first-article measurement"}
       mated_power_contacts: {value: 100, basis: budgeted_max, evidence: "engineering allocation for one mated VBUS and GND contact pair; qualify on the exact connector lot"}
     distribution:
-      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      series_devices: [TPS2557DRBR]
       path_resistance_max_mohm: 160
       current_limit_min_A: 0.535
       current_limit_max_A: 0.794
@@ -98,7 +209,7 @@ rails:
       pcb_copper_vias_joints: {value: 25, basis: budgeted_max, evidence: "four-layer branch-pour/via/joint allocation; confirm by hot four-wire first-article measurement"}
       mated_power_contacts: {value: 100, basis: budgeted_max, evidence: "engineering allocation for one mated VBUS and GND contact pair; qualify on the exact connector lot"}
     distribution:
-      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      series_devices: [TPS2557DRBR]
       path_resistance_max_mohm: 160
       current_limit_min_A: 0.535
       current_limit_max_A: 0.794
@@ -113,7 +224,7 @@ rails:
     eff: 0.99
     external_output: false
     distribution:
-      series_devices: [DMP3007SPS-13, TPS2557DRBR]
+      series_devices: [TPS2557DRBR]
       path_resistance_max_mohm: 220
       current_limit_min_A: 0.535
       current_limit_max_A: 0.794

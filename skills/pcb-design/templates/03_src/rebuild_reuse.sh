@@ -143,6 +143,9 @@ $PY "$S/route_and_stitch_generic.py" prep 03_src/route.yaml
 
 $PY "$FS/model_registration_gate.py" . --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [4c] P-MODEL-REG: native body, footprint, courtyard, or attachment datums disagree"; exit 1; }
+timeout --signal=TERM --kill-after=10s 180s \
+    $PY "$FS/connector_orientation_gate.py" . --board "04_kicad/$BOARD.kicad_pcb" \
+    || { echo "GATE FAILED [4d] P-ORIENT: connector mouth/edge geometry, render evidence, or explicit approval is missing, stale, or defective"; exit 1; }
 $PY "$S/pre_route_review_check.py" . --phase placement \
     --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [4c] P-ROUTEBASE/PR-REVIEW: prepared-route compatibility or placement evidence missing, stale, or defective"; exit 1; }

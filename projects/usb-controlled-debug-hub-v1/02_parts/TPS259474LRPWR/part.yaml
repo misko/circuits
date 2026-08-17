@@ -1,0 +1,26 @@
+mpn: TPS259474LRPWR
+manufacturer: Texas Instruments
+type: aggregate_latchoff_circuit_breaker_efuse
+datasheet: {doc_id: SLVSFC9, revision: SLVSFC9C, url: "https://www.ti.com/lit/ds/symlink/tps25947.pdf", fetched: 2026-08-16}
+package: RPW0010A VQFN-HR-10 2x2mm P0.45
+footprint: usb_controlled_debug_hub:TI_RPW0010A_VQFN-HR-10_2x2mm_P0.45mm
+escape: {style: qfn, pitch: 0.45, tier_required: jlc_4layer_advanced, checked: "TI 4225183/A land pattern cross-checked against exact JLC C2864845 EasyEDA CAD on 2026-08-16"}
+pins: {1: EN_UVLO, 2: OVLO, 3: PG, 4: PGTH, 5: IN, 6: OUT, 7: DVDT, 8: GND, 9: ILM, 10: ITIMER}
+limits: {vin: "2.7-23V", current_limit_range: "0.5-6A", continuous_switch_current: 5.5A, rds_on_typ: 28.3mOhm, rds_on_catalog_max: 45mOhm, response: circuit_breaker_latchoff, reverse_polarity: true, reverse_current_blocking: true}
+gotchas:
+  - "The complete TPS259474L suffix matters: 4 selects circuit-breaker behavior and L selects latch-off. The A suffix auto-retries; 0/2 variants actively current-limit instead."
+  - "R_AGG_ILIM=1k 0.1% programs 3.334A nominal. Charging TI's +/-10% ILIM accuracy and the resistor's +/-0.1% plus +/-25ppm/C over 100C gives 2.981..3.679A."
+  - "C_AGG_TIMER=3.3nF C0G yields a charged 1.608..5.049ms blanking interval from TI's 1.286..1.741V and 1.2..2.5uA limits. A persistent aggregate overload then latches off until input power is cycled."
+  - "C_AGG_DVDT=3.3nF C0G bounds the fastest nominal slew to 0.640V/ms at its charged low-capacitance corner; the effective output bank's startup inrush remains below the aggregate threshold."
+  - "The shared 150k/10k/43.2k divider implements TI equations 10/11. PGTH is intentionally grounded and the unused open-drain PG output is left open."
+  - "Keep R_AGG_ILIM, C_AGG_TIMER, C_AGG_DVDT and the divider adjacent to their pins. Keep ILM parasitic capacitance below TI's 50pF limit and away from switching copper."
+verified: "TI SLVSFC9C device table, pin table, electrical limits, equations 5/6/10-13, layout section and RPW0010A package drawing independently read 2026-08-16; exact JLC/LCSC C2864845 identifies genuine TI TPS259474LRPWR and JLC-compatible VQFN-HR CAD"
+sourcing: {lcsc: C2864845, alternates: [], note: "3584 LCSC units observed 2026-08-16; order-time JLC allocation remains authoritative"}
+layout:
+  source: "TI SLVSFC9C sections 8.4 and RPW0010A drawing 4225183/A"
+  reviewed: "2026-08-16"
+  notes: ["Give IN and OUT short broad copper with nearby vias", "star the signal-component grounds into pin 8", "keep ILM/ITIMER/DVDT loops short and quiet"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSFC9C Figure 8-22 and RPW0010A land pattern", why: "manufacturer source fixes power escape, support-component placement and the asymmetric HotRod lands"}
+  - {tier: 2, reached: true, artifact: "TI TPS25947EVM user's guide and exact JLC C2864845 CAD", why: "manufacturer evaluation precedent plus assembly-vendor CAD independently check the implementation"}
+  - {tier: 3, reached: false, artifact: "community board", why: "not needed because manufacturer routed precedent is available"}

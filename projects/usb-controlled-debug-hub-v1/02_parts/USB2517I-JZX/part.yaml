@@ -147,6 +147,8 @@ layout:
     - "Place the 12 k RBIAS resistor directly at pin 63 with a dedicated low-impedance ground return; keep the 24 MHz crystal, 1 M parallel resistor, and load capacitors tight to pins 60/61 and isolated from USB traces."
     - "Tie exposed pad 65 to the ground plane with the selected footprint's thermal-via array."
     - "Orient the controller so downstream pair pin groups face their connector/switch banks; use PortSwap only as an explicit configured decision, never to mask an undocumented footprint error."
+    - "PRT_SWPn is sampled only when CFG_SEL enables strap options. When asserted, logical D+ belongs on the physical DM pad and logical D- on the physical DP pad; bind the pad-net inversion and the matching PRT_SWP resistor in executable invariants so a routing convenience cannot become an unconfigured USB polarity reversal."
+    - "DS00004211A Section 8.8 specifies 100 kOhm for the PRT_SWP strap: pull to 3.3 V for swapped polarity and to GND for normal polarity. The current CFG_SEL[2:0]=000 mode enables these hardware straps."
 
 layout_refs:
   - tier: 1

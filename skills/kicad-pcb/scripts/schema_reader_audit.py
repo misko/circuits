@@ -280,11 +280,31 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
-GOVERNED_FLOOR = 17
-PROVEN_FLOOR = 575
+GOVERNED_FLOOR = 18
+PROVEN_FLOOR = 634
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
+#: 17 -> 18 families and 575 -> 600 PROVEN on 2026-08-16: the first
+#: release-target USB-controlled-hub canary populated model-registration
+#: authority and exercised exact model-override/corridor/length-router fields.
+#: Missing child-key rows were added only where the named implementations read
+#: them; duplicate prose fields were removed. Measured `--root .`: 698/698
+#: declared, 600 PROVEN, 0 orphan.
+#: 600 -> 607 PROVEN on 2026-08-16: E-FAULT's fixed-load evidence and
+#: device-specific slew-limited startup fields were promoted from wildcard
+#: coverage to exact reader contracts by the USB controlled-hub canary.
+#: 607 -> 608 PROVEN on 2026-08-16: native-model registration gained a
+#: tuple-bound SMD all-pad-centre datum instead of assuming every critical
+#: package has drilled attachments.
+#: 608 -> 614 PROVEN on 2026-08-16: realised `pad_bank_faces` placement
+#: assertions made the functional/front bank, target ref/bank, rear bank and
+#: optional directional margin executable before routing.
+#: 614 -> 634 PROVEN on 2026-08-16: the USB controlled-hub canary added
+#: realised-width and partial-wave physical-DRC routing controls plus the
+#: connector-orientation contract (model/footprint axes, mating plane,
+#: keyed pad, mounted side and explicit exemptions). Every row names the
+#: shared reader that consumes it; the fleet sweep remains orphan-free.
 #: 16 -> 17 families and 514 -> 551 PROVEN on 2026-08-13: the RF contract's
 #: exact route/fence geometry and imported mating-fact schema acquired real
 #: readers. Measured `--root .`: 648/648 declared, 551 PROVEN, 0 orphan.

@@ -1,0 +1,25 @@
+mpn: PESD2USB3UX-TR
+manufacturer: Nexperia
+type: dual_ultralow_capacitance_usb_esd_array
+datasheet: {doc_id: PESD2USB3UX-T, revision: "7 March 2024 family data", url: "https://assets.nexperia.com/documents/data-sheet/PESD2USB3UX-T.pdf", fetched: 2026-08-16}
+package: SOT23 TO-236AB
+footprint: Package_TO_SOT_SMD:SOT-23
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "Nexperia SOT23 pin drawing and exact JLC C3708426 CAD checked 2026-08-16"}
+pins: {1: IO1, 2: IO2, 3: GND}
+limits: {vrwm: 3.3V, capacitance_typ: 0.56pF, capacitance_max: 0.7pF, iec_61000_4_2_contact: 8kV, peak_pulse_8_20us: 4A}
+gotchas:
+  - "This is a shunt array, not a six-pin flow-through device. Pins 1/2 land directly on D-/D+ and pin 3 takes the shortest available return to the adjacent ground plane."
+  - "IO1 and IO2 are equivalent bidirectional shunt channels; their D-/D+ assignment may be exchanged to preserve physical pair order, but the chosen per-instance pin/net map remains source-asserted."
+  - "The -TR suffix and Nexperia manufacturer identity are bound to JLC C3708426; do not substitute TECH PUBLIC look-alikes carrying similar names."
+  - "0.7pF maximum replaces the previous 3.5pF USBLC6 ceiling. FSUSB42 plus this part leaves only a narrow channel budget, so first-article USB 2.0 eye/compliance testing remains mandatory."
+verified: "Nexperia product sheet independently fixes two-channel SOT23 topology, 0.56pF typical/0.7pF maximum, 8kV IEC contact and USB applicability; exact JLC C3708426 record confirms Nexperia identity, SOT23 package and SMT assembly"
+sourcing: {lcsc: C3708426, alternates: [], note: "750 JLC units observed 2026-08-16; order-time allocation remains authoritative"}
+layout:
+  source: "Nexperia PESD2USB3UX-T pin/package authority plus Microchip USB2517 Hardware Design Checklist DS00004211A implementation guidance"
+  reviewed: "2026-08-16"
+  notes: ["place at each exposed connector", "route the ground pin with minimum inductance", "never branch D+/D- to this shunt; land pins 1/2 directly on the continuous pair path", "keep the device on the signal layer and put any unavoidable via behind it"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Nexperia datasheet and SOT23 package drawing", why: "manufacturer source owns pinout, parasitics and protection rating"}
+  - {tier: 1, reached: true, artifact: "Microchip USB2517 Hardware Design Checklist DS00004211A", why: "hub manufacturer explicitly requires connector-close, direct-on-trace TVS placement with no signal branch and a low-impedance ground path"}
+  - {tier: 2, reached: true, artifact: "exact JLC C3708426 CAD", why: "assembly-vendor CAD cross-checks land identity and pin-one orientation"}
+  - {tier: 3, reached: false, artifact: "community board", why: "manufacturer evidence is sufficient"}

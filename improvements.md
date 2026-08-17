@@ -126,6 +126,18 @@ rationale.
 | IMP-110 | Measure every disconnected body island in native-model registration coupons | completed | USB-controlled debug hub connector registration |
 | IMP-111 | Canonicalize producer-private repeated-pad identities before physical pin comparison | completed | USB-controlled debug hub pin-map preflight |
 | IMP-112 | Give headless rendering the same model environment as body coverage | completed | USB-controlled debug hub placement render |
+| IMP-113 | Exercise refactored skill authority with a real release-target canary | completed | USB-controlled debug hub canonical schematic rebuild |
+| IMP-114 | Close aggregate fault, effective-capacitance and device-specific startup envelopes before placement | completed | USB-controlled debug hub independent pre-route review |
+| IMP-115 | Scope executable part authority to the live design | proposed | USB-controlled debug hub placement entry |
+| IMP-116 | Make generated annotation and fabrication text follow footprint side | completed | USB-controlled debug hub placement DRC |
+| IMP-117 | Compare catalog and board lands in an unflipped footprint frame | completed | USB-controlled debug hub JLC twin |
+| IMP-118 | Separate presentation rendering from shadow-free pixel evidence | implementing | USB-controlled debug hub A-RENDER |
+| IMP-119 | Resolve part dossiers by declared identity, not raw MPN path spelling | proposed | USB-controlled debug hub pre-route pin review |
+| IMP-120 | Make route-wave pauses authenticated and non-promotable | completed | USB-controlled debug hub first USB route wave |
+| IMP-121 | Grade differential-pair fanout against pair gap, not foreign-net clearance | completed | USB-controlled debug hub first USB route wave |
+| IMP-122 | Grade realised functional pad-bank direction before routing | completed | USB-controlled debug hub USB routing backtrack |
+| IMP-123 | Preflight differential endpoint topology and tangent compatibility | proposed | USB-controlled debug hub USB routing retry |
+| IMP-124 | Classify high-speed protection parts as shunt or series before placement | proposed | USB-controlled debug hub deterministic USB-bottom routing |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -1175,6 +1187,17 @@ rationale.
   seed validation before the D15 human review would have exposed the distinction
   between a body-clear floorplan proof and legal copper without regenerating a
   review checkpoint.
+- follow-up evidence: USB-controlled debug hub v1's exact seed emitter accepted
+  all 38 reviewed primitives, but a raw KiCad DRC on r0 found four
+  `diff_pair_uncoupled_length_too_long` errors. The USB-A-to-ESD branches were
+  2.0626 mm against the retained 2.0 mm class ceiling. This was not a collision,
+  off-pad endpoint or net-identity failure, so the existing prep checks could
+  not see it. A 0.10 mm source placement backtrack reduces all eight branches
+  to 1.963 mm without weakening the class rule. Extend the intended
+  pre-review validation to run the exact emitted r0 through a raw, unfilled
+  DRC and classify only expected partial-route findings (dangling vias/tracks
+  and unconnected items); any constraint finding such as uncoupled length,
+  width, clearance, via geometry or edge distance must block human review.
 
 ## IMP-035 — static pour-service coverage for router-excluded nets
 
@@ -1941,11 +1964,39 @@ rationale.
   reduced multipart STEP bodies to the connected pixel island nearest the
   expected centre. After correcting all three classes, P-MODEL-REG passes 3/3
   unique tuples; presence and registration remain separate claims.
+- follow-up evidence: the same board's later TPS259474L aggregate-eFuse change
+  introduced a new exact custom footprint whose courtyard ended at the 2.0 mm
+  body while its HotRod lands reached about 2.42 mm. It also referenced a
+  generic 0.50-mm-pitch stock QFN model and was absent from the registration
+  denominator. Electrical gates stayed green; the independent pre-route lens
+  stopped placement. The fix enlarged the courtyard around the actual copper,
+  added an independent F.Fab outline, replaced the generic body with the exact
+  C2864845 RPW 0.45-mm-pitch STEP, and enrolled U_AGG as the fourth measured
+  registration group. This is direct evidence that registration coverage must
+  follow newly introduced custom/model-bearing footprints, not remain a static
+  list inherited from the first placement pass.
+- implementation progress: 2026-08-16 — P-MODEL-REG now selects a closed,
+  tuple-bound `registration_datum` per group: `drilled_centres` remains the
+  connector default, while `all_pad_centres` gives SMD packages a non-vacuous
+  physical denominator. The exact TPS259474L coupon measures 0.010 mm body/
+  F.Fab centre delta, zero body excursion beyond F.Fab/courtyard, and 10/10
+  pad centres inside the native body. `tests/t1_model_registration.py` passes
+  7/7, including a red fixture proving that an SMD-only subject still fails
+  under the undeclared/default drilled-centre policy.
+- implementation progress: 2026-08-16 — the live USB-controlled debug hub now
+  reaches placement review with 139/139 renderer-resolvable fitted bodies and
+  P-MODEL-REG passing 4/4 exact registration groups: 24 USB-A drilled centres,
+  6 USB-B drilled centres, 2 power-terminal drilled centres, and 10/10
+  TPS259474L all-pad centres. The SMD tuple is therefore exercised in the
+  canonical pipeline, not only in an isolated coupon.
 - remaining: polarity-marker projection, permitted-edge overhang schemas,
   native/drawing landmark classes beyond body/F.Fab/courtyard/drilled centres,
   repeated-pad-numbering geometry, wrong-drill, wrong-rotation and converted-
-  origin fixtures, and coverage policy deciding which project parts require a
-  receipt. Full semantic STEP feature recognition remains out of scope. Body
+  origin fixtures, and a fail-closed coverage policy deciding which newly
+  introduced project parts require a receipt. At minimum, a project-local
+  custom footprint carrying a project-local model may not reach placement
+  unless it is explicitly registered or has an evidenced non-critical
+  disposition. Full semantic STEP feature recognition remains out of scope. Body
   coverage, `mount_anchor`, catalog bounding boxes and same-mesh pixel
   agreement must still never close physical registration by themselves, so
   this entry remains implementing.
@@ -3346,6 +3397,15 @@ Recommended execution order for future boards:
   an active seal.
 - history: 2026-08-13 — proposed after the exact via-process correction made
   the stage-mismatch visible before layout seal.
+- follow-up evidence: 2026-08-16 — the USB-controlled debug hub removed two
+  retired, electrically unused part dossiers (DMP3007SPS-13 and USBLC6-2SC6)
+  because their executable placement rules still entered P-ADJ. The normalized
+  netlist remained semantically identical, yet each broad `02_parts` digest
+  change required both topology and schematic-render renewal. A downstream-
+  only eFuse launch-width rule then required another schematic-readability
+  renewal even though the exact PDF bytes were unchanged. The fail-closed
+  behavior is safe; the repeated unrelated renewals are the scaling cost this
+  improvement is intended to remove.
 
 ## IMP-091 — freeze executable assembly-process ownership before placement export
 
@@ -4105,3 +4165,938 @@ Recommended execution order for future boards:
 - recommendation: use this wrapper for every placement, routed and release
   KiCad render; reserve raw `kicad-cli pcb render` for isolated diagnostics
   whose model environment is supplied explicitly.
+
+## IMP-113 — exercise refactored skill authority with a real release-target canary
+
+- status: completed
+- observed: USB-controlled debug hub canonical schematic rebuild, 2026-08-16
+- evidence: the progressive-disclosure router and its four normalized profile
+  traces passed, but the first real `capability-profile: release` rebuild found
+  twelve source keys without a central authority row. Six were real fields
+  already consumed by board generation or length auditing; six were duplicate
+  prose or distributor/power-envelope declarations with no reader. The gate
+  stopped in 2.1 seconds before TSX generation, so no invalid review or routing
+  work survived the discovery.
+- general rule: a documentation/authority refactor needs both normalized trace
+  equivalence and at least one complete real-project execution through every
+  intentional pause. Static routing proves references are reachable; a live
+  release-target canary proves the selected references, source schemas,
+  ratchets, producers, hashes and resume boundaries compose in practice.
+- landed at: exact child authority rows now cover corridor `layers`/`width_mm`,
+  model-override `file`/transform vectors, and length-match `router_moves`.
+  Unread duplicate fields were removed from the live project rather than
+  legitimized as second authorities. `schema_reader_audit.py` advances its
+  monotone floor to 18 governed families / 608 proven fields, and the live
+  board reaches the intended hash-bound pre-route review stop.
+- completion evidence: `tests/t1_skill_progressive_disclosure.py` passes 9/9,
+  `tests/t1_schema_reader.py` passes 27/27, and
+  `tests/t1_generate_board.py` passes 52/52 including known-bad corridor and
+  model-override fixtures. The live rebuild now passes 59/59 electrical
+  invariants, 4/4 ADR coverage, 139/139 component parity and zero ERC errors;
+  the refactored lifecycle also reaches its placement-review stop with clean
+  placement DRC and P-MODEL-REG 4/4.
+- recommendation: after any future refactor that changes authority routing,
+  schema ownership or lifecycle composition, run one ordinary and one
+  conditional-domain project to their next intentional review pause before
+  calling the migration complete.
+
+## IMP-114 — close aggregate fault, effective-capacitance and device-specific startup envelopes before placement
+
+- status: completed
+- observed: USB-controlled debug hub independent pre-route review, 2026-08-16
+- evidence: a readable, ERC-clean 133-part schematic still carried only
+  32.6 uF of charged always-connected VBUS bulk against a 120 uF USB hub
+  obligation, a 4.45 A simultaneous downstream fault envelope against a 3 A
+  source contract, and an ESD-plus-switch capacitance combination that exceeded
+  the hub vendor's channel budget. The review also found prose claiming actual
+  VBUS/data interlock behavior when the circuit observed command state only.
+  All four were source defects and would have made routing/placement rework
+  inevitable if discovered later.
+- general rule: before TSX rendering or placement, run inexpensive arithmetic
+  over every standards-required effective capacitor bank and every shared path
+  fed by independently limited outputs. Fixed converter/load rows must cite an
+  exact part dossier; programmed limit rows must cite exact `part_value`
+  invariants. Startup proof must dispatch by the selected device's real model
+  rather than force unrelated parts through one timer/gate formula. Human
+  review must separately challenge whether prose describes a command,
+  measurement, fault indication, or physical state.
+- landed at: E-FAULT accepts mutually exclusive `programmer_refs` or
+  `evidence_refs` per downstream row and resolves the latter to exact part
+  dossiers. Its startup subtree now has a closed model dispatch including
+  `slew_limited_output_bank`, which independently recomputes maximum slew and
+  inrush from dV/dt capacitance, equation coefficient and the full positive-
+  corner output bank. Project contracts name every new field explicitly.
+- completion evidence: `tests/t1_early_design.py` passes 38/38 including a
+  fixed-load evidence row and a known-good slew-limited output-bank case. The
+  live project passes E-CAP at 128.664/120 uF and E-FAULT with 2.58 A normal,
+  3.0 A service peak, 4.45 A simultaneous fault, 2.990–3.680 A breaker,
+  1.608–5.042 ms timing, 0.640 V/ms slew and 0.161 A inrush. Independent
+  exact-hash topology and nine-page schematic-render reviews both returned
+  SOUND with P0/P1/P2 = 0/0/0, and the board subsequently reached the clean
+  placement-review boundary.
+- recommendation: make this a mandatory source-stage check for hubs, powered
+  distribution, multi-output load switches and any design whose downstream
+  current limits can sum above the upstream continuous rating. Keep it
+  inapplicable—with an evidenced declaration—for boards that have no such
+  shared path; do not burden simple signal-only boards with invented envelopes.
+
+## IMP-115 — executable part authority must be scoped to the live design
+
+- status: proposed; live-project cleanup completed
+- observed: USB-controlled debug hub placement entry, 2026-08-16
+- evidence: the DMP3007SPS-13 reverse-polarity MOSFET and USBLC6-2SC6 ESD
+  array had both been replaced in the live schematic, manifest and netlist.
+  Their old `part.yaml` files remained under `02_parts`, so P-ADJ still treated
+  their `layout.keep_short`/`layout.adjacency` rows as executable. Placement
+  stopped twice with `P-ADJ-UNREACHED`, and each cleanup changed the broad
+  parts hash and forced fresh reviews. Deleting both retired dossiers made the
+  direct placement-policy audit pass all five rows, including 26/26 keep-short
+  and 6/6 adjacency budgets, without changing the normalized netlist.
+- general rule: a source directory is not automatically a live population.
+  Any dossier that contributes executable pin, placement, sourcing or assembly
+  policy must bind to at least one exact live component identity, or carry an
+  explicit non-live state whose rules are excluded. Historical/superseded
+  dossiers belong in version-control history or a typed archive, not in the
+  active policy denominator.
+- intended landing point: add an inexpensive pre-TSX `P-DOSSIER-SCOPE` audit
+  that joins the manifest/declared parts to `02_parts`. Fail if an active
+  dossier with executable policy has no live identity, if a live non-passive
+  identity has no dossier, or if two active dossiers claim the same exact
+  component role. Print live, shared-passive, retired and orphan denominators.
+- safety condition: shared passive dossiers may legitimately serve many refs
+  and must bind by exact catalog/value/footprint identity, not by directory
+  name. Unknown status or an unresolved identity is a fail; it may not be
+  silently treated as historical.
+- recommendation: implement before routing this board. It is cheap, would have
+  prevented both review-renewal loops, and generalizes to every project that
+  replaces a component after initial sourcing.
+
+## IMP-116 — generated annotation and fabrication text must follow footprint side
+
+- status: completed
+- observed: USB-controlled debug hub track-free placement DRC, 2026-08-16
+- evidence: nine deliberately bottom-mounted USB ESD/data-switch footprints
+  were correctly flipped, but `generate_board_generic.py` later forced every
+  reference field onto `F.SilkS` without clearing the mirrored state created by
+  `Flip()`. KiCad therefore reported nine `mirrored_text_on_front_layer`
+  findings. The same generator also wrote every assembly copy on `F.Fab`, even
+  for bottom-side parts.
+- general rule: side, layer and mirroring are one placement fact. Any generated
+  reference, polarity mark, assembly annotation or model-adjacent overlay must
+  derive all three from the realized footprint side; changing only the layer
+  preserves an invalid coordinate/text transform.
+- landed at: the generator now emits top parts on unmirrored F.SilkS/F.Fab and
+  bottom parts on mirrored B.SilkS/B.Fab. `tests/t1_generate_board.py` proves
+  both sides and the bottom Fab copy in the saved board. The full 52-test
+  generator suite passes, and the live placement DRC fell from nine mirrored-
+  text findings to zero.
+- recommendation: keep the saved-board regression, because source YAML side
+  declarations alone cannot prove the serialized text layer/mirror state.
+
+## IMP-117 — compare catalog and board lands in an unflipped footprint frame
+
+- status: completed
+- observed: USB-controlled debug hub JLC twin at the placement-review boundary,
+  2026-08-16
+- evidence: the first catalog twin reported all four bottom-side FSUSB42 data
+  switches and all five bottom-side PESD2USB3UX arrays as `MIRRORED`, with
+  mirror fits of 0.01/0.22 mm versus non-mirror fits of 2.00/1.90 mm. Every one
+  was a correct asymmetric library land deliberately placed on `B.Cu`.
+  `jlc_twin.py` zeroed footprint rotation but compared the resulting absolute
+  board coordinates directly with JLC's top-side library coordinates; it did
+  not undo KiCad's side flip. The detector therefore interpreted ordinary
+  bottom-side placement state as mirror-numbered source CAD and would force
+  nine false adjudications or block every such design.
+- general rule: land-pattern identity is a library-to-library comparison.
+  Before testing rotation or mirrored numbering, transform realized pad and
+  polarity-mark coordinates back through both board rotation and the
+  top/bottom side flip into the footprint's original unflipped local frame.
+  Only a mirror that remains after this normalization is a package/library
+  defect. Convert model registration, nudges and local/body transforms through
+  the same inverse pair so the fitted and rendered frames cannot disagree.
+- landed at: `jlc_twin.py` now owns explicit board-to-unflipped-footprint and
+  footprint-to-board transforms. Pad fitting and local polarity graphics use
+  the normalized frame; model registration and evidence-backed board nudges
+  use its inverse. `twin_overlay.py` independently implements the same frame
+  contract for expected image geometry instead of declaring every B.Cu body
+  ungradeable. The live twin changed from nine false `MIRRORED` blockers and a
+  vacuous 0/0 bottom-image gate to exact non-mirrored fits and 9/9 measured
+  bottom bodies, while retaining the original top-side mirror-numbering
+  detector.
+- completion evidence: `tests/t1_jlc_twin.py` includes an asymmetric,
+  quarter-turned bottom-side footprint whose identical supplier land must fit
+  non-mirrored at offset zero. The existing 2026-07-16 known-bad mirrored
+  SOIC-16 fixture remains blocking, so normalizing placement state does not
+  weaken detection of a genuinely mirror-numbered library.
+  `tests/t1_twin_overlay.py` independently flips an asymmetric connector,
+  projects the exact side/rotation envelope through a mirrored bottom camera,
+  and requires that body to enter the measured denominator. The live bottom
+  A-RENDER passes 9 measured / 9 expected, with zero unmeasured or no-model
+  exclusions.
+- recommendation: carry immediately for every double-sided assembly. Never
+  adjudicate a fleet of identical `MIRRORED` findings merely because every ref
+  is on `B.Cu`; first prove the checker is comparing unflipped local frames.
+
+## IMP-118 — separate presentation rendering from shadow-free pixel evidence
+
+- status: implementing; live-project evidence corrected
+- observed: USB-controlled debug hub placement-review A-RENDER, 2026-08-16
+- evidence: populated and bare 4K renders made with the high-quality preset
+  shared the same camera, yet model-cast shadows existed only in the populated
+  image. The populated-minus-bare extractor therefore measured each connector
+  plus its shadow as one body. Four geometrically identical USB-A receptacles
+  all reported the same approximately 1.50 mm outward excursion, and the
+  upstream USB-B reported 1.52 mm, despite direct visual and catalog-geometry
+  agreement. Re-rendering the exact same board/camera at the shadow-free basic
+  preset reduced the clean bodies below the 1.00 mm evidence tolerance and
+  passed 30/30 measurable top bodies plus 9/9 bottom bodies.
+- general rule: photorealistic presentation and metrology are different
+  products. A populated-minus-bare body gate requires illumination effects to
+  be invariant between observations; cast shadows, ambient occlusion,
+  reflections and antialiasing halos are not component geometry. Generate a
+  deterministic, shadow-free orthographic render pair for machine evidence,
+  and a separate high-quality render for human review. Never tune a geometry
+  tolerance to absorb a renderer's shadow extent.
+- landed at: this project's canonical A-RENDER inputs are the 4K `*_gate.png`
+  basic-preset populated/bare pairs. The high-quality `*_4k.png` files remain
+  presentation-only and are not accepted as the machine measurement source.
+- completion evidence: the exact-board top report passes 30 measured / 129
+  expected (99 below the declared body resolvability floor, zero resolvable-
+  unmeasured, zero no-model); the bottom report passes 9/9. Both calibrate at
+  21.03 px/mm with 0.9999 anisotropy and preserve the 1.00 mm evidence
+  tolerance. The repeated approximately 1.50 mm high-quality false failures
+  disappear without a board, model, placement or tolerance change.
+- recommendation: make the render wrapper expose named `evidence` and
+  `presentation` profiles and have A-RENDER refuse a render receipt that does
+  not declare the shadow-free evidence profile. Keep both outputs when useful,
+  but bind review gates only to the evidence pair.
+
+## IMP-119 — resolve part dossiers by declared identity, not raw MPN path spelling
+
+- status: proposed; live pin map independently cleared
+- observed: USB-controlled debug hub exact-board pre-route pin review,
+  2026-08-16
+- evidence: P-PINMAP graded 265 physical identities and an independent reviewer
+  found no board pin defect, but the reproducible datasheet-backed `pin_audit`
+  could not finish. One exact TPS259474LRPWR dossier has no digest-selected
+  local PDF, while exact MPNs such as `MCP2221A-I/ST`, `MCP23017-E/SO` and the
+  comma-qualified 74LVC08 identity are represented by path-safe directory names.
+  The extractor attempted to use raw identity strings as filesystem paths, so
+  `/` created fictitious subdirectories and `,`/variant spelling prevented
+  resolution. This defeats IMP-042's exact-local-datasheet gate for correct
+  dossiers whose storage name cannot literally equal the manufacturer string.
+- general rule: a manufacturer part number is data, not a path. Dossier lookup
+  must enumerate `part.yaml` files inside the declared parts root and match a
+  normalized, schema-owned identity field. Directory names are opaque storage
+  keys and may be path-safe slugs. Once resolved, the selected local PDF must
+  still be bound by `datasheet.sha256`; path normalization must never weaken
+  exact document authority or fall back to a neighboring family PDF.
+- intended landing point: refactor `pin_audit.py` to build a one-to-one index
+  from declared manufacturer identity and aliases to dossier path. Fail on
+  zero or multiple matches, path traversal tokens and conflicting aliases.
+  Add the exact TI TPS259474L PDF and digest to the live dossier, then regenerate
+  the pin-audit report before release seal.
+- completion evidence required: fixtures resolve slash- and comma-bearing MPNs
+  through path-safe dossier directories; ambiguous and missing identities fail;
+  a wrong or absent PDF digest still fails exactly as IMP-042 requires. The
+  live board's pin audit must complete from repository-local bytes without
+  network access.
+- recommendation: implement before release sealing, not in the differential-
+  routing critical path. The independently reviewed board mapping is SOUND and
+  suitable to route, but the release must not claim reproducible pin authority
+  until the gap is closed.
+
+## IMP-120 — make route-wave pauses authenticated and non-promotable
+
+- status: completed
+- observed: USB-controlled debug hub first USB routing stage, 2026-08-16
+- evidence: the first routing checkpoint needed to stop after three USB-only
+  waves so their time, geometry and failure modes could be reviewed before
+  power/control routing. The router previously offered only a complete chain
+  or resume after interruption; a deliberate prefix required editing the
+  config digest or killing a healthy process.
+- general rule: a stage checkpoint must be an explicit successful state, not a
+  simulated failure. It authenticates the exact config, r0 and per-wave chain,
+  refuses races, writes no promotable `FINAL` while incomplete, and resumes
+  only the untouched suffix.
+- landed at: `route_and_stitch_generic.py route --through-wave NAME` records
+  the digest-bound `route_progress.json`, prints an explicit pause receipt and
+  omits `FINAL`. A later `route --resume` verifies the prefix before continuing.
+- completion evidence: the complete `tests/t2_route_stitch.py` suite passes,
+  including a fixture proving one-wave pause, non-promotion and suffix-only
+  resume. The live board stopped at 3/7 waves with no `FINAL` marker.
+- recommendation: use named pauses at critical/RF or high-speed, power and
+  control boundaries when useful. Simple boards may run the full chain.
+
+## IMP-121 — grade differential-pair fanout against pair gap, not foreign-net clearance
+
+- status: completed
+- observed: USB-controlled debug hub first USB routing stage, 2026-08-16
+- evidence: all ten USB pairs used 0.2332 mm tracks, 0.15 mm intra-pair gap and
+  0.30 mm clearance to unrelated copper. Their 0.50 mm-centre launch stubs have
+  0.2668 mm copper-edge separation. KRT issue-242 preflight compared P/N with
+  `config.clearance * 0.95` (0.285 mm), rejected all ten, and emitted identical
+  r0/r1/r2/r3 boards. It ignored the declared `diff_pair_gap`.
+- general rule: a differential router needs separate same-pair and foreign-net
+  clearance domains. Launch validation compares P/N to the pair gap while
+  obstacle construction retains full foreign clearance. Collapsing them either
+  falsely rejects legal launches or encourages unsafe global relaxation.
+- landed at: local KiCadRoutingTools commit `5a1bdc4` compares same-pair launch
+  copper against `min(clearance, diff_pair_gap) * 0.95`, retains full clearance
+  for foreign obstacles, and makes the CLI fail when any requested pair is
+  skipped.  The circuits wrapper independently rejects skipped fanout and
+  single-ended differential deferral.
+- completion evidence: the focused KRT regression passes a legal 0.2668 mm
+  edge gap for a 0.15 mm pair gap, rejects a known-bad pair gap, and retains
+  0.30 mm foreign-copper clearance.  The circuits route/stitch suite passes
+  121/121 applicable tests (two environment skips).  On the live retry all four
+  bottom pairs reported `skipped_bad_fanout=[]`; a later, different endpoint
+  topology failure was rejected in 9.031 s with no accepted route wave.
+- recommendation: retain distinct same-pair and foreign-net clearance domains
+  and the hard no-zero-work/no-single-ended guards.  Do not weaken foreign-net
+  clearance to make a differential launch pass.
+
+## IMP-122 — grade realised functional pad-bank direction before routing
+
+- status: completed
+- observed: USB-controlled debug hub USB-only routing backtrack, 2026-08-16
+- evidence: ordinary adjacency, courtyard, pad-separation, 3D registration and
+  human placement review all passed, yet two bottom-side FSUSB42 switches had
+  their connector and hub channel banks facing the wrong cells.  After that
+  correction, pad-level escape tracing found all four downstream SOT-23 ESD
+  arrays still had their common GND land between the receptacle contacts and
+  signal lands.  Both placements were close, collision-free and visually
+  seated; neither was directionally routable without avoidable detours or a
+  pair crossover.  The source-to-realised rotation change introduced by a
+  bottom-side flip made visual inspection of authored angles especially
+  unreliable.
+- general rule: proximity is not direction.  For every mux, filter, shunt
+  protector, edge connector or other part with functional pad banks, assert on
+  the realised board that the named front bank is closer to its intended
+  adjacent target bank than a named rear bank.  Bind the bank pads to their
+  expected nets separately.  Run this before route preparation; 3D-body
+  seating and body-to-body distance cannot substitute for copper-endpoint
+  direction.
+- landed at: `generate_board_generic.py` now consumes
+  `asserts.pad_bank_faces[]` and compares exact realised pad-bank centroids
+  after rotation and side flip.  The board declares connector-facing and
+  hub-facing assertions for all four FSUSB42s plus connector-facing assertions
+  for all five ESD arrays, and exact pad-net assertions for the four downstream
+  ESD pairs.  The symmetric PESD2USB3UX channels are assigned IO1=D- and
+  IO2=D+ downstream so the corrected orientation produces a straight,
+  no-crossover launch.
+- completion evidence: `tests/t1_generate_board.py` passes 53/53, including a
+  known-bad fixture proving opposing pad-bank claims block generation.  The
+  live generator must report all new orientation assertions before the next
+  route-prep subject is reviewed.
+- recommendation: add `pad_bank_faces` while the floorplan is authored for any
+  multi-bank high-speed or protection part.  Require it for bottom-side signal
+  parts and shunt devices by policy once fleet adoption data shows the required
+  exceptions; do not infer it from rotation numbers or STEP geometry.
+
+## IMP-123 — preflight differential endpoint topology and tangent compatibility
+
+- status: proposed; live failure safely contained
+- observed: USB-controlled debug hub USB-only routing retry, 2026-08-16
+- evidence: after the same-pair fanout fix accepted all four bottom USB pairs,
+  KRT found candidate centre lines but could not attach any coupled path between
+  a horizontal PESD2USB3UX endpoint bank and its orthogonal FSUSB42 endpoint
+  bank.  Each pair reported an unresolvable polarity mismatch, produced no
+  coupled copper and was offered for single-ended deferral.  The wrapper
+  rejected the wave after 9.031 s; r0 and r1 remained byte-identical.
+- additional evidence: an attempted deterministic "through the ESD" route was
+  collision-refused on all four pairs.  Exact pad shapes showed that the SOT23
+  ground land is not a series endpoint: it separates the two signal exits and
+  invalidates the two-ended coupled-router abstraction.  Recasting pins 1/2 as
+  direct-through shunt lands produced 8/8 connected nets, no physical DRC
+  finding and 0.305 mm realized skew per pair.
+- further evidence: after the connector side was corrected, the independently
+  bounded `usb_transition` wave rejected all five remaining pairs in 19.329 s.
+  P1_HUB through P4_HUB exposed incompatible endpoint order/approach geometry
+  on the opposite FSUSB42 banks, while UP_HUB exposed the same two-ended-router
+  mismatch at a three-pad shunt and through-hole connector.  The reviewed
+  connector-side path was valid, but the end-to-end path contract was
+  incomplete.  The hard wrapper preserved byte-identical r0/r1, zero vias and
+  zero authenticated waves.
+- general rule: route feasibility depends on endpoint topology as well as open
+  field geometry.  Before expensive search, inspect exact P/N ordering at both
+  ends, allowed approach tangent, realised pad-bank orientation, multi-terminal
+  shunt topology and declared seed direction.  Fail early and identify the end
+  that requires a twist, relocation or compatible launch extension.
+- configuration-aware extension: the endpoint table must also enumerate legal
+  transformations supplied by the component itself, such as a hub's per-port
+  polarity-swap strap or an FPGA's swappable pin assignment.  A transformation
+  is usable only when its strap/register state and the corresponding physical
+  pad-to-logical-net assignment are both explicit, executable invariants.
+  Merely renaming or swapping D+/D- nets is not a remedy.
+- intended landing point: add a read-only KRT/circuits differential endpoint
+  preflight or dry-run report, plus a known-bad orthogonal-bank fixture.  The
+  report should walk the complete critical path across both banks of every
+  mux/switch and every series or shunt element.  It must expose physical P/N
+  order, bank-facing direction, approach tangent and topology kind separately
+  from obstacle-search feasibility, and it must detect when correcting one
+  side merely transfers the twist to the other.
+- board remedy: either author deterministic, source-owned coupled routes for
+  the four short connector-to-switch spans with correct shunt topology or use
+  a true flow-through protection package whose endpoints match the router's
+  model.  Never remedy this by swapping D+/D- net identities, branching to the
+  TVS, or accepting single-ended fallback.
+- recommendation: implement the preflight before the next complex high-speed
+  placement.  For this board, first trace one exact pair and choose the smaller
+  source-owned geometry change before rerunning the bounded wave.
+- completion evidence extension: USB2517I ports 2--5 now use the documented
+  `PRT_SWP` straps with `CFG_SEL=000`; electrical invariants bind R_SWAP2--5
+  high, R_SWAP1/6/7 low, and the four physical DM/DP pad assignments.  The
+  exact 139-part schematic passed 30/30 pre-generation checks, 66/66 electrical
+  invariants, zero ERC errors, and two independent hash-bound reviews.  Its
+  canonical resume regenerated the board in under one minute and stopped at
+  stale placement receipts before routing.  The reusable endpoint-transform
+  report remains proposed; this board-specific instance is implemented.
+- crossover evidence: the first upstream deterministic launches passed
+  ordinary clearance, continuity and length-spread checks but still presented
+  crossed terminal order to the coupled router.  A same-layer fanout cannot
+  continuously transform opposite P/N order without an intersection.  The
+  accepted source remedy keeps identity fixed, crosses the conductors on
+  separate outer layers locally, gives each conductor exactly one B-to-F
+  transition (P through the USB-B plated land, N through one signal via), and
+  begins the stochastic field route as a straight coupled F.Cu runway.  KRT
+  then routed the complete upstream pair with zero polarity swaps.
+- intended implementation extension: the endpoint preflight should grade the
+  terminal tangent and ordered signed normal of the *actual seed copper*, not
+  only pad positions, length and clearance.  When the orders disagree it
+  should require an explicit local-crossover architecture before routing and
+  report its signal-via count, nearest same-reference GND return, prepared
+  mismatch and prepared/realised uncoupled span.  This is conditional for an
+  unavoidable order inversion, not a default licence to add layer changes.
+- board completion evidence extension: the prepared crossover measures
+  0.0010 mm P/N spread and 12.3854 mm uncoupled copper.  Its first complete
+  coupled route measured 15.2335 mm including the package/runway terminal
+  regions, so the non-spec design guard is calibrated to 15.50 mm rather than
+  hiding the extra realised discontinuity.  A dedicated GND return via is now
+  source-owned 0.87 mm from the N transition via.  First-article Hi-Speed
+  enumeration, sustained traffic and eye testing remain mandatory.
+
+## IMP-124 — classify high-speed protection parts as shunt or series before placement
+
+- status: proposed; board-specific correction implemented
+- observed: USB-controlled debug hub deterministic USB-bottom routing,
+  2026-08-16
+- evidence: PESD2USB3UX is a three-pin shunt, but the placement/routing mental
+  model treated its two signal lands like the input side of a series device.
+  Ordinary topology, pad-net, directional-bank, body-registration and human
+  placement reviews all passed.  The mistake surfaced only when four coupled
+  routes collided with the central GND land.  Microchip's USB2517 checklist
+  explicitly says never to branch USB signals to protection and to place the
+  protection device directly on the differential traces.
+- general rule: every high-speed protector, common-mode choke, filter, mux or
+  retimer must declare whether it is `shunt`, `series_flow_through`, or
+  `series_directional`.  A shunt's protected net is continuous through the
+  placement and the protector is a land on that path; a series device divides
+  the path into input/output nets.  Placement and route contracts must consume
+  that distinction before directional pad-bank review.
+- intended landing point: extend part layout metadata and early-design/route
+  preflight to require the topology kind for protection parts on critical
+  pairs.  Assert that shunts do not create new series nets or signal stubs,
+  that their ground/return path is short, and that the realized continuous
+  pair can clear every land before human placement review.
+- board evidence: `P1_PORT` through `P4_PORT` are now deterministic direct-
+  through B.Cu routes.  All eight nets connect connector, shunt land and data
+  switch; raw r0 DRC has no physical-rule finding; every end-to-end group
+  passes at 0.305 mm spread.  Only `USB_HS_PROTECTED` receives the measured
+  7.50 mm SOT23/connector uncoupled ceiling; internal USB remains at 2.0 mm.
+- recommendation: implement before the next high-speed protection placement.
+  Prefer an actual flow-through package when its capacitance, protection,
+  sourcing and assembly constraints are equally suitable; otherwise bind the
+  unavoidable shunt-package discontinuity to a dedicated class and first-
+  article eye/enumeration test.
+
+## IMP-125 — make generated evidence bundles relocatable across atomic promotion
+
+- status: completed
+- observed: USB-controlled debug hub placement-render renewal, 2026-08-16
+- evidence: the pre-route fabrication exporter correctly staged and atomically
+  promoted its output by copying the existing `pre_route` evidence tree through
+  a temporary sibling.  Cached EasyEDA `.kicad_mod` files contained absolute
+  3D-model paths to that temporary tree.  On the next twin run pad fitting still
+  succeeded, but the independent terminal body gate reported 1/139 bodies and
+  rejected the run because 138 paths named the vanished
+  `pre_route_next.<id>` directory.  Reusing the older render would have hidden
+  the defect behind a stale board hash.
+- general rule: any generated bundle expected to survive rename, copy, atomic
+  promotion or release staging must not persist an ephemeral absolute path.
+  Cached third-party artifacts must be rebound to the current cache root when
+  loaded, and generated references inside the bundle must be relative to the
+  bundle root (for KiCad, `${KIPRJMOD}`) whenever possible.  Terminal coverage
+  must run after rebinding and use the same project root the consumer will use.
+- landed at: `jlc_twin.py` now rebases EasyEDA model entries by current
+  per-code cache structure while preserving scale, offset and rotation; emitted
+  twin-board paths use `${KIPRJMOD}/easyeda/...`; and NO-BODY resolves against
+  the twin directory rather than the original design-board directory.
+- completion evidence: `tests/t1_jlc_twin.py` adds an atomic-promotion fixture
+  with a deliberately vanished absolute staging path and proves both rebinding
+  and portable emission.  The complete suite passes 37/37.  The exact live
+  rerun passes 139/139 mounted bodies, top A-RENDER 30/129 measurable with zero
+  resolvable-unmeasured/no-model, and bottom A-RENDER 9/9.
+- recommendation: apply the same relocatability audit to other staged evidence
+  producers.  A promotion test should move the complete output directory before
+  invoking its first independent consumer; string-scan generated manifests for
+  the temporary directory name as an additional cheap guard.
+
+## IMP-126 — grade connector mating direction against the board edge
+
+- status: completed
+- observed: USB-controlled debug hub USB-A placement review, 2026-08-16
+- evidence: all four KH-AF90DIP-112 receptacles passed exact footprint/model
+  registration (6/6 attachment centres each), model coverage and A-RENDER, yet
+  their mating openings pointed into the board.  Native model and footprint
+  were correctly registered to each other; source rotation `0` made the whole
+  correctly registered assembly functionally backwards.  A perspective view
+  from board centre showed all four mouths while the outside view showed only
+  their rear shells.
+- general rule: model registration, pad polarity, body presence and functional
+  mating direction are independent claims.  Every edge-mounted connector must
+  declare the semantic board edge through which it mates.  Its realised body-
+  versus-pad displacement must point toward that edge, and its mating plane—not
+  merely its contact-row origin or shell pads—must be checked against the board
+  outline.  Human evidence should include one view from outside the edge and
+  one from the board interior.
+- landed at: `generate_board_generic.py` now consumes
+  `asserts.edge_faces[] {ref, edge, min_offset_mm?}` for `x0/x1/y0/y1` edges;
+  the contracts template documents every field; and
+  `tests/t1_generate_board.py` contains a contradictory-edge known-bad fixture.
+  The USB-controlled debug hub binds J_PORT1..4 to `y0` and J_UP to `x0`.
+- completion evidence: the generator suite passes 56/56 including the new
+  known-bad case, and fleet schema governance passes 717/717 declared keys with
+  zero orphan fields.  The corrected board/r0 hashes are
+  `f5be5f723e712cfb3f74797a39fbf79f78e2c7304433374f1669a2ff93f295c9` /
+  `d006e5f09c7eaefdf304a506e275e1f95fe727d2a4e22ea8058d852f0277715a`.
+  All four USB-A refs are realised at rotation 180 degrees, the exact native
+  registration covers all 24 drilled centres, P-OUT measures 0.21 mm at the
+  mating edge, the refreshed A-RENDER overlay binds the corrected board hash
+  and passes, and independent exact-board pin/layout review confirms the
+  mating direction is global -Y through the north edge.
+- recommendation: make `edge_faces` required by project commissioning for
+  every connector categorized as edge-mounted.  Later add a separate
+  mating-plane-to-outline bound sourced from the part dossier; centroid
+  direction reliably catches 180-degree reversal but does not alone prove
+  flush depth or enclosure clearance.
+- follow-up landed: IMP-128's `P-ORIENT` now consumes this single edge
+  authority and adds the manufacturer-derived mating-plane-to-`Edge.Cuts`
+  bound, independent model/footprint mouth axes, fixed camera semantics and
+  hash-bound human review.  The original generator assertion remains the cheap
+  first line; it no longer carries the entire orientation claim.
+
+## IMP-127 — bind package-local rule areas to realised footprints
+
+- status: completed
+- observed: USB-controlled debug hub USB-A orientation correction, 2026-08-16
+- evidence: moving U_DATA1--4 inward by 9.5 mm left four permissive
+  package-launch rectangles at their former absolute board coordinates.  The
+  regenerated board then produced 12 misleading field-clearance errors even
+  though the package-local neck geometry had moved intact.  Relaxing the
+  global 0.30 mm foreign-net clearance would have concealed the ownership
+  error and weakened the rest of the board.
+- general rule: a rule area that exists because of one realised package must
+  be derived from that package, not duplicated as an absolute rectangle in
+  the floorplan.  Absolute geometry remains appropriate for board/enclosure
+  regions; package-local exceptions should follow ref, side and rotation.
+- landed at: `generate_board_generic.py` accepts mutually exclusive
+  `ref + margin_mm` package rule-area geometry in addition to explicit
+  rectangles/polygons.  The four FSUSB42 launch areas now derive from
+  U_DATA1--4 realised pad-copper bounds plus 0.4 mm.  Both contracts document
+  the form and clean/known-bad fixtures cover it.
+- completion evidence: the generator suite passes 56/56, fleet schema
+  governance passes 717/717 with zero orphan fields, canonical pre-route DRC
+  returns zero errors, and P-LAND grades all 281 pads with zero failures,
+  including 39 package-scoped clearances.
+- recommendation: prefer `ref + margin_mm` for package necks, exposed-pad
+  escape regions and other footprint-owned exceptions.  Require an explicit
+  rationale for absolute rule areas that overlap movable components.
+
+## IMP-128 — authenticate camera semantics in directional render evidence
+
+- status: completed; current USB-board human approval recorded
+- observed: USB-controlled debug hub USB-A orientation verification,
+  2026-08-16
+- evidence: the two perspective images named `from_outside` and
+  `from_board_center` showed opposite camera semantics.  The pixels were
+  useful, but a reviewer trusting the filenames could invert the connector
+  verdict.  The exact board hash was also absent from the image itself, while
+  an earlier overlay receipt still named the rejected pre-fix board.
+- general rule: directional render evidence needs an authenticated camera
+  contract, not an informal filename.  Record source-board hash, viewed edge,
+  camera side, target point and expected visible connector face.  For an
+  edge-mounted receptacle, the outside view must expose the mating mouth and
+  the interior view must expose the rear shell; contradictory metadata or a
+  stale board hash must fail review.
+- landed at: `connector_orientation_gate.py` closes reusable `P-ORIENT` after
+  `P-MODEL-REG` and before route import.  It reuses `floorplan.yaml`
+  `asserts.edge_faces[]` as the single intended-edge authority and extends the
+  existing exact-SHA `model_registration.yaml` group only with manufacturer-
+  derived local mouth/up axes, mounted side, mating-plane depth/range and one
+  keyed pad.  Every realised `J*` ref is declared or explicitly exempted.
+  The machine gate transforms model, footprint and board frames independently,
+  traces the access ray through `Edge.Cuts`, and measures the signed mating-
+  plane offset.  It refuses geometry before rendering and preserves the prior
+  accepted bundle on a later failure.
+- render refactor: five fixed exact-board cameras serve every connector.  Top
+  selection uses exact projected footprint geometry; side crops use calibrated
+  board-coordinate projection and intentionally draw no body bbox.  No image
+  difference, colour threshold or removal of an overhanging model selects the
+  connector.  Physical model-body bboxes remain solely `P-MODEL-REG`'s claim.
+  Every image burns in `EDGE`, `CAMERA` and semantic `SUBJECT`; repeated exact
+  tuples share one human representative while all instances remain in the
+  machine and approval denominators.  Progress is visible as `n/5`, and both
+  canonical drivers impose a 180-second process deadline.
+- live correction: both diagnostic PNGs were regenerated from corrected
+  `twin.kicad_pcb`; `from_outside` now uses the north-side camera and visibly
+  shows all four mouths, while `from_board_center` shows their rear shells.
+  The 4K populated/bare A-RENDER receipts were regenerated and now bind board
+  SHA256 `f5be5f...295c9`.
+- completion evidence: `tests/t1_connector_orientation.py` passes 4/4,
+  including a 180-degree reversed known-bad, proof that machine PASS cannot
+  self-approve, exact approval binding, repeated-tuple render compression and
+  bounded full/reuse driver order.  Schema governance passes 27/27 with 634
+  proven reader rows; progressive-disclosure governance passes 9/9; canonical
+  rebuild wiring passes 62/62.  The live USB-controlled debug hub machine run
+  passes 5/5 refs and renders the high-resolution five-camera bundle in about
+  six seconds, then correctly returns `REVIEW REQUIRED` because no human has
+  yet approved subject `55c6d776a55a922e...`.
+- recommendation: keep `P-ORIENT` mandatory for future edge-mounted
+  connectors.  Add an exemption only for a genuinely different service-access
+  class, and close that class with its own mechanical review rather than
+  borrowing the mouth-axis claim.
+- approval-stability evidence: a renderer-only renewal changed a thin
+  board-edge scanline and therefore the PNG bytes while the board, model,
+  transforms, camera contract and semantic subject remained unchanged.  The
+  gate correctly retained one semantic subject and the user's approval was
+  rebound to that unchanged subject, but byte-level image freshness caused
+  avoidable adjudication work.
+- follow-up recommendation: bind human connector approval to a canonical
+  semantic manifest (board/model/transform/camera/edge and keyed-pad facts),
+  while retaining PNG hashes as evidence provenance rather than approval
+  identity.  Add deterministic raster settings and a known-clean fixture where
+  harmless antialiasing/edge-row variation refreshes evidence without staling
+  the semantic approval; any camera, transform or geometry change must still
+  produce a new subject and require approval.
+
+## IMP-129 — separate geometric render resolution from ray-tracing quality
+
+- status: proposed; bounded board-specific workaround implemented
+- observed: USB-controlled debug hub exact pre-route A-RENDER renewal,
+  2026-08-16
+- evidence: a 4064x2832 KiCad `quality=high` populated render completed in
+  23 seconds, while the same-camera bare board remained inside its second
+  render for more than five minutes with no useful progress.  The bare board
+  has fewer models, so input size did not predict cost.  Terminating that run
+  and rendering the same four populated/bare top/bottom images at
+  `quality=basic` completed in 7.6 seconds total.  The independent calibrated
+  overlays then passed 30/30 measurable top bodies and 9/9 bottom bodies on
+  the exact current board.
+- general rule: pixel-verification resolution and photorealistic render
+  quality are separate requirements.  Same-camera registration needs enough
+  pixels and deterministic silhouettes, not expensive ray-traced lighting.
+  Use bounded basic-quality orthographic populated/bare pairs for machine
+  geometry.  Generate high-quality perspective images only for focused human
+  review when they add judgeable information.
+- intended landing point: give the render-pair producer one atomic command
+  that emits progress per image, applies a per-image deadline, verifies both
+  files were refreshed at identical dimensions/camera settings, and preserves
+  the prior accepted pair on failure.  Record renderer mode and timing in the
+  A-RENDER receipt.  A high-quality timeout may fall back to basic only for a
+  gate whose contract explicitly accepts basic silhouettes; it must not
+  silently weaken a human-review requirement.
+- board workaround: exact 4064x2832 basic-quality populated and bare renders
+  were regenerated for both sides under 60-second per-image deadlines.  Top
+  and bottom `twin_overlay.py` reports bind board SHA256
+  `8904921c...22746` and pass with zero resolvable-but-unmeasured or missing-
+  model cases.
+- recommendation: implement before making 4K A-RENDER generation a canonical
+  stage on additional boards.  Keep connector directional review on its
+  separate focused, authenticated camera bundle.
+
+## IMP-130 — grade the signed mounting side independently of XY registration
+
+- status: implemented; exact-board human connector approval still pending
+- observed: USB-controlled debug hub J_UP profile review, 2026-08-16
+- evidence: J_UP passed the earlier top-view model-registration and directional
+  machinery while its connector shell was visibly below the PCB in
+  `J_UP_profile_b.png`.  The original coupon selected the correct board
+  coordinates but only graded projected XY overlap.  A reversed custom
+  footprint body outline, an incorrect y-up 90/270-degree projection in the
+  orientation checker, and an unsuitable model transform could therefore
+  agree well enough to hide the physically impossible signed-Z result.
+- general rule: footprint/pad registration in XY, mounting side in signed Z,
+  and connector mating direction are three independent claims.  A top view
+  cannot prove front-versus-back mounting.  Quarter-turn transforms must be
+  compared with pcbnew's y-down board coordinates; 0/180-degree-only fixtures
+  cannot expose the sign error.
+- landed at: the J_UP footprint Fab/courtyard body is aligned to the exact JLC
+  C86462 geometry; the source uses the SHA-bound JLC STEP and corrected edge
+  placement; `connector_orientation_gate.py` uses pcbnew-compatible y-down
+  footprint rotation; and `native_model_registration.py` / its wrapper render
+  orthogonal coupons and grade the declared front/back solid-pixel fraction
+  around the authored PCB strip.  Reports retain the side images and measured
+  fractions.
+- completion evidence: connector-orientation tests pass 5/5 including explicit
+  90/270 coordinate fixtures.  Native model-registration tests pass 8/8,
+  including an XY-aligned but vertically inverted known-bad.  The regenerated
+  J_UP profile shows the shell above the PCB and leads below it; outside and
+  inside cameras respectively show the mating mouth and rear shell.  Current
+  machine evidence passes P-MODEL-REG 4/4 and P-ORIENT 5/5; explicit human
+  approval remains intentionally absent after the rejected prior subject.
+- recommendation: make signed mount-side evidence part of `P-MODEL-REG` for
+  every new model, not only connectors.  Keep P-ORIENT focused on access/mating
+  direction and require its exact current subject to be shown for user
+  approval before routing.  When a body looks wrong, debug one reference across
+  footprint local, board, model, and camera frames instead of nudging the real
+  footprint to make pixels agree.
+
+## IMP-131 — derive intermediate power floors in their own current domain
+
+- status: implemented; exact schematic re-review pending
+- observed: USB-controlled debug hub fresh pre-route topology review,
+  2026-08-16
+- evidence: E-MARGIN passed four USB outputs by starting each 0.5 A branch at
+  an asserted `P5V_PROTECTED >= 4.89 V`.  The admitted 5.10 V input minus the
+  fuse dossier's 121 mV allowance and the aggregate eFuse's 45 mOhm maximum at
+  the 2.58 A shared load yielded no more than 4.863 V before holder/common
+  copper.  The gate therefore proved a downstream inequality from an upstream
+  premise it never derived, and also listed the aggregate eFuse again in each
+  branch's 0.5 A resistance budget.
+- general rule: a path containing shared and per-load elements must be split at
+  the current-domain boundary.  Fixed drops and shared resistances are charged
+  once at trunk current to derive an intermediate rail floor.  Branch switch,
+  copper, via, connector and cable terms are then charged at that branch's
+  current.  An intermediate voltage may not be both an author input and the
+  conclusion the same gate claims to prove.
+- landed at: `power_topology.py` accepts a structured top-level
+  `upstream_delivery` proof with named source/destination nets, admitted source
+  minimum, shared current, fixed-drop and resistance components, residual
+  margin, destination floor, evidence and the complete consumer-rail set.  It
+  derives the floor and fails when the declaration or any consumer `vin_min`
+  exceeds it.  Clean and circular-floor known-bad fixtures are in
+  `tests/t1_power_topology.py`; schema contracts and governance cover the new
+  keys.
+- board correction: commissioning now requires a regulated 5.20–5.25 V bench
+  source.  The gate charges 121 mV fuse drop plus 45+18 mOhm aggregate
+  eFuse/holder/common-copper at 2.58 A with 5% residual, deriving 4.902 V and
+  conservatively declaring 4.890 V.  Each 0.5 A port then grades only its
+  160 mOhm branch path, including 35 mOhm TPS2557, 25 mOhm copper/vias/joints
+  and 100 mOhm mated contacts, with the existing 20% branch residual.
+- completion evidence: the general E-MARGIN suite passes 59/59, including the
+  exact 5.10 V circular-floor incident as a known-bad.  The board reports the
+  shared derivation plus 4/4 branch passes; early-design is 5/5 and fleet
+  schema governance is 743/743 with zero orphan keys.  The 18 mOhm
+  holder/common-copper allocation remains an explicit hot four-wire
+  first-article qualification, not an inferred manufacturer guarantee.
+- recommendation: require `upstream_delivery` whenever an external output rail
+  begins after a fuse, eFuse, ideal diode, reverse-polarity FET or other shared
+  series path.  Print the current beside every loss term.  Review and test each
+  assumed resistance at its declared temperature/current boundary before
+  upgrading a first-article claim to production readiness.
+
+## IMP-132 — make schematic-review hashes phase-semantic
+
+- status: proposed; do not weaken the current fail-closed gate during this run
+- observed: USB-controlled debug hub J_UP clearance repair, 2026-08-16
+- evidence: moving U_ESD_UP by 0.2 mm, changing only the matching authored
+  route endpoint coordinates, and trimming F.Silk made both exact schematic
+  reviews stale through `design_rules_sha256`.  The PDF, normalized netlist,
+  part dossiers, electrical rules and power proof were byte-identical.  Two
+  independent reviewers therefore had to renew electrical/readability receipts
+  for a downstream geometric delta that could not change either reviewed fact.
+- general rule: a stage review should hash every upstream semantic input that
+  can change its verdict, but not downstream implementation coordinates owned
+  by a later review.  Over-broad freshness is safe but creates review churn;
+  repeated low-value re-approval encourages rubber-stamping and hides the one
+  re-review that genuinely matters.
+- current mechanism: `pre_route_review_check.py::design_rules_digest` includes
+  all rules YAML plus most of `route.yaml` for both schematic and placement
+  reviews.  Route endpoint geometry therefore contaminates the schematic
+  topology/readability subject even though placement review separately binds
+  the exact board and route-prep subject.
+- recommendation: split the digest by phase.  The schematic digest should keep
+  requirements, electrical/power/protection rules and route-semantic ownership
+  such as critical-pair names, layer/via policy and endpoint identities, while
+  normalizing away seed coordinates, generated output paths and search knobs.
+  The placement digest should retain exact authored geometry.  Add one
+  known-bad proving a net/layer/via-policy edit stales schematic review and one
+  clean fixture proving a coordinate-only seed nudge stales placement but not
+  schematic review.  Land this only after fleet/canary comparison against the
+  current conservative behavior.
+
+## IMP-133 — grade deterministic critical-copper length before review and routing
+
+- status: proposed; board-specific check applied manually
+- observed: USB-controlled debug hub upstream USB crossover, 2026-08-16
+- evidence: a deterministic launch was electrically continuous and physically
+  DRC-clean, so it reached independent review and the bounded coupled router.
+  Only the later realised-copper audit exposed a large P/N mismatch in an early
+  candidate.  Correcting the source fanout first reduced the prepared spread to
+  0.0010 mm and made the subsequent endpoint-order diagnosis unambiguous.
+- general rule: any authored seed, escape, compensation bank or local
+  crossover belonging to a declared length-critical group must be measured as
+  soon as route preparation emits it.  Clearance and connectivity are
+  orthogonal to propagation-length balance; a candidate that cannot meet its
+  own prepared-stage spread should consume neither reviewer time nor router
+  search.
+- intended landing point: run `R-LEN` immediately after deterministic prep and
+  before hash-bound placement receipts.  Grade every fully measurable prepared
+  group, print partial coverage separately, and fail when a declared prepared
+  group exceeds its stage ceiling.  Preserve the existing final realised-
+  copper audit after routing; the early check is a spend/order gate, not a
+  substitute for the final functional-link measurement.
+- completion evidence required: a known-bad equal-clearance but mismatched seed
+  pair must stop before review/router invocation; a corrected pair must report
+  its exact spread and permit the next stage; and a route-time change must still
+  be caught by the final audit.
+- recommendation: implement in the generic prep/review boundary before the
+  next high-speed or timing-critical board.  Keep it conditional on declared
+  length groups so ordinary low-speed boards do not acquire irrelevant work.
+
+## IMP-134 — replay downstream corridor capacity after deterministic route growth
+
+- status: proposed; board-specific diagnostic applied
+- observed: USB-controlled debug hub management-pair correction, 2026-08-16
+- evidence: converting the short management USB path into a complete
+  deterministic route produced zero DRC errors, zero skew, nominal width and a
+  small measured uncoupled span.  Nevertheless, that new prep copper occupied
+  the shared hub escape corridor and made the previously repeatable P2 coupled
+  route impossible.  The failure appeared only when the earlier four-port
+  wave was replayed; reviewing the new pair in isolation gave a false local
+  optimum.
+- general rule: deterministic copper is an obstacle for every later router.
+  Any growth beyond a package-local escape must be checked against the capacity
+  and reproducibility of all critical waves sharing its corridor, including
+  waves that previously passed.  Local DRC, pair quality and connectivity do
+  not prove global routability.
+- intended landing point: let critical route contracts declare corridor or
+  conflict groups.  After prep geometry changes, run a bounded dry replay of
+  every affected earlier wave before renewing human receipts.  Report which
+  new copper blocks which endpoint/frontier; do not spend the full remaining
+  route chain once a prior authenticated wave becomes infeasible.
+- board remedy: own only the management controller's boxed terminal escape,
+  ending as a coupled runway in open space, and leave the shared field path to
+  the ordered `usb_top` wave after the four port pairs.  Isolated diagnostics
+  then routed MGMT in 278 iterations and replayed all four port pairs in their
+  established 51,119-iteration pattern.
+- recommendation: implement for boards with three or more critical pairs or
+  an explicitly shared escape corridor.  For simpler boards, retain the
+  ordinary placement-capacity and final route gates without adding a replay.
+
+## IMP-135 — authenticate a reviewed critical route as a reusable wave prefix
+
+- status: implemented and live-board exercised; final-route completion pending
+- observed: USB-controlled debug hub critical USB replay, 2026-08-16
+- evidence: ten critical pairs had a DRC-clean, length-checked solution, but a
+  later full reroute repeatedly destroyed that solution while searching power
+  and control copper. Loose `r2` files had no durable provenance, while
+  expressing hundreds of successful stochastic segments as authored YAML
+  would obscure design intent and invite transcription defects.
+- general rule: a costly reviewed route may become a source artifact only at a
+  named wave boundary, and only when both it and the exact prepared base are
+  hash-bound. Reuse must re-prove base footprint/pad/prep-copper inheritance,
+  physical DRC and connected critical contracts before skipping a wave.
+- landed at: `route.prefix` in `route_and_stitch_generic.py` accepts exactly
+  `board`, `through_wave`, `r0_sha256` and `board_sha256`; materializes current
+  rule sidecars; runs P-ROUTEBASE, partial physical DRC and R-CRITESC; records
+  provenance in `route_progress.json`; and reauthenticates on resume. Prefixes
+  are deliberately incompatible with route races. Hermetic routing coverage is
+  124/124, including post-review copper mutation refusal.
+- live proof: the USB hub prefix retained 146 footprints, 120 prepared vias and
+  200 deterministic segments; had zero hard physical findings; and passed
+  10/10 connected critical pairs before the power-input wave began.
+- recommendation: use only after an explicit stage review, not as automatic
+  recovery from any router output. Keep the final promoted route and final DRC
+  gates independent; a prefix is a continuation seam, not a release artifact.
+
+## IMP-136 — classify wide multi-pad power distribution before autorouting
+
+- status: proposed; live wave failed closed before promotion
+- observed: USB-controlled debug hub `power_input` wave, 2026-08-16
+- evidence: `P5V_PROTECTED` is declared `pour_or_wide_track`, spans 22 pads and
+  has five package-local 0.8 mm launch exceptions, but the generic wave asked a
+  point-to-point router to connect the whole set as 1.5 mm tracks with power
+  tap neckdown forbidden. It spent 28.14 s probing 17 boxed endpoints, left
+  17 pads open, and attempted vias directly in U_AGG.5 and U_BUCK.2. The
+  via-in-pad guard stopped promotion, but only after avoidable search.
+- general rule: a high-current net with many load/decoupling pads is a topology
+  decision before it is a search problem. Choose and declare one owner: a
+  shaped pour/plane with graded necks and current bottlenecks, or a deliberate
+  wide trunk with deterministic package launches and named short taps. A
+  generic MST must not infer this from pad count.
+- recommendation: add an early route-topology preflight that cross-checks
+  multi-pad cardinality, `nets.yaml routing` intent, width-floor exceptions and
+  `no_power_tap_neckdown`. Refuse contradictory track-only waves and print the
+  missing ownership choice before KRT starts. For this board, design the
+  protected 5 V trunk and local launches explicitly, then keep only genuinely
+  point-to-point `P5V_RAW`/`P5V_FUSED` work in the stochastic wave.
+
+## IMP-137 — a single-ended KRT JSON failure must fail the wave directly
+
+- status: implemented and regression-tested
+- observed: USB-controlled debug hub `power_input` wave, 2026-08-16
+- evidence: KRT exited zero and wrote `r3` while its JSON summary reported a
+  failed `P5V_FUSED` net and 17 failed `P5V_PROTECTED` pads. The wrapper already
+  rejects deferred/failed pairs for the differential engine, but does not apply
+  the analogous summary postcondition to the single-ended engine. This run
+  failed only because the independent via-in-pad guard also found two defects.
+- general rule: process exit and output-file existence prove execution, not
+  routing success. Every engine-specific structured summary must be parsed and
+  all requested nets/pads must close before width, DRC or progress promotion.
+- landed at: `route_and_stitch_generic.py` now consumes every KRT
+  `JSON_SUMMARY`, tracks failed single and failed multipoint nets across the
+  initial and reconciliation passes, permits a later explicit success to clear
+  an earlier failure, and refuses the wave while any requested net remains
+  unresolved. `tests/t2_route_stitch.py` proves a zero-exit partial route
+  cannot authenticate. Keep later physical/connectivity gates as independent
+  defense.
+
+## IMP-138 — measure plated-pad layer transitions as real conductor length
+
+- status: implemented; broader length-policy cleanup pending
+- observed: USB-controlled debug hub upstream USB route, 2026-08-16
+- evidence: one upstream conductor changed layers through the plated J_UP
+  through-hole pad while its mate used an explicit via. The length audit priced
+  the via barrel but treated the plated-pad transition as disconnected, giving
+  a false skew verdict despite continuous copper.
+- general rule: cross-layer connectivity requires a physical barrel owner.
+  Same-XY endpoints alone are not proof; an explicit via or a plated through
+  pad is. When stackup Z is known, both mechanisms contribute vertical length.
+- landed at: `copper_length_audit.py` recognizes plated `*.Cu` THT pads only
+  when exact track endpoints occur on two or more copper layers, adds the pad
+  barrel edge and reports its count/pricing status. A fixture proves an
+  explicit via and plated-pad transition over the same stackup have zero skew.
+- recommendation: retain the conservative exact-endpoint rule and never infer
+  a layer transition through an SMD or mask-only aperture. Separately clarify
+  the octilinear-floor policy for intentional three-pad ESD chains rather than
+  weakening realized-length measurement.
+
+## IMP-139 — order route waves by geometric flexibility and physical ownership
+
+- status: proposed; board-specific implementation exercised
+- observed: USB-controlled debug hub oscillator/control routing, 2026-08-16
+- evidence: a 71-net catch-all control wave expanded from 71 to more than 177
+  queued operations, repeatedly ripped the same hub exits and attempted a via
+  in the crystal. Isolating XTAL1/XTAL2 showed the actual defect: the no-via
+  oscillator was placed across already-promoted USB copper. After relocating
+  the oscillator, giving pins 60/61 deterministic exits and routing it first,
+  the result closed 8/8 pads in 1,753 iterations with zero vias and zero hard
+  physical DRC findings.
+- general rule: wave order is an ownership decision, not merely a net-class
+  priority. Nets with no legal layer transition or a uniquely constrained
+  local corridor—crystals, RF launches, switch nodes and comparable package
+  escapes—must claim that corridor before flexible multi-layer or bulk nets.
+  Catch-all `rest` waves should be partitioned by locality/owner so failure is
+  bounded and reviewable.
+- intended landing point: add a route preflight that classifies each wave's
+  layer flexibility, via permission, endpoint density and shared-corridor
+  dependencies. Warn or refuse when a less-flexible wave follows a wave that
+  consumes its only corridor. Report queue expansion/rip-up amplification and
+  stop early when the live operation count materially exceeds the requested
+  net set without reducing unresolved endpoints.
+- recommendation: implement first for boards declaring crystals, RF nets,
+  strict no-via groups or three-or-more shared critical pairs. Preserve the
+  ordinary simple order for low-density boards that have no constrained
+  corridor; this should be progressive disclosure, not universal ceremony.

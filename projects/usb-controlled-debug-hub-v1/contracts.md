@@ -22,6 +22,7 @@ re-order it.
 | Pattern | What |
 |---|---|
 | `README.md` | what the board is, status, current release, how to build |
+| `RESUME.md` | temporary, explicit pause/handoff state; never fabrication evidence |
 | `contracts.md` | this file |
 | `.gitignore` | must ignore `06_build/`; must NOT ignore `01_docs/decisions/` or `02_parts/` |
 | `.gitattributes` | optional repository handling for review-critical binary artifacts such as PDFs and 3D CAD |

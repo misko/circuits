@@ -29,6 +29,7 @@ or publication procedure.
 |---|---|
 | Export BOM/CPL, choose codes, check stock, rotations, uploader preview | `references/assembly-and-order.md` |
 | Fetch JLC CAD, fit pads, mount models, render and debug overlays | `references/digital-twin.md` |
+| Prove connector mouth/edge orientation and approve directional 3D views | `references/connector-orientation.md` |
 | Census exact fab payload and run the staged assembly/process battery | `references/release-staging.md` |
 
 For PCB routing, geometry, DRC, impedance, or RF layout read the owning
@@ -85,6 +86,10 @@ Run `twin_overlay.py` on same-camera populated/bare images for every populated
 side before a human render review. Debug one ref at a time with independent
 pad/courtyard, model-transform, and image-difference geometry.
 
+For edge-mounted connectors, run `P-ORIENT` after native-model registration
+and before route import. Reuse the floorplan's semantic edge authority; require
+machine mating-plane geometry and explicit hash-bound human directional views.
+
 ### 6. Stage order evidence
 
 Run the fabrication payload census, source/legibility/stock/assembly/rotation/
@@ -112,6 +117,7 @@ project documents.
 | `jlc_rotation_measure.py` / `jlc_rotation_audit.py` | Measured rotation authority |
 | `jlc_twin.py` | JLC CAD fit, transforms, models, and twin renders |
 | `twin_overlay.py` | Same-camera body/model/footprint registration |
+| `connector_orientation_gate.py` | `P-ORIENT` mouth axis, edge/mating-plane geometry, directional evidence and approval |
 | `fab_payload_census.py` | Exact fabrication payload membership |
 | `via_process_check.py` | Via fabrication/process contract |
 | `release_freshness_check.py` | Staged/sealed JLC evidence freshness |

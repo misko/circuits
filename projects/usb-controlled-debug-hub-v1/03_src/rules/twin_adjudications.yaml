@@ -1,0 +1,24 @@
+# USB controlled debug hub — evidence-backed JLC twin dispositions.
+#
+# This register accepts measured detector limitations only. It never overrides
+# CPL rotation; jlc_lcsc_rotations.csv remains the sole rotation authority.
+
+- lcsc: C86462
+  refs: [J_UP]
+  status: MODEL-REG
+  render_model_extension: step
+  plan_bbox_expand_mm: 1.52
+  why: >-
+    Measured 2026-08-16 for the exact TE 292304-1 / JLC C86462 upstream
+    receptacle. The numbering-free pad fit is non-mirrored at 0 degrees with
+    0.17 mm residual, and the native registration gate passes all six drilled
+    attachment centres plus signed-Z side profiles against the exact
+    manufacturer STEP. The easyeda2kicad WRL generated from that same catalog
+    solid renders its bulk below the PCB and occludes the bottom-side upstream
+    ESD device; the catalog STEP is byte-identical to the independently proven
+    project-native STEP and renders on the declared top side. A same-camera
+    isolated comparison measured the STEP plan envelope 1.52 mm beyond the WRL
+    parser envelope on each side, with only 0.016 mm centre delta. Select STEP
+    and expand only the independent expected envelope; the ordinary 1.00 mm
+    centre and outward tolerances remain active. This does not change CPL
+    position, rotation, land pattern, pin mapping, or connector orientation.

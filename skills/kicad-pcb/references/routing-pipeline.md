@@ -215,3 +215,40 @@ escalates a class whose grind_fixes provenance already names >= 2 boards, it
 prints `class X escalated on boards A,B — two-strike, promotion candidate`, so
 the loop flags what to mechanize next (auto classes are excluded — already
 done).
+
+### Deliberate wave checkpoints
+
+When a board benefits from a real review boundary between critical/high-speed,
+power and control routing, run a deterministic prefix without editing the route
+contract:
+
+```bash
+python3 route_and_stitch_generic.py route 03_src/route.yaml \
+  --through-wave <last-wave-in-stage>
+```
+
+The command authenticates every completed wave in `route_progress.json` and
+writes no `FINAL` marker while configured waves remain. Continue the exact
+chain with `route --resume` (optionally with another `--through-wave`). This is
+intentionally incompatible with route races: a partial stochastic candidate
+set is neither comparable nor promotable.
+
+If a costly critical prefix has passed review and must become a reproducible
+source artifact, promote it explicitly instead of trusting a loose `rN` file:
+
+```yaml
+route:
+  prefix:
+    board: 03_src/route/critical_prefix.kicad_pcb
+    through_wave: usb_upstream
+    r0_sha256: <exact prepared r0 SHA-256>
+    board_sha256: <exact reviewed checkpoint SHA-256>
+```
+
+This is a fail-closed continuation seam, not a DRC waiver. Before skipping a
+wave, the route command rematerializes the checkpoint, proves P-ROUTEBASE
+inheritance from the exact `r0`, runs partial-board physical DRC, and requires
+every adopted critical pair to be connected. It records the prefix provenance
+in `route_progress.json`; `--resume` reauthenticates it. Prefix continuation is
+single-chain only because racing an already-reviewed prefix adds no diversity
+to the critical copper and complicates provenance.

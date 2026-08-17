@@ -28,6 +28,8 @@ import stat
 import sys
 from pathlib import Path
 
+import pcbnew
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (FAB_SCRIPTS, KPY, ROOT, SCRIPTS, check, contains, eq, main,  # noqa: E402
                      not_contains,
@@ -36,12 +38,99 @@ from harness import (FAB_SCRIPTS, KPY, ROOT, SCRIPTS, check, contains, eq, main,
 sys.path.insert(0, str(FAB_SCRIPTS))
 from jlc_rotation_resolve import (load_lcsc_rotations,  # noqa: E402
                                   resolve_rotation)
+from jlc_twin import (best_fit, centered, pads_of,  # noqa: E402
+                      portable_twin_model_path,
+                      rebase_cached_model_paths,
+                      select_render_model_path)
 
 TWIN = FAB_SCRIPTS / "jlc_twin.py"
 E2K_COMPAT = FAB_SCRIPTS / "easyeda2kicad_compat.py"
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 CODE = "C22775"          # a real code on cook-loadcell's BOM (R7, 100R 0603)
+
+
+@test("cached model paths survive an atomic staging-directory promotion")
+def t_cached_model_path_rebase_and_portability():
+    """A copied cache must not retain the vanished producer's absolute path."""
+    d = tmpdir("jlc_cache_promote_")
+    code_dir = d / "twin" / "easyeda" / CODE
+    pretty = code_dir / "jlc.pretty"
+    models = code_dir / "jlc.3dshapes"
+    pretty.mkdir(parents=True)
+    models.mkdir(parents=True)
+    fp_path = pretty / "fixture.kicad_mod"
+    fp_path.write_text("fixture")
+    current = models / "fixture.wrl"
+    current.write_text("#VRML V2.0 utf8\n")
+
+    fp = pcbnew.FOOTPRINT(None)
+    old = pcbnew.FP_3DMODEL()
+    old.m_Filename = str(d / "vanished_next.XYZ" / "twin" / "easyeda" /
+                         CODE / "jlc.3dshapes" / "fixture.wrl")
+    old.m_Offset.x = 1.25
+    old.m_Rotation.z = 270
+    fp.Models().push_back(old)
+
+    rebase_cached_model_paths(fp, fp_path)
+    rebound = list(fp.Models())[0]
+    eq(Path(rebound.m_Filename), current.resolve(), "rebased cache model")
+    eq(rebound.m_Offset.x, 1.25, "model offset preserved")
+    eq(rebound.m_Rotation.z, 270, "model rotation preserved")
+    eq(portable_twin_model_path(rebound.m_Filename, d / "twin"),
+       "${KIPRJMOD}/easyeda/C22775/jlc.3dshapes/fixture.wrl",
+       "portable twin path")
+
+
+@test("an evidenced sibling STEP is selected explicitly and cannot silently "
+      "fall back")
+def t_render_model_representation_selection():
+    d = tmpdir("jlc_model_representation_")
+    wrl = d / "part.wrl"
+    step = d / "part.step"
+    wrl.write_text("#VRML V2.0 utf8\n")
+    step.write_text("ISO-10303-21;\n")
+    eq(select_render_model_path(wrl), wrl.resolve(),
+       "default representation remains unchanged")
+    eq(select_render_model_path(wrl, "step"), step.resolve(),
+       "explicit sibling STEP selected")
+    missing = d / "missing.wrl"
+    try:
+        select_render_model_path(missing, "step")
+    except ValueError as exc:
+        contains(str(exc), "does not exist", "missing sibling fails closed")
+    else:
+        check(False, "missing requested sibling silently fell back")
+
+
+@test("bottom-side land comparison removes KiCad's placement mirror")
+def t_bottom_side_fit_uses_unflipped_library_frame():
+    """A correct asymmetric B.Cu package must compare non-mirrored to the
+    identical supplier land.  The placement mirror is physical board state,
+    not a mirrored pin-numbering defect in either source library."""
+    b = pcbnew.NewBoard("")
+    fp = pcbnew.FOOTPRINT(b)
+    fp.SetPosition(pcbnew.VECTOR2I(int(30e6), int(25e6)))
+    pts = {"1": (-2.0, -1.0), "2": (2.0, -1.0), "3": (2.0, 1.6)}
+    for number, (x, y) in pts.items():
+        p = pcbnew.PAD(fp)
+        p.SetNumber(number)
+        p.SetShape(pcbnew.PAD_SHAPE_RECT)
+        p.SetSize(pcbnew.VECTOR2I(int(0.8e6), int(0.8e6)))
+        p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+        p.SetLayerSet(p.SMDMask())
+        p.SetPosition(pcbnew.VECTOR2I(int((30 + x) * 1e6),
+                                     int((25 + y) * 1e6)))
+        fp.Add(p)
+    b.Add(fp)
+    fp.Flip(fp.GetPosition(), False)
+    fp.SetOrientationDegrees(90)
+    ours = centered(pads_of(fp, footprint_local=True))
+    supplier = centered({k: [v] for k, v in pts.items()})
+    fit = best_fit(ours, supplier)[0]
+    check(fit[0] < 0.001, f"expected sub-micron fit, got {fit}")
+    check(fit[1] is False, f"correct B.Cu land was called MIRRORED: {fit}")
+    eq(fit[2], 0, "correct B.Cu library-frame rotation")
 
 
 @test("easyeda2kicad compatibility shim overrides only the HTTP User-Agent")

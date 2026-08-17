@@ -25,9 +25,12 @@ therefore remains in one 5 V domain. The selected 74LVC logic is powered at
 another regulator or level shifter.
 
 Each VBUS enable is `hub_PRTPWR AND PWR_CMD`. Each data connect is
-`final_power_enable AND DATA_CMD`; the result pulls the active-high-disconnect
+`commanded_PWR_EN AND DATA_CMD`; the result pulls the active-high-disconnect
 FSUSB42 `OE` low. Physical pull-downs on commands and pull-ups on `OE` enforce
 full disconnect during reset, power loss, unconfigured I/O, or bridge removal.
+This command-state interlock does not measure `VBUS_SW`, power-good, or a
+TPS2557 fault. Each active-low fault remains wired directly to the USB2517I
+OCS input so the hub executes its standard overcurrent policy.
 
 ## Consequences
 
@@ -38,3 +41,5 @@ full disconnect during reset, power loss, unconfigured I/O, or bridge removal.
 - Host software, if later requested, is a separate explicit workstream.
 - Command state is not mislabeled as device enumeration; the host OS remains
   authoritative for attach/enumeration status.
+- The circuit guarantees non-contradictory commands and fail-off defaults, not
+  instantaneous physical proof that VBUS is present whenever data is enabled.

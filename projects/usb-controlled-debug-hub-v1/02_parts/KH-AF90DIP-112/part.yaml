@@ -27,10 +27,10 @@ verified: "REPLACEMENT for 1001-011-01101 after the fresh-context pin review pro
 layout:
   source: "KH-AF90DIP-112 datasheet + USB-A host-port layout practice"
   adjacency:
-    - {refdes: [J_PORT1, U_ESD1], max_mm: 12, why: "Place the connector-side USBLC6 in-line and close to D-/D+ pins 2/3."}
-    - {refdes: [J_PORT2, U_ESD2], max_mm: 12, why: "Place the connector-side USBLC6 in-line and close to D-/D+ pins 2/3."}
-    - {refdes: [J_PORT3, U_ESD3], max_mm: 12, why: "Place the connector-side USBLC6 in-line and close to D-/D+ pins 2/3."}
-    - {refdes: [J_PORT4, U_ESD4], max_mm: 12, why: "Place the connector-side USBLC6 in-line and close to D-/D+ pins 2/3."}
+    - {refdes: [J_PORT1, U_ESD1], max_mm: 12, why: "Place the connector-side PESD2USB3UX shunt close to D-/D+ pins 2/3 with a short ground return."}
+    - {refdes: [J_PORT2, U_ESD2], max_mm: 12, why: "Place the connector-side PESD2USB3UX shunt close to D-/D+ pins 2/3 with a short ground return."}
+    - {refdes: [J_PORT3, U_ESD3], max_mm: 12, why: "Place the connector-side PESD2USB3UX shunt close to D-/D+ pins 2/3 with a short ground return."}
+    - {refdes: [J_PORT4, U_ESD4], max_mm: 12, why: "Place the connector-side PESD2USB3UX shunt close to D-/D+ pins 2/3 with a short ground return."}
   notes:
     - "Keep each VBUS bulk and HF capacitor on the load-switch output path toward connector pin 1."
     - "per-port power switch (TPS2557) feeds VBUS; keep the data pair short from the switch/ESD to the receptacle"

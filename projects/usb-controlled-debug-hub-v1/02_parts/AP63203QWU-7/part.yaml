@@ -36,7 +36,7 @@ limits:
 gotchas:
   - "AP63203 is the FIXED 3.3 V member: FB goes directly to 3V3; do not fit
      an adjustable-output divider copied from AP63200/AP63201."
-  - "U_BUCK is fed from P5V_PROTECTED (4.90-5.25 V), comfortably inside the converter's 3.8-32 V operating range."
+  - "U_BUCK is fed from P5V_PROTECTED (4.89-5.25 V), comfortably inside the converter's 3.8-32 V operating range."
   - "BST needs 100 nF to SW. DS43698 Table 2 recommends 3.3 uH,
      10 uF input, and 2 x 22 uF output; its inductor guidance permits
      approximately 3.3 to 15 uH. This board implements the recommended 3.3 uH."

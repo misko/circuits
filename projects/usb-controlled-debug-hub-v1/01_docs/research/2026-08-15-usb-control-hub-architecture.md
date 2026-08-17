@@ -31,7 +31,11 @@ descriptor image or host utility.
 The implemented configuration is `CFG_SEL[2:0]=000`: internal defaults,
 hardware resistor straps, self-powered operation, LEDs disabled, and individual
 port power/overcurrent. `NON_REM[1:0]=01` marks physical port 1 non-removable.
-`PRT_SWP1..7`, `GANG_EN`, and `BOOST0/1` are strapped low. Both D+ and D- of
+`PRT_SWP1` is strapped high and physical port 1's DM/DP pads carry management
+logical D+/D-, respectively; this uses the manufacturer's routing feature to
+remove an otherwise unavoidable pair crossover. `PRT_SWP2..7`, `GANG_EN`, and
+`BOOST0/1` are strapped low, so the four external ports retain normal physical
+DM=D- and DP=D+ polarity. Both D+ and D- of
 physical ports 6 and 7 receive the documented 10 kOhm pullups to 3V3_MAIN;
 their PRTPWR and OCS pins remain unconnected. TEST and the unused LED-B pins
 remain unconnected.
@@ -56,23 +60,24 @@ pullups, address `000`, and a 10 kOhm RESET pullup. Unused GPB/interrupt pins
 remain unconnected.
 
 Every `PWR_CMD` and `DATA_CMD` has an external pulldown. External-port TPS2557
-enable is `hub PRTPWR AND PWR_CMD`. Data connection is `final PWR_EN AND
+enable is `hub PRTPWR AND PWR_CMD`. Data connection is commanded `PWR_EN AND
 DATA_CMD`; a 2N7002 converts that active-high result into active-low FSUSB42 OE.
 An OE pullup disconnects data whenever logic is absent. Thus reset and partial
 power always resolve to fully disconnected, while `PWR_CMD=1, DATA_CMD=0`
-deliberately provides power-only operation.
+deliberately provides power-only operation. This is a command-state interlock,
+not a measurement of switched VBUS or power-good; each TPS2557 fault remains
+on the hub OCS path.
 
 ## Power and manufacturing bounds
 
-The source requirement is regulated SELV 5.10–5.25 V at `P5V_RAW`, at least
-3 A. Maximum admitted board load is 2.6 A: four 500 mA external ports plus the
-management, hub/logic and conversion allowance. Exact Littelfuse
-0297004.WXNV provides a replaceable 4 A input fuse; the conservative trunk
-budget reserves its full published 121 mV typical rated-current drop, 65 mV for
-the hot reverse MOSFET, and 24 mV for copper/joints. The resulting protected
-trunk floor is 4.89 V. Each external branch separately owns 160 mOhm after the
-trunk and must prove at least 4.75 V at a qualified mated plug with all ports at
-500 mA.
+The source requirement is regulated SELV 5.20–5.25 V at `P5V_RAW`, at least
+3 A continuous and qualified for 5 A / 6 ms transients. Exact Littelfuse
+0297004.WXNV provides a replaceable 4 A input fuse. A TPS259474L aggregate
+eFuse provides reverse-current blocking and a calculated 2.990–3.680 A
+latch-off threshold with 1.608–5.042 ms fault timing. A 180 uF polymer plus
+22 uF X7R bank retains 128.664 uF at the charged life/bias/temperature corner,
+above the USB 2.0 120 uF hub-bypass minimum. The full derivation and the move
+from the original source-stage architecture are recorded in ADR-0006.
 
 TPS2557 uses exact 165 kOhm 1% ILIM resistors, giving the reviewed approximate
 535 mA minimum, 667 mA typical and 794 mA maximum window. AP63203Q uses the
@@ -81,3 +86,12 @@ manufacturer-recommended 3.3 uH inductor, 10 uF input, 100 nF bootstrap and two
 four-layer advanced because USB2517I is a 0.50 mm-pitch QFN64; the order-time
 stackup and 90 Ohm differential geometry remain release evidence, not a
 source-stage assumption.
+
+## 2026-08-16 pre-route correction addendum
+
+Independent review found the original USBLC6-2SC6 protection too capacitive in
+series with the FSUSB42 channel. The current source replaces all five arrays
+with PESD2USB3UX-TR shunt devices (0.7 pF maximum). FSUSB42's 3.7 pF typical
+plus that protector is a narrow 4.4 pF component budget; connector/PCB
+discontinuities and an unpublished FSUSB42 maximum are not waived, so USB 2.0
+eye/compliance testing remains mandatory on first articles.

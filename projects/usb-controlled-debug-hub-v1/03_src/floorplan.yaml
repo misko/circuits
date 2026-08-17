@@ -28,7 +28,9 @@ board:
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
     refdes_prefix: H
-    at: [[24.0, 24.0], [146.0, 24.0], [24.0, 106.0], [146.0, 106.0]]
+    # The upper-right hole is lowered to clear J_PORT4's shell post and
+    # courtyard; the original [146,24] position overlapped both in exact DRC.
+    at: [[24.0, 24.0], [146.0, 44.0], [24.0, 106.0], [146.0, 106.0]]
   fiducials:
     footprint: Fiducial:Fiducial_1mm_Mask2mm
     refdes_prefix: FID
@@ -55,42 +57,70 @@ placement:
     U_DATA4: bottom
   anchors:
     # Downstream receptacles on the north edge, mouths facing out.
-    J_PORT1: [48.0, 24.0, 0]
-    J_PORT2: [76.0, 24.0, 0]
-    J_PORT3: [104.0, 24.0, 0]
-    J_PORT4: [132.0, 24.0, 0]
-    U_ESD1: [51.5, 27.0, 90]
-    U_ESD2: [79.5, 27.0, 90]
-    U_ESD3: [107.5, 27.0, 90]
-    U_ESD4: [135.5, 27.0, 90]
-    U_DATA1: [57.0, 35.0, 0]
-    U_DATA2: [82.0, 35.0, 0]
-    U_DATA3: [105.0, 35.0, 180]
-    U_DATA4: [128.0, 35.0, 180]
+    # The manufacturer/native footprint mating plane is 13.49 mm in local +Y
+    # from the contact-row origin.  At 180 degrees, y=33.7 places that plane
+    # at y=20.21: essentially flush with the north Edge.Cuts while retaining
+    # >0.15 mm courtyard-to-outline margin.
+    J_PORT1: [55.0, 33.7, 180]
+    J_PORT2: [83.0, 33.7, 180]
+    J_PORT3: [111.0, 33.7, 180]
+    J_PORT4: [139.0, 33.7, 180]
+    # Bottom-side source rotation 270 realizes with the two signal lands toward
+    # the receptacle contacts and the GND land toward the board interior.  A
+    # source rotation of 90 reverses that launch and puts the GND land directly
+    # between the connector pair and the ESD signal lands.
+    U_ESD1: [51.5, 36.4, 270]
+    U_ESD2: [79.5, 36.4, 270]
+    U_ESD3: [107.5, 36.4, 270]
+    U_ESD4: [135.5, 36.4, 270]
+    # Bottom-side realized rotation includes the side flip. Channels 1/2 sit
+    # left of the hub, so source rotation 0 realizes as 180 degrees and points
+    # their hub-side lands right / connector-side lands left. Channels 3/4 sit
+    # right of the hub and retain the opposite realized orientation.
+    U_DATA1: [57.0, 44.5, 0]
+    U_DATA2: [82.0, 44.5, 0]
+    U_DATA3: [105.0, 44.5, 180]
+    # Pull channel 4 inward just enough that the hub-to-switch octilinear
+    # lower bound stays below the FSUSB42 50 mm placement budget while the
+    # switch-to-ESD segment remains below its 12 mm budget.
+    U_DATA4: [126.0, 44.5, 180]
     U_PWR1: [48.0, 54.0, 0]
     U_PWR2: [76.0, 54.0, 0]
     U_PWR3: [104.0, 54.0, 0]
     U_PWR4: [132.0, 54.0, 0]
 
     # Upstream entry and low-noise hub island.
-    J_UP: [24.5, 57.0, 90]
-    U_ESD_UP: [23.5, 61.0, 270]
+    # TE's 15.71 mm body and the exact-code JLC CAD put the mating mouth in
+    # local +Y. KiCad's y-down rotation maps +Y to the west edge at 270°;
+    # x=32.2 mm leaves the measured mating plane 0.20 mm beyond Edge.Cuts.
+    J_UP: [32.2, 57.0, 270]
+    # Shunt-only Nexperia ESD array: signal pins sit directly on the pair and
+    # pin 3 takes the shortest return into the adjacent ground plane.
+    # IO1/IO2 are symmetric shunt channels. Their source assignment is swapped
+    # so this orientation aligns P/N directly with the corrected TE contact row
+    # while retaining the GND land toward the board interior.
+    U_ESD_UP: [33.2, 52.85, 90]
     U_HUB: [93.0, 65.0, 0]
-    Y_HUB: [93.0, 53.0, 0]
+    Y_HUB: [88.5, 55.5, 0]
     U_PWR_CTRL: [45.0, 72.0, 0]
-    U_CTRL: [106.0, 76.0, 180]
+    # The controller sits in the open southwest hub quadrant.  At 0 degrees
+    # D-/D+ face east directly toward U_HUB's west-edge management launch, so
+    # the pair does not loop around the hub or require an odd permutation.
+    # route.  The former 180-degree orientation forced a physical pair
+    # crossover even though the schematic polarity was correct.
+    U_CTRL: [74.0, 76.0, 0]
     U_EXP: [123.0, 76.0, 0]
     U_AND_PWR: [104.0, 86.0, 0]
     U_AND_DATA: [120.0, 86.0, 0]
     Q_DATA1: [62.0, 42.0, 0]
     Q_DATA2: [87.0, 42.0, 0]
     Q_DATA3: [100.0, 42.0, 0]
-    Q_DATA4: [125.0, 42.0, 0]
+    Q_DATA4: [122.5, 42.0, 0]
 
     # Protected input and 3.3 V buck remain outside USB escape corridors.
     J_PWR: [25.5, 98.0, 90]
     F_IN: [37.0, 99.0, 0]
-    Q_RP: [54.0, 99.0, 180]
+    U_AGG: [52.0, 99.0, 0]
     U_BUCK: [68.0, 91.0, 0]
     L_MAIN: [74.1, 91.0, 0]
 
@@ -121,9 +151,9 @@ placement:
     R_PWR_EN3: [99.0, 50.0, 0]
     C_PORT3_HF: [108.0, 52.0, 0]
     C_PORT3_BULK: [110.5, 56.0, 0]
-    C_DATA4: [127.0, 38.5, 0]
-    R_DATA_OE4: [123.0, 38.5, 0]
-    R_DATA_OK4: [123.0, 45.5, 0]
+    C_DATA4: [124.5, 38.5, 0]
+    R_DATA_OE4: [120.5, 38.5, 0]
+    R_DATA_OK4: [120.5, 45.5, 0]
     C_PWR4_IN: [127.5, 54.0, 0]
     R_ILIM4: [135.3, 55.0, 90]
     R_PWR_EN4: [127.0, 50.0, 0]
@@ -132,7 +162,7 @@ placement:
 
     # USB2517I power-pin bypass ring, clock, bias, reset and VBUS sense.
     C_HUB_A1: [87.0, 59.0, 0]
-    C_HUB_A2: [90.0, 59.0, 0]
+    C_HUB_A2: [96.0, 55.0, 0]
     C_HUB_A3: [96.0, 59.0, 0]
     C_HUB_A4: [99.0, 59.0, 0]
     C_HUB_A_BULK: [102.0, 62.0, 0]
@@ -140,11 +170,17 @@ placement:
     C_HUB_CR_BULK: [102.0, 68.0, 0]
     C_HUB_DD: [87.0, 71.0, 0]
     C_HUB_PLL: [90.0, 71.0, 0]
-    C_HUB_18: [96.0, 71.0, 0]
-    C_HUB_18PLL: [99.0, 71.0, 0]
-    C_XTAL1: [88.5, 53.0, 0]
-    C_XTAL2: [97.5, 53.0, 0]
-    R_XTAL: [93.0, 56.2, 0]
+    # VDD18 is a locally-generated USB2517 rail.  Put its bypass capacitor
+    # directly below pin 25 with the supply land facing the QFN and GND facing
+    # outward; deferring this capacitor behind the port-control fanout made
+    # the electrically shortest connection topologically unreachable.
+    C_HUB_18: [93.25, 71.4, 270]
+    # The PLL's generated 1.8V rail is bypassed at pin 62, before the
+    # oscillator/USB fanout can fence the endpoint away from its capacitor.
+    C_HUB_18PLL: [90.2, 58.4, 90]
+    C_XTAL1: [86.0, 52.0, 0]
+    C_XTAL2: [88.5, 50.0, 0]
+    R_XTAL: [83.5, 52.0, 0]
     R_RBIAS: [100.0, 56.0, 0]
     R_HUB_RESET: [84.0, 67.0, 0]
     C_HUB_RESET: [84.0, 70.0, 0]
@@ -152,36 +188,60 @@ placement:
     R_VBUS_BOT: [83.0, 62.0, 0]
 
     # Hardware configuration straps in a visually auditable bank.
-    R_CFG0: [30.0, 82.0, 0]
-    R_CFG1: [34.0, 82.0, 0]
+    # Keep the right-edge USB2517 strap terminations in the same vertical
+    # order as their QFN pins.  The former three-column bank at y=74..79 mm
+    # forced 20--50 mm crossover detours around the already-routed USB and
+    # power field.  CFG1 and NONREM0 sit on the hub side of the two proven
+    # DIS6/DIS7 layer crossings; leaving them in the x=105 outer column made
+    # those crossings a topological cut where the router could connect either
+    # net but never both.  The remaining straps retain the ordered column.
+    R_CFG0: [105.0, 66.5, 0]
+    R_CFG1: [124.5, 62.0, 0]
     R_CFG2: [38.0, 82.0, 0]
-    R_NONREM1: [42.0, 82.0, 0]
-    R_NONREM0: [46.0, 82.0, 0]
-    R_SWAP1: [30.0, 85.0, 0]
-    R_SWAP2: [34.0, 85.0, 0]
-    R_SWAP3: [38.0, 85.0, 0]
-    R_SWAP4: [42.0, 85.0, 0]
+    R_NONREM1: [105.0, 68.0, 0]
+    # NONREM0 is a pull-up (signal on pad 2); rotate it so the signal land,
+    # like every pull-down in this bank, faces the hub.
+    R_NONREM0: [99.25, 64.0, 180]
+    # Top-edge straps terminate beside their owning hub pins.  Their former
+    # positions in the southwest audit bank forced 90-140 mm low-speed routes
+    # through the same narrow USB/control corridor.
+    # The top-edge strap pins are ordered left-to-right on the QFN.  Preserve
+    # that order in a local row above the expander instead of sending the four
+    # DIS straps 30--45 mm left across the board and back (the realized routes
+    # were 79--93 mm).  DIS resistors are pull-ups, so rotate them to present
+    # signal pad 2 toward the hub; the remaining signal lands are pad 1.
+    R_SWAP1: [116.0, 70.0, 0]
+    R_SWAP2: [110.0, 70.0, 0]
+    R_SWAP3: [113.0, 62.0, 180]
+    R_SWAP4: [105.0, 71.0, 0]
     R_SWAP5: [46.0, 85.0, 0]
     R_SWAP6: [50.0, 85.0, 0]
     R_SWAP7: [54.0, 85.0, 0]
-    R_GANG: [30.0, 88.0, 0]
-    R_BOOST0: [34.0, 88.0, 0]
-    R_BOOST1: [38.0, 88.0, 0]
-    R_DIS6N: [52.0, 82.0, 0]
-    R_DIS6P: [56.0, 82.0, 0]
-    R_DIS7N: [60.0, 82.0, 0]
-    R_DIS7P: [64.0, 82.0, 0]
+    R_GANG: [105.0, 69.5, 0]
+    R_BOOST0: [113.0, 70.0, 0]
+    # The original local ground pad sat over the proven HUB_SWAP2 back-layer
+    # launch. Its only automatic rescue corridor crossed P4_HUB_N. Keep this
+    # static, low-speed strap in the remote audit bank beside R_CFG1 so its
+    # ground land can drop directly into the plane without touching USB.
+    R_BOOST1: [127.5, 62.0, 0]
+    R_DIS6N: [119.0, 70.0, 180]
+    R_DIS6P: [122.0, 70.0, 180]
+    R_DIS7N: [125.0, 70.0, 180]
+    R_DIS7P: [128.0, 70.0, 180]
 
     # Internal management port, USB bridge, GPIO expander and interlocks.
     R_ILIM_CTRL: [48.3, 73.0, 90]
     C_PWR_CTRL_IN: [40.2, 72.0, 0]
     C_PWR_CTRL_OUT_HF: [50.0, 69.0, 0]
     C_PWR_CTRL_OUT: [50.0, 73.0, 0]
-    C_CTRL_VDD: [112.5, 80.0, 0]
-    C_CTRL_VUSB: [100.2, 76.0, 0]
-    R_CTRL_RESET: [112.5, 76.0, 0]
-    R_I2C_SCL: [116.0, 71.0, 0]
-    R_I2C_SDA: [116.0, 74.0, 0]
+    # Straddle the MCP2221A supply pins with the VDD bypass above the package;
+    # both VDD(1) and VSS(14) then reach it in about 3.35 mm. Keep the VUSB
+    # reservoir immediately east of VUSB(11), below the management pair exit.
+    C_CTRL_VDD: [74.0, 69.5, 0]
+    C_CTRL_VUSB: [80.3, 75.8, 0]
+    R_CTRL_RESET: [79.0, 77.0, 0]
+    R_I2C_SCL: [80.5, 71.0, 0]
+    R_I2C_SDA: [80.5, 74.0, 0]
     C_EXP_VDD: [116.0, 77.0, 0]
     R_EXP_RESET: [130.0, 79.0, 0]
     C_AND_PWR: [109.0, 84.0, 0]
@@ -195,11 +255,19 @@ placement:
     R_DATA_CMD3: [124.0, 96.0, 0]
     R_DATA_CMD4: [130.0, 96.0, 0]
 
-    # Reverse-polarity and AP63203 cells.
-    R_QRP_GATE: [51.0, 94.0, 0]
-    R_QRP_SOURCE: [56.0, 94.0, 0]
-    C_TRUNK_HF: [61.0, 98.0, 0]
-    C_TRUNK_BULK: [64.0, 102.0, 0]
+    # TPS259474L aggregate breaker, always-connected USB hub bulk and AP63203.
+    R_AGG_UV_TOP: [48.0, 94.0, 0]
+    R_AGG_UV_MID: [52.0, 94.0, 0]
+    R_AGG_OV_BOT: [56.0, 94.0, 0]
+    R_AGG_ILIM: [56.0, 98.0, 0]
+    C_AGG_IN: [52.0, 96.0, 0]
+    C_AGG_TIMER: [56.0, 101.0, 0]
+    # Keep the eFuse dV/dt capacitor close, but clear pad 6's only legal
+    # high-current escape (the south end of its 0.30 x 2.40 mm land).
+    C_AGG_DVDT: [54.5, 96.0, 0]
+    C_TRUNK_HF: [60.0, 96.0, 0]
+    C_TRUNK_BULK: [64.0, 96.0, 0]
+    C_TRUNK_USB: [62.0, 104.0, 0]
     C_BUCK_IN: [64.3, 91.0, 180]
     C_BST: [71.1, 91.0, 90]
     C_BUCK_OUT1: [80.0, 89.0, 0]
@@ -210,62 +278,172 @@ placement:
   # similar KiCad package name; model-registration review remains a separate
   # gate after rendering.
   patterns:
+    # F_IN is one electrical reference for the complete four-terminal
+    # Keystone 3568 holder. It is procured and hand-soldered after PCBA, so
+    # keep its electrical identity in source but out of every JLC assembly BOM
+    # and machine-placement export. assembly.yaml owns the population decision
+    # and exact disposition.
+    - {match: F_IN, attrs: [exclude_from_pos_files]}
     - match: J_PORT*
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/KH-AF90DIP-112.step", offset: [3.49, 0.26, 0], rotate: [0, 0, 0]}
     - match: J_UP
-      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/TE_292304-1.step", offset: [0, 0.25, 0], rotate: [0, 0, 0]}
+      # JLC's exact C86462 STEP is already in a KiCad front-side frame. The
+      # +0.25 mm Y datum shift reconciles its signal-row origin with the exact
+      # TE D4 hole coordinates while retaining the independent TE land.
+      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/JLC_C86462_USB-B_TH_BF90.step", offset: [0, 0.25, 0], rotate: [0, 0, 0]}
     - match: J_PWR
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/Phoenix_1935161.step", offset: [-2.735, -4.262, 0], rotate: [0, 0, 0]}
-    - match: Q_RP
-      model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/DMP3007_PowerDI5060.step", rotate: [0, 0, 0]}
     - match: Q_DATA*
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/2N7002K_SOT23.step", rotate: [0, 0, 180]}
     - match: L_MAIN
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/SWPA4030S.step", rotate: [0, 0, 270]}
     - match: U_HUB
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/USB2517I_QFN64.step", rotate: [0, 0, 0]}
+    - match: U_AGG
+      # Pin 8 is the eFuse's local ground return. A solid plane connection is
+      # electrically preferable here and avoids a one-spoke thermal on the
+      # small perimeter land.
+      pad_overrides: [{pads: [8], on_net: GND, zone_connection: full}]
     - match: U_PWR*
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step", rotate: [0, 0, 270]}
 
   # Every authored anchor is reviewed placement intent; this board currently
-  # pins the complete 133-part placement so regeneration cannot drift it.
+  # pins the complete source-owned placement so regeneration cannot drift it.
   pin: ["*"]
-  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 100}
+  legalize: {enable: true, clearance: 0.65, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 100}
 
 design_rules:
   track_min_width: 0.15
   min_clearance: 0.127
   via_min_annulus: 0.13
   hole_clearance: 0.25
-  hole_to_hole: 0.5
+  # JLC 4-layer advanced tier.  The dense USB-hub QFN breakout uses
+  # staggered 0.46/0.20 mm vias with >=0.40 mm realized hole-to-hole gap.
+  hole_to_hole: 0.25
   copper_edge_clearance: 0.3
-  via_min_size: 0.45
-  min_through_drill: 0.2
+  # Local QFN fanout exception; ordinary route vias stay 0.46/0.20 mm.
+  # 0.41/0.15 mm preserves the same 0.13 mm annulus on JLC advanced.
+  via_min_size: 0.41
+  min_through_drill: 0.15
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
 
 zones:
-  - {net: GND, layers: [F.Cu, In1.Cu, B.Cu], priority: 0, min_thickness: 0.25, clearance: 0.2, connect: thermal}
+  # Both outer-layer USB corridors have an uninterrupted adjacent reference:
+  # F.Cu references In1.Cu and B.Cu references In2.Cu.  The 0.30 mm outer
+  # ground clearance is part of the provisional JLC04161H-7628 CPWG solve and
+  # must be re-confirmed in JLC's order-time impedance calculator.
+  - {net: GND, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], priority: 0, min_thickness: 0.25, clearance: 0.30, connect: thermal}
+
+# Named permissive rule areas. They deny nothing; generated .kicad_dru rules
+# bind package-local width/clearance exceptions to these exact geometries.
+keepouts:
+  # The only field-clearance relaxation outside a package launch is an exact
+  # family-to-family rule for the four static DIS6/DIS7 straps against the
+  # exact P1/P4 USB segments they cross.  It is B.Cu-only and bounds the full
+  # measured objects because KiCad's insideArea predicate is item-wide.
+  - {name: hub_static_strap_usb_crossing, layers: [B.Cu], deny: [], rect: [60.0, 48.5, 123.2, 64.0]}
+  # Include every complete USB2517I launch item that participates in the
+  # package-local 0.15 mm spacing, including the upstream-pair endpoint at
+  # y=59.5 and the adjacent pad-57 supply escape.  Copper beyond the area
+  # returns to the 0.30 mm field clearance.
+  - {name: hub_package_launch, layers: [F.Cu], deny: [], rect: [87.15, 59.4, 98.2, 70.2]}
+  - {name: hub_oscillator_usb_launch, layers: [F.Cu], deny: [], rect: [90.9, 54.9, 93.0, 60.8]}
+  - {name: hub_3v3_left_escape, layers: [F.Cu], deny: [], rect: [85.5, 62.9, 89.1, 66.1]}
+  - {name: hub_3v3_top_escape, layers: [F.Cu], deny: [], rect: [88.9, 58.7, 89.6, 61.1]}
+  - {name: hub_3v3_top_right_escape, layers: [F.Cu], deny: [], rect: [92.5, 58.7, 95.5, 61.1]}
+  - {name: hub_3v3_a4_escape, layers: [F.Cu], deny: [], rect: [95.0, 58.0, 98.8, 59.2]}
+  - {name: hub_3v3_bottom_escape, layers: [F.Cu], deny: [], rect: [92.5, 69.1, 93.0, 70.8]}
+  # Pin 24 and C_HUB_PLL form a small local 3V3 island below the USB2517I.
+  # The authenticated per-port controls seal every 0.40 mm exit.  A measured
+  # 0.20 mm branch crosses that field with three off-pad transitions and
+  # rejoins the full-width rail at the existing pad-10 collector via.  Keep
+  # this exception bounded to the exact collector envelope on F.Cu/B.Cu.
+  - {name: hub_3v3_bottom_collector, layers: [F.Cu, B.Cu], deny: [], rect: [83.6, 65.4, 93.1, 73.6]}
+  - {name: hub_3v3_right_escape, layers: [F.Cu], deny: [], rect: [97.1, 62.0, 98.6, 62.5]}
+  # Measured 0.20 mm local neck between the DIS6_P transition via and the
+  # adjacent bypass-capacitor GND lands. This joins the two deterministic hub
+  # 3V3 spine halves; the 0.40 mm distribution floor resumes at both ends.
+  - {name: hub_3v3_spine_neck, layers: [F.Cu], deny: [], rect: [101.4, 61.8, 101.9, 65.2]}
+  # Two 0603 pull-up lands border SWAP3's only P4-safe route. Narrow source-
+  # owned launches move their layer transitions north of that route; the
+  # normal 0.40 mm 3V3 width resumes at the two off-pad vias.
+  - {name: hub_3v3_pullup_escape, layers: [F.Cu], deny: [], rect: [116.3, 68.7, 119.8, 70.3]}
+  # The 74LVC08 pad-14 lands are only 0.40 mm tall.  KRT's pad-centred taper
+  # creates a <=0.151 mm terminal segment before reaching the 0.40 mm rail;
+  # keep that fabrication-safe taper bounded to the individual package exit.
+  - {name: and_pwr_3v3_launch, layers: [F.Cu], deny: [], rect: [106.0, 83.7, 107.2, 84.3]}
+  - {name: and_data_3v3_launch, layers: [F.Cu], deny: [], rect: [122.0, 83.7, 123.2, 84.3]}
+  - {name: aggregate_efuse_launch, layers: [F.Cu], deny: [], rect: [47.0, 90.5, 69.0, 103.8]}
+  - {name: data1_package_launch, layers: [B.Cu], deny: [], ref: U_DATA1, margin_mm: 0.4}
+  - {name: data2_package_launch, layers: [B.Cu], deny: [], ref: U_DATA2, margin_mm: 0.4}
+  - {name: data3_package_launch, layers: [B.Cu], deny: [], ref: U_DATA3, margin_mm: 0.4}
+  - {name: data4_package_launch, layers: [B.Cu], deny: [], ref: U_DATA4, margin_mm: 0.4}
+  - {name: pwr1_input_launch, layers: [F.Cu], deny: [], rect: [41.8, 52.8, 47.3, 57.6]}
+  - {name: pwr2_input_launch, layers: [F.Cu], deny: [], rect: [69.8, 52.8, 75.3, 57.6]}
+  - {name: pwr3_input_launch, layers: [F.Cu], deny: [], rect: [97.8, 52.8, 103.3, 57.8]}
+  - {name: pwr4_input_launch, layers: [F.Cu], deny: [], rect: [125.8, 52.8, 131.3, 57.6]}
+  - {name: pwr_ctrl_input_launch, layers: [F.Cu], deny: [], rect: [38.5, 70.8, 44.3, 75.1]}
+  # TPS2557 paired output lands need a very short tapered join before the
+  # routed 0.50 mm VBUS branch.  These areas contain only that package launch.
+  - {name: pwr1_output_launch, layers: [F.Cu], deny: [], rect: [48.8, 52.8, 50.2, 55.2]}
+  - {name: pwr2_output_launch, layers: [F.Cu], deny: [], rect: [76.8, 52.8, 78.2, 55.2]}
+  - {name: pwr3_output_launch, layers: [F.Cu], deny: [], rect: [104.8, 52.8, 106.2, 55.2]}
+  - {name: pwr4_output_launch, layers: [F.Cu], deny: [], rect: [132.8, 52.8, 134.2, 55.2]}
+  - {name: pwr_ctrl_output_launch, layers: [F.Cu], deny: [], rect: [45.8, 70.8, 47.2, 73.2]}
 
 silk:
   min_text_height: 0.7
   refdes: {size: 0.7, min_size: 0.5, fab_copy: true, clearance: 0.16, priority_prefixes: "JUQF"}
   captions:
-    - ["USB DEBUG HUB — PORTS 1  2  3  4", 92.0, 29.0, 0.9]
-    - ["SELF-POWERED 5.10–5.25 V / 3 A MIN", 52.0, 105.0, 0.7]
+    - ["SELF-POWERED 5.10–5.25 V / 3 A CONT / 5 A 6 ms PEAK", 57.0, 108.0, 0.7]
 
 asserts:
   pad_net:
-    - {ref: Q_RP, pad: 1, net: QRP_GATE}
-    - {ref: Q_RP, pad: 2, net: P5V_PROTECTED}
-    - {ref: Q_RP, pad: 5, net: P5V_FUSED}
+    - {ref: U_AGG, pad: 5, net: P5V_FUSED}
+    - {ref: U_AGG, pad: 6, net: P5V_PROTECTED}
+    - {ref: U_AGG, pad: 8, net: GND}
+    - {ref: C_TRUNK_USB, pad: 1, net: P5V_PROTECTED}
     - {ref: U_HUB, pad: 58, net: UP_HUB_N}
     - {ref: U_HUB, pad: 59, net: UP_HUB_P}
     - {ref: U_HUB, pad: 65, net: GND}
     - {ref: J_UP, pad: 1, net: USB_UP_VBUS}
     - {ref: J_PORT1, pad: 1, net: VBUS1_SW}
     - {ref: J_PORT4, pad: 1, net: VBUS4_SW}
+    - {ref: U_ESD1, pad: 1, net: P1_PORT_P}
+    - {ref: U_ESD1, pad: 2, net: P1_PORT_N}
+    - {ref: U_ESD2, pad: 1, net: P2_PORT_P}
+    - {ref: U_ESD2, pad: 2, net: P2_PORT_N}
+    - {ref: U_ESD3, pad: 1, net: P3_PORT_P}
+    - {ref: U_ESD3, pad: 2, net: P3_PORT_N}
+    - {ref: U_ESD4, pad: 1, net: P4_PORT_P}
+    - {ref: U_ESD4, pad: 2, net: P4_PORT_N}
+  edge_faces:
+    - {ref: J_PORT1, edge: y0, min_offset_mm: 1.0}
+    - {ref: J_PORT2, edge: y0, min_offset_mm: 1.0}
+    - {ref: J_PORT3, edge: y0, min_offset_mm: 1.0}
+    - {ref: J_PORT4, edge: y0, min_offset_mm: 1.0}
+    - {ref: J_UP, edge: x0, min_offset_mm: 0.5}
+  pad_bank_faces:
+    # Shunt protectors: signal bank toward the receptacle, GND behind it.
+    - {ref: U_ESD1, pads: [1, 2], toward_ref: J_PORT1, toward_pads: [2, 3], behind_pads: [3], margin_mm: 0.5}
+    - {ref: U_ESD2, pads: [1, 2], toward_ref: J_PORT2, toward_pads: [2, 3], behind_pads: [3], margin_mm: 0.5}
+    - {ref: U_ESD3, pads: [1, 2], toward_ref: J_PORT3, toward_pads: [2, 3], behind_pads: [3], margin_mm: 0.5}
+    - {ref: U_ESD4, pads: [1, 2], toward_ref: J_PORT4, toward_pads: [2, 3], behind_pads: [3], margin_mm: 0.5}
+    - {ref: U_ESD_UP, pads: [1, 2], toward_ref: J_UP, toward_pads: [2, 3], behind_pads: [3], margin_mm: 0.5}
+    # Data switches: the realised bottom-side channel banks must face their
+    # respective connector/ESD and hub cells, not merely be nearby.
+    - {ref: U_DATA1, pads: [6, 7], toward_ref: U_ESD1, toward_pads: [1, 2], behind_pads: [3, 4], margin_mm: 0.5}
+    - {ref: U_DATA2, pads: [6, 7], toward_ref: U_ESD2, toward_pads: [1, 2], behind_pads: [3, 4], margin_mm: 0.5}
+    - {ref: U_DATA3, pads: [6, 7], toward_ref: U_ESD3, toward_pads: [1, 2], behind_pads: [3, 4], margin_mm: 0.5}
+    - {ref: U_DATA4, pads: [6, 7], toward_ref: U_ESD4, toward_pads: [1, 2], behind_pads: [3, 4], margin_mm: 0.5}
+    - {ref: U_DATA1, pads: [3, 4], toward_ref: U_HUB, toward_pads: [3, 4], behind_pads: [6, 7], margin_mm: 0.5}
+    - {ref: U_DATA2, pads: [3, 4], toward_ref: U_HUB, toward_pads: [6, 7], behind_pads: [6, 7], margin_mm: 0.25}
+    - {ref: U_DATA3, pads: [3, 4], toward_ref: U_HUB, toward_pads: [8, 9], behind_pads: [6, 7], margin_mm: 0.5}
+    - {ref: U_DATA4, pads: [3, 4], toward_ref: U_HUB, toward_pads: [11, 12], behind_pads: [6, 7], margin_mm: 0.5}
 
 escape_corridors:
-  - {ref: U_HUB, side: N, depth_mm: 5.0, layers: [F.Cu]}
-  - {ref: U_HUB, side: S, depth_mm: 5.0, layers: [F.Cu]}
+  # Reserve only the actual USB exits. Earlier full-side 5 mm corridors
+  # incorrectly forbade the hub's own close decouplers and crystal network.
+  - {ref: U_HUB, side: W, depth_mm: 1.5, width_mm: 7.0, layers: [F.Cu]}
+  - {ref: U_HUB, side: N, depth_mm: 1.2, width_mm: 2.0, layers: [F.Cu]}

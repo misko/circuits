@@ -31,7 +31,8 @@ SOURCE_MODEL = (SOURCE_PROJECT /
                 "03_src/lib/3dmodels/Amphenol_901_143_6RFX-JLC-C429844.step")
 
 
-def project_fixture(*, shifted=False, kept_refs=("J2",)):
+def project_fixture(*, shifted=False, inverted=False, kept_refs=("J2",),
+                    smd_only=False, registration_datum=None, mount_side=None):
     project = tmpdir("model_registration_") / "pluto"
     board_dir = project / "04_kicad"
     model_dir = project / "03_src/lib/3dmodels"
@@ -53,6 +54,12 @@ def project_fixture(*, shifted=False, kept_refs=("J2",)):
         "  elif fp.GetReference() == 'J2':\n"
         "    models=fp.Models(); model=models[0]\n"
         f"    model.m_Offset.x={5.0 if shifted else 0.0}; models[0]=model\n"
+        f"    if {inverted!r}:\n"
+        "      model=models[0]; model.m_Rotation.x += 180.0; models[0]=model\n"
+        f"    if {smd_only!r}:\n"
+        "      for pad in fp.Pads():\n"
+        "        pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD); "
+        "pad.SetDrillSize(pcbnew.VECTOR2I(0,0))\n"
         "b.Save(p)\n"
     )
     must_pass(run([KPY, "-c", mutate, board]), "inject 5 mm model offset")
@@ -70,6 +77,10 @@ def project_fixture(*, shifted=False, kept_refs=("J2",)):
             "render_height": 800,
         }],
     }
+    if registration_datum is not None:
+        config["groups"][0]["registration_datum"] = registration_datum
+    if mount_side is not None:
+        config["groups"][0]["orientation"] = {"mount_side": mount_side}
     (rules_dir / "model_registration.yaml").write_text(
         yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
     return project, board, model_sha
@@ -77,6 +88,10 @@ def project_fixture(*, shifted=False, kept_refs=("J2",)):
 
 def broken_project():
     return project_fixture(shifted=True)
+
+
+def inverted_project():
+    return project_fixture(inverted=True, mount_side="front")
 
 
 def accepted_bytes(path):
@@ -226,6 +241,33 @@ def t_multi_group_aggregate_index():
        "multi-group aggregate passes readiness bundle audit")
 
 
+@test("SMD-only native bodies use an explicit all-pad-centre registration datum")
+def t_smd_all_pad_centre_registration():
+    project, board, _model_sha = project_fixture(
+        smd_only=True, registration_datum="all_pad_centres")
+    result = must_pass(run(gate_command(project, board)),
+                       "SMD all-pad-centre registration")
+    contains(result.out, "P-MODEL-REG PASS: 1/1 group(s) graded",
+             "SMD group reaches the measured denominator")
+    receipt = json.loads((project /
+        "06_build/pre_route/native_registration/shifted_sma/"
+        "model_registration_receipt.json").read_text())
+    eq(receipt["measurements"][0]["attachment_centres_total"], 5,
+       "all five SMD pad centres are graded")
+    eq(receipt["measurements"][0]["attachment_centres_graded"], 5,
+       "all five SMD pad centres lie within the registered body")
+
+
+@test("SMD-only native bodies fail under the default drilled-centre policy",
+      kind="known_bad")
+def t_smd_default_drilled_policy_fails_closed():
+    project, board, _model_sha = project_fixture(smd_only=True)
+    failed = must_fail(run(gate_command(project, board)),
+                       "SMD default drilled-centre policy")
+    contains(failed.out, "no drilled_centres",
+             "missing drilled denominator is explicit")
+
+
 @test("one physical ref cannot inflate more than one group denominator",
       kind="known_bad")
 def t_duplicate_group_ref_is_rejected():
@@ -291,6 +333,26 @@ def t_native_engine_and_project_gate_reject_shifted_model():
         expect="P-MODEL-REG FAIL")
     contains(aggregate.out, "0/1 group(s) graded",
              "project gate reports its complete group denominator")
+
+
+@test("signed side views reject a model whose bulk is below its declared mount side",
+      kind="known_bad")
+def t_native_registration_rejects_inverted_model_z_side():
+    project, board, model_sha = inverted_project()
+    direct = must_fail(run([
+        KPY, ENGINE, board, project / "direct", "--refs", "J2",
+        "--model-sha256", model_sha, "--fit-tol-mm", "1.0",
+        "--courtyard-tol-mm", "0.25", "--search-margin-mm", "8.0",
+        "--width", "1200", "--height", "800", "--mount-side", "front",
+    ]), "inverted signed-mount-side fixture", expect="P-MODEL-REG FAIL")
+    contains(direct.out, "measured side-view solid on front mount side",
+             "direct gate names the signed-Z body-side failure")
+
+    aggregate = must_fail(run(gate_command(project, board)),
+        "aggregate inverted signed-mount-side fixture",
+        expect="P-MODEL-REG FAIL")
+    contains(aggregate.out, "0/1 group(s) graded",
+             "aggregate fails the complete connector group")
 
 
 if __name__ == "__main__":

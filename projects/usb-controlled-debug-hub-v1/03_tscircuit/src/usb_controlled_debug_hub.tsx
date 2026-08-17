@@ -68,6 +68,23 @@ const Tps2557Fp = () => <footprint>
   <smtpad portHints={["9"]} pcbX="0mm" pcbY="0mm" width="1.65mm" height="2.4mm" shape="rect" />
 </footprint>
 
+// TI RPW0010A HotRod QFN.  The project-local KiCad footprint is generated
+// from the exact JLC C2864845 CAD and checked against TI drawing 4225183/A;
+// this source footprint preserves the ten-pin topology for schematic export.
+const Tps25947Fp = () => <footprint>
+  {[1, 2, 3, 4].map((p, i) => <smtpad key={`l${p}`} portHints={[`${p}`]}
+    pcbX="-0.9mm" pcbY={`${0.7125 - i * 0.475}mm`} width="0.6mm" height="0.25mm" shape="rect" />)}
+  <smtpad portHints={["5"]} pcbX="-0.3mm" pcbY="0mm" width="0.3mm" height="1.8mm" shape="rect" />
+  <smtpad portHints={["6"]} pcbX="0.3mm" pcbY="0mm" width="0.3mm" height="1.8mm" shape="rect" />
+  {[7, 8, 9, 10].map((p, i) => <smtpad key={`r${p}`} portHints={[`${p}`]}
+    pcbX="0.9mm" pcbY={`${-0.7125 + i * 0.475}mm`} width="0.6mm" height="0.25mm" shape="rect" />)}
+</footprint>
+
+const Polymer63 = () => <footprint>
+  <smtpad portHints={["1", "POS"]} pcbX="-2.3mm" pcbY="0mm" width="2.2mm" height="2.7mm" shape="rect" />
+  <smtpad portHints={["2", "NEG"]} pcbX="2.3mm" pcbY="0mm" width="2.2mm" height="2.7mm" shape="rect" />
+</footprint>
+
 const schProps = (name: string) => {
   // Most sheets contain label-connected functional islands. Keep those islands
   // close enough that the page renderer does not shrink symbols and labels to
@@ -93,12 +110,19 @@ const schProps = (name: string) => {
     }
   }
   const power: Record<string, [number, number]> = {
-    J_PWR: [-22, 10], F_IN: [-12, 10], Q_RP: [0, 10], R_QRP_GATE: [2, 2],
-    R_QRP_SOURCE: [-5, 2], C_TRUNK_HF: [10, 14], C_TRUNK_BULK: [18, 14],
-    U_BUCK: [-5, -10], C_BUCK_IN: [-16, -14], C_BST: [2, -2], L_MAIN: [7, -10],
-    C_BUCK_OUT1: [16, -6], C_BUCK_OUT2: [16, -14],
+    J_PWR: [-24, 10], F_IN: [-10, 10], U_AGG: [4, 10],
+    C_AGG_IN: [-3, 5],
+    R_AGG_UV_TOP: [-2, -1], R_AGG_UV_MID: [5, -1], R_AGG_OV_BOT: [12, -1],
+    R_AGG_ILIM: [18, 7], C_AGG_TIMER: [18, 1], C_AGG_DVDT: [29, -4],
+    C_TRUNK_HF: [25, 14], C_TRUNK_BULK: [33, 14], C_TRUNK_USB: [43, 14],
+    U_BUCK: [-5, -10], C_BUCK_IN: [-16, -14], C_BST: [0, -24], L_MAIN: [7, -10],
+    C_BUCK_OUT1: [16, -8], C_BUCK_OUT2: [16, -16],
   }
-  if (power[name]) return at("power", "Protected input and 3.3 V regulator", ...power[name])
+  if (power[name]) {
+    const powerProps = at("power", "Protected input and 3.3 V regulator", ...power[name])
+    if (name.startsWith("R_AGG_UV_") || name === "R_AGG_OV_BOT") return { ...powerProps, schRotation: "90deg" }
+    return powerProps
+  }
 
   const strap = name.match(/^R_(CFG|NONREM|SWAP|GANG|BOOST|DIS)(.*)$/)
   if (strap) {
@@ -114,7 +138,7 @@ const schProps = (name: string) => {
   }
 
   const hub: Record<string, [number, number]> = {
-    J_UP: [-24, 8], U_ESD_UP: [-14, 8], U_HUB: [0, 4], Y_HUB: [18, -4],
+    J_UP: [-38, 8], U_ESD_UP: [-24, 8], U_HUB: [0, 4], Y_HUB: [18, -4],
     R_XTAL: [18, -10], R_RBIAS: [12, 16], C_XTAL1: [14, -17], C_XTAL2: [22, -17],
     R_HUB_RESET: [-18, -12], C_HUB_RESET: [-10, -12],
     R_VBUS_TOP: [-22, 17], R_VBUS_BOT: [-15, 17],
@@ -145,16 +169,18 @@ const schProps = (name: string) => {
 
   const management: Record<string, [number, number]> = {
     U_PWR_CTRL: [-20, 8], R_ILIM_CTRL: [-24, -2], C_PWR_CTRL_IN: [-17, -6],
-    C_PWR_CTRL_OUT_HF: [-24, -10], C_PWR_CTRL_OUT: [-16, -14],
+    C_PWR_CTRL_OUT_HF: [-24, -10], C_PWR_CTRL_OUT: [-20, -17],
     U_CTRL: [-6, 5], C_CTRL_VDD: [-10, -7], C_CTRL_VUSB: [-4, -8], R_CTRL_RESET: [-12, -14],
-    R_I2C_SCL: [-2, -16], R_I2C_SDA: [4, -16], U_EXP: [13, 5], C_EXP_VDD: [10, -7], R_EXP_RESET: [18, -10],
+    R_I2C_SCL: [-2, -19], R_I2C_SDA: [5, -19], U_EXP: [13, 5], C_EXP_VDD: [10, -7], R_EXP_RESET: [18, -10],
     R_PWR_CMD1: [-18, -25], R_PWR_CMD2: [-6, -25], R_PWR_CMD3: [6, -25], R_PWR_CMD4: [18, -25],
     R_DATA_CMD1: [-18, -33], R_DATA_CMD2: [-6, -33], R_DATA_CMD3: [6, -33], R_DATA_CMD4: [18, -33],
   }
-  return at("management", "Factory USB management and GPIO expander", ...(management[name] ?? [0, 0]))
+  const managementProps = at("management", "Factory USB management and GPIO expander", ...(management[name] ?? [0, 0]))
+  if (name === "R_I2C_SCL" || name === "R_I2C_SDA") return { ...managementProps, schRotation: "90deg" }
+  return managementProps
 }
 
-const R = ({ name, value, a, b, jlc }: any) => <resistor name={name} resistance={value} footprint="0402"
+const R = ({ name, value, a, b, jlc, fp = "0402" }: any) => <resistor name={name} resistance={value} footprint={fp}
   {...schProps(name)} supplierPartNumbers={{ jlcpcb: [jlc] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
 const C = ({ name, value, a, b, jlc, fp = "0402", studyX, studyY }: any) => <capacitor name={name} capacitance={value} footprint={fp}
   {...schProps(name)}
@@ -175,12 +201,16 @@ const Tps2557 = ({ name, en, out, fault, ilim, cin, coutHf, coutBulk, studyX }: 
 
 const ExternalPort = ({ p, hubP, hubN, prtPwr, ocs }: any) => {
   const hp = `P${p}_HUB_P`, hn = `P${p}_HUB_N`, pp = `P${p}_PORT_P`, pn = `P${p}_PORT_N`
-  const cp = `P${p}_CONN_P`, cn = `P${p}_CONN_N`, vbus = `VBUS${p}_SW`
+  const vbus = `VBUS${p}_SW`
   return <group name={`external_port_${p}`} pcbX={`${(p - 2.5) * 105}mm`} pcbY="-100mm">
     <chip name={`U_DATA${p}`} supplierPartNumbers={{ jlcpcb: ["C11355"] }} footprint={<TwoSided pins={10} pitch={0.5} span={3.4} />}
       {...schProps(`U_DATA${p}`)}
       pinLabels={{ pin1: "VCC", pin2: "SEL", pin3: "D_PLUS", pin4: "D_MINUS", pin5: "GND", pin6: "HSD1_MINUS", pin7: "HSD1_PLUS", pin8: "HSD2_MINUS", pin9: "HSD2_PLUS", pin10: "OE" }}
-      connections={{ pin1: "net.N3V3_MAIN", pin2: "net.GND", pin3: `net.${hp}`, pin4: `net.${hn}`, pin5: "net.GND", pin6: `net.${pn}`, pin7: `net.${pp}`, pin10: `net.DATA_OE${p}_N` }} />
+      // The analog switch channels are electrically symmetric.  The outward-
+      // facing USB-A footprint puts connector D+ on the left launch, so use
+      // HSD1- / D- for logical D+ and HSD1+ / D+ for logical D-.  This keeps
+      // the physical pair ordered through the switch without a PCB crossover.
+      connections={{ pin1: "net.N3V3_MAIN", pin2: "net.GND", pin3: `net.${hn}`, pin4: `net.${hp}`, pin5: "net.GND", pin6: `net.${pp}`, pin7: `net.${pn}`, pin10: `net.DATA_OE${p}_N` }} />
     <C name={`C_DATA${p}`} value="100nF" a="N3V3_MAIN" b="GND" jlc="C1525" />
     <R name={`R_DATA_OE${p}`} value="10k" a="N3V3_MAIN" b={`DATA_OE${p}_N`} jlc="C60490" />
     <chip name={`Q_DATA${p}`} supplierPartNumbers={{ jlcpcb: ["C85047"] }} footprint="sot23"
@@ -191,14 +221,15 @@ const ExternalPort = ({ p, hubP, hubN, prtPwr, ocs }: any) => {
     <Tps2557 name={`U_PWR${p}`} en={`PWR_EN${p}`} out={vbus} fault={ocs} ilim={`ILIM${p}`}
       cin={`C_PWR${p}_IN`} coutHf={`C_PORT${p}_HF`} coutBulk={`C_PORT${p}_BULK`} studyX={-12} />
     <R name={`R_PWR_EN${p}`} value="10k" a={`PWR_EN${p}`} b="GND" jlc="C60490" />
-    <chip name={`U_ESD${p}`} supplierPartNumbers={{ jlcpcb: ["C7519"] }} footprint="sot23_6"
+    <chip name={`U_ESD${p}`} supplierPartNumbers={{ jlcpcb: ["C3708426"] }}
+      manufacturerPartNumber="PESD2USB3UX-TR" footprint="sot23"
       {...schProps(`U_ESD${p}`)}
-      pinLabels={{ pin1: "IO1", pin2: "GND", pin3: "IO2", pin4: "IO2B", pin5: "VBUS", pin6: "IO1B" }}
-      connections={{ pin1: `net.${pp}`, pin2: "net.GND", pin3: `net.${pn}`, pin4: `net.${cn}`, pin5: `net.${vbus}`, pin6: `net.${cp}` }} />
+      pinLabels={{ pin1: "IO1", pin2: "IO2", pin3: "GND" }}
+      connections={{ pin1: `net.${pp}`, pin2: `net.${pn}`, pin3: "net.GND" }} />
     <chip name={`J_PORT${p}`} supplierPartNumbers={{ jlcpcb: ["C503996"] }} footprint={<UsbA />}
       {...schProps(`J_PORT${p}`)}
       pinLabels={{ pin1: "VBUS", pin2: "D_MINUS", pin3: "D_PLUS", pin4: "GND", pin5: "SHIELD" }}
-      connections={{ pin1: `net.${vbus}`, pin2: `net.${cn}`, pin3: `net.${cp}`, pin4: "net.GND", pin5: "net.GND" }} />
+      connections={{ pin1: `net.${vbus}`, pin2: `net.${pn}`, pin3: `net.${pp}`, pin4: "net.GND", pin5: "net.GND" }} />
   </group>
 }
 
@@ -206,15 +237,15 @@ const ExternalPort = ({ p, hubP, hubN, prtPwr, ocs }: any) => {
 // canvas. KiCad floorplan/placement owns the real 110 x 75 mm starting outline.
 export default () => <board width="500mm" height="350mm" routingDisabled>
   <schematicsheet name="power"
-    displayName="POWER — regulated 5 V input, fuse, reverse protection and 3.3 V buck" sheetIndex={1} />
+    displayName="POWER — regulated 5 V input, fuse, aggregate eFuse and 3.3 V buck" sheetIndex={1} />
   <schematicsheet name="hub"
     displayName="USB HUB — upstream Type-B, ESD, USB2517I, straps, clock and bypass" sheetIndex={2} />
   <schematicsheet name="hub_straps"
-    displayName="USB HUB CONFIGURATION — factory-default straps and disabled physical ports 6/7" sheetIndex={3} />
+    displayName="USB HUB CONFIGURATION — P1 swapped, P2-5 normal, P6-7 disabled" sheetIndex={3} />
   <schematicsheet name="management"
     displayName="MANAGEMENT — factory MCP2221A HID/I2C and MCP23017 command bank" sheetIndex={4} />
   <schematicsheet name="interlocks"
-    displayName="INTERLOCKS — hub policy AND host command; data requires final power enable" sheetIndex={5} />
+    displayName="INTERLOCKS — hub policy AND host command; data follows commanded power enable" sheetIndex={5} />
   <schematicsheet name="port_1" displayName="EXTERNAL PORT 1 — independent power/data disconnect" sheetIndex={6} />
   <schematicsheet name="port_2" displayName="EXTERNAL PORT 2 — independent power/data disconnect" sheetIndex={7} />
   <schematicsheet name="port_3" displayName="EXTERNAL PORT 3 — independent power/data disconnect" sheetIndex={8} />
@@ -226,14 +257,28 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     <chip name="F_IN" manufacturerPartNumber="3568" footprint={<BladeFuse />}
       {...schProps("F_IN")}
       pinLabels={{ pin1: "FUSE_IN", pin2: "FUSE_OUT" }} connections={{ pin1: "net.P5V_RAW", pin2: "net.P5V_FUSED" }} />
-    <chip name="Q_RP" supplierPartNumbers={{ jlcpcb: ["C397981"] }} footprint={<PowerDi5060 />}
-      {...schProps("Q_RP")}
-      pinLabels={{ pin1: "G", pin2: "S2", pin3: "S3", pin4: "S4", pin5: "D5", pin6: "D6", pin7: "D7", pin8: "D8" }}
-      connections={{ pin1: "net.QRP_GATE", pin2: "net.P5V_PROTECTED", pin3: "net.P5V_PROTECTED", pin4: "net.P5V_PROTECTED", pin5: "net.P5V_FUSED", pin6: "net.P5V_FUSED", pin7: "net.P5V_FUSED", pin8: "net.P5V_FUSED" }} />
-    <R name="R_QRP_GATE" value="100k" a="QRP_GATE" b="GND" jlc="C60491" />
-    <R name="R_QRP_SOURCE" value="1M" a="QRP_GATE" b="P5V_PROTECTED" jlc="C138033" />
+    <chip name="U_AGG" supplierPartNumbers={{ jlcpcb: ["C2864845"] }}
+      manufacturerPartNumber="TPS259474LRPWR" footprint={<Tps25947Fp />}
+      {...schProps("U_AGG")}
+      pinLabels={{ pin1: "EN_UVLO", pin2: "OVLO", pin3: "PG", pin4: "PGTH", pin5: "IN", pin6: "OUT", pin7: "DVDT", pin8: "GND", pin9: "ILM", pin10: "ITIMER" }}
+      connections={{ pin1: "net.AGG_UV", pin2: "net.AGG_OV", pin4: "net.GND", pin5: "net.P5V_FUSED", pin6: "net.P5V_PROTECTED", pin7: "net.AGG_DVDT", pin8: "net.GND", pin9: "net.AGG_ILIM", pin10: "net.AGG_TIMER" }} />
+    <C name="C_AGG_IN" value="100nF" a="P5V_FUSED" b="GND" jlc="C1525" />
+    {/* One three-resistor string follows TI equations 10/11. Nominal UVLO is
+        4.58 V and OVLO is 5.64 V; exact threshold/leakage corners are owned by
+        power_tree.yaml.  A persistent aggregate overload latches U_AGG off
+        until the external 5 V input is cycled. */}
+    <R name="R_AGG_UV_TOP" value="150k" a="P5V_FUSED" b="AGG_UV" jlc="C22807" fp="0603" />
+    <R name="R_AGG_UV_MID" value="10k" a="AGG_UV" b="AGG_OV" jlc="C25804" fp="0603" />
+    <R name="R_AGG_OV_BOT" value="43.2k" a="AGG_OV" b="GND" jlc="C861404" fp="0603" />
+    <R name="R_AGG_ILIM" value="1k" a="AGG_ILIM" b="GND" jlc="C110776" fp="0603" />
+    <C name="C_AGG_TIMER" value="3.3nF" a="AGG_TIMER" b="GND" jlc="C77036" fp="0603" />
+    <C name="C_AGG_DVDT" value="3.3nF" a="AGG_DVDT" b="GND" jlc="C77036" fp="0603" />
     <C name="C_TRUNK_HF" value="100nF" a="P5V_PROTECTED" b="GND" jlc="C1525" />
     <C name="C_TRUNK_BULK" value="22uF" a="P5V_PROTECTED" b="GND" jlc="C342660" fp="1210" />
+    <capacitor name="C_TRUNK_USB" capacitance="180uF" polarized
+      manufacturerPartNumber="16SVPF180M" supplierPartNumbers={{ jlcpcb: ["C136277"] }}
+      {...schProps("C_TRUNK_USB")} footprint={<Polymer63 />}
+      connections={{ pin1: "net.P5V_PROTECTED", pin2: "net.GND" }} />
 
     <chip name="U_BUCK" supplierPartNumbers={{ jlcpcb: ["C5248536"] }} footprint="sot23_6"
       {...schProps("U_BUCK")}
@@ -252,17 +297,22 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     <chip name="J_UP" supplierPartNumbers={{ jlcpcb: ["C86462"] }} footprint={<UsbB />}
       {...schProps("J_UP")}
       pinLabels={{ pin1: "VBUS", pin2: "D_MINUS", pin3: "D_PLUS", pin4: "GND", pin5: "SHIELD" }}
-      connections={{ pin1: "net.USB_UP_VBUS", pin2: "net.UP_CONN_N", pin3: "net.UP_CONN_P", pin4: "net.GND", pin5: "net.GND" }} />
-    <chip name="U_ESD_UP" supplierPartNumbers={{ jlcpcb: ["C7519"] }} footprint="sot23_6"
+      connections={{ pin1: "net.USB_UP_VBUS", pin2: "net.UP_HUB_N", pin3: "net.UP_HUB_P", pin4: "net.GND", pin5: "net.GND" }} />
+    <chip name="U_ESD_UP" supplierPartNumbers={{ jlcpcb: ["C3708426"] }}
+      manufacturerPartNumber="PESD2USB3UX-TR" footprint="sot23"
       {...schProps("U_ESD_UP")}
-      pinLabels={{ pin1: "IO1", pin2: "GND", pin3: "IO2", pin4: "IO2B", pin5: "VBUS", pin6: "IO1B" }}
-      connections={{ pin1: "net.UP_CONN_P", pin2: "net.GND", pin3: "net.UP_CONN_N", pin4: "net.UP_HUB_N", pin5: "net.USB_UP_VBUS", pin6: "net.UP_HUB_P" }} />
+      pinLabels={{ pin1: "IO1", pin2: "IO2", pin3: "GND" }}
+      connections={{ pin1: "net.UP_HUB_N", pin2: "net.UP_HUB_P", pin3: "net.GND" }} />
 
     <chip name="U_HUB" supplierPartNumbers={{ jlcpcb: ["C478081"] }} footprint={<Qfn64Ep />}
       {...schProps("U_HUB")}
       pinLabels={{ pin1:"DN1_DM",pin2:"DN1_DP",pin3:"DN2_DM",pin4:"DN2_DP",pin5:"VDDA33_1",pin6:"DN3_DM",pin7:"DN3_DP",pin8:"DN4_DM",pin9:"DN4_DP",pin10:"VDDA33_2",pin11:"DN5_DM",pin12:"DN5_DP",pin13:"CFG_SEL2",pin14:"LED_B7",pin15:"PRT_SWP7",pin16:"LED_B6",pin17:"PRT_SWP6",pin18:"LED_B5",pin19:"TEST",pin20:"PRTPWR4",pin21:"OCS4_N",pin22:"OCS3_N",pin23:"PRTPWR3",pin24:"VDD33CR",pin25:"VDD18",pin26:"PRTPWR2",pin27:"OCS2_N",pin28:"OCS1_N",pin29:"PRTPWR1",pin30:"PRTPWR5",pin31:"PRT_SWP5",pin32:"LED_B4",pin33:"PRT_SWP4",pin34:"GANG_EN",pin35:"OCS5_N",pin36:"PRTPWR7",pin37:"OCS7_N",pin38:"OCS6_N",pin39:"PRTPWR6",pin40:"NON_REM1",pin41:"CFG_SEL0",pin42:"CFG_SEL1",pin43:"RESET_N",pin44:"VBUS_DET",pin45:"NON_REM0",pin46:"VDD33",pin47:"PRT_SWP3",pin48:"BOOST1",pin49:"PRT_SWP2",pin50:"BOOST0",pin51:"PRT_SWP1",pin52:"VDDA33_3",pin53:"DN6_DM",pin54:"DN6_DP",pin55:"DN7_DM",pin56:"DN7_DP",pin57:"VDDA33_4",pin58:"UP_DM",pin59:"UP_DP",pin60:"XTAL2",pin61:"XTAL1",pin62:"VDD18PLL",pin63:"RBIAS",pin64:"VDD33PLL",pin65:"EP_VSS" }}
       connections={{
-        pin1:"net.MGMT_N",pin2:"net.MGMT_P",pin3:"net.P1_HUB_N",pin4:"net.P1_HUB_P",pin5:"net.N3V3_MAIN",pin6:"net.P2_HUB_N",pin7:"net.P2_HUB_P",pin8:"net.P3_HUB_N",pin9:"net.P3_HUB_P",pin10:"net.N3V3_MAIN",pin11:"net.P4_HUB_N",pin12:"net.P4_HUB_P",pin13:"net.HUB_CFG2",pin15:"net.HUB_SWAP7",pin17:"net.HUB_SWAP6",pin20:"net.HUB_PRTPWR4",pin21:"net.HUB_OCS4_N",pin22:"net.HUB_OCS3_N",pin23:"net.HUB_PRTPWR3",pin24:"net.N3V3_MAIN",pin25:"net.HUB_VDD18",pin26:"net.HUB_PRTPWR2",pin27:"net.HUB_OCS2_N",pin28:"net.HUB_OCS1_N",pin29:"net.HUB_PRTPWR1",pin30:"net.HUB_PRTPWR5",pin31:"net.HUB_SWAP5",pin33:"net.HUB_SWAP4",pin34:"net.HUB_GANG",pin35:"net.HUB_OCS5_N",pin40:"net.HUB_NONREM1",pin41:"net.HUB_CFG0",pin42:"net.HUB_CFG1",pin43:"net.HUB_RESET_N",pin44:"net.HUB_VBUS_SENSE",pin45:"net.HUB_NONREM0",pin46:"net.N3V3_MAIN",pin47:"net.HUB_SWAP3",pin48:"net.HUB_BOOST1",pin49:"net.HUB_SWAP2",pin50:"net.HUB_BOOST0",pin51:"net.HUB_SWAP1",pin52:"net.N3V3_MAIN",pin53:"net.HUB_DIS6_N",pin54:"net.HUB_DIS6_P",pin55:"net.HUB_DIS7_N",pin56:"net.HUB_DIS7_P",pin57:"net.N3V3_MAIN",pin58:"net.UP_HUB_N",pin59:"net.UP_HUB_P",pin60:"net.XTAL2",pin61:"net.XTAL1",pin62:"net.HUB_VDD18PLL",pin63:"net.RBIAS",pin64:"net.N3V3_MAIN",pin65:"net.GND"
+        // PRT_SWP1 is deliberately high: logical D+ occupies physical DN1_DM
+        // and logical D- occupies physical DN1_DP, removing a geometric pair
+        // crossover to the onboard controller. External ports 2..5 retain
+        // normal physical polarity and keep their PRT_SWP straps low.
+        pin1:"net.MGMT_P",pin2:"net.MGMT_N",pin3:"net.P1_HUB_N",pin4:"net.P1_HUB_P",pin5:"net.N3V3_MAIN",pin6:"net.P2_HUB_N",pin7:"net.P2_HUB_P",pin8:"net.P3_HUB_N",pin9:"net.P3_HUB_P",pin10:"net.N3V3_MAIN",pin11:"net.P4_HUB_N",pin12:"net.P4_HUB_P",pin13:"net.HUB_CFG2",pin15:"net.HUB_SWAP7",pin17:"net.HUB_SWAP6",pin20:"net.HUB_PRTPWR4",pin21:"net.HUB_OCS4_N",pin22:"net.HUB_OCS3_N",pin23:"net.HUB_PRTPWR3",pin24:"net.N3V3_MAIN",pin25:"net.HUB_VDD18",pin26:"net.HUB_PRTPWR2",pin27:"net.HUB_OCS2_N",pin28:"net.HUB_OCS1_N",pin29:"net.HUB_PRTPWR1",pin30:"net.HUB_PRTPWR5",pin31:"net.HUB_SWAP5",pin33:"net.HUB_SWAP4",pin34:"net.HUB_GANG",pin35:"net.HUB_OCS5_N",pin40:"net.HUB_NONREM1",pin41:"net.HUB_CFG0",pin42:"net.HUB_CFG1",pin43:"net.HUB_RESET_N",pin44:"net.HUB_VBUS_SENSE",pin45:"net.HUB_NONREM0",pin46:"net.N3V3_MAIN",pin47:"net.HUB_SWAP3",pin48:"net.HUB_BOOST1",pin49:"net.HUB_SWAP2",pin50:"net.HUB_BOOST0",pin51:"net.HUB_SWAP1",pin52:"net.N3V3_MAIN",pin53:"net.HUB_DIS6_N",pin54:"net.HUB_DIS6_P",pin55:"net.HUB_DIS7_N",pin56:"net.HUB_DIS7_P",pin57:"net.N3V3_MAIN",pin58:"net.UP_HUB_N",pin59:"net.UP_HUB_P",pin60:"net.XTAL2",pin61:"net.XTAL1",pin62:"net.HUB_VDD18PLL",pin63:"net.RBIAS",pin64:"net.N3V3_MAIN",pin65:"net.GND"
       }} />
     <chip name="Y_HUB" supplierPartNumbers={{ jlcpcb: ["C1985204"] }} footprint={<TwoSided pins={4} pitch={1.6} span={3.2} />}
       {...schProps("Y_HUB")}
@@ -286,7 +336,8 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     {[0,1,2].map(n => <R key={`cfg${n}`} name={`R_CFG${n}`} value="10k" a={`HUB_CFG${n}`} b="GND" jlc="C60490" />)}
     <R name="R_NONREM1" value="10k" a="HUB_NONREM1" b="GND" jlc="C60490" />
     <R name="R_NONREM0" value="10k" a="N3V3_MAIN" b="HUB_NONREM0" jlc="C60490" />
-    {[1,2,3,4,5,6,7].map(n => <R key={`sw${n}`} name={`R_SWAP${n}`} value="100k" a={`HUB_SWAP${n}`} b="GND" jlc="C60491" />)}
+    <R name="R_SWAP1" value="100k" a="HUB_SWAP1" b="N3V3_MAIN" jlc="C60491" />
+    {[2,3,4,5,6,7].map(n => <R key={`sw${n}`} name={`R_SWAP${n}`} value="100k" a={`HUB_SWAP${n}`} b="GND" jlc="C60491" />)}
     <R name="R_GANG" value="10k" a="HUB_GANG" b="GND" jlc="C60490" />
     <R name="R_BOOST0" value="10k" a="HUB_BOOST0" b="GND" jlc="C60490" />
     <R name="R_BOOST1" value="10k" a="HUB_BOOST1" b="GND" jlc="C60490" />
@@ -332,6 +383,17 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     <C name="C_AND_DATA" value="100nF" a="N3V3_MAIN" b="GND" jlc="C1525" />
   </group>
 
+  {/* Human-readback notes distinguish deliberate no-connects from omissions.
+      These are presentation-only and do not create nets or copper. */}
+  <group name="hub_intentional_nc_note" schSheetName="hub">
+    <schematictext schX="0mm" schY="-13mm" anchor="center" fontSize={0.65}
+      text="INTENTIONAL NC: U_HUB LED/TEST and disabled-port 6/7 PWR/OCS pins." />
+  </group>
+  <group name="management_intentional_nc_note" schSheetName="management">
+    <schematictext schX="0mm" schY="-14mm" anchor="center" fontSize={0.65}
+      text="INTENTIONAL NC: unused U_CTRL GPIO/UART; U_EXP GPB/INT/NC pins." />
+  </group>
+
   <ExternalPort p={1} hubP="P1_HUB_P" hubN="P1_HUB_N" prtPwr="HUB_PRTPWR2" ocs="HUB_OCS2_N" />
   <ExternalPort p={2} hubP="P2_HUB_P" hubN="P2_HUB_N" prtPwr="HUB_PRTPWR3" ocs="HUB_OCS3_N" />
   <ExternalPort p={3} hubP="P3_HUB_P" hubN="P3_HUB_N" prtPwr="HUB_PRTPWR4" ocs="HUB_OCS4_N" />
@@ -341,25 +403,25 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
       explicit label, circuit-to-svg joins same-net pins into an anonymous loop,
       which is electrically correct but not reviewable by a human. These labels
       add no new source trace or copper; every selected pin already owns the net. */}
-  <group name="qrp_fused_label" schSheetName="power">
-    <netlabel net="P5V_FUSED" connectsTo={sel.Q_RP.pin5}
-      schX="3.0mm" schY="5.0mm" anchorSide="left" />
-  </group>
-  <group name="qrp_protected_label" schSheetName="power">
-    <netlabel net="P5V_PROTECTED" connectsTo={sel.Q_RP.pin2}
-      schX="-3.0mm" schY="6.0mm" anchorSide="right" />
-  </group>
   <group name="buck_input_label" schSheetName="power">
     <netlabel net="P5V_PROTECTED" connectsTo={sel.U_BUCK.pin3}
       schX="-5.7mm" schY="-5.3mm" anchorSide="right" />
   </group>
   <group name="control_power_input_label" schSheetName="management">
     <netlabel net="P5V_PROTECTED" connectsTo={sel.U_PWR_CTRL.pin2}
-      schX="-10.0mm" schY="3.2mm" anchorSide="right" />
+      schX="-10.0mm" schY="2.95mm" anchorSide="right" />
+    <netlabel net="P5V_PROTECTED" connectsTo={sel.U_PWR_CTRL.pin3}
+      schX="-10.0mm" schY="2.75mm" anchorSide="right" />
+    <netlabel net="GND" connectsTo={sel.U_PWR_CTRL.pin1}
+      schX="-8.5mm" schY="3.15mm" anchorSide="right" />
   </group>
   <group name="control_power_output_label" schSheetName="management">
     <netlabel net="VBUS_CTRL" connectsTo={sel.U_PWR_CTRL.pin7}
-      schX="-4.0mm" schY="3.2mm" anchorSide="left" />
+      schX="-2.0mm" schY="2.95mm" anchorSide="left" />
+    <netlabel net="VBUS_CTRL" connectsTo={sel.U_PWR_CTRL.pin6}
+      schX="-2.0mm" schY="2.75mm" anchorSide="left" />
+    <netlabel net="GND" connectsTo={sel.U_PWR_CTRL.pin9}
+      schX="-3.5mm" schY="3.15mm" anchorSide="left" />
   </group>
   {[1, 2, 3, 4].map((p) => <group key={`port_power_labels_${p}`}
       name={`port_power_labels_${p}`} schSheetName={`port_${p}`}>

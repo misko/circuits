@@ -549,6 +549,24 @@ def t_scoped_clearances_emitted():
        "scoped clearance duplicated on rerun")
 
 
+@test("scoped_clearances nets_a/nets_b emits a symmetric exact-pair rule — "
+      "the relaxation cannot leak from either named family to unrelated nets")
+def t_scoped_clearances_exact_pair_emitted():
+    pair = dict(SC)
+    pair.pop("nets")
+    pair.update({"nets_a": ["A1", "A2"], "nets_b": ["B1", "B2"]})
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_clearances": [pair]}))
+    must_pass(r, "generate_rules_generic with exact pair clearance")
+    txt = (proj / "04_kicad" / "cook_loadcell.kicad_dru").read_text()
+    contains(txt, "(A.NetName == 'A1' || A.NetName == 'A2') && "
+                  "(B.NetName == 'B1' || B.NetName == 'B2')",
+             "the forward A-to-B family match")
+    contains(txt, "(A.NetName == 'B1' || A.NetName == 'B2') && "
+                  "(B.NetName == 'A1' || B.NetName == 'A2')",
+             "the symmetric B-to-A family match")
+
+
 @test("a scoped_clearances entry with no `why` is a generation error — an "
       "isolation relaxation with no evidence has NO other gate behind it",
       kind="known_bad")

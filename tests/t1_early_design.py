@@ -225,7 +225,8 @@ def project(req=REQ, power=POWER, stages=STAGES, surge=SURGE):
     d = tmpdir("early_design_")
     rules = d / "03_src" / "rules"
     rules.mkdir(parents=True)
-    for name in ("CTRL", "NFET60", "TVS24", "LOAD", "FET", "CAP_CER"):
+    for name in ("CTRL", "NFET60", "TVS24", "LOAD", "FET", "CAP_CER",
+                 "FIXED_LIMIT"):
         pd = d / "02_parts" / name
         pd.mkdir(parents=True)
         (pd / "part.yaml").write_text(f"mpn: {name}\ntype: fixture\n")
@@ -465,6 +466,44 @@ def t_fault_mutually_exclusive_limits():
                        "--fault-envelope"]),
                   "mutually exclusive downstream limits")
     contains(r.out, "normal/peak/fault=6/7.5/2.849 A", "simultaneity sum")
+
+
+@test("E-FAULT accepts a dossier-backed fixed downstream load without a fake programmer")
+def t_fault_fixed_limit_evidence_ref():
+    changed = POWER.replace(
+        "        evidence: fixture worst-high current-limit proof\n",
+        "        evidence: fixture worst-high current-limit proof\n"
+        "      - name: fixed converter load\n"
+        "        count: 1\n"
+        "        simultaneous_count: 1\n"
+        "        worst_high_each_A: 0.1\n"
+        "        evidence_refs: [FIXED_LIMIT]\n"
+        "        evidence: fixture fixed-limit manufacturer proof\n")
+    r = must_pass(run([sys.executable, ED, project(power=changed),
+                       "--fault-envelope"]), "fixed downstream evidence")
+    contains(r.out, "normal/peak/fault=6/7.5/8.647 A",
+             "fixed load enters aggregate")
+
+
+@test("E-FAULT supports slew-limited output-bank startup models")
+def t_fault_slew_limited_startup():
+    old = """          vin_min_V: 5.014892
+          gate_overdrive_V: 3.6
+          dvdt_current_max_uA: 6.33
+          itimer_divisor: 53000
+          evidence: fixture startup relation and dVdt-current corner
+"""
+    new = """          model: slew_limited_output_bank
+          slew_coefficient_pF_V_per_ms: 2000
+          output_capacitance_max_uF: 100
+          expected_inrush_max_A: 0.062029
+          calculation_tolerance_A: 0.000001
+          evidence: fixture slew and output-bank proof
+"""
+    r = must_pass(run([sys.executable, ED, project(power=POWER.replace(old, new)),
+                       "--fault-envelope"]), "slew-limited startup")
+    contains(r.out, "startup=C30 gives 0.620 V/ms, 0.062 A",
+             "derived startup inrush")
 
 
 @test("E-FAULT catches the escaped X7R timer temperature corner",

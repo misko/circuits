@@ -1,0 +1,47 @@
+service: "JLCPCB double-sided SMT assembly plus post-through-hole assembly for the upstream, downstream, and power connectors"
+sides: [top, bottom]
+fiducials: "3 top-side global fiducials"
+build_quantity: 5
+
+through_hole:
+  process: >
+    JLCPCB post-through-hole / wave-selective connector assembly, selected
+    for this order for J_PWR, J_UP, and J_PORT1 through J_PORT4.
+  refs: [J_PWR, J_UP, J_PORT1, J_PORT2, J_PORT3, J_PORT4]
+  evidence: >
+    Measured 2026-08-16 from the exact source and placed board: J_PWR is
+    Phoenix Contact 1935161 / JLC C3819953 with two plated paste-free holes;
+    J_UP is TE 292304-1 / JLC C86462 with six plated paste-free holes; and
+    J_PORT1 through J_PORT4 are KH-AF90DIP-112 / JLC C503996 with six plated
+    paste-free holes each. All six refs remain population targets only when
+    the JLC order explicitly includes the through-hole process. The uploader
+    preview must retain the exact refs and codes, and the THT-assembly preview
+    must be accepted before payment; otherwise stop and move the affected
+    refs to an evidence-backed hand-assembly disposition.
+
+not_assembled:
+  - refs: [F_IN]
+    reason: process_incompatible
+    on_bom: false
+    twin_body:
+      source: part
+      dossier: "3568"
+    evidence: >
+      Measured 2026-08-16: F_IN is the complete insulated Keystone 3568 MINI
+      blade-fuse holder represented by one electrical reference and four
+      plated paste-free holes. Its pinned Keystone M65 p.42 drawing identifies
+      the complete holder; JLC C5249699 is a single loose clip and is therefore
+      rejected as a sourcing, footprint, and twin-model match. The generated
+      F_IN footprint carries exclude_from_pos_files so it cannot re-enter the
+      CPL on regeneration.
+    disposition: >
+      Procure and hand-solder one exact complete Keystone 3568 holder per
+      board after PCBA. Inspect all four joints and verify continuity before
+      fitting one exact Littelfuse 0297004.WXNV 4 A / 32 V MINI blade fuse.
+      Do not substitute one loose clip, a wire link, or another fuse family
+      without a reviewed mechanical and protection change.
+
+consigned: []
+sourcing_plan: []
+exempt_prefixes: [H, TP, FID, MH]
+schema: 1

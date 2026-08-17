@@ -12,20 +12,24 @@ deliver at least 4.75 V at 500 mA at its downstream port, while a USB 3-style
 
 ## Decision
 
-Accept regulated SELV 5.10–5.25 V at `P5V_RAW` under load through a clearly polarity-marked board terminal, rated at
-least 3 A. Protect the input with a user-replaceable fuse and low-loss reverse-
-polarity MOSFET. Use one active-high current-limited switch per enabled hub
+Accept regulated SELV 5.20–5.25 V at `P5V_RAW` under load through a clearly polarity-marked board terminal, rated at
+least 3 A continuous and qualified for 5 A / 6 ms transients. Protect the input
+with a user-replaceable fuse and a reverse-current-blocking, latch-off aggregate
+eFuse. Use one active-high current-limited switch per enabled hub
 port. Guarantee four external ports at 4.75–5.25 V / 500 mA continuously at
 the mated test plug; make no charging-port claim. Upstream VBUS is sense-only.
 
-Sustained input overvoltage above 5.25 V is an excluded source fault. The board
-does not silently add active overvoltage cutoff.
+Sustained input overvoltage above 5.25 V remains outside the admitted source
+envelope. The aggregate eFuse provides a secondary hardware cutoff, but the
+board is still commissioned for a regulated 5.20–5.25 V source rather than
+crediting that cutoff as source regulation.
 
 Use exact Littelfuse 0297004.WXNV (4 A MINI) in a Keystone 3568 holder. The
-aggregate input estimate is approximately 2.6 A, and Littelfuse's published
+normal input estimate is 2.58 A, and Littelfuse's published
 typical ambient derating allows 2.9 A at 60 C and 2.7 A at 80 C. Reserve a
-4.89 V protected-trunk floor after the common fuse, MOSFET, and input copper;
-apply the per-port 160 mOhm delivery budget only after that floor.
+mechanically derive and reserve a 4.89 V protected-trunk floor after the common fuse, aggregate eFuse, holder, and input
+copper. The simultaneous downstream worst-high envelope is separately bounded
+by ADR-0006 rather than being treated as continuous service.
 
 ## Machine-checkable obligations
 
