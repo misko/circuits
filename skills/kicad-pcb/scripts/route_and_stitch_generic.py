@@ -1024,9 +1024,8 @@ def _atomic_json(path, value):
     os.replace(temp, path)
 
 
-def _control_spec(cfg, key, allowed):
+def _control_spec(value, key, allowed):
     """Normalize one opt-in route control without changing legacy configs."""
-    value = get(cfg, f"route.{key}", False)
     if value is False or value is None:
         return None
     if value is True:
@@ -1068,7 +1067,8 @@ def _candidate_authority_sha(r0):
 
 def _grade_route_candidate(cfg, build, r0, candidate, required_nets, label):
     """Run the shared immutable-workspace grader when the board opts in."""
-    spec = _control_spec(cfg, "candidate_grade", set())
+    spec = _control_spec(
+        get(cfg, "route.candidate_grade", False), "candidate_grade", set())
     if spec is None:
         return None
     from route_candidate_workspace import grade_candidate, verify_receipt
@@ -1111,7 +1111,9 @@ def _grade_route_candidate(cfg, build, r0, candidate, required_nets, label):
 
 
 def _route_ownership_gate(cfg, build):
-    spec = _control_spec(cfg, "ownership_preflight", set())
+    spec = _control_spec(
+        get(cfg, "route.ownership_preflight", False),
+        "ownership_preflight", set())
     if spec is None:
         return
     script = Path(__file__).resolve().parent / "route_ownership_preflight.py"
@@ -1135,7 +1137,7 @@ def _route_ownership_gate(cfg, build):
 def _route_progress_observe(cfg, workdir, wave_index, wave_name, unresolved,
                             frontier, operations):
     spec = _control_spec(
-        cfg, "exploration_guard",
+        get(cfg, "route.exploration_guard", False), "exploration_guard",
         {"plateau_attempts", "max_attempts", "max_novel_signatures",
          "max_operation_amplification"})
     if spec is None:

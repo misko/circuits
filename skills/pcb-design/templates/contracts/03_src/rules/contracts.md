@@ -495,6 +495,8 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `scoped_floors[].why` | `generate_rules_generic.py` | REQUIRED evidence (canon M4); the emitter refuses a floor without it |
 | `scoped_clearances[].zone` | `generate_rules_generic.py` | the named rule area the ISOLATION relaxation is bounded to; REQUIRED (an unbounded clearance relaxation is a board-wide one) |
 | `scoped_clearances[].nets` | `generate_rules_generic.py` | the nets whose isolation is reduced — REQUIRED here though optional for `scoped_floors`, because clearance is a property of a PAIR and "every pair inside this box" is not an isolation argument. NOT yet an E-NETREF kind: an absent net name here still emits a rule that matches nothing (OWED, the K2 twin) |
+| `scoped_clearances[].nets_a` | `generate_rules_generic.py, tier_preflight.py` | first side of an explicitly pair-scoped isolation rule; accepted only with `nets_b` and never mixed with legacy `nets` |
+| `scoped_clearances[].nets_b` | `generate_rules_generic.py, tier_preflight.py` | second side of an explicitly pair-scoped isolation rule; accepted only with `nets_a` and never mixed with legacy `nets` |
 | `scoped_clearances[].clearance` | `generate_rules_generic.py` | the relaxed gap; must still clear the tier's `min_space` |
 | `scoped_clearances[].why` | `generate_rules_generic.py` | REQUIRED evidence (canon M4) — for a STRONGER reason than the width case: a width relaxation is bounded below by ampacity, which A-AMP grades independently from `current:`, while an isolation relaxation has NO downstream grader at all (DRC simply stops reporting what the rule permits) |
 | `length_match.<G>.adr` | `copper_length_audit.py` | R-LEN: the ADR that emitted the intent |
@@ -503,6 +505,8 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `length_match.<G>.max_spread_mm` | `copper_length_audit.py` | R-LEN drift ceiling |
 | `length_match.<G>.topology` | `copper_length_audit.py` | chain vs tree |
 | `length_match.<G>.router_moves` | `copper_length_audit.py` | closed `octilinear|any` router-move model controlling whether the pre-route 45-degree reachability floor is graded |
+| `length_match.<G>.octilinear_endpoints` | `copper_length_audit.py` | reviewed physical terminal pair per member when a protected or multipart chain owns more than two pads and automatic endpoints would be ambiguous |
+| `length_match.<G>.octilinear_endpoints.<M>` | `copper_length_audit.py` | exact reviewed terminal pair for member `<M>`; the member name is dynamic while its endpoint tuple is consumed by the same reachability-floor grader |
 | `length_match.<G>.congruent_pads` | `copper_length_audit.py` | the unmeasured-pad-copper claim |
 | `length_match.<G>.no_vias` | `copper_length_audit.py` | the ONLY place a per-net via ban is graded |
 | `length_match.<G>.stackup_mm` | `copper_length_audit.py` | via-barrel pricing |
@@ -510,6 +514,14 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `length_match.<G>.pin.tol_mm` | `copper_length_audit.py` | R-LEN-PIN tolerance |
 | `length_match.<G>.pin.measured_on` | `copper_length_audit.py` | R-LEN-PIN provenance |
 | `length_match.<G>.phase` | OWED | the block's own comment calls it "OPTIONAL reporting aid, never a gate" — and it does not reach the report either: `copper_length_audit.py` prints its phase conversion from constants it re-derives itself (6.105 ps/mm, 13.19 deg/mm), never from this declaration. A board writing `t_pd_ps_per_mm: 6.0` beside a gate using 6.105 has two homes for one number and nothing reconciles them |
+| `reference_plane_checks` | `reference_plane_check.py` | opt-in non-empty map of critical routes to their adjacent reference layer/net and projected foreign-track/via clearance floors |
+| `reference_plane_checks.<CHECK>` | `reference_plane_check.py` | named critical-route check; names are project-defined while every check body is consumed by the reference-plane grader |
+| `reference_plane_checks.<CHECK>.signal_layer` | `reference_plane_check.py` | copper layer carrying the named critical signals |
+| `reference_plane_checks.<CHECK>.reference_layer` | `reference_plane_check.py` | adjacent layer whose projected obstacles are graded |
+| `reference_plane_checks.<CHECK>.reference_net` | `reference_plane_check.py` | intended return/reference net allowed beneath the critical route |
+| `reference_plane_checks.<CHECK>.signal_nets` | `reference_plane_check.py` | exact critical nets whose projected corridor is measured |
+| `reference_plane_checks.<CHECK>.min_track_clearance_mm` | `reference_plane_check.py` | minimum projected clearance to foreign tracks on the reference layer |
+| `reference_plane_checks.<CHECK>.min_via_clearance_mm` | `reference_plane_check.py` | minimum projected clearance to foreign vias crossing the reference layer |
 
 ### keys: 03_src/rules/electrical_invariants.yaml
 
@@ -822,10 +834,24 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `stages[].name` | `first_article_check.py` | exact staged population identity selected by the physical record |
 | `stages[].installed` | `first_article_check.py` | complete installed refdes set; missing and extra parts both HOLD |
 | `stages[].exposed_pads` | `first_article_check.py` | refdes whose hidden thermal/ground pad needs explicit solder confirmation before power |
+| `rails[].name` | `first_article_check.py` | stable rail identity joining design-time limits to physical measurements |
 | `rails[].resistance` | `first_article_check.py` | unpowered probe point and acceptable ohmic band |
+| `rails[].resistance.probe` | `first_article_check.py` | exact unpowered measurement points |
+| `rails[].resistance.min_ohm` | `first_article_check.py` | low abort bound for settled unpowered resistance |
+| `rails[].resistance.max_ohm` | `first_article_check.py` | high validity bound for settled unpowered resistance |
 | `rails[].voltage` | `first_article_check.py` | powered probe point and acceptable voltage band |
+| `rails[].voltage.probe` | `first_article_check.py` | exact powered voltage measurement points |
+| `rails[].voltage.min_v` | `first_article_check.py` | low abort bound for powered voltage |
+| `rails[].voltage.max_v` | `first_article_check.py` | high abort bound for powered voltage |
 | `rails[].no_load_current` | `first_article_check.py` | expected current band and bench-current probe |
+| `rails[].no_load_current.probe` | `first_article_check.py` | exact no-load current measurement instrument or point |
+| `rails[].no_load_current.min_a` | `first_article_check.py` | low validity bound for no-load current |
+| `rails[].no_load_current.max_a` | `first_article_check.py` | high abort bound for no-load current |
 | `rails[].supply` | `first_article_check.py` | allowed input voltage and maximum bench current limit; an excessive limit is HOLD |
+| `rails[].supply.probe` | `first_article_check.py` | exact bench source or instrument identity |
+| `rails[].supply.min_v` | `first_article_check.py` | lowest admitted initial source voltage |
+| `rails[].supply.max_v` | `first_article_check.py` | highest admitted initial source voltage |
+| `rails[].supply.max_current_limit_a` | `first_article_check.py` | maximum permitted current-limit setting before authorization |
 
 ### keys: 03_src/rules/assembly.yaml
 

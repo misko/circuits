@@ -472,13 +472,20 @@ two cannot drift apart without the router failing to find its own pass.
 | `route.python` | `route_and_stitch_generic.py` | interpreter for KRT; defaults to the selected KRT checkout's `.venv/bin/python` |
 | `route.kicad_python` | `route_and_stitch_generic.py` | pcbnew-capable interpreter for route-wave geometry guards and race import/quick evaluation; KRT itself uses `route.python` or its own venv |
 | `route.race` | `route_and_stitch_generic.py` | parallel candidate count |
-| `route.ownership_preflight` | `route_and_stitch_generic.py, route_ownership_preflight.py` | opt-in `observe|enforce` topology/owner/corridor check before any KRT spend; enabled for new projects |
+| `route.ownership_preflight` | `route_and_stitch_generic.py` | wrapper-owned opt-in `observe|enforce` topology/owner/corridor check before any KRT spend; enabled for new projects; the delegated checker owns `route.ownership.*` |
+| `route.ownership_preflight.mode` | `route_and_stitch_generic.py` | closed `observe|enforce` disposition consumed by the wrapper after the delegated topology check |
 | `route.ownership.*` | `route_ownership_preflight.py` | progressive many-pad net owner/topology declarations and shared-corridor claim order; omitted on simple boards |
-| `route.candidate_grade` | `route_and_stitch_generic.py, route_candidate_workspace.py` | opt-in `observe|enforce` authoritative fresh-basename candidate receipt; enabled for new projects |
-| `route.exploration_guard.*` | `route_and_stitch_generic.py, route_progress_guard.py` | semantic plateau, total attempt, novel-signature and operation-amplification bounds; coordinates and output hashes are not novelty |
+| `route.candidate_grade` | `route_and_stitch_generic.py` | wrapper-owned opt-in authoritative fresh-basename candidate receipt; enabled for new projects |
+| `route.candidate_grade.mode` | `route_and_stitch_generic.py` | closed `observe|enforce` disposition consumed by the wrapper after immutable-workspace grading |
+| `route.exploration_guard.*` | `route_and_stitch_generic.py` | wrapper-owned semantic plateau, total attempt, novel-signature and operation-amplification bounds passed into the progress observer; coordinates and output hashes are not novelty |
 | `route.forbid_new_via_in_pad` | `route_and_stitch_generic.py, via_in_pad_guard.py` | opt-in per-wave comparison that refuses router-created vias whose centres land in SMD copper while allowing reviewed source-owned vias already present in the wave input |
 | `route.wave_drc` | `route_and_stitch_generic.py` | opt-in bounded physical-DRC authentication after each partial route wave; permits expected opens while refusing shorts, clearance, width, hole, edge and coupling violations before promotion |
 | `route.wave_drc.*` | `route_and_stitch_generic.py` | optional `enabled` and closed `hard_types` overrides for the partial-wave physical DRC classifier |
+| `route.prefix` | `route_and_stitch_generic.py` | optional reviewed wave-prefix mapping; exact prepared-base and prefix hashes, base inheritance, physical DRC, and connected critical pairs are authenticated before skipped waves |
+| `route.prefix.board` | `route_and_stitch_generic.py` | source-owned reviewed checkpoint materialized into the build chain |
+| `route.prefix.through_wave` | `route_and_stitch_generic.py` | exact last wave already represented by the checkpoint |
+| `route.prefix.r0_sha256` | `route_and_stitch_generic.py` | exact prepared-base digest; any source/prep drift refuses prefix reuse |
+| `route.prefix.board_sha256` | `route_and_stitch_generic.py` | exact reviewed checkpoint digest; post-review copper mutation refuses reuse |
 | `route.waves[].realized_width` | `route_and_stitch_generic.py, realized_track_width_guard.py` | opt-in output-board contract with nominal width, absolute fabrication floor, and per-net maximum sub-nominal segment count/total length; fails wholesale router shrinkage while making each bounded launch/bend discontinuity explicit and measurable |
 | `route.final` | `route_and_stitch_generic.py` | the chain file promoted |
 | `route.import_source` | `route_and_stitch_generic.py` | explicit build/promoted lineage selected for route import; targets must not depend on stale-file precedence |
@@ -500,6 +507,7 @@ two cannot drift apart without the router failing to find its own pass.
 | `stitch.unify_zone_priorities.*` | `route_and_stitch_generic.py` | zone-priority pass |
 | `stitch.normalize_vias.*` | `route_and_stitch_generic.py` | via normalisation pass |
 | `stitch.protect_via_in_pad.*` | `route_and_stitch_generic.py` | post-route exact pad-hit census and item-level cap/fill promotion for every realised via inside an SMT land; config declares the protected via geometry, protection modes, and minimum expected count |
+| `stitch.protect_via_family.*` | `route_and_stitch_generic.py` | post-route promotion of every realized via with one exact size/drill pair to filled+capped intent; never resizes or touches another via family |
 | `stitch.bridge_via_endpoints.*` | `route_and_stitch_generic.py` | strictly copper-contained same-net endpoint-to-via topology bridge, run before any barrel cleanup |
 | `stitch.via_janitor.*` | `route_and_stitch_generic.py` | minimum attached-layer count and local pad-search window for removing unused single-layer barrels |
 | `stitch.dedupe_vias.*` | `route_and_stitch_generic.py` | via de-duplication pass |

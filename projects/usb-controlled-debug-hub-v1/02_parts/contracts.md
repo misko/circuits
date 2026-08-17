@@ -652,6 +652,8 @@ against the `side: bottom` features) are the cheapest first bite.
 | `status` | `jlc_stock_check.py, release_freshness_check.py, shopping_list.py` | lifecycle |
 | `superseded_by` | OWED | the retirement pointer of a replaced dossier; `status:` is read, this is not, so a superseded part names its replacement to nobody |
 | `function` | ADVISORY | a one-line human summary of what the part is for; the graded facts are `type`, `value` and the `asserts:` block |
+| `pin_authority` | ADVISORY | human-readable supplemental catalog/library provenance used to resolve an exact connector drawing ambiguity; executable pin identity remains in `pins:` and is independently graded against the realised schematic/netlist/PCB |
+| `pin_authority.*` | ADVISORY | source names, hashes, translations, and interpretation notes for the supplemental authority; these support human review but do not replace the machine-graded `pins:` map |
 | `design` | ADVISORY | the free-prose design narrative (a `\|` block on five converter dossiers); its numbers belong in `electrical:`/`limits:` where they can be asserted |
 | `notes` | `policy_audit.py` | P8: the part's placement/design notes, whose PRESENCE P-LAYOUT grades |
 | `gotchas` | ADVISORY | warnings addressed to the next author to touch this part (128 dossiers). Machine-grading English here would be theatre; what IS graded is that the expensive facts it warns about live in `pins:`/`escape:`/`limits:` |
