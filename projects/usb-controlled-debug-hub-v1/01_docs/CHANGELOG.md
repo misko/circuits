@@ -1,6 +1,22 @@
 # Changelog
 
-## Unreleased — 2026-08-15
+## v0.1.2-2026-08-17
+
+- Sealed the first complete routed design release at PCB SHA-256
+  `c5cd719571e216224c83aca142ac84e1f11facdfb48b1bcb771c9d5b97c06e68`.
+- Completed all four copper layers with ten critical USB route contracts,
+  6/6 realized length groups, 2/2 reference-plane checks, 526/526 classified
+  vias, zero DRC/unconnected/parity findings and zero policy failures.
+- Bound exact fabrication, BOM/CPL, source, 3D, twin, pin, topology, layout,
+  render, sourcing and first-article evidence in the release archive.
+- Authenticated the exact C503996/KH-AF90DIP-112 contact numbering and received
+  user approval for the hash-bound 5/5 connector-orientation image set.
+- Declared the release `DESIGN: PASS` and retained `DO-NOT-ORDER` until JLC's
+  order-time stackup/90-ohm solve, selective-via, BOM/CPL, rotation, polarity
+  and THT previews are explicitly accepted. Production remains on first-article
+  hold. No firmware was generated or included.
+
+## Development history — 2026-08-15
 
 - Commissioned the single-cable USB 2.0 compound-hub architecture.
 - Locked four independently controlled external ports plus one internal

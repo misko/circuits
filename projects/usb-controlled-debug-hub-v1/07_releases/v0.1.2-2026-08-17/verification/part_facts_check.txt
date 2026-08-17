@@ -1,0 +1,4 @@
+P-FACT: 27/30 part.yaml declare an `asserts:` block; 25/27 assertion(s) REACHED A COMPARISON against projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17 (2 unreached; refdes<->LCSC read from bom.csv)
+  P-FACT-UNREACHED: value assert: 0297004.WXNV: no refdes carries lcsc (undeclared in sourcing:) — bom.csv names 33 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: 3568: no refdes carries lcsc (undeclared in sourcing:) — bom.csv names 33 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+P-FACT OK — 25/27 assertions graded, 2 UNREACHED and listed above (a partial denominator: use --strict to make it block)

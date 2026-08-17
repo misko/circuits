@@ -1,0 +1,469 @@
+(kicad_symbol_lib
+  (version 20211014)
+  (generator https://github.com/uPesy/easyeda2kicad.py)
+
+  (symbol "USB2517I-JZX"
+    (in_bom yes)
+    (on_board yes)
+    (property
+      "Reference"
+      "U"
+      (id 0)
+      (at 0 45.72 0)
+      (effects (font (size 1.27 1.27) ) )
+    )
+    (property
+      "Value"
+      "USB2517I-JZX"
+      (id 1)
+      (at 0 -45.72 0)
+      (effects (font (size 1.27 1.27) ) )
+    )
+    (property
+      "Footprint"
+      "jlc:QFN-64_L9.0-W9.0-P0.50-TL-EP4.8"
+      (id 2)
+      (at 0 -48.26 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "Datasheet"
+      "https://www.lcsc.com/datasheet/C478081.pdf"
+      (id 3)
+      (at 0 -50.80 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "Manufacturer"
+      "MICROCHIP(美国微芯)"
+      (id 4)
+      (at 0 -53.34 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "MPN"
+      "USB2517I-JZX"
+      (id 5)
+      (at 0 -55.88 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "LCSC Part"
+      "C478081"
+      (id 6)
+      (at 0 -58.42 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (property
+      "ki_keywords"
+      "USB ICs"
+      (id 8)
+      (at 0 -60.96 0)
+      (effects (font (size 1.27 1.27) ) hide)
+    )
+    (symbol "USB2517I-JZX_0_1"
+      (rectangle
+        (start -43.18 43.18)
+        (end 43.18 -43.18)
+        (stroke (width 0) (type default))
+        (fill (type background))
+      )
+      (circle
+        (center -41.91 41.91)
+        (radius 0.38)
+        (stroke (width 0) (type default))
+        (fill (type none))
+      )
+      (pin unspecified line
+        (at -45.72 40.64 0)
+        (length 2.54)
+        (name "USBDN1_DM/PRT_DIS_M1" (effects (font (size 1.27 1.27))))
+        (number "1" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 38.10 0)
+        (length 2.54)
+        (name "USBDN1_DP/PRT_DIS_P1" (effects (font (size 1.27 1.27))))
+        (number "2" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 35.56 0)
+        (length 2.54)
+        (name "USBDN2_DM/PRT_DIS_M2" (effects (font (size 1.27 1.27))))
+        (number "3" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 33.02 0)
+        (length 2.54)
+        (name "USBDN2_DP/PRT_DIS_P2" (effects (font (size 1.27 1.27))))
+        (number "4" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 30.48 0)
+        (length 2.54)
+        (name "VDDA33" (effects (font (size 1.27 1.27))))
+        (number "5" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 27.94 0)
+        (length 2.54)
+        (name "USBDN3_DM/PRT_DIS_M3" (effects (font (size 1.27 1.27))))
+        (number "6" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 25.40 0)
+        (length 2.54)
+        (name "USBDN3_DP/PRT_DIS_P3" (effects (font (size 1.27 1.27))))
+        (number "7" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 22.86 0)
+        (length 2.54)
+        (name "USBDN4_DM/PRT_DIS_M4" (effects (font (size 1.27 1.27))))
+        (number "8" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 20.32 0)
+        (length 2.54)
+        (name "USBDN4_DP/PRT_DIS_P4" (effects (font (size 1.27 1.27))))
+        (number "9" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 17.78 0)
+        (length 2.54)
+        (name "VDDA33" (effects (font (size 1.27 1.27))))
+        (number "10" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 15.24 0)
+        (length 2.54)
+        (name "USBDN5_DM/PRT_DIS_M5" (effects (font (size 1.27 1.27))))
+        (number "11" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 12.70 0)
+        (length 2.54)
+        (name "USBDN5_DP/PRT_DIS_P5" (effects (font (size 1.27 1.27))))
+        (number "12" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 10.16 0)
+        (length 2.54)
+        (name "CFG_SEL2" (effects (font (size 1.27 1.27))))
+        (number "13" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 7.62 0)
+        (length 2.54)
+        (name "LED_B7_N" (effects (font (size 1.27 1.27))))
+        (number "14" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 5.08 0)
+        (length 2.54)
+        (name "LED_A7_N/PRT_SWP7" (effects (font (size 1.27 1.27))))
+        (number "15" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 2.54 0)
+        (length 2.54)
+        (name "LED_B6_N" (effects (font (size 1.27 1.27))))
+        (number "16" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -0.00 0)
+        (length 2.54)
+        (name "LED_A6_N/PRT_SWP6" (effects (font (size 1.27 1.27))))
+        (number "17" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -2.54 0)
+        (length 2.54)
+        (name "LED_B5_N" (effects (font (size 1.27 1.27))))
+        (number "18" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -5.08 0)
+        (length 2.54)
+        (name "TEST" (effects (font (size 1.27 1.27))))
+        (number "19" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -7.62 0)
+        (length 2.54)
+        (name "PRTPWR4" (effects (font (size 1.27 1.27))))
+        (number "20" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -10.16 0)
+        (length 2.54)
+        (name "OCS4_N" (effects (font (size 1.27 1.27))))
+        (number "21" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -12.70 0)
+        (length 2.54)
+        (name "OCS3_N" (effects (font (size 1.27 1.27))))
+        (number "22" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -15.24 0)
+        (length 2.54)
+        (name "PRTPWR3" (effects (font (size 1.27 1.27))))
+        (number "23" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -17.78 0)
+        (length 2.54)
+        (name "VDD33CR" (effects (font (size 1.27 1.27))))
+        (number "24" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -20.32 0)
+        (length 2.54)
+        (name "VDD18" (effects (font (size 1.27 1.27))))
+        (number "25" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -22.86 0)
+        (length 2.54)
+        (name "PRTPWR2" (effects (font (size 1.27 1.27))))
+        (number "26" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -25.40 0)
+        (length 2.54)
+        (name "OCS2_N" (effects (font (size 1.27 1.27))))
+        (number "27" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -27.94 0)
+        (length 2.54)
+        (name "OCS1_N" (effects (font (size 1.27 1.27))))
+        (number "28" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -30.48 0)
+        (length 2.54)
+        (name "PRTPWR1" (effects (font (size 1.27 1.27))))
+        (number "29" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -33.02 0)
+        (length 2.54)
+        (name "PRTPWR5" (effects (font (size 1.27 1.27))))
+        (number "30" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -35.56 0)
+        (length 2.54)
+        (name "LED_A5_N/PRT_SWP5" (effects (font (size 1.27 1.27))))
+        (number "31" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -38.10 0)
+        (length 2.54)
+        (name "LED_B4_N" (effects (font (size 1.27 1.27))))
+        (number "32" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at -45.72 -40.64 0)
+        (length 2.54)
+        (name "LED_A4_N/PRT_SWP4" (effects (font (size 1.27 1.27))))
+        (number "33" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -39.37 180)
+        (length 2.54)
+        (name "LED_B3_N/GANG_EN" (effects (font (size 1.27 1.27))))
+        (number "34" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -36.83 180)
+        (length 2.54)
+        (name "OCS5_N" (effects (font (size 1.27 1.27))))
+        (number "35" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -34.29 180)
+        (length 2.54)
+        (name "PRTPWR7" (effects (font (size 1.27 1.27))))
+        (number "36" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -31.75 180)
+        (length 2.54)
+        (name "OCS7_N" (effects (font (size 1.27 1.27))))
+        (number "37" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -29.21 180)
+        (length 2.54)
+        (name "OCS6_N" (effects (font (size 1.27 1.27))))
+        (number "38" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -26.67 180)
+        (length 2.54)
+        (name "PRTPWR6" (effects (font (size 1.27 1.27))))
+        (number "39" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -24.13 180)
+        (length 2.54)
+        (name "SDA/SMBDATA/NON_REM1" (effects (font (size 1.27 1.27))))
+        (number "40" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -21.59 180)
+        (length 2.54)
+        (name "SCL/SMBCLK/CFG_SEL0" (effects (font (size 1.27 1.27))))
+        (number "41" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -19.05 180)
+        (length 2.54)
+        (name "HS_IND/CFG_SEL1" (effects (font (size 1.27 1.27))))
+        (number "42" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -16.51 180)
+        (length 2.54)
+        (name "RESET_N" (effects (font (size 1.27 1.27))))
+        (number "43" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -13.97 180)
+        (length 2.54)
+        (name "VBUS_DET" (effects (font (size 1.27 1.27))))
+        (number "44" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -11.43 180)
+        (length 2.54)
+        (name "SUSP_IND/LOCAL_PWR/NON_REM0" (effects (font (size 1.27 1.27))))
+        (number "45" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -8.89 180)
+        (length 2.54)
+        (name "VDD33" (effects (font (size 1.27 1.27))))
+        (number "46" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -6.35 180)
+        (length 2.54)
+        (name "LED_A3_N/PRT_SWP3" (effects (font (size 1.27 1.27))))
+        (number "47" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -3.81 180)
+        (length 2.54)
+        (name "LED_B2_N/BOOST1" (effects (font (size 1.27 1.27))))
+        (number "48" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 -1.27 180)
+        (length 2.54)
+        (name "LED_A2_N/PRT_SWP2" (effects (font (size 1.27 1.27))))
+        (number "49" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 1.27 180)
+        (length 2.54)
+        (name "LED_B1_N/BOOST0" (effects (font (size 1.27 1.27))))
+        (number "50" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 3.81 180)
+        (length 2.54)
+        (name "LED_A1_N/PRT_SWP1" (effects (font (size 1.27 1.27))))
+        (number "51" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 6.35 180)
+        (length 2.54)
+        (name "VDDA33" (effects (font (size 1.27 1.27))))
+        (number "52" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 8.89 180)
+        (length 2.54)
+        (name "USBDN6_DM/PRT_DIS_M6" (effects (font (size 1.27 1.27))))
+        (number "53" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 11.43 180)
+        (length 2.54)
+        (name "USBDN6_DP/PRT_DIS_P6" (effects (font (size 1.27 1.27))))
+        (number "54" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 13.97 180)
+        (length 2.54)
+        (name "USBDN7_DM/PRT_DIS_M7" (effects (font (size 1.27 1.27))))
+        (number "55" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 16.51 180)
+        (length 2.54)
+        (name "USBDN7_DP/PRT_DIS_P7" (effects (font (size 1.27 1.27))))
+        (number "56" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 19.05 180)
+        (length 2.54)
+        (name "VDDA33" (effects (font (size 1.27 1.27))))
+        (number "57" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 21.59 180)
+        (length 2.54)
+        (name "USBUP_DM" (effects (font (size 1.27 1.27))))
+        (number "58" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 24.13 180)
+        (length 2.54)
+        (name "USBUP_DP" (effects (font (size 1.27 1.27))))
+        (number "59" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 26.67 180)
+        (length 2.54)
+        (name "XTAL2" (effects (font (size 1.27 1.27))))
+        (number "60" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 29.21 180)
+        (length 2.54)
+        (name "XTAL1/CLKIN" (effects (font (size 1.27 1.27))))
+        (number "61" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 31.75 180)
+        (length 2.54)
+        (name "VDD18PLL" (effects (font (size 1.27 1.27))))
+        (number "62" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 34.29 180)
+        (length 2.54)
+        (name "RBIAS" (effects (font (size 1.27 1.27))))
+        (number "63" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 36.83 180)
+        (length 2.54)
+        (name "VDD33PLL" (effects (font (size 1.27 1.27))))
+        (number "64" (effects (font (size 1.27 1.27))))
+      )
+      (pin unspecified line
+        (at 45.72 39.37 180)
+        (length 2.54)
+        (name "VSS" (effects (font (size 1.27 1.27))))
+        (number "65" (effects (font (size 1.27 1.27))))
+      )
+    )
+  )
+)

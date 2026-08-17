@@ -1,0 +1,368 @@
+{
+ "project": "usb-controlled-debug-hub-v1",
+ "declaration": "projects/usb-controlled-debug-hub-v1/03_src/rules/nets.yaml",
+ "board": "projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/source/usb_controlled_debug_hub.kicad_pcb",
+ "groups": [
+  {
+   "name": "UPSTREAM_SEGMENTS",
+   "adr": 5,
+   "topology": "chain",
+   "max_spread_mm": 0.5,
+   "members": [
+    {
+     "name": "P",
+     "nets": [
+      "UP_HUB_P"
+     ],
+     "total_mm": 85.97717143220821,
+     "path_mm": 85.97717143220818,
+     "n_via": 0,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 1,
+     "n_comp": 1,
+     "n_end": 2,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    },
+    {
+     "name": "N",
+     "nets": [
+      "UP_HUB_N"
+     ],
+     "total_mm": 85.74252142079494,
+     "path_mm": 85.74252142079493,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 1,
+     "n_end": 2,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    }
+   ],
+   "verdict": "PASS",
+   "why": "",
+   "spread_mm": 0.23465001141326525,
+   "t_pd_ps_per_mm": 6.105,
+   "f_ghz": 6.0,
+   "deg_per_mm": 13.19,
+   "epsilon_eff": null,
+   "z0_ohm": null,
+   "solver_evidence": null,
+   "router_moves": "octilinear",
+   "oct_floor_mm": {
+    "P": 61.553758107979846,
+    "N": 60.053758107979846
+   },
+   "oct_spread_mm": 1.5,
+   "oct_why": "floor spread 1.5000 mm (19.79 deg at 6 GHz) exceeds max_spread_mm 0.5: shortest member N >= 60.0538 mm, longest P >= 61.5538 mm. An octilinear router (KRT moves in 8 directions, so the shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) cannot do better \u2014 accepted because `elongation: meander` is declared and route.yaml carries a length_match_group, so the short members are deliberately lengthened. The realized spread below is the check that the elongation actually happened."
+  },
+  {
+   "name": "MGMT",
+   "adr": 5,
+   "topology": "chain",
+   "max_spread_mm": 0.5,
+   "members": [
+    {
+     "name": "P",
+     "nets": [
+      "MGMT_P"
+     ],
+     "total_mm": 31.257949411669145,
+     "path_mm": 31.25794941166915,
+     "n_via": 0,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 1,
+     "n_end": 2,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    },
+    {
+     "name": "N",
+     "nets": [
+      "MGMT_N"
+     ],
+     "total_mm": 31.25494491722103,
+     "path_mm": 31.25494491722103,
+     "n_via": 0,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 1,
+     "n_end": 2,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    }
+   ],
+   "verdict": "PASS",
+   "why": "",
+   "spread_mm": 0.0030044944481133484,
+   "t_pd_ps_per_mm": 6.105,
+   "f_ghz": 6.0,
+   "deg_per_mm": 13.19,
+   "epsilon_eff": null,
+   "z0_ohm": null,
+   "solver_evidence": null,
+   "router_moves": "octilinear",
+   "oct_floor_mm": {
+    "P": 17.227161774244113,
+    "N": 17.997161774244123
+   },
+   "oct_spread_mm": 0.7700000000000102,
+   "oct_why": "floor spread 0.7700 mm (10.16 deg at 6 GHz) exceeds max_spread_mm 0.5: shortest member P >= 17.2272 mm, longest N >= 17.9972 mm. An octilinear router (KRT moves in 8 directions, so the shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) cannot do better \u2014 accepted because `elongation: meander` is declared and route.yaml carries a length_match_group, so the short members are deliberately lengthened. The realized spread below is the check that the elongation actually happened."
+  },
+  {
+   "name": "PORT1_E2E",
+   "adr": 5,
+   "topology": "chain",
+   "max_spread_mm": 1.0,
+   "members": [
+    {
+     "name": "P",
+     "nets": [
+      "P1_HUB_P",
+      "P1_PORT_P"
+     ],
+     "total_mm": 58.98385321066772,
+     "path_mm": 58.98385321066772,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 2,
+     "n_end": 4,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    },
+    {
+     "name": "N",
+     "nets": [
+      "P1_HUB_N",
+      "P1_PORT_N"
+     ],
+     "total_mm": 58.67844022259461,
+     "path_mm": 58.67844022259462,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 2,
+     "n_end": 4,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    }
+   ],
+   "verdict": "PASS",
+   "why": "",
+   "spread_mm": 0.30541298807310824,
+   "t_pd_ps_per_mm": 6.105,
+   "f_ghz": 6.0,
+   "deg_per_mm": 13.19,
+   "epsilon_eff": null,
+   "z0_ohm": null,
+   "solver_evidence": null,
+   "router_moves": "octilinear",
+   "oct_floor_mm": {
+    "P": 50.12040398693842,
+    "N": 47.913297205751874
+   },
+   "oct_spread_mm": 2.207106781186546,
+   "oct_why": "floor spread 2.2071 mm (29.11 deg at 6 GHz) exceeds max_spread_mm 1.0: shortest member N >= 47.9133 mm, longest P >= 50.1204 mm. An octilinear router (KRT moves in 8 directions, so the shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) cannot do better \u2014 accepted because `elongation: meander` is declared and route.yaml carries a length_match_group, so the short members are deliberately lengthened. The realized spread below is the check that the elongation actually happened."
+  },
+  {
+   "name": "PORT2_E2E",
+   "adr": 5,
+   "topology": "chain",
+   "max_spread_mm": 1.0,
+   "members": [
+    {
+     "name": "P",
+     "nets": [
+      "P2_HUB_P",
+      "P2_PORT_P"
+     ],
+     "total_mm": 51.80100802154543,
+     "path_mm": 49.709655032079795,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 3,
+     "n_end": 6,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    },
+    {
+     "name": "N",
+     "nets": [
+      "P2_HUB_N",
+      "P2_PORT_N"
+     ],
+     "total_mm": 51.58712351012004,
+     "path_mm": 51.587123510120044,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 2,
+     "n_end": 4,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    }
+   ],
+   "verdict": "PASS",
+   "why": "",
+   "spread_mm": 0.2138845114253911,
+   "t_pd_ps_per_mm": 6.105,
+   "f_ghz": 6.0,
+   "deg_per_mm": 13.19,
+   "epsilon_eff": null,
+   "z0_ohm": null,
+   "solver_evidence": null,
+   "router_moves": "octilinear",
+   "oct_floor_mm": {
+    "P": 34.7283793104386,
+    "N": 33.399952185692406
+   },
+   "oct_spread_mm": 1.3284271247461916,
+   "oct_why": "floor spread 1.3284 mm (17.52 deg at 6 GHz) exceeds max_spread_mm 1.0: shortest member N >= 33.4000 mm, longest P >= 34.7284 mm. An octilinear router (KRT moves in 8 directions, so the shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) cannot do better \u2014 accepted because `elongation: meander` is declared and route.yaml carries a length_match_group, so the short members are deliberately lengthened. The realized spread below is the check that the elongation actually happened."
+  },
+  {
+   "name": "PORT3_E2E",
+   "adr": 5,
+   "topology": "chain",
+   "max_spread_mm": 1.0,
+   "members": [
+    {
+     "name": "P",
+     "nets": [
+      "P3_HUB_P",
+      "P3_PORT_P"
+     ],
+     "total_mm": 51.744718771045555,
+     "path_mm": 49.653365781579915,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 3,
+     "n_end": 6,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    },
+    {
+     "name": "N",
+     "nets": [
+      "P3_HUB_N",
+      "P3_PORT_N"
+     ],
+     "total_mm": 52.24306048634949,
+     "path_mm": 52.24306048634949,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 2,
+     "n_end": 4,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    }
+   ],
+   "verdict": "PASS",
+   "why": "",
+   "spread_mm": 0.4983417153039369,
+   "t_pd_ps_per_mm": 6.105,
+   "f_ghz": 6.0,
+   "deg_per_mm": 13.19,
+   "epsilon_eff": null,
+   "z0_ohm": null,
+   "solver_evidence": null,
+   "router_moves": "octilinear",
+   "oct_floor_mm": {
+    "P": 38.969600436008065,
+    "N": 39.29802756075425
+   },
+   "oct_spread_mm": 0.3284271247461845,
+   "oct_why": ""
+  },
+  {
+   "name": "PORT4_E2E",
+   "adr": 5,
+   "topology": "chain",
+   "max_spread_mm": 1.0,
+   "members": [
+    {
+     "name": "P",
+     "nets": [
+      "P4_HUB_P",
+      "P4_PORT_P"
+     ],
+     "total_mm": 106.32788992119507,
+     "path_mm": 44.47758717161682,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 6,
+     "n_end": 12,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    },
+    {
+     "name": "N",
+     "nets": [
+      "P4_HUB_N",
+      "P4_PORT_N"
+     ],
+     "total_mm": 107.07887647677896,
+     "path_mm": 71.99120052265711,
+     "n_via": 1,
+     "n_zone": 0,
+     "n_branch": 0,
+     "n_pad_barrel": 0,
+     "n_comp": 4,
+     "n_end": 8,
+     "n_cyclic": 0,
+     "measured": true,
+     "why": []
+    }
+   ],
+   "verdict": "PASS",
+   "why": "",
+   "spread_mm": 0.7509865555838928,
+   "t_pd_ps_per_mm": 6.105,
+   "f_ghz": 6.0,
+   "deg_per_mm": 13.19,
+   "epsilon_eff": null,
+   "z0_ohm": null,
+   "solver_evidence": null,
+   "router_moves": "octilinear",
+   "oct_floor_mm": {
+    "P": 59.602258236430785,
+    "N": 61.39515145524424
+   },
+   "oct_spread_mm": 1.7928932188134539,
+   "oct_why": "floor spread 1.7929 mm (23.65 deg at 6 GHz) exceeds max_spread_mm 1.0: shortest member P >= 59.6023 mm, longest N >= 61.3952 mm. An octilinear router (KRT moves in 8 directions, so the shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) cannot do better \u2014 accepted because `elongation: meander` is declared and route.yaml carries a length_match_group, so the short members are deliberately lengthened. The realized spread below is the check that the elongation actually happened."
+  }
+ ],
+ "fails": [],
+ "unreached": [],
+ "n_group": 6,
+ "n_member": 12,
+ "n_measured": 12
+}

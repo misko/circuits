@@ -1,0 +1,5 @@
+  note: P-OUT tightest pad-to-outline margin 0.21mm (J_PORT1(courtyard)) [min 0.15]
+  note: P-CAP worst cut x=110.5mm: demand 15 nets vs capacity 314 tracks (2 layers, pitch 0.45mm) — ratio 0.05 [fail > 0.5]
+  note: P-BODYCLR minimum reported courtyard gap >=0.100 mm (U_PWR1<->C_PORT1_BULK; search ceiling 0.100 mm)
+  note: P-BODYCLR denominator 139 assembled footprint envelopes; 0 close/overlapping pair(s), 0 envelope-to-foreign-pad finding(s)
+PLACEMENT-GATES: PASS (0 fails, 0 warns)

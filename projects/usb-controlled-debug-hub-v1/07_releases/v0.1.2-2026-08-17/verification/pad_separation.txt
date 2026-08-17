@@ -1,0 +1,3 @@
+P-PADSEP coverage: 574 copper pad(s) on 146 footprint(s); 133481 inter-footprint pad pair(s) across 9505 footprint pair(s); 214306 paste-to-foreign-copper pair(s)
+P-PADSEP floor: 0.090 mm (fab tier jlc_4layer_advanced)
+P-PADSEP PASS: different-footprint lands are positively separated and paste does not intrude on foreign copper
