@@ -252,3 +252,39 @@ every adopted critical pair to be connected. It records the prefix provenance
 in `route_progress.json`; `--resume` reauthenticates it. Prefix continuation is
 single-chain only because racing an already-reviewed prefix adds no diversity
 to the critical copper and complicates provenance.
+
+### Progressive route controls (new projects)
+
+The public lifecycle stage remains `KICAD-ROUTING`; these are internal seams,
+not new orchestration stages. Existing project configs retain their old
+behavior until they opt in. The skill-owned route template enables all three
+for new boards:
+
+```yaml
+route:
+  ownership_preflight: {mode: enforce}
+  candidate_grade: {mode: enforce}
+  exploration_guard:
+    mode: enforce
+    plateau_attempts: 2
+    max_attempts: 5
+    max_novel_signatures: 3
+    max_operation_amplification: 8
+```
+
+Read `route-ownership.md` before adding topology/corridor declarations,
+`route-candidate-contract.md` before promotion or manual grading, and
+`route-exploration.md` before retaining or retrying a failed candidate.
+
+The order is load-bearing:
+
+```text
+ownership preflight -> KRT wave -> legacy fast wave gates
+                    -> immutable candidate workspace -> progress receipt
+       unresolved -> semantic novelty budget -> retry or D-BACK
+```
+
+`observe` mode records an incompatibility without changing legacy promotion;
+use it only for fleet migration. New projects use `enforce`. A candidate that
+is REJECTED or INCOMPLETE in enforce mode never writes route progress or
+`FINAL`.

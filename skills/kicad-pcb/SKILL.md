@@ -147,6 +147,9 @@ credits, or debugging time — check provenance notes before assuming staleness.
 |---|---|
 | Folder layout spec→fab, datasheet/parts caching, releases | `references/project-structure.md` |
 | The 7-step generate→route→verify pipeline + KRT invocations | `references/routing-pipeline.md` |
+| Many-pad power ownership and constrained corridor order before KRT | `references/route-ownership.md` |
+| Immutable candidate rule authority and promotion receipts | `references/route-candidate-contract.md` |
+| Semantic stagnation budgets and transactional experiment retention | `references/route-exploration.md` |
 | Fast stage orchestration, handoffs, profiling, layout seal, testing | `references/fast-pcb-flow.md` |
 | Which routing/placement tool to use, all empirics + traps | `references/autorouter-landscape.md` |
 | pcbnew Python API gotchas with workaround patterns | `references/pcbnew-scripting.md` |
@@ -170,6 +173,10 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/import_krt.py` | Import KRT-dialect output into a pcbnew board |
 | `scripts/fab_tier_util.py` | Resolve a project's declared `fab_tier` into capability floors (`references/fab_tiers.yaml` is the single source) — the generators derive missing via/clearance/silk geometry from it and reject explicit sub-floor values |
 | `scripts/route_and_stitch_generic.py` | ONE parameterized route+stitch backend (prep/route/import/taps/quick/stitch) driven by `03_src/route.yaml` — replaces per-board route_prep.py + route_waves.sh + stitch_and_fill.py (+ bespoke tap scripts). `quick` = seconds-fast pre-stitch unconnected + clearance/track_width verdict (the loop tool). See `docs/generic-router-proof.md` |
+| `scripts/route_ownership_preflight.py` | Progressive pre-KRT owner/topology and shared-corridor ordering gate; N-A on simple boards |
+| `scripts/route_candidate_workspace.py` | Fresh-basename P-ROUTEBASE/via/DRC/connectivity grader using exact prepared sidecars; emits relocatable ACCEPTED/REJECTED/INCOMPLETE receipt |
+| `scripts/route_progress_guard.py` | Per-wave semantic novelty/stagnation and attempt budget; ignores coordinate/hash churn |
+| `scripts/route_experiment_store.py` | Content-addressed terminal experiment manifests and exclusive accepted pointer; report-only pruning |
 | `scripts/net_label_survival.py` | S-NETMERGE gate: every schematic global_label survives to the exported netlist (kicad-cli merges touching/collinear wires silently); config = `label_survival:` block of `03_src/rules/electrical_invariants.yaml` |
 | `scripts/module_first_check.py` | P-MOD architecture gate: every complex subsystem records module-vs-chip reasoning; bare ICs inventory external support parts and integrations at/above the configured threshold carry an evidenced module trade study; missing policy is UNMIGRATED, never PASS |
 | `scripts/pin_map_check.py` | P-PINMAP early identity gate: immediately after board generation, prove every dossier physical pin reaches both the schematic and footprint; intentional fused-land aliases require explicit evidence |

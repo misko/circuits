@@ -41,6 +41,7 @@ cp <skill>/templates/03_src/rebuild_all.sh         projects/<name>/03_src/rebuil
 cp <skill>/templates/03_src/rules/nets.yaml        projects/<name>/03_src/rules/nets.yaml
 cp <skill>/templates/03_src/rules/power_tree.yaml  projects/<name>/03_src/rules/power_tree.yaml
 cp <skill>/templates/03_src/rules/electrical_invariants.yaml projects/<name>/03_src/rules/electrical_invariants.yaml
+cp <skill>/templates/03_src/rules/first_article.yaml projects/<name>/03_src/rules/first_article.yaml
 # (rebuild driver + BOTH rules schemas seed at commission — stages 1-3 mandate
 #  authoring power_tree + electrical_invariants; omitting them from this list
 #  made boards discover the schemas mid-pipeline. Fixed 2026-07-23.)

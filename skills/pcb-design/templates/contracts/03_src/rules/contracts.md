@@ -28,6 +28,7 @@ belongs here.
 | `passives_lcsc.yaml` | passives BOM-comment -> LCSC seed map (bom_seed input; usb-hub-3s) |
 | `policy_waivers.yaml` | policy_audit waivers accepted WITH measurement evidence (canon M4/M-WAIV): a YAML list, each entry naming the WAIVED S-/P-/R-/M-/E- policy ID + `why:` + the measurement that justifies it; P-ADJ net-span over-budget dispositions land here with the measured span + why. An entry without evidence is itself a FAIL. **A LOAD-BEARING NUMBER CARRIES A COMMAND, NOT A DIGIT** — see "Structure: `policy_waivers.yaml` — the `evidence:` block" below |
 | `policy_audit.json` | OPTIONAL `policy_audit.py` config (`--config 03_src/rules/policy_audit.json`, its default path): thresholds + HUMAN-item verdict pointers (S5/S6/S7) |
+| `first_article.yaml` | staged physical first-power policy: exact population, exposed pads, rail probe/range, supply/current limit and abort authority; checked only after boards arrive |
 | `critical_parts.yaml` | selective accepted facts for catastrophic part/footprint identities and geometry; graded by `critical_part_facts.py` before routing |
 | `contracts.md` | this file |
 
@@ -813,6 +814,18 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rf.reviews.<PHASE>.evidence[].path` | `rf_contract_check.py` | in-project schema-1 PASS bundle manifest bound by an `evidence_sha256` review row |
 | `rf.switch_interface.*` | ADVISORY | human control summary; schedule, invariants and schematic parity own executable behavior |
 | `rf.receiver_rating_tension.*` | ADVISORY | human risk summary; the user directive, ADR and first-article claims are authoritative |
+
+### keys: 03_src/rules/first_article.yaml
+
+| key | reader | why |
+|---|---|---|
+| `stages[].name` | `first_article_check.py` | exact staged population identity selected by the physical record |
+| `stages[].installed` | `first_article_check.py` | complete installed refdes set; missing and extra parts both HOLD |
+| `stages[].exposed_pads` | `first_article_check.py` | refdes whose hidden thermal/ground pad needs explicit solder confirmation before power |
+| `rails[].resistance` | `first_article_check.py` | unpowered probe point and acceptable ohmic band |
+| `rails[].voltage` | `first_article_check.py` | powered probe point and acceptable voltage band |
+| `rails[].no_load_current` | `first_article_check.py` | expected current band and bench-current probe |
+| `rails[].supply` | `first_article_check.py` | allowed input voltage and maximum bench current limit; an excessive limit is HOLD |
 
 ### keys: 03_src/rules/assembly.yaml
 

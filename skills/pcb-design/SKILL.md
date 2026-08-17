@@ -72,19 +72,21 @@ Read these files directly when their condition applies. References longer than
 |---|---|---|
 | Commission, requirements, fact locks, sourcing, module/package choice | pcb-design | `references/commission-and-scope.md` |
 | Any stage execution, handoff, timeout, plateau, or backtrack | pcb-design | `references/lifecycle-and-backtrack.md` |
+| Pausing/resuming or asking for operator evidence | pcb-design | `references/operator-checkpoints.md` |
 | Human review, staging, seal, supersede, publication, readiness report | pcb-design | `references/review-and-publication.md` |
 | Adding/changing orchestration stages, identities, bundles, reviews, facts | pcb-design | `references/pipeline-stage-contract.md` |
 | Choosing model/compute tier | pcb-design | `references/compute-tiers.md` |
 | Electrical and machine/human policy canon | kicad-pcb | `../kicad-pcb/references/design-policies.md` |
 | TSX/KiCad schematic generation and readability | kicad-pcb | `../kicad-pcb/references/schematic-generation.md` and `../kicad-pcb/references/tscircuit-folder.md` |
 | Placement, adjacency, body/courtyard and corridor checks | kicad-pcb | `../kicad-pcb/references/placement-and-proximity.md` |
-| Route preparation, KRT, stitch, grind and DRC | kicad-pcb | `../kicad-pcb/references/routing-pipeline.md` and `../kicad-pcb/references/fast-pcb-flow.md` |
+| Route preparation, KRT, stitch, grind and DRC | kicad-pcb | `../kicad-pcb/references/routing-pipeline.md`, `../kicad-pcb/references/route-ownership.md`, `../kicad-pcb/references/route-candidate-contract.md`, `../kicad-pcb/references/route-exploration.md`, and `../kicad-pcb/references/fast-pcb-flow.md` |
 | Datasheet/reference-layout precedent selection | kicad-pcb | `../kicad-pcb/references/layout-precedents.md` |
 | RF/impedance/phase/isolation applies | kicad-pcb | `../kicad-pcb/references/rf/rf-context.md` plus the applicable RF review protocol linked here: `../kicad-pcb/references/rf-schematic-review-protocol.md`, `../kicad-pcb/references/rf-pcb-review-protocol.md`, `../kicad-pcb/references/rf-fab-review-protocol.md` |
 | JLC BOM/CPL, stock, rotation, uploader review | jlcpcb-fab | `../jlcpcb-fab/references/assembly-and-order.md` |
 | JLC CAD twin, model transforms, bounding boxes/registration | jlcpcb-fab | `../jlcpcb-fab/references/digital-twin.md` |
 | Edge-mounted connector orientation, mating plane, directional 3D approval | jlcpcb-fab | `../jlcpcb-fab/references/connector-orientation.md` |
 | Exact JLC fabrication/assembly staging | jlcpcb-fab | `../jlcpcb-fab/references/release-staging.md` |
+| Physical first-article power-up | jlcpcb-fab | `../jlcpcb-fab/references/first-article-bringup.md` |
 
 For exact CLI flags, run the owning script with `--help`; do not load a long
 procedure solely to recover syntax.
@@ -128,7 +130,7 @@ procedure solely to recover syntax.
 | Release staging | Self-contained archive and complete scoped independent review battery | pcb-design review |
 | Release seal | Normative two-commit seal, clean manifest and refreshed beacon | project release contract |
 | Publication | Publication gate passes against base/head and repository protection applies | pcb-design publication |
-| First article | Physical inspection and contract-owned electrical/RF/thermal tests pass | project test plan |
+| First article | Staged population, exposed-pad, resistance/current-limit and contract-owned electrical/RF/thermal tests pass | jlcpcb-fab first-article card + project test plan |
 | Production | First-article evidence closes every production hold | pcb-design lifecycle |
 
 ### Stage loop

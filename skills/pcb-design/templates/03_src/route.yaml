@@ -114,6 +114,35 @@ route:
   # that routes afresh in rebuild_all.sh must change this to `build`.
   import_source: promoted
   krt: ~/gits/KiCadRoutingTools
+  # Cheap topology/ownership decisions happen before KRT. This is N-A on an
+  # ordinary point-to-point board; many-pad pour/wide nets and shared critical
+  # corridors require the progressive route.ownership declarations below.
+  ownership_preflight: {mode: enforce}
+  # Every promoted wave is regraded under r0's exact .kicad_pro/.kicad_dru in
+  # a fresh, relocatable workspace. Candidate-owned sidecars are never rule
+  # authority. Existing projects opt in explicitly; new projects start safe.
+  candidate_grade: {mode: enforce}
+  # Re-running a stochastic search is allowed only while the unresolved
+  # denominator or semantic finding/frontier changes. Coordinates and file
+  # hashes are deliberately not novelty.
+  exploration_guard:
+    mode: enforce
+    plateau_attempts: 2
+    max_attempts: 5
+    max_novel_signatures: 3
+    max_operation_amplification: 8
+  # Progressive-disclosure examples (uncomment only when applicable):
+  # ownership:
+  #   multipad_threshold: 8
+  #   nets:
+  #     VBUS_PROTECTED:
+  #       topology: wide_trunk
+  #       owner: prep.seed_stubs
+  #       why: reviewed high-current trunk with named package launches
+  #   corridors:
+  #     oscillator_escape:
+  #       claim_order: [crystal, usb, control]
+  #       why: single-layer crystal owns the only legal package escape
   # REQUIRED decision. Fill one row per USB/RF/timing-critical pair, or leave
   # [] and replace no_critical_routes with a specific true reason.
   preflight_critical_pairs: []

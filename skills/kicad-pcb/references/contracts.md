@@ -30,3 +30,7 @@ hard-won empirics agents must not rediscover. Nothing here is advisory.
   published page overrides at order time).
 - Evidence citations point at `examples/` snapshots or commit shas, never
   `projects/...` paths (C-ISO).
+- Route mechanics are progressively disclosed: `route-ownership.md` owns
+  topology/corridor decisions, `route-candidate-contract.md` owns grading
+  authority, and `route-exploration.md` owns retry/retention bounds. The public
+  lifecycle stage remains `KICAD-ROUTING`.

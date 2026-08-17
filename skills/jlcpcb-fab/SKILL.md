@@ -31,6 +31,7 @@ or publication procedure.
 | Fetch JLC CAD, fit pads, mount models, render and debug overlays | `references/digital-twin.md` |
 | Prove connector mouth/edge orientation and approve directional 3D views | `references/connector-orientation.md` |
 | Census exact fab payload and run the staged assembly/process battery | `references/release-staging.md` |
+| Inspect and energize a physical first article | `references/first-article-bringup.md` |
 
 For PCB routing, geometry, DRC, impedance, or RF layout read the owning
 `kicad-pcb` reference selected by `pcb-design`. For immutable release review,
@@ -102,6 +103,15 @@ Return exact staged-bundle identity, gate denominators, unresolved operator
 items, and design/order evidence to `pcb-design`. Do not call a design
 orderable while uploader, stock, stackup, or first-article obligations remain.
 
+### 7. Authorize first power separately
+
+When hardware arrives, derive the first-article card from the power tree,
+assembly rules and actual exposed-pad footprints. Require exact staged
+population, explicit exposed-pad confirmation, rail resistance with probe and
+units, a bounded current limit, expected voltage/no-load current and abort
+ranges. `HOLD` is not permission to continue powering. Firmware remains out of
+scope unless the user separately requests it.
+
 ## Script authority
 
 Use each script's `--help` for exact arguments; do not duplicate CLI syntax in
@@ -121,6 +131,7 @@ project documents.
 | `fab_payload_census.py` | Exact fabrication payload membership |
 | `via_process_check.py` | Via fabrication/process contract |
 | `release_freshness_check.py` | Staged/sealed JLC evidence freshness |
+| `first_article_check.py` | Staged population, exposed-pad and measured first-power authorization/HOLD |
 
 ## Human boundary
 

@@ -60,6 +60,22 @@ BACKEND GAP to report, not a bespoke script to write here.
   explicitly declares that geometric same-net membership cannot prove current
   crosses the boundary, so topology/path review and loaded testing remain
   independent obligations.
+- `route_ownership_preflight.py ROUTE.yaml` is the progressive O-* boundary:
+  many-pad `pour_or_wide_track` nets must name one topology/owner before KRT,
+  deterministic owners cannot also be complete generic waves, and explicitly
+  shared corridors put constrained/no-via claimants first. Simple boards are
+  N-A; the new-project route template enables enforcement.
+- `route_candidate_workspace.py grade` is the sole authoritative candidate
+  receipt producer. It materializes candidate PCB bytes under a fresh basename
+  with exact prepared `.kicad_pro/.kicad_dru`, then runs P-ROUTEBASE, via delta,
+  physical DRC and requested connectivity. Candidate sidecars are never rule
+  authority; accepted receipts are relocatable and hash-verified.
+- `route_progress_guard.py` bounds per-wave exploration by semantic novelty;
+  output hashes and raw coordinates cannot reset a plateau. The route driver
+  persists the decision beside route progress when opted in.
+- `route_experiment_store.py` gives each retained attempt exactly one terminal
+  state and one content-addressed evidence set. The accepted pointer is
+  exclusive and pruning is dry-run only.
 - **The GATE family (canon G-*) — the checkers are themselves governed
   (ADR-0004).** `gate_contract_audit.py [--root DIR]` walks every
   `skills/*/scripts/*.py` that prints a PASS/FAIL verdict and requires three

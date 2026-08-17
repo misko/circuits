@@ -18,6 +18,10 @@ stock, twin).
   t1_bom_source.py, t1_release_freshness.py, t1_assembly_gates.py,
   t1_fab_payload.py, t1_bom_legibility.py,
   t1_sealed_dependency.py).
+- `first_article_check.py` owns staged first-power authorization after boards
+  arrive. Missing exposed-pad confirmation, population drift, missing units or
+  probe names, a too-high current limit, or an out-of-range reading is HOLD.
+  It does not authorize production and never implies firmware scope.
 - **The FAB LEGIBILITY family (canon F-LEGIBLE, ADR-0006) — the BOM is graded
   AS JLC PARSES IT, not as we wrote it.**
   - `bom_legibility_check.py TARGET` (a sealed release dir, a project dir, or

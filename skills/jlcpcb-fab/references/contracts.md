@@ -11,6 +11,7 @@
 | `digital-twin.md` | JLC CAD correspondence, model transforms, and render-registration procedure |
 | `connector-orientation.md` | connector mouth-axis, mating-plane, and bounded human-view verification procedure |
 | `release-staging.md` | exact fabrication/assembly staging battery and seal handoff |
+| `first-article-bringup.md` | staged population, exposed-pad, resistance, current-limit and first-power procedure |
 | `contracts.md` | this file |
 
 ## Audit

@@ -126,6 +126,11 @@ def main():
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
 
+    measured_nets = len(report["nets"]) - len(report["unknown_nets"]) - len(
+        report["unmeasured_nets"])
+    print(f"coverage: {measured_nets}/{len(report['nets'])} requested net(s), "
+          f"{report['measured_segment_count']} realized segment(s) measured")
+
     if report["verdict"] == "PASS":
         thin_nets = sum(1 for row in report["subnominal_by_net"].values()
                         if row["segments"])

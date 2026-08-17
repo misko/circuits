@@ -5013,7 +5013,8 @@ Recommended execution order for future boards:
 
 ## IMP-136 — classify wide multi-pad power distribution before autorouting
 
-- status: proposed; live wave failed closed before promotion
+- status: implemented as an opt-in preflight and new-project template default;
+  live project ownership migration remains
 - observed: USB-controlled debug hub `power_input` wave, 2026-08-16
 - evidence: `P5V_PROTECTED` is declared `pour_or_wide_track`, spans 22 pads and
   has five package-local 0.8 mm launch exceptions, but the generic wave asked a
@@ -5075,7 +5076,8 @@ Recommended execution order for future boards:
 
 ## IMP-139 — order route waves by geometric flexibility and physical ownership
 
-- status: proposed; board-specific implementation exercised
+- status: implemented for explicitly shared corridors and constrained waves;
+  broader automatic corridor inference remains deliberately out of scope
 - observed: USB-controlled debug hub oscillator/control routing, 2026-08-16
 - evidence: a 71-net catch-all control wave expanded from 71 to more than 177
   queued operations, repeatedly ripped the same hub exits and attempted a via
@@ -5100,3 +5102,243 @@ Recommended execution order for future boards:
   strict no-via groups or three-or-more shared critical pairs. Preserve the
   ordinary simple order for low-density boards that have no constrained
   corridor; this should be progressive disclosure, not universal ceremony.
+
+## 2026-08-17 eight-hour routing and bring-up retrospective
+
+The 00:20--08:20 PDT review found 717 routing artifacts, including 155 PCB
+variants. The first partial hour produced 49 PCB variants, 03:00--04:00
+produced another 59, and the post-06:00 I2C investigation produced 93 PCB
+candidates/recovery boards and 75 I2C-named artifacts. Counts are evidence of
+work, not automatically waste, but repeated candidates with the same frontier
+or collision signature show that the pipeline continued searching after the
+problem had become one of topology, corridor ownership, or grading authority.
+
+This table is the deduplicated action index. Existing improvements remain the
+authority; the new entries below own only the gaps.
+
+| Retrospective action | Owning improvement | Current disposition |
+| --- | --- | --- |
+| Require connector edge, cable direction, mounting side and mating-plane review before routing | IMP-126, IMP-128, IMP-130 | implemented; keep mandatory |
+| Bind connector approval to semantic geometry/camera facts rather than harmless raster-byte variation | IMP-128 follow-up | proposed; P1 |
+| Measure deterministic critical copper before review/router spend | IMP-133 | proposed; P1 |
+| Replay affected critical corridors after deterministic copper grows | IMP-134 | proposed; P1 after preflight |
+| Preserve reviewed expensive routing at an authenticated wave boundary | IMP-135 | implemented; use selectively |
+| Classify multi-pad wide power as pour/trunk/star before point-to-point routing | IMP-136 | implemented; existing-board migration opt-in |
+| Refuse a zero-exit router result whose structured summary is incomplete | IMP-137 | implemented |
+| Route crystal/RF/no-via and uniquely constrained corridors before flexible signals | IMP-139 | implemented for declared shared corridors |
+| Stop repeated search when no new routing fact is learned | IMP-140 | implemented; new-project default |
+| Grade every candidate with immutable authoritative prepared-board sidecars | IMP-141 | implemented; new-project default |
+| Require staged assembly, resistance and current-limited first-power evidence | IMP-142 | checker/template implemented; project card owed |
+| Promote/reject/incomplete-label candidates transactionally and prune loose diagnostics | IMP-143 | implemented; pruning remains report-only by design |
+| Keep one canonical pause-state authority and prevent STATUS/RESUME drift | IMP-144 | implemented; existing paused projects need migration |
+| Ask users only at connector, operational-interface and first-power boundaries | IMP-145 | partial; connector and first-power landed, operational-interface gate open |
+
+### Implemented priority sequence
+
+1. **P0-1 — IMP-141 authoritative candidate workspace.** A false clean verdict
+   is more dangerous than a slow route and currently blocks safe I2C promotion.
+   This is a small, independently testable boundary with immediate fleet value.
+2. **P0-2 — IMP-140 routing stagnation/novelty budget.** This directly caps the
+   hours/tokens failure mode while retaining bounded diagnostic value. It can be
+   developed independently of the grading workspace.
+3. **P0-3 — IMP-136 + IMP-139 routing-ownership preflight.** Implement one
+   preflight that classifies multi-pad power topology and wave geometric
+   flexibility before KRT starts. Add IMP-134 corridor replay as the next
+   increment rather than making the first landing unmanageably broad.
+
+IMP-141 and IMP-140 can be implemented in parallel. The ownership preflight
+should live in a separate producer/test surface and integrate with the route
+driver only after its schema and verdicts are pinned, minimizing merge overlap.
+
+## IMP-140 — bound routing exploration by stagnation and novelty
+
+- status: implemented and regression-tested; enabled by the new-project route
+  template and opt-in for existing boards
+- observed: USB-controlled debug hub control/I2C routing, 2026-08-17
+- evidence: the reviewed window produced 717 route artifacts and 155 PCB
+  variants. Many permutations changed ordering, launch coordinates or search
+  parameters while returning the same unresolved endpoints or collision
+  cluster. The I2C investigation eventually learned the useful fact—SCL and
+  SDA are individually legal but interact at three transition regions—but
+  broad candidate generation continued after that problem had become a
+  bounded two-net geometry repair.
+- general rule: repeated execution is justified only while it can produce a
+  new discriminating fact. A router loop must stop when unresolved endpoints,
+  hard-finding signatures and owned-corridor frontiers remain unchanged across
+  a bounded number of attempts, or when operation/rip-up growth materially
+  exceeds the requested work without reducing the unresolved denominator.
+- intended landing point: add a per-wave exploration budget and canonical
+  signature to `route_and_stitch_generic.py`. The signature should include
+  unresolved net/pad identities, normalized hard-finding types/locations and
+  frontier ownership—not output hashes or stochastic coordinates. Emit
+  `STAGNATED`, `BUDGET_EXHAUSTED` or `NOVEL_PROGRESS`; retain the best candidate
+  and print the earliest owning stage to revisit.
+- completion evidence required: a repeated-identical-frontier fixture stops
+  before its process/time ceiling; a fixture that reduces opens is allowed to
+  continue; coordinate-only stochastic variation cannot reset the budget; and
+  a newly different hard-finding/owner signature counts as bounded diagnostic
+  progress without authorizing promotion.
+- recommendation: implement immediately. Default it on for routing waves, with
+  a small simple-board budget and an explicit larger advanced-board profile.
+
+## IMP-141 — grade every route candidate in an authoritative immutable workspace
+
+- status: implemented and regression-tested; enabled by the new-project route
+  template and opt-in for existing boards
+- observed: USB-controlled debug hub I2C prefix promotion, 2026-08-17
+- evidence: experimental prefix SHA256 `873001be...3fb8a` appeared clean beside
+  router-generated sidecars whose USB-class clearance had been clamped to
+  0.15 mm. Replaying the same PCB with the prepared `r0` project and custom-rule
+  sidecars found 15 hard USB-class clearance violations. The normal prefix gate
+  correctly caught the defect; isolated diagnostic DRC did not. Source was
+  restored to accepted prefix `4c001688...257f`.
+- general rule: a candidate verdict is a function of PCB bytes plus exact rule
+  authority. A router-owned `.kicad_pro`/`.kicad_dru` is output evidence, never
+  the authority by which that output may grade itself. No UI or script should
+  print `clean`, `PASS` or `promotable` until the candidate has been checked in
+  a workspace materialized from immutable prepared-board sidecars.
+- intended landing point: create one candidate-workspace helper used by route
+  waves, diagnostic scans and manual promotion. It copies/links the candidate
+  under a fresh basename, installs exact hash-checked `r0` sidecars, runs
+  P-ROUTEBASE, via-in-pad, physical DRC and requested connectivity, then writes
+  a receipt with candidate/r0/rules hashes and `ACCEPTED|REJECTED|INCOMPLETE`.
+  Consumers accept only that receipt; direct candidate-side DRC is labelled
+  diagnostic and non-authoritative.
+- completion evidence required: a clamped-sidecar known-bad must look locally
+  clean yet be rejected by the helper; sidecar mutation after receipt creation
+  invalidates it; accepted work survives relocation; and every promotion path
+  is proven to consume the same helper rather than reimplementing sidecar copy.
+- recommendation: highest priority. Land before resuming combined I2C
+  promotion or trusting any new routing diagnostic.
+
+## IMP-142 — make first-article power-up a staged, measurable contract
+
+- status: implemented as a reusable staged first-article card/checker; existing
+  physical projects still need board-specific cards authored before power
+- observed: USB Hub 3S v3 first assembled board failure, 2026-08-16/17
+- evidence: U5 burned after U2 was installed. U2 orientation was correct, but
+  its required exposed ground pad had not been soldered. C17 measured about
+  0 ohm before U5 removal and 35 ohm afterward; a replacement board with F1,
+  U2 and U11 established about 1.5 kohm as the healthy unpowered reference and
+  regulated 5VA to 5.17 V at 10.00--12.11 V input with 14--17 mA no-load draw.
+  The initiating cause remains unproven, so the failed board correctly remains
+  unpowered.
+- general rule: fabrication readiness and first-power readiness are distinct.
+  Before power, every exposed-pad device, polarity-critical part and staged-DNP
+  assumption needs an assembly confirmation; every principal rail needs an
+  expected resistance band, current limit, first probe point and stop condition.
+- intended landing point: generate a project-specific first-article card from
+  the power tree, assembly rules and footprints. It lists staged population,
+  exposed pads, rail-to-ground measurements, initial supply/current limit,
+  expected no-load voltages/current, temperature observation, dummy-load steps
+  and explicit abort limits. Results append to `01_docs/journal/bringup.md`.
+- completion evidence required: a fixture with an unsatisfied exposed pad
+  blocks first-power authorization; a populated-stage record cannot silently
+  claim an uninstalled part; resistance and voltage readings retain units and
+  probe points; and an abnormal measurement produces HOLD, never advice to
+  continue powering.
+- recommendation: implement before the next physical first article. Keep
+  firmware outside this contract unless explicitly requested.
+
+## IMP-143 — make route experiments transactional and retention-bounded
+
+- status: implemented as a content-addressed terminal experiment store with an
+  exclusive accepted pointer and report-only pruning
+- observed: USB-controlled debug hub routing pause, 2026-08-17
+- evidence: 390 files totaling about 103 MB were moved into the project-local
+  recovery archive, while loose `_candidate_*`, versioned TSX snapshots and
+  checkpoints had to be separated from canonical source immediately before
+  publication. The archive preserves useful diagnosis but its population is
+  far larger than the accepted/rejected facts required to resume.
+- general rule: an experiment has exactly one terminal state:
+  `ACCEPTED`, `REJECTED` or `INCOMPLETE`. Canonical source contains accepted
+  work only; a content-addressed recovery bundle contains the minimal rejected
+  evidence needed to reproduce the diagnosis; disposable intermediates remain
+  under the ignored build tree and expire by policy.
+- intended landing point: wrap candidate production in a transaction manifest
+  recording parent subject, command/config identity, outcome, receipt and
+  retained files. Promotion atomically updates the canonical pointer; rejection
+  keeps the smallest discriminating PCB/report/log set; pause bundles selected
+  incomplete work. Add a dry-run pruning report before deletion.
+- completion evidence required: interrupted work cannot overwrite an accepted
+  checkpoint; two candidates cannot both become canonical; a recovery bundle
+  recreates its terminal verdict without `/tmp`; and pruning never removes a
+  manifest-referenced artifact.
+- recommendation: implement after IMP-141 so receipts, rather than filenames,
+  determine retention.
+
+## IMP-144 — keep one canonical pause-state authority
+
+- status: implemented as one hash-bound pause manifest with generated
+  STATUS/RESUME views; existing paused projects require explicit migration
+- observed: USB-controlled debug hub pause/publication, 2026-08-17
+- evidence: root `RESUME.md` correctly identifies accepted prefix
+  `4c001688...257f`, the rejected I2C experiment and exact restart procedure,
+  while `01_docs/STATUS.md` still describes an earlier oscillator/USB
+  reintegration boundary. Both are plausible prose, so a fresh operator can
+  choose the stale one without a machine-detectable failure.
+- general rule: a project has one current state record. Journals and historical
+  resumes may explain prior states, but every status surface must resolve to
+  the same state identity, accepted checkpoint hash, blocker and next command.
+- intended landing point: define a small machine-readable pause manifest and
+  render human STATUS/RESUME views from it, or make one canonical file and all
+  others explicit pointers. Record state only after the referenced checkpoint
+  and receipts exist; verify paths/hashes on read and before publication.
+- completion evidence required: contradictory status fixtures fail; stale or
+  missing checkpoint hashes fail; a clean pause can be resumed in a fresh clone
+  without chat or `/tmp`; and publication refuses two competing current-state
+  authorities.
+- recommendation: implement alongside the next resume/pause refactor; manually
+  treat `RESUME.md` as authoritative for the current board until then.
+
+## IMP-145 — schedule user interaction only at high-leverage physical boundaries
+
+- status: partially implemented: connector P-ORIENT, canonical pause state and
+  staged first-power evidence exist; operational-interface approval is not yet
+  an automatic lifecycle gate
+- observed: USB-controlled debug hub connector review and USB Hub 3S v3
+  first-power investigation, 2026-08-16/17
+- evidence: explicit outside/inside/profile connector approval could decide
+  cable access before routing, while router parameter choices did not benefit
+  from user adjudication. On hardware, an exposed-pad confirmation, resistance
+  baseline and current-limit authorization before first power would have been
+  more valuable than tracing many individual pins after damage occurred.
+- general rule: ask the user where human intent or physical observation is the
+  missing authority, not where automation is merely uncertain. Standard
+  checkpoints are: connector/cable access before routing; operational labels,
+  bench access and service clearances before release; and assembly/resistance/
+  current-limit confirmation before first power. Routing micro-decisions remain
+  machine-owned and must stop with a compact diagnosis when blocked.
+- intended landing point: add these conditional human gates to the lifecycle
+  router. Each request presents bounded exact-subject evidence, one explicit
+  decision and the consequence of approval. Semantic subject hashes prevent a
+  harmless rerender from asking again; geometry, interface or assembly-state
+  changes require renewal.
+- completion evidence required: an edge-connector board pauses once before
+  routing; an ordinary connector-free board incurs no new ceremony; a physical
+  first article cannot inherit a design-review approval as power authorization;
+  and a repeated router failure asks no user to choose search parameters.
+- recommendation: implement the first-power and operational-interface gates
+  after IMP-142; retain the already landed P-ORIENT connector gate.
+
+### 2026-08-17 implementation landing
+
+The public lifecycle remains one `KICAD-ROUTING` stage. Existing boards keep
+their prior behavior unless they opt in; the skill-owned new-project
+`route.yaml` enables enforcement. The modular landing points are:
+
+| Improvement | Executable authority | Reference / evidence |
+| --- | --- | --- |
+| IMP-136 + IMP-139 | `route_ownership_preflight.py` | `route-ownership.md`; many-pad owner and constrained-corridor red fixtures |
+| IMP-140 | `route_progress_guard.py` plus route-driver hook | `route-exploration.md`; coordinate-only plateau, denominator reduction and amplification fixtures |
+| IMP-141 | `route_candidate_workspace.py` plus prefix/wave/race-winner hooks | `route-candidate-contract.md`; prepared-sidecar, relocation and tamper fixtures |
+| IMP-142 | `first_article_check.py` and `first_article.yaml` template | `first-article-bringup.md`; exposed-pad, population and abnormal-reading fixtures |
+| IMP-143 | `route_experiment_store.py` | `route-exploration.md`; exclusive accepted pointer, relocation and prune fixtures |
+| IMP-144 | `pause_state.py` | `operator-checkpoints.md`; stale checkpoint/view and relocation fixtures |
+| IMP-145 | lifecycle reference routing to operator/first-power boundaries | connector remains P-ORIENT; operational-interface automatic gate remains open |
+
+Compatibility evidence at landing: skill authority preserved all 109 legacy
+policies and one public `KICAD-ROUTING` stage; the USB reuse canary preserved
+all 33 stages in order; Pluto v4 full/reuse traces remained distinct and
+dependency-complete; 21 existing wave-routing tests passed; gate-contract
+coverage was 73/73 with G-INPUT/G-COVER/G-RED satisfied.

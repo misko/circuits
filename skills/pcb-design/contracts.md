@@ -26,6 +26,9 @@ why).
 - `scripts/skill_authority_check.py` freezes the pre-refactor policy
   denominator, requires every routed reference to be reachable, and rejects
   duplicate authority or a core outside its line/word budget.
+- `scripts/pause_state.py` owns the single current pause manifest and generated
+  STATUS/RESUME views. Project prose may explain history but may not compete
+  with its checkpoint/receipt hashes or semantic state id.
 
 ## Structure
 

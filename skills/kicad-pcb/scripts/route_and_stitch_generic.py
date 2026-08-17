@@ -83,7 +83,10 @@ so the commands work from any cwd. Top-level keys:
             wins; CLI --race overrides), import_source (build|promoted),
             prefix {board, through_wave, r0_sha256, board_sha256} (optional
             reviewed, hash-bound critical prefix from which later waves resume),
-            kicad_python (KiCad interpreter), forbid_new_via_in_pad (compare
+            kicad_python (KiCad interpreter), ownership_preflight and
+            candidate_grade {mode: observe|enforce}, exploration_guard
+            {mode, plateau_attempts, max_attempts, max_novel_signatures,
+            max_operation_amplification}, forbid_new_via_in_pad (compare
             every wave output with its input and refuse router-created vias
             in SMD lands), common{...}, waves[]
             {name, nets|group, realized_width (wrapper-owned output contract),
@@ -728,11 +731,13 @@ def _krt_args(d, extra_flags=None):
 
 def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
                 tag="", start_wave=1, stop_wave=None, progress=None,
-                cancel_event=None):
+                cancel_event=None, prepared=None):
     """Run the chained KRT waves rN -> rN+1 inside `workdir`, starting from
     board `cur`. Returns the final chain file. `env` extends the subprocess
     environment (race candidates get ROUTE_RACE_CANDIDATE)."""
     sub_env = dict(os.environ, **(env or {}))
+    prepared = Path(prepared) if prepared is not None else Path(workdir) / get(
+        cfg, "prep.out", "r0.kicad_pcb")
     for i, wv in enumerate(waves, 1):
         if i < start_wave:
             continue
@@ -854,6 +859,7 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
         # recover a net that failed in the first pass (for example a boxed
         # multipoint supply), but an unresolved failure must stop promotion.
         unresolved = set()
+        frontier = []
         for summary in decoded_summaries:
             recovered = {str(v) for v in (summary.get("routed_single") or [])}
             unresolved.difference_update(recovered)
@@ -862,9 +868,22 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
             for item in summary.get("failed_multipoint") or []:
                 if isinstance(item, dict) and item.get("net_name"):
                     unresolved.add(str(item["net_name"]))
+                    frontier.append(item)
         if unresolved:
+            last = decoded_summaries[-1] if decoded_summaries else {}
+            operations = {
+                "requested": len(nets),
+                "queued": max(int(last.get(key, 0) or 0) for key in
+                              ("queued", "queued_operations", "operations")),
+                "ripups": max(int(last.get(key, 0) or 0) for key in
+                              ("ripups", "ripup_count")),
+            }
+            decision = (None if tag else _route_progress_observe(
+                cfg, workdir, i, name, unresolved, frontier, operations))
+            suffix = (f"; exploration={decision['decision']}: "
+                      f"{decision['reason']}" if decision else "")
             die(f"KRT wave {name!r} left requested net(s) unresolved despite "
-                "exit 0: " + ", ".join(sorted(unresolved)))
+                "exit 0: " + ", ".join(sorted(unresolved)) + suffix)
 
         if engine == "diff":
             if decoded_summaries:
@@ -945,6 +964,18 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
         _wave_drc_gate(
             cfg, nxt, f"{tag}route:{name}:physical-drc".strip(),
             workdir / f"wave_{i}_physical_drc.json")
+        # The legacy per-wave gates above remain as fast local defence.  An
+        # opted-in board additionally grades the candidate in a fresh basename
+        # using r0's exact sidecars; candidate-owned sidecars can never produce
+        # a promotable verdict. Race lanes defer this heavier transaction to
+        # the measured winner so N concurrent candidates do not multiply it.
+        if not tag:
+            _grade_route_candidate(
+                cfg, workdir, prepared, nxt,
+                _wave_net_inventory(waves, i, workdir), f"wave-{i}-{name}")
+            _route_progress_observe(
+                cfg, workdir, i, name, [], [],
+                {"requested": len(nets), "queued": len(nets), "ripups": 0})
         if progress is not None:
             progress.setdefault("waves", []).append({
                 "index": i, "name": name,
@@ -991,6 +1022,161 @@ def _atomic_json(path, value):
     temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     temp.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
     os.replace(temp, path)
+
+
+def _control_spec(cfg, key, allowed):
+    """Normalize one opt-in route control without changing legacy configs."""
+    value = get(cfg, f"route.{key}", False)
+    if value is False or value is None:
+        return None
+    if value is True:
+        return {"mode": "enforce"}
+    if not isinstance(value, dict):
+        die(f"route.{key} must be true/false or a mapping")
+    unknown = set(value) - set(allowed) - {"mode"}
+    if unknown:
+        die(f"route.{key} has unknown key(s): {sorted(unknown)}")
+    mode = str(value.get("mode", "enforce")).lower()
+    if mode not in ("observe", "enforce"):
+        die(f"route.{key}.mode must be observe or enforce")
+    return dict(value, mode=mode)
+
+
+def _wave_net_inventory(waves, through, workdir):
+    nets = set()
+    for index, wave in enumerate(waves[:through], 1):
+        members = wave.get("nets")
+        if members is None:
+            group = wave.get("group", wave.get("name", f"w{index}"))
+            path = Path(workdir) / f"nets_{group}.txt"
+            if not path.is_file():
+                die(f"candidate grading cannot resolve wave {index} nets: {path}")
+            members = path.read_text(encoding="utf-8-sig").split()
+        nets.update(str(net) for net in members)
+    return sorted(nets)
+
+
+def _candidate_authority_sha(r0):
+    digest = hashlib.sha256()
+    for path in (Path(r0), Path(r0).with_suffix(".kicad_pro"),
+                 Path(r0).with_suffix(".kicad_dru")):
+        if not path.is_file():
+            die(f"candidate grading authority missing: {path}")
+        digest.update(bytes.fromhex(_sha256(path)))
+    return digest.hexdigest()
+
+
+def _grade_route_candidate(cfg, build, r0, candidate, required_nets, label):
+    """Run the shared immutable-workspace grader when the board opts in."""
+    spec = _control_spec(cfg, "candidate_grade", set())
+    if spec is None:
+        return None
+    from route_candidate_workspace import grade_candidate, verify_receipt
+
+    r0, candidate, build = Path(r0), Path(candidate), Path(build)
+    stem = (f"{re.sub(r'[^A-Za-z0-9_.-]+', '-', label)}-"
+            f"{_sha256(candidate)[:12]}-{_candidate_authority_sha(r0)[:12]}")
+    base = build / "candidate_grades" / stem
+    workspace = base
+    suffix = 1
+    while workspace.exists():
+        receipt_path = workspace / "receipt.json"
+        valid, _failures = verify_receipt(receipt_path)
+        if valid:
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8-sig"))
+            origins = receipt.get("origins") or {}
+            if (origins.get("candidate") or {}).get("sha256") == _sha256(candidate) \
+                    and (origins.get("prepared") or {}).get("sha256") == _sha256(r0):
+                print(f"{label}: reused authenticated candidate receipt -> "
+                      f"{receipt_path}")
+                if receipt.get("verdict") != "ACCEPTED" and spec["mode"] == "enforce":
+                    die(f"{label}: immutable candidate verdict is "
+                        f"{receipt.get('verdict')}: {receipt_path}")
+                return receipt
+        suffix += 1
+        workspace = Path(f"{base}-run{suffix}")
+
+    receipt = grade_candidate(
+        r0, candidate, workspace, required_nets=list(required_nets),
+        kicad_python=get(cfg, "route.kicad_python", "/usr/bin/python3"))
+    print(f"{label}: immutable candidate {receipt['verdict']} -> "
+          f"{workspace / 'receipt.json'}")
+    if receipt["verdict"] != "ACCEPTED":
+        message = (f"{label}: authoritative candidate grading returned "
+                   f"{receipt['verdict']}; inspect {workspace / 'receipt.json'}")
+        if spec["mode"] == "enforce":
+            die(message)
+        print("WARNING: " + message + " (observe mode; legacy behavior retained)")
+    return receipt
+
+
+def _route_ownership_gate(cfg, build):
+    spec = _control_spec(cfg, "ownership_preflight", set())
+    if spec is None:
+        return
+    script = Path(__file__).resolve().parent / "route_ownership_preflight.py"
+    report = Path(build) / "route_ownership.json"
+    checked = run_bounded(
+        [get(cfg, "route.kicad_python", "/usr/bin/python3"), str(script),
+         str(cfg["_path"]), "--json", str(report)],
+        timeout_s=_timeout_s(cfg, "route_preflight", 180),
+        heartbeat_s=_heartbeat_s(cfg), label="route:ownership-preflight",
+        state_path=Path(build) / "route_ownership_state.json", echo=False)
+    if checked.returncode:
+        message = (f"route ownership preflight exited {checked.returncode}; "
+                   f"report: {report}\n{checked.output[-1400:].strip()}")
+        if spec["mode"] == "enforce":
+            die(message)
+        print("WARNING: " + message + "\nobserve mode retains legacy routing")
+    else:
+        print(f"route ownership preflight: PASS/N-A -> {report}")
+
+
+def _route_progress_observe(cfg, workdir, wave_index, wave_name, unresolved,
+                            frontier, operations):
+    spec = _control_spec(
+        cfg, "exploration_guard",
+        {"plateau_attempts", "max_attempts", "max_novel_signatures",
+         "max_operation_amplification"})
+    if spec is None:
+        return None
+    from route_progress_guard import observe
+
+    progress = Path(workdir) / "route_progress.json"
+    progress_doc = (json.loads(progress.read_text(encoding="utf-8-sig"))
+                    if progress.is_file() else {})
+    subject = (f"{progress_doc.get('r0_sha256', 'unknown')}:"
+               f"{progress_doc.get('config_sha256', _sha256(cfg['_path']))}:"
+               f"{wave_index}:{wave_name}")
+    observation = {
+        "subject": subject,
+        "unresolved": sorted(unresolved),
+        "hard_findings": [],
+        "frontier": frontier,
+        "operations": operations,
+    }
+    state_path = Path(workdir) / "exploration" / f"wave_{wave_index}.json"
+    result_path = state_path.with_name(f"wave_{wave_index}_decision.json")
+    try:
+        previous = (json.loads(state_path.read_text(encoding="utf-8-sig"))
+                    if state_path.is_file() else None)
+        state, result = observe(
+            observation, previous,
+            plateau_attempts=int(spec.get("plateau_attempts", 2)),
+            max_attempts=int(spec.get("max_attempts", 5)),
+            max_novel_signatures=int(spec.get("max_novel_signatures", 3)),
+            max_operation_amplification=float(
+                spec.get("max_operation_amplification", 8.0)))
+        _atomic_json(state_path, state)
+        _atomic_json(result_path, result)
+    except Exception as exc:
+        if spec["mode"] == "enforce":
+            die(f"route exploration guard incomplete: {exc}")
+        print(f"WARNING: route exploration guard incomplete: {exc}")
+        return None
+    print(f"route exploration: {result['decision']} — {result['reason']} -> "
+          f"{result_path}")
+    return result
 
 
 _DEFAULT_WAVE_DRC_HARD_TYPES = {
@@ -1100,7 +1286,7 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results,
         chain = _wave_chain(cfg, py, krt, waves, tier, dict(common), cdir,
                             cdir / r0.name,
                             env={"ROUTE_RACE_CANDIDATE": str(i)}, tag=tag,
-                            cancel_event=cancel_event)
+                            cancel_event=cancel_event, prepared=cdir / r0.name)
         # evaluate: import into a COPY of the track-free target, then quick.
         # Needs pcbnew, so both steps shell out to the KiCad interpreter —
         # cmd_route itself stays runnable on the KRT venv python.
@@ -1226,6 +1412,9 @@ def _route_prefix(cfg, build, waves, r0):
     _wave_drc_gate(cfg, staged, "route-prefix:physical-drc",
                    build / "prefix_physical_drc.json")
     _critical_route_gate(cfg, require_connected=True, board=staged)
+    _grade_route_candidate(
+        cfg, build, r0, staged, _wave_net_inventory(waves, through, build),
+        f"prefix-through-{through}")
     receipt = {
         "through_index": through,
         "through_wave": spec["through_wave"],
@@ -1313,6 +1502,7 @@ def cmd_route(cfg, race=None, skip_preflight=False, resume=False,
                 "tier_preflight.py <project> --explain). Refusing to spend "
                 "KRT cycles on a config the DRC gate already rejects. "
                 "Escape hatch: route --skip-preflight (loud, discouraged)")
+    _route_ownership_gate(cfg, build)
     krt = Path(os.path.expanduser(get(cfg, "route.krt", "~/gits/KiCadRoutingTools")))
     py = get(cfg, "route.python") or str(krt / ".venv" / "bin" / "python")
     if not (krt / "route.py").is_file():
@@ -1375,7 +1565,8 @@ def cmd_route(cfg, race=None, skip_preflight=False, resume=False,
         _atomic_json(build / "route_progress.json", progress)
     cur = _wave_chain(cfg, py, krt, waves, tier, common, build, cur,
                       start_wave=start_wave, stop_wave=stop_wave,
-                      progress=progress)
+                      progress=progress,
+                      prepared=build / get(cfg, "prep.out", "r0.kicad_pcb"))
     completed = prefix_index + len(progress.get("waves") or [])
     if completed < len(waves):
         print(f"\nroute pause: {completed}/{len(waves)} authenticated "
@@ -1459,6 +1650,10 @@ def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
         die(f"all {n} completed race candidates are DIRTY — refusing to "
             f"promote a least-bad route; inspect {build / 'race_log.json'}")
     chain = Path(ok[best]["chain"])
+    r0 = build / get(cfg, "prep.out", "r0.kicad_pcb")
+    _grade_route_candidate(
+        cfg, build, r0, chain, _wave_net_inventory(waves, len(waves), build),
+        f"race-winner-c{best}")
     print(f"race winner: c{best} ({ok[best]['unconnected']} unconnected, "
           f"{ok[best]['violations']} violations) -> {chain}")
     print(f"race log -> {build / 'race_log.json'}")
