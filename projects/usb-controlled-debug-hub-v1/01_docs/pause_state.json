@@ -1,20 +1,25 @@
 {
-  "blocker": "Obtain explicit human approval of the exact v0.1.2 connector-facing orientation subject, then retain the approval in verification before sealing.",
+  "blocker": "Upload the exact v0.1.4 BOM to JLCPCB for quantity 5, save the resolved availability/MOQ/cost evidence, and complete the schema-v2 response without accepting substitutions.",
   "checkpoint": {
-    "path": "04_kicad/usb_controlled_debug_hub.kicad_pcb",
-    "sha256": "c5cd719571e216224c83aca142ac84e1f11facdfb48b1bcb771c9d5b97c06e68",
-    "size": 2950600
+    "path": "07_releases/v0.1.4-2026-08-18/fab/bom.csv",
+    "sha256": "703102bcf49cf0661dfc4b5a25dfcd2fa1f435a19be8405f9c3cb8d8bd45e5ff",
+    "size": 3175
   },
-  "next_command": "python3 skills/jlcpcb-fab/scripts/release_freshness_check.py projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17 --claim design",
-  "phase": "release_staging_human_approval",
+  "next_command": "python3 skills/jlcpcb-fab/scripts/jlc_pcba_availability.py grade projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_request.json projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_response.csv --out projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_receipt.json",
+  "phase": "release_v014_sourcing_checkpoint",
   "project": "usb-controlled-debug-hub-v1",
   "receipts": [
     {
-      "path": "06_build/release_staging/v0.1.2-2026-08-17/verification/orientation/orientation_receipt.json",
-      "sha256": "8a057d61d5e9f209b5c2ee168536ed63a41f02743986e4b2469d132e594a8b86",
-      "size": 4744
+      "path": "01_docs/sourcing/procurement-policy.yaml",
+      "sha256": "8bbd3aa18d932fc08e4d54ecc044dedc5981e22e25c35bf9baa19e32745e250b",
+      "size": 370
+    },
+    {
+      "path": "07_releases/v0.1.4-2026-08-18/verification/prelayout_request_v2.json",
+      "sha256": "6269bace1deba4a573bb7889d9876e92f2c19f562270c243313aac4f94c540ea",
+      "size": 8604
     }
   ],
   "schema": 1,
-  "state_id": "794738eddf17eb074eddeef58437739156a75ce3c07d3f39c391a4687982af45"
+  "state_id": "06bfe87196dcff805766df972c0598c2d59528eef80b539b8e0aa6b606b1fc12"
 }

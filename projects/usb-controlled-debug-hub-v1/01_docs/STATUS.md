@@ -1,16 +1,17 @@
 # Project status
 
-<!-- pause-state:794738eddf17eb074eddeef58437739156a75ce3c07d3f39c391a4687982af45 -->
+<!-- pause-state:06bfe87196dcff805766df972c0598c2d59528eef80b539b8e0aa6b606b1fc12 -->
 
-- Phase: `release_staging_human_approval`
+- Phase: `release_v014_sourcing_checkpoint`
 - State: **PAUSED**
-- Checkpoint: `04_kicad/usb_controlled_debug_hub.kicad_pcb` (`c5cd719571e2`)
-- Blocker: Obtain explicit human approval of the exact v0.1.2 connector-facing orientation subject, then retain the approval in verification before sealing.
-- Next command: `python3 skills/jlcpcb-fab/scripts/release_freshness_check.py projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17 --claim design`
+- Checkpoint: `07_releases/v0.1.4-2026-08-18/fab/bom.csv` (`703102bcf49c`)
+- Blocker: Upload the exact v0.1.4 BOM to JLCPCB for quantity 5, save the resolved availability/MOQ/cost evidence, and complete the schema-v2 response without accepting substitutions.
+- Next command: `python3 skills/jlcpcb-fab/scripts/jlc_pcba_availability.py grade projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_request.json projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_response.csv --out projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_receipt.json`
 
 ## Bound receipts
 
-- `06_build/release_staging/v0.1.2-2026-08-17/verification/orientation/orientation_receipt.json` — `8a057d61d5e9`
+- `01_docs/sourcing/procurement-policy.yaml` — `8bbd3aa18d93`
+- `07_releases/v0.1.4-2026-08-18/verification/prelayout_request_v2.json` — `6269bace1deb`
 
 This file is generated from `01_docs/pause_state.json`; edit the manifest with
 `pause_state.py record`, not this view.

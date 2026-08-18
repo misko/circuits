@@ -1,12 +1,12 @@
 # Resume
 
-<!-- pause-state:794738eddf17eb074eddeef58437739156a75ce3c07d3f39c391a4687982af45 -->
+<!-- pause-state:06bfe87196dcff805766df972c0598c2d59528eef80b539b8e0aa6b606b1fc12 -->
 
 Canonical state: `01_docs/pause_state.json`
 
 1. Verify: `python3 skills/pcb-design/scripts/pause_state.py verify .`
-2. Confirm blocker: Obtain explicit human approval of the exact v0.1.2 connector-facing orientation subject, then retain the approval in verification before sealing.
-3. Resume with: `python3 skills/jlcpcb-fab/scripts/release_freshness_check.py projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17 --claim design`
+2. Confirm blocker: Upload the exact v0.1.4 BOM to JLCPCB for quantity 5, save the resolved availability/MOQ/cost evidence, and complete the schema-v2 response without accepting substitutions.
+3. Resume with: `python3 skills/jlcpcb-fab/scripts/jlc_pcba_availability.py grade projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_request.json projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_response.csv --out projects/usb-controlled-debug-hub-v1/06_build/sourcing/v014-release/prelayout_receipt.json`
 
-The authenticated checkpoint is `04_kicad/usb_controlled_debug_hub.kicad_pcb` at
-`c5cd719571e216224c83aca142ac84e1f11facdfb48b1bcb771c9d5b97c06e68`.
+The authenticated checkpoint is `07_releases/v0.1.4-2026-08-18/fab/bom.csv` at
+`703102bcf49cf0661dfc4b5a25dfcd2fa1f435a19be8405f9c3cb8d8bd45e5ff`.
