@@ -1,0 +1,160 @@
+(version 1)
+(rule "USB_HS_UPSTREAM_width"
+  (condition "A.NetClass == 'USB_HS_UPSTREAM'")
+  (constraint track_width (min 0.09mm)))
+(rule "USB_HS_UPSTREAM_diffpair"
+  (condition "A.NetClass == 'USB_HS_UPSTREAM'")
+  (constraint diff_pair_gap (min 0.145mm) (opt 0.15mm))
+  (constraint diff_pair_uncoupled (max 17.75mm)))
+(rule "USB_HS_PROTECTED_width"
+  (condition "A.NetClass == 'USB_HS_PROTECTED'")
+  (constraint track_width (min 0.09mm)))
+(rule "USB_HS_PROTECTED_diffpair"
+  (condition "A.NetClass == 'USB_HS_PROTECTED'")
+  (constraint diff_pair_gap (min 0.145mm) (opt 0.15mm))
+  (constraint diff_pair_uncoupled (max 7.5mm)))
+(rule "USB_HS_width"
+  (condition "A.NetClass == 'USB_HS'")
+  (constraint track_width (min 0.09mm)))
+(rule "USB_HS_diffpair"
+  (condition "A.NetClass == 'USB_HS'")
+  (constraint diff_pair_gap (min 0.145mm) (opt 0.15mm))
+  (constraint diff_pair_uncoupled (max 8.5mm)))
+(rule "PWR_INPUT_width"
+  (condition "A.NetClass == 'PWR_INPUT'")
+  (constraint track_width (min 1.5mm)))
+(rule "PWR_PORT_width"
+  (condition "A.NetClass == 'PWR_PORT'")
+  (constraint track_width (min 0.5mm)))
+(rule "PWR_3V3_width"
+  (condition "A.NetClass == 'PWR_3V3'")
+  (constraint track_width (min 0.4mm)))
+(rule "PWR_INTERNAL_width"
+  (condition "A.NetClass == 'PWR_INTERNAL'")
+  (constraint track_width (min 0.4mm)))
+(rule "CONTROL_width"
+  (condition "A.NetClass == 'CONTROL'")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_hub_package_launch"
+  (condition "A.insideArea('hub_package_launch') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_left_escape"
+  (condition "A.insideArea('hub_3v3_left_escape') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_top_escape"
+  (condition "A.insideArea('hub_3v3_top_escape') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_top_right_escape"
+  (condition "A.insideArea('hub_3v3_top_right_escape') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_a4_escape"
+  (condition "A.insideArea('hub_3v3_a4_escape') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_bottom_escape"
+  (condition "A.insideArea('hub_3v3_bottom_escape') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_bottom_collector"
+  (condition "A.insideArea('hub_3v3_bottom_collector') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_right_escape"
+  (condition "A.insideArea('hub_3v3_right_escape') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_spine_neck"
+  (condition "A.insideArea('hub_3v3_spine_neck') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_hub_3v3_pullup_escape"
+  (condition "A.insideArea('hub_3v3_pullup_escape') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.2mm)))
+(rule "scoped_data1_package_launch"
+  (condition "A.insideArea('data1_package_launch') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_data2_package_launch"
+  (condition "A.insideArea('data2_package_launch') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_data3_package_launch"
+  (condition "A.insideArea('data3_package_launch') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_data4_package_launch"
+  (condition "A.insideArea('data4_package_launch') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_and_pwr_3v3_launch"
+  (condition "A.insideArea('and_pwr_3v3_launch') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.25mm)))
+(rule "scoped_and_data_3v3_launch"
+  (condition "A.insideArea('and_data_3v3_launch') && (A.NetName == '3V3_MAIN')")
+  (constraint track_width (min 0.25mm)))
+(rule "scoped_aggregate_efuse_launch"
+  (condition "A.insideArea('aggregate_efuse_launch') && (A.NetName == 'P5V_FUSED' || A.NetName == 'P5V_PROTECTED')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr1_input_launch"
+  (condition "A.insideArea('pwr1_input_launch') && (A.NetName == 'P5V_PROTECTED')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_pwr2_input_launch"
+  (condition "A.insideArea('pwr2_input_launch') && (A.NetName == 'P5V_PROTECTED')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_pwr3_input_launch"
+  (condition "A.insideArea('pwr3_input_launch') && (A.NetName == 'P5V_PROTECTED')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_pwr4_input_launch"
+  (condition "A.insideArea('pwr4_input_launch') && (A.NetName == 'P5V_PROTECTED')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_pwr_ctrl_input_launch"
+  (condition "A.insideArea('pwr_ctrl_input_launch') && (A.NetName == 'P5V_PROTECTED')")
+  (constraint track_width (min 0.35mm)))
+(rule "scoped_pwr1_output_launch"
+  (condition "A.insideArea('pwr1_output_launch') && (A.NetName == 'VBUS1_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr2_output_launch"
+  (condition "A.insideArea('pwr2_output_launch') && (A.NetName == 'VBUS2_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr3_output_launch"
+  (condition "A.insideArea('pwr3_output_launch') && (A.NetName == 'VBUS3_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr4_output_launch"
+  (condition "A.insideArea('pwr4_output_launch') && (A.NetName == 'VBUS4_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr_ctrl_output_launch"
+  (condition "A.insideArea('pwr_ctrl_output_launch') && (A.NetName == 'VBUS_CTRL')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_clr_hub_static_strap_usb_crossing"
+  (condition "A.insideArea('hub_static_strap_usb_crossing') && B.insideArea('hub_static_strap_usb_crossing') && (((A.NetName == 'HUB_DIS7_N' || A.NetName == 'HUB_DIS7_P' || A.NetName == 'HUB_DIS6_N' || A.NetName == 'HUB_DIS6_P') && (B.NetName == 'P1_HUB_P' || B.NetName == 'P1_HUB_N' || B.NetName == 'P4_HUB_P' || B.NetName == 'P4_HUB_N')) || ((A.NetName == 'P1_HUB_P' || A.NetName == 'P1_HUB_N' || A.NetName == 'P4_HUB_P' || A.NetName == 'P4_HUB_N') && (B.NetName == 'HUB_DIS7_N' || B.NetName == 'HUB_DIS7_P' || B.NetName == 'HUB_DIS6_N' || B.NetName == 'HUB_DIS6_P')))")
+  (constraint clearance (min 0.25mm)))
+(rule "scoped_clr_hub_package_launch"
+  (condition "A.insideArea('hub_package_launch') && B.insideArea('hub_package_launch') && (A.NetName == 'MGMT_P' || B.NetName == 'MGMT_P' || A.NetName == 'MGMT_N' || B.NetName == 'MGMT_N' || A.NetName == 'P1_HUB_P' || B.NetName == 'P1_HUB_P' || A.NetName == 'P1_HUB_N' || B.NetName == 'P1_HUB_N' || A.NetName == 'P2_HUB_P' || B.NetName == 'P2_HUB_P' || A.NetName == 'P2_HUB_N' || B.NetName == 'P2_HUB_N' || A.NetName == 'P3_HUB_P' || B.NetName == 'P3_HUB_P' || A.NetName == 'P3_HUB_N' || B.NetName == 'P3_HUB_N' || A.NetName == 'P4_HUB_P' || B.NetName == 'P4_HUB_P' || A.NetName == 'P4_HUB_N' || B.NetName == 'P4_HUB_N' || A.NetName == 'UP_HUB_P' || B.NetName == 'UP_HUB_P' || A.NetName == 'UP_HUB_N' || B.NetName == 'UP_HUB_N' || A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_hub_oscillator_usb_launch"
+  (condition "A.insideArea('hub_oscillator_usb_launch') && B.insideArea('hub_oscillator_usb_launch') && (A.NetName == 'XTAL1' || B.NetName == 'XTAL1' || A.NetName == 'XTAL2' || B.NetName == 'XTAL2' || A.NetName == 'UP_HUB_P' || B.NetName == 'UP_HUB_P' || A.NetName == 'UP_HUB_N' || B.NetName == 'UP_HUB_N' || A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_hub_3v3_left_escape"
+  (condition "A.insideArea('hub_3v3_left_escape') && B.insideArea('hub_3v3_left_escape') && (A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_hub_3v3_top_escape"
+  (condition "A.insideArea('hub_3v3_top_escape') && B.insideArea('hub_3v3_top_escape') && (A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_hub_3v3_top_right_escape"
+  (condition "A.insideArea('hub_3v3_top_right_escape') && B.insideArea('hub_3v3_top_right_escape') && (A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_hub_3v3_bottom_escape"
+  (condition "A.insideArea('hub_3v3_bottom_escape') && B.insideArea('hub_3v3_bottom_escape') && (A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_hub_3v3_bottom_collector"
+  (condition "A.insideArea('hub_3v3_bottom_collector') && B.insideArea('hub_3v3_bottom_collector') && (A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_hub_3v3_right_escape"
+  (condition "A.insideArea('hub_3v3_right_escape') && B.insideArea('hub_3v3_right_escape') && (A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_hub_3v3_spine_neck"
+  (condition "A.insideArea('hub_3v3_spine_neck') && B.insideArea('hub_3v3_spine_neck') && (A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_data1_package_launch"
+  (condition "A.insideArea('data1_package_launch') && B.insideArea('data1_package_launch') && (A.NetName == 'P1_HUB_P' || B.NetName == 'P1_HUB_P' || A.NetName == 'P1_HUB_N' || B.NetName == 'P1_HUB_N' || A.NetName == 'P1_PORT_P' || B.NetName == 'P1_PORT_P' || A.NetName == 'P1_PORT_N' || B.NetName == 'P1_PORT_N' || A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_data2_package_launch"
+  (condition "A.insideArea('data2_package_launch') && B.insideArea('data2_package_launch') && (A.NetName == 'P2_HUB_P' || B.NetName == 'P2_HUB_P' || A.NetName == 'P2_HUB_N' || B.NetName == 'P2_HUB_N' || A.NetName == 'P2_PORT_P' || B.NetName == 'P2_PORT_P' || A.NetName == 'P2_PORT_N' || B.NetName == 'P2_PORT_N' || A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_data3_package_launch"
+  (condition "A.insideArea('data3_package_launch') && B.insideArea('data3_package_launch') && (A.NetName == 'P3_HUB_P' || B.NetName == 'P3_HUB_P' || A.NetName == 'P3_HUB_N' || B.NetName == 'P3_HUB_N' || A.NetName == 'P3_PORT_P' || B.NetName == 'P3_PORT_P' || A.NetName == 'P3_PORT_N' || B.NetName == 'P3_PORT_N' || A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))
+(rule "scoped_clr_data4_package_launch"
+  (condition "A.insideArea('data4_package_launch') && B.insideArea('data4_package_launch') && (A.NetName == 'P4_HUB_P' || B.NetName == 'P4_HUB_P' || A.NetName == 'P4_HUB_N' || B.NetName == 'P4_HUB_N' || A.NetName == 'P4_PORT_P' || B.NetName == 'P4_PORT_P' || A.NetName == 'P4_PORT_N' || B.NetName == 'P4_PORT_N' || A.NetName == '3V3_MAIN' || B.NetName == '3V3_MAIN')")
+  (constraint clearance (min 0.15mm)))

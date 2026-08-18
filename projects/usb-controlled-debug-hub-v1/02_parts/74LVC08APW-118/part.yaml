@@ -75,6 +75,8 @@ layout_refs:
 
 sourcing:
   lcsc: C6053
+  alternates:
+    - {lcsc: C54411084, mpn: 74LVC08APW}
   note: "Exact 74LVC08APW,118 catalog code observed during the 2026-07-31 bounded search; stock and JLC assembly class require order-day recheck."
 asserts:
   - assert: value

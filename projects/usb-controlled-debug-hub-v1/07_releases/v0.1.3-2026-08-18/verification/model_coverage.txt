@@ -1,0 +1,2 @@
+MODEL-COVERAGE input: /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/source/04_kicad/usb_controlled_debug_hub.kicad_pcb
+PASS MODEL-COVERAGE: 139/139 fitted footprints have a renderer-resolvable 3D body

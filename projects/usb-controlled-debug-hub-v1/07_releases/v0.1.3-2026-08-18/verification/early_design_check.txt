@@ -1,0 +1,4 @@
+  PASS D-SPEC/E-PATH usb_downstream_ports: 4 x 0.5 A, 4 simultaneous, 4.75-5.25 V at mated_test_plug
+  PASS E-CAP USB 2.0 downstream-hub source bank: 128.664/120 uF effective from 2 component(s)
+  PASS E-FAULT five USB power switches and local 3V3 load on shared 5V input: normal/peak/fault=2.58/3/4.450 A, breaker=2.99013..3.68028 A, timer=1.608..5.042 ms, startup=C_AGG_DVDT gives 0.640 V/ms, 0.161 A
+EARLY-DESIGN PASS: 5/5 gate families green

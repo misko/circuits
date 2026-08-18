@@ -1,0 +1,4 @@
+JLCPCB VIA PROCESS — GENERATED; DO NOT RE-TYPE
+Source: /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/03_src/rules/assembly.yaml
+Order remark: Copper-paste fill and copper cap the complete 0.20 mm drill family: every 0.46/0.20 mm via is IPC-4761 Type VII, including every realized via-in-pad barrel. Do not fill or cap the ordinary 0.35 mm drill family. Confirm this selective drill-family process in the manufacturing review before payment.
+Uploader confirmation required: YES

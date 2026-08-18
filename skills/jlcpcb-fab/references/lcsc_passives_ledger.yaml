@@ -333,3 +333,15 @@ C342660: {mpn: C3225X7R1C226KT000N, value: "22uF", verified: "2026-08-11 JLC/LCS
 C1555: {mpn: 0402CG220J500NT, value: "22pF", verified: "2026-08-11 JLC/LCSC exact-code row: FH 22pF 50V C0G +/-5% 0402. Ordering field 220 independently decodes to 22pF; both module feed-forward branches."}
 C173338: {mpn: RK73H1ETTP4991F, value: "4.99k", verified: "2026-08-11 JLC/LCSC exact-code row: KOA Speer 4.99kOhm +/-1% 0402. Ordering field 4991 independently decodes to 4.99kOhm; TPSM63610 RFF."}
 C861404: {mpn: RT0603BRD0743K2L, value: "43.2k", verified: "2026-08-11 JLC/LCSC exact-code row: Yageo 43.2kOhm +/-0.1% +/-25ppm/C 0603. Ordering field 43K2 independently decodes to 43.2kOhm; TPS2559 ILIM programming."}
+
+# --- usb-controlled-debug-hub-v1 sourcing-only v0.1.3, 2026-08-18 --------
+# Exact LCSC product pages were re-read after the JLC uploader reported zero
+# assembly allocation for the original codes. Stock remains an order-time fact.
+C481918: {mpn: CRCW0402100KFKED, value: "100k", verified: "2026-08-18 LCSC exact-code product page: Vishay 100kOhm +/-1%, 63mW, 50V, 0402. MPN field 100K independently agrees."}
+C392963: {mpn: TCC0402X7R104K160AT, value: "100nF", verified: "2026-08-18 LCSC exact-code product page: CCTC 100nF, 16V, X7R, +/-10%, 0402. MPN field 104 independently decodes to 100nF."}
+C843837: {mpn: CRCW040210K0FKEE, value: "10k", verified: "2026-08-18 LCSC exact-code product page: Vishay 10kOhm +/-1%, 63mW, 50V, 0402. MPN field 10K0 independently agrees."}
+C2483395: {mpn: RMCF0402FT165K, value: "165k", verified: "2026-08-18 LCSC exact-code product page: Stackpole 165kOhm +/-1%, 62.5mW, 50V, 0402. MPN field 165K independently agrees; exact tolerance is retained for TPS2557 ILIM."}
+C326568: {mpn: CC0402KRX5R8BB105, value: "1uF", verified: "2026-08-18 LCSC exact-code product page: Yageo 1uF, 25V, X5R, +/-10%, 0402. MPN field 105 independently decodes to 1uF."}
+C55530: {mpn: CL32B226KOJNNNE, value: "22uF", verified: "2026-08-18 LCSC exact-code product page: Samsung 22uF, 16V, X7R, +/-10%, 1210. MPN field 226 independently decodes to 22uF; effective-capacitance validation remains bound to the existing conservative design model."}
+C342849: {mpn: C1608C0G1H332JT000N, value: "3.3nF", verified: "2026-08-18 LCSC exact-code product page: TDK 3.3nF, 50V, C0G, +/-5%, 0603. MPN field 332 independently decodes to 3.3nF; exact timing dielectric and tolerance are retained."}
+C482193: {mpn: CRCW04024K70FKED, value: "4.7k", verified: "2026-08-18 LCSC exact-code product page: Vishay 4.7kOhm +/-1%, 63mW, 50V, 0402. MPN field 4K70 independently agrees."}

@@ -1,0 +1,1539 @@
+{
+  "board": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/source/usb_controlled_debug_hub.kicad_pcb",
+  "footprints": [
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0603_1608Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0603_1608Metric.step"
+        }
+      ],
+      "ref": "C_AGG_DVDT",
+      "resolved": true,
+      "value": "3.3nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_AGG_IN",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0603_1608Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0603_1608Metric.step"
+        }
+      ],
+      "ref": "C_AGG_TIMER",
+      "resolved": true,
+      "value": "3.3nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_AND_DATA",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_AND_PWR",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_BST",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0603_1608Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0603_1608Metric.step"
+        }
+      ],
+      "ref": "C_BUCK_IN",
+      "resolved": true,
+      "value": "10uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1210_3225Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_1210_3225Metric.step"
+        }
+      ],
+      "ref": "C_BUCK_OUT1",
+      "resolved": true,
+      "value": "22uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1210_3225Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_1210_3225Metric.step"
+        }
+      ],
+      "ref": "C_BUCK_OUT2",
+      "resolved": true,
+      "value": "22uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_CTRL_VDD",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_CTRL_VUSB",
+      "resolved": true,
+      "value": "330nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_DATA1",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_DATA2",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_DATA3",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_DATA4",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_EXP_VDD",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_18",
+      "resolved": true,
+      "value": "1uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_18PLL",
+      "resolved": true,
+      "value": "1uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_A1",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_A2",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_A3",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_A4",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_A_BULK",
+      "resolved": true,
+      "value": "1uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_CR_BULK",
+      "resolved": true,
+      "value": "1uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_CR_HF",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_DD",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_PLL",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_HUB_RESET",
+      "resolved": true,
+      "value": "1uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1210_3225Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_1210_3225Metric.step"
+        }
+      ],
+      "ref": "C_PORT1_BULK",
+      "resolved": true,
+      "value": "22uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PORT1_HF",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1210_3225Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_1210_3225Metric.step"
+        }
+      ],
+      "ref": "C_PORT2_BULK",
+      "resolved": true,
+      "value": "22uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PORT2_HF",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1210_3225Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_1210_3225Metric.step"
+        }
+      ],
+      "ref": "C_PORT3_BULK",
+      "resolved": true,
+      "value": "22uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PORT3_HF",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1210_3225Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_1210_3225Metric.step"
+        }
+      ],
+      "ref": "C_PORT4_BULK",
+      "resolved": true,
+      "value": "22uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PORT4_HF",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PWR1_IN",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PWR2_IN",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PWR3_IN",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PWR4_IN",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PWR_CTRL_IN",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PWR_CTRL_OUT",
+      "resolved": true,
+      "value": "1uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_PWR_CTRL_OUT_HF",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1210_3225Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_1210_3225Metric.step"
+        }
+      ],
+      "ref": "C_TRUNK_BULK",
+      "resolved": true,
+      "value": "22uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_TRUNK_HF",
+      "resolved": true,
+      "value": "100nF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/CP_Elec_6.3x5.8.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/CP_Elec_6.3x5.8.step"
+        }
+      ],
+      "ref": "C_TRUNK_USB",
+      "resolved": true,
+      "value": "180uF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_XTAL1",
+      "resolved": true,
+      "value": "18pF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Capacitor_SMD.3dshapes/C_0402_1005Metric.step"
+        }
+      ],
+      "ref": "C_XTAL2",
+      "resolved": true,
+      "value": "18pF"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Fuse.3dshapes/Fuseholder_Blade_Mini_Keystone_3568.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Fuse.3dshapes/Fuseholder_Blade_Mini_Keystone_3568.step"
+        }
+      ],
+      "ref": "F_IN",
+      "resolved": true,
+      "value": "3568"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/KH-AF90DIP-112.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/KH-AF90DIP-112.step"
+        }
+      ],
+      "ref": "J_PORT1",
+      "resolved": true,
+      "value": "C503996"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/KH-AF90DIP-112.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/KH-AF90DIP-112.step"
+        }
+      ],
+      "ref": "J_PORT2",
+      "resolved": true,
+      "value": "C503996"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/KH-AF90DIP-112.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/KH-AF90DIP-112.step"
+        }
+      ],
+      "ref": "J_PORT3",
+      "resolved": true,
+      "value": "C503996"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/KH-AF90DIP-112.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/KH-AF90DIP-112.step"
+        }
+      ],
+      "ref": "J_PORT4",
+      "resolved": true,
+      "value": "C503996"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/Phoenix_1935161.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/Phoenix_1935161.step"
+        }
+      ],
+      "ref": "J_PWR",
+      "resolved": true,
+      "value": "C3819953"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/JLC_C86462_USB-B_TH_BF90.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/JLC_C86462_USB-B_TH_BF90.step"
+        }
+      ],
+      "ref": "J_UP",
+      "resolved": true,
+      "value": "C86462"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/SWPA4030S.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/SWPA4030S.step"
+        }
+      ],
+      "ref": "L_MAIN",
+      "resolved": true,
+      "value": "C15269"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/2N7002K_SOT23.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/2N7002K_SOT23.step"
+        }
+      ],
+      "ref": "Q_DATA1",
+      "resolved": true,
+      "value": "C85047"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/2N7002K_SOT23.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/2N7002K_SOT23.step"
+        }
+      ],
+      "ref": "Q_DATA2",
+      "resolved": true,
+      "value": "C85047"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/2N7002K_SOT23.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/2N7002K_SOT23.step"
+        }
+      ],
+      "ref": "Q_DATA3",
+      "resolved": true,
+      "value": "C85047"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/2N7002K_SOT23.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/2N7002K_SOT23.step"
+        }
+      ],
+      "ref": "Q_DATA4",
+      "resolved": true,
+      "value": "C85047"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0603_1608Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0603_1608Metric.step"
+        }
+      ],
+      "ref": "R_AGG_ILIM",
+      "resolved": true,
+      "value": "1k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0603_1608Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0603_1608Metric.step"
+        }
+      ],
+      "ref": "R_AGG_OV_BOT",
+      "resolved": true,
+      "value": "43.2k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0603_1608Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0603_1608Metric.step"
+        }
+      ],
+      "ref": "R_AGG_UV_MID",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0603_1608Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0603_1608Metric.step"
+        }
+      ],
+      "ref": "R_AGG_UV_TOP",
+      "resolved": true,
+      "value": "150k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_BOOST0",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_BOOST1",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_CFG0",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_CFG1",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_CFG2",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_CTRL_RESET",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_CMD1",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_CMD2",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_CMD3",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_CMD4",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_OE1",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_OE2",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_OE3",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_OE4",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_OK1",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_OK2",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_OK3",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DATA_OK4",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DIS6N",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DIS6P",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DIS7N",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_DIS7P",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_EXP_RESET",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_GANG",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_HUB_RESET",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_I2C_SCL",
+      "resolved": true,
+      "value": "4.7k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_I2C_SDA",
+      "resolved": true,
+      "value": "4.7k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_ILIM1",
+      "resolved": true,
+      "value": "165k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_ILIM2",
+      "resolved": true,
+      "value": "165k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_ILIM3",
+      "resolved": true,
+      "value": "165k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_ILIM4",
+      "resolved": true,
+      "value": "165k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_ILIM_CTRL",
+      "resolved": true,
+      "value": "165k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_NONREM0",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_NONREM1",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_PWR_CMD1",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_PWR_CMD2",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_PWR_CMD3",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_PWR_CMD4",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_PWR_EN1",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_PWR_EN2",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_PWR_EN3",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_PWR_EN4",
+      "resolved": true,
+      "value": "10k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_RBIAS",
+      "resolved": true,
+      "value": "12k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_SWAP1",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_SWAP2",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_SWAP3",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_SWAP4",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_SWAP5",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_SWAP6",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_SWAP7",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_VBUS_BOT",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_VBUS_TOP",
+      "resolved": true,
+      "value": "100k\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+        }
+      ],
+      "ref": "R_XTAL",
+      "resolved": true,
+      "value": "1M\u03a9"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/TPS259474LRPWR_VQFN-HR-10.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/TPS259474LRPWR_VQFN-HR-10.step"
+        }
+      ],
+      "ref": "U_AGG",
+      "resolved": true,
+      "value": "C2864845"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/TSSOP-14_4.4x5mm_P0.65mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_SO.3dshapes/TSSOP-14_4.4x5mm_P0.65mm.step"
+        }
+      ],
+      "ref": "U_AND_DATA",
+      "resolved": true,
+      "value": "C6053"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/TSSOP-14_4.4x5mm_P0.65mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_SO.3dshapes/TSSOP-14_4.4x5mm_P0.65mm.step"
+        }
+      ],
+      "ref": "U_AND_PWR",
+      "resolved": true,
+      "value": "C6053"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_TO_SOT_SMD.3dshapes/TSOT-23-6.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_TO_SOT_SMD.3dshapes/TSOT-23-6.step"
+        }
+      ],
+      "ref": "U_BUCK",
+      "resolved": true,
+      "value": "C5248536"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/SOIC-14_3.9x8.7mm_P1.27mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_SO.3dshapes/SOIC-14_3.9x8.7mm_P1.27mm.step"
+        }
+      ],
+      "ref": "U_CTRL",
+      "resolved": true,
+      "value": "C640876"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/MSOP-10_3x3mm_P0.5mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_SO.3dshapes/MSOP-10_3x3mm_P0.5mm.step"
+        }
+      ],
+      "ref": "U_DATA1",
+      "resolved": true,
+      "value": "C11355"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/MSOP-10_3x3mm_P0.5mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_SO.3dshapes/MSOP-10_3x3mm_P0.5mm.step"
+        }
+      ],
+      "ref": "U_DATA2",
+      "resolved": true,
+      "value": "C11355"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/MSOP-10_3x3mm_P0.5mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_SO.3dshapes/MSOP-10_3x3mm_P0.5mm.step"
+        }
+      ],
+      "ref": "U_DATA3",
+      "resolved": true,
+      "value": "C11355"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/MSOP-10_3x3mm_P0.5mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_SO.3dshapes/MSOP-10_3x3mm_P0.5mm.step"
+        }
+      ],
+      "ref": "U_DATA4",
+      "resolved": true,
+      "value": "C11355"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_TO_SOT_SMD.3dshapes/SOT-23.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_TO_SOT_SMD.3dshapes/SOT-23.step"
+        }
+      ],
+      "ref": "U_ESD1",
+      "resolved": true,
+      "value": "C3708426"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_TO_SOT_SMD.3dshapes/SOT-23.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_TO_SOT_SMD.3dshapes/SOT-23.step"
+        }
+      ],
+      "ref": "U_ESD2",
+      "resolved": true,
+      "value": "C3708426"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_TO_SOT_SMD.3dshapes/SOT-23.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_TO_SOT_SMD.3dshapes/SOT-23.step"
+        }
+      ],
+      "ref": "U_ESD3",
+      "resolved": true,
+      "value": "C3708426"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_TO_SOT_SMD.3dshapes/SOT-23.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_TO_SOT_SMD.3dshapes/SOT-23.step"
+        }
+      ],
+      "ref": "U_ESD4",
+      "resolved": true,
+      "value": "C3708426"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_TO_SOT_SMD.3dshapes/SOT-23.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_TO_SOT_SMD.3dshapes/SOT-23.step"
+        }
+      ],
+      "ref": "U_ESD_UP",
+      "resolved": true,
+      "value": "C3708426"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/SSOP-28_5.3x10.2mm_P0.65mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Package_SO.3dshapes/SSOP-28_5.3x10.2mm_P0.65mm.step"
+        }
+      ],
+      "ref": "U_EXP",
+      "resolved": true,
+      "value": "C558584"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/USB2517I_QFN64.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/USB2517I_QFN64.step"
+        }
+      ],
+      "ref": "U_HUB",
+      "resolved": true,
+      "value": "C478081"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/TPS2557_SON8.step"
+        }
+      ],
+      "ref": "U_PWR1",
+      "resolved": true,
+      "value": "C130056"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/TPS2557_SON8.step"
+        }
+      ],
+      "ref": "U_PWR2",
+      "resolved": true,
+      "value": "C130056"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/TPS2557_SON8.step"
+        }
+      ],
+      "ref": "U_PWR3",
+      "resolved": true,
+      "value": "C130056"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/TPS2557_SON8.step"
+        }
+      ],
+      "ref": "U_PWR4",
+      "resolved": true,
+      "value": "C130056"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step",
+          "resolved": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/03_src/lib/3d/TPS2557_SON8.step"
+        }
+      ],
+      "ref": "U_PWR_CTRL",
+      "resolved": true,
+      "value": "C130056"
+    },
+    {
+      "models": [
+        {
+          "declared": "${KICAD10_3DMODEL_DIR}/Crystal.3dshapes/Crystal_SMD_3225-4Pin_3.2x2.5mm.step",
+          "resolved": "/home/mouse9911/.local/share/kicad/10.0/3dmodels/Crystal.3dshapes/Crystal_SMD_3225-4Pin_3.2x2.5mm.step"
+        }
+      ],
+      "ref": "Y_HUB",
+      "resolved": true,
+      "value": "C1985204"
+    }
+  ],
+  "gate": "MODEL-COVERAGE",
+  "missing": [],
+  "population": "fitted footprints (BOM, non-DNP, non-board-only)",
+  "resolved": 139,
+  "total": 139
+}

@@ -55,7 +55,18 @@ layout:
   - "Use broad copper across both IN and both OUT lands, place input/output capacitors and ILIM resistor locally, and connect PowerPAD to ground using the advanced-tier filled/capped via process."
 layout_refs:
   - "TI SLVS931B section 12 and Figure 39"
-sourcing: {lcsc: C130056, alternates: [{lcsc: C2150199, mpn: TPS2557DRBT}]}
+sourcing:
+  lcsc: C130056
+  alternates:
+    - {lcsc: C2149775, mpn: TPS2557QDRBTQ1}
+    - {lcsc: C2150199, mpn: TPS2557QDRBRQ1}
+  note: >-
+    C2150199 is the automotive-qualified large-reel TPS2557QDRBRQ1 in the
+    same DRB 8-pin active-high topology and is the sourcing-only v0.1.3
+    selection. C2149775 is the electrically compatible small-reel
+    TPS2557QDRBTQ1 but had insufficient stock at mint time. The earlier
+    non-Q1 DRBT mapping for C2150199 was a catalog-identity error and must not
+    be restored.
 asserts:
   - assert: value
     equals: TPS2557DRBR

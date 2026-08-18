@@ -1,0 +1,22 @@
+{
+  "applicability": "APPLIES",
+  "applicability_reason": null,
+  "elapsed_s": 0.469464264000635,
+  "findings": [],
+  "finished_at": "2026-08-17T21:33:52.319609Z",
+  "graded": 4,
+  "outputs": [
+    "model_registration_bundle"
+  ],
+  "resume": null,
+  "run_id": "20260817T213351Z-b53e6b320a04",
+  "schema": 1,
+  "stage_id": "P-MODEL-REG",
+  "started_at": "2026-08-17T21:33:51.850144Z",
+  "status": "PASS",
+  "subject": {
+    "raw_sha256": "896c0cb72c74a3ddd84b705006f319eab2210c483e8c6defab15b52db3f59d0f",
+    "semantic_sha256": "503c6a10c640397e2b266012fd8d4cef2a1fae603f1e53a239076e3a4960f394"
+  },
+  "total": 4
+}

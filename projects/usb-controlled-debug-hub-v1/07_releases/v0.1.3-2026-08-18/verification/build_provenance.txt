@@ -1,0 +1,3 @@
+M-FRESH audit: 1/1 knobbed board(s) adopted (0 OWED, 0 UNREACHED — all named below; none is a silent skip)
+  ok   usb-controlled-debug-hub-v1: board=usb_controlled_debug_hub tsx=usb_controlled_debug_hub
+M-FRESH PASS: 1/1 knobbed board(s) carry a verified, current build provenance record (0 OWED, floor 0)
