@@ -1,0 +1,81 @@
+{
+  "finished_at": "2026-08-17T21:33:52.311890Z",
+  "inputs": {
+    "contract/model_registration.yaml": {
+      "sha256": "31755338cd2217d0a1510cc22cb7450099da19ddc926b74657ae3ad9775d9f46",
+      "size": 3332
+    },
+    "groups/aggregate_efuse_tps259474lrpwr/bundle.json": {
+      "sha256": "17cc196981ec57d77bfa7172e38fb3dffc52fc71916bd3c0e3007800c338a8dd",
+      "size": 2605
+    },
+    "groups/aggregate_efuse_tps259474lrpwr/model_registration_receipt.json": {
+      "sha256": "d6e6df302c45f2fe252f9c73614a0669f38ec41680edbb3108d00908dc32f4db",
+      "size": 966
+    },
+    "groups/power_terminal_phoenix_1935161/bundle.json": {
+      "sha256": "d6c3cbd75f91659f9c39ab0b8c96f252b73c30b8a2ca24fc50c352f148fc7afa",
+      "size": 2602
+    },
+    "groups/power_terminal_phoenix_1935161/model_registration_receipt.json": {
+      "sha256": "df6aced980d4e623d65e7649153b6201f2c32b61a12a426a7f813418c6725e28",
+      "size": 974
+    },
+    "groups/usb_a_kh_af90dip_112/bundle.json": {
+      "sha256": "a2d248dd7c3762ecfb3b8e8d80305f7867dd9e444ef267410dd69f12c5162aaf",
+      "size": 3328
+    },
+    "groups/usb_a_kh_af90dip_112/model_registration_receipt.json": {
+      "sha256": "c15b8f6895a3aa3e2d299bb2eb5cf4d488df687d81521b0ef4cb53e9eca75ab1",
+      "size": 1823
+    },
+    "groups/usb_b_te_292304_1/bundle.json": {
+      "sha256": "18b5d9f2ebe0cce35881a0e4a90cf5bc20af1b2fe15bba47e492c4cfb546b9dd",
+      "size": 2887
+    },
+    "groups/usb_b_te_292304_1/model_registration_receipt.json": {
+      "sha256": "c86a2c57b691223ef4a0936332db56e2ec80760e3563a490f730434f8fb4abc0",
+      "size": 1024
+    },
+    "legacy/model_registration.md": {
+      "sha256": "9382be6d12e2e34140017c4674e76e74c0d6531ed6f531ceee6316036cee6e29",
+      "size": 1715
+    },
+    "source/board.kicad_pcb": {
+      "sha256": "c5cd719571e216224c83aca142ac84e1f11facdfb48b1bcb771c9d5b97c06e68",
+      "size": 2950600
+    },
+    "tool/model_registration_gate.py": {
+      "sha256": "ba49d87b5887864747c4a2383c8857ec14e38a50260ab8a59377286c32cf73fc",
+      "size": 27892
+    },
+    "tool/native_model_registration.py": {
+      "sha256": "db1fcd117bf2860c0ac3a40cd4c8a55164744079ca5d20889b613e60bf974235",
+      "size": 30171
+    },
+    "tool/twin_overlay.py": {
+      "sha256": "8eb7461c9453c089c1b43d2392eeb8292b40a162c7704169b6f5e5ed98113c75",
+      "size": 57943
+    }
+  },
+  "outputs": {
+    "model_registration.md": {
+      "sha256": "9382be6d12e2e34140017c4674e76e74c0d6531ed6f531ceee6316036cee6e29",
+      "size": 1715
+    },
+    "model_registration_index.json": {
+      "sha256": "a77d4d878f17d46c1947561f4817e9120926f09507a7a6b192ebf2c11ab6dfd9",
+      "size": 4131
+    }
+  },
+  "producer": "model-registration-aggregate",
+  "producer_version": "model-registration-index-v1:ba49d87b5887864747c4a2383c8857ec14e38a50260ab8a59377286c32cf73fc",
+  "run_id": "20260817T213351Z-b53e6b320a04",
+  "schema": 1,
+  "started_at": "2026-08-17T21:33:52.303232Z",
+  "status": "PASS",
+  "subject": {
+    "raw_sha256": "896c0cb72c74a3ddd84b705006f319eab2210c483e8c6defab15b52db3f59d0f",
+    "semantic_sha256": "503c6a10c640397e2b266012fd8d4cef2a1fae603f1e53a239076e3a4960f394"
+  }
+}

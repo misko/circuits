@@ -1,0 +1,12 @@
+(footprint "Phoenix_1935161_PT_1p5_2_5p0_H"
+  (version 20240108) (generator pcbnew) (layer "F.Cu")
+  (descr "Phoenix Contact 1935161 PT 1,5/2-5,0-H")
+  (property "Reference" "REF**" (at 2.5 -5.2 0) (layer "F.SilkS") (effects (font (size 1 1) (thickness 0.15))))
+  (property "Value" "1935161" (at 2.5 6.2 0) (layer "F.Fab") (effects (font (size 1 1) (thickness 0.15))))
+  (attr through_hole)
+  (fp_rect (start -2.75 -4.25) (end 7.75 5.25) (stroke (width 0.05) (type solid)) (fill none) (layer "F.CrtYd"))
+  (fp_rect (start -2.5 -4) (end 7.5 5) (stroke (width 0.1) (type solid)) (fill none) (layer "F.Fab"))
+  (fp_rect (start -2.5 -4) (end 7.5 5) (stroke (width 0.12) (type solid)) (fill none) (layer "F.SilkS"))
+  (pad "1" thru_hole rect (at 0 0) (size 2.2 2.2) (drill 1.3) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole circle (at 5 0) (size 2.2 2.2) (drill 1.3) (layers "*.Cu" "*.Mask"))
+)

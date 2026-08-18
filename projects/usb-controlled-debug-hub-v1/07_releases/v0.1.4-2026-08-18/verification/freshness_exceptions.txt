@@ -1,0 +1,12 @@
+# v0.1.2 is a routing/reference-plane correction of v0.1.1. The exact board
+# changed (72d96f29... -> c5cd7195...), while schematic, component population,
+# placement datum, and purchasing process did not. Every identity below was
+# re-exported or re-rendered from the v0.1.2 source and is therefore an asserted
+# invariant of this change shape, not a copied stale artifact.
+
+pdf/schematic.pdf  IDENTICAL BY DESIGN: source/usb_controlled_debug_hub.kicad_sch is byte-identical to v0.1.1 at sha256 4c070645d54a7246a38ddb54007be31ba216fe96dc6f0dbb861824074b452421; v0.1.2 changes routed copper/reference-plane clearances only and fresh DRC schematic parity is zero.
+fab/bom.csv  IDENTICAL BY DESIGN: freshly exported 33-row BOM sha256 88c9070e733cf3ae7363a88b19d5b63270c28105296c6dfd09e692454ecfd35d; no component, value, footprint, quantity, MPN, or LCSC code changed under the routing-only correction.
+fab/bom_echo_gate.txt  IDENTICAL BY DESIGN: derived from the identical BOM and unchanged exact-code sourcing set; a changed echo checklist would contradict the population invariant.
+fab/cpl.csv  IDENTICAL BY DESIGN: freshly exported 138-row placement table sha256 209a3dad517a0ac8bbc6c5d161b7707dcd8d969ccce03bda92a2217982055a0d; v0.1.2 moved copper only, not a footprint, side, rotation, or assembly datum.
+fab/order_notes.txt  IDENTICAL BY DESIGN: fabrication tier, stackup target, selective-via family, finish, assembly service, and manual-fuse disposition are unchanged by the route correction.
+fab/rotation_human_gate.txt  IDENTICAL BY DESIGN: generated from the byte-identical CPL and unchanged per-LCSC rotation authority; movement would contradict the unchanged 138-placement datum.

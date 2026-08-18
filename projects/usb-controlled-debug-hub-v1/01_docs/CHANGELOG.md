@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.1.4-2026-08-18
+
+- Sealed a sourcing-only supersede with the PCB, normalized Gerbers/drills and
+  138-placement CPL unchanged from v0.1.3.
+- Replaced ten unavailable or unmatched assembly identities, including the
+  exact Nexperia `74LVC08APW,118 / C6053` and TI `TPS2557DRBR / C130056` rows.
+- Added source-bound JLC availability and procurement-economics requests that
+  account for fulfillment path, MOQ, preorder cash, gross surplus cost and
+  assembly minimum excess before part freeze.
+- Design verdict remains PASS. Order verdict is BLOCKED-SOURCING until the
+  exact final BOM is re-uploaded and the schema-v2 JLC receipt accepts both
+  availability and economics. No firmware was generated or included.
+
+## v0.1.3-2026-08-18
+
+- Sealed the first sourcing-only supersede of v0.1.2; later JLC uploader
+  evidence rejected nine rows and failed to match the shortened 74LVC08 MPN.
+- Superseded by v0.1.4; do not use v0.1.3 for a new order.
+
 ## v0.1.2-2026-08-17
 
 - Sealed the first complete routed design release at PCB SHA-256

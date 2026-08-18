@@ -1,0 +1,2 @@
+E-INV OK: 82/82 invariants hold against projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.2-2026-08-17/source/usb_controlled_debug_hub.net
+E-ADR OK: 5/5 protection/topology ADR(s) cited by an invariant (graded against projects/usb-controlled-debug-hub-v1/03_src/rules/electrical_invariants.yaml)

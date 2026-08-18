@@ -1,0 +1,1 @@
+E-OFF N-A: no self-contained energy source detected (source_type: 'external_regulated_5v' (externally powered)) - de-energization is by unplugging the input

@@ -1,0 +1,1480 @@
+{
+  "checks": {
+    "exact_code_identity": {
+      "coverage": {
+        "graded": 139,
+        "total": 139
+      },
+      "detail": "139/139 source component(s) graded",
+      "findings": [],
+      "manual_refs": [
+        "F_IN"
+      ],
+      "rows": [
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C3819953"
+          ],
+          "mpn": null,
+          "ref": "J_PWR",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "manual",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/3568/part.yaml",
+          "jlc_codes": [],
+          "mpn": "3568",
+          "ref": "F_IN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/TPS259474LRPWR/part.yaml",
+          "jlc_codes": [
+            "C2864845"
+          ],
+          "mpn": "TPS259474LRPWR",
+          "ref": "U_AGG",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_AGG_IN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C22807"
+          ],
+          "mpn": null,
+          "ref": "R_AGG_UV_TOP",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25804"
+          ],
+          "mpn": null,
+          "ref": "R_AGG_UV_MID",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C861404"
+          ],
+          "mpn": null,
+          "ref": "R_AGG_OV_BOT",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C110776"
+          ],
+          "mpn": null,
+          "ref": "R_AGG_ILIM",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C107048"
+          ],
+          "mpn": null,
+          "ref": "C_AGG_TIMER",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C107048"
+          ],
+          "mpn": null,
+          "ref": "C_AGG_DVDT",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_TRUNK_HF",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C21397"
+          ],
+          "mpn": null,
+          "ref": "C_TRUNK_BULK",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/16SVPF180M/part.yaml",
+          "jlc_codes": [
+            "C136277"
+          ],
+          "mpn": "16SVPF180M",
+          "ref": "C_TRUNK_USB",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C5248536"
+          ],
+          "mpn": null,
+          "ref": "U_BUCK",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C15269"
+          ],
+          "mpn": null,
+          "ref": "L_MAIN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C19702"
+          ],
+          "mpn": null,
+          "ref": "C_BUCK_IN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_BST",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C21397"
+          ],
+          "mpn": null,
+          "ref": "C_BUCK_OUT1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C21397"
+          ],
+          "mpn": null,
+          "ref": "C_BUCK_OUT2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C86462"
+          ],
+          "mpn": null,
+          "ref": "J_UP",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/PESD2USB3UX-TR/part.yaml",
+          "jlc_codes": [
+            "C3708426"
+          ],
+          "mpn": "PESD2USB3UX-TR",
+          "ref": "U_ESD_UP",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C478081"
+          ],
+          "mpn": null,
+          "ref": "U_HUB",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C1985204"
+          ],
+          "mpn": null,
+          "ref": "Y_HUB",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C138033"
+          ],
+          "mpn": null,
+          "ref": "R_XTAL",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C114760"
+          ],
+          "mpn": null,
+          "ref": "R_RBIAS",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C1549"
+          ],
+          "mpn": null,
+          "ref": "C_XTAL1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C1549"
+          ],
+          "mpn": null,
+          "ref": "C_XTAL2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_A1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_A2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_A3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_A4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C52923"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_A_BULK",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_CR_HF",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C52923"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_CR_BULK",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_DD",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_PLL",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C52923"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_18",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C52923"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_18PLL",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_HUB_RESET",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C52923"
+          ],
+          "mpn": null,
+          "ref": "C_HUB_RESET",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_VBUS_TOP",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_VBUS_BOT",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_CFG0",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_CFG1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_CFG2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_NONREM1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_NONREM0",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_SWAP1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_SWAP2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_SWAP3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_SWAP4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_SWAP5",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_SWAP6",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25741"
+          ],
+          "mpn": null,
+          "ref": "R_SWAP7",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_GANG",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_BOOST0",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_BOOST1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DIS6N",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DIS6P",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DIS7N",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DIS7P",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/TPS2557DRBR/part.yaml",
+          "jlc_codes": [
+            "C130056"
+          ],
+          "mpn": "TPS2557DRBR",
+          "ref": "U_PWR_CTRL",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C2076721"
+          ],
+          "mpn": null,
+          "ref": "R_ILIM_CTRL",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PWR_CTRL_IN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PWR_CTRL_OUT_HF",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C52923"
+          ],
+          "mpn": null,
+          "ref": "C_PWR_CTRL_OUT",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C640876"
+          ],
+          "mpn": null,
+          "ref": "U_CTRL",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_CTRL_VDD",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C19271634"
+          ],
+          "mpn": null,
+          "ref": "C_CTRL_VUSB",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_CTRL_RESET",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25900"
+          ],
+          "mpn": null,
+          "ref": "R_I2C_SCL",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25900"
+          ],
+          "mpn": null,
+          "ref": "R_I2C_SDA",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C558584"
+          ],
+          "mpn": null,
+          "ref": "U_EXP",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_EXP_VDD",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_EXP_RESET",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_PWR_CMD1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_PWR_CMD2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_PWR_CMD3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_PWR_CMD4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_CMD1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_CMD2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_CMD3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_CMD4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/74LVC08APW-118/part.yaml",
+          "jlc_codes": [
+            "C6053"
+          ],
+          "mpn": "74LVC08APW,118",
+          "ref": "U_AND_PWR",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_AND_PWR",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/74LVC08APW-118/part.yaml",
+          "jlc_codes": [
+            "C6053"
+          ],
+          "mpn": "74LVC08APW,118",
+          "ref": "U_AND_DATA",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_AND_DATA",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C11355"
+          ],
+          "mpn": null,
+          "ref": "U_DATA1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_DATA1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_OE1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C85047"
+          ],
+          "mpn": null,
+          "ref": "Q_DATA1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_OK1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/TPS2557DRBR/part.yaml",
+          "jlc_codes": [
+            "C130056"
+          ],
+          "mpn": "TPS2557DRBR",
+          "ref": "U_PWR1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C2076721"
+          ],
+          "mpn": null,
+          "ref": "R_ILIM1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PWR1_IN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PORT1_HF",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C21397"
+          ],
+          "mpn": null,
+          "ref": "C_PORT1_BULK",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_PWR_EN1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/PESD2USB3UX-TR/part.yaml",
+          "jlc_codes": [
+            "C3708426"
+          ],
+          "mpn": "PESD2USB3UX-TR",
+          "ref": "U_ESD1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C503996"
+          ],
+          "mpn": null,
+          "ref": "J_PORT1",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C11355"
+          ],
+          "mpn": null,
+          "ref": "U_DATA2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_DATA2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_OE2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C85047"
+          ],
+          "mpn": null,
+          "ref": "Q_DATA2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_OK2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/TPS2557DRBR/part.yaml",
+          "jlc_codes": [
+            "C130056"
+          ],
+          "mpn": "TPS2557DRBR",
+          "ref": "U_PWR2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C2076721"
+          ],
+          "mpn": null,
+          "ref": "R_ILIM2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PWR2_IN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PORT2_HF",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C21397"
+          ],
+          "mpn": null,
+          "ref": "C_PORT2_BULK",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_PWR_EN2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/PESD2USB3UX-TR/part.yaml",
+          "jlc_codes": [
+            "C3708426"
+          ],
+          "mpn": "PESD2USB3UX-TR",
+          "ref": "U_ESD2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C503996"
+          ],
+          "mpn": null,
+          "ref": "J_PORT2",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C11355"
+          ],
+          "mpn": null,
+          "ref": "U_DATA3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_DATA3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_OE3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C85047"
+          ],
+          "mpn": null,
+          "ref": "Q_DATA3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_OK3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/TPS2557DRBR/part.yaml",
+          "jlc_codes": [
+            "C130056"
+          ],
+          "mpn": "TPS2557DRBR",
+          "ref": "U_PWR3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C2076721"
+          ],
+          "mpn": null,
+          "ref": "R_ILIM3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PWR3_IN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PORT3_HF",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C21397"
+          ],
+          "mpn": null,
+          "ref": "C_PORT3_BULK",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_PWR_EN3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/PESD2USB3UX-TR/part.yaml",
+          "jlc_codes": [
+            "C3708426"
+          ],
+          "mpn": "PESD2USB3UX-TR",
+          "ref": "U_ESD3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C503996"
+          ],
+          "mpn": null,
+          "ref": "J_PORT3",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C11355"
+          ],
+          "mpn": null,
+          "ref": "U_DATA4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_DATA4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_OE4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C85047"
+          ],
+          "mpn": null,
+          "ref": "Q_DATA4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_DATA_OK4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/TPS2557DRBR/part.yaml",
+          "jlc_codes": [
+            "C130056"
+          ],
+          "mpn": "TPS2557DRBR",
+          "ref": "U_PWR4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C2076721"
+          ],
+          "mpn": null,
+          "ref": "R_ILIM4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PWR4_IN",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C60474"
+          ],
+          "mpn": null,
+          "ref": "C_PORT4_HF",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C21397"
+          ],
+          "mpn": null,
+          "ref": "C_PORT4_BULK",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C25744"
+          ],
+          "mpn": null,
+          "ref": "R_PWR_EN4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/PESD2USB3UX-TR/part.yaml",
+          "jlc_codes": [
+            "C3708426"
+          ],
+          "mpn": "PESD2USB3UX-TR",
+          "ref": "U_ESD4",
+          "supplier_handles": []
+        },
+        {
+          "disposition": "jlc",
+          "dossier": null,
+          "jlc_codes": [
+            "C503996"
+          ],
+          "mpn": null,
+          "ref": "J_PORT4",
+          "supplier_handles": []
+        }
+      ],
+      "status": "PASS"
+    },
+    "jlc_pcba_availability": {
+      "detail": "exit 1",
+      "elapsed_s": 0.031534,
+      "output": "  FAIL receipt is stale\nJLC-PCBA RECEIPT FAIL: verdict=INCOMPLETE\n",
+      "status": "FAIL"
+    },
+    "procurement_exposure": {
+      "detail": "exit 1",
+      "elapsed_s": 0.029864,
+      "output": "  FAIL receipt is stale\nJLC-PCBA RECEIPT FAIL: verdict=INCOMPLETE\n",
+      "status": "FAIL"
+    },
+    "source_value_identity": {
+      "detail": "exit 0",
+      "elapsed_s": 0.116906,
+      "output": "circuit-only value check: /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/03_tscircuit/build/circuit.json; vendored: 28 part.yaml codes; ledger: 229 vetted passive codes\nCIRCUIT VALUE CHECK: PASS (every coded R/C catalog value == its tsx value prop)\n",
+      "status": "PASS"
+    }
+  },
+  "coverage": {
+    "passing": 2,
+    "total": 4
+  },
+  "inputs": {
+    "assembly": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/03_src/rules/assembly.yaml",
+      "sha256": "7ff5ff09a9bf9a379067298a5d203ec6773dea3ca92b28f44d8ff1aef53294ca",
+      "size": 3230
+    },
+    "circuit": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/03_tscircuit/build/circuit.json",
+      "sha256": "b3c5a6c6b621722fb57a084207d2b6589875d4be181002dc410e42b9da53b99a",
+      "size": 2529167
+    },
+    "part_000": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/16SVPF180M/part.yaml",
+      "sha256": "baccdfd4919a5fc496694a687c2fd6dec4265ec56dacf73a8ba258fac8e61a4a",
+      "size": 2133
+    },
+    "part_001": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/3568/part.yaml",
+      "sha256": "eee8ceec39fd0e9864b6d65893efbed0e22300583ac56ed95c629ccfb0b6ceca",
+      "size": 3320
+    },
+    "part_002": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/74LVC08APW-118/part.yaml",
+      "sha256": "b3a2f245434fe6cd1653eec7ab5d2863c8a5b8268eff1d591fa44f23b344a6cb",
+      "size": 3147
+    },
+    "part_003": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/PESD2USB3UX-TR/part.yaml",
+      "sha256": "276301041b72f365c14379bc4db4d454f0b833c9a54eb42552a2dae888027638",
+      "size": 3451
+    },
+    "part_004": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/TPS2557DRBR/part.yaml",
+      "sha256": "2946885da98d4372e5a20c223f1f6f0c5e1153e6754e5f57fdf368db59ec2253",
+      "size": 3950
+    },
+    "part_005": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/02_parts/TPS259474LRPWR/part.yaml",
+      "sha256": "3562031942ff641d04df70720efca185ba32dc11fd3aa7f4d3e4d9cf37d5cbc4",
+      "size": 3460
+    },
+    "pcba_receipt": {
+      "path": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v1/06_build/release_staging/v0.1.4-2026-08-18/verification/prelayout_receipt_v2.json",
+      "sha256": "ecb33d13cd8337c2430c307a55f52df11bd9b5ddf5a0baf304981b4de93fe74b",
+      "size": 65478
+    }
+  },
+  "kind": "manufacturing-readiness-receipt-v1",
+  "phase": "prelayout",
+  "project": "usb-controlled-debug-hub-v1",
+  "schema": 1,
+  "verdict": "REJECTED"
+}

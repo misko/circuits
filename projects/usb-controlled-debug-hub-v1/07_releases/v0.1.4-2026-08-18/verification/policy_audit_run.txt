@@ -1,0 +1,1 @@
+usb-controlled-debug-hub-v1: HUMAN=6, N-A=13, PASS=25, WAIVED=2

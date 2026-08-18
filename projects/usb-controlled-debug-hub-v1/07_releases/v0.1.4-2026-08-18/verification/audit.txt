@@ -1,0 +1,43 @@
+EXACT RELEASE INTEGRATED MACHINE AUDIT
+PCB SHA256: c5cd719571e216224c83aca142ac84e1f11facdfb48b1bcb771c9d5b97c06e68
+
+No bespoke 03_src/audit_board.py is present: this is a generic-backend board.
+
+PLACEMENT-GATES PASS
+- 146 footprints / 139 assembled footprint envelopes
+- tightest pad/courtyard-to-outline margin: 0.21 mm (floor 0.15 mm)
+- worst corridor demand/capacity: 15/314 = 0.05 (failure above 0.5)
+- body-clearance denominator: 139; zero close/overlap or foreign-pad findings
+
+P-PADSEP PASS
+- 574 copper pads on 146 footprints
+- 133481 inter-footprint copper-pad comparisons
+- 214306 paste-to-foreign-copper comparisons
+- realized floor: 0.090 mm; zero findings
+
+R-PAIRMAP / R-CRITESC PASS
+- 10/10 declared critical USB pairs connected
+
+MODEL-COVERAGE PASS
+- 139/139 fitted footprints resolve a non-empty 3D body from the reconstructed
+  standalone source tree at source/04_kicad + source/03_src/lib
+
+R-LEN STRICT PASS
+- 6/6 declared groups measured; 12/12 members reached; zero violations
+
+REFERENCE-PLANE PASS
+- B.Cu USB over In2.Cu: zero foreign-track/via violations; nearest projected
+  foreign-track copper edge 0.446800 mm (floor 0.30 mm)
+- F.Cu USB over In1.Cu: zero foreign-track/via violations; nearest projected
+  foreign-track copper edge 10.710828 mm (floor 0.30 mm)
+
+DRC PASS: 0 violations / 0 unconnected / 0 schematic-parity findings.
+ERC BLOCKING PASS: 0 errors. Full baseline: 840 warnings, retained in erc.json.
+PARITY PASS: 0 discrepancies over 104 nets / 472 connected nodes.
+E-INV PASS: 82/82 invariants; E-ADR 5/5.
+V-PROCESS PASS: 526/526 vias; 498 protected 0.46/0.20 mm; 28 ordinary
+0.70/0.35 mm; 87/87 via-in-pad sites graded.
+
+This composite names the exact gate outputs in this verification directory;
+their complete machine reports remain the authority. Human reviews and JLC
+order-time uploader checks remain separate gates.

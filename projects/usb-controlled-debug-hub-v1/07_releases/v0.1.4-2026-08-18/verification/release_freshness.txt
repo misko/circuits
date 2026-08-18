@@ -1,0 +1,10 @@
+== release-freshness: v0.1.2-2026-08-17 ==
+  note: A-STOCK: grading verification/stock_check.json (33 graded line(s), verdict=PASS) against 33 coded+placed BOM line(s) x 5 boards
+  note: A-BUY: measured SOURCING: CLEAR over 33 coded+placed line(s)
+  note: M-REV: 0 graded / 0 redteam*.md present in verification/ (graded = the contract-named redteam_topology.md, redteam_layout.md; others are archived reviews of other versions and are not this release's verdict)
+  DRAFT README: ORDER_README.md:1 contains draft/placeholder marker 'DRAFT': '# USB-controlled debug hub v0.1.2 — DRAFT / DO NOT ORDER'
+  REVIEW-COVERAGE: expected 2/2 contract-named red-team lenses; graded 0/2; missing verification/redteam_topology.md, verification/redteam_layout.md. Zero or partial review coverage is a FAIL, never a skip
+  REVIEW-COVERAGE: expected 2/2 contract-named red-team lenses; graded 0/2; missing verification/redteam_topology.md, verification/redteam_layout.md. Zero or partial review coverage is a FAIL, never a skip
+DESIGN: FAIL (2 finding(s))
+SOURCING: CLEAR + FAIL (1 finding(s))
+FRESHNESS: FAIL (3 finding(s))

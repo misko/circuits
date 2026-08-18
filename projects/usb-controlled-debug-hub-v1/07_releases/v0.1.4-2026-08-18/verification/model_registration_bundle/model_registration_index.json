@@ -1,0 +1,83 @@
+{
+  "groups": [
+    {
+      "id": "aggregate_efuse_tps259474lrpwr",
+      "manifest": "06_build/pre_route/native_registration/aggregate_efuse_tps259474lrpwr/bundle.json",
+      "manifest_sha256": "17cc196981ec57d77bfa7172e38fb3dffc52fc71916bd3c0e3007800c338a8dd",
+      "manifest_size": 2605,
+      "refs": [
+        "U_AGG"
+      ],
+      "tuple": {
+        "contract_sha256": "3dca16ca9aabd9f7b9c4ccdd8f4088f495c8fa4727a89b1e09d3dbd36288d11f",
+        "footprint_sha256": "ce61cccfb3ca10aa97ef7900c276b494396a794bba25dc17de16f34d69e435f9",
+        "model_sha256": "1d13993d4bc9c3a12cd6ad47a92ca3333400eaa650b37a741ece3b40de0b03d7",
+        "tool_identity": "native-model-registration-v4:4b69238476238f34a8b67df988bfbcb42b08004da20b4edad8a912c498bb32c0",
+        "transform_sha256": "6cf53f0e2e5e9c07c31120b0a7392007f28e50daeb9d9b4fabcff69a71234dd2"
+      },
+      "tuple_cache_key": "0cdf1de996546a677443a9567c5f47d9829de3fcc554c236de74d0dbf15cf9fd"
+    },
+    {
+      "id": "power_terminal_phoenix_1935161",
+      "manifest": "06_build/pre_route/native_registration/power_terminal_phoenix_1935161/bundle.json",
+      "manifest_sha256": "d6c3cbd75f91659f9c39ab0b8c96f252b73c30b8a2ca24fc50c352f148fc7afa",
+      "manifest_size": 2602,
+      "refs": [
+        "J_PWR"
+      ],
+      "tuple": {
+        "contract_sha256": "27b7a668f0d7bb8327a4475526cd2074e9589863fd94bd4113e1a806aa3ba0b7",
+        "footprint_sha256": "fd70056228ca7cda5753839ae4fb3e4ce5f35e9f1b1b7d1f685820be26fbef6b",
+        "model_sha256": "2e5d756b7aff398a75c25d85ac06e7af2f908fa9e1c1caa91543a93f2a4dcc91",
+        "tool_identity": "native-model-registration-v4:4b69238476238f34a8b67df988bfbcb42b08004da20b4edad8a912c498bb32c0",
+        "transform_sha256": "42365eba5c71622ebe92e8d5ea53ab4ed73addbcff92a6bc92f94c95a6d0a821"
+      },
+      "tuple_cache_key": "8c9cd286cdf458c1f8cc19b426a86d5c39ca342911256cbc8871a813756ad4a5"
+    },
+    {
+      "id": "usb_a_kh_af90dip_112",
+      "manifest": "06_build/pre_route/native_registration/usb_a_kh_af90dip_112/bundle.json",
+      "manifest_sha256": "a2d248dd7c3762ecfb3b8e8d80305f7867dd9e444ef267410dd69f12c5162aaf",
+      "manifest_size": 3328,
+      "refs": [
+        "J_PORT1",
+        "J_PORT2",
+        "J_PORT3",
+        "J_PORT4"
+      ],
+      "tuple": {
+        "contract_sha256": "b8a52ba90d39b63eaf89ae1d2d7c42fc34bf843684846550248d7cbbba660481",
+        "footprint_sha256": "da58eac0be99cf4556fe17e0eaebf74ee1778925fa7968fd1f728d4eac22354c",
+        "model_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+        "tool_identity": "native-model-registration-v4:4b69238476238f34a8b67df988bfbcb42b08004da20b4edad8a912c498bb32c0",
+        "transform_sha256": "9bd9d6ff79d75611f009c353e87c5179fef9ce48a7fbd1676be4778b2274ebe2"
+      },
+      "tuple_cache_key": "bfcd193267ac3f4e5bdb1c65784ad1c401ec5e400c72de9c2c6babde13c124fb"
+    },
+    {
+      "id": "usb_b_te_292304_1",
+      "manifest": "06_build/pre_route/native_registration/usb_b_te_292304_1/bundle.json",
+      "manifest_sha256": "18b5d9f2ebe0cce35881a0e4a90cf5bc20af1b2fe15bba47e492c4cfb546b9dd",
+      "manifest_size": 2887,
+      "refs": [
+        "J_UP"
+      ],
+      "tuple": {
+        "contract_sha256": "86440a37ca6a2164e3224096ebfe92929e37f13e9f3dfd8226bde084e8cb0b7b",
+        "footprint_sha256": "d0376d4827cfabedd3a3695c3c59d2bd2bad4a71fca82891a0d2763fd15ea091",
+        "model_sha256": "be923a80374c5a6a90134a27872bbe81a51a0768d584b90f4fa041afa309b2cf",
+        "tool_identity": "native-model-registration-v4:4b69238476238f34a8b67df988bfbcb42b08004da20b4edad8a912c498bb32c0",
+        "transform_sha256": "131eacd61c930ecf0ebf0df9203b3caa0985c2b2899885062d9cea07c9aa681f"
+      },
+      "tuple_cache_key": "9d8399c2c1068ab54783be9f30bb90172475c386b6b554101533528b916d25af"
+    }
+  ],
+  "kind": "model-registration-index-v1",
+  "run_id": "20260817T213351Z-b53e6b320a04",
+  "schema": 1,
+  "stage_id": "P-MODEL-REG",
+  "subject": {
+    "raw_sha256": "896c0cb72c74a3ddd84b705006f319eab2210c483e8c6defab15b52db3f59d0f",
+    "semantic_sha256": "503c6a10c640397e2b266012fd8d4cef2a1fae603f1e53a239076e3a4960f394"
+  }
+}
