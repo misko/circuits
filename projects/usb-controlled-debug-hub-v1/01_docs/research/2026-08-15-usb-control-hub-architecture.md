@@ -41,7 +41,7 @@ their PRTPWR and OCS pins remain unconnected. TEST and the unused LED-B pins
 remain unconnected.
 
 The reset network is 10 kOhm to 3V3_MAIN and 1 uF to ground. VBUS_DET senses
-upstream VBUS through a 100 kOhm / 100 kOhm divider and has no conductive path
+upstream VBUS through a 47 kOhm / 100 kOhm divider and has no conductive path
 to the self-powered trunk. RBIAS is exactly 12 kOhm, 1%. The oscillator is an
 exact 24 MHz crystal with a 1 MOhm feedback resistor and two selected 18 pF C0G
 load capacitors.

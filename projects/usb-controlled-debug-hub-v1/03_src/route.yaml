@@ -256,7 +256,7 @@ prep:
       - net: P5V_RAW
         pin: J_PWR.1
         segments:
-          - {layer: F.Cu, width: 1.5, pts: [[25.500, 98.000], [31.000, 98.000], [33.000, 99.000], [37.000, 99.000], [37.000, 102.400]]}
+          - {layer: F.Cu, width: 1.5, pts: [[25.500, 92.500], [31.000, 92.500], [31.000, 97.000], [33.000, 99.000], [37.000, 99.000], [37.000, 102.400]]}
       - net: P5V_FUSED
         pin: F_IN.2
         segments:
@@ -1121,8 +1121,8 @@ route:
   prefix:
     board: 03_src/route/critical_prefix.kicad_pcb
     through_wave: control_misc
-    r0_sha256: 50964297628b20ac886e865c57a7ae467cc3eaeaf1a9dff1905985d36d336ba0
-    board_sha256: 9bd067dd18bb641682e9a1d6ca86856b5884a8ea2e7ad25a7db8828dbaebcdb4
+    r0_sha256: 52772d16eb9c42e6c82aae5282989dd6bbd9277c5712362b17f40009fcf10b47
+    board_sha256: c7a24f8216ea7cd310fa0e1651f41c131160c46bb85794f7c486eeab454a2ca6
   # Authenticate each partial route against physical DRC. Opens, dangling
   # preparation copper and library-context notices remain deferred until
   # stitch; shorts, clearances, widths, holes, edges and USB uncoupled-length

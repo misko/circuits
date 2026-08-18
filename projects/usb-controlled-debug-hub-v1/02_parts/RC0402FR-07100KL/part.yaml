@@ -10,9 +10,9 @@ escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked:
 pins: {1: A, 2: B}
 limits: {resistance: 100kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
 gotchas:
-  - "Used for USB2517I port-swap/configuration straps, the upstream VBUS_DET divider, DMP3007 gate bias, and selected low-current defaults. TPS2557 ILIM uses a separate exact 165kohm part."
+  - "Used for USB2517I port-swap/configuration straps, the lower leg of the upstream VBUS_DET divider, DMP3007 gate bias, and selected low-current defaults. The VBUS_DET upper leg is a separate 47kohm part selected by ADR-0011; TPS2557 ILIM uses a separate exact 165kohm part."
 verified: "Exact YAGEO generated specification independently read for MPN, 100kohm, 1%, 0402 and dimensions on 2026-08-14."
 layout: {source: "Microchip USB2517I checklist plus board reverse-input topology", reviewed: 2026-08-15, notes: ["Place straps and divider legs at their destination pins; place the MOSFET bias directly across source and gate."]}
 sourcing: {lcsc: C60491, alternates: []}
 asserts:
-  - {assert: value, equals: 100k, why: "Hub strap and VBUS_DET divider behavior were reviewed with this exact bias value."}
+  - {assert: value, equals: 100k, why: "Hub strap behavior and the VBUS_DET divider lower-leg value were reviewed with this exact resistance."}

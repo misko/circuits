@@ -132,7 +132,7 @@ placement:
     Q_DATA4: [122.5, 42.0, 0]
 
     # Protected input and 3.3 V buck remain outside USB escape corridors.
-    J_PWR: [25.5, 98.0, 90]
+    J_PWR: [25.5, 92.5, 270]
     F_IN: [37.0, 99.0, 0]
     U_AGG: [52.0, 99.0, 0]
     U_BUCK: [68.0, 91.0, 0]
@@ -365,7 +365,7 @@ zones:
   # relying on nominal-width tracks alone. RAW and FUSED remain compact around
   # the connector/fuse/eFuse cell; PROTECTED drops into a broad south-edge B.Cu
   # spine, away from every USB pair and its adjacent reference plane.
-  - {net: P5V_RAW, layers: [F.Cu], priority: 4, rect: [24.0, 96.0, 38.5, 103.5], connect: full}
+  - {net: P5V_RAW, layers: [F.Cu], priority: 4, rect: [24.0, 91.0, 38.5, 103.5], connect: full}
   - {net: P5V_FUSED, layers: [F.Cu], priority: 5, rect: [45.5, 93.0, 53.5, 103.5], connect: full}
   - {net: P5V_PROTECTED, layers: [F.Cu], priority: 4, rect: [52.5, 94.5, 69.5, 105.0], connect: full}
   - {net: P5V_PROTECTED, layers: [B.Cu], priority: 4, rect: [56.5, 99.5, 141.5, 106.0], connect: full}
@@ -445,12 +445,13 @@ silk:
     - {text: "PORT 3", at: [111.0, 39.0], size: 0.75}
     - {text: "PORT 4", at: [139.0, 39.0], size: 0.75}
     - {text: "UPSTREAM USB", at: [23.0, 57.0], size: 0.70, rot: 90}
-    - {text: "5V INPUT", at: [25.5, 89.0], size: 0.70}
-    # J_PWR is vertical: pad 1 is the lower +5 V input at y=98 mm and pad 2
-    # is the upper ground return at y=93 mm.  Keep polarity explicit on the
-    # assembled board; a generic power label is not sufficient bench guidance.
-    - {text: "+5V", at: [29.0, 98.0], size: 0.70}
-    - {text: "GND", at: [29.0, 93.0], size: 0.70}
+    - {text: "5V INPUT", at: [25.5, 85.5], size: 0.70}
+    # J_PWR is vertical: pad 1 remains the +5 V input at y=92.5 mm and pad 2
+    # is the ground return at y=97.5 mm after the requested 180-degree rotation.
+    # Keep polarity explicit on the assembled board; a generic power label is
+    # not sufficient bench guidance.
+    - {text: "+5V", at: [29.0, 92.5], size: 0.70}
+    - {text: "GND", at: [29.0, 97.5], size: 0.70}
     - {text: "4A FUSE", at: [37.0, 91.0], size: 0.70}
     - ["SELF-POWERED 5.10–5.25 V / 3 A CONT / 5 A 6 ms PEAK", 57.0, 108.0, 0.7]
 

@@ -8,7 +8,7 @@ import { sel } from "tscircuit"
 // could not allocate. Keep the map centralized so the electrical source stays
 // readable and the release delta can prove that only MPN/LCSC identity moved.
 const SOURCING_V014: Record<string, string> = {
-  C481918: "C25741",   // 100k, 1%, 0402
+  C25741: "C25741",    // 100k, 1%, 0402
   C392963: "C60474",   // 100nF, X7R, 16V, 0402
   C843837: "C25744",   // 10k, 1%, 0402
   C2483395: "C2076721", // 165k, 1%, 0402
@@ -350,13 +350,13 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     <C name="C_HUB_18PLL" value="1uF" a="HUB_VDD18PLL" b="GND" jlc="C326568" />
     <R name="R_HUB_RESET" value="10k" a="N3V3_MAIN" b="HUB_RESET_N" jlc="C843837" />
     <C name="C_HUB_RESET" value="1uF" a="HUB_RESET_N" b="GND" jlc="C326568" />
-    <R name="R_VBUS_TOP" value="100k" a="USB_UP_VBUS" b="HUB_VBUS_SENSE" jlc="C481918" />
-    <R name="R_VBUS_BOT" value="100k" a="HUB_VBUS_SENSE" b="GND" jlc="C481918" />
+    <R name="R_VBUS_TOP" value="47k" a="USB_UP_VBUS" b="HUB_VBUS_SENSE" jlc="C25792" />
+    <R name="R_VBUS_BOT" value="100k" a="HUB_VBUS_SENSE" b="GND" jlc="C25741" />
     {[0,1,2].map(n => <R key={`cfg${n}`} name={`R_CFG${n}`} value="10k" a={`HUB_CFG${n}`} b="GND" jlc="C843837" />)}
     <R name="R_NONREM1" value="10k" a="HUB_NONREM1" b="GND" jlc="C843837" />
     <R name="R_NONREM0" value="10k" a="N3V3_MAIN" b="HUB_NONREM0" jlc="C843837" />
-    <R name="R_SWAP1" value="100k" a="HUB_SWAP1" b="N3V3_MAIN" jlc="C481918" />
-    {[2,3,4,5,6,7].map(n => <R key={`sw${n}`} name={`R_SWAP${n}`} value="100k" a={`HUB_SWAP${n}`} b="GND" jlc="C481918" />)}
+    <R name="R_SWAP1" value="100k" a="HUB_SWAP1" b="N3V3_MAIN" jlc="C25741" />
+    {[2,3,4,5,6,7].map(n => <R key={`sw${n}`} name={`R_SWAP${n}`} value="100k" a={`HUB_SWAP${n}`} b="GND" jlc="C25741" />)}
     <R name="R_GANG" value="10k" a="HUB_GANG" b="GND" jlc="C843837" />
     <R name="R_BOOST0" value="10k" a="HUB_BOOST0" b="GND" jlc="C843837" />
     <R name="R_BOOST1" value="10k" a="HUB_BOOST1" b="GND" jlc="C843837" />

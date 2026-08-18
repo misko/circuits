@@ -5963,3 +5963,36 @@ IMP-143 owns experiment retention.
   break during critical-part selection and again over the full preliminary BOM
   before placement. Repeat against final order allocation and quote within the
   receipt freshness window.
+
+## IMP-163 — corner-grade reference-design values before schematic freeze
+
+- status: proposed
+- observed: USB-controlled debug hub pre-order adversarial review, 2026-08-18
+- evidence: the USB2517I hardware checklist's nominal 100 kOhm/100 kOhm
+  `VBUS_DET` example was copied faithfully, yet the combined data-sheet limits
+  show it can produce only 1.851 V at 4.75 V with 1% resistor corners and the
+  specified 10 uA sinking leakage, below `VIH(min)=2.0 V`. The defect survived
+  schematic, PCB, routing, DRC and sourcing gates because each checked
+  conformance to the selected values rather than whether those values met the
+  full electrical envelope.
+- general rule: application-note and reference-design values are candidates,
+  not proven requirements. Before schematic freeze, every threshold, divider,
+  timing network, current limit, regulator setpoint and protection trip point
+  must have a named worst-case equation using supply range, component
+  tolerance, temperature/aging where relevant, and input/output leakage or
+  bias. Both the must-trigger and must-not-trigger corners need positive
+  margins.
+- intended landing point: extend the pre-layout design-math contract with a
+  small declarative `corner_checks` section. Bind each check to source refs,
+  nets, exact values, authoritative min/max limits and an ADR. Fail schematic
+  freeze when a threshold-class network has no check, a denominator is empty,
+  a cited value is nominal-only, or either corner has non-positive margin.
+  Re-evaluate automatically whenever a bound value or part identity changes.
+- simple regression cases: the original 100 kOhm/100 kOhm USB2517I divider
+  must fail the low-VBUS/leakage corner; the corrected 47 kOhm/100 kOhm divider
+  must pass both `VIH(min)` and absolute input maximum; a nominally passing
+  resistor divider with omitted leakage must fail coverage; changing either
+  resistor in the source without updating the check must fail freshness.
+- recommendation: P0 for power, reset, enable, UV/OV, current-limit and digital
+  threshold networks. Run after part selection but before placement, then bind
+  the exact result into final topology review and release evidence.

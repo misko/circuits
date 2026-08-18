@@ -101,6 +101,13 @@ invariants:
     net: USB_UP_VBUS
     adr: "0002"
     why: Upstream VBUS is sense-only and must not be tied to the self-powered 5 V trunk.
+  - {assert: pin_on_net, pin: "R_VBUS_TOP.1", net: USB_UP_VBUS, adr: "0011", why: "the VBUS detector upper leg must sense only the detachable upstream connector VBUS"}
+  - {assert: pin_on_net, pin: "R_VBUS_TOP.2", net: HUB_VBUS_SENSE, adr: "0011", why: "the upper divider leg must terminate at USB2517I VBUS_DET"}
+  - {assert: pin_on_net, pin: "R_VBUS_BOT.1", net: HUB_VBUS_SENSE, adr: "0011", why: "the lower divider leg must terminate at USB2517I VBUS_DET"}
+  - {assert: pin_on_net, pin: "R_VBUS_BOT.2", net: GND, adr: "0011", why: "the lower divider leg must return to ground"}
+  - {assert: pin_on_net, pin: "U_HUB.44", net: HUB_VBUS_SENSE, adr: "0011", why: "USB2517I VBUS_DET must observe the tolerance-checked upstream divider"}
+  - {assert: part_value, part: R_VBUS_TOP, equals: 47k, tolerance_pct: 1, adr: "0011", why: "with the 100kohm lower leg this guarantees VBUS_DET high at 4.5V despite resistor tolerance and 10uA sink leakage"}
+  - {assert: part_value, part: R_VBUS_BOT, equals: 100k, tolerance_pct: 1, adr: "0011", why: "with the 47kohm upper leg this bounds leakage and VBUS_DET voltage across the 4.5V to 5.5V input range"}
   - assert: net_has_part
     net: P5V_PROTECTED
     part_type: capacitor
