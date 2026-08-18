@@ -165,8 +165,11 @@ dossiers and source. Before part freeze, run the manufacturing-selection
 receipt and confirm critical/footprint-driving codes in JLCPCB's PCBA
 interface. LCSC catalog stock is only a candidate signal. After a complete
 preliminary BOM exists and before placement spend, grade a quantity-expanded
-`prelayout` JLC PCBA receipt. These prevention gates never replace the final
-exact-BOM `order` allocation receipt.
+`prelayout` JLC PCBA receipt. Bind the receipt to the project's explicit
+procurement policy and grade preorder cash, gross MOQ surplus cost, and
+nonrecoverable assembly excess cost separately from raw surplus quantity.
+These prevention gates never replace the final exact-BOM `order` allocation
+and quote receipt.
 
 ## Schematic
 

@@ -3,6 +3,23 @@
 
 import { sel } from "tscircuit"
 
+// v0.1.4 sourcing-only supersede. These substitutions preserve the reviewed
+// value and footprint while replacing v0.1.3 rows that the JLCPCB uploader
+// could not allocate. Keep the map centralized so the electrical source stays
+// readable and the release delta can prove that only MPN/LCSC identity moved.
+const SOURCING_V014: Record<string, string> = {
+  C481918: "C25741",   // 100k, 1%, 0402
+  C392963: "C60474",   // 100nF, X7R, 16V, 0402
+  C843837: "C25744",   // 10k, 1%, 0402
+  C2483395: "C2076721", // 165k, 1%, 0402
+  C326568: "C52923",   // 1uF, X5R, 25V, 0402
+  C55530: "C21397",    // 22uF, X7R, 25V, 1210
+  C342849: "C107048",  // 3.3nF, C0G, 5%, 0603
+  C482193: "C25900",   // 4.7k, 1%, 0402
+}
+
+const sourcingV014 = (code: string) => SOURCING_V014[code] ?? code
+
 const TwoSided = ({ pins, pitch = 0.65, span = 5.4 }: { pins: number; pitch?: number; span?: number }) => {
   const half = Math.ceil(pins / 2)
   return <footprint>
@@ -181,14 +198,15 @@ const schProps = (name: string) => {
 }
 
 const R = ({ name, value, a, b, jlc, fp = "0402" }: any) => <resistor name={name} resistance={value} footprint={fp}
-  {...schProps(name)} supplierPartNumbers={{ jlcpcb: [jlc] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
+  {...schProps(name)} supplierPartNumbers={{ jlcpcb: [sourcingV014(jlc)] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
 const C = ({ name, value, a, b, jlc, fp = "0402", studyX, studyY }: any) => <capacitor name={name} capacitance={value} footprint={fp}
   {...schProps(name)}
   {...(studyX !== undefined ? { pcbX: `${studyX}mm`, pcbY: `${studyY}mm` } : {})}
-  supplierPartNumbers={{ jlcpcb: [jlc] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
+  supplierPartNumbers={{ jlcpcb: [sourcingV014(jlc)] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
 
 const Tps2557 = ({ name, en, out, fault, ilim, cin, coutHf, coutBulk, studyX }: any) => <group name={`${name}_cell`}>
-  <chip name={name} supplierPartNumbers={{ jlcpcb: ["C2150199"] }} footprint={<Tps2557Fp />}
+  <chip name={name} manufacturerPartNumber="TPS2557DRBR"
+    supplierPartNumbers={{ jlcpcb: ["C130056"] }} footprint={<Tps2557Fp />}
     {...schProps(name)}
     pinLabels={{ pin1: "GND", pin2: "IN1", pin3: "IN2", pin4: "EN", pin5: "ILIM", pin6: "OUT1", pin7: "OUT2", pin8: "FAULT_N", pin9: "EP" }}
     connections={{ pin1: "net.GND", pin2: "net.P5V_PROTECTED", pin3: "net.P5V_PROTECTED", pin4: `net.${en}`, pin5: `net.${ilim}`, pin6: `net.${out}`, pin7: `net.${out}`, pin8: `net.${fault}`, pin9: "net.GND" }} />
@@ -372,12 +390,14 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
   </group>
 
   <group name="hardware_interlocks" pcbX="150mm" pcbY="0mm">
-    <chip name="U_AND_PWR" supplierPartNumbers={{ jlcpcb: ["C54411084"] }} footprint={<TwoSided pins={14} />}
+    <chip name="U_AND_PWR" manufacturerPartNumber="74LVC08APW,118"
+      supplierPartNumbers={{ jlcpcb: ["C6053"] }} footprint={<TwoSided pins={14} />}
       {...schProps("U_AND_PWR")}
       pinLabels={{ pin1:"1A",pin2:"1B",pin3:"1Y",pin4:"2A",pin5:"2B",pin6:"2Y",pin7:"GND",pin8:"3Y",pin9:"3A",pin10:"3B",pin11:"4Y",pin12:"4A",pin13:"4B",pin14:"VCC" }}
       connections={{ pin1:"net.HUB_PRTPWR2",pin2:"net.PWR_CMD1",pin3:"net.PWR_EN1",pin4:"net.HUB_PRTPWR3",pin5:"net.PWR_CMD2",pin6:"net.PWR_EN2",pin7:"net.GND",pin8:"net.PWR_EN3",pin9:"net.HUB_PRTPWR4",pin10:"net.PWR_CMD3",pin11:"net.PWR_EN4",pin12:"net.HUB_PRTPWR5",pin13:"net.PWR_CMD4",pin14:"net.N3V3_MAIN" }} />
     <C name="C_AND_PWR" value="100nF" a="N3V3_MAIN" b="GND" jlc="C392963" />
-    <chip name="U_AND_DATA" supplierPartNumbers={{ jlcpcb: ["C54411084"] }} footprint={<TwoSided pins={14} />}
+    <chip name="U_AND_DATA" manufacturerPartNumber="74LVC08APW,118"
+      supplierPartNumbers={{ jlcpcb: ["C6053"] }} footprint={<TwoSided pins={14} />}
       {...schProps("U_AND_DATA")}
       pinLabels={{ pin1:"1A",pin2:"1B",pin3:"1Y",pin4:"2A",pin5:"2B",pin6:"2Y",pin7:"GND",pin8:"3Y",pin9:"3A",pin10:"3B",pin11:"4Y",pin12:"4A",pin13:"4B",pin14:"VCC" }}
       connections={{ pin1:"net.PWR_EN1",pin2:"net.DATA_CMD1",pin3:"net.DATA_OK1",pin4:"net.PWR_EN2",pin5:"net.DATA_CMD2",pin6:"net.DATA_OK2",pin7:"net.GND",pin8:"net.DATA_OK3",pin9:"net.PWR_EN3",pin10:"net.DATA_CMD3",pin11:"net.DATA_OK4",pin12:"net.PWR_EN4",pin13:"net.DATA_CMD4",pin14:"net.N3V3_MAIN" }} />

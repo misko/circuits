@@ -1,0 +1,14 @@
+schema: 1
+currency: USD
+
+# No preorder or assembly-minimum expenditure is authorized implicitly. Raise
+# a limit only after reviewing the exact JLC cart/quote and gross surplus cost.
+limits:
+  max_line_preorder_cash: 0
+  max_total_preorder_cash: 0
+  max_line_surplus_cost: 0
+  max_total_surplus_cost: 0
+  max_total_assembly_excess_cost: 0
+
+warnings:
+  surplus_ratio: 20

@@ -1979,6 +1979,14 @@ def check_pcba_availability(release_dir, evidence):
         return fails, notes, _ungraded_sourcing("incomplete JLCPCB PCBA receipt")
     blocked = sorted({str(row.get("requested_lcsc") or "") for row in rows
                       if row.get("status") == "FAIL"})
+    aggregate_failed = any(
+        row.get("status") == "FAIL" and row.get("lcsc") == "<aggregate>"
+        for row in receipt.get("findings") or [])
+    if aggregate_failed:
+        blocked.append("PROCUREMENT_AGGREGATE")
+    if receipt.get("verdict") == "REJECTED" and not blocked:
+        blocked.append("JLC_PCBA_RECEIPT")
+    blocked = sorted(set(blocked))
     dates = sorted({str(row.get("checked_at") or "")[:10] for row in rows
                     if row.get("checked_at")})
     status = "BLOCKED" if blocked else "CLEAR"

@@ -175,6 +175,7 @@ rationale.
 | IMP-159 | Make route replay regenerate or select an immutable segment-free base | proposed | USB-controlled debug hub route repair replay |
 | IMP-160 | Grade projected reference-plane interruptions on every declared adjacent plane | implemented | USB-controlled debug hub final electrical review |
 | IMP-161 | Separate catalog stock, PCBA availability and final allocation | implemented | USB-controlled debug hub sourcing backtrack |
+| IMP-162 | Grade MOQ exposure by gross surplus cost and cash outlay before layout | implemented | USB-controlled debug hub JLC preorder review |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -5927,3 +5928,38 @@ IMP-143 owns experiment retention.
 - recommendation: keep the operator checkpoint bounded: emit request/template,
   pause once, and resume from saved evidence. Recheck final allocation within
   24 hours of order rather than polling volatile inventory during design.
+
+## IMP-162 — grade MOQ exposure by gross surplus cost and cash outlay before layout
+
+- status: implemented
+- observed: USB-controlled debug hub JLC preorder review, 2026-08-18
+- evidence: JLC displayed `C25804` with public stock above seven million but a
+  preorder MOQ of 1,195. Raw MOQ alone makes a cheap Basic resistor look risky,
+  while a much smaller MOQ on an expensive IC can create materially greater
+  exposure. The schema-v1 PCBA receipt recorded only exact code, status and
+  quantity, so it could not distinguish public-stock use from a preorder or
+  grade the money stranded by surplus inventory.
+- general rule: distinguish public stock, My Parts, preorder, global sourcing
+  and consignment. Grade preorder cash outlay, gross surplus part cost and
+  nonrecoverable assembly-minimum excess cost independently. Raw surplus count
+  and ratio are diagnostic only. Never credit speculative future reuse, and
+  never infer a financial limit for the user.
+- landed implementation: `jlc_pcba_availability.py` schema v2 binds one saved
+  operator response to an explicit `procurement-policy.yaml`, uses decimal
+  currency arithmetic, and emits independent availability/economics verdicts
+  plus per-line and aggregate exposure. `manufacturing_readiness.py` composes
+  both predicates at selection, prelayout and order phases. The project and
+  template policies default every monetary limit to zero; public-stock/My
+  Parts rows explicitly marked `NO_MINIMUM_COST` remain unaffected.
+  `release_freshness_check.py` treats an aggregate cost rejection as blocked
+  sourcing rather than allowing an empty failed-component set to read CLEAR.
+  Historical schema-v1 receipts remain reproducible but cannot satisfy the new
+  economics predicate.
+- completion evidence: `t1_pcba_availability.py` covers stocked Basic parts
+  with large irrelevant preorder MOQ, cheap and expensive high-MOQ preorders,
+  aggregate cash limits, assembly excess cost, unknown economics, tampering,
+  relocation, final sourcing authority and schema-v1 compatibility.
+- recommendation: capture the actual cart/quote subtotal at the selected price
+  break during critical-part selection and again over the full preliminary BOM
+  before placement. Repeat against final order allocation and quote within the
+  receipt freshness window.

@@ -21,8 +21,23 @@ import release_freshness_check as freshness  # noqa: E402
 NOW = datetime(2026, 8, 18, 12, 0, tzinfo=timezone.utc)
 
 
+def policy_file(root, *, line_cash="0", total_cash="0", line_surplus="0",
+                total_surplus="0", assembly_excess="0"):
+    path = root / "procurement-policy.yaml"
+    path.write_text(
+        "schema: 1\ncurrency: USD\nlimits:\n"
+        f"  max_line_preorder_cash: {line_cash}\n"
+        f"  max_total_preorder_cash: {total_cash}\n"
+        f"  max_line_surplus_cost: {line_surplus}\n"
+        f"  max_total_surplus_cost: {total_surplus}\n"
+        f"  max_total_assembly_excess_cost: {assembly_excess}\n"
+        "warnings:\n  surplus_ratio: 20\n", encoding="utf-8")
+    return path
+
+
 def fixture(*, phase="prelayout", status="AVAILABLE", resolved="C100",
-            available="20", checked="2026-08-18T11:00:00Z"):
+            available="20", checked="2026-08-18T11:00:00Z",
+            economics=None, limits=None):
     root = tmpdir("pcba_")
     bom = root / "bom.csv"
     bom.write_text(
@@ -30,7 +45,9 @@ def fixture(*, phase="prelayout", status="AVAILABLE", resolved="C100",
         "10k,R1,R_0402,C100\n"
         "10k,R2,R_0402,C100\n"
         "1uF,C1,C_0402,C200\n", encoding="utf-8")
+    policy = policy_file(root, **(limits or {}))
     request = pcba.prepare(bom, build_quantity=5, phase=phase,
+                           procurement_policy=policy,
                            generated_at=NOW)
     request_path = root / "request.json"
     request_path.write_text(json.dumps(request), encoding="utf-8")
@@ -38,14 +55,24 @@ def fixture(*, phase="prelayout", status="AVAILABLE", resolved="C100",
     with response.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=pcba.RESPONSE_FIELDS)
         writer.writeheader()
+        base = {"Fulfillment": "PUBLIC_STOCK",
+                "Economic Status": "NO_MINIMUM_COST",
+                "Public Stock Qty": available, "My Parts Qty": "0",
+                "Attrition Qty": "0", "MOQ": "0", "Order Multiple": "0",
+                "Preorder Purchase Qty": "0", "Preorder Part Subtotal": "0",
+                "Preorder Fees": "0", "Assembly Charged Qty": "0",
+                "Assembly Part Subtotal": "0", "Currency": "USD"}
+        first = {**base, **(economics or {})}
         writer.writerow({"Requested LCSC": "C100", "Resolved LCSC": resolved,
                          "PCBA Status": status, "Available Qty": available,
-                         "Checked At": checked, "Evidence": "JLC upload row 1"})
+                         "Checked At": checked, "Evidence": "JLC upload row 1",
+                         **first})
         writer.writerow({"Requested LCSC": "C200", "Resolved LCSC": "C200",
                          "PCBA Status": ("ALLOCATED" if phase == "order" else
                                          "AVAILABLE"),
                          "Available Qty": "10", "Checked At": checked,
-                         "Evidence": "JLC upload row 2"})
+                         "Evidence": "JLC upload row 2",
+                         **{**base, "Public Stock Qty": "10"}})
     receipt = pcba.grade(request_path, response, max_age_hours=24, now=NOW)
     receipt_path = root / "receipt.json"
     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
@@ -77,8 +104,9 @@ def t_circuit_source_and_manual_exclusion():
     assembly.write_text(
         "not_assembled:\n  - refs: [F1]\n    reason: user_supplied\n",
         encoding="utf-8")
-    request = pcba.prepare(circuit, build_quantity=3, phase="prelayout",
-                           assembly=assembly, generated_at=NOW)
+    request = pcba.prepare(
+        circuit, build_quantity=3, phase="prelayout", assembly=assembly,
+        procurement_policy=policy_file(root), generated_at=NOW)
     eq([row["requested_lcsc"] for row in request["rows"]], ["C100"],
        "PCBA population set")
     eq(request["excluded_refs"], ["F1"], "manual exclusion")
@@ -134,6 +162,126 @@ def t_stale():
           "stale diagnosis missing")
 
 
+@test("stocked basic part ignores preorder MOQ when no preorder is used")
+def t_stocked_basic_moq_is_zero_exposure():
+    _, _, _, _, receipt, _ = fixture(
+        available="7154521",
+        economics={"Public Stock Qty": "7154521", "MOQ": "1195"})
+    row = next(row for row in receipt["rows"]
+               if row["requested_lcsc"] == "C100")
+    eq(receipt["economics_verdict"], "ACCEPTED", "economic verdict")
+    eq(row["economics"]["preorder_surplus_qty"], 0, "surplus quantity")
+    eq(row["economics"]["preorder_surplus_cost"], "0.000000",
+       "surplus cost")
+
+
+@test("cheap high-MOQ preorder is graded by gross surplus cost")
+def t_cheap_preorder():
+    _, _, _, _, receipt, _ = fixture(
+        economics={
+            "Fulfillment": "PREORDER", "Economic Status": "QUOTED",
+            "Public Stock Qty": "0", "MOQ": "1195", "Order Multiple": "1",
+            "Preorder Purchase Qty": "1195",
+            "Preorder Part Subtotal": "1.195", "Preorder Fees": "0"},
+        limits={"line_cash": "2", "total_cash": "2",
+                "line_surplus": "2", "total_surplus": "2"})
+    row = next(row for row in receipt["rows"]
+               if row["requested_lcsc"] == "C100")
+    eq(receipt["economics_verdict"], "ACCEPTED", "cheap preorder verdict")
+    eq(row["economics"]["preorder_surplus_qty"], 1185, "surplus quantity")
+    eq(row["economics"]["preorder_surplus_cost"], "1.185000",
+       "gross surplus cost")
+
+
+@test("expensive high-MOQ preorder fails monetary policy", kind="known_bad")
+def t_expensive_preorder():
+    _, _, _, _, receipt, _ = fixture(
+        economics={
+            "Fulfillment": "PREORDER", "Economic Status": "QUOTED",
+            "Public Stock Qty": "0", "MOQ": "1195", "Order Multiple": "1",
+            "Preorder Purchase Qty": "1195",
+            "Preorder Part Subtotal": "298.75", "Preorder Fees": "0"},
+        limits={"line_cash": "50", "total_cash": "50",
+                "line_surplus": "50", "total_surplus": "50"})
+    eq(receipt["economics_verdict"], "REJECTED", "expensive MOQ verdict")
+    row = next(row for row in receipt["rows"]
+               if row["requested_lcsc"] == "C100")
+    check("surplus cost" in row["economics_detail"],
+          "monetary rejection did not name surplus cost")
+
+
+@test("aggregate preorder cash limit catches individually acceptable line",
+      kind="known_bad")
+def t_aggregate_preorder_limit():
+    _, _, _, _, receipt, _ = fixture(
+        economics={
+            "Fulfillment": "PREORDER", "Economic Status": "QUOTED",
+            "Public Stock Qty": "0", "MOQ": "20", "Order Multiple": "1",
+            "Preorder Purchase Qty": "20",
+            "Preorder Part Subtotal": "2", "Preorder Fees": "0"},
+        limits={"line_cash": "3", "total_cash": "1",
+                "line_surplus": "3", "total_surplus": "3"})
+    eq(receipt["economics_verdict"], "REJECTED", "aggregate cash verdict")
+    check(any("aggregate preorder_cash_outlay" in row["detail"]
+              for row in receipt["findings"]), "aggregate finding absent")
+
+
+@test("assembly minimum excess is costed separately", kind="known_bad")
+def t_assembly_excess_cost():
+    _, _, _, _, receipt, _ = fixture(
+        economics={
+            "Economic Status": "QUOTED", "MOQ": "1195",
+            "Assembly Charged Qty": "1195",
+            "Assembly Part Subtotal": "1.195"},
+        limits={"assembly_excess": "1"})
+    eq(receipt["economics_verdict"], "REJECTED", "assembly excess verdict")
+    row = next(row for row in receipt["rows"]
+               if row["requested_lcsc"] == "C100")
+    eq(row["economics"]["assembly_excess_cost"], "1.185000",
+       "nonrecoverable assembly excess cost")
+
+
+@test("unknown minimum-cost economics is incomplete", kind="known_bad")
+def t_unknown_economics():
+    _, _, _, _, receipt, _ = fixture(
+        economics={"Economic Status": "UNKNOWN"})
+    eq(receipt["economics_verdict"], "INCOMPLETE", "unknown cost verdict")
+
+
+@test("historical schema-v1 availability receipt remains reproducible")
+def t_v1_backward_compatibility():
+    root = tmpdir("pcba_v1_")
+    bom = root / "bom.csv"
+    bom.write_text(
+        "Comment,Designator,Footprint,LCSC\n10k,R1,R_0402,C100\n",
+        encoding="utf-8")
+    request = {
+        "schema": 1, "kind": pcba.REQUEST_KIND_V1, "phase": "prelayout",
+        "authority_required": "jlcpcb_pcba_interface",
+        "required_status": "AVAILABLE", "generated_at": NOW.isoformat(),
+        "build_quantity": 5, "subject": pcba._record(bom),
+        "subject_role": "bom", "assembly": None, "excluded_refs": [],
+        "coverage": {"graded": 1, "total": 1},
+        "rows": [{"requested_lcsc": "C100", "designators": ["R1"],
+                  "per_board_qty": 1, "required_qty": 5}],
+    }
+    request_path = root / "request.json"
+    request_path.write_text(json.dumps(request), encoding="utf-8")
+    response = root / "response.csv"
+    with response.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=pcba.RESPONSE_FIELDS_V1)
+        writer.writeheader()
+        writer.writerow({"Requested LCSC": "C100", "Resolved LCSC": "C100",
+                         "PCBA Status": "AVAILABLE", "Available Qty": "5",
+                         "Checked At": "2026-08-18T11:00:00Z",
+                         "Evidence": "historical uploader row"})
+    receipt = pcba.grade(request_path, response, max_age_hours=24, now=NOW)
+    receipt_path = root / "receipt.json"
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    valid, failures, _ = pcba.verify_receipt(receipt_path, bom=bom, now=NOW)
+    check(valid and not failures, f"schema-v1 receipt regressed: {failures}")
+
+
 @test("post-grade response mutation invalidates the receipt", kind="known_bad")
 def t_response_mutation():
     _, bom, _, response, _, receipt_path = fixture()
@@ -142,6 +290,22 @@ def t_response_mutation():
     check(not valid and any("response evidence moved or changed" in item
                             for item in failures),
           f"mutated operator evidence was accepted: {failures}")
+
+
+@test("embedded financial limits cannot disagree with saved policy",
+      kind="known_bad")
+def t_embedded_policy_tamper():
+    root, _, request, response, _, _ = fixture()
+    request["procurement_policy_value"]["limits"][
+        "max_total_preorder_cash"] = "999999.000000"
+    request_path = root / "request.json"
+    request_path.write_text(json.dumps(request), encoding="utf-8")
+    rejected = False
+    try:
+        pcba.grade(request_path, response, max_age_hours=24, now=NOW)
+    except ValueError as exc:
+        rejected = "embedded procurement policy disagrees" in str(exc)
+    check(rejected, "forged embedded financial limits were accepted")
 
 
 @test("hand-edited receipt verdict cannot override saved JLC evidence",
@@ -168,6 +332,8 @@ def t_relocated_bundle():
     bundle.mkdir()
     for source in (request, response, receipt_path):
         shutil.copy2(source, bundle / source.name)
+    shutil.copy2(root / "procurement-policy.yaml",
+                 bundle / "procurement-policy.yaml")
     request.unlink()
     response.unlink()
     valid, failures, _ = pcba.verify_receipt(
@@ -198,6 +364,28 @@ def t_release_blocked_authority():
     check(not failures, f"valid blocked measurement became malformed: {failures}")
     eq(state["status"], "BLOCKED", "blocked sourcing state")
     eq(state["blocked"], ["C100"], "blocked exact code")
+
+
+@test("aggregate MOQ-cost rejection cannot report sourcing CLEAR",
+      kind="known_bad")
+def t_release_aggregate_cost_blocked():
+    root, bom, _, _, _, receipt_path = fixture(
+        phase="order", status="ALLOCATED",
+        economics={
+            "Fulfillment": "PREORDER", "Economic Status": "QUOTED",
+            "Public Stock Qty": "0", "MOQ": "20", "Order Multiple": "1",
+            "Preorder Purchase Qty": "20",
+            "Preorder Part Subtotal": "2", "Preorder Fees": "0"},
+        limits={"line_cash": "3", "total_cash": "1",
+                "line_surplus": "3", "total_surplus": "3"})
+    release = root / "release"
+    (release / "fab").mkdir(parents=True)
+    (release / "fab/bom.csv").write_bytes(bom.read_bytes())
+    failures, _, state = freshness.check_pcba_availability(release, receipt_path)
+    check(not failures, f"valid aggregate rejection became malformed: {failures}")
+    eq(state["status"], "BLOCKED", "aggregate procurement state")
+    check("PROCUREMENT_AGGREGATE" in state["blocked"],
+          "aggregate cost blocker missing")
 
 
 @test("missing final JLC receipt is UNGRADED, never CLEAR", kind="known_bad")
@@ -234,9 +422,11 @@ def t_non_overwriting_pause():
         encoding="utf-8")
     request = root / "request.json"
     response = root / "response.csv"
+    policy = policy_file(root)
     response.write_text("operator work in progress\n", encoding="utf-8")
     rc = pcba.main(["prepare", str(bom), "--build-quantity", "5",
                     "--phase", "prelayout", "--out", str(request),
+                    "--procurement-policy", str(policy),
                     "--response-template", str(response)])
     eq(rc, 2, "non-overwriting prepare exit")
     eq(response.read_text(), "operator work in progress\n",

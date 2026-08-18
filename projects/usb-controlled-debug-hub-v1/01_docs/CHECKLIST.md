@@ -67,6 +67,12 @@ mergeable.
       `verification/stock_check.json` (`jlc_stock_check.py --json`): a missing or
       unparseable verdict is a FAIL, not a skip (five sealed releases shipped a `FAIL:`
       last line, one with the board's own CPU at stock 0)
+- [ ] J-PCBA-PRELAYOUT: before placement/routing, every preliminary BOM line
+      has current JLCPCB `AVAILABLE` evidence and schema-v2 economics bound to
+      `01_docs/sourcing/procurement-policy.yaml`; preorder cash, gross MOQ
+      surplus cost, and nonrecoverable assembly excess cost are within limits.
+- [ ] J-PCBA-FINAL: before payment, every exact staged BOM line is `ALLOCATED`
+      and the final quote re-passes the same per-line and aggregate limits.
 
 - [ ] BRIEF.md: every acceptance criterion `met` (with evidence link) or `dropped` citing a user D#/Q# — never release with an `unmet` criterion
 - [ ] BRIEF.md prompt hash verifies — note `head -c -1`: the FINAL NEWLINE is `sed`'s terminator, not part of the prompt, and the commission hashes it stripped (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | head -c -1 | sha256sum`)

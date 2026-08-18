@@ -24,6 +24,15 @@
 # every projects/ + archived_projects/ fab BOM; cross-checked against the fleet
 # labels — exactly two mismatches found, both real defects (C2933210, C2933195).
 
+# USB controlled debug hub v0.1.4 sourcing-only substitutions. Exact-code JLC
+# catalog rows were captured in 06_build/sourcing/v014-candidate on 2026-08-18;
+# the user subsequently reported that the candidate BOM matched in the JLCPCB
+# uploader except for the separately corrected C54411084 logic-gate row.
+C107048: {mpn: CC0603JRNPO9BN332, value: "3.3nF", verified: "2026-08-18 JLC/LCSC exact-code row: YAGEO CC0603JRNPO9BN332, 3.3nF 50V C0G/NP0 +/-5%, 0603"}
+C21397: {mpn: GRM32ER71E226KE15L, value: "22uF", verified: "2026-08-18 JLC/LCSC exact-code row: Murata GRM32ER71E226KE15L, 22uF 25V X7R +/-10%, 1210"}
+C60474: {mpn: CC0402KRX7R7BB104, value: "100nF", verified: "2026-08-18 JLC/LCSC exact-code row: YAGEO CC0402KRX7R7BB104, 100nF 16V X7R +/-10%, 0402"}
+C2076721: {mpn: ERJ2RKF1653X, value: "165k", verified: "2026-08-18 JLC/LCSC exact-code row: Panasonic ERJ2RKF1653X, 165k 1% 50V, 0402"}
+
 C1523: {mpn: 0402B102K500NT, value: "1nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C1525: {mpn: CL05B104KO5NNNC, value: "100nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C1538: {mpn: 0402B472K500NT, value: "4.7nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}

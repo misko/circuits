@@ -67,10 +67,13 @@ mergeable.
       identity/stock as a cheap negative filter. Its PASS is not JLCPCB PCBA
       availability and cannot produce `SOURCING: CLEAR`.
 - [ ] J-PCBA-PRELAYOUT: the quantity-expanded preliminary BOM has an exact,
-      current `AVAILABLE` receipt from JLCPCB before placement/routing.
+      current `AVAILABLE` receipt from JLCPCB before placement/routing, bound
+      to an explicit procurement policy; preorder cash, gross MOQ surplus cost,
+      and assembly excess cost are within per-line and aggregate limits.
 - [ ] J-PCBA-FINAL: the exact staged `fab/bom.csv` has a current order-phase
       receipt with every line `ALLOCATED`; substitutions, insufficient quantity,
-      stale/hash-mismatched evidence, and checklist-only evidence fail closed.
+      stale/hash-mismatched evidence, excess-cost rejection, and checklist-only
+      evidence fail closed.
 
 - [ ] BRIEF.md: every acceptance criterion `met` (with evidence link) or `dropped` citing a user D#/Q# — never release with an `unmet` criterion
 - [ ] BRIEF.md prompt hash verifies — note `head -c -1`: the FINAL NEWLINE is `sed`'s terminator, not part of the prompt, and the commission hashes it stripped (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | head -c -1 | sha256sum`)

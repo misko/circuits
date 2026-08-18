@@ -214,6 +214,7 @@ if [ ! -f "$PCBA_RECEIPT" ]; then
     if [ ! -f "$PCBA_REQUEST" ] && [ ! -f "$PCBA_RESPONSE" ]; then
         $PY "$FS/jlc_pcba_availability.py" prepare "$CJ" \
             --assembly 03_src/rules/assembly.yaml \
+            --procurement-policy 01_docs/sourcing/procurement-policy.yaml \
             --build-quantity "$BUILD_QUANTITY" --phase prelayout \
             --out "$PCBA_REQUEST" --response-template "$PCBA_RESPONSE" \
             || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: could not prepare exact JLC request"; exit 1; }

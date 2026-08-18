@@ -5,9 +5,10 @@ Selection mode runs before part freeze and proves that every source component
 has exactly one JLC code or an explicit unassembled/manual disposition, that
 every declared MPN resolves to one exact dossier, and that the existing part-
 facts and source-value gates pass.  Prelayout mode additionally requires a
-quantity-expanded JLCPCB PCBA availability receipt.  Order mode requires a
-fresh ALLOCATED receipt for the exact release BOM instead of treating catalog
-stock or an earlier AVAILABLE result as permanent.
+quantity-expanded JLCPCB PCBA receipt whose availability and procurement-cost
+predicates both pass. Order mode requires a fresh ALLOCATED receipt and quote
+for the exact release BOM instead of treating catalog stock, raw MOQ, or an
+earlier AVAILABLE result as permanent.
 """
 from __future__ import annotations
 
@@ -60,7 +61,8 @@ def _run(label: str, command: list[str], cwd: Path) -> dict[str, Any]:
 
 
 def _pcba_check(receipt: Path | None, *, phase: str,
-                bom: Path | None = None) -> dict[str, Any]:
+                bom: Path | None = None,
+                predicate: str = "availability") -> dict[str, Any]:
     if receipt is None:
         return {"status": "INCOMPLETE",
                 "detail": f"{phase} requires --pcba-receipt",
@@ -77,9 +79,24 @@ def _pcba_check(receipt: Path | None, *, phase: str,
     except Exception as exc:
         return {"status": "INCOMPLETE", "detail": f"receipt unreadable: {exc}",
                 "output": checked.get("output", "")}
-    if data.get("verdict") != "ACCEPTED":
-        checked["status"] = "FAIL" if data.get("verdict") == "REJECTED" else "INCOMPLETE"
-        checked["detail"] = f"JLCPCB PCBA receipt verdict {data.get('verdict')}"
+    if predicate == "availability":
+        verdict = data.get("availability_verdict", data.get("verdict"))
+    elif predicate == "economics":
+        verdict = data.get("economics_verdict")
+        if verdict is None:
+            checked.update(
+                status="INCOMPLETE",
+                detail="legacy PCBA receipt has no procurement economics",
+                output="schema-v2 MOQ/cost evidence and policy are required")
+            return checked
+    else:
+        return {"status": "INCOMPLETE", "detail": f"unknown predicate {predicate}",
+                "output": ""}
+    if verdict != "ACCEPTED":
+        checked["status"] = "FAIL" if verdict == "REJECTED" else "INCOMPLETE"
+        checked["detail"] = f"JLCPCB PCBA {predicate} verdict {verdict}"
+    else:
+        checked["detail"] = f"JLCPCB PCBA {predicate} accepted"
     return checked
 
 
@@ -186,9 +203,17 @@ def grade(project: Path, *, phase: str, release: Path | None = None,
         if pcba_receipt.is_file():
             inputs["pcba_receipt"] = _record(pcba_receipt)
 
+    if phase == "selection":
+        checks["jlc_pcba_availability"] = _pcba_check(
+            pcba_receipt, phase="selection", predicate="availability")
+        checks["procurement_exposure"] = _pcba_check(
+            pcba_receipt, phase="selection", predicate="economics")
+
     if phase == "prelayout":
         checks["jlc_pcba_availability"] = _pcba_check(
-            pcba_receipt, phase="prelayout")
+            pcba_receipt, phase="prelayout", predicate="availability")
+        checks["procurement_exposure"] = _pcba_check(
+            pcba_receipt, phase="prelayout", predicate="economics")
 
     if phase == "order":
         if release is None or not release.is_dir():
@@ -211,7 +236,11 @@ def grade(project: Path, *, phase: str, release: Path | None = None,
              str(release), "--parts", str(project / "02_parts"), "--strict"],
             project)
         checks["jlc_order_allocation"] = _pcba_check(
-            pcba_receipt, phase="order", bom=release / "fab/bom.csv")
+            pcba_receipt, phase="order", bom=release / "fab/bom.csv",
+            predicate="availability")
+        checks["order_procurement_exposure"] = _pcba_check(
+            pcba_receipt, phase="order", bom=release / "fab/bom.csv",
+            predicate="economics")
         checks["order_time_sourcing"] = _run(
             "order-time sourcing",
             ["/usr/bin/python3", str(SCRIPTS / "release_freshness_check.py"),

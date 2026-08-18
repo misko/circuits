@@ -68,6 +68,7 @@ routing, prepare and grade the quantity-expanded probe:
 ```text
 jlc_pcba_availability.py prepare 03_tscircuit/build/circuit.json \
   --assembly 03_src/rules/assembly.yaml --build-quantity N \
+  --procurement-policy 01_docs/sourcing/procurement-policy.yaml \
   --phase prelayout --out 06_build/sourcing/prelayout_request.json \
   --response-template 06_build/sourcing/prelayout_response.csv
 # Upload/check in JLCPCB and fill the exact response rows from its UI/export.
@@ -90,6 +91,23 @@ Fill the generated columns exactly. `Requested LCSC` is immutable;
 `Evidence` names the saved uploader row/export/screenshot. The checker
 recomputes the receipt from these saved bytes, so editing its verdict has no
 effect.
+
+Schema-v2 responses also require an explicit fulfillment/economic disposition.
+Use `PUBLIC_STOCK|MY_PARTS|PREORDER|GLOBAL_SOURCING|CONSIGN` and
+`NO_MINIMUM_COST|QUOTED|UNKNOWN`. Capture public/My Parts quantities,
+attrition, MOQ, order multiple, actual preorder purchase quantity, exact quoted
+part subtotal and fees, and any assembly charged quantity/subtotal. Use the
+cart/quote subtotal at the actual purchase break; never multiply a search-card
+price. `NO_MINIMUM_COST` is an explicit assertion with zero purchase/minimum
+charge values, not a blank shortcut. Missing economics is `INCOMPLETE`.
+
+The receipt grades availability and economics independently. For preorders it
+reports both total cash outlay and **gross surplus cost**; raw surplus count and
+ratio are diagnostic only. It separately reports nonrecoverable assembly excess
+cost because JLC assembly minimum/attrition units may be charged and discarded
+rather than retained in My Parts. Only an explicit durable policy may authorize
+nonzero per-line and aggregate exposure. Speculative future reuse never reduces
+gross surplus cost.
 
 Before an order claim, repeat against the exact staged `fab/bom.csv` with
 `--phase order`. Every line must read `ALLOCATED`, not merely `AVAILABLE`, and

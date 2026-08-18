@@ -18,6 +18,8 @@ or publication procedure.
 - Prove every population exception through one assembly-policy source.
 - Treat catalog stock as advisory; require JLCPCB PCBA availability/allocation
   receipts at their lifecycle boundaries.
+- Bind those receipts to explicit procurement limits and grade preorder cash,
+  gross MOQ surplus cost, and nonrecoverable assembly excess cost.
 - Enforce measured per-LCSC rotation authority before CPL export (`A-ROT`).
 - Build the digital twin from JLC's CAD and exact CPL coordinates.
 - Prove mounted-body and same-camera render coverage before human review.
@@ -129,7 +131,7 @@ project documents.
 | `bom_source_check.py` | Per-refdes source identity |
 | `bom_legibility_check.py` | Recipient parsing and `F-ECHO` |
 | `jlc_stock_check.py` | Advisory LCSC catalog observation |
-| `jlc_pcba_availability.py` | Quantity-expanded JLCPCB availability/allocation request and hash-bound receipt |
+| `jlc_pcba_availability.py` | Quantity-expanded JLCPCB availability/allocation and MOQ-cost request/receipt |
 | `manufacturing_readiness.py` | Selection, prelayout and final-order sourcing composition |
 | `assembly_coverage.py` | Independent board-minus-CPL population coverage |
 | `jlc_rotation_measure.py` / `jlc_rotation_audit.py` | Measured rotation authority |
