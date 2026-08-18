@@ -73,6 +73,16 @@ Copy files; never symlink. Run a standalone-archive open/replot/DRC rehearsal
 before sealing so absolute model/library paths and mutated archive source are
 caught while the release is still staging.
 
+Initialize the declaration before staging gates consume it:
+
+```text
+release_rehearsal.py init 07_releases/<version>-<date>
+```
+
+The command refuses to overwrite a manifest and writes a loud DRAFT,
+DO-NOT-ORDER skeleton from the staged board and authoritative assembly
+disposition. It is not a seal.
+
 The definitive required file set and two-commit seal procedure live only in
 `skills/pcb-design/templates/contracts/07_releases/contracts.md`. Do not create
 a second seal algorithm here.
@@ -89,7 +99,8 @@ order_verdict: ORDER | FIRST-ARTICLE-ONLY | DO-NOT-ORDER | BLOCKED-SOURCING
 ```
 
 The seal reads `design_verdict`; order paperwork reads `order_verdict` and
-cross-checks it against measured sourcing state. Prose is not a verdict.
+cross-checks it against a fresh, exact-BOM JLCPCB `ALLOCATED` receipt. Catalog
+stock is advisory and cannot support `ORDER`. Prose is not a verdict.
 Archive accepted witnesses verbatim under `08_reviews/` with subject hashes and
 copy the contract-named witnesses into staged verification.
 
@@ -98,6 +109,21 @@ order and P2 items in the disposition ledger. An external review is evidence,
 not permission to waive machine failures.
 
 ## 5. Seal immutably
+
+Immediately before the normative two-commit procedure, run the same
+publication-internal contract against mutable staging:
+
+```text
+release_rehearsal.py rehearse 07_releases/<version>-<date>
+release_rehearsal.py seal 06_build/release_rehearsal/<release>.json \
+  --output 06_build/release_rehearsal/<release>-seal-admission.json
+```
+
+Rehearsal composes required-release content, design/sourcing freshness and the
+publication contract using `pcb_publication_gate.py --release`. Its receipt is
+stored outside staging to avoid a self-referential manifest. Seal admission
+refuses a rejected, incomplete, or byte-stale rehearsal and never commits or
+publishes on the operator's behalf.
 
 Follow the release contract's normative two-commit procedure:
 
@@ -151,6 +177,6 @@ Report:
 
 Use precise readiness language. `DRC 0/0/0`, a generated board, a fab export,
 or a manifest proves only its own stage. If uploader previews, stackup values,
-stock, or first-article evidence remain, state `DO-NOT-ORDER`,
+final allocation, or first-article evidence remain, state `DO-NOT-ORDER`,
 `FIRST-ARTICLE-ONLY`, or `BLOCKED-SOURCING` as appropriate rather than calling
 the board production-ready.

@@ -5,6 +5,7 @@
 Nothing asked "is every required file present?" until this gate. Three releases
 were caught by that absence on 2026-07-26 — see release_required_check.py.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -100,6 +101,12 @@ def t_exporter_emits_contract_names():
     fab = d / "fabout"
     must_pass(run([KPY, EXPORT, str(USB_BOARD), str(fab), "--layers", "4"]),
               "export_jlc_package (real board)")
+    artifact_index = fab / "artifact_index.json"
+    check(artifact_index.is_file(),
+          "exporter wrote no authoritative artifact_index.json")
+    roles = set(json.loads(artifact_index.read_text())["roles"])
+    check({"gerber_archive", "bom", "cpl", "drill"} <= roles,
+          f"artifact index is missing required roles: {sorted(roles)}")
 
     rel = fixture(missing=("fab/bom.csv", "fab/cpl.csv"))
     for name in ("bom.csv", "cpl.csv"):

@@ -6,7 +6,8 @@
 
 Plain python3 (no pcbnew needed). BOM columns: Comment,Designator,Footprint,LCSC.
 
-THE VERDICT LINE IS THE GATE (canon A-STOCK). Five sealed releases in this
+THE VERDICT LINE IS THE CATALOG GATE (legacy canon A-STOCK). It is a cheap
+candidate filter, never JLCPCB PCBA availability or allocation. Five sealed releases in this
 fleet ship stock evidence whose last line says FAIL — one with the board's own
 CPU at stock 0 — because nothing ever parsed it, and the fleet ships THREE
 incompatible evidence formats (this script's stdout, its `--out` CSV report,
@@ -97,8 +98,8 @@ ap.add_argument("--candidates", type=int, default=3)
 ap.add_argument("--out", default="")
 ap.add_argument("--json", default="",
                 help="machine-readable sidecar (per-line status/stock + an "
-                     "explicit verdict) — the format the A-STOCK release gate "
-                     "grades; ship it as verification/stock_check.json")
+                     "explicit catalog verdict); legacy releases ship it as "
+                     "verification/stock_check.json")
 args = ap.parse_args()
 
 rows = list(csv.DictReader(open(args.bom, encoding="utf-8-sig")))

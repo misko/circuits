@@ -81,6 +81,22 @@ def t_unsealed_hub_is_refused():
     contains(r.out, "1 project(s), 1 board(s) graded", "coverage denominator")
 
 
+@test("mutable rehearsal cannot borrow a release from another project",
+      kind="known_bad")
+def t_staging_release_scope_is_refused():
+    root = tmpdir("pub_release_scope_")
+    project = root / "projects/demo"
+    board = project / "04_kicad/demo.kicad_pcb"
+    board.parent.mkdir(parents=True)
+    board.write_text("(kicad_pcb)\n")
+    foreign = root / "projects/other/06_build/release_staging/v1"
+    foreign.mkdir(parents=True)
+    errors, selected = pg.grade_board(
+        project, board, "HEAD", root, False, foreign)
+    check(selected == foreign.resolve(), "scope refusal lost the supplied subject")
+    contains("\n".join(errors), "RELEASE-SCOPE", "cross-project diagnosis")
+
+
 def _review_text(project, board_hash):
     return (f"subject: {project}\n"
             "design_verdict: SOUND\n"

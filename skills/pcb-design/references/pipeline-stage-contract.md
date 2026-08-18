@@ -192,9 +192,12 @@ Readiness composition consumes only strict `stage-receipt-v1` mappings plus
 their accepted bundles. A receipt is admissible when its stage is applicable,
 passing, expected for the current lifecycle/profile, bound to the current
 semantic and raw subject hashes, and all named outputs reopen through their
-bundle manifests. During migration this computation is shadow-only: the
-legacy findings ledger remains execution authority until canary equivalence is
-separately approved.
+bundle manifests. `project_state.py --readiness-authority shadow` preserves the
+legacy findings-ledger decision while recording the receipt comparison.
+`--readiness-authority receipts` promotes the closed receipt registry to the
+decision, and `agreement` additionally refuses a mismatch with the retained
+legacy projection. Authority is selected explicitly per project; a domain JSON
+report alone never advances maturity.
 
 Each schema-1 readiness-registry stage also declares `minimum_total`: a
 positive expected coverage floor for `APPLIES`, or exactly zero for
@@ -227,24 +230,38 @@ review-header parser.
 
 ## Lifecycle facts
 
-Mutable or realized facts use paired observations:
+Mutable or realized facts use paired observations. Supplier evidence has three
+different meanings and must never be coerced into one verdict:
+
+- `catalog_identity` / `catalog_stock`: candidate discovery and negative
+  filtering only; never final authority;
+- `pcba_availability`: quantity-expanded, BOM-bound JLCPCB PCBA-interface
+  evidence used before placement;
+- `order_allocation`: final JLCPCB order-interface evidence for the exact
+  release BOM and order quantity.
+
+The authoritative pair is:
 
 ```yaml
-fact: stock_allocation
+fact: pcba_orderability
 early:
-  stage: sourcing
-  blocks: schematic
+  stage: schematic
+  blocks: placement
   maximum_age_s: 86400
 late:
   stage: fabrication
-  blocks: first_article
-  authority: jlc_uploader
+  blocks: publication
+  authority: jlcpcb_order_interface
 ```
 
-The early observation prevents avoidable spend. It never satisfies the late
-claim. The late failure points back to the owning earlier decision.
+The early `AVAILABLE` observation prevents avoidable layout spend. It never
+satisfies the late claim. Only late `ALLOCATED` evidence authorizes `ORDER`;
+its failure points back to the owning earlier selection decision. Missing,
+partial, stale, changed-BOM, substituted, or unknown evidence is `INCOMPLETE`,
+never a pass. A sound design may retain a blocked order verdict without
+weakening its design verdict.
 
-Required first pairs are stock, supplier model availability, via/current
+Required first pairs are PCBA orderability, supplier model availability, via/current
 capacity, generated evidence, live/relocated DRC and review/publication
 identity.
 
@@ -280,7 +297,7 @@ Parallel implementers own new modules and focused tests only. The integration
 coordinator exclusively edits `SKILL.md`, `rebuild_all.sh`, `pcb_flow.py`, the
 central registry/test runner and `improvements.md`.
 
-## Shadow implementation status
+## Receipt implementation and migration status
 
 The schema-1 foundation is available under `skills/pcb-design/scripts/`:
 
@@ -293,7 +310,7 @@ The schema-1 foundation is available under `skills/pcb-design/scripts/`:
 - `pipeline_artifacts.py` — fresh validated bundle staging and atomic
   manifest-last promotion.
 - `pipeline_readiness.py` — strict closed receipt registries, coverage floors,
-  subject/freshness/bundle validation and non-authoritative maturity
+  subject/freshness/bundle validation and shadow or authoritative maturity
   composition;
 - `pipeline_review.py` — bounded commissions and exact durable-witness
   admissibility;
@@ -309,8 +326,8 @@ The schema-1 foundation is available under `skills/pcb-design/scripts/`:
 - `pipeline_xtrace.py` — a dedicated-channel Bash trace parser that maps only
   declared source-line commands and preserves unmapped executable evidence.
 
-These modules are shadow infrastructure, not permission to bypass an existing
-gate or publication path. A producer is migrated only after its adapter has a
+These modules do not bypass an existing gate or publication path. A producer
+is migrated only after its adapter has a
 clean and known-bad fixture and its observed plan/result/artifacts agree on
 both canary projects.
 
@@ -321,9 +338,13 @@ uses origin-centred, exact-tuple per-group caches plus one aggregate bundle
 whose run and subject match its strict `StageResult`; the aggregate reopens
 through `pipeline_readiness.py` for both single- and multi-group fixtures.
 `project_state.py --receipt-registry` records receipt-derived maturity and its
-comparison with the legacy ledger but does not alter the legacy verdict or
-exit status. Stock, routed-review, twin and release-staging migrations, real
-project readiness registries and authority promotion remain open.
+comparison with the legacy ledger in default shadow mode. Projects may opt
+into `--readiness-authority receipts` after their closed registry and bundles
+pass clean, missing, stale, tampered, low-denominator and disagreement
+fixtures. Route acceptance, placement-routability, manufacturing readiness and
+release rehearsal emit hash-bound domain receipts; wrapping them in the frozen
+`StageResult`/accepted-bundle transaction remains the adoption boundary, not a
+second verdict schema.
 
 The first disposable reuse-driver observation on 2026-08-12 did not agree:
 USB Hub 3S v4 stopped after about 11.4 seconds at stale/missing pre-route review

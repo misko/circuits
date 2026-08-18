@@ -73,12 +73,14 @@ A SEAL MAKES TWO CLAIMS AND THIS GATE USED TO HAVE ONE FIELD FOR BOTH
     | claim                        | who can answer it            |
     |------------------------------|------------------------------|
     | *this design is correct*     | the design gates, at SEAL time |
-    | *this design is orderable*   | the CATALOG, at ORDER time     |
+    | *this design is orderable*   | JLCPCB allocation, at ORDER time |
 
   Every other check here grades an artifact WE CONTROL, so a red means *there
   exists an edit to this design that turns it green* and blocking the seal is
-  right. **A-STOCK grades the WORLD.** It reads a vendor's live `stockCount` —
-  0 on 2026-07-29, 5 on 2026-07-30, on the same unchanged board — and NO EDIT
+  right. Historically **A-STOCK graded the WORLD** through catalog
+  `stockCount`; that mode remains only for sealed-release compatibility. One
+  reading moved from 0 on 2026-07-29 to 5 on 2026-07-30 on the same unchanged
+  board, and NO EDIT
   TO THE DESIGN CHANGES IT. Measured cost of merging the two claims into one
   verdict: smc0985-cooksense v1.7 reached DRC 0/0/0, `policy_audit` FAIL=0,
   ERC 0, E-INV 167/167, both red-team lenses graded — and NINE successive
@@ -160,10 +162,11 @@ A SEAL MAKES TWO CLAIMS AND THIS GATE USED TO HAVE ONE FIELD FOR BOTH
       not say ORDER on a release measured BLOCKED, nor BLOCKED-SOURCING on one
       measured CLEAR.
 
-  ORDER-TIME RE-GRADE. A sealed release is immutable, so the sourcing question
-  is re-asked from OUTSIDE it: `--claim sourcing --stock-evidence FRESH.json`
-  grades ONLY the sourcing claim, against today's catalog reading, without
-  touching the archive. That is where the question is answerable.
+  ORDER-TIME RE-GRADE. New pipelines use `--claim sourcing
+  --sourcing-authority jlc-pcba --pcba-evidence RECEIPT.json`. Only a fresh,
+  exact-BOM, quantity-expanded `ALLOCATED` receipt may clear the order claim.
+  `--stock-evidence` and the default `catalog-legacy` authority remain solely
+  so historical sealed releases retain their original interpretation.
 
 Usage:
     release_freshness_check.py <release_dir> [--releases-root DIR]
@@ -171,6 +174,9 @@ Usage:
                                [--allow-identical RELPATH ]...
     release_freshness_check.py <release_dir> [--claim design|sourcing|both]
                                [--stock-evidence FRESH.json]
+    release_freshness_check.py <release_dir> --claim sourcing
+                               --sourcing-authority jlc-pcba
+                               --pcba-evidence RECEIPT.json
     release_freshness_check.py <release_dir> --docs-only-supersede PRIOR_DIR
     release_freshness_check.py <release_dir> --legible-bom-supersede PRIOR_DIR
     release_freshness_check.py <release_dir> --sourcing-supersede PRIOR_DIR
@@ -1939,6 +1945,71 @@ def check_stock(release_dir, assembly, evidence_override=None):
     return fails, notes, sourcing
 
 
+def check_pcba_availability(release_dir, evidence):
+    """Grade final JLCPCB order allocation for the exact release BOM.
+
+    LCSC catalog stock is deliberately absent from this decision.  A valid
+    REJECTED receipt is a measured BLOCKED sourcing state; missing, stale,
+    partial, moved, or hash-mismatched evidence is UNGRADED and fails closed.
+    """
+    fails, notes = [], []
+    if not evidence:
+        fails.append(
+            "  PCBA-NO-EVIDENCE: sourcing authority is jlc-pcba but no "
+            "--pcba-evidence receipt was supplied — catalog stock cannot "
+            "authorize a JLCPCB assembly order")
+        return fails, notes, _ungraded_sourcing("no JLCPCB PCBA receipt")
+    path = Path(evidence).resolve()
+    try:
+        from jlc_pcba_availability import verify_receipt
+        valid, problems, receipt = verify_receipt(
+            path, bom=release_dir / "fab/bom.csv", required_phase="order")
+    except Exception as exc:
+        valid, problems, receipt = False, [str(exc)], {}
+    if not valid:
+        for problem in problems:
+            fails.append(f"  PCBA-EVIDENCE-INVALID: {problem}")
+        return fails, notes, _ungraded_sourcing("invalid JLCPCB PCBA receipt")
+    rows = receipt.get("rows") or []
+    incomplete = [row for row in rows if row.get("status") == "INCOMPLETE"]
+    if receipt.get("verdict") == "INCOMPLETE" or incomplete:
+        fails.append(
+            f"  PCBA-EVIDENCE-INCOMPLETE: {len(incomplete)} line(s) are "
+            "unresolved; an incomplete uploader capture is not an order fact")
+        return fails, notes, _ungraded_sourcing("incomplete JLCPCB PCBA receipt")
+    blocked = sorted({str(row.get("requested_lcsc") or "") for row in rows
+                      if row.get("status") == "FAIL"})
+    dates = sorted({str(row.get("checked_at") or "")[:10] for row in rows
+                    if row.get("checked_at")})
+    status = "BLOCKED" if blocked else "CLEAR"
+    notes.append(
+        f"  note: J-PCBA-FINAL: {path} measures {status} over "
+        f"{len(rows)}/{len(rows)} exact line(s); authority="
+        f"{receipt.get('authority')}; catalog stock is advisory only")
+    return fails, notes, {
+        "graded": True, "status": status, "why": "", "planned": [],
+        "blocked": blocked, "measured_on": max(dates, default=None),
+        "n_lines": len(rows), "n_graded": len(rows),
+    }
+
+
+def _contract_sourcing_authority(release_dir):
+    """Select the declared project contract without changing old releases."""
+    candidates = [release_dir / "MANIFEST.txt",
+                  release_dir.parent / "contracts.md"]
+    candidates.extend(parent / "07_releases/contracts.md"
+                      for parent in release_dir.parents)
+    for path in candidates:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8-sig", errors="replace")
+        match = re.search(r"^sourcing_authority:\s*([a-z0-9-]+)\s*$",
+                          text, re.M)
+        if match:
+            return match.group(1)
+    return "catalog-legacy"
+
+
 # --------------------------------------------------------------- check (f)
 # A-BUY — a release that is NOT ORDERABLE may seal, and only out loud.
 #
@@ -2084,7 +2155,7 @@ def check_order_declaration(release_dir, sourcing):
     if age is not None and age < 0:
         # THE MEASUREMENT POSTDATES THE SEAL. `sourcing_plan:` lives in
         # `03_src/`, which keeps moving, so every sealed release of a board is
-        # re-graded against TODAY'S catalog reading — and 07_releases is
+        # re-graded against a later sourcing reading — and 07_releases is
         # IMMUTABLE, so an archive can never be made to declare a fact
         # discovered after it was written. Reporting the status is right (that
         # is what an order-time re-grade is for); FAILING the archive for not
@@ -2094,7 +2165,7 @@ def check_order_declaration(release_dir, sourcing):
             f"{-age} day(s) AFTER this release ({rel_date}) — the archive is "
             f"immutable and could not have declared it. Status reported, "
             f"declaration NOT required; re-grade at order time with "
-            f"--claim sourcing --stock-evidence")
+            f"--claim sourcing with fresh authority evidence")
         return fails, notes
     if age is not None and age > _STOCK_MEASUREMENT_MAX_AGE_DAYS:
         fails.append(
@@ -2410,11 +2481,11 @@ def main(argv=None):
                     help="which of the seal's TWO claims to grade. `design` = "
                          "is the artifact correct (every gate that grades "
                          "something we control); `sourcing` = can it be "
-                         "bought (A-STOCK + A-BUY + the lens order "
+                         "bought (J-PCBA/A-BUY + the lens order "
                          "verdicts). They are graded and exit-coded "
                          "independently because they are answered by "
                          "different authorities at different times — the "
-                         "design gates at SEAL time, the catalog at ORDER "
+                         "design gates at SEAL time, JLCPCB allocation at ORDER "
                          "time")
     ap.add_argument("--stock-evidence", default=None, metavar="FRESH.json",
                     help="ORDER-TIME re-grade: read the stock evidence from "
@@ -2423,6 +2494,15 @@ def main(argv=None):
                          "the only honest way to re-ask the sourcing question "
                          "later is from outside it. Pair with "
                          "--claim sourcing")
+    ap.add_argument("--sourcing-authority",
+                    choices=("auto", "catalog-legacy", "jlc-pcba"),
+                    default="auto",
+                    help="order-readiness authority. catalog-legacy preserves "
+                         "historical releases; auto reads the project release "
+                         "contract; new contracts declare jlc-pcba")
+    ap.add_argument("--pcba-evidence", default=None, metavar="RECEIPT.json",
+                    help="hash-bound order-phase JLCPCB PCBA allocation "
+                         "receipt; required with --sourcing-authority jlc-pcba")
     ap.add_argument("--assembly", default="",
                     help="03_src/rules/assembly.yaml (auto-discovered from "
                          "the release path) — supplies build_quantity and the "
@@ -2435,6 +2515,11 @@ def main(argv=None):
         return 2
     releases_root = (Path(args.releases_root).resolve()
                      if args.releases_root else release_dir.parent)
+    if args.sourcing_authority == "auto":
+        args.sourcing_authority = _contract_sourcing_authority(release_dir)
+    if args.sourcing_authority == "jlc-pcba" and not args.pcba_evidence:
+        args.pcba_evidence = str(
+            release_dir / "verification/pcba_order_receipt.json")
 
     allow, bad_exceptions = _load_exceptions(release_dir)
     for rel in args.allow_identical:
@@ -2547,8 +2632,17 @@ def main(argv=None):
         kf, kn, srcstate = check_stock(
             release_dir, _load_assembly(release_dir, args.assembly),
             evidence_override=args.stock_evidence)
-        sfails += kf
+        if args.sourcing_authority == "catalog-legacy":
+            sfails += kf
+        else:
+            notes += ["  note: A-CATALOG advisory only: " + finding.strip()
+                      for finding in kf]
         notes += kn
+    if args.sourcing_authority == "jlc-pcba":
+        pf, pn, srcstate = check_pcba_availability(
+            release_dir, args.pcba_evidence)
+        sfails += pf
+        notes += pn
     if not args._disable_order:
         of, on = check_order_declaration(release_dir, srcstate)
         sfails += of

@@ -39,7 +39,7 @@ def pair_in_groups(raw, p, n):
     return any(g == [p, n] or g == [n, p] for g in groups)
 
 
-def length_contract_pairs(project):
+def length_contract_pairs(project, nets_path=None):
     """Derive the critical-pair denominator from the independent rules file.
 
     A self-declared preflight list cannot prove its own completeness. Every
@@ -48,7 +48,8 @@ def length_contract_pairs(project):
     End-to-end groups with multiple segments contribute each suffix-matched
     segment once.
     """
-    path = project / "03_src/rules/nets.yaml"
+    path = Path(nets_path) if nets_path is not None else \
+        project / "03_src/rules/nets.yaml"
     if not path.is_file():
         return set()
     doc = load(path)
@@ -87,8 +88,10 @@ def connected(board, netname):
                          else f"unconnected pads {missing}")
 
 
-def check(project, board_path, require_connected=False):
-    route_path = project / "03_src" / "route.yaml"
+def check(project, board_path, require_connected=False, *, route_path=None,
+          nets_path=None):
+    route_path = (Path(route_path) if route_path is not None else
+                  project / "03_src" / "route.yaml")
     if not route_path.exists():
         die(f"missing {route_path}")
     cfg = load(route_path)
@@ -193,7 +196,7 @@ def check(project, board_path, require_connected=False):
                     realized_findings.append(
                         f"R-CRITESC {name}/{net}: copper on forbidden layers {bad}")
         notes.append(f"{name} {p}/{n} -> {wave_name} on {wave_layers}, no_vias={no_vias}")
-    missing = sorted(length_contract_pairs(project) - declared_pairs)
+    missing = sorted(length_contract_pairs(project, nets_path) - declared_pairs)
     if missing:
         die("R-PAIRMAP critical-pair inventory omits length_match pair(s): "
             + ", ".join(f"{p}/{n}" for p, n in missing))

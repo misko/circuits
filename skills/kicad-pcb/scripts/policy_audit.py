@@ -189,23 +189,23 @@ GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A", "UNGRADED")
 # never been measured cannot have regressed — and picks up a bound the first
 # time someone records one. That declared gap is the honest price of never
 # failing a board for existing.
-PREC_GRADED_FLOOR = 36   # in-scope parts carrying a TIER-GRADED precedent
-                         # record, FLEET-WIDE. Raised 30 -> 36 on 2026-08-13:
-                         # pluto-rx2-8way-v5 added six in-scope dossiers and
-                         # every one carries a closed tier-graded search record,
-                         # increasing the measured fleet to 36 graded / 139 in
+PREC_GRADED_FLOOR = 46   # in-scope parts carrying a TIER-GRADED precedent
+                         # record, FLEET-WIDE. Raised 36 -> 46 on 2026-08-17
+                         # after the Pi USB boards entered the governed fleet:
+                         # the read-only sweep measures 46 graded / 165 in
                          # scope. A numerator advance raises this floor in the
                          # same change; it may never be lowered.
 #
 # PER-BOARD owed ceilings: in-scope parts with NO tier-graded record. Each may
 # only FALL, and each is TIGHT (the test asserts equality, so a board that
 # improves must lower its own row in the same commit and cannot bank slack).
-# MEASURED 2026-08-13, read-only sweep of `projects/*/02_parts/`: 139 in scope
-# across 11 boards, 36 GRADED and 103 OWED. The per-board rows below are exact;
+# MEASURED 2026-08-17, read-only sweep of `projects/*/02_parts/`: 165 in scope
+# across 13 boards, 46 GRADED and 119 OWED. The per-board rows below are exact;
 # `tests/t1_layout_precedent.py` independently recomputes every denominator.
 PREC_OWED_CEILING = {
     "crow-mic-pod-v2": 4,
     "crow-recorder-central-v2": 17,
+    "pi-usb-port-switch": 11,
     "pluto-cal-switch": 13,
     "pluto-rx2-8way": 8,
     "pluto-rx2-8way-v2": 2,        # 3 in scope, 1 of them GRADED
@@ -213,6 +213,7 @@ PREC_OWED_CEILING = {
     "pluto-rx2-8way-v5": 0,
     "programmable-usb2-hub": 10,
     "smc0985-cooksense": 35,
+    "usb-controlled-debug-hub-v1": 5,
     "usb-hub-3s-v3": 12,
     "usb-hub-3s-v4": 0,
 }

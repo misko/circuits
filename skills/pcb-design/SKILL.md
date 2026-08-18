@@ -121,10 +121,10 @@ procedure solely to recover syntax.
 |---|---|---|
 | Commission | Verbatim brief, capability/fact locks, explicit firmware and mating posture | pcb-design commission |
 | Architecture | Topology/protection/measurement boundaries and decisions are falsifiable | pcb-design + KiCad policy |
-| Sourcing | Exact dossiers, two-source feasibility, escape/tier/layout precedent evidence | pcb-design commission |
+| Sourcing | Exact dossiers, code/disposition readiness, critical-part JLC PCBA evidence, two-source feasibility, escape/tier/layout precedent evidence | pcb-design commission + jlcpcb-fab |
 | Schematic | Fresh producer diagnostics, ERC/parity/semantic gates and adopted independent topology/readability reviews | kicad-pcb schematic |
-| Placement | Exact part/pin identity, body clearance, adjacency/corridor/precedent gates and adopted pin/layout/render reviews | kicad-pcb placement |
-| Routing | Critical inventory, tier preflight, deterministic prep, bounded route/stitch, realized copper audits, DRC 0/0/0 | kicad-pcb routing |
+| Placement | Exact part/pin identity, body clearance, adjacency/corridor/precedent gates, executable route topology/layer feasibility, and adopted pin/layout/render reviews | kicad-pcb placement |
+| Routing | Critical inventory, tier preflight, deterministic prep, bounded route/stitch, one final-route acceptance receipt over realized copper/vias/planes/DRC | kicad-pcb routing |
 | Layout seal | Fresh canonical rebuild, promoted route, exact board identity and applicable RF realized evidence | kicad-pcb flow |
 | Fabrication | Exact JLC payload, BOM/CPL/stock/population/rotation/twin/process evidence | jlcpcb-fab |
 | Release staging | Self-contained archive and complete scoped independent review battery | pcb-design review |
@@ -161,7 +161,12 @@ Resolve `D-SPEC`, `D-MATE`, `D-MOD`, `D-ESC`, `D-LAYOUT`, `D-TIER`, and
 two-source feasibility before detailed generation. Part dossiers must derive
 physical pin maps and package/land-pattern facts from authoritative figures.
 Volatile price/stock belongs in build evidence; durable identities belong in
-dossiers and source.
+dossiers and source. Before part freeze, run the manufacturing-selection
+receipt and confirm critical/footprint-driving codes in JLCPCB's PCBA
+interface. LCSC catalog stock is only a candidate signal. After a complete
+preliminary BOM exists and before placement spend, grade a quantity-expanded
+`prelayout` JLC PCBA receipt. These prevention gates never replace the final
+exact-BOM `order` allocation receipt.
 
 ## Schematic
 
@@ -180,6 +185,9 @@ schematic does not pass.
 Load only the applicable KiCad placement/routing references. Prove package
 escape, part/pin identity, native-polygon body/courtyard clearance, datasheet
 adjacency, corridor capacity, and critical-pair inventory before router spend.
+At placement freeze, run the placement-routability compositor. It grades the
+existing physical predicates plus declared shunt/series endpoint topology and
+layer eligibility; it does not route copper or add a lifecycle stage.
 After native-model registration, close `P-ORIENT` for edge-mounted connectors
 with machine geometry plus exact, hash-bound human directional views.
 
@@ -192,8 +200,12 @@ stage.
 
 Route from a track-free, unfilled deterministic input. Run the mechanical grind
 at the cheapest tier, stop on the bounded plateau trigger, fix upstream source,
-and regenerate. Full DRC requires zero violations, zero unconnected, and zero
-parity findings at full severity after rules are emitted last.
+and regenerate. Candidate-loop checks remain cheap; promotion and layout seal
+consume one hash-bound final-route acceptance receipt over critical
+connectivity/topology, ownership, realized vias, declared length/plane/
+ampacity evidence and native DRC. Full DRC requires zero violations, zero
+unconnected, and zero parity findings at full severity after rules are emitted
+last.
 
 ## Fabrication and assembly
 
@@ -206,6 +218,8 @@ Capture JLC's final stackup/impedance, via-fill/cap, BOM, rotation, and THT
 assembly previews. Public capability tables establish feasibility but do not
 prove final uploader selections. Keep the board `DO-NOT-ORDER` or
 `FIRST-ARTICLE-ONLY` while order-side evidence is owed.
+Only a fresh `order`-phase JLCPCB receipt bound to the final BOM and build
+quantity may authorize `ORDER`; catalog-stock PASS remains advisory.
 
 ## Review, seal, and publication
 
@@ -214,7 +228,9 @@ state; scope fix-pass reviews to changed items plus one integrated fresh lens.
 All reviews target pre-seal staging and carry parseable design/order verdicts.
 
 Follow only the normative seal procedure in the project `07_releases` contract.
-Never mutate a sealed release. Before merging or pushing a design state to the
+Initialize the DRAFT manifest at staging start, rehearse the publication-
+internal contract while staging is mutable, and admit seal only from a current
+accepted rehearsal. Never mutate a sealed release. Before merging or pushing a design state to the
 publication branch, run:
 
 ```text

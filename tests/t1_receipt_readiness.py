@@ -146,6 +146,20 @@ def run_shadow(project):
     ]), "project state with receipt shadow")
 
 
+def run_authoritative(project, authority="receipts", must_succeed=True):
+    result = run([
+        sys.executable,
+        STATE,
+        project,
+        "--receipt-registry",
+        "03_src/rules/receipt_readiness.yaml",
+        "--readiness-authority",
+        authority,
+    ])
+    return must_pass(result, "authoritative receipt readiness") \
+        if must_succeed else result
+
+
 def shadow(project):
     return json.loads((project / "06_build" / "project_state.json").read_text())["receipt_shadow"]
 
@@ -266,6 +280,37 @@ def t_legacy_disagreement():
         "maturity_matches": False,
         "matches": False,
     }, "exact disagreement")
+
+
+@test("receipt authority promotes the closed registry into project maturity")
+def t_receipts_authoritative():
+    project, _ = readiness_tree()
+    result = run_authoritative(project)
+    contains(result.out, "authority=receipt-registry", "authority summary")
+    value = json.loads(
+        (project / "06_build" / "project_state.json").read_text())
+    eq(value["derived_maturity"], "DESIGN_CLEAN", "authoritative maturity")
+    eq(value["authority_satisfied"], True, "authority satisfaction")
+    check("legacy_projection" in value, "legacy comparison was discarded")
+
+
+@test("agreement authority refuses a receipt/legacy maturity disagreement",
+      kind="known_bad")
+def t_agreement_refuses_disagreement():
+    project, _ = readiness_tree(legacy_state="pending", legacy_target="DRAFT")
+    result = run_authoritative(project, "agreement", must_succeed=False)
+    check(result.rc != 0, "agreement mode accepted contradictory authorities")
+    contains(result.out, "legacy-agrees=False", "agreement diagnosis")
+
+
+@test("receipt authority fails closed when an expected receipt is missing",
+      kind="known_bad")
+def t_receipts_authority_missing():
+    project, _ = readiness_tree()
+    (project / "06_build/receipts/P-DESIGN.json").unlink()
+    result = run_authoritative(project, must_succeed=False)
+    check(result.rc != 0, "receipt authority ignored a missing receipt")
+    contains(result.out, "receipt-receipts=FAIL", "missing receipt diagnosis")
 
 
 if __name__ == "__main__":

@@ -150,6 +150,13 @@ specification-critical function:
    higher tier; or not sourceable as specified.
 4. Resolve tier or specification tension before detailed engineering.
 
+Treat LCSC catalog identity and `stockCount` as discovery evidence only.
+Before freezing a critical or footprint-driving part, confirm its exact code
+in JLCPCB's PCBA interface for the intended quantity. Once the preliminary BOM
+is complete, run the full quantity-expanded JLC PCBA probe before placement.
+Record a qualified alternate or a deliberate consign/manual disposition where
+an unavailable line would otherwise force schematic or footprint backtracking.
+
 At part selection, create `02_parts/<MPN>/part.yaml` with:
 
 - exact MPN, manufacturer, LCSC code, and approved alternates;

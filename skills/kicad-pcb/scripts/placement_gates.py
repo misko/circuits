@@ -490,28 +490,18 @@ def check_cap(board, cfg, fails, warns, notes):
                          f"{nets[:12]}{'...' if len(nets) > 12 else ''}")
 
 
-# ------------------------------------------------------------------ main
-def main(argv=None):
-    ap = argparse.ArgumentParser()
-    ap.add_argument("board")
-    ap.add_argument("--config", default=None,
-                    help="optional JSON config; a MISSING file means defaults")
-    ap.add_argument("--courtyard", action="store_true",
-                    help="P-OUT stricter mode: courtyards inside the outline too")
-    args = ap.parse_args(argv)
-
-    cfg = {}
-    if args.config and Path(args.config).exists():
-        cfg = json.loads(Path(args.config).read_text(encoding="utf-8-sig"))
-    if args.courtyard:
-        cfg["courtyard"] = True
+# ------------------------------------------------------------- public API
+def inspect(board_path, cfg=None):
+    """Return the placement predicates as structured, non-vacuous evidence."""
+    cfg = dict(cfg or {})
     waive = cfg.get("waive", {})
-    for cid, why in waive.items():
-        if not str(why).strip():
-            print(f"FAIL: {cid} waiver without evidence (empty why)")
-            return 1
+    if not isinstance(waive, dict):
+        raise ValueError("placement waive must be a mapping")
+    empty = [cid for cid, why in waive.items() if not str(why).strip()]
+    if empty:
+        raise ValueError(f"waiver without evidence: {sorted(empty)}")
 
-    board = pcbnew.LoadBoard(args.board)
+    board = pcbnew.LoadBoard(str(board_path))
     fails, warns, notes = [], [], []
     if "P-OUT" in waive:
         notes.append(f"P-OUT WAIVED: {waive['P-OUT']}")
@@ -526,16 +516,53 @@ def main(argv=None):
                      "correct mechanical geometry")
     else:
         check_body_clearance(board, cfg, fails, notes)
+    return {
+        "schema": 1,
+        "verdict": "FAIL" if fails else "PASS",
+        "board": str(Path(board_path).resolve()),
+        "failures": fails,
+        "warnings": warns,
+        "notes": notes,
+        "coverage": {"graded": 3, "total": 3},
+    }
 
-    for n in notes:
+
+# ------------------------------------------------------------------ main
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument("board")
+    ap.add_argument("--config", default=None,
+                    help="optional JSON config; a MISSING file means defaults")
+    ap.add_argument("--courtyard", action="store_true",
+                    help="P-OUT stricter mode: courtyards inside the outline too")
+    ap.add_argument("--json", help="also write a structured placement receipt")
+    args = ap.parse_args(argv)
+
+    cfg = {}
+    if args.config and Path(args.config).exists():
+        cfg = json.loads(Path(args.config).read_text(encoding="utf-8-sig"))
+    if args.courtyard:
+        cfg["courtyard"] = True
+    try:
+        result = inspect(args.board, cfg)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"PLACEMENT-GATES INCOMPLETE: {exc}")
+        return 2
+    if args.json:
+        out = Path(args.json)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
+                       encoding="utf-8")
+    for n in result["notes"]:
         print("  note:", n)
-    for w in warns:
+    for w in result["warnings"]:
         print("WARN:", w)
-    for x in fails:
+    for x in result["failures"]:
         print("FAIL:", x)
-    print("PLACEMENT-GATES:", "FAIL" if fails else "PASS",
-          f"({len(fails)} fails, {len(warns)} warns)")
-    return 1 if fails else 0
+    print("PLACEMENT-GATES:", result["verdict"],
+          f"({len(result['failures'])} fails, "
+          f"{len(result['warnings'])} warns)")
+    return 1 if result["failures"] else 0
 
 
 if __name__ == "__main__":

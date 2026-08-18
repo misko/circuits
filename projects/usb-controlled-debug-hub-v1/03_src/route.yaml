@@ -1139,6 +1139,22 @@ route:
     - {name: P3_PORT, p: P3_PORT_P, n: P3_PORT_N, source: seed_stubs, group: usb_bottom, allowed_layers: [B.Cu], no_vias: true}
     - {name: P4_HUB, p: P4_HUB_P, n: P4_HUB_N, wave: usb_transition_ports, allowed_layers: [F.Cu, B.Cu], no_vias: false}
     - {name: P4_PORT, p: P4_PORT_P, n: P4_PORT_N, source: seed_stubs, group: usb_bottom, allowed_layers: [B.Cu], no_vias: true}
+  routability:
+    require_topology: true
+    layer_roles: {F.Cu: signal, In1.Cu: reference_plane, In2.Cu: mixed_signal_pour, B.Cu: signal}
+    class_layers:
+      usb_hs: [F.Cu, B.Cu]
+      low_speed: [F.Cu, In2.Cu, B.Cu]
+    topology:
+      - {ref: U_ESD_UP, part_mpn: PESD2USB3UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [UP_HUB], why: "connector-side upstream USB clamp landed directly on the continuous pair"}
+      - {ref: U_ESD1, part_mpn: PESD2USB3UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [P1_PORT], why: "port-1 connector clamp landed directly on the continuous pair"}
+      - {ref: U_ESD2, part_mpn: PESD2USB3UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [P2_PORT], why: "port-2 connector clamp landed directly on the continuous pair"}
+      - {ref: U_ESD3, part_mpn: PESD2USB3UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [P3_PORT], why: "port-3 connector clamp landed directly on the continuous pair"}
+      - {ref: U_ESD4, part_mpn: PESD2USB3UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [P4_PORT], why: "port-4 connector clamp landed directly on the continuous pair"}
+      - {ref: U_DATA1, part_mpn: FSUSB42MUX, kind: series_directional, signal_pads: ["3", "4", "6", "7"], common_signal_pads: ["3", "4"], selected_signal_pads: ["6", "7"], unused_signal_pads: ["8", "9"], pairs: [P1_HUB, P1_PORT], why: "port-1 common and selected banks are explicit series endpoints; unused bank remains copper-free"}
+      - {ref: U_DATA2, part_mpn: FSUSB42MUX, kind: series_directional, signal_pads: ["3", "4", "6", "7"], common_signal_pads: ["3", "4"], selected_signal_pads: ["6", "7"], unused_signal_pads: ["8", "9"], pairs: [P2_HUB, P2_PORT], why: "port-2 common and selected banks are explicit series endpoints; unused bank remains copper-free"}
+      - {ref: U_DATA3, part_mpn: FSUSB42MUX, kind: series_directional, signal_pads: ["3", "4", "6", "7"], common_signal_pads: ["3", "4"], selected_signal_pads: ["6", "7"], unused_signal_pads: ["8", "9"], pairs: [P3_HUB, P3_PORT], why: "port-3 common and selected banks are explicit series endpoints; unused bank remains copper-free"}
+      - {ref: U_DATA4, part_mpn: FSUSB42MUX, kind: series_directional, signal_pads: ["3", "4", "6", "7"], common_signal_pads: ["3", "4"], selected_signal_pads: ["6", "7"], unused_signal_pads: ["8", "9"], pairs: [P4_HUB, P4_PORT], why: "port-4 common and selected banks are explicit series endpoints; unused bank remains copper-free"}
   common:
     layers: [F.Cu, B.Cu]
     via_size: 0.46

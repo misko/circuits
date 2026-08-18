@@ -16,7 +16,8 @@ or publication procedure.
 - Keep BOM/CPL outside the Gerber zip.
 - Bind every coded BOM row to exact per-refdes LCSC and MPN authority.
 - Prove every population exception through one assembly-policy source.
-- Parse stock verdicts; a report that says FAIL remains a failure.
+- Treat catalog stock as advisory; require JLCPCB PCBA availability/allocation
+  receipts at their lifecycle boundaries.
 - Enforce measured per-LCSC rotation authority before CPL export (`A-ROT`).
 - Build the digital twin from JLC's CAD and exact CPL coordinates.
 - Prove mounted-body and same-camera render coverage before human review.
@@ -64,7 +65,8 @@ population coverage with a nonzero denominator.
 
 Search results are proposals. Confirm voltage, tolerance, dielectric, power,
 component class, package, orientation, and exact MPN before adoption. Repeat
-stock checks on order day.
+catalog checks as useful, but confirm critical codes before part freeze and the
+complete preliminary BOM before placement in JLCPCB's PCBA interface.
 
 ### 4. Resolve rotations and polarity
 
@@ -93,11 +95,15 @@ machine mating-plane geometry and explicit hash-bound human directional views.
 
 ### 6. Stage order evidence
 
-Run the fabrication payload census, source/legibility/stock/assembly/rotation/
+Run the fabrication payload census, source/legibility/catalog/assembly/rotation/
 twin/process gates, and standalone archive rehearsal. Capture final JLC
 stackup, impedance option, via-fill/cap choice, BOM mapping, rotations, and THT
 assembly previews. Public capability tables do not prove the final uploader
 selection.
+
+Require an `order`-phase receipt whose exact final-BOM rows are all
+`ALLOCATED`. An earlier `AVAILABLE` receipt and any catalog PASS remain
+insufficient for `ORDER`.
 
 Return exact staged-bundle identity, gate denominators, unresolved operator
 items, and design/order evidence to `pcb-design`. Do not call a design
@@ -122,7 +128,9 @@ project documents.
 | `export_jlc_package.py` | Gerber/drill/BOM/CPL producer and A-ROT enforcement |
 | `bom_source_check.py` | Per-refdes source identity |
 | `bom_legibility_check.py` | Recipient parsing and `F-ECHO` |
-| `jlc_stock_check.py` | Volatile stock observation |
+| `jlc_stock_check.py` | Advisory LCSC catalog observation |
+| `jlc_pcba_availability.py` | Quantity-expanded JLCPCB availability/allocation request and hash-bound receipt |
+| `manufacturing_readiness.py` | Selection, prelayout and final-order sourcing composition |
 | `assembly_coverage.py` | Independent board-minus-CPL population coverage |
 | `jlc_rotation_measure.py` / `jlc_rotation_audit.py` | Measured rotation authority |
 | `jlc_twin.py` | JLC CAD fit, transforms, models, and twin renders |

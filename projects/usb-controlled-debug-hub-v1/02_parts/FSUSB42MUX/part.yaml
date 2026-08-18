@@ -98,6 +98,11 @@ layout:
     COFF. Place each switch inline between hub and connector-side ESD, with an
     unbroken reference plane and no stubs on common or HSD1.
   reviewed: 2026-07-31
+  route_topology:
+    kind: series_directional
+    common_signal_pads: ["3", "4"]
+    selected_signal_pads: ["6", "7"]
+    unused_signal_pads: ["8", "9"]
   keep_short:
     - {net: P1_HUB_P, max_span_mm: 50, anchor_pins: ["4"], why: "DERIVED: ADR-0007 D+ uses the complete symmetric 6-to-4 channel; 50 mm FR-4 flight time is about 300 ps, under 15 percent of a 480 Mbps bit cell"}
     - {net: P1_HUB_N, max_span_mm: 50, anchor_pins: ["3"], why: "DERIVED: ADR-0007 D- uses the complete symmetric 7-to-3 channel; stubless impedance and plane continuity govern"}

@@ -712,6 +712,8 @@ against the `side: bottom` features) are the cheapest first bite.
 | `mates` | `escape_check.py` | the mating connector class |
 | `layout.source` | `policy_audit.py` | P8: the datasheet Layout section cited |
 | `layout.reviewed` | OWED | the date the layout section was read. P-LAYOUT grades that `layout:` EXISTS and that `source:` is cited; nothing grades this, so an unreviewed copy of a sibling's block reads identically |
+| `layout.route_topology.kind` | `placement_routability_preflight.py` | part-class route semantics: `shunt`, `series_flow_through`, or `series_directional`; each placed critical-path instance must agree with this dossier authority before placement promotion |
+| `layout.route_topology.*` | `placement_routability_preflight.py` | exact reusable signal/return or common/selected/unused pad banks; each route instance must match these dossier-owned sets and its declared critical-pair nets |
 | `layout.notes` | `policy_audit.py` | P-LAYOUT: prose rules, whose presence satisfies the declare-something obligation |
 | `layout.keep_short[].net` | `policy_audit.py, net_reference_audit.py` | P-ADJ span budget subject (E-NETREF K7) |
 | `layout.keep_short[].max_span_mm` | `policy_audit.py` | P-ADJ budget; a non-numeric value is a FAIL, not a skip |

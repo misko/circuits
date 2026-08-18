@@ -26,6 +26,7 @@ sourcing: {lcsc: C3708426, alternates: [], note: "750 JLC units observed 2026-08
 layout:
   source: "Nexperia PESD2USB3UX-T pin/package authority plus Microchip USB2517 Hardware Design Checklist DS00004211A implementation guidance"
   reviewed: "2026-08-16"
+  route_topology: {kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"]}
   notes: ["place at each exposed connector", "route the ground pin with minimum inductance", "never branch D+/D- to this shunt; land pins 1/2 directly on the continuous pair path", "keep the device on the signal layer and put any unavoidable via behind it"]
 layout_refs:
   - {tier: 1, reached: true, artifact: "Nexperia datasheet and SOT23 package drawing", why: "manufacturer source owns pinout, parasitics and protection rating"}

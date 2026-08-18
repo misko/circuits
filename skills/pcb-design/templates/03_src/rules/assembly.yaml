@@ -40,7 +40,7 @@ fiducials: none            # `none` + the fab's own statement, or a count/type.
                            # LOCAL fiducials beside <=0.4mm-pitch parts are YOUR
                            # job and cannot be added later. Silence is not allowed:
                            # state `none` deliberately or declare what you placed.
-build_quantity: 5          # boards in the order — A-STOCK grades stock >= qty x this
+build_quantity: 5          # quantity-expanded JLC PCBA checks bind to this
 
 # ---- SELECTIVE VIA-IN-PAD PROCESS (required when any via centre is in an SMT
 # land, or any board via carries native fill/cap flags) ----------------------

@@ -63,3 +63,30 @@ autorouter-landscape.md). If a micro's quadrant is congested, the SOIC
 variant of the same die routes trivially at ~90 mm² cost — same ports,
 firmware unchanged; only the pin-number map changes (verify against the
 datasheet, anchor-check GND/VDD/UPDI-class pins against the old netlist).
+
+## Placement-freeze routability receipt
+
+Physical legality is necessary but not sufficient on a dense or high-speed
+board. Before placement promotion run:
+
+```text
+placement_routability_preflight.py grade PROJECT --board BOARD \
+  --placement-config 03_src/placement_gates.json \
+  --json 06_build/verification/placement_routability_receipt.json
+```
+
+This is a compositor inside the existing placement stage. It reuses
+`placement_gates.py`, `critical_route_check.py`, and
+`route_ownership_preflight.py`, then grades source-owned `route.routability`
+declarations for layer roles/class eligibility and high-speed endpoint
+topology. Part dossiers own the reusable classification
+`layout.route_topology.kind`; `route.yaml` owns the exact footprint instance,
+pads, critical pairs and reason.
+
+Use `shunt` for a protection device whose signal pads tap distinct conductors
+and whose return pads leave the signal path. Use `series_flow_through` or
+`series_directional` when signal current must enter and leave through declared
+banks. `require_topology: true` with no rows is a failure, not zero-row PASS.
+The receipt proves declared feasibility and catches misclassified endpoints
+early; it does not claim that a global route exists. Dense ECOs that need
+bounded candidate route probes remain governed by IMP-148.

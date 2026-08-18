@@ -93,6 +93,18 @@ $PY "$S/pre_route_review_check.py" . --phase schematic \
     --netlist "06_build/netlists/$BOARD.net" \
     || { echo "GATE FAILED [1a] PR-REVIEW: topology witness missing, stale, or defective"; exit 1; }
 
+# Deterministic replay may consume the accepted prelayout receipt but may not
+# bypass it. The full driver owns first-time request/template emission.
+PCBA_RECEIPT=06_build/sourcing/prelayout_receipt.json
+if [ ! -f "$PCBA_RECEIPT" ]; then
+    echo "GATE INCOMPLETE [1b] J-PCBA-PRELAYOUT: no accepted receipt; run rebuild_all.sh to emit the exact JLCPCB request"
+    exit 2
+fi
+$PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
+    --pcba-receipt "$PCBA_RECEIPT" \
+    --json 06_build/verification/manufacturing_readiness_prelayout.json \
+    || { echo "GATE FAILED [1b] J-PCBA-PRELAYOUT: receipt missing, stale, substituted, insufficient, or bound to another source"; exit 1; }
+
 # [2] board (placement + zones) from committed floorplan.yaml  [SHARED]
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
 # KiCad parity discovers the comparison schematic only beside the board.  Put
@@ -107,14 +119,16 @@ $PY "$S/pin_map_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
 
 # [3] placement/pad invariants, if the board defines them  [per-board gate]
 if [ -f 03_src/audit_board.py ]; then $PY 03_src/audit_board.py; fi
-$PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
+$PY "$S/placement_routability_preflight.py" grade . \
+    --board "04_kicad/$BOARD.kicad_pcb" \
+    --placement-config 03_src/placement_gates.json \
+    --json 06_build/verification/placement_routability_receipt.json \
+    || { echo "GATE FAILED [3] KICAD-PLACEMENT: physical placement and declared routability do not jointly pass"; exit 1; }
 $PY "$S/model_coverage_check.py" "04_kicad/$BOARD.kicad_pcb" \
     -o 06_build/verification/model_coverage.json \
     || { echo "GATE FAILED [3m] P-MODEL: every fitted footprint needs a renderer-resolvable 3D body before placement review"; exit 1; }
 $PY "$S/pad_separation.py" "04_kicad/$BOARD.kicad_pcb" --project . \
     || { echo "GATE FAILED [3] P-PADSEP: separate-footprint copper clearance"; exit 1; }
-$PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
-    || { echo "GATE FAILED [3] R-PAIRMAP: critical pair contract is incomplete"; exit 1; }
 
 # [3a] Datasheet placement policy, before promoted-route import.  This is the
 # same P-ADJ evaluator used by the final release audit, not a parallel metric.
@@ -159,32 +173,18 @@ $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \
     || { echo "GATE FAILED [6a] R-CRITESC: critical-pair copper is incomplete"; exit 1; }
-$PY "$S/reference_plane_check.py" "04_kicad/$BOARD.kicad_pcb" \
-    --config 03_src/rules/nets.yaml \
-    --json 06_build/verification/reference_plane.json \
-    || { echo "GATE FAILED [6b] R-REFPLANE: foreign inner copper interrupts a declared high-speed reference corridor"; exit 1; }
 
 # [7] generate_rules LAST — pcbnew saves in the chain clobber netclasses  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 $PY "$S/rules_audit.py" . --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [7a] A-CLASS/A-AGREE/A-AMP/A-FIRE/A-ORDER: generated rules do not enforce authored copper intent"; exit 1; }
-$PY "$S/via_ampacity_check.py" "04_kicad/$BOARD.kicad_pcb" 03_src/route.yaml \
-    --json 06_build/verification/via_ampacity.json \
-    || { echo "GATE FAILED [7b] A-VIA: a declared series transfer bank lacks current capacity"; exit 1; }
 run_stage rf_realized "$PY" "$S/rf_check.py" realized . --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [7c] RF-REALIZED: saved RF copper/fence evidence is incomplete"; exit 1; }
 
-# [8] routing gate: full-severity DRC, zones refilled, schematic parity.
-#     The pinned sch must sit beside the board or --schematic-parity silently skips.
-mkdir -p 06_build/route
-kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
-    --format json -o 06_build/route/gate.json "04_kicad/$BOARD.kicad_pcb"
-$PY - <<'PYEOF'
-import json
-g = json.load(open("06_build/route/gate.json"))
-v = len(g["violations"]); u = len(g["unconnected_items"])
-p = len(g.get("schematic_parity", []) or [])
-print(f"ROUTING GATE: {v} violations / {u} unconnected / {p} parity")
-raise SystemExit(0 if v == u == p == 0 else 1)
-PYEOF
-echo "rebuild_reuse: routing gate GREEN (0/0/0) from committed source"
+# [8] Atomic route acceptance over the exact reused board.
+run_stage route_acceptance "$PY" "$S/route_acceptance_gate.py" grade . \
+    --board "04_kicad/$BOARD.kicad_pcb" --mode full \
+    --drc-json 06_build/route/gate.json \
+    --json 06_build/verification/route_acceptance_receipt.json \
+    || { echo "GATE FAILED [8] KICAD-ROUTING: final reused copper was not atomically accepted"; exit 1; }
+echo "rebuild_reuse: route acceptance GREEN from committed source"

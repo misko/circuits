@@ -133,7 +133,36 @@ pour-deferred nets) + clearance/track_width from an unfilled-zone DRC.
 **Measured 0.65 s** on cook-loadcell; expect seconds-to-a-minute on a
 dense 4-layer board. Iterate routing against `quick`; run the full gate
 once quick is clean. quick is a loop tool — the severity-all 0/0/0 full
-DRC after stitch stays the only release gate.
+DRC after stitch remains authoritative, but is one predicate inside the
+single final-route acceptance receipt rather than an isolated green claim.
+
+### Final-route acceptance (mandatory promotion boundary)
+
+Run quick mode after a candidate mutation and full mode before route promotion,
+layout seal, release review, or fabrication export:
+
+```text
+route_acceptance_gate.py grade PROJECT --board BOARD --mode quick \
+  --json 06_build/verification/route_acceptance_quick.json
+
+route_acceptance_gate.py grade PROJECT --board BOARD --mode full \
+  --drc-json 06_build/drc/route_acceptance.json \
+  --json 06_build/verification/route_acceptance_receipt.json
+```
+
+The compositor owns no replacement engineering rule. Quick mode calls the
+existing route-base (when supplied), critical-connectivity, route-ownership
+and realized-copper topology predicates, plus the exact saved-board via-aspect
+census. Full mode adds declared copper length, reference-plane and via-ampacity
+checks and fresh KiCad DRC/parity. An expected check that cannot run makes the
+receipt `INCOMPLETE`; a failed predicate makes it `REJECTED`. Only `ACCEPTED`
+promotes.
+
+`realized_via_aspect_check.py` is the one new leaf predicate: tier entry checks
+configured drill families, while this checker inventories every saved
+`PCB_VIA` against actual board thickness and the selected tier ceiling. Blind
+and buried spans conservatively use full thickness until final fabricator
+stackup evidence supplies a smaller plated span.
 
 Two stitch passes earn a special note here. Put **`fresh_reload`** after the
 last `fill`: it unconditionally saves and re-execs in a fresh pcbnew process,

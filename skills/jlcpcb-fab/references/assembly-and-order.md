@@ -47,6 +47,64 @@ why they are not machine sourced/placed.
 7. Run population, rotation, stock, twin, render, via-process, and payload
    coverage gates before sealing.
 
+The exporter writes `artifact_index.json` last with exact board identity and
+role-keyed hashes for the Gerber archive, BOM, CPL, drill family and optional
+via-order note. Downstream review/release automation resolves roles through
+this index; it must not rediscover a plausible same-basename artifact.
+
+Before part freeze run `manufacturing_readiness.py grade PROJECT --phase
+selection`. It composes exact source-code/manual disposition, exact MPN dossier
+identity and the existing source-value checker into one hash-bound early
+receipt. Confirm every critical or footprint-driving code in JLCPCB's PCBA
+interface; LCSC `stockCount` is not assembly availability. Use the same
+request/grade tool with `--phase selection` on a small candidate BOM whenever
+that choice can change topology, package, escape, connector geometry, or the
+fab tier. This is intentionally a targeted pre-freeze check rather than a
+second full-BOM upload.
+
+As soon as a complete preliminary PCBA BOM exists, and before placement or
+routing, prepare and grade the quantity-expanded probe:
+
+```text
+jlc_pcba_availability.py prepare 03_tscircuit/build/circuit.json \
+  --assembly 03_src/rules/assembly.yaml --build-quantity N \
+  --phase prelayout --out 06_build/sourcing/prelayout_request.json \
+  --response-template 06_build/sourcing/prelayout_response.csv
+# Upload/check in JLCPCB and fill the exact response rows from its UI/export.
+jlc_pcba_availability.py grade 06_build/sourcing/prelayout_request.json \
+  06_build/sourcing/prelayout_response.csv \
+  --out 06_build/sourcing/prelayout_receipt.json
+manufacturing_readiness.py grade PROJECT --phase prelayout \
+  --pcba-receipt 06_build/sourcing/prelayout_receipt.json --json RECEIPT.json
+```
+
+Do not poll or silently wait: emit the request/template, report the operator
+checkpoint once, and resume after evidence arrives. `AVAILABLE` is the early
+state. Missing, stale, partial, insufficient, substituted, or unrecognized
+rows are not accepted.
+
+Fill the generated columns exactly. `Requested LCSC` is immutable;
+`Resolved LCSC` records what JLC actually selected; `PCBA Status` uses
+`AVAILABLE|ALLOCATED|UNAVAILABLE|INSUFFICIENT|NOT_FOUND|UNKNOWN`;
+`Available Qty` is an integer; `Checked At` is RFC3339 with timezone; and
+`Evidence` names the saved uploader row/export/screenshot. The checker
+recomputes the receipt from these saved bytes, so editing its verdict has no
+effect.
+
+Before an order claim, repeat against the exact staged `fab/bom.csv` with
+`--phase order`. Every line must read `ALLOCATED`, not merely `AVAILABLE`, and
+the receipt must verify against that BOM hash:
+
+```text
+manufacturing_readiness.py grade PROJECT --phase order --release RELEASE \
+  --pcba-receipt ORDER_RECEIPT.json --json ORDER_READINESS.json
+```
+
+Selection and prelayout receipts prevent avoidable backtracking but cannot
+satisfy final allocation. Generic passives may use reviewed equivalent pools
+with identical value, tolerance, voltage, dielectric, package and relevant
+temperature/precision constraints; critical parts remain exact-MPN locked.
+
 `bom_source_check` proves semantic identity. `bom_legibility_check` proves the
 recipient can parse what was written:
 
@@ -72,9 +130,11 @@ Before adopting a code verify:
 - connector series, pin count, gender, and orientation;
 - component class—NTC/PTC/fuse/bead is not a generic resistor.
 
-Run stock verification with a JSON sidecar and parse the final verdict. Require
-stock for board quantity and repeat on order day. A missing/unparseable verdict
-fails. Treat the unofficial endpoint as network work with polite serialization,
+Run catalog verification with a JSON sidecar and parse the final verdict as an
+advisory negative filter. It cannot produce `SOURCING: CLEAR`. Require the
+prelayout JLCPCB PCBA receipt before layout and the final allocation receipt on
+order day. Missing/unparseable authority fails. Treat the unofficial catalog
+endpoint as network work with polite serialization,
 backoff, heartbeat, and deadline; fall back to a current catalog mirror or
 manual JLC search when unavailable.
 

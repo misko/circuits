@@ -149,6 +149,23 @@ route:
   no_critical_routes: null
   # - {name: USB_UP, p: USB_UP_P, n: USB_UP_N, wave: usb,
   #    allowed_layers: [F.Cu], no_vias: true}
+  # Routability is an admission contract, not a router. Declare topology for
+  # every shunt/series part on a critical pair and executable layer roles on
+  # dense mixed-layer boards. The matching part.yaml owns the part-class kind.
+  # routability:
+  #   require_topology: true
+  #   layer_roles: {F.Cu: signal, In1.Cu: reference_plane,
+  #                 In2.Cu: mixed_signal_pour, B.Cu: signal}
+  #   class_layers: {usb_hs: [F.Cu, B.Cu], low_speed: [F.Cu, In2.Cu, B.Cu]}
+  #   topology:
+  #     - {ref: U_ESD1, part_mpn: PESD2USB3UX-TR, kind: shunt,
+  #        signal_pads: ["1", "2"], return_pads: ["3"], pairs: [USB_PORT],
+  #        why: "direct-on-trace connector clamp"}
+  #     - {ref: U_MUX1, part_mpn: EXACT-MPN, kind: series_directional,
+  #        signal_pads: ["1", "2", "3", "4"],
+  #        common_signal_pads: ["1", "2"], selected_signal_pads: ["3", "4"],
+  #        unused_signal_pads: ["5", "6"], pairs: [USB_IN, USB_OUT],
+  #        why: "explicit common and selected series banks"}
   # race: 3      # KRT is stochastic — run N wave-chains CONCURRENTLY in
   #   isolated temp dirs (06_build/route/race/cN), import each candidate
   #   into a copy of the track-free board, evaluate each with `quick`, and

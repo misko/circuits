@@ -74,15 +74,15 @@ rationale.
 | IMP-058 | Treat multi-format evidence as one atomic result | proposed | USB Hub 3S v4, release staging |
 | IMP-059 | Preflight publication review identity before immutable seal | implementing | USB Hub 3S v4, publication gate |
 | IMP-060 | Replay a release's declared freshness mode at publication | completed | USB Hub 3S v4, docs-only publication correction |
-| IMP-061 | Close exact-code manufacturing readiness before part freeze | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-061 | Close exact-code manufacturing readiness before part freeze | partially implemented | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-062 | Provide one transactional primitive for generated artifact bundles | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
-| IMP-063 | Rehearse the complete release and publication-internal contract before seal | proposed | USB Hub 3S v4, nine-hour pipeline retrospective |
-| IMP-064 | Pair early warning gates with late authoritative rechecks | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-063 | Rehearse the complete release and publication-internal contract before seal | partially implemented | USB Hub 3S v4, nine-hour pipeline retrospective |
+| IMP-064 | Pair early warning gates with late authoritative rechecks | partially implemented | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-065 | Measure pipeline critical path by work class and order cheap gates first | implementing | USB Hub 3S v4, nine-hour pipeline retrospective |
 | IMP-066 | Confirm broad-phase geometry findings with native transformed polygons | completed | Pluto RX2 8-way legacy canary replay |
 | IMP-067 | Prevent executable example values from entering new-project scaffolds | proposed | Pluto RX2 8-way v5 commission |
 | IMP-068 | Coordinate protection before freezing downstream voltage ratings | proposed | Pluto RX2 8-way v5 exact-parts stage |
-| IMP-069 | Derive stage readiness from canonical gate receipts | implementing | Pluto RX2 8-way v5 pre-schematic audit |
+| IMP-069 | Derive stage readiness from canonical gate receipts | implemented; project adoption opt-in | Pluto RX2 8-way v5 pre-schematic audit |
 | IMP-070 | Mechanically scope clean-room filesystem discovery | proposed | Pluto RX2 8-way v5 clean-room audit |
 | IMP-071 | Derive observable timing from executable state schedules | implementing | Pluto RX2 8-way v5 control-protocol audit |
 | IMP-072 | Classify committed binary evidence in the canonical scaffold | proposed | Pluto RX2 8-way v5 checkpoint commit |
@@ -107,7 +107,7 @@ rationale.
 | IMP-091 | Freeze executable assembly-process ownership before placement export | proposed | Pluto RX2 8-way v5 layout-seal entry |
 | IMP-092 | Make provenance source discovery honor declared source boundaries and ignore policy | proposed | Pluto RX2 8-way v5 layout seal |
 | IMP-093 | Compare repeated-pad catalog lands as geometry, not merged labels | implementing | Pluto RX2 8-way v5 final JLC twin |
-| IMP-094 | Bind review contracts to the exporter artifact index | proposed | Pluto RX2 8-way v5 fabrication entry |
+| IMP-094 | Bind review contracts to the exporter artifact index | partially implemented | Pluto RX2 8-way v5 fabrication entry |
 | IMP-095 | Dispatch exact-artifact reviews from a machine-written envelope | proposed | Pluto RX2 8-way v5 RF fabrication review |
 | IMP-096 | Derive release PDF pages from populated sides and document purpose | proposed | Pluto RX2 8-way v5 release-asset export |
 | IMP-097 | Preserve schematic-sheet coordinate domains in native conversion | completed | Pluto RX2 8-way v5 schematic archive |
@@ -136,8 +136,8 @@ rationale.
 | IMP-120 | Make route-wave pauses authenticated and non-promotable | completed | USB-controlled debug hub first USB route wave |
 | IMP-121 | Grade differential-pair fanout against pair gap, not foreign-net clearance | completed | USB-controlled debug hub first USB route wave |
 | IMP-122 | Grade realised functional pad-bank direction before routing | completed | USB-controlled debug hub USB routing backtrack |
-| IMP-123 | Preflight differential endpoint topology and tangent compatibility | proposed | USB-controlled debug hub USB routing retry |
-| IMP-124 | Classify high-speed protection parts as shunt or series before placement | proposed | USB-controlled debug hub deterministic USB-bottom routing |
+| IMP-123 | Preflight differential endpoint topology and tangent compatibility | partially implemented | USB-controlled debug hub USB routing retry |
+| IMP-124 | Classify high-speed protection parts as shunt or series before placement | implemented | USB-controlled debug hub deterministic USB-bottom routing |
 | IMP-125 | Make generated evidence bundles relocatable across atomic promotion | completed | USB-controlled debug hub evidence promotion |
 | IMP-126 | Grade connector mating direction against the board edge | completed | USB-controlled debug hub connector review |
 | IMP-127 | Bind package-local rule areas to realised footprints | completed | USB-controlled debug hub connector review |
@@ -159,21 +159,22 @@ rationale.
 | IMP-143 | Make route experiments transactional and retention-bounded | completed | USB-controlled debug hub routing retrospective |
 | IMP-144 | Keep one canonical pause-state authority | completed | USB-controlled debug hub routing retrospective |
 | IMP-145 | Schedule user interaction only at high-leverage physical boundaries | implementing | USB-controlled debug hub and USB Hub 3S v3 reviews |
-| IMP-146 | Make copper-layer roles and low-speed escape eligibility executable | proposed | USB-controlled debug hub final control routing |
+| IMP-146 | Make copper-layer roles and low-speed escape eligibility executable | partially implemented | USB-controlled debug hub final control routing |
 | IMP-147 | Route against pairwise authoritative clearances, not one global clearance | proposed | USB-controlled debug hub final control routing |
-| IMP-148 | Prove placement and complete routability together before floorplan promotion | proposed | USB-controlled debug hub VBUS-divider relocation |
+| IMP-148 | Prove placement and complete routability together before floorplan promotion | partially implemented | USB-controlled debug hub VBUS-divider relocation |
 | IMP-149 | Author deterministic geometry with explicit numeric margin above hard floors | proposed | USB-controlled debug hub sense routing |
 | IMP-150 | Isolate repeated KiCad board mutations per candidate process | proposed | USB-controlled debug hub placement scan |
 | IMP-151 | Require complete displaced-net closure and source rebase before ECO promotion | proposed | USB-controlled debug hub VBUS-divider relocation |
 | IMP-152 | Make generated-copper cleanup ownership-scoped and width-aware | partially implemented | USB-controlled debug hub final stitch replay |
 | IMP-153 | Preflight stitching sites against final filled geometry | proposed | USB-controlled debug hub final ground stitching |
 | IMP-154 | Distinguish byte provenance from semantic 3D-model identity | proposed | USB-controlled debug hub model registration |
-| IMP-155 | Generate the release manifest skeleton before release gates | proposed | USB-controlled debug hub release staging |
+| IMP-155 | Generate the release manifest skeleton before release gates | partially implemented | USB-controlled debug hub release staging |
 | IMP-156 | Use multiscale render evidence for small bodies | proposed | USB-controlled debug hub JLC twin overlay |
-| IMP-157 | Reject same-net branches, cycles, and duplicate copper before route promotion | project repair landed | USB-controlled debug hub Port 4 release audit |
-| IMP-158 | Grade every realized via against the actual stackup aspect-ratio ceiling | project repair landed | USB-controlled debug hub topology red team |
+| IMP-157 | Reject same-net branches, cycles, and duplicate copper before route promotion | implemented | USB-controlled debug hub Port 4 release audit |
+| IMP-158 | Grade every realized via against the actual stackup aspect-ratio ceiling | implemented | USB-controlled debug hub topology red team |
 | IMP-159 | Make route replay regenerate or select an immutable segment-free base | proposed | USB-controlled debug hub route repair replay |
 | IMP-160 | Grade projected reference-plane interruptions on every declared adjacent plane | implemented | USB-controlled debug hub final electrical review |
+| IMP-161 | Separate catalog stock, PCBA availability and final allocation | implemented | USB-controlled debug hub sourcing backtrack |
 
 ## IMP-001 — pre-build rule/config schema validation
 
@@ -2218,7 +2219,7 @@ rationale.
 
 ## IMP-061 — exact-code manufacturing readiness before part freeze
 
-- status: proposed
+- status: partially implemented
 - observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
 - evidence: fabrication entry found four classes of fact after routing that
   were already properties of the selected exact LCSC codes. F1, J1-J4 and SW1
@@ -2279,6 +2280,14 @@ rationale.
   final 12/12 PASS. Preserve each pool's coverage details, but label unavailable
   optional pools as diagnostics rather than gate failures so a successful
   composite verdict is not visually contradictory.
+- implementation progress: 2026-08-17 —
+  `manufacturing_readiness.py --phase selection` now composes exact per-ref
+  JLC/manual disposition, exact-MPN dossier identity, dossier/source-code
+  agreement and the existing source-value gate into one hash-bound receipt;
+  the canonical rebuild calls it before board generation. `--phase order`
+  separately composes population, strict realized part facts and order-time
+  sourcing against release bytes. Stock/model/rotation/two-source readiness at
+  initial part choice is still outside this receipt, so IMP-061 remains partial.
 
 ## IMP-062 — transactional generated-artifact bundles
 
@@ -2327,7 +2336,7 @@ rationale.
 
 ## IMP-063 — complete pre-seal release rehearsal
 
-- status: proposed
+- status: partially implemented
 - observed: USB Hub 3S v4 nine-hour pipeline retrospective, 2026-08-12
 - evidence: mutable staging exposed an incomplete `Package_SON` library only
   when DRC ran in the relocated archive; cross-format read-back then exposed a
@@ -2367,6 +2376,13 @@ rationale.
   mutable staging. This recurrence promotes the rehearsal from an efficiency
   improvement to a required release-safety control; implementation remains
   open.
+- implementation progress: 2026-08-17 — `release_rehearsal.py` now creates a
+  non-overwriting DRAFT/DO-NOT-ORDER manifest skeleton, grades required content,
+  design/sourcing freshness and the publication contract against an explicit
+  mutable staging directory, and emits seal admission only while every staged
+  byte still matches the accepted receipt. Full clean initial/docs-only staging
+  fixtures and final manifest-field replacement remain open, so IMP-063 is
+  partial rather than complete.
 
 ## IMP-064 — early warning plus late authoritative recheck
 
@@ -2417,6 +2433,12 @@ rationale.
   stage; footprint approval and pin review require hash-bound local authority,
   and release rechecks the current revision. Repeated fetch failure is a
   visible bounded state, never an unbounded retry and never an implicit pass.
+- implementation progress: 2026-08-17 — exact-code selection now has a
+  separate order-phase authority; configured-via entry now has an exact
+  saved-board aspect census; and mutable staging now has a separate final
+  publication rehearsal. These are real early/late pairs. Stock age, model
+  authority and all producer bundle pairs are not yet migrated, so IMP-064
+  remains implementing.
 
 ## IMP-065 — critical-path telemetry and cheap-first scheduling
 
@@ -2641,7 +2663,7 @@ Recommended execution order for future boards:
 
 ## IMP-069 — derive stage readiness from canonical gate receipts
 
-- status: implementing
+- status: implemented; project adoption opt-in
 - observed: Pluto RX2 8-way v5 pre-schematic audit, 2026-08-13
 - evidence: `requirements.yaml` and the project status described architecture,
   interface and exact-parts work as complete, while the canonical electrical-
@@ -2699,6 +2721,13 @@ Recommended execution order for future boards:
   - 2026-08-13 — implementation began with bounded source readers, a v5
     findings ledger, a dated source receipt and a 50-file checkpoint; three
     rule families were promoted into the schema/reader ratchet.
+- implementation completion: 2026-08-17 — `pipeline_readiness.py` supports an
+  explicit `shadow` or `receipts` authority and `project_state.py` can make the
+  closed registry authoritative while retaining the legacy projection;
+  `agreement` refuses disagreement. Clean authority, missing receipt and
+  disagreement fixtures are in the default suite. Project registries remain
+  an opt-in migration decision, but the generic authority mechanism is no
+  longer shadow-only.
 
 ## IMP-070 — mechanically scope clean-room filesystem discovery
 
@@ -3577,7 +3606,7 @@ Recommended execution order for future boards:
 
 ## IMP-094 — bind review contracts to the exporter artifact index
 
-- status: proposed
+- status: partially implemented
 - observed: Pluto RX2 8-way v5 fabrication entry, 2026-08-13
 - evidence: `rf.yaml` named
   `06_build/fab/pluto_rx2_8way_v5-gerbers.zip`, while the strict exporter
@@ -3606,6 +3635,12 @@ Recommended execution order for future boards:
   fabrication stage.
 - history: 2026-08-13 — proposed after exact-artifact review setup found the
   hyphen-versus-underscore path mismatch before any release was sealed.
+- implementation progress: 2026-08-17 — `export_jlc_package.py` now writes
+  schema-1 `artifact_index.json` with the exact board and role-keyed hash/size
+  records for Gerber archive, BOM, CPL, all drill files and the optional via
+  note; the exporter regression requires the four core roles. RF/review
+  contracts do not yet resolve their subject through the index, so IMP-094
+  remains partial.
 
 ## IMP-095 — dispatch exact-artifact reviews from a machine-written envelope
 
@@ -4550,7 +4585,7 @@ Recommended execution order for future boards:
 
 ## IMP-123 — preflight differential endpoint topology and tangent compatibility
 
-- status: proposed; live failure safely contained
+- status: partially implemented; live failure safely contained
 - observed: USB-controlled debug hub USB-only routing retry, 2026-08-16
 - evidence: after the same-pair fanout fix accepted all four bottom USB pairs,
   KRT found candidate centre lines but could not attach any coupled path between
@@ -4629,10 +4664,15 @@ Recommended execution order for future boards:
   hiding the extra realised discontinuity.  A dedicated GND return via is now
   source-owned 0.87 mm from the N transition via.  First-article Hi-Speed
   enumeration, sustained traffic and eye testing remain mandatory.
+- implementation progress: 2026-08-17 — the placement-routability compositor
+  validates declared critical-pair endpoint instances, pad membership and
+  dossier topology before placement promotion. Seed-copper tangent/signed-
+  normal compatibility remains unimplemented, so this closes the topology
+  classification portion but not all of IMP-123.
 
 ## IMP-124 — classify high-speed protection parts as shunt or series before placement
 
-- status: proposed; board-specific correction implemented
+- status: implemented
 - observed: USB-controlled debug hub deterministic USB-bottom routing,
   2026-08-16
 - evidence: PESD2USB3UX is a three-pin shunt, but the placement/routing mental
@@ -4663,6 +4703,12 @@ Recommended execution order for future boards:
   sourcing and assembly constraints are equally suitable; otherwise bind the
   unavoidable shunt-package discontinuity to a dedicated class and first-
   article eye/enumeration test.
+- completion: 2026-08-17 — part dossiers now own
+  `layout.route_topology.kind`; route instances own exact refs/pads/pairs; the
+  generic placement-routability receipt refuses missing required rows,
+  dossier/instance disagreement, unknown pads, invalid shunt returns and
+  undeclared pairs. The current debug hub declares all five shunts and four
+  directional series switches and passes 5/5 composed placement checks.
 
 ## IMP-125 — make generated evidence bundles relocatable across atomic promotion
 
@@ -5399,7 +5445,7 @@ coverage was 73/73 with G-INPUT/G-COVER/G-RED satisfied.
 
 ## IMP-146 — make copper-layer roles and low-speed escape eligibility executable
 
-- status: proposed
+- status: partially implemented
 - observed: USB-controlled debug hub final control routing, 2026-08-17
 - evidence: `HUB_VBUS_SENSE` was repeatedly infeasible or fragile when the
   router was restricted to F.Cu/B.Cu. The successful candidate used one short
@@ -5429,6 +5475,11 @@ coverage was 73/73 with G-INPUT/G-COVER/G-RED satisfied.
 - recommendation: high value. Integrate with IMP-139 ownership ordering and
   the existing stackup/plane gates before adding more handcrafted route
   repair logic.
+- implementation progress: 2026-08-17 — `route.routability.layer_roles` and
+  `class_layers` are now schema-checked against the exact board's enabled
+  copper stack during placement promotion. Full effective-netclass/custom-rule
+  projection into the router and post-fill class-to-reference enforcement are
+  still open, so IMP-146 remains partial.
 
 ## IMP-147 — route against pairwise authoritative clearances, not one global clearance
 
@@ -5461,7 +5512,7 @@ coverage was 73/73 with G-INPUT/G-COVER/G-RED satisfied.
 
 ## IMP-148 — prove placement and complete routability together before floorplan promotion
 
-- status: proposed
+- status: partially implemented
 - observed: USB-controlled debug hub VBUS-divider relocation, 2026-08-17
 - evidence: the original divider at `(83,59)/(83,62)` was physically legal but
   enclosed by the P1/P2 route transitions. Several visually plausible new
@@ -5486,6 +5537,12 @@ coverage was 73/73 with G-INPUT/G-COVER/G-RED satisfied.
   budget; and the selected placement reproduces after source regeneration.
 - recommendation: high value. Run at placement freeze for dense IC support
   networks and again before promoting any post-route footprint move.
+- implementation progress: 2026-08-17 — placement promotion now has one
+  receipt composing native physical gates, critical inventory, ownership,
+  endpoint topology and layer eligibility. It rejects declared infeasibility
+  before router spend. The bounded alternative-grid and actual route-probe
+  portion of IMP-148 remains open; this is deliberately not described as proof
+  of complete global routability.
 
 ## IMP-149 — author deterministic geometry with explicit numeric margin above hard floors
 
@@ -5665,7 +5722,7 @@ IMP-143 owns experiment retention.
 
 ## IMP-155 — generate the release manifest skeleton before running release gates
 
-- status: proposed; manual staging skeleton used on this release
+- status: partially implemented
 - observed: USB-controlled debug hub assembly coverage, 2026-08-17
 - evidence: population identity, CPL datum and side counts were correct, but
   the release-local assembly gate failed solely because `MANIFEST.txt` did not
@@ -5685,6 +5742,11 @@ IMP-143 owns experiment retention.
   draft; hand-edited population lines fail regeneration; the seal refuses
   dirty inputs, pending fields, missing files and stale hashes.
 - recommendation: P1. This removes circular gate ordering and hand-copy risk.
+- implementation progress: 2026-08-17 — `release_rehearsal.py init` writes a
+  non-overwriting DRAFT manifest from the exact staged board, current commit,
+  scoped dirty state and authoritative `not_assembled` refs. Rehearsal and seal
+  admission refuse moved bytes. Final replacement of pending fields and a
+  regeneration-equality check for hand edits remain open.
 
 ## IMP-156 — use multiscale render evidence instead of one whole-board resolution
 
@@ -5712,7 +5774,7 @@ IMP-143 owns experiment retention.
 
 ## IMP-157 — reject same-net branches, cycles, and duplicate copper before route promotion
 
-- status: project repair landed; lifecycle integration proposed
+- status: implemented
 - observed: USB-controlled debug hub Port 4 release audit, 2026-08-17
 - evidence: canonical DRC was 0/0/0 and all ten critical pair endpoint checks
   passed, yet strict realized-copper analysis refused `P4_HUB_P`: two launch
@@ -5736,10 +5798,15 @@ IMP-143 owns experiment retention.
   the declared topology may promote, and a 0/0/0 DRC cannot override failure.
 - recommendation: P0 for high-speed/RF boards and P1 as a general route hygiene
   check. Run it immediately after each promoted critical-copper wave.
+- completion: 2026-08-17 — `route_acceptance_gate.py` rejects branch or cycle
+  topology on every declared critical net in quick and full promotion modes and
+  composes strict declared copper-length grading in full mode. A planted
+  branched conductor is a default-suite known-bad; the exact debug-hub board
+  passes all 20 critical nets and the full 9/9 acceptance receipt.
 
 ## IMP-158 — grade every realized via against the actual stackup aspect-ratio ceiling
 
-- status: project repair landed; generic gate proposed
+- status: implemented
 - observed: USB-controlled debug hub topology red team, 2026-08-17
 - evidence: 27 realized 0.410/0.150 mm signal vias satisfied the generic JLC
   advanced minimum-drill rule but reached 10.67:1 on the board's nominal
@@ -5764,6 +5831,12 @@ IMP-143 owns experiment retention.
   exactly with the board census and order notes.
 - recommendation: P0. Add this before the next fabrication release and before
   route-review spend on every multilayer board.
+- completion: 2026-08-17 — `realized_via_aspect_check.py` inventories every
+  saved-board `PCB_VIA`, uses KiCad's exact board thickness and the selected fab
+  tier's aspect ceiling, and is mandatory in quick/full route acceptance. The
+  1.6/0.15-mm >10:1 regression is pinned; the current debug hub grades 526/526
+  vias PASS. Drill-file reconciliation remains a separate fabrication-stage
+  census rather than a reason to weaken this route gate.
 
 ## IMP-159 — make route replay regenerate or select an immutable segment-free base
 
@@ -5825,3 +5898,32 @@ IMP-143 owns experiment retention.
 - recommendation: P0 for USB/RF/high-speed four-layer boards. Run after every
   promoted critical route, after fill/stitch, and again on the exact staged
   source before release sealing.
+
+## IMP-161 — separate catalog stock, PCBA availability and final allocation
+
+- status: implemented
+- observed: USB-controlled debug hub sourcing backtrack, 2026-08-18
+- evidence: nine exact LCSC codes reported substantial LCSC catalog
+  `stockCount` while JLCPCB's assembly interface reported zero availability.
+  The legacy freshness path could turn the catalog PASS into `SOURCING: CLEAR`,
+  so the discrepancy was found only after a release and replacement pass.
+- general rule: catalog identity/stock, JLCPCB PCBA availability, and final
+  order allocation are three different facts. Catalog evidence is a cheap
+  candidate filter; it can never authorize layout or an order. Preliminary
+  `AVAILABLE` evidence prevents layout backtracking, while only exact final-BOM
+  `ALLOCATED` evidence authorizes `ORDER`.
+- landed implementation: `jlc_pcba_availability.py` emits a quantity-expanded
+  request and grades exact resolved code, status, quantity, timestamp and saved
+  evidence into a reproducible, hash-bound receipt. The full and reuse drivers
+  require the prelayout receipt before placement. `manufacturing_readiness.py`
+  composes prelayout/final receipts, and `release_freshness_check.py` has an
+  explicit `jlc-pcba` authority whose catalog observations are advisory only.
+  Historical releases retain an explicit `catalog-legacy` compatibility mode.
+- completion evidence: `t1_pcba_availability.py` covers catalog-high/PCBA-zero,
+  quantity shortfall, substitution, stale evidence, AVAILABLE-at-order,
+  missing authority, post-grade evidence mutation, forged receipt verdict,
+  manual-ref exclusion and self-contained bundle relocation. The focused
+  release, assembly, template and progressive-disclosure suites remain green.
+- recommendation: keep the operator checkpoint bounded: emit request/template,
+  pause once, and resume from saved evidence. Recheck final allocation within
+  24 hours of order rather than polling volatile inventory during design.

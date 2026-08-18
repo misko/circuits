@@ -283,15 +283,20 @@ def review_binding_errors(project, release, board_hash, head, root):
     return errors
 
 
-def grade_board(project, board, head, root, check_worktree):
+def grade_board(project, board, head, root, check_worktree, release_override=None):
     errors = []
     project_rel = project.relative_to(root).as_posix()
     try:
-        release = release_index.latest_release(project, board)
+        release = (Path(release_override).resolve() if release_override
+                   else release_index.latest_release(project, board))
     except release_index.ReleaseSetError as e:
         return [f"RELEASE-SET: {e}"], None
     if release is None:
         return [f"NO-RELEASE: {project_rel}/{board.name} has no sealed release"], None
+    try:
+        release.relative_to(project.resolve())
+    except ValueError:
+        return [f"RELEASE-SCOPE: staging release escapes {project_rel}"], release
 
     manifest = release / "MANIFEST.txt"
     source_board = release / "source" / board.name
@@ -337,8 +342,16 @@ def grade_board(project, board, head, root, check_worktree):
                 "DIRTY-MATERIAL: uncommitted material paths are outside the "
                 f"sealed release: {', '.join(working)}")
 
+    required_args = ()
+    if release_override:
+        # Mutable staging lives under 06_build rather than 07_releases, so the
+        # checker cannot discover the canonical release contract from the
+        # staging directory's parent.  Keep one authority by explicitly
+        # borrowing this project's existing release contract.
+        required_args = ("--contract", str(project / "07_releases/contracts.md"))
     errors.extend(_child_gate(
-        "skills/kicad-pcb/scripts/release_required_check.py", release, root))
+        "skills/kicad-pcb/scripts/release_required_check.py", release, root,
+        *required_args))
     mode_errors, freshness_args = _freshness_args(fields, release)
     errors.extend(mode_errors)
     if not mode_errors:
@@ -362,6 +375,9 @@ def _parse_args(argv):
     p.add_argument("--head", default="HEAD", help="head commit (default: HEAD)")
     p.add_argument("--project", action="append", default=[],
                    help="project directory to audit explicitly (repeatable)")
+    p.add_argument("--release", type=Path,
+                   help="mutable staging release to rehearse; requires exactly "
+                        "one --project with exactly one live board")
     return p.parse_args(argv)
 
 
@@ -374,6 +390,9 @@ def main(argv=None):
     if args.base and args.project:
         print("P-PUBLISH FAIL: choose diff mode (--base/--head) or explicit "
               "audit mode (--project), not both")
+        return 2
+    if args.release and (args.base or len(args.project) != 1):
+        print("P-PUBLISH FAIL: --release requires exactly one --project and no --base")
         return 2
     if not args.base and not args.project:
         print("P-PUBLISH FAIL: provide --base for diff-aware mode or at least "
@@ -422,10 +441,15 @@ def main(argv=None):
                                   "exists; a material project cannot publish "
                                   "with a zero-board denominator"))
             continue
+        if args.release and len(boards) != 1:
+            failures.append((rel, "BOARD-COVERAGE: --release rehearsal requires "
+                                  "exactly one live board"))
+            continue
         for board in boards:
             board_count += 1
             errors, release = grade_board(
-                project, board, args.head, root, check_worktree)
+                project, board, args.head, root, check_worktree,
+                args.release if args.release else None)
             if errors:
                 for error in errors:
                     failures.append((f"{rel}/{board.name}", error))

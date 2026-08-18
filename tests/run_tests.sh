@@ -67,6 +67,8 @@ SUITES=(
   t1_pipeline_registry.py
   t1_pipeline_runtime.py
   t1_pipeline_artifacts.py
+  t1_pipeline_acceptance.py
+  t1_pcba_availability.py
   t1_receipt_readiness.py
   t1_pipeline_review.py
   t1_pipeline_facts.py

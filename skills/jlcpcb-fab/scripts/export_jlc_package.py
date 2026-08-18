@@ -52,6 +52,8 @@ is not the one this run produced.
 """
 import argparse
 import csv
+import hashlib
+import json
 import re
 import sys
 import time
@@ -753,3 +755,32 @@ print(f"zip: {zip_path.name} ({n_zipped} files)")
 print(f"BOM: {len(groups)} lines ({uncoded} without LCSC); CPL: {len(cpl)} parts")
 if uncoded:
     print(f"NEXT: python3 jlc_stock_check.py {bom_path} --search-missing")
+
+# IMP-094: downstream reviews bind roles emitted by the producer rather than
+# restating filename conventions.  The index is written LAST and hashes every
+# upload/review input from this exact export.  It is intentionally outside the
+# Gerber ZIP.
+def _artifact_record(path):
+    data = path.read_bytes()
+    return {"path": path.name, "sha256": hashlib.sha256(data).hexdigest(),
+            "size": len(data)}
+
+
+roles = {
+    "gerber_archive": [_artifact_record(zip_path)],
+    "bom": [_artifact_record(bom_path)],
+    "cpl": [_artifact_record(cpl_path)],
+    "drill": [_artifact_record(path) for path in fresh
+              if path.suffix.lower() == ".drl"],
+}
+if order_notes_path.is_file():
+    roles["via_order_note"] = [_artifact_record(order_notes_path)]
+artifact_index = {
+    "schema": 1, "kind": "jlc-artifact-index-v1",
+    "board": _artifact_record(Path(args.board).resolve()),
+    "roles": roles,
+}
+index_path = out / "artifact_index.json"
+index_path.write_text(json.dumps(artifact_index, indent=2, sort_keys=True) + "\n",
+                      encoding="utf-8")
+print(f"artifact index: {index_path.name} ({len(roles)} role(s))")

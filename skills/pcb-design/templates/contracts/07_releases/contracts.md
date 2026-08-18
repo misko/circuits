@@ -1,5 +1,7 @@
 # contract: 07_releases/
 
+sourcing_authority: jlc-pcba
+
 **Purpose** — one immutable directory per **fab order**. Answers, forever,
 the only question that matters when a board comes back wrong: *what did we
 actually send?* — and, since 2026-07-20, the follow-up question:
@@ -124,14 +126,22 @@ the only thing that says which board a sealed archive belongs to.
         │                            assembly.yaml's not_assembled set, plus
         │                            the per-side placement histogram
         │                            (`assembly_coverage.py`)
-        ├── stock_check.json         REQUIRED — A-STOCK: the MACHINE-READABLE
-        │                            stock evidence, with an EXPLICIT
+        ├── stock_check.json         REQUIRED advisory A-CATALOG evidence: the
+        │                            MACHINE-READABLE catalog observation, with an EXPLICIT
         │                            `verdict` (`jlc_stock_check.py --json`).
         │                            The fleet shipped three incompatible
         │                            text formats and one release with ZERO
         │                            verdict lines; this is the one shape the
         │                            gate grades. A missing/unparseable
-        │                            verdict is a FAIL, never a skip
+        │                            verdict is a FAIL, never a skip. Its PASS
+        │                            never authorizes JLCPCB PCBA sourcing
+        ├── pcba_order_receipt.json  REQUIRED for an ORDER claim — exact final
+        │                            BOM/build-quantity JLCPCB order-interface
+        │                            receipt; every row ALLOCATED, no redirect
+        ├── pcba_order_request.json  REQUIRED beside that receipt; exact
+        │                            quantity-expanded request bytes
+        ├── pcba_order_response.csv  REQUIRED beside that receipt; saved JLC
+        │                            row evidence, reopened by hash
         ├── stock_check.{txt,csv}    REQUIRED. The `.csv` is ALSO THE RELEASE'S
         │                            OWN code->MPN MAP and must carry its `mpn`
         │                            column (JLC's `componentModelEn`, one row
@@ -252,6 +262,7 @@ version:      v4.10
 ordered:      2026-07-14
 git_sha:      a5e7ca7                 # the EXACT commit these came from
 git_dirty:    false                   # scope: projects/<board>/ + skills/ — never seal with these inputs dirty
+sourcing_authority: jlc-pcba          # catalog-legacy is historical compatibility only
 kicad:        10.0.4
 tools:        KRT@<sha>, python 3.12
 fab:          JLCPCB, 4 layer, advanced small-via option (0.25/0.15 vias)
@@ -290,10 +301,11 @@ not_assembled: J4,J5,J13 (THT USB-A, not_in_catalog) · F1 element (user_supplie
 `DESIGN: PASS|FAIL` and `SOURCING: CLEAR|PLANNED-<n>|BLOCKED-<n>` are both
 printed by `release_freshness_check.py` and both stamped here. They are
 separate because they are answered by different authorities at different
-times: the design gates at SEAL time, the CATALOG at ORDER time. Every other
+times: design gates at SEAL time, JLCPCB allocation at ORDER time. Catalog
+stock remains advisory. Every other
 gate in this repo grades an artifact WE CONTROL, so a red means "there exists
-an edit to this design that turns it green"; **A-STOCK grades the WORLD**, and
-no edit to the design changes a vendor's `stockCount`.
+an edit to this design that turns it green"; **J-PCBA-FINAL grades the current
+assembly allocation**, and no edit to the design changes that warehouse state.
 
 - **A release may seal with `DESIGN: PASS` + `SOURCING: PLANNED-<n>` or
   `BLOCKED-<n>`. It may NEVER seal with `DESIGN: FAIL`.**
@@ -316,8 +328,9 @@ no edit to the design changes a vendor's `stockCount`.
   not predate the release by more than 7 days: a stock reading is perishable,
   and an undated one is not evidence.
 - **Order-time re-grade.** A sealed archive is immutable, so the sourcing
-  question is re-asked from OUTSIDE it:
-  `release_freshness_check.py <release_dir> --claim sourcing --stock-evidence
+  question is re-asked from OUTSIDE it with an exact allocation receipt:
+  `release_freshness_check.py <release_dir> --claim sourcing
+  --sourcing-authority jlc-pcba --pcba-evidence
   FRESH.json`. A measurement POSTDATING the seal is reported, never failed —
   an archive cannot declare a fact discovered after it was written, and
   demanding it would be the retro-fill this contract forbids.
@@ -390,6 +403,13 @@ CHECKLIST, and ORCHESTRATION_STATE.md all point HERE (single-homed
 was re-derived per seal). The staging boundary carries the immutability
 rule: the release directory is MUTABLE STAGING until the seal commit
 lands; **immutability begins the moment the seal commit exists.**
+
+Before step 0, use `skills/pcb-design/scripts/release_rehearsal.py init` to
+create the DRAFT declaration consumed by staging gates. After the archive is
+complete and all reviews are present, `release_rehearsal.py rehearse` must be
+`ACCEPTED` on the exact staged bytes and `release_rehearsal.py seal` must emit
+current seal admission. These commands neither commit nor replace the numbered
+procedure below.
 
 0. **Stage.** Write the complete archive into `07_releases/<ver>-<date>/`.
    Run EVERY gate and review against this staging dir — DRC/ERC/parity,

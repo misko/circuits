@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Strict, shadow-only readiness composition from stage receipts and bundles.
+"""Strict readiness composition from stage receipts and accepted bundles.
 
-The legacy findings ledger remains maturity authority.  This module computes a
-second answer for comparison: every expected stage must have an exact schema-1
+In ``shadow`` authority mode this module computes a comparison answer while
+the legacy findings ledger remains authoritative.  In ``receipts`` authority
+mode the same closed registry is the readiness decision: every expected stage
+must have an exact schema-1
 ``StageResult`` whose subject matches the registry and whose output symbols
 reopen through accepted schema-1 artifact bundles.  Missing, unexpected,
 stale, malformed, or tampered evidence is never treated as ready.
@@ -397,8 +399,16 @@ def _validate_bundle(
     }
 
 
-def evaluate(project: Path, registry_path: Path) -> dict[str, Any]:
-    """Return a deterministic shadow verdict; evidence defects become FAIL."""
+def evaluate(project: Path, registry_path: Path, *,
+             authority: str = "shadow") -> dict[str, Any]:
+    """Return a deterministic verdict; every evidence defect becomes FAIL.
+
+    ``shadow`` preserves the migration posture. ``receipts`` changes only the
+    reported authority label; callers such as ``project_state.py`` decide
+    whether this result controls their exit status and maturity claim.
+    """
+    if authority not in {"shadow", "receipts"}:
+        _fail("readiness authority must be 'shadow' or 'receipts'")
 
     project = project.resolve()
     registry_path = registry_path if registry_path.is_absolute() else project / registry_path
@@ -532,8 +542,9 @@ def evaluate(project: Path, registry_path: Path) -> dict[str, Any]:
         _fail("receipt registry: bytes moved during readiness audit")
     return {
         "schema": 1,
-        "mode": "shadow",
-        "authority": "legacy-findings-ledger",
+        "mode": authority,
+        "authority": ("legacy-findings-ledger" if authority == "shadow"
+                      else "receipt-registry"),
         "profile": registry.profile,
         "target": registry.target,
         "registry": registry_relative,

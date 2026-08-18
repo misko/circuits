@@ -187,8 +187,43 @@ $PY "$S/power_topology.py" . --off-control \
     || { echo "GATE FAILED [1b] E-OFF (power_topology.py --off-control): battery source without a declared de-energization path"; exit 1; }
 $PY "$S/count_parity.py" . --pre-board \
     || { echo "GATE FAILED [1b] S-COUNT (count_parity.py): refdes sets disagree across intent/artifacts (silent drop)"; exit 1; }
-$PY "$FS/bom_source_check.py" --circuit-only "$CJ" --parts 02_parts \
-    || { echo "GATE FAILED [1b] M-BOM leg C (bom_source_check.py --circuit-only): a coded R/C's catalog value != its tsx value prop (the R12/R30 class)"; exit 1; }
+$PY "$FS/manufacturing_readiness.py" grade . --phase selection \
+    --json 06_build/verification/manufacturing_readiness_selection.json \
+    || { echo "GATE FAILED [1b] PCB-SOURCING: exact source code/dossier identity or coded R/C value is not ready for part freeze"; exit 1; }
+
+# J-PCBA-PRELAYOUT — stop before placement/routing until JLCPCB itself has
+# confirmed the quantity-expanded preliminary BOM. Catalog stock is advisory.
+PCBA_DIR=06_build/sourcing
+PCBA_REQUEST="$PCBA_DIR/prelayout_request.json"
+PCBA_RESPONSE="$PCBA_DIR/prelayout_response.csv"
+PCBA_RECEIPT="$PCBA_DIR/prelayout_receipt.json"
+BUILD_QUANTITY=$(awk '$1 == "build_quantity:" {print $2; exit}' 03_src/rules/assembly.yaml)
+if ! [[ "$BUILD_QUANTITY" =~ ^[1-9][0-9]*$ ]]; then
+    echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: assembly.yaml needs a positive build_quantity"
+    exit 2
+fi
+if [ ! -f "$PCBA_RECEIPT" ]; then
+    mkdir -p "$PCBA_DIR"
+    if { [ -f "$PCBA_REQUEST" ] && [ ! -f "$PCBA_RESPONSE" ]; } || \
+       { [ ! -f "$PCBA_REQUEST" ] && [ -f "$PCBA_RESPONSE" ]; }; then
+        echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: request/response pair is partial; preserve it and resolve the missing artifact explicitly"
+        exit 2
+    fi
+    if [ ! -f "$PCBA_REQUEST" ] && [ ! -f "$PCBA_RESPONSE" ]; then
+        $PY "$FS/jlc_pcba_availability.py" prepare "$CJ" \
+            --assembly 03_src/rules/assembly.yaml \
+            --build-quantity "$BUILD_QUANTITY" --phase prelayout \
+            --out "$PCBA_REQUEST" --response-template "$PCBA_RESPONSE" \
+            || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: could not prepare exact JLC request"; exit 1; }
+    fi
+    echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: check/upload $PCBA_REQUEST, fill $PCBA_RESPONSE, then run:"
+    echo "  $PY $FS/jlc_pcba_availability.py grade $PCBA_REQUEST $PCBA_RESPONSE --out $PCBA_RECEIPT"
+    exit 2
+fi
+$PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
+    --pcba-receipt "$PCBA_RECEIPT" \
+    --json 06_build/verification/manufacturing_readiness_prelayout.json \
+    || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: exact JLCPCB PCBA availability is missing, stale, substituted, or insufficient"; exit 1; }
 
 # [2] ERC gate — 0 ERRORS. TWO RUNS, AND THE SPLIT IS THE CANON'S, NOT A
 # SOFTENING. Canon S4 and the kicad-pcb golden rules both say the gate is
@@ -306,12 +341,14 @@ fi
 # the two checks the cooksense routing D-BACK (2026-07-23, ~13h) proved were
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL
 # (missing file = defaults); waivers live inside it, evidence required.
-$PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
+$PY "$S/placement_routability_preflight.py" grade . \
+    --board "04_kicad/$BOARD.kicad_pcb" \
+    --placement-config 03_src/placement_gates.json \
+    --json 06_build/verification/placement_routability_receipt.json \
+    || { echo "GATE FAILED [4] KICAD-PLACEMENT: physical placement and declared routability do not jointly pass"; exit 1; }
 $PY "$S/model_coverage_check.py" "04_kicad/$BOARD.kicad_pcb" \
     -o 06_build/verification/model_coverage.json \
     || { echo "GATE FAILED [4m] P-MODEL: every fitted footprint needs a renderer-resolvable 3D body before placement review"; exit 1; }
-$PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" \
-    || { echo "GATE FAILED [4a] R-PAIRMAP: critical pair polarity/wave/layer contract is incomplete"; exit 1; }
 $PY "$S/rf_check.py" source . --require-geometry \
     --out 06_build/rf/placement \
     || { echo "GATE FAILED [4a2] RF-PLACEMENT: source-deferred controlled-impedance coordinates must close before route preparation"; exit 1; }
@@ -375,25 +412,21 @@ run_stage route_taps   $PY "$S/route_and_stitch_generic.py" taps   03_src/route.
 run_stage stitch       $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 $PY "$S/critical_route_check.py" . --board "04_kicad/$BOARD.kicad_pcb" --require-connected \
     || { echo "GATE FAILED [8a] R-CRITESC: critical pairs are open, on forbidden layers, or use forbidden vias"; exit 1; }
-$PY "$S/reference_plane_check.py" "04_kicad/$BOARD.kicad_pcb" \
-    --config 03_src/rules/nets.yaml \
-    --json 06_build/verification/reference_plane.json \
-    || { echo "GATE FAILED [8b] R-REFPLANE: foreign inner copper interrupts a declared high-speed reference corridor"; exit 1; }
 
 # [9] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 $PY "$S/rules_audit.py" . --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [9a] A-CLASS/A-AGREE/A-AMP/A-FIRE/A-ORDER: generated rules do not enforce authored copper intent"; exit 1; }
-$PY "$S/via_ampacity_check.py" "04_kicad/$BOARD.kicad_pcb" 03_src/route.yaml \
-    --json 06_build/verification/via_ampacity.json \
-    || { echo "GATE FAILED [9b] A-VIA: a declared series transfer bank lacks current capacity"; exit 1; }
 run_stage rf_realized "$PY" "$S/rf_check.py" realized . --board "04_kicad/$BOARD.kicad_pcb" \
     || { echo "GATE FAILED [9c] RF-REALIZED: saved RF copper/fence evidence is incomplete"; exit 1; }
 
-# [10] DRC gate — must be 0 / 0 / 0 at full severity
-run_stage layout_drc kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
-    --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
-$PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
+# [10] Atomic route acceptance: final DRC/parity plus topology, length,
+# reference-plane, via-current and exact realized-via process checks.
+run_stage route_acceptance "$PY" "$S/route_acceptance_gate.py" grade . \
+    --board "04_kicad/$BOARD.kicad_pcb" --mode full \
+    --drc-json 06_build/drc/gate.json \
+    --json 06_build/verification/route_acceptance_receipt.json \
+    || { echo "GATE FAILED [10] KICAD-ROUTING: final routed copper was not atomically accepted"; exit 1; }
 $PY "$S/artifact_provenance.py" finish . --stage pcb_layout
 
 # [10c] GG-*: OBSERVED grading — canon M-COVER's observation arm.  [SHARED]
@@ -430,7 +463,13 @@ $PY "$S/trace_audit.py" --subject . || true
 cmp -s "04_kicad/$BOARD.kicad_sch" "03_tscircuit/kicad/$BOARD.kicad_sch" \
     || { echo "GATE FAILED [11] M-PIN: PCB stages changed the reviewed pinned schematic"; exit 1; }
 if [ -f 01_docs/findings.yaml ]; then
-    $PY "$S/project_state.py" .
+    if [ -f 03_src/rules/receipt_readiness.yaml ]; then
+        $PY "$S/project_state.py" . \
+            --receipt-registry 03_src/rules/receipt_readiness.yaml \
+            --readiness-authority receipts
+    else
+        $PY "$S/project_state.py" .
+    fi
 else
     echo "[11b] no findings.yaml — maturity remains undeclared"
 fi

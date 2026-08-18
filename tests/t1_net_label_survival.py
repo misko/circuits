@@ -229,9 +229,10 @@ def t_zero_labels_guard():
 def t_template_wiring_order():
     """Deliverable check (Wave-1 skill text, 72915ba): tsx_preflight BEFORE
     tsci build; net_label_survival + electrical_invariants (+ --adr-coverage)
-    + power_topology (+ --margin/--off-control) + count_parity + the
-    --circuit-only M-BOM leg RIGHT AFTER netlist export; each failure aborts
-    with a named GATE FAILED line; set -euo pipefail preserved."""
+    + power_topology (+ --margin/--off-control) + count_parity + the composed
+    manufacturing-selection receipt RIGHT AFTER netlist export; each failure
+    aborts with a named GATE FAILED line; set -euo pipefail preserved. The
+    compositor itself owns the `bom_source_check --circuit-only` child."""
     txt = TEMPLATE.read_text()
     contains(txt, "set -euo pipefail", "template strictness")
 
@@ -260,7 +261,7 @@ def t_template_wiring_order():
                pos("--margin"),
                pos("--off-control"),
                pos("count_parity.py"),
-               pos("--circuit-only")]
+               pos("manufacturing_readiness.py")]
     check(preflight < build, "tsx_preflight must run BEFORE tsci build "
                              "(tscircuit drops unmapped parts silently)")
     check(preflight < schema < build,
@@ -274,7 +275,7 @@ def t_template_wiring_order():
     check(max(battery) < erc,
           "battery is wired right after netlist export (before the ERC step)")
     for g in ("TSX-PRE", "S-NETMERGE", "E-INV", "E-ADR", "E-TOPO", "E-MARGIN",
-              "E-OFF", "S-COUNT", "M-BOM"):
+              "E-OFF", "S-COUNT", "PCB-SOURCING"):
         contains(txt, f"GATE FAILED", "named abort lines")
         check(g in txt, f"no named GATE FAILED line for {g}")
 

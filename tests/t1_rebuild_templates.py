@@ -190,27 +190,27 @@ def rules_last_after_stitch(txt):
 
 def ampacity_audits_stage_ordered(txt, has_tsci):
     """Cheap source audit precedes producer spend; full audit grades the
-    final generated rules and realized board before the final DRC."""
+    final generated rules and realized board before route acceptance."""
     source = txt.find('rules_audit.py" . --phase source')
     full = txt.find('rules_audit.py" . --board')
     rules = [m.start() for m in re.finditer(r'generate_rules_generic', txt)]
-    drcs = [m.start() for m in re.finditer(r'kicad-cli\s+pcb\s+drc', txt)]
-    if source < 0 or full < 0 or not rules or not drcs:
+    acceptance = txt.rfind('route_acceptance_gate.py"')
+    if source < 0 or full < 0 or not rules or acceptance < 0:
         return False
     producer_boundary = txt.find("run_stage tscircuit_build") if has_tsci \
         else txt.find("kicad-cli sch export netlist")
     return (producer_boundary >= 0 and source < producer_boundary
-            and rules[-1] < full < drcs[-1])
+            and rules[-1] < full < acceptance)
 
 
 def via_ampacity_stage_ordered(txt):
-    """A-VIA grades the final saved board after stitch/rules and before DRC."""
+    """Full route acceptance composes A-VIA after stitch/final rules."""
     stitch = txt.rfind('route_and_stitch_generic.py" stitch')
     rules = txt.rfind("generate_rules_generic.py")
     audit = txt.rfind('rules_audit.py" . --board')
-    via = txt.rfind('via_ampacity_check.py"')
-    drc = txt.rfind("kicad-cli pcb drc")
-    return 0 <= stitch < rules < audit < via < drc
+    acceptance = txt.rfind('route_acceptance_gate.py"')
+    window = txt[acceptance:acceptance + 500] if acceptance >= 0 else ""
+    return 0 <= stitch < rules < audit < acceptance and "--mode full" in window
 
 
 def schematic_resume_ok(txt):
@@ -523,7 +523,7 @@ def t_ampacity_audits_stage_ordered():
     for path, has_tsci in ((ALL, True), (REUSE, False)):
         check(ampacity_audits_stage_ordered(path.read_text(), has_tsci),
               f"{path.name}: source A-AMP must precede producer work and full "
-              "A-AMP/A-FIRE must follow final generate_rules before final DRC")
+              "A-AMP/A-FIRE must follow final generate_rules before route acceptance")
 
 
 @test("the ampacity wiring check rejects a driver that drops full A-AMP",
@@ -539,24 +539,24 @@ def t_kb_ampacity_audit_missing():
           "driver without full A-AMP was accepted")
 
 
-@test("both rebuild drivers grade series-transition via ampacity after final "
-      "board construction and before DRC")
+@test("both rebuild drivers compose series-transition via ampacity after final "
+      "board construction inside full route acceptance")
 def t_via_ampacity_stage_ordered():
     for path in (ALL, REUSE):
         check(via_ampacity_stage_ordered(path.read_text()),
-              f"{path.name}: A-VIA must follow stitch/final rules audit and "
-              "precede final DRC")
+              f"{path.name}: full route acceptance must follow stitch/final "
+              "rules and include A-VIA")
 
 
 @test("the A-VIA wiring check rejects a driver with the gate removed",
       kind="known_bad")
 def t_kb_via_ampacity_missing():
     txt = REUSE.read_text()
-    bad = txt.replace('via_ampacity_check.py"',
-                      'via_ampacity_check_REMOVED.py"', 1)
-    check(bad != txt, "fixture failed to remove the A-VIA call site")
+    bad = txt.replace('route_acceptance_gate.py"',
+                      'route_acceptance_gate_REMOVED.py"', 1)
+    check(bad != txt, "fixture failed to remove full route acceptance")
     check(not via_ampacity_stage_ordered(bad),
-          "driver without A-VIA was accepted")
+          "driver without the A-VIA compositor was accepted")
 
 
 @test("rebuild_reuse.sh: pinned .kicad_sch is copied beside the board BEFORE "
@@ -1404,16 +1404,18 @@ def t_new_stage_gate_ordering():
         check(txt.index("early_design_check.py") <
               txt.index("pre_route_review_check.py"),
               f"{path.name}: early electrical decisions must precede reviews")
-        check("placement_gates.py" in txt,
-              f"{path.name}: P-BODYCLR's shared gate is missing")
-        first_critical = txt.index("critical_route_check.py")
+        placement = txt.index("placement_routability_preflight.py")
         route_import = txt.index("route_and_stitch_generic.py\" import")
-        check(first_critical < route_import,
-              f"{path.name}: R-PAIRMAP must precede route import")
+        check(placement < route_import,
+              f"{path.name}: composed P-BODYCLR/R-PAIRMAP must precede route import")
         connected = txt.index("--require-connected")
         stitch = txt.index("route_and_stitch_generic.py\" stitch")
         check(stitch < connected,
               f"{path.name}: R-CRITESC must grade realized post-stitch copper")
+    composed = (SCRIPTS / "placement_routability_preflight.py").read_text()
+    check("placement_gates.inspect" in composed and
+          "critical_route_check.check" in composed,
+          "placement compositor no longer owns both physical and route-contract predicates")
 
 
 @test("rebuild_all fails source-only schemas before invoking tscircuit")
@@ -1446,14 +1448,15 @@ def t_rf_module_stage_order():
         source = txt.find('run_stage rf_source')
         stitch = txt.rfind('route_and_stitch_generic.py" stitch')
         realized = txt.rfind('run_stage rf_realized')
-        drc = txt.rfind('kicad-cli pcb drc')
-        check(-1 not in (contract, context, solver, source, stitch, realized, drc),
+        acceptance = txt.rfind('route_acceptance_gate.py"')
+        check(-1 not in (contract, context, solver, source, stitch, realized,
+                         acceptance),
               f"{path.name}: incomplete RF stage wiring")
         check(contract < context < solver < source,
               f"{path.name}: RF applicability/context/solver/source order")
-        check(stitch < realized < drc,
+        check(stitch < realized < acceptance,
               f"{path.name}: realized RF evidence must follow routing and "
-              "precede the final DRC")
+              "precede final route acceptance")
         check("pipeline_review.py" not in txt[context:source],
               f"{path.name}: RF module added a reviewer/wait stage")
 

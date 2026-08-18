@@ -1,0 +1,303 @@
+#!/usr/bin/env python3
+"""Compose one hash-bound acceptance receipt for routed PCB copper.
+
+``quick`` mode grades mutation safety: route-base inheritance when supplied,
+critical connectivity/topology, route ownership, and every realized via.
+``full`` mode additionally grades declared length groups, reference planes,
+series-via ampacity, and native KiCad DRC/parity.  The compositor owns no
+engineering predicate; it calls the existing domain checkers and records their
+structured results under one promotion decision.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import subprocess
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+import copper_length_audit
+import critical_route_check
+import realized_via_aspect_check
+import reference_plane_check
+import route_ownership_preflight
+import via_ampacity_check
+from tier_preflight import board_scoped
+
+
+def _record(path: Path) -> dict[str, Any]:
+    data = path.read_bytes()
+    return {"path": str(path.resolve()),
+            "sha256": hashlib.sha256(data).hexdigest(), "size": len(data)}
+
+
+def _atomic_json(path: Path, value: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temporary.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n",
+                         encoding="utf-8")
+    os.replace(temporary, path)
+
+
+def _status(verdict: str, detail: str, **evidence: Any) -> dict[str, Any]:
+    return {"status": verdict, "detail": detail, **evidence}
+
+
+def _critical_nets(route_cfg: dict[str, Any]) -> list[str]:
+    pairs = ((route_cfg.get("route") or {}).get("preflight_critical_pairs")
+             or [])
+    return sorted({str(row[key]) for row in pairs if isinstance(row, dict)
+                   for key in ("p", "n") if row.get(key)})
+
+
+def _simple_conductor(project: Path, board: Path,
+                      critical_nets: list[str]) -> dict[str, Any]:
+    if not critical_nets:
+        return {"status": "N-A", "detail": "no critical nets declared",
+                "nets": []}
+    nets, layers, text = copper_length_audit.read_copper(board)
+    plated = copper_length_audit.read_plated_pads(text)
+    failures, rows = [], []
+    for name in critical_nets:
+        if name not in nets:
+            failures.append(f"{name}: no realized copper")
+            continue
+        geometry = copper_length_audit.net_geometry(
+            nets[name], layers, None, plated.get(name, ()))
+        row = {key: geometry[key] for key in (
+            "n_seg", "n_via", "n_branch", "n_cyclic", "n_comp", "n_end")}
+        row["net"] = name
+        rows.append(row)
+        if geometry["n_branch"]:
+            failures.append(
+                f"{name}: {geometry['n_branch']} branch vertex/vertices")
+        if geometry["n_cyclic"]:
+            failures.append(
+                f"{name}: {geometry['n_cyclic']} cyclic component(s)")
+    return {
+        "status": "FAIL" if failures else "PASS",
+        "detail": f"{len(rows)}/{len(critical_nets)} critical net(s) graded",
+        "nets": rows, "failures": failures,
+    }
+
+
+def _route_paths(project: Path, board_name: str | None = None) -> tuple[Path, Path]:
+    route, route_note = board_scoped(
+        project, "route.yaml", board_name)
+    nets, nets_note = board_scoped(
+        project, "rules/nets.yaml", board_name)
+    if route is None or not route.is_file():
+        raise ValueError(f"route contract unresolved: {route_note}")
+    if nets is None or not nets.is_file():
+        raise ValueError(f"net rules unresolved: {nets_note}")
+    return route.resolve(), nets.resolve()
+
+
+def _run(command: list[str], cwd: Path) -> tuple[int, str]:
+    completed = subprocess.run(command, cwd=cwd, capture_output=True, text=True,
+                               timeout=600, check=False)
+    return completed.returncode, ((completed.stdout or "")
+                                  + (completed.stderr or ""))
+
+
+def grade(project: Path, board: Path, *, mode: str,
+          prepared: Path | None = None, board_name: str | None = None,
+          drc_json: Path | None = None, kicad_cli: str = "kicad-cli") -> dict[str, Any]:
+    project, board = project.resolve(), board.resolve()
+    route_path, nets_path = _route_paths(project, board_name)
+    route_cfg = yaml.safe_load(route_path.read_text(encoding="utf-8-sig")) or {}
+    critical_nets = _critical_nets(route_cfg)
+    checks: dict[str, dict[str, Any]] = {}
+
+    if prepared is not None:
+        script = Path(__file__).resolve().parent / "promoted_route_check.py"
+        rc, output = _run(["/usr/bin/python3", str(script), "--prepared",
+                           str(prepared.resolve()), "--chain", str(board)], project)
+        checks["route_base"] = _status(
+            "PASS" if rc == 0 else "FAIL" if rc == 1 else "INCOMPLETE",
+            output[-4000:].strip() or f"exit {rc}")
+    else:
+        checks["route_base"] = _status(
+            "N-A", "no prepared-board inheritance subject supplied")
+
+    try:
+        notes = critical_route_check.check(
+            project, board, require_connected=True,
+            route_path=route_path, nets_path=nets_path)
+        checks["critical_connectivity"] = _status(
+            "PASS", f"{len(critical_nets)} critical net(s) connected",
+            notes=notes)
+    except Exception as exc:
+        checks["critical_connectivity"] = _status("FAIL", str(exc))
+
+    checks["simple_conductor"] = _simple_conductor(
+        project, board, critical_nets)
+
+    try:
+        board_nets, pad_counts = route_ownership_preflight._load_board_facts(board)
+        nets_cfg = yaml.safe_load(nets_path.read_text(encoding="utf-8-sig")) or {}
+        ownership = route_ownership_preflight.audit_config(
+            route_cfg, pad_counts=pad_counts, board_nets=board_nets,
+            nets_cfg=nets_cfg)
+        checks["route_ownership"] = _status(
+            ownership["verdict"],
+            f"{len(ownership['findings'])} ownership finding(s)",
+            report=ownership)
+    except Exception as exc:
+        checks["route_ownership"] = _status("INCOMPLETE", str(exc))
+
+    try:
+        via_aspect = realized_via_aspect_check.inspect(
+            board, project, board_name)
+        checks["realized_via_aspect"] = _status(
+            via_aspect["verdict"],
+            f"{via_aspect['coverage']['graded']}/"
+            f"{via_aspect['coverage']['total']} via(s) graded",
+            report=via_aspect)
+    except Exception as exc:
+        checks["realized_via_aspect"] = _status("INCOMPLETE", str(exc))
+
+    if mode == "full":
+        try:
+            length = copper_length_audit.grade(project, str(board))
+            if not length["n_group"]:
+                length_status = "N-A"
+            elif length["fails"] or length["unreached"]:
+                length_status = "FAIL"
+            else:
+                length_status = "PASS"
+            checks["critical_copper_length"] = _status(
+                length_status,
+                f"{length['n_measured']}/{length['n_member']} member path(s) measured",
+                report=length)
+        except Exception as exc:
+            checks["critical_copper_length"] = _status("INCOMPLETE", str(exc))
+
+        try:
+            plane = reference_plane_check.inspect(board, nets_path)
+            checks["reference_plane"] = _status(
+                plane["verdict"],
+                f"{len(plane.get('checks') or {})} reference-plane declaration(s)",
+                report=plane)
+        except Exception as exc:
+            checks["reference_plane"] = _status("INCOMPLETE", str(exc))
+
+        try:
+            failures, report, note = via_ampacity_check.check(board, route_path)
+            checks["via_ampacity"] = _status(
+                "N-A" if note else "FAIL" if failures else "PASS",
+                note or f"{len(report['transfers'])} transfer bank(s) graded",
+                report=report or {})
+        except Exception as exc:
+            checks["via_ampacity"] = _status("INCOMPLETE", str(exc))
+
+        drc_json = (drc_json or
+                    project / "06_build/verification/route_acceptance_drc.json")
+        drc_json = drc_json.resolve()
+        drc_json.parent.mkdir(parents=True, exist_ok=True)
+        rc, output = _run([
+            kicad_cli, "pcb", "drc", "--severity-all", "--refill-zones",
+            "--schematic-parity", "--format", "json", "-o", str(drc_json),
+            str(board)], project)
+        if not drc_json.is_file():
+            checks["native_drc"] = _status(
+                "INCOMPLETE", "kicad-cli wrote no JSON report",
+                process_exit=rc, output=output[-2000:])
+        else:
+            payload = json.loads(drc_json.read_text(encoding="utf-8-sig"))
+            counts = {
+                "violations": len(payload.get("violations") or []),
+                "unconnected": len(payload.get("unconnected_items") or []),
+                "schematic_parity": len(payload.get("schematic_parity") or []),
+            }
+            checks["native_drc"] = _status(
+                "PASS" if not any(counts.values()) and rc == 0 else "FAIL",
+                "/".join(str(counts[key]) for key in (
+                    "violations", "unconnected", "schematic_parity")),
+                counts=counts, process_exit=rc,
+                artifact=_record(drc_json))
+
+    statuses = {row["status"] for row in checks.values()}
+    verdict = ("INCOMPLETE" if "INCOMPLETE" in statuses else
+               "REJECTED" if "FAIL" in statuses else "ACCEPTED")
+    inputs = {"board": _record(board), "route": _record(route_path),
+              "nets": _record(nets_path)}
+    if prepared is not None:
+        inputs["prepared"] = _record(prepared.resolve())
+    return {
+        "schema": 1, "kind": "route-acceptance-receipt-v1",
+        "mode": mode, "verdict": verdict, "subject": inputs["board"],
+        "inputs": inputs, "checks": checks,
+        "coverage": {
+            "passing": sum(row["status"] in {"PASS", "N-A"}
+                           for row in checks.values()),
+            "total": len(checks),
+        },
+    }
+
+
+def verify(receipt_path: Path) -> tuple[bool, list[str]]:
+    failures = []
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8-sig"))
+    except Exception as exc:
+        return False, [f"receipt cannot be read: {exc}"]
+    if receipt.get("schema") != 1 or receipt.get("kind") != "route-acceptance-receipt-v1":
+        failures.append("unsupported receipt schema/kind")
+    if receipt.get("verdict") not in {"ACCEPTED", "REJECTED", "INCOMPLETE"}:
+        failures.append("invalid receipt verdict")
+    for name, record in sorted((receipt.get("inputs") or {}).items()):
+        path = Path(str(record.get("path") or ""))
+        if not path.is_file() or _record(path) != record:
+            failures.append(f"input moved or changed: {name}")
+    if receipt.get("verdict") == "ACCEPTED":
+        bad = [name for name, row in (receipt.get("checks") or {}).items()
+               if row.get("status") not in {"PASS", "N-A"}]
+        if bad:
+            failures.append(f"accepted receipt contains bad checks: {bad}")
+    return not failures, failures
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+    grade_parser = sub.add_parser("grade")
+    grade_parser.add_argument("project", type=Path)
+    grade_parser.add_argument("--board", type=Path, required=True)
+    grade_parser.add_argument("--mode", choices=("quick", "full"), default="full")
+    grade_parser.add_argument("--prepared", type=Path)
+    grade_parser.add_argument("--board-name")
+    grade_parser.add_argument("--drc-json", type=Path)
+    grade_parser.add_argument("--json", type=Path, required=True)
+    grade_parser.add_argument("--kicad-cli", default="kicad-cli")
+    verify_parser = sub.add_parser("verify")
+    verify_parser.add_argument("receipt", type=Path)
+    args = parser.parse_args(argv)
+    if args.command == "verify":
+        valid, failures = verify(args.receipt)
+        for failure in failures:
+            print(f"  FAIL {failure}")
+        print(f"ROUTE-ACCEPTANCE RECEIPT {'PASS' if valid else 'FAIL'}")
+        return 0 if valid else 1
+    try:
+        receipt = grade(
+            args.project, args.board, mode=args.mode, prepared=args.prepared,
+            board_name=args.board_name, drc_json=args.drc_json,
+            kicad_cli=args.kicad_cli)
+    except Exception as exc:
+        print(f"ROUTE-ACCEPTANCE INCOMPLETE: {exc}")
+        return 2
+    _atomic_json(args.json, receipt)
+    coverage = receipt["coverage"]
+    print(f"ROUTE-ACCEPTANCE {receipt['verdict']}: {coverage['passing']}/"
+          f"{coverage['total']} checks passing or non-applicable; "
+          f"receipt={args.json.resolve()}")
+    return {"ACCEPTED": 0, "REJECTED": 1, "INCOMPLETE": 2}[receipt["verdict"]]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
