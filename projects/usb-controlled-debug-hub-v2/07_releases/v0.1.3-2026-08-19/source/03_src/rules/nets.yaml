@@ -1,0 +1,329 @@
+fab_tier: jlc_4layer_advanced
+default_clearance: 0.15mm
+default_track_width: 0.18mm
+
+# Package-local discontinuities are bounded by named rule areas in
+# floorplan.yaml.  The global floors resume immediately outside each area.
+scoped_floors:
+  - {zone: pd_switch_launch, nets: [PD_SW], min_width: 0.25mm, why: "TPS56637 RPA package-local SW escape begins at the exact 0.25 mm HotRod land, widens to 0.60 mm after 1.1 mm, then to the full 1.50 mm switch path before the inductor."}
+  - {zone: pd_feedback_tap, nets: [P5V_REG], min_width: 0.18mm, why: "Kelvin-style no-load-current taps from the regulated output zone to the feedback and feed-forward resistors; the 1.50 mm power floor resumes at the zone boundary."}
+  - {zone: pd_feedback_sense, nets: [P5V_REG], min_width: 0.18mm, why: "Quiet board-edge Kelvin sense from the regulated output zone to the relocated TPS56637 feedback/feed-forward network; it carries no load current."}
+  - {zone: agg_uv_tap, nets: [P5V_REG], min_width: 0.18mm, why: "No-load-current UV-threshold sense tap from P5V_REG to the aggregate eFuse divider; it is not a power-distribution branch."}
+  - {zone: agg_input_bypass_launch, nets: [P5V_REG], min_width: 0.30mm, why: "Short package-local connection from the aggregate eFuse input bypass capacitor into the full P5V_REG zone."}
+  - {zone: pd_input_uv_sense, nets: [VBUS_PD], min_width: 0.18mm, why: "No-load-current negotiated-voltage window sense from VBUS_PD to the U_PD_IN UVLO divider; it is not a converter load-current path."}
+  - {zone: pd_buck_uv_sense, nets: [VBUS_PD_SW], min_width: 0.18mm, why: "No-load-current buck-enable sense from the gated VBUS_PD_SW zone to R_PD_UV_TOP; it is not a regulator load-current path."}
+  - {zone: pd_controller_supply_launch, nets: [VBUS_PD], min_width: 0.30mm, why: "Short low-current CH224K supply branch from the VBUS_PD zone into the 1210 series resistor; converter load current does not use this branch."}
+  - {zone: pd_vbus_monitor_tap, nets: [VBUS_PD], min_width: 0.18mm, why: "No-load-current monitor tap from the VBUS_PD TVS/sense zone into R_PD_VBUS; all negotiated load current uses the separate 1.50 mm fuse and input-zone path."}
+  - {zone: pd_input_gate_launch, nets: [VBUS_PD, VBUS_PD_SW], min_width: 0.30mm, why: "TPS259470A 0.30 mm RPW lands use bounded package escapes; the 1.50 mm PD power floor resumes outside the gate cell."}
+  - {zone: pd_input_hf_bypass_launch, nets: [VBUS_PD], min_width: 0.30mm, why: "The 100nF attach-side bypass is a short local high-frequency branch, not the converter load path; its 0402 land uses a bounded 0.30 mm connection to the full-width VBUS_PD copper."}
+  - {zone: buck_input_launch, nets: [P5V_PROTECTED], min_width: 0.80mm, why: "The retained 0.6 A 3V3 buck is a bounded local load: its paired VIN lands and adjacent input capacitor use a short 0.80 mm collector from the full-width protected-5V branch."}
+  - {zone: buck_3v3_feedback, nets: [3V3_MAIN], min_width: 0.18mm, why: "No-load-current AP63203 feedback sense runs around the quiet side of the relocated converter; the 0.40 mm 3V3 distribution floor resumes at the output node."}
+  - {zone: hub_package_launch, nets: [3V3_MAIN], min_width: 0.20mm, why: "MEASURED before routing: USB2517I 0.50 mm-pitch lands can emit only 0.20 mm at the retained package-local 0.17 mm clearance. This <=1.2 mm launch carries one supply-pin branch and widens to the 0.40 mm 3V3 distribution outside the QFN area."}
+  - {zone: hub_3v3_left_escape, nets: [3V3_MAIN], min_width: 0.20mm, why: "MEASURED power_3v3 failure: USB2517I supply pads 5/10 are interleaved between promoted USB pairs and can leave only on exact-width 0.20 mm package lanes; each transitions outside the lane and the 0.40 mm rail resumes beyond it."}
+  - {zone: hub_3v3_top_escape, nets: [3V3_MAIN], min_width: 0.20mm, why: "USB2517I pad 64 translation of the measured 0.20 mm QFN supply escape."}
+  - {zone: hub_3v3_top_right_escape, nets: [3V3_MAIN], min_width: 0.20mm, why: "Exact-prefix scan: USB2517I supply pads 52/57 share a 0.20 mm F.Cu package bus and one legal via at (95.25,59.0), outside the upstream-pair lands."}
+  - {zone: hub_3v3_a4_escape, nets: [3V3_MAIN], min_width: 0.20mm, why: "MEASURED on the authenticated USB prefix: the C_HUB_A4 feed fits between DIS7_N and the adjacent GND return only at 0.20 mm. This short decoupler branch joins the existing pad-52/57 supply node at (95.25,59.0); relocating it removes the former vertical 3V3 wall that forced HUB_SWAP3 into the P3 USB corridor. The 0.40 mm distribution floor is unchanged outside this named branch."}
+  - {zone: hub_3v3_bottom_escape, nets: [3V3_MAIN], min_width: 0.20mm, why: "Exact-prefix scan: USB2517I supply pad 24 has a legal 0.20 mm south escape and via at (92.75,70.5)."}
+  - {zone: hub_3v3_bottom_collector, nets: [3V3_MAIN], min_width: 0.20mm, why: "MEASURED after all ten per-port controls were authenticated: USB2517I pin 24 and C_HUB_PLL are sealed from the 0.40 mm rail. A bounded 0.20 mm local-load branch uses three off-pad transitions and rejoins the pad-10 collector at (87.7,65.75); the full-width distribution rail is unchanged outside this envelope."}
+  - {zone: hub_3v3_right_escape, nets: [3V3_MAIN], min_width: 0.20mm, why: "Exact-prefix scan: USB2517I supply pad 46 has a legal 0.20 mm east escape and via at (98.3,62.25)."}
+  - {zone: hub_3v3_spine_neck, nets: [3V3_MAIN], min_width: 0.20mm, why: "MEASURED deterministic-spine open: the channel between the DIS6_P transition via and two adjacent GND capacitor lands admits a 0.20 mm local link; the 0.40 mm rail resumes at both ends."}
+  - {zone: hub_3v3_pullup_escape, nets: [3V3_MAIN], min_width: 0.20mm, why: "MEASURED via-in-pad/SWAP3 interaction: R_SWAP1 and R_DIS6N need short 0.20 mm source-owned launches to legal off-pad vias north of SWAP3's P4-safe corridor; the 0.40 mm distribution rail resumes at each via."}
+  - {zone: data1_package_launch, nets: [3V3_MAIN], min_width: 0.35mm, why: "MEASURED power_3v3 failure: the backside FSUSB42 0.50 mm-pitch supply land requires a 0.35 mm B.Cu launch before the 0.40 mm distribution rail."}
+  - {zone: data2_package_launch, nets: [3V3_MAIN], min_width: 0.35mm, why: "Channel-2 translation of the measured FSUSB42 supply launch."}
+  - {zone: data3_package_launch, nets: [3V3_MAIN], min_width: 0.35mm, why: "Channel-3 translation of the measured FSUSB42 supply launch."}
+  - {zone: data4_package_launch, nets: [3V3_MAIN], min_width: 0.35mm, why: "Channel-4 translation of the measured FSUSB42 supply launch."}
+  - {zone: and_pwr_3v3_launch, nets: [3V3_MAIN], min_width: 0.25mm, why: "MEASURED power_3v3 DRC: U_AND_PWR pad 14 emits a 0.1505 mm package-terminal taper realized at 0.2598 mm before the 0.40 mm distribution rail; the bounded floor remains above JLC's selected-tier minimum."}
+  - {zone: and_data_3v3_launch, nets: [3V3_MAIN], min_width: 0.25mm, why: "U_AND_DATA translation of the measured 74LVC08 pad-14 supply taper."}
+  - {zone: aggregate_efuse_launch, nets: [P5V_REG, P5V_PROTECTED], min_width: 0.24mm, why: "The TPS259804 RGE0024M perimeter lands require exact-width pin escapes; multiple parallel lands and split PowerPAD copper carry the high-current path before full-width 5 V distribution resumes."}
+  - {zone: pwr1_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "TPS259470A input land and local bypass use a bounded 0.30 mm package escape; the full protected-rail branch resumes immediately outside."}
+  - {zone: pwr2_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "Channel-2 translation of the TPS259470A package launch."}
+  - {zone: pwr3_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "Channel-3 translation of the TPS259470A package launch."}
+  - {zone: pwr4_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "Channel-4 translation of the TPS259470A package launch."}
+  - {zone: pwr_ctrl_input_launch, nets: [P5V_PROTECTED], min_width: 0.35mm, why: "Internal-management-channel translation of the measured TPS2557 local input distribution."}
+  - {zone: pwr1_output_launch, nets: [VBUS1_SW], min_width: 0.30mm, why: "TPS259470A output land uses a bounded 0.30 mm package escape; the 0.50 mm switched-VBUS route begins immediately outside."}
+  - {zone: pwr2_output_launch, nets: [VBUS2_SW], min_width: 0.30mm, why: "Channel-2 translation of the TPS259470A output launch."}
+  - {zone: pwr3_output_launch, nets: [VBUS3_SW], min_width: 0.30mm, why: "Channel-3 translation of the TPS259470A output launch."}
+  - {zone: pwr4_output_launch, nets: [VBUS4_SW], min_width: 0.30mm, why: "Channel-4 translation of the TPS259470A output launch."}
+  - {zone: pwr_ctrl_output_launch, nets: [VBUS_CTRL], min_width: 0.30mm, why: "Internal-management-channel translation of the measured TPS2557 output launch; the 0.40 mm internal-VBUS floor resumes outside."}
+
+scoped_clearances:
+  - {zone: data_usb_c_contact_launch, nets: [UP_HUB_P, UP_HUB_N], clearance: 0.15mm, why: "Exact TYPE-C-31-M-12 0.50 mm-pitch contact field: D+/D- breakout copper sits beside CC1/SBU1 and the mirrored USB contacts at 0.20--0.2685 mm realized isolation. This bounded connector-only area permits the selected JLC advanced-tier 0.15 mm floor; the 0.30 mm USB field clearance resumes before U_ESD_UP."}
+  - zone: hub_static_strap_usb_crossing
+    nets_a: [HUB_DIS7_N, HUB_DIS7_P, HUB_DIS6_N, HUB_DIS6_P]
+    nets_b: [P1_HUB_P, P1_HUB_N, P4_HUB_P, P4_HUB_N]
+    clearance: 0.25mm
+    why: >-
+      MEASURED 2026-08-16 on the authenticated USB prefix and replayed after
+      reserving the hub supply escapes: the four static USB2517I DIS6/DIS7
+      configuration straps route 4/4 at 0.25 mm, while 0.28 mm cannot restore
+      all four adjacent 0.50 mm-pitch launches.  The replay has four sub-0.30
+      interactions, all 0.2736--0.2750 mm: two isolated DIS7 vias beside P4
+      and one 45-degree DIS6 crossing over two contiguous P1 segments; none
+      is a long parallel run.  This exact-family, B.Cu-area rule does not relax
+      USB-to-USB, USB-to-ground, or any other control net, remains far above
+      the selected JLC tier's 0.09 mm fabrication floor, and still requires
+      first-article USB 2.0 Hi-Speed enumeration/traffic validation.
+  - {zone: hub_package_launch, nets: [MGMT_P, MGMT_N, P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N, P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N, UP_HUB_P, UP_HUB_N, 3V3_MAIN], clearance: 0.15mm, why: "MEASURED P-LAND/DRC: USB2517I 0.50 mm-pitch lands cannot emit the provisional 0.2332 mm USB width at the 0.30 mm field clearance. A <=1.2 mm package launch uses the fabrication-safe 0.15 mm local clearance required by the actual land geometry, then reaches the 0.30 mm controlled-geometry field."}
+  - {zone: hub_oscillator_usb_launch, nets: [XTAL1, XTAL2, UP_HUB_P, UP_HUB_N, 3V3_MAIN], clearance: 0.15mm, why: "MEASURED at the USB2517I top edge: the adjacent 0.50 mm-pitch crystal, upstream USB and supply pins require the fabrication-safe 0.15 mm package escape clearance until the no-via oscillator exits left and the upstream pair fans to 1.00 mm-spaced vias; the 0.30 mm USB field rule resumes beyond this bounded corridor."}
+  - {zone: hub_3v3_left_escape, nets: [3V3_MAIN], clearance: 0.15mm, why: "The two supply escapes occupy the documented lane between adjacent USB pair launches; 0.15 mm is the measured package-local clearance and the 0.30 mm USB field rule resumes outside."}
+  - {zone: hub_3v3_top_escape, nets: [3V3_MAIN], clearance: 0.15mm, why: "USB2517I pad-64 package-local supply escape."}
+  - {zone: hub_3v3_top_right_escape, nets: [3V3_MAIN], clearance: 0.15mm, why: "USB2517I pads 52/57 package-local supply bus; the promoted upstream pair remains at the measured package clearance."}
+  - {zone: hub_3v3_bottom_escape, nets: [3V3_MAIN], clearance: 0.15mm, why: "USB2517I pad-24 package-local supply escape."}
+  - {zone: hub_3v3_bottom_collector, nets: [3V3_MAIN], clearance: 0.15mm, why: "Measured local pin-24/PLL collector through the already-authenticated hub-control field; all copper remains above the selected JLC advanced-tier floor and exact DRC owns the geometry."}
+  - {zone: hub_3v3_right_escape, nets: [3V3_MAIN], clearance: 0.15mm, why: "USB2517I pad-46 package-local supply escape."}
+  - {zone: hub_3v3_spine_neck, nets: [3V3_MAIN], clearance: 0.15mm, why: "Bounded deterministic link joining the two hub-side 3V3 bypass-spine halves through the measured via-to-pad channel."}
+  - {zone: data1_package_launch, nets: [P1_HUB_P, P1_HUB_N, P1_PORT_P, P1_PORT_N, 3V3_MAIN], clearance: 0.15mm, why: "MEASURED P-LAND/DRC: FSUSB42 0.50 mm-pitch lands have 0.15 mm copper gaps and require a bounded 0.15 mm package clearance before the 0.2332/0.15/0.30 mm field geometry begins."}
+  - {zone: data2_package_launch, nets: [P2_HUB_P, P2_HUB_N, P2_PORT_P, P2_PORT_N, 3V3_MAIN], clearance: 0.15mm, why: "Channel-2 translation of the measured FSUSB42 package launch."}
+  - {zone: data3_package_launch, nets: [P3_HUB_P, P3_HUB_N, P3_PORT_P, P3_PORT_N, 3V3_MAIN], clearance: 0.15mm, why: "Channel-3 translation of the measured FSUSB42 package launch."}
+  - {zone: data4_package_launch, nets: [P4_HUB_P, P4_HUB_N, P4_PORT_P, P4_PORT_N, 3V3_MAIN], clearance: 0.15mm, why: "Channel-4 translation of the measured FSUSB42 package launch."}
+
+# Outer-layer USB routes require an adjacent, substantially continuous GND
+# reference.  This opt-in gate catches foreign inner-layer tracks/vias whose
+# projection would cut that return corridor even when ordinary DRC is clean.
+# It is intentionally paired in both directions: B.Cu references In2.Cu and
+# F.Cu references In1.Cu.
+reference_plane_checks:
+  USB_BCU_OVER_IN2:
+    signal_layer: B.Cu
+    reference_layer: In2.Cu
+    reference_net: GND
+    signal_nets:
+      [UP_HUB_P, UP_HUB_N, MGMT_P, MGMT_N,
+       P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N,
+       P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N,
+       P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N,
+       P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+    min_track_clearance_mm: 0.30
+    min_via_clearance_mm: 0.15
+  USB_FCU_OVER_IN1:
+    signal_layer: F.Cu
+    reference_layer: In1.Cu
+    reference_net: GND
+    signal_nets:
+      [UP_HUB_P, UP_HUB_N, MGMT_P, MGMT_N,
+       P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N,
+       P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N,
+       P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N,
+       P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+    min_track_clearance_mm: 0.30
+    min_via_clearance_mm: 0.15
+
+classes:
+  USB_HS_UPSTREAM:
+    intent: >-
+      USB-C DATA to USB2517I upstream USB 2.0 Hi-Speed pair. A6/B6 join D+
+      and A7/B7 join D- at the receptacle; the low-capacitance shunt ESD array
+      remains direct-through. The exact v2 route measures 16.4293 mm total
+      uncoupled copper because the receptacle's alternating duplicate contacts
+      require one explicit two-via physical crossover and the retained
+      USB2517I fanout turns around the crystal cell. The final D- compensation
+      meander, placed beside the connector-originated mismatch as recommended
+      by Microchip AN26.2, raises the exact KiCad uncoupled measurement to
+      19.6411 mm. USB 2.0 does not assign a numeric uncoupled-length limit; use
+      a tight 20.00 mm board ceiling, preserve a continuous adjacent reference
+      plane, and make first-article Hi-Speed traffic/eye testing mandatory.
+    nets: [UP_HUB_P, UP_HUB_N]
+    current: signal
+    min_width: 0.09mm
+    clearance: 0.30mm
+    diff_pair: {width: 0.2332mm, gap: 0.15mm, max_uncoupled: 20.00mm}
+    routing: source_compensated_length_aware
+    verify: DRC, direct connector/ESD topology audit, differential-pair geometry audit, realized-copper skew audit, reference-plane continuity audit, and first-article USB 2.0 Hi-Speed enumeration/eye/traffic testing
+  USB_HS_PROTECTED:
+    intent: >-
+      Downstream connector-facing USB 2.0 segments that pass directly through the two
+      signal lands of a three-pin SOT23 shunt protector before coupling to the
+      0.2332/0.15 mm field geometry.  Microchip's USB2517 checklist requires
+      the protection device directly on the differential traces and forbids a
+      branched TVS stub.  Exact centreline geometry reaches first coupling by
+      6.424 mm; KiCad's realized-miter recognizer measures a 7.130 mm worst
+      uncoupled span.  A 7.50 mm ceiling therefore includes 0.370 mm measured
+      margin for these connector/protector nets.  Internal transition nets use
+      their separately measured 8.50 mm ceiling below; neither value is a USB
+      specification limit.
+    nets:
+      [P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N,
+       P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+    current: signal
+    # 0.2332 mm is the nominal impedance width.  The realized route contract
+    # separately limits any cleanup-required neck to <=2 segments and <=0.85
+    # mm total per net; this DRC floor is the JLC advanced 3.5 mil capability,
+    # not permission for a whole route to run narrow.
+    min_width: 0.09mm
+    clearance: 0.30mm
+    diff_pair: {width: 0.2332mm, gap: 0.15mm, max_uncoupled: 7.50mm}
+    routing: manual_length_aware
+    verify: DRC, direct-through ESD topology audit, differential-pair geometry audit, realized-copper skew audit, reference-plane continuity audit, and first-article USB 2.0 enumeration
+  USB_HS:
+    intent: >-
+      Five functional USB 2.0 links represented as ten differential pair-net
+      segments. The shunt-only connector ESD arrays do not divide the signal
+      nets. Route as provisional 90 ohm
+      differential CPWG over a continuous adjacent reference plane. Public
+      JLC04161H-7628 implementation data gives 0.2332 mm width, 0.15 mm pair
+      gap and 0.30 mm outer-copper clearance; the JLC order-time calculator
+      and selected impedance coupon remain final authority.  Microchip AN15.17
+      and TI SPRAAR7A require symmetry, matched conductors, minimum practical
+      discontinuity length and minimum vias, but publish no numeric maximum
+      uncoupled length.  On the authenticated four-port transition wave,
+      KiCad measures 4.6536--8.0795 mm localized uncoupled spans: the
+      USB2517I/FSUSB42 package escapes, one symmetric layer transition per
+      conductor, and the two conductor-level compensation regions needed to
+      meet the independent realized-copper skew contract.  The 8.50 mm ceiling
+      leaves 0.4205 mm measured margin and is not permission for arbitrary
+      single-ended routing; R-LEN still limits each end-to-end P/N spread to
+      1.00 mm and DRC still enforces the 0.15 mm pair gap.
+    nets:
+      [MGMT_P, MGMT_N,
+       P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N,
+       P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N]
+    current: signal
+    # Nominal field width remains 0.2332 mm and is independently measured by
+    # route.realized_width; this is only the bounded local-neck fab floor.
+    min_width: 0.09mm
+    clearance: 0.30mm
+    diff_pair: {width: 0.2332mm, gap: 0.15mm, max_uncoupled: 8.50mm}
+    routing: manual_length_aware
+    verify: DRC, differential-pair geometry audit, realized-copper skew audit, reference-plane continuity audit, and first-article USB 2.0 enumeration
+  PWR_INPUT:
+    intent: USB-C PD input, local 5 V regulator, and protected 5 V trunk.
+    nets: [VBUS_PD_RAW, VBUS_PD, VBUS_PD_SW, PD_SW, P5V_REG, P5V_PROTECTED]
+    current: 15 V input at 3 A contract; 5 V trunk 3.0 A continuous / 5.0 A bounded transient design load
+    min_width: 1.5mm
+    clearance: 0.15mm
+    routing: pour_or_wide_track
+    verify: DRC, PD-contract test, UVLO test, regulator ripple/transient/thermal test, full-load DC-drop budget, and first-article four-wire measurement
+  PWR_PORT:
+    intent: Individually switched 500 mA USB VBUS outputs.
+    nets: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW, VBUS_CTRL]
+    current: 0.5A per net
+    min_width: 0.5mm
+    clearance: 0.15mm
+    routing: short_direct
+    verify: DRC and 500 mA mated-plug DC-drop measurement on all four ports simultaneously
+  PWR_3V3:
+    intent: Main hub/data-switch/logic 3.3 V distribution.
+    nets: [3V3_MAIN, SW_3V3, BST_3V3]
+    current: 0.6A
+    min_width: 0.4mm
+    clearance: 0.15mm
+    routing: short_power_tree
+    verify: DRC, regulator-loop placement review, ripple measurement, and full-load thermal test
+  PWR_INTERNAL:
+    intent: Internal management-device 5 V rail, sourced only from hub port 1.
+    nets: [VBUS_CTRL, CTRL_VUSB_3V3]
+    current: 0.1A
+    min_width: 0.4mm
+    clearance: 0.15mm
+    routing: short_direct
+    verify: DRC and management-port voltage/current measurement during USB enumeration
+  CONTROL:
+    intent: Slow I2C, command, enable, and active-low fault/control nets.
+    nets:
+      [I2C_SCL, I2C_SDA, PWR_CMD1, PWR_CMD2, PWR_CMD3, PWR_CMD4,
+       DATA_CMD1, DATA_CMD2, DATA_CMD3, DATA_CMD4,
+       PWR_EN1, PWR_EN2, PWR_EN3, PWR_EN4,
+       DATA_OK1, DATA_OK2, DATA_OK3, DATA_OK4,
+       DATA_OE1_N, DATA_OE2_N, DATA_OE3_N, DATA_OE4_N,
+       HUB_PRTPWR1, HUB_PRTPWR2, HUB_PRTPWR3, HUB_PRTPWR4, HUB_PRTPWR5,
+       HUB_OCS1_N, HUB_OCS2_N, HUB_OCS3_N, HUB_OCS4_N, HUB_OCS5_N,
+       HUB_RESET_N, CTRL_RESET_N, EXP_RESET_N, USB_UP_VBUS, HUB_VBUS_SENSE,
+       ILIM1, ILIM2, ILIM3, ILIM4, ILIM_CTRL,
+       AGG_ILIM, AGG_TIMER, AGG_DVDT,
+       XTAL1, XTAL2]
+    current: signal
+    min_width: 0.18mm
+    clearance: 0.15mm
+    routing: ordinary
+    verify: DRC, schematic safe-state truth-table audit, reset-state bench test, and I2C control exercise
+
+# R-LEN: realized-copper skew is measured after routing.  Segment rows make
+# each physical pair independently auditable; end-to-end rows include the
+# series ESD/switch divisions that a net-name-only measurement would miss.
+length_match:
+  UPSTREAM_SEGMENTS:
+    adr: 0005
+    intent: Match P/N copper on the direct upstream connector-to-hub path.
+    members:
+      P: [UP_HUB_P]
+      N: [UP_HUB_N]
+    # The alternating A6/B6 USB-C contacts force one bounded D+ fan-in branch;
+    # tree grading includes both contact tails rather than pretending one is
+    # absent. The route-acceptance allowlist independently binds that branch
+    # to its exact reviewed coordinate.
+    topology: tree
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 0.50
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [J_DATA.A6, U_HUB.59]
+      N: [J_DATA.A7, U_HUB.58]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  MGMT:
+    adr: 0005
+    intent: Match the permanently attached management USB pair on F.Cu.
+    members: {P: [MGMT_P], N: [MGMT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: true
+    max_spread_mm: 0.50
+    router_moves: octilinear
+    elongation: meander
+  PORT1_E2E:
+    adr: 0005
+    intent: Match port 1 P/N through its hub, switch and shunt-protected connector path.
+    members: {P: [P1_HUB_P, P1_PORT_P], N: [P1_HUB_N, P1_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 1.00
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.4, J_PORT1.3]
+      N: [U_HUB.3, J_PORT1.2]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  PORT2_E2E:
+    adr: 0005
+    intent: Match port 2 P/N through its hub, switch and shunt-protected connector path.
+    members: {P: [P2_HUB_P, P2_PORT_P], N: [P2_HUB_N, P2_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 1.00
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.7, J_PORT2.3]
+      N: [U_HUB.6, J_PORT2.2]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  PORT3_E2E:
+    adr: 0005
+    intent: Match port 3 P/N through its hub, switch and shunt-protected connector path.
+    members: {P: [P3_HUB_P, P3_PORT_P], N: [P3_HUB_N, P3_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 1.00
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.9, J_PORT3.3]
+      N: [U_HUB.8, J_PORT3.2]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  PORT4_E2E:
+    adr: 0005
+    intent: Match port 4 P/N through its hub, switch and shunt-protected connector path.
+    members: {P: [P4_HUB_P, P4_PORT_P], N: [P4_HUB_N, P4_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 1.00
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.12, J_PORT4.3]
+      N: [U_HUB.11, J_PORT4.2]
+    stackup_mm: [0.2104, 1.0650, 0.2104]

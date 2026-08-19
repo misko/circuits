@@ -1,0 +1,51 @@
+{
+  "board": {
+    "path": "usb_controlled_debug_hub.kicad_pcb",
+    "sha256": "b1c042c695af896b18627c596406157bc5522561c31ac60cc353b11ff065d197",
+    "size": 3271574
+  },
+  "kind": "jlc-artifact-index-v1",
+  "roles": {
+    "bom": [
+      {
+        "path": "bom.csv",
+        "sha256": "a36487a1d4e5729d17c5fd062057f83cb0862235201e95677007cfade7ecc3dc",
+        "size": 4546
+      }
+    ],
+    "cpl": [
+      {
+        "path": "cpl.csv",
+        "sha256": "352fea2d266d0deb737845bf59fea47e34970d41a5d654f17c730fb2488f3137",
+        "size": 9481
+      }
+    ],
+    "drill": [
+      {
+        "path": "usb_controlled_debug_hub-NPTH.drl",
+        "sha256": "1246e7cb8dd34396c9e9bc6370376cc783d609176781da1e459db992cbf71464",
+        "size": 544
+      },
+      {
+        "path": "usb_controlled_debug_hub-PTH.drl",
+        "sha256": "db25a2dff0152a5e541a3fb3dcf36ca6c311b8dd23715ebb6ffc2b31dbad6611",
+        "size": 8554
+      }
+    ],
+    "gerber_archive": [
+      {
+        "path": "usb_controlled_debug_hub_gerbers.zip",
+        "sha256": "e20883a012c227eeff668666b98da166009bf8909fce257abdcb12a88b243db3",
+        "size": 686910
+      }
+    ],
+    "via_order_note": [
+      {
+        "path": "order_notes.txt",
+        "sha256": "0885d3b5181205861919d487abbd984e8dbe8d3a6666de41778c7456509d3e47",
+        "size": 623
+      }
+    ]
+  },
+  "schema": 1
+}

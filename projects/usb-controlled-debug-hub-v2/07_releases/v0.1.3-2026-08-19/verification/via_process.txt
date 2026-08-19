@@ -1,0 +1,8 @@
+  coverage V-FLAGS: 509/509 vias graded
+  coverage V-SELECT: 509/509 vias compared with drill families
+  coverage V-VIP: 65/65 via-in-pad sites graded
+  census 498 x 0.460/0.200;cap=1;fill=1
+  census  11 x 0.700/0.350;cap=0;fill=0
+  ok   V-PROCESS 498 protected / 11 ordinary / 0 partial; process families are drill-disjoint
+  ok   V-ORDER exact generated order remark is complete
+V-PROCESS PASS

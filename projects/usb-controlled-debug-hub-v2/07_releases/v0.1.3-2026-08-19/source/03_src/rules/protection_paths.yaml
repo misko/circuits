@@ -1,0 +1,43 @@
+schema: 1
+
+paths:
+  - name: VBUS_PD
+    source_operating_max_V: 15.75
+    source_tolerance_included: true
+    source_boundary_evidence: >-
+      The admitted source is a standards-compliant USB-C PD source after a
+      successful 15 V fixed-PDO contract. 15.75 V charges a conservative +5%
+      steady-state allowance; a source without that contract is rejected by
+      the buck UVLO rather than treated as an undervoltage operating point.
+    voltage_margin_pct: 5
+    admitted_transient:
+      claim: >-
+        TVS1800 is a secondary hot-plug/ESD clamp, not a sustained-overvoltage
+        regulator. First article must capture attachment and fault waveforms
+        at the U_PD_IN pads within the exact TVS pulse envelope.
+      input_damping: "connector/cable impedance plus the 1uF/50V X7R eFuse input bypass; the two 10uF buck capacitors are deliberately behind U_PD_IN during attach"
+    tvs:
+      part: TVS1800DRVR
+      standoff_V: 18.0
+      clamp_max_V: 24.7
+      waveform_duration_ms: 0.020
+      waveform: 8/20 us
+      peak_current_max_A: 35
+      peak_power_max_W: 864.5
+      evidence: "TI TVS1800 datasheet SLVSEV7B: maximum 24.7V clamp at 35A, 8/20us and 125C; TI USB interface protection guidance identifies TVS1800 for 15V USB-PD"
+    exposed:
+      - ref: U_PD_IN
+        part: TPS259470ARPWR
+        domain: directly_tvs_clamped_input
+        bounded_max_V: 24.7
+        recommended_max_V: 28
+        absolute_max_V: 28
+        evidence: "TI TPS25947 SLVSFC9C 28V IN absolute maximum and TI TVS1800 24.7V worst-temperature specified clamp leave 3.3V tabulated margin; first article must measure directly at U_PD_IN pads"
+      - {ref: C_PD_IN_HF, part: TCC0603X7R105K500CT, domain: directly_tvs_clamped_input, bounded_max_V: 24.7, recommended_max_V: 50, absolute_max_V: 50}
+      - {ref: U_PD_BUCK, part: TPS56637RPAR, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 24.7, recommended_max_V: 28, absolute_max_V: 32}
+      - {ref: C_PD_IN1, part: TCC1206X7R106K500HT, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 24.7, recommended_max_V: 50, absolute_max_V: 50}
+      - {ref: C_PD_IN2, part: TCC1206X7R106K500HT, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 24.7, recommended_max_V: 50, absolute_max_V: 50}
+
+no_surge_exposed_paths: >-
+  J_DATA VBUS is sense-only and D+/D- use the retained low-capacitance USB ESD
+  array. No other high-energy cable power interface is admitted.

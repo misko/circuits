@@ -1,0 +1,286 @@
+supplies:
+  VBUS_PD: 15.0
+  P5V_REG: 5.16
+  P5V_PROTECTED: 5.0
+  3V3_MAIN: 3.3
+  VBUS_CTRL: 5.0
+
+invariants:
+  - assert: pin_on_net
+    pin: "U_HUB.1"
+    net: MGMT_P
+    adr: "0007"
+    why: With PRT_SWP1 high, management D+ must occupy physical downstream-port-1 DM to preserve a coupled route.
+  - assert: pin_on_net
+    pin: "U_HUB.2"
+    net: MGMT_N
+    adr: "0007"
+    why: With PRT_SWP1 high, management D- must occupy physical downstream-port-1 DP to preserve a coupled route.
+  - assert: pin_on_net
+    pin: "U_HUB.3"
+    net: P1_HUB_N
+    adr: "0007"
+    why: With PRT_SWP2 low, external-port-1 D- must occupy physical downstream-port-2 DM.
+  - assert: pin_on_net
+    pin: "U_HUB.4"
+    net: P1_HUB_P
+    adr: "0007"
+    why: With PRT_SWP2 low, external-port-1 D+ must occupy physical downstream-port-2 DP.
+  - assert: pin_on_net
+    pin: "U_HUB.6"
+    net: P2_HUB_N
+    adr: "0007"
+    why: With PRT_SWP3 low, external-port-2 D- must occupy physical downstream-port-3 DM.
+  - assert: pin_on_net
+    pin: "U_HUB.7"
+    net: P2_HUB_P
+    adr: "0007"
+    why: With PRT_SWP3 low, external-port-2 D+ must occupy physical downstream-port-3 DP.
+  - assert: pin_on_net
+    pin: "U_HUB.8"
+    net: P3_HUB_N
+    adr: "0007"
+    why: With PRT_SWP4 low, external-port-3 D- must occupy physical downstream-port-4 DM.
+  - assert: pin_on_net
+    pin: "U_HUB.9"
+    net: P3_HUB_P
+    adr: "0007"
+    why: With PRT_SWP4 low, external-port-3 D+ must occupy physical downstream-port-4 DP.
+  - assert: pin_on_net
+    pin: "U_HUB.11"
+    net: P4_HUB_N
+    adr: "0007"
+    why: With PRT_SWP5 low, external-port-4 D- must occupy physical downstream-port-5 DM.
+  - assert: pin_on_net
+    pin: "U_HUB.12"
+    net: P4_HUB_P
+    adr: "0007"
+    why: With PRT_SWP5 low, external-port-4 D+ must occupy physical downstream-port-5 DP.
+  - {assert: pin_on_net, pin: "R_SWAP1.2", net: 3V3_MAIN, adr: "0007", why: "asserts PRT_SWP1 so logical D+ maps to physical DM and logical D- maps to physical DP"}
+  - {assert: pin_on_net, pin: "R_SWAP2.2", net: GND, adr: "0007", why: "keeps USB2517I port 2 at normal physical DM=D- and DP=D+ polarity"}
+  - {assert: pin_on_net, pin: "R_SWAP3.2", net: GND, adr: "0007", why: "keeps USB2517I port 3 at normal physical DM=D- and DP=D+ polarity"}
+  - {assert: pin_on_net, pin: "R_SWAP4.2", net: GND, adr: "0007", why: "keeps USB2517I port 4 at normal physical DM=D- and DP=D+ polarity"}
+  - {assert: pin_on_net, pin: "R_SWAP5.2", net: GND, adr: "0007", why: "keeps USB2517I port 5 at normal physical DM=D- and DP=D+ polarity"}
+  - {assert: pin_on_net, pin: "R_SWAP6.2", net: GND, adr: "0007", why: "disabled physical port 6 retains normal polarity"}
+  - {assert: pin_on_net, pin: "R_SWAP7.2", net: GND, adr: "0007", why: "disabled physical port 7 retains normal polarity"}
+  - assert: pin_on_net
+    pin: "R_DIS6N.2"
+    net: HUB_DIS6_N
+    adr: "0001"
+    why: Unused physical port 6 D- is disabled by its documented hardware strap.
+  - assert: pin_on_net
+    pin: "R_DIS6P.2"
+    net: HUB_DIS6_P
+    adr: "0001"
+    why: Unused physical port 6 D+ is disabled by its documented hardware strap.
+  - assert: pin_on_net
+    pin: "R_DIS7N.2"
+    net: HUB_DIS7_N
+    adr: "0001"
+    why: Unused physical port 7 D- is disabled by its documented hardware strap.
+  - assert: pin_on_net
+    pin: "R_DIS7P.2"
+    net: HUB_DIS7_P
+    adr: "0001"
+    why: Unused physical port 7 D+ is disabled by its documented hardware strap.
+  - assert: pin_on_net
+    pin: "R_NONREM1.2"
+    net: GND
+    adr: "0001"
+    why: The upper non-removable strap bit is fixed low for the compound-device map.
+  - assert: pin_on_net
+    pin: "R_NONREM0.1"
+    net: 3V3_MAIN
+    adr: "0001"
+    why: The lower non-removable strap bit is fixed high so physical port 1 is reported non-removable.
+  - {assert: series_chain, chain: [VBUS_PD_RAW, F_PD, VBUS_PD], adr: "0013", why: "every USB-C power contact must pass through the 3A high-voltage fuse before the PD controller and buck"}
+  - {assert: series_chain, chain: [P5V_REG, U_AGG, P5V_PROTECTED], through: {U_AGG: ["1", "17"]}, adr: "0016", why: "the regulated 5V rail feeds the low-loss aggregate latch-off eFuse directly"}
+  - {assert: pin_on_net, pin: "J_DATA.A4", net: USB_UP_VBUS, adr: "0012", why: "USB-C DATA A4 is upstream sense-only VBUS"}
+  - {assert: pin_on_net, pin: "J_DATA.A9", net: USB_UP_VBUS, adr: "0012", why: "USB-C DATA A9 is upstream sense-only VBUS"}
+  - {assert: pin_on_net, pin: "J_DATA.B4", net: USB_UP_VBUS, adr: "0012", why: "USB-C DATA B4 is upstream sense-only VBUS"}
+  - {assert: pin_on_net, pin: "J_DATA.B9", net: USB_UP_VBUS, adr: "0012", why: "USB-C DATA B9 is upstream sense-only VBUS"}
+  - {assert: pin_on_net, pin: "R_CC1.1", net: DATA_CC1, adr: "0012", why: "USB-C DATA CC1 has an independent USB default-current sink termination"}
+  - {assert: pin_on_net, pin: "R_CC1.2", net: GND, adr: "0012", why: "USB-C DATA CC1 Rd returns to ground"}
+  - {assert: pin_on_net, pin: "R_CC2.1", net: DATA_CC2, adr: "0012", why: "USB-C DATA CC2 has an independent USB default-current sink termination"}
+  - {assert: pin_on_net, pin: "R_CC2.2", net: GND, adr: "0012", why: "USB-C DATA CC2 Rd returns to ground"}
+  - {assert: part_value, part: R_CC1, equals: 5.1k, tolerance_pct: 1, adr: "0012", why: "USB-C sink Rd"}
+  - {assert: part_value, part: R_CC2, equals: 5.1k, tolerance_pct: 1, adr: "0012", why: "USB-C sink Rd"}
+  - {assert: pin_on_net, pin: "J_DATA.A6", net: UP_HUB_P, adr: "0012", why: "USB-C DATA A6 carries upstream D+"}
+  - {assert: pin_on_net, pin: "J_DATA.B6", net: UP_HUB_P, adr: "0012", why: "USB-C DATA B6 carries upstream D+"}
+  - {assert: pin_on_net, pin: "J_DATA.A7", net: UP_HUB_N, adr: "0012", why: "USB-C DATA A7 carries upstream D-"}
+  - {assert: pin_on_net, pin: "J_DATA.B7", net: UP_HUB_N, adr: "0012", why: "USB-C DATA B7 carries upstream D-"}
+  - {assert: pin_on_net, pin: "U_PD.2", net: PD_VDD, adr: "0013", why: "CH224K CFG2 high"}
+  - {assert: pin_on_net, pin: "U_PD.3", net: PD_VDD, adr: "0013", why: "CH224K CFG3 high"}
+  - {assert: pin_on_net, pin: "U_PD.9", net: GND, adr: "0013", why: "CH224K CFG1 low; K-specific 0/1/1 strap requests 15V"}
+  - {assert: pin_on_net, pin: "U_PD.4", net: PD_PROTO, adr: "0014", why: "PD-only CH224K D+ and D- are shorted locally per the controller reference topology"}
+  - {assert: pin_on_net, pin: "U_PD.5", net: PD_PROTO, adr: "0014", why: "PD-only CH224K D+ and D- are shorted locally per the controller reference topology"}
+  - {assert: series_chain, chain: [VBUS_PD, U_PD_IN, VBUS_PD_SW], through: {U_PD_IN: ["5", "6"]}, adr: "0014", why: "the buck bulk bank must remain behind the negotiated-voltage inrush gate"}
+  - {assert: pin_on_net, pin: "C_PD_IN_HF.1", net: VBUS_PD, adr: "0015", why: "the 1uF/50V X7R damping capacitor is the only intentional bulk directly exposed at Type-C attach"}
+  - {assert: part_value, part: C_PD_IN_HF, equals: 1uF, tolerance_pct: 10, adr: "0015", why: "TI recommends local input damping while the total directly exposed sink bank remains below 10uF"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.1", net: GND, adr: "0015", why: "TVS1800 ground bank pin 1 requires a short return"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.2", net: GND, adr: "0015", why: "TVS1800 ground bank pin 2 requires a short return"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.3", net: GND, adr: "0015", why: "TVS1800 ground bank pin 3 requires a short return"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.4", net: VBUS_PD, adr: "0015", why: "TVS1800 input bank pin 4 clamps the post-fuse PD input"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.5", net: VBUS_PD, adr: "0015", why: "TVS1800 input bank pin 5 clamps the post-fuse PD input"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.6", net: VBUS_PD, adr: "0015", why: "TVS1800 input bank pin 6 clamps the post-fuse PD input"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.7", net: GND, adr: "0015", why: "TVS1800 exposed pad is grounded per TI"}
+  - {assert: pin_on_net, pin: "C_PD_IN1.1", net: VBUS_PD_SW, adr: "0014", why: "the first 10uF buck capacitor is disconnected until negotiated-voltage UVLO passes"}
+  - {assert: pin_on_net, pin: "C_PD_IN2.1", net: VBUS_PD_SW, adr: "0014", why: "the second 10uF buck capacitor is disconnected until negotiated-voltage UVLO passes"}
+  - {assert: part_value, part: R_PD_VDD, equals: 1k, tolerance_pct: 1, adr: "0014", why: "the value remains per WCH but the physical part is upgraded to a 0.5W 1210"}
+  - {assert: part_value, part: R_PD_IN_UV_TOP, equals: 470k, tolerance_pct: 1, adr: "0014", why: "first TPS259470A UVLO/OVLO divider segment"}
+  - {assert: part_value, part: R_PD_IN_UV_MID, equals: 28.7k, tolerance_pct: 1, adr: "0014", why: "sets the input-eFuse UVLO window above default 5V"}
+  - {assert: part_value, part: R_PD_IN_OV_BOT, equals: 35.7k, tolerance_pct: 1, adr: "0014", why: "sets the input-eFuse OVLO window above the 15V contract"}
+  - {assert: pin_on_net, pin: "U_PD_BUCK.8", net: VBUS_PD_SW, adr: "0014", why: "buck input is downstream of negotiated-voltage inrush control"}
+  - {assert: pin_on_net, pin: "U_PD_BUCK.10", net: GND, adr: "0013", why: "Eco mode is selected by grounding MODE"}
+  - {assert: part_value, part: R_PD_FB_A, equals: 73.2k, tolerance_pct: 0.1, adr: "0016", why: "lowers the charged DC ceiling enough to reserve a 100mV transient envelope"}
+  - {assert: part_value, part: R_PD_FB_B, equals: 374, tolerance_pct: 0.1, adr: "0016", why: "the stocked precision trim combines with 73.2k/10k to produce the charged 4.92511-5.10424V window"}
+  - {assert: part_value, part: R_PD_FB_BOT, equals: 10k, tolerance_pct: 0.1, adr: "0013", why: "precision lower-feedback leg"}
+  - {assert: pin_on_net, pin: "R_VBUS_TOP.1", net: USB_UP_VBUS, adr: "0011", why: "the VBUS detector upper leg must sense only the detachable upstream connector VBUS"}
+  - {assert: pin_on_net, pin: "R_VBUS_TOP.2", net: HUB_VBUS_SENSE, adr: "0011", why: "the upper divider leg must terminate at USB2517I VBUS_DET"}
+  - {assert: pin_on_net, pin: "R_VBUS_BOT.1", net: HUB_VBUS_SENSE, adr: "0011", why: "the lower divider leg must terminate at USB2517I VBUS_DET"}
+  - {assert: pin_on_net, pin: "R_VBUS_BOT.2", net: GND, adr: "0011", why: "the lower divider leg must return to ground"}
+  - {assert: pin_on_net, pin: "U_HUB.44", net: HUB_VBUS_SENSE, adr: "0011", why: "USB2517I VBUS_DET must observe the tolerance-checked upstream divider"}
+  - {assert: part_value, part: R_VBUS_TOP, equals: 47k, tolerance_pct: 1, adr: "0011", why: "with the 100kohm lower leg this guarantees VBUS_DET high at 4.5V despite resistor tolerance and 10uA sink leakage"}
+  - {assert: part_value, part: R_VBUS_BOT, equals: 100k, tolerance_pct: 1, adr: "0011", why: "with the 47kohm upper leg this bounds leakage and VBUS_DET voltage across the 4.5V to 5.5V input range"}
+  - assert: net_has_part
+    net: P5V_PROTECTED
+    part_type: capacitor
+    min: 1
+    adr: "0002"
+    why: The protected input trunk requires local bulk and high-frequency decoupling.
+  - {assert: pin_on_net, pin: "U_AGG.1", net: P5V_REG, adr: "0016", why: "aggregate breaker perimeter input must follow the local 5V regulator"}
+  - {assert: pin_on_net, pin: "U_AGG.16", net: P5V_REG, adr: "0016", why: "all aggregate perimeter input lands must carry the local 5V regulator rail"}
+  - {assert: pin_on_net, pin: "U_AGG.25", net: P5V_REG, adr: "0016", why: "the split IN PowerPAD must carry the local 5V regulator rail"}
+  - {assert: pin_on_net, pin: "U_AGG.17", net: P5V_PROTECTED, adr: "0016", why: "all loads must be downstream of the aggregate breaker"}
+  - {assert: pin_on_net, pin: "U_AGG.24", net: P5V_PROTECTED, adr: "0016", why: "all aggregate output perimeter lands must feed the protected rail"}
+  - {assert: pin_on_net, pin: "U_AGG.26", net: GND, adr: "0016", why: "the split GND PowerPAD and its Type-VII thermal field require a ground connection"}
+  - {assert: pin_on_net, pin: "U_AGG.6", net: P5V_REG, adr: "0016", why: "EN/UVLO is tied directly to IN for the 5V-only aggregate stage"}
+  - {assert: pin_on_net, pin: "U_AGG.10", net: GND, adr: "0016", why: "RETRY_DLY grounded selects latch-off"}
+  - {assert: pin_on_net, pin: "U_AGG.11", net: GND, adr: "0016", why: "NRETRY is grounded for the latch-off configuration"}
+  - {assert: pin_on_net, pin: "U_AGG.12", net: GND, adr: "0016", why: "LDSTRT grounded disables load-detect handshake"}
+  - {assert: pin_on_net, pin: "C_AGG_IN.1", net: P5V_REG, adr: "0013", why: "the datasheet-required aggregate-eFuse input bypass must terminate at IN rather than after the switch"}
+  - {assert: pin_on_net, pin: "C_AGG_IN.2", net: GND, adr: "0006", why: "the aggregate-eFuse input bypass requires a short local ground return"}
+  - {assert: part_value, part: C_AGG_IN, equals: 100nF, tolerance_pct: 10, adr: "0006", why: "TI requires at least 0.1uF directly from IN to GND"}
+  - {assert: pin_on_net, pin: "C_TRUNK_USB.1", net: P5V_PROTECTED, adr: "0006", why: "the polarized USB hub bulk capacitor positive terminal must be on the protected trunk"}
+  - {assert: pin_on_net, pin: "C_TRUNK_USB.2", net: GND, adr: "0006", why: "the polarized USB hub bulk capacitor negative terminal must be grounded"}
+  - {assert: part_value, part: R_AGG_ILIM, equals: 300, tolerance_pct: 1, adr: "0016", why: "uses TPS25980's characterized row and programs the charged 4.2745..5.7755A aggregate threshold"}
+  - {assert: part_value, part: C_AGG_TIMER, equals: 6.8nF, tolerance_pct: 5, adr: "0016", why: "bounds TPS25980 aggregate overload blanking to approximately 1.61..6.65ms"}
+  - {assert: part_value, part: C_AGG_DVDT, equals: 3.3nF, tolerance_pct: 5, adr: "0016", why: "bounds nominal startup slew to about 1.394V/ms and charged maximum-bank inrush below 0.371A"}
+  - {assert: part_value, part: C_TRUNK_USB, equals: 180uF, tolerance_pct: 20, adr: "0006", why: "provides the low-ESR USB hub-source bulk bank"}
+  - {assert: part_value, part: C_TRUNK_BULK, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "ceramic contributor combines with the polymer life corner to remain above 120uF"}
+  - {assert: pin_on_net, pin: "U_ESD_UP.1", net: UP_HUB_N, adr: "0006", why: "symmetric IO1 is assigned to upstream D- after the bottom-side protector is rotated so its signal bank faces the connector without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD_UP.2", net: UP_HUB_P, adr: "0006", why: "symmetric IO2 is assigned to upstream D+ after the bottom-side protector is rotated so its signal bank faces the connector without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD_UP.3", net: GND, adr: "0006", why: "upstream shunt protector return must terminate on the common reference plane"}
+  - {assert: pin_on_net, pin: "U_ESD1.1", net: P1_PORT_P, adr: "0008", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD1.2", net: P1_PORT_N, adr: "0008", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD1.3", net: GND, adr: "0006", why: "port 1 protector return must terminate on the common reference plane"}
+  - {assert: pin_on_net, pin: "U_ESD2.1", net: P2_PORT_P, adr: "0008", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD2.2", net: P2_PORT_N, adr: "0008", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD2.3", net: GND, adr: "0006", why: "port 2 protector return must terminate on the common reference plane"}
+  - {assert: pin_on_net, pin: "U_ESD3.1", net: P3_PORT_P, adr: "0008", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD3.2", net: P3_PORT_N, adr: "0008", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD3.3", net: GND, adr: "0006", why: "port 3 protector return must terminate on the common reference plane"}
+  - {assert: pin_on_net, pin: "U_ESD4.1", net: P4_PORT_P, adr: "0008", why: "outward-facing connector D+ uses the protector's symmetric left IO1 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD4.2", net: P4_PORT_N, adr: "0008", why: "outward-facing connector D- uses the protector's symmetric right IO2 channel without a crossover"}
+  - {assert: pin_on_net, pin: "U_ESD4.3", net: GND, adr: "0006", why: "port 4 protector return must terminate on the common reference plane"}
+  # FSUSB42 is an electrically symmetric dual-SPDT analog switch.  For the
+  # outward-facing receptacle geometry, logical D+ deliberately uses the
+  # package's conventional minus channel (6->4) and logical D- uses its plus
+  # channel (7->3).  Bind both ends so this is an explicit lane assignment,
+  # never an accidental net-name swap.
+  - {assert: pin_on_net, pin: "U_DATA1.6", net: P1_PORT_P, adr: "0007", why: "port 1 D+ enters symmetric FSUSB42 channel 6"}
+  - {assert: pin_on_net, pin: "U_DATA1.4", net: P1_HUB_P, adr: "0007", why: "port 1 D+ exits the same FSUSB42 channel at common pin 4"}
+  - {assert: pin_on_net, pin: "U_DATA1.7", net: P1_PORT_N, adr: "0007", why: "port 1 D- enters symmetric FSUSB42 channel 7"}
+  - {assert: pin_on_net, pin: "U_DATA1.3", net: P1_HUB_N, adr: "0007", why: "port 1 D- exits the same FSUSB42 channel at common pin 3"}
+  - {assert: pin_on_net, pin: "U_DATA2.6", net: P2_PORT_P, adr: "0007", why: "port 2 D+ enters symmetric FSUSB42 channel 6"}
+  - {assert: pin_on_net, pin: "U_DATA2.4", net: P2_HUB_P, adr: "0007", why: "port 2 D+ exits the same FSUSB42 channel at common pin 4"}
+  - {assert: pin_on_net, pin: "U_DATA2.7", net: P2_PORT_N, adr: "0007", why: "port 2 D- enters symmetric FSUSB42 channel 7"}
+  - {assert: pin_on_net, pin: "U_DATA2.3", net: P2_HUB_N, adr: "0007", why: "port 2 D- exits the same FSUSB42 channel at common pin 3"}
+  - {assert: pin_on_net, pin: "U_DATA3.6", net: P3_PORT_P, adr: "0007", why: "port 3 D+ enters symmetric FSUSB42 channel 6"}
+  - {assert: pin_on_net, pin: "U_DATA3.4", net: P3_HUB_P, adr: "0007", why: "port 3 D+ exits the same FSUSB42 channel at common pin 4"}
+  - {assert: pin_on_net, pin: "U_DATA3.7", net: P3_PORT_N, adr: "0007", why: "port 3 D- enters symmetric FSUSB42 channel 7"}
+  - {assert: pin_on_net, pin: "U_DATA3.3", net: P3_HUB_N, adr: "0007", why: "port 3 D- exits the same FSUSB42 channel at common pin 3"}
+  - {assert: pin_on_net, pin: "U_DATA4.6", net: P4_PORT_P, adr: "0007", why: "port 4 D+ enters symmetric FSUSB42 channel 6"}
+  - {assert: pin_on_net, pin: "U_DATA4.4", net: P4_HUB_P, adr: "0007", why: "port 4 D+ exits the same FSUSB42 channel at common pin 4"}
+  - {assert: pin_on_net, pin: "U_DATA4.7", net: P4_PORT_N, adr: "0007", why: "port 4 D- enters symmetric FSUSB42 channel 7"}
+  - {assert: pin_on_net, pin: "U_DATA4.3", net: P4_HUB_N, adr: "0007", why: "port 4 D- exits the same FSUSB42 channel at common pin 3"}
+  - assert: net_has_part
+    net: PWR_CMD1
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 1 power command must default low while management logic is absent.
+  - assert: net_has_part
+    net: PWR_CMD2
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 2 power command must default low while management logic is absent.
+  - assert: net_has_part
+    net: PWR_CMD3
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 3 power command must default low while management logic is absent.
+  - assert: net_has_part
+    net: PWR_CMD4
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 4 power command must default low while management logic is absent.
+  - assert: net_has_part
+    net: DATA_CMD1
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 1 data command must default low while management logic is absent.
+  - assert: net_has_part
+    net: DATA_CMD2
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 2 data command must default low while management logic is absent.
+  - assert: net_has_part
+    net: DATA_CMD3
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 3 data command must default low while management logic is absent.
+  - assert: net_has_part
+    net: DATA_CMD4
+    part_type: resistor
+    min: 1
+    adr: "0003"
+    why: Port 4 data command must default low while management logic is absent.
+  - assert: part_value
+    part: R_ILIM1
+    equals: 3.32k
+    tolerance_pct: 0.1
+    adr: "0015"
+    why: TI's characterized 3.32k row, charged for resistor tolerance and TCR, guarantees 0.847-1.154A rather than extrapolating the unsupported 5.9k setting.
+  - assert: part_value
+    part: R_ILIM2
+    equals: 3.32k
+    tolerance_pct: 0.1
+    adr: "0015"
+    why: TI's characterized 3.32k row, charged for resistor tolerance and TCR, guarantees 0.847-1.154A rather than extrapolating the unsupported 5.9k setting.
+  - assert: part_value
+    part: R_ILIM3
+    equals: 3.32k
+    tolerance_pct: 0.1
+    adr: "0015"
+    why: TI's characterized 3.32k row, charged for resistor tolerance and TCR, guarantees 0.847-1.154A rather than extrapolating the unsupported 5.9k setting.
+  - assert: part_value
+    part: R_ILIM4
+    equals: 3.32k
+    tolerance_pct: 0.1
+    adr: "0015"
+    why: TI's characterized 3.32k row, charged for resistor tolerance and TCR, guarantees 0.847-1.154A rather than extrapolating the unsupported 5.9k setting.
+  - assert: part_value
+    part: R_ILIM_CTRL
+    equals: 187k
+    tolerance_pct: 1.0
+    adr: "0014"
+    why: The captive management switch uses the largest TI-recommended programmer value; full-corner equations bound its current limit to 0.468-0.706A while normal commissioned load remains at or below 0.10A.
+
+label_survival: {}

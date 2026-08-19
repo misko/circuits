@@ -1,0 +1,2 @@
+MODEL-COVERAGE input: /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.3-2026-08-19/verification/twin/twin.kicad_pcb
+PASS MODEL-COVERAGE: 165/165 fitted footprints have a renderer-resolvable 3D body

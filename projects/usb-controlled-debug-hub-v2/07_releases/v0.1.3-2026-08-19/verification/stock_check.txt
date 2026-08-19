@@ -1,0 +1,9 @@
+PUBLIC CATALOG ONLY: PASS 53/53 lines; predicts_jlc_assembly_allocation=false
+C1985204 stock=8 per_board=1 refs=Y_HUB
+C640876 stock=27 per_board=1 refs=U_CTRL
+C3708426 stock=66 per_board=5 refs=U_ESD1,U_ESD2,U_ESD3,U_ESD4,U_ESD_UP
+C2878936 stock=122 per_board=1 refs=U_AGG
+C17700166 stock=299 per_board=1 refs=L_PD
+C136277 stock=864 per_board=1 refs=C_TRUNK_USB
+C3662799 stock=1120 per_board=5 refs=U_PD_IN,U_PWR1,U_PWR2,U_PWR3,U_PWR4
+C852745 stock=1284 per_board=1 refs=R_PD_FB_B

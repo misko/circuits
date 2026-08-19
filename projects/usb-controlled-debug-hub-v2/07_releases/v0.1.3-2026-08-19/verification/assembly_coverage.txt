@@ -1,0 +1,5 @@
+== A-POP assembly_coverage: v0.1.3-2026-08-19 ==
+  board=172 footprints, cpl=165 placements, unpopulated=7 (declared=0, consigned=0, exempt_prefixes=['H', 'TP', 'FID', 'MH'])
+  placement histogram: bottom=9, top=156
+  A-POS datum: 165 CPL row(s) graded against the pad-array centre, worst = 0.00000mm (J_PORT4), tolerance 0.05mm
+A-POP: PASS (every unpopulated part is declared with evidence)

@@ -1,0 +1,365 @@
+{
+  "applicability": "APPLICABLE",
+  "board_sha256": "4ffab33b96d53a1f14c983eeadc62bc3321b06cf2adb3ca4348ec1323e5874aa",
+  "contract": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.3-2026-08-19/source/03_src/rules/model_registration.yaml",
+  "contract_sha256": "5ac375d80874e43abcfeebcb18996323ca06bf92633f58dfbf951a1463540882",
+  "kind": "connector-datum-receipt-v1",
+  "measurements": [
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "HRO TYPE-C-31-M-12 Rev A exact drawing and C165948 STEP: local +Y runs from the contact-row origin to the USB-C mating mouth at +3.65 mm.",
+      "catalog_to_source_footprint_transform": {
+        "catalog_pad_centroid_mm": [
+          0.0,
+          -2.47
+        ],
+        "rotation_deg": 0,
+        "source_pad_centroid_mm": [
+          2.220446049250313e-16,
+          -3.6700000000000017
+        ]
+      },
+      "fab_bbox_local_mm": [
+        -4.52,
+        -3.7,
+        4.52,
+        3.7
+      ],
+      "fab_mating_support_mm": 3.7,
+      "group": "usb_c_hro_type_c_31_m_12",
+      "mating_plane_offset_mm": 3.65,
+      "mating_support_delta_mm": 0.0,
+      "native_model_actual_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+      "native_model_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+      "ref": "J_DATA",
+      "representation_source": "native",
+      "tolerance_mm": 0.65,
+      "vendor_bbox_local_mm": null,
+      "vendor_model_sha256": "0457a14076c3c2f9d16ed2a995ac1f248173ab9ac1c200f99988a33d97d111b5",
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          180.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "Kinghelm KH-AF90DIP-112 manufacturer drawing and its source-owned exact-code STEP: local +Y runs from the contact row to the USB-A mating mouth; F.Fab places the mating plane at +13.49 mm.",
+      "catalog_to_source_footprint_transform": {
+        "catalog_pad_centroid_mm": [
+          0.009999999999999898,
+          -1.36
+        ],
+        "rotation_deg": 0,
+        "source_pad_centroid_mm": [
+          3.5,
+          -4.286263797015736e-16
+        ]
+      },
+      "fab_bbox_local_mm": [
+        -3.575,
+        -1.06,
+        10.575,
+        13.54
+      ],
+      "fab_mating_support_mm": 13.54,
+      "group": "usb_a_kh_af90dip_112",
+      "mating_plane_offset_mm": 13.49,
+      "mating_support_delta_mm": 0.02200000000000024,
+      "native_model_actual_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "native_model_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "ref": "J_PORT1",
+      "representation_source": "vendor",
+      "tolerance_mm": 0.75,
+      "vendor_bbox_local_mm": [
+        -3.8520000000000003,
+        -0.7920000000000005,
+        10.832,
+        13.512
+      ],
+      "vendor_model_sha256": "c0d9ea729705a7bc76fdb25a77dfcf326ddc344d01c80f70d774448880ebd221",
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "Kinghelm KH-AF90DIP-112 manufacturer drawing and its source-owned exact-code STEP: local +Y runs from the contact row to the USB-A mating mouth; F.Fab places the mating plane at +13.49 mm.",
+      "catalog_to_source_footprint_transform": {
+        "catalog_pad_centroid_mm": [
+          0.009999999999999898,
+          -1.36
+        ],
+        "rotation_deg": 0,
+        "source_pad_centroid_mm": [
+          3.5,
+          -4.286263797015736e-16
+        ]
+      },
+      "fab_bbox_local_mm": [
+        -3.575,
+        -1.06,
+        10.575,
+        13.54
+      ],
+      "fab_mating_support_mm": 13.54,
+      "group": "usb_a_kh_af90dip_112",
+      "mating_plane_offset_mm": 13.49,
+      "mating_support_delta_mm": 0.02200000000000024,
+      "native_model_actual_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "native_model_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "ref": "J_PORT2",
+      "representation_source": "vendor",
+      "tolerance_mm": 0.75,
+      "vendor_bbox_local_mm": [
+        -3.8520000000000003,
+        -0.7920000000000005,
+        10.832,
+        13.512
+      ],
+      "vendor_model_sha256": "c0d9ea729705a7bc76fdb25a77dfcf326ddc344d01c80f70d774448880ebd221",
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "Kinghelm KH-AF90DIP-112 manufacturer drawing and its source-owned exact-code STEP: local +Y runs from the contact row to the USB-A mating mouth; F.Fab places the mating plane at +13.49 mm.",
+      "catalog_to_source_footprint_transform": {
+        "catalog_pad_centroid_mm": [
+          0.009999999999999898,
+          -1.36
+        ],
+        "rotation_deg": 0,
+        "source_pad_centroid_mm": [
+          3.5,
+          -4.286263797015736e-16
+        ]
+      },
+      "fab_bbox_local_mm": [
+        -3.575,
+        -1.06,
+        10.575,
+        13.54
+      ],
+      "fab_mating_support_mm": 13.54,
+      "group": "usb_a_kh_af90dip_112",
+      "mating_plane_offset_mm": 13.49,
+      "mating_support_delta_mm": 0.02200000000000024,
+      "native_model_actual_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "native_model_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "ref": "J_PORT3",
+      "representation_source": "vendor",
+      "tolerance_mm": 0.75,
+      "vendor_bbox_local_mm": [
+        -3.8520000000000003,
+        -0.7920000000000005,
+        10.832,
+        13.512
+      ],
+      "vendor_model_sha256": "c0d9ea729705a7bc76fdb25a77dfcf326ddc344d01c80f70d774448880ebd221",
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "Kinghelm KH-AF90DIP-112 manufacturer drawing and its source-owned exact-code STEP: local +Y runs from the contact row to the USB-A mating mouth; F.Fab places the mating plane at +13.49 mm.",
+      "catalog_to_source_footprint_transform": {
+        "catalog_pad_centroid_mm": [
+          0.009999999999999898,
+          -1.36
+        ],
+        "rotation_deg": 0,
+        "source_pad_centroid_mm": [
+          3.5,
+          -4.286263797015736e-16
+        ]
+      },
+      "fab_bbox_local_mm": [
+        -3.575,
+        -1.06,
+        10.575,
+        13.54
+      ],
+      "fab_mating_support_mm": 13.54,
+      "group": "usb_a_kh_af90dip_112",
+      "mating_plane_offset_mm": 13.49,
+      "mating_support_delta_mm": 0.02200000000000024,
+      "native_model_actual_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "native_model_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "ref": "J_PORT4",
+      "representation_source": "vendor",
+      "tolerance_mm": 0.75,
+      "vendor_bbox_local_mm": [
+        -3.8520000000000003,
+        -0.7920000000000005,
+        10.832,
+        13.512
+      ],
+      "vendor_model_sha256": "c0d9ea729705a7bc76fdb25a77dfcf326ddc344d01c80f70d774448880ebd221",
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "HRO TYPE-C-31-M-12 Rev A exact drawing and C165948 STEP: local +Y runs from the contact-row origin to the USB-C mating mouth at +3.65 mm.",
+      "catalog_to_source_footprint_transform": {
+        "catalog_pad_centroid_mm": [
+          0.0,
+          -2.47
+        ],
+        "rotation_deg": 0,
+        "source_pad_centroid_mm": [
+          2.220446049250313e-16,
+          -3.6700000000000017
+        ]
+      },
+      "fab_bbox_local_mm": [
+        -4.52,
+        -3.7,
+        4.52,
+        3.7
+      ],
+      "fab_mating_support_mm": 3.7,
+      "group": "usb_c_hro_type_c_31_m_12",
+      "mating_plane_offset_mm": 3.65,
+      "mating_support_delta_mm": 0.0,
+      "native_model_actual_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+      "native_model_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+      "ref": "J_POWER",
+      "representation_source": "native",
+      "tolerance_mm": 0.65,
+      "vendor_bbox_local_mm": null,
+      "vendor_model_sha256": "0457a14076c3c2f9d16ed2a995ac1f248173ab9ac1c200f99988a33d97d111b5",
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          180.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "refs_declared": [
+    "J_DATA",
+    "J_PORT1",
+    "J_PORT2",
+    "J_PORT3",
+    "J_PORT4",
+    "J_POWER"
+  ],
+  "refs_graded": [
+    "J_DATA",
+    "J_PORT1",
+    "J_PORT2",
+    "J_PORT3",
+    "J_PORT4",
+    "J_POWER"
+  ],
+  "schema": 1,
+  "verdict": "PASS"
+}

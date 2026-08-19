@@ -1,0 +1,4 @@
+BOM-vs-source: projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.3-2026-08-19/fab/bom.csv
+  source: projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.3-2026-08-19/source/03_tscircuit/circuit.json (165 coded refdes); vendored: 40 part.yaml codes; ledger: 251 vetted passive codes
+  coverage leg C: 33/33 R/C rows value-graded (53 BOM rows seen)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

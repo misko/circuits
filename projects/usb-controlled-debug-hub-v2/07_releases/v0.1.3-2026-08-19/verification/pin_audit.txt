@@ -1,0 +1,1 @@
+dossiers: 27 -> projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.3-2026-08-19/verification/pin_audit  (D_PD_TVS, J_DATA, J_PORT1, J_PORT2, J_PORT3, J_PORT4, J_POWER, U_AGG, U_AND_DATA, U_AND_PWR, U_BUCK, U_CTRL, U_DATA1, U_DATA2, U_DATA3, U_DATA4, U_EXP, U_HUB, U_PD, U_PD_BUCK, U_PD_IN, U_PWR1, U_PWR2, U_PWR3, U_PWR4, U_PWR_CTRL, Y_HUB)

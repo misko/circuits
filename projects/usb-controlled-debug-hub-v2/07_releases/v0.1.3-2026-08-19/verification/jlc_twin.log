@@ -1,0 +1,475 @@
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+assembly: 0 coded not-assembled/consigned ref(s) and 0 declared local body ref(s) from projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.3-2026-08-19/source/03_src/rules/assembly.yaml
+JLC-TWIN-FETCH plan: 53 unique code(s), attempts=4, child_timeout_s=45, heartbeat_s=10, wall_budget_s=600.0
+JLC-TWIN-FETCH completed=0/53 current=C14165 state=cached attempt=0/4 elapsed_s=0.0 eta_s=? wall_budget_s=600.0
+JLC-TWIN-FETCH completed=1/53 current=C14165 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=1/53 current=C25741 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=2/53 current=C25741 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=2/53 current=C60474 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=3/53 current=C60474 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=3/53 current=C1546 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=4/53 current=C1546 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=4/53 current=C190095 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=5/53 current=C190095 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=5/53 current=C25744 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=6/53 current=C25744 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=6/53 current=C19702 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=7/53 current=C19702 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=7/53 current=C5449000 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=8/53 current=C5449000 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=8/53 current=C114760 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=9/53 current=C114760 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=9/53 current=C136277 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=10/53 current=C136277 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=10/53 current=C163486 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=11/53 current=C163486 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=11/53 current=C1549 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=12/53 current=C1549 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=12/53 current=C138033 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=13/53 current=C138033 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=13/53 current=C110776 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=14/53 current=C110776 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=14/53 current=C52444 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=15/53 current=C52444 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=15/53 current=C52923 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=16/53 current=C52923 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=16/53 current=C5360793 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.1 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=17/53 current=C5360793 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=17/53 current=C25764 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=18/53 current=C25764 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=18/53 current=C25765 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=19/53 current=C25765 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=19/53 current=C21397 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=20/53 current=C21397 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=20/53 current=C26971 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=21/53 current=C26971 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=21/53 current=C22928 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=22/53 current=C22928 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=22/53 current=C85047 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=23/53 current=C85047 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=23/53 current=C861376 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=24/53 current=C861376 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=24/53 current=C107048 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=25/53 current=C107048 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=25/53 current=C15269 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=26/53 current=C15269 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=26/53 current=C23025 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=27/53 current=C23025 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=27/53 current=C19271634 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=28/53 current=C19271634 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=28/53 current=C23027 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=29/53 current=C23027 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=29/53 current=C852745 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=30/53 current=C852745 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=30/53 current=C25900 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=31/53 current=C25900 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=31/53 current=C23178 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=32/53 current=C23178 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=32/53 current=C25792 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=33/53 current=C25792 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=33/53 current=C25905 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=34/53 current=C25905 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=34/53 current=C162241 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=35/53 current=C162241 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=35/53 current=C852909 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=36/53 current=C852909 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=36/53 current=C6053 state=cached attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=37/53 current=C6053 state=done attempt=0/4 elapsed_s=0.0 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=37/53 current=C5248536 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=38/53 current=C5248536 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=38/53 current=C970725 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=39/53 current=C970725 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=39/53 current=C1985204 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=40/53 current=C1985204 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=40/53 current=C11355 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=41/53 current=C11355 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=41/53 current=C503996 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=42/53 current=C503996 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=42/53 current=C640876 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=43/53 current=C640876 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=43/53 current=C558584 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=44/53 current=C558584 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=44/53 current=C17700166 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=45/53 current=C17700166 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=45/53 current=C3708426 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=46/53 current=C3708426 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=46/53 current=C130056 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=47/53 current=C130056 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=47/53 current=C3662799 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=48/53 current=C3662799 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=48/53 current=C2878936 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=49/53 current=C2878936 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=49/53 current=C841386 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=50/53 current=C841386 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=50/53 current=C2649846 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=51/53 current=C2649846 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=51/53 current=C165948 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=52/53 current=C165948 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=52/53 current=C478081 state=cached attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+JLC-TWIN-FETCH completed=53/53 current=C478081 state=done attempt=0/4 elapsed_s=0.1 eta_s=0.0 wall_budget_s=600.0
+16:25:19: Debug: Adding duplicate image handler for 'PNG file'
+16:25:19: Debug: Adding duplicate image handler for 'JPEG file'
+16:25:19: Debug: Adding duplicate image handler for 'TIFF file'
+16:25:19: Debug: Adding duplicate image handler for 'GIF file'
+16:25:19: Debug: Adding duplicate image handler for 'PNM file'
+16:25:19: Debug: Adding duplicate image handler for 'PCX file'
+16:25:19: Debug: Adding duplicate image handler for 'IFF file'
+16:25:19: Debug: Adding duplicate image handler for 'Windows icon file'
+16:25:19: Debug: Adding duplicate image handler for 'Windows cursor file'
+16:25:19: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+16:25:19: Debug: Adding duplicate image handler for 'TGA file'
+16:25:19: Debug: Adding duplicate image handler for 'XPM file'
+16:25:19: Debug: Adding duplicate image handler for 'PNG file'
+16:25:19: Debug: Adding duplicate image handler for 'JPEG file'
+16:25:19: Debug: Adding duplicate image handler for 'TIFF file'
+16:25:19: Debug: Adding duplicate image handler for 'GIF file'
+16:25:19: Debug: Adding duplicate image handler for 'PNM file'
+16:25:19: Debug: Adding duplicate image handler for 'PCX file'
+16:25:19: Debug: Adding duplicate image handler for 'IFF file'
+16:25:19: Debug: Adding duplicate image handler for 'Windows icon file'
+16:25:19: Debug: Adding duplicate image handler for 'Windows cursor file'
+16:25:19: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+16:25:19: Debug: Adding duplicate image handler for 'TGA file'
+16:25:19: Debug: Adding duplicate image handler for 'XPM file'
+RETAIN-NATIVE J_DATA (C165948): f902880f83a1b397-TYPE-C-31-M-12.step
+RETAIN-NATIVE J_POWER (C165948): f902880f83a1b397-TYPE-C-31-M-12.step
+
+bodies mounted: 165/165  ->  /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.3-2026-08-19/verification/twin/missing_models.txt
+C17700166  L_PD  MOUNT-FALLBACK  best 0.52mm at 0deg, over 0.5mm — body mounted at JLC's OWN footprint transform (offset 0, their model rot_z), NOT at the failed fit. The render is therefore what JLC's own CAD says, and is gated as such by twin_overlay
+C130056  U_PWR_CTRL  PAD-MULTIPLICITY  pad number(s) 9 appear a different number of times on the two footprints (ours {'9': 8} vs JLC {'9': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead
+C2878936  U_AGG  PAD-MULTIPLICITY  pad number(s) 25,26 appear a different number of times on the two footprints (ours {'25': 7, '26': 4} vs JLC {'25': 1, '26': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead
+C478081  U_HUB  PAD-MULTIPLICITY  pad number(s) 65 appear a different number of times on the two footprints (ours {'65': 18} vs JLC {'65': 1}) — a NAMING convention, not a geometry defect; those numbers are fitted by CENTROID. Non-fatal, but PAD-GEOM readings on the affected numbers compare a merged centroid against a single lead
+C14165  F_PD  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWAP1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWAP2  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWAP3  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWAP4  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWAP5  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWAP6  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_SWAP7  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R_VBUS_BOT  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_AGG_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_AND_DATA  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_AND_PWR  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_BST  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_CTRL_VDD  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_DATA1  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_DATA2  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_DATA3  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_DATA4  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_EXP_VDD  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_HUB_A1  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_HUB_A2  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_HUB_A3  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_HUB_A4  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_HUB_CR_HF  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_HUB_DD  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_HUB_PLL  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PD_BOOT  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PORT1_HF  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PORT2_HF  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PORT3_HF  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PORT4_HF  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PWR1_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PWR2_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PWR3_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PWR4_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PWR_CTRL_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_PWR_CTRL_OUT_HF  MODEL-REG-OK  body on courtyard (0.00mm)
+C60474  C_TRUNK_HF  MODEL-REG-OK  body on courtyard (0.00mm)
+C1546  C_PD_FF  MODEL-REG-OK  body on courtyard (0.00mm)
+C190095  R_PD_FB_BOT  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_BOOST0  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_BOOST1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_CFG0  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_CFG1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_CFG2  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_CTRL_RESET  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_CMD1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_CMD2  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_CMD3  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_CMD4  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_OE1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_OE2  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_OE3  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_OE4  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_OK1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_OK2  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_OK3  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DATA_OK4  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DIS6N  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DIS6P  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DIS7N  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_DIS7P  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_EXP_RESET  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_GANG  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_HUB_RESET  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_NONREM0  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_NONREM1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PD_VBUS  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PWR_CMD1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PWR_CMD2  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PWR_CMD3  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PWR_CMD4  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PWR_EN1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PWR_EN2  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PWR_EN3  MODEL-REG-OK  body on courtyard (0.00mm)
+C25744  R_PWR_EN4  MODEL-REG-OK  body on courtyard (0.00mm)
+C19702  C_BUCK_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C5449000  C_PD_IN1  MODEL-REG-OK  body on courtyard (0.00mm)
+C5449000  C_PD_IN2  MODEL-REG-OK  body on courtyard (0.00mm)
+C114760  R_RBIAS  MODEL-REG-OK  body on courtyard (0.00mm)
+C136277  C_TRUNK_USB  MODEL-REG-OK  body on courtyard (0.00mm)
+C163486  R_ILIM_CTRL  MODEL-REG-OK  body on courtyard (0.00mm)
+C1549  C_XTAL1  MODEL-REG-OK  body on courtyard (0.00mm)
+C1549  C_XTAL2  MODEL-REG-OK  body on courtyard (0.00mm)
+C138033  R_XTAL  MODEL-REG-OK  body on courtyard (0.00mm)
+C110776  R_PD_IN_ILIM  MODEL-REG-OK  body on courtyard (0.00mm)
+C52444  R_PD_VDD  MODEL-REG-OK  body on courtyard (0.00mm)
+C52923  C_HUB_18  MODEL-REG-OK  body on courtyard (0.00mm)
+C52923  C_HUB_18PLL  MODEL-REG-OK  body on courtyard (0.00mm)
+C52923  C_HUB_A_BULK  MODEL-REG-OK  body on courtyard (0.00mm)
+C52923  C_HUB_CR_BULK  MODEL-REG-OK  body on courtyard (0.00mm)
+C52923  C_HUB_RESET  MODEL-REG-OK  body on courtyard (0.00mm)
+C52923  C_PD_VDD  MODEL-REG-OK  body on courtyard (0.00mm)
+C52923  C_PWR_CTRL_OUT  MODEL-REG-OK  body on courtyard (0.00mm)
+C5360793  C_PD_IN_HF  MODEL-REG-OK  body on courtyard (0.00mm)
+C25764  R_PD_UV_TOP  MODEL-REG-OK  body on courtyard (0.00mm)
+C25765  R_PD_FF  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_BUCK_OUT1  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_BUCK_OUT2  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_PD_OUT1  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_PD_OUT2  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_PD_OUT3  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_PORT1_BULK  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_PORT2_BULK  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_PORT3_BULK  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_PORT4_BULK  MODEL-REG-OK  body on courtyard (0.00mm)
+C21397  C_TRUNK_BULK  MODEL-REG-OK  body on courtyard (0.00mm)
+C26971  R_PD_UV_BOT  MODEL-REG-OK  body on courtyard (0.00mm)
+C22928  R_PD_IN_UV_MID  MODEL-REG-OK  body on courtyard (0.00mm)
+C85047  Q_DATA1  MODEL-REG-OK  body on courtyard (0.09mm)
+C85047  Q_DATA2  MODEL-REG-OK  body on courtyard (0.09mm)
+C85047  Q_DATA3  MODEL-REG-OK  body on courtyard (0.09mm)
+C85047  Q_DATA4  MODEL-REG-OK  body on courtyard (0.09mm)
+C861376  R_ILIM1  MODEL-REG-OK  body on courtyard (0.00mm)
+C861376  R_ILIM2  MODEL-REG-OK  body on courtyard (0.00mm)
+C861376  R_ILIM3  MODEL-REG-OK  body on courtyard (0.00mm)
+C861376  R_ILIM4  MODEL-REG-OK  body on courtyard (0.00mm)
+C107048  C_AGG_DVDT  MODEL-REG-OK  body on courtyard (0.00mm)
+C107048  C_PD_IN_DVDT  MODEL-REG-OK  body on courtyard (0.00mm)
+C15269  L_MAIN  MODEL-REG-OK  body on courtyard (0.00mm)
+C23025  R_AGG_ILIM  MODEL-REG-OK  body on courtyard (0.00mm)
+C19271634  C_CTRL_VUSB  MODEL-REG-OK  body on courtyard (0.00mm)
+C23027  R_PD_IN_OV_BOT  MODEL-REG-OK  body on courtyard (0.00mm)
+C852745  R_PD_FB_B  MODEL-REG-OK  body on courtyard (0.00mm)
+C25900  R_I2C_SCL  MODEL-REG-OK  body on courtyard (0.00mm)
+C25900  R_I2C_SDA  MODEL-REG-OK  body on courtyard (0.00mm)
+C23178  R_PD_IN_UV_TOP  MODEL-REG-OK  body on courtyard (0.00mm)
+C25792  R_VBUS_TOP  MODEL-REG-OK  body on courtyard (0.00mm)
+C25905  R_CC1  MODEL-REG-OK  body on courtyard (0.00mm)
+C25905  R_CC2  MODEL-REG-OK  body on courtyard (0.00mm)
+C162241  C_AGG_TIMER  MODEL-REG-OK  body on courtyard (0.00mm)
+C852909  R_PD_FB_A  MODEL-REG-OK  body on courtyard (0.00mm)
+C6053  U_AND_DATA  MODEL-REG-OK  body on courtyard (0.00mm)
+C6053  U_AND_PWR  MODEL-REG-OK  body on courtyard (0.00mm)
+C5248536  U_BUCK  MODEL-REG-OK  body on courtyard (0.00mm)
+C970725  U_PD  MODEL-REG-OK  body on courtyard (0.00mm)
+C1985204  Y_HUB  MODEL-REG-OK  body on courtyard (0.00mm)
+C503996  J_PORT1  P-MATE-REG-OK  catalog mating-side support differs from approved mating plane by +0.022mm; allowed +/-0.750mm
+C503996  J_PORT1  MODEL-REG-OK  body on courtyard (0.37mm)
+C503996  J_PORT2  P-MATE-REG-OK  catalog mating-side support differs from approved mating plane by +0.022mm; allowed +/-0.750mm
+C503996  J_PORT2  MODEL-REG-OK  body on courtyard (0.37mm)
+C503996  J_PORT3  P-MATE-REG-OK  catalog mating-side support differs from approved mating plane by +0.022mm; allowed +/-0.750mm
+C503996  J_PORT3  MODEL-REG-OK  body on courtyard (0.37mm)
+C503996  J_PORT4  P-MATE-REG-OK  catalog mating-side support differs from approved mating plane by +0.022mm; allowed +/-0.750mm
+C503996  J_PORT4  MODEL-REG-OK  body on courtyard (0.37mm)
+C640876  U_CTRL  MODEL-REG-OK  body on courtyard (0.00mm)
+C558584  U_EXP  MODEL-REG-OK  body on courtyard (0.00mm)
+C17700166  L_PD  MODEL-REG-OK  body on courtyard (0.00mm)
+C130056  U_PWR_CTRL  MODEL-REG-OK  body on courtyard (0.00mm)
+C3662799  U_PD_IN  MODEL-REG-OK  body on courtyard (0.00mm)
+C3662799  U_PWR1  MODEL-REG-OK  body on courtyard (0.00mm)
+C3662799  U_PWR2  MODEL-REG-OK  body on courtyard (0.00mm)
+C3662799  U_PWR3  MODEL-REG-OK  body on courtyard (0.00mm)
+C3662799  U_PWR4  MODEL-REG-OK  body on courtyard (0.00mm)
+C2878936  U_AGG  MODEL-REG-OK  body on courtyard (0.03mm)
+C841386  U_PD_BUCK  MODEL-REG-OK  body on courtyard (0.04mm)
+C2649846  D_PD_TVS  MODEL-REG-OK  body on courtyard (0.00mm)
+C165948  J_DATA  P-MATE-REG-OK  approved exact native connector body retained; catalog body substitution not used
+C165948  J_POWER  P-MATE-REG-OK  approved exact native connector body retained; catalog body substitution not used
+C478081  U_HUB  MODEL-REG-OK  body on courtyard (0.00mm)
+C14165  F_PD  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWAP1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWAP2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWAP3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWAP4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWAP5  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWAP6  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_SWAP7  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25741  R_VBUS_BOT  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_AGG_IN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_AND_DATA  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_AND_PWR  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_BST  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_CTRL_VDD  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_DATA1  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_DATA2  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_DATA3  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_DATA4  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_EXP_VDD  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_HUB_A1  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_HUB_A2  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_HUB_A3  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_HUB_A4  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_HUB_CR_HF  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_HUB_DD  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_HUB_PLL  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PD_BOOT  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PORT1_HF  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PORT2_HF  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PORT3_HF  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PORT4_HF  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PWR1_IN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PWR2_IN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PWR3_IN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PWR4_IN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PWR_CTRL_IN  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_PWR_CTRL_OUT_HF  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C60474  C_TRUNK_HF  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C1546  C_PD_FF  OK  fit=0.06mm jlc_offset=0 db=0.0 src=name-DB
+C190095  R_PD_FB_BOT  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_BOOST0  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_BOOST1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_CFG0  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_CFG1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_CFG2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_CTRL_RESET  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_CMD1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_CMD2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_CMD3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_CMD4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_OE1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_OE2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_OE3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_OE4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_OK1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_OK2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_OK3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DATA_OK4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DIS6N  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DIS6P  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DIS7N  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_DIS7P  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_EXP_RESET  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_GANG  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_HUB_RESET  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_NONREM0  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_NONREM1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PD_VBUS  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PWR_CMD1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PWR_CMD2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PWR_CMD3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PWR_CMD4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PWR_EN1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PWR_EN2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PWR_EN3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25744  R_PWR_EN4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C19702  C_BUCK_IN  OK  fit=0.07mm jlc_offset=0 db=0.0 src=lcsc
+C5449000  C_PD_IN1  OK  fit=0.12mm jlc_offset=0 db=0.0 src=name-DB
+C5449000  C_PD_IN2  OK  fit=0.12mm jlc_offset=0 db=0.0 src=name-DB
+C114760  R_RBIAS  OK  fit=0.08mm jlc_offset=0 db=0.0 src=lcsc
+C136277  C_TRUNK_USB  OK  fit=0.03mm jlc_offset=0 db=0.0 src=lcsc
+C163486  R_ILIM_CTRL  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C1549  C_XTAL1  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C1549  C_XTAL2  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C138033  R_XTAL  OK  fit=0.08mm jlc_offset=0 db=0.0 src=lcsc
+C110776  R_PD_IN_ILIM  OK  fit=0.08mm jlc_offset=0 db=0.0 src=lcsc
+C52444  R_PD_VDD  OK  fit=0.02mm jlc_offset=0 db=0.0 src=name-DB
+C52923  C_HUB_18  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C52923  C_HUB_18PLL  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C52923  C_HUB_A_BULK  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C52923  C_HUB_CR_BULK  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C52923  C_HUB_RESET  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C52923  C_PD_VDD  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C52923  C_PWR_CTRL_OUT  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C5360793  C_PD_IN_HF  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C25764  R_PD_UV_TOP  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25765  R_PD_FF  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_BUCK_OUT1  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_BUCK_OUT2  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_PD_OUT1  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_PD_OUT2  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_PD_OUT3  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_PORT1_BULK  OK  fit=0.04mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_PORT2_BULK  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_PORT3_BULK  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_PORT4_BULK  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C21397  C_TRUNK_BULK  OK  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C26971  R_PD_UV_BOT  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C22928  R_PD_IN_UV_MID  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C85047  Q_DATA1  OK  fit=0.20mm jlc_offset=180 db=180.0 src=lcsc
+C85047  Q_DATA2  OK  fit=0.20mm jlc_offset=180 db=180.0 src=lcsc
+C85047  Q_DATA3  OK  fit=0.20mm jlc_offset=180 db=180.0 src=lcsc
+C85047  Q_DATA4  OK  fit=0.20mm jlc_offset=180 db=180.0 src=lcsc
+C861376  R_ILIM1  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C861376  R_ILIM2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C861376  R_ILIM3  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C861376  R_ILIM4  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C107048  C_AGG_DVDT  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C107048  C_PD_IN_DVDT  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C15269  L_MAIN  OK  fit=0.10mm jlc_offset=0 db=0.0 src=lcsc
+C23025  R_AGG_ILIM  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C19271634  C_CTRL_VUSB  OK  fit=0.06mm jlc_offset=0 db=0.0 src=lcsc
+C23027  R_PD_IN_OV_BOT  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C852745  R_PD_FB_B  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25900  R_I2C_SCL  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25900  R_I2C_SDA  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23178  R_PD_IN_UV_TOP  OK  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C25792  R_VBUS_TOP  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25905  R_CC1  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25905  R_CC2  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C162241  C_AGG_TIMER  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C852909  R_PD_FB_A  OK  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C6053  U_AND_DATA  OK  fit=0.06mm jlc_offset=270 db=270.0 src=lcsc
+C6053  U_AND_PWR  OK  fit=0.06mm jlc_offset=270 db=270.0 src=lcsc
+C5248536  U_BUCK  OK  fit=0.06mm jlc_offset=270 db=270.0 src=lcsc
+C970725  U_PD  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C1985204  Y_HUB  OK  fit=0.05mm jlc_offset=0 db=0.0 src=lcsc
+C11355  U_DATA1  OK  fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C11355  U_DATA2  OK  fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C11355  U_DATA3  OK  fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C11355  U_DATA4  OK  fit=0.01mm jlc_offset=270 db=270.0 src=lcsc
+C503996  J_PORT1  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C503996  J_PORT2  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C503996  J_PORT3  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C503996  J_PORT4  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C640876  U_CTRL  OK  fit=0.15mm jlc_offset=270 db=270.0 src=lcsc
+C558584  U_EXP  OK  fit=0.04mm jlc_offset=270 db=270.0 src=lcsc
+C17700166  L_PD  ADJUDICATED-PAD-GEOM  Same manufacturer-backed disposition as the C17700166 PAD-MISMATCH row: Sunlord's exact recommended land, not the JLC library land, owns the PCB.
+C17700166  L_PD  ADJUDICATED-PAD-MISMATCH  Manufacturer-authoritative land pattern. Sunlord MWSA-S catalog revision 2025-05-29 p.2 specifies MWSA0804S I=2.75 mm pad width, J=4.00 mm inner gap and H=5.50 mm pad height. The exact source footprint implements 2.75 x 5.50 mm pads at +/-3.375 mm; the JLC/EasyEDA library's 2.10 mm pads at +/-3.90 mm are deliberately rejected. Exact part identity is MWSA0804S-3R3MT / C17700166.
+C3708426  U_ESD1  OK  fit=0.22mm jlc_offset=180 db=180.0 src=lcsc
+C3708426  U_ESD2  OK  fit=0.22mm jlc_offset=180 db=180.0 src=lcsc
+C3708426  U_ESD3  OK  fit=0.22mm jlc_offset=180 db=180.0 src=lcsc
+C3708426  U_ESD4  OK  fit=0.22mm jlc_offset=180 db=180.0 src=lcsc
+C3708426  U_ESD_UP  OK  fit=0.22mm jlc_offset=180 db=180.0 src=lcsc
+C130056  U_PWR_CTRL  OK  fit=0.05mm jlc_offset=270 db=270.0 src=lcsc
+C3662799  U_PD_IN  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C3662799  U_PWR1  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C3662799  U_PWR2  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C3662799  U_PWR3  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C3662799  U_PWR4  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C2878936  U_AGG  OK  fit=0.04mm jlc_offset=0 db=0.0 src=lcsc
+C841386  U_PD_BUCK  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C2649846  D_PD_TVS  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C165948  J_DATA  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C165948  J_POWER  OK  fit=0.00mm jlc_offset=0 db=0.0 src=lcsc
+C478081  U_HUB  OK  fit=0.04mm jlc_offset=0 db=0.0 src=lcsc
+C165948  J_DATA  ADJUDICATED-MODEL-REG  The exact JLC land fit is 0.00 mm at the measured 0-degree LCSC rotation, but the catalog body's mating-side support is 2.00 mm behind the approved HRO TYPE-C-31-M-12 mating plane. Retain the source-owned exact manufacturer STEP (SHA bound by model_registration.yaml) for J_DATA and J_POWER in the fabrication twin. Catalog pad correspondence and rotation remain graded; no footprint position, model nudge, pad mapping, or CPL value is changed.
+C165948  J_POWER  ADJUDICATED-MODEL-REG  The exact JLC land fit is 0.00 mm at the measured 0-degree LCSC rotation, but the catalog body's mating-side support is 2.00 mm behind the approved HRO TYPE-C-31-M-12 mating plane. Retain the source-owned exact manufacturer STEP (SHA bound by model_registration.yaml) for J_DATA and J_POWER in the fabrication twin. Catalog pad correspondence and rotation remain graded; no footprint position, model nudge, pad mapping, or CPL value is changed.
+
+164 OK / 332 finding rows; rotation-fitted refs: 164
+bodies mounted: 165/165
+report + renders -> /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.3-2026-08-19/verification/twin
