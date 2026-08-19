@@ -1,10 +1,10 @@
 board:        usb_controlled_debug_hub
 version:      v0.1.0
-ordered:      NOT-ORDERED (2026-08-18 staging)
-git_sha:      af8c729eeebd485bf6444a3055ce52d8a696a0fc
-git_dirty:    true
+ordered:      NOT-ORDERED (2026-08-18 release)
+git_sha:      5cc76fdcde99ee8bce180379c4600ae0c3df0491
+git_dirty:    false
 sourcing_authority: jlc-pcba
-status:       DRAFT DESIGN PASS / BLOCKED-SOURCING — DO-NOT-ORDER
+status:       SEALED DESIGN PASS / BLOCKED-SOURCING — DO-NOT-ORDER
 gates:        exact-board design gates PASS; order-time JLC uploader evidence pending
 DESIGN:       PASS
 SOURCING:     CATALOG-PASS / BLOCKED-ORDER (no quantity-5 allocation or uploader previews)
