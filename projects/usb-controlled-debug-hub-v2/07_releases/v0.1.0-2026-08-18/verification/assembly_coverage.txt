@@ -1,0 +1,8 @@
+A-POP PASS
+board footprints: 169
+CPL placements: 162
+exempt mechanical/test footprints: 7
+declared not assembled: 0
+placement histogram: top=153 bottom=9
+CPL datum check: 162/162 PASS; worst offset 0.00000 mm
+

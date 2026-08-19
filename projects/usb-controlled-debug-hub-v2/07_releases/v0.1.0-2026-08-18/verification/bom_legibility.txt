@@ -1,0 +1,7 @@
+F-LEGIBLE PASS
+F-ENCODE: 1/1 UTF-8 BOM file decoded.
+F-MPN: 49/49 coded rows resolve through exact part dossiers or the vetted
+passives ledger.
+F-WORDS: 49/49 comments are human-readable.
+No coded row has a blank or ambiguous MPN/LCSC identity.
+

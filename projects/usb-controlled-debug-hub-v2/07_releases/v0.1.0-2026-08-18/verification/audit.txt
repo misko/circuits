@@ -1,0 +1,12 @@
+Exact-board audit summary
+board_sha256: 02956a64f67e0ef620fb060833dbc1d877e4b02bd7c79ede7cb901c6bf083719
+DRC/unconnected/schematic-parity: 0/0/0
+blocking ERC: 0
+route acceptance: ACCEPTED 9/9
+critical USB pairs: PASS 10/10
+USB length groups: PASS 6/6; 12/12 member paths measured
+reference-plane obstacle audit: PASS
+policy audit: HUMAN=6 N-A=9 PASS=29 WAIVED=2 FAIL=0
+model coverage: PASS 162/162
+via process: PASS; 486 protected 0.46/0.20 and 28 ordinary 0.70/0.35
+

@@ -1,0 +1,6 @@
+F-ECHO: ORDER-TIME HUMAN GATE — unresolved by design.
+Upload fab/bom.csv and require all 49 rows to resolve to the exact requested
+LCSC code. Compare JLC's resolved table against fab/bom_echo_gate.txt. Reject
+redirects, substitutions, DNP rows, preorder-only fulfillment, or unapproved
+MOQ/surplus cash cost. Preserve the accepted uploader evidence before payment.
+

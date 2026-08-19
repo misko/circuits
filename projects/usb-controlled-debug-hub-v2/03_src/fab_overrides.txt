@@ -1,0 +1,10 @@
+# KRT process-floor pin for this JLC four-layer advanced board.  The selected
+# manufacturing tier permits smaller geometry, but this route deliberately
+# keeps ordinary through-vias at 0.46/0.20 mm so the authored 0.13 mm annulus
+# floor is met and no autorouter escalation can silently shrink them.
+via_diameter = 0.46
+via_drill = 0.20
+hole_to_hole = 0.25
+clearance = 0.09
+track_width = 0.09
+annular = 0.13

@@ -1,0 +1,6 @@
+BOM SOURCE CHECK: PASS
+49 BOM rows; 162 coded source refdes; 30/30 R/C rows value-graded.
+Every BOM LCSC code equals the authoritative circuit.json code for every
+placed reference. Vendored part identities and the vetted passive ledger were
+used as the independent code/value authority.
+

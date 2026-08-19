@@ -1,0 +1,17 @@
+mpn: RC0402FR-074K7L
+manufacturer: YAGEO
+type: thick_film_resistor
+value: 4.7k
+status: active
+datasheet: {doc_id: RC0402FR-074K7L-spec, revision: "generated 2026-08-14", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-074K7L", local: RC0402FR-074K7L.pdf, sha256: 70059366a90702ccd94964056b48b42a111ab1ffbdcfbf0f88ae15dcf8edbbe3, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {resistance: 4.7kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas: ["The two parts pull MCP2221A/MCP23017 I2C SCL and SDA up to VBUS_CTRL. Do not pull them to 3V3_MAIN because the management island is port-powered and must not be phantom-powered."]
+verified: "Exact YAGEO generated specification independently read for MPN, 4.7kohm, 1%, 0402 and dimensions on 2026-08-14."
+layout: {source: "MCP2221A and MCP23017 I2C interface guidance", reviewed: 2026-08-15, notes: ["Place in the management island and keep both pullups on VBUS_CTRL."]}
+sourcing: {lcsc: C105871, alternates: []}
+asserts:
+  - {assert: value, equals: 4.7k, why: "This is the reviewed standard-mode I2C pullup at the short onboard bus capacitance."}

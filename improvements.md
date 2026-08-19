@@ -5996,3 +5996,310 @@ IMP-143 owns experiment retention.
 - recommendation: P0 for power, reset, enable, UV/OV, current-limit and digital
   threshold networks. Run after part selection but before placement, then bind
   the exact result into final topology review and release evidence.
+
+## IMP-164 — recognize both lit faces of the board strip in directional crops
+
+- status: implemented
+- observed: USB-controlled debug hub v2 two-USB-C placement review,
+  2026-08-18
+- evidence: P-ORIENT geometrically graded all six connector instances PASS,
+  but omitted the USB-C inside/rear image with `side render has no measurable
+  board strip`. KiCad rendered the continuous reverse-camera board edge near
+  RGB 107/111/125; the crop selector required blue below 105 and therefore
+  rejected the real board while the outside/front camera passed.
+- general rule: deterministic camera metadata does not make pixel calibration
+  illumination-invariant. A side-crop selector must recognize the board's
+  front and reverse rendered faces, while still deriving the connector window
+  from board coordinates rather than target-model pixels.
+- landed implementation: `connector_orientation_gate.py` retains the bounded
+  three-channel background rejection and density/span checks but admits the
+  cool grey-blue reverse face as well as the olive front face. The focused
+  regression constructs an exact synthetic reverse-camera strip; the live v2
+  rerun now produces top/outside/inside images and reaches `REVIEW REQUIRED`
+  with machine 6/6 PASS.
+- recommendation: retain this as part of P-ORIENT. Do not weaken the machine
+  geometry checks or infer connector bodies from colours; this change affects
+  only board-span calibration for the already coordinate-selected side crop.
+
+## IMP-165 — decide duplicate-contact connector polarity order before routing
+
+- status: proposed
+- observed: USB-controlled debug hub v2 USB-only route checkpoint, 2026-08-18
+- evidence: the USB-C receptacle exposes alternating A6/B6 D+ and A7/B7 D-
+  contacts. All net identities and local clearances were correct, but the
+  connector-side runway and hub fanout presented incompatible physical pair
+  order to the coupled router. Two bounded attempts either entered rip-up or
+  produced copper that the physical DRC correctly rejected. An explicit
+  two-via crossover then connected 10/10 critical pairs with zero hard DRC.
+- general rule: for reversible, duplicated or multi-row high-speed connectors,
+  schematic connectivity is insufficient route input. Before placement
+  approval, derive a small physical lane-order contract at the connector, the
+  protection device and the destination. State whether the route is
+  order-preserving, uses an allowed logical swap, or requires a physical layer
+  crossover. Logical net identity must never be inferred from screen order.
+- intended landing point: extend the connector-orientation/critical-pair
+  pre-route evidence with ordered terminal tuples and an automatic parity
+  comparison between both ends. A mismatch should require a source-owned
+  crossover sketch plus via/uncoupled-length budget before KRT runs.
+- simple regression cases: aligned single-row D+/D- passes without a
+  crossover; TYPE-C A6/B6+A7/B7 merged contacts report a required physical
+  crossover; a proposed D+/D- logical swap fails unless an ADR explicitly
+  permits it; an authored crossover whose vias violate clearance fails raw r0
+  DRC before routing.
+- recommendation: P1 for USB-C and other reversible high-speed connectors.
+  Run immediately after placement and before the first differential-pair wave.
+
+## IMP-166 — make switching-loop adjacency a placement contract, not a routing discovery
+
+- status: proposed
+- observed: USB-controlled debug hub v2 PD/power route, 2026-08-18
+- evidence: the first TPS56637 power-prefix attempt exposed that the bootstrap
+  capacitor was not loop-adjacent. Moving it during routing immediately caused
+  an anchored courtyard overlap, which the existing placement gate correctly
+  rejected; a second pose was required before any valid switching copper could
+  be drawn.
+- general rule: for every buck/boost/flyback cell, placement must explicitly
+  contract the hot-loop capacitor, bootstrap capacitor, switch node/inductor,
+  feedback divider and AGND/PGND join before routing begins. Generic nearest-
+  component placement is not enough: each relationship needs a measured
+  maximum span and a no-intervening-body/courtyard predicate.
+- intended landing point: extend the part-dossier adjacency schema with named
+  switching-loop roles and grade the complete loop immediately after placement.
+  Emit a small pin-to-pin loop sketch and measured spans with the placement
+  review, before connector approval or any route wave.
+- simple regression cases: a bootstrap capacitor beside the IC body but far
+  from the SW/BOOT pins must fail; a closer pose whose courtyard overlaps the
+  IC must fail; the exact legal loop-adjacent pose must pass; changing the
+  converter identity invalidates the role map and forces re-review.
+- recommendation: P1 for every switching regulator. This prevents local-cell
+  re-placement from invalidating already-reviewed high-speed or bulk routes.
+
+## IMP-167 — split adjacent power-zone ownership at every series boundary
+
+- status: proposed
+- observed: USB-controlled debug hub v2 aggregate-eFuse route, 2026-08-18
+- evidence: source zones for P5V_REG and P5V_PROTECTED overlapped around the
+  TPS259474L. KiCad's equal-priority fill could not express which side owned
+  the shared area, producing competing fill and making visual continuity look
+  more authoritative than the actual series path. Splitting the rectangles at
+  the package pin gap made the input/output boundary unambiguous.
+- general rule: two different rail nets separated by a fuse, eFuse, shunt,
+  ideal diode or load switch must never use overlapping equal-priority zones.
+  Each side owns a disjoint source region, and the only permitted crossing is
+  the exact series component (plus any explicitly reviewed Kelvin sense path).
+- intended landing point: add a pre-route `series_boundaries` contract naming
+  upstream net, device pins, downstream net and disjoint zone IDs. A geometry
+  gate should fail overlap, wrong-side pad coverage, or any alternate copper
+  path, then emit a compact current-flow diagram for human review.
+- simple regression cases: overlapping VIN/VOUT zones fail; zones separated at
+  the exact package gap pass; a same-net bypass track around the series device
+  fails; a Kelvin sense trace crossing the boundary passes only when declared
+  no-load-current and bound to the correct pin.
+- recommendation: P1 for all protected/high-current paths, before filling
+  zones or routing control signals through the power cell.
+
+## IMP-168 — replay inherited copper only through exact pad signatures
+
+- status: proposed
+- observed: USB-controlled debug hub v2 control-route checkpoint, 2026-08-18
+- evidence: 67 unchanged control nets could be replayed from the reviewed v1
+  board after the v2 USB-C/power redesign. Comparing net names alone would
+  have copied obsolete copper through moved parts; requiring the complete set
+  of `(reference, pad, absolute position, layer, net)` signatures excluded
+  every changed net and produced zero hard DRC before new local routes.
+- general rule: reuse is a provenance operation, not a visual shortcut. A net
+  is replayable only when every endpoint pad signature matches the reviewed
+  reference, the destination has no existing copper for that net, and the net
+  is not in a redesigned-domain deny list. Fresh physical DRC remains required.
+- intended landing point: make pad-signature replay a shared, report-producing
+  route primitive. Record accepted/rejected nets and reasons, both board
+  hashes, replayed item counts and post-replay DRC in the route checkpoint.
+- simple regression cases: identical endpoints pass; moving one resistor by
+  0.01 mm rejects only its affected net; an added endpoint rejects the net;
+  an explicitly redesigned net is rejected despite identical pads; any replay
+  that creates a hard DRC finding fails atomically.
+- recommendation: P1 for revisions derived from a reviewed board.
+
+## IMP-169 — place low-speed service parts on the reachable side of route barriers
+
+- status: proposed
+- observed: USB-controlled debug hub v2 USB-C/control routing, 2026-08-18
+- evidence: the inherited port-1 enable pull-down, one USB-C CC resistor and
+  the upstream-VBUS divider were electrically correct and collision-free, but
+  sat across the newly routed upstream D+/D- corridor from the pins they
+  served. Moving them beside their owning pins produced bounded, DRC-clean
+  routes without disturbing any USB pair.
+- general rule: placement reachability must consider already committed route
+  barriers. Pull resistors, divider networks, strap parts and local bypasses
+  belong in the same reachable region as their owning pin; distance and
+  courtyard legality alone do not prove routability.
+- intended landing point: after critical-pair/power corridor planning,
+  partition the board into reachable regions and grade each declared local
+  service part against its owning pin. A mismatch pauses before copper and
+  emits the blocking corridor plus a same-region placement window.
+- simple regression cases: a pull resistor 4 mm away across a differential
+  pair fails; an 8 mm route in the same open region passes; moving a divider
+  changes only its two nets' replay eligibility; an overlapping correction
+  still fails placement.
+- recommendation: P1 after critical corridor planning and before control routing.
+
+## IMP-170 — bind every intermediate board to its matching KiCad rule sidecar
+
+- status: proposed
+- observed: USB-controlled debug hub v2 staged routing, 2026-08-18
+- evidence: a newly named `signal_prefix.kicad_pcb` was initially checked
+  without same-basename `.kicad_dru/.kicad_pro` files. KiCad silently applied
+  default constraints and emitted dozens of misleading USB findings; binding
+  the generated sidecars reduced the report to the genuine new-route defects.
+- general rule: an intermediate PCB is not independently reviewable unless its
+  exact generated project/rule context is present and hash-bound. DRC wrappers
+  must refuse rather than silently fall back to defaults.
+- intended landing point: centralize intermediate-board creation in a helper
+  that installs the authoritative sidecars, records their hashes, runs a
+  sentinel rule probe and only then invokes DRC.
+- simple regression cases: renamed board without sidecars fails preflight;
+  stale sidecar hash fails; matching sidecars pass; a scoped-clearance sentinel
+  proves the custom rules loaded.
+- recommendation: P0 for trustworthy staged routing evidence; refactor the
+  existing DRC wrapper rather than add a lifecycle stage.
+
+## IMP-171 — prove load-current paths as source-to-load graphs before control routing
+
+- status: proposed
+- observed: USB-controlled debug hub v2 final power/ground stage, 2026-08-18
+- evidence: both `VBUS_PD` pads appeared inside same-net filled zones and the
+  ordinary ratsnest showed only one net-level island, yet the fuse-output lobe
+  and buck-input lobe were separated by the PD-controller/CC field. A cheap
+  endpoint graph would have exposed the missing series load path before
+  control routing; visual zone membership did not.
+- general rule: every protected or converted rail needs an explicit ordered
+  current-path graph from source connector through fuse/switch/converter to
+  each load. Every graph edge must be realized by a pad, track, filled-zone
+  component or connectivity-graded via bank; same-net zone names alone are
+  not continuity evidence. Kelvin/sense branches are declared no-load edges.
+- intended landing point: extend the pre-control power-topology audit with
+  source/load terminal sets and filled-copper connectivity components. Emit a
+  small current-flow diagram and fail before control routing if any required
+  load edge is absent or crosses an undeclared series boundary.
+- simple regression cases: two disjoint same-net zone lobes fail; a full-width
+  explicit neck passes; a fuse-bypass track fails; a declared no-load UVLO
+  sense branch does not satisfy a load-current edge.
+- recommendation: P0 for boards with fuses, eFuses, load switches or DC/DC
+  conversion. Run after power fill and before low-speed/control routing.
+
+## IMP-172 — count only electrically participating vias in ampacity banks
+
+- status: proposed
+- observed: USB-controlled debug hub v2 PD input bank, 2026-08-18
+- evidence: the first A-VIA rectangle counted eight correctly drilled
+  `VBUS_PD` vias, but native DRC showed two touched copper on only one layer.
+  Their holes existed geometrically yet they carried no layer-transfer
+  current. Replacing the bank with eight fully attached barrels retained the
+  4.4 A/10 C rating and removed every dangling-via warning.
+- general rule: via-bank ampacity is a connectivity property, not a coordinate
+  census. A credited barrel must touch the named upstream copper component on
+  one required layer and the named downstream component on the other, have no
+  dangling-via finding, and lie in the declared tight boundary.
+- intended landing point: refactor `via_ampacity_check.py` so each transfer
+  declares source layer/component and destination layer/component. Report
+  total holes, participating holes, rejected holes with reasons, and capacity
+  from participating holes only.
+- simple regression cases: eight attached vias pass; six attached plus two
+  one-layer vias credit only six; a same-net via outside the boundary earns no
+  credit; a barrel touching the wrong filled island fails participation.
+- recommendation: P0 because a geometric false pass can overstate current
+  capacity. Refactor the existing A-VIA gate rather than add a lifecycle step.
+
+## IMP-173 — replace broad ground A* fallback with fill-measure-explicit residuals
+
+- status: proposed
+- observed: USB-controlled debug hub v2 ground closure, 2026-08-18
+- evidence: direct pad rescue served 136/154 isolated SMD GND pads in seconds.
+  The subsequent 18-target A* fallback consumed more than five minutes at full
+  CPU without intermediate output and was stopped. Skipping it, filling zones
+  and measuring residuals reduced the real work to 18 named endpoints, then
+  one filled-island bbox; explicit dogbones closed the board reproducibly.
+- general rule: ground closure should use cheap direct rescue, fill, exact DRC
+  residual extraction, and deterministic per-endpoint dogbones. Broad A* is a
+  last resort for a small named denominator, with per-target timing/progress
+  and a hard aggregate budget—not the default continuation after pad rescue.
+- intended landing point: refactor the stitch pass order to checkpoint after
+  pad rescue/fill, emit residual refs and island bboxes, and stop for an
+  explicit residual contract. If A* is invoked, print each target/result and
+  enforce both per-target and total deadlines.
+- simple regression cases: directly serviceable pads never invoke A*; an
+  18-pad residual emits a report immediately; a boxed endpoint times out by
+  itself without blocking other targets; an explicit residual replay is
+  byte-reproducible and leaves zero opens.
+- recommendation: P0 for workflow latency and debuggability; this directly
+  prevents the historical silent multi-minute stitch grind.
+
+## IMP-174 — reject missing generated components by population identity, not appearance
+
+- status: proposed
+- observed: USB-controlled debug hub v2 PD-input generation, 2026-08-18
+- evidence: a custom-footprint component with an unsupported supplier field
+  disappeared from generated output while the surrounding circuit still
+  looked plausible. Exact TSX-to-board reference-set parity exposed it.
+- general rule: every generation stage must compare declared, emitted and
+  assembled reference sets before placement or routing; visual completeness is
+  not evidence that a generator retained every component.
+- intended landing point: make component/ref identity a schema-level preflight
+  immediately after TSX/circuit generation and before schematic/PCB generation.
+- recommendation: P0; refactor the existing population/parity gate earlier.
+
+## IMP-175 — clone contracts by semantic role, never by stale reference list
+
+- status: proposed
+- observed: USB-controlled debug hub v2 assembly and first-article contracts,
+  2026-08-18
+- evidence: v1-derived contract files initially retained obsolete connector and
+  manual-population references despite a materially different v2 power input.
+- general rule: a cloned project may inherit policy structure, but every
+  reference-bearing assembly, first-article and orientation contract must be
+  regenerated from the new design and fail on absent or undeclared references.
+- intended landing point: add clone-time contract migration with strict board
+  set validation before routing begins.
+- recommendation: P0 for derivative designs.
+
+## IMP-176 — run exact land-clearance gates immediately after footprint adjudication
+
+- status: proposed
+- observed: USB-controlled debug hub v2 manufacturer-footprint adjudication,
+  2026-08-18
+- evidence: choosing the manufacturer-authoritative inductor and TVS lands was
+  correct, but their larger real pad envelopes invalidated nearby placement
+  assumptions that had been made against generic library lands.
+- general rule: every footprint-authority change must immediately re-run pad,
+  courtyard, escape and local-adjacency clearance before downstream routing.
+- intended landing point: attach a bounded placement-delta battery to the
+  footprint adjudication gate.
+- recommendation: P1; refactor existing placement checks into the adjudication
+  transaction.
+
+## IMP-177 — rebase routed candidates onto a clean generated board, not a routed baseline
+
+- status: proposed
+- observed: USB-controlled debug hub v2 canonical route promotion, 2026-08-18
+- evidence: rebasing onto an already routed `r0` duplicated seed stubs and
+  created false cycles; rebasing the accepted copper onto a clean generated
+  board, then replaying against the declared baseline, was deterministic.
+- general rule: route promotion must name separate clean-generation,
+  route-baseline and accepted-candidate subjects. A board containing prior
+  routing cannot silently serve as the clean destination.
+- intended landing point: extend the promoted-route receipt with all three
+  hashes and reject overlapping/duplicate seed identities before import.
+- recommendation: P0 for deterministic route promotion.
+
+## IMP-178 — treat split-pad copper as one terminal in physical-distance gates
+
+- status: implemented
+- observed: USB-controlled debug hub v2 PD-cell policy audit, 2026-08-18
+- evidence: the audit measured a multi-shape exposed pad from the wrong copper
+  shape and reported a false adjacency failure. The checker now groups shapes
+  by footprint reference and pad number and measures the nearest physical shape.
+- general rule: repeated copper primitives sharing one footprint/pad identity
+  are one electrical terminal for adjacency and thermal checks.
+- implementation: `skills/kicad-pcb/scripts/policy_audit.py` plus the split-pad
+  regression in `test_policy_audit_partner_refs.py`.
+- recommendation: retain as a regression-protected checker refactor.

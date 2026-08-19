@@ -864,6 +864,11 @@ def net_geometry(entry, layer_order, stackup_mm=None, plated_pads=()):
         _, d = sweep(far, cs)
         longest = max(longest, d)
 
+    branch_vertices = [
+        {"x_mm": n[0] / NM, "y_mm": n[1] / NM,
+         "layer": n[2], "degree": deg[n]}
+        for n in sorted(deg) if deg[n] >= 3
+    ]
     return {
         "track_mm": track_mm,
         "via_z_mm": None if via_unpriced else via_z,
@@ -876,7 +881,8 @@ def net_geometry(entry, layer_order, stackup_mm=None, plated_pads=()):
         "n_zone": entry["zones"],
         "n_comp": comps,
         "n_cyclic": cyclic,
-        "n_branch": sum(1 for n in deg if deg[n] >= 3),
+        "n_branch": len(branch_vertices),
+        "branch_vertices": branch_vertices,
         "n_end": sum(1 for n in deg if deg[n] == 1),
         "n_edge": n_edge,
         "path_mm": None if cyclic else longest,

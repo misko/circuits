@@ -124,6 +124,35 @@ def t_via_process():
               "via process drift", "source via process differs")
 
 
+@test("P-ROUTEBASE accepts an exact declared post-route via-family promotion")
+def t_declared_via_process_promotion():
+    _d, board, chain, route = fixture()
+    edit(board, "v=list(b.GetTracks())[0];v.SetCappingMode(pcbnew.CAPPING_MODE_NOT_CAPPED);v.SetFillingMode(pcbnew.FILLING_MODE_NOT_FILLED)")
+    doc = yaml.safe_load(route.read_text())
+    doc["stitch"] = {"protect_via_family": {
+        "via": {"size": 0.5, "drill": 0.2},
+        "via_protection": {"capping": True, "filling": True},
+    }}
+    route.write_text(yaml.safe_dump(doc, sort_keys=False))
+    must_pass(run([KPY, TOOL, board, route]), "declared process promotion")
+
+
+@test("P-ROUTEBASE refuses a process promotion for an undeclared family",
+      kind="known_bad")
+def t_wrong_via_family_process_promotion():
+    _d, board, chain, route = fixture()
+    edit(board, "v=list(b.GetTracks())[0];v.SetCappingMode(pcbnew.CAPPING_MODE_NOT_CAPPED);v.SetFillingMode(pcbnew.FILLING_MODE_NOT_FILLED)")
+    doc = yaml.safe_load(route.read_text())
+    doc["stitch"] = {"protect_via_family": {
+        "via": {"size": 0.46, "drill": 0.2},
+        "via_protection": {"capping": True, "filling": True},
+    }}
+    route.write_text(yaml.safe_dump(doc, sort_keys=False))
+    must_fail(run([KPY, TOOL, board, route]),
+              "wrong family must not authorize promotion",
+              "source via process differs")
+
+
 @test("P-ROUTEBASE refuses a source via removed from the chain", kind="known_bad")
 def t_via_removed():
     _d, board, chain, route = fixture()

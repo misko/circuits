@@ -1,0 +1,18 @@
+mpn: C3225X7R1C226KT000N
+manufacturer: TDK
+type: mlcc_x7r
+value: 22u
+status: active
+datasheet: {doc_id: C3225X7R1C226K series, revision: "TDK product/characteristic pages retrieved 2026-08-11", url: "https://product.tdk.com/en/search/capacitor/ceramic/mlcc/info?part_no=C3225X7R1C226K250AC", sha256: null, fetched: 2026-08-11}
+package: "1210 (3225 metric)"
+footprint: Capacitor_SMD:C_1210_3225Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: "exact 3225 package and polarity-neutral land review 2026-08-11"}
+pins: {1: A, 2: B}
+limits: {capacitance: "22uF +/-10%", rated_voltage: 16V, dielectric: X7R, temperature: "-55 to 125C"}
+gotchas:
+  - "TDK's exact-series DC-bias characteristic is typical characterization, not a guaranteed minimum. The machine-readable E-CAP proof adopts 20% loss at 5.25V, more conservative than the plotted approximately 8% loss, plus the full 15% X7R temperature allowance and -10% initial tolerance."
+  - "Used as protected-trunk bulk, one external-port output bulk capacitor per receptacle, and two AP63203Q output capacitors. Preserve the named placement; these are not interchangeable with remote shared bulk."
+verified: "exact TDK 22uF/16V/X7R/3225 series identity and characteristic sheet independently read 2026-08-11; DC-bias use is explicitly an engineering qualification bound"
+sourcing: {lcsc: C342660, alternates: [], note: "JLC/LCSC exact order code; stock is volatile and is refreshed at release/order time"}
+asserts:
+  - {assert: value, equals: 22u, why: "Port transient and AP63203Q output networks were reviewed with this exact nominal value and package."}

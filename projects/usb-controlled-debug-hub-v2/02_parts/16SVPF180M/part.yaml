@@ -1,0 +1,22 @@
+mpn: 16SVPF180M
+manufacturer: Panasonic Industry
+type: conductive_polymer_aluminum_usb_hub_bulk_capacitor
+datasheet: {doc_id: AAB8000C177, revision: "SVPF series, 28-Jun-2019 with 20-Aug-2025 safety pages", url: "https://industrial.panasonic.com/cdbs/www-data/pdf/AAB8000/AAB8000C177.pdf", fetched: 2026-08-12}
+package: SMD aluminum polymer can D6.3x5.9mm size C6
+footprint: usb_controlled_debug_hub:Panasonic_C6_6.3x5.9
+escape: {style: passive, pitch: 4.6, tier_required: jlc_2layer_default, checked: "Panasonic C6 dimensions/polarity plus exact JLC C136277 land fit checked 2026-08-12"}
+pins: {1: POS, 2: NEG}
+limits: {voltage: 16V, capacitance: "180uF +/-20%", capacitance_min: 144uF, esr_100kHz_max: 22mOhm, ripple_100kHz_105C: 3.3Arms, temperature: "-55 to 105C", endurance: "5000h at 105C; capacitance change within +/-20% of initial"}
+gotchas:
+  - "C_TRUNK_USB is always connected after U_AGG. Its 115.2uF charged life-corner combines with the existing 22uF ceramic bank to clear the USB 2.0 120uF low-ESR hub-source minimum."
+  - "Pad 1 is positive and must connect to P5V_PROTECTED. The board requires explicit polarity silk and an order-preview polarity check."
+verified: "Panasonic exact product/series data independently fixes 180uF +/-20%, 16V, 22mOhm maximum ESR, D6.3x5.9mm and endurance; JLC C136277 independently confirms exact part and SMT assembly"
+sourcing: {lcsc: C136277, alternates: [], note: "extended SMT part; order-time JLC allocation remains authoritative"}
+layout:
+  source: "Panasonic SVPF mechanical/polarity drawing and USB 2.0 hub-source bypass requirement"
+  reviewed: "2026-08-16"
+  notes: ["place on P5V_PROTECTED immediately after U_AGG", "use broad low-inductance rail and ground connections", "mark positive pad unambiguously"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Panasonic AAB8000C177", why: "manufacturer source fixes exact electrical and mechanical limits"}
+  - {tier: 2, reached: true, artifact: "JLC C136277 CAD", why: "assembly-vendor CAD cross-checks body and polarity orientation"}
+  - {tier: 3, reached: false, artifact: "community board", why: "manufacturer evidence is sufficient"}

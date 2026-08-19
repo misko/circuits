@@ -1,0 +1,17 @@
+mpn: CL10A106KP8NNNC
+manufacturer: Samsung Electro-Mechanics
+type: ceramic_capacitor
+value: 10u
+status: active
+datasheet: {doc_id: CL10A106KP8NNNC-SPEC, revision: "generated product specification", url: "https://product.samsungsem.com/mlcc/CL10A106KP8NNNC.do", local: CL10A106KP8NNNC.pdf, sha256: 5c2ded8461450facb2b0ffbc08a229a32ca876198d15d8b43f897ea4c23e7ccf, fetched: 2026-08-15}
+package: "0603 (1608 metric)"
+footprint: Capacitor_SMD:C_0603_1608Metric
+escape: {style: passive, pitch: 0.8, tier_required: jlc_2layer_default, checked: "exact Samsung dimensions 2026-08-15"}
+pins: {1: A, 2: B}
+limits: {capacitance: 10uF, tolerance: 10pct, rated_voltage: 10V, dielectric: X5R, dimensions_mm: [1.6, 0.8]}
+gotchas: ["Used at the AP63203Q input; allow for DC-bias derating and place directly across VIN and the regulator ground return."]
+verified: "Exact Samsung product specification checked for MPN, 10uF, 10V, X5R, tolerance and 0603 dimensions on 2026-08-15."
+layout: {source: "Diodes AP63203Q DS43698", reviewed: 2026-08-15, notes: ["Place directly beside VIN and GND before the switching-current loop expands."]}
+sourcing: {lcsc: C19702, alternates: []}
+asserts:
+  - {assert: value, equals: 10u, why: "AP63203Q Table 2 recommends 10uF input capacitance."}

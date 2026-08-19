@@ -1,0 +1,60 @@
+mpn: CH224K
+manufacturer: WCH (Nanjing QinHeng / Jiangsu Qin Heng)
+type: usb_pd_sink_controller_hardware_configured
+value: CH224K
+status: active
+datasheet:
+  doc_id: CH224 manual 1
+  revision: "v2.1, 2025-01-23"
+  url: "https://www.wch-ic.com/downloads/CH224DS1_PDF.html"
+  local: CH224DS1_v2.1.pdf
+  sha256: df4f8a9f305df715b1c3617e89505faaa2223a0e4053b44373c5deb565b63c0d
+  pages: 17
+  provenance: "CITED: official WCH relationFiles metadata and exact WCH manual supplied by JLC C970725."
+package: "ESSOP-10, 3.9 mm body, 1.00 mm pitch, exposed GND pad"
+footprint: usb_controlled_debug_hub:WCH_CH224K_ESSOP10_EP
+escape: {style: leaded, pitch: 1.0, tier_required: jlc_2layer_default, checked: "Outward leaded-row escape; the separate exposed GND land is handled by the thermal-via contract. JLC exact-package pads cross-checked to WCH 4.9x3.9 mm body, 6.0 mm span and 1.0 mm pitch."}
+pins:
+  0: {name: GND, note: exposed thermal pad}
+  1: VDD
+  2: CFG2
+  3: CFG3
+  4: DP
+  5: DM
+  6: CC2
+  7: CC1
+  8: VBUS
+  9: CFG1
+  10: {name: PG, type: open_drain_active_low}
+pin_aliases:
+  0:
+    schematic: "11"
+    footprint: "11"
+    why: "WCH names the ESSOP exposed thermal land pin 0, while the tscircuit/KiCad package represents that physical land as the eleventh pad"
+    evidence: "CH224 manual v2.1 p.2 note 1 and table 4-2; exact WCH_CH224K_ESSOP10_EP footprint"
+limits: {input_supported: "4 to 30 V family envelope", requested_power_max: 100W, vdd_pin_max: "3.6 V; fed through documented 1k from VBUS"}
+configuration:
+  requested_voltage: 15V
+  cfg1: low
+  cfg2: high_to_VDD
+  cfg3: high_to_VDD
+  firmware: none
+  evidence: "CH224K-specific table in manual section 6.2: 0/1/1 requests 15 V. Do not use the CH224A/Q table."
+gotchas:
+  - "CH224K and CH224A are pin-compatible but VDD/VHV and strap details differ; this dossier and schematic are exact-K."
+  - "Pin 1 VDD requires the documented 1k series resistor from VBUS and 1uF to GND; pin 8 VBUS uses the documented 10k series sense resistor."
+  - "DP/DM are unused for the Type-C PD-only input and must be explicit no-connects."
+  - "PG is not credited as current or contract-power qualification; external UVLO prevents operation from default 5 V."
+verified: "CITED: exact CH224K top-view pin figure p.2, pin table pp.3-4, K reference schematic p.9, and K-specific voltage table p.9; independently read 2026-08-18."
+sourcing:
+  lcsc: C970725
+  alternates: []
+  note: "JLC catalog stock 7523 and low-quantity catalog price about USD 0.49 observed 2026-08-18; PCBA allocation pending."
+layout:
+  source: "CH224 manual section 6.2 reference schematic"
+  adjacency:
+    - {refdes: [U_PD, C_PD_VDD], max_mm: 2.0, why: "documented 1uF VDD bypass"}
+  notes: ["keep CC1/CC2 short and symmetric to J_POWER", "keep VBUS sense/VDD resistors and bypass local", "exposed pad to solid ground with at least two same-net plane vias"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "WCH CH224 manual v2.1 section 6.2", why: "exact manufacturer reference schematic for CH224K"}
+  - {tier: 2, reached: false, artifact: "WCH evaluation-board layout", why: "no editable/routed vendor layout located in the bounded selection spike; layout is low density and exact adjacency remains gate-owned"}

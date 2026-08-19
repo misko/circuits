@@ -1,0 +1,51 @@
+mpn: TPS56637RPAR
+manufacturer: Texas Instruments
+type: synchronous_buck
+value: TPS56637RPAR
+status: active
+datasheet:
+  doc_id: SLVSEG1A
+  revision: "revised September 2019"
+  url: "https://www.ti.com/lit/ds/symlink/tps56637.pdf"
+  local: SLVSEG1A.pdf
+  sha256: 18edaff6769b0d5c3d0cdef66df1232538cd357bbaac214df138969f9b0d6745
+  pages: 31
+  provenance: "CITED: downloaded directly from ti.com."
+package: "RPA 10-pin VQFN-HR HotRod, 3x3 mm"
+footprint: usb_controlled_debug_hub:TI_RPA0010A_VQFN-HR-10_3x3mm
+escape: {style: qfn, pitch: 0.5, pins: 10, escapes_worst_side: 4, tier_required: jlc_4layer_advanced, checked: "Asymmetric HotRod lands are conservatively graded as a 0.5 mm, 10-pin bottom-terminated package; exact source footprint is cross-checked to TI RPA0010A drawing 4224047/A and every fine-pad net escapes outward to local passives."}
+pins: {1: EN, 2: FB, 3: AGND, 4: PG, 5: NC, 6: SW, 7: BOOT, 8: VIN, 9: PGND, 10: MODE}
+limits:
+  vin_operating: "4.5 to 28 V"
+  vin_absolute: 32V
+  iout_continuous: 6A
+  valley_current_limit_min: 6.3A
+  vfb: "0.591 to 0.609 V over -40 to +150 C"
+  rds_on_typ: {high_side: 26mOhm, low_side: 12mOhm}
+  theta_ja: 49.1C/W
+gotchas:
+  - "EN, FB, MODE, and PG must remain below 5.5 V. Use the documented EN-divider UVLO; never pull EN to 15 V."
+  - "NC pin 5 floats. MODE <=10k to GND selects Eco-mode. AGND and PGND join once per the reference layout."
+  - "Use 3.3uH and 20-100uF effective output capacitance for the 5V family; account for DC bias."
+  - "Keep VIN bypass, BOOT loop, SW copper, inductor, and output capacitors in the manufacturer ordering; Kelvin-route FB away from SW."
+verified: "CITED: TI SLVSEG1A RPA top-view and pin table p.3, operating/electrical limits pp.4-5, 5V/6A reference Figure 17 p.18, component table p.19, and layout Figure 34 pp.24-25."
+sourcing:
+  lcsc: C841386
+  alternates: []
+  note: "JLC catalog stock 2665 and low-quantity catalog price about USD 2.52 observed 2026-08-18; PCBA allocation pending."
+layout:
+  source: "TI SLVSEG1A Figures 17 and 34; TPS56637EVM-029 listed by TI"
+  keep_short:
+    - {net: VBUS_PD, anchor_pins: ["8"], partner_refs: [C_PD_IN2], max_span_mm: 3.2, why: "nearest bulk input ceramic immediately at VIN; centre-span metric retains less than 2.5mm land-edge copper"}
+    - {net: VBUS_PD, anchor_pins: ["8"], partner_refs: [C_PD_IN_HF], max_span_mm: 3.2, why: "0.1uF high-frequency input ceramic immediately at VIN; centre-span metric retains less than 2.5mm land-edge copper"}
+  adjacency:
+    - {refdes: [U_PD_BUCK, C_PD_BOOT], max_mm: 1.6, why: "100nF bootstrap loop directly between BOOT and SW; exact realized worst land-edge gap is 1.501mm"}
+    - {refdes: [U_PD_BUCK, L_PD], max_mm: 3.0, why: "short, wide switching node"}
+    - {refdes: [U_PD_BUCK, R_PD_FB_B], max_mm: 7.0, why: "upper feedback chain remains on the quiet side of the converter"}
+    - {refdes: [U_PD_BUCK, R_PD_FB_BOT], max_mm: 7.0, why: "feedback return remains local to AGND"}
+    - {refdes: [U_PD_BUCK, C_PD_FF], max_mm: 7.0, why: "feed-forward branch remains on the quiet side and away from SW"}
+  notes: ["four-layer ground plane and multiple VIN/PGND vias", "Kelvin FB return to AGND", "no USB or clock routing through or under the switching cell"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSEG1A Figure 34 exact layout example", why: "manufacturer fixes cell ordering, ground partition and feedback route"}
+  - {tier: 2, reached: true, artifact: "TI TPS56637EVM-029 reference circuit identified on product documentation", why: "manufacturer 5V/6A evaluation precedent; exact editable CAD retrieval remains optional because the datasheet includes routed geometry"}
+  - {tier: 3, reached: false, artifact: "community board", why: "not needed after exact manufacturer routed precedent"}

@@ -1,0 +1,17 @@
+mpn: CL05A105KA5NQNC
+manufacturer: Samsung Electro-Mechanics
+type: ceramic_capacitor
+value: 1u
+status: active
+datasheet: {doc_id: CL05A105KA5NQNC-SPEC, revision: "issued 2024-05-08", url: "https://product.samsungsem.com/mlcc/CL05A105KA5NNN.do", local: CL05A105KA5NQNC-spec.pdf, sha256: b9858d7d127a38f7ad60ab2fbbf208ca484206d319f8d4e321067e73da2e1e1e, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Capacitor_SMD:C_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact Samsung dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {capacitance: 1uF, tolerance: 10pct, rated_voltage: 25V, dielectric: X5R, dimensions_mm: [1.0, 0.5]}
+gotchas: ["Used for USB2517I supply bulk/1.8V bypass, the hub reset delay, and the internal control-port TPS2557 output. Place according to each owning IC's checklist."]
+verified: "Exact Samsung product specification p.1 checked for full order code, 1uF, 25V, X5R, tolerance and 0402 dimensions on 2026-08-14."
+layout: {source: "Microchip USB2517I checklist and TI TPS2557 datasheet", reviewed: 2026-08-15, notes: ["Place at the owning supply pins or reset node with compact local returns."]}
+sourcing: {lcsc: C52923, alternates: []}
+asserts:
+  - {assert: value, equals: 1u, why: "The USB2517I checklist and internal control-port output network require this reviewed value."}

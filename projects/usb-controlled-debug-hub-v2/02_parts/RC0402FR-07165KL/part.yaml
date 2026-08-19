@@ -1,0 +1,17 @@
+mpn: RC0402FR-07165KL
+manufacturer: YAGEO
+type: thick_film_resistor
+value: 165k
+status: active
+datasheet: {doc_id: RC0402FR-07165KL-spec, revision: "generated 2026-08-15", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-07165KL", local: RC0402FR-07165KL.pdf, sha256: 4a9f3a835d2bc10b6a12ab261b6e7821aec33e9401e467213bd97aded53b836f, fetched: 2026-08-15}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-15"}
+pins: {1: A, 2: B}
+limits: {resistance: 165kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas: ["One exact resistor programs each TPS2557 ILIM pin. Datasheet tolerance gives approximately 535mA minimum, 667mA typical, and 794mA maximum; a substitution changes USB protection behavior."]
+verified: "Exact YAGEO generated specification checked for MPN, 165kohm, 1%, 0402 and dimensions on 2026-08-15."
+layout: {source: "TI TPS2557 SLVS931B", reviewed: 2026-08-15, notes: ["Place directly at each ILIM pin with a short ground return."]}
+sourcing: {lcsc: C327368, alternates: []}
+asserts:
+  - {assert: value, equals: 165k, why: "This value defines the reviewed per-port current-limit window."}

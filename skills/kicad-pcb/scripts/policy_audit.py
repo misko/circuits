@@ -83,6 +83,38 @@ def keep_short_partner_refs(value):
     return {ref.strip() for ref in value}
 
 
+def physical_pin_keep_short_spans(anchors, points, span, partner_refs=None):
+    """Measure each physical terminal once, even when it has split pad shapes.
+
+    KiCad footprints such as TI HotRod packages commonly represent one pin
+    number with several touching copper primitives.  The electrical terminal
+    reaches its partner through the nearest of those primitives; treating each
+    primitive as an independent anchor and retaining the farthest one invents
+    a path that the current never has to traverse.
+    """
+    groups = {}
+    for pad, fp in anchors:
+        groups.setdefault((fp.GetReference(), str(pad.GetNumber())), []).append(
+            (pad, fp))
+    measured = []
+    for (_refdes, _number), shapes in groups.items():
+        owner = shapes[0][1].GetReference()
+        candidates = [(pad, fp) for pad, fp in points
+                      if fp.GetReference() != owner
+                      and (partner_refs is None
+                           or fp.GetReference() in partner_refs)]
+        if not candidates:
+            continue
+        best = min(
+            ((span(anchor, partner), anchor, anchor_fp, partner, partner_fp)
+             for anchor, anchor_fp in shapes
+             for partner, partner_fp in candidates),
+            key=lambda item: item[0],
+        )
+        measured.append(best)
+    return measured
+
+
 def thermal_pad_findings(board, copper_layers, area_min=4.0, min_vias=2,
                          search=1.0):
     """Return large SMD pads lacking nearby inter-layer thermal conductors.
@@ -867,21 +899,9 @@ def main():
                             f"it, so the budget's own part is not in it; "
                             f"budget {mx}mm graded NOTHING")
                         continue
-                    worst = None
-                    for p, f in anchors:
-                        cand = [(q, g) for q, g in pts
-                                if g.GetReference() != f.GetReference()
-                                and (partner_refs is None or
-                                     g.GetReference() in partner_refs)]
-                        if not cand:
-                            continue
-                        # key=, not a tuple: a tie would otherwise fall
-                        # through to comparing SWIG pad objects and raise.
-                        q, g = min(cand, key=lambda t: _span(p, t[0]))
-                        d = _span(p, q)
-                        if worst is None or d > worst[0]:
-                            worst = (d, _ref(p, f), _ref(q, g))
-                    if worst is None:
+                    measured = physical_pin_keep_short_spans(
+                        anchors, pts, _span, partner_refs)
+                    if not measured:
                         unreached.append(
                             f"{pname}: keep_short net {net!r} has pads ONLY on "
                             f"the declaring part "
@@ -892,7 +912,8 @@ def main():
                             f"near; budget {mx}mm graded "
                             f"NOTHING")
                         continue
-                    d, a_ref, b_ref = worst
+                    d, p, f, q, g = max(measured, key=lambda item: item[0])
+                    a_ref, b_ref = _ref(p, f), _ref(q, g)
                     label = (f"{pname}:{net} {a_ref}->{b_ref} {d:.2f}mm of "
                              f"{mx}mm")
                     graded_ks.append((mx - d, label))

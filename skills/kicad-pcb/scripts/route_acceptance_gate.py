@@ -55,13 +55,47 @@ def _critical_nets(route_cfg: dict[str, Any]) -> list[str]:
 
 
 def _simple_conductor(project: Path, board: Path,
-                      critical_nets: list[str]) -> dict[str, Any]:
+                      critical_nets: list[str],
+                      route_cfg: dict[str, Any]) -> dict[str, Any]:
     if not critical_nets:
         return {"status": "N-A", "detail": "no critical nets declared",
                 "nets": []}
     nets, layers, text = copper_length_audit.read_copper(board)
     plated = copper_length_audit.read_plated_pads(text)
     failures, rows = [], []
+    raw_allow = ((route_cfg.get("route") or {})
+                 .get("critical_branch_allowlist") or [])
+    allowlist: list[dict[str, Any]] = []
+    for index, item in enumerate(raw_allow):
+        if not isinstance(item, dict):
+            failures.append(
+                f"critical_branch_allowlist[{index}] must be a mapping")
+            continue
+        try:
+            net = str(item["net"])
+            at = item["at"]
+            x_mm, y_mm = float(at[0]), float(at[1])
+            layer = str(item["layer"])
+            degree = int(item["degree"])
+            why = str(item["why"]).strip()
+        except (KeyError, TypeError, ValueError, IndexError) as exc:
+            failures.append(
+                f"critical_branch_allowlist[{index}] is malformed: {exc}")
+            continue
+        if net not in critical_nets:
+            failures.append(
+                f"critical_branch_allowlist[{index}] names non-critical net "
+                f"{net}")
+            continue
+        if degree < 3 or not why:
+            failures.append(
+                f"critical_branch_allowlist[{index}] requires degree >= 3 "
+                "and non-empty why")
+            continue
+        allowlist.append({"index": index, "net": net, "x_mm": x_mm,
+                          "y_mm": y_mm, "layer": layer,
+                          "degree": degree, "why": why,
+                          "matched": False})
     for name in critical_nets:
         if name not in nets:
             failures.append(f"{name}: no realized copper")
@@ -71,13 +105,36 @@ def _simple_conductor(project: Path, board: Path,
         row = {key: geometry[key] for key in (
             "n_seg", "n_via", "n_branch", "n_cyclic", "n_comp", "n_end")}
         row["net"] = name
+        row["branch_vertices"] = geometry.get("branch_vertices") or []
+        row["allowed_branch_vertices"] = []
         rows.append(row)
-        if geometry["n_branch"]:
-            failures.append(
-                f"{name}: {geometry['n_branch']} branch vertex/vertices")
+        for vertex in row["branch_vertices"]:
+            matches = [item for item in allowlist
+                       if item["net"] == name
+                       and item["layer"] == vertex["layer"]
+                       and item["degree"] == vertex["degree"]
+                       and abs(item["x_mm"] - vertex["x_mm"]) <= 0.001
+                       and abs(item["y_mm"] - vertex["y_mm"]) <= 0.001]
+            if len(matches) != 1:
+                failures.append(
+                    f"{name}: unapproved branch degree {vertex['degree']} at "
+                    f"({vertex['x_mm']:.6f},{vertex['y_mm']:.6f}) "
+                    f"{vertex['layer']}")
+                continue
+            matches[0]["matched"] = True
+            row["allowed_branch_vertices"].append({
+                key: matches[0][key]
+                for key in ("x_mm", "y_mm", "layer", "degree", "why")})
         if geometry["n_cyclic"]:
             failures.append(
                 f"{name}: {geometry['n_cyclic']} cyclic component(s)")
+    for item in allowlist:
+        if not item["matched"]:
+            failures.append(
+                f"stale critical_branch_allowlist[{item['index']}]: "
+                f"{item['net']} degree {item['degree']} at "
+                f"({item['x_mm']:.6f},{item['y_mm']:.6f}) {item['layer']} "
+                "matches no realized branch")
     return {
         "status": "FAIL" if failures else "PASS",
         "detail": f"{len(rows)}/{len(critical_nets)} critical net(s) graded",
@@ -116,7 +173,8 @@ def grade(project: Path, board: Path, *, mode: str,
     if prepared is not None:
         script = Path(__file__).resolve().parent / "promoted_route_check.py"
         rc, output = _run(["/usr/bin/python3", str(script), "--prepared",
-                           str(prepared.resolve()), "--chain", str(board)], project)
+                           str(prepared.resolve()), "--chain", str(board),
+                           "--process-config", str(route_path)], project)
         checks["route_base"] = _status(
             "PASS" if rc == 0 else "FAIL" if rc == 1 else "INCOMPLETE",
             output[-4000:].strip() or f"exit {rc}")
@@ -135,7 +193,7 @@ def grade(project: Path, board: Path, *, mode: str,
         checks["critical_connectivity"] = _status("FAIL", str(exc))
 
     checks["simple_conductor"] = _simple_conductor(
-        project, board, critical_nets)
+        project, board, critical_nets, route_cfg)
 
     try:
         board_nets, pad_counts = route_ownership_preflight._load_board_facts(board)

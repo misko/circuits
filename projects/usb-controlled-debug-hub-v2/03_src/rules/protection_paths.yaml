@@ -1,0 +1,36 @@
+schema: 1
+
+paths:
+  - name: VBUS_PD
+    source_operating_max_V: 15.75
+    source_tolerance_included: true
+    source_boundary_evidence: >-
+      The admitted source is a standards-compliant USB-C PD source after a
+      successful 15 V fixed-PDO contract. 15.75 V charges a conservative +5%
+      steady-state allowance; a source without that contract is rejected by
+      the buck UVLO rather than treated as an undervoltage operating point.
+    voltage_margin_pct: 5
+    admitted_transient:
+      claim: >-
+        SMF16A is a secondary hot-plug/ESD clamp, not a sustained-overvoltage
+        regulator. First article must capture attachment and fault waveforms
+        within the exact TVS pulse envelope.
+      input_damping: "two local 10uF/50V X7R capacitors plus cable/source impedance"
+    tvs:
+      part: SMF16A
+      standoff_V: 16.0
+      clamp_max_V: 26.0
+      waveform_duration_ms: 1.0
+      waveform: 10/1000 us
+      peak_current_max_A: 7.7
+      peak_power_max_W: 200
+      evidence: "Littelfuse SMF series datasheet, exact SMF16A row; authoritative PDF must be vendored before schematic acceptance"
+    exposed:
+      - {ref: U_PD_BUCK, part: TPS56637RPAR, domain: tvs_clamped_protected_rail, bounded_max_V: 26.0, recommended_max_V: 28, absolute_max_V: 32}
+      - {ref: U_PD, part: CH224K, domain: resistor_fed_pd_controller, bounded_max_V: 26.0, recommended_max_V: 30, absolute_max_V: 30}
+      - {ref: C_PD_IN1, part: TCC1206X7R106K500HT, domain: tvs_clamped_protected_rail, bounded_max_V: 26.0, recommended_max_V: 50, absolute_max_V: 50}
+      - {ref: C_PD_IN2, part: TCC1206X7R106K500HT, domain: tvs_clamped_protected_rail, bounded_max_V: 26.0, recommended_max_V: 50, absolute_max_V: 50}
+
+no_surge_exposed_paths: >-
+  J_DATA VBUS is sense-only and D+/D- use the retained low-capacitance USB ESD
+  array. No other high-energy cable power interface is admitted.

@@ -1,0 +1,13 @@
+{
+  "outline_margin": 0.15,
+  "courtyard": true,
+  "out_ok": ["J_DATA", "J_POWER"],
+  "out_ok_evidence": {
+    "J_DATA": "TYPE-C-31-M-12 right-angle USB-C data receptacle: its manufacturer-derived courtyard intentionally extends 0.50 mm across the west Edge.Cuts so the approved mating mouth is accessible; every copper signal and shell attachment land remains inside the outline.",
+    "J_POWER": "TYPE-C-31-M-12 right-angle USB-C power receptacle: its manufacturer-derived courtyard intentionally extends 0.50 mm across the west Edge.Cuts so the approved mating mouth is accessible; every copper signal and shell attachment land remains inside the outline."
+  },
+  "body_clearance": {
+    "min_courtyard_gap": 0.10,
+    "min_envelope_to_pad": 0.10
+  }
+}

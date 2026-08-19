@@ -1,0 +1,6 @@
+{
+  "name": "usb-controlled-debug-hub-v2",
+  "main": "src/usb_controlled_debug_hub.tsx",
+  "type": "module",
+  "dependencies": { "tscircuit": "0.0.2351" }
+}

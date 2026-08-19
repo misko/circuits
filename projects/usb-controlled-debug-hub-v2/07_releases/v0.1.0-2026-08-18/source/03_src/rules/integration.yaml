@@ -1,0 +1,45 @@
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
+selections:
+  - function: hardware-configured USB-C PD sink negotiation
+    part: CH224K
+    implementation: bare_ic
+    rationale: >-
+      A hardware-strapped sink keeps the power inlet firmware-free and reuses
+      the already sourced low-cost controller while exposing the exact 15 V
+      request and qualification chain to schematic and first-article review.
+    support_refs:
+      [J_POWER, F_PD, D_PD_TVS, R_PD_VDD, C_PD_VDD, R_PD_VBUS]
+
+  - function: seven-port USB 2.0 high-speed hub and per-port power policy
+    part: USB2517I-JZX
+    implementation: bare_ic
+    rationale: >-
+      The design needs five raw downstream USB pairs, individual PRTPWR/OCS,
+      and physical access to four external disconnect cells. Available modules
+      terminate or expose the wrong number of ports.
+    support_refs:
+      [Y_HUB, R_XTAL, R_RBIAS, C_XTAL1, C_XTAL2,
+       C_HUB_A1, C_HUB_A2, C_HUB_A3, C_HUB_A4, C_HUB_A_BULK,
+       C_HUB_CR_HF, C_HUB_CR_BULK, C_HUB_DD, C_HUB_PLL,
+       C_HUB_18, C_HUB_18PLL, R_HUB_RESET, C_HUB_RESET,
+       R_VBUS_TOP, R_VBUS_BOT, R_CFG0, R_CFG1, R_CFG2,
+       R_NONREM1, R_NONREM0, R_SWAP1, R_SWAP2, R_SWAP3,
+       R_SWAP4, R_SWAP5, R_SWAP6, R_SWAP7, R_GANG,
+       R_BOOST0, R_BOOST1, R_DIS6P, R_DIS6N, R_DIS7P, R_DIS7N]
+    exception:
+      decision_rationale: >-
+        The bare IC is the only reviewed architecture that preserves four
+        external ports plus an internal management device on one upstream link.
+      evidence: >-
+        Microchip USB2517 product data, DS00004211A checklist and EVB-USB2517
+        were reviewed on 2026-08-15; the EVB is not an embeddable raw-port module.
+      modules_considered:
+        - part: Microchip EVB-USB2517
+          rejected_because: Fixed evaluation-board connectors and power topology do not expose the required four inline disconnect cells.
+          evidence: Microchip EVB-USB2517 official product page and design files.
+        - part: four-port USB 2.0 hub module
+          rejected_because: Provides only four downstream functions; this design requires five.
+          evidence: USB topology count in ADR-0001.
+      adr: 01_docs/decisions/0004-module-and-fabrication-tier.md

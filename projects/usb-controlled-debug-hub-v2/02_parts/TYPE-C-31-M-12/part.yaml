@@ -1,0 +1,79 @@
+mpn: TYPE-C-31-M-12
+manufacturer: Korean Hroparts Elec (HRO)
+type: usb_c_receptacle_usb2
+value: TYPE-C-31-M-12
+status: active
+datasheet:
+  doc_id: HRO TYPE-C-31-M-12 REV A
+  revision: "2020-12-08"
+  url: "https://jlcpcb.com/partdetail/C165948"
+  local: TYPE-C-31-M-12.pdf
+  sha256: 6ae33d50ac47820114661138dc4e4659f40fdc5d4f485b46685dfec338da1a9e
+  pages: 1
+  provenance: "CITED: exact C165948 manufacturer drawing downloaded from JLCPCB; title block identifies TYPE-C-31-M-12."
+package: "horizontal USB-C receptacle; 16 SMT contacts, 4 PTH shell legs, 2 NPTH posts"
+footprint: usb_controlled_debug_hub:TYPE-C-31-M-12_Datasheet
+escape: {style: connector, pitch: 0.5, tier_required: jlc_2layer_default, checked: "manufacturer recommended land pattern transcribed; live-board escape pending"}
+pins:
+  A1: GND
+  A4: VBUS
+  A5: CC1
+  A6: DP1
+  A7: DN1
+  A8: SBU1
+  A9: VBUS
+  A12: GND
+  B1: GND
+  B4: VBUS
+  B5: CC2
+  B6: DP2
+  B7: DN2
+  B8: SBU2
+  B9: VBUS
+  B12: GND
+  SH: {name: SHIELD, tie: GND}
+pin_aliases:
+  A1:  {schematic: "1",  footprint: A1,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  A4:  {schematic: "2",  footprint: A4,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  A5:  {schematic: "3",  footprint: A5,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  A6:  {schematic: "4",  footprint: A6,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  A7:  {schematic: "5",  footprint: A7,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  A8:  {schematic: "6",  footprint: A8,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  A9:  {schematic: "7",  footprint: A9,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  A12: {schematic: "8",  footprint: A12, why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  B1:  {schematic: "9",  footprint: B1,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  B4:  {schematic: "10", footprint: B4,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  B5:  {schematic: "11", footprint: B5,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  B6:  {schematic: "12", footprint: B6,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  B7:  {schematic: "13", footprint: B7,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  B8:  {schematic: "14", footprint: B8,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  B9:  {schematic: "15", footprint: B9,  why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  B12: {schematic: "16", footprint: B12, why: "tscircuit assigns sequential logical pins while the manufacturer land remains alphanumeric", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+  SH:  {schematic: "17", footprint: SH,  why: "tscircuit assigns sequential logical pins while the four fused shell lands retain the manufacturer SH identity", evidence: "03_tscircuit/parity_padmap.txt and exact HRO drawing p.1"}
+limits: {vbus_current_total: 5A, voltage: 20V, insertion_cycles: 10000, operating_temperature: "-30 to +80 C"}
+land_pattern:
+  source: "drawing p.1, RECOMMEND P.C.B LAYOUT (COMPONENT SIDE)"
+  pad_row_to_alignment_mm: 1.070
+  pad_length_mm: 1.140
+  pitch_mm: 0.50
+  alignment_post_diameter_mm: 0.50
+  alignment_hole_diameter_mm: 0.60
+  alignment_span_mm: 5.78
+  shell_slot_span_mm: 8.65
+gotchas:
+  - "KiCad's stock HRO footprint uses different contact-land geometry; use the project datasheet-authored footprint."
+  - "A6/B6 must join D+ and A7/B7 must join D- close to the connector for USB 2.0."
+  - "The DATA instance uses two independent 5.1k Rd resistors; the POWER instance routes CC only to CH224K."
+  - "SBU pins are explicit no-connects. VBUS_DATA_SENSE and VBUS_PD must never join."
+verified: "CITED: exact drawing p.1 pin table, front/top views, and recommended PCB layout independently read 2026-08-18."
+sourcing:
+  lcsc: C165948
+  alternates: []
+  note: "JLC catalog stock 425659 observed 2026-08-18; assembly allocation remains a prelayout/order receipt."
+layout:
+  source: "exact HRO drawing p.1"
+  notes: ["place at board edge using the drawing's PCB-edge datum", "keep the DATA D+/D- merge and ESD path short", "keep POWER VBUS and CC routing out of the USB pair corridor"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "HRO TYPE-C-31-M-12 exact drawing p.1", why: "manufacturer fixes contacts, datum, posts and shell slots"}
+  - {tier: 2, reached: true, artifact: "repository usb-hub-3s-v3 v1.12 HRO footprint incident and measured JLC model", why: "accepted local precedent documents the stock-footprint mismatch; decisions re-derived into v2 source"}
+  - {tier: 3, reached: false, artifact: "community board", why: "not needed because exact manufacturer and measured assembly precedents exist"}

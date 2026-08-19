@@ -403,7 +403,13 @@ def side_board_span(image):
         xs = []
         for x in range(image.width):
             r, g, b = pixels[x, y]
-            if r < 125 and g < 135 and b < 105 and g > r - 20:
+            # KiCad's lit front edge is olive/green, while the same physical
+            # board strip viewed from the component-heavy reverse camera is a
+            # cooler grey-blue (observed about RGB 107/111/125).  Requiring a
+            # low blue channel therefore made the inside crop disappear even
+            # though the strip was continuous.  Keep the background rejection
+            # on all three channels, but admit either rendered board face.
+            if r < 145 and g < 145 and b < 145 and g > r - 20:
                 xs.append(x)
         if len(xs) < 30:
             continue

@@ -99,7 +99,32 @@ def _pad_rows(fp):
     return sorted(rows)
 
 
-def compare(base_path: Path, chain_path: Path):
+def _declared_via_process_transition(cfg: dict | None):
+    """Return one exact post-route via process transition, if declared.
+
+    P-ROUTEBASE is also used against the post-stitch board.  Geometry must
+    remain identical there, but ``protect_via_family`` intentionally promotes
+    one complete drill family from ordinary to filled+capped.  Carry that
+    narrow declaration into the comparison instead of treating the intended
+    fabrication attribute as source drift.
+    """
+    if not isinstance(cfg, dict):
+        return None
+    stitch = cfg.get("stitch") or {}
+    protected = stitch.get("protect_via_family") or {}
+    via = protected.get("via") or {}
+    process = protected.get("via_protection") or {}
+    if not (process.get("capping") is True and process.get("filling") is True):
+        return None
+    try:
+        size = pcbnew.FromMM(float(via["size"]))
+        drill = pcbnew.FromMM(float(via["drill"]))
+    except (KeyError, TypeError, ValueError):
+        return None
+    return size, drill
+
+
+def compare(base_path: Path, chain_path: Path, *, route_cfg: dict | None = None):
     base = pcbnew.LoadBoard(str(base_path))
     chain = pcbnew.LoadBoard(str(chain_path))
     failures = []
@@ -154,6 +179,7 @@ def compare(base_path: Path, chain_path: Path):
                 f"{pcbnew.ToMM(candidates[0]['width']):.3f}mm")
 
     base_vias, chain_vias = _via_rows(base), _via_rows(chain)
+    process_transition = _declared_via_process_transition(route_cfg)
     graded_vias = 0
     for source in base_vias:
         candidates = [row for row in chain_vias
@@ -175,7 +201,17 @@ def compare(base_path: Path, chain_path: Path):
                 f"{pcbnew.ToMM(source['drill']):.3f}mm vs promoted "
                 f"{pcbnew.ToMM(match['diameter']):.3f}/"
                 f"{pcbnew.ToMM(match['drill']):.3f}mm")
-        if (match["cap"], match["fill"]) != (source["cap"], source["fill"]):
+        process_changed = ((match["cap"], match["fill"])
+                           != (source["cap"], source["fill"]))
+        process_change_declared = bool(
+            process_transition
+            and abs(source["diameter"] - process_transition[0]) <= DIM_TOL_NM
+            and abs(source["drill"] - process_transition[1]) <= DIM_TOL_NM
+            and source["cap"] != int(pcbnew.CAPPING_MODE_CAPPED)
+            and source["fill"] != int(pcbnew.FILLING_MODE_FILLED)
+            and match["cap"] == int(pcbnew.CAPPING_MODE_CAPPED)
+            and match["fill"] == int(pcbnew.FILLING_MODE_FILLED))
+        if process_changed and not process_change_declared:
             failures.append(
                 f"P-ROUTEBASE source via process differs: {source['net']} "
                 f"{_fmt_pos(source['pos'])} base cap/fill="
@@ -228,7 +264,8 @@ def check(base_path: Path, route_path: Path):
         base_errors, _fp, _vias, _tracks = compare(base_path.resolve(), prepared)
         failures.extend(f"prepared/base: {item}" for item in base_errors)
         subject = prepared
-    route_errors, footprints, vias, tracks = compare(subject, chain)
+    route_errors, footprints, vias, tracks = compare(
+        subject, chain, route_cfg=cfg)
     failures.extend(route_errors)
     return failures, None, footprints, vias, tracks
 
@@ -239,14 +276,19 @@ def main(argv=None):
     ap.add_argument("route_config", nargs="?")
     ap.add_argument("--prepared")
     ap.add_argument("--chain")
+    ap.add_argument("--process-config")
     args = ap.parse_args(argv)
     if bool(args.prepared) != bool(args.chain):
         ap.error("--prepared and --chain must be provided together")
     if args.prepared:
         if args.board or args.route_config:
             ap.error("direct --prepared/--chain mode takes no positional paths")
+        cfg = None
+        if args.process_config:
+            cfg = yaml.safe_load(Path(args.process_config).read_text(
+                encoding="utf-8-sig")) or {}
         failures, footprints, vias, tracks = compare(
-            Path(args.prepared), Path(args.chain))
+            Path(args.prepared), Path(args.chain), route_cfg=cfg)
         note = None
     else:
         if not args.board or not args.route_config:

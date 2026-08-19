@@ -103,6 +103,17 @@ def command(project, *extra):
     ]
 
 
+@test("inside-camera grey-blue board strips remain measurable")
+def t_inside_camera_board_strip_colour():
+    image = orientation_gate.Image.new("RGB", (240, 160), (164, 164, 188))
+    for y in range(78, 82):
+        for x in range(30, 210):
+            image.putpixel((x, y), (107, 111, 125))
+    x0, x1, y = orientation_gate.side_board_span(image)
+    eq((x0, x1), (30, 209), "cool reverse-camera board edge span")
+    check(78 <= y <= 81, "cool reverse-camera board edge row")
+
+
 @test("footprint axes use pcbnew's y-down transform at 90 and 270 degrees")
 def t_footprint_axis_transform_matches_real_pad_positions():
     board = pcbnew.LoadBoard(str(SOURCE_BOARD))
