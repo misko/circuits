@@ -1,0 +1,203 @@
+{
+  "config_sha256": "f9ee0265f0200094e098752e1d5a3c65dcfb0f837a7f39e7ff7a81e1194bdc2a",
+  "evidence": {
+    "views/J_DATA_inside.png": "f9ed3d326d3b5e814f1b83e2688341eac60bbfc5e429853650d6d637385c9fb3",
+    "views/J_DATA_outside.png": "0943408c2ec71e7224320ee6c2e33a876ed1ce95ea18679611ad2a55a6df87e1",
+    "views/J_DATA_top.png": "bf224ee4b877eb7201db06e529790970fa091e533dec3bb04c256f0ecdc413b5",
+    "views/J_PORT1_inside.png": "929559ad0eec1e639d25fbb519709dcc89558aa80ca42bfaa75dea524f33ba44",
+    "views/J_PORT1_outside.png": "8dc1a3da576f75a6710b64700fc30ca74fb91570a1ff942e5ddc811ca0db73d0",
+    "views/J_PORT1_top.png": "818dc6a65a6669aebe6e2da6faa4b64804509848433b8887b2731bb55be2892e"
+  },
+  "failures": [],
+  "floorplan_sha256": "abd12834b7d1bde1714ccfa23106d58c4f9c20dbea6a688ab89ee3435868def3",
+  "kind": "connector-orientation-receipt-v1",
+  "measurements": [
+    {
+      "access_axis_board": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "board_axis_alignment": 1.0,
+      "edge": "west",
+      "edge_distance_mm": 3.65,
+      "edge_face": {
+        "edge": "x0",
+        "min_offset_mm": 0.5
+      },
+      "expected_access_axis_board": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "failures": [],
+      "key_pad": "A1",
+      "mating_plane_edge_offset_mm": 0.0,
+      "model_axis_alignment": 1.0,
+      "model_up_alignment": 1.0,
+      "ref": "J_DATA"
+    },
+    {
+      "access_axis_board": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "board_axis_alignment": 1.0,
+      "edge": "north",
+      "edge_distance_mm": 13.7,
+      "edge_face": {
+        "edge": "y0",
+        "min_offset_mm": 1.0
+      },
+      "expected_access_axis_board": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "failures": [],
+      "key_pad": "1",
+      "mating_plane_edge_offset_mm": -0.21,
+      "model_axis_alignment": 1.0,
+      "model_up_alignment": 1.0,
+      "ref": "J_PORT1"
+    },
+    {
+      "access_axis_board": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "board_axis_alignment": 1.0,
+      "edge": "north",
+      "edge_distance_mm": 13.7,
+      "edge_face": {
+        "edge": "y0",
+        "min_offset_mm": 1.0
+      },
+      "expected_access_axis_board": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "failures": [],
+      "key_pad": "1",
+      "mating_plane_edge_offset_mm": -0.21,
+      "model_axis_alignment": 1.0,
+      "model_up_alignment": 1.0,
+      "ref": "J_PORT2"
+    },
+    {
+      "access_axis_board": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "board_axis_alignment": 1.0,
+      "edge": "north",
+      "edge_distance_mm": 13.7,
+      "edge_face": {
+        "edge": "y0",
+        "min_offset_mm": 1.0
+      },
+      "expected_access_axis_board": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "failures": [],
+      "key_pad": "1",
+      "mating_plane_edge_offset_mm": -0.21,
+      "model_axis_alignment": 1.0,
+      "model_up_alignment": 1.0,
+      "ref": "J_PORT3"
+    },
+    {
+      "access_axis_board": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "board_axis_alignment": 1.0,
+      "edge": "north",
+      "edge_distance_mm": 13.7,
+      "edge_face": {
+        "edge": "y0",
+        "min_offset_mm": 1.0
+      },
+      "expected_access_axis_board": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "failures": [],
+      "key_pad": "1",
+      "mating_plane_edge_offset_mm": -0.21,
+      "model_axis_alignment": 1.0,
+      "model_up_alignment": 1.0,
+      "ref": "J_PORT4"
+    },
+    {
+      "access_axis_board": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "board_axis_alignment": 1.0,
+      "edge": "west",
+      "edge_distance_mm": 3.65,
+      "edge_face": {
+        "edge": "x0",
+        "min_offset_mm": 0.5
+      },
+      "expected_access_axis_board": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "failures": [],
+      "key_pad": "A1",
+      "mating_plane_edge_offset_mm": 0.0,
+      "model_axis_alignment": 1.0,
+      "model_up_alignment": 1.0,
+      "ref": "J_POWER"
+    }
+  ],
+  "notes": [
+    "J_DATA: orthogonal profiles omitted for repeated tuple ['J_DATA', 'J_POWER'] because edge-row instances can occlude one another",
+    "J_PORT1: orthogonal profiles omitted for repeated tuple ['J_PORT1', 'J_PORT2', 'J_PORT3', 'J_PORT4'] because edge-row instances can occlude one another"
+  ],
+  "observed_board_sha256": "a0acddd9b0b4e1888583ffacad43f2c2446e76cb040ebc64844cd25779a73987",
+  "refs": [
+    "J_DATA",
+    "J_PORT1",
+    "J_PORT2",
+    "J_PORT3",
+    "J_PORT4",
+    "J_POWER"
+  ],
+  "review_groups": [
+    {
+      "refs": [
+        "J_DATA",
+        "J_POWER"
+      ],
+      "representative": "J_DATA",
+      "signature_sha256": "12099f9889cb8750446440916cb4aa7a1e7b8f5be80463fcd9d520dfa9a291e6"
+    },
+    {
+      "refs": [
+        "J_PORT1",
+        "J_PORT2",
+        "J_PORT3",
+        "J_PORT4"
+      ],
+      "representative": "J_PORT1",
+      "signature_sha256": "ccd8eb03842311acb04d234e0670d24e0476f3a9c9b2f6e8876c3bac6f7295c0"
+    }
+  ],
+  "schema": 1,
+  "subject_sha256": "f238832c6b768680454e9da4491e56e18fe7baffbe6ddaaa1b643980bb84ea7d",
+  "tool_identity": "connector-orientation-gate-v1:0ac01c174df304311fe286e13c464a3770d45b08a59e57d580e35cc76e845437",
+  "verdict": "PASS"
+}

@@ -1,0 +1,25 @@
+{
+ "target": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.1-2026-08-18",
+ "summary": {
+  "board": 175,
+  "cpl": 168,
+  "datum_max_mm": 0.0,
+  "datum_max_ref": "J_PORT4",
+  "datum_graded": 168,
+  "unpopulated": 7,
+  "declared": 0,
+  "consigned": 0,
+  "exempt_prefixes": [
+   "H",
+   "TP",
+   "FID",
+   "MH"
+  ],
+  "sides": {
+   "top": 159,
+   "bottom": 9
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

@@ -1,0 +1,25 @@
+{
+  "applicability": "APPLIES",
+  "applicability_reason": null,
+  "elapsed_s": 0.45200536599440966,
+  "findings": [
+    {
+      "aggregate": "model_registration_bundle",
+      "error": "accepted bundle must be a directory, not /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.1-2026-08-18/verification/model_registration_bundle"
+    }
+  ],
+  "finished_at": "2026-08-19T05:48:47.367419Z",
+  "graded": 3,
+  "outputs": [],
+  "resume": null,
+  "run_id": "20260819T054846Z-1ed4e852766f",
+  "schema": 1,
+  "stage_id": "P-MODEL-REG",
+  "started_at": "2026-08-19T05:48:46.915413Z",
+  "status": "FAIL",
+  "subject": {
+    "raw_sha256": "858e809453cc5d0a9599f82d4de1333e2486e828683581c7db80b144eb4b04a0",
+    "semantic_sha256": "ffc6fd06708eb722b5ec369eed34a90dbd60d97aad14fe6d6d9759836c8014ff"
+  },
+  "total": 3
+}

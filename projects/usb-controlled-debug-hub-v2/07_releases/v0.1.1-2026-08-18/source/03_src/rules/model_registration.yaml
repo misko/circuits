@@ -1,0 +1,57 @@
+schema: 1
+groups:
+  - id: usb_a_kh_af90dip_112
+    refs: [J_PORT1, J_PORT2, J_PORT3, J_PORT4]
+    authority: "Kinghelm KH-AF90DIP-112 drawing A/1 body envelope, six-hole attachment field, and source-owned exact-code JLC STEP"
+    model_sha256: b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3
+    fit_tolerance_mm: 1.0
+    courtyard_containment_tolerance_mm: 0.25
+    search_margin_mm: 8.0
+    render_width: 2400
+    render_height: 1600
+    orientation:
+      authority: "Kinghelm KH-AF90DIP-112 manufacturer drawing and its source-owned exact-code STEP: local +Y runs from the contact row to the USB-A mating mouth; F.Fab places the mating plane at +13.49 mm."
+      mount_side: front
+      footprint_access_axis_local: [0, 1, 0]
+      model_access_axis_local: [0, 1, 0]
+      model_up_axis_local: [0, 0, 1]
+      mating_plane_offset_mm: 13.49
+      edge_offset_range_mm: [-0.35, -0.05]
+      key_pad: "1"
+      model_z_offset_range_mm: [-0.01, 0.01]
+  - id: usb_c_hro_type_c_31_m_12
+    refs: [J_DATA, J_POWER]
+    authority: "HRO TYPE-C-31-M-12 Rev A exact manufacturer land/body drawing and source-owned exact-code JLC C165948 STEP"
+    model_sha256: f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e
+    # Exact STEP stays inside F.CrtYd and registers all six drilled datums.
+    # Its rendered rolled shell lip projects 0.584 mm beyond the simplified
+    # manufacturer F.Fab rectangle, so the evidence-bound fit tolerance is
+    # 0.65 mm rather than pretending the sheet-metal lip is body-free space.
+    fit_tolerance_mm: 0.65
+    courtyard_containment_tolerance_mm: 0.25
+    search_margin_mm: 8.0
+    render_width: 2400
+    render_height: 1600
+    orientation:
+      authority: "HRO TYPE-C-31-M-12 Rev A exact drawing and C165948 STEP: local +Y runs from the contact-row origin to the USB-C mating mouth at +3.65 mm."
+      mount_side: front
+      footprint_access_axis_local: [0, 1, 0]
+      model_access_axis_local: [0, 1, 0]
+      model_up_axis_local: [0, 0, 1]
+      mating_plane_offset_mm: 3.65
+      edge_offset_range_mm: [-0.10, 0.10]
+      key_pad: "A1"
+      model_z_offset_range_mm: [-0.01, 0.01]
+  - id: aggregate_efuse_tps259474lrpwr
+    refs: [U_AGG]
+    authority: "TI RPW0010A package drawing and exact JLC/LCSC C2864845 native STEP for TPS259474LRPWR"
+    registration_datum: all_pad_centres
+    # Repository serialization is the same JLC C2864845 geometry after
+    # CRLF/trailing-space normalization; bind the model bytes actually used.
+    model_sha256: 1d13993d4bc9c3a12cd6ad47a92ca3333400eaa650b37a741ece3b40de0b03d7
+    fit_tolerance_mm: 0.35
+    courtyard_containment_tolerance_mm: 0.25
+    search_margin_mm: 3.0
+    render_width: 1800
+    render_height: 1800
+orientation_exemptions: []

@@ -1,0 +1,9 @@
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+P-ORIENT render 1/5: populated top
+P-ORIENT render 2/5: populated left
+P-ORIENT render 3/5: populated right
+P-ORIENT render 4/5: populated front
+P-ORIENT render 5/5: populated back
+P-ORIENT PASS: machine 6/6, human 6/6

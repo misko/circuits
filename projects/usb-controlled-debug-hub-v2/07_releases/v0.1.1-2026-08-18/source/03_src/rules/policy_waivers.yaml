@@ -1,0 +1,109 @@
+# Board-specific, measured policy dispositions.  These are deliberately
+# narrow: each command is rerunnable from the repository root and each waiver
+# names the exact population it may suppress.  `waiver_provenance.py` must
+# re-execute the evidence before a release can be sealed.
+
+- id: P-PLANE
+  refs:
+    - 03_src/route.yaml
+    - 03_src/route/critical_prefix.kicad_pcb
+    - 03_src/rules/nets.yaml
+    - 04_kicad/usb_controlled_debug_hub.kicad_pcb
+  why: >-
+    Exactly three low-speed signal segments use In1.Cu: two contiguous
+    HUB_PRTPWR4 segments from (93.5,76.5) through (93.5,77.8) to
+    (98.2,81.95), and one I2C_SCL segment from (96.9,76.05) to
+    (95.675,77.275).  Their measured total is 9.3024 mm.  No USB net uses
+    In1.Cu.  These are bounded source-owned overpasses, not a general routing
+    layer: moving them to In2.Cu would put foreign signal copper in the
+    adjacent reference plane beneath the P4 B.Cu USB pair, while moving them
+    to an outer layer reintroduces the previously measured I2C/control
+    crossings.  Both inner layers otherwise remain GND pours, the complete
+    board passes refilled DRC 0/0/0, and first-article USB 2.0 Hi-Speed
+    enumeration/traffic validation remains mandatory.
+  evidence:
+    - claim: the complete In1 signal population contains no more than the three reviewed low-speed segments
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb'); print(sum(t.GetClass()!='PCB_VIA' and t.GetLayerName()=='In1.Cu' for t in b.GetTracks()))"
+      output: "3"
+      budget: "<= 3"
+      requires: [projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb]
+      grade: CITED
+    - claim: the complete In1 signal length is bounded to the reviewed 9.3024 mm total
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew,math; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb'); print(round(sum(math.hypot(t.GetStart().x-t.GetEnd().x,t.GetStart().y-t.GetEnd().y)/1e6 for t in b.GetTracks() if t.GetClass()!='PCB_VIA' and t.GetLayerName()=='In1.Cu'),4))"
+      output: "9.3024"
+      budget: "<= 9.3024"
+      requires: [projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb]
+      grade: CITED
+    - claim: no USB differential-pair copper uses In1.Cu
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew,re; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb'); print(sum(t.GetClass()!='PCB_VIA' and t.GetLayerName()=='In1.Cu' and bool(re.match(r'^(UP_HUB|MGMT|P[1-4]_(HUB|PORT))_[PN]$',t.GetNetname())) for t in b.GetTracks()))"
+      output: "0"
+      budget: "<= 0"
+      requires: [projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb]
+      grade: CITED
+
+- id: R-POUR
+  refs:
+    - 03_src/floorplan.yaml
+    - 03_src/rules/nets.yaml
+    - 03_src/rules/power_tree.yaml
+    - 04_kicad/usb_controlled_debug_hub.kicad_pcb
+  why: >-
+    The 3 A common input rails are not waived: P5V_RAW, P5V_FUSED and
+    P5V_PROTECTED now have explicit source-owned pours.  This disposition is
+    limited to VBUS1_SW through VBUS4_SW and VBUS_CTRL.  Each external rail is
+    contract-limited to 0.5 A and is a short direct 0.50 mm route except for
+    0.70--0.80 mm total of 0.31 mm package-entry copper at the TPS2557 paired
+    output lands.  VBUS_CTRL is an internal 0.10 A rail with a 0.40 mm field
+    floor and the same package-local 0.31 mm launch.  Blindly adding pours to
+    these five nets would consume the USB routing/reference corridor without
+    improving the package bottleneck.  The exact refilled board passes DRC
+    0/0/0.  Release remains first-article-only and requires simultaneous
+    500 mA hot four-wire drop measurements on all four external ports; the
+    25 mOhm PCB-copper/via/joint allocation in power_tree.yaml is not credited
+    as production evidence until that physical test passes.
+  evidence:
+    - claim: none of the three common 3 A input rails is missing an explicit pour
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb'); z={x.GetNetname() for x in b.Zones()}; print(len({'P5V_RAW','P5V_FUSED','P5V_PROTECTED'}-z))"
+      output: "0"
+      budget: "<= 0"
+      requires: [projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb]
+      grade: CITED
+    - claim: no external switched rail has more than 0.80 mm of package-local sub-0.50 mm copper
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew,math; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb'); nets=['VBUS1_SW','VBUS2_SW','VBUS3_SW','VBUS4_SW']; print(round(max(sum(math.hypot(t.GetStart().x-t.GetEnd().x,t.GetStart().y-t.GetEnd().y)/1e6 for t in b.GetTracks() if t.GetClass()!='PCB_VIA' and t.GetNetname()==n and t.GetWidth()/1e6<0.5) for n in nets),1))"
+      output: "0.8"
+      budget: "<= 0.8"
+      requires: [projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb]
+      grade: CITED
+    - claim: every external switched-rail package launch remains at or above the declared 0.30 mm local floor
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb'); nets={'VBUS1_SW','VBUS2_SW','VBUS3_SW','VBUS4_SW'}; print(round(min(t.GetWidth()/1e6 for t in b.GetTracks() if t.GetClass()!='PCB_VIA' and t.GetNetname() in nets),2))"
+      output: "0.31"
+      budget: ">= 0.30"
+      requires: [projects/usb-controlled-debug-hub-v2/04_kicad/usb_controlled_debug_hub.kicad_pcb]
+      grade: CITED
+    - claim: the maximum authored current of any external switched rail is 0.50 A
+      command: >-
+        python3 -c "import yaml; y=yaml.safe_load(open('projects/usb-controlled-debug-hub-v2/03_src/rules/power_tree.yaml')); print(max(r['iout_max_A'] for r in y['rails'] if r.get('name') in ['VBUS1_SW','VBUS2_SW','VBUS3_SW','VBUS4_SW']))"
+      output: "0.5"
+      budget: "<= 0.5"
+      requires: [projects/usb-controlled-debug-hub-v2/03_src/rules/power_tree.yaml]
+      grade: CITED
+    - claim: the authored current limit of the internal management rail is 0.10 A
+      command: >-
+        python3 -c "import yaml; y=yaml.safe_load(open('projects/usb-controlled-debug-hub-v2/03_src/rules/power_tree.yaml')); print(next(r['iout_max_A'] for r in y['rails'] if r.get('name')=='VBUS_CTRL'))"
+      output: "0.1"
+      budget: "<= 0.1"
+      requires: [projects/usb-controlled-debug-hub-v2/03_src/rules/power_tree.yaml]
+      grade: CITED
+    - claim: the final refilled PCB has zero DRC, unconnected, and schematic-parity findings
+      command: >-
+        python3 -c "import json; d=json.load(open('projects/usb-controlled-debug-hub-v2/06_build/drc/gate.json')); print(len(d['violations'])+len(d['unconnected_items'])+len(d.get('schematic_parity',[])))"
+      output: "0"
+      budget: "<= 0"
+      requires: [projects/usb-controlled-debug-hub-v2/06_build/drc/gate.json]
+      grade: CITED

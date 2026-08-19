@@ -1,0 +1,73 @@
+{
+  "finished_at": "2026-08-19T05:51:23.011351Z",
+  "inputs": {
+    "contract/model_registration.yaml": {
+      "sha256": "f9ee0265f0200094e098752e1d5a3c65dcfb0f837a7f39e7ff7a81e1194bdc2a",
+      "size": 2752
+    },
+    "groups/aggregate_efuse_tps259474lrpwr/bundle.json": {
+      "sha256": "1f504d8dbcfc5b7d996191100d8e1a53bb72c98fd8442ac51637f1d24b354875",
+      "size": 2604
+    },
+    "groups/aggregate_efuse_tps259474lrpwr/model_registration_receipt.json": {
+      "sha256": "d6e6df302c45f2fe252f9c73614a0669f38ec41680edbb3108d00908dc32f4db",
+      "size": 966
+    },
+    "groups/usb_a_kh_af90dip_112/bundle.json": {
+      "sha256": "4b7d36556f81c56553159d9d2368b92233decc82e63c64facc9e962db7905505",
+      "size": 3328
+    },
+    "groups/usb_a_kh_af90dip_112/model_registration_receipt.json": {
+      "sha256": "c15b8f6895a3aa3e2d299bb2eb5cf4d488df687d81521b0ef4cb53e9eca75ab1",
+      "size": 1823
+    },
+    "groups/usb_c_hro_type_c_31_m_12/bundle.json": {
+      "sha256": "3ce6950943500374685878e9359b6523d026ad4198a7122c4f6687b1297c9007",
+      "size": 3033
+    },
+    "groups/usb_c_hro_type_c_31_m_12/model_registration_receipt.json": {
+      "sha256": "701c4da67900c968a069e421fcde362a10e02794eab96c2d6cde216844e31119",
+      "size": 1294
+    },
+    "legacy/model_registration.md": {
+      "sha256": "bd36456017a00c57114ce65df501269d3c465b5edbea1e0c402e131cf167533f",
+      "size": 1512
+    },
+    "source/board.kicad_pcb": {
+      "sha256": "a0acddd9b0b4e1888583ffacad43f2c2446e76cb040ebc64844cd25779a73987",
+      "size": 3297875
+    },
+    "tool/model_registration_gate.py": {
+      "sha256": "ba49d87b5887864747c4a2383c8857ec14e38a50260ab8a59377286c32cf73fc",
+      "size": 27892
+    },
+    "tool/native_model_registration.py": {
+      "sha256": "db1fcd117bf2860c0ac3a40cd4c8a55164744079ca5d20889b613e60bf974235",
+      "size": 30171
+    },
+    "tool/twin_overlay.py": {
+      "sha256": "8eb7461c9453c089c1b43d2392eeb8292b40a162c7704169b6f5e5ed98113c75",
+      "size": 57943
+    }
+  },
+  "outputs": {
+    "model_registration.md": {
+      "sha256": "bd36456017a00c57114ce65df501269d3c465b5edbea1e0c402e131cf167533f",
+      "size": 1512
+    },
+    "model_registration_index.json": {
+      "sha256": "e75a1d13da25fed65aa45ba1dccfc5f7a300a881c427a57a4ca1234a920e1c88",
+      "size": 3223
+    }
+  },
+  "producer": "model-registration-aggregate",
+  "producer_version": "model-registration-index-v1:ba49d87b5887864747c4a2383c8857ec14e38a50260ab8a59377286c32cf73fc",
+  "run_id": "20260819T055122Z-1ef920454974",
+  "schema": 1,
+  "started_at": "2026-08-19T05:51:22.963838Z",
+  "status": "PASS",
+  "subject": {
+    "raw_sha256": "96828ec1f3c6b48a0141262f0bf548f3e535900cf8c1a9f049f065a2e4560888",
+    "semantic_sha256": "ffc6fd06708eb722b5ec369eed34a90dbd60d97aad14fe6d6d9759836c8014ff"
+  }
+}

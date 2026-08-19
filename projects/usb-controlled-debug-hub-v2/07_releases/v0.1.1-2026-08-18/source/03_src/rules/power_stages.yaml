@@ -1,0 +1,6 @@
+schema: 2
+stages: []
+no_external_gate_drive_stages: >-
+  No externally driven switching-power gate stage exists. TPS259470A,
+  TPS259474L, AP63203Q and TPS2557 integrate their switching/pass devices and
+  gate drive inside the packages.

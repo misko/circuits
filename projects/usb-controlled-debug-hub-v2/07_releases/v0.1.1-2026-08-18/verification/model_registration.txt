@@ -1,0 +1,32 @@
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+22:51:22: Debug: Adding duplicate image handler for 'PNG file'
+22:51:22: Debug: Adding duplicate image handler for 'JPEG file'
+22:51:22: Debug: Adding duplicate image handler for 'TIFF file'
+22:51:22: Debug: Adding duplicate image handler for 'GIF file'
+22:51:22: Debug: Adding duplicate image handler for 'PNM file'
+22:51:22: Debug: Adding duplicate image handler for 'PCX file'
+22:51:22: Debug: Adding duplicate image handler for 'IFF file'
+22:51:22: Debug: Adding duplicate image handler for 'Windows icon file'
+22:51:22: Debug: Adding duplicate image handler for 'Windows cursor file'
+22:51:22: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+22:51:22: Debug: Adding duplicate image handler for 'TGA file'
+22:51:22: Debug: Adding duplicate image handler for 'XPM file'
+22:51:22: Debug: Adding duplicate image handler for 'PNG file'
+22:51:22: Debug: Adding duplicate image handler for 'JPEG file'
+22:51:22: Debug: Adding duplicate image handler for 'TIFF file'
+22:51:22: Debug: Adding duplicate image handler for 'GIF file'
+22:51:22: Debug: Adding duplicate image handler for 'PNM file'
+22:51:22: Debug: Adding duplicate image handler for 'PCX file'
+22:51:22: Debug: Adding duplicate image handler for 'IFF file'
+22:51:22: Debug: Adding duplicate image handler for 'Windows icon file'
+22:51:22: Debug: Adding duplicate image handler for 'Windows cursor file'
+22:51:22: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+22:51:22: Debug: Adding duplicate image handler for 'TGA file'
+22:51:22: Debug: Adding duplicate image handler for 'XPM file'
+P-MODEL-REG CACHE-HIT: usb_a_kh_af90dip_112 bfcd193267ac3f4e5bdb1c65784ad1c401ec5e400c72de9c2c6babde13c124fb
+P-MODEL-REG CACHE-HIT: usb_c_hro_type_c_31_m_12 82531bc124ebfe391b424efdacd95a81c315282dbb432dffcf4069547d56733f
+P-MODEL-REG CACHE-HIT: aggregate_efuse_tps259474lrpwr 0cdf1de996546a677443a9567c5f47d9829de3fcc554c236de74d0dbf15cf9fd
+P-MODEL-REG accepted aggregate -> /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.1-2026-08-18/verification/model_registration_bundle
+P-MODEL-REG PASS: 3/3 group(s) graded -> /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.1-2026-08-18/verification/model_registration.md
