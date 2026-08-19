@@ -42,13 +42,11 @@ groups:
       edge_offset_range_mm: [-0.10, 0.10]
       key_pad: "A1"
       model_z_offset_range_mm: [-0.01, 0.01]
-  - id: aggregate_efuse_tps259474lrpwr
+  - id: aggregate_efuse_tps259804onrger
     refs: [U_AGG]
-    authority: "TI RPW0010A package drawing and exact JLC/LCSC C2864845 native STEP for TPS259474LRPWR"
+    authority: "TI RGE0024M package drawing 4223975/B and exact JLC/LCSC C2878936 native STEP for TPS259804ONRGER"
     registration_datum: all_pad_centres
-    # Repository serialization is the same JLC C2864845 geometry after
-    # CRLF/trailing-space normalization; bind the model bytes actually used.
-    model_sha256: 1d13993d4bc9c3a12cd6ad47a92ca3333400eaa650b37a741ece3b40de0b03d7
+    model_sha256: 9ef09310070d4d716bddae6818caa6b35b46a46e2b98e3673b7130ac501fbe84
     fit_tolerance_mm: 0.35
     courtyard_containment_tolerance_mm: 0.25
     search_margin_mm: 3.0

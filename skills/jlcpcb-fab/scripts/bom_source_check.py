@@ -3,6 +3,7 @@
 equal the SOURCE's per-refdes LCSC code. Nothing else is a legitimate BOM.
 
     bom_source_check.py FAB_BOM.csv CIRCUIT_JSON [--parts 02_parts_DIR]
+                        [--board BOARD.kicad_pcb]
 
 Why this exists (the defect it would have blocked)
 --------------------------------------------------
@@ -125,6 +126,57 @@ def refdes_codes_from_circuit(circuit_json):
         # (crow-mic-pod-v2 MK1, render-review finding I, 2026-07-23).
         out[name] = code if re.fullmatch(r"C\d+", code) else ""
     return out
+
+
+def board_identity_records(board_path):
+    """Return ``{ref: {value, lcsc_fields}}`` from a KiCad PCB.
+
+    ``LCSC Part`` is deliberately read as an independent manufacturing
+    authority.  It may be hidden and therefore invisible in renders while a
+    KiCad/JLC plugin still consumes it.  Import pcbnew lazily so circuit-only
+    checks remain usable under a non-KiCad Python when ``--board`` is absent.
+    """
+    try:
+        import pcbnew
+    except ImportError as e:
+        raise RuntimeError("--board requires KiCad's pcbnew Python module") from e
+    board = pcbnew.LoadBoard(str(board_path))
+    out = {}
+    for fp in board.GetFootprints():
+        fields = []
+        for field in fp.GetFields():
+            if field.GetName().strip().casefold() == "lcsc part":
+                fields.append(field.GetText().strip())
+        out[fp.GetReference().strip()] = {
+            "value": fp.GetValue().strip(),
+            "lcsc_fields": fields,
+        }
+    return out
+
+
+def board_identity_findings(records, refdes_code):
+    """Find PCB Value/hidden-field contradictions against source C-codes."""
+    findings = []
+    for ref, source_code in sorted(refdes_code.items()):
+        if not source_code:
+            continue
+        row = records.get(ref)
+        if row is None:
+            findings.append(
+                f"PCB-MISSING {ref}: source assigns {source_code} but the "
+                "board has no such footprint")
+            continue
+        value = str(row.get("value") or "").strip()
+        if value != source_code:
+            findings.append(
+                f"PCB-VALUE-MISMATCH {ref}: board Value is "
+                f"{value or 'blank'} but source says {source_code}")
+        for actual in row.get("lcsc_fields") or []:
+            if actual != source_code:
+                findings.append(
+                    f"PCB-LCSC-MISMATCH {ref}: hidden 'LCSC Part' is "
+                    f"{actual or 'blank'} but source says {source_code}")
+    return findings
 
 
 def vendored_primary_codes(parts_dir):
@@ -689,6 +741,10 @@ def main():
                          "not_assembled there are EXPECTED to be off the "
                          "assembly BOM, so leg B does not report their codes "
                          "as DROPPED (canon A-POP)")
+    ap.add_argument("--board", default="",
+                    help="optional KiCad PCB: compare each coded source refdes "
+                         "against the footprint Value and every hidden "
+                         "'LCSC Part' field")
     ap.add_argument("--circuit-only", action="store_true",
                     help="AUTHORING-stage leg C: no fab BOM — decoded catalog "
                          "value vs the tsx value prop, straight off circuit.json"
@@ -703,6 +759,10 @@ def main():
         vendored = vendored_primary_codes(args.parts) if args.parts else None
         ledger = load_ledger(args.ledger) if args.ledger else load_ledger()
         findings = circuit_value_findings(cj, vendored, ledger)
+        if args.board:
+            findings.extend(board_identity_findings(
+                board_identity_records(args.board),
+                refdes_codes_from_circuit(cj)))
         print(f"circuit-only value check: {cj}"
               + (f"; vendored: {len(vendored)} part.yaml codes" if vendored else "")
               + f"; ledger: {len(ledger)} vetted passive codes")
@@ -712,7 +772,9 @@ def main():
                 print("  " + f)
             sys.exit(1)
         print("CIRCUIT VALUE CHECK: PASS (every coded R/C catalog value == "
-              "its tsx value prop)")
+              "its tsx value prop"
+              + ("; PCB Value/LCSC fields == source" if args.board else "")
+              + ")")
         sys.exit(0)
 
     if not args.circuit_json:

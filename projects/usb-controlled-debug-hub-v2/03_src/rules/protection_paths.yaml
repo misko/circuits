@@ -12,36 +12,31 @@ paths:
     voltage_margin_pct: 5
     admitted_transient:
       claim: >-
-        SMF16A is a secondary hot-plug/ESD clamp, not a sustained-overvoltage
+        TVS1800 is a secondary hot-plug/ESD clamp, not a sustained-overvoltage
         regulator. First article must capture attachment and fault waveforms
-        within the exact TVS pulse envelope.
-      input_damping: "connector/cable impedance plus the 100nF eFuse input bypass; the two 10uF buck capacitors are deliberately behind U_PD_IN during attach"
+        at the U_PD_IN pads within the exact TVS pulse envelope.
+      input_damping: "connector/cable impedance plus the 1uF/50V X7R eFuse input bypass; the two 10uF buck capacitors are deliberately behind U_PD_IN during attach"
     tvs:
-      part: SMF16A
-      standoff_V: 16.0
-      clamp_max_V: 26.0
-      waveform_duration_ms: 1.0
-      waveform: 10/1000 us
-      peak_current_max_A: 7.7
-      peak_power_max_W: 200
-      evidence: "Littelfuse SMF series datasheet, exact SMF16A row; authoritative PDF must be vendored before schematic acceptance"
+      part: TVS1800DRVR
+      standoff_V: 18.0
+      clamp_max_V: 24.7
+      waveform_duration_ms: 0.020
+      waveform: 8/20 us
+      peak_current_max_A: 35
+      peak_power_max_W: 864.5
+      evidence: "TI TVS1800 datasheet SLVSEV7B: maximum 24.7V clamp at 35A, 8/20us and 125C; TI USB interface protection guidance identifies TVS1800 for 15V USB-PD"
     exposed:
       - ref: U_PD_IN
         part: TPS259470ARPWR
         domain: directly_tvs_clamped_input
-        bounded_max_V: 26.0
-        recommended_max_V: 23
-        absolute_max_V: 30
-        absolute_max_duration_ms: 1.0
-        transient_qualification:
-          grade: cited
-          max_V: 30
-          max_duration_ms: 1.0
-          evidence: "TI SLVSFC9C absolute-maximum IN row plus the exact SMF16A 26V/10-1000us clamp; first article must capture the admitted pulse"
-      - {ref: C_PD_IN_HF, part: CC0402KRX7R9BB104, domain: directly_tvs_clamped_input, bounded_max_V: 26.0, recommended_max_V: 50, absolute_max_V: 50}
-      - {ref: U_PD_BUCK, part: TPS56637RPAR, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 26.0, recommended_max_V: 28, absolute_max_V: 32}
-      - {ref: C_PD_IN1, part: TCC1206X7R106K500HT, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 26.0, recommended_max_V: 50, absolute_max_V: 50}
-      - {ref: C_PD_IN2, part: TCC1206X7R106K500HT, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 26.0, recommended_max_V: 50, absolute_max_V: 50}
+        bounded_max_V: 24.7
+        recommended_max_V: 28
+        absolute_max_V: 28
+        evidence: "TI TPS25947 SLVSFC9C 28V IN absolute maximum and TI TVS1800 24.7V worst-temperature specified clamp leave 3.3V tabulated margin; first article must measure directly at U_PD_IN pads"
+      - {ref: C_PD_IN_HF, part: TCC0603X7R105K500CT, domain: directly_tvs_clamped_input, bounded_max_V: 24.7, recommended_max_V: 50, absolute_max_V: 50}
+      - {ref: U_PD_BUCK, part: TPS56637RPAR, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 24.7, recommended_max_V: 28, absolute_max_V: 32}
+      - {ref: C_PD_IN1, part: TCC1206X7R106K500HT, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 24.7, recommended_max_V: 50, absolute_max_V: 50}
+      - {ref: C_PD_IN2, part: TCC1206X7R106K500HT, domain: efuse_switched_tvs_clamped_rail, bounded_max_V: 24.7, recommended_max_V: 50, absolute_max_V: 50}
 
 no_surge_exposed_paths: >-
   J_DATA VBUS is sense-only and D+/D- use the retained low-capacitance USB ESD

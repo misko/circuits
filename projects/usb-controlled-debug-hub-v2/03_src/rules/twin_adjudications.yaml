@@ -41,22 +41,6 @@
     Same manufacturer-backed disposition as the C17700166 PAD-MISMATCH row:
     Sunlord's exact recommended land, not the JLC library land, owns the PCB.
 
-- lcsc: C207257
-  refs: [D_PD_TVS]
-  status: PAD-MISMATCH
-  why: >-
-    Manufacturer-authoritative land pattern. Littelfuse SMF datasheet revision
-    2020-05-15 p.5 specifies SOD-123FL lands 1.60 x 1.40 mm with a 1.30 mm
-    inner gap (2.90 mm centres). The exact source footprint implements those
-    dimensions; the JLC/EasyEDA C207257 library's 3.34 mm spacing is rejected.
-
-- lcsc: C207257
-  refs: [D_PD_TVS]
-  status: PAD-GEOM
-  why: >-
-    Same manufacturer-backed disposition as the C207257 PAD-MISMATCH row:
-    Littelfuse's exact SOD-123FL mounting-pad recommendation owns the PCB.
-
 - lcsc: C165948
   refs: [J_DATA, J_POWER]
   status: MODEL-REG

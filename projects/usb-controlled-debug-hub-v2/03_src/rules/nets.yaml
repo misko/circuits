@@ -34,7 +34,7 @@ scoped_floors:
   - {zone: data4_package_launch, nets: [3V3_MAIN], min_width: 0.35mm, why: "Channel-4 translation of the measured FSUSB42 supply launch."}
   - {zone: and_pwr_3v3_launch, nets: [3V3_MAIN], min_width: 0.25mm, why: "MEASURED power_3v3 DRC: U_AND_PWR pad 14 emits a 0.1505 mm package-terminal taper realized at 0.2598 mm before the 0.40 mm distribution rail; the bounded floor remains above JLC's selected-tier minimum."}
   - {zone: and_data_3v3_launch, nets: [3V3_MAIN], min_width: 0.25mm, why: "U_AND_DATA translation of the measured 74LVC08 pad-14 supply taper."}
-  - {zone: aggregate_efuse_launch, nets: [P5V_REG, P5V_PROTECTED], min_width: 0.30mm, why: "The TPS259474L adjacent 0.30 mm lands require exact-width pin escapes; full-width 5 V distribution resumes outside this package cell."}
+  - {zone: aggregate_efuse_launch, nets: [P5V_REG, P5V_PROTECTED], min_width: 0.24mm, why: "The TPS259804 RGE0024M perimeter lands require exact-width pin escapes; multiple parallel lands and split PowerPAD copper carry the high-current path before full-width 5 V distribution resumes."}
   - {zone: pwr1_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "TPS259470A input land and local bypass use a bounded 0.30 mm package escape; the full protected-rail branch resumes immediately outside."}
   - {zone: pwr2_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "Channel-2 translation of the TPS259470A package launch."}
   - {zone: pwr3_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "Channel-3 translation of the TPS259470A package launch."}
@@ -229,7 +229,7 @@ classes:
        HUB_OCS1_N, HUB_OCS2_N, HUB_OCS3_N, HUB_OCS4_N, HUB_OCS5_N,
        HUB_RESET_N, CTRL_RESET_N, EXP_RESET_N, USB_UP_VBUS, HUB_VBUS_SENSE,
        ILIM1, ILIM2, ILIM3, ILIM4, ILIM_CTRL,
-       AGG_UV, AGG_OV, AGG_ILIM, AGG_TIMER, AGG_DVDT,
+       AGG_ILIM, AGG_TIMER, AGG_DVDT,
        XTAL1, XTAL2]
     current: signal
     min_width: 0.18mm

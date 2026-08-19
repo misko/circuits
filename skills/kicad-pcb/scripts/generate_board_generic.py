@@ -992,6 +992,16 @@ class BoardBuilder:
             fp = self.res.load(ref, fpid, val)
             fp.SetReference(ref)
             fp.SetValue(val)
+            # A library footprint may carry a static hidden ``LCSC Part``
+            # field.  The electrical source's per-refdes C-code is the
+            # authority; leaving the library default untouched can make a
+            # correct fab BOM disagree with KiCad/plugin exports while the
+            # package remains visually indistinguishable.  Synchronize every
+            # existing field whenever the source value is an LCSC code.
+            if re.fullmatch(r"C\d+", str(val)):
+                for field in fp.GetFields():
+                    if field.GetName().strip().casefold() == "lcsc part":
+                        field.SetText(str(val))
             x, y, rot, pin = self.initial_pose(ref)
             fp.SetPosition(pcbnew.VECTOR2I_MM(x, y))
             if rot:

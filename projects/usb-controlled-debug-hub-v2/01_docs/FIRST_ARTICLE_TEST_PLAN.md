@@ -16,8 +16,11 @@ change.
 1. Inspect both sides for bridges, tombstones, missing parts, connector seating,
    filled/capped via quality and exposed-pad wetting evidence. Confirm the five
    TPS259470A ground pads, the retained TPS2557 PowerPAD and USB2517 exposed
-   pad are soldered. Confirm `F_PD` is the exact 3 A / 32 V Littelfuse fuse and
-   both USB-C receptacles are fully seated.
+   pad are soldered. Inspect all nine `U_AGG` 0.20 mm via-in-pad sites and
+   confirm the JLC order delivered complete Type VII fill and copper cap with
+   no exposed void or solder drain. Confirm `F_PD` is the exact 3 A / 32 V Littelfuse fuse,
+   `D_PD_TVS` is exact TVS1800DRVR with its ground bank and exposed pad
+   wetted, and both USB-C receptacles are fully seated.
 2. With all cables removed, record settled resistance using the exact probes
    and ranges in `03_src/rules/first_article.yaml`. Any value outside its range
    is an abort, not permission to raise the current limit.
@@ -36,6 +39,12 @@ and component temperatures. First verify that `VBUS_PD_SW` remains off at the
 default 5 V attach voltage; then confirm it rises only after the source has
 negotiated 15 V. Stop on current-limit entry, odor, discoloration, oscillation,
 unstable voltage, failed PD negotiation, or unexpected heating.
+
+With a differential probe directly at the `U_PD_IN` IN/GND pads, capture
+POWER cable attach, source disconnect, downstream-short interruption and the
+qualified abnormal-source transient. The measured peak must remain below
+28 V and within the TVS1800 8/20 us envelope; a capture at the connector or
+regulator is not a substitute for the eFuse-input measurement.
 
 ## 4. Safe-state and control truth table
 
@@ -72,10 +81,23 @@ three states qualify the TPS259470A true reverse-current-blocking requirement.
    output must remain 4.75–5.25 V. Record hot drop and temperature at the fuse,
    eFuse, buck, each TPS259470A, the internal TPS2557, connector and PCB
    hotspot.
-4. Apply controlled overload/short fixtures one channel at a time. Confirm
-   current limiting, OCS reporting, aggregate latch-off coordination, absence
-   of cross-channel backfeed and safe power-cycle recovery.
-5. Capture startup, load-step, disconnect and simultaneous switching waveforms.
+4. Apply controlled overload/short fixtures one channel at a time. With the
+   other three ports held at 0.50 A and the internal load active, confirm the
+   local channel enters current limit/OCS without tripping `U_AGG`. Repeat with
+   two simultaneous fault fixtures and confirm aggregate latch-off is safe.
+   Verify that latch-off removes management power and that cycling USB-C POWER
+   is the intentional and only recovery path. Record current thresholds rather
+   than treating a room-temperature pass as a production guarantee.
+   Separately qualify the exact power source, fuse, connector, buck and
+   aggregate path at 5.78 A for 7 ms. Stop on regulator current-limit entry,
+   fuse damage, output collapse outside the modeled interruption behavior, or
+   a component temperature/transient limit violation.
+5. Capture port capacitive startup, startup, 0.50 A load-step, abrupt removal
+   of all four loads, disconnect and simultaneous switching waveforms at 10 C,
+   25 C and 40 C ambient and over more than one eFuse lot. Confirm the three
+   feedback resistors remain within 0–50 C during these runs. `P5V_REG` and every
+   mated output must remain at or below 5.25 V, including settled ripple and
+   the load-release peak.
    Retain USB 2.0 High-Speed traffic/eye evidence against the order-time JLC
    90-ohm construction. A routing waiver is not a substitute for the assembled
    measurement.

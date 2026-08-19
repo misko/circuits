@@ -53,9 +53,6 @@ components:
   - R_PD_FF
   - R_CC1
   - R_CC2
-  - R_AGG_UV_TOP
-  - R_AGG_UV_MID
-  - R_AGG_OV_BOT
   - R_AGG_ILIM
   - R_XTAL
   - R_RBIAS

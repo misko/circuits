@@ -751,8 +751,13 @@ def preflight_commands(ctx: FlowContext, include_land: bool = True
             KPY, str(SCRIPTS / "pin_map_check.py"), str(ctx.root),
             "--board", str(ctx.board), "--circuit-json",
             str(ctx.root / "03_tscircuit/build/circuit.json")]))
+        commands.insert(first_board + 1, ("board_bom_identity", [
+            KPY, str(FAB_SCRIPTS / "bom_source_check.py"),
+            "--circuit-only", str(ctx.root / "03_tscircuit/build/circuit.json"),
+            "--parts", str(ctx.root / "02_parts"), "--board",
+            str(ctx.board)]))
         critical_facts = ctx.route_path.parent / "rules" / "critical_parts.yaml"
-        offset = 1
+        offset = 2
         if critical_facts.is_file():
             commands.insert(first_board + offset, ("critical_part_facts", [
                 KPY, str(SCRIPTS / "critical_part_facts.py"), str(ctx.root),
@@ -954,7 +959,7 @@ def cmd_layout_seal(ctx: FlowContext, dry_run: bool,
     before = preflight_commands(ctx, include_land=False)
     after = preflight_commands(ctx, include_land=True)
     post_board = [row for row in after if row[0] in (
-        "placement_clearance", "critical_pair_map", "escape_lands",
+        "board_bom_identity", "placement_clearance", "critical_pair_map", "escape_lands",
         "pad_separation", "placement_policy", "rf_placement")]
     # PR-REVIEW's placement witness is intentionally bound to the exact
     # track-free board. The canonical rebuild grades it before route import.

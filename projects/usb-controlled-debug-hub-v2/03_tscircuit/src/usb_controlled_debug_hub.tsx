@@ -5,11 +5,11 @@
 
 import { sel } from "tscircuit"
 
-// v0.1.4 sourcing-only supersede. These substitutions preserve the reviewed
-// value and footprint while replacing v0.1.3 rows that the JLCPCB uploader
-// could not allocate. Keep the map centralized so the electrical source stays
-// readable and the release delta can prove that only MPN/LCSC identity moved.
-const SOURCING_V014: Record<string, string> = {
+// Orderable sourcing aliases preserve a declared value and footprint while
+// replacing catalog rows that the JLCPCB uploader could not allocate. Keep
+// this map release-neutral: stale release numbers in authoritative electrical
+// source previously made a later release non-hermetic.
+const ORDERABLE_SOURCING: Record<string, string> = {
   C25741: "C25741",    // 100k, 1%, 0402
   C392963: "C60474",   // 100nF, X7R, 16V, 0402
   C843837: "C25744",   // 10k, 1%, 0402
@@ -20,7 +20,7 @@ const SOURCING_V014: Record<string, string> = {
   C482193: "C25900",   // 4.7k, 1%, 0402
 }
 
-const sourcingV014 = (code: string) => SOURCING_V014[code] ?? code
+const sourcingCode = (code: string) => ORDERABLE_SOURCING[code] ?? code
 
 const TwoSided = ({ pins, pitch = 0.65, span = 5.4 }: { pins: number; pitch?: number; span?: number }) => {
   const half = Math.ceil(pins / 2)
@@ -131,8 +131,8 @@ const Tps2557Fp = () => <footprint>
   <smtpad portHints={["9"]} pcbX="0mm" pcbY="0mm" width="1.65mm" height="2.4mm" shape="rect" />
 </footprint>
 
-// TI RPW0010A HotRod QFN.  The project-local KiCad footprint is generated
-// from the exact JLC C2864845 CAD and checked against TI drawing 4225183/A;
+// TI RPW0010A HotRod QFN. The project-local KiCad footprint is checked against
+// TI drawing 4225183/A and exact JLC CAD for this shared physical package;
 // this source footprint preserves the ten-pin topology for schematic export.
 const Tps25947Fp = () => <footprint>
   {[1, 2, 3, 4].map((p, i) => <smtpad key={`l${p}`} portHints={[`${p}`]}
@@ -141,6 +141,33 @@ const Tps25947Fp = () => <footprint>
   <smtpad portHints={["6"]} pcbX="0.3mm" pcbY="0mm" width="0.3mm" height="1.8mm" shape="rect" />
   {[7, 8, 9, 10].map((p, i) => <smtpad key={`r${p}`} portHints={[`${p}`]}
     pcbX="0.9mm" pcbY={`${-0.7125 + i * 0.475}mm`} width="0.6mm" height="0.25mm" shape="rect" />)}
+</footprint>
+
+// TI RGE0024M VQFN-24. The project-local KiCad footprint replaces this
+// schematic/export land with TI's exact split PowerPAD geometry and nine
+// filled/capped 0.20 mm via-in-pad sites.
+const Tps25980Fp = () => <footprint>
+  {[1, 2, 3, 4, 5, 6].map((p, i) => <smtpad key={`l${p}`} portHints={[`${p}`]}
+    pcbX="-1.9125mm" pcbY={`${-1.25 + i * 0.5}mm`} width="0.575mm" height="0.24mm" shape="rect" />)}
+  {[7, 8, 9, 10, 11, 12].map((p, i) => <smtpad key={`b${p}`} portHints={[`${p}`]}
+    pcbX={`${-1.25 + i * 0.5}mm`} pcbY="1.9125mm" width="0.24mm" height="0.575mm" shape="rect" />)}
+  {[13, 14, 15, 16, 17, 18].map((p, i) => <smtpad key={`r${p}`} portHints={[`${p}`]}
+    pcbX="1.9125mm" pcbY={`${1.25 - i * 0.5}mm`} width="0.575mm" height="0.24mm" shape="rect" />)}
+  {[19, 20, 21, 22, 23, 24].map((p, i) => <smtpad key={`t${p}`} portHints={[`${p}`]}
+    pcbX={`${1.25 - i * 0.5}mm`} pcbY="-1.9125mm" width="0.24mm" height="0.575mm" shape="rect" />)}
+  <smtpad portHints={["25", "IN_POWERPAD"]} pcbX="0mm" pcbY="-0.625mm" width="2.7mm" height="1.45mm" shape="rect" />
+  <smtpad portHints={["26", "GND_POWERPAD"]} pcbX="0mm" pcbY="0.925mm" width="2.7mm" height="0.85mm" shape="rect" />
+</footprint>
+
+// TI DRV0006A / TVS1800DRVR, WSON-6 2x2 mm. Pins 1-3 and exposed pad 7 are
+// ground; pins 4-6 are the protected input. The project-local KiCad footprint
+// is authored from the exact TI package drawing and example land pattern.
+const Tvs1800Fp = () => <footprint>
+  {[1, 2, 3].map((p, i) => <smtpad key={`g${p}`} portHints={[`${p}`]}
+    pcbX="-1.03mm" pcbY={`${-0.65 + i * 0.65}mm`} width="0.607mm" height="0.364mm" shape="rect" />)}
+  {[4, 5, 6].map((p, i) => <smtpad key={`v${p}`} portHints={[`${p}`]}
+    pcbX="1.03mm" pcbY={`${0.65 - i * 0.65}mm`} width="0.607mm" height="0.364mm" shape="rect" />)}
+  <smtpad portHints={["7", "EP"]} pcbX="0mm" pcbY="0mm" width="1mm" height="1.6mm" shape="rect" />
 </footprint>
 
 const Polymer63 = () => <footprint>
@@ -189,16 +216,13 @@ const schProps = (name: string) => {
   const power: Record<string, [number, number]> = {
     U_AGG: [-20, 10],
     C_AGG_IN: [-3, 5],
-    R_AGG_UV_TOP: [-2, -1], R_AGG_UV_MID: [5, -1], R_AGG_OV_BOT: [12, -1],
-    R_AGG_ILIM: [18, 7], C_AGG_TIMER: [18, 1], C_AGG_DVDT: [29, -4],
+    R_AGG_ILIM: [10, 7], C_AGG_TIMER: [10, 1], C_AGG_DVDT: [20, -4],
     C_TRUNK_HF: [25, 14], C_TRUNK_BULK: [33, 14], C_TRUNK_USB: [43, 14],
     U_BUCK: [-5, -10], C_BUCK_IN: [-16, -14], C_BST: [0, -24], L_MAIN: [7, -10],
     C_BUCK_OUT1: [16, -8], C_BUCK_OUT2: [16, -16],
   }
   if (power[name]) {
     const powerProps = at("power", "Protected input and 3.3 V regulator", ...power[name])
-    if (name === "R_AGG_OV_BOT") return { ...powerProps, schRotation: "270deg" }
-    if (name.startsWith("R_AGG_UV_")) return { ...powerProps, schRotation: "90deg" }
     return powerProps
   }
 
@@ -259,11 +283,11 @@ const schProps = (name: string) => {
 }
 
 const R = ({ name, value, a, b, jlc, fp = "0402" }: any) => <resistor name={name} resistance={value} footprint={fp}
-  {...schProps(name)} supplierPartNumbers={{ jlcpcb: [sourcingV014(jlc)] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
+  {...schProps(name)} supplierPartNumbers={{ jlcpcb: [sourcingCode(jlc)] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
 const C = ({ name, value, a, b, jlc, fp = "0402", studyX, studyY }: any) => <capacitor name={name} capacitance={value} footprint={fp}
   {...schProps(name)}
   {...(studyX !== undefined ? { pcbX: `${studyX}mm`, pcbY: `${studyY}mm` } : {})}
-  supplierPartNumbers={{ jlcpcb: [sourcingV014(jlc)] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
+  supplierPartNumbers={{ jlcpcb: [sourcingCode(jlc)] }} connections={{ pin1: `net.${a}`, pin2: `net.${b}` }} />
 
 const Tps2557 = ({ name, en, out, fault, ilim, cin, coutHf, coutBulk, studyX }: any) => <group name={`${name}_cell`}>
   <chip name={name} manufacturerPartNumber="TPS2557DRBR"
@@ -278,8 +302,8 @@ const Tps2557 = ({ name, en, out, fault, ilim, cin, coutHf, coutBulk, studyX }: 
     jlc={out === "VBUS_CTRL" ? "C326568" : "C55530"} fp={out === "VBUS_CTRL" ? "0402" : "1210"} /> : null}
 </group>
 
-// TPS259470A uses the same proven RPW0010A land as the retained aggregate
-// TPS259474L, but adds true reverse-current blocking to each exposed USB-A
+// TPS259470A uses the proven RPW0010A land and adds true reverse-current
+// blocking to each exposed USB-A
 // VBUS path.  FLT is active-low and therefore preserves the USB2517 OCS
 // interface without an inversion or a firmware dependency.
 const Tps259470Port = ({ name, en, out, fault, ilim, cin, coutHf, coutBulk, studyX }: any) => <group name={`${name}_cell`}>
@@ -288,7 +312,7 @@ const Tps259470Port = ({ name, en, out, fault, ilim, cin, coutHf, coutBulk, stud
     {...schProps(name)}
     pinLabels={{ pin1: "EN_UVLO", pin2: "OVLO", pin3: "AUXOFF", pin4: "FAULT_N", pin5: "IN", pin6: "OUT", pin7: "DVDT", pin8: "GND", pin9: "ILM", pin10: "ITIMER" }}
     connections={{ pin1: `net.${en}`, pin2: "net.GND", pin4: `net.${fault}`, pin5: "net.P5V_PROTECTED", pin6: `net.${out}`, pin8: "net.GND", pin9: `net.${ilim}` }} />
-  <R name={`R_${ilim}`} value="5.9k" a={ilim} b="GND" jlc="C23071" fp="0603" />
+  <R name={`R_${ilim}`} value="3.32k" a={ilim} b="GND" jlc="C861376" fp="0603" />
   <C name={cin} value="100nF" a="P5V_PROTECTED" b="GND" jlc="C60474" studyX={studyX} studyY={0} />
   <C name={coutHf} value="100nF" a={out} b="GND" jlc="C60474" studyX={studyX + 3} studyY={0} />
   {coutBulk ? <C name={coutBulk} value="22uF" a={out} b="GND" jlc="C21397" fp="1210" /> : null}
@@ -358,12 +382,10 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     <fuse name="F_PD" currentRating="3A" manufacturerPartNumber="0466003.NRHF"
       supplierPartNumbers={{ jlcpcb: ["C14165"] }} footprint={<Smd1206 />}
       {...schProps("F_PD")} connections={{ pin1:"net.VBUS_PD_RAW",pin2:"net.VBUS_PD" }} />
-    <diode name="D_PD_TVS" manufacturerPartNumber="SMF16A" supplierPartNumbers={{ jlcpcb: ["C207257"] }}
-      // tscircuit's diode primitive requires its supported bridge footprint;
-      // the dossier-driven KiCad generator replaces it with the exact
-      // Littelfuse 1.60 x 1.40 mm / 1.30 mm-gap source footprint.
-      footprint="sod123" {...schProps("D_PD_TVS")}
-      connections={{ pin1:"net.GND",pin2:"net.VBUS_PD" }} />
+    <chip name="D_PD_TVS" manufacturerPartNumber="TVS1800DRVR" supplierPartNumbers={{ jlcpcb: ["C2649846"] }}
+      footprint={<Tvs1800Fp />} {...schProps("D_PD_TVS")}
+      pinLabels={{ pin1:"GND1",pin2:"GND2",pin3:"GND3",pin4:"IN1",pin5:"IN2",pin6:"IN3",pin7:"EP_GND" }}
+      connections={{ pin1:"net.GND",pin2:"net.GND",pin3:"net.GND",pin4:"net.VBUS_PD",pin5:"net.VBUS_PD",pin6:"net.VBUS_PD",pin7:"net.GND" }} />
     <chip name="U_PD" manufacturerPartNumber="CH224K" supplierPartNumbers={{ jlcpcb: ["C970725"] }}
       footprint={<Ch224kFp />} {...schProps("U_PD")}
       pinLabels={{ pin1:"VDD",pin2:"CFG2",pin3:"CFG3",pin4:"DP",pin5:"DM",pin6:"CC2",pin7:"CC1",pin8:"VBUS",pin9:"CFG1",pin10:"PG",pin11:"EP_GND" }}
@@ -400,13 +422,13 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     <capacitor name="C_PD_IN2" capacitance="10uF" footprint={<Smd1206 />}
       {...schProps("C_PD_IN2")} supplierPartNumbers={{ jlcpcb: ["C5449000"] }}
       connections={{ pin1: "net.VBUS_PD_SW", pin2: "net.GND" }} />
-    <C name="C_PD_IN_HF" value="100nF" a="VBUS_PD" b="GND" jlc="C131394" />
+    <C name="C_PD_IN_HF" value="1uF" a="VBUS_PD" b="GND" jlc="C5360793" fp="0603" />
     <C name="C_PD_BOOT" value="100nF" a="PD_BOOT" b="PD_SW" jlc="C60474" />
     <inductor name="L_PD" inductance="3.3uH" manufacturerPartNumber="MWSA0804S-3R3MT"
       supplierPartNumbers={{ jlcpcb: ["C17700166"] }} footprint={<Mwsa0804 />} {...schProps("L_PD")}
       connections={{ pin1:"net.PD_SW",pin2:"net.P5V_REG" }} />
-    <R name="R_PD_FB_A" value="75k" a="P5V_REG" b="PD_FB_TOP" jlc="C319478" />
-    <R name="R_PD_FB_B" value="1k" a="PD_FB_TOP" b="PD_FB" jlc="C11702" />
+    <R name="R_PD_FB_A" value="73.2k" a="P5V_REG" b="PD_FB_TOP" jlc="C852909" />
+    <R name="R_PD_FB_B" value="374" a="PD_FB_TOP" b="PD_FB" jlc="C852745" />
     <R name="R_PD_FB_BOT" value="10k" a="PD_FB" b="GND" jlc="C190095" />
     <R name="R_PD_FF" value="20k" a="P5V_REG" b="PD_FF" jlc="C25765" />
     <C name="C_PD_FF" value="100pF" a="PD_FF" b="PD_FB" jlc="C1546" />
@@ -414,21 +436,18 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     <C name="C_PD_OUT2" value="22uF" a="P5V_REG" b="GND" jlc="C21397" fp="1210" />
     <C name="C_PD_OUT3" value="22uF" a="P5V_REG" b="GND" jlc="C21397" fp="1210" />
 
-    <chip name="U_AGG" supplierPartNumbers={{ jlcpcb: ["C2864845"] }}
-      manufacturerPartNumber="TPS259474LRPWR" footprint={<Tps25947Fp />}
+    <chip name="U_AGG" supplierPartNumbers={{ jlcpcb: ["C2878936"] }}
+      manufacturerPartNumber="TPS259804ONRGER" footprint={<Tps25980Fp />}
       {...schProps("U_AGG")}
-      pinLabels={{ pin1: "EN_UVLO", pin2: "OVLO", pin3: "PG", pin4: "PGTH", pin5: "IN", pin6: "OUT", pin7: "DVDT", pin8: "GND", pin9: "ILM", pin10: "ITIMER" }}
-      connections={{ pin1: "net.AGG_UV", pin2: "net.AGG_OV", pin4: "net.GND", pin5: "net.P5V_REG", pin6: "net.P5V_PROTECTED", pin7: "net.AGG_DVDT", pin8: "net.GND", pin9: "net.AGG_ILIM", pin10: "net.AGG_TIMER" }} />
+      pinLabels={{ pin1: "IN1", pin2: "IN2", pin3: "IN3", pin4: "GND1", pin5: "GND2", pin6: "EN_UVLO", pin7: "ITIMER", pin8: "ILIM", pin9: "IMON", pin10: "RETRY_DLY", pin11: "NRETRY", pin12: "LDSTRT", pin13: "PG", pin14: "GND3", pin15: "DVDT", pin16: "IN4", pin17: "OUT1", pin18: "OUT2", pin19: "OUT3", pin20: "OUT4", pin21: "OUT5", pin22: "OUT6", pin23: "OUT7", pin24: "OUT8", pin25: "IN_POWERPAD", pin26: "GND_POWERPAD" }}
+      connections={{ pin1: "net.P5V_REG", pin2: "net.P5V_REG", pin3: "net.P5V_REG", pin4: "net.GND", pin5: "net.GND", pin6: "net.P5V_REG", pin7: "net.AGG_TIMER", pin8: "net.AGG_ILIM", pin10: "net.GND", pin11: "net.GND", pin12: "net.GND", pin14: "net.GND", pin15: "net.AGG_DVDT", pin16: "net.P5V_REG", pin17: "net.P5V_PROTECTED", pin18: "net.P5V_PROTECTED", pin19: "net.P5V_PROTECTED", pin20: "net.P5V_PROTECTED", pin21: "net.P5V_PROTECTED", pin22: "net.P5V_PROTECTED", pin23: "net.P5V_PROTECTED", pin24: "net.P5V_PROTECTED", pin25: "net.P5V_REG", pin26: "net.GND" }} />
     <C name="C_AGG_IN" value="100nF" a="P5V_REG" b="GND" jlc="C392963" />
-    {/* One three-resistor string follows TI equations 10/11. Nominal UVLO is
-        4.58 V and OVLO is 5.64 V; exact threshold/leakage corners are owned by
-        power_tree.yaml.  A persistent aggregate overload latches U_AGG off
-        until the external 5 V input is cycled. */}
-    <R name="R_AGG_UV_TOP" value="150k" a="P5V_REG" b="AGG_UV" jlc="C22807" fp="0603" />
-    <R name="R_AGG_UV_MID" value="10k" a="AGG_UV" b="AGG_OV" jlc="C25804" fp="0603" />
-    <R name="R_AGG_OV_BOT" value="43.2k" a="AGG_OV" b="GND" jlc="C861404" fp="0603" />
-    <R name="R_AGG_ILIM" value="1k" a="AGG_ILIM" b="GND" jlc="C110776" fp="0603" />
-    <C name="C_AGG_TIMER" value="3.3nF" a="AGG_TIMER" b="GND" jlc="C342849" fp="0603" />
+    {/* Fixed-OVLO 4O variant. EN follows this 5V-only input; RETRY_DLY,
+        NRETRY and LDSTRT are grounded for intentional latch-off without
+        handshake. A persistent aggregate overload is cleared only by cycling
+        USB-C POWER. */}
+    <R name="R_AGG_ILIM" value="300" a="AGG_ILIM" b="GND" jlc="C23025" fp="0603" />
+    <C name="C_AGG_TIMER" value="6.8nF" a="AGG_TIMER" b="GND" jlc="C162241" fp="0603" />
     <C name="C_AGG_DVDT" value="3.3nF" a="AGG_DVDT" b="GND" jlc="C342849" fp="0603" />
     <C name="C_TRUNK_HF" value="100nF" a="P5V_PROTECTED" b="GND" jlc="C392963" />
     <C name="C_TRUNK_BULK" value="22uF" a="P5V_PROTECTED" b="GND" jlc="C55530" fp="1210" />

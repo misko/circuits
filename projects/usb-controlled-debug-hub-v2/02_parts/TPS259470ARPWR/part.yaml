@@ -26,7 +26,8 @@ limits:
 gotchas:
   - "The complete 0A suffix matters: TPS259470A actively current-limits and auto-retries. The retained aggregate U_AGG remains the distinct TPS259474L circuit-breaker/latch-off variant."
   - "Pin 4 is active-low open-drain FLT on the 0x variants and connects directly to USB2517I OCS_N. Pins 3 and 10 may remain open; pin 2 is grounded where 5V OVLO is intentionally disabled."
-  - "External ports use 5.90k 1% RILM. TI's 3334/R equation with +/-10% ILIM error and resistor tolerance gives 0.503..0.628A before TCR; the exact bound is owned by power_tree.yaml."
+  - "External ports use the TI-characterized 3.32k row, not an extrapolated 5.90k setting. Charging 0.850..1.150A for the exact 0.1%, 25ppm/C resistor gives 0.847..1.154A; power_tree.yaml owns the exact bound."
+  - "External-port ITIMER and DVDT are intentionally open, which TI defines as minimum fault delay and fastest output turn-on. Capacitive startup and short behavior are mandatory first-article tests."
   - "U_PD_IN uses the same part ahead of the buck. Its three-resistor UVLO/OVLO string disconnects the 20uF buck bank until a negotiated voltage is present; C_PD_IN_DVDT controls attach inrush."
 verified: "CITED: TI SLVSFC9C Table 4-1 exact TPS259470A ordering row, Figure 5-1 RPW pinout, Table 5-1 terminal functions, Figure 8-22 layout, 45mOhm catalog maximum, true RCB description, and equations 5/10/11; read 2026-08-18. JLC/LCSC C3662799 identifies exact TPS259470ARPWR."
 sourcing:

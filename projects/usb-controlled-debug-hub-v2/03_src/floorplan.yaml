@@ -150,7 +150,7 @@ placement:
     C_PD_VDD: [45.8, 106.5, 0]
     R_PD_VBUS: [35.0, 109.0, 0]
     # Negotiated-voltage inrush gate.  The QFN sits below the existing PD
-    # controller/buck row so its input sees the connector-side 100nF while its
+    # controller/buck row so its input sees the connector-side 1uF while its
     # output rises directly into the two buck capacitors.
     U_PD_IN: [46.0, 98.0, 0]
     R_PD_IN_UV_TOP: [38.7, 96.0, 0]
@@ -163,9 +163,10 @@ placement:
     R_PD_UV_BOT: [55.0, 116.0, 0]
     C_PD_IN1: [48.5, 103.0, 90]
     C_PD_IN2: [51.5, 103.0, 90]
-    # The only capacitance directly exposed before U_PD_IN is this 100 nF
+    # The only intentional bulk directly exposed before U_PD_IN is this 1 uF
     # bypass. Keep it immediately below the input land; the two 10 uF parts
-    # remain downstream on VBUS_PD_SW so attach inrush is still gated.
+    # 50 V X7R damping capacitor. The two 10 uF parts remain downstream on
+    # VBUS_PD_SW so attach inrush is still gated and the sink bank stays <10uF.
     C_PD_IN_HF: [44.5, 100.15, 180]
     # Bootstrap capacitor is inside the TPS56637 BOOT/SW loop, not merely in
     # the same power cell. The former y=113 schematic-convenience placement
@@ -331,10 +332,7 @@ placement:
     R_DATA_CMD3: [124.0, 96.0, 0]
     R_DATA_CMD4: [130.0, 96.0, 0]
 
-    # TPS259474L aggregate breaker, always-connected USB hub bulk and AP63203.
-    R_AGG_UV_TOP: [80.9, 103.0, 0]
-    R_AGG_UV_MID: [84.0, 103.0, 0]
-    R_AGG_OV_BOT: [87.1, 103.0, 0]
+    # TPS259804 aggregate breaker, always-connected USB hub bulk and AP63203.
     R_AGG_ILIM: [89.0, 108.0, 90]
     # Keep the aggregate eFuse input bypass in the same reachable P5V_REG
     # zone as pin 5.  The former y=106 pose formed an isolated copper island
@@ -368,10 +366,10 @@ placement:
     - match: U_HUB
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/USB2517I_QFN64.step", rotate: [0, 0, 0]}
     - match: U_AGG
-      # Pin 8 is the eFuse's local ground return. A solid plane connection is
-      # electrically preferable here and avoids a one-spoke thermal on the
-      # small perimeter land.
-      pad_overrides: [{pads: [8], on_net: GND, zone_connection: full}]
+      # TPS259804 uses six dedicated/signal ground lands plus split GND
+      # PowerPAD 26. Solid plane contact is required around the nine
+      # source-footprint Type-VII via-in-pad holes.
+      pad_overrides: [{pads: [4, 5, 10, 11, 12, 14, 26], on_net: GND, zone_connection: full}]
     - match: U_DATA*
       # Bottom-side ground lands use explicit B.Cu spokes; solid pour contact
       # avoids a one-spoke thermal on these narrow 0.5 mm-pitch pads.
@@ -390,7 +388,8 @@ placement:
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step", rotate: [0, 0, 270]}
       pad_overrides: [{pads: [9], on_net: GND, zone_connection: full}]
     - match: U_PWR[1-4]
-      # TPS259470A uses the same already-qualified RPW0010A body/land as U_AGG.
+      # TPS259470A uses the already-qualified RPW0010A body/land retained for
+      # the four port switches (the aggregate device is now RGE0024M).
       # External-port OVLO is intentionally disabled by grounding pin 2; both
       # that narrow land and the dedicated pin-8 return need a solid plane
       # connection because the local bank permits only one thermal spoke.
@@ -537,7 +536,7 @@ keepouts:
   # keep that fabrication-safe taper bounded to the individual package exit.
   - {name: and_pwr_3v3_launch, layers: [F.Cu], deny: [], rect: [106.0, 83.7, 107.2, 84.3]}
   - {name: and_data_3v3_launch, layers: [F.Cu], deny: [], rect: [122.0, 83.7, 123.2, 84.3]}
-  - {name: aggregate_efuse_launch, layers: [F.Cu], deny: [], rect: [83.7, 107.5, 86.3, 110.5]}
+  - {name: aggregate_efuse_launch, layers: [F.Cu], deny: [], rect: [82.2, 106.2, 87.8, 111.8]}
   - {name: data1_package_launch, layers: [B.Cu], deny: [], ref: U_DATA1, margin_mm: 0.4}
   - {name: data2_package_launch, layers: [B.Cu], deny: [], ref: U_DATA2, margin_mm: 0.4}
   - {name: data3_package_launch, layers: [B.Cu], deny: [], ref: U_DATA3, margin_mm: 0.4}
@@ -580,9 +579,12 @@ silk:
 
 asserts:
   pad_net:
-    - {ref: U_AGG, pad: 5, net: P5V_REG}
-    - {ref: U_AGG, pad: 6, net: P5V_PROTECTED}
-    - {ref: U_AGG, pad: 8, net: GND}
+    - {ref: U_AGG, pad: 1, net: P5V_REG}
+    - {ref: U_AGG, pad: 16, net: P5V_REG}
+    - {ref: U_AGG, pad: 25, net: P5V_REG}
+    - {ref: U_AGG, pad: 17, net: P5V_PROTECTED}
+    - {ref: U_AGG, pad: 24, net: P5V_PROTECTED}
+    - {ref: U_AGG, pad: 26, net: GND}
     - {ref: C_TRUNK_USB, pad: 1, net: P5V_PROTECTED}
     - {ref: U_HUB, pad: 58, net: UP_HUB_N}
     - {ref: U_HUB, pad: 59, net: UP_HUB_P}

@@ -17,10 +17,10 @@ USB-C DATA
 USB-C POWER
   CC1/CC2 -> CH224K hardware PD sink (request 15 V)
   VBUS -> input fuse + TVS -> UVLO/dVdt TPS259470A
-       -> TPS56637 6 A buck -> P5V_RAW (~5.16 V)
+       -> TPS56637 6 A buck -> P5V_REG (~5.01 V nominal)
   D+/D-/SBU -> no-connect
 
-P5V_RAW -> existing TPS259474L reverse-blocking latch-off eFuse
+P5V_REG -> TPS259804O low-loss latch-off eFuse
           -> P5V_PROTECTED
              -> existing AP63203Q 3.3 V regulator
              -> existing management TPS2557
@@ -73,17 +73,18 @@ not a qualified supply. A TPS259470A ahead of the buck has a calculated
 9.646–10.329 V UVLO window and disconnects the buck's two 10 uF input
 capacitors during initial Type-C attach. Its dV/dt control then charges that
 bank only after a negotiated voltage is present. The buck retains its own UVLO
-as a second boundary, so an unsuccessful contract leaves `P5V_RAW` off.
+as a second boundary, so an unsuccessful contract leaves `P5V_REG` off.
 
 ## New regulator island
 
-TPS56637 converts the contracted 15 V to approximately 5.16 V. It was selected
+TPS56637 converts the contracted 15 V to approximately 5.01 V. It was selected
 because it:
 
 - accepts 4.5–28 V and tolerates the 15 V PDO with substantial voltage margin;
 - supplies 6 A continuously and has a 6.3 A minimum valley-current limit;
 - has a vendor 5 V / 6 A reference circuit and layout;
-- leaves the existing 5 V aggregate breaker and all downstream switches intact.
+- leaves the downstream hub/control architecture intact while a low-loss
+  aggregate breaker preserves both delivery and transient margin.
 
 The local cell follows TI's 5 V reference topology: 3.3 uH inductor, at least
 20 uF effective local output capacitance, close ceramic input bypass, 100 nF
@@ -95,8 +96,9 @@ rating, 10 A heat-current rating, and 15 mOhm maximum DCR.
 The former 5 V blade-fuse holder and screw-terminal path are not in series with
 the new 5 V rail. Retaining their 121 mV fixed-drop allowance would consume too
 much of the USB output-voltage tolerance. Catastrophic input protection moves
-to the lower-current 15 V side; the existing TPS259474L remains the coordinated
-5 V aggregate breaker.
+to the lower-current 15 V side. TPS259804ONRGER provides the coordinated 5 V
+aggregate breaker with 5 mOhm maximum RON, a characterized 300-ohm ILIM row,
+and intentional power-cycle-only latch-off recovery.
 
 ## Reused functional core
 
@@ -107,7 +109,7 @@ connectivity parity against v1:
 - MCP2221A/MCP23017 management path;
 - the internal management TPS2557 and its current-limit programming;
 - four TPS259470A external-port eFuses with active-low hub fault reporting,
-  approximately 0.50–0.63 A limits and true reverse-current blocking;
+  charged 0.847–1.154 A limits and true reverse-current blocking;
 - four FSUSB42 data switches and four PESD2USB3UX connector protectors;
 - 74LVC08/2N7002 hardware interlocks and safe-state pulls;
 - AP63203Q 3.3 V regulator;

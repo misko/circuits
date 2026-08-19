@@ -94,7 +94,7 @@ invariants:
     adr: "0001"
     why: The lower non-removable strap bit is fixed high so physical port 1 is reported non-removable.
   - {assert: series_chain, chain: [VBUS_PD_RAW, F_PD, VBUS_PD], adr: "0013", why: "every USB-C power contact must pass through the 3A high-voltage fuse before the PD controller and buck"}
-  - {assert: series_chain, chain: [P5V_REG, U_AGG, P5V_PROTECTED], through: {U_AGG: ["5", "6"]}, adr: "0013", why: "the regulated 5V rail feeds the retained aggregate reverse-protected latch-off eFuse without the former blade-holder drop"}
+  - {assert: series_chain, chain: [P5V_REG, U_AGG, P5V_PROTECTED], through: {U_AGG: ["1", "17"]}, adr: "0016", why: "the regulated 5V rail feeds the low-loss aggregate latch-off eFuse directly"}
   - {assert: pin_on_net, pin: "J_DATA.A4", net: USB_UP_VBUS, adr: "0012", why: "USB-C DATA A4 is upstream sense-only VBUS"}
   - {assert: pin_on_net, pin: "J_DATA.A9", net: USB_UP_VBUS, adr: "0012", why: "USB-C DATA A9 is upstream sense-only VBUS"}
   - {assert: pin_on_net, pin: "J_DATA.B4", net: USB_UP_VBUS, adr: "0012", why: "USB-C DATA B4 is upstream sense-only VBUS"}
@@ -115,7 +115,15 @@ invariants:
   - {assert: pin_on_net, pin: "U_PD.4", net: PD_PROTO, adr: "0014", why: "PD-only CH224K D+ and D- are shorted locally per the controller reference topology"}
   - {assert: pin_on_net, pin: "U_PD.5", net: PD_PROTO, adr: "0014", why: "PD-only CH224K D+ and D- are shorted locally per the controller reference topology"}
   - {assert: series_chain, chain: [VBUS_PD, U_PD_IN, VBUS_PD_SW], through: {U_PD_IN: ["5", "6"]}, adr: "0014", why: "the buck bulk bank must remain behind the negotiated-voltage inrush gate"}
-  - {assert: pin_on_net, pin: "C_PD_IN_HF.1", net: VBUS_PD, adr: "0014", why: "only the 100nF eFuse input bypass is directly exposed at Type-C attach"}
+  - {assert: pin_on_net, pin: "C_PD_IN_HF.1", net: VBUS_PD, adr: "0015", why: "the 1uF/50V X7R damping capacitor is the only intentional bulk directly exposed at Type-C attach"}
+  - {assert: part_value, part: C_PD_IN_HF, equals: 1uF, tolerance_pct: 10, adr: "0015", why: "TI recommends local input damping while the total directly exposed sink bank remains below 10uF"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.1", net: GND, adr: "0015", why: "TVS1800 ground bank pin 1 requires a short return"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.2", net: GND, adr: "0015", why: "TVS1800 ground bank pin 2 requires a short return"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.3", net: GND, adr: "0015", why: "TVS1800 ground bank pin 3 requires a short return"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.4", net: VBUS_PD, adr: "0015", why: "TVS1800 input bank pin 4 clamps the post-fuse PD input"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.5", net: VBUS_PD, adr: "0015", why: "TVS1800 input bank pin 5 clamps the post-fuse PD input"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.6", net: VBUS_PD, adr: "0015", why: "TVS1800 input bank pin 6 clamps the post-fuse PD input"}
+  - {assert: pin_on_net, pin: "D_PD_TVS.7", net: GND, adr: "0015", why: "TVS1800 exposed pad is grounded per TI"}
   - {assert: pin_on_net, pin: "C_PD_IN1.1", net: VBUS_PD_SW, adr: "0014", why: "the first 10uF buck capacitor is disconnected until negotiated-voltage UVLO passes"}
   - {assert: pin_on_net, pin: "C_PD_IN2.1", net: VBUS_PD_SW, adr: "0014", why: "the second 10uF buck capacitor is disconnected until negotiated-voltage UVLO passes"}
   - {assert: part_value, part: R_PD_VDD, equals: 1k, tolerance_pct: 1, adr: "0014", why: "the value remains per WCH but the physical part is upgraded to a 0.5W 1210"}
@@ -124,8 +132,8 @@ invariants:
   - {assert: part_value, part: R_PD_IN_OV_BOT, equals: 35.7k, tolerance_pct: 1, adr: "0014", why: "sets the input-eFuse OVLO window above the 15V contract"}
   - {assert: pin_on_net, pin: "U_PD_BUCK.8", net: VBUS_PD_SW, adr: "0014", why: "buck input is downstream of negotiated-voltage inrush control"}
   - {assert: pin_on_net, pin: "U_PD_BUCK.10", net: GND, adr: "0013", why: "Eco mode is selected by grounding MODE"}
-  - {assert: part_value, part: R_PD_FB_A, equals: 75k, tolerance_pct: 0.1, adr: "0013", why: "first precision upper-feedback segment"}
-  - {assert: part_value, part: R_PD_FB_B, equals: 1k, tolerance_pct: 0.1, adr: "0014", why: "second precision upper-feedback segment closes the 5.07363-5.24667V full-corner window"}
+  - {assert: part_value, part: R_PD_FB_A, equals: 73.2k, tolerance_pct: 0.1, adr: "0016", why: "lowers the charged DC ceiling enough to reserve a 100mV transient envelope"}
+  - {assert: part_value, part: R_PD_FB_B, equals: 374, tolerance_pct: 0.1, adr: "0016", why: "the stocked precision trim combines with 73.2k/10k to produce the charged 4.92511-5.10424V window"}
   - {assert: part_value, part: R_PD_FB_BOT, equals: 10k, tolerance_pct: 0.1, adr: "0013", why: "precision lower-feedback leg"}
   - {assert: pin_on_net, pin: "R_VBUS_TOP.1", net: USB_UP_VBUS, adr: "0011", why: "the VBUS detector upper leg must sense only the detachable upstream connector VBUS"}
   - {assert: pin_on_net, pin: "R_VBUS_TOP.2", net: HUB_VBUS_SENSE, adr: "0011", why: "the upper divider leg must terminate at USB2517I VBUS_DET"}
@@ -140,16 +148,24 @@ invariants:
     min: 1
     adr: "0002"
     why: The protected input trunk requires local bulk and high-frequency decoupling.
-  - {assert: pin_on_net, pin: "U_AGG.5", net: P5V_REG, adr: "0013", why: "aggregate breaker input must follow the local 5V regulator"}
-  - {assert: pin_on_net, pin: "U_AGG.6", net: P5V_PROTECTED, adr: "0006", why: "all loads must be downstream of the aggregate breaker"}
+  - {assert: pin_on_net, pin: "U_AGG.1", net: P5V_REG, adr: "0016", why: "aggregate breaker perimeter input must follow the local 5V regulator"}
+  - {assert: pin_on_net, pin: "U_AGG.16", net: P5V_REG, adr: "0016", why: "all aggregate perimeter input lands must carry the local 5V regulator rail"}
+  - {assert: pin_on_net, pin: "U_AGG.25", net: P5V_REG, adr: "0016", why: "the split IN PowerPAD must carry the local 5V regulator rail"}
+  - {assert: pin_on_net, pin: "U_AGG.17", net: P5V_PROTECTED, adr: "0016", why: "all loads must be downstream of the aggregate breaker"}
+  - {assert: pin_on_net, pin: "U_AGG.24", net: P5V_PROTECTED, adr: "0016", why: "all aggregate output perimeter lands must feed the protected rail"}
+  - {assert: pin_on_net, pin: "U_AGG.26", net: GND, adr: "0016", why: "the split GND PowerPAD and its Type-VII thermal field require a ground connection"}
+  - {assert: pin_on_net, pin: "U_AGG.6", net: P5V_REG, adr: "0016", why: "EN/UVLO is tied directly to IN for the 5V-only aggregate stage"}
+  - {assert: pin_on_net, pin: "U_AGG.10", net: GND, adr: "0016", why: "RETRY_DLY grounded selects latch-off"}
+  - {assert: pin_on_net, pin: "U_AGG.11", net: GND, adr: "0016", why: "NRETRY is grounded for the latch-off configuration"}
+  - {assert: pin_on_net, pin: "U_AGG.12", net: GND, adr: "0016", why: "LDSTRT grounded disables load-detect handshake"}
   - {assert: pin_on_net, pin: "C_AGG_IN.1", net: P5V_REG, adr: "0013", why: "the datasheet-required aggregate-eFuse input bypass must terminate at IN rather than after the switch"}
   - {assert: pin_on_net, pin: "C_AGG_IN.2", net: GND, adr: "0006", why: "the aggregate-eFuse input bypass requires a short local ground return"}
   - {assert: part_value, part: C_AGG_IN, equals: 100nF, tolerance_pct: 10, adr: "0006", why: "TI requires at least 0.1uF directly from IN to GND"}
   - {assert: pin_on_net, pin: "C_TRUNK_USB.1", net: P5V_PROTECTED, adr: "0006", why: "the polarized USB hub bulk capacitor positive terminal must be on the protected trunk"}
   - {assert: pin_on_net, pin: "C_TRUNK_USB.2", net: GND, adr: "0006", why: "the polarized USB hub bulk capacitor negative terminal must be grounded"}
-  - {assert: part_value, part: R_AGG_ILIM, equals: 1k, tolerance_pct: 0.1, adr: "0006", why: "programs the charged 2.990..3.680A aggregate breaker threshold"}
-  - {assert: part_value, part: C_AGG_TIMER, equals: 3.3nF, tolerance_pct: 5, adr: "0006", why: "bounds aggregate overload blanking to 1.608..5.042ms"}
-  - {assert: part_value, part: C_AGG_DVDT, equals: 3.3nF, tolerance_pct: 5, adr: "0006", why: "bounds startup slew and effective-bank inrush"}
+  - {assert: part_value, part: R_AGG_ILIM, equals: 300, tolerance_pct: 1, adr: "0016", why: "uses TPS25980's characterized row and programs the charged 4.2745..5.7755A aggregate threshold"}
+  - {assert: part_value, part: C_AGG_TIMER, equals: 6.8nF, tolerance_pct: 5, adr: "0016", why: "bounds TPS25980 aggregate overload blanking to approximately 1.61..6.65ms"}
+  - {assert: part_value, part: C_AGG_DVDT, equals: 3.3nF, tolerance_pct: 5, adr: "0016", why: "bounds nominal startup slew to about 1.394V/ms and charged maximum-bank inrush below 0.371A"}
   - {assert: part_value, part: C_TRUNK_USB, equals: 180uF, tolerance_pct: 20, adr: "0006", why: "provides the low-ESR USB hub-source bulk bank"}
   - {assert: part_value, part: C_TRUNK_BULK, equals: 22uF, tolerance_pct: 10, adr: "0006", why: "ceramic contributor combines with the polymer life corner to remain above 120uF"}
   - {assert: pin_on_net, pin: "U_ESD_UP.1", net: UP_HUB_N, adr: "0006", why: "symmetric IO1 is assigned to upstream D- after the bottom-side protector is rotated so its signal bank faces the connector without a crossover"}
@@ -238,28 +254,28 @@ invariants:
     why: Port 4 data command must default low while management logic is absent.
   - assert: part_value
     part: R_ILIM1
-    equals: 5.9k
-    tolerance_pct: 1.0
-    adr: "0014"
-    why: TPS259470A full-corner current-limit study guarantees at least 500mA while bounding the high corner.
+    equals: 3.32k
+    tolerance_pct: 0.1
+    adr: "0015"
+    why: TI's characterized 3.32k row, charged for resistor tolerance and TCR, guarantees 0.847-1.154A rather than extrapolating the unsupported 5.9k setting.
   - assert: part_value
     part: R_ILIM2
-    equals: 5.9k
-    tolerance_pct: 1.0
-    adr: "0014"
-    why: TPS259470A full-corner current-limit study guarantees at least 500mA while bounding the high corner.
+    equals: 3.32k
+    tolerance_pct: 0.1
+    adr: "0015"
+    why: TI's characterized 3.32k row, charged for resistor tolerance and TCR, guarantees 0.847-1.154A rather than extrapolating the unsupported 5.9k setting.
   - assert: part_value
     part: R_ILIM3
-    equals: 5.9k
-    tolerance_pct: 1.0
-    adr: "0014"
-    why: TPS259470A full-corner current-limit study guarantees at least 500mA while bounding the high corner.
+    equals: 3.32k
+    tolerance_pct: 0.1
+    adr: "0015"
+    why: TI's characterized 3.32k row, charged for resistor tolerance and TCR, guarantees 0.847-1.154A rather than extrapolating the unsupported 5.9k setting.
   - assert: part_value
     part: R_ILIM4
-    equals: 5.9k
-    tolerance_pct: 1.0
-    adr: "0014"
-    why: TPS259470A full-corner current-limit study guarantees at least 500mA while bounding the high corner.
+    equals: 3.32k
+    tolerance_pct: 0.1
+    adr: "0015"
+    why: TI's characterized 3.32k row, charged for resistor tolerance and TCR, guarantees 0.847-1.154A rather than extrapolating the unsupported 5.9k setting.
   - assert: part_value
     part: R_ILIM_CTRL
     equals: 187k

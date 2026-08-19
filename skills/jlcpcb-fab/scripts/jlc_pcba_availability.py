@@ -238,6 +238,37 @@ def write_response_template(path: Path, request: dict[str, Any]) -> None:
             writer.writerow({"Requested LCSC": row["requested_lcsc"]})
 
 
+def write_catalog_probe_bom(path: Path, request: dict[str, Any]) -> None:
+    """Write a public-catalog probe BOM from the exact saved request.
+
+    Catalog stock is only a negative filter and never proves JLCPCB assembly
+    allocation.  Deriving this convenience file from the request prevents a
+    stale hand-maintained probe from naming superseded parts while the actual
+    operator checklist names the current source identities.
+    """
+    rows = request.get("rows") or []
+    if not rows:
+        raise ValueError("request has zero rows")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(
+            stream, fieldnames=("Comment", "Designator", "Footprint", "LCSC"),
+            quoting=csv.QUOTE_ALL)
+        writer.writeheader()
+        for row in rows:
+            code = str(row.get("requested_lcsc") or "").strip()
+            refs = [str(ref).strip() for ref in row.get("designators") or []
+                    if str(ref).strip()]
+            if not re.fullmatch(r"C\d+", code) or not refs:
+                raise ValueError("request contains an invalid code/designator row")
+            writer.writerow({
+                "Comment": f"{code} prelayout exact-code probe",
+                "Designator": ",".join(refs),
+                "Footprint": "",
+                "LCSC": code,
+            })
+
+
 def verify_request(path: Path, *, bom: Path, build_quantity: int, phase: str,
                    assembly: Path | None = None,
                    procurement_policy: Path | None = None
@@ -703,6 +734,9 @@ def main(argv: list[str] | None = None) -> int:
                            help="durable project financial limits")
     p_prepare.add_argument("--out", type=Path, required=True)
     p_prepare.add_argument("--response-template", type=Path)
+    p_probe = commands.add_parser("probe-bom")
+    p_probe.add_argument("request", type=Path)
+    p_probe.add_argument("--out", type=Path, required=True)
     p_grade = commands.add_parser("grade")
     p_grade.add_argument("request", type=Path)
     p_grade.add_argument("response", type=Path)
@@ -748,6 +782,16 @@ def main(argv: list[str] | None = None) -> int:
             print(f"JLC-PCBA {result['verdict']}: {count['passing']}/"
                   f"{count['total']} line(s) pass; receipt={args.out.resolve()}")
             return {"ACCEPTED": 0, "REJECTED": 1, "INCOMPLETE": 2}[result["verdict"]]
+        if args.command == "probe-bom":
+            if args.out.exists():
+                raise ValueError(f"refusing to overwrite existing probe BOM: {args.out}")
+            request = json.loads(args.request.read_text(encoding="utf-8-sig"))
+            if not isinstance(request, dict) or request.get("kind") != REQUEST_KIND:
+                raise ValueError("probe BOM requires a schema-v2 PCBA request")
+            write_catalog_probe_bom(args.out, request)
+            print(f"JLC-PCBA PROBE BOM PASS: {len(request.get('rows') or [])} "
+                  f"exact code(s); request={args.request.resolve()}")
+            return 0
         if args.command == "verify-request":
             valid, failures, request = verify_request(
                 args.request, bom=args.bom,
