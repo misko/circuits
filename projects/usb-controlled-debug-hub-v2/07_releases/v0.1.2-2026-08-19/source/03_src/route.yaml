@@ -1,0 +1,310 @@
+# USB-only routing wave for the v2 two-USB-C placement. This is an interim,
+# source-owned route contract: it regenerates copper on the exact v2 board and
+# never imports the v1 final board. Unchanged downstream/management geometry is
+# reused only where every endpoint and footprint placement is identical.
+project:
+  name: usb_controlled_debug_hub
+  board: 04_kicad/usb_controlled_debug_hub.kicad_pcb
+  build_dir: 06_build/route
+
+flow:
+  heartbeat_s: 10
+  budgets_s: {tier_preflight: 30, route_wave: 900}
+  timeouts_s: {default: 600, route_wave: 900, route_import: 300}
+  pre_route_reviews:
+    board: 04_kicad/usb_controlled_debug_hub.kicad_pcb
+    netlist: 06_build/netlists/usb_controlled_debug_hub.net
+    topology: 08_reviews/pre-route_topology.md
+    schematic_pdf: 03_tscircuit/build/schematic.pdf
+    schematic_render: 08_reviews/pre-route_schematic_render.md
+    pin: 08_reviews/pre-route_pin.md
+    layout: 08_reviews/pre-route_layout.md
+    render: 08_reviews/pre-route_render.md
+    a_render: 06_build/pre_route/twin_overlay.md
+
+prep:
+  out: r0.kicad_pcb
+  pad_rescue: false
+  keepouts:
+    layers: [User.2, User.3]
+    mounting_holes: {radius: 3.0}
+    edge_band: 0.7
+    rects:
+      - {x0: 20.0, y0: 88.0, x1: 116.0, y1: 119.3, layer: User.3}
+  seed_stubs:
+    clearance: 0.15
+    via: {size: 0.46, drill: 0.20}
+    stubs:
+      # USB-C DATA duplicate-contact closure. The N pair loops outboard and
+      # the P pair loops inboard on F.Cu, so the alternating B7/A6/A7/B6 pad
+      # order is connected without a crossover. Each polarity then changes to
+      # B.Cu once, before the bottom-side shunt protector.
+      - net: UP_HUB_N
+        pin: J_DATA.B7
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[27.3200, 56.2500], [26.5000, 56.2500], [26.5000, 57.2500], [27.3200, 57.2500], [29.0000, 57.2500]]}
+          - {layer: B.Cu, width: 0.2332, pts: [[29.0000, 57.2500], [29.5625, 57.9500], [31.5000, 57.9500], [33.0000, 58.4000]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[33.0000, 58.4000], [34.0000, 57.6916], [35.0000, 57.6916]]}
+        vias: [[29.0000, 57.2500], [33.0000, 58.4000]]
+      - net: UP_HUB_P
+        pin: J_DATA.A6
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[27.3200, 57.7500], [28.2000, 57.7500]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[27.3200, 56.7500], [28.2000, 56.7500]]}
+          - {layer: B.Cu, width: 0.2332, pts: [[28.2000, 57.7500], [28.2000, 56.7500], [29.5625, 56.0500], [31.5000, 56.0500], [33.0000, 56.4000]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[33.0000, 56.4000], [34.0000, 57.3084], [35.0000, 57.3084]]}
+        vias: [[28.2000, 57.7500], [28.2000, 56.7500], [33.0000, 56.4000]]
+      - {net: GND, why: "USB-C DATA protector/transition return", vias: [[30.9000, 54.9000], [30.9000, 59.1000]]}
+
+      # Hub-side upstream launch; the field router joins these coupled runways
+      # to the USB-C/shunt runways above.
+      - {net: UP_HUB_N, pin: U_HUB.58, segments: [{layer: F.Cu, width: 0.2332, pts: [[92.2500, 60.5875], [92.2500, 56.6000], [93.0000, 55.8500]]}]}
+      - {net: UP_HUB_P, pin: U_HUB.59, segments: [{layer: F.Cu, width: 0.2332, pts: [[91.7500, 60.5875], [91.7500, 55.8500]]}]}
+
+      # Crystal escapes are deterministic local obstacles before the USB wave.
+      - {net: XTAL1, pin: U_HUB.61, segments: [{layer: F.Cu, width: 0.18, pts: [[90.7500, 60.5875], [90.7500, 57.2000], [89.0000, 57.2000], [87.4000, 56.3500]]}]}
+      - {net: XTAL2, pin: U_HUB.60, segments: [{layer: F.Cu, width: 0.18, pts: [[91.2500, 60.5875], [91.2500, 56.3000], [89.6000, 54.6500]]}]}
+
+      # Four unchanged USB-A receptacle-to-shunt branches.
+      - {net: P1_PORT_N, pin: J_PORT1.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[52.5000, 33.7000], [52.4500, 35.4625]]}]}
+      - {net: P1_PORT_P, pin: J_PORT1.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[50.5000, 33.7000], [50.5500, 35.4625]]}]}
+      - {net: P2_PORT_N, pin: J_PORT2.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[80.5000, 33.7000], [80.4500, 35.4625]]}]}
+      - {net: P2_PORT_P, pin: J_PORT2.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[78.5000, 33.7000], [78.5500, 35.4625]]}]}
+      - {net: P3_PORT_N, pin: J_PORT3.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[108.5000, 33.7000], [108.4500, 35.4625]]}]}
+      - {net: P3_PORT_P, pin: J_PORT3.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[106.5000, 33.7000], [106.5500, 35.4625]]}]}
+      - {net: P4_PORT_N, pin: J_PORT4.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[136.5000, 33.7000], [136.4500, 35.4625]]}]}
+      - {net: P4_PORT_P, pin: J_PORT4.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[134.5000, 33.7000], [134.5500, 35.4625]]}]}
+
+      # Complete unchanged connector-side protected pairs.
+      - {net: P1_PORT_N, pin: U_ESD1.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[52.450,35.462],[52.850,35.862],[52.850,38.120],[52.450,38.520],[51.692,39.278],[51.692,43.170],[53.580,45.058],[53.742,45.058],[53.800,45.000]]}]}
+      - {net: P1_PORT_P, pin: U_ESD1.1, segments: [{layer: B.Cu, width: 0.2332, pts: [[50.550,35.462],[50.550,38.520],[51.308,39.278],[51.308,43.330],[53.420,45.442],[53.742,45.442],[53.800,45.500]]}]}
+      - {net: P2_PORT_N, pin: U_ESD2.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[80.450,35.462],[80.850,35.862],[80.850,38.120],[80.450,38.520],[79.692,39.278],[79.692,40.080],[78.192,41.580],[78.192,44.570],[78.680,45.058],[78.742,45.058],[78.800,45.000]]}]}
+      - {net: P2_PORT_P, pin: U_ESD2.1, segments: [{layer: B.Cu, width: 0.2332, pts: [[78.550,35.462],[78.550,38.520],[79.308,39.278],[79.308,39.920],[77.808,41.420],[77.808,44.730],[78.520,45.442],[78.742,45.442],[78.800,45.500]]}]}
+      - {net: P3_PORT_N, pin: U_ESD3.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[108.450,35.462],[108.450,38.520],[107.692,39.278],[107.692,39.920],[109.192,41.420],[109.192,43.230],[108.480,43.942],[108.258,43.942],[108.200,44.000]]}]}
+      - {net: P3_PORT_P, pin: U_ESD3.1, segments: [{layer: B.Cu, width: 0.2332, pts: [[106.550,35.462],[106.150,35.862],[106.150,38.120],[106.550,38.520],[107.308,39.278],[107.308,40.080],[108.808,41.580],[108.808,43.070],[108.320,43.558],[108.258,43.558],[108.200,43.500]]}]}
+      - {net: P4_PORT_N, pin: U_ESD4.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[136.450,35.462],[136.450,38.520],[135.692,39.278],[135.692,40.080],[131.830,43.942],[129.258,43.942],[129.200,44.000]]}]}
+      - {net: P4_PORT_P, pin: U_ESD4.1, segments: [{layer: B.Cu, width: 0.2332, pts: [[134.550,35.462],[134.150,35.862],[134.150,38.120],[134.550,38.520],[135.308,39.278],[135.308,39.920],[131.670,43.558],[129.258,43.558],[129.200,43.500]]}]}
+
+      # Switch-side runways and hub-side QFN runways.
+      - {net: P1_HUB_N, pin: U_DATA1.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[59.1000,44.5000],[60.2000,44.5000],[60.7000,44.5584],[61.2000,44.5584]]}]}
+      - {net: P1_HUB_P, pin: U_DATA1.4, segments: [{layer: B.Cu, width: 0.2332, pts: [[59.1000,45.0000],[60.2000,45.0000],[60.7000,44.9416],[61.2000,44.9416]]}]}
+      - {net: P2_HUB_N, pin: U_DATA2.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[84.1000,44.5000],[85.2000,44.5000],[85.7000,44.5584],[86.2000,44.5584]]}]}
+      - {net: P2_HUB_P, pin: U_DATA2.4, segments: [{layer: B.Cu, width: 0.2332, pts: [[84.1000,45.0000],[85.2000,45.0000],[85.7000,44.9416],[86.2000,44.9416]]}]}
+      - {net: P3_HUB_N, pin: U_DATA3.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[102.9000,44.5000],[101.8000,44.5000],[101.3000,44.4416],[100.8000,44.4416]]}]}
+      - {net: P3_HUB_P, pin: U_DATA3.4, segments: [{layer: B.Cu, width: 0.2332, pts: [[102.9000,44.0000],[101.8000,44.0000],[101.3000,44.0584],[100.8000,44.0584]]}]}
+      - {net: P4_HUB_N, pin: U_DATA4.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[123.9000,44.5000],[122.8000,44.5000],[122.3000,44.4416],[121.8000,44.4416]]}]}
+      - {net: P4_HUB_P, pin: U_DATA4.4, segments: [{layer: B.Cu, width: 0.2332, pts: [[123.9000,44.0000],[122.8000,44.0000],[122.3000,44.0584],[121.8000,44.0584]]}]}
+      - {net: P1_HUB_N, pin: U_HUB.3, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,62.2500],[87.8000,62.2500],[87.3000,62.3084],[86.5000,62.3084]]}]}
+      - {net: P1_HUB_P, pin: U_HUB.4, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,62.7500],[87.8000,62.7500],[87.3000,62.6916],[86.5000,62.6916]]}]}
+      - {net: P2_HUB_N, pin: U_HUB.6, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,63.7500],[87.8000,63.7500],[87.3000,63.8084],[86.5000,63.8084]]}]}
+      - {net: P2_HUB_P, pin: U_HUB.7, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,64.2500],[87.8000,64.2500],[87.3000,64.1916],[86.5000,64.1916]]}]}
+      - {net: P3_HUB_N, pin: U_HUB.8, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,64.7500],[87.8000,64.7500],[87.3000,64.8084],[86.5000,64.8084]]}]}
+      - {net: P3_HUB_P, pin: U_HUB.9, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,65.2500],[87.8000,65.2500],[87.3000,65.1916],[86.5000,65.1916]]}]}
+      - {net: P4_HUB_N, pin: U_HUB.11, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,66.2500],[87.8000,66.2500],[87.3000,66.3084],[86.5000,66.3084]]}]}
+      - {net: P4_HUB_P, pin: U_HUB.12, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,66.7500],[87.8000,66.7500],[87.3000,66.6916],[86.5000,66.6916]]}]}
+
+      # Internal management USB pair is unchanged and deterministic.
+      - net: MGMT_N
+        pin: U_CTRL.12
+        segments:
+          - {layer: F.Cu, width: 0.2332, pts: [[76.4750,74.7300],[77.2000,74.7300],[77.6434,74.2866],[78.2000,74.2866],[78.7916,74.2866],[78.9916,74.0866],[78.9916,64.8916],[79.1916,64.6916],[80.0000,64.6916]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[80.0000,64.6916],[80.5584,64.6916],[80.7500,64.5000],[80.7500,58.3616],[80.9416,58.1700],[85.1416,58.1700],[85.3332,58.3616],[85.3332,61.5000],[85.5248,61.6916],[86.5000,61.6916],[87.3000,61.6916],[87.8000,61.7500],[88.5875,61.7500]]}
+      - net: MGMT_P
+        pin: U_CTRL.13
+        segments:
+          - {layer: F.Cu, width: 0.2332, pts: [[76.4750,73.4600],[77.2000,73.4600],[77.6434,73.9034],[78.2000,73.9034],[78.4084,73.9034],[78.6084,73.7034],[78.6084,64.5084],[78.8084,64.3084],[80.0000,64.3084]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[80.0000,64.3084],[80.1084,64.3084],[80.3000,64.1168],[80.3000,58.0116],[80.5416,57.7700],[85.6314,57.7700],[85.8230,57.9616],[85.8230,61.1168],[86.0146,61.3084],[86.5000,61.3084],[87.3000,61.3084],[87.8000,61.2500],[88.5875,61.2500]]}
+
+  waves:
+    exclude: [GND, "unconnected-*"]
+    groups:
+      usb_bottom: [P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N, P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+      usb_transition_ports: [P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N, P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N]
+      usb_upstream: [UP_HUB_P, UP_HUB_N]
+      usb_top: [MGMT_P, MGMT_N]
+      power_input: [VBUS_PD_RAW, VBUS_PD, VBUS_PD_SW, PD_SW, PD_BOOT, P5V_REG, P5V_PROTECTED]
+
+route:
+  import_source: promoted
+  final: 03_src/route/final.kicad_pcb
+  krt: ~/gits/KiCadRoutingTools
+  kicad_python: /usr/bin/python3
+  # The promoted artifact contains the complete reviewed v2 signal, power and
+  # GND copper. A clean replay onto a freshly generated board produced zero
+  # opens, zero starved thermals and zero hard DRC findings.
+  ownership_preflight: {mode: enforce}
+  ownership:
+    nets:
+      VBUS_PD:
+        topology: wide_trunk
+        owner: route.wave
+        allow_generic_router: true
+        why: >-
+          The 15 V PD input uses reviewed deterministic copper authenticated
+          as the power_input route prefix; the declared wave makes that exact
+          ownership visible without asking KRT to rediscover it.
+      VBUS_PD_SW:
+        topology: wide_trunk
+        owner: route.wave
+        allow_generic_router: true
+        why: >-
+          The post-negotiation buck-input rail is a distinct reviewed power
+          domain between U_PD_IN and U_PD_BUCK.
+      P5V_REG:
+        topology: wide_trunk
+        owner: route.wave
+        allow_generic_router: true
+        why: >-
+          The 6 A buck output and local bulk bank use calculated deterministic
+          copper authenticated as the power_input route prefix.
+      P5V_PROTECTED:
+        topology: wide_trunk
+        owner: route.wave
+        allow_generic_router: true
+        why: >-
+          The protected 5 V distribution tree and its series layer-transfer
+          bank use reviewed deterministic copper authenticated as the
+          power_input route prefix.
+  candidate_grade: {mode: enforce}
+  exploration_guard: {mode: enforce, plateau_attempts: 2, max_attempts: 5, max_novel_signatures: 3, max_operation_amplification: 8}
+  forbid_new_via_in_pad: true
+  wave_drc: true
+  preflight_critical_pairs:
+    - {name: UP_HUB, p: UP_HUB_P, n: UP_HUB_N, wave: usb_upstream, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: MGMT, p: MGMT_P, n: MGMT_N, source: seed_stubs, group: usb_top, allowed_layers: [F.Cu], no_vias: true}
+    - {name: P1_HUB, p: P1_HUB_P, n: P1_HUB_N, wave: usb_transition_ports, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P1_PORT, p: P1_PORT_P, n: P1_PORT_N, source: seed_stubs, group: usb_bottom, allowed_layers: [B.Cu], no_vias: true}
+    - {name: P2_HUB, p: P2_HUB_P, n: P2_HUB_N, wave: usb_transition_ports, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P2_PORT, p: P2_PORT_P, n: P2_PORT_N, source: seed_stubs, group: usb_bottom, allowed_layers: [B.Cu], no_vias: true}
+    - {name: P3_HUB, p: P3_HUB_P, n: P3_HUB_N, wave: usb_transition_ports, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P3_PORT, p: P3_PORT_P, n: P3_PORT_N, source: seed_stubs, group: usb_bottom, allowed_layers: [B.Cu], no_vias: true}
+    - {name: P4_HUB, p: P4_HUB_P, n: P4_HUB_N, wave: usb_transition_ports, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P4_PORT, p: P4_PORT_P, n: P4_PORT_N, source: seed_stubs, group: usb_bottom, allowed_layers: [B.Cu], no_vias: true}
+  # USB-C's alternating A6/B6 contact order forces one bounded D+ fan-in T.
+  # Bind the only permitted critical-net branch to its exact realized vertex;
+  # every other branch and every cycle remains a hard route-acceptance failure.
+  critical_branch_allowlist:
+    - {net: UP_HUB_P, at: [28.2, 56.75], layer: B.Cu, degree: 3,
+       why: "A6/B6 reversible USB-C D+ contacts merge here before the single hub path; both contact tails are included by R-LEN tree grading"}
+  common:
+    layers: [F.Cu, B.Cu]
+    via_size: 0.46
+    via_drill: 0.20
+    fab_tier: advanced
+    fab_overrides: /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/03_src/fab_overrides.txt
+    clearance: 0.15
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+    grid_step: 0.05
+    hole_to_hole_clearance: 0.25
+  waves:
+    - name: usb_transition_ports
+      engine: diff
+      group: usb_transition_ports
+      # Preserve the physical north-to-south port order. MPS placed P1 last,
+      # then entered a P1/P2 rip-up cycle even though the established source
+      # geometry proves all four corridors coexist.
+      ordering: original
+      track_width: 0.2332
+      realized_width: {nominal: 0.2332, minimum: 0.09, max_subnominal_length_per_net: 0.85, max_subnominal_segments_per_net: 2}
+      clearance: 0.30
+      diff_pair_gap: 0.15
+      layers: [F.Cu, B.Cu]
+      keepout_layer: User.3
+      length_match_group: [[P1_HUB_P,P1_HUB_N],[P2_HUB_P,P2_HUB_N],[P3_HUB_P,P3_HUB_N],[P4_HUB_P,P4_HUB_N]]
+      length_match_tolerance: 0.50
+      meander_amplitude: 0.30
+      diff_pair_intra_match: true
+      max_iterations: 1600000
+      max_probe_iterations: 100000
+      max_ripup: 70
+    - name: usb_upstream
+      engine: diff
+      group: usb_upstream
+      track_width: 0.2332
+      realized_width: {nominal: 0.2332, minimum: 0.09, max_subnominal_length_per_net: 0.85, max_subnominal_segments_per_net: 2}
+      clearance: 0.32
+      diff_pair_gap: 0.15
+      layers: [F.Cu, B.Cu]
+      keepout_layer: User.3
+      length_match_group: [[UP_HUB_P,UP_HUB_N]]
+      length_match_tolerance: 0.50
+      meander_amplitude: 0.30
+      diff_pair_intra_match: true
+      max_iterations: 1600000
+      max_probe_iterations: 100000
+      max_ripup: 40
+    - name: power_input
+      engine: single
+      group: power_input
+      track_width: 1.50
+      layers: [F.Cu, B.Cu]
+      max_iterations: 400000
+      max_probe_iterations: 50000
+      max_ripup: 20
+
+# The P5V_PROTECTED trunk changes from the local F.Cu eFuse cell to the B.Cu
+# distribution bus only through this tight eight-via series boundary. Filled
+# copper is credited as zero; the declaration uses the published finished-hole
+# barrel capacity and retains first-article loaded thermal validation.
+via_ampacity:
+  source: "Texas Instruments SLVA959B Rev B, Table 3-1 (IPC-2152): https://www.ti.com/lit/an/slva959b/slva959b.pdf"
+  method: "sum published 10 C-rise capacity by finished hole; no credit for fill material"
+  temperature_rise_c: 10
+  capacity_by_finished_hole_mm: {0.20: 0.55}
+  transfers:
+    - {name: vbus_pd_raw_connector_to_backside_bridge, net: VBUS_PD_RAW,
+       rect: [27.3, 102.3, 29.7, 107.7], minimum_vias: 6,
+       required_continuous_a: 3.0,
+       why: "all pre-fuse PD input current crosses from the USB-C F.Cu contact lobe to the full-width B.Cu bridge"}
+    - {name: vbus_pd_raw_backside_bridge_to_fuse, net: VBUS_PD_RAW,
+       rect: [29.9, 104.3, 31.7, 105.7], minimum_vias: 6,
+       required_continuous_a: 3.0,
+       why: "all pre-fuse PD input current returns from the full-width B.Cu bridge to the F.Cu fuse lobe"}
+    - {name: protected_5v_to_distribution_bus, net: P5V_PROTECTED,
+       rect: [88.8, 111.6, 92.0, 114.4], minimum_vias: 8,
+       required_continuous_a: 3.0,
+       why: "all protected continuous load current crosses from the F.Cu eFuse cell to the B.Cu port distributor"}
+
+taps: {clearance: 0.15, via: {size: 0.46, drill: 0.20, hole_to_copper: 0.255}, connections: []}
+
+stitch:
+  clearance: 0.30
+  via:
+    size: 0.46
+    drill: 0.20
+    spacing: 0.80
+    pth_margin: 0.25
+    tiers:
+      - {size: 0.46, drill: 0.20, hole_to_copper: 0.205}
+  keepin: {inset: 0.8}
+  # The promoted route now owns every exact package-ground escape, plane
+  # stitch and PD-zone bridge.  Replay only refills its zones and grades the
+  # imported via family; heuristic pad/island rescue previously emitted six
+  # dangling vias and is deliberately absent from the production pass list.
+  passes: [fill, prune_stitch_dangling, protect_via_family, gate]
+  pad_rescue:
+    net: GND
+    via_in_pad: true
+    skip_refs: [C_HUB_A4, C_HUB_18PLL]
+    served_within: 1.4
+    rings: [0.7, 0.9, 1.2, 1.6, 2.1]
+    stub_width: 0.25
+    stub_scope: false
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 7.0, width: 0.25}
+  island_rescue: {min_bbox: 0.1, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], require: all}
+  heal_islands: {min_bbox: 0.1, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu],
+                 sample_step: 0.05, max_gap_candidates: 2000,
+                 clear_rescue_failures: true}
+  # Only vias emitted by this stitch run are eligible. Imported-route vias can
+  # terminate in a valid filled zone even when no explicit track exists on the
+  # second layer; scope=all falsely removed eight live P5V transfer vias during
+  # the v0.1.1 replay. Exact imported control dangles are retired by the strict
+  # project-owned cleanup_v011_dangling_vias.py before promotion.
+  prune_stitch_dangling: {scope: emitted, min_layers: 2, tol: 0.05}
+  protect_via_family:
+    via: {size: 0.46, drill: 0.20}
+    via_protection: {capping: yes, filling: yes}
+    min: 1

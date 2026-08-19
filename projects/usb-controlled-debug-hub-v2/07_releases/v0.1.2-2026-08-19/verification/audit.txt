@@ -1,0 +1,15 @@
+Exact-board audit summary
+board_sha256: a0acddd9b0b4e1888583ffacad43f2c2446e76cb040ebc64844cd25779a73987
+DRC/unconnected/schematic-parity: 0/0/0
+blocking ERC: 0
+route acceptance: ACCEPTED 9/9
+critical USB pairs: PASS 10/10
+USB length groups: PASS 6/6; 12/12 member paths measured
+reference-plane obstacle audit: PASS
+policy audit: HUMAN=6 N-A=3 PASS=35 WAIVED=2 FAIL=0
+model coverage: PASS 168/168
+assembly coverage: PASS 168/168 placements; 159 top and 9 bottom
+via process: PASS; 502 protected 0.46/0.20 and 11 ordinary 0.70/0.35
+connector orientation: PASS 6/6 machine and 6/6 human
+catalog stock: PASS 54/54 for build quantity 5
+order-time sourcing: UNGRADED; JLC uploader response blank, 0/54 allocated

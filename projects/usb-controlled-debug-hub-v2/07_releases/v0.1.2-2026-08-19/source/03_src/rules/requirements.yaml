@@ -1,0 +1,19 @@
+schema: 1
+power_claims:
+  - id: usb_downstream_ports
+    rails: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW]
+    count: 4
+    simultaneous_count: 4
+    current_A: 0.5
+    voltage_min_V: 4.75
+    voltage_max_V: 5.25
+    duty: continuous
+    measurement_plane: mated_test_plug
+    boundary_evidence: >-
+      USB-IF USB 2.0 self-powered downstream-port boundary: voltage measured
+      between VBUS and GND at a qualified mating plug under settled load.
+    included_elements:
+      [input_protection, aggregate_efuse, protection_switch, port_power_switch,
+       pcb_copper_vias_joints, mated_power_contacts]
+    excluded_elements:
+      [external_supply_lead, downstream_cable, downstream_device, cable, appliance]

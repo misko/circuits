@@ -1,0 +1,67 @@
+{
+  "groups": [
+    {
+      "id": "aggregate_efuse_tps259474lrpwr",
+      "manifest": "06_build/pre_route/native_registration/aggregate_efuse_tps259474lrpwr/bundle.json",
+      "manifest_sha256": "1f504d8dbcfc5b7d996191100d8e1a53bb72c98fd8442ac51637f1d24b354875",
+      "manifest_size": 2604,
+      "refs": [
+        "U_AGG"
+      ],
+      "tuple": {
+        "contract_sha256": "3dca16ca9aabd9f7b9c4ccdd8f4088f495c8fa4727a89b1e09d3dbd36288d11f",
+        "footprint_sha256": "ce61cccfb3ca10aa97ef7900c276b494396a794bba25dc17de16f34d69e435f9",
+        "model_sha256": "1d13993d4bc9c3a12cd6ad47a92ca3333400eaa650b37a741ece3b40de0b03d7",
+        "tool_identity": "native-model-registration-v4:4b69238476238f34a8b67df988bfbcb42b08004da20b4edad8a912c498bb32c0",
+        "transform_sha256": "6cf53f0e2e5e9c07c31120b0a7392007f28e50daeb9d9b4fabcff69a71234dd2"
+      },
+      "tuple_cache_key": "0cdf1de996546a677443a9567c5f47d9829de3fcc554c236de74d0dbf15cf9fd"
+    },
+    {
+      "id": "usb_a_kh_af90dip_112",
+      "manifest": "06_build/pre_route/native_registration/usb_a_kh_af90dip_112/bundle.json",
+      "manifest_sha256": "4b7d36556f81c56553159d9d2368b92233decc82e63c64facc9e962db7905505",
+      "manifest_size": 3328,
+      "refs": [
+        "J_PORT1",
+        "J_PORT2",
+        "J_PORT3",
+        "J_PORT4"
+      ],
+      "tuple": {
+        "contract_sha256": "b8a52ba90d39b63eaf89ae1d2d7c42fc34bf843684846550248d7cbbba660481",
+        "footprint_sha256": "da58eac0be99cf4556fe17e0eaebf74ee1778925fa7968fd1f728d4eac22354c",
+        "model_sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+        "tool_identity": "native-model-registration-v4:4b69238476238f34a8b67df988bfbcb42b08004da20b4edad8a912c498bb32c0",
+        "transform_sha256": "9bd9d6ff79d75611f009c353e87c5179fef9ce48a7fbd1676be4778b2274ebe2"
+      },
+      "tuple_cache_key": "bfcd193267ac3f4e5bdb1c65784ad1c401ec5e400c72de9c2c6babde13c124fb"
+    },
+    {
+      "id": "usb_c_hro_type_c_31_m_12",
+      "manifest": "06_build/pre_route/native_registration/usb_c_hro_type_c_31_m_12/bundle.json",
+      "manifest_sha256": "3ce6950943500374685878e9359b6523d026ad4198a7122c4f6687b1297c9007",
+      "manifest_size": 3033,
+      "refs": [
+        "J_DATA",
+        "J_POWER"
+      ],
+      "tuple": {
+        "contract_sha256": "5baba74341383d4fbb7e0ed4d21593c2ce4274fd86a8edc13e563adb8ed5748d",
+        "footprint_sha256": "14258b299bbb6c9287d059de480b935e4828efd2bd8ab7d86c2f58ae66ceac03",
+        "model_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+        "tool_identity": "native-model-registration-v4:4b69238476238f34a8b67df988bfbcb42b08004da20b4edad8a912c498bb32c0",
+        "transform_sha256": "6cf53f0e2e5e9c07c31120b0a7392007f28e50daeb9d9b4fabcff69a71234dd2"
+      },
+      "tuple_cache_key": "82531bc124ebfe391b424efdacd95a81c315282dbb432dffcf4069547d56733f"
+    }
+  ],
+  "kind": "model-registration-index-v1",
+  "run_id": "20260819T055122Z-1ef920454974",
+  "schema": 1,
+  "stage_id": "P-MODEL-REG",
+  "subject": {
+    "raw_sha256": "96828ec1f3c6b48a0141262f0bf548f3e535900cf8c1a9f049f065a2e4560888",
+    "semantic_sha256": "ffc6fd06708eb722b5ec369eed34a90dbd60d97aad14fe6d6d9759836c8014ff"
+  }
+}

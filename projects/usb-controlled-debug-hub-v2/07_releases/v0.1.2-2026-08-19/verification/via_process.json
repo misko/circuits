@@ -1,0 +1,19 @@
+{
+  "board": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.1-2026-08-18/source/04_kicad/usb_controlled_debug_hub.kicad_pcb",
+  "assembly": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.1-2026-08-18/source/03_src/rules/assembly.yaml",
+  "fails": [],
+  "oks": [
+    "V-PROCESS 502 protected / 11 ordinary / 0 partial; process families are drill-disjoint",
+    "V-ORDER exact generated order remark is complete"
+  ],
+  "coverage": {
+    "V-FLAGS": "513/513 vias graded",
+    "V-SELECT": "513/513 vias compared with drill families",
+    "V-VIP": "65/65 via-in-pad sites graded"
+  },
+  "na": null,
+  "census": {
+    "0.460/0.200;cap=1;fill=1": 502,
+    "0.700/0.350;cap=0;fill=0": 11
+  }
+}

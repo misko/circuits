@@ -1,0 +1,16 @@
+{
+  "release": "projects/usb-controlled-debug-hub-v2/06_build/release_staging/v0.1.2-2026-08-19",
+  "fails": [],
+  "oks": [
+    "F-POUR B.Cu 2 zone(s) -> 30 G36 region(s)",
+    "F-POUR F.Cu 7 zone(s) -> 60 G36 region(s)",
+    "F-POUR In1.Cu 1 zone(s) -> 1 G36 region(s)",
+    "F-POUR In2.Cu 1 zone(s) -> 1 G36 region(s)",
+    "F-IDENT 4 copper gerbers all distinct"
+  ],
+  "coverage": {
+    "F-POUR": "4/4 zone-bearing copper layers",
+    "F-IDENT": "4/4 copper gerbers compared"
+  },
+  "na": null
+}

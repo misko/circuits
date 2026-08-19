@@ -1,0 +1,7 @@
+input: fab/bom.csv
+build quantity: 5 boards
+coverage: 54/54 coded BOM lines graded; 0 uncoded lines
+verdict: PASS
+result: every coded line has LCSC catalog stock >= 5 x placed quantity
+lowest observed relevant margins include C1985204 stock=8 for 1/board, MCP2221A-I/SL C640876 stock=32 for 1/board, and PESD2USB3UX-TR C3708426 stock=78 for 5/board.
+scope: catalog stock is necessary but not sufficient. It is not JLCPCB PCBA allocation and does not authorize an order; the saved uploader response is still blank.

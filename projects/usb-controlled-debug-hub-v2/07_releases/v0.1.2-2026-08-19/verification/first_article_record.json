@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "stage": "complete-first-article",
+  "installed": [],
+  "assembly_confirmations": {},
+  "measurements": {},
+  "status": "NOT-YET-MEASURED",
+  "note": "Intentional release-time HOLD record. Populate only from physical first-article observations; do not infer measurements from design files."
+}

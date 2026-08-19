@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.1.2-2026-08-19 — USB-C verification-model correction
+
+- Superseded v0.1.1 with a representation-only release: Gerbers, drills,
+  BOM, CPL, PDFs, assembly STEP, schematic, PCB and electrical topology are
+  unchanged.
+- Rejected the C165948 catalog body for visual verification because its USB-C
+  mating mouth is 2.00 mm behind the exact HRO TYPE-C-31-M-12 datum.
+- Retained the exact SHA-bound manufacturer STEP for `J_DATA` and `J_POWER`;
+  connector datum is 6/6 PASS and same-camera A-RENDER is PASS.
+- Added fail-closed model-substitution, publication and release-rehearsal
+  coverage so this representation class cannot silently recur.
+- Release remains DO-NOT-ORDER / BLOCKED-SOURCING until exact JLC order-time
+  allocation and uploader previews are captured.
+
 ## v0.1.1-2026-08-18 — protected two-USB-C power path
 
 - Replaced the four downstream port switches with TPS259470ARPWR eFuses that
