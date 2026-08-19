@@ -143,15 +143,30 @@ placement:
     F_PD: [32.0, 105.0, 0]
     D_PD_TVS: [35.0, 114.0, 90]
     U_PD: [41.0, 105.0, 90]
-    R_PD_VDD: [35.0, 110.8, 0]
+    # The 0.5 W 1210 body is materially larger than the former 0402. Keep its
+    # courtyard west of the TVS/sense row instead of preserving the old
+    # resistor centre and silently overlapping both neighbours.
+    R_PD_VDD: [31.5, 108.2, 0]
     C_PD_VDD: [45.8, 106.5, 0]
     R_PD_VBUS: [35.0, 109.0, 0]
+    # Negotiated-voltage inrush gate.  The QFN sits below the existing PD
+    # controller/buck row so its input sees the connector-side 100nF while its
+    # output rises directly into the two buck capacitors.
+    U_PD_IN: [46.0, 98.0, 0]
+    R_PD_IN_UV_TOP: [38.7, 96.0, 0]
+    R_PD_IN_UV_MID: [42.0, 96.0, 0]
+    R_PD_IN_OV_BOT: [45.0, 94.5, 90]
+    R_PD_IN_ILIM: [49.5, 96.0, 0]
+    C_PD_IN_DVDT: [50.0, 99.5, 0]
     U_PD_BUCK: [50.0, 108.0, 0]
     R_PD_UV_TOP: [52.0, 116.0, 0]
     R_PD_UV_BOT: [55.0, 116.0, 0]
-    C_PD_IN1: [47.0, 103.0, 90]
-    C_PD_IN2: [50.0, 103.0, 90]
-    C_PD_IN_HF: [52.3, 104.5, 0]
+    C_PD_IN1: [48.5, 103.0, 90]
+    C_PD_IN2: [51.5, 103.0, 90]
+    # The only capacitance directly exposed before U_PD_IN is this 100 nF
+    # bypass. Keep it immediately below the input land; the two 10 uF parts
+    # remain downstream on VBUS_PD_SW so attach inrush is still gated.
+    C_PD_IN_HF: [44.5, 100.15, 180]
     # Bootstrap capacitor is inside the TPS56637 BOOT/SW loop, not merely in
     # the same power cell. The former y=113 schematic-convenience placement
     # created a ~3.6 mm high-dI/dt branch and was rejected before routing.
@@ -163,7 +178,8 @@ placement:
     # switching field.
     R_PD_FB_A: [44.0, 111.0, 0]
     R_PD_FB_B: [46.5, 111.0, 0]
-    R_PD_FB_BOT: [49.0, 111.0, 0]
+    # Keep the quiet feedback return out of the high-dv/dt SW/bootstrap loop.
+    R_PD_FB_BOT: [49.0, 115.0, 0]
     R_PD_FF: [44.0, 113.5, 0]
     C_PD_FF: [46.5, 113.5, 0]
     C_PD_OUT1: [68.0, 110.0, 90]
@@ -179,8 +195,12 @@ placement:
     C_DATA1: [60.0, 38.5, 0]
     R_DATA_OE1: [64.0, 38.5, 0]
     R_DATA_OK1: [64.0, 45.5, 0]
-    C_PWR1_IN: [43.5, 54.0, 0]
-    R_ILIM1: [51.3, 55.0, 90]
+    # Rotate each 100 nF input bypass across the protected-input escape: pad 1
+    # is only 2.52 mm below the TPS259470A IN-land centre and pad 2 returns
+    # directly to a local ground via.  The former TPS2557 coordinates left
+    # these capacitors about 4.8 mm from the replacement switches.
+    C_PWR1_IN: [47.77, 57.0, 270]
+    R_ILIM1: [49.8, 49.5, 0]
     # Port-1's enable pull-down belongs below the upstream USB corridor beside
     # U_PWR1.  Its inherited v1 location above that corridor made the simple
     # pad-4 connection topologically impossible without crossing D+/D-.
@@ -190,24 +210,24 @@ placement:
     C_DATA2: [85.0, 38.5, 0]
     R_DATA_OE2: [89.0, 38.5, 0]
     R_DATA_OK2: [89.0, 45.5, 0]
-    C_PWR2_IN: [71.5, 54.0, 0]
-    R_ILIM2: [79.3, 55.0, 90]
+    C_PWR2_IN: [75.77, 57.0, 270]
+    R_ILIM2: [77.8, 49.5, 0]
     R_PWR_EN2: [71.0, 50.0, 0]
     C_PORT2_HF: [80.0, 52.0, 0]
     C_PORT2_BULK: [82.5, 56.0, 0]
     C_DATA3: [102.0, 38.5, 0]
     R_DATA_OE3: [98.0, 38.5, 0]
     R_DATA_OK3: [98.0, 45.5, 0]
-    C_PWR3_IN: [99.5, 54.0, 0]
-    R_ILIM3: [107.3, 55.0, 90]
+    C_PWR3_IN: [103.77, 57.0, 270]
+    R_ILIM3: [105.8, 49.5, 0]
     R_PWR_EN3: [99.0, 50.0, 0]
     C_PORT3_HF: [108.0, 52.0, 0]
     C_PORT3_BULK: [110.5, 56.0, 0]
     C_DATA4: [124.5, 38.5, 0]
     R_DATA_OE4: [120.5, 38.5, 0]
     R_DATA_OK4: [120.5, 45.5, 0]
-    C_PWR4_IN: [127.5, 54.0, 0]
-    R_ILIM4: [135.3, 55.0, 90]
+    C_PWR4_IN: [131.77, 57.0, 270]
+    R_ILIM4: [133.8, 49.5, 0]
     R_PWR_EN4: [127.0, 50.0, 0]
     C_PORT4_HF: [136.0, 52.0, 0]
     C_PORT4_BULK: [138.5, 56.0, 0]
@@ -274,10 +294,12 @@ placement:
     R_GANG: [105.0, 69.5, 0]
     R_BOOST0: [113.0, 70.0, 0]
     # The original local ground pad sat over the proven HUB_SWAP2 back-layer
-    # launch. Its only automatic rescue corridor crossed P4_HUB_N. Keep this
-    # static, low-speed strap in the remote audit bank beside R_CFG1 so its
-    # ground land can drop directly into the plane without touching USB.
-    R_BOOST1: [127.5, 62.0, 0]
+    # launch. The former remote audit-bank placement forced this static strap
+    # across the complete channel-4 routing field and crowded P4_HUB_N. Keep
+    # the 10 kOhm pulldown local to U_HUB.48 instead: pad 1 has a short axial
+    # escape and pad 2 drops directly into the ground plane. This removes the
+    # USB interaction rather than weakening its 0.30 mm clearance contract.
+    R_BOOST1: [99.3, 61.25, 0]
     R_DIS6N: [119.0, 70.0, 180]
     R_DIS6P: [122.0, 70.0, 180]
     R_DIS7N: [125.0, 70.0, 180]
@@ -364,13 +386,25 @@ placement:
       pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
     - match: C_TRUNK_BULK
       pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
-    - match: U_PWR*
+    - match: U_PWR_CTRL
       model_override: {file: "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step", rotate: [0, 0, 270]}
       pad_overrides: [{pads: [9], on_net: GND, zone_connection: full}]
+    - match: U_PWR[1-4]
+      # TPS259470A uses the same already-qualified RPW0010A body/land as U_AGG.
+      # External-port OVLO is intentionally disabled by grounding pin 2; both
+      # that narrow land and the dedicated pin-8 return need a solid plane
+      # connection because the local bank permits only one thermal spoke.
+      pad_overrides: [{pads: [2, 8], on_net: GND, zone_connection: full}]
+    - match: U_PD_IN
+      pad_overrides: [{pads: [8], on_net: GND, zone_connection: full}]
+    - match: R_ILIM[1-4]
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
+    - match: C_PWR[1-4]_IN
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
     # Congested small GND lands below can realize only one thermal spoke.
     # A solid contact is both electrically preferable and source-explicit;
     # the list is the exact final-DRC denominator, not a wildcard waiver.
-    - match: R_PWR_EN4
+    - match: R_PWR_EN[1-4]
       pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
     - match: R_CFG0
       pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
@@ -383,7 +417,17 @@ placement:
     - match: C_PORT2_BULK
       pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
     - match: J_DATA
-      pad_overrides: [{pads: [A12, B1], on_net: GND, zone_connection: full}]
+      pad_overrides: [{pads: [A1, A12, B1, B12], on_net: GND, zone_connection: full}]
+    - match: C_PD_IN2
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
+    - match: C_PD_IN1
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
+    - match: C_PD_VDD
+      # This local 0402 bypass ground is bounded by the PD controller and
+      # input-power corridor, so the F.Cu pour can form only one thermal
+      # spoke.  Own the electrically preferable solid contact in the
+      # floorplan; route import intentionally does not copy pad properties.
+      pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
     - match: C_HUB_DD
       pad_overrides: [{pads: [2], on_net: GND, zone_connection: full}]
     - match: C_PWR3_IN
@@ -421,8 +465,11 @@ zones:
   # L-shaped ownership keeps the west-side PD controller supply/sense lands
   # and the north buck-input cell connected without creating the isolated
   # southeast lobe that formerly surrounded only R_PD_UV_TOP.
-  - {net: VBUS_PD, layers: [F.Cu], priority: 5, rect: [31.0, 108.2, 42.0, 117.0], connect: full}
-  - {net: VBUS_PD, layers: [F.Cu], priority: 5, rect: [32.4, 102.0, 55.0, 108.0], connect: full}
+  # Deliberate 0.2 mm overlap with the east lobe below. A boundary gap would
+  # turn the documented L-shape into two isolated same-net islands.
+  - {net: VBUS_PD, layers: [F.Cu], priority: 6, rect: [31.0, 107.8, 42.0, 117.0], connect: full}
+  - {net: VBUS_PD, layers: [F.Cu], priority: 5, rect: [32.4, 102.0, 46.0, 108.0], connect: full}
+  - {net: VBUS_PD_SW, layers: [F.Cu], priority: 5, rect: [46.2, 101.5, 55.0, 108.0], connect: full}
   - {net: P5V_REG, layers: [F.Cu], priority: 4, rect: [63.0, 106.0, 84.95, 117.0], connect: full}
   - {net: P5V_PROTECTED, layers: [F.Cu], priority: 4, rect: [85.08, 105.0, 103.5, 117.0], connect: full}
   - {net: P5V_PROTECTED, layers: [B.Cu], priority: 4, rect: [88.0, 109.0, 141.5, 117.0], connect: full}
@@ -437,12 +484,16 @@ zones:
 keepouts:
   # TPS56637 package-local high-current/sense escapes. These are permissive
   # rule areas, not routing keepouts; field-width ownership resumes outside.
-  - {name: pd_switch_launch, layers: [F.Cu], deny: [], rect: [49.9, 107.8, 53.6, 111.8]}
+  - {name: pd_switch_launch, layers: [F.Cu], deny: [], rect: [49.4, 107.8, 53.6, 112.6]}
   - {name: pd_feedback_tap, layers: [F.Cu], deny: [], rect: [65.0, 102.6, 66.0, 106.2]}
   - {name: pd_feedback_sense, layers: [F.Cu], deny: [], rect: [42.4, 110.5, 63.5, 118.0]}
   - {name: agg_uv_tap, layers: [F.Cu, In2.Cu], deny: [], rect: [77.5, 100.5, 80.7, 110.5]}
   - {name: agg_input_bypass_launch, layers: [F.Cu], deny: [], rect: [81.0, 110.4, 83.0, 111.6]}
-  - {name: pd_uv_sense, layers: [F.Cu, B.Cu], deny: [], rect: [49.0, 106.5, 55.5, 117.5]}
+  - {name: pd_input_uv_sense, layers: [F.Cu], deny: [], rect: [37.0, 95.0, 46.0, 102.5]}
+  - {name: pd_buck_uv_sense, layers: [F.Cu, B.Cu], deny: [], rect: [49.0, 106.5, 57.0, 117.5]}
+  - {name: pd_controller_supply_launch, layers: [F.Cu], deny: [], rect: [29.0, 106.7, 34.0, 109.8]}
+  - {name: pd_vbus_monitor_tap, layers: [F.Cu], deny: [], rect: [33.9, 108.4, 35.1, 110.3]}
+  - {name: pd_input_gate_launch, layers: [F.Cu], deny: [], ref: U_PD_IN, margin_mm: 0.8}
   - {name: buck_input_launch, layers: [F.Cu], deny: [], rect: [93.2, 100.4, 96.4, 102.5]}
   - {name: buck_3v3_feedback, layers: [F.Cu], deny: [], rect: [94.5, 97.0, 105.0, 101.4]}
   # Exact USB-C receptacle contact escape.  The 0.50 mm-pitch A/B contact
@@ -491,17 +542,21 @@ keepouts:
   - {name: data2_package_launch, layers: [B.Cu], deny: [], ref: U_DATA2, margin_mm: 0.4}
   - {name: data3_package_launch, layers: [B.Cu], deny: [], ref: U_DATA3, margin_mm: 0.4}
   - {name: data4_package_launch, layers: [B.Cu], deny: [], ref: U_DATA4, margin_mm: 0.4}
-  - {name: pwr1_input_launch, layers: [F.Cu], deny: [], rect: [41.8, 52.8, 47.3, 57.6]}
-  - {name: pwr2_input_launch, layers: [F.Cu], deny: [], rect: [69.8, 52.8, 75.3, 57.6]}
-  - {name: pwr3_input_launch, layers: [F.Cu], deny: [], rect: [97.8, 52.8, 103.3, 57.8]}
-  - {name: pwr4_input_launch, layers: [F.Cu], deny: [], rect: [125.8, 52.8, 131.3, 57.6]}
+  # The input-launch scope includes the exact 0.30 mm HotRod land, its 100 nF
+  # bypass, and the short 0.80 mm branch back to the full-width y=59 spine.
+  # It does not include that spine or any inter-channel distribution copper.
+  - {name: pwr1_input_launch, layers: [F.Cu], deny: [], rect: [44.8, 51.9, 48.2, 58.9]}
+  - {name: pwr2_input_launch, layers: [F.Cu], deny: [], rect: [72.8, 51.9, 76.2, 58.9]}
+  - {name: pwr3_input_launch, layers: [F.Cu], deny: [], rect: [101.2, 51.9, 104.2, 58.9]}
+  - {name: pwr4_input_launch, layers: [F.Cu], deny: [], rect: [128.8, 51.9, 132.2, 58.9]}
   - {name: pwr_ctrl_input_launch, layers: [F.Cu], deny: [], rect: [38.5, 70.8, 44.3, 75.1]}
-  # TPS2557 paired output lands need a very short tapered join before the
-  # routed 0.50 mm VBUS branch.  These areas contain only that package launch.
-  - {name: pwr1_output_launch, layers: [F.Cu], deny: [], rect: [48.8, 52.8, 50.2, 55.2]}
-  - {name: pwr2_output_launch, layers: [F.Cu], deny: [], rect: [76.8, 52.8, 78.2, 55.2]}
-  - {name: pwr3_output_launch, layers: [F.Cu], deny: [], rect: [104.8, 52.8, 106.2, 55.2]}
-  - {name: pwr4_output_launch, layers: [F.Cu], deny: [], rect: [132.8, 52.8, 134.2, 55.2]}
+  # The external TPS259470A lands and retained internal TPS2557 output lands
+  # use short bounded escapes before the routed VBUS branches.
+  - {name: pwr1_output_launch, layers: [F.Cu], deny: [], ref: U_PWR1, margin_mm: 0.8}
+  - {name: pwr2_output_launch, layers: [F.Cu], deny: [], ref: U_PWR2, margin_mm: 0.8}
+  - {name: pwr3_output_launch, layers: [F.Cu], deny: [], ref: U_PWR3, margin_mm: 0.8}
+  - {name: pwr4_output_launch, layers: [F.Cu], deny: [], ref: U_PWR4, margin_mm: 0.8}
+  - {name: pd_input_hf_bypass_launch, layers: [F.Cu], deny: [], ref: C_PD_IN_HF, margin_mm: 0.4}
   - {name: pwr_ctrl_output_launch, layers: [F.Cu], deny: [], rect: [45.8, 70.8, 47.2, 73.2]}
 
 silk:
@@ -538,7 +593,9 @@ asserts:
     - {ref: J_POWER, pad: A4, net: VBUS_PD_RAW}
     - {ref: J_POWER, pad: A5, net: PD_CC1}
     - {ref: J_POWER, pad: B5, net: PD_CC2}
-    - {ref: U_PD_BUCK, pad: 8, net: VBUS_PD}
+    - {ref: U_PD_IN, pad: 5, net: VBUS_PD}
+    - {ref: U_PD_IN, pad: 6, net: VBUS_PD_SW}
+    - {ref: U_PD_BUCK, pad: 8, net: VBUS_PD_SW}
     - {ref: U_PD_BUCK, pad: 6, net: PD_SW}
     - {ref: L_PD, pad: 2, net: P5V_REG}
     - {ref: J_PORT1, pad: 1, net: VBUS1_SW}

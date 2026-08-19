@@ -112,6 +112,49 @@ def t_circuit_source_and_manual_exclusion():
     eq(request["excluded_refs"], ["F1"], "manual exclusion")
 
 
+@test("saved prelayout request reproduces only against its exact current inputs")
+def t_request_freshness():
+    root = tmpdir("pcba_request_fresh_")
+    bom = root / "bom.csv"
+    bom.write_text(
+        "Comment,Designator,Footprint,LCSC\n10k,R1,R_0402,C100\n",
+        encoding="utf-8")
+    policy = policy_file(root)
+    request = pcba.prepare(
+        bom, build_quantity=5, phase="prelayout",
+        procurement_policy=policy, generated_at=NOW)
+    request_path = root / "request.json"
+    request_path.write_text(json.dumps(request), encoding="utf-8")
+    valid, failures, _ = pcba.verify_request(
+        request_path, bom=bom, build_quantity=5, phase="prelayout",
+        procurement_policy=policy)
+    check(valid and not failures, f"fresh request refused: {failures}")
+
+
+@test("saved prelayout request fails after its BOM changes", kind="known_bad")
+def t_request_stale_after_bom_change():
+    root = tmpdir("pcba_request_stale_")
+    bom = root / "bom.csv"
+    bom.write_text(
+        "Comment,Designator,Footprint,LCSC\n10k,R1,R_0402,C100\n",
+        encoding="utf-8")
+    policy = policy_file(root)
+    request = pcba.prepare(
+        bom, build_quantity=5, phase="prelayout",
+        procurement_policy=policy, generated_at=NOW)
+    request_path = root / "request.json"
+    request_path.write_text(json.dumps(request), encoding="utf-8")
+    bom.write_text(
+        "Comment,Designator,Footprint,LCSC\n10k,R1,R_0402,C999\n",
+        encoding="utf-8")
+    valid, failures, _ = pcba.verify_request(
+        request_path, bom=bom, build_quantity=5, phase="prelayout",
+        procurement_policy=policy)
+    check(not valid, "stale request passed after BOM changed")
+    check(any("subject" in failure or "rows" in failure for failure in failures),
+          f"stale request diagnosis missing: {failures}")
+
+
 @test("catalog availability cannot clear an unavailable JLCPCB PCBA row",
       kind="known_bad")
 def t_catalog_is_not_pcba():

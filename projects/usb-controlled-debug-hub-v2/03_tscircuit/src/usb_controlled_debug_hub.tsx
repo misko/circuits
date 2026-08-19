@@ -174,13 +174,15 @@ const schProps = (name: string) => {
     }
   }
   const pdPower: Record<string, [number, number]> = {
-    J_POWER: [-42, 10], F_PD: [-33, 10], D_PD_TVS: [-27, 2], U_PD: [-24, 10],
-    R_PD_VDD: [-31, -3], C_PD_VDD: [-22, -3], R_PD_VBUS: [-16, -3],
-    U_PD_BUCK: [-7, 10], R_PD_UV_TOP: [-11, -4], R_PD_UV_BOT: [-4, -4],
-    C_PD_IN1: [-12, 17], C_PD_IN2: [-5, 17], C_PD_IN_HF: [2, 17],
-    C_PD_BOOT: [2, 4], L_PD: [8, 10], R_PD_FB_A: [12, 1], R_PD_FB_B: [18, 1],
-    R_PD_FB_BOT: [18, -5], R_PD_FF: [12, -11], C_PD_FF: [19, -11],
-    C_PD_OUT1: [18, 15], C_PD_OUT2: [26, 15], C_PD_OUT3: [34, 15],
+    J_POWER: [-56, 10], F_PD: [-46, 10], D_PD_TVS: [-46, -1], U_PD: [-34, 10],
+    R_PD_VDD: [-40, -8], C_PD_VDD: [-31, -8], R_PD_VBUS: [-27, -14],
+    U_PD_IN: [-18, 10], R_PD_IN_UV_TOP: [-20, -8], R_PD_IN_UV_MID: [-12, -8],
+    R_PD_IN_OV_BOT: [-4, -8], R_PD_IN_ILIM: [-20, -16], C_PD_IN_DVDT: [-10, -16],
+    U_PD_BUCK: [0, 10], R_PD_UV_TOP: [-4, -2], R_PD_UV_BOT: [4, -2],
+    C_PD_IN1: [-14, 19], C_PD_IN2: [-5, 19], C_PD_IN_HF: [-26, 19],
+    C_PD_BOOT: [5, 3], L_PD: [15, 10], R_PD_FB_A: [22, -2], R_PD_FB_B: [31, -2],
+    R_PD_FB_BOT: [31, -10], R_PD_FF: [22, -16], C_PD_FF: [32, -16],
+    C_PD_OUT1: [28, 16], C_PD_OUT2: [39, 16], C_PD_OUT3: [50, 16],
   }
   if (pdPower[name]) return at("pd_power", "USB-C PD negotiation and 15 V to 5 V conversion", ...pdPower[name])
 
@@ -195,7 +197,8 @@ const schProps = (name: string) => {
   }
   if (power[name]) {
     const powerProps = at("power", "Protected input and 3.3 V regulator", ...power[name])
-    if (name.startsWith("R_AGG_UV_") || name === "R_AGG_OV_BOT") return { ...powerProps, schRotation: "90deg" }
+    if (name === "R_AGG_OV_BOT") return { ...powerProps, schRotation: "270deg" }
+    if (name.startsWith("R_AGG_UV_")) return { ...powerProps, schRotation: "90deg" }
     return powerProps
   }
 
@@ -268,11 +271,27 @@ const Tps2557 = ({ name, en, out, fault, ilim, cin, coutHf, coutBulk, studyX }: 
     {...schProps(name)}
     pinLabels={{ pin1: "GND", pin2: "IN1", pin3: "IN2", pin4: "EN", pin5: "ILIM", pin6: "OUT1", pin7: "OUT2", pin8: "FAULT_N", pin9: "EP" }}
     connections={{ pin1: "net.GND", pin2: "net.P5V_PROTECTED", pin3: "net.P5V_PROTECTED", pin4: `net.${en}`, pin5: `net.${ilim}`, pin6: `net.${out}`, pin7: `net.${out}`, pin8: `net.${fault}`, pin9: "net.GND" }} />
-  <R name={`R_${ilim}`} value="165k" a={ilim} b="GND" jlc="C2483395" />
+  <R name={`R_${ilim}`} value={out === "VBUS_CTRL" ? "187k" : "165k"} a={ilim} b="GND" jlc={out === "VBUS_CTRL" ? "C163486" : "C2483395"} />
   <C name={cin} value="100nF" a="P5V_PROTECTED" b="GND" jlc="C392963" studyX={studyX} studyY={0} />
   <C name={coutHf} value="100nF" a={out} b="GND" jlc="C392963" studyX={studyX + 3} studyY={0} />
   {coutBulk ? <C name={coutBulk} value={out === "VBUS_CTRL" ? "1uF" : "22uF"} a={out} b="GND"
     jlc={out === "VBUS_CTRL" ? "C326568" : "C55530"} fp={out === "VBUS_CTRL" ? "0402" : "1210"} /> : null}
+</group>
+
+// TPS259470A uses the same proven RPW0010A land as the retained aggregate
+// TPS259474L, but adds true reverse-current blocking to each exposed USB-A
+// VBUS path.  FLT is active-low and therefore preserves the USB2517 OCS
+// interface without an inversion or a firmware dependency.
+const Tps259470Port = ({ name, en, out, fault, ilim, cin, coutHf, coutBulk, studyX }: any) => <group name={`${name}_cell`}>
+  <chip name={name} manufacturerPartNumber="TPS259470ARPWR"
+    supplierPartNumbers={{ jlcpcb: ["C3662799"] }} footprint={<Tps25947Fp />}
+    {...schProps(name)}
+    pinLabels={{ pin1: "EN_UVLO", pin2: "OVLO", pin3: "AUXOFF", pin4: "FAULT_N", pin5: "IN", pin6: "OUT", pin7: "DVDT", pin8: "GND", pin9: "ILM", pin10: "ITIMER" }}
+    connections={{ pin1: `net.${en}`, pin2: "net.GND", pin4: `net.${fault}`, pin5: "net.P5V_PROTECTED", pin6: `net.${out}`, pin8: "net.GND", pin9: `net.${ilim}` }} />
+  <R name={`R_${ilim}`} value="5.9k" a={ilim} b="GND" jlc="C23071" fp="0603" />
+  <C name={cin} value="100nF" a="P5V_PROTECTED" b="GND" jlc="C60474" studyX={studyX} studyY={0} />
+  <C name={coutHf} value="100nF" a={out} b="GND" jlc="C60474" studyX={studyX + 3} studyY={0} />
+  {coutBulk ? <C name={coutBulk} value="22uF" a={out} b="GND" jlc="C21397" fp="1210" /> : null}
 </group>
 
 const ExternalPort = ({ p, hubP, hubN, prtPwr, ocs }: any) => {
@@ -294,7 +313,7 @@ const ExternalPort = ({ p, hubP, hubN, prtPwr, ocs }: any) => {
       pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }}
       connections={{ pin1: `net.DATA_OK${p}`, pin2: "net.GND", pin3: `net.DATA_OE${p}_N` }} />
     <R name={`R_DATA_OK${p}`} value="10k" a={`DATA_OK${p}`} b="GND" jlc="C843837" />
-    <Tps2557 name={`U_PWR${p}`} en={`PWR_EN${p}`} out={vbus} fault={ocs} ilim={`ILIM${p}`}
+    <Tps259470Port name={`U_PWR${p}`} en={`PWR_EN${p}`} out={vbus} fault={ocs} ilim={`ILIM${p}`}
       cin={`C_PWR${p}_IN`} coutHf={`C_PORT${p}_HF`} coutBulk={`C_PORT${p}_BULK`} studyX={-12} />
     <R name={`R_PWR_EN${p}`} value="10k" a={`PWR_EN${p}`} b="GND" jlc="C843837" />
     <chip name={`U_ESD${p}`} supplierPartNumbers={{ jlcpcb: ["C3708426"] }}
@@ -348,32 +367,46 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
     <chip name="U_PD" manufacturerPartNumber="CH224K" supplierPartNumbers={{ jlcpcb: ["C970725"] }}
       footprint={<Ch224kFp />} {...schProps("U_PD")}
       pinLabels={{ pin1:"VDD",pin2:"CFG2",pin3:"CFG3",pin4:"DP",pin5:"DM",pin6:"CC2",pin7:"CC1",pin8:"VBUS",pin9:"CFG1",pin10:"PG",pin11:"EP_GND" }}
-      connections={{ pin1:"net.PD_VDD",pin2:"net.PD_VDD",pin3:"net.PD_VDD",pin6:"net.PD_CC2",pin7:"net.PD_CC1",
+      connections={{ pin1:"net.PD_VDD",pin2:"net.PD_VDD",pin3:"net.PD_VDD",pin4:"net.PD_PROTO",pin5:"net.PD_PROTO",pin6:"net.PD_CC2",pin7:"net.PD_CC1",
         pin8:"net.PD_VBUS_SENSE",pin9:"net.GND",pin11:"net.GND" }} />
-    <R name="R_PD_VDD" value="1k" a="VBUS_PD" b="PD_VDD" jlc="C11702" />
+    <R name="R_PD_VDD" value="1k" a="VBUS_PD" b="PD_VDD" jlc="C52444" fp="1210" />
     <C name="C_PD_VDD" value="1uF" a="PD_VDD" b="GND" jlc="C52923" />
     <R name="R_PD_VBUS" value="10k" a="VBUS_PD" b="PD_VBUS_SENSE" jlc="C25744" />
+
+    {/* A UVLO-controlled true-RCB eFuse keeps the buck's required 20uF input
+        bank disconnected during initial Type-C attach.  Its 9.65..10.33V
+        full-corner turn-on window is above default 5V and below every valid
+        15V contract; the 3.3nF DVDT capacitor bounds post-contract inrush. */}
+    <chip name="U_PD_IN" manufacturerPartNumber="TPS259470ARPWR" supplierPartNumbers={{ jlcpcb: ["C3662799"] }}
+      footprint={<Tps25947Fp />} {...schProps("U_PD_IN")}
+      pinLabels={{ pin1:"EN_UVLO",pin2:"OVLO",pin3:"AUXOFF",pin4:"FAULT_N",pin5:"IN",pin6:"OUT",pin7:"DVDT",pin8:"GND",pin9:"ILM",pin10:"ITIMER" }}
+      connections={{ pin1:"net.PD_IN_UV",pin2:"net.PD_IN_OV",pin5:"net.VBUS_PD",pin6:"net.VBUS_PD_SW",pin7:"net.PD_IN_DVDT",pin8:"net.GND",pin9:"net.PD_IN_ILIM" }} />
+    <R name="R_PD_IN_UV_TOP" value="470k" a="VBUS_PD" b="PD_IN_UV" jlc="C23178" fp="0603" />
+    <R name="R_PD_IN_UV_MID" value="28.7k" a="PD_IN_UV" b="PD_IN_OV" jlc="C22928" fp="0603" />
+    <R name="R_PD_IN_OV_BOT" value="35.7k" a="PD_IN_OV" b="GND" jlc="C23027" fp="0603" />
+    <R name="R_PD_IN_ILIM" value="1k" a="PD_IN_ILIM" b="GND" jlc="C110776" fp="0603" />
+    <C name="C_PD_IN_DVDT" value="3.3nF" a="PD_IN_DVDT" b="GND" jlc="C107048" fp="0603" />
 
     <chip name="U_PD_BUCK" manufacturerPartNumber="TPS56637RPAR" supplierPartNumbers={{ jlcpcb: ["C841386"] }}
       footprint={<TwoSided pins={10} pitch={0.5} span={3.8} />} {...schProps("U_PD_BUCK")}
       pinLabels={{ pin1:"EN",pin2:"FB",pin3:"AGND",pin4:"PG",pin5:"NC",pin6:"SW",pin7:"BOOT",pin8:"VIN",pin9:"PGND",pin10:"MODE" }}
       connections={{ pin1:"net.PD_BUCK_EN",pin2:"net.PD_FB",pin3:"net.GND",pin6:"net.PD_SW",pin7:"net.PD_BOOT",
-        pin8:"net.VBUS_PD",pin9:"net.GND",pin10:"net.GND" }} />
-    <R name="R_PD_UV_TOP" value="200k" a="VBUS_PD" b="PD_BUCK_EN" jlc="C25764" />
+        pin8:"net.VBUS_PD_SW",pin9:"net.GND",pin10:"net.GND" }} />
+    <R name="R_PD_UV_TOP" value="200k" a="VBUS_PD_SW" b="PD_BUCK_EN" jlc="C25764" />
     <R name="R_PD_UV_BOT" value="27.4k" a="PD_BUCK_EN" b="GND" jlc="C26971" />
     <capacitor name="C_PD_IN1" capacitance="10uF" footprint={<Smd1206 />}
       {...schProps("C_PD_IN1")} supplierPartNumbers={{ jlcpcb: ["C5449000"] }}
-      connections={{ pin1: "net.VBUS_PD", pin2: "net.GND" }} />
+      connections={{ pin1: "net.VBUS_PD_SW", pin2: "net.GND" }} />
     <capacitor name="C_PD_IN2" capacitance="10uF" footprint={<Smd1206 />}
       {...schProps("C_PD_IN2")} supplierPartNumbers={{ jlcpcb: ["C5449000"] }}
-      connections={{ pin1: "net.VBUS_PD", pin2: "net.GND" }} />
+      connections={{ pin1: "net.VBUS_PD_SW", pin2: "net.GND" }} />
     <C name="C_PD_IN_HF" value="100nF" a="VBUS_PD" b="GND" jlc="C131394" />
     <C name="C_PD_BOOT" value="100nF" a="PD_BOOT" b="PD_SW" jlc="C60474" />
     <inductor name="L_PD" inductance="3.3uH" manufacturerPartNumber="MWSA0804S-3R3MT"
       supplierPartNumbers={{ jlcpcb: ["C17700166"] }} footprint={<Mwsa0804 />} {...schProps("L_PD")}
       connections={{ pin1:"net.PD_SW",pin2:"net.P5V_REG" }} />
     <R name="R_PD_FB_A" value="75k" a="P5V_REG" b="PD_FB_TOP" jlc="C319478" />
-    <R name="R_PD_FB_B" value="499" a="PD_FB_TOP" b="PD_FB" jlc="C852807" />
+    <R name="R_PD_FB_B" value="1k" a="PD_FB_TOP" b="PD_FB" jlc="C11702" />
     <R name="R_PD_FB_BOT" value="10k" a="PD_FB" b="GND" jlc="C190095" />
     <R name="R_PD_FF" value="20k" a="P5V_REG" b="PD_FF" jlc="C25765" />
     <C name="C_PD_FF" value="100pF" a="PD_FF" b="PD_FB" jlc="C1546" />
@@ -558,9 +591,9 @@ export default () => <board width="500mm" height="350mm" routingDisabled>
   </group>
   {[1, 2, 3, 4].map((p) => <group key={`port_power_labels_${p}`}
       name={`port_power_labels_${p}`} schSheetName={`port_${p}`}>
-    <netlabel net="P5V_PROTECTED" connectsTo={sel[`U_PWR${p}`].pin2}
+    <netlabel net="P5V_PROTECTED" connectsTo={sel[`U_PWR${p}`].pin5}
       schX="-5.2mm" schY="-3.2mm" anchorSide="right" />
-    <netlabel net={`VBUS${p}_SW`} connectsTo={sel[`U_PWR${p}`].pin7}
+    <netlabel net={`VBUS${p}_SW`} connectsTo={sel[`U_PWR${p}`].pin6}
       schX="0.7mm" schY="-3.2mm" anchorSide="left" />
   </group>)}
 </board>

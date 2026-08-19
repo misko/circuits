@@ -59,7 +59,7 @@ electrical:
 verified: "CITED: Nexperia 74LVC08A Rev 8 pin configuration and ordering information, PDF pp2-3 and p13; checked 2026-07-31."
 
 gotchas:
-  - "U_PWR_AND is a hardware policy interlock: every TPS2557 EN is HUB_PRTPWR AND PWR_CMD. U_DATA_AND further requires PWR_EN AND DATA_CMD before the data switch can connect. Do not replace either condition with host-software-only sequencing."
+  - "U_PWR_AND is a hardware policy interlock: every external TPS259470A EN is HUB_PRTPWR AND PWR_CMD. U_DATA_AND further requires PWR_EN AND DATA_CMD before the data switch can connect. Do not replace either condition with host-software-only sequencing."
   - "The expander command inputs must not float. One external 10k pulldown on each PWR_CMD and DATA_CMD holds all external ports fully off while the management path is unpowered or resetting."
   - "Use the PW TSSOP-14 suffix. Other package suffixes have the same logic but different land patterns."
 
@@ -67,7 +67,7 @@ layout:
   source: "Nexperia 74LVC08A Rev 8 package outline SOT402-1 and application requirements"
   reviewed: 2026-07-31
   notes:
-    - "Place U_PWR_AND between the hub power-control fanout and the TPS2557 devices; place U_DATA_AND beside the OE inverter group. Keep outputs short and fit one local 100 nF VCC bypass per package."
+    - "Place U_PWR_AND between the hub power-control fanout and the external TPS259470A devices; place U_DATA_AND beside the OE inverter group. Keep outputs short and fit one local 100 nF VCC bypass per package."
 
 layout_refs:
   - {tier: 1, reached: true, artifact: "Nexperia 74LVC08A Rev 8 pinout, electrical tables, and SOT402-1 package reference"}

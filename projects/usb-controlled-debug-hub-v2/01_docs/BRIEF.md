@@ -41,7 +41,7 @@ generated.
 | G4 | Four USB-A ports retain full-off, power-only, and fully-connected states independently | original P | inherited circuit to be parity-checked |
 | G5 | Each USB-A supplies 500 mA at 4.75–5.25 V at the mated test plug, all four simultaneously | inherited v1 contract | power math pending exact v2 divider/path |
 | G6 | A failed/no PD contract leaves the protected 5 V trunk off; a 5 V-only USB-C source does not brown-out the hub | conservative interpretation | architecture locked; implementation pending |
-| G7 | Reuse USB2517I, MCP2221A, MCP23017, five TPS2557s, four FSUSB42s, TPS259474L, AP63203Q and compatible purchased passives | latest P | reuse matrix locked; parity pending |
+| G7 | Reuse USB2517I, MCP2221A, MCP23017, internal TPS2557, four FSUSB42s, TPS259474L, AP63203Q and compatible purchased passives; replace only externally exposed switches where reverse blocking is required | latest P + electrical exception | [0014](decisions/0014-power-path-adversarial-hardening.md) accepted; parity pending |
 | G8 | Generate no firmware, descriptor image, or host utility | standing user directive | met by architecture |
 | G9 | Produce a JLCPCB PCBA release with early allocation/MOQ economics, electrical/SI review, connector review, and exact release evidence | pipeline contract | pending |
 
@@ -53,7 +53,7 @@ generated.
 | Output measurement plane | Qualified mated USB-A test plug, including onboard converter/protection/switch/copper/joints/contacts | inherited v1 |
 | DATA input | USB-C USB 2.0 UFP/upstream data; host VBUS is detector-only | user + D12 |
 | POWER input | Dedicated USB-C PD sink; require a source advertising a 15 V fixed PDO at 3 A (45 W) | D13 |
-| Internal 5 V setpoint | 5.13 V nominal; calculated full-corner window must remain within 5.25 V and preserve 4.75 V at loaded outputs | D13; exact values pending gate |
+| Internal 5 V setpoint | about 5.16 V nominal; calculated 5.07363–5.24667 V full-corner window must remain within 5.25 V and preserve 4.75 V at loaded outputs | [0014](decisions/0014-power-path-adversarial-hardening.md) |
 | Normal board load | 2.58 A maximum on the regulated trunk under the inherited v1 contract | inherited v1 power model |
 | Fault transient | Existing aggregate breaker may demand up to 5 A for no more than 6 ms; v2 PD/buck path must tolerate it without making it continuous | inherited v1 A6 |
 | Protection | USB-C input fuse/TVS, wide-input buck, existing reverse-blocking latch-off aggregate eFuse, existing per-port current limiting and ESD | D13 |
@@ -70,6 +70,8 @@ generated.
 | T2 | 9 V / 3 A is adequate for normal load but marginal for the inherited 5 A / 6 ms 5 V fault transient after conversion losses | Request the standard 15 V PDO and require at least 30 W; use a 6 A, 28 V synchronous buck | [0013](decisions/0013-pd-input-and-5v-regulator.md) |
 | T3 | A USB-C source may provide only default 5 V or omit 15 V | Set buck UVLO above default 5 V; incompatible supplies leave the board off instead of undervolting it | [0013](decisions/0013-pd-input-and-5v-regulator.md) |
 | T4 | Reusing every purchased part would retain the high-drop manual 5 V fuse/holder and make the output-voltage corner unnecessarily tight | Preserve high-cost functional ICs; replace only the input connector/fuse boundary and add the PD/buck island | [0012](decisions/0012-two-usbc-domain-separation-and-reuse.md) |
+| T5 | Purchased TPS2557 port switches do not block a powered target from back-driving an off/disabled hub | Retain the internal TPS2557 only; use true-RCB TPS259470A eFuses on the four cable-exposed ports | [0014](decisions/0014-power-path-adversarial-hardening.md) |
+| T6 | TPS56637 needs more input capacitance than a Type-C sink may expose at initial attach | Put the buck bank behind a UVLO/dVdt-controlled TPS259470A; expose only 100 nF before negotiation | [0014](decisions/0014-power-path-adversarial-hardening.md) |
 
 ## Reuse constraint
 
@@ -77,7 +79,8 @@ generated.
 |---|---|---|
 | Seven-port hub | USB2517I-JZX | reuse unchanged |
 | USB management | MCP2221A-I/SL + MCP23017T-E/SS | reuse unchanged |
-| Port power control | TPS2557DRBR x5 | reuse unchanged |
+| External port power control | TPS2557DRBR x4 | replace with TPS259470ARPWR x4; electrical safety exception |
+| Internal management power | TPS2557DRBR x1 | reuse unchanged |
 | Port data disconnect | FSUSB42MUX x4 | reuse unchanged |
 | Aggregate protection | TPS259474LRPWR | reuse unchanged, now fed by regulated buck output |
 | Logic/interlocks | 74LVC08APW x2 + 2N7002K | reuse unchanged |
@@ -111,4 +114,4 @@ generated.
 | C4 | Use CH224K hardware straps for 15 V; no MCU or configuration firmware | [0013](decisions/0013-pd-input-and-5v-regulator.md) |
 | C5 | Use TPS56637 plus MWSA0804S-3R3MT to generate the 5.13 V trunk | [0013](decisions/0013-pd-input-and-5v-regulator.md) |
 | C6 | Use HRO TYPE-C-31-M-12 / C165948 for both USB-C receptacles | [0012](decisions/0012-two-usbc-domain-separation-and-reuse.md) |
-
+| C7 | Put Type-C bulk behind a negotiated-voltage inrush switch and true-reverse-block all external USB-A VBUS paths | [0014](decisions/0014-power-path-adversarial-hardening.md) |

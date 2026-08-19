@@ -33,11 +33,11 @@ limits:
   vin_operating: 2.5V to 6.5V
   output_continuous: 5A
   rds_on_max_at_125c: 35mOhm
-  current_limit_with_165k_1pct: "approximately 535mA min, 667mA typ, 794mA max including 1% external-resistor tolerance"
+  current_limit_with_187k_1pct: "approximately 468mA min, 589mA nominal, 706mA max including 1% external-resistor tolerance"
   standby_supply_max: 2uA
 gotchas:
   - "TPS2557 EN is active HIGH. The AND-gate output PWR_EN drives it, with a physical pulldown so an unpowered management path defaults VBUS off. TPS2556 is the active-low sibling and must not be substituted silently."
-  - "Use 165kOhm 1% at ILIM. TI Equation 1 and the characterized constants give approximately 535-794mA across device and resistor tolerance, containing the 500mA USB 2.0 load claim without pretending the nominal value is a guarantee."
+  - "U_PWR_CTRL uses 187kOhm 1% at ILIM, the maximum TI-recommended value. TI section 10.2.1.2.2 equations and resistor tolerance give approximately 468-706mA; 210kOhm is outside the recommended 20-187kOhm programming range and must not be used."
   - "At 0.5A, guaranteed 35mOhm consumes 17.5mV. Use all IN/OUT pins and the full PowerPAD land."
   - "FAULT is active-low open-drain and connects directly to the matching USB2517 OCS input. It does not cross into the separately powered management-expander domain."
 verified: "TI SLVS931B DRB top-view figure and pin table, printed p.3, confirm pins 1 GND, 2-3 IN, 4 active-high EN, 5 ILIM, 6-7 OUT, 8 FAULT and PowerPAD GND; electrical table and current-limit row re-read 2026-08-14."
@@ -45,14 +45,10 @@ layout:
   source: "TI SLVS931B sections 12.1-12.3 and Figure 39"
   reviewed: 2026-08-14
   keep_short:
-    - {net: ILIM1, max_span_mm: 2, partner_refs: [R_ILIM1], why: "port 1 current-setting resistor adjacent to pin 5"}
-    - {net: ILIM2, max_span_mm: 2, partner_refs: [R_ILIM2], why: "port 2 current-setting resistor adjacent to pin 5"}
-    - {net: ILIM3, max_span_mm: 2, partner_refs: [R_ILIM3], why: "port 3 current-setting resistor adjacent to pin 5"}
-    - {net: ILIM4, max_span_mm: 2, partner_refs: [R_ILIM4], why: "port 4 current-setting resistor adjacent to pin 5"}
     - {net: ILIM_CTRL, max_span_mm: 2, partner_refs: [R_ILIM_CTRL], why: "internal management-port current-setting resistor adjacent to pin 5"}
-    - {net: P5V_PROTECTED, max_span_mm: 4, partner_refs: [C_PWR_CTRL_IN, C_PWR1_IN, C_PWR2_IN, C_PWR3_IN, C_PWR4_IN], why: "one 100nF input bypass is reserved directly at each TPS2557 IN/GND"}
+    - {net: P5V_PROTECTED, max_span_mm: 4, partner_refs: [C_PWR_CTRL_IN], why: "the retained TPS2557 management switch requires its 100nF input bypass directly at IN/GND"}
   notes:
-  - "Use broad copper across both IN and both OUT lands, place input/output capacitors and ILIM resistor locally, and connect PowerPAD to ground using the advanced-tier filled/capped via process."
+  - "Use broad copper across both IN and both OUT lands, place the management input/output capacitors and ILIM resistor locally, and connect PowerPAD to ground using the advanced-tier filled/capped via process."
 layout_refs:
   - "TI SLVS931B section 12 and Figure 39"
 sourcing:

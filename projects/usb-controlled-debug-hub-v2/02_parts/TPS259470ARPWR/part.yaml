@@ -1,0 +1,43 @@
+mpn: TPS259470ARPWR
+manufacturer: Texas Instruments
+type: auto_retry_current_limit_true_reverse_blocking_efuse
+datasheet:
+  doc_id: SLVSFC9
+  revision: "SLVSFC9C, revised May 2026"
+  url: "https://www.ti.com/lit/ds/symlink/tps25947.pdf"
+  product_page: "https://www.ti.com/product/TPS25947"
+  local: SLVSFC9C.pdf
+  sha256: 051ecddfe545b8b9f4f992148d24f385f75b1116fd36bec358f85008a7d919ec
+  fetched: 2026-08-18
+  pages: 75
+  provenance: "CITED: official TI TPS25947 family PDF; exact TPS259470A row and RPW pin table were re-read for this use."
+package: RPW0010A VQFN-HR-10 2x2mm P0.45
+footprint: usb_controlled_debug_hub:TI_RPW0010A_VQFN-HR-10_2x2mm_P0.45mm
+escape: {style: qfn, pitch: 0.45, tier_required: jlc_4layer_advanced, checked: "same TI RPW0010A land and exact JLC QFN-10 CAD family already qualified for U_AGG"}
+pins: {1: EN_UVLO, 2: OVLO, 3: AUXOFF, 4: FLT, 5: IN, 6: OUT, 7: DVDT, 8: GND, 9: ILM, 10: ITIMER}
+limits:
+  vin: "2.7-23V"
+  continuous_switch_current_A: 5.5
+  rds_on_max_mohm: 45
+  current_limit_range_A: "0.5-6"
+  response: active_current_limit_auto_retry
+  reverse_polarity: true
+  reverse_current_blocking: true
+gotchas:
+  - "The complete 0A suffix matters: TPS259470A actively current-limits and auto-retries. The retained aggregate U_AGG remains the distinct TPS259474L circuit-breaker/latch-off variant."
+  - "Pin 4 is active-low open-drain FLT on the 0x variants and connects directly to USB2517I OCS_N. Pins 3 and 10 may remain open; pin 2 is grounded where 5V OVLO is intentionally disabled."
+  - "External ports use 5.90k 1% RILM. TI's 3334/R equation with +/-10% ILIM error and resistor tolerance gives 0.503..0.628A before TCR; the exact bound is owned by power_tree.yaml."
+  - "U_PD_IN uses the same part ahead of the buck. Its three-resistor UVLO/OVLO string disconnects the 20uF buck bank until a negotiated voltage is present; C_PD_IN_DVDT controls attach inrush."
+verified: "CITED: TI SLVSFC9C Table 4-1 exact TPS259470A ordering row, Figure 5-1 RPW pinout, Table 5-1 terminal functions, Figure 8-22 layout, 45mOhm catalog maximum, true RCB description, and equations 5/10/11; read 2026-08-18. JLC/LCSC C3662799 identifies exact TPS259470ARPWR."
+sourcing:
+  lcsc: C3662799
+  alternates: [C2864843]
+  note: "C3662799 showed 1123 catalog units on 2026-08-18; C2864843 was rejected as the primary code because only 14 catalog units remained. Order-time allocation remains authoritative."
+layout:
+  source: "TI SLVSFC9C sections 8.4 and RPW0010A drawing 4225183/A"
+  reviewed: 2026-08-18
+  notes: ["Give IN and OUT short broad copper with nearby ground vias", "keep ILM and DVDT loops short and quiet", "place the per-port input and output bypass capacitors directly at the switch"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSFC9C Figure 8-22 and RPW0010A land pattern", why: "manufacturer source fixes power escape and support-component placement"}
+  - {tier: 2, reached: true, artifact: "TI TPS25947EVM guide plus exact JLC C3662799 CAD", why: "evaluation-board precedent and assembly-vendor geometry corroborate the implementation"}
+  - {tier: 3, reached: false, artifact: "community board", why: "not needed because manufacturer precedent exists"}

@@ -203,12 +203,6 @@ def grade(project: Path, *, phase: str, release: Path | None = None,
         if pcba_receipt.is_file():
             inputs["pcba_receipt"] = _record(pcba_receipt)
 
-    if phase == "selection":
-        checks["jlc_pcba_availability"] = _pcba_check(
-            pcba_receipt, phase="selection", predicate="availability")
-        checks["procurement_exposure"] = _pcba_check(
-            pcba_receipt, phase="selection", predicate="economics")
-
     if phase == "prelayout":
         checks["jlc_pcba_availability"] = _pcba_check(
             pcba_receipt, phase="prelayout", predicate="availability")

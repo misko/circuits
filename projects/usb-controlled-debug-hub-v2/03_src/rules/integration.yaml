@@ -10,7 +10,27 @@ selections:
       the already sourced low-cost controller while exposing the exact 15 V
       request and qualification chain to schematic and first-article review.
     support_refs:
-      [J_POWER, F_PD, D_PD_TVS, R_PD_VDD, C_PD_VDD, R_PD_VBUS]
+      [J_POWER, F_PD, D_PD_TVS, R_PD_VDD, C_PD_VDD, R_PD_VBUS,
+       C_PD_IN_HF, U_PD_IN, R_PD_IN_UV_TOP, R_PD_IN_UV_MID,
+       R_PD_IN_OV_BOT, R_PD_IN_ILIM, C_PD_IN_DVDT]
+    exception:
+      decision_rationale: >-
+        The negotiated-voltage gate, input fuse/TVS, attach capacitance and
+        board-edge connector must be one reviewable power path. A prebuilt PD
+        trigger module would hide or duplicate those elements and cannot be
+        assembled as the exact JLC board-level circuit.
+      evidence: >-
+        ADR-0012 fixes the two-connector domain split and ADR-0014 requires the
+        TPS259470A-controlled post-contract capacitance. Exact CH224K and TI
+        reference circuits were reviewed on 2026-08-18.
+      modules_considered:
+        - part: generic CH224K USB-C PD trigger module
+          rejected_because: Exposes an already-negotiated VBUS output with module-owned connector and capacitance, preventing exact attach-path and protection verification.
+          evidence: CH224K module topology compared with the WCH CH224K V2.1 application circuit.
+        - part: fixed 15 V USB-C PD trigger cable/module
+          rejected_because: Cannot provide JLC-assembled board-edge integration or the required exact fuse, TVS, UVLO and inrush-control chain.
+          evidence: Board architecture and ADR-0014 protection boundary.
+      adr: 01_docs/decisions/0014-power-path-adversarial-hardening.md
 
   - function: seven-port USB 2.0 high-speed hub and per-port power policy
     part: USB2517I-JZX

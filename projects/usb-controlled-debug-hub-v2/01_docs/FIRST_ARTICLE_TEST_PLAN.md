@@ -15,8 +15,9 @@ change.
 
 1. Inspect both sides for bridges, tombstones, missing parts, connector seating,
    filled/capped via quality and exposed-pad wetting evidence. Confirm the five
-   TPS2557 PowerPADs and USB2517 exposed pad are soldered. Confirm `F_PD` is the
-   exact 3 A / 32 V Littelfuse fuse and both USB-C receptacles are fully seated.
+   TPS259470A ground pads, the retained TPS2557 PowerPAD and USB2517 exposed
+   pad are soldered. Confirm `F_PD` is the exact 3 A / 32 V Littelfuse fuse and
+   both USB-C receptacles are fully seated.
 2. With all cables removed, record settled resistance using the exact probes
    and ranges in `03_src/rules/first_article.yaml`. Any value outside its range
    is an abort, not permission to raise the current limit.
@@ -30,9 +31,10 @@ all exposed-pad confirmations, explicit units/probes, PD contract, input
 current-limit fixture and measured values. Begin with a qualified 15 V / 3 A
 USB-C PD source through a 0.30 A current-limited first-power fixture.
 Run `first_article_check.py`; continue only on `AUTHORIZED`. Record no-load
-`VBUS_PD`, `P5V_REG`, `P5V_PROTECTED`, `3V3_MAIN`, input current and component
-temperatures. Confirm the source negotiated 15 V before treating any downstream
-reading as valid. Stop on current-limit entry, odor, discoloration, oscillation,
+`VBUS_PD`, `VBUS_PD_SW`, `P5V_REG`, `P5V_PROTECTED`, `3V3_MAIN`, input current
+and component temperatures. First verify that `VBUS_PD_SW` remains off at the
+default 5 V attach voltage; then confirm it rises only after the source has
+negotiated 15 V. Stop on current-limit entry, odor, discoloration, oscillation,
 unstable voltage, failed PD negotiation, or unexpected heating.
 
 ## 4. Safe-state and control truth table
@@ -51,6 +53,12 @@ state is VBUS off and data disconnected, then verify:
 Verify independence, matching OCS behavior and recovery after control-power
 loss/reset. Confirm the board never back-powers the upstream host.
 
+For each external port, apply 5.0 V through a current-limited fixture to the
+USB-A VBUS pin while the board is unpowered, then while that port is disabled.
+Verify no sustained current reaches `P5V_PROTECTED`, another port, `J_POWER`,
+or `J_DATA`. Repeat with the board powered and the tested port disabled. These
+three states qualify the TPS259470A true reverse-current-blocking requirement.
+
 ## 5. USB and power qualification
 
 1. Enumerate the hub and onboard management device from the single upstream
@@ -62,7 +70,8 @@ loss/reset. Confirm the board never back-powers the upstream host.
 3. Load every port individually to 0.50 A, then all four simultaneously for at
    least 30 minutes. Four-wire measure at each mated USB-A test plug; every
    output must remain 4.75–5.25 V. Record hot drop and temperature at the fuse,
-   eFuse, buck, each TPS2557, connector and PCB hotspot.
+   eFuse, buck, each TPS259470A, the internal TPS2557, connector and PCB
+   hotspot.
 4. Apply controlled overload/short fixtures one channel at a time. Confirm
    current limiting, OCS reporting, aggregate latch-off coordination, absence
    of cross-channel backfeed and safe power-cycle recovery.

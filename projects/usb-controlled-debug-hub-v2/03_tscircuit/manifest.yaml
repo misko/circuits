@@ -4,6 +4,7 @@ components:
   - F_PD
   - D_PD_TVS
   - U_PD
+  - U_PD_IN
   - U_PD_BUCK
   - L_PD
   - U_AGG
@@ -42,6 +43,10 @@ components:
   - R_PD_VBUS
   - R_PD_UV_TOP
   - R_PD_UV_BOT
+  - R_PD_IN_UV_TOP
+  - R_PD_IN_UV_MID
+  - R_PD_IN_OV_BOT
+  - R_PD_IN_ILIM
   - R_PD_FB_A
   - R_PD_FB_B
   - R_PD_FB_BOT
@@ -112,6 +117,7 @@ components:
   - C_PD_IN1
   - C_PD_IN2
   - C_PD_IN_HF
+  - C_PD_IN_DVDT
   - C_PD_BOOT
   - C_PD_FF
   - C_PD_OUT1

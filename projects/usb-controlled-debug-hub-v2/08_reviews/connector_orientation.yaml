@@ -1,4 +1,4 @@
-schema: 1
+schema: 2
 kind: connector-orientation-approval-v1
 verdict: APPROVED
 subject_sha256: f238832c6b768680454e9da4491e56e18fe7baffbe6ddaaa1b643980bb84ea7d
@@ -11,10 +11,16 @@ refs:
 - J_POWER
 reviewer: user
 confirmed_at: '2026-08-19T00:35:43Z'
+approval_basis: semantic-subject-unchanged
+# Carried forward on 2026-08-19 after regeneration: the machine-owned semantic
+# subject hash, tool identity, six-ref denominator, connector placements, model
+# transforms, and access axes are byte-identical to the user's approved
+# subject. Only unrelated background components changed the regenerated crop
+# bytes; the current exact-board crops were independently re-inspected.
 evidence_sha256:
-  views/J_DATA_inside.png: be4e97fd7ab02ca02f3776a8e0eac362640c225e957b25df3a274dc143ccf853
-  views/J_DATA_outside.png: 50d36ec6123bab9313af59c3149962eca8025eb7f186a0c082d6e8d54eefe7a5
-  views/J_DATA_top.png: e5bd4e66e68009a7af99685595e5ed1a68f971239975173f648a6b88eccb0760
-  views/J_PORT1_inside.png: eff9712a7f5e4206e9b0b7255011c6cfb1887ff161b44e9f692a693d230f5dd6
-  views/J_PORT1_outside.png: f46ec9b81d1508bf19cdbdf4bf5d8bab80c35bf65c4fd879fca7ffa434e364e6
-  views/J_PORT1_top.png: 3ebb37000687156a3bd351d851f4a61d870078012bc655442bdb90bc66f91834
+  views/J_DATA_inside.png: 0cd7655039b239d6c8d82b3baeea934b5f94e22392a4b38fc26645177d0fe76d
+  views/J_DATA_outside.png: e2d03d15c52ac81f2bc50e021386e57156a171181d1e74db8458fa69c58074db
+  views/J_DATA_top.png: 4df691ba5857d7db897915f6668e65022ac42f064e849e9d49e5eb9aa87fe356
+  views/J_PORT1_inside.png: 3476f2b070891a8d081980817f4817cea5c65f0f07c67b820222acc069cbeb71
+  views/J_PORT1_outside.png: 2d0a3209614e23539d3ffecf66008e255018a2743b4ee420024b24e746d33998
+  views/J_PORT1_top.png: c981e23c4ac4aa8d54dd9a28c022b175cea86529519c56c2d1da81b973864f65

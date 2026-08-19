@@ -584,6 +584,8 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `fault_envelopes[].aggregate_breaker.timer.startup.expected_inrush_max_A` | `early_design_check.py` | published maximum inrush that must agree with the independent slew/capacitance calculation |
 | `fault_envelopes[].aggregate_breaker.timer.startup.calculation_tolerance_A` | `early_design_check.py` | maximum numerical difference allowed between published and independently calculated inrush |
 | `no_fault_envelope_requirements` | `early_design_check.py` | explicit evidenced applicability decision when independently limited outputs do not share an upstream path |
+| `pd_input_and_regulator` | ADVISORY | human grouping of the selected PD controller, fixed PDO, regulator and input-gate design; executable voltage, surge, topology and fault bounds live in protection_paths, electrical_invariants and the graded rail records below |
+| `pd_input_and_regulator.*` | ADVISORY | human-readable selection and calculation summary; every release-driving bound must also live in a dedicated machine-read field |
 | `input_trunk_class` | `power_topology.py` | which netclass carries the trunk current |
 | `source_type` | `power_topology.py` | E-OFF: battery vs mains-derived |
 | `source_voltage_boundary` | `power_topology.py` | assigns a battery design's admitted minimum operating voltage to an enforceable owner |
@@ -628,6 +630,8 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `rails[].feedback` | `power_topology.py` | the FB-divider tolerance window |
 | `rails[].feedback.vref` | `power_topology.py` | nominal feedback-reference voltage used in the worst-case output window |
 | `rails[].feedback.vref_tol_pct` | `power_topology.py` | feedback-reference tolerance used in both worst-case bounds |
+| `rails[].feedback.vref_min` | `power_topology.py` | asymmetric feedback-reference minimum used in the worst-low output calculation |
+| `rails[].feedback.vref_max` | `power_topology.py` | asymmetric feedback-reference maximum used in the worst-high output calculation |
 | `rails[].feedback.r_top_ohm` | `power_topology.py` | upper divider resistance used in the worst-case output window |
 | `rails[].feedback.r_top_tol_pct` | `power_topology.py` | upper-divider tolerance used in both worst-case bounds |
 | `rails[].feedback.r_bottom_ohm` | `power_topology.py` | lower divider resistance used in the worst-case output window |
@@ -860,7 +864,7 @@ TWO ORPHANS THIS FOLDER'S OWN PROSE HAD HIDDEN, both found by the first run:
 | `schema` | `assembly_coverage.py` | optional assembly-contract version; when declared it must be integer 1 |
 | `service` | `assembly_coverage.py` | ordered assembly service used when grading whether CPL parts are process-placeable |
 | `sides` | `assembly_coverage.py` | ordered population side set used by the process-placeability gate |
-| `build_quantity` | `jlc_pcba_availability.py`, `release_freshness_check.py` | quantity multiplier bound into prelayout availability and final allocation receipts; legacy catalog grading also reads it |
+| `build_quantity` | jlc_pcba_availability.py, release_freshness_check.py | quantity multiplier bound into prelayout availability and final allocation receipts; legacy catalog grading also reads it |
 | `not_assembled[].refs` | `assembly_coverage.py` | non-empty exact DNP population set, compared with board and CPL |
 | `not_assembled[].reason` | `assembly_coverage.py` | closed DNP reason vocabulary |
 | `not_assembled[].evidence` | `assembly_coverage.py` | substantive dated evidence for the population decision |

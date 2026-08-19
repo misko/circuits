@@ -238,6 +238,33 @@ def write_response_template(path: Path, request: dict[str, Any]) -> None:
             writer.writerow({"Requested LCSC": row["requested_lcsc"]})
 
 
+def verify_request(path: Path, *, bom: Path, build_quantity: int, phase: str,
+                   assembly: Path | None = None,
+                   procurement_policy: Path | None = None
+                   ) -> tuple[bool, list[str], dict[str, Any]]:
+    """Prove that preserved operator input still describes current sources."""
+    failures: list[str] = []
+    try:
+        saved = json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception as exc:
+        return False, [f"request cannot be read: {exc}"], {}
+    if not isinstance(saved, dict):
+        return False, ["request is not a JSON object"], {}
+    try:
+        generated_at = _timestamp(str(saved.get("generated_at") or ""))
+        current = prepare(
+            bom, build_quantity=build_quantity, phase=phase,
+            assembly=assembly, procurement_policy=procurement_policy,
+            generated_at=generated_at)
+    except Exception as exc:
+        return False, [f"request cannot be reproduced: {exc}"], saved
+    if saved != current:
+        for key in sorted(set(saved) | set(current)):
+            if saved.get(key) != current.get(key):
+                failures.append(f"request field {key!r} is stale or changed")
+    return not failures, failures, saved
+
+
 def _read_response(path: Path, fields: tuple[str, ...]) -> list[dict[str, str]]:
     with path.open(encoding="utf-8-sig", newline="") as stream:
         reader = csv.DictReader(stream)
@@ -681,6 +708,14 @@ def main(argv: list[str] | None = None) -> int:
     p_grade.add_argument("response", type=Path)
     p_grade.add_argument("--max-age-hours", type=float, default=24)
     p_grade.add_argument("--out", type=Path, required=True)
+    p_verify_request = commands.add_parser("verify-request")
+    p_verify_request.add_argument("request", type=Path)
+    p_verify_request.add_argument("--bom", type=Path, required=True)
+    p_verify_request.add_argument("--build-quantity", type=int, required=True)
+    p_verify_request.add_argument("--phase", choices=PHASES, required=True)
+    p_verify_request.add_argument("--assembly", type=Path)
+    p_verify_request.add_argument("--procurement-policy", type=Path,
+                                  required=True)
     p_verify = commands.add_parser("verify")
     p_verify.add_argument("receipt", type=Path)
     p_verify.add_argument("--bom", type=Path)
@@ -713,6 +748,17 @@ def main(argv: list[str] | None = None) -> int:
             print(f"JLC-PCBA {result['verdict']}: {count['passing']}/"
                   f"{count['total']} line(s) pass; receipt={args.out.resolve()}")
             return {"ACCEPTED": 0, "REJECTED": 1, "INCOMPLETE": 2}[result["verdict"]]
+        if args.command == "verify-request":
+            valid, failures, request = verify_request(
+                args.request, bom=args.bom,
+                build_quantity=args.build_quantity, phase=args.phase,
+                assembly=args.assembly,
+                procurement_policy=args.procurement_policy)
+            for failure in failures:
+                print(f"  FAIL {failure}")
+            print(f"JLC-PCBA REQUEST {'PASS' if valid else 'FAIL'}: "
+                  f"phase={request.get('phase', 'UNREADABLE')}")
+            return 0 if valid else 1
         valid, failures, receipt = verify_receipt(
             args.receipt, bom=args.bom, required_phase=args.phase)
         for failure in failures:

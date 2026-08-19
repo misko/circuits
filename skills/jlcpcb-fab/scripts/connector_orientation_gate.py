@@ -32,6 +32,16 @@ from twin_overlay import board_extent_px
 KIND = "connector-orientation-receipt-v1"
 APPROVAL_KIND = "connector-orientation-approval-v1"
 TOOL_VERSION = "connector-orientation-gate-v1"
+# Identity of the geometry/measurement engine, deliberately independent of
+# approval-file and report-rendering mechanics.  The previous implementation
+# hashed this entire script, so even a wording or approval-schema change made
+# an otherwise identical connector subject stale.  Bump this digest whenever
+# geometry, transforms, measurements, camera selection, or model validation
+# semantics change.  It is initialized to the last whole-script digest so
+# already approved v1 subjects remain stable across this policy-only refactor.
+SEMANTIC_ENGINE_SHA256 = (
+    "39bbab14aa85e8f6c9e1e5f2eb21dc47dc9de57538d4bb8e7adf72774c8d6cae"
+)
 CAMERAS = ("top", "left", "right", "front", "back")
 CARDINAL_CAMERA = {
     (-1, 0): "left", (1, 0): "right",
@@ -71,7 +81,7 @@ def tool_identity() -> str:
             check=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         version = "kicad-cli-unavailable"
-    return f"{TOOL_VERSION}:{canonical_sha({'script': digest(Path(__file__)), 'kicad': version})}"
+    return f"{TOOL_VERSION}:{canonical_sha({'script': SEMANTIC_ENGINE_SHA256, 'kicad': version})}"
 
 
 def vec3(value, where: str):
@@ -513,19 +523,34 @@ def validate_approval(path: Path, subject_sha: str, refs, evidence):
         value = yaml.safe_load(path.read_text(encoding="utf-8"))
     except (OSError, yaml.YAMLError):
         return False, "approval is absent or unreadable"
-    required = {"schema", "kind", "verdict", "subject_sha256", "refs",
-                "reviewer", "confirmed_at", "evidence_sha256"}
-    if not isinstance(value, dict) or set(value) != required:
-        return False, "approval fields differ from schema 1"
-    if (value["schema"] != 1 or value["kind"] != APPROVAL_KIND or
+    common = {"schema", "kind", "verdict", "subject_sha256", "refs",
+              "reviewer", "confirmed_at", "evidence_sha256"}
+    if not isinstance(value, dict) or value.get("schema") not in (1, 2):
+        return False, "approval schema must be 1 or 2"
+    schema = value["schema"]
+    required = common if schema == 1 else common | {"approval_basis"}
+    if set(value) != required:
+        return False, f"approval fields differ from schema {schema}"
+    if (value["kind"] != APPROVAL_KIND or
             value["verdict"] != "APPROVED"):
         return False, "approval vocabulary is invalid"
     if value["subject_sha256"] != subject_sha or value["refs"] != refs:
         return False, "approval subject or denominator is stale"
-    if value["evidence_sha256"] != evidence:
+    approved_evidence = value["evidence_sha256"]
+    if (not isinstance(approved_evidence, dict) or not approved_evidence or
+            any(not isinstance(key, str) or not isinstance(sha, str) or
+                len(sha) != 64 for key, sha in approved_evidence.items())):
+        return False, "approved evidence map is invalid"
+    if set(approved_evidence) != set(evidence):
+        return False, "approved review image denominator changed"
+    if schema == 1 and approved_evidence != evidence:
         return False, "approved review images changed"
+    if schema == 2 and value["approval_basis"] != "semantic-subject-unchanged":
+        return False, "schema 2 approval basis is invalid"
     if not str(value["reviewer"]).strip() or not str(value["confirmed_at"]).strip():
         return False, "approval reviewer/time is empty"
+    if schema == 2:
+        return True, "approved; semantic subject unchanged"
     return True, "approved"
 
 

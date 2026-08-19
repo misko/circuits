@@ -16,14 +16,15 @@ USB-C DATA
 
 USB-C POWER
   CC1/CC2 -> CH224K hardware PD sink (request 15 V)
-  VBUS -> input fuse + TVS + TPS56637 6 A buck -> P5V_RAW (~5.13 V)
+  VBUS -> input fuse + TVS -> UVLO/dVdt TPS259470A
+       -> TPS56637 6 A buck -> P5V_RAW (~5.16 V)
   D+/D-/SBU -> no-connect
 
 P5V_RAW -> existing TPS259474L reverse-blocking latch-off eFuse
           -> P5V_PROTECTED
              -> existing AP63203Q 3.3 V regulator
              -> existing management TPS2557
-             -> existing external TPS2557 x4
+             -> true-RCB external TPS259470A x4
 ```
 
 The existing USB topology is retained: hub port 1 is the permanently attached
@@ -61,18 +62,22 @@ The board still requires USB-C POWER before it can enumerate.
 
 ## USB-C POWER behavior
 
-TYPE-C-31-M-12 is used as a power-only sink receptacle. CH224K connects only
-to CC1/CC2 and the protected connector-side VBUS. Its fixed hardware straps
-request the 15 V PD profile. D+/D- and SBU pins are not routed.
+TYPE-C-31-M-12 is used as a power-only sink receptacle. CH224K connects to
+CC1/CC2 and the protected connector-side VBUS. Its fixed hardware straps
+request the 15 V PD profile; CH224K DP/DM are shorted locally while connector
+D+/D- and SBU pins remain unconnected.
 
 The admitted source advertises a 15 V fixed PDO at 3 A (45 W minimum).
 Default 5 V, a 9 V-only source, or a source without the requested contract is
-not a qualified supply. The buck's external UVLO is set above default 5 V so
-an unsuccessful contract leaves `P5V_RAW` off.
+not a qualified supply. A TPS259470A ahead of the buck has a calculated
+9.646–10.329 V UVLO window and disconnects the buck's two 10 uF input
+capacitors during initial Type-C attach. Its dV/dt control then charges that
+bank only after a negotiated voltage is present. The buck retains its own UVLO
+as a second boundary, so an unsuccessful contract leaves `P5V_RAW` off.
 
 ## New regulator island
 
-TPS56637 converts the contracted 15 V to approximately 5.13 V. It was selected
+TPS56637 converts the contracted 15 V to approximately 5.16 V. It was selected
 because it:
 
 - accepts 4.5–28 V and tolerates the 15 V PDO with substantial voltage margin;
@@ -100,7 +105,9 @@ connectivity parity against v1:
 
 - USB2517I hub, clock, straps, detector, and decoupling;
 - MCP2221A/MCP23017 management path;
-- five TPS2557 power switches and their current-limit programming;
+- the internal management TPS2557 and its current-limit programming;
+- four TPS259470A external-port eFuses with active-low hub fault reporting,
+  approximately 0.50–0.63 A limits and true reverse-current blocking;
 - four FSUSB42 data switches and four PESD2USB3UX connector protectors;
 - 74LVC08/2N7002 hardware interlocks and safe-state pulls;
 - AP63203Q 3.3 V regulator;

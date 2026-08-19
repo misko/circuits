@@ -281,10 +281,14 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 19
-PROVEN_FLOOR = 694
+PROVEN_FLOOR = 698
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.
+#: 694 -> 698 on 2026-08-18: the USB debug-hub v2 canary exposed a malformed
+#: multi-reader cell plus three already-executable schemas: exact critical
+#: branch children and asymmetric feedback-reference limits. The human-only
+#: package/candidate summaries were classified ADVISORY, leaving zero orphan.
 #: 17 -> 18 families and 575 -> 600 PROVEN on 2026-08-16: the first
 #: release-target USB-controlled-hub canary populated model-registration
 #: authority and exercised exact model-override/corridor/length-router fields.

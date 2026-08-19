@@ -50,9 +50,24 @@
 (rule "scoped_agg_input_bypass_launch"
   (condition "A.insideArea('agg_input_bypass_launch') && (A.NetName == 'P5V_REG')")
   (constraint track_width (min 0.3mm)))
-(rule "scoped_pd_uv_sense"
-  (condition "A.insideArea('pd_uv_sense') && (A.NetName == 'VBUS_PD')")
+(rule "scoped_pd_input_uv_sense"
+  (condition "A.insideArea('pd_input_uv_sense') && (A.NetName == 'VBUS_PD')")
   (constraint track_width (min 0.18mm)))
+(rule "scoped_pd_buck_uv_sense"
+  (condition "A.insideArea('pd_buck_uv_sense') && (A.NetName == 'VBUS_PD_SW')")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_pd_controller_supply_launch"
+  (condition "A.insideArea('pd_controller_supply_launch') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pd_vbus_monitor_tap"
+  (condition "A.insideArea('pd_vbus_monitor_tap') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_pd_input_gate_launch"
+  (condition "A.insideArea('pd_input_gate_launch') && (A.NetName == 'VBUS_PD' || A.NetName == 'VBUS_PD_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pd_input_hf_bypass_launch"
+  (condition "A.insideArea('pd_input_hf_bypass_launch') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.3mm)))
 (rule "scoped_buck_input_launch"
   (condition "A.insideArea('buck_input_launch') && (A.NetName == 'P5V_PROTECTED')")
   (constraint track_width (min 0.8mm)))
@@ -112,16 +127,16 @@
   (constraint track_width (min 0.3mm)))
 (rule "scoped_pwr1_input_launch"
   (condition "A.insideArea('pwr1_input_launch') && (A.NetName == 'P5V_PROTECTED')")
-  (constraint track_width (min 0.35mm)))
+  (constraint track_width (min 0.3mm)))
 (rule "scoped_pwr2_input_launch"
   (condition "A.insideArea('pwr2_input_launch') && (A.NetName == 'P5V_PROTECTED')")
-  (constraint track_width (min 0.35mm)))
+  (constraint track_width (min 0.3mm)))
 (rule "scoped_pwr3_input_launch"
   (condition "A.insideArea('pwr3_input_launch') && (A.NetName == 'P5V_PROTECTED')")
-  (constraint track_width (min 0.35mm)))
+  (constraint track_width (min 0.3mm)))
 (rule "scoped_pwr4_input_launch"
   (condition "A.insideArea('pwr4_input_launch') && (A.NetName == 'P5V_PROTECTED')")
-  (constraint track_width (min 0.35mm)))
+  (constraint track_width (min 0.3mm)))
 (rule "scoped_pwr_ctrl_input_launch"
   (condition "A.insideArea('pwr_ctrl_input_launch') && (A.NetName == 'P5V_PROTECTED')")
   (constraint track_width (min 0.35mm)))

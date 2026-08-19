@@ -10,7 +10,12 @@ scoped_floors:
   - {zone: pd_feedback_sense, nets: [P5V_REG], min_width: 0.18mm, why: "Quiet board-edge Kelvin sense from the regulated output zone to the relocated TPS56637 feedback/feed-forward network; it carries no load current."}
   - {zone: agg_uv_tap, nets: [P5V_REG], min_width: 0.18mm, why: "No-load-current UV-threshold sense tap from P5V_REG to the aggregate eFuse divider; it is not a power-distribution branch."}
   - {zone: agg_input_bypass_launch, nets: [P5V_REG], min_width: 0.30mm, why: "Short package-local connection from the aggregate eFuse input bypass capacitor into the full P5V_REG zone."}
-  - {zone: pd_uv_sense, nets: [VBUS_PD], min_width: 0.18mm, why: "No-load-current UVLO sense from the reshaped VBUS_PD input zone to R_PD_UV_TOP; it is not a regulator load-current path."}
+  - {zone: pd_input_uv_sense, nets: [VBUS_PD], min_width: 0.18mm, why: "No-load-current negotiated-voltage window sense from VBUS_PD to the U_PD_IN UVLO divider; it is not a converter load-current path."}
+  - {zone: pd_buck_uv_sense, nets: [VBUS_PD_SW], min_width: 0.18mm, why: "No-load-current buck-enable sense from the gated VBUS_PD_SW zone to R_PD_UV_TOP; it is not a regulator load-current path."}
+  - {zone: pd_controller_supply_launch, nets: [VBUS_PD], min_width: 0.30mm, why: "Short low-current CH224K supply branch from the VBUS_PD zone into the 1210 series resistor; converter load current does not use this branch."}
+  - {zone: pd_vbus_monitor_tap, nets: [VBUS_PD], min_width: 0.18mm, why: "No-load-current monitor tap from the VBUS_PD TVS/sense zone into R_PD_VBUS; all negotiated load current uses the separate 1.50 mm fuse and input-zone path."}
+  - {zone: pd_input_gate_launch, nets: [VBUS_PD, VBUS_PD_SW], min_width: 0.30mm, why: "TPS259470A 0.30 mm RPW lands use bounded package escapes; the 1.50 mm PD power floor resumes outside the gate cell."}
+  - {zone: pd_input_hf_bypass_launch, nets: [VBUS_PD], min_width: 0.30mm, why: "The 100nF attach-side bypass is a short local high-frequency branch, not the converter load path; its 0402 land uses a bounded 0.30 mm connection to the full-width VBUS_PD copper."}
   - {zone: buck_input_launch, nets: [P5V_PROTECTED], min_width: 0.80mm, why: "The retained 0.6 A 3V3 buck is a bounded local load: its paired VIN lands and adjacent input capacitor use a short 0.80 mm collector from the full-width protected-5V branch."}
   - {zone: buck_3v3_feedback, nets: [3V3_MAIN], min_width: 0.18mm, why: "No-load-current AP63203 feedback sense runs around the quiet side of the relocated converter; the 0.40 mm 3V3 distribution floor resumes at the output node."}
   - {zone: hub_package_launch, nets: [3V3_MAIN], min_width: 0.20mm, why: "MEASURED before routing: USB2517I 0.50 mm-pitch lands can emit only 0.20 mm at the retained package-local 0.17 mm clearance. This <=1.2 mm launch carries one supply-pin branch and widens to the 0.40 mm 3V3 distribution outside the QFN area."}
@@ -30,15 +35,15 @@ scoped_floors:
   - {zone: and_pwr_3v3_launch, nets: [3V3_MAIN], min_width: 0.25mm, why: "MEASURED power_3v3 DRC: U_AND_PWR pad 14 emits a 0.1505 mm package-terminal taper realized at 0.2598 mm before the 0.40 mm distribution rail; the bounded floor remains above JLC's selected-tier minimum."}
   - {zone: and_data_3v3_launch, nets: [3V3_MAIN], min_width: 0.25mm, why: "U_AND_DATA translation of the measured 74LVC08 pad-14 supply taper."}
   - {zone: aggregate_efuse_launch, nets: [P5V_REG, P5V_PROTECTED], min_width: 0.30mm, why: "The TPS259474L adjacent 0.30 mm lands require exact-width pin escapes; full-width 5 V distribution resumes outside this package cell."}
-  - {zone: pwr1_input_launch, nets: [P5V_PROTECTED], min_width: 0.35mm, why: "MEASURED before routing: the paired TPS2557 input lands require 0.35 mm pin joins. This bounded local-load area includes the authored 0.50 mm capacitor tap and 0.80 mm collector; the 1.50 mm branch resumes immediately outside."}
-  - {zone: pwr2_input_launch, nets: [P5V_PROTECTED], min_width: 0.35mm, why: "Channel-2 translation of the measured TPS2557 local input distribution."}
-  - {zone: pwr3_input_launch, nets: [P5V_PROTECTED], min_width: 0.35mm, why: "Channel-3 translation of the measured TPS2557 local input distribution."}
-  - {zone: pwr4_input_launch, nets: [P5V_PROTECTED], min_width: 0.35mm, why: "Channel-4 translation of the measured TPS2557 local input distribution."}
+  - {zone: pwr1_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "TPS259470A input land and local bypass use a bounded 0.30 mm package escape; the full protected-rail branch resumes immediately outside."}
+  - {zone: pwr2_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "Channel-2 translation of the TPS259470A package launch."}
+  - {zone: pwr3_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "Channel-3 translation of the TPS259470A package launch."}
+  - {zone: pwr4_input_launch, nets: [P5V_PROTECTED], min_width: 0.30mm, why: "Channel-4 translation of the TPS259470A package launch."}
   - {zone: pwr_ctrl_input_launch, nets: [P5V_PROTECTED], min_width: 0.35mm, why: "Internal-management-channel translation of the measured TPS2557 local input distribution."}
-  - {zone: pwr1_output_launch, nets: [VBUS1_SW], min_width: 0.30mm, why: "MEASURED after the first power-port replay: the TPS2557 paired output pads require <=0.10 mm tapered pin joins whose realized widths bottom at 0.3098 mm; the 0.50 mm switched-VBUS route begins immediately outside this package-only area."}
-  - {zone: pwr2_output_launch, nets: [VBUS2_SW], min_width: 0.30mm, why: "Channel-2 translation of the measured TPS2557 output launch."}
-  - {zone: pwr3_output_launch, nets: [VBUS3_SW], min_width: 0.30mm, why: "Channel-3 translation of the measured TPS2557 output launch."}
-  - {zone: pwr4_output_launch, nets: [VBUS4_SW], min_width: 0.30mm, why: "Channel-4 translation of the measured TPS2557 output launch."}
+  - {zone: pwr1_output_launch, nets: [VBUS1_SW], min_width: 0.30mm, why: "TPS259470A output land uses a bounded 0.30 mm package escape; the 0.50 mm switched-VBUS route begins immediately outside."}
+  - {zone: pwr2_output_launch, nets: [VBUS2_SW], min_width: 0.30mm, why: "Channel-2 translation of the TPS259470A output launch."}
+  - {zone: pwr3_output_launch, nets: [VBUS3_SW], min_width: 0.30mm, why: "Channel-3 translation of the TPS259470A output launch."}
+  - {zone: pwr4_output_launch, nets: [VBUS4_SW], min_width: 0.30mm, why: "Channel-4 translation of the TPS259470A output launch."}
   - {zone: pwr_ctrl_output_launch, nets: [VBUS_CTRL], min_width: 0.30mm, why: "Internal-management-channel translation of the measured TPS2557 output launch; the 0.40 mm internal-VBUS floor resumes outside."}
 
 scoped_clearances:
@@ -182,7 +187,7 @@ classes:
     verify: DRC, differential-pair geometry audit, realized-copper skew audit, reference-plane continuity audit, and first-article USB 2.0 enumeration
   PWR_INPUT:
     intent: USB-C PD input, local 5 V regulator, and protected 5 V trunk.
-    nets: [VBUS_PD_RAW, VBUS_PD, PD_SW, P5V_REG, P5V_PROTECTED]
+    nets: [VBUS_PD_RAW, VBUS_PD, VBUS_PD_SW, PD_SW, P5V_REG, P5V_PROTECTED]
     current: 15 V input at 3 A contract; 5 V trunk 3.0 A continuous / 5.0 A bounded transient design load
     min_width: 1.5mm
     clearance: 0.15mm

@@ -163,6 +163,64 @@ def t_review_pause_and_approval():
     eq(approval["refs"], refs, "approval binds the complete ref denominator")
 
 
+@test("semantic-subject approval survives regenerated pixels only")
+def t_semantic_subject_approval_carry_forward():
+    project = tmpdir("connector_semantic_approval")
+    approval = project / "approval.yaml"
+    refs = ["J_DATA", "J_PORT1"]
+    old_evidence = {
+        "views/J_DATA_top.png": "1" * 64,
+        "views/J_PORT1_top.png": "2" * 64,
+    }
+    new_evidence = {
+        "views/J_DATA_top.png": "3" * 64,
+        "views/J_PORT1_top.png": "4" * 64,
+    }
+    value = {
+        "schema": 2,
+        "kind": orientation_gate.APPROVAL_KIND,
+        "verdict": "APPROVED",
+        "subject_sha256": "a" * 64,
+        "refs": refs,
+        "reviewer": "regression-human",
+        "confirmed_at": "2026-08-19T00:00:00Z",
+        "approval_basis": "semantic-subject-unchanged",
+        "evidence_sha256": old_evidence,
+    }
+    approval.write_text(yaml.safe_dump(value, sort_keys=False), encoding="utf-8")
+    passed, reason = orientation_gate.validate_approval(
+        approval, "a" * 64, refs, new_evidence)
+    check(passed, "same semantic subject accepts regenerated pixels")
+    contains(reason, "semantic subject unchanged", "carry-forward reason")
+
+
+@test("semantic-subject approval rejects geometry or denominator changes")
+def t_semantic_subject_approval_rejects_real_change():
+    project = tmpdir("connector_semantic_reject")
+    approval = project / "approval.yaml"
+    evidence = {"views/J_DATA_top.png": "1" * 64}
+    value = {
+        "schema": 2,
+        "kind": orientation_gate.APPROVAL_KIND,
+        "verdict": "APPROVED",
+        "subject_sha256": "a" * 64,
+        "refs": ["J_DATA"],
+        "reviewer": "regression-human",
+        "confirmed_at": "2026-08-19T00:00:00Z",
+        "approval_basis": "semantic-subject-unchanged",
+        "evidence_sha256": evidence,
+    }
+    approval.write_text(yaml.safe_dump(value, sort_keys=False), encoding="utf-8")
+    passed, reason = orientation_gate.validate_approval(
+        approval, "b" * 64, ["J_DATA"], evidence)
+    check(not passed, "changed semantic subject requires reapproval")
+    contains(reason, "subject or denominator is stale", "subject failure")
+    passed, reason = orientation_gate.validate_approval(
+        approval, "a" * 64, ["J_DATA", "J_PORT1"], evidence)
+    check(not passed, "changed connector denominator requires reapproval")
+    contains(reason, "subject or denominator is stale", "denominator failure")
+
+
 @test("a reversed connector fails before human approval", kind="known_bad")
 def t_reversed_board_axis_fails():
     project, board, _refs = fixture("usb_b")

@@ -36,8 +36,7 @@ sourcing:
 layout:
   source: "TI SLVSEG1A Figures 17 and 34; TPS56637EVM-029 listed by TI"
   keep_short:
-    - {net: VBUS_PD, anchor_pins: ["8"], partner_refs: [C_PD_IN2], max_span_mm: 3.2, why: "nearest bulk input ceramic immediately at VIN; centre-span metric retains less than 2.5mm land-edge copper"}
-    - {net: VBUS_PD, anchor_pins: ["8"], partner_refs: [C_PD_IN_HF], max_span_mm: 3.2, why: "0.1uF high-frequency input ceramic immediately at VIN; centre-span metric retains less than 2.5mm land-edge copper"}
+    - {net: VBUS_PD_SW, anchor_pins: ["8"], partner_refs: [C_PD_IN1, C_PD_IN2], max_span_mm: 4.0, why: "post-negotiation bulk input ceramics immediately at VIN; the upstream TPS259470A controls their attach inrush"}
   adjacency:
     - {refdes: [U_PD_BUCK, C_PD_BOOT], max_mm: 1.6, why: "100nF bootstrap loop directly between BOOT and SW; exact realized worst land-edge gap is 1.501mm"}
     - {refdes: [U_PD_BUCK, L_PD], max_mm: 3.0, why: "short, wide switching node"}

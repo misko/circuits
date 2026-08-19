@@ -204,12 +204,19 @@ if ! [[ "$BUILD_QUANTITY" =~ ^[1-9][0-9]*$ ]]; then
 fi
 if [ ! -f "$PCBA_RECEIPT" ]; then
     mkdir -p "$PCBA_DIR"
-    if { [ -f "$PCBA_REQUEST" ] && [ ! -f "$PCBA_RESPONSE" ]; } || \
-       { [ ! -f "$PCBA_REQUEST" ] && [ -f "$PCBA_RESPONSE" ]; }; then
-        echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: request/response pair is partial; preserve it and resolve the missing artifact explicitly"
-        exit 2
-    fi
-    if [ ! -f "$PCBA_REQUEST" ] && [ ! -f "$PCBA_RESPONSE" ]; then
+	if { [ -f "$PCBA_REQUEST" ] && [ ! -f "$PCBA_RESPONSE" ]; } || \
+	   { [ ! -f "$PCBA_REQUEST" ] && [ -f "$PCBA_RESPONSE" ]; }; then
+		echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: request/response pair is partial; preserve it and resolve the missing artifact explicitly"
+		exit 2
+	fi
+	if [ -f "$PCBA_REQUEST" ] && [ -f "$PCBA_RESPONSE" ]; then
+		$PY "$FS/jlc_pcba_availability.py" verify-request "$PCBA_REQUEST" \
+			--bom "$CJ" --assembly 03_src/rules/assembly.yaml \
+			--procurement-policy 01_docs/sourcing/procurement-policy.yaml \
+			--build-quantity "$BUILD_QUANTITY" --phase prelayout \
+			|| { echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: saved request/response belong to stale design inputs; preserve any operator evidence, then regenerate both from the current circuit"; exit 2; }
+	fi
+	if [ ! -f "$PCBA_REQUEST" ] && [ ! -f "$PCBA_RESPONSE" ]; then
         $PY "$FS/jlc_pcba_availability.py" prepare "$CJ" \
             --assembly 03_src/rules/assembly.yaml \
             --procurement-policy 01_docs/sourcing/procurement-policy.yaml \

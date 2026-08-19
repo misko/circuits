@@ -1,6 +1,6 @@
 supplies:
   VBUS_PD: 15.0
-  P5V_REG: 5.13
+  P5V_REG: 5.16
   P5V_PROTECTED: 5.0
   3V3_MAIN: 3.3
   VBUS_CTRL: 5.0
@@ -112,10 +112,20 @@ invariants:
   - {assert: pin_on_net, pin: "U_PD.2", net: PD_VDD, adr: "0013", why: "CH224K CFG2 high"}
   - {assert: pin_on_net, pin: "U_PD.3", net: PD_VDD, adr: "0013", why: "CH224K CFG3 high"}
   - {assert: pin_on_net, pin: "U_PD.9", net: GND, adr: "0013", why: "CH224K CFG1 low; K-specific 0/1/1 strap requests 15V"}
-  - {assert: pin_on_net, pin: "U_PD_BUCK.8", net: VBUS_PD, adr: "0013", why: "buck input is fused and TVS-protected negotiated VBUS"}
+  - {assert: pin_on_net, pin: "U_PD.4", net: PD_PROTO, adr: "0014", why: "PD-only CH224K D+ and D- are shorted locally per the controller reference topology"}
+  - {assert: pin_on_net, pin: "U_PD.5", net: PD_PROTO, adr: "0014", why: "PD-only CH224K D+ and D- are shorted locally per the controller reference topology"}
+  - {assert: series_chain, chain: [VBUS_PD, U_PD_IN, VBUS_PD_SW], through: {U_PD_IN: ["5", "6"]}, adr: "0014", why: "the buck bulk bank must remain behind the negotiated-voltage inrush gate"}
+  - {assert: pin_on_net, pin: "C_PD_IN_HF.1", net: VBUS_PD, adr: "0014", why: "only the 100nF eFuse input bypass is directly exposed at Type-C attach"}
+  - {assert: pin_on_net, pin: "C_PD_IN1.1", net: VBUS_PD_SW, adr: "0014", why: "the first 10uF buck capacitor is disconnected until negotiated-voltage UVLO passes"}
+  - {assert: pin_on_net, pin: "C_PD_IN2.1", net: VBUS_PD_SW, adr: "0014", why: "the second 10uF buck capacitor is disconnected until negotiated-voltage UVLO passes"}
+  - {assert: part_value, part: R_PD_VDD, equals: 1k, tolerance_pct: 1, adr: "0014", why: "the value remains per WCH but the physical part is upgraded to a 0.5W 1210"}
+  - {assert: part_value, part: R_PD_IN_UV_TOP, equals: 470k, tolerance_pct: 1, adr: "0014", why: "first TPS259470A UVLO/OVLO divider segment"}
+  - {assert: part_value, part: R_PD_IN_UV_MID, equals: 28.7k, tolerance_pct: 1, adr: "0014", why: "sets the input-eFuse UVLO window above default 5V"}
+  - {assert: part_value, part: R_PD_IN_OV_BOT, equals: 35.7k, tolerance_pct: 1, adr: "0014", why: "sets the input-eFuse OVLO window above the 15V contract"}
+  - {assert: pin_on_net, pin: "U_PD_BUCK.8", net: VBUS_PD_SW, adr: "0014", why: "buck input is downstream of negotiated-voltage inrush control"}
   - {assert: pin_on_net, pin: "U_PD_BUCK.10", net: GND, adr: "0013", why: "Eco mode is selected by grounding MODE"}
   - {assert: part_value, part: R_PD_FB_A, equals: 75k, tolerance_pct: 0.1, adr: "0013", why: "first precision upper-feedback segment"}
-  - {assert: part_value, part: R_PD_FB_B, equals: 499, tolerance_pct: 0.1, adr: "0013", why: "second precision upper-feedback segment closes the 5.044-5.216V full-corner window"}
+  - {assert: part_value, part: R_PD_FB_B, equals: 1k, tolerance_pct: 0.1, adr: "0014", why: "second precision upper-feedback segment closes the 5.07363-5.24667V full-corner window"}
   - {assert: part_value, part: R_PD_FB_BOT, equals: 10k, tolerance_pct: 0.1, adr: "0013", why: "precision lower-feedback leg"}
   - {assert: pin_on_net, pin: "R_VBUS_TOP.1", net: USB_UP_VBUS, adr: "0011", why: "the VBUS detector upper leg must sense only the detachable upstream connector VBUS"}
   - {assert: pin_on_net, pin: "R_VBUS_TOP.2", net: HUB_VBUS_SENSE, adr: "0011", why: "the upper divider leg must terminate at USB2517I VBUS_DET"}
@@ -228,33 +238,33 @@ invariants:
     why: Port 4 data command must default low while management logic is absent.
   - assert: part_value
     part: R_ILIM1
-    equals: 165k
+    equals: 5.9k
     tolerance_pct: 1.0
-    adr: "0002"
-    why: TPS2557 tolerance study targets standard USB 2.0 downstream-port current.
+    adr: "0014"
+    why: TPS259470A full-corner current-limit study guarantees at least 500mA while bounding the high corner.
   - assert: part_value
     part: R_ILIM2
-    equals: 165k
+    equals: 5.9k
     tolerance_pct: 1.0
-    adr: "0002"
-    why: TPS2557 tolerance study targets standard USB 2.0 downstream-port current.
+    adr: "0014"
+    why: TPS259470A full-corner current-limit study guarantees at least 500mA while bounding the high corner.
   - assert: part_value
     part: R_ILIM3
-    equals: 165k
+    equals: 5.9k
     tolerance_pct: 1.0
-    adr: "0002"
-    why: TPS2557 tolerance study targets standard USB 2.0 downstream-port current.
+    adr: "0014"
+    why: TPS259470A full-corner current-limit study guarantees at least 500mA while bounding the high corner.
   - assert: part_value
     part: R_ILIM4
-    equals: 165k
+    equals: 5.9k
     tolerance_pct: 1.0
-    adr: "0002"
-    why: TPS2557 tolerance study targets standard USB 2.0 downstream-port current.
+    adr: "0014"
+    why: TPS259470A full-corner current-limit study guarantees at least 500mA while bounding the high corner.
   - assert: part_value
     part: R_ILIM_CTRL
-    equals: 165k
+    equals: 187k
     tolerance_pct: 1.0
-    adr: "0002"
-    why: The internal management port remains within the same USB 2.0 current-limit envelope.
+    adr: "0014"
+    why: The captive management switch uses the largest TI-recommended programmer value; full-corner equations bound its current limit to 0.468-0.706A while normal commissioned load remains at or below 0.10A.
 
 label_survival: {}

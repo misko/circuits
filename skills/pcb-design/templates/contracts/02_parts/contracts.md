@@ -692,6 +692,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `datasheet.file` | ADVISORY | as `pdf:` |
 | `pins.<N>` | `pin_audit.py, circuit_json_to_kicad_sch.py, policy_audit.py` | the pin map, in the bare `<N>: "name"` scalar form |
 | `pins.<N>.name` | `pin_audit.py, circuit_json_to_kicad_sch.py, policy_audit.py` | the pin map, mapping form |
+| `pins.<N>.type` | ADVISORY | human-readable electrical pin category on the CH224K dossier; executable connection and stress constraints live in the netlist invariants and protection-path contract |
 | `pins.<N>.note` | ADVISORY | per-pin datasheet prose (274 pins). The CONSTRAINTS inside it belong in `electrical.pins.<N>`, which IS graded by `node_level` |
 | `pins.<N>.tie` | OWED | 84 pins name the net they must land on and NOTHING reads it — the `GND_ISO` field class. E-NETREF K13; the patch is in `schema_reader_audit.py`'s docstring |
 | `pin_aliases` | `pin_map_check.py` | optional, explicit logical-to-artifact pin identity map; identity is the default and aliases are never inferred from equal nets |
@@ -704,6 +705,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `escape.pitch` | `escape_check.py` | P-ESC pitch |
 | `escape.tier_required` | `escape_check.py, policy_audit.py` | P-TIER: the fab tier the escape needs |
 | `escape.escapes_worst_side` | `escape_check.py` | P-ESC worst-side count |
+| `escape.pins` | ADVISORY | descriptive total pin count for an asymmetric package; the exact footprint/pin map and worst-side escape count own the executable geometry |
 | `escape.conditions` | `escape_check.py` | P-ESC qualifying conditions |
 | `escape.tier_conditional` | OWED | a declared conditional fab tier that no reader compares with `escape_check.py`'s independently computed `tier_conditional()` result; a stale declaration is currently silent |
 | `escape.checked` | OWED | the date/method the escape was calibrated. 125 dossiers carry it; `escape_check.py` recomputes the geometry and never reads this, so a stale calibration note is invisible |
@@ -715,6 +717,7 @@ against the `side: bottom` features) are the cheapest first bite.
 | `layout.route_topology.kind` | `placement_routability_preflight.py` | part-class route semantics: `shunt`, `series_flow_through`, or `series_directional`; each placed critical-path instance must agree with this dossier authority before placement promotion |
 | `layout.route_topology.*` | `placement_routability_preflight.py` | exact reusable signal/return or common/selected/unused pad banks; each route instance must match these dossier-owned sets and its declared critical-pair nets |
 | `layout.notes` | `policy_audit.py` | P-LAYOUT: prose rules, whose presence satisfies the declare-something obligation |
+| `layout.footprint_adjudication` | ADVISORY | human record of why manufacturer land geometry supersedes a distributor CAD footprint; realized footprint/model checks own executable acceptance |
 | `layout.keep_short[].net` | `policy_audit.py, net_reference_audit.py` | P-ADJ span budget subject (E-NETREF K7) |
 | `layout.keep_short[].max_span_mm` | `policy_audit.py` | P-ADJ budget; a non-numeric value is a FAIL, not a skip |
 | `layout.keep_short[].anchor_pins` | `policy_audit.py` | P-ADJ anchor override — an unstated anchor is a hidden assumption |

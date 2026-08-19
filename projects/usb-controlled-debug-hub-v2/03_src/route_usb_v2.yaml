@@ -110,7 +110,7 @@ prep:
     groups:
       usb_transition_ports: [P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N, P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N]
       usb_upstream: [UP_HUB_P, UP_HUB_N]
-      power_input: [VBUS_PD_RAW, VBUS_PD, PD_SW, PD_BOOT, P5V_REG, P5V_PROTECTED]
+      power_input: [VBUS_PD_RAW, VBUS_PD, VBUS_PD_SW, PD_SW, PD_BOOT, P5V_REG, P5V_PROTECTED]
 
 route:
   import_source: build

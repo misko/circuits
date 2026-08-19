@@ -36,6 +36,7 @@ stages:
       - C_PD_IN1
       - C_PD_IN2
       - C_PD_IN_HF
+      - C_PD_IN_DVDT
       - C_PD_OUT1
       - C_PD_OUT2
       - C_PD_OUT3
@@ -122,6 +123,10 @@ stages:
       - R_PD_UV_TOP
       - R_PD_VBUS
       - R_PD_VDD
+      - R_PD_IN_UV_TOP
+      - R_PD_IN_UV_MID
+      - R_PD_IN_OV_BOT
+      - R_PD_IN_ILIM
       - R_PWR_CMD1
       - R_PWR_CMD2
       - R_PWR_CMD3
@@ -158,6 +163,7 @@ stages:
       - U_EXP
       - U_HUB
       - U_PD
+      - U_PD_IN
       - U_PD_BUCK
       - U_PWR1
       - U_PWR2
@@ -165,12 +171,18 @@ stages:
       - U_PWR4
       - U_PWR_CTRL
       - Y_HUB
-    exposed_pads: [U_HUB, U_PWR1, U_PWR2, U_PWR3, U_PWR4, U_PWR_CTRL]
+    exposed_pads: [U_HUB, U_PD_IN, U_PWR1, U_PWR2, U_PWR3, U_PWR4, U_PWR_CTRL]
 
 rails:
   - name: VBUS_PD
+    resistance: {probe: "C_PD_IN_HF.1 to C_PD_IN_HF.2", min_ohm: 1000, max_ohm: 1000000}
+    voltage: {probe: "C_PD_IN_HF.1 to C_PD_IN_HF.2", min_v: 14.25, max_v: 15.75}
+    no_load_current: {probe: inline_PD_analyzer, min_a: 0, max_a: 0.20}
+    supply: {probe: "qualified 15 V / 3 A USB-C PD source through a 0.30 A current-limited first-power fixture",
+             min_v: 14.25, max_v: 15.75, max_current_limit_a: 0.30}
+  - name: VBUS_PD_SW
     resistance: {probe: "C_PD_IN1.1 to C_PD_IN1.2", min_ohm: 1000, max_ohm: 1000000}
-    voltage: {probe: "C_PD_IN1.1 to C_PD_IN1.2", min_v: 14.25, max_v: 15.75}
+    voltage: {probe: "C_PD_IN1.1 to C_PD_IN1.2", min_v: 14.0, max_v: 15.75}
     no_load_current: {probe: inline_PD_analyzer, min_a: 0, max_a: 0.20}
     supply: {probe: "qualified 15 V / 3 A USB-C PD source through a 0.30 A current-limited first-power fixture",
              min_v: 14.25, max_v: 15.75, max_current_limit_a: 0.30}

@@ -537,6 +537,10 @@
       },
       {
         "netclass": "PWR_INPUT",
+        "pattern": "VBUS_PD_SW"
+      },
+      {
+        "netclass": "PWR_INPUT",
         "pattern": "PD_SW"
       },
       {

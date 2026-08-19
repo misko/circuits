@@ -40,7 +40,7 @@ layout:
     - {refdes: [J_PORT4, U_ESD4], max_mm: 12, why: "Place the connector-side PESD2USB3UX shunt close to D-/D+ pins 2/3 with a short ground return."}
   notes:
     - "Keep each VBUS bulk and HF capacitor on the load-switch output path toward connector pin 1."
-    - "per-port power switch (TPS2557) feeds VBUS; keep the data pair short from the switch/ESD to the receptacle"
+    - "The per-port true-RCB TPS259470A feeds VBUS; keep the data pair short from the data switch/ESD to the receptacle."
     - "Connect the shell directly to board ground with short copper; this board does not implement a separate chassis domain."
 asserts:
   - {assert: value, equals: KH-AF90DIP-112, why: "The THT hole pattern and female-receptacle body are exact-part bound."}
