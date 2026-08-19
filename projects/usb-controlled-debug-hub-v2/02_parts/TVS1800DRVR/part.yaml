@@ -15,7 +15,7 @@ datasheet:
   provenance: "CITED: official TI exact-MPN PDF; electrical table, pin table, DRV package drawing and layout guidance were read for this use."
 package: DRV0006A WSON-6 2x2mm P0.65 with exposed pad
 footprint: usb_controlled_debug_hub:TI_DRV0006A_WSON-6_2x2mm_P0.65mm
-escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_advanced, checked: "TI example land pattern and exact C2649846 JLC CAD agree on 2.06mm bank spacing and 0.65mm pitch"}
+escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard, checked: "TI example land pattern and exact C2649846 JLC CAD agree on 2.06mm bank spacing and 0.65mm pitch; package escape itself fits the standard four-layer tier, while the board still requires advanced processing for its selective filled/capped 0.20mm via family"}
 pins: {1: GND, 2: GND, 3: GND, 4: IN, 5: IN, 6: IN, 7: GND_EP}
 limits:
   vrwm_V: 18

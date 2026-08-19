@@ -1,32 +1,32 @@
 {
   "files": {
     "03_src/rebuild_all.sh": {
-      "sha256": "de67bacf75539505bdf5a77ff4f68c213cf54e4f3d48c6e61fc503a96d0d53e1",
-      "size": 30827
+      "sha256": "a24b865f5214af7488a5fac250968184272454536370afc1d293d9b7737501d6",
+      "size": 31575
     },
     "03_tscircuit/build/circuit.json": {
-      "sha256": "7bebe1ac42f493299d3400cb56daf5a8625faa66e9b76cf4967439aab71fb2eb",
-      "size": 3067742
+      "sha256": "e4a1bbc31c38d0a517834234fd2b190af1af34699b76841324892be2e485bd14",
+      "size": 3119454
     },
     "03_tscircuit/build/schematic.pdf": {
-      "sha256": "e5dffbcb5d740fb454005991e272fd12577c17c66f979208b326e2ac31cf25f2",
-      "size": 471584
+      "sha256": "692e90e849111244066af76ca7af15222b459a58fed71263ca73217db7152e29",
+      "size": 466168
     },
     "03_tscircuit/manifest.yaml": {
-      "sha256": "01b4b61dd77d1b2baf890ab23b67f54e405a5d1973a8834b608233ec703e4d67",
-      "size": 2391
+      "sha256": "fd884377428be2a350e1a982bc6a2fccf3a6157bc0cbd344dbaedcdb325a7dea",
+      "size": 2340
     },
     "04_kicad/usb_controlled_debug_hub.kicad_sch": {
-      "sha256": "339256438b66202e7e43681dd346f351ee8eec10559877588fa9ac94a3d95de2",
-      "size": 547644
+      "sha256": "535d9878289bdf239ce139f8b887808c82fc04e3c92cef7dfec28a04953f94ae",
+      "size": 558708
     },
     "06_build/build_provenance.json": {
-      "sha256": "05006f8a35c941b5b10fae146f144437b2870fd85d69b914c8636112d7670b01",
+      "sha256": "35382c0653a45935d9b7e4d61f221f28e12508ac540ba1b728f77fd3043d5ea6",
       "size": 842
     },
     "06_build/netlists/usb_controlled_debug_hub.net": {
-      "sha256": "b560b660db3dfbd811db82bf1e81116946ef0bc8e7e5ef1619cb331d84cf93e6",
-      "size": 304642
+      "sha256": "55685b5f2e324ce4864d71a61301a968a038da476cacf619146ba758e1165da8",
+      "size": 305133
     }
   },
   "name": "schematic",

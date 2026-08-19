@@ -761,14 +761,6 @@
       },
       {
         "netclass": "CONTROL",
-        "pattern": "AGG_UV"
-      },
-      {
-        "netclass": "CONTROL",
-        "pattern": "AGG_OV"
-      },
-      {
-        "netclass": "CONTROL",
         "pattern": "AGG_ILIM"
       },
       {

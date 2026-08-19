@@ -197,6 +197,8 @@ PCBA_DIR=06_build/sourcing
 PCBA_REQUEST="$PCBA_DIR/prelayout_request.json"
 PCBA_RESPONSE="$PCBA_DIR/prelayout_response.csv"
 PCBA_RECEIPT="$PCBA_DIR/prelayout_receipt.json"
+CATALOG_EVIDENCE="$PCBA_DIR/catalog_stock_check_programmatic_2026-08-19.json"
+CATALOG_DECISION="01_docs/decisions/0017-public-catalog-prelayout-checkpoint.md"
 BUILD_QUANTITY=$(awk '$1 == "build_quantity:" {print $2; exit}' 03_src/rules/assembly.yaml)
 if ! [[ "$BUILD_QUANTITY" =~ ^[1-9][0-9]*$ ]]; then
     echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: assembly.yaml needs a positive build_quantity"
@@ -224,14 +226,25 @@ if [ ! -f "$PCBA_RECEIPT" ]; then
             --out "$PCBA_REQUEST" --response-template "$PCBA_RESPONSE" \
             || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: could not prepare exact JLC request"; exit 1; }
     fi
-    echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: check/upload $PCBA_REQUEST, fill $PCBA_RESPONSE, then run:"
-    echo "  $PY $FS/jlc_pcba_availability.py grade $PCBA_REQUEST $PCBA_RESPONSE --out $PCBA_RECEIPT"
-    exit 2
-fi
+	if [ -f "$CATALOG_EVIDENCE" ] && [ -f "$CATALOG_DECISION" ]; then
+		$PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
+			--catalog-request "$PCBA_REQUEST" \
+			--catalog-evidence "$CATALOG_EVIDENCE" \
+			--catalog-decision "$CATALOG_DECISION" \
+			--json 06_build/verification/manufacturing_readiness_prelayout.json \
+			|| { echo "GATE FAILED [1c] J-CATALOG-PRELAYOUT: public evidence is stale, incomplete, or not bound to the exact request"; exit 1; }
+		echo "J-CATALOG-PRELAYOUT: user-accepted negative filter only; final uploader allocation remains mandatory"
+	else
+		echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: check/upload $PCBA_REQUEST, fill $PCBA_RESPONSE, then run:"
+		echo "  $PY $FS/jlc_pcba_availability.py grade $PCBA_REQUEST $PCBA_RESPONSE --out $PCBA_RECEIPT"
+		exit 2
+	fi
+else
 $PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
     --pcba-receipt "$PCBA_RECEIPT" \
     --json 06_build/verification/manufacturing_readiness_prelayout.json \
     || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: exact JLCPCB PCBA availability is missing, stale, substituted, or insufficient"; exit 1; }
+fi
 
 # [2] ERC gate — 0 ERRORS. TWO RUNS, AND THE SPLIT IS THE CANON'S, NOT A
 # SOFTENING. Canon S4 and the kicad-pcb golden rules both say the gate is

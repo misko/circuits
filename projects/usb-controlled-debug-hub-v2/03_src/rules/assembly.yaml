@@ -18,7 +18,7 @@ via_process:
   order_remark: >-
     Copper-paste fill and copper cap the complete 0.20 mm drill family:
     every 0.46/0.20 mm via is IPC-4761 Type VII, including every realized
-    via-in-pad barrel. The v0.1.1 exact-board census is 502 protected
+    via-in-pad barrel. The v0.1.3 exact routed-board census is 498 protected
     0.46/0.20 mm vias and 11 ordinary 0.70/0.35 mm vias. Do not fill or cap
     the ordinary 0.35 mm drill family. Confirm both counts and this selective
     drill-family process in the

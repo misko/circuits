@@ -121,3 +121,4 @@ generated.
 | C7 | Put Type-C bulk behind a negotiated-voltage inrush switch and true-reverse-block all external USB-A VBUS paths | [0014](decisions/0014-power-path-adversarial-hardening.md) |
 | C8 | Use characterized local/aggregate current-limit rows, lower the 5 V setpoint, and coordinate TVS1800 against the upstream eFuse | [0015](decisions/0015-characterized-current-limits-and-input-clamp.md) |
 | C9 | Replace only the aggregate eFuse, use the exact RGE0024M split-pad land, and reserve 100 mV of regulator dynamic headroom | [0016](decisions/0016-low-loss-aggregate-and-transient-margin.md) |
+| C10 | Accept a fresh 53/53 public-catalog PASS for the pre-layout checkpoint only; retain the exact-release JLC PCBA uploader as a mandatory order hold | [0017](decisions/0017-public-catalog-prelayout-checkpoint.md) |

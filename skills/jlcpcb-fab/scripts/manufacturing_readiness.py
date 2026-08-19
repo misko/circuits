@@ -19,6 +19,7 @@ import os
 import re
 import subprocess
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -98,6 +99,73 @@ def _pcba_check(receipt: Path | None, *, phase: str,
     else:
         checked["detail"] = f"JLCPCB PCBA {predicate} accepted"
     return checked
+
+
+def _catalog_prelayout_check(request_path: Path | None,
+                             evidence_path: Path | None,
+                             decision_path: Path | None) -> dict[str, Any]:
+    """Verify a user-accepted public-catalog pre-layout negative filter.
+
+    This deliberately cannot be used for the order phase.  It proves only
+    exact-code catalog coverage for the requested build quantity and binds the
+    explicit project decision that defers allocation/economics to the uploader.
+    """
+    if not all((request_path, evidence_path, decision_path)):
+        return {"status": "INCOMPLETE",
+                "detail": "catalog prelayout requires request, evidence, and decision",
+                "output": "public catalog evidence is not order allocation"}
+    try:
+        request = json.loads(request_path.read_text(encoding="utf-8-sig"))
+        evidence = json.loads(evidence_path.read_text(encoding="utf-8-sig"))
+        decision = decision_path.read_text(encoding="utf-8-sig")
+    except Exception as exc:
+        return {"status": "INCOMPLETE", "detail": f"catalog evidence unreadable: {exc}",
+                "output": ""}
+    failures = []
+    if request.get("phase") != "prelayout" or request.get("schema") != 2:
+        failures.append("request is not a schema-v2 prelayout request")
+    if evidence.get("verdict") != "PASS":
+        failures.append(f"catalog verdict is {evidence.get('verdict')!r}, not PASS")
+    if evidence.get("predicts_jlc_assembly_allocation") is not False:
+        failures.append("catalog evidence does not preserve its non-allocation scope")
+    try:
+        generated = datetime.fromisoformat(str(evidence.get("generated_at") or "").replace("Z", "+00:00"))
+        if generated.tzinfo is None:
+            raise ValueError("timezone missing")
+        age = datetime.now(timezone.utc) - generated.astimezone(timezone.utc)
+        if age < timedelta(0) or age > timedelta(hours=24):
+            failures.append("catalog evidence is future-dated or older than 24 hours")
+    except ValueError as exc:
+        failures.append(f"catalog generated_at is invalid: {exc}")
+    wanted = {row.get("requested_lcsc"): row for row in request.get("rows") or []}
+    observed = {row.get("lcsc"): row for row in evidence.get("lines") or []}
+    if not wanted or set(wanted) != set(observed):
+        failures.append("catalog code set does not exactly match the request")
+    for code, row in wanted.items():
+        got = observed.get(code) or {}
+        if got.get("status") != "OK":
+            failures.append(f"{code}: catalog status {got.get('status')!r}")
+            continue
+        try:
+            per_board = int(got.get("qty"))
+            stock = int(got.get("stock"))
+        except (TypeError, ValueError):
+            failures.append(f"{code}: qty/stock is not integral")
+            continue
+        if per_board != int(row.get("per_board_qty") or -1):
+            failures.append(f"{code}: per-board quantity disagrees with request")
+        if stock < int(row.get("required_qty") or 0):
+            failures.append(f"{code}: catalog stock {stock} below required quantity")
+    required_decision_terms = ("public-catalog", "pre-layout", "DO-NOT-ORDER")
+    if any(term not in decision for term in required_decision_terms):
+        failures.append("decision does not explicitly bound catalog use to pre-layout/DO-NOT-ORDER")
+    return {
+        "status": "FAIL" if failures else "PASS",
+        "detail": ("; ".join(failures) if failures else
+                   f"{len(wanted)}/{len(wanted)} exact public-catalog lines cover the build; "
+                   "user accepted for pre-layout only"),
+        "output": "public catalog negative filter only; final JLC uploader allocation and economics remain mandatory",
+    }
 
 
 def _find_circuit(project: Path) -> Path:
@@ -180,7 +248,10 @@ def exact_code_check(project: Path, circuit: Path,
 
 
 def grade(project: Path, *, phase: str, release: Path | None = None,
-          pcba_receipt: Path | None = None) -> dict[str, Any]:
+          pcba_receipt: Path | None = None,
+          catalog_request: Path | None = None,
+          catalog_evidence: Path | None = None,
+          catalog_decision: Path | None = None) -> dict[str, Any]:
     project = project.resolve()
     circuit = _find_circuit(project)
     assembly = project / "03_src/rules/assembly.yaml"
@@ -204,10 +275,26 @@ def grade(project: Path, *, phase: str, release: Path | None = None,
             inputs["pcba_receipt"] = _record(pcba_receipt)
 
     if phase == "prelayout":
-        checks["jlc_pcba_availability"] = _pcba_check(
-            pcba_receipt, phase="prelayout", predicate="availability")
-        checks["procurement_exposure"] = _pcba_check(
-            pcba_receipt, phase="prelayout", predicate="economics")
+        if pcba_receipt is not None:
+            checks["jlc_pcba_availability"] = _pcba_check(
+                pcba_receipt, phase="prelayout", predicate="availability")
+            checks["procurement_exposure"] = _pcba_check(
+                pcba_receipt, phase="prelayout", predicate="economics")
+        else:
+            checks["public_catalog_prelayout"] = _catalog_prelayout_check(
+                catalog_request, catalog_evidence, catalog_decision)
+            checks["procurement_exposure"] = {
+                "status": checks["public_catalog_prelayout"]["status"],
+                "detail": ("deferred to final JLC uploader under explicit user decision"
+                           if checks["public_catalog_prelayout"]["status"] == "PASS"
+                           else "catalog acceptance decision is incomplete"),
+                "output": "no preorder, MOQ, allocation, or payment is authorized by this pre-layout result",
+            }
+            for name, path in (("catalog_request", catalog_request),
+                               ("catalog_evidence", catalog_evidence),
+                               ("catalog_decision", catalog_decision)):
+                if path is not None and path.is_file():
+                    inputs[name] = _record(path.resolve())
 
     if phase == "order":
         if release is None or not release.is_dir():
@@ -286,6 +373,9 @@ def main(argv: list[str] | None = None) -> int:
                               default="selection")
     grade_parser.add_argument("--release", type=Path)
     grade_parser.add_argument("--pcba-receipt", type=Path)
+    grade_parser.add_argument("--catalog-request", type=Path)
+    grade_parser.add_argument("--catalog-evidence", type=Path)
+    grade_parser.add_argument("--catalog-decision", type=Path)
     grade_parser.add_argument("--json", type=Path, required=True)
     verify_parser = sub.add_parser("verify")
     verify_parser.add_argument("receipt", type=Path)
@@ -298,7 +388,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if valid else 1
     try:
         result = grade(args.project, phase=args.phase, release=args.release,
-                       pcba_receipt=args.pcba_receipt)
+                       pcba_receipt=args.pcba_receipt,
+                       catalog_request=args.catalog_request,
+                       catalog_evidence=args.catalog_evidence,
+                       catalog_decision=args.catalog_decision)
     except Exception as exc:
         print(f"MANUFACTURING-READINESS INCOMPLETE: {exc}")
         return 2

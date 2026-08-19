@@ -5,10 +5,10 @@ review_kind: topology
 design_verdict: SOUND
 order_verdict: BLOCKED-SOURCING
 netlist_sha256: e5999cc54248976423e736eab7e72b4fcb04b68170b4b8ad3903ba4a2af3ea59
-parts_sha256: bef283a987f8cd38d20d424eae5cf1e0b212db89766aea22b666779ff1406a3e
-design_rules_sha256: c1ce6821bbab53e5f83b884f60ac1d2491ab03365e0875b1eed2fd7870002d92
-circuit_sha256: 3015d410603e89d1d3936f0b144b67deeb9997964589eff704fbfddbeb21c4e9
-reviewed_at: 2026-08-19T12:53:42-07:00
+parts_sha256: d089da4ca84240ff3077e02bdc909dcb3e9d23a41b4967a3f785297b722e626a
+design_rules_sha256: be908d898837e6c1d23774e5f97d0f29b5829a160e13bc45da40d42c103a2e82
+circuit_sha256: e4a1bbc31c38d0a517834234fd2b190af1af34699b76841324892be2e485bd14
+reviewed_at: 2026-08-19T14:48:00-07:00
 
 ## Scope and result
 
@@ -68,3 +68,14 @@ defect was found. This verdict does not authorize layout or ordering: the exact
 The release remains a bench instrument. Physical transient, thermal, drop,
 reverse-current, overload and USB signal-integrity evidence is deferred only
 to a quantity-five first article, never to unrestricted production.
+
+The hash binding was refreshed after a clean producer run. The regenerated
+netlist again passes all 137 electrical invariants, all five ADR coverage rows,
+all five early-design families, all seven topology rows and all seven margin
+rows; the public-catalog disposition changed sourcing authority only and did
+not alter this topology verdict.
+
+The TPS259804 placement budget was clarified for the primary IN bank plus IN
+PowerPAD. The bypass sits west of that bank within 3.5 mm; pin 16 joins the IN
+PowerPAD locally. This changes no part, net or rating and avoids routing the
+input bypass across the switched output bank.

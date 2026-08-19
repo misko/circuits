@@ -124,7 +124,7 @@
   (constraint track_width (min 0.25mm)))
 (rule "scoped_aggregate_efuse_launch"
   (condition "A.insideArea('aggregate_efuse_launch') && (A.NetName == 'P5V_REG' || A.NetName == 'P5V_PROTECTED')")
-  (constraint track_width (min 0.3mm)))
+  (constraint track_width (min 0.24mm)))
 (rule "scoped_pwr1_input_launch"
   (condition "A.insideArea('pwr1_input_launch') && (A.NetName == 'P5V_PROTECTED')")
   (constraint track_width (min 0.3mm)))

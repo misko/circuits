@@ -68,7 +68,7 @@ layout:
   source: "TI SLVSFR1A layout section and RGE0024M package drawing 4223975/B"
   reviewed: "2026-08-19"
   keep_short:
-    - {net: P5V_REG, anchor_pins: ["1", "2", "3", "16", "25"], partner_refs: [C_AGG_IN], max_span_mm: 3.0, why: "low-inductance aggregate input bypass at every IN land and IN PowerPAD"}
+    - {net: P5V_REG, anchor_pins: ["1", "2", "3", "25"], partner_refs: [C_AGG_IN], max_span_mm: 3.5, why: "single low-inductance aggregate input bypass beside the primary IN bank and IN PowerPAD; pin 16 is locally joined to pad 25 so the bypass path does not cross the switched OUT bank"}
   adjacency:
     - {refdes: [U_AGG, R_AGG_ILIM], max_mm: 4.0, why: "quiet ILIM programming loop"}
     - {refdes: [U_AGG, C_AGG_TIMER], max_mm: 4.0, why: "fault-timer capacitor local to ITIMER and GND"}
