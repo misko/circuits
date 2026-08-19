@@ -87,6 +87,11 @@ Block transient fetch failures, mirrored fits, unadjudicated pad geometry,
 model registration, polarity, or missing-body findings. Quote coverage as
 mounted bodies over the CPL denominator.
 
+For every orientation-declared connector, the twin automatically closes
+`P-MATE-REG`: vendor-model substitutions must preserve the approved native
+mating-plane datum and write `connector_datum_receipt.json`. A generic
+asymmetric-model adjudication cannot discharge this check.
+
 Run `twin_overlay.py` on same-camera populated/bare images for every populated
 side before a human render review. Debug one ref at a time with independent
 pad/courtyard, model-transform, and image-difference geometry.
@@ -135,7 +140,7 @@ project documents.
 | `manufacturing_readiness.py` | Selection, prelayout and final-order sourcing composition |
 | `assembly_coverage.py` | Independent board-minus-CPL population coverage |
 | `jlc_rotation_measure.py` / `jlc_rotation_audit.py` | Measured rotation authority |
-| `jlc_twin.py` | JLC CAD fit, transforms, models, and twin renders |
+| `jlc_twin.py` | JLC CAD fit, transforms, connector representation closure, models, and twin renders |
 | `twin_overlay.py` | Same-camera body/model/footprint registration |
 | `connector_orientation_gate.py` | `P-ORIENT` mouth axis, edge/mating-plane geometry, directional evidence and approval |
 | `fab_payload_census.py` | Exact fabrication payload membership |

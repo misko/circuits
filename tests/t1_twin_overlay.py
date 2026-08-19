@@ -75,6 +75,28 @@ def gate(*extra, out=None, png=TOP, board=BOARD, side="top", bom=BOM,
     return run(args + [str(a) for a in extra]), d
 
 
+@test("native render-source adjudication is explicit and ref-scoped")
+def t_native_render_source_parser_requires_refs():
+    d = tmpdir("ovl_native_source_")
+    good = d / "good.yaml"
+    good.write_text("- lcsc: C165948\n  refs: [J_DATA, J_POWER]\n"
+                    "  render_model_source: native\n")
+    cmd = [sys.executable, "-c",
+           "import sys; sys.path.insert(0, sys.argv[1]); "
+           "from twin_overlay import read_model_adjudications; "
+           "print(sorted(read_model_adjudications(sys.argv[2])"
+           "['C165948']['native_refs']))",
+           str(FAB_SCRIPTS), str(good)]
+    r = must_pass(run(cmd), "explicit native source")
+    contains(r.out, "['J_DATA', 'J_POWER']", "ref-scoped selection")
+
+    bad = d / "bad.yaml"
+    bad.write_text("- lcsc: C165948\n  render_model_source: native\n")
+    r = run(cmd[:-1] + [str(bad)])
+    check(r.rc != 0, "wildcard native source must fail")
+    contains(r.out, "requires explicit refs", "fail-closed schema")
+
+
 def synth_render(path, px_box=(100, 150, 700, 573), size=(800, 600),
                  bodies=(), edge=EDGE, body_color=(90, 90, 90),
                  mirror=False):

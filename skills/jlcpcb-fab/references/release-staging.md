@@ -23,6 +23,20 @@ only the accepted complete directory.
 Stale files from a previous export must not enter the Gerber zip. A failed
 rotation, BOM, stock, or model gate leaves no apparently current upload pair.
 
+For a representation-only correction, use
+`release_freshness_check.py --representation-supersede <prior-release>`.
+That mode asserts `fab/` and `3d/` byte-identical, confines the entire
+`source/` delta to `03_src/rules/twin_adjudications.yaml`, requires the README,
+MANIFEST, and adjudication to change, and permits regenerated twin/datum/render
+evidence. It is the correct path for rejecting or retaining a catalog 3D-body
+substitution without pretending the copper changed or listing per-file stale
+waivers.
+
+Declare that shape in MANIFEST as `release_mode: representation-only` and
+`supersedes: <prior-release-directory>`. Publication replays the same strict
+identity assertion; prose in a review is not a substitute for structured
+mode metadata.
+
 ## 2. Fabrication payload census
 
 Run the payload census on staged bytes and require:
@@ -60,6 +74,12 @@ contract explicitly proves non-applicability.
 Keep design and order conclusions distinct. A correct design may remain
 `BLOCKED-SOURCING`, `FIRST-ARTICLE-ONLY`, or `DO-NOT-ORDER` because JLC stackup,
 stock, uploader mappings, or operator previews are unresolved.
+
+When rehearsing such a package, use `release_rehearsal.py rehearse
+--allow-blocked-sourcing` only after both MANIFEST and the first screen of
+ORDER_README declare the block. The sourcing freshness result remains a
+failing informational check in the receipt; it is not relabeled PASS and does
+not authorize ordering. Every design/publication check remains required.
 
 ## 4. Mechanical and process evidence
 

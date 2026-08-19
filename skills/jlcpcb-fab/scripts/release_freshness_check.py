@@ -1317,7 +1317,7 @@ def check_cpl_delta(release_dir, prior_dir):
 
 def check_docs_only(release_dir, prior_dir, bom_only=False,
                     cpl_only=False, legible_bom=False, sourcing=False,
-                    value_change=False):
+                    value_change=False, representation=False):
     """Assert the docs-only-supersede contract against the DECLARED prior
     release: fab/source/3d byte-identical (any deviation = FAIL), order
     README + MANIFEST byte-DIFFERENT (identical docs supersede nothing).
@@ -1344,7 +1344,9 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
     files you expected NOT to change."""
     fails, notes = [], []
     exempt = set()
-    if bom_only or legible_bom:
+    if representation:
+        exempt = {("source", "03_src/rules/twin_adjudications.yaml")}
+    elif bom_only or legible_bom:
         exempt = {("fab", "bom.csv")}
     elif cpl_only:
         exempt = {("fab", "cpl.csv")}
@@ -1387,12 +1389,29 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
             else:
                 same += 1
         if same:
-            _label = ("bom-only" if bom_only else "cpl-only" if cpl_only
+            _label = ("representation" if representation
+                      else "bom-only" if bom_only else "cpl-only" if cpl_only
                       else "legible-bom" if legible_bom
                       else "sourcing" if sourcing
                       else "value-change" if value_change else "docs-only")
             notes.append(f"  note: {sub}/ byte-identical to {prior_dir.name} "
                          f"({same} file(s)) — ASSERTED by {_label} mode")
+    if representation:
+        rel = Path("source/03_src/rules/twin_adjudications.yaml")
+        cur, old = release_dir / rel, prior_dir / rel
+        if not (cur.is_file() and old.is_file()):
+            fails.append(
+                "  REPRESENTATION-ONLY: twin_adjudications.yaml is missing "
+                "on one side — the representation delta is not auditable")
+        elif _sha256(cur) == _sha256(old):
+            fails.append(
+                "  REPRESENTATION-ONLY: twin_adjudications.yaml is unchanged "
+                "— this release changes no representation authority")
+        else:
+            notes.append(
+                "  note: source delta is confined to "
+                "03_src/rules/twin_adjudications.yaml; fab/ and 3d/ are "
+                "byte-identical — ASSERTED by representation mode")
     # the documents themselves MUST change — that is the release's whole point
     doc_pairs = [("order README", _find_readme(release_dir),
                   _find_readme(prior_dir)),
@@ -2397,6 +2416,15 @@ def main(argv=None):
                          "README + MANIFEST to differ; the stale check is "
                          "replaced by this identity assertion, checks (b)/(c) "
                          "still run")
+    ap.add_argument("--representation-supersede",
+                    metavar="PRIOR_RELEASE_DIR", default=None,
+                    help="representation-only supersede mode: ASSERT fab/ and "
+                         "3d/ byte-identical, source/ byte-identical except "
+                         "for 03_src/rules/twin_adjudications.yaml, require "
+                         "that adjudication file plus README/MANIFEST to "
+                         "change, and allow regenerated verification/twin "
+                         "evidence. Copper, BOM, CPL and order payload may "
+                         "not move")
     ap.add_argument("--cpl-only-supersede", metavar="PRIOR_RELEASE_DIR",
                     default=None,
                     help="CPL-only supersede mode: docs-only, PLUS the one "
@@ -2539,16 +2567,20 @@ def main(argv=None):
     legible_bom = bool(args.legible_bom_supersede)
     sourcing = bool(args.sourcing_supersede)
     value_change = bool(args.value_change_supersede)
-    _modes = [args.docs_only_supersede, args.bom_only_supersede,
+    representation = bool(args.representation_supersede)
+    _modes = [args.docs_only_supersede, args.representation_supersede,
+              args.bom_only_supersede,
               args.cpl_only_supersede, args.legible_bom_supersede,
               args.sourcing_supersede, args.value_change_supersede]
     if sum(1 for m in _modes if m) > 1:
         print("FATAL: pass at most ONE of --docs-only-supersede / "
+              "--representation-supersede / "
               "--bom-only-supersede / --cpl-only-supersede / "
               "--legible-bom-supersede / --sourcing-supersede / "
               "--value-change-supersede", file=sys.stderr)
         return 2
-    _mode = ("bom-only" if bom_only else "cpl-only" if cpl_only
+    _mode = ("representation" if representation
+             else "bom-only" if bom_only else "cpl-only" if cpl_only
              else "legible-bom" if legible_bom
              else "sourcing" if sourcing
              else "value-change" if value_change else "docs-only")
@@ -2566,7 +2598,9 @@ def main(argv=None):
               file=sys.stderr)
         return 2
     if any(_modes):
-        prior_dir = Path(args.docs_only_supersede or args.bom_only_supersede
+        prior_dir = Path(args.docs_only_supersede
+                         or args.representation_supersede
+                         or args.bom_only_supersede
                          or args.cpl_only_supersede
                          or args.legible_bom_supersede
                          or args.sourcing_supersede
@@ -2598,7 +2632,8 @@ def main(argv=None):
                                      bom_only=bom_only, cpl_only=cpl_only,
                                      legible_bom=legible_bom,
                                      sourcing=sourcing,
-                                     value_change=value_change)
+                                     value_change=value_change,
+                                     representation=representation)
             fails += df
             notes += dn
             if value_change:

@@ -2027,6 +2027,20 @@ rationale.
   6 USB-B drilled centres, 2 power-terminal drilled centres, and 10/10
   TPS259474L all-pad centres. The SMD tuple is therefore exercised in the
   canonical pipeline, not only in an isolated coupon.
+- implementation progress: 2026-08-19 — connector representation closure now
+  extends the existing orientation/twin flow as `P-MATE-REG`, without adding a
+  lifecycle stage. `jlc_twin.py` automatically discovers every
+  orientation-declared connector, preserves the approved native model on the
+  source board, and writes a `connector-datum-receipt-v1` binding native and
+  vendor model identities, vendor transform, access axis, F.Fab/vendor body
+  envelopes and signed mating-side support delta. The typed failure is not in
+  the generic adjudication allow-list. Replaying the exact debug-hub v2
+  v0.1.1 twin produced the intended discrimination: all four USB-A connectors
+  passed at +0.022 mm, while both USB-C representations failed at -2.000 mm
+  against their 0.650-mm limit—the displacement visible in the user's image
+  that pad fit, native P-ORIENT and an adjudicated bbox-centre warning had let
+  through. A clean/known-bad regression pins both a datum-preserving swap and
+  the recessed-model failure.
 - remaining: polarity-marker projection, permitted-edge overhang schemas,
   native/drawing landmark classes beyond body/F.Fab/courtyard/drilled centres,
   repeated-pad-numbering geometry, wrong-drill, wrong-rotation and converted-

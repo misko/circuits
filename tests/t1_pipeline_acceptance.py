@@ -190,5 +190,22 @@ def t_rehearsal_stale():
               "stale release-rehearsal CLI", expect="RECEIPT FAIL")
 
 
+@test("accepted blocked-sourcing receipts retain a failing informational check")
+def t_rehearsal_blocked_sourcing_receipt():
+    release, artifact, receipt = rehearsal_tree()
+    receipt.write_text(json.dumps({
+        "schema": 1, "kind": "release-rehearsal-receipt-v1",
+        "verdict": "ACCEPTED", "release": str(release),
+        "inputs": {"MANIFEST.txt": record(artifact)},
+        "checks": {
+            "design": {"status": "PASS", "required_for_seal": True},
+            "sourcing": {"status": "FAIL", "required_for_seal": False},
+        },
+    }))
+    valid, failures = release_rehearsal.verify(receipt)
+    check(valid and not failures,
+          f"declared informational sourcing block refused: {failures}")
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

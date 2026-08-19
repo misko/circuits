@@ -453,6 +453,20 @@ def collect(board, side):
             pxs += [pb.GetLeft() / 1e6, pb.GetRight() / 1e6]
             pys += [pb.GetTop() / 1e6, pb.GetBottom() / 1e6]
         padbb = (min(pxs), min(pys), max(pxs), max(pys)) if pxs else None
+        # Manufacturer/datasheet physical envelope authored on F/B.Fab.  This
+        # is the independent expected-position authority when the fabrication
+        # twin explicitly retains the already approved native body instead of
+        # substituting a displaced catalog representation.
+        fab_layer = pcbnew.F_Fab if side == "top" else pcbnew.B_Fab
+        fxs, fys = [], []
+        for item in fp.GraphicalItems():
+            if item.GetLayer() != fab_layer:
+                continue
+            box = item.GetBoundingBox()
+            fxs += [box.GetLeft() / 1e6, box.GetRight() / 1e6]
+            fys += [box.GetTop() / 1e6, box.GetBottom() / 1e6]
+        fabbb = ((min(fxs), min(fys), max(fxs), max(fys))
+                 if fxs else None)
         pads = {}
         for p in fp.Pads():
             n = canonical_pad_number(p.GetNumber())
@@ -469,7 +483,7 @@ def collect(board, side):
                 pads.setdefault(n, []).append((lx, ly))
         out.append(dict(ref=ref, cy=cy, has_other=bool(other.OutlineCount()),
                         pos=pos, rot=rot, pads=pads, padbb=padbb,
-                        bottom=fp.GetLayer() != pcbnew.F_Cu,
+                        bottom=fp.GetLayer() != pcbnew.F_Cu, fab=fabbb,
                         models=len(list(fp.Models())) > 0))
     return out, edge
 
@@ -593,7 +607,8 @@ def read_model_adjudications(path):
         dst = out.setdefault(code, {})
         for key in ("model_dx", "model_dy", "board_dx", "board_dy",
                     "model_rot_z", "pad_alias", "mount_anchor",
-                    "render_model_extension", "plan_bbox_expand_mm"):
+                    "render_model_extension", "render_model_source",
+                    "plan_bbox_expand_mm"):
             if row.get(key) is not None:
                 if key in ("pad_alias", "mount_anchor"):
                     dst[key] = dict(row[key])
@@ -605,6 +620,18 @@ def read_model_adjudications(path):
                         raise ValueError(f"render_model_extension for {code} "
                                          f"must be STEP/STP/WRL")
                     dst[key] = ext
+                elif key == "render_model_source":
+                    source = str(row[key]).strip().lower()
+                    refs = {str(ref).strip() for ref in (row.get("refs") or [])
+                            if str(ref).strip()}
+                    if source not in ("vendor", "native"):
+                        raise ValueError(f"render_model_source for {code} "
+                                         "must be vendor or native")
+                    if not refs:
+                        raise ValueError(f"render_model_source for {code} "
+                                         "requires explicit refs")
+                    if source == "native":
+                        dst.setdefault("native_refs", set()).update(refs)
                 else:
                     dst[key] = float(row[key])
     for code, row in out.items():
@@ -879,8 +906,15 @@ def main(argv=None):
         model_expected = dict(model)
         model_expected["rotz"] = (model_expected["rotz"]
                                    + adj.get("model_rot_z", 0.0)) % 360
-        exp = expected_bbox(mesh, model_expected, jc, oc, ang,
-                            p["rot"], p["pos"], p["bottom"])
+        if ref in adj.get("native_refs", set()):
+            if p["fab"] is None:
+                no_model[ref] = (f"{code}: retained native body has no authored "
+                                 "Fab physical envelope")
+                continue
+            exp = p["fab"]
+        else:
+            exp = expected_bbox(mesh, model_expected, jc, oc, ang,
+                                p["rot"], p["pos"], p["bottom"])
         expected[ref] = dict(exp=exp, ang=ang, fitted=fitted,
                              anchored=anchored, anchor=anchor, code=code,
                              fit_err=fits[0][0] if fits else None,

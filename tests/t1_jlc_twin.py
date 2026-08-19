@@ -39,8 +39,10 @@ sys.path.insert(0, str(FAB_SCRIPTS))
 from jlc_rotation_resolve import (load_lcsc_rotations,  # noqa: E402
                                   resolve_rotation)
 from jlc_twin import (best_fit, centered, pads_of,  # noqa: E402
+                      bbox_support, grade_connector_representation,
                       portable_twin_model_path,
                       rebase_cached_model_paths,
+                      render_source_overrides,
                       select_render_model_path)
 
 TWIN = FAB_SCRIPTS / "jlc_twin.py"
@@ -48,6 +50,65 @@ E2K_COMPAT = FAB_SCRIPTS / "easyeda2kicad_compat.py"
 GEN = SCRIPTS / "generate_board_generic.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
 CODE = "C22775"          # a real code on cook-loadcell's BOM (R7, 100R 0603)
+
+
+@test("connector catalog-model swaps must preserve the approved mating datum",
+      kind="known_bad")
+def t_connector_representation_mating_support_blocks_recessed_model():
+    """Pin the USB-C incident: pads can fit and orientation can be correct
+    while a substituted body is 2 mm too far inboard.  The access-side support
+    must be compared to the independently approved F.Fab datum, not to the
+    substituted model's own bbox centre.
+    """
+    fp = pcbnew.FOOTPRINT(None)
+    fab = pcbnew.PCB_SHAPE(fp)
+    fab.SetShape(pcbnew.SHAPE_T_RECT)
+    fab.SetStart(pcbnew.VECTOR2I(int(-4.5e6), int(-3.7e6)))
+    fab.SetEnd(pcbnew.VECTOR2I(int(4.5e6), int(3.7e6)))
+    fab.SetLayer(pcbnew.F_Fab)
+    fab.SetWidth(int(0.1e6))
+    fp.Add(fab)
+    model = pcbnew.FP_3DMODEL()
+    model.m_Scale.x = model.m_Scale.y = model.m_Scale.z = 1.0
+    contract = {
+        "axis": (0.0, 1.0), "tolerance_mm": 0.65,
+        "mating_plane_offset_mm": 3.65,
+        "native_model_sha256": "a" * 64,
+    }
+    # Vendor body front support is y=1.7 versus approved y=3.7: the exact
+    # visual failure the old generic MODEL-REG adjudication let through.
+    status, detail, fab_box, vendor_box, delta = grade_connector_representation(
+        fp, (-4.5, -1.7, 4.5, 1.7), model, 0, (0, 0), (0, 0),
+        contract, "a" * 64)
+    eq(status, "P-MATE-REG", "recessed vendor body must block")
+    check(abs(delta + 1.95) < 0.001, f"expected -1.95mm, got {delta}")
+    contains(detail, "allowed +/-0.650mm", "typed tolerance evidence")
+    eq(round(bbox_support(fab_box, contract["axis"]), 3), 3.75,
+       "approved mating datum")
+    eq(round(bbox_support(vendor_box, contract["axis"]), 3), 1.7,
+       "vendor mating datum")
+
+    # A replacement representation at the same mating plane is allowed.
+    status, *_ = grade_connector_representation(
+        fp, (-4.5, -3.7, 4.5, 3.7), model, 0, (0, 0), (0, 0),
+        contract, "a" * 64)
+    eq(status, "P-MATE-REG-OK", "datum-preserving swap should pass")
+
+
+@test("native twin-body retention is explicit and ref-scoped")
+def t_native_render_source_is_ref_scoped():
+    rows = [{"lcsc": "C165948", "refs": ["J_DATA", "J_POWER"],
+             "render_model_source": "native"}]
+    eq(render_source_overrides(rows),
+       {"J_DATA": "native", "J_POWER": "native"},
+       "explicit per-ref native selection")
+    try:
+        render_source_overrides([{"lcsc": "C165948",
+                                  "render_model_source": "native"}])
+    except ValueError as exc:
+        contains(str(exc), "explicit non-empty refs", "fail-closed schema")
+    else:
+        raise AssertionError("wildcard native selection must fail")
 
 
 @test("cached model paths survive an atomic staging-directory promotion")

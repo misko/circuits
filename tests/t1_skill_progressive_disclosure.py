@@ -64,7 +64,7 @@ def profile(name: str) -> CapabilityProfile:
 @test("the real skill authority gate passes with the frozen legacy denominator")
 def t_real_authority_gate():
     result = must_pass(run([KPY, AUTH]), "real skill authority gate")
-    contains(result.out, "policies=109/109", "legacy policy denominator")
+    contains(result.out, "policies=111/109", "legacy policy denominator plus connector gates")
     contains(result.out, "core=", "reported core progressive-disclosure budget")
     contains(result.out, " lines/", "reported core line/word denominator")
 

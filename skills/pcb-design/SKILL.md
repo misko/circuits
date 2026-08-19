@@ -192,7 +192,10 @@ At placement freeze, run the placement-routability compositor. It grades the
 existing physical predicates plus declared shunt/series endpoint topology and
 layer eligibility; it does not route copper or add a lifecycle stage.
 After native-model registration, close `P-ORIENT` for edge-mounted connectors
-with machine geometry plus exact, hash-bound human directional views.
+with machine geometry plus exact, hash-bound human directional views. If the
+fabrication twin substitutes a vendor model, require its automatic
+`P-MATE-REG` receipt before accepting final renders; never move a correct
+footprint to compensate for a wrong derivative model.
 
 For high-speed digital or RF, activate the conditional signal-integrity
 adapter and its source/realized/fab reviews. Bind physical P/N chains,

@@ -125,13 +125,31 @@ def _run(label: str, command: list[str]) -> dict[str, Any]:
     }
 
 
-def rehearse(release: Path, project: Path | None = None) -> dict[str, Any]:
+def _declares_blocked_sourcing(manifest: Path, readme: Path) -> bool:
+    manifest_text = manifest.read_text(encoding="utf-8-sig").upper()
+    readme_text = readme.read_text(encoding="utf-8-sig").upper()
+    return ("BLOCKED-SOURCING" in readme_text and
+            ("BLOCKED-SOURCING" in manifest_text or
+             "BLOCKED-ORDER" in manifest_text))
+
+
+def rehearse(release: Path, project: Path | None = None,
+             representation_supersede: str | None = None,
+             allow_blocked_sourcing: bool = False) -> dict[str, Any]:
     release = release.resolve()
     project = (project or _project_for(release)).resolve()
     manifest = release / "MANIFEST.txt"
     readme = release / "ORDER_README.md"
     if not manifest.is_file() or not readme.is_file():
         raise ValueError("release rehearsal requires MANIFEST.txt and ORDER_README.md")
+    if allow_blocked_sourcing and not _declares_blocked_sourcing(manifest, readme):
+        raise ValueError(
+            "--allow-blocked-sourcing requires BLOCKED-SOURCING on the first "
+            "screen of ORDER_README and BLOCKED-SOURCING/BLOCKED-ORDER in "
+            "MANIFEST; a quiet order block may not seal")
+    freshness_suffix = (["--representation-supersede",
+                         representation_supersede]
+                        if representation_supersede else [])
     checks = {
         "release_required": _run(
             "release-required",
@@ -143,19 +161,23 @@ def rehearse(release: Path, project: Path | None = None) -> dict[str, Any]:
             "design-freshness",
             ["/usr/bin/python3",
              str(REPO / "skills/jlcpcb-fab/scripts/release_freshness_check.py"),
-             str(release), "--claim", "design"]),
+             str(release), "--claim", "design", *freshness_suffix]),
         "sourcing_freshness": _run(
             "sourcing-freshness",
             ["/usr/bin/python3",
              str(REPO / "skills/jlcpcb-fab/scripts/release_freshness_check.py"),
-             str(release), "--claim", "sourcing"]),
+             str(release), "--claim", "sourcing", *freshness_suffix]),
         "publication_contract": _run(
             "publication-contract",
             ["/usr/bin/python3", str(HERE / "pcb_publication_gate.py"),
              "--root", str(REPO), "--project", str(project),
              "--release", str(release)]),
     }
-    statuses = {row["status"] for row in checks.values()}
+    for name, row in checks.items():
+        row["required_for_seal"] = not (
+            allow_blocked_sourcing and name == "sourcing_freshness")
+    statuses = {row["status"] for row in checks.values()
+                if row["required_for_seal"]}
     verdict = ("INCOMPLETE" if "INCOMPLETE" in statuses else
                "REJECTED" if "FAIL" in statuses else "ACCEPTED")
     inputs = {path.relative_to(release).as_posix(): _record(path)
@@ -164,11 +186,21 @@ def rehearse(release: Path, project: Path | None = None) -> dict[str, Any]:
     return {
         "schema": 1, "kind": "release-rehearsal-receipt-v1",
         "verdict": verdict, "project": project.name,
+        "freshness_mode": ({"kind": "representation-supersede",
+                            "prior": representation_supersede}
+                           if representation_supersede else
+                           {"kind": "full-release"}),
+        "sourcing_admission": ("DECLARED-BLOCKED-INFORMATIONAL"
+                               if allow_blocked_sourcing else "REQUIRED"),
         "release": str(release), "inputs": dict(sorted(inputs.items())),
         "checks": checks,
         "coverage": {"passing": sum(row["status"] == "PASS"
-                                     for row in checks.values()),
-                     "total": len(checks)},
+                                     for row in checks.values()
+                                     if row["required_for_seal"]),
+                     "total": sum(row["required_for_seal"]
+                                  for row in checks.values()),
+                     "informational": sum(not row["required_for_seal"]
+                                          for row in checks.values())},
     }
 
 
@@ -188,7 +220,8 @@ def verify(path: Path) -> tuple[bool, list[str]]:
             failures.append(f"release input moved or changed: {name}")
     if receipt.get("verdict") == "ACCEPTED":
         bad = [name for name, row in (receipt.get("checks") or {}).items()
-               if row.get("status") != "PASS"]
+               if row.get("status") != "PASS" and
+               row.get("required_for_seal", True)]
         if bad:
             failures.append(f"accepted receipt contains bad checks: {bad}")
     return not failures, failures
@@ -208,6 +241,13 @@ def main(argv: list[str] | None = None) -> int:
     rehearse_parser.add_argument("release", type=Path)
     rehearse_parser.add_argument("--project", type=Path)
     rehearse_parser.add_argument("--output", type=Path)
+    rehearse_parser.add_argument(
+        "--representation-supersede",
+        help="assert a representation-only delta against this prior release")
+    rehearse_parser.add_argument(
+        "--allow-blocked-sourcing", action="store_true",
+        help="seal only the design claim when BLOCKED-SOURCING is declared "
+             "loudly; retain sourcing freshness as an informational failure")
     verify_parser = sub.add_parser("verify")
     verify_parser.add_argument("receipt", type=Path)
     seal = sub.add_parser("seal")
@@ -245,7 +285,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"RELEASE-SEAL ADMISSION PASS: {args.output.resolve()}")
         return 0
     try:
-        result = rehearse(args.release, args.project)
+        result = rehearse(args.release, args.project,
+                           args.representation_supersede,
+                           args.allow_blocked_sourcing)
     except Exception as exc:
         print(f"RELEASE-REHEARSAL INCOMPLETE: {exc}")
         return 2

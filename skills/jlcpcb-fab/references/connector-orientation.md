@@ -1,9 +1,10 @@
 # Connector orientation and mating-access review
 
 Use this procedure for every edge-mounted connector and whenever its footprint,
-native model, placement, board outline, or intended mating edge changes. It
-closes `P-ORIENT`; it does not replace pin-map, native-model registration,
-courtyard/body clearance, enclosure, or cable-service checks.
+native model, vendor/twin model, placement, board outline, or intended mating
+edge changes. It closes `P-ORIENT` and `P-MATE-REG`; it does not replace
+pin-map, native-model registration, courtyard/body clearance, enclosure, or
+cable-service checks.
 
 ## Contents
 
@@ -34,6 +35,16 @@ declared or listed in `orientation_exemptions` with a non-empty reason. Every
 declared ref must have exactly one `edge_faces` row, and every `edge_faces` row
 must be orientation-declared. Silence, an empty list, and 0/0 are not a pass.
 
+The source board retains its approved native model. A fabrication twin may
+substitute JLC's model because it is an independent representation, but the
+substitution is never silent authority. `jlc_twin.py` automatically reads this
+same contract and writes `connector_datum_receipt.json`
+(`connector-datum-receipt-v1`). For every declared connector it binds both
+model identities, the vendor transform, F.Fab and vendor body envelopes, the
+access axis, and vendor support versus the authored mating plane. The allowed
+delta defaults to the smaller of `fit_tolerance_mm` and 0.75 mm. Set
+`representation_mating_tolerance_mm` only from manufacturer evidence.
+
 Example extension to an existing model-registration group:
 
 ```yaml
@@ -60,6 +71,17 @@ drawing plus the board/enclosure decision, not from the current placement.
 Run `connector_orientation_gate.py` after `P-MODEL-REG` and deterministic route
 preparation, before placement review or route import. Use the script's `--help`
 for exact syntax.
+
+At fabrication-twin generation, `P-MATE-REG` runs automatically whenever this
+contract exists. It compares the substituted body's support in the authored
+access direction with the approved F.Fab physical datum. A pad-perfect,
+correctly rotated model can therefore still fail when its shell or mouth is
+recessed or advanced. `P-MATE-REG` cannot be discharged by generic
+`MODEL-REG`, pad-fit, asymmetry, or render adjudication. Correct the derivative
+model selection/transform or retain the approved native body, then regenerate.
+Native retention is explicit per ref with `render_model_source: native`; the
+receipt must bind the selected native SHA and still identify the rejected
+catalog model. It never suppresses catalog pad or rotation checks.
 
 The machine half checks, for every declared instance:
 
@@ -134,6 +156,11 @@ Use the first failing channel; do not repeatedly rerender the whole design:
    the exact STEP frame, model rotation and Z offset, then rerun the signed-Z
    coupon and its deliberately inverted known-bad. Do not repair this by
    changing camera labels or footprint placement.
+7. **Native view passes but JLC twin is shifted:** inspect
+   `connector_datum_receipt.json`. If `mating_support_delta_mm` exceeds the
+   declared tolerance, this is a representation-substitution failure, not a
+   board-placement correction. Do not move the footprint to make a wrong twin
+   picture look flush.
 
 Preserve the failed receipt and focused images as diagnostics. A corrected run
 must produce a new subject and new explicit human decision.

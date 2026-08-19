@@ -408,6 +408,36 @@ def dgate(d2, d1, *extra):
     return gate(d2, "--docs-only-supersede", str(d1), *extra)
 
 
+def representation_root():
+    root, d1, d2 = docs_only_root()
+    for d, text in ((d1, "- lcsc: C1\n  status: MODEL-REG\n"),
+                    (d2, "- lcsc: C1\n  status: MODEL-REG\n"
+                         "  refs: [J1]\n  render_model_source: native\n")):
+        p = d / "source/03_src/rules/twin_adjudications.yaml"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text)
+    return root, d1, d2
+
+
+@test("representation supersede confines source delta and preserves fab")
+def t_representation_supersede_passes_exact_delta():
+    _, d1, d2 = representation_root()
+    r = must_pass(gate(d2, "--representation-supersede", str(d1)),
+                  "representation-only supersede")
+    contains(r.out, "source delta is confined", "typed representation delta")
+    contains(r.out, "FRESHNESS: PASS", "verdict")
+
+
+@test("representation supersede rejects any fabrication change",
+      kind="known_bad")
+def t_representation_supersede_rejects_fab_delta():
+    _, d1, d2 = representation_root()
+    (d2 / "fab/demo_gerbers.zip").write_bytes(_blob("changed-copper"))
+    r = must_fail(gate(d2, "--representation-supersede", str(d1)),
+                  "representation mode fab change", "DOCS-ONLY DEVIATION")
+    contains(r.out, "fab/demo_gerbers.zip", "names changed payload")
+
+
 @test("release_freshness --docs-only-supersede PASSES a true docs-only "
       "release: identical fab+pdf ASSERTED, changed README+MANIFEST")
 def t_docs_only_pass():

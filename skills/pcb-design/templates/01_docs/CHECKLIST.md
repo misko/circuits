@@ -78,7 +78,7 @@ mergeable.
 - [ ] BRIEF.md: every acceptance criterion `met` (with evidence link) or `dropped` citing a user D#/Q# — never release with an `unmet` criterion
 - [ ] BRIEF.md prompt hash verifies — note `head -c -1`: the FINAL NEWLINE is `sed`'s terminator, not part of the prompt, and the commission hashes it stripped (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | head -c -1 | sha256sum`)
 
-- [ ] JLC twin gate: `jlc_twin.py` exits 0 with the project adjudications file — zero unadjudicated MIRRORED/PAD-MISMATCH findings; twin_report.csv copied into the release verification/
+- [ ] JLC twin gate: `jlc_twin.py` exits 0 with the project adjudications file — zero unadjudicated MIRRORED/PAD-MISMATCH findings; every orientation-declared connector has `P-MATE-REG-OK` in `connector_datum_receipt.json`; twin report and receipt copied into release verification/
 
 - [ ] semantic M-BOM on the STAGED fab set: `bom_source_check.py fab/bom.csv circuit.json --parts 02_parts` exits 0 — per-refdes LCSC == source AND decoded MPN catalog value == BOM label (the R12/R30 wrong-part class, 2 sealed escapes 2026-07-23)
 

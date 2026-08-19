@@ -200,12 +200,16 @@ def _freshness_args(fields, release):
     mode = fields.get("release_mode", "").strip().lower()
     if not mode:
         return [], ["--claim", "design"]
-    if mode != "docs-only":
+    modes = {
+        "docs-only": "--docs-only-supersede",
+        "representation-only": "--representation-supersede",
+    }
+    if mode not in modes:
         return [f"FRESHNESS-MODE: unsupported release_mode {mode!r}"], []
     prior_name = fields.get("supersedes", "").strip()
     if not prior_name or Path(prior_name).name != prior_name:
         return [
-            "FRESHNESS-PREDECESSOR: docs-only release must name one sibling "
+            f"FRESHNESS-PREDECESSOR: {mode} release must name one sibling "
             "release directory in `supersedes:`"
         ], []
     prior = release.parent / prior_name
@@ -214,7 +218,7 @@ def _freshness_args(fields, release):
             f"FRESHNESS-PREDECESSOR: declared predecessor {prior_name!r} "
             "does not resolve to a different sibling release directory"
         ], []
-    return [], ["--claim", "design", "--docs-only-supersede", prior]
+    return [], ["--claim", "design", modes[mode], prior]
 
 
 def review_binding_errors(project, release, board_hash, head, root):

@@ -475,6 +475,15 @@ nothing). The audit/manifest-agreement and draft-marker checks still run.
 Never waive fab-identical files one-by-one for this case — the mode
 asserts the identity instead of flagging it.
 
+**Representation-only supersede mode.** When copper, BOM, CPL, Gerbers,
+drills, PDFs, and native 3D deliverables are unchanged but the fabrication
+twin's model-selection authority changes, run `release_freshness_check.py
+<release_dir> --representation-supersede <prior-release-dir>`. The mode
+asserts `fab/` and `3d/` byte-identical and confines the entire `source/`
+delta to `03_src/rules/twin_adjudications.yaml`; refreshed twin, datum-receipt,
+overlay, and render-review evidence remains mandatory. Never express this as
+dozens of per-file freshness waivers.
+
 **BOM-only supersede mode.** The one case docs-only mode correctly refuses:
 the copper is untouched but the ASSEMBLY BOM must lose rows, because canon
 A-POP requires an unplaced part to LEAVE the BOM rather than sit on it

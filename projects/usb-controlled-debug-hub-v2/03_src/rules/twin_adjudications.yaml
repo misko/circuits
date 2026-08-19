@@ -60,12 +60,11 @@
 - lcsc: C165948
   refs: [J_DATA, J_POWER]
   status: MODEL-REG
+  render_model_source: native
   why: >-
-    Detector false positive for the asymmetric HRO TYPE-C-31-M-12 body. The
-    exact JLC land fit is 0.00 mm at the measured 0-degree LCSC rotation, the
-    exact HRO drawing and project-native registration agree with all sixteen
-    SMT contacts and four shield/retention holes, and the fresh top, west-edge
-    and northwest-isometric twin views show both receptacle mouths outboard
-    with contacts seated on their lands. The 1.7 mm body-to-courtyard centre
-    delta is the connector's intentional asymmetric shell, not a placement
-    nudge. No rotation, position, model offset, or pad mapping is overridden.
+    The exact JLC land fit is 0.00 mm at the measured 0-degree LCSC rotation,
+    but the catalog body's mating-side support is 2.00 mm behind the approved
+    HRO TYPE-C-31-M-12 mating plane. Retain the source-owned exact manufacturer
+    STEP (SHA bound by model_registration.yaml) for J_DATA and J_POWER in the
+    fabrication twin. Catalog pad correspondence and rotation remain graded;
+    no footprint position, model nudge, pad mapping, or CPL value is changed.

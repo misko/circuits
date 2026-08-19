@@ -15,7 +15,8 @@ the CPL coordinates; it does not replace the board or datasheet authority.
 7. Debugging a disjoint overlay
 
 Gate IDs owned here: `A-RENDER`, `MODEL-REG`, `MODEL-SELF`, `NO-BODY`,
-`PAD-GEOM`, and `PAD-MISMATCH`.
+`PAD-GEOM`, and `PAD-MISMATCH`. Connector representation closure is owned by
+the routed connector procedure as `P-MATE-REG`.
 
 ## 1. Inputs and bounded fetching
 
@@ -86,6 +87,12 @@ Keep findings and mechanisms separate:
 - `render_model_extension`: choose an explicitly evidenced sibling STEP/STP/
   WRL representation when the generated representation has a signed-Z or
   renderer defect; the requested sibling must exist or the twin fails;
+- `render_model_source: native`: retain the source board's exact, hash-bound
+  manufacturer body for the explicitly listed `refs` when the catalog body's
+  mating datum fails `P-MATE-REG`. Vendor pad correspondence and rotation
+  checks still run, the rejected vendor identity remains in the receipt, and
+  the native file is copied into the relocatable twin bundle. This is not a
+  wildcard waiver and requires a non-empty `refs` list;
 - `plan_bbox_expand_mm`: symmetric, measured plan-envelope difference between
   that selected representation and the independently parsed WRL. This changes
   the expected envelope only; centre alignment and the ordinary A-RENDER
@@ -104,6 +111,11 @@ When changing model representation, additionally render the selected model in
 isolation from both board sides: prove its signed mount side, measure the plan
 envelope delta, and show that it no longer occludes a legitimate opposite-side
 body. Never use an envelope expansion to compensate for a centre translation.
+For explicit native retention, A-RENDER derives its expected plan position
+from the independently authored F.Fab physical envelope while the measured
+position still comes only from populated-minus-bare pixels. Absence of that
+Fab envelope is a failure; the selected body's SHA remains owned by the
+connector datum receipt.
 
 ## 5. Body and model coverage
 
@@ -136,6 +148,11 @@ aligned leads/pins outranks a tempting 180-degree bbox improvement.
 Registration still does not prove which side is the mating mouth. For an
 edge-mounted connector, load `connector-orientation.md` and close `P-ORIENT`
 independently; never promote a bbox or symmetric-hole fit into direction truth.
+When the twin swaps in a vendor model, also require its automatic
+`P-MATE-REG` receipt. This compares mating-side support along the independently
+authored access axis, not bbox centres. Generic `MODEL-REG` adjudication cannot
+waive it: a substituted rendering that disagrees with the approved connector
+datum is diagnostic evidence, not a reason to move the physical footprint.
 
 ## 6. Same-camera render registration (`A-RENDER`)
 

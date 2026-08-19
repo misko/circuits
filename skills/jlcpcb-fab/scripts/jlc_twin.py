@@ -12,8 +12,8 @@ For every BOM line with an LCSC code, fetch JLC's OWN footprint + 3D model
      and render top/bottom - a local preview of what JLC's viewer will show.
 
 usage: jlc_twin.py board.kicad_pcb bom.csv outdir [--cpl fab/cpl.csv]
-Exit 1 on any MIRRORED, PAD-MISMATCH, PAD-GEOM, MODEL-REG, NO-BODY or
-POLARITY-FIT finding.
+Exit 1 on any MIRRORED, PAD-MISMATCH, PAD-GEOM, MODEL-REG, P-MATE-REG,
+NO-BODY or POLARITY-FIT finding.
 
 MOUNTED ON A FIT IT HAD JUST REJECTED (2026-07-26). On PAD-MISMATCH this tool
 recorded "no correspondence" and then mounted the body at that same rejected
@@ -117,6 +117,8 @@ Requires easyeda2kicad (pip); resolved from $EASYEDA2KICAD or known venvs.
 import argparse
 import csv
 import glob
+import hashlib
+import json
 import math
 import os
 import re
@@ -359,6 +361,35 @@ def select_render_model_path(filename, extension=None):
     if not selected.is_file() or selected.stat().st_size <= 0:
         raise ValueError(f"requested render model does not exist: {selected}")
     return selected
+
+
+def render_source_overrides(adjudications):
+    """Return explicit per-ref representation choices.
+
+    ``native`` is deliberately ref-scoped: retaining a source-board body is a
+    connector representation decision, not a blanket waiver for every part
+    sharing an LCSC code.  Vendor pad/rotation checks still run.
+    """
+    result = {}
+    for row in adjudications:
+        raw = row.get("render_model_source")
+        if raw is None:
+            continue
+        source = str(raw).strip().lower()
+        if source not in ("vendor", "native"):
+            raise ValueError(
+                f"unsupported render_model_source {raw!r}; expected vendor or native")
+        refs = [str(ref).strip() for ref in (row.get("refs") or [])
+                if str(ref).strip()]
+        if not refs:
+            raise ValueError(
+                "render_model_source requires an explicit non-empty refs list")
+        for ref in refs:
+            if ref in result and result[ref] != source:
+                raise ValueError(
+                    f"conflicting render_model_source values for {ref}")
+            result[ref] = source
+    return result
 
 
 def canonical_pad_number(value):
@@ -692,6 +723,133 @@ def reg_check(model_bbox, jm, ang, jc, oc, fp):
     return delta, area_m / area_c, (ccx, ccy)
 
 
+def mounted_model_bbox_local(model_bbox, jm, ang, jc, oc):
+    """Return a catalog model's mounted plan bbox in our footprint frame.
+
+    This deliberately stops before the footprint-to-board transform.  It is
+    therefore comparable with source-owned F.Fab and connector access axes,
+    independent of an instance's board placement or rotation.
+    """
+    corners = []
+    for mx in (model_bbox[0], model_bbox[2]):
+        for my in (model_bbox[1], model_bbox[3]):
+            rx, ry = model_rot(mx, my, jm.m_Rotation.z)
+            jx = rx * jm.m_Scale.x + jm.m_Offset.x
+            jy = -(ry * jm.m_Scale.y + jm.m_Offset.y)
+            lx, ly = xform({"p": [(jx - jc[0], jy - jc[1])]},
+                           ang, False)["p"][0]
+            corners.append((lx + oc[0], ly + oc[1]))
+    return (min(x for x, _ in corners), min(y for _, y in corners),
+            max(x for x, _ in corners), max(y for _, y in corners))
+
+
+def footprint_fab_bbox_local(fp):
+    clone = pcbnew.Cast_to_FOOTPRINT(fp.Duplicate(False))
+    clone.SetOrientationDegrees(0.0)
+    clone.SetPosition(pcbnew.VECTOR2I(0, 0))
+    boxes = []
+    for item in clone.GraphicalItems():
+        if item.GetLayer() != pcbnew.F_Fab or item.GetClass() == "PCB_TEXT":
+            continue
+        box = item.GetBoundingBox()
+        boxes.append((box.GetLeft() / 1e6, box.GetTop() / 1e6,
+                      box.GetRight() / 1e6, box.GetBottom() / 1e6))
+    if not boxes:
+        return None
+    return (min(box[0] for box in boxes), min(box[1] for box in boxes),
+            max(box[2] for box in boxes), max(box[3] for box in boxes))
+
+
+def bbox_support(box, axis):
+    return max(x * axis[0] + y * axis[1]
+               for x in (box[0], box[2]) for y in (box[1], box[3]))
+
+
+def connector_representation_contracts(board_path):
+    """Load orientation-sensitive refs from the source-owned model contract.
+
+    Both live and staged layouts place ``03_src`` beside ``04_kicad``.  No
+    command-line opt-in is used: if the contract exists, catalog substitutions
+    for its connectors are always graded.
+    """
+    path = Path(board_path).resolve().parent.parent / "03_src/rules/model_registration.yaml"
+    if not path.is_file():
+        return path, {}
+    import yaml
+    raw = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
+    if raw.get("schema") != 1 or not isinstance(raw.get("groups"), list):
+        raise ValueError(f"invalid connector representation contract: {path}")
+    contracts = {}
+    for group in raw["groups"]:
+        orientation = group.get("orientation")
+        if not orientation:
+            continue
+        axis = orientation.get("footprint_access_axis_local")
+        if (not isinstance(axis, list) or len(axis) != 3 or
+                abs(float(axis[2])) > 1e-9):
+            raise ValueError(f"{group.get('id')}: planar access axis required")
+        length = math.hypot(float(axis[0]), float(axis[1]))
+        if length < 0.999 or length > 1.001:
+            raise ValueError(f"{group.get('id')}: access axis must be unit length")
+        try:
+            tolerance = float(group.get(
+                "representation_mating_tolerance_mm",
+                min(float(group.get("fit_tolerance_mm", 0.75)), 0.75)))
+            mating_plane = float(orientation.get("mating_plane_offset_mm"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{group.get('id')}: numeric mating-plane contract required") from exc
+        if not math.isfinite(tolerance) or tolerance < 0:
+            raise ValueError(f"{group.get('id')}: invalid representation tolerance")
+        if not math.isfinite(mating_plane):
+            raise ValueError(f"{group.get('id')}: invalid mating plane")
+        for ref in group.get("refs", []):
+            if ref in contracts:
+                raise ValueError(f"duplicate connector representation ref {ref}")
+            contracts[str(ref)] = {
+                "group": str(group.get("id", "")),
+                "axis": (float(axis[0]), float(axis[1])),
+                "tolerance_mm": tolerance,
+                "mating_plane_offset_mm": mating_plane,
+                "native_model_sha256": str(group.get("model_sha256", "")),
+                "authority": str(orientation.get("authority", "")),
+            }
+    return path, contracts
+
+
+def file_sha256(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def grade_connector_representation(fp, model_bbox, model, ang, jc, oc,
+                                   contract, native_actual_sha):
+    """Grade the mating-side support of one substituted connector model."""
+    fab_local = footprint_fab_bbox_local(fp)
+    model_local = mounted_model_bbox_local(model_bbox, model, ang, jc, oc)
+    delta = None
+    if native_actual_sha != contract["native_model_sha256"]:
+        detail = ("native connector representation identity is "
+                  f"{native_actual_sha or 'unresolved'}, expected "
+                  f"{contract['native_model_sha256']}")
+        status = "P-MATE-REG"
+    elif fab_local is None:
+        detail = "source footprint has no F.Fab physical envelope"
+        status = "P-MATE-REG"
+    else:
+        model_support = bbox_support(model_local, contract["axis"])
+        delta = model_support - contract["mating_plane_offset_mm"]
+        detail = (f"catalog mating-side support differs from approved mating "
+                  f"plane by {delta:+.3f}mm; allowed +/-"
+                  f"{contract['tolerance_mm']:.3f}mm")
+        status = ("P-MATE-REG-OK" if
+                  abs(delta) <= contract["tolerance_mm"] else "P-MATE-REG")
+    return status, detail, fab_local, model_local, delta
+
+
 def kicad_env(board_path):
     """The ${VAR} substitution table KiCad ITSELF would use to resolve a 3D
     model path: its own config's `environment.vars`, then any KICAD* in the
@@ -986,6 +1144,13 @@ def main():
                          "from the ONE declared home instead of hand-typed "
                          "--also (canon A-POP)")
     args = ap.parse_args()
+    try:
+        connector_contract_path, connector_contracts = (
+            connector_representation_contracts(args.board))
+    except ValueError as exc:
+        raise SystemExit(f"P-MATE-REG FAIL: {exc}")
+    connector_receipt_rows = []
+    mate_reg_failed_refs = set()
     adjudicated = []
     if args.adjudications and os.path.exists(args.adjudications):
         import yaml
@@ -997,6 +1162,10 @@ def main():
         a["lcsc"]: str(a["render_model_extension"])
         for a in adjudicated if a.get("render_model_extension") is not None
     }
+    try:
+        model_source_by_ref = render_source_overrides(adjudicated)
+    except ValueError as exc:
+        raise SystemExit(f"render model source schema: {exc}")
     model_xy_override = {a["lcsc"]: (float(a.get("model_dx", 0)),
                                      float(a.get("model_dy", 0)))
                          for a in adjudicated
@@ -1477,6 +1646,81 @@ def main():
                 saved = jm0.m_Rotation.z
                 jm0.m_Rotation.z = (saved + mrotz.get(ref, 0.0)) % 360
                 rc = reg_check(mb, jm0, ang, jc, oc, fp)
+                contract = connector_contracts.get(ref)
+                if contract:
+                    native_models = list(fp.Models())
+                    native_resolved = (resolve_model(
+                        native_models[0].m_Filename, kicad_env(args.board),
+                        args.board) if len(native_models) == 1 else None)
+                    native_path = (Path(native_resolved)
+                                   if native_resolved else None)
+                    native_actual_sha = (file_sha256(native_path)
+                                         if native_path and native_path.is_file()
+                                         else None)
+                    representation_source = model_source_by_ref.get(
+                        ref, "vendor")
+                    if representation_source == "native":
+                        fab_local = footprint_fab_bbox_local(fp)
+                        model_local = None
+                        delta = 0.0
+                        if native_actual_sha == contract["native_model_sha256"]:
+                            status = "P-MATE-REG-OK"
+                            detail = (
+                                "approved exact native connector body retained; "
+                                "catalog body substitution not used")
+                        else:
+                            status = "P-MATE-REG"
+                            detail = (
+                                "requested native connector body identity is "
+                                f"{native_actual_sha or 'unresolved'}, expected "
+                                f"{contract['native_model_sha256']}")
+                    else:
+                        status, detail, fab_local, model_local, delta = (
+                            grade_connector_representation(
+                                fp, mb, jm0, ang, jc, oc, contract,
+                                native_actual_sha))
+                    vendor_model = Path(jm0.m_Filename).resolve()
+                    connector_receipt_rows.append({
+                        "ref": ref,
+                        "group": contract["group"],
+                        "authority": contract["authority"],
+                        "access_axis_local": list(contract["axis"]),
+                        "tolerance_mm": contract["tolerance_mm"],
+                        "mating_plane_offset_mm": contract[
+                            "mating_plane_offset_mm"],
+                        "native_model_sha256": contract["native_model_sha256"],
+                        "native_model_actual_sha256": native_actual_sha,
+                        "representation_source": representation_source,
+                        "vendor_model_sha256": (
+                            file_sha256(vendor_model) if vendor_model.is_file()
+                            else None),
+                        "vendor_model_transform": {
+                            "offset": [jm0.m_Offset.x, jm0.m_Offset.y,
+                                       jm0.m_Offset.z],
+                            "rotation": [jm0.m_Rotation.x, jm0.m_Rotation.y,
+                                         jm0.m_Rotation.z],
+                            "scale": [jm0.m_Scale.x, jm0.m_Scale.y,
+                                      jm0.m_Scale.z],
+                        },
+                        "catalog_to_source_footprint_transform": {
+                            "rotation_deg": ang,
+                            "catalog_pad_centroid_mm": list(jc),
+                            "source_pad_centroid_mm": list(oc),
+                        },
+                        "fab_bbox_local_mm": list(fab_local) if fab_local else None,
+                        "fab_mating_support_mm": (
+                            bbox_support(fab_local, contract["axis"])
+                            if fab_local else None),
+                        "vendor_bbox_local_mm": (list(model_local)
+                                                 if model_local else None),
+                        "mating_support_delta_mm": delta,
+                        "verdict": ("PASS" if status == "P-MATE-REG-OK"
+                                    else "FAIL"),
+                    })
+                    findings.append((lcsc, ref, status, detail))
+                    if status == "P-MATE-REG":
+                        criticals.append(ref)
+                        mate_reg_failed_refs.add(ref)
                 if rc and rc[0] > 1.0:
                     # JLC's OWN footprint model rotation is authoritative: the
                     # twin already mounts at it. bbox-center-vs-courtyard is
@@ -1544,6 +1788,34 @@ def main():
                                      f"body on courtyard ({rc[0]:.2f}mm)"))
                 jm0.m_Rotation.z = saved
             fp.Models().clear()
+            if model_source_by_ref.get(ref) == "native":
+                native_models = list(by_ref[ref].Models())
+                native_resolved = (resolve_model(
+                    native_models[0].m_Filename, kicad_env(args.board),
+                    args.board) if len(native_models) == 1 else None)
+                native_path = Path(native_resolved) if native_resolved else None
+                if (len(native_models) != 1 or not native_path
+                        or not native_path.is_file()):
+                    findings.append((lcsc, ref, "P-MATE-REG",
+                                     "approved native body could not be resolved "
+                                     "for retained rendering"))
+                    criticals.append(ref)
+                    mate_reg_failed_refs.add(ref)
+                    continue
+                native_dir = out / "native_models"
+                native_dir.mkdir(parents=True, exist_ok=True)
+                native_copy = native_dir / (
+                    f"{file_sha256(native_path)[:16]}-{native_path.name}")
+                shutil.copy2(native_path, native_copy)
+                original = native_models[0]
+                retained = pcbnew.FP_3DMODEL()
+                retained.m_Filename = portable_twin_model_path(native_copy, out)
+                retained.m_Scale = original.m_Scale
+                retained.m_Rotation = original.m_Rotation
+                retained.m_Offset = original.m_Offset
+                fp.Models().push_back(retained)
+                print(f"RETAIN-NATIVE {ref} ({lcsc}): {native_copy.name}")
+                continue
             for jm in jmodels:
                 m = pcbnew.FP_3DMODEL()
                 # The twin is a relocatable evidence bundle. Do not persist
@@ -1638,6 +1910,36 @@ def main():
         print(f"\n{bodies_line}  ->  {out / 'missing_models.txt'}")
 
         tb.Save(str(out / "twin.kicad_pcb"))
+        missing_connector_refs = sorted(
+            set(connector_contracts) -
+            {row["ref"] for row in connector_receipt_rows})
+        for ref in missing_connector_refs:
+            findings.append((ref_lcsc.get(ref, ""), ref, "P-MATE-REG",
+                             "declared connector was not graded against the "
+                             "catalog twin representation"))
+            criticals.append(ref)
+            mate_reg_failed_refs.add(ref)
+        connector_receipt = {
+            "schema": 1,
+            "kind": "connector-datum-receipt-v1",
+            "board_sha256": file_sha256(out / "twin.kicad_pcb"),
+            "contract": (str(connector_contract_path)
+                         if connector_contract_path.is_file() else None),
+            "contract_sha256": (file_sha256(connector_contract_path)
+                                if connector_contract_path.is_file() else None),
+            "applicability": ("APPLICABLE" if connector_contracts
+                              else "NOT_APPLICABLE"),
+            "refs_declared": sorted(connector_contracts),
+            "refs_graded": sorted(row["ref"] for row in connector_receipt_rows),
+            "measurements": sorted(connector_receipt_rows,
+                                   key=lambda row: row["ref"]),
+            "verdict": ("FAIL" if missing_connector_refs or any(
+                row["verdict"] != "PASS" for row in connector_receipt_rows)
+                        else "PASS"),
+        }
+        (out / "connector_datum_receipt.json").write_text(
+            json.dumps(connector_receipt, indent=2, sort_keys=True,
+                       allow_nan=False) + "\n", encoding="utf-8")
         # A-RENDER's independent pixel channel needs the SAME board, camera,
         # lighting and resolution with one controlled difference: no component
         # models. Comparing the populated render to a separately exported SVG
@@ -1698,6 +2000,11 @@ def main():
         else:
             out_f.append((lcsc, ref, status, detail))
     findings = out_f
+    # `criticals` predates typed obligations: an adjudication removes one ref
+    # string and can therefore accidentally consume another finding on the
+    # same ref. Representation closure is intentionally not adjudicatable;
+    # restore its exact failed denominator after all legacy removals.
+    criticals.extend(sorted(mate_reg_failed_refs))
     # The shipped report is the FINAL verdict, not the pre-adjudication
     # worklist. Writing this before the register was applied made a successful
     # run's machine evidence still claim raw FETCH-FAILED/PAD-MISMATCH rows and
@@ -1708,13 +2015,15 @@ def main():
         w.writerows(findings)
     order = {"FETCH-FAILED": -1, "NO-BODY": -1, "MIRRORED": 0,
              "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3,
-             "MODEL-REG": 3, "POLARITY-FIT": 1, "MOUNT-FALLBACK": 1,
+             "P-MATE-REG": -1, "MODEL-REG": 3, "POLARITY-FIT": 1,
+             "MOUNT-FALLBACK": 1,
              "MOUNT-ANCHOR-INVALID": -1, "MOUNT-ANCHOR": 4,
              "PAD-MULTIPLICITY": 4,
              "POLARITY-CHECK": 4, "POLARITY-FIT-BLIND": 4,
              "POLARITY-FIT-OK": 8,
              "ROT-DB-SUGGEST": 5, "NO-CAD": 6,
-             "NOT-ON-BOARD": 7, "MODEL-REG-OK": 8, "OK": 9}
+             "NOT-ON-BOARD": 7, "P-MATE-REG-OK": 8,
+             "MODEL-REG-OK": 8, "OK": 9}
     for f in sorted(findings, key=lambda x: order.get(x[2], 9)):
         print("  ".join(str(x) for x in f))
     n_ok = sum(1 for f in findings if f[2] == "OK")

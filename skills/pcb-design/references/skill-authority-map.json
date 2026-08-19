@@ -61,6 +61,12 @@
       "policy_ids": []
     },
     {
+      "id": "jlc_connector_orientation",
+      "owner": "jlcpcb-fab",
+      "references": ["skills/jlcpcb-fab/references/connector-orientation.md"],
+      "policy_ids": ["P-MATE-REG", "P-ORIENT"]
+    },
+    {
       "id": "kicad_routing",
       "owner": "kicad-pcb",
       "references": ["skills/kicad-pcb/references/fast-pcb-flow.md", "skills/kicad-pcb/references/routing-pipeline.md"],
@@ -130,7 +136,7 @@
     },
     {
       "spec": {"schema": 1, "id": "KICAD-PLACEMENT", "owner": "kicad-pcb", "lifecycle": "placement", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["schematic_reviewed"], "produces": ["placement_reviewed"], "blocks": ["routing"], "invalidated_by": ["placement_semantic", "schematic_semantic"]},
-      "domains": ["kicad_placement", "kicad_policy", "lifecycle", "review_publication"],
+      "domains": ["jlc_connector_orientation", "kicad_placement", "kicad_policy", "lifecycle", "review_publication"],
       "applies": {"always": true}
     },
     {
