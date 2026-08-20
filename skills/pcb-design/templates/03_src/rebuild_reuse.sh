@@ -49,6 +49,9 @@ run_stage() {
     "$PY" "$S/pcb_flow.py" run . --stage "$stage" -- "$@"
 }
 
+PIPELINE_EVIDENCE=06_build/verification/pipeline
+mkdir -p "$PIPELINE_EVIDENCE/bundles"
+
 # P-MOD is source-only and cheap; the deterministic path must not bypass the
 # architecture decision merely because it reuses a pinned schematic.
 $PY "$S/module_first_check.py" . \
@@ -93,6 +96,12 @@ $PY "$S/pre_route_review_check.py" . --phase schematic \
     --netlist "06_build/netlists/$BOARD.net" \
     || { echo "GATE FAILED [1a] PR-REVIEW: topology witness missing, stale, or defective"; exit 1; }
 
+$PY "$S/electrical_closure.py" . \
+    --json "$PIPELINE_EVIDENCE/electrical_closure.json" \
+    --stage-bundle "$PIPELINE_EVIDENCE/bundles/electrical_closure" \
+    --stage-result "$PIPELINE_EVIDENCE/E-CLOSURE.stage.json" \
+    || { echo "GATE FAILED [1a] E-CLOSURE: composed electrical battery is incomplete or stale"; exit 1; }
+
 # Deterministic replay may consume the accepted prelayout receipt but may not
 # bypass it. The full driver owns first-time request/template emission.
 PCBA_RECEIPT=06_build/sourcing/prelayout_receipt.json
@@ -103,6 +112,8 @@ fi
 $PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
     --pcba-receipt "$PCBA_RECEIPT" \
     --json 06_build/verification/manufacturing_readiness_prelayout.json \
+    --stage-bundle "$PIPELINE_EVIDENCE/bundles/part_freeze" \
+    --stage-result "$PIPELINE_EVIDENCE/S-PART-FREEZE.stage.json" \
     || { echo "GATE FAILED [1b] J-PCBA-PRELAYOUT: receipt missing, stale, substituted, insufficient, or bound to another source"; exit 1; }
 
 # [2] board (placement + zones) from committed floorplan.yaml  [SHARED]
@@ -123,6 +134,8 @@ $PY "$S/placement_routability_preflight.py" grade . \
     --board "04_kicad/$BOARD.kicad_pcb" \
     --placement-config 03_src/placement_gates.json \
     --json 06_build/verification/placement_routability_receipt.json \
+    --stage-bundle "$PIPELINE_EVIDENCE/bundles/placement_feasibility" \
+    --stage-result "$PIPELINE_EVIDENCE/P-FEASIBILITY.stage.json" \
     || { echo "GATE FAILED [3] KICAD-PLACEMENT: physical placement and declared routability do not jointly pass"; exit 1; }
 $PY "$S/model_coverage_check.py" "04_kicad/$BOARD.kicad_pcb" \
     -o 06_build/verification/model_coverage.json \

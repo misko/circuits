@@ -27,6 +27,12 @@ import yaml
 
 
 SCRIPTS = Path(__file__).resolve().parent
+PCB_PIPELINE = SCRIPTS.parents[1] / "pcb-design" / "scripts"
+if str(PCB_PIPELINE) not in __import__("sys").path:
+    __import__("sys").path.insert(0, str(PCB_PIPELINE))
+
+from pipeline_identity import TypedIdentityInput, subject_identity  # noqa: E402
+from pipeline_stage_evidence import publish_stage_evidence  # noqa: E402
 
 
 def _record(path: Path) -> dict[str, Any]:
@@ -235,10 +241,18 @@ def exact_code_check(project: Path, circuit: Path,
                 failures.append(
                     f"{ref}: source code {codes[0]} disagrees with "
                     f"{mpn} dossier code {declared_code}")
+            footprint = dossier[1].get("footprint")
+            if disposition == "jlc" and (
+                    not isinstance(footprint, str) or not footprint.strip()):
+                failures.append(
+                    f"{ref}: JLC-assembled exact MPN {mpn!r} has no frozen "
+                    "footprint in its dossier")
         rows.append({"ref": ref, "mpn": mpn or None, "jlc_codes": codes,
                      "supplier_handles": handles,
                      "disposition": disposition,
-                     "dossier": str(dossier[0].resolve()) if dossier else None})
+                     "dossier": str(dossier[0].resolve()) if dossier else None,
+                     "footprint": (dossier[1].get("footprint")
+                                   if dossier else None)})
     return ({
         "status": "FAIL" if failures else "PASS",
         "detail": f"{len(rows)}/{len(components)} source component(s) graded",
@@ -364,6 +378,47 @@ def verify(path: Path) -> tuple[bool, list[str]]:
     return not failures, failures
 
 
+def _publish_part_freeze(result: dict[str, Any], receipt_path: Path,
+                         bundle_path: Path, stage_path: Path) -> None:
+    """Shadow-publish accepted pre-layout sourcing as S-PART-FREEZE."""
+    if result.get("phase") != "prelayout":
+        raise ValueError("S-PART-FREEZE publication requires phase prelayout")
+    if result.get("verdict") != "ACCEPTED":
+        raise ValueError("S-PART-FREEZE cannot publish non-accepted evidence")
+    semantic = {
+        "phase": result["phase"],
+        "project": result["project"],
+        "checks": {
+            name: {"status": row.get("status"), "detail": row.get("detail")}
+            for name, row in sorted(result["checks"].items())
+        },
+        "part_identity": (result["checks"].get("exact_code_identity") or {})
+                         .get("rows", []),
+    }
+    identity = subject_identity("part-freeze", 1, [TypedIdentityInput(
+        "readiness", "mapping", semantic, receipt_path.read_bytes())])
+    inputs = {
+        name: Path(record["path"])
+        for name, record in result["inputs"].items()
+    }
+    coverage = result["coverage"]
+    publish_stage_evidence(
+        stage_id="S-PART-FREEZE",
+        output_symbol="part_freeze_report",
+        producer="manufacturing_readiness.py",
+        producer_version="schema-1-shadow",
+        subject=identity,
+        inputs=inputs,
+        measurement_path=receipt_path,
+        measurement_name="part_freeze.json",
+        accepted_dir=bundle_path,
+        stage_result_path=stage_path,
+        status="PASS",
+        graded=coverage["passing"],
+        total=coverage["total"],
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -377,6 +432,8 @@ def main(argv: list[str] | None = None) -> int:
     grade_parser.add_argument("--catalog-evidence", type=Path)
     grade_parser.add_argument("--catalog-decision", type=Path)
     grade_parser.add_argument("--json", type=Path, required=True)
+    grade_parser.add_argument("--stage-bundle", type=Path)
+    grade_parser.add_argument("--stage-result", type=Path)
     verify_parser = sub.add_parser("verify")
     verify_parser.add_argument("receipt", type=Path)
     args = parser.parse_args(argv)
@@ -396,6 +453,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"MANUFACTURING-READINESS INCOMPLETE: {exc}")
         return 2
     _atomic_json(args.json, result)
+    if bool(args.stage_bundle) != bool(args.stage_result):
+        print("MANUFACTURING-READINESS INCOMPLETE: --stage-bundle and "
+              "--stage-result must be supplied together")
+        return 2
+    if args.stage_bundle:
+        try:
+            _publish_part_freeze(result, args.json.resolve(),
+                                 args.stage_bundle.resolve(),
+                                 args.stage_result.resolve())
+        except Exception as exc:
+            print(f"MANUFACTURING-READINESS INCOMPLETE: shadow stage evidence: {exc}")
+            return 2
     coverage = result["coverage"]
     print(f"MANUFACTURING-READINESS {result['verdict']}: "
           f"{coverage['passing']}/{coverage['total']} checks pass; "

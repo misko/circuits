@@ -81,6 +81,90 @@ def t_topology_empty_refused():
     check(report["findings"], "empty required topology emitted no diagnosis")
 
 
+class FakePad:
+    def __init__(self, number, net):
+        self.number, self.net = number, net
+    def GetNumber(self):
+        return self.number
+    def GetNetname(self):
+        return self.net
+
+
+class FakeFootprint:
+    def __init__(self, ref, pads):
+        self.ref, self.pads = ref, [FakePad(*row) for row in pads]
+    def GetReference(self):
+        return self.ref
+    def Pads(self):
+        return self.pads
+
+
+class FakeBoard:
+    def __init__(self, footprints):
+        self.footprints = footprints
+    def GetFootprints(self):
+        return self.footprints
+
+
+@test("connector lane contract checks ordered physical pad-to-net identity")
+def t_connector_lane_clean():
+    board = FakeBoard([FakeFootprint("J1", [("A6", "USB_P"),
+                                             ("A7", "USB_N")])])
+    cfg = {"route": {"routability": {"require_connector_lanes": True,
+        "connector_lanes": [{"ref": "J1", "why": "USB lane order",
+            "lanes": [{"pad": "A6", "net": "USB_P"},
+                      {"pad": "A7", "net": "USB_N"}]}]}}}
+    eq(placement_routability_preflight._connector_lanes(cfg, board)["status"],
+       "PASS", "connector lane order")
+
+
+@test("connector lane contract rejects a swapped USB pair", kind="known_bad")
+def t_connector_lane_swapped():
+    board = FakeBoard([FakeFootprint("J1", [("A6", "USB_N"),
+                                             ("A7", "USB_P")])])
+    cfg = {"route": {"routability": {"connector_lanes": [{
+        "ref": "J1", "why": "USB lane order",
+        "lanes": [{"pad": "A6", "net": "USB_P"},
+                  {"pad": "A7", "net": "USB_N"}]}]}}}
+    report = placement_routability_preflight._connector_lanes(cfg, board)
+    eq(report["status"], "FAIL", "swapped lane status")
+    check(len(report["findings"]) == 2, "swapped pair was not diagnosed")
+
+
+@test("series power path proves copper joins and component crossings")
+def t_series_power_path_clean():
+    board = FakeBoard([
+        FakeFootprint("J1", [("1", "VIN")]),
+        FakeFootprint("F1", [("1", "VIN"), ("2", "FUSED")]),
+        FakeFootprint("U1", [("1", "FUSED")]),
+    ])
+    cfg = {"route": {"routability": {"series_power_paths": [{
+        "id": "input", "why": "fuse cannot be bypassed",
+        "transitions": [
+            {"kind": "copper", "from": "J1.1", "to": "F1.1"},
+            {"kind": "component", "from": "F1.1", "to": "F1.2"},
+            {"kind": "copper", "from": "F1.2", "to": "U1.1"},
+        ]}]}}}
+    eq(placement_routability_preflight._series_power_paths(cfg, board)["status"],
+       "PASS", "series power path")
+
+
+@test("series power path rejects a fuse bypass", kind="known_bad")
+def t_series_power_path_bypass():
+    board = FakeBoard([
+        FakeFootprint("J1", [("1", "VIN")]),
+        FakeFootprint("F1", [("1", "VIN"), ("2", "FUSED")]),
+        FakeFootprint("U1", [("1", "VIN")]),
+    ])
+    cfg = {"route": {"routability": {"series_power_paths": [{
+        "id": "input", "why": "fuse cannot be bypassed",
+        "transitions": [{"kind": "copper", "from": "F1.2", "to": "U1.1"}]
+    }]}}}
+    report = placement_routability_preflight._series_power_paths(cfg, board)
+    eq(report["status"], "FAIL", "bypassed path status")
+    check(report["findings"], "bypass emitted no diagnosis")
+
+
 def copper(path, branched):
     tail = ('\t(segment (start 1 0) (end 1 1) (layer "F.Cu") '
             '(net "USB_P"))\n') if branched else ""
@@ -97,7 +181,7 @@ def t_route_chain_clean():
     path = tmpdir("route_chain_") / "chain.kicad_pcb"
     copper(path, False)
     report = route_acceptance_gate._simple_conductor(
-        path.parent, path, ["USB_P"])
+        path.parent, path, ["USB_P"], {})
     eq(report["status"], "PASS", "chain topology")
 
 
@@ -107,7 +191,7 @@ def t_route_branch_bad():
     path = tmpdir("route_branch_") / "branch.kicad_pcb"
     copper(path, True)
     report = route_acceptance_gate._simple_conductor(
-        path.parent, path, ["USB_P"])
+        path.parent, path, ["USB_P"], {})
     eq(report["status"], "FAIL", "branched topology")
     check(report["failures"], "branched conductor emitted no finding")
 
@@ -127,7 +211,8 @@ def manufacturing_tree(codes):
     dossier = project / "02_parts/EXACT-IC/part.yaml"
     dossier.parent.mkdir(parents=True)
     dossier.write_text(yaml.safe_dump({
-        "mpn": "EXACT-IC", "sourcing": {"lcsc": "C123"}},
+        "mpn": "EXACT-IC", "footprint": "Package_SO:SOIC-8",
+        "sourcing": {"lcsc": "C123"}},
         sort_keys=False))
     return project, circuit, assembly
 
@@ -155,6 +240,83 @@ def t_manufacturing_multiple_codes_bad():
                    project, "--phase", "selection", "--json",
                    project / "receipt.json"]),
               "ambiguous manufacturing selection CLI", expect="REJECTED")
+
+
+@test("automatic exact part freeze rejects a dossier with no footprint",
+      kind="known_bad")
+def t_manufacturing_missing_footprint():
+    project, circuit, assembly = manufacturing_tree(["C123"])
+    dossier = project / "02_parts/EXACT-IC/part.yaml"
+    data = yaml.safe_load(dossier.read_text())
+    data["footprint"] = None
+    dossier.write_text(yaml.safe_dump(data, sort_keys=False))
+    report, _ = manufacturing_readiness.exact_code_check(
+        project, circuit, assembly)
+    eq(report["status"], "FAIL", "missing-footprint readiness")
+    check(any("no frozen footprint" in item for item in report["findings"]),
+          "missing footprint diagnosis absent")
+
+
+@test("accepted prelayout readiness can shadow-publish S-PART-FREEZE")
+def t_part_freeze_stage_evidence():
+    project, circuit, assembly = manufacturing_tree(["C123"])
+    receipt = project / "readiness.json"
+    result = {
+        "schema": 1,
+        "kind": "manufacturing-readiness-receipt-v1",
+        "phase": "prelayout",
+        "verdict": "ACCEPTED",
+        "project": project.name,
+        "inputs": {"circuit": record(circuit), "assembly": record(assembly)},
+        "checks": {
+            "exact_code_identity": {
+                "status": "PASS", "detail": "1/1", "rows": [{
+                    "ref": "U1", "mpn": "EXACT-IC", "jlc_codes": ["C123"],
+                    "disposition": "jlc",
+                }],
+            },
+            "procurement_exposure": {"status": "PASS", "detail": "bounded"},
+        },
+        "coverage": {"passing": 2, "total": 2},
+    }
+    receipt.write_text(json.dumps(result))
+    (project / "bundle-parent").mkdir()
+    manufacturing_readiness._publish_part_freeze(
+        result, receipt, project / "bundle-parent/accepted",
+        project / "part-freeze.stage.json")
+    stage = json.loads((project / "part-freeze.stage.json").read_text())
+    eq(stage["stage_id"], "S-PART-FREEZE", "part-freeze stage id")
+    eq(stage["outputs"], ["part_freeze_report"], "part-freeze symbol")
+
+
+@test("accepted placement receipt can shadow-publish P-FEASIBILITY")
+def t_placement_feasibility_stage_evidence():
+    project = tmpdir("placement_feasibility_")
+    board = project / "board.kicad_pcb"
+    route = project / "route.yaml"
+    board.write_text("(kicad_pcb)\n")
+    route.write_text("route: {}\n")
+    receipt_path = project / "placement.json"
+    receipt = {
+        "schema": 1, "kind": "placement-routability-receipt-v1",
+        "verdict": "ACCEPTED", "subject": record(board),
+        "inputs": {"board": record(board), "route": record(route)},
+        "checks": {
+            "endpoint_topology": {"status": "PASS", "detail": "1/1",
+                                  "rows": []},
+            "layer_eligibility": {"status": "PASS", "detail": "2 layers"},
+        },
+        "coverage": {"passing": 2, "total": 2},
+    }
+    receipt_path.write_text(json.dumps(receipt))
+    (project / "bundle-parent").mkdir()
+    placement_routability_preflight._publish_feasibility(
+        receipt, receipt_path, project / "bundle-parent/accepted",
+        project / "feasibility.stage.json")
+    stage = json.loads((project / "feasibility.stage.json").read_text())
+    eq(stage["stage_id"], "P-FEASIBILITY", "feasibility stage id")
+    eq(stage["outputs"], ["placement_feasibility_report"],
+       "feasibility symbol")
 
 
 def rehearsal_tree():

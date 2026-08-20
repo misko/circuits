@@ -476,7 +476,11 @@ two cannot drift apart without the router failing to find its own pass.
 | `route.ownership_preflight.mode` | `route_and_stitch_generic.py` | closed `observe|enforce` disposition consumed by the wrapper after the delegated topology check |
 | `route.ownership.*` | `route_ownership_preflight.py` | progressive many-pad net owner/topology declarations and shared-corridor claim order; omitted on simple boards |
 | `route.routability` | `placement_routability_preflight.py` | placement-freeze composition of executable layer roles, class eligibility, and exact critical-path endpoint topology; it is an admission contract, not a router |
-| `route.routability.*` | `placement_routability_preflight.py` | required-topology decision, layer/class maps, and per-instance part MPN/kind/pad/pair declarations cross-checked against the exact board and part dossiers |
+| `route.routability.*` | `placement_routability_preflight.py` | required-topology/lane/path decisions, layer/class maps, and per-instance part MPN/kind/pad/pair declarations cross-checked against the exact board and part dossiers |
+| `route.routability.connector_lanes[]` | `placement_routability_preflight.py` | ordered connector instance plus exact physical pad-to-net lanes; catches crossed or reversed assignments before routing |
+| `route.routability.connector_lanes[].lanes[]` | `placement_routability_preflight.py` | exact `{pad, net}` tuple; every pad must exist and carry the declared net |
+| `route.routability.series_power_paths[]` | `placement_routability_preflight.py` | named source-to-load ordering proof across fuse/switch/protection boundaries before routing |
+| `route.routability.series_power_paths[].transitions[]` | `placement_routability_preflight.py` | exact `{kind, from, to}` transition; copper joins one net, component crosses two pads/nets of one footprint |
 | `route.candidate_grade` | `route_and_stitch_generic.py` | wrapper-owned opt-in authoritative fresh-basename candidate receipt; enabled for new projects |
 | `route.candidate_grade.mode` | `route_and_stitch_generic.py` | closed `observe|enforce` disposition consumed by the wrapper after immutable-workspace grading |
 | `route.exploration_guard.*` | `route_and_stitch_generic.py` | wrapper-owned semantic plateau, total attempt, novel-signature and operation-amplification bounds passed into the progress observer; coordinates and output hashes are not novelty |

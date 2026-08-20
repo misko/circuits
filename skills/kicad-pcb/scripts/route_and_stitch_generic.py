@@ -4210,6 +4210,16 @@ def p_astar(ctx, c):
     window = float(c.get("window", 3.0))
     attempts = int(c.get("attempts", 3))
     target_tries = int(c.get("targets", 1))
+    max_pending = int(c.get("max_pending", 8))
+    budget_s = float(c.get("budget_s", 30.0))
+    if max_pending <= 0 or budget_s <= 0:
+        die("stitch.astar_fallback max_pending and budget_s must be positive")
+    if len(ctx.pending) > max_pending:
+        residual = ", ".join(f"{ref}.{pad}" for ref, pad in ctx.pending)
+        ctx.bump("astar_fallback", 0)
+        print(f"A* fallback SKIPPED: {len(ctx.pending)} residual endpoints exceed "
+              f"max_pending={max_pending}; author explicit dogbones: {residual}")
+        return
     layer_names = c.get("layers")
     astar_layers = None
     if layer_names is not None:
@@ -4268,6 +4278,7 @@ def p_astar(ctx, c):
     before = via_coords()      # A* adds vias inside the toolkit — diff them
     pending = list(ctx.pending)
     fixed = 0
+    budget_started = time.monotonic()
     try:
         for netname in nets:
             code = ctx.net(netname).GetNetCode()
@@ -4280,6 +4291,12 @@ def p_astar(ctx, c):
                     still.append((ref, p.GetNumber()))
                     continue
                 px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+                elapsed = time.monotonic() - budget_started
+                if elapsed >= budget_s:
+                    still.append((ref, p.GetNumber()))
+                    print(f"  A* budget exhausted before {ref}.{p.GetNumber()} "
+                          f"at {elapsed:.3f}s/{budget_s:.3f}s")
+                    continue
                 candidates = []
                 for tx, ty in sorted(targets,
                                      key=lambda q: math.hypot(px - q[0], py - q[1])):
@@ -4287,14 +4304,20 @@ def p_astar(ctx, c):
                         candidates.append((tx, ty))
                         if len(candidates) >= target_tries:
                             break
-                found = any(ctx.tk.verified_astar(
-                                netname, (px, py), tgt, w,
-                                window=window, attempts=attempts,
-                                via_size=vs if vs is not None else 0.45,
-                                via_drill=vd if vd is not None else 0.2,
-                                layers=astar_layers,
-                                hole_to_copper=htc)
-                            for tgt in candidates)
+                print(f"  A* trying {ref}.{p.GetNumber()}: "
+                      f"{len(candidates)} target(s), elapsed={elapsed:.3f}s")
+                found = False
+                for tgt in candidates:
+                    if time.monotonic() - budget_started >= budget_s:
+                        break
+                    if ctx.tk.verified_astar(
+                            netname, (px, py), tgt, w,
+                            window=window, attempts=attempts,
+                            via_size=vs if vs is not None else 0.45,
+                            via_drill=vd if vd is not None else 0.2,
+                            layers=astar_layers, hole_to_copper=htc):
+                        found = True
+                        break
                 if found:
                     fixed += 1
                     print(f"  A* recovered {ref}.{p.GetNumber()}")
@@ -4307,7 +4330,9 @@ def p_astar(ctx, c):
         ctx.emitted.extend(sorted(via_coords() - before))
     ctx.pending = pending
     ctx.bump("astar_fallback", fixed)
-    print(f"A* fallback: recovered {fixed}, {len(pending)} left")
+    print(f"A* fallback: recovered {fixed}, {len(pending)} left; "
+          f"elapsed={time.monotonic() - budget_started:.3f}s/"
+          f"{budget_s:.3f}s")
 
 
 def _in_poly(x, y, poly):

@@ -2303,6 +2303,10 @@ rationale.
   separately composes population, strict realized part facts and order-time
   sourcing against release bytes. Stock/model/rotation/two-source readiness at
   initial part choice is still outside this receipt, so IMP-061 remains partial.
+- implementation progress: 2026-08-20 — accepted `prelayout` readiness can now
+  atomically publish a typed `S-PART-FREEZE` bundle/result, and both canonical
+  drivers exercise it in shadow mode before placement. This closes the common
+  lifecycle seam but not the remaining model/rotation/two-source predicates.
 
 ## IMP-062 — transactional generated-artifact bundles
 
@@ -2348,6 +2352,12 @@ rationale.
   shared routed-review exporter, then the JLC twin after its resumable cache is
   separated from accepted evidence, and finally release staging after its
   upstream producers are transactional. This entry remains implementing.
+- implementation progress: 2026-08-20 —
+  `pipeline_stage_evidence.py` is the small common adoption adapter for domain
+  measurements. Manufacturing readiness, electrical closure, and placement
+  feasibility now use the same fresh-bundle/reopen/atomic-promote/StageResult
+  seam with focused clean and known-bad fixtures. Broader producer migration
+  remains incremental, so the shared primitive is retained rather than copied.
 
 ## IMP-063 — complete pre-seal release rehearsal
 
@@ -5980,7 +5990,7 @@ IMP-143 owns experiment retention.
 
 ## IMP-163 — corner-grade reference-design values before schematic freeze
 
-- status: proposed
+- status: implementing
 - observed: USB-controlled debug hub pre-order adversarial review, 2026-08-18
 - evidence: the USB2517I hardware checklist's nominal 100 kOhm/100 kOhm
   `VBUS_DET` example was copied faithfully, yet the combined data-sheet limits
@@ -6010,6 +6020,12 @@ IMP-143 owns experiment retention.
 - recommendation: P0 for power, reset, enable, UV/OV, current-limit and digital
   threshold networks. Run after part selection but before placement, then bind
   the exact result into final topology review and release evidence.
+- implementation progress: `electrical_closure.py` now composes the existing
+  design/corner, invariant, topology, margin, off-control, component-census and
+  value-identity specialists into one non-vacuous `E-CLOSURE` receipt. Both
+  rebuild templates exercise it through atomic shadow evidence. A general
+  threshold-network coverage inventory remains open; equations stay with the
+  specialist electrical gates, not the compositor.
 
 ## IMP-164 — recognize both lit faces of the board strip in directional crops
 
@@ -6037,7 +6053,7 @@ IMP-143 owns experiment retention.
 
 ## IMP-165 — decide duplicate-contact connector polarity order before routing
 
-- status: proposed
+- status: partially implemented
 - observed: USB-controlled debug hub v2 USB-only route checkpoint, 2026-08-18
 - evidence: the USB-C receptacle exposes alternating A6/B6 D+ and A7/B7 D-
   contacts. All net identities and local clearances were correct, but the
@@ -6062,6 +6078,10 @@ IMP-143 owns experiment retention.
   DRC before routing.
 - recommendation: P1 for USB-C and other reversible high-speed connectors.
   Run immediately after placement and before the first differential-pair wave.
+- implementation progress: `placement_routability_preflight.py` now grades
+  ordered connector `{pad, net}` tuples and rejects swapped physical lanes;
+  accepted evidence can publish as `P-FEASIBILITY`. Automatic end-to-end
+  parity and crossover/via-budget derivation remain open.
 
 ## IMP-166 — make switching-loop adjacency a placement contract, not a routing discovery
 
@@ -6179,7 +6199,7 @@ IMP-143 owns experiment retention.
 
 ## IMP-171 — prove load-current paths as source-to-load graphs before control routing
 
-- status: proposed
+- status: partially implemented
 - observed: USB-controlled debug hub v2 final power/ground stage, 2026-08-18
 - evidence: both `VBUS_PD` pads appeared inside same-net filled zones and the
   ordinary ratsnest showed only one net-level island, yet the fuse-output lobe
@@ -6200,6 +6220,11 @@ IMP-143 owns experiment retention.
   sense branch does not satisfy a load-current edge.
 - recommendation: P0 for boards with fuses, eFuses, load switches or DC/DC
   conversion. Run after power fill and before low-speed/control routing.
+- implementation progress: placement feasibility now accepts explicit
+  `series_power_paths` and proves each copper/component transition against the
+  exact placed board, catching wrong ordering and bypass intent before routing.
+  Realized post-fill copper-component connectivity remains the completion
+  still to land.
 
 ## IMP-172 — count only electrically participating vias in ampacity banks
 
@@ -6226,7 +6251,7 @@ IMP-143 owns experiment retention.
 
 ## IMP-173 — replace broad ground A* fallback with fill-measure-explicit residuals
 
-- status: proposed
+- status: partially implemented
 - observed: USB-controlled debug hub v2 ground closure, 2026-08-18
 - evidence: direct pad rescue served 136/154 isolated SMD GND pads in seconds.
   The subsequent 18-target A* fallback consumed more than five minutes at full
@@ -6247,6 +6272,11 @@ IMP-143 owns experiment retention.
   byte-reproducible and leaves zero opens.
 - recommendation: P0 for workflow latency and debuggability; this directly
   prevents the historical silent multi-minute stitch grind.
+- implementation progress: `astar_fallback` now has an explicit residual-count
+  admission ceiling, aggregate time budget, per-endpoint progress, and a loud
+  explicit-dogbone stop when the denominator is too large. The canonical
+  route template defaults to eight endpoints/30 seconds. Reordering fill and
+  exact residual extraction ahead of A* remains open.
 
 ## IMP-174 — reject missing generated components by population identity, not appearance
 

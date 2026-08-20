@@ -75,6 +75,7 @@ Read these files directly when their condition applies. References longer than
 | Pausing/resuming or asking for operator evidence | pcb-design | `references/operator-checkpoints.md` |
 | Human review, staging, seal, supersede, publication, readiness report | pcb-design | `references/review-and-publication.md` |
 | Adding/changing orchestration stages, identities, bundles, reviews, facts | pcb-design | `references/pipeline-stage-contract.md` |
+| Part freeze, electrical closure, placement-feasibility composition | pcb-design | `references/early-boundary-gates.md` |
 | Choosing model/compute tier | pcb-design | `references/compute-tiers.md` |
 | Electrical and machine/human policy canon | kicad-pcb | `../kicad-pcb/references/design-policies.md` |
 | TSX/KiCad schematic generation and readability | kicad-pcb | `../kicad-pcb/references/schematic-generation.md` and `../kicad-pcb/references/tscircuit-folder.md` |
@@ -169,7 +170,9 @@ preliminary BOM exists and before placement spend, grade a quantity-expanded
 procurement policy and grade preorder cash, gross MOQ surplus cost, and
 nonrecoverable assembly excess cost separately from raw surplus quantity.
 These prevention gates never replace the final exact-BOM `order` allocation
-and quote receipt.
+and quote receipt. Publish the accepted preliminary-BOM boundary as
+`S-PART-FREEZE` while legacy execution remains authoritative during canary
+migration.
 
 ## Schematic
 
@@ -181,7 +184,8 @@ Run inexpensive source/schema/count/producer-diagnostic checks before TSX
 generation and immediately after it. Bind a human schematic PDF to the exact
 Circuit JSON. Stop at the schematic checkpoint until independent topology and
 readability witnesses are admissible. A machine-readable but unreadable
-schematic does not pass.
+schematic does not pass. Compose the post-netlist specialist battery as
+`E-CLOSURE`; specialist scripts retain every equation and limit.
 
 ## Placement and routing
 
@@ -190,7 +194,9 @@ escape, part/pin identity, native-polygon body/courtyard clearance, datasheet
 adjacency, corridor capacity, and critical-pair inventory before router spend.
 At placement freeze, run the placement-routability compositor. It grades the
 existing physical predicates plus declared shunt/series endpoint topology and
-layer eligibility; it does not route copper or add a lifecycle stage.
+layer eligibility, ordered connector lanes, and explicit series power paths;
+it does not route copper or add a lifecycle stage. Publish accepted shadow
+evidence as `P-FEASIBILITY` until canary equivalence permits promotion.
 After native-model registration, close `P-ORIENT` for edge-mounted connectors
 with machine geometry plus exact, hash-bound human directional views. If the
 fabrication twin substitutes a vendor model, require its automatic

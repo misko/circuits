@@ -117,6 +117,16 @@ def erc_gate_ok(txt):
     return True, ""
 
 
+def early_boundaries_ok(txt):
+    required = (
+        'electrical_closure.py" .',
+        '--stage-result "$PIPELINE_EVIDENCE/E-CLOSURE.stage.json"',
+        '--stage-result "$PIPELINE_EVIDENCE/S-PART-FREEZE.stage.json"',
+        '--stage-result "$PIPELINE_EVIDENCE/P-FEASIBILITY.stage.json"',
+    )
+    return all(value in txt for value in required)
+
+
 @test("TSX-DIAG reports its coverage and FAILS an embedded producer error",
       kind="known_bad")
 def t_kb_tsx_diag_embedded_error_is_loud():
@@ -1459,6 +1469,30 @@ def t_rf_module_stage_order():
               "precede final route acceptance")
         check("pipeline_review.py" not in txt[context:source],
               f"{path.name}: RF module added a reviewer/wait stage")
+
+
+@test("both rebuild drivers shadow-publish all three early prevention boundaries")
+def t_early_boundary_wiring():
+    for path in (ALL, REUSE):
+        txt = path.read_text()
+        check(early_boundaries_ok(txt),
+              f"{path.name}: incomplete E-CLOSURE/S-PART-FREEZE/P-FEASIBILITY wiring")
+        board_generation = txt.index('$PY "$S/generate_board_generic.py"')
+        check(txt.index("electrical_closure.py") < board_generation,
+              f"{path.name}: E-CLOSURE must precede board generation")
+        check(txt.index("S-PART-FREEZE.stage.json") <
+              board_generation,
+              f"{path.name}: part freeze must precede placement")
+
+
+@test("early-boundary template check rejects a dropped typed receipt",
+      kind="known_bad")
+def t_early_boundary_wiring_has_teeth():
+    text = ALL.read_text().replace(
+        '--stage-result "$PIPELINE_EVIDENCE/P-FEASIBILITY.stage.json"',
+        '--stage-result "$PIPELINE_EVIDENCE/removed.stage.json"', 1)
+    check(not early_boundaries_ok(text),
+          "template without P-FEASIBILITY unexpectedly passed wiring check")
 
 
 @test("both rebuild drivers replay configured taps between route import and stitch")

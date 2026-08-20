@@ -365,7 +365,11 @@ stitch:
   # is substantially faster than searching the whole default F/B space.  The
   # A* via pin inherits a matching stitch.via.tiers hole_to_copper value, or
   # it may declare one explicitly.
+  # A* is a bounded last resort for a small named residual, never the default
+  # continuation after direct rescue. Larger residuals stop immediately for
+  # explicit dogbones instead of spending minutes in a silent local search.
   astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3,
+                   max_pending: 8, budget_s: 30,
                    layers: [F.Cu, B.Cu]}
   stitch_grid:
     net: GND

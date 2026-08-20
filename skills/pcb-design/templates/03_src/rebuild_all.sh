@@ -34,6 +34,8 @@ case "${1:-}" in
 esac
 CJ=03_tscircuit/build/circuit.json
 SCHPDF=03_tscircuit/build/schematic.pdf
+PIPELINE_EVIDENCE=06_build/verification/pipeline
+mkdir -p "$PIPELINE_EVIDENCE/bundles"
 
 if [ "$RESUME_AFTER_SCHEMATIC_REVIEW" = false ]; then
 
@@ -187,6 +189,15 @@ $PY "$S/power_topology.py" . --off-control \
     || { echo "GATE FAILED [1b] E-OFF (power_topology.py --off-control): battery source without a declared de-energization path"; exit 1; }
 $PY "$S/count_parity.py" . --pre-board \
     || { echo "GATE FAILED [1b] S-COUNT (count_parity.py): refdes sets disagree across intent/artifacts (silent drop)"; exit 1; }
+# Shadow-compatible typed composition of the exact battery above.  The
+# specialist commands remain authoritative during migration; this additional
+# receipt proves that none was omitted and exercises the future boundary on
+# real boards before promotion.
+$PY "$S/electrical_closure.py" . \
+    --json "$PIPELINE_EVIDENCE/electrical_closure.json" \
+    --stage-bundle "$PIPELINE_EVIDENCE/bundles/electrical_closure" \
+    --stage-result "$PIPELINE_EVIDENCE/E-CLOSURE.stage.json" \
+    || { echo "GATE FAILED [1b] E-CLOSURE: composed electrical battery is incomplete or disagrees with its specialist gates"; exit 1; }
 $PY "$FS/manufacturing_readiness.py" grade . --phase selection \
     --json 06_build/verification/manufacturing_readiness_selection.json \
     || { echo "GATE FAILED [1b] PCB-SOURCING: exact source code/dossier identity or coded R/C value is not ready for part freeze"; exit 1; }
@@ -233,6 +244,8 @@ fi
 $PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
     --pcba-receipt "$PCBA_RECEIPT" \
     --json 06_build/verification/manufacturing_readiness_prelayout.json \
+    --stage-bundle "$PIPELINE_EVIDENCE/bundles/part_freeze" \
+    --stage-result "$PIPELINE_EVIDENCE/S-PART-FREEZE.stage.json" \
     || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: exact JLCPCB PCBA availability is missing, stale, substituted, or insufficient"; exit 1; }
 
 # [2] ERC gate — 0 ERRORS. TWO RUNS, AND THE SPLIT IS THE CANON'S, NOT A
@@ -355,6 +368,8 @@ $PY "$S/placement_routability_preflight.py" grade . \
     --board "04_kicad/$BOARD.kicad_pcb" \
     --placement-config 03_src/placement_gates.json \
     --json 06_build/verification/placement_routability_receipt.json \
+    --stage-bundle "$PIPELINE_EVIDENCE/bundles/placement_feasibility" \
+    --stage-result "$PIPELINE_EVIDENCE/P-FEASIBILITY.stage.json" \
     || { echo "GATE FAILED [4] KICAD-PLACEMENT: physical placement and declared routability do not jointly pass"; exit 1; }
 $PY "$S/model_coverage_check.py" "04_kicad/$BOARD.kicad_pcb" \
     -o 06_build/verification/model_coverage.json \

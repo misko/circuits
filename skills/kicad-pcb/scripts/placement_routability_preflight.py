@@ -20,6 +20,14 @@ When ``route.routability.require_topology`` is true, every footprint whose
 part dossier declares ``layout.route_topology.kind`` must have a matching row.
 The board row remains the instance authority; the dossier is the part-class
 authority.
+
+Two optional source contracts close common placement-time omissions without
+turning this gate into a router:
+
+``connector_lanes`` maps ordered physical pads to exact nets, so a correct
+connector orientation cannot hide a crossed or reversed lane assignment.
+``series_power_paths`` lists explicit copper and component transitions from
+input to load, so a fuse/switch/protection device cannot be present but bypassed.
 """
 from __future__ import annotations
 
@@ -37,6 +45,12 @@ import critical_route_check
 import placement_gates
 import route_ownership_preflight
 from tier_preflight import board_scoped
+
+PCB_PIPELINE = Path(__file__).resolve().parents[2] / "pcb-design" / "scripts"
+if str(PCB_PIPELINE) not in __import__("sys").path:
+    __import__("sys").path.insert(0, str(PCB_PIPELINE))
+from pipeline_identity import TypedIdentityInput, subject_identity  # noqa: E402
+from pipeline_stage_evidence import publish_stage_evidence  # noqa: E402
 
 
 KINDS = {"shunt", "series_flow_through", "series_directional"}
@@ -244,6 +258,155 @@ def _layers(route_cfg: dict[str, Any], board: Any) -> dict[str, Any]:
             "findings": findings}
 
 
+def _pads_by_ref(board: Any) -> dict[str, dict[str, Any]]:
+    return {
+        str(fp.GetReference()): {str(pad.GetNumber()): pad for pad in fp.Pads()}
+        for fp in board.GetFootprints()
+    }
+
+
+def _connector_lanes(route_cfg: dict[str, Any], board: Any) -> dict[str, Any]:
+    cfg = ((route_cfg.get("route") or {}).get("routability") or {})
+    rows = cfg.get("connector_lanes") or []
+    required = bool(cfg.get("require_connector_lanes"))
+    if not isinstance(rows, list):
+        raise ValueError("route.routability.connector_lanes must be a list")
+    if not rows:
+        return {
+            "status": "FAIL" if required else "N-A",
+            "detail": ("connector lane declarations are required but absent"
+                       if required else "no connector lane rows declared"),
+            "rows": [],
+            "findings": (["require_connector_lanes is true but rows are empty"]
+                         if required else []),
+        }
+    footprints = _pads_by_ref(board)
+    findings, graded, seen = [], [], set()
+    for index, raw in enumerate(rows):
+        where = f"route.routability.connector_lanes[{index}]"
+        if not isinstance(raw, dict):
+            findings.append(f"{where}: expected a mapping")
+            continue
+        ref = str(raw.get("ref") or "").strip()
+        why = str(raw.get("why") or "").strip()
+        lanes = raw.get("lanes") or []
+        if not ref or ref in seen:
+            findings.append(f"{where}.ref must be non-empty and unique")
+        seen.add(ref)
+        if not why:
+            findings.append(f"{where}.why is required")
+        if not isinstance(lanes, list) or not lanes:
+            findings.append(f"{where}.lanes must be a non-empty ordered list")
+            continue
+        pads = footprints.get(ref)
+        if pads is None:
+            findings.append(f"{where}: footprint {ref!r} is absent")
+            continue
+        observed, lane_seen = [], set()
+        for lane_index, lane in enumerate(lanes):
+            lane_where = f"{where}.lanes[{lane_index}]"
+            if not isinstance(lane, dict) or set(lane) != {"pad", "net"}:
+                findings.append(f"{lane_where}: requires exactly pad and net")
+                continue
+            pad_number, expected = str(lane["pad"]), str(lane["net"])
+            if not pad_number or pad_number in lane_seen or not expected:
+                findings.append(f"{lane_where}: pad must be unique and net non-empty")
+                continue
+            lane_seen.add(pad_number)
+            pad = pads.get(pad_number)
+            actual = None if pad is None else str(pad.GetNetname())
+            observed.append({"pad": pad_number, "expected_net": expected,
+                             "actual_net": actual})
+            if pad is None:
+                findings.append(f"{lane_where}: {ref}.{pad_number} is absent")
+            elif actual != expected:
+                findings.append(
+                    f"{lane_where}: {ref}.{pad_number} is {actual!r}, "
+                    f"expected {expected!r}")
+        graded.append({"ref": ref, "lanes": observed, "why": why})
+    return {"status": "FAIL" if findings else "PASS",
+            "detail": f"{len(graded)}/{len(rows)} connector row(s) graded",
+            "rows": graded, "findings": findings}
+
+
+def _series_power_paths(route_cfg: dict[str, Any], board: Any) -> dict[str, Any]:
+    cfg = ((route_cfg.get("route") or {}).get("routability") or {})
+    rows = cfg.get("series_power_paths") or []
+    required = bool(cfg.get("require_series_power_paths"))
+    if not isinstance(rows, list):
+        raise ValueError("route.routability.series_power_paths must be a list")
+    if not rows:
+        return {
+            "status": "FAIL" if required else "N-A",
+            "detail": ("series power paths are required but absent" if required
+                       else "no series power paths declared"),
+            "rows": [],
+            "findings": (["require_series_power_paths is true but rows are empty"]
+                         if required else []),
+        }
+    footprints = _pads_by_ref(board)
+    findings, graded, seen_ids = [], [], set()
+
+    def resolve(endpoint: str, where: str) -> tuple[str, str, str] | None:
+        if "." not in endpoint:
+            findings.append(f"{where}: endpoint must be REF.PAD")
+            return None
+        ref, pad_number = endpoint.split(".", 1)
+        pad = footprints.get(ref, {}).get(pad_number)
+        if pad is None:
+            findings.append(f"{where}: endpoint {endpoint!r} is absent")
+            return None
+        return ref, pad_number, str(pad.GetNetname())
+
+    for index, raw in enumerate(rows):
+        where = f"route.routability.series_power_paths[{index}]"
+        if not isinstance(raw, dict):
+            findings.append(f"{where}: expected a mapping")
+            continue
+        path_id = str(raw.get("id") or "").strip()
+        why = str(raw.get("why") or "").strip()
+        transitions = raw.get("transitions") or []
+        if not path_id or path_id in seen_ids:
+            findings.append(f"{where}.id must be non-empty and unique")
+        seen_ids.add(path_id)
+        if not why:
+            findings.append(f"{where}.why is required")
+        if not isinstance(transitions, list) or not transitions:
+            findings.append(f"{where}.transitions must be a non-empty list")
+            continue
+        observed = []
+        for transition_index, transition in enumerate(transitions):
+            tw = f"{where}.transitions[{transition_index}]"
+            if (not isinstance(transition, dict) or
+                    set(transition) != {"kind", "from", "to"}):
+                findings.append(f"{tw}: requires exactly kind, from, and to")
+                continue
+            kind = str(transition["kind"])
+            left = resolve(str(transition["from"]), f"{tw}.from")
+            right = resolve(str(transition["to"]), f"{tw}.to")
+            if kind not in {"copper", "component"}:
+                findings.append(f"{tw}.kind must be copper or component")
+            if left is None or right is None:
+                continue
+            if kind == "copper" and (not left[2] or left[2] != right[2]):
+                findings.append(
+                    f"{tw}: copper endpoints have different nets "
+                    f"{left[2]!r}/{right[2]!r}")
+            if kind == "component" and (left[0] != right[0] or
+                                         left[1] == right[1] or
+                                         left[2] == right[2]):
+                findings.append(
+                    f"{tw}: component transition must cross two pads/nets "
+                    "of one footprint")
+            observed.append({"kind": kind, "from": transition["from"],
+                             "to": transition["to"],
+                             "from_net": left[2], "to_net": right[2]})
+        graded.append({"id": path_id, "transitions": observed, "why": why})
+    return {"status": "FAIL" if findings else "PASS",
+            "detail": f"{len(graded)}/{len(rows)} power path(s) graded",
+            "rows": graded, "findings": findings}
+
+
 def grade(project: Path, board_path: Path, *, board_name: str | None = None,
           placement_config: Path | None = None) -> dict[str, Any]:
     project, board_path = project.resolve(), board_path.resolve()
@@ -302,6 +465,14 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
         checks["layer_eligibility"] = _layers(route_cfg, board)
     except Exception as exc:
         checks["layer_eligibility"] = {"status": "INCOMPLETE", "detail": str(exc)}
+    try:
+        checks["connector_lane_order"] = _connector_lanes(route_cfg, board)
+    except Exception as exc:
+        checks["connector_lane_order"] = {"status": "INCOMPLETE", "detail": str(exc)}
+    try:
+        checks["series_power_paths"] = _series_power_paths(route_cfg, board)
+    except Exception as exc:
+        checks["series_power_paths"] = {"status": "INCOMPLETE", "detail": str(exc)}
     statuses = {row["status"] for row in checks.values()}
     verdict = ("INCOMPLETE" if "INCOMPLETE" in statuses else
                "REJECTED" if "FAIL" in statuses else "ACCEPTED")
@@ -344,6 +515,41 @@ def verify(receipt_path: Path) -> tuple[bool, list[str]]:
     return not failures, failures
 
 
+def _publish_feasibility(receipt: dict[str, Any], receipt_path: Path,
+                         bundle_path: Path, stage_path: Path) -> None:
+    if receipt.get("verdict") != "ACCEPTED":
+        raise ValueError("P-FEASIBILITY cannot publish non-accepted evidence")
+    semantic = {
+        "checks": {
+            name: {"status": row.get("status"), "detail": row.get("detail")}
+            for name, row in sorted(receipt["checks"].items())
+        },
+        "topology": (receipt["checks"].get("endpoint_topology") or {})
+                    .get("rows", []),
+        "layers": receipt["checks"].get("layer_eligibility", {}),
+    }
+    identity = subject_identity("placement-feasibility", 1, [TypedIdentityInput(
+        "placement", "mapping", semantic, receipt_path.read_bytes())])
+    inputs = {name: Path(record["path"])
+              for name, record in receipt["inputs"].items()}
+    coverage = receipt["coverage"]
+    publish_stage_evidence(
+        stage_id="P-FEASIBILITY",
+        output_symbol="placement_feasibility_report",
+        producer="placement_routability_preflight.py",
+        producer_version="schema-1-shadow",
+        subject=identity,
+        inputs=inputs,
+        measurement_path=receipt_path,
+        measurement_name="placement_feasibility.json",
+        accepted_dir=bundle_path,
+        stage_result_path=stage_path,
+        status="PASS",
+        graded=coverage["passing"],
+        total=coverage["total"],
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -353,6 +559,8 @@ def main(argv: list[str] | None = None) -> int:
     grade_parser.add_argument("--board-name")
     grade_parser.add_argument("--placement-config", type=Path)
     grade_parser.add_argument("--json", type=Path, required=True)
+    grade_parser.add_argument("--stage-bundle", type=Path)
+    grade_parser.add_argument("--stage-result", type=Path)
     verify_parser = sub.add_parser("verify")
     verify_parser.add_argument("receipt", type=Path)
     args = parser.parse_args(argv)
@@ -369,6 +577,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"PLACEMENT-ROUTABILITY INCOMPLETE: {exc}")
         return 2
     _atomic_json(args.json, receipt)
+    if bool(args.stage_bundle) != bool(args.stage_result):
+        print("PLACEMENT-ROUTABILITY INCOMPLETE: --stage-bundle and "
+              "--stage-result must be supplied together")
+        return 2
+    if args.stage_bundle:
+        try:
+            _publish_feasibility(receipt, args.json.resolve(),
+                                 args.stage_bundle.resolve(),
+                                 args.stage_result.resolve())
+        except Exception as exc:
+            print(f"PLACEMENT-ROUTABILITY INCOMPLETE: shadow stage evidence: {exc}")
+            return 2
     coverage = receipt["coverage"]
     print(f"PLACEMENT-ROUTABILITY {receipt['verdict']}: "
           f"{coverage['passing']}/{coverage['total']} checks passing or N-A; "

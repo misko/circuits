@@ -341,10 +341,11 @@ through `pipeline_readiness.py` for both single- and multi-group fixtures.
 comparison with the legacy ledger in default shadow mode. Projects may opt
 into `--readiness-authority receipts` after their closed registry and bundles
 pass clean, missing, stale, tampered, low-denominator and disagreement
-fixtures. Route acceptance, placement-routability, manufacturing readiness and
-release rehearsal emit hash-bound domain receipts; wrapping them in the frozen
-`StageResult`/accepted-bundle transaction remains the adoption boundary, not a
-second verdict schema.
+fixtures. Route acceptance and release rehearsal still emit only their
+hash-bound domain receipts. Manufacturing readiness and placement-routability
+now optionally shadow-publish `S-PART-FREEZE` and `P-FEASIBILITY` through the
+frozen `StageResult`/accepted-bundle seam; `electrical_closure.py` does the same
+for `E-CLOSURE`. Legacy invocations remain authoritative until canaries agree.
 
 The first disposable reuse-driver observation on 2026-08-12 did not agree:
 USB Hub 3S v4 stopped after about 11.4 seconds at stale/missing pre-route review
