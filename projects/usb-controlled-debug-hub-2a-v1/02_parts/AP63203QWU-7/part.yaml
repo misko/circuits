@@ -1,0 +1,66 @@
+mpn: AP63203QWU-7
+manufacturer: Diodes Incorporated
+type: synchronous_buck_fixed_3v3
+value: AP63203QWU-7
+status: active
+datasheet:
+  doc_id: DS43698
+  revision: "Rev. 1-2, September 2021"
+  url: "https://www.diodes.com/datasheet/download/AP63200Q%20AP63201Q%20AP63203Q%20AP63205Q.pdf"
+  sha256: d7870fb4ed922ae363f85eefc82acf2bbb1c5da3a47817ce53ed239bf831addf
+  fetched: 2026-08-01
+package: TSOT-23-6 / TSOT26
+footprint: Package_TO_SOT_SMD:TSOT-23-6
+escape:
+  style: leaded
+  pitch: 0.95
+  tier_required: jlc_2layer_default
+  checked: "package geometry checked 2026-07-31; live board escape_check owed"
+pins:
+  1: {name: FB, note: "fixed-output sense; connect directly to 3V3"}
+  2: {name: EN, note: "active high; open or VIN gives automatic startup"}
+  3: VIN
+  4: GND
+  5: SW
+  6: BST
+limits:
+  vin_operating: "3.8 to 32 V"
+  vin_abs_dc: 35 V
+  vin_abs_400ms: 40 V
+  vout: "3.30 V, 3.27 to 3.33 V"
+  iout_continuous: 2 A
+  peak_current_limit_min: 2.5 A
+  tj_abs: 160 C
+  ta_operating: "-40 to +125 C (AEC-Q100 Grade 1)"
+  theta_ja: "89 C/W on the datasheet minimum 2 oz single-layer test board"
+gotchas:
+  - "AP63203 is the FIXED 3.3 V member: FB goes directly to 3V3; do not fit
+     an adjustable-output divider copied from AP63200/AP63201."
+  - "This project feeds AP63203Q from the negotiated/protected 20 V input rail so its 3.3 V load does not consume a 5 V port bank's current margin. The exact 20 V tolerance and transient clamp must remain inside the 32 V operating and 35 V DC absolute limits."
+  - "BST needs 100 nF to SW. DS43698 Table 2 recommends 3.3 uH,
+     10 uF input, and 2 x 22 uF output; its inductor guidance permits
+     approximately 3.3 to 15 uH. This board implements the recommended 3.3 uH."
+  - "SW is a 1.1 MHz high-dV/dt node; keep its copper and the BST loop small
+     and away from every USB differential pair."
+verified: "exact automotive AP63200Q/AP63201Q/AP63203Q/AP63205Q datasheet DS43698 top-view pin assignment and pin table, pp.1 and 6; AP63203QWU-7 orderable row p.28, 2026-08-01"
+sourcing:
+  lcsc: C5248536
+  alternates: []
+  note: "Exact AEC-Q100 AP63203QWU-7 is currently available from JLC/LCSC and Mouser; live quantities remain release-time evidence."
+layout:
+  source: "DS43698 Figure 4, Table 2, and Recommended PCB Layout Figure 77"
+  keep_short:
+    - {net: SW_3V3, max_span_mm: 3.5, anchor_pins: ["5"], partner_refs: [L_MAIN], why: "DS43698 Layout Guidelines: place the inductor immediately at SW(5) and minimize switch copper."}
+    - {net: VBUS_PD_SW, max_span_mm: 2.1, anchor_pins: ["2", "3"], partner_refs: [C_3V3_IN], why: "DS43698 Figure 4 and Layout Guidelines require the input ceramic directly across VIN(2/3) and GND(4)."}
+  adjacency:
+    - {refdes: [U_BUCK, C_BST], max_mm: 1.5, why: "DS43698 Figure 4: keep the 100 nF bootstrap loop directly between BST(6) and SW(5)."}
+  notes:
+    - "place the output ceramics immediately after L_MAIN; FB(1) senses quiet 3V3_MAIN copper at the output capacitors, never the SW-side terminal"
+    - "minimize the VIN-switch-GND and SW-BST loops; keep the SW island beneath
+      the IC/inductor and do not route USB, crystal, reset, or ADC traces nearby"
+    - "provide a continuous ground plane under the cell and a local ground via
+      at the input/output capacitor returns"
+asserts:
+  - assert: value
+    equals: AP63203QWU-7
+    why: "The Q-qualified fixed 3.3 V variant and TSOT-23-6 pin map are deliberate; an adjustable or non-Q substitution must be re-reviewed."

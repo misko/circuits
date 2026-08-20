@@ -1,0 +1,152 @@
+schema: 1
+status: architecture_candidate_values_not_part_freeze
+source_type: usb_c_pd_20v_hardware_sink_dual_local_5v_regulators
+off_control: "unplug USB-C POWER; USB-C DATA VBUS is detector-only and cannot energize the board"
+input_trunk_class: PWR_PD
+ir_floor_mohm: 90
+
+pd_input:
+  controller: CH224K
+  requested_fixed_pdo_V: 20
+  required_source_power_W: 60
+  required_source_current_A: 3
+  accepted_source_voltage_V: [19.0, 21.0]
+  default_5v_operation: forbidden_by_uvlo
+  input_protection_status: open_D4
+  evidence: "40 W external output plus conversion and management losses exceeds a 15 V/3 A 45 W contract; dual TPS56637 cells and AP63203Q remain within their operating range at 20 V"
+
+bank_delivery:
+  - id: bank_a
+    source_net: P5V_BANK_A
+    destination_net: P5V_A_PROTECTED
+    load_current_A: 4.1
+    rails: [VBUS1_SW, VBUS2_SW, VBUS_CTRL]
+    aggregate_part: TPS259804ONRGER
+    evidence: "two 2 A ports plus <=0.1 A internal management VBUS; exact breaker and IR corners pending"
+  - id: bank_b
+    source_net: P5V_BANK_B
+    destination_net: P5V_B_PROTECTED
+    load_current_A: 4.0
+    rails: [VBUS3_SW, VBUS4_SW]
+    aggregate_part: TPS259804ONRGER
+    evidence: "two 2 A ports; exact breaker and IR corners pending"
+
+rails:
+  - name: P5V_BANK_A
+    stage: conversion
+    vin_min: 19.0
+    vin_max: 21.0
+    vout_min: 5.01464
+    vout_max: 5.18565
+    iout_max_A: 4.1
+    converter: TPS56637RPAR
+    eff: 0.90
+    external_output: false
+    feedback: {vref_min: 0.591, vref_max: 0.609, r_top_ohm: 75000, r_top_tol_pct: 0.1, r_bottom_ohm: 10000, r_bottom_tol_pct: 0.1, r_top_tcr_ppm_per_C: 25, r_bottom_tcr_ppm_per_C: 25, resistor_temperature_delta_C: 0}
+    margin: 0.05
+    steady_state_ceiling_V: 5.25
+    steady_state_variation_high_mV: 50
+    steady_state_variation_basis: engineering_allocation
+    steady_state_variation_evidence: "50 mV reserved above the 5.18565 V feedback corner for ripple and load release; first article must capture all-port release"
+  - name: P5V_BANK_B
+    stage: conversion
+    vin_min: 19.0
+    vin_max: 21.0
+    vout_min: 5.01464
+    vout_max: 5.18565
+    iout_max_A: 4.0
+    converter: TPS56637RPAR
+    eff: 0.90
+    external_output: false
+    feedback: {vref_min: 0.591, vref_max: 0.609, r_top_ohm: 75000, r_top_tol_pct: 0.1, r_bottom_ohm: 10000, r_bottom_tol_pct: 0.1, r_top_tcr_ppm_per_C: 25, r_bottom_tcr_ppm_per_C: 25, resistor_temperature_delta_C: 0}
+    margin: 0.05
+    steady_state_ceiling_V: 5.25
+    steady_state_variation_high_mV: 50
+    steady_state_variation_basis: engineering_allocation
+    steady_state_variation_evidence: "50 mV reserved above the 5.18565 V feedback corner for ripple and load release; first article must capture all-port release"
+  - name: 3V3_MAIN
+    stage: conversion
+    vin_min: 19.0
+    vin_max: 21.0
+    vout_min: 3.27
+    vout_max: 3.33
+    iout_max_A: 0.60
+    converter: AP63203QWU-7
+    eff: 0.85
+    external_output: false
+  - name: VBUS1_SW
+    input_parent: P5V_BANK_A
+    stage: distribution
+    vin_min: 4.965
+    vin_max: 5.25
+    vout_min: 4.75
+    vout_max: 5.25
+    iout_max_A: 2.0
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports_2a
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 90
+    ir_budget_components_mohm:
+      protection_switch: {value: 50, basis: maximum, evidence: "TPS259470A 45 mOhm catalog maximum plus TPS259804O 5 mOhm maximum at 125 C"}
+      pcb_copper_vias_joints: {value: 10, basis: budgeted_max, evidence: "pre-layout allocation; four-wire first-article measurement and post-route resistance extraction required"}
+      mated_power_contacts: {value: 30, basis: qualified_max, evidence: "GCT USB1130 Revision E maximum initial contact resistance"}
+    margin: 0.18
+    distribution: {series_devices: [TPS259804ONRGER, TPS259470ARPWR], path_resistance_max_mohm: 90, current_limit_min_A: 2.077, current_limit_max_A: 2.590, reverse_current_policy: "TPS259470A true reverse-current blocking at all times"}
+  - name: VBUS2_SW
+    input_parent: P5V_BANK_A
+    stage: distribution
+    vin_min: 4.965
+    vin_max: 5.25
+    vout_min: 4.75
+    vout_max: 5.25
+    iout_max_A: 2.0
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports_2a
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 90
+    ir_budget_components_mohm:
+      protection_switch: {value: 50, basis: maximum, evidence: "TPS259470A 45 mOhm catalog maximum plus TPS259804O 5 mOhm maximum at 125 C"}
+      pcb_copper_vias_joints: {value: 10, basis: budgeted_max, evidence: "pre-layout allocation; four-wire first-article measurement and post-route resistance extraction required"}
+      mated_power_contacts: {value: 30, basis: qualified_max, evidence: "GCT USB1130 Revision E maximum initial contact resistance"}
+    margin: 0.18
+    distribution: {series_devices: [TPS259804ONRGER, TPS259470ARPWR], path_resistance_max_mohm: 90, current_limit_min_A: 2.077, current_limit_max_A: 2.590, reverse_current_policy: "TPS259470A true reverse-current blocking at all times"}
+  - name: VBUS3_SW
+    input_parent: P5V_BANK_B
+    stage: distribution
+    vin_min: 4.965
+    vin_max: 5.25
+    vout_min: 4.75
+    vout_max: 5.25
+    iout_max_A: 2.0
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports_2a
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 90
+    ir_budget_components_mohm:
+      protection_switch: {value: 50, basis: maximum, evidence: "TPS259470A 45 mOhm catalog maximum plus TPS259804O 5 mOhm maximum at 125 C"}
+      pcb_copper_vias_joints: {value: 10, basis: budgeted_max, evidence: "pre-layout allocation; four-wire first-article measurement and post-route resistance extraction required"}
+      mated_power_contacts: {value: 30, basis: qualified_max, evidence: "GCT USB1130 Revision E maximum initial contact resistance"}
+    margin: 0.18
+    distribution: {series_devices: [TPS259804ONRGER, TPS259470ARPWR], path_resistance_max_mohm: 90, current_limit_min_A: 2.077, current_limit_max_A: 2.590, reverse_current_policy: "TPS259470A true reverse-current blocking at all times"}
+  - name: VBUS4_SW
+    input_parent: P5V_BANK_B
+    stage: distribution
+    vin_min: 4.965
+    vin_max: 5.25
+    vout_min: 4.75
+    vout_max: 5.25
+    iout_max_A: 2.0
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports_2a
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 90
+    ir_budget_components_mohm:
+      protection_switch: {value: 50, basis: maximum, evidence: "TPS259470A 45 mOhm catalog maximum plus TPS259804O 5 mOhm maximum at 125 C"}
+      pcb_copper_vias_joints: {value: 10, basis: budgeted_max, evidence: "pre-layout allocation; four-wire first-article measurement and post-route resistance extraction required"}
+      mated_power_contacts: {value: 30, basis: qualified_max, evidence: "GCT USB1130 Revision E maximum initial contact resistance"}
+    margin: 0.18
+    distribution: {series_devices: [TPS259804ONRGER, TPS259470ARPWR], path_resistance_max_mohm: 90, current_limit_min_A: 2.077, current_limit_max_A: 2.590, reverse_current_policy: "TPS259470A true reverse-current blocking at all times"}

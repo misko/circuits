@@ -1,0 +1,17 @@
+schema: 1
+currency: USD
+
+# Fail safe: new projects authorize no preorder/minimum-cost exposure until a
+# user deliberately raises these limits for the build. Public stock and My
+# Parts lines with NO_MINIMUM_COST are unaffected.
+limits:
+  max_line_preorder_cash: 0
+  max_total_preorder_cash: 0
+  max_line_surplus_cost: 0
+  max_total_surplus_cost: 0
+  max_total_assembly_excess_cost: 0
+
+# Quantity ratio is diagnostic only. Monetary limits above own the verdict.
+# Set to zero to disable the advisory.
+warnings:
+  surplus_ratio: 20

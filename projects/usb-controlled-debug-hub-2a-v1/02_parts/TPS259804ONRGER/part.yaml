@@ -1,0 +1,80 @@
+mpn: TPS259804ONRGER
+manufacturer: Texas Instruments
+type: aggregate_latchoff_circuit_breaker_efuse
+value: TPS259804ONRGER
+status: active
+datasheet:
+  doc_id: SLVSFR1A
+  revision: "revised June 2026"
+  url: "https://www.ti.com/lit/ds/symlink/tps25980.pdf"
+  product_page: "https://www.ti.com/product/TPS25980"
+  local: SLVSFR1A.pdf
+  sha256: 27daa74527c02822dddea4a9b730f7d27ed7ccede2e157e1436605b5a8fd7e66
+  fetched: 2026-08-19
+  pages: 55
+  provenance: "CITED: downloaded directly from ti.com; title/footer identify TPS25980 and document SLVSFR1A."
+package: RGE0024M VQFN-24 4x4mm P0.5 with split IN/GND PowerPADs
+footprint: usb_controlled_debug_hub_2a:TI_RGE0024M_VQFN24_4x4_SplitPad_TypeVII
+escape: {style: qfn, pitch: 0.5, pins: 24, escapes_worst_side: 6, tier_required: jlc_4layer_advanced, checked: "TI 4223975/B package and example land pattern cross-checked against exact JLC C2878936 EasyEDA CAD on 2026-08-19; nine 0.20mm via-in-pad holes require filled/capped Type VII processing"}
+pins:
+  1: IN
+  2: IN
+  3: IN
+  4: GND
+  5: GND
+  6: EN_UVLO
+  7: ITIMER
+  8: ILIM
+  9: IMON
+  10: RETRY_DLY
+  11: NRETRY
+  12: LDSTRT
+  13: PG
+  14: GND
+  15: DVDT
+  16: IN
+  17: OUT
+  18: OUT
+  19: OUT
+  20: OUT
+  21: OUT
+  22: OUT
+  23: OUT
+  24: OUT
+  25: {name: IN_POWERPAD, tie: IN}
+  26: {name: GND_POWERPAD, tie: GND}
+limits:
+  vin_operating: "2.7 to 24 V"
+  vin_absolute: 30V
+  continuous_switch_current: 8A
+  rds_on_typ: 3mOhm
+  rds_on_max_125C: 5mOhm
+  current_limit_range: "2 to 15 A"
+  ilim_300ohm_full_temperature: "4.36 to 5.66 A"
+  fixed_ovlo_rising_typ: 16.9V
+  response: circuit_breaker_latchoff
+gotchas:
+  - "The complete TPS259804O suffix matters: 4 selects the fixed 16.9V OVLO family and O selects circuit-breaker response. RETRY_DLY tied to GND selects latch-off."
+  - "The predecessor's 300 ohm aggregate setting is not inherited. Each two-port bank requires a fresh normal-load, port-fault, TPS56637 current-limit and timer coordination proof."
+  - "C_AGG_TIMER=6.8nF C0G, Delta-VITIMER=0.7..1.3V and IITIMER=1.4..2.8uA give a charged 1.61..6.65ms blanking interval."
+  - "C_AGG_DVDT=3.3nF C0G and TI CdVdt(pF)=4600/SR(V/ms) give about 1.394V/ms nominal slew and about 0.351A into the declared 251.86uF maximum effective bank."
+  - "Tie EN/UVLO directly to IN for this 5V-only stage. Tie RETRY_DLY, NRETRY and LDSTRT to GND; leave IMON and open-drain PG unconnected."
+verified: "CITED: TI SLVSFR1A device-information row for TPS259804O, RGE top view and pin table pp.4-6, absolute/electrical limits and 300-ohm ILIM row pp.8-15, programming equations and RGE0024M drawing/example land pp.21-30 and 51-53; independently re-read 2026-08-19. Exact JLC/LCSC C2878936 identifies TPS259804ONRGER and supplied the source-owned native STEP."
+sourcing:
+  lcsc: C2878936
+  alternates: []
+  note: "JLC catalog stock 122, MOQ 1 and low-quantity price about USD 1.75 observed 2026-08-19; order-time JLC allocation remains authoritative."
+layout:
+  source: "TI SLVSFR1A layout section and RGE0024M package drawing 4223975/B"
+  reviewed: "2026-08-19"
+  keep_short:
+    - {net: P5V_REG, anchor_pins: ["1", "2", "3", "25"], partner_refs: [C_AGG_IN], max_span_mm: 3.5, why: "single low-inductance aggregate input bypass beside the primary IN bank and IN PowerPAD; pin 16 is locally joined to pad 25 so the bypass path does not cross the switched OUT bank"}
+  adjacency:
+    - {refdes: [U_AGG, R_AGG_ILIM], max_mm: 4.0, why: "quiet ILIM programming loop"}
+    - {refdes: [U_AGG, C_AGG_TIMER], max_mm: 4.0, why: "fault-timer capacitor local to ITIMER and GND"}
+    - {refdes: [U_AGG, C_AGG_DVDT], max_mm: 4.0, why: "slew capacitor local to dVdt and GND"}
+  notes: ["Use every IN and OUT perimeter land", "keep split IN/GND PowerPAD copper electrically separate", "fill and copper-cap all nine 0.20mm via-in-pad holes", "route ILIM/ITIMER/dVdt away from switching copper"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSFR1A layout section and RGE0024M drawing/example land", why: "manufacturer authority fixes pin use, split thermal lands, nine optional via sites and support-component placement"}
+  - {tier: 2, reached: true, artifact: "Exact JLC C2878936 EasyEDA footprint and native STEP fetched 2026-08-19", why: "assembly-vendor CAD independently checks package body, pin numbering and split exposed-land dimensions"}
+  - {tier: 3, reached: false, artifact: "community board", why: "not needed because manufacturer and exact assembly-vendor authorities are available"}

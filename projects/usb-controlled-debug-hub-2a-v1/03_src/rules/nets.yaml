@@ -1,0 +1,42 @@
+fab_tier: jlc_4layer_advanced
+
+classes:
+  PWR_PD:
+    intent: "20 V / <=3 A negotiated input trunk; broad copper and short protection/converter branches"
+    nets: [VBUS_PD, VBUS_PD_FUSED, VBUS_PD_SW]
+    current: "3 A maximum contract"
+    min_width: 1.0mm
+    routing: "source-owned pours plus short component necks"
+    verify: "post-route resistance, temperature and transient-path audit"
+
+  PWR_5V_BANK:
+    intent: "independent regulated/protected two-port banks"
+    nets: [P5V_BANK_A, P5V_A_PROTECTED, P5V_BANK_B, P5V_B_PROTECTED]
+    current: "4.1 A bank A; 4.0 A bank B continuous"
+    min_width: 1.5mm
+    routing: "pours with multiple vias; no single narrow trunk credited"
+    verify: "realized-copper ampacity and hot four-wire first article"
+
+  PWR_PORT_2A:
+    intent: "one independently switched USB-A VBUS branch"
+    nets: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW]
+    current: "2.0 A continuous each"
+    min_width: 0.8mm
+    routing: "short direct pour/track to connector"
+    verify: "<=100 mOhm complete protected path budget and 2 A thermal test"
+
+  USB_HS:
+    intent: "USB 2.0 High-Speed differential data; geometry solved from final JLC stackup"
+    nets: [USB_UP_P, USB_UP_N, USB_DN1_P, USB_DN1_N, USB_DN2_P, USB_DN2_N, USB_DN3_P, USB_DN3_N, USB_DN4_P, USB_DN4_N]
+    current: "signal"
+    min_width: 0.15mm
+    routing: "90 ohm differential, continuous In1 GND reference, no stubs"
+    verify: "critical-route inventory, differential geometry and reference-plane gates"
+
+  SWITCH_NODE:
+    intent: "three local buck switch nodes; minimize area and isolate from USB/feedback"
+    nets: [SW_5V_A, SW_5V_B, SW_3V3]
+    current: "converter pulse current"
+    min_width: 0.8mm
+    routing: "local manufacturer-precedent copper islands only"
+    verify: "placement adjacency, hot-loop and source-owned zone checks"

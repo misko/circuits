@@ -1,0 +1,47 @@
+mpn: TVS2200DRVR
+manufacturer: Texas Instruments
+type: unidirectional_flat_clamp_tvs
+value: TVS2200DRVR
+status: active
+datasheet:
+  doc_id: SLVSED5C
+  revision: "revised August 2023"
+  url: "https://www.ti.com/lit/ds/symlink/tvs2200.pdf"
+  local: SLVSED5C.pdf
+  sha256: e79bf6f7d5b69fb71ec3dce566b4b4d63c27bccad8561195e5f2f7122b44c801
+  fetched: 2026-08-20
+  pages: 10
+  provenance: "CITED: downloaded directly from ti.com; title/footer identify TVS2200 and SLVSED5C."
+package: "DRV 6-pin WSON 2x2 mm with exposed GND pad"
+footprint: Package_SON:WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm_ThermalVias
+escape: {style: son, pitch: 0.65, tier_required: jlc_4layer_advanced, checked: "TI DRV bottom view and package drawing; exact land/paste/thermal-via adjudication remains a placement gate"}
+pins:
+  1: GND
+  2: GND
+  3: GND
+  4: IN
+  5: IN
+  6: IN
+  7: {name: EXPOSED_PAD, tie: GND}
+limits:
+  standoff_V: 22
+  breakdown_min_V: 24.6
+  clamp_max_35A_125C_V: 28.35
+  clamp_max_40A_27C_V: 28.0
+  surge_8_20us_A: 40
+  surge_8_20us_W: 1120
+  temperature_C: [-40, 125]
+gotchas:
+  - "Use the 28.35 V maximum at 35 A, 8/20 us and 125 C for the protected-part corner; 27.7 V is not the worst published clamp."
+  - "All three IN lands are one protected node and all three GND lands plus the exposed pad join the shortest possible ground return."
+  - "A 22 V standoff is compatible with the 20 V nominal PD rail; the source operating maximum and every exposed part still require a separate protection-path proof."
+verified: "CITED: TI SLVSED5C features, Figure 6-1 bottom view and Table 6-1 pin functions, electrical table 7.6 clamp rows, and section 9.4 layout read 2026-08-20."
+sourcing:
+  lcsc: C523793
+  alternates: []
+  note: "Public JLC/LCSC catalog identified exact TVS2200DRVR and assembly support on 2026-08-20; live JLC PCBA allocation and economics remain mandatory."
+layout:
+  source: "TI SLVSED5C section 9.4 and DRV package drawing"
+  notes: ["place immediately at J_POWER VBUS entry", "route connector-to-IN and GND-to-plane paths short and broad", "do not route protected current through a long TVS stub"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSED5C sections 9.2 and 9.4", why: "manufacturer provides the USB Type-C VBUS application and measurable placement rules"}

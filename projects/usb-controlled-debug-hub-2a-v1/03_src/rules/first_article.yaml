@@ -1,0 +1,15 @@
+# Fill from the board's power tree, assembly rules and actual footprints before
+# first power. Do not copy example values into a real board without deriving
+# them. Firmware is outside this contract unless explicitly requested.
+stages:
+  - name: minimal-power
+    installed: []
+    exposed_pads: []
+
+rails:
+  - name: EXAMPLE_RAIL
+    resistance: {probe: REPLACE_ME, min_ohm: 0, max_ohm: 0}
+    voltage: {probe: REPLACE_ME, min_v: 0, max_v: 0}
+    no_load_current: {probe: bench_supply, min_a: 0, max_a: 0}
+    supply: {probe: bench_supply, min_v: 0, max_v: 0,
+             max_current_limit_a: 0}

@@ -1,0 +1,93 @@
+mpn: TPS26630RGER
+manufacturer: Texas Instruments
+type: programmable_uvlo_ovp_efuse
+value: TPS26630RGER
+status: rejected_candidate_unavailable
+datasheet:
+  doc_id: SLVSE94G
+  revision: "revised June 2024"
+  url: "https://www.ti.com/lit/ds/symlink/tps2663.pdf"
+  local: SLVSEF5G.pdf
+  sha256: a685c2db86c007b98f59ca6b5d3f41b11ea9dbfdbd6e824ef03f4f66391e5457
+  fetched: 2026-08-20
+  provenance: "CITED: downloaded directly from ti.com; title/footer identify TPS2663 and SLVSE94G."
+package: "RGE VQFN-24 4x4 mm P0.5 with exposed thermal pad"
+footprint: usb_controlled_debug_hub_2a:TI_TPS26630_RGE0024_ThermalVias
+escape:
+  style: qfn
+  pitch: 0.5
+  tier_required: jlc_4layer_advanced
+  checked: "TI RGE top view, pin table and package drawing; exact land/paste/via geometry remains a footprint gate"
+pins:
+  1: IN
+  2: IN
+  3: B_GATE
+  4: DRV
+  5: IN_SYS
+  6: UVLO
+  7: OVP
+  8: GND
+  9: dVdT
+  10: ILIM
+  11: MODE
+  12: SHDN
+  13: IMON
+  14: FLT
+  15: PGTH
+  16: PGOOD
+  17: OUT
+  18: OUT
+  19: NC
+  20: NC
+  21: NC
+  22: NC
+  23: NC
+  24: NC
+  EP: {name: PowerPAD, tie: GND}
+limits:
+  vin_operating_V: [4.5, 60]
+  vin_absolute_max_V: 67
+  in_sys_transient_10ms_absolute_max_V: 75
+  current_limit_A: [0.6, 6.0]
+  rds_on_typ_mohm: 31
+  rds_on_max_mohm: 45
+  ovp_rising_threshold_V: [1.176, 1.224]
+  uvlo_rising_threshold_V: [1.176, 1.224]
+  ovp_turnoff_delay_us: [8.5, 14]
+  thermal_resistance_ja_C_per_W: 31.4
+programming_candidate:
+  uvlo_ovp_divider:
+    R1: 931k
+    R2: 19.6k
+    R3: 51.1k
+    tolerance_pct: 1
+    nominal_uvlo_rising_V: 17.00
+    nominal_ovp_rising_V: 23.52
+    note: "Pre-schematic candidate only. Full independent resistor/leakage corners must keep 20 V enabled, 15 V disabled and OVP below downstream 28 V operating limits."
+  ilim:
+    resistor: 6.65k
+    tolerance_pct: 1
+    nominal_A: 2.71
+    note: "Pre-schematic candidate derived from TI's 18/RILIM(kOhm) characterized points; close full-temperature and resistor corners against the 3 A PD contract and minimum full-load input demand."
+gotchas:
+  - "TPS26630 is the adjustable OVP-cutoff member; do not substitute TPS26632/33/35/36/37 PLIM variants under the same symbol."
+  - "Without an external reverse-blocking FET, leave B_GATE and DRV floating and short IN_SYS to IN exactly as TI directs."
+  - "UVLO and OVP share a three-resistor string. Freeze it only after threshold, resistor-tolerance and ±150 nA pin-leakage corners are machine checked."
+  - "Connect the exposed thermal pad to a GND plane for heat sinking, but retain pin 8 as an electrical GND connection."
+  - "RILIM must remain at least 3 kOhm for the cited UL recognition."
+verified: "CITED: TI SLVSE94G/SLVSEF5G device table, Figures 5-1/5-2, Table 5-1, absolute/recommended limits, OVP/UVLO/current-limit characteristics and layout section read 2026-08-20."
+sourcing:
+  lcsc: C1850276
+  alternates: []
+  note: "Rejected for this design: exact TI C1850276 was publicly out of stock on 2026-08-20. Do not silently substitute the similarly named Tokmas device."
+layout:
+  source: "TI SLVSE94G section 11.1 plus RGE package drawing"
+  notes:
+    - "Keep the connector, TVS, input bypass and IN/IN_SYS loop compact."
+    - "Use both OUT pins and a short, wide high-current path; size the path for at least twice full-load current per TI."
+    - "Keep ILIM, dVdT, UVLO and OVP parts adjacent and isolated from switching nodes."
+layout_refs:
+  - tier: 1
+    reached: true
+    artifact: "TI SLVSE94G simplified schematic, RGE pin/package drawing and section 11.1 layout guidance"
+    why: "Manufacturer authority fixes the high-voltage protection topology, escape and sensitive-program network placement."

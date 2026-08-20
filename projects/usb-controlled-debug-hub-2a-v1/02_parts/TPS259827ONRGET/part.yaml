@@ -1,0 +1,55 @@
+mpn: TPS259827ONRGET
+manufacturer: Texas Instruments
+type: no_ovlo_circuit_breaker_efuse
+datasheet: {doc_id: SLVSEI3, revision: SLVSEI3D, url: "https://www.ti.com/lit/ds/symlink/tps25982.pdf", sha256: 655c21dbf6b91a3c98b7ab26cd3bf0020d3eb7d765f411c71030d22fa4b6bc1f, fetched: 2026-08-12}
+package: RGE0024 VQFN-24 4x4mm P0.5 with split IN/GND thermal lands
+footprint: usb_controlled_debug_hub_2a:TI_TPS25982_RGE0024_SplitPad_ThermalVias
+escape: {style: qfn, pitch: 0.5, tier_required: jlc_4layer_advanced, checked: "manufacturer RGE land plus JLC C2155765 CAD inspected 2026-08-11; split filled/capped via-in-pad fields require advanced processing"}
+pins:
+  1: IN
+  2: IN
+  3: IN
+  4: GND
+  5: GND
+  6: EN_UVLO
+  7: ITIMER
+  8: ILIM
+  9: IMON
+  10: RETRY_DLY
+  11: NRETRY
+  12: LDSTRT
+  13: PG
+  14: GND
+  15: dVdt
+  16: IN
+  17: OUT
+  18: OUT
+  19: OUT
+  20: OUT
+  21: OUT
+  22: OUT
+  23: OUT
+  24: OUT
+  25: {name: IN_PowerPAD, tie: IN}
+  26: {name: GND_PowerPAD, tie: GND}
+limits: {vin: "2.7-24V", vin_abs: 30V, current_limit_range: "2-15A", rds_on_max_125C: 4.5mOhm, ilim_300ohm_full_temperature: "4.36-5.66A", ilim_182ohm_full_temperature: "7.23-9.07A", fast_trip: "2.1 x ILIM", ovlo: none}
+gotchas:
+  - "TPS259827O is the circuit-breaker, no-OVLO variant; it must not be represented as active overvoltage cutoff."
+  - "Tie LDSTRT to GND when handshake is unused. RETRY_DLY to GND selects latch-off; unplugging/cycling USB-C POWER resets the input fault."
+  - "The prior board's 210 ohm/47nF/3.3nF programming is not inherited. This input stage requires a fresh <=3 A PD-source/current-budget coordination, attach-inrush model and fault timer derivation."
+verified: "device table, pin table, electrical limits, circuit-breaker response, ITIMER equation and RGE mechanical drawing independently read from TI SLVSEI3D 2026-08-11"
+sourcing: {lcsc: C2155765, alternates: [], note: "JLC catalog exact TPS259827ONRGET, 15 units observed 2026-08-11; volatile stock must be refreshed at release"}
+layout:
+  source: "TI SLVSEI3D sections 8.5 and RGE mechanical drawing"
+  reviewed: "2026-08-11"
+  notes: "Use every IN/OUT land, keep its ILIM/ITIMER/dVdt network adjacent, and give the split IN/GND thermal lands separate filled/capped via fields with no copper bridge."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSEI3D RGE pin/package and layout sections", why: "manufacturer source fixes the split thermal lands, current-program and timer topology"}
+  - tier: 2
+    reached: true
+    artifact: "TI TPS259827LEVM user's guide SLUUBY3A, Figures 7-9: assembly and all four copper layers for TPS259827LNRGET; the guide states TPS259827O can be evaluated with the same procedure; https://www.ti.com/lit/pdf/SLUUBY3"
+    why: "The EVM uses the same TPS259827 RGE power package and publishes the high-current IN/OUT escape, split ground treatment and adjacent ILIM/ITIMER/dVdt network at up to 15 A. The L/O option difference changes fault response, not the transferable package escape."
+  - tier: 3
+    reached: false
+    artifact: "OSHWLab search by exact LCSC C2155765 with published copper"
+    why: "Not searched at this stage because TI publishes a routed four-layer TPS259827 EVM for the same package and current family; that manufacturer precedent outranks an unverified community board."
