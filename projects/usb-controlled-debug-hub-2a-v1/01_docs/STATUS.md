@@ -1,9 +1,9 @@
 # STATUS beacon — USB-controlled debug hub 2A v1
 
 stage: release
-step: "v0.1.0-2026-08-21 sealed as the exact JLC upload candidate from source commit 3835a7fa at release commit 1d3bdeb1"
-measure: "exact board 9eb649598aeecac74ce04347ea5d20e516fdebb58fd9a04948c71446a9c83e24; rehearsal and seal admission ACCEPTED 3/3; DESIGN/FRESHNESS PASS; required evidence 36/36; DRC/parity 0/0/0; route acceptance 9/9; policy 0 FAIL; models 183/183; public stock 50/50 PASS; 578/578 Type-VII vias protected"
+step: "v0.1.1-2026-08-21 sealed as the repaired exact JLC upload candidate from source commit 55c03b8b at release commit 8243e867"
+measure: "exact board de47f1053e9145b74cf75ab677caab2d4a287eb207acc233db2b316fb52c2a99; Gerber ZIP 468919f06bab7fd8970138280b2528bc631221f7d0f156a36a56bb202122f31b; rehearsal and seal admission ACCEPTED 3/3; DRC/unconnected/parity 0/0/0; required USB route checks 8/8 PASS; policy 0 FAIL; models and twin bodies 183/183; public stock 50/50 PASS at quantity five plus 200 surplus; 611/611 Type-VII vias protected; connector orientation machine and human approval 6/6"
 state: done
-next: "upload the Gerber ZIP, BOM, and CPL to JLCPCB; before payment save the quantity-five 50/50 allocation and economics receipt, resolved BOM echo, rotation/polarity, mixed-THT, selective-via, stackup, and 90-ohm impedance previews"
+next: "upload v0.1.1 Gerber ZIP, BOM, and CPL to JLCPCB; before payment save the quantity-five 50/50 allocation and economics receipt, resolved BOM echo, rotation/polarity, mixed-THT, selective-via, stackup, and 90-ohm impedance previews; then validate one current-limited first article"
 op_pid:
-updated: 2026-08-21T07:35:12
+updated: 2026-08-21T10:36:45
