@@ -140,6 +140,17 @@ rationale.
 | IMP-124 | Classify high-speed protection parts as shunt or series before placement | implemented | USB-controlled debug hub deterministic USB-bottom routing |
 | IMP-179 | Require an absolute public-stock surplus before footprint freeze | completed | USB-controlled debug hub 2A v1 pre-layout sourcing |
 | IMP-180 | Reject shadowed schematic-placement authority before TSX generation | proposed | USB-controlled debug hub 2A v1 power-sheet readability |
+| IMP-181 | Compile one canonical critical-signal contract for routing and verification | proposed | USB-controlled debug hub 2A v1 release review |
+| IMP-182 | Make required-check applicability and coverage fail closed | proposed | USB-controlled debug hub 2A v1 release review |
+| IMP-183 | Reconstruct release evidence against the complete staged archive | proposed | USB-controlled debug hub 2A v1 release review |
+| IMP-184 | Replace global DRC suppressions with scoped, measured exceptions | proposed | USB-controlled debug hub 2A v1 release review |
+| IMP-185 | Ratchet ERC warnings by category and stable object identity | proposed | USB-controlled debug hub 2A v1 release review |
+| IMP-186 | Generate review claims and scoreboards from admitted receipts | proposed | USB-controlled debug hub 2A v1 release review |
+| IMP-187 | Require known-bad promotion-boundary canaries for every fail-closed gate | proposed | USB-controlled debug hub 2A v1 release review |
+| IMP-188 | Treat native post-stitch DRC as an independent mandatory acceptance predicate | proposed | USB-controlled debug hub 2A v1 route repair |
+| IMP-189 | Type route-seed and manufacturing-board artifacts and reject role confusion | proposed | USB-controlled debug hub 2A v1 route repair |
+| IMP-190 | Preflight filled-zone islands and inner-plane obstacles before stitching | proposed | USB-controlled debug hub 2A v1 route repair |
+| IMP-191 | Prefer semantic connector approval identities over nondeterministic render bytes | proposed | USB-controlled debug hub 2A v1 route repair |
 | IMP-125 | Make generated evidence bundles relocatable across atomic promotion | completed | USB-controlled debug hub evidence promotion |
 | IMP-126 | Grade connector mating direction against the board edge | completed | USB-controlled debug hub connector review |
 | IMP-127 | Bind package-local rule areas to realised footprints | completed | USB-controlled debug hub connector review |
@@ -6426,3 +6437,311 @@ IMP-143 owns experiment retention.
   reference falls through only to one named default owner.
 - recommendation: P1. This is a cheap source-schema extension to the existing
   pre-TSX validation boundary, not a new pipeline phase.
+
+## 2026-08-21 USB-controlled debug hub 2A v1 release-evidence retrospective
+
+The adversarial review of sealed release `v0.1.0-2026-08-21` found no proven
+wrong pin, short or architectural topology defect. It did find that the
+evidence package made stronger claims than its executed checks supported. The
+main process failure was therefore fail-open verification, not a missing PCB
+lifecycle stage. The correct integration is to keep `pcb-design/SKILL.md` as
+the lifecycle/router and strengthen the owning KiCad, JLC and release tools.
+
+| Pipeline improvement | Durable owner | Disposition |
+|---|---|---|
+| One canonical USB/high-speed signal contract shared by router and auditors | IMP-181 | new P0 proposal |
+| Required checks cannot become accepted `N-A`; report PASS/N-A/FAIL/INCOMPLETE separately | IMP-182 | new P0 proposal |
+| Exact end-to-end copper path measurement, including plated transitions and topology | IMP-133, IMP-138, IMP-157 | existing work; IMP-133 remains P0 gap |
+| Non-vacuous adjacent-plane declarations, filled-plane evidence and order-time impedance closure | IMP-160, IMP-182 | implemented leaf needs mandatory applicability/completeness |
+| Release-local re-execution after BOM, CPL, twin and reviews exist | IMP-063, IMP-183 | partial rehearsal plus new exact-subject gap |
+| Scoped DRC suppressions with an occurrence census | IMP-184 | new P1 proposal |
+| ERC warning baseline by category and stable object identity | IMP-185 | new P1 proposal |
+| Strict part facts over the exact active BOM, with inactive alternatives separated | IMP-115 | existing P1 proposal; use active population as denominator |
+| Review scoreboards and prose derived from admitted machine receipts | IMP-186 | new P1 proposal |
+| Fresh-context reviews receive an exact artifact packet without inherited verdicts | IMP-026, IMP-049, IMP-095 | existing implementing/proposed work; preserve bounded execution |
+| Quantitative current/voltage/thermal headroom typed by first-article versus production maturity | IMP-043, IMP-142 | existing obligation and first-article mechanisms; generic margin policy remains open |
+| One atomic staging/rehearsal/seal/publication transaction | IMP-062, IMP-063, IMP-155 | existing implementing/partial work; no new lifecycle stage |
+| Known-bad canaries for every promotion boundary | IMP-187 | new P0 implementation discipline |
+| Invalidate connector approval after any native/substitute model identity or transform change | IMP-055, IMP-126, IMP-130, IMP-154 | preserve current registration/mating-plane approach and add regression coverage |
+| Preserve early PCBA availability, `+200` stock-surplus and MOQ-cost checks | IMP-161, IMP-162, IMP-179 | implemented; retain separate order-time allocation authority |
+| Preserve routing heartbeat, stagnation and transactional experiment limits | IMP-013, IMP-140, IMP-143 | implemented; retain as workflow-speed controls |
+
+### Concrete release-review evidence
+
+- `route.yaml` declared `length_match_tolerance: 0.50` mm while the packaged
+  copper-length audit searched `nets.yaml`, found no `length_match:` groups and
+  measured zero paths. Independent frozen-board measurement found five USB
+  P/N segment-length deltas above 0.50 mm. This is not proof of a USB failure;
+  it is proof that authority, geometry and the reported verdict disagreed.
+- the final route receipt contained six `PASS` and three `N-A` checks, but its
+  coverage counted all nine as passing and admitted `ACCEPTED`. The two
+  substantive `N-A` checks were critical copper length and reference plane.
+- the staged policy audit said no release, BOM, CPL or twin existed even though
+  those artifacts were present in the sealed archive. Earlier-phase evidence
+  was cited as release evidence without exact-stage reconstruction.
+- native DRC was clean only after five global ignores. A geometric census
+  found 76 vias with same-net trace endpoints inside the via pad but away from
+  its centre. None was a demonstrated open, but the suppression hid real
+  occurrences and provided no bounded exception denominator.
+- ERC reported zero errors but 1,107 warnings, including unconnected wire
+  endpoints and unresolved symbol-library references. A new significant
+  warning could disappear inside that undifferentiated total.
+- order allocation and rotation remained explicitly incomplete and correctly
+  blocked ordering. Those gates are examples to preserve: the problem was not
+  that every gate was fail-open.
+
+## IMP-181 — compile one canonical critical-signal contract for routing and verification
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 release review, 2026-08-21
+- evidence: the USB router consumed `length_match_tolerance: 0.50` mm from
+  `route.yaml`, while `copper_length_audit.py` looked for a different
+  `length_match:` schema in `nets.yaml`. With no matching block it measured
+  0/0 paths and returned `N-A`; five independently measured frozen-board pair
+  groups nevertheless exceeded 0.50 mm whole-net delta.
+- general rule: one electrical intent must have one executable authority. A
+  critical-signal group owns its ordered P/N net chains, endpoints, topology,
+  signal layers, adjacent reference planes, differential engine, via policy,
+  length/skew ceiling and impedance obligation in one normalized contract.
+  Router recipes may own coordinate geometry but may not independently restate
+  electrical limits.
+- intended landing point: add a source-stage compiler that reads the authored
+  critical-signal policy and emits one hash-bound `signal_contract.json`.
+  Placement feasibility, the router, `copper_length_audit.py`,
+  `reference_plane_check.py`, final-route acceptance and release review all
+  consume that exact compiled identity. Conflicting duplicate declarations are
+  source errors before routing begins.
+- simple regression cases: a clean USB pair is consumed by both router and
+  auditor with the same 0.50 mm ceiling; a tolerance present only in
+  `route.yaml` fails compilation; an auditor reading a stale contract hash is
+  inadmissible; a changed layer or ordered net chain invalidates every prior
+  realized receipt.
+- relationship: this completes the authority seam around IMP-105 and provides
+  the non-vacuous source required by IMP-133, IMP-138, IMP-157 and IMP-160. It
+  does not create a new lifecycle stage.
+- recommendation: P0 before the next high-speed board or respin.
+
+## IMP-182 — make required-check applicability and coverage fail closed
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 release review, 2026-08-21
+- evidence: `route_acceptance_gate.py` counted every `PASS` and `N-A` row in
+  one `passing` numerator and allowed an `ACCEPTED` receipt containing three
+  `N-A` checks. The resulting 9/9 headline concealed the actual result: six
+  PASS, three N/A, zero FAIL. Copper length and reference plane were required
+  by the board's declared high-speed role but had zero measured declarations.
+- general rule: applicability is derived from the capability profile and the
+  current stage, not from whether a checker happened to find configuration.
+  `N-A` is legal only for a check proven not required; absent configuration for
+  a required check is `INCOMPLETE`. Coverage always reports separate PASS,
+  N-A, FAIL and INCOMPLETE denominators and never calls N-A passing.
+- intended landing point: give every acceptance compositor an explicit
+  `required_checks` set derived from commission/capability facts. Full
+  high-speed route acceptance requires critical connectivity, conductor
+  topology, copper length, adjacent reference-plane evidence, realized vias,
+  ampacity where applicable and native DRC. Verification re-derives the set
+  instead of trusting the receipt's verdict.
+- simple regression cases: a high-speed board with zero length groups is
+  INCOMPLETE; a signal-only board may record power ampacity N-A with a typed
+  reason; six PASS plus three N-A prints exactly those counts; forging an
+  accepted verdict or shrinking `required_checks` fails receipt verification.
+- recommendation: P0 and the smallest high-value first implementation, because
+  it prevents missing leaf checks from being laundered by the compositor.
+
+## IMP-183 — reconstruct release evidence against the complete staged archive
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 release review, 2026-08-21
+- evidence: the packaged policy audit reported `M-REL`, `M-BOM`, `A-POP` and
+  `A-BODY` as N-A because no release, BOM, CPL or twin existed at the earlier
+  time it ran. The sealed archive contained all four artifact families, yet
+  the stale audit was retained and cited in final review.
+- general rule: evidence about a design-stage subject cannot authorize a
+  release-stage claim merely because the board hash is unchanged. A release
+  audit must run after the staged archive is complete, read only staged bytes,
+  bind every input/config/tool identity and fail if its own applicability
+  statements contradict the archive census.
+- intended landing point: extend the existing release rehearsal so its last
+  pre-seal action reconstructs policy, BOM/CPL/population, model/twin, routing
+  and review admission evidence inside mutable staging. Then regenerate the
+  manifest from reopened outputs. Seal admission names the complete staged-tree
+  digest; adding or changing a review invalidates it.
+- simple regression cases: an audit saying `no CPL` beside a staged CPL fails;
+  evidence naming a prior release or `06_build` shadow fails; adding a review
+  after rehearsal invalidates admission; a relocated complete archive passes
+  without consulting mutable project evidence.
+- relationship: this is the exact-stage completion seam for IMP-057, IMP-062,
+  IMP-063, IMP-090, IMP-094 and IMP-155. Use their readers and transaction
+  primitive rather than adding a second release path.
+- recommendation: P0 before the next seal.
+
+## IMP-184 — replace global DRC suppressions with scoped, measured exceptions
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 release review, 2026-08-21
+- evidence: native DRC reported 0/0/0 only after globally ignoring five rule
+  classes, including track endpoints not centred on vias. Independent geometry
+  found 76 affected vias; the worst trace endpoint remained connected by
+  copper overlap, and none was on the ten USB pairs, but the release contained
+  no occurrence census or bounded justification.
+- general rule: a suppressed rule remains an ungraded population. Every
+  suppression needs an occurrence census, stable object signature, technical
+  justification, scope, owner and expiry/review trigger. Safety- or
+  connectivity-relevant classes may not be disabled globally. Where generation
+  owns the geometry, repair the producer first—for example, terminate emitted
+  tracks at via centres.
+- intended landing point: add a pre-DRC suppression audit and a source-owned
+  exception registry. Final DRC reports enabled findings and suppressed
+  occurrences separately. Any unmatched/new suppressed occurrence fails, and
+  release headlines state the enabled and excepted denominators.
+- simple regression cases: one signed intentional exception passes; a second
+  occurrence fails; moving the object invalidates its signature; a global
+  ignore with zero inventory fails; a router-created off-centre endpoint is
+  repaired or explicitly rejected before promotion.
+- recommendation: P1, promoted to P0 for high-speed, high-current or
+  safety-relevant geometry classes.
+
+## IMP-185 — ratchet ERC warnings by category and stable object identity
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 release review, 2026-08-21
+- evidence: ERC had zero errors but 1,107 warnings, dominated by generated
+  off-grid endpoints and library issues while also containing unconnected wire
+  endpoints. A total-count allowance cannot distinguish a known generator
+  artifact from one new electrically meaningful warning.
+- general rule: zero errors is necessary but not a complete ERC release claim.
+  Baselined warnings are keyed by category and stable object identity with a
+  reason. New warnings fail; disappeared warnings ratchet the baseline down;
+  high-risk categories such as unconnected endpoints and missing exact symbol
+  libraries fail regardless of the historic count.
+- intended landing point: generate a versioned ERC baseline only after human
+  adjudication, compare fresh clean-environment ERC JSON to it at schematic
+  promotion and release staging, and repair library mappings so reproducibility
+  does not depend on the author's workstation.
+- simple regression cases: an unchanged approved off-grid warning passes; one
+  new instance fails; deleting one warning reduces the accepted baseline; an
+  unconnected endpoint or missing library fails even when total warnings fall.
+- recommendation: P1. Start with blocking categories and identity ratcheting;
+  do not require a one-shot cleanup of every generated-grid warning.
+
+## IMP-186 — generate review claims and scoreboards from admitted receipts
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 release review, 2026-08-21
+- evidence: final prose stated route acceptance 9/9 and said copper-length and
+  reference-plane contracts passed. The underlying receipt contained six PASS
+  and three N-A, while the dedicated artifacts said 0/0 paths and zero plane
+  declarations. Hash binding did not prevent the human summary from
+  contradicting the evidence.
+- general rule: a review may interpret measurements but may not manually
+  reconstruct machine status. Counts, applicability and headline verdicts are
+  rendered from admitted receipts. A contradiction between prose claims and
+  structured evidence is itself a release failure.
+- intended landing point: provide a small review-scoreboard composer that
+  verifies receipt identities, emits exact PASS/N-A/FAIL/INCOMPLETE tables and
+  supplies those blocks to review templates and the manifest. Add a claim lint
+  for reserved phrases such as `all pass`, `N/N`, `clean` and `SOUND` when the
+  referenced evidence contains non-pass or incomplete required checks.
+- simple regression cases: six PASS plus three N-A cannot render `9/9 PASS`;
+  prose claiming a plane pass beside zero declarations fails; a defective
+  review remains admissible but blocks; changing a receipt invalidates the
+  generated scoreboard and review admission.
+- relationship: compose IMP-026, IMP-049 and IMP-095 review envelopes rather
+  than creating a second review system.
+- recommendation: P1 after IMP-182 defines the authoritative status grammar.
+
+## IMP-187 — require known-bad promotion-boundary canaries for every fail-closed gate
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 release review, 2026-08-21
+- evidence: the skill already required nonzero denominators, exact identities
+  and stale-evidence rejection, yet real compositors still admitted N-A checks
+  as passing and sealed an earlier-stage policy audit. Positive fixtures proved
+  that tools could pass clean inputs but did not prove that each promotion
+  boundary rejected the defect it was meant to contain.
+- general rule: every load-bearing gate needs at least one current clean canary
+  and one minimal known-bad canary at the compositor boundary, not only at its
+  leaf checker. The bad fixture must exercise status propagation through the
+  same command used for promotion and prove the accepted bundle is preserved.
+- intended landing point: maintain a small matrix mapping each mandatory
+  promotion predicate to a planted defect, expected status and owning test.
+  Initial cases are: missing signal contract, required N-A, stale release audit,
+  off-centre-via suppressed occurrence, new ERC warning, inactive alternate
+  part assertion, changed 3D-model transform and post-rehearsal archive change.
+- simple regression cases: each planted defect turns only its expected boundary
+  red; removing the defect returns green; a test that bypasses the compositor
+  does not count; failure never overwrites the last admitted result.
+- recommendation: P0 implementation discipline for IMP-181 through IMP-186 and
+  for existing model-registration, sourcing and atomic-promotion gates.
+
+## IMP-188 — treat native post-stitch DRC as an independent mandatory acceptance predicate
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 route repair, 2026-08-21
+- evidence: the deterministic stitcher reported its internal gate clean while
+  a native KiCad DRC on the saved board still exposed geometry violations.
+- general rule: router completion, connectivity and native CAD DRC answer
+  different questions. Promotion requires all of them on the exact saved
+  post-stitch board; no internal `clean` status may substitute for CAD DRC.
+- intended landing point: keep native `kicad-cli pcb drc --severity-all
+  --refill-zones --schematic-parity` as a separately produced, hash-bound
+  receipt in atomic route acceptance.
+- simple regression cases: an internally connected board with a clearance
+  defect fails; a zero-DRC board with an open critical pair fails; changing the
+  board after either receipt invalidates acceptance.
+- recommendation: P0; compose into IMP-182 and IMP-187.
+
+## IMP-189 — type route-seed and manufacturing-board artifacts and reject role confusion
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 route repair, 2026-08-21
+- evidence: a post-stitch board was temporarily used as the promoted route
+  seed. A later prune/stitch pass could then remove source-owned seeds, and only
+  the P-ROUTEBASE comparison made the lifecycle error visible.
+- general rule: pre-stitch route authority and post-stitch manufacturing output
+  are different artifact types even though both use `.kicad_pcb`. Each carries
+  an explicit role, producer, input digest and permitted next stages.
+- intended landing point: extend artifact provenance and route import to stamp
+  `route_seed` versus `manufacturing_board`, refusing imports with the wrong
+  role before any destructive prune or stitch action.
+- simple regression cases: a route seed imports; a post-stitch board at the
+  same path fails; changing only the role stamp fails; a rebuild from the
+  admitted seed reproduces the manufacturing topology.
+- recommendation: P0 before the next complex routed board.
+
+## IMP-190 — preflight filled-zone islands and inner-plane obstacles before stitching
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 route repair, 2026-08-21
+- evidence: isolated same-net zone fragments and inner-layer foreign copper
+  were discovered after expensive route/stitch iterations. The outer-layer
+  router did not fully model those projected plane obstacles.
+- general rule: before stitching, fill the exact zones and grade same-net island
+  connectivity plus projected reference-plane obstacles for every declared
+  high-speed corridor. A route candidate that cannot preserve its reference or
+  join its intended power island stops early.
+- intended landing point: add a cheap pre-stitch `zone_island_preflight` and
+  reuse the reference-plane geometry engine in route preparation.
+- simple regression cases: an unjoined filled island fails; an island joined by
+  a declared via passes; foreign inner-plane copper under a USB corridor fails;
+  a distant obstacle passes.
+- recommendation: P1; run before the expensive stitch phase.
+
+## IMP-191 — prefer semantic connector approval identities over nondeterministic render bytes
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 route repair, 2026-08-21
+- evidence: repeated KiCad side-view exports changed PNG bytes while connector
+  placement, model transform, mouth direction, edge datum and keepout remained
+  identical. A byte-bound approval would demand a false new human review.
+- general rule: human connector approval binds to a canonical semantic subject
+  containing footprint/model identity, transform, board-edge datum, mouth
+  direction, body/courtyard bounds and keepout geometry. Images are evidence
+  views of that subject, not its identity.
+- intended landing point: make schema-2 semantic approval the default; render
+  hashes remain recorded for traceability and visual regression but do not
+  invalidate unchanged geometry.
+- simple regression cases: PNG byte drift with unchanged subject passes;
+  swapping a model, moving/rotating a connector, changing its edge, transform
+  or keepout changes the subject and requires fresh approval.
+- recommendation: P1; compose with the existing connector-orientation gate.

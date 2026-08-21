@@ -54,6 +54,64 @@ def _critical_nets(route_cfg: dict[str, Any]) -> list[str]:
                    for key in ("p", "n") if row.get(key)})
 
 
+def _required_checks(mode: str, critical_nets: list[str],
+                     route_cfg: dict[str, Any],
+                     prepared: Path | None) -> list[str]:
+    """Derive promotion applicability from the exact route capability.
+
+    A missing declaration is not allowed to decide its own applicability.  In
+    particular, a board that declares critical pairs requires realized length
+    and adjacent-reference-plane evidence in full mode even when the leaf
+    checker reports ``N-A`` because its configuration is absent.
+    """
+    required = {"realized_via_aspect"}
+    if critical_nets:
+        required.update({"critical_connectivity", "simple_conductor"})
+    route = route_cfg.get("route") or {}
+    if route.get("ownership"):
+        required.add("route_ownership")
+    if prepared is not None:
+        required.add("route_base")
+    if mode == "full":
+        required.add("native_drc")
+        if critical_nets:
+            required.update({"critical_copper_length", "reference_plane"})
+        if route_cfg.get("via_ampacity"):
+            required.add("via_ampacity")
+    return sorted(required)
+
+
+def _admission(checks: dict[str, dict[str, Any]],
+               required_checks: list[str]) -> tuple[str, dict[str, int], list[str]]:
+    missing = sorted(set(required_checks) - set(checks))
+    required_not_pass = sorted(
+        name for name in required_checks
+        if name in checks and checks[name].get("status") != "PASS")
+    statuses = [str(row.get("status")) for row in checks.values()]
+    if missing or any(status == "INCOMPLETE" for status in statuses) or any(
+            checks[name].get("status") == "N-A" for name in required_not_pass):
+        verdict = "INCOMPLETE"
+    elif any(status == "FAIL" for status in statuses):
+        verdict = "REJECTED"
+    else:
+        verdict = "ACCEPTED"
+    coverage = {
+        "pass": sum(status == "PASS" for status in statuses),
+        "non_applicable": sum(status == "N-A" for status in statuses),
+        "fail": sum(status == "FAIL" for status in statuses),
+        "incomplete": sum(status == "INCOMPLETE" for status in statuses),
+        "required": len(required_checks),
+        "required_pass": sum(
+            checks.get(name, {}).get("status") == "PASS"
+            for name in required_checks),
+        "total": len(checks),
+    }
+    # Backward-compatible key with corrected semantics: only an executed PASS
+    # is passing.  N-A retains its own denominator above.
+    coverage["passing"] = coverage["pass"]
+    return verdict, coverage, missing + required_not_pass
+
+
 def _simple_conductor(project: Path, board: Path,
                       critical_nets: list[str],
                       route_cfg: dict[str, Any]) -> dict[str, Any]:
@@ -279,9 +337,10 @@ def grade(project: Path, board: Path, *, mode: str,
                 counts=counts, process_exit=rc,
                 artifact=_record(drc_json))
 
-    statuses = {row["status"] for row in checks.values()}
-    verdict = ("INCOMPLETE" if "INCOMPLETE" in statuses else
-               "REJECTED" if "FAIL" in statuses else "ACCEPTED")
+    required_checks = _required_checks(
+        mode, critical_nets, route_cfg, prepared)
+    verdict, coverage, required_not_pass = _admission(
+        checks, required_checks)
     inputs = {"board": _record(board), "route": _record(route_path),
               "nets": _record(nets_path)}
     if prepared is not None:
@@ -290,11 +349,9 @@ def grade(project: Path, board: Path, *, mode: str,
         "schema": 1, "kind": "route-acceptance-receipt-v1",
         "mode": mode, "verdict": verdict, "subject": inputs["board"],
         "inputs": inputs, "checks": checks,
-        "coverage": {
-            "passing": sum(row["status"] in {"PASS", "N-A"}
-                           for row in checks.values()),
-            "total": len(checks),
-        },
+        "required_checks": required_checks,
+        "required_not_pass": required_not_pass,
+        "coverage": coverage,
     }
 
 
@@ -312,11 +369,28 @@ def verify(receipt_path: Path) -> tuple[bool, list[str]]:
         path = Path(str(record.get("path") or ""))
         if not path.is_file() or _record(path) != record:
             failures.append(f"input moved or changed: {name}")
-    if receipt.get("verdict") == "ACCEPTED":
-        bad = [name for name, row in (receipt.get("checks") or {}).items()
-               if row.get("status") not in {"PASS", "N-A"}]
-        if bad:
-            failures.append(f"accepted receipt contains bad checks: {bad}")
+    checks = receipt.get("checks") or {}
+    try:
+        route_record = (receipt.get("inputs") or {})["route"]
+        route_path = Path(str(route_record["path"]))
+        route_cfg = yaml.safe_load(
+            route_path.read_text(encoding="utf-8-sig")) or {}
+        expected_required = _required_checks(
+            str(receipt.get("mode")), _critical_nets(route_cfg), route_cfg,
+            Path("prepared") if "prepared" in (receipt.get("inputs") or {})
+            else None)
+        if receipt.get("required_checks") != expected_required:
+            failures.append("required-check applicability differs from exact route contract")
+        expected_verdict, expected_coverage, expected_not_pass = _admission(
+            checks, expected_required)
+        if receipt.get("verdict") != expected_verdict:
+            failures.append("receipt verdict disagrees with check statuses/applicability")
+        if receipt.get("coverage") != expected_coverage:
+            failures.append("receipt coverage disagrees with check statuses")
+        if receipt.get("required_not_pass") != expected_not_pass:
+            failures.append("required-not-pass list disagrees with check statuses")
+    except Exception as exc:
+        failures.append(f"cannot re-derive route applicability: {exc}")
     return not failures, failures
 
 
@@ -351,8 +425,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     _atomic_json(args.json, receipt)
     coverage = receipt["coverage"]
-    print(f"ROUTE-ACCEPTANCE {receipt['verdict']}: {coverage['passing']}/"
-          f"{coverage['total']} checks passing or non-applicable; "
+    print(f"ROUTE-ACCEPTANCE {receipt['verdict']}: "
+          f"{coverage['pass']} PASS / {coverage['non_applicable']} N-A / "
+          f"{coverage['fail']} FAIL / {coverage['incomplete']} INCOMPLETE; "
+          f"required {coverage['required_pass']}/{coverage['required']} PASS; "
           f"receipt={args.json.resolve()}")
     return {"ACCEPTED": 0, "REJECTED": 1, "INCOMPLETE": 2}[receipt["verdict"]]
 

@@ -4,9 +4,9 @@ review_stage: pre-route
 review_kind: layout
 reviewer: Codex primary agent, exact-artifact placement and routability lens
 context_given: full project context; this is not a fresh-context independent review
-reviewed_on: 2026-08-20
-board_sha256: d3e032a75148cc7dc2139052c029def5a81bab6926680ea8f3c1b1458ee59da4
-design_rules_sha256: fcf6878c8b9f0f078e829788ab3a408dbdf7ac25844ac0e1b78a57707b22e497
+reviewed_on: 2026-08-21
+board_sha256: 78e0c6a1c3c2e4435b5f478808e113000c72d606aca05e29cbb425a85f4fa1dd
+design_rules_sha256: c992b9c93edc042845555c77283c511ddfdbfbd0240550f70c99c075d4f63a31
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 
@@ -17,6 +17,17 @@ thermal-connect overrides and the deterministic `R_SWAP4.2` ground dogbone
 were added.  No footprint anchor, connector datum, board edge, courtyard, or
 keepout moved.  The dogbone's collision-clear route is owned by the prepared
 route and is separately required to survive promotion by P-ROUTEBASE.
+
+The 2026-08-21 renewal retains every footprint anchor, outline, edge datum,
+mounting hole, keepout, and model transform. It additionally verifies that
+the clearance-preserving U_PWR2 dogleg and staggered port-2 power-via bank fit
+the frozen placement; P-ROUTEBASE now passes over 190 footprints, 329 source
+vias, and 726 prepared segments.
+
+The final hash renewal changes only the non-geometric position-export
+attribute on the four manually installed USB-A connectors. Their anchors,
+outlines, courtyards, models, keepouts and mating datums remain byte-for-byte
+represented by the same source values reviewed here.
 
 The exact 150 x 115 mm, four-layer placement was reviewed as a placement and
 routing-permission subject, not as a completed PCB. The four USB-A mouths form

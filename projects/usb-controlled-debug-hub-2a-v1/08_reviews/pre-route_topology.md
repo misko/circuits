@@ -4,10 +4,10 @@ review_stage: pre-route
 review_kind: topology
 reviewer: Codex primary agent, exact-artifact topology lens
 context_given: full project context; this is not a fresh-context independent review
-reviewed_on: 2026-08-20
+reviewed_on: 2026-08-21
 netlist_sha256: 91a3b7ff27188f7bf4f42ef443e5f7ee31b2edc85ca53b867348b97dccfbcd87
-parts_sha256: badcebfc53e8d49105a92b4d6d56db12dbff51ae0a6fd34de757eb04de796283
-design_rules_sha256: dfcb459279c5e43f13926baa75656106e0f750386568aa7531679d1a8723edc5
+parts_sha256: 7b0bf8de2f63d1996a4456d3c5c29217d357982fd39175571ce3c84c83718937
+design_rules_sha256: c992b9c93edc042845555c77283c511ddfdbfbd0240550f70c99c075d4f63a31
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 
@@ -57,6 +57,14 @@ normalized netlist, part-dossier digest, schematic PDF, and every electrical
 claim above remain byte-identical. The delta selects exact native connector
 bodies for rendering and records a manufacturer-authoritative inductor land;
 it does not change a symbol, pin, net, component value, or fabricated pad.
+
+The 2026-08-21 renewal additionally binds ADR-0004's explicit USB length and
+adjacent-reference-plane contracts, the clearance-preserving U_PWR2 GND
+dogleg/staggered power-via bank, and deterministic source-owned power/GND island joins.
+The normalized electrical netlist and delivered schematic PDF remain
+byte-identical to the prior review. The new policy makes already-reviewed USB
+and package-local geometry measurable; it does not alter any component pin,
+net, value, protection topology, or safe-state claim above.
 
 ## Findings and boundary
 

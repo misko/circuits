@@ -196,6 +196,49 @@ def t_route_branch_bad():
     check(report["failures"], "branched conductor emitted no finding")
 
 
+@test("route acceptance reports PASS and N-A as separate denominators")
+def t_route_acceptance_optional_na():
+    checks = {
+        "native_drc": {"status": "PASS"},
+        "route_base": {"status": "N-A"},
+    }
+    verdict, coverage, required_not_pass = route_acceptance_gate._admission(
+        checks, ["native_drc"])
+    eq(verdict, "ACCEPTED", "optional N-A admission")
+    eq(coverage["pass"], 1, "executed pass count")
+    eq(coverage["non_applicable"], 1, "N-A count")
+    eq(coverage["passing"], 1, "legacy passing key excludes N-A")
+    eq(required_not_pass, [], "required closure")
+
+
+@test("required route check cannot become accepted N-A", kind="known_bad")
+def t_route_acceptance_required_na():
+    checks = {
+        "critical_copper_length": {"status": "N-A"},
+        "native_drc": {"status": "PASS"},
+    }
+    verdict, coverage, required_not_pass = route_acceptance_gate._admission(
+        checks, ["critical_copper_length", "native_drc"])
+    eq(verdict, "INCOMPLETE", "required N-A admission")
+    eq(coverage["required_pass"], 1, "required-pass denominator")
+    eq(required_not_pass, ["critical_copper_length"],
+       "required N-A diagnosis")
+
+
+@test("full high-speed route derives length and plane as required")
+def t_route_acceptance_high_speed_required():
+    cfg = {"route": {"preflight_critical_pairs": [
+        {"p": "USB_P", "n": "USB_N"}]}}
+    required = route_acceptance_gate._required_checks(
+        "full", ["USB_N", "USB_P"], cfg, None)
+    check("critical_copper_length" in required,
+          "high-speed length was not required")
+    check("reference_plane" in required,
+          "high-speed reference plane was not required")
+    check("route_base" not in required,
+          "absent optional inheritance subject became required")
+
+
 def manufacturing_tree(codes):
     project = tmpdir("manufacturing_ready_")
     circuit = project / "03_tscircuit/build/circuit.json"

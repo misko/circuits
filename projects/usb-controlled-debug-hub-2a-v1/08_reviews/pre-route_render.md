@@ -4,9 +4,9 @@ review_stage: pre-route
 review_kind: render
 reviewer: Codex primary agent, exact manufacturing-twin readability lens
 context_given: full project context; this is not a fresh-context independent review
-reviewed_on: 2026-08-20
-board_sha256: d3e032a75148cc7dc2139052c029def5a81bab6926680ea8f3c1b1458ee59da4
-design_rules_sha256: fcf6878c8b9f0f078e829788ab3a408dbdf7ac25844ac0e1b78a57707b22e497
+reviewed_on: 2026-08-21
+board_sha256: 78e0c6a1c3c2e4435b5f478808e113000c72d606aca05e29cbb425a85f4fa1dd
+design_rules_sha256: c992b9c93edc042845555c77283c511ddfdbfbd0240550f70c99c075d4f63a31
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 
@@ -30,6 +30,10 @@ ground-dogbone changes.  They do not alter body placement or model transforms;
 the model-registration and connector-orientation subjects remain unchanged.
 The A-RENDER report is nevertheless regenerated and hash-bound below rather
 than inheriting its earlier board digest.
+
+The final hash renewal adds only `exclude_from_pos_files` to J_PORT1..J_PORT4.
+That assembly-export attribute has no rendered or mechanical geometry, so the
+same exact model-registration, connector subject and inspected views apply.
 
 The exact top, bottom, isometric, edge, bare-board, and courtyard-overlay
 views were inspected. Every fitted body is present: 183/183 model coverage.

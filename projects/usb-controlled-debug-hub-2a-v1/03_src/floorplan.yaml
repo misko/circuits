@@ -79,12 +79,6 @@ libraries:
   path: 03_src/lib/usb_controlled_debug_hub_2a.pretty
 - /usr/share/kicad/footprints
 placement:
-  # These exact 3 A receptacles are installed manually after PCBA. Encode the
-  # assembly decision in the regenerated board so no future position export
-  # can silently put them back onto JLC's machine-placement list.
-  patterns:
-  - match: [J_PORT1, J_PORT2, J_PORT3, J_PORT4]
-    attrs: [exclude_from_pos_files]
   sides:
     U_ESD_UP: bottom
     U_ESD1: bottom
@@ -830,6 +824,10 @@ placement:
     - 0
   patterns:
   - match: J_PORT*
+    # These exact 3 A receptacles are installed manually after PCBA. Keep the
+    # assembly attribute in this canonical patterns list; a second YAML
+    # `patterns:` key would be shadowed by this one during parsing.
+    attrs: [exclude_from_pos_files]
     model_override:
       file: "${KIPRJMOD}/../03_src/lib/3d/USB1130-15-A-envelope.wrl"
       offset: [0, 0, 0]
@@ -907,6 +905,11 @@ placement:
     - pads: [2]
       on_net: GND
       zone_connection: full
+  - match: C_AND_DATA
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
   - match: C_PD_VDD
     pad_overrides:
     - pads: [2]
@@ -936,6 +939,11 @@ placement:
     pad_overrides:
     - pads: [2]
       on_net: GND
+      zone_connection: full
+  - match: U_PWR4
+    pad_overrides:
+    - pads: [5]
+      on_net: P5V_B_PROTECTED
       zone_connection: full
   - match: R_NONREM1
     pad_overrides:
@@ -1149,12 +1157,14 @@ zones:
 - net: P5V_B_PROTECTED
   layers: [F.Cu]
   priority: 5
-  rect: [101.0, 52.0, 105.0, 56.0]
+  points: [[101.0, 52.0], [102.75, 52.0], [102.75, 53.55],
+           [105.0, 53.55], [105.0, 56.0], [101.0, 56.0]]
   connect: full
 - net: P5V_B_PROTECTED
   layers: [F.Cu]
   priority: 5
-  rect: [129.0, 52.0, 133.0, 56.0]
+  points: [[129.0, 52.0], [130.75, 52.0], [130.75, 53.55],
+           [133.0, 53.55], [133.0, 56.0], [129.0, 56.0]]
   connect: full
 - net: GND
   layers:

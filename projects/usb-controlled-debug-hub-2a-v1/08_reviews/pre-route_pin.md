@@ -4,10 +4,10 @@ review_stage: pre-route
 review_kind: pin
 reviewer: Codex primary agent, exact-artifact physical-pin lens
 context_given: full project context; this is not a fresh-context independent review
-reviewed_on: 2026-08-20
-board_sha256: d3e032a75148cc7dc2139052c029def5a81bab6926680ea8f3c1b1458ee59da4
-parts_sha256: 6f06b6d7d4c6237ebe0af6c6b8273fa5cc6f163f4882a82b8fbd04d732b248d1
-design_rules_sha256: fcf6878c8b9f0f078e829788ab3a408dbdf7ac25844ac0e1b78a57707b22e497
+reviewed_on: 2026-08-21
+board_sha256: 78e0c6a1c3c2e4435b5f478808e113000c72d606aca05e29cbb425a85f4fa1dd
+parts_sha256: 7b0bf8de2f63d1996a4456d3c5c29217d357982fd39175571ce3c84c83718937
+design_rules_sha256: c992b9c93edc042845555c77283c511ddfdbfbd0240550f70c99c075d4f63a31
 design_verdict: SOUND
 order_verdict: DO-NOT-ORDER
 
@@ -18,6 +18,13 @@ dogbone and exact TVS escape-tier dossier correction.  The dogbone adds no
 pin identity or net change: it connects the already-GND pad to the GND plane.
 The TVS correction changes only the declared minimum manufacturable escape
 tier, not the selected part, footprint, pinout, or board connectivity.
+
+The 2026-08-21 renewal binds the same deterministic 183-part placement to
+ADR-0004 and the exact promoted pre-stitch route. The U_PWR2 GND dogleg and
+staggered same-net power-via bank change only routed copper; all physical pin
+identities, footprints, pad numbers, and nets reviewed below are unchanged.
+The later hash renewal adds only the source-owned `exclude_from_pos_files`
+attribute to J_PORT1..J_PORT4; it changes no pin, pad, net, land or geometry.
 
 The exact generated board was checked against the exact circuit JSON and all
 part dossiers before routing. `pin_map_check.py` graded 29 multi-pin

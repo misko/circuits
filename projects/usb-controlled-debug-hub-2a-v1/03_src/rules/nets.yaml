@@ -45,6 +45,36 @@ scoped_floors:
   - {zone: buck_a_switch_land_neck, nets: [SW_A], min_width: 0.30mm, why: "Bounded package-local closure between the bank-A switch land and its adjacent filled switch island; broad copper resumes immediately outside the land field."}
   - {zone: buck_b_switch_land_neck, nets: [SW_B], min_width: 0.30mm, why: "Bank-B translation of the bounded package-local switch-land closure."}
 
+# Every outer-layer USB route owns an adjacent GND reference.  This projected
+# obstacle gate is deliberately declared for both outer layers: B.Cu references
+# In2.Cu and F.Cu references In1.Cu.  It complements, but cannot replace, the
+# filled-plane review and order-time JLC 90-ohm impedance solve.
+reference_plane_checks:
+  USB_BCU_OVER_IN2:
+    signal_layer: B.Cu
+    reference_layer: In2.Cu
+    reference_net: GND
+    signal_nets:
+      [UP_HUB_P, UP_HUB_N, MGMT_P, MGMT_N,
+       P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N,
+       P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N,
+       P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N,
+       P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+    min_track_clearance_mm: 0.30
+    min_via_clearance_mm: 0.15
+  USB_FCU_OVER_IN1:
+    signal_layer: F.Cu
+    reference_layer: In1.Cu
+    reference_net: GND
+    signal_nets:
+      [UP_HUB_P, UP_HUB_N, MGMT_P, MGMT_N,
+       P1_HUB_P, P1_HUB_N, P2_HUB_P, P2_HUB_N,
+       P3_HUB_P, P3_HUB_N, P4_HUB_P, P4_HUB_N,
+       P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N,
+       P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+    min_track_clearance_mm: 0.30
+    min_via_clearance_mm: 0.15
+
 classes:
   PWR_PD:
     intent: "20 V / <=3 A negotiated input trunk; broad copper and short protection/converter branches"
@@ -91,7 +121,12 @@ classes:
     verify: "<=100 mOhm complete protected path budget and 2 A thermal test"
 
   USB_HS:
-    intent: "USB 2.0 High-Speed differential data; geometry solved from final JLC stackup"
+    intent: >-
+      USB 2.0 High-Speed differential data. Route-wave 0.50 mm tolerances are
+      stochastic search targets for each separately routed net segment; the
+      electrical release contract below measures complete functional links
+      across the series data switches and limits end-to-end P/N spread to
+      1.00 mm. Geometry remains provisional until the final JLC stackup solve.
     nets: [UP_HUB_P, UP_HUB_N, P1_HUB_P, P1_HUB_N, P1_PORT_P, P1_PORT_N, P2_HUB_P, P2_HUB_N, P2_PORT_P, P2_PORT_N, P3_HUB_P, P3_HUB_N, P3_PORT_P, P3_PORT_N, P4_HUB_P, P4_HUB_N, P4_PORT_P, P4_PORT_N, MGMT_P, MGMT_N]
     current: "signal"
     min_width: 0.15mm
@@ -114,3 +149,91 @@ classes:
     clearance: 0.15mm
     routing: "local manufacturer-precedent copper islands only"
     verify: "placement adjacency, hot-loop and source-owned zone checks"
+
+# R-LEN release authority.  The FSUSB42 divides each port into two routed net
+# segments, so a segment-only comparison can overstate or hide the electrical
+# link skew.  Each functional path is measured as one ordered chain.  The
+# router's per-wave 0.50 mm value remains a convergence target, not a second
+# electrical authority.
+length_match:
+  UPSTREAM:
+    adr: "0004"
+    intent: Match the direct USB-C data receptacle to hub upstream path.
+    members: {P: [UP_HUB_P], N: [UP_HUB_N]}
+    topology: tree
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 0.50
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [J_DATA.A6, U_HUB.59]
+      N: [J_DATA.A7, U_HUB.58]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  MANAGEMENT:
+    adr: "0004"
+    intent: Match the permanently attached management USB pair.
+    members: {P: [MGMT_P], N: [MGMT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 0.50
+    router_moves: octilinear
+    elongation: meander
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  PORT1_E2E:
+    adr: "0004"
+    intent: Match port 1 P/N through the hub, data switch and connector path.
+    members: {P: [P1_HUB_P, P1_PORT_P], N: [P1_HUB_N, P1_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 1.00
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.4, J_PORT1.3]
+      N: [U_HUB.3, J_PORT1.2]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  PORT2_E2E:
+    adr: "0004"
+    intent: Match port 2 P/N through the hub, data switch and connector path.
+    members: {P: [P2_HUB_P, P2_PORT_P], N: [P2_HUB_N, P2_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 1.00
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.7, J_PORT2.3]
+      N: [U_HUB.6, J_PORT2.2]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  PORT3_E2E:
+    adr: "0004"
+    intent: Match port 3 P/N through the hub, data switch and connector path.
+    members: {P: [P3_HUB_P, P3_PORT_P], N: [P3_HUB_N, P3_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 1.00
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.9, J_PORT3.3]
+      N: [U_HUB.8, J_PORT3.2]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
+  PORT4_E2E:
+    adr: "0004"
+    intent: Match port 4 P/N through the hub, data switch and connector path.
+    members: {P: [P4_HUB_P, P4_PORT_P], N: [P4_HUB_N, P4_PORT_N]}
+    topology: chain
+    congruent_pads: true
+    no_vias: false
+    max_spread_mm: 1.00
+    router_moves: octilinear
+    elongation: meander
+    octilinear_endpoints:
+      P: [U_HUB.12, J_PORT4.3]
+      N: [U_HUB.11, J_PORT4.2]
+    stackup_mm: [0.2104, 1.0650, 0.2104]
